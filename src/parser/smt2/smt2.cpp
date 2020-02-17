@@ -564,7 +564,7 @@ api::Op Smt2::mkIndexedOp(const std::string& name,
   return api::Op();
 }
 
-api::Term Smt2::mkDefineFunRec(
+api::Term Smt2::bindDefineFunRec(
     const std::string& fname,
     const std::vector<std::pair<std::string, api::Sort> >& sortedVarNames,
     api::Sort t,
@@ -581,7 +581,7 @@ api::Term Smt2::mkDefineFunRec(
   api::Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
 
   // allow overloading
-  return mkVar(fname, ft, ExprManager::VAR_FLAG_NONE, true);
+  return bindVar(fname, ft, ExprManager::VAR_FLAG_NONE, true);
 }
 
 void Smt2::pushDefineFunRecScope(
@@ -597,7 +597,7 @@ void Smt2::pushDefineFunRecScope(
   // of the define-fun(s)-rec command, we define them here
   for (const std::pair<std::string, api::Sort>& svn : sortedVarNames)
   {
-    api::Term v = mkBoundVar(svn.first, svn.second);
+    api::Term v = bindBoundVar(svn.first, svn.second);
     bvs.push_back(v);
   }
 
@@ -652,13 +652,13 @@ Smt2::SynthFunFactory::SynthFunFactory(
           : range;
 
   // we do not allow overloading for synth fun
-  d_synthFun = d_smt2->mkBoundVar(fun, synthFunType);
+  d_synthFun = d_smt2->bindBoundVar(fun, synthFunType);
   // set the sygus type to be range by default, which is overwritten below
   // if a grammar is provided
   d_sygusType = range;
 
   d_smt2->pushScope(true);
-  d_sygusVars = d_smt2->mkBoundVars(sortedVarNames);
+  d_sygusVars = d_smt2->bindBoundVars(sortedVarNames);
 }
 
 Smt2::SynthFunFactory::~SynthFunFactory() { d_smt2->popScope(); }
@@ -1157,7 +1157,7 @@ api::Sort Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dnam
           Debug("parser-sygus") << ":  child " << i << " introduce type elem for " << cargs[sub_dt_index][0][i] << " " << bt << std::endl;
           std::stringstream ss;
           ss << t << "_x_" << i;
-          api::Term bv = mkBoundVar(ss.str(), bt);
+          api::Term bv = bindBoundVar(ss.str(), bt);
           children.push_back( bv );
           d_sygus_bound_var_type[bv] = cargs[sub_dt_index][0][i];
         }else{
@@ -1364,7 +1364,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
 
           std::stringstream ss;
           ss << t << "_x";
-          api::Term var = mkBoundVar(ss.str(), bt);
+          api::Term var = bindBoundVar(ss.str(), bt);
           std::vector<api::Term> lchildren;
           lchildren.push_back(
               d_solver->mkTerm(api::BOUND_VAR_LIST, var));
@@ -1403,7 +1403,7 @@ api::Term Smt2::makeSygusBoundVarList(CVC4::Datatype& dt,
   {
     std::stringstream ss;
     ss << dt.getName() << "_x_" << i << "_" << j;
-    api::Term v = mkBoundVar(ss.str(), ltypes[j]);
+    api::Term v = bindBoundVar(ss.str(), ltypes[j]);
     lvars.push_back(v);
   }
   return d_solver->mkTerm(api::BOUND_VAR_LIST, lvars);
@@ -1987,7 +1987,7 @@ api::Term Smt2::setNamedAttribute(api::Term& expr, const SExpr& sexpr)
   // check that sexpr is a fresh function symbol, and reserve it
   reserveSymbolAtAssertionLevel(name);
   // define it
-  api::Term func = mkVar(name, expr.getSort(), ExprManager::VAR_FLAG_DEFINED);
+  api::Term func = bindVar(name, expr.getSort(), ExprManager::VAR_FLAG_DEFINED);
   // remember the last term to have been given a :named attribute
   setLastNamedTerm(expr, name);
   return func;

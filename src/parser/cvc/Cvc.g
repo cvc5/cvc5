@@ -878,7 +878,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       idCommaFlag=true;
       })? 
     {
-      func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
+      func = PARSER_STATE->bindVar(id, t, ExprManager::VAR_FLAG_NONE, true);
       ids.push_back(id);
       types.push_back(t);
       funcs.push_back(func);
@@ -1019,7 +1019,7 @@ boundVarDeclReturn[std::vector<CVC4::api::Term>& terms,
   // NOTE: do not clear the vectors here!
 }
   : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED]
-    { const std::vector<api::Term>& vars = PARSER_STATE->mkBoundVars(ids, t);
+    { const std::vector<api::Term>& vars = PARSER_STATE->bindBoundVars(ids, t);
       terms.insert(terms.end(), vars.begin(), vars.end());
       for(unsigned i = 0; i < vars.size(); ++i) {
         types.push_back(t);
@@ -1114,11 +1114,11 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           } else {
             Debug("parser") << "  " << *i << " not declared" << std::endl;
             if(topLevel) {
-              api::Term func = PARSER_STATE->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL);
+              api::Term func = PARSER_STATE->bindVar(*i, t, ExprManager::VAR_FLAG_GLOBAL);
               Command* decl = new DeclareFunctionCommand(*i, func.getExpr(), t.getType());
               seq->addCommand(decl);
             } else {
-              PARSER_STATE->mkBoundVar(*i, t);
+              PARSER_STATE->bindBoundVar(*i, t);
             }
           }
         }
@@ -1452,14 +1452,14 @@ prefixFormula[CVC4::api::Term& f]
     { PARSER_STATE->pushScope(); } LPAREN
     boundVarDecl[ids,t]
     { for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
-        bvs.push_back(PARSER_STATE->mkBoundVar(*i, t));
+        bvs.push_back(PARSER_STATE->bindBoundVar(*i, t));
       }
       ids.clear();
     }
     ( COMMA boundVarDecl[ids,t]
       {
         for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
-          bvs.push_back(PARSER_STATE->mkBoundVar(*i, t));
+          bvs.push_back(PARSER_STATE->bindBoundVar(*i, t));
         }
         ids.clear();
       }

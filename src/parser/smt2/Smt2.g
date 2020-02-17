@@ -315,7 +315,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       if (PARSER_STATE->sygus_v1())
       {
         // it is a higher-order universal variable
-        CVC4::api::Term func = PARSER_STATE->mkBoundVar(name, t);
+        CVC4::api::Term func = PARSER_STATE->bindBoundVar(name, t);
         cmd->reset(new DeclareSygusFunctionCommand(name, func.getExpr(), t.getType()));
       }
       else if( PARSER_STATE->sygus() )
@@ -325,7 +325,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
       else
       {
-        CVC4::api::Term func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+        CVC4::api::Term func = PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
         cmd->reset(new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
       }
     }
@@ -348,7 +348,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
       }
       PARSER_STATE->pushScope(true);
-      terms = PARSER_STATE->mkBoundVars(sortedVarNames);
+      terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[expr, expr2]
     {
@@ -363,7 +363,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // must not be extended with the name itself; no recursion
       // permitted)
       // we allow overloading for function definitions
-      CVC4::api::Term func = PARSER_STATE->mkVar(name, t,
+      CVC4::api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED, true);
       cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::termVectorToExprs(terms), expr.getExpr()));
     }
@@ -559,7 +559,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     {
-      CVC4::api::Term var = PARSER_STATE->mkBoundVar(name, t);
+      CVC4::api::Term var = PARSER_STATE->bindBoundVar(name, t);
       cmd.reset(new DeclareSygusVarCommand(name, var.getExpr(), t.getType()));
     }
   | /* declare-primed-var */
@@ -968,7 +968,7 @@ sygusGrammar[CVC4::api::Sort & ret,
       unresTypes.push_back(urt);
       // make the non-terminal symbol, which will be parsed as an ordinary
       // free variable.
-      CVC4::api::Term nts = PARSER_STATE->mkBoundVar(i.first, i.second);
+      CVC4::api::Term nts = PARSER_STATE->bindBoundVar(i.first, i.second);
       ntSyms.push_back(nts);
       ntsToUnres[nts] = urt;
     }
@@ -1131,7 +1131,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     { // allow overloading here
-      CVC4::api::Term c = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+      CVC4::api::Term c = PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
       cmd->reset(new DeclareFunctionCommand(name, c.getExpr(), t.getType())); }
 
     /* get model */
@@ -1306,7 +1306,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           t = sorts[0];
         }
         // allow overloading
-        CVC4::api::Term func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+        CVC4::api::Term func = PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
         seq->addCommand(new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
         sorts.clear();
       }
@@ -1331,7 +1331,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           t = SOLVER->mkFunctionSort(sorts, t);
         }
         // allow overloading
-        CVC4::api::Term func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+        CVC4::api::Term func = PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
         seq->addCommand(new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
         sorts.clear();
       }
@@ -1343,7 +1343,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       term[e,e2]
-      { CVC4::api::Term func = PARSER_STATE->mkVar(name, e.getSort(),
+      { CVC4::api::Term func = PARSER_STATE->bindVar(name, e.getSort(),
                                         ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(name, func.getExpr(), e.getExpr()));
       }
@@ -1354,7 +1354,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { /* add variables to parser state before parsing term */
         Debug("parser") << "define fun: '" << name << "'" << std::endl;
         PARSER_STATE->pushScope(true);
-        terms = PARSER_STATE->mkBoundVars(sortedVarNames);
+        terms = PARSER_STATE->bindBoundVars(sortedVarNames);
       }
       term[e,e2]
       { PARSER_STATE->popScope();
@@ -1372,7 +1372,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           }
           t = SOLVER->mkFunctionSort(sorts, t);
         }
-        CVC4::api::Term func = PARSER_STATE->mkVar(name, t,
+        CVC4::api::Term func = PARSER_STATE->bindVar(name, t,
                                         ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
       }
@@ -1384,14 +1384,14 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     { /* add variables to parser state before parsing term */
       Debug("parser") << "define const: '" << name << "'" << std::endl;
       PARSER_STATE->pushScope(true);
-      terms = PARSER_STATE->mkBoundVars(sortedVarNames);
+      terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[e, e2]
     { PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
-      CVC4::api::Term func = PARSER_STATE->mkVar(name, t,
+      CVC4::api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED);
       cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
     }
@@ -1769,7 +1769,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
               PARSER_STATE->parseError("Too many arguments for pattern.");
             }
             //make of proper type
-            CVC4::api::Term arg = PARSER_STATE->mkBoundVar(name, argTypes[args.size()]);
+            CVC4::api::Term arg = PARSER_STATE->bindBoundVar(name, argTypes[args.size()]);
             args.push_back( arg );
           }
         )*
@@ -1803,7 +1803,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           else
           {
             // it has the type of the head expr
-            f = PARSER_STATE->mkBoundVar(name, expr.getSort());
+            f = PARSER_STATE->bindBoundVar(name, expr.getSort());
           }
         }
         term[f3, f2] {
@@ -2146,7 +2146,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
         }
       }else{
         CVC4::api::Sort t = SOLVER->getBooleanSort();
-        avar = PARSER_STATE->mkVar(attr_name, t);
+        avar = PARSER_STATE->bindVar(attr_name, t);
       }
       if( success ){
         //Will set the attribute on auxiliary var (preserves attribute on
@@ -2183,7 +2183,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       std::string attr_name(AntlrInput::tokenText($tok));
       attr_name.erase( attr_name.begin() );
       CVC4::api::Sort t = SOLVER->getBooleanSort();
-      CVC4::api::Term avar = PARSER_STATE->mkVar(attr_name, t);
+      CVC4::api::Term avar = PARSER_STATE->bindVar(attr_name, t);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
       Command* c = new SetUserAttributeCommand( attr_name, avar.getExpr(), api::termVectorToExprs(values) );
       c->setMuted(true);
@@ -2326,7 +2326,7 @@ boundVarList[CVC4::api::Term& expr]
 }
  : LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
    {
-     std::vector<CVC4::api::Term> args = PARSER_STATE->mkBoundVars(sortedVarNames);
+     std::vector<CVC4::api::Term> args = PARSER_STATE->bindBoundVars(sortedVarNames);
      expr = MK_TERM(api::BOUND_VAR_LIST, args);
    }
  ;

@@ -817,7 +817,7 @@ variable[CVC4::api::Term& expr]
       if(!PARSER_STATE->cnf() || PARSER_STATE->isDeclared(name)) {
         expr = PARSER_STATE->getVariable(name);
       } else {
-        expr = PARSER_STATE->mkBoundVar(name, PARSER_STATE->d_unsorted);
+        expr = PARSER_STATE->bindBoundVar(name, PARSER_STATE->d_unsorted);
         if(PARSER_STATE->cnf()) PARSER_STATE->addFreeVar(expr);
       }
     }
@@ -892,7 +892,7 @@ fofUnitaryFormula[CVC4::api::Term& expr]
 bindvariable[CVC4::api::Term& expr]
   : UPPER_WORD
     { std::string name = AntlrInput::tokenText($UPPER_WORD);
-      expr = PARSER_STATE->mkBoundVar(name, PARSER_STATE->d_unsorted);
+      expr = PARSER_STATE->bindBoundVar(name, PARSER_STATE->d_unsorted);
     }
   ;
 
@@ -989,11 +989,11 @@ thfAtomTyping[CVC4::Command*& cmd]
           CVC4::api::Term freshExpr;
           if (type.isFunction())
           {
-            freshExpr = PARSER_STATE->mkVar(name, type);
+            freshExpr = PARSER_STATE->bindVar(name, type);
           }
           else
           {
-            freshExpr = PARSER_STATE->mkVar(name, type);
+            freshExpr = PARSER_STATE->bindVar(name, type);
           }
           cmd = new DeclareFunctionCommand(name, freshExpr.getExpr(), type.getType());
         }
@@ -1223,7 +1223,7 @@ tffTypedAtom[CVC4::Command*& cmd]
           }
         } else {
           // as yet, it's undeclared
-          CVC4::api::Term expr = PARSER_STATE->mkVar(name, type);
+          CVC4::api::Term expr = PARSER_STATE->bindVar(name, type);
           cmd = new DeclareFunctionCommand(name, expr.getExpr(), type.getType());
         }
       }
@@ -1364,7 +1364,7 @@ thfBindVariable[CVC4::api::Term& expr]
     { name = AntlrInput::tokenText($UPPER_WORD); }
     ( COLON_TOK parseThfType[type] )?
     {
-      expr = PARSER_STATE->mkBoundVar(name, type);
+      expr = PARSER_STATE->bindBoundVar(name, type);
     }
   ;
 
@@ -1376,7 +1376,7 @@ tffbindvariable[CVC4::api::Term& expr]
   : UPPER_WORD
     ( COLON_TOK parseType[type] )?
     { std::string name = AntlrInput::tokenText($UPPER_WORD);
-      expr = PARSER_STATE->mkBoundVar(name, type);
+      expr = PARSER_STATE->bindBoundVar(name, type);
     }
   ;
 

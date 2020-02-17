@@ -204,30 +204,30 @@ bool Parser::isPredicate(const std::string& name) {
   return !expr.isNull() && expr.getSort().isPredicate();
 }
 
-api::Term Parser::mkVar(const std::string& name, const api::Sort& type, uint32_t flags, bool doOverload) {
+api::Term Parser::bindVar(const std::string& name, const api::Sort& type, uint32_t flags, bool doOverload) {
   if (d_globalDeclarations) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
-  Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
+  Debug("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
   api::Term expr = api::Term(getExprManager()->mkVar(name, type.getType(), flags));
   defineVar(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL, doOverload);
   return expr;
 }
 
-api::Term Parser::mkBoundVar(const std::string& name, const api::Sort& type) {
-  Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
+api::Term Parser::bindBoundVar(const std::string& name, const api::Sort& type) {
+  Debug("parser") << "bindBoundVar(" << name << ", " << type << ")" << std::endl;
   api::Term expr = d_solver->mkVar(type, name);
   defineVar(name, expr, false);
   return expr;
 }
 
-std::vector<api::Term> Parser::mkBoundVars(
+std::vector<api::Term> Parser::bindBoundVars(
     std::vector<std::pair<std::string, api::Sort> >& sortedVarNames)
 {
   std::vector<api::Term> vars;
   for (std::pair<std::string, api::Sort>& i : sortedVarNames)
   {
-    vars.push_back(mkBoundVar(i.first, i.second.getType()));
+    vars.push_back(bindBoundVar(i.first, i.second.getType()));
   }
   return vars;
 }
@@ -242,23 +242,23 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix, const api::Sort
   return api::Term(getExprManager()->mkVar(name.str(), type.getType(), flags));
 }
 
-std::vector<api::Term> Parser::mkVars(const std::vector<std::string> names,
+std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
                                  const api::Sort& type, uint32_t flags, bool doOverload) {
   if (d_globalDeclarations) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   std::vector<api::Term> vars;
   for (unsigned i = 0; i < names.size(); ++i) {
-    vars.push_back(mkVar(names[i], type, flags, doOverload));
+    vars.push_back(bindVar(names[i], type, flags, doOverload));
   }
   return vars;
 }
 
-std::vector<api::Term> Parser::mkBoundVars(const std::vector<std::string> names,
+std::vector<api::Term> Parser::bindBoundVars(const std::vector<std::string> names,
                                       const api::Sort& type) {
   std::vector<api::Term> vars;
   for (unsigned i = 0; i < names.size(); ++i) {
-    vars.push_back(mkBoundVar(names[i], type));
+    vars.push_back(bindBoundVar(names[i], type));
   }
   return vars;
 }

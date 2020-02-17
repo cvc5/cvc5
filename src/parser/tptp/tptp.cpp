@@ -235,7 +235,7 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   {
     api::Sort t =
         p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
-    expr = mkVar(p.d_name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
+    expr = bindVar(p.d_name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
     preemptCommand(new DeclareFunctionCommand(p.d_name, expr.getExpr(), t.getType()));
   }
   return expr;
@@ -268,7 +268,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       std::vector<api::Sort> sorts(args.size(), d_unsorted);
       api::Sort t = p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
       t = d_solver->mkFunctionSort(sorts, t);
-      v = mkVar(p.d_name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
+      v = bindVar(p.d_name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
       preemptCommand(new DeclareFunctionCommand(p.d_name, v.getExpr(), t.getType()));
     }
     // args might be rationals, in which case we need to create

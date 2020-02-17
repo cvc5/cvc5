@@ -463,7 +463,7 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  api::Term mkVar(const std::string& name, const api::Sort& type,
+  api::Term bindVar(const std::string& name, const api::Sort& type,
              uint32_t flags = ExprManager::VAR_FLAG_NONE, 
              bool doOverload = false);
 
@@ -478,7 +478,7 @@ public:
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   std::vector<api::Term>
-    mkVars(const std::vector<std::string> names, const api::Sort& type,
+    bindVars(const std::vector<std::string> names, const api::Sort& type,
            uint32_t flags = ExprManager::VAR_FLAG_NONE, 
            bool doOverload = false);
 
@@ -486,13 +486,13 @@ public:
    * Create a new CVC4 bound variable expression of the given type. This binds
    * the symbol name to that variable in the current scope.
    */
-  api::Term mkBoundVar(const std::string& name, const api::Sort& type);
+  api::Term bindBoundVar(const std::string& name, const api::Sort& type);
   /**
    * Create a new CVC4 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
    */
-  std::vector<api::Term> mkBoundVars(
+  std::vector<api::Term> bindBoundVars(
       std::vector<std::pair<std::string, api::Sort> >& sortedVarNames);
 
   /**
@@ -505,7 +505,7 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  std::vector<api::Term> mkBoundVars(const std::vector<std::string> names, const api::Sort& type);
+  std::vector<api::Term> bindBoundVars(const std::vector<std::string> names, const api::Sort& type);
 
   /**
    * Create a new CVC4 function expression of the given type,

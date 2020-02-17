@@ -163,7 +163,7 @@ class Smt2 : public Parser
    * added to flattenVars in this function if the function is given a function
    * range type.
    */
-  api::Term mkDefineFunRec(
+  api::Term bindDefineFunRec(
       const std::string& fname,
       const std::vector<std::pair<std::string, api::Sort> >& sortedVarNames,
       api::Sort t,
