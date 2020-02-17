@@ -92,6 +92,7 @@ using namespace CVC4::parser;
 #include <memory>
 
 #include "smt/command.h"
+#include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "parser/tptp/tptp.h"
 #include "parser/antlr_tracing.h"
@@ -333,25 +334,40 @@ atomicFormula[CVC4::api::Term& expr]
   std::string name;
   std::vector<CVC4::api::Term> args;
   bool equal;
+  ParseOp p;
 }
-  : atomicWord[name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  : atomicWord[p.d_name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     ( equalOp[equal] term[expr2]
       { // equality/disequality between terms
-        PARSER_STATE->makeApplication(expr, name, args, true);
-        expr = MK_TERM(api::EQUAL, expr, expr2);
-        if(!equal) expr = MK_TERM(api::NOT, expr);
+        expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                            : PARSER_STATE->applyParseOp(p, args);
+        args.clear();
+        args.push_back(expr);
+        args.push_back(expr2);
+        ParseOp p1(api::EQUAL);
+        expr = PARSER_STATE->applyParseOp(p1, args);
+        if (!equal)
+        {
+          expr = MK_TERM(api::NOT, expr);
+        }
       }
     | { // predicate
-        PARSER_STATE->makeApplication(expr, name, args, false);
+        p.d_type = SOLVER->getBooleanSort();
+        expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                            : PARSER_STATE->applyParseOp(p, args);
       }
     )
-  | definedFun[expr]
+  | definedFun[p]
     (
      LPAREN_TOK arguments[args] RPAREN_TOK
      equalOp[equal] term[expr2]
      {
-       expr = PARSER_STATE->mkBuiltinApp(expr, args);
-       expr = MK_TERM(api::EQUAL, expr, expr2);
+       expr = PARSER_STATE->applyParseOp(p, args);
+       args.clear();
+       args.push_back(expr);
+       args.push_back(expr2);
+       ParseOp p1(api::EQUAL);
+       expr = PARSER_STATE->applyParseOp(p1, args);
        if (!equal)
        {
          expr = MK_TERM(api::NOT, expr);
@@ -362,19 +378,21 @@ atomicFormula[CVC4::api::Term& expr]
     (
       equalOp[equal] term[expr2]
       { // equality/disequality between terms
-        expr = MK_TERM(api::EQUAL, expr, expr2);
+        args.push_back(expr);
+        args.push_back(expr2);
+        p.d_kind = api::EQUAL;
+        expr = PARSER_STATE->applyParseOp(p, args);
         if (!equal)
         {
           expr = MK_TERM(api::NOT, expr);
         }
       }
     )?
-  | definedPred[expr] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  | definedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
-      if (!args.empty())
-      {
-        expr = PARSER_STATE->mkBuiltinApp(expr, args);
-      }
+      p.d_type = SOLVER->getBooleanSort();
+      expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                          : PARSER_STATE->applyParseOp(p, args);
     }
   | definedProp[expr]
   ;
@@ -385,18 +403,24 @@ thfAtomicFormula[CVC4::api::Term& expr]
   std::string name;
   std::vector<CVC4::api::Term> args;
   bool equal;
+  ParseOp p;
 }
-  : atomicWord[name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  : atomicWord[p.d_name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
-      PARSER_STATE->makeApplication(expr, name, args, true);
+      expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                          : PARSER_STATE->applyParseOp(p, args);
     }
-  | definedFun[expr]
+  | definedFun[p]
     (
       LPAREN_TOK arguments[args] RPAREN_TOK
       equalOp[equal] term[expr2]
       {
-        expr = PARSER_STATE->mkBuiltinApp(expr, args);
-        expr = MK_TERM(api::EQUAL, expr, expr2);
+        expr = PARSER_STATE->applyParseOp(p, args);
+        args.clear();
+        args.push_back(expr);
+        args.push_back(expr2);
+        ParseOp p1(api::EQUAL);
+        expr = PARSER_STATE->applyParseOp(p1, args);
         if (!equal)
         {
           expr = MK_TERM(api::NOT, expr);
@@ -406,12 +430,11 @@ thfAtomicFormula[CVC4::api::Term& expr]
   | thfSimpleTerm[expr]
   | letTerm[expr]
   | conditionalTerm[expr]
-  | thfDefinedPred[expr] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  | thfDefinedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
-      if (!args.empty())
-      {
-        expr = PARSER_STATE->mkBuiltinApp(expr, args);
-      }
+      p.d_type = SOLVER->getBooleanSort();
+      expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                          : PARSER_STATE->applyParseOp(p, args);
     }
   | definedProp[expr]
   ;
@@ -424,158 +447,282 @@ definedProp[CVC4::api::Term& expr]
   | FALSE_TOK  { expr = SOLVER->mkFalse(); }
   ;
 
-definedPred[CVC4::api::Term& expr]
-  : '$less' { expr = EXPR_MANAGER->operatorOf(kind::LT); }
-  | '$lesseq' { expr = EXPR_MANAGER->operatorOf(kind::LEQ); }
-  | '$greater' { expr = EXPR_MANAGER->operatorOf(kind::GT); }
-  | '$greatereq' { expr = EXPR_MANAGER->operatorOf(kind::GEQ); }
+definedPred[CVC4::ParseOp& p]
+  : '$less'
+    {
+      p.d_kind = api::LT;
+    }
+  | '$lesseq'
+    {
+      p.d_kind = api::LEQ;
+    }
+  | '$greater'
+    {
+      p.d_kind = api::GT;
+    }
+  | '$greatereq'
+    {
+      p.d_kind = api::GEQ;
+    }
   | '$is_rat'
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
-    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      CVC4::api::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
-      CVC4::api::Term qr = MK_TERM(api::TO_REAL, q);
-      CVC4::api::Term r = SOLVER->mkVar(SOLVER->getIntegerSort(), "R");
-      CVC4::api::Term rr = MK_TERM(api::TO_REAL, r);
-      CVC4::api::Term body =
+    { api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      api::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
+      api::Term qr = MK_TERM(api::TO_REAL, q);
+      api::Term r = SOLVER->mkVar(SOLVER->getIntegerSort(), "R");
+      api::Term rr = MK_TERM(api::TO_REAL, r);
+      api::Term body =
           MK_TERM(api::AND,
                   MK_TERM(api::NOT,
-                          MK_TERM(api::EQUAL, r, SOLVER->mkReal(0))),
+                          MK_TERM(api::EQUAL, r, MK_CONST(Rational(0)))),
                   MK_TERM(api::EQUAL, qr, MK_TERM(api::MULT, n, rr)));
-      CVC4::api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
+      api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
       body = MK_TERM(api::EXISTS, bvl, body);
-      CVC4::api::Term lbvl = MK_TERM(api::BOUND_VAR_LIST, n);
-      expr = MK_TERM(api::LAMBDA, lbvl, body);
+      api::Term lbvl = MK_TERM(api::BOUND_VAR_LIST, n);
+      p.d_kind = api::LAMBDA;
+      p.d_expr = MK_TERM(api::LAMBDA, lbvl, body);
     }
-  | '$is_int' { expr = EXPR_MANAGER->operatorOf(kind::IS_INTEGER); }
-  | '$distinct' { expr = EXPR_MANAGER->operatorOf(kind::DISTINCT); }
-  | AND_TOK { expr = EXPR_MANAGER->operatorOf(kind::AND); }
-  | IMPLIES_TOK { expr = EXPR_MANAGER->operatorOf(kind::IMPLIES); }
-  | OR_TOK { expr = EXPR_MANAGER->operatorOf(kind::OR); }
+  | '$is_int'
+    {
+      p.d_kind = api::IS_INTEGER;
+    }
+  | '$distinct'
+    {
+      p.d_kind = api::DISTINCT;
+    }
+  | AND_TOK
+    {
+      p.d_kind = api::AND;
+    }
+  | IMPLIES_TOK
+    {
+      p.d_kind = api::IMPLIES;
+    }
+  | OR_TOK
+    {
+      p.d_kind = api::OR;
+    }
   ;
 
-thfDefinedPred[CVC4::api::Term& expr]
-  : '$less' { expr = EXPR_MANAGER->operatorOf(kind::LT); }
-  | '$lesseq' { expr = EXPR_MANAGER->operatorOf(kind::LEQ); }
-  | '$greater' { expr = EXPR_MANAGER->operatorOf(kind::GT); }
-  | '$greatereq' { expr = EXPR_MANAGER->operatorOf(kind::GEQ); }
+thfDefinedPred[CVC4::ParseOp& p]
+  : '$less'
+     {
+       p.d_kind = api::LT;
+     }
+  | '$lesseq'
+    {
+      p.d_kind = api::LEQ;
+    }
+  | '$greater'
+    {
+      p.d_kind = api::GT;
+    }
+  | '$greatereq'
+    {
+      p.d_kind = api::GEQ;
+    }
   | '$is_rat'
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
     {
-      CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      CVC4::api::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
-      CVC4::api::Term qr = MK_TERM(api::TO_REAL, q);
-      CVC4::api::Term r = SOLVER->mkVar(SOLVER->getIntegerSort(), "R");
-      CVC4::api::Term rr = MK_TERM(api::TO_REAL, r);
-      CVC4::api::Term body = MK_TERM(
+      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      api::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
+      api::Term qr = MK_TERM(api::TO_REAL, q);
+      api::Term r = SOLVER->mkVar(SOLVER->getIntegerSort(), "R");
+      api::Term rr = MK_TERM(api::TO_REAL, r);
+      api::Term body = MK_TERM(
           api::AND,
           MK_TERM(api::NOT,
-                  MK_TERM(api::EQUAL, r, SOLVER->mkReal(0))),
+                  MK_TERM(api::EQUAL, r, MK_CONST(Rational(0)))),
           MK_TERM(api::EQUAL, qr, MK_TERM(api::MULT, n, rr)));
-      CVC4::api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
+      api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
       body = MK_TERM(api::EXISTS, bvl, body);
-      CVC4::api::Term lbvl = MK_TERM(api::BOUND_VAR_LIST, n);
-      expr = MK_TERM(api::LAMBDA, lbvl, body);
+      api::Term lbvl = MK_TERM(api::BOUND_VAR_LIST, n);
+      p.d_kind = api::LAMBDA;
+      p.d_expr = MK_TERM(api::LAMBDA, lbvl, body);
     }
-  | '$is_int' { expr = EXPR_MANAGER->operatorOf(kind::IS_INTEGER); }
-  | '$distinct' { expr = EXPR_MANAGER->operatorOf(kind::DISTINCT); }
+  | '$is_int'
+    {
+      p.d_kind = api::IS_INTEGER;
+    }
+  | '$distinct'
+    {
+      p.d_kind = api::DISTINCT;
+    }
   | LPAREN_TOK
     (
-      AND_TOK { expr = EXPR_MANAGER->operatorOf(kind::AND); }
-    | OR_TOK { expr = EXPR_MANAGER->operatorOf(kind::OR); }
-    | IMPLIES_TOK { expr = EXPR_MANAGER->operatorOf(kind::IMPLIES); }
+      AND_TOK
+      {
+        p.d_kind = api::AND;
+      }
+    | OR_TOK
+      {
+        p.d_kind = api::OR;
+      }
+    | IMPLIES_TOK
+      {
+        p.d_kind = api::IMPLIES;
+      }
     )
     RPAREN_TOK
   ;
 
-definedFun[CVC4::api::Term& expr]
+definedFun[CVC4::ParseOp& p]
 @declarations {
   bool remainder = false;
 }
-  : '$uminus' { expr = EXPR_MANAGER->operatorOf(kind::UMINUS); }
-  | '$sum' { expr = EXPR_MANAGER->operatorOf(kind::PLUS); }
-  | '$difference' { expr = EXPR_MANAGER->operatorOf(kind::MINUS); }
-  | '$product' { expr = EXPR_MANAGER->operatorOf(kind::MULT); }
-  | '$quotient' { expr = EXPR_MANAGER->operatorOf(kind::DIVISION_TOTAL); }
+  : '$uminus'
+    {
+      p.d_kind = api::UMINUS;
+    }
+  | '$sum'
+    {
+      p.d_kind = api::PLUS;
+    }
+  | '$difference'
+    {
+      p.d_kind = api::MINUS;
+    }
+  | '$product'
+    {
+      p.d_kind = api::MULT;
+    }
+  | '$quotient'
+    {
+      p.d_kind = api::DIVISION_TOTAL;
+    }
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }
     )
-    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      CVC4::api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
-      CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
-      expr = MK_TERM(api::DIVISION_TOTAL, n, d);
-      expr = MK_TERM(api::ITE, MK_TERM(api::GEQ, d, SOLVER->mkReal(0)),
-                                      MK_TERM(api::TO_INTEGER, expr),
-                                      MK_TERM(api::UMINUS, MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, expr))));
-      if(remainder) {
-        expr = MK_TERM(api::TO_INTEGER, MK_TERM(api::MINUS, n, MK_TERM(api::MULT, expr, d)));
+    {
+      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
+      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
+      api::Term expr = MK_TERM(api::DIVISION_TOTAL, n, d);
+      expr = MK_TERM(api::ITE,
+                     MK_TERM(api::GEQ, d, MK_CONST(Rational(0))),
+                     MK_TERM(api::TO_INTEGER, expr),
+                     MK_TERM(api::UMINUS,
+                             MK_TERM(api::TO_INTEGER,
+                                     MK_TERM(api::UMINUS, expr))));
+      if (remainder)
+      {
+        expr = MK_TERM(
+            api::TO_INTEGER,
+            MK_TERM(api::MINUS, n, MK_TERM(api::MULT, expr, d)));
       }
-      expr = MK_TERM(api::LAMBDA, formals, expr);
+      p.d_kind = api::LAMBDA;
+      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
     }
   | ( '$quotient_t' { remainder = false; }
     | '$remainder_t' { remainder = true; }
     )
-    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      CVC4::api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
-      CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
-      expr = MK_TERM(api::DIVISION_TOTAL, n, d);
-      expr = MK_TERM(api::ITE, MK_TERM(api::GEQ, expr, SOLVER->mkReal(0)),
-                                      MK_TERM(api::TO_INTEGER, expr),
-                                      MK_TERM(api::UMINUS, MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, expr))));
-      if(remainder) {
-        expr = MK_TERM(api::TO_INTEGER, MK_TERM(api::MINUS, n, MK_TERM(api::MULT, expr, d)));
+    {
+      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
+      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
+      api::Term expr = MK_TERM(api::DIVISION_TOTAL, n, d);
+      expr = MK_TERM(api::ITE,
+                     MK_TERM(api::GEQ, expr, MK_CONST(Rational(0))),
+                     MK_TERM(api::TO_INTEGER, expr),
+                     MK_TERM(api::UMINUS,
+                             MK_TERM(api::TO_INTEGER,
+                                     MK_TERM(api::UMINUS, expr))));
+      if (remainder)
+      {
+        expr = MK_TERM(
+            api::TO_INTEGER,
+            MK_TERM(api::MINUS, n, MK_TERM(api::MULT, expr, d)));
       }
-      expr = MK_TERM(api::LAMBDA, formals, expr);
+      p.d_kind = api::LAMBDA;
+      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
     }
   | ( '$quotient_f' { remainder = false; }
     | '$remainder_f' { remainder = true; }
     )
-    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      CVC4::api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
-      CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
-      expr = MK_TERM(api::DIVISION_TOTAL, n, d);
+    {
+      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
+      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
+      api::Term expr = MK_TERM(api::DIVISION_TOTAL, n, d);
       expr = MK_TERM(api::TO_INTEGER, expr);
-      if(remainder) {
-        expr = MK_TERM(api::TO_INTEGER, MK_TERM(api::MINUS, n, MK_TERM(api::MULT, expr, d)));
+      if (remainder)
+      {
+        expr = MK_TERM(api::TO_INTEGER,
+                       MK_TERM(api::MINUS, n, MK_TERM(api::MULT, expr, d)));
       }
-      expr = MK_TERM(api::LAMBDA, formals, expr);
+      p.d_kind = api::LAMBDA;
+      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
     }
-  | '$floor' { expr = EXPR_MANAGER->operatorOf(kind::TO_INTEGER); }
+  | '$floor'
+    {
+      p.d_kind = api::TO_INTEGER;
+    }
   | '$ceiling'
-    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
-      expr = MK_TERM(api::UMINUS, MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, n)));
-      expr = MK_TERM(api::LAMBDA, formals, expr);
+    {
+      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
+      api::Term expr = MK_TERM(api::UMINUS,
+                          MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, n)));
+      p.d_kind = api::LAMBDA;
+      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
     }
   | '$truncate'
-    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
-      expr = MK_TERM(api::ITE, MK_TERM(api::GEQ, n, SOLVER->mkReal(0)),
-                                      MK_TERM(api::TO_INTEGER, n),
-                                      MK_TERM(api::UMINUS, MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, n))));
-      expr = MK_TERM(api::LAMBDA, formals, expr);
+    {
+      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
+      api::Term expr =
+          MK_TERM(api::ITE,
+                  MK_TERM(api::GEQ, n, SOLVER->mkReal(0)),
+                  MK_TERM(api::TO_INTEGER, n),
+                  MK_TERM(api::UMINUS,
+                          MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, n))));
+      p.d_kind = api::LAMBDA;
+      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
     }
   | '$round'
-    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
-      CVC4::api::Term decPart = MK_TERM(api::MINUS, n, MK_TERM(api::TO_INTEGER, n));
-      expr = MK_TERM(api::ITE, MK_TERM(api::LT, decPart, SOLVER->mkReal(1, 2)),
-                                      // if decPart < 0.5, round down
-                                      MK_TERM(api::TO_INTEGER, n),
-             MK_TERM(api::ITE, MK_TERM(api::GT, decPart, SOLVER->mkReal(1, 2)),
-                                      // if decPart > 0.5, round up
-                                      MK_TERM(api::TO_INTEGER, MK_TERM(api::PLUS, n, SOLVER->mkReal(1))),
-                                      // if decPart == 0.5, round to nearest even integer:
-                                      // result is: to_int(n/2 + .5) * 2
-                                      MK_TERM(api::MULT, MK_TERM(api::TO_INTEGER, MK_TERM(api::PLUS, MK_TERM(api::DIVISION_TOTAL, n, MK_CONST(Rational(2))), SOLVER->mkReal(1, 2))), SOLVER->mkReal(2, 1))));
-      expr = MK_TERM(api::LAMBDA, formals, expr);
+    {
+      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
+      api::Term decPart = MK_TERM(api::MINUS, n, MK_TERM(api::TO_INTEGER, n));
+      api::Term expr = MK_TERM(
+          api::ITE,
+          MK_TERM(api::LT, decPart, SOLVER->mkReal(1, 2)),
+          // if decPart < 0.5, round down
+          MK_TERM(api::TO_INTEGER, n),
+          MK_TERM(api::ITE,
+                  MK_TERM(api::GT, decPart, SOLVER->mkReal(1, 2)),
+                  // if decPart > 0.5, round up
+                  MK_TERM(api::TO_INTEGER,
+                          MK_TERM(api::PLUS, n, SOLVER->mkReal(1))),
+                  // if decPart == 0.5, round to nearest even integer:
+                  // result is: to_int(n/2 + .5) * 2
+                  MK_TERM(api::MULT,
+                          MK_TERM(api::TO_INTEGER,
+                                  MK_TERM(api::PLUS,
+                                          MK_TERM(api::DIVISION_TOTAL,
+                                                  n,
+                                                  SOLVER->mkReal(2)),
+                                          SOLVER->mkReal(1, 2))),
+                          SOLVER->mkReal(2))));
+      p.d_kind = api::LAMBDA;
+      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
+      }
+  | '$to_int'
+    {
+      p.d_kind = api::TO_INTEGER;
     }
-  | '$to_int' { expr = EXPR_MANAGER->operatorOf(kind::TO_INTEGER); }
-  | '$to_rat' { expr = EXPR_MANAGER->operatorOf(kind::TO_REAL); }
-  | '$to_real' { expr = EXPR_MANAGER->operatorOf(kind::TO_REAL); }
+  | '$to_rat'
+    {
+      p.d_kind = api::TO_REAL;
+    }
+  | '$to_real'
+    {
+      p.d_kind = api::TO_REAL;
+    }
   ;
 
 //%----Pure CNF should not use $true or $false in problems, and use $false only
@@ -633,11 +780,13 @@ thfSimpleTerm[CVC4::api::Term& expr]
 functionTerm[CVC4::api::Term& expr]
 @declarations {
   std::vector<CVC4::api::Term> args;
+  ParseOp p;
 }
   : plainTerm[expr]
-  | definedFun[expr] LPAREN_TOK arguments[args] RPAREN_TOK
-    { expr = PARSER_STATE->mkBuiltinApp(expr, args); }
-// | <system_term>
+  | definedFun[p] LPAREN_TOK arguments[args] RPAREN_TOK
+    {
+      expr = PARSER_STATE->applyParseOp(p, args);
+    }
   ;
 
 conditionalTerm[CVC4::api::Term& expr]
@@ -652,10 +801,12 @@ plainTerm[CVC4::api::Term& expr]
 @declarations {
   std::string name;
   std::vector<api::Term> args;
+  ParseOp p;
 }
-  : atomicWord[name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  : atomicWord[p.d_name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
-       PARSER_STATE->makeApplication(expr,name,args,true);
+      expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                          : PARSER_STATE->applyParseOp(p, args);
     }
   ;
 
@@ -842,7 +993,7 @@ thfAtomTyping[CVC4::Command*& cmd]
         }
         else
         {
-          // as yet, it's undeclared
+          // as of yet, it's undeclared
           CVC4::api::Term freshExpr;
           if (type.isFunction())
           {
@@ -888,7 +1039,10 @@ thfLogicFormula[CVC4::api::Term& expr]
         {
           // TODO create whatever lambda
         }
-        expr = MK_TERM(api::EQUAL, expr, expr2);
+        args.push_back(expr);
+        args.push_back(expr2);
+        ParseOp p(api::EQUAL);
+        expr = PARSER_STATE->applyParseOp(p, args);
         if (!equal)
         {
           expr = MK_TERM(api::NOT, expr);
@@ -897,25 +1051,18 @@ thfLogicFormula[CVC4::api::Term& expr]
     | // Non-associative: <=> <~> ~& ~|
       fofBinaryNonAssoc[na] thfUnitaryFormula[expr2]
       {
-        switch(na) {
-         case tptp::NA_IFF:
-           expr = MK_TERM(api::EQUAL,expr,expr2);
-           break;
-         case tptp::NA_REVIFF:
-           expr = MK_TERM(api::XOR,expr,expr2);
-           break;
-         case tptp::NA_IMPLIES:
-           expr = MK_TERM(api::IMPLIES,expr,expr2);
-           break;
-         case tptp::NA_REVIMPLIES:
-           expr = MK_TERM(api::IMPLIES,expr2,expr);
-           break;
-         case tptp::NA_REVOR:
-           expr = MK_TERM(api::NOT,MK_TERM(api::OR,expr,expr2));
-           break;
-         case tptp::NA_REVAND:
-           expr = MK_TERM(api::NOT,MK_TERM(api::AND,expr,expr2));
-           break;
+        switch (na)
+        {
+          case tptp::NA_IFF: expr = MK_TERM(api::EQUAL, expr, expr2); break;
+          case tptp::NA_REVIFF: expr = MK_TERM(api::XOR, expr, expr2); break;
+          case tptp::NA_IMPLIES: expr = MK_TERM(api::IMPLIES, expr, expr2); break;
+          case tptp::NA_REVIMPLIES: expr = MK_TERM(api::IMPLIES, expr2, expr); break;
+          case tptp::NA_REVOR:
+            expr = MK_TERM(api::NOT, MK_TERM(api::OR, expr, expr2));
+            break;
+          case tptp::NA_REVAND:
+            expr = MK_TERM(api::NOT, MK_TERM(api::AND, expr, expr2));
+            break;
         }
       }
     | // N-ary and &
@@ -1002,7 +1149,10 @@ thfUnitaryFormula[CVC4::api::Term& expr]
     thfLogicFormula[expr]
     RPAREN_TOK
   | NOT_TOK
-    { expr = EXPR_MANAGER->operatorOf(kind::NOT); }
+    {
+      ParseOp p(api::NOT);
+      expr = PARSER_STATE->parseOpToExpr(p);
+    }
     (thfUnitaryFormula[expr2] { expr = PARSER_STATE->mkBuiltinApp(expr,expr2); })?
   | // Quantified
     thfQuantifier[kind]
@@ -1179,7 +1329,7 @@ tffLetTermBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs, CV
   : term[lhs] EQUAL_TOK term[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
       std::vector<api::Term> lchildren;
-      Expr elhs = lhs.getExpr();
+      api::Term elhs = lhs.getExpr();
       for( unsigned i=0, nchild = elhs.getNumChildren(); i<nchild; i++)
       {
         lchildren.push_back(api::Term(elhs[i]));
@@ -1202,7 +1352,7 @@ tffLetFormulaBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs,
   : atomicFormula[lhs] IFF_TOK tffUnitaryFormula[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
       std::vector<api::Term> lchildren;
-      Expr elhs = lhs.getExpr();
+      api::Term elhs = lhs.getExpr();
       for( unsigned i=0, nchild = elhs.getNumChildren(); i<nchild; i++)
       {
         lchildren.push_back(api::Term(elhs[i]));

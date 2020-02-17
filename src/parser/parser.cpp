@@ -368,19 +368,20 @@ bool Parser::isUnresolvedType(const std::string& name) {
 }
 
 std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
-    std::vector<Datatype>& datatypes, bool doOverload) {
+    std::vector<Datatype>& datatypes, bool doOverload, uint32_t flags)
+{
   try {
     std::set<CVC4::Type> tset = api::sortSetToTypes(d_unresolved);
     //std::vector<api::Sort> types =
     //    getExprManager()->mkMutualDatatypeTypes(datatypes, tset);
     std::vector<DatatypeType> dtypes =
-        getExprManager()->mkMutualDatatypeTypes(datatypes, tset);
+        getExprManager()->mkMutualDatatypeTypes(datatypes, tset, flags);
     std::vector<api::Sort> types;
     for (unsigned i=0, dtsize = dtypes.size(); i<dtsize; i++)
     {
       types.push_back(api::Sort(dtypes[i]));
     }
-
+    
     assert(datatypes.size() == types.size());
 
     for (unsigned i = 0; i < datatypes.size(); ++i) {

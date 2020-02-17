@@ -4106,6 +4106,7 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
+
 /* -------------------------------------------------------------------------- */
 /* Conversions                                                                */
 /* -------------------------------------------------------------------------- */
