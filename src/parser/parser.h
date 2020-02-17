@@ -723,6 +723,8 @@ public:
   api::Term mkTermSafe(api::Kind k, const std::vector<api::Term>& args) const;
   api::Term mkTermSafe(api::Kind k, api::Term t1) const;
   api::Term mkTermSafe(api::Kind k, api::Term t1, api::Term t2) const;
+  /** Apply type ascription */
+  api::Term applyTypeAscription(api::Term t, api::Sort s);
   //!!!!!!!!!!! temporary
   
   /**

@@ -1832,23 +1832,8 @@ postfixTerm[CVC4::api::Term& f]
       { f = (args.size() == 1) ? SOLVER->mkTrue() : MK_TERM(CVC4::api::DISTINCT, args); }
     )
     ( typeAscription[f, t]
-      { if(f.getKind() == CVC4::api::APPLY_CONSTRUCTOR && t.isDatatype()) {
-          std::vector<CVC4::api::Term> v;
-          Expr e = f.getOp().getExpr();
-          const DatatypeConstructor& dtc = Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-          v.push_back(api::Term(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(t.getType()))), f.getOp().getExpr() )));
-          v.insert(v.end(), f.begin(), f.end());
-          f = MK_TERM(CVC4::api::APPLY_CONSTRUCTOR, v);
-        } else if(f.getKind() == CVC4::api::EMPTYSET && t.isSet()) {
-          f = SOLVER->mkEmptySet(t);
-        } else if(f.getKind() == CVC4::api::UNIVERSE_SET && t.isSet()) {
-          f = SOLVER->mkUniverseSet(t);
-        } else {
-          if(f.getSort() != t) {
-            PARSER_STATE->parseError("Type ascription not satisfied.");
-          }
-        }
+      { 
+        f= PARSER_STATE->applyTypeAscription(f,t);
       }
     )?
   ;

@@ -371,7 +371,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
     std::vector<Datatype>& datatypes, bool doOverload, uint32_t flags)
 {
   try {
-    std::set<CVC4::Type> tset = api::sortSetToTypes(d_unresolved);
+    std::set<Type> tset = api::sortSetToTypes(d_unresolved);
     //std::vector<api::Sort> types =
     //    getExprManager()->mkMutualDatatypeTypes(datatypes, tset);
     std::vector<DatatypeType> dtypes =
@@ -657,6 +657,28 @@ api::Term Parser::mkTermSafe(api::Kind k, api::Term t1, api::Term t2) const
   args.push_back(t2);
   return mkTermSafe(k,args);
 }
+
+api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
+{
+  if(t.getKind() == api::APPLY_CONSTRUCTOR && s.isDatatype()) {
+    std::vector<api::Term> v;
+    Expr e = t.getOp().getExpr();
+    const DatatypeConstructor& dtc = Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+    v.push_back(api::Term(getExprManager()->mkExpr( APPLY_TYPE_ASCRIPTION,
+                          getExprManager()->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))), t.getOp().getExpr() )));
+    v.insert(v.end(), t.begin(), t.end());
+    return d_solver->mkTerm(api::APPLY_CONSTRUCTOR, v);
+  } else if(t.getKind() == api::EMPTYSET && s.isSet()) {
+    return d_solver->mkEmptySet(s);
+  } else if(t.getKind() == api::UNIVERSE_SET && s.isSet()) {
+    return d_solver->mkUniverseSet(s);
+  }
+  if(t.getSort() != s) {
+    parseError("Type ascription not satisfied.");
+  }
+  return t;
+}
+
 //!!!!!!!!!!! temporary
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
