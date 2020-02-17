@@ -23,9 +23,9 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/theory_options.h"
+#include "theory/theory_model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
-#include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {

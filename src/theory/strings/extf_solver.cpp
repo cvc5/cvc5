@@ -33,7 +33,7 @@ ExtfSolver::ExtfSolver(context::Context* c,
                        InferenceManager& im,
                        SkolemCache& skc,
                        BaseSolver& bs,
-             CoreSolver& cs,
+                       CoreSolver& cs,
                        ExtTheory* et)
     : d_state(s),
       d_im(im),
@@ -629,10 +629,9 @@ void ExtfSolver::checkExtfInference(Node n,
   }
 }
 
-
 Node ExtfSolver::getCurrentSubstitutionFor(int effort,
-                                              Node n,
-                                              std::vector<Node>& exp)
+                                           Node n,
+                                           std::vector<Node>& exp)
 {
   if (effort >= 3)
   {
@@ -668,10 +667,7 @@ const std::map<Node, ExtfInfoTmp>& ExtfSolver::getInfo() const
 {
   return d_extfInfoTmp;
 }
-bool ExtfSolver::hasExtendedFunctions() const
-{
-  return d_hasExtf.get();
-}
+bool ExtfSolver::hasExtendedFunctions() const { return d_hasExtf.get(); }
 
 }  // namespace strings
 }  // namespace theory

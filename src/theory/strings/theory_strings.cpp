@@ -85,8 +85,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
 {
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
-  d_esolver.reset(
-      new ExtfSolver(c, u, d_state, d_im, d_sk_cache, d_bsolver, d_csolver, extt));
+  d_esolver.reset(new ExtfSolver(
+      c, u, d_state, d_im, d_sk_cache, d_bsolver, d_csolver, extt));
   getExtTheory()->addFunctionKind(kind::STRING_SUBSTR);
   getExtTheory()->addFunctionKind(kind::STRING_STRIDOF);
   getExtTheory()->addFunctionKind(kind::STRING_ITOS);
