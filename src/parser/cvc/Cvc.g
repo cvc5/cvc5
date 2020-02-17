@@ -585,8 +585,6 @@ using namespace CVC4::parser;
 #define PARSER_STATE ((Parser*)PARSER->super)
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
-#undef MK_CONST
-#define MK_CONST EXPR_MANAGER->mkConst
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
@@ -2109,12 +2107,12 @@ simpleTerm[CVC4::api::Term& f]
     }
     /* empty set literal */
   | LBRACE RBRACE
-    { 
-      f = MK_CONST(EmptySet(Type())); 
+    { //boolean is placeholder
+      f = SOLVER->mkEmptySet(SOLVER->mkSetSort(SOLVER->getBooleanSort()));
     }
   | UNIVSET_TOK
-    { //booleanType is placeholder
-      f = SOLVER->mkUniverseSet(SOLVER->getBooleanSort());
+    { //boolean is placeholder
+      f = SOLVER->mkUniverseSet(SOLVER->mkSetSort(SOLVER->getBooleanSort()));
     }
 
     /* finite set literal */
