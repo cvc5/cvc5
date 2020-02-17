@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --quiet
+; COMMAND-LINE: --finite-model-find --no-check-models
 ; EXPECT: sat
 
 (set-logic ALL)

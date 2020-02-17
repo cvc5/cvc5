@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun  --quiet
+; COMMAND-LINE: --fmf-fun --no-check-models
 ; EXPECT: sat
 
 (set-info :smt-lib-version 2.5)
