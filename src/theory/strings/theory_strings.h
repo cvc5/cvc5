@@ -274,22 +274,6 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
  private:
-  /**
-   * Map string terms to their "proxy variables". Proxy variables are used are
-   * intermediate variables so that length information can be communicated for
-   * constants. For example, to communicate that "ABC" has length 3, we
-   * introduce a proxy variable v_{"ABC"} for "ABC", and assert:
-   *   v_{"ABC"} = "ABC" ^ len( v_{"ABC"} ) = 3
-   * Notice this is required since we cannot directly write len( "ABC" ) = 3,
-   * which rewrites to 3 = 3.
-   * In the above example, we store "ABC" -> v_{"ABC"} in this map.
-   */
-  NodeNodeMap d_proxy_var;
-  /**
-   * Map from proxy variables to their normalized length. In the above example,
-   * we store "ABC" -> 3.
-   */
-  NodeNodeMap d_proxy_var_to_length;
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
 private:
@@ -308,24 +292,6 @@ private:
 
   /** cache of all skolems */
   SkolemCache d_sk_cache;
-
-  /** Get proxy variable
-   *
-   * If this method returns the proxy variable for (string) term n if one
-   * exists, otherwise it returns null.
-   */
-  Node getProxyVariableFor(Node n) const;
-  /** Get symbolic definition
-   *
-   * This method returns the "symbolic definition" of n, call it n', and
-   * populates the vector exp with an explanation such that exp => n = n'.
-   *
-   * The symbolic definition of n is the term where (maximal) subterms of n
-   * are replaced by their proxy variables. For example, if we introduced
-   * proxy variable v for x ++ y, then given input x ++ y = w, this method
-   * returns v = w and adds v = x ++ y to exp.
-   */
-  Node getSymbolicDefinition(Node n, std::vector<Node>& exp) const;
 
   //--------------------------for checkExtfEval
   /**

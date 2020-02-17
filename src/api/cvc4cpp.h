@@ -2681,7 +2681,7 @@ class CVC4_PUBLIC Solver
   std::unique_ptr<Random> d_rng;
 };
 
-// !!! These only temporarily public until the parser is fully migrated to the
+// !!! Only temporarily public until the parser is fully migrated to the
 // new API. !!!
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
@@ -2691,7 +2691,7 @@ std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
 
 }  // namespace api
 
-// !!! These only temporarily public until the parser is fully migrated to the
+// !!! Only temporarily public until the parser is fully migrated to the
 // new API. !!!
 CVC4::api::Kind intToExtKind(CVC4::Kind k);
 CVC4::Kind extToIntKind(CVC4::api::Kind k);

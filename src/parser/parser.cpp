@@ -368,10 +368,11 @@ bool Parser::isUnresolvedType(const std::string& name) {
 }
 
 std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
-    std::vector<Datatype>& datatypes, bool doOverload) {
+    std::vector<Datatype>& datatypes, bool doOverload, uint32_t flags)
+{
   try {
     std::vector<DatatypeType> types =
-        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved);
+        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved, flags);
 
     assert(datatypes.size() == types.size());
 

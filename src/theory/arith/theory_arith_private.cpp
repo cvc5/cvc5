@@ -1603,7 +1603,7 @@ Node TheoryArithPrivate::axiomIteForTotalIntDivision(Node int_div_like){
   Polynomial rp = Polynomial::parsePolynomial(r);
   Polynomial qp = Polynomial::parsePolynomial(q);
 
-  Node abs_d = (n.isConstant()) ?
+  Node abs_d = (d.isConstant()) ?
     d.getHead().getConstant().abs().getNode() : mkIntSkolem("abs");
 
   Node eq = Comparison::mkComparison(EQUAL, n, d * qp + rp).getNode();

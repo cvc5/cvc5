@@ -544,8 +544,6 @@ libcvc4_add_sources(
   theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp
   theory/quantifiers/relevant_domain.h
-  theory/quantifiers/rewrite_engine.cpp
-  theory/quantifiers/rewrite_engine.h
   theory/quantifiers/single_inv_partition.cpp
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp

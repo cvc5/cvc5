@@ -160,7 +160,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/PopCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/PrettySExprs.java
   ${CMAKE_CURRENT_BINARY_DIR}/Proof.java
-  ${CMAKE_CURRENT_BINARY_DIR}/PropagateRuleCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/PushCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/QueryCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/QuitCommand.java
@@ -177,7 +176,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/ResetCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/ResourceManager.java
   ${CMAKE_CURRENT_BINARY_DIR}/Result.java
-  ${CMAKE_CURRENT_BINARY_DIR}/RewriteRuleCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/RoundingMode.java
   ${CMAKE_CURRENT_BINARY_DIR}/RoundingModeType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExpr.java
