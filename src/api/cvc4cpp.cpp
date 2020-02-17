@@ -562,26 +562,6 @@ bool isDefinedIntKind(CVC4::Kind k)
 }
 #endif
 
-Kind intToExtKind(CVC4::Kind k)
-{
-  auto it = s_kinds_internal.find(k);
-  if (it == s_kinds_internal.end())
-  {
-    return INTERNAL_KIND;
-  }
-  return it->second;
-}
-
-CVC4::Kind extToIntKind(Kind k)
-{
-  auto it = s_kinds.find(k);
-  if (it == s_kinds.end())
-  {
-    return CVC4::Kind::UNDEFINED_KIND;
-  }
-  return it->second;
-}
-
 uint32_t minArity(Kind k)
 {
   Assert(isDefinedKind(k));
@@ -795,17 +775,6 @@ Sort::~Sort() {}
 /* .......................................................................... */
 
 bool Sort::isNullHelper() const { return d_type->isNull(); }
-
-std::vector<Sort> Sort::typeVectorToSorts(
-                                          const std::vector<CVC4::Type>& types) const
-{
-  std::vector<Sort> res;
-  for (const CVC4::Type& t : types)
-    {
-      res.push_back(Sort(t));
-    }
-  return res;
-}
 
 bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
 
@@ -3984,5 +3953,85 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
+
+/* -------------------------------------------------------------------------- */
+/* Conversions                                                                */
+/* -------------------------------------------------------------------------- */
+
+std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms)
+{
+  std::vector<Expr> exprs;
+  for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
+  {
+    exprs.push_back(terms[i].getExpr());
+  }
+  return exprs;
+}
+
+std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts)
+{
+  std::vector<Type> types;
+  for (size_t i = 0, ssize = sorts.size(); i < ssize; i++)
+  {
+    types.push_back(sorts[i].getType());
+  }
+  return types;
+}
+
+std::set<Type> sortSetToTypes(const std::set<Sort>& sorts)
+{
+  std::set<Type> types;
+  for (const Sort& s : sorts)
+  {
+    types.insert(s.getType());
+  }
+  return types;
+}
+
+std::vector<Term> exprVectorToTerms(const std::vector<Expr>& exprs)
+{
+  std::vector<Term> terms;
+  for (size_t i = 0, esize = exprs.size(); i < esize; i++)
+  {
+    terms.push_back(Term(exprs[i]));
+  }
+  return terms;
+}
+
+std::vector<Sort> typeVectorToSorts(const std::vector<Type>& types)
+{
+  std::vector<Sort> sorts;
+  for (size_t i = 0, tsize = types.size(); i < tsize; i++)
+  {
+    sorts.push_back(Sort(types[i]));
+  }
+  return sorts;
+}
+
 }  // namespace api
+
+/* -------------------------------------------------------------------------- */
+/* Kind Conversions                                                           */
+/* -------------------------------------------------------------------------- */
+
+CVC4::api::Kind intToExtKind(CVC4::Kind k)
+{
+  auto it = api::s_kinds_internal.find(k);
+  if (it == api::s_kinds_internal.end())
+  {
+    return api::INTERNAL_KIND;
+  }
+  return it->second;
+}
+
+CVC4::Kind extToIntKind(CVC4::api::Kind k)
+{
+  auto it = api::s_kinds.find(k);
+  if (it == api::s_kinds.end())
+  {
+    return CVC4::Kind::UNDEFINED_KIND;
+  }
+  return it->second;
+}
+
 }  // namespace CVC4
