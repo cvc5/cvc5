@@ -199,10 +199,9 @@ void ExtfSolver::checkExtfReductions(int effort)
   std::vector<Node> extf = d_extt->getActive();
   Trace("strings-process") << "  checking " << extf.size() << " active extf"
                            << std::endl;
-  for (unsigned i = 0; i < extf.size(); i++)
+  for (const Node& n : extf)
   {
     Assert(!d_state.isInConflict());
-    Node n = extf[i];
     Trace("strings-process")
         << "  check " << n
         << ", active in model=" << d_extfInfoTmp[n].d_modelActive << std::endl;
@@ -211,7 +210,7 @@ void ExtfSolver::checkExtfReductions(int effort)
     bool ret = doReduction(effort, n, isCd);
     if (ret)
     {
-      d_extt->markReduced(extf[i], isCd);
+      d_extt->markReduced(n, isCd);
       if (d_im.hasProcessed())
       {
         return;

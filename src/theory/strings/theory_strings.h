@@ -385,15 +385,6 @@ private:
    *   str.code(x) == -1 V str.code(x) != str.code(y) V x == y
    */
   void checkCodes();
-  /** check lengths for equivalence classes
-   *
-   * This inference schema adds lemmas of the form:
-   *   E => len( x ) = rewrite( len( r1 ++ ... ++ rn ) )
-   * where [r1, ..., rn] is the normal form of the equivalence class containing
-   * x. This schema is not required for correctness but experimentally has
-   * shown to be helpful.
-   */
-  void checkLengthsEqc();
   /** check register terms for normal forms
    *
    * This calls registerTerm(str.++(t1, ..., tn ), 3) on the normal forms
