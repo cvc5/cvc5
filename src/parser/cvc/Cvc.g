@@ -583,8 +583,6 @@ using namespace CVC4::parser;
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
 #undef PARSER_STATE
 #define PARSER_STATE ((Parser*)PARSER->super)
-#undef EXPR_MANAGER
-#define EXPR_MANAGER PARSER_STATE->getExprManager()
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
@@ -2288,7 +2286,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
         params.push_back( t ); }
       )* RBRACKET
     )?
-    { datatypes.push_back(Datatype(EXPR_MANAGER, id, api::sortVectorToTypes(params), false));
+    { datatypes.push_back(Datatype(PARSER_STATE->getExprManager(), id, api::sortVectorToTypes(params), false));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);

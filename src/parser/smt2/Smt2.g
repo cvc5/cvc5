@@ -143,8 +143,6 @@ using namespace CVC4::parser;
  * PARSER would be undefined.) */
 #undef PARSER_STATE
 #define PARSER_STATE ((Smt2*)PARSER->super)
-#undef EXPR_MANAGER
-#define EXPR_MANAGER PARSER_STATE->getExprManager()
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
@@ -960,7 +958,7 @@ sygusGrammar[CVC4::api::Sort & ret,
       std::stringstream ss;
       ss << "dt_" << fun << "_" << i.first;
       std::string dname = ss.str();
-      datatypes.push_back(Datatype(EXPR_MANAGER, dname));
+      datatypes.push_back(Datatype(PARSER_STATE->getExprManager(), dname));
       // make its unresolved type, used for referencing the final version of
       // the datatype
       PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
@@ -1531,7 +1529,7 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("Wrong number of parameters for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],api::sortVectorToTypes(params),isCo));
+        dts.push_back(Datatype(PARSER_STATE->getExprManager(), dnames[dts.size()],api::sortVectorToTypes(params),isCo));
       }
       LPAREN_TOK
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
@@ -1541,7 +1539,7 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("No parameters given for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],api::sortVectorToTypes(params),isCo));
+        dts.push_back(Datatype(PARSER_STATE->getExprManager(), dnames[dts.size()],api::sortVectorToTypes(params),isCo));
       }
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
     )
@@ -2523,7 +2521,7 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes,
         params.push_back( t ); }
       )* ']'
     )?*/ //AJR: this isn't necessary if we use z3's style
-    { datatypes.push_back(Datatype(EXPR_MANAGER, id, api::sortVectorToTypes(params), isCo));
+    { datatypes.push_back(Datatype(PARSER_STATE->getExprManager(), id, api::sortVectorToTypes(params), isCo));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
