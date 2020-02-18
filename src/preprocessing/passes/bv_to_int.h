@@ -16,12 +16,12 @@
  ** roughly described as follows:
  **
  ** Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
- ** integer variable.
+ **         integer variable.
  ** Tr(c) = the integer value of c, for any bit-vector constant c.
  ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of 
- ** s and t.
+ **         s and t.
  ** Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg,
- ** bvnot, bvconcat, bvextract
+ **         bvnot, bvconcat, bvextract
  **
  ** Tr((bvand s t)) depends on the granularity, which is provided by the user
  ** when enabling this preprocessing pass.
@@ -44,7 +44,7 @@
  ** Similar transformations are done for bvor, bvxor, bvxnor, bvnand, bvnor.
  **
  ** Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bit width of
- ** a and b, and ITE represents exponentiation up to k, that is:
+ **         a and b, and ITE represents exponentiation up to k, that is:
  ** ITE = ite(Tr(b)=0, 1, ite(Tr(b)=1), 2, ite(Tr(b)=2, 4, ...))
  ** Similar transformations are done for bvlshr.
  **
@@ -118,14 +118,14 @@ class BVToInt : public PreprocessingPass
    *
    *
    * @param x is an integer operand that correspond to the first original
-   * bit-vector operand.
+   *        bit-vector operand.
    * @param y is an integer operand that correspond to the second original
-   * bit-vector operand.
+   *        bit-vector operand.
    * @param bvsize is the bit width of the original bit-vector variables.
    * @param granularity is specified in the options for this preprocessing
-   * pass.
+   *        pass.
    * @param f is a pointer to a boolean function that corresponds
-   * to the original bitwise operation.
+   *        to the original bitwise operation.
    * @return A node that represents the operation, as described above.
    */
   Node createBitwiseNode(Node x,
@@ -137,13 +137,13 @@ class BVToInt : public PreprocessingPass
   /**
    * A helper function for createBitwiseNode
    * @param x integer node corresponding to the original first bit-vector
-   * argument
+   *        argument
    * @param y integer node corresponding to the original second bit-vector
-   * argument nodes.
+   *        argument nodes.
    * @param granularity the bitwidth of the original bit-vector nodes.
    * @param table a function from pairs of integers to integers.
-   *   The domain of this function consists of pairs of
-   *   integers between 0 (inclusive) and 2^{bitwidth} (exclusive).
+   *        The domain of this function consists of pairs of
+   *        integers between 0 (inclusive) and 2^{bitwidth} (exclusive).
    * @return An ite term that represents this table.
    */
   Node createITEFromTable(
@@ -162,7 +162,7 @@ class BVToInt : public PreprocessingPass
    * the result is 0.
    * @param children: the two operands for the shift
    * @param bvsize: the original bit widths of the operands
-   *           (before translation to integers)
+   *                (before translation to integers)
    * @param  isLeftShift: true iff the desired operation is a left shift.
    * @return a node representing the shift.
    *
@@ -204,8 +204,8 @@ class BVToInt : public PreprocessingPass
   /**
    * Some bit-vector operators (e.g., bvadd, bvand) are binary, but allow more
    * than two arguments as a syntactic sugar.
-   * For example, we can have a node
-   * for (bvand x y z), that represents (bvand (x (bvand y z))).
+   * For example, we can have a node for (bvand x y z), 
+   * that represents (bvand (x (bvand y z))).
    * This function makes all such operators strictly binary.
    */
   Node makeBinary(Node n);
