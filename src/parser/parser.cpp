@@ -209,7 +209,7 @@ api::Term Parser::bindVar(const std::string& name, const api::Sort& type, uint32
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   Debug("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
-  api::Term expr = api::Term(getExprManager()->mkVar(name, type.getType(), flags));
+  api::Term expr = mkVar(name, type, flags);
   defineVar(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL, doOverload);
   return expr;
 }
@@ -239,7 +239,7 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix, const api::Sort
   }
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return api::Term(getExprManager()->mkVar(name.str(), type.getType(), flags));
+  return mkVar(name.str(), type.getType(), flags);
 }
 
 std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
@@ -677,6 +677,12 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     parseError("Type ascription not satisfied.");
   }
   return t;
+}
+
+
+api::Term Parser::mkVar(const std::string& name, const api::Sort& type, uint32_t flags)
+{
+  return api::Term(getExprManager()->mkVar(name, type.getType(), flags));
 }
 
 //!!!!!!!!!!! temporary

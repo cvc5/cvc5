@@ -725,6 +725,8 @@ public:
   api::Term mkTermSafe(api::Kind k, api::Term t1, api::Term t2) const;
   /** Apply type ascription */
   api::Term applyTypeAscription(api::Term t, api::Sort s);
+  /** Make var, with flags */
+  api::Term mkVar(const std::string& name, const api::Sort& type, uint32_t flags);
   //!!!!!!!!!!! temporary
   
   /**
