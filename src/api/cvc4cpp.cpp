@@ -229,6 +229,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {APPLY_TESTER, CVC4::Kind::APPLY_TESTER},
     {TUPLE_UPDATE, CVC4::Kind::TUPLE_UPDATE},
     {RECORD_UPDATE, CVC4::Kind::RECORD_UPDATE},
+    {DT_SIZE, CVC4::Kind::DT_SIZE},
     /* Separation Logic ---------------------------------------------------- */
     {SEP_NIL, CVC4::Kind::SEP_NIL},
     {SEP_EMP, CVC4::Kind::SEP_EMP},
@@ -328,6 +329,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         /* UF -------------------------------------------------------------- */
         {CVC4::Kind::APPLY_UF, APPLY_UF},
         {CVC4::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
+        {CVC4::Kind::CARDINALITY_VALUE, CARDINALITY_VALUE},
         {CVC4::Kind::HO_APPLY, HO_APPLY},
         /* Arithmetic ------------------------------------------------------ */
         {CVC4::Kind::PLUS, PLUS},
@@ -4105,6 +4107,7 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  * the new API. !!!
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
+
 
 /* -------------------------------------------------------------------------- */
 /* Conversions                                                                */

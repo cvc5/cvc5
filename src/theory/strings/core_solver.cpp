@@ -1293,115 +1293,101 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         break;
       }
 
-      // FIXME
-      if (!isRev)
+      // At this point, we know that `nc` is non-empty, so we add that to our
+      // explanation.
+      Node ncnz = nc.eqNode(d_emptyString).negate();
+      info.d_ant.push_back(ncnz);
+
+      size_t ncIndex = index + 1;
+      Node nextConstStr = nfnc.collectConstantStringAt(ncIndex);
+      if (!nextConstStr.isNull())
       {
-        // At this point, we know that `nc` is non-empty, so we add that to our
-        // explanation.
-        Node ncnz = nc.eqNode(d_emptyString).negate();
-        info.d_ant.push_back(ncnz);
-
-        size_t ncIndex = index + 1;
-        Node nextConstStr = TheoryStringsRewriter::collectConstantStringAt(
-            nfncv, ncIndex, false);
-        if (!nextConstStr.isNull())
+        // We are in the case where we have a constant after `nc`, so we
+        // split `nc`.
+        //
+        // E.g. "abc" ++ ... = nc ++ "b" ++ ... ---> nc = "a" ++ k
+        size_t cIndex = index;
+        Node constStr = nfc.collectConstantStringAt(cIndex);
+        Assert(!constStr.isNull());
+        CVC4::String stra = constStr.getConst<String>();
+        CVC4::String strb = nextConstStr.getConst<String>();
+        // Since `nc` is non-empty, we start with character 1
+        size_t p;
+        if (isRev)
         {
-          // We are in the case where we have a constant after `nc`, so we
-          // split `nc`.
-          //
-          // E.g. "abc" ++ ... = nc ++ "b" ++ ... ---> nc = "a" ++ k
-          size_t cIndex = index;
-          Node constStr = TheoryStringsRewriter::collectConstantStringAt(
-              nfcv, cIndex, false);
-          Assert(!constStr.isNull());
-          CVC4::String stra = constStr.getConst<String>();
-          CVC4::String strb = nextConstStr.getConst<String>();
-          // Since `nc` is non-empty, we start with character 1
-          size_t p;
-          if (isRev)
-          {
-            CVC4::String stra1 = stra.prefix(stra.size() - 1);
-            p = stra.size() - stra1.roverlap(strb);
-            Trace("strings-csp-debug") << "Compute roverlap : " << constStr
-                                       << " " << nextConstStr << std::endl;
-            size_t p2 = stra1.rfind(strb);
-            p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-            Trace("strings-csp-debug")
-                << "overlap : " << stra1 << " " << strb << " returned " << p
-                << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
-          }
-          else
-          {
-            CVC4::String stra1 = stra.substr(1);
-            p = stra.size() - stra1.overlap(strb);
-            Trace("strings-csp-debug") << "Compute overlap : " << constStr
-                                       << " " << nextConstStr << std::endl;
-            size_t p2 = stra1.find(strb);
-            p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-            Trace("strings-csp-debug")
-                << "overlap : " << stra1 << " " << strb << " returned " << p
-                << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
-          }
-
-          // If we can't split off more than a single character from the
-          // constant, we might as well do regular constant/non-constant
-          // inference (see below).
-          if (p > 1)
-          {
-            NormalForm::getExplanationForPrefixEq(
-                nfc, nfnc, cIndex, ncIndex, info.d_ant);
-            Node prea = p == stra.size() ? constStr
-                                         : nm->mkConst(isRev ? stra.suffix(p)
-                                                             : stra.prefix(p));
-            Node sk = d_skCache.mkSkolemCached(
-                nc,
-                prea,
-                isRev ? SkolemCache::SK_ID_C_SPT_REV : SkolemCache::SK_ID_C_SPT,
-                "c_spt");
-            Trace("strings-csp")
-                << "Const Split: " << prea << " is removed from " << stra
-                << " due to " << strb << ", p=" << p << std::endl;
-            info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, prea)
-                                          : utils::mkNConcat(prea, sk));
-            info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
-            info.d_id = INFER_SSPLIT_CST_PROP;
-            pinfer.push_back(info);
-            break;
-          }
+          CVC4::String stra1 = stra.prefix(stra.size() - 1);
+          p = stra.size() - stra1.roverlap(strb);
+          Trace("strings-csp-debug") << "Compute roverlap : " << constStr << " "
+                                     << nextConstStr << std::endl;
+          size_t p2 = stra1.rfind(strb);
+          p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+          Trace("strings-csp-debug")
+              << "roverlap : " << stra1 << " " << strb << " returned " << p
+              << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
+        }
+        else
+        {
+          CVC4::String stra1 = stra.substr(1);
+          p = stra.size() - stra1.overlap(strb);
+          Trace("strings-csp-debug") << "Compute overlap : " << constStr << " "
+                                     << nextConstStr << std::endl;
+          size_t p2 = stra1.find(strb);
+          p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+          Trace("strings-csp-debug")
+              << "overlap : " << stra1 << " " << strb << " returned " << p
+              << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
         }
 
-        // Since non of the other inferences apply, we just infer that `nc` has
-        // to start with the first character of the constant.
-        //
-        // E.g. "abc" ++ ... = nc ++ ... ---> nc = "a" ++ k
-        Node constStr = nfcv[index];
-        CVC4::String stra = constStr.getConst<String>();
-        Node firstChar = stra.size() == 1 ? constStr
-                                          : nm->mkConst(isRev ? stra.suffix(1)
-                                                              : stra.prefix(1));
-        Node sk = d_skCache.mkSkolemCached(
-            nc,
-            isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
-            "c_spt");
-        Trace("strings-csp")
-            << "Const Split: " << firstChar << " is removed from " << constStr
-            << " (serial) " << std::endl;
-        NormalForm::getExplanationForPrefixEq(
-            nfi, nfj, index, index, info.d_ant);
-        info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
-                                      : utils::mkNConcat(firstChar, sk));
-        info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
-        info.d_id = INFER_SSPLIT_CST;
-        pinfer.push_back(info);
-        break;
+        // If we can't split off more than a single character from the
+        // constant, we might as well do regular constant/non-constant
+        // inference (see below).
+        if (p > 1)
+        {
+          NormalForm::getExplanationForPrefixEq(
+              nfc, nfnc, cIndex, ncIndex, info.d_ant);
+          Node prea = p == stra.size() ? constStr
+                                       : nm->mkConst(isRev ? stra.suffix(p)
+                                                           : stra.prefix(p));
+          Node sk = d_skCache.mkSkolemCached(
+              nc,
+              prea,
+              isRev ? SkolemCache::SK_ID_C_SPT_REV : SkolemCache::SK_ID_C_SPT,
+              "c_spt");
+          Trace("strings-csp")
+              << "Const Split: " << prea << " is removed from " << stra
+              << " due to " << strb << ", p=" << p << std::endl;
+          info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, prea)
+                                        : utils::mkNConcat(prea, sk));
+          info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
+          info.d_id = INFER_SSPLIT_CST_PROP;
+          pinfer.push_back(info);
+          break;
+        }
       }
-      else
-      {
-        // Either `x` or `y` is constant but we couldn't make an inference
-        // because our inferences do not work when in the reverse direction.
-        // To avoid doing a F-Split here, we break out of the loop.
-        break;
-      }
+
+      // Since none of the other inferences apply, we just infer that `nc` has
+      // to start with the first character of the constant.
+      //
+      // E.g. "abc" ++ ... = nc ++ ... ---> nc = "a" ++ k
+      Node constStr = nfcv[index];
+      CVC4::String stra = constStr.getConst<String>();
+      Node firstChar = stra.size() == 1 ? constStr
+                                        : nm->mkConst(isRev ? stra.suffix(1)
+                                                            : stra.prefix(1));
+      Node sk = d_skCache.mkSkolemCached(
+          nc,
+          isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
+          "c_spt");
+      Trace("strings-csp") << "Const Split: " << firstChar
+                           << " is removed from " << constStr << " (serial) "
+                           << std::endl;
+      NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, info.d_ant);
+      info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
+                                    : utils::mkNConcat(firstChar, sk));
+      info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
+      info.d_id = INFER_SSPLIT_CST;
+      pinfer.push_back(info);
+      break;
     }
 
     // Below, we deal with the case where `x` and `y` are two non-constant
