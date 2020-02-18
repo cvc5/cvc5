@@ -619,6 +619,7 @@ void SolverBlack::testMkTermFromOp()
   std::vector<Term> v1 = {d_solver->mkReal(1), d_solver->mkReal(2)};
   std::vector<Term> v2 = {d_solver->mkReal(1), Term()};
   std::vector<Term> v3 = {};
+  std::vector<Term> v4 = {d_solver->mkReal(5)};
   // simple operator terms
   Op opterm1 = d_solver->mkOp(BITVECTOR_EXTRACT, 2, 1);
   Op opterm2 = d_solver->mkOp(DIVISIBLE, 1);
@@ -671,7 +672,7 @@ void SolverBlack::testMkTermFromOp()
 
   // mkTerm(Kind kind, Op op, Term child1, Term child2) const
   TS_ASSERT_THROWS_NOTHING(
-      d_solver->mkTerm(opterm2, d_solver->mkReal(1), d_solver->mkReal(2)));
+      d_solver->mkTerm(opterm2, d_solver->mkReal(2)));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(
       consTerm1, d_solver->mkReal(0), d_solver->mkTerm(nilTerm1)));
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b), CVC4ApiException&);
@@ -689,7 +690,8 @@ void SolverBlack::testMkTermFromOp()
       CVC4ApiException&);
 
   // mkTerm(Op op, const std::vector<Term>& children) const
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm2, v1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm2, v4));
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, v1), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, v2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, v3), CVC4ApiException&);
 }
