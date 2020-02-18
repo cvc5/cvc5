@@ -1319,7 +1319,7 @@ void TheoryArrays::check(Effort e) {
     return;
   }
 
-  getOutputChannel().spendResource(options::theoryCheckStep());
+  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
 

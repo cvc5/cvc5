@@ -2313,9 +2313,9 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
   }
 }
 
-void TheoryEngine::spendResource(unsigned amount)
+void TheoryEngine::spendResource(ResourceManager::Resource r)
 {
-  d_resourceManager->spendResource(amount);
+  d_resourceManager->spendResource(r);
 }
 
 void TheoryEngine::enableTheoryAlternative(const std::string& name){

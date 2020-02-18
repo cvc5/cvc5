@@ -82,7 +82,7 @@ class OutputChannel {
    *
    * @throws Interrupted if the theory can be safely interrupted.
    */
-  virtual void safePoint(uint64_t amount) {}
+  virtual void safePoint(ResourceManager::Resource r) {}
 
   /**
    * Indicate a theory conflict has arisen.
@@ -172,7 +172,7 @@ class OutputChannel {
    * long-running operations, they cannot rely on resource() to break
    * out of infinite or intractable computations.
    */
-  virtual void spendResource(unsigned amount) {}
+  virtual void spendResource(ResourceManager::Resource r) {}
 
   /**
    * Handle user attribute.
