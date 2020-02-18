@@ -620,6 +620,10 @@ uint32_t maxArity(Kind k)
   {
     max++;
   }
+  else if (k == APPLY_TESTER)
+  {
+    max++;
+  }
 
   return max;
 }
