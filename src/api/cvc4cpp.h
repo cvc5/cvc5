@@ -20,6 +20,10 @@
 #define CVC4__API__CVC4CPP_H
 
 #include "api/cvc4cppkind.h"
+// !!! Only temporarily public until the parser is fully migrated to the new
+// API. !!!
+#include "expr/kind.h"
+// !!!
 
 #include <map>
 #include <memory>
@@ -510,9 +514,6 @@ class CVC4_PUBLIC Sort
    */
   bool isNullHelper() const;
 
-  /* Helper to convert a vector of sorts into a vector of internal types. */
-  std::vector<Sort> typeVectorToSorts(
-      const std::vector<CVC4::Type>& vector) const;
   /**
    * The interal type wrapped by this sort.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
@@ -2709,6 +2710,20 @@ class CVC4_PUBLIC Solver
   std::unique_ptr<Random> d_rng;
 };
 
+// !!! Only temporarily public until the parser is fully migrated to the
+// new API. !!!
+std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
+std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
+std::vector<Term> exprVectorToTerms(const std::vector<Expr>& terms);
+std::vector<Sort> typeVectorToSorts(const std::vector<Type>& sorts);
+std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
+
 }  // namespace api
+
+// !!! Only temporarily public until the parser is fully migrated to the
+// new API. !!!
+CVC4::api::Kind intToExtKind(CVC4::Kind k);
+CVC4::Kind extToIntKind(CVC4::api::Kind k);
+
 }  // namespace CVC4
 #endif

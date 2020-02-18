@@ -971,7 +971,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
     }
     else
     {
-      printBoundTerm(term[2], os, map);
+      printBoundTerm(term[2], os, map, armType);
     }
     os << ")";
     return;

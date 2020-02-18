@@ -797,11 +797,6 @@ set(regress_0_tests
   regress0/rels/relations-ops.smt2
   regress0/rels/rels-sharing-simp.cvc
   regress0/reset-assertions.smt2
-  regress0/rewriterules/datatypes.smt2
-  regress0/rewriterules/length_trick.smt2
-  regress0/rewriterules/native_arrays.smt2
-  regress0/rewriterules/relation.smt2
-  regress0/rewriterules/simulate_rewriting.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/nemp.smt2
@@ -1191,6 +1186,7 @@ set(regress_1_tests
   regress1/bv/divtest.smt2
   regress1/bv/fuzz34.smtv1.smt2
   regress1/bv/fuzz38.smtv1.smt2
+  regress1/bv/issue3654.smt2
   regress1/bv/test-bv-abstraction.smt2
   regress1/bv/unsound1.smt2
   regress1/bvdiv2.smt2
@@ -1343,7 +1339,6 @@ set(regress_1_tests
   regress1/push-pop/arith_lra_02.smt2
   regress1/push-pop/bug-fmf-fun-skolem.smt2
   regress1/push-pop/bug216.smt2
-  regress1/push-pop/bug326.smt2
   regress1/push-pop/fuzz_1.smt2
   regress1/push-pop/fuzz_10.smt2
   regress1/push-pop/fuzz_11.smt2
@@ -1450,11 +1445,13 @@ set(regress_1_tests
   regress1/quantifiers/issue3537.smt2
   regress1/quantifiers/issue3628.smt2
   regress1/quantifiers/issue3664.smt2
+  regress1/quantifiers/issue3724-quant.smt2
+  regress1/quantifiers/issue3765.smt2
+  regress1/quantifiers/issue3765-quant-dd.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
   regress1/quantifiers/mix-coeff.smt2
-  regress1/quantifiers/model_6_1_bv.smt2
   regress1/quantifiers/mutualrec2.cvc
   regress1/quantifiers/nested9_true-unreach-call.i_575.smt2
   regress1/quantifiers/nl-pow-trick.smt2
@@ -1540,15 +1537,6 @@ set(regress_1_tests
   regress1/rels/rel_tp_join_2_1.cvc
   regress1/rels/set-strat.cvc
   regress1/rels/strat.cvc
-  regress1/rewriterules/datatypes_sat.smt2
-  regress1/rewriterules/length_gen.smt2
-  regress1/rewriterules/length_gen_020.smt2
-  regress1/rewriterules/length_gen_020_sat.smt2
-  regress1/rewriterules/length_gen_040.smt2
-  regress1/rewriterules/length_gen_040_lemma.smt2
-  regress1/rewriterules/length_gen_040_lemma_trigger.smt2
-  regress1/rewriterules/reachability_back_to_the_future.smt2
-  regress1/rewriterules/read5.smt2
   regress1/rr-verify/bool-crci.sy
   regress1/rr-verify/bv-term-32.sy
   regress1/rr-verify/bv-term.sy
@@ -1818,7 +1806,7 @@ set(regress_1_tests
   regress1/sygus/issue3635.smt2
   regress1/sygus/issue3644.smt2
   regress1/sygus/issue3648.smt2
-  regress1/sygus/issue3654.sy
+  regress1/sygus/issue3649.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -2177,12 +2165,6 @@ set(regression_disabled_tests
   regress0/quantifiers/qbv-test-invert-bvshl-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-1-neq.smt2
-  regress0/rewriterules/datatypes_clark.smt2
-  regress0/rewriterules/length.smt2
-  regress0/rewriterules/length_gen_n.smt2
-  regress0/rewriterules/length_gen_n_lemma.smt2
-  regress0/rewriterules/length_trick2.smt2
-  regress0/rewriterules/native_datatypes.smt2
   regress0/sets/mar2014/stacks0.hs.78.cvc4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-new.smt2
@@ -2310,9 +2292,11 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
-  # ajreynol: disabled these since they give different error messages on
-  # production and debug:
+  # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
+  # times out with competition build:
+  regress1/quantifiers/model_6_1_bv.smt2
+  # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2
   ###
@@ -2320,20 +2304,6 @@ set(regression_disabled_tests
   # doing a coverage build with LFSC.
   regress1/quantifiers/set3.smt2
   regress1/rels/garbage_collect.cvc
-  regress1/rewriterules/datatypes2.smt2
-  regress1/rewriterules/datatypes3.smt2
-  regress1/rewriterules/datatypes_clark_quantification.smt2
-  regress1/rewriterules/length_gen_010.smt2
-  regress1/rewriterules/length_gen_010_lemma.smt2
-  regress1/rewriterules/length_gen_080.smt2
-  regress1/rewriterules/length_gen_160_lemma.smt2
-  regress1/rewriterules/length_gen_inv_160.smt2
-  regress1/rewriterules/length_trick3.smt2
-  regress1/rewriterules/length_trick3_int.smt2
-  regress1/rewriterules/set_A_new_fast_tableau-base.smt2
-  regress1/rewriterules/set_A_new_fast_tableau-base_sat.smt2
-  regress1/rewriterules/test_guards.smt2
-  regress1/rewriterules/why3_vstte10_max_sum_harness2.smt2
   regress1/sets/setofsets-disequal.smt2
   regress1/sets/finite-type/sets-card-neg-mem-union-2.smt2
   regress1/simple-rdl-definefun.smt2

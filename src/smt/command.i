@@ -36,18 +36,18 @@
 }
 
 // CommandSequence is "iterable" on the Java side
-%typemap(javainterfaces) CVC4::CommandSequence "java.lang.Iterable<edu.nyu.acsys.CVC4.Command>";
+%typemap(javainterfaces) CVC4::CommandSequence "java.lang.Iterable<edu.stanford.CVC4.Command>";
 
 // the JavaIteratorAdapter should not be public, and implements Iterator
 %typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*> "class";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*> "java.util.Iterator<edu.nyu.acsys.CVC4.Command>";
+%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*> "java.util.Iterator<edu.stanford.CVC4.Command>";
 // add some functions to the Java side (do it here because there's no way to do these in C++)
 %typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*> "
   public void remove() {
     throw new java.lang.UnsupportedOperationException();
   }
 
-  public edu.nyu.acsys.CVC4.Command next() {
+  public edu.stanford.CVC4.Command next() {
     if(hasNext()) {
       return getNext();
     } else {
