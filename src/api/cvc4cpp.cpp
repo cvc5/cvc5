@@ -611,7 +611,17 @@ uint32_t maxArity(Kind k)
 {
   Assert(isDefinedKind(k));
   Assert(isDefinedIntKind(extToIntKind(k)));
-  return CVC4::ExprManager::maxArity(extToIntKind(k));
+  uint32_t max = CVC4::ExprManager::maxArity(extToIntKind(k));
+
+  // special cases for API level
+  // higher-order logic perspective at API
+  // functions/constructors/selectors/testers are terms
+  if (k == APPLY_SELECTOR)
+  {
+    max++;
+  }
+
+  return max;
 }
 }  // namespace
 
@@ -1333,15 +1343,15 @@ Op Term::getOp() const
   // special cases for Datatype operators
   if (t.isSelector())
   {
-    return Op(APPLY_SELECTOR, op);
+    return Op(APPLY_SELECTOR);
   }
   else if (t.isConstructor())
   {
-    return Op(APPLY_CONSTRUCTOR, op);
+    return Op(APPLY_CONSTRUCTOR);
   }
   else if (t.isTester())
   {
-    return Op(APPLY_TESTER, op);
+    return Op(APPLY_TESTER);
   }
   else
   {
@@ -1771,11 +1781,11 @@ DatatypeSelector::~DatatypeSelector() {}
 
 bool DatatypeSelector::isResolved() const { return d_stor->isResolved(); }
 
-Op DatatypeSelector::getSelectorTerm() const
+Term DatatypeSelector::getSelectorTerm() const
 {
   CVC4_API_CHECK(isResolved()) << "Expected resolved datatype selector.";
-  CVC4::Expr sel = d_stor->getSelector();
-  return Op(APPLY_SELECTOR, sel);
+  Term sel = d_stor->getSelector();
+  return sel;
 }
 
 std::string DatatypeSelector::toString() const
@@ -1812,11 +1822,11 @@ DatatypeConstructor::~DatatypeConstructor() {}
 
 bool DatatypeConstructor::isResolved() const { return d_ctor->isResolved(); }
 
-Op DatatypeConstructor::getConstructorTerm() const
+Term DatatypeConstructor::getConstructorTerm() const
 {
   CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
-  CVC4::Expr ctor = d_ctor->getConstructor();
-  return Op(APPLY_CONSTRUCTOR, ctor);
+  Term ctor = d_ctor->getConstructor();
+  return ctor;
 }
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
@@ -1833,12 +1843,12 @@ DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
   return (*d_ctor)[name];
 }
 
-Op DatatypeConstructor::getSelectorTerm(const std::string& name) const
+Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
 {
   // CHECK: cons with name exists?
   // CHECK: is resolved?
-  CVC4::Expr sel = d_ctor->getSelector(name);
-  return Op(APPLY_SELECTOR, sel);
+  Term sel = d_ctor->getSelector(name);
+  return sel;
 }
 
 DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
@@ -1963,12 +1973,12 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
   return (*d_dtype)[name];
 }
 
-Op Datatype::getConstructorTerm(const std::string& name) const
+Term Datatype::getConstructorTerm(const std::string& name) const
 {
   // CHECK: cons with name exists?
   // CHECK: is resolved?
-  CVC4::Expr ctor = d_dtype->getConstructor(name);
-  return Op(APPLY_CONSTRUCTOR, ctor);
+  Term ctor = d_dtype->getConstructor(name);
+  return ctor;
 }
 
 size_t Datatype::getNumConstructors() const

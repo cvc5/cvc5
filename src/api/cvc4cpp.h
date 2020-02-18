@@ -1218,9 +1218,9 @@ class CVC4_PUBLIC DatatypeSelector
 
   /**
    * Get the selector operator of this datatype selector.
-   * @return the selector operator
+   * @return the selector Term
    */
-  Op getSelectorTerm() const;
+  Term getSelectorTerm() const;
 
   /**
    * @return a string representation of this datatype selector
@@ -1275,9 +1275,9 @@ class CVC4_PUBLIC DatatypeConstructor
 
   /**
    * Get the constructor operator of this datatype constructor.
-   * @return the constructor operator
+   * @return the constructor term
    */
-  Op getConstructorTerm() const;
+  Term getConstructorTerm() const;
 
   /**
    * Get the datatype selector with the given name.
@@ -1296,7 +1296,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param name the name of the datatype selector
    * @return a term representing the datatype selector with the given name
    */
-  Op getSelectorTerm(const std::string& name) const;
+  Term getSelectorTerm(const std::string& name) const;
 
   /**
    * @return a string representation of this datatype constructor
@@ -1443,7 +1443,7 @@ class CVC4_PUBLIC Datatype
    * similarly-named constructors, the
    * first is returned.
    */
-  Op getConstructorTerm(const std::string& name) const;
+  Term getConstructorTerm(const std::string& name) const;
 
   /** Get the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
