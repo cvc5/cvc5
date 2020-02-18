@@ -80,7 +80,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       if (!d_quantEngine->theoryEngineNeedsCheck())
       {
         doCheck = quant_e == QEFFORT_LAST_CALL;
-        fullEffort = !d_quantEngine->hasAddedLemma();
+        fullEffort = true;
       }
     }
   }
