@@ -642,18 +642,19 @@ void SolverBlack::testMkTermFromOp()
   Term c = d_solver->mkConst(intListSort, "c");
   Datatype list = listSort.getDatatype();
   // list datatype constructor and selector operator terms
-  Op consTerm1 = list.getConstructorTerm("cons");
-  Op consTerm2 = list.getConstructor("cons").getConstructorTerm();
-  Op nilTerm1 = list.getConstructorTerm("nil");
-  Op nilTerm2 = list.getConstructor("nil").getConstructorTerm();
-  Op headTerm1 = list["cons"].getSelectorTerm("head");
-  Op headTerm2 = list["cons"].getSelector("head").getSelectorTerm();
-  Op tailTerm1 = list["cons"].getSelectorTerm("tail");
-  Op tailTerm2 = list["cons"]["tail"].getSelectorTerm();
+  Term consTerm1 = list.getConstructorTerm("cons");
+  Term consTerm2 = list.getConstructor("cons").getConstructorTerm();
+  Term nilTerm1 = list.getConstructorTerm("nil");
+  Term nilTerm2 = list.getConstructor("nil").getConstructorTerm();
+  Term headTerm1 = list["cons"].getSelectorTerm("head");
+  Term headTerm2 = list["cons"].getSelector("head").getSelectorTerm();
+  Term tailTerm1 = list["cons"].getSelectorTerm("tail");
+  Term tailTerm2 = list["cons"]["tail"].getSelectorTerm();
 
-  // mkTerm(Kind kind, Op op) const
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(nilTerm1));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(nilTerm2));
+  // mkTerm(Op op, Term term) const
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_CONSTRUCTOR, nilTerm1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_CONSTRUCTOR, nilTerm2));
+  TS_ASSERT_THROWS(d_solver->mkTerm(nilTerm1));
   TS_ASSERT_THROWS(d_solver->mkTerm(consTerm1), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(consTerm2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1), CVC4ApiException&);
@@ -661,20 +662,20 @@ void SolverBlack::testMkTermFromOp()
   TS_ASSERT_THROWS(d_solver->mkTerm(tailTerm2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1), CVC4ApiException&);
 
-  // mkTerm(Kind kind, Op op, Term child) const
+  // mkTerm(Op op, Term child) const
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm1, a));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm2, d_solver->mkReal(1)));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(headTerm1, c));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(tailTerm2, c));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_SELECTOR, headTerm1, c));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_SELECTOR, tailTerm2, c));
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, a), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, Term()), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(consTerm1, d_solver->mkReal(0)),
+  TS_ASSERT_THROWS(d_solver->mkTerm(APPLY_CONSTRUCTOR, consTerm1, d_solver->mkReal(0)),
                    CVC4ApiException&);
 
-  // mkTerm(Kind kind, Op op, Term child1, Term child2) const
+  // mkTerm(Op op, Term child1, Term child2) const
   TS_ASSERT_THROWS_NOTHING(
       d_solver->mkTerm(opterm3, d_solver->mkReal(1), d_solver->mkReal(2)));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_CONSTRUCTOR,
       consTerm1, d_solver->mkReal(0), d_solver->mkTerm(nilTerm1)));
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, d_solver->mkReal(1), Term()),
@@ -682,7 +683,7 @@ void SolverBlack::testMkTermFromOp()
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, Term(), d_solver->mkReal(1)),
                    CVC4ApiException&);
 
-  // mkTerm(Kind kind, Op op, Term child1, Term child2, Term child3)
+  // mkTerm(Op op, Term child1, Term child2, Term child3)
   // const
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(
       opterm3, d_solver->mkReal(1), d_solver->mkReal(1), d_solver->mkReal(2)));
