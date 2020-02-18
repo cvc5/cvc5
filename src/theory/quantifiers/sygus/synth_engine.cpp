@@ -133,7 +133,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     activeCheckConj = acnext;
     acnext.clear();
   } while (!activeCheckConj.empty()
-           && !d_quantEngine->getTheoryEngine()->needCheck());
+           && !d_quantEngine->theoryEngineNeedsCheck());
   Trace("cegqi-engine")
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }

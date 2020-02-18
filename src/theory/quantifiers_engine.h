@@ -202,7 +202,9 @@ public:
   /** mark relevant quantified formula, this will indicate it should be checked before the others */
   void markRelevant( Node q );
   /** has added lemma */
-  bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
+  bool hasAddedLemma() const;
+  /** theory engine needs check */
+  bool theoryEngineNeedsCheck() const;
   /** is in conflict */
   bool inConflict() { return d_conflict; }
   /** set conflict */
