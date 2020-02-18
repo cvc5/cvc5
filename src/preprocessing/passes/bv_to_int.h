@@ -160,10 +160,10 @@ class BVToInt : public PreprocessingPass
    * values of the exponent, from 0 to k-1.
    * If the right operand of the shift is greater than k-1,
    * the result is 0.
-   * @param children: the two operands for the shift
-   * @param bvsize: the original bit widths of the operands
+   * @param children the two operands for the shift
+   * @param bvsize the original bit widths of the operands
    *                (before translation to integers)
-   * @param  isLeftShift: true iff the desired operation is a left shift.
+   * @param  isLeftShift true iff the desired operation is a left shift.
    * @return a node representing the shift.
    *
    */
