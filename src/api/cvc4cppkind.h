@@ -1715,7 +1715,7 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   MATCH_BIND_CASE,
   /*
-   * datatypes size
+   * Datatypes size
    * An operator mapping datatypes to an integer denoting the number of
    * non-nullary applications of constructors they contain.
    * Parameters: 1
@@ -2378,6 +2378,7 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   INST_PATTERN_LIST,
 #if 0
+
   /* Sort Kinds ------------------------------------------------------------ */
 
   /* array type */
