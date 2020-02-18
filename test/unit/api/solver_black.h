@@ -671,8 +671,7 @@ void SolverBlack::testMkTermFromOp()
                    CVC4ApiException&);
 
   // mkTerm(Kind kind, Op op, Term child1, Term child2) const
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver->mkTerm(opterm2, d_solver->mkReal(2)));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm2, d_solver->mkReal(2)));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(
       consTerm1, d_solver->mkReal(0), d_solver->mkTerm(nilTerm1)));
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b), CVC4ApiException&);

@@ -283,7 +283,7 @@ void CvcPrinter::toStream(
       out << ")";
       return;
       break;
-    case kind::DISTINCT: 
+    case kind::DISTINCT:
       // distinct not supported directly, blast it away with the rewriter
       toStream(out, theory::Rewriter::rewrite(n), depth, types, true);
       return;

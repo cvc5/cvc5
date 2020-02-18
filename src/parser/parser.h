@@ -24,6 +24,7 @@
 #include <set>
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/expr_stream.h"
 #include "expr/kind.h"
@@ -32,7 +33,6 @@
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "util/unsafe_interrupt_exception.h"
-#include "api/cvc4cpp.h"
 
 namespace CVC4 {
 
@@ -679,7 +679,7 @@ public:
   Expr mkHoApply(Expr expr, std::vector<Expr>& args);
 
   /** make chain
-   * 
+   *
    * Given a kind k and argument terms t_1, ..., t_n, this returns the
    * conjunction of:
    *  (k t_1 t_2) .... (k t_{n-1} t_n)
