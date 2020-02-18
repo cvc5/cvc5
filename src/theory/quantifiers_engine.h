@@ -203,7 +203,12 @@ public:
   void markRelevant( Node q );
   /** has added lemma */
   bool hasAddedLemma() const;
-  /** theory engine needs check */
+  /** theory engine needs check
+   *
+   * This is true if the theory engine has more constraints to process. When
+   * it is false, we are tentatively going to terminate solving with
+   * sat/unknown. For details, see TheoryEngine::needCheck.
+   */
   bool theoryEngineNeedsCheck() const;
   /** is in conflict */
   bool inConflict() { return d_conflict; }
