@@ -1803,10 +1803,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
          << "computed const type: " << constVal.getSort();
       parseError(ss.str());
     }
-    api::Term ret = api::Term(em->mkConst(ArrayStoreAll(p.d_type.getType(), constVal.getExpr())));
+    api::Term ret = d_solver->mkConstArray(p.d_type, constVal);
     Debug("parser") << "applyParseOp: return store all " << ret << std::endl;
     return ret;
-    //return d_solver->mkConstArray(p.d_type, constVal);
   }
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
   {
