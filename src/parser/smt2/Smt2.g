@@ -1164,7 +1164,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
     {
-      func = PARSER_STATE->mkDefineFunRec(fname, sortedVarNames, t, flattenVars);
+      func = PARSER_STATE->bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
       PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs, true );
     }
     term[expr, expr2]
@@ -1184,7 +1184,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       sortSymbol[t,CHECK_DECLARED]
       {
         flattenVars.clear();
-        func = PARSER_STATE->mkDefineFunRec( fname, sortedVarNames, t, flattenVars );
+        func = PARSER_STATE->bindDefineFunRec( fname, sortedVarNames, t, flattenVars );
         funcs.push_back( func );
 
         // add to lists (need to remember for when parsing the bodies)
