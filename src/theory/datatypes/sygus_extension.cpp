@@ -952,6 +952,7 @@ void SygusExtension::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool t
   Assert(ita != d_term_to_anchor.end());
   Node a = ita->second;
   Assert(!a.isNull());
+  SearchCache& sca = d_cache[a];
   if (std::find(
           sca.d_search_terms[tn][d].begin(), sca.d_search_terms[tn][d].end(), n)
       == sca.d_search_terms[tn][d].end())
@@ -1071,7 +1072,7 @@ Node SygusExtension::registerSearchValue(Node a,
           quantifiers::ExampleEvalCache* eec = aconj->getExampleEvalCache(a);
           if (eec != nullptr)
           {
-            bvr_equiv = eec->addSearchVal(bvr);
+            bvr_equiv = eec->addSearchVal(tn, bvr);
           }
         }
         if( !bvr_equiv.isNull() ){
@@ -1205,6 +1206,7 @@ void SygusExtension::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, 
   Trace("sygus-sb-debug") << "     type : " << tn << std::endl;
   Trace("sygus-sb-debug") << "     size : " << sz << std::endl;
   Assert(!a.isNull());
+  SearchCache& sca = d_cache[a];
   sca.d_sb_lemmas[tn][sz].push_back(lem);
   TNode x = getFreeVar( tn );
   unsigned csz = getSearchSizeForAnchor( a );
@@ -1244,6 +1246,7 @@ void SygusExtension::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node
   Assert(!a.isNull());
   Trace("sygus-sb-debug2") << "add sym break lemmas for " << t << " " << d
                            << " " << a << std::endl;
+  SearchCache& sca = d_cache[a];
   std::map<TypeNode, std::map<unsigned, std::vector<Node>>>::iterator its =
       sca.d_sb_lemmas.find(tn);
   Node rlv = getRelevancyCondition(t);
