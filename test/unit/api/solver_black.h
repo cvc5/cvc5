@@ -247,6 +247,8 @@ void SolverBlack::testMkRecordSort()
   std::vector<std::pair<std::string, Sort>> empty;
   TS_ASSERT_THROWS_NOTHING(d_solver->mkRecordSort(fields));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkRecordSort(empty));
+  Sort recSort = d_solver->mkRecordSort(fields);
+  TS_ASSERT_THROWS_NOTHING(recSort.getDatatype());
 }
 
 void SolverBlack::testMkSetSort()
