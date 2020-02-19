@@ -261,7 +261,7 @@ void ResourceManager::spendResource(Resource r)
       ++d_statistics.d_numSatConflictStep;
       break;
     case Resource::TheoryCheckStep:
-      amount = d_options[options::rewriteStep];
+      amount = d_options[options::theoryCheckStep];
       ++d_statistics.d_numTheoryCheckStep;
       break;
     default: Unreachable() << "Invalid resource " << std::endl;
