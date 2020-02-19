@@ -156,7 +156,7 @@ void TermBlack::testGetSort()
 void TermBlack::testGetOp()
 {
   Sort intsort = d_solver.getIntegerSort();
-  Sort bvsort  = d_solver.mkBitVectorSort(8);
+  Sort bvsort = d_solver.mkBitVectorSort(8);
   Sort arrsort = d_solver.mkArraySort(bvsort, intsort);
   Sort funsort = d_solver.mkFunctionSort(intsort, bvsort);
 
@@ -178,7 +178,7 @@ void TermBlack::testGetOp()
   TS_ASSERT(extb.hasOp());
   TS_ASSERT_EQUALS(extb.getOp(), ext);
 
-  Term f  = d_solver.mkConst(funsort, "f");
+  Term f = d_solver.mkConst(funsort, "f");
   Term fx = d_solver.mkTerm(APPLY_UF, f, x);
 
   TS_ASSERT(!f.hasOp());
@@ -188,7 +188,6 @@ void TermBlack::testGetOp()
   std::vector<Term> children(fx.begin(), fx.end());
   // testing rebuild from op and children
   TS_ASSERT_EQUALS(fx, d_solver.mkTerm(fx.getOp(), children));
-
 
   // Test Datatypes Ops
   Sort sort = d_solver.mkParamSort("T");
@@ -213,7 +212,8 @@ void TermBlack::testGetOp()
   Term tailOpTerm = list["cons"].getSelectorTerm("tail");
 
   Term nilTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilOpTerm);
-  Term consTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR, consOpTerm, d_solver.mkReal(0), nilTerm);
+  Term consTerm = d_solver.mkTerm(
+      APPLY_CONSTRUCTOR, consOpTerm, d_solver.mkReal(0), nilTerm);
   Term headTerm = d_solver.mkTerm(APPLY_SELECTOR, headOpTerm, consTerm);
   Term tailTerm = d_solver.mkTerm(APPLY_SELECTOR, tailOpTerm, consTerm);
 
@@ -231,7 +231,6 @@ void TermBlack::testGetOp()
   children.clear();
   children.insert(children.begin(), headTerm.begin(), headTerm.end());
   TS_ASSERT_EQUALS(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
-
 }
 
 void TermBlack::testIsNull()

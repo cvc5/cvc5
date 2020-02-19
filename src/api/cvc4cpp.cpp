@@ -594,11 +594,11 @@ const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
  *  as datatype constructors/selectors/testers as terms
  *  but interally they are not
  */
-const static std::unordered_set<CVC4::Kind, CVC4::kind::KindHashFunction> s_internal_apply_kinds({
-                                                                                CVC4::Kind::APPLY_UF,
-                                                                                CVC4::Kind::APPLY_CONSTRUCTOR,
-                                                                                CVC4::Kind::APPLY_SELECTOR,
-                                                                                CVC4::Kind::APPLY_TESTER});
+const static std::unordered_set<CVC4::Kind, CVC4::kind::KindHashFunction>
+    s_internal_apply_kinds({CVC4::Kind::APPLY_UF,
+                            CVC4::Kind::APPLY_CONSTRUCTOR,
+                            CVC4::Kind::APPLY_SELECTOR,
+                            CVC4::Kind::APPLY_TESTER});
 
 namespace {
 
@@ -1569,7 +1569,8 @@ Term Term::const_iterator::operator*() const
   Assert(d_orig_expr != nullptr);
   // this term has an extra child (mismatch between API and internal structure)
   // the extra child will be the first child
-  bool extra_child = (s_internal_apply_kinds.find(d_orig_expr->getKind()) != s_internal_apply_kinds.end());
+  bool extra_child = (s_internal_apply_kinds.find(d_orig_expr->getKind())
+                      != s_internal_apply_kinds.end());
 
   if (!d_pos && extra_child)
   {
@@ -1602,7 +1603,8 @@ Term::const_iterator Term::end() const
   //   function or datatype constructor/selector/tester is a Term
   // which means it needs to be one of the children, even though
   //   internally it is not
-  if (s_internal_apply_kinds.find(d_expr->getKind()) != s_internal_apply_kinds.end())
+  if (s_internal_apply_kinds.find(d_expr->getKind())
+      != s_internal_apply_kinds.end())
   {
     // one more child if this is a UF application (count the UF as a child)
     ++endpos;
