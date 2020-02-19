@@ -29,7 +29,7 @@ REQUIRES = 'REQUIRES:'
 EXIT_OK = 0
 EXIT_FAILURE = 1
 EXIT_SKIP = 77
-
+STATUS_TIMEOUT = 124
 
 def run_process(args, cwd, timeout, s_input=None):
     """Runs a process with a timeout `timeout` in seconds. `args` are the
@@ -47,7 +47,7 @@ def run_process(args, cwd, timeout, s_input=None):
 
     out = ''
     err = ''
-    exit_status = 124
+    exit_status = STATUS_TIMEOUT
     try:
         if timeout:
             timer = threading.Timer(timeout, lambda p: p.kill(), [proc])
@@ -56,6 +56,9 @@ def run_process(args, cwd, timeout, s_input=None):
         exit_status = proc.returncode
     finally:
         if timeout:
+            # The timer killed the process and is not active anymore.
+            if exit_status == -9 and not timer.is_alive():
+                exit_status = STATUS_TIMEOUT
             timer.cancel()
 
     return out, err, exit_status
@@ -344,7 +347,10 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
             command_line_args, benchmark_dir, benchmark_basename, timeout)
         output = re.sub(r'^[ \t]*', '', output, flags=re.MULTILINE)
         error = re.sub(r'^[ \t]*', '', error, flags=re.MULTILINE)
-        if output != expected_output:
+        if exit_status == STATUS_TIMEOUT:
+            exit_code = EXIT_SKIP if use_skip_return_code else EXIT_FAILURE
+            print('Timeout - Flags: {}'.format(command_line_args))
+        elif output != expected_output:
             exit_code = EXIT_FAILURE
             print(
                 'not ok - Differences between expected and actual output on stdout - Flags: {}'

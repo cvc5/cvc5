@@ -28,8 +28,8 @@ class TermBlack : public CxxTest::TestSuite
   void testGetId();
   void testGetKind();
   void testGetSort();
+  void testGetOp();
   void testIsNull();
-  void testIsParameterized();
   void testNotTerm();
   void testAndTerm();
   void testOrTerm();
@@ -152,6 +152,88 @@ void TermBlack::testGetSort()
   TS_ASSERT(p_f_y.getSort() == boolSort);
 }
 
+void TermBlack::testGetOp()
+{
+  Sort intsort = d_solver.getIntegerSort();
+  Sort bvsort = d_solver.mkBitVectorSort(8);
+  Sort arrsort = d_solver.mkArraySort(bvsort, intsort);
+  Sort funsort = d_solver.mkFunctionSort(intsort, bvsort);
+
+  Term x = d_solver.mkConst(intsort, "x");
+  Term a = d_solver.mkConst(arrsort, "a");
+  Term b = d_solver.mkConst(bvsort, "b");
+
+  TS_ASSERT(!x.hasOp());
+  TS_ASSERT_THROWS(x.getOp(), CVC4ApiException&);
+
+  Term ab = d_solver.mkTerm(SELECT, a, b);
+  Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
+  Term extb = d_solver.mkTerm(ext, b);
+
+  TS_ASSERT(ab.hasOp());
+  TS_ASSERT_EQUALS(ab.getOp(), Op(SELECT));
+  TS_ASSERT(!ab.getOp().isIndexed());
+  // can compare directly to a Kind (will invoke Op constructor)
+  TS_ASSERT_EQUALS(ab.getOp(), SELECT);
+  TS_ASSERT(extb.hasOp());
+  TS_ASSERT(extb.getOp().isIndexed());
+  TS_ASSERT_EQUALS(extb.getOp(), ext);
+
+  Term f = d_solver.mkConst(funsort, "f");
+  Term fx = d_solver.mkTerm(APPLY_UF, f, x);
+
+  TS_ASSERT(!f.hasOp());
+  TS_ASSERT_THROWS(f.getOp(), CVC4ApiException&);
+  TS_ASSERT(fx.hasOp());
+  TS_ASSERT_EQUALS(fx.getOp(), APPLY_UF);
+  std::vector<Term> children(fx.begin(), fx.end());
+  // testing rebuild from op and children
+  TS_ASSERT_EQUALS(fx, d_solver.mkTerm(fx.getOp(), children));
+
+  // Test Datatypes Ops
+  Sort sort = d_solver.mkParamSort("T");
+  DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
+  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl nil("nil");
+  DatatypeSelectorDecl head("head", sort);
+  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
+  cons.addSelector(head);
+  cons.addSelector(tail);
+  listDecl.addConstructor(cons);
+  listDecl.addConstructor(nil);
+  Sort listSort = d_solver.mkDatatypeSort(listDecl);
+  Sort intListSort =
+      listSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()});
+  Term c = d_solver.mkConst(intListSort, "c");
+  Datatype list = listSort.getDatatype();
+  // list datatype constructor and selector operator terms
+  Term consOpTerm = list.getConstructorTerm("cons");
+  Term nilOpTerm = list.getConstructorTerm("nil");
+  Term headOpTerm = list["cons"].getSelectorTerm("head");
+  Term tailOpTerm = list["cons"].getSelectorTerm("tail");
+
+  Term nilTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilOpTerm);
+  Term consTerm = d_solver.mkTerm(
+      APPLY_CONSTRUCTOR, consOpTerm, d_solver.mkReal(0), nilTerm);
+  Term headTerm = d_solver.mkTerm(APPLY_SELECTOR, headOpTerm, consTerm);
+  Term tailTerm = d_solver.mkTerm(APPLY_SELECTOR, tailOpTerm, consTerm);
+
+  TS_ASSERT(nilTerm.hasOp());
+  TS_ASSERT(consTerm.hasOp());
+  TS_ASSERT(headTerm.hasOp());
+  TS_ASSERT(tailTerm.hasOp());
+
+  TS_ASSERT_EQUALS(nilTerm.getOp(), APPLY_CONSTRUCTOR);
+  TS_ASSERT_EQUALS(consTerm.getOp(), APPLY_CONSTRUCTOR);
+  TS_ASSERT_EQUALS(headTerm.getOp(), APPLY_SELECTOR);
+  TS_ASSERT_EQUALS(tailTerm.getOp(), APPLY_SELECTOR);
+
+  // Test rebuilding
+  children.clear();
+  children.insert(children.begin(), headTerm.begin(), headTerm.end());
+  TS_ASSERT_EQUALS(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
+}
+
 void TermBlack::testIsNull()
 {
   Term x;
@@ -187,14 +269,6 @@ void TermBlack::testNotTerm()
   TS_ASSERT_THROWS_NOTHING(p_0.notTerm());
   Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
   TS_ASSERT_THROWS_NOTHING(p_f_x.notTerm());
-}
-
-void TermBlack::testIsParameterized()
-{
-  Term n;
-  TS_ASSERT_THROWS(n.isParameterized(), CVC4ApiException&);
-  Term x = d_solver.mkVar(d_solver.getIntegerSort(), "x");
-  TS_ASSERT_THROWS_NOTHING(x.isParameterized());
 }
 
 void TermBlack::testAndTerm()

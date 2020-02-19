@@ -283,8 +283,6 @@ class TheoryStringsRewriter : public TheoryRewriter
   * same as above but with n = str.++( l ) instead of l
   */
   static bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc);
-  static Node getNextConstantAt( std::vector< Node >& vec, unsigned& start_index, unsigned& end_index, bool isRev );
-  static Node collectConstantStringAt( std::vector< Node >& vec, unsigned& end_index, bool isRev );
 
   /** strip symbolic length
    *

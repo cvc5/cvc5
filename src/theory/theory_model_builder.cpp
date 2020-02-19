@@ -968,7 +968,7 @@ void TheoryEngineModelBuilder::computeAssignableInfo(
   bool evaluable = false;
   // Set to true if a term in the current equivalence class has been given an
   // assignment exclusion set.
-  bool hasESet = false;
+  bool hasESet CVC4_UNUSED = false;
   // Set to true if we found that a term in the current equivalence class has
   // been given an assignment exclusion set, and we have not seen this term
   // as part of a previous assignment exclusion group. In other words, when
