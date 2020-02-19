@@ -215,7 +215,7 @@ public:
    * construction process.
    */
   void recordApproximation(TNode n, TNode pred);
-  /** 
+  /**
    * Same as above, but with a witness constant. This ensures that the
    * approximation predicate is of the form (or (= n witness) pred). This
    * is useful if the user wants to know a possible concrete value in

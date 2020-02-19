@@ -1247,8 +1247,9 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
   }
 }
 
-void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel,
-                                  std::map<Node, std::pair<Node,Node>>& approximations)
+void NlModel::getModelValueRepair(
+    std::map<Node, Node>& arithModel,
+    std::map<Node, std::pair<Node, Node>>& approximations)
 {
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
@@ -1270,11 +1271,12 @@ void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel,
       Node witness;
       if (options::modelWitnessChoice())
       {
-        witness = nm->mkNode(MULT, nm->mkConst(Rational(1,2)), nm->mkNode(PLUS, l, u));
+        witness = nm->mkNode(
+            MULT, nm->mkConst(Rational(1, 2)), nm->mkNode(PLUS, l, u));
         witness = Rewriter::rewrite(witness);
         Trace("nl-model") << v << " witness is " << witness << std::endl;
       }
-      approximations[v] = std::pair<Node,Node>(pred,witness);
+      approximations[v] = std::pair<Node, Node>(pred, witness);
     }
     else
     {

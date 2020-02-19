@@ -600,8 +600,8 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
 }
 void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
 {
-  Node disj = NodeManager::currentNM()->mkNode(OR,n.eqNode(witness),pred);
-  recordApproximation(n,predDisj);
+  Node disj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
+  recordApproximation(n, predDisj);
 }
 void TheoryModel::setUsingModelCore()
 {
