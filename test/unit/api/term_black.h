@@ -41,6 +41,8 @@ class TermBlack : public CxxTest::TestSuite
   void testTermAssignment();
   void testTermCompare();
   void testTermChildren();
+  void testSubstitute();
+  void testIsConst();
 
  private:
   Solver d_solver;
@@ -673,3 +675,50 @@ void TermBlack::testTermChildren()
   TS_ASSERT(t1[0] == two);
   TS_ASSERT(t1.getNumChildren() == 2);
 }
+
+void TermBlack::testSubstitute()
+{
+  Term x = d_solver.mkConst(d_solver.getIntegerSort(),"x");
+  Term one = d_solver.mkReal(1);
+  Term ttrue = d_solver.mkTrue();
+  Term xpx = d_solver.mkTerm(PLUS, x, x);
+  Term onepone = d_solver.mkTerm(PLUS, one, one);
+  
+  TS_ASSERT_EQUALS(xpx.substitute(x,one), onepone);
+  TS_ASSERT_EQUALS(onepone.substitute(one,x), xpx);
+  // incorrect due to type
+  TS_ASSERT_THROWS(xpx.substitute(one,ttrue), CVC4ApiException&);
+  
+  // simultaneous substitution
+  Term y = d_solver.mkConst(d_solver.getIntegerSort(),"y");
+  Term xpy = d_solver.mkTerm(PLUS, x, y);
+  Term xpone = d_solver.mkTerm(PLUS, y, one);
+  std::vector<Term> es;
+  std::vector<Term> rs;
+  es.push_back(x);
+  rs.push_back(y);
+  es.push_back(y);
+  rs.push_back(one);
+  TS_ASSERT_EQUALS(xpy.substitute(es,rs), xpone);
+  
+  // incorrect substitution due to arity
+  rs.pop_back();
+  TS_ASSERT_THROWS(xpy.substitute(es,rs), CVC4ApiException&);
+  
+  // incorrect substitution due to types
+  rs.push_back(ttrue);
+  TS_ASSERT_THROWS(xpy.substitute(es,rs), CVC4ApiException&);
+}
+
+void TermBlack::testIsConst()
+{
+  Term x = d_solver.mkConst(d_solver.getIntegerSort(),"x");
+  Term one = d_solver.mkReal(1);
+  Term xpone = d_solver.mkTerm(PLUS, x, one);
+  Term onepone = d_solver.mkTerm(PLUS, one, one);
+  TS_ASSERT(!x.isConst());
+  TS_ASSERT(one.isConst());
+  TS_ASSERT(!xpone.isConst());
+  TS_ASSERT(!onepone.isConst());
+}
+

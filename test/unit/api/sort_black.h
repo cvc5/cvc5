@@ -47,7 +47,9 @@ class SortBlack : public CxxTest::TestSuite
   void testGetDatatypeArity();
   void testGetTupleLength();
   void testGetTupleSorts();
+  
   void testSortCompare();
+  void testSortSubtyping();
 
  private:
   Solver d_solver;
@@ -330,4 +332,27 @@ void SortBlack::testSortCompare()
   TS_ASSERT(bvSort <= bvSort2);
   TS_ASSERT((intSort > boolSort) != (intSort < boolSort));
   TS_ASSERT((intSort > bvSort || intSort == bvSort) == (intSort >= bvSort));
+}
+
+void SortBlack::testSortSubtyping()
+{
+  Sort intSort = d_solver.getIntegerSort();
+  Sort realSort = d_solver.getRealSort();
+  TS_ASSERT(intSort.isSubsortOf(realSort));
+  TS_ASSERT(!realSort.isSubsortOf(intSort));
+  TS_ASSERT(intSort.isComparableTo(realSort));
+  TS_ASSERT(realSort.isComparableTo(intSort));
+  
+  Sort arraySortII = d_solver.mkArraySort(intSort, intSort);
+  Sort arraySortIR = d_solver.mkArraySort(intSort, realSort);
+  TS_ASSERT(!arraySortII.isComparableTo(intSort));
+  // we do not support subtyping for arrays
+  TS_ASSERT(!arraySortII.isComparableTo(arraySortIR));
+  
+  
+  Sort setSortI = d_solver.mkSetSort(intSort);
+  Sort setSortR = d_solver.mkSetSort(realSort);
+  // we support subtyping for sets
+  TS_ASSERT(setSortI.isSubsortOf(setSortR));
+  TS_ASSERT(setSortR.isComparableTo(setSortI));
 }
