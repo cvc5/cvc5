@@ -23,7 +23,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Datatype() except +
         DatatypeConstructor operator[](const string& name) except +
         DatatypeConstructor getConstructor(const string& name) except +
-        Op getConstructorTerm(const string& name) except +
+        Term getConstructorTerm(const string& name) except +
         size_t getNumConstructors() except +
         bint isParametric() except +
         string toString() except +
@@ -41,7 +41,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         DatatypeConstructor() except +
         DatatypeSelector operator[](const string& name) except +
         DatatypeSelector getSelector(const string& name) except +
-        Op getSelectorTerm(const string& name) except +
+        Term getSelectorTerm(const string& name) except +
         string toString() except +
         cppclass const_iterator:
             const_iterator() except +

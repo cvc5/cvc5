@@ -70,9 +70,9 @@ cdef class Datatype:
         return dc
 
     def getConstructorTerm(self, str name):
-        op = Op()
-        op.cop = self.cd.getConstructorTerm(name.encode())
-        return op
+        cdef Term term = Term()
+        term.cterm = self.cd.getConstructorTerm(name.encode())
+        return term
 
     def getNumConstructors(self):
         return self.cd.getNumConstructors()
@@ -109,9 +109,9 @@ cdef class DatatypeConstructor:
         return ds
 
     def getSelectorTerm(self, str name):
-        op = Op()
-        op.cop = self.cdc.getSelectorTerm(name.encode())
-        return op
+        cdef Term term = Term()
+        term.cterm = self.cdc.getSelectorTerm(name.encode())
+        return term
 
     def __str__(self):
         return self.cdc.toString().decode()

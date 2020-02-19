@@ -33,9 +33,9 @@ def test(slv, consListSort):
     # which is equivalent to consList["cons"].getConstructor().  Note that
     # "nil" is a constructor too
 
-    t = slv.mkTerm(consList.getConstructorTerm("cons"),
+    t = slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("cons"),
                    slv.mkReal(0),
-                   slv.mkTerm(consList.getConstructorTerm("nil")))
+                   slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("nil")))
 
     print("t is {}\nsort of cons is {}\n sort of nil is {}".format(
         t,
@@ -48,7 +48,7 @@ def test(slv, consListSort):
     # consList["cons"]) in order to get the "head" selector symbol
     # to apply.
 
-    t2 = slv.mkTerm(consList["cons"].getSelectorTerm("head"), t)
+    t2 = slv.mkTerm(kinds.ApplySelector, consList["cons"].getSelectorTerm("head"), t)
 
     print("t2 is {}\nsimplify(t2) is {}\n\n".format(t2, slv.simplify(t2)))
 
@@ -81,7 +81,7 @@ def test(slv, consListSort):
     a = slv.mkConst(paramConsIntListSort, "a")
     print("term {} is of sort {}".format(a, a.getSort()))
 
-    head_a = slv.mkTerm(paramConsList["cons"].getSelectorTerm("head"), a)
+    head_a = slv.mkTerm(kinds.ApplySelector, paramConsList["cons"].getSelectorTerm("head"), a)
     print("head_a is {} of sort {}".format(head_a, head_a.getSort()))
     print("sort of cons is", paramConsList.getConstructorTerm("cons").getSort())
 
