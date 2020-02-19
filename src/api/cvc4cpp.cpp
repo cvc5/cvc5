@@ -627,6 +627,7 @@ uint32_t maxArity(Kind k)
   // special cases for API level
   // higher-order logic perspective at API
   // functions/constructors/selectors/testers are terms
+  // functions/constructors don't have a max so they don't need to be handled
   if (k == APPLY_SELECTOR)
   {
     max++;
@@ -1389,12 +1390,6 @@ Op Term::getOp() const
 }
 
 bool Term::isNull() const { return isNullHelper(); }
-
-bool Term::isParameterized() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  return d_expr->isParameterized();
-}
 
 Term Term::notTerm() const
 {

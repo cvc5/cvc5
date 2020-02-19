@@ -30,7 +30,6 @@ class TermBlack : public CxxTest::TestSuite
   void testGetSort();
   void testGetOp();
   void testIsNull();
-  void testIsParameterized();
   void testNotTerm();
   void testAndTerm();
   void testOrTerm();
@@ -173,9 +172,11 @@ void TermBlack::testGetOp()
 
   TS_ASSERT(ab.hasOp());
   TS_ASSERT_EQUALS(ab.getOp(), Op(SELECT));
+  TS_ASSERT(!ab.getOp().isIndexed());
   // can compare directly to a Kind (will invoke Op constructor)
   TS_ASSERT_EQUALS(ab.getOp(), SELECT);
   TS_ASSERT(extb.hasOp());
+  TS_ASSERT(extb.getOp().isIndexed());
   TS_ASSERT_EQUALS(extb.getOp(), ext);
 
   Term f = d_solver.mkConst(funsort, "f");
@@ -268,14 +269,6 @@ void TermBlack::testNotTerm()
   TS_ASSERT_THROWS_NOTHING(p_0.notTerm());
   Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
   TS_ASSERT_THROWS_NOTHING(p_f_x.notTerm());
-}
-
-void TermBlack::testIsParameterized()
-{
-  Term n;
-  TS_ASSERT_THROWS(n.isParameterized(), CVC4ApiException&);
-  Term x = d_solver.mkVar(d_solver.getIntegerSort(), "x");
-  TS_ASSERT_THROWS_NOTHING(x.isParameterized());
 }
 
 void TermBlack::testAndTerm()
