@@ -324,7 +324,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "expr/expr.i"
 %include "expr/expr_manager.i"
 %include "expr/expr_stream.i"
-%include "expr/symbol_table.i"
 %include "expr/variable_type_map.i"
 %include "options/option_exception.i"
 %include "options/options.i"

@@ -140,7 +140,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_CVC4__DatatypeConstructor_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__pairT_CVC4__Expr_CVC4__Expr_t_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__vectorT_std__string_t_t.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ScopeException.java
   ${CMAKE_CURRENT_BINARY_DIR}/SelectorType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SetType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SmtEngine.java
@@ -151,8 +150,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/StatisticsBase.java
   ${CMAKE_CURRENT_BINARY_DIR}/StringType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusPrintCallback.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SymbolTable.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SymbolType.java
   ${CMAKE_CURRENT_BINARY_DIR}/TesterType.java
   ${CMAKE_CURRENT_BINARY_DIR}/TheoryId.java
   ${CMAKE_CURRENT_BINARY_DIR}/Timer.java
