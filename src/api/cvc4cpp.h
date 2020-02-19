@@ -1614,7 +1614,7 @@ class CVC4_PUBLIC Datatype
    * this returns false if there are no values of this datatype that are of
    * finite size.
    *
-   * @return true if this datatype is well-founded 
+   * @return true if this datatype is well-founded
    */
   bool isWellFounded() const;
 

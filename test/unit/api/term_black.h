@@ -658,10 +658,10 @@ void TermBlack::testTermAssignment()
 void TermBlack::testTermCompare()
 {
   Term t1 = d_solver.mkReal(1);
-  Term t2 = d_solver.mkTerm(PLUS,d_solver.mkReal(2),d_solver.mkReal(2));
-  Term t3 = d_solver.mkTerm(PLUS,d_solver.mkReal(2),d_solver.mkReal(2));
-  TS_ASSERT(t2>=t3);
-  TS_ASSERT(t2<=t3);
+  Term t2 = d_solver.mkTerm(PLUS, d_solver.mkReal(2), d_solver.mkReal(2));
+  Term t3 = d_solver.mkTerm(PLUS, d_solver.mkReal(2), d_solver.mkReal(2));
+  TS_ASSERT(t2 >= t3);
+  TS_ASSERT(t2 <= t3);
   TS_ASSERT((t1 > t2) != (t1 < t2));
   TS_ASSERT((t1 > t2 || t1 == t2) == (t1 >= t2));
 }
@@ -669,7 +669,7 @@ void TermBlack::testTermCompare()
 void TermBlack::testTermChildren()
 {
   Term two = d_solver.mkReal(2);
-  Term t1 = d_solver.mkTerm(PLUS,two,d_solver.mkReal(3));
-  TS_ASSERT(t1[0]==two);
-  TS_ASSERT(t1.getNumChildren()==2);
+  Term t1 = d_solver.mkTerm(PLUS, two, d_solver.mkReal(3));
+  TS_ASSERT(t1[0] == two);
+  TS_ASSERT(t1.getNumChildren() == 2);
 }

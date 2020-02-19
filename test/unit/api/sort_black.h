@@ -90,7 +90,7 @@ void SortBlack::testDatatypeSorts()
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
   TS_ASSERT(!dtypeSort.isConstructor());
-  
+
   // get constructor
   DatatypeConstructor dcons = dt[0];
   Term consTerm = dcons.getConstructorTerm();
@@ -98,16 +98,16 @@ void SortBlack::testDatatypeSorts()
   TS_ASSERT(consSort.isConstructor());
   TS_ASSERT(!consSort.isTester());
   TS_ASSERT(!consSort.isSelector());
-  TS_ASSERT(consSort.getConstructorArity()==2);
+  TS_ASSERT(consSort.getConstructorArity() == 2);
   std::vector<Sort> consDomSorts = consSort.getConstructorDomainSorts();
-  TS_ASSERT(consDomSorts[0]==intSort);
-  TS_ASSERT(consDomSorts[1]==dtypeSort);
-  TS_ASSERT(consSort.getConstructorCodomainSort()==dtypeSort);
-  
+  TS_ASSERT(consDomSorts[0] == intSort);
+  TS_ASSERT(consDomSorts[1] == dtypeSort);
+  TS_ASSERT(consSort.getConstructorCodomainSort() == dtypeSort);
+
   // get tester
   Term isConsTerm = dcons.getTesterTerm();
   TS_ASSERT(isConsTerm.getSort().isTester());
-  
+
   // get selector
   DatatypeSelector dselTail = dcons[1];
   Term tailTerm = dselTail.getSelectorTerm();
@@ -326,8 +326,8 @@ void SortBlack::testSortCompare()
   Sort intSort = d_solver.getIntegerSort();
   Sort bvSort = d_solver.mkBitVectorSort(32);
   Sort bvSort2 = d_solver.mkBitVectorSort(32);
-  TS_ASSERT(bvSort>=bvSort2);
-  TS_ASSERT(bvSort<=bvSort2);
+  TS_ASSERT(bvSort >= bvSort2);
+  TS_ASSERT(bvSort <= bvSort2);
   TS_ASSERT((intSort > boolSort) != (intSort < boolSort));
   TS_ASSERT((intSort > bvSort || intSort == bvSort) == (intSort >= bvSort));
 }

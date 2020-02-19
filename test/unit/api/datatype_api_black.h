@@ -29,6 +29,7 @@ class DatatypeBlack : public CxxTest::TestSuite
   void testMkDatatypeSort();
 
   void testDatatypeStructs();
+
  private:
   Solver d_solver;
 };
@@ -61,7 +62,7 @@ void DatatypeBlack::testDatatypeStructs()
 {
   Sort intSort = d_solver.getIntegerSort();
   Sort boolSort = d_solver.getBooleanSort();
-  
+
   // create datatype sort to test
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
@@ -74,7 +75,7 @@ void DatatypeBlack::testDatatypeStructs()
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
-  TS_ASSERT(dt.getName()==std::string("list"));
+  TS_ASSERT(dt.getName() == std::string("list"));
   TS_ASSERT(!dt.isCodatatype());
   TS_ASSERT(!dt.isTuple());
   TS_ASSERT(!dt.isRecord());
@@ -83,15 +84,15 @@ void DatatypeBlack::testDatatypeStructs()
   // get constructor
   DatatypeConstructor dcons = dt[0];
   Term consTerm = dcons.getConstructorTerm();
-  TS_ASSERT(dcons.getName()==std::string("cons"));
-  TS_ASSERT(dcons.getNumSelectors()==2);
+  TS_ASSERT(dcons.getName() == std::string("cons"));
+  TS_ASSERT(dcons.getNumSelectors() == 2);
   // get tester name: notice this is only to support the Z3-style datatypes
   // prior to SMT-LIB 2.6 where testers where changed to indexed symbols.
   TS_ASSERT_THROWS_NOTHING(dcons.getTesterName());
   // get selector
   DatatypeSelector dselTail = dcons[0];
-  TS_ASSERT(dselTail.getName()==std::string("head"));
-  
+  TS_ASSERT(dselTail.getName() == std::string("head"));
+
   // create datatype sort to test
   DatatypeDecl dtypeSpecEnum = d_solver.mkDatatypeDecl("enum");
   DatatypeConstructorDecl ca("A");
@@ -104,7 +105,7 @@ void DatatypeBlack::testDatatypeStructs()
   Datatype dtEnum = dtypeSortEnum.getDatatype();
   TS_ASSERT(!dtEnum.isTuple());
   TS_ASSERT(dtEnum.isFinite());
-  
+
   // create codatatype
   DatatypeDecl dtypeSpecStream = d_solver.mkDatatypeDecl("stream", true);
   DatatypeConstructorDecl consStream("cons");
@@ -119,7 +120,7 @@ void DatatypeBlack::testDatatypeStructs()
   TS_ASSERT(!dtStream.isFinite());
   // codatatypes may be well-founded
   TS_ASSERT(dtStream.isWellFounded());
-  
+
   // create tuple
   Sort tupSort = d_solver.mkTupleSort({boolSort});
   Datatype dtTuple = tupSort.getDatatype();
@@ -127,20 +128,19 @@ void DatatypeBlack::testDatatypeStructs()
   TS_ASSERT(!dtTuple.isRecord());
   TS_ASSERT(dtTuple.isFinite());
   TS_ASSERT(dtTuple.isWellFounded());
-  
+
   // create record
   std::vector<std::pair<std::string, Sort>> fields = {
-      std::make_pair("b", boolSort),
-      std::make_pair("i", intSort)};
+      std::make_pair("b", boolSort), std::make_pair("i", intSort)};
   Sort recSort = d_solver.mkRecordSort(fields);
   TS_ASSERT(recSort.isDatatype());
   // TODO: currently causes segfault,
   // see https://github.com/CVC4/cvc4-projects/issues/112
-  //Datatype dtRecord = recSort.getDatatype();
-    /*
-  TS_ASSERT(!dtRecord.isTuple());
-  TS_ASSERT(dtRecord.isRecord());
-  TS_ASSERT(!dtRecord.isFinite());
-  TS_ASSERT(dtRecord.isWellFounded());
-  */
+  // Datatype dtRecord = recSort.getDatatype();
+  /*
+TS_ASSERT(!dtRecord.isTuple());
+TS_ASSERT(dtRecord.isRecord());
+TS_ASSERT(!dtRecord.isFinite());
+TS_ASSERT(dtRecord.isWellFounded());
+*/
 }
