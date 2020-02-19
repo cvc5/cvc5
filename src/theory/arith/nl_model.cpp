@@ -1271,6 +1271,7 @@ void NlModel::getModelValueRepair(
       Node witness;
       if (options::modelWitnessChoice())
       {
+        // witness is the midpoint
         witness = nm->mkNode(
             MULT, nm->mkConst(Rational(1, 2)), nm->mkNode(PLUS, l, u));
         witness = Rewriter::rewrite(witness);
