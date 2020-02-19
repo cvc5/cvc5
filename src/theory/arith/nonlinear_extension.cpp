@@ -3274,11 +3274,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun(
     // bounds are the minimum and maximum previous secant points
     // should not repeat secant points: secant lemmas should suffice to
     // rule out previous assignment
-    Trace("ajr-temp") << "add secant point : " << d << " " << c << std::endl;
     Assert(std::find(
                d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), c)
            == d_secant_points[tf][d].end());
-    Trace("ajr-temp") << "secant point : " << d << " " << c << std::endl;
     // Insert into the (temporary) vector. We do not update this vector
     // until we are sure this secant plane lemma has been processed. We do
     // this by mapping the lemma to a side effect below.
