@@ -584,7 +584,7 @@ definedFun[CVC4::ParseOp& p]
     }
   | '$quotient'
     {
-      p.d_kind = api::DIVISION_TOTAL;
+      p.d_kind = api::DIVISION;
     }
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }
@@ -593,7 +593,7 @@ definedFun[CVC4::ParseOp& p]
       api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
       api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
       api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
-      api::Term expr = MK_TERM(api::DIVISION_TOTAL, n, d);
+      api::Term expr = MK_TERM(api::DIVISION, n, d);
       expr = MK_TERM(api::ITE,
                      MK_TERM(api::GEQ, d, SOLVER->mkReal(0)),
                      MK_TERM(api::TO_INTEGER, expr),
@@ -616,7 +616,7 @@ definedFun[CVC4::ParseOp& p]
       api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
       api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
       api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
-      api::Term expr = MK_TERM(api::DIVISION_TOTAL, n, d);
+      api::Term expr = MK_TERM(api::DIVISION, n, d);
       expr = MK_TERM(api::ITE,
                      MK_TERM(api::GEQ, expr, SOLVER->mkReal(0)),
                      MK_TERM(api::TO_INTEGER, expr),
@@ -639,7 +639,7 @@ definedFun[CVC4::ParseOp& p]
       api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
       api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
       api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
-      api::Term expr = MK_TERM(api::DIVISION_TOTAL, n, d);
+      api::Term expr = MK_TERM(api::DIVISION, n, d);
       expr = MK_TERM(api::TO_INTEGER, expr);
       if (remainder)
       {
@@ -695,7 +695,7 @@ definedFun[CVC4::ParseOp& p]
                   MK_TERM(api::MULT,
                           MK_TERM(api::TO_INTEGER,
                                   MK_TERM(api::PLUS,
-                                          MK_TERM(api::DIVISION_TOTAL,
+                                          MK_TERM(api::DIVISION,
                                                   n,
                                                   SOLVER->mkReal(2)),
                                           SOLVER->mkReal(1, 2))),
