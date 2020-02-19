@@ -42,7 +42,6 @@ Datatype::~Datatype()
   ExprManagerScope ems(*d_em);
   d_internal.reset();
   d_constructors.clear();
-  delete d_record;
 }
 
 Datatype::Datatype(ExprManager* em, std::string name, bool isCo)
@@ -207,7 +206,7 @@ void Datatype::resolve(const std::map<std::string, DatatypeType>& resolutions,
     for( unsigned i=0; i<(*this)[0].getNumArgs(); i++ ){
       fields.push_back( std::pair<std::string, Type>( (*this)[0][i].getName(), (*this)[0][i].getRangeType() ) );
     }
-    d_record = new Record(fields);
+    d_record.reset(new Record(fields));
   }
 }
 
@@ -911,7 +910,7 @@ bool Datatype::isTuple() const
 
 bool Datatype::isRecord() const { return d_isRecord; }
 
-Record* Datatype::getRecord() const { return d_record; }
+Record* Datatype::getRecord() const { return d_record.get(); }
 bool Datatype::operator!=(const Datatype& other) const
 {
   return !(*this == other);
