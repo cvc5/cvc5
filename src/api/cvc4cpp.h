@@ -1609,7 +1609,13 @@ class CVC4_PUBLIC Datatype
   /** @return true if this datatype is finite */
   bool isFinite() const;
 
-  /** @return true if this datatype is well-founded */
+  /**
+   * Is this datatype well-founded? If this datatype is not a codatatype,
+   * this returns false if there are no values of this datatype that are of
+   * finite size.
+   *
+   * @return true if this datatype is well-founded 
+   */
   bool isWellFounded() const;
 
   /**

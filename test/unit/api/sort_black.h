@@ -27,6 +27,7 @@ class SortBlack : public CxxTest::TestSuite
   void tearDown() override;
 
   void testGetDatatype();
+  void testDatatypeSorts();
   void testInstantiate();
   void testGetFunctionArity();
   void testGetFunctionDomainSorts();
@@ -46,6 +47,7 @@ class SortBlack : public CxxTest::TestSuite
   void testGetDatatypeArity();
   void testGetTupleLength();
   void testGetTupleSorts();
+  void testSortCompare();
 
  private:
   Solver d_solver;
@@ -70,6 +72,46 @@ void SortBlack::testGetDatatype()
   // create bv sort, check should fail
   Sort bvSort = d_solver.mkBitVectorSort(32);
   TS_ASSERT_THROWS(bvSort.getDatatype(), CVC4ApiException&);
+}
+
+void SortBlack::testDatatypeSorts()
+{
+  Sort intSort = d_solver.getIntegerSort();
+  // create datatype sort to test
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
+  DatatypeConstructorDecl cons("cons");
+  DatatypeSelectorDecl head("head", intSort);
+  cons.addSelector(head);
+  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
+  cons.addSelector(tail);
+  dtypeSpec.addConstructor(cons);
+  DatatypeConstructorDecl nil("nil");
+  dtypeSpec.addConstructor(nil);
+  Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
+  Datatype dt = dtypeSort.getDatatype();
+  TS_ASSERT(!dtypeSort.isConstructor());
+  
+  // get constructor
+  DatatypeConstructor dcons = dt[0];
+  Term consTerm = dcons.getConstructorTerm();
+  Sort consSort = consTerm.getSort();
+  TS_ASSERT(consSort.isConstructor());
+  TS_ASSERT(!consSort.isTester());
+  TS_ASSERT(!consSort.isSelector());
+  TS_ASSERT(consSort.getConstructorArity()==2);
+  std::vector<Sort> consDomSorts = consSort.getConstructorDomainSorts();
+  TS_ASSERT(consDomSorts[0]==intSort);
+  TS_ASSERT(consDomSorts[1]==dtypeSort);
+  TS_ASSERT(consSort.getConstructorCodomainSort()==dtypeSort);
+  
+  // get tester
+  Term isConsTerm = dcons.getTesterTerm();
+  TS_ASSERT(isConsTerm.getSort().isTester());
+  
+  // get selector
+  DatatypeSelector dselTail = dcons[1];
+  Term tailTerm = dselTail.getSelectorTerm();
+  TS_ASSERT(tailTerm.getSort().isSelector());
 }
 
 void SortBlack::testInstantiate()
@@ -276,4 +318,16 @@ void SortBlack::testGetTupleSorts()
   TS_ASSERT_THROWS_NOTHING(tupleSort.getTupleSorts());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   TS_ASSERT_THROWS(bvSort.getTupleSorts(), CVC4ApiException&);
+}
+
+void SortBlack::testSortCompare()
+{
+  Sort boolSort = d_solver.getBooleanSort();
+  Sort intSort = d_solver.getIntegerSort();
+  Sort bvSort = d_solver.mkBitVectorSort(32);
+  Sort bvSort2 = d_solver.mkBitVectorSort(32);
+  TS_ASSERT(bvSort>=bvSort2);
+  TS_ASSERT(bvSort<=bvSort2);
+  TS_ASSERT((intSort > boolSort) != (intSort < boolSort));
+  TS_ASSERT((intSort > bvSort || intSort == bvSort) == (intSort >= bvSort));
 }

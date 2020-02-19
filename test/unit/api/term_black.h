@@ -39,6 +39,8 @@ class TermBlack : public CxxTest::TestSuite
   void testIteTerm();
 
   void testTermAssignment();
+  void testTermCompare();
+  void testTermChildren();
 
  private:
   Solver d_solver;
@@ -651,4 +653,23 @@ void TermBlack::testTermAssignment()
   Term t2 = t1;
   t2 = d_solver.mkReal(2);
   TS_ASSERT_EQUALS(t1, d_solver.mkReal(1));
+}
+
+void TermBlack::testTermCompare()
+{
+  Term t1 = d_solver.mkReal(1);
+  Term t2 = d_solver.mkTerm(PLUS,d_solver.mkReal(2),d_solver.mkReal(2));
+  Term t3 = d_solver.mkTerm(PLUS,d_solver.mkReal(2),d_solver.mkReal(2));
+  TS_ASSERT(t2>=t3);
+  TS_ASSERT(t2<=t3);
+  TS_ASSERT((t1 > t2) != (t1 < t2));
+  TS_ASSERT((t1 > t2 || t1 == t2) == (t1 >= t2));
+}
+
+void TermBlack::testTermChildren()
+{
+  Term two = d_solver.mkReal(2);
+  Term t1 = d_solver.mkTerm(PLUS,two,d_solver.mkReal(3));
+  TS_ASSERT(t1[0]==two);
+  TS_ASSERT(t1.getNumChildren()==2);
 }
