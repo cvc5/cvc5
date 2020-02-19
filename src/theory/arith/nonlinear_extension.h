@@ -956,9 +956,12 @@ class NonlinearExtension {
    *
    * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
    * function application tf for Taylor degree d. It may add a secant or
-   * tangent plane lemma to lems.
+   * tangent plane lemma to lems and its side effect (if one exists)
+   * to lemSE.
    */
-  bool checkTfTangentPlanesFun(Node tf, unsigned d, std::vector<Node>& lems);
+  bool checkTfTangentPlanesFun(Node tf, unsigned d, std::vector<Node>& lems, 
+    std::map<Node, NlLemmaSideEffect>& lemSE
+  );
   //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
 

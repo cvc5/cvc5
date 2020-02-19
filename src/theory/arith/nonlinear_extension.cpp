@@ -3069,7 +3069,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes(
         {
           Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
           unsigned prev = lemmas.size();
-          if (!checkTfTangentPlanesFun(tf, d, lemmas))
+          if (!checkTfTangentPlanesFun(tf, d, lemmas, lemSE))
           {
             Trace("nl-ext-tftp")
                 << "...fail, #lemmas = " << (lemmas.size() - prev) << std::endl;
@@ -3089,7 +3089,9 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes(
 
 bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
                                                  unsigned d,
-                                                 std::vector<Node>& lemmas)
+                                                 std::vector<Node>& lemmas,
+                                                 std::map<Node, NlLemmaSideEffect>& lemSE
+                                                )
 {
   Assert(d_model.isRefineableTfFun(tf));
 
@@ -3277,9 +3279,12 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
                d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), c)
            == d_secant_points[tf][d].end());
     Trace("ajr-temp") << "secant point : " << d << " " << c << std::endl;
-    // insert into the vector
-    d_secant_points[tf][d].push_back(c);
+    // Insert into the (temporary) vector. We do not update this vector
+    // until we are sure this secant plane lemma has been processed. We do
+    // this by mapping the lemma to a side effect below.
     std::vector<Node> spoints = d_secant_points[tf][d];
+    spoints.push_back(c);
+    
     // sort
     SortNlModel smv;
     smv.d_nlm = &d_model;
@@ -3328,6 +3333,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds[0]
                                 << " ... " << bounds[1] << std::endl;
 
+    // the secant plane may be conjunction of 1-2 guarded inequalities
+    std::vector<Node> lemmaConj;
     for (unsigned s = 0; s < 2; s++)
     {
       // compute secant plane
@@ -3388,11 +3395,17 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
         lem = Rewriter::rewrite(lem);
         Trace("nl-ext-tftp-lemma") << "*** Secant plane lemma : " << lem
                                    << std::endl;
-        // Figure 3 : line 22
-        lemmas.push_back(lem);
+        lemmaConj.push_back(lem);
         Assert(d_model.computeAbstractModelValue(lem) == d_false);
       }
     }
+    // Figure 3 : line 22
+    Assert(!lemmaConj.empty());
+    Node lem = lemmaConj.size()==1 ?lemmaConj[0] : nm->mkNode(AND,lemmaConj);
+    lemmas.push_back(lem);
+    // The side effect says that if lem is added, then we should add the
+    // secant point c for (tf,d).
+    lemSE[lem].d_secantPoint.push_back(std::make_tuple(tf,d,c));
   }
   return false;
 }
