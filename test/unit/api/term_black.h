@@ -678,19 +678,19 @@ void TermBlack::testTermChildren()
 
 void TermBlack::testSubstitute()
 {
-  Term x = d_solver.mkConst(d_solver.getIntegerSort(),"x");
+  Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
   Term one = d_solver.mkReal(1);
   Term ttrue = d_solver.mkTrue();
   Term xpx = d_solver.mkTerm(PLUS, x, x);
   Term onepone = d_solver.mkTerm(PLUS, one, one);
-  
-  TS_ASSERT_EQUALS(xpx.substitute(x,one), onepone);
-  TS_ASSERT_EQUALS(onepone.substitute(one,x), xpx);
+
+  TS_ASSERT_EQUALS(xpx.substitute(x, one), onepone);
+  TS_ASSERT_EQUALS(onepone.substitute(one, x), xpx);
   // incorrect due to type
-  TS_ASSERT_THROWS(xpx.substitute(one,ttrue), CVC4ApiException&);
-  
+  TS_ASSERT_THROWS(xpx.substitute(one, ttrue), CVC4ApiException&);
+
   // simultaneous substitution
-  Term y = d_solver.mkConst(d_solver.getIntegerSort(),"y");
+  Term y = d_solver.mkConst(d_solver.getIntegerSort(), "y");
   Term xpy = d_solver.mkTerm(PLUS, x, y);
   Term xpone = d_solver.mkTerm(PLUS, y, one);
   std::vector<Term> es;
@@ -699,20 +699,20 @@ void TermBlack::testSubstitute()
   rs.push_back(y);
   es.push_back(y);
   rs.push_back(one);
-  TS_ASSERT_EQUALS(xpy.substitute(es,rs), xpone);
-  
+  TS_ASSERT_EQUALS(xpy.substitute(es, rs), xpone);
+
   // incorrect substitution due to arity
   rs.pop_back();
-  TS_ASSERT_THROWS(xpy.substitute(es,rs), CVC4ApiException&);
-  
+  TS_ASSERT_THROWS(xpy.substitute(es, rs), CVC4ApiException&);
+
   // incorrect substitution due to types
   rs.push_back(ttrue);
-  TS_ASSERT_THROWS(xpy.substitute(es,rs), CVC4ApiException&);
+  TS_ASSERT_THROWS(xpy.substitute(es, rs), CVC4ApiException&);
 }
 
 void TermBlack::testIsConst()
 {
-  Term x = d_solver.mkConst(d_solver.getIntegerSort(),"x");
+  Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
   Term one = d_solver.mkReal(1);
   Term xpone = d_solver.mkTerm(PLUS, x, one);
   Term onepone = d_solver.mkTerm(PLUS, one, one);
@@ -721,4 +721,3 @@ void TermBlack::testIsConst()
   TS_ASSERT(!xpone.isConst());
   TS_ASSERT(!onepone.isConst());
 }
-

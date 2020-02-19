@@ -137,8 +137,8 @@ void DatatypeBlack::testDatatypeStructs()
   // TODO: currently causes segfault,
   // see https://github.com/CVC4/cvc4-projects/issues/112
   // Datatype dtRecord = recSort.getDatatype();
-  //TS_ASSERT(!dtRecord.isTuple());
-  //TS_ASSERT(dtRecord.isRecord());
-  //TS_ASSERT(!dtRecord.isFinite());
-  //TS_ASSERT(dtRecord.isWellFounded());
+  // TS_ASSERT(!dtRecord.isTuple());
+  // TS_ASSERT(dtRecord.isRecord());
+  // TS_ASSERT(!dtRecord.isFinite());
+  // TS_ASSERT(dtRecord.isWellFounded());
 }
