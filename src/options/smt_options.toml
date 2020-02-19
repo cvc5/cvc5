@@ -420,6 +420,15 @@ header = "options/smt_options.h"
   help       = "in models, output uninterpreted sorts as datatype enumerations"
 
 [[option]]
+  name       = "modelWitnessChoice"
+  category   = "regular"
+  long       = "model-witness-choice"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "in models, use a witness constant for choice functions"
+
+[[option]]
   name       = "regularChannelName"
   smt_name   = "regular-output-channel"
   category   = "regular"
