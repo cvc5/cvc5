@@ -593,6 +593,18 @@ namespace {
 
 bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
 
+/** Returns true if the internal kind is one where the API term structure
+ *  differs from internal structure. This happens for APPLY_* kinds.
+ *  The API takes a "higher-order" perspective and treats functions as well
+ *  as datatype constructors/selectors/testers as terms
+ *  but interally they are not
+ */
+bool isApplyKind(CVC4::Kind k)
+{
+  return (k == CVC4::Kind::APPLY_UF || k == CVC4::Kind::APPLY_CONSTRUCTOR
+          || k == CVC4::Kind::APPLY_SELECTOR || k == CVC4::Kind::APPLY_TESTER);
+}
+
 #ifdef CVC4_ASSERTIONS
 bool isDefinedIntKind(CVC4::Kind k)
 {
@@ -611,8 +623,20 @@ uint32_t maxArity(Kind k)
 {
   Assert(isDefinedKind(k));
   Assert(isDefinedIntKind(extToIntKind(k)));
-  return CVC4::ExprManager::maxArity(extToIntKind(k));
+  uint32_t max = CVC4::ExprManager::maxArity(extToIntKind(k));
+
+  // special cases for API level
+  // higher-order logic perspective at API
+  // functions/constructors/selectors/testers are terms
+  if (isApplyKind(extToIntKind(k))
+      && max != std::numeric_limits<uint32_t>::max())  // be careful not to
+                                                       // overflow
+  {
+    max++;
+  }
+  return max;
 }
+
 }  // namespace
 
 std::string kindToString(Kind k)
@@ -1327,35 +1351,30 @@ Op Term::getOp() const
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(d_expr->hasOperator())
       << "Expecting Term to have an Op when calling getOp()";
-  CVC4::Expr op = d_expr->getOperator();
-  CVC4::Type t = op.getType();
 
-  // special cases for Datatype operators
-  if (t.isSelector())
+  // special cases for parameterized operators that are not indexed operators
+  // the API level differs from the internal structure
+  // indexed operators are stored in Ops
+  // whereas functions and datatype operators are terms, and the Op
+  // is one of the APPLY_* kinds
+  if (isApplyKind(d_expr->getKind()))
   {
-    return Op(APPLY_SELECTOR, op);
+    return Op(intToExtKind(d_expr->getKind()));
   }
-  else if (t.isConstructor())
+  else if (d_expr->isParameterized())
   {
-    return Op(APPLY_CONSTRUCTOR, op);
-  }
-  else if (t.isTester())
-  {
-    return Op(APPLY_TESTER, op);
+    // it's an indexed operator
+    // so we should return the indexed op
+    CVC4::Expr op = d_expr->getOperator();
+    return Op(intToExtKind(d_expr->getKind()), op);
   }
   else
   {
-    return Op(intToExtKind(op.getKind()), op);
+    return Op(intToExtKind(d_expr->getKind()));
   }
 }
 
 bool Term::isNull() const { return isNullHelper(); }
-
-bool Term::isParameterized() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  return d_expr->isParameterized();
-}
 
 Term Term::notTerm() const
 {
@@ -1528,14 +1547,18 @@ Term::const_iterator Term::const_iterator::operator++(int)
 Term Term::const_iterator::operator*() const
 {
   Assert(d_orig_expr != nullptr);
-  if (!d_pos && (d_orig_expr->getKind() == CVC4::Kind::APPLY_UF))
+  // this term has an extra child (mismatch between API and internal structure)
+  // the extra child will be the first child
+  bool extra_child = isApplyKind(d_orig_expr->getKind());
+
+  if (!d_pos && extra_child)
   {
     return Term(d_orig_expr->getOperator());
   }
   else
   {
     uint32_t idx = d_pos;
-    if (d_orig_expr->getKind() == CVC4::Kind::APPLY_UF)
+    if (extra_child)
     {
       Assert(idx > 0);
       --idx;
@@ -1553,7 +1576,13 @@ Term::const_iterator Term::begin() const
 Term::const_iterator Term::end() const
 {
   int endpos = d_expr->getNumChildren();
-  if (d_expr->getKind() == CVC4::Kind::APPLY_UF)
+  // special cases for APPLY_*
+  // the API differs from the internal structure
+  // the API takes a "higher-order" perspective and the applied
+  //   function or datatype constructor/selector/tester is a Term
+  // which means it needs to be one of the children, even though
+  //   internally it is not
+  if (isApplyKind(d_expr->getKind()))
   {
     // one more child if this is a UF application (count the UF as a child)
     ++endpos;
@@ -1771,11 +1800,11 @@ DatatypeSelector::~DatatypeSelector() {}
 
 bool DatatypeSelector::isResolved() const { return d_stor->isResolved(); }
 
-Op DatatypeSelector::getSelectorTerm() const
+Term DatatypeSelector::getSelectorTerm() const
 {
   CVC4_API_CHECK(isResolved()) << "Expected resolved datatype selector.";
-  CVC4::Expr sel = d_stor->getSelector();
-  return Op(APPLY_SELECTOR, sel);
+  Term sel = d_stor->getSelector();
+  return sel;
 }
 
 std::string DatatypeSelector::toString() const
@@ -1812,11 +1841,11 @@ DatatypeConstructor::~DatatypeConstructor() {}
 
 bool DatatypeConstructor::isResolved() const { return d_ctor->isResolved(); }
 
-Op DatatypeConstructor::getConstructorTerm() const
+Term DatatypeConstructor::getConstructorTerm() const
 {
   CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
-  CVC4::Expr ctor = d_ctor->getConstructor();
-  return Op(APPLY_CONSTRUCTOR, ctor);
+  Term ctor = d_ctor->getConstructor();
+  return ctor;
 }
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
@@ -1833,12 +1862,12 @@ DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
   return (*d_ctor)[name];
 }
 
-Op DatatypeConstructor::getSelectorTerm(const std::string& name) const
+Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
 {
   // CHECK: cons with name exists?
   // CHECK: is resolved?
-  CVC4::Expr sel = d_ctor->getSelector(name);
-  return Op(APPLY_SELECTOR, sel);
+  Term sel = d_ctor->getSelector(name);
+  return sel;
 }
 
 DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
@@ -1963,12 +1992,12 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
   return (*d_dtype)[name];
 }
 
-Op Datatype::getConstructorTerm(const std::string& name) const
+Term Datatype::getConstructorTerm(const std::string& name) const
 {
   // CHECK: cons with name exists?
   // CHECK: is resolved?
-  CVC4::Expr ctor = d_dtype->getConstructor(name);
-  return Op(APPLY_CONSTRUCTOR, ctor);
+  Term ctor = d_dtype->getConstructor(name);
+  return ctor;
 }
 
 size_t Datatype::getNumConstructors() const
