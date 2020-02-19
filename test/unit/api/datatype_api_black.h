@@ -134,11 +134,9 @@ void DatatypeBlack::testDatatypeStructs()
       std::make_pair("b", boolSort), std::make_pair("i", intSort)};
   Sort recSort = d_solver.mkRecordSort(fields);
   TS_ASSERT(recSort.isDatatype());
-  // TODO: currently causes segfault,
-  // see https://github.com/CVC4/cvc4-projects/issues/112
-  // Datatype dtRecord = recSort.getDatatype();
-  // TS_ASSERT(!dtRecord.isTuple());
-  // TS_ASSERT(dtRecord.isRecord());
-  // TS_ASSERT(!dtRecord.isFinite());
-  // TS_ASSERT(dtRecord.isWellFounded());
+  Datatype dtRecord = recSort.getDatatype();
+  TS_ASSERT(!dtRecord.isTuple());
+  TS_ASSERT(dtRecord.isRecord());
+  TS_ASSERT(!dtRecord.isFinite());
+  TS_ASSERT(dtRecord.isWellFounded());
 }
