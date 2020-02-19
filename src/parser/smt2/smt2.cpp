@@ -142,7 +142,6 @@ void Smt2::addDatatypesOperators()
   Parser::addOperator(api::APPLY_CONSTRUCTOR);
   Parser::addOperator(api::APPLY_TESTER);
   Parser::addOperator(api::APPLY_SELECTOR);
-  Parser::addOperator(api::APPLY_SELECTOR_TOTAL);
 
   if (!strictModeEnabled())
   {
