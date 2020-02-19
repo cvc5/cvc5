@@ -23,14 +23,16 @@
 #include <sys/time.h>
 
 #include <cstddef>
+#include <memory>
 
 #include "base/exception.h"
 #include "base/listener.h"
 #include "options/options.h"
-#include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
+
+class StatisticsRegistry;
 
 /**
  * A helper class to keep track of a time budget and signal
@@ -97,6 +99,7 @@ public:
  };
 
  ResourceManager(StatisticsRegistry& statistics_registry, Options& options);
+ ~ResourceManager();
 
  bool limitOn() const { return cumulativeLimitOn() || perCallLimitOn(); }
  bool cumulativeLimitOn() const;
@@ -211,30 +214,9 @@ private:
 
  void spendResource(unsigned amount);
 
- struct Statistics
- {
-   IntStat d_numBitblastStep;
-   IntStat d_numBvEagerAssertStep;
-   IntStat d_numBvPropagationStep;
-   IntStat d_numBvSatConflictsStep;
-   IntStat d_numCnfStep;
-   IntStat d_numDecisionStep;
-   IntStat d_numLemmaStep;
-   IntStat d_numParseStep;
-   IntStat d_numPreprocessStep;
-   IntStat d_numQuantifierStep;
-   IntStat d_numRestartStep;
-   IntStat d_numRewriteStep;
-   IntStat d_numSatConflictStep;
-   IntStat d_numTheoryCheckStep;
-   Statistics(StatisticsRegistry& stats);
-   ~Statistics();
+ struct Statistics;
+ std::unique_ptr<Statistics> d_statistics;
 
-  private:
-   StatisticsRegistry& d_statisticsRegistry;
- };
-
- Statistics d_statistics;
  Options& d_options;
 
 };/* class ResourceManager */

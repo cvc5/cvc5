@@ -174,7 +174,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/RegExpType.java
   ${CMAKE_CURRENT_BINARY_DIR}/ResetAssertionsCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/ResetCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ResourceManager.java
   ${CMAKE_CURRENT_BINARY_DIR}/Result.java
   ${CMAKE_CURRENT_BINARY_DIR}/RoundingMode.java
   ${CMAKE_CURRENT_BINARY_DIR}/RoundingModeType.java
@@ -226,7 +225,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SynthFunCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/TesterType.java
   ${CMAKE_CURRENT_BINARY_DIR}/TheoryId.java
-  ${CMAKE_CURRENT_BINARY_DIR}/Timer.java
   ${CMAKE_CURRENT_BINARY_DIR}/TupleUpdate.java
   ${CMAKE_CURRENT_BINARY_DIR}/TupleUpdateHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/Type.java
