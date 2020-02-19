@@ -224,7 +224,6 @@ Node eliminateBv2Nat(TNode node);
  * where n is the bitwidth of x.
  */
 Node eliminateInt2Bv(TNode node);
-
 }
 }
 }

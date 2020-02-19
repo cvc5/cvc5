@@ -490,12 +490,16 @@ Node eliminateInt2Bv(TNode node)
 
   std::vector<Node> v;
   Integer i = 2;
-  while(v.size() < size) {
-    Node cond = nm->mkNode(kind::GEQ, nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0], nm->mkConst(Rational(i))), nm->mkConst(Rational(i, 2)));
+  while (v.size() < size)
+  {
+    Node cond = nm->mkNode(
+        kind::GEQ,
+        nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0], nm->mkConst(Rational(i))),
+        nm->mkConst(Rational(i, 2)));
     v.push_back(nm->mkNode(kind::ITE, cond, bvone, bvzero));
     i *= 2;
   }
-  if (v.size()==1)
+  if (v.size() == 1)
   {
     return v[0];
   }
