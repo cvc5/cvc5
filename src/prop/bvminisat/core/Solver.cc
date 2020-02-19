@@ -1486,7 +1486,6 @@ void Solver::setNotify(Notify* toNotify) { d_notify = toNotify; }
 bool Solver::withinBudget(ResourceManager::Resource r) const
 {
   AlwaysAssert(d_notify);
-  d_notify->spendResource(r);
   d_notify->safePoint(r);
 
   return !asynch_interrupt &&
