@@ -338,6 +338,9 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
       Trace("sygus-enum-exc") << "Exclude: " << bn << std::endl;
       return false;
     }
+    // insert to builtin term cache, regardless of whether it is redundant
+    // based on examples.
+    d_bterms.insert(bnr);
     // if we are doing PBE symmetry breaking
     if (d_eec != nullptr)
     {
@@ -356,7 +359,6 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
       }
     }
     Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;
-    d_bterms.insert(bnr);
   }
   ++(d_stats->d_enumTerms);
   d_terms.push_back(n);

@@ -14,7 +14,7 @@
  **
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class BitVectors {
   public static void main(String[] args) {

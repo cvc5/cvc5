@@ -24,7 +24,7 @@ namespace CVC4 {
 namespace printer {
 
 SygusExprPrintCallback::SygusExprPrintCallback(Expr body,
-                                               std::vector<Expr>& args)
+                                               const std::vector<Expr>& args)
     : d_body(body), d_body_argument(-1)
 {
   d_args.insert(d_args.end(), args.begin(), args.end());
