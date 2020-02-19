@@ -3087,11 +3087,11 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes(
   return lemmas;
 }
 
-bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
-                                                 unsigned d,
-                                                 std::vector<Node>& lemmas,
-                                                 std::map<Node, NlLemmaSideEffect>& lemSE
-                                                )
+bool NonlinearExtension::checkTfTangentPlanesFun(
+    Node tf,
+    unsigned d,
+    std::vector<Node>& lemmas,
+    std::map<Node, NlLemmaSideEffect>& lemSE)
 {
   Assert(d_model.isRefineableTfFun(tf));
 
@@ -3284,7 +3284,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     // this by mapping the lemma to a side effect below.
     std::vector<Node> spoints = d_secant_points[tf][d];
     spoints.push_back(c);
-    
+
     // sort
     SortNlModel smv;
     smv.d_nlm = &d_model;
@@ -3401,11 +3401,12 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     }
     // Figure 3 : line 22
     Assert(!lemmaConj.empty());
-    Node lem = lemmaConj.size()==1 ?lemmaConj[0] : nm->mkNode(AND,lemmaConj);
+    Node lem =
+        lemmaConj.size() == 1 ? lemmaConj[0] : nm->mkNode(AND, lemmaConj);
     lemmas.push_back(lem);
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
-    lemSE[lem].d_secantPoint.push_back(std::make_tuple(tf,d,c));
+    lemSE[lem].d_secantPoint.push_back(std::make_tuple(tf, d, c));
   }
   return false;
 }

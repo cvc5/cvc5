@@ -959,9 +959,10 @@ class NonlinearExtension {
    * tangent plane lemma to lems and its side effect (if one exists)
    * to lemSE.
    */
-  bool checkTfTangentPlanesFun(Node tf, unsigned d, std::vector<Node>& lems, 
-    std::map<Node, NlLemmaSideEffect>& lemSE
-  );
+  bool checkTfTangentPlanesFun(Node tf,
+                               unsigned d,
+                               std::vector<Node>& lems,
+                               std::map<Node, NlLemmaSideEffect>& lemSE);
   //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
 
