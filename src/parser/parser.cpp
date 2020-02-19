@@ -138,6 +138,11 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
 }
 
 Kind Parser::getKindForFunction(Expr fun) {
+  Kind k = getExprManager()->operatorToKind(fun);
+  if (k != UNDEFINED_KIND)
+  {
+    return k;
+  }
   Type t = fun.getType();
   if (t.isFunction())
   {
@@ -155,11 +160,7 @@ Kind Parser::getKindForFunction(Expr fun) {
   {
     return APPLY_TESTER;
   }
-  else
-  {
-    parseError("internal error: unhandled function application kind");
-    return UNDEFINED_KIND;
-  }
+  return UNDEFINED_KIND;
 }
 
 Type Parser::getSort(const std::string& name) {
@@ -367,10 +368,11 @@ bool Parser::isUnresolvedType(const std::string& name) {
 }
 
 std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
-    std::vector<Datatype>& datatypes, bool doOverload) {
+    std::vector<Datatype>& datatypes, bool doOverload, uint32_t flags)
+{
   try {
     std::vector<DatatypeType> types =
-        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved);
+        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved, flags);
 
     assert(datatypes.size() == types.size());
 

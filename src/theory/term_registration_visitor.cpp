@@ -35,7 +35,7 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   Debug("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
 
-  if ((parent.isClosure() || parent.getKind() == kind::REWRITE_RULE
+  if ((parent.isClosure()
        || parent.getKind() == kind::SEP_STAR
        || parent.getKind() == kind::SEP_WAND
        || (parent.getKind() == kind::SEP_LABEL && current.getType().isBoolean())
@@ -178,7 +178,7 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
   Debug("register::internal") << "SharedTermsVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
 
-  if ((parent.isClosure() || parent.getKind() == kind::REWRITE_RULE
+  if ((parent.isClosure()
        || parent.getKind() == kind::SEP_STAR
        || parent.getKind() == kind::SEP_WAND
        || (parent.getKind() == kind::SEP_LABEL && current.getType().isBoolean())
