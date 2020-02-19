@@ -37,6 +37,7 @@
 #include "theory/arith/nl_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/arith/nl_lemma_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -178,9 +179,13 @@ class NonlinearExtension {
    * Otherwise, it returns false. In the latter case, the model object d_model
    * may have information regarding how to construct a model, in the case that
    * we determined the problem is satisfiable.
+   * 
+   * The argument lemSE is the "side effect" of the lemmas in mlems and mlemsPp
+   * (for details, see checkLastCall).
    */
   bool modelBasedRefinement(std::vector<Node>& mlems,
-                            std::vector<Node>& mlemsPp);
+                            std::vector<Node>& mlemsPp,
+                    std::map<Node, NlLemmaSideEffect>& lemSE);
   /** returns true if the multiset containing the
    * factors of monomial a is a subset of the multiset
    * containing the factors of monomial b.
@@ -230,13 +235,20 @@ class NonlinearExtension {
    * output channel as a last resort. In other words, only if we are not
    * able to establish SAT via a call to checkModel(...) should wlems be
    * considered. This set typically contains tangent plane lemmas.
+   * 
+   * The argument lemSE is the "side effect" of the lemmas from the previous
+   * three calls. If a lemma is mapping to a side effect, it should be
+   * processed via a call to processSideEffect(...) immediately after the
+   * lemma is sent (if it is indeed sent on this call to check).
    */
   int checkLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts,
                     std::vector<Node>& lems,
                     std::vector<Node>& lemsPp,
-                    std::vector<Node>& wlems);
+                    std::vector<Node>& wlems,
+                    std::map<Node, NlLemmaSideEffect>& lemSE
+                   );
   //---------------------------------------term utilities
   static bool isArithKind(Kind k);
   static Node mkLit(Node a, Node b, int status, bool isAbsolute = false);
@@ -395,7 +407,10 @@ class NonlinearExtension {
   /**
    * Send lemmas in out on the output channel of theory of arithmetic.
    */
-  void sendLemmas(const std::vector<Node>& out, bool preprocess = false);
+  void sendLemmas(const std::vector<Node>& out, bool preprocess,
+                                    std::map<Node, NlLemmaSideEffect>& lemSE);
+  /** Process side effect se */
+  void processSideEffect(const NlLemmaSideEffect& se);
 
   // Returns the NodeMultiset for an existing monomial.
   const NodeMultiset& getMonomialExponentMap(Node monomial) const;
@@ -480,6 +495,8 @@ class NonlinearExtension {
    */
   std::vector<Node> d_cmiLemmas;
   std::vector<Node> d_cmiLemmasPp;
+  /** the side effects of the above lemmas */
+  std::map<Node, NlLemmaSideEffect> d_cmiLemmasSE;
   /** The approximations computed during collectModelInfo. */
   std::map<Node, Node> d_approximations;
   /** have we successfully built the model in this SAT context? */
@@ -925,8 +942,12 @@ class NonlinearExtension {
   *   ( 1 < y < PI/2 ) => (sin y) >= c1*(y+c2)
   *     where c1, c2 are rationals (for brevity, omitted here)
   *     such that c1 ~= .277 and c2 ~= 2.032.
+  * 
+  * The argument lemSE is the "side effect" of the lemmas in the return
+  * value of this function (for details, see checkLastCall).
   */
-  std::vector<Node> checkTranscendentalTangentPlanes();
+  std::vector<Node> checkTranscendentalTangentPlanes(
+                    std::map<Node, NlLemmaSideEffect>& lemSE);
   /** check transcendental function refinement for tf
    *
    * This method is called by the above method for each refineable

@@ -540,17 +540,36 @@ Node NonlinearExtension::mkMonomialRemFactor(
 }
 
 void NonlinearExtension::sendLemmas(const std::vector<Node>& out,
-                                    bool preprocess)
+                                    bool preprocess,
+                                    std::map<Node, NlLemmaSideEffect>& lemSE)
 {
+  std::map<Node, NlLemmaSideEffect>::iterator its;
   for (const Node& lem : out)
   {
     Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << lem << std::endl;
     d_containing.getOutputChannel().lemma(lem, false, preprocess);
+    // process the side effect
+    its = lemSE.find(lem);
+    if (its!=lemSE.end())
+    {
+      processSideEffect(its->second);
+    }
     // add to cache if not preprocess
     if (!preprocess)
     {
       d_lemmas.insert(lem);
     }
+  }
+}
+
+void NonlinearExtension::processSideEffect(const NlLemmaSideEffect& se)
+{
+  for (const std::tuple<Node, unsigned, Node>& sp : se.d_secantPoint)
+  {
+    Node tf = std::get<0>(sp);
+    unsigned d = std::get<1>(sp);
+    Node c = std::get<2>(sp);
+    d_secant_points[tf][d].push_back(c);
   }
 }
 
@@ -890,7 +909,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                       const std::vector<Node>& xts,
                                       std::vector<Node>& lems,
                                       std::vector<Node>& lemsPp,
-                                      std::vector<Node>& wlems)
+                                      std::vector<Node>& wlems,
+                    std::map<Node, NlLemmaSideEffect>& lemSE)
 {
   d_ms_vars.clear();
   d_ms_proc.clear();
@@ -1262,7 +1282,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   }
   if (options::nlExtTfTangentPlanes())
   {
-    lemmas = checkTranscendentalTangentPlanes();
+    lemmas = checkTranscendentalTangentPlanes(lemSE);
     filterLemmas(lemmas, wlems);
   }
   Trace("nl-ext") << "  ...finished with " << wlems.size() << " waiting lemmas."
@@ -1297,8 +1317,8 @@ void NonlinearExtension::check(Theory::Effort e) {
     // If we computed lemmas during collectModelInfo, send them now.
     if (!d_cmiLemmas.empty() || !d_cmiLemmasPp.empty())
     {
-      sendLemmas(d_cmiLemmas);
-      sendLemmas(d_cmiLemmasPp, true);
+      sendLemmas(d_cmiLemmas, false, d_cmiLemmasSE);
+      sendLemmas(d_cmiLemmasPp, true, d_cmiLemmasSE);
       return;
     }
     // Otherwise, we will answer SAT. The values that we approximated are
@@ -1312,7 +1332,8 @@ void NonlinearExtension::check(Theory::Effort e) {
 }
 
 bool NonlinearExtension::modelBasedRefinement(std::vector<Node>& mlems,
-                                              std::vector<Node>& mlemsPp)
+                                              std::vector<Node>& mlemsPp,
+                    std::map<Node, NlLemmaSideEffect>& lemSE)
 {
   // get the assertions
   std::vector<Node> assertions;
@@ -1398,7 +1419,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<Node>& mlems,
     if (!false_asserts.empty() || num_shared_wrong_value > 0)
     {
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
-      checkLastCall(assertions, false_asserts, xts, mlems, mlemsPp, wlems);
+      checkLastCall(assertions, false_asserts, xts, mlems, mlemsPp, wlems, lemSE);
       if (!mlems.empty() || !mlemsPp.empty())
       {
         return true;
@@ -1515,10 +1536,11 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
   // run a last call effort check
   d_cmiLemmas.clear();
   d_cmiLemmasPp.clear();
+  d_cmiLemmasSE.clear();
   if (!d_builtModel.get())
   {
     Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-    modelBasedRefinement(d_cmiLemmas, d_cmiLemmasPp);
+    modelBasedRefinement(d_cmiLemmas, d_cmiLemmasPp, d_cmiLemmasSE);
   }
   if (d_builtModel.get())
   {
@@ -3004,7 +3026,8 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   return lemmas;
 }
 
-std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
+std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes(
+                    std::map<Node, NlLemmaSideEffect>& lemSE)
 {
   std::vector<Node> lemmas;
   Trace("nl-ext") << "Get tangent plane lemmas for transcendental functions..."
@@ -3247,26 +3270,29 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     // bounds are the minimum and maximum previous secant points
     // should not repeat secant points: secant lemmas should suffice to
     // rule out previous assignment
+    Trace("ajr-temp") << "add secant point : " << d << " " << c << std::endl;
     Assert(std::find(
                d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), c)
            == d_secant_points[tf][d].end());
+    Trace("ajr-temp") << "secant point : " << d << " " << c << std::endl;
     // insert into the vector
     d_secant_points[tf][d].push_back(c);
+    std::vector<Node> spoints = d_secant_points[tf][d];
     // sort
     SortNlModel smv;
     smv.d_nlm = &d_model;
     smv.d_isConcrete = true;
     std::sort(
-        d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), smv);
+        spoints.begin(), spoints.end(), smv);
     // get the resulting index of c
     unsigned index =
         std::find(
-            d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), c)
-        - d_secant_points[tf][d].begin();
+            spoints.begin(), spoints.end(), c)
+        - spoints.begin();
     // bounds are the next closest upper/lower bound values
     if (index > 0)
     {
-      bounds[0] = d_secant_points[tf][d][index - 1];
+      bounds[0] = spoints[index - 1];
     }
     else
     {
@@ -3282,9 +3308,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
         bounds[0] = Rewriter::rewrite(nm->mkNode(MINUS, c, d_one));
       }
     }
-    if (index < d_secant_points[tf][d].size() - 1)
+    if (index < spoints.size() - 1)
     {
-      bounds[1] = d_secant_points[tf][d][index + 1];
+      bounds[1] = spoints[index + 1];
     }
     else
     {
