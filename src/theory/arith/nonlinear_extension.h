@@ -34,10 +34,10 @@
 #include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl_lemma_utils.h"
 #include "theory/arith/nl_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/arith/nl_lemma_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -179,13 +179,13 @@ class NonlinearExtension {
    * Otherwise, it returns false. In the latter case, the model object d_model
    * may have information regarding how to construct a model, in the case that
    * we determined the problem is satisfiable.
-   * 
+   *
    * The argument lemSE is the "side effect" of the lemmas in mlems and mlemsPp
    * (for details, see checkLastCall).
    */
   bool modelBasedRefinement(std::vector<Node>& mlems,
                             std::vector<Node>& mlemsPp,
-                    std::map<Node, NlLemmaSideEffect>& lemSE);
+                            std::map<Node, NlLemmaSideEffect>& lemSE);
   /** returns true if the multiset containing the
    * factors of monomial a is a subset of the multiset
    * containing the factors of monomial b.
@@ -235,7 +235,7 @@ class NonlinearExtension {
    * output channel as a last resort. In other words, only if we are not
    * able to establish SAT via a call to checkModel(...) should wlems be
    * considered. This set typically contains tangent plane lemmas.
-   * 
+   *
    * The argument lemSE is the "side effect" of the lemmas from the previous
    * three calls. If a lemma is mapping to a side effect, it should be
    * processed via a call to processSideEffect(...) immediately after the
@@ -247,8 +247,7 @@ class NonlinearExtension {
                     std::vector<Node>& lems,
                     std::vector<Node>& lemsPp,
                     std::vector<Node>& wlems,
-                    std::map<Node, NlLemmaSideEffect>& lemSE
-                   );
+                    std::map<Node, NlLemmaSideEffect>& lemSE);
   //---------------------------------------term utilities
   static bool isArithKind(Kind k);
   static Node mkLit(Node a, Node b, int status, bool isAbsolute = false);
@@ -407,8 +406,9 @@ class NonlinearExtension {
   /**
    * Send lemmas in out on the output channel of theory of arithmetic.
    */
-  void sendLemmas(const std::vector<Node>& out, bool preprocess,
-                                    std::map<Node, NlLemmaSideEffect>& lemSE);
+  void sendLemmas(const std::vector<Node>& out,
+                  bool preprocess,
+                  std::map<Node, NlLemmaSideEffect>& lemSE);
   /** Process side effect se */
   void processSideEffect(const NlLemmaSideEffect& se);
 
@@ -886,68 +886,68 @@ class NonlinearExtension {
   std::vector<Node> checkTranscendentalMonotonic();
 
   /** check transcendental tangent planes
-  *
-  * Returns a set of valid theory lemmas, based on
-  * computing an "incremental linearization" of
-  * transcendental functions based on the model values
-  * of transcendental functions and their arguments.
-  * It is based on Figure 3 of "Satisfiability
-  * Modulo Transcendental Functions via Incremental
-  * Linearization" by Cimatti et al., CADE 2017.
-  * This schema is not terminating in general.
-  * It is not enabled by default, and can
-  * be enabled by --nl-ext-tf-tplanes.
-  *
-  * Example:
-  *
-  * Assume we have a term sin(y) where M( y ) = 1 where M is the current model.
-  * Note that:
-  *   sin(1) ~= .841471
-  *
-  * The Taylor series and remainder of sin(y) of degree 7 is
-  *   P_{7,sin(0)}( x ) = x + (-1/6)*x^3 + (1/20)*x^5
-  *   R_{7,sin(0),b}( x ) = (-1/5040)*x^7
-  *
-  * This gives us lower and upper bounds :
-  *   P_u( x ) = P_{7,sin(0)}( x ) + R_{7,sin(0),b}( x )
-  *     ...where note P_u( 1 ) = 4243/5040 ~= .841865
-  *   P_l( x ) = P_{7,sin(0)}( x ) - R_{7,sin(0),b}( x )
-  *     ...where note P_l( 1 ) = 4241/5040 ~= .841468
-  *
-  * Assume that M( sin(y) ) > P_u( 1 ).
-  * Since the concavity of sine in the region 0 < x < PI/2 is -1,
-  * we add a tangent plane refinement.
-  * The tangent plane at the point 1 in P_u is
-  * given by the formula:
-  *   T( x ) = P_u( 1 ) + ((d/dx)(P_u(x)))( 1 )*( x - 1 )
-  * We add the lemma:
-  *   ( 0 < y < PI/2 ) => sin( y ) <= T( y )
-  * which is:
-  *   ( 0 < y < PI/2 ) => sin( y ) <= (391/720)*(y - 2737/1506)
-  *
-  * Assume that M( sin(y) ) < P_u( 1 ).
-  * Since the concavity of sine in the region 0 < x < PI/2 is -1,
-  * we add a secant plane refinement for some constants ( l, u )
-  * such that 0 <= l < M( y ) < u <= PI/2. Assume we choose
-  * l = 0 and u = M( PI/2 ) = 150517/47912.
-  * The secant planes at point 1 for P_l
-  * are given by the formulas:
-  *   S_l( x ) = (x-l)*(P_l( l )-P_l(c))/(l-1) + P_l( l )
-  *   S_u( x ) = (x-u)*(P_l( u )-P_l(c))/(u-1) + P_l( u )
-  * We add the lemmas:
-  *   ( 0 < y < 1 ) => sin( y ) >= S_l( y )
-  *   ( 1 < y < PI/2 ) => sin( y ) >= S_u( y )
-  * which are:
-  *   ( 0 < y < 1 ) => (sin y) >= 4251/5040*y
-  *   ( 1 < y < PI/2 ) => (sin y) >= c1*(y+c2)
-  *     where c1, c2 are rationals (for brevity, omitted here)
-  *     such that c1 ~= .277 and c2 ~= 2.032.
-  * 
-  * The argument lemSE is the "side effect" of the lemmas in the return
-  * value of this function (for details, see checkLastCall).
-  */
+   *
+   * Returns a set of valid theory lemmas, based on
+   * computing an "incremental linearization" of
+   * transcendental functions based on the model values
+   * of transcendental functions and their arguments.
+   * It is based on Figure 3 of "Satisfiability
+   * Modulo Transcendental Functions via Incremental
+   * Linearization" by Cimatti et al., CADE 2017.
+   * This schema is not terminating in general.
+   * It is not enabled by default, and can
+   * be enabled by --nl-ext-tf-tplanes.
+   *
+   * Example:
+   *
+   * Assume we have a term sin(y) where M( y ) = 1 where M is the current model.
+   * Note that:
+   *   sin(1) ~= .841471
+   *
+   * The Taylor series and remainder of sin(y) of degree 7 is
+   *   P_{7,sin(0)}( x ) = x + (-1/6)*x^3 + (1/20)*x^5
+   *   R_{7,sin(0),b}( x ) = (-1/5040)*x^7
+   *
+   * This gives us lower and upper bounds :
+   *   P_u( x ) = P_{7,sin(0)}( x ) + R_{7,sin(0),b}( x )
+   *     ...where note P_u( 1 ) = 4243/5040 ~= .841865
+   *   P_l( x ) = P_{7,sin(0)}( x ) - R_{7,sin(0),b}( x )
+   *     ...where note P_l( 1 ) = 4241/5040 ~= .841468
+   *
+   * Assume that M( sin(y) ) > P_u( 1 ).
+   * Since the concavity of sine in the region 0 < x < PI/2 is -1,
+   * we add a tangent plane refinement.
+   * The tangent plane at the point 1 in P_u is
+   * given by the formula:
+   *   T( x ) = P_u( 1 ) + ((d/dx)(P_u(x)))( 1 )*( x - 1 )
+   * We add the lemma:
+   *   ( 0 < y < PI/2 ) => sin( y ) <= T( y )
+   * which is:
+   *   ( 0 < y < PI/2 ) => sin( y ) <= (391/720)*(y - 2737/1506)
+   *
+   * Assume that M( sin(y) ) < P_u( 1 ).
+   * Since the concavity of sine in the region 0 < x < PI/2 is -1,
+   * we add a secant plane refinement for some constants ( l, u )
+   * such that 0 <= l < M( y ) < u <= PI/2. Assume we choose
+   * l = 0 and u = M( PI/2 ) = 150517/47912.
+   * The secant planes at point 1 for P_l
+   * are given by the formulas:
+   *   S_l( x ) = (x-l)*(P_l( l )-P_l(c))/(l-1) + P_l( l )
+   *   S_u( x ) = (x-u)*(P_l( u )-P_l(c))/(u-1) + P_l( u )
+   * We add the lemmas:
+   *   ( 0 < y < 1 ) => sin( y ) >= S_l( y )
+   *   ( 1 < y < PI/2 ) => sin( y ) >= S_u( y )
+   * which are:
+   *   ( 0 < y < 1 ) => (sin y) >= 4251/5040*y
+   *   ( 1 < y < PI/2 ) => (sin y) >= c1*(y+c2)
+   *     where c1, c2 are rationals (for brevity, omitted here)
+   *     such that c1 ~= .277 and c2 ~= 2.032.
+   *
+   * The argument lemSE is the "side effect" of the lemmas in the return
+   * value of this function (for details, see checkLastCall).
+   */
   std::vector<Node> checkTranscendentalTangentPlanes(
-                    std::map<Node, NlLemmaSideEffect>& lemSE);
+      std::map<Node, NlLemmaSideEffect>& lemSE);
   /** check transcendental function refinement for tf
    *
    * This method is called by the above method for each refineable

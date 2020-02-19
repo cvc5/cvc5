@@ -23,19 +23,19 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-/** 
+/**
  * A side effect of adding a lemma in the non-linear solver. This is used
  * to specify how the state of the non-linear solver should update. This
  * includes:
  * - A set of secant points to record (for transcendental secant plane
- * inferences). 
+ * inferences).
  */
 struct NlLemmaSideEffect
 {
-  NlLemmaSideEffect(){}
-  ~NlLemmaSideEffect(){}
-  /** secant points to add 
-   * 
+  NlLemmaSideEffect() {}
+  ~NlLemmaSideEffect() {}
+  /** secant points to add
+   *
    * A member (tf, d, c) in this vector indicates that point c should be added
    * to the list of secant points for an application of a transcendental
    * function tf for Taylor degree d. This is used for incremental linearization
@@ -43,9 +43,9 @@ struct NlLemmaSideEffect
    * concave) regions of transcendental functions. For details, see
    * Cimatti et al., CADE 2017.
    */
-  std::vector< std::tuple<Node, unsigned, Node> > d_secantPoint;
+  std::vector<std::tuple<Node, unsigned, Node> > d_secantPoint;
 };
-  
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
