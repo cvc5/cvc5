@@ -92,6 +92,9 @@ void SortBlack::testDatatypeSorts()
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
   TS_ASSERT(!dtypeSort.isConstructor());
+  TS_ASSERT_THROWS(dtypeSort.getConstructorCodomainSort(), CVC4ApiException&);
+  TS_ASSERT_THROWS(dtypeSort.getConstructorDomainSorts(), CVC4ApiException&);
+  TS_ASSERT_THROWS(dtypeSort.getConstructorArity(), CVC4ApiException&);
 
   // get constructor
   DatatypeConstructor dcons = dt[0];
