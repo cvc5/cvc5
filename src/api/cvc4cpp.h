@@ -889,23 +889,6 @@ class CVC4_PUBLIC Term
   bool isConst() const;
 
   /**
-   * @return true if this expression is parameterized.
-   *
-   * !!! The below documentation is not accurate until we have a way of getting
-   * operators from terms.
-   *
-   * In detail, a term that is parameterized is one that has an operator that
-   * must be provided in addition to its kind to construct it. For example,
-   * say we want to re-construct a Term t where its children a1, ..., an are
-   * replaced by b1 ... bn. Then there are two cases:
-   * (1) If t is parametric, call:
-   *   mkTerm(t.getKind(), t.getOperator(), b1, ..., bn )
-   * (2) If t is not parametric, call:
-   *   mkTerm(t.getKind(), b1, ..., bn )
-   */
-  bool isParameterized() const;
-
-  /**
    * Boolean negation.
    * @return the Boolean negation of this term
    */
@@ -1357,9 +1340,9 @@ class CVC4_PUBLIC DatatypeSelector
 
   /**
    * Get the selector operator of this datatype selector.
-   * @return the selector operator
+   * @return the selector term
    */
-  Op getSelectorTerm() const;
+  Term getSelectorTerm() const;
 
   /**
    * @return a string representation of this datatype selector
@@ -1417,15 +1400,15 @@ class CVC4_PUBLIC DatatypeConstructor
 
   /**
    * Get the constructor operator of this datatype constructor.
-   * @return the constructor operator
+   * @return the constructor term
    */
-  Op getConstructorTerm() const;
+  Term getConstructorTerm() const;
 
   /**
    * Get the tester operator of this datatype constructor.
    * @return the tester operator
    */
-  Op getTesterTerm() const;
+  Term getTesterTerm() const;
 
   /**
    * @return the tester name for this Datatype constructor.
@@ -1456,7 +1439,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param name the name of the datatype selector
    * @return a term representing the datatype selector with the given name
    */
-  Op getSelectorTerm(const std::string& name) const;
+  Term getSelectorTerm(const std::string& name) const;
 
   /**
    * @return a string representation of this datatype constructor
@@ -1603,7 +1586,7 @@ class CVC4_PUBLIC Datatype
    * similarly-named constructors, the
    * first is returned.
    */
-  Op getConstructorTerm(const std::string& name) const;
+  Term getConstructorTerm(const std::string& name) const;
 
   /** @return the name of this Datatype. */
   std::string getName() const;
