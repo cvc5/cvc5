@@ -952,9 +952,12 @@ void SygusExtension::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool t
   Assert(ita != d_term_to_anchor.end());
   Node a = ita->second;
   Assert(!a.isNull());
-  if( std::find( sca.d_search_terms[tn][d].begin(), sca.d_search_terms[tn][d].end(), n )==sca.d_search_terms[tn][d].end() ){
+  if (std::find(
+          sca.d_search_terms[tn][d].begin(), sca.d_search_terms[tn][d].end(), n)
+      == sca.d_search_terms[tn][d].end())
+  {
     Trace("sygus-sb-debug") << "  register search term : " << n << " at depth " << d << ", type=" << tn << ", tl=" << topLevel << std::endl;
-    sca.d_search_terms[tn][d].push_back( n );
+    sca.d_search_terms[tn][d].push_back(n);
     if( !options::sygusSymBreakLazy() ){
       addSymBreakLemmasFor( tn, n, d, lemmas );
     }
@@ -1026,8 +1029,7 @@ Node SygusExtension::registerSearchValue(Node a,
   Trace("sygus-sb-debug") << "  ...canonized value is " << cnv << std::endl;
   SearchCache& sca = d_cache[a];
   // must do this for all nodes, regardless of top-level
-  if (sca.d_search_val_proc.find(cnv)
-      == sca.d_search_val_proc.end())
+  if (sca.d_search_val_proc.find(cnv) == sca.d_search_val_proc.end())
   {
     sca.d_search_val_proc.insert(cnv);
     // get the root (for PBE symmetry breaking)
@@ -1050,13 +1052,16 @@ Node SygusExtension::registerSearchValue(Node a,
           a, nv, dbzet, Node::null(), var_count, lemmas);
       return Node::null();
     }else{
-      std::unordered_map<Node, Node, NodeHashFunction>& scasv = sca.d_search_val[tn];
-      std::unordered_map<Node, unsigned, NodeHashFunction>& scasvs = sca.d_search_val_sz[tn];
+      std::unordered_map<Node, Node, NodeHashFunction>& scasv =
+          sca.d_search_val[tn];
+      std::unordered_map<Node, unsigned, NodeHashFunction>& scasvs =
+          sca.d_search_val_sz[tn];
       std::unordered_map<Node, Node, NodeHashFunction>::iterator itsv =
           scasv.find(bvr);
       Node bad_val_bvr;
       bool by_examples = false;
-      if( itsv==scasv.end() ){
+      if (itsv == scasv.end())
+      {
         // Is it equivalent under examples?
         Node bvr_equiv;
         if (options::sygusSymBreakPbe())
@@ -1072,11 +1077,11 @@ Node SygusExtension::registerSearchValue(Node a,
         if( !bvr_equiv.isNull() ){
           if( bvr_equiv!=bvr ){
             Trace("sygus-sb-debug") << "......adding search val for " << bvr << " returned " << bvr_equiv << std::endl;
-            Assert(scasv.find(bvr_equiv)
-                   != scasv.end());
-            Trace("sygus-sb-debug") << "......search value was " << scasv[bvr_equiv] << std::endl;
+            Assert(scasv.find(bvr_equiv) != scasv.end());
+            Trace("sygus-sb-debug")
+                << "......search value was " << scasv[bvr_equiv] << std::endl;
             if( Trace.isOn("sygus-sb-exc") ){
-              Node prev = d_tds->sygusToBuiltin( scasv[bvr_equiv], tn );
+              Node prev = d_tds->sygusToBuiltin(scasv[bvr_equiv], tn);
               Trace("sygus-sb-exc") << "  ......programs " << prev << " and " << bv << " are equivalent up to examples." << std::endl;
             }
             bad_val_bvr = bvr_equiv;
@@ -1086,12 +1091,14 @@ Node SygusExtension::registerSearchValue(Node a,
         //store rewritten values, regardless of whether it will be considered
         scasv[bvr] = nv;
         scasvs[bvr] = sz;
-      }else{
+      }
+      else
+      {
         bad_val_bvr = bvr;
         if( Trace.isOn("sygus-sb-exc") ){
           Node prev_bv = d_tds->sygusToBuiltin( itsv->second, tn );
           Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv << " rewrite to " << bvr << "." << std::endl;
-        } 
+        }
       }
 
       if (options::sygusRewVerify())
@@ -1115,8 +1122,7 @@ Node SygusExtension::registerSearchValue(Node a,
       if( !bad_val_bvr.isNull() ){
         Node bad_val = nv;
         Node bad_val_o = scasv[bad_val_bvr];
-        Assert(scasvs.find(bad_val_bvr)
-               != scasvs.end());
+        Assert(scasvs.find(bad_val_bvr) != scasvs.end());
         unsigned prev_sz = scasvs[bad_val_bvr];
         bool doFlip = (prev_sz > sz);
         if (doFlip)
@@ -1199,14 +1205,16 @@ void SygusExtension::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, 
   Trace("sygus-sb-debug") << "     type : " << tn << std::endl;
   Trace("sygus-sb-debug") << "     size : " << sz << std::endl;
   Assert(!a.isNull());
-  sca.d_sb_lemmas[tn][sz].push_back( lem );
+  sca.d_sb_lemmas[tn][sz].push_back(lem);
   TNode x = getFreeVar( tn );
   unsigned csz = getSearchSizeForAnchor( a );
   int max_depth = ((int)csz)-((int)sz);
   NodeManager* nm = NodeManager::currentNM();
   for( int d=0; d<=max_depth; d++ ){
-    std::map< unsigned, std::vector< Node > >::iterator itt = sca.d_search_terms[tn].find( d );
-    if( itt!=sca.d_search_terms[tn].end() ){
+    std::map<unsigned, std::vector<Node>>::iterator itt =
+        sca.d_search_terms[tn].find(d);
+    if (itt != sca.d_search_terms[tn].end())
+    {
       for (const TNode& t : itt->second)
       {
         if (!options::sygusSymBreakLazy()
@@ -1236,10 +1244,12 @@ void SygusExtension::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node
   Assert(!a.isNull());
   Trace("sygus-sb-debug2") << "add sym break lemmas for " << t << " " << d
                            << " " << a << std::endl;
-  std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::iterator its = sca.d_sb_lemmas.find( tn );
+  std::map<TypeNode, std::map<unsigned, std::vector<Node>>>::iterator its =
+      sca.d_sb_lemmas.find(tn);
   Node rlv = getRelevancyCondition(t);
   NodeManager* nm = NodeManager::currentNM();
-  if( its != sca.d_sb_lemmas.end() ){
+  if (its != sca.d_sb_lemmas.end())
+  {
     TNode x = getFreeVar( tn );
     //get symmetry breaking lemmas for this term 
     unsigned csz = getSearchSizeForAnchor( a );
