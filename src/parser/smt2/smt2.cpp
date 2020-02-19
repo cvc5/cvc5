@@ -920,8 +920,18 @@ void Smt2::includeFile(const std::string& filename) {
   if(!newInputStream(path, lexer)) {
     parseError("Couldn't open include file `" + path + "'");
   }
+}  
+bool Smt2::isAbstractValue(const std::string& name) {
+  return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
+    name.find_first_not_of("0123456789", 1) == std::string::npos;
 }
 
+api::Term Smt2::mkAbstractValue(const std::string& name) {
+  assert(isAbstractValue(name));
+  // remove the '@'
+  return d_solver->mkAbstractValue(name.substr(1));
+}
+  
 void Smt2::mkSygusConstantsForType( const api::Sort& type, std::vector<api::Term>& ops ) {
   if( type.isInteger() ){
     ops.push_back(d_solver->mkReal(0));

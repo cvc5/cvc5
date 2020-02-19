@@ -333,19 +333,15 @@ class Smt2 : public Parser
     return d_lastNamedTerm;
   }
 
-  bool isAbstractValue(const std::string& name) {
-    return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
-      name.find_first_not_of("0123456789", 1) == std::string::npos;
-  }
+  /** Does name denote an abstract value? (of the form '@n' for numeral n). */
+  bool isAbstractValue(const std::string& name);
 
-  api::Term mkAbstractValue(const std::string& name) {
-    assert(isAbstractValue(name));
-    return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
-  }
-
-  void mkSygusVar(const std::string& name,
-                  const api::Sort& type,
-                  bool isPrimed = false);
+  /** Make abstract value
+   *
+   * Abstract values are used for processing get-value calls. The argument
+   * name should be such that isAbstractValue(name) is true.
+   */
+  api::Term mkAbstractValue(const std::string& name);
 
   void mkSygusConstantsForType( const api::Sort& type, std::vector<api::Term>& ops );
 
