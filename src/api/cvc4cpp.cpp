@@ -589,6 +589,17 @@ const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
      FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
      FLOATINGPOINT_TO_FP_GENERIC});
 
+/** Set of kinds where API term structure differs from internal structure
+ *  The API takes a "higher-order" perspective and treats functions as well
+ *  as datatype constructors/selectors/testers as terms
+ *  but interally they are not
+ */
+const static std::unordered_set<CVC4::Kind, CVC4::kind::KindHashFunction> s_internal_apply_kinds({
+                                                                                CVC4::Kind::APPLY_UF,
+                                                                                CVC4::Kind::APPLY_CONSTRUCTOR,
+                                                                                CVC4::Kind::APPLY_SELECTOR,
+                                                                                CVC4::Kind::APPLY_TESTER});
+
 namespace {
 
 bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
@@ -1344,7 +1355,11 @@ Op Term::getOp() const
   CVC4::Expr op = d_expr->getOperator();
   CVC4::Type t = op.getType();
 
-  // special cases for Datatype operators
+  // special cases for parameterized operators that are not indexed operators
+  // the API level differs from the internal structure
+  // indexed operators are stored in Ops
+  // whereas functions and datatype operators are terms, and the Op
+  // is one of the APPLY_* kinds
   if (t.isSelector())
   {
     return Op(APPLY_SELECTOR);
@@ -1357,9 +1372,19 @@ Op Term::getOp() const
   {
     return Op(APPLY_TESTER);
   }
+  else if (t.isFunction())
+  {
+    return Op(APPLY_UF);
+  }
+  else if (d_expr->isParameterized())
+  {
+    // it's an indexed operator
+    // so we should return the indexed op
+    return Op(intToExtKind(d_expr->getKind()), op);
+  }
   else
   {
-    return Op(intToExtKind(op.getKind()), op);
+    return Op(intToExtKind(d_expr->getKind()));
   }
 }
 
@@ -1542,14 +1567,18 @@ Term::const_iterator Term::const_iterator::operator++(int)
 Term Term::const_iterator::operator*() const
 {
   Assert(d_orig_expr != nullptr);
-  if (!d_pos && (d_orig_expr->getKind() == CVC4::Kind::APPLY_UF))
+  // this term has an extra child (mismatch between API and internal structure)
+  // the extra child will be the first child
+  bool extra_child = (s_internal_apply_kinds.find(d_orig_expr->getKind()) != s_internal_apply_kinds.end());
+
+  if (!d_pos && extra_child)
   {
     return Term(d_orig_expr->getOperator());
   }
   else
   {
     uint32_t idx = d_pos;
-    if (d_orig_expr->getKind() == CVC4::Kind::APPLY_UF)
+    if (extra_child)
     {
       Assert(idx > 0);
       --idx;
@@ -1567,7 +1596,13 @@ Term::const_iterator Term::begin() const
 Term::const_iterator Term::end() const
 {
   int endpos = d_expr->getNumChildren();
-  if (d_expr->getKind() == CVC4::Kind::APPLY_UF)
+  // special cases for APPLY_*
+  // the API differs from the internal structure
+  // the API takes a "higher-order" perspective and the applied
+  //   function or datatype constructor/selector/tester is a Term
+  // which means it needs to be one of the children, even though
+  //   internally it is not
+  if (s_internal_apply_kinds.find(d_expr->getKind()) != s_internal_apply_kinds.end())
   {
     // one more child if this is a UF application (count the UF as a child)
     ++endpos;

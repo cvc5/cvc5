@@ -1218,7 +1218,7 @@ class CVC4_PUBLIC DatatypeSelector
 
   /**
    * Get the selector operator of this datatype selector.
-   * @return the selector Term
+   * @return the selector term
    */
   Term getSelectorTerm() const;
 
