@@ -629,30 +629,6 @@ api::Term Parser::mkBuiltinApp(api::Term f, api::Term t1, api::Term t2) const
   return mkBuiltinApp(f,args);
 }
 
-api::Term Parser::mkTermSafe(api::Kind k, const std::vector<api::Term>& args) const
-{
-  if (k == api::APPLY_CONSTRUCTOR || k == api::APPLY_SELECTOR || k==api::APPLY_TESTER)
-  {
-    return api::Term(getExprManager()->mkExpr(extToIntKind(k), api::termVectorToExprs(args)));
-  }
-  return d_solver->mkTerm(k, args);
-}
-
-api::Term Parser::mkTermSafe(api::Kind k, api::Term t1) const
-{
-  std::vector<api::Term> args;
-  args.push_back(t1);
-  return mkTermSafe(k,args);
-}
-
-api::Term Parser::mkTermSafe(api::Kind k, api::Term t1, api::Term t2) const
-{
-  std::vector<api::Term> args;
-  args.push_back(t1);
-  args.push_back(t2);
-  return mkTermSafe(k,args);
-}
-
 api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 {
   if(t.getKind() == api::APPLY_CONSTRUCTOR && s.isDatatype()) {

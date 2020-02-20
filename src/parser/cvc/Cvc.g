@@ -1629,7 +1629,7 @@ tupleStore[CVC4::api::Term& f]
         PARSER_STATE->parseError(ss.str());
       }
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-      f2 = PARSER_STATE->mkTermSafe(api::APPLY_SELECTOR,api::Term(dt[0][k].getSelector()),f);
+      f2 = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][k].getSelector()),f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1661,7 +1661,7 @@ recordStore[CVC4::api::Term& f]
         PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
       }
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-      f2 = PARSER_STATE->mkTermSafe(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
+      f2 = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1779,7 +1779,7 @@ postfixTerm[CVC4::api::Term& f]
       { api::Kind k = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
         Debug("parser") << "kind is " << k << std::endl;
-        f = PARSER_STATE->mkTermSafe(k,args);
+        f = SOLVER->mkTerm(k,args);
       }
 
       /* record / tuple select */
@@ -1794,7 +1794,7 @@ postfixTerm[CVC4::api::Term& f]
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
           const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-          f = PARSER_STATE->mkTermSafe(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
+          f = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
         }
       | k=numeral
         { api::Sort t = f.getSort();
@@ -1808,7 +1808,7 @@ postfixTerm[CVC4::api::Term& f]
             PARSER_STATE->parseError(ss.str());
           }
           const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-          f = PARSER_STATE->mkTermSafe(api::APPLY_SELECTOR,api::Term(dt[0][k].getSelector()), f);
+          f = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][k].getSelector()), f);
         }
       )
     )*

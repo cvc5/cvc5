@@ -1446,34 +1446,9 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   spc = std::make_shared<printer::SygusExprPrintCallback>(op.getExpr(), api::termVectorToExprs(args));
   if (!args.empty())
   {
-    bool pureVar = false;
-    if (op.getNumChildren() == args.size())
-    {
-      pureVar = true;
-      for (unsigned i = 0, nchild = op.getNumChildren(); i < nchild; i++)
-      {
-        if (op[i] != args[i])
-        {
-          pureVar = false;
-          break;
-        }
-      }
-    }
-    Trace("parser-sygus2") << "Pure var is " << pureVar
-                           << ", hasOp=" << op.hasOp() << std::endl;
-    if (pureVar && op.hasOp())
-    {
-      // optimization: use just the operator if it an application to only vars
-      Trace("parser-sygus2") << "addSygusConstructor: kind " << op.getKind() << std::endl;
-      dt.addSygusConstructor(extToIntKind(op.getKind()), ssCName.str(), api::sortVectorToTypes(cargs), spc);
-      return;
-    }
-    else
-    {
-      api::Term lbvl = d_solver->mkTerm(api::BOUND_VAR_LIST, args);
-      // its operator is a lambda
-      op = d_solver->mkTerm(api::LAMBDA, lbvl, op);
-    }
+    api::Term lbvl = d_solver->mkTerm(api::BOUND_VAR_LIST, args);
+    // its operator is a lambda
+    op = d_solver->mkTerm(api::LAMBDA, lbvl, op);
   }
   Trace("parser-sygus2") << "addSygusConstructor:  operator " << op << std::endl;
   dt.addSygusConstructor(op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
@@ -1832,7 +1807,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-    api::Term ret = mkTermSafe(api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args[0]);
+    api::Term ret = d_solver->mkTerm(api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args[0]);
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
@@ -1961,8 +1936,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     return ret;
   }
   // PARSER-TODO
-  Debug("parser") << "Try default term construction for kind " << kind << "#args = " << args.size() << "..." << std::endl;
-  api::Term ret = mkTermSafe(kind, args);
+  Debug("parser") << "Try default term construction for kind " << kind << " #args = " << args.size() << "..." << std::endl;
+  api::Term ret = d_solver->mkTerm(kind, args);
   Debug("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;
 }
