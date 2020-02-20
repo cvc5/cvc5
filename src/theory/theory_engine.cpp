@@ -1301,7 +1301,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       if (d_propEngine->hasValue(assertion, value)) {
         if (!value) {
           Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict (no sharing)" << endl;
-          Trace("dtview::conflict") << ":CONFLICT: " << assertion << std::endl;
+          Trace("dtview::conflict")
+              << ":THEORY-CONFLICT: " << assertion << std::endl;
           d_inConflict = true;
         } else {
           return;
@@ -1356,7 +1357,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
             << "TheoryEngine::assertToTheory(" << assertion << ", "
             << toTheoryId << ", " << fromTheoryId << "): conflict (sharing)"
             << endl;
-        Trace("dtview::conflict") << ":CONFLICT: " << assertion << std::endl;
+        Trace("dtview::conflict")
+            << ":THEORY-CONFLICT: " << assertion << std::endl;
         d_inConflict = true;
       }
     }
@@ -1926,7 +1928,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
   Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
 
-  Trace("dtview::conflict") << ":CONFLICT: " << conflict << std::endl;
+  Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
   // Mark that we are in conflict
   d_inConflict = true;

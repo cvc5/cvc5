@@ -77,6 +77,22 @@ static inline void dtviewPropagationHeaderHelper(size_t level)
                         << " /Propagations/" << std::endl;
 }
 
+// Writes to Trace macro for conflict tracing
+static inline void dtviewPropConflictHelper(size_t level,
+                                            Clause& confl,
+                                            CVC4::prop::TheoryProxy* proxy)
+{
+  Trace("dtview::conflict")
+      << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0), ' ')
+      << ":PROP-CONFLICT: (or";
+  for (int i = 0; i < confl.size(); i++)
+  {
+    Trace("dtview::conflict")
+        << " " << proxy->getNode(MinisatSatSolver::toSatLiteral(confl[i]));
+  }
+  Trace("dtview::conflict") << ")" << std::endl;
+}
+
 }  // namespace
 
 //=================================================================================================
@@ -1054,6 +1070,14 @@ CRef Solver::propagate(TheoryCheckType type)
               confl = updateLemmas();
             }
         } else {
+          // if dumping decision tree, print the conflict
+          if (Trace.isOn("dtview::conflict"))
+          {
+            if (confl != CRef_Undef)
+            {
+              dtviewPropConflictHelper(decisionLevel(), ca[confl], proxy);
+            }
+          }
           // Even though in conflict, we still need to discharge the lemmas
           if (lemmas.size() > 0) {
             // Remember the trail size
