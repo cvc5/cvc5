@@ -124,6 +124,68 @@ class StringEnumeratorLength {
   bool isFinished() { return d_curr.isNull(); }
 };
 
+
+class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator> {
+ public:
+  SequenceEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+      : TypeEnumeratorBase<SequenceEnumerator>(type),
+      d_childEnum(type.getSequenceElementType())
+  {
+    Assert(type.getKind() == kind::TYPE_CONSTANT
+           && type.getConst<TypeConstant>() == SEQUENCE_TYPE);
+    mkCurr();
+  }
+  Node operator*() override { return d_curr; }
+  SequenceEnumerator& operator++() override
+  {
+    bool changed = false;
+    do
+    {
+      for (unsigned i = 0; i < d_data.size(); ++i)
+      {
+        while (!d_childEnum.isFinished() && d_data[i] + 1 >= d_childDomain.size())
+        {
+          d_childDomain.push_back(*d_childEnum);
+          ++d_childEnum;
+        }
+        
+        if (d_data[i] + 1 < d_childDomain.size())
+        {
+          ++d_data[i];
+          changed = true;
+          break;
+        }
+        else
+        {
+          d_data[i] = 0;
+        }
+      }
+      // increase length
+      if (!changed)
+      {
+        d_data.push_back(0);
+      }
+    } while (!changed);
+
+    mkCurr();
+    return *this;
+  }
+
+  bool isFinished() override { return d_curr.isNull(); }
+private:
+  void mkCurr() {
+    //make constant from d_data  FIXME : use sequence
+    d_curr = NodeManager::currentNM()->mkConst( CVC4::String( d_data ) );
+  }
+  /** The current data */
+  std::vector< unsigned > d_data;
+  /** The enumerated domain so far */
+  std::vector< Node > d_childDomain;
+  /** Child enumeration */
+  TypeEnumerator d_childEnum;
+};/* class SequenceEnumerator */
+
+
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

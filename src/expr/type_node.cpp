@@ -345,6 +345,12 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   return false;
 }
 
+TypeNode TypeNode::getSequenceElementType() const
+{
+  Assert(isSequence());
+  return (*this)[0];
+}
+
 TypeNode TypeNode::getBaseType() const {
   TypeNode realt = NodeManager::currentNM()->realType();
   if (isSubtypeOf(realt)) {

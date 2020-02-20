@@ -20,6 +20,8 @@
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 
+#include "expr/sequence.h"
+
 namespace CVC4 {
 namespace theory {
 namespace strings {
@@ -62,6 +64,20 @@ public:
     return nodeManager->regExpType();
   }
 };
+
+/** Properties of the sequence type */
+struct SequenceProperties {
+  /** A sequence is well-founded if its element type is */
+  inline static bool isWellFounded(TypeNode type) {
+    return type[0].isWellFounded();
+  }
+  /** Make ground term for sequence type (return the empty sequence) */
+  inline static Node mkGroundTerm(TypeNode type) {
+    Assert(type.isSequence());
+    // empty sequence
+    return NodeManager::currentNM()->mkConst(Sequence(SequenceType(type)));
+  }
+};/* struct SequenceProperties */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
