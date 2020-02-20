@@ -221,7 +221,7 @@ Node eliminateBv2Nat(TNode node);
  *   (bvconcat ite( (>= (mod x (^ 2 n)) (^ 2 (n-1))) (_ bv1 1) (_ bv1 0))
  *             ...
  *             ite( (>= (mod x (^ 2 1)) (^ 2 0)) (_ bv1 1) (_ bv1 0)))
- * where n is the bitwidth of x.
+ * where n is the bit-width of x.
  */
 Node eliminateInt2Bv(TNode node);
 }
