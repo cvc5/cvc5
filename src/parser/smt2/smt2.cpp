@@ -1436,6 +1436,8 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   std::vector<api::Term> args;
   std::vector<api::Sort> cargs;
   api::Term op = purifySygusGTerm(term, ntsToUnres, args, cargs);
+  std::stringstream ssCName;
+  ssCName << op.getKind();
   Trace("parser-sygus2") << "Purified operator " << op
                          << ", #args/cargs=" << args.size() << "/"
                          << cargs.size() << std::endl;
@@ -1445,10 +1447,10 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   if (!args.empty())
   {
     bool pureVar = false;
-    if (op.getExpr().getNumChildren() == args.size())
+    if (op.getNumChildren() == args.size())
     {
       pureVar = true;
-      for (unsigned i = 0, nchild = op.getExpr().getNumChildren(); i < nchild; i++)
+      for (unsigned i = 0, nchild = op.getNumChildren(); i < nchild; i++)
       {
         if (op[i] != args[i])
         {
@@ -1462,19 +1464,18 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
     if (pureVar && op.hasOp())
     {
       // optimization: use just the operator if it an application to only vars
-      op = api::Term(op.getOp().getExpr());
+      Trace("parser-sygus2") << "addSygusConstructor: kind " << op.getKind() << std::endl;
+      dt.addSygusConstructor(extToIntKind(op.getKind()), ssCName.str(), api::sortVectorToTypes(cargs), spc);
     }
     else
     {
       api::Term lbvl = d_solver->mkTerm(api::BOUND_VAR_LIST, args);
       // its operator is a lambda
       op = d_solver->mkTerm(api::LAMBDA, lbvl, op);
+      Trace("parser-sygus2") << "addSygusConstructor:  operator " << op << std::endl;
+      dt.addSygusConstructor(op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
     }
   }
-  Trace("parser-sygus2") << "Generated operator " << op << std::endl;
-  std::stringstream ss;
-  ss << op.getKind();
-  dt.addSygusConstructor(op.getExpr(), ss.str(), api::sortVectorToTypes(cargs), spc);
 }
 
 api::Term Smt2::purifySygusGTerm(api::Term term,
@@ -1495,23 +1496,18 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     cargs.push_back(itn->second);
     return ret;
   }
-  // PARSER-TODO
-  std::vector<Expr> pchildren;
+  std::vector<api::Term> pchildren;
   // To test whether the operator should be passed to mkapi::Term below, we check
   // whether this term is parameterized. This includes APPLY_UF terms and BV
   // extraction terms, but excludes applications of most interpreted symbols
   // like PLUS.
-  if (term.getExpr().isParameterized())
-  {
-    pchildren.push_back(term.getExpr().getOperator());
-  }
   bool childChanged = false;
-  for (unsigned i = 0, nchild = term.getExpr().getNumChildren(); i < nchild; i++)
+  for (unsigned i = 0, nchild = term.getNumChildren(); i < nchild; i++)
   {
     Trace("parser-sygus2-debug")
         << "......purify child " << i << " : " << term[i] << std::endl;
     api::Term ptermc = purifySygusGTerm(term[i], ntsToUnres, args, cargs);
-    pchildren.push_back(ptermc.getExpr());
+    pchildren.push_back(ptermc);
     childChanged = childChanged || ptermc != term[i];
   }
   if (!childChanged)
@@ -1519,7 +1515,7 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     Trace("parser-sygus2-debug") << "...no child changed" << std::endl;
     return term;
   }
-  api::Term nret = api::Term(getExprManager()->mkExpr(extToIntKind(term.getKind()), pchildren));
+  api::Term nret = d_solver->mkTerm(term.getOp(),pchildren);
   Trace("parser-sygus2-debug")
       << "...child changed, return " << nret << std::endl;
   return nret;

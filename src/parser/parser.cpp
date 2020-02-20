@@ -657,10 +657,11 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 {
   if(t.getKind() == api::APPLY_CONSTRUCTOR && s.isDatatype()) {
     std::vector<api::Term> v;
-    Expr e = t.getOp().getExpr();
+    // operator is the first child
+    Expr e = t[0].getExpr();
     const DatatypeConstructor& dtc = Datatype::datatypeOf(e)[Datatype::indexOf(e)];
     v.push_back(api::Term(getExprManager()->mkExpr( APPLY_TYPE_ASCRIPTION,
-                          getExprManager()->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))), t.getOp().getExpr() )));
+                          getExprManager()->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))), t[0].getExpr() )));
     v.insert(v.end(), t.begin(), t.end());
     return d_solver->mkTerm(api::APPLY_CONSTRUCTOR, v);
   } else if(t.getKind() == api::EMPTYSET && s.isSet()) {

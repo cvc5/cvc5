@@ -1405,6 +1405,10 @@ uint64_t Term::getId() const
 
 Kind Term::getKind() const
 {
+  if (isNullHelper())
+  {
+    AlwaysAssert(false);
+  }
   CVC4_API_CHECK_NOT_NULL;
   return intToExtKind(d_expr->getKind());
 }
