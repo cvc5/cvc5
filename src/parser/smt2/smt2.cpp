@@ -1466,16 +1466,17 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
       // optimization: use just the operator if it an application to only vars
       Trace("parser-sygus2") << "addSygusConstructor: kind " << op.getKind() << std::endl;
       dt.addSygusConstructor(extToIntKind(op.getKind()), ssCName.str(), api::sortVectorToTypes(cargs), spc);
+      return;
     }
     else
     {
       api::Term lbvl = d_solver->mkTerm(api::BOUND_VAR_LIST, args);
       // its operator is a lambda
       op = d_solver->mkTerm(api::LAMBDA, lbvl, op);
-      Trace("parser-sygus2") << "addSygusConstructor:  operator " << op << std::endl;
-      dt.addSygusConstructor(op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
     }
   }
+  Trace("parser-sygus2") << "addSygusConstructor:  operator " << op << std::endl;
+  dt.addSygusConstructor(op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
 }
 
 api::Term Smt2::purifySygusGTerm(api::Term term,
@@ -1544,7 +1545,7 @@ InputLanguage Smt2::getLanguage() const
   return getExprManager()->getOptions().getInputLanguage();
 }
 
-void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
+void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
 {
   // (as const (Array T1 T2))
   if (p.d_kind == api::STORE_ALL)
@@ -1591,16 +1592,8 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
     // could be a parametric constructor or just an overloaded constructor
     if (type.isParametricDatatype())
     {
-      std::vector<api::Term> v;
-      Expr e = p.d_expr.getExpr().getOperator();
-      const DatatypeConstructor& dtc =
-          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-      v.push_back(api::Term(em->mkExpr(
-          kind::APPLY_TYPE_ASCRIPTION,
-          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type.getType()))),
-          p.d_expr.getExpr().getOperator())));
-      v.insert(v.end(), p.d_expr.begin(), p.d_expr.end());
-      p.d_expr = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, v);
+      // standard type ascription
+      p.d_expr = applyTypeAscription(p.d_expr,type);
     }
   }
   else if (etype.isConstructor())
@@ -1608,6 +1601,7 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
     // a non-nullary constructor with a type ascription
     if (type.isParametricDatatype())
     {
+      // apply type ascription to the operator
       Expr e = p.d_expr.getExpr();
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(e)[Datatype::indexOf(e)];

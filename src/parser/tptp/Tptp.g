@@ -1321,7 +1321,7 @@ tffLetTermBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs, CV
   : term[lhs] EQUAL_TOK term[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
       std::vector<api::Term> lchildren;
-      for( unsigned i=0, nchild = lhs.getNumChildren(); i<nchild; i++)
+      for( unsigned i=1, nchild = lhs.getNumChildren(); i<nchild; i++)
       {
         lchildren.push_back(lhs[i]);
       }
@@ -1343,7 +1343,7 @@ tffLetFormulaBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs,
   : atomicFormula[lhs] IFF_TOK tffUnitaryFormula[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
       std::vector<api::Term> lchildren;
-      for( unsigned i=0, nchild = lhs.getNumChildren(); i<nchild; i++)
+      for( unsigned i=1, nchild = lhs.getNumChildren(); i<nchild; i++)
       {
         lchildren.push_back(lhs[i]);
       }
