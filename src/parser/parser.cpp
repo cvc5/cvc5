@@ -807,8 +807,7 @@ Command* Parser::nextCommand()
       dynamic_cast<QuitCommand*>(cmd) == NULL) {
     // don't count set-option commands as to not get stuck in an infinite
     // loop of resourcing out
-    const Options& options = getExprManager()->getOptions();
-    d_resourceManager->spendResource(options.getParseStep());
+    d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
   }
   return cmd;
 }
@@ -816,8 +815,7 @@ Command* Parser::nextCommand()
 api::Term Parser::nextExpression()
 {
   Debug("parser") << "nextExpression()" << std::endl;
-  const Options& options = getExprManager()->getOptions();
-  d_resourceManager->spendResource(options.getParseStep());
+  d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
   api::Term result;
   if (!done()) {
     try {

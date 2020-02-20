@@ -536,6 +536,24 @@ header = "options/smt_options.h"
   help       = "amount of resources spent for each bitblast step"
 
 [[option]]
+  name       = "bvPropagationStep"
+  category   = "expert"
+  long       = "bv-propagation-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each BV propagation step"
+
+[[option]]
+  name       = "bvEagerAssertStep"
+  category   = "expert"
+  long       = "bv-eager-assert-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each eager BV assert step"
+
+[[option]]
   name       = "parseStep"
   category   = "expert"
   long       = "parse-step=N"

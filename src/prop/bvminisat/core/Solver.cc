@@ -1076,7 +1076,8 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             // NO CONFLICT
             bool isWithinBudget;
             try {
-              isWithinBudget = withinBudget(CVC4::options::bvSatConflictStep()); 
+              isWithinBudget =
+                  withinBudget(ResourceManager::Resource::BvSatConflictsStep);
             }
             catch (const CVC4::theory::Interrupted& e) {
               // do some clean-up and rethrow 
@@ -1232,7 +1233,7 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget(CVC4::options::bvSatConflictStep())) break;
+        if (!withinBudget(ResourceManager::Resource::BvSatConflictsStep)) break;
         curr_restarts++;
     }
 
@@ -1482,11 +1483,10 @@ void ClauseAllocator::reloc(CRef& cr,
 }
 
 void Solver::setNotify(Notify* toNotify) { d_notify = toNotify; }
-bool Solver::withinBudget(uint64_t amount) const
+bool Solver::withinBudget(ResourceManager::Resource r) const
 {
   AlwaysAssert(d_notify);
-  d_notify->spendResource(amount);
-  d_notify->safePoint(0);
+  d_notify->safePoint(r);
 
   return !asynch_interrupt &&
          (conflict_budget < 0 || conflicts < (uint64_t)conflict_budget) &&
