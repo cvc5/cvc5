@@ -24,6 +24,7 @@
   }
 
 %ignore CVC4::stats::getStatisticsRegistry(ExprManager*);
+%ignore CVC4::ExprManager::getResourceManager();
 
 %include "expr/expr_manager.h"
 
