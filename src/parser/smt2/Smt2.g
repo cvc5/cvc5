@@ -1979,10 +1979,10 @@ identifier[CVC4::ParseOp& p]
   | LPAREN_TOK INDEX_TOK
     ( TESTER_TOK term[f, f2]
       {
-        if (f.getKind() == api::APPLY_CONSTRUCTOR && f.getNumChildren() == 0)
+        if (f.getKind() == api::APPLY_CONSTRUCTOR && f.getNumChildren() == 1)
         {
           // for nullary constructors, must get the operator
-          f = api::Term(f.getOp().getExpr());
+          f = f[0];
         }
         if (!f.getSort().isConstructor())
         {
