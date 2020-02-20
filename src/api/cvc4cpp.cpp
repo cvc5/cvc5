@@ -1370,11 +1370,12 @@ bool Term::operator<=(const Term& t) const { return *d_expr <= *t.d_expr; }
 
 bool Term::operator>=(const Term& t) const { return *d_expr >= *t.d_expr; }
 
-size_t Term::getNumChildren() const {
+size_t Term::getNumChildren() const
+{
   // special case for apply kinds
   if (isApplyKind(d_expr->getKind()))
   {
-    return d_expr->getNumChildren()+1;
+    return d_expr->getNumChildren() + 1;
   }
   return d_expr->getNumChildren();
 }
@@ -1385,8 +1386,8 @@ Term Term::operator[](size_t index) const
   if (isApplyKind(d_expr->getKind()))
   {
     CVC4_API_CHECK(d_expr->hasOperator())
-      << "Expected apply kind to have operator when accessing child of Term";
-    if (index==0)
+        << "Expected apply kind to have operator when accessing child of Term";
+    if (index == 0)
     {
       // return the operator
       return api::Term(d_expr->getOperator());

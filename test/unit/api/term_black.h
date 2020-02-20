@@ -675,16 +675,16 @@ void TermBlack::testTermChildren()
   Term t1 = d_solver.mkTerm(PLUS, two, d_solver.mkReal(3));
   TS_ASSERT(t1[0] == two);
   TS_ASSERT(t1.getNumChildren() == 2);
-  
+
   // apply term f(2)
   Sort intSort = d_solver.getIntegerSort();
   Sort fsort = d_solver.mkFunctionSort(intSort, intSort);
-  Term f = d_solver.mkConst(fsort,"f");
+  Term f = d_solver.mkConst(fsort, "f");
   Term t2 = d_solver.mkTerm(APPLY_UF, f, two);
   // due to our higher-order view of terms, we treat f as a child of APPLY_UF
   TS_ASSERT(t2.getNumChildren() == 2);
-  TS_ASSERT_EQUALS(t2[0],f);
-  TS_ASSERT_EQUALS(t2[1],two);
+  TS_ASSERT_EQUALS(t2[0], f);
+  TS_ASSERT_EQUALS(t2[1], two);
 }
 
 void TermBlack::testSubstitute()
