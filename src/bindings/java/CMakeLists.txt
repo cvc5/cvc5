@@ -57,7 +57,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeSelfType.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeType.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeUnresolvedType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DeclarationCheck.java
   ${CMAKE_CURRENT_BINARY_DIR}/EmptySet.java
   ${CMAKE_CURRENT_BINARY_DIR}/EmptySetHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/Exception.java
