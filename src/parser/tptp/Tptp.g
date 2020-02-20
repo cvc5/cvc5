@@ -1092,32 +1092,23 @@ thfLogicFormula[CVC4::Expr& expr]
       )+
       {
         expr = args[0];
-        // also add case for total applications
-        if (expr.getKind() == kind::BUILTIN)
+        // check if any argument is a bultin node, e.g. "~", and create a
+        // lambda wrapper then, e.g. (\lambda x. ~ x)
+        for (unsigned i = 1; i < args.size(); ++i)
         {
-          args.erase(args.begin());
-          expr = EXPR_MANAGER->mkExpr(expr, args);
+          // create a lambda wrapper, e.g. (\lambda x. ~ x)
+          if (args[i].getKind() != kind::BUILTIN)
+          {
+            continue;
+          }
+          PARSER_STATE->mkLambdaWrapper(
+              args[i],
+              (static_cast<FunctionType>(args[0].getType()))
+                  .getArgTypes()[i - 1]);
         }
-        else
+        for (unsigned i = 1; i < args.size(); ++i)
         {
-          // check if any argument is a bultin node, e.g. "~", and create a
-          // lambda wrapper then, e.g. (\lambda x. ~ x)
-          for (unsigned i = 1; i < args.size(); ++i)
-          {
-            // create a lambda wrapper, e.g. (\lambda x. ~ x)
-            if (args[i].getKind() != kind::BUILTIN)
-            {
-              continue;
-            }
-            PARSER_STATE->mkLambdaWrapper(
-                args[i],
-                (static_cast<FunctionType>(args[0].getType()))
-                    .getArgTypes()[i - 1]);
-          }
-          for (unsigned i = 1; i < args.size(); ++i)
-          {
-            expr = MK_EXPR(kind::HO_APPLY, expr, args[i]);
-          }
+          expr = MK_EXPR(kind::HO_APPLY, expr, args[i]);
         }
       }
     )?
