@@ -24,18 +24,8 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 namespace CVC4 {
-
-namespace expr {
-namespace attr {
-struct DatatypeConstructorTypeGroundTermTag {};
-} /* CVC4::expr::attr namespace */
-} /* CVC4::expr namespace */
-
 namespace theory {
 namespace datatypes {
-
-typedef expr::Attribute<expr::attr::DatatypeConstructorTypeGroundTermTag, Node>
-    GroundTermAttr;
 
 struct DatatypeConstructorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
