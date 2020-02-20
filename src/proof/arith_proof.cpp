@@ -1019,24 +1019,16 @@ std::pair<Node, std::string> LFSCArithProof::printProofAndMaybeTighten(
         Assert(nonNegBound[1].getKind() == kind::CONST_RATIONAL);
         Rational oldBound = nonNegBound[1].getConst<Rational>();
         Integer newBound = -(oldBound.ceiling() - 1);
+        // Since the arith theory rewrites bounds to be purely integral or
+        // purely real, mixed bounds should not appear in proofs
+        AlwaysAssert(oldBound.isIntegral()) << "Mixed int/real bound in arith proof";
         pfOfPossiblyTightenedPredicate
-            << "("
-            << (oldBound.isIntegral() ? "tighten_not_>=_IntInt"
-                                      : "tighten_not_>=_IntReal")
+            << "(tighten_not_>=_IntInt"
             << " _ _ _ _ ("
-            << (oldBound.isIntegral()
-                    ? "check_neg_of_greatest_integer_below_int "
-                    : "check_neg_of_greatest_integer_below ");
+            << "check_neg_of_greatest_integer_below_int ";
         printInteger(pfOfPossiblyTightenedPredicate, newBound);
         pfOfPossiblyTightenedPredicate << " ";
-        if (oldBound.isIntegral())
-        {
-          printInteger(pfOfPossiblyTightenedPredicate, oldBound.ceiling());
-        }
-        else
-        {
-          printRational(pfOfPossiblyTightenedPredicate, oldBound);
-        }
+        printInteger(pfOfPossiblyTightenedPredicate, oldBound.ceiling());
         pfOfPossiblyTightenedPredicate << ") " << ProofManager::getLitName(bound.negate(), "") << ")";
         Node newLeft = (theory::arith::Polynomial::parsePolynomial(nonNegBound[0]) * -1).getNode();
         Node newRight = NodeManager::currentNM()->mkConst(Rational(newBound));
@@ -1052,18 +1044,11 @@ std::pair<Node, std::string> LFSCArithProof::printProofAndMaybeTighten(
         Assert(nonNegBound[1].getKind() == kind::CONST_RATIONAL);
 
         Rational oldBound = nonNegBound[1].getConst<Rational>();
-        if (oldBound.isIntegral()) {
-          pfOfPossiblyTightenedPredicate << ProofManager::getLitName(bound.negate(), "");
-          return std::make_pair(bound, pfOfPossiblyTightenedPredicate.str());
-        } else {
-          Integer newBound = oldBound.ceiling();
-          pfOfPossiblyTightenedPredicate << "(tighten_>=_IntReal _ _ " <<
-            newBound << " " << ProofManager::getLitName(bound.negate(), "") << ")";
-          Node newRight = NodeManager::currentNM()->mkConst(Rational(newBound));
-          Node newTerm = NodeManager::currentNM()->mkNode(kind::GEQ, nonNegBound[0], newRight);
-          return std::make_pair(newTerm, pfOfPossiblyTightenedPredicate.str());
-        }
-        break;
+        // Since the arith theory rewrites bounds to be purely integral or
+        // purely real, mixed bounds should not appear in proofs
+        AlwaysAssert(oldBound.isIntegral()) << "Mixed int/real bound in arith proof";
+        pfOfPossiblyTightenedPredicate << ProofManager::getLitName(bound.negate(), "");
+        return std::make_pair(bound, pfOfPossiblyTightenedPredicate.str());
       }
       default: Unreachable();
     }
