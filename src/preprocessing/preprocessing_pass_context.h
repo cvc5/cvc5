@@ -61,9 +61,9 @@ class PreprocessingPassContext
     return d_symsInAssertions;
   }
 
-  void spendResource(unsigned amount)
+  void spendResource(ResourceManager::Resource r)
   {
-    d_resourceManager->spendResource(amount);
+    d_resourceManager->spendResource(r);
   }
 
   const LogicInfo& getLogicInfo() { return d_smt->d_logic; }

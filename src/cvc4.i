@@ -75,7 +75,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %}
 #endif /* SWIGPYTHON */
 
-%template(vectorCommandPtr) std::vector< CVC4::Command* >;
 %template(vectorType) std::vector< CVC4::Type >;
 %template(vectorExpr) std::vector< CVC4::Expr >;
 %template(vectorUnsignedInt) std::vector< unsigned int >;
@@ -163,8 +162,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 // TIM: Really unclear why both of these are required
 %typemap(throws) CVC4::UnsafeInterruptException = CVC4::Exception;
 %typemap(throws) UnsafeInterruptException = CVC4::Exception;
-//%typemap(throws) CVC4::parser::InputStreamException = CVC4::Exception;
-//%typemap(throws) CVC4::parser::ParserException = CVC4::Exception;
+%typemap(throws) CVC4::parser::InputStreamException = CVC4::Exception;
 
 // Generate an error if the mapping from C++ CVC4 Exception to Java CVC4 Exception doesn't exist above
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{
@@ -228,28 +226,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %javamethodmodifiers CVC4::JavaInputStreamAdapter::getInputStream() const "private";
 %javamethodmodifiers CVC4::JavaInputStreamAdapter::JavaInputStreamAdapter(jobject) "private";
 
-%exception CVC4::parser::Parser::nextCommand() %{
-  try {
-    CVC4::JavaInputStreamAdapter::pullAdapters(jenv);
-    $action
-  } catch(CVC4::Exception& e) {
-    std::stringstream ss;
-    ss << e.what() << ": " << e.getMessage();
-    std::string explanation = ss.str();
-    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, explanation.c_str());
-  }
-%}
-%exception CVC4::parser::Parser::nextExpression() %{
-  try {
-    CVC4::JavaInputStreamAdapter::pullAdapters(jenv);
-    $action
-  } catch(CVC4::Exception& e) {
-    std::stringstream ss;
-    ss << e.what() << ": " << e.getMessage();
-    std::string explanation = ss.str();
-    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, explanation.c_str());
-  }
-%}
 %exception CVC4::JavaInputStreamAdapter::~JavaInputStreamAdapter() %{
   try {
     jenv->DeleteGlobalRef(arg1->getInputStream());
@@ -323,7 +299,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/hash.i"
 %include "util/proof.i"
 %include "util/regexp.i"
-%include "util/resource_manager.i"
 %include "util/result.i"
 %include "util/sexpr.i"
 %include "util/statistics.i"
@@ -350,12 +325,9 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "expr/expr.i"
 %include "expr/expr_manager.i"
 %include "expr/expr_stream.i"
-%include "expr/symbol_table.i"
 %include "expr/variable_type_map.i"
 %include "options/option_exception.i"
 %include "options/options.i"
-//%include "parser/cvc4parser.i"
-%include "smt/command.i"
 %include "smt/logic_exception.i"
 %include "theory/logic_info.i"
 %include "theory/theory_id.i"
