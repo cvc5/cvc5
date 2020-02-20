@@ -399,7 +399,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
       {
         const api::DatatypeConstructor& ctor = dt[j];
         expr::ExprPrintTypes::Scope pts(Debug("parser-idt"), true);
-        api::Op constructor = ctor.getConstructorTerm();
+        api::Term constructor = ctor.getConstructorTerm();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
         if(consNames.find(constructorName)==consNames.end()) {
@@ -407,28 +407,28 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
             checkDeclaration(constructorName, CHECK_UNDECLARED);
           }
           defineVar(
-              constructorName, constructor.getExpr(), d_globalDeclarations, doOverload);
+              constructorName, constructor, d_globalDeclarations, doOverload);
           consNames.insert(constructorName);
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
         }
-        api::Op tester = ctor.getTesterTerm();
+        api::Term tester = ctor.getTesterTerm();
         Debug("parser-idt") << "+ define " << tester << std::endl;
         string testerName = ctor.getTesterName();
         if(!doOverload) {
           checkDeclaration(testerName, CHECK_UNDECLARED);
         }
-        defineVar(testerName, tester.getExpr(), d_globalDeclarations, doOverload);
+        defineVar(testerName, tester, d_globalDeclarations, doOverload);
         for (size_t k=0, nargs = ctor.getNumSelectors(); k<nargs; k++){
           const api::DatatypeSelector& sel = ctor[k];
-          api::Op selector = sel.getSelectorTerm();
+          api::Term selector = sel.getSelectorTerm();
           Debug("parser-idt") << "+++ define " << selector << std::endl;
           string selectorName = sel.getName();
           if(selNames.find(selectorName)==selNames.end()) {
             if(!doOverload) {
               checkDeclaration(selectorName, CHECK_UNDECLARED);
             }
-            defineVar(selectorName, selector.getExpr(), d_globalDeclarations, doOverload);
+            defineVar(selectorName, selector, d_globalDeclarations, doOverload);
             selNames.insert(selectorName);
           }else{
             throw ParserException(selectorName + " already declared in this datatype");

@@ -1419,7 +1419,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * Get the tester operator of this datatype constructor.
    * @return the tester operator
    */
-  Op getTesterTerm() const;
+  Term getTesterTerm() const;
 
   /**
    * @return the tester name for this Datatype constructor.

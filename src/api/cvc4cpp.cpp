@@ -1938,11 +1938,11 @@ Term DatatypeConstructor::getConstructorTerm() const
   return ctor;
 }
 
-Op DatatypeConstructor::getTesterTerm() const
+Term DatatypeConstructor::getTesterTerm() const
 {
   CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
   CVC4::Expr tst = d_ctor->getTester();
-  return Op(APPLY_TESTER, tst);
+  return tst;
 }
 
 std::string DatatypeConstructor::getTesterName() const
