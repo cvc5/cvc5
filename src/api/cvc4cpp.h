@@ -1096,6 +1096,11 @@ class CVC4_PUBLIC DatatypeDecl
   friend class Solver;
  public:
   /**
+   * Nullary constructor for Cython
+   */
+  DatatypeDecl();
+
+  /**
    * Destructor.
    */
   ~DatatypeDecl();
@@ -1111,6 +1116,8 @@ class CVC4_PUBLIC DatatypeDecl
 
   /** Is this Datatype declaration parametric? */
   bool isParametric() const;
+
+  bool isNull() const;
 
   /**
    * @return a string representation of this datatype declaration
@@ -1158,6 +1165,10 @@ class CVC4_PUBLIC DatatypeDecl
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
+
+  // helper for isNull() to avoid calling API functions from other API functions
+  bool isNullHelper() const;
+
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -1295,6 +1306,9 @@ class CVC4_PUBLIC DatatypeConstructor
     friend class DatatypeConstructor;  // to access constructor
 
    public:
+    /** Nullary constructor (required for Cython). */
+    const_iterator();
+
     /**
      * Assignment operator.
      * @param it the iterator to assign to
@@ -1398,6 +1412,9 @@ class CVC4_PUBLIC Datatype
    */
   Datatype(const CVC4::Datatype& dtype);
 
+  // Nullary constructor for Cython
+  Datatype();
+
   /**
    * Destructor.
    */
@@ -1447,6 +1464,9 @@ class CVC4_PUBLIC Datatype
     friend class Datatype;  // to access constructor
 
    public:
+    /** Nullary constructor (required for Cython). */
+    const_iterator();
+
     /**
      * Assignment operator.
      * @param it the iterator to assign to
@@ -1904,15 +1924,6 @@ class CVC4_PUBLIC Solver
    * @param kind the kind to wrap
    */
   Op mkOp(Kind kind) const;
-
-  /**
-   * Create operator of kind:
-   *   - CHAIN
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param k the kind argument to this operator
-   */
-  Op mkOp(Kind kind, Kind k) const;
 
   /**
    * Create operator of kind:

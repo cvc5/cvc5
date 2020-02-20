@@ -76,7 +76,6 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {VARIABLE, CVC4::Kind::BOUND_VARIABLE},
     {LAMBDA, CVC4::Kind::LAMBDA},
     {CHOICE, CVC4::Kind::CHOICE},
-    {CHAIN, CVC4::Kind::CHAIN},
     /* Boolean ------------------------------------------------------------- */
     {CONST_BOOLEAN, CVC4::Kind::CONST_BOOLEAN},
     {NOT, CVC4::Kind::NOT},
@@ -313,8 +312,6 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::BOUND_VARIABLE, VARIABLE},
         {CVC4::Kind::LAMBDA, LAMBDA},
         {CVC4::Kind::CHOICE, CHOICE},
-        {CVC4::Kind::CHAIN, CHAIN},
-        {CVC4::Kind::CHAIN_OP, CHAIN},
         /* Boolean --------------------------------------------------------- */
         {CVC4::Kind::CONST_BOOLEAN, CONST_BOOLEAN},
         {CVC4::Kind::NOT, NOT},
@@ -567,8 +564,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
 
 /* Set of kinds for indexed operators */
 const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
-    {CHAIN,
-     RECORD_UPDATE,
+    {RECORD_UPDATE,
      DIVISIBLE,
      BITVECTOR_REPEAT,
      BITVECTOR_ZERO_EXTEND,
@@ -1144,17 +1140,6 @@ std::string Op::getIndices() const
   }
 
   return i;
-}
-
-template <>
-Kind Op::getIndices() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_CHECK(!d_expr->isNull())
-      << "Expecting a non-null internal expression. This Op is not indexed.";
-  Kind kind = intToExtKind(d_expr->getKind());
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN, kind) << "CHAIN";
-  return intToExtKind(d_expr->getConst<Chain>().getOperator());
 }
 
 template <>
@@ -1755,26 +1740,39 @@ DatatypeDecl::DatatypeDecl(const Solver* s,
       new CVC4::Datatype(s->getExprManager(), name, tparams, isCoDatatype));
 }
 
+bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
+
+DatatypeDecl::DatatypeDecl() {}
+
 DatatypeDecl::~DatatypeDecl() {}
 
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
+  CVC4_API_CHECK_NOT_NULL;
   d_dtype->addConstructor(*ctor.d_ctor);
 }
 
 size_t DatatypeDecl::getNumConstructors() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   return d_dtype->getNumConstructors();
 }
 
-bool DatatypeDecl::isParametric() const { return d_dtype->isParametric(); }
+bool DatatypeDecl::isParametric() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_dtype->isParametric();
+}
 
 std::string DatatypeDecl::toString() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   std::stringstream ss;
   ss << *d_dtype;
   return ss.str();
 }
+
+bool DatatypeDecl::isNull() const { return isNullHelper(); }
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
@@ -1895,6 +1893,9 @@ DatatypeConstructor::const_iterator::const_iterator(
   d_idx = begin ? 0 : sels->size();
 }
 
+// Nullary constructor for Cython
+DatatypeConstructor::const_iterator::const_iterator() {}
+
 DatatypeConstructor::const_iterator& DatatypeConstructor::const_iterator::
 operator=(const DatatypeConstructor::const_iterator& it)
 {
@@ -1969,6 +1970,9 @@ Datatype::Datatype(const CVC4::Datatype& dtype)
 {
 }
 
+// Nullary constructor for Cython
+Datatype::Datatype() {}
+
 Datatype::~Datatype() {}
 
 DatatypeConstructor Datatype::operator[](size_t idx) const
@@ -2007,6 +2011,8 @@ size_t Datatype::getNumConstructors() const
 
 bool Datatype::isParametric() const { return d_dtype->isParametric(); }
 
+std::string Datatype::toString() const { return d_dtype->getName(); }
+
 Datatype::const_iterator Datatype::begin() const
 {
   return Datatype::const_iterator(*d_dtype, true);
@@ -2034,6 +2040,8 @@ Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype,
   }
   d_idx = begin ? 0 : cons->size();
 }
+
+Datatype::const_iterator::const_iterator() {}
 
 Datatype::const_iterator& Datatype::const_iterator::operator=(
     const Datatype::const_iterator& it)
@@ -3170,18 +3178,6 @@ Op Solver::mkOp(Kind kind) const
       << "Expected a kind for a non-indexed operator.";
   return Op(kind);
   CVC4_API_SOLVER_TRY_CATCH_END
-}
-
-Op Solver::mkOp(Kind kind, Kind k) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN, kind) << "CHAIN";
-
-  return Op(
-      kind,
-      *mkValHelper<CVC4::Chain>(CVC4::Chain(extToIntKind(k))).d_expr.get());
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Op Solver::mkOp(Kind kind, const std::string& arg) const

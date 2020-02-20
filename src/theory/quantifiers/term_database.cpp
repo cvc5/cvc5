@@ -403,7 +403,7 @@ void TermDb::computeUfTerms( TNode f ) {
           {
             Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
                                    << n << "!!!!" << std::endl;
-            if (!d_quantEngine->getTheoryEngine()->needCheck())
+            if (!d_quantEngine->theoryEngineNeedsCheck())
             {
               Trace("term-db-lemma") << "  all theories passed with no lemmas."
                                      << std::endl;

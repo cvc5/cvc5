@@ -31,7 +31,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Heap.h"
 #include "prop/bvminisat/mtl/Vec.h"
 #include "prop/bvminisat/utils/Options.h"
-
+#include "util/resource_manager.h"
 
 namespace CVC4 {
 
@@ -64,8 +64,8 @@ public:
    */
   virtual void notify(vec<Lit>& learnt) = 0;
 
-  virtual void spendResource(unsigned amount) = 0;
-  virtual void safePoint(unsigned amount) = 0;
+  virtual void spendResource(ResourceManager::Resource r) = 0;
+  virtual void safePoint(ResourceManager::Resource r) = 0;
 };
 
 //=================================================================================================
@@ -347,7 +347,7 @@ public:
     CRef     reason           (Var x) const;
     int      level            (Var x) const;
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
-    bool     withinBudget     (uint64_t amount)      const;
+    bool withinBudget(ResourceManager::Resource r) const;
 
     // Static helpers:
     //

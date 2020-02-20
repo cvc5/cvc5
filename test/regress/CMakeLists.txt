@@ -1443,6 +1443,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3316.smt2
   regress1/quantifiers/issue3317.smt2
   regress1/quantifiers/issue3481.smt2
+  regress1/quantifiers/issue3481-unsat1.smt2
   regress1/quantifiers/issue3537.smt2
   regress1/quantifiers/issue3628.smt2
   regress1/quantifiers/issue3664.smt2

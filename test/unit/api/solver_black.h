@@ -247,6 +247,8 @@ void SolverBlack::testMkRecordSort()
   std::vector<std::pair<std::string, Sort>> empty;
   TS_ASSERT_THROWS_NOTHING(d_solver->mkRecordSort(fields));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkRecordSort(empty));
+  Sort recSort = d_solver->mkRecordSort(fields);
+  TS_ASSERT_THROWS_NOTHING(recSort.getDatatype());
 }
 
 void SolverBlack::testMkSetSort()
@@ -459,7 +461,6 @@ void SolverBlack::testMkPosZero()
 void SolverBlack::testMkOp()
 {
   // mkOp(Kind kind, Kind k)
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkOp(CHAIN, EQUAL));
   TS_ASSERT_THROWS(d_solver->mkOp(BITVECTOR_EXTRACT, EQUAL), CVC4ApiException&);
 
   // mkOp(Kind kind, const std::string& arg)
@@ -620,10 +621,10 @@ void SolverBlack::testMkTermFromOp()
   std::vector<Term> v1 = {d_solver->mkReal(1), d_solver->mkReal(2)};
   std::vector<Term> v2 = {d_solver->mkReal(1), Term()};
   std::vector<Term> v3 = {};
+  std::vector<Term> v4 = {d_solver->mkReal(5)};
   // simple operator terms
   Op opterm1 = d_solver->mkOp(BITVECTOR_EXTRACT, 2, 1);
   Op opterm2 = d_solver->mkOp(DIVISIBLE, 1);
-  Op opterm3 = d_solver->mkOp(CHAIN, EQUAL);
   // list datatype
 
   Sort sort = d_solver->mkParamSort("T");
@@ -677,33 +678,33 @@ void SolverBlack::testMkTermFromOp()
       CVC4ApiException&);
 
   // mkTerm(Op op, Term child1, Term child2) const
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver->mkTerm(opterm3, d_solver->mkReal(1), d_solver->mkReal(2)));
+  TS_ASSERT_THROWS(
+      d_solver->mkTerm(opterm2, d_solver->mkReal(1), d_solver->mkReal(2)),
+      CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(
       d_solver->mkTerm(APPLY_CONSTRUCTOR,
                        consTerm1,
                        d_solver->mkReal(0),
                        d_solver->mkTerm(APPLY_CONSTRUCTOR, nilTerm1)));
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, d_solver->mkReal(1), Term()),
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, d_solver->mkReal(1), Term()),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, Term(), d_solver->mkReal(1)),
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, Term(), d_solver->mkReal(1)),
                    CVC4ApiException&);
 
   // mkTerm(Op op, Term child1, Term child2, Term child3)
   // const
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(
-      opterm3, d_solver->mkReal(1), d_solver->mkReal(1), d_solver->mkReal(2)));
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b, a), CVC4ApiException&);
   TS_ASSERT_THROWS(
       d_solver->mkTerm(
-          opterm3, d_solver->mkReal(1), d_solver->mkReal(1), Term()),
+          opterm2, d_solver->mkReal(1), d_solver->mkReal(1), Term()),
       CVC4ApiException&);
 
   // mkTerm(Op op, const std::vector<Term>& children) const
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm3, v1));
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, v2), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, v3), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm2, v4));
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, v1), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, v2), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, v3), CVC4ApiException&);
 }
 
 void SolverBlack::testMkTrue()

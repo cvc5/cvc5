@@ -651,9 +651,10 @@ class SmtEnginePrivate : public NodeManagerListener {
   void cleanupPreprocessingPasses() { d_passes.clear(); }
 
   ResourceManager* getResourceManager() { return d_resourceManager; }
-  void spendResource(unsigned amount)
+
+  void spendResource(ResourceManager::Resource r)
   {
-    d_resourceManager->spendResource(amount);
+    d_resourceManager->spendResource(r);
   }
 
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
@@ -2753,7 +2754,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
   // or upward pass).
 
   do {
-    spendResource(options::preprocessStep());
+    spendResource(ResourceManager::Resource::PreprocessStep);
 
     // n is the input / original
     // node is the output / result
@@ -2944,7 +2945,7 @@ static void dumpAssertions(const char* key,
 // returns false if simplification led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
 {
-  spendResource(options::preprocessStep());
+  spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_smt.d_pendingPops == 0);
   try {
     ScopeCounter depth(d_simplifyAssertionsDepth);
@@ -3202,7 +3203,7 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<N
 
 void SmtEnginePrivate::processAssertions() {
   TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
-  spendResource(options::preprocessStep());
+  spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
   SubstitutionMap& top_level_substs =
@@ -4180,7 +4181,7 @@ Expr SmtEngine::simplify(const Expr& ex)
 
 Expr SmtEngine::expandDefinitions(const Expr& ex)
 {
-  d_private->spendResource(options::preprocessStep());
+  d_private->spendResource(ResourceManager::Resource::PreprocessStep);
 
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
