@@ -22,7 +22,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/ArrayType.java
   ${CMAKE_CURRENT_BINARY_DIR}/AscriptionType.java
   ${CMAKE_CURRENT_BINARY_DIR}/AscriptionTypeHashFunction.java
-  ${CMAKE_CURRENT_BINARY_DIR}/BenchmarkStatus.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVector.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorBitOf.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorBitOfHashFunction.java
