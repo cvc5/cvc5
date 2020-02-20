@@ -1927,15 +1927,6 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create operator of kind:
-   *   - CHAIN
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param k the kind argument to this operator
-   */
-  Op mkOp(Kind kind, Kind k) const;
-
-  /**
-   * Create operator of kind:
    *   - RECORD_UPDATE
    *   - DIVISIBLE (to support arbitrary precision integers)
    * See enum Kind for a description of the parameters.
