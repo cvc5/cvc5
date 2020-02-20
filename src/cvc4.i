@@ -15,28 +15,6 @@ namespace std {
 }
 
 %{
-// Perl's headers define "seed" to Perl_seed, which breaks
-// gmpxx.h; undo the damage for our CVC4 module.
-#ifdef SWIGPERL
-#  undef seed
-#endif /* SWIGPERL */
-
-// OCaml's headers define "invalid_argument" and "flush" to
-// caml_invalid_argument and caml_flush, which breaks C++
-// standard headers; undo this damage
-//
-// Unfortunately, this code isn't inserted early enough.  swig puts
-// an include <stdexcept> very early, which breaks linking due to a
-// nonexistent std::caml_invalid_argument symbol.. ridiculous!
-//
-#ifdef SWIGOCAML
-#  if defined(flush) || defined(invalid_argument)
-#    error "flush" or "invalid_argument" (or both) is defined by the ocaml headers.  You must #undef it above before inclusion of <stdexcept>.
-#  endif /* flush */
-#  undef flush
-#  undef invalid_argument
-#endif /* SWIGOCAML */
-
 namespace CVC4 {}
 using namespace CVC4;
 
