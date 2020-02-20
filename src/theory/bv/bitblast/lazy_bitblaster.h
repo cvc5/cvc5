@@ -120,8 +120,8 @@ class TLazyBitblaster : public TBitblaster<Node>
 
     bool notify(prop::SatLiteral lit) override;
     void notify(prop::SatClause& clause) override;
-    void spendResource(unsigned amount) override;
-    void safePoint(unsigned amount) override;
+    void spendResource(ResourceManager::Resource r) override;
+    void safePoint(ResourceManager::Resource r) override;
   };
 
   TheoryBV* d_bv;

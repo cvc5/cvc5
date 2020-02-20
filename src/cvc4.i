@@ -297,7 +297,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/hash.i"
 %include "util/proof.i"
 %include "util/regexp.i"
-%include "util/resource_manager.i"
 %include "util/result.i"
 %include "util/sexpr.i"
 %include "util/statistics.i"

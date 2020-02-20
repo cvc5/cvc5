@@ -77,8 +77,11 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     }
     if (options::fullSaturateQuant() && !doCheck)
     {
-      doCheck = quant_e == QEFFORT_LAST_CALL;
-      fullEffort = !d_quantEngine->hasAddedLemma();
+      if (!d_quantEngine->theoryEngineNeedsCheck())
+      {
+        doCheck = quant_e == QEFFORT_LAST_CALL;
+        fullEffort = true;
+      }
     }
   }
   if (!doCheck)
