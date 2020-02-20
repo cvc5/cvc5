@@ -1423,11 +1423,9 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
                                    std::map<api::Term, api::Sort>& ntsToUnres) const
 {
   Trace("parser-sygus2") << "Add sygus cons term " << term << std::endl;
-  // Ensure that we do type checking here to catch sygus constructors with
-  // malformed builtin operators. The argument "true" to getapi::Sort here forces
-  // a recursive well-typedness check.
-  term.getExpr().getType(true);
-  // purify each occurrence of a non-terminal symbol in term, replace by
+  // At this point, we should know that dt is well founded, and that its
+  // builtin sygus operators are well-typed.
+  // Now, purify each occurrence of a non-terminal symbol in term, replace by
   // free variables. These become arguments to constructors. Notice we must do
   // a tree traversal in this function, since unique paths to the same term
   // should be treated as distinct terms.
