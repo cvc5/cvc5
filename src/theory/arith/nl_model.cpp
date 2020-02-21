@@ -278,6 +278,10 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
   std::vector<Node> check_assertions;
   for (const Node& a : assertions)
   {
+    if (d_tautology.find(a)!=d_tautology.end())
+    {
+      continue;
+    }
     if (d_check_model_solved.find(a) == d_check_model_solved.end())
     {
       Node av = a;
@@ -423,6 +427,11 @@ bool NlModel::hasCheckModelAssignment(Node v) const
 void NlModel::setUsedApproximate() { d_used_approx = true; }
 
 bool NlModel::usedApproximate() const { return d_used_approx; }
+
+void NlModel::addTautology(Node lit)
+{
+  d_tautology.insert(lit);
+}
 
 bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,

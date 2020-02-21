@@ -492,7 +492,8 @@ class NonlinearExtension {
   //transcendental functions
   /**
    * Some transcendental functions f(t) are "purified", e.g. we add
-   * t = y ^ f(t) = f(y) where y is a fresh varaible.
+   * t = y ^ f(t) = f(y) where y is a fresh varaible. Those that are not
+   * purified we call "master terms".
    * 
    * The maps below maintain a master/slave relationship over
    * transcendental functions (SINE, EXPONENTIAL, PI), where above
@@ -531,7 +532,23 @@ class NonlinearExtension {
   std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
 
-  /** A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI } */
+  /** 
+   * Maps representives of a congruence class to the members of that class.
+   * 
+   * In detail, a congruence class is a set of terms of the form
+   *   { f(t1), ..., f(tn) }
+   * such that t1 = ... = tn in the current context. We choose an arbitrary
+   * term among these to be the repesentative of this congruence class.
+   * 
+   * Moreover, notice we compute congruence classes only over terms that
+   * are transcendental function applications that are "master terms",
+   * see d_trMaster/d_trSlave.
+   */
+  std::map<Node,std::vector<Node> > d_funcCongClass;
+  /** 
+   * A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI }
+   * that are representives of their congruence class.
+   */
   std::map<Kind, std::vector<Node> > d_funcMap;
 
   // factor skolems
@@ -934,7 +951,7 @@ class NonlinearExtension {
    * current context. For example, an application like sin(t) is not a master
    * if we have introduced the constraints:
    *   t=y+2*pi*n ^ -pi <= y <= pi ^ sin(t) = sin(y).
-   * See d_trMaster / d_trSlaves.
+   * See d_trMaster/d_trSlaves for more detail.
    *
    * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
    * function application tf for Taylor degree d. It may add a secant or

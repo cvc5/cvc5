@@ -812,30 +812,18 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       }
       if (!bl.isNull() && !bu.isNull())
       {
-        // we set the bounds for each slave of tf
-        for (const Node& stf : d_trSlaves[tf])
+        // for each function in the congruence classe
+        for (const Node& ctf : d_funcCongClass[tf])
         {
-          Node astf = d_model.computeConcreteModelValue(stf);
-          Node sbl = bl;
-          Node sbu = bu;
-          // We have rewritten an application of a transcendental function
-          // based on the current model values.It could be that the model value
-          // rewrites sin(x) ---> sin(-c) ---> -sin(c), thus we need
-          // to negate the bounds in this case.
-          if (astf.getKind() != k)
+          // each term in congruence classes should be master terms
+          Assert( d_trSlaves.find(ctf)!=d_trSlaves.end());
+          // we set the bounds for each slave of tf
+          for (const Node& stf : d_trSlaves[ctf])
           {
-            if (astf.getKind() == MULT && astf.getNumChildren() == 2
-                && astf[0] == d_neg_one)
-            {
-              astf = astf[1];
-              Node sbtmp = sbl;
-              sbl = ArithMSum::negate(sbu);
-              sbu = ArithMSum::negate(sbtmp);
-            }
+            Trace("nl-ext-cm")
+                << "...bound for " << stf << " : [" << bl << ", " << bu << "]" << std::endl;
+            success = d_model.addCheckModelBound(stf, bl, bu);
           }
-          Trace("nl-ext-cm")
-              << "...bound for " << astf << " : [" << sbl << ", " << sbu << "]" << std::endl;
-          success = d_model.addCheckModelBound(astf, sbl, sbu);
         }
       }
       else
@@ -918,6 +906,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci.clear();
   d_ci_exp.clear();
   d_ci_max.clear();
+  d_funcCongClass.clear();
   d_funcMap.clear();
   d_tf_region.clear();
 
@@ -943,9 +932,10 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     // applied to a trancendental, purify.
     if (isTranscendentalKind(ak))
     {
+      // if we've already computed master for a
       if (d_trMaster.find(a) != d_trMaster.end())
       {
-        // consider if a master
+        // a master has at least one slave
         consider = (d_trSlaves.find(a) != d_trSlaves.end());
       }
       else
@@ -1033,8 +1023,11 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         }
         else
         {
+          // new representative of congruence class
           d_funcMap[ak].push_back(a);
         }
+        // add to congruence class
+        d_funcCongClass[aa].push_back(a);
       }
     }
     else if (ak == PI)
@@ -1042,6 +1035,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       Assert( consider);
       needPi = true;
       d_funcMap[ak].push_back(a);
+      d_funcCongClass[a].push_back(a);
     }
     else
     {
@@ -2798,6 +2792,11 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
           d_trSlaves[symn].push_back(symn);
           Assert(d_trSlaves.find(t) != d_trSlaves.end());
           std::vector< Node > children;
+          
+          
+          Node symEq = NodeManager::currentNM()->mkNode(PLUS, t, symn).eqNode(d_zero);
+          symEq = Rewriter::rewrite(symEq);
+          d_model.addTautology(symEq);
 
           lem = NodeManager::currentNM()->mkNode(
               AND,
@@ -2807,7 +2806,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
                   NodeManager::currentNM()->mkNode(LEQ, t, d_one),
                   NodeManager::currentNM()->mkNode(GEQ, t, d_neg_one)),
               // symmetry
-              NodeManager::currentNM()->mkNode(PLUS, t, symn).eqNode(d_zero),
+              symEq,
               // sign
               NodeManager::currentNM()->mkNode(
                   EQUAL,
