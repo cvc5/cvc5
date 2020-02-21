@@ -1372,6 +1372,7 @@ bool Term::operator>=(const Term& t) const { return *d_expr >= *t.d_expr; }
 
 size_t Term::getNumChildren() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   // special case for apply kinds
   if (isApplyKind(d_expr->getKind()))
   {
@@ -1382,6 +1383,7 @@ size_t Term::getNumChildren() const
 
 Term Term::operator[](size_t index) const
 {
+  CVC4_API_CHECK_NOT_NULL;
   // special cases for apply kinds
   if (isApplyKind(d_expr->getKind()))
   {
@@ -2130,16 +2132,23 @@ DatatypeConstructor Datatype::operator[](size_t idx) const
 
 DatatypeConstructor Datatype::operator[](const std::string& name) const
 {
-  // CHECK: cons with name exists?
-  // CHECK: is resolved?
-  return (*d_dtype)[name];
+  return getConstructor(name);
 }
 
 DatatypeConstructor Datatype::getConstructor(const std::string& name) const
 {
-  // CHECK: cons with name exists?
   // CHECK: is resolved?
-  return (*d_dtype)[name];
+  bool foundCons = false;
+  size_t index = 0;
+  for (size_t i=0, ncons = getNumConstructors(); i<ncons; i++){
+    if((*d_dtype)[i].getName() == name) {
+      index = i;
+      foundCons = true;
+      break;
+    }
+  }
+  CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype " << getName() << " exists";
+  return (*d_dtype)[index];
 }
 
 Term Datatype::getConstructorTerm(const std::string& name) const

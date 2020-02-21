@@ -675,6 +675,8 @@ void TermBlack::testTermChildren()
   Term t1 = d_solver.mkTerm(PLUS, two, d_solver.mkReal(3));
   TS_ASSERT(t1[0] == two);
   TS_ASSERT(t1.getNumChildren() == 2);
+  Term tnull;
+  TS_ASSERT_THROWS(tnull.getNumChildren(), CVC4ApiException&);
 
   // apply term f(2)
   Sort intSort = d_solver.getIntegerSort();
@@ -685,6 +687,7 @@ void TermBlack::testTermChildren()
   TS_ASSERT(t2.getNumChildren() == 2);
   TS_ASSERT_EQUALS(t2[0], f);
   TS_ASSERT_EQUALS(t2[1], two);
+  TS_ASSERT_THROWS(tnull[0], CVC4ApiException&);
 }
 
 void TermBlack::testSubstitute()
