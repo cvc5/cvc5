@@ -29,6 +29,7 @@
 #include "options/options.h"
 #include "proof/proof_manager.h"
 #include "smt_util/lemma_channels.h"
+#include "util/resource_manager.h"
 #include "util/result.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -228,7 +229,7 @@ public:
    * Informs the ResourceManager that a resource has been spent.  If out of
    * resources, can throw an UnsafeInterruptException exception.
    */
-  void spendResource(unsigned amount);
+  void spendResource(ResourceManager::Resource r);
 
   /**
    * For debugging.  Return true if "expl" is a well-formed

@@ -711,7 +711,8 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
   if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
-    NodeManager::currentResourceManager()->spendResource(options::cnfStep());
+    NodeManager::currentResourceManager()->spendResource(
+        ResourceManager::Resource::CnfStep);
     d_convertAndAssertCounter = 0;
   }
   ++d_convertAndAssertCounter;

@@ -617,7 +617,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( !d_lemmas_waiting.empty() ){
         Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
       }
-      Trace("quant-engine-debug") << "  Theory engine finished : " << !d_te->needCheck() << std::endl;
+      Trace("quant-engine-debug")
+          << "  Theory engine finished : " << !theoryEngineNeedsCheck()
+          << std::endl;
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
     }
     if( Trace.isOn("quant-engine-ee-pre") ){
@@ -1053,6 +1055,14 @@ void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
+bool QuantifiersEngine::hasAddedLemma() const
+{
+  return !d_lemmas_waiting.empty() || d_hasAddedLemma;
+}
+bool QuantifiersEngine::theoryEngineNeedsCheck() const
+{
+  return d_te->needCheck();
+}
 
 void QuantifiersEngine::setConflict() { 
   d_conflict = true; 
@@ -1069,7 +1079,7 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
   {
-    performCheck = ( e >= Theory::EFFORT_FULL ) && !getTheoryEngine()->needCheck();
+    performCheck = (e >= Theory::EFFORT_FULL) && !theoryEngineNeedsCheck();
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
   {
@@ -1078,7 +1088,9 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   else if (options::instWhenMode()
            == options::InstWhenMode::FULL_DELAY_LAST_CALL)
   {
-    performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ((e == Theory::EFFORT_FULL && !theoryEngineNeedsCheck()
+                     && d_ierCounter % d_inst_when_phase != 0)
+                    || e == Theory::EFFORT_LAST_CALL);
   }
   else if (options::instWhenMode() == options::InstWhenMode::LAST_CALL)
   {

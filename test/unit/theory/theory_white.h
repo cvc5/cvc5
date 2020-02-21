@@ -15,6 +15,7 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,6 +27,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "util/proof.h"
+#include "util/resource_manager.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -45,7 +47,7 @@ class TestOutputChannel : public OutputChannel {
   TestOutputChannel() {}
   ~TestOutputChannel() override {}
 
-  void safePoint(uint64_t amount) override {}
+  void safePoint(ResourceManager::Resource r) override {}
   void conflict(TNode n, std::unique_ptr<Proof> pf) override
   {
     push(CONFLICT, n);

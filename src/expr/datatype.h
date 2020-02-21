@@ -899,7 +899,7 @@ class CVC4_PUBLIC Datatype {
   /** self type */
   Type d_self;
   /** the data of the record for this datatype (if applicable) */
-  Record* d_record;
+  std::shared_ptr<Record> d_record;
   /** whether the datatype is a record */
   bool d_isRecord;
   /** the constructors of this datatype */

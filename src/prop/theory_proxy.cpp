@@ -161,7 +161,7 @@ TNode TheoryProxy::getNode(SatLiteral lit) {
 }
 
 void TheoryProxy::notifyRestart() {
-  d_propEngine->spendResource(options::restartStep());
+  d_propEngine->spendResource(ResourceManager::Resource::RestartStep);
   d_theoryEngine->notifyRestart();
 
   static uint32_t lemmaCount = 0;
@@ -238,9 +238,9 @@ void TheoryProxy::logDecision(SatLiteral lit) {
 #endif /* CVC4_REPLAY */
 }
 
-void TheoryProxy::spendResource(unsigned amount)
+void TheoryProxy::spendResource(ResourceManager::Resource r)
 {
-  d_theoryEngine->spendResource(amount);
+  d_theoryEngine->spendResource(r);
 }
 
 bool TheoryProxy::isDecisionRelevant(SatVariable var) {

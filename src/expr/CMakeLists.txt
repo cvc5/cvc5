@@ -7,7 +7,6 @@ libcvc4_add_sources(
   attribute.cpp
   attribute_internals.h
   attribute_unique_id.h
-  chain.h
   emptyset.cpp
   emptyset.h
   expr_iomanip.cpp
