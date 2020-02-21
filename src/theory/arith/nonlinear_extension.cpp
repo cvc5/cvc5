@@ -1632,6 +1632,8 @@ void NonlinearExtension::mkPi(){
         NodeManager::currentNM()->mkConst(Rational(103993) / Rational(33102));
     d_pi_bound[1] =
         NodeManager::currentNM()->mkConst(Rational(104348) / Rational(33215));
+    // add pi to slave vector of itself
+    d_trSlaves[d_pi].push_back(d_pi);
   }
 }
 
