@@ -178,7 +178,7 @@ void Smt2::addStringOperators() {
     addOperator(kind::STRING_STOI, "str.to_int");
     addOperator(kind::STRING_IN_REGEXP, "str.in_re");
     addOperator(kind::STRING_TO_REGEXP, "str.to_re");
-    addOperator(kind::STRING_CODE, "str.from_code");
+    addOperator(kind::STRING_CODE, "str.to_code");
     addOperator(kind::STRING_STRREPLALL, "str.replace_all");
   }
   else
