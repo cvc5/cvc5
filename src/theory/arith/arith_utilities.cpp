@@ -225,7 +225,8 @@ Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs)
       {
         TheoryId ctid = theory::kindToTheoryId(ck);
         if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL
-            && ctid != THEORY_BUILTIN) || isTranscendentalKind(ck))
+             && ctid != THEORY_BUILTIN)
+            || isTranscendentalKind(ck))
         {
           // Do not traverse beneath applications that belong to another theory
           // besides (core) arithmetic. Notice that transcendental function

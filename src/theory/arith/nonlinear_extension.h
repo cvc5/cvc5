@@ -494,11 +494,11 @@ class NonlinearExtension {
    * Some transcendental functions f(t) are "purified", e.g. we add
    * t = y ^ f(t) = f(y) where y is a fresh varaible. Those that are not
    * purified we call "master terms".
-   * 
+   *
    * The maps below maintain a master/slave relationship over
    * transcendental functions (SINE, EXPONENTIAL, PI), where above
    * f(y) is the master of itself and of f(t).
-   * 
+   *
    * This is used for ensuring that the argument y of SINE we process is on the
    * interval [-pi .. pi], and that exponentials are not applied to arguments
    * that contain transcendental functions.
@@ -532,20 +532,20 @@ class NonlinearExtension {
   std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
 
-  /** 
+  /**
    * Maps representives of a congruence class to the members of that class.
-   * 
+   *
    * In detail, a congruence class is a set of terms of the form
    *   { f(t1), ..., f(tn) }
    * such that t1 = ... = tn in the current context. We choose an arbitrary
    * term among these to be the repesentative of this congruence class.
-   * 
+   *
    * Moreover, notice we compute congruence classes only over terms that
    * are transcendental function applications that are "master terms",
    * see d_trMaster/d_trSlave.
    */
-  std::map<Node,std::vector<Node> > d_funcCongClass;
-  /** 
+  std::map<Node, std::vector<Node> > d_funcCongClass;
+  /**
    * A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI }
    * that are representives of their congruence class.
    */
@@ -956,7 +956,7 @@ class NonlinearExtension {
    * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
    * function application tf for Taylor degree d. It may add a secant or
    * tangent plane lemma to lems.
-   * 
+   *
    * It returns false if the bounds are not precise enough to add a
    * secant or tangent plane lemma.
    */
