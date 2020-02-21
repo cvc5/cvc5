@@ -894,6 +894,7 @@ set(regress_0_tests
   regress0/strings/idof-sem.smt2
   regress0/strings/ilc-like.smt2
   regress0/strings/indexof-sym-simp.smt2
+  regress0/strings/is_digit_simple.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
