@@ -1389,8 +1389,10 @@ Sort Term::getSort() const
 Term Term::substitute(Term e, Term replacement) const
 {
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_CHECK(!e.isNull()) << "Expected non-null term to replace in substitute";
-  CVC4_API_CHECK(!replacement.isNull()) << "Expected non-null term as replacement in substitute";
+  CVC4_API_CHECK(!e.isNull())
+      << "Expected non-null term to replace in substitute";
+  CVC4_API_CHECK(!replacement.isNull())
+      << "Expected non-null term as replacement in substitute";
   CVC4_API_CHECK(e.getSort().isComparableTo(replacement.getSort()))
       << "Expecting terms of comparable sort in substitute";
   return api::Term(d_expr->substitute(e.getExpr(), replacement.getExpr()));
@@ -1404,8 +1406,10 @@ Term Term::substitute(const std::vector<Term> es,
       << "Expecting vectors of the same arity in substitute";
   for (unsigned i = 0, nterms = es.size(); i < nterms; i++)
   {
-    CVC4_API_CHECK(!es[i].isNull()) << "Expected non-null term to replace in substitute";
-    CVC4_API_CHECK(!replacements[i].isNull()) << "Expected non-null term as replacement in substitute";
+    CVC4_API_CHECK(!es[i].isNull())
+        << "Expected non-null term to replace in substitute";
+    CVC4_API_CHECK(!replacements[i].isNull())
+        << "Expected non-null term as replacement in substitute";
     CVC4_API_CHECK(es[i].getSort().isComparableTo(replacements[i].getSort()))
         << "Expecting terms of comparable sort in substitute";
   }
