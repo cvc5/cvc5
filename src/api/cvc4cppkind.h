@@ -318,15 +318,6 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   DIVISION,
   /**
-   * Real division with interpreted division by 0
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  DIVISION_TOTAL,
-  /**
    * Integer division, division by 0 undefined.
    * Parameters: 2
    *   -[1]..[2]: Terms of sort Integer
@@ -336,15 +327,6 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   INTS_DIVISION,
   /**
-   * Integer division with interpreted division by 0.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  INTS_DIVISION_TOTAL,
-  /**
    * Integer modulus, division by 0 undefined.
    * Parameters: 2
    *   -[1]..[2]: Terms of sort Integer
@@ -353,15 +335,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   INTS_MODULUS,
-  /**
-   * Integer modulus with interpreted division by 0.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  INTS_MODULUS_TOTAL,
   /**
    * Absolute value.
    * Parameters: 1
@@ -777,26 +750,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   BITVECTOR_SMOD,
-  /**
-   * Unsigned division of two bit-vectors, truncating towards 0
-   * (defined to be the all-ones bit pattern, if divisor is 0).
-   * Parameters: 2
-   *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  BITVECTOR_UDIV_TOTAL,
-  /**
-   * Unsigned remainder from truncating division of two bit-vectors
-   * (defined to be equal to the dividend, if divisor is 0).
-   * Parameters: 2
-   *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  BITVECTOR_UREM_TOTAL,
   /**
    * Bit-vector shift left.
    * The two bit-vector parameters must have same width.
@@ -1242,12 +1195,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   FLOATINGPOINT_MAX,
-#if 0
-  /* floating-point minimum (defined for all inputs) */
-  FLOATINGPOINT_MIN_TOTAL,
-  /* floating-point maximum (defined for all inputs) */
-  FLOATINGPOINT_MAX_TOTAL,
-#endif
   /**
    * Floating-point less than or equal.
    * Parameters: 2
@@ -1458,23 +1405,6 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   FLOATINGPOINT_TO_UBV,
   /**
-   * Operator for to_ubv_total.
-   * Parameters: 1
-   *   -[1]: Size of the bit-vector to convert to
-   * Create with:
-   *   mkOp(Kind kind, uint32_t param)
-   *
-   * Conversion from  a floating-point value to an unsigned bit vector
-   * (defined for all inputs).
-   * Parameters: 2
-   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_TO_UBV_TOTAL
-   *   -[2]: Term of sort FloatingPoint
-   * Create with:
-   *   mkTerm(Op op, Term child)
-   *   mkTerm(Op op, const std::vector<Term>& children)
-   */
-  FLOATINGPOINT_TO_UBV_TOTAL,
-  /**
    * Operator for to_sbv.
    * Parameters: 1
    *   -[1]: Size of the bit-vector to convert to
@@ -1491,23 +1421,6 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   FLOATINGPOINT_TO_SBV,
   /**
-   * Operator for to_sbv_total.
-   * Parameters: 1
-   *   -[1]: Size of the bit-vector to convert to
-   * Create with:
-   *   mkOp(Kind kind, uint32_t param)
-   *
-   * Conversion from a floating-point value to a signed bit vector
-   * (defined for all inputs).
-   * Parameters: 2
-   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_TO_SBV_TOTAL
-   *   -[2]: Term of sort FloatingPoint
-   * Create with:
-   *   mkTerm(Op op, Term child)
-   *   mkTerm(Op op, const std::vector<Term>& children)
-   */
-  FLOATINGPOINT_TO_SBV_TOTAL,
-  /**
    * Floating-point to real.
    * Parameters: 1
    *   -[1]: Term of sort FloatingPoint
@@ -1515,14 +1428,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child)
    */
   FLOATINGPOINT_TO_REAL,
-  /**
-   * Floating-point to real (defined for all inputs).
-   * Parameters: 1
-   *   -[1]: Term of sort FloatingPoint
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
-   */
-  FLOATINGPOINT_TO_REAL_TOTAL,
 
   /* Arrays ---------------------------------------------------------------- */
 
@@ -1596,15 +1501,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Op op, Term child)
    */
   APPLY_SELECTOR,
-  /**
-   * Datatype selector application.
-   * Parameters: 1
-   *   -[1]: Selector (operator)
-   *   -[2]: Datatype term (defined rigidly if mis-applied)
-   * Create with:
-   *   mkTerm(Kind kind, Op op, Term child)
-   */
-  APPLY_SELECTOR_TOTAL,
   /**
    * Datatype tester application.
    * Parameters: 2
