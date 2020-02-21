@@ -42,55 +42,52 @@ int main() {
 
   Expr zero = em.mkConst(Rational(0));
 
-  Expr slope1 = em.mkConst(Rational::fromDecimal("1.1"));
-  Expr slope2 = em.mkConst(Rational::fromDecimal("0.9"));
-  Expr slope3 = em.mkConst(Rational::fromDecimal("1.15"));
-  Expr slope4 = em.mkConst(Rational::fromDecimal("0.95"));
-  Expr intercept1 = em.mkConst(Rational::fromDecimal("1.73"));
-  Expr intercept2 = em.mkConst(Rational::fromDecimal("0.1"));
-  Expr intercept3 = em.mkConst(Rational::fromDecimal("0.35"));
-  Expr intercept4 = em.mkConst(Rational::fromDecimal("0.21"));
+  Expr slope = em.mkConst(Rational::fromDecimal("1.93"));
+  Expr intercept1 = em.mkConst(Rational::fromDecimal("25.7"));
+  Expr intercept2 = em.mkConst(Rational::fromDecimal("4.9"));
+  Expr intercept3 = em.mkConst(Rational::fromDecimal("15.9"));
+  Expr intercept4 = em.mkConst(Rational::fromDecimal("17.5"));
 
-  Expr l1 = em.mkExpr(kind::MULT, slope1, x);
+  Expr l1 = em.mkExpr(kind::MULT, slope, x);
   l1 = em.mkExpr(kind::PLUS, y, l1);
   l1 = em.mkExpr(kind::MINUS, l1, intercept1);
   l1 = em.mkExpr(kind::LEQ, l1, zero);
 
 
-  // cout << "Checking satisfiability of formula " << l1 << " with CVC4." << endl;
-  // cout << "Result from CVC4 is: " << smt.checkSat(l1) << endl;
-  // cout << "x is " << smt.getValue(x) << ", y is " << smt.getValue(y) << endl;
+  cout << "Checking satisfiability of formula " << l1 << " with CVC4." << endl;
+  cout << "Result from CVC4 is: " << smt.checkSat(l1) << endl;
+  cout << "x is " << smt.getValue(x) << ", y is " << smt.getValue(y) << endl;
 
 
-  Expr l2 = em.mkExpr(kind::MULT, slope2, x);
+  Expr l2 = em.mkExpr(kind::MULT, slope, x);
   l2 = em.mkExpr(kind::MINUS, y, l2);
   l2 = em.mkExpr(kind::MINUS, l2, intercept2);
   l2 = em.mkExpr(kind::GEQ, l2, zero);
 
 
-  // cout << "Checking satisfiability of formula " << l2 << " with CVC4." << endl;
-  // cout << "Result from CVC4 is: " << smt.checkSat(l2) << endl;
-  // cout << "x is " << smt.getValue(x) << ", y is " << smt.getValue(y) << endl;
+  cout << "Checking satisfiability of formula " << l2 << " with CVC4." << endl;
+  cout << "Result from CVC4 is: " << smt.checkSat(l2) << endl;
+  cout << "x is " << smt.getValue(x) << ", y is " << smt.getValue(y) << endl;
 
-  Expr l3 = em.mkExpr(kind::MULT, slope3, x);
+  Expr l3 = em.mkExpr(kind::MULT, slope, x);
   l3 = em.mkExpr(kind::MINUS, y, l3);
   l3 = em.mkExpr(kind::MINUS, l3, intercept3);
   l3 = em.mkExpr(kind::LEQ, l3, zero);
 
 
-  // cout << "Checking satisfiability of formula " << l3 << " with CVC4." << endl;
-  // cout << "Result from CVC4 is: " << smt.checkSat(l3) << endl;
-  // cout << "x is " << smt.getValue(x) << ", y is " << smt.getValue(y) << endl;
+  cout << "Checking satisfiability of formula " << l3 << " with CVC4." << endl;
+  cout << "Result from CVC4 is: " << smt.checkSat(l3) << endl;
+  cout << "x is " << smt.getValue(x) << ", y is " << smt.getValue(y) << endl;
 
-  Expr l4 = em.mkExpr(kind::MULT, slope4, x);
+  Expr l4 = em.mkExpr(kind::MULT, slope, x);
   l4 = em.mkExpr(kind::PLUS, y, l4);
   l4 = em.mkExpr(kind::MINUS, l4, intercept4);
   l4 = em.mkExpr(kind::GEQ, l4, zero);
 
 
-  // cout << "Checking satisfiability of formula " << l4 << " with CVC4." << endl;
-  // cout << "Result from CVC4 is: " << smt.checkSat(l4) << endl;
-  // cout << "x is " << smt.getValue(x) << ", y is " << smt.getValue(y) << endl;
+  cout << "Checking satisfiability of formula " << l4 << " with CVC4." << endl;
+  cout << "Result from CVC4 is: " << smt.checkSat(l4) << endl;
+  cout << "x is " << smt.getValue(x) << ", y is " << smt.getValue(y) << endl;
 
 
 
