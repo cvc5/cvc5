@@ -18,6 +18,7 @@
 #ifndef CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_H
 #define CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_H
 
+#include "options/bv_options.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -114,6 +115,9 @@ class BoolToBV : public PreprocessingPass
       -- will be cleared periodically in ITE mode
   */
   std::unordered_map<Node, Node, NodeHashFunction> d_lowerCache;
+
+  /** Stores the bool-to-bv mode option */
+  options::BoolToBVMode boolToBVMode;
 };  // class BoolToBV
 
 }  // namespace passes

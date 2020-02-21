@@ -19,7 +19,6 @@
 
 #include "base/map_util.h"
 #include "expr/node.h"
-#include "options/bv_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -30,7 +29,10 @@ namespace passes {
 using namespace CVC4::theory;
 
 BoolToBV::BoolToBV(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bool-to-bv"), d_statistics(){};
+    : PreprocessingPass(preprocContext, "bool-to-bv"), d_statistics()
+{
+  boolToBVMode = options::boolToBitvector();
+};
 
 PreprocessingPassResult BoolToBV::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -40,7 +42,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
 
   size_t size = assertionsToPreprocess->size();
 
-  if (options::boolToBitvector() == options::BoolToBVMode::ALL)
+  if (boolToBVMode == options::BoolToBVMode::ALL)
   {
     for (size_t i = 0; i < size; ++i)
     {
@@ -48,7 +50,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
       assertionsToPreprocess->replace(i, Rewriter::rewrite(newAssertion));
     }
   }
-  else if (options::boolToBitvector() == options::BoolToBVMode::ITE)
+  else if (boolToBVMode == options::BoolToBVMode::ITE)
   {
     for (size_t i = 0; i < size; ++i)
     {
@@ -360,8 +362,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
                       << " and new_kind = " << kindToString(new_kind)
                       << std::endl;
 
-  if ((options::boolToBitvector() == options::BoolToBVMode::ALL)
-      && (new_kind != k))
+  if ((boolToBVMode == options::BoolToBVMode::ALL) && (new_kind != k))
   {
     ++(d_statistics.d_numTermsLowered);
   }
