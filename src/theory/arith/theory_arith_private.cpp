@@ -3958,7 +3958,7 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
 
 
   // Closer to floor
-  if (c >= f)
+  if (c > f)
   {
     Trace("integers") << "floor"  << endl;
     ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d - 1)));
