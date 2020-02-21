@@ -129,8 +129,8 @@ Node BoolToBV::lowerAssertion(const TNode& assertion, bool allowIteIntroduction)
   if (newAssertionType.isBitVector())
   {
     Assert(newAssertionType.getBitVectorSize() == 1);
-    NodeManager* nm = NodeManager::currentNM();
-    newAssertion = nm->mkNode(kind::EQUAL, newAssertion, bv::utils::mkOne(1));
+    newAssertion = NodeManager::currentNM()->mkNode(
+        kind::EQUAL, newAssertion, bv::utils::mkOne(1));
     newAssertionType = newAssertion.getType();
   }
   Assert(newAssertionType.isBoolean());
