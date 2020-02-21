@@ -760,7 +760,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
   std::vector<Node> pvars;
   std::vector<Node> psubs;
-  for (std::pair<const Node, Node>& tb : d_tr_base)
+  for (std::pair<const Node, Node>& tb : d_trMaster)
   {
     pvars.push_back(tb.first);
     psubs.push_back(tb.second);
@@ -807,6 +807,11 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
         if (bl!=bu)
         {
           d_model.setUsedApproximate();
+        }
+        else
+        {
+          bl = Node::null();
+          bu = Node::null();
         }
       }
       if (!bl.isNull() && !bu.isNull())
@@ -923,7 +928,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   Trace("nl-ext-mv") << "Extended terms : " << std::endl;
   // register the extended function terms
   std::map< Node, Node > mvarg_to_term;
-  std::vector<Node> tr_no_base;
+  std::vector<Node> trNeedsMaster;
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
@@ -934,6 +939,46 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     d_model.computeAbstractModelValue(a);
     d_model.printModelValue("nl-ext-mv", a);
     Kind ak = a.getKind();
+    bool consider = true;
+    // if is an unpurified application of SINE, or it is a transcendental
+    // applied to a trancendental, purify.
+    if (isTranscendentalKind(ak))
+    {
+      if (d_trMaster.find(a) != d_trMaster.end())
+      {
+        // consider if a master
+        consider = (d_trSlaves.find(a) != d_trSlaves.end());
+      }
+      else
+      {
+        if (ak == SINE)
+        {
+          // always not a master
+          consider = false;
+        }
+        else
+        {
+          for (const Node& ac : a)
+          {
+            if (isTranscendentalKind(ac.getKind()))
+            {
+              consider = false;
+              break;
+            }
+          }
+        }
+        if (!consider)
+        {
+          // wait to assign a master below
+          trNeedsMaster.push_back(a);
+        }
+        else
+        {
+          d_trMaster[a] = a;
+          d_trSlaves[a].push_back(a);
+        }
+      }
+    }
     if (ak == NONLINEAR_MULT)
     {
       d_ms.push_back( a );
@@ -960,32 +1005,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       {
         needPi = true;
       }
-      bool consider = true;
-      // if is an unpurified application of SINE, or it is a transcendental
-      // applied to a trancendental, purify.
-      if (isTranscendentalKind(ak))
-      {
-        if (ak == SINE && d_trSlaves.find(a) == d_trSlaves.end())
-        {
-          // not a master
-          consider = false;
-        }
-        else
-        {
-          for (const Node& ac : a)
-          {
-            if (isTranscendentalKind(ac.getKind()))
-            {
-              consider = false;
-              break;
-            }
-          }
-        }
-        if (!consider)
-        {
-          tr_no_base.push_back(a);
-        }
-      }
+      // if we didn't reduce it above
       if( consider ){
         std::vector<Node> repList;
         for (const Node& ac : a)
@@ -1020,6 +1040,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
     else if (ak == PI)
     {
+      Assert( consider);
       needPi = true;
       d_funcMap[ak].push_back(a);
     }
@@ -1044,48 +1065,50 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   }
 
   // process SINE phase shifting
-  for (const Node& a : tr_no_base)
+  for (const Node& a : trNeedsMaster)
   {
-    if (d_tr_base.find(a) == d_tr_base.end())
+    // should not have processed this already
+    Assert(d_trMaster.find(a) == d_trMaster.end());
+    Kind k = a.getKind();
+    Assert(k==SINE || k==EXPONENTIAL);
+    Node y =
+        nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
+    Node new_a = nm->mkNode(k, y);
+    d_trSlaves[new_a].push_back(new_a);
+    //d_trSlaves[new_a].push_back(a);
+    d_trMaster[a] = new_a;
+    d_trMaster[new_a] = new_a;
+    Node lem;
+    if (k == SINE)
     {
-      Node y =
-          nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
-      Node new_a = nm->mkNode(a.getKind(), y);
-      d_trSlaves[new_a].push_back(new_a);
-      //d_trSlaves[new_a].push_back(a);
-      d_tr_base[a] = new_a;
-      Node lem;
-      if (a.getKind() == SINE)
-      {
-        Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a
-                           << std::endl;
-        Assert(!d_pi.isNull());
-        Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
-        // FIXME : do not introduce shift here, instead needs model-based
-        // refinement for constant shifts (#1284)
-        lem = nm->mkNode(
-            AND,
-            mkValidPhase(y, d_pi),
-            nm->mkNode(
-                ITE,
-                mkValidPhase(a[0], d_pi),
-                a[0].eqNode(y),
-                a[0].eqNode(nm->mkNode(
-                    PLUS,
-                    y,
-                    nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
-            new_a.eqNode(a));
-      }
-      else
-      {
-        // do both equalities to ensure that new_a becomes a preregistered term
-        lem = nm->mkNode(AND, a.eqNode(new_a), a[0].eqNode(y));
-      }
-      // must do preprocess on this one
-      Trace("nl-ext-lemma")
-          << "NonlinearExtension::Lemma : purify : " << lem << std::endl;
-      lemsPp.push_back(lem);
+      Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a
+                          << std::endl;
+      Assert(!d_pi.isNull());
+      Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
+      // FIXME : do not introduce shift here, instead needs model-based
+      // refinement for constant shifts (#1284)
+      lem = nm->mkNode(
+          AND,
+          mkValidPhase(y, d_pi),
+          nm->mkNode(
+              ITE,
+              mkValidPhase(a[0], d_pi),
+              a[0].eqNode(y),
+              a[0].eqNode(nm->mkNode(
+                  PLUS,
+                  y,
+                  nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
+          new_a.eqNode(a));
     }
+    else
+    {
+      // do both equalities to ensure that new_a becomes a preregistered term
+      lem = nm->mkNode(AND, a.eqNode(new_a), a[0].eqNode(y));
+    }
+    // must do preprocess on this one
+    Trace("nl-ext-lemma")
+        << "NonlinearExtension::Lemma : purify : " << lem << std::endl;
+    lemsPp.push_back(lem);
   }
   if (!lemsPp.empty())
   {
@@ -1632,8 +1655,6 @@ void NonlinearExtension::mkPi(){
         NodeManager::currentNM()->mkConst(Rational(103993) / Rational(33102));
     d_pi_bound[1] =
         NodeManager::currentNM()->mkConst(Rational(104348) / Rational(33215));
-    // add pi to slave vector of itself
-    d_trSlaves[d_pi].push_back(d_pi);
   }
 }
 

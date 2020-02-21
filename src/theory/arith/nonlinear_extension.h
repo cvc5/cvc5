@@ -495,7 +495,7 @@ class NonlinearExtension {
    * ensuring that the argument of SINE we process are on the interval
    * [-pi .. pi].
    */
-  std::map<Node, Node> d_tr_base;
+  std::map<Node, Node> d_trMaster;
   /** Stores skolems in the range of the above map */
   std::map<Node, std::vector<Node> > d_trSlaves;
   std::map< Node, bool > d_tf_initial_refine;
