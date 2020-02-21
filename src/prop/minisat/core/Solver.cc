@@ -77,6 +77,18 @@ static inline void dtviewPropagationHeaderHelper(size_t level)
                         << " /Propagations/" << std::endl;
 }
 
+// Writes to Trace macro for propagation tracing
+static inline void dtviewBoolPropagationHelper(size_t level,
+                                               Lit& l,
+                                               CVC4::prop::TheoryProxy* proxy)
+{
+  Trace("dtview::prop") << std::string(
+      level + 1 - (options::incrementalSolving() ? 1 : 0), ' ')
+                        << ":BOOL-PROP: "
+                        << proxy->getNode(MinisatSatSolver::toSatLiteral(l))
+                        << std::endl;
+}
+
 // Writes to Trace macro for conflict tracing
 static inline void dtviewPropConflictHelper(size_t level,
                                             Clause& confl,
@@ -1171,6 +1183,12 @@ CRef Solver::propagateBool()
         vec<Watcher>&  ws  = watches[p];
         Watcher        *i, *j, *end;
         num_props++;
+
+        // if propagation tracing enabled, print boolean propagation
+        if (Trace.isOn("dtview::prop"))
+        {
+          dtviewBoolPropagationHelper(decisionLevel(), p, proxy);
+        }
 
         for (i = j = (Watcher*)ws, end = i + ws.size();  i != end;){
             // Try to avoid inspecting the clause:
