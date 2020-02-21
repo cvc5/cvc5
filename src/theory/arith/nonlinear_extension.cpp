@@ -1075,7 +1075,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
     Node new_a = nm->mkNode(k, y);
     d_trSlaves[new_a].push_back(new_a);
-    //d_trSlaves[new_a].push_back(a);
+    d_trSlaves[new_a].push_back(a);
     d_trMaster[a] = new_a;
     d_trMaster[new_a] = new_a;
     Node lem;
@@ -3103,6 +3103,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
+  // this should only be run on purified versions of SINE applications
   Assert(k !=SINE || tf[0].isVar());
   
   // Figure 3 : c

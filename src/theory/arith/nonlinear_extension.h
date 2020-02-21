@@ -491,13 +491,20 @@ class NonlinearExtension {
   
   //transcendental functions
   /**
-   * Maps arguments of SINE applications to a fresh skolem. This is used for
-   * ensuring that the argument of SINE we process are on the interval
-   * [-pi .. pi].
+   * Some transcendental functions f(t) are "purified", e.g. we add
+   * t = y ^ f(t) = f(y) where y is a fresh varaible.
+   * 
+   * The maps below maintain a master/slave relationship over
+   * transcendental functions (SINE, EXPONENTIAL, PI), where above
+   * f(y) is the master of itself and of f(t).
+   * 
+   * This is used for ensuring that the argument y of SINE we process is on the
+   * interval [-pi .. pi], and that exponentials are not applied to arguments
+   * that contain transcendental functions.
    */
   std::map<Node, Node> d_trMaster;
-  /** Stores skolems in the range of the above map */
   std::map<Node, std::vector<Node> > d_trSlaves;
+  /** The transcendental functions we have done initial refinements on */
   std::map< Node, bool > d_tf_initial_refine;
 
   void mkPi();
