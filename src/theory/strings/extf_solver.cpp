@@ -672,7 +672,7 @@ std::vector<Node> ExtfSolver::getActive(Kind k) const
 {
   return d_extt->getActive(k);
 }
-  
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4

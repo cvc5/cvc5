@@ -23,10 +23,10 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/solver_state.h"
-#include "theory/strings/extf_solver.h"
 #include "util/regexp.h"
 
 namespace CVC4 {
@@ -62,6 +62,7 @@ class RegExpSolver
    * FroCoS 2015.
    */
   void checkMemberships();
+
  private:
   /** check
    *
