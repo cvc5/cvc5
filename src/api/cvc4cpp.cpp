@@ -76,7 +76,6 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {VARIABLE, CVC4::Kind::BOUND_VARIABLE},
     {LAMBDA, CVC4::Kind::LAMBDA},
     {CHOICE, CVC4::Kind::CHOICE},
-    {CHAIN, CVC4::Kind::CHAIN},
     /* Boolean ------------------------------------------------------------- */
     {CONST_BOOLEAN, CVC4::Kind::CONST_BOOLEAN},
     {NOT, CVC4::Kind::NOT},
@@ -313,8 +312,6 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::BOUND_VARIABLE, VARIABLE},
         {CVC4::Kind::LAMBDA, LAMBDA},
         {CVC4::Kind::CHOICE, CHOICE},
-        {CVC4::Kind::CHAIN, CHAIN},
-        {CVC4::Kind::CHAIN_OP, CHAIN},
         /* Boolean --------------------------------------------------------- */
         {CVC4::Kind::CONST_BOOLEAN, CONST_BOOLEAN},
         {CVC4::Kind::NOT, NOT},
@@ -567,8 +564,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
 
 /* Set of kinds for indexed operators */
 const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
-    {CHAIN,
-     RECORD_UPDATE,
+    {RECORD_UPDATE,
      DIVISIBLE,
      BITVECTOR_REPEAT,
      BITVECTOR_ZERO_EXTEND,
@@ -1144,17 +1140,6 @@ std::string Op::getIndices() const
   }
 
   return i;
-}
-
-template <>
-Kind Op::getIndices() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_CHECK(!d_expr->isNull())
-      << "Expecting a non-null internal expression. This Op is not indexed.";
-  Kind kind = intToExtKind(d_expr->getKind());
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN, kind) << "CHAIN";
-  return intToExtKind(d_expr->getConst<Chain>().getOperator());
 }
 
 template <>
@@ -3193,18 +3178,6 @@ Op Solver::mkOp(Kind kind) const
       << "Expected a kind for a non-indexed operator.";
   return Op(kind);
   CVC4_API_SOLVER_TRY_CATCH_END
-}
-
-Op Solver::mkOp(Kind kind, Kind k) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN, kind) << "CHAIN";
-
-  return Op(
-      kind,
-      *mkValHelper<CVC4::Chain>(CVC4::Chain(extToIntKind(k))).d_expr.get());
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Op Solver::mkOp(Kind kind, const std::string& arg) const

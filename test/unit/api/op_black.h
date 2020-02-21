@@ -29,7 +29,6 @@ class OpBlack : public CxxTest::TestSuite
   void testIsNull();
   void testOpFromKind();
   void testGetIndicesString();
-  void testGetIndicesKind();
   void testGetIndicesUint();
   void testGetIndicesPairUint();
 
@@ -86,14 +85,6 @@ void OpBlack::testGetIndicesString()
   std::string record_update_idx = record_update_ot.getIndices<std::string>();
   TS_ASSERT(record_update_idx == "test");
   TS_ASSERT_THROWS(record_update_ot.getIndices<uint32_t>(), CVC4ApiException&);
-}
-
-void OpBlack::testGetIndicesKind()
-{
-  Op chain_ot = d_solver.mkOp(CHAIN, AND);
-  TS_ASSERT(chain_ot.isIndexed());
-  Kind chain_idx = chain_ot.getIndices<Kind>();
-  TS_ASSERT(chain_idx == AND);
 }
 
 void OpBlack::testGetIndicesUint()

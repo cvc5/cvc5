@@ -283,8 +283,8 @@ void CvcPrinter::toStream(
       out << ")";
       return;
       break;
-    case kind::CHAIN:
-    case kind::DISTINCT: // chain and distinct not supported directly in CVC4, blast them away with the rewriter
+    case kind::DISTINCT:
+      // distinct not supported directly, blast it away with the rewriter
       toStream(out, theory::Rewriter::rewrite(n), depth, types, true);
       return;
     case kind::SORT_TYPE:
