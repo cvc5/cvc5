@@ -722,6 +722,23 @@ void TermBlack::testSubstitute()
   // incorrect substitution due to types
   rs.push_back(ttrue);
   TS_ASSERT_THROWS(xpy.substitute(es, rs), CVC4ApiException&);
+
+  // null cannot substitute
+  Term tnull;
+  TS_ASSERT_THROWS(tnull.substitute(one, x), CVC4ApiException&);
+  TS_ASSERT_THROWS(xpx.substitute(tnull, x), CVC4ApiException&);
+  TS_ASSERT_THROWS(xpx.substitute(x, tnull), CVC4ApiException&);
+  rs.pop_back();
+  rs.push_back(tnull);
+  TS_ASSERT_THROWS(xpy.substitute(es, rs), CVC4ApiException&);
+  es.clear();
+  rs.clear();
+  es.push_back(x);
+  rs.push_back(y);
+  TS_ASSERT_THROWS(tnull.substitute(es, rs), CVC4ApiException&);
+  es.push_back(tnull);
+  rs.push_back(one);
+  TS_ASSERT_THROWS(xpx.substitute(es, rs), CVC4ApiException&);
 }
 
 void TermBlack::testIsConst()
