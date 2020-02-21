@@ -1005,7 +1005,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       {
         needPi = true;
       }
-      // if we didn't reduce it above
+      // if we didn't indicate that it should be purified above
       if( consider ){
         std::vector<Node> repList;
         for (const Node& ac : a)
@@ -1085,8 +1085,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                           << std::endl;
       Assert(!d_pi.isNull());
       Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
-      // FIXME : do not introduce shift here, instead needs model-based
-      // refinement for constant shifts (#1284)
+      // TODO : do not introduce shift here, instead needs model-based
+      // refinement for constant shifts (cvc4-projects #1284)
       lem = nm->mkNode(
           AND,
           mkValidPhase(y, d_pi),
@@ -1105,7 +1105,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       // do both equalities to ensure that new_a becomes a preregistered term
       lem = nm->mkNode(AND, a.eqNode(new_a), a[0].eqNode(y));
     }
-    // must do preprocess on this one
+    // note we must do preprocess on this lemma
     Trace("nl-ext-lemma")
         << "NonlinearExtension::Lemma : purify : " << lem << std::endl;
     lemsPp.push_back(lem);
@@ -2793,7 +2793,9 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
           Node symn = NodeManager::currentNM()->mkNode(
               SINE, NodeManager::currentNM()->mkNode(MULT, d_neg_one, t[0]));
           symn = Rewriter::rewrite( symn );
-          //can assume its basis since phase is split over 0
+          // Can assume it is its own master since phase is split over 0,
+          // hence  -pi <= t[0] <= pi implies -pi <= -t[0] <= pi.
+          d_trMaster[symn] = symn;
           d_trSlaves[symn].push_back(symn);
           Assert(d_trSlaves.find(t) != d_trSlaves.end());
           std::vector< Node > children;
@@ -3103,8 +3105,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
-  // this should only be run on purified versions of SINE applications
-  Assert(k !=SINE || tf[0].isVar());
+  // this should only be run on master applications
+  Assert(d_trSlaves.find(tf)!=d_trSlaves.end());
   
   // Figure 3 : c
   Node c = d_model.computeAbstractModelValue(tf[0]);
