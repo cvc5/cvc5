@@ -785,72 +785,68 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   // get model bounds for all transcendental functions
   Trace("nl-ext-cm-debug") << "  get bounds for transcendental functions..."
                            << std::endl;
-  for( unsigned index=0; index<2; index++)
+  for (std::pair<const Kind, std::vector<Node> >& tfs : d_funcMap)
   {
-    for (std::pair<const Kind, std::vector<Node> >& tfs : d_funcMap[index])
+    Kind k = tfs.first;
+    for (const Node& tf : tfs.second)
     {
-      Kind k = tfs.first;
-      for (const Node& tf : tfs.second)
+      bool success = true;
+      // tf is Figure 3 : tf( x )
+      Node bl;
+      Node bu;
+      if (k == PI)
       {
-        bool success = true;
-        // tf is Figure 3 : tf( x )
-        Trace("nl-ext-cm-debug")
-            << "  - " << tf << ", value is " << atf << std::endl;
-        Node bl;
-        Node bu;
-        if (k == PI)
+        bl = d_pi_bound[0];
+        bu = d_pi_bound[1];
+      }
+      else
+      {
+        std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
+        bl = bounds.first;
+        bu = bounds.second;
+        if (bl!=bu)
         {
-          bl = d_pi_bound[0];
-          bu = d_pi_bound[1];
+          d_model.setUsedApproximate();
         }
-        else
+      }
+      if (!bl.isNull() && !bu.isNull())
+      {
+        // we set the bounds for each slave of tf
+        for (const Node& stf : d_trSlaves[tf])
         {
-          std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
-          bl = bounds.first;
-          bu = bounds.second;
-          if (bl!=bu)
-          {
-            d_model.setUsedApproximate();
-          }
-        }
-        if (!bl.isNull() && !bu.isNull())
-        {
+          Node astf = d_model.computeConcreteModelValue(stf);
+          Node sbl = bl;
+          Node sbu = bu;
           // We have rewritten an application of a transcendental function
           // based on the current model values.It could be that the model value
           // rewrites sin(x) ---> sin(-c) ---> -sin(c), thus we need
           // to negate the bounds in this case.
-          for (const Node& stf : d_trSlaves[tf])
+          if (astf.getKind() != k)
           {
-            Node astf = d_model.computeConcreteModelValue(stf);
-            Node sbl = bl;
-            Node sbu = bu;
-            if (astf.getKind() != stf.getKind())
+            if (astf.getKind() == MULT && astf.getNumChildren() == 2
+                && astf[0] == d_neg_one)
             {
-              if (astf.getKind() == MULT && astf.getNumChildren() == 2
-                  && atf[0] == d_neg_one)
-              {
-                astf = astf[1];
-                Node sbtmp = sbl;
-                sbl = ArithMSum::negate(sbu);
-                sbu = ArithMSum::negate(sbtmp);
-              }
+              astf = astf[1];
+              Node sbtmp = sbl;
+              sbl = ArithMSum::negate(sbu);
+              sbu = ArithMSum::negate(sbtmp);
             }
-            Trace("nl-ext-cm-debug")
-                << "  bound for " << astf << " : [" << sbl << ", " << sbu << "]" << std::endl;
-            success = d_model.addCheckModelBound(astf, sbl, sbu);
           }
-        }
-        else
-        {
-          Trace("nl-ext-cm-debug") << "  no bound for " << tf << std::endl;
-        }
-        if (!success)
-        {
           Trace("nl-ext-cm-debug")
-              << "...failed to set bound for transcendental function."
-              << std::endl;
-          return false;
+              << "  bound for " << astf << " : [" << sbl << ", " << sbu << "]" << std::endl;
+          success = d_model.addCheckModelBound(astf, sbl, sbu);
         }
+      }
+      else
+      {
+        Trace("nl-ext-cm-debug") << "  no bound for " << tf << std::endl;
+      }
+      if (!success)
+      {
+        Trace("nl-ext-cm-debug")
+            << "...failed to set bound for transcendental function."
+            << std::endl;
+        return false;
       }
     }
   }
@@ -3802,7 +3798,7 @@ std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d)
     {
       return std::pair<Node, Node>(d_zero,d_zero);
     }
-    Assert( k==EXP);
+    Assert( k==EXPONENTIAL);
     return std::pair<Node, Node>(d_one,d_one);
   }
   bool isNeg = csign == -1;
