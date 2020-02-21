@@ -164,7 +164,9 @@ Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
 
       // insert children in reverse order so that they're processed in order
       //    important for rewriting which sorts by node id
-      for (int i = n.getNumChildren() - 1; i >= 0; --i)
+      // NOTE: size_t is unsigned, so using underflow for termination condition
+      size_t numChildren = n.getNumChildren();
+      for (size_t i = numChildren - 1; i < numChildren; --i)
       {
         to_visit.push_back(n[i]);
       }
