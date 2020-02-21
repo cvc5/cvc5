@@ -1923,11 +1923,11 @@ DatatypeConstructor::DatatypeConstructor() { d_ctor = nullptr; }
 DatatypeConstructor::DatatypeConstructor(const CVC4::DatatypeConstructor& ctor)
     : d_ctor(new CVC4::DatatypeConstructor(ctor))
 {
-  CVC4_API_CHECK(d_ctor->isResolved()) << "Expected resolved datatype constructor";
+  CVC4_API_CHECK(d_ctor->isResolved())
+      << "Expected resolved datatype constructor";
 }
 
 DatatypeConstructor::~DatatypeConstructor() {}
-
 
 std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
 
@@ -1967,14 +1967,17 @@ DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
 {
   bool foundSel = false;
   size_t index = 0;
-  for (size_t i=0, nsels = getNumSelectors(); i<nsels; i++){
-    if((*d_ctor)[i].getName() == name) {
+  for (size_t i = 0, nsels = getNumSelectors(); i < nsels; i++)
+  {
+    if ((*d_ctor)[i].getName() == name)
+    {
       index = i;
       foundSel = true;
       break;
     }
   }
-  CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor " << getName() << " exists";
+  CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor "
+                           << getName() << " exists";
   return (*d_ctor)[index];
 }
 
@@ -2107,14 +2110,17 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
 {
   bool foundCons = false;
   size_t index = 0;
-  for (size_t i=0, ncons = getNumConstructors(); i<ncons; i++){
-    if((*d_dtype)[i].getName() == name) {
+  for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
+  {
+    if ((*d_dtype)[i].getName() == name)
+    {
       index = i;
       foundCons = true;
       break;
     }
   }
-  CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype " << getName() << " exists";
+  CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
+                            << getName() << " exists";
   return (*d_dtype)[index];
 }
 
@@ -2138,14 +2144,8 @@ bool Datatype::isTuple() const { return d_dtype->isTuple(); }
 
 bool Datatype::isRecord() const { return d_dtype->isRecord(); }
 
-bool Datatype::isFinite() const
-{
-  return d_dtype->isFinite();
-}
-bool Datatype::isWellFounded() const
-{
-  return d_dtype->isWellFounded();
-}
+bool Datatype::isFinite() const { return d_dtype->isFinite(); }
+bool Datatype::isWellFounded() const { return d_dtype->isWellFounded(); }
 
 std::string Datatype::toString() const { return d_dtype->getName(); }
 

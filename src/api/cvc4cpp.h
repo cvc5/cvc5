@@ -1504,7 +1504,7 @@ class CVC4_PUBLIC DatatypeConstructor
      */
     const DatatypeSelector* operator->() const;
 
-   private:  
+   private:
     /**
      * Constructor.
      * @param ctor the internal datatype constructor to iterate over

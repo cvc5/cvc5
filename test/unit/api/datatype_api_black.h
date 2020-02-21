@@ -138,7 +138,7 @@ void DatatypeBlack::testDatatypeStructs()
 void DatatypeBlack::testDatatypeNames()
 {
   Sort intSort = d_solver.getIntegerSort();
-  
+
   // create datatype sort to test
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
@@ -156,13 +156,13 @@ void DatatypeBlack::testDatatypeNames()
   TS_ASSERT_THROWS_NOTHING(dt["cons"]);
   TS_ASSERT_THROWS(dt.getConstructor("head"), CVC4ApiException&);
   TS_ASSERT_THROWS(dt.getConstructor(""), CVC4ApiException&);
-  
+
   DatatypeConstructor dcons = dt[0];
   TS_ASSERT(dcons.getName() == std::string("cons"));
   TS_ASSERT_THROWS_NOTHING(dcons.getSelector("head"));
   TS_ASSERT_THROWS_NOTHING(dcons["tail"]);
   TS_ASSERT_THROWS(dcons.getSelector("cons"), CVC4ApiException&);
-  
+
   // get selector
   DatatypeSelector dselTail = dcons[1];
   TS_ASSERT(dselTail.getName() == std::string("tail"));
