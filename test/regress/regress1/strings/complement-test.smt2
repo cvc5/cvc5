@@ -7,6 +7,6 @@
 (assert (or (= y "C") (= y (str.++ "D" z)) (= (str.len y) 10)))
 (assert (str.in.re x 
             (re.inter 
-              (re.complement (str.to.re "AB")) 
-              (re.complement (re.++ (str.to.re "AB") (re.range "A" "E") (re.* re.allchar))))))
+              (re.comp (str.to.re "AB")) 
+              (re.comp (re.++ (str.to.re "AB") (re.range "A" "E") (re.* re.allchar))))))
 (check-sat)

@@ -196,7 +196,7 @@ void Smt2::addStringOperators() {
   addOperator(kind::REGEXP_OPT, "re.opt");
   addOperator(kind::REGEXP_RANGE, "re.range");
   addOperator(kind::REGEXP_LOOP, "re.loop");
-  addOperator(kind::REGEXP_COMPLEMENT, "re.complement");
+  addOperator(kind::REGEXP_COMPLEMENT, "re.comp");
   addOperator(kind::STRING_CODE, "str.code");
   addOperator(kind::STRING_LT, "str.<");
   addOperator(kind::STRING_LEQ, "str.<=");
