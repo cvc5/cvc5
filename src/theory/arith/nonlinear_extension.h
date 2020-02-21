@@ -497,7 +497,7 @@ class NonlinearExtension {
    */
   std::map<Node, Node> d_tr_base;
   /** Stores skolems in the range of the above map */
-  std::map<Node, bool> d_tr_is_base;
+  std::map<Node, std::vector<Node> > d_trSlaves;
   std::map< Node, bool > d_tf_initial_refine;
 
   void mkPi();
@@ -632,13 +632,6 @@ class NonlinearExtension {
    * on the model value of its argument.
    */
   std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d);
-  /** is refinable transcendental function
-   *
-   * A transcendental function application is not refineable if its current
-   * model value is zero, or if it is an application of SINE applied
-   * to a non-variable.
-   */
-  bool isRefineableTfFun(Node tf);
   /** get approximate sqrt
    *
    * This approximates the square root of positive constant c. If this method
@@ -937,13 +930,16 @@ class NonlinearExtension {
   std::vector<Node> checkTranscendentalTangentPlanes();
   /** check transcendental function refinement for tf
    *
-   * This method is called by the above method for each refineable
-   * transcendental function (see isRefineableTfFun) that occurs in an
-   * assertion in the current context.
+   * This method is called by the above method for each "refineable"
+   * transcendental function application that occurs in an assertion in the
+   * current context. We 
    *
    * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
    * function application tf for Taylor degree d. It may add a secant or
    * tangent plane lemma to lems.
+   * 
+   * It returns false if the bounds are not precise enough to add a
+   * secant or tangent plane lemma.
    */
   bool checkTfTangentPlanesFun(Node tf, unsigned d, std::vector<Node>& lems);
   //-------------------------------------------- end lemma schemas
