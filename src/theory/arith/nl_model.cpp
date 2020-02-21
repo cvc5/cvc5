@@ -443,12 +443,12 @@ bool NlModel::solveEqualitySimple(Node eq,
       return false;
     }
   }
-  Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
+  Trace("nl-ext-cm") << "simple solve equality " << seq << "..." << std::endl;
   Assert(seq.getKind() == EQUAL);
   std::map<Node, Node> msum;
   if (!ArithMSum::getMonomialSumLit(seq, msum))
   {
-    Trace("nl-ext-cms") << "...fail, could not determine monomial sum."
+    Trace("nl-ext-cm") << "...fail, could not determine monomial sum."
                         << std::endl;
     return false;
   }
@@ -485,7 +485,7 @@ bool NlModel::solveEqualitySimple(Node eq,
       else
       {
         is_valid = false;
-        Trace("nl-ext-cms-debug")
+        Trace("nl-ext-cm-debug")
             << "...invalid due to non-linear monomial " << v << std::endl;
         // may wish to set an exact bound for a factor and repeat
         for (const Node& vc : v)
@@ -496,7 +496,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     }
     else if (!v.isVar() || (!var.isNull() && var != v))
     {
-      Trace("nl-ext-cms-debug")
+      Trace("nl-ext-cm-debug")
           << "...invalid due to factor " << v << std::endl;
       // cannot solve multivariate
       if (is_valid)
@@ -545,7 +545,7 @@ bool NlModel::solveEqualitySimple(Node eq,
             bool ret = addCheckModelSubstitution(uv, slv);
             if (ret)
             {
-              Trace("nl-ext-cms") << "...success, model substitution " << uv
+              Trace("nl-ext-cm") << "...success, model substitution " << uv
                                   << " -> " << slv << std::endl;
               d_check_model_solved[eq] = uv;
             }
@@ -570,14 +570,14 @@ bool NlModel::solveEqualitySimple(Node eq,
         return ret ? solveEqualitySimple(eq, d, lemmas) : false;
       }
     }
-    Trace("nl-ext-cms") << "...fail due to constrained invalid terms."
+    Trace("nl-ext-cm") << "...fail due to constrained invalid terms."
                         << std::endl;
     return false;
   }
   else if (var.isNull() || var.getType().isInteger())
   {
     // cannot solve quadratic equations for integer variables
-    Trace("nl-ext-cms") << "...fail due to variable to solve for." << std::endl;
+    Trace("nl-ext-cm") << "...fail due to variable to solve for." << std::endl;
     return false;
   }
 
@@ -586,7 +586,7 @@ bool NlModel::solveEqualitySimple(Node eq,
   {
     if (b == d_zero)
     {
-      Trace("nl-ext-cms") << "...fail due to zero a/b." << std::endl;
+      Trace("nl-ext-cm") << "...fail due to zero a/b." << std::endl;
       Assert(false);
       return false;
     }
@@ -597,7 +597,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     bool ret = addCheckModelSubstitution(var, val);
     if (ret)
     {
-      Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
+      Trace("nl-ext-cm") << "...success, solved linear." << std::endl;
       d_check_model_solved[eq] = var;
     }
     return ret;
@@ -620,12 +620,12 @@ bool NlModel::solveEqualitySimple(Node eq,
     Trace("nl-ext-lemma") << "NlModel::Lemma : quadratic no root : " << conf
                           << std::endl;
     lemmas.push_back(conf);
-    Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
+    Trace("nl-ext-cm") << "...fail due to negative discriminant." << std::endl;
     return false;
   }
   if (hasCheckModelAssignment(var))
   {
-    Trace("nl-ext-cms") << "...fail due to bounds on variable to solve for."
+    Trace("nl-ext-cm") << "...fail due to bounds on variable to solve for."
                         << std::endl;
     // two quadratic equations for same variable, give up
     return false;
@@ -634,7 +634,7 @@ bool NlModel::solveEqualitySimple(Node eq,
   Node l, u;
   if (!getApproximateSqrt(sqrt_val, l, u, 15 + d))
   {
-    Trace("nl-ext-cms") << "...fail, could not approximate sqrt." << std::endl;
+    Trace("nl-ext-cm") << "...fail, could not approximate sqrt." << std::endl;
     return false;
   }
   d_used_approx = true;
@@ -702,18 +702,18 @@ bool NlModel::solveEqualitySimple(Node eq,
   if (ret)
   {
     d_check_model_solved[eq] = var;
-    Trace("nl-ext-cms") << "...success, solved quadratic." << std::endl;
+    Trace("nl-ext-cm") << "...success, solved quadratic." << std::endl;
   }
   return ret;
 }
 
 bool NlModel::simpleCheckModelLit(Node lit)
 {
-  Trace("nl-ext-cms") << "*** Simple check-model lit for " << lit << "..."
+  Trace("nl-ext-cm") << "*** Simple check-model lit for " << lit << "..."
                       << std::endl;
   if (lit.isConst())
   {
-    Trace("nl-ext-cms") << "  return constant." << std::endl;
+    Trace("nl-ext-cm") << "  return constant." << std::endl;
     return lit.getConst<bool>();
   }
   NodeManager* nm = NodeManager::currentNM();
@@ -745,14 +745,14 @@ bool NlModel::simpleCheckModelLit(Node lit)
   }
   else if (atom.getKind() != GEQ)
   {
-    Trace("nl-ext-cms") << "  failed due to unknown literal." << std::endl;
+    Trace("nl-ext-cm") << "  failed due to unknown literal." << std::endl;
     return false;
   }
   // get the monomial sum
   std::map<Node, Node> msum;
   if (!ArithMSum::getMonomialSumLit(atom, msum))
   {
-    Trace("nl-ext-cms") << "  failed due to get msum." << std::endl;
+    Trace("nl-ext-cm") << "  failed due to get msum." << std::endl;
     return false;
   }
   // simple interval analysis
@@ -761,7 +761,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
     return true;
   }
   // can also try reasoning about univariate quadratic equations
-  Trace("nl-ext-cms-debug")
+  Trace("nl-ext-cm-debug")
       << "* Try univariate quadratic analysis..." << std::endl;
   std::vector<Node> vs_invalid;
   std::unordered_set<Node, NodeHashFunction> vs;
@@ -821,10 +821,10 @@ bool NlModel::simpleCheckModelLit(Node lit)
           t = nm->mkNode(PLUS, t, nm->mkNode(MULT, b, v));
         }
         t = Rewriter::rewrite(t);
-        Trace("nl-ext-cms-debug") << "Trying to find min/max for quadratic "
+        Trace("nl-ext-cm-debug") << "Trying to find min/max for quadratic "
                                   << t << "..." << std::endl;
-        Trace("nl-ext-cms-debug") << "    a = " << a << std::endl;
-        Trace("nl-ext-cms-debug") << "    b = " << b << std::endl;
+        Trace("nl-ext-cm-debug") << "    a = " << a << std::endl;
+        Trace("nl-ext-cm-debug") << "    b = " << b << std::endl;
         // find maximal/minimal value on the interval
         Node apex = nm->mkNode(
             DIVISION, nm->mkNode(UMINUS, b), nm->mkNode(MULT, d_two, a));
@@ -841,10 +841,10 @@ bool NlModel::simpleCheckModelLit(Node lit)
           Assert(cmpn.isConst());
           cmp[r] = cmpn.getConst<bool>();
         }
-        Trace("nl-ext-cms-debug") << "  apex " << apex << std::endl;
-        Trace("nl-ext-cms-debug")
+        Trace("nl-ext-cm-debug") << "  apex " << apex << std::endl;
+        Trace("nl-ext-cm-debug")
             << "  lower " << boundn[0] << ", cmp: " << cmp[0] << std::endl;
-        Trace("nl-ext-cms-debug")
+        Trace("nl-ext-cm-debug")
             << "  upper " << boundn[1] << ", cmp: " << cmp[1] << std::endl;
         Assert(boundn[0].getConst<Rational>()
                <= boundn[1].getConst<Rational>());
@@ -858,7 +858,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
           {
             // the apex is the max/min value
             s = apex;
-            Trace("nl-ext-cms-debug") << "  ...set to apex." << std::endl;
+            Trace("nl-ext-cm-debug") << "  ...set to apex." << std::endl;
           }
           else
           {
@@ -872,12 +872,12 @@ bool NlModel::simpleCheckModelLit(Node lit)
               qsubs.pop_back();
             }
             Node tcmp = nm->mkNode(LT, tcmpn[0], tcmpn[1]);
-            Trace("nl-ext-cms-debug")
+            Trace("nl-ext-cm-debug")
                 << "  ...both sides of apex, compare " << tcmp << std::endl;
             tcmp = Rewriter::rewrite(tcmp);
             Assert(tcmp.isConst());
             unsigned bindex_use = (tcmp.getConst<bool>() == pol) ? 1 : 0;
-            Trace("nl-ext-cms-debug")
+            Trace("nl-ext-cm-debug")
                 << "  ...set to " << (bindex_use == 1 ? "upper" : "lower")
                 << std::endl;
             s = boundn[bindex_use];
@@ -893,14 +893,14 @@ bool NlModel::simpleCheckModelLit(Node lit)
           // (3) the polarity of the constraint, i.e. >= or <=.
           // there are 8 cases of these factors, which we test here.
           unsigned bindex_use = (((asgn == 1) == cmp[0]) == pol) ? 0 : 1;
-          Trace("nl-ext-cms-debug")
+          Trace("nl-ext-cm-debug")
               << "  ...set to " << (bindex_use == 1 ? "upper" : "lower")
               << std::endl;
           s = boundn[bindex_use];
         }
         Assert(!s.isNull());
         qsubs.push_back(s);
-        Trace("nl-ext-cms") << "* set bound based on quadratic : " << v
+        Trace("nl-ext-cm") << "* set bound based on quadratic : " << v
                             << " -> " << s << std::endl;
       }
     }
@@ -917,7 +917,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
 
 bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
 {
-  Trace("nl-ext-cms-debug") << "* Try simple interval analysis..." << std::endl;
+  Trace("nl-ext-cm-debug") << "* Try simple interval analysis..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   // map from transcendental functions to whether they were set to lower
   // bound
@@ -933,12 +933,12 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
     }
     else
     {
-      Trace("nl-ext-cms-debug") << "- monomial : " << v << std::endl;
+      Trace("nl-ext-cm-debug") << "- monomial : " << v << std::endl;
       // --- whether we should set a lower bound for this monomial
       bool set_lower =
           (m.second.isNull() || m.second.getConst<Rational>().sgn() == 1)
           == pol;
-      Trace("nl-ext-cms-debug")
+      Trace("nl-ext-cm-debug")
           << "set bound to " << (set_lower ? "lower" : "upper") << std::endl;
 
       // --- Collect variables and factors in v
@@ -976,19 +976,19 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
       //   1: both signs of the interval of this variable are positive,
       //  -1: both signs of the interval of this variable are negative.
       std::vector<int> signs;
-      Trace("nl-ext-cms-debug") << "get sign information..." << std::endl;
+      Trace("nl-ext-cm-debug") << "get sign information..." << std::endl;
       for (unsigned i = 0, size = vars.size(); i < size; i++)
       {
         Node vc = vars[i];
         unsigned vcfact = factors[i];
-        if (Trace.isOn("nl-ext-cms-debug"))
+        if (Trace.isOn("nl-ext-cm-debug"))
         {
-          Trace("nl-ext-cms-debug") << "-- " << vc;
+          Trace("nl-ext-cm-debug") << "-- " << vc;
           if (vcfact > 1)
           {
-            Trace("nl-ext-cms-debug") << "^" << vcfact;
+            Trace("nl-ext-cm-debug") << "^" << vcfact;
           }
-          Trace("nl-ext-cms-debug") << " ";
+          Trace("nl-ext-cm-debug") << " ";
         }
         std::map<Node, std::pair<Node, Node> >::iterator bit =
             d_check_model_bounds.find(vc);
@@ -1005,7 +1005,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
             vsign = 1;
             int lsgn = l.getConst<Rational>().sgn();
             int usgn = u.getConst<Rational>().sgn();
-            Trace("nl-ext-cms-debug")
+            Trace("nl-ext-cm-debug")
                 << "bound_sign(" << lsgn << "," << usgn << ") ";
             if (lsgn == -1)
             {
@@ -1024,19 +1024,19 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
               else
               {
                 // ambiguous, can't determine the bound
-                Trace("nl-ext-cms")
+                Trace("nl-ext-cm")
                     << "  failed due to ambiguious monomial." << std::endl;
                 return false;
               }
             }
           }
-          Trace("nl-ext-cms-debug") << " -> " << vsign << std::endl;
+          Trace("nl-ext-cm-debug") << " -> " << vsign << std::endl;
           signs.push_back(vsign);
         }
         else
         {
-          Trace("nl-ext-cms-debug") << std::endl;
-          Trace("nl-ext-cms")
+          Trace("nl-ext-cm-debug") << std::endl;
+          Trace("nl-ext-cm")
               << "  failed due to unknown bound for " << vc << std::endl;
           // should either assign a model bound or eliminate the variable
           // via substitution
@@ -1046,12 +1046,12 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
       }
       // whether we will try to minimize/maximize (-1/1) the absolute value
       int setAbs = (set_lower == has_neg_factor) ? 1 : -1;
-      Trace("nl-ext-cms-debug")
+      Trace("nl-ext-cm-debug")
           << "set absolute value to " << (setAbs == 1 ? "maximal" : "minimal")
           << std::endl;
 
       std::vector<Node> vbs;
-      Trace("nl-ext-cms-debug") << "set bounds..." << std::endl;
+      Trace("nl-ext-cm-debug") << "set bounds..." << std::endl;
       for (unsigned i = 0, size = vars.size(); i < size; i++)
       {
         Node vc = vars[i];
@@ -1060,14 +1060,14 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
         Node u = us[i];
         bool vc_set_lower;
         int vcsign = signs[i];
-        Trace("nl-ext-cms-debug")
+        Trace("nl-ext-cm-debug")
             << "Bounds for " << vc << " : " << l << ", " << u
             << ", sign : " << vcsign << ", factor : " << vcfact << std::endl;
         if (l == u)
         {
           // by convention, always say it is lower if they are the same
           vc_set_lower = true;
-          Trace("nl-ext-cms-debug")
+          Trace("nl-ext-cm-debug")
               << "..." << vc << " equal bound, set to lower" << std::endl;
         }
         else
@@ -1081,7 +1081,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
             {
               // by convention, always say it is lower if abs are the same
               vc_set_lower = true;
-              Trace("nl-ext-cms-debug")
+              Trace("nl-ext-cm-debug")
                   << "..." << vc << " equal abs, set to lower" << std::endl;
             }
             else
@@ -1098,7 +1098,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
           {
             vc_set_lower = (signs[i] != setAbs);
           }
-          Trace("nl-ext-cms-debug")
+          Trace("nl-ext-cm-debug")
               << "..." << vc << " set to " << (vc_set_lower ? "lower" : "upper")
               << std::endl;
         }
@@ -1110,7 +1110,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
         }
         else if (itsb->second != vc_set_lower)
         {
-          Trace("nl-ext-cms")
+          Trace("nl-ext-cm")
               << "  failed due to conflicting bound for " << vc << std::endl;
           return false;
         }
@@ -1150,10 +1150,10 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
   {
     comp = comp.negate();
   }
-  Trace("nl-ext-cms") << "  comparison is : " << comp << std::endl;
+  Trace("nl-ext-cm") << "  comparison is : " << comp << std::endl;
   comp = Rewriter::rewrite(comp);
   Assert(comp.isConst());
-  Trace("nl-ext-cms") << "  returned : " << comp << std::endl;
+  Trace("nl-ext-cm") << "  returned : " << comp << std::endl;
   return comp == d_true;
 }
 

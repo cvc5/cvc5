@@ -785,55 +785,85 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   // get model bounds for all transcendental functions
   Trace("nl-ext-cm-debug") << "  get bounds for transcendental functions..."
                            << std::endl;
-  for (std::pair<const Kind, std::vector<Node> >& tfs : d_f_map)
+  for( unsigned index=0; index<2; index++)
   {
-    Kind k = tfs.first;
-    for (const Node& tf : tfs.second)
+    for (std::pair<const Kind, std::vector<Node> >& tfs : d_funcMap[index])
     {
-      bool success = true;
-      // tf is Figure 3 : tf( x )
-      Node atf = d_model.computeConcreteModelValue(tf);
-      Trace("nl-ext-cm-debug")
-          << "Value for is " << tf << " is " << atf << std::endl;
-      Node bl;
-      Node bu;
-      if (k == PI)
+      Kind k = tfs.first;
+      for (const Node& tf : tfs.second)
       {
-        bl = d_pi_bound[0];
-        bu = d_pi_bound[1];
-      }
-      else if (d_model.isRefineableTfFun(tf))
-      {
-        d_model.setUsedApproximate();
-        std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
-        bl = bounds.first;
-        bu = bounds.second;
-      }
-      if (!bl.isNull() && !bu.isNull())
-      {
-        // We have rewritten an application of a transcendental function
-        // based on the current model values.It could be that the model value
-        // rewrites sin(x) ---> sin(-c) ---> -sin(c), thus we need
-        // to negate the bounds in this case.
-        if (atf.getKind() != tf.getKind())
+        bool success = true;
+        // tf is Figure 3 : tf( x )
+        Node atf = d_model.computeConcreteModelValue(tf);
+        Trace("nl-ext-cm-debug")
+            << "  - " << tf << ", value is " << atf << std::endl;
+        Node bl;
+        Node bu;
+        if (k == PI)
         {
-          if (atf.getKind() == MULT && atf.getNumChildren() == 2
-              && atf[0] == d_neg_one)
+          bl = d_pi_bound[0];
+          bu = d_pi_bound[1];
+        }
+        else
+        {
+          Node rtf;
+          if (d_model.isRefineableTfFun(tf))
           {
-            atf = atf[1];
-            Node btmp = bl;
-            bl = ArithMSum::negate(bu);
-            bu = ArithMSum::negate(btmp);
+            rtf = tf;
+          }
+          else
+          {
+            // set via base
+            std::map<Node, Node>::iterator ittb = d_tr_base.find(tf);
+            if (ittb!=d_tr_base.end())
+            {
+              Trace("nl-ext-cm-debug") << "  base application is " << ittb->second << std::endl;
+              if (d_model.isRefineableTfFun(ittb->second))
+              {
+                rtf = ittb->second;
+              }
+            }
+          }
+          if (!rtf.isNull())
+          {
+            d_model.setUsedApproximate();
+            std::pair<Node, Node> bounds = getTfModelBounds(rtf, d_taylor_degree);
+            bl = bounds.first;
+            bu = bounds.second;
           }
         }
-        success = d_model.addCheckModelBound(atf, bl, bu);
-      }
-      if (!success)
-      {
-        Trace("nl-ext-cm-debug")
-            << "...failed to set bound for transcendental function."
-            << std::endl;
-        return false;
+        if (!bl.isNull() && !bu.isNull())
+        {
+          // We have rewritten an application of a transcendental function
+          // based on the current model values.It could be that the model value
+          // rewrites sin(x) ---> sin(-c) ---> -sin(c), thus we need
+          // to negate the bounds in this case.
+          if (atf.getKind() != tf.getKind())
+          {
+            if (atf.getKind() == MULT && atf.getNumChildren() == 2
+                && atf[0] == d_neg_one)
+            {
+              atf = atf[1];
+              Node btmp = bl;
+              bl = ArithMSum::negate(bu);
+              bu = ArithMSum::negate(btmp);
+            }
+          }
+          Trace("nl-ext-cm-debug")
+              << "  bound for " << atf << " : [" << bl << ", " << bu << "]" << std::endl;
+          success = d_model.addCheckModelBound(atf, bl, bu);
+        }
+        else
+        {
+          Trace("nl-ext-cm-debug") << "  no bound for " << tf << std::endl;
+        }
+        if (!success)
+        {
+          Trace("nl-ext-cm-debug")
+              << "...failed to set bound for transcendental function."
+              << std::endl;
+          return false;
+        }
       }
     }
   }
@@ -901,7 +931,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci.clear();
   d_ci_exp.clear();
   d_ci_max.clear();
-  d_f_map.clear();
+  d_funcMap[0].clear();
+  d_funcMap[1].clear();
   d_tf_region.clear();
 
   std::vector<Node> lemmas;
@@ -1000,14 +1031,18 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         }
         else
         {
-          d_f_map[ak].push_back(a);
+          d_funcMap[0][ak].push_back(a);
         }
+      }
+      else
+      {
+        d_funcMap[1][ak].push_back(a);
       }
     }
     else if (ak == PI)
     {
       needPi = true;
-      d_f_map[ak].push_back(a);
+      d_funcMap[0][ak].push_back(a);
     }
     else
     {
@@ -1101,7 +1136,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   {
     Trace("nl-ext-mv") << "Arguments of trancendental functions : "
                        << std::endl;
-    for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
+    for (std::pair<const Kind, std::vector<Node> >& tfl : d_funcMap[0])
     {
       Kind k = tfl.first;
       if (k == SINE || k == EXPONENTIAL)
@@ -2741,7 +2776,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
 std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
   std::vector< Node > lemmas;
   Trace("nl-ext") << "Get initial refinement lemmas for transcendental functions..." << std::endl;
-  for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_funcMap[0])
   {
     Kind k = tfl.first;
     for (const Node& t : tfl.second)
@@ -2851,7 +2886,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   std::map< Kind, std::vector< Node > > sorted_tf_args;
   std::map< Kind, std::map< Node, Node > > tf_arg_to_term;
 
-  for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_funcMap[0])
   {
     Kind k = tfl.first;
     if (k == EXPONENTIAL || k == SINE)
@@ -2875,7 +2910,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   //sort by concrete values
   smv.d_isConcrete = true;
   smv.d_reverse_order = true;
-  for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_funcMap[0])
   {
     Kind k = tfl.first;
     if( !sorted_tf_args[k].empty() ){
@@ -3011,7 +3046,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
                   << std::endl;
   // this implements Figure 3 of "Satisfiaility Modulo Transcendental Functions
   // via Incremental Linearization" by Cimatti et al
-  for (std::pair<const Kind, std::vector<Node> >& tfs : d_f_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfs : d_funcMap[0])
   {
     Kind k = tfs.first;
     if (k == PI)

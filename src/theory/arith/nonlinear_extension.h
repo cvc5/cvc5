@@ -524,8 +524,16 @@ class NonlinearExtension {
   std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
 
-  /** A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI } */
-  std::map<Kind, std::vector<Node> > d_f_map;
+  /** A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI } 
+   * 
+   * We distinguish two kinds of terms:
+   * - d_funcMap[0] stores the mapping to terms that are not redundant,
+   * - d_funcMap[1] stores the remaining terms.
+   * A redundant term is one that does not impact our lemma schemas. For
+   * example, sin(t) for non-variable t are stored in d_funcMap[0] since
+   * we add the lemmas t = y*n*2*pi ^ -pi <= y <= pi.
+   */
+  std::map<Kind, std::vector<Node> > d_funcMap[2];
 
   // factor skolems
   std::map< Node, Node > d_factor_skolem;
