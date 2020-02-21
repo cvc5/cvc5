@@ -50,18 +50,14 @@ PreprocessingPassResult BoolToBV::applyInternal(
       assertionsToPreprocess->replace(i, Rewriter::rewrite(newAssertion));
     }
   }
-  else if (boolToBVMode == options::BoolToBVMode::ITE)
+  else
   {
+    Assert(boolToBVMode == options::BoolToBVMode::ITE);
     for (size_t i = 0; i < size; ++i)
     {
       assertionsToPreprocess->replace(
           i, Rewriter::rewrite(lowerIte((*assertionsToPreprocess)[i])));
     }
-  }
-  else
-  {
-    // Unhandled option
-    Unreachable();
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
