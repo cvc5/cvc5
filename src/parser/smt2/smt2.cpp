@@ -163,7 +163,7 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_CHARAT, "str.at" );
   addOperator(kind::STRING_STRIDOF, "str.indexof" );
   addOperator(kind::STRING_STRREPL, "str.replace" );
-  addOperator(kind::STRING_STRREPLALL, "str.replaceall");
+  addOperator(kind::STRING_STRREPLALL, "str.replace_all");
   if (!strictModeEnabled())
   {
     addOperator(kind::STRING_TOLOWER, "str.tolower");
@@ -175,10 +175,10 @@ void Smt2::addStringOperators() {
   // at the moment, we only use this syntax for smt2.6.1
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
   {
-    addOperator(kind::STRING_ITOS, "str.from-int");
-    addOperator(kind::STRING_STOI, "str.to-int");
-    addOperator(kind::STRING_IN_REGEXP, "str.in-re");
-    addOperator(kind::STRING_TO_REGEXP, "str.to-re");
+    addOperator(kind::STRING_ITOS, "str.from_int");
+    addOperator(kind::STRING_STOI, "str.to_int");
+    addOperator(kind::STRING_IN_REGEXP, "str.in_re");
+    addOperator(kind::STRING_TO_REGEXP, "str.to_re");
   }
   else
   {
@@ -365,7 +365,14 @@ void Smt2::addTheory(Theory theory) {
     defineType("RegLan", getExprManager()->regExpType());
     defineType("Int", getExprManager()->integerType());
 
-    defineVar("re.nostr", d_solver->mkRegexpEmpty().getExpr());
+    if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+    {
+      defineVar("re.none", d_solver->mkRegexpEmpty().getExpr());
+    }
+    else
+    {
+      defineVar("re.nostr", d_solver->mkRegexpEmpty().getExpr());
+    }
     defineVar("re.allchar", d_solver->mkRegexpSigma().getExpr());
 
     addStringOperators();
