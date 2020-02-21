@@ -145,6 +145,11 @@ class ExtfSolver
   const std::map<Node, ExtfInfoTmp>& getInfo() const;
   /** Are there any active extended functions? */
   bool hasExtendedFunctions() const;
+  /** 
+   * Get the function applications of kind k that are active in the current
+   * context (see ExtTheory::getActive).
+   */
+  std::vector<Node> getActive(Kind k) const;
 
  private:
   /** do reduction
