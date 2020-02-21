@@ -1655,12 +1655,13 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   {
     retNode = rewritePrefixSuffix(node);
   }
-  else if (nk== STRING_ISDIGIT)
+  else if (nk == STRING_ISDIGIT)
   {
     // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
-    Node t = nm->mkNode(STRING_CODE,node[0]);
-    retNode = nm->mkNode(AND, nm->mkNode( LEQ, nm->mkConst(Rational(48), t)),
-                         nm->mkNode( LEQ, t, nm->mkConst(Rational(57))));
+    Node t = nm->mkNode(STRING_CODE, node[0]);
+    retNode = nm->mkNode(AND,
+                         nm->mkNode(LEQ, nm->mkConst(Rational(48), t)),
+                         nm->mkNode(LEQ, t, nm->mkConst(Rational(57))));
   }
   else if (nk == kind::STRING_ITOS)
   {
@@ -1711,10 +1712,11 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   {
     retNode = rewriteAndOrRegExp(node);
   }
-  else if (nk== REGEXP_DIFF)
+  else if (nk == REGEXP_DIFF)
   {
     // FIXME
-    //retNode = nm->mkNode(REGEXPR_INTER, node[0], nm->mkNode(REGEXP_COMPLEMENT, node[1]));
+    // retNode = nm->mkNode(REGEXPR_INTER, node[0],
+    // nm->mkNode(REGEXP_COMPLEMENT, node[1]));
   }
   else if (nk == REGEXP_STAR)
   {
