@@ -3302,6 +3302,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
     ArithVar canBranch = nextIntegerViolatation(false);
     if(canBranch != ARITHVAR_SENTINEL){
       ++d_statistics.d_panicBranches;
+      Trace("integers") << "Calling branchIntegerVariable line: " << __LINE__ << endl;
       Node branch = branchIntegerVariable(canBranch);
       Assert(branch.getKind() == kind::OR);
       Node rwbranch = Rewriter::rewrite(branch[0]);
@@ -3873,6 +3874,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     }
 
     if(!emmittedConflictOrSplit) {
+      Trace("integers") << "Calling roundRobinBranch line: " << __LINE__ << endl;
       Node possibleLemma = roundRobinBranch();
       if(!possibleLemma.isNull()){
         ++(d_statistics.d_externalBranchAndBounds);
@@ -3938,15 +3940,58 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   TNode var = d_partialModel.asNode(x);
   Integer floor_d = d.floor();
 
+  Integer ceil_d = d.ceiling();
+
+  Rational f = r - floor_d;
+
+  Rational c = (r - ceil_d) * -1; 
+
+  Trace("integers") << "Trying substraction. r - floor(r) : " << f << " ceil - r: " << c << endl;
+
   //Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d+1)));
   //Node diseq = eq.notNode();
 
-  Node ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
-  Node lb = ub.notNode();
+    Node ub;
+    Node lb;
+    Node eq;
+    Node lem;
 
+
+  // Closer to floor
+  if (c >= f)
+  {
+    Trace("integers") << "floor"  << endl;
+    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d - 1)));
+    //Trace("integers") << "ub : " << ub << endl;
+    lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(floor_d + 1)));
+    //Trace("integers") << "lb : " << lb << endl;
+    lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
+    //Trace("integers") << "lem : " << lem << endl;
+    eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d)));
+    Node literal = d_containing.getValuation().ensureLiteral(eq);
+    d_containing.getOutputChannel().requirePhase(eq, true);
+    //Trace("integers") << "eq : " << eq << endl;
+    lem = NodeManager::currentNM()->mkNode(kind::OR, eq, lem);
+    //Trace("integers") << "lem : " << lem << endl;
+  }
+  // Closer to ceiling
+  else 
+  {
+    Trace("integers") << "ceiling"  << endl;
+    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(ceil_d - 1)));
+    //ub = NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(ceil_d - 1));
+    lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(ceil_d + 1)));
+    lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
+    eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(ceil_d)));
+    Node literal = d_containing.getValuation().ensureLiteral(eq);
+    d_containing.getOutputChannel().requirePhase(eq, true);
+    lem = NodeManager::currentNM()->mkNode(kind::OR, eq, lem);
+  }
 
   //Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, diseq);
-  Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
+
+  /*Original!!*/
+  //Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
   Trace("integers") << "integers: branch & bound: " << lem << endl;
   if(isSatLiteral(lem[0])) {
     Debug("integers") << "    " << lem[0] << " == " << getSatValue(lem[0]) << endl;
@@ -3990,6 +4035,7 @@ Node TheoryArithPrivate::roundRobinBranch(){
 
     Assert(isInteger(v));
     Assert(!isAuxiliaryVariable(v));
+    Trace("integers") << "Calling branchIntegerVariable line: " << __LINE__ << endl;
     return branchIntegerVariable(v);
   }
 }
