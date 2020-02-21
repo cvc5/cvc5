@@ -195,8 +195,9 @@ public:
 
   // Get accessor functions.
   InputLanguage getInputLanguage() const;
-  InstFormatMode getInstFormatMode() const;
+  options::InstFormatMode getInstFormatMode() const;
   OutputLanguage getOutputLanguage() const;
+  bool getUfHo() const;
   bool getCheckProofs() const;
   bool getDumpInstantiations() const;
   bool getDumpModels() const;

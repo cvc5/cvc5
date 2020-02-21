@@ -16,6 +16,7 @@
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
+#include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/strings/theory_strings_rewriter.h"
@@ -33,8 +34,16 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::Context* c,
                                    context::UserContext* u,
                                    SolverState& s,
+                                   SkolemCache& skc,
                                    OutputChannel& out)
-    : d_parent(p), d_state(s), d_out(out), d_keep(c), d_lengthLemmaTermsCache(u)
+    : d_parent(p),
+      d_state(s),
+      d_skCache(skc),
+      d_out(out),
+      d_keep(c),
+      d_proxyVar(u),
+      d_proxyVarToLength(u),
+      d_lengthLemmaTermsCache(u)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -283,6 +292,129 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
   d_pendingReqPhase[lit] = pol;
 }
 
+Node InferenceManager::getProxyVariableFor(Node n) const
+{
+  NodeNodeMap::const_iterator it = d_proxyVar.find(n);
+  if (it != d_proxyVar.end())
+  {
+    return (*it).second;
+  }
+  return Node::null();
+}
+
+Node InferenceManager::getSymbolicDefinition(Node n,
+                                             std::vector<Node>& exp) const
+{
+  if (n.getNumChildren() == 0)
+  {
+    Node pn = getProxyVariableFor(n);
+    if (pn.isNull())
+    {
+      return Node::null();
+    }
+    Node eq = n.eqNode(pn);
+    eq = Rewriter::rewrite(eq);
+    if (std::find(exp.begin(), exp.end(), eq) == exp.end())
+    {
+      exp.push_back(eq);
+    }
+    return pn;
+  }
+  std::vector<Node> children;
+  if (n.getMetaKind() == metakind::PARAMETERIZED)
+  {
+    children.push_back(n.getOperator());
+  }
+  for (const Node& nc : n)
+  {
+    if (n.getType().isRegExp())
+    {
+      children.push_back(nc);
+    }
+    else
+    {
+      Node ns = getSymbolicDefinition(nc, exp);
+      if (ns.isNull())
+      {
+        return Node::null();
+      }
+      else
+      {
+        children.push_back(ns);
+      }
+    }
+  }
+  return NodeManager::currentNM()->mkNode(n.getKind(), children);
+}
+
+void InferenceManager::registerLength(Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // register length information:
+  //  for variables, split on empty vs positive length
+  //  for concat/const/replace, introduce proxy var and state length relation
+  Node lsum;
+  if (n.getKind() != STRING_CONCAT && n.getKind() != CONST_STRING)
+  {
+    Node lsumb = nm->mkNode(STRING_LENGTH, n);
+    lsum = Rewriter::rewrite(lsumb);
+    // can register length term if it does not rewrite
+    if (lsum == lsumb)
+    {
+      registerLength(n, LENGTH_SPLIT);
+      return;
+    }
+  }
+  Node sk = d_skCache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
+  StringsProxyVarAttribute spva;
+  sk.setAttribute(spva, true);
+  Node eq = Rewriter::rewrite(sk.eqNode(n));
+  Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq << std::endl;
+  d_proxyVar[n] = sk;
+  // If we are introducing a proxy for a constant or concat term, we do not
+  // need to send lemmas about its length, since its length is already
+  // implied.
+  if (n.isConst() || n.getKind() == STRING_CONCAT)
+  {
+    // do not send length lemma for sk.
+    registerLength(sk, LENGTH_IGNORE);
+  }
+  Trace("strings-assert") << "(assert " << eq << ")" << std::endl;
+  d_out.lemma(eq);
+  Node skl = nm->mkNode(STRING_LENGTH, sk);
+  if (n.getKind() == STRING_CONCAT)
+  {
+    std::vector<Node> nodeVec;
+    for (const Node& nc : n)
+    {
+      if (nc.getAttribute(StringsProxyVarAttribute()))
+      {
+        Assert(d_proxyVarToLength.find(nc) != d_proxyVarToLength.end());
+        nodeVec.push_back(d_proxyVarToLength[nc]);
+      }
+      else
+      {
+        Node lni = nm->mkNode(STRING_LENGTH, nc);
+        nodeVec.push_back(lni);
+      }
+    }
+    lsum = nm->mkNode(PLUS, nodeVec);
+    lsum = Rewriter::rewrite(lsum);
+  }
+  else if (n.getKind() == CONST_STRING)
+  {
+    lsum = nm->mkConst(Rational(n.getConst<String>().size()));
+  }
+  Assert(!lsum.isNull());
+  d_proxyVarToLength[sk] = lsum;
+  Node ceq = Rewriter::rewrite(skl.eqNode(lsum));
+  Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
+  Trace("strings-lemma-debug")
+      << "  prerewrite : " << skl.eqNode(lsum) << std::endl;
+  Trace("strings-assert") << "(assert " << ceq << ")" << std::endl;
+  d_out.lemma(ceq);
+}
+
 void InferenceManager::registerLength(Node n, LengthStatus s)
 {
   if (d_lengthLemmaTermsCache.find(n) != d_lengthLemmaTermsCache.end())
@@ -479,7 +611,7 @@ void InferenceManager::inferSubstitutionProxyVars(
         }
         else if (ns[i].isConst())
         {
-          ss = d_parent.getProxyVariableFor(ns[i]);
+          ss = getProxyVariableFor(ns[i]);
         }
         if (!ss.isNull())
         {
@@ -623,6 +755,17 @@ void InferenceManager::explain(TNode literal,
     {
       Debug("strings-explain-debug") << "   " << a << std::endl;
     }
+  }
+}
+void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
+
+void InferenceManager::markCongruent(Node a, Node b)
+{
+  Assert(a.getKind() == b.getKind());
+  ExtTheory* eth = d_parent.getExtTheory();
+  if (eth->hasFunctionKind(a.getKind()))
+  {
+    eth->markCongruent(a, b);
   }
 }
 

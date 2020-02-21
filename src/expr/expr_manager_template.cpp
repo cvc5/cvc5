@@ -115,10 +115,11 @@ ExprManager::~ExprManager()
       }
     }
 #endif
+    // clear the datatypes
+    d_ownedDatatypes.clear();
 
     delete d_nodeManager;
     d_nodeManager = NULL;
-
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << std::endl
               << e << std::endl;
@@ -676,12 +677,13 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   std::map<std::string, DatatypeType> nameResolutions;
   std::vector<DatatypeType> dtts;
 
-  //have to build deep copy so that datatypes will live in NodeManager
+  // have to build deep copy so that datatypes will live in this class
   std::vector< Datatype* > dt_copies;
   for(std::vector<Datatype>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
-    dt_copies.push_back( new Datatype( *i ) );
+    d_ownedDatatypes.push_back(std::unique_ptr<Datatype>(new Datatype(*i)));
+    dt_copies.push_back(d_ownedDatatypes.back().get());
   }
-  
+
   // First do some sanity checks, set up the final Type to be used for
   // each datatype, and set up the "named resolutions" used to handle
   // simple self- and mutual-recursion, for example in the definition
@@ -689,12 +691,12 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   // pred selector.
   for(std::vector<Datatype*>::iterator i = dt_copies.begin(), i_end = dt_copies.end(); i != i_end; ++i) {
     TypeNode* typeNode;
+    // register datatype with the node manager
+    unsigned index = d_nodeManager->registerDatatype((*i)->d_internal);
     if( (*i)->getNumParameters() == 0 ) {
-      unsigned index = d_nodeManager->registerDatatype( *i );
       typeNode = new TypeNode(d_nodeManager->mkTypeConst(DatatypeIndexConstant(index)));
       //typeNode = new TypeNode(d_nodeManager->mkTypeConst(*i));
     } else {
-      unsigned index = d_nodeManager->registerDatatype( *i );
       TypeNode cons = d_nodeManager->mkTypeConst(DatatypeIndexConstant(index));
       //TypeNode cons = d_nodeManager->mkTypeConst(*i);
       std::vector< TypeNode > params;
@@ -766,9 +768,11 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
       ++i) {
     const Datatype& dt = (*i).getDatatype();
     if(!dt.isResolved()) {
-      const_cast<Datatype&>(dt).resolve(this, nameResolutions,
-                                        placeholders, replacements,
-                                        paramTypes, paramReplacements);
+      const_cast<Datatype&>(dt).resolve(nameResolutions,
+                                        placeholders,
+                                        replacements,
+                                        paramTypes,
+                                        paramReplacements);
     }
 
     // Now run some checks, including a check to make sure that no
@@ -1094,6 +1098,13 @@ Type ExprManager::exportType(const Type& t, ExprManager* em, ExprManagerMapColle
   NodeManagerScope ems(t.d_nodeManager);
   return Type(em->d_nodeManager,
               new TypeNode(expr::exportTypeInternal(*t.d_typeNode, t.d_nodeManager, em->d_nodeManager, vmap)));
+}
+
+const Datatype& ExprManager::getDatatypeForIndex(unsigned index) const
+{
+  // when the Node-level API is in place, this function will be deleted.
+  Assert(index < d_ownedDatatypes.size());
+  return *d_ownedDatatypes[index];
 }
 
 ${mkConst_implementations}

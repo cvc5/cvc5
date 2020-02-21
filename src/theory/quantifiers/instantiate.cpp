@@ -110,7 +110,7 @@ bool Instantiate::addInstantiation(
     Node q, std::vector<Node>& terms, bool mkRep, bool modEq, bool doVts)
 {
   // For resource-limiting (also does a time check).
-  d_qe->getOutputChannel().safePoint(options::quantifierStep());
+  d_qe->getOutputChannel().safePoint(ResourceManager::Resource::QuantifierStep);
   Assert(!d_qe->inConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Assert(d_term_db != nullptr);
@@ -126,16 +126,15 @@ bool Instantiate::addInstantiation(
     {
       terms[i] = getTermForType(tn);
     }
+    // Ensure the type is correct, this for instance ensures that real terms
+    // are cast to integers for { x -> t } where x has type Int and t has
+    // type Real.
+    terms[i] = quantifiers::TermUtil::ensureType(terms[i], tn);
     if (mkRep)
     {
       // pick the best possible representative for instantiation, based on past
       // use and simplicity of term
       terms[i] = d_qe->getInternalRepresentative(terms[i], q, i);
-    }
-    else
-    {
-      // ensure the type is correct
-      terms[i] = quantifiers::TermUtil::ensureType(terms[i], tn);
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if (terms[i].isNull())

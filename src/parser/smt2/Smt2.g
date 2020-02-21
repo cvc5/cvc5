@@ -80,8 +80,8 @@ using namespace CVC4::parser;
 #include <memory>
 
 #include "parser/antlr_tracing.h"
+#include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "parser/smt2/parse_op.h"
 #include "smt/command.h"
 
 namespace CVC4 {
@@ -305,8 +305,11 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         t = PARSER_STATE->mkFlatFunctionType(sorts, t);
       }
       if(t.isFunction() && !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-        PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) cannot "
-                                      "be declared in logic ");
+        PARSER_STATE->parseError(
+            "Functions (of non-zero arity) cannot "
+            "be declared in logic "
+            + PARSER_STATE->getLogic().getLogicString()
+            + " unless option --uf-ho is used.");
       }
       // we allow overloading for function declarations
       if (PARSER_STATE->sygus_v1())
@@ -391,17 +394,6 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         Command* csen = new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
-      }
-      // if sygus, check whether it has a free variable
-      // this is because, due to the sygus format, one can write assertions
-      // that have free function variables in them
-      if (PARSER_STATE->sygus())
-      {
-        if (expr.hasFreeVariable())
-        {
-          PARSER_STATE->parseError("Assertion has free variable. Perhaps you "
-                                   "meant constraint instead of assert?");
-        }
       }
     }
   | /* check-sat */
@@ -670,7 +662,7 @@ sygusGrammarV1[CVC4::Type & ret,
   std::vector<std::vector<CVC4::SygusGTerm>> sgts;
   std::vector<CVC4::Datatype> datatypes;
   std::vector<Type> sorts;
-  std::vector<std::vector<Expr>> ops;
+  std::vector<std::vector<ParseOp>> ops;
   std::vector<std::vector<std::string>> cnames;
   std::vector<std::vector<std::vector<CVC4::Type>>> cargs;
   std::vector<bool> allow_const;
@@ -792,7 +784,8 @@ sygusGrammarV1[CVC4::Type & ret,
                             << std::endl;
     }
     std::vector<DatatypeType> datatypeTypes =
-        PARSER_STATE->mkMutualDatatypeTypes(datatypes);
+        PARSER_STATE->mkMutualDatatypeTypes(
+            datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     ret = datatypeTypes[0];
   };
 
@@ -845,7 +838,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
           k = PARSER_STATE->getOperatorKind(name);
           sgt.d_name = kind::kindToString(k);
           sgt.d_gterm_type = SygusGTerm::gterm_op;
-          sgt.d_expr = EXPR_MANAGER->operatorOf(k);
+          sgt.d_op.d_kind = k;
         }else{
           // what is this sygus term trying to accomplish here, if the
           // symbol isn't yet declared?!  probably the following line will
@@ -861,7 +854,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
           }
           sgt.d_name = name;
           sgt.d_gterm_type = SygusGTerm::gterm_op;
-          sgt.d_expr = PARSER_STATE->getVariable(name) ;
+          sgt.d_op.d_expr = PARSER_STATE->getVariable(name) ;
         }
       }
     )
@@ -886,7 +879,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
                               << "expression " << atomTerm << std::endl;
         std::stringstream ss;
         ss << atomTerm;
-        sgt.d_expr = atomTerm.getExpr();
+        sgt.d_op.d_expr = atomTerm.getExpr();
         sgt.d_name = ss.str();
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }
@@ -896,13 +889,13 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
         Debug("parser-sygus") << "Sygus grammar " << fun
                               << " : unary minus integer literal " << name
                               << std::endl;
-        sgt.d_expr = MK_CONST(Rational(name));
+        sgt.d_op.d_expr = MK_CONST(Rational(name));
         sgt.d_name = name;
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }else if( PARSER_STATE->isDeclared(name,SYM_VARIABLE) ){
         Debug("parser-sygus") << "Sygus grammar " << fun << " : symbol "
                               << name << std::endl;
-        sgt.d_expr = PARSER_STATE->getExpressionForName(name);
+        sgt.d_op.d_expr = PARSER_STATE->getExpressionForName(name);
         sgt.d_name = name;
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }else{
@@ -967,7 +960,7 @@ sygusGrammar[CVC4::Type & ret,
       std::stringstream ss;
       ss << "dt_" << fun << "_" << i.first;
       std::string dname = ss.str();
-      datatypes.push_back(Datatype(dname));
+      datatypes.push_back(Datatype(EXPR_MANAGER, dname));
       // make its unresolved type, used for referencing the final version of
       // the datatype
       PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
@@ -1076,7 +1069,8 @@ sygusGrammar[CVC4::Type & ret,
     // now, make the sygus datatype
     Trace("parser-sygus2") << "Make the sygus datatypes..." << std::endl;
     std::vector<DatatypeType> datatypeTypes =
-        PARSER_STATE->mkMutualDatatypeTypes(datatypes);
+        PARSER_STATE->mkMutualDatatypeTypes(
+            datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     // return is the first datatype
     ret = datatypeTypes[0];
   }
@@ -1262,8 +1256,6 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | DECLARE_CODATATYPES_2_5_TOK datatypes_2_5_DefCommand[true, cmd]
   | DECLARE_CODATATYPE_TOK datatypeDefCommand[true, cmd]
   | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
-  | rewriterulesCommand[cmd]
-
     /* Support some of Z3's extended SMT-LIB commands */
 
   | DECLARE_SORTS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1294,8 +1286,11 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { Type t;
         if(sorts.size() > 1) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-            PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) "
-                                          "cannot be declared in logic ");
+            PARSER_STATE->parseError(
+                "Functions (of non-zero arity) cannot "
+                "be declared in logic "
+                + PARSER_STATE->getLogic().getLogicString()
+                + " unless option --uf-ho is used");
           }
           // must flatten
           Type range = sorts.back();
@@ -1321,8 +1316,11 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { Type t = EXPR_MANAGER->booleanType();
         if(sorts.size() > 0) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-            PARSER_STATE->parseErrorLogic("Predicates (of non-zero arity) "
-                                          "cannot be declared in logic ");
+            PARSER_STATE->parseError(
+                "Functions (of non-zero arity) cannot "
+                "be declared in logic "
+                + PARSER_STATE->getLogic().getLogicString()
+                + " unless option --uf-ho is used");
           }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
@@ -1412,8 +1410,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     {
       cmd->reset(new GetAbductCommand(name,e, t));
     }
-  | DECLARE_HEAP LPAREN_TOK 
-    sortSymbol[t,CHECK_DECLARED] 
+  | DECLARE_HEAP LPAREN_TOK
+    sortSymbol[t, CHECK_DECLARED]
     sortSymbol[t, CHECK_DECLARED]
     // We currently do nothing with the type information declared for the heap.
     { cmd->reset(new EmptyCommand()); }
@@ -1525,7 +1523,7 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("Wrong number of parameters for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(dnames[dts.size()],params,isCo));
+        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],params,isCo));
       }
       LPAREN_TOK
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
@@ -1535,7 +1533,7 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("No parameters given for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(dnames[dts.size()],params,isCo));
+        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],params,isCo));
       }
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
     )
@@ -1545,43 +1543,6 @@ datatypesDef[bool isCo,
     PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts, true)));
   }
-  ;
-
-rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
-@declarations {
-  std::vector<Expr> guards, heads, triggers;
-  Expr head, body, bvl, expr, expr2;
-  Kind kind;
-}
-  : /* rewrite rules */
-    REWRITE_RULE_TOK { kind = CVC4::kind::RR_REWRITE; }
-    { PARSER_STATE->pushScope(true); }
-    boundVarList[bvl]
-    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
-    LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
-    term[head, expr2]
-    term[body, expr2]
-    {
-      *cmd = PARSER_STATE->assertRewriteRule(
-          kind, bvl, triggers, guards, {head}, body);
-    }
-    /* propagation rule */
-  | rewritePropaKind[kind]
-    { PARSER_STATE->pushScope(true); }
-    boundVarList[bvl]
-    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
-    LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
-    LPAREN_TOK (termList[heads,expr])? RPAREN_TOK
-    term[body, expr2]
-    {
-      *cmd = PARSER_STATE->assertRewriteRule(
-          kind, bvl, triggers, guards, heads, body);
-    }
-  ;
-
-rewritePropaKind[CVC4::Kind& kind]
-  : REDUCTION_RULE_TOK    { $kind = CVC4::kind::RR_REDUCTION; }
-  | PROPAGATION_RULE_TOK  { $kind = CVC4::kind::RR_DEDUCTION; }
   ;
 
 pattern[CVC4::Expr& expr]
@@ -1633,8 +1594,7 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
         | GET_UNSAT_CORE_TOK | EXIT_TOK
         | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK
         | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
-        | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK
-        | REDUCTION_RULE_TOK | PROPAGATION_RULE_TOK | SIMPLIFY_TOK)
+        | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | SIMPLIFY_TOK)
     { sexpr = SExpr(SExpr::Keyword(AntlrInput::tokenText($tok))); }
   ;
 
@@ -1715,30 +1675,28 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       args.push_back(bvl);
 
       PARSER_STATE->popScope();
-      switch(f.getKind()) {
-      case CVC4::kind::RR_REWRITE:
-      case CVC4::kind::RR_REDUCTION:
-      case CVC4::kind::RR_DEDUCTION:
-        if(kind == CVC4::kind::EXISTS) {
-          PARSER_STATE->parseError("Use Exists instead of Forall for a rewrite "
-                                   "rule.");
-        }
-        args.push_back(f2); // guards
-        args.push_back(f); // rule
-        expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
-        break;
-      default:
-        args.push_back(f);
-        if(! f2.isNull()){
-          args.push_back(f2);
-        }
-        expr = MK_EXPR(kind, args);
+      args.push_back(f);
+      if(! f2.isNull()){
+        args.push_back(f2);
       }
+      expr = MK_EXPR(kind, args);
     }
+  | LPAREN_TOK COMPREHENSION_TOK
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
+    {
+      args.push_back(bvl);
+    }
+    term[f, f2] { args.push_back(f); }
+    term[f, f2] { 
+      args.push_back(f); 
+      expr = MK_EXPR(CVC4::kind::COMPREHENSION, args);
+    }
+    RPAREN_TOK
   | LPAREN_TOK qualIdentifier[p]
     termList[args,expr] RPAREN_TOK
-    { 
-      expr = PARSER_STATE->applyParseOp(p,args);
+    {
+      expr = PARSER_STATE->applyParseOp(p, args);
     }
   | /* a let or sygus let binding */
     LPAREN_TOK (
@@ -1892,33 +1850,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       }
     )+ RPAREN_TOK
     {
-      if(attr == ":rewrite-rule") {
-        Expr guard;
-        Expr body;
-        if(expr[1].getKind() == kind::IMPLIES ||
-           expr[1].getKind() == kind::EQUAL) {
-          guard = expr[0];
-          body = expr[1];
-        } else {
-          guard = MK_CONST(bool(true));
-          body = expr;
-        }
-        expr2 = guard;
-        args.push_back(body[0]);
-        args.push_back(body[1]);
-        if(!f2.isNull()) {
-          args.push_back(f2);
-        }
-
-        if( body.getKind()==kind::IMPLIES ){
-          kind = kind::RR_DEDUCTION;
-        }else if( body.getKind()==kind::EQUAL ){
-          kind = body[0].getType().isBoolean() ? kind::RR_REDUCTION : kind::RR_REWRITE;
-        }else{
-          PARSER_STATE->parseError("Error parsing rewrite rule.");
-        }
-        expr = MK_EXPR( kind, args );
-      } else if(! patexprs.empty()) {
+      if(! patexprs.empty()) {
         if( !f2.isNull() && f2.getKind()==kind::INST_PATTERN_LIST ){
           for( size_t i=0; i<f2.getNumChildren(); i++ ){
             if( f2[i].getKind()==kind::INST_PATTERN ){
@@ -2598,7 +2530,7 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes,
         params.push_back( t ); }
       )* ']'
     )?*/ //AJR: this isn't necessary if we use z3's style
-    { datatypes.push_back(Datatype(id,params,isCo));
+    { datatypes.push_back(Datatype(EXPR_MANAGER, id, params, isCo));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
@@ -2685,15 +2617,13 @@ DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'decla
 DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
 PAR_TOK : { PARSER_STATE->v2_6() }?'par';
+COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }?'comprehension';
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'is';
 MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
 BLOCK_MODEL_VALUES_TOK : 'block-model-values';
 ECHO_TOK : 'echo';
-REWRITE_RULE_TOK : 'assert-rewrite';
-REDUCTION_RULE_TOK : 'assert-reduction';
-PROPAGATION_RULE_TOK : 'assert-propagation';
 DECLARE_SORTS_TOK : 'declare-sorts';
 DECLARE_FUNS_TOK : 'declare-funs';
 DECLARE_PREDS_TOK : 'declare-preds';

@@ -19,22 +19,13 @@
 #ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 #define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
+#include "expr/dtype.h"
 #include "expr/type_matcher.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 namespace CVC4 {
-
-namespace expr {
-namespace attr {
-struct DatatypeConstructorTypeGroundTermTag {};
-} /* CVC4::expr::attr namespace */
-} /* CVC4::expr namespace */
-
 namespace theory {
 namespace datatypes {
-
-typedef expr::Attribute<expr::attr::DatatypeConstructorTypeGroundTermTag, Node>
-    GroundTermAttr;
 
 struct DatatypeConstructorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
@@ -104,22 +95,6 @@ struct DatatypeConstructorTypeRule {
         return false;
       }
     }
-    //if we support subtyping for tuples, enable this
-    /*
-    //check whether it is in normal form?
-    TypeNode tn = n.getType();
-    if( tn.isTuple() ){
-      const Datatype& dt = tn.getDatatype();
-      //may be the wrong constructor, if children types are subtypes
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( n[i].getType()!=TypeNode::fromType( dt[0][i].getRangeType() ) ){
-          return false;
-        }
-      }
-    }else if( tn.isCodatatype() ){
-      //TODO?
-    }
-    */
     return true;
   }
 }; /* struct DatatypeConstructorTypeRule */
@@ -302,11 +277,13 @@ struct RecordUpdateTypeRule {
     TypeNode recordType = n[0].getType(check);
     TypeNode newValue = n[1].getType(check);
     if (check) {
-      if (!recordType.isRecord()) {
+      if (!recordType.toType().isRecord())
+      {
         throw TypeCheckingExceptionPrivate(
             n, "Record-update expression formed over non-record");
       }
-      const Record& rec = recordType.getRecord();
+      const Record& rec =
+          DatatypeType(recordType.toType()).getRecord();
       if (!rec.contains(ru.getField())) {
         std::stringstream ss;
         ss << "Record-update field `" << ru.getField()
@@ -404,7 +381,7 @@ class DtSyguEvalTypeRule
       throw TypeCheckingExceptionPrivate(
           n, "datatype sygus eval takes a datatype head");
     }
-    const Datatype& dt = headType.getDatatype();
+    const DType& dt = headType.getDType();
     if (!dt.isSygus())
     {
       throw TypeCheckingExceptionPrivate(
@@ -412,7 +389,7 @@ class DtSyguEvalTypeRule
     }
     if (check)
     {
-      Node svl = Node::fromExpr(dt.getSygusVarList());
+      Node svl = dt.getSygusVarList();
       if (svl.getNumChildren() + 1 != n.getNumChildren())
       {
         throw TypeCheckingExceptionPrivate(n,
@@ -432,7 +409,7 @@ class DtSyguEvalTypeRule
         }
       }
     }
-    return TypeNode::fromType(dt.getSygusType());
+    return dt.getSygusType();
   }
 }; /* class DtSyguEvalTypeRule */
 
@@ -450,7 +427,7 @@ class MatchTypeRule
     {
       throw TypeCheckingExceptionPrivate(n, "expecting datatype head in match");
     }
-    const Datatype& hdt = headType.getDatatype();
+    const DType& hdt = headType.getDType();
 
     std::unordered_set<unsigned> patIndices;
     bool patHasVariable = false;
@@ -510,10 +487,10 @@ class MatchTypeRule
           throw TypeCheckingExceptionPrivate(
               n, "unexpected kind of term in pattern in match");
         }
-        const Datatype& pdt = patType.getDatatype();
+        const DType& pdt = patType.getDType();
         // compare datatypes instead of the types to catch parametric case,
         // where the pattern has parametric type.
-        if (hdt != pdt)
+        if (hdt.getTypeNode() != pdt.getTypeNode())
         {
           std::stringstream ss;
           ss << "pattern of a match case does not match the head type in match";

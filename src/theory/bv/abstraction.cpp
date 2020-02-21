@@ -88,7 +88,7 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
   }
 
   // if we are using the eager solver reverse the abstraction
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     if (d_funcToSignature.size() == 0)
     {
@@ -1081,7 +1081,8 @@ bool AbstractionModule::isLemmaAtom(TNode node) const {
 }
 
 void AbstractionModule::addInputAtom(TNode atom) {
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY) {
+  if (options::bitblastMode() == options::BitblastMode::LAZY)
+  {
     d_inputAtoms.insert(atom);
   }
 }

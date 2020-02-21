@@ -79,7 +79,7 @@ void TheoryUF::finishInit() {
   // finite model finding is enabled, and it is not disabled by
   // options::ufssMode().
   if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind()
-      && options::ufssMode() != UF_SS_NONE)
+      && options::ufssMode() != options::UfssMode::NONE)
   {
     d_thss.reset(new CardinalityExtension(
         getSatContext(), getUserContext(), *d_out, this));
@@ -117,7 +117,7 @@ void TheoryUF::check(Effort level) {
   if (done() && !fullEffort(level)) {
     return;
   }
-  getOutputChannel().spendResource(options::theoryCheckStep());
+  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
   while (!done() && !d_conflict)

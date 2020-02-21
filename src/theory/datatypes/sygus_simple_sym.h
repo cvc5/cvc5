@@ -18,6 +18,7 @@
 #define CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
 
 #include <map>
+#include "expr/dtype.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -91,13 +92,12 @@ class SygusSimpleSymBreak
   /** Pointer to the quantifiers term utility */
   quantifiers::TermUtil* d_tutil;
   /** return the index of the first argument position of c that has type tn */
-  int getFirstArgOccurrence(const DatatypeConstructor& c, TypeNode tn);
+  int getFirstArgOccurrence(const DTypeConstructor& c, TypeNode tn);
   /**
    * Helper function for consider const above, pdt is the datatype of the type
    * of tnp.
    */
-  bool considerConst(
-      const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg);
+  bool considerConst(const DType& pdt, TypeNode tnp, Node c, Kind pk, int arg);
 };
 
 }  // namespace datatypes

@@ -295,9 +295,9 @@ void PropEngine::interrupt()
   Debug("prop") << "interrupt()" << endl;
 }
 
-void PropEngine::spendResource(unsigned amount)
+void PropEngine::spendResource(ResourceManager::Resource r)
 {
-  d_resourceManager->spendResource(amount);
+  d_resourceManager->spendResource(r);
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const {

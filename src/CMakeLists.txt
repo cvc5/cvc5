@@ -544,8 +544,6 @@ libcvc4_add_sources(
   theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp
   theory/quantifiers/relevant_domain.h
-  theory/quantifiers/rewrite_engine.cpp
-  theory/quantifiers/rewrite_engine.h
   theory/quantifiers/single_inv_partition.cpp
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp
@@ -558,10 +556,22 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/ce_guided_single_inv_sol.h
   theory/quantifiers/sygus/cegis.cpp
   theory/quantifiers/sygus/cegis.h
+  theory/quantifiers/sygus/cegis_core_connective.cpp
+  theory/quantifiers/sygus/cegis_core_connective.h
   theory/quantifiers/sygus/cegis_unif.cpp
   theory/quantifiers/sygus/cegis_unif.h
+  theory/quantifiers/sygus/example_eval_cache.cpp
+  theory/quantifiers/sygus/example_eval_cache.h
+  theory/quantifiers/sygus/example_infer.cpp
+  theory/quantifiers/sygus/example_infer.h
+  theory/quantifiers/sygus/example_min_eval.cpp
+  theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/example_infer.cpp
+  theory/quantifiers/sygus/example_infer.h
+  theory/quantifiers/sygus/example_min_eval.cpp
+  theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/sygus_abduct.cpp
   theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
@@ -588,6 +598,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_process_conj.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
   theory/quantifiers/sygus/sygus_repair_const.h
+  theory/quantifiers/sygus/sygus_stats.cpp
+  theory/quantifiers/sygus/sygus_stats.h
   theory/quantifiers/sygus/sygus_unif.cpp
   theory/quantifiers/sygus/sygus_unif.h
   theory/quantifiers/sygus/sygus_unif_io.cpp
@@ -627,6 +639,7 @@ libcvc4_add_sources(
   theory/rewriter.h
   theory/rewriter_attributes.h
   theory/sep/theory_sep.cpp
+  theory/theory_rewriter.h
   theory/sep/theory_sep.h
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
@@ -655,6 +668,12 @@ libcvc4_add_sources(
   theory/shared_terms_database.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/strings/base_solver.cpp
+  theory/strings/base_solver.h
+  theory/strings/core_solver.cpp
+  theory/strings/core_solver.h
+  theory/strings/extf_solver.cpp
+  theory/strings/extf_solver.h
   theory/strings/infer_info.cpp
   theory/strings/infer_info.h
   theory/strings/inference_manager.cpp
@@ -671,6 +690,8 @@ libcvc4_add_sources(
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
   theory/strings/solver_state.h
+  theory/strings/strings_fmf.cpp
+  theory/strings/strings_fmf.h
   theory/strings/theory_strings.cpp
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
@@ -874,7 +895,6 @@ install(FILES
           expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
-          expr/chain.h
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
@@ -891,19 +911,11 @@ install(FILES
           ${INCLUDE_INSTALL_DIR}/cvc4/expr)
 install(FILES
           options/argument_extender.h
-          options/arith_heuristic_pivot_rule.h
-          options/arith_propagation_mode.h
-          options/arith_unate_lemma_mode.h
-          options/datatypes_modes.h
           options/language.h
           options/option_exception.h
           options/options.h
           options/printer_modes.h
-          options/quantifiers_modes.h
           options/set_language.h
-          options/smt_modes.h
-          options/sygus_out_mode.h
-          options/theoryof_mode.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/options)
 install(FILES
@@ -911,6 +923,7 @@ install(FILES
           parser/parser.h
           parser/parser_builder.h
           parser/parser_exception.h
+          parser/parse_op.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/parser)
 install(FILES

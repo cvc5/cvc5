@@ -27,6 +27,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <sstream>
 #include <unordered_set>
 
 #include "base/check.h"
@@ -204,7 +205,7 @@ void ErProof::outputAsLfsc(std::ostream& os) const
   // Print Definitions
   for (const ErDefinition& def : d_definitions)
   {
-    os << "\n    (decl_rat_elimination_def ("
+    os << "\n    (decl_definition ("
        << (def.d_oldLiteral.isNegated() ? "neg " : "pos ")
        << ProofManager::getVarName(def.d_oldLiteral.getSatVariable(), "bb")
        << ") ";
@@ -219,8 +220,8 @@ void ErProof::outputAsLfsc(std::ostream& os) const
   TraceCheckIdx firstDefClause = d_inputClauseIds.size() + 1;
   for (const ErDefinition& def : d_definitions)
   {
-    os << "\n    (clausify_rat_elimination_def _ _ _ "
-       << "er.def " << def.d_newVariable << " _ _ (\\ er.c" << firstDefClause
+    os << "\n    (clausify_definition _ _ _ "
+       << "er.def" << def.d_newVariable << " _ (\\ er.c" << firstDefClause
        << " (\\ er.c" << (firstDefClause + 1) << " (\\ er.cnf"
        << def.d_newVariable;
 
@@ -228,22 +229,35 @@ void ErProof::outputAsLfsc(std::ostream& os) const
   }
   parenCount += 4 * d_definitions.size();
 
-  // Unroll proofs of CNFs to proofs of clauses
+  // Unroll proofs of CNF to proofs of clauses
   firstDefClause = d_inputClauseIds.size() + 1;
   for (const ErDefinition& def : d_definitions)
   {
     for (size_t i = 0, n = def.d_otherLiterals.size(); i < n; ++i)
     {
-      os << "\n    (cnfc_unroll _ _ ";
-      os << "er.cnf" << def.d_newVariable;
+      // Compute the name of the CNF proof we're unrolling in this step
+      std::ostringstream previousCnfProof;
+      previousCnfProof << "er.cnf" << def.d_newVariable;
       if (i != 0)
       {
-        os << ".u" << i;
+        // For all but the first unrolling, the previous CNF has an unrolling
+        // number attached
+        previousCnfProof << ".u" << i;
       }
-      os << " (\\ er.c" << (firstDefClause + 2 + i);
-      os << " (\\ er.cnf" << def.d_newVariable << ".u" << (i + 1);
+
+      // Prove the first clause in the CNF
+      os << "\n    (@ ";
+      os << "er.c" << (firstDefClause + 2 + i);
+      os << " (common_tail_cnf_prove_head _ _ _ " << previousCnfProof.str()
+         << ")";
+
+      // Prove the rest of the CNF
+      os << "\n    (@ ";
+      os << "er.cnf" << def.d_newVariable << ".u" << (i + 1);
+      os << " (common_tail_cnf_prove_tail _ _ _ " << previousCnfProof.str()
+         << ")";
     }
-    parenCount += 3 * def.d_otherLiterals.size();
+    parenCount += 2 * def.d_otherLiterals.size();
 
     firstDefClause += 2 + def.d_otherLiterals.size();
   }

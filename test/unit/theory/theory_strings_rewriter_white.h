@@ -703,6 +703,10 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node ab = d_nm->mkConst(::CVC4::String("AB"));
     Node b = d_nm->mkConst(::CVC4::String("B"));
     Node c = d_nm->mkConst(::CVC4::String("C"));
+    Node e = d_nm->mkConst(::CVC4::String("E"));
+    Node h = d_nm->mkConst(::CVC4::String("H"));
+    Node j = d_nm->mkConst(::CVC4::String("J"));
+    Node p = d_nm->mkConst(::CVC4::String("P"));
     Node abc = d_nm->mkConst(::CVC4::String("ABC"));
     Node def = d_nm->mkConst(::CVC4::String("DEF"));
     Node ghi = d_nm->mkConst(::CVC4::String("GHI"));
@@ -998,6 +1002,23 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                        x),
           ab);
       rhs = d_nm->mkNode(kind::STRING_STRCTN, x, ab);
+      sameNormalForm(lhs, rhs);
+    }
+
+    {
+      // Same normal form for:
+      //
+      // (str.contains "ABC" (str.at x n))
+      //
+      // (or (= x "")
+      //     (= x "A") (= x "B") (= x "C"))
+      Node cat = d_nm->mkNode(kind::STRING_CHARAT, x, n);
+      lhs = d_nm->mkNode(kind::STRING_STRCTN, abc, cat);
+      rhs = d_nm->mkNode(kind::OR,
+                         d_nm->mkNode(kind::EQUAL, cat, empty),
+                         d_nm->mkNode(kind::EQUAL, cat, a),
+                         d_nm->mkNode(kind::EQUAL, cat, b),
+                         d_nm->mkNode(kind::EQUAL, cat, c));
       sameNormalForm(lhs, rhs);
     }
   }

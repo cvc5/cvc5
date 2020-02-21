@@ -202,7 +202,14 @@ public:
   /** mark relevant quantified formula, this will indicate it should be checked before the others */
   void markRelevant( Node q );
   /** has added lemma */
-  bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
+  bool hasAddedLemma() const;
+  /** theory engine needs check
+   *
+   * This is true if the theory engine has more constraints to process. When
+   * it is false, we are tentatively going to terminate solving with
+   * sat/unknown. For details, see TheoryEngine::needCheck.
+   */
+  bool theoryEngineNeedsCheck() const;
   /** is in conflict */
   bool inConflict() { return d_conflict; }
   /** set conflict */
@@ -214,8 +221,9 @@ public:
   /** get needs check */
   bool getInstWhenNeedsCheck( Theory::Effort e );
   /** get user pat mode */
-  quantifiers::UserPatMode getInstUserPatMode();
-public:
+  options::UserPatMode getInstUserPatMode();
+
+ public:
   /** add term to database */
   void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** notification when master equality engine is updated */

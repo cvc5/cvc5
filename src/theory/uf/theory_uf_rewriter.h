@@ -21,19 +21,19 @@
 #define CVC4__THEORY__UF__THEORY_UF_REWRITER_H
 
 #include "expr/node_algorithm.h"
-#include "theory/rewriter.h"
-#include "theory/substitutions.h"
 #include "options/uf_options.h"
+#include "theory/substitutions.h"
+#include "theory/theory_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
 namespace uf {
 
-class TheoryUfRewriter {
-
-public:
-
-  static RewriteResponse postRewrite(TNode node) {
+class TheoryUfRewriter : public TheoryRewriter
+{
+ public:
+  RewriteResponse postRewrite(TNode node) override
+  {
     if(node.getKind() == kind::EQUAL) {
       if(node[0] == node[1]) {
         return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
@@ -142,7 +142,8 @@ public:
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-  static RewriteResponse preRewrite(TNode node) {
+  RewriteResponse preRewrite(TNode node) override
+  {
     if(node.getKind() == kind::EQUAL) {
       if(node[0] == node[1]) {
         return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
@@ -153,9 +154,6 @@ public:
     }
     return RewriteResponse(REWRITE_DONE, node);
   }
-
-  static inline void init() {}
-  static inline void shutdown() {}
 
 public: //conversion between HO_APPLY AND APPLY_UF
   // converts an APPLY_UF to a curried HO_APPLY e.g. (f a b) becomes (@ (@ f a) b)
@@ -207,7 +205,7 @@ public: //conversion between HO_APPLY AND APPLY_UF
   static inline bool canUseAsApplyUfOperator(TNode n){
     return n.isVar();
   }
-};/* class TheoryUfRewriter */
+}; /* class TheoryUfRewriter */
 
 }/* CVC4::theory::uf namespace */
 }/* CVC4::theory namespace */

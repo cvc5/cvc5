@@ -19,6 +19,7 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
@@ -408,7 +409,7 @@ void BoundedIntegers::checkOwnership(Node f)
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if (tn.isSort()
+          if ((tn.isSort() && tn.isInterpretedFinite())
               || d_quantEngine->getTermEnumeration()->mayComplete(tn))
           {
             success = true;
@@ -737,14 +738,17 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
         return Node::null();
       }
     }
-    const Datatype& dt = Datatype::datatypeOf( t.getOperator().toExpr() );
-    unsigned index = Datatype::indexOf( t.getOperator().toExpr() );
+    NodeManager* nm = NodeManager::currentNM();
+    const DType& dt = datatypes::utils::datatypeOf(t.getOperator());
+    unsigned index = datatypes::utils::indexOf(t.getOperator());
     for( unsigned i=0; i<t.getNumChildren(); i++ ){
       Node u;
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node se = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[index].getSelectorInternal( e.getType().toType(), i ) ), e );
+        Node se = nm->mkNode(APPLY_SELECTOR_TOTAL,
+                             dt[index].getSelectorInternal(e.getType(), i),
+                             e);
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){

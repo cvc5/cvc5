@@ -15,6 +15,7 @@
 #include "theory/arith/nl_model.h"
 
 #include "expr/node_algorithm.h"
+#include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
@@ -36,11 +37,18 @@ NlModel::NlModel(context::Context* c) : d_used_approx(false)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset(TheoryModel* m)
+void NlModel::reset(TheoryModel* m, std::map<Node, Node>& arithModel)
 {
   d_model = m;
   d_mv[0].clear();
   d_mv[1].clear();
+  d_arithVal.clear();
+  // process arithModel
+  std::map<Node, Node>::iterator it;
+  for (const std::pair<const Node, Node>& m : arithModel)
+  {
+    d_arithVal[m.first] = m.second;
+  }
 }
 
 void NlModel::resetCheck()
@@ -127,19 +135,40 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
   return ret;
 }
 
-Node NlModel::getValueInternal(Node n) const
-{
-  return d_model->getValue(n);
-}
-
 bool NlModel::hasTerm(Node n) const
 {
-  return d_model->hasTerm(n);
+  return d_arithVal.find(n) != d_arithVal.end();
 }
 
 Node NlModel::getRepresentative(Node n) const
 {
+  if (n.isConst())
+  {
+    return n;
+  }
+  std::map<Node, Node>::const_iterator it = d_arithVal.find(n);
+  if (it != d_arithVal.end())
+  {
+    AlwaysAssert(it->second.isConst());
+    return it->second;
+  }
   return d_model->getRepresentative(n);
+}
+
+Node NlModel::getValueInternal(Node n) const
+{
+  if (n.isConst())
+  {
+    return n;
+  }
+  std::map<Node, Node>::const_iterator it = d_arithVal.find(n);
+  if (it != d_arithVal.end())
+  {
+    AlwaysAssert(it->second.isConst());
+    return it->second;
+  }
+  // It is unconstrained in the model, return 0.
+  return d_zero;
 }
 
 int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute)
@@ -255,10 +284,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
       // apply the substitution to a
       if (!d_check_model_vars.empty())
       {
-        av = av.substitute(d_check_model_vars.begin(),
-                           d_check_model_vars.end(),
-                           d_check_model_subs.begin(),
-                           d_check_model_subs.end());
+        av = arithSubstitute(av, d_check_model_vars, d_check_model_subs);
         av = Rewriter::rewrite(av);
       }
       // simple check literal
@@ -331,10 +357,14 @@ bool NlModel::addCheckModelSubstitution(TNode v, TNode s)
       return false;
     }
   }
+  std::vector<Node> varsTmp;
+  varsTmp.push_back(v);
+  std::vector<Node> subsTmp;
+  subsTmp.push_back(s);
   for (unsigned i = 0, size = d_check_model_subs.size(); i < size; i++)
   {
     Node ms = d_check_model_subs[i];
-    Node mss = ms.substitute(v, s);
+    Node mss = arithSubstitute(ms, varsTmp, subsTmp);
     if (mss != ms)
     {
       mss = Rewriter::rewrite(mss);
@@ -401,10 +431,7 @@ bool NlModel::solveEqualitySimple(Node eq,
   Node seq = eq;
   if (!d_check_model_vars.empty())
   {
-    seq = eq.substitute(d_check_model_vars.begin(),
-                        d_check_model_vars.end(),
-                        d_check_model_subs.begin(),
-                        d_check_model_subs.end());
+    seq = arithSubstitute(eq, d_check_model_vars, d_check_model_subs);
     seq = Rewriter::rewrite(seq);
     if (seq.isConst())
     {
@@ -507,8 +534,11 @@ bool NlModel::solveEqualitySimple(Node eq,
         if (ArithMSum::isolate(uv, msum, veqc, slv, EQUAL) != 0)
         {
           Assert(!slv.isNull());
-          // currently do not support substitution-with-coefficients
-          if (veqc.isNull() && !expr::hasSubterm(slv, uv))
+          // Currently do not support substitution-with-coefficients.
+          // We also ensure types are correct here, which avoids substituting
+          // a term of non-integer type for a variable of integer type.
+          if (veqc.isNull() && !expr::hasSubterm(slv, uv)
+              && slv.getType().isSubtypeOf(uv.getType()))
           {
             Trace("nl-ext-cm")
                 << "check-model-subs : " << uv << " -> " << slv << std::endl;
@@ -837,8 +867,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
             for (unsigned r = 0; r < 2; r++)
             {
               qsubs.push_back(boundn[r]);
-              Node ts = t.substitute(
-                  qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end());
+              Node ts = arithSubstitute(t, qvars, qsubs);
               tcmpn[r] = Rewriter::rewrite(ts);
               qsubs.pop_back();
             }
@@ -879,8 +908,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   if (!qvars.empty())
   {
     Assert(qvars.size() == qsubs.size());
-    Node slit =
-        lit.substitute(qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end());
+    Node slit = arithSubstitute(lit, qvars, qsubs);
     slit = Rewriter::rewrite(slit);
     return simpleCheckModelLit(slit);
   }
@@ -1175,8 +1203,8 @@ bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
     Rational curr_sq = curr * curr;
     if (curr_sq == rc)
     {
-      rl = curr_sq;
-      ru = curr_sq;
+      rl = curr;
+      ru = curr;
       break;
     }
     else if (curr_sq < rc)

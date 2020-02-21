@@ -57,11 +57,6 @@ enum Inference
   //     z = "" V z != ""
   // This is inferred when, e.g. x = y, x = z ++ x1, y = y1 ++ z
   INFER_LEN_SPLIT_EMP,
-  // string split constant binary, for example:
-  //     x1 = "aaaa" ++ x1' V "aaaa" = x1 ++ x1'
-  // This is inferred when, e.g. x = y, x = x1 ++ x2, y = "aaaaaaaa" ++ y2.
-  // This inference is disabled by default and is enabled by stringBinaryCsp().
-  INFER_SSPLIT_CST_BINARY,
   // string split constant
   //    x = y, x = "c" ++ x2, y = y1 ++ y2, y1 != ""
   //      implies y1 = "c" ++ y1'

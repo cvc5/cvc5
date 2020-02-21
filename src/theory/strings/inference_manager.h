@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
@@ -61,17 +62,20 @@ class TheoryStrings;
  * to doPendingLemmas.
  *
  * It also manages other kinds of interaction with the output channel of the
- * theory of strings, e.g. sendPhaseRequirement.
+ * theory of strings, e.g. sendPhaseRequirement, setIncomplete, and
+ * with the extended theory object e.g. markCongruent.
  */
 class InferenceManager
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
   InferenceManager(TheoryStrings& p,
                    context::Context* c,
                    context::UserContext* u,
                    SolverState& s,
+                   SkolemCache& skc,
                    OutputChannel& out);
   ~InferenceManager() {}
 
@@ -163,6 +167,32 @@ class InferenceManager
    * decided with polarity pol.
    */
   void sendPhaseRequirement(Node lit, bool pol);
+
+  //---------------------------- proxy variables and length elaboration
+  /** Get symbolic definition
+   *
+   * This method returns the "symbolic definition" of n, call it n', and
+   * populates the vector exp with an explanation such that exp => n = n'.
+   *
+   * The symbolic definition of n is the term where (maximal) subterms of n
+   * are replaced by their proxy variables. For example, if we introduced
+   * proxy variable v for x ++ y, then given input x ++ y = w, this method
+   * returns v = w and adds v = x ++ y to exp.
+   */
+  Node getSymbolicDefinition(Node n, std::vector<Node>& exp) const;
+  /** Get proxy variable
+   *
+   * If this method returns the proxy variable for (string) term n if one
+   * exists, otherwise it returns null.
+   */
+  Node getProxyVariableFor(Node n) const;
+  /** register length
+   *
+   * This method is called on non-constant string terms n. It sends a lemma
+   * on the output channel that ensures that the length n satisfies its assigned
+   * status (given by argument s).
+   */
+  void registerLength(Node n);
   /** register length
    *
    * This method is called on non-constant string terms n. It sends a lemma
@@ -185,6 +215,7 @@ class InferenceManager
    * channel instead of adding them to pending lists.
    */
   void registerLength(Node n, LengthStatus s);
+  //---------------------------- end proxy variables and length elaboration
 
   //----------------------------constructing antecedants
   /**
@@ -249,6 +280,19 @@ class InferenceManager
    * the node corresponding to their conjunction.
    */
   void explain(TNode literal, std::vector<TNode>& assumptions) const;
+  /**
+   * Set that we are incomplete for the current set of assertions (in other
+   * words, we must answer "unknown" instead of "sat"); this calls the output
+   * channel's setIncomplete method.
+   */
+  void setIncomplete();
+  /**
+   * Mark that terms a and b are congruent in the current context.
+   * This makes a call to markCongruent in the extended theory object of
+   * the parent theory if the kind of a (and b) is owned by the extended
+   * theory.
+   */
+  void markCongruent(Node a, Node b);
 
  private:
   /**
@@ -276,6 +320,8 @@ class InferenceManager
    * This is a reference to the solver state of the theory of strings.
    */
   SolverState& d_state;
+  /** cache of all skolems */
+  SkolemCache& d_skCache;
   /** the output channel
    *
    * This is a reference to the output channel of the theory of strings.
@@ -302,6 +348,22 @@ class InferenceManager
    * SAT-context-dependent.
    */
   NodeSet d_keep;
+  /**
+   * Map string terms to their "proxy variables". Proxy variables are used are
+   * intermediate variables so that length information can be communicated for
+   * constants. For example, to communicate that "ABC" has length 3, we
+   * introduce a proxy variable v_{"ABC"} for "ABC", and assert:
+   *   v_{"ABC"} = "ABC" ^ len( v_{"ABC"} ) = 3
+   * Notice this is required since we cannot directly write len( "ABC" ) = 3,
+   * which rewrites to 3 = 3.
+   * In the above example, we store "ABC" -> v_{"ABC"} in this map.
+   */
+  NodeNodeMap d_proxyVar;
+  /**
+   * Map from proxy variables to their normalized length. In the above example,
+   * we store "ABC" -> 3.
+   */
+  NodeNodeMap d_proxyVarToLength;
   /** List of terms that we have register length for */
   NodeSet d_lengthLemmaTermsCache;
   /** infer substitution proxy vars

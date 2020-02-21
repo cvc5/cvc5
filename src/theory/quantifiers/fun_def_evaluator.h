@@ -20,6 +20,7 @@
 #include <map>
 #include <vector>
 #include "expr/node.h"
+#include "theory/evaluator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -63,6 +64,8 @@ class FunDefEvaluator
   };
   /** maps functions to the above information */
   std::map<Node, FunDefInfo> d_funDefMap;
+  /** evaluator utility */
+  Evaluator d_eval;
 };
 
 }  // namespace quantifiers

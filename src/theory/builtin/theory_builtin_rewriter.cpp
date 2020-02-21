@@ -15,11 +15,11 @@
  ** \todo document this file
  **/
 
-#include "expr/attribute.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
 
-#include "expr/chain.h"
+#include "expr/attribute.h"
 #include "expr/node_algorithm.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 
@@ -50,24 +50,6 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in) {
   }
   Node out = NodeManager::currentNM()->mkNode(kind::AND, diseqs);
   return out;
-}
-
-Node TheoryBuiltinRewriter::blastChain(TNode in) {
-  Assert(in.getKind() == kind::CHAIN);
-
-  Kind chainedOp = in.getOperator().getConst<Chain>().getOperator();
-
-  if(in.getNumChildren() == 2) {
-    // if this is the case exactly 1 pair will be generated so the
-    // AND is not required
-    return NodeManager::currentNM()->mkNode(chainedOp, in[0], in[1]);
-  } else {
-    NodeBuilder<> conj(kind::AND);
-    for(TNode::iterator i = in.begin(), j = i + 1; j != in.end(); ++i, ++j) {
-      conj << NodeManager::currentNM()->mkNode(chainedOp, *i, *j);
-    }
-    return conj;
-  }
 }
 
 RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {

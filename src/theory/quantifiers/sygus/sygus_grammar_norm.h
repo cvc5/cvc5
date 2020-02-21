@@ -198,7 +198,8 @@ class SygusGrammarNorm
      * The types of the arguments of "cons" are recursively normalized
      */
     void addConsInfo(SygusGrammarNorm* sygus_norm,
-                     const DatatypeConstructor& cons);
+                     const DTypeConstructor& cons,
+                     std::shared_ptr<SygusPrintCallback> spc);
     /**
      * Returns the total version of Kind k if it is a partial operator, or
      * otherwise k itself.
@@ -219,7 +220,7 @@ class SygusGrammarNorm
      * The initialized datatype and its unresolved type are saved in the global
      * accumulators of "sygus_norm"
      */
-    void initializeDatatype(SygusGrammarNorm* sygus_norm, const Datatype& dt);
+    void initializeDatatype(SygusGrammarNorm* sygus_norm, const DType& dt);
 
     //---------- information stored from original type node
 
@@ -253,7 +254,7 @@ class SygusGrammarNorm
      */
     virtual void buildType(SygusGrammarNorm* sygus_norm,
                            TypeObject& to,
-                           const Datatype& dt,
+                           const DType& dt,
                            std::vector<unsigned>& op_pos) = 0;
   }; /* class Transf */
 
@@ -271,7 +272,7 @@ class SygusGrammarNorm
     /** build type */
     void buildType(SygusGrammarNorm* sygus_norm,
                    TypeObject& to,
-                   const Datatype& dt,
+                   const DType& dt,
                    std::vector<unsigned>& op_pos) override;
 
    private:
@@ -329,7 +330,7 @@ class SygusGrammarNorm
      */
     void buildType(SygusGrammarNorm* sygus_norm,
                    TypeObject& to,
-                   const Datatype& dt,
+                   const DType& dt,
                    std::vector<unsigned>& op_pos) override;
 
     /** Whether operator is chainable for the type (e.g. PLUS for Int)
@@ -421,7 +422,7 @@ class SygusGrammarNorm
    * recursion depth is limited by the height of the types, which is small
    */
   TypeNode normalizeSygusRec(TypeNode tn,
-                             const Datatype& dt,
+                             const DType& dt,
                              std::vector<unsigned>& op_pos);
 
   /** wrapper for the above function
@@ -436,7 +437,7 @@ class SygusGrammarNorm
    * TODO: #1304: Infer more complex transformations
    */
   std::unique_ptr<Transf> inferTransf(TypeNode tn,
-                                      const Datatype& dt,
+                                      const DType& dt,
                                       const std::vector<unsigned>& op_pos);
 }; /* class SygusGrammarNorm */
 

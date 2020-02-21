@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "options/bv_options.h"
 #include "options/language.h"
@@ -88,21 +89,6 @@ void Smt2Printer::toStream(
   } else {
     toStream(out, n, toDepth, types, TypeNode::null());
   }
-}
-
-static std::string maybeQuoteSymbol(const std::string& s) {
-  // this is the set of SMT-LIBv2 permitted characters in "simple" (non-quoted) symbols
-  if (s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-                          "0123456789~!@$%^&*_-+=<>.?/")
-          != string::npos
-      || s.empty())
-  {
-    // need to quote it
-    stringstream ss;
-    ss << '|' << s << '|';
-    return ss.str();
-  }
-  return s;
 }
 
 static bool stringifyRegexp(Node n, stringstream& ss) {
@@ -207,9 +193,6 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::BUILTIN:
       out << smtKindString(n.getConst<Kind>(), d_variant);
       break;
-    case kind::CHAIN_OP:
-      out << smtKindString(n.getConst<Chain>().getOperator(), d_variant);
-      break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
       toStreamRational(
@@ -246,7 +229,7 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::DATATYPE_TYPE:
     {
-      const Datatype& dt = (NodeManager::currentNM()->getDatatypeForIndex(
+      const DType& dt = (NodeManager::currentNM()->getDTypeForIndex(
           n.getConst<DatatypeIndexConstant>().getIndex()));
       if (dt.isTuple())
       {
@@ -267,7 +250,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       else
       {
-        out << maybeQuoteSymbol(dt.getName());
+        out << CVC4::quoteSymbol(dt.getName());
       }
       break;
     }
@@ -276,7 +259,7 @@ void Smt2Printer::toStream(std::ostream& out,
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
       std::stringstream ss;
       ss << '@' << uc;
-      out << maybeQuoteSymbol(ss.str());
+      out << CVC4::quoteSymbol(ss.str());
       break;
     }
 
@@ -380,7 +363,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << '(';
     }
     if(n.getAttribute(expr::VarNameAttr(), name)) {
-      out << maybeQuoteSymbol(name);
+      out << CVC4::quoteSymbol(name);
     }
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
@@ -445,7 +428,7 @@ void Smt2Printer::toStream(std::ostream& out,
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {
-      out << maybeQuoteSymbol(s);
+      out << CVC4::quoteSymbol(s);
     }
     else
     {
@@ -488,7 +471,6 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     parametricTypeChildren = true;
     break;
-  case kind::CHAIN: break;
   case kind::FUNCTION_TYPE:
     out << "->";
     for (Node nc : n)
@@ -665,6 +647,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_STRREPLALL:
   case kind::STRING_TOLOWER:
   case kind::STRING_TOUPPER:
+  case kind::STRING_REV:
   case kind::STRING_PREFIX:
   case kind::STRING_SUFFIX:
   case kind::STRING_LEQ:
@@ -752,6 +735,7 @@ void Smt2Printer::toStream(std::ostream& out,
     parametricTypeChildren = true;
     out << smtKindString(k, d_variant) << " ";
     break;
+  case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
   case kind::MEMBER: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::INSERT:
   case kind::SET_TYPE:
@@ -1040,7 +1024,6 @@ static string smtKindString(Kind k, Variant v)
     // builtin theory
   case kind::EQUAL: return "=";
   case kind::DISTINCT: return "distinct";
-  case kind::CHAIN: break;
   case kind::SEXPR: break;
 
     // bool theory
@@ -1156,6 +1139,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::INSERT: return "insert";
   case kind::COMPLEMENT: return "complement";
   case kind::CARD: return "card";
+  case kind::COMPREHENSION: return "comprehension";
   case kind::JOIN: return "join";
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";
@@ -1226,6 +1210,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_STRREPLALL: return "str.replaceall";
   case kind::STRING_TOLOWER: return "str.tolower";
   case kind::STRING_TOUPPER: return "str.toupper";
+  case kind::STRING_REV: return "str.rev";
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_LEQ: return "str.<=";
@@ -1281,8 +1266,7 @@ void Smt2Printer::toStream(std::ostream& out,
   expr::ExprDag::Scope dagScope(out, dag);
 
   if (tryToStream<AssertCommand>(out, c) || tryToStream<PushCommand>(out, c)
-      || tryToStream<PopCommand>(out, c)
-      || tryToStream<CheckSatCommand>(out, c)
+      || tryToStream<PopCommand>(out, c) || tryToStream<CheckSatCommand>(out, c)
       || tryToStream<CheckSatAssumingCommand>(out, c)
       || tryToStream<QueryCommand>(out, c, d_variant)
       || tryToStream<ResetCommand>(out, c)
@@ -1313,7 +1297,14 @@ void Smt2Printer::toStream(std::ostream& out,
       || tryToStream<DatatypeDeclarationCommand>(out, c, d_variant)
       || tryToStream<CommentCommand>(out, c, d_variant)
       || tryToStream<EmptyCommand>(out, c)
-      || tryToStream<EchoCommand>(out, c, d_variant))
+      || tryToStream<EchoCommand>(out, c, d_variant)
+      || tryToStream<SynthFunCommand>(out, c)
+      || tryToStream<DeclareSygusPrimedVarCommand>(out, c)
+      || tryToStream<DeclareSygusFunctionCommand>(out, c)
+      || tryToStream<DeclareSygusVarCommand>(out, c)
+      || tryToStream<SygusConstraintCommand>(out, c)
+      || tryToStream<SygusInvConstraintCommand>(out, c)
+      || tryToStream<CheckSynthCommand>(out, c))
   {
     return;
   }
@@ -1325,9 +1316,8 @@ void Smt2Printer::toStream(std::ostream& out,
 
 
 static std::string quoteSymbol(TNode n) {
-  // #warning "check the old implementation. It seems off."
   std::stringstream ss;
-  ss << language::SetLanguage(language::output::LANG_SMTLIB_V2_5);
+  ss << n;
   return CVC4::quoteSymbol(ss.str());
 }
 
@@ -1358,7 +1348,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
     std::string name;
     if (smt->getExpressionName(*i,name)) {
       // Named assertions always get printed
-      out << maybeQuoteSymbol(name) << endl;
+      out << CVC4::quoteSymbol(name) << endl;
     } else if (options::dumpUnsatCoresFull()) {
       // Unnamed assertions only get printed if the option is set
       out << *i << endl;
@@ -1799,7 +1789,7 @@ static void toStreamRational(std::ostream& out,
 
 static void toStream(std::ostream& out, const DeclareTypeCommand* c)
 {
-  out << "(declare-sort " << maybeQuoteSymbol(c->getSymbol()) << " "
+  out << "(declare-sort " << CVC4::quoteSymbol(c->getSymbol()) << " "
       << c->getArity() << ")";
 }
 
@@ -1914,7 +1904,7 @@ static void toStream(std::ostream& out, const Datatype & d) {
   for(Datatype::const_iterator ctor = d.begin(), ctor_end = d.end();
       ctor != ctor_end; ++ctor){
     if( ctor!=d.begin() ) out << " ";
-    out << "(" << maybeQuoteSymbol(ctor->getName());
+    out << "(" << CVC4::quoteSymbol(ctor->getName());
 
     for(DatatypeConstructor::const_iterator arg = ctor->begin(), arg_end = ctor->end();
         arg != arg_end; ++arg){
@@ -1952,7 +1942,7 @@ static void toStream(std::ostream& out,
          ++i)
     {
       const Datatype& d = i->getDatatype();
-      out << "(" << maybeQuoteSymbol(d.getName());
+      out << "(" << CVC4::quoteSymbol(d.getName());
       out << " " << d.getNumParameters() << ")";
     }
     out << ") (";
@@ -2036,7 +2026,7 @@ static void toStream(std::ostream& out,
          ++i)
     {
       const Datatype& d = i->getDatatype();
-      out << "(" << maybeQuoteSymbol(d.getName()) << " ";
+      out << "(" << CVC4::quoteSymbol(d.getName()) << " ";
       toStream(out, d);
       out << ")";
     }
@@ -2069,6 +2059,178 @@ static void toStream(std::ostream& out, const EchoCommand* c, Variant v)
   }
   out << "(echo \"" << s << "\")";
 }
+
+/*
+   --------------------------------------------------------------------------
+    Handling SyGuS commands
+   --------------------------------------------------------------------------
+*/
+
+static void toStream(std::ostream& out, const SynthFunCommand* c)
+{
+  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
+      << ' ';
+  Type type = c->getFunction().getType();
+  const std::vector<Expr>& vars = c->getVars();
+  Assert(!type.isFunction() || !vars.empty());
+  c->getCommandName();
+  if (type.isFunction())
+  {
+    // print variable list
+    std::vector<Expr>::const_iterator i = vars.begin(), i_end = vars.end();
+    Assert(i != i_end);
+    out << '(';
+    do
+    {
+      out << '(' << *i << ' ' << (*i).getType() << ')';
+      if (++i != i_end)
+      {
+        out << ' ';
+      }
+    } while (i != i_end);
+    out << ')';
+    FunctionType ft = type;
+    type = ft.getRangeType();
+  }
+  // if not invariant-to-synthesize, print return type
+  if (!c->isInv())
+  {
+    out << ' ' << type;
+  }
+  // print grammar, if any
+  Type sygusType = c->getSygusType();
+  if (sygusType.isDatatype()
+      && static_cast<DatatypeType>(sygusType).getDatatype().isSygus())
+  {
+    std::stringstream types_predecl, types_list;
+    std::set<Type> grammarTypes;
+    std::list<Type> typesToPrint;
+    grammarTypes.insert(sygusType);
+    typesToPrint.push_back(sygusType);
+    // for each datatype in grammar
+    //   name
+    //   sygus type
+    //   constructors in order
+    Printer* sygus_printer =
+        Printer::getPrinter(language::output::LANG_SYGUS_V2);
+    do
+    {
+      Type curr = typesToPrint.front();
+      typesToPrint.pop_front();
+      Assert(curr.isDatatype()
+             && static_cast<DatatypeType>(curr).getDatatype().isSygus());
+      const Datatype& dt = static_cast<DatatypeType>(curr).getDatatype();
+      types_list << "(" << dt.getName() << " " << dt.getSygusType() << "\n(";
+      types_predecl << "(" << dt.getName() << " " << dt.getSygusType() << ")";
+      if (dt.getSygusAllowConst())
+      {
+        types_list << "(Constant " << dt.getSygusType() << ") ";
+      }
+      for (const DatatypeConstructor& cons : dt)
+      {
+        DatatypeConstructor::const_iterator i = cons.begin(),
+                                            i_end = cons.end();
+        if (i != i_end)
+        {
+          types_list << "(";
+          SygusPrintCallback* spc = cons.getSygusPrintCallback().get();
+          if (spc != nullptr && options::sygusPrintCallbacks())
+          {
+            spc->toStreamSygus(sygus_printer, types_list, cons.getSygusOp());
+          }
+          else
+          {
+            types_list << cons.getSygusOp();
+          }
+          do
+          {
+            Type argType = (*i).getRangeType();
+            // print argument type
+            types_list << " " << argType;
+            // if fresh type, store it for later processing
+            if (grammarTypes.insert(argType).second)
+            {
+              typesToPrint.push_back(argType);
+            }
+          } while (++i != i_end);
+          types_list << ")";
+        }
+        else
+        {
+          SygusPrintCallback* spc = cons.getSygusPrintCallback().get();
+          if (spc != nullptr && options::sygusPrintCallbacks())
+          {
+            spc->toStreamSygus(sygus_printer, types_list, cons.getSygusOp());
+          }
+          else
+          {
+            types_list << cons.getSygusOp();
+          }
+        }
+        types_list << "\n";
+      }
+      types_list << "))\n";
+    } while (!typesToPrint.empty());
+
+    out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ")";
+  }
+  out << ")";
+}
+
+static void toStream(std::ostream& out, const DeclareSygusFunctionCommand* c)
+{
+  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol());
+
+  FunctionType ft = c->getType();
+  stringstream ss;
+
+  for (const Type& i : ft.getArgTypes())
+  {
+    ss << i << ' ';
+  }
+
+  string argTypes = ss.str();
+  argTypes.pop_back();
+
+  out << " (" << argTypes << ") " << ft.getRangeType() << ')';
+}
+
+static void toStream(std::ostream& out, const DeclareSygusPrimedVarCommand* c)
+{
+  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
+      << ' ' << c->getType() << ')';
+}
+
+static void toStream(std::ostream& out, const DeclareSygusVarCommand* c)
+{
+  out << '(' << c->getCommandName() << ' ' << c->getVar() << ' ' << c->getType()
+      << ')';
+}
+
+static void toStream(std::ostream& out, const SygusConstraintCommand* c)
+{
+  out << '(' << c->getCommandName() << ' ' << c->getExpr() << ')';
+}
+
+static void toStream(std::ostream& out, const SygusInvConstraintCommand* c)
+{
+  out << '(' << c->getCommandName() << ' ';
+  copy(c->getPredicates().cbegin(),
+       c->getPredicates().cend(),
+       std::ostream_iterator<Expr>(out, " "));
+  out << ')';
+}
+
+static void toStream(std::ostream& out, const CheckSynthCommand* c)
+{
+  out << '(' << c->getCommandName() << ')';
+}
+
+/*
+   --------------------------------------------------------------------------
+    End of Handling SyGuS commands
+   --------------------------------------------------------------------------
+*/
 
 template <class T>
 static bool tryToStream(std::ostream& out, const Command* c)

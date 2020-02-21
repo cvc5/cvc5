@@ -23,14 +23,15 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "base/check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "smt/command.h"
 #include "smt_util/lemma_channels.h"
@@ -46,6 +47,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
+#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -280,8 +282,9 @@ class TheoryEngine {
     EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory)
         : d_engine(engine), d_statistics(theory), d_theory(theory) {}
 
-    void safePoint(uint64_t amount) override {
-      spendResource(amount);
+    void safePoint(ResourceManager::Resource r) override
+    {
+      spendResource(r);
       if (d_engine->d_interrupted) {
         throw theory::Interrupted();
       }
@@ -322,8 +325,9 @@ class TheoryEngine {
       d_engine->setIncomplete(d_theory);
     }
 
-    void spendResource(unsigned amount) override {
-      d_engine->spendResource(amount);
+    void spendResource(ResourceManager::Resource r) override
+    {
+      d_engine->spendResource(r);
     }
 
     void handleUserAttribute(const char* attr, theory::Theory* t) override {
@@ -480,7 +484,7 @@ public:
   void interrupt();
 
   /** "Spend" a resource during a search or preprocessing.*/
-  void spendResource(unsigned amount);
+  void spendResource(ResourceManager::Resource r);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
@@ -864,10 +868,13 @@ public:
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
-  std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
+  std::pair<bool, Node> entailmentCheck(
+      options::TheoryOfMode mode,
+      TNode lit,
+      const theory::EntailmentCheckParameters* params = NULL,
+      theory::EntailmentCheckSideEffects* out = NULL);
 
-private:
-
+ private:
   /** Default visitor for pre-registration */
   PreRegisterVisitor d_preRegistrationVisitor;
 

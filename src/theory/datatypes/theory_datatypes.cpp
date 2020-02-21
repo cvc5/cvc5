@@ -19,6 +19,7 @@
 
 #include "base/check.h"
 #include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/kind.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -202,11 +203,12 @@ void TheoryDatatypes::check(Effort e) {
           //if there are more than 1 possible constructors for eqc
           if( !hasLabel( eqc, n ) ){
             Trace("datatypes-debug") << "No constructor..." << std::endl;
-            Type tt = tn.toType();
-            const Datatype& dt = ((DatatypeType)tt).getDatatype();
+            TypeNode tt = tn;
+            const DType& dt = tt.getDType();
             Trace("datatypes-debug")
-                << "Datatype " << dt << " is " << dt.isInterpretedFinite(tt)
-                << " " << dt.isRecursiveSingleton(tt) << std::endl;
+                << "Datatype " << dt.getName() << " is "
+                << dt.isInterpretedFinite(tt) << " "
+                << dt.isRecursiveSingleton(tt) << std::endl;
             bool continueProc = true;
             if( dt.isRecursiveSingleton( tt ) ){
               Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;
@@ -224,7 +226,7 @@ void TheoryDatatypes::check(Effort e) {
                   //otherwise, if the logic is quantified, under the assumption that all uninterpreted sorts have cardinality one,
                   //  infer the equality.
                   for( unsigned i=0; i<dt.getNumRecursiveSingletonArgTypes( tt ); i++ ){
-                    TypeNode tn = TypeNode::fromType( dt.getRecursiveSingletonArgType( tt, i ) );
+                    TypeNode tn = dt.getRecursiveSingletonArgType(tt, i);
                     if( getQuantifiersEngine() ){
                       // under the assumption that the cardinality of this type is one
                       Node a = getSingletonLemma( tn, true );
@@ -561,12 +563,11 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
     {
       Trace("dt-expand") << "Dt Expand definition : " << n << std::endl;
       Node selector = n.getOperator();
-      Expr selectorExpr = selector.toExpr();
       // APPLY_SELECTOR always applies to an external selector, cindexOf is
       // legal here
-      size_t cindex = Datatype::cindexOf(selectorExpr);
-      const Datatype& dt = Datatype::datatypeOf(selectorExpr);
-      const DatatypeConstructor& c = dt[cindex];
+      size_t cindex = utils::cindexOf(selector);
+      const DType& dt = utils::datatypeOf(selector);
+      const DTypeConstructor& c = dt[cindex];
       Node selector_use;
       TypeNode ndt = n[0].getType();
       if (options::dtSharedSelectors())
@@ -575,8 +576,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
         Trace("dt-expand") << "...selector index = " << selectorIndex
                            << std::endl;
         Assert(selectorIndex < c.getNumArgs());
-        selector_use =
-            Node::fromExpr(c.getSelectorInternal(ndt.toType(), selectorIndex));
+        selector_use = c.getSelectorInternal(ndt, selectorIndex);
       }else{
         selector_use = selector;
       }
@@ -587,8 +587,8 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
       }
       else
       {
-        Expr tester = c.getTester();
-        Node tst = nm->mkNode(kind::APPLY_TESTER, Node::fromExpr(tester), n[0]);
+        Node tester = c.getTester();
+        Node tst = nm->mkNode(APPLY_TESTER, tester, n[0]);
         tst = Rewriter::rewrite(tst);
         Node n_ret;
         if (tst == d_true)
@@ -619,9 +619,9 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
     {
       TypeNode t = n.getType();
       Assert(t.isDatatype());
-      const Datatype& dt = DatatypeType(t.toType()).getDatatype();
+      const DType& dt = t.getDType();
       NodeBuilder<> b(APPLY_CONSTRUCTOR);
-      b << Node::fromExpr(dt[0].getConstructor());
+      b << dt[0].getConstructor();
       size_t size, updateIndex;
       if (n.getKind() == TUPLE_UPDATE)
       {
@@ -631,8 +631,9 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
       }
       else
       {
-        Assert(t.isRecord());
-        const Record& record = t.getRecord();
+        Assert(t.toType().isRecord());
+        const Record& record =
+            DatatypeType(t.toType()).getRecord();
         size = record.getNumFields();
         updateIndex = record.getIndex(
             n.getOperator().getConst<RecordUpdate>().getField());
@@ -652,9 +653,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
         else
         {
           b << nm->mkNode(
-              APPLY_SELECTOR_TOTAL,
-              Node::fromExpr(dt[0].getSelectorInternal(t.toType(), i)),
-              n[0]);
+              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(t, i), n[0]);
           Debug("tuprec") << "arg " << i << " copies "
                           << b[b.getNumChildren() - 1] << std::endl;
         }
@@ -996,7 +995,7 @@ bool TheoryDatatypes::hasTester( Node n ) {
 
 void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& pcons ){
   TypeNode tn = n.getType();
-  const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+  const DType& dt = tn.getDType();
   int lindex = getLabelIndex( eqc, n );
   pcons.resize( dt.getNumConstructors(), lindex==-1 );
   if( lindex!=-1 ){
@@ -1117,8 +1116,8 @@ void TheoryDatatypes::addTester(
         d_labels_tindex[n].push_back(ttindex);
       }
       n_lbl++;
-      
-      const Datatype& dt = ((DatatypeType)(t_arg.getType()).toType()).getDatatype();
+
+      const DType& dt = t_arg.getType().getDType();
       Debug("datatypes-labels") << "Labels at " << n_lbl << " / " << dt.getNumConstructors() << std::endl;
       if( tpolarity ){
         instantiate( eqc, n );
@@ -1315,11 +1314,11 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     use_s = s;
   }
   if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
-    Expr selectorExpr = s.getOperator().toExpr();
+    Node selector = s.getOperator();
     size_t constructorIndex = utils::indexOf(c.getOperator());
-    const Datatype& dt = Datatype::datatypeOf(selectorExpr);
-    const DatatypeConstructor& dtc = dt[constructorIndex];
-    int selectorIndex = dtc.getSelectorIndexInternal( selectorExpr );
+    const DType& dt = utils::datatypeOf(selector);
+    const DTypeConstructor& dtc = dt[constructorIndex];
+    int selectorIndex = dtc.getSelectorIndexInternal(selector);
     wrong = selectorIndex<0;
     
     //if( wrong ){
@@ -1549,8 +1548,8 @@ bool TheoryDatatypes::collectModelInfo(TheoryModel* m)
     Node eqc = nodes[index];
     Node neqc;
     bool addCons = false;
-    Type tt = eqc.getType().toType();
-    const Datatype& dt = ((DatatypeType)tt).getDatatype();
+    TypeNode tt = eqc.getType();
+    const DType& dt = tt.getDType();
     if( !d_equalityEngine.hasTerm( eqc ) ){
       Assert(false);
     }else{
@@ -1725,7 +1724,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
   else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
   {
     std::vector<Node> children;
-    const Datatype& dt = n[0].getType().getDatatype();
+    const DType& dt = n[0].getType().getDType();
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       if (utils::isNullaryConstructor(dt[i]))
@@ -1749,7 +1748,8 @@ void TheoryDatatypes::collectTerms( Node n ) {
   }
 }
 
-Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index ){
+Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
+{
   std::map< int, Node >::iterator it = d_inst_map[n].find( index );
   if( it!=d_inst_map[n].end() ){
     return it->second;
@@ -1791,7 +1791,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     exp = getLabel(n);
     tt = exp[0];
   }
-  const Datatype& dt = ((DatatypeType)(tt.getType()).toType()).getDatatype();
+  const DType& dt = tt.getType().getDType();
   // instantiate this equivalence class
   eqc->d_inst = true;
   Node tt_cons = getInstantiateCons(tt, dt, index);
@@ -2087,7 +2087,7 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
     if( !tn.isDatatype() ){
       addLemma = true;
     }else{
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      const DType& dt = tn.getDType();
       addLemma = dt.involvesExternalType();
     }
   }else if( n.getKind()==LEQ || n.getKind()==OR ){

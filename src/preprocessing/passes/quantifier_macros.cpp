@@ -18,7 +18,6 @@
 
 #include <vector>
 
-#include "options/quantifiers_modes.h"
 #include "options/quantifiers_options.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
@@ -70,7 +69,8 @@ void QuantifierMacros::clearMaps()
 }
 
 bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){
-  unsigned rmax = options::macrosQuantMode()==MACROS_QUANT_MODE_ALL ? 2 : 1;
+  unsigned rmax =
+      options::macrosQuantMode() == options::MacrosQuantMode::ALL ? 2 : 1;
   for( unsigned r=0; r<rmax; r++ ){
     d_ground_macros = (r==0);
     Trace("macros") << "Find macros, ground=" << d_ground_macros << "..." << std::endl;
@@ -365,7 +365,10 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
               if( !containsBadOp( n_def, op, opc, visited ) ){
                 Trace("macros-debug") << "...does not contain bad (recursive) operator." << std::endl;
                 //must be ground UF term if mode is GROUND_UF
-                if( options::macrosQuantMode()!=MACROS_QUANT_MODE_GROUND_UF || isGroundUfTerm( f, n_def ) ){
+                if (options::macrosQuantMode()
+                        != options::MacrosQuantMode::GROUND_UF
+                    || isGroundUfTerm(f, n_def))
+                {
                   Trace("macros-debug") << "...respects ground-uf constraint." << std::endl;
                   //now we must rewrite candidates[i] to a term of form g( x1, ..., xn ) where
                   // x1 ... xn are distinct variables
