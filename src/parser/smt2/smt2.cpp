@@ -163,7 +163,6 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_CHARAT, "str.at" );
   addOperator(kind::STRING_STRIDOF, "str.indexof" );
   addOperator(kind::STRING_STRREPL, "str.replace" );
-  addOperator(kind::STRING_STRREPLALL, "str.replace_all");
   if (!strictModeEnabled())
   {
     addOperator(kind::STRING_TOLOWER, "str.tolower");
@@ -179,6 +178,8 @@ void Smt2::addStringOperators() {
     addOperator(kind::STRING_STOI, "str.to_int");
     addOperator(kind::STRING_IN_REGEXP, "str.in_re");
     addOperator(kind::STRING_TO_REGEXP, "str.to_re");
+    addOperator(kind::STRING_CODE, "str.from_code");
+    addOperator(kind::STRING_STRREPLALL, "str.replace_all");
   }
   else
   {
@@ -186,6 +187,8 @@ void Smt2::addStringOperators() {
     addOperator(kind::STRING_STOI, "str.to.int");
     addOperator(kind::STRING_IN_REGEXP, "str.in.re");
     addOperator(kind::STRING_TO_REGEXP, "str.to.re");
+    addOperator(kind::STRING_CODE, "str.code");
+    addOperator(kind::STRING_STRREPLALL, "str.replaceall");
   }
 
   addOperator(kind::REGEXP_CONCAT, "re.++");
@@ -196,7 +199,6 @@ void Smt2::addStringOperators() {
   addOperator(kind::REGEXP_OPT, "re.opt");
   addOperator(kind::REGEXP_RANGE, "re.range");
   addOperator(kind::REGEXP_LOOP, "re.loop");
-  addOperator(kind::STRING_CODE, "str.code");
   addOperator(kind::STRING_LT, "str.<");
   addOperator(kind::STRING_LEQ, "str.<=");
 }
