@@ -929,10 +929,12 @@ class NonlinearExtension {
   std::vector<Node> checkTranscendentalTangentPlanes();
   /** check transcendental function refinement for tf
    *
-   * This method is called by the above method for each "unreduced"
+   * This method is called by the above method for each "master"
    * transcendental function application that occurs in an assertion in the
-   * current context. An application like sin(t) is reduced if we have
-   * introduced the constraints t=y+2*pi*n ^ -pi <= y <= pi ^ sin(t) = sin(y).
+   * current context. For example, an application like sin(t) is not a master
+   * if we have introduced the constraints:
+   *   t=y+2*pi*n ^ -pi <= y <= pi ^ sin(t) = sin(y).
+   * See d_trMaster / d_trSlaves.
    *
    * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
    * function application tf for Taylor degree d. It may add a secant or

@@ -783,13 +783,14 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   }
 
   // get model bounds for all transcendental functions
-  Trace("nl-ext-cm-debug") << "  get bounds for transcendental functions..."
+  Trace("nl-ext-cm") << "----- Get bounds for transcendental functions..."
                            << std::endl;
   for (std::pair<const Kind, std::vector<Node> >& tfs : d_funcMap)
   {
     Kind k = tfs.first;
     for (const Node& tf : tfs.second)
     {
+      Trace("nl-ext-cm") << "- Term: " << tf << std::endl;
       bool success = true;
       // tf is Figure 3 : tf( x )
       Node bl;
@@ -807,11 +808,6 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
         if (bl!=bu)
         {
           d_model.setUsedApproximate();
-        }
-        else
-        {
-          bl = Node::null();
-          bu = Node::null();
         }
       }
       if (!bl.isNull() && !bu.isNull())
@@ -837,24 +833,27 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
               sbu = ArithMSum::negate(sbtmp);
             }
           }
-          Trace("nl-ext-cm-debug")
-              << "  bound for " << astf << " : [" << sbl << ", " << sbu << "]" << std::endl;
+          Trace("nl-ext-cm")
+              << "...bound for " << astf << " : [" << sbl << ", " << sbu << "]" << std::endl;
           success = d_model.addCheckModelBound(astf, sbl, sbu);
         }
       }
       else
       {
-        Trace("nl-ext-cm-debug") << "  no bound for " << tf << std::endl;
+        Trace("nl-ext-cm") << "...no bound for " << tf << std::endl;
       }
       if (!success)
       {
-        Trace("nl-ext-cm-debug")
-            << "...failed to set bound for transcendental function."
+        // a bound was conflicting
+        Trace("nl-ext-cm")
+            << "...failed to set bound for " << tf
             << std::endl;
+        Trace("nl-ext-cm") << "-----" << std::endl;
         return false;
       }
     }
   }
+  Trace("nl-ext-cm") << "-----" << std::endl;
   bool ret = d_model.checkModel(
       passertions, false_asserts, d_taylor_degree, lemmas, gs);
   return ret;
