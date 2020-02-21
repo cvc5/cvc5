@@ -1419,7 +1419,7 @@ lbool Solver::search(int nof_conflicts)
             }
 
             if ((nof_conflicts >= 0 && conflictC >= nof_conflicts)
-                || !withinBudget(options::satConflictStep()))
+                || !withinBudget(ResourceManager::Resource::SatConflictStep))
             {
               // Reached bound on number of conflicts:
               progress_estimate = progressEstimate();
@@ -1558,12 +1558,13 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget(options::satConflictStep())) break; // FIXME add restart option?
+        if (!withinBudget(ResourceManager::Resource::SatConflictStep))
+          break;  // FIXME add restart option?
         curr_restarts++;
     }
 
-    if(!withinBudget(options::satConflictStep()))
-        status = l_Undef;
+    if (!withinBudget(ResourceManager::Resource::SatConflictStep))
+      status = l_Undef;
 
     if (verbosity >= 1)
         printf("===============================================================================\n");
@@ -1778,7 +1779,7 @@ CRef Solver::updateLemmas() {
   Debug("minisat::lemmas") << "Solver::updateLemmas() begin" << std::endl;
 
   // Avoid adding lemmas indefinitely without resource-out
-  proxy->spendResource(options::lemmaStep());
+  proxy->spendResource(ResourceManager::Resource::LemmaStep);
 
   CRef conflict = CRef_Undef;
 
@@ -1948,19 +1949,20 @@ void ClauseAllocator::reloc(CRef& cr,
   else if (to[cr].has_extra()) to[cr].calcAbstraction();
 }
 
-inline bool Solver::withinBudget(uint64_t amount) const
+inline bool Solver::withinBudget(ResourceManager::Resource r) const
 {
   Assert(proxy);
   // spendResource sets async_interrupt or throws UnsafeInterruptException
   // depending on whether hard-limit is enabled
-  proxy->spendResource(amount);
+  proxy->spendResource(r);
 
-  bool within_budget =  !asynch_interrupt &&
-    (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&
-    (propagation_budget < 0 || propagations < (uint64_t)propagation_budget);
+  bool within_budget =
+      !asynch_interrupt
+      && (conflict_budget < 0 || conflicts < (uint64_t)conflict_budget)
+      && (propagation_budget < 0
+          || propagations < (uint64_t)propagation_budget);
   return within_budget;
 }
-
 
 } /* CVC4::Minisat namespace */
 } /* CVC4 namespace */

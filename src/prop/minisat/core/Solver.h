@@ -440,8 +440,9 @@ protected:
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
 public:
     bool     withinBudget     (uint64_t amount)      const;
-protected:
+    bool withinBudget(ResourceManager::Resource r) const;
 
+   protected:
     // Static helpers:
     //
 

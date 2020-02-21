@@ -138,6 +138,11 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
 }
 
 Kind Parser::getKindForFunction(Expr fun) {
+  Kind k = getExprManager()->operatorToKind(fun);
+  if (k != UNDEFINED_KIND)
+  {
+    return k;
+  }
   Type t = fun.getType();
   if (t.isFunction())
   {
@@ -155,11 +160,7 @@ Kind Parser::getKindForFunction(Expr fun) {
   {
     return APPLY_TESTER;
   }
-  else
-  {
-    parseError("internal error: unhandled function application kind");
-    return UNDEFINED_KIND;
-  }
+  return UNDEFINED_KIND;
 }
 
 Type Parser::getSort(const std::string& name) {
@@ -367,10 +368,11 @@ bool Parser::isUnresolvedType(const std::string& name) {
 }
 
 std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
-    std::vector<Datatype>& datatypes, bool doOverload) {
+    std::vector<Datatype>& datatypes, bool doOverload, uint32_t flags)
+{
   try {
     std::vector<DatatypeType> types =
-        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved);
+        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved, flags);
 
     assert(datatypes.size() == types.size());
 
@@ -513,6 +515,22 @@ Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args)
   return expr;
 }
 
+api::Term Parser::mkChain(api::Kind k, const std::vector<api::Term>& args)
+{
+  if (args.size() == 2)
+  {
+    // if this is the case exactly 1 pair will be generated so the
+    // AND is not required
+    return d_solver->mkTerm(k, args[0], args[1]);
+  }
+  std::vector<api::Term> children;
+  for (size_t i = 0, nargsmo = args.size() - 1; i < nargsmo; i++)
+  {
+    children.push_back(d_solver->mkTerm(k, args[i], args[i + 1]));
+  }
+  return d_solver->mkTerm(api::AND, children);
+}
+
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch (type) {
     case SYM_VARIABLE:
@@ -638,8 +656,7 @@ Command* Parser::nextCommand()
       dynamic_cast<QuitCommand*>(cmd) == NULL) {
     // don't count set-option commands as to not get stuck in an infinite
     // loop of resourcing out
-    const Options& options = getExprManager()->getOptions();
-    d_resourceManager->spendResource(options.getParseStep());
+    d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
   }
   return cmd;
 }
@@ -647,8 +664,7 @@ Command* Parser::nextCommand()
 Expr Parser::nextExpression()
 {
   Debug("parser") << "nextExpression()" << std::endl;
-  const Options& options = getExprManager()->getOptions();
-  d_resourceManager->spendResource(options.getParseStep());
+  d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
   Expr result;
   if (!done()) {
     try {

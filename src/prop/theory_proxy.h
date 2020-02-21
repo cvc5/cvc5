@@ -34,6 +34,7 @@
 #include "smt_util/lemma_input_channel.h"
 #include "smt_util/lemma_output_channel.h"
 #include "theory/theory.h"
+#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -92,7 +93,7 @@ public:
 
   void logDecision(SatLiteral lit);
 
-  void spendResource(unsigned amount);
+  void spendResource(ResourceManager::Resource r);
 
   bool isDecisionEngineDone();
 

@@ -20,6 +20,10 @@
 #define CVC4__API__CVC4CPP_H
 
 #include "api/cvc4cppkind.h"
+// !!! Only temporarily public until the parser is fully migrated to the new
+// API. !!!
+#include "expr/kind.h"
+// !!!
 
 #include <map>
 #include <memory>
@@ -510,9 +514,6 @@ class CVC4_PUBLIC Sort
    */
   bool isNullHelper() const;
 
-  /* Helper to convert a vector of sorts into a vector of internal types. */
-  std::vector<Sort> typeVectorToSorts(
-      const std::vector<CVC4::Type>& vector) const;
   /**
    * The interal type wrapped by this sort.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
@@ -750,23 +751,6 @@ class CVC4_PUBLIC Term
    * @return true if this Term is a null term
    */
   bool isNull() const;
-
-  /**
-   * @return true if this expression is parameterized.
-   *
-   * !!! The below documentation is not accurate until we have a way of getting
-   * operators from terms.
-   *
-   * In detail, a term that is parameterized is one that has an operator that
-   * must be provided in addition to its kind to construct it. For example,
-   * say we want to re-construct a Term t where its children a1, ..., an are
-   * replaced by b1 ... bn. Then there are two cases:
-   * (1) If t is parametric, call:
-   *   mkTerm(t.getKind(), t.getOperator(), b1, ..., bn )
-   * (2) If t is not parametric, call:
-   *   mkTerm(t.getKind(), b1, ..., bn )
-   */
-  bool isParameterized() const;
 
   /**
    * Boolean negation.
@@ -1112,6 +1096,11 @@ class CVC4_PUBLIC DatatypeDecl
   friend class Solver;
  public:
   /**
+   * Nullary constructor for Cython
+   */
+  DatatypeDecl();
+
+  /**
    * Destructor.
    */
   ~DatatypeDecl();
@@ -1127,6 +1116,8 @@ class CVC4_PUBLIC DatatypeDecl
 
   /** Is this Datatype declaration parametric? */
   bool isParametric() const;
+
+  bool isNull() const;
 
   /**
    * @return a string representation of this datatype declaration
@@ -1174,6 +1165,10 @@ class CVC4_PUBLIC DatatypeDecl
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
+
+  // helper for isNull() to avoid calling API functions from other API functions
+  bool isNullHelper() const;
+
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -1217,9 +1212,9 @@ class CVC4_PUBLIC DatatypeSelector
 
   /**
    * Get the selector operator of this datatype selector.
-   * @return the selector operator
+   * @return the selector term
    */
-  Op getSelectorTerm() const;
+  Term getSelectorTerm() const;
 
   /**
    * @return a string representation of this datatype selector
@@ -1274,9 +1269,9 @@ class CVC4_PUBLIC DatatypeConstructor
 
   /**
    * Get the constructor operator of this datatype constructor.
-   * @return the constructor operator
+   * @return the constructor term
    */
-  Op getConstructorTerm() const;
+  Term getConstructorTerm() const;
 
   /**
    * Get the datatype selector with the given name.
@@ -1295,7 +1290,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param name the name of the datatype selector
    * @return a term representing the datatype selector with the given name
    */
-  Op getSelectorTerm(const std::string& name) const;
+  Term getSelectorTerm(const std::string& name) const;
 
   /**
    * @return a string representation of this datatype constructor
@@ -1311,6 +1306,9 @@ class CVC4_PUBLIC DatatypeConstructor
     friend class DatatypeConstructor;  // to access constructor
 
    public:
+    /** Nullary constructor (required for Cython). */
+    const_iterator();
+
     /**
      * Assignment operator.
      * @param it the iterator to assign to
@@ -1414,6 +1412,9 @@ class CVC4_PUBLIC Datatype
    */
   Datatype(const CVC4::Datatype& dtype);
 
+  // Nullary constructor for Cython
+  Datatype();
+
   /**
    * Destructor.
    */
@@ -1442,7 +1443,7 @@ class CVC4_PUBLIC Datatype
    * similarly-named constructors, the
    * first is returned.
    */
-  Op getConstructorTerm(const std::string& name) const;
+  Term getConstructorTerm(const std::string& name) const;
 
   /** Get the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
@@ -1463,6 +1464,9 @@ class CVC4_PUBLIC Datatype
     friend class Datatype;  // to access constructor
 
    public:
+    /** Nullary constructor (required for Cython). */
+    const_iterator();
+
     /**
      * Assignment operator.
      * @param it the iterator to assign to
@@ -1920,15 +1924,6 @@ class CVC4_PUBLIC Solver
    * @param kind the kind to wrap
    */
   Op mkOp(Kind kind) const;
-
-  /**
-   * Create operator of kind:
-   *   - CHAIN
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param k the kind argument to this operator
-   */
-  Op mkOp(Kind kind, Kind k) const;
 
   /**
    * Create operator of kind:
@@ -2689,6 +2684,20 @@ class CVC4_PUBLIC Solver
   std::unique_ptr<Random> d_rng;
 };
 
+// !!! Only temporarily public until the parser is fully migrated to the
+// new API. !!!
+std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
+std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
+std::vector<Term> exprVectorToTerms(const std::vector<Expr>& terms);
+std::vector<Sort> typeVectorToSorts(const std::vector<Type>& sorts);
+std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
+
 }  // namespace api
+
+// !!! Only temporarily public until the parser is fully migrated to the
+// new API. !!!
+CVC4::api::Kind intToExtKind(CVC4::Kind k);
+CVC4::Kind extToIntKind(CVC4::api::Kind k);
+
 }  // namespace CVC4
 #endif

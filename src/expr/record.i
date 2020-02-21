@@ -35,7 +35,7 @@
 %typemap(out) std::pair<std::string, CVC4::Type> {
       $result = jenv->NewObjectArray(2, jenv->FindClass("java/lang/Object"), $null);
       jenv->SetObjectArrayElement($result, 0, jenv->NewStringUTF($1.first.c_str()));
-      jclass clazz = jenv->FindClass("edu/nyu/acsys/CVC4/Type");
+      jclass clazz = jenv->FindClass("edu/stanford/CVC4/Type");
       jmethodID methodid = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
       jenv->SetObjectArrayElement($result, 1, jenv->NewObject(clazz, methodid, reinterpret_cast<uintptr_t>(new CVC4::Type($1.second)), true));
     };

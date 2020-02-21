@@ -25,6 +25,7 @@
 #include "expr/node_trie.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
+#include "theory/strings/extf_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
@@ -34,7 +35,6 @@
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strings_fmf.h"
-#include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -121,18 +121,6 @@ class TheoryStrings : public Theory {
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp) override;
-  //--------------------------for checkExtfReductions
-  /** do reduction
-   *
-   * This is called when an extended function application n is not able to be
-   * simplified by context-depdendent simplification, and we are resorting to
-   * expanding n to its full semantics via a reduction. This method returns
-   * true if it successfully reduced n by some reduction and sets isCd to
-   * true if the reduction was (SAT)-context-dependent, and false otherwise.
-   * The argument effort has the same meaning as in checkExtfReductions.
-   */
-  bool doReduction(int effort, Node n, bool& isCd);
-  //--------------------------end for checkExtfReductions
 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -230,26 +218,8 @@ class TheoryStrings : public Theory {
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
-  /** preprocessing utility, for performing strings reductions */
-  StringsPreprocess d_preproc;
-  // extended functions inferences cache
-  NodeSet d_extf_infer_cache;
   std::vector< Node > d_empty_vec;
 private:
-  /**
-   * Get the current substitution for term n.
-   *
-   * This method returns a term that n is currently equal to in the current
-   * context. It updates exp to contain an explanation of why it is currently
-   * equal to that term.
-   *
-   * The argument effort determines what kind of term to return, either
-   * a constant in the equivalence class of n (effort=0), the normal form of
-   * n (effort=1,2) or the model value of n (effort>=3). The latter is only
-   * valid at LAST_CALL effort. If a term of the above form cannot be returned,
-   * then n itself is returned.
-   */
-  Node getCurrentSubstitutionFor(int effort, Node n, std::vector<Node>& exp);
 
   std::map< Node, Node > d_eqc_to_len_term;
 
@@ -274,27 +244,9 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
  private:
-  /**
-   * Map string terms to their "proxy variables". Proxy variables are used are
-   * intermediate variables so that length information can be communicated for
-   * constants. For example, to communicate that "ABC" has length 3, we
-   * introduce a proxy variable v_{"ABC"} for "ABC", and assert:
-   *   v_{"ABC"} = "ABC" ^ len( v_{"ABC"} ) = 3
-   * Notice this is required since we cannot directly write len( "ABC" ) = 3,
-   * which rewrites to 3 = 3.
-   * In the above example, we store "ABC" -> v_{"ABC"} in this map.
-   */
-  NodeNodeMap d_proxy_var;
-  /**
-   * Map from proxy variables to their normalized length. In the above example,
-   * we store "ABC" -> 3.
-   */
-  NodeNodeMap d_proxy_var_to_length;
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
 private:
-  //any non-reduced extended functions exist
-  context::CDO< bool > d_has_extf;
   /** have we asserted any str.code terms? */
   bool d_has_str_code;
   // static information about extf
@@ -308,75 +260,6 @@ private:
 
   /** cache of all skolems */
   SkolemCache d_sk_cache;
-
-  /** Get proxy variable
-   *
-   * If this method returns the proxy variable for (string) term n if one
-   * exists, otherwise it returns null.
-   */
-  Node getProxyVariableFor(Node n) const;
-  /** Get symbolic definition
-   *
-   * This method returns the "symbolic definition" of n, call it n', and
-   * populates the vector exp with an explanation such that exp => n = n'.
-   *
-   * The symbolic definition of n is the term where (maximal) subterms of n
-   * are replaced by their proxy variables. For example, if we introduced
-   * proxy variable v for x ++ y, then given input x ++ y = w, this method
-   * returns v = w and adds v = x ++ y to exp.
-   */
-  Node getSymbolicDefinition(Node n, std::vector<Node>& exp) const;
-
-  //--------------------------for checkExtfEval
-  /**
-   * Non-static information about an extended function t. This information is
-   * constructed and used during the check extended function evaluation
-   * inference schema.
-   *
-   * In the following, we refer to the "context-dependent simplified form"
-   * of a term t to be the result of rewriting t * sigma, where sigma is a
-   * derivable substitution in the current context. For example, the
-   * context-depdendent simplified form of contains( x++y, "a" ) given
-   * sigma = { x -> "" } is contains(y,"a").
-   */
-  class ExtfInfoTmp
-  {
-   public:
-    ExtfInfoTmp() : d_model_active(true) {}
-    /**
-     * If s is in d_ctn[true] (resp. d_ctn[false]), then contains( t, s )
-     * (resp. ~contains( t, s )) holds in the current context. The vector
-     * d_ctn_from is the explanation for why this holds. For example,
-     * if d_ctn[false][i] is "A", then d_ctn_from[false][i] might be
-     * t = x ++ y AND x = "" AND y = "B".
-     */
-    std::map<bool, std::vector<Node> > d_ctn;
-    std::map<bool, std::vector<Node> > d_ctn_from;
-    /**
-     * The constant that t is entailed to be equal to, or null if none exist.
-     */
-    Node d_const;
-    /**
-     * The explanation for why t is equal to its context-dependent simplified
-     * form.
-     */
-    std::vector<Node> d_exp;
-    /** This flag is false if t is reduced in the model. */
-    bool d_model_active;
-  };
-  /** map extended functions to the above information */
-  std::map<Node, ExtfInfoTmp> d_extf_info_tmp;
-  /** check extended function inferences
-   *
-   * This function makes additional inferences for n that do not contribute
-   * to its reduction, but may help show a refutation.
-   *
-   * This function is called when the context-depdendent simplified form of
-   * n is nr. The argument "in" is the information object for n. The argument
-   * "effort" has the same meaning as the effort argument of checkExtfEval.
-   */
-  void checkExtfInference(Node n, Node nr, ExtfInfoTmp& in, int effort);
-  //--------------------------end for checkExtfEval
 
  private:
   void addCarePairs(TNodeTrie* t1,
@@ -403,8 +286,6 @@ private:
   void eqNotifyPostMerge(TNode t1, TNode t2);
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-  /** get preprocess */
-  StringsPreprocess* getPreprocess() { return &d_preproc; }
 
  protected:
   /** compute care graph */
@@ -457,6 +338,11 @@ private:
    * with length constraints.
    */
   CoreSolver d_csolver;
+  /**
+   * Extended function solver, responsible for reductions and simplifications
+   * involving extended string functions.
+   */
+  std::unique_ptr<ExtfSolver> d_esolver;
   /** regular expression solver module */
   RegExpSolver d_regexp_solver;
   /** regular expression elimination module */
@@ -483,21 +369,6 @@ private:
 
  private:
   //-----------------------inference steps
-  /** check extended functions evaluation
-   *
-   * This applies "context-dependent simplification" for all active extended
-   * function terms in this SAT context. This infers facts of the form:
-   *   x = c => f( t1 ... tn ) = c'
-   * where the rewritten form of f( t1...tn ) { x |-> c } is c', and x = c
-   * is a (tuple of) equalities that are asserted in this SAT context, and
-   * f( t1 ... tn ) is a term from this SAT context.
-   *
-   * For more details, this is steps 4 when effort=0 and step 6 when
-   * effort=1 from Strategy 1 in Reynolds et al, "Scaling up DPLL(T) String
-   * Solvers using Context-Dependent Simplification", CAV 2017. When called with
-   * effort=3, we apply context-dependent simplification based on model values.
-   */
-  void checkExtfEval(int effort);
   /** check register terms pre-normal forms
    *
    * This calls registerTerm(n,2) on all non-congruent strings in the
@@ -514,15 +385,6 @@ private:
    *   str.code(x) == -1 V str.code(x) != str.code(y) V x == y
    */
   void checkCodes();
-  /** check lengths for equivalence classes
-   *
-   * This inference schema adds lemmas of the form:
-   *   E => len( x ) = rewrite( len( r1 ++ ... ++ rn ) )
-   * where [r1, ..., rn] is the normal form of the equivalence class containing
-   * x. This schema is not required for correctness but experimentally has
-   * shown to be helpful.
-   */
-  void checkLengthsEqc();
   /** check register terms for normal forms
    *
    * This calls registerTerm(str.++(t1, ..., tn ), 3) on the normal forms
@@ -530,20 +392,6 @@ private:
    * there does not exist a term of the form str.len(si) in the current context.
    */
   void checkRegisterTermsNormalForms();
-  /** check extended function reductions
-   *
-   * This adds "reduction" lemmas for each active extended function in this SAT
-   * context. These are generally lemmas of the form:
-   *   F[t1...tn,k] ^ f( t1 ... tn ) = k
-   * where f( t1 ... tn ) is an active extended function, k is a fresh constant
-   * and F is a formula that constrains k based on the definition of f.
-   *
-   * For more details, this is step 7 from Strategy 1 in Reynolds et al,
-   * CAV 2017. We stratify this in practice, where calling this with effort=1
-   * reduces some of the "easier" extended functions, and effort=2 reduces
-   * the rest.
-   */
-  void checkExtfReductions(int effort);
   /** check regular expression memberships
    *
    * This checks the satisfiability of all regular expression memberships

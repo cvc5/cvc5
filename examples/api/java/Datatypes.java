@@ -14,7 +14,7 @@
  ** An example of using inductive datatypes in CVC4 (Java version).
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 import java.util.Iterator;
 
 public class Datatypes {

@@ -1854,11 +1854,11 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   if(Dump.isOn("t-lemmas")) {
     Node n = node;
-    if (negated) {
+    if (!negated) {
       n = node.negate();
     }
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
-                     << QueryCommand(n.toExpr());
+                     << CheckSatCommand(n.toExpr());
   }
 
   // Share with other portfolio threads
@@ -2313,9 +2313,9 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
   }
 }
 
-void TheoryEngine::spendResource(unsigned amount)
+void TheoryEngine::spendResource(ResourceManager::Resource r)
 {
-  d_resourceManager->spendResource(amount);
+  d_resourceManager->spendResource(r);
 }
 
 void TheoryEngine::enableTheoryAlternative(const std::string& name){
