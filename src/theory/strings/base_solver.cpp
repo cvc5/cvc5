@@ -435,7 +435,7 @@ void BaseSolver::checkCardinality()
       // don't need to split
       continue;
     }
-    unsigned int int_k = (unsigned int)card_need;
+    // first, try to split to merge equivalence classes
     for (std::vector<Node>::iterator itr1 = cols[i].begin();
          itr1 != cols[i].end();
          ++itr1)
@@ -453,6 +453,8 @@ void BaseSolver::checkCardinality()
         }
       }
     }
+    // otherwise, we need a length constraint
+    uint32_t int_k = static_cast<uint32_t>(card_need);
     EqcInfo* ei = d_state.getOrMakeEqcInfo(lr, true);
     Trace("strings-card") << "Previous cardinality used for " << lr << " is "
                           << ((int)ei->d_cardinalityLemK.get() - 1)
