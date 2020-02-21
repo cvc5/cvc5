@@ -1052,7 +1052,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
           nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
       Node new_a = nm->mkNode(a.getKind(), y);
       d_trSlaves[new_a].push_back(new_a);
-      d_trSlaves[new_a].push_back(a);
+      //d_trSlaves[new_a].push_back(a);
       d_tr_base[a] = new_a;
       Node lem;
       if (a.getKind() == SINE)
