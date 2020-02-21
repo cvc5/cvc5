@@ -117,7 +117,7 @@ class BoolToBV : public PreprocessingPass
   std::unordered_map<Node, Node, NodeHashFunction> d_lowerCache;
 
   /** Stores the bool-to-bv mode option */
-  options::BoolToBVMode boolToBVMode;
+  options::BoolToBVMode d_boolToBVMode;
 };  // class BoolToBV
 
 }  // namespace passes

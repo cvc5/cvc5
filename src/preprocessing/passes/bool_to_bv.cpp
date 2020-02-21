@@ -31,7 +31,7 @@ using namespace CVC4::theory;
 BoolToBV::BoolToBV(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bool-to-bv"), d_statistics()
 {
-  boolToBVMode = options::boolToBitvector();
+  d_boolToBVMode = options::boolToBitvector();
 };
 
 PreprocessingPassResult BoolToBV::applyInternal(
@@ -42,7 +42,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
 
   size_t size = assertionsToPreprocess->size();
 
-  if (boolToBVMode == options::BoolToBVMode::ALL)
+  if (d_boolToBVMode == options::BoolToBVMode::ALL)
   {
     for (size_t i = 0; i < size; ++i)
     {
@@ -52,7 +52,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
   }
   else
   {
-    Assert(boolToBVMode == options::BoolToBVMode::ITE);
+    Assert(d_boolToBVMode == options::BoolToBVMode::ITE);
     for (size_t i = 0; i < size; ++i)
     {
       assertionsToPreprocess->replace(
@@ -360,7 +360,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
                       << " and new_kind = " << kindToString(new_kind)
                       << std::endl;
 
-  if ((boolToBVMode == options::BoolToBVMode::ALL) && (new_kind != k))
+  if ((d_boolToBVMode == options::BoolToBVMode::ALL) && (new_kind != k))
   {
     ++(d_statistics.d_numTermsLowered);
   }
