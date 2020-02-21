@@ -98,11 +98,8 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {MINUS, CVC4::Kind::MINUS},
     {UMINUS, CVC4::Kind::UMINUS},
     {DIVISION, CVC4::Kind::DIVISION},
-    {DIVISION_TOTAL, CVC4::Kind::DIVISION_TOTAL},
     {INTS_DIVISION, CVC4::Kind::INTS_DIVISION},
-    {INTS_DIVISION_TOTAL, CVC4::Kind::INTS_DIVISION_TOTAL},
     {INTS_MODULUS, CVC4::Kind::INTS_MODULUS},
-    {INTS_MODULUS_TOTAL, CVC4::Kind::INTS_MODULUS_TOTAL},
     {ABS, CVC4::Kind::ABS},
     {DIVISIBLE, CVC4::Kind::DIVISIBLE},
     {POW, CVC4::Kind::POW},
@@ -149,8 +146,6 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {BITVECTOR_SDIV, CVC4::Kind::BITVECTOR_SDIV},
     {BITVECTOR_SREM, CVC4::Kind::BITVECTOR_SREM},
     {BITVECTOR_SMOD, CVC4::Kind::BITVECTOR_SMOD},
-    {BITVECTOR_UDIV_TOTAL, CVC4::Kind::BITVECTOR_UDIV_TOTAL},
-    {BITVECTOR_UREM_TOTAL, CVC4::Kind::BITVECTOR_UREM_TOTAL},
     {BITVECTOR_SHL, CVC4::Kind::BITVECTOR_SHL},
     {BITVECTOR_LSHR, CVC4::Kind::BITVECTOR_LSHR},
     {BITVECTOR_ASHR, CVC4::Kind::BITVECTOR_ASHR},
@@ -212,11 +207,8 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
      CVC4::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR},
     {FLOATINGPOINT_TO_FP_GENERIC, CVC4::Kind::FLOATINGPOINT_TO_FP_GENERIC},
     {FLOATINGPOINT_TO_UBV, CVC4::Kind::FLOATINGPOINT_TO_UBV},
-    {FLOATINGPOINT_TO_UBV_TOTAL, CVC4::Kind::FLOATINGPOINT_TO_UBV_TOTAL},
     {FLOATINGPOINT_TO_SBV, CVC4::Kind::FLOATINGPOINT_TO_SBV},
-    {FLOATINGPOINT_TO_SBV_TOTAL, CVC4::Kind::FLOATINGPOINT_TO_SBV_TOTAL},
     {FLOATINGPOINT_TO_REAL, CVC4::Kind::FLOATINGPOINT_TO_REAL},
-    {FLOATINGPOINT_TO_REAL_TOTAL, CVC4::Kind::FLOATINGPOINT_TO_REAL_TOTAL},
     /* Arrays -------------------------------------------------------------- */
     {SELECT, CVC4::Kind::SELECT},
     {STORE, CVC4::Kind::STORE},
@@ -224,7 +216,6 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     /* Datatypes ----------------------------------------------------------- */
     {APPLY_SELECTOR, CVC4::Kind::APPLY_SELECTOR},
     {APPLY_CONSTRUCTOR, CVC4::Kind::APPLY_CONSTRUCTOR},
-    {APPLY_SELECTOR_TOTAL, CVC4::Kind::APPLY_SELECTOR_TOTAL},
     {APPLY_TESTER, CVC4::Kind::APPLY_TESTER},
     {TUPLE_UPDATE, CVC4::Kind::TUPLE_UPDATE},
     {RECORD_UPDATE, CVC4::Kind::RECORD_UPDATE},
@@ -335,11 +326,11 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::MINUS, MINUS},
         {CVC4::Kind::UMINUS, UMINUS},
         {CVC4::Kind::DIVISION, DIVISION},
-        {CVC4::Kind::DIVISION_TOTAL, DIVISION_TOTAL},
+        {CVC4::Kind::DIVISION_TOTAL, INTERNAL_KIND},
         {CVC4::Kind::INTS_DIVISION, INTS_DIVISION},
-        {CVC4::Kind::INTS_DIVISION_TOTAL, INTS_DIVISION_TOTAL},
+        {CVC4::Kind::INTS_DIVISION_TOTAL, INTERNAL_KIND},
         {CVC4::Kind::INTS_MODULUS, INTS_MODULUS},
-        {CVC4::Kind::INTS_MODULUS_TOTAL, INTS_MODULUS_TOTAL},
+        {CVC4::Kind::INTS_MODULUS_TOTAL, INTERNAL_KIND},
         {CVC4::Kind::ABS, ABS},
         {CVC4::Kind::DIVISIBLE, DIVISIBLE},
         {CVC4::Kind::POW, POW},
@@ -387,8 +378,8 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::BITVECTOR_SDIV, BITVECTOR_SDIV},
         {CVC4::Kind::BITVECTOR_SREM, BITVECTOR_SREM},
         {CVC4::Kind::BITVECTOR_SMOD, BITVECTOR_SMOD},
-        {CVC4::Kind::BITVECTOR_UDIV_TOTAL, BITVECTOR_UDIV_TOTAL},
-        {CVC4::Kind::BITVECTOR_UREM_TOTAL, BITVECTOR_UREM_TOTAL},
+        {CVC4::Kind::BITVECTOR_UDIV_TOTAL, INTERNAL_KIND},
+        {CVC4::Kind::BITVECTOR_UREM_TOTAL, INTERNAL_KIND},
         {CVC4::Kind::BITVECTOR_SHL, BITVECTOR_SHL},
         {CVC4::Kind::BITVECTOR_LSHR, BITVECTOR_LSHR},
         {CVC4::Kind::BITVECTOR_ASHR, BITVECTOR_ASHR},
@@ -471,14 +462,14 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::FLOATINGPOINT_TO_FP_GENERIC, FLOATINGPOINT_TO_FP_GENERIC},
         {CVC4::Kind::FLOATINGPOINT_TO_UBV_OP, FLOATINGPOINT_TO_UBV},
         {CVC4::Kind::FLOATINGPOINT_TO_UBV, FLOATINGPOINT_TO_UBV},
-        {CVC4::Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP, FLOATINGPOINT_TO_UBV_TOTAL},
-        {CVC4::Kind::FLOATINGPOINT_TO_UBV_TOTAL, FLOATINGPOINT_TO_UBV_TOTAL},
+        {CVC4::Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP, INTERNAL_KIND},
+        {CVC4::Kind::FLOATINGPOINT_TO_UBV_TOTAL, INTERNAL_KIND},
         {CVC4::Kind::FLOATINGPOINT_TO_SBV_OP, FLOATINGPOINT_TO_SBV},
         {CVC4::Kind::FLOATINGPOINT_TO_SBV, FLOATINGPOINT_TO_SBV},
-        {CVC4::Kind::FLOATINGPOINT_TO_SBV_TOTAL_OP, FLOATINGPOINT_TO_SBV_TOTAL},
-        {CVC4::Kind::FLOATINGPOINT_TO_SBV_TOTAL, FLOATINGPOINT_TO_SBV_TOTAL},
+        {CVC4::Kind::FLOATINGPOINT_TO_SBV_TOTAL_OP, INTERNAL_KIND},
+        {CVC4::Kind::FLOATINGPOINT_TO_SBV_TOTAL, INTERNAL_KIND},
         {CVC4::Kind::FLOATINGPOINT_TO_REAL, FLOATINGPOINT_TO_REAL},
-        {CVC4::Kind::FLOATINGPOINT_TO_REAL_TOTAL, FLOATINGPOINT_TO_REAL_TOTAL},
+        {CVC4::Kind::FLOATINGPOINT_TO_REAL_TOTAL, INTERNAL_KIND},
         /* Arrays ---------------------------------------------------------- */
         {CVC4::Kind::SELECT, SELECT},
         {CVC4::Kind::STORE, STORE},
@@ -486,7 +477,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         /* Datatypes ------------------------------------------------------- */
         {CVC4::Kind::APPLY_SELECTOR, APPLY_SELECTOR},
         {CVC4::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
-        {CVC4::Kind::APPLY_SELECTOR_TOTAL, APPLY_SELECTOR_TOTAL},
+        {CVC4::Kind::APPLY_SELECTOR_TOTAL, INTERNAL_KIND},
         {CVC4::Kind::APPLY_TESTER, APPLY_TESTER},
         {CVC4::Kind::TUPLE_UPDATE_OP, TUPLE_UPDATE},
         {CVC4::Kind::TUPLE_UPDATE, TUPLE_UPDATE},
@@ -574,9 +565,7 @@ const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
      BITVECTOR_ROTATE_RIGHT,
      INT_TO_BITVECTOR,
      FLOATINGPOINT_TO_UBV,
-     FLOATINGPOINT_TO_UBV_TOTAL,
      FLOATINGPOINT_TO_SBV,
-     FLOATINGPOINT_TO_SBV_TOTAL,
      TUPLE_UPDATE,
      BITVECTOR_EXTRACT,
      FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
@@ -1173,14 +1162,8 @@ uint32_t Op::getIndices() const
     case FLOATINGPOINT_TO_UBV:
       i = d_expr->getConst<FloatingPointToUBV>().bvs.size;
       break;
-    case FLOATINGPOINT_TO_UBV_TOTAL:
-      i = d_expr->getConst<FloatingPointToUBVTotal>().bvs.size;
-      break;
     case FLOATINGPOINT_TO_SBV:
       i = d_expr->getConst<FloatingPointToSBV>().bvs.size;
-      break;
-    case FLOATINGPOINT_TO_SBV_TOTAL:
-      i = d_expr->getConst<FloatingPointToSBVTotal>().bvs.size;
       break;
     case TUPLE_UPDATE: i = d_expr->getConst<TupleUpdate>().getIndex(); break;
     default:
@@ -3263,23 +3246,11 @@ Op Solver::mkOp(Kind kind, uint32_t arg) const
           *mkValHelper<CVC4::FloatingPointToUBV>(CVC4::FloatingPointToUBV(arg))
                .d_expr.get());
       break;
-    case FLOATINGPOINT_TO_UBV_TOTAL:
-      res = Op(kind,
-               *mkValHelper<CVC4::FloatingPointToUBVTotal>(
-                    CVC4::FloatingPointToUBVTotal(arg))
-                    .d_expr.get());
-      break;
     case FLOATINGPOINT_TO_SBV:
       res = Op(
           kind,
           *mkValHelper<CVC4::FloatingPointToSBV>(CVC4::FloatingPointToSBV(arg))
                .d_expr.get());
-      break;
-    case FLOATINGPOINT_TO_SBV_TOTAL:
-      res = Op(kind,
-               *mkValHelper<CVC4::FloatingPointToSBVTotal>(
-                    CVC4::FloatingPointToSBVTotal(arg))
-                    .d_expr.get());
       break;
     case TUPLE_UPDATE:
       res = Op(
