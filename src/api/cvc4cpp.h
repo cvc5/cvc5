@@ -1345,11 +1345,6 @@ class CVC4_PUBLIC DatatypeSelector
   std::string getName() const;
 
   /**
-   * @return true if this datatype selector has been resolved.
-   */
-  bool isResolved() const;
-
-  /**
    * Get the selector operator of this datatype selector.
    * @return the selector term
    */
@@ -1400,11 +1395,6 @@ class CVC4_PUBLIC DatatypeConstructor
    * Destructor.
    */
   ~DatatypeConstructor();
-
-  /**
-   * @return true if this datatype constructor has been resolved.
-   */
-  bool isResolved() const;
 
   /** @return the name of this Datatype constructor. */
   std::string getName() const;
@@ -1514,7 +1504,7 @@ class CVC4_PUBLIC DatatypeConstructor
      */
     const DatatypeSelector* operator->() const;
 
-   private:
+   private:  
     /**
      * Constructor.
      * @param ctor the internal datatype constructor to iterate over

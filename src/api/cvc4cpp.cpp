@@ -1914,17 +1914,15 @@ DatatypeSelector::DatatypeSelector() { d_stor = nullptr; }
 DatatypeSelector::DatatypeSelector(const CVC4::DatatypeConstructorArg& stor)
     : d_stor(new CVC4::DatatypeConstructorArg(stor))
 {
+  CVC4_API_CHECK(d_stor->isResolved()) << "Expected resolved datatype selector";
 }
 
 DatatypeSelector::~DatatypeSelector() {}
 
 std::string DatatypeSelector::getName() const { return d_stor->getName(); }
 
-bool DatatypeSelector::isResolved() const { return d_stor->isResolved(); }
-
 Term DatatypeSelector::getSelectorTerm() const
 {
-  CVC4_API_CHECK(isResolved()) << "Expected resolved datatype selector.";
   Term sel = d_stor->getSelector();
   return sel;
 }
@@ -1957,24 +1955,22 @@ DatatypeConstructor::DatatypeConstructor() { d_ctor = nullptr; }
 DatatypeConstructor::DatatypeConstructor(const CVC4::DatatypeConstructor& ctor)
     : d_ctor(new CVC4::DatatypeConstructor(ctor))
 {
+  CVC4_API_CHECK(d_ctor->isResolved()) << "Expected resolved datatype constructor";
 }
 
 DatatypeConstructor::~DatatypeConstructor() {}
 
-bool DatatypeConstructor::isResolved() const { return d_ctor->isResolved(); }
 
 std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
 
 Term DatatypeConstructor::getConstructorTerm() const
 {
-  CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
   Term ctor = d_ctor->getConstructor();
   return ctor;
 }
 
 Term DatatypeConstructor::getTesterTerm() const
 {
-  CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
   Term tst = d_ctor->getTester();
   return tst;
 }
@@ -2001,7 +1997,6 @@ DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
 
 DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
 {
-  // CHECK: is resolved?
   bool foundSel = false;
   size_t index = 0;
   for (size_t i=0, nsels = getNumSelectors(); i<nsels; i++){
@@ -2017,10 +2012,8 @@ DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
 
 Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
 {
-  // CHECK: cons with name exists?
-  // CHECK: is resolved?
-  Term sel = d_ctor->getSelector(name);
-  return sel;
+  DatatypeSelector sel = getSelector(name);
+  return sel.getSelectorTerm();
 }
 
 DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
@@ -2123,6 +2116,7 @@ std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
 Datatype::Datatype(const CVC4::Datatype& dtype)
     : d_dtype(new CVC4::Datatype(dtype))
 {
+  CVC4_API_CHECK(d_dtype->isResolved()) << "Expected resolved datatype";
 }
 
 // Nullary constructor for Cython
@@ -2132,7 +2126,6 @@ Datatype::~Datatype() {}
 
 DatatypeConstructor Datatype::operator[](size_t idx) const
 {
-  // CHECK (maybe): is resolved?
   CVC4_API_CHECK(idx < getNumConstructors()) << "Index out of bounds.";
   return (*d_dtype)[idx];
 }
@@ -2144,7 +2137,6 @@ DatatypeConstructor Datatype::operator[](const std::string& name) const
 
 DatatypeConstructor Datatype::getConstructor(const std::string& name) const
 {
-  // CHECK: is resolved?
   bool foundCons = false;
   size_t index = 0;
   for (size_t i=0, ncons = getNumConstructors(); i<ncons; i++){
@@ -2160,10 +2152,8 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
 
 Term Datatype::getConstructorTerm(const std::string& name) const
 {
-  // CHECK: cons with name exists?
-  // CHECK: is resolved?
-  Term ctor = d_dtype->getConstructor(name);
-  return ctor;
+  DatatypeConstructor ctor = getConstructor(name);
+  return ctor.getConstructorTerm();
 }
 
 std::string Datatype::getName() const { return d_dtype->getName(); }
@@ -2182,12 +2172,10 @@ bool Datatype::isRecord() const { return d_dtype->isRecord(); }
 
 bool Datatype::isFinite() const
 {
-  // CHECK: is resolved?
   return d_dtype->isFinite();
 }
 bool Datatype::isWellFounded() const
 {
-  // CHECK: is resolved?
   return d_dtype->isWellFounded();
 }
 

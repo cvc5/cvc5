@@ -53,8 +53,6 @@ void DatatypeBlack::testMkDatatypeSort()
   DatatypeConstructor consConstr = d[0];
   DatatypeConstructor nilConstr = d[1];
   TS_ASSERT_THROWS(d[2], CVC4ApiException&);
-  TS_ASSERT(consConstr.isResolved());
-  TS_ASSERT(nilConstr.isResolved());
   TS_ASSERT_THROWS_NOTHING(consConstr.getConstructorTerm());
   TS_ASSERT_THROWS_NOTHING(nilConstr.getConstructorTerm());
 }

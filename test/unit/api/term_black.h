@@ -734,4 +734,6 @@ void TermBlack::testIsConst()
   TS_ASSERT(one.isConst());
   TS_ASSERT(!xpone.isConst());
   TS_ASSERT(!onepone.isConst());
+  Term tnull;
+  TS_ASSERT_THROWS(tnull.isConst(), CVC4ApiException&);
 }
