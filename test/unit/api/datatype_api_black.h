@@ -29,6 +29,7 @@ class DatatypeBlack : public CxxTest::TestSuite
   void testMkDatatypeSort();
 
   void testDatatypeStructs();
+  void testDatatypeNames();
 
  private:
   Solver d_solver;
@@ -75,7 +76,6 @@ void DatatypeBlack::testDatatypeStructs()
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
-  TS_ASSERT(dt.getName() == std::string("list"));
   TS_ASSERT(!dt.isCodatatype());
   TS_ASSERT(!dt.isTuple());
   TS_ASSERT(!dt.isRecord());
@@ -84,14 +84,10 @@ void DatatypeBlack::testDatatypeStructs()
   // get constructor
   DatatypeConstructor dcons = dt[0];
   Term consTerm = dcons.getConstructorTerm();
-  TS_ASSERT(dcons.getName() == std::string("cons"));
   TS_ASSERT(dcons.getNumSelectors() == 2);
   // get tester name: notice this is only to support the Z3-style datatypes
   // prior to SMT-LIB 2.6 where testers where changed to indexed symbols.
   TS_ASSERT_THROWS_NOTHING(dcons.getTesterName());
-  // get selector
-  DatatypeSelector dselTail = dcons[0];
-  TS_ASSERT(dselTail.getName() == std::string("head"));
 
   // create datatype sort to test
   DatatypeDecl dtypeSpecEnum = d_solver.mkDatatypeDecl("enum");
@@ -139,4 +135,37 @@ void DatatypeBlack::testDatatypeStructs()
   TS_ASSERT(dtRecord.isRecord());
   TS_ASSERT(!dtRecord.isFinite());
   TS_ASSERT(dtRecord.isWellFounded());
+}
+
+void DatatypeBlack::testDatatypeNames()
+{
+  Sort intSort = d_solver.getIntegerSort();
+  
+  // create datatype sort to test
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
+  DatatypeConstructorDecl cons("cons");
+  DatatypeSelectorDecl head("head", intSort);
+  cons.addSelector(head);
+  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
+  cons.addSelector(tail);
+  dtypeSpec.addConstructor(cons);
+  DatatypeConstructorDecl nil("nil");
+  dtypeSpec.addConstructor(nil);
+  Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
+  Datatype dt = dtypeSort.getDatatype();
+  TS_ASSERT(dt.getName() == std::string("list"));
+  TS_ASSERT_THROWS_NOTHING(dt.getConstructor("nil"));
+  TS_ASSERT_THROWS_NOTHING(dt["cons"]);
+  TS_ASSERT_THROWS(dt.getConstructor("head"), CVC4ApiException&);
+  TS_ASSERT_THROWS(dt.getConstructor(""), CVC4ApiException&);
+  
+  DatatypeConstructor dcons = dt[0];
+  TS_ASSERT(dcons.getName() == std::string("cons"));
+  TS_ASSERT_THROWS_NOTHING(dcons.getSelector("head"));
+  TS_ASSERT_THROWS_NOTHING(dcons["tail"]);
+  TS_ASSERT_THROWS(dcons.getSelector("cons"), CVC4ApiException&);
+  
+  // get selector
+  DatatypeSelector dselTail = dcons[1];
+  TS_ASSERT(dselTail.getName() == std::string("tail"));
 }

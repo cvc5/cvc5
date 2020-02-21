@@ -1996,16 +1996,23 @@ DatatypeSelector DatatypeConstructor::operator[](size_t index) const
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
 {
-  // CHECK: selector with name exists?
-  // CHECK: is resolved?
-  return (*d_ctor)[name];
+  return getSelector(name);
 }
 
 DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
 {
-  // CHECK: cons with name exists?
   // CHECK: is resolved?
-  return (*d_ctor)[name];
+  bool foundSel = false;
+  size_t index = 0;
+  for (size_t i=0, nsels = getNumSelectors(); i<nsels; i++){
+    if((*d_ctor)[i].getName() == name) {
+      index = i;
+      foundSel = true;
+      break;
+    }
+  }
+  CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor " << getName() << " exists";
+  return (*d_ctor)[index];
 }
 
 Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
