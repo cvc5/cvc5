@@ -884,6 +884,7 @@ set(regress_0_tests
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
   regress0/strings/bug613.smt2
+  regress0/strings/code-eval.smt2
   regress0/strings/code-perf.smt2
   regress0/strings/code-sat-neg-one.smt2
   regress0/strings/escchar.smt2
@@ -907,6 +908,7 @@ set(regress_0_tests
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc
   regress0/strings/re.all.smt2
+  regress0/strings/re-syntax.smt2
   regress0/strings/regexp-native-simple.cvc
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp_inclusion_reduction.smt2

@@ -24,6 +24,7 @@
 #include <set>
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/expr_stream.h"
 #include "expr/kind.h"
@@ -676,6 +677,16 @@ public:
    * type, the expression returned by this method will not be well typed.
    */
   Expr mkHoApply(Expr expr, std::vector<Expr>& args);
+
+  /** make chain
+   *
+   * Given a kind k and argument terms t_1, ..., t_n, this returns the
+   * conjunction of:
+   *  (k t_1 t_2) .... (k t_{n-1} t_n)
+   * It is expected that k is a kind denoting a predicate, and args is a list
+   * of terms of size >= 2 such that the terms above are well-typed.
+   */
+  api::Term mkChain(api::Kind k, const std::vector<api::Term>& args);
 
   /**
    * Add an operator to the current legal set.

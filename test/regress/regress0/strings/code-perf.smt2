@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --strings-exp
 ; EXPECT: sat
+(set-info :smt-lib-version 2.5)
 (set-logic QF_SLIA)
 (declare-const x0 String)
 (declare-const x1 String)
