@@ -59,8 +59,7 @@ constant CONST_STRING \
 # the type
 operator SEQUENCE_TYPE 1 "set type, takes as parameter the type of the elements"
 cardinality SEQUENCE_TYPE \
-    "::CVC4::theory::strings::SequenceProperties::computeCardinality(%TYPE%)" \
-    "theory/strings/theory_strings_type_rules.h"
+    Cardinality::INTEGERS \
 well-founded SEQUENCE_TYPE \
     "::CVC4::theory::strings::SequenceProperties::isWellFounded(%TYPE%)" \
     "::CVC4::theory::strings::SequenceProperties::mkGroundTerm(%TYPE%)" \

@@ -181,6 +181,8 @@ private:
   std::vector< unsigned > d_data;
   /** The enumerated domain so far */
   std::vector< Node > d_childDomain;
+  /** The current term */
+  Node d_curr;
   /** Child enumeration */
   TypeEnumerator d_childEnum;
 };/* class SequenceEnumerator */
