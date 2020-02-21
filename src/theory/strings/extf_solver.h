@@ -17,6 +17,9 @@
 #ifndef CVC4__THEORY__STRINGS__EXTF_SOLVER_H
 #define CVC4__THEORY__STRINGS__EXTF_SOLVER_H
 
+#include <vector>
+#include <map>
+
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "theory/ext_theory.h"
