@@ -42,7 +42,7 @@ RegExpOpr::RegExpOpr()
                                                std::vector<Node>{})),
       d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
 {
-  d_lastchar = utils::getAlphabetCardinality()-1;
+  d_lastchar = utils::getAlphabetCardinality() - 1;
 }
 
 RegExpOpr::~RegExpOpr() {}

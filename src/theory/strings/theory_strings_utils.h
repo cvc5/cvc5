@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 namespace utils {
-  
+
 /** get the cardinality of the alphabet used, based on the options */
 uint32_t getAlphabetCardinality();
 

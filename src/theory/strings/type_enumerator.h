@@ -24,8 +24,8 @@
 #include "expr/kind.h"
 #include "expr/type_node.h"
 #include "theory/strings/theory_strings_rewriter.h"
-#include "theory/type_enumerator.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/type_enumerator.h"
 #include "util/regexp.h"
 
 namespace CVC4 {
@@ -95,7 +95,9 @@ class StringEnumeratorLength {
   }
 
  public:
-  StringEnumeratorLength(uint32_t length, uint32_t card = 256) : d_cardinality(card) {
+  StringEnumeratorLength(uint32_t length, uint32_t card = 256)
+      : d_cardinality(card)
+  {
     for( unsigned i=0; i<length; i++ ){
       d_data.push_back( 0 );
     }

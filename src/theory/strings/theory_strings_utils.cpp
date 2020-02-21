@@ -16,8 +16,8 @@
 
 #include "theory/strings/theory_strings_utils.h"
 
-#include "theory/rewriter.h"
 #include "options/strings_options.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 namespace utils {
-  
+
 uint32_t getAlphabetCardinality()
 {
   if (options::stdPrintASCII())
@@ -34,7 +34,7 @@ uint32_t getAlphabetCardinality()
     return 128;
   }
   Assert(256 <= String::num_codes());
-  return 256; 
+  return 256;
 }
 
 Node mkAnd(const std::vector<Node>& a)

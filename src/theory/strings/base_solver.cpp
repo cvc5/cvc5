@@ -360,46 +360,58 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
   }
 }
 
-void BaseSolver::checkCardinality() {
-
+void BaseSolver::checkCardinality()
+{
   // This will create a partition of eqc, where each collection has length that
   // are pairwise propagated to be equal. We do not require disequalities
   // between the lengths of each collection, since we split on disequalities
   // between lengths of string terms that are disequal (DEQ-LENGTH-SP).
-  std::vector< std::vector< Node > > cols;
-  std::vector< Node > lts;
+  std::vector<std::vector<Node> > cols;
+  std::vector<Node> lts;
   d_state.separateByLength(d_stringsEqc, cols, lts);
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Trace("strings-card") << "Check cardinality...." << std::endl;
   // for each collection
-  for( unsigned i = 0, csize = cols.size(); i<csize; ++i ) {
+  for (unsigned i = 0, csize = cols.size(); i < csize; ++i)
+  {
     Node lr = lts[i];
-    Trace("strings-card") << "Number of strings with length equal to " << lr << " is " << cols[i].size() << std::endl;
-    if( cols[i].size() <= 1 ) {
+    Trace("strings-card") << "Number of strings with length equal to " << lr
+                          << " is " << cols[i].size() << std::endl;
+    if (cols[i].size() <= 1)
+    {
       // no restriction on sets in the partition of size 1
       continue;
     }
     // size > c^k
     unsigned card_need = 1;
     double curr = static_cast<double>(cols[i].size());
-    while( curr>d_cardSize ){
-      curr = curr/static_cast<double>(d_cardSize);
+    while (curr > d_cardSize)
+    {
+      curr = curr / static_cast<double>(d_cardSize);
       card_need++;
     }
-    Trace("strings-card") << "Need length " << card_need << " for this number of strings (where alphabet size is " << d_cardSize << ")." << std::endl;
-    //check if we need to split
+    Trace("strings-card")
+        << "Need length " << card_need
+        << " for this number of strings (where alphabet size is " << d_cardSize
+        << ")." << std::endl;
+    // check if we need to split
     bool needsSplit = true;
-    if( lr.isConst() ){
+    if (lr.isConst())
+    {
       // if constant, compare
-      Node cmp = nm->mkNode( GEQ, lr, nm->mkConst( Rational( card_need ) ) );
-      cmp = Rewriter::rewrite( cmp );
+      Node cmp = nm->mkNode(GEQ, lr, nm->mkConst(Rational(card_need)));
+      cmp = Rewriter::rewrite(cmp);
       needsSplit = !cmp.getConst<bool>();
-    }else{
-      // find the minimimum constant that we are unknown to be disequal from, or otherwise stop if we increment such that cardinality does not apply
-      unsigned r=0; 
+    }
+    else
+    {
+      // find the minimimum constant that we are unknown to be disequal from, or
+      // otherwise stop if we increment such that cardinality does not apply
+      unsigned r = 0;
       bool success = true;
-      while( r<card_need && success ){
-        Node rr = nm->mkConst( Rational(r) );
+      while (r < card_need && success)
+      {
+        Node rr = nm->mkConst(Rational(r));
         if (d_state.areDisequal(rr, lr))
         {
           r++;
@@ -409,21 +421,28 @@ void BaseSolver::checkCardinality() {
           success = false;
         }
       }
-      if( r>0 ){
-        Trace("strings-card") << "Symbolic length " << lr << " must be at least " << r << " due to constant disequalities." << std::endl;
+      if (r > 0)
+      {
+        Trace("strings-card")
+            << "Symbolic length " << lr << " must be at least " << r
+            << " due to constant disequalities." << std::endl;
       }
-      needsSplit = r<card_need;
+      needsSplit = r < card_need;
     }
 
-    if( !needsSplit ){
+    if (!needsSplit)
+    {
       // don't need to split
       continue;
     }
     unsigned int int_k = (unsigned int)card_need;
-    for( std::vector< Node >::iterator itr1 = cols[i].begin();
-        itr1 != cols[i].end(); ++itr1) {
-      for( std::vector< Node >::iterator itr2 = itr1 + 1;
-        itr2 != cols[i].end(); ++itr2) {
+    for (std::vector<Node>::iterator itr1 = cols[i].begin();
+         itr1 != cols[i].end();
+         ++itr1)
+    {
+      for (std::vector<Node>::iterator itr2 = itr1 + 1; itr2 != cols[i].end();
+           ++itr2)
+      {
         if (!d_state.areDisequal(*itr1, *itr2))
         {
           // add split lemma
@@ -435,32 +454,35 @@ void BaseSolver::checkCardinality() {
       }
     }
     EqcInfo* ei = d_state.getOrMakeEqcInfo(lr, true);
-    Trace("strings-card")
-        << "Previous cardinality used for " << lr << " is "
-        << ((int)ei->d_cardinalityLemK.get() - 1) << std::endl;
+    Trace("strings-card") << "Previous cardinality used for " << lr << " is "
+                          << ((int)ei->d_cardinalityLemK.get() - 1)
+                          << std::endl;
     if (int_k + 1 > ei->d_cardinalityLemK.get())
     {
-      Node k_node = nm->mkConst( Rational( int_k ) );
-      //add cardinality lemma
-      Node dist = nm->mkNode( DISTINCT, cols[i] );
-      std::vector< Node > vec_node;
-      vec_node.push_back( dist );
-      for( std::vector< Node >::iterator itr1 = cols[i].begin();
-          itr1 != cols[i].end(); ++itr1) {
-        Node len = nm->mkNode( STRING_LENGTH, *itr1 );
-        if( len!=lr ) {
+      Node k_node = nm->mkConst(Rational(int_k));
+      // add cardinality lemma
+      Node dist = nm->mkNode(DISTINCT, cols[i]);
+      std::vector<Node> vec_node;
+      vec_node.push_back(dist);
+      for (std::vector<Node>::iterator itr1 = cols[i].begin();
+           itr1 != cols[i].end();
+           ++itr1)
+      {
+        Node len = nm->mkNode(STRING_LENGTH, *itr1);
+        if (len != lr)
+        {
           Node len_eq_lr = len.eqNode(lr);
-          vec_node.push_back( len_eq_lr );
+          vec_node.push_back(len_eq_lr);
         }
       }
-      Node len = nm->mkNode( STRING_LENGTH, cols[i][0] );
-      Node cons = nm->mkNode( GEQ, len, k_node );
-      cons = Rewriter::rewrite( cons );
+      Node len = nm->mkNode(STRING_LENGTH, cols[i][0]);
+      Node cons = nm->mkNode(GEQ, len, k_node);
+      cons = Rewriter::rewrite(cons);
       ei->d_cardinalityLemK.set(int_k + 1);
-      if( !cons.isConst() || !cons.getConst<bool>() ){
+      if (!cons.isConst() || !cons.getConst<bool>())
+      {
         std::vector<Node> emptyVec;
-        d_im.sendInference(
-            emptyVec, vec_node, cons, "CARDINALITY", true);
+        d_im.sendInference(emptyVec, vec_node, cons, "CARDINALITY", true);
         return;
       }
     }
