@@ -18,19 +18,20 @@
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 
+#include <climits>
 #include <utility>
 #include <vector>
 
-#include "theory/rewriter.h"
-#include "theory/type_enumerator.h"
 #include "expr/attribute.h"
-#include <climits>
+#include "theory/theory_rewriter.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-class TheoryStringsRewriter {
+class TheoryStringsRewriter : public TheoryRewriter
+{
  private:
   /** simple regular expression consume
    *
@@ -45,8 +46,10 @@ class TheoryStringsRewriter {
    * membership. The argument dir indicates the direction to consider, where
    * 0 means strip off the front, 1 off the back, and < 0 off of both.
    *
-   * If this method returns the false node, then we have inferred that the input
-   * membership is equivalent to false. Otherwise, it returns the null node.
+   * If this method returns the false node, then we have inferred that no
+   * string in the language of r1 ++ ... ++ rm is a prefix (when dir!=1) or
+   * suffix (when dir!=0) of s1 ++ ... ++ sn. Otherwise, it returns the null
+   * node.
    *
    * For example, given input
    *   mchildren = { "ab", x }, children = { [["a"]], ([["cd"]])* } and dir = 0,
@@ -59,6 +62,31 @@ class TheoryStringsRewriter {
    * this method updates:
    *   { "b" }, { [[y]] }
    * where [[.]] denotes str.to.re, and returns null.
+   *
+   * Notice that the above requirement for returning false is stronger than
+   * determining that s1 ++ ... ++ sn in r1 ++ ... ++ rm is equivalent to false.
+   * For example, for input "bb" in "b" ++ ( "a" )*, we do not return false
+   * since "b" is in the language of "b" ++ ( "a" )* and is a prefix of "bb".
+   * We do not return false even though the above membership is equivalent
+   * to false. We do this because the function is used e.g. to test whether a
+   * possible unrolling leads to a conflict. This is demonstrated by the
+   * following examples:
+   *
+   * For example, given input
+   *   { "bb", x }, { "b", ("a")* } and dir=-1,
+   * this method updates:
+   *   { "b" }, { ("a")* }
+   * and returns null.
+   *
+   * For example, given input
+   *   { "cb", x }, { "b", ("a")* } and dir=-1,
+   * this method leaves children and mchildren unchanged and returns false.
+   *
+   * Notice that based on this, we can determine that:
+   *   "cb" ++ x  in ( "b" ++ ("a")* )*
+   * is equivalent to false, whereas we cannot determine that:
+   *   "bb" ++ x  in ( "b" ++ ("a")* )*
+   * is equivalent to false.
    */
   static Node simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir = -1 );
   static bool isConstRegExp( TNode t );
@@ -128,11 +156,9 @@ class TheoryStringsRewriter {
   static Node returnRewrite(Node node, Node ret, const char* c);
 
  public:
-  static RewriteResponse postRewrite(TNode node);
-  static RewriteResponse preRewrite(TNode node);
+  RewriteResponse postRewrite(TNode node) override;
+  RewriteResponse preRewrite(TNode node) override;
 
-  static inline void init() {}
-  static inline void shutdown() {}
   /** get the cardinality of the alphabet used, based on the options */
   static unsigned getAlphabetCardinality();
   /** rewrite equality
@@ -199,6 +225,20 @@ class TheoryStringsRewriter {
    * str.replaceall. If it returns a non-null ret, then node rewrites to ret.
    */
   static Node rewriteReplaceInternal(Node node);
+  /** rewrite string convert
+   *
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.tolower( s ) and str.toupper( s )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStrConvert(Node node);
+  /** rewrite string reverse
+   *
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.rev( s )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStrReverse(Node node);
   /** rewrite string less than or equal
   * This is the entry point for post-rewriting terms n of the form
   *   str.<=( t, s )
@@ -218,16 +258,6 @@ class TheoryStringsRewriter {
    */
   static Node rewriteStringCode(Node node);
 
-  /** gets the "vector form" of term n, adds it to c.
-  * For example:
-  * when n = str.++( x, y ), c is { x, y }
-  * when n = str.++( x, str.++( y, z ), w ), c is { x, str.++( y, z ), w )
-  * when n = x, c is { x }
-  *
-  * Also applies to regular expressions (re.++ above).
-  */
-  static void getConcat( Node n, std::vector< Node >& c );
-  static Node mkConcat( Kind k, std::vector< Node >& c );
   static Node splitConstant( Node a, Node b, int& index, bool isRev );
   /** can constant contain list
    * return true if constant c can contain the list l in order
@@ -253,8 +283,6 @@ class TheoryStringsRewriter {
   * same as above but with n = str.++( l ) instead of l
   */
   static bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc);
-  static Node getNextConstantAt( std::vector< Node >& vec, unsigned& start_index, unsigned& end_index, bool isRev );
-  static Node collectConstantStringAt( std::vector< Node >& vec, unsigned& end_index, bool isRev );
 
   /** strip symbolic length
    *
@@ -745,7 +773,7 @@ class TheoryStringsRewriter {
    * and the list of nodes that are compared to the empty string
    */
   static std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
-};/* class TheoryStringsRewriter */
+}; /* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

@@ -20,10 +20,11 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 
@@ -69,7 +70,7 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
       // "any constant" constructors
       return;
     }
-    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    const DType& dt = tn.getDType();
     if (!dt.isSygus())
     {
       // may have recursed to a non-sygus-datatype
@@ -82,7 +83,7 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
     }
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
-      const DatatypeConstructor& dtc = dt[i];
+      const DTypeConstructor& dtc = dt[i];
       // recurse on all subfields
       for (unsigned j = 0, nargs = dtc.getNumArgs(); j < nargs; j++)
       {
@@ -148,6 +149,19 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       std::vector<Node>& repair_cv,
                                       bool useConstantsAsHoles)
 {
+  return repairSolution(d_base_inst,
+                        candidates,
+                        candidate_values,
+                        repair_cv,
+                        useConstantsAsHoles);
+}
+
+bool SygusRepairConst::repairSolution(Node sygusBody,
+                                      const std::vector<Node>& candidates,
+                                      const std::vector<Node>& candidate_values,
+                                      std::vector<Node>& repair_cv,
+                                      bool useConstantsAsHoles)
+{
   Assert(candidates.size() == candidate_values.size());
 
   // if no grammar type allows constants, no repair is possible
@@ -208,7 +222,8 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
 
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-repair-const") << "Get first-order query..." << std::endl;
-  Node fo_body = getFoQuery(candidates, candidate_skeletons, sk_vars);
+  Node fo_body =
+      getFoQuery(sygusBody, candidates, candidate_skeletons, sk_vars);
 
   Trace("sygus-repair-const-debug") << "...got : " << fo_body << std::endl;
 
@@ -224,7 +239,8 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   LogicInfo logic = smt::currentSmtEngine()->getLogicInfo();
   if (logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear())
   {
-    fo_body = fitToLogic(logic,
+    fo_body = fitToLogic(sygusBody,
+                         logic,
                          fo_body,
                          candidates,
                          candidate_skeletons,
@@ -350,14 +366,14 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   }
   TypeNode tn = n.getType();
   Assert(tn.isDatatype());
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   if (!dt.isSygus())
   {
     return false;
   }
   Node op = n.getOperator();
-  unsigned cindex = datatypes::DatatypesRewriter::indexOf(op);
-  Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
+  unsigned cindex = datatypes::utils::indexOf(op);
+  Node sygusOp = dt[cindex].getSygusOp();
   if (sygusOp.getAttribute(SygusAnyConstAttribute()))
   {
     // if it represents "any constant" then it is repairable
@@ -459,12 +475,12 @@ Node SygusRepairConst::getSkeleton(Node n,
   return visited[n];
 }
 
-Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
+Node SygusRepairConst::getFoQuery(Node body,
+                                  const std::vector<Node>& candidates,
                                   const std::vector<Node>& candidate_skeletons,
                                   const std::vector<Node>& sk_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node body = d_base_inst;
   Trace("sygus-repair-const") << "  Substitute skeletons..." << std::endl;
   body = body.substitute(candidates.begin(),
                          candidates.end(),
@@ -557,7 +573,8 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
   return fo_body;
 }
 
-Node SygusRepairConst::fitToLogic(LogicInfo& logic,
+Node SygusRepairConst::fitToLogic(Node body,
+                                  LogicInfo& logic,
                                   Node n,
                                   const std::vector<Node>& candidates,
                                   std::vector<Node>& candidate_skeletons,
@@ -589,7 +606,7 @@ Node SygusRepairConst::fitToLogic(LogicInfo& logic,
     Assert(it != sk_vars.end());
     sk_vars.erase(it);
     // reconstruct the query
-    n = getFoQuery(candidates, candidate_skeletons, sk_vars);
+    n = getFoQuery(body, candidates, candidate_skeletons, sk_vars);
     // reset the exclusion variable
     exc_var = Node::null();
   }

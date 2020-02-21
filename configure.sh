@@ -10,6 +10,7 @@ Build types:
   debug
   testing
   competition
+  competition-inc
 
 
 General options;
@@ -20,6 +21,7 @@ General options;
   --best                   turn on dependencies known to give best performance
   --gpl                    permit GPL dependencies, if available
   --win64                  cross-compile for Windows 64 bit
+  --ninja                  use Ninja build system
 
 
 Features:
@@ -42,6 +44,10 @@ The following flags enable optional features (disable with --no-<option name>).
   --unit-testing           support for unit testing
   --python2                prefer using Python 2 (also for Python bindings)
   --python3                prefer using Python 3 (also for Python bindings)
+  --python-bindings        build Python bindings based on new C++ API
+  --asan                   build with ASan instrumentation
+  --ubsan                  build with UBSan instrumentation
+  --tsan                   build with TSan instrumentation
 
 The following options configure parameterized features.
 
@@ -105,10 +111,13 @@ buildtype=default
 
 abc=default
 asan=default
+ubsan=default
+tsan=default
 assertions=default
 best=default
 cadical=default
 cln=default
+comp_inc=default
 coverage=default
 cryptominisat=default
 debug_symbols=default
@@ -117,6 +126,7 @@ drat2er=default
 dumping=default
 gpl=default
 win64=default
+ninja=default
 glpk=default
 lfsc=default
 muzzle=default
@@ -132,6 +142,7 @@ tracing=default
 unit_testing=default
 python2=default
 python3=default
+python_bindings=default
 valgrind=default
 profiling=default
 readline=default
@@ -163,6 +174,12 @@ do
 
     --asan) asan=ON;;
     --no-asan) asan=OFF;;
+
+    --ubsan) ubsan=ON;;
+    --no-ubsan) ubsan=OFF;;
+
+    --tsan) tsan=ON;;
+    --no-tsan) tsan=OFF;;
 
     --assertions) assertions=ON;;
     --no-assertions) assertions=OFF;;
@@ -217,6 +234,8 @@ do
     --win64) win64=ON;;
     --no-win64) win64=OFF;;
 
+    --ninja) ninja=ON;;
+
     --glpk) glpk=ON;;
     --no-glpk) glpk=OFF;;
 
@@ -261,6 +280,9 @@ do
 
     --python3) python3=ON;;
     --no-python3) python3=OFF;;
+
+    --python-bindings) python_bindings=ON;;
+    --no-python-bindings) python_bindings=OFF;;
 
     --valgrind) valgrind=ON;;
     --no-valgrind) valgrind=OFF;;
@@ -321,11 +343,12 @@ do
     -*) die "invalid option '$1' (try -h)";;
 
     *) case $1 in
-         production)  buildtype=Production;;
-         debug)       buildtype=Debug;;
-         testing)     buildtype=Testing;;
-         competition) buildtype=Competition;;
-         *)           die "invalid build type (try -h)";;
+         production)      buildtype=Production;;
+         debug)           buildtype=Debug;;
+         testing)         buildtype=Testing;;
+         competition)     buildtype=Competition;;
+         competition-inc) buildtype=Competition; comp_inc=ON;;
+         *)               die "invalid build type (try -h)";;
        esac
        ;;
   esac
@@ -340,11 +363,17 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
 
 [ $asan != default ] \
- && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
+  && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
+[ $ubsan != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
+[ $tsan != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_TSAN=$tsan"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
 [ $best != default ] \
   && cmake_opts="$cmake_opts -DENABLE_BEST=$best"
+[ $comp_inc != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_COMP_INC_TRACK=$comp_inc"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
 [ $debug_symbols != default ] \
@@ -357,12 +386,11 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+[ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $optimized != default ] \
   && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized"
-[ $portfolio != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_PORTFOLIO=$portfolio"
 [ $proofs != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs"
 [ $replay != default ] \
@@ -381,6 +409,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2"
 [ $python3 != default ] \
   && cmake_opts="$cmake_opts -DUSE_PYTHON3=$python3"
+[ $python_bindings != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
 [ $valgrind != default ] \
   && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind"
 [ $profiling != default ] \
@@ -405,9 +435,9 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
 
 [ $language_bindings_java != default ] \
-  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$language_bindings_java"
+  && cmake_opts="$cmake_opts -DBUILD_SWIG_BINDINGS_JAVA=$language_bindings_java"
 [ $language_bindings_python != default ] \
-  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$language_bindings_python"
+  && cmake_opts="$cmake_opts -DBUILD_SWIG_BINDINGS_PYTHON=$language_bindings_python"
 
 [ "$abc_dir" != default ] \
   && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"

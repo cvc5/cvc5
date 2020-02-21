@@ -10,13 +10,11 @@ add_custom_target(gen-gitinfo
 #-----------------------------------------------------------------------------#
 
 libcvc4_add_sources(
+  check.cpp
+  check.h
   configuration.cpp
   configuration.h
   configuration_private.h
-  cvc4_assert.cpp
-  cvc4_assert.h
-  cvc4_check.cpp
-  cvc4_check.h
   exception.cpp
   exception.h
   listener.cpp
@@ -50,6 +48,7 @@ add_custom_target(
   COMMAND
     ${gentmptags_script} ${CMAKE_CURRENT_LIST_DIR} Debug ${source_files_list}
   DEPENDS mktags
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.tmp
 )
 
 add_custom_target(
@@ -57,6 +56,7 @@ add_custom_target(
   COMMAND
     ${gentmptags_script} ${CMAKE_CURRENT_LIST_DIR} Trace ${source_files_list}
   DEPENDS mktags
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.tmp
 )
 
 add_custom_command(

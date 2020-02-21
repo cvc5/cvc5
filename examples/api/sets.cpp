@@ -16,9 +16,8 @@
 
 #include <iostream>
 
-//#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
-#include "smt/smt_engine.h"
-#include "options/set_language.h"
+#include <cvc4/cvc4.h>
+#include <cvc4/options/set_language.h>
 
 using namespace std;
 using namespace CVC4;

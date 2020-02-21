@@ -19,10 +19,13 @@
 
 #include <unordered_set>
 
+#include "expr/dtype.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/fun_def_evaluator.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
@@ -30,23 +33,6 @@ namespace theory {
 namespace quantifiers {
 
 class SynthConjecture;
-
-/** A trie indexed by types that assigns unique identifiers to nodes. */
-class TypeNodeIdTrie
-{
- public:
-  /** children of this node */
-  std::map<TypeNode, TypeNodeIdTrie> d_children;
-  /** the data stored at this node */
-  std::vector<Node> d_data;
-  /** add v to this trie, indexed by types */
-  void add(Node v, std::vector<TypeNode>& types);
-  /**
-   * Assign each node in this trie an identifier such that
-   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
-   */
-  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount);
-};
 
 /** role for registering an enumerator */
 enum EnumeratorRole
@@ -78,10 +64,13 @@ class TermDbSygus {
    *
    * This initializes this database for sygus datatype type tn. This may
    * throw an assertion failure if the sygus grammar has type errors. Otherwise,
-   * after registering a sygus type, the query functions in this class (such
-   * as sygusToBuiltinType, getKindConsNum, etc.) can be called for tn.
+   * after registering a sygus type, the query function getTypeInfo can be
+   * called for tn.
+   *
+   * This method returns true if tn is a sygus datatype type and false
+   * otherwise.
    */
-  void registerSygusType(TypeNode tn);
+  bool registerSygusType(TypeNode tn);
 
   //------------------------------utilities
   /** get the explanation utility */
@@ -90,6 +79,8 @@ class TermDbSygus {
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
   /** get the evaluator */
   Evaluator* getEvaluator() { return d_eval.get(); }
+  /** (recursive) function evaluator utility */
+  FunDefEvaluator* getFunDefEvaluator() { return d_funDefEval.get(); }
   /** evaluation unfolding utility */
   SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
   //------------------------------end utilities
@@ -112,17 +103,13 @@ class TermDbSygus {
    * and not x2-x1 will be generated, assuming x1 and x2 are in the same
    * "subclass", see getSubclassForVar).
    *
-   * useSymbolicCons : whether we want model values for e to include symbolic
-   * constructors like the "any constant" variable.
-   *
    * An "active guard" may be allocated by this method for e based on erole
    * and the policies for active generation.
    */
   void registerEnumerator(Node e,
                           Node f,
                           SynthConjecture* conj,
-                          EnumeratorRole erole,
-                          bool useSymbolicCons = false);
+                          EnumeratorRole erole);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
@@ -236,15 +223,21 @@ class TermDbSygus {
    *   If i is in the domain of pre, then ti = pre[i].
    *   If i is not in the domain of pre, then ti = d_fv[1][ var_count[Ti ] ],
    *     and var_count[Ti] is incremented.
+   * If doBetaRed is true, then lambda operators are eagerly eliminated via
+   * beta reduction.
    */
-  Node mkGeneric(const Datatype& dt,
+  Node mkGeneric(const DType& dt,
                  unsigned c,
                  std::map<TypeNode, int>& var_count,
-                 std::map<int, Node>& pre);
+                 std::map<int, Node>& pre,
+                 bool doBetaRed = true);
   /** same as above, but with empty var_count */
-  Node mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre);
+  Node mkGeneric(const DType& dt,
+                 int c,
+                 std::map<int, Node>& pre,
+                 bool doBetaRed = true);
   /** same as above, but with empty pre */
-  Node mkGeneric(const Datatype& dt, int c);
+  Node mkGeneric(const DType& dt, int c, bool doBetaRed = true);
   /** makes a symbolic term concrete
    *
    * Given a sygus datatype term n of type tn with holes (symbolic constructor
@@ -273,7 +266,7 @@ class TermDbSygus {
    */
   Node evaluateBuiltin(TypeNode tn,
                        Node bn,
-                       std::vector<Node>& args,
+                       const std::vector<Node>& args,
                        bool tryEval = true);
   /** evaluate with unfolding
    *
@@ -304,6 +297,16 @@ class TermDbSygus {
    */
   TypeNode sygusToBuiltinType(TypeNode tn);
   //-----------------------------end conversion from sygus to builtin
+  /**
+   * Get type information about sygus datatype type tn. The type tn should be
+   * (a subfield type of) a type that has been registered to this class.
+   */
+  SygusTypeInfo& getTypeInfo(TypeNode tn);
+  /**
+   * Rewrite the given node using the utilities in this class. This may
+   * involve (recursive function) evaluation.
+   */
+  Node rewriteNode(Node n) const;
 
   /** print to sygus stream n on trace c */
   static void toStreamSygus(const char* c, Node n);
@@ -319,6 +322,8 @@ class TermDbSygus {
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
   /** evaluator */
   std::unique_ptr<Evaluator> d_eval;
+  /** (recursive) function evaluator utility */
+  std::unique_ptr<FunDefEvaluator> d_funDefEval;
   /** evaluation function unfolding utility */
   std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
   //------------------------------end utilities
@@ -375,9 +380,7 @@ class TermDbSygus {
   /** cache of getProxyVariable */
   std::map<TypeNode, std::map<Node, Node> > d_proxy_vars;
   //-----------------------------end conversion from sygus to builtin
-
   // TODO :issue #1235 : below here needs refactor
-
  public:
   Node d_true;
   Node d_false;
@@ -388,140 +391,28 @@ class TermDbSygus {
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
  private:
-  // information for sygus types
-  std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
-  std::map<TypeNode, std::vector<Node> > d_var_list;
-  std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
-  std::map<TypeNode, std::map<Kind, int> > d_kinds;
-  std::map<TypeNode, std::map<int, Node> > d_arg_const;
-  std::map<TypeNode, std::map<Node, int> > d_consts;
-  std::map<TypeNode, std::map<Node, int> > d_ops;
-  std::map<TypeNode, std::map<int, Node> > d_arg_ops;
-  std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
-  // grammar information
-  // root -> type -> _
   /**
-   * For each sygus type t1, this maps datatype types t2 to the smallest size of
-   * a term of type t1 that includes t2 as a subterm. For example, for grammar:
-   *   A -> B+B | 0 | B-D
-   *   B -> C+C
-   *   ...
-   * we have that d_min_type_depth[A] = { A -> 0, B -> 1, C -> 2, D -> 1 }.
+   * Maps types that we have called registerSygusType to a flag indicating
+   * whether that type is a sygus datatype type. Sygus datatype types that
+   * are in this map have initialized type information stored in the map below.
    */
-  std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
-  // std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > >
-  // d_consider_const;
-  // type -> cons -> _
-  std::map<TypeNode, unsigned> d_min_term_size;
-  std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
+  std::map<TypeNode, bool> d_registerStatus;
+  /**
+   * The type information for each sygus datatype type that has been registered
+   * to this class.
+   */
+  std::map<TypeNode, SygusTypeInfo> d_tinfo;
   /** a cache for getSelectorWeight */
   std::map<TypeNode, std::map<Node, unsigned> > d_sel_weight;
-  /**
-   * For each sygus type, the index of the "any constant" constructor, if it
-   * has one.
-   */
-  std::map<TypeNode, unsigned> d_sym_cons_any_constant;
-  /**
-   * Whether any subterm of this type contains a symbolic constructor. This
-   * corresponds to whether sygus repair techniques will ever have any effect
-   * for this type.
-   */
-  std::map<TypeNode, bool> d_has_subterm_sym_cons;
-  /**
-   * Map from sygus types and bound variables to their type subclass id. Note
-   * type class identifiers are computed for each type of registered sygus
-   * enumerators, but not all sygus types. For details, see getSubclassIdForVar.
-   */
-  std::map<TypeNode, std::map<Node, unsigned> > d_var_subclass_id;
-  /** the list of variables with given subclass */
-  std::map<TypeNode, std::map<unsigned, std::vector<Node> > >
-      d_var_subclass_list;
-  /** the index of each variable in the above list */
-  std::map<TypeNode, std::map<Node, unsigned> > d_var_subclass_list_index;
 
  public:  // general sygus utilities
   bool isRegistered(TypeNode tn) const;
-  // get the minimum depth of type in its parent grammar
-  unsigned getMinTypeDepth( TypeNode root_tn, TypeNode tn );
-  // get the minimum size for a constructor term
-  unsigned getMinTermSize( TypeNode tn );
-  unsigned getMinConsTermSize( TypeNode tn, unsigned cindex );
   /** get the weight of the selector, where tn is the domain of sel */
   unsigned getSelectorWeight(TypeNode tn, Node sel);
-  /** get subfield types
-   *
-   * This adds all "subfield types" of tn to sf_types. A type tnc is a subfield
-   * type of tn if there exists a selector chain S1( ... Sn( x )...) that has
-   * type tnc, where x has type tn. In other words, tnc is the type of some
-   * subfield of terms of type tn, at any depth.
-   */
-  void getSubfieldTypes(TypeNode tn, std::vector<TypeNode>& sf_types);
-
- public:
-  int getKindConsNum( TypeNode tn, Kind k );
-  int getConstConsNum( TypeNode tn, Node n );
-  int getOpConsNum( TypeNode tn, Node n );
-  bool hasKind( TypeNode tn, Kind k );
-  bool hasConst( TypeNode tn, Node n );
-  bool hasOp( TypeNode tn, Node n );
-  Node getConsNumConst( TypeNode tn, int i );
-  Node getConsNumOp( TypeNode tn, int i );
-  Kind getConsNumKind( TypeNode tn, int i );
-  bool isKindArg( TypeNode tn, int i );
-  bool isConstArg( TypeNode tn, int i );
   /** get arg type */
-  TypeNode getArgType(const DatatypeConstructor& c, unsigned i) const;
-  /** is type match */
-  bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
-  /**
-   * Get the index of the "any constant" constructor of type tn if it has one,
-   * or returns -1 otherwise.
-   */
-  int getAnyConstantConsNum(TypeNode tn) const;
-  /** has subterm symbolic constructor
-   *
-   * Returns true if any subterm of type tn can be a symbolic constructor.
-   */
-  bool hasSubtermSymbolicCons(TypeNode tn) const;
-  //--------------------------------- variable subclasses
-  /** Get subclass id for variable
-   *
-   * This returns the "subclass" identifier for variable v in sygus
-   * type tn. A subclass identifier groups variables based on the sygus
-   * types they occur in:
-   *   A -> A + B | C + C | x | y | z | w | u
-   *   B -> y | z
-   *   C -> u
-   * The variables in this grammar can be grouped according to the sygus types
-   * they appear in:
-   *   { x,w } occur in A
-   *   { y,z } occur in A,B
-   *   { u } occurs in A,C
-   * We say that e.g. x, w are in the same subclass.
-   *
-   * If this method returns 0, then v is not a variable in sygus type tn.
-   * Otherwise, this method returns a positive value n, such that
-   * getSubclassIdForVar[v1] = getSubclassIdForVar[v2] iff v1 and v2 are in the
-   * same subclass.
-   *
-   * The type tn should be the type of an enumerator registered to this
-   * database, where notice that we do not compute this information for the
-   * subfield types of the enumerator.
-   */
-  unsigned getSubclassForVar(TypeNode tn, Node v) const;
-  /**
-   * Get the number of variable in the subclass with identifier sc for type tn.
-   */
-  unsigned getNumSubclassVars(TypeNode tn, unsigned sc) const;
-  /** Get the i^th variable in the subclass with identifier sc for type tn */
-  Node getVarSubclassIndex(TypeNode tn, unsigned sc, unsigned i) const;
-  /**
-   * Get the a variable's index in its subclass list. This method returns true
-   * iff variable v has been assigned a subclass in tn. It updates index to
-   * be v's index iff the method returns true.
-   */
-  bool getIndexInSubclassForVar(TypeNode tn, Node v, unsigned& index) const;
-  //--------------------------------- end variable subclasses
+  TypeNode getArgType(const DTypeConstructor& c, unsigned i) const;
+  /** Do constructors c1 and c2 have the same type? */
+  bool isTypeMatch(const DTypeConstructor& c1, const DTypeConstructor& c2);
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
   /** can construct kind
@@ -550,49 +441,15 @@ class TermDbSygus {
                         bool aggr = false);
 
   TypeNode getSygusTypeForVar( Node v );
-  Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );
-  /** given a term, construct an equivalent smaller one that respects syntax */
-  Node minimizeBuiltinTerm( Node n );
-  /** given a term, expand it into more basic components */
-  Node expandBuiltinTerm( Node n );
-  /** get comparison kind */
-  Kind getComparisonKind( TypeNode tn );
-  Kind getPlusKind( TypeNode tn, bool is_neg = false );
   /** involves div-by-zero */
   bool involvesDivByZero( Node n );
   /** get anchor */
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
 
- public:
-  /** unfold
-   *
-   * This method returns the one-step unfolding of an evaluation function
-   * application. An example of a one step unfolding is:
-   *    eval( C_+( d1, d2 ), t ) ---> +( eval( d1, t ), eval( d2, t ) )
-   *
-   * This function does this unfolding for a (possibly symbolic) evaluation
-   * head, where the argument "variable to model" vtm stores the model value of
-   * variables from this head. This allows us to track an explanation of the
-   * unfolding in the vector exp when track_exp is true.
-   *
-   * For example, if vtm[d] = C_+( C_x(), C_0() ) and track_exp is true, then
-   * this method applied to eval( d, t ) will return
-   * +( eval( d.0, t ), eval( d.1, t ) ), and is-C_+( d ) is added to exp.
-   */
-  Node unfold(Node en,
-              std::map<Node, Node>& vtm,
-              std::vector<Node>& exp,
-              bool track_exp = true);
-  /**
-   * Same as above, but without explanation tracking. This is used for concrete
-   * evaluation heads
-   */
-  Node unfold(Node en);
-  Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
 };
 
 }/* CVC4::theory::quantifiers namespace */

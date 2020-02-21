@@ -19,6 +19,10 @@
 #include "expr/kind.h"
 #include "options/strings_options.h"
 #include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
+
+using namespace CVC4;
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
@@ -44,24 +48,85 @@ RegExpOpr::RegExpOpr()
 RegExpOpr::~RegExpOpr() {}
 
 bool RegExpOpr::checkConstRegExp( Node r ) {
-  Trace("strings-regexp-cstre") << "RegExp-CheckConstRegExp starts with /" << mkString( r ) << "/" << std::endl;
-  bool ret = true;
-  if( d_cstre_cache.find( r ) != d_cstre_cache.end() ) {
-    ret = d_cstre_cache[r];
-  } else {
-    if(r.getKind() == kind::STRING_TO_REGEXP) {
-      Node tmp = Rewriter::rewrite( r[0] );
-      ret = tmp.isConst();
-    } else {
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        if(!checkConstRegExp(r[i])) {
-          ret = false; break;
+  Assert(r.getType().isRegExp());
+  Trace("strings-regexp-cstre")
+      << "RegExpOpr::checkConstRegExp /" << mkString(r) << "/" << std::endl;
+  RegExpConstType rct = getRegExpConstType(r);
+  return rct != RE_C_VARIABLE;
+}
+
+RegExpConstType RegExpOpr::getRegExpConstType(Node r)
+{
+  Assert(r.getType().isRegExp());
+  std::unordered_map<Node, RegExpConstType, NodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(r);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = d_constCache.find(cur);
+
+    if (it == d_constCache.end())
+    {
+      Kind ck = cur.getKind();
+      if (ck == STRING_TO_REGEXP)
+      {
+        Node tmp = Rewriter::rewrite(cur[0]);
+        d_constCache[cur] =
+            tmp.isConst() ? RE_C_CONRETE_CONSTANT : RE_C_VARIABLE;
+      }
+      else if (ck == REGEXP_SIGMA || ck == REGEXP_RANGE)
+      {
+        d_constCache[cur] = RE_C_CONSTANT;
+      }
+      else if (!isRegExpKind(ck))
+      {
+        // non-regular expression applications, e.g. function applications
+        // with regular expression return type are treated as variables.
+        d_constCache[cur] = RE_C_VARIABLE;
+      }
+      else
+      {
+        d_constCache[cur] = RE_C_UNKNOWN;
+        visit.push_back(cur);
+        if (ck == REGEXP_LOOP)
+        {
+          // only add the first child of loop
+          visit.push_back(cur[0]);
+        }
+        else
+        {
+          visit.insert(visit.end(), cur.begin(), cur.end());
         }
       }
     }
-    d_cstre_cache[r] = ret;
-  }
-  return ret;
+    else if (it->second == RE_C_UNKNOWN)
+    {
+      RegExpConstType ret = RE_C_CONRETE_CONSTANT;
+      for (const Node& cn : cur)
+      {
+        it = d_constCache.find(cn);
+        Assert(it != d_constCache.end());
+        if (it->second > ret)
+        {
+          ret = it->second;
+        }
+      }
+      d_constCache[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(d_constCache.find(r) != d_constCache.end());
+  return d_constCache[r];
+}
+
+bool RegExpOpr::isRegExpKind(Kind k)
+{
+  return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
+         || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
+         || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
+         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV;
 }
 
 // 0-unknown, 1-yes, 2-no
@@ -72,7 +137,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
     ret = d_delta_cache[r].first;
     exp = d_delta_cache[r].second;
   } else {
-    int k = r.getKind();
+    Kind k = r.getKind();
     switch( k ) {
       case kind::REGEXP_EMPTY: {
         ret = 2;
@@ -200,8 +265,8 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       default: {
-        //Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in delta of RegExp." << std::endl;
-        Unreachable();
+        Assert(!isRegExpKind(k));
+        break;
       }
     }
     if(!exp.isNull()) {
@@ -216,7 +281,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
 
 // 0-unknown, 1-yes, 2-no
 int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
-  Assert( c.size() < 2 );
+  Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
 
   int ret = 1;
@@ -440,8 +505,9 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       default: {
-        //Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in derivative of RegExp." << std::endl;
-        Unreachable();
+        Assert(!isRegExpKind(r.getKind()));
+        return 0;
+        break;
       }
     }
     if(retNode != d_emptyRegexp) {
@@ -456,7 +522,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
 }
 
 Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
-  Assert( c.size() < 2 );
+  Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
   Node retNode = d_emptyRegexp;
   PairNodeStr dv = std::make_pair( r, c );
@@ -474,7 +540,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
       retNode = d_emptyRegexp;
     }
   } else {
-    int k = r.getKind();
+    Kind k = r.getKind();
     switch( k ) {
       case kind::REGEXP_EMPTY: {
         retNode = d_emptyRegexp;
@@ -616,6 +682,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
       default: {
         Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in derivative of RegExp." << std::endl;
         Unreachable();
+        break;
       }
     }
     if(retNode != d_emptyRegexp) {
@@ -639,17 +706,9 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
     // cset is code points
     std::set<unsigned> cset;
     SetNodes vset;
-    int k = r.getKind();
+    Kind k = r.getKind();
     switch( k ) {
       case kind::REGEXP_EMPTY: {
-        break;
-      }
-      case kind::REGEXP_SIGMA: {
-        Assert(d_lastchar < std::numeric_limits<unsigned>::max());
-        for (unsigned i = 0; i <= d_lastchar; i++)
-        {
-          cset.insert(i);
-        }
         break;
       }
       case kind::REGEXP_RANGE: {
@@ -726,9 +785,20 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         firstChars(r[0], cset, vset);
         break;
       }
+      case kind::REGEXP_SIGMA:
       default: {
-        Trace("regexp-error") << "Unsupported term: " << r << " in firstChars." << std::endl;
-        Unreachable();
+        // we do not expect to call this function on regular expressions that
+        // aren't a standard regular expression kind. However, if we do, then
+        // the following code is conservative and says that the current
+        // regular expression can begin with any character.
+        Assert(k == REGEXP_SIGMA);
+        // can start with any character
+        Assert(d_lastchar < std::numeric_limits<unsigned>::max());
+        for (unsigned i = 0; i <= d_lastchar; i++)
+        {
+          cset.insert(i);
+        }
+        break;
       }
     }
     pcset.insert(cset.begin(), cset.end());
@@ -741,7 +811,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
     Trace("regexp-fset") << "END FSET(" << mkString(r) << ") = {";
     for (std::set<unsigned>::const_iterator itr = pcset.begin();
          itr != pcset.end();
-         itr++)
+         ++itr)
     {
       if (itr != pcset.begin())
       {
@@ -776,7 +846,7 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
   if(itr != d_simpl_neg_cache.end()) {
     new_nodes.push_back( itr->second );
   } else {
-    int k = r.getKind();
+    Kind k = r.getKind();
     Node conc;
     switch( k ) {
       case kind::REGEXP_EMPTY: {
@@ -808,39 +878,76 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       case kind::REGEXP_CONCAT: {
-        //TODO: rewrite empty
-        Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
-        Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
-        Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
-        Node g1 = NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode(kind::GEQ, b1, d_zero),
-              NodeManager::currentNM()->mkNode( kind::GEQ, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s), b1 ) );
-        Node s1 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, s, d_zero, b1));
-        Node s2 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, s, b1, NodeManager::currentNM()->mkNode(kind::MINUS, lens, b1)));
-        Node s1r1 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s1, r[0]).negate();
-        if(r[0].getKind() == kind::STRING_TO_REGEXP) {
-          s1r1 = s1.eqNode(r[0][0]).negate();
-        } else if(r[0].getKind() == kind::REGEXP_EMPTY) {
-          s1r1 = d_true;
+        // The following simplification states that
+        //    ~( s in R1 ++ R2 )
+        // is equivalent to
+        //    forall x.
+        //      0 <= x <= len(s) =>
+        //        ~( substr(s,0,x) in R1 ) OR ~( substr(s,x,len(s)-x) in R2)
+        Node lens = nm->mkNode(STRING_LENGTH, s);
+        // the index we are removing from the RE concatenation
+        unsigned indexRm = 0;
+        Node b1;
+        Node b1v;
+        // As an optimization to the above reduction, if we can determine that
+        // all strings in the language of R1 have the same length, say n,
+        // then the conclusion of the reduction is quantifier-free:
+        //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
+        Node reLength = TheoryStringsRewriter::getFixedLengthForRegexp(r[0]);
+        if (reLength.isNull())
+        {
+          // try from the opposite end
+          unsigned indexE = r.getNumChildren() - 1;
+          reLength = TheoryStringsRewriter::getFixedLengthForRegexp(r[indexE]);
+          if (!reLength.isNull())
+          {
+            indexRm = indexE;
+          }
         }
-        Node r2 = r[1];
-        if(r.getNumChildren() > 2) {
-          std::vector< Node > nvec;
-          for(unsigned i=1; i<r.getNumChildren(); i++) {
+        Node guard;
+        if (reLength.isNull())
+        {
+          b1 = nm->mkBoundVar(nm->integerType());
+          b1v = nm->mkNode(BOUND_VAR_LIST, b1);
+          guard = nm->mkNode(AND,
+                             nm->mkNode(GEQ, b1, d_zero),
+                             nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, s), b1));
+        }
+        else
+        {
+          b1 = reLength;
+        }
+        Node s1;
+        Node s2;
+        if (indexRm == 0)
+        {
+          s1 = nm->mkNode(STRING_SUBSTR, s, d_zero, b1);
+          s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
+        }
+        else
+        {
+          s1 = nm->mkNode(STRING_SUBSTR, s, nm->mkNode(MINUS, lens, b1), b1);
+          s2 =
+              nm->mkNode(STRING_SUBSTR, s, d_zero, nm->mkNode(MINUS, lens, b1));
+        }
+        Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[indexRm]).negate();
+        std::vector<Node> nvec;
+        for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; i++)
+        {
+          if (i != indexRm)
+          {
             nvec.push_back( r[i] );
           }
-          r2 = NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, nvec);
         }
+        Node r2 = nvec.size() == 1 ? nvec[0] : nm->mkNode(REGEXP_CONCAT, nvec);
         r2 = Rewriter::rewrite(r2);
-        Node s2r2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s2, r2).negate();
-        if(r2.getKind() == kind::STRING_TO_REGEXP) {
-          s2r2 = s2.eqNode(r2[0]).negate();
-        } else if(r2.getKind() == kind::REGEXP_EMPTY) {
-          s2r2 = d_true;
+        Node s2r2 = nm->mkNode(STRING_IN_REGEXP, s2, r2).negate();
+        conc = nm->mkNode(OR, s1r1, s2r2);
+        if (!b1v.isNull())
+        {
+          conc = nm->mkNode(OR, guard.negate(), conc);
+          conc = nm->mkNode(FORALL, b1v, conc);
         }
-
-        conc = NodeManager::currentNM()->mkNode(kind::OR, s1r1, s2r2);
-        conc = NodeManager::currentNM()->mkNode(kind::IMPLIES, g1, conc);
-        conc = NodeManager::currentNM()->mkNode(kind::FORALL, b1v, conc);
         break;
       }
       case kind::REGEXP_UNION: {
@@ -940,13 +1047,16 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        Trace("strings-error") << "Unsupported term: " << r << " in simplifyNRegExp." << std::endl;
-        Assert( false, "Unsupported Term" );
+        Assert(!isRegExpKind(k));
+        break;
       }
     }
-    conc = Rewriter::rewrite( conc );
-    new_nodes.push_back( conc );
-    d_simpl_neg_cache[p] = conc;
+    if (!conc.isNull())
+    {
+      conc = Rewriter::rewrite(conc);
+      new_nodes.push_back(conc);
+      d_simpl_neg_cache[p] = conc;
+    }
   }
 }
 void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes ) {
@@ -956,7 +1066,7 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
   if(itr != d_simpl_cache.end()) {
     new_nodes.push_back( itr->second );
   } else {
-    int k = r.getKind();
+    Kind k = r.getKind();
     Node conc;
     switch( k ) {
       case kind::REGEXP_EMPTY: {
@@ -1058,18 +1168,36 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         } else if(r[0].getKind() == kind::REGEXP_SIGMA) {
           conc = d_true;
         } else {
+          NodeManager* nm = NodeManager::currentNM();
           Node se = s.eqNode(d_emptyString);
-          Node sinr = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s, r[0]);
-          Node sk1 = NodeManager::currentNM()->mkSkolem( "rs", s.getType(), "created for regular expression star" );
-          Node sk2 = NodeManager::currentNM()->mkSkolem( "rs", s.getType(), "created for regular expression star" );
-          Node s1nz = sk1.eqNode(d_emptyString).negate();
-          Node s2nz = sk2.eqNode(d_emptyString).negate();
-          Node s1inr = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, sk1, r[0]);
-          Node s2inrs = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, sk2, r);
-          Node s12 = s.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sk1, sk2));
+          Node sinr = nm->mkNode(kind::STRING_IN_REGEXP, s, r[0]);
+          Node sk1 = nm->mkSkolem(
+              "rs", s.getType(), "created for regular expression star");
+          Node sk2 = nm->mkSkolem(
+              "rs", s.getType(), "created for regular expression star");
+          Node sk3 = nm->mkSkolem(
+              "rs", s.getType(), "created for regular expression star");
 
-          conc = NodeManager::currentNM()->mkNode(kind::AND, s12, s1nz, s2nz, s1inr, s2inrs);
-          conc = NodeManager::currentNM()->mkNode(kind::OR, se, sinr, conc);
+          NodeBuilder<> nb(kind::AND);
+          nb << sk1.eqNode(d_emptyString).negate();
+          nb << sk3.eqNode(d_emptyString).negate();
+          nb << nm->mkNode(kind::STRING_IN_REGEXP, sk1, r[0]);
+          nb << nm->mkNode(kind::STRING_IN_REGEXP, sk2, r);
+          nb << nm->mkNode(kind::STRING_IN_REGEXP, sk3, r[0]);
+          nb << s.eqNode(nm->mkNode(kind::STRING_CONCAT, sk1, sk2, sk3));
+          conc = nb;
+
+          // We unfold `x in R*` by considering three cases: `x` is empty, `x`
+          // is matched by `R`, or `x` is matched by two or more `R`s. For the
+          // last case, we break `x` into three pieces, making the beginning
+          // and the end each match `R` and the middle match `R*`. Matching the
+          // beginning and the end with `R` allows us to reason about the
+          // beginning and the end of `x` simultaneously.
+          //
+          // x in R* ---> (x = "") v (x in R) v
+          //              (x = x1 ++ x2 ++ x3 ^ x1 != "" ^ x3 != "" ^
+          //               x1 in R ^ x2 in R* ^ x3 in R)
+          conc = nm->mkNode(kind::OR, se, sinr, conc);
         }
         break;
       }
@@ -1113,13 +1241,16 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        Trace("strings-error") << "Unsupported term: " << r << " in simplifyPRegExp." << std::endl;
-        Assert( false, "Unsupported Term" );
+        Assert(!isRegExpKind(k));
+        break;
       }
     }
-    conc = Rewriter::rewrite( conc );
-    new_nodes.push_back( conc );
-    d_simpl_cache[p] = conc;
+    if (!conc.isNull())
+    {
+      conc = Rewriter::rewrite(conc);
+      new_nodes.push_back(conc);
+      d_simpl_cache[p] = conc;
+    }
   }
 }
 
@@ -1136,8 +1267,8 @@ bool RegExpOpr::isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2) {
 
 bool RegExpOpr::containC2(unsigned cnt, Node n) {
   if(n.getKind() == kind::REGEXP_RV) {
-    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()),
-           "Exceeded UINT32_MAX in RegExpOpr::containC2");
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()))
+        << "Exceeded UINT32_MAX in RegExpOpr::containC2";
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     return cnt == y;
   } else if(n.getKind() == kind::REGEXP_CONCAT) {
@@ -1178,8 +1309,8 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     r1 = d_emptySingleton;
     r2 = d_emptySingleton;
   } else if(n.getKind() == kind::REGEXP_RV) {
-    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()),
-           "Exceeded UINT32_MAX in RegExpOpr::convert2");
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()))
+        << "Exceeded UINT32_MAX in RegExpOpr::convert2";
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     r1 = d_emptySingleton;
     if(cnt == y) {
@@ -1328,7 +1459,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
           Trace("regexp-int-debug") << "Try CSET(" << cset.size() << ") = {";
           for (std::vector<unsigned>::const_iterator itr = cset.begin();
                itr != cset.end();
-               itr++)
+               ++itr)
           {
             //CVC4::String c( *itr );
             if(itr != cset.begin()) {
@@ -1341,7 +1472,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
         std::map< PairNodes, Node > cacheX;
         for (std::vector<unsigned>::const_iterator itr = cset.begin();
              itr != cset.end();
-             itr++)
+             ++itr)
         {
           std::vector<unsigned> cvec;
           cvec.push_back(String::convertCodeToUnsignedInt(*itr));
@@ -1390,72 +1521,60 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
 }
 
 Node RegExpOpr::removeIntersection(Node r) {
-  Assert( checkConstRegExp(r) );
+  Assert(checkConstRegExp(r));
   std::map < Node, Node >::const_iterator itr = d_rm_inter_cache.find(r);
-  Node retNode;
   if(itr != d_rm_inter_cache.end()) {
-    retNode = itr->second;
-  } else {
-    switch(r.getKind()) {
-      case kind::REGEXP_EMPTY: {
-        retNode = r;
-        break;
-      }
-      case kind::REGEXP_SIGMA: {
-        retNode = r;
-        break;
-      }
-      case kind::REGEXP_RANGE: {
-        retNode = r;
-        break;
-      }
-      case kind::STRING_TO_REGEXP: {
-        retNode = r;
-        break;
-      }
-      case kind::REGEXP_CONCAT: {
-        std::vector< Node > vec_nodes;
-        for(unsigned i=0; i<r.getNumChildren(); i++) {
-          Node tmpNode = removeIntersection( r[i] );
-          vec_nodes.push_back( tmpNode );
-        }
-        retNode = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes) );
-        break;
-      }
-      case kind::REGEXP_UNION: {
-        std::vector< Node > vec_nodes;
-        for(unsigned i=0; i<r.getNumChildren(); i++) {
-          Node tmpNode = removeIntersection( r[i] );
-          vec_nodes.push_back( tmpNode );
-        }
-        retNode = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vec_nodes) );
-        break;
-      }
-      case kind::REGEXP_INTER: {
-        retNode = removeIntersection( r[0] );
-        for(unsigned i=1; i<r.getNumChildren(); i++) {
-          bool spflag = false;
-          Node tmpNode = removeIntersection( r[i] );
-          retNode = intersect( retNode, tmpNode, spflag );
-        }
-        break;
-      }
-      case kind::REGEXP_STAR: {
-        retNode = removeIntersection( r[0] );
-        retNode = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, retNode) );
-        break;
-      }
-      case kind::REGEXP_LOOP: {
-        retNode = removeIntersection( r[0] );
-        retNode = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_LOOP, retNode, r[1], r[2]) );
-        break;
-      }
-      default: {
-        Unreachable();
-      }
-    }
-    d_rm_inter_cache[r] = retNode;
+    return itr->second;
   }
+  Node retNode;
+  Kind rk = r.getKind();
+  switch (rk)
+  {
+    case REGEXP_EMPTY:
+    case REGEXP_SIGMA:
+    case REGEXP_RANGE:
+    case STRING_TO_REGEXP:
+    {
+      retNode = r;
+      break;
+    }
+    case REGEXP_CONCAT:
+    case REGEXP_UNION:
+    case REGEXP_STAR:
+    {
+      NodeBuilder<> nb(rk);
+      for (const Node& rc : r)
+      {
+        nb << removeIntersection(rc);
+      }
+      retNode = Rewriter::rewrite(nb.constructNode());
+      break;
+    }
+
+    case REGEXP_INTER:
+    {
+      retNode = removeIntersection(r[0]);
+      for (size_t i = 1, nchild = r.getNumChildren(); i < nchild; i++)
+      {
+        bool spflag = false;
+        Node tmpNode = removeIntersection(r[i]);
+        retNode = intersect(retNode, tmpNode, spflag);
+      }
+      break;
+    }
+    case REGEXP_LOOP:
+    {
+      retNode = removeIntersection(r[0]);
+      retNode = Rewriter::rewrite(
+          NodeManager::currentNM()->mkNode(REGEXP_LOOP, retNode, r[1], r[2]));
+      break;
+    }
+    default:
+    {
+      Unreachable();
+    }
+  }
+  d_rm_inter_cache[r] = retNode;
   Trace("regexp-intersect") << "Remove INTERSECTION( " << mkString(r) << " ) = " << mkString(retNode) << std::endl;
   return retNode;
 }
@@ -1465,9 +1584,12 @@ Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
     Node rr1 = removeIntersection(r1);
     Node rr2 = removeIntersection(r2);
     std::map< PairNodes, Node > cache;
+    Trace("regexp-intersect-node") << "Intersect (1): " << rr1 << std::endl;
+    Trace("regexp-intersect-node") << "Intersect (2): " << rr2 << std::endl;
     Trace("regexp-intersect") << "Start INTERSECTION(\n\t" << mkString(r1) << ",\n\t"<< mkString(r2) << ")" << std::endl;
     Node retNode = intersectInternal(rr1, rr2, cache, 1);
     Trace("regexp-intersect") << "End INTERSECTION(\n\t" << mkString(r1) << ",\n\t"<< mkString(r2) << ") =\n\t" << mkString(retNode) << std::endl;
+    Trace("regexp-intersect-node") << "Intersect finished." << std::endl;
     return retNode;
   } else {
     spflag = true;
@@ -1575,13 +1697,126 @@ std::string RegExpOpr::mkString( Node r ) {
         break;
       }
       default:
-        Trace("strings-error") << "Unsupported term: " << r << " in RegExp." << std::endl;
-        //Assert( false );
-        //return Node::null();
+      {
+        std::stringstream ss;
+        ss << r;
+        retStr = ss.str();
+        Assert(!isRegExpKind(r.getKind()));
+        break;
+      }
     }
   }
 
   return retStr;
+}
+
+bool RegExpOpr::regExpIncludes(Node r1, Node r2)
+{
+  Assert(Rewriter::rewrite(r1) == r1);
+  Assert(Rewriter::rewrite(r2) == r2);
+
+  if (r1 == r2)
+  {
+    return true;
+  }
+
+  // This method only works on a fragment of regular expressions
+  if (!utils::isSimpleRegExp(r1) || !utils::isSimpleRegExp(r2))
+  {
+    return false;
+  }
+
+  const auto& it = d_inclusionCache.find(std::make_pair(r1, r2));
+  if (it != d_inclusionCache.end())
+  {
+    return (*it).second;
+  }
+
+  std::vector<Node> v1, v2;
+  utils::getRegexpComponents(r1, v1);
+  utils::getRegexpComponents(r2, v2);
+
+  // In the following, we iterate over `r2` (the "includee") and try to
+  // match it with `r1`. `idxs`/`newIdxs` keep track of all the possible
+  // positions in `r1` that we could currently be at.
+  std::unordered_set<size_t> newIdxs = {0};
+  std::unordered_set<size_t> idxs;
+  for (const Node& n2 : v2)
+  {
+    // Transfer elements from `newIdxs` to `idxs`. Out-of-bound indices are
+    // removed and for (re.* re.allchar), we additionally include the option of
+    // skipping it. Indices must be smaller than the size of `v1`.
+    idxs.clear();
+    for (size_t idx : newIdxs)
+    {
+      if (idx < v1.size())
+      {
+        idxs.insert(idx);
+        if (idx + 1 < v1.size() && v1[idx] == d_sigma_star)
+        {
+          Assert(idx + 1 == v1.size() || v1[idx + 1] != d_sigma_star);
+          idxs.insert(idx + 1);
+        }
+      }
+    }
+    newIdxs.clear();
+
+    if (n2.getKind() == STRING_TO_REGEXP || n2 == d_sigma)
+    {
+      Assert(n2 == d_sigma
+             || (n2[0].isConst() && n2[0].getConst<String>().size() == 1));
+      for (size_t idx : idxs)
+      {
+        if (v1[idx] == d_sigma || v1[idx] == n2)
+        {
+          // Given a character or an re.allchar in `r2`, we can either
+          // match it with a corresponding character in `r1` or an
+          // re.allchar
+          newIdxs.insert(idx + 1);
+        }
+      }
+    }
+
+    for (size_t idx : idxs)
+    {
+      if (v1[idx] == d_sigma_star)
+      {
+        // (re.* re.allchar) can match an arbitrary amount of `r2`
+        newIdxs.insert(idx);
+      }
+      else if (utils::isUnboundedWildcard(v1, idx))
+      {
+        // If a series of re.allchar is followed by (re.* re.allchar), we
+        // can decide not to "waste" the re.allchar because the order of
+        // the two wildcards is not observable (i.e. it does not change
+        // the sequences matched by the regular expression)
+        newIdxs.insert(idx);
+      }
+    }
+
+    if (newIdxs.empty())
+    {
+      // If there are no candidates, we can't match the remainder of r2
+      d_inclusionCache[std::make_pair(r1, r2)] = false;
+      return false;
+    }
+  }
+
+  // We have processed all of `r2`. We are now looking if there was also a
+  // path to the end in `r1`. This makes sure that we don't have leftover
+  // bits in `r1` that don't match anything in `r2`.
+  bool result = false;
+  for (size_t idx : newIdxs)
+  {
+    if (idx == v1.size() || (idx == v1.size() - 1 && v1[idx] == d_sigma_star))
+    {
+      result = true;
+      break;
+    }
+  }
+
+  d_inclusionCache[std::make_pair(r1, r2)] = result;
+  return result;
 }
 
 }/* CVC4::theory::strings namespace */

@@ -12,8 +12,7 @@
  ** \brief Mechanism for communication about new lemmas
  **
  ** This file defines an interface for use by the theory and propositional
- ** engines to communicate new lemmas to the "outside world," for example
- ** for lemma sharing between threads.
+ ** engines to communicate new lemmas to the "outside world".
  **/
 
 #include "cvc4_public.h"

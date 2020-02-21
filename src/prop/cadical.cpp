@@ -18,6 +18,7 @@
 
 #ifdef CVC4_USE_CADICAL
 
+#include "base/check.h"
 #include "proof/sat_proof.h"
 
 namespace CVC4 {
@@ -37,10 +38,12 @@ SatValue toSatValue(int result)
   return SAT_VALUE_UNKNOWN;
 }
 
+/* Note: CaDiCaL returns lit/-lit for true/false. Older versions returned 1/-1.
+ */
 SatValue toSatValueLit(int value)
 {
-  if (value == 1) return SAT_VALUE_TRUE;
-  Assert(value == -1);
+  if (value > 0) return SAT_VALUE_TRUE;
+  Assert(value < 0);
   return SAT_VALUE_FALSE;
 }
 
@@ -88,7 +91,7 @@ ClauseId CadicalSolver::addXorClause(SatClause& clause,
                                      bool rhs,
                                      bool removable)
 {
-  Unreachable("CaDiCaL does not support adding XOR clauses.");
+  Unreachable() << "CaDiCaL does not support adding XOR clauses.";
 }
 
 SatVariable CadicalSolver::newVar(bool isTheoryAtom,
@@ -114,12 +117,11 @@ SatValue CadicalSolver::solve()
 
 SatValue CadicalSolver::solve(long unsigned int&)
 {
-  Unimplemented("Setting limits for CaDiCaL not supported yet");
+  Unimplemented() << "Setting limits for CaDiCaL not supported yet";
 };
 
 SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
 {
-#ifdef CVC4_INCREMENTAL_CADICAL
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   for (const SatLiteral& lit : assumptions)
   {
@@ -129,9 +131,6 @@ SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
   d_okay = (res == SAT_VALUE_TRUE);
   ++d_statistics.d_numSatCalls;
   return res;
-#else
-  Unimplemented("CaDiCaL version used does not support incremental solving");
-#endif
 }
 
 void CadicalSolver::interrupt() { d_solver->terminate(); }
@@ -150,7 +149,7 @@ SatValue CadicalSolver::modelValue(SatLiteral l)
 
 unsigned CadicalSolver::getAssertionLevel() const
 {
-  Unreachable("CaDiCal does not support assertion levels.");
+  Unreachable() << "CaDiCaL does not support assertion levels.";
 }
 
 bool CadicalSolver::ok() const { return d_okay; }

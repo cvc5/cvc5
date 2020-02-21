@@ -389,6 +389,7 @@ class RewriteRule {
   /** Actually apply the rewrite rule */
   static inline Node apply(TNode node) {
     Unreachable();
+    SuppressWrongNoReturnWarning;
   }
 
 public:
@@ -408,8 +409,10 @@ public:
     
   }
 
-  static inline bool applies(TNode node) {
+  static inline bool applies(TNode node)
+  {
     Unreachable();
+    SuppressWrongNoReturnWarning;
   }
 
   template<bool checkApplies>

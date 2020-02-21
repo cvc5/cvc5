@@ -106,15 +106,18 @@ void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theory
 
   d_context = context;
 
-  if( options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL ) {
+  if (options::decisionMode() != options::DecisionMode::INTERNAL)
+  {
     Notice() << "minisat: Incremental solving is forced on (to avoid variable elimination)"
              << " unless using internal decision strategy." << std::endl;
   }
 
   // Create the solver
-  d_minisat = new Minisat::SimpSolver(theoryProxy, d_context,
-                                      options::incrementalSolving() ||
-                                      options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL );
+  d_minisat = new Minisat::SimpSolver(
+      theoryProxy,
+      d_context,
+      options::incrementalSolving()
+          || options::decisionMode() != options::DecisionMode::INTERNAL);
 
   d_statistics.init(d_minisat);
 }
@@ -151,7 +154,7 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
     return ClauseIdUndef;
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
-  PROOF( Assert (clause_id != ClauseIdError););
+  PROOF(Assert(clause_id != ClauseIdError););
   return clause_id;
 }
 

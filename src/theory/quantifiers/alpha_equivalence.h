@@ -17,8 +17,9 @@
 #ifndef CVC4__ALPHA_EQUIVALENCE_H
 #define CVC4__ALPHA_EQUIVALENCE_H
 
+#include "theory/quantifiers/quant_util.h"
 
-#include "theory/quantifiers_engine.h"
+#include "expr/term_canonize.h"
 
 namespace CVC4 {
 namespace theory {
@@ -78,7 +79,7 @@ public:
 class AlphaEquivalenceDb
 {
  public:
-  AlphaEquivalenceDb(TermCanonize* tc) : d_tc(tc) {}
+  AlphaEquivalenceDb(expr::TermCanonize* tc) : d_tc(tc) {}
   /** adds quantified formula q to this database
    *
    * This function returns a quantified formula q' that is alpha-equivalent to
@@ -91,7 +92,7 @@ class AlphaEquivalenceDb
   /** a trie per # of variables per type */
   AlphaEquivalenceTypeNode d_ae_typ_trie;
   /** pointer to the term canonize utility */
-  TermCanonize* d_tc;
+  expr::TermCanonize* d_tc;
 };
 
 /**

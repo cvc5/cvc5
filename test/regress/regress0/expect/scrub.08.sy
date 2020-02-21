@@ -8,5 +8,5 @@
 (declare-var n Int)
 
 (synth-fun f ((n Int)) Int)
-(constraint (= (/ n n) 1))
+(constraint (= (div n n) 1))
 (check-synth)

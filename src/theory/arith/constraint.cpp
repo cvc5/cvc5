@@ -63,8 +63,7 @@ ConstraintType Constraint::constraintTypeOfComparison(const Comparison& cmp){
     return Equality;
   case DISTINCT:
     return Disequality;
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
 }
 
@@ -322,20 +321,11 @@ void ValueCollection::add(ConstraintP c){
 
 ConstraintP ValueCollection::getConstraintOfType(ConstraintType t) const{
   switch(t){
-  case LowerBound:
-    Assert(hasLowerBound());
-    return d_lowerBound;
-  case Equality:
-    Assert(hasEquality());
-    return d_equality;
-  case UpperBound:
-    Assert(hasUpperBound());
-    return d_upperBound;
-  case Disequality:
-    Assert(hasDisequality());
-    return d_disequality;
-  default:
-    Unreachable();
+    case LowerBound: Assert(hasLowerBound()); return d_lowerBound;
+    case Equality: Assert(hasEquality()); return d_equality;
+    case UpperBound: Assert(hasUpperBound()); return d_upperBound;
+    case Disequality: Assert(hasDisequality()); return d_disequality;
+    default: Unreachable();
   }
 }
 
@@ -536,6 +526,50 @@ bool Constraint::hasTrichotomyProof() const {
   return getProofType() == TrichotomyAP;
 }
 
+void Constraint::printProofTree(std::ostream& out, size_t depth) const
+{
+#if IS_PROOFS_BUILD
+  const ConstraintRule& rule = getConstraintRule();
+  out << std::string(2 * depth, ' ') << "* " << getVariable() << " [";
+  if (hasLiteral())
+  {
+    out << getLiteral();
+  }
+  else
+  {
+    out << "NOLIT";
+  };
+  out << "]" << ' ' << getType() << ' ' << getValue() << " (" << getProofType()
+      << ")";
+  if (getProofType() == FarkasAP)
+  {
+    out << " [";
+    bool first = true;
+    for (const auto& coeff : *rule.d_farkasCoefficients)
+    {
+      if (not first)
+      {
+        out << ", ";
+      }
+      first = false;
+      out << coeff;
+    }
+    out << "]";
+  }
+  out << endl;
+
+  for (AntecedentId i = rule.d_antecedentEnd; i != AntecedentIdSentinel; --i) {
+    ConstraintCP antecdent = d_database->getAntecedent(i);
+    if (antecdent == NullConstraint) {
+      break;
+    }
+    antecdent->printProofTree(out, depth + 1);
+  }
+#else  /* IS_PROOFS_BUILD */
+  out << "Cannot print proof. This is not a proof build." << endl;
+#endif /* IS_PROOFS_BUILD */
+}
+
 bool Constraint::sanityChecking(Node n) const {
   Comparison cmp = Comparison::parseNormalForm(n);
   Kind k = cmp.comparisonKind();
@@ -613,7 +647,7 @@ void ConstraintRule::print(std::ostream& out) const {
         out << "_";
       }
       out << " * (" << *antecedent << ")" << std::endl;
-      
+
       Assert((coeffs == RationalVectorCPSentinel) || coeffIterator > 0);
       --p;
       coeffIterator = (coeffs != RationalVectorCPSentinel) ? coeffIterator-1 : 0;
@@ -862,7 +896,8 @@ ConstraintP ConstraintDatabase::getConstraint(ArithVar v, ConstraintType t, cons
       pair<SortedConstraintMapIterator, bool> negInsertAttempt;
       negInsertAttempt = scm.insert(make_pair(negC->getValue(), ValueCollection()));
       Assert(negInsertAttempt.second
-             || ! negInsertAttempt.first->second.hasConstraintOfType(negC->getType()));
+             || !negInsertAttempt.first->second.hasConstraintOfType(
+                 negC->getType()));
       negPos = negInsertAttempt.first;
     }
 
@@ -1108,7 +1143,7 @@ void Constraint::setAssumption(bool nowInConflict){
   Assert(assertedToTheTheory());
 
   d_database->pushConstraintRule(ConstraintRule(this, AssumeAP));
-  
+
   Assert(inConflict() == nowInConflict);
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict@setAssumption " << this << std::endl;
@@ -1148,7 +1183,6 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   Assert(!hasProof());
   Assert(imp->hasProof());
   Assert(negationHasProof() == nowInConflict);
-
 
   d_database->d_antecedents.push_back(NullConstraint);
   d_database->d_antecedents.push_back(imp);
@@ -1283,7 +1317,7 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   Assert(negationHasProof() == nowInConflict);
   Assert(allHaveProof(a));
 
-  Assert( PROOF_ON() == (coeffs != RationalVectorCPSentinel) );
+  Assert(PROOF_ON() == (coeffs != RationalVectorCPSentinel));
   // !PROOF_ON() => coeffs == RationalVectorCPSentinel
   //  PROOF_ON() => coeffs->size() == a.size() + 1
   Assert(!PROOF_ON() || coeffs->size() == a.size() + 1);
@@ -1371,7 +1405,7 @@ Node Constraint::externalExplainByAssertions(const ConstraintCPVec& b){
 }
 
 Node Constraint::externalExplainConflict() const{
-  Debug("pf::arith") << this << std::endl;
+  Debug("pf::arith::explain") << this << std::endl;
   Assert(inConflict());
   NodeBuilder<> nb(kind::AND);
   externalExplainByAssertions(nb);
@@ -1404,7 +1438,8 @@ void Constraint::assertionFringe(ConstraintCPVec& v){
           v[writePos] = vi;
           writePos++;
         }else{
-          Assert(vi->hasTrichotomyProof() || vi->hasFarkasProof() || vi->hasIntHoleProof() );
+          Assert(vi->hasTrichotomyProof() || vi->hasFarkasProof()
+                 || vi->hasIntHoleProof());
           AntecedentId p = vi->getEndAntecedent();
 
           ConstraintCP antecedent = antecedents[p];
@@ -1440,11 +1475,11 @@ void Constraint::externalExplain(NodeBuilder<>& nb, AssertionOrder order) const{
   Assert(!isAssumption() || assertedToTheTheory());
   Assert(!isInternalAssumption());
 
-  if (Debug.isOn("pf::arith"))
+  if (Debug.isOn("pf::arith::explain"))
   {
-    Debug("pf::arith") << "Explaining: " << this << " with rule ";
-    getConstraintRule().print(Debug("pf::arith"));
-    Debug("pf::arith") << std::endl;
+    Debug("pf::arith::explain") << "Explaining: " << this << " with rule ";
+    getConstraintRule().print(Debug("pf::arith::explain"));
+    Debug("pf::arith::explain") << std::endl;
   }
 
   if(assertedBefore(order)){
@@ -1457,7 +1492,7 @@ void Constraint::externalExplain(NodeBuilder<>& nb, AssertionOrder order) const{
     ConstraintCP antecedent = d_database->d_antecedents[p];
 
     while(antecedent != NullConstraint){
-      Debug("pf::arith") << "Explain " << antecedent << std::endl;
+      Debug("pf::arith::explain") << "Explain " << antecedent << std::endl;
       antecedent->externalExplain(nb, order);
       --p;
       antecedent = d_database->d_antecedents[p];
@@ -1561,7 +1596,7 @@ ConstraintP Constraint::getStrictlyWeakerUpperBound(bool hasLiteral, bool assert
 
 ConstraintP ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t, const DeltaRational& r) const {
   Assert(variableDatabaseIsSetup(v));
-  Assert(t == UpperBound ||  t == LowerBound);
+  Assert(t == UpperBound || t == LowerBound);
 
   SortedConstraintMap& scm = getVariableSCM(v);
   if(t == UpperBound){

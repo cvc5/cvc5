@@ -24,18 +24,12 @@ TypeSet::~TypeSet()
   iterator it;
   for (it = d_typeSet.begin(); it != d_typeSet.end(); ++it)
   {
-    if ((*it).second != NULL)
-    {
-      delete (*it).second;
-    }
+    delete (*it).second;
   }
   TypeToTypeEnumMap::iterator it2;
   for (it2 = d_teMap.begin(); it2 != d_teMap.end(); ++it2)
   {
-    if ((*it2).second != NULL)
-    {
-      delete (*it2).second;
-    }
+    delete (*it2).second;
   }
 }
 

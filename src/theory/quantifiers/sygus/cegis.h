@@ -44,7 +44,8 @@ class Cegis : public SygusModule
   Cegis(QuantifiersEngine* qe, SynthConjecture* p);
   ~Cegis() override {}
   /** initialize */
-  virtual bool initialize(Node n,
+  virtual bool initialize(Node conj,
+                          Node n,
                           const std::vector<Node>& candidates,
                           std::vector<Node>& lemmas) override;
   /** get term list */
@@ -77,14 +78,21 @@ class Cegis : public SygusModule
    */
   Node d_base_body;
   //----------------------------------cegis-implementation-specific
-  /** do cegis-implementation-specific initialization for this class */
-  virtual bool processInitialize(Node n,
+  /**
+   * Do cegis-implementation-specific initialization for this class. The return
+   * value and behavior of this function is the same as initialize(...) above.
+   */
+  virtual bool processInitialize(Node conj,
+                                 Node n,
                                  const std::vector<Node>& candidates,
                                  std::vector<Node>& lemmas);
   /** do cegis-implementation-specific post-processing for construct candidate
    *
    * satisfiedRl is whether all refinement lemmas are satisfied under the
    * substitution { enums -> enum_values }.
+   *
+   * The return value and behavior of this function is the same as
+   * constructCandidates(...) above.
    */
   virtual bool processConstructCandidates(const std::vector<Node>& enums,
                                           const std::vector<Node>& enum_values,
@@ -106,6 +114,7 @@ class Cegis : public SygusModule
   std::vector<Node> d_rl_vals;
   /** all variables appearing in refinement lemmas */
   std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_vars;
+
   /** adds lem as a refinement lemma */
   void addRefinementLemma(Node lem);
   /** add refinement lemma conjunct
@@ -160,12 +169,14 @@ class Cegis : public SygusModule
   bool addEvalLemmas(const std::vector<Node>& candidates,
                      const std::vector<Node>& candidate_values,
                      std::vector<Node>& lems);
+  /** Get the node corresponding to the conjunction of all refinement lemmas. */
+  Node getRefinementLemmaFormula();
   //-----------------------------------end refinement lemmas
 
   /** Get refinement evaluation lemmas
    *
    * This method performs "refinement evaluation", that is, it tests
-   * whether the current solution, given by { candidates -> candidate_values },
+   * whether the current solution, given by { vs -> ms },
    * satisfies all current refinement lemmas. If it does not, it may add
    * blocking lemmas L to lems which exclude (a generalization of) the current
    * solution.
@@ -174,13 +185,22 @@ class Cegis : public SygusModule
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas
    * for previous refinements (d_refinement_lemmas).
    *
-   * Returns true if any such lemma exists. If doGen is false, then the
-   * lemmas are not generated or added to lems.
+   * Returns true if any such lemma exists.
    */
   bool getRefinementEvalLemmas(const std::vector<Node>& vs,
                                const std::vector<Node>& ms,
-                               std::vector<Node>& lems,
-                               bool doGen);
+                               std::vector<Node>& lems);
+  /** Check refinement evaluation lemmas
+   *
+   * This method is similar to above, but does not perform any generalization
+   * techniques. It is used when we are using only fast enumerators for
+   * all functions-to-synthesize.
+   *
+   * Returns true if a refinement lemma is false for the solution
+   * { vs -> ms }.
+   */
+  bool checkRefinementEvalLemmas(const std::vector<Node>& vs,
+                                 const std::vector<Node>& ms);
   /** sampler object for the option cegisSample()
    *
    * This samples points of the type of the inner variables of the synthesis
@@ -194,15 +214,15 @@ class Cegis : public SygusModule
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
 
-  //---------------------------------for sygus repair
-  /** are we using grammar-based repair?
+  //---------------------------------for symbolic constructors
+  /** are we using symbolic constants?
    *
    * This flag is set ot true if at least one of the enumerators allocated
    * by this class has been configured to allow model values with symbolic
    * constructors, such as the "any constant" constructor.
    */
-  bool d_using_gr_repair;
-  //---------------------------------end for sygus repair
+  bool d_usingSymCons;
+  //---------------------------------end for symbolic constructors
 };
 
 } /* CVC4::theory::quantifiers namespace */

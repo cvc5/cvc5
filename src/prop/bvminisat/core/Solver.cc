@@ -235,10 +235,10 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
     clause_added = true;
 
     Assert(falseLiteralsCount == 0 || THEORY_PROOF_ON());
-    
+
     if(falseLiteralsCount == 0) {
       if (ps.size() == 0) {
-        Assert (!THEORY_PROOF_ON());
+        Assert(!THEORY_PROOF_ON());
         return ok = false;
       }
       else if (ps.size() == 1){
@@ -282,10 +282,10 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
       // Check if it propagates
       if (ps.size() == falseLiteralsCount + 1) {
         Clause& cl = ca[cr];
-        
-        Assert (value(cl[0]) == l_Undef);
+
+        Assert(value(cl[0]) == l_Undef);
         uncheckedEnqueue(cl[0], cr);
-        Assert (cl.size() > 1);
+        Assert(cl.size() > 1);
         CRef confl = propagate();
         ok = (confl == CRef_Undef);
         if(!ok) {
@@ -658,7 +658,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 
     if(d_bvp){
       if (level(var(p)) == 0 && d_bvp->isAssumptionConflict()) {
-        Assert ( marker[var(p)] == 2);
+        Assert(marker[var(p)] == 2);
         if (reason(var(p)) == CRef_Undef) {
           d_bvp->startBVConflict(p);
         }
@@ -775,8 +775,8 @@ lbool Solver::assertAssumption(Lit p, bool propagate) {
 }
 
 void Solver::addMarkerLiteral(Var var) {
-  // make sure it wasn't already marked 
-  Assert(marker[var] == 0); 
+  // make sure it wasn't already marked
+  Assert(marker[var] == 0);
   marker[var] = 1;
   if(d_bvp){d_bvp->getSatProof()->registerAssumption(var);}
 }
@@ -1076,7 +1076,8 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             // NO CONFLICT
             bool isWithinBudget;
             try {
-              isWithinBudget = withinBudget(CVC4::options::bvSatConflictStep()); 
+              isWithinBudget =
+                  withinBudget(ResourceManager::Resource::BvSatConflictsStep);
             }
             catch (const CVC4::theory::Interrupted& e) {
               // do some clean-up and rethrow 
@@ -1232,7 +1233,7 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget(CVC4::options::bvSatConflictStep())) break;
+        if (!withinBudget(ResourceManager::Resource::BvSatConflictsStep)) break;
         curr_restarts++;
     }
 
@@ -1284,7 +1285,7 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
           assert(level(x) > 0);
           explanation.push_back(trail[i]);
         } else {
-          Assert (level(x) == 0);
+          Assert(level(x) == 0);
           if(d_bvp){ d_bvp->getSatProof()->resolveOutUnit(~(trail[i])); }
          }
         
@@ -1482,11 +1483,10 @@ void ClauseAllocator::reloc(CRef& cr,
 }
 
 void Solver::setNotify(Notify* toNotify) { d_notify = toNotify; }
-bool Solver::withinBudget(uint64_t amount) const
+bool Solver::withinBudget(ResourceManager::Resource r) const
 {
   AlwaysAssert(d_notify);
-  d_notify->spendResource(amount);
-  d_notify->safePoint(0);
+  d_notify->safePoint(r);
 
   return !asynch_interrupt &&
          (conflict_budget < 0 || conflicts < (uint64_t)conflict_budget) &&

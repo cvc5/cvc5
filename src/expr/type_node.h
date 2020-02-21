@@ -29,7 +29,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "util/cardinality.h"
@@ -37,6 +37,7 @@
 namespace CVC4 {
 
 class NodeManager;
+class DType;
 
 namespace expr {
   class NodeValue;
@@ -421,10 +422,16 @@ public:
    * @return a finite or infinite cardinality
    */
   Cardinality getCardinality() const;
-  
+
   /**
-   * Is this type interpreted as being finite.
-   * If finite model finding is enabled, this assumes all uninterpreted sorts 
+   * Is this type finite? This assumes uninterpreted sorts have infinite
+   * cardinality.
+   */
+  bool isFinite();
+
+  /**
+   * Is this type interpreted as finite.
+   * If finite model finding is enabled, this assumes all uninterpreted sorts
    *   are interpreted as finite.
    */
   bool isInterpretedFinite();
@@ -469,6 +476,14 @@ public:
   Node mkGroundTerm() const;
 
   /**
+   * Construct and return a ground value of this type.  If the type is
+   * not well founded, this function throws an exception.
+   *
+   * @return a ground value of the type
+   */
+  Node mkGroundValue() const;
+
+  /**
    * Is this type a subtype of the given type?
    */
   bool isSubtypeOf(TypeNode t) const;
@@ -508,6 +523,12 @@ public:
 
   /** Get the return type (for constructor types) */
   TypeNode getConstructorRangeType() const;
+
+  /** Get the domain type (for selector types) */
+  TypeNode getSelectorDomainType() const;
+
+  /** Get the return type (for selector types) */
+  TypeNode getSelectorRangeType() const;
 
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
@@ -576,12 +597,6 @@ public:
   /** Get the constituent types of a tuple type */
   std::vector<TypeNode> getTupleTypes() const;
 
-  /** Is this a record type? */
-  bool isRecord() const;
-
-  /** Get the description of the record type */
-  const Record& getRecord() const;
-
   /** Is this a symbolic expression type? */
   bool isSExpr() const;
 
@@ -616,6 +631,16 @@ public:
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
+  /**
+   * Get instantiated datatype type. The type on which this method is called
+   * should be a parametric datatype whose parameter list is the same size as
+   * argument params. This constructs the instantiated version of this
+   * parametric datatype, e.g. passing (par (A) (List A)), { Int } ) to this
+   * method returns (List Int).
+   */
+  TypeNode instantiateParametricDatatype(
+      const std::vector<TypeNode>& params) const;
+
   /** Is this an instantiated datatype parameter */
   bool isParameterInstantiatedDatatype(unsigned n) const;
 
@@ -628,8 +653,8 @@ public:
   /** Is this a tester type */
   bool isTester() const;
 
-  /** Get the Datatype specification from a datatype type */
-  const Datatype& getDatatype() const;
+  /** Get the internal Datatype specification from a datatype type */
+  const DType& getDType() const;
 
   /** Get the exponent size of this floating-point type */
   unsigned getFloatingPointExponentSize() const;
@@ -645,6 +670,17 @@ public:
 
   /** Is this a sort constructor kind */
   bool isSortConstructor() const;
+
+  /**
+   * Instantiate a sort constructor type. The type on which this method is
+   * called should be a sort constructor type whose parameter list is the
+   * same size as argument params. This constructs the instantiated version of
+   * this sort constructor. For example, this is a sort constructor, e.g.
+   * declared via (declare-sort U 2), then calling this method with
+   * { Int, Int } will generate the instantiated sort (U Int Int).
+   */
+  TypeNode instantiateSortConstructor(
+      const std::vector<TypeNode>& params) const;
 
   /** Get the most general base type of the type */
   TypeNode getBaseType() const;
@@ -665,7 +701,14 @@ public:
   static Node getEnsureTypeCondition( Node n, TypeNode tn );
 private:
   static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
-  
+
+  /**
+   * Is this type interpreted as finite.
+   * If the flag usortFinite is true, this assumes all uninterpreted sorts
+   *   are interpreted as finite.
+   */
+  bool isFiniteInternal(bool usortFinite);
+
   /**
    * Indents the given stream a given amount of spaces.
    *
@@ -739,8 +782,8 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
   }
 
   // otherwise compute
-  Assert( typesEnd - typesBegin == replacementsEnd - replacementsBegin,
-          "Substitution iterator ranges must be equal size" );
+  Assert(typesEnd - typesBegin == replacementsEnd - replacementsBegin)
+      << "Substitution iterator ranges must be equal size";
   Iterator1 j = find(typesBegin, typesEnd, *this);
   if(j != typesEnd) {
     TypeNode tn = *(replacementsBegin + (j - typesBegin));
@@ -779,18 +822,18 @@ inline const T& TypeNode::getConst() const {
 
 inline TypeNode::TypeNode(const expr::NodeValue* ev) :
   d_nv(const_cast<expr::NodeValue*> (ev)) {
-  Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv->inc();
 }
 
 inline TypeNode::TypeNode(const TypeNode& typeNode) {
-  Assert(typeNode.d_nv != NULL, "Expecting a non-NULL expression value!");
+  Assert(typeNode.d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv = typeNode.d_nv;
   d_nv->inc();
 }
 
 inline TypeNode::~TypeNode() {
-  Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv->dec();
 }
 
@@ -800,9 +843,9 @@ inline void TypeNode::assignNodeValue(expr::NodeValue* ev) {
 }
 
 inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
-  Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
-  Assert(typeNode.d_nv != NULL,
-         "Expecting a non-NULL expression value on RHS!");
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(typeNode.d_nv != NULL)
+      << "Expecting a non-NULL expression value on RHS!";
   if(__builtin_expect( ( d_nv != typeNode.d_nv ), true )) {
     d_nv->dec();
     d_nv = typeNode.d_nv;
@@ -814,35 +857,35 @@ inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
 template <class AttrKind>
 inline typename AttrKind::value_type TypeNode::
 getAttribute(const AttrKind&) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::
 hasAttribute(const AttrKind&) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->hasAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::getAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind(), ret);
 }
 
 template <class AttrKind>
 inline void TypeNode::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   NodeManager::currentNM()->setAttribute(d_nv, AttrKind(), value);
 }
 
@@ -899,6 +942,18 @@ inline TypeNode TypeNode::getArrayConstituentType() const {
 inline TypeNode TypeNode::getConstructorRangeType() const {
   Assert(isConstructor());
   return (*this)[getNumChildren()-1];
+}
+
+inline TypeNode TypeNode::getSelectorDomainType() const
+{
+  Assert(isSelector());
+  return (*this)[0];
+}
+
+inline TypeNode TypeNode::getSelectorRangeType() const
+{
+  Assert(isSelector());
+  return (*this)[1];
 }
 
 inline bool TypeNode::isSet() const {
@@ -963,15 +1018,6 @@ inline bool TypeNode::isParametricDatatype() const {
   return getKind() == kind::PARAMETRIC_DATATYPE;
 }
 
-/** Is this a codatatype type */
-inline bool TypeNode::isCodatatype() const {
-  if( isDatatype() ){
-    return getDatatype().isCodatatype();
-  }else{
-    return false;
-  }
-}
-
 /** Is this a constructor type */
 inline bool TypeNode::isConstructor() const {
   return getKind() == kind::CONSTRUCTOR_TYPE;
@@ -1002,18 +1048,6 @@ inline bool TypeNode::isBitVector(unsigned size) const {
     ( getKind() == kind::BITVECTOR_TYPE && getConst<BitVectorSize>() == size );
 }
 
-/** Get the datatype specification from a datatype type */
-inline const Datatype& TypeNode::getDatatype() const {
-  Assert(isDatatype());
-  if( getKind() == kind::DATATYPE_TYPE ){
-    DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
-    return NodeManager::currentNM()->getDatatypeForIndex( dic.getIndex() );
-  }else{
-    Assert( getKind() == kind::PARAMETRIC_DATATYPE );
-    return (*this)[0].getDatatype();
-  }
-}
-
 /** Get the exponent size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointExponentSize() const {
   Assert(isFloatingPoint());
@@ -1022,8 +1056,8 @@ inline unsigned TypeNode::getFloatingPointExponentSize() const {
 
 /** Get the significand size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointSignificandSize() const {
- Assert(isFloatingPoint());
- return getConst<FloatingPointSize>().significand();
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().significand();
 }
 
 /** Get the size of this bit-vector type */

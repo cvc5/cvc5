@@ -20,7 +20,7 @@
 #include <iostream>
 #include <string>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "options/set_language.h"
 
 using namespace std;
@@ -172,8 +172,7 @@ Result Result::asSatisfiabilityResult() const {
       case VALIDITY_UNKNOWN:
         return Result(SAT_UNKNOWN, d_unknownExplanation, d_inputName);
 
-      default:
-        Unhandled(d_validity);
+      default: Unhandled() << d_validity;
     }
   }
 
@@ -197,8 +196,7 @@ Result Result::asValidityResult() const {
       case SAT_UNKNOWN:
         return Result(VALIDITY_UNKNOWN, d_unknownExplanation, d_inputName);
 
-      default:
-        Unhandled(d_sat);
+      default: Unhandled() << d_sat;
     }
   }
 
@@ -223,8 +221,7 @@ ostream& operator<<(ostream& out, enum Result::Sat s) {
     case Result::SAT_UNKNOWN:
       out << "SAT_UNKNOWN";
       break;
-    default:
-      Unhandled(s);
+    default: Unhandled() << s;
   }
   return out;
 }
@@ -240,8 +237,7 @@ ostream& operator<<(ostream& out, enum Result::Validity v) {
     case Result::VALIDITY_UNKNOWN:
       out << "VALIDITY_UNKNOWN";
       break;
-    default:
-      Unhandled(v);
+    default: Unhandled() << v;
   }
   return out;
 }
@@ -278,8 +274,7 @@ ostream& operator<<(ostream& out, enum Result::UnknownExplanation e) {
     case Result::UNKNOWN_REASON:
       out << "UNKNOWN_REASON";
       break;
-    default:
-      Unhandled(e);
+    default: Unhandled() << e;
   }
   return out;
 }
@@ -350,8 +345,7 @@ void Result::toStreamTptp(std::ostream& out) const {
 void Result::toStream(std::ostream& out, OutputLanguage language) const {
   switch (language) {
     case language::output::LANG_SYGUS:
-      toStreamSmt2(out);
-      break;
+    case language::output::LANG_SYGUS_V2: toStreamSmt2(out); break;
     case language::output::LANG_TPTP:
       toStreamTptp(out);
       break;

@@ -99,18 +99,18 @@ namespace CVC4 {
 }
 
 // Expr is "iterable" on the Java side
-%typemap(javainterfaces) CVC4::Expr "java.lang.Iterable<edu.nyu.acsys.CVC4.Expr>";
+%typemap(javainterfaces) CVC4::Expr "java.lang.Iterable<edu.stanford.CVC4.Expr>";
 
 // the JavaIteratorAdapter should not be public, and implements Iterator
 %typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "class";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "java.util.Iterator<edu.nyu.acsys.CVC4.Expr>";
+%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "java.util.Iterator<edu.stanford.CVC4.Expr>";
 // add some functions to the Java side (do it here because there's no way to do these in C++)
 %typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "
   public void remove() {
     throw new java.lang.UnsupportedOperationException();
   }
 
-  public edu.nyu.acsys.CVC4.Expr next() {
+  public edu.stanford.CVC4.Expr next() {
     if(hasNext()) {
       return getNext();
     } else {
@@ -133,23 +133,25 @@ namespace CVC4 {
 %template(getConstTypeConstant) CVC4::Expr::getConst<CVC4::TypeConstant>;
 #endif
 %template(getConstArrayStoreAll) CVC4::Expr::getConst<CVC4::ArrayStoreAll>;
-%template(getConstBitVectorSize) CVC4::Expr::getConst<CVC4::BitVectorSize>;
 %template(getConstAscriptionType) CVC4::Expr::getConst<CVC4::AscriptionType>;
-%template(getConstBitVectorBitOf) CVC4::Expr::getConst<CVC4::BitVectorBitOf>;
-%template(getConstBitVectorRepeat) CVC4::Expr::getConst<CVC4::BitVectorRepeat>;
-%template(getConstBitVectorExtract) CVC4::Expr::getConst<CVC4::BitVectorExtract>;
-%template(getConstBitVectorRotateLeft) CVC4::Expr::getConst<CVC4::BitVectorRotateLeft>;
-%template(getConstBitVectorSignExtend) CVC4::Expr::getConst<CVC4::BitVectorSignExtend>;
-%template(getConstBitVectorZeroExtend) CVC4::Expr::getConst<CVC4::BitVectorZeroExtend>;
-%template(getConstBitVectorRotateRight) CVC4::Expr::getConst<CVC4::BitVectorRotateRight>;
-%template(getConstUninterpretedConstant) CVC4::Expr::getConst<CVC4::UninterpretedConstant>;
-%template(getConstKind) CVC4::Expr::getConst<CVC4::kind::Kind_t>;
-%template(getConstDatatypeIndexConstant) CVC4::Expr::getConst<CVC4::DatatypeIndexConstant>;
-%template(getConstRational) CVC4::Expr::getConst<CVC4::Rational>;
 %template(getConstBitVector) CVC4::Expr::getConst<CVC4::BitVector>;
-%template(getConstString) CVC4::Expr::getConst<CVC4::String>;
-%template(getConstEmptySet) CVC4::Expr::getConst<CVC4::EmptySet>;
+%template(getConstBitVectorBitOf) CVC4::Expr::getConst<CVC4::BitVectorBitOf>;
+%template(getConstBitVectorExtract) CVC4::Expr::getConst<CVC4::BitVectorExtract>;
+%template(getConstBitVectorRepeat) CVC4::Expr::getConst<CVC4::BitVectorRepeat>;
+%template(getConstBitVectorRotateLeft) CVC4::Expr::getConst<CVC4::BitVectorRotateLeft>;
+%template(getConstBitVectorRotateRight) CVC4::Expr::getConst<CVC4::BitVectorRotateRight>;
+%template(getConstBitVectorSignExtend) CVC4::Expr::getConst<CVC4::BitVectorSignExtend>;
+%template(getConstBitVectorSize) CVC4::Expr::getConst<CVC4::BitVectorSize>;
+%template(getConstBitVectorZeroExtend) CVC4::Expr::getConst<CVC4::BitVectorZeroExtend>;
 %template(getConstBoolean) CVC4::Expr::getConst<bool>;
+%template(getConstDatatypeIndexConstant) CVC4::Expr::getConst<CVC4::DatatypeIndexConstant>;
+%template(getConstEmptySet) CVC4::Expr::getConst<CVC4::EmptySet>;
+%template(getConstFloatingPoint) CVC4::Expr::getConst<CVC4::FloatingPoint>;
+%template(getConstKind) CVC4::Expr::getConst<CVC4::kind::Kind_t>;
+%template(getConstRational) CVC4::Expr::getConst<CVC4::Rational>;
+%template(getConstRoundingMode) CVC4::Expr::getConst<CVC4::RoundingMode>;
+%template(getConstString) CVC4::Expr::getConst<CVC4::String>;
+%template(getConstUninterpretedConstant) CVC4::Expr::getConst<CVC4::UninterpretedConstant>;
 
 #ifdef SWIGJAVA
 

@@ -1,0 +1,8 @@
+(set-option :incremental false)
+(set-info :status unsat)
+(set-logic QF_BV)
+(declare-fun x () (_ BitVec 64))
+(declare-fun y () (_ BitVec 32))
+(declare-fun z () (_ BitVec 32))
+(assert (= x (concat y z)))
+(check-sat-assuming ( (not (= ((_ extract 31 0) x) z)) ))

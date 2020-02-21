@@ -1,0 +1,7 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_LRA)
+(declare-fun v0 () Real)
+(declare-fun v2 () Real)
+(declare-fun v1 () Real)
+(check-sat-assuming ( (let ((_let_0 (* 2 2))) (let ((_let_1 (- (* 2.0 (- v0)) (- (/ (- 2 2) 1) v0)))) (let ((_let_2 (+ 2 2))) (let ((_let_3 (ite (= 2.0 _let_1) _let_2 (ite (= v2 (/ _let_2 1)) v2 2)))) (and (= (/ _let_0 1) _let_1) (= (= (ite false 2 v1) (+ 2.0 v2)) (ite (= (ite false v0 _let_0) (/ (ite false (- 2) 2) 1)) (and false (ite (= _let_3 (/ _let_0 1)) (=> (= (= (ite false _let_3 _let_0) 2.0) (= _let_1 (/ _let_0 1))) (= 2 (ite (= (- _let_1) 2.0) 2 2))) (=> false false))) false))))))) ))

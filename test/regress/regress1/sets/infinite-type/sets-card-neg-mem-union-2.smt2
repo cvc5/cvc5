@@ -1,0 +1,32 @@
+(set-logic QF_ALL)
+(set-info :status unsat)
+(set-option :produce-models true)
+(set-option :sets-ext true)
+(declare-fun A () (Set Int))
+(declare-fun B () (Set Int))
+(declare-fun C () (Set Int))
+(declare-fun D () (Set Int))
+
+(declare-fun x () Int)
+(assert (not (member x A)))
+(assert (not (member x B)))
+(assert (not (member x C)))
+(assert (not (member x D)))
+(declare-fun y () Int)
+(assert (not (member y A)))
+(assert (not (member y B)))
+(assert (not (member y C)))
+(assert (not (member y D)))
+(declare-fun z () Int)
+(assert (not (member z A)))
+(assert (not (member z B)))
+(assert (not (member z C)))
+(assert (not (member z D)))
+
+(assert (distinct x y z))
+
+(assert (= (card (union A (union B (union C D)))) 6))
+
+(assert (= (card (as univset (Set Int))) 8))
+
+(check-sat)

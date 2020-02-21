@@ -140,6 +140,19 @@ protected:
   Cardinality getCardinality() const;
 
   /**
+   * Is this type finite? This assumes uninterpreted sorts have infinite
+   * cardinality.
+   */
+  bool isFinite() const;
+
+  /**
+   * Is this type interpreted as being finite.
+   * If finite model finding is enabled, this assumes all uninterpreted sorts
+   *   are interpreted as finite.
+   */
+  bool isInterpretedFinite() const;
+
+  /**
    * Is this a well-founded type?
    */
   bool isWellFounded() const;
@@ -176,6 +189,20 @@ protected:
    * exception if this type is not well-founded.
    */
   Expr mkGroundTerm() const;
+
+  /**
+   * Construct and return a ground value for this Type.  Throws an
+   * exception if this type is not well-founded.
+   *
+   * This is the same as mkGroundTerm, but constructs a constant value instead
+   * of a canonical ground term. These two notions typically coincide. However,
+   * for uninterpreted sorts, they do not: mkGroundTerm returns a fresh variable
+   * whereas mkValue returns an uninterpreted constant. The motivation for
+   * mkGroundTerm is that unintepreted constants should never appear in lemmas.
+   * The motivation for mkGroundValue is for e.g. type enumeration and model
+   * construction.
+   */
+  Expr mkGroundValue() const;
 
   /**
    * Is this type a subtype of the given type?

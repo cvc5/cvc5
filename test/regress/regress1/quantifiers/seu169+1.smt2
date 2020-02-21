@@ -8,7 +8,7 @@
 (declare-fun empty ($$unsorted) Bool)
 (declare-fun element ($$unsorted $$unsorted) Bool)
 (declare-fun empty_set () $$unsorted)
-(meta-info :filename "SEU169+1")
+(set-info :filename "SEU169+1")
 (assert (forall ((A $$unsorted) (B $$unsorted)) (or (not (in A B)) (not (in B A))) ))
 (assert (forall ((A $$unsorted) (B $$unsorted)) (= (= B (powerset A)) (forall ((C $$unsorted)) (= (in C B) (subset C A)) )) ))
 (assert (and (forall ((A $$unsorted) (B $$unsorted)) (or (empty A) (= (element B A) (in B A))) ) (forall ((A $$unsorted) (B $$unsorted)) (or (not (empty A)) (= (element B A) (empty B))) )))

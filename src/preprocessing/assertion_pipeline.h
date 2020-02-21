@@ -95,6 +95,37 @@ class AssertionPipeline
 
   void updateRealAssertionsEnd() { d_realAssertionsEnd = d_nodes.size(); }
 
+  /**
+   * Returns true if substitutions must be stored as assertions. This is for
+   * example the case when we do incremental solving.
+   */
+  bool storeSubstsInAsserts() { return d_storeSubstsInAsserts; }
+
+  /**
+   * Enables storing substitutions as assertions.
+   */
+  void enableStoreSubstsInAsserts();
+
+  /**
+   * Disables storing substitutions as assertions.
+   */
+  void disableStoreSubstsInAsserts();
+
+  /**
+   * Adds a substitution node of the form (= lhs rhs) to the assertions.
+   */
+  void addSubstitutionNode(Node n);
+
+  /**
+   * Checks whether the assertion at a given index represents substitutions.
+   *
+   * @param i The index in question
+   */
+  bool isSubstsIndex(size_t i)
+  {
+    return d_storeSubstsInAsserts && i == d_substsIndex;
+  }
+
  private:
   /** The list of current assertions */
   std::vector<Node> d_nodes;
@@ -107,6 +138,20 @@ class AssertionPipeline
 
   /** Size of d_nodes when preprocessing starts */
   size_t d_realAssertionsEnd;
+
+  /**
+   * If true, we store the substitutions as assertions. This is necessary when
+   * doing incremental solving because we cannot apply them to existing
+   * assertions while preprocessing new assertions.
+   */
+  bool d_storeSubstsInAsserts;
+
+  /**
+   * The index of the assertions that holds the substitutions.
+   *
+   * TODO(#2473): replace by separate vector of substitution assertions.
+   */
+  size_t d_substsIndex;
 
   /** Index of the first assumption */
   size_t d_assumptionsStart;

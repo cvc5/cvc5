@@ -17,8 +17,10 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "theory/quantifiers/sygus/example_min_eval.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -30,15 +32,13 @@ namespace theory {
 namespace quantifiers {
 
 Cegis::Cegis(QuantifiersEngine* qe, SynthConjecture* p)
-    : SygusModule(qe, p), d_eval_unfold(nullptr), d_using_gr_repair(false)
+    : SygusModule(qe, p), d_eval_unfold(nullptr), d_usingSymCons(false)
 {
-  if (options::sygusEvalUnfold())
-  {
-    d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
-  }
+  d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
 }
 
-bool Cegis::initialize(Node n,
+bool Cegis::initialize(Node conj,
+                       Node n,
                        const std::vector<Node>& candidates,
                        std::vector<Node>& lemmas)
 {
@@ -53,17 +53,18 @@ bool Cegis::initialize(Node n,
   }
 
   // assign the cegis sampler if applicable
-  if (options::cegisSample() != CEGIS_SAMPLE_NONE)
+  if (options::cegisSample() != options::CegisSampleMode::NONE)
   {
     Trace("cegis-sample") << "Initialize sampler for " << d_base_body << "..."
                           << std::endl;
     TypeNode bt = d_base_body.getType();
     d_cegis_sampler.initialize(bt, d_base_vars, options::sygusSamples());
   }
-  return processInitialize(n, candidates, lemmas);
+  return processInitialize(conj, n, candidates, lemmas);
 }
 
-bool Cegis::processInitialize(Node n,
+bool Cegis::processInitialize(Node conj,
+                              Node n,
                               const std::vector<Node>& candidates,
                               std::vector<Node>& lemmas)
 {
@@ -77,22 +78,24 @@ bool Cegis::processInitialize(Node n,
   for (unsigned i = 0; i < csize; i++)
   {
     Trace("cegis") << "...register enumerator " << candidates[i];
-    bool do_repair_const = false;
-    if (options::sygusRepairConst())
+    // We use symbolic constants if we are doing repair constants or if the
+    // grammar construction was not simple.
+    if (options::sygusRepairConst()
+        || options::sygusGrammarConsMode()
+               != options::SygusGrammarConsMode::SIMPLE)
     {
       TypeNode ctn = candidates[i].getType();
       d_tds->registerSygusType(ctn);
-      if (d_tds->hasSubtermSymbolicCons(ctn))
+      SygusTypeInfo& cti = d_tds->getTypeInfo(ctn);
+      if (cti.hasSubtermSymbolicCons())
       {
-        do_repair_const = true;
-        // remember that we are doing grammar-based repair
-        d_using_gr_repair = true;
-        Trace("cegis") << " (using repair)";
+        // remember that we are using symbolic constructors
+        d_usingSymCons = true;
+        Trace("cegis") << " (using symbolic constructors)";
       }
     }
     Trace("cegis") << std::endl;
-    d_tds->registerEnumerator(
-        candidates[i], candidates[i], d_parent, erole, do_repair_const);
+    d_tds->registerEnumerator(candidates[i], candidates[i], d_parent, erole);
   }
   return true;
 }
@@ -131,41 +134,51 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   }
   NodeManager* nm = NodeManager::currentNM();
   bool addedEvalLemmas = false;
-  if (options::sygusRefEval())
+  // Refinement evaluation should not be done for grammars with symbolic
+  // constructors.
+  bool doRefEval = options::sygusRefEval() && !d_usingSymCons;
+  if (doRefEval)
   {
     Trace("cegqi-engine") << "  *** Do refinement lemma evaluation"
                           << (doGen ? " with conjecture-specific refinement"
                                     : "")
                           << "..." << std::endl;
     // see if any refinement lemma is refuted by evaluation
-    std::vector<Node> cre_lems;
-    bool ret =
-        getRefinementEvalLemmas(candidates, candidate_values, cre_lems, doGen);
-    if (ret && !doGen)
+    if (doGen)
     {
-      Trace("cegqi-engine") << "...(actively enumerated) candidate failed "
-                               "refinement lemma evaluation."
-                            << std::endl;
-      return true;
-    }
-    if (!cre_lems.empty())
-    {
-      lems.insert(lems.end(), cre_lems.begin(), cre_lems.end());
-      addedEvalLemmas = true;
-      if (Trace.isOn("cegqi-lemma"))
+      std::vector<Node> cre_lems;
+      getRefinementEvalLemmas(candidates, candidate_values, cre_lems);
+      if (!cre_lems.empty())
       {
-        for (const Node& lem : cre_lems)
+        lems.insert(lems.end(), cre_lems.begin(), cre_lems.end());
+        addedEvalLemmas = true;
+        if (Trace.isOn("cegqi-lemma"))
         {
-          Trace("cegqi-lemma")
-              << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
+          for (const Node& lem : cre_lems)
+          {
+            Trace("cegqi-lemma")
+                << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
+          }
         }
+        /* we could, but do not return here. experimentally, it is better to
+          add the lemmas below as well, in parallel. */
       }
-      /* we could, but do not return here. experimentally, it is better to
-         add the lemmas below as well, in parallel. */
+    }
+    else
+    {
+      // just check whether the refinement lemmas are satisfied, fail if not
+      if (checkRefinementEvalLemmas(candidates, candidate_values))
+      {
+        Trace("cegqi-engine") << "...(actively enumerated) candidate failed "
+                                 "refinement lemma evaluation."
+                              << std::endl;
+        return true;
+      }
     }
   }
   // we only do evaluation unfolding for passive enumerators
-  if (doGen && d_eval_unfold != nullptr)
+  bool doEvalUnfold = (doGen && options::sygusEvalUnfold()) || d_usingSymCons;
+  if (doEvalUnfold)
   {
     Trace("cegqi-engine") << "  *** Do evaluation unfolding..." << std::endl;
     std::vector<Node> eager_terms, eager_vals, eager_exps;
@@ -194,6 +207,30 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   return addedEvalLemmas;
 }
 
+Node Cegis::getRefinementLemmaFormula()
+{
+  std::vector<Node> conj;
+  conj.insert(
+      conj.end(), d_refinement_lemmas.begin(), d_refinement_lemmas.end());
+  // get the propagated values
+  for (unsigned i = 0, nprops = d_rl_eval_hds.size(); i < nprops; i++)
+  {
+    conj.push_back(d_rl_eval_hds[i].eqNode(d_rl_vals[i]));
+  }
+  // make the formula
+  NodeManager* nm = NodeManager::currentNM();
+  Node ret;
+  if (conj.empty())
+  {
+    ret = nm->mkConst(true);
+  }
+  else
+  {
+    ret = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
+  }
+  return ret;
+}
+
 bool Cegis::constructCandidates(const std::vector<Node>& enums,
                                 const std::vector<Node>& enum_values,
                                 const std::vector<Node>& candidates,
@@ -211,7 +248,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     }
   }
   // if we are using grammar-based repair
-  if (d_using_gr_repair)
+  if (d_usingSymCons && options::sygusRepairConst())
   {
     SygusRepairConst* src = d_parent->getRepairConst();
     Assert(src != nullptr);
@@ -231,11 +268,18 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     {
       std::vector<Node> fail_cvs = enum_values;
       Assert(candidates.size() == fail_cvs.size());
+      // try to solve entire problem?
       if (src->repairSolution(candidates, fail_cvs, candidate_values))
       {
         return true;
       }
-      // repair solution didn't work, exclude this solution
+      Node rl = getRefinementLemmaFormula();
+      // try to solve for the refinement lemmas only
+      bool ret =
+          src->repairSolution(rl, candidates, fail_cvs, candidate_values);
+      // Even if ret is true, we will exclude the skeleton as well; this means
+      // that we have one chance to repair each skeleton. It is possible however
+      // that we might want to repair the same skeleton multiple times.
       std::vector<Node> exp;
       for (unsigned i = 0, size = enums.size(); i < size; i++)
       {
@@ -243,10 +287,12 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
             enums[i], enum_values[i], exp);
       }
       Assert(!exp.empty());
-      Node expn =
-          exp.size() == 1 ? exp[0] : NodeManager::currentNM()->mkNode(AND, exp);
-      lems.push_back(expn.negate());
-      return false;
+      NodeManager* nm = NodeManager::currentNM();
+      Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+      // must guard it
+      expn = nm->mkNode(OR, d_parent->getGuard().negate(), expn.negate());
+      lems.push_back(expn);
+      return ret;
     }
   }
 
@@ -264,12 +310,13 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     return false;
   }
 
-  if (options::cegisSample() != CEGIS_SAMPLE_NONE && lems.empty())
+  if (options::cegisSample() != options::CegisSampleMode::NONE && lems.empty())
   {
     // if we didn't add a lemma, trying sampling to add a refinement lemma
     // that immediately refutes the candidate we just constructed
-    if (sampleAddRefinementLemma(enums, enum_values, lems))
+    if (sampleAddRefinementLemma(candidates, candidate_values, lems))
     {
+      candidate_values.clear();
       // restart (should be guaranteed to add evaluation lemmas on this call)
       return constructCandidates(
           enums, enum_values, candidates, candidate_values, lems);
@@ -296,6 +343,7 @@ bool Cegis::processConstructCandidates(const std::vector<Node>& enums,
 
 void Cegis::addRefinementLemma(Node lem)
 {
+  Trace("cegis-rl") << "Cegis::addRefinementLemma: " << lem << std::endl;
   d_refinement_lemmas.push_back(lem);
   // apply existing substitution
   Node slem = lem;
@@ -385,6 +433,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
     d_rl_eval_hds.push_back(term);
     d_rl_vals.push_back(val);
     d_refinement_lemma_unit.insert(lem);
+
     // apply to waiting lemmas beyond this one
     for (unsigned i = wcounter + 1, size = waiting.size(); i < size; i++)
     {
@@ -439,8 +488,7 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
 bool Cegis::usingRepairConst() { return true; }
 bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     const std::vector<Node>& ms,
-                                    std::vector<Node>& lems,
-                                    bool doGen)
+                                    std::vector<Node>& lems)
 {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
                            << d_refinement_lemma_unit.size() << " unit and "
@@ -454,6 +502,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   Node nfalse = nm->mkConst(false);
   Node neg_guard = d_parent->getGuard().negate();
   bool ret = false;
+
   for (unsigned r = 0; r < 2; r++)
   {
     std::unordered_set<Node, NodeHashFunction>& rlemmas =
@@ -477,11 +526,6 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           << "...after unfolding is : " << lemcsu << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
-        if (!doGen)
-        {
-          // we are not generating the lemmas, instead just return
-          return true;
-        }
         ret = true;
         std::vector<Node> msu;
         std::vector<Node> mexp;
@@ -532,6 +576,54 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   return ret;
 }
 
+bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
+                                      const std::vector<Node>& ms)
+{
+  // Maybe we already evaluated some terms in refinement lemmas.
+  // In particular, the example eval cache for f may have some evaluations
+  // cached, which we add to evalVisited and pass to the evaluator below.
+  std::unordered_map<Node, Node, NodeHashFunction> evalVisited;
+  ExampleInfer* ei = d_parent->getExampleInfer();
+  for (unsigned i = 0, vsize = vs.size(); i < vsize; i++)
+  {
+    Node f = vs[i];
+    ExampleEvalCache* eec = d_parent->getExampleEvalCache(f);
+    if (eec != nullptr)
+    {
+      // get the results we obtained through the example evaluation utility
+      std::vector<Node> vsProc;
+      std::vector<Node> msProc;
+      Node bmsi = d_tds->sygusToBuiltin(ms[i]);
+      ei->getExampleTerms(f, vsProc);
+      eec->evaluateVec(bmsi, msProc);
+      Assert(vsProc.size() == msProc.size());
+      for (unsigned j = 0, psize = vsProc.size(); j < psize; j++)
+      {
+        evalVisited[vsProc[j]] = msProc[j];
+        Assert(vsProc[j].getType() == msProc[j].getType());
+      }
+    }
+  }
+
+  Evaluator* eval = d_tds->getEvaluator();
+  for (unsigned r = 0; r < 2; r++)
+  {
+    std::unordered_set<Node, NodeHashFunction>& rlemmas =
+        r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
+    for (const Node& lem : rlemmas)
+    {
+      // We may have computed the evaluation of some function applications
+      // via example-based symmetry breaking, stored in evalVisited.
+      Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
+      if (lemcsu.isConst() && !lemcsu.getConst<bool>())
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                                      const std::vector<Node>& vals,
                                      std::vector<Node>& lems)
@@ -551,10 +643,9 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
   Node sbody = d_base_body.substitute(
       candidates.begin(), candidates.end(), vals.begin(), vals.end());
   Trace("cegis-sample-debug2") << "Sample " << sbody << std::endl;
-  // do eager unfolding
-  std::map<Node, Node> visited_n;
-  sbody = d_qe->getTermDatabaseSygus()->getEagerUnfold(sbody, visited_n);
-  Trace("cegis-sample") << "Sample (after unfolding): " << sbody << std::endl;
+  // do eager rewriting
+  sbody = Rewriter::rewrite(sbody);
+  Trace("cegis-sample") << "Sample (after rewriting): " << sbody << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = d_cegis_sampler.getNumSamplePoints(); i < size;
@@ -594,7 +685,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           Trace("cegqi-engine") << "  *** Refine by sampling" << std::endl;
           addRefinementLemma(rlem);
           // if trust, we are not interested in sending out refinement lemmas
-          if (options::cegisSample() != CEGIS_SAMPLE_TRUST)
+          if (options::cegisSample() != options::CegisSampleMode::TRUST)
           {
             Node lem = nm->mkNode(OR, d_parent->getGuard().negate(), rlem);
             lems.push_back(lem);

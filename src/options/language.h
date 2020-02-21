@@ -44,10 +44,8 @@ enum CVC4_PUBLIC Language
   // OUTPUT LANGUAGE, IF IT IS "IN PRINCIPLE" A COMMON LANGUAGE,
   // INCLUDE IT HERE
 
-  /** The SMTLIB v1 input language */
-  LANG_SMTLIB_V1 = 0,
   /** The SMTLIB v2.0 input language */
-  LANG_SMTLIB_V2_0,
+  LANG_SMTLIB_V2_0 = 0,
   /** The SMTLIB v2.5 input language */
   LANG_SMTLIB_V2_5,
   /** The SMTLIB v2.6 input language */
@@ -64,6 +62,8 @@ enum CVC4_PUBLIC Language
   LANG_Z3STR,
   /** The SyGuS input language */
   LANG_SYGUS,
+  /** The SyGuS input language version 2.0 */
+  LANG_SYGUS_V2,
 
   // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE INPUT LANGUAGES
@@ -77,9 +77,6 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   switch(lang) {
   case LANG_AUTO:
     out << "LANG_AUTO";
-    break;
-  case LANG_SMTLIB_V1:
-    out << "LANG_SMTLIB_V1";
     break;
   case LANG_SMTLIB_V2_0:
     out << "LANG_SMTLIB_V2_0";
@@ -103,6 +100,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SYGUS:
     out << "LANG_SYGUS";
     break;
+  case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   default:
     out << "undefined_input_language";
   }
@@ -127,8 +125,6 @@ enum CVC4_PUBLIC Language
   // OUTPUT LANGUAGE, IF IT IS "IN PRINCIPLE" A COMMON LANGUAGE,
   // INCLUDE IT HERE
 
-  /** The SMTLIB v1 output language (unsupported) */
-  LANG_SMTLIB_V1 = input::LANG_SMTLIB_V1,
   /** The SMTLIB v2.0 output language */
   LANG_SMTLIB_V2_0 = input::LANG_SMTLIB_V2_0,
   /** The SMTLIB v2.5 output language */
@@ -147,6 +143,8 @@ enum CVC4_PUBLIC Language
   LANG_Z3STR = input::LANG_Z3STR,
   /** The sygus output language */
   LANG_SYGUS = input::LANG_SYGUS,
+  /** The sygus output language version 2.0 */
+  LANG_SYGUS_V2 = input::LANG_SYGUS_V2,
 
   // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE INPUT LANGUAGES
@@ -163,9 +161,6 @@ enum CVC4_PUBLIC Language
 inline std::ostream& operator<<(std::ostream& out, Language lang) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
   switch(lang) {
-  case LANG_SMTLIB_V1:
-    out << "LANG_SMTLIB_V1";
-    break;
   case LANG_SMTLIB_V2_0:
     out << "LANG_SMTLIB_V2_0";
     break;
@@ -186,6 +181,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SYGUS:
     out << "LANG_SYGUS";
     break;
+  case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   case LANG_AST:
     out << "LANG_AST";
     break;
@@ -223,6 +219,10 @@ bool isOutputLang_smt2_5(OutputLanguage lang, bool exact = false) CVC4_PUBLIC;
   */
 bool isInputLang_smt2_6(InputLanguage lang, bool exact = false) CVC4_PUBLIC;
 bool isOutputLang_smt2_6(OutputLanguage lang, bool exact = false) CVC4_PUBLIC;
+
+/** Is the language a variant of the SyGuS input language? */
+bool isInputLangSygus(InputLanguage lang) CVC4_PUBLIC;
+bool isOutputLangSygus(OutputLanguage lang) CVC4_PUBLIC;
 
 InputLanguage toInputLanguage(OutputLanguage language) CVC4_PUBLIC;
 OutputLanguage toOutputLanguage(InputLanguage language) CVC4_PUBLIC;

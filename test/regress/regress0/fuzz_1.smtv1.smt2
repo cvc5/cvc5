@@ -1,0 +1,5 @@
+(set-option :incremental false)
+(set-info :status unsat)
+(set-logic QF_LRA)
+(declare-fun v0 () Real)
+(check-sat-assuming ( (let ((_let_0 (/ 11 (- 11)))) (let ((_let_1 (not (and (< (* v0 1.0) (ite (< v0 _let_0) (* v0 1.0) _let_0)) (< (* v0 1.0) (* v0 1.0)))))) (let ((_let_2 (not (ite (= (=> (= (ite (< v0 _let_0) (* v0 1.0) (* v0 1.0)) _let_0) (< v0 _let_0)) (=> (= (ite (< v0 _let_0) (* v0 1.0) (* v0 1.0)) _let_0) (< v0 _let_0))) (= (=> (= (ite (< v0 _let_0) (* v0 1.0) (* v0 1.0)) _let_0) (< v0 _let_0)) (=> (= (ite (< v0 _let_0) (* v0 1.0) (* v0 1.0)) _let_0) (< v0 _let_0))) (= (= (< v0 (ite (< (* v0 1.0) (* v0 1.0)) v0 _let_0)) (< v0 (ite (< (* v0 1.0) (* v0 1.0)) v0 _let_0))) (= (< v0 (ite (< (* v0 1.0) (* v0 1.0)) v0 _let_0)) (< v0 (ite (< (* v0 1.0) (* v0 1.0)) v0 _let_0)))))))) (xor (xor _let_2 _let_2) (not (or _let_1 _let_1)))))) ))

@@ -25,6 +25,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "smt/command.h"
 #include "util/hash.h"
@@ -46,6 +47,8 @@ class Tptp : public Parser {
 
   bool fof() const { return d_fof; }
   void setFof(bool fof) { d_fof = fof; }
+
+  void forceLogic(const std::string& logic) override;
 
   void addFreeVar(Expr var);
   std::vector< Expr > getFreeVar();
@@ -100,8 +103,13 @@ class Tptp : public Parser {
    */
   void addTheory(Theory theory);
 
-  void makeApplication(Expr& expr, std::string& name, std::vector<Expr>& args,
-                       bool term);
+  /** creates a lambda abstraction around expression
+   *
+   * Given an expression expr of type argType = t1...tn -> t, creates a lambda
+   * expression
+   *  (lambda x1:t1,...,xn:tn . (expr x)) : t
+   */
+  void mkLambdaWrapper(Expr& expr, Type argType);
 
   /** get assertion expression, based on the formula role.
   * expr should have Boolean type.
@@ -137,6 +145,30 @@ class Tptp : public Parser {
   /** Check a TPTP let binding for well-formedness. */
   void checkLetBinding(const std::vector<Expr>& bvlist, Expr lhs, Expr rhs,
                        bool formula);
+  /**
+   * This converts a ParseOp to expression, assuming it is a standalone term.
+   *
+   * There are three cases in TPTP: either p already has an expression, in which
+   * case this function just returns it, or p has just a name or a builtin kind.
+   */
+  Expr parseOpToExpr(ParseOp& p);
+  /**
+   * Apply parse operator to list of arguments, and return the resulting
+   * expression.
+   *
+   * args must not be empty (otherwise the above method should have been
+   * called).
+   *
+   * There are three cases in TPTP: either p already has an expression, in which
+   * case this function just applies it to the arguments, or p has
+   * just a name or a builtin kind, in which case the respective operator is
+   * built.
+   *
+   * Note that the case of uninterpreted functions in TPTP this need not have
+   * been previously declared, which leads to a more convoluted processing than
+   * what is necessary in parsing SMT-LIB.
+   */
+  Expr applyParseOp(ParseOp& p, std::vector<Expr>& args);
 
  private:
   void addArithmeticOperators();
@@ -157,7 +189,7 @@ class Tptp : public Parser {
   // TPTP directory where to find includes;
   // empty if none could be determined
   std::string d_tptpDir;
-  
+
   // the null expression
   Expr d_nullExpr;
 

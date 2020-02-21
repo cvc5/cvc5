@@ -1,0 +1,9 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status
+(set-logic LIA)
+(declare-var x Int)
+(declare-var y Int)
+(synth-fun myfun ((x Int) (y Int)) Bool)
+(constraint (exists ((x Int) (y Int)) (myfun x y)))
+(constraint (exists ((x Int) (y Int)) (not (myfun x y))))
+(check-synth)

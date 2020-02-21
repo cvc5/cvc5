@@ -57,7 +57,7 @@ bool CnfProof::isDefinition(Node node) {
 }
 
 ProofRule CnfProof::getProofRule(Node node) {
-  Assert (isAssertion(node));
+  Assert(isAssertion(node));
   NodeToProofRule::iterator it = d_assertionToProofRule.find(node);
   return (*it).second;
 }
@@ -69,27 +69,26 @@ ProofRule CnfProof::getProofRule(ClauseId clause) {
 
 Node CnfProof::getAssertionForClause(ClauseId clause) {
   ClauseIdToNode::const_iterator it = d_clauseToAssertion.find(clause);
-  Assert (it != d_clauseToAssertion.end());
+  Assert(it != d_clauseToAssertion.end());
   return (*it).second;
 }
 
 Node CnfProof::getDefinitionForClause(ClauseId clause) {
   ClauseIdToNode::const_iterator it = d_clauseToDefinition.find(clause);
-  Assert (it != d_clauseToDefinition.end());
+  Assert(it != d_clauseToDefinition.end());
   return (*it).second;
 }
 
 void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
-  Assert (clause != ClauseIdUndef &&
-          clause != ClauseIdError &&
-          clause != ClauseIdEmpty);
+  Assert(clause != ClauseIdUndef && clause != ClauseIdError
+         && clause != ClauseIdEmpty);
 
   // Explanations do not need a CNF conversion proof since they are in CNF
   // (they will only need a theory proof as they are theory valid)
   if (explanation) {
     Debug("proof:cnf") << "CnfProof::registerConvertedClause "
                        << clause << " explanation? " << explanation << std::endl;
-    Assert (d_explanations.find(clause) == d_explanations.end());
+    Assert(d_explanations.find(clause) == d_explanations.end());
     d_explanations.insert(clause);
     return;
   }
@@ -180,7 +179,7 @@ void CnfProof::setCnfDependence(Node from, Node to) {
                      << "from " << from  << std::endl
                      << "     to " << to << std::endl;
 
-  Assert (from != to);
+  Assert(from != to);
   d_cnfDeps.insert(std::make_pair(from, to));
 }
 
@@ -196,7 +195,7 @@ void CnfProof::pushCurrentAssertion(Node assertion) {
 }
 
 void CnfProof::popCurrentAssertion() {
-  Assert (d_currentAssertionStack.size());
+  Assert(d_currentAssertionStack.size());
 
   Debug("proof:cnf") << "CnfProof::popCurrentAssertion "
                      << d_currentAssertionStack.back() << std::endl;
@@ -209,7 +208,7 @@ void CnfProof::popCurrentAssertion() {
 }
 
 Node CnfProof::getCurrentAssertion() {
-  Assert (d_currentAssertionStack.size());
+  Assert(d_currentAssertionStack.size());
   return d_currentAssertionStack.back();
 }
 
@@ -227,7 +226,7 @@ void CnfProof::pushCurrentDefinition(Node definition) {
 }
 
 void CnfProof::popCurrentDefinition() {
-  Assert (d_currentDefinitionStack.size());
+  Assert(d_currentDefinitionStack.size());
 
   Debug("proof:cnf") << "CnfProof::popCurrentDefinition "
                      << d_currentDefinitionStack.back() << std::endl;
@@ -236,7 +235,7 @@ void CnfProof::popCurrentDefinition() {
 }
 
 Node CnfProof::getCurrentDefinition() {
-  Assert (d_currentDefinitionStack.size());
+  Assert(d_currentDefinitionStack.size());
   return d_currentDefinitionStack.back();
 }
 
@@ -295,7 +294,7 @@ void CnfProof::collectAtomsAndRewritesForLemmas(const IdToSatClause& lemmaClause
       Node node = getAtom(lit.getSatVariable());
       Expr atom = node.toExpr();
       if (atom.isConst()) {
-        Assert (atom == utils::mkTrue());
+        Assert(atom == utils::mkTrue());
         continue;
       }
       clause_expr_nodes.insert(lit.isNegated() ? node.notNode() : node);
@@ -462,7 +461,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
 
   // return;
 
-  Assert( clause->size()>0 );
+  Assert(clause->size() > 0);
 
   // If the clause contains x v ~x, it's easy!
   //
@@ -639,10 +638,10 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
 
     Node iatom;
     if (is_in_clause) {
-      Assert( assertion.getNumChildren()==2 );
+      Assert(assertion.getNumChildren() == 2);
       iatom = assertion[ base_index==0 ? 1 : 0];
     } else {
-      Assert( assertion.getNumChildren()==1 );
+      Assert(assertion.getNumChildren() == 1);
       iatom = assertion[0];
     }
 
@@ -753,7 +752,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
         Trace("cnf-pf-debug") << "CALLING getlitname" << std::endl;
         os_base_n << ProofManager::getLitName(lit1, d_name) << " ";
       }
-      Assert( elimNum!=0 );
+      Assert(elimNum != 0);
       os_base_n << "(" << ( k==kind::EQUAL ? "iff" : "xor" ) << "_elim_" << elimNum << " _ _ ";
       if( !base_pol ){
         os_base_n << "(not_" << ( base_assertion.getKind()==kind::EQUAL ? "iff" : "xor" ) << "_elim _ _ " << os_base.str() << ")";

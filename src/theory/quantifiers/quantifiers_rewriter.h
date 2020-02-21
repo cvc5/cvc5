@@ -19,8 +19,7 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
-#include "theory/rewriter.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/theory_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -28,22 +27,11 @@ namespace quantifiers {
 
 struct QAttributes;
 
-class QuantifiersRewriter {
-private:
-  static int getPurifyIdLit2( Node n, std::map< Node, int >& visited );
-public:
+class QuantifiersRewriter : public TheoryRewriter
+{
+ public:
   static bool isLiteral( Node n );
-private:
-  static bool addCheckElimChild( std::vector< Node >& children, Node c, Kind k, std::map< Node, bool >& lit_pol, bool& childrenChanged );
-  static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
-  static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited );
-  static void computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
-  static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
-  static Node computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
-                                    std::map< Node, Node >& cache, std::map< Node, Node >& icache,
-                                    std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith );
-  static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
-  //-------------------------------------variable elimination
+  //-------------------------------------variable elimination utilities
   /** is variable elimination
    *
    * Returns true if v is not a subterm of s, and the type of s is a subtype of
@@ -62,12 +50,22 @@ private:
                             std::vector<Node>& args,
                             std::vector<Node>& vars,
                             std::vector<Node>& subs);
-  /** variable eliminate for bit-vector literals
+  /** variable eliminate for bit-vector equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
-   * args, lit is equivalent to ( var = ret ), and var is removed from args.
+   * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitBv(Node lit, std::vector<Node>& args, Node& var);
+  static Node getVarElimLitBv(Node lit,
+                              const std::vector<Node>& args,
+                              Node& var);
+  /** variable eliminate for string equalities
+   *
+   * If this returns a non-null value ret, then var is updated to a member of
+   * args, lit is equivalent to ( var = ret ).
+   */
+  static Node getVarElimLitString(Node lit,
+                                  const std::vector<Node>& args,
+                                  Node& var);
   /** get variable elimination
    *
    * If n asserted with polarity pol entails a literal lit that corresponds
@@ -103,6 +101,50 @@ private:
                              std::vector<Node>& bounds,
                              std::vector<Node>& subs,
                              QAttributes& qa);
+  //-------------------------------------end variable elimination utilities
+ private:
+  static int getPurifyIdLit2(Node n, std::map<Node, int>& visited);
+  static bool addCheckElimChild(std::vector<Node>& children,
+                                Node c,
+                                Kind k,
+                                std::map<Node, bool>& lit_pol,
+                                bool& childrenChanged);
+  static void addNodeToOrBuilder(Node n, NodeBuilder<>& t);
+  static void computeArgs(const std::vector<Node>& args,
+                          std::map<Node, bool>& activeMap,
+                          Node n,
+                          std::map<Node, bool>& visited);
+  static void computeArgVec(const std::vector<Node>& args,
+                            std::vector<Node>& activeArgs,
+                            Node n);
+  static void computeArgVec2(const std::vector<Node>& args,
+                             std::vector<Node>& activeArgs,
+                             Node n,
+                             Node ipl);
+  static Node computeProcessTerms2(Node body,
+                                   bool hasPol,
+                                   bool pol,
+                                   std::map<Node, bool>& currCond,
+                                   int nCurrCond,
+                                   std::map<Node, Node>& cache,
+                                   std::map<Node, Node>& icache,
+                                   std::vector<Node>& new_vars,
+                                   std::vector<Node>& new_conds,
+                                   bool elimExtArith);
+  static void computeDtTesterIteSplit(
+      Node n,
+      std::map<Node, Node>& pcons,
+      std::map<Node, std::map<int, Node> >& ncons,
+      std::vector<Node>& conj);
+  /** datatype expand
+   *
+   * If v occurs in args and has a datatype type whose index^th constructor is
+   * C, this method returns a node of the form C( x1, ..., xn ), removes v from
+   * args and adds x1...xn to args.
+   */
+  static Node datatypeExpand(unsigned index, Node v, std::vector<Node>& args);
+
+  //-------------------------------------variable elimination
   /** compute variable elimination
    *
    * This computes variable elimination rewrites for a body of a quantified
@@ -153,18 +195,15 @@ private:
   };
   static Node computeOperation( Node f, int computeOption, QAttributes& qa );
 public:
-  static RewriteResponse preRewrite(TNode in);
-  static RewriteResponse postRewrite(TNode in);
-  static inline void init() {}
-  static inline void shutdown() {}
+ RewriteResponse preRewrite(TNode in) override;
+ RewriteResponse postRewrite(TNode in) override;
+
 private:
   /** options */
   static bool doOperation( Node f, int computeOption, QAttributes& qa );
 private:
   static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
 public:
-  static Node rewriteRewriteRule( Node r );
-  static bool containsQuantifiers( Node n );
   static bool isPrenexNormalForm( Node n );
   /** preprocess
    *
@@ -182,7 +221,7 @@ public:
   static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node mkForall( std::vector< Node >& args, Node body, bool marked = false );
   static Node mkForall( std::vector< Node >& args, Node body, std::vector< Node >& iplc, bool marked = false );
-};/* class QuantifiersRewriter */
+}; /* class QuantifiersRewriter */
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

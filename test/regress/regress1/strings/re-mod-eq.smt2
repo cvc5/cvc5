@@ -1,0 +1,13 @@
+(set-info :smt-lib-version 2.5)
+(set-logic QF_SLIA)
+(set-option :strings-exp true)
+(set-info :status unsat)
+(declare-fun x () String)
+(declare-fun y () String)
+(declare-fun z () String)
+(assert (or (= x y)(= x z)))
+(assert (str.in.re x (re.++ (str.to.re "A") (re.* (str.to.re "BAA")))))
+(assert (str.in.re y (re.++ (str.to.re "AB") (re.* (str.to.re "AAB")) (str.to.re "A"))))
+(assert (str.in.re z (re.++ (str.to.re "AB") (re.* (str.to.re "AAB")) (str.to.re "A"))))
+; requires RE solver to reason modulo string equalties
+(check-sat)

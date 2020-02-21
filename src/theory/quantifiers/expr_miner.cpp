@@ -91,7 +91,6 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
       checker->setTimeLimit(options::sygusExprMinerCheckTimeout(), true);
       checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
       checker->setOption("sygus-rr-synth-input", false);
-      checker->setOption("sygus-abduct", false);
       checker->setOption("input-language", "smt2");
       Expr equery = squery.toExpr().exportTo(&em, varMap);
       checker->assertFormula(equery);

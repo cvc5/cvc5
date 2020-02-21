@@ -289,8 +289,6 @@ set<string> getDebugTags() {
   a.insert("parser-param");
   a.insert("partial_model");
   a.insert("pb");
-  a.insert("pickle");
-  a.insert("pickler");
   a.insert("pipe");
   a.insert("portfolio::outputmode");
   a.insert("prec");
@@ -734,7 +732,6 @@ set<string> getOptionStrings() {
       "incremental-parallel",
       "no-incremental-parallel",
       "no-interactive-prompt",
-      "continued-execution",
       "immediate-exit",
       "segv-spin",
       "no-segv-spin",

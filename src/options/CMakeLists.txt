@@ -1,21 +1,22 @@
+# Check if the toml Python module is installed.
+execute_process(
+  COMMAND
+  ${PYTHON_EXECUTABLE} -c "import toml"
+  RESULT_VARIABLE
+    RET_TOML
+  ERROR_QUIET
+)
+
+if(RET_TOML)
+    message(FATAL_ERROR
+      "Could not find Python module toml. Install via `pip install toml'.")
+endif()
+
 libcvc4_add_sources(
   argument_extender.h
   argument_extender_implementation.cpp
   argument_extender_implementation.h
-  arith_heuristic_pivot_rule.cpp
-  arith_heuristic_pivot_rule.h
-  arith_propagation_mode.cpp
-  arith_propagation_mode.h
-  arith_unate_lemma_mode.cpp
-  arith_unate_lemma_mode.h
   base_handlers.h
-  bool_to_bv_mode.cpp
-  bool_to_bv_mode.h
-  bv_bitblast_mode.cpp
-  bv_bitblast_mode.h
-  datatypes_modes.h
-  decision_mode.cpp
-  decision_mode.h
   decision_weight.h
   didyoumean.cpp
   didyoumean.h
@@ -31,18 +32,8 @@ libcvc4_add_sources(
   options_public_functions.cpp
   printer_modes.cpp
   printer_modes.h
-  quantifiers_modes.cpp
-  quantifiers_modes.h
   set_language.cpp
   set_language.h
-  smt_modes.cpp
-  smt_modes.h
-  strings_process_loop_mode.cpp
-  strings_process_loop_mode.h
-  sygus_out_mode.h
-  theoryof_mode.cpp
-  theoryof_mode.h
-  ufss_mode.h
 )
 
 set(options_toml_files

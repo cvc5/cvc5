@@ -119,7 +119,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       } else if (n2[0].getKind() == kind::BOOLEAN_TERM_VARIABLE) {
         out << ss.str() << " " << ProofManager::getLitName(n2[0]) << "))";
       } else {
-        Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
+        Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1])
+               || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
         if(n1[1] == n2[0][0]) {
           out << "(symm _ _ _ " << ss.str() << ")";
         } else {
@@ -130,7 +131,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
     } else {
       Node n2 = pf.d_node;
       Assert(n2.getKind() == kind::EQUAL);
-      Assert((n1[0] == n2[0] && n1[1] == n2[1]) || (n1[1] == n2[0] && n1[0] == n2[1]));
+      Assert((n1[0] == n2[0] && n1[1] == n2[1])
+             || (n1[1] == n2[0] && n1[0] == n2[1]));
 
       out << ss.str();
       out << " ";
@@ -160,7 +162,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       out << "(cong _ _ _ _ _ _ ";
       stk.push(pf2);
     }
-    Assert(stk.top()->d_children[0]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE);
+    Assert(stk.top()->d_children[0]->d_id
+           != theory::eq::MERGED_THROUGH_CONGRUENCE);
     NodeBuilder<> b1(kind::PARTIAL_APPLY_UF), b2(kind::PARTIAL_APPLY_UF);
     const theory::eq::EqProof* pf2 = stk.top();
     stk.pop();
@@ -231,7 +234,12 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       b2 << n2[1-side];
       out << ss.str();
     } else {
-      Assert(pf2->d_node[b1.getNumChildren() - (pf2->d_node.getMetaKind() == kind::metakind::PARAMETERIZED ? 0 : 1)] == n2[1-side]);
+      Assert(pf2->d_node[b1.getNumChildren()
+                         - (pf2->d_node.getMetaKind()
+                                    == kind::metakind::PARAMETERIZED
+                                ? 0
+                                : 1)]
+             == n2[1 - side]);
       b1 << n2[1-side];
       b2 << n2[side];
       out << "(symm _ _ _ " << ss.str() << ")";
@@ -258,7 +266,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
         b2 << n2[1-side];
         out << ss.str();
       } else {
-        Assert(pf2->d_node[b1.getNumChildren()] == n2[1-side]);
+        Assert(pf2->d_node[b1.getNumChildren()] == n2[1 - side]);
         b1 << n2[1-side];
         b2 << n2[side];
         out << "(symm _ _ _ " << ss.str() << ")";
@@ -615,33 +623,40 @@ void UFProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
-  Debug("pf::uf") << std::endl << "(pf::uf) LFSCUfProof::printOwnedTerm: term = " << term << std::endl;
+void LFSCUFProof::printOwnedTermAsType(Expr term,
+                                       std::ostream& os,
+                                       const ProofLetMap& map,
+                                       TypeNode expectedType)
+{
+  Node node = Node::fromExpr(term);
+  Debug("pf::uf") << std::endl << "(pf::uf) LFSCUfProof::printOwnedTerm: term = " << node << std::endl;
 
-  Assert (theory::Theory::theoryOf(term) == theory::THEORY_UF);
+  Assert(theory::Theory::theoryOf(node) == theory::THEORY_UF);
 
-  if (term.getKind() == kind::VARIABLE ||
-      term.getKind() == kind::SKOLEM ||
-      term.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
-    os << term;
+  if (node.getKind() == kind::VARIABLE ||
+      node.getKind() == kind::SKOLEM ||
+      node.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
+    os << node;
     return;
   }
 
-  Assert (term.getKind() == kind::APPLY_UF);
+  Assert(node.getKind() == kind::APPLY_UF);
 
-  if(term.getType().isBoolean()) {
+  if(node.getType().isBoolean()) {
     os << "(p_app ";
   }
-  Expr func = term.getOperator();
+  Node func = node.getOperator();
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     os << "(apply _ _ ";
   }
   os << func << " ";
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+  Assert(func.getType().isFunction());
+  std::vector<TypeNode> argsTypes = node.getOperator().getType().getArgTypes();
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
 
-    bool convertToBool = (term[i].getType().isBoolean() && !d_proofEngine->printsAsBool(term[i]));
+    bool convertToBool = (node[i].getType().isBoolean() && !d_proofEngine->printsAsBool(node[i]));
     if (convertToBool) os << "(f_to_b ";
-    d_proofEngine->printBoundTerm(term[i], os, map);
+    d_proofEngine->printBoundTerm(term[i], os, map, argsTypes[i]);
     if (convertToBool) os << ")";
     os << ")";
   }
@@ -653,7 +668,7 @@ void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap&
 void LFSCUFProof::printOwnedSort(Type type, std::ostream& os) {
   Debug("pf::uf") << std::endl << "(pf::uf) LFSCArrayProof::printOwnedSort: type is: " << type << std::endl;
 
-  Assert (type.isSort());
+  Assert(type.isSort());
   os << type;
 }
 
@@ -705,7 +720,7 @@ void LFSCUFProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
       }
       os << fparen.str() << "))\n";
     } else {
-      Assert (term.isVariable());
+      Assert(term.isVariable());
       os << type << ")\n";
     }
     paren << ")";

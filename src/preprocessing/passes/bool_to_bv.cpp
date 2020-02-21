@@ -36,11 +36,11 @@ PreprocessingPassResult BoolToBV::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   NodeManager::currentResourceManager()->spendResource(
-      options::preprocessStep());
+      ResourceManager::Resource::PreprocessStep);
 
   unsigned size = assertionsToPreprocess->size();
 
-  if (options::boolToBitvector() == BOOL_TO_BV_ALL)
+  if (options::boolToBitvector() == options::BoolToBVMode::ALL)
   {
     for (unsigned i = 0; i < size; ++i)
     {
@@ -48,7 +48,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
       assertionsToPreprocess->replace(i, Rewriter::rewrite(newAssertion));
     }
   }
-  else if (options::boolToBitvector() == BOOL_TO_BV_ITE)
+  else if (options::boolToBitvector() == options::BoolToBVMode::ITE)
   {
     for (unsigned i = 0; i < size; ++i)
     {
@@ -366,7 +366,8 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
                       << " and new_kind = " << kindToString(new_kind)
                       << std::endl;
 
-  if ((options::boolToBitvector() == BOOL_TO_BV_ALL) && (new_kind != k))
+  if ((options::boolToBitvector() == options::BoolToBVMode::ALL)
+      && (new_kind != k))
   {
     ++(d_statistics.d_numTermsLowered);
   }
@@ -403,7 +404,7 @@ BoolToBV::Statistics::Statistics()
           "preprocessing::passes::BoolToBV::NumTermsForcedLowered", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_numIteToBvite);
-  if (options::boolToBitvector() == BOOL_TO_BV_ALL)
+  if (options::boolToBitvector() == options::BoolToBVMode::ALL)
   {
     // these statistics wouldn't be correct in the ITE mode,
     // because it might discard rebuilt nodes if it fails to
@@ -416,7 +417,7 @@ BoolToBV::Statistics::Statistics()
 BoolToBV::Statistics::~Statistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_numIteToBvite);
-  if (options::boolToBitvector() == BOOL_TO_BV_ALL)
+  if (options::boolToBitvector() == options::BoolToBVMode::ALL)
   {
     smtStatisticsRegistry()->unregisterStat(&d_numTermsLowered);
     smtStatisticsRegistry()->unregisterStat(&d_numTermsForcedLowered);

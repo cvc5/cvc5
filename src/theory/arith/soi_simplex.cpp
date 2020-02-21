@@ -117,7 +117,7 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   d_errorSet.reduceToSignals();
 
   // We must start tracking NOW
-  d_errorSet.setSelectionRule(SUM_METRIC);
+  d_errorSet.setSelectionRule(options::ErrorSelectionRule::SUM_METRIC);
 
   if(initialProcessSignals()){
     d_conflictVariables.purge();
@@ -405,7 +405,8 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
     int prevFocusSgn = d_errorSet.popSignal();
 
     if(d_tableau.isBasic(updated)){
-      Assert(!d_variables.assignmentIsConsistent(updated) == d_errorSet.inError(updated));
+      Assert(!d_variables.assignmentIsConsistent(updated)
+             == d_errorSet.inError(updated));
       if(Debug.isOn("updateAndSignal")){debugPrintSignal(updated);}
       if(!d_variables.assignmentIsConsistent(updated)){
         if(checkBasicForConflict(updated)){
@@ -642,7 +643,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
   if(d_errorSize <= 2){
     ArithVarVec inError;
     d_errorSet.pushFocusInto(inError);
-    
+
     Assert(debugIsASet(inError));
     subsets.push_back(inError);
     return subsets;
@@ -712,7 +713,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
     if(hasParticipated.isMember(v)){ continue; }
 
     hasParticipated.add(v);
-    
+
     Assert(d_soiVar == ARITHVAR_SENTINEL);
     //d_soiVar's row =  \sumofinfeasibilites underConstruction
     ArithVarVec underConstruction;
@@ -770,7 +771,6 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
     // }
   }
 
-
   Assert(d_soiVar == ARITHVAR_SENTINEL);
   Debug("arith::greedyConflictSubsets") << "greedyConflictSubsets done" << endl;
   return subsets;
@@ -781,7 +781,7 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
   d_soiVar = constructInfeasiblityFunction(d_statistics.d_soiConflictMinimization, subset);
   Assert(!subset.empty());
   Assert(!d_conflictBuilder->underConstruction());
-    
+
   Debug("arith::generateSOIConflict") << "SumOfInfeasibilitiesSPD::generateSOIConflict(...) start" << endl;
 
   bool success = false;
@@ -790,7 +790,6 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
     ArithVar e = *iter;
     ConstraintP violated = d_errorSet.getViolated(e);
     Assert(violated != NullConstraint);
-
 
     int sgn = d_errorSet.getSgn(e);
     const Rational& violatedCoeff = sgn > 0 ? d_negOne : d_posOne;
@@ -815,7 +814,7 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
     // pick a violated constraint arbitrarily. any of them may be selected for the conflict
     Assert(d_conflictBuilder->underConstruction());
     Assert(d_conflictBuilder->consequentIsSet());
-    
+
     for(Tableau::RowIterator i = d_tableau.basicRowIterator(d_soiVar); !i.atEnd(); ++i){
       const Tableau::Entry& entry = *i;
       ArithVar v = entry.getColVar();
@@ -864,7 +863,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
     generateSOIConflict(d_qeConflict);
   }else{
     vector<ArithVarVec> subsets = greedyConflictSubsets();
-    Assert(  d_soiVar == ARITHVAR_SENTINEL);
+    Assert(d_soiVar == ARITHVAR_SENTINEL);
     bool anySuccess = false;
     Assert(!subsets.empty());
     for(vector<ArithVarVec>::const_iterator i = subsets.begin(), end = subsets.end(); i != end; ++i){
@@ -879,7 +878,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
     }
     Assert(anySuccess);
   }
-  Assert(  d_soiVar == ARITHVAR_SENTINEL);
+  Assert(d_soiVar == ARITHVAR_SENTINEL);
   d_soiVar = constructInfeasiblityFunction(d_statistics.d_soiConflictMinimization);
 
   //reportConflict(conf); do not do this. We need a custom explanations!
@@ -964,7 +963,6 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
   Assert(d_errorSize > 0);
   Assert(d_conflictVariables.empty());
   Assert(d_soiVar == ARITHVAR_SENTINEL);
-
 
   //d_scores.purge();
   d_soiVar = constructInfeasiblityFunction(d_statistics.d_soiFocusConstructionTimer);

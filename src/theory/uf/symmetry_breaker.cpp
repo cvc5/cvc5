@@ -86,8 +86,7 @@ bool SymmetryBreaker::Template::matchRecursive(TNode t, TNode n) {
       Debug("ufsymm:match") << "UFSYMM we have constants, failing match" << endl;
       return false;
     }
-    Assert(t.isVar() &&
-           n.isVar());
+    Assert(t.isVar() && n.isVar());
     t = find(t);
     n = find(n);
     Debug("ufsymm:match") << "UFSYMM variable match " << t << " , " << n << endl;
@@ -371,7 +370,7 @@ Node SymmetryBreaker::normInternal(TNode n, size_t level) {
         Debug("ufsymm:eq") << "UFSYMM " << n[0] << " <==> " << n[1] << endl;
       }
     }
-    /* intentional fall-through! */
+    CVC4_FALLTHROUGH;
   case kind::XOR:
     // commutative binary operator handling
     return n[1] < n[0] ? NodeManager::currentNM()->mkNode(k, n[1], n[0]) : Node(n);
@@ -720,7 +719,8 @@ void SymmetryBreaker::selectTerms(const Permutation& p) {
               Debug("ufsymm:eq") << "UFSYMM              -- yep" << endl;
             }
           }
-          Assert(j != teq.end(), "failed to find a difference between p and teq ?!");
+          Assert(j != teq.end())
+              << "failed to find a difference between p and teq ?!";
         }
       }
     } else {

@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
@@ -40,23 +40,6 @@
 using namespace std;
 
 namespace CVC4 {
-
-namespace {
-
-std::vector<Expr> ExportTo(ExprManager* exprManager,
-                           ExprManagerMapCollection& variableMap,
-                           const std::vector<Expr>& exprs)
-{
-  std::vector<Expr> exported;
-  exported.reserve(exprs.size());
-  for (const Expr& expr : exprs)
-  {
-    exported.push_back(expr.exportTo(exprManager, variableMap));
-  }
-  return exported;
-}
-
-}  // namespace
 
 const int CommandPrintSuccess::s_iosIndex = std::ios_base::xalloc();
 const CommandSuccess* CommandSuccess::s_instance = new CommandSuccess();
@@ -265,6 +248,8 @@ void EchoCommand::invoke(SmtEngine* smtEngine)
 void EchoCommand::invoke(SmtEngine* smtEngine, std::ostream& out)
 {
   out << d_output << std::endl;
+  Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
+                           << std::endl;
   d_commandStatus = CommandSuccess::instance();
   printResult(out,
               smtEngine->getOption("command-verbosity:" + getCommandName())
@@ -393,6 +378,8 @@ CheckSatCommand::CheckSatCommand(const Expr& expr) : d_expr(expr) {}
 Expr CheckSatCommand::getExpr() const { return d_expr; }
 void CheckSatCommand::invoke(SmtEngine* smtEngine)
 {
+  Trace("dtview::command") << "* ~COMMAND: " << getCommandName() << "~"
+                           << std::endl;
   try
   {
     d_result = smtEngine->checkSat(d_expr);
@@ -413,6 +400,7 @@ void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
   else
   {
+    Trace("dtview::command") << "* RESULT: " << d_result << std::endl;
     out << d_result << endl;
   }
 }
@@ -453,6 +441,8 @@ const std::vector<Expr>& CheckSatAssumingCommand::getTerms() const
 
 void CheckSatAssumingCommand::invoke(SmtEngine* smtEngine)
 {
+  Trace("dtview::command") << "* ~COMMAND: (check-sat-assuming ( " << d_terms
+                           << " )~" << std::endl;
   try
   {
     d_result = smtEngine->checkSat(d_terms);
@@ -466,6 +456,7 @@ void CheckSatAssumingCommand::invoke(SmtEngine* smtEngine)
 
 Result CheckSatAssumingCommand::getResult() const
 {
+  Trace("dtview::command") << "* ~RESULT: " << d_result << "~" << std::endl;
   return d_result;
 }
 
@@ -860,10 +851,10 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine)
     d_solution.clear();
     // check whether we should print the status
     if (d_result.asSatisfiabilityResult() != Result::UNSAT
-        || options::sygusOut() == SYGUS_SOL_OUT_STATUS_AND_DEF
-        || options::sygusOut() == SYGUS_SOL_OUT_STATUS)
+        || options::sygusOut() == options::SygusSolutionOutMode::STATUS_AND_DEF
+        || options::sygusOut() == options::SygusSolutionOutMode::STATUS)
     {
-      if (options::sygusOut() == SYGUS_SOL_OUT_STANDARD)
+      if (options::sygusOut() == options::SygusSolutionOutMode::STANDARD)
       {
         d_solution << "(fail)" << endl;
       }
@@ -874,7 +865,7 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine)
     }
     // check whether we should print the solution
     if (d_result.asSatisfiabilityResult() == Result::UNSAT
-        && options::sygusOut() != SYGUS_SOL_OUT_STATUS)
+        && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
     {
       // printing a synthesis solution is a non-constant
       // method, since it invokes a sophisticated algorithm
@@ -1662,16 +1653,18 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    vector<Expr> result;
     ExprManager* em = smtEngine->getExprManager();
     NodeManager* nm = NodeManager::fromExprManager(em);
-    for (const Expr& e : d_terms)
+    smt::SmtScope scope(smtEngine);
+    vector<Expr> result = smtEngine->getValues(d_terms);
+    Assert(result.size() == d_terms.size());
+    for (int i = 0, size = d_terms.size(); i < size; i++)
     {
+      Expr e = d_terms[i];
       Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
-      smt::SmtScope scope(smtEngine);
       Node request = Node::fromExpr(
           options::expandDefinitions() ? smtEngine->expandDefinitions(e) : e);
-      Node value = Node::fromExpr(smtEngine->getValue(e));
+      Node value = Node::fromExpr(result[i]);
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
         // Need to wrap in division-by-one so that output printers know this
@@ -1679,7 +1672,7 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
         // a rational.  Necessary for SMT-LIB standards compliance.
         value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
       }
-      result.push_back(nm->mkNode(kind::SEXPR, request, value).toExpr());
+      result[i] = nm->mkNode(kind::SEXPR, request, value).toExpr();
     }
     d_result = em->mkExpr(kind::SEXPR, result);
     d_commandStatus = CommandSuccess::instance();
@@ -1870,6 +1863,109 @@ Command* GetModelCommand::clone() const
 std::string GetModelCommand::getCommandName() const { return "get-model"; }
 
 /* -------------------------------------------------------------------------- */
+/* class BlockModelCommand */
+/* -------------------------------------------------------------------------- */
+
+BlockModelCommand::BlockModelCommand() {}
+void BlockModelCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->blockModel();
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (RecoverableModalException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (UnsafeInterruptException& e)
+  {
+    d_commandStatus = new CommandInterrupted();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* BlockModelCommand::exportTo(ExprManager* exprManager,
+                                     ExprManagerMapCollection& variableMap)
+{
+  BlockModelCommand* c = new BlockModelCommand();
+  return c;
+}
+
+Command* BlockModelCommand::clone() const
+{
+  BlockModelCommand* c = new BlockModelCommand();
+  return c;
+}
+
+std::string BlockModelCommand::getCommandName() const { return "block-model"; }
+
+/* -------------------------------------------------------------------------- */
+/* class BlockModelValuesCommand */
+/* -------------------------------------------------------------------------- */
+
+BlockModelValuesCommand::BlockModelValuesCommand(const std::vector<Expr>& terms)
+    : d_terms(terms)
+{
+  PrettyCheckArgument(terms.size() >= 1,
+                      terms,
+                      "cannot block-model-values of an empty set of terms");
+}
+
+const std::vector<Expr>& BlockModelValuesCommand::getTerms() const
+{
+  return d_terms;
+}
+void BlockModelValuesCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->blockModelValues(d_terms);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (RecoverableModalException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (UnsafeInterruptException& e)
+  {
+    d_commandStatus = new CommandInterrupted();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* BlockModelValuesCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  vector<Expr> exportedTerms;
+  for (std::vector<Expr>::const_iterator i = d_terms.begin();
+       i != d_terms.end();
+       ++i)
+  {
+    exportedTerms.push_back((*i).exportTo(exprManager, variableMap));
+  }
+  BlockModelValuesCommand* c = new BlockModelValuesCommand(exportedTerms);
+  return c;
+}
+
+Command* BlockModelValuesCommand::clone() const
+{
+  BlockModelValuesCommand* c = new BlockModelValuesCommand(d_terms);
+  return c;
+}
+
+std::string BlockModelValuesCommand::getCommandName() const
+{
+  return "block-model-values";
+}
+
+/* -------------------------------------------------------------------------- */
 /* class GetProofCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -2032,6 +2128,90 @@ std::string GetSynthSolutionCommand::getCommandName() const
 {
   return "get-instantiations";
 }
+
+GetAbductCommand::GetAbductCommand() {}
+GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj)
+    : d_name(name), d_conj(conj), d_resultStatus(false)
+{
+}
+GetAbductCommand::GetAbductCommand(const std::string& name,
+                                   Expr conj,
+                                   const Type& gtype)
+    : d_name(name),
+      d_conj(conj),
+      d_sygus_grammar_type(gtype),
+      d_resultStatus(false)
+{
+}
+
+Expr GetAbductCommand::getConjecture() const { return d_conj; }
+Type GetAbductCommand::getGrammarType() const { return d_sygus_grammar_type; }
+Expr GetAbductCommand::getResult() const { return d_result; }
+
+void GetAbductCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    if (d_sygus_grammar_type.isNull())
+    {
+      d_resultStatus = smtEngine->getAbduct(d_conj, d_result);
+    }
+    else
+    {
+      d_resultStatus =
+          smtEngine->getAbduct(d_conj, d_sygus_grammar_type, d_result);
+    }
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    expr::ExprDag::Scope scope(out, false);
+    if (d_resultStatus)
+    {
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+          << std::endl;
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
+Command* GetAbductCommand::exportTo(ExprManager* exprManager,
+                                    ExprManagerMapCollection& variableMap)
+{
+  GetAbductCommand* c =
+      new GetAbductCommand(d_name, d_conj.exportTo(exprManager, variableMap));
+  c->d_sygus_grammar_type =
+      d_sygus_grammar_type.exportTo(exprManager, variableMap);
+  c->d_result = d_result.exportTo(exprManager, variableMap);
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+Command* GetAbductCommand::clone() const
+{
+  GetAbductCommand* c = new GetAbductCommand(d_name, d_conj);
+  c->d_sygus_grammar_type = d_sygus_grammar_type;
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+std::string GetAbductCommand::getCommandName() const { return "get-abduct"; }
 
 /* -------------------------------------------------------------------------- */
 /* class GetQuantifierEliminationCommand                                      */
@@ -2644,251 +2824,4 @@ std::string DatatypeDeclarationCommand::getCommandName() const
   return "declare-datatypes";
 }
 
-/* -------------------------------------------------------------------------- */
-/* class RewriteRuleCommand                                                   */
-/* -------------------------------------------------------------------------- */
-
-RewriteRuleCommand::RewriteRuleCommand(const std::vector<Expr>& vars,
-                                       const std::vector<Expr>& guards,
-                                       Expr head,
-                                       Expr body,
-                                       const Triggers& triggers)
-    : d_vars(vars),
-      d_guards(guards),
-      d_head(head),
-      d_body(body),
-      d_triggers(triggers)
-{
-}
-
-RewriteRuleCommand::RewriteRuleCommand(const std::vector<Expr>& vars,
-                                       Expr head,
-                                       Expr body)
-    : d_vars(vars), d_head(head), d_body(body)
-{
-}
-
-const std::vector<Expr>& RewriteRuleCommand::getVars() const { return d_vars; }
-const std::vector<Expr>& RewriteRuleCommand::getGuards() const
-{
-  return d_guards;
-}
-
-Expr RewriteRuleCommand::getHead() const { return d_head; }
-Expr RewriteRuleCommand::getBody() const { return d_body; }
-const RewriteRuleCommand::Triggers& RewriteRuleCommand::getTriggers() const
-{
-  return d_triggers;
-}
-
-void RewriteRuleCommand::invoke(SmtEngine* smtEngine)
-{
-  try
-  {
-    ExprManager* em = smtEngine->getExprManager();
-    /** build vars list */
-    Expr vars = em->mkExpr(kind::BOUND_VAR_LIST, d_vars);
-    /** build guards list */
-    Expr guards;
-    if (d_guards.size() == 0)
-      guards = em->mkConst<bool>(true);
-    else if (d_guards.size() == 1)
-      guards = d_guards[0];
-    else
-      guards = em->mkExpr(kind::AND, d_guards);
-    /** build expression */
-    Expr expr;
-    if (d_triggers.empty())
-    {
-      expr = em->mkExpr(kind::RR_REWRITE, vars, guards, d_head, d_body);
-    }
-    else
-    {
-      /** build triggers list */
-      std::vector<Expr> vtriggers;
-      vtriggers.reserve(d_triggers.size());
-      for (Triggers::const_iterator i = d_triggers.begin(),
-                                    end = d_triggers.end();
-           i != end;
-           ++i)
-      {
-        vtriggers.push_back(em->mkExpr(kind::INST_PATTERN, *i));
-      }
-      Expr triggers = em->mkExpr(kind::INST_PATTERN_LIST, vtriggers);
-      expr =
-          em->mkExpr(kind::RR_REWRITE, vars, guards, d_head, d_body, triggers);
-    }
-    smtEngine->assertFormula(expr);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* RewriteRuleCommand::exportTo(ExprManager* exprManager,
-                                      ExprManagerMapCollection& variableMap)
-{
-  /** Convert variables */
-  VExpr vars = ExportTo(exprManager, variableMap, d_vars);
-  /** Convert guards */
-  VExpr guards = ExportTo(exprManager, variableMap, d_guards);
-  /** Convert triggers */
-  Triggers triggers;
-  triggers.reserve(d_triggers.size());
-  for (const std::vector<Expr>& trigger_list : d_triggers)
-  {
-    triggers.push_back(ExportTo(exprManager, variableMap, trigger_list));
-  }
-  /** Convert head and body */
-  Expr head = d_head.exportTo(exprManager, variableMap);
-  Expr body = d_body.exportTo(exprManager, variableMap);
-  /** Create the converted rules */
-  return new RewriteRuleCommand(vars, guards, head, body, triggers);
-}
-
-Command* RewriteRuleCommand::clone() const
-{
-  return new RewriteRuleCommand(d_vars, d_guards, d_head, d_body, d_triggers);
-}
-
-std::string RewriteRuleCommand::getCommandName() const
-{
-  return "rewrite-rule";
-}
-
-/* -------------------------------------------------------------------------- */
-/* class PropagateRuleCommand                                                 */
-/* -------------------------------------------------------------------------- */
-
-PropagateRuleCommand::PropagateRuleCommand(const std::vector<Expr>& vars,
-                                           const std::vector<Expr>& guards,
-                                           const std::vector<Expr>& heads,
-                                           Expr body,
-                                           const Triggers& triggers,
-                                           bool deduction)
-    : d_vars(vars),
-      d_guards(guards),
-      d_heads(heads),
-      d_body(body),
-      d_triggers(triggers),
-      d_deduction(deduction)
-{
-}
-
-PropagateRuleCommand::PropagateRuleCommand(const std::vector<Expr>& vars,
-                                           const std::vector<Expr>& heads,
-                                           Expr body,
-                                           bool deduction)
-    : d_vars(vars), d_heads(heads), d_body(body), d_deduction(deduction)
-{
-}
-
-const std::vector<Expr>& PropagateRuleCommand::getVars() const
-{
-  return d_vars;
-}
-
-const std::vector<Expr>& PropagateRuleCommand::getGuards() const
-{
-  return d_guards;
-}
-
-const std::vector<Expr>& PropagateRuleCommand::getHeads() const
-{
-  return d_heads;
-}
-
-Expr PropagateRuleCommand::getBody() const { return d_body; }
-const PropagateRuleCommand::Triggers& PropagateRuleCommand::getTriggers() const
-{
-  return d_triggers;
-}
-
-bool PropagateRuleCommand::isDeduction() const { return d_deduction; }
-void PropagateRuleCommand::invoke(SmtEngine* smtEngine)
-{
-  try
-  {
-    ExprManager* em = smtEngine->getExprManager();
-    /** build vars list */
-    Expr vars = em->mkExpr(kind::BOUND_VAR_LIST, d_vars);
-    /** build guards list */
-    Expr guards;
-    if (d_guards.size() == 0)
-      guards = em->mkConst<bool>(true);
-    else if (d_guards.size() == 1)
-      guards = d_guards[0];
-    else
-      guards = em->mkExpr(kind::AND, d_guards);
-    /** build heads list */
-    Expr heads;
-    if (d_heads.size() == 1)
-      heads = d_heads[0];
-    else
-      heads = em->mkExpr(kind::AND, d_heads);
-    /** build expression */
-    Expr expr;
-    if (d_triggers.empty())
-    {
-      expr = em->mkExpr(kind::RR_REWRITE, vars, guards, heads, d_body);
-    }
-    else
-    {
-      /** build triggers list */
-      std::vector<Expr> vtriggers;
-      vtriggers.reserve(d_triggers.size());
-      for (Triggers::const_iterator i = d_triggers.begin(),
-                                    end = d_triggers.end();
-           i != end;
-           ++i)
-      {
-        vtriggers.push_back(em->mkExpr(kind::INST_PATTERN, *i));
-      }
-      Expr triggers = em->mkExpr(kind::INST_PATTERN_LIST, vtriggers);
-      expr =
-          em->mkExpr(kind::RR_REWRITE, vars, guards, heads, d_body, triggers);
-    }
-    smtEngine->assertFormula(expr);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* PropagateRuleCommand::exportTo(ExprManager* exprManager,
-                                        ExprManagerMapCollection& variableMap)
-{
-  /** Convert variables */
-  VExpr vars = ExportTo(exprManager, variableMap, d_vars);
-  /** Convert guards */
-  VExpr guards = ExportTo(exprManager, variableMap, d_guards);
-  /** Convert heads */
-  VExpr heads = ExportTo(exprManager, variableMap, d_heads);
-  /** Convert triggers */
-  Triggers triggers;
-  triggers.reserve(d_triggers.size());
-  for (const std::vector<Expr>& trigger_list : d_triggers)
-  {
-    triggers.push_back(ExportTo(exprManager, variableMap, trigger_list));
-  }
-  /** Convert head and body */
-  Expr body = d_body.exportTo(exprManager, variableMap);
-  /** Create the converted rules */
-  return new PropagateRuleCommand(vars, guards, heads, body, triggers);
-}
-
-Command* PropagateRuleCommand::clone() const
-{
-  return new PropagateRuleCommand(
-      d_vars, d_guards, d_heads, d_body, d_triggers);
-}
-
-std::string PropagateRuleCommand::getCommandName() const
-{
-  return "propagate-rule";
-}
 }  // namespace CVC4

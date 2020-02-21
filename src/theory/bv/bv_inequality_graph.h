@@ -95,9 +95,9 @@ class InequalityGraph : public context::ContextNotifyObj{
       : d_model(model)
     {}
     bool operator() (TermId left, TermId right) const {
-      Assert (d_model->find(left) != d_model->end() &&
-              d_model->find(right) != d_model->end());
-      
+      Assert(d_model->find(left) != d_model->end()
+             && d_model->find(right) != d_model->end());
+
       return (*(d_model->find(left))).second.value < (*(d_model->find(right))).second.value; 
     }
   }; 
@@ -148,11 +148,22 @@ class InequalityGraph : public context::ContextNotifyObj{
   
   ReasonId registerReason(TNode reason);
   TNode getReasonNode(ReasonId id) const;
-  
-  
-  Edges& getEdges(TermId id) { Assert (id < d_ineqEdges.size()); return d_ineqEdges[id]; }
-  InequalityNode& getInequalityNode(TermId id) { Assert (id < d_ineqNodes.size()); return d_ineqNodes[id]; }
-  const InequalityNode& getInequalityNode(TermId id) const { Assert (id < d_ineqNodes.size()); return d_ineqNodes[id]; }
+
+  Edges& getEdges(TermId id)
+  {
+    Assert(id < d_ineqEdges.size());
+    return d_ineqEdges[id];
+  }
+  InequalityNode& getInequalityNode(TermId id)
+  {
+    Assert(id < d_ineqNodes.size());
+    return d_ineqNodes[id];
+  }
+  const InequalityNode& getInequalityNode(TermId id) const
+  {
+    Assert(id < d_ineqNodes.size());
+    return d_ineqNodes[id];
+  }
   unsigned getBitwidth(TermId id) const { return getInequalityNode(id).getBitwidth(); }
   bool isConst(TermId id) const { return getInequalityNode(id).isConstant(); }
   

@@ -16,7 +16,7 @@
 
 #include "expr/record.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/type.h"
@@ -24,7 +24,9 @@
 
 namespace CVC4 {
 
-static Record::FieldVector::const_iterator find(const Record::FieldVector& fields, std::string name){
+static Record::FieldVector::const_iterator find(
+    const Record::FieldVector& fields, const std::string& name)
+{
   for(Record::FieldVector::const_iterator i = fields.begin(), i_end = fields.end(); i != i_end; ++i){
     if((*i).first == name) {
       return i;

@@ -16,7 +16,7 @@
 
 #include "proof/unsat_core.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/expr_iomanip.h"
 #include "options/base_options.h"
 #include "printer/printer.h"

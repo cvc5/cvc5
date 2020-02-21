@@ -118,15 +118,10 @@ Node mkSortedNode(Kind kind, std::vector<Node>& children);
 template<bool ref_count>
 Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
 {
-  Assert (k == kind::AND
-          || k == kind::OR
-          || k == kind::XOR
-          || k == kind::BITVECTOR_AND
-          || k == kind::BITVECTOR_OR
-          || k == kind::BITVECTOR_XOR
-          || k == kind::BITVECTOR_PLUS
-          || k == kind::BITVECTOR_SUB
-          || k == kind::BITVECTOR_MULT);
+  Assert(k == kind::AND || k == kind::OR || k == kind::XOR
+         || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
+         || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_PLUS
+         || k == kind::BITVECTOR_SUB || k == kind::BITVECTOR_MULT);
 
   if (nodes.size() == 1) { return nodes[0]; }
   return NodeManager::currentNM()->mkNode(k, nodes);
@@ -211,6 +206,15 @@ void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
 
+/**
+ * Returns the rewritten form of node, which is a term of the form bv2nat(x).
+ * The return value of this method is the integer sum:
+ *   (+ ite( (= ((_ extract (n-1) (n-1)) x) 1) (^ 2 (n-1)) 0)
+ *      ...
+ *      ite( (= ((_ extract 0 0) x) 1) (^ 2 0) 0))
+ * where n is the bitwidth of x.
+ */
+Node eliminateBv2Nat(TNode node);
 }
 }
 }

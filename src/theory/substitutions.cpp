@@ -180,7 +180,7 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 
   // this causes a later assert-fail (the rhs != current one, above) anyway
   // putting it here is easier to diagnose
-  Assert(x != t, "cannot substitute a term for itself");
+  Assert(x != t) << "cannot substitute a term for itself";
 
   d_substitutions[x] = t;
 

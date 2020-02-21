@@ -24,11 +24,11 @@
 #include <utility>
 #include <vector>
 
-#include "base/cvc4_assert.h"
 #include "expr/node.h"
 #include "theory/interrupted.h"
 #include "theory/output_channel.h"
 #include "util/proof.h"
+#include "util/resource_manager.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
@@ -68,7 +68,7 @@ public:
   TestOutputChannel() {}
   ~TestOutputChannel() override {}
 
-  void safePoint(uint64_t amount) override {}
+  void safePoint(ResourceManager::Resource r) override {}
   void conflict(TNode n, std::unique_ptr<Proof> pf) override
   {
     push(CONFLICT, n);

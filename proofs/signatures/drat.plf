@@ -11,7 +11,8 @@
 ; Both are detailed in this paper, along with their differences:
 ;   http://fmv.jku.at/papers/RebolaPardoBiere-POS18.pdf
 ;
-; This signature checks **Specified DRAT**.
+; This signature contains implementations for a checker for each.
+; **Specified DRAT** is first.
 
 ; A DRAT proof itself: a list of addition or deletion instructions.
 (declare DRATProof type)
@@ -23,7 +24,8 @@
 ; Functional  Programs ;
 ; ==================== ;
 
-; Are two clauses equal (in the set sense)
+; Are two clauses equal (i.e., if interpretted as sets of literals, are those
+; sets equal?)
 ;
 ; Assumes that marks 1,2,3,4 are clear for the constituent variables, and
 ; leaves them clear afterwards.
@@ -44,9 +46,11 @@
 ;    the mark 2 means (seen as - in c1, but not yet in c2)
 ;    the mark 4 means (seen as - in c1)
 ;
-; This implementation is robust to literal order, repeated literals, and
-; literals of opposite polarity in the same clause. It is true equality on sets
-; literals.
+; This implementation **does not**:
+;    1. assume that clauses do not have duplicates
+;       (so the clause [x v x v ~y] is an accceptable input)
+;    2. assume that clauses are non-tautological
+;       (so the clause [x v ~x] is an acceptable input)
 ;
 ; TODO(aozdemir) This implementation could be further optimized b/c once c1 is
 ; drained, we need not continue to pattern match on it.
@@ -113,9 +117,10 @@
                                       ((clc l c') (cnf_has_bottom rest))))))
 
 ; Return a new cnf with one copy of this clause removed.
+; If the clause is absent, returns the original cnf.
 (program cnf_remove_clause ((c clause) (cs cnf)) cnf
          (match cs
-                (cnfn (fail cnf))
+                (cnfn cnfn)
                 ((cnfc c' cs')
                  (match (clause_eq c c')
                         (tt cs')
@@ -224,9 +229,11 @@
                 (tt tt)
                 (ff (match (is_at cs c)
                            (tt tt)
-                           (ff (are_all_at
+                           (ff (match c
+                                      (cln ff)
+                                      ((clc a b) (are_all_at ; dedent
                                  cs
-                                 (collect_pseudo_resolvents cs c)))))))
+                                 (collect_pseudo_resolvents cs c)))))))))
 
 ; Is this proof a valid DRAT proof of bottom?
 (program is_specified_drat_proof ((f cnf) (proof DRATProof)) bool
@@ -322,7 +329,7 @@
 
 
 ; Do unit propagation on `f`, constructing a UP model for it.
-(program build_up_model ((f cnf)) clause
+(program build_up_model ((f cnf)) UPConstructionResult
          (match (unit_search f)
                 (USRBottom UPCRBottom)
                 (USRNoUnit (UPCRModel cln))
@@ -335,7 +342,7 @@
 
 ; Given some starting assignment (`up_model`), continue UP to construct a larger
 ; model.
-(program extend_up_model ((f cnf) (up_model clause)) clause
+(program extend_up_model ((f cnf) (up_model clause)) UPConstructionResult
          (do (clause_into_global up_model)
            (let result (build_up_model f)
              (do (clause_undo_into_global up_model)

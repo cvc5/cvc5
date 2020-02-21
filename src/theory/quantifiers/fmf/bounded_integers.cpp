@@ -19,10 +19,12 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4;
@@ -91,10 +93,6 @@ BoundedIntegers::~BoundedIntegers() {}
 
 void BoundedIntegers::presolve() {
   d_bnd_it.clear();
-}
-
-bool BoundedIntegers::isBound( Node f, Node v ) {
-  return std::find( d_set[f].begin(), d_set[f].end(), v )!=d_set[f].end();
 }
 
 bool BoundedIntegers::hasNonBoundVar( Node f, Node b, std::map< Node, bool >& visited ) {
@@ -170,7 +168,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
         conj = TermUtil::simpleNegate( conj );
       }
       Trace("bound-int-debug") << "Process possible finite disequality conjunction : " << conj << std::endl;
-      Assert( conj.getKind()==AND );
+      Assert(conj.getKind() == AND);
       Node v;
       std::vector< Node > v_cases;
       bool success = true;
@@ -202,7 +200,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
           bound_lit_type_map[v] = BOUND_FIXED_SET;
           bound_lit_map[3][v] = n;
           bound_lit_pol_map[3][v] = pol;
-          Assert( v_cases.size()==1 );
+          Assert(v_cases.size() == 1);
           bound_fixed_set[v].clear();
           bound_fixed_set[v].push_back( v_cases[0] );
         }
@@ -269,7 +267,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       }
     }
   }else{
-    Assert( n.getKind()!=LEQ && n.getKind()!=LT && n.getKind()!=GT );
+    Assert(n.getKind() != LEQ && n.getKind() != LT && n.getKind() != GT);
   }
 }
 
@@ -299,11 +297,13 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
   }
   Trace("bint-engine") << "   addedLemma = " << addedLemma << std::endl;
 }
-void BoundedIntegers::setBoundedVar( Node q, Node v, unsigned bound_type ) {
+void BoundedIntegers::setBoundedVar(Node q, Node v, BoundVarType bound_type)
+{
   d_bound_type[q][v] = bound_type;
   d_set_nums[q][v] = d_set[q].size();
   d_set[q].push_back( v );
-  Trace("bound-int-var") << "Bound variable #" << d_set_nums[q][v] << " : " << v << std::endl; 
+  Trace("bound-int-var") << "Bound variable #" << d_set_nums[q][v] << " : " << v
+                         << std::endl;
 }
 
 void BoundedIntegers::checkOwnership(Node f)
@@ -336,7 +336,8 @@ void BoundedIntegers::checkOwnership(Node f)
             setBoundVar = true;
             for( unsigned b=0; b<2; b++ ){
               //set the bounds
-              Assert( bound_int_range_term[b].find( v )!=bound_int_range_term[b].end() );
+              Assert(bound_int_range_term[b].find(v)
+                     != bound_int_range_term[b].end());
               d_bounds[b][f][v] = bound_int_range_term[b][v];
             }
             Node r = nm->mkNode(MINUS, d_bounds[1][f][v], d_bounds[0][f][v]);
@@ -397,7 +398,7 @@ void BoundedIntegers::checkOwnership(Node f)
             }
             else
             {
-              Assert( it->second!=BOUND_INT_RANGE );
+              Assert(it->second != BOUND_INT_RANGE);
             }
           }
         }
@@ -408,7 +409,7 @@ void BoundedIntegers::checkOwnership(Node f)
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if (tn.isSort()
+          if ((tn.isSort() && tn.isInterpretedFinite())
               || d_quantEngine->getTermEnumeration()->mayComplete(tn))
           {
             success = true;
@@ -425,7 +426,7 @@ void BoundedIntegers::checkOwnership(Node f)
     for( unsigned i=0; i<f[0].getNumChildren(); i++) {
       Node v = f[0][i];
       if( std::find( d_set[f].begin(), d_set[f].end(), v )!=d_set[f].end() ){
-        Assert( d_bound_type[f].find( v )!=d_bound_type[f].end() );
+        Assert(d_bound_type[f].find(v) != d_bound_type[f].end());
         if( d_bound_type[f][v]==BOUND_INT_RANGE ){
           Trace("bound-int") << "  " << d_bounds[0][f][v] << " <= " << v << " <= " << d_bounds[1][f][v] << " (range is " << d_range[f][v] << ")" << std::endl;
         }else if( d_bound_type[f][v]==BOUND_SET_MEMBER ){
@@ -447,7 +448,7 @@ void BoundedIntegers::checkOwnership(Node f)
           Trace("bound-int") << "  " << v << " has small finite type." << std::endl;
         }else{
           Trace("bound-int") << "  " << v << " has unknown bound." << std::endl;
-          Assert( false );
+          Assert(false);
         }
       }else{
         Trace("bound-int") << "  " << "*** " << v << " is unbounded." << std::endl;
@@ -471,7 +472,7 @@ void BoundedIntegers::checkOwnership(Node f)
       std::map< Node, Node >::iterator itr = d_range[f].find( v );
       if( itr != d_range[f].end() ){
         Node r = itr->second;
-        Assert( !r.isNull() );
+        Assert(!r.isNull());
         bool isProxy = false;
         if (expr::hasBoundVar(r))
         {
@@ -505,12 +506,43 @@ void BoundedIntegers::checkOwnership(Node f)
   }
 }
 
-unsigned BoundedIntegers::getBoundVarType( Node q, Node v ) {
-  std::map< Node, unsigned >::iterator it = d_bound_type[q].find( v );
-  if( it==d_bound_type[q].end() ){
+bool BoundedIntegers::isBound(Node q, Node v) const
+{
+  std::map<Node, std::vector<Node> >::const_iterator its = d_set.find(q);
+  if (its == d_set.end())
+  {
+    return false;
+  }
+  return std::find(its->second.begin(), its->second.end(), v)
+         != its->second.end();
+}
+
+BoundVarType BoundedIntegers::getBoundVarType(Node q, Node v) const
+{
+  std::map<Node, std::map<Node, BoundVarType> >::const_iterator itb =
+      d_bound_type.find(q);
+  if (itb == d_bound_type.end())
+  {
     return BOUND_NONE;
-  }else{
-    return it->second;
+  }
+  std::map<Node, BoundVarType>::const_iterator it = itb->second.find(v);
+  if (it == itb->second.end())
+  {
+    return BOUND_NONE;
+  }
+  return it->second;
+}
+
+void BoundedIntegers::getBoundVarIndices(Node q,
+                                         std::vector<unsigned>& indices) const
+{
+  std::map<Node, std::vector<Node> >::const_iterator it = d_set.find(q);
+  if (it != d_set.end())
+  {
+    for (const Node& v : it->second)
+    {
+      indices.push_back(d_quantEngine->getTermUtil()->getVariableNum(q, v));
+    }
   }
 }
 
@@ -546,7 +578,7 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
 
 bool BoundedIntegers::isGroundRange(Node q, Node v)
 {
-  if (isBoundVar(q, v))
+  if (isBound(q, v))
   {
     if (d_bound_type[q][v] == BOUND_INT_RANGE)
     {
@@ -665,16 +697,16 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
 bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi ) {
 
   Trace("bound-int-rsi") << "Get bound value in model of variable " << v << std::endl;
-  Assert( d_set_nums[q].find( v )!=d_set_nums[q].end() );
+  Assert(d_set_nums[q].find(v) != d_set_nums[q].end());
   int vindex = d_set_nums[q][v];
-  Assert( d_set_nums[q][v]==vindex );
+  Assert(d_set_nums[q][v] == vindex);
   Trace("bound-int-rsi-debug") << "  index order is " << vindex << std::endl;
   //must take substitution for all variables that are iterating at higher level
   for( int i=0; i<vindex; i++) {
-    Assert( d_set_nums[q][d_set[q][i]]==i );
+    Assert(d_set_nums[q][d_set[q][i]] == i);
     Trace("bound-int-rsi") << "Look up the value for " << d_set[q][i] << " " << i << std::endl;
     int v = rsi->getVariableOrder( i );
-    Assert( q[0][v]==d_set[q][i] );
+    Assert(q[0][v] == d_set[q][i]);
     Node t = rsi->getCurrentTerm(v, true);
     Trace("bound-int-rsi") << "term : " << t << std::endl;
     vars.push_back( d_set[q][i] );
@@ -706,14 +738,17 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
         return Node::null();
       }
     }
-    const Datatype& dt = Datatype::datatypeOf( t.getOperator().toExpr() );
-    unsigned index = Datatype::indexOf( t.getOperator().toExpr() );
+    NodeManager* nm = NodeManager::currentNM();
+    const DType& dt = datatypes::utils::datatypeOf(t.getOperator());
+    unsigned index = datatypes::utils::indexOf(t.getOperator());
     for( unsigned i=0; i<t.getNumChildren(); i++ ){
       Node u;
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node se = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[index].getSelectorInternal( e.getType().toType(), i ) ), e );
+        Node se = nm->mkNode(APPLY_SELECTOR_TOTAL,
+                             dt[index].getSelectorInternal(e.getType(), i),
+                             e);
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){
@@ -727,7 +762,7 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
 bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node q, Node v, std::vector< Node >& elements ) {
   if( initial || !isGroundRange( q, v ) ){
     elements.clear();
-    unsigned bvt = getBoundVarType( q, v );
+    BoundVarType bvt = getBoundVarType(q, v);
     if( bvt==BOUND_INT_RANGE ){
       Node l, u;
       getBoundValues( q, v, rsi, l, u );
@@ -742,7 +777,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node tl = l;
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
-        Assert( !tl.isNull() && !tu.isNull() );
+        Assert(!tl.isNull() && !tu.isNull());
         if( ra==d_quantEngine->getTermUtil()->d_true ){
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
@@ -767,11 +802,11 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         if( srv.getKind()!=EMPTYSET ){
           //collect the elements
           while( srv.getKind()==UNION ){
-            Assert( srv[1].getKind()==kind::SINGLETON );
+            Assert(srv[1].getKind() == kind::SINGLETON);
             elements.push_back( srv[1][0] );
             srv = srv[0];
           }
-          Assert( srv.getKind()==kind::SINGLETON );
+          Assert(srv.getKind() == kind::SINGLETON);
           elements.push_back( srv[0] );
           //check if we need to do matching, for literals like ( tuple( v ) in S )
           Node t = d_setm_range_lit[q][v][0];

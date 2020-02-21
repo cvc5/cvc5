@@ -15,9 +15,9 @@
 
 #include "theory/quantifiers/anti_skolem.h"
 
+#include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;
@@ -29,7 +29,7 @@ namespace theory {
 namespace quantifiers {
 
 struct sortTypeOrder {
-  TermCanonize* d_tu;
+  expr::TermCanonize* d_tu;
   bool operator() (TypeNode i, TypeNode j) {
     return d_tu->getIdForType( i )<d_tu->getIdForType( j );
   }
@@ -37,7 +37,7 @@ struct sortTypeOrder {
 
 void QuantAntiSkolem::SkQuantTypeCache::add( std::vector< TypeNode >& typs, Node q, unsigned index ) {
   if( index==typs.size() ){
-    Assert( std::find( d_quants.begin(), d_quants.end(), q )==d_quants.end() );
+    Assert(std::find(d_quants.begin(), d_quants.end(), q) == d_quants.end());
     d_quants.push_back( q );
   }else{
     d_children[typs[index]].add( typs, q, index+1 );
@@ -134,12 +134,12 @@ void QuantAntiSkolem::check(Theory::Effort e, QEffort quant_e)
           for( unsigned j=0; j<d_ask_types[q].size();  ){
             TypeNode curr = d_ask_types[q][j];
             for( unsigned k=0; k<indices[curr].size(); k++ ){
-              Assert( d_ask_types[q][j]==curr );
+              Assert(d_ask_types[q][j] == curr);
               d_ask_types_index[q].push_back( indices[curr][k] );
               j++;
             }
           }
-          Assert( d_ask_types_index[q].size()==d_ask_types[q].size() );
+          Assert(d_ask_types_index[q].size() == d_ask_types[q].size());
         }else{
           d_quant_sip.erase( q );
         }
@@ -158,7 +158,7 @@ void QuantAntiSkolem::check(Theory::Effort e, QEffort quant_e)
 }
 
 bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool pconnected ) {
-  Assert( !quants.empty() );
+  Assert(!quants.empty());
   std::sort( quants.begin(), quants.end() );
   if( d_sqc->add( d_quantEngine->getUserContext(), quants ) ){
     //partition into connected components
@@ -190,7 +190,7 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
             eqcs.push_back( func_to_eqc[f] );
           }
         }
-        Assert( !eqcs.empty() );
+        Assert(!eqcs.empty());
         //merge equivalence classes
         int id = eqcs[0];
         eqc_to_quant[id].push_back( q );
@@ -214,7 +214,7 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
       if( eqc_to_quant.size()>1 ){
         bool addedLemma = false;
         for( std::map< int, std::vector< Node > >::iterator it = eqc_to_quant.begin(); it != eqc_to_quant.end(); ++it ){
-          Assert( it->second.size()<quants.size() );
+          Assert(it->second.size() < quants.size());
           bool ret = sendAntiSkolemizeLemma( it->second, false );
           addedLemma = addedLemma || ret;
         }
@@ -245,7 +245,7 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
       std::vector< Node > subs_lhs;
       std::vector< Node > subs_rhs;
       //get outer variable substitution
-      Assert( d_ask_types_index[q].size()==d_ask_types[q].size() );
+      Assert(d_ask_types_index[q].size() == d_ask_types[q].size());
       std::vector<Node> sivars;
       d_quant_sip[q].getSingleInvocationVariables(sivars);
       for (unsigned j = 0, size = d_ask_types_index[q].size(); j < size; j++)

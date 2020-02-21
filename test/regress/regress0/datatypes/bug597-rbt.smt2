@@ -1,3 +1,4 @@
+(set-option :global-declarations true)
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
 

@@ -18,13 +18,15 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
+#include "theory/uf/cardinality_extension.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace std;
 using namespace CVC4;
@@ -75,7 +77,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     doCheck = quant_e == QEFFORT_MODEL;
   }
   if( doCheck ){
-    Assert( !d_quantEngine->inConflict() );
+    Assert(!d_quantEngine->inConflict());
     int addedLemmas = 0;
     FirstOrderModel* fm = d_quantEngine->getModel();
 
@@ -88,9 +90,13 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     }
 
     Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
-    //let the strong solver verify that the model is minimal
-    //for debugging, this will if there are terms in the model that the strong solver was not notified of
-    uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
+    // Let the cardinality extension verify that the model is minimal.
+    // This will if there are terms in the model that the cardinality extension
+    // was not notified of.
+    uf::CardinalityExtension* ufss =
+        static_cast<uf::TheoryUF*>(
+            d_quantEngine->getTheoryEngine()->theoryOf(THEORY_UF))
+            ->getCardinalityExtension();
     if( !ufss || ufss->debugModel( fm ) ){
       Trace("model-engine-debug") << "Check model..." << std::endl;
       d_incomplete_check = false;
@@ -213,9 +219,9 @@ int ModelEngine::checkModel(){
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   // FMC uses two sub-effort levels
-  int e_max = options::mbqiMode() == MBQI_FMC
+  int e_max = options::mbqiMode() == options::MbqiMode::FMC
                   ? 2
-                  : (options::mbqiMode() == MBQI_TRUST ? 0 : 1);
+                  : (options::mbqiMode() == options::MbqiMode::TRUST ? 0 : 1);
   for( int e=0; e<e_max; e++) {
     d_incomplete_quants.clear();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -234,7 +240,7 @@ int ModelEngine::checkModel(){
     if( d_addedLemmas>0 ){
       break;
     }else{
-      Assert( !d_quantEngine->inConflict() );
+      Assert(!d_quantEngine->inConflict());
     }
   }
 

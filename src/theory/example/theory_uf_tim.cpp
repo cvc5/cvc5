@@ -82,26 +82,26 @@ void TheoryUFTim::registerTerm(TNode n) {
      *
      * The above assumes that the code is working correctly.
      */
-    Assert(ecN->getFirst() == NULL,
-           "Equivalence class data exists for the node being registered.  "
+    Assert(ecN->getFirst() == NULL)
+        << "Equivalence class data exists for the node being registered.  "
            "Expected getFirst() == NULL.  "
            "This data is either already in use or was not properly maintained "
-           "during backtracking");
+           "during backtracking";
     /*Assert(ecN->getLast() == NULL,
            "Equivalence class data exists for the node being registered.  "
            "Expected getLast() == NULL.  "
            "This data is either already in use or was not properly maintained "
            "during backtracking.");*/
-    Assert(ecN->isClassRep(),
-           "Equivalence class data exists for the node being registered.  "
+    Assert(ecN->isClassRep())
+        << "Equivalence class data exists for the node being registered.  "
            "Expected isClassRep() to be true.  "
            "This data is either already in use or was not properly maintained "
-           "during backtracking");
-    Assert(ecN->getWatchListSize() == 0,
-           "Equivalence class data exists for the node being registered.  "
+           "during backtracking";
+    Assert(ecN->getWatchListSize() == 0)
+        << "Equivalence class data exists for the node being registered.  "
            "Expected getWatchListSize() == 0.  "
            "This data is either already in use or was not properly maintained "
-           "during backtracking");
+           "during backtracking";
   } else {
     //The attribute does not exist, so it is created and set
     ecN = new (true) ECData(getContext(), n);
@@ -290,14 +290,13 @@ void TheoryUFTim::check(Effort level) {
       merge();
       break;
     case NOT:
-      Assert(assertion[0].getKind() == EQUAL,
-             "predicates not supported in this UF implementation");
+      Assert(assertion[0].getKind() == EQUAL)
+          << "predicates not supported in this UF implementation";
       d_disequality.push_back(assertion[0]);
       break;
     case APPLY_UF:
-      Unhandled("predicates not supported in this UF implementation");
-    default:
-      Unhandled(assertion.getKind());
+      Unhandled() << "predicates not supported in this UF implementation";
+    default: Unhandled() << assertion.getKind();
     }
 
     Debug("uf") << "TheoryUFTim::check(): done = " << (done() ? "true" : "false") << std::endl;

@@ -95,7 +95,8 @@ class ReqTrie
   {
     if (!d_req_const.isNull())
     {
-      if (!tdb->hasConst(tn, d_req_const))
+      quantifiers::SygusTypeInfo& sti = tdb->getTypeInfo(tn);
+      if (!sti.hasConst(d_req_const))
       {
         return false;
       }
@@ -152,15 +153,17 @@ class ReqTrie
 bool SygusSimpleSymBreak::considerArgKind(
     TypeNode tn, TypeNode tnp, Kind k, Kind pk, int arg)
 {
-  const Datatype& pdt = ((DatatypeType)(tnp).toType()).getDatatype();
-  const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-  Assert(d_tds->hasKind(tn, k));
-  Assert(d_tds->hasKind(tnp, pk));
+  const DType& pdt = tnp.getDType();
+  const DType& dt = tn.getDType();
+  quantifiers::SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
+  quantifiers::SygusTypeInfo& pti = d_tds->getTypeInfo(tnp);
+  Assert(ti.hasKind(k));
+  Assert(pti.hasKind(pk));
   Trace("sygus-sb-debug") << "Consider sygus arg kind " << k << ", pk = " << pk
                           << ", arg = " << arg << " in " << tnp << "?"
                           << std::endl;
-  int c = d_tds->getKindConsNum(tn, k);
-  int pc = d_tds->getKindConsNum(tnp, pk);
+  int c = ti.getKindConsNum(k);
+  int pc = pti.getKindConsNum(pk);
   // check for associativity
   if (k == pk && quantifiers::TermUtil::isAssoc(k))
   {
@@ -175,7 +178,7 @@ bool SygusSimpleSymBreak::considerArgKind(
     // the argument types of the child must be the parent's type
     for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
     {
-      TypeNode tn = TypeNode::fromType(dt[c].getArgType(i));
+      TypeNode tn = dt[c].getArgType(i);
       if (tn != tnp)
       {
         return true;
@@ -199,7 +202,7 @@ bool SygusSimpleSymBreak::considerArgKind(
     // negation normal form
     if (pk == k)
     {
-      rt.d_req_type = TypeNode::fromType(dt[c].getArgType(0));
+      rt.d_req_type = dt[c].getArgType(0);
     }
     else
     {
@@ -230,27 +233,25 @@ bool SygusSimpleSymBreak::considerArgKind(
           rt.d_req_kind = ITE;
           reqkc[1] = NOT;
           reqkc[2] = NOT;
-          rt.d_children[0].d_req_type = TypeNode::fromType(dt[c].getArgType(0));
+          rt.d_children[0].d_req_type = dt[c].getArgType(0);
         }
         else if (k == LEQ || k == GT)
         {
           //  (not (~ x y)) ----->  (~ (+ y 1) x)
           rt.d_req_kind = k;
           rt.d_children[0].d_req_kind = PLUS;
-          rt.d_children[0].d_children[0].d_req_type =
-              TypeNode::fromType(dt[c].getArgType(1));
+          rt.d_children[0].d_children[0].d_req_type = dt[c].getArgType(1);
           rt.d_children[0].d_children[1].d_req_const =
               NodeManager::currentNM()->mkConst(Rational(1));
-          rt.d_children[1].d_req_type = TypeNode::fromType(dt[c].getArgType(0));
+          rt.d_children[1].d_req_type = dt[c].getArgType(0);
         }
         else if (k == LT || k == GEQ)
         {
           //  (not (~ x y)) ----->  (~ y (+ x 1))
           rt.d_req_kind = k;
-          rt.d_children[0].d_req_type = TypeNode::fromType(dt[c].getArgType(1));
+          rt.d_children[0].d_req_type = dt[c].getArgType(1);
           rt.d_children[1].d_req_kind = PLUS;
-          rt.d_children[1].d_children[0].d_req_type =
-              TypeNode::fromType(dt[c].getArgType(0));
+          rt.d_children[1].d_children[0].d_req_type = dt[c].getArgType(0);
           rt.d_children[1].d_children[1].d_req_const =
               NodeManager::currentNM()->mkConst(Rational(1));
         }
@@ -294,7 +295,7 @@ bool SygusSimpleSymBreak::considerArgKind(
       }
       if (!rt.empty() && (reqk != UNDEFINED_KIND || !reqkc.empty()))
       {
-        int pcr = d_tds->getKindConsNum(tnp, rt.d_req_kind);
+        int pcr = pti.getKindConsNum(rt.d_req_kind);
         if (pcr != -1)
         {
           Assert(pcr < static_cast<int>(pdt.getNumConstructors()));
@@ -315,8 +316,7 @@ bool SygusSimpleSymBreak::considerArgKind(
               if (rk != UNDEFINED_KIND)
               {
                 rt.d_children[i].d_req_kind = rk;
-                rt.d_children[i].d_children[0].d_req_type =
-                    TypeNode::fromType(dt[c].getArgType(i));
+                rt.d_children[i].d_children[0].d_req_type = dt[c].getArgType(i);
               }
             }
           }
@@ -333,12 +333,10 @@ bool SygusSimpleSymBreak::considerArgKind(
       //  (~ x (- y z))  ---->  (~ (+ x z) y)
       //  (~ (- y z) x)  ---->  (~ y (+ x z))
       rt.d_req_kind = pk;
-      rt.d_children[arg].d_req_type = TypeNode::fromType(dt[c].getArgType(0));
+      rt.d_children[arg].d_req_type = dt[c].getArgType(0);
       rt.d_children[oarg].d_req_kind = k == MINUS ? PLUS : BITVECTOR_PLUS;
-      rt.d_children[oarg].d_children[0].d_req_type =
-          TypeNode::fromType(pdt[pc].getArgType(oarg));
-      rt.d_children[oarg].d_children[1].d_req_type =
-          TypeNode::fromType(dt[c].getArgType(1));
+      rt.d_children[oarg].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
+      rt.d_children[oarg].d_children[1].d_req_type = dt[c].getArgType(1);
     }
     else if (pk == PLUS || pk == BITVECTOR_PLUS)
     {
@@ -347,11 +345,9 @@ bool SygusSimpleSymBreak::considerArgKind(
       rt.d_req_kind = pk == PLUS ? MINUS : BITVECTOR_SUB;
       int oarg = arg == 0 ? 1 : 0;
       rt.d_children[0].d_req_kind = pk;
-      rt.d_children[0].d_children[0].d_req_type =
-          TypeNode::fromType(pdt[pc].getArgType(oarg));
-      rt.d_children[0].d_children[1].d_req_type =
-          TypeNode::fromType(dt[c].getArgType(0));
-      rt.d_children[1].d_req_type = TypeNode::fromType(dt[c].getArgType(1));
+      rt.d_children[0].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
+      rt.d_children[0].d_children[1].d_req_type = dt[c].getArgType(0);
+      rt.d_children[1].d_req_type = dt[c].getArgType(1);
     }
   }
   else if (k == ITE)
@@ -360,7 +356,7 @@ bool SygusSimpleSymBreak::considerArgKind(
     {
       //  (o X (ite y z w) X')  -----> (ite y (o X z X') (o X w X'))
       rt.d_req_kind = ITE;
-      rt.d_children[0].d_req_type = TypeNode::fromType(dt[c].getArgType(0));
+      rt.d_children[0].d_req_type = dt[c].getArgType(0);
       unsigned n_args = pdt[pc].getNumArgs();
       for (unsigned r = 1; r <= 2; r++)
       {
@@ -369,13 +365,11 @@ bool SygusSimpleSymBreak::considerArgKind(
         {
           if ((int)q == arg)
           {
-            rt.d_children[r].d_children[q].d_req_type =
-                TypeNode::fromType(dt[c].getArgType(r));
+            rt.d_children[r].d_children[q].d_req_type = dt[c].getArgType(r);
           }
           else
           {
-            rt.d_children[r].d_children[q].d_req_type =
-                TypeNode::fromType(pdt[pc].getArgType(q));
+            rt.d_children[r].d_children[q].d_req_type = pdt[pc].getArgType(q);
           }
         }
       }
@@ -388,9 +382,9 @@ bool SygusSimpleSymBreak::considerArgKind(
     {
       //  (ite (not y) z w)  -----> (ite y w z)
       rt.d_req_kind = ITE;
-      rt.d_children[0].d_req_type = TypeNode::fromType(dt[c].getArgType(0));
-      rt.d_children[1].d_req_type = TypeNode::fromType(pdt[pc].getArgType(2));
-      rt.d_children[2].d_req_type = TypeNode::fromType(pdt[pc].getArgType(1));
+      rt.d_children[0].d_req_type = dt[c].getArgType(0);
+      rt.d_children[1].d_req_type = pdt[pc].getArgType(2);
+      rt.d_children[2].d_req_type = pdt[pc].getArgType(1);
     }
   }
   Trace("sygus-sb-debug") << "Consider sygus arg kind " << k << ", pk = " << pk
@@ -422,14 +416,16 @@ bool SygusSimpleSymBreak::considerArgKind(
 bool SygusSimpleSymBreak::considerConst(
     TypeNode tn, TypeNode tnp, Node c, Kind pk, int arg)
 {
-  const Datatype& pdt = static_cast<DatatypeType>(tnp.toType()).getDatatype();
+  const DType& pdt = tnp.getDType();
   // child grammar-independent
   if (!considerConst(pdt, tnp, c, pk, arg))
   {
     return false;
   }
   // this can probably be made child grammar independent
-  int pc = d_tds->getKindConsNum(tnp, pk);
+  quantifiers::SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
+  quantifiers::SygusTypeInfo& pti = d_tds->getTypeInfo(tnp);
+  int pc = pti.getKindConsNum(pk);
   if (pdt[pc].getNumArgs() == 2)
   {
     Kind ok;
@@ -438,7 +434,7 @@ bool SygusSimpleSymBreak::considerConst(
     {
       Trace("sygus-sb-simple-debug")
           << pk << " has offset arg " << ok << " " << offset << std::endl;
-      int ok_arg = d_tds->getKindConsNum(tnp, ok);
+      int ok_arg = pti.getKindConsNum(ok);
       if (ok_arg != -1)
       {
         Trace("sygus-sb-simple-debug")
@@ -453,7 +449,7 @@ bool SygusSimpleSymBreak::considerConst(
               << ", status=" << status << std::endl;
           if (status == 0 && !co.isNull())
           {
-            if (d_tds->hasConst(tn, co))
+            if (ti.hasConst(co))
             {
               Trace("sygus-sb-simple")
                   << "  sb-simple : by offset reasoning, do not consider const "
@@ -472,10 +468,11 @@ bool SygusSimpleSymBreak::considerConst(
 }
 
 bool SygusSimpleSymBreak::considerConst(
-    const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg)
+    const DType& pdt, TypeNode tnp, Node c, Kind pk, int arg)
 {
-  Assert(d_tds->hasKind(tnp, pk));
-  int pc = d_tds->getKindConsNum(tnp, pk);
+  quantifiers::SygusTypeInfo& pti = d_tds->getTypeInfo(tnp);
+  Assert(pti.hasKind(pk));
+  int pc = pti.getKindConsNum(pk);
   bool ret = true;
   Trace("sygus-sb-debug") << "Consider sygus const " << c << ", parent = " << pk
                           << ", arg = " << arg << "?" << std::endl;
@@ -484,7 +481,7 @@ bool SygusSimpleSymBreak::considerConst(
     if (pdt[pc].getNumArgs() == 2)
     {
       int oarg = arg == 0 ? 1 : 0;
-      TypeNode otn = TypeNode::fromType(pdt[pc].getArgType(oarg));
+      TypeNode otn = pdt[pc].getArgType(oarg);
       if (otn == tnp)
       {
         Trace("sygus-sb-simple")
@@ -499,7 +496,7 @@ bool SygusSimpleSymBreak::considerConst(
     Node sc = d_tutil->isSingularArg(c, pk, arg);
     if (!sc.isNull())
     {
-      if (d_tds->hasConst(tnp, sc))
+      if (pti.hasConst(sc))
       {
         Trace("sygus-sb-simple")
             << "  sb-simple : " << c << " is singular arg " << arg << " of "
@@ -541,8 +538,8 @@ bool SygusSimpleSymBreak::considerConst(
       if (c == one_c && arg == 2)
       {
         rt.d_req_kind = STRING_CHARAT;
-        rt.d_children[0].d_req_type = TypeNode::fromType(pdt[pc].getArgType(0));
-        rt.d_children[1].d_req_type = TypeNode::fromType(pdt[pc].getArgType(1));
+        rt.d_children[0].d_req_type = pdt[pc].getArgType(0);
+        rt.d_children[1].d_req_type = pdt[pc].getArgType(1);
       }
     }
     if (!rt.empty())
@@ -570,13 +567,12 @@ int SygusSimpleSymBreak::solveForArgument(TypeNode tn,
   return -1;
 }
 
-int SygusSimpleSymBreak::getFirstArgOccurrence(const DatatypeConstructor& c,
+int SygusSimpleSymBreak::getFirstArgOccurrence(const DTypeConstructor& c,
                                                TypeNode tn)
 {
   for (unsigned i = 0, nargs = c.getNumArgs(); i < nargs; i++)
   {
-    TypeNode tni = TypeNode::fromType(c.getArgType(i));
-    if (tni == tn)
+    if (c.getArgType(i) == tn)
     {
       return i;
     }

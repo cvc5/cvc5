@@ -17,7 +17,7 @@ add_custom_target(build-units)
 add_dependencies(build-tests build-units)
 
 add_custom_target(units
-  COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $(ARGS)
+  COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-units)
 
 set(CVC4_CXXTEST_FLAGS_BLACK
@@ -32,14 +32,24 @@ macro(cvc4_add_unit_test is_white name output_dir)
   # generate the test sources
   set(test_src ${CMAKE_CURRENT_BINARY_DIR}/${name}.cpp)
   set(test_header ${CMAKE_CURRENT_LIST_DIR}/${name}.h)
-  add_custom_command(
-      OUTPUT  ${test_src}
-      DEPENDS ${test_header}
-      COMMAND
-        ${CxxTest_TESTGEN_INTERPRETER}
+  if (CxxTest_USE_SHEBANG)
+    add_custom_command(
+        OUTPUT  ${test_src}
+        DEPENDS ${test_header}
+        COMMAND
           ${CxxTest_TESTGEN_EXECUTABLE}
-          ${CxxTest_TESTGEN_ARGS} -o ${test_src} ${test_header}
-  )
+            ${CxxTest_TESTGEN_ARGS} -o ${test_src} ${test_header}
+    )
+  else()
+    add_custom_command(
+        OUTPUT  ${test_src}
+        DEPENDS ${test_header}
+        COMMAND
+          ${CxxTest_TESTGEN_INTERPRETER}
+            ${CxxTest_TESTGEN_EXECUTABLE}
+            ${CxxTest_TESTGEN_ARGS} -o ${test_src} ${test_header}
+    )
+  endif()
   set_source_files_properties(${test_src} PROPERTIES GENERATED true)
   # The build target is created without the path prefix (not supported),
   # e.g., for '<output_dir>/myunittest.h'
@@ -51,6 +61,10 @@ macro(cvc4_add_unit_test is_white name output_dir)
   target_link_libraries(${name} main-test)
   target_include_directories(${name} PRIVATE ${CxxTest_INCLUDE_DIR})
   target_compile_definitions(${name} PRIVATE ${CVC4_CXXTEST_FLAGS_BLACK})
+  if(USE_LFSC)
+    # We don't link against LFSC, because CVC4 is already linked against it.
+    target_include_directories(${name} PRIVATE ${LFSC_INCLUDE_DIR})
+  endif()
   if(${is_white})
     target_compile_options(${name} PRIVATE -fno-access-control)
   endif()
@@ -91,4 +105,5 @@ add_subdirectory(parser)
 add_subdirectory(prop)
 add_subdirectory(proof)
 add_subdirectory(theory)
+add_subdirectory(preprocessing)
 add_subdirectory(util)

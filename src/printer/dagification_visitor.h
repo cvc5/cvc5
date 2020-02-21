@@ -21,6 +21,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "expr/node.h"
@@ -67,6 +68,12 @@ class DagificationVisitor {
    * A map of subexprs to their occurrence count.
    */
   std::unordered_map<TNode, unsigned, TNodeHashFunction> d_nodeCount;
+
+  /**
+   * The set of variable names with the let prefix that appear in the
+   * expression.
+   */
+  std::unordered_set<std::string> d_reservedLetNames;
 
   /**
    * The top-most node we are visiting.

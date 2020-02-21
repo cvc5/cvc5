@@ -61,19 +61,15 @@ class PreprocessingPassContext
     return d_symsInAssertions;
   }
 
-  void spendResource(unsigned amount)
+  void spendResource(ResourceManager::Resource r)
   {
-    d_resourceManager->spendResource(amount);
+    d_resourceManager->spendResource(r);
   }
 
   const LogicInfo& getLogicInfo() { return d_smt->d_logic; }
 
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);
-
-  unsigned getSubstitutionsIndex() const { return d_substitutionsIndex.get(); }
-
-  void setSubstitutionsIndex(unsigned i) { d_substitutionsIndex = i; }
 
   /** Gets a reference to the top-level substitution map */
   theory::SubstitutionMap& getTopLevelSubstitutions()
@@ -100,9 +96,6 @@ class PreprocessingPassContext
 
   /** Instance of the ITE remover */
   RemoveTermFormulas* d_iteRemover;
-
-  /* Index for where to store substitutions */
-  context::CDO<unsigned> d_substitutionsIndex;
 
   /* The top level substitutions */
   theory::SubstitutionMap d_topLevelSubstitutions;

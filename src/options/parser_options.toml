@@ -65,3 +65,12 @@ header = "options/parser_options.h"
   category   = "undocumented"
   long       = "no-include-file"
   links      = ["--no-filesystem-access"]
+
+[[option]]
+  name       = "forceLogicString"
+  smt_name   = "force-logic"
+  category   = "expert"
+  long       = "force-logic=LOGIC"
+  type       = "std::string"
+  read_only  = true
+  help       = "set the logic, and override all further user attempts to change it"

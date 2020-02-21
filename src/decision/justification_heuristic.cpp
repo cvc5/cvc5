@@ -68,8 +68,8 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
     bool stopSearchTmp = false;
     SatLiteral lit = getNextThresh(stopSearchTmp, options::decisionThreshold());
     if(lit != undefSatLiteral) {
-       Assert(stopSearchTmp == false);
-       return lit;
+      Assert(stopSearchTmp == false);
+      return lit;
     }
     Assert(stopSearchTmp == true);
   }
@@ -248,7 +248,9 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, SatValue satV
 
 DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity)
 {
-  if(options::decisionWeightInternal() != DECISION_WEIGHT_INTERNAL_USR1) {
+  if (options::decisionWeightInternal()
+      != options::DecisionWeightInternal::USR1)
+  {
     return getWeight(n);
   }
 
@@ -297,10 +299,11 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity
 
 DecisionWeight JustificationHeuristic::getWeight(TNode n) {
   if(!n.hasAttribute(DecisionWeightAttr()) ) {
+    options::DecisionWeightInternal combiningFn =
+        options::decisionWeightInternal();
 
-    DecisionWeightInternal combiningFn = options::decisionWeightInternal();
-
-    if (combiningFn == DECISION_WEIGHT_INTERNAL_OFF || n.getNumChildren() == 0)
+    if (combiningFn == options::DecisionWeightInternal::OFF
+        || n.getNumChildren() == 0)
     {
       if (options::decisionRandomWeight() != 0)
       {
@@ -308,15 +311,15 @@ DecisionWeight JustificationHeuristic::getWeight(TNode n) {
             Random::getRandom().pick(0, options::decisionRandomWeight()-1));
       }
     }
-    else if (combiningFn == DECISION_WEIGHT_INTERNAL_MAX)
+    else if (combiningFn == options::DecisionWeightInternal::MAX)
     {
       DecisionWeight dW = 0;
       for (TNode::iterator i = n.begin(); i != n.end(); ++i)
         dW = max(dW, getWeight(*i));
       n.setAttribute(DecisionWeightAttr(), dW);
     }
-    else if (combiningFn == DECISION_WEIGHT_INTERNAL_SUM
-             || combiningFn == DECISION_WEIGHT_INTERNAL_USR1)
+    else if (combiningFn == options::DecisionWeightInternal::SUM
+             || combiningFn == options::DecisionWeightInternal::USR1)
     {
       DecisionWeight dW = 0;
       for (TNode::iterator i = n.begin(); i != n.end(); ++i)
@@ -441,12 +444,12 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
   SatValue litVal = tryGetSatValue(node);
 
   /* You'd better know what you want */
-  Assert(desiredVal != SAT_VALUE_UNKNOWN, "expected known value");
+  Assert(desiredVal != SAT_VALUE_UNKNOWN) << "expected known value";
 
   /* Good luck, hope you can get what you want */
   // See bug 374
-  // Assert(litVal == desiredVal || litVal == SAT_VALUE_UNKNOWN,
-  //       "invariant violated");
+  // Assert(litVal == desiredVal || litVal == SAT_VALUE_UNKNOWN) <<
+  //       "invariant violated";
 
   /* What type of node is this */
   Kind k = node.getKind();
@@ -494,7 +497,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
 
   case kind::CONST_BOOLEAN:
     Assert(node.getConst<bool>() == false || desiredVal == SAT_VALUE_TRUE);
-    Assert(node.getConst<bool>() == true  || desiredVal == SAT_VALUE_FALSE);
+    Assert(node.getConst<bool>() == true || desiredVal == SAT_VALUE_FALSE);
     break;
 
   case kind::AND:
@@ -535,9 +538,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
     ret = handleITE(node, desiredVal);
     break;
 
-  default:
-    Assert(false, "Unexpected Boolean operator");
-    break;
+  default: Assert(false) << "Unexpected Boolean operator"; break;
   }//end of switch(k)
 
   if(ret == DONT_KNOW) {
@@ -545,8 +546,8 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
   }
 
   if(ret == NO_SPLITTER) {
-    Assert( litPresent == false || litVal ==  desiredVal,
-           "Output should be justified");
+    Assert(litPresent == false || litVal == desiredVal)
+        << "Output should be justified";
     setJustified(node);
   }
   return ret;
@@ -555,8 +556,8 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
 JustificationHeuristic::SearchResult
 JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal)
 {
-  Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_FALSE) or
-          (node.getKind() == kind::OR  and desiredVal == SAT_VALUE_TRUE) );
+  Assert((node.getKind() == kind::AND and desiredVal == SAT_VALUE_FALSE)
+         or (node.getKind() == kind::OR and desiredVal == SAT_VALUE_TRUE));
 
   int numChildren = node.getNumChildren();
   SatValue desiredValInverted = invertValue(desiredVal);
@@ -569,7 +570,7 @@ JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal)
       }
     }
   }
-  Assert(d_curThreshold != 0, "handleAndOrEasy: No controlling input found");
+  Assert(d_curThreshold != 0) << "handleAndOrEasy: No controlling input found";
   return DONT_KNOW;
 }
 
@@ -582,8 +583,8 @@ void JustificationHeuristic::saveStartIndex(TNode node, int val) {
 
 JustificationHeuristic::SearchResult JustificationHeuristic::handleAndOrHard(TNode node,
                                              SatValue desiredVal) {
-  Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_TRUE) or
-          (node.getKind() == kind::OR  and desiredVal == SAT_VALUE_FALSE) );
+  Assert((node.getKind() == kind::AND and desiredVal == SAT_VALUE_TRUE)
+         or (node.getKind() == kind::OR and desiredVal == SAT_VALUE_FALSE));
 
   int numChildren = node.getNumChildren();
   bool noSplitter = true;
@@ -621,7 +622,7 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleBinaryEasy(TN
     if(ret != DONT_KNOW)
       return ret;
   }
-  Assert(d_curThreshold != 0, "handleBinaryEasy: No controlling input found");
+  Assert(d_curThreshold != 0) << "handleBinaryEasy: No controlling input found";
   return DONT_KNOW;
 }
 
@@ -679,7 +680,7 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleITE(TNode nod
     if(findSplitterRec(node[0], ifDesiredVal) == FOUND_SPLITTER)
       return FOUND_SPLITTER;
 
-    Assert(d_curThreshold != 0, "No controlling input found (6)");
+    Assert(d_curThreshold != 0) << "No controlling input found (6)";
     return DONT_KNOW;
   } else {
     // Try to justify 'if'

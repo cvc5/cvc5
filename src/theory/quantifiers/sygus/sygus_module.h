@@ -18,14 +18,19 @@
 #define CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
 
 #include <map>
+#include <vector>
+
 #include "expr/node.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 class SynthConjecture;
+class TermDbSygus;
 
 /** SygusModule
  *
@@ -52,16 +57,23 @@ class SygusModule
   virtual ~SygusModule() {}
   /** initialize
    *
+   * This function initializes the module for solving the given conjecture. This
+   * typically involves registering enumerators (for constructing terms) via
+   * calls to TermDbSygus::registerEnumerator.
+   *
+   * This function returns true if this module will take responsibility for
+   * constructing candidates for the given conjecture.
+   *
+   * conj is the synthesis conjecture (prior to deep-embedding).
+   *
    * n is the "base instantiation" of the deep-embedding version of the
    * synthesis conjecture under candidates (see SynthConjecture::d_base_inst).
    *
    * This function may add lemmas to the argument lemmas, which should be
    * sent out on the output channel of quantifiers by the caller.
-   *
-   * This function returns true if this module will take responsibility for
-   * constructing candidates for the given conjecture.
    */
-  virtual bool initialize(Node n,
+  virtual bool initialize(Node conj,
+                          Node n,
                           const std::vector<Node>& candidates,
                           std::vector<Node>& lemmas) = 0;
   /** get term list

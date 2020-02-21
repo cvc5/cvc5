@@ -7,7 +7,7 @@
 (define-fun g ((x Int)) List (cons (+ x 1) nil))
 (define-fun i () List (cons 3 nil))
 
-(synth-fun f ((x Int)) List ((Start List ((g StartInt) i (cons StartInt Start) (nil) (tail Start)))
+(synth-fun f ((x Int)) List ((Start List ((g StartInt) i (cons StartInt Start) nil (tail Start)))
                              (StartInt Int (x 0 1 (+ StartInt StartInt)))))
 
 (declare-var x Int)

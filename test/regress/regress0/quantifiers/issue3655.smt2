@@ -1,0 +1,13 @@
+; COMMAND-LINE: --quiet
+(declare-sort A 0)
+(declare-fun e (A) A)
+(declare-fun c (A A) A)
+(declare-fun h (A A) A)
+(declare-fun b (A) Bool)
+(declare-fun d (A) Bool)
+(assert (let ((a!1 (forall ((f A) (i A)) (distinct (h f i) (e (c f i))))))
+ (not a!1)))
+(assert (let ((a!1 (forall ((j A)) (or (not (b j)) (d (e j))))))
+  (and a!1 (forall ((i A)) (b i)) (forall ((g A)) (not (b g))))))
+(set-info :status unsat)
+(check-sat)

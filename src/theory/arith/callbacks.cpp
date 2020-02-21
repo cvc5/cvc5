@@ -93,13 +93,13 @@ void FarkasConflictBuilder::reset(){
 
 /* Adds a constraint to the constraint under construction. */
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
-  Assert(!PROOF_ON() ||
-         (!underConstruction() && d_constraints.empty() && d_farkas.empty()) ||
-         (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
+  Assert(
+      !PROOF_ON()
+      || (!underConstruction() && d_constraints.empty() && d_farkas.empty())
+      || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
   Assert(PROOF_ON() || d_farkas.empty());
   Assert(c->isTrue());
 
-  
   if(d_consequent == NullConstraint){
     d_consequent = c;
   } else {
@@ -136,7 +136,7 @@ void FarkasConflictBuilder::makeLastConsequent(){
     d_consequentSet = true;
   }
 
-  Assert(! d_consequent->negationHasProof() );
+  Assert(!d_consequent->negationHasProof());
   Assert(d_consequentSet);
 }
 
@@ -144,9 +144,10 @@ void FarkasConflictBuilder::makeLastConsequent(){
 ConstraintCP FarkasConflictBuilder::commitConflict(){
   Assert(underConstruction());
   Assert(!d_constraints.empty());
-  Assert(!PROOF_ON() ||
-         (!underConstruction() && d_constraints.empty() && d_farkas.empty()) ||
-         (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
+  Assert(
+      !PROOF_ON()
+      || (!underConstruction() && d_constraints.empty() && d_farkas.empty())
+      || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
   Assert(PROOF_ON() || d_farkas.empty());
   Assert(d_consequentSet);
 
@@ -156,7 +157,7 @@ ConstraintCP FarkasConflictBuilder::commitConflict(){
 
   reset();
   Assert(!underConstruction());
-  Assert( not_c->inConflict() );
+  Assert(not_c->inConflict());
   Assert(!d_consequentSet);
   return not_c;
 }

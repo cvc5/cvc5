@@ -89,9 +89,10 @@ bool CommandExecutor::doCommand(Command* cmd)
     // assume no error
     bool status = true;
 
-    for(CommandSequence::iterator subcmd = seq->begin();
-        (status || d_options.getContinuedExecution()) && subcmd != seq->end();
-        ++subcmd) {
+    for (CommandSequence::iterator subcmd = seq->begin();
+         status && subcmd != seq->end();
+         ++subcmd)
+    {
       status = doCommand(*subcmd);
     }
 
@@ -158,11 +159,13 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (d_options.getDumpInstantiations() &&
-        ((d_options.getInstFormatMode() != INST_FORMAT_MODE_SZS &&
-          (res.asSatisfiabilityResult() == Result::SAT ||
-           (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) ||
-         res.asSatisfiabilityResult() == Result::UNSAT)) {
+    if (d_options.getDumpInstantiations()
+        && ((d_options.getInstFormatMode() != options::InstFormatMode::SZS
+             && (res.asSatisfiabilityResult() == Result::SAT
+                 || (res.isUnknown()
+                     && res.whyUnknown() == Result::INCOMPLETE)))
+            || res.asSatisfiabilityResult() == Result::UNSAT))
+    {
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
@@ -183,7 +186,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       }
       for (const auto& getterCommand : getterCommands) {
         status = doCommandSingleton(getterCommand.get());
-        if (!status && !d_options.getContinuedExecution()) {
+        if (!status)
+        {
           break;
         }
       }

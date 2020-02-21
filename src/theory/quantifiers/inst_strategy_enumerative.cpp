@@ -19,6 +19,7 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 
@@ -31,13 +32,20 @@ using namespace inst;
 
 namespace quantifiers {
 
-InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe)
-    : QuantifiersModule(qe)
+InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd)
+    : QuantifiersModule(qe), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
-
+void InstStrategyEnum::presolve()
+{
+  d_fullSaturateLimit = options::fullSaturateLimit();
+}
 bool InstStrategyEnum::needsCheck(Theory::Effort e)
 {
+  if (d_fullSaturateLimit == 0)
+  {
+    return false;
+  }
   if (options::fullSaturateInterleave())
   {
     if (d_quantEngine->getInstWhenNeedsCheck(e))
@@ -60,15 +68,21 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;
-  if (options::fullSaturateInterleave())
+  if (d_fullSaturateLimit != 0)
   {
-    // we only add when interleaved with other strategies
-    doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
-  }
-  if (options::fullSaturateQuant() && !doCheck)
-  {
-    doCheck = quant_e == QEFFORT_LAST_CALL;
-    fullEffort = !d_quantEngine->hasAddedLemma();
+    if (options::fullSaturateInterleave())
+    {
+      // we only add when interleaved with other strategies
+      doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+    }
+    if (options::fullSaturateQuant() && !doCheck)
+    {
+      if (!d_quantEngine->theoryEngineNeedsCheck())
+      {
+        doCheck = quant_e == QEFFORT_LAST_CALL;
+        fullEffort = true;
+      }
+    }
   }
   if (!doCheck)
   {
@@ -92,18 +106,17 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   // this stratification since effort level r=1 may be highly expensive in the
   // case where we have a quantified formula with many entailed instances.
   FirstOrderModel* fm = d_quantEngine->getModel();
-  RelevantDomain* rd = d_quantEngine->getRelevantDomain();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   std::map<Node, bool> alreadyProc;
   for (unsigned r = rstart; r <= rend; r++)
   {
-    if (rd || r > 0)
+    if (d_rd || r > 0)
     {
       if (r == 0)
       {
         Trace("inst-alg") << "-> Relevant domain instantiate..." << std::endl;
         Trace("inst-alg-debug") << "Compute relevant domain..." << std::endl;
-        rd->compute();
+        d_rd->compute();
         Trace("inst-alg-debug") << "...finished" << std::endl;
       }
       else
@@ -150,6 +163,10 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     Trace("fs-engine") << "Finished full saturation engine, time = "
                        << (clSet2 - clSet) << std::endl;
   }
+  if (d_fullSaturateLimit > 0)
+  {
+    d_fullSaturateLimit--;
+  }
 }
 
 bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
@@ -160,7 +177,6 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
   {
     return false;
   }
-  RelevantDomain* rd = d_quantEngine->getRelevantDomain();
   unsigned final_max_i = 0;
   std::vector<unsigned> maxs;
   std::vector<bool> max_zero;
@@ -177,7 +193,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
     unsigned ts;
     if (isRd)
     {
-      ts = rd->getRDomain(f, i)->d_terms.size();
+      ts = d_rd->getRDomain(f, i)->d_terms.size();
     }
     else
     {
@@ -283,9 +299,9 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
             }
             else if (isRd)
             {
-              terms.push_back(rd->getRDomain(f, i)->d_terms[childIndex[i]]);
+              terms.push_back(d_rd->getRDomain(f, i)->d_terms[childIndex[i]]);
               Trace("inst-alg-rd")
-                  << "  " << rd->getRDomain(f, i)->d_terms[childIndex[i]]
+                  << "  " << d_rd->getRDomain(f, i)->d_terms[childIndex[i]]
                   << std::endl;
             }
             else

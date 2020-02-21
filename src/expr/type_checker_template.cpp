@@ -16,13 +16,14 @@
 
 #line 18 "${template}"
 
-#include "expr/type_checker.h"
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/type_checker.h"
+#include "expr/type_checker_util.h"
 
 ${typechecker_includes}
 
-#line 26 "${template}"
+#line 27 "${template}"
 
 namespace CVC4 {
 namespace expr {
@@ -43,11 +44,11 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
 
 ${typerules}
 
-#line 47 "${template}"
+#line 48 "${template}"
 
   default:
     Debug("getType") << "FAILURE" << std::endl;
-    Unhandled(n.getKind());
+    Unhandled() << n.getKind();
   }
 
   nodeManager->setAttribute(n, TypeAttr(), typeNode);
@@ -60,35 +61,21 @@ ${typerules}
 
 bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
 {
-  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
+  Assert(n.getMetaKind() == kind::metakind::OPERATOR
+         || n.getMetaKind() == kind::metakind::PARAMETERIZED
+         || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
 
   switch(n.getKind()) {
 ${construles}
 
-#line 69 "${template}"
+#line 72 "${template}"
 
-  default:;
+    default:;
   }
 
   return false;
 
 }/* TypeChecker::computeIsConst */
-
-bool TypeChecker::neverIsConst(NodeManager* nodeManager, TNode n)
-{
-  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
-
-  switch(n.getKind()) {
-${neverconstrules}
-
-#line 85 "${template}"
-
-  default:;
-  }
-
-  return true;
-
-}/* TypeChecker::neverIsConst */
 
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */

@@ -14,13 +14,13 @@
 %native (dlRef) void SmtEngine::dlRef(jobject);
 %{
 extern "C" {
-SWIGEXPORT jobject JNICALL Java_edu_nyu_acsys_CVC4_SmtEngine_mkRef(JNIEnv* jenv, jclass jcls, jobject o) {
+SWIGEXPORT jobject JNICALL Java_edu_stanford_CVC4_SmtEngine_mkRef(JNIEnv* jenv, jclass jcls, jobject o) {
   if(o == NULL) {
     return NULL;
   }
   return jenv->NewGlobalRef(o);
 }
-SWIGEXPORT void JNICALL Java_edu_nyu_acsys_CVC4_SmtEngine_dlRef(JNIEnv* jenv, jclass jcls, jobject o) {
+SWIGEXPORT void JNICALL Java_edu_stanford_CVC4_SmtEngine_dlRef(JNIEnv* jenv, jclass jcls, jobject o) {
   if(o != NULL) {
     jenv->DeleteGlobalRef(o);
   }
@@ -42,6 +42,9 @@ SWIGEXPORT void JNICALL Java_edu_nyu_acsys_CVC4_SmtEngine_dlRef(JNIEnv* jenv, jc
       swigCPtr = 0;
     }
   }
+
+%template(Map_ExprExpr) std::map<CVC4::Expr, CVC4::Expr>;
+
 #endif // SWIGJAVA
 
 %ignore CVC4::SmtEngine::setLogic(const char*);

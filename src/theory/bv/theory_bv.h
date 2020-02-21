@@ -131,7 +131,7 @@ public:
 
   Statistics d_statistics;
 
-  void spendResource(unsigned amount);
+  void spendResource(ResourceManager::Resource r);
 
   /**
    * Return the uninterpreted function symbol corresponding to division-by-zero

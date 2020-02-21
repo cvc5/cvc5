@@ -67,20 +67,6 @@ check_symbol_exists(sigaltstack "signal.h" HAVE_SIGALTSTACK)
 check_symbol_exists(strerror_r "string.h" HAVE_STRERROR_R)
 check_symbol_exists(strtok_r "string.h" HAVE_STRTOK_R)
 
-# Check whether the verison of CaDiCaL used supports incremental solving
-if(USE_CADICAL)
-  check_cxx_source_compiles(
-    "
-    #include <${CaDiCaL_HOME}/src/cadical.hpp>
-    int main() { return sizeof(&CaDiCaL::Solver::assume); }
-    "
-    CVC4_INCREMENTAL_CADICAL
-  )
-  if(CVC4_INCREMENTAL_CADICAL)
-    add_definitions(-DCVC4_INCREMENTAL_CADICAL)
-  endif()
-endif()
-
 # Determine if we have the POSIX (int) or GNU (char *) variant of strerror_r.
 check_c_source_compiles(
   "

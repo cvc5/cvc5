@@ -106,8 +106,7 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   d_errorSet.reduceToSignals();
 
   // We must start tracking NOW
-  d_errorSet.setSelectionRule(SUM_METRIC);
-
+  d_errorSet.setSelectionRule(options::ErrorSelectionRule::SUM_METRIC);
 
   if(initialProcessSignals()){
     d_conflictVariables.purge();
@@ -118,8 +117,7 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   }else if(d_errorSet.errorEmpty()){
     //if(verbose){ Message() << "fcFindModel("<< instance <<") fixed itself" << endl; }
     Debug("arith::findModel") << "fcFindModel("<< instance <<") fixed itself" << endl;
-    if(verbose)
-    Assert(!d_errorSet.moreSignals());
+    if (verbose) Assert(!d_errorSet.moreSignals());
     Assert(d_conflictVariables.empty());
     return Result::SAT;
   }
@@ -264,7 +262,7 @@ WitnessImprovement FCSimplexDecisionProcedure::adjustFocusShrank(const ArithVarV
 WitnessImprovement FCSimplexDecisionProcedure::focusDownToJust(ArithVar v){
   // uint32_t newErrorSize = d_errorSet.errorSize();
   // uint32_t newFocusSize = d_errorSet.focusSize();
-  Assert(d_focusSize ==  d_errorSet.focusSize());
+  Assert(d_focusSize == d_errorSet.focusSize());
   Assert(d_focusSize > 1);
   Assert(d_errorSet.inFocus(v));
 
@@ -558,7 +556,8 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
     int prevFocusSgn = d_errorSet.popSignal();
 
     if(d_tableau.isBasic(updated)){
-      Assert(!d_variables.assignmentIsConsistent(updated) == d_errorSet.inError(updated));
+      Assert(!d_variables.assignmentIsConsistent(updated)
+             == d_errorSet.inError(updated));
       if(Debug.isOn("updateAndSignal")){debugPrintSignal(updated);}
       if(!d_variables.assignmentIsConsistent(updated)){
         if(checkBasicForConflict(updated)){
@@ -582,7 +581,8 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
   }
   if(Debug.isOn("error")){ d_errorSet.debugPrint(Debug("error")); }
 
-  Assert(debugSelectedErrorDropped(selected, d_errorSize, d_errorSet.errorSize()));
+  Assert(
+      debugSelectedErrorDropped(selected, d_errorSize, d_errorSet.errorSize()));
 
   adjustFocusAndError(selected, focusChanges);
 }
@@ -729,7 +729,6 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
   Assert(d_conflictVariables.empty());
   Assert(d_focusErrorVar == ARITHVAR_SENTINEL);
 
-
   d_scores.purge();
   d_focusErrorVar = constructInfeasiblityFunction(d_statistics.d_fcFocusConstructionTimer);
 
@@ -752,8 +751,8 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
 
       d_focusSize = d_errorSet.focusSize();
 
-      Assert( d_errorSize == d_focusSize);
-      Assert( d_errorSize >= 1 );
+      Assert(d_errorSize == d_focusSize);
+      Assert(d_errorSize >= 1);
 
       d_focusErrorVar = constructInfeasiblityFunction(d_statistics.d_fcFocusConstructionTimer);
 
@@ -795,7 +794,8 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
     if(verbose){
       debugDualLike(w,  Message(), instance, prevFocusSize, prevErrorSize);
     }
-    Assert(debugDualLike(w, Debug("dualLike"), instance, prevFocusSize, prevErrorSize));
+    Assert(debugDualLike(
+        w, Debug("dualLike"), instance, prevFocusSize, prevErrorSize));
   }
 
 

@@ -541,13 +541,13 @@ public:
     info.arithOnlyLinear();
     info.disableIntegers();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "AUFBVFPDTLRASEP" );
+    TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVFPDTLRA");
 
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
     info.disableQuantifiers();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AUFBVFPDTLRASEP" );
+    TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVFPDTLRA");
 
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
@@ -556,7 +556,7 @@ public:
     info.enableIntegers();
     info.disableReals();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AUFFPLIASEP" );
+    TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFFPLIA");
 
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
@@ -732,6 +732,10 @@ public:
   }
 
   void testComparison() {
+    LogicInfo ufHo = LogicInfo("QF_UF").getUnlockedCopy();
+    ufHo.enableHigherOrder();
+    ufHo.lock();
+
     eq("QF_UF", "QF_UF");
     nc("QF_UF", "QF_LRA");
     nc("QF_UF", "QF_LIA");
@@ -756,6 +760,9 @@ public:
     lt("QF_UF", "AUFLIA");
     lt("QF_UF", "AUFLIRA");
     lt("QF_UF", "AUFNIRA");
+    lt("QF_UF", "QF_UFC");
+    lt("QF_UF", ufHo);
+    nc("QF_UFC", ufHo);
 
     nc("QF_LRA", "QF_UF");
     eq("QF_LRA", "QF_LRA");
@@ -781,6 +788,7 @@ public:
     nc("QF_LRA", "AUFLIA");
     lt("QF_LRA", "AUFLIRA");
     lt("QF_LRA", "AUFNIRA");
+    lt("QF_LRA", "QF_UFCLRA");
 
     nc("QF_LIA", "QF_UF");
     nc("QF_LIA", "QF_LRA");
@@ -1335,6 +1343,11 @@ public:
     gt("AUFNIRA", "AUFLIRA");
     eq("AUFNIRA", "AUFNIRA");
     lt("AUFNIRA", "AUFNIRAT");
+
+    gt("QF_UFC", "QF_UF");
+    gt("QF_UFCLRA", "QF_UFLRA");
+
+    gt(ufHo, "QF_UF");
   }
 
 };/* class LogicInfoWhite */

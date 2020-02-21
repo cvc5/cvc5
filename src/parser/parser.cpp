@@ -47,8 +47,7 @@ Parser::Parser(api::Solver* solver,
                Input* input,
                bool strictMode,
                bool parseOnly)
-    : d_solver(solver),
-      d_resourceManager(d_solver->getExprManager()->getResourceManager()),
+    : d_resourceManager(solver->getExprManager()->getResourceManager()),
       d_input(input),
       d_symtabAllocated(),
       d_symtab(&d_symtabAllocated),
@@ -61,7 +60,8 @@ Parser::Parser(api::Solver* solver,
       d_parseOnly(parseOnly),
       d_canIncludeFile(true),
       d_logicIsForced(false),
-      d_forcedLogic()
+      d_forcedLogic(),
+      d_solver(solver)
 {
   d_input->setParser(*this);
 }
@@ -110,7 +110,7 @@ Expr Parser::getExpressionForName(const std::string& name) {
 }
 
 Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
-  assert( isDeclared(name) );
+  assert(isDeclared(name));
   // first check if the variable is declared and not overloaded
   Expr expr = getVariable(name);
   if(expr.isNull()) {
@@ -138,22 +138,29 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
 }
 
 Kind Parser::getKindForFunction(Expr fun) {
-  if(isDefinedFunction(fun)) {
-    return APPLY_UF;
+  Kind k = getExprManager()->operatorToKind(fun);
+  if (k != UNDEFINED_KIND)
+  {
+    return k;
   }
   Type t = fun.getType();
-  if(t.isConstructor()) {
-    return APPLY_CONSTRUCTOR;
-  } else if(t.isSelector()) {
-    return APPLY_SELECTOR;
-  } else if(t.isTester()) {
-    return APPLY_TESTER;
-  } else if(t.isFunction()) {
+  if (t.isFunction())
+  {
     return APPLY_UF;
-  }else{
-    parseError("internal error: unhandled function application kind");
-    return UNDEFINED_KIND;
   }
+  else if (t.isConstructor())
+  {
+    return APPLY_CONSTRUCTOR;
+  }
+  else if (t.isSelector())
+  {
+    return APPLY_SELECTOR;
+  }
+  else if (t.isTester())
+  {
+    return APPLY_TESTER;
+  }
+  return UNDEFINED_KIND;
 }
 
 Type Parser::getSort(const std::string& name) {
@@ -191,20 +198,6 @@ bool Parser::isFunctionLike(Expr fun) {
          type.isSelector();
 }
 
-/* Returns true if name is bound to a defined function. */
-bool Parser::isDefinedFunction(const std::string& name) {
-  // more permissive in type than isFunction(), because defined
-  // functions can be zero-ary and declared functions cannot.
-  return d_symtab->isBoundDefinedFunction(name);
-}
-
-/* Returns true if the Expr is a defined function. */
-bool Parser::isDefinedFunction(Expr func) {
-  // more permissive in type than isFunction(), because defined
-  // functions can be zero-ary and declared functions cannot.
-  return d_symtab->isBoundDefinedFunction(func);
-}
-
 /* Returns true if name is bound to a function returning boolean. */
 bool Parser::isPredicate(const std::string& name) {
   Expr expr = getVariable(name);
@@ -228,15 +221,15 @@ Expr Parser::mkBoundVar(const std::string& name, const Type& type) {
   return expr;
 }
 
-Expr Parser::mkFunction(const std::string& name, const Type& type,
-                        uint32_t flags, bool doOverload) {
-  if (d_globalDeclarations) {
-    flags |= ExprManager::VAR_FLAG_GLOBAL;
+std::vector<Expr> Parser::mkBoundVars(
+    std::vector<std::pair<std::string, Type> >& sortedVarNames)
+{
+  std::vector<Expr> vars;
+  for (std::pair<std::string, CVC4::Type>& i : sortedVarNames)
+  {
+    vars.push_back(mkBoundVar(i.first, i.second));
   }
-  Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = getExprManager()->mkVar(name, type, flags);
-  defineFunction(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL, doOverload);
-  return expr;
+  return vars;
 }
 
 Expr Parser::mkAnonymousFunction(const std::string& prefix, const Type& type,
@@ -282,24 +275,20 @@ void Parser::defineVar(const std::string& name, const Expr& val,
   assert(isDeclared(name));
 }
 
-void Parser::defineFunction(const std::string& name, const Expr& val,
-                            bool levelZero, bool doOverload) {
-  if (!d_symtab->bindDefinedFunction(name, val, levelZero, doOverload)) {
-    std::stringstream ss;
-    ss << "Failed to bind defined function " << name << " to symbol of type " << val.getType();
-    parseError(ss.str()); 
-  }
-  assert(isDeclared(name));
-}
-
-void Parser::defineType(const std::string& name, const Type& type) {
-  d_symtab->bindType(name, type);
+void Parser::defineType(const std::string& name,
+                        const Type& type,
+                        bool levelZero)
+{
+  d_symtab->bindType(name, type, levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 
 void Parser::defineType(const std::string& name,
-                        const std::vector<Type>& params, const Type& type) {
-  d_symtab->bindType(name, params, type);
+                        const std::vector<Type>& params,
+                        const Type& type,
+                        bool levelZero)
+{
+  d_symtab->bindType(name, params, type, levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 
@@ -320,12 +309,12 @@ void Parser::defineParameterizedType(const std::string& name,
 }
 
 SortType Parser::mkSort(const std::string& name, uint32_t flags) {
-  if (d_globalDeclarations) {
-    flags |= ExprManager::VAR_FLAG_GLOBAL;
-  }
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   Type type = getExprManager()->mkSort(name, flags);
-  defineType(name, type);
+  defineType(
+      name,
+      type,
+      d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -337,7 +326,11 @@ SortConstructorType Parser::mkSortConstructor(const std::string& name,
                   << std::endl;
   SortConstructorType type =
       getExprManager()->mkSortConstructor(name, arity, flags);
-  defineType(name, vector<Type>(arity), type);
+  defineType(
+      name,
+      vector<Type>(arity),
+      type,
+      d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -375,10 +368,11 @@ bool Parser::isUnresolvedType(const std::string& name) {
 }
 
 std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
-    std::vector<Datatype>& datatypes, bool doOverload) {
+    std::vector<Datatype>& datatypes, bool doOverload, uint32_t flags)
+{
   try {
     std::vector<DatatypeType> types =
-        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved);
+        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved, flags);
 
     assert(datatypes.size() == types.size());
 
@@ -392,9 +386,9 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
       }
       if (t.isParametric()) {
         std::vector<Type> paramTypes = t.getParamTypes();
-        defineType(name, paramTypes, t);
+        defineType(name, paramTypes, t, d_globalDeclarations);
       } else {
-        defineType(name, t);
+        defineType(name, t, d_globalDeclarations);
       }
       std::unordered_set< std::string > consNames;
       std::unordered_set< std::string > selNames;
@@ -409,7 +403,8 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
           if(!doOverload) {
             checkDeclaration(constructorName, CHECK_UNDECLARED);
           }
-          defineVar(constructorName, constructor, false, doOverload);
+          defineVar(
+              constructorName, constructor, d_globalDeclarations, doOverload);
           consNames.insert(constructorName);
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
@@ -420,7 +415,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         if(!doOverload) {
           checkDeclaration(testerName, CHECK_UNDECLARED);
         }
-        defineVar(testerName, tester, false, doOverload);
+        defineVar(testerName, tester, d_globalDeclarations, doOverload);
         for (DatatypeConstructor::const_iterator k = ctor.begin(),
                                                  k_end = ctor.end();
              k != k_end; ++k) {
@@ -431,7 +426,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
             if(!doOverload) {
               checkDeclaration(selectorName, CHECK_UNDECLARED);
             }
-            defineVar(selectorName, selector, false, doOverload);
+            defineVar(selectorName, selector, d_globalDeclarations, doOverload);
             selNames.insert(selectorName);
           }else{
             throw ParserException(selectorName + " already declared in this datatype");
@@ -492,6 +487,15 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
     // no difference
     return range;
   }
+  if (Debug.isOn("parser"))
+  {
+    Debug("parser") << "mkFlatFunctionType: range " << range << " and domains ";
+    for (Type t : sorts)
+    {
+      Debug("parser") << " " << t;
+    }
+    Debug("parser") << "\n";
+  }
   while (range.isFunction())
   {
     std::vector<Type> domainTypes =
@@ -509,6 +513,22 @@ Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args)
     expr = getExprManager()->mkExpr(HO_APPLY, expr, args[i]);
   }
   return expr;
+}
+
+api::Term Parser::mkChain(api::Kind k, const std::vector<api::Term>& args)
+{
+  if (args.size() == 2)
+  {
+    // if this is the case exactly 1 pair will be generated so the
+    // AND is not required
+    return d_solver->mkTerm(k, args[0], args[1]);
+  }
+  std::vector<api::Term> children;
+  for (size_t i = 0, nargsmo = args.size() - 1; i < nargsmo; i++)
+  {
+    children.push_back(d_solver->mkTerm(k, args[i], args[i + 1]));
+  }
+  return d_solver->mkTerm(api::AND, children);
 }
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
@@ -636,8 +656,7 @@ Command* Parser::nextCommand()
       dynamic_cast<QuitCommand*>(cmd) == NULL) {
     // don't count set-option commands as to not get stuck in an infinite
     // loop of resourcing out
-    const Options& options = getExprManager()->getOptions();
-    d_resourceManager->spendResource(options.getParseStep());
+    d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
   }
   return cmd;
 }
@@ -645,8 +664,7 @@ Command* Parser::nextCommand()
 Expr Parser::nextExpression()
 {
   Debug("parser") << "nextExpression()" << std::endl;
-  const Options& options = getExprManager()->getOptions();
-  d_resourceManager->spendResource(options.getParseStep());
+  d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
   Expr result;
   if (!done()) {
     try {

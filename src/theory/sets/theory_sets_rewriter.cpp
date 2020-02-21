@@ -21,6 +21,8 @@
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 namespace theory {
 namespace sets {
@@ -35,8 +37,9 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
     return elementTerm == setTerm[0];
   }
 
-  Assert(setTerm.getKind() == kind::UNION && setTerm[1].getKind() == kind::SINGLETON,
-         "kind was %d, term: %s", setTerm.getKind(), setTerm.toString().c_str());
+  Assert(setTerm.getKind() == kind::UNION
+         && setTerm[1].getKind() == kind::SINGLETON)
+      << "kind was " << setTerm.getKind() << ", term: " << setTerm;
 
   return
     elementTerm == setTerm[1][0] ||
@@ -81,7 +84,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }//kind::MEMBER
 
   case kind::SUBSET: {
-    Assert(false, "TheorySets::postRrewrite(): Subset is handled in preRewrite.");
+    Assert(false)
+        << "TheorySets::postRrewrite(): Subset is handled in preRewrite.";
 
     // but in off-chance we do end up here, let us do our best
 
@@ -248,7 +252,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 
       while(tuple_it != tuple_set.end()) {
         new_tuple_set.insert(RelsUtils::reverseTuple(*tuple_it));
-        tuple_it++;
+        ++tuple_it;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
       Assert(new_node.isConst());
@@ -279,7 +283,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       while(left_it != left.end()) {
         Trace("rels-debug") << "Sets::postRewrite processing left_it = " <<  *left_it << std::endl;
         std::vector<Node> left_tuple;
-        left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
+        left_tuple.push_back(tn.getDType()[0].getConstructor());
         for(int i = 0; i < left_len; i++) {
           left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
         }
@@ -296,9 +300,9 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
           Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
           new_tuple_set.insert(composed_tuple);
-          right_it++;
+          ++right_it;
         }
-        left_it++;
+        ++left_it;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
       Assert(new_node.isConst());
@@ -322,7 +326,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       TypeNode tn = node.getType().getSetElementType();
       while(left_it != left.end()) {
         std::vector<Node> left_tuple;
-        left_tuple.push_back(Node::fromExpr(tn.getDatatype()[0].getConstructor()));
+        left_tuple.push_back(tn.getDType()[0].getConstructor());
         for(int i = 0; i < left_len - 1; i++) {
           left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
         }
@@ -340,9 +344,9 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
             Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
             new_tuple_set.insert(composed_tuple);
           }
-          right_it++;
+          ++right_it;
         }
-        left_it++;
+        ++left_it;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
       Assert(new_node.isConst());
@@ -429,8 +433,9 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           ++rel_mems_it_snd;
         }
         if( existing_mems.size() >= min_card ) {
-          Datatype dt = node.getType().getSetElementType().getDatatype();
-          join_img_mems.insert(NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt[0].getConstructor()), fst_mem ));
+          const DType& dt = node.getType().getSetElementType().getDType();
+          join_img_mems.insert(
+              nm->mkNode(APPLY_CONSTRUCTOR, dt[0].getConstructor(), fst_mem));
         }
         ++rel_mems_it;
       }

@@ -122,6 +122,16 @@ public:
   }
 
   /**
+   * Compare two literals
+   */
+  bool operator<(const SatLiteral& other) const
+  {
+    return getSatVariable() == other.getSatVariable()
+               ? isNegated() < other.isNegated()
+               : getSatVariable() < other.getSatVariable();
+  }
+
+  /**
    * Returns a string representation of the literal.
    */
   std::string toString() const {
@@ -183,6 +193,11 @@ struct SatClauseSetHashFunction
   }
 };
 
+struct SatClauseLessThan
+{
+  bool operator()(const SatClause& l, const SatClause& r) const;
+};
+
 /**
  * Each object in the SAT solver, such as as variables and clauses, can be assigned a life span,
  * so that the SAT solver can (or should) remove them when the lifespan is over.
@@ -221,5 +236,3 @@ enum SatSolverLifespan
 
 }
 }
-
-

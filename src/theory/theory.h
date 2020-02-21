@@ -33,7 +33,6 @@
 #include "lib/ffs.h"
 #include "options/options.h"
 #include "options/theory_options.h"
-#include "options/theoryof_mode.h"
 #include "smt/command.h"
 #include "smt/dump.h"
 #include "smt/logic_request.h"
@@ -42,6 +41,7 @@
 #include "theory/decision_manager.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
+#include "theory/theory_id.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
@@ -272,7 +272,7 @@ public:
   /**
    * Returns the ID of the theory responsible for the given node.
    */
-  static TheoryId theoryOf(TheoryOfMode mode, TNode node);
+  static TheoryId theoryOf(options::TheoryOfMode mode, TNode node);
 
   /**
    * Returns the ID of the theory responsible for the given node.
@@ -430,8 +430,7 @@ public:
    * possible, for example in handling under-specified operations
    * using partially defined functions.
    *
-   * TODO (github issue #1076): 
-   * some theories like sets use expandDefinition as a "context
+   * Some theories like sets use expandDefinition as a "context
    * independent preRegisterTerm".  This is required for cases where
    * a theory wants to be notified about a term before preprocessing
    * and simplification but doesn't necessarily want to rewrite it.
@@ -517,8 +516,9 @@ public:
    * (which was previously propagated by this theory).
    */
   virtual Node explain(TNode n) {
-    Unimplemented("Theory %s propagated a node but doesn't implement the "
-                  "Theory::explain() interface!", identify().c_str());
+    Unimplemented() << "Theory " << identify()
+                    << " propagated a node but doesn't implement the "
+                       "Theory::explain() interface!";
   }
 
   /**
@@ -615,8 +615,8 @@ public:
     *  via the syntax (! n :attr)
     */
   virtual void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value) {
-    Unimplemented("Theory %s doesn't support Theory::setUserAttribute interface",
-                  identify().c_str());
+    Unimplemented() << "Theory " << identify()
+                    << " doesn't support Theory::setUserAttribute interface";
   }
 
   /** A set of theories */
@@ -645,7 +645,7 @@ public:
 
   /** Returns the index size of a set of theories */
   static inline size_t setIndex(TheoryId id, Set set) {
-    Assert (setContains(id, set));
+    Assert(setContains(id, set));
     size_t count = 0;
     while (setPop(set) != id) {
       ++ count;
@@ -858,7 +858,7 @@ std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
 
 
 inline theory::Assertion Theory::get() {
-  Assert( !done(), "Theory::get() called with assertion queue empty!" );
+  Assert(!done()) << "Theory::get() called with assertion queue empty!";
 
   // Get the assertion
   Assertion fact = d_facts[d_factsHead];

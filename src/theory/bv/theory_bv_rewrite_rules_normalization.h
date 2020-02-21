@@ -312,7 +312,7 @@ static inline void updateCoefMap(TNode current, unsigned size,
       break;
     }
     case kind::BITVECTOR_SUB:
-      // turn into a + (-1)*b 
+      // turn into a + (-1)*b
       Assert(current.getNumChildren() == 2);
       addToCoefMap(factorToCoefficient, current[0], BitVector(size, (unsigned)1)); 
       addToCoefMap(factorToCoefficient, current[1], -BitVector(size, (unsigned)1)); 

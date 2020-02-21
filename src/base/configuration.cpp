@@ -59,7 +59,7 @@ bool Configuration::isTracingBuild() {
 }
 
 bool Configuration::isDumpingBuild() {
-  return IS_DUMPING_BUILD;
+  return IS_DUMPING_BUILD && !IS_MUZZLED_BUILD;
 }
 
 bool Configuration::isMuzzledBuild() {
@@ -83,6 +83,10 @@ bool Configuration::isProfilingBuild() {
 }
 
 bool Configuration::isAsanBuild() { return IS_ASAN_BUILD; }
+
+bool Configuration::isUbsanBuild() { return IS_UBSAN_BUILD; }
+
+bool Configuration::isTsanBuild() { return IS_TSAN_BUILD; }
 
 bool Configuration::isCompetitionBuild() {
   return IS_COMPETITION_BUILD;
@@ -122,7 +126,7 @@ std::string Configuration::copyright() {
        << "the GNU General Public License (GPL) version 3.  Versions of CVC4\n"
        << "are available that are covered by the (modified) BSD license. If\n"
        << "you want to license CVC4 under this license, please configure CVC4\n"
-       << "with the \"--bsd\" option before building from sources.\n\n";
+       << "with the \"--no-gpl\" option before building from sources.\n\n";
   } else {
     ss << "CVC4 is open-source and is covered by the BSD license (modified)."
        << "\n\n";

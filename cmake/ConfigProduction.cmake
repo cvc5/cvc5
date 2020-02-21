@@ -1,6 +1,4 @@
 # OPTLEVEL=3
-# enable_optimized=yes
-cvc4_set_option(ENABLE_OPTIMIZED ON)
 set(OPTIMIZATION_LEVEL 3)
 # enable_debug_symbols=no
 cvc4_set_option(ENABLE_DEBUG_SYMBOLS OFF)
@@ -15,15 +13,7 @@ cvc4_set_option(ENABLE_PROOFS ON)
 # enable_tracing=no
 cvc4_set_option(ENABLE_TRACING OFF)
 # enable_dumping=yes
-if(ENABLE_PORTFOLIO)
-  # Only print warning if dumping was not explicitely disabled by the user.
-  if(${ENABLE_DUMPING} STREQUAL "IGNORE")
-    message(WARNING
-      "Disabling dumping support, not supported with a portfolio build.")
-  endif()
-else()
-  cvc4_set_option(ENABLE_DUMPING ON)
-endif()
+cvc4_set_option(ENABLE_DUMPING ON)
 # enable_muzzle=no
 cvc4_set_option(ENABLE_MUZZLE OFF)
 # enable_valgrind=no

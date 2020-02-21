@@ -298,12 +298,6 @@ public:
                          std::ostream& out,
                          std::ostringstream& paren);
 
-  TimerStat* getProofProductionTime() { return &d_stats.d_proofProductionTime; }
-
- private:
-  void constructSatProof();
-  std::set<Node> satClauseToNodeSet(prop::SatClause* clause);
-
   struct ProofManagerStatistics
   {
     ProofManagerStatistics();
@@ -314,7 +308,40 @@ public:
      * information)
      */
     TimerStat d_proofProductionTime;
+
+    /**
+     * Time spent printing proofs of theory lemmas
+     */
+    TimerStat d_theoryLemmaTime;
+
+    /**
+     * Time spent tracing the proof of the boolean skeleton
+     * (e.g. figuring out which assertions are needed, etc.)
+     */
+    TimerStat d_skeletonProofTraceTime;
+
+    /**
+     * Time spent processing and printing declarations in the proof
+     */
+    TimerStat d_proofDeclarationsTime;
+
+    /**
+     * Time spent printing the CNF proof
+     */
+    TimerStat d_cnfProofTime;
+
+    /**
+     * Time spent printing the final proof of UNSAT
+     */
+    TimerStat d_finalProofTime;
+
   }; /* struct ProofManagerStatistics */
+
+  ProofManagerStatistics& getStats() { return d_stats; }
+
+ private:
+  void constructSatProof();
+  std::set<Node> satClauseToNodeSet(prop::SatClause* clause);
 
   ProofManagerStatistics d_stats;
 

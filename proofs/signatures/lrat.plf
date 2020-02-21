@@ -361,14 +361,14 @@
 ; unit, it modifies the global assignment to satisfy the clause, and returns
 ; the literal that was made SAT by the new mark.
 ;
-; Fails if `c` is a TAUT
+; If `c` is a tautology, reports `MRSat`, since it is (trivially) satisfied.
 (program clause_check_unit_and_maybe_mark ((c clause)) MarkResult
          (match (clause_is_sat c)
                 (tt MRSat)
                 (ff (match (clause_is_unsat c)
                            (tt MRUnsat)
                            (ff (match (is_t c)
-                                      (tt (fail MarkResult))
+                                      (tt MRSat)
                                       (ff ; Dedent
          (match (clause_has_floating c)
                 (tt (let first (clause_first_floating c)

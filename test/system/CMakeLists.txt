@@ -11,7 +11,7 @@ add_custom_target(build-systemtests)
 add_dependencies(build-tests build-systemtests)
 
 add_custom_target(systemtests
-  COMMAND ctest --output-on-failure -L "system" -j${CTEST_NTHREADS} $(ARGS)
+  COMMAND ctest --output-on-failure -L "system" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-systemtests)
 
 set(CVC4_SYSTEM_TEST_FLAGS

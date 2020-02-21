@@ -114,9 +114,7 @@ class RoundingModeEnumerator
       case roundNearestTiesToAway:
         d_enumerationComplete = true;
         break;
-      default:
-        Unreachable("Unknown rounding mode?");
-        break;
+      default: Unreachable() << "Unknown rounding mode?"; break;
     }
     return *this;
   }

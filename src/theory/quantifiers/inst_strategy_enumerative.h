@@ -19,7 +19,8 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {
 namespace theory {
@@ -61,8 +62,10 @@ namespace quantifiers {
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersEngine* qe);
+  InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd);
   ~InstStrategyEnum() {}
+  /** Presolve */
+  void presolve() override;
   /** Needs check. */
   bool needsCheck(Theory::Effort e) override;
   /** Reset round. */
@@ -79,6 +82,8 @@ class InstStrategyEnum : public QuantifiersModule
   }
 
  private:
+  /** Pointer to the relevant domain utility of quantifiers engine */
+  RelevantDomain* d_rd;
   /** process quantified formula
    *
    * q is the quantified formula we are constructing instances for.
@@ -98,6 +103,12 @@ class InstStrategyEnum : public QuantifiersModule
    * term instantiations.
    */
   bool process(Node q, bool fullEffort, bool isRd);
+  /**
+   * A limit on the number of rounds to apply this strategy, where a value < 0
+   * means no limit. This value is set to the value of fullSaturateLimit()
+   * during presolve.
+   */
+  int32_t d_fullSaturateLimit;
 }; /* class InstStrategyEnum */
 
 } /* CVC4::theory::quantifiers namespace */

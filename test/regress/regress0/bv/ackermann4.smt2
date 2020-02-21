@@ -3,7 +3,6 @@
 (set-logic QF_UFBV)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")
-(set-info :status unsat)
 (declare-fun v0 () (_ BitVec 4))
 (declare-fun f ((_ BitVec 4)) (_ BitVec 4))
 (declare-fun g ((_ BitVec 4)) (_ BitVec 4))

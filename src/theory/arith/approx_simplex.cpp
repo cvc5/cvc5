@@ -85,7 +85,9 @@ struct VirtualBound {
     , d(coeff)
     , y(bounding)
     , c(orig)
-  { Assert(k == kind::LEQ || k == kind::GEQ); }
+  {
+    Assert(k == kind::LEQ || k == kind::GEQ);
+  }
 };
 
 struct CutScratchPad {
@@ -621,8 +623,6 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistic
   Assert(numRows > 0);
   Assert(numCols > 0);
 
-
-
   glp_add_rows(d_inputProb, numRows);
   glp_add_cols(d_inputProb, numCols);
 
@@ -994,7 +994,7 @@ ApproxGLPK::~ApproxGLPK(){
 ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
 {
   Assert(d_solvedRelaxation);
-  Assert(!mip  || d_solvedMIP);
+  Assert(!mip || d_solvedMIP);
 
   ApproximateSimplex::Solution sol;
   DenseSet& newBasis = sol.newBasis;
@@ -1487,7 +1487,7 @@ static void glpkCallback(glp_tree *tree, void *info){
         RowsDeleted* rd = new RowsDeleted(exec, nrows, num);
 
         node.addCut(rd);
-        delete num;
+        delete[] num;
       }
       break;
     case GLP_ICUTADDED:
@@ -1736,8 +1736,6 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
     return MipUnknown;
   }
 }
-
-
 
 // Node explainSet(const set<ConstraintP>& inp){
 //   Assert(!inp.empty());
@@ -2434,7 +2432,7 @@ bool ApproxGLPK::replaceSlacksOnCuts(){
     ArithVar x = *iter;
     SlackReplace rep = d_pad.d_slacks[x];
     if(d_vars.isIntegerInput(x)){
-      Assert(rep == SlackLB  || rep == SlackUB);
+      Assert(rep == SlackLB || rep == SlackUB);
       Rational& a = cut.get(x);
 
       const DeltaRational& bound = (rep == SlackLB) ?
@@ -2835,7 +2833,7 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
         // r_p : 0 = -1 * other + sum a_i x_i
         // rid : 0 =  e * other + sum b_i x_i
         // rid += e * r_p
-        //     : 0 = 0 * other + ... 
+        //     : 0 = 0 * other + ...
         Assert(!e.getCoefficient().isZero());
 
         Rational cp = e.getCoefficient();

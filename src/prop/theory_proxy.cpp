@@ -161,7 +161,7 @@ TNode TheoryProxy::getNode(SatLiteral lit) {
 }
 
 void TheoryProxy::notifyRestart() {
-  d_propEngine->spendResource(options::restartStep());
+  d_propEngine->spendResource(ResourceManager::Resource::RestartStep);
   d_theoryEngine->notifyRestart();
 
   static uint32_t lemmaCount = 0;
@@ -232,15 +232,15 @@ SatLiteral TheoryProxy::getNextReplayDecision() {
 void TheoryProxy::logDecision(SatLiteral lit) {
 #ifdef CVC4_REPLAY
   if(d_replayLog != NULL) {
-    Assert(lit != undefSatLiteral, "logging an `undef' decision ?!");
+    Assert(lit != undefSatLiteral) << "logging an `undef' decision ?!";
     (*d_replayLog) << d_cnfStream->getNode(lit) << std::endl;
   }
 #endif /* CVC4_REPLAY */
 }
 
-void TheoryProxy::spendResource(unsigned amount)
+void TheoryProxy::spendResource(ResourceManager::Resource r)
 {
-  d_theoryEngine->spendResource(amount);
+  d_theoryEngine->spendResource(r);
 }
 
 bool TheoryProxy::isDecisionRelevant(SatVariable var) {

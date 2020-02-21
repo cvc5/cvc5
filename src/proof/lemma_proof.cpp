@@ -147,7 +147,8 @@ bool LemmaProofRecipe::wasRewritten(Node assertion) const {
 }
 
 Node LemmaProofRecipe::getExplanation(Node assertion) const {
-  Assert(d_assertionToExplanation.find(assertion) != d_assertionToExplanation.end());
+  Assert(d_assertionToExplanation.find(assertion)
+         != d_assertionToExplanation.end());
   return d_assertionToExplanation.find(assertion)->second;
 }
 

@@ -22,11 +22,11 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
+#include "cvc/cvc.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
 #include "parser/input.h"
 #include "parser/parser.h"
-#include "smt1/smt1.h"
 #include "smt2/smt2.h"
 #include "tptp/tptp.h"
 
@@ -89,10 +89,8 @@ Parser* ParserBuilder::build()
   Parser* parser = NULL;
   switch (d_lang)
   {
-    case language::input::LANG_SMTLIB_V1:
-      parser = new Smt1(d_solver, input, d_strictMode, d_parseOnly);
-      break;
     case language::input::LANG_SYGUS:
+    case language::input::LANG_SYGUS_V2:
       parser = new Smt2(d_solver, input, d_strictMode, d_parseOnly);
       break;
     case language::input::LANG_TPTP:
@@ -105,7 +103,7 @@ Parser* ParserBuilder::build()
       }
       else
       {
-        parser = new Parser(d_solver, input, d_strictMode, d_parseOnly);
+        parser = new Cvc(d_solver, input, d_strictMode, d_parseOnly);
       }
       break;
   }

@@ -21,24 +21,22 @@
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/type.h"
+#include "test_utils.h"
 
 using namespace CVC4;
 using namespace std;
 
 class ArrayStoreAllBlack : public CxxTest::TestSuite {
   ExprManager* d_em;
-  ExprManagerScope* d_scope;
 
  public:
   void setUp() override
   {
     d_em = new ExprManager();
-    d_scope = new ExprManagerScope(*d_em);
   }
 
   void tearDown() override
   {
-    delete d_scope;
     delete d_em;
   }
 
@@ -55,15 +53,15 @@ class ArrayStoreAllBlack : public CxxTest::TestSuite {
         d_em->mkConst(Rational(0)));
   }
 
-  void testTypeErrors() {
-    // these two throw an AssertionException in assertions-enabled builds, and
-    // an IllegalArgumentException in production builds
-    TS_ASSERT_THROWS_ANYTHING(ArrayStoreAll(
-        d_em->integerType(),
-        d_em->mkConst(UninterpretedConstant(d_em->mkSort("U"), 0))));
-    TS_ASSERT_THROWS_ANYTHING(
-        ArrayStoreAll(d_em->integerType(), d_em->mkConst(Rational(9, 2))));
-
+  void testTypeErrors()
+  {
+    TS_ASSERT_THROWS(ArrayStoreAll(d_em->integerType(),
+                                   d_em->mkConst(UninterpretedConstant(
+                                       d_em->mkSort("U"), 0))),
+                     IllegalArgumentException&);
+    TS_ASSERT_THROWS(
+        ArrayStoreAll(d_em->integerType(), d_em->mkConst(Rational(9, 2))),
+        IllegalArgumentException&);
     TS_ASSERT_THROWS(
         ArrayStoreAll(d_em->mkArrayType(d_em->integerType(), d_em->mkSort("U")),
                       d_em->mkConst(Rational(9, 2))),

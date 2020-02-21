@@ -52,9 +52,6 @@ class CVC4_PUBLIC Options {
   /** The current Options in effect */
   static thread_local Options* s_current;
 
-  /** Listeners for options::forceLogicString being set. */
-  ListenerCollection d_forceLogicListeners;
-
   /** Listeners for notifyBeforeSearch. */
   ListenerCollection d_beforeSearchListeners;
 
@@ -198,10 +195,10 @@ public:
 
   // Get accessor functions.
   InputLanguage getInputLanguage() const;
-  InstFormatMode getInstFormatMode() const;
+  options::InstFormatMode getInstFormatMode() const;
   OutputLanguage getOutputLanguage() const;
+  bool getUfHo() const;
   bool getCheckProofs() const;
-  bool getContinuedExecution() const;
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
   bool getDumpProofs() const;
@@ -231,9 +228,6 @@ public:
   bool getVersion() const;
   bool getWaitToJoin() const;
   const std::string& getForceLogicString() const;
-  const std::vector<std::string>& getThreadArgv() const;
-  int getSharingFilterByLength() const;
-  int getThreadId() const;
   int getVerbosity() const;
   std::istream* getIn() const;
   std::ostream* getErr();
@@ -242,17 +236,12 @@ public:
   std::string getBinaryName() const;
   std::string getReplayInputFilename() const;
   unsigned getParseStep() const;
-  unsigned getThreadStackSize() const;
-  unsigned getThreads() const;
-
 
   // TODO: Document these.
   void setInputLanguage(InputLanguage);
   void setInteractive(bool);
   void setOut(std::ostream*);
   void setOutputLanguage(OutputLanguage);
-  void setSharingFilterByLength(int length);
-  void setThreadId(int);
 
   bool wasSetByUserCeGuidedInst() const;
   bool wasSetByUserDumpSynth() const;
@@ -260,13 +249,9 @@ public:
   bool wasSetByUserForceLogicString() const;
   bool wasSetByUserIncrementalSolving() const;
   bool wasSetByUserInteractive() const;
-  bool wasSetByUserThreadStackSize() const;
-  bool wasSetByUserThreads() const;
 
   // Static accessor functions.
   // TODO: Document these.
-  static int currentGetSharingFilterByLength();
-  static int currentGetThreadId();
   static std::ostream* currentGetOut();
 
   /**
@@ -350,19 +335,6 @@ public:
    */
   ListenerCollection::Registration* registerBeforeSearchListener(
       Listener* listener);
-
-
-  /**
-   * Registers a listener for options::forceLogic being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerForceLogicListener(
-      Listener* listener, bool notifyIfSet);
 
   /**
    * Registers a listener for options::tlimit being set.

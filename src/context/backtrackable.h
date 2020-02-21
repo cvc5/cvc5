@@ -160,7 +160,7 @@ template <class T>
 void List<T>::concat (List<T>* other) {
   bck->checkConsistency();
   bck->notifyConcat(this, other);
-  Assert(tail->next==NULL);
+  Assert(tail->next == NULL);
   tail->next = other->head;
   Assert(other->ptr_to_head == NULL);
   other->ptr_to_head = tail;

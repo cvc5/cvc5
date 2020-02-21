@@ -28,12 +28,13 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
+#include "options/option_exception.h"
 #include "options/parser_options.h"
 #include "options/printer_modes.h"
 #include "options/printer_options.h"
-#include "options/option_exception.h"
-#include "options/smt_options.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "options/uf_options.h"
 
 namespace CVC4 {
 
@@ -42,7 +43,8 @@ InputLanguage Options::getInputLanguage() const {
   return (*this)[options::inputLanguage];
 }
 
-InstFormatMode Options::getInstFormatMode() const {
+options::InstFormatMode Options::getInstFormatMode() const
+{
   return (*this)[options::instFormatMode];
 }
 
@@ -50,12 +52,10 @@ OutputLanguage Options::getOutputLanguage() const {
   return (*this)[options::outputLanguage];
 }
 
+bool Options::getUfHo() const { return (*this)[options::ufHo]; }
+
 bool Options::getCheckProofs() const{
   return (*this)[options::checkProofs];
-}
-
-bool Options::getContinuedExecution() const{
-  return (*this)[options::continuedExecution];
 }
 
 bool Options::getDumpInstantiations() const{
@@ -174,18 +174,6 @@ const std::string& Options::getForceLogicString() const{
   return (*this)[options::forceLogicString];
 }
 
-const std::vector<std::string>& Options::getThreadArgv() const{
-  return (*this)[options::threadArgv];
-}
-
-int Options::getSharingFilterByLength() const{
-  return (*this)[options::sharingFilterByLength];
-}
-
-int Options::getThreadId() const{
-  return (*this)[options::thread_id];
-}
-
 int Options::getVerbosity() const{
   return (*this)[options::verbosity];
 }
@@ -219,22 +207,6 @@ unsigned Options::getParseStep() const{
   return (*this)[options::parseStep];
 }
 
-unsigned Options::getThreadStackSize() const{
-  return (*this)[options::threadStackSize];
-}
-
-unsigned Options::getThreads() const{
-  return (*this)[options::threads];
-}
-
-int Options::currentGetSharingFilterByLength() {
-  return current()->getSharingFilterByLength();
-}
-
-int Options::currentGetThreadId() {
-  return current()->getThreadId();
-}
-
 std::ostream* Options::currentGetOut() {
   return current()->getOut();
 }
@@ -256,14 +228,6 @@ void Options::setOut(std::ostream* value) {
 
 void Options::setOutputLanguage(OutputLanguage value) {
   set(options::outputLanguage, value);
-}
-
-void Options::setSharingFilterByLength(int length) {
-  set(options::sharingFilterByLength, length);
-}
-
-void Options::setThreadId(int value) {
-  set(options::thread_id, value);
 }
 
 bool Options::wasSetByUserCeGuidedInst() const {
@@ -288,14 +252,6 @@ bool Options::wasSetByUserIncrementalSolving() const {
 
 bool Options::wasSetByUserInteractive() const {
   return wasSetByUser(options::interactive);
-}
-
-bool Options::wasSetByUserThreadStackSize() const {
-  return wasSetByUser(options::threadStackSize);
-}
-
-bool Options::wasSetByUserThreads() const {
-  return wasSetByUser(options::threads);
 }
 
 

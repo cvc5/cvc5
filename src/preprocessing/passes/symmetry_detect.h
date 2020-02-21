@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 #include "expr/node.h"
-#include "theory/quantifiers/term_canonize.h"
+#include "expr/term_canonize.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -242,7 +242,7 @@ class SymmetryDetect
   Node d_falseNode;
 
   /** term canonizer (for quantified formulas) */
-  theory::quantifiers::TermCanonize d_tcanon;
+  expr::TermCanonize d_tcanon;
 
   /** Cache for partitions */
   std::map<Node, Partition> d_term_partition;

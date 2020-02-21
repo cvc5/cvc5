@@ -23,14 +23,15 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
-#include <vector>
 #include <utility>
+#include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "smt/command.h"
 #include "smt_util/lemma_channels.h"
@@ -46,6 +47,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
+#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -174,15 +176,12 @@ class TheoryEngine {
     void eqNotifyNewClass(TNode t) override { d_te.eqNotifyNewClass(t); }
     void eqNotifyPreMerge(TNode t1, TNode t2) override
     {
-      d_te.eqNotifyPreMerge(t1, t2);
     }
     void eqNotifyPostMerge(TNode t1, TNode t2) override
     {
-      d_te.eqNotifyPostMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      d_te.eqNotifyDisequal(t1, t2, reason);
     }
   };/* class TheoryEngine::NotifyClass */
   NotifyClass d_masterEENotify;
@@ -283,8 +282,9 @@ class TheoryEngine {
     EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory)
         : d_engine(engine), d_statistics(theory), d_theory(theory) {}
 
-    void safePoint(uint64_t amount) override {
-      spendResource(amount);
+    void safePoint(ResourceManager::Resource r) override
+    {
+      spendResource(r);
       if (d_engine->d_interrupted) {
         throw theory::Interrupted();
       }
@@ -325,8 +325,9 @@ class TheoryEngine {
       d_engine->setIncomplete(d_theory);
     }
 
-    void spendResource(unsigned amount) override {
-      d_engine->spendResource(amount);
+    void spendResource(ResourceManager::Resource r) override
+    {
+      d_engine->spendResource(r);
     }
 
     void handleUserAttribute(const char* attr, theory::Theory* t) override {
@@ -483,7 +484,7 @@ public:
   void interrupt();
 
   /** "Spend" a resource during a search or preprocessing.*/
-  void spendResource(unsigned amount);
+  void spendResource(ResourceManager::Resource r);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
@@ -751,7 +752,10 @@ public:
    * response to a check-sat call, and only if produceModels is true.
    *
    * If the model is not already built, this will cause this theory engine
-   * to build to the model.
+   * to build the model.
+   *
+   * If the model is not available (for instance, if the last call to check-sat
+   * was interrupted), then this returns the null pointer.
    */
   theory::TheoryModel* getBuiltModel();
   /** set eager model building
@@ -767,14 +771,19 @@ public:
 
   /** get synth solutions
    *
-   * This function adds entries to sol_map that map functions-to-synthesize with
+   * This method returns true if there is a synthesis solution available. This
+   * is the case if the last call to check satisfiability originated in a
+   * check-synth call, and the synthesis solver successfully found a solution
+   * for all active synthesis conjectures.
+   *
+   * This method adds entries to sol_map that map functions-to-synthesize with
    * their solutions, for all active conjectures. This should be called
    * immediately after the solver answers unsat for sygus input.
    *
    * For details on what is added to sol_map, see
-   * CegConjecture::getSynthSolutions.
+   * SynthConjecture::getSynthSolutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
 
   /**
    * Get the model builder
@@ -797,6 +806,7 @@ public:
    * @returns the theory
    */
   inline theory::Theory* theoryOf(theory::TheoryId theoryId) const {
+    Assert(theoryId < theory::THEORY_LAST);
     return d_theoryTable[theoryId];
   }
 
@@ -858,10 +868,13 @@ public:
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
-  std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
+  std::pair<bool, Node> entailmentCheck(
+      options::TheoryOfMode mode,
+      TNode lit,
+      const theory::EntailmentCheckParameters* params = NULL,
+      theory::EntailmentCheckSideEffects* out = NULL);
 
-private:
-
+ private:
   /** Default visitor for pre-registration */
   PreRegisterVisitor d_preRegistrationVisitor;
 

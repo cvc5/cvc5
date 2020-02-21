@@ -14,9 +14,12 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 
+#include "expr/dtype.h"
+#include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -33,24 +36,44 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
   Assert(tn.isDatatype());
   TermDbSygus* tds = qe->getTermDatabaseSygus();
   tds->registerSygusType(tn);
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   Assert(dt.isSygus());
-  TypeNode btn = TypeNode::fromType(dt.getSygusType());
+  TypeNode btn = dt.getSygusType();
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
     Trace("sygus-red") << "  Is " << dt[i].getName() << " a redundant operator?"
                        << std::endl;
-    std::map<int, Node> pre;
-    Node g = tds->mkGeneric(dt, i, pre);
-    Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
-    Assert(g.getNumChildren() == dt[i].getNumArgs());
-    d_gen_terms[i] = g;
-    for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+    Node sop = dt[i].getSygusOp();
+    if (sop.getAttribute(SygusAnyConstAttribute()))
     {
-      pre[j] = g[j];
+      // the any constant constructor is never redundant
+      d_sygus_red_status.push_back(0);
+      continue;
     }
+    std::map<int, Node> pre;
+    // We do not do beta reduction, since we want the arguments to match the
+    // the types of the datatype.
+    Node g = tds->mkGeneric(dt, i, pre, false);
+    Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
+    d_gen_terms[i] = g;
+    // a list of variants of the generic term (see getGenericList).
     std::vector<Node> glist;
-    getGenericList(tds, dt, i, 0, pre, glist);
+    if (sop.isConst() || sop.getKind() == LAMBDA)
+    {
+      Assert(g.getNumChildren() == dt[i].getNumArgs());
+      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+      {
+        pre[j] = g[j];
+      }
+      getGenericList(tds, dt, i, 0, pre, glist);
+    }
+    else
+    {
+      // It is a builtin (possibly) ground term. Its children do not correspond
+      // one-to-one with the arugments of the constructor. Hence, we consider
+      // only g itself as a variant.
+      glist.push_back(g);
+    }
     // call the extended rewriter
     bool red = false;
     for (const Node& gr : glist)
@@ -73,11 +96,13 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     }
     d_sygus_red_status.push_back(red ? 1 : 0);
   }
+  Trace("sygus-red") << "Compute redundant cons for " << tn << " finished"
+                     << std::endl;
 }
 
 void SygusRedundantCons::getRedundant(std::vector<unsigned>& indices)
 {
-  const Datatype& dt = static_cast<DatatypeType>(d_type.toType()).getDatatype();
+  const DType& dt = d_type.getDType();
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
     if (isRedundant(i))
@@ -94,7 +119,7 @@ bool SygusRedundantCons::isRedundant(unsigned i)
 }
 
 void SygusRedundantCons::getGenericList(TermDbSygus* tds,
-                                        const Datatype& dt,
+                                        const DType& dt,
                                         unsigned c,
                                         unsigned index,
                                         std::map<int, Node>& pre,

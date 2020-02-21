@@ -370,7 +370,7 @@ private:
     TS_ASSERT(!null->isConst());
 
     // more complicated "constants" exist in datatypes and arrays theories
-    Datatype list("list");
+    Datatype list(d_em, "list");
     DatatypeConstructor consC("cons");
     consC.addArg("car", d_em->integerType());
     consC.addArg("cdr", DatatypeSelfType());

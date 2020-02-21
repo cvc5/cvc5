@@ -48,7 +48,7 @@ extern int optreset;
 #include <sstream>
 #include <limits>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
 #include "options/argument_extender.h"
@@ -231,7 +231,6 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
 Options::Options()
     : d_holder(new options::OptionsHolder())
     , d_handler(new options::OptionsHandler(this))
-    , d_forceLogicListeners()
     , d_beforeSearchListeners()
     , d_tlimitListeners()
     , d_tlimitPerListeners()
@@ -281,13 +280,6 @@ ListenerCollection::Registration* Options::registerAndNotify(
     }
   }
   return registration;
-}
-
-ListenerCollection::Registration* Options::registerForceLogicListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::forceLogicString);
-  return registerAndNotify(d_forceLogicListeners, listener, notify);
 }
 
 ListenerCollection::Registration* Options::registerBeforeSearchListener(
@@ -440,14 +432,13 @@ static const std::string languageDescription =
 Languages currently supported as arguments to the -L / --lang option:\n\
   auto                           attempt to automatically determine language\n\
   cvc4 | presentation | pl       CVC4 presentation language\n\
-  smt1 | smtlib1                 SMT-LIB format 1.2\n\
   smt | smtlib | smt2 |\n\
   smt2.0 | smtlib2 | smtlib2.0   SMT-LIB format 2.0\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6\n\
   smt2.6.1 | smtlib2.6.1         SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format (cnf, fof and tff)\n\
-  sygus                          SyGuS format\n\
+  sygus | sygus2                 SyGuS version 1.0 and 2.0 formats\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\
   auto                           match output language to input language\n\
@@ -631,7 +622,6 @@ void Options::parseOptionsRecursive(Options* options,
 
   // Having this synonym simplifies the generation code in mkoptions.
   options::OptionsHandler* handler = options->d_handler;
-  options::OptionsHolder* holder = options->d_holder;
 
   // Reset getopt(), in the case of multiple calls to parseOptions().
   // This can be = 1 in newer GNU getopt, but older (< 2007) require = 0.
@@ -743,50 +733,6 @@ ${options_handler}$
 
     case '?':
     default:
-      if( ( optopt == 0 ||
-            ( optopt >= ${option_value_begin}$ &&
-              optopt <= ${option_value_end}$ )
-          ) && !strncmp(argv[optind - 1], "--thread", 8) &&
-          strlen(argv[optind - 1]) > 8 )
-      {
-        if(! isdigit(argv[optind - 1][8])) {
-          throw OptionException(formatThreadOptionException(option));
-        }
-        std::vector<std::string>& threadArgv = holder->threadArgv;
-        char *end;
-        long tnum = strtol(argv[optind - 1] + 8, &end, 10);
-        if(tnum < 0 || (*end != '\0' && *end != '=')) {
-          throw OptionException(formatThreadOptionException(option));
-        }
-        if(threadArgv.size() <= size_t(tnum)) {
-          threadArgv.resize(tnum + 1);
-        }
-        if(threadArgv[tnum] != "") {
-          threadArgv[tnum] += " ";
-        }
-        if(*end == '\0') { // e.g., we have --thread0 "foo"
-          if(argc <= optind) {
-            throw OptionException(std::string("option `") + option +
-                                  "' missing its required argument");
-          }
-          Debug("options") << "thread " << tnum << " gets option "
-                           << argv[optind] << std::endl;
-          threadArgv[tnum] += argv[main_optind];
-          main_optind++;
-        } else { // e.g., we have --thread0="foo"
-          if(end[1] == '\0') {
-            throw OptionException(std::string("option `") + option +
-                                  "' missing its required argument");
-          }
-          Debug("options") << "thread " << tnum << " gets option "
-                           << (end + 1) << std::endl;
-          threadArgv[tnum] += end + 1;
-        }
-        Debug("options") << "thread " << tnum << " now has "
-                         << threadArgv[tnum] << std::endl;
-        break;
-      }
-
       throw OptionException(std::string("can't understand option `") + option +
                             "'" + suggestCommandLineOptions(option));
     }

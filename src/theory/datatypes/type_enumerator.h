@@ -19,11 +19,12 @@
 #ifndef CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H
 
-#include "theory/type_enumerator.h"
-#include "expr/type_node.h"
-#include "expr/type.h"
+#include "expr/dtype.h"
 #include "expr/kind.h"
+#include "expr/type.h"
+#include "expr/type_node.h"
 #include "options/quantifiers_options.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -34,15 +35,17 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   /** type properties */
   TypeEnumeratorProperties * d_tep;
   /** The datatype we're enumerating */
-  const Datatype& d_datatype;
+  const DType& d_datatype;
   /** extra cons */
   unsigned d_has_debruijn;
   /** type */
   TypeNode d_type;
   /** The datatype constructor we're currently enumerating */
   unsigned d_ctor;
-  /** The "first" constructor to consider; it's non-recursive */
-  unsigned d_zeroCtor;
+  /** The first term to consider in the enumeration */
+  Node d_zeroTerm;
+  /** Whether we are currently considering the above term */
+  bool d_zeroTermActive;
   /** list of type enumerators (one for each type in a selector argument) */
   std::map< TypeNode, unsigned > d_te_index;
   std::vector< TypeEnumerator > d_children;
@@ -60,12 +63,13 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   /** child */
   bool d_child_enum;
 
-  bool hasCyclesDt( const Datatype& dt ) {
-    return dt.isRecursiveSingleton( d_type.toType() ) || !dt.isFinite( d_type.toType() );
+  bool hasCyclesDt(const DType& dt)
+  {
+    return dt.isRecursiveSingleton(d_type) || !dt.isFinite(d_type);
   }
   bool hasCycles( TypeNode tn ){
     if( tn.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      const DType& dt = tn.getDType();
       return hasCyclesDt( dt );
     }else{
       return false;
@@ -84,8 +88,10 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   DatatypesEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<DatatypesEnumerator>(type),
         d_tep(tep),
-        d_datatype(DatatypeType(type.toType()).getDatatype()),
-        d_type(type)
+        d_datatype(type.getDType()),
+        d_type(type),
+        d_ctor(0),
+        d_zeroTermActive(false)
   {
     d_child_enum = false;
     init();
@@ -95,20 +101,23 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
                       TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<DatatypesEnumerator>(type),
         d_tep(tep),
-        d_datatype(DatatypeType(type.toType()).getDatatype()),
-        d_type(type)
+        d_datatype(type.getDType()),
+        d_type(type),
+        d_ctor(0),
+        d_zeroTermActive(false)
   {
     d_child_enum = childEnum;
     init();
   }
-  DatatypesEnumerator(const DatatypesEnumerator& de) :
-    TypeEnumeratorBase<DatatypesEnumerator>(de.getType()),
-    d_tep(de.d_tep),
-    d_datatype(de.d_datatype),
-    d_type(de.d_type),
-    d_ctor(de.d_ctor),
-    d_zeroCtor(de.d_zeroCtor) {
-
+  DatatypesEnumerator(const DatatypesEnumerator& de)
+      : TypeEnumeratorBase<DatatypesEnumerator>(de.getType()),
+        d_tep(de.d_tep),
+        d_datatype(de.d_datatype),
+        d_type(de.d_type),
+        d_ctor(de.d_ctor),
+        d_zeroTerm(de.d_zeroTerm),
+        d_zeroTermActive(de.d_zeroTermActive)
+  {
     for( std::map< TypeNode, unsigned >::const_iterator it = de.d_te_index.begin(); it != de.d_te_index.end(); ++it ){
       d_te_index[it->first] = it->second;
     }
@@ -134,45 +143,18 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   Node operator*() override
   {
     Debug("dt-enum-debug") << ": get term " << this << std::endl;
-    if(d_ctor < d_has_debruijn + d_datatype.getNumConstructors()) {
+    if (d_zeroTermActive)
+    {
+      return d_zeroTerm;
+    }
+    else if (d_ctor < d_has_debruijn + d_datatype.getNumConstructors())
+    {
       return getCurrentTerm( d_ctor );
-    } else {
-      throw NoMoreValuesException(getType());
     }
+    throw NoMoreValuesException(getType());
   }
 
-  DatatypesEnumerator& operator++() override
-  {
-    Debug("dt-enum-debug") << ": increment " << this << std::endl;
-    unsigned prevSize = d_size_limit;
-    while(d_ctor < d_has_debruijn+d_datatype.getNumConstructors()) {
-      //increment at index
-      while( increment( d_ctor ) ){
-        Node n = getCurrentTerm( d_ctor );
-        if( !n.isNull() ){
-          return *this;
-        }
-      }
-      // Here, we need to step from the current constructor to the next one
-
-      // Find the next constructor (only complicated by the notion of the "zero" constructor
-      d_ctor = (d_ctor == d_zeroCtor) ? 0 : d_ctor + 1;
-      if(d_ctor == d_zeroCtor) {
-        ++d_ctor;
-      }
-      if( d_ctor>=d_has_debruijn+d_datatype.getNumConstructors() ){
-        //try next size limit as long as new terms were generated at last size, or other cases
-        if( prevSize==d_size_limit || ( d_size_limit==0 && d_datatype.isCodatatype() ) || !d_datatype.isInterpretedFinite( d_type.toType() ) ){
-          d_size_limit++;
-          d_ctor = d_zeroCtor;
-          for( unsigned i=0; i<d_sel_sum.size(); i++ ){
-            d_sel_sum[i] = -1;
-          }
-        }
-      }
-    }
-    return *this;
-  }
+  DatatypesEnumerator& operator++() override;
 
   bool isFinished() override
   {

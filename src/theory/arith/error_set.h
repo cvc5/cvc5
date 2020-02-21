@@ -22,7 +22,7 @@
 
 #include <vector>
 
-#include "options/arith_heuristic_pivot_rule.h"
+#include "options/arith_options.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/bound_counts.h"
 #include "theory/arith/callbacks.h"
@@ -69,13 +69,14 @@ class ComparatorPivotRule {
 private:
   const ErrorSet* d_errorSet;
 
-  ErrorSelectionRule d_rule;
-public:
+  options::ErrorSelectionRule d_rule;
+
+ public:
   ComparatorPivotRule();
-  ComparatorPivotRule(const ErrorSet* es, ErrorSelectionRule r);
+  ComparatorPivotRule(const ErrorSet* es, options::ErrorSelectionRule r);
 
   bool operator()(ArithVar v, ArithVar u) const;
-  ErrorSelectionRule getRule() const { return d_rule; }
+  options::ErrorSelectionRule getRule() const { return d_rule; }
 };
 
 // typedef boost::heap::d_ary_heap<
@@ -152,8 +153,16 @@ public:
   inline ArithVar getVariable() const { return d_variable; }
 
   bool isRelaxed() const { return d_relaxed; }
-  void setRelaxed(){ Assert(!d_relaxed); d_relaxed = true; }
-  void setUnrelaxed(){ Assert(d_relaxed); d_relaxed = false; }
+  void setRelaxed()
+  {
+    Assert(!d_relaxed);
+    d_relaxed = true;
+  }
+  void setUnrelaxed()
+  {
+    Assert(d_relaxed);
+    d_relaxed = false;
+  }
 
   inline int sgn() const { return d_sgn; }
 
@@ -217,7 +226,7 @@ private:
    */
   ErrorInfoMap d_errInfo;
 
-  ErrorSelectionRule d_selectionRule;
+  options::ErrorSelectionRule d_selectionRule;
   /**
    * The ordered heap for the variables that are in ErrorSet.
    */
@@ -251,12 +260,12 @@ private:
 public:
   DeltaRational computeDiff(ArithVar x) const;
 private:
-  void recomputeAmount(ErrorInformation& ei, ErrorSelectionRule r);
+ void recomputeAmount(ErrorInformation& ei, options::ErrorSelectionRule r);
 
-  void update(ErrorInformation& ei);
-  void transitionVariableOutOfError(ArithVar v);
-  void transitionVariableIntoError(ArithVar v);
-  void addBackIntoFocus(ArithVar v);
+ void update(ErrorInformation& ei);
+ void transitionVariableOutOfError(ArithVar v);
+ void transitionVariableIntoError(ArithVar v);
+ void addBackIntoFocus(ArithVar v);
 
 public:
 
@@ -283,8 +292,8 @@ public:
   void pushErrorInto(ArithVarVec& vec) const;
   void pushFocusInto(ArithVarVec& vec) const;
 
-  ErrorSelectionRule getSelectionRule() const;
-  void setSelectionRule(ErrorSelectionRule rule);
+  options::ErrorSelectionRule getSelectionRule() const;
+  void setSelectionRule(options::ErrorSelectionRule rule);
 
   inline ArithVar topFocusVariable() const{
     Assert(!focusEmpty());

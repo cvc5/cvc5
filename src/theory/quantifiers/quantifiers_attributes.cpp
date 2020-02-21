@@ -16,7 +16,6 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -64,28 +63,22 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     QuantNameAttribute qna;
     n.setAttribute(qna, true);
   } else if (attr == "sygus-synth-grammar") {
-    Assert( node_values.size()==1 );
+    Assert(node_values.size() == 1);
     Trace("quant-attr-debug") << "Set sygus synth grammar " << n << " to "
                               << node_values[0] << std::endl;
     SygusSynthGrammarAttribute ssg;
     n.setAttribute(ssg, node_values[0]);
   }else if( attr=="sygus-synth-fun-var-list" ){
-    Assert( node_values.size()==1 );
+    Assert(node_values.size() == 1);
     Trace("quant-attr-debug") << "Set sygus synth fun var list to " << n << " to "  << node_values[0] << std::endl;
     SygusSynthFunVarListAttribute ssfvla;
     n.setAttribute( ssfvla, node_values[0] );
   }else if( attr=="quant-inst-max-level" ){
-    Assert( node_values.size()==1 );
+    Assert(node_values.size() == 1);
     uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
     Trace("quant-attr-debug") << "Set instantiation level " << n << " to " << lvl << std::endl;
     QuantInstLevelAttribute qila;
     n.setAttribute( qila, lvl );
-  }else if( attr=="rr-priority" ){
-    Assert( node_values.size()==1 );
-    uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
-    Trace("quant-attr-debug") << "Set rewrite rule priority " << n << " to " << lvl << std::endl;
-    RrPriorityAttribute rrpa;
-    n.setAttribute( rrpa, lvl );
   }else if( attr=="quant-elim" ){
     Trace("quant-attr-debug") << "Set quantifier elimination " << n << std::endl;
     QuantElimAttribute qea;
@@ -94,21 +87,6 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     Trace("quant-attr-debug") << "Set partial quantifier elimination " << n << std::endl;
     QuantElimPartialAttribute qepa;
     n.setAttribute( qepa, true );
-  }
-}
-
-bool QuantAttributes::checkRewriteRule( Node q ) {
-  return !getRewriteRule( q ).isNull();
-}
-
-Node QuantAttributes::getRewriteRule( Node q ) {
-  if (q.getKind() == FORALL && q.getNumChildren() == 3
-      && q[2][0].getNumChildren() > 0
-      && q[2][0][0].getKind() == REWRITE_RULE)
-  {
-    return q[2][0][0];
-  }else{
-    return Node::null();
   }
 }
 
@@ -157,14 +135,14 @@ Node QuantAttributes::getFunDefBody( Node q ) {
       {
         // solve for h in the equality
         std::map<Node, Node> msum;
-        if (ArithMSum::getMonomialSum(q[1], msum))
+        if (ArithMSum::getMonomialSumLit(q[1], msum))
         {
           Node veq;
           int res = ArithMSum::isolate(h, msum, veq, EQUAL);
           if (res != 0)
           {
             Assert(veq.getKind() == EQUAL);
-            return res == 1 ? veq[0] : veq[1];
+            return res == 1 ? veq[1] : veq[0];
           }
         }
       }
@@ -213,28 +191,18 @@ bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
 
 void QuantAttributes::computeAttributes( Node q ) {
   computeQuantAttributes( q, d_qattr[q] );
-  if( !d_qattr[q].d_rr.isNull() ){
-    if( d_quantEngine->getRewriteEngine()==NULL ){
-      Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
-    }
-    //set rewrite engine as owner
-    d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine(), 2 );
-  }
-  if( d_qattr[q].isFunDef() ){
-    Node f = d_qattr[q].d_fundef_f;
+  QAttributes& qa = d_qattr[q];
+  if (qa.isFunDef())
+  {
+    Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
       Message() << "Cannot define function " << f << " more than once." << std::endl;
       AlwaysAssert(false);
     }
     d_fun_defs[f] = true;
   }
-  if( d_qattr[q].d_sygus ){
-    if (d_quantEngine->getSynthEngine() == nullptr)
-    {
-      Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
-    }
-    d_quantEngine->setOwner(q, d_quantEngine->getSynthEngine(), 2);
-  }
+  // set ownership of quantified formula q based on the computed attributes
+  d_quantEngine->setOwner(q, qa);
 }
 
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
@@ -285,10 +253,6 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());
           Trace("quant-attr") << "Attribute : quant inst level " << qa.d_qinstLevel << " : " << q << std::endl;
         }
-        if( avar.hasAttribute(RrPriorityAttribute()) ){
-          qa.d_rr_priority = avar.getAttribute(RrPriorityAttribute());
-          Trace("quant-attr") << "Attribute : rr priority " << qa.d_rr_priority << " : " << q << std::endl;
-        }
         if( avar.getAttribute(QuantElimAttribute()) ){
           Trace("quant-attr") << "Attribute : quantifier elimination : " << q << std::endl;
           qa.d_quant_elim = true;
@@ -303,11 +267,6 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         if( avar.hasAttribute(QuantIdNumAttribute()) ){
           qa.d_qid_num = avar;
           Trace("quant-attr") << "Attribute : id number " << qa.d_qid_num.getAttribute(QuantIdNumAttribute()) << " : " << q << std::endl;
-        }
-        if( avar.getKind()==REWRITE_RULE ){
-          Trace("quant-attr") << "Attribute : rewrite rule : " << q << std::endl;
-          Assert( i==0 );
-          qa.d_rr = avar;
         }
       }
     }
@@ -356,15 +315,6 @@ int QuantAttributes::getQuantInstLevel( Node q ) {
     return -1;
   }else{
     return it->second.d_qinstLevel;
-  }
-}
-
-int QuantAttributes::getRewriteRulePriority( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
-    return -1;
-  }else{
-    return it->second.d_rr_priority;
   }
 }
 

@@ -78,14 +78,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
     //length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
-    //length of second skolem is abs difference between end point and end of string
-    Node b13 = nm->mkNode(STRING_LENGTH, sk2)
-                   .eqNode(nm->mkNode(ITE,
-                                      nm->mkNode(GEQ, lt0, t12),
-                                      nm->mkNode(MINUS, lt0, t12),
-                                      d_zero));
+    Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
+    // Length of the suffix is either 0 (in the case where m + n > len(s)) or
+    // len(s) - n -m
+    Node b13 = nm->mkNode(
+        OR,
+        nm->mkNode(EQUAL, lsk2, nm->mkNode(MINUS, lt0, nm->mkNode(PLUS, n, m))),
+        nm->mkNode(EQUAL, lsk2, d_zero));
+    // Length of the result is at most m
+    Node b14 = nm->mkNode(LEQ, nm->mkNode(STRING_LENGTH, skt), m);
 
-    Node b1 = nm->mkNode(AND, b11, b12, b13);
+    Node b1 = nm->mkNode(AND, b11, b12, b13, b14);
     Node b2 = skt.eqNode(d_empty_str);
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
@@ -93,8 +96,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // IF    n >=0 AND n < len( s ) AND m > 0
     // THEN: s = sk1 ++ skt ++ sk2 AND
     //       len( sk1 ) = n AND
-    //       len( sk2 ) = ite( len( s ) >= n+m, len( s )-(n+m), 0 )
+    //       ( len( sk2 ) = len( s )-(n+m) OR len( sk2 ) = 0 ) AND
+    //       len( skt ) <= m
     // ELSE: skt = ""
+    //
+    // Note: The length of sk2 is either 0 (if the n + m is greater or equal to
+    // the length of s) or len(s) - (n + m) otherwise. If n + m is greater or
+    // equal to the length of s, then len(s) - (n + m) is negative and in
+    // conflict with lengths always being positive, so only len(sk2) = 0 may be
+    // satisfied. If n + m is less than the length of s, then len(sk2) = 0
+    // cannot be satisfied because we have the constraint that len(skt) <= m,
+    // so sk2 must be greater than 0.
     new_nodes.push_back( lemma );
 
     // Thus, substr( s, n, m ) = skt
@@ -187,10 +199,6 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
     Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
-    Node us =
-        nm->mkSkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
-    Node ud =
-        nm->mkSkolem("Ud", nm->mkFunctionType(argTypes, nm->stringType()));
 
     Node lem = nm->mkNode(GEQ, leni, d_one);
     conc.push_back(lem);
@@ -201,27 +209,18 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     lem = d_zero.eqNode(nm->mkNode(APPLY_UF, u, d_zero));
     conc.push_back(lem);
 
-    lem = d_empty_str.eqNode(nm->mkNode(APPLY_UF, us, leni));
-    conc.push_back(lem);
-
-    lem = itost.eqNode(nm->mkNode(APPLY_UF, us, d_zero));
-    conc.push_back(lem);
-
     Node x = nm->mkBoundVar(nm->integerType());
     Node xPlusOne = nm->mkNode(PLUS, x, d_one);
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g =
         nm->mkNode(AND, nm->mkNode(GEQ, x, d_zero), nm->mkNode(LT, x, leni));
-    Node udx = nm->mkNode(APPLY_UF, ud, x);
+    Node sx = nm->mkNode(STRING_SUBSTR, itost, x, d_one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, xPlusOne);
     Node c0 = nm->mkNode(STRING_CODE, nm->mkConst(String("0")));
-    Node c = nm->mkNode(MINUS, nm->mkNode(STRING_CODE, udx), c0);
-    Node usx = nm->mkNode(APPLY_UF, us, x);
-    Node usx1 = nm->mkNode(APPLY_UF, us, xPlusOne);
+    Node c = nm->mkNode(MINUS, nm->mkNode(STRING_CODE, sx), c0);
 
     Node ten = nm->mkConst(Rational(10));
-    Node eqs = usx.eqNode(nm->mkNode(STRING_CONCAT, udx, usx1));
     Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
     Node leadingZeroPos =
         nm->mkNode(AND, x.eqNode(d_zero), nm->mkNode(GT, leni, d_one));
@@ -230,7 +229,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
         nm->mkNode(GEQ, c, nm->mkNode(ITE, leadingZeroPos, d_one, d_zero)),
         nm->mkNode(LT, c, ten));
 
-    lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eqs, eq, cb));
+    Node ux1lem = nm->mkNode(GEQ, n, ux1);
+
+    lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eq, cb, ux1lem));
     lem = nm->mkNode(FORALL, xbv, lem);
     conc.push_back(lem);
 
@@ -244,19 +245,19 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // THEN:
     //   len( itost ) >= 1 ^
     //   n = U( len( itost ) ) ^ U( 0 ) = 0 ^
-    //   "" = Us( len( itost ) ) ^ itost = Us( 0 ) ^
     //   forall x. (x>=0 ^ x < str.len(itost)) =>
-    //     Us( x ) = Ud( x ) ++ Us( x+1 ) ^
-    //     U( x+1 ) = (str.code( Ud( x ) )-48) + 10*U( x ) ^
-    //     ite( x=0 AND str.len(itost)>1, 49, 48 ) <= str.code( Ud( x ) ) < 58
+    //     U( x+1 ) = (str.code( str.at(itost, x) )-48) + 10*U( x ) ^
+    //     ite( x=0 AND str.len(itost)>1, 49, 48 ) <=
+    //       str.code( str.at(itost, x) ) < 58 ^
+    //     n >= U(x + 1)
     // ELSE
     //   itost = ""
     // thus:
     //   int.to.str( n ) = itost
+    //
+    // Note: The conjunct `n >= U(x + 1)` is not needed for correctness but is
+    // just an optimization.
 
-    // In the above encoding, we use Us/Ud to introduce a chain of strings
-    // that allow us to refer to each character substring of itost. Notice this
-    // is more efficient than using str.substr( itost, x, 1 ).
     // The function U is an accumulator, where U( x ) for x>0 is the value of
     // str.to.int( str.substr( int.to.str( n ), 0, x ) ). For example, for
     // n=345, we have that U(1), U(2), U(3) = 3, 34, 345.
@@ -292,10 +293,6 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
     Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
-    Node us =
-        nm->mkSkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
-    Node ud =
-        nm->mkSkolem("Ud", nm->mkFunctionType(argTypes, nm->stringType()));
 
     lem = stoit.eqNode(nm->mkNode(APPLY_UF, u, lens));
     conc2.push_back(lem);
@@ -303,29 +300,25 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     lem = d_zero.eqNode(nm->mkNode(APPLY_UF, u, d_zero));
     conc2.push_back(lem);
 
-    lem = d_empty_str.eqNode(nm->mkNode(APPLY_UF, us, lens));
-    conc2.push_back(lem);
-
-    lem = s.eqNode(nm->mkNode(APPLY_UF, us, d_zero));
+    lem = nm->mkNode(GT, lens, d_zero);
     conc2.push_back(lem);
 
     Node x = nm->mkBoundVar(nm->integerType());
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g =
         nm->mkNode(AND, nm->mkNode(GEQ, x, d_zero), nm->mkNode(LT, x, lens));
-    Node udx = nm->mkNode(APPLY_UF, ud, x);
+    Node sx = nm->mkNode(STRING_SUBSTR, s, x, d_one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS, x, d_one));
-    Node c = nm->mkNode(MINUS, nm->mkNode(STRING_CODE, udx), c0);
-    Node usx = nm->mkNode(APPLY_UF, us, x);
-    Node usx1 = nm->mkNode(APPLY_UF, us, nm->mkNode(PLUS, x, d_one));
+    Node c = nm->mkNode(MINUS, nm->mkNode(STRING_CODE, sx), c0);
 
-    Node eqs = usx.eqNode(nm->mkNode(STRING_CONCAT, udx, usx1));
     Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
     Node cb =
         nm->mkNode(AND, nm->mkNode(GEQ, c, d_zero), nm->mkNode(LT, c, ten));
 
-    lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eqs, eq, cb));
+    Node ux1lem = nm->mkNode(GEQ, stoit, ux1);
+
+    lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eq, cb, ux1lem));
     lem = nm->mkNode(FORALL, xbv, lem);
     conc2.push_back(lem);
 
@@ -338,16 +331,19 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // THEN:
     //   stoit = -1 ^
     //   ( s = "" OR
-    //     ( k>=0 ^ k<len( s ) ^ ( str.code( str.substr( s, k, 1 ) ) < 48 OR
-    //                             str.code( str.substr( s, k, 1 ) ) >= 58 )))
+    //     ( k>=0 ^ k<len( s ) ^ ( str.code( str.at(s, k) ) < 48 OR
+    //                             str.code( str.at(s, k) ) >= 58 )))
     // ELSE:
     //   stoit = U( len( s ) ) ^ U( 0 ) = 0 ^
-    //   "" = Us( len( s ) ) ^ s = Us( 0 ) ^
+    //   str.len( s ) > 0 ^
     //   forall x. (x>=0 ^ x < str.len(s)) =>
-    //     Us( x ) = Ud( x ) ++ Us( x+1 ) ^
-    //     U( x+1 ) = ( str.code( Ud( x ) ) - 48 ) + 10*U( x )
-    //     48 <= str.code( Ud( x ) ) < 58
+    //     U( x+1 ) = ( str.code( str.at(s, x) ) - 48 ) + 10*U( x ) ^
+    //     48 <= str.code( str.at(s, x) ) < 58 ^
+    //     stoit >= U( x+1 )
     // Thus, str.to.int( s ) = stoit
+    //
+    // Note: The conjunct `stoit >= U( x+1 )` is not needed for correctness but
+    // is just an optimization.
 
     retNode = stoit;
   }
@@ -486,7 +482,84 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     // Thus, replaceall( x, y, z ) = rpaw
     retNode = rpaw;
-  } else if( t.getKind() == kind::STRING_STRCTN ){
+  }
+  else if (t.getKind() == STRING_TOLOWER || t.getKind() == STRING_TOUPPER)
+  {
+    Node x = t[0];
+    Node r = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "r");
+
+    Node lenx = nm->mkNode(STRING_LENGTH, x);
+    Node lenr = nm->mkNode(STRING_LENGTH, r);
+    Node eqLenA = lenx.eqNode(lenr);
+
+    Node i = nm->mkBoundVar(nm->integerType());
+    Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
+
+    Node ci = nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, x, i, d_one));
+    Node ri = nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, r, i, d_one));
+
+    Node lb = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 97 : 65));
+    Node ub = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 122 : 90));
+    Node offset =
+        nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? -32 : 32));
+
+    Node res = nm->mkNode(
+        ITE,
+        nm->mkNode(AND, nm->mkNode(LEQ, lb, ci), nm->mkNode(LEQ, ci, ub)),
+        nm->mkNode(PLUS, ci, offset),
+        ci);
+
+    Node bound =
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, lenr));
+    Node rangeA =
+        nm->mkNode(FORALL, bvi, nm->mkNode(OR, bound.negate(), ri.eqNode(res)));
+
+    // upper 65 ... 90
+    // lower 97 ... 122
+    // assert:
+    //   len(r) = len(x) ^
+    //   forall i. 0 <= i < len(r) =>
+    //     str.code( str.substr(r,i,1) ) = ite( 97 <= ci <= 122, ci-32, ci)
+    // where ci = str.code( str.substr(x,i,1) )
+    Node assert = nm->mkNode(AND, eqLenA, rangeA);
+    new_nodes.push_back(assert);
+
+    // Thus, toLower( x ) = r
+    retNode = r;
+  }
+  else if (t.getKind() == STRING_REV)
+  {
+    Node x = t[0];
+    Node r = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "r");
+
+    Node lenx = nm->mkNode(STRING_LENGTH, x);
+    Node lenr = nm->mkNode(STRING_LENGTH, r);
+    Node eqLenA = lenx.eqNode(lenr);
+
+    Node i = nm->mkBoundVar(nm->integerType());
+    Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
+
+    Node revi = nm->mkNode(
+        MINUS, nm->mkNode(STRING_LENGTH, x), nm->mkNode(PLUS, i, d_one));
+    Node ssr = nm->mkNode(STRING_SUBSTR, r, i, d_one);
+    Node ssx = nm->mkNode(STRING_SUBSTR, x, revi, d_one);
+
+    Node bound =
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, lenr));
+    Node rangeA = nm->mkNode(
+        FORALL, bvi, nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx)));
+    // assert:
+    //   len(r) = len(x) ^
+    //   forall i. 0 <= i < len(r) =>
+    //     substr(r,i,1) = substr(x,len(x)-(i+1),1)
+    Node assert = nm->mkNode(AND, eqLenA, rangeA);
+    new_nodes.push_back(assert);
+
+    // Thus, (str.rev x) = r
+    retNode = r;
+  }
+  else if (t.getKind() == kind::STRING_STRCTN)
+  {
     Node x = t[0];
     Node s = t[1];
     //negative contains reduces to existential
@@ -563,6 +636,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       }
     }
   }
+  else
+  {
+    Trace("strings-preprocess-debug")
+        << "Return " << retNode << " unchanged" << std::endl;
+  }
   return retNode;
 }
 
@@ -571,7 +649,7 @@ Node StringsPreprocess::simplifyRec( Node t, std::vector< Node > & new_nodes, st
   if( it!=visited.end() ){
     return it->second;
   }else{
-    Node retNode;
+    Node retNode = t;
     if( t.getNumChildren()==0 ){
       retNode = simplify( t, new_nodes );
     }else if( t.getKind()!=kind::FORALL ){

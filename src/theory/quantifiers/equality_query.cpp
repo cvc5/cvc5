@@ -20,6 +20,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 
@@ -31,8 +32,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe ) : d_qe( qe ), d_eqi_counter( c ), d_reset_count( 0 ){
-
+EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
+    context::Context* c, QuantifiersEngine* qe)
+    : d_qe(qe), d_eqi_counter(c), d_reset_count(0)
+{
 }
 
 EqualityQueryQuantifiersEngine::~EqualityQueryQuantifiersEngine(){
@@ -41,43 +44,6 @@ EqualityQueryQuantifiersEngine::~EqualityQueryQuantifiersEngine(){
 bool EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
   d_int_rep.clear();
   d_reset_count++;
-  return processInferences( e );
-}
-
-bool EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
-  if( options::inferArithTriggerEq() ){
-    eq::EqualityEngine* ee = getEngine();
-    //updated implementation
-    EqualityInference * ei = d_qe->getEqualityInference();
-    while( d_eqi_counter.get()<ei->getNumPendingMerges() ){
-      Node eq = ei->getPendingMerge( d_eqi_counter.get() );
-      Node eq_exp = ei->getPendingMergeExplanation( d_eqi_counter.get() );
-      Trace("quant-engine-ee-proc") << "processInferences : Infer : " << eq << std::endl;
-      Trace("quant-engine-ee-proc") << "      explanation : " << eq_exp << std::endl;
-      Assert( ee->hasTerm( eq[0] ) );
-      Assert( ee->hasTerm( eq[1] ) );
-      if( areDisequal( eq[0], eq[1] ) ){
-        Trace("quant-engine-ee-proc") << "processInferences : Conflict : " << eq << std::endl;
-        if( Trace.isOn("term-db-lemma") ){
-          Trace("term-db-lemma") << "Disequal terms, equal by normalization : " << eq[0] << " " << eq[1] << "!!!!" << std::endl;
-          if( !d_qe->getTheoryEngine()->needCheck() ){
-            Trace("term-db-lemma") << "  all theories passed with no lemmas." << std::endl;
-            //this should really never happen (implies arithmetic is incomplete when sharing is enabled)
-            Assert( false );
-          }
-          Trace("term-db-lemma") << "  add split on : " << eq << std::endl;
-        }
-        eq = Rewriter::rewrite(eq);
-        Node split = NodeManager::currentNM()->mkNode(OR, eq, eq.negate());
-        d_qe->addLemma(split);
-        return false;
-      }else{
-        ee->assertEquality( eq, true, eq_exp );
-        d_eqi_counter = d_eqi_counter.get() + 1;
-      }
-    }
-    Assert( ee->consistent() );
-  }
   return true;
 }
 
@@ -139,15 +105,18 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
           if( r.getType().isSort() ){
             Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
             //should never happen : UF constants should never escape model
-            Assert( false );
+            Assert(false);
           }
         }
       }
     }
   }
-  if( options::quantRepMode()==quantifiers::QUANT_REP_MODE_EE ){
+  if (options::quantRepMode() == options::QuantRepMode::EE)
+  {
     return r;
-  }else{
+  }
+  else
+  {
     TypeNode v_tn = q.isNull() ? a.getType() : q[0][index].getType();
     std::map<Node, Node>& v_int_rep = d_int_rep[v_tn];
     std::map<Node, Node>::const_iterator itir = v_int_rep.find(r);
@@ -198,8 +167,10 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
       if( d_rep_score.find( r_best )==d_rep_score.end() ){
         d_rep_score[ r_best ] = d_reset_count;
       }
-      Trace("internal-rep-select") << "...Choose " << r_best << " with score " << r_best_score << std::endl;
-      Assert( r_best.getType().isSubtypeOf( v_tn ) );
+      Trace("internal-rep-select")
+          << "...Choose " << r_best << " with score " << r_best_score
+          << " and type " << r_best.getType() << std::endl;
+      Assert(r_best.getType().isSubtypeOf(v_tn));
       v_int_rep[r] = r_best;
       if( r_best!=a ){
         Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
@@ -227,7 +198,7 @@ void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< N
     eqc.push_back( a );
   }
   //a should be in its equivalence class
-  Assert( std::find( eqc.begin(), eqc.end(), a )!=eqc.end() );
+  Assert(std::find(eqc.begin(), eqc.end(), a) != eqc.end());
 }
 
 TNode EqualityQueryQuantifiersEngine::getCongruentTerm( Node f, std::vector< TNode >& args ) {
@@ -273,11 +244,14 @@ int EqualityQueryQuantifiersEngine::getRepScore(Node n,
       return options::instLevelInputOnly() ? -1 : 0;
     }
   }else{
-    if( options::quantRepMode()==quantifiers::QUANT_REP_MODE_FIRST ){
+    if (options::quantRepMode() == options::QuantRepMode::FIRST)
+    {
       //score prefers earliest use of this term as a representative
       return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
-    }else{
-      Assert( options::quantRepMode()==quantifiers::QUANT_REP_MODE_DEPTH );
+    }
+    else
+    {
+      Assert(options::quantRepMode() == options::QuantRepMode::DEPTH);
       return quantifiers::TermUtil::getTermDepth( n );
     }
   }

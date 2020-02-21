@@ -134,7 +134,7 @@ class LambdaTypeRule {
     //get array representation of this function, if possible
     Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda(n);
     if( !na.isNull() ){
-      Assert( na.getType().isArray() );
+      Assert(na.getType().isArray());
       Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
       // must have the standard bound variable list
       Node bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( n.getType() );
@@ -193,62 +193,6 @@ class ChoiceTypeRule
     return n[0][0].getType();
   }
 }; /* class ChoiceTypeRule */
-
-class ChainTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::CHAIN);
-
-    if(!check) {
-      return nodeManager->booleanType();
-    }
-
-    TypeNode tn;
-    try {
-      // Actually do the expansion to do the typechecking.
-      // Shouldn't be extra work to do this, since the rewriter
-      // keeps a cache.
-      tn = nodeManager->getType(Rewriter::rewrite(n), check);
-    } catch(TypeCheckingExceptionPrivate& e) {
-      std::stringstream ss;
-      ss << "Cannot typecheck the expansion of chained operator `" << n.getOperator() << "':"
-         << std::endl;
-      // indent the sub-exception for clarity
-      std::stringstream ss2;
-      ss2 << e;
-      std::string eStr = ss2.str();
-      for(size_t i = eStr.find('\n'); i != std::string::npos; i = eStr.find('\n', i)) {
-        eStr.insert(++i, "| ");
-      }
-      ss << "| " << eStr;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-
-    // This check is intentionally != booleanType() rather than
-    // !(...isBoolean()): if we ever add a type compatible with
-    // Boolean (pseudobooleans or whatever), we have to revisit
-    // the above "!check" case where booleanType() is returned
-    // directly.  Putting this check here will cause a failure if
-    // it's ever relevant.
-    if(tn != nodeManager->booleanType()) {
-      std::stringstream ss;
-      ss << "Chains can only be formed over predicates; "
-         << "the operator here returns `" << tn << "', expected `"
-         << nodeManager->booleanType() << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-
-    return nodeManager->booleanType();
-  }
-};/* class ChainTypeRule */
-
-class ChainedOperatorTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::CHAIN_OP);
-    return nodeManager->getType(nodeManager->operatorOf(n.getConst<Chain>().getOperator()), check);
-  }
-};/* class ChainedOperatorTypeRule */
 
 class SortProperties {
  public:

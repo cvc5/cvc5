@@ -36,8 +36,8 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
+#include "base/check.h"
 #include "base/configuration_private.h"
-#include "base/cvc4_assert.h"
 
 // Conditionally define CVC4_MEMORY_LIMITING_DISABLED.
 #ifdef __APPLE__

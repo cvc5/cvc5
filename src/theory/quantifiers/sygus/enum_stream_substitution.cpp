@@ -45,11 +45,12 @@ void EnumStreamPermutation::reset(Node value)
   d_value = value;
   // get variables in value's type
   TypeNode tn = value.getType();
-  Node var_list = Node::fromExpr(tn.getDatatype().getSygusVarList());
+  Node var_list = tn.getDType().getSygusVarList();
   NodeManager* nm = NodeManager::currentNM();
   // get subtypes in value's type
+  SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   std::vector<TypeNode> sf_types;
-  d_tds->getSubfieldTypes(tn, sf_types);
+  ti.getSubfieldTypes(sf_types);
   // associate variables with constructors in all subfield types
   std::map<Node, Node> cons_var;
   for (const Node& v : var_list)
@@ -57,10 +58,10 @@ void EnumStreamPermutation::reset(Node value)
     // collect constructors for variable in all subtypes
     for (const TypeNode& stn : sf_types)
     {
-      const Datatype& dt = stn.getDatatype();
+      const DType& dt = stn.getDType();
       for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
       {
-        if (dt[i].getNumArgs() == 0 && Node::fromExpr(dt[i].getSygusOp()) == v)
+        if (dt[i].getNumArgs() == 0 && dt[i].getSygusOp() == v)
         {
           Node cons = nm->mkNode(APPLY_CONSTRUCTOR, dt[i].getConstructor());
           d_var_tn_cons[v][stn] = cons;
@@ -84,7 +85,7 @@ void EnumStreamPermutation::reset(Node value)
     if (seen_vars.insert(var).second)
     {
       // do not add repeated vars
-      d_var_classes[d_tds->getSubclassForVar(tn, var)].push_back(var);
+      d_var_classes[ti.getSubclassForVar(var)].push_back(var);
     }
   }
   for (const std::pair<unsigned, std::vector<Node>>& p : d_var_classes)
@@ -336,21 +337,22 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
 {
   d_tn = tn;
   // get variables in value's type
-  Node var_list = Node::fromExpr(tn.getDatatype().getSygusVarList());
+  Node var_list = tn.getDType().getSygusVarList();
   // get subtypes in value's type
   NodeManager* nm = NodeManager::currentNM();
+  SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   std::vector<TypeNode> sf_types;
-  d_tds->getSubfieldTypes(tn, sf_types);
+  ti.getSubfieldTypes(sf_types);
   // associate variables with constructors in all subfield types
   for (const Node& v : var_list)
   {
     // collect constructors for variable in all subtypes
     for (const TypeNode& stn : sf_types)
     {
-      const Datatype& dt = stn.getDatatype();
+      const DType& dt = stn.getDType();
       for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
       {
-        if (dt[i].getNumArgs() == 0 && Node::fromExpr(dt[i].getSygusOp()) == v)
+        if (dt[i].getNumArgs() == 0 && dt[i].getSygusOp() == v)
         {
           d_var_tn_cons[v][stn] =
               nm->mkNode(APPLY_CONSTRUCTOR, dt[i].getConstructor());
@@ -361,8 +363,8 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
   // split initial variables into classes
   for (const Node& v : var_list)
   {
-    Assert(d_tds->getSubclassForVar(tn, v) > 0);
-    d_var_classes[d_tds->getSubclassForVar(tn, v)].push_back(v);
+    Assert(ti.getSubclassForVar(v) > 0);
+    d_var_classes[ti.getSubclassForVar(v)].push_back(v);
   }
 }
 

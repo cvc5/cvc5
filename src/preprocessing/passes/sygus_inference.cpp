@@ -19,6 +19,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -188,20 +189,21 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
         if (cur.getKind() == APPLY_UF)
         {
           Node op = cur.getOperator();
-          if (std::find(free_functions.begin(), free_functions.end(), op)
-              == free_functions.end())
-          {
-            free_functions.push_back(op);
-          }
+          // visit the operator, which might not be a variable
+          visit.push_back(op);
         }
-        else if (cur.getKind() == VARIABLE)
+        else if (cur.isVar() && cur.getKind() != BOUND_VARIABLE)
         {
-          // a free variable is a 0-argument function to synthesize
+          // We are either in the case of a free first-order constant or a
+          // function in a higher-order context. We add to free_functions
+          // in either case. Note that a free constant that is not in a
+          // higher-order context is a 0-argument function-to-synthesize.
+          // We should not have traversed here before due to our visited cache.
           Assert(std::find(free_functions.begin(), free_functions.end(), cur)
                  == free_functions.end());
           free_functions.push_back(cur);
         }
-        else if (cur.getKind() == FORALL)
+        else if (cur.isClosure())
         {
           Trace("sygus-infer")
               << "...fail: non-top-level quantifier." << std::endl;
@@ -220,6 +222,24 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
   if (free_functions.empty())
   {
     Trace("sygus-infer") << "...fail: no free function symbols." << std::endl;
+    return false;
+  }
+
+  // Ensure the type of all free functions is handled by the sygus grammar
+  // constructor utility.
+  bool typeSuccess = true;
+  for (const Node& f : free_functions)
+  {
+    TypeNode tn = f.getType();
+    if (!theory::quantifiers::CegGrammarConstructor::isHandledType(tn))
+    {
+      Trace("sygus-infer") << "...fail: unhandled type " << tn << std::endl;
+      typeSuccess = false;
+      break;
+    }
+  }
+  if (!typeSuccess)
+  {
     return false;
   }
 
@@ -256,10 +276,11 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
 
   // quantify the body
   Trace("sygus-infer") << "Make inner sygus conjecture..." << std::endl;
+  body = body.negate();
   if (!qvars.empty())
   {
     Node bvl = nm->mkNode(BOUND_VAR_LIST, qvars);
-    body = nm->mkNode(EXISTS, bvl, body.negate());
+    body = nm->mkNode(EXISTS, bvl, body);
   }
 
   // sygus attribute to mark the conjecture as a sygus conjecture
