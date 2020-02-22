@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Util functions for words.
+ ** \brief Implementation of utility functions for words.
  **/
 
 #include "theory/strings/word.h"
@@ -23,11 +23,12 @@ namespace theory {
 namespace strings {
 namespace word {
 
-Node mkEmptyWord(TypeNode tn)
+Node mkEmptyWord(Kind k)
 {
-  if (tn.isString())
+  if (k==CONST_STRING)
   {
-    return nm->mkConst(String(""));
+    std::vector<unsigned> vec;
+    return nm->mkConst(String(vec));
   }
   Assert(false);
   return Node::null();
@@ -36,10 +37,17 @@ Node mkEmptyWord(TypeNode tn)
 Node mkWord(const std::vector<Node>& xs)
 {
   Assert( !consts.empty());
-  TypeNode tn = xs[0].getType();
-  if (tn.isString())
+  Kind k = xs[0].getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    std::vector<unsigned> vec;
+    for (TNode x : xs)
+    {
+      Assert(x.getKind()==CONST_STRING);
+      const std::vector<unsigned>& vecc = x.getVec();
+      vec.insert(vec.end(),vecc.begin(),vecc.end());
+    }
+    return nm->mkConst(String(vec));
   }
   Assert(false);
   return Node::null();
@@ -47,10 +55,10 @@ Node mkWord(const std::vector<Node>& xs)
   
 size_t getLength(TNode x)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    return x.getConst<String>().size();
   }
   Assert(false);
   return 0;
@@ -58,21 +66,18 @@ size_t getLength(TNode x)
 
 bool isEmpty(TNode x)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
-  {
-    return 
-  }
-  Assert(false);
-  return 0;
+  return getLength(x)==0;
 }
 
 std::size_t find(TNode x, TNode y, std::size_t start)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    Assert(sy.getKind()==CONST_STRING);
+    String sx = x.getConst<String>();
+    String sy = y.getConst<String>();
+    return sx.find(sy,start);
   }
   Assert(false);
   return 0;
@@ -80,10 +85,13 @@ std::size_t find(TNode x, TNode y, std::size_t start)
 
 std::size_t rfind(TNode x, TNode y, std::size_t start)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    Assert(sy.getKind()==CONST_STRING);
+    String sx = x.getConst<String>();
+    String sy = y.getConst<String>();
+    return sx.rfind(sy,start);
   }
   Assert(false);
   return 0;
@@ -91,10 +99,13 @@ std::size_t rfind(TNode x, TNode y, std::size_t start)
 
 bool hasPrefix(TNode x, TNode y)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    Assert(sy.getKind()==CONST_STRING);
+    String sx = x.getConst<String>();
+    String sy = y.getConst<String>();
+    return sx.hasPrefix(sy);
   }
   Assert(false);
   return false;
@@ -102,10 +113,13 @@ bool hasPrefix(TNode x, TNode y)
 
 bool hasSuffix(TNode x, TNode y)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    Assert(sy.getKind()==CONST_STRING);
+    String sx = x.getConst<String>();
+    String sy = y.getConst<String>();
+    return sx.hasSuffix(sy);
   }
   Assert(false);
   return false;
@@ -113,19 +127,27 @@ bool hasSuffix(TNode x, TNode y)
 
 Node replace(TNode x, TNode y, Node t)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  NodeManager * nm = NodeManager::currentNM();
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    Assert(y.getKind()==CONST_STRING);
+    Assert(t.getKind()==CONST_STRING);
+    String sx = x.getConst<String>();
+    String sy = y.getConst<String>();
+    String st = t.getConst<String>();
+    return nm->mkConst(String(sx.replace(sy,st)));
   }
   Assert(false);
   return Node::null();
 }
 Node substr(TNode x,std::size_t i)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  NodeManager * nm = NodeManager::currentNM();
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
+    String sx = x.getConst<String>();
     return 
   }
   Assert(false);
@@ -133,10 +155,12 @@ Node substr(TNode x,std::size_t i)
 }
 Node substr(TNode x,std::size_t i, std::size_t j)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  NodeManager * nm = NodeManager::currentNM();
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    String sx = x.getConst<String>();
+    return nm->mkConst(String(sx.substr(i,j)));
   }
   Assert(false);
   return Node::null();
@@ -152,10 +176,13 @@ Node suffix(TNode x, std::size_t i)
 
 bool noOverlapWith(TNode x, TNode y)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    Assert(sy.getKind()==CONST_STRING);
+    String sx = x.getConst<String>();
+    String sy = y.getConst<String>();
+    return sx.noOverlapWith(sy);
   }
   Assert(false);
   return false;
@@ -163,10 +190,13 @@ bool noOverlapWith(TNode x, TNode y)
 
 std::size_t overlap(TNode x, TNode y)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    Assert(sy.getKind()==CONST_STRING);
+    String sx = x.getConst<String>();
+    String sy = y.getConst<String>();
+    return sx.overlap(sy);
   }
   Assert(false);
   return 0;
@@ -174,10 +204,13 @@ std::size_t overlap(TNode x, TNode y)
 
 std::size_t roverlap(TNode x, TNode y)
 {
-  TypeNode tn = x.getType();
-  if (tn.isString())
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
   {
-    return 
+    Assert(sy.getKind()==CONST_STRING);
+    String sx = x.getConst<String>();
+    String sy = y.getConst<String>();
+    return sx.roverlap(sy);
   }
   Assert(false);
   return 0;

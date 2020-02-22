@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Util functions for theory strings for words.
+ ** \brief Utility functions for words.
  **/
 
 #include "cvc4_private.h"
@@ -28,8 +28,8 @@ namespace word {
 
 // ------------------------------ for words (string or sequence constants)
 
-/** make empty constant */
-Node mkEmptyWord(TypeNode tn);
+/** make empty constant of kind k */
+Node mkEmptyWord(Kind k);
 
 /** make word from constants in vector vec */
 Node mkWord(const std::vector<Node>& xs);
