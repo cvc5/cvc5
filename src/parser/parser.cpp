@@ -520,7 +520,6 @@ api::Term Parser::mkHoApply(api::Term expr, const std::vector<api::Term>& args)
   return expr;
 }
 
-
 api::Term Parser::mkAssociative(api::Kind kind,
                                 const std::vector<api::Term>& children) {
 
@@ -593,18 +592,19 @@ api::Term Parser::mkRightAssociative(api::Kind kind,
   }
   return n;
 }
+
 api::Term Parser::mkChain(api::Kind k, const std::vector<api::Term>& args)
 {
-  if(args.size() == 2) 
+  if (args.size() == 2)
   {
     // if this is the case exactly 1 pair will be generated so the
     // AND is not required
     return d_solver->mkTerm(k, args[0], args[1]);
   }
   std::vector<api::Term> children;
-  for (size_t i=0, nargsmo=args.size()-1; i<nargsmo; i++)
+  for (size_t i = 0, nargsmo = args.size() - 1; i < nargsmo; i++)
   {
-    children.push_back(d_solver->mkTerm(k, args[i], args[i+1]));
+    children.push_back(d_solver->mkTerm(k, args[i], args[i + 1]));
   }
   return d_solver->mkTerm(api::AND, children);
 }

@@ -268,6 +268,8 @@ EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
   return nullptr;
 }
 
+TheoryModel* SolverState::getModel() const { return d_valuation.getModel(); }
+
 void SolverState::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 {
   Assert(concat.getKind() == STRING_CONCAT

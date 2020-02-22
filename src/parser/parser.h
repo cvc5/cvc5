@@ -24,6 +24,7 @@
 #include <set>
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/expr_stream.h"
 #include "expr/kind.h"
@@ -676,7 +677,7 @@ public:
   api::Term mkHoApply(api::Term expr, const std::vector<api::Term>& args);
 
   /** make chain
-   * 
+   *
    * Given a kind k and argument terms t_1, ..., t_n, this returns the
    * conjunction of:
    *  (k t_1 t_2) .... (k t_{n-1} t_n)

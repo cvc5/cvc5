@@ -139,40 +139,6 @@
     (default (fail (term Int)))
   ))
 
-; Statement that z is the negation of greatest integer less than q.
-(declare holds_neg_of_greatest_integer_below
-  (! z mpz
-  (! q mpq
-    type)))
-
-; For proving statements of the above form.
-(declare check_neg_of_greatest_integer_below
-  (! z mpz
-  (! q mpq
-    (! sc_check (^ (is_greatest_integer_below (mp_neg z) q) tt)
-       (holds_neg_of_greatest_integer_below z q)))))
-
-; Axiom for tightening [Int] < q into -[Int] >= -greatest_int_below(q).
-; Note that [Int] < q is actually not([Int] >= q)
-(declare tighten_not_>=_IntReal
-  (! t       (term Int)  ; Omit
-  (! neg_t   (term Int)  ; Omit
-  (! real_bound mpq    ; Omit
-  (! neg_int_bound mpz ; Omit
-    (! pf_step (holds_neg_of_greatest_integer_below neg_int_bound real_bound)
-    (! pf_real_bound (th_holds (not (>=_IntReal t (a_real real_bound))))
-      (! sc_neg (^ (negate_linear_int_term t) neg_t)
-        (th_holds (>=_IntReal neg_t (term_int_to_real (a_int neg_int_bound))))))))))))
-
-; Axiom for tightening [Int] >= q into [Int] >= ceil(q)
-(declare tighten_>=_IntReal
-  (! t       (term Int)   ; Omit
-  (! real_bound mpq     ; Omit
-    (! int_bound mpz
-    (! pf_real_bound (th_holds (>=_IntReal t (a_real real_bound)))
-      (! sc_floor (^ (is_ceil real_bound int_bound) tt)
-        (th_holds (>=_IntReal t (term_int_to_real (a_int int_bound))))))))))
-
 ; Statement that z is the greatest integer less than z'.
 (declare holds_neg_of_greatest_integer_below_int
   (! z mpz
