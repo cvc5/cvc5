@@ -31,7 +31,7 @@ namespace word {
 /** make empty constant of kind k */
 Node mkEmptyWord(Kind k);
 
-/** make word from constants in vector vec */
+/** make word from constants in (non-empty) vector vec */
 Node mkWord(const std::vector<Node>& xs);
 
 /** Return the length of word x */
