@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file solver_state.h
+/*! \file eqc_info.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
