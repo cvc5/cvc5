@@ -740,52 +740,15 @@ void TheoryStrings::conflict(TNode a, TNode b){
   }
 }
 
-/** called when a new equivalance class is created */
 void TheoryStrings::eqNotifyNewClass(TNode t){
   Kind k = t.getKind();
-  if (k == kind::STRING_LENGTH || k == kind::STRING_CODE)
+  if (k == STRING_LENGTH || k == STRING_CODE)
   {
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
-    Node r = d_equalityEngine.getRepresentative(t[0]);
-    EqcInfo* ei = d_state.getOrMakeEqcInfo(r);
-    if (k == kind::STRING_LENGTH)
-    {
-      ei->d_lengthTerm = t[0];
-    }
-    else
-    {
-      ei->d_codeTerm = t[0];
-    }
     //we care about the length of this string
     registerTerm( t[0], 1 );
-    return;
   }
-  else if (k == CONST_STRING)
-  {
-    EqcInfo* ei = d_state.getOrMakeEqcInfo(t);
-    ei->d_prefixC = t;
-    ei->d_suffixC = t;
-    return;
-  }
-  else if (k == STRING_CONCAT)
-  {
-    d_state.addEndpointsToEqcInfo(t, t, t);
-  }
-}
-
-/** called when two equivalance classes will merge */
-void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
-  d_state.eqNotifyPreMerge(t1, t2);
-}
-
-/** called when two equivalance classes have merged */
-void TheoryStrings::eqNotifyPostMerge(TNode t1, TNode t2) {
-
-}
-
-/** called when two equivalance classes are disequal */
-void TheoryStrings::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  d_state.eqNotifyDisequal(t1, t2, reason);
+  d_state.eqNotifyNewClass(t);
 }
 
 void TheoryStrings::addCarePairs(TNodeTrie* t1,

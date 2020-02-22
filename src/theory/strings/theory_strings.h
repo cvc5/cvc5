@@ -124,9 +124,8 @@ class TheoryStrings : public Theory {
 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
-    TheoryStrings& d_str;
   public:
-    NotifyClass(TheoryStrings& t_str): d_str(t_str) {}
+    NotifyClass(TheoryStrings& ts): d_str(ts), d_state(ts.d_state) {}
     bool eqNotifyTriggerEquality(TNode equality, bool value) override
     {
       Debug("strings") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
@@ -143,7 +142,7 @@ class TheoryStrings : public Theory {
       if (value) {
         return d_str.propagate(predicate);
       } else {
-         return d_str.propagate(predicate.notNode());
+        return d_str.propagate(predicate.notNode());
       }
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
@@ -153,9 +152,9 @@ class TheoryStrings : public Theory {
     {
       Debug("strings") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
-      return d_str.propagate(t1.eqNode(t2));
+        return d_str.propagate(t1.eqNode(t2));
       } else {
-      return d_str.propagate(t1.eqNode(t2).notNode());
+        return d_str.propagate(t1.eqNode(t2).notNode());
       }
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
@@ -171,18 +170,22 @@ class TheoryStrings : public Theory {
     void eqNotifyPreMerge(TNode t1, TNode t2) override
     {
       Debug("strings") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << std::endl;
-      d_str.eqNotifyPreMerge(t1, t2);
+      d_state.eqNotifyPreMerge(t1, t2);
     }
     void eqNotifyPostMerge(TNode t1, TNode t2) override
     {
       Debug("strings") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << std::endl;
-      d_str.eqNotifyPostMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
       Debug("strings") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
-      d_str.eqNotifyDisequal(t1, t2, reason);
+      d_state.eqNotifyDisequal(t1, t2, reason);
     }
+  private:
+    /** The theory of strings object to notify */
+    TheoryStrings& d_str;
+    /** The solver state of the theory of strings */
+    SolverState& d_state;
   };/* class TheoryStrings::NotifyClass */
 
   //--------------------------- helper functions
@@ -280,12 +283,6 @@ private:
   void conflict(TNode a, TNode b);
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
-  /** called when two equivalence classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes have merged */
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes are made disequal */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
  protected:
   /** compute care graph */
