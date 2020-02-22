@@ -126,22 +126,10 @@ void OpBlack::testGetIndicesUint()
       floatingpoint_to_ubv_ot.getIndices<uint32_t>();
   TS_ASSERT(floatingpoint_to_ubv_idx == 11);
 
-  Op floatingpoint_to_ubv_total_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_UBV_TOTAL, 12);
-  uint32_t floatingpoint_to_ubv_total_idx =
-      floatingpoint_to_ubv_total_ot.getIndices<uint32_t>();
-  TS_ASSERT(floatingpoint_to_ubv_total_idx == 12);
-
   Op floatingpoint_to_sbv_ot = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
   uint32_t floatingpoint_to_sbv_idx =
       floatingpoint_to_sbv_ot.getIndices<uint32_t>();
   TS_ASSERT(floatingpoint_to_sbv_idx == 13);
-
-  Op floatingpoint_to_sbv_total_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_SBV_TOTAL, 14);
-  uint32_t floatingpoint_to_sbv_total_idx =
-      floatingpoint_to_sbv_total_ot.getIndices<uint32_t>();
-  TS_ASSERT(floatingpoint_to_sbv_total_idx == 14);
 
   Op tuple_update_ot = d_solver.mkOp(TUPLE_UPDATE, 5);
   uint32_t tuple_update_idx = tuple_update_ot.getIndices<uint32_t>();
