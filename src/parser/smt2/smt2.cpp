@@ -172,12 +172,12 @@ void Smt2::addStringOperators() {
   // at the moment, we only use this syntax for smt2.6.1
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
   {
-    addOperator(kind::STRING_ITOS, "str.from_int");
-    addOperator(kind::STRING_STOI, "str.to_int");
-    addOperator(kind::STRING_IN_REGEXP, "str.in_re");
-    addOperator(kind::STRING_TO_REGEXP, "str.to_re");
-    addOperator(kind::STRING_CODE, "str.to_code");
-    addOperator(kind::STRING_STRREPLALL, "str.replace_all");
+    addOperator(api::STRING_ITOS, "str.from_int");
+    addOperator(api::STRING_STOI, "str.to_int");
+    addOperator(api::STRING_IN_REGEXP, "str.in_re");
+    addOperator(api::STRING_TO_REGEXP, "str.to_re");
+    addOperator(api::STRING_CODE, "str.to_code");
+    addOperator(api::STRING_STRREPLALL, "str.replace_all");
   }
   else
   {

@@ -3292,6 +3292,37 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Term Solver::mkWitness(Sort s) const
+{
+  CVC4_API_CHECK(!s.isNull())
+      << "Expected non-null sort";
+  Term w = s.getType().mkGroundTerm();
+  return w;
+}
+
+Term Solver::mkTermCast(Term t, Sort s) const
+{
+  CVC4_API_CHECK(!t.isNull())
+      << "Expected non-null term";
+  CVC4_API_CHECK(!s.isNull())
+      << "Expected non-null sort";
+  if (t.getKind()==APPLY_CONSTRUCTOR)
+  {
+    // operator is the first child
+    std::vector<Term> children;
+    children.insert(children.end(),t.begin(), t.end());
+    Expr e = children[0].getExpr();
+    // must extract the datatype constructor for it
+    const CVC4::DatatypeConstructor& dtc = CVC4::Datatype::datatypeOf(e)[CVC4::Datatype::indexOf(e)];
+    // the operator is the first child, apply a type ascription to it
+    children[0] = Term(d_exprMgr->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
+                          d_exprMgr->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))), children[0].getExpr() ));
+    return mkTerm(APPLY_CONSTRUCTOR, children);
+  }
+  
+  return t;
+}
+
 /* Create operators                                                           */
 /* -------------------------------------------------------------------------- */
 

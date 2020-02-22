@@ -2088,6 +2088,22 @@ class CVC4_PUBLIC Solver
   Term mkTuple(const std::vector<Sort>& sorts,
                const std::vector<Term>& terms) const;
 
+  /**
+   * Make witness term for sort. Returns an arbitrary term of sort s.
+   * @param s The Sort to witness.
+   * @return The Term of sort s.
+   */
+  Term mkWitness(Sort s) const;
+  
+  /** 
+   * Cast term. Construct the term corresponding to casting t to sort s
+   * if possible.
+   * @param t The Term to cast
+   * @param s The desired Sort of the cast.
+   * @return The Term t casted to Sort s.
+   */
+  Term mkTermCast(Term t, Sort s) const;
+               
   /* .................................................................... */
   /* Create Operators                                                     */
   /* .................................................................... */
