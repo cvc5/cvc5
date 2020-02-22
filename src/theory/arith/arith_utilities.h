@@ -336,8 +336,8 @@ void printRationalApprox(const char* c, Node cr, unsigned prec = 5);
 Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs);
 
 /** helper function, returns true if n has any subterm of kind k */
-bool hasSubtermKind(Kind k, Node n);
-
+bool hasSubtermKind(Kind k, Node n);  
+  
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

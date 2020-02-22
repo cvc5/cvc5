@@ -551,6 +551,7 @@ void NonlinearExtension::sendLemmas(const std::vector<Node>& out,
     {
       d_lemmas.insert(lem);
     }
+    // also indicate this is a tautology
     d_model.addTautology(lem);
   }
 }
