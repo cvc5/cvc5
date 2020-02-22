@@ -532,39 +532,42 @@ api::Term Parser::mkChain(api::Kind k, const std::vector<api::Term>& args)
 }
 
 api::Term Parser::mkAssociative(api::Kind kind,
-                                const std::vector<api::Term>& children) {
-
+                                const std::vector<api::Term>& children)
+{
   const unsigned int max = getExprManager()->maxArity(extToIntKind(kind));
   unsigned int numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
-  if( numChildren <= max ) {
-    return d_solver->mkTerm(kind,children);
+  if (numChildren <= max)
+  {
+    return d_solver->mkTerm(kind, children);
   }
   const unsigned int min = getExprManager()->minArity(extToIntKind(kind));
 
-  std::vector<api::Term>::const_iterator it = children.begin() ;
-  std::vector<api::Term>::const_iterator end = children.end() ;
+  std::vector<api::Term>::const_iterator it = children.begin();
+  std::vector<api::Term>::const_iterator end = children.end();
 
   /* The new top-level children and the children of each sub node */
   std::vector<api::Term> newChildren;
   std::vector<api::Term> subChildren;
 
-  while( it != end && numChildren > max ) {
+  while (it != end && numChildren > max)
+  {
     /* Grab the next max children and make a node for them. */
-    for( std::vector<api::Term>::const_iterator next = it + max;
-         it != next;
-         ++it, --numChildren ) {
+    for (std::vector<api::Term>::const_iterator next = it + max; it != next;
+         ++it, --numChildren)
+    {
       subChildren.push_back(*it);
     }
-    api::Term subTerm = d_solver->mkTerm(kind,subChildren);
+    api::Term subTerm = d_solver->mkTerm(kind, subChildren);
     newChildren.push_back(subTerm);
 
     subChildren.clear();
   }
 
   // add the leftover children
-  if(numChildren > 0) {
+  if (numChildren > 0)
+  {
     for (; it != end; ++it)
     {
       newChildren.push_back(*it);
@@ -573,7 +576,7 @@ api::Term Parser::mkAssociative(api::Kind kind,
 
   /* It would be really weird if this happened (it would require
    * min > 2, for one thing), but let's make sure. */
-  if(newChildren.size() >= min)
+  if (newChildren.size() >= min)
   {
     parseError("internal error: bad number of newChildren for mkAssociative");
   }

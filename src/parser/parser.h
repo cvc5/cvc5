@@ -699,22 +699,25 @@ public:
    * The order of the arguments will be preserved in a left-to-right
    * traversal of the resulting tree.
    */
-  api::Term mkAssociative(api::Kind kind, const std::vector<api::Term>& children);
+  api::Term mkAssociative(api::Kind kind,
+                          const std::vector<api::Term>& children);
 
   /**
    * Create an api::Term by applying an binary left-associative operator to the
    * children. For example, mkLeftAssociative( f, { a, b, c } ) returns
    * f( f( a, b ), c ).
    */
-  api::Term mkLeftAssociative(api::Kind kind, const std::vector<api::Term>& children);
-  
+  api::Term mkLeftAssociative(api::Kind kind,
+                              const std::vector<api::Term>& children);
+
   /**
    * Create an api::Term by applying an binary right-associative operator to the
    * children. For example, mkRightAssociative( f, { a, b, c } ) returns
    * f( a, f( b, c ) ).
    */
-  api::Term mkRightAssociative(api::Kind kind, const std::vector<api::Term>& children);
-  
+  api::Term mkRightAssociative(api::Kind kind,
+                               const std::vector<api::Term>& children);
+
   /**
    * Add an operator to the current legal set.
    *
