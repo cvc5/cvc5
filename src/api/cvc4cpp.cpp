@@ -3313,19 +3313,32 @@ Term Solver::mkTermCast(Term t, Sort s) const
       << "Expected non-null term";
   CVC4_API_CHECK(!s.isNull())
       << "Expected non-null sort";
-  if (t.getKind()==APPLY_CONSTRUCTOR)
+  if (s.isParametricDatatype())
   {
-    CVC4_API_CHECK(s.isDatatype()) << "Expected datatype sort to cast";
-    // operator is the first child
-    std::vector<Term> children;
-    children.insert(children.end(),t.begin(), t.end());
-    Expr e = children[0].getExpr();
-    // must extract the datatype constructor for it
-    const CVC4::DatatypeConstructor& dtc = CVC4::Datatype::datatypeOf(e)[CVC4::Datatype::indexOf(e)];
-    // the operator is the first child, apply a type ascription to it
-    children[0] = Term(d_exprMgr->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
-                          d_exprMgr->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))), children[0].getExpr() ));
-    return mkTerm(APPLY_CONSTRUCTOR, children);
+    if (t.getKind()==APPLY_CONSTRUCTOR)
+    {
+      // operator is the first child
+      std::vector<Term> children;
+      children.insert(children.end(),t.begin(), t.end());
+      Expr e = children[0].getExpr();
+      // must extract the datatype constructor for it
+      const CVC4::DatatypeConstructor& dtc = CVC4::Datatype::datatypeOf(e)[CVC4::Datatype::indexOf(e)];
+      // the operator is the first child, apply a type ascription to it
+      children[0] = Term(d_exprMgr->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
+                            d_exprMgr->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))), e ));
+      return mkTerm(APPLY_CONSTRUCTOR, children);
+    }
+    else if (t.getSort().isConstructor())
+    {
+      // apply type ascription to the operator
+      Expr e = t.getExpr();
+      const CVC4::DatatypeConstructor& dtc =
+          CVC4::Datatype::datatypeOf(e)[CVC4::Datatype::indexOf(e)];
+      return Term(d_exprMgr->mkExpr(
+          kind::APPLY_TYPE_ASCRIPTION,
+          d_exprMgr->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
+          e));
+    }
   }
   CVC4_API_CHECK(t.getSort()==s) << "Failed to cast";
   return t;

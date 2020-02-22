@@ -1561,7 +1561,6 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
       parseError(ss.str());
     }
   }
-  ExprManager* em = getExprManager();
   api::Sort etype = p.d_expr.getSort();
   api::Kind ekind = p.d_expr.getKind();
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
@@ -1571,26 +1570,13 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   {
     // nullary constructors with a type ascription
     // could be a parametric constructor or just an overloaded constructor
-    if (type.isParametricDatatype())
-    {
-      // standard type ascription
-      p.d_expr = applyTypeAscription(p.d_expr,type);
-    }
+    // standard type ascription
+    p.d_expr = d_solver->mkTermCast(p.d_expr,type);
   }
   else if (etype.isConstructor())
   {
     // a non-nullary constructor with a type ascription
-    if (type.isParametricDatatype())
-    {
-      // apply type ascription to the operator
-      Expr e = p.d_expr.getExpr();
-      const DatatypeConstructor& dtc =
-          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-      p.d_expr = api::Term(em->mkExpr(
-          kind::APPLY_TYPE_ASCRIPTION,
-          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type.getType()))),
-          p.d_expr.getExpr()));
-    }
+    p.d_expr = d_solver->mkTermCast(p.d_expr, type);
   }
   else if (ekind == api::EMPTYSET)
   {
