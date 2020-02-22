@@ -152,7 +152,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "java/arrays_java.i" // C arrays to Java arrays
 %include "java/various.i" // map char** to java.lang.String[]
 
-/*
 // Functions on the C++ side taking std::ostream& should on the Java side
 // take a java.io.OutputStream.  A JavaOutputStreamAdapter is created in
 // the wrapper which creates and passes on a std::stringstream to the C++
@@ -215,7 +214,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
     SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, explanation.c_str());
   }
 %}
-*/
 
 /* Copied (and modified) from java.swg; the standard swig version causes
  * negative BigInteger to be interpreted unsigned.  Here we throw an

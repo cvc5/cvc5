@@ -1576,7 +1576,18 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   else if (etype.isConstructor())
   {
     // a non-nullary constructor with a type ascription
-    p.d_expr = d_solver->mkTermCast(p.d_expr, type);
+    if (type.isParametricDatatype())
+    {	
+      ExprManager * em = getExprManager();
+      // apply type ascription to the operator	
+      Expr e = p.d_expr.getExpr();	
+      const DatatypeConstructor& dtc =	
+          Datatype::datatypeOf(e)[Datatype::indexOf(e)];	
+      p.d_expr = api::Term(em->mkExpr(	
+          kind::APPLY_TYPE_ASCRIPTION,	
+          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type.getType()))),	
+          p.d_expr.getExpr()));	
+    }
   }
   else if (ekind == api::EMPTYSET)
   {
