@@ -523,14 +523,14 @@ api::Term Parser::mkHoApply(api::Term expr, const std::vector<api::Term>& args)
 api::Term Parser::mkAssociative(api::Kind kind,
                                 const std::vector<api::Term>& children) {
 
-  const unsigned int max = getExprManager()->maxArity(extToIntKind(kind));
-  unsigned int numChildren = children.size();
+  const size_t max = getExprManager()->maxArity(extToIntKind(kind));
+  size_t numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
   if( numChildren <= max ) {
     return d_solver->mkTerm(kind,children);
   }
-  const unsigned int min = getExprManager()->minArity(extToIntKind(kind));
+  const size_t min = getExprManager()->minArity(extToIntKind(kind));
 
   std::vector<api::Term>::const_iterator it = children.begin() ;
   std::vector<api::Term>::const_iterator end = children.end() ;
@@ -575,7 +575,7 @@ api::Term Parser::mkLeftAssociative(api::Kind kind,
                                     const std::vector<api::Term>& children)
 {
   api::Term n = children[0];
-  for (unsigned i = 1, size = children.size(); i < size; i++)
+  for (size_t i = 1, size = children.size(); i < size; i++)
   {
     n = d_solver->mkTerm(kind, n, children[i]);
   }
@@ -586,7 +586,7 @@ api::Term Parser::mkRightAssociative(api::Kind kind,
                                      const std::vector<api::Term>& children)
 {
   api::Term n = children[children.size() - 1];
-  for (unsigned i = children.size() - 1; i > 0;)
+  for (size_t i = children.size() - 1; i > 0;)
   {
     n = d_solver->mkTerm(kind, children[--i], n);
   }
