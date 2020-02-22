@@ -165,8 +165,10 @@ class NlModel
   bool usedApproximate() const;
   /** Set tautology
    *
-   * This explicitly marks that literal lit is a tautology (satisfied in
-   * all models). We use this for internally generated literals like:
+   * This states that formula n is a tautology (satisfied in all models). 
+   * We use this for internally generated lemmas. This method computes a
+   * set of literals that are implied by n, that are hence tautological
+   * as well, such as:
    *   l_pi <= real.pi <= u_pi (pi approximations)
    *   sin(x) = -1*sin(-x)
    * where these literals are internally generated for the purposes
@@ -177,7 +179,7 @@ class NlModel
    *
    * Tautological literals do not need be checked during checkModel.
    */
-  void addTautology(Node lit);
+  void addTautology(Node n);
   //------------------------------ end recording model substitutions and bounds
 
   /** print model value, for debugging.

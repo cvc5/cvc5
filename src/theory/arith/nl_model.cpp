@@ -428,7 +428,44 @@ void NlModel::setUsedApproximate() { d_used_approx = true; }
 
 bool NlModel::usedApproximate() const { return d_used_approx; }
 
-void NlModel::addTautology(Node lit) { d_tautology.insert(lit); }
+void NlModel::addTautology(Node n) 
+{
+  // ensure rewritten
+  n = Rewriter::rewrite(n);
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end()) {
+      visited.insert(cur);
+      if (cur.getKind()==AND)
+      {
+        // children of AND are also implied
+        for (const Node& cn : cur ){
+          visit.push_back(cn);
+        }
+      }
+      else
+      {
+        // is this an arithmetic literal?
+        Node atom = cur.getKind()==NOT ? cur[0] : cur;
+        if ((atom.getKind()==EQUAL && atom[0].getType().isReal()) || atom.getKind()==LEQ)
+        {
+          // add to tautological literals if it does not contain
+          // non-linear multiplication
+          if (!hasSubtermKind(NONLINEAR_MULT,atom))
+          {
+            Trace("nl-taut") << "Tautological literal: " << atom << std::endl;
+            d_tautology.insert(cur); 
+          }
+        }
+      }
+    }
+  } while (!visit.empty());
+}
 
 bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,

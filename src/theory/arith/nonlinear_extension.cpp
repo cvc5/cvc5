@@ -551,6 +551,7 @@ void NonlinearExtension::sendLemmas(const std::vector<Node>& out,
     {
       d_lemmas.insert(lem);
     }
+    d_model.addTautology(lem);
   }
 }
 
@@ -2791,11 +2792,6 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
           Assert(d_trSlaves.find(t) != d_trSlaves.end());
           std::vector< Node > children;
 
-          Node symEq =
-              NodeManager::currentNM()->mkNode(PLUS, t, symn).eqNode(d_zero);
-          symEq = Rewriter::rewrite(symEq);
-          d_model.addTautology(symEq);
-
           lem = NodeManager::currentNM()->mkNode(
               AND,
               // bounds
@@ -2804,7 +2800,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
                   NodeManager::currentNM()->mkNode(LEQ, t, d_one),
                   NodeManager::currentNM()->mkNode(GEQ, t, d_neg_one)),
               // symmetry
-              symEq,
+              NodeManager::currentNM()->mkNode(PLUS, t, symn).eqNode(d_zero),
               // sign
               NodeManager::currentNM()->mkNode(
                   EQUAL,
