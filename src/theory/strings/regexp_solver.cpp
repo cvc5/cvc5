@@ -36,11 +36,13 @@ namespace strings {
 RegExpSolver::RegExpSolver(TheoryStrings& p,
                            SolverState& s,
                            InferenceManager& im,
+                           ExtfSolver& es,
                            context::Context* c,
                            context::UserContext* u)
     : d_parent(p),
       d_state(s),
       d_im(im),
+      d_esolver(es),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
       d_processed_memberships(c)
@@ -55,6 +57,37 @@ RegExpSolver::RegExpSolver(TheoryStrings& p,
 Node RegExpSolver::mkAnd(Node c1, Node c2)
 {
   return NodeManager::currentNM()->mkNode(AND, c1, c2);
+}
+
+void RegExpSolver::checkMemberships()
+{
+  // add the memberships
+  std::vector<Node> mems = d_esolver.getActive(STRING_IN_REGEXP);
+  // maps representatives to regular expression memberships in that class
+  std::map<Node, std::vector<Node> > assertedMems;
+  const std::map<Node, ExtfInfoTmp>& einfo = d_esolver.getInfo();
+  std::map<Node, ExtfInfoTmp>::const_iterator it;
+  for (unsigned i = 0; i < mems.size(); i++)
+  {
+    Node n = mems[i];
+    Assert(n.getKind() == STRING_IN_REGEXP);
+    it = einfo.find(n);
+    Assert(it != einfo.end());
+    if (!it->second.d_const.isNull())
+    {
+      bool pol = it->second.d_const.getConst<bool>();
+      Trace("strings-process-debug")
+          << "  add membership : " << n << ", pol = " << pol << std::endl;
+      Node r = d_state.getRepresentative(n[0]);
+      assertedMems[r].push_back(pol ? n : n.negate());
+    }
+    else
+    {
+      Trace("strings-process-debug")
+          << "  irrelevant (non-asserted) membership : " << n << std::endl;
+    }
+  }
+  check(assertedMems);
 }
 
 void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
