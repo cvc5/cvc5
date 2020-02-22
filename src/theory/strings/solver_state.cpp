@@ -211,7 +211,6 @@ void SolverState::eqNotifyNewClass(TNode t)
   Kind k = t.getKind();
   if (k == STRING_LENGTH || k == STRING_CODE)
   {
-    Trace("strings-debug") << "New length eqc : " << t << std::endl;
     Node r = d_ee.getRepresentative(t[0]);
     EqcInfo* ei = getOrMakeEqcInfo(r);
     if (k == STRING_LENGTH)

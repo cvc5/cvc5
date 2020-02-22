@@ -88,19 +88,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_esolver.reset(new ExtfSolver(
       c, u, d_state, d_im, d_sk_cache, d_bsolver, d_csolver, extt));
   d_rsolver.reset(new RegExpSolver(*this, d_state, d_im, *d_esolver, c, u));
-  getExtTheory()->addFunctionKind(kind::STRING_SUBSTR);
-  getExtTheory()->addFunctionKind(kind::STRING_STRIDOF);
-  getExtTheory()->addFunctionKind(kind::STRING_ITOS);
-  getExtTheory()->addFunctionKind(kind::STRING_STOI);
-  getExtTheory()->addFunctionKind(kind::STRING_STRREPL);
-  getExtTheory()->addFunctionKind(kind::STRING_STRREPLALL);
-  getExtTheory()->addFunctionKind(kind::STRING_STRCTN);
-  getExtTheory()->addFunctionKind(kind::STRING_IN_REGEXP);
-  getExtTheory()->addFunctionKind(kind::STRING_LEQ);
-  getExtTheory()->addFunctionKind(kind::STRING_CODE);
-  getExtTheory()->addFunctionKind(kind::STRING_TOLOWER);
-  getExtTheory()->addFunctionKind(kind::STRING_TOUPPER);
-  getExtTheory()->addFunctionKind(kind::STRING_REV);
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
