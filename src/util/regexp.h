@@ -140,13 +140,15 @@ class CVC4_PUBLIC String {
   bool isRepeated() const;
   bool tailcmp(const String& y, int& c) const;
 
-  /** 
-  * Return the first position y occurs in this string, or std::string::npos otherwise.
-  */
+  /**
+   * Return the first position y occurs in this string, or std::string::npos
+   * otherwise.
+   */
   std::size_t find(const String& y, const std::size_t start = 0) const;
-  /** 
-  * Return the first position y occurs in this string searching from the end, or std::string::npos otherwise.
-  */
+  /**
+   * Return the first position y occurs in this string searching from the end,
+   * or std::string::npos otherwise.
+   */
   std::size_t rfind(const String& y, const std::size_t start = 0) const;
   /** Returns true if y is a prefix of this */
   bool hasPrefix(const String& y) const;
@@ -156,7 +158,8 @@ class CVC4_PUBLIC String {
   String replace(const String& s, const String& t) const;
   /** Return the substring of this string starting at index i */
   String substr(std::size_t i) const;
-  /** Return the substring of this string starting at index i with size at most j */
+  /** Return the substring of this string starting at index i with size at most
+   * j */
   String substr(std::size_t i, std::size_t j) const;
   /** Return the prefix of this string of size at most i */
   String prefix(std::size_t i) const { return substr(0, i); }
