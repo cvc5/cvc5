@@ -344,7 +344,7 @@ private:
    */
   std::unique_ptr<ExtfSolver> d_esolver;
   /** regular expression solver module */
-  RegExpSolver d_regexp_solver;
+  std::unique_ptr<RegExpSolver> d_rsolver;
   /** regular expression elimination module */
   RegExpElimination d_regexp_elim;
   /** Strings finite model finding decision strategy */
@@ -392,15 +392,6 @@ private:
    * there does not exist a term of the form str.len(si) in the current context.
    */
   void checkRegisterTermsNormalForms();
-  /** check regular expression memberships
-   *
-   * This checks the satisfiability of all regular expression memberships
-   * of the form (not) s in R. We use various heuristic techniques based on
-   * unrolling, combined with techniques from Liang et al, "A Decision Procedure
-   * for Regular Membership and Length Constraints over Unbounded Strings",
-   * FroCoS 2015.
-   */
-  void checkMemberships();
   //-----------------------end inference steps
 
   //-----------------------representation of the strategy

@@ -79,7 +79,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_bsolver(c, u, d_state, d_im),
       d_csolver(c, u, d_state, d_im, d_sk_cache, d_bsolver),
       d_esolver(nullptr),
-      d_regexp_solver(*this, d_state, d_im, c, u),
+      d_rsolver(nullptr),
       d_stringsFmf(c, u, valuation, d_sk_cache),
       d_strategy_init(false)
 {
@@ -87,6 +87,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   ExtTheory* extt = getExtTheory();
   d_esolver.reset(new ExtfSolver(
       c, u, d_state, d_im, d_sk_cache, d_bsolver, d_csolver, extt));
+  d_rsolver.reset(new RegExpSolver(*this, d_state, d_im, *d_esolver, c, u));
   getExtTheory()->addFunctionKind(kind::STRING_SUBSTR);
   getExtTheory()->addFunctionKind(kind::STRING_STRIDOF);
   getExtTheory()->addFunctionKind(kind::STRING_ITOS);
@@ -726,37 +727,6 @@ bool TheoryStrings::needsCheckLastEffort() {
   return false;
 }
 
-void TheoryStrings::checkMemberships()
-{
-  // add the memberships
-  std::vector<Node> mems = getExtTheory()->getActive(kind::STRING_IN_REGEXP);
-  // maps representatives to regular expression memberships in that class
-  std::map<Node, std::vector<Node> > assertedMems;
-  const std::map<Node, ExtfInfoTmp>& einfo = d_esolver->getInfo();
-  std::map<Node, ExtfInfoTmp>::const_iterator it;
-  for (unsigned i = 0; i < mems.size(); i++)
-  {
-    Node n = mems[i];
-    Assert(n.getKind() == STRING_IN_REGEXP);
-    it = einfo.find(n);
-    Assert(it != einfo.end());
-    if (!it->second.d_const.isNull())
-    {
-      bool pol = it->second.d_const.getConst<bool>();
-      Trace("strings-process-debug")
-          << "  add membership : " << n << ", pol = " << pol << std::endl;
-      Node r = d_state.getRepresentative(n[0]);
-      assertedMems[r].push_back(pol ? n : n.negate());
-    }
-    else
-    {
-      Trace("strings-process-debug")
-          << "  irrelevant (non-asserted) membership : " << n << std::endl;
-    }
-  }
-  d_regexp_solver.check(assertedMems);
-}
-
 /** Conflict when merging two constants */
 void TheoryStrings::conflict(TNode a, TNode b){
   if (!d_state.isInConflict())
@@ -1223,7 +1193,7 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: d_esolver->checkExtfReductions(effort); break;
-    case CHECK_MEMBERSHIP: checkMemberships(); break;
+    case CHECK_MEMBERSHIP: d_rsolver->checkMemberships(); break;
     case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;
   }

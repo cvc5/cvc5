@@ -668,6 +668,11 @@ const std::map<Node, ExtfInfoTmp>& ExtfSolver::getInfo() const
 }
 bool ExtfSolver::hasExtendedFunctions() const { return d_hasExtf.get(); }
 
+std::vector<Node> ExtfSolver::getActive(Kind k) const
+{
+  return d_extt->getActive(k);
+}
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4
