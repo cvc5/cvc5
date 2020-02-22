@@ -1051,7 +1051,7 @@ sygusGrammar[CVC4::api::Sort & ret,
       // well-founded (see 3423).
       if (aci)
       {
-        CVC4::api::Term c = api::Term(btt.getType().mkGroundTerm());
+        CVC4::api::Term c = SOLVER->mkWitness(btt);
         PARSER_STATE->addSygusConstructorTerm(datatypes[i], c, ntsToUnres);
       }
       else if (datatypes[i].getNumConstructors() == 0)
@@ -1989,8 +1989,11 @@ identifier[CVC4::ParseOp& p]
           PARSER_STATE->parseError(
               "Bad syntax for test (_ is X), X must be a constructor.");
         }
-        Expr ef = f.getExpr();
-        p.d_expr = api::Term(Datatype::datatypeOf(ef)[Datatype::indexOf(ef)].getTester());
+        // get the datatype that f belongs to
+        api::Sort sf = f.getSort().getConstructorCodomainSort();
+        api::Datatype d = sf.getDatatype();
+        api::DatatypeConstructor dc = d.getConstructorForTerm(f);
+        p.d_expr = dc.getTesterTerm();
       }
     | TUPLE_SEL_TOK m=INTEGER_LITERAL
       {

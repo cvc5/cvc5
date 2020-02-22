@@ -2102,6 +2102,13 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
   return (*d_dtype)[name];
 }
 
+DatatypeConstructor Datatype::getConstructorForTerm(Term cons) const
+{
+  // FIXME: checks
+  size_t idx = CVC4::Datatype::indexOf(cons.getExpr());
+  return (*d_dtype)[idx];
+}
+
 Term Datatype::getConstructorTerm(const std::string& name) const
 {
   // CHECK: cons with name exists?
@@ -3308,6 +3315,7 @@ Term Solver::mkTermCast(Term t, Sort s) const
       << "Expected non-null sort";
   if (t.getKind()==APPLY_CONSTRUCTOR)
   {
+    CVC4_API_CHECK(s.isDatatype()) << "Expected datatype sort to cast";
     // operator is the first child
     std::vector<Term> children;
     children.insert(children.end(),t.begin(), t.end());
@@ -3319,7 +3327,7 @@ Term Solver::mkTermCast(Term t, Sort s) const
                           d_exprMgr->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))), children[0].getExpr() ));
     return mkTerm(APPLY_CONSTRUCTOR, children);
   }
-  
+  CVC4_API_CHECK(t.getSort()==s) << "Failed to cast";
   return t;
 }
 

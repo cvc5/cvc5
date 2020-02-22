@@ -631,25 +631,13 @@ api::Term Parser::mkBuiltinApp(api::Term f, api::Term t1, api::Term t2) const
 
 api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 {
-  if(t.getKind() == api::APPLY_CONSTRUCTOR && s.isDatatype()) {
-    // operator is the first child
-    Expr e = t[0].getExpr();
-    const DatatypeConstructor& dtc = Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-    std::vector<api::Term> children;
-    children.insert(children.end(),t.begin(), t.end());
-    // the operator is the first child, apply a type ascription to it
-    children[0] = api::Term(getExprManager()->mkExpr( APPLY_TYPE_ASCRIPTION,
-                          getExprManager()->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))), children[0].getExpr() ));
-    return d_solver->mkTerm(api::APPLY_CONSTRUCTOR, children);
-  } else if(t.getKind() == api::EMPTYSET && s.isSet()) {
+  api::Kind k = t.getKind();
+  if(k == api::EMPTYSET && s.isSet()) {
     return d_solver->mkEmptySet(s);
-  } else if(t.getKind() == api::UNIVERSE_SET && s.isSet()) {
+  } else if(k == api::UNIVERSE_SET && s.isSet()) {
     return d_solver->mkUniverseSet(s);
   }
-  if(t.getSort() != s) {
-    parseError("Type ascription not satisfied.");
-  }
-  return t;
+  return d_solver->mkTermCast(t,s);
 }
 
 

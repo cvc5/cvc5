@@ -1598,12 +1598,21 @@ class CVC4_PUBLIC Datatype
   DatatypeConstructor getConstructor(const std::string& name) const;
 
   /**
+   * Get the datatype constructor from a constructor term (the operator
+   * corresponding to the constructor).
+   * @param cons the datatype constructor term
+   * @return the datatype constructor whose constructor term is cons
+   */
+  DatatypeConstructor getConstructorForTerm(Term cons) const;
+  
+  /**
    * Get a term representing the datatype constructor with the given name.
    * This is a linear search through the constructors, so in case of multiple,
    * similarly-named constructors, the
    * first is returned.
    */
   Term getConstructorTerm(const std::string& name) const;
+
 
   /** @return the name of this Datatype. */
   std::string getName() const;
