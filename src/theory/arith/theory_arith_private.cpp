@@ -3957,58 +3957,33 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
     Node lem;
 
 
-    Node n1;
-    Node n2;
-    Node n3;
-
   // Closer to floor
   if (c > f)
   {
     Trace("integers") << "floor"  << endl;
-    n1 = mkRationalNode(floor_d - 1);
-    n3 = mkRationalNode(floor_d);
-    n2 = mkRationalNode(floor_d + 1);
-
-    Trace("integers") << "leq: " << n1 << " eq " << n3 << " geq " << n2 << endl;
-
-
-    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, n1));
-    // ub = NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d - 1));
-    //Trace("integers") << "ub : " << ub << endl;
-    lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, n2));
-    // lb = NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(floor_d + 1));
-    //Trace("integers") << "lb : " << lb << endl;
+    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d - 1)));
+    lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(floor_d + 1)));
     lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
-    //Trace("integers") << "lem : " << lem << endl;
-    eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, n3));
-    // eq = NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d));
+    eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d)));
     Node literal = d_containing.getValuation().ensureLiteral(eq);
     // d_containing.getOutputChannel().requirePhase(eq, true);
-    //Trace("integers") << "eq : " << eq << endl;
-    lem = NodeManager::currentNM()->mkNode(kind::OR, eq, lem);
-    //Trace("integers") << "lem : " << lem << endl;
+    // lem = NodeManager::currentNM()->mkNode(kind::OR, eq, lem);
+    d_containing.getOutputChannel().requirePhase(literal, true);
+    lem = NodeManager::currentNM()->mkNode(kind::OR, literal, lem);
   }
   // Closer to ceiling
   else 
   {
     Trace("integers") << "ceiling"  << endl;
-    n1 = mkRationalNode(ceil_d - 1);
-    n3 = mkRationalNode(ceil_d);
-    n2 = mkRationalNode(ceil_d + 1);
-    
-
-    Trace("integers") << "leq: " << n1 << " eq: " << n3 << " geq: " << n2  << endl;
-
-    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, n1));
-    // ub = NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(ceil_d - 1));
-    lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, n2));
-    // lb = NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(ceil_d + 1));
+    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(ceil_d - 1)));
+    lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(ceil_d + 1)));
     lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
-    eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, n3));
-    // eq = NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(ceil_d));
+    eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(ceil_d)));
     Node literal = d_containing.getValuation().ensureLiteral(eq);
     // d_containing.getOutputChannel().requirePhase(eq, true);
-    lem = NodeManager::currentNM()->mkNode(kind::OR, eq, lem);
+    // lem = NodeManager::currentNM()->mkNode(kind::OR, eq, lem);
+    d_containing.getOutputChannel().requirePhase(literal, true);
+    lem = NodeManager::currentNM()->mkNode(kind::OR, literal, lem);
   }
 
   //Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, diseq);
