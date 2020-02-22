@@ -674,6 +674,8 @@ libcvc4_add_sources(
   theory/strings/core_solver.h
   theory/strings/extf_solver.cpp
   theory/strings/extf_solver.h
+  theory/strings/eqc_info.cpp
+  theory/strings/eqc_info.h
   theory/strings/infer_info.cpp
   theory/strings/infer_info.h
   theory/strings/inference_manager.cpp
