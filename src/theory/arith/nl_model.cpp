@@ -429,7 +429,7 @@ void NlModel::setUsedApproximate() { d_used_approx = true; }
 
 bool NlModel::usedApproximate() const { return d_used_approx; }
 
-void NlModel::addTautology(Node n) 
+void NlModel::addTautology(Node n)
 {
   // ensure rewritten
   n = Rewriter::rewrite(n);
@@ -437,33 +437,37 @@ void NlModel::addTautology(Node n)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
-      if (cur.getKind()==AND)
+      if (cur.getKind() == AND)
       {
         // children of AND are also implied
-        for (const Node& cn : cur ){
+        for (const Node& cn : cur)
+        {
           visit.push_back(cn);
         }
       }
       else
       {
         // is this an arithmetic literal?
-        Node atom = cur.getKind()==NOT ? cur[0] : cur;
-        if ((atom.getKind()==EQUAL && atom[0].getType().isReal()) || atom.getKind()==LEQ)
+        Node atom = cur.getKind() == NOT ? cur[0] : cur;
+        if ((atom.getKind() == EQUAL && atom[0].getType().isReal())
+            || atom.getKind() == LEQ)
         {
           // Add to tautological literals if it does not contain
-          // non-linear multiplication. We cannot consider literals 
+          // non-linear multiplication. We cannot consider literals
           // with non-linear multiplication to be tautological since this
           // model object is responsible for checking whether they hold.
           // (TODO, cvc4-projects #113: revisit this).
-          if (!expr::hasSubtermKind(NONLINEAR_MULT,atom))
+          if (!expr::hasSubtermKind(NONLINEAR_MULT, atom))
           {
             Trace("nl-taut") << "Tautological literal: " << atom << std::endl;
-            d_tautology.insert(cur); 
+            d_tautology.insert(cur);
           }
         }
       }

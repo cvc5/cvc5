@@ -165,7 +165,7 @@ class NlModel
   bool usedApproximate() const;
   /** Set tautology
    *
-   * This states that formula n is a tautology (satisfied in all models). 
+   * This states that formula n is a tautology (satisfied in all models).
    * We call this on internally generated lemmas. This method computes a
    * set of literals that are implied by n, that are hence tautological
    * as well, such as:

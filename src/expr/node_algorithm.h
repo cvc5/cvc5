@@ -49,7 +49,7 @@ bool hasSubtermMulti(TNode n, TNode t);
  * @param n The node to search in.
  * @return true iff there is a term in n that has kind k
  */
-bool hasSubtermKind(Kind k, Node n);  
+bool hasSubtermKind(Kind k, Node n);
 
 /**
  * Check if the node n has a subterm that occurs in t.
