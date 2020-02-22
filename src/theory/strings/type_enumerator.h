@@ -24,6 +24,7 @@
 #include "expr/kind.h"
 #include "expr/type_node.h"
 #include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/type_enumerator.h"
 #include "util/regexp.h"
 
@@ -33,7 +34,7 @@ namespace strings {
 
 class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   std::vector< unsigned > d_data;
-  unsigned d_cardinality;
+  uint32_t d_cardinality;
   Node d_curr;
   void mkCurr() {
     //make constant from d_data
@@ -46,7 +47,7 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   {
     Assert(type.getKind() == kind::TYPE_CONSTANT
            && type.getConst<TypeConstant>() == STRING_TYPE);
-    d_cardinality = TheoryStringsRewriter::getAlphabetCardinality();
+    d_cardinality = utils::getAlphabetCardinality();
     mkCurr();
   }
   Node operator*() override { return d_curr; }
@@ -85,7 +86,7 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
 
 class StringEnumeratorLength {
  private:
-  unsigned d_cardinality;
+  uint32_t d_cardinality;
   std::vector< unsigned > d_data;
   Node d_curr;
   void mkCurr() {
@@ -94,7 +95,9 @@ class StringEnumeratorLength {
   }
 
  public:
-  StringEnumeratorLength(unsigned length, unsigned card = 256) : d_cardinality(card) {
+  StringEnumeratorLength(uint32_t length, uint32_t card = 256)
+      : d_cardinality(card)
+  {
     for( unsigned i=0; i<length; i++ ){
       d_data.push_back( 0 );
     }
