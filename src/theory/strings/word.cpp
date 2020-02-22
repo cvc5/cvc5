@@ -37,8 +37,8 @@ Node mkEmptyWord(Kind k)
 
 Node mkWord(const std::vector<Node>& xs)
 {
+  Assert( !xs.empty());
   NodeManager * nm = NodeManager::currentNM();
-  Assert( !consts.empty());
   Kind k = xs[0].getKind();
   if (k==CONST_STRING)
   {
@@ -77,7 +77,7 @@ std::size_t find(TNode x, TNode y, std::size_t start)
   Kind k = x.getKind();
   if (k==CONST_STRING)
   {
-    Assert(sy.getKind()==CONST_STRING);
+    Assert(y.getKind()==CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.find(sy,start);
@@ -91,7 +91,7 @@ std::size_t rfind(TNode x, TNode y, std::size_t start)
   Kind k = x.getKind();
   if (k==CONST_STRING)
   {
-    Assert(sy.getKind()==CONST_STRING);
+    Assert(y.getKind()==CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.rfind(sy,start);
@@ -105,7 +105,7 @@ bool hasPrefix(TNode x, TNode y)
   Kind k = x.getKind();
   if (k==CONST_STRING)
   {
-    Assert(sy.getKind()==CONST_STRING);
+    Assert(y.getKind()==CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.hasPrefix(sy);
@@ -119,7 +119,7 @@ bool hasSuffix(TNode x, TNode y)
   Kind k = x.getKind();
   if (k==CONST_STRING)
   {
-    Assert(sy.getKind()==CONST_STRING);
+    Assert(y.getKind()==CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.hasSuffix(sy);
@@ -128,7 +128,7 @@ bool hasSuffix(TNode x, TNode y)
   return false;
 }
 
-Node replace(TNode x, TNode y, Node t)
+Node replace(TNode x, TNode y, TNode t)
 {
   NodeManager * nm = NodeManager::currentNM();
   Kind k = x.getKind();
@@ -191,7 +191,7 @@ bool noOverlapWith(TNode x, TNode y)
   Kind k = x.getKind();
   if (k==CONST_STRING)
   {
-    Assert(sy.getKind()==CONST_STRING);
+    Assert(y.getKind()==CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.noOverlapWith(sy);
@@ -205,7 +205,7 @@ std::size_t overlap(TNode x, TNode y)
   Kind k = x.getKind();
   if (k==CONST_STRING)
   {
-    Assert(sy.getKind()==CONST_STRING);
+    Assert(y.getKind()==CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.overlap(sy);
@@ -219,7 +219,7 @@ std::size_t roverlap(TNode x, TNode y)
   Kind k = x.getKind();
   if (k==CONST_STRING)
   {
-    Assert(sy.getKind()==CONST_STRING);
+    Assert(y.getKind()==CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.roverlap(sy);

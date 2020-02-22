@@ -40,10 +40,13 @@ size_t getLength(TNode x);
 /** Return true if x is empty */
 bool isEmpty(TNode x);
 
-/** Find y in x */
+/** Return the first position y occurs in x, or std::string::npos otherwise */
 std::size_t find(TNode x, TNode y, std::size_t start = 0);
 
-/** Reverse find y in x */
+/** 
+ * Return the first position y occurs in x searching from the end of x, or 
+ * std::string::npos otherwise 
+ */
 std::size_t rfind(TNode x, TNode y, std::size_t start = 0);
 
 /** Returns true if y is a prefix of x */
@@ -53,7 +56,7 @@ bool hasPrefix(TNode x, TNode y);
 bool hasSuffix(TNode x, TNode y);
 
 /** Replace the first occurrence of y in x with t */
-Node replace(TNode x, TNode y, Node t);
+Node replace(TNode x, TNode y, TNode t);
 
 /** Return the substring of x starting at index i */
 Node substr(TNode x,std::size_t i);
@@ -69,10 +72,11 @@ Node suffix(TNode x, std::size_t i);
 
 /**
   * Checks if there is any overlap between string x and another string y. This
-  * corresponds to checking whether one string contains the other and wether a
+  * corresponds to checking whether one string contains the other and whether a
   * substring of one is a prefix of the other and vice-versa.
   *
-  * @param y The other string
+  * @param x The first string
+  * @param y The second string
   * @return True if there is an overlap, false otherwise
   */
 bool noOverlapWith(TNode x, TNode y);
