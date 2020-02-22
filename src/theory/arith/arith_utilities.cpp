@@ -278,16 +278,19 @@ bool hasSubtermKind(Kind k, Node n)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
-      if (cur.getKind()==k)
+      if (cur.getKind() == k)
       {
         return true;
       }
-      for (const Node& cn : cur ){
+      for (const Node& cn : cur)
+      {
         visit.push_back(cn);
       }
     }
