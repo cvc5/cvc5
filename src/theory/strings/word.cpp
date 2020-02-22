@@ -25,6 +25,7 @@ namespace word {
 
 Node mkEmptyWord(Kind k)
 {
+  NodeManager * nm = NodeManager::currentNM();
   if (k==CONST_STRING)
   {
     std::vector<unsigned> vec;
@@ -36,6 +37,7 @@ Node mkEmptyWord(Kind k)
 
 Node mkWord(const std::vector<Node>& xs)
 {
+  NodeManager * nm = NodeManager::currentNM();
   Assert( !consts.empty());
   Kind k = xs[0].getKind();
   if (k==CONST_STRING)
@@ -44,7 +46,8 @@ Node mkWord(const std::vector<Node>& xs)
     for (TNode x : xs)
     {
       Assert(x.getKind()==CONST_STRING);
-      const std::vector<unsigned>& vecc = x.getVec();
+      String sx = x.getConst<String>();
+      const std::vector<unsigned>& vecc = sx.getVec();
       vec.insert(vec.end(),vecc.begin(),vecc.end());
     }
     return nm->mkConst(String(vec));
@@ -148,7 +151,7 @@ Node substr(TNode x,std::size_t i)
   if (k==CONST_STRING)
   {
     String sx = x.getConst<String>();
-    return 
+    return nm->mkConst(String(sx.substr(i)));
   }
   Assert(false);
   return Node::null();
@@ -169,9 +172,18 @@ Node substr(TNode x,std::size_t i, std::size_t j)
 Node prefix(TNode x, std::size_t i) { 
   return substr(x,0,i);
 }
+
 Node suffix(TNode x, std::size_t i) 
 { 
-  return substr(x, size() - i, i);
+  NodeManager * nm = NodeManager::currentNM();
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
+  {
+    String sx = x.getConst<String>();
+    return nm->mkConst(String(sx.suffix(i)));
+  }
+  Assert(false);
+  return Node::null();
 }
 
 bool noOverlapWith(TNode x, TNode y)
