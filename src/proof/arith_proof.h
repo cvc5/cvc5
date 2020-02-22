@@ -68,7 +68,6 @@ protected:
    */
   proof::ArithProofRecorder d_recorder;
 
-  bool d_realMode;
   theory::TheoryId getTheoryId() override;
 
  public:

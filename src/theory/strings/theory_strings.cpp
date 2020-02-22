@@ -128,7 +128,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
-  d_card_size = TheoryStringsRewriter::getAlphabetCardinality();
+  d_cardSize = utils::getAlphabetCardinality();
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -566,7 +566,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
             std::vector<unsigned> vec = n.getConst<String>().getVec();
             for (unsigned u : vec)
             {
-              if (u >= d_card_size)
+              if (u >= d_cardSize)
               {
                 std::stringstream ss;
                 ss << "Characters in string \"" << n
@@ -1116,110 +1116,6 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-void TheoryStrings::checkCardinality() {
-  //int cardinality = options::stringCharCardinality();
-  //Trace("strings-solve-debug2") << "get cardinality: " << cardinality << endl;
-
-  //AJR: this will create a partition of eqc, where each collection has length that are pairwise propagated to be equal.
-  //  we do not require disequalities between the lengths of each collection, since we split on disequalities between lengths of string terms that are disequal (DEQ-LENGTH-SP).
-  //  TODO: revisit this?
-  const std::vector<Node>& seqc = d_bsolver.getStringEqc();
-  std::vector< std::vector< Node > > cols;
-  std::vector< Node > lts;
-  d_state.separateByLength(seqc, cols, lts);
-
-  Trace("strings-card") << "Check cardinality...." << std::endl;
-  for( unsigned i = 0; i<cols.size(); ++i ) {
-    Node lr = lts[i];
-    Trace("strings-card") << "Number of strings with length equal to " << lr << " is " << cols[i].size() << std::endl;
-    if( cols[i].size() > 1 ) {
-      // size > c^k
-      unsigned card_need = 1;
-      double curr = (double)cols[i].size();
-      while( curr>d_card_size ){
-        curr = curr/(double)d_card_size;
-        card_need++;
-      }
-      Trace("strings-card") << "Need length " << card_need << " for this number of strings (where alphabet size is " << d_card_size << ")." << std::endl;
-      //check if we need to split
-      bool needsSplit = true;
-      if( lr.isConst() ){
-        // if constant, compare
-        Node cmp = NodeManager::currentNM()->mkNode( kind::GEQ, lr, NodeManager::currentNM()->mkConst( Rational( card_need ) ) );
-        cmp = Rewriter::rewrite( cmp );
-        needsSplit = cmp!=d_true;
-      }else{
-        // find the minimimum constant that we are unknown to be disequal from, or otherwise stop if we increment such that cardinality does not apply
-        unsigned r=0; 
-        bool success = true;
-        while( r<card_need && success ){
-          Node rr = NodeManager::currentNM()->mkConst<Rational>( Rational(r) );
-          if (d_state.areDisequal(rr, lr))
-          {
-            r++;
-          }
-          else
-          {
-            success = false;
-          }
-        }
-        if( r>0 ){
-          Trace("strings-card") << "Symbolic length " << lr << " must be at least " << r << " due to constant disequalities." << std::endl;
-        }
-        needsSplit = r<card_need;
-      }
-
-      if( needsSplit ){
-        unsigned int int_k = (unsigned int)card_need;
-        for( std::vector< Node >::iterator itr1 = cols[i].begin();
-            itr1 != cols[i].end(); ++itr1) {
-          for( std::vector< Node >::iterator itr2 = itr1 + 1;
-            itr2 != cols[i].end(); ++itr2) {
-            if (!d_state.areDisequal(*itr1, *itr2))
-            {
-              // add split lemma
-              if (d_im.sendSplit(*itr1, *itr2, "CARD-SP"))
-              {
-                return;
-              }
-            }
-          }
-        }
-        EqcInfo* ei = d_state.getOrMakeEqcInfo(lr, true);
-        Trace("strings-card")
-            << "Previous cardinality used for " << lr << " is "
-            << ((int)ei->d_cardinalityLemK.get() - 1) << std::endl;
-        if (int_k + 1 > ei->d_cardinalityLemK.get())
-        {
-          Node k_node = NodeManager::currentNM()->mkConst( ::CVC4::Rational( int_k ) );
-          //add cardinality lemma
-          Node dist = NodeManager::currentNM()->mkNode( kind::DISTINCT, cols[i] );
-          std::vector< Node > vec_node;
-          vec_node.push_back( dist );
-          for( std::vector< Node >::iterator itr1 = cols[i].begin();
-              itr1 != cols[i].end(); ++itr1) {
-            Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, *itr1 );
-            if( len!=lr ) {
-              Node len_eq_lr = len.eqNode(lr);
-              vec_node.push_back( len_eq_lr );
-            }
-          }
-          Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, cols[i][0] );
-          Node cons = NodeManager::currentNM()->mkNode( kind::GEQ, len, k_node );
-          cons = Rewriter::rewrite( cons );
-          ei->d_cardinalityLemK.set(int_k + 1);
-          if( cons!=d_true ){
-            d_im.sendInference(
-                d_empty_vec, vec_node, cons, "CARDINALITY", true);
-            return;
-          }
-        }
-      }
-    }
-  }
-  Trace("strings-card") << "...end check cardinality" << std::endl;
-}
-
 Node TheoryStrings::ppRewrite(TNode atom) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Node atomElim;
@@ -1298,7 +1194,7 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: d_esolver->checkExtfReductions(effort); break;
     case CHECK_MEMBERSHIP: d_rsolver->checkMemberships(); break;
-    case CHECK_CARDINALITY: checkCardinality(); break;
+    case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;
   }
   Trace("strings-process") << "Done " << s

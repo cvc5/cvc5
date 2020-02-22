@@ -206,7 +206,7 @@ class TheoryStrings : public Theory {
   Node d_one;
   Node d_neg_one;
   /** the cardinality of the alphabet */
-  unsigned d_card_size;
+  uint32_t d_cardSize;
   /** The notify class */
   NotifyClass d_notify;
   /** Equaltity engine */
@@ -392,13 +392,6 @@ private:
    * there does not exist a term of the form str.len(si) in the current context.
    */
   void checkRegisterTermsNormalForms();
-  /** check cardinality
-   *
-   * This function checks whether a cardinality inference needs to be applied
-   * to a set of equivalence classes. For details, see Step 5 of the proof
-   * procedure from Liang et al, CAV 2014.
-   */
-  void checkCardinality();
   //-----------------------end inference steps
 
   //-----------------------representation of the strategy
