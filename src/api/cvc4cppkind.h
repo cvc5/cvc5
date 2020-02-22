@@ -2034,6 +2034,16 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   STRING_SUFFIX,
   /**
+   * String is-digit.
+   * Returns true if string s is digit (it is one of "0", ..., "9").
+   * Parameters: 1
+   *   -[1]: Term of sort String
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_ISDIGIT,
+  /**
    * Integer to string.
    * If the integer is negative this operator returns the empty string.
    * Parameters: 1
@@ -2098,6 +2108,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   REGEXP_INTER,
+  /**
+   * Regexp difference.
+   * Parameters: 2
+   *   -[1]..[2]: Terms of Regexp sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  REGEXP_DIFF,
   /**
    * Regexp *.
    * Parameters: 1
