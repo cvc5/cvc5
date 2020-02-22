@@ -206,8 +206,8 @@ const context::CDList<Node>& SolverState::getDisequalityList() const
   return d_eeDisequalities;
 }
 
-
-void SolverState::eqNotifyNewClass(TNode t){
+void SolverState::eqNotifyNewClass(TNode t)
+{
   Kind k = t.getKind();
   if (k == STRING_LENGTH || k == STRING_CODE)
   {
@@ -222,8 +222,8 @@ void SolverState::eqNotifyNewClass(TNode t){
     {
       ei->d_codeTerm = t[0];
     }
-    //we care about the length of this string
-    registerTerm( t[0], 1 );
+    // we care about the length of this string
+    registerTerm(t[0], 1);
     return;
   }
   else if (k == CONST_STRING)

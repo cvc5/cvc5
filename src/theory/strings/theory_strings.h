@@ -125,16 +125,20 @@ class TheoryStrings : public Theory {
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
   public:
-    NotifyClass(TheoryStrings& ts): d_str(ts), d_state(ts.d_state) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      Debug("strings") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-      if (value) {
-        return d_str.propagate(equality);
-      } else {
-        // We use only literal triggers so taking not is safe
-        return d_str.propagate(equality.notNode());
-      }
+   NotifyClass(TheoryStrings& ts) : d_str(ts), d_state(ts.d_state) {}
+   bool eqNotifyTriggerEquality(TNode equality, bool value) override
+   {
+     Debug("strings") << "NotifyClass::eqNotifyTriggerEquality(" << equality
+                      << ", " << (value ? "true" : "false") << ")" << std::endl;
+     if (value)
+     {
+       return d_str.propagate(equality);
+     }
+     else
+     {
+       // We use only literal triggers so taking not is safe
+       return d_str.propagate(equality.notNode());
+     }
     }
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
@@ -181,7 +185,8 @@ class TheoryStrings : public Theory {
       Debug("strings") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
       d_state.eqNotifyDisequal(t1, t2, reason);
     }
-  private:
+
+   private:
     /** The theory of strings object to notify */
     TheoryStrings& d_str;
     /** The solver state of the theory of strings */
