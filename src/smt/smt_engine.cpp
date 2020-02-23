@@ -3937,7 +3937,6 @@ void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
 {
   // do nothing (the command is spurious)
   Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
-  Dump("raw-benchmark") << DeclareSygusPrimedVarCommand(id, type);
   // don't need to set that the conjecture is stale
 }
 
@@ -3947,7 +3946,8 @@ void SmtEngine::declareSygusFunctionVar(const std::string& id,
 {
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
-  Dump("raw-benchmark") << DeclareSygusFunctionCommand(id, var, type);
+  Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
+
   // don't need to set that the conjecture is stale
 }
 
