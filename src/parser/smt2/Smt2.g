@@ -1754,8 +1754,10 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
             PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
           }
           /*
-          api::Term fcast = SOLVER->mkTermCast(f,expr.getSort());
-          argTypes = fcast.getSort().getConstructorDomainSorts();
+          ParseOp pf;
+          pf.d_expr = f;
+          PARSER_STATE->parseOpApplyTypeAscription(pf,expr.getSort());
+          argTypes = p.d_expr.getSort().getConstructorDomainSorts();
           */
           Expr ef = f.getExpr();
           if (Datatype::datatypeOf(ef).isParametric())

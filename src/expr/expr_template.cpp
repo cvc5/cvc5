@@ -421,7 +421,9 @@ bool Expr::isParameterized() const
 Type Expr::getType(bool check) const
 {
   ExprManagerScope ems(*this);
-  AlwaysAssert(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
+  PrettyCheckArgument(!d_node->isNull(), this,
+                      "Can't get type of null expression!");
   return d_exprManager->getType(*this, check);
 }
 
