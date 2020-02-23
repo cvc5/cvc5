@@ -49,9 +49,9 @@ class ParserBlack
     parser.bindVar("b", d_solver->getExprManager()->booleanType());
     parser.bindVar("c", d_solver->getExprManager()->booleanType());
     /* t, u, v: TYPE */
-    Type t = parser.mkSort("t");
-    Type u = parser.mkSort("u");
-    Type v = parser.mkSort("v");
+    api::Sort t = parser.mkSort("t");
+    api::Sort u = parser.mkSort("u");
+    api::Sort v = parser.mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
     parser.bindVar("f", d_solver->getExprManager()->mkFunctionType(t, u));
     parser.bindVar("g", d_solver->getExprManager()->mkFunctionType(u, v));
