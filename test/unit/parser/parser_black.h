@@ -45,17 +45,17 @@ class ParserBlack
   /* Set up declaration context for expr inputs */
   virtual void setupContext(Parser& parser) {
     /* a, b, c: BOOLEAN */
-    parser.bindVar("a", d_solver->getExprManager()->booleanType());
-    parser.bindVar("b", d_solver->getExprManager()->booleanType());
-    parser.bindVar("c", d_solver->getExprManager()->booleanType());
+    parser.bindVar("a", d_solver->getBooleanSort());
+    parser.bindVar("b", d_solver->getBooleanSort());
+    parser.bindVar("c", d_solver->getBooleanSort());
     /* t, u, v: TYPE */
     api::Sort t = parser.mkSort("t");
     api::Sort u = parser.mkSort("u");
     api::Sort v = parser.mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
-    parser.bindVar("f", d_solver->getExprManager()->mkFunctionType(t, u));
-    parser.bindVar("g", d_solver->getExprManager()->mkFunctionType(u, v));
-    parser.bindVar("h", d_solver->getExprManager()->mkFunctionType(v, t));
+    parser.bindVar("f", d_solver->mkFunctionSort(t, u));
+    parser.bindVar("g", d_solver->mkFunctionSort(u, v));
+    parser.bindVar("h", d_solver->mkFunctionSort(v, t));
     /* x:t; y:u; z:v; */
     parser.bindVar("x",t);
     parser.bindVar("y",u);
