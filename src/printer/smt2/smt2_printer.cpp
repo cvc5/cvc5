@@ -128,6 +128,7 @@ void Smt2Printer::toStream(std::ostream& out,
       case REAL_TYPE: out << "Real"; break;
       case INTEGER_TYPE: out << "Int"; break;
       case STRING_TYPE: out << "String"; break;
+      case REGEXP_TYPE: out << "RegLan"; break;
       case ROUNDINGMODE_TYPE: out << "RoundingMode"; break;
       default:
         // fall back on whatever operator<< does on underlying type; we
