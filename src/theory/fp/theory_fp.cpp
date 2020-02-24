@@ -902,7 +902,8 @@ void TheoryFp::preRegisterTerm(TNode node)
            << sig_sz
            << " is not supported, only Float32 (8/24) or Float64 (11/53) types "
               "are supported in default mode. Try the experimental solver via "
-              "--fp-exp";
+              "--fp-exp. Note: There are known issues with the experimental "
+              "solver, use at your own risk.";
         throw LogicException(ss.str());
       }
     }

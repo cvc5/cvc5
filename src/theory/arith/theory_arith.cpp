@@ -83,7 +83,7 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
 }
 
 void TheoryArith::check(Effort effortLevel){
-  getOutputChannel().spendResource(options::theoryCheckStep());
+  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
   d_internal->check(effortLevel);
 }
 

@@ -544,8 +544,6 @@ libcvc4_add_sources(
   theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp
   theory/quantifiers/relevant_domain.h
-  theory/quantifiers/rewrite_engine.cpp
-  theory/quantifiers/rewrite_engine.h
   theory/quantifiers/single_inv_partition.cpp
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp
@@ -562,6 +560,12 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/cegis_core_connective.h
   theory/quantifiers/sygus/cegis_unif.cpp
   theory/quantifiers/sygus/cegis_unif.h
+  theory/quantifiers/sygus/example_eval_cache.cpp
+  theory/quantifiers/sygus/example_eval_cache.h
+  theory/quantifiers/sygus/example_infer.cpp
+  theory/quantifiers/sygus/example_infer.h
+  theory/quantifiers/sygus/example_min_eval.cpp
+  theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
   theory/quantifiers/sygus/example_infer.cpp
@@ -666,6 +670,10 @@ libcvc4_add_sources(
   theory/sort_inference.h
   theory/strings/base_solver.cpp
   theory/strings/base_solver.h
+  theory/strings/core_solver.cpp
+  theory/strings/core_solver.h
+  theory/strings/extf_solver.cpp
+  theory/strings/extf_solver.h
   theory/strings/infer_info.cpp
   theory/strings/infer_info.h
   theory/strings/inference_manager.cpp
@@ -682,6 +690,8 @@ libcvc4_add_sources(
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
   theory/strings/solver_state.h
+  theory/strings/strings_fmf.cpp
+  theory/strings/strings_fmf.h
   theory/strings/theory_strings.cpp
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
@@ -885,7 +895,6 @@ install(FILES
           expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
-          expr/chain.h
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
@@ -914,6 +923,7 @@ install(FILES
           parser/parser.h
           parser/parser_builder.h
           parser/parser_exception.h
+          parser/parse_op.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/parser)
 install(FILES

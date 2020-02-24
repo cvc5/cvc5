@@ -534,8 +534,11 @@ bool NlModel::solveEqualitySimple(Node eq,
         if (ArithMSum::isolate(uv, msum, veqc, slv, EQUAL) != 0)
         {
           Assert(!slv.isNull());
-          // currently do not support substitution-with-coefficients
-          if (veqc.isNull() && !expr::hasSubterm(slv, uv))
+          // Currently do not support substitution-with-coefficients.
+          // We also ensure types are correct here, which avoids substituting
+          // a term of non-integer type for a variable of integer type.
+          if (veqc.isNull() && !expr::hasSubterm(slv, uv)
+              && slv.getType().isSubtypeOf(uv.getType()))
           {
             Trace("nl-ext-cm")
                 << "check-model-subs : " << uv << " -> " << slv << std::endl;
@@ -1200,8 +1203,8 @@ bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
     Rational curr_sq = curr * curr;
     if (curr_sq == rc)
     {
-      rl = curr_sq;
-      ru = curr_sq;
+      rl = curr;
+      ru = curr;
       break;
     }
     else if (curr_sq < rc)

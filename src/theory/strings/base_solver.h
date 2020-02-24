@@ -70,6 +70,13 @@ class BaseSolver
    * case, we infer the fact x ++ "c" ++ y = "acb".
    */
   void checkConstantEquivalenceClasses();
+  /** check cardinality
+   *
+   * This function checks whether a cardinality inference needs to be applied
+   * to a set of equivalence classes. For details, see Step 5 of the proof
+   * procedure from Liang et al, CAV 2014.
+   */
+  void checkCardinality();
   //-----------------------end inference steps
 
   //-----------------------query functions
@@ -182,6 +189,8 @@ class BaseSolver
   std::vector<Node> d_stringsEqc;
   /** A term index for each function kind */
   std::map<Kind, TermIndex> d_termIndex;
+  /** the cardinality of the alphabet */
+  uint32_t d_cardSize;
 }; /* class BaseSolver */
 
 }  // namespace strings

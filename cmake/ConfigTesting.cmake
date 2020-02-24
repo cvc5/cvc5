@@ -1,6 +1,4 @@
 # OPTLEVEL=2
-# enable_optimized=yes
-cvc4_set_option(ENABLE_OPTIMIZED ON)
 set(OPTIMIZATION_LEVEL 2)
 # enable_debug_symbols=yes
 cvc4_set_option(ENABLE_DEBUG_SYMBOLS ON)

@@ -28,6 +28,9 @@ namespace theory {
 namespace strings {
 namespace utils {
 
+/** get the cardinality of the alphabet used, based on the options */
+uint32_t getAlphabetCardinality();
+
 /**
  * Make the conjunction of nodes in a. Removes duplicate conjuncts, returns
  * true if a is empty, and a single literal if a has size 1.

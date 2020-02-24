@@ -23,6 +23,7 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/solver_state.h"
@@ -47,10 +48,22 @@ class RegExpSolver
   RegExpSolver(TheoryStrings& p,
                SolverState& s,
                InferenceManager& im,
+               ExtfSolver& es,
                context::Context* c,
                context::UserContext* u);
   ~RegExpSolver() {}
 
+  /** check regular expression memberships
+   *
+   * This checks the satisfiability of all regular expression memberships
+   * of the form (not) s in R. We use various heuristic techniques based on
+   * unrolling, combined with techniques from Liang et al, "A Decision Procedure
+   * for Regular Membership and Length Constraints over Unbounded Strings",
+   * FroCoS 2015.
+   */
+  void checkMemberships();
+
+ private:
   /** check
    *
    * Tells this solver to check whether the regular expressions in mems
@@ -63,8 +76,6 @@ class RegExpSolver
    * engine of the theory of strings.
    */
   void check(const std::map<Node, std::vector<Node>>& mems);
-
- private:
   /**
    * Check memberships in equivalence class for regular expression
    * inclusion.
@@ -106,6 +117,8 @@ class RegExpSolver
   SolverState& d_state;
   /** the output channel of the parent of this object */
   InferenceManager& d_im;
+  /** reference to the extended function solver of the parent */
+  ExtfSolver& d_esolver;
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
   /**
