@@ -97,7 +97,7 @@ std::size_t overlap(TNode x, TNode y);
 /** reverse overlap
  *
  * if roverlap returns m>0,
- * then the maximal prefix of this string that is a suffix of y is of length m.
+ * then the maximal prefix of this word that is a suffix of y is of length m.
  *
  * For example, if x is "abcdef", then:
  * x.roverlap("aaabc") = 3
