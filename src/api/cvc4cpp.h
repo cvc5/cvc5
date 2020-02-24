@@ -230,6 +230,34 @@ class CVC4_PUBLIC Sort
   bool operator!=(const Sort& s) const;
 
   /**
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is less than s
+   */
+  bool operator<(const Sort& s) const;
+
+  /**
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is greater than s
+   */
+  bool operator>(const Sort& s) const;
+
+  /**
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is less than or equal to s
+   */
+  bool operator<=(const Sort& s) const;
+
+  /**
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is greater than or equal to s
+   */
+  bool operator>=(const Sort& s) const;
+
+  /**
    * @return true if this Sort is a null sort.
    */
   bool isNull() const;
@@ -294,6 +322,23 @@ class CVC4_PUBLIC Sort
    */
   bool isParametricDatatype() const;
 
+  /**
+   * Is this a constructor sort?
+   * @return true if the sort is a constructor sort
+   */
+  bool isConstructor() const;
+
+  /**
+   * Is this a selector sort?
+   * @return true if the sort is a selector sort
+   */
+  bool isSelector() const;
+
+  /**
+   * Is this a tester sort?
+   * @return true if the sort is a tester sort
+   */
+  bool isTester() const;
   /**
    * Is this a function sort?
    * @return true if the sort is a function sort
@@ -373,6 +418,19 @@ class CVC4_PUBLIC Sort
   bool isFunctionLike() const;
 
   /**
+   * Is this sort a subsort of the given sort?
+   * @return true if this sort is a subsort of s
+   */
+  bool isSubsortOf(Sort s) const;
+
+  /**
+   * Is this sort comparable to the given sort (i.e., do they share
+   * a common ancestor in the subsort tree)?
+   * @return true if this sort is comparable to s
+   */
+  bool isComparableTo(Sort s) const;
+
+  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -399,10 +457,27 @@ class CVC4_PUBLIC Sort
   // to the new API. !!!
   CVC4::Type getType(void) const;
 
+  /* Constructor sort ------------------------------------------------------- */
+
+  /**
+   * @return the arity of a constructor sort
+   */
+  size_t getConstructorArity() const;
+
+  /**
+   * @return the domain sorts of a constructor sort
+   */
+  std::vector<Sort> getConstructorDomainSorts() const;
+
+  /**
+   * @return the codomain sort of a constructor sort
+   */
+  Sort getConstructorCodomainSort() const;
+
   /* Function sort ------------------------------------------------------- */
 
   /**
-   * @return the arity  of a function sort
+   * @return the arity of a function sort
    */
   size_t getFunctionArity() const;
 
@@ -722,6 +797,48 @@ class CVC4_PUBLIC Term
   bool operator!=(const Term& t) const;
 
   /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is less than t
+   */
+  bool operator<(const Term& t) const;
+
+  /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is greater than t
+   */
+  bool operator>(const Term& t) const;
+
+  /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is less than or equal to t
+   */
+  bool operator<=(const Term& t) const;
+
+  /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is greater than or equal to t
+   */
+  bool operator>=(const Term& t) const;
+
+  /**
+   * Returns the number of children of this term.
+   *
+   * @return the number of term
+   */
+  size_t getNumChildren() const;
+
+  /**
+   * Get the child term at a given index.
+   * @param index the index of the child term to return
+   * @return the child term with the given index
+   */
+  Term operator[](size_t index) const;
+
+  /**
    * @return the id of this term
    */
   uint64_t getId() const;
@@ -735,6 +852,18 @@ class CVC4_PUBLIC Term
    * @return the sort of this term
    */
   Sort getSort() const;
+
+  /**
+   * @return the result of replacing "e" by "replacement" in this term
+   */
+  Term substitute(Term e, Term replacement) const;
+
+  /**
+   * @return the result of simulatenously replacing "es" by "replacements" in
+   * this term
+   */
+  Term substitute(const std::vector<Term> es,
+                  const std::vector<Term>& replacements) const;
 
   /**
    * @return true iff this term has an operator
@@ -751,6 +880,13 @@ class CVC4_PUBLIC Term
    * @return true if this Term is a null term
    */
   bool isNull() const;
+
+  /**
+   * Check if this is a Term representing a constant.
+   *
+   * @return true if a constant Term
+   */
+  bool isConst() const;
 
   /**
    * Boolean negation.
@@ -1205,10 +1341,8 @@ class CVC4_PUBLIC DatatypeSelector
    */
   ~DatatypeSelector();
 
-  /**
-   * @return true if this datatype selector has been resolved.
-   */
-  bool isResolved() const;
+  /** @return the name of this Datatype selector. */
+  std::string getName() const;
 
   /**
    * Get the selector operator of this datatype selector.
@@ -1262,10 +1396,8 @@ class CVC4_PUBLIC DatatypeConstructor
    */
   ~DatatypeConstructor();
 
-  /**
-   * @return true if this datatype constructor has been resolved.
-   */
-  bool isResolved() const;
+  /** @return the name of this Datatype constructor. */
+  std::string getName() const;
 
   /**
    * Get the constructor operator of this datatype constructor.
@@ -1273,6 +1405,24 @@ class CVC4_PUBLIC DatatypeConstructor
    */
   Term getConstructorTerm() const;
 
+  /**
+   * Get the tester operator of this datatype constructor.
+   * @return the tester operator
+   */
+  Term getTesterTerm() const;
+
+  /**
+   * @return the tester name for this Datatype constructor.
+   */
+  std::string getTesterName() const;
+
+  /**
+   * @return the number of selectors (so far) of this Datatype constructor.
+   */
+  size_t getNumSelectors() const;
+
+  /** @return the i^th DatatypeSelector. */
+  DatatypeSelector operator[](size_t index) const;
   /**
    * Get the datatype selector with the given name.
    * This is a linear search through the selectors, so in case of
@@ -1387,6 +1537,12 @@ class CVC4_PUBLIC DatatypeConstructor
 
  private:
   /**
+   * Return selector for name.
+   * @param name The name of selector to find
+   * @return the selector object for the name
+   */
+  DatatypeSelector getSelectorForName(const std::string& name) const;
+  /**
    * The internal datatype constructor wrapped by this datatype constructor.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
    * not ref counted.
@@ -1445,11 +1601,35 @@ class CVC4_PUBLIC Datatype
    */
   Term getConstructorTerm(const std::string& name) const;
 
-  /** Get the number of constructors for this Datatype. */
+  /** @return the name of this Datatype. */
+  std::string getName() const;
+
+  /** @return the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
 
-  /** Is this Datatype parametric? */
+  /** @return true if this datatype is parametric */
   bool isParametric() const;
+
+  /** @return true if this datatype corresponds to a co-datatype */
+  bool isCodatatype() const;
+
+  /** @return true if this datatype corresponds to a tuple */
+  bool isTuple() const;
+
+  /** @return true if this datatype corresponds to a record */
+  bool isRecord() const;
+
+  /** @return true if this datatype is finite */
+  bool isFinite() const;
+
+  /**
+   * Is this datatype well-founded? If this datatype is not a codatatype,
+   * this returns false if there are no values of this datatype that are of
+   * finite size.
+   *
+   * @return true if this datatype is well-founded
+   */
+  bool isWellFounded() const;
 
   /**
    * @return a string representation of this datatype
@@ -1544,6 +1724,12 @@ class CVC4_PUBLIC Datatype
   const CVC4::Datatype& getDatatype(void) const;
 
  private:
+  /**
+   * Return constructor for name.
+   * @param name The name of constructor to find
+   * @return the constructor object for the name
+   */
+  DatatypeConstructor getConstructorForName(const std::string& name) const;
   /**
    * The internal datatype wrapped by this datatype.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
