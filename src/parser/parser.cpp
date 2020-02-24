@@ -679,7 +679,7 @@ api::Term Parser::nextExpression()
     }
   }
   Debug("parser") << "nextExpression() => " << result << std::endl;
-  return api::Term(result);
+  return result;
 }
 
 void Parser::attributeNotSupported(const std::string& attr) {
