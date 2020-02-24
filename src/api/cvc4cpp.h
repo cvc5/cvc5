@@ -1345,11 +1345,6 @@ class CVC4_PUBLIC DatatypeSelector
   std::string getName() const;
 
   /**
-   * @return true if this datatype selector has been resolved.
-   */
-  bool isResolved() const;
-
-  /**
    * Get the selector operator of this datatype selector.
    * @return the selector term
    */
@@ -1401,10 +1396,8 @@ class CVC4_PUBLIC DatatypeConstructor
    */
   ~DatatypeConstructor();
 
-  /**
-   * @return true if this datatype constructor has been resolved.
-   */
-  bool isResolved() const;
+  /** @return the name of this Datatype constructor. */
+  std::string getName() const;
 
   /** @return the name of this Datatype constructor. */
   std::string getName() const;
@@ -1547,6 +1540,12 @@ class CVC4_PUBLIC DatatypeConstructor
 
  private:
   /**
+   * Return selector for name.
+   * @param name The name of selector to find
+   * @return the selector object for the name
+   */
+  DatatypeSelector getSelectorForName(const std::string& name) const;
+  /**
    * The internal datatype constructor wrapped by this datatype constructor.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
    * not ref counted.
@@ -1613,7 +1612,6 @@ class CVC4_PUBLIC Datatype
    */
   Term getConstructorTerm(const std::string& name) const;
 
-
   /** @return the name of this Datatype. */
   std::string getName() const;
 
@@ -1635,7 +1633,13 @@ class CVC4_PUBLIC Datatype
   /** @return true if this datatype is finite */
   bool isFinite() const;
 
-  /** @return true if this datatype is well-founded */
+  /**
+   * Is this datatype well-founded? If this datatype is not a codatatype,
+   * this returns false if there are no values of this datatype that are of
+   * finite size.
+   *
+   * @return true if this datatype is well-founded
+   */
   bool isWellFounded() const;
 
   /**
@@ -1731,6 +1735,12 @@ class CVC4_PUBLIC Datatype
   const CVC4::Datatype& getDatatype(void) const;
 
  private:
+  /**
+   * Return constructor for name.
+   * @param name The name of constructor to find
+   * @return the constructor object for the name
+   */
+  DatatypeConstructor getConstructorForName(const std::string& name) const;
   /**
    * The internal datatype wrapped by this datatype.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is

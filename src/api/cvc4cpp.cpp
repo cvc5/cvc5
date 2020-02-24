@@ -1338,23 +1338,26 @@ bool Term::operator<=(const Term& t) const { return *d_expr <= *t.d_expr; }
 
 bool Term::operator>=(const Term& t) const { return *d_expr >= *t.d_expr; }
 
-size_t Term::getNumChildren() const {
+size_t Term::getNumChildren() const
+{
+  CVC4_API_CHECK_NOT_NULL;
   // special case for apply kinds
   if (isApplyKind(d_expr->getKind()))
   {
-    return d_expr->getNumChildren()+1;
+    return d_expr->getNumChildren() + 1;
   }
   return d_expr->getNumChildren();
 }
 
 Term Term::operator[](size_t index) const
 {
+  CVC4_API_CHECK_NOT_NULL;
   // special cases for apply kinds
   if (isApplyKind(d_expr->getKind()))
   {
     CVC4_API_CHECK(d_expr->hasOperator())
-      << "Expected apply kind to have operator when accessing child of Term";
-    if (index==0)
+        << "Expected apply kind to have operator when accessing child of Term";
+    if (index == 0)
     {
       // return the operator
       return api::Term(d_expr->getOperator());
@@ -1385,12 +1388,31 @@ Sort Term::getSort() const
 
 Term Term::substitute(Term e, Term replacement) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK(!e.isNull())
+      << "Expected non-null term to replace in substitute";
+  CVC4_API_CHECK(!replacement.isNull())
+      << "Expected non-null term as replacement in substitute";
+  CVC4_API_CHECK(e.getSort().isComparableTo(replacement.getSort()))
+      << "Expecting terms of comparable sort in substitute";
   return api::Term(d_expr->substitute(e.getExpr(), replacement.getExpr()));
 }
 
 Term Term::substitute(const std::vector<Term> es,
                       const std::vector<Term>& replacements) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK(es.size() == replacements.size())
+      << "Expecting vectors of the same arity in substitute";
+  for (unsigned i = 0, nterms = es.size(); i < nterms; i++)
+  {
+    CVC4_API_CHECK(!es[i].isNull())
+        << "Expected non-null term to replace in substitute";
+    CVC4_API_CHECK(!replacements[i].isNull())
+        << "Expected non-null term as replacement in substitute";
+    CVC4_API_CHECK(es[i].getSort().isComparableTo(replacements[i].getSort()))
+        << "Expecting terms of comparable sort in substitute";
+  }
   return api::Term(d_expr->substitute(termVectorToExprs(es),
                                       termVectorToExprs(replacements)));
 }
@@ -1868,17 +1890,15 @@ DatatypeSelector::DatatypeSelector() { d_stor = nullptr; }
 DatatypeSelector::DatatypeSelector(const CVC4::DatatypeConstructorArg& stor)
     : d_stor(new CVC4::DatatypeConstructorArg(stor))
 {
+  CVC4_API_CHECK(d_stor->isResolved()) << "Expected resolved datatype selector";
 }
 
 DatatypeSelector::~DatatypeSelector() {}
 
 std::string DatatypeSelector::getName() const { return d_stor->getName(); }
 
-bool DatatypeSelector::isResolved() const { return d_stor->isResolved(); }
-
 Term DatatypeSelector::getSelectorTerm() const
 {
-  CVC4_API_CHECK(isResolved()) << "Expected resolved datatype selector.";
   Term sel = d_stor->getSelector();
   return sel;
 }
@@ -1911,25 +1931,25 @@ DatatypeConstructor::DatatypeConstructor() { d_ctor = nullptr; }
 DatatypeConstructor::DatatypeConstructor(const CVC4::DatatypeConstructor& ctor)
     : d_ctor(new CVC4::DatatypeConstructor(ctor))
 {
+  CVC4_API_CHECK(d_ctor->isResolved())
+      << "Expected resolved datatype constructor";
 }
 
 DatatypeConstructor::~DatatypeConstructor() {}
 
-bool DatatypeConstructor::isResolved() const { return d_ctor->isResolved(); }
+std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
 
 std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
 
 Term DatatypeConstructor::getConstructorTerm() const
 {
-  CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
   Term ctor = d_ctor->getConstructor();
   return ctor;
 }
 
 Term DatatypeConstructor::getTesterTerm() const
 {
-  CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
-  CVC4::Expr tst = d_ctor->getTester();
+  Term tst = d_ctor->getTester();
   return tst;
 }
 
@@ -1950,24 +1970,18 @@ DatatypeSelector DatatypeConstructor::operator[](size_t index) const
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
 {
-  // CHECK: selector with name exists?
-  // CHECK: is resolved?
-  return (*d_ctor)[name];
+  return getSelectorForName(name);
 }
 
 DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
 {
-  // CHECK: cons with name exists?
-  // CHECK: is resolved?
-  return (*d_ctor)[name];
+  return getSelectorForName(name);
 }
 
 Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
 {
-  // CHECK: cons with name exists?
-  // CHECK: is resolved?
-  Term sel = d_ctor->getSelector(name);
-  return sel;
+  DatatypeSelector sel = getSelector(name);
+  return sel.getSelectorTerm();
 }
 
 DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
@@ -2059,6 +2073,25 @@ const CVC4::DatatypeConstructor& DatatypeConstructor::getDatatypeConstructor(
   return *d_ctor;
 }
 
+DatatypeSelector DatatypeConstructor::getSelectorForName(
+    const std::string& name) const
+{
+  bool foundSel = false;
+  size_t index = 0;
+  for (size_t i = 0, nsels = getNumSelectors(); i < nsels; i++)
+  {
+    if ((*d_ctor)[i].getName() == name)
+    {
+      index = i;
+      foundSel = true;
+      break;
+    }
+  }
+  CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor "
+                           << getName() << " exists";
+  return (*d_ctor)[index];
+}
+
 std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
 {
   out << ctor.toString();
@@ -2070,6 +2103,7 @@ std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
 Datatype::Datatype(const CVC4::Datatype& dtype)
     : d_dtype(new CVC4::Datatype(dtype))
 {
+  CVC4_API_CHECK(d_dtype->isResolved()) << "Expected resolved datatype";
 }
 
 // Nullary constructor for Cython
@@ -2079,23 +2113,18 @@ Datatype::~Datatype() {}
 
 DatatypeConstructor Datatype::operator[](size_t idx) const
 {
-  // CHECK (maybe): is resolved?
   CVC4_API_CHECK(idx < getNumConstructors()) << "Index out of bounds.";
   return (*d_dtype)[idx];
 }
 
 DatatypeConstructor Datatype::operator[](const std::string& name) const
 {
-  // CHECK: cons with name exists?
-  // CHECK: is resolved?
-  return (*d_dtype)[name];
+  return getConstructorForName(name);
 }
 
 DatatypeConstructor Datatype::getConstructor(const std::string& name) const
 {
-  // CHECK: cons with name exists?
-  // CHECK: is resolved?
-  return (*d_dtype)[name];
+  return getConstructorForName(name);
 }
 
 DatatypeConstructor Datatype::getConstructorForTerm(Term cons) const
@@ -2107,10 +2136,8 @@ DatatypeConstructor Datatype::getConstructorForTerm(Term cons) const
 
 Term Datatype::getConstructorTerm(const std::string& name) const
 {
-  // CHECK: cons with name exists?
-  // CHECK: is resolved?
-  Term ctor = d_dtype->getConstructor(name);
-  return ctor;
+  DatatypeConstructor ctor = getConstructor(name);
+  return ctor.getConstructorTerm();
 }
 
 std::string Datatype::getName() const { return d_dtype->getName(); }
@@ -2127,16 +2154,8 @@ bool Datatype::isTuple() const { return d_dtype->isTuple(); }
 
 bool Datatype::isRecord() const { return d_dtype->isRecord(); }
 
-bool Datatype::isFinite() const
-{
-  // CHECK: is resolved?
-  return d_dtype->isFinite();
-}
-bool Datatype::isWellFounded() const
-{
-  // CHECK: is resolved?
-  return d_dtype->isWellFounded();
-}
+bool Datatype::isFinite() const { return d_dtype->isFinite(); }
+bool Datatype::isWellFounded() const { return d_dtype->isWellFounded(); }
 
 std::string Datatype::toString() const { return d_dtype->getName(); }
 
@@ -2153,6 +2172,25 @@ Datatype::const_iterator Datatype::end() const
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
 const CVC4::Datatype& Datatype::getDatatype(void) const { return *d_dtype; }
+
+DatatypeConstructor Datatype::getConstructorForName(
+    const std::string& name) const
+{
+  bool foundCons = false;
+  size_t index = 0;
+  for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
+  {
+    if ((*d_dtype)[i].getName() == name)
+    {
+      index = i;
+      foundCons = true;
+      break;
+    }
+  }
+  CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
+                            << getName() << " exists";
+  return (*d_dtype)[index];
+}
 
 Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype,
                                          bool begin)
