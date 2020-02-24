@@ -21,9 +21,8 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
-namespace word {
 
-Node mkEmptyWord(Kind k)
+Node Word::mkEmptyWord(Kind k)
 {
   NodeManager* nm = NodeManager::currentNM();
   if (k == CONST_STRING)
@@ -35,7 +34,7 @@ Node mkEmptyWord(Kind k)
   return Node::null();
 }
 
-Node mkWord(const std::vector<Node>& xs)
+Node Word::mkWord(const std::vector<Node>& xs)
 {
   Assert(!xs.empty());
   NodeManager* nm = NodeManager::currentNM();
@@ -56,7 +55,7 @@ Node mkWord(const std::vector<Node>& xs)
   return Node::null();
 }
 
-size_t getLength(TNode x)
+size_t Word::getLength(TNode x)
 {
   Kind k = x.getKind();
   if (k == CONST_STRING)
@@ -67,9 +66,9 @@ size_t getLength(TNode x)
   return 0;
 }
 
-bool isEmpty(TNode x) { return getLength(x) == 0; }
+bool Word::isEmpty(TNode x) { return getLength(x) == 0; }
 
-std::size_t find(TNode x, TNode y, std::size_t start)
+std::size_t Word::find(TNode x, TNode y, std::size_t start)
 {
   Kind k = x.getKind();
   if (k == CONST_STRING)
@@ -83,7 +82,7 @@ std::size_t find(TNode x, TNode y, std::size_t start)
   return 0;
 }
 
-std::size_t rfind(TNode x, TNode y, std::size_t start)
+std::size_t Word::rfind(TNode x, TNode y, std::size_t start)
 {
   Kind k = x.getKind();
   if (k == CONST_STRING)
@@ -97,7 +96,7 @@ std::size_t rfind(TNode x, TNode y, std::size_t start)
   return 0;
 }
 
-bool hasPrefix(TNode x, TNode y)
+bool Word::hasPrefix(TNode x, TNode y)
 {
   Kind k = x.getKind();
   if (k == CONST_STRING)
@@ -111,7 +110,7 @@ bool hasPrefix(TNode x, TNode y)
   return false;
 }
 
-bool hasSuffix(TNode x, TNode y)
+bool Word::hasSuffix(TNode x, TNode y)
 {
   Kind k = x.getKind();
   if (k == CONST_STRING)
@@ -125,7 +124,7 @@ bool hasSuffix(TNode x, TNode y)
   return false;
 }
 
-Node replace(TNode x, TNode y, TNode t)
+Node Word::replace(TNode x, TNode y, TNode t)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
@@ -141,7 +140,7 @@ Node replace(TNode x, TNode y, TNode t)
   Unimplemented();
   return Node::null();
 }
-Node substr(TNode x, std::size_t i)
+Node Word::substr(TNode x, std::size_t i)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
@@ -153,7 +152,7 @@ Node substr(TNode x, std::size_t i)
   Unimplemented();
   return Node::null();
 }
-Node substr(TNode x, std::size_t i, std::size_t j)
+Node Word::substr(TNode x, std::size_t i, std::size_t j)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
@@ -166,9 +165,9 @@ Node substr(TNode x, std::size_t i, std::size_t j)
   return Node::null();
 }
 
-Node prefix(TNode x, std::size_t i) { return substr(x, 0, i); }
+Node Word::prefix(TNode x, std::size_t i) { return substr(x, 0, i); }
 
-Node suffix(TNode x, std::size_t i)
+Node Word::suffix(TNode x, std::size_t i)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
@@ -181,7 +180,7 @@ Node suffix(TNode x, std::size_t i)
   return Node::null();
 }
 
-bool noOverlapWith(TNode x, TNode y)
+bool Word::noOverlapWith(TNode x, TNode y)
 {
   Kind k = x.getKind();
   if (k == CONST_STRING)
@@ -195,7 +194,7 @@ bool noOverlapWith(TNode x, TNode y)
   return false;
 }
 
-std::size_t overlap(TNode x, TNode y)
+std::size_t Word::overlap(TNode x, TNode y)
 {
   Kind k = x.getKind();
   if (k == CONST_STRING)
@@ -209,7 +208,7 @@ std::size_t overlap(TNode x, TNode y)
   return 0;
 }
 
-std::size_t roverlap(TNode x, TNode y)
+std::size_t Word::roverlap(TNode x, TNode y)
 {
   Kind k = x.getKind();
   if (k == CONST_STRING)
@@ -223,7 +222,6 @@ std::size_t roverlap(TNode x, TNode y)
   return 0;
 }
 
-}  // namespace word
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4

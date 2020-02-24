@@ -63,81 +63,81 @@ class TheoryStringsWordWhite : public CxxTest::TestSuite
     Node cac = d_nm->mkConst(String("cac"));
     Node abca = d_nm->mkConst(String("abca"));
 
-    TS_ASSERT(word::mkEmptyWord(kind::CONST_STRING) == empty);
+    TS_ASSERT(Word::mkEmptyWord(kind::CONST_STRING) == empty);
 
     std::vector<Node> vec;
     vec.push_back(abc);
-    Node abcMk = word::mkWord(vec);
+    Node abcMk = Word::mkWord(vec);
     TS_ASSERT_EQUALS(abc, abcMk);
     vec.push_back(a);
-    Node abcaMk = word::mkWord(vec);
+    Node abcaMk = Word::mkWord(vec);
     TS_ASSERT_EQUALS(abca, abcaMk);
 
-    TS_ASSERT(word::getLength(empty) == 0);
-    TS_ASSERT(word::getLength(aaaaa) == 5);
+    TS_ASSERT(Word::getLength(empty) == 0);
+    TS_ASSERT(Word::getLength(aaaaa) == 5);
 
-    TS_ASSERT(word::isEmpty(empty));
-    TS_ASSERT(!word::isEmpty(a));
+    TS_ASSERT(Word::isEmpty(empty));
+    TS_ASSERT(!Word::isEmpty(a));
 
-    TS_ASSERT(word::find(empty, empty) == 0);
-    TS_ASSERT(word::find(a, empty) == 0);
-    TS_ASSERT(word::find(empty, empty, 1) == std::string::npos);
-    TS_ASSERT(word::find(cac, a, 0) == 1);
-    TS_ASSERT(word::find(cac, abc) == std::string::npos);
+    TS_ASSERT(Word::find(empty, empty) == 0);
+    TS_ASSERT(Word::find(a, empty) == 0);
+    TS_ASSERT(Word::find(empty, empty, 1) == std::string::npos);
+    TS_ASSERT(Word::find(cac, a, 0) == 1);
+    TS_ASSERT(Word::find(cac, abc) == std::string::npos);
 
-    TS_ASSERT(word::rfind(aaaaa, empty) == 0);
-    TS_ASSERT(word::rfind(aaaaa, a) == 0);
-    TS_ASSERT(word::rfind(abca, abc, 1) == 1);
+    TS_ASSERT(Word::rfind(aaaaa, empty) == 0);
+    TS_ASSERT(Word::rfind(aaaaa, a) == 0);
+    TS_ASSERT(Word::rfind(abca, abc, 1) == 1);
 
-    TS_ASSERT(word::hasPrefix(empty, empty));
-    TS_ASSERT(word::hasPrefix(a, empty));
-    TS_ASSERT(word::hasPrefix(aaaaa, a));
-    TS_ASSERT(!word::hasPrefix(abca, b));
-    TS_ASSERT(!word::hasPrefix(empty, a));
+    TS_ASSERT(Word::hasPrefix(empty, empty));
+    TS_ASSERT(Word::hasPrefix(a, empty));
+    TS_ASSERT(Word::hasPrefix(aaaaa, a));
+    TS_ASSERT(!Word::hasPrefix(abca, b));
+    TS_ASSERT(!Word::hasPrefix(empty, a));
 
-    TS_ASSERT(word::hasSuffix(empty, empty));
-    TS_ASSERT(word::hasSuffix(a, empty));
-    TS_ASSERT(word::hasSuffix(a, a));
-    TS_ASSERT(!word::hasSuffix(abca, b));
-    TS_ASSERT(!word::hasSuffix(empty, abc));
+    TS_ASSERT(Word::hasSuffix(empty, empty));
+    TS_ASSERT(Word::hasSuffix(a, empty));
+    TS_ASSERT(Word::hasSuffix(a, a));
+    TS_ASSERT(!Word::hasSuffix(abca, b));
+    TS_ASSERT(!Word::hasSuffix(empty, abc));
 
-    TS_ASSERT_EQUALS(bbc, word::replace(abc, a, b));
-    TS_ASSERT_EQUALS(aaaaa, word::replace(aaaaa, b, a));
-    TS_ASSERT_EQUALS(aa, word::replace(a, empty, a));
+    TS_ASSERT_EQUALS(bbc, Word::replace(abc, a, b));
+    TS_ASSERT_EQUALS(aaaaa, Word::replace(aaaaa, b, a));
+    TS_ASSERT_EQUALS(aa, Word::replace(a, empty, a));
 
-    TS_ASSERT_EQUALS(empty, word::substr(a, 1));
-    TS_ASSERT_EQUALS(empty, word::substr(empty, 0));
-    TS_ASSERT_EQUALS(a, word::substr(abca, 3));
+    TS_ASSERT_EQUALS(empty, Word::substr(a, 1));
+    TS_ASSERT_EQUALS(empty, Word::substr(empty, 0));
+    TS_ASSERT_EQUALS(a, Word::substr(abca, 3));
 
-    TS_ASSERT_EQUALS(a, word::substr(abc, 0, 1));
-    TS_ASSERT_EQUALS(aa, word::substr(aaaaa, 3, 2));
+    TS_ASSERT_EQUALS(a, Word::substr(abc, 0, 1));
+    TS_ASSERT_EQUALS(aa, Word::substr(aaaaa, 3, 2));
 
-    TS_ASSERT_EQUALS(a, word::prefix(a, 1));
-    TS_ASSERT_EQUALS(empty, word::prefix(empty, 0));
-    TS_ASSERT_EQUALS(a, word::prefix(aaaaa, 1));
+    TS_ASSERT_EQUALS(a, Word::prefix(a, 1));
+    TS_ASSERT_EQUALS(empty, Word::prefix(empty, 0));
+    TS_ASSERT_EQUALS(a, Word::prefix(aaaaa, 1));
 
-    TS_ASSERT_EQUALS(a, word::suffix(a, 1));
-    TS_ASSERT_EQUALS(empty, word::suffix(empty, 0));
-    TS_ASSERT_EQUALS(aa, word::suffix(aaaaa, 2));
+    TS_ASSERT_EQUALS(a, Word::suffix(a, 1));
+    TS_ASSERT_EQUALS(empty, Word::suffix(empty, 0));
+    TS_ASSERT_EQUALS(aa, Word::suffix(aaaaa, 2));
 
-    TS_ASSERT(!word::noOverlapWith(abc, empty));
-    TS_ASSERT(word::noOverlapWith(cac, aa));
-    TS_ASSERT(!word::noOverlapWith(cac, abc));
-    TS_ASSERT(word::noOverlapWith(cac, b));
-    TS_ASSERT(!word::noOverlapWith(cac, a));
-    TS_ASSERT(!word::noOverlapWith(abca, a));
+    TS_ASSERT(!Word::noOverlapWith(abc, empty));
+    TS_ASSERT(Word::noOverlapWith(cac, aa));
+    TS_ASSERT(!Word::noOverlapWith(cac, abc));
+    TS_ASSERT(Word::noOverlapWith(cac, b));
+    TS_ASSERT(!Word::noOverlapWith(cac, a));
+    TS_ASSERT(!Word::noOverlapWith(abca, a));
 
-    TS_ASSERT(word::overlap(abc, empty) == 0);
-    TS_ASSERT(word::overlap(aaaaa, abc) == 1);
-    TS_ASSERT(word::overlap(cac, abc) == 0);
-    TS_ASSERT(word::overlap(empty, abc) == 0);
-    TS_ASSERT(word::overlap(aaaaa, aa) == 2);
+    TS_ASSERT(Word::overlap(abc, empty) == 0);
+    TS_ASSERT(Word::overlap(aaaaa, abc) == 1);
+    TS_ASSERT(Word::overlap(cac, abc) == 0);
+    TS_ASSERT(Word::overlap(empty, abc) == 0);
+    TS_ASSERT(Word::overlap(aaaaa, aa) == 2);
 
-    TS_ASSERT(word::roverlap(abc, empty) == 0);
-    TS_ASSERT(word::roverlap(aaaaa, abc) == 0);
-    TS_ASSERT(word::roverlap(cac, abc) == 1);
-    TS_ASSERT(word::roverlap(empty, abc) == 0);
-    TS_ASSERT(word::roverlap(aaaaa, aa) == 2);
+    TS_ASSERT(Word::roverlap(abc, empty) == 0);
+    TS_ASSERT(Word::roverlap(aaaaa, abc) == 0);
+    TS_ASSERT(Word::roverlap(cac, abc) == 1);
+    TS_ASSERT(Word::roverlap(empty, abc) == 0);
+    TS_ASSERT(Word::roverlap(aaaaa, aa) == 2);
   }
 
  private:
