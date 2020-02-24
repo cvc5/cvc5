@@ -935,6 +935,13 @@ Expr ExprManager::mkNullaryOperator(Type type, Kind k){
   return n.toExpr();
 }
 
+Expr ExprManager::mkExprCast(Expr e, Type type) const
+{
+  NodeManagerScope nms(d_nodeManager);
+  Node n = d_nodeManager->mkNodeCast(e.getNode(), *type.d_typeNode); 
+  return n.toExpr();
+}
+
 Expr ExprManager::mkAssociative(Kind kind,
                                 const std::vector<Expr>& children) {
   PrettyCheckArgument(

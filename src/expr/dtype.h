@@ -358,6 +358,14 @@ class DType
   /** Get the ith DTypeConstructor. */
   const DTypeConstructor& operator[](size_t index) const;
 
+  /**
+   * Get the datatype constructor from a constructor term (the operator
+   * corresponding to the constructor).
+   * @param cons the datatype constructor term
+   * @return the datatype constructor whose constructor term is cons
+   */
+  DTypeConstructor getConstructorForTerm(Node cons) const;
+
   /** get sygus type
    * This gets the built-in type associated with
    * this sygus datatype, i.e. the type of the

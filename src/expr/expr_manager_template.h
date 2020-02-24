@@ -549,6 +549,15 @@ private:
    * Create unique variable of type 
    */
   Expr mkNullaryOperator( Type type, Kind k);
+  
+  /** 
+   * Cast term. Construct the Expr corresponding to casting e to Type type
+   * if possible.
+   * @param e The expression to cast
+   * @param type The desired Type of the cast.
+   * @return The expression e casted to type.
+   */
+  Expr mkExprCast(Expr e, Type type) const;
 
   /** Get a reference to the statistics registry for this ExprManager */
   Statistics getStatistics() const;

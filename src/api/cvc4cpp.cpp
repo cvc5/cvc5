@@ -3338,6 +3338,8 @@ Term Solver::mkTermCast(Term t, Sort s) const
       << "Expected non-null term";
   CVC4_API_CHECK(!s.isNull())
       << "Expected non-null sort";
+  //Expr e = d_exprMgr->mkExprCast(t.getExpr(),s.getType());
+  //return api::Term(e);
   if (s.isParametricDatatype())
   {
     if (t.getKind()==APPLY_CONSTRUCTOR)

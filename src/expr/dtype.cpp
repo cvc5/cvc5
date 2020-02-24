@@ -641,6 +641,13 @@ const DTypeConstructor& DType::operator[](size_t index) const
   return *d_constructors[index];
 }
 
+DTypeConstructor DType::getConstructorForTerm(Node cons) const
+{
+  size_t index = indexOf(cons);
+  Assert(index < getNumConstructors());
+  return *d_constructors[index];
+}
+
 Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
 {
   Assert(isResolved());
