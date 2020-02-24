@@ -661,14 +661,14 @@ Command* Parser::nextCommand()
   return cmd;
 }
 
-Expr Parser::nextExpression()
+api::Term Parser::nextExpression()
 {
   Debug("parser") << "nextExpression()" << std::endl;
   d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
   Expr result;
   if (!done()) {
     try {
-      result = d_input->parseExpr();
+      result = d_input->parseExpr().getExpr();
       setDone(result.isNull());
     } catch (ParserException& e) {
       setDone();
@@ -679,7 +679,7 @@ Expr Parser::nextExpression()
     }
   }
   Debug("parser") << "nextExpression() => " << result << std::endl;
-  return result;
+  return api::Term(result);
 }
 
 void Parser::attributeNotSupported(const std::string& attr) {
