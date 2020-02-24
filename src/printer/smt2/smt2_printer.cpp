@@ -1207,7 +1207,8 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
   case kind::STRING_STRREPL: return "str.replace" ;
-  case kind::STRING_STRREPLALL: return "str.replaceall";
+  case kind::STRING_STRREPLALL:
+    return v == smt2_6_1_variant ? "str.replace_all" : "str.replaceall";
   case kind::STRING_TOLOWER: return "str.tolower";
   case kind::STRING_TOUPPER: return "str.toupper";
   case kind::STRING_REV: return "str.rev";
@@ -1215,15 +1216,16 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_LEQ: return "str.<=";
   case kind::STRING_LT: return "str.<";
-  case kind::STRING_CODE: return "str.code";
+  case kind::STRING_CODE:
+    return v == smt2_6_1_variant ? "str.to_code" : "str.code";
   case kind::STRING_ITOS:
-    return v == smt2_6_1_variant ? "str.from-int" : "int.to.str";
+    return v == smt2_6_1_variant ? "str.from_int" : "int.to.str";
   case kind::STRING_STOI:
-    return v == smt2_6_1_variant ? "str.to-int" : "str.to.int";
+    return v == smt2_6_1_variant ? "str.to_int" : "str.to.int";
   case kind::STRING_IN_REGEXP:
-    return v == smt2_6_1_variant ? "str.in-re" : "str.in.re";
+    return v == smt2_6_1_variant ? "str.in_re" : "str.in.re";
   case kind::STRING_TO_REGEXP:
-    return v == smt2_6_1_variant ? "str.to-re" : "str.to.re";
+    return v == smt2_6_1_variant ? "str.to_re" : "str.to.re";
   case kind::REGEXP_EMPTY: return "re.nostr";
   case kind::REGEXP_SIGMA: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
