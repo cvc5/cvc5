@@ -27,6 +27,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
 #include <numeric>  // for std::iota
 
@@ -556,6 +557,19 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
       // we set its weight to zero since it should be considered at the
       // same level as constants.
       to.d_sdt.addAnyConstantConstructor(dtn);
+    }
+    else
+    {
+      // add default constant constructors
+      std::vector<Node> ops;
+      CegGrammarConstructor::mkSygusConstantsForType(sygus_type,ops);
+      for (const Node& op : ops)
+      {
+        std::stringstream ss;
+        ss << op;
+        std::vector<TypeNode> ctypes;
+        to.d_sdt.addConstructor(op,ss.str(),ctypes);
+      }
     }
   }
 
