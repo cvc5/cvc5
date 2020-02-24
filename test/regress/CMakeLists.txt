@@ -6,9 +6,10 @@ set(regress_0_tests
   regress0/arith/arith-eq.smt2
   regress0/arith/arith-mixed-types-no-tighten.smt2
   regress0/arith/arith-mixed-types-tighten.smt2
-  regress0/arith/arith-mixed.smt2
+  regress0/arith/arith-strict-relaxed.smt2
   regress0/arith/arith-strict.smt2
   regress0/arith/arith-tighten-1.smt2
+  regress0/arith/arith-tighten-2.smt2
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
   regress0/arith/arith.03.cvc
@@ -108,6 +109,7 @@ set(regress_0_tests
   regress0/aufbv/fuzz13.smtv1.smt2
   regress0/aufbv/fuzz14.smtv1.smt2
   regress0/aufbv/fuzz15.smtv1.smt2
+  regress0/aufbv/issue3737.smt2
   regress0/aufbv/rewrite_bug.smtv1.smt2
   regress0/aufbv/try3_sameret_functions_fse-bfs_tac.calc_next.il.fse-bfs.delta01.smtv1.smt2
   regress0/aufbv/try5_small_difret_functions_wp_su.set_char_quoting.il.wp.delta01.smtv1.smt2
