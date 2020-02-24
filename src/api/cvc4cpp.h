@@ -1592,7 +1592,7 @@ class CVC4_PUBLIC Datatype
    */
   DatatypeConstructor operator[](const std::string& name) const;
   DatatypeConstructor getConstructor(const std::string& name) const;
-  
+
   /**
    * Get a term representing the datatype constructor with the given name.
    * This is a linear search through the constructors, so in case of multiple,
@@ -2102,8 +2102,8 @@ class CVC4_PUBLIC Solver
    * @return The Term of sort s.
    */
   Term mkWitness(Sort s) const;
-  
-  /** 
+
+  /**
    * Cast term. Construct the term corresponding to casting t to sort s
    * if possible.
    * @param t The Term to cast
@@ -2111,7 +2111,7 @@ class CVC4_PUBLIC Solver
    * @return The Term t casted to Sort s.
    */
   Term mkTermCast(Term t, Sort s) const;
-               
+
   /* .................................................................... */
   /* Create Operators                                                     */
   /* .................................................................... */

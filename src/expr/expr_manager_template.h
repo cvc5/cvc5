@@ -549,8 +549,8 @@ private:
    * Create unique variable of type 
    */
   Expr mkNullaryOperator( Type type, Kind k);
-  
-  /** 
+
+  /**
    * Cast term. Construct the Expr corresponding to casting e to Type type
    * if possible.
    * @param e The expression to cast

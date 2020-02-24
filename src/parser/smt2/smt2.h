@@ -147,7 +147,8 @@ class Smt2 : public Parser
   /**
    * Returns the expression that name should be interpreted as.
    */
-  api::Term getExpressionForNameAndType(const std::string& name, api::Sort t) override;
+  api::Term getExpressionForNameAndType(const std::string& name,
+                                        api::Sort t) override;
 
   /** Make function defined by a define-fun(s)-rec command.
    *
@@ -165,7 +166,7 @@ class Smt2 : public Parser
    */
   api::Term bindDefineFunRec(
       const std::string& fname,
-      const std::vector<std::pair<std::string, api::Sort> >& sortedVarNames,
+      const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
       api::Sort t,
       std::vector<api::Term>& flattenVars);
 
@@ -187,7 +188,7 @@ class Smt2 : public Parser
    *     that defined this definition and stores it in bvs.
    */
   void pushDefineFunRecScope(
-      const std::vector<std::pair<std::string, api::Sort> >& sortedVarNames,
+      const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
       api::Term func,
       const std::vector<api::Term>& flattenVars,
       std::vector<api::Term>& bvs,
@@ -321,7 +322,8 @@ class Smt2 : public Parser
 
   void includeFile(const std::string& filename);
 
-  void setLastNamedTerm(api::Term e, std::string name) {
+  void setLastNamedTerm(api::Term e, std::string name)
+  {
     d_lastNamedTerm = std::make_pair(e, name);
   }
 
@@ -329,9 +331,7 @@ class Smt2 : public Parser
     d_lastNamedTerm = std::make_pair(api::Term(), "");
   }
 
-  std::pair<api::Term, std::string> lastNamedTerm() {
-    return d_lastNamedTerm;
-  }
+  std::pair<api::Term, std::string> lastNamedTerm() { return d_lastNamedTerm; }
 
   /** Does name denote an abstract value? (of the form '@n' for numeral n). */
   bool isAbstractValue(const std::string& name);
@@ -343,7 +343,8 @@ class Smt2 : public Parser
    */
   api::Term mkAbstractValue(const std::string& name);
 
-  void mkSygusConstantsForType( const api::Sort& type, std::vector<api::Term>& ops );
+  void mkSygusConstantsForType(const api::Sort& type,
+                               std::vector<api::Term>& ops);
 
   void processSygusGTerm(
       CVC4::SygusGTerm& sgt,
@@ -387,10 +388,12 @@ class Smt2 : public Parser
                           std::vector<api::Sort>& sorts,
                           std::vector<std::vector<ParseOp>>& ops);
 
-  void mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
-                        std::vector<std::string>& cnames, std::vector< std::vector< api::Sort > >& cargs,
-                        std::vector<std::string>& unresolved_gterm_sym,
-                        std::map< api::Sort, api::Sort >& sygus_to_builtin );
+  void mkSygusDatatype(CVC4::Datatype& dt,
+                       std::vector<ParseOp>& ops,
+                       std::vector<std::string>& cnames,
+                       std::vector<std::vector<api::Sort>>& cargs,
+                       std::vector<std::string>& unresolved_gterm_sym,
+                       std::map<api::Sort, api::Sort>& sygus_to_builtin);
 
   /**
    * Adds a constructor to sygus datatype dt whose sygus operator is term.
@@ -405,9 +408,10 @@ class Smt2 : public Parser
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    */
-  void addSygusConstructorTerm(Datatype& dt,
-                               api::Term term,
-                               std::map<api::Term, api::Sort>& ntsToUnres) const;
+  void addSygusConstructorTerm(
+      Datatype& dt,
+      api::Term term,
+      std::map<api::Term, api::Sort>& ntsToUnres) const;
   /**
    * This adds constructors to dt for sygus variables in sygusVars whose
    * type is argument type. This method should be called when the sygus grammar
@@ -560,17 +564,21 @@ class Smt2 : public Parser
   api::Term applyParseOp(ParseOp& p, std::vector<api::Term>& args);
   //------------------------- end processing parse operators
  private:
-  std::map< api::Term, api::Sort > d_sygus_bound_var_type;
+  std::map<api::Term, api::Sort> d_sygus_bound_var_type;
 
-  api::Sort processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
-                                std::vector< api::Sort>& sorts,
-                                std::vector< std::vector<ParseOp> >& ops,
-                                std::vector< std::vector<std::string> >& cnames,
-                                std::vector< std::vector< std::vector< api::Sort > > >& cargs,
-                                std::vector< bool >& allow_const,
-                                std::vector< std::vector< std::string > >& unresolved_gterm_sym,
-                                std::map< api::Sort, api::Sort >& sygus_to_builtin,
-                                std::map< api::Sort, api::Term >& sygus_to_builtin_expr, api::Sort sub_ret );
+  api::Sort processSygusNestedGTerm(
+      int sub_dt_index,
+      std::string& sub_dname,
+      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<api::Sort>& sorts,
+      std::vector<std::vector<ParseOp>>& ops,
+      std::vector<std::vector<std::string>>& cnames,
+      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
+      std::vector<bool>& allow_const,
+      std::vector<std::vector<std::string>>& unresolved_gterm_sym,
+      std::map<api::Sort, api::Sort>& sygus_to_builtin,
+      std::map<api::Sort, api::Term>& sygus_to_builtin_expr,
+      api::Sort sub_ret);
 
   /** make sygus bound var list
    *
@@ -581,9 +589,9 @@ class Smt2 : public Parser
    * a bound variable list whose children are lvars.
    */
   api::Term makeSygusBoundVarList(CVC4::Datatype& dt,
-                             unsigned i,
-                             const std::vector<api::Sort>& ltypes,
-                             std::vector<api::Term>& lvars);
+                                  unsigned i,
+                                  const std::vector<api::Sort>& ltypes,
+                                  std::vector<api::Term>& lvars);
 
   /** Purify sygus grammar term
    *
@@ -597,9 +605,9 @@ class Smt2 : public Parser
    * sygus constructor.
    */
   api::Term purifySygusGTerm(api::Term term,
-                        std::map<api::Term, api::Sort>& ntsToUnres,
-                        std::vector<api::Term>& args,
-                        std::vector<api::Sort>& cargs) const;
+                             std::map<api::Term, api::Sort>& ntsToUnres,
+                             std::vector<api::Term>& args,
+                             std::vector<api::Sort>& cargs) const;
 
   void addArithmeticOperators();
 

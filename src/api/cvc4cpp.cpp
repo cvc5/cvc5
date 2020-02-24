@@ -3326,33 +3326,34 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
 
 Term Solver::mkWitness(Sort s) const
 {
-  CVC4_API_CHECK(!s.isNull())
-      << "Expected non-null sort";
+  CVC4_API_CHECK(!s.isNull()) << "Expected non-null sort";
   Term w = s.getType().mkGroundTerm();
   return w;
 }
 
 Term Solver::mkTermCast(Term t, Sort s) const
 {
-  CVC4_API_CHECK(!t.isNull())
-      << "Expected non-null term";
-  CVC4_API_CHECK(!s.isNull())
-      << "Expected non-null sort";
-  //Expr e = d_exprMgr->mkExprCast(t.getExpr(),s.getType());
-  //return api::Term(e);
+  CVC4_API_CHECK(!t.isNull()) << "Expected non-null term";
+  CVC4_API_CHECK(!s.isNull()) << "Expected non-null sort";
+  // Expr e = d_exprMgr->mkExprCast(t.getExpr(),s.getType());
+  // return api::Term(e);
   if (s.isParametricDatatype())
   {
-    if (t.getKind()==APPLY_CONSTRUCTOR)
+    if (t.getKind() == APPLY_CONSTRUCTOR)
     {
       // operator is the first child
       std::vector<Term> children;
-      children.insert(children.end(),t.begin(), t.end());
+      children.insert(children.end(), t.begin(), t.end());
       Expr e = children[0].getExpr();
       // must extract the datatype constructor for it
-      const CVC4::DatatypeConstructor& dtc = CVC4::Datatype::datatypeOf(e)[CVC4::Datatype::indexOf(e)];
+      const CVC4::DatatypeConstructor& dtc =
+          CVC4::Datatype::datatypeOf(e)[CVC4::Datatype::indexOf(e)];
       // the operator is the first child, apply a type ascription to it
-      children[0] = Term(d_exprMgr->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
-                            d_exprMgr->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))), e ));
+      children[0] = Term(d_exprMgr->mkExpr(
+          kind::APPLY_TYPE_ASCRIPTION,
+          d_exprMgr->mkConst(
+              AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
+          e));
       return mkTerm(APPLY_CONSTRUCTOR, children);
     }
     else if (t.getSort().isConstructor())
@@ -3363,11 +3364,12 @@ Term Solver::mkTermCast(Term t, Sort s) const
           CVC4::Datatype::datatypeOf(e)[CVC4::Datatype::indexOf(e)];
       return Term(d_exprMgr->mkExpr(
           kind::APPLY_TYPE_ASCRIPTION,
-          d_exprMgr->mkConst(AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
+          d_exprMgr->mkConst(
+              AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
           e));
     }
   }
-  CVC4_API_CHECK(t.getSort()==s) << "Failed to cast";
+  CVC4_API_CHECK(t.getSort() == s) << "Failed to cast";
   return t;
 }
 

@@ -57,9 +57,9 @@ class ParserBlack
     parser.bindVar("g", d_solver->mkFunctionSort(u, v));
     parser.bindVar("h", d_solver->mkFunctionSort(v, t));
     /* x:t; y:u; z:v; */
-    parser.bindVar("x",t);
-    parser.bindVar("y",u);
-    parser.bindVar("z",v);
+    parser.bindVar("x", t);
+    parser.bindVar("y", u);
+    parser.bindVar("z", v);
   }
 
   void tryGoodInput(const string goodInput)

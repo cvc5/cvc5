@@ -797,19 +797,21 @@ Node NodeManager::mkNodeCast(Node n, TypeNode type)
     // casts only have effect on parametric datatypes
     return n;
   }
-  if (n.getKind()==kind::APPLY_CONSTRUCTOR)
+  if (n.getKind() == kind::APPLY_CONSTRUCTOR)
   {
     // the constructor is the operator of n
     Node c = n.getOperator();
     std::vector<Node> children;
     children.push_back(c);
-    children.insert(children.end(),n.begin(), n.end());
+    children.insert(children.end(), n.begin(), n.end());
     // must extract the datatype constructor for it
     const DType& dt = n.getType().getDType();
     const DTypeConstructor& dtc = dt.getConstructorForTerm(c);
     // the operator is the first child, apply a type ascription to it
     children[0] = mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                          mkConst(AscriptionType(dtc.getSpecializedConstructorType(type).toType())), c );
+                         mkConst(AscriptionType(
+                             dtc.getSpecializedConstructorType(type).toType())),
+                         c);
     return mkNode(kind::APPLY_CONSTRUCTOR, children);
   }
   else if (n.getType().isConstructor())
@@ -817,10 +819,10 @@ Node NodeManager::mkNodeCast(Node n, TypeNode type)
     // apply type ascription to a constructor term
     const DType& dt = n.getType().getDType();
     const DTypeConstructor& dtc = dt.getConstructorForTerm(n);
-    return mkNode(
-        kind::APPLY_TYPE_ASCRIPTION,
-        mkConst(AscriptionType(dtc.getSpecializedConstructorType(type).toType())),
-        n);
+    return mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                  mkConst(AscriptionType(
+                      dtc.getSpecializedConstructorType(type).toType())),
+                  n);
   }
   return n;
 }

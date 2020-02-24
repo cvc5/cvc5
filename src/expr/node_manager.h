@@ -564,7 +564,7 @@ public:
   
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
-  /** 
+  /**
    * Cast term. Construct the Node corresponding to casting n to TypeNode type
    * if possible.
    * @param n The node to cast
@@ -572,7 +572,7 @@ public:
    * @return The node n casted to type.
    */
   Node mkNodeCast(Node n, TypeNode type);
-  
+
   /**
    * Create a constant of type T.  It will have the appropriate
    * CONST_* kind defined for T.

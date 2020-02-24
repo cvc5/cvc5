@@ -76,7 +76,8 @@ void Tptp::addTheory(Theory theory) {
     {
       std::string d_unsorted_name = "$$unsorted";
       d_unsorted = api::Sort(em->mkSort(d_unsorted_name));
-      preemptCommand( new DeclareTypeCommand(d_unsorted_name, 0, d_unsorted.getType()) );
+      preemptCommand(
+          new DeclareTypeCommand(d_unsorted_name, 0, d_unsorted.getType()));
     }
     // propositionnal
     defineType("Bool", em->booleanType());
@@ -85,7 +86,7 @@ void Tptp::addTheory(Theory theory) {
     addOperator(api::AND);
     addOperator(api::EQUAL);
     addOperator(api::IMPLIES);
-    //addOperator(api::ITE); //only for tff thf
+    // addOperator(api::ITE); //only for tff thf
     addOperator(api::NOT);
     addOperator(api::OR);
     addOperator(api::XOR);
@@ -184,24 +185,32 @@ void Tptp::includeFile(std::string fileName) {
   }
 }
 
-void Tptp::checkLetBinding(const std::vector<api::Term>& bvlist, api::Term lhs, api::Term rhs,
-                           bool formula) {
-  if (lhs.getKind() != api::APPLY_UF) {
+void Tptp::checkLetBinding(const std::vector<api::Term>& bvlist,
+                           api::Term lhs,
+                           api::Term rhs,
+                           bool formula)
+{
+  if (lhs.getKind() != api::APPLY_UF)
+  {
     parseError("malformed let: LHS must be a flat function application");
   }
   const std::multiset<api::Term> vars{lhs.begin(), lhs.end()};
-  if(formula && !lhs.getSort().isBoolean()) {
+  if (formula && !lhs.getSort().isBoolean())
+  {
     parseError("malformed let: LHS must be formula");
   }
-  for (const CVC4::api::Term& var : vars) {
-    if (var.hasOp()) {
+  for (const CVC4::api::Term& var : vars)
+  {
+    if (var.hasOp())
+    {
       parseError("malformed let: LHS must be flat, illegal child: " +
                  var.toString());
     }
   }
 
   // ensure all let-bound variables appear on the LHS, and appear only once
-  for (const api::Term& bound_var : bvlist) {
+  for (const api::Term& bound_var : bvlist)
+  {
     const size_t count = vars.count(bound_var);
     if (count == 0) {
       parseError(
@@ -236,7 +245,8 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
     api::Sort t =
         p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
     expr = bindVar(p.d_name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
-    preemptCommand(new DeclareFunctionCommand(p.d_name, expr.getExpr(), t.getType()));
+    preemptCommand(
+        new DeclareFunctionCommand(p.d_name, expr.getExpr(), t.getType()));
   }
   return expr;
 }
@@ -266,10 +276,12 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     else
     {
       std::vector<api::Sort> sorts(args.size(), d_unsorted);
-      api::Sort t = p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
+      api::Sort t =
+          p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
       t = d_solver->mkFunctionSort(sorts, t);
       v = bindVar(p.d_name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
-      preemptCommand(new DeclareFunctionCommand(p.d_name, v.getExpr(), t.getType()));
+      preemptCommand(
+          new DeclareFunctionCommand(p.d_name, v.getExpr(), t.getType()));
     }
     // args might be rationals, in which case we need to create
     // distinct constants of the "unsorted" sort to represent them
@@ -299,7 +311,8 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need --uf-ho if these operators are applied over function args
-      for (std::vector<api::Term>::iterator i = args.begin(); i != args.end(); ++i)
+      for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
+           ++i)
       {
         if ((*i).getSort().isFunction())
         {
@@ -310,8 +323,8 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     if (args.size() > 2)
     {
-      if (kind == api::INTS_DIVISION || kind == api::XOR
-          || kind == api::MINUS || kind == api::DIVISION)
+      if (kind == api::INTS_DIVISION || kind == api::XOR || kind == api::MINUS
+          || kind == api::DIVISION)
       {
         // Builtin operators that are not tokenized, are left associative,
         // but not internally variadic must set this.
@@ -330,7 +343,8 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       }
     }
 
-    if (kind::isAssociative(extToIntKind(kind)) && args.size() > em->maxArity(extToIntKind(kind)))
+    if (kind::isAssociative(extToIntKind(kind))
+        && args.size() > em->maxArity(extToIntKind(kind)))
     {
       /* Special treatment for associative operators with lots of children
        */
@@ -380,30 +394,35 @@ void Tptp::forceLogic(const std::string& logic)
   preemptCommand(new SetBenchmarkLogicCommand(logic));
 }
 
-void Tptp::addFreeVar(api::Term var) {
+void Tptp::addFreeVar(api::Term var)
+{
   assert(cnf());
   d_freeVar.push_back(var);
 }
 
-std::vector<api::Term> Tptp::getFreeVar() {
+std::vector<api::Term> Tptp::getFreeVar()
+{
   assert(cnf());
   std::vector<api::Term> r;
   r.swap(d_freeVar);
   return r;
 }
 
-api::Term Tptp::convertRatToUnsorted(api::Term expr) {
+api::Term Tptp::convertRatToUnsorted(api::Term expr)
+{
   // Create the conversion function If they doesn't exists
   if (d_rtu_op.isNull()) {
     api::Sort t;
     // Conversion from rational to unsorted
     t = d_solver->mkFunctionSort(d_solver->getRealSort(), d_unsorted);
     d_rtu_op = d_solver->mkConst(t, "$$rtu");
-    preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op.getExpr(), t.getType()));
+    preemptCommand(
+        new DeclareFunctionCommand("$$rtu", d_rtu_op.getExpr(), t.getType()));
     // Conversion from unsorted to rational
     t = d_solver->mkFunctionSort(d_unsorted, d_solver->getRealSort());
     d_utr_op = d_solver->mkConst(t, "$$utr");
-    preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op.getExpr(), t.getType()));
+    preemptCommand(
+        new DeclareFunctionCommand("$$utr", d_utr_op.getExpr(), t.getType()));
   }
   // Add the inverse in order to show that over the elements that
   // appear in the problem there is a bijection between unsorted and
@@ -411,18 +430,19 @@ api::Term Tptp::convertRatToUnsorted(api::Term expr) {
   api::Term ret = d_solver->mkTerm(api::APPLY_UF, d_rtu_op, expr);
   if (d_r_converted.find(expr) == d_r_converted.end()) {
     d_r_converted.insert(expr);
-    api::Term eq = d_solver->mkTerm(api::EQUAL, expr,
-                         d_solver->mkTerm(api::APPLY_UF, d_utr_op, ret));
+    api::Term eq = d_solver->mkTerm(
+        api::EQUAL, expr, d_solver->mkTerm(api::APPLY_UF, d_utr_op, ret));
     preemptCommand(new AssertCommand(eq.getExpr()));
   }
   return api::Term(ret);
 }
 
-api::Term Tptp::convertStrToUnsorted(std::string str) {
+api::Term Tptp::convertStrToUnsorted(std::string str)
+{
   api::Term& e = d_distinct_objects[str];
   if (e.isNull())
   {
-    e = d_solver->mkConst(d_unsorted,str);
+    e = d_solver->mkConst(d_unsorted, str);
   }
   return e;
 }
@@ -440,15 +460,16 @@ void Tptp::mkLambdaWrapper(api::Term& expr, api::Sort argType)
     lvars.push_back(v);
   }
   // apply body of lambda to variables
-  api::Term wrapper = d_solver->mkTerm(
-      api::LAMBDA,
-      d_solver->mkTerm(api::BOUND_VAR_LIST, lvars),
-      mkBuiltinApp(expr, lvars));
+  api::Term wrapper =
+      d_solver->mkTerm(api::LAMBDA,
+                       d_solver->mkTerm(api::BOUND_VAR_LIST, lvars),
+                       mkBuiltinApp(expr, lvars));
 
   expr = wrapper;
 }
 
-api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr) {
+api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr)
+{
   switch (fr) {
     case FR_AXIOM:
     case FR_HYPOTHESIS:
@@ -490,7 +511,11 @@ api::Term Tptp::getAssertionDistinctConstants()
   return d_nullExpr;
 }
 
-Command* Tptp::makeAssertCommand(FormulaRole fr, api::Term expr, bool cnf, bool inUnsatCore) {
+Command* Tptp::makeAssertCommand(FormulaRole fr,
+                                 api::Term expr,
+                                 bool cnf,
+                                 bool inUnsatCore)
+{
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
   // "CounterSatisfiable".

@@ -33,7 +33,6 @@
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "util/unsafe_interrupt_exception.h"
-#include "api/cvc4cpp.h"
 
 namespace CVC4 {
 
@@ -60,7 +59,7 @@ public:
   api::Sort d_type;
   /** The parsed operator */
   ParseOp d_op;
-  std::vector< api::Term > d_let_vars;
+  std::vector<api::Term> d_let_vars;
   unsigned d_gterm_type;
   std::string d_name;
   std::vector< SygusGTerm > d_children;
@@ -359,14 +358,15 @@ public:
    * Only returns an expression if its name is not overloaded, returns null otherwise.
    */
   virtual api::Term getExpressionForName(const std::string& name);
-  
+
   /**
    * Returns the expression that name should be interpreted as, based on the current binding.
    *
    * This is the same as above but where the name has been type cast to t. 
    */
-  virtual api::Term getExpressionForNameAndType(const std::string& name, api::Sort t);
-  
+  virtual api::Term getExpressionForNameAndType(const std::string& name,
+                                                api::Sort t);
+
   /**
    * Returns the kind that should be used for applications of expression fun.
    * This is a generalization of ExprManager::operatorToKind that also
@@ -378,7 +378,7 @@ public:
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
   api::Kind getKindForFunction(api::Term fun);
-  
+
   /**
    * Returns a sort, given a name.
    * @param sort_name the name to look up
@@ -389,7 +389,7 @@ public:
    * Returns a (parameterized) sort, given a name and args.
    */
   api::Sort getSort(const std::string& sort_name,
-               const std::vector<api::Sort>& params);
+                    const std::vector<api::Sort>& params);
 
   /**
    * Returns arity of a (parameterized) sort, given a name and args.
@@ -464,9 +464,10 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  api::Term bindVar(const std::string& name, const api::Sort& type,
-             uint32_t flags = ExprManager::VAR_FLAG_NONE, 
-             bool doOverload = false);
+  api::Term bindVar(const std::string& name,
+                    const api::Sort& type,
+                    uint32_t flags = ExprManager::VAR_FLAG_NONE,
+                    bool doOverload = false);
 
   /**
    * Create a set of new CVC4 variable expressions of the given type.
@@ -478,10 +479,10 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  std::vector<api::Term>
-    bindVars(const std::vector<std::string> names, const api::Sort& type,
-           uint32_t flags = ExprManager::VAR_FLAG_NONE, 
-           bool doOverload = false);
+  std::vector<api::Term> bindVars(const std::vector<std::string> names,
+                                  const api::Sort& type,
+                                  uint32_t flags = ExprManager::VAR_FLAG_NONE,
+                                  bool doOverload = false);
 
   /**
    * Create a new CVC4 bound variable expression of the given type. This binds
@@ -506,7 +507,8 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  std::vector<api::Term> bindBoundVars(const std::vector<std::string> names, const api::Sort& type);
+  std::vector<api::Term> bindBoundVars(const std::vector<std::string> names,
+                                       const api::Sort& type);
 
   /**
    * Create a new CVC4 function expression of the given type,
@@ -516,8 +518,9 @@ public:
    * flags specify information about the variable, e.g. whether it is global or defined
    *   (see enum in expr_manager_template.h).
    */
-  api::Term mkAnonymousFunction(const std::string& prefix, const api::Sort& type,
-                           uint32_t flags = ExprManager::VAR_FLAG_NONE);
+  api::Term mkAnonymousFunction(const std::string& prefix,
+                                const api::Sort& type,
+                                uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
   /** Create a new variable definition (e.g., from a let binding). 
    * levelZero is set if the binding must be done at level 0.
@@ -525,8 +528,10 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  void defineVar(const std::string& name, const api::Term& val,
-                 bool levelZero = false, bool doOverload = false);
+  void defineVar(const std::string& name,
+                 const api::Term& val,
+                 bool levelZero = false,
+                 bool doOverload = false);
 
   /**
    * Create a new type definition.
@@ -563,15 +568,14 @@ public:
    * Creates a new sort with the given name.
    */
   api::Sort mkSort(const std::string& name,
-                  uint32_t flags = ExprManager::SORT_FLAG_NONE);
+                   uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  api::Sort mkSortConstructor(
-      const std::string& name,
-      size_t arity,
-      uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  api::Sort mkSortConstructor(const std::string& name,
+                              size_t arity,
+                              uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Creates a new "unresolved type," used only during parsing.
@@ -582,14 +586,13 @@ public:
    * Creates a new unresolved (parameterized) type constructor of the given
    * arity.
    */
-  api::Sort mkUnresolvedTypeConstructor(const std::string& name, 
-                                                  size_t arity);
+  api::Sort mkUnresolvedTypeConstructor(const std::string& name, size_t arity);
   /**
    * Creates a new unresolved (parameterized) type constructor given the type
    * parameters.
    */
-  api::Sort mkUnresolvedTypeConstructor(const std::string& name, 
-                                                  const std::vector<api::Sort>& params);
+  api::Sort mkUnresolvedTypeConstructor(const std::string& name,
+                                        const std::vector<api::Sort>& params);
 
   /**
    * Returns true IFF name is an unresolved type.
@@ -650,8 +653,8 @@ public:
    * flattenVars.
    */
   api::Sort mkFlatFunctionType(std::vector<api::Sort>& sorts,
-                          api::Sort range,
-                          std::vector<api::Term>& flattenVars);
+                               api::Sort range,
+                               std::vector<api::Term>& flattenVars);
 
   /** make flat function type
    *
@@ -697,22 +700,25 @@ public:
    * The order of the arguments will be preserved in a left-to-right
    * traversal of the resulting tree.
    */
-  api::Term mkAssociative(api::Kind kind, const std::vector<api::Term>& children);
+  api::Term mkAssociative(api::Kind kind,
+                          const std::vector<api::Term>& children);
 
   /**
    * Create an api::Term by applying an binary left-associative operator to the
    * children. For example, mkLeftAssociative( f, { a, b, c } ) returns
    * f( f( a, b ), c ).
    */
-  api::Term mkLeftAssociative(api::Kind kind, const std::vector<api::Term>& children);
+  api::Term mkLeftAssociative(api::Kind kind,
+                              const std::vector<api::Term>& children);
   /**
    * Create an api::Term by applying an binary right-associative operator to the
    * children. For example, mkRightAssociative( f, { a, b, c } ) returns
    * f( a, f( b, c ) ).
    */
-  api::Term mkRightAssociative(api::Kind kind, const std::vector<api::Term>& children);
+  api::Term mkRightAssociative(api::Kind kind,
+                               const std::vector<api::Term>& children);
   //!!!!!!!!!!! temporary
-  /** 
+  /**
    * Make builtin application
    */
   api::Term mkBuiltinApp(api::Term f, const std::vector<api::Term>& args) const;
@@ -721,9 +727,11 @@ public:
   /** Apply type ascription */
   api::Term applyTypeAscription(api::Term t, api::Sort s);
   /** Make var, with flags */
-  api::Term mkVar(const std::string& name, const api::Sort& type, uint32_t flags);
+  api::Term mkVar(const std::string& name,
+                  const api::Sort& type,
+                  uint32_t flags);
   //!!!!!!!!!!! temporary
-  
+
   /**
    * Add an operator to the current legal set.
    *
@@ -886,25 +894,30 @@ public:
   
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(api::Term fun) {
+  bool isOverloadedFunction(api::Term fun)
+  {
     return d_symtab->isOverloadedFunction(fun.getExpr());
   }
-  
+
   /** Get overloaded constant for type.
    * If possible, it returns a defined symbol with name
    * that has type t. Otherwise returns null expression.
   */
-  api::Term getOverloadedConstantForType(const std::string& name, api::Sort t) {
+  api::Term getOverloadedConstantForType(const std::string& name, api::Sort t)
+  {
     return d_symtab->getOverloadedConstantForType(name, t.getType());
   }
-  
+
   /**
    * If possible, returns a defined function for a name
    * and a vector of expected argument types. Otherwise returns
    * null expression.
    */
-  api::Term getOverloadedFunctionForTypes(const std::string& name, std::vector< api::Sort >& argTypes) {
-    return d_symtab->getOverloadedFunctionForTypes(name, api::sortVectorToTypes(argTypes));
+  api::Term getOverloadedFunctionForTypes(const std::string& name,
+                                          std::vector<api::Sort>& argTypes)
+  {
+    return d_symtab->getOverloadedFunctionForTypes(
+        name, api::sortVectorToTypes(argTypes));
   }
   //------------------------ end operator overloading
 };/* class Parser */

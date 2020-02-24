@@ -122,8 +122,7 @@ void Smt2::addBitvectorOperators() {
   addOperator(api::BITVECTOR_REDAND, "bvredand");
   addOperator(api::BITVECTOR_TO_NAT, "bv2nat");
 
-  addIndexedOperator(
-      api::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT, "extract");
+  addIndexedOperator(api::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(api::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT, "repeat");
   addIndexedOperator(
       api::BITVECTOR_ZERO_EXTEND, api::BITVECTOR_ZERO_EXTEND, "zero_extend");
@@ -131,9 +130,8 @@ void Smt2::addBitvectorOperators() {
       api::BITVECTOR_SIGN_EXTEND, api::BITVECTOR_SIGN_EXTEND, "sign_extend");
   addIndexedOperator(
       api::BITVECTOR_ROTATE_LEFT, api::BITVECTOR_ROTATE_LEFT, "rotate_left");
-  addIndexedOperator(api::BITVECTOR_ROTATE_RIGHT,
-                     api::BITVECTOR_ROTATE_RIGHT,
-                     "rotate_right");
+  addIndexedOperator(
+      api::BITVECTOR_ROTATE_RIGHT, api::BITVECTOR_ROTATE_RIGHT, "rotate_right");
   addIndexedOperator(api::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR, "int2bv");
 }
 
@@ -156,19 +154,19 @@ void Smt2::addStringOperators() {
                 .getExpr());
   addOperator(api::STRING_CONCAT, "str.++");
   addOperator(api::STRING_LENGTH, "str.len");
-  addOperator(api::STRING_SUBSTR, "str.substr" );
-  addOperator(api::STRING_STRCTN, "str.contains" );
-  addOperator(api::STRING_CHARAT, "str.at" );
-  addOperator(api::STRING_STRIDOF, "str.indexof" );
-  addOperator(api::STRING_STRREPL, "str.replace" );
+  addOperator(api::STRING_SUBSTR, "str.substr");
+  addOperator(api::STRING_STRCTN, "str.contains");
+  addOperator(api::STRING_CHARAT, "str.at");
+  addOperator(api::STRING_STRIDOF, "str.indexof");
+  addOperator(api::STRING_STRREPL, "str.replace");
   if (!strictModeEnabled())
   {
     addOperator(api::STRING_TOLOWER, "str.tolower");
     addOperator(api::STRING_TOUPPER, "str.toupper");
     addOperator(api::STRING_REV, "str.rev");
   }
-  addOperator(api::STRING_PREFIX, "str.prefixof" );
-  addOperator(api::STRING_SUFFIX, "str.suffixof" );
+  addOperator(api::STRING_PREFIX, "str.prefixof");
+  addOperator(api::STRING_SUFFIX, "str.suffixof");
   // at the moment, we only use this syntax for smt2.6.1
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
   {
@@ -328,12 +326,10 @@ void Smt2::addTheory(Theory theory) {
   case THEORY_QUANTIFIERS: addQuantifiersOperators(); break;
 
   case THEORY_SETS:
-    defineVar("emptyset",
-              d_solver->mkEmptySet(d_solver->getNullSort()));
+    defineVar("emptyset", d_solver->mkEmptySet(d_solver->getNullSort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
-    defineVar("univset",
-              d_solver->mkUniverseSet(d_solver->getBooleanSort()));
+    defineVar("univset", d_solver->mkUniverseSet(d_solver->getBooleanSort()));
 
     addOperator(api::UNION, "union");
     addOperator(api::INTERSECTION, "intersection");
@@ -393,28 +389,19 @@ void Smt2::addTheory(Theory theory) {
     defineType("Float64", d_solver->mkFloatingPointSort(11, 53));
     defineType("Float128", d_solver->mkFloatingPointSort(15, 113));
 
-    defineVar(
-        "RNE",
-        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
-    defineVar(
-        "roundNearestTiesToEven",
-        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
-    defineVar(
-        "RNA",
-        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
-    defineVar(
-        "roundNearestTiesToAway",
-        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
-    defineVar("RTP",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
+    defineVar("RNE", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
+    defineVar("roundNearestTiesToEven",
+              d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
+    defineVar("RNA", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
+    defineVar("roundNearestTiesToAway",
+              d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
+    defineVar("RTP", d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
     defineVar("roundTowardPositive",
               d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
-    defineVar("RTN",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
+    defineVar("RTN", d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
     defineVar("roundTowardNegative",
               d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
-    defineVar("RTZ",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
+    defineVar("RTZ", d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
     defineVar("roundTowardZero",
               d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
 
@@ -424,8 +411,7 @@ void Smt2::addTheory(Theory theory) {
   case THEORY_SEP:
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
-    defineVar("sep.nil",
-              d_solver->mkSepNil(d_solver->getBooleanSort()));
+    defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
 
     addSepOperators();
     break;
@@ -437,7 +423,8 @@ void Smt2::addTheory(Theory theory) {
   }
 }
 
-void Smt2::addOperator(api::Kind kind, const std::string& name) {
+void Smt2::addOperator(api::Kind kind, const std::string& name)
+{
   Debug("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
                   << std::endl;
   Parser::addOperator(kind);
@@ -452,7 +439,8 @@ void Smt2::addIndexedOperator(api::Kind tKind,
   d_indexedOpKindMap[name] = opKind;
 }
 
-api::Kind Smt2::getOperatorKind(const std::string& name) const {
+api::Kind Smt2::getOperatorKind(const std::string& name) const
+{
   // precondition: isOperatorEnabled(name)
   return operatorKindMap.find(name)->second;
 }
@@ -503,7 +491,9 @@ bool Smt2::logicIsSet() {
   return d_logicSet;
 }
 
-api::Term Smt2::getExpressionForNameAndType(const std::string& name, api::Sort t) {
+api::Term Smt2::getExpressionForNameAndType(const std::string& name,
+                                            api::Sort t)
+{
   if (isAbstractValue(name))
   {
     return mkAbstractValue(name);
@@ -573,7 +563,7 @@ api::Op Smt2::mkIndexedOp(const std::string& name,
 
 api::Term Smt2::bindDefineFunRec(
     const std::string& fname,
-    const std::vector<std::pair<std::string, api::Sort> >& sortedVarNames,
+    const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
     api::Sort t,
     std::vector<api::Term>& flattenVars)
 {
@@ -592,7 +582,7 @@ api::Term Smt2::bindDefineFunRec(
 }
 
 void Smt2::pushDefineFunRecScope(
-    const std::vector<std::pair<std::string, api::Sort> >& sortedVarNames,
+    const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
     api::Term func,
     const std::vector<api::Term>& flattenVars,
     std::vector<api::Term>& bvs,
@@ -654,9 +644,8 @@ Smt2::SynthFunFactory::SynthFunFactory(
   }
   Debug("parser-sygus") << "Define synth fun : " << fun << std::endl;
   api::Sort synthFunType =
-      varSorts.size() > 0
-          ? d_smt2->getSolver()->mkFunctionSort(varSorts, range)
-          : range;
+      varSorts.size() > 0 ? d_smt2->getSolver()->mkFunctionSort(varSorts, range)
+                          : range;
 
   // we do not allow overloading for synth fun
   d_synthFun = d_smt2->bindBoundVar(fun, synthFunType);
@@ -673,12 +662,12 @@ Smt2::SynthFunFactory::~SynthFunFactory() { d_smt2->popScope(); }
 std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(api::Sort grammar)
 {
   Debug("parser-sygus") << "...read synth fun " << d_fun << std::endl;
-  return std::unique_ptr<Command>(
-      new SynthFunCommand(d_fun,
-                          d_synthFun.getExpr(),
-                          grammar.isNull() ? d_sygusType.getType() : grammar.getType(),
-                          d_isInv,
-                          api::termVectorToExprs(d_sygusVars)));
+  return std::unique_ptr<Command>(new SynthFunCommand(
+      d_fun,
+      d_synthFun.getExpr(),
+      grammar.isNull() ? d_sygusType.getType() : grammar.getType(),
+      d_isInv,
+      api::termVectorToExprs(d_sygusVars)));
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -708,7 +697,8 @@ std::unique_ptr<Command> Smt2::invConstraint(
     terms.push_back(getVariable(name));
   }
 
-  return std::unique_ptr<Command>(new SygusInvConstraintCommand(api::termVectorToExprs(terms)));
+  return std::unique_ptr<Command>(
+      new SygusInvConstraintCommand(api::termVectorToExprs(terms)));
 }
 
 Command* Smt2::setLogic(std::string name, bool fromCommand)
@@ -927,26 +917,30 @@ void Smt2::includeFile(const std::string& filename) {
   if(!newInputStream(path, lexer)) {
     parseError("Couldn't open include file `" + path + "'");
   }
-}  
-bool Smt2::isAbstractValue(const std::string& name) {
-  return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
-    name.find_first_not_of("0123456789", 1) == std::string::npos;
+}
+bool Smt2::isAbstractValue(const std::string& name)
+{
+  return name.length() >= 2 && name[0] == '@' && name[1] != '0'
+         && name.find_first_not_of("0123456789", 1) == std::string::npos;
 }
 
-api::Term Smt2::mkAbstractValue(const std::string& name) {
+api::Term Smt2::mkAbstractValue(const std::string& name)
+{
   assert(isAbstractValue(name));
   // remove the '@'
   return d_solver->mkAbstractValue(name.substr(1));
 }
-  
-void Smt2::mkSygusConstantsForType( const api::Sort& type, std::vector<api::Term>& ops ) {
+
+void Smt2::mkSygusConstantsForType(const api::Sort& type,
+                                   std::vector<api::Term>& ops)
+{
   if( type.isInteger() ){
     ops.push_back(d_solver->mkReal(0));
     ops.push_back(d_solver->mkReal(1));
   }else if( type.isBitVector() ){
     uint32_t sz = type.getBVSize();
-    ops.push_back( d_solver->mkBitVector(sz, 0) );
-    ops.push_back( d_solver->mkBitVector(sz, 1) );
+    ops.push_back(d_solver->mkBitVector(sz, 0));
+    ops.push_back(d_solver->mkBitVector(sz, 1));
   }else if( type.isBoolean() ){
     ops.push_back(d_solver->mkTrue());
     ops.push_back(d_solver->mkFalse());
@@ -984,7 +978,8 @@ void Smt2::processSygusGTerm(
       oldKind = api::MINUS;
       newKind = api::UMINUS;
     }
-    if( newKind!=api::UNDEFINED_KIND ){
+    if (newKind != api::UNDEFINED_KIND)
+    {
       Debug("parser-sygus")
           << "Replace " << sgt.d_op.d_kind << " with " << newKind << std::endl;
       sgt.d_op.d_kind = newKind;
@@ -997,7 +992,7 @@ void Smt2::processSygusGTerm(
     }
     ops[index].push_back(sgt.d_op);
     cnames[index].push_back( sgt.d_name );
-    cargs[index].push_back( std::vector< api::Sort >() );
+    cargs[index].push_back(std::vector<api::Sort>());
     for( unsigned i=0; i<sgt.d_children.size(); i++ ){
       std::stringstream ss;
       ss << datatypes[index].getName() << "_" << ops[index].size() << "_arg_" << i;
@@ -1011,8 +1006,18 @@ void Smt2::processSygusGTerm(
       processSygusGTerm( sgt.d_children[i], sub_dt_index, datatypes, sorts, ops, cnames, cargs, allow_const, unresolved_gterm_sym,
                          sygus_vars, sygus_to_builtin, sygus_to_builtin_expr, sub_ret, true );
       //process the nested gterm (either pop the last datatype, or flatten the argument)
-      api::Sort tt = processSygusNestedGTerm( sub_dt_index, sub_dname, datatypes, sorts, ops, cnames, cargs, allow_const, unresolved_gterm_sym,
-                                         sygus_to_builtin, sygus_to_builtin_expr, sub_ret );
+      api::Sort tt = processSygusNestedGTerm(sub_dt_index,
+                                             sub_dname,
+                                             datatypes,
+                                             sorts,
+                                             ops,
+                                             cnames,
+                                             cargs,
+                                             allow_const,
+                                             unresolved_gterm_sym,
+                                             sygus_to_builtin,
+                                             sygus_to_builtin_expr,
+                                             sub_ret);
       cargs[index].back().push_back(tt);
     }
   }
@@ -1021,7 +1026,7 @@ void Smt2::processSygusGTerm(
     if( sgt.getNumChildren()!=0 ){
       parseError("Bad syntax for Sygus Constant.");
     }
-    std::vector< api::Term > consts;
+    std::vector<api::Term> consts;
     mkSygusConstantsForType( sgt.d_type, consts );
     Debug("parser-sygus") << "...made " << consts.size() << " constants." << std::endl;
     for( unsigned i=0; i<consts.size(); i++ ){
@@ -1032,7 +1037,7 @@ void Smt2::processSygusGTerm(
       constOp.d_expr = consts[i];
       ops[index].push_back(constOp);
       cnames[index].push_back( ss.str() );
-      cargs[index].push_back( std::vector< api::Sort >() );
+      cargs[index].push_back(std::vector<api::Sort>());
     }
     allow_const[index] = true;
   }
@@ -1044,7 +1049,8 @@ void Smt2::processSygusGTerm(
     }
     Debug("parser-sygus") << "...process " << sygus_vars.size() << " variables." << std::endl;
     for( unsigned i=0; i<sygus_vars.size(); i++ ){
-      if( sygus_vars[i].getSort()==sgt.d_type ){
+      if (sygus_vars[i].getSort() == sgt.d_type)
+      {
         std::stringstream ss;
         ss << sygus_vars[i];
         Debug("parser-sygus") << "...add for variable " << ss.str() << std::endl;
@@ -1052,7 +1058,7 @@ void Smt2::processSygusGTerm(
         varOp.d_expr = sygus_vars[i];
         ops[index].push_back(varOp);
         cnames[index].push_back( ss.str() );
-        cargs[index].push_back( std::vector< api::Sort >() );
+        cargs[index].push_back(std::vector<api::Sort>());
       }
     }
   }
@@ -1082,31 +1088,36 @@ void Smt2::processSygusGTerm(
   }
 }
 
-bool Smt2::pushSygusDatatypeDef( api::Sort t, std::string& dname,
-                                  std::vector< CVC4::Datatype >& datatypes,
-                                  std::vector< api::Sort>& sorts,
-                                  std::vector< std::vector<ParseOp> >& ops,
-                                  std::vector< std::vector<std::string> >& cnames,
-                                  std::vector< std::vector< std::vector< api::Sort > > >& cargs,
-                                  std::vector< bool >& allow_const,
-                                  std::vector< std::vector< std::string > >& unresolved_gterm_sym ){
+bool Smt2::pushSygusDatatypeDef(
+    api::Sort t,
+    std::string& dname,
+    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::Sort>& sorts,
+    std::vector<std::vector<ParseOp>>& ops,
+    std::vector<std::vector<std::string>>& cnames,
+    std::vector<std::vector<std::vector<api::Sort>>>& cargs,
+    std::vector<bool>& allow_const,
+    std::vector<std::vector<std::string>>& unresolved_gterm_sym)
+{
   sorts.push_back(t);
   datatypes.push_back(Datatype(getExprManager(), dname));
   ops.push_back(std::vector<ParseOp>());
   cnames.push_back(std::vector<std::string>());
-  cargs.push_back(std::vector<std::vector<api::Sort> >());
+  cargs.push_back(std::vector<std::vector<api::Sort>>());
   allow_const.push_back(false);
   unresolved_gterm_sym.push_back(std::vector< std::string >());
   return true;
 }
 
-bool Smt2::popSygusDatatypeDef( std::vector< CVC4::Datatype >& datatypes,
-                                 std::vector< api::Sort>& sorts,
-                                 std::vector< std::vector<ParseOp> >& ops,
-                                 std::vector< std::vector<std::string> >& cnames,
-                                 std::vector< std::vector< std::vector< api::Sort > > >& cargs,
-                                 std::vector< bool >& allow_const,
-                                 std::vector< std::vector< std::string > >& unresolved_gterm_sym ){
+bool Smt2::popSygusDatatypeDef(
+    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::Sort>& sorts,
+    std::vector<std::vector<ParseOp>>& ops,
+    std::vector<std::vector<std::string>>& cnames,
+    std::vector<std::vector<std::vector<api::Sort>>>& cargs,
+    std::vector<bool>& allow_const,
+    std::vector<std::vector<std::string>>& unresolved_gterm_sym)
+{
   sorts.pop_back();
   datatypes.pop_back();
   ops.pop_back();
@@ -1117,15 +1128,20 @@ bool Smt2::popSygusDatatypeDef( std::vector< CVC4::Datatype >& datatypes,
   return true;
 }
 
-api::Sort Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
-                                    std::vector< api::Sort>& sorts,
-                                    std::vector< std::vector<ParseOp> >& ops,
-                                    std::vector< std::vector<std::string> >& cnames,
-                                    std::vector< std::vector< std::vector< api::Sort > > >& cargs,
-                                    std::vector< bool >& allow_const,
-                                    std::vector< std::vector< std::string > >& unresolved_gterm_sym,
-                                    std::map< api::Sort, api::Sort >& sygus_to_builtin,
-                                    std::map< api::Sort, CVC4::api::Term >& sygus_to_builtin_expr, api::Sort sub_ret ) {
+api::Sort Smt2::processSygusNestedGTerm(
+    int sub_dt_index,
+    std::string& sub_dname,
+    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::Sort>& sorts,
+    std::vector<std::vector<ParseOp>>& ops,
+    std::vector<std::vector<std::string>>& cnames,
+    std::vector<std::vector<std::vector<api::Sort>>>& cargs,
+    std::vector<bool>& allow_const,
+    std::vector<std::vector<std::string>>& unresolved_gterm_sym,
+    std::map<api::Sort, api::Sort>& sygus_to_builtin,
+    std::map<api::Sort, CVC4::api::Term>& sygus_to_builtin_expr,
+    api::Sort sub_ret)
+{
   api::Sort t = sub_ret;
   Debug("parser-sygus") << "Argument is ";
   if( t.isNull() ){
@@ -1143,7 +1159,10 @@ api::Sort Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dnam
     {
       api::Term sop = op.d_expr;
       curr_t = sop.getSort();
-      Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getSort() << ", debug=" << sop.isConst() << " " << cargs[sub_dt_index][0].size() << std::endl;
+      Debug("parser-sygus")
+          << ": it is constant/0-arg cons " << sop << " with type "
+          << sop.getSort() << ", debug=" << sop.isConst() << " "
+          << cargs[sub_dt_index][0].size() << std::endl;
       // only cache if it is a singleton datatype (has unique expr)
       if (ops[sub_dt_index].size() == 1)
       {
@@ -1157,15 +1176,20 @@ api::Sort Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dnam
     }
     else
     {
-      std::vector< api::Term > children;
+      std::vector<api::Term> children;
       for( unsigned i=0; i<cargs[sub_dt_index][0].size(); i++ ){
-        std::map< api::Sort, CVC4::api::Term >::iterator it = sygus_to_builtin_expr.find( cargs[sub_dt_index][0][i] );
+        std::map<api::Sort, CVC4::api::Term>::iterator it =
+            sygus_to_builtin_expr.find(cargs[sub_dt_index][0][i]);
         if( it==sygus_to_builtin_expr.end() ){
           if( sygus_to_builtin.find( cargs[sub_dt_index][0][i] )==sygus_to_builtin.end() ){
             std::stringstream ss;
             ss << "Missing builtin type for type " << cargs[sub_dt_index][0][i] << "!" << std::endl;
             ss << "Builtin types are currently : " << std::endl;
-            for( std::map< api::Sort, api::Sort >::iterator itb = sygus_to_builtin.begin(); itb != sygus_to_builtin.end(); ++itb ){
+            for (std::map<api::Sort, api::Sort>::iterator itb =
+                     sygus_to_builtin.begin();
+                 itb != sygus_to_builtin.end();
+                 ++itb)
+            {
               ss << "  " << itb->first << " -> " << itb->second << std::endl;
             }
             parseError(ss.str());
@@ -1183,7 +1207,8 @@ api::Sort Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dnam
         }
       }
       api::Term e = applyParseOp(op, children);
-      Debug("parser-sygus") << ": constructed " << e << ", which has type " << e.getSort() << std::endl;
+      Debug("parser-sygus") << ": constructed " << e << ", which has type "
+                            << e.getSort() << std::endl;
       curr_t = e.getSort();
       sygus_to_builtin_expr[t] = e;
     }
@@ -1208,7 +1233,7 @@ void Smt2::setSygusStartIndex(const std::string& fun,
   if( startIndex>0 ){
     CVC4::Datatype tmp_dt = datatypes[0];
     api::Sort tmp_sort = sorts[0];
-    std::vector< ParseOp > tmp_ops;
+    std::vector<ParseOp> tmp_ops;
     tmp_ops.insert( tmp_ops.end(), ops[0].begin(), ops[0].end() );
     datatypes[0] = datatypes[startIndex];
     sorts[0] = sorts[startIndex];
@@ -1225,10 +1250,12 @@ void Smt2::setSygusStartIndex(const std::string& fun,
   }
 }
 
-void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
-                            std::vector<std::string>& cnames, std::vector< std::vector< api::Sort > >& cargs,
-                            std::vector<std::string>& unresolved_gterm_sym,
-                            std::map< api::Sort, api::Sort >& sygus_to_builtin )
+void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
+                           std::vector<ParseOp>& ops,
+                           std::vector<std::string>& cnames,
+                           std::vector<std::vector<api::Sort>>& cargs,
+                           std::vector<std::string>& unresolved_gterm_sym,
+                           std::map<api::Sort, api::Sort>& sygus_to_builtin)
 {
   Debug("parser-sygus") << "Making sygus datatype " << dt.getName() << std::endl;
   Debug("parser-sygus") << "  add constructors..." << std::endl;
@@ -1290,7 +1317,8 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
         ops[i] = pLam;
         Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
         // callback prints as the expression
-        spc = std::make_shared<printer::SygusExprPrintCallback>(body.getExpr(), api::termVectorToExprs(largs));
+        spc = std::make_shared<printer::SygusExprPrintCallback>(
+            body.getExpr(), api::termVectorToExprs(largs));
       }
       else
       {
@@ -1314,7 +1342,8 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
           // in which case we do not replace by a lambda.
           if (sop.getSort().isFunction())
           {
-            std::vector<api::Sort> ftypes = sop.getSort().getFunctionDomainSorts();
+            std::vector<api::Sort> ftypes =
+                sop.getSort().getFunctionDomainSorts();
             std::vector<api::Term> largs;
             api::Term lbvl = makeSygusBoundVarList(dt, i, ftypes, largs);
             largs.insert(largs.begin(), sop);
@@ -1347,11 +1376,17 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
       // ops[i], or the kind.
       if (!ops[i].d_expr.isNull())
       {
-        dt.addSygusConstructor(ops[i].d_expr.getExpr(), cnames[i], api::sortVectorToTypes(cargs[i]), spc);
+        dt.addSygusConstructor(ops[i].d_expr.getExpr(),
+                               cnames[i],
+                               api::sortVectorToTypes(cargs[i]),
+                               spc);
       }
       else if (ops[i].d_kind != api::NULL_EXPR)
       {
-        dt.addSygusConstructor(extToIntKind(ops[i].d_kind), cnames[i], api::sortVectorToTypes(cargs[i]), spc);
+        dt.addSygusConstructor(extToIntKind(ops[i].d_kind),
+                               cnames[i],
+                               api::sortVectorToTypes(cargs[i]),
+                               spc);
       }
       else
       {
@@ -1366,7 +1401,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
 
   Debug("parser-sygus") << "  add constructors for unresolved symbols..." << std::endl;
   if( !unresolved_gterm_sym.empty() ){
-    std::vector< api::Sort > types;
+    std::vector<api::Sort> types;
     Debug("parser-sygus") << "...resolve " << unresolved_gterm_sym.size() << " symbols..." << std::endl;
     for( unsigned i=0; i<unresolved_gterm_sym.size(); i++ ){
       Debug("parser-sygus") << "  resolve : " << unresolved_gterm_sym[i] << std::endl;
@@ -1383,8 +1418,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
           ss << t << "_x";
           api::Term var = bindBoundVar(ss.str(), bt);
           std::vector<api::Term> lchildren;
-          lchildren.push_back(
-              d_solver->mkTerm(api::BOUND_VAR_LIST, var));
+          lchildren.push_back(d_solver->mkTerm(api::BOUND_VAR_LIST, var));
           lchildren.push_back(var);
           api::Term id_op = d_solver->mkTerm(api::LAMBDA, lchildren);
 
@@ -1393,9 +1427,12 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
               std::make_shared<printer::SygusEmptyPrintCallback>();
 
           //make the sygus argument list
-          std::vector< api::Sort > id_carg;
+          std::vector<api::Sort> id_carg;
           id_carg.push_back( t );
-          dt.addSygusConstructor(id_op.getExpr(), unresolved_gterm_sym[i], api::sortVectorToTypes(id_carg), sepc);
+          dt.addSygusConstructor(id_op.getExpr(),
+                                 unresolved_gterm_sym[i],
+                                 api::sortVectorToTypes(id_carg),
+                                 sepc);
 
           //add to operators
           ParseOp idOp;
@@ -1412,9 +1449,9 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
 }
 
 api::Term Smt2::makeSygusBoundVarList(CVC4::Datatype& dt,
-                                 unsigned i,
-                                 const std::vector<api::Sort>& ltypes,
-                                 std::vector<api::Term>& lvars)
+                                      unsigned i,
+                                      const std::vector<api::Sort>& ltypes,
+                                      std::vector<api::Term>& lvars)
 {
   for (unsigned j = 0, size = ltypes.size(); j < size; j++)
   {
@@ -1426,9 +1463,10 @@ api::Term Smt2::makeSygusBoundVarList(CVC4::Datatype& dt,
   return d_solver->mkTerm(api::BOUND_VAR_LIST, lvars);
 }
 
-void Smt2::addSygusConstructorTerm(Datatype& dt,
-                                   api::Term term,
-                                   std::map<api::Term, api::Sort>& ntsToUnres) const
+void Smt2::addSygusConstructorTerm(
+    Datatype& dt,
+    api::Term term,
+    std::map<api::Term, api::Sort>& ntsToUnres) const
 {
   Trace("parser-sygus2") << "Add sygus cons term " << term << std::endl;
   // At this point, we should know that dt is well founded, and that its
@@ -1449,25 +1487,28 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
                          << cargs.size() << std::endl;
   std::shared_ptr<SygusPrintCallback> spc;
   // callback prints as the expression
-  spc = std::make_shared<printer::SygusExprPrintCallback>(op.getExpr(), api::termVectorToExprs(args));
+  spc = std::make_shared<printer::SygusExprPrintCallback>(
+      op.getExpr(), api::termVectorToExprs(args));
   if (!args.empty())
   {
     api::Term lbvl = d_solver->mkTerm(api::BOUND_VAR_LIST, args);
     // its operator is a lambda
     op = d_solver->mkTerm(api::LAMBDA, lbvl, op);
   }
-  Trace("parser-sygus2") << "addSygusConstructor:  operator " << op << std::endl;
-  dt.addSygusConstructor(op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
+  Trace("parser-sygus2") << "addSygusConstructor:  operator " << op
+                         << std::endl;
+  dt.addSygusConstructor(
+      op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
 }
 
 api::Term Smt2::purifySygusGTerm(api::Term term,
-                            std::map<api::Term, api::Sort>& ntsToUnres,
-                            std::vector<api::Term>& args,
-                            std::vector<api::Sort>& cargs) const
+                                 std::map<api::Term, api::Sort>& ntsToUnres,
+                                 std::vector<api::Term>& args,
+                                 std::vector<api::Sort>& cargs) const
 {
   Trace("parser-sygus2-debug")
-      << "purifySygusGTerm: " << term << " #nchild=" << term.getExpr().getNumChildren()
-      << std::endl;
+      << "purifySygusGTerm: " << term
+      << " #nchild=" << term.getExpr().getNumChildren() << std::endl;
   std::map<api::Term, api::Sort>::iterator itn = ntsToUnres.find(term);
   if (itn != ntsToUnres.end())
   {
@@ -1479,9 +1520,9 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     return ret;
   }
   std::vector<api::Term> pchildren;
-  // To test whether the operator should be passed to mkapi::Term below, we check
-  // whether this term is parameterized. This includes APPLY_UF terms and BV
-  // extraction terms, but excludes applications of most interpreted symbols
+  // To test whether the operator should be passed to mkapi::Term below, we
+  // check whether this term is parameterized. This includes APPLY_UF terms and
+  // BV extraction terms, but excludes applications of most interpreted symbols
   // like PLUS.
   bool childChanged = false;
   for (unsigned i = 0, nchild = term.getNumChildren(); i < nchild; i++)
@@ -1497,7 +1538,7 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     Trace("parser-sygus2-debug") << "...no child changed" << std::endl;
     return term;
   }
-  api::Term nret = d_solver->mkTerm(term.getOp(),pchildren);
+  api::Term nret = d_solver->mkTerm(term.getOp(), pchildren);
   Trace("parser-sygus2-debug")
       << "...child changed, return " << nret << std::endl;
   return nret;
@@ -1516,7 +1557,8 @@ void Smt2::addSygusConstructorVariables(Datatype& dt,
       std::stringstream ss;
       ss << v;
       std::vector<api::Sort> cargs;
-      dt.addSygusConstructor(v.getExpr(), ss.str(), api::sortVectorToTypes(cargs));
+      dt.addSygusConstructor(
+          v.getExpr(), ss.str(), api::sortVectorToTypes(cargs));
     }
   }
 }
@@ -1571,22 +1613,23 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
     // nullary constructors with a type ascription
     // could be a parametric constructor or just an overloaded constructor
     // standard type ascription
-    p.d_expr = d_solver->mkTermCast(p.d_expr,type);
+    p.d_expr = d_solver->mkTermCast(p.d_expr, type);
   }
   else if (etype.isConstructor())
   {
     // a non-nullary constructor with a type ascription
     if (type.isParametricDatatype())
-    {	
-      ExprManager * em = getExprManager();
-      // apply type ascription to the operator	
-      Expr e = p.d_expr.getExpr();	
-      const DatatypeConstructor& dtc =	
-          Datatype::datatypeOf(e)[Datatype::indexOf(e)];	
-      p.d_expr = api::Term(em->mkExpr(	
-          kind::APPLY_TYPE_ASCRIPTION,	
-          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type.getType()))),	
-          p.d_expr.getExpr()));	
+    {
+      ExprManager* em = getExprManager();
+      // apply type ascription to the operator
+      Expr e = p.d_expr.getExpr();
+      const DatatypeConstructor& dtc =
+          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+      p.d_expr = api::Term(
+          em->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
+                     em->mkConst(AscriptionType(
+                         dtc.getSpecializedConstructorType(type.getType()))),
+                     p.d_expr.getExpr()));
     }
   }
   else if (ekind == api::EMPTYSET)
@@ -1657,7 +1700,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   if (Debug.isOn("parser"))
   {
     Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
-    for (std::vector<api::Term>::iterator i = args.begin(); i != args.end(); ++i)
+    for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
+         ++i)
     {
       Debug("parser") << "++ " << *i << std::endl;
     }
@@ -1678,7 +1722,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // Testers are handled differently than other indexed operators,
       // since they require a kind.
       kind = fkind;
-      Debug("parser") << "Got function kind " << kind << " for expression " << std::endl;
+      Debug("parser") << "Got function kind " << kind << " for expression "
+                      << std::endl;
     }
     args.insert(args.begin(), p.d_expr);
   }
@@ -1713,7 +1758,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         // in which case we may find it after knowing the types of its
         // arguments.
         std::vector<api::Sort> argTypes;
-        for (std::vector<api::Term>::iterator i = args.begin(); i != args.end(); ++i)
+        for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
+             ++i)
         {
           argTypes.push_back((*i).getSort());
         }
@@ -1775,7 +1821,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
          << "array type:          " << p.d_type << std::endl
-         << "expected const type: " << p.d_type.getArrayElementSort() << std::endl
+         << "expected const type: " << p.d_type.getArrayElementSort()
+         << std::endl
          << "computed const type: " << constVal.getSort();
       parseError(ss.str());
     }
@@ -1809,7 +1856,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-    api::Term ret = d_solver->mkTerm(api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args[0]);
+    api::Term ret = d_solver->mkTerm(
+        api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args[0]);
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
@@ -1832,7 +1880,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need --uf-ho if these operators are applied over function args
-      for (std::vector<api::Term>::iterator i = args.begin(); i != args.end(); ++i)
+      for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
+           ++i)
       {
         if ((*i).getSort().isFunction())
         {
@@ -1843,21 +1892,22 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     if (args.size() > 2)
     {
-      if (kind == api::INTS_DIVISION || kind == api::XOR
-          || kind == api::MINUS || kind == api::DIVISION
-          || (kind == api::BITVECTOR_XNOR && v2_6()))
+      if (kind == api::INTS_DIVISION || kind == api::XOR || kind == api::MINUS
+          || kind == api::DIVISION || (kind == api::BITVECTOR_XNOR && v2_6()))
       {
         // Builtin operators that are not tokenized, are left associative,
         // but not internally variadic must set this.
         api::Term ret = mkLeftAssociative(kind, args);
-        Debug("parser") << "applyParseOp: return left associative " << ret << std::endl;
+        Debug("parser") << "applyParseOp: return left associative " << ret
+                        << std::endl;
         return ret;
       }
       else if (kind == api::IMPLIES)
       {
         /* right-associative, but CVC4 internally only supports 2 args */
         api::Term ret = mkRightAssociative(kind, args);
-        Debug("parser") << "applyParseOp: return right associative " << ret << std::endl;
+        Debug("parser") << "applyParseOp: return right associative " << ret
+                        << std::endl;
         return ret;
       }
       else if (kind == api::EQUAL || kind == api::LT || kind == api::GT
@@ -1870,12 +1920,14 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       }
     }
 
-    if (kind::isAssociative(extToIntKind(kind)) && args.size() > em->maxArity(extToIntKind(kind)))
+    if (kind::isAssociative(extToIntKind(kind))
+        && args.size() > em->maxArity(extToIntKind(kind)))
     {
       /* Special treatment for associative operators with lots of children
        */
       api::Term ret = mkAssociative(kind, args);
-      Debug("parser") << "applyParseOp: return large assoc " << ret << std::endl;
+      Debug("parser") << "applyParseOp: return large assoc " << ret
+                      << std::endl;
       return ret;
     }
     else if (!strictModeEnabled() && (kind == api::AND || kind == api::OR)
@@ -1895,7 +1947,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       checkOperator(kind, args.size());
       api::Term ret = d_solver->mkTerm(kind, args);
-      Debug("parser") << "applyParseOp: return default builtin " << ret << std::endl;
+      Debug("parser") << "applyParseOp: return default builtin " << ret
+                      << std::endl;
       return ret;
     }
   }
@@ -1916,8 +1969,10 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
-        api::Term ret = em->mkLeftAssociative(kind::HO_APPLY, api::termVectorToExprs(args));
-        Debug("parser") << "applyParseOp: return curry higher order " << ret << std::endl;
+        api::Term ret =
+            em->mkLeftAssociative(kind::HO_APPLY, api::termVectorToExprs(args));
+        Debug("parser") << "applyParseOp: return curry higher order " << ret
+                        << std::endl;
         // must curry the partial application
         return ret;
       }
@@ -1925,7 +1980,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   if (!op.isNull())
   {
-    api::Term ret = d_solver->mkTerm(op,args);
+    api::Term ret = d_solver->mkTerm(op, args);
     Debug("parser") << "applyParseOp: return op : " << ret << std::endl;
     return ret;
   }
@@ -1935,7 +1990,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     parseError("do not know how to process parse op");
   }
   // PARSER-TODO
-  Debug("parser") << "Try default term construction for kind " << kind << " #args = " << args.size() << "..." << std::endl;
+  Debug("parser") << "Try default term construction for kind " << kind
+                  << " #args = " << args.size() << "..." << std::endl;
   api::Term ret = d_solver->mkTerm(kind, args);
   Debug("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;

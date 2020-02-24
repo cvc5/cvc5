@@ -25,11 +25,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "api/cvc4cpp.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "smt/command.h"
 #include "util/hash.h"
-#include "api/cvc4cpp.h"
 
 namespace CVC4 {
 
@@ -52,7 +52,7 @@ class Tptp : public Parser {
   void forceLogic(const std::string& logic) override;
 
   void addFreeVar(api::Term var);
-  std::vector< api::Term > getFreeVar();
+  std::vector<api::Term> getFreeVar();
 
   api::Term convertRatToUnsorted(api::Term expr);
   /**
@@ -127,14 +127,17 @@ class Tptp : public Parser {
    */
   api::Term getAssertionDistinctConstants();
 
-  /** returns the appropriate AssertCommand, given a role, expression expr to assert,
-  * and information about the assertion.
-  *   The assertion expr is literally what should be asserted (it is already been processed
-  *   with getAssertionapi::Term above).
-  *   This may set a flag in the parser to mark that we have asserted a conjecture.
-  */
-  Command* makeAssertCommand(FormulaRole fr, api::Term expr, bool cnf, bool inUnsatCore);
-  
+  /** returns the appropriate AssertCommand, given a role, expression expr to
+   * assert, and information about the assertion. The assertion expr is
+   * literally what should be asserted (it is already been processed with
+   * getAssertionapi::Term above). This may set a flag in the parser to mark
+   * that we have asserted a conjecture.
+   */
+  Command* makeAssertCommand(FormulaRole fr,
+                             api::Term expr,
+                             bool cnf,
+                             bool inUnsatCore);
+
   /** Ugly hack because I don't know how to return an expression from a
       token */
   api::Term d_tmp_expr;
@@ -144,7 +147,9 @@ class Tptp : public Parser {
   void includeFile(std::string fileName);
 
   /** Check a TPTP let binding for well-formedness. */
-  void checkLetBinding(const std::vector<api::Term>& bvlist, api::Term lhs, api::Term rhs,
+  void checkLetBinding(const std::vector<api::Term>& bvlist,
+                       api::Term lhs,
+                       api::Term rhs,
                        bool formula);
   /**
    * This converts a ParseOp to expression, assuming it is a standalone term.
@@ -176,7 +181,7 @@ class Tptp : public Parser {
 
   // In CNF variable are implicitly binded
   // d_freevar collect them
-  std::vector< api::Term > d_freeVar;
+  std::vector<api::Term> d_freeVar;
   api::Term d_rtu_op;
   api::Term d_stu_op;
   api::Term d_utr_op;
@@ -207,12 +212,13 @@ namespace tptp {
  * Just exists to provide the uintptr_t constructor that ANTLR
  * requires.
  */
-struct myExpr : public CVC4::api::Term {
+struct myExpr : public CVC4::api::Term
+{
   myExpr() : CVC4::api::Term() {}
   myExpr(void*) : CVC4::api::Term() {}
   myExpr(const CVC4::api::Term& e) : CVC4::api::Term(e) {}
   myExpr(const myExpr& e) : CVC4::api::Term(e) {}
-};/* struct myExpr*/
+}; /* struct myExpr*/
 
 enum NonAssoc {
   NA_IFF,
