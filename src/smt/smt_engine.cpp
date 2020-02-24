@@ -963,6 +963,20 @@ void SmtEngine::finishInit()
     d_assertionList = new(true) AssertionList(d_userContext);
   }
 
+  // dump out a set-logic command only when raw-benchmark is disabled to avoid
+  // dumping the command twice.
+  if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
+  {
+      LogicInfo everything;
+      everything.lock();
+      Dump("benchmark") << CommentCommand(
+          "CVC4 always dumps the most general, all-supported logic (below), as "
+          "some internals might require the use of a logic more general than "
+          "the input.")
+                        << SetBenchmarkLogicCommand(
+                               everything.getLogicString());
+  }
+
   Trace("smt-debug") << "Dump declaration commands..." << std::endl;
   // dump out any pending declaration commands
   for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
@@ -1116,30 +1130,18 @@ void SmtEngine::setLogic(const LogicInfo& logic)
 void SmtEngine::setLogic(const std::string& s)
 {
   SmtScope smts(this);
-  try {
+  try
+  {
     setLogic(LogicInfo(s));
-
     // dump out a set-logic command
-    if (Dump.isOn("benchmark"))
+    if (Dump.isOn("raw-benchmark"))
     {
-      if (Dump.isOn("raw-benchmark"))
-      {
-        Dump("raw-benchmark")
-            << SetBenchmarkLogicCommand(d_logic.getLogicString());
-      }
-      else
-      {
-        LogicInfo everything;
-        everything.lock();
-        Dump("benchmark") << CommentCommand(
-            "CVC4 always dumps the most general, all-supported logic (below), "
-            "as some internals might require the use of a logic more general "
-            "than the input.")
-                          << SetBenchmarkLogicCommand(
-                                 everything.getLogicString());
-      }
+      Dump("raw-benchmark")
+          << SetBenchmarkLogicCommand(d_logic.getLogicString());
     }
-  } catch(IllegalArgumentException& e) {
+  }
+  catch (IllegalArgumentException& e)
+  {
     throw LogicException(e.what());
   }
 }
