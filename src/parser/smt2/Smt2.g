@@ -1753,12 +1753,6 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           {
             PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
           }
-          /*
-          ParseOp pf;
-          pf.d_expr = f;
-          PARSER_STATE->parseOpApplyTypeAscription(pf,expr.getSort());
-          argTypes = p.d_expr.getSort().getConstructorDomainSorts();
-          */
           Expr ef = f.getExpr();
           if (Datatype::datatypeOf(ef).isParametric())
           {
@@ -1998,7 +1992,8 @@ identifier[CVC4::ParseOp& p]
         // get the datatype that f belongs to
         api::Sort sf = f.getSort().getConstructorCodomainSort();
         api::Datatype d = sf.getDatatype();
-        api::DatatypeConstructor dc = d.getConstructorForTerm(f);
+        // lookup by name
+        api::DatatypeConstructor dc = d.getConstructor(f.toString());
         p.d_expr = dc.getTesterTerm();
       }
     | TUPLE_SEL_TOK m=INTEGER_LITERAL

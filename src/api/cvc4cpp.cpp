@@ -2125,13 +2125,6 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
   return getConstructorForName(name);
 }
 
-DatatypeConstructor Datatype::getConstructorForTerm(Term cons) const
-{
-  // FIXME: checks
-  size_t idx = CVC4::Datatype::indexOf(cons.getExpr());
-  return (*d_dtype)[idx];
-}
-
 Term Datatype::getConstructorTerm(const std::string& name) const
 {
   DatatypeConstructor ctor = getConstructor(name);
