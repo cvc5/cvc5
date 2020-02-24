@@ -61,7 +61,8 @@ Node replace(TNode x, TNode y, TNode t);
 /** Return the substring/subsequence of x starting at index i */
 Node substr(TNode x, std::size_t i);
 
-/** Return the substring/subsequence of x starting at index i with size at most j */
+/** Return the substring/subsequence of x starting at index i with size at most
+ * j */
 Node substr(TNode x, std::size_t i, std::size_t j);
 
 /** Return the prefix of x of size at most i */
