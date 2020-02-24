@@ -58,7 +58,7 @@ bool hasSuffix(TNode x, TNode y);
 /** Replace the first occurrence of y in x with t */
 Node replace(TNode x, TNode y, TNode t);
 
-/** Return the substring of x starting at index i */
+/** Return the substring/subsequence of x starting at index i */
 Node substr(TNode x, std::size_t i);
 
 /** Return the substring/subsequence of x starting at index i with size at most j */
