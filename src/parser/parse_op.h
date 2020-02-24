@@ -19,9 +19,9 @@
 
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
-#include "api/cvc4cpp.h"
 
 namespace CVC4 {
 
@@ -75,7 +75,7 @@ struct CVC4_PUBLIC ParseOp
   bool operator==(const ParseOp& p) const
   {
     return d_kind == p.d_kind && d_name == p.d_name && d_expr == p.d_expr
-           && d_type == p.d_type && d_op==p.d_op;
+           && d_type == p.d_type && d_op == p.d_op;
   }
 };
 
