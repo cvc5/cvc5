@@ -31,7 +31,7 @@ Node mkEmptyWord(Kind k)
     std::vector<unsigned> vec;
     return nm->mkConst(String(vec));
   }
-  Assert(false);
+  Unimplemented();
   return Node::null();
 }
 
@@ -52,7 +52,7 @@ Node mkWord(const std::vector<Node>& xs)
     }
     return nm->mkConst(String(vec));
   }
-  Assert(false);
+  Unimplemented();
   return Node::null();
 }
 
@@ -63,7 +63,7 @@ size_t getLength(TNode x)
   {
     return x.getConst<String>().size();
   }
-  Assert(false);
+  Unimplemented();
   return 0;
 }
 
@@ -79,7 +79,7 @@ std::size_t find(TNode x, TNode y, std::size_t start)
     String sy = y.getConst<String>();
     return sx.find(sy, start);
   }
-  Assert(false);
+  Unimplemented();
   return 0;
 }
 
@@ -93,7 +93,7 @@ std::size_t rfind(TNode x, TNode y, std::size_t start)
     String sy = y.getConst<String>();
     return sx.rfind(sy, start);
   }
-  Assert(false);
+  Unimplemented();
   return 0;
 }
 
@@ -107,7 +107,7 @@ bool hasPrefix(TNode x, TNode y)
     String sy = y.getConst<String>();
     return sx.hasPrefix(sy);
   }
-  Assert(false);
+  Unimplemented();
   return false;
 }
 
@@ -121,7 +121,7 @@ bool hasSuffix(TNode x, TNode y)
     String sy = y.getConst<String>();
     return sx.hasSuffix(sy);
   }
-  Assert(false);
+  Unimplemented();
   return false;
 }
 
@@ -138,7 +138,7 @@ Node replace(TNode x, TNode y, TNode t)
     String st = t.getConst<String>();
     return nm->mkConst(String(sx.replace(sy, st)));
   }
-  Assert(false);
+  Unimplemented();
   return Node::null();
 }
 Node substr(TNode x, std::size_t i)
@@ -150,7 +150,7 @@ Node substr(TNode x, std::size_t i)
     String sx = x.getConst<String>();
     return nm->mkConst(String(sx.substr(i)));
   }
-  Assert(false);
+  Unimplemented();
   return Node::null();
 }
 Node substr(TNode x, std::size_t i, std::size_t j)
@@ -162,7 +162,7 @@ Node substr(TNode x, std::size_t i, std::size_t j)
     String sx = x.getConst<String>();
     return nm->mkConst(String(sx.substr(i, j)));
   }
-  Assert(false);
+  Unimplemented();
   return Node::null();
 }
 
@@ -177,7 +177,7 @@ Node suffix(TNode x, std::size_t i)
     String sx = x.getConst<String>();
     return nm->mkConst(String(sx.suffix(i)));
   }
-  Assert(false);
+  Unimplemented();
   return Node::null();
 }
 
@@ -191,7 +191,7 @@ bool noOverlapWith(TNode x, TNode y)
     String sy = y.getConst<String>();
     return sx.noOverlapWith(sy);
   }
-  Assert(false);
+  Unimplemented();
   return false;
 }
 
@@ -205,7 +205,7 @@ std::size_t overlap(TNode x, TNode y)
     String sy = y.getConst<String>();
     return sx.overlap(sy);
   }
-  Assert(false);
+  Unimplemented();
   return 0;
 }
 
@@ -219,7 +219,7 @@ std::size_t roverlap(TNode x, TNode y)
     String sy = y.getConst<String>();
     return sx.roverlap(sy);
   }
-  Assert(false);
+  Unimplemented();
   return 0;
 }
 
