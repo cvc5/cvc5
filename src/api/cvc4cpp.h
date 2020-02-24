@@ -1536,6 +1536,12 @@ class CVC4_PUBLIC DatatypeConstructor
   const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
 
  private:
+  /** 
+   * Return selector for name.
+   * @param name The name of selector to find
+   * @return the selector object for the name
+   */
+  DatatypeSelector getSelectorForName(const std::string& name) const;
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -1718,6 +1724,12 @@ class CVC4_PUBLIC Datatype
   const CVC4::Datatype& getDatatype(void) const;
 
  private:
+  /** 
+   * Return constructor for name.
+   * @param name The name of constructor to find
+   * @return the constructor object for the name
+   */
+  DatatypeConstructor getConstructorForName(const std::string& name) const;
   /**
    * The internal datatype wrapped by this datatype.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is

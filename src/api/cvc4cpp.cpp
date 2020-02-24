@@ -1968,25 +1968,12 @@ DatatypeSelector DatatypeConstructor::operator[](size_t index) const
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
 {
-  return getSelector(name);
+  return getSelectorForName(name);
 }
 
 DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
 {
-  bool foundSel = false;
-  size_t index = 0;
-  for (size_t i = 0, nsels = getNumSelectors(); i < nsels; i++)
-  {
-    if ((*d_ctor)[i].getName() == name)
-    {
-      index = i;
-      foundSel = true;
-      break;
-    }
-  }
-  CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor "
-                           << getName() << " exists";
-  return (*d_ctor)[index];
+  return getSelectorForName(name);
 }
 
 Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
@@ -2084,6 +2071,24 @@ const CVC4::DatatypeConstructor& DatatypeConstructor::getDatatypeConstructor(
   return *d_ctor;
 }
 
+DatatypeSelector DatatypeConstructor::getSelectorForName(const std::string& name) const
+{
+  bool foundSel = false;
+  size_t index = 0;
+  for (size_t i = 0, nsels = getNumSelectors(); i < nsels; i++)
+  {
+    if ((*d_ctor)[i].getName() == name)
+    {
+      index = i;
+      foundSel = true;
+      break;
+    }
+  }
+  CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor "
+                           << getName() << " exists";
+  return (*d_ctor)[index];
+}
+
 std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
 {
   out << ctor.toString();
@@ -2111,25 +2116,12 @@ DatatypeConstructor Datatype::operator[](size_t idx) const
 
 DatatypeConstructor Datatype::operator[](const std::string& name) const
 {
-  return getConstructor(name);
+  return getConstructorForName(name);
 }
 
 DatatypeConstructor Datatype::getConstructor(const std::string& name) const
 {
-  bool foundCons = false;
-  size_t index = 0;
-  for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
-  {
-    if ((*d_dtype)[i].getName() == name)
-    {
-      index = i;
-      foundCons = true;
-      break;
-    }
-  }
-  CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
-                            << getName() << " exists";
-  return (*d_dtype)[index];
+  return getConstructorForName(name);
 }
 
 Term Datatype::getConstructorTerm(const std::string& name) const
@@ -2171,6 +2163,24 @@ Datatype::const_iterator Datatype::end() const
 // to the new API. !!!
 const CVC4::Datatype& Datatype::getDatatype(void) const { return *d_dtype; }
 
+DatatypeConstructor Datatype::getConstructorForName(const std::string& name) const
+{
+  bool foundCons = false;
+  size_t index = 0;
+  for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
+  {
+    if ((*d_dtype)[i].getName() == name)
+    {
+      index = i;
+      foundCons = true;
+      break;
+    }
+  }
+  CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
+                            << getName() << " exists";
+  return (*d_dtype)[index];
+}
+  
 Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype,
                                          bool begin)
 {
