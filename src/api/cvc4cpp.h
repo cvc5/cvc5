@@ -1399,9 +1399,6 @@ class CVC4_PUBLIC DatatypeConstructor
   /** @return the name of this Datatype constructor. */
   std::string getName() const;
 
-  /** @return the name of this Datatype constructor. */
-  std::string getName() const;
-
   /**
    * Get the constructor operator of this datatype constructor.
    * @return the constructor term

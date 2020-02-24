@@ -1939,8 +1939,6 @@ DatatypeConstructor::~DatatypeConstructor() {}
 
 std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
 
-std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
-
 Term DatatypeConstructor::getConstructorTerm() const
 {
   Term ctor = d_ctor->getConstructor();
