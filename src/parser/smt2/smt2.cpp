@@ -172,7 +172,8 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
   // at the moment, we only use this syntax for smt2.6.1
-  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
+      || getLanguage() == language::input::LANG_SYGUS_V2)
   {
     addOperator(kind::STRING_ITOS, "str.from_int");
     addOperator(kind::STRING_STOI, "str.to_int");

@@ -963,16 +963,18 @@ void SmtEngine::finishInit()
     d_assertionList = new(true) AssertionList(d_userContext);
   }
 
-  // dump out a set-logic command
-  if(Dump.isOn("benchmark")) {
-    if (Dump.isOn("raw-benchmark")) {
-      Dump("raw-benchmark") << SetBenchmarkLogicCommand(d_logic.getLogicString());
-    } else {
+  // dump out a set-logic command only when raw-benchmark is disabled to avoid
+  // dumping the command twice.
+  if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
+  {
       LogicInfo everything;
       everything.lock();
-      Dump("benchmark") << CommentCommand("CVC4 always dumps the most general, all-supported logic (below), as some internals might require the use of a logic more general than the input.")
-                        << SetBenchmarkLogicCommand(everything.getLogicString());
-    }
+      Dump("benchmark") << CommentCommand(
+          "CVC4 always dumps the most general, all-supported logic (below), as "
+          "some internals might require the use of a logic more general than "
+          "the input.")
+                        << SetBenchmarkLogicCommand(
+                               everything.getLogicString());
   }
 
   Trace("smt-debug") << "Dump declaration commands..." << std::endl;
@@ -1128,9 +1130,18 @@ void SmtEngine::setLogic(const LogicInfo& logic)
 void SmtEngine::setLogic(const std::string& s)
 {
   SmtScope smts(this);
-  try {
+  try
+  {
     setLogic(LogicInfo(s));
-  } catch(IllegalArgumentException& e) {
+    // dump out a set-logic command
+    if (Dump.isOn("raw-benchmark"))
+    {
+      Dump("raw-benchmark")
+          << SetBenchmarkLogicCommand(d_logic.getLogicString());
+    }
+  }
+  catch (IllegalArgumentException& e)
+  {
     throw LogicException(e.what());
   }
 }
@@ -3937,7 +3948,6 @@ void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
 {
   // do nothing (the command is spurious)
   Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
-  Dump("raw-benchmark") << DeclareSygusPrimedVarCommand(id, type);
   // don't need to set that the conjecture is stale
 }
 
@@ -3947,7 +3957,8 @@ void SmtEngine::declareSygusFunctionVar(const std::string& id,
 {
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
-  Dump("raw-benchmark") << DeclareSygusFunctionCommand(id, var, type);
+  Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
+
   // don't need to set that the conjecture is stale
 }
 
