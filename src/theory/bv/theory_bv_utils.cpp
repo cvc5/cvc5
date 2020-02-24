@@ -483,7 +483,7 @@ Node eliminateBv2Nat(TNode node)
 
 Node eliminateInt2Bv(TNode node)
 {
-  const unsigned size = node.getOperator().getConst<IntToBitVector>().size;
+  const uint32_t size = node.getOperator().getConst<IntToBitVector>().size;
   NodeManager* const nm = NodeManager::currentNM();
   const Node bvzero = utils::mkZero(1);
   const Node bvone = utils::mkOne(1);
