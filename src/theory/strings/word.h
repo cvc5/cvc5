@@ -73,7 +73,7 @@ Node suffix(TNode x, std::size_t i);
 /**
  * Checks if there is any overlap between word x and another word y. This
  * corresponds to checking whether one string contains the other and whether a
- * substring of one is a prefix of the other and vice-versa.
+ * substring/subsequence of one is a prefix of the other and vice-versa.
  *
  * @param x The first string
  * @param y The second string
