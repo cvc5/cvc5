@@ -1617,6 +1617,12 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   }
   else if (etype.isConstructor())
   {
+    // get the datatype that p.d_expr belongs to
+    api::Sort etyped = etype.getConstructorCodomainSort();
+    api::Datatype d = etyped.getDatatype();
+    // lookup by name
+    api::DatatypeConstructor dc = d.getConstructor(p.d_expr.toString());
+        
     // a non-nullary constructor with a type ascription
     if (type.isParametricDatatype())
     {
