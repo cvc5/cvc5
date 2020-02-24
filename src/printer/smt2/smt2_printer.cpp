@@ -1541,8 +1541,9 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
   }
   else
   {
-    // cannot convert term to analog, print original
-    out << n;
+    // cannot convert term to analog, print original, without letification
+    // (the fifth argument is set to 0).
+    toStream(out, n, -1, false, 0);
   }
 }
 
