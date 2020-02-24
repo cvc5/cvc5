@@ -1536,7 +1536,7 @@ class CVC4_PUBLIC DatatypeConstructor
   const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
 
  private:
-  /** 
+  /**
    * Return selector for name.
    * @param name The name of selector to find
    * @return the selector object for the name
@@ -1724,7 +1724,7 @@ class CVC4_PUBLIC Datatype
   const CVC4::Datatype& getDatatype(void) const;
 
  private:
-  /** 
+  /**
    * Return constructor for name.
    * @param name The name of constructor to find
    * @return the constructor object for the name

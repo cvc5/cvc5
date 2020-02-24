@@ -2071,7 +2071,8 @@ const CVC4::DatatypeConstructor& DatatypeConstructor::getDatatypeConstructor(
   return *d_ctor;
 }
 
-DatatypeSelector DatatypeConstructor::getSelectorForName(const std::string& name) const
+DatatypeSelector DatatypeConstructor::getSelectorForName(
+    const std::string& name) const
 {
   bool foundSel = false;
   size_t index = 0;
@@ -2163,7 +2164,8 @@ Datatype::const_iterator Datatype::end() const
 // to the new API. !!!
 const CVC4::Datatype& Datatype::getDatatype(void) const { return *d_dtype; }
 
-DatatypeConstructor Datatype::getConstructorForName(const std::string& name) const
+DatatypeConstructor Datatype::getConstructorForName(
+    const std::string& name) const
 {
   bool foundCons = false;
   size_t index = 0;
@@ -2180,7 +2182,7 @@ DatatypeConstructor Datatype::getConstructorForName(const std::string& name) con
                             << getName() << " exists";
   return (*d_dtype)[index];
 }
-  
+
 Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype,
                                          bool begin)
 {
