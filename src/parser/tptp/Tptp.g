@@ -88,6 +88,7 @@ using namespace CVC4::parser;
 #include <memory>
 
 #include "smt/command.h"
+#include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "parser/tptp/tptp.h"
 #include "parser/antlr_tracing.h"
@@ -328,25 +329,40 @@ atomicFormula[CVC4::Expr& expr]
   std::string name;
   std::vector<CVC4::Expr> args;
   bool equal;
+  ParseOp p;
 }
-  : atomicWord[name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  : atomicWord[p.d_name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     ( equalOp[equal] term[expr2]
       { // equality/disequality between terms
-        PARSER_STATE->makeApplication(expr, name, args, true);
-        expr = MK_EXPR(kind::EQUAL, expr, expr2);
-        if(!equal) expr = MK_EXPR(kind::NOT, expr);
+        expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                            : PARSER_STATE->applyParseOp(p, args);
+        args.clear();
+        args.push_back(expr);
+        args.push_back(expr2);
+        ParseOp p1(kind::EQUAL);
+        expr = PARSER_STATE->applyParseOp(p1, args);
+        if (!equal)
+        {
+          expr = MK_EXPR(kind::NOT, expr);
+        }
       }
     | { // predicate
-        PARSER_STATE->makeApplication(expr, name, args, false);
+        p.d_type = EXPR_MANAGER->booleanType();
+        expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                            : PARSER_STATE->applyParseOp(p, args);
       }
     )
-  | definedFun[expr]
+  | definedFun[p]
     (
      LPAREN_TOK arguments[args] RPAREN_TOK
      equalOp[equal] term[expr2]
      {
-       expr = EXPR_MANAGER->mkExpr(expr, args);
-       expr = MK_EXPR(kind::EQUAL, expr, expr2);
+       expr = PARSER_STATE->applyParseOp(p, args);
+       args.clear();
+       args.push_back(expr);
+       args.push_back(expr2);
+       ParseOp p1(kind::EQUAL);
+       expr = PARSER_STATE->applyParseOp(p1, args);
        if (!equal)
        {
          expr = MK_EXPR(kind::NOT, expr);
@@ -357,19 +373,21 @@ atomicFormula[CVC4::Expr& expr]
     (
       equalOp[equal] term[expr2]
       { // equality/disequality between terms
-        expr = MK_EXPR(kind::EQUAL, expr, expr2);
+        args.push_back(expr);
+        args.push_back(expr2);
+        p.d_kind = kind::EQUAL;
+        expr = PARSER_STATE->applyParseOp(p, args);
         if (!equal)
         {
           expr = MK_EXPR(kind::NOT, expr);
         }
       }
     )?
-  | definedPred[expr] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  | definedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
-      if (!args.empty())
-      {
-        expr = EXPR_MANAGER->mkExpr(expr, args);
-      }
+      p.d_type = EXPR_MANAGER->booleanType();
+      expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                          : PARSER_STATE->applyParseOp(p, args);
     }
   | definedProp[expr]
   ;
@@ -380,18 +398,24 @@ thfAtomicFormula[CVC4::Expr& expr]
   std::string name;
   std::vector<CVC4::Expr> args;
   bool equal;
+  ParseOp p;
 }
-  : atomicWord[name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  : atomicWord[p.d_name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
-      PARSER_STATE->makeApplication(expr, name, args, true);
+      expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                          : PARSER_STATE->applyParseOp(p, args);
     }
-  | definedFun[expr]
+  | definedFun[p]
     (
       LPAREN_TOK arguments[args] RPAREN_TOK
       equalOp[equal] term[expr2]
       {
-        expr = EXPR_MANAGER->mkExpr(expr, args);
-        expr = MK_EXPR(kind::EQUAL, expr, expr2);
+        expr = PARSER_STATE->applyParseOp(p, args);
+        args.clear();
+        args.push_back(expr);
+        args.push_back(expr2);
+        ParseOp p1(kind::EQUAL);
+        expr = PARSER_STATE->applyParseOp(p1, args);
         if (!equal)
         {
           expr = MK_EXPR(kind::NOT, expr);
@@ -401,12 +425,11 @@ thfAtomicFormula[CVC4::Expr& expr]
   | thfSimpleTerm[expr]
   | letTerm[expr]
   | conditionalTerm[expr]
-  | thfDefinedPred[expr] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  | thfDefinedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
-      if (!args.empty())
-      {
-        expr = EXPR_MANAGER->mkExpr(expr, args);
-      }
+      p.d_type = EXPR_MANAGER->booleanType();
+      expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                          : PARSER_STATE->applyParseOp(p, args);
     }
   | definedProp[expr]
   ;
@@ -419,42 +442,82 @@ definedProp[CVC4::Expr& expr]
   | FALSE_TOK  { expr = MK_CONST(bool(false)); }
   ;
 
-definedPred[CVC4::Expr& expr]
-  : '$less' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LT); }
-  | '$lesseq' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LEQ); }
-  | '$greater' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::GT); }
-  | '$greatereq' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::GEQ); }
+definedPred[CVC4::ParseOp& p]
+  : '$less'
+    {
+      p.d_kind = kind::LT;
+    }
+  | '$lesseq'
+    {
+      p.d_kind = kind::LEQ;
+    }
+  | '$greater'
+    {
+      p.d_kind = kind::GT;
+    }
+  | '$greatereq'
+    {
+      p.d_kind = kind::GEQ;
+    }
   | '$is_rat'
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
     { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
       Expr q = EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType());
-      Expr qr = MK_EXPR(CVC4::kind::TO_REAL, q);
+      Expr qr = MK_EXPR(kind::TO_REAL, q);
       Expr r = EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType());
-      Expr rr = MK_EXPR(CVC4::kind::TO_REAL, r);
+      Expr rr = MK_EXPR(kind::TO_REAL, r);
       Expr body =
-          MK_EXPR(CVC4::kind::AND,
-                  MK_EXPR(CVC4::kind::NOT,
-                          MK_EXPR(CVC4::kind::EQUAL, r, MK_CONST(Rational(0)))),
-                  MK_EXPR(CVC4::kind::EQUAL, qr, MK_EXPR(CVC4::kind::MULT, n, rr)));
-      Expr bvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, q, r);
-      body = MK_EXPR(CVC4::kind::EXISTS, bvl, body);
-      Expr lbvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
-      expr = MK_EXPR(CVC4::kind::LAMBDA, lbvl, body);
+          MK_EXPR(kind::AND,
+                  MK_EXPR(kind::NOT,
+                          MK_EXPR(kind::EQUAL, r, MK_CONST(Rational(0)))),
+                  MK_EXPR(kind::EQUAL, qr, MK_EXPR(kind::MULT, n, rr)));
+      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, q, r);
+      body = MK_EXPR(kind::EXISTS, bvl, body);
+      Expr lbvl = MK_EXPR(kind::BOUND_VAR_LIST, n);
+      p.d_kind = kind::LAMBDA;
+      p.d_expr = MK_EXPR(kind::LAMBDA, lbvl, body);
     }
-  | '$is_int' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::IS_INTEGER); }
-  | '$distinct' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::DISTINCT); }
-  | AND_TOK { expr = EXPR_MANAGER->operatorOf(CVC4::kind::AND); }
-  | IMPLIES_TOK { expr = EXPR_MANAGER->operatorOf(CVC4::kind::IMPLIES); }
-  | OR_TOK { expr = EXPR_MANAGER->operatorOf(CVC4::kind::OR); }
+  | '$is_int'
+    {
+      p.d_kind = kind::IS_INTEGER;
+    }
+  | '$distinct'
+    {
+      p.d_kind = kind::DISTINCT;
+    }
+  | AND_TOK
+    {
+      p.d_kind = kind::AND;
+    }
+  | IMPLIES_TOK
+    {
+      p.d_kind = kind::IMPLIES;
+    }
+  | OR_TOK
+    {
+      p.d_kind = kind::OR;
+    }
   ;
 
-thfDefinedPred[CVC4::Expr& expr]
-  : '$less' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LT); }
-  | '$lesseq' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LEQ); }
-  | '$greater' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::GT); }
-  | '$greatereq' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::GEQ); }
+thfDefinedPred[CVC4::ParseOp& p]
+  : '$less'
+     {
+       p.d_kind = kind::LT;
+     }
+  | '$lesseq'
+    {
+      p.d_kind = kind::LEQ;
+    }
+  | '$greater'
+    {
+      p.d_kind = kind::GT;
+    }
+  | '$greatereq'
+    {
+      p.d_kind = kind::GEQ;
+    }
   | '$is_rat'
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
@@ -462,115 +525,199 @@ thfDefinedPred[CVC4::Expr& expr]
     {
       Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
       Expr q = EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType());
-      Expr qr = MK_EXPR(CVC4::kind::TO_REAL, q);
+      Expr qr = MK_EXPR(kind::TO_REAL, q);
       Expr r = EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType());
-      Expr rr = MK_EXPR(CVC4::kind::TO_REAL, r);
+      Expr rr = MK_EXPR(kind::TO_REAL, r);
       Expr body = MK_EXPR(
-          CVC4::kind::AND,
-          MK_EXPR(CVC4::kind::NOT,
-                  MK_EXPR(CVC4::kind::EQUAL, r, MK_CONST(Rational(0)))),
-          MK_EXPR(CVC4::kind::EQUAL, qr, MK_EXPR(CVC4::kind::MULT, n, rr)));
-      Expr bvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, q, r);
-      body = MK_EXPR(CVC4::kind::EXISTS, bvl, body);
-      Expr lbvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
-      expr = MK_EXPR(CVC4::kind::LAMBDA, lbvl, body);
+          kind::AND,
+          MK_EXPR(kind::NOT,
+                  MK_EXPR(kind::EQUAL, r, MK_CONST(Rational(0)))),
+          MK_EXPR(kind::EQUAL, qr, MK_EXPR(kind::MULT, n, rr)));
+      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, q, r);
+      body = MK_EXPR(kind::EXISTS, bvl, body);
+      Expr lbvl = MK_EXPR(kind::BOUND_VAR_LIST, n);
+      p.d_kind = kind::LAMBDA;
+      p.d_expr = MK_EXPR(kind::LAMBDA, lbvl, body);
     }
-  | '$is_int' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::IS_INTEGER); }
-  | '$distinct' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::DISTINCT); }
+  | '$is_int'
+    {
+      p.d_kind = kind::IS_INTEGER;
+    }
+  | '$distinct'
+    {
+      p.d_kind = kind::DISTINCT;
+    }
   | LPAREN_TOK
     (
-      AND_TOK { expr = EXPR_MANAGER->operatorOf(CVC4::kind::AND); }
-    | OR_TOK { expr = EXPR_MANAGER->operatorOf(CVC4::kind::OR); }
-    | IMPLIES_TOK { expr = EXPR_MANAGER->operatorOf(CVC4::kind::IMPLIES); }
+      AND_TOK
+      {
+        p.d_kind = kind::AND;
+      }
+    | OR_TOK
+      {
+        p.d_kind = kind::OR;
+      }
+    | IMPLIES_TOK
+      {
+        p.d_kind = kind::IMPLIES;
+      }
     )
     RPAREN_TOK
   ;
 
-definedFun[CVC4::Expr& expr]
+definedFun[CVC4::ParseOp& p]
 @declarations {
   bool remainder = false;
 }
-  : '$uminus' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::UMINUS); }
-  | '$sum' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::PLUS); }
-  | '$difference' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::MINUS); }
-  | '$product' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::MULT); }
-  | '$quotient' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::DIVISION_TOTAL); }
+  : '$uminus'
+    {
+      p.d_kind = kind::UMINUS;
+    }
+  | '$sum'
+    {
+      p.d_kind = kind::PLUS;
+    }
+  | '$difference'
+    {
+      p.d_kind = kind::MINUS;
+    }
+  | '$product'
+    {
+      p.d_kind = kind::MULT;
+    }
+  | '$quotient'
+    {
+      p.d_kind = kind::DIVISION_TOTAL;
+    }
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }
     )
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+    {
+      Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
       Expr d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n, d);
-      expr = MK_EXPR(CVC4::kind::DIVISION_TOTAL, n, d);
-      expr = MK_EXPR(CVC4::kind::ITE, MK_EXPR(CVC4::kind::GEQ, d, MK_CONST(Rational(0))),
-                                      MK_EXPR(CVC4::kind::TO_INTEGER, expr),
-                                      MK_EXPR(CVC4::kind::UMINUS, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::UMINUS, expr))));
-      if(remainder) {
-        expr = MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d)));
+      Expr formals = MK_EXPR(kind::BOUND_VAR_LIST, n, d);
+      Expr expr = MK_EXPR(kind::DIVISION_TOTAL, n, d);
+      expr = MK_EXPR(kind::ITE,
+                     MK_EXPR(kind::GEQ, d, MK_CONST(Rational(0))),
+                     MK_EXPR(kind::TO_INTEGER, expr),
+                     MK_EXPR(kind::UMINUS,
+                             MK_EXPR(kind::TO_INTEGER,
+                                     MK_EXPR(kind::UMINUS, expr))));
+      if (remainder)
+      {
+        expr = MK_EXPR(
+            kind::TO_INTEGER,
+            MK_EXPR(kind::MINUS, n, MK_EXPR(kind::MULT, expr, d)));
       }
-      expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
+      p.d_kind = kind::LAMBDA;
+      p.d_expr = MK_EXPR(kind::LAMBDA, formals, expr);
     }
   | ( '$quotient_t' { remainder = false; }
     | '$remainder_t' { remainder = true; }
     )
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+    {
+      Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
       Expr d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n, d);
-      expr = MK_EXPR(CVC4::kind::DIVISION_TOTAL, n, d);
-      expr = MK_EXPR(CVC4::kind::ITE, MK_EXPR(CVC4::kind::GEQ, expr, MK_CONST(Rational(0))),
-                                      MK_EXPR(CVC4::kind::TO_INTEGER, expr),
-                                      MK_EXPR(CVC4::kind::UMINUS, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::UMINUS, expr))));
-      if(remainder) {
-        expr = MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d)));
+      Expr formals = MK_EXPR(kind::BOUND_VAR_LIST, n, d);
+      Expr expr = MK_EXPR(kind::DIVISION_TOTAL, n, d);
+      expr = MK_EXPR(kind::ITE,
+                     MK_EXPR(kind::GEQ, expr, MK_CONST(Rational(0))),
+                     MK_EXPR(kind::TO_INTEGER, expr),
+                     MK_EXPR(kind::UMINUS,
+                             MK_EXPR(kind::TO_INTEGER,
+                                     MK_EXPR(kind::UMINUS, expr))));
+      if (remainder)
+      {
+        expr = MK_EXPR(
+            kind::TO_INTEGER,
+            MK_EXPR(kind::MINUS, n, MK_EXPR(kind::MULT, expr, d)));
       }
-      expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
+      p.d_kind = kind::LAMBDA;
+      p.d_expr = MK_EXPR(kind::LAMBDA, formals, expr);
     }
   | ( '$quotient_f' { remainder = false; }
     | '$remainder_f' { remainder = true; }
     )
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+    {
+      Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
       Expr d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n, d);
-      expr = MK_EXPR(CVC4::kind::DIVISION_TOTAL, n, d);
-      expr = MK_EXPR(CVC4::kind::TO_INTEGER, expr);
-      if(remainder) {
-        expr = MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::MULT, expr, d)));
+      Expr formals = MK_EXPR(kind::BOUND_VAR_LIST, n, d);
+      Expr expr = MK_EXPR(kind::DIVISION_TOTAL, n, d);
+      expr = MK_EXPR(kind::TO_INTEGER, expr);
+      if (remainder)
+      {
+        expr = MK_EXPR(kind::TO_INTEGER,
+                       MK_EXPR(kind::MINUS, n, MK_EXPR(kind::MULT, expr, d)));
       }
-      expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
+      p.d_kind = kind::LAMBDA;
+      p.d_expr = MK_EXPR(kind::LAMBDA, formals, expr);
     }
-  | '$floor' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::TO_INTEGER); }
+  | '$floor'
+    {
+      p.d_kind = kind::TO_INTEGER;
+    }
   | '$ceiling'
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
-      expr = MK_EXPR(CVC4::kind::UMINUS, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::UMINUS, n)));
-      expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
+    {
+      Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      Expr formals = MK_EXPR(kind::BOUND_VAR_LIST, n);
+      Expr expr = MK_EXPR(kind::UMINUS,
+                          MK_EXPR(kind::TO_INTEGER, MK_EXPR(kind::UMINUS, n)));
+      p.d_kind = kind::LAMBDA;
+      p.d_expr = MK_EXPR(kind::LAMBDA, formals, expr);
     }
   | '$truncate'
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
-      expr = MK_EXPR(CVC4::kind::ITE, MK_EXPR(CVC4::kind::GEQ, n, MK_CONST(Rational(0))),
-                                      MK_EXPR(CVC4::kind::TO_INTEGER, n),
-                                      MK_EXPR(CVC4::kind::UMINUS, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::UMINUS, n))));
-      expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
+    {
+      Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      Expr formals = MK_EXPR(kind::BOUND_VAR_LIST, n);
+      Expr expr =
+          MK_EXPR(kind::ITE,
+                  MK_EXPR(kind::GEQ, n, MK_CONST(Rational(0))),
+                  MK_EXPR(kind::TO_INTEGER, n),
+                  MK_EXPR(kind::UMINUS,
+                          MK_EXPR(kind::TO_INTEGER, MK_EXPR(kind::UMINUS, n))));
+      p.d_kind = kind::LAMBDA;
+      p.d_expr = MK_EXPR(kind::LAMBDA, formals, expr);
     }
   | '$round'
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
-      Expr decPart = MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::TO_INTEGER, n));
-      expr = MK_EXPR(CVC4::kind::ITE, MK_EXPR(CVC4::kind::LT, decPart, MK_CONST(Rational(1, 2))),
-                                      // if decPart < 0.5, round down
-                                      MK_EXPR(CVC4::kind::TO_INTEGER, n),
-             MK_EXPR(CVC4::kind::ITE, MK_EXPR(CVC4::kind::GT, decPart, MK_CONST(Rational(1, 2))),
-                                      // if decPart > 0.5, round up
-                                      MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::PLUS, n, MK_CONST(Rational(1)))),
-                                      // if decPart == 0.5, round to nearest even integer:
-                                      // result is: to_int(n/2 + .5) * 2
-                                      MK_EXPR(CVC4::kind::MULT, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::PLUS, MK_EXPR(CVC4::kind::DIVISION_TOTAL, n, MK_CONST(Rational(2))), MK_CONST(Rational(1, 2)))), MK_CONST(Rational(2)))));
-      expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
+    {
+      Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      Expr formals = MK_EXPR(kind::BOUND_VAR_LIST, n);
+      Expr decPart = MK_EXPR(kind::MINUS, n, MK_EXPR(kind::TO_INTEGER, n));
+      Expr expr = MK_EXPR(
+          kind::ITE,
+          MK_EXPR(kind::LT, decPart, MK_CONST(Rational(1, 2))),
+          // if decPart < 0.5, round down
+          MK_EXPR(kind::TO_INTEGER, n),
+          MK_EXPR(kind::ITE,
+                  MK_EXPR(kind::GT, decPart, MK_CONST(Rational(1, 2))),
+                  // if decPart > 0.5, round up
+                  MK_EXPR(kind::TO_INTEGER,
+                          MK_EXPR(kind::PLUS, n, MK_CONST(Rational(1)))),
+                  // if decPart == 0.5, round to nearest even integer:
+                  // result is: to_int(n/2 + .5) * 2
+                  MK_EXPR(kind::MULT,
+                          MK_EXPR(kind::TO_INTEGER,
+                                  MK_EXPR(kind::PLUS,
+                                          MK_EXPR(kind::DIVISION_TOTAL,
+                                                  n,
+                                                  MK_CONST(Rational(2))),
+                                          MK_CONST(Rational(1, 2)))),
+                          MK_CONST(Rational(2)))));
+      p.d_kind = kind::LAMBDA;
+      p.d_expr = MK_EXPR(kind::LAMBDA, formals, expr);
+      }
+  | '$to_int'
+    {
+      p.d_kind = kind::TO_INTEGER;
     }
-  | '$to_int' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::TO_INTEGER); }
-  | '$to_rat' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::TO_REAL); }
-  | '$to_real' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::TO_REAL); }
+  | '$to_rat'
+    {
+      p.d_kind = kind::TO_REAL;
+    }
+  | '$to_real'
+    {
+      p.d_kind = kind::TO_REAL;
+    }
   ;
 
 //%----Pure CNF should not use $true or $false in problems, and use $false only
@@ -628,11 +775,13 @@ thfSimpleTerm[CVC4::Expr& expr]
 functionTerm[CVC4::Expr& expr]
 @declarations {
   std::vector<CVC4::Expr> args;
+  ParseOp p;
 }
   : plainTerm[expr]
-  | definedFun[expr] LPAREN_TOK arguments[args] RPAREN_TOK
-    { expr = EXPR_MANAGER->mkExpr(expr, args); }
-// | <system_term>
+  | definedFun[p] LPAREN_TOK arguments[args] RPAREN_TOK
+    {
+      expr = PARSER_STATE->applyParseOp(p, args);
+    }
   ;
 
 conditionalTerm[CVC4::Expr& expr]
@@ -640,17 +789,19 @@ conditionalTerm[CVC4::Expr& expr]
   CVC4::Expr expr2, expr3;
 }
   : '$ite_t' LPAREN_TOK tffLogicFormula[expr] COMMA_TOK term[expr2] COMMA_TOK term[expr3] RPAREN_TOK
-    { expr = EXPR_MANAGER->mkExpr(CVC4::kind::ITE, expr, expr2, expr3); }
+    { expr = EXPR_MANAGER->mkExpr(kind::ITE, expr, expr2, expr3); }
   ;
 
 plainTerm[CVC4::Expr& expr]
 @declarations {
   std::string name;
   std::vector<Expr> args;
+  ParseOp p;
 }
-  : atomicWord[name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  : atomicWord[p.d_name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
-       PARSER_STATE->makeApplication(expr,name,args,true);
+      expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
+                          : PARSER_STATE->applyParseOp(p, args);
     }
   ;
 
@@ -837,7 +988,7 @@ thfAtomTyping[CVC4::Command*& cmd]
         }
         else
         {
-          // as yet, it's undeclared
+          // as of yet, it's undeclared
           CVC4::Expr freshExpr;
           if (type.isFunction())
           {
@@ -883,7 +1034,10 @@ thfLogicFormula[CVC4::Expr& expr]
         {
           // TODO create whatever lambda
         }
-        expr = MK_EXPR(kind::EQUAL, expr, expr2);
+        args.push_back(expr);
+        args.push_back(expr2);
+        ParseOp p(kind::EQUAL);
+        expr = PARSER_STATE->applyParseOp(p, args);
         if (!equal)
         {
           expr = MK_EXPR(kind::NOT, expr);
@@ -892,25 +1046,18 @@ thfLogicFormula[CVC4::Expr& expr]
     | // Non-associative: <=> <~> ~& ~|
       fofBinaryNonAssoc[na] thfUnitaryFormula[expr2]
       {
-        switch(na) {
-         case tptp::NA_IFF:
-           expr = MK_EXPR(kind::EQUAL,expr,expr2);
-           break;
-         case tptp::NA_REVIFF:
-           expr = MK_EXPR(kind::XOR,expr,expr2);
-           break;
-         case tptp::NA_IMPLIES:
-           expr = MK_EXPR(kind::IMPLIES,expr,expr2);
-           break;
-         case tptp::NA_REVIMPLIES:
-           expr = MK_EXPR(kind::IMPLIES,expr2,expr);
-           break;
-         case tptp::NA_REVOR:
-           expr = MK_EXPR(kind::NOT,MK_EXPR(kind::OR,expr,expr2));
-           break;
-         case tptp::NA_REVAND:
-           expr = MK_EXPR(kind::NOT,MK_EXPR(kind::AND,expr,expr2));
-           break;
+        switch (na)
+        {
+          case tptp::NA_IFF: expr = MK_EXPR(kind::EQUAL, expr, expr2); break;
+          case tptp::NA_REVIFF: expr = MK_EXPR(kind::XOR, expr, expr2); break;
+          case tptp::NA_IMPLIES: expr = MK_EXPR(kind::IMPLIES, expr, expr2); break;
+          case tptp::NA_REVIMPLIES: expr = MK_EXPR(kind::IMPLIES, expr2, expr); break;
+          case tptp::NA_REVOR:
+            expr = MK_EXPR(kind::NOT, MK_EXPR(kind::OR, expr, expr2));
+            break;
+          case tptp::NA_REVAND:
+            expr = MK_EXPR(kind::NOT, MK_EXPR(kind::AND, expr, expr2));
+            break;
         }
       }
     | // N-ary and &
@@ -998,7 +1145,10 @@ thfUnitaryFormula[CVC4::Expr& expr]
     thfLogicFormula[expr]
     RPAREN_TOK
   | NOT_TOK
-    { expr = EXPR_MANAGER->operatorOf(CVC4::kind::NOT); }
+    {
+      ParseOp p(kind::NOT);
+      expr = PARSER_STATE->parseOpToExpr(p);
+    }
     (thfUnitaryFormula[expr2] { expr = MK_EXPR(expr,expr2); })?
   | // Quantified
     thfQuantifier[kind]
@@ -1146,7 +1296,7 @@ tffUnitaryFormula[CVC4::Expr& expr]
       expr = MK_EXPR(kind, MK_EXPR(kind::BOUND_VAR_LIST, bv), expr);
     }
   | '$ite_f' LPAREN_TOK tffLogicFormula[expr] COMMA_TOK tffLogicFormula[lhs] COMMA_TOK tffLogicFormula[rhs] RPAREN_TOK
-    { expr = EXPR_MANAGER->mkExpr(CVC4::kind::ITE, expr, lhs, rhs); }
+    { expr = EXPR_MANAGER->mkExpr(kind::ITE, expr, lhs, rhs); }
   | '$let_tf' LPAREN_TOK { PARSER_STATE->pushScope(); }
     tffLetTermDefn[lhs, rhs] COMMA_TOK
     tffFormula[expr]
@@ -1174,7 +1324,7 @@ tffLetTermDefn[CVC4::Expr& lhs, CVC4::Expr& rhs]
 tffLetTermBinding[std::vector<CVC4::Expr>& bvlist, CVC4::Expr& lhs, CVC4::Expr& rhs]
   : term[lhs] EQUAL_TOK term[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
-      rhs = MK_EXPR(CVC4::kind::LAMBDA, MK_EXPR(CVC4::kind::BOUND_VAR_LIST, lhs.getChildren()), rhs);
+      rhs = MK_EXPR(kind::LAMBDA, MK_EXPR(kind::BOUND_VAR_LIST, lhs.getChildren()), rhs);
       lhs = lhs.getOperator();
     }
   | LPAREN_TOK tffLetTermBinding[bvlist, lhs, rhs] RPAREN_TOK
@@ -1191,7 +1341,7 @@ tffLetFormulaDefn[CVC4::Expr& lhs, CVC4::Expr& rhs]
 tffLetFormulaBinding[std::vector<CVC4::Expr>& bvlist, CVC4::Expr& lhs, CVC4::Expr& rhs]
   : atomicFormula[lhs] IFF_TOK tffUnitaryFormula[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
-      rhs = MK_EXPR(CVC4::kind::LAMBDA, MK_EXPR(CVC4::kind::BOUND_VAR_LIST, lhs.getChildren()), rhs);
+      rhs = MK_EXPR(kind::LAMBDA, MK_EXPR(kind::BOUND_VAR_LIST, lhs.getChildren()), rhs);
       lhs = lhs.getOperator();
     }
   | LPAREN_TOK tffLetFormulaBinding[bvlist, lhs, rhs] RPAREN_TOK

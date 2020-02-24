@@ -20,14 +20,19 @@
 #ifndef CVC4__RESOURCE_MANAGER_H
 #define CVC4__RESOURCE_MANAGER_H
 
-#include <cstddef>
 #include <sys/time.h>
+
+#include <cstddef>
+#include <memory>
 
 #include "base/exception.h"
 #include "base/listener.h"
+#include "options/options.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
+
+class StatisticsRegistry;
 
 /**
  * A helper class to keep track of a time budget and signal
@@ -74,123 +79,145 @@ class CVC4_PUBLIC Timer {
 
 
 class CVC4_PUBLIC ResourceManager {
-
-  Timer d_cumulativeTimer;
-  Timer d_perCallTimer;
-
-  /** A user-imposed cumulative time budget, in milliseconds. 0 = no limit. */
-  uint64_t d_timeBudgetCumulative;
-  /** A user-imposed per-call time budget, in milliseconds. 0 = no limit. */
-  uint64_t d_timeBudgetPerCall;
-  /** A user-imposed cumulative resource budget. 0 = no limit. */
-  uint64_t d_resourceBudgetCumulative;
-  /** A user-imposed per-call resource budget. 0 = no limit. */
-  uint64_t d_resourceBudgetPerCall;
-
-  /** The number of milliseconds used. */
-  uint64_t d_cumulativeTimeUsed;
-  /** The amount of resource used. */
-  uint64_t d_cumulativeResourceUsed;
-
-  /** The amount of resource used during this call. */
-  uint64_t d_thisCallResourceUsed;
-
-  /**
-   * The amount of resource budget for this call (min between per call
-   * budget and left-over cumulative budget.
-   */
-  uint64_t d_thisCallTimeBudget;
-  uint64_t d_thisCallResourceBudget;
-
-  bool d_isHardLimit;
-  bool d_on;
-  bool d_cpuTime;
-  uint64_t d_spendResourceCalls;
-
-  /** Counter indicating how often to check resource manager in loops */
-  static const uint64_t s_resourceCount;
-
-  /** Receives a notification on reaching a hard limit. */
-  ListenerCollection d_hardListeners;
-
-  /** Receives a notification on reaching a hard limit. */
-  ListenerCollection d_softListeners;
-
-  /**
-   * ResourceManagers cannot be copied as they are given an explicit
-   * list of Listeners to respond to.
-   */
-  ResourceManager(const ResourceManager&) = delete;
-
-  /**
-   * ResourceManagers cannot be assigned as they are given an explicit
-   * list of Listeners to respond to.
-   */
-  ResourceManager& operator=(const ResourceManager&) = delete;
-
 public:
+ enum class Resource
+ {
+   BitblastStep,
+   BvEagerAssertStep,
+   BvPropagationStep,
+   BvSatConflictsStep,
+   CnfStep,
+   DecisionStep,
+   LemmaStep,
+   ParseStep,
+   PreprocessStep,
+   QuantifierStep,
+   RestartStep,
+   RewriteStep,
+   SatConflictStep,
+   TheoryCheckStep,
+ };
 
-  ResourceManager();
+ ResourceManager(StatisticsRegistry& statistics_registry, Options& options);
+ ~ResourceManager();
 
-  bool limitOn() const { return cumulativeLimitOn() || perCallLimitOn(); }
-  bool cumulativeLimitOn() const;
-  bool perCallLimitOn() const;
+ bool limitOn() const { return cumulativeLimitOn() || perCallLimitOn(); }
+ bool cumulativeLimitOn() const;
+ bool perCallLimitOn() const;
 
-  bool outOfResources() const;
-  bool outOfTime() const;
-  bool out() const { return d_on && (outOfResources() || outOfTime()); }
+ bool outOfResources() const;
+ bool outOfTime() const;
+ bool out() const { return d_on && (outOfResources() || outOfTime()); }
 
+ /**
+  * This returns a const uint64_t& to support being used as a ReferenceStat.
+  */
+ const uint64_t& getResourceUsage() const;
+ uint64_t getTimeUsage() const;
+ uint64_t getResourceRemaining() const;
+ uint64_t getTimeRemaining() const;
 
-  /**
-   * This returns a const uint64_t& to support being used as a ReferenceStat.
-   */
-  const uint64_t& getResourceUsage() const;
-  uint64_t getTimeUsage() const;
-  uint64_t getResourceRemaining() const;
-  uint64_t getTimeRemaining() const;
+ uint64_t getResourceBudgetForThisCall() { return d_thisCallResourceBudget; }
+ // Throws an UnsafeInterruptException if there are no remaining resources.
+ void spendResource(Resource r);
 
-  uint64_t getResourceBudgetForThisCall() {
-    return d_thisCallResourceBudget;
-  }
-  // Throws an UnsafeInterruptException if there are no remaining resources.
-  void spendResource(unsigned amount);
+ void setHardLimit(bool value);
+ void setResourceLimit(uint64_t units, bool cumulative = false);
+ void setTimeLimit(uint64_t millis, bool cumulative = false);
+ void useCPUTime(bool cpu);
 
-  void setHardLimit(bool value);
-  void setResourceLimit(uint64_t units, bool cumulative = false);
-  void setTimeLimit(uint64_t millis, bool cumulative = false);
-  void useCPUTime(bool cpu);
+ void enable(bool on);
 
-  void enable(bool on);
+ /**
+  * Resets perCall limits to mark the start of a new call,
+  * updates budget for current call and starts the timer
+  */
+ void beginCall();
 
-  /**
-   * Resets perCall limits to mark the start of a new call,
-   * updates budget for current call and starts the timer
-   */
-  void beginCall();
+ /**
+  * Marks the end of a SmtEngine check call, stops the per
+  * call timer, updates cumulative time used.
+  */
+ void endCall();
 
-  /**
-   * Marks the end of a SmtEngine check call, stops the per
-   * call timer, updates cumulative time used.
-   */
-  void endCall();
+ static uint64_t getFrequencyCount() { return s_resourceCount; }
 
-  static uint64_t getFrequencyCount() { return s_resourceCount; }
+ /**
+  * Registers a listener that is notified on a hard resource out.
+  *
+  * This Registration must be destroyed by the user before this
+  * ResourceManager.
+  */
+ ListenerCollection::Registration* registerHardListener(Listener* listener);
 
-  /**
-   * Registers a listener that is notified on a hard resource out.
-   *
-   * This Registration must be destroyed by the user before this
-   * ResourceManager.
-   */
-  ListenerCollection::Registration* registerHardListener(Listener* listener);
+ /**
+  * Registers a listener that is notified on a soft resource out.
+  *
+  * This Registration must be destroyed by the user before this
+  * ResourceManager.
+  */
+ ListenerCollection::Registration* registerSoftListener(Listener* listener);
 
-  /**
-   * Registers a listener that is notified on a soft resource out.
-   *
-   * This Registration must be destroyed by the user before this
-   * ResourceManager.
-   */
-  ListenerCollection::Registration* registerSoftListener(Listener* listener);
+private:
+ Timer d_cumulativeTimer;
+ Timer d_perCallTimer;
+
+ /** A user-imposed cumulative time budget, in milliseconds. 0 = no limit. */
+ uint64_t d_timeBudgetCumulative;
+ /** A user-imposed per-call time budget, in milliseconds. 0 = no limit. */
+ uint64_t d_timeBudgetPerCall;
+ /** A user-imposed cumulative resource budget. 0 = no limit. */
+ uint64_t d_resourceBudgetCumulative;
+ /** A user-imposed per-call resource budget. 0 = no limit. */
+ uint64_t d_resourceBudgetPerCall;
+
+ /** The number of milliseconds used. */
+ uint64_t d_cumulativeTimeUsed;
+ /** The amount of resource used. */
+ uint64_t d_cumulativeResourceUsed;
+
+ /** The amount of resource used during this call. */
+ uint64_t d_thisCallResourceUsed;
+
+ /**
+  * The amount of resource budget for this call (min between per call
+  * budget and left-over cumulative budget.
+  */
+ uint64_t d_thisCallTimeBudget;
+ uint64_t d_thisCallResourceBudget;
+
+ bool d_isHardLimit;
+ bool d_on;
+ bool d_cpuTime;
+ uint64_t d_spendResourceCalls;
+
+ /** Counter indicating how often to check resource manager in loops */
+ static const uint64_t s_resourceCount;
+
+ /** Receives a notification on reaching a hard limit. */
+ ListenerCollection d_hardListeners;
+
+ /** Receives a notification on reaching a hard limit. */
+ ListenerCollection d_softListeners;
+
+ /**
+  * ResourceManagers cannot be copied as they are given an explicit
+  * list of Listeners to respond to.
+  */
+ ResourceManager(const ResourceManager&) = delete;
+
+ /**
+  * ResourceManagers cannot be assigned as they are given an explicit
+  * list of Listeners to respond to.
+  */
+ ResourceManager& operator=(const ResourceManager&) = delete;
+
+ void spendResource(unsigned amount);
+
+ struct Statistics;
+ std::unique_ptr<Statistics> d_statistics;
+
+ Options& d_options;
 
 };/* class ResourceManager */
 

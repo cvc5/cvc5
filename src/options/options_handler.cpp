@@ -147,6 +147,25 @@ void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
 
 void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
 {
+  if (m == SatSolverMode::CRYPTOMINISAT
+      && !Configuration::isBuiltWithCryptominisat())
+  {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires a CryptoMiniSat build of CVC4; this binary was not built "
+          "with CryptoMiniSat support";
+    throw OptionException(ss.str());
+  }
+
+  if (m == SatSolverMode::CADICAL && !Configuration::isBuiltWithCadical())
+  {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires a CaDiCaL build of CVC4; this binary was not built with "
+          "CaDiCaL support";
+    throw OptionException(ss.str());
+  }
+
   if (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL)
   {
     if (options::bitblastMode() == options::BitblastMode::LAZY
