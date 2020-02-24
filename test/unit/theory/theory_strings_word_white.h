@@ -1,17 +1,15 @@
 /*********************                                                        */
-/*! \file theory_strings_rewriter_white.h
+/*! \file theory_strings_word_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Unit tests for the strings rewriter
- **
- ** Unit tests for the strings rewriter.
+ ** \brief Unit tests for the strings word utilities
  **/
 
 #include "expr/node.h"
