@@ -24,11 +24,11 @@
 #include <string>
 #include <vector>
 
-#include "options/language.h"
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "options/language.h"
 #include "parser/parser_exception.h"
-#include "api/cvc4cpp.h"
 
 namespace CVC4 {
 
