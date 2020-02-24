@@ -661,11 +661,11 @@ Command* Parser::nextCommand()
   return cmd;
 }
 
-Expr Parser::nextExpression()
+api::Term Parser::nextExpression()
 {
   Debug("parser") << "nextExpression()" << std::endl;
   d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
-  Expr result;
+  api::Term result;
   if (!done()) {
     try {
       result = d_input->parseExpr();
