@@ -31,7 +31,7 @@ Node Word::mkEmptyWord(TypeNode tn)
   Unimplemented();
   return Node::null();
 }
-  
+
 Node Word::mkEmptyWord(Kind k)
 {
   NodeManager* nm = NodeManager::currentNM();
