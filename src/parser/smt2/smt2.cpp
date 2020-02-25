@@ -1618,26 +1618,12 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   }
   else if (etype.isConstructor())
   {
-    // get the datatype that p.d_expr belongs to
-    api::Sort etyped = etype.getConstructorCodomainSort();
-    api::Datatype d = etyped.getDatatype();
-    // lookup by name
-    api::DatatypeConstructor dc = d.getConstructor(p.d_expr.toString());
-        
-    // a non-nullary constructor with a type ascription
-    if (type.isParametricDatatype())
-    {
-      ExprManager* em = getExprManager();
-      // apply type ascription to the operator
-      Expr e = p.d_expr.getExpr();
-      const DatatypeConstructor& dtc =
-          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-      p.d_expr = api::Term(
-          em->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
-                     em->mkConst(AscriptionType(
-                         dtc.getSpecializedConstructorType(type.getType()))),
-                     p.d_expr.getExpr()));
-    }
+    // A type cast for a parametric non-nullary constructor. We cannot
+    // cast yet, since the cast applied to the constructor is its return
+    // type, not the type of the constructor operator itself.  See
+    // issue #2832 for an example. Thus, since we can't process yet, we carry
+    // the type to be processed later.
+    p.d_type = type;
   }
   else if (ekind == api::EMPTYSET)
   {
@@ -1871,7 +1857,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind != api::NULL_EXPR)
   {
     // it should not have an expression or type specified at this point
-    if (!p.d_expr.isNull() || !p.d_type.isNull())
+    if (!p.d_expr.isNull())
     {
       std::stringstream ss;
       ss << "Could not process parsed qualified identifier kind " << p.d_kind;
@@ -2000,6 +1986,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
                   << " #args = " << args.size() << "..." << std::endl;
   api::Term ret = d_solver->mkTerm(kind, args);
   Debug("parser") << "applyParseOp: return : " << ret << std::endl;
+  // process cast if necessary
+  if (!p.d_type.isNull())
+  {
+    ret = d_solver->mkTermCast(ret,p.d_type);
+  }
   return ret;
 }
 

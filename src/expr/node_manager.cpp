@@ -814,16 +814,6 @@ Node NodeManager::mkNodeCast(Node n, TypeNode type)
                          c);
     return mkNode(kind::APPLY_CONSTRUCTOR, children);
   }
-  else if (n.getType().isConstructor())
-  {
-    // apply type ascription to a constructor term
-    const DType& dt = n.getType().getDType();
-    const DTypeConstructor& dtc = dt.getConstructorForTerm(n);
-    return mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                  mkConst(AscriptionType(
-                      dtc.getSpecializedConstructorType(type).toType())),
-                  n);
-  }
   return n;
 }
 
