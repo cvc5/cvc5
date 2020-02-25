@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/type_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -29,6 +30,9 @@ namespace strings {
 class Word
 {
 public:
+  /** make empty constant of type tn */
+  static Node mkEmptyWord(TypeNode tn);
+  
   /** make empty constant of kind k */
   static Node mkEmptyWord(Kind k);
 

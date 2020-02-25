@@ -1768,13 +1768,13 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         // start beyond the maximum size of strings
         // thus, it must be beyond the end point of this string
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-const-start-max-oob");
       }
       else if (node[1].getConst<Rational>().sgn() < 0)
       {
         // start before the beginning of the string
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-const-start-neg");
       }
       else
@@ -1783,7 +1783,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         if (start >= s.size())
         {
           // start beyond the end of the string
-          Node ret = nm->mkConst(::CVC4::String(""));
+          Node ret = Word::mkEmptyWord(node.getType());
           return returnRewrite(node, ret, "ss-const-start-oob");
         }
       }
@@ -1795,7 +1795,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       }
       else if (node[2].getConst<Rational>().sgn() <= 0)
       {
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-const-len-non-pos");
       }
       else
@@ -1822,12 +1822,12 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
   // if entailed non-positive length or negative start point
   if (checkEntailArith(zero, node[1], true))
   {
-    Node ret = nm->mkConst(::CVC4::String(""));
+    Node ret = Word::mkEmptyWord(node.getType());
     return returnRewrite(node, ret, "ss-start-neg");
   }
   else if (checkEntailArith(zero, node[2]))
   {
-    Node ret = nm->mkConst(::CVC4::String(""));
+    Node ret = Word::mkEmptyWord(node.getType());
     return returnRewrite(node, ret, "ss-len-non-pos");
   }
 
@@ -1853,7 +1853,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     // be empty.
     if (checkEntailArith(node[1], node[0][2]))
     {
-      Node ret = nm->mkConst(::CVC4::String(""));
+      Node ret = Word::mkEmptyWord(node.getType());
       return returnRewrite(node, ret, "ss-start-geq-len");
     }
   }
@@ -1937,7 +1937,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
           Rewriter::rewrite(nm->mkNode(kind::LT, node[1], tot_len));
       if (checkEntailArithWithAssumption(n1_lt_tot_len, zero, node[2], false))
       {
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-start-entails-zero-len");
       }
 
@@ -1946,7 +1946,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
           Rewriter::rewrite(nm->mkNode(kind::LT, zero, node[2]));
       if (checkEntailArithWithAssumption(non_zero_len, node[1], tot_len, false))
       {
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-non-zero-len-entails-oob");
       }
 
@@ -1955,14 +1955,14 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
           Rewriter::rewrite(nm->mkNode(kind::GEQ, node[1], zero));
       if (checkEntailArithWithAssumption(geq_zero_start, zero, tot_len, false))
       {
-        Node ret = nm->mkConst(String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-geq-zero-start-entails-emp-s");
       }
 
       // (str.substr s x x) ---> "" if (str.len s) <= 1
       if (node[1] == node[2] && checkEntailLengthOne(node[0]))
       {
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-len-one-z-z");
       }
     }
@@ -2048,13 +2048,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     CVC4::String s = node[0].getConst<String>();
     if (node[1].isConst())
     {
-      CVC4::String t = node[1].getConst<String>();
       Node ret =
-          NodeManager::currentNM()->mkConst(s.find(t) != std::string::npos);
+          nm->mkConst(Word::find(node[0],node[1]) != std::string::npos);
       return returnRewrite(node, ret, "ctn-const");
     }else{
       Node t = node[1];
-      if (s.size() == 0)
+      if (Word::getLength(node[0]) == 0)
       {
         Node len1 =
             NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
@@ -2098,14 +2097,14 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   }
   if (node[1].isConst())
   {
-    CVC4::String t = node[1].getConst<String>();
-    if (t.size() == 0)
+    size_t len = Word::getLength(node[1]);
+    if (len == 0)
     {
       // contains( x, "" ) ---> true
       Node ret = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, ret, "ctn-rhs-emptystr");
     }
-    else if (t.size() == 1)
+    else if (len == 1)
     {
       // The following rewrites are specific to a single character second
       // argument of contains, where we can reason that this character is
