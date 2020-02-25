@@ -1570,8 +1570,7 @@ InputLanguage Smt2::getLanguage() const
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
 {
-  Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type
-                  << std::endl;
+  Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type << std::endl;
   // (as const (Array T1 T2))
   if (p.d_kind == api::STORE_ALL)
   {
@@ -1610,37 +1609,21 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
   Trace("parser-qid") << " " << ekind << " " << etype;
   Trace("parser-qid") << std::endl;
-  if (ekind == api::APPLY_CONSTRUCTOR && type.isDatatype())
+  if (etype.isConstructor())
   {
-    // nullary constructors with a type ascription
-    // could be a parametric constructor or just an overloaded constructor
-    // standard type ascription
-    p.d_expr = applyTypeAscription(p.d_expr, type);
+    // A type cast for a parametric non-nullary constructor. Notice the cast
+    // applied to the constructor is for its return type, not the type of the
+    // constructor operator itself.  See issue #2832 for an example. We apply
+    // the cast directly to the constructor.
+    p.d_expr = castConstructor(p.d_expr,type);
+    return;
   }
-  else if (etype.isConstructor())
+  // otherwise, we process the type ascription
+  p.d_expr =
+      applyTypeAscription(api::Term(p.d_expr), api::Sort(type)).getExpr();
+  if (p.d_expr.getSort() != type)
   {
-    p.d_expr = castConstructor(p.d_expr, type);
-  }
-  else if (ekind == api::EMPTYSET)
-  {
-    Debug("parser") << "Empty set encountered: " << p.d_expr << " " << type
-                    << std::endl;
-    p.d_expr = d_solver->mkEmptySet(type);
-  }
-  else if (ekind == api::UNIVERSE_SET)
-  {
-    p.d_expr = d_solver->mkUniverseSet(type);
-  }
-  else if (ekind == api::SEP_NIL)
-  {
-    // We don't want the nil reference to be a constant: for instance, it
-    // could be of type Int but is not a const rational. However, the
-    // expression has 0 children. So we convert to a SEP_NIL variable.
-    p.d_expr = d_solver->mkSepNil(type);
-  }
-  else if (etype != type)
-  {
-    parseError("api::Sort ascription not satisfied.");
+    parseError("Type ascription not satisfied.");
   }
 }
 
