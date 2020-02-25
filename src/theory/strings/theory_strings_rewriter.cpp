@@ -28,6 +28,7 @@
 #include "theory/theory.h"
 #include "util/integer.h"
 #include "util/rational.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4;
@@ -357,20 +358,22 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
     if (!c[0].empty() && !c[1].empty() && c[0].back().isConst()
         && c[1].back().isConst())
     {
-      String cs[2];
+      Node cs[2];
+      size_t csl[2];
       for (unsigned j = 0; j < 2; j++)
       {
-        cs[j] = c[j].back().getConst<String>();
+        cs[j] = c[j].back();
+        csl[j] = Word::getLength(cs[j]);
       }
-      unsigned larger = cs[0].size() > cs[1].size() ? 0 : 1;
-      unsigned smallerSize = cs[1 - larger].size();
+      size_t larger = csl[0] > csl[1] ? 0 : 1;
+      size_t smallerSize = csl[1 - larger];
       if (cs[1 - larger]
-          == (i == 0 ? cs[larger].suffix(smallerSize)
-                     : cs[larger].prefix(smallerSize)))
+          == (i == 0 ? Word::suffix(cs[larger],smallerSize)
+                     : Word::prefix(cs[larger],smallerSize)))
       {
-        unsigned sizeDiff = cs[larger].size() - smallerSize;
-        c[larger][c[larger].size() - 1] = nm->mkConst(
-            i == 0 ? cs[larger].prefix(sizeDiff) : cs[larger].suffix(sizeDiff));
+        size_t sizeDiff = csl[larger] - smallerSize;
+        c[larger][c[larger].size() - 1] = 
+            i == 0 ? Word::prefix(cs[larger],sizeDiff) : Word::suffix(cs[larger],sizeDiff);
         c[1 - larger].pop_back();
         changed = true;
       }
