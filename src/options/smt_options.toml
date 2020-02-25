@@ -665,6 +665,15 @@ header = "options/smt_options.h"
   help       = "Force no CPU limit when dumping models and proofs"
 
 [[option]]
+  name       = "solveBVAsInt"
+  category   = "undocumented"
+  long       = "solve-bv-as-int=N"
+  type       = "uint32_t"
+  default    = "0"
+  read_only  = true
+  help       = "attempt to solve BV formulas by translation to integer arithmetic (experimental)"
+
+[[option]]
   name       = "solveIntAsBV"
   category   = "undocumented"
   long       = "solve-int-as-bv=N"

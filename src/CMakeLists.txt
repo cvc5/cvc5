@@ -56,6 +56,8 @@ libcvc4_add_sources(
   preprocessing/passes/bv_intro_pow2.h
   preprocessing/passes/bv_to_bool.cpp
   preprocessing/passes/bv_to_bool.h
+  preprocessing/passes/bv_to_int.cpp
+  preprocessing/passes/bv_to_int.h
   preprocessing/passes/extended_rewriter_pass.cpp
   preprocessing/passes/extended_rewriter_pass.h
   preprocessing/passes/global_negate.cpp
@@ -702,6 +704,8 @@ libcvc4_add_sources(
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
   theory/strings/type_enumerator.h
+  theory/strings/word.cpp
+  theory/strings/word.h
   theory/subs_minimize.cpp
   theory/subs_minimize.h
   theory/substitutions.cpp

@@ -748,7 +748,7 @@ public:
   Command* nextCommand();
 
   /** Parse and return the next expression. */
-  Expr nextExpression();
+  api::Term nextExpression();
 
   /** Issue a warning to the user. */
   void warning(const std::string& msg) { d_input->warning(msg); }
@@ -875,7 +875,7 @@ public:
   public:
     ExprStream(Parser* parser) : d_parser(parser) {}
     ~ExprStream() { delete d_parser; }
-    Expr nextExpr() override { return d_parser->nextExpression(); }
+    Expr nextExpr() override { return d_parser->nextExpression().getExpr(); }
   };/* class Parser::ExprStream */
   
   //------------------------ operator overloading
