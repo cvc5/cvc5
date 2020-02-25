@@ -2399,7 +2399,6 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
         !children[i].isNull(), "parameter term", children[i], i)
         << "non-null term";
   }
-  checkMkTerm(kind, children.size());
 
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
@@ -2411,8 +2410,7 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
     if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
         || kind == DIVISION || kind == BITVECTOR_XNOR)
     {
-      // Builtin operators that are not tokenized, are left associative,
-      // but not internally variadic must set this.
+      // left-associative, but CVC4 internally only supports 2 args
       res = d_exprMgr->mkLeftAssociative(k, echildren);
     }
     else if (kind == IMPLIES)
@@ -2426,19 +2424,28 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
       // "chainable", but CVC4 internally only supports 2 args
       res = d_exprMgr->mkChain(k, echildren);
     }
+    else if (kind::isAssociative(k))
+    {
+      // mkAssociative has special treatment for associative operators with lots of children
+      res = d_exprMgr->mkAssociative(k, echildren);
+    }
     else
     {
-      // default case, mkAssociative has special treatment for associative
-      // operators with lots of children
-      res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
-                                   : d_exprMgr->mkExpr(k, echildren);
+      // default case, must check kind
+      checkMkTerm(kind, children.size());
+      res = d_exprMgr->mkExpr(k, echildren);
     }
+  }
+  else if (kind::isAssociative(k))
+  {
+    // associative case, same as above
+    res = d_exprMgr->mkAssociative(k, echildren);
   }
   else
   {
     // default case, same as above
-    res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
-                                 : d_exprMgr->mkExpr(k, echildren);
+    checkMkTerm(kind, children.size());
+    res = d_exprMgr->mkExpr(k, echildren);
   }
 
   (void)res.d_expr->getType(true); /* kick off type checking */
