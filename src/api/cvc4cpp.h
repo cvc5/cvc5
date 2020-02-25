@@ -2096,13 +2096,6 @@ class CVC4_PUBLIC Solver
   Term mkTuple(const std::vector<Sort>& sorts,
                const std::vector<Term>& terms) const;
 
-  /**
-   * Make witness term for sort. Returns an arbitrary term of sort s.
-   * @param s The Sort to witness.
-   * @return The Term of sort s.
-   */
-  Term mkWitness(Sort s) const;
-
   /* .................................................................... */
   /* Create Operators                                                     */
   /* .................................................................... */
@@ -2868,6 +2861,16 @@ class CVC4_PUBLIC Solver
    * @return a term of sort real
    */
   Term ensureRealSort(Term expr) const;
+
+  /**
+   * Create n-ary term of given kind. This handles the cases of left/right
+   * associative operators, chainable operators, and cases when the number of
+   * children exceeds the maximum arity for the kind.
+   * @param kind the kind of the term
+   * @param children the children of the term
+   * @return the Term
+   */
+  Term mkTermInternal(Kind kind, const std::vector<Term>& children) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;

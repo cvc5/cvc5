@@ -223,6 +223,38 @@ void Datatype::addConstructor(const DatatypeConstructor& c) {
 void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   PrettyCheckArgument(
       !isResolved(), this, "cannot set sygus type to a finalized Datatype");
+  // We can be in a case where the only rule specified was (Variable T)
+  // and there are no variables of type T, in which case this is a bogus
+  // grammar. This results in the error below.
+  // We can also be in a case where the only rule specified was
+  // (Constant T), in which case we have not yet added a constructor. We
+  // ensure an arbitrary constant is added in this case. We additionally
+  // add a constant if the grammar allows it regardless of whether the
+  // datatype has other constructors, since this ensures the datatype is
+  // well-founded (see 3423).
+  if (allow_const && !allow_all)
+  {
+    // if i don't already have a constant (0-ary constructor)
+    bool hasConstant = false;
+    for (unsigned i=0, ncons = getNumConstructors(); i < ncons; i++)
+    {
+      if ((*this)[i].getNumArgs()==0)
+      {
+        hasConstant = true;
+        break;
+      }
+    }
+    if (!hasConstant)
+    {
+      // add an arbitrary one
+      Expr op = st.mkGroundTerm();
+      std::stringstream cname;
+      cname << op;
+      std::vector<Type> cargs;
+      addSygusConstructor(op,cname.str(),cargs);
+    }
+  }
+  
   TypeNode stn = TypeNode::fromType(st);
   Node bvln = Node::fromExpr(bvl);
   d_internal->setSygus(stn, bvln, allow_const, allow_all);
