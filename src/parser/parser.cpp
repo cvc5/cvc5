@@ -612,29 +612,6 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 
 api::Term Parser::castConstructor(api::Term t, api::Sort s)
 {
-  /*
-  api::Sort etype = t.getSort();
-  // get the datatype that t belongs to
-  api::Sort etyped = etype.getConstructorCodomainSort();
-  api::Datatype d = etyped.getDatatype();
-  // lookup by name
-  api::DatatypeConstructor dc = d.getConstructor(t.toString());
-
-  // a non-nullary constructor with a type ascription
-  if (s.isParametricDatatype())
-  {
-    ExprManager* em = getExprManager();
-    // apply type ascription to the operator
-    Expr e = t.getExpr();
-    const DatatypeConstructor& dtc =
-        Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-    t = api::Term(
-        em->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
-                    em->mkConst(AscriptionType(
-                        dtc.getSpecializedConstructorType(s.getType()))),
-                    e));
-  }
-  */
   if (!t.getSort().isConstructor())
   {
     std::stringstream ss;
