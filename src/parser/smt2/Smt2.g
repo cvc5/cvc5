@@ -1042,12 +1042,7 @@ sygusGrammar[CVC4::Type & ret,
       // add a constant if the grammar allows it regardless of whether the
       // datatype has other constructors, since this ensures the datatype is
       // well-founded (see 3423).
-      if (aci)
-      {
-        Expr c = btt.mkGroundTerm();
-        PARSER_STATE->addSygusConstructorTerm(datatypes[i], c, ntsToUnres);
-      }
-      else if (datatypes[i].getNumConstructors() == 0)
+      if (datatypes[i].getNumConstructors() == 0)
       {
         std::stringstream se;
         se << "Grouped rule listing for " << datatypes[i].getName()
