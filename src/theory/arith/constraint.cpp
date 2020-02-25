@@ -93,6 +93,7 @@ std::ostream& operator<<(std::ostream& o, const ArithProofType apt){
   case FarkasAP:  o << "FarkasAP"; break;
   case TrichotomyAP:  o << "TrichotomyAP"; break;
   case EqualityEngineAP:  o << "EqualityEngineAP"; break;
+  case IntTightenAP: o << "IntTightenAP"; break;
   case IntHoleAP: o << "IntHoleAP"; break;
   default: break;
   }
@@ -516,6 +517,10 @@ bool Constraint::hasSimpleFarkasProof() const
     antecdent = d_database->getAntecedent(antId);
   }
   return true;
+}
+
+bool Constraint::hasIntTightenProof() const {
+  return getProofType() == IntTightenAP;
 }
 
 bool Constraint::hasIntHoleProof() const {
@@ -1245,6 +1250,19 @@ bool Constraint::allHaveProof(const ConstraintCPVec& b){
     if(! (cp->hasProof())){ return false; }
   }
   return true;
+}
+
+void Constraint::impliedByIntTighten(ConstraintCP a, bool nowInConflict){
+  Assert(!hasProof());
+  Assert(negationHasProof() == nowInConflict);
+  Assert(a->hasProof());
+
+  d_database->d_antecedents.push_back(NullConstraint);
+  d_database->d_antecedents.push_back(a);
+  AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
+  d_database->pushConstraintRule(ConstraintRule(this, IntTightenAP, antecedentEnd));
+
+  Assert(inConflict() == nowInConflict);
 }
 
 void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){

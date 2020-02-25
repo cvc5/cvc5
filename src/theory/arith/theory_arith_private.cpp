@@ -2021,7 +2021,7 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
           Debug("arith::intbound") << "literal, before: " << constraint->getLiteral() << std::endl;
           Debug("arith::intbound") << "constraint, after: " << floorConstraint << std::endl;
         }
-        floorConstraint->impliedByIntHole(constraint, inConflict);
+        floorConstraint->impliedByIntTighten(constraint, inConflict);
         floorConstraint->tryToPropagate();
         if(inConflict){
           raiseConflict(floorConstraint);
@@ -2041,7 +2041,7 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
           Debug("arith::intbound") << "literal, before: " << constraint->getLiteral() << std::endl;
           Debug("arith::intbound") << "constraint, after: " << ceilingConstraint << std::endl;
         }
-        ceilingConstraint->impliedByIntHole(constraint, inConflict);
+        ceilingConstraint->impliedByIntTighten(constraint, inConflict);
         ceilingConstraint->tryToPropagate();
         if(inConflict){
           raiseConflict(ceilingConstraint);
