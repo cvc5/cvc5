@@ -693,9 +693,9 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   else if (k == api::APPLY_CONSTRUCTOR)
   {
     std::vector<api::Term> children;
-    children.insert(children.end(),t.begin(),t.end());
+    children.insert(children.end(), t.begin(), t.end());
     children[0] = castConstructor(children[0], s);
-    t = d_solver->mkTerm(api::APPLY_CONSTRUCTOR,children);
+    t = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, children);
     return t;
   }
   // otherwise, no cast
@@ -711,7 +711,7 @@ api::Term Parser::castConstructor(api::Term t, api::Sort s)
   api::Datatype d = etyped.getDatatype();
   // lookup by name
   api::DatatypeConstructor dc = d.getConstructor(t.toString());
-      
+
   // a non-nullary constructor with a type ascription
   if (s.isParametricDatatype())
   {
@@ -727,13 +727,13 @@ api::Term Parser::castConstructor(api::Term t, api::Sort s)
                     e));
   }
   */
-  if(!t.getSort().isConstructor())
+  if (!t.getSort().isConstructor())
   {
     std::stringstream ss;
     ss << "expecting constructor in castConstructor, got " << t << std::endl;
     parseError(ss.str());
   }
-  if(!s.isDatatype())
+  if (!s.isDatatype())
   {
     std::stringstream ss;
     ss << "expecting datatype in castConstructor, got " << s << std::endl;
@@ -745,7 +745,7 @@ api::Term Parser::castConstructor(api::Term t, api::Sort s)
   api::Datatype d = etyped.getDatatype();
   // lookup by name
   api::DatatypeConstructor dc = d.getConstructor(t.toString());
-      
+
   // a non-nullary constructor with a type ascription
   if (s.isParametricDatatype())
   {
@@ -754,11 +754,11 @@ api::Term Parser::castConstructor(api::Term t, api::Sort s)
     Expr e = t.getExpr();
     const DatatypeConstructor& dtc =
         Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-    t = api::Term(
-        em->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
-                    em->mkConst(AscriptionType(
-                        dtc.getSpecializedConstructorType(s.getType()))),
-                    e));
+    t = api::Term(em->mkExpr(
+        kind::APPLY_TYPE_ASCRIPTION,
+        em->mkConst(
+            AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
+        e));
   }
   return t;
 }

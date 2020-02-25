@@ -911,12 +911,6 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   {
     return DatatypeType(*d_type).instantiate(tparams);
   }
-  if (d_type->isConstructor())
-  {
-    Sort dtype = getConstructorCodomainSort();
-    CVC4::Datatype d = dtype.getDatatype().getDatatype();
-    // 
-  }
   Assert(d_type->isSortConstructor());
   return SortConstructorType(*d_type).instantiate(tparams);
 }

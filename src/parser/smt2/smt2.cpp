@@ -1570,7 +1570,8 @@ InputLanguage Smt2::getLanguage() const
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
 {
-  Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type << std::endl;
+  Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type
+                  << std::endl;
   // (as const (Array T1 T2))
   if (p.d_kind == api::STORE_ALL)
   {
@@ -1614,11 +1615,11 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
     // nullary constructors with a type ascription
     // could be a parametric constructor or just an overloaded constructor
     // standard type ascription
-    p.d_expr = applyTypeAscription(p.d_expr,type);
+    p.d_expr = applyTypeAscription(p.d_expr, type);
   }
   else if (etype.isConstructor())
   {
-    p.d_expr = castConstructor(p.d_expr,type);
+    p.d_expr = castConstructor(p.d_expr, type);
   }
   else if (ekind == api::EMPTYSET)
   {
