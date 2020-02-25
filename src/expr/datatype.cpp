@@ -236,9 +236,9 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   {
     // if i don't already have a constant (0-ary constructor)
     bool hasConstant = false;
-    for (unsigned i=0, ncons = getNumConstructors(); i < ncons; i++)
+    for (unsigned i = 0, ncons = getNumConstructors(); i < ncons; i++)
     {
-      if ((*this)[i].getNumArgs()==0)
+      if ((*this)[i].getNumArgs() == 0)
       {
         hasConstant = true;
         break;
@@ -251,10 +251,10 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
       std::stringstream cname;
       cname << op;
       std::vector<Type> cargs;
-      addSygusConstructor(op,cname.str(),cargs);
+      addSygusConstructor(op, cname.str(), cargs);
     }
   }
-  
+
   TypeNode stn = TypeNode::fromType(st);
   Node bvln = Node::fromExpr(bvl);
   d_internal->setSygus(stn, bvln, allow_const, allow_all);
