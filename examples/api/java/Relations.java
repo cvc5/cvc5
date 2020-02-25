@@ -30,7 +30,7 @@ import edu.nyu.acsys.CVC4.*;
 (declare-fun mother () (Set (Tuple Person Person)))
 (declare-fun parent () (Set (Tuple Person Person)))
 (declare-fun ancestor () (Set (Tuple Person Person)))
-(declare-fun descendent () (Set (Tuple Person Person)))
+(declare-fun descendant () (Set (Tuple Person Person)))
 
 (assert (= people (as univset (Set (Tuple Person)))))
 (assert (not (= males (as emptyset (Set (Tuple Person))))))
@@ -53,11 +53,11 @@ import edu.nyu.acsys.CVC4.*;
 ; no self ancestor
 (assert (forall ((x Person)) (not (member (mkTuple x x) ancestor))))
 
-; descendent
-(assert (= descendent (tclosure parent)))
+; descendant
+(assert (= descendant (tclosure parent)))
 
 ; ancestor
-(assert (= ancestor (transpose descendent)))
+(assert (= ancestor (transpose descendant)))
 
 (check-sat)
 (get-model)
@@ -121,7 +121,7 @@ class Relations
     Expr mother = manager.mkVar("mother", relationArity2);
     Expr parent = manager.mkVar("parent", relationArity2);
     Expr ancestor = manager.mkVar("ancestor", relationArity2);
-    Expr descendent = manager.mkVar("descendent", relationArity2);
+    Expr descendant = manager.mkVar("descendant", relationArity2);
 
     Expr isEmpty1 = manager.mkExpr(Kind.EQUAL, males, emptySetExpr);
     Expr isEmpty2 = manager.mkExpr(Kind.EQUAL, females, emptySetExpr);
@@ -160,10 +160,10 @@ class Relations
 
     // (assert (= parent (union father mother)))
     Expr transitiveClosure = manager.mkExpr(Kind.TCLOSURE, parent);
-    Expr descendentFormula = manager.mkExpr(Kind.EQUAL, descendent, transitiveClosure);
+    Expr descendantFormula = manager.mkExpr(Kind.EQUAL, descendant, transitiveClosure);
 
     // (assert (= parent (union father mother)))
-    Expr transpose = manager.mkExpr(Kind.TRANSPOSE, descendent);
+    Expr transpose = manager.mkExpr(Kind.TRANSPOSE, descendant);
     Expr ancestorFormula = manager.mkExpr(Kind.EQUAL, ancestor, transpose);
 
     // (assert (forall ((x Person)) (not (member (mkTuple x x) ancestor))))
@@ -194,7 +194,7 @@ class Relations
     Expr formula3 = manager.mkExpr(Kind.AND,
                                              formula2,
                                              parentIsFatherOrMother,
-                                             descendentFormula,
+                                             descendantFormula,
                                              ancestorFormula,
                                              noSelfAncestor);
 
@@ -209,7 +209,7 @@ class Relations
     System.out.println("father     = " + smtEngine.getValue(father));
     System.out.println("mother     = " + smtEngine.getValue(mother));
     System.out.println("parent     = " + smtEngine.getValue(parent));
-    System.out.println("descendent = " + smtEngine.getValue(descendent));
+    System.out.println("descendant = " + smtEngine.getValue(descendant));
     System.out.println("ancestor   = " + smtEngine.getValue(ancestor));
   }
 }
