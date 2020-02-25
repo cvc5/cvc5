@@ -401,8 +401,6 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
 {
   try {
     std::set<Type> tset = api::sortSetToTypes(d_unresolved);
-    // std::vector<api::Sort> types =
-    //    getExprManager()->mkMutualDatatypeTypes(datatypes, tset);
     std::vector<DatatypeType> dtypes =
         getExprManager()->mkMutualDatatypeTypes(datatypes, tset, flags);
     std::vector<api::Sort> types;
@@ -487,7 +485,6 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         throw ParserException(dt.getName() + " is not well-founded");
       }
     }
-    // PARSER-TODO
     std::vector<DatatypeType> retTypes;
     for (unsigned i = 0, ntypes = types.size(); i < ntypes; i++)
     {

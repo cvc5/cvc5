@@ -687,7 +687,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
                                             allow_const,
                                             unresolved_gterm_sym);
          CVC4::api::Sort unres_t;
-         if (!PARSER_STATE->isUnresolvedType(dname))
+         if (!PARSER_STATE->isUnresolvedType(name))
          {
            // if not unresolved, must be undeclared
            Debug("parser-sygus") << "Make unresolved type : " << name
