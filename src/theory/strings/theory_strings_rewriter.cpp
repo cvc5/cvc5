@@ -396,10 +396,10 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
   for (unsigned i = 0; i < 2; i++)
   {
     Node cn = checkEntailHomogeneousString(node[i]);
-    if (!cn.isNull() && cn.getConst<String>().size() > 0)
+    if (!cn.isNull() && !Word::isEmpty(cn))
     {
       Assert(cn.isConst());
-      Assert(cn.getConst<String>().size() == 1);
+      Assert(Word::getLength(cn) == 1);
       unsigned hchar = cn.getConst<String>().front();
 
       // The operands of the concat on each side of the equality without
@@ -761,7 +761,7 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
     }
     if(!tmpNode.isConst()) {
       if(!preNode.isNull()) {
-        if(preNode.getKind() == kind::CONST_STRING && !preNode.getConst<String>().isEmptyString() ) {
+        if(preNode.getKind() == kind::CONST_STRING && !Word::isEmpty(preNode) ) {
           node_vec.push_back( preNode );
         }
         preNode = Node::null();
@@ -771,11 +771,14 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
       if( preNode.isNull() ){
         preNode = tmpNode;
       }else{
-        preNode = NodeManager::currentNM()->mkConst( preNode.getConst<String>().concat( tmpNode.getConst<String>() ) );
+        std::vector<Node> vec;
+        vec.push_back(preNode);
+        vec.push_back(tmpNode);
+        preNode = Word::mkWord(vec);
       }
     }
   }
-  if( !preNode.isNull() && ( preNode.getKind()!=kind::CONST_STRING || !preNode.getConst<String>().isEmptyString() ) ){
+  if( !preNode.isNull() && ( preNode.getKind()!=kind::CONST_STRING || !Word::isEmpty(preNode) ) ){
     node_vec.push_back( preNode );
   }
 
@@ -831,7 +834,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
       }
     }
     else if (c.getKind() == STRING_TO_REGEXP && c[0].isConst()
-             && c[0].getConst<String>().isEmptyString())
+             && Word::isEmpty(c[0]))
     {
       changed = true;
       emptyRe = c;
@@ -974,7 +977,7 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
   }
   else if (node[0].getKind() == STRING_TO_REGEXP
            && node[0][0].getKind() == CONST_STRING
-           && node[0][0].getConst<String>().isEmptyString())
+           && Word::isEmpty(node[0][0]))
   {
     // ("")* ---> ""
     return returnRewrite(node, node[0], "re-star-empty-string");
@@ -995,7 +998,7 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
       for (const Node& nc : node[0])
       {
         if (nc.getKind() == STRING_TO_REGEXP && nc[0].getKind() == CONST_STRING
-            && nc[0].getConst<String>().isEmptyString())
+            && Word::isEmpty(nc[0]))
         {
           // can be removed
           changed = true;
@@ -1563,18 +1566,18 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   {
     Kind nk0 = node[0].getKind();
     if( node[0].isConst() ){
-      retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
+      retNode = nm->mkConst(Rational( Word::getLength(node[0]) ) );
     }
     else if (nk0 == kind::STRING_CONCAT)
     {
       Node tmpNode = node[0];
       if(tmpNode.isConst()) {
-        retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode.getConst<String>().size() ) );
+        retNode = nm->mkConst( Rational( Word::getLength(tmpNode) ) );
       }else if( tmpNode.getKind()==kind::STRING_CONCAT ){
         std::vector<Node> node_vec;
         for(unsigned int i=0; i<tmpNode.getNumChildren(); ++i) {
           if(tmpNode[i].isConst()) {
-            node_vec.push_back( NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode[i].getConst<String>().size() ) ) );
+            node_vec.push_back( nm->mkConst( Rational( Word::getLength(tmpNode[i])  ) ) );
           } else {
             node_vec.push_back( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, tmpNode[i]) );
           }
@@ -1750,7 +1753,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
-    if (node[0].getConst<String>().size() == 0)
+    if (Word::isEmpty(node[0]))
     {
       Node ret = node[0];
       return returnRewrite(node, ret, "ss-emptystr");
