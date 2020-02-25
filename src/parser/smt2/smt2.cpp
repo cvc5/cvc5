@@ -1901,8 +1901,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
-        api::Term ret =
-            em->mkLeftAssociative(kind::HO_APPLY, api::termVectorToExprs(args));
+        api::Term ret = d_solver->mkTerm(api::HO_APPLY, args);
         Debug("parser") << "applyParseOp: return curry higher order " << ret
                         << std::endl;
         // must curry the partial application

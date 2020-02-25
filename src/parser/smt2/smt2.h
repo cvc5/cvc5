@@ -448,40 +448,6 @@ class Smt2 : public Parser
     }
     this->Parser::checkDeclaration(name, check, type, notes);
   }
-
-  void checkOperator(api::Kind kind, unsigned numArgs)
-  {
-    Parser::checkOperator(kind, numArgs);
-    // strict SMT-LIB mode enables extra checks for some bitvector operators
-    // that CVC4 permits as N-ary but the standard requires is binary
-    if(strictModeEnabled()) {
-      switch(kind) {
-      case kind::BITVECTOR_AND:
-      case kind::BITVECTOR_MULT:
-      case kind::BITVECTOR_OR:
-      case kind::BITVECTOR_PLUS:
-      case kind::BITVECTOR_XOR:
-        if (numArgs != 2 && !v2_6())
-        {
-          parseError(
-              "Operator requires exactly 2 arguments in strict SMT-LIB "
-              "compliance mode (for versions <2.6): "
-              + kindToString(kind));
-        }
-        break;
-      case kind::BITVECTOR_CONCAT:
-        if(numArgs != 2) {
-          parseError(
-              "Operator requires exactly 2 arguments in strict SMT-LIB "
-              "compliance mode: "
-              + kindToString(kind));
-        }
-        break;
-      default:
-        break; /* no problem */
-      }
-    }
-  }
   /** Set named attribute
    *
    * This is called when expression expr is annotated with a name, i.e.

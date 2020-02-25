@@ -434,27 +434,6 @@ public:
    */
   void checkFunctionLike(api::Term fun);
 
-  /**
-   * Check that <code>kind</code> can accept <code>numArgs</code> arguments.
-   * @param kind the built-in operator to check
-   * @param numArgs the number of actual arguments
-   * @throws ParserException if checks are enabled and the operator
-   * <code>kind</code> cannot be applied to <code>numArgs</code>
-   * arguments.
-   */
-  void checkArity(api::Kind kind, unsigned numArgs);
-
-  /**
-   * Check that <code>kind</code> is a legal operator in the current
-   * logic and that it can accept <code>numArgs</code> arguments.
-   *
-   * @param kind the built-in operator to check
-   * @param numArgs the number of actual arguments
-   * @throws ParserException if the parser mode is strict and the
-   * operator <code>kind</code> has not been enabled
-   */
-  void checkOperator(api::Kind kind, unsigned numArgs);
-
   /** Create a new CVC4 variable expression of the given type. 
    *
    * flags specify information about the variable, e.g. whether it is global or defined

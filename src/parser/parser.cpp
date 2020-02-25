@@ -834,38 +834,6 @@ void Parser::checkFunctionLike(api::Term fun)
   }
 }
 
-void Parser::checkArity(api::Kind kind, unsigned numArgs)
-{
-  if (!d_checksEnabled) {
-    return;
-  }
-
-  unsigned min = getExprManager()->minArity(extToIntKind(kind));
-  unsigned max = getExprManager()->maxArity(extToIntKind(kind));
-
-  if (numArgs < min || numArgs > max) {
-    stringstream ss;
-    ss << "Expecting ";
-    if (numArgs < min) {
-      ss << "at least " << min << " ";
-    } else {
-      ss << "at most " << max << " ";
-    }
-    ss << "arguments for operator '" << kind << "', ";
-    ss << "found " << numArgs;
-    parseError(ss.str());
-  }
-}
-
-void Parser::checkOperator(api::Kind kind, unsigned numArgs)
-{
-  if (d_strictMode && d_logicOperators.find(kind) == d_logicOperators.end()) {
-    parseError("Operator is not defined in the current logic: " +
-               kindToString(kind));
-  }
-  checkArity(kind, numArgs);
-}
-
 void Parser::addOperator(api::Kind kind) { d_logicOperators.insert(kind); }
 
 void Parser::preemptCommand(Command* cmd) { d_commandQueue.push_back(cmd); }

@@ -351,7 +351,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
         // must curry the partial application
-        return mkLeftAssociative(api::HO_APPLY, args);
+        return d_solver->mkTerm(api::HO_APPLY, args);
       }
     }
   }
