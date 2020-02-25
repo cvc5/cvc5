@@ -2408,7 +2408,7 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
   if (echildren.size() > 2)
   {
     if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
-        || kind == DIVISION || kind == BITVECTOR_XNOR)
+        || kind == DIVISION || kind == BITVECTOR_XNOR || kind == HO_APPLY)
     {
       // left-associative, but CVC4 internally only supports 2 args
       res = d_exprMgr->mkLeftAssociative(k, echildren);

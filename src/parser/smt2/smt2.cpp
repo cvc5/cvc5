@@ -1863,47 +1863,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         }
       }
     }
-    if (args.size() > 2)
-    {
-      if (kind == api::INTS_DIVISION || kind == api::XOR || kind == api::MINUS
-          || kind == api::DIVISION || (kind == api::BITVECTOR_XNOR && v2_6()))
-      {
-        // Builtin operators that are not tokenized, are left associative,
-        // but not internally variadic must set this.
-        api::Term ret = mkLeftAssociative(kind, args);
-        Debug("parser") << "applyParseOp: return left associative " << ret
-                        << std::endl;
-        return ret;
-      }
-      else if (kind == api::IMPLIES)
-      {
-        /* right-associative, but CVC4 internally only supports 2 args */
-        api::Term ret = mkRightAssociative(kind, args);
-        Debug("parser") << "applyParseOp: return right associative " << ret
-                        << std::endl;
-        return ret;
-      }
-      else if (kind == api::EQUAL || kind == api::LT || kind == api::GT
-               || kind == api::LEQ || kind == api::GEQ)
-      {
-        /* "chainable", but CVC4 internally only supports 2 args */
-        api::Term ret = mkChain(kind, args);
-        Debug("parser") << "applyParseOp: return chain " << ret << std::endl;
-        return ret;
-      }
-    }
-
-    if (kind::isAssociative(extToIntKind(kind))
-        && args.size() > em->maxArity(extToIntKind(kind)))
-    {
-      /* Special treatment for associative operators with lots of children
-       */
-      api::Term ret = mkAssociative(kind, args);
-      Debug("parser") << "applyParseOp: return large assoc " << ret
-                      << std::endl;
-      return ret;
-    }
-    else if (!strictModeEnabled() && (kind == api::AND || kind == api::OR)
+    if (!strictModeEnabled() && (kind == api::AND || kind == api::OR)
              && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
@@ -1918,7 +1878,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     else
     {
-      checkOperator(kind, args.size());
       api::Term ret = d_solver->mkTerm(kind, args);
       Debug("parser") << "applyParseOp: return default builtin " << ret
                       << std::endl;
