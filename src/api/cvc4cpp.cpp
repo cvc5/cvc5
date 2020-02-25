@@ -2404,13 +2404,12 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
   Assert(isDefinedIntKind(k));
-  
+
   Term res;
   if (echildren.size() > 2)
   {
-    if (kind == INTS_DIVISION || kind == XOR
-        || kind == MINUS || kind == DIVISION
-        || kind == BITVECTOR_XNOR)
+    if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
+        || kind == DIVISION || kind == BITVECTOR_XNOR)
     {
       // Builtin operators that are not tokenized, are left associative,
       // but not internally variadic must set this.
@@ -2419,24 +2418,27 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
     else if (kind == IMPLIES)
     {
       // right-associative, but CVC4 internally only supports 2 args
-      res =  d_exprMgr->mkRightAssociative(k, echildren);
+      res = d_exprMgr->mkRightAssociative(k, echildren);
     }
-    else if (kind == EQUAL || kind == LT || kind == GT
-              || kind == LEQ || kind == GEQ)
+    else if (kind == EQUAL || kind == LT || kind == GT || kind == LEQ
+             || kind == GEQ)
     {
-      // "chainable", but CVC4 internally only supports 2 args 
-      res =  d_exprMgr->mkChain(k, echildren);
+      // "chainable", but CVC4 internally only supports 2 args
+      res = d_exprMgr->mkChain(k, echildren);
     }
     else
     {
-      // default case, mkAssociative has special treatment for associative operators with lots of children
-      res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren) : d_exprMgr->mkExpr(k, echildren);
+      // default case, mkAssociative has special treatment for associative
+      // operators with lots of children
+      res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
+                                   : d_exprMgr->mkExpr(k, echildren);
     }
   }
   else
   {
     // default case, same as above
-    res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren) : d_exprMgr->mkExpr(k, echildren);
+    res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
+                                 : d_exprMgr->mkExpr(k, echildren);
   }
 
   (void)res.d_expr->getType(true); /* kick off type checking */
@@ -3197,12 +3199,12 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 {
   // need to use internal term call to check e.g. associative construction
-  return mkTermInternal(kind,std::vector<Term>{child1, child2, child3});
+  return mkTermInternal(kind, std::vector<Term>{child1, child2, child3});
 }
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  return mkTermInternal(kind,children);
+  return mkTermInternal(kind, children);
 }
 
 Term Solver::mkTerm(Op op) const

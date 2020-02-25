@@ -315,7 +315,7 @@ private:
    * of terms of size >= 2 such that the terms above are well-typed.
    */
   Expr mkChain(Kind kind, const std::vector<Expr>& children);
-  
+
   /**
    * Determine whether Exprs of a particular Kind have operators.
    * @returns true if Exprs of Kind k have operators.

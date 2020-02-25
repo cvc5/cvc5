@@ -2871,7 +2871,7 @@ class CVC4_PUBLIC Solver
    * @return the Term
    */
   Term mkTermInternal(Kind kind, const std::vector<Term>& children) const;
-  
+
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;
   /* The SMT engine of this solver. */
