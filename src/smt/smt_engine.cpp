@@ -1215,9 +1215,17 @@ void SmtEngine::setDefaults() {
     }
     d_logic = LogicInfo("QF_BV");
   }
-  else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt())
+
+  if (options::solveBVAsInt() > 0)
   {
-    d_logic = LogicInfo("QF_NIA");
+    if (d_logic.isTheoryEnabled(THEORY_BV))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_BV);
+      d_logic.enableTheory(THEORY_ARITH);
+      d_logic.arithNonLinear();
+      d_logic.lock();
+    }
   }
 
   // set options about ackermannization
@@ -1439,6 +1447,17 @@ void SmtEngine::setDefaults() {
                   "cores/proofs"
                << endl;
       options::preSkolemQuant.set(false);
+    }
+
+    if (options::solveBVAsInt() > 0)
+    {
+      /**
+       * Operations on 1 bits are better handled as Boolean operations
+       * than as integer operations.
+       * Therefore, we enable bv-to-bool, which runs before
+       * the translation to integers.
+       */
+      options::bitvectorToBool.set(true);
     }
 
     if (options::bitvectorToBool())
@@ -3297,7 +3316,7 @@ void SmtEnginePrivate::processAssertions() {
   if (options::solveRealAsInt()) {
     d_passes["real-to-int"]->apply(&d_assertions);
   }
-
+  
   if (options::solveIntAsBV() > 0)
   {
     d_passes["int-to-bv"]->apply(&d_assertions);
@@ -3358,6 +3377,34 @@ void SmtEnginePrivate::processAssertions() {
   {
     d_passes["bv-to-bool"]->apply(&d_assertions);
   }
+  if (options::solveBVAsInt() > 0)
+  {
+    if (options::incrementalSolving())
+    {
+      throw ModalException(
+          "solving bitvectors as integers is currently not supported "
+          "when solving incrementally.");
+    } else if (options::boolToBitvector() != options::BoolToBVMode::OFF) {
+      throw ModalException(
+          "solving bitvectors as integers is incompatible with --bool-to-bv.");
+    }
+    else if (options::solveBVAsInt() > 8)
+    {
+      /**
+       * The granularity sets the size of the ITE in each element
+       * of the sum that is generated for bitwise operators.
+       * The size of the ITE is 2^{2*granularity}.
+       * Since we don't want to introduce ITEs with unbounded size,
+       * we bound the granularity.
+       */
+      throw ModalException("solve-bv-as-int accepts values from 0 to 8.");
+    }
+    else
+    {
+      d_passes["bv-to-int"]->apply(&d_assertions);
+    }
+  }
+
   // Convert non-top-level Booleans to bit-vectors of size 1
   if (options::boolToBitvector() != options::BoolToBVMode::OFF)
   {
