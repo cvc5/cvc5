@@ -2426,7 +2426,8 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
     }
     else if (kind::isAssociative(k))
     {
-      // mkAssociative has special treatment for associative operators with lots of children
+      // mkAssociative has special treatment for associative operators with lots
+      // of children
       res = d_exprMgr->mkAssociative(k, echildren);
     }
     else
