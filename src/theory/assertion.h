@@ -33,8 +33,7 @@ struct Assertion {
   /** Has this assertion been preregistered with this theory. */
   const bool isPreregistered;
 
-  Assertion(TNode a, bool isP)
-      : assertion(a), isPreregistered(isP) {}
+  Assertion(TNode a, bool isP) : assertion(a), isPreregistered(isP) {}
 
   /** Convert the assertion to a TNode. */
   operator TNode() const { return assertion; }

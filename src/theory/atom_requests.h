@@ -38,20 +38,14 @@ public:
     /** Where to send it */
     theory::TheoryId d_toTheory;
 
-    Request(TNode a, theory::TheoryId tt)
-    : d_atom(a), d_toTheory(tt) {}
-    Request()
-    : d_toTheory(theory::THEORY_LAST)
-    {}
+    Request(TNode a, theory::TheoryId tt) : d_atom(a), d_toTheory(tt) {}
+    Request() : d_toTheory(theory::THEORY_LAST) {}
 
     bool operator == (const Request& other) const {
       return d_atom == other.d_atom && d_toTheory == other.d_toTheory;
     }
 
-    size_t hash() const {
-      return d_atom.getId();
-    }
-
+    size_t hash() const { return d_atom.getId(); }
   };
 
   AtomRequests(context::Context* context);
@@ -70,7 +64,10 @@ public:
     element_index d_index;
     friend class AtomRequests;
     atom_iterator(const AtomRequests& requests, element_index start)
-    : d_requests(requests), d_index(start) {}
+        : d_requests(requests), d_index(start)
+    {
+    }
+
   public:
     /** Is this iterator done  */
     bool done() const;
@@ -101,9 +98,7 @@ private:
     /** Previous request */
     element_index previous;
 
-    Element(const Request& r, element_index p)
-    : request(r), previous(p)
-    {}
+    Element(const Request& r, element_index p) : request(r), previous(p) {}
   };
 
   /** We index the requests in this vector, it's a list */

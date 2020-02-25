@@ -305,7 +305,9 @@ private:
     EqualityNodeId d_rhs;
     /** Equality constructor */
     Equality(EqualityNodeId l = null_id, EqualityNodeId r = null_id)
-    : d_lhs(l), d_rhs(r) {}
+        : d_lhs(l), d_rhs(r)
+    {
+    }
   };/* struct EqualityEngine::Equality */
 
   /** The ids of the classes we have merged */
@@ -406,8 +408,11 @@ private:
     /** Next trigger for class */
     TriggerId d_nextTrigger;
 
-    Trigger(EqualityNodeId classId = null_id, TriggerId nextTrigger = null_trigger)
-    : d_classId(classId), d_nextTrigger(nextTrigger) {}
+    Trigger(EqualityNodeId classId = null_id,
+            TriggerId nextTrigger = null_trigger)
+        : d_classId(classId), d_nextTrigger(nextTrigger)
+    {
+    }
   };/* struct EqualityEngine::Trigger */
 
   /**
@@ -577,7 +582,10 @@ private:
     /** The trigger terms */
     EqualityNodeId d_triggers[0];
     /** Returns the theory tags */
-    Theory::Set hasTrigger(TheoryId tag) const { return Theory::setContains(tag, d_tags); }
+    Theory::Set hasTrigger(TheoryId tag) const
+    {
+      return Theory::setContains(tag, d_tags);
+    }
     /** Returns a trigger by tag */
     EqualityNodeId getTrigger(TheoryId tag) const {
       return d_triggers[Theory::setIndex(tag, d_tags)];
@@ -620,8 +628,11 @@ private:
   struct TriggerSetUpdate {
     EqualityNodeId d_classId;
     TriggerTermSetRef d_oldValue;
-    TriggerSetUpdate(EqualityNodeId classId = null_id, TriggerTermSetRef oldValue = null_set_id)
-    : d_classId(classId), d_oldValue(oldValue) {}
+    TriggerSetUpdate(EqualityNodeId classId = null_id,
+                     TriggerTermSetRef oldValue = null_set_id)
+        : d_classId(classId), d_oldValue(oldValue)
+    {
+    }
   };/* struct EqualityEngine::TriggerSetUpdate */
 
   /**
@@ -699,8 +710,12 @@ private:
     /** Is trigger equivalent to the lhs (rhs otherwise) */
     bool d_lhs;
 
-    TaggedEquality(EqualityNodeId equalityId = null_id, TriggerTermSetRef triggerSetRef = null_set_id, bool lhs = true)
-    : d_equalityId(equalityId), d_triggerSetRef(triggerSetRef), d_lhs(lhs) {}
+    TaggedEquality(EqualityNodeId equalityId = null_id,
+                   TriggerTermSetRef triggerSetRef = null_set_id,
+                   bool lhs = true)
+        : d_equalityId(equalityId), d_triggerSetRef(triggerSetRef), d_lhs(lhs)
+    {
+    }
   };
 
   /** A map from equivalence class id's to tagged equalities */

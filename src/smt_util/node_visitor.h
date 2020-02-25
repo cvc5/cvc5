@@ -63,9 +63,11 @@ public:
     /** The parent of the node */
     TNode d_parent;
     /** Have the children been queued up for visitation */
-    bool children_added;
+    bool d_childrenAdded;
     stack_element(TNode node, TNode parent)
-    : d_node(node), d_parent(parent), children_added(false) {}
+        : d_node(node), d_parent(parent), d_childrenAdded(false)
+    {
+    }
   };/* struct preprocess_stack_element */
 
   /**
@@ -90,14 +92,14 @@ public:
       if (visitor.alreadyVisited(current, parent)) {
         // If already visited, we're done
         toVisit.pop_back();
-      } else if (stackHead.children_added) {
+      } else if (stackHead.d_childrenAdded) {
         // Call the visitor
         visitor.visit(current, parent);
         // Done with this node, remove from the stack
         toVisit.pop_back();
       } else {
         // Mark that we have added the children
-        stackHead.children_added = true;
+        stackHead.d_childrenAdded = true;
         // We need to add the children
         for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
           TNode childNode = *child_it;

@@ -112,8 +112,11 @@ struct MergeCandidate {
   EqualityNodeId d_t1Id, d_t2Id;
   unsigned d_type;
   TNode d_reason;
-  MergeCandidate(EqualityNodeId x, EqualityNodeId y, unsigned type, TNode reason)
-  : d_t1Id(x), d_t2Id(y), d_type(type), d_reason(reason)
+  MergeCandidate(EqualityNodeId x,
+                 EqualityNodeId y,
+                 unsigned type,
+                 TNode reason)
+      : d_t1Id(x), d_t2Id(y), d_type(type), d_reason(reason)
   {}
 };
 
@@ -123,8 +126,11 @@ struct MergeCandidate {
 struct DisequalityReasonRef {
   DefaultSizeType d_mergesStart;
   DefaultSizeType d_mergesEnd;
-  DisequalityReasonRef(DefaultSizeType mergesStart = 0, DefaultSizeType mergesEnd = 0)
-  : d_mergesStart(mergesStart), d_mergesEnd(mergesEnd) {}
+  DisequalityReasonRef(DefaultSizeType mergesStart = 0,
+                       DefaultSizeType mergesEnd = 0)
+      : d_mergesStart(mergesStart), d_mergesEnd(mergesEnd)
+  {
+  }
 };
 
 /**
@@ -294,8 +300,12 @@ struct FunctionApplication {
   EqualityNodeId d_a, d_b;
 
   /** Construct an application */
-  FunctionApplication(FunctionApplicationType type = APP_EQUALITY, EqualityNodeId a = null_id, EqualityNodeId b = null_id)
-  : d_type(type), d_a(a), d_b(b) {}
+  FunctionApplication(FunctionApplicationType type = APP_EQUALITY,
+                      EqualityNodeId a = null_id,
+                      EqualityNodeId b = null_id)
+      : d_type(type), d_a(a), d_b(b)
+  {
+  }
 
   /** Equality of two applications */
   bool operator == (const FunctionApplication& other) const {
@@ -303,20 +313,13 @@ struct FunctionApplication {
   }
 
   /** Is this a null application */
-  bool isNull() const {
-    return d_a == null_id || d_b == null_id;
-  }
+  bool isNull() const { return d_a == null_id || d_b == null_id; }
 
   /** Is this an equality */
-  bool isEquality() const {
-    return d_type == APP_EQUALITY;
-  }
+  bool isEquality() const { return d_type == APP_EQUALITY; }
 
   /** Is this an interpreted application (equality is special, i.e. not interpreted) */
-  bool isInterpreted() const {
-    return d_type == APP_INTERPRETED;
-  }
-
+  bool isInterpreted() const { return d_type == APP_INTERPRETED; }
 };
 
 struct FunctionApplicationHashFunction {
@@ -336,11 +339,12 @@ struct FunctionApplicationPair {
   FunctionApplication d_original;
   FunctionApplication d_normalized;
   FunctionApplicationPair() {}
-  FunctionApplicationPair(const FunctionApplication& original, const FunctionApplication& normalized)
-  : d_original(original), d_normalized(normalized) {}
-  bool isNull() const {
-    return d_original.isNull();
+  FunctionApplicationPair(const FunctionApplication& original,
+                          const FunctionApplication& normalized)
+      : d_original(original), d_normalized(normalized)
+  {
   }
+  bool isNull() const { return d_original.isNull(); }
 };
 
 /**
@@ -353,7 +357,9 @@ struct TriggerInfo {
   bool d_polarity;
   TriggerInfo() : d_polarity(false) {}
   TriggerInfo(Node trigger, bool polarity)
-      : d_trigger(trigger), d_polarity(polarity) {}
+      : d_trigger(trigger), d_polarity(polarity)
+  {
+  }
 };
 
 } // namespace eq

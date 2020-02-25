@@ -317,40 +317,28 @@ struct CVC4_PUBLIC BitVectorRepeat
 struct CVC4_PUBLIC BitVectorZeroExtend
 {
   unsigned zeroExtendAmount;
-  BitVectorZeroExtend(unsigned zea)
-      : zeroExtendAmount(zea)
-  {
-  }
+  BitVectorZeroExtend(unsigned zea) : zeroExtendAmount(zea) {}
   operator unsigned() const { return zeroExtendAmount; }
 }; /* struct BitVectorZeroExtend */
 
 struct CVC4_PUBLIC BitVectorSignExtend
 {
   unsigned signExtendAmount;
-  BitVectorSignExtend(unsigned sea)
-      : signExtendAmount(sea)
-  {
-  }
+  BitVectorSignExtend(unsigned sea) : signExtendAmount(sea) {}
   operator unsigned() const { return signExtendAmount; }
 }; /* struct BitVectorSignExtend */
 
 struct CVC4_PUBLIC BitVectorRotateLeft
 {
   unsigned rotateLeftAmount;
-  BitVectorRotateLeft(unsigned rla)
-      : rotateLeftAmount(rla)
-  {
-  }
+  BitVectorRotateLeft(unsigned rla) : rotateLeftAmount(rla) {}
   operator unsigned() const { return rotateLeftAmount; }
 }; /* struct BitVectorRotateLeft */
 
 struct CVC4_PUBLIC BitVectorRotateRight
 {
   unsigned rotateRightAmount;
-  BitVectorRotateRight(unsigned rra)
-      : rotateRightAmount(rra)
-  {
-  }
+  BitVectorRotateRight(unsigned rra) : rotateRightAmount(rra) {}
   operator unsigned() const { return rotateRightAmount; }
 }; /* struct BitVectorRotateRight */
 

@@ -65,7 +65,9 @@ struct NodeTheoryPair {
   theory::TheoryId theory;
   size_t timestamp;
   NodeTheoryPair(TNode n, theory::TheoryId t, size_t ts = 0)
-  : node(n), theory(t), timestamp(ts) {}
+      : node(n), theory(t), timestamp(ts)
+  {
+  }
   NodeTheoryPair() : theory(theory::THEORY_LAST), timestamp() {}
   // Comparison doesn't take into account the timestamp
   bool operator == (const NodeTheoryPair& pair) const {
