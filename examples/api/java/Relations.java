@@ -69,7 +69,7 @@ class Relations
  public
   static void main(String[] args)
   {
-    System.loadLibrary("cvc4jni");
+    System.load("/usr/local/lib/libcvc4jni.so");
 
     ExprManager manager = new ExprManager();
     SmtEngine smtEngine = new SmtEngine(manager);
