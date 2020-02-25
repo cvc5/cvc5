@@ -99,7 +99,7 @@ class ParserBuilderBlack : public CxxTest::TestSuite
     Parser *parser = builder.build();
     TS_ASSERT(parser != NULL);
 
-    Expr e = parser->nextExpression();
+    api::Term e = parser->nextExpression();
     TS_ASSERT(e.isNull());
 
     delete parser;
@@ -110,7 +110,7 @@ class ParserBuilderBlack : public CxxTest::TestSuite
     Parser *parser = builder.build();
     TS_ASSERT(parser != NULL);
 
-    Expr e = parser->nextExpression();
+    api::Term e = parser->nextExpression();
     TS_ASSERT_EQUALS(e, d_solver->getExprManager()->mkConst(true));
 
     e = parser->nextExpression();

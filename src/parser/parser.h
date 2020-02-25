@@ -19,16 +19,18 @@
 #ifndef CVC4__PARSER__PARSER_STATE_H
 #define CVC4__PARSER__PARSER_STATE_H
 
-#include <string>
-#include <set>
-#include <list>
 #include <cassert>
+#include <list>
+#include <set>
+#include <string>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/expr_stream.h"
 #include "expr/kind.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
+#include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -58,7 +60,8 @@ public:
     gterm_ignore,
   };
   Type d_type;
-  Expr d_expr;
+  /** The parsed operator */
+  ParseOp d_op;
   std::vector< Expr > d_let_vars;
   unsigned d_gterm_type;
   std::string d_name;
@@ -367,11 +370,12 @@ public:
   virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
   
   /**
-   * Returns the kind that should be used for applications of expression fun, where
-   * fun has "function-like" type, i.e. where checkFunctionLike(fun) returns true. 
-   * Returns a parse error if fun does not have function-like type.
+   * Returns the kind that should be used for applications of expression fun.
+   * This is a generalization of ExprManager::operatorToKind that also
+   * handles variables whose types are "function-like", i.e. where
+   * checkFunctionLike(fun) returns true.
    * 
-   * For example, this function returns
+   * For examples of the latter, this function returns
    *   APPLY_UF if fun has function type, 
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
@@ -599,9 +603,15 @@ public:
    * For each symbol defined by the datatype, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *
+   * flags specify information about the datatype, e.g. whether it should be
+   * printed out as a definition in models or not
+   *   (see enum in expr_manager_template.h).
    */
-  std::vector<DatatypeType>
-  mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, bool doOverload=false);
+  std::vector<DatatypeType> mkMutualDatatypeTypes(
+      std::vector<Datatype>& datatypes,
+      bool doOverload = false,
+      uint32_t flags = ExprManager::DATATYPE_FLAG_NONE);
 
   /** make flat function type
    *
@@ -668,6 +678,16 @@ public:
    */
   Expr mkHoApply(Expr expr, std::vector<Expr>& args);
 
+  /** make chain
+   *
+   * Given a kind k and argument terms t_1, ..., t_n, this returns the
+   * conjunction of:
+   *  (k t_1 t_2) .... (k t_{n-1} t_n)
+   * It is expected that k is a kind denoting a predicate, and args is a list
+   * of terms of size >= 2 such that the terms above are well-typed.
+   */
+  api::Term mkChain(api::Kind k, const std::vector<api::Term>& args);
+
   /**
    * Add an operator to the current legal set.
    *
@@ -698,7 +718,7 @@ public:
   Command* nextCommand();
 
   /** Parse and return the next expression. */
-  Expr nextExpression();
+  api::Term nextExpression();
 
   /** Issue a warning to the user. */
   void warning(const std::string& msg) { d_input->warning(msg); }
@@ -825,7 +845,7 @@ public:
   public:
     ExprStream(Parser* parser) : d_parser(parser) {}
     ~ExprStream() { delete d_parser; }
-    Expr nextExpr() override { return d_parser->nextExpression(); }
+    Expr nextExpr() override { return d_parser->nextExpression().getExpr(); }
   };/* class Parser::ExprStream */
   
   //------------------------ operator overloading

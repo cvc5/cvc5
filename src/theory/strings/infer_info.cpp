@@ -29,7 +29,6 @@ std::ostream& operator<<(std::ostream& out, Inference i)
     case INFER_SSPLIT_VAR_PROP: out << "S-Split(VAR)-prop"; break;
     case INFER_LEN_SPLIT: out << "Len-Split(Len)"; break;
     case INFER_LEN_SPLIT_EMP: out << "Len-Split(Emp)"; break;
-    case INFER_SSPLIT_CST_BINARY: out << "S-Split(CST-P)-binary"; break;
     case INFER_SSPLIT_CST: out << "S-Split(CST-P)"; break;
     case INFER_SSPLIT_VAR: out << "S-Split(VAR)"; break;
     case INFER_FLOOP: out << "F-Loop"; break;

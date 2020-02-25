@@ -56,6 +56,8 @@ libcvc4_add_sources(
   preprocessing/passes/bv_intro_pow2.h
   preprocessing/passes/bv_to_bool.cpp
   preprocessing/passes/bv_to_bool.h
+  preprocessing/passes/bv_to_int.cpp
+  preprocessing/passes/bv_to_int.h
   preprocessing/passes/extended_rewriter_pass.cpp
   preprocessing/passes/extended_rewriter_pass.h
   preprocessing/passes/global_negate.cpp
@@ -544,8 +546,6 @@ libcvc4_add_sources(
   theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp
   theory/quantifiers/relevant_domain.h
-  theory/quantifiers/rewrite_engine.cpp
-  theory/quantifiers/rewrite_engine.h
   theory/quantifiers/single_inv_partition.cpp
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp
@@ -562,6 +562,12 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/cegis_core_connective.h
   theory/quantifiers/sygus/cegis_unif.cpp
   theory/quantifiers/sygus/cegis_unif.h
+  theory/quantifiers/sygus/example_eval_cache.cpp
+  theory/quantifiers/sygus/example_eval_cache.h
+  theory/quantifiers/sygus/example_infer.cpp
+  theory/quantifiers/sygus/example_infer.h
+  theory/quantifiers/sygus/example_min_eval.cpp
+  theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
   theory/quantifiers/sygus/example_infer.cpp
@@ -664,6 +670,12 @@ libcvc4_add_sources(
   theory/shared_terms_database.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/strings/base_solver.cpp
+  theory/strings/base_solver.h
+  theory/strings/core_solver.cpp
+  theory/strings/core_solver.h
+  theory/strings/extf_solver.cpp
+  theory/strings/extf_solver.h
   theory/strings/infer_info.cpp
   theory/strings/infer_info.h
   theory/strings/inference_manager.cpp
@@ -680,6 +692,8 @@ libcvc4_add_sources(
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
   theory/strings/solver_state.h
+  theory/strings/strings_fmf.cpp
+  theory/strings/strings_fmf.h
   theory/strings/theory_strings.cpp
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
@@ -690,6 +704,8 @@ libcvc4_add_sources(
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
   theory/strings/type_enumerator.h
+  theory/strings/word.cpp
+  theory/strings/word.h
   theory/subs_minimize.cpp
   theory/subs_minimize.h
   theory/substitutions.cpp
@@ -883,7 +899,6 @@ install(FILES
           expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
-          expr/chain.h
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
@@ -912,6 +927,7 @@ install(FILES
           parser/parser.h
           parser/parser_builder.h
           parser/parser_exception.h
+          parser/parse_op.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/parser)
 install(FILES

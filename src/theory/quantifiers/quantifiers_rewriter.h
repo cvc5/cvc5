@@ -204,8 +204,6 @@ private:
 private:
   static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
 public:
-  static Node rewriteRewriteRule( Node r );
-  static bool containsQuantifiers( Node n );
   static bool isPrenexNormalForm( Node n );
   /** preprocess
    *

@@ -260,7 +260,6 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
   Trace("theory::conflict")
       << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
       << ")" << std::endl;
-  Trace("dtview::conflict") << ":CONFLICT: " << conflictNode << std::endl;
   Assert(!proof);  // Theory shouldn't be producing proofs yet
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
@@ -1302,6 +1301,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       if (d_propEngine->hasValue(assertion, value)) {
         if (!value) {
           Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict (no sharing)" << endl;
+          Trace("dtview::conflict")
+              << ":THEORY-CONFLICT: " << assertion << std::endl;
           d_inConflict = true;
         } else {
           return;
@@ -1352,7 +1353,12 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       // Check for propositional conflicts
       bool value;
       if (d_propEngine->hasValue(assertion, value) && !value) {
-          Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict (sharing)" << endl;
+        Trace("theory::propagate")
+            << "TheoryEngine::assertToTheory(" << assertion << ", "
+            << toTheoryId << ", " << fromTheoryId << "): conflict (sharing)"
+            << endl;
+        Trace("dtview::conflict")
+            << ":THEORY-CONFLICT: " << assertion << std::endl;
         d_inConflict = true;
       }
     }
@@ -1400,9 +1406,6 @@ void TheoryEngine::assertFact(TNode literal)
   if (d_inConflict) {
     return;
   }
-
-  Trace("dtview::prop") << std::string(d_context->getLevel(), ' ') << literal
-                        << endl;
 
   // Get the atom
   bool polarity = literal.getKind() != kind::NOT;
@@ -1459,6 +1462,9 @@ void TheoryEngine::assertFact(TNode literal)
 bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
   Debug("theory::propagate") << "TheoryEngine::propagate(" << literal << ", " << theory << ")" << endl;
+
+  Trace("dtview::prop") << std::string(d_context->getLevel(), ' ')
+                        << ":THEORY-PROP: " << literal << endl;
 
   // spendResource();
 
@@ -1854,11 +1860,11 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   if(Dump.isOn("t-lemmas")) {
     Node n = node;
-    if (negated) {
+    if (!negated) {
       n = node.negate();
     }
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
-                     << QueryCommand(n.toExpr());
+                     << CheckSatCommand(n.toExpr());
   }
 
   // Share with other portfolio threads
@@ -1921,6 +1927,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
   Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
+
+  Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
   // Mark that we are in conflict
   d_inConflict = true;
@@ -2313,9 +2321,9 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
   }
 }
 
-void TheoryEngine::spendResource(unsigned amount)
+void TheoryEngine::spendResource(ResourceManager::Resource r)
 {
-  d_resourceManager->spendResource(amount);
+  d_resourceManager->spendResource(r);
 }
 
 void TheoryEngine::enableTheoryAlternative(const std::string& name){

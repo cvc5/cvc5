@@ -33,12 +33,19 @@ using namespace inst;
 namespace quantifiers {
 
 InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd)
-    : QuantifiersModule(qe), d_rd(rd)
+    : QuantifiersModule(qe), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
-
+void InstStrategyEnum::presolve()
+{
+  d_fullSaturateLimit = options::fullSaturateLimit();
+}
 bool InstStrategyEnum::needsCheck(Theory::Effort e)
 {
+  if (d_fullSaturateLimit == 0)
+  {
+    return false;
+  }
   if (options::fullSaturateInterleave())
   {
     if (d_quantEngine->getInstWhenNeedsCheck(e))
@@ -61,15 +68,21 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;
-  if (options::fullSaturateInterleave())
+  if (d_fullSaturateLimit != 0)
   {
-    // we only add when interleaved with other strategies
-    doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
-  }
-  if (options::fullSaturateQuant() && !doCheck)
-  {
-    doCheck = quant_e == QEFFORT_LAST_CALL;
-    fullEffort = !d_quantEngine->hasAddedLemma();
+    if (options::fullSaturateInterleave())
+    {
+      // we only add when interleaved with other strategies
+      doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+    }
+    if (options::fullSaturateQuant() && !doCheck)
+    {
+      if (!d_quantEngine->theoryEngineNeedsCheck())
+      {
+        doCheck = quant_e == QEFFORT_LAST_CALL;
+        fullEffort = true;
+      }
+    }
   }
   if (!doCheck)
   {
@@ -149,6 +162,10 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("fs-engine") << "Finished full saturation engine, time = "
                        << (clSet2 - clSet) << std::endl;
+  }
+  if (d_fullSaturateLimit > 0)
+  {
+    d_fullSaturateLimit--;
   }
 }
 

@@ -462,6 +462,13 @@ String String::substr(std::size_t i, std::size_t j) const {
   return String(ret_vec);
 }
 
+bool String::noOverlapWith(const String& y) const
+{
+  return y.find(*this) == std::string::npos
+         && this->find(y) == std::string::npos && this->overlap(y) == 0
+         && y.overlap(*this) == 0;
+}
+
 bool String::isNumber() const {
   if (d_str.empty()) {
     return false;

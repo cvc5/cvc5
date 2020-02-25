@@ -185,15 +185,13 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
       //compute attributes
       QAttributes qa;
       QuantAttributes::computeQuantAttributes( in, qa );
-      if( !qa.isRewriteRule() ){
-        for( int op=0; op<COMPUTE_LAST; op++ ){
-          if( doOperation( in, op, qa ) ){
-            ret = computeOperation( in, op, qa );
-            if( ret!=in ){
-              rew_op = op;
-              status = REWRITE_AGAIN_FULL;
-              break;
-            }
+      for( int op=0; op<COMPUTE_LAST; op++ ){
+        if( doOperation( in, op, qa ) ){
+          ret = computeOperation( in, op, qa );
+          if( ret!=in ){
+            rew_op = op;
+            status = REWRITE_AGAIN_FULL;
+            break;
           }
         }
       }
@@ -416,23 +414,38 @@ int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
       }
     }
   }
+  else if (n.isConst())
+  {
+    return n.getConst<bool>() ? 1 : -1;
+  }
   return 0;
 }
 
 bool addEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::vector< Node >& new_cond, bool& conflict ) {
+  if (n.isConst())
+  {
+    Trace("quantifiers-rewrite-term-debug")
+        << "constant cond : " << n << " -> " << pol << std::endl;
+    if (n.getConst<bool>() != pol)
+    {
+      conflict = true;
+    }
+    return false;
+  }
   std::map< Node, bool >::iterator it = currCond.find( n );
   if( it==currCond.end() ){
     Trace("quantifiers-rewrite-term-debug") << "cond : " << n << " -> " << pol << std::endl;
     new_cond.push_back( n );
     currCond[n] = pol;
     return true;
-  }else{
-    if( it->second!=pol ){
-      Trace("quantifiers-rewrite-term-debug") << "CONFLICTING cond : " << n << " -> " << pol << std::endl;
-      conflict = true;
-    }
-    return false;
   }
+  else if (it->second != pol)
+  {
+    Trace("quantifiers-rewrite-term-debug")
+        << "CONFLICTING cond : " << n << " -> " << pol << std::endl;
+    conflict = true;
+  }
+  return false;
 }
 
 void setEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::vector< Node >& new_cond, bool& conflict ) {
@@ -1546,7 +1559,8 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
   if( itv!=visited[tindex].end() ){
     return itv->second;
   }
-  if( containsQuantifiers( n ) ){
+  if (expr::hasClosure(n))
+  {
     Node ret = n;
     if (topLevel
         && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
@@ -2072,131 +2086,13 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption, QAttribut
   }
 }
 
-
-Node QuantifiersRewriter::rewriteRewriteRule( Node r ) {
-  Kind rrkind = r[2].getKind();
-
-  //guards, pattern, body
-
-  //   Replace variables by Inst_* variable and tag the terms that contain them
-  std::vector<Node> vars;
-  vars.reserve(r[0].getNumChildren());
-  for( Node::const_iterator v = r[0].begin(); v != r[0].end(); ++v ){
-    vars.push_back(*v);
-  };
-
-  // Body/Remove_term/Guards/Triggers
-  Node body = r[2][1];
-  TNode new_terms = r[2][1];
-  std::vector<Node> guards;
-  std::vector<Node> pattern;
-  Node true_node = NodeManager::currentNM()->mkConst(true);
-  // shortcut
-  TNode head = r[2][0];
-  switch(rrkind){
-  case kind::RR_REWRITE:
-    // Equality
-    pattern.push_back( head );
-    body = head.eqNode(body);
-    break;
-  case kind::RR_REDUCTION:
-  case kind::RR_DEDUCTION:
-    // Add head to guards and pattern
-    switch(head.getKind()){
-    case kind::AND:
-      for( unsigned i = 0; i<head.getNumChildren(); i++ ){
-        guards.push_back(head[i]);
-        pattern.push_back(head[i]);
-      }
-      break;
-    default:
-      if( head!=true_node ){
-        guards.push_back(head);
-        pattern.push_back( head );
-      }
-      break;
-    }
-    break;
-  default: Unreachable() << "RewriteRules can be of only three kinds"; break;
-  }
-  // Add the other guards
-  TNode g = r[1];
-  switch(g.getKind()){
-  case kind::AND:
-    for( unsigned i = 0; i<g.getNumChildren(); i++ ){
-      guards.push_back(g[i]);
-    }
-    break;
-  default:
-    if( g != true_node ){
-      guards.push_back( g );
-    }
-    break;
-  }
-  // Add the other triggers
-  if( r[2].getNumChildren() >= 3 ){
-    for( unsigned i=0; i<r[2][2][0].getNumChildren(); i++ ) {
-      pattern.push_back( r[2][2][0][i] );
-    }
-  }
-
-  Trace("rr-rewrite") << "Rule is " << r << std::endl;
-  Trace("rr-rewrite") << "Head is " << head << std::endl;
-  Trace("rr-rewrite") << "Patterns are ";
-  for( unsigned i=0; i<pattern.size(); i++ ){
-    Trace("rr-rewrite") << pattern[i] << " ";
-  }
-  Trace("rr-rewrite") << std::endl;
-
-  NodeBuilder<> forallB(kind::FORALL);
-  forallB << r[0];
-  Node gg = guards.size()==0 ? true_node : ( guards.size()==1 ? guards[0] : NodeManager::currentNM()->mkNode( AND, guards ) );
-  gg = NodeManager::currentNM()->mkNode( OR, gg.negate(), body );
-  gg = Rewriter::rewrite( gg );
-  forallB << gg;
-  NodeBuilder<> patternB(kind::INST_PATTERN);
-  patternB.append(pattern);
-  NodeBuilder<> patternListB(kind::INST_PATTERN_LIST);
-  //the entire rewrite rule is the first pattern
-  if( options::quantRewriteRules() ){
-    patternListB << NodeManager::currentNM()->mkNode( INST_ATTRIBUTE, r );
-  }
-  patternListB << static_cast<Node>(patternB);
-  forallB << static_cast<Node>(patternListB);
-  Node rn = (Node) forallB;
-
-  return rn;
-}
-
-struct ContainsQuantAttributeId {};
-typedef expr::Attribute<ContainsQuantAttributeId, uint64_t> ContainsQuantAttribute;
-
-// check if the given node contains a universal quantifier
-bool QuantifiersRewriter::containsQuantifiers( Node n ){
-  if( n.hasAttribute(ContainsQuantAttribute()) ){
-    return n.getAttribute(ContainsQuantAttribute())==1;
-  }else if( n.getKind() == kind::FORALL ){
-    return true;
-  }else{
-    bool cq = false;
-    for( unsigned i = 0; i < n.getNumChildren(); ++i ){
-      if( containsQuantifiers( n[i] ) ){
-        cq = true;
-        break;
-      }
-    }
-    ContainsQuantAttribute cqa;
-    n.setAttribute(cqa, cq ? 1 : 0);
-    return cq;
-  }
-}
 bool QuantifiersRewriter::isPrenexNormalForm( Node n ) {
   if( n.getKind()==FORALL ){
     return n[1].getKind()!=FORALL && isPrenexNormalForm( n[1] );
   }else if( n.getKind()==NOT ){
     return n[0].getKind()!=NOT && isPrenexNormalForm( n[0] );
   }else{
-    return !containsQuantifiers( n );
+    return !expr::hasClosure(n);
   }
 }
 
@@ -2246,7 +2142,8 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
   }else{
     //check if it contains a quantifier as a subterm
     //if so, we will write this node
-    if( containsQuantifiers( n ) ){
+    if (expr::hasClosure(n))
+    {
       if( ( n.getKind()==kind::ITE && n.getType().isBoolean() ) || ( n.getKind()==kind::EQUAL && n[0].getType().isBoolean() ) ){
         if( options::preSkolemQuantAgg() ){
           Node nn;
@@ -2277,17 +2174,14 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
 
 Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   Node prev = n;
-  if( n.getKind() == kind::REWRITE_RULE ){
-    n = quantifiers::QuantifiersRewriter::rewriteRewriteRule( n );
-  }else{
-    if( options::preSkolemQuant() ){
-      if( !isInst || !options::preSkolemQuantNested() ){
-        Trace("quantifiers-preprocess-debug") << "Pre-skolemize " << n << "..." << std::endl;
-        //apply pre-skolemization to existential quantifiers
-        std::vector< TypeNode > fvTypes;
-        std::vector< TNode > fvs;
-        n = quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( prev, true, fvTypes, fvs );
-      }
+
+  if( options::preSkolemQuant() ){
+    if( !isInst || !options::preSkolemQuantNested() ){
+      Trace("quantifiers-preprocess-debug") << "Pre-skolemize " << n << "..." << std::endl;
+      //apply pre-skolemization to existential quantifiers
+      std::vector< TypeNode > fvTypes;
+      std::vector< TNode > fvs;
+      n = preSkolemizeQuantifiers( prev, true, fvTypes, fvs );
     }
   }
   //pull all quantifiers globally
@@ -2296,7 +2190,7 @@ Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   {
     Trace("quantifiers-prenex") << "Prenexing : " << n << std::endl;
     std::map< unsigned, std::map< Node, Node > > visited;
-    n = quantifiers::QuantifiersRewriter::computePrenexAgg( n, true, visited );
+    n = computePrenexAgg( n, true, visited );
     n = Rewriter::rewrite( n );
     Trace("quantifiers-prenex") << "Prenexing returned : " << n << std::endl;
     //Assert( isPrenexNormalForm( n ) );

@@ -545,7 +545,7 @@ header = "options/quantifiers_options.h"
   long       = "full-saturate-quant"
   type       = "bool"
   default    = "false"
-  help       = "when all other quantifier instantiation strategies fail, instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown"
+  help       = "enumerative instantiation: instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown"
 
 [[option]]
   name       = "fullSaturateQuantRd"
@@ -554,8 +554,17 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "whether to use relevant domain first for full saturation instantiation strategy"
+  help       = "whether to use relevant domain first for enumerative instantiation strategy"
 
+[[option]]
+  name       = "fullSaturateLimit"
+  category   = "regular"
+  long       = "full-saturate-quant-limit=N"
+  type       = "int"
+  default    = "-1"
+  read_only  = true
+  help       = "maximum number of rounds of enumerative instantiation to apply (-1 means no limit)"
+  
 [[option]]
   name       = "fullSaturateInterleave"
   category   = "regular"
@@ -563,7 +572,7 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "interleave full saturate instantiation with other techniques"
+  help       = "interleave enumerative instantiation with other techniques"
 
 [[option]]
   name       = "fullSaturateStratify"
@@ -897,15 +906,6 @@ header = "options/quantifiers_options.h"
   help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
 
 ### Rewrite rules options
-
-[[option]]
-  name       = "quantRewriteRules"
-  category   = "regular"
-  long       = "rewrite-rules"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use rewrite rules module"
 
 [[option]]
   name       = "rrOneInstPerRound"

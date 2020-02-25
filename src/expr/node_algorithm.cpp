@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 
 namespace CVC4 {
 namespace expr {
@@ -226,6 +227,43 @@ bool hasFreeVar(TNode n)
 {
   std::unordered_set<Node, NodeHashFunction> fvs;
   return getFreeVariables(n, fvs, false);
+}
+
+struct HasClosureTag
+{
+};
+struct HasClosureComputedTag
+{
+};
+/** Attribute true for expressions with closures in them */
+typedef expr::Attribute<HasClosureTag, bool> HasClosureAttr;
+typedef expr::Attribute<HasClosureComputedTag, bool> HasClosureComputedAttr;
+
+bool hasClosure(Node n)
+{
+  if (!n.getAttribute(HasClosureComputedAttr()))
+  {
+    bool hasC = false;
+    if (n.isClosure())
+    {
+      hasC = true;
+    }
+    else
+    {
+      for (auto i = n.begin(); i != n.end() && !hasC; ++i)
+      {
+        hasC = hasClosure(*i);
+      }
+    }
+    if (!hasC && n.hasOperator())
+    {
+      hasC = hasClosure(n.getOperator());
+    }
+    n.setAttribute(HasClosureAttr(), hasC);
+    n.setAttribute(HasClosureComputedAttr(), true);
+    return hasC;
+  }
+  return n.getAttribute(HasClosureAttr());
 }
 
 bool getFreeVariables(TNode n,
@@ -520,6 +558,28 @@ Node substituteCaptureAvoiding(TNode n,
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
   return visited[n];
+}
+
+void getComponentTypes(
+    TypeNode t, std::unordered_set<TypeNode, TypeNodeHashFunction>& types)
+{
+  std::vector<TypeNode> toProcess;
+  toProcess.push_back(t);
+  do
+  {
+    TypeNode curr = toProcess.back();
+    toProcess.pop_back();
+    // if not already visited
+    if (types.find(t) == types.end())
+    {
+      types.insert(t);
+      // get component types from the children
+      for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
+      {
+        toProcess.push_back(t[i]);
+      }
+    }
+  } while (!toProcess.empty());
 }
 
 }  // namespace expr

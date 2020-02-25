@@ -70,7 +70,7 @@ string translate(string in, InputLanguage inlang, OutputLanguage outlang) {
        << "translating from " << inlang << " to " << outlang << " this string:" << endl
        << in << endl;
   psr->setInput(Input::newStringInput(inlang, in, "internal-buffer"));
-  Expr e = psr->nextExpression();
+  Expr e = psr->nextExpression().getExpr();
   stringstream ss;
   ss << language::SetLanguage(outlang) << expr::ExprSetDepth(-1) << e;
   assert(psr->nextExpression().isNull());// next expr should be null
@@ -81,7 +81,7 @@ string translate(string in, InputLanguage inlang, OutputLanguage outlang) {
        << "reparsing as " << outlang << endl;
 
   psr->setInput(Input::newStringInput(toInputLanguage(outlang), s, "internal-buffer"));
-  Expr f = psr->nextExpression();
+  Expr f = psr->nextExpression().getExpr();
   assert(e == f);
   cout << "got same expressions " << e.getId() << " and " << f.getId() << endl
        << "==============================================" << endl;

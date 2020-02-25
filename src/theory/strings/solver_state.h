@@ -23,6 +23,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/theory_options.h"
+#include "theory/theory_model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 
@@ -120,6 +121,8 @@ class SolverState
   const context::CDList<Node>& getDisequalityList() const;
   //-------------------------------------- end equality information
   //-------------------------------------- notifications for equalities
+  /** called when a new equivalence class is created */
+  void eqNotifyNewClass(TNode t);
   /** called when two equivalence classes will merge */
   void eqNotifyPreMerge(TNode t1, TNode t2);
   /** called when two equivalence classes are made disequal */
@@ -169,6 +172,8 @@ class SolverState
    * should currently be a representative of the equality engine of this class.
    */
   EqcInfo* getOrMakeEqcInfo(Node eqc, bool doMake = true);
+  /** Get pointer to the model object of the Valuation object */
+  TheoryModel* getModel() const;
 
   /** add endpoints to eqc info
    *
@@ -195,7 +200,6 @@ class SolverState
   void separateByLength(const std::vector<Node>& n,
                         std::vector<std::vector<Node> >& cols,
                         std::vector<Node>& lts);
-
  private:
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;

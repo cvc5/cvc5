@@ -56,7 +56,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 {
   Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
 
-  d_preprocContext->spendResource(options::preprocessStep());
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   theory::booleans::CircuitPropagator* propagator =
       d_preprocContext->getCircuitPropagator();
