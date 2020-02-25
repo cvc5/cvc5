@@ -1309,10 +1309,10 @@ void SmtEngine::setDefaults() {
       is_sygus = true;
     }
   }
-  
+
   // We now know whether the input is sygus. Update the logic to incorporate
   // the theories we need internally for handling sygus problems.
-  if(is_sygus)
+  if (is_sygus)
   {
     d_logic = d_logic.getUnlockedCopy();
     d_logic.enableSygus();
