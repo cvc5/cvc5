@@ -258,12 +258,14 @@ enum CVC4_PUBLIC Kind : int32_t
   PARTIAL_APPLY_UF,
 #endif
   /**
-   * Higher-order applicative encoding of function application.
-   * Parameters: 2
+   * Higher-order applicative encoding of function application, left
+   * associative.
+   * Parameters: n > 1
    *   -[1]: Function to apply
-   *   -[2]: Argument of the function
+   *   -[2] ... [n]: Arguments of the function
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   HO_APPLY,
