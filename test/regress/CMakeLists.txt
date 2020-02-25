@@ -6,9 +6,10 @@ set(regress_0_tests
   regress0/arith/arith-eq.smt2
   regress0/arith/arith-mixed-types-no-tighten.smt2
   regress0/arith/arith-mixed-types-tighten.smt2
-  regress0/arith/arith-mixed.smt2
+  regress0/arith/arith-strict-relaxed.smt2
   regress0/arith/arith-strict.smt2
   regress0/arith/arith-tighten-1.smt2
+  regress0/arith/arith-tighten-2.smt2
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
   regress0/arith/arith.03.cvc
@@ -108,6 +109,7 @@ set(regress_0_tests
   regress0/aufbv/fuzz13.smtv1.smt2
   regress0/aufbv/fuzz14.smtv1.smt2
   regress0/aufbv/fuzz15.smtv1.smt2
+  regress0/aufbv/issue3737.smt2
   regress0/aufbv/rewrite_bug.smtv1.smt2
   regress0/aufbv/try3_sameret_functions_fse-bfs_tac.calc_next.il.fse-bfs.delta01.smtv1.smt2
   regress0/aufbv/try5_small_difret_functions_wp_su.set_char_quoting.il.wp.delta01.smtv1.smt2
@@ -202,6 +204,15 @@ set(regress_0_tests
   regress0/bv/bv-options4.smt2
   regress0/bv/bv-to-bool1.smtv1.smt2
   regress0/bv/bv-to-bool2.smt2
+  regress0/bv/bv_to_int1.smt2
+  regress0/bv/bv_to_int2.smt2
+  regress0/bv/bv_to_int_bvmul1.smt2
+  regress0/bv/bv_to_int_bvmul2.smt2
+  regress0/bv/bv_to_int_zext.smt2
+  regress0/bv/bv_to_int_bitwise.smt2
+  regress0/bv/bvuf_to_intuf.smt2
+  regress0/bv/bvuf_to_intuf_smtlib.smt2
+  regress0/bv/bvuf_to_intuf_sorts.smt2
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bvmul-pow2-only.smt2
@@ -884,6 +895,7 @@ set(regress_0_tests
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
   regress0/strings/bug613.smt2
+  regress0/strings/code-eval.smt2
   regress0/strings/code-perf.smt2
   regress0/strings/code-sat-neg-one.smt2
   regress0/strings/escchar.smt2
@@ -907,6 +919,7 @@ set(regress_0_tests
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc
   regress0/strings/re.all.smt2
+  regress0/strings/re-syntax.smt2
   regress0/strings/regexp-native-simple.cvc
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
@@ -1442,15 +1455,17 @@ set(regress_1_tests
   regress1/quantifiers/issue3316.smt2
   regress1/quantifiers/issue3317.smt2
   regress1/quantifiers/issue3481.smt2
+  regress1/quantifiers/issue3481-unsat1.smt2
   regress1/quantifiers/issue3537.smt2
   regress1/quantifiers/issue3628.smt2
   regress1/quantifiers/issue3664.smt2
   regress1/quantifiers/issue3724-quant.smt2
+  regress1/quantifiers/issue3765.smt2
+  regress1/quantifiers/issue3765-quant-dd.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
   regress1/quantifiers/mix-coeff.smt2
-  regress1/quantifiers/model_6_1_bv.smt2
   regress1/quantifiers/mutualrec2.cvc
   regress1/quantifiers/nested9_true-unreach-call.i_575.smt2
   regress1/quantifiers/nl-pow-trick.smt2
@@ -1916,6 +1931,8 @@ set(regress_2_tests
   regress2/bug674.smt2
   regress2/bug765.smt2
   regress2/bug812.smt2
+  regress2/bv_to_int_ashr.smt2
+  regress2/bv_to_int_shifts.smt2
   regress2/error0.smt2
   regress2/error1.smtv1.smt2
   regress2/friedman_n4_i5.smtv1.smt2
@@ -2001,6 +2018,7 @@ set(regress_3_tests
   regress3/bmc-ibm-2.smtv1.smt2
   regress3/bmc-ibm-5.smtv1.smt2
   regress3/bmc-ibm-7.smtv1.smt2
+  regress3/bv_to_int_and_or.smt2
   regress3/eq_diamond14.smtv1.smt2
   regress3/friedman_n6_i4.smtv1.smt2
   regress3/hole9.cvc
@@ -2291,9 +2309,11 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
-  # ajreynol: disabled these since they give different error messages on
-  # production and debug:
+  # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
+  # times out with competition build:
+  regress1/quantifiers/model_6_1_bv.smt2
+  # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2
   ###

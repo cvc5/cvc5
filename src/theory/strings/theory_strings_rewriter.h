@@ -159,8 +159,6 @@ class TheoryStringsRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
 
-  /** get the cardinality of the alphabet used, based on the options */
-  static unsigned getAlphabetCardinality();
   /** rewrite equality
    *
    * This method returns a formula that is equivalent to the equality between
@@ -283,9 +281,6 @@ class TheoryStringsRewriter : public TheoryRewriter
   * same as above but with n = str.++( l ) instead of l
   */
   static bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc);
-  static Node collectConstantStringAt(const std::vector<Node>& vec,
-                                      size_t& end_index,
-                                      bool isRev);
 
   /** strip symbolic length
    *
