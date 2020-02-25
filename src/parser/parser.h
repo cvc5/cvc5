@@ -726,6 +726,7 @@ public:
   api::Term mkBuiltinApp(api::Term f, api::Term t1, api::Term t2) const;
   /** Apply type ascription */
   api::Term applyTypeAscription(api::Term t, api::Sort s);
+  api::Term castConstructor(api::Term t, api::Sort s);
   /** Make var, with flags */
   api::Term mkVar(const std::string& name,
                   const api::Sort& type,

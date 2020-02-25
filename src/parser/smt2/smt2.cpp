@@ -168,8 +168,7 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_PREFIX, "str.prefixof");
   addOperator(api::STRING_SUFFIX, "str.suffixof");
   // at the moment, we only use this syntax for smt2.6.1
-  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
-      || getLanguage() == language::input::LANG_SYGUS_V2)
+  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
   {
     addOperator(api::STRING_ITOS, "str.from_int");
     addOperator(api::STRING_STOI, "str.to_int");
@@ -1571,6 +1570,7 @@ InputLanguage Smt2::getLanguage() const
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
 {
+  Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type << std::endl;
   // (as const (Array T1 T2))
   if (p.d_kind == api::STORE_ALL)
   {
@@ -1614,16 +1614,11 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
     // nullary constructors with a type ascription
     // could be a parametric constructor or just an overloaded constructor
     // standard type ascription
-    p.d_expr = d_solver->mkTermCast(p.d_expr, type);
+    p.d_expr = applyTypeAscription(p.d_expr,type);
   }
   else if (etype.isConstructor())
   {
-    // A type cast for a parametric non-nullary constructor. We cannot
-    // cast yet, since the cast applied to the constructor is its return
-    // type, not the type of the constructor operator itself.  See
-    // issue #2832 for an example. Thus, since we can't process yet, we carry
-    // the type to be processed later.
-    p.d_type = type;
+    p.d_expr = castConstructor(p.d_expr,type);
   }
   else if (ekind == api::EMPTYSET)
   {
@@ -1857,7 +1852,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind != api::NULL_EXPR)
   {
     // it should not have an expression or type specified at this point
-    if (!p.d_expr.isNull())
+    if (!p.d_expr.isNull() || !p.d_type.isNull())
     {
       std::stringstream ss;
       ss << "Could not process parsed qualified identifier kind " << p.d_kind;
@@ -1982,15 +1977,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // should never happen
     parseError("do not know how to process parse op");
   }
+  // PARSER-TODO
   Debug("parser") << "Try default term construction for kind " << kind
                   << " #args = " << args.size() << "..." << std::endl;
   api::Term ret = d_solver->mkTerm(kind, args);
   Debug("parser") << "applyParseOp: return : " << ret << std::endl;
-  // process cast if necessary
-  if (!p.d_type.isNull())
-  {
-    ret = d_solver->mkTermCast(ret,p.d_type);
-  }
   return ret;
 }
 

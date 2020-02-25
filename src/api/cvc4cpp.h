@@ -2103,15 +2103,6 @@ class CVC4_PUBLIC Solver
    */
   Term mkWitness(Sort s) const;
 
-  /**
-   * Cast term. Construct the term corresponding to casting t to sort s
-   * if possible.
-   * @param t The Term to cast
-   * @param s The desired Sort of the cast.
-   * @return The Term t casted to Sort s.
-   */
-  Term mkTermCast(Term t, Sort s) const;
-
   /* .................................................................... */
   /* Create Operators                                                     */
   /* .................................................................... */
