@@ -14,9 +14,10 @@
  ** A simple demonstration of reasoning about strings with CVC4 via Jave API.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 /*
+This file uses the API to make a sat call equivalent to the following benchmark:
 (set-logic ALL)
 (set-option :finite-model-find true)
 (set-option :produce-models true)
