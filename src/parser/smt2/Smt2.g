@@ -1036,12 +1036,6 @@ sygusGrammar[CVC4::Type & ret,
       // We can be in a case where the only rule specified was (Variable T)
       // and there are no variables of type T, in which case this is a bogus
       // grammar. This results in the error below.
-      // We can also be in a case where the only rule specified was
-      // (Constant T), in which case we have not yet added a constructor. We
-      // ensure an arbitrary constant is added in this case. We additionally
-      // add a constant if the grammar allows it regardless of whether the
-      // datatype has other constructors, since this ensures the datatype is
-      // well-founded (see 3423).
       if (datatypes[i].getNumConstructors() == 0)
       {
         std::stringstream se;
