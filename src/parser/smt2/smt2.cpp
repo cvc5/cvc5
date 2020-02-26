@@ -934,6 +934,19 @@ void Smt2::includeFile(const std::string& filename) {
   }
 }
 
+bool Smt2::isAbstractValue(const std::string& name)
+{
+  return name.length() >= 2 && name[0] == '@' && name[1] != '0'
+         && name.find_first_not_of("0123456789", 1) == std::string::npos;
+}
+
+Expr Smt2::mkAbstractValue(const std::string& name)
+{
+  assert(isAbstractValue(name));
+  // remove the '@'
+  return getExprManager()->mkAbstractValue(name.substr(1));
+}
+
 void Smt2::mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops ) {
   if( type.isInteger() ){
     ops.push_back(getExprManager()->mkConst(Rational(0)));
