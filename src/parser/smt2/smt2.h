@@ -520,7 +520,7 @@ class Smt2 : public Parser
    * - If p's expression field is set, then we leave p unchanged, check if
    * that expression has the given type and throw a parse error otherwise.
    */
-  void applyTypeAscription(ParseOp& p, Type type);
+  void parseOpApplyTypeAscription(ParseOp& p, Type type);
   /**
    * This converts a ParseOp to expression, assuming it is a standalone term.
    *

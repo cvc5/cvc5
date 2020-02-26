@@ -515,6 +515,64 @@ Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args)
   return expr;
 }
 
+
+api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
+{
+  api::Kind k = t.getKind();
+  if (k == api::EMPTYSET)
+  {
+    t = d_solver->mkEmptySet(s);
+  }
+  else if (k == api::UNIVERSE_SET)
+  {
+    t = d_solver->mkUniverseSet(s);
+  }
+  else if (k == api::SEP_NIL)
+  {
+    t = d_solver->mkSepNil(s);
+  }
+  else if (k == api::APPLY_CONSTRUCTOR)
+  {
+    std::vector<api::Term> children;
+    children.insert(children.end(), t.begin(), t.end());
+    // apply type ascription to the operator and reconstruct
+    children[0] = applyTypeAscription(children[0], s);
+    t = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, children);
+  }
+  api::Sort etype = t.getSort();
+  if (etype.isConstructor())
+  {
+    api::Sort etype = t.getSort();
+    // get the datatype that t belongs to
+    api::Sort etyped = etype.getConstructorCodomainSort();
+    api::Datatype d = etyped.getDatatype();
+    // lookup by name
+    api::DatatypeConstructor dc = d.getConstructor(t.toString());
+
+    // type ascriptions only have an effect if this is a parametric datatype
+    if (s.isParametricDatatype())
+    {
+      ExprManager* em = getExprManager();
+      // apply type ascription to the operator
+      Expr e = t.getExpr();
+      const DatatypeConstructor& dtc =
+          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+      t = api::Term(em->mkExpr(
+          kind::APPLY_TYPE_ASCRIPTION,
+          em->mkConst(
+              AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
+          e));
+    }
+  }
+  // otherwise, nothing to do
+  // check that the type is correct
+  if (t.getSort() != s)
+  {
+    parseError("Type ascription not satisfied.");
+  }
+  return t;
+}
+
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch (type) {
     case SYM_VARIABLE:
