@@ -1836,23 +1836,8 @@ postfixTerm[CVC4::Expr& f]
       { f = (args.size() == 1) ? MK_CONST(bool(true)) : MK_EXPR(CVC4::kind::DISTINCT, args); }
     )
     ( typeAscription[f, t]
-      { if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && t.isDatatype()) {
-          std::vector<CVC4::Expr> v;
-          Expr e = f.getOperator();
-          const DatatypeConstructor& dtc = Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-          v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(t))), f.getOperator() ));
-          v.insert(v.end(), f.begin(), f.end());
-          f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
-        } else if(f.getKind() == CVC4::kind::EMPTYSET && t.isSet()) {
-          f = MK_CONST(CVC4::EmptySet(t));
-        } else if(f.getKind() == CVC4::kind::UNIVERSE_SET && t.isSet()) {
-          f = EXPR_MANAGER->mkNullaryOperator(t, kind::UNIVERSE_SET);
-        } else {
-          if(f.getType() != t) {
-            PARSER_STATE->parseError("Type ascription not satisfied.");
-          }
-        }
+      {
+        f = PARSER_STATE->applyTypeAscription(f,t).getExpr();
       }
     )?
   ;
