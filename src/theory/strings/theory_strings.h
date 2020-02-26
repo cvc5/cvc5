@@ -124,18 +124,21 @@ class TheoryStrings : public Theory {
 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
-    TheoryStrings& d_str;
   public:
-    NotifyClass(TheoryStrings& t_str): d_str(t_str) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      Debug("strings") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-      if (value) {
-        return d_str.propagate(equality);
-      } else {
-        // We use only literal triggers so taking not is safe
-        return d_str.propagate(equality.notNode());
-      }
+   NotifyClass(TheoryStrings& ts) : d_str(ts), d_state(ts.d_state) {}
+   bool eqNotifyTriggerEquality(TNode equality, bool value) override
+   {
+     Debug("strings") << "NotifyClass::eqNotifyTriggerEquality(" << equality
+                      << ", " << (value ? "true" : "false") << ")" << std::endl;
+     if (value)
+     {
+       return d_str.propagate(equality);
+     }
+     else
+     {
+       // We use only literal triggers so taking not is safe
+       return d_str.propagate(equality.notNode());
+     }
     }
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
@@ -143,7 +146,7 @@ class TheoryStrings : public Theory {
       if (value) {
         return d_str.propagate(predicate);
       } else {
-         return d_str.propagate(predicate.notNode());
+        return d_str.propagate(predicate.notNode());
       }
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
@@ -153,9 +156,9 @@ class TheoryStrings : public Theory {
     {
       Debug("strings") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
-      return d_str.propagate(t1.eqNode(t2));
+        return d_str.propagate(t1.eqNode(t2));
       } else {
-      return d_str.propagate(t1.eqNode(t2).notNode());
+        return d_str.propagate(t1.eqNode(t2).notNode());
       }
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
@@ -171,18 +174,23 @@ class TheoryStrings : public Theory {
     void eqNotifyPreMerge(TNode t1, TNode t2) override
     {
       Debug("strings") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << std::endl;
-      d_str.eqNotifyPreMerge(t1, t2);
+      d_state.eqNotifyPreMerge(t1, t2);
     }
     void eqNotifyPostMerge(TNode t1, TNode t2) override
     {
       Debug("strings") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << std::endl;
-      d_str.eqNotifyPostMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
       Debug("strings") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
-      d_str.eqNotifyDisequal(t1, t2, reason);
+      d_state.eqNotifyDisequal(t1, t2, reason);
     }
+
+   private:
+    /** The theory of strings object to notify */
+    TheoryStrings& d_str;
+    /** The solver state of the theory of strings */
+    SolverState& d_state;
   };/* class TheoryStrings::NotifyClass */
 
   //--------------------------- helper functions
@@ -206,7 +214,7 @@ class TheoryStrings : public Theory {
   Node d_one;
   Node d_neg_one;
   /** the cardinality of the alphabet */
-  unsigned d_card_size;
+  uint32_t d_cardSize;
   /** The notify class */
   NotifyClass d_notify;
   /** Equaltity engine */
@@ -280,12 +288,6 @@ private:
   void conflict(TNode a, TNode b);
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
-  /** called when two equivalence classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes have merged */
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes are made disequal */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
  protected:
   /** compute care graph */
@@ -344,7 +346,7 @@ private:
    */
   std::unique_ptr<ExtfSolver> d_esolver;
   /** regular expression solver module */
-  RegExpSolver d_regexp_solver;
+  std::unique_ptr<RegExpSolver> d_rsolver;
   /** regular expression elimination module */
   RegExpElimination d_regexp_elim;
   /** Strings finite model finding decision strategy */
@@ -392,22 +394,6 @@ private:
    * there does not exist a term of the form str.len(si) in the current context.
    */
   void checkRegisterTermsNormalForms();
-  /** check regular expression memberships
-   *
-   * This checks the satisfiability of all regular expression memberships
-   * of the form (not) s in R. We use various heuristic techniques based on
-   * unrolling, combined with techniques from Liang et al, "A Decision Procedure
-   * for Regular Membership and Length Constraints over Unbounded Strings",
-   * FroCoS 2015.
-   */
-  void checkMemberships();
-  /** check cardinality
-   *
-   * This function checks whether a cardinality inference needs to be applied
-   * to a set of equivalence classes. For details, see Step 5 of the proof
-   * procedure from Liang et al, CAV 2014.
-   */
-  void checkCardinality();
   //-----------------------end inference steps
 
   //-----------------------representation of the strategy
