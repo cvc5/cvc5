@@ -615,7 +615,6 @@ bool TheoryBV::getCurrentSubstitution( int effort, std::vector< Node >& vars, st
 int TheoryBV::getReduction(int effort, Node n, Node& nr)
 {
   Trace("bv-ext") << "TheoryBV::checkExt : non-reduced : " << n << std::endl;
-  NodeManager* const nm = NodeManager::currentNM();
   if (n.getKind() == kind::BITVECTOR_TO_NAT)
   {
     nr = utils::eliminateBv2Nat(n);
@@ -623,25 +622,7 @@ int TheoryBV::getReduction(int effort, Node n, Node& nr)
   }
   else if (n.getKind() == kind::INT_TO_BITVECTOR)
   {
-    // taken from rewrite code
-    const unsigned size = n.getOperator().getConst<IntToBitVector>().d_size;
-    const Node bvzero = utils::mkZero(1);
-    const Node bvone = utils::mkOne(1);
-    std::vector<Node> v;
-    Integer i = 2;
-    while (v.size() < size)
-    {
-      Node cond = nm->mkNode(
-          kind::GEQ,
-          nm->mkNode(kind::INTS_MODULUS_TOTAL, n[0], nm->mkConst(Rational(i))),
-          nm->mkConst(Rational(i, 2)));
-      cond = Rewriter::rewrite(cond);
-      v.push_back(nm->mkNode(kind::ITE, cond, bvone, bvzero));
-      i *= 2;
-    }
-    NodeBuilder<> result(kind::BITVECTOR_CONCAT);
-    result.append(v.rbegin(), v.rend());
-    nr = Node(result);
+    nr = utils::eliminateBv2Nat(n);
     return -1;
   }
   return 0;
