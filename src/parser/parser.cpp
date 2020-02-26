@@ -533,7 +533,6 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   else if (k == api::APPLY_CONSTRUCTOR)
   {
     std::vector<api::Term> children(t.begin(), t.end());
-    children.insert(children.end(), t.begin(), t.end());
     // apply type ascription to the operator and reconstruct
     children[0] = applyTypeAscription(children[0], s);
     t = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, children);
