@@ -556,6 +556,67 @@ api::Term Parser::mkHoApply(api::Term expr, const std::vector<api::Term>& args)
   return expr;
 }
 
+api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
+{
+  api::Kind k = t.getKind();
+  if (k == api::EMPTYSET)
+  {
+    t = d_solver->mkEmptySet(s);
+  }
+  else if (k == api::UNIVERSE_SET)
+  {
+    t = d_solver->mkUniverseSet(s);
+  }
+  else if (k == api::SEP_NIL)
+  {
+    t = d_solver->mkSepNil(s);
+  }
+  else if (k == api::APPLY_CONSTRUCTOR)
+  {
+    std::vector<api::Term> children;
+    children.insert(children.end(), t.begin(), t.end());
+    // apply type ascription to the operator and reconstruct
+    children[0] = applyTypeAscription(children[0], s);
+    t = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, children);
+  }
+  api::Sort etype = t.getSort();
+  if (etype.isConstructor())
+  {
+    api::Sort etype = t.getSort();
+    // get the datatype that t belongs to
+    api::Sort etyped = etype.getConstructorCodomainSort();
+    api::Datatype d = etyped.getDatatype();
+    // lookup by name
+    api::DatatypeConstructor dc = d.getConstructor(t.toString());
+
+    // type ascriptions that do not throw an error below only have an effect on
+    // the node structure if this is a parametric datatype
+    if (s.isParametricDatatype())
+    {
+      ExprManager* em = getExprManager();
+      // apply type ascription to the operator
+      Expr e = t.getExpr();
+      const DatatypeConstructor& dtc =
+          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+      t = api::Term(em->mkExpr(
+          kind::APPLY_TYPE_ASCRIPTION,
+          em->mkConst(
+              AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
+          e));
+      // the type of t does not match the sort s by design, thus don't check
+      // below
+      return t;
+    }
+  }
+  // otherwise, nothing to do
+  // check that the type is correct
+  if (t.getSort() != s)
+  {
+    parseError("Type ascription not satisfied.");
+  }
+  return t;
+}
+
 //!!!!!!!!!!! temporary
 api::Term Parser::mkBuiltinApp(api::Term f,
                                const std::vector<api::Term>& args) const
@@ -576,76 +637,6 @@ api::Term Parser::mkBuiltinApp(api::Term f, api::Term t1, api::Term t2) const
   args.push_back(t1);
   args.push_back(t2);
   return mkBuiltinApp(f, args);
-}
-
-api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
-{
-  api::Kind k = t.getKind();
-  // These are not casts, they are due to the fact that our syntax for them
-  // involves a type ascription. In actuality, these should be
-  // understood as symbols indexed by types. However, SMT-LIB does not
-  // permit types as indices, so we must use, e.g. (as emptyset (Set T))
-  // instead of (_ emptyset (Set T)).
-  if (k == api::EMPTYSET)
-  {
-    return d_solver->mkEmptySet(s);
-  }
-  else if (k == api::UNIVERSE_SET)
-  {
-    return d_solver->mkUniverseSet(s);
-  }
-  else if (k == api::SEP_NIL)
-  {
-    return d_solver->mkSepNil(s);
-  }
-  else if (k == api::APPLY_CONSTRUCTOR)
-  {
-    std::vector<api::Term> children;
-    children.insert(children.end(), t.begin(), t.end());
-    children[0] = castConstructor(children[0], s);
-    t = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, children);
-    return t;
-  }
-  // otherwise, no cast
-  return t;
-}
-
-api::Term Parser::castConstructor(api::Term t, api::Sort s)
-{
-  if (!t.getSort().isConstructor())
-  {
-    std::stringstream ss;
-    ss << "expecting constructor in castConstructor, got " << t << std::endl;
-    parseError(ss.str());
-  }
-  if (!s.isDatatype())
-  {
-    std::stringstream ss;
-    ss << "expecting datatype in castConstructor, got " << s << std::endl;
-    parseError(ss.str());
-  }
-  api::Sort etype = t.getSort();
-  // get the datatype that t belongs to
-  api::Sort etyped = etype.getConstructorCodomainSort();
-  api::Datatype d = etyped.getDatatype();
-  // lookup by name
-  api::DatatypeConstructor dc = d.getConstructor(t.toString());
-
-  // a non-nullary constructor with a type ascription
-  if (s.isParametricDatatype())
-  {
-    ExprManager* em = getExprManager();
-    // apply type ascription to the operator
-    Expr e = t.getExpr();
-    const DatatypeConstructor& dtc =
-        Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-    t = api::Term(em->mkExpr(
-        kind::APPLY_TYPE_ASCRIPTION,
-        em->mkConst(
-            AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
-        e));
-  }
-  return t;
 }
 
 api::Term Parser::mkVar(const std::string& name,

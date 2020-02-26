@@ -1605,27 +1605,13 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
       parseError(ss.str());
     }
   }
-  api::Sort etype = p.d_expr.getSort();
-  api::Kind ekind = p.d_expr.getKind();
+
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
-  Trace("parser-qid") << " " << ekind << " " << etype;
+  Trace("parser-qid") << " " << p.d_expr.getKind() << " " << p.d_expr.getSort();
   Trace("parser-qid") << std::endl;
-  if (etype.isConstructor())
-  {
-    // A type cast for a parametric non-nullary constructor. Notice the cast
-    // applied to the constructor is for its return type, not the type of the
-    // constructor operator itself.  See issue #2832 for an example. We apply
-    // the cast directly to the constructor.
-    p.d_expr = castConstructor(p.d_expr, type);
-    return;
-  }
   // otherwise, we process the type ascription
   p.d_expr =
       applyTypeAscription(api::Term(p.d_expr), api::Sort(type)).getExpr();
-  if (p.d_expr.getSort() != type)
-  {
-    parseError("Type ascription not satisfied.");
-  }
 }
 
 api::Term Smt2::parseOpToExpr(ParseOp& p)
