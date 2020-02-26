@@ -1661,8 +1661,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   if (Debug.isOn("parser"))
   {
     Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
-    for (std::vector<Expr>::iterator i = args.begin(); i != args.end();
-         ++i)
+    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
     {
       Debug("parser") << "++ " << *i << std::endl;
     }
@@ -1841,7 +1840,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       }
     }
     if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
-             && args.size() == 1)
+        && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
       return args[0];
@@ -1850,7 +1849,8 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       return em->mkExpr(kind::UMINUS, args[0]);
     }
-    api::Term ret = d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args));
+    api::Term ret =
+        d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args));
     Debug("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
     return ret.getExpr();

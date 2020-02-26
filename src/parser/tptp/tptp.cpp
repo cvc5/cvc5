@@ -246,8 +246,7 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   if (Debug.isOn("parser"))
   {
     Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
-    for (std::vector<Expr>::iterator i = args.begin(); i != args.end();
-         ++i)
+    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
     {
       Debug("parser") << "++ " << *i << std::endl;
     }
@@ -327,7 +326,8 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       return em->mkExpr(kind::UMINUS, args[0]);
     }
-    return d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args)).getExpr();
+    return d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args))
+        .getExpr();
   }
 
   // check if partially applied function, in this case we use HO_APPLY
@@ -347,7 +347,8 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
         // must curry the partial application
-        return d_solver->mkTerm(api::HO_APPLY, api::exprVectorToTerms(args)).getExpr();
+        return d_solver->mkTerm(api::HO_APPLY, api::exprVectorToTerms(args))
+            .getExpr();
       }
     }
   }
