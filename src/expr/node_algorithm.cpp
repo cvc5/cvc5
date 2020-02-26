@@ -129,6 +129,32 @@ bool hasSubtermMulti(TNode n, TNode t)
   return false;
 }
 
+bool hasSubtermKind(Kind k, Node n)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == k)
+      {
+        return true;
+      }
+      for (const Node& cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+  return false;
+}
+
 bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
 {
   if (t.empty())
