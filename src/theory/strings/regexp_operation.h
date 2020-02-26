@@ -41,12 +41,12 @@ namespace strings {
  */
 enum RegExpConstType
 {
-  // the regular expression doesn't contain variables or re.complement or
-  // re.allchar or re.range. Notice that re.complement is grouped in this
+  // the regular expression doesn't contain variables or re.comp,
+  // re.allchar or re.range. Notice that re.comp is grouped in this
   // case since it can be seen as indirectly defined in terms of re.allchar.
   RE_C_CONRETE_CONSTANT,
   // the regular expression doesn't contain variables, but may contain
-  // re.allchar or re.range
+  // re.comp, re.allchar or re.range
   RE_C_CONSTANT,
   // the regular expression may contain variables
   RE_C_VARIABLE,
