@@ -622,7 +622,7 @@ int TheoryBV::getReduction(int effort, Node n, Node& nr)
   }
   else if (n.getKind() == kind::INT_TO_BITVECTOR)
   {
-    nr = utils::eliminateBv2Nat(n);
+    nr = utils::eliminateInt2Bv(n);
     return -1;
   }
   return 0;
