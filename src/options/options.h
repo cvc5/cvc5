@@ -205,11 +205,9 @@ public:
   bool getDumpSynth() const;
   bool getDumpUnsatCores() const;
   bool getEarlyExit() const;
-  bool getFallbackSequential() const;
   bool getFilesystemAccess() const;
   bool getForceNoLimitCpuWhileDump() const;
   bool getHelp() const;
-  bool getIncrementalParallel() const;
   bool getIncrementalSolving() const;
   bool getInteractive() const;
   bool getInteractivePrompt() const;
@@ -226,7 +224,6 @@ public:
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
   bool getVersion() const;
-  bool getWaitToJoin() const;
   const std::string& getForceLogicString() const;
   int getVerbosity() const;
   std::istream* getIn() const;
