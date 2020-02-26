@@ -480,8 +480,11 @@ class NonlinearExtension {
    */
   std::vector<Node> d_cmiLemmas;
   std::vector<Node> d_cmiLemmasPp;
-  /** The approximations computed during collectModelInfo. */
-  std::map<Node, Node> d_approximations;
+  /**
+   * The approximations computed during collectModelInfo. For details, see
+   * NlModel::getModelValueRepair.
+   */
+  std::map<Node, std::pair<Node, Node>> d_approximations;
   /** have we successfully built the model in this SAT context? */
   context::CDO<bool> d_builtModel;
 
