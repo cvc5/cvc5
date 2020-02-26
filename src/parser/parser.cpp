@@ -562,16 +562,19 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
           em->mkConst(
               AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
           e));
-      // the type of t does not match the sort s by design, thus don't check
-      // below
-      return t;
     }
+    // the type of t does not match the sort s by design (constructor type
+    // vs datatype type), thus don't check below.
+    return t;
   }
   // otherwise, nothing to do
   // check that the type is correct
   if (t.getSort() != s)
   {
-    parseError("Type ascription not satisfied.");
+    std::stringstream ss;
+    ss << "Type ascription not satisfied, term " << t << " expected sort " << s
+       << " but has sort " << t.getSort();
+    parseError(ss.str());
   }
   return t;
 }
