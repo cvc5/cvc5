@@ -1602,7 +1602,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, Type type)
     }
   }
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
-  Trace("parser-qid") << " " << p.d_expr.getKind() << " " << p.d_expr.getSort();
+  Trace("parser-qid") << " " << p.d_expr.getKind() << " " << p.d_expr.getType();
   Trace("parser-qid") << std::endl;
   // otherwise, we process the type ascription
   p.d_expr =
