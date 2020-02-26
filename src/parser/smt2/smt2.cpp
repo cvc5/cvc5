@@ -1898,10 +1898,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   if (kind == api::NULL_EXPR)
   {
-    // should never happen
+    // should never happen in the new API
     parseError("do not know how to process parse op");
   }
-  // PARSER-TODO
   Debug("parser") << "Try default term construction for kind " << kind
                   << " #args = " << args.size() << "..." << std::endl;
   api::Term ret = d_solver->mkTerm(kind, args);
