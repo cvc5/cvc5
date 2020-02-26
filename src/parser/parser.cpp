@@ -515,7 +515,6 @@ Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args)
   return expr;
 }
 
-
 api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 {
   api::Kind k = t.getKind();
