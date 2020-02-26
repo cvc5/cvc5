@@ -681,7 +681,7 @@ public:
   /** Apply type ascription
    *
    * Return term t with a type ascription applied to it. This is used for
-   * syntax like (as t T) in smt2 and t :: T in the CVC language. This includes:
+   * syntax like (as t T) in smt2 and t::T in the CVC language. This includes:
    * - (as emptyset (Set T))
    * - (as univset (Set T))
    * - (as sep.nil T)

@@ -548,7 +548,8 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     // lookup by name
     api::DatatypeConstructor dc = d.getConstructor(t.toString());
 
-    // type ascriptions only have an effect if this is a parametric datatype
+    // type ascriptions that do not throw an error below only have an effect on
+    // the node structure if this is a parametric datatype
     if (s.isParametricDatatype())
     {
       ExprManager* em = getExprManager();
