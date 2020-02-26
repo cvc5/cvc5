@@ -86,7 +86,7 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
         }else if( xc.isConst() ){
           //check for constants
           CVC4::String s = xc.getConst<String>();
-          if (s.size() == 0)
+          if (Word::isEmpty(xc))
           {
             Trace("regexp-ext-rewrite-debug") << "...ignore empty" << std::endl;
             // ignore and continue
@@ -1738,7 +1738,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 
 bool TheoryStringsRewriter::hasEpsilonNode(TNode node) {
   for(unsigned int i=0; i<node.getNumChildren(); i++) {
-    if(node[i].getKind() == kind::STRING_TO_REGEXP && node[i][0].isConst() && Word::isEmptyString(node[i][0])) {
+    if(node[i].getKind() == kind::STRING_TO_REGEXP && node[i][0].isConst() && Word::isEmpty(node[i][0])) {
       return true;
     }
   }
