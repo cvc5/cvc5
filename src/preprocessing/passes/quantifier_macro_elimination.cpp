@@ -13,6 +13,7 @@
  **
  ** TODO question: should I rename this pass?
  **    main TODOs:
+ **    - don't recurse in rewriting function
  **    - fix unsat-core issue
  **    - handle nontrivial arithmetic (see solveInEquality)
  **/
@@ -30,7 +31,8 @@ using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::kind;
 
-QuantifierMacroElimination::QuantifierMacroElimination(PreprocessingPassContext* preprocContext)
+QuantifierMacroElimination::QuantifierMacroElimination(
+    PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "quantifier-macro-elimination")
 {
 }
@@ -71,7 +73,8 @@ bool getApplicationVariableArgumentsIfUnique(Node application,
 
 // if the definition contains a reference to predicate, or a reference to any
 // earlier defined macro, it is not valid
-bool QuantifierMacroElimination::isDefinitionValid(Node predicate, Node definition)
+bool QuantifierMacroElimination::isDefinitionValid(Node predicate,
+                                                   Node definition)
 {
   // traverse definition and check for occurrence of predicate
   vector<Node> stack;
