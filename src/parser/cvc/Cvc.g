@@ -1306,14 +1306,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     { /*symtab = PARSER_STATE->getSymbolTable();
       PARSER_STATE->useDeclarationsFrom(new SymbolTable());*/ }
     formula[f] ( COMMA formula[f2] )? RPAREN
-    { /*SymbolTable* old = PARSER_STATE->getSymbolTable();
-      PARSER_STATE->useDeclarationsFrom(symtab);
-      delete old;*/
+    {
       PARSER_STATE->unimplementedFeature("predicate subtyping not supported in this release");
-      /*t = f2.isNull() ?
-        EXPR_MANAGER->mkPredicateSubtype(f) :
-        EXPR_MANAGER->mkPredicateSubtype(f, f2);
-      */
     }
 
     /* subrange types */
