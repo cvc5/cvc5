@@ -20,11 +20,6 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
-<<<<<<< HEAD
-=======
-#include "expr/expr.h"
-#include "expr/kind.h"
->>>>>>> b320aa323923822a7702997bbca05e8512da55a4
 
 namespace CVC4 {
 
@@ -69,8 +64,6 @@ struct CVC4_PUBLIC ParseOp
   std::string d_name;
   /** The expression associated with the parsed operator, if it exists */
   api::Term d_expr;
-  /** The operator associated with the parsed operator, if it exists */
-  api::Op d_op;
   /** The type associated with the parsed operator, if it exists */
   api::Sort d_type;
   /** The operator associated with the parsed operator, if it exists */
