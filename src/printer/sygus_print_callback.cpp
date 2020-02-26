@@ -78,8 +78,9 @@ void SygusExprPrintCallback::toStreamSygus(const Printer* p,
     sbody =
         sbody.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
 
+    // print to stream without letification
     std::stringstream body_out;
-    body_out << sbody;
+    p->toStream(body_out, sbody, -1, false, 0);
 
     // do string substitution
     Assert(e.getNumChildren() == d_args.size());

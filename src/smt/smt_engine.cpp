@@ -1313,11 +1313,16 @@ void SmtEngine::setDefaults() {
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
-      // we change the logic to incorporate sygus immediately
-      d_logic = d_logic.getUnlockedCopy();
-      d_logic.enableSygus();
-      d_logic.lock();
     }
+  }
+
+  // We now know whether the input is sygus. Update the logic to incorporate
+  // the theories we need internally for handling sygus problems.
+  if (is_sygus)
+  {
+    d_logic = d_logic.getUnlockedCopy();
+    d_logic.enableSygus();
+    d_logic.lock();
   }
 
   // sygus core connective requires unsat cores
@@ -3983,6 +3988,8 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
 
 void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
 {
+  SmtScope smts(this);
+  finalOptionsAreSet();
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
   Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
@@ -3991,6 +3998,8 @@ void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
 
 void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
 {
+  SmtScope smts(this);
+  finalOptionsAreSet();
   // do nothing (the command is spurious)
   Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
   // don't need to set that the conjecture is stale
@@ -4000,6 +4009,8 @@ void SmtEngine::declareSygusFunctionVar(const std::string& id,
                                         Expr var,
                                         Type type)
 {
+  SmtScope smts(this);
+  finalOptionsAreSet();
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
   Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
@@ -4044,6 +4055,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
 void SmtEngine::assertSygusConstraint(Expr constraint)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
@@ -4058,6 +4070,7 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
                                          const Expr& post)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   // build invariant constraint
 
   // get variables (regular and their respective primed versions)
