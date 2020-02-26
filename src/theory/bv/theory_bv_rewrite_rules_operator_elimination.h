@@ -292,23 +292,7 @@ inline Node RewriteRule<IntToBVEliminate>::apply(TNode node)
   //if( node[0].isConst() ){
     //TODO? direct computation instead of term construction+rewriting
   //}
-
-  const unsigned size = node.getOperator().getConst<IntToBitVector>().size;
-  NodeManager* const nm = NodeManager::currentNM();
-  const Node bvzero = utils::mkZero(1);
-  const Node bvone = utils::mkOne(1);
-
-  std::vector<Node> v;
-  Integer i = 2;
-  while(v.size() < size) {
-    Node cond = nm->mkNode(kind::GEQ, nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0], nm->mkConst(Rational(i))), nm->mkConst(Rational(i, 2)));
-    v.push_back(nm->mkNode(kind::ITE, cond, bvone, bvzero));
-    i *= 2;
-  }
-
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
-  result.append(v.rbegin(), v.rend());
-  return Node(result);
+  return utils::eliminateInt2Bv(node);
 }
 
 template <>
