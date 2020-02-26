@@ -308,34 +308,6 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         }
       }
     }
-    if (args.size() > 2)
-    {
-      if (kind == kind::INTS_DIVISION || kind == kind::XOR
-          || kind == kind::MINUS || kind == kind::DIVISION)
-      {
-        // Builtin operators that are not tokenized, are left associative,
-        // but not internally variadic must set this.
-        return em->mkLeftAssociative(kind, args);
-      }
-      if (kind == kind::IMPLIES)
-      {
-        /* right-associative, but CVC4 internally only supports 2 args */
-        return em->mkRightAssociative(kind, args);
-      }
-      if (kind == kind::EQUAL || kind == kind::LT || kind == kind::GT
-          || kind == kind::LEQ || kind == kind::GEQ)
-      {
-        /* "chainable", but CVC4 internally only supports 2 args */
-        return em->mkChain(kind, args);
-      }
-    }
-
-    if (kind::isAssociative(kind) && args.size() > em->maxArity(kind))
-    {
-      /* Special treatment for associative operators with lots of children
-       */
-      return em->mkAssociative(kind, args);
-    }
     if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
         && args.size() == 1)
     {
