@@ -6,6 +6,6 @@
 (declare-fun y () String)
 
 (assert (str.in_re x (re.diff (re.* (str.to_re "A")) re.none)))
-(assert (or (not (str.in_re x (re.* "A"))) (str.in_re y (re.diff (re.* (str.to_re "B")) re.all))))
+(assert (or (not (str.in_re x (re.* (str.to_re "A")))) (str.in_re y (re.diff (re.* (str.to_re "B")) re.all))))
 
 (check-sat)
