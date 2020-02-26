@@ -171,6 +171,7 @@ void Smt2::addStringOperators() {
   }
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
+  addOperator(kind::STRING_ISDIGIT, "str.is_digit" );
   // at the moment, we only use this syntax for smt2.6.1
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
       || getLanguage() == language::input::LANG_SYGUS_V2)
@@ -201,6 +202,7 @@ void Smt2::addStringOperators() {
   addOperator(kind::REGEXP_RANGE, "re.range");
   addOperator(kind::REGEXP_LOOP, "re.loop");
   addOperator(kind::REGEXP_COMPLEMENT, "re.comp");
+  addOperator(kind::REGEXP_DIFF, "re.diff");
   addOperator(kind::STRING_LT, "str.<");
   addOperator(kind::STRING_LEQ, "str.<=");
 }
