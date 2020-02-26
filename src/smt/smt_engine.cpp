@@ -877,8 +877,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_replayStream(NULL),
       d_private(NULL),
       d_statisticsRegistry(NULL),
-      d_stats(NULL),
-      d_channels(new LemmaChannels())
+      d_stats(NULL)
 {
   SmtScope smts(this);
   d_originalOptions.copyValues(em->getOptions());
@@ -913,8 +912,7 @@ void SmtEngine::finishInit()
   d_theoryEngine = new TheoryEngine(d_context,
                                     d_userContext,
                                     d_private->d_iteRemover,
-                                    const_cast<const LogicInfo&>(d_logic),
-                                    d_channels);
+                                    const_cast<const LogicInfo&>(d_logic));
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
@@ -941,9 +939,12 @@ void SmtEngine::finishInit()
   d_decisionEngine->init();   // enable appropriate strategies
 
   Trace("smt-debug") << "Making prop engine..." << std::endl;
-  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context,
-                                d_userContext, d_private->getReplayLog(),
-                                d_replayStream, d_channels);
+  d_propEngine = new PropEngine(d_theoryEngine,
+                                d_decisionEngine,
+                                d_context,
+                                d_userContext,
+                                d_private->getReplayLog(),
+                                d_replayStream);
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(d_propEngine);
@@ -1107,9 +1108,6 @@ SmtEngine::~SmtEngine()
     delete d_context;
     d_context = NULL;
 
-    delete d_channels;
-    d_channels = NULL;
-
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
               << e << endl;
@@ -1215,9 +1213,17 @@ void SmtEngine::setDefaults() {
     }
     d_logic = LogicInfo("QF_BV");
   }
-  else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt())
+
+  if (options::solveBVAsInt() > 0)
   {
-    d_logic = LogicInfo("QF_NIA");
+    if (d_logic.isTheoryEnabled(THEORY_BV))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_BV);
+      d_logic.enableTheory(THEORY_ARITH);
+      d_logic.arithNonLinear();
+      d_logic.lock();
+    }
   }
 
   // set options about ackermannization
@@ -1444,6 +1450,17 @@ void SmtEngine::setDefaults() {
                   "cores/proofs"
                << endl;
       options::preSkolemQuant.set(false);
+    }
+
+    if (options::solveBVAsInt() > 0)
+    {
+      /**
+       * Operations on 1 bits are better handled as Boolean operations
+       * than as integer operations.
+       * Therefore, we enable bv-to-bool, which runs before
+       * the translation to integers.
+       */
+      options::bitvectorToBool.set(true);
     }
 
     if (options::bitvectorToBool())
@@ -3302,7 +3319,7 @@ void SmtEnginePrivate::processAssertions() {
   if (options::solveRealAsInt()) {
     d_passes["real-to-int"]->apply(&d_assertions);
   }
-
+  
   if (options::solveIntAsBV() > 0)
   {
     d_passes["int-to-bv"]->apply(&d_assertions);
@@ -3363,6 +3380,34 @@ void SmtEnginePrivate::processAssertions() {
   {
     d_passes["bv-to-bool"]->apply(&d_assertions);
   }
+  if (options::solveBVAsInt() > 0)
+  {
+    if (options::incrementalSolving())
+    {
+      throw ModalException(
+          "solving bitvectors as integers is currently not supported "
+          "when solving incrementally.");
+    } else if (options::boolToBitvector() != options::BoolToBVMode::OFF) {
+      throw ModalException(
+          "solving bitvectors as integers is incompatible with --bool-to-bv.");
+    }
+    else if (options::solveBVAsInt() > 8)
+    {
+      /**
+       * The granularity sets the size of the ITE in each element
+       * of the sum that is generated for bitwise operators.
+       * The size of the ITE is 2^{2*granularity}.
+       * Since we don't want to introduce ITEs with unbounded size,
+       * we bound the granularity.
+       */
+      throw ModalException("solve-bv-as-int accepts values from 0 to 8.");
+    }
+    else
+    {
+      d_passes["bv-to-int"]->apply(&d_assertions);
+    }
+  }
+
   // Convert non-top-level Booleans to bit-vectors of size 1
   if (options::boolToBitvector() != options::BoolToBVMode::OFF)
   {

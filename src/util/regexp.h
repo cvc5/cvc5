@@ -140,34 +140,41 @@ class CVC4_PUBLIC String {
   bool isRepeated() const;
   bool tailcmp(const String& y, int& c) const;
 
+  /**
+   * Return the first position y occurs in this string, or std::string::npos
+   * otherwise.
+   */
   std::size_t find(const String& y, const std::size_t start = 0) const;
+  /**
+   * Return the first position y occurs in this string searching from the end,
+   * or std::string::npos otherwise.
+   */
   std::size_t rfind(const String& y, const std::size_t start = 0) const;
   /** Returns true if y is a prefix of this */
   bool hasPrefix(const String& y) const;
   /** Returns true if y is a suffix of this */
   bool hasSuffix(const String& y) const;
-
+  /** Replace the first occurrence of s in this string with t */
   String replace(const String& s, const String& t) const;
+  /** Return the substring of this string starting at index i */
   String substr(std::size_t i) const;
+  /** Return the substring of this string starting at index i with size at most
+   * j */
   String substr(std::size_t i, std::size_t j) const;
-
+  /** Return the prefix of this string of size at most i */
   String prefix(std::size_t i) const { return substr(0, i); }
+  /** Return the suffix of this string of size at most i */
   String suffix(std::size_t i) const { return substr(size() - i, i); }
 
   /**
    * Checks if there is any overlap between this string and another string. This
-   * corresponds to checking whether one string contains the other and wether a
+   * corresponds to checking whether one string contains the other and whether a
    * substring of one is a prefix of the other and vice-versa.
    *
    * @param y The other string
    * @return True if there is an overlap, false otherwise
    */
-  bool noOverlapWith(const String& y) const
-  {
-    return y.find(*this) == std::string::npos
-           && this->find(y) == std::string::npos && this->overlap(y) == 0
-           && y.overlap(*this) == 0;
-  }
+  bool noOverlapWith(const String& y) const;
 
   /** string overlap
   *
