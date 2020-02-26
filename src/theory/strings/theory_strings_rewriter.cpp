@@ -2056,7 +2056,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       return returnRewrite(node, ret, "ctn-const");
     }else{
       Node t = node[1];
-      if (Word::getLength(node[0]) == 0)
+      if (Word::isEmpty(node[0]))
       {
         Node len1 =
             NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
