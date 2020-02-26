@@ -34,7 +34,6 @@
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "smt/command.h"
-#include "smt_util/lemma_channels.h"
 #include "theory/atom_requests.h"
 #include "theory/decision_manager.h"
 #include "theory/interrupted.h"
@@ -47,6 +46,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
+#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -281,8 +281,9 @@ class TheoryEngine {
     EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory)
         : d_engine(engine), d_statistics(theory), d_theory(theory) {}
 
-    void safePoint(uint64_t amount) override {
-      spendResource(amount);
+    void safePoint(ResourceManager::Resource r) override
+    {
+      spendResource(r);
       if (d_engine->d_interrupted) {
         throw theory::Interrupted();
       }
@@ -323,8 +324,9 @@ class TheoryEngine {
       d_engine->setIncomplete(d_theory);
     }
 
-    void spendResource(unsigned amount) override {
-      d_engine->spendResource(amount);
+    void spendResource(ResourceManager::Resource r) override
+    {
+      d_engine->spendResource(r);
     }
 
     void handleUserAttribute(const char* attr, theory::Theory* t) override {
@@ -465,15 +467,12 @@ class TheoryEngine {
   bool d_interrupted;
   ResourceManager* d_resourceManager;
 
-  /** Container for lemma input and output channels. */
-  LemmaChannels* d_channels;
-
-public:
-
+ public:
   /** Constructs a theory engine */
-  TheoryEngine(context::Context* context, context::UserContext* userContext,
-               RemoveTermFormulas& iteRemover, const LogicInfo& logic,
-               LemmaChannels* channels);
+  TheoryEngine(context::Context* context,
+               context::UserContext* userContext,
+               RemoveTermFormulas& iteRemover,
+               const LogicInfo& logic);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -481,19 +480,22 @@ public:
   void interrupt();
 
   /** "Spend" a resource during a search or preprocessing.*/
-  void spendResource(unsigned amount);
+  void spendResource(ResourceManager::Resource r);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
    * there is another theory it will be deleted.
    */
   template <class TheoryClass>
-  inline void addTheory(theory::TheoryId theoryId) {
+  inline void addTheory(theory::TheoryId theoryId)
+  {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] =
-        new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId],
-                        theory::Valuation(this), d_logicInfo);
+    d_theoryTable[theoryId] = new TheoryClass(d_context,
+                                              d_userContext,
+                                              *d_theoryOut[theoryId],
+                                              theory::Valuation(this),
+                                              d_logicInfo);
   }
 
   inline void setPropEngine(prop::PropEngine* propEngine) {

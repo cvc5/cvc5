@@ -163,7 +163,6 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_CHARAT, "str.at" );
   addOperator(kind::STRING_STRIDOF, "str.indexof" );
   addOperator(kind::STRING_STRREPL, "str.replace" );
-  addOperator(kind::STRING_STRREPLALL, "str.replaceall");
   if (!strictModeEnabled())
   {
     addOperator(kind::STRING_TOLOWER, "str.tolower");
@@ -173,12 +172,15 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
   // at the moment, we only use this syntax for smt2.6.1
-  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
+      || getLanguage() == language::input::LANG_SYGUS_V2)
   {
-    addOperator(kind::STRING_ITOS, "str.from-int");
-    addOperator(kind::STRING_STOI, "str.to-int");
-    addOperator(kind::STRING_IN_REGEXP, "str.in-re");
-    addOperator(kind::STRING_TO_REGEXP, "str.to-re");
+    addOperator(kind::STRING_ITOS, "str.from_int");
+    addOperator(kind::STRING_STOI, "str.to_int");
+    addOperator(kind::STRING_IN_REGEXP, "str.in_re");
+    addOperator(kind::STRING_TO_REGEXP, "str.to_re");
+    addOperator(kind::STRING_CODE, "str.to_code");
+    addOperator(kind::STRING_STRREPLALL, "str.replace_all");
   }
   else
   {
@@ -186,6 +188,8 @@ void Smt2::addStringOperators() {
     addOperator(kind::STRING_STOI, "str.to.int");
     addOperator(kind::STRING_IN_REGEXP, "str.in.re");
     addOperator(kind::STRING_TO_REGEXP, "str.to.re");
+    addOperator(kind::STRING_CODE, "str.code");
+    addOperator(kind::STRING_STRREPLALL, "str.replaceall");
   }
 
   addOperator(kind::REGEXP_CONCAT, "re.++");
@@ -196,7 +200,6 @@ void Smt2::addStringOperators() {
   addOperator(kind::REGEXP_OPT, "re.opt");
   addOperator(kind::REGEXP_RANGE, "re.range");
   addOperator(kind::REGEXP_LOOP, "re.loop");
-  addOperator(kind::STRING_CODE, "str.code");
   addOperator(kind::STRING_LT, "str.<");
   addOperator(kind::STRING_LEQ, "str.<=");
 }
@@ -365,7 +368,14 @@ void Smt2::addTheory(Theory theory) {
     defineType("RegLan", getExprManager()->regExpType());
     defineType("Int", getExprManager()->integerType());
 
-    defineVar("re.nostr", d_solver->mkRegexpEmpty().getExpr());
+    if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+    {
+      defineVar("re.none", d_solver->mkRegexpEmpty().getExpr());
+    }
+    else
+    {
+      defineVar("re.nostr", d_solver->mkRegexpEmpty().getExpr());
+    }
     defineVar("re.allchar", d_solver->mkRegexpSigma().getExpr());
 
     addStringOperators();
@@ -922,6 +932,19 @@ void Smt2::includeFile(const std::string& filename) {
   if(!newInputStream(path, lexer)) {
     parseError("Couldn't open include file `" + path + "'");
   }
+}
+
+bool Smt2::isAbstractValue(const std::string& name)
+{
+  return name.length() >= 2 && name[0] == '@' && name[1] != '0'
+         && name.find_first_not_of("0123456789", 1) == std::string::npos;
+}
+
+Expr Smt2::mkAbstractValue(const std::string& name)
+{
+  assert(isAbstractValue(name));
+  // remove the '@'
+  return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
 }
 
 void Smt2::mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops ) {
@@ -1887,7 +1910,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
                || kind == kind::LEQ || kind == kind::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
-        return em->mkExpr(em->mkConst(Chain(kind)), args);
+        return em->mkChain(kind, args);
       }
     }
 

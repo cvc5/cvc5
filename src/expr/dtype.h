@@ -243,9 +243,6 @@ class DType
   /** is this a tuple datatype? */
   bool isTuple() const;
 
-  /** get the record representation for this datatype */
-  Record* getRecord() const;
-
   /**
    * Return the cardinality of this datatype.
    * The DType must be resolved.

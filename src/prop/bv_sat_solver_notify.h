@@ -19,6 +19,7 @@
 #define CVC4__PROP__BVSATSOLVERNOTIFY_H
 
 #include "prop/sat_solver_types.h"
+#include "util/resource_manager.h"
 
 namespace CVC4 {
 namespace prop {
@@ -38,8 +39,8 @@ public:
    * Notify about a learnt clause.
    */
   virtual void notify(SatClause& clause) = 0;
-  virtual void spendResource(unsigned amount) = 0;
-  virtual void safePoint(unsigned amount) = 0;
+  virtual void spendResource(ResourceManager::Resource r) = 0;
+  virtual void safePoint(ResourceManager::Resource r) = 0;
 
 };/* class BVSatSolverInterface::Notify */
 

@@ -308,7 +308,7 @@ void TheorySep::check(Effort e) {
     return;
   }
 
-  getOutputChannel().spendResource(options::theoryCheckStep());
+  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
   Trace("sep-check") << "Sep::check(): " << e << endl;

@@ -813,7 +813,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(options::preprocessStep());
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   std::vector<Node>& assertions = assertionsToPreprocess->ref();
 
