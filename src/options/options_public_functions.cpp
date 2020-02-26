@@ -82,10 +82,6 @@ bool Options::getEarlyExit() const{
   return (*this)[options::earlyExit];
 }
 
-bool Options::getFallbackSequential() const{
-  return (*this)[options::fallbackSequential];
-}
-
 bool Options::getFilesystemAccess() const{
   return (*this)[options::filesystemAccess];
 }
@@ -96,10 +92,6 @@ bool Options::getForceNoLimitCpuWhileDump() const{
 
 bool Options::getHelp() const{
   return (*this)[options::help];
-}
-
-bool Options::getIncrementalParallel() const{
-  return (*this)[options::incrementalParallel];
 }
 
 bool Options::getIncrementalSolving() const{
@@ -164,10 +156,6 @@ int Options::getTearDownIncremental() const{
 
 bool Options::getVersion() const{
   return (*this)[options::version];
-}
-
-bool Options::getWaitToJoin() const{
-  return (*this)[options::waitToJoin];
 }
 
 const std::string& Options::getForceLogicString() const{

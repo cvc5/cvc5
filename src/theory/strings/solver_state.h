@@ -73,6 +73,8 @@ class SolverState
   const context::CDList<Node>& getDisequalityList() const;
   //-------------------------------------- end equality information
   //-------------------------------------- notifications for equalities
+  /** called when a new equivalence class is created */
+  void eqNotifyNewClass(TNode t);
   /** called when two equivalence classes will merge */
   void eqNotifyPreMerge(TNode t1, TNode t2);
   /** called when two equivalence classes are made disequal */

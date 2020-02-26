@@ -92,6 +92,35 @@ const context::CDList<Node>& SolverState::getDisequalityList() const
   return d_eeDisequalities;
 }
 
+void SolverState::eqNotifyNewClass(TNode t)
+{
+  Kind k = t.getKind();
+  if (k == STRING_LENGTH || k == STRING_CODE)
+  {
+    Node r = d_ee.getRepresentative(t[0]);
+    EqcInfo* ei = getOrMakeEqcInfo(r);
+    if (k == STRING_LENGTH)
+    {
+      ei->d_lengthTerm = t[0];
+    }
+    else
+    {
+      ei->d_codeTerm = t[0];
+    }
+  }
+  else if (k == CONST_STRING)
+  {
+    EqcInfo* ei = getOrMakeEqcInfo(t);
+    ei->d_prefixC = t;
+    ei->d_suffixC = t;
+    return;
+  }
+  else if (k == STRING_CONCAT)
+  {
+    addEndpointsToEqcInfo(t, t, t);
+  }
+}
+
 void SolverState::eqNotifyPreMerge(TNode t1, TNode t2)
 {
   EqcInfo* e2 = getOrMakeEqcInfo(t2, false);

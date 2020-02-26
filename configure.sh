@@ -64,8 +64,6 @@ The following flags enable optional packages (disable with --no-<option name>).
   --drat2er                use drat2er (required for eager BV proofs)
   --lfsc                   use the LFSC proof checker
   --symfpu                 use SymFPU for floating point solver
-  --portfolio              build the multithreaded portfolio version of CVC4
-                           (pcvc4)
   --readline               support the readline library
 
 Optional Path to Optional Packages:
@@ -131,7 +129,6 @@ glpk=default
 lfsc=default
 muzzle=default
 optimized=default
-portfolio=default
 proofs=default
 replay=default
 shared=default
@@ -247,9 +244,6 @@ do
 
     --optimized) optimized=ON;;
     --no-optimized) optimized=OFF;;
-
-    --portfolio) portfolio=ON;;
-    --no-portfolio) portfolio=OFF;;
 
     --proofs) proofs=ON;;
     --no-proofs) proofs=OFF;;
