@@ -549,8 +549,8 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     // lookup by name
     api::DatatypeConstructor dc = d.getConstructor(t.toString());
 
-    // type ascriptions that do not throw an error below only have an effect on
-    // the node structure if this is a parametric datatype
+    // Type ascriptions only have an effect on the node structure if this is a
+    // parametric datatype.
     if (s.isParametricDatatype())
     {
       ExprManager* em = getExprManager();
@@ -565,7 +565,14 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
           e));
     }
     // the type of t does not match the sort s by design (constructor type
-    // vs datatype type), thus don't check below.
+    // vs datatype type), thus we use an alternative check here.
+    if (t.getSort().getConstructorCodomainSort()!=s)
+    {
+      std::stringstream ss;
+      ss << "Type ascription on constructor not satisfied, term " << t << " expected sort " << s
+        << " but has sort " << t.getSort().getConstructorCodomainSort();
+      parseError(ss.str());
+    }
     return t;
   }
   // otherwise, nothing to do
