@@ -43,17 +43,17 @@ const bool getBit(TNode node, unsigned i)
 
 unsigned getExtractHigh(TNode node)
 {
-  return node.getOperator().getConst<BitVectorExtract>().high;
+  return node.getOperator().getConst<BitVectorExtract>().d_high;
 }
 
 unsigned getExtractLow(TNode node)
 {
-  return node.getOperator().getConst<BitVectorExtract>().low;
+  return node.getOperator().getConst<BitVectorExtract>().d_low;
 }
 
 unsigned getSignExtendAmount(TNode node)
 {
-  return node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+  return node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
 }
 
 /* ------------------------------------------------------------------------- */

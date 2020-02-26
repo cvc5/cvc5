@@ -619,14 +619,14 @@ struct SortBvExtractInterval
     Assert(j.getKind() == BITVECTOR_EXTRACT);
     BitVectorExtract ie = i.getOperator().getConst<BitVectorExtract>();
     BitVectorExtract je = j.getOperator().getConst<BitVectorExtract>();
-    if (ie.high > je.high)
+    if (ie.d_high > je.d_high)
     {
       return true;
     }
-    else if (ie.high == je.high)
+    else if (ie.d_high == je.d_high)
     {
-      Assert(ie.low != je.low);
-      return ie.low > je.low;
+      Assert(ie.d_low != je.d_low);
+      return ie.d_low > je.d_low;
     }
     return false;
   }
@@ -675,15 +675,15 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         Trace("cegqi-bv-pp") << "  " << i << " : " << curr_vec[i] << std::endl;
         BitVectorExtract e =
             curr_vec[i].getOperator().getConst<BitVectorExtract>();
-        if (std::find(boundaries.begin(), boundaries.end(), e.high + 1)
+        if (std::find(boundaries.begin(), boundaries.end(), e.d_high + 1)
             == boundaries.end())
         {
-          boundaries.push_back(e.high + 1);
+          boundaries.push_back(e.d_high + 1);
         }
-        if (std::find(boundaries.begin(), boundaries.end(), e.low)
+        if (std::find(boundaries.begin(), boundaries.end(), e.d_low)
             == boundaries.end())
         {
-          boundaries.push_back(e.low);
+          boundaries.push_back(e.d_low);
         }
       }
       std::sort(boundaries.rbegin(), boundaries.rend());

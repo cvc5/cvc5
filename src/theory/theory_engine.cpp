@@ -472,12 +472,15 @@ void TheoryEngine::printAssertions(const char* tag) {
         Trace(tag) << "Assertions of " << theory->getId() << ": " << endl;
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (unsigned i = 0; it != it_end; ++ it, ++i) {
-            if ((*it).isPreregistered) {
-              Trace(tag) << "[" << i << "]: ";
-            } else {
-              Trace(tag) << "(" << i << "): ";
-            }
-            Trace(tag) << (*it).assertion << endl;
+          if ((*it).d_isPreregistered)
+          {
+            Trace(tag) << "[" << i << "]: ";
+          }
+          else
+          {
+            Trace(tag) << "(" << i << "): ";
+          }
+          Trace(tag) << (*it).d_assertion << endl;
         }
 
         if (d_logicInfo.isSharingEnabled()) {
@@ -517,12 +520,15 @@ void TheoryEngine::dumpAssertions(const char* tag) {
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (; it != it_end; ++ it) {
           // Get the assertion
-          Node assertionNode = (*it).assertion;
+          Node assertionNode = (*it).d_assertion;
           // Purify all the terms
 
-          if ((*it).isPreregistered) {
+          if ((*it).d_isPreregistered)
+          {
             Dump(tag) << CommentCommand("Preregistered");
-          } else {
+          }
+          else
+          {
             Dump(tag) << CommentCommand("Shared assertion");
           }
           Dump(tag) << AssertCommand(assertionNode.toExpr());
@@ -725,13 +731,15 @@ void TheoryEngine::combineTheories() {
   for (; care_it != care_it_end; ++ care_it) {
     const CarePair& carePair = *care_it;
 
-    Debug("combineTheories") << "TheoryEngine::combineTheories(): checking " << carePair.a << " = " << carePair.b << " from " << carePair.theory << endl;
+    Debug("combineTheories")
+        << "TheoryEngine::combineTheories(): checking " << carePair.d_a << " = "
+        << carePair.d_b << " from " << carePair.d_theory << endl;
 
-    Assert(d_sharedTerms.isShared(carePair.a) || carePair.a.isConst());
-    Assert(d_sharedTerms.isShared(carePair.b) || carePair.b.isConst());
+    Assert(d_sharedTerms.isShared(carePair.d_a) || carePair.d_a.isConst());
+    Assert(d_sharedTerms.isShared(carePair.d_b) || carePair.d_b.isConst());
 
     // The equality in question (order for no repetition)
-    Node equality = carePair.a.eqNode(carePair.b);
+    Node equality = carePair.d_a.eqNode(carePair.d_b);
     // EqualityStatus es = getEqualityStatus(carePair.a, carePair.b);
     // Debug("combineTheories") << "TheoryEngine::combineTheories(): " <<
     //   (es == EQUALITY_TRUE_AND_PROPAGATED ? "EQUALITY_TRUE_AND_PROPAGATED" :
@@ -746,7 +754,12 @@ void TheoryEngine::combineTheories() {
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
 
-    lemma(equality.orNode(equality.notNode()), RULE_INVALID, false, false, false, carePair.theory);
+    lemma(equality.orNode(equality.notNode()),
+          RULE_INVALID,
+          false,
+          false,
+          false,
+          carePair.d_theory);
 
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
@@ -2224,7 +2237,7 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
             it_end = theory->facts_end();
           it != it_end;
           ++it) {
-        Node assertion = (*it).assertion;
+        Node assertion = (*it).d_assertion;
         Node val = getModel()->getValue(assertion);
         if (val != d_true)
         {

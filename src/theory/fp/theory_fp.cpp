@@ -962,7 +962,7 @@ void TheoryFp::check(Effort level) {
   while (!done() && !d_conflict) {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Debug("fp") << "TheoryFp::check(): processing " << fact << std::endl;
 
