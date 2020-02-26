@@ -37,7 +37,6 @@
 #include "proof/theory_proof.h"
 #include "smt/logic_exception.h"
 #include "smt/term_formula_removal.h"
-#include "smt_util/lemma_output_channel.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -260,7 +259,6 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
   Trace("theory::conflict")
       << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
       << ")" << std::endl;
-  Trace("dtview::conflict") << ":CONFLICT: " << conflictNode << std::endl;
   Assert(!proof);  // Theory shouldn't be producing proofs yet
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
@@ -315,8 +313,7 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveTermFormulas& iteRemover,
-                           const LogicInfo& logicInfo,
-                           LemmaChannels* channels)
+                           const LogicInfo& logicInfo)
     : d_propEngine(nullptr),
       d_decisionEngine(nullptr),
       d_context(context),
@@ -350,7 +347,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_false(),
       d_interrupted(false),
       d_resourceManager(NodeManager::currentResourceManager()),
-      d_channels(channels),
       d_inPreregister(false),
       d_factsAsserted(context, false),
       d_preRegistrationVisitor(this, context),
@@ -1302,6 +1298,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       if (d_propEngine->hasValue(assertion, value)) {
         if (!value) {
           Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict (no sharing)" << endl;
+          Trace("dtview::conflict")
+              << ":THEORY-CONFLICT: " << assertion << std::endl;
           d_inConflict = true;
         } else {
           return;
@@ -1352,7 +1350,12 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       // Check for propositional conflicts
       bool value;
       if (d_propEngine->hasValue(assertion, value) && !value) {
-          Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict (sharing)" << endl;
+        Trace("theory::propagate")
+            << "TheoryEngine::assertToTheory(" << assertion << ", "
+            << toTheoryId << ", " << fromTheoryId << "): conflict (sharing)"
+            << endl;
+        Trace("dtview::conflict")
+            << ":THEORY-CONFLICT: " << assertion << std::endl;
         d_inConflict = true;
       }
     }
@@ -1400,9 +1403,6 @@ void TheoryEngine::assertFact(TNode literal)
   if (d_inConflict) {
     return;
   }
-
-  Trace("dtview::prop") << std::string(d_context->getLevel(), ' ') << literal
-                        << endl;
 
   // Get the atom
   bool polarity = literal.getKind() != kind::NOT;
@@ -1459,6 +1459,9 @@ void TheoryEngine::assertFact(TNode literal)
 bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
   Debug("theory::propagate") << "TheoryEngine::propagate(" << literal << ", " << theory << ")" << endl;
+
+  Trace("dtview::prop") << std::string(d_context->getLevel(), ' ')
+                        << ":THEORY-PROP: " << literal << endl;
 
   // spendResource();
 
@@ -1861,11 +1864,6 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                      << CheckSatCommand(n.toExpr());
   }
 
-  // Share with other portfolio threads
-  if(d_channels->getLemmaOutputChannel() != NULL) {
-    d_channels->getLemmaOutputChannel()->notifyNewLemma(node.toExpr());
-  }
-
   AssertionPipeline additionalLemmas;
 
   // Run theory preprocessing, maybe
@@ -1921,6 +1919,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
   Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
+
+  Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
   // Mark that we are in conflict
   d_inConflict = true;

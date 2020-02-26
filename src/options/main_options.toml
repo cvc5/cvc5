@@ -79,25 +79,6 @@ header = "options/main_options.h"
   help       = "do not run destructors at exit; default on except in debug builds"
 
 [[option]]
-  name       = "fallbackSequential"
-  category   = "regular"
-  long       = "fallback-sequential"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "Switch to sequential mode (instead of printing an error) if it can't be solved in portfolio mode"
-
-[[option]]
-  name       = "incrementalParallel"
-  category   = "regular"
-  long       = "incremental-parallel"
-  type       = "bool"
-  default    = "false"
-  links      = ["--incremental"]
-  read_only  = true
-  help       = "Use parallel solver even in incremental mode (may print 'unknown's at times)"
-
-[[option]]
   name       = "interactive"
   category   = "regular"
   long       = "interactive"
@@ -135,12 +116,3 @@ header = "options/main_options.h"
   default    = "0"
   read_only  = true
   help       = "implement PUSH/POP/multi-query by destroying and recreating SmtEngine every N queries"
-
-[[option]]
-  name       = "waitToJoin"
-  category   = "expert"
-  long       = "wait-to-join"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "wait for other threads to join before quitting"

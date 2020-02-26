@@ -128,6 +128,7 @@ void Smt2Printer::toStream(std::ostream& out,
       case REAL_TYPE: out << "Real"; break;
       case INTEGER_TYPE: out << "Int"; break;
       case STRING_TYPE: out << "String"; break;
+      case REGEXP_TYPE: out << "RegLan"; break;
       case ROUNDINGMODE_TYPE: out << "RoundingMode"; break;
       default:
         // fall back on whatever operator<< does on underlying type; we
@@ -1207,7 +1208,8 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
   case kind::STRING_STRREPL: return "str.replace" ;
-  case kind::STRING_STRREPLALL: return "str.replaceall";
+  case kind::STRING_STRREPLALL:
+    return v == smt2_6_1_variant ? "str.replace_all" : "str.replaceall";
   case kind::STRING_TOLOWER: return "str.tolower";
   case kind::STRING_TOUPPER: return "str.toupper";
   case kind::STRING_REV: return "str.rev";
@@ -1215,15 +1217,16 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_LEQ: return "str.<=";
   case kind::STRING_LT: return "str.<";
-  case kind::STRING_CODE: return "str.code";
+  case kind::STRING_CODE:
+    return v == smt2_6_1_variant ? "str.to_code" : "str.code";
   case kind::STRING_ITOS:
-    return v == smt2_6_1_variant ? "str.from-int" : "int.to.str";
+    return v == smt2_6_1_variant ? "str.from_int" : "int.to.str";
   case kind::STRING_STOI:
-    return v == smt2_6_1_variant ? "str.to-int" : "str.to.int";
+    return v == smt2_6_1_variant ? "str.to_int" : "str.to.int";
   case kind::STRING_IN_REGEXP:
-    return v == smt2_6_1_variant ? "str.in-re" : "str.in.re";
+    return v == smt2_6_1_variant ? "str.in_re" : "str.in.re";
   case kind::STRING_TO_REGEXP:
-    return v == smt2_6_1_variant ? "str.to-re" : "str.to.re";
+    return v == smt2_6_1_variant ? "str.to_re" : "str.to.re";
   case kind::REGEXP_EMPTY: return "re.nostr";
   case kind::REGEXP_SIGMA: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
@@ -2073,25 +2076,23 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
   Type type = c->getFunction().getType();
   const std::vector<Expr>& vars = c->getVars();
   Assert(!type.isFunction() || !vars.empty());
-  c->getCommandName();
+  out << '(';
   if (type.isFunction())
   {
     // print variable list
     std::vector<Expr>::const_iterator i = vars.begin(), i_end = vars.end();
     Assert(i != i_end);
-    out << '(';
-    do
+    out << '(' << *i << ' ' << i->getType() << ')';
+    ++i;
+    while (i != i_end)
     {
-      out << '(' << *i << ' ' << (*i).getType() << ')';
-      if (++i != i_end)
-      {
-        out << ' ';
-      }
-    } while (i != i_end);
-    out << ')';
+      out << " (" << *i << ' ' << i->getType() << ')';
+      ++i;
+    }
     FunctionType ft = type;
     type = ft.getRangeType();
   }
+  out << ')';
   // if not invariant-to-synthesize, print return type
   if (!c->isInv())
   {
@@ -2107,6 +2108,7 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
     std::list<Type> typesToPrint;
     grammarTypes.insert(sygusType);
     typesToPrint.push_back(sygusType);
+    NodeManager* nm = NodeManager::currentNM();
     // for each datatype in grammar
     //   name
     //   sygus type
@@ -2120,61 +2122,41 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
       Assert(curr.isDatatype()
              && static_cast<DatatypeType>(curr).getDatatype().isSygus());
       const Datatype& dt = static_cast<DatatypeType>(curr).getDatatype();
-      types_list << "(" << dt.getName() << " " << dt.getSygusType() << "\n(";
-      types_predecl << "(" << dt.getName() << " " << dt.getSygusType() << ")";
+      types_list << '(' << dt.getName() << ' ' << dt.getSygusType() << " (";
+      types_predecl << '(' << dt.getName() << ' ' << dt.getSygusType() << ") ";
       if (dt.getSygusAllowConst())
       {
         types_list << "(Constant " << dt.getSygusType() << ") ";
       }
       for (const DatatypeConstructor& cons : dt)
       {
-        DatatypeConstructor::const_iterator i = cons.begin(),
-                                            i_end = cons.end();
-        if (i != i_end)
+        // make a sygus term
+        std::vector<Node> cchildren;
+        cchildren.push_back(Node::fromExpr(cons.getConstructor()));
+        for (const DatatypeConstructorArg& i : cons)
         {
-          types_list << "(";
-          SygusPrintCallback* spc = cons.getSygusPrintCallback().get();
-          if (spc != nullptr && options::sygusPrintCallbacks())
+          Type argType = i.getRangeType();
+          std::stringstream ss;
+          ss << argType;
+          Node bv = nm->mkBoundVar(ss.str(), TypeNode::fromType(argType));
+          cchildren.push_back(bv);
+          // if fresh type, store it for later processing
+          if (grammarTypes.insert(argType).second)
           {
-            spc->toStreamSygus(sygus_printer, types_list, cons.getSygusOp());
-          }
-          else
-          {
-            types_list << cons.getSygusOp();
-          }
-          do
-          {
-            Type argType = (*i).getRangeType();
-            // print argument type
-            types_list << " " << argType;
-            // if fresh type, store it for later processing
-            if (grammarTypes.insert(argType).second)
-            {
-              typesToPrint.push_back(argType);
-            }
-          } while (++i != i_end);
-          types_list << ")";
-        }
-        else
-        {
-          SygusPrintCallback* spc = cons.getSygusPrintCallback().get();
-          if (spc != nullptr && options::sygusPrintCallbacks())
-          {
-            spc->toStreamSygus(sygus_printer, types_list, cons.getSygusOp());
-          }
-          else
-          {
-            types_list << cons.getSygusOp();
+            typesToPrint.push_back(argType);
           }
         }
-        types_list << "\n";
+        Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
+        // now, print it
+        sygus_printer->toStreamSygus(types_list, consToPrint);
+        types_list << ' ';
       }
       types_list << "))\n";
     } while (!typesToPrint.empty());
 
-    out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ")";
+    out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ')';
   }
-  out << ")";
+  out << ')';
 }
 
 static void toStream(std::ostream& out, const DeclareSygusFunctionCommand* c)

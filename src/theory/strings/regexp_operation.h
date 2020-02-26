@@ -62,7 +62,7 @@ class RegExpOpr {
 
  private:
   /** the code point of the last character in the alphabet we are using */
-  unsigned d_lastchar;
+  uint32_t d_lastchar;
   Node d_emptyString;
   Node d_true;
   Node d_false;

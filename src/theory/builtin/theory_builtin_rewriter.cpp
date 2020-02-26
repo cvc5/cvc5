@@ -224,9 +224,10 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
           << "  process base : " << curr << std::endl;
       // Boolean return case, e.g. lambda x. (= x v) becomes
       // lambda x. (ite (= x v) true false)
-      index_eq = curr;
-      curr_val = nm->mkConst(true);
-      next = nm->mkConst(false);
+      bool pol = curr.getKind() != kind::NOT;
+      index_eq = pol ? curr : curr[0];
+      curr_val = nm->mkConst(pol);
+      next = nm->mkConst(!pol);
     }
 
     // [2] We ensure that "index_eq" is an equality, if possible.

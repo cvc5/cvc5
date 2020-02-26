@@ -25,8 +25,6 @@
 #include "proof/cnf_proof.h"
 #include "smt/command.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/lemma_input_channel.h"
-#include "smt_util/lemma_output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_registry.h"
@@ -41,13 +39,11 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          context::Context* context,
                          CnfStream* cnfStream,
                          std::ostream* replayLog,
-                         ExprStream* replayStream,
-                         LemmaChannels* channels)
+                         ExprStream* replayStream)
     : d_propEngine(propEngine),
       d_cnfStream(cnfStream),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
-      d_channels(channels),
       d_replayLog(replayLog),
       d_replayStream(replayStream),
       d_queue(context),
@@ -60,17 +56,6 @@ TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
   smtStatisticsRegistry()->unregisterStat(&d_replayedDecisions);
 }
-
-/** The lemma input channel we are using. */
-LemmaInputChannel* TheoryProxy::inputChannel() {
-  return d_channels->getLemmaInputChannel();
-}
-
-/** The lemma output channel we are using. */
-LemmaOutputChannel* TheoryProxy::outputChannel() {
-  return d_channels->getLemmaOutputChannel();
-}
-
 
 void TheoryProxy::variableNotify(SatVariable var) {
   d_theoryEngine->preRegister(getNode(SatLiteral(var)));
@@ -163,56 +148,6 @@ TNode TheoryProxy::getNode(SatLiteral lit) {
 void TheoryProxy::notifyRestart() {
   d_propEngine->spendResource(ResourceManager::Resource::RestartStep);
   d_theoryEngine->notifyRestart();
-
-  static uint32_t lemmaCount = 0;
-
-  if(inputChannel() != NULL) {
-    while(inputChannel()->hasNewLemma()) {
-      Debug("shared") << "shared" << std::endl;
-      Expr lemma = inputChannel()->getNewLemma();
-      Node asNode = lemma.getNode();
-      asNode = theory::Rewriter::rewrite(asNode);
-
-      if(d_shared.find(asNode) == d_shared.end()) {
-        d_shared.insert(asNode);
-        if(asNode.getKind() == kind::OR) {
-          ++lemmaCount;
-          if(lemmaCount % 1 == 0) {
-            Debug("shared") << "=) " << asNode << std::endl;
-          }
-
-          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true, RULE_INVALID);
-        } else {
-          Debug("shared") << "=(" << asNode << std::endl;
-        }
-      } else {
-        Debug("shared") <<"drop shared " << asNode << std::endl;
-      }
-    }
-  }
-}
-
-void TheoryProxy::notifyNewLemma(SatClause& lemma) {
-  Assert(lemma.size() > 0);
-  if(outputChannel() != NULL) {
-    if(lemma.size() == 1) {
-      // cannot share units yet
-      //options::lemmaOutputChannel()->notifyNewLemma(d_cnfStream->getNode(lemma[0]).toExpr());
-    } else {
-      NodeBuilder<> b(kind::OR);
-      for(unsigned i = 0, i_end = lemma.size(); i < i_end; ++i) {
-        b << d_cnfStream->getNode(lemma[i]);
-      }
-      Node n = b;
-
-      if(d_shared.find(n) == d_shared.end()) {
-        d_shared.insert(n);
-        outputChannel()->notifyNewLemma(n.toExpr());
-      } else {
-        Debug("shared") <<"drop new " << n << std::endl;
-      }
-    }
-  }
 }
 
 SatLiteral TheoryProxy::getNextReplayDecision() {
