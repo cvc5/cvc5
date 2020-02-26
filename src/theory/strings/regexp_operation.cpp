@@ -68,17 +68,16 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
     visit.pop_back();
     it = d_constCache.find(cur);
 
+    Kind ck = cur.getKind();
     if (it == d_constCache.end())
     {
-      Kind ck = cur.getKind();
       if (ck == STRING_TO_REGEXP)
       {
         Node tmp = Rewriter::rewrite(cur[0]);
         d_constCache[cur] =
             tmp.isConst() ? RE_C_CONRETE_CONSTANT : RE_C_VARIABLE;
       }
-      else if (ck == REGEXP_SIGMA || ck == REGEXP_RANGE
-               || ck == REGEXP_COMPLEMENT)
+      else if (ck == REGEXP_SIGMA || ck == REGEXP_RANGE)
       {
         d_constCache[cur] = RE_C_CONSTANT;
       }
@@ -105,7 +104,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
     }
     else if (it->second == RE_C_UNKNOWN)
     {
-      RegExpConstType ret = RE_C_CONRETE_CONSTANT;
+      RegExpConstType ret = ck == REGEXP_COMPLEMENT ? RE_C_CONSTANT : RE_C_CONRETE_CONSTANT;
       for (const Node& cn : cur)
       {
         it = d_constCache.find(cn);
