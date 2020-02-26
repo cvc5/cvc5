@@ -333,16 +333,6 @@ class Smt2 : public Parser
     return d_lastNamedTerm;
   }
 
-  bool isAbstractValue(const std::string& name) {
-    return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
-      name.find_first_not_of("0123456789", 1) == std::string::npos;
-  }
-
-  Expr mkAbstractValue(const std::string& name) {
-    assert(isAbstractValue(name));
-    return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
-  }
-
   /** Does name denote an abstract value? (of the form '@n' for numeral n). */
   bool isAbstractValue(const std::string& name);
 
