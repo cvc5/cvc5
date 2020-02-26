@@ -41,23 +41,6 @@ using namespace std;
 
 namespace CVC4 {
 
-namespace {
-
-std::vector<Expr> ExportTo(ExprManager* exprManager,
-                           ExprManagerMapCollection& variableMap,
-                           const std::vector<Expr>& exprs)
-{
-  std::vector<Expr> exported;
-  exported.reserve(exprs.size());
-  for (const Expr& expr : exprs)
-  {
-    exported.push_back(expr.exportTo(exprManager, variableMap));
-  }
-  return exported;
-}
-
-}  // namespace
-
 const int CommandPrintSuccess::s_iosIndex = std::ios_base::xalloc();
 const CommandSuccess* CommandSuccess::s_instance = new CommandSuccess();
 const CommandInterrupted* CommandInterrupted::s_instance =

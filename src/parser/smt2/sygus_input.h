@@ -72,11 +72,11 @@ class SygusInput : public AntlrInput {
 
   /**
    * Parse an expression from the input. Returns a null
-   * <code>Expr</code> if there is no expression there to parse.
+   * <code>api::Term</code> if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr() override;
+  api::Term parseExpr() override;
 
 };/* class SygusInput */
 

@@ -122,9 +122,9 @@ void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   }
 }
 
-void TheoryBV::spendResource(unsigned amount)
+void TheoryBV::spendResource(ResourceManager::Resource r)
 {
-  getOutputChannel().spendResource(amount);
+  getOutputChannel().spendResource(r);
 }
 
 TheoryBV::Statistics::Statistics():

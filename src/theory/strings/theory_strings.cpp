@@ -74,31 +74,20 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_im(*this, c, u, d_state, d_sk_cache, out),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
-      d_preproc(&d_sk_cache, u),
-      d_extf_infer_cache(c),
       d_functionsTerms(c),
-      d_has_extf(c, false),
       d_has_str_code(false),
       d_bsolver(c, u, d_state, d_im),
       d_csolver(c, u, d_state, d_im, d_sk_cache, d_bsolver),
-      d_regexp_solver(*this, d_state, d_im, c, u),
+      d_esolver(nullptr),
+      d_rsolver(nullptr),
       d_stringsFmf(c, u, valuation, d_sk_cache),
       d_strategy_init(false)
 {
   setupExtTheory();
-  getExtTheory()->addFunctionKind(kind::STRING_SUBSTR);
-  getExtTheory()->addFunctionKind(kind::STRING_STRIDOF);
-  getExtTheory()->addFunctionKind(kind::STRING_ITOS);
-  getExtTheory()->addFunctionKind(kind::STRING_STOI);
-  getExtTheory()->addFunctionKind(kind::STRING_STRREPL);
-  getExtTheory()->addFunctionKind(kind::STRING_STRREPLALL);
-  getExtTheory()->addFunctionKind(kind::STRING_STRCTN);
-  getExtTheory()->addFunctionKind(kind::STRING_IN_REGEXP);
-  getExtTheory()->addFunctionKind(kind::STRING_LEQ);
-  getExtTheory()->addFunctionKind(kind::STRING_CODE);
-  getExtTheory()->addFunctionKind(kind::STRING_TOLOWER);
-  getExtTheory()->addFunctionKind(kind::STRING_TOUPPER);
-  getExtTheory()->addFunctionKind(kind::STRING_REV);
+  ExtTheory* extt = getExtTheory();
+  d_esolver.reset(new ExtfSolver(
+      c, u, d_state, d_im, d_sk_cache, d_bsolver, d_csolver, extt));
+  d_rsolver.reset(new RegExpSolver(*this, d_state, d_im, *d_esolver, c, u));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
@@ -126,7 +115,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
-  d_card_size = TheoryStringsRewriter::getAlphabetCardinality();
+  d_cardSize = utils::getAlphabetCardinality();
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -221,168 +210,8 @@ bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& var
   for( unsigned i=0; i<vars.size(); i++ ){
     Node n = vars[i];
     Trace("strings-subs") << "  get subs for " << n << "..." << std::endl;
-    Node s = getCurrentSubstitutionFor(effort, n, exp[n]);
+    Node s = d_esolver->getCurrentSubstitutionFor(effort, n, exp[n]);
     subs.push_back(s);
-  }
-  return true;
-}
-
-Node TheoryStrings::getCurrentSubstitutionFor(int effort,
-                                              Node n,
-                                              std::vector<Node>& exp)
-{
-  if (effort >= 3)
-  {
-    // model values
-    Node mv = d_valuation.getModel()->getRepresentative(n);
-    Trace("strings-subs") << "   model val : " << mv << std::endl;
-    return mv;
-  }
-  Node nr = d_state.getRepresentative(n);
-  Node c = d_bsolver.explainConstantEqc(n, nr, exp);
-  if (!c.isNull())
-  {
-    return c;
-  }
-  else if (effort >= 1 && n.getType().isString())
-  {
-    Assert(effort < 3);
-    // normal forms
-    NormalForm& nfnr = d_csolver.getNormalForm(nr);
-    Node ns = d_csolver.getNormalString(nfnr.d_base, exp);
-    Trace("strings-subs") << "   normal eqc : " << ns << " " << nfnr.d_base
-                          << " " << nr << std::endl;
-    if (!nfnr.d_base.isNull())
-    {
-      d_im.addToExplanation(n, nfnr.d_base, exp);
-    }
-    return ns;
-  }
-  return n;
-}
-
-bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
-{
-  Assert(d_extf_info_tmp.find(n) != d_extf_info_tmp.end());
-  if (!d_extf_info_tmp[n].d_model_active)
-  {
-    // n is not active in the model, no need to reduce
-    return false;
-  }
-  //determine the effort level to process the extf at
-  // 0 - at assertion time, 1+ - after no other reduction is applicable
-  int r_effort = -1;
-  // polarity : 1 true, -1 false, 0 neither
-  int pol = 0;
-  Kind k = n.getKind();
-  if (n.getType().isBoolean() && !d_extf_info_tmp[n].d_const.isNull())
-  {
-    pol = d_extf_info_tmp[n].d_const.getConst<bool>() ? 1 : -1;
-  }
-  if (k == STRING_STRCTN)
-  {
-    if (pol == 1)
-    {
-      r_effort = 1;
-    }
-    else if (pol == -1)
-    {
-      if (effort == 2)
-      {
-        Node x = n[0];
-        Node s = n[1];
-        std::vector<Node> lexp;
-        Node lenx = d_state.getLength(x, lexp);
-        Node lens = d_state.getLength(s, lexp);
-        if (d_state.areEqual(lenx, lens))
-        {
-          Trace("strings-extf-debug")
-              << "  resolve extf : " << n
-              << " based on equal lengths disequality." << std::endl;
-          // We can reduce negative contains to a disequality when lengths are
-          // equal. In other words, len( x ) = len( s ) implies
-          //   ~contains( x, s ) reduces to x != s.
-          if (!d_state.areDisequal(x, s))
-          {
-            // len( x ) = len( s ) ^ ~contains( x, s ) => x != s
-            lexp.push_back(lenx.eqNode(lens));
-            lexp.push_back(n.negate());
-            Node xneqs = x.eqNode(s).negate();
-            d_im.sendInference(lexp, xneqs, "NEG-CTN-EQL", true);
-          }
-          // this depends on the current assertions, so we set that this
-          // inference is context-dependent.
-          isCd = true;
-          return true;
-        }
-        else
-        {
-          r_effort = 2;
-        }
-      }
-    }
-  }
-  else
-  {
-    if (k == STRING_SUBSTR)
-    {
-      r_effort = 1;
-    }
-    else if (k != STRING_IN_REGEXP)
-    {
-      r_effort = 2;
-    }
-  }
-  if (effort != r_effort)
-  {
-    // not the right effort level to reduce
-    return false;
-  }
-  Node c_n = pol == -1 ? n.negate() : n;
-  Trace("strings-process-debug")
-      << "Process reduction for " << n << ", pol = " << pol << std::endl;
-  if (k == STRING_STRCTN && pol == 1)
-  {
-    Node x = n[0];
-    Node s = n[1];
-    // positive contains reduces to a equality
-    Node sk1 =
-        d_sk_cache.mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
-    Node sk2 =
-        d_sk_cache.mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
-    Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
-    std::vector<Node> exp_vec;
-    exp_vec.push_back(n);
-    d_im.sendInference(d_empty_vec, exp_vec, eq, "POS-CTN", true);
-    Trace("strings-extf-debug")
-        << "  resolve extf : " << n << " based on positive contain reduction."
-        << std::endl;
-    Trace("strings-red-lemma") << "Reduction (positive contains) lemma : " << n
-                               << " => " << eq << std::endl;
-    // context-dependent because it depends on the polarity of n itself
-    isCd = true;
-  }
-  else if (k != kind::STRING_CODE)
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
-           || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL
-           || k == STRING_STRREPLALL || k == STRING_LEQ || k == STRING_TOLOWER
-           || k == STRING_TOUPPER || k == STRING_REV);
-    std::vector<Node> new_nodes;
-    Node res = d_preproc.simplify(n, new_nodes);
-    Assert(res != n);
-    new_nodes.push_back(res.eqNode(n));
-    Node nnlem =
-        new_nodes.size() == 1 ? new_nodes[0] : nm->mkNode(AND, new_nodes);
-    nnlem = Rewriter::rewrite(nnlem);
-    Trace("strings-red-lemma")
-        << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
-    Trace("strings-red-lemma") << "...from " << n << std::endl;
-    d_im.sendInference(d_empty_vec, nnlem, "Reduction", true);
-    Trace("strings-extf-debug")
-        << "  resolve extf : " << n << " based on reduction." << std::endl;
-    isCd = false;
   }
   return true;
 }
@@ -724,7 +553,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
             std::vector<unsigned> vec = n.getConst<String>().getVec();
             for (unsigned u : vec)
             {
-              if (u >= d_card_size)
+              if (u >= d_cardSize)
               {
                 std::stringstream ss;
                 ss << "Characters in string \"" << n
@@ -880,64 +709,9 @@ void TheoryStrings::check(Effort e) {
 
 bool TheoryStrings::needsCheckLastEffort() {
   if( options::stringGuessModel() ){
-    return d_has_extf.get();
-  }else{
-    return false;
+    return d_esolver->hasExtendedFunctions();
   }
-}
-
-void TheoryStrings::checkExtfReductions( int effort ) {
-  // Notice we don't make a standard call to ExtTheory::doReductions here,
-  // since certain optimizations like context-dependent reductions and
-  // stratifying effort levels are done in doReduction below.
-  std::vector< Node > extf = getExtTheory()->getActive();
-  Trace("strings-process") << "  checking " << extf.size() << " active extf"
-                           << std::endl;
-  for( unsigned i=0; i<extf.size(); i++ ){
-    Assert(!d_state.isInConflict());
-    Node n = extf[i];
-    Trace("strings-process") << "  check " << n << ", active in model="
-                             << d_extf_info_tmp[n].d_model_active << std::endl;
-    // whether the reduction was context-dependent
-    bool isCd = false;
-    bool ret = doReduction(effort, n, isCd);
-    if (ret)
-    {
-      getExtTheory()->markReduced(extf[i], isCd);
-      if (d_im.hasProcessed())
-      {
-        return;
-      }
-    }
-  }
-}
-
-void TheoryStrings::checkMemberships()
-{
-  // add the memberships
-  std::vector<Node> mems = getExtTheory()->getActive(kind::STRING_IN_REGEXP);
-  // maps representatives to regular expression memberships in that class
-  std::map<Node, std::vector<Node> > assertedMems;
-  for (unsigned i = 0; i < mems.size(); i++)
-  {
-    Node n = mems[i];
-    Assert(n.getKind() == STRING_IN_REGEXP);
-    Assert(d_extf_info_tmp.find(n) != d_extf_info_tmp.end());
-    if (!d_extf_info_tmp[n].d_const.isNull())
-    {
-      bool pol = d_extf_info_tmp[n].d_const.getConst<bool>();
-      Trace("strings-process-debug")
-          << "  add membership : " << n << ", pol = " << pol << std::endl;
-      Node r = d_state.getRepresentative(n[0]);
-      assertedMems[r].push_back(pol ? n : n.negate());
-    }
-    else
-    {
-      Trace("strings-process-debug")
-          << "  irrelevant (non-asserted) membership : " << n << std::endl;
-    }
-  }
-  d_regexp_solver.check(assertedMems);
+  return false;
 }
 
 /** Conflict when merging two constants */
@@ -953,52 +727,15 @@ void TheoryStrings::conflict(TNode a, TNode b){
   }
 }
 
-/** called when a new equivalance class is created */
 void TheoryStrings::eqNotifyNewClass(TNode t){
   Kind k = t.getKind();
-  if (k == kind::STRING_LENGTH || k == kind::STRING_CODE)
+  if (k == STRING_LENGTH || k == STRING_CODE)
   {
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
-    Node r = d_equalityEngine.getRepresentative(t[0]);
-    EqcInfo* ei = d_state.getOrMakeEqcInfo(r);
-    if (k == kind::STRING_LENGTH)
-    {
-      ei->d_lengthTerm = t[0];
-    }
-    else
-    {
-      ei->d_codeTerm = t[0];
-    }
     //we care about the length of this string
     registerTerm( t[0], 1 );
-    return;
   }
-  else if (k == CONST_STRING)
-  {
-    EqcInfo* ei = d_state.getOrMakeEqcInfo(t);
-    ei->d_prefixC = t;
-    ei->d_suffixC = t;
-    return;
-  }
-  else if (k == STRING_CONCAT)
-  {
-    d_state.addEndpointsToEqcInfo(t, t, t);
-  }
-}
-
-/** called when two equivalance classes will merge */
-void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
-  d_state.eqNotifyPreMerge(t1, t2);
-}
-
-/** called when two equivalance classes have merged */
-void TheoryStrings::eqNotifyPostMerge(TNode t1, TNode t2) {
-
-}
-
-/** called when two equivalance classes are disequal */
-void TheoryStrings::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  d_state.eqNotifyDisequal(t1, t2, reason);
+  d_state.eqNotifyNewClass(t);
 }
 
 void TheoryStrings::addCarePairs(TNodeTrie* t1,
@@ -1156,377 +893,6 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   // make a similar call to registerTermRec in addSharedTerm.
   getExtTheory()->registerTermRec( atom );
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
-}
-
-void TheoryStrings::checkExtfEval( int effort ) {
-  Trace("strings-extf-list") << "Active extended functions, effort=" << effort << " : " << std::endl;
-  d_extf_info_tmp.clear();
-  NodeManager* nm = NodeManager::currentNM();
-  bool has_nreduce = false;
-  std::vector< Node > terms = getExtTheory()->getActive();
-  for (const Node& n : terms)
-  {
-    // Setup information about n, including if it is equal to a constant.
-    ExtfInfoTmp& einfo = d_extf_info_tmp[n];
-    Node r = d_state.getRepresentative(n);
-    einfo.d_const = d_bsolver.getConstantEqc(r);
-    // Get the current values of the children of n.
-    // Notice that we look up the value of the direct children of n, and not
-    // their free variables. In other words, given a term:
-    //   t = (str.replace "B" (str.replace x "A" "B") "C")
-    // we may build the explanation that:
-    //   ((str.replace x "A" "B") = "B") => t = (str.replace "B" "B" "C")
-    // instead of basing this on the free variable x:
-    //   (x = "A") => t = (str.replace "B" (str.replace "A" "A" "B") "C")
-    // Although both allow us to infer t = "C", it is important to use the
-    // first kind of inference since it ensures that its subterms have the
-    // expected values. Otherwise, we may in rare cases fail to realize that
-    // the subterm (str.replace x "A" "B") does not currently have the correct
-    // value, say in this example that (str.replace x "A" "B") != "B".
-    std::vector<Node> exp;
-    std::vector<Node> schildren;
-    bool schanged = false;
-    for (const Node& nc : n)
-    {
-      Node sc = getCurrentSubstitutionFor(effort, nc, exp);
-      schildren.push_back(sc);
-      schanged = schanged || sc != nc;
-    }
-    // If there is information involving the children, attempt to do an
-    // inference and/or mark n as reduced.
-    Node to_reduce;
-    if (schanged)
-    {
-      Node sn = nm->mkNode(n.getKind(), schildren);
-      Trace("strings-extf-debug")
-          << "Check extf " << n << " == " << sn
-          << ", constant = " << einfo.d_const << ", effort=" << effort << "..."
-          << std::endl;
-      einfo.d_exp.insert(einfo.d_exp.end(), exp.begin(), exp.end());
-      // inference is rewriting the substituted node
-      Node nrc = Rewriter::rewrite( sn );
-      //if rewrites to a constant, then do the inference and mark as reduced
-      if( nrc.isConst() ){
-        if( effort<3 ){
-          getExtTheory()->markReduced( n );
-          Trace("strings-extf-debug") << "  resolvable by evaluation..." << std::endl;
-          std::vector< Node > exps;
-          // The following optimization gets the "symbolic definition" of
-          // an extended term. The symbolic definition of a term t is a term
-          // t' where constants are replaced by their corresponding proxy
-          // variables.
-          // For example, if lsym is a proxy variable for "", then
-          // str.replace( lsym, lsym, lsym ) is the symbolic definition for
-          // str.replace( "", "", "" ). It is generally better to use symbolic
-          // definitions when doing cd-rewriting for the purpose of minimizing
-          // clauses, e.g. we infer the unit equality:
-          //    str.replace( lsym, lsym, lsym ) == ""
-          // instead of making this inference multiple times:
-          //    x = "" => str.replace( x, x, x ) == ""
-          //    y = "" => str.replace( y, y, y ) == ""
-          Trace("strings-extf-debug") << "  get symbolic definition..." << std::endl;
-          Node nrs;
-          // only use symbolic definitions if option is set
-          if (options::stringInferSym())
-          {
-            nrs = d_im.getSymbolicDefinition(sn, exps);
-          }
-          if( !nrs.isNull() ){
-            Trace("strings-extf-debug") << "  rewrite " << nrs << "..." << std::endl;
-            Node nrsr = Rewriter::rewrite(nrs);
-            // ensure the symbolic form is not rewritable
-            if (nrsr != nrs)
-            {
-              // we cannot use the symbolic definition if it rewrites
-              Trace("strings-extf-debug") << "  symbolic definition is trivial..." << std::endl;
-              nrs = Node::null();
-            }
-          }else{
-            Trace("strings-extf-debug") << "  could not infer symbolic definition." << std::endl;
-          }
-          Node conc;
-          if( !nrs.isNull() ){
-            Trace("strings-extf-debug") << "  symbolic def : " << nrs << std::endl;
-            if (!d_state.areEqual(nrs, nrc))
-            {
-              //infer symbolic unit
-              if( n.getType().isBoolean() ){
-                conc = nrc==d_true ? nrs : nrs.negate();
-              }else{
-                conc = nrs.eqNode( nrc );
-              }
-              einfo.d_exp.clear();
-            }
-          }else{
-            if (!d_state.areEqual(n, nrc))
-            {
-              if( n.getType().isBoolean() ){
-                if (d_state.areEqual(n, nrc == d_true ? d_false : d_true))
-                {
-                  einfo.d_exp.push_back(nrc == d_true ? n.negate() : n);
-                  conc = d_false;
-                }
-                else
-                {
-                  conc = nrc==d_true ? n : n.negate();
-                }
-              }else{
-                conc = n.eqNode( nrc );
-              }
-            }
-          }
-          if( !conc.isNull() ){
-            Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc << std::endl;
-            d_im.sendInference(
-                einfo.d_exp, conc, effort == 0 ? "EXTF" : "EXTF-N", true);
-            if (d_state.isInConflict())
-            {
-              Trace("strings-extf-debug") << "  conflict, return." << std::endl;
-              return;
-            }
-          }
-        }else{
-          //check if it is already equal, if so, mark as reduced. Otherwise, do nothing.
-          if (d_state.areEqual(n, nrc))
-          {
-            Trace("strings-extf") << "  resolved extf, since satisfied by model: " << n << std::endl;
-            einfo.d_model_active = false;
-          }
-        }
-      }
-      else
-      {
-        // if this was a predicate which changed after substitution + rewriting
-        if (!einfo.d_const.isNull() && nrc.getType().isBoolean() && nrc != n)
-        {
-          bool pol = einfo.d_const == d_true;
-          Node nrcAssert = pol ? nrc : nrc.negate();
-          Node nAssert = pol ? n : n.negate();
-          Assert(effort < 3);
-          einfo.d_exp.push_back(nAssert);
-          Trace("strings-extf-debug") << "  decomposable..." << std::endl;
-          Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
-                                << ", const = " << einfo.d_const << std::endl;
-          // We send inferences internal here, which may help show unsat.
-          // However, we do not make a determination whether n can be marked
-          // reduced since this argument may be circular: we may infer than n
-          // can be reduced to something else, but that thing may argue that it
-          // can be reduced to n, in theory.
-          d_im.sendInternalInference(
-              einfo.d_exp, nrcAssert, effort == 0 ? "EXTF_d" : "EXTF_d-N");
-        }
-        to_reduce = nrc;
-      }
-    }
-    else
-    {
-      to_reduce = n;
-    }
-    //if not reduced
-    if( !to_reduce.isNull() ){
-      Assert(effort < 3);
-      if( effort==1 ){
-        Trace("strings-extf") << "  cannot rewrite extf : " << to_reduce << std::endl;
-      }
-      checkExtfInference(n, to_reduce, einfo, effort);
-      if( Trace.isOn("strings-extf-list") ){
-        Trace("strings-extf-list") << "  * " << to_reduce;
-        if (!einfo.d_const.isNull())
-        {
-          Trace("strings-extf-list") << ", const = " << einfo.d_const;
-        }
-        if( n!=to_reduce ){
-          Trace("strings-extf-list") << ", from " << n;
-        }
-        Trace("strings-extf-list") << std::endl;
-      }
-      if (getExtTheory()->isActive(n) && einfo.d_model_active)
-      {
-        has_nreduce = true;
-      }
-    }
-  }
-  d_has_extf = has_nreduce;
-}
-
-void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort ){
-  if (in.d_const.isNull())
-  {
-    return;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  Trace("strings-extf-infer") << "checkExtfInference: " << n << " : " << nr
-                              << " == " << in.d_const << std::endl;
-
-  // add original to explanation
-  if (n.getType().isBoolean())
-  {
-    // if Boolean, it's easy
-    in.d_exp.push_back(in.d_const.getConst<bool>() ? n : n.negate());
-  }
-  else
-  {
-    // otherwise, must explain via base node
-    Node r = d_state.getRepresentative(n);
-    // explain using the base solver
-    d_bsolver.explainConstantEqc(n, r, in.d_exp);
-  }
-
-  // d_extf_infer_cache stores whether we have made the inferences associated
-  // with a node n,
-  // this may need to be generalized if multiple inferences apply
-
-  if (nr.getKind() == STRING_STRCTN)
-  {
-    Assert(in.d_const.isConst());
-    bool pol = in.d_const.getConst<bool>();
-    if ((pol && nr[1].getKind() == STRING_CONCAT)
-        || (!pol && nr[0].getKind() == STRING_CONCAT))
-    {
-      // If str.contains( x, str.++( y1, ..., yn ) ),
-      //   we may infer str.contains( x, y1 ), ..., str.contains( x, yn )
-      // The following recognizes two situations related to the above reasoning:
-      // (1) If ~str.contains( x, yi ) holds for some i, we are in conflict,
-      // (2) If str.contains( x, yj ) already holds for some j, then the term
-      // str.contains( x, yj ) is irrelevant since it is satisfied by all models
-      // for str.contains( x, str.++( y1, ..., yn ) ).
-
-      // Notice that the dual of the above reasoning also holds, i.e.
-      // If ~str.contains( str.++( x1, ..., xn ), y ),
-      //   we may infer ~str.contains( x1, y ), ..., ~str.contains( xn, y )
-      // This is also handled here.
-      if (d_extf_infer_cache.find(nr) == d_extf_infer_cache.end())
-      {
-        d_extf_infer_cache.insert(nr);
-
-        int index = pol ? 1 : 0;
-        std::vector<Node> children;
-        children.push_back(nr[0]);
-        children.push_back(nr[1]);
-        for (const Node& nrc : nr[index])
-        {
-          children[index] = nrc;
-          Node conc = nm->mkNode(STRING_STRCTN, children);
-          conc = Rewriter::rewrite(pol ? conc : conc.negate());
-          // check if it already (does not) hold
-          if (d_state.hasTerm(conc))
-          {
-            if (d_state.areEqual(conc, d_false))
-            {
-              // we are in conflict
-              d_im.sendInference(in.d_exp, conc, "CTN_Decompose");
-            }
-            else if (getExtTheory()->hasFunctionKind(conc.getKind()))
-            {
-              // can mark as reduced, since model for n implies model for conc
-              getExtTheory()->markReduced(conc);
-            }
-          }
-        }
-      }
-    }
-    else
-    {
-      if (std::find(d_extf_info_tmp[nr[0]].d_ctn[pol].begin(),
-                    d_extf_info_tmp[nr[0]].d_ctn[pol].end(),
-                    nr[1])
-          == d_extf_info_tmp[nr[0]].d_ctn[pol].end())
-      {
-        Trace("strings-extf-debug") << "  store contains info : " << nr[0]
-                                    << " " << pol << " " << nr[1] << std::endl;
-        // Store s (does not) contains t, since nr = (~)contains( s, t ) holds.
-        d_extf_info_tmp[nr[0]].d_ctn[pol].push_back(nr[1]);
-        d_extf_info_tmp[nr[0]].d_ctn_from[pol].push_back(n);
-        // Do transistive closure on contains, e.g.
-        // if contains( s, t ) and ~contains( s, r ), then ~contains( t, r ).
-
-        // The following infers new (negative) contains based on the above
-        // reasoning, provided that ~contains( t, r ) does not
-        // already hold in the current context. We test this by checking that
-        // contains( t, r ) is not already asserted false in the current
-        // context. We also handle the case where contains( t, r ) is equivalent
-        // to t = r, in which case we check that t != r does not already hold
-        // in the current context.
-
-        // Notice that form of the above inference is enough to find
-        // conflicts purely due to contains predicates. For example, if we
-        // have only positive occurrences of contains, then no conflicts due to
-        // contains predicates are possible and this schema does nothing. For
-        // example, note that contains( s, t ) and contains( t, r ) implies
-        // contains( s, r ), which we could but choose not to infer. Instead,
-        // we prefer being lazy: only if ~contains( s, r ) appears later do we
-        // infer ~contains( t, r ), which suffices to show a conflict.
-        bool opol = !pol;
-        for (unsigned i = 0, size = d_extf_info_tmp[nr[0]].d_ctn[opol].size();
-             i < size;
-             i++)
-        {
-          Node onr = d_extf_info_tmp[nr[0]].d_ctn[opol][i];
-          Node concOrig =
-              nm->mkNode(STRING_STRCTN, pol ? nr[1] : onr, pol ? onr : nr[1]);
-          Node conc = Rewriter::rewrite(concOrig);
-          // For termination concerns, we only do the inference if the contains
-          // does not rewrite (and thus does not introduce new terms).
-          if (conc == concOrig)
-          {
-            bool do_infer = false;
-            conc = conc.negate();
-            bool pol = conc.getKind() != NOT;
-            Node lit = pol ? conc : conc[0];
-            if (lit.getKind() == EQUAL)
-            {
-              do_infer = pol ? !d_state.areEqual(lit[0], lit[1])
-                             : !d_state.areDisequal(lit[0], lit[1]);
-            }
-            else
-            {
-              do_infer = !d_state.areEqual(lit, pol ? d_true : d_false);
-            }
-            if (do_infer)
-            {
-              std::vector<Node> exp_c;
-              exp_c.insert(exp_c.end(), in.d_exp.begin(), in.d_exp.end());
-              Node ofrom = d_extf_info_tmp[nr[0]].d_ctn_from[opol][i];
-              Assert(d_extf_info_tmp.find(ofrom) != d_extf_info_tmp.end());
-              exp_c.insert(exp_c.end(),
-                           d_extf_info_tmp[ofrom].d_exp.begin(),
-                           d_extf_info_tmp[ofrom].d_exp.end());
-              d_im.sendInference(exp_c, conc, "CTN_Trans");
-            }
-          }
-        }
-      }
-      else
-      {
-        // If we already know that s (does not) contain t, then n is redundant.
-        // For example, if str.contains( x, y ), str.contains( z, y ), and x=z
-        // are asserted in the current context, then str.contains( z, y ) is
-        // satisfied by all models of str.contains( x, y ) ^ x=z and thus can
-        // be ignored.
-        Trace("strings-extf-debug") << "  redundant." << std::endl;
-        getExtTheory()->markReduced(n);
-      }
-    }
-    return;
-  }
-
-  // If it's not a predicate, see if we can solve the equality n = c, where c
-  // is the constant that extended term n is equal to.
-  Node inferEq = nr.eqNode(in.d_const);
-  Node inferEqr = Rewriter::rewrite(inferEq);
-  Node inferEqrr = inferEqr;
-  if (inferEqr.getKind() == EQUAL)
-  {
-    // try to use the extended rewriter for equalities
-    inferEqrr = TheoryStringsRewriter::rewriteEqualityExt(inferEqr);
-  }
-  if (inferEqrr != inferEqr)
-  {
-    inferEqrr = Rewriter::rewrite(inferEqrr);
-    Trace("strings-extf-infer") << "checkExtfInference: " << inferEq
-                                << " ...reduces to " << inferEqrr << std::endl;
-    d_im.sendInternalInference(in.d_exp, inferEqrr, "EXTF_equality_rew");
-  }
 }
 
 void TheoryStrings::checkRegisterTermsPreNormalForm()
@@ -1700,110 +1066,6 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-void TheoryStrings::checkCardinality() {
-  //int cardinality = options::stringCharCardinality();
-  //Trace("strings-solve-debug2") << "get cardinality: " << cardinality << endl;
-
-  //AJR: this will create a partition of eqc, where each collection has length that are pairwise propagated to be equal.
-  //  we do not require disequalities between the lengths of each collection, since we split on disequalities between lengths of string terms that are disequal (DEQ-LENGTH-SP).
-  //  TODO: revisit this?
-  const std::vector<Node>& seqc = d_bsolver.getStringEqc();
-  std::vector< std::vector< Node > > cols;
-  std::vector< Node > lts;
-  d_state.separateByLength(seqc, cols, lts);
-
-  Trace("strings-card") << "Check cardinality...." << std::endl;
-  for( unsigned i = 0; i<cols.size(); ++i ) {
-    Node lr = lts[i];
-    Trace("strings-card") << "Number of strings with length equal to " << lr << " is " << cols[i].size() << std::endl;
-    if( cols[i].size() > 1 ) {
-      // size > c^k
-      unsigned card_need = 1;
-      double curr = (double)cols[i].size();
-      while( curr>d_card_size ){
-        curr = curr/(double)d_card_size;
-        card_need++;
-      }
-      Trace("strings-card") << "Need length " << card_need << " for this number of strings (where alphabet size is " << d_card_size << ")." << std::endl;
-      //check if we need to split
-      bool needsSplit = true;
-      if( lr.isConst() ){
-        // if constant, compare
-        Node cmp = NodeManager::currentNM()->mkNode( kind::GEQ, lr, NodeManager::currentNM()->mkConst( Rational( card_need ) ) );
-        cmp = Rewriter::rewrite( cmp );
-        needsSplit = cmp!=d_true;
-      }else{
-        // find the minimimum constant that we are unknown to be disequal from, or otherwise stop if we increment such that cardinality does not apply
-        unsigned r=0; 
-        bool success = true;
-        while( r<card_need && success ){
-          Node rr = NodeManager::currentNM()->mkConst<Rational>( Rational(r) );
-          if (d_state.areDisequal(rr, lr))
-          {
-            r++;
-          }
-          else
-          {
-            success = false;
-          }
-        }
-        if( r>0 ){
-          Trace("strings-card") << "Symbolic length " << lr << " must be at least " << r << " due to constant disequalities." << std::endl;
-        }
-        needsSplit = r<card_need;
-      }
-
-      if( needsSplit ){
-        unsigned int int_k = (unsigned int)card_need;
-        for( std::vector< Node >::iterator itr1 = cols[i].begin();
-            itr1 != cols[i].end(); ++itr1) {
-          for( std::vector< Node >::iterator itr2 = itr1 + 1;
-            itr2 != cols[i].end(); ++itr2) {
-            if (!d_state.areDisequal(*itr1, *itr2))
-            {
-              // add split lemma
-              if (d_im.sendSplit(*itr1, *itr2, "CARD-SP"))
-              {
-                return;
-              }
-            }
-          }
-        }
-        EqcInfo* ei = d_state.getOrMakeEqcInfo(lr, true);
-        Trace("strings-card")
-            << "Previous cardinality used for " << lr << " is "
-            << ((int)ei->d_cardinalityLemK.get() - 1) << std::endl;
-        if (int_k + 1 > ei->d_cardinalityLemK.get())
-        {
-          Node k_node = NodeManager::currentNM()->mkConst( ::CVC4::Rational( int_k ) );
-          //add cardinality lemma
-          Node dist = NodeManager::currentNM()->mkNode( kind::DISTINCT, cols[i] );
-          std::vector< Node > vec_node;
-          vec_node.push_back( dist );
-          for( std::vector< Node >::iterator itr1 = cols[i].begin();
-              itr1 != cols[i].end(); ++itr1) {
-            Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, *itr1 );
-            if( len!=lr ) {
-              Node len_eq_lr = len.eqNode(lr);
-              vec_node.push_back( len_eq_lr );
-            }
-          }
-          Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, cols[i][0] );
-          Node cons = NodeManager::currentNM()->mkNode( kind::GEQ, len, k_node );
-          cons = Rewriter::rewrite( cons );
-          ei->d_cardinalityLemK.set(int_k + 1);
-          if( cons!=d_true ){
-            d_im.sendInference(
-                d_empty_vec, vec_node, cons, "CARDINALITY", true);
-            return;
-          }
-        }
-      }
-    }
-  }
-  Trace("strings-card") << "...end check cardinality" << std::endl;
-}
-
 Node TheoryStrings::ppRewrite(TNode atom) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Node atomElim;
@@ -1822,7 +1084,8 @@ Node TheoryStrings::ppRewrite(TNode atom) {
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
-    Node ret = d_preproc.processAssertion( atom, new_nodes );
+    StringsPreprocess* p = d_esolver->getPreprocess();
+    Node ret = p->processAssertion(atom, new_nodes);
     if( ret!=atom ){
       Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
       for( unsigned i=0; i<new_nodes.size(); i++ ){
@@ -1870,7 +1133,7 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
   {
     case CHECK_INIT: d_bsolver.checkInit(); break;
     case CHECK_CONST_EQC: d_bsolver.checkConstantEquivalenceClasses(); break;
-    case CHECK_EXTF_EVAL: checkExtfEval(effort); break;
+    case CHECK_EXTF_EVAL: d_esolver->checkExtfEval(effort); break;
     case CHECK_CYCLES: d_csolver.checkCycles(); break;
     case CHECK_FLAT_FORMS: d_csolver.checkFlatForms(); break;
     case CHECK_REGISTER_TERMS_PRE_NF: checkRegisterTermsPreNormalForm(); break;
@@ -1879,9 +1142,9 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_CODES: checkCodes(); break;
     case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
-    case CHECK_EXTF_REDUCTION: checkExtfReductions(effort); break;
-    case CHECK_MEMBERSHIP: checkMemberships(); break;
-    case CHECK_CARDINALITY: checkCardinality(); break;
+    case CHECK_EXTF_REDUCTION: d_esolver->checkExtfReductions(effort); break;
+    case CHECK_MEMBERSHIP: d_rsolver->checkMemberships(); break;
+    case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;
   }
   Trace("strings-process") << "Done " << s
