@@ -109,6 +109,7 @@ set(regress_0_tests
   regress0/aufbv/fuzz13.smtv1.smt2
   regress0/aufbv/fuzz14.smtv1.smt2
   regress0/aufbv/fuzz15.smtv1.smt2
+  regress0/aufbv/issue3737.smt2
   regress0/aufbv/rewrite_bug.smtv1.smt2
   regress0/aufbv/try3_sameret_functions_fse-bfs_tac.calc_next.il.fse-bfs.delta01.smtv1.smt2
   regress0/aufbv/try5_small_difret_functions_wp_su.set_char_quoting.il.wp.delta01.smtv1.smt2
@@ -203,6 +204,15 @@ set(regress_0_tests
   regress0/bv/bv-options4.smt2
   regress0/bv/bv-to-bool1.smtv1.smt2
   regress0/bv/bv-to-bool2.smt2
+  regress0/bv/bv_to_int1.smt2
+  regress0/bv/bv_to_int2.smt2
+  regress0/bv/bv_to_int_bvmul1.smt2
+  regress0/bv/bv_to_int_bvmul2.smt2
+  regress0/bv/bv_to_int_zext.smt2
+  regress0/bv/bv_to_int_bitwise.smt2
+  regress0/bv/bvuf_to_intuf.smt2
+  regress0/bv/bvuf_to_intuf_smtlib.smt2
+  regress0/bv/bvuf_to_intuf_sorts.smt2
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bvmul-pow2-only.smt2
@@ -1190,6 +1200,7 @@ set(regress_1_tests
   regress1/bv/fuzz34.smtv1.smt2
   regress1/bv/fuzz38.smtv1.smt2
   regress1/bv/issue3654.smt2
+  regress1/bv/issue3776.smt2
   regress1/bv/test-bv-abstraction.smt2
   regress1/bv/unsound1.smt2
   regress1/bvdiv2.smt2
@@ -1296,6 +1307,7 @@ set(regress_1_tests
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
+  regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
   regress1/nl/issue3656.smt2
@@ -1922,6 +1934,8 @@ set(regress_2_tests
   regress2/bug674.smt2
   regress2/bug765.smt2
   regress2/bug812.smt2
+  regress2/bv_to_int_ashr.smt2
+  regress2/bv_to_int_shifts.smt2
   regress2/error0.smt2
   regress2/error1.smtv1.smt2
   regress2/friedman_n4_i5.smtv1.smt2
@@ -2007,6 +2021,7 @@ set(regress_3_tests
   regress3/bmc-ibm-2.smtv1.smt2
   regress3/bmc-ibm-5.smtv1.smt2
   regress3/bmc-ibm-7.smtv1.smt2
+  regress3/bv_to_int_and_or.smt2
   regress3/eq_diamond14.smtv1.smt2
   regress3/friedman_n6_i4.smtv1.smt2
   regress3/hole9.cvc

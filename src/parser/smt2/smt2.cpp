@@ -172,7 +172,8 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
   // at the moment, we only use this syntax for smt2.6.1
-  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
+      || getLanguage() == language::input::LANG_SYGUS_V2)
   {
     addOperator(kind::STRING_ITOS, "str.from_int");
     addOperator(kind::STRING_STOI, "str.to_int");
@@ -931,6 +932,19 @@ void Smt2::includeFile(const std::string& filename) {
   if(!newInputStream(path, lexer)) {
     parseError("Couldn't open include file `" + path + "'");
   }
+}
+
+bool Smt2::isAbstractValue(const std::string& name)
+{
+  return name.length() >= 2 && name[0] == '@' && name[1] != '0'
+         && name.find_first_not_of("0123456789", 1) == std::string::npos;
+}
+
+Expr Smt2::mkAbstractValue(const std::string& name)
+{
+  assert(isAbstractValue(name));
+  // remove the '@'
+  return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
 }
 
 void Smt2::mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops ) {
@@ -1896,9 +1910,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
                || kind == kind::LEQ || kind == kind::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
-        api::Term ret =
-            mkChain(intToExtKind(kind), api::exprVectorToTerms(args));
-        return ret.getExpr();
+        return em->mkChain(kind, args);
       }
     }
 
