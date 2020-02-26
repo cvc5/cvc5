@@ -1850,11 +1850,10 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       return em->mkExpr(kind::UMINUS, args[0]);
     }
-    else
-    {
-      checkOperator(kind, args.size());
-      return em->mkExpr(kind, args);
-    }
+    api::Term ret = d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args));
+    Debug("parser") << "applyParseOp: return default builtin " << ret
+                    << std::endl;
+    return ret.getExpr();
   }
 
   if (args.size() >= 2)

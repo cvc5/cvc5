@@ -318,8 +318,7 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       return em->mkExpr(kind::UMINUS, args[0]);
     }
-    checkOperator(kind, args.size());
-    return em->mkExpr(kind, args);
+    return d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args)).getExpr();
   }
 
   // check if partially applied function, in this case we use HO_APPLY
