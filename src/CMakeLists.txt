@@ -253,10 +253,6 @@ libcvc4_add_sources(
   smt/update_ostream.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
-  smt_util/lemma_channels.cpp
-  smt_util/lemma_channels.h
-  smt_util/lemma_input_channel.h
-  smt_util/lemma_output_channel.h
   smt_util/nary_builder.cpp
   smt_util/nary_builder.h
   smt_util/node_visitor.h
