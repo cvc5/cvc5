@@ -2404,7 +2404,7 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
 
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
-  Assert(isDefinedIntKind(k));
+  Assert(isDefinedIntKind(k)) << "Not a defined internal kind : " << k << " " << kind;
 
   Term res;
   if (echildren.size() > 2)

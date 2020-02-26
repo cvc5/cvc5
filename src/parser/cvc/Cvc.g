@@ -1776,8 +1776,9 @@ postfixTerm[CVC4::api::Term& f]
     | LPAREN { args.push_back(f); }
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
-      // TODO: check arity
-      { api::Kind k = PARSER_STATE->getKindForFunction(args.front());
+      {
+        PARSER_STATE->checkFunctionLike(args.front());
+        api::Kind k = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
         Debug("parser") << "kind is " << k << std::endl;
         f = SOLVER->mkTerm(k,args);
