@@ -1660,9 +1660,9 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   // First phase: process the operator
   if (Debug.isOn("parser"))
   {
-    Debug("parser") << "Apply parse op to:" << std::endl;
-    Debug("parser") << "args has size " << args.size() << std::endl;
-    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
+    for (std::vector<Expr>::iterator i = args.begin(); i != args.end();
+         ++i)
     {
       Debug("parser") << "++ " << *i << std::endl;
     }
