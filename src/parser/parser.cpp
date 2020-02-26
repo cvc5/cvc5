@@ -588,6 +588,11 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     api::Datatype d = etyped.getDatatype();
     // lookup by name
     api::DatatypeConstructor dc = d.getConstructor(t.toString());
+    
+    if (!s.isDatatype())
+    {
+      parseError("Expected datatype type to ascribe to constructor");
+    }
 
     // type ascriptions that do not throw an error below only have an effect on
     // the node structure if this is a parametric datatype
@@ -603,16 +608,18 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
           em->mkConst(
               AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
           e));
-      // the type of t does not match the sort s by design, thus don't check
-      // below
-      return t;
     }
+    // the type of t does not match the sort s by design (constructor type
+    // vs datatype type), thus don't check below.
+    return t;
   }
   // otherwise, nothing to do
   // check that the type is correct
   if (t.getSort() != s)
   {
-    parseError("Type ascription not satisfied.");
+    std::stringstream ss;
+    ss << "Type ascription not satisfied, term " << t << " expected sort " << s << " but has sort " << t.getSort();
+    parseError(ss.str());
   }
   return t;
 }
