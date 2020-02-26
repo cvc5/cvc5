@@ -416,7 +416,7 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
         std::sort(c[j].begin(), c[j].end());
         for (const Node& cc : c[j])
         {
-          if (cc.getKind() == CONST_STRING)
+          if (cc.isConst())
           {
             // Count the number of `hchar`s in the string constant and make
             // sure that all chars are `hchar`s
@@ -1188,7 +1188,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
   switch( k ) {
     case kind::STRING_TO_REGEXP: {
       CVC4::String s2 = s.substr( index_start, s.size() - index_start );
-      if(r[0].getKind() == kind::CONST_STRING) {
+      if(r[0].isConst()) {
         return ( s2 == r[0].getConst<String>() );
       } else {
         Assert(false) << "RegExp contains variables";
@@ -1352,7 +1352,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
 
   if(r.getKind() == kind::REGEXP_EMPTY) {
     retNode = NodeManager::currentNM()->mkConst( false );
-  } else if(x.getKind()==kind::CONST_STRING && isConstRegExp(r)) {
+  } else if(x.isConst() && isConstRegExp(r)) {
     //test whether x in node[1]
     CVC4::String s = x.getConst<String>();
     retNode = NodeManager::currentNM()->mkConst( testConstStringInRegExp( s, 0, r ) );
@@ -1738,7 +1738,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 
 bool TheoryStringsRewriter::hasEpsilonNode(TNode node) {
   for(unsigned int i=0; i<node.getNumChildren(); i++) {
-    if(node[i].getKind() == kind::STRING_TO_REGEXP && node[i][0].getKind() == kind::CONST_STRING && node[i][0].getConst<String>().isEmptyString()) {
+    if(node[i].getKind() == kind::STRING_TO_REGEXP && node[i][0].isConst() && Word::isEmptyString(node[i][0])) {
       return true;
     }
   }
@@ -1783,7 +1783,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       else
       {
         start = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
-        if (start >= s.size())
+        if (start >= Word::getLength(node[0]))
         {
           // start beyond the end of the string
           Node ret = Word::mkEmptyWord(node.getType());
@@ -1805,7 +1805,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         uint32_t len =
             node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-        if (start + len > s.size())
+        if (start + len > Word::getLength(node[0]))
         {
           // take up to the end of the string
           Node ret = nm->mkConst(::CVC4::String(s.suffix(s.size() - start)));
@@ -4788,7 +4788,7 @@ Node TheoryStringsRewriter::checkEntailHomogeneousString(Node a)
   unsigned c = 0;
   for (const Node& ac : avec)
   {
-    if (ac.getKind() == CONST_STRING)
+    if (ac.isConst())
     {
       std::vector<unsigned> acv = ac.getConst<String>().getVec();
       for (unsigned cc : acv)
