@@ -1457,7 +1457,7 @@ void Constraint::assertionFringe(ConstraintCPVec& v){
           writePos++;
         }else{
           Assert(vi->hasTrichotomyProof() || vi->hasFarkasProof()
-                 || vi->hasIntHoleProof());
+                 || vi->hasIntHoleProof() || vi->hasIntTightenProof());
           AntecedentId p = vi->getEndAntecedent();
 
           ConstraintCP antecedent = antecedents[p];
@@ -1527,7 +1527,7 @@ Node Constraint::externalExplain(AssertionOrder order) const{
   }else if(hasEqualityEngineProof()){
     return d_database->eeExplain(this);
   }else{
-    Assert(hasFarkasProof() || hasIntHoleProof() || hasTrichotomyProof());
+    Assert(hasFarkasProof() || hasIntHoleProof() || hasIntTightenProof() || hasTrichotomyProof());
     Assert(!antecentListIsEmpty());
     //Force the selection of the layer above if the node is
     // assertedToTheTheory()!
