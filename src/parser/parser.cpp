@@ -562,6 +562,9 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
           em->mkConst(
               AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
           e));
+      // the type of t does not match the sort s by design, thus don't check
+      // below
+      return t;
     }
   }
   // otherwise, nothing to do
