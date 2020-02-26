@@ -1324,9 +1324,16 @@ void NonlinearExtension::check(Theory::Effort e) {
     // Otherwise, we will answer SAT. The values that we approximated are
     // recorded as approximations here.
     TheoryModel* tm = d_containing.getValuation().getModel();
-    for (std::pair<const Node, Node>& a : d_approximations)
+    for (std::pair<const Node, std::pair<Node, Node>>& a : d_approximations)
     {
-      tm->recordApproximation(a.first, a.second);
+      if (a.second.second.isNull())
+      {
+        tm->recordApproximation(a.first, a.second.first);
+      }
+      else
+      {
+        tm->recordApproximation(a.first, a.second.first, a.second.second);
+      }
     }
   }
 }

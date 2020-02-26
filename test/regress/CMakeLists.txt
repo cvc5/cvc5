@@ -1200,6 +1200,7 @@ set(regress_1_tests
   regress1/bv/fuzz34.smtv1.smt2
   regress1/bv/fuzz38.smtv1.smt2
   regress1/bv/issue3654.smt2
+  regress1/bv/issue3776.smt2
   regress1/bv/test-bv-abstraction.smt2
   regress1/bv/unsound1.smt2
   regress1/bvdiv2.smt2
@@ -1306,6 +1307,7 @@ set(regress_1_tests
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
+  regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
   regress1/nl/issue3647.smt2
@@ -1822,6 +1824,7 @@ set(regress_1_tests
   regress1/sygus/issue3644.smt2
   regress1/sygus/issue3648.smt2
   regress1/sygus/issue3649.sy
+  regress1/sygus/issue3802-default-consts.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy

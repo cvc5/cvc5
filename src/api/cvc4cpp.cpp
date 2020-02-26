@@ -2390,6 +2390,70 @@ Term Solver::mkTermFromKind(Kind kind) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  for (size_t i = 0, size = children.size(); i < size; ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !children[i].isNull(), "parameter term", children[i], i)
+        << "non-null term";
+  }
+
+  std::vector<Expr> echildren = termVectorToExprs(children);
+  CVC4::Kind k = extToIntKind(kind);
+  Assert(isDefinedIntKind(k));
+
+  Term res;
+  if (echildren.size() > 2)
+  {
+    if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
+        || kind == DIVISION || kind == BITVECTOR_XNOR || kind == HO_APPLY)
+    {
+      // left-associative, but CVC4 internally only supports 2 args
+      res = d_exprMgr->mkLeftAssociative(k, echildren);
+    }
+    else if (kind == IMPLIES)
+    {
+      // right-associative, but CVC4 internally only supports 2 args
+      res = d_exprMgr->mkRightAssociative(k, echildren);
+    }
+    else if (kind == EQUAL || kind == LT || kind == GT || kind == LEQ
+             || kind == GEQ)
+    {
+      // "chainable", but CVC4 internally only supports 2 args
+      res = d_exprMgr->mkChain(k, echildren);
+    }
+    else if (kind::isAssociative(k))
+    {
+      // mkAssociative has special treatment for associative operators with lots
+      // of children
+      res = d_exprMgr->mkAssociative(k, echildren);
+    }
+    else
+    {
+      // default case, must check kind
+      checkMkTerm(kind, children.size());
+      res = d_exprMgr->mkExpr(k, echildren);
+    }
+  }
+  else if (kind::isAssociative(k))
+  {
+    // associative case, same as above
+    res = d_exprMgr->mkAssociative(k, echildren);
+  }
+  else
+  {
+    // default case, same as above
+    checkMkTerm(kind, children.size());
+    res = d_exprMgr->mkExpr(k, echildren);
+  }
+
+  (void)res.d_expr->getType(true); /* kick off type checking */
+  return res;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 /* Helpers for converting vectors.                                            */
 /* .......................................................................... */
 
@@ -3142,43 +3206,13 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!child3.isNull(), child3) << "non-null term";
-  checkMkTerm(kind, 3);
-
-  std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
-  CVC4::Kind k = extToIntKind(kind);
-  Assert(isDefinedIntKind(k));
-  Term res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
-                                    : d_exprMgr->mkExpr(k, echildren);
-  (void)res.d_expr->getType(true); /* kick off type checking */
-  return res;
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  // need to use internal term call to check e.g. associative construction
+  return mkTermInternal(kind, std::vector<Term>{child1, child2, child3});
 }
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  for (size_t i = 0, size = children.size(); i < size; ++i)
-  {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !children[i].isNull(), "parameter term", children[i], i)
-        << "non-null term";
-  }
-  checkMkTerm(kind, children.size());
-
-  std::vector<Expr> echildren = termVectorToExprs(children);
-  CVC4::Kind k = extToIntKind(kind);
-  Assert(isDefinedIntKind(k));
-  Term res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
-                                    : d_exprMgr->mkExpr(k, echildren);
-  (void)res.d_expr->getType(true); /* kick off type checking */
-  return res;
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  return mkTermInternal(kind, children);
 }
 
 Term Solver::mkTerm(Op op) const
