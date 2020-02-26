@@ -538,6 +538,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     children[0] = applyTypeAscription(children[0], s);
     t = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, children);
   }
+  // !!! temporary until datatypes are refactored in the new API
   api::Sort etype = t.getSort();
   if (etype.isConstructor())
   {
