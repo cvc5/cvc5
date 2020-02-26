@@ -780,8 +780,7 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
       }
     }
   }
-  if (!preNode.isNull()
-      && (!preNode.isConst() || !Word::isEmpty(preNode)))
+  if (!preNode.isNull() && (!preNode.isConst() || !Word::isEmpty(preNode)))
   {
     node_vec.push_back( preNode );
   }
@@ -979,8 +978,8 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
     // ((R)*)* ---> R*
     return returnRewrite(node, node[0], "re-star-nested-star");
   }
-  else if (node[0].getKind() == STRING_TO_REGEXP
-           && node[0][0].isConst() && Word::isEmpty(node[0][0]))
+  else if (node[0].getKind() == STRING_TO_REGEXP && node[0][0].isConst()
+           && Word::isEmpty(node[0][0]))
   {
     // ("")* ---> ""
     return returnRewrite(node, node[0], "re-star-empty-string");
