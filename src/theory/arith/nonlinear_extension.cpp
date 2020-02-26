@@ -3107,20 +3107,15 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes(
       {
         Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
         unsigned prev = lemmas.size();
-        if (checkTfTangentPlanesFun(tf, d, lemmas))
+        if (checkTfTangentPlanesFun(tf, d, lemmas, lemSE))
         {
-          Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
-          unsigned prev = lemmas.size();
-          if (!checkTfTangentPlanesFun(tf, d, lemmas, lemSE))
-          {
-            Trace("nl-ext-tftp")
-                << "...fail, #lemmas = " << (lemmas.size() - prev) << std::endl;
-            break;
-          }
-          else
-          {
-            Trace("nl-ext-tftp") << "...success" << std::endl;
-          }
+          Trace("nl-ext-tftp")
+              << "...fail, #lemmas = " << (lemmas.size() - prev) << std::endl;
+          break;
+        }
+        else
+        {
+          Trace("nl-ext-tftp") << "...success" << std::endl;
         }
       }
     }
