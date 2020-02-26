@@ -42,8 +42,9 @@ namespace strings {
 enum RegExpConstType
 {
   // the regular expression doesn't contain variables or re.comp,
-  // re.allchar or re.range. Notice that re.comp is grouped in this
-  // case since it can be seen as indirectly defined in terms of re.allchar.
+  // re.allchar or re.range (call these three operators "non-concrete
+  // operators"). Notice that re.comp is a non-concrete operator
+  // since it can be seen as indirectly defined in terms of re.allchar.
   RE_C_CONRETE_CONSTANT,
   // the regular expression doesn't contain variables, but may contain
   // re.comp, re.allchar or re.range
