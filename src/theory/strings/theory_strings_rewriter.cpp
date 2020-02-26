@@ -762,7 +762,7 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
     }
     if(!tmpNode.isConst()) {
       if(!preNode.isNull()) {
-        if (preNode.getKind() == kind::CONST_STRING && !Word::isEmpty(preNode))
+        if (preNode.isConst() && !Word::isEmpty(preNode))
         {
           node_vec.push_back( preNode );
         }
@@ -781,7 +781,7 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
     }
   }
   if (!preNode.isNull()
-      && (preNode.getKind() != kind::CONST_STRING || !Word::isEmpty(preNode)))
+      && (!preNode.isConst() || !Word::isEmpty(preNode)))
   {
     node_vec.push_back( preNode );
   }
@@ -980,7 +980,7 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
     return returnRewrite(node, node[0], "re-star-nested-star");
   }
   else if (node[0].getKind() == STRING_TO_REGEXP
-           && node[0][0].getKind() == CONST_STRING && Word::isEmpty(node[0][0]))
+           && node[0][0].isConst() && Word::isEmpty(node[0][0]))
   {
     // ("")* ---> ""
     return returnRewrite(node, node[0], "re-star-empty-string");
@@ -1000,7 +1000,7 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
       std::vector<Node> node_vec;
       for (const Node& nc : node[0])
       {
-        if (nc.getKind() == STRING_TO_REGEXP && nc[0].getKind() == CONST_STRING
+        if (nc.getKind() == STRING_TO_REGEXP && nc[0].isConst()
             && Word::isEmpty(nc[0]))
         {
           // can be removed

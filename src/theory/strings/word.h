@@ -29,7 +29,7 @@ namespace strings {
 // ------------------------------ for words (string or sequence constants)
 class Word
 {
-public:
+ public:
  /** make empty constant of type tn */
  static Node mkEmptyWord(TypeNode tn);
 
