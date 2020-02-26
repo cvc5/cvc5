@@ -1850,7 +1850,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       }
     }
     if (!strictModeEnabled() && (kind == api::AND || kind == api::OR)
-             && args.size() == 1)
+        && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
       Debug("parser") << "applyParseOp: return unary " << args[0] << std::endl;

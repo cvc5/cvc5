@@ -681,7 +681,7 @@ public:
    * @return Term t with sort s ascribed.
    */
   api::Term applyTypeAscription(api::Term t, api::Sort s);
-  
+
   //!!!!!!!!!!! temporary
   /**
    * Make builtin application

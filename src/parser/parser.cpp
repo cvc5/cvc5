@@ -588,7 +588,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     api::Datatype d = etyped.getDatatype();
     // lookup by name
     api::DatatypeConstructor dc = d.getConstructor(t.toString());
-    
+
     if (!s.isDatatype())
     {
       parseError("Expected datatype type to ascribe to constructor");
@@ -618,7 +618,8 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   if (t.getSort() != s)
   {
     std::stringstream ss;
-    ss << "Type ascription not satisfied, term " << t << " expected sort " << s << " but has sort " << t.getSort();
+    ss << "Type ascription not satisfied, term " << t << " expected sort " << s
+       << " but has sort " << t.getSort();
     parseError(ss.str());
   }
   return t;
