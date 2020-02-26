@@ -306,6 +306,16 @@ private:
    */
   Expr mkRightAssociative(Kind kind, const std::vector<Expr>& children);
 
+  /** make chain
+   *
+   * Given a kind k and arguments t_1, ..., t_n, this returns the
+   * conjunction of:
+   *  (k t_1 t_2) .... (k t_{n-1} t_n)
+   * It is expected that k is a kind denoting a predicate, and args is a list
+   * of terms of size >= 2 such that the terms above are well-typed.
+   */
+  Expr mkChain(Kind kind, const std::vector<Expr>& children);
+
   /**
    * Determine whether Exprs of a particular Kind have operators.
    * @returns true if Exprs of Kind k have operators.

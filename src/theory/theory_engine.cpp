@@ -37,7 +37,6 @@
 #include "proof/theory_proof.h"
 #include "smt/logic_exception.h"
 #include "smt/term_formula_removal.h"
-#include "smt_util/lemma_output_channel.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -314,8 +313,7 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveTermFormulas& iteRemover,
-                           const LogicInfo& logicInfo,
-                           LemmaChannels* channels)
+                           const LogicInfo& logicInfo)
     : d_propEngine(nullptr),
       d_decisionEngine(nullptr),
       d_context(context),
@@ -349,7 +347,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_false(),
       d_interrupted(false),
       d_resourceManager(NodeManager::currentResourceManager()),
-      d_channels(channels),
       d_inPreregister(false),
       d_factsAsserted(context, false),
       d_preRegistrationVisitor(this, context),
@@ -1867,11 +1864,6 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     }
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
                      << CheckSatCommand(n.toExpr());
-  }
-
-  // Share with other portfolio threads
-  if(d_channels->getLemmaOutputChannel() != NULL) {
-    d_channels->getLemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
   AssertionPipeline additionalLemmas;

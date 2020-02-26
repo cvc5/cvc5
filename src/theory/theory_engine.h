@@ -34,7 +34,6 @@
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "smt/command.h"
-#include "smt_util/lemma_channels.h"
 #include "theory/atom_requests.h"
 #include "theory/decision_manager.h"
 #include "theory/interrupted.h"
@@ -470,15 +469,12 @@ class TheoryEngine {
   bool d_interrupted;
   ResourceManager* d_resourceManager;
 
-  /** Container for lemma input and output channels. */
-  LemmaChannels* d_channels;
-
-public:
-
+ public:
   /** Constructs a theory engine */
-  TheoryEngine(context::Context* context, context::UserContext* userContext,
-               RemoveTermFormulas& iteRemover, const LogicInfo& logic,
-               LemmaChannels* channels);
+  TheoryEngine(context::Context* context,
+               context::UserContext* userContext,
+               RemoveTermFormulas& iteRemover,
+               const LogicInfo& logic);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -493,12 +489,15 @@ public:
    * there is another theory it will be deleted.
    */
   template <class TheoryClass>
-  inline void addTheory(theory::TheoryId theoryId) {
+  inline void addTheory(theory::TheoryId theoryId)
+  {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] =
-        new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId],
-                        theory::Valuation(this), d_logicInfo);
+    d_theoryTable[theoryId] = new TheoryClass(d_context,
+                                              d_userContext,
+                                              *d_theoryOut[theoryId],
+                                              theory::Valuation(this),
+                                              d_logicInfo);
   }
 
   inline void setPropEngine(prop::PropEngine* propEngine) {

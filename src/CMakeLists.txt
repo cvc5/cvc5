@@ -253,10 +253,6 @@ libcvc4_add_sources(
   smt/update_ostream.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
-  smt_util/lemma_channels.cpp
-  smt_util/lemma_channels.h
-  smt_util/lemma_input_channel.h
-  smt_util/lemma_output_channel.h
   smt_util/nary_builder.cpp
   smt_util/nary_builder.h
   smt_util/node_visitor.h
@@ -676,6 +672,8 @@ libcvc4_add_sources(
   theory/strings/core_solver.h
   theory/strings/extf_solver.cpp
   theory/strings/extf_solver.h
+  theory/strings/eqc_info.cpp
+  theory/strings/eqc_info.h
   theory/strings/infer_info.cpp
   theory/strings/infer_info.h
   theory/strings/inference_manager.cpp
@@ -944,12 +942,6 @@ install(FILES
           smt/smt_engine.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/smt)
-install(FILES
-          smt_util/lemma_channels.h
-          smt_util/lemma_input_channel.h
-          smt_util/lemma_output_channel.h
-        DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/smt_util)
 install(FILES
           theory/logic_info.h
           theory/theory_id.h

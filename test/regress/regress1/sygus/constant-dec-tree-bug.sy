@@ -1,7 +1,7 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-out=status --sygus-unif-pi=complete
 
-(set-logic SAT)
+(set-logic LIA)
 (synth-fun u ((x Int)) Int)
 (synth-fun f () Bool)
 (synth-fun g () Bool)

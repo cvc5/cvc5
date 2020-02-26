@@ -1536,16 +1536,6 @@ datatypesDef[bool isCo,
   }
   ;
 
-pattern[CVC4::Expr& expr]
-@declarations {
-  std::vector<Expr> patexpr;
-}
-  : LPAREN_TOK termList[patexpr,expr] RPAREN_TOK
-    {
-      expr = MK_EXPR(kind::INST_PATTERN, patexpr);
-    }
-  ;
-
 simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
 @declarations {
   CVC4::Kind k;
@@ -1568,13 +1558,6 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
     }
   | str[s,false]
     { sexpr = SExpr(s); }
-//  | LPAREN_TOK STRCST_TOK
-//      ( INTEGER_LITERAL {
-//      s_vec.push_back( atoi( AntlrInput::tokenText($INTEGER_LITERAL) ) + 65 );
-//    } )* RPAREN_TOK
-//   {
-//  sexpr = SExpr( MK_CONST( ::CVC4::String(s_vec) ) );
-//  }
   | symbol[s,CHECK_NONE,SYM_SORT]
     { sexpr = SExpr(SExpr::Keyword(s)); }
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
@@ -1948,12 +1931,12 @@ qualIdentifier[CVC4::ParseOp& p]
     ( CONST_TOK sortSymbol[type, CHECK_DECLARED]
       {
         p.d_kind = kind::STORE_ALL;
-        PARSER_STATE->applyTypeAscription(p, type);
+        PARSER_STATE->parseOpApplyTypeAscription(p, type);
       }
     | identifier[p]
       sortSymbol[type, CHECK_DECLARED]
       {
-        PARSER_STATE->applyTypeAscription(p, type);
+        PARSER_STATE->parseOpApplyTypeAscription(p, type);
       }
     )
     RPAREN_TOK
@@ -2512,15 +2495,6 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes,
      * "defined" as an unresolved type; don't worry, we check
      * below. */
   : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(true); }
-   /* ( '[' symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2);
-        params.push_back( t );
-      }
-      ( symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2);
-        params.push_back( t ); }
-      )* ']'
-    )?*/ //AJR: this isn't necessary if we use z3's style
     { datatypes.push_back(Datatype(EXPR_MANAGER, id, params, isCo));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
@@ -2649,7 +2623,6 @@ ATTRIBUTE_PATTERN_TOK : ':pattern';
 ATTRIBUTE_NO_PATTERN_TOK : ':no-pattern';
 ATTRIBUTE_NAMED_TOK : ':named';
 ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
-ATTRIBUTE_RR_PRIORITY : ':rr-priority';
 
 // operators (NOTE: theory symbols go here)
 EXISTS_TOK        : 'exists';
