@@ -341,7 +341,7 @@ class Smt2 : public Parser
    * Abstract values are used for processing get-value calls. The argument
    * name should be such that isAbstractValue(name) is true.
    */
-  api::Term mkAbstractValue(const std::string& name);
+  Expr mkAbstractValue(const std::string& name);
 
   void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
 
