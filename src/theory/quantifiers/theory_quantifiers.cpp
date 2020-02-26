@@ -95,9 +95,9 @@ void TheoryQuantifiers::ppNotifyAssertions(
 bool TheoryQuantifiers::collectModelInfo(TheoryModel* m)
 {
   for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
-    if((*i).assertion.getKind() == kind::NOT) {
-      Debug("quantifiers::collectModelInfo") << "got quant FALSE: " << (*i).assertion[0] << endl;
-      if (!m->assertPredicate((*i).assertion[0], false))
+    if((*i).d_assertion.getKind() == kind::NOT) {
+      Debug("quantifiers::collectModelInfo") << "got quant FALSE: " << (*i).d_assertion[0] << endl;
+      if (!m->assertPredicate((*i).d_assertion[0], false))
       {
         return false;
       }

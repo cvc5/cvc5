@@ -68,10 +68,10 @@ void AtomRequests::add(TNode triggerAtom, TNode atomToSend, theory::TheoryId toT
 bool AtomRequests::atom_iterator::done() const { return d_index == null_index; }
 
 void AtomRequests::atom_iterator::next() {
-  d_index = d_requests.d_requests[d_index].previous;
+  d_index = d_requests.d_requests[d_index].d_previous;
 }
 
 const AtomRequests::Request& AtomRequests::atom_iterator::get() const {
-  return d_requests.d_requests[d_index].request;
+  return d_requests.d_requests[d_index].d_request;
 }
 

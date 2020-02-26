@@ -61,17 +61,17 @@ class LemmaProofRecipe;
  * propagations between theories.
  */
 struct NodeTheoryPair {
-  Node node;
-  theory::TheoryId theory;
-  size_t timestamp;
+  Node d_node;
+  theory::TheoryId d_theory;
+  size_t d_timestamp;
   NodeTheoryPair(TNode n, theory::TheoryId t, size_t ts = 0)
-      : node(n), theory(t), timestamp(ts)
+      : d_node(n), d_theory(t), d_timestamp(ts)
   {
   }
-  NodeTheoryPair() : theory(theory::THEORY_LAST), timestamp() {}
+  NodeTheoryPair() : d_theory(theory::THEORY_LAST), d_timestamp() {}
   // Comparison doesn't take into account the timestamp
   bool operator == (const NodeTheoryPair& pair) const {
-    return node == pair.node && theory == pair.theory;
+    return d_node == pair.d_node && d_theory == pair.d_theory;
   }
 };/* struct NodeTheoryPair */
 
@@ -79,8 +79,8 @@ struct NodeTheoryPairHashFunction {
   NodeHashFunction hashFunction;
   // Hash doesn't take into account the timestamp
   size_t operator()(const NodeTheoryPair& pair) const {
-    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.node));
-    return static_cast<size_t>(fnv1a::fnv1a_64(pair.theory, hash));
+    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.d_node));
+    return static_cast<size_t>(fnv1a::fnv1a_64(pair.d_theory, hash));
   }
 };/* struct NodeTheoryPairHashFunction */
 

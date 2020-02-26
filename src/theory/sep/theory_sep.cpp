@@ -317,7 +317,7 @@ void TheorySep::check(Effort e) {
   while( !done() && !d_conflict ){
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Trace("sep-assert") << "TheorySep::check(): processing " << fact << std::endl;
 
@@ -806,7 +806,7 @@ void TheorySep::check(Effort e) {
         d_heap_locs_nptos.clear();
         //collect data points that are not pointed to
         for( context::CDList<Assertion>::const_iterator it = facts_begin(); it != facts_end(); ++ it) {
-          Node lit = (*it).assertion;
+          Node lit = (*it).d_assertion;
           if( lit.getKind()==kind::NOT && lit[0].getKind()==kind::SEP_PTO ){
             Node s_atom = lit[0];
             Node v1 = d_valuation.getModel()->getRepresentative( s_atom[0] );

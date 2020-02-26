@@ -94,11 +94,11 @@ private:
 
   struct Element {
     /** Current request */
-    Request request;
+    Request d_request;
     /** Previous request */
-    element_index previous;
+    element_index d_previous;
 
-    Element(const Request& r, element_index p) : request(r), previous(p) {}
+    Element(const Request& r, element_index p) : d_request(r), d_previous(p) {}
   };
 
   /** We index the requests in this vector, it's a list */

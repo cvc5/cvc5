@@ -46,9 +46,9 @@ enum RewriteStatus
  */
 struct RewriteResponse
 {
-  const RewriteStatus status;
-  const Node node;
-  RewriteResponse(RewriteStatus s, Node n) : status(s), node(n) {}
+  const RewriteStatus d_status;
+  const Node d_node;
+  RewriteResponse(RewriteStatus status, Node n) : d_status(status), d_node(n) {}
 }; /* struct RewriteResponse */
 
 /**
