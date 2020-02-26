@@ -1,4 +1,4 @@
-; COMMAND_LINE: --rewrite-divk
+; COMMAND-LINE: --rewrite-divk
 ; EXPECT: sat
 (set-logic QF_BVLIA)
 (declare-fun t () Int)
