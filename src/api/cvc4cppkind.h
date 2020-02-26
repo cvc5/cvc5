@@ -2054,7 +2054,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_ISDIGIT,
+  STRING_IS_DIGIT,
   /**
    * Integer to string.
    * If the integer is negative this operator returns the empty string.
