@@ -573,12 +573,12 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   }
   else if (k == api::APPLY_CONSTRUCTOR)
   {
-    std::vector<api::Term> children;
-    children.insert(children.end(), t.begin(), t.end());
+    std::vector<api::Term> children(t.begin(), t.end());
     // apply type ascription to the operator and reconstruct
     children[0] = applyTypeAscription(children[0], s);
     t = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, children);
   }
+  // !!! temporary until datatypes are refactored in the new API
   api::Sort etype = t.getSort();
   if (etype.isConstructor())
   {
@@ -589,13 +589,8 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     // lookup by name
     api::DatatypeConstructor dc = d.getConstructor(t.toString());
 
-    if (!s.isDatatype())
-    {
-      parseError("Expected datatype type to ascribe to constructor");
-    }
-
-    // type ascriptions that do not throw an error below only have an effect on
-    // the node structure if this is a parametric datatype
+    // Type ascriptions only have an effect on the node structure if this is a
+    // parametric datatype.
     if (s.isParametricDatatype())
     {
       ExprManager* em = getExprManager();
@@ -610,7 +605,15 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
           e));
     }
     // the type of t does not match the sort s by design (constructor type
-    // vs datatype type), thus don't check below.
+    // vs datatype type), thus we use an alternative check here.
+    if (t.getSort().getConstructorCodomainSort() != s)
+    {
+      std::stringstream ss;
+      ss << "Type ascription on constructor not satisfied, term " << t
+         << " expected sort " << s << " but has sort "
+         << t.getSort().getConstructorCodomainSort();
+      parseError(ss.str());
+    }
     return t;
   }
   // otherwise, nothing to do

@@ -484,7 +484,11 @@ class Smt2 : public Parser
    * - If p's expression field is set, then we leave p unchanged, check if
    * that expression has the given type and throw a parse error otherwise.
    */
+<<<<<<< HEAD
   void parseOpApplyTypeAscription(ParseOp& p, api::Sort type);
+=======
+  void parseOpApplyTypeAscription(ParseOp& p, Type type);
+>>>>>>> b320aa323923822a7702997bbca05e8512da55a4
   /**
    * This converts a ParseOp to expression, assuming it is a standalone term.
    *

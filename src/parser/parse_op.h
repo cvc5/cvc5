@@ -20,6 +20,11 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
+<<<<<<< HEAD
+=======
+#include "expr/expr.h"
+#include "expr/kind.h"
+>>>>>>> b320aa323923822a7702997bbca05e8512da55a4
 
 namespace CVC4 {
 
@@ -34,6 +39,7 @@ namespace CVC4 {
  * (2) A string name.
  * (3) An expression expr.
  * (4) A type t.
+ * (5) An operator object.
  *
  * Examples:
  *
@@ -67,19 +73,21 @@ struct CVC4_PUBLIC ParseOp
   api::Op d_op;
   /** The type associated with the parsed operator, if it exists */
   api::Sort d_type;
+  /** The operator associated with the parsed operator, if it exists */
+  api::Op d_op;
 
   /* Return true if this is equal to 'p'. */
   bool operator==(const ParseOp& p) const
   {
     return d_kind == p.d_kind && d_name == p.d_name && d_expr == p.d_expr
-           && d_type == p.d_type;
+           && d_type == p.d_type && d_op == p.d_op;
   }
 };
 
 inline std::ostream& operator<<(std::ostream& os, const ParseOp& p)
 {
   std::stringstream out;
-  out << "(Parse op";
+  out << "(ParseOp ";
   if (!p.d_expr.isNull())
   {
     out << " :expr " << p.d_expr;

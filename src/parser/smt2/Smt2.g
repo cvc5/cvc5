@@ -2493,16 +2493,7 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes,
      * "defined" as an unresolved type; don't worry, we check
      * below. */
   : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(true); }
-   /* ( '[' symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2);
-        params.push_back( t );
-      }
-      ( symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2);
-        params.push_back( t ); }
-      )* ']'
-    )?*/ //AJR: this isn't necessary if we use z3's style
-    { datatypes.push_back(Datatype(PARSER_STATE->getExprManager(), id, api::sortVectorToTypes(params), isCo));
+    { datatypes.push_back(Datatype(EXPR_MANAGER, id, params, isCo));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);

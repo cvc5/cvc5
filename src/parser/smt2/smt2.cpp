@@ -195,6 +195,7 @@ void Smt2::addStringOperators() {
   addOperator(api::REGEXP_OPT, "re.opt");
   addOperator(api::REGEXP_RANGE, "re.range");
   addOperator(api::REGEXP_LOOP, "re.loop");
+  addOperator(api::REGEXP_COMPLEMENT, "re.comp");
   addOperator(api::STRING_LT, "str.<");
   addOperator(api::STRING_LEQ, "str.<=");
 }
@@ -934,6 +935,7 @@ api::Term Smt2::mkAbstractValue(const std::string& name)
 void Smt2::mkSygusConstantsForType(const api::Sort& type,
                                    std::vector<api::Term>& ops)
 {
+
   if( type.isInteger() ){
     ops.push_back(d_solver->mkReal(0));
     ops.push_back(d_solver->mkReal(1));
@@ -1605,7 +1607,6 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
       parseError(ss.str());
     }
   }
-
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
   Trace("parser-qid") << " " << p.d_expr.getKind() << " " << p.d_expr.getSort();
   Trace("parser-qid") << std::endl;

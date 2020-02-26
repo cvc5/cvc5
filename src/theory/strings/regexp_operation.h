@@ -41,10 +41,13 @@ namespace strings {
  */
 enum RegExpConstType
 {
-  // the regular expression doesn't contain variables or re.allchar or re.range
+  // the regular expression doesn't contain variables or re.comp,
+  // re.allchar or re.range (call these three operators "non-concrete
+  // operators"). Notice that re.comp is a non-concrete operator
+  // since it can be seen as indirectly defined in terms of re.allchar.
   RE_C_CONRETE_CONSTANT,
   // the regular expression doesn't contain variables, but may contain
-  // re.allchar or re.range
+  // re.comp, re.allchar or re.range
   RE_C_CONSTANT,
   // the regular expression may contain variables
   RE_C_VARIABLE,
@@ -122,6 +125,20 @@ class RegExpOpr {
   /** is k a native operator whose return type is a regular expression? */
   static bool isRegExpKind(Kind k);
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
+  /**
+   * This method returns 1 if the empty string is in r, 2 if the empty string
+   * is not in r, or 0 if it is unknown whether the empty string is in r.
+   * TODO (project #2): refactor the return value of this function.
+   *
+   * If this method returns 0, then exp is updated to an explanation that
+   * would imply that the empty string is in r.
+   *
+   * For example,
+   * - delta( (re.inter (str.to.re x) (re.* "A")) ) returns 0 and sets exp to
+   * x = "",
+   * - delta( (re.++ (str.to.re "A") R) ) returns 2,
+   * - delta( (re.union (re.* "A") R) ) returns 1.
+   */
   int delta( Node r, Node &exp );
   int derivativeS( Node r, CVC4::String c, Node &retNode );
   Node derivativeSingle( Node r, CVC4::String c );

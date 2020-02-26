@@ -240,6 +240,7 @@ tokens {
   REGEXP_LOOP_TOK = 'RE_LOOP';
   REGEXP_EMPTY_TOK = 'RE_EMPTY';
   REGEXP_SIGMA_TOK = 'RE_SIGMA';
+  REGEXP_COMPLEMENT_TOK = 'RE_COMPLEMENT';
   
   SETS_CARD_TOK = 'CARD';
   
@@ -1308,7 +1309,7 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
     { /*symtab = PARSER_STATE->getSymbolTable();
       PARSER_STATE->useDeclarationsFrom(new SymbolTable());*/ }
     formula[f] ( COMMA formula[f2] )? RPAREN
-    { 
+    {
       PARSER_STATE->unimplementedFeature("predicate subtyping not supported in this release");
     }
 
@@ -1826,8 +1827,8 @@ postfixTerm[CVC4::api::Term& f]
       { f = (args.size() == 1) ? SOLVER->mkTrue() : MK_TERM(CVC4::api::DISTINCT, args); }
     )
     ( typeAscription[f, t]
-      { 
-        f= PARSER_STATE->applyTypeAscription(f,t);
+      {
+        f = PARSER_STATE->applyTypeAscription(f,t).getExpr();
       }
     )?
   ;
@@ -2037,6 +2038,8 @@ stringTerm[CVC4::api::Term& f]
     { f = MK_TERM(CVC4::api::REGEXP_RANGE, f, f2); }
   | REGEXP_LOOP_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_LOOP, f, f2, f3); }
+  | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
+    { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }
   | REGEXP_EMPTY_TOK
     { f = MK_TERM(CVC4::api::REGEXP_EMPTY, std::vector<api::Term>()); }
   | REGEXP_SIGMA_TOK
