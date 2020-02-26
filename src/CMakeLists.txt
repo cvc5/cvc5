@@ -941,12 +941,6 @@ install(FILES
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/smt)
 install(FILES
-          smt_util/lemma_channels.h
-          smt_util/lemma_input_channel.h
-          smt_util/lemma_output_channel.h
-        DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/smt_util)
-install(FILES
           theory/logic_info.h
           theory/theory_id.h
         DESTINATION
