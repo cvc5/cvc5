@@ -1837,7 +1837,7 @@ postfixTerm[CVC4::Expr& f]
     )
     ( typeAscription[f, t]
       {
-        f= PARSER_STATE->applyTypeAscription(f,t).getExpr();
+        f = PARSER_STATE->applyTypeAscription(f,t).getExpr();
       }
     )?
   ;
