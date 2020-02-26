@@ -56,6 +56,8 @@ libcvc4_add_sources(
   preprocessing/passes/bv_intro_pow2.h
   preprocessing/passes/bv_to_bool.cpp
   preprocessing/passes/bv_to_bool.h
+  preprocessing/passes/bv_to_int.cpp
+  preprocessing/passes/bv_to_int.h
   preprocessing/passes/extended_rewriter_pass.cpp
   preprocessing/passes/extended_rewriter_pass.h
   preprocessing/passes/global_negate.cpp
@@ -251,10 +253,6 @@ libcvc4_add_sources(
   smt/update_ostream.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
-  smt_util/lemma_channels.cpp
-  smt_util/lemma_channels.h
-  smt_util/lemma_input_channel.h
-  smt_util/lemma_output_channel.h
   smt_util/nary_builder.cpp
   smt_util/nary_builder.h
   smt_util/node_visitor.h
@@ -300,6 +298,7 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl_lemma_utils.h
   theory/arith/nl_model.cpp
   theory/arith/nl_model.h
   theory/arith/nonlinear_extension.cpp
@@ -672,6 +671,10 @@ libcvc4_add_sources(
   theory/strings/base_solver.h
   theory/strings/core_solver.cpp
   theory/strings/core_solver.h
+  theory/strings/extf_solver.cpp
+  theory/strings/extf_solver.h
+  theory/strings/eqc_info.cpp
+  theory/strings/eqc_info.h
   theory/strings/infer_info.cpp
   theory/strings/infer_info.h
   theory/strings/inference_manager.cpp
@@ -700,6 +703,8 @@ libcvc4_add_sources(
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
   theory/strings/type_enumerator.h
+  theory/strings/word.cpp
+  theory/strings/word.h
   theory/subs_minimize.cpp
   theory/subs_minimize.h
   theory/substitutions.cpp
@@ -938,12 +943,6 @@ install(FILES
           smt/smt_engine.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/smt)
-install(FILES
-          smt_util/lemma_channels.h
-          smt_util/lemma_input_channel.h
-          smt_util/lemma_output_channel.h
-        DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/smt_util)
 install(FILES
           theory/logic_info.h
           theory/theory_id.h

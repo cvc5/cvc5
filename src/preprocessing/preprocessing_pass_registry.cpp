@@ -32,6 +32,7 @@
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
+#include "preprocessing/passes/bv_to_int.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
 #include "preprocessing/passes/global_negate.h"
 #include "preprocessing/passes/ho_elim.h"
@@ -124,6 +125,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("apply-to-const", callCtor<ApplyToConst>);
   registerPassInfo("global-negate", callCtor<GlobalNegate>);
   registerPassInfo("int-to-bv", callCtor<IntToBV>);
+  registerPassInfo("bv-to-int", callCtor<BVToInt>);
   registerPassInfo("synth-rr", callCtor<SynthRewRulesPass>);
   registerPassInfo("real-to-int", callCtor<RealToInt>);
   registerPassInfo("sygus-infer", callCtor<SygusInference>);

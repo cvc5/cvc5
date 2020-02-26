@@ -1,17 +1,19 @@
-; COMMAND-LINE: --no-check-unsat-cores --no-check-proofs
+; COMMAND-LINE: --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic QF_LIRA)
 
-(declare-fun n () Int)
+(declare-fun i () Int)
+(declare-fun j () Int)
+(declare-fun x () Real)
+(declare-fun y () Real)
 
-; tests tightenings of the form [Int] >= r   to [Int] >= ceiling(r)
-; where r is a real.
-(assert
-    (and
-        (>= n 1.5)
-        (<= n 1.9)
-    )
-)
+
+
+(assert (= x y))
+(assert (= x (- 2.5 y)))
+(assert (>= (+ i j) x))
+(assert (<= j (+ x 0.5)))
+(assert (<= i 0))
 
 (check-sat)
 

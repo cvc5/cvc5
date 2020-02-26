@@ -148,7 +148,7 @@ class ParserBlack
       TS_ASSERT(!parser->done());
       setupContext(*parser);
       TS_ASSERT(!parser->done());
-      Expr e = parser->nextExpression();
+      api::Term e = parser->nextExpression();
       TS_ASSERT(!e.isNull());
       e = parser->nextExpression();
       TS_ASSERT(parser->done());
@@ -187,7 +187,7 @@ class ParserBlack
                          .build();
     setupContext(*parser);
     TS_ASSERT(!parser->done());
-    TS_ASSERT_THROWS(Expr e = parser->nextExpression();
+    TS_ASSERT_THROWS(api::Term e = parser->nextExpression();
                      cout << endl
                           << "Bad expr succeeded." << endl
                           << "Input: <<" << badExpr << ">>" << endl

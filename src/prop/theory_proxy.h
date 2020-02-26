@@ -30,9 +30,6 @@
 #include "expr/expr_stream.h"
 #include "expr/node.h"
 #include "prop/sat_solver.h"
-#include "smt_util/lemma_channels.h"
-#include "smt_util/lemma_input_channel.h"
-#include "smt_util/lemma_output_channel.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
@@ -50,19 +47,18 @@ class CnfStream;
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
  */
-class TheoryProxy {
-public:
+class TheoryProxy
+{
+ public:
   TheoryProxy(PropEngine* propEngine,
               TheoryEngine* theoryEngine,
               DecisionEngine* decisionEngine,
               context::Context* context,
               CnfStream* cnfStream,
               std::ostream* replayLog,
-              ExprStream* replayStream,
-              LemmaChannels* globals);
+              ExprStream* replayStream);
 
   ~TheoryProxy();
-
 
   void theoryCheck(theory::Theory::Effort effort);
 
@@ -86,8 +82,6 @@ public:
   TNode getNode(SatLiteral lit);
 
   void notifyRestart();
-
-  void notifyNewLemma(SatClause& lemma);
 
   SatLiteral getNextReplayDecision();
 
@@ -117,21 +111,11 @@ public:
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
 
-
-  /** Container for inputChannel() and outputChannel(). */
-  LemmaChannels* d_channels;
-
   /** Stream on which to log replay events. */
   std::ostream* d_replayLog;
 
   /** Stream for replaying decisions. */
   ExprStream* d_replayStream;
-
-  /** The lemma input channel we are using. */
-  LemmaInputChannel* inputChannel();
-
-  /** The lemma output channel we are using. */
-  LemmaOutputChannel* outputChannel();
 
   /** Queue of asserted facts */
   context::CDQueue<TNode> d_queue;
@@ -147,7 +131,7 @@ public:
    */
   IntStat d_replayedDecisions;
 
-};/* class SatSolver */
+}; /* class SatSolver */
 
 }/* CVC4::prop namespace */
 

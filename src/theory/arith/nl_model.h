@@ -166,7 +166,7 @@ class NlModel
   /** Set tautology
    *
    * This states that formula n is a tautology (satisfied in all models).
-   * We use this for internally generated lemmas. This method computes a
+   * We call this on internally generated lemmas. This method computes a
    * set of literals that are implied by n, that are hence tautological
    * as well, such as:
    *   l_pi <= real.pi <= u_pi (pi approximations)
@@ -197,10 +197,13 @@ class NlModel
    * The mapping arithModel is updated by this method to map arithmetic terms v
    * to their (exact) value that was computed during checkModel; the mapping
    * approximations is updated to store approximate values in the form of a
-   * predicate over v.
+   * pair (P, w), where P is a predicate that describes the possible values of
+   * v and w is a witness point that satisfies this predicate.
    */
-  void getModelValueRepair(std::map<Node, Node>& arithModel,
-                           std::map<Node, Node>& approximations);
+  void getModelValueRepair(
+      std::map<Node, Node>& arithModel,
+      std::map<Node, std::pair<Node, Node>>& approximations);
+
  private:
   /** The current model */
   TheoryModel* d_model;

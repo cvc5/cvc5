@@ -159,8 +159,6 @@ class TheoryStringsRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
 
-  /** get the cardinality of the alphabet used, based on the options */
-  static unsigned getAlphabetCardinality();
   /** rewrite equality
    *
    * This method returns a formula that is equivalent to the equality between

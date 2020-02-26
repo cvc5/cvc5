@@ -459,9 +459,12 @@ void NlModel::addTautology(Node n)
         if ((atom.getKind() == EQUAL && atom[0].getType().isReal())
             || atom.getKind() == LEQ)
         {
-          // add to tautological literals if it does not contain
-          // non-linear multiplication
-          if (!hasSubtermKind(NONLINEAR_MULT, atom))
+          // Add to tautological literals if it does not contain
+          // non-linear multiplication. We cannot consider literals
+          // with non-linear multiplication to be tautological since this
+          // model object is responsible for checking whether they hold.
+          // (TODO, cvc4-projects #113: revisit this).
+          if (!expr::hasSubtermKind(NONLINEAR_MULT, atom))
           {
             Trace("nl-taut") << "Tautological literal: " << atom << std::endl;
             d_tautology.insert(cur);
@@ -1270,8 +1273,9 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
   }
 }
 
-void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel,
-                                  std::map<Node, Node>& approximations)
+void NlModel::getModelValueRepair(
+    std::map<Node, Node>& arithModel,
+    std::map<Node, std::pair<Node, Node>>& approximations)
 {
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
@@ -1289,8 +1293,17 @@ void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel,
     if (l != u)
     {
       Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
-      approximations[v] = pred;
       Trace("nl-model") << v << " approximated as " << pred << std::endl;
+      Node witness;
+      if (options::modelWitnessChoice())
+      {
+        // witness is the midpoint
+        witness = nm->mkNode(
+            MULT, nm->mkConst(Rational(1, 2)), nm->mkNode(PLUS, l, u));
+        witness = Rewriter::rewrite(witness);
+        Trace("nl-model") << v << " witness is " << witness << std::endl;
+      }
+      approximations[v] = std::pair<Node, Node>(pred, witness);
     }
     else
     {
