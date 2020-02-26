@@ -171,6 +171,8 @@ void Smt2::addStringOperators() {
   }
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
+  addOperator(kind::STRING_FROM_CODE, "str.from_code");
+
   // at the moment, we only use this syntax for smt2.6.1
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
       || getLanguage() == language::input::LANG_SYGUS_V2)
@@ -179,7 +181,7 @@ void Smt2::addStringOperators() {
     addOperator(kind::STRING_STOI, "str.to_int");
     addOperator(kind::STRING_IN_REGEXP, "str.in_re");
     addOperator(kind::STRING_TO_REGEXP, "str.to_re");
-    addOperator(kind::STRING_CODE, "str.to_code");
+    addOperator(kind::STRING_TO_CODE, "str.to_code");
     addOperator(kind::STRING_STRREPLALL, "str.replace_all");
   }
   else
@@ -188,7 +190,7 @@ void Smt2::addStringOperators() {
     addOperator(kind::STRING_STOI, "str.to.int");
     addOperator(kind::STRING_IN_REGEXP, "str.in.re");
     addOperator(kind::STRING_TO_REGEXP, "str.to.re");
-    addOperator(kind::STRING_CODE, "str.code");
+    addOperator(kind::STRING_TO_CODE, "str.code");
     addOperator(kind::STRING_STRREPLALL, "str.replaceall");
   }
 
