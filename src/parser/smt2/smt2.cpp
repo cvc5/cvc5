@@ -944,7 +944,7 @@ Expr Smt2::mkAbstractValue(const std::string& name)
 {
   assert(isAbstractValue(name));
   // remove the '@'
-  return getExprManager()->mkAbstractValue(name.substr(1));
+  return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
 }
 
 void Smt2::mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops ) {
