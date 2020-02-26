@@ -566,11 +566,12 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.
-    if (t.getSort().getConstructorCodomainSort()!=s)
+    if (t.getSort().getConstructorCodomainSort() != s)
     {
       std::stringstream ss;
-      ss << "Type ascription on constructor not satisfied, term " << t << " expected sort " << s
-        << " but has sort " << t.getSort().getConstructorCodomainSort();
+      ss << "Type ascription on constructor not satisfied, term " << t
+         << " expected sort " << s << " but has sort "
+         << t.getSort().getConstructorCodomainSort();
       parseError(ss.str());
     }
     return t;
