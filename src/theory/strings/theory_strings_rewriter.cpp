@@ -1329,6 +1329,11 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
         }
       }
     }
+    case REGEXP_COMPLEMENT:
+    {
+      return !testConstStringInRegExp(s, index_start, r[0]);
+      break;
+    }
     default: {
       Assert(!RegExpOpr::isRegExpKind(k));
       return false;
@@ -1469,7 +1474,13 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     retNode = nm->mkNode(AND,
                          nm->mkNode(LEQ, nm->mkNode(STRING_CODE, r[0]), xcode),
                          nm->mkNode(LEQ, xcode, nm->mkNode(STRING_CODE, r[1])));
-  }else if(x != node[0] || r != node[1]) {
+  }
+  else if (r.getKind() == REGEXP_COMPLEMENT)
+  {
+    retNode = nm->mkNode(STRING_IN_REGEXP, x, r[0]).negate();
+  }
+  else if (x != node[0] || r != node[1])
+  {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, r );
   }
 

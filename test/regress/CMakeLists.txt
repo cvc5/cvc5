@@ -898,6 +898,7 @@ set(regress_0_tests
   regress0/strings/code-eval.smt2
   regress0/strings/code-perf.smt2
   regress0/strings/code-sat-neg-one.smt2
+  regress0/strings/complement-simple.smt2
   regress0/strings/escchar.smt2
   regress0/strings/escchar_25.smt2
   regress0/strings/hconst-092618.smt2
@@ -1662,6 +1663,7 @@ set(regress_1_tests
   regress1/strings/cmu-inc-nlpp-071516.smt2
   regress1/strings/cmu-substr-rw.smt2
   regress1/strings/code-sequence.smt2
+  regress1/strings/complement-test.smt2
   regress1/strings/crash-1019.smt2
   regress1/strings/csp-prefix-exp-bug.smt2
   regress1/strings/double-replace.smt2

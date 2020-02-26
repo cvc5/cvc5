@@ -200,6 +200,7 @@ void Smt2::addStringOperators() {
   addOperator(kind::REGEXP_OPT, "re.opt");
   addOperator(kind::REGEXP_RANGE, "re.range");
   addOperator(kind::REGEXP_LOOP, "re.loop");
+  addOperator(kind::REGEXP_COMPLEMENT, "re.comp");
   addOperator(kind::STRING_LT, "str.<");
   addOperator(kind::STRING_LEQ, "str.<=");
 }
@@ -754,12 +755,6 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       warning("Logics in sygus are assumed to contain quantifiers.");
       warning("Omit QF_ from the logic to avoid this warning.");
     }
-    // get unlocked copy, modify, copy and relock
-    LogicInfo log(d_logic.getUnlockedCopy());
-    // enable everything needed for sygus
-    log.enableSygus();
-    d_logic = log;
-    d_logic.lock();
   }
 
   // Core theory belongs to every logic
