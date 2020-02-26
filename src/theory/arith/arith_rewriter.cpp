@@ -639,13 +639,15 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom){
 RewriteResponse ArithRewriter::postRewrite(TNode t){
   if(isTerm(t)){
     RewriteResponse response = postRewriteTerm(t);
-    if(Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE) {
+    if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
+    {
       Polynomial::parsePolynomial(response.d_node);
     }
     return response;
   }else if(isAtom(t)){
     RewriteResponse response = postRewriteAtom(t);
-    if(Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE) {
+    if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
+    {
       Comparison::parseNormalForm(response.d_node);
     }
     return response;

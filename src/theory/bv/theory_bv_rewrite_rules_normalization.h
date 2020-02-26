@@ -1382,8 +1382,7 @@ bool RewriteRule<BitwiseSlicing>::applies(TNode node) {
     if (node[i].getKind() == kind::CONST_BITVECTOR) {
       BitVector constant = node[i].getConst<BitVector>();
       // we do not apply the rule if the constant is all 0s or all 1s
-      if (constant == BitVector(utils::getSize(node), 0u)) 
-        return false;
+      if (constant == BitVector(utils::getSize(node), 0u)) return false;
 
       for (unsigned j = 0, csize = constant.getSize(); j < csize; ++j)
       {

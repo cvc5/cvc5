@@ -1334,7 +1334,8 @@ void TheoryArrays::check(Effort e) {
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
 
-    if (!assertion.d_isPreregistered) {
+    if (!assertion.d_isPreregistered)
+    {
       if (atom.getKind() == kind::EQUAL) {
         if (!d_equalityEngine.hasTerm(atom[0])) {
           Assert(atom[0].isConst());

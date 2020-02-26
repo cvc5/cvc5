@@ -233,7 +233,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           Assert(response.d_node != rewriteStackTop.node);
           //TODO: this is not thread-safe - should make this assertion dependent on sequential build
 #ifdef CVC4_ASSERTIONS
-          Assert(d_rewriteStack->find(response.d_node) == d_rewriteStack->end());
+          Assert(d_rewriteStack->find(response.d_node)
+                 == d_rewriteStack->end());
           d_rewriteStack->insert(response.d_node);
 #endif
           Node rewritten = rewriteTo(newTheoryId, response.d_node);
@@ -250,7 +251,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
               d_theoryRewriters[newTheoryId]->postRewrite(response.d_node);
           Assert(r2.d_node == response.d_node);
 #endif
-	  rewriteStackTop.node = response.d_node;
+          rewriteStackTop.node = response.d_node;
           break;
         }
         // Check for trivial rewrite loops of size 1 or 2

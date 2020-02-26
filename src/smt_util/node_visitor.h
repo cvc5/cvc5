@@ -92,12 +92,16 @@ public:
       if (visitor.alreadyVisited(current, parent)) {
         // If already visited, we're done
         toVisit.pop_back();
-      } else if (stackHead.d_childrenAdded) {
+      }
+      else if (stackHead.d_childrenAdded)
+      {
         // Call the visitor
         visitor.visit(current, parent);
         // Done with this node, remove from the stack
         toVisit.pop_back();
-      } else {
+      }
+      else
+      {
         // Mark that we have added the children
         stackHead.d_childrenAdded = true;
         // We need to add the children
