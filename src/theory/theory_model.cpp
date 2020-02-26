@@ -598,6 +598,11 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   // model cache is invalid
   d_modelCache.clear();
 }
+void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
+{
+  Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
+  recordApproximation(n, predDisj);
+}
 void TheoryModel::setUsingModelCore()
 {
   d_using_model_core = true;

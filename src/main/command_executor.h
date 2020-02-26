@@ -85,7 +85,6 @@ public:
   static void printStatsFilterZeros(std::ostream& out,
                                     const std::string& statsString);
 
-  LemmaChannels* channels() { return d_smtEngine->channels(); }
   void flushOutputStreams();
 
   void setReplayStream(ExprStream* replayStream);
