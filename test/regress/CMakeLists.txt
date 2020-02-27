@@ -906,6 +906,7 @@ set(regress_0_tests
   regress0/strings/idof-sem.smt2
   regress0/strings/ilc-like.smt2
   regress0/strings/indexof-sym-simp.smt2
+  regress0/strings/is_digit_simple.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -921,6 +922,7 @@ set(regress_0_tests
   regress0/strings/parser-syms.cvc
   regress0/strings/re.all.smt2
   regress0/strings/re-syntax.smt2
+  regress0/strings/re_diff.smt2
   regress0/strings/regexp-native-simple.cvc
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
