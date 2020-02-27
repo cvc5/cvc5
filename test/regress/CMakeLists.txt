@@ -906,12 +906,14 @@ set(regress_0_tests
   regress0/strings/idof-sem.smt2
   regress0/strings/ilc-like.smt2
   regress0/strings/indexof-sym-simp.smt2
+  regress0/strings/is_digit_simple.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
   regress0/strings/issue3497.smt2
   regress0/strings/issue3657-evalLeq.smt2
   regress0/strings/itos-entail.smt2
+  regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
   regress0/strings/model001.smt2
@@ -921,6 +923,7 @@ set(regress_0_tests
   regress0/strings/parser-syms.cvc
   regress0/strings/re.all.smt2
   regress0/strings/re-syntax.smt2
+  regress0/strings/re_diff.smt2
   regress0/strings/regexp-native-simple.cvc
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
@@ -1927,7 +1930,6 @@ set(regress_2_tests
   regress2/arith/prp-13-24.smt2
   regress2/arith/pursuit-safety-11.smtv1.smt2
   regress2/arith/pursuit-safety-12.smtv1.smt2
-  regress2/arith/real2int-test.smt2
   regress2/arith/sc-7.base.cvc.smtv1.smt2
   regress2/arith/uart-8.base.cvc.smtv1.smt2
   regress2/auflia-fuzz06.smtv1.smt2
@@ -2342,6 +2344,8 @@ set(regression_disabled_tests
   regress2/arith/arith-int-098.cvc
   regress2/arith/miplib-opt1217--27.smt2
   regress2/arith/miplib-pp08a-3000.smt2
+  # timeout on debug
+  regress2/arith/real2int-test.smt2
   regress2/bug396.smt2
   regress2/nl/dumortier-050317.smt2
   regress2/nl/nt-lemmas-bad.smt2

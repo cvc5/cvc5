@@ -304,8 +304,13 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     }
     else
     {
-      Assert(len_value.getConst<Rational>() <= Rational(String::maxSize()))
-          << "Exceeded UINT32_MAX in string model";
+      // must throw logic exception if we cannot construct the string
+      if (len_value.getConst<Rational>() > Rational(String::maxSize()))
+      {
+        std::stringstream ss;
+        ss << "Cannot generate model with string whose length exceeds UINT32_MAX";
+        throw LogicException(ss.str());
+      }
       unsigned lvalue =
           len_value.getConst<Rational>().getNumerator().toUnsignedInt();
       std::map<unsigned, Node>::iterator itvu = values_used.find(lvalue);
@@ -620,7 +625,7 @@ void TheoryStrings::check(Effort e) {
   {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Trace("strings-assertion") << "get assertion: " << fact << endl;
     polarity = fact.getKind() != kind::NOT;

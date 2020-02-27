@@ -798,12 +798,10 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
       // push the operator
       nb << TypeNode(d_nv->d_children[0]);
     }
-    for(TypeNode::const_iterator i = begin(),
-          iend = end();
-        i != iend;
-        ++i) {
-      nb << (*i).substitute(typesBegin, typesEnd,
-                            replacementsBegin, replacementsEnd, cache);
+    for (const TypeNode& tn : *this)
+    {
+      nb << tn.substitute(
+          typesBegin, typesEnd, replacementsBegin, replacementsEnd, cache);
     }
     TypeNode tn = nb.constructTypeNode();
     cache[*this] = tn;

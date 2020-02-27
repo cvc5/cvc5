@@ -24,22 +24,22 @@ namespace theory {
 namespace eq {
 
 EqualityEngine::Statistics::Statistics(std::string name)
-    : mergesCount(name + "::mergesCount", 0),
-      termsCount(name + "::termsCount", 0),
-      functionTermsCount(name + "::functionTermsCount", 0),
-      constantTermsCount(name + "::constantTermsCount", 0)
+    : d_mergesCount(name + "::mergesCount", 0),
+      d_termsCount(name + "::termsCount", 0),
+      d_functionTermsCount(name + "::functionTermsCount", 0),
+      d_constantTermsCount(name + "::constantTermsCount", 0)
 {
-  smtStatisticsRegistry()->registerStat(&mergesCount);
-  smtStatisticsRegistry()->registerStat(&termsCount);
-  smtStatisticsRegistry()->registerStat(&functionTermsCount);
-  smtStatisticsRegistry()->registerStat(&constantTermsCount);
+  smtStatisticsRegistry()->registerStat(&d_mergesCount);
+  smtStatisticsRegistry()->registerStat(&d_termsCount);
+  smtStatisticsRegistry()->registerStat(&d_functionTermsCount);
+  smtStatisticsRegistry()->registerStat(&d_constantTermsCount);
 }
 
 EqualityEngine::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&mergesCount);
-  smtStatisticsRegistry()->unregisterStat(&termsCount);
-  smtStatisticsRegistry()->unregisterStat(&functionTermsCount);
-  smtStatisticsRegistry()->unregisterStat(&constantTermsCount);
+  smtStatisticsRegistry()->unregisterStat(&d_mergesCount);
+  smtStatisticsRegistry()->unregisterStat(&d_termsCount);
+  smtStatisticsRegistry()->unregisterStat(&d_functionTermsCount);
+  smtStatisticsRegistry()->unregisterStat(&d_constantTermsCount);
 }
 
 /**
@@ -47,28 +47,31 @@ EqualityEngine::Statistics::~Statistics() {
  */
 struct BfsData {
   // The current node
-  EqualityNodeId nodeId;
+  EqualityNodeId d_nodeId;
   // The index of the edge we traversed
-  EqualityEdgeId edgeId;
+  EqualityEdgeId d_edgeId;
   // Index in the queue of the previous node. Shouldn't be too much of them, at most the size
   // of the biggest equivalence class
-  size_t previousIndex;
+  size_t d_previousIndex;
 
-  BfsData(EqualityNodeId nodeId = null_id, EqualityEdgeId edgeId = null_edge, size_t prev = 0)
-  : nodeId(nodeId), edgeId(edgeId), previousIndex(prev) {}
+  BfsData(EqualityNodeId nodeId = null_id,
+          EqualityEdgeId edgeId = null_edge,
+          size_t prev = 0)
+      : d_nodeId(nodeId), d_edgeId(edgeId), d_previousIndex(prev)
+  {
+  }
 };
 
 class ScopedBool {
-  bool& watch;
-  bool oldValue;
-public:
-  ScopedBool(bool& watch, bool newValue)
-  : watch(watch), oldValue(watch) {
-    watch = newValue;
+  bool& d_watch;
+  bool d_oldValue;
+
+ public:
+  ScopedBool(bool& watch, bool newValue) : d_watch(watch), d_oldValue(watch)
+  {
+    d_watch = newValue;
   }
-  ~ScopedBool() {
-    watch = oldValue;
-  }
+  ~ScopedBool() { d_watch = d_oldValue; }
 };
 
 EqualityEngineNotifyNone EqualityEngine::s_notifyNone;
@@ -158,7 +161,10 @@ void EqualityEngine::setMasterEqualityEngine(EqualityEngine* master) {
 }
 
 void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
-  Debug("equality") << d_name << "::eq::enqueue(" << d_nodes[candidate.t1Id] << ", " << d_nodes[candidate.t2Id] << ", " << candidate.type << "). reason: " << candidate.reason << std::endl;
+  Debug("equality") << d_name << "::eq::enqueue(" << d_nodes[candidate.d_t1Id]
+                    << ", " << d_nodes[candidate.d_t2Id] << ", "
+                    << candidate.d_type << "). reason: " << candidate.d_reason
+                    << std::endl;
   if (back) {
     d_propagationQueue.push_back(candidate);
   } else {
@@ -169,7 +175,7 @@ void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
 EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId t1, EqualityNodeId t2, FunctionApplicationType type) {
   Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << ")" << std::endl;
 
-  ++ d_stats.functionTermsCount;
+  ++d_stats.d_functionTermsCount;
 
   // Get another id for this
   EqualityNodeId funId = newNode(original);
@@ -211,7 +217,7 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
 
   Debug("equality") << d_name << "::eq::newNode(" << node << ")" << std::endl;
 
-  ++ d_stats.termsCount;
+  ++d_stats.d_termsCount;
 
   // Register the new id of the term
   EqualityNodeId newId = d_nodes.size();
@@ -477,8 +483,8 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsig
       TriggerTermSet& aTriggerTerms = getTriggerTermSet(aTriggerRef);
       TriggerTermSet& bTriggerTerms = getTriggerTermSet(bTriggerRef);
       // Go through and notify the shared dis-equalities
-      Theory::Set aTags = aTriggerTerms.tags;
-      Theory::Set bTags = bTriggerTerms.tags;
+      Theory::Set aTags = aTriggerTerms.d_tags;
+      Theory::Set bTags = bTriggerTerms.d_tags;
       TheoryId aTag = Theory::setPop(aTags);
       TheoryId bTag = Theory::setPop(bTags);
       int a_i = 0, b_i = 0;
@@ -491,8 +497,8 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsig
           ++ b_i;
         } else {
           // Same tags, notify
-          EqualityNodeId aSharedId = aTriggerTerms.triggers[a_i++];
-          EqualityNodeId bSharedId = bTriggerTerms.triggers[b_i++];
+          EqualityNodeId aSharedId = aTriggerTerms.d_triggers[a_i++];
+          EqualityNodeId bSharedId = bTriggerTerms.d_triggers[b_i++];
           // Propagate
           if (!hasPropagatedDisequality(aTag, aSharedId, bSharedId)) {
             // Store a proof if not there already
@@ -533,7 +539,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
   Assert(triggersFired.empty());
 
-  ++ d_stats.mergesCount;
+  ++d_stats.d_mergesCount;
 
   EqualityNodeId class1Id = class1.getFind();
   EqualityNodeId class2Id = class2.getFind();
@@ -562,10 +568,14 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
   // Trigger set of class 1
   TriggerTermSetRef class1triggerRef = d_nodeIndividualTrigger[class1Id];
-  Theory::Set class1Tags = class1triggerRef == null_set_id ? 0 : getTriggerTermSet(class1triggerRef).tags;
+  Theory::Set class1Tags = class1triggerRef == null_set_id
+                               ? 0
+                               : getTriggerTermSet(class1triggerRef).d_tags;
   // Trigger set of class 2
   TriggerTermSetRef class2triggerRef = d_nodeIndividualTrigger[class2Id];
-  Theory::Set class2Tags = class2triggerRef == null_set_id ? 0 : getTriggerTermSet(class2triggerRef).tags;
+  Theory::Set class2Tags = class2triggerRef == null_set_id
+                               ? 0
+                               : getTriggerTermSet(class2triggerRef).d_tags;
 
   // Disequalities coming from class2
   TaggedEqualitiesSet class2disequalitiesToNotify;
@@ -600,17 +610,19 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
       Trigger& otherTrigger = d_equalityTriggers[currentTrigger ^ 1];
 
       // If the two are not already in the same class
-      if (otherTrigger.classId != trigger.classId) {
-        trigger.classId = class1Id;
+      if (otherTrigger.d_classId != trigger.d_classId)
+      {
+        trigger.d_classId = class1Id;
         // If they became the same, call the trigger
-        if (otherTrigger.classId == class1Id) {
+        if (otherTrigger.d_classId == class1Id)
+        {
           // Id of the real trigger is half the internal one
           triggersFired.push_back(currentTrigger);
         }
       }
 
       // Go to the next trigger
-      currentTrigger = trigger.nextTrigger;
+      currentTrigger = trigger.d_nextTrigger;
     }
 
     // Move to the next node
@@ -635,17 +647,19 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
         // Get the function application
         EqualityNodeId funId = useNode.getApplicationId();
         Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): " << d_nodes[currentId] << " in " << d_nodes[funId] << std::endl;
-        const FunctionApplication& fun = d_applications[useNode.getApplicationId()].normalized;
+        const FunctionApplication& fun =
+            d_applications[useNode.getApplicationId()].d_normalized;
         // If it's interpreted and we can interpret
-  if (fun.isInterpreted() && class1isConstant && !d_isInternal[currentId]) {
-    // Get the actual term id
-    TNode term = d_nodes[funId];
-    subtermEvaluates(getNodeId(term));
-  }
-  // Check if there is an application with find arguments
-        EqualityNodeId aNormalized = getEqualityNode(fun.a).getFind();
-        EqualityNodeId bNormalized = getEqualityNode(fun.b).getFind();
-        FunctionApplication funNormalized(fun.type, aNormalized, bNormalized);
+        if (fun.isInterpreted() && class1isConstant && !d_isInternal[currentId])
+        {
+          // Get the actual term id
+          TNode term = d_nodes[funId];
+          subtermEvaluates(getNodeId(term));
+        }
+        // Check if there is an application with find arguments
+        EqualityNodeId aNormalized = getEqualityNode(fun.d_a).getFind();
+        EqualityNodeId bNormalized = getEqualityNode(fun.d_b).getFind();
+        FunctionApplication funNormalized(fun.d_type, aNormalized, bNormalized);
         ApplicationIdsMap::iterator find = d_applicationLookup.find(funNormalized);
         if (find != d_applicationLookup.end()) {
           // Applications fun and the funNormalized can be merged due to congruence
@@ -696,14 +710,15 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
       TriggerTermSet& class2triggers = getTriggerTermSet(class2triggerRef);
 
       // Initialize the merged set
-      Theory::Set newSetTags = Theory::setUnion(class1triggers.tags, class2triggers.tags);
+      Theory::Set newSetTags =
+          Theory::setUnion(class1triggers.d_tags, class2triggers.d_tags);
       EqualityNodeId newSetTriggers[THEORY_LAST];
       unsigned newSetTriggersSize = 0;
 
       int i1 = 0;
       int i2 = 0;
-      Theory::Set tags1 = class1triggers.tags;
-      Theory::Set tags2 = class2triggers.tags;
+      Theory::Set tags1 = class1triggers.d_tags;
+      Theory::Set tags2 = class2triggers.d_tags;
       TheoryId tag1 = Theory::setPop(tags1);
       TheoryId tag2 = Theory::setPop(tags2);
 
@@ -713,18 +728,21 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
       {
         if (tag1 < tag2) {
           // copy tag1
-          newSetTriggers[newSetTriggersSize++] = class1triggers.triggers[i1++];
+          newSetTriggers[newSetTriggersSize++] =
+              class1triggers.d_triggers[i1++];
           tag1 = Theory::setPop(tags1);
         } else if (tag1 > tag2) {
           // copy tag2
-          newSetTriggers[newSetTriggersSize++] = class2triggers.triggers[i2++];
+          newSetTriggers[newSetTriggersSize++] =
+              class2triggers.d_triggers[i2++];
           tag2 = Theory::setPop(tags2);
         } else {
           // copy tag1
-          EqualityNodeId tag1id = newSetTriggers[newSetTriggersSize++] = class1triggers.triggers[i1++];
+          EqualityNodeId tag1id = newSetTriggers[newSetTriggersSize++] =
+              class1triggers.d_triggers[i1++];
           // since they are both tagged notify of merge
           if (d_performNotify) {
-            EqualityNodeId tag2id = class2triggers.triggers[i2++];
+            EqualityNodeId tag2id = class2triggers.d_triggers[i2++];
             if (!d_notify.eqNotifyTriggerTermEquality(tag1, d_nodes[tag1id], d_nodes[tag2id], true)) {
               return false;
             }
@@ -736,7 +754,8 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
       }
 
       // Add the new trigger set, if different from previous one
-      if (class1triggers.tags != class2triggers.tags) {
+      if (class1triggers.d_tags != class2triggers.d_tags)
+      {
         // Add it to the list for backtracking
         d_triggerTermSetUpdates.push_back(TriggerSetUpdate(class1Id, class1triggerRef));
         d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
@@ -771,8 +790,8 @@ void EqualityEngine::undoMerge(EqualityNode& class1, EqualityNode& class2, Equal
     TriggerId currentTrigger = d_nodeTriggers[currentId];
     while (currentTrigger != null_trigger) {
       Trigger& trigger = d_equalityTriggers[currentTrigger];
-      trigger.classId = class2Id;
-      currentTrigger = trigger.nextTrigger;
+      trigger.d_classId = class2Id;
+      currentTrigger = trigger.d_nextTrigger;
     }
 
     // Move to the next node
@@ -800,8 +819,10 @@ void EqualityEngine::backtrack() {
       // Get the ids of the merged classes
       Equality& eq = d_assertedEqualities[i];
       // Undo the merge
-      if (eq.lhs != null_id) {
-        undoMerge(d_equalityNodes[eq.lhs], d_equalityNodes[eq.rhs], eq.rhs);
+      if (eq.d_lhs != null_id)
+      {
+        undoMerge(
+            d_equalityNodes[eq.d_lhs], d_equalityNodes[eq.d_rhs], eq.d_rhs);
       }
     }
 
@@ -823,7 +844,7 @@ void EqualityEngine::backtrack() {
     // Unset the individual triggers
     for (int i = d_triggerTermSetUpdates.size() - 1, i_end = d_triggerTermSetUpdatesSize; i >= i_end; -- i) {
       const TriggerSetUpdate& update = d_triggerTermSetUpdates[i];
-      d_nodeIndividualTrigger[update.classId] = update.oldValue;
+      d_nodeIndividualTrigger[update.d_classId] = update.d_oldValue;
     }
     d_triggerTermSetUpdates.resize(d_triggerTermSetUpdatesSize);
   }
@@ -832,7 +853,7 @@ void EqualityEngine::backtrack() {
     // Unlink the triggers from the lists
     for (int i = d_equalityTriggers.size() - 1, i_end = d_equalityTriggersCount; i >= i_end; -- i) {
       const Trigger& trigger = d_equalityTriggers[i];
-      d_nodeTriggers[trigger.classId] = trigger.nextTrigger;
+      d_nodeTriggers[trigger.d_classId] = trigger.d_nextTrigger;
     }
     // Get rid of the triggers
     d_equalityTriggers.resize(d_equalityTriggersCount);
@@ -860,12 +881,12 @@ void EqualityEngine::backtrack() {
       Debug("equality") << d_name << "::eq::backtrack(): removing node " << d_nodes[i] << std::endl;
       d_nodeIds.erase(d_nodes[i]);
 
-      const FunctionApplication& app = d_applications[i].original;
+      const FunctionApplication& app = d_applications[i].d_original;
       if (!app.isNull()) {
         // Remove b from use-list
-        getEqualityNode(app.b).removeTopFromUseList(d_useListNodes);
+        getEqualityNode(app.d_b).removeTopFromUseList(d_useListNodes);
         // Remove a from use-list
-        getEqualityNode(app.a).removeTopFromUseList(d_useListNodes);
+        getEqualityNode(app.d_a).removeTopFromUseList(d_useListNodes);
       }
     }
 
@@ -959,8 +980,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         << "Don't ask for stuff I didn't notify you about";
     DisequalityReasonRef reasonRef = d_disequalityReasonsMap.find(pair)->second;
 
-    for (unsigned i = reasonRef.mergesStart; i < reasonRef.mergesEnd; ++ i) {
-
+    for (unsigned i = reasonRef.d_mergesStart; i < reasonRef.d_mergesEnd; ++i)
+    {
       EqualityPair toExplain = d_deducedDisequalityReasons[i];
       std::shared_ptr<EqProof> eqpc;
 
@@ -1143,7 +1164,7 @@ void EqualityEngine::getExplanation(
 
     // The next node to visit
     BfsData current = bfsQueue[currentIndex];
-    EqualityNodeId currentNode = current.nodeId;
+    EqualityNodeId currentNode = current.d_nodeId;
 
     Debug("equality") << d_name << "::eq::getExplanation(): currentNode =  " << d_nodes[currentNode] << std::endl;
 
@@ -1159,8 +1180,8 @@ void EqualityEngine::getExplanation(
       const EqualityEdge& edge = d_equalityEdges[currentEdge];
 
       // If not just the backwards edge
-      if ((currentEdge | 1u) != (current.edgeId | 1u)) {
-
+      if ((currentEdge | 1u) != (current.d_edgeId | 1u))
+      {
         Debug("equality") << d_name << "::eq::getExplanation(): currentEdge = (" << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()] << ")" << std::endl;
 
         // Did we find the path
@@ -1173,7 +1194,7 @@ void EqualityEngine::getExplanation(
           // Reconstruct the path
           do {
             // The current node
-            currentNode = bfsQueue[currentIndex].nodeId;
+            currentNode = bfsQueue[currentIndex].d_nodeId;
             EqualityNodeId edgeNode = d_equalityEdges[currentEdge].getNodeId();
             unsigned reasonType = d_equalityEdges[currentEdge].getReasonType();
             Node reason = d_equalityEdges[currentEdge].getReason();
@@ -1195,18 +1216,20 @@ void EqualityEngine::getExplanation(
             case MERGED_THROUGH_CONGRUENCE: {
               // f(x1, x2) == f(y1, y2) because x1 = y1 and x2 = y2
               Debug("equality") << d_name << "::eq::getExplanation(): due to congruence, going deeper" << std::endl;
-              const FunctionApplication& f1 = d_applications[currentNode].original;
-              const FunctionApplication& f2 = d_applications[edgeNode].original;
+              const FunctionApplication& f1 =
+                  d_applications[currentNode].d_original;
+              const FunctionApplication& f2 =
+                  d_applications[edgeNode].d_original;
 
               Debug("equality") << push;
               Debug("equality") << "Explaining left hand side equalities" << std::endl;
               std::shared_ptr<EqProof> eqpc1 =
                   eqpc ? std::make_shared<EqProof>() : nullptr;
-              getExplanation(f1.a, f2.a, equalities, cache, eqpc1.get());
+              getExplanation(f1.d_a, f2.d_a, equalities, cache, eqpc1.get());
               Debug("equality") << "Explaining right hand side equalities" << std::endl;
               std::shared_ptr<EqProof> eqpc2 =
                   eqpc ? std::make_shared<EqProof>() : nullptr;
-              getExplanation(f1.b, f2.b, equalities, cache, eqpc2.get());
+              getExplanation(f1.d_b, f2.d_b, equalities, cache, eqpc2.get());
               if( eqpc ){
                 eqpc->d_children.push_back( eqpc1 );
                 eqpc->d_children.push_back( eqpc2 );
@@ -1214,25 +1237,35 @@ void EqualityEngine::getExplanation(
                   //leave node null for now
                   eqpc->d_node = Node::null();
                 } else {
-                  if(d_nodes[f1.a].getKind() == kind::APPLY_UF ||
-                     d_nodes[f1.a].getKind() == kind::SELECT ||
-                     d_nodes[f1.a].getKind() == kind::STORE) {
-                    eqpc->d_node = d_nodes[f1.a];
-                  } else {
-                    if (d_nodes[f1.a].getKind() == kind::BUILTIN && d_nodes[f1.a].getConst<Kind>() == kind::SELECT) {
-                      eqpc->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_1, d_nodes[f1.b]);
+                  if (d_nodes[f1.d_a].getKind() == kind::APPLY_UF
+                      || d_nodes[f1.d_a].getKind() == kind::SELECT
+                      || d_nodes[f1.d_a].getKind() == kind::STORE)
+                  {
+                    eqpc->d_node = d_nodes[f1.d_a];
+                  }
+                  else
+                  {
+                    if (d_nodes[f1.d_a].getKind() == kind::BUILTIN
+                        && d_nodes[f1.d_a].getConst<Kind>() == kind::SELECT)
+                    {
+                      eqpc->d_node = NodeManager::currentNM()->mkNode(
+                          kind::PARTIAL_SELECT_1, d_nodes[f1.d_b]);
                       // The first child is a PARTIAL_SELECT_0.
                       // Give it a child so that we know what kind of (read) it is, when we dump to LFSC.
                       Assert(eqpc->d_children[0]->d_node.getKind()
                              == kind::PARTIAL_SELECT_0);
                       Assert(eqpc->d_children[0]->d_children.size() == 0);
 
-                      eqpc->d_children[0]->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_0,
-                                                                                     d_nodes[f1.b]);
-                    } else {
-                      eqpc->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_APPLY_UF,
-                                                                      ProofManager::currentPM()->mkOp(d_nodes[f1.a]),
-                                                                      d_nodes[f1.b]);
+                      eqpc->d_children[0]->d_node =
+                          NodeManager::currentNM()->mkNode(
+                              kind::PARTIAL_SELECT_0, d_nodes[f1.d_b]);
+                    }
+                    else
+                    {
+                      eqpc->d_node = NodeManager::currentNM()->mkNode(
+                          kind::PARTIAL_APPLY_UF,
+                          ProofManager::currentPM()->mkOp(d_nodes[f1.d_a]),
+                          d_nodes[f1.d_b]);
                     }
                   }
                 }
@@ -1245,14 +1278,14 @@ void EqualityEngine::getExplanation(
               // x1 == x1
               Debug("equality") << d_name << "::eq::getExplanation(): due to reflexivity, going deeper" << std::endl;
               EqualityNodeId eqId = currentNode == d_trueId ? edgeNode : currentNode;
-              const FunctionApplication& eq = d_applications[eqId].original;
+              const FunctionApplication& eq = d_applications[eqId].d_original;
               Assert(eq.isEquality()) << "Must be an equality";
 
               // Explain why a = b constant
               Debug("equality") << push;
               std::shared_ptr<EqProof> eqpc1 =
                   eqpc ? std::make_shared<EqProof>() : nullptr;
-              getExplanation(eq.a, eq.b, equalities, cache, eqpc1.get());
+              getExplanation(eq.d_a, eq.d_b, equalities, cache, eqpc1.get());
               if( eqpc ){
                 eqpc->d_children.push_back( eqpc1 );
               }
@@ -1335,8 +1368,8 @@ void EqualityEngine::getExplanation(
             }
 
             // Go to the previous
-            currentEdge = bfsQueue[currentIndex].edgeId;
-            currentIndex = bfsQueue[currentIndex].previousIndex;
+            currentEdge = bfsQueue[currentIndex].d_edgeId;
+            currentIndex = bfsQueue[currentIndex].d_previousIndex;
 
             //---from Morgan---
             if (eqpc != NULL && eqpc->d_id == MERGED_THROUGH_REFLEXIVITY) {
@@ -1577,8 +1610,8 @@ void EqualityEngine::propagate() {
     d_propagationQueue.pop_front();
 
     // Get the representatives
-    EqualityNodeId t1classId = getEqualityNode(current.t1Id).getFind();
-    EqualityNodeId t2classId = getEqualityNode(current.t2Id).getFind();
+    EqualityNodeId t1classId = getEqualityNode(current.d_t1Id).getFind();
+    EqualityNodeId t2classId = getEqualityNode(current.d_t2Id).getFind();
 
     // If already the same, we're done
     if (t1classId == t2classId) {
@@ -1596,7 +1629,8 @@ void EqualityEngine::propagate() {
     Assert(node2.getFind() == t2classId);
 
     // Add the actual equality to the equality graph
-    addGraphEdge(current.t1Id, current.t2Id, current.type, current.reason);
+    addGraphEdge(
+        current.d_t1Id, current.d_t2Id, current.d_type, current.d_reason);
 
     // If constants are being merged we're done
     if (d_isConstant[t1classId] && d_isConstant[t2classId]) {
@@ -1642,14 +1676,18 @@ void EqualityEngine::propagate() {
     }
 
     if (mergeInto == t2classId) {
-      Debug("equality") << d_name << "::eq::propagate(): merging " << d_nodes[current.t1Id]<< " into " << d_nodes[current.t2Id] << std::endl;
+      Debug("equality") << d_name << "::eq::propagate(): merging "
+                        << d_nodes[current.d_t1Id] << " into "
+                        << d_nodes[current.d_t2Id] << std::endl;
       d_assertedEqualities.push_back(Equality(t2classId, t1classId));
       d_assertedEqualitiesCount = d_assertedEqualitiesCount + 1;
       if (!merge(node2, node1, triggers)) {
         d_done = true;
       }
     } else {
-      Debug("equality") << d_name << "::eq::propagate(): merging " << d_nodes[current.t2Id] << " into " << d_nodes[current.t1Id] << std::endl;
+      Debug("equality") << d_name << "::eq::propagate(): merging "
+                        << d_nodes[current.d_t2Id] << " into "
+                        << d_nodes[current.d_t1Id] << std::endl;
       d_assertedEqualities.push_back(Equality(t1classId, t2classId));
       d_assertedEqualitiesCount = d_assertedEqualitiesCount + 1;
     if (!merge(node1, node2, triggers)) {
@@ -1667,11 +1705,13 @@ void EqualityEngine::propagate() {
     if (d_performNotify && !d_done) {
       for (size_t trigger_i = 0, trigger_end = triggers.size(); trigger_i < trigger_end && !d_done; ++ trigger_i) {
         const TriggerInfo& triggerInfo = d_equalityTriggersOriginal[triggers[trigger_i]];
-        if (triggerInfo.trigger.getKind() == kind::EQUAL) {
+        if (triggerInfo.d_trigger.getKind() == kind::EQUAL)
+        {
           // Special treatment for disequalities
-          if (!triggerInfo.polarity) {
+          if (!triggerInfo.d_polarity)
+          {
             // Store that we are propagating a diseauality
-            TNode equality = triggerInfo.trigger;
+            TNode equality = triggerInfo.d_trigger;
             EqualityNodeId original = getNodeId(equality);
             TNode lhs = equality[0];
             TNode rhs = equality[1];
@@ -1685,18 +1725,28 @@ void EqualityEngine::propagate() {
                 d_deducedDisequalityReasons.push_back(EqualityPair(original, d_falseId));
               }
               storePropagatedDisequality(THEORY_LAST, lhsId, rhsId);
-              if (!d_notify.eqNotifyTriggerEquality(triggerInfo.trigger, triggerInfo.polarity)) {
+              if (!d_notify.eqNotifyTriggerEquality(triggerInfo.d_trigger,
+                                                    triggerInfo.d_polarity))
+              {
                 d_done = true;
               }
             }
-          } else {
+          }
+          else
+          {
             // Equalities are simple
-            if (!d_notify.eqNotifyTriggerEquality(triggerInfo.trigger, triggerInfo.polarity)) {
+            if (!d_notify.eqNotifyTriggerEquality(triggerInfo.d_trigger,
+                                                  triggerInfo.d_polarity))
+            {
               d_done = true;
             }
           }
-        } else {
-          if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.trigger, triggerInfo.polarity)) {
+        }
+        else
+        {
+          if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
+                                                 triggerInfo.d_polarity))
+          {
             d_done = true;
           }
         }
@@ -1776,10 +1826,13 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
   if (find != d_applicationLookup.end()) {
     if (getEqualityNode(find->second).getFind() == getEqualityNode(d_falseId).getFind()) {
       if (ensureProof) {
-        const FunctionApplication original = d_applications[find->second].original;
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t1Id, original.a));
+        const FunctionApplication original =
+            d_applications[find->second].d_original;
+        nonConst->d_deducedDisequalityReasons.push_back(
+            EqualityPair(t1Id, original.d_a));
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(find->second, d_falseId));
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t2Id, original.b));
+        nonConst->d_deducedDisequalityReasons.push_back(
+            EqualityPair(t2Id, original.d_b));
         nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
       }
       Debug("equality") << "\t(YES)" << std::endl;
@@ -1788,15 +1841,18 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
   }
 
   // Check the symmetric disequality
-  std::swap(eqNormalized.a, eqNormalized.b);
+  std::swap(eqNormalized.d_a, eqNormalized.d_b);
   find = d_applicationLookup.find(eqNormalized);
   if (find != d_applicationLookup.end()) {
     if (getEqualityNode(find->second).getFind() == getEqualityNode(d_falseId).getFind()) {
       if (ensureProof) {
-        const FunctionApplication original = d_applications[find->second].original;
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t2Id, original.a));
+        const FunctionApplication original =
+            d_applications[find->second].d_original;
+        nonConst->d_deducedDisequalityReasons.push_back(
+            EqualityPair(t2Id, original.d_a));
         nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(find->second, d_falseId));
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t1Id, original.b));
+        nonConst->d_deducedDisequalityReasons.push_back(
+            EqualityPair(t1Id, original.d_b));
         nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
       }
       Debug("equality") << "\t(YES)" << std::endl;
@@ -1875,7 +1931,7 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
       // Get the existing set
       TriggerTermSet& triggerSet = getTriggerTermSet(triggerSetRef);
       // Initialize the new set for copy/insert
-      newSetTags = Theory::setInsert(tag, triggerSet.tags);
+      newSetTags = Theory::setInsert(tag, triggerSet.d_tags);
       newSetTriggersSize = 0;
       // Copy into to new one, and insert the new tag/id
       unsigned i = 0;
@@ -1886,7 +1942,7 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
         tags = Theory::setRemove(current, tags);
         // Insert the id into the triggers
         newSetTriggers[newSetTriggersSize++] =
-          current == tag ? eqNodeId : triggerSet.triggers[i++];
+            current == tag ? eqNodeId : triggerSet.d_triggers[i++];
       }
     } else {
       // Setup a singleton
@@ -1920,11 +1976,11 @@ TNode EqualityEngine::getTriggerTermRepresentative(TNode t, TheoryId tag) const 
   EqualityNodeId classId = getEqualityNode(t).getFind();
   const TriggerTermSet& triggerSet = getTriggerTermSet(d_nodeIndividualTrigger[classId]);
   unsigned i = 0;
-  Theory::Set tags = triggerSet.tags;
+  Theory::Set tags = triggerSet.d_tags;
   while (Theory::setPop(tags) != tag) {
     ++ i;
   }
-  return d_nodes[triggerSet.triggers[i]];
+  return d_nodes[triggerSet.d_triggers[i]];
 }
 
 void EqualityEngine::storeApplicationLookup(FunctionApplication& funNormalized, EqualityNodeId funId) {
@@ -1938,9 +1994,12 @@ void EqualityEngine::storeApplicationLookup(FunctionApplication& funNormalized, 
 
   // If an equality over constants we merge to false
   if (funNormalized.isEquality()) {
-    if (funNormalized.a == funNormalized.b) {
+    if (funNormalized.d_a == funNormalized.d_b)
+    {
       enqueue(MergeCandidate(funId, d_trueId, MERGED_THROUGH_REFLEXIVITY, TNode::null()));
-    } else if (d_isConstant[funNormalized.a] && d_isConstant[funNormalized.b]) {
+    }
+    else if (d_isConstant[funNormalized.d_a] && d_isConstant[funNormalized.d_b])
+    {
       enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));
     }
   }
@@ -1988,9 +2047,9 @@ EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet(Theory::Set 
   d_triggerDatabaseSize = d_triggerDatabaseSize + size;
   // Copy the information
   TriggerTermSet& newSet = getTriggerTermSet(newTriggerSetRef);
-  newSet.tags = newSetTags;
+  newSet.d_tags = newSetTags;
   for (unsigned i = 0; i < newSetTriggersSize; ++i) {
-    newSet.triggers[i] = newSetTriggers[i];
+    newSet.d_triggers[i] = newSetTriggers[i];
   }
   // Return the new reference
   return newTriggerSetRef;
@@ -2055,19 +2114,20 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
     DisequalityReasonRef ref(d_deducedDisequalityReasonsSize, d_deducedDisequalityReasons.size());
 #ifdef CVC4_ASSERTIONS
     // Check that the reasons are valid
-    for (unsigned i = ref.mergesStart; i < ref.mergesEnd; ++ i) {
+    for (unsigned i = ref.d_mergesStart; i < ref.d_mergesEnd; ++i)
+    {
       Assert(
           getEqualityNode(d_deducedDisequalityReasons[i].first).getFind()
           == getEqualityNode(d_deducedDisequalityReasons[i].second).getFind());
     }
 #endif
     if (Debug.isOn("equality::disequality")) {
-      for (unsigned i = ref.mergesStart; i < ref.mergesEnd; ++ i) {
+      for (unsigned i = ref.d_mergesStart; i < ref.d_mergesEnd; ++i)
+      {
         TNode lhs = d_nodes[d_deducedDisequalityReasons[i].first];
         TNode rhs = d_nodes[d_deducedDisequalityReasons[i].second];
         Debug("equality::disequality") << d_name << "::eq::storePropagatedDisequality(): because " << lhs << " == " << rhs << std::endl;
       }
-
     }
 
     // Store for backtracking
@@ -2089,7 +2149,7 @@ void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classI
   // The class we are looking for, shouldn't have any of the tags we are looking for already set
   Assert(d_nodeIndividualTrigger[classId] == null_set_id
          || Theory::setIntersection(
-                getTriggerTermSet(d_nodeIndividualTrigger[classId]).tags,
+                getTriggerTermSet(d_nodeIndividualTrigger[classId]).d_tags,
                 inputTags)
                 == 0);
 
@@ -2117,14 +2177,15 @@ void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classI
 
       Debug("equality::trigger") << d_name << "::getDisequalities() : checking " << d_nodes[funId] << std::endl;
 
-      const FunctionApplication& fun = d_applications[useListNode.getApplicationId()].original;
+      const FunctionApplication& fun =
+          d_applications[useListNode.getApplicationId()].d_original;
       // If it's an equality asserted to false, we do the work
       if (fun.isEquality() && getEqualityNode(funId).getFind() == getEqualityNode(d_false).getFind()) {
         // Get the other equality member
         bool lhs = false;
-        EqualityNodeId toCompare = fun.b;
+        EqualityNodeId toCompare = fun.d_b;
         if (toCompare == currentId) {
-          toCompare = fun.a;
+          toCompare = fun.d_a;
           lhs = true;
         }
         // Representative of the other member
@@ -2145,7 +2206,8 @@ void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classI
             // Tags of the other gey
             TriggerTermSet& toCompareTriggerSet = getTriggerTermSet(toCompareTriggerSetRef);
             // We only care if there are things in inputTags that is also in toCompareTags
-            Theory::Set commonTags = Theory::setIntersection(inputTags, toCompareTriggerSet.tags);
+            Theory::Set commonTags =
+                Theory::setIntersection(inputTags, toCompareTriggerSet.d_tags);
             if (commonTags) {
               out.push_back(TaggedEquality(funId, toCompareTriggerSetRef, lhs));
             }
@@ -2178,14 +2240,17 @@ bool EqualityEngine::propagateTriggerTermDisequalities(Theory::Set tags, Trigger
   for (; !d_done && it != it_end; ++ it) {
     // The information about the equality that is asserted to false
     const TaggedEquality& disequalityInfo = *it;
-    const TriggerTermSet& disequalityTriggerSet = getTriggerTermSet(disequalityInfo.triggerSetRef);
-    Theory::Set commonTags = Theory::setIntersection(disequalityTriggerSet.tags, tags);
+    const TriggerTermSet& disequalityTriggerSet =
+        getTriggerTermSet(disequalityInfo.d_triggerSetRef);
+    Theory::Set commonTags =
+        Theory::setIntersection(disequalityTriggerSet.d_tags, tags);
     Assert(commonTags);
     // This is the actual function
-    const FunctionApplication& fun = d_applications[disequalityInfo.equalityId].original;
+    const FunctionApplication& fun =
+        d_applications[disequalityInfo.d_equalityId].d_original;
     // Figure out who we are comparing to in the original equality
-    EqualityNodeId toCompare = disequalityInfo.lhs ? fun.a : fun.b;
-    EqualityNodeId myCompare = disequalityInfo.lhs ? fun.b : fun.a;
+    EqualityNodeId toCompare = disequalityInfo.d_lhs ? fun.d_a : fun.d_b;
+    EqualityNodeId myCompare = disequalityInfo.d_lhs ? fun.d_b : fun.d_a;
     if (getEqualityNode(toCompare).getFind() == getEqualityNode(myCompare).getFind()) {
       // We're propagating a != a, which means we're inconsistent, just bail and let it go into
       // a regular conflict
@@ -2203,7 +2268,8 @@ bool EqualityEngine::propagateTriggerTermDisequalities(Theory::Set tags, Trigger
         if (!hasPropagatedDisequality(myRep, tagRep)) {
           d_deducedDisequalityReasons.push_back(EqualityPair(myCompare, myRep));
           d_deducedDisequalityReasons.push_back(EqualityPair(toCompare, tagRep));
-          d_deducedDisequalityReasons.push_back(EqualityPair(disequalityInfo.equalityId, d_falseId));
+          d_deducedDisequalityReasons.push_back(
+              EqualityPair(disequalityInfo.d_equalityId, d_falseId));
         }
         // Store the propagation
         storePropagatedDisequality(currentTag, myRep, tagRep);
