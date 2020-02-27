@@ -1503,10 +1503,6 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     return ret;
   }
   std::vector<api::Term> pchildren;
-  // To test whether the operator should be passed to mkapi::Term below, we
-  // check whether this term is parameterized. This includes APPLY_UF terms and
-  // BV extraction terms, but excludes applications of most interpreted symbols
-  // like PLUS.
   bool childChanged = false;
   for (unsigned i = 0, nchild = term.getNumChildren(); i < nchild; i++)
   {
