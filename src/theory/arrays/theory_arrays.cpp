@@ -1327,14 +1327,15 @@ void TheoryArrays::check(Effort e) {
   {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::check(): processing " << fact << std::endl;
 
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
 
-    if (!assertion.isPreregistered) {
+    if (!assertion.d_isPreregistered)
+    {
       if (atom.getKind() == kind::EQUAL) {
         if (!d_equalityEngine.hasTerm(atom[0])) {
           Assert(atom[0].isConst());

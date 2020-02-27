@@ -39,9 +39,9 @@ namespace {
 // TODO: clean this up
 struct intToBV_stack_element
 {
-  TNode node;
-  bool children_added;
-  intToBV_stack_element(TNode node) : node(node), children_added(false) {}
+  TNode d_node;
+  bool d_children_added;
+  intToBV_stack_element(TNode node) : d_node(node), d_children_added(false) {}
 }; /* struct intToBV_stack_element */
 
 Node intToBVMakeBinary(TNode n, NodeMap& cache)
@@ -54,7 +54,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
   {
     // The current node we are processing
     intToBV_stack_element& stackHead = toVisit.back();
-    TNode current = stackHead.node;
+    TNode current = stackHead.d_node;
 
     NodeMap::iterator find = cache.find(current);
     if (find != cache.end())
@@ -62,7 +62,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       toVisit.pop_back();
       continue;
     }
-    if (stackHead.children_added)
+    if (stackHead.d_children_added)
     {
       // Children have been processed, so rebuild this node
       Node result;
@@ -99,7 +99,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       // Mark that we have added the children if any
       if (current.getNumChildren() > 0)
       {
-        stackHead.children_added = true;
+        stackHead.d_children_added = true;
         // We need to add the children
         for (TNode::iterator child_it = current.begin();
              child_it != current.end();
@@ -138,7 +138,7 @@ Node intToBV(TNode n, NodeMap& cache)
   {
     // The current node we are processing
     intToBV_stack_element& stackHead = toVisit.back();
-    TNode current = stackHead.node;
+    TNode current = stackHead.d_node;
 
     // If node is already in the cache we're done, pop from the stack
     NodeMap::iterator find = cache.find(current);
@@ -150,7 +150,7 @@ Node intToBV(TNode n, NodeMap& cache)
 
     // Not yet substituted, so process
     NodeManager* nm = NodeManager::currentNM();
-    if (stackHead.children_added)
+    if (stackHead.d_children_added)
     {
       // Children have been processed, so rebuild this node
       vector<Node> children;
@@ -245,7 +245,7 @@ Node intToBV(TNode n, NodeMap& cache)
       // Mark that we have added the children if any
       if (current.getNumChildren() > 0)
       {
-        stackHead.children_added = true;
+        stackHead.d_children_added = true;
         // We need to add the children
         for (TNode::iterator child_it = current.begin();
              child_it != current.end();

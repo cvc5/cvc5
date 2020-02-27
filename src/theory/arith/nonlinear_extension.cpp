@@ -645,7 +645,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   {
     nassertions++;
     const Assertion& assertion = *it;
-    Node lit = assertion.assertion;
+    Node lit = assertion.d_assertion;
     init_assertions.insert(lit);
     // check for concrete bounds
     bool pol = lit.getKind() != NOT;
