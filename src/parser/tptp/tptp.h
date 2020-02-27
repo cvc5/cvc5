@@ -103,13 +103,13 @@ class Tptp : public Parser {
    */
   void addTheory(Theory theory);
 
-  /** creates a lambda abstraction around expression
+  /** creates a lambda abstraction around application of given kind
    *
-   * Given an expression expr of type argType = t1...tn -> t, creates a lambda
+   * Given a kind k and type argType = t1...tn -> t, creates a lambda
    * expression
-   *  (lambda x1:t1,...,xn:tn . (expr x)) : t
+   *  (lambda x1:t1,...,xn:tn . (k x1 ... xn)) : t
    */
-  void mkLambdaWrapper(Expr& expr, Type argType);
+  Expr mkLambdaWrapper(Kind k, Type argType);
 
   /** get assertion expression, based on the formula role.
   * expr should have Boolean type.
