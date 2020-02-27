@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__SMT_ENGINE_SUBSOLVER_H
-#define CVC4__SMT__SMT_ENGINE_SUBSOLVER_H
+#ifndef CVC4__THEORY__SMT_ENGINE_SUBSOLVER_H
+#define CVC4__THEORY__SMT_ENGINE_SUBSOLVER_H
 
 #include <map>
 #include <memory>
@@ -24,8 +24,10 @@
 #include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "smt/smt_engine.h"
+#include "expr/variable_type_map.h"
 
 namespace CVC4 {
+namespace theory {
 
 /**
  * Initialize Smt subsolver with exporting
@@ -66,6 +68,49 @@ void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
  */
 void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query);
 
+/**
+ * This returns the result of checking the satisfiability of formula query.
+ * 
+ * If necessary, smte is initialized to the SMT engine that checked its 
+ * satisfiability.
+ */
+Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query);
+
+/**
+ * This returns the result of checking the satisfiability of formula query.
+ * 
+ * In contrast to above, this is used if the user of this method is not
+ * concerned with the state of the SMT engine after the check.
+ * 
+ * @param query The query to check
+ * @param needsTimeout Whether we would like to set a timeout
+ * @param timeout The timeout (in milliseconds)
+ */
+Result checkWithSubsolver(Expr query,
+                                   bool needsTimeout = false,
+                                   unsigned long timeout = 0);
+
+/**
+ * This returns the result of checking the satisfiability of formula query.
+ * If the query is satisfiable, it adds the model values for vars into
+ * modelVars.
+ * 
+ * In contrast to above, this is used if the user of this method is not
+ * concerned with the state of the SMT engine after the check.
+ * 
+ * @param query The query to check
+ * @param vars The variables we are interesting in getting a model for.
+ * @param modelVals A vector storing the model values of variables in vars.
+ * @param needsTimeout Whether we would like to set a timeout
+ * @param timeout The timeout (in milliseconds)
+ */
+Result checkWithSubsolver(Expr query,
+                          const std::vector<Expr>& vars,
+                          std::vector<Expr>& modelVals,
+                                   bool needsTimeout = false,
+                                   unsigned long timeout = 0);
+  
+}
 }  // namespace CVC4
 
-#endif /* CVC4__SMT__SMT_ENGINE_SUBSOLVER_H */
+#endif /* CVC4__THEORY__SMT_ENGINE_SUBSOLVER_H */

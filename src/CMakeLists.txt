@@ -256,8 +256,6 @@ libcvc4_add_sources(
   smt_util/nary_builder.cpp
   smt_util/nary_builder.h
   smt_util/node_visitor.h
-  smt_util/smt_engine_subsolver.cpp
-  smt_util/smt_engine_subsolver.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
@@ -667,6 +665,8 @@ libcvc4_add_sources(
   theory/sets/theory_sets_type_rules.h
   theory/shared_terms_database.cpp
   theory/shared_terms_database.h
+  theory/smt_engine_subsolver.cpp
+  theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
   theory/sort_inference.h
   theory/strings/base_solver.cpp
