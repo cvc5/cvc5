@@ -452,7 +452,8 @@ template<> inline
 Node RewriteRule<EvalSignExtend>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<EvalSignExtend>(" << node << ")" << std::endl;
   BitVector a = node[0].getConst<BitVector>();
-  unsigned amount = node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount; 
+  unsigned amount =
+      node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
   BitVector res = a.signExtend(amount);
   
   return utils::mkConst(res);
