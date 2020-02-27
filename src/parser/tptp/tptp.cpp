@@ -246,9 +246,10 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   // If operator already defined, just build application
   if (!p.d_expr.isNull())
   {
-    // this happens with the quotient stuff and what not. I could build the
-    // lambda here accounting for args, I guess?
-    return em->mkExpr(p.d_expr, args);
+    // this happens with some arithmetic kinds, which are wrapped around
+    // lambdas.
+    args.insert(args.begin(), p.d_expr);
+    return em->mkExpr(kind::APPLY_UF, args);
   }
   bool isBuiltinKind = false;
   // the builtin kind of the overall return expression

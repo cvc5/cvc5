@@ -1172,11 +1172,6 @@ thfLogicFormula[CVC4::ParseOp& p]
         }
         else
         {
-          for (unsigned i = 0, size = p_args.size(); i < size; ++i)
-          {
-            Debug("parser") << "thfLogicFormula: parse_op " << i << " : "
-                            << p_args[i] << "\n";
-          }
           p.d_expr = p_args[0].d_expr;
           // check if any argument is a defined function, e.g. "~", and create a
           // lambda wrapper then, e.g. (\lambda x. ~ x)
@@ -1197,14 +1192,8 @@ thfLogicFormula[CVC4::ParseOp& p]
                 (static_cast<FunctionType>(p.d_expr.getType()))
                     .getArgTypes()[i - 1]));
           }
-          Debug("parser") << "thfLogicFormula: head : " << p.d_expr
-                          << ", type : " << p.d_expr.getType() << "\n";
-          Debug("parser") << "thfLogicFormula: " << args.size()
-                          << " args : " << args << "\n";
           for (unsigned i = 0, size = args.size(); i < size; ++i)
           {
-            Debug("parser") << "thfLogicFormula: Type of arg " << i + 1 << " : "
-                            << args[i].getType() << "\n";
             p.d_expr = MK_EXPR(kind::HO_APPLY, p.d_expr, args[i]);
           }
         }
@@ -1280,7 +1269,6 @@ thfUnitaryFormula[CVC4::ParseOp& p]
     {
       if (p1.d_expr.isNull())
       {
-        Debug("parser") << "thfUnitaryFormula subcall got parseOp " << p1 << "\n";
         PARSER_STATE->parseError("In scope of binder there must be a formula.");
       }
       expr = p1.d_expr;
