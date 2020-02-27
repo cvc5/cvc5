@@ -3950,7 +3950,7 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
     Rational f = r - floor_d;
     // Multiply by -1 to get abs value.
     Rational c = (r - ceil_d) * (-1); 
-
+ 
     Integer nearest;
     (c > f) ? nearest = floor_d : nearest = ceil_d;
 
