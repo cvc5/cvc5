@@ -254,7 +254,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   if (Debug.isOn("parser"))
   {
     Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
-    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+    for (std::vector<api::Term>::iterator i = args.begin(); i != args.end(); ++i)
     {
       Debug("parser") << "++ " << *i << std::endl;
     }
