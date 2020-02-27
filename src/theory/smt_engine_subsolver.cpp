@@ -108,9 +108,20 @@ Result checkWithSubsolver(Node query,
                           unsigned long timeout)
 {
   Assert(query.getType().isBoolean());
+  Assert(modelVals.empty());
+  // ensure clear
+  modelVals.clear();
   Result r = quickCheck(query);
   if (!r.isUnknown())
   {
+    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    {
+      // default model
+      for (const Node& v : vars)
+      {
+        modelVals.push_back(v.getType().mkGroundTerm());
+      }
+    }
     return r;
   }
   std::unique_ptr<SmtEngine> smte;
@@ -129,7 +140,6 @@ Result checkWithSubsolver(Node query,
     initializeSubsolver(smte, query);
   }
   r = smte->checkSat();
-  modelVals.clear();
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
     for (const Node& v : vars)

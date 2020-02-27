@@ -20,6 +20,7 @@
 #include "proof/unsat_core.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/term_util.h"
@@ -626,36 +627,9 @@ bool CegisCoreConnective::getUnsatCore(
 
 Result CegisCoreConnective::checkSat(Node n, std::vector<Node>& mvs) const
 {
-  Assert(mvs.empty());
-  Assert(n.getType().isBoolean());
   Trace("sygus-ccore-debug") << "...check-sat " << n << "..." << std::endl;
-  n = Rewriter::rewrite(n);
-  if (n.isConst())
-  {
-    if (n.getConst<bool>())
-    {
-      // default model
-      for (const Node& v : d_vars)
-      {
-        mvs.push_back(v.getType().mkGroundTerm());
-      }
-      return Result(Result::SAT);
-    }
-    else
-    {
-      return Result(Result::UNSAT);
-    }
-  }
-  SmtEngine smt(NodeManager::currentNM()->toExprManager());
-  smt.setIsInternalSubsolver();
-  smt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-  smt.assertFormula(n.toExpr());
-  Result r = smt.checkSat();
+  Result r = checkWithSubsolver(n,d_vars,mvs);
   Trace("sygus-ccore-debug") << "...got " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::SAT)
-  {
-    getModel(smt, mvs);
-  }
   return r;
 }
 
