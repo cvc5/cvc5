@@ -54,7 +54,7 @@ namespace theory {
 void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
                                    ExprManager& em,
                                    ExprManagerMapCollection& varMap,
-                                   Expr query,
+                                   Node query,
                                    bool needsTimeout = false,
                                    unsigned long timeout = 0);
 
@@ -66,7 +66,7 @@ void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
  * exporting since the Options and ExprManager are tied together.
  * TODO: eliminate this dependency (cvc4-projects #120).
  */
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query);
+void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Node query);
 
 /**
  * This returns the result of checking the satisfiability of formula query.
@@ -74,7 +74,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query);
  * If necessary, smte is initialized to the SMT engine that checked its
  * satisfiability.
  */
-Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query);
+Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Node query);
 
 /**
  * This returns the result of checking the satisfiability of formula query.
@@ -86,7 +86,7 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query);
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
-Result checkWithSubsolver(Expr query,
+Result checkWithSubsolver(Node query,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 
@@ -101,9 +101,9 @@ Result checkWithSubsolver(Expr query,
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
-Result checkWithSubsolver(Expr query,
-                          const std::vector<Expr>& vars,
-                          std::vector<Expr>& modelVals,
+Result checkWithSubsolver(Node query,
+                          const std::vector<Node>& vars,
+                          std::vector<Node>& modelVals,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
 

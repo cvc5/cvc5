@@ -23,9 +23,9 @@ namespace CVC4 {
 namespace theory {
 
 // optimization: try to rewrite to constant
-Result quickCheck(Expr& query)
+Result quickCheck(Node& query)
 {
-  query = theory::Rewriter::rewrite(Node::fromExpr(query)).toExpr();
+  query = theory::Rewriter::rewrite(query);
   if (query.isConst())
   {
     if (!query.getConst<bool>())
@@ -37,13 +37,13 @@ Result quickCheck(Expr& query)
       return Result(Result::SAT);
     }
   }
-  return Result(Result::SAT_UNKNOWN);
+  return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
 void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
                                    ExprManager& em,
                                    ExprManagerMapCollection& varMap,
-                                   Expr query,
+                                   Node query,
                                    bool needsTimeout,
                                    unsigned long timeout)
 {
@@ -61,7 +61,7 @@ void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
       smte->setTimeLimit(timeout, true);
     }
     smte->setLogic(smt::currentSmtEngine()->getLogicInfo());
-    Expr equery = query.exportTo(&em, varMap);
+    Expr equery = query.toExpr().exportTo(&em, varMap);
     smte->assertFormula(equery);
   }
   catch (const CVC4::ExportUnsupportedException& e)
@@ -74,15 +74,15 @@ void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
   }
 }
 
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query)
+void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Node query)
 {
   NodeManager* nm = NodeManager::currentNM();
   smte.reset(new SmtEngine(nm->toExprManager()));
   smte->setIsInternalSubsolver();
-  smte->assertFormula(query);
+  smte->assertFormula(query.toExpr());
 }
 
-Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query)
+Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Node query)
 {
   Assert(query.getType().isBoolean());
   Result r = quickCheck(query);
@@ -94,16 +94,16 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query)
   return smte->checkSat();
 }
 
-Result checkWithSubsolver(Expr query, bool needsTimeout, unsigned long timeout)
+Result checkWithSubsolver(Node query, bool needsTimeout, unsigned long timeout)
 {
-  std::vector<Expr> vars;
-  std::vector<Expr> modelVals;
+  std::vector<Node> vars;
+  std::vector<Node> modelVals;
   return checkWithSubsolver(query, vars, modelVals, needsTimeout, timeout);
 }
 
-Result checkWithSubsolver(Expr query,
-                          const std::vector<Expr>& vars,
-                          std::vector<Expr>& modelVals,
+Result checkWithSubsolver(Node query,
+                          const std::vector<Node>& vars,
+                          std::vector<Node>& modelVals,
                           bool needsTimeout,
                           unsigned long timeout)
 {
@@ -132,19 +132,19 @@ Result checkWithSubsolver(Expr query,
   modelVals.clear();
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
-    for (const Expr& v : vars)
+    for (const Node& v : vars)
     {
       Expr val;
       if (needsExport)
       {
-        Expr ev = v.exportTo(&em, varMap);
+        Expr ev = v.toExpr().exportTo(&em, varMap);
         val = smte->getValue(ev).exportTo(nm->toExprManager(), varMap);
       }
       else
       {
-        val = smte->getValue(v);
+        val = smte->getValue(v.toExpr());
       }
-      modelVals.push_back(val);
+      modelVals.push_back(Node::fromExpr(val));
     }
   }
   return r;
