@@ -25,6 +25,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "theory/theory.h"
 #include "util/integer.h"
 #include "util/rational.h"
@@ -357,20 +358,23 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
     if (!c[0].empty() && !c[1].empty() && c[0].back().isConst()
         && c[1].back().isConst())
     {
-      String cs[2];
+      Node cs[2];
+      size_t csl[2];
       for (unsigned j = 0; j < 2; j++)
       {
-        cs[j] = c[j].back().getConst<String>();
+        cs[j] = c[j].back();
+        csl[j] = Word::getLength(cs[j]);
       }
-      unsigned larger = cs[0].size() > cs[1].size() ? 0 : 1;
-      unsigned smallerSize = cs[1 - larger].size();
+      size_t larger = csl[0] > csl[1] ? 0 : 1;
+      size_t smallerSize = csl[1 - larger];
       if (cs[1 - larger]
-          == (i == 0 ? cs[larger].suffix(smallerSize)
-                     : cs[larger].prefix(smallerSize)))
+          == (i == 0 ? Word::suffix(cs[larger], smallerSize)
+                     : Word::prefix(cs[larger], smallerSize)))
       {
-        unsigned sizeDiff = cs[larger].size() - smallerSize;
-        c[larger][c[larger].size() - 1] = nm->mkConst(
-            i == 0 ? cs[larger].prefix(sizeDiff) : cs[larger].suffix(sizeDiff));
+        size_t sizeDiff = csl[larger] - smallerSize;
+        c[larger][c[larger].size() - 1] =
+            i == 0 ? Word::prefix(cs[larger], sizeDiff)
+                   : Word::suffix(cs[larger], sizeDiff);
         c[1 - larger].pop_back();
         changed = true;
       }
@@ -393,10 +397,10 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
   for (unsigned i = 0; i < 2; i++)
   {
     Node cn = checkEntailHomogeneousString(node[i]);
-    if (!cn.isNull() && cn.getConst<String>().size() > 0)
+    if (!cn.isNull() && !Word::isEmpty(cn))
     {
       Assert(cn.isConst());
-      Assert(cn.getConst<String>().size() == 1);
+      Assert(Word::getLength(cn) == 1);
       unsigned hchar = cn.getConst<String>().front();
 
       // The operands of the concat on each side of the equality without
@@ -758,7 +762,8 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
     }
     if(!tmpNode.isConst()) {
       if(!preNode.isNull()) {
-        if(preNode.getKind() == kind::CONST_STRING && !preNode.getConst<String>().isEmptyString() ) {
+        if (preNode.isConst() && !Word::isEmpty(preNode))
+        {
           node_vec.push_back( preNode );
         }
         preNode = Node::null();
@@ -768,11 +773,15 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
       if( preNode.isNull() ){
         preNode = tmpNode;
       }else{
-        preNode = NodeManager::currentNM()->mkConst( preNode.getConst<String>().concat( tmpNode.getConst<String>() ) );
+        std::vector<Node> vec;
+        vec.push_back(preNode);
+        vec.push_back(tmpNode);
+        preNode = Word::mkWord(vec);
       }
     }
   }
-  if( !preNode.isNull() && ( preNode.getKind()!=kind::CONST_STRING || !preNode.getConst<String>().isEmptyString() ) ){
+  if (!preNode.isNull() && (!preNode.isConst() || !Word::isEmpty(preNode)))
+  {
     node_vec.push_back( preNode );
   }
 
@@ -828,7 +837,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
       }
     }
     else if (c.getKind() == STRING_TO_REGEXP && c[0].isConst()
-             && c[0].getConst<String>().isEmptyString())
+             && Word::isEmpty(c[0]))
     {
       changed = true;
       emptyRe = c;
@@ -969,9 +978,8 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
     // ((R)*)* ---> R*
     return returnRewrite(node, node[0], "re-star-nested-star");
   }
-  else if (node[0].getKind() == STRING_TO_REGEXP
-           && node[0][0].getKind() == CONST_STRING
-           && node[0][0].getConst<String>().isEmptyString())
+  else if (node[0].getKind() == STRING_TO_REGEXP && node[0][0].isConst()
+           && Word::isEmpty(node[0][0]))
   {
     // ("")* ---> ""
     return returnRewrite(node, node[0], "re-star-empty-string");
@@ -991,8 +999,8 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
       std::vector<Node> node_vec;
       for (const Node& nc : node[0])
       {
-        if (nc.getKind() == STRING_TO_REGEXP && nc[0].getKind() == CONST_STRING
-            && nc[0].getConst<String>().isEmptyString())
+        if (nc.getKind() == STRING_TO_REGEXP && nc[0].isConst()
+            && Word::isEmpty(nc[0]))
         {
           // can be removed
           changed = true;
@@ -1329,6 +1337,11 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
         }
       }
     }
+    case REGEXP_COMPLEMENT:
+    {
+      return !testConstStringInRegExp(s, index_start, r[0]);
+      break;
+    }
     default: {
       Assert(!RegExpOpr::isRegExpKind(k));
       return false;
@@ -1469,7 +1482,13 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     retNode = nm->mkNode(AND,
                          nm->mkNode(LEQ, nm->mkNode(STRING_CODE, r[0]), xcode),
                          nm->mkNode(LEQ, xcode, nm->mkNode(STRING_CODE, r[1])));
-  }else if(x != node[0] || r != node[1]) {
+  }
+  else if (r.getKind() == REGEXP_COMPLEMENT)
+  {
+    retNode = nm->mkNode(STRING_IN_REGEXP, x, r[0]).negate();
+  }
+  else if (x != node[0] || r != node[1])
+  {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, r );
   }
 
@@ -1560,18 +1579,19 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   {
     Kind nk0 = node[0].getKind();
     if( node[0].isConst() ){
-      retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
+      retNode = nm->mkConst(Rational(Word::getLength(node[0])));
     }
     else if (nk0 == kind::STRING_CONCAT)
     {
       Node tmpNode = node[0];
       if(tmpNode.isConst()) {
-        retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode.getConst<String>().size() ) );
+        retNode = nm->mkConst(Rational(Word::getLength(tmpNode)));
       }else if( tmpNode.getKind()==kind::STRING_CONCAT ){
         std::vector<Node> node_vec;
         for(unsigned int i=0; i<tmpNode.getNumChildren(); ++i) {
           if(tmpNode[i].isConst()) {
-            node_vec.push_back( NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode[i].getConst<String>().size() ) ) );
+            node_vec.push_back(
+                nm->mkConst(Rational(Word::getLength(tmpNode[i]))));
           } else {
             node_vec.push_back( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, tmpNode[i]) );
           }
@@ -1644,6 +1664,14 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   {
     retNode = rewritePrefixSuffix(node);
   }
+  else if (nk == STRING_IS_DIGIT)
+  {
+    // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
+    Node t = nm->mkNode(STRING_CODE, node[0]);
+    retNode = nm->mkNode(AND,
+                         nm->mkNode(LEQ, nm->mkConst(Rational(48)), t),
+                         nm->mkNode(LEQ, t, nm->mkConst(Rational(57))));
+  }
   else if (nk == kind::STRING_ITOS)
   {
     if(node[0].isConst()) {
@@ -1692,6 +1720,10 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   else if (nk == REGEXP_UNION || nk == REGEXP_INTER)
   {
     retNode = rewriteAndOrRegExp(node);
+  }
+  else if (nk == REGEXP_DIFF)
+  {
+    retNode = nm->mkNode(REGEXP_INTER, node[0],nm->mkNode(REGEXP_COMPLEMENT, node[1]));
   }
   else if (nk == REGEXP_STAR)
   {
@@ -1747,7 +1779,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
-    if (node[0].getConst<String>().size() == 0)
+    if (Word::isEmpty(node[0]))
     {
       Node ret = node[0];
       return returnRewrite(node, ret, "ss-emptystr");
@@ -1762,13 +1794,13 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         // start beyond the maximum size of strings
         // thus, it must be beyond the end point of this string
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-const-start-max-oob");
       }
       else if (node[1].getConst<Rational>().sgn() < 0)
       {
         // start before the beginning of the string
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-const-start-neg");
       }
       else
@@ -1777,7 +1809,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         if (start >= s.size())
         {
           // start beyond the end of the string
-          Node ret = nm->mkConst(::CVC4::String(""));
+          Node ret = Word::mkEmptyWord(node.getType());
           return returnRewrite(node, ret, "ss-const-start-oob");
         }
       }
@@ -1789,7 +1821,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       }
       else if (node[2].getConst<Rational>().sgn() <= 0)
       {
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-const-len-non-pos");
       }
       else
@@ -1816,12 +1848,12 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
   // if entailed non-positive length or negative start point
   if (checkEntailArith(zero, node[1], true))
   {
-    Node ret = nm->mkConst(::CVC4::String(""));
+    Node ret = Word::mkEmptyWord(node.getType());
     return returnRewrite(node, ret, "ss-start-neg");
   }
   else if (checkEntailArith(zero, node[2]))
   {
-    Node ret = nm->mkConst(::CVC4::String(""));
+    Node ret = Word::mkEmptyWord(node.getType());
     return returnRewrite(node, ret, "ss-len-non-pos");
   }
 
@@ -1847,7 +1879,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     // be empty.
     if (checkEntailArith(node[1], node[0][2]))
     {
-      Node ret = nm->mkConst(::CVC4::String(""));
+      Node ret = Word::mkEmptyWord(node.getType());
       return returnRewrite(node, ret, "ss-start-geq-len");
     }
   }
@@ -1931,7 +1963,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
           Rewriter::rewrite(nm->mkNode(kind::LT, node[1], tot_len));
       if (checkEntailArithWithAssumption(n1_lt_tot_len, zero, node[2], false))
       {
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-start-entails-zero-len");
       }
 
@@ -1940,7 +1972,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
           Rewriter::rewrite(nm->mkNode(kind::LT, zero, node[2]));
       if (checkEntailArithWithAssumption(non_zero_len, node[1], tot_len, false))
       {
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-non-zero-len-entails-oob");
       }
 
@@ -1949,14 +1981,14 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
           Rewriter::rewrite(nm->mkNode(kind::GEQ, node[1], zero));
       if (checkEntailArithWithAssumption(geq_zero_start, zero, tot_len, false))
       {
-        Node ret = nm->mkConst(String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-geq-zero-start-entails-emp-s");
       }
 
       // (str.substr s x x) ---> "" if (str.len s) <= 1
       if (node[1] == node[2] && checkEntailLengthOne(node[0]))
       {
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, "ss-len-one-z-z");
       }
     }
@@ -2042,13 +2074,11 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     CVC4::String s = node[0].getConst<String>();
     if (node[1].isConst())
     {
-      CVC4::String t = node[1].getConst<String>();
-      Node ret =
-          NodeManager::currentNM()->mkConst(s.find(t) != std::string::npos);
+      Node ret = nm->mkConst(Word::find(node[0], node[1]) != std::string::npos);
       return returnRewrite(node, ret, "ctn-const");
     }else{
       Node t = node[1];
-      if (s.size() == 0)
+      if (Word::isEmpty(node[0]))
       {
         Node len1 =
             NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
@@ -2092,14 +2122,14 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   }
   if (node[1].isConst())
   {
-    CVC4::String t = node[1].getConst<String>();
-    if (t.size() == 0)
+    size_t len = Word::getLength(node[1]);
+    if (len == 0)
     {
       // contains( x, "" ) ---> true
       Node ret = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, ret, "ctn-rhs-emptystr");
     }
-    else if (t.size() == 1)
+    else if (len == 1)
     {
       // The following rewrites are specific to a single character second
       // argument of contains, where we can reason that this character is

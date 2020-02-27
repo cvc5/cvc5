@@ -263,6 +263,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {STRING_LEQ, CVC4::Kind::STRING_LEQ},
     {STRING_PREFIX, CVC4::Kind::STRING_PREFIX},
     {STRING_SUFFIX, CVC4::Kind::STRING_SUFFIX},
+    {STRING_IS_DIGIT, CVC4::Kind::STRING_IS_DIGIT},
     {STRING_ITOS, CVC4::Kind::STRING_ITOS},
     {STRING_STOI, CVC4::Kind::STRING_STOI},
     {CONST_STRING, CVC4::Kind::CONST_STRING},
@@ -270,6 +271,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {REGEXP_CONCAT, CVC4::Kind::REGEXP_CONCAT},
     {REGEXP_UNION, CVC4::Kind::REGEXP_UNION},
     {REGEXP_INTER, CVC4::Kind::REGEXP_INTER},
+    {REGEXP_DIFF, CVC4::Kind::REGEXP_DIFF},
     {REGEXP_STAR, CVC4::Kind::REGEXP_STAR},
     {REGEXP_PLUS, CVC4::Kind::REGEXP_PLUS},
     {REGEXP_OPT, CVC4::Kind::REGEXP_OPT},
@@ -277,6 +279,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {REGEXP_LOOP, CVC4::Kind::REGEXP_LOOP},
     {REGEXP_EMPTY, CVC4::Kind::REGEXP_EMPTY},
     {REGEXP_SIGMA, CVC4::Kind::REGEXP_SIGMA},
+    {REGEXP_COMPLEMENT, CVC4::Kind::REGEXP_COMPLEMENT},
     /* Quantifiers --------------------------------------------------------- */
     {FORALL, CVC4::Kind::FORALL},
     {EXISTS, CVC4::Kind::EXISTS},
@@ -526,6 +529,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::STRING_LEQ, STRING_LEQ},
         {CVC4::Kind::STRING_PREFIX, STRING_PREFIX},
         {CVC4::Kind::STRING_SUFFIX, STRING_SUFFIX},
+        {CVC4::Kind::STRING_IS_DIGIT, STRING_IS_DIGIT},
         {CVC4::Kind::STRING_ITOS, STRING_ITOS},
         {CVC4::Kind::STRING_STOI, STRING_STOI},
         {CVC4::Kind::CONST_STRING, CONST_STRING},
@@ -533,6 +537,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::REGEXP_CONCAT, REGEXP_CONCAT},
         {CVC4::Kind::REGEXP_UNION, REGEXP_UNION},
         {CVC4::Kind::REGEXP_INTER, REGEXP_INTER},
+        {CVC4::Kind::REGEXP_DIFF, REGEXP_DIFF},
         {CVC4::Kind::REGEXP_STAR, REGEXP_STAR},
         {CVC4::Kind::REGEXP_PLUS, REGEXP_PLUS},
         {CVC4::Kind::REGEXP_OPT, REGEXP_OPT},
@@ -540,6 +545,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::REGEXP_LOOP, REGEXP_LOOP},
         {CVC4::Kind::REGEXP_EMPTY, REGEXP_EMPTY},
         {CVC4::Kind::REGEXP_SIGMA, REGEXP_SIGMA},
+        {CVC4::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
         /* Quantifiers ----------------------------------------------------- */
         {CVC4::Kind::FORALL, FORALL},
         {CVC4::Kind::EXISTS, EXISTS},
@@ -1830,9 +1836,9 @@ DatatypeDecl::DatatypeDecl(const Solver* s,
                            bool isCoDatatype)
 {
   std::vector<Type> tparams;
-  for (const Sort& s : params)
+  for (const Sort& p : params)
   {
-    tparams.push_back(*s.d_type);
+    tparams.push_back(*p.d_type);
   }
   d_dtype = std::shared_ptr<CVC4::Datatype>(
       new CVC4::Datatype(s->getExprManager(), name, tparams, isCoDatatype));

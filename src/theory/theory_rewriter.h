@@ -48,10 +48,7 @@ struct RewriteResponse
 {
   const RewriteStatus d_status;
   const Node d_node;
-  RewriteResponse(RewriteStatus status, Node node)
-      : d_status(status), d_node(node)
-  {
-  }
+  RewriteResponse(RewriteStatus status, Node n) : d_status(status), d_node(n) {}
 }; /* struct RewriteResponse */
 
 /**
