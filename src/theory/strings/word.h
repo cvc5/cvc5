@@ -30,6 +30,7 @@ namespace strings {
 class Word
 {
  public:
+  
   /** make empty constant of type tn */
   static Node mkEmptyWord(TypeNode tn);
 

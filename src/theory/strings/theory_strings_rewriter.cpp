@@ -1793,7 +1793,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     // rewriting for constant arguments
     if (node[1].isConst() && node[2].isConst())
     {
-      CVC4::String s = node[0].getConst<String>();
+      Node s = node[0];
       CVC4::Rational rMaxInt(String::maxSize());
       uint32_t start;
       if (node[1].getConst<Rational>() > rMaxInt)
@@ -1822,7 +1822,8 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       if (node[2].getConst<Rational>() > rMaxInt)
       {
         // take up to the end of the string
-        Node ret = nm->mkConst(::CVC4::String(s.suffix(s.size() - start)));
+        size_t lenS = Word::getLength(s);
+        Node ret = Word::suffix(s,lenS-start);
         return returnRewrite(node, ret, "ss-const-len-max-oob");
       }
       else if (node[2].getConst<Rational>().sgn() <= 0)
@@ -1837,13 +1838,14 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         if (start + len > Word::getLength(node[0]))
         {
           // take up to the end of the string
-          Node ret = nm->mkConst(::CVC4::String(s.suffix(s.size() - start)));
+          size_t lenS = Word::getLength(s);
+          Node ret = Word::suffix(s,lenS-start);
           return returnRewrite(node, ret, "ss-const-end-oob");
         }
         else
         {
           // compute the substr using the constant string
-          Node ret = nm->mkConst(::CVC4::String(s.substr(start, len)));
+          Node ret = Word::substr(s,start,len);
           return returnRewrite(node, ret, "ss-const-ss");
         }
       }
@@ -3357,27 +3359,29 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   }
   if (n[1].isConst())
   {
-    CVC4::String s = n[1].getConst<String>();
+    Node s = n[1];
+    size_t lenS = Word::getLength(s);
     if (n[0].isConst())
     {
       Node ret = NodeManager::currentNM()->mkConst(false);
-      CVC4::String t = n[0].getConst<String>();
-      if (s.size() >= t.size())
+      Node t = n[0];
+      size_t lenT = Word::getLength(t);
+      if (lenS >= lenT)
       {
-        if ((isPrefix && t == s.prefix(t.size()))
-            || (!isPrefix && t == s.suffix(t.size())))
+        if ((isPrefix && t == Word::prefix(s,lenT))
+            || (!isPrefix && t == Word::suffix(s,lenT)))
         {
           ret = NodeManager::currentNM()->mkConst(true);
         }
       }
       return returnRewrite(n, ret, "suf/prefix-const");
     }
-    else if (s.isEmptyString())
+    else if (lenS==0)
     {
       Node ret = n[0].eqNode(n[1]);
       return returnRewrite(n, ret, "suf/prefix-empty");
     }
-    else if (s.size() == 1)
+    else if (lenS== 1)
     {
       // (str.prefix x "A") and (str.suffix x "A") are equivalent to
       // (str.contains "A" x )
@@ -3439,21 +3443,22 @@ Node TheoryStringsRewriter::rewriteStringCode(Node n)
 
 Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRev ) {
   Assert(a.isConst() && b.isConst());
-  index = a.getConst<String>().size() <= b.getConst<String>().size() ? 1 : 0;
-  unsigned len_short = index==1 ? a.getConst<String>().size() : b.getConst<String>().size();
+  size_t lenA = Word::getLength(a);
+  size_t lenB = Word::getLength(b);
+  index = lenA <= lenB ? 1 : 0;
+  unsigned len_short = index==1 ? lenA : lenB;
   bool cmp = isRev ? a.getConst<String>().rstrncmp(b.getConst<String>(), len_short): a.getConst<String>().strncmp(b.getConst<String>(), len_short);
   if( cmp ) {
     Node l = index==0 ? a : b;
     if( isRev ){
       int new_len = l.getConst<String>().size() - len_short;
-      return NodeManager::currentNM()->mkConst(l.getConst<String>().substr( 0, new_len ));
+      return Word::substr( l, 0, new_len );
     }else{
-      return NodeManager::currentNM()->mkConst(l.getConst<String>().substr( len_short ));
+      return Word::substr( l, len_short );
     }
-  }else{
-    //not the same prefix/suffix
-    return Node::null();
   }
+  //not the same prefix/suffix
+  return Node::null();
 }
 
 bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& firstc, int& lastc ) {
@@ -3497,7 +3502,6 @@ bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& first
 
 bool TheoryStringsRewriter::canConstantContainList( Node c, std::vector< Node >& l, int& firstc, int& lastc ) {
   Assert(c.isConst());
-  CVC4::String t = c.getConst<String>();
   //must find constant components in order
   size_t pos = 0;
   firstc = -1;
@@ -3506,12 +3510,11 @@ bool TheoryStringsRewriter::canConstantContainList( Node c, std::vector< Node >&
     if( l[i].isConst() ){
       firstc = firstc==-1 ? i : firstc;
       lastc = i;
-      CVC4::String s = l[i].getConst<String>();
-      size_t new_pos = t.find(s,pos);
+      size_t new_pos = Word::find(c,l[i],pos);
       if( new_pos==std::string::npos ) {
         return false;
       }else{
-        pos = new_pos + s.size();
+        pos = new_pos + Word::getLength(l[i]);
       }
     }
   }
@@ -3775,47 +3778,46 @@ bool TheoryStringsRewriter::componentContainsBase(
   {
     if (n1.isConst() && n2.isConst())
     {
-      CVC4::String s = n1.getConst<String>();
-      CVC4::String t = n2.getConst<String>();
-      if (t.size() < s.size())
+      size_t len1 = Word::getLength(n1);
+      size_t len2 = Word::getLength(n2);
+      if (len2 < len1)
       {
         if (dir == 1)
         {
-          if (s.suffix(t.size()) == t)
+          if (Word::suffix(n1,len2) == n2)
           {
             if (computeRemainder)
             {
-              n1rb = nm->mkConst(::CVC4::String(s.prefix(s.size() - t.size())));
+              n1rb = Word::prefix(n1,len1 - len2);
             }
             return true;
           }
         }
         else if (dir == -1)
         {
-          if (s.prefix(t.size()) == t)
+          if (Word::prefix(n1,len2) == n2)
           {
             if (computeRemainder)
             {
-              n1re = nm->mkConst(::CVC4::String(s.suffix(s.size() - t.size())));
+              n1re = Word::suffix(n1,len1 - len2);
             }
             return true;
           }
         }
         else
         {
-          size_t f = s.find(t);
+          size_t f = Word::find(n1,n2);
           if (f != std::string::npos)
           {
             if (computeRemainder)
             {
               if (f > 0)
               {
-                n1rb = nm->mkConst(::CVC4::String(s.prefix(f)));
+                n1rb = Word::prefix(n1,f);
               }
-              if (s.size() > f + t.size())
+              if (len1 > f + len2)
               {
-                n1re = nm->mkConst(
-                    ::CVC4::String(s.suffix(s.size() - (f + t.size()))));
+                n1re = Word::suffix(n1,len1 - (f + len2));
               }
             }
             return true;
