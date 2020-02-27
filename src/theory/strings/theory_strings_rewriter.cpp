@@ -2319,9 +2319,8 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   {
     if (node[1].isConst() && node[0][1].isConst() && node[0][2].isConst())
     {
-      String c = node[1].getConst<String>();
-      if (c.noOverlapWith(node[0][1].getConst<String>())
-          && c.noOverlapWith(node[0][2].getConst<String>()))
+      if (Word::noOverlapWith(node[1], node[0][1])
+          && Word::noOverlapWith(node[1], node[0][2]))
       {
         // (str.contains (str.replace x c1 c2) c3) ---> (str.contains x c3)
         // if there is no overlap between c1 and c3 and none between c2 and c3
@@ -2430,11 +2429,11 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
       return returnRewrite(node, negone, "idof-max");
     }
     Assert(node[2].getConst<Rational>().sgn() >= 0);
+    Node s = children0[0];
+    Node t = node[1];
     uint32_t start =
         node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-    CVC4::String s = children0[0].getConst<String>();
-    CVC4::String t = node[1].getConst<String>();
-    std::size_t ret = s.find(t, start);
+    std::size_t ret = Word::find(s,t,start);
     if (ret != std::string::npos)
     {
       Node retv = nm->mkConst(Rational(static_cast<unsigned>(ret)));
@@ -2479,8 +2478,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
 
   if (node[1].isConst())
   {
-    CVC4::String t = node[1].getConst<String>();
-    if (t.size() == 0)
+    if (Word::isEmpty(node[1]))
     {
       if (checkEntailArith(len0, node[2]) && checkEntailArith(node[2]))
       {
@@ -2619,7 +2617,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   Assert(node.getKind() == kind::STRING_STRREPL);
   NodeManager* nm = NodeManager::currentNM();
 
-  if (node[1].isConst() && node[1].getConst<String>().isEmptyString())
+  if (node[1].isConst() && Word::isEmpty(node[1]))
   {
     Node ret = nm->mkNode(STRING_CONCAT, node[2], node[0]);
     return returnRewrite(node, ret, "rpl-rpl-empty");
@@ -2630,9 +2628,9 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 
   if (node[1].isConst() && children0[0].isConst())
   {
-    CVC4::String s = children0[0].getConst<String>();
-    CVC4::String t = node[1].getConst<String>();
-    std::size_t p = s.find(t);
+    Node s = children0[0];
+    Node t = node[1];
+    std::size_t p = Word::find(s,t);
     if (p == std::string::npos)
     {
       if (children0.size() == 1)
@@ -2642,19 +2640,17 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     }
     else
     {
-      String s1 = s.substr(0, (int)p);
-      String s3 = s.substr((int)p + (int)t.size());
+      Node s1 = Word::substr(s,0,p);
+      Node s3 = Word::substr(s,p+Word::getLength(t));
       std::vector<Node> children;
-      if (s1.size() > 0)
+      if (!Word::isEmpty(s1))
       {
-        Node ns1 = nm->mkConst(String(s1));
-        children.push_back(ns1);
+        children.push_back(s1);
       }
       children.push_back(node[2]);
-      if (s3.size() > 0)
+      if (!Word::isEmpty(s3))
       {
-        Node ns3 = nm->mkConst(String(s3));
-        children.push_back(ns3);
+        children.push_back(s3);
       }
       children.insert(children.end(), children0.begin() + 1, children0.end());
       Node ret = utils::mkConcat(STRING_CONCAT, children);
@@ -3104,36 +3100,37 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 Node TheoryStringsRewriter::rewriteReplaceAll(Node node)
 {
   Assert(node.getKind() == STRING_STRREPLALL);
-  NodeManager* nm = NodeManager::currentNM();
 
   if (node[0].isConst() && node[1].isConst())
   {
     std::vector<Node> children;
-    String s = node[0].getConst<String>();
-    String t = node[1].getConst<String>();
-    if (s.isEmptyString() || t.isEmptyString())
+    Node s = node[0];
+    Node t = node[1];
+    if (Word::isEmpty(s) || Word::isEmpty(t))
     {
       return returnRewrite(node, node[0], "replall-empty-find");
     }
+    std::size_t sizeS = Word::getLength(s);
+    std::size_t sizeT = Word::getLength(t);
     std::size_t index = 0;
     std::size_t curr = 0;
     do
     {
-      curr = s.find(t, index);
+      curr = Word::find(s, t, index);
       if (curr != std::string::npos)
       {
         if (curr > index)
         {
-          children.push_back(nm->mkConst(s.substr(index, curr - index)));
+          children.push_back(Word::substr(s,index, curr - index));
         }
         children.push_back(node[2]);
-        index = curr + t.size();
+        index = curr + sizeT;
       }
       else
       {
-        children.push_back(nm->mkConst(s.substr(index, s.size() - index)));
+        children.push_back(Word::substr(s,index, sizeS - index));
       }
-    } while (curr != std::string::npos && curr < s.size());
+    } while (curr != std::string::npos && curr < sizeS);
     // constant evaluation
     Node res = utils::mkConcat(STRING_CONCAT, children);
     return returnRewrite(node, res, "replall-const");
