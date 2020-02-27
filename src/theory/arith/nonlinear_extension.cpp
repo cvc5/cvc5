@@ -540,17 +540,38 @@ Node NonlinearExtension::mkMonomialRemFactor(
 }
 
 void NonlinearExtension::sendLemmas(const std::vector<Node>& out,
-                                    bool preprocess)
+                                    bool preprocess,
+                                    std::map<Node, NlLemmaSideEffect>& lemSE)
 {
+  std::map<Node, NlLemmaSideEffect>::iterator its;
   for (const Node& lem : out)
   {
     Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << lem << std::endl;
     d_containing.getOutputChannel().lemma(lem, false, preprocess);
+    // process the side effect
+    its = lemSE.find(lem);
+    if (its != lemSE.end())
+    {
+      processSideEffect(its->second);
+    }
     // add to cache if not preprocess
     if (!preprocess)
     {
       d_lemmas.insert(lem);
     }
+    // also indicate this is a tautology
+    d_model.addTautology(lem);
+  }
+}
+
+void NonlinearExtension::processSideEffect(const NlLemmaSideEffect& se)
+{
+  for (const std::tuple<Node, unsigned, Node>& sp : se.d_secantPoint)
+  {
+    Node tf = std::get<0>(sp);
+    unsigned d = std::get<1>(sp);
+    Node c = std::get<2>(sp);
+    d_secant_points[tf][d].push_back(c);
   }
 }
 
@@ -624,7 +645,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   {
     nassertions++;
     const Assertion& assertion = *it;
-    Node lit = assertion.assertion;
+    Node lit = assertion.d_assertion;
     init_assertions.insert(lit);
     // check for concrete bounds
     bool pol = lit.getKind() != NOT;
@@ -890,7 +911,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                       const std::vector<Node>& xts,
                                       std::vector<Node>& lems,
                                       std::vector<Node>& lemsPp,
-                                      std::vector<Node>& wlems)
+                                      std::vector<Node>& wlems,
+                                      std::map<Node, NlLemmaSideEffect>& lemSE)
 {
   d_ms_vars.clear();
   d_ms_proc.clear();
@@ -1262,7 +1284,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   }
   if (options::nlExtTfTangentPlanes())
   {
-    lemmas = checkTranscendentalTangentPlanes();
+    lemmas = checkTranscendentalTangentPlanes(lemSE);
     filterLemmas(lemmas, wlems);
   }
   Trace("nl-ext") << "  ...finished with " << wlems.size() << " waiting lemmas."
@@ -1297,22 +1319,31 @@ void NonlinearExtension::check(Theory::Effort e) {
     // If we computed lemmas during collectModelInfo, send them now.
     if (!d_cmiLemmas.empty() || !d_cmiLemmasPp.empty())
     {
-      sendLemmas(d_cmiLemmas);
-      sendLemmas(d_cmiLemmasPp, true);
+      sendLemmas(d_cmiLemmas, false, d_cmiLemmasSE);
+      sendLemmas(d_cmiLemmasPp, true, d_cmiLemmasSE);
       return;
     }
     // Otherwise, we will answer SAT. The values that we approximated are
     // recorded as approximations here.
     TheoryModel* tm = d_containing.getValuation().getModel();
-    for (std::pair<const Node, Node>& a : d_approximations)
+    for (std::pair<const Node, std::pair<Node, Node>>& a : d_approximations)
     {
-      tm->recordApproximation(a.first, a.second);
+      if (a.second.second.isNull())
+      {
+        tm->recordApproximation(a.first, a.second.first);
+      }
+      else
+      {
+        tm->recordApproximation(a.first, a.second.first, a.second.second);
+      }
     }
   }
 }
 
-bool NonlinearExtension::modelBasedRefinement(std::vector<Node>& mlems,
-                                              std::vector<Node>& mlemsPp)
+bool NonlinearExtension::modelBasedRefinement(
+    std::vector<Node>& mlems,
+    std::vector<Node>& mlemsPp,
+    std::map<Node, NlLemmaSideEffect>& lemSE)
 {
   // get the assertions
   std::vector<Node> assertions;
@@ -1398,7 +1429,8 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<Node>& mlems,
     if (!false_asserts.empty() || num_shared_wrong_value > 0)
     {
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
-      checkLastCall(assertions, false_asserts, xts, mlems, mlemsPp, wlems);
+      checkLastCall(
+          assertions, false_asserts, xts, mlems, mlemsPp, wlems, lemSE);
       if (!mlems.empty() || !mlemsPp.empty())
       {
         return true;
@@ -1515,10 +1547,11 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
   // run a last call effort check
   d_cmiLemmas.clear();
   d_cmiLemmasPp.clear();
+  d_cmiLemmasSE.clear();
   if (!d_builtModel.get())
   {
     Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-    modelBasedRefinement(d_cmiLemmas, d_cmiLemmasPp);
+    modelBasedRefinement(d_cmiLemmas, d_cmiLemmasPp, d_cmiLemmasSE);
   }
   if (d_builtModel.get())
   {
@@ -3004,7 +3037,8 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   return lemmas;
 }
 
-std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
+std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes(
+    std::map<Node, NlLemmaSideEffect>& lemSE)
 {
   std::vector<Node> lemmas;
   Trace("nl-ext") << "Get tangent plane lemmas for transcendental functions..."
@@ -3044,7 +3078,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
         {
           Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
           unsigned prev = lemmas.size();
-          if (!checkTfTangentPlanesFun(tf, d, lemmas))
+          if (!checkTfTangentPlanesFun(tf, d, lemmas, lemSE))
           {
             Trace("nl-ext-tftp")
                 << "...fail, #lemmas = " << (lemmas.size() - prev) << std::endl;
@@ -3062,9 +3096,11 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
   return lemmas;
 }
 
-bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
-                                                 unsigned d,
-                                                 std::vector<Node>& lemmas)
+bool NonlinearExtension::checkTfTangentPlanesFun(
+    Node tf,
+    unsigned d,
+    std::vector<Node>& lemmas,
+    std::map<Node, NlLemmaSideEffect>& lemSE)
 {
   Assert(d_model.isRefineableTfFun(tf));
 
@@ -3250,23 +3286,24 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     Assert(std::find(
                d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), c)
            == d_secant_points[tf][d].end());
-    // insert into the vector
-    d_secant_points[tf][d].push_back(c);
+    // Insert into the (temporary) vector. We do not update this vector
+    // until we are sure this secant plane lemma has been processed. We do
+    // this by mapping the lemma to a side effect below.
+    std::vector<Node> spoints = d_secant_points[tf][d];
+    spoints.push_back(c);
+
     // sort
     SortNlModel smv;
     smv.d_nlm = &d_model;
     smv.d_isConcrete = true;
-    std::sort(
-        d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), smv);
+    std::sort(spoints.begin(), spoints.end(), smv);
     // get the resulting index of c
     unsigned index =
-        std::find(
-            d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), c)
-        - d_secant_points[tf][d].begin();
+        std::find(spoints.begin(), spoints.end(), c) - spoints.begin();
     // bounds are the next closest upper/lower bound values
     if (index > 0)
     {
-      bounds[0] = d_secant_points[tf][d][index - 1];
+      bounds[0] = spoints[index - 1];
     }
     else
     {
@@ -3282,9 +3319,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
         bounds[0] = Rewriter::rewrite(nm->mkNode(MINUS, c, d_one));
       }
     }
-    if (index < d_secant_points[tf][d].size() - 1)
+    if (index < spoints.size() - 1)
     {
-      bounds[1] = d_secant_points[tf][d][index + 1];
+      bounds[1] = spoints[index + 1];
     }
     else
     {
@@ -3303,6 +3340,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     Trace("nl-ext-tftp-debug2") << "...secant bounds are : " << bounds[0]
                                 << " ... " << bounds[1] << std::endl;
 
+    // the secant plane may be conjunction of 1-2 guarded inequalities
+    std::vector<Node> lemmaConj;
     for (unsigned s = 0; s < 2; s++)
     {
       // compute secant plane
@@ -3363,11 +3402,18 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
         lem = Rewriter::rewrite(lem);
         Trace("nl-ext-tftp-lemma") << "*** Secant plane lemma : " << lem
                                    << std::endl;
-        // Figure 3 : line 22
-        lemmas.push_back(lem);
+        lemmaConj.push_back(lem);
         Assert(d_model.computeAbstractModelValue(lem) == d_false);
       }
     }
+    // Figure 3 : line 22
+    Assert(!lemmaConj.empty());
+    Node lem =
+        lemmaConj.size() == 1 ? lemmaConj[0] : nm->mkNode(AND, lemmaConj);
+    lemmas.push_back(lem);
+    // The side effect says that if lem is added, then we should add the
+    // secant point c for (tf,d).
+    lemSE[lem].d_secantPoint.push_back(std::make_tuple(tf, d, c));
   }
   return false;
 }

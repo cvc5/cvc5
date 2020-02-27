@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-unsat-cores --no-check-proofs
+; COMMAND-LINE: --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic QF_AUFLIRA)
 (set-info :smt-lib-version 2.0)

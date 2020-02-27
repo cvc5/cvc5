@@ -128,6 +128,7 @@ void Smt2Printer::toStream(std::ostream& out,
       case REAL_TYPE: out << "Real"; break;
       case INTEGER_TYPE: out << "Int"; break;
       case STRING_TYPE: out << "String"; break;
+      case REGEXP_TYPE: out << "RegLan"; break;
       case ROUNDINGMODE_TYPE: out << "RoundingMode"; break;
       default:
         // fall back on whatever operator<< does on underlying type; we
@@ -137,9 +138,9 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     case kind::BITVECTOR_TYPE:
       if(d_variant == sygus_variant ){
-        out << "(BitVec " << n.getConst<BitVectorSize>().size << ")";
+        out << "(BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       }else{
-        out << "(_ BitVec " << n.getConst<BitVectorSize>().size << ")";
+        out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       }
       break;
     case kind::FLOATINGPOINT_TYPE:
@@ -269,30 +270,31 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::BITVECTOR_EXTRACT_OP:
     {
       BitVectorExtract p = n.getConst<BitVectorExtract>();
-      out << "(_ extract " << p.high << ' ' << p.low << ")";
+      out << "(_ extract " << p.d_high << ' ' << p.d_low << ")";
       break;
     }
     case kind::BITVECTOR_REPEAT_OP:
-      out << "(_ repeat " << n.getConst<BitVectorRepeat>().repeatAmount << ")";
+      out << "(_ repeat " << n.getConst<BitVectorRepeat>().d_repeatAmount
+          << ")";
       break;
     case kind::BITVECTOR_ZERO_EXTEND_OP:
       out << "(_ zero_extend "
-          << n.getConst<BitVectorZeroExtend>().zeroExtendAmount << ")";
+          << n.getConst<BitVectorZeroExtend>().d_zeroExtendAmount << ")";
       break;
     case kind::BITVECTOR_SIGN_EXTEND_OP:
       out << "(_ sign_extend "
-          << n.getConst<BitVectorSignExtend>().signExtendAmount << ")";
+          << n.getConst<BitVectorSignExtend>().d_signExtendAmount << ")";
       break;
     case kind::BITVECTOR_ROTATE_LEFT_OP:
       out << "(_ rotate_left "
-          << n.getConst<BitVectorRotateLeft>().rotateLeftAmount << ")";
+          << n.getConst<BitVectorRotateLeft>().d_rotateLeftAmount << ")";
       break;
     case kind::BITVECTOR_ROTATE_RIGHT_OP:
       out << "(_ rotate_right "
-          << n.getConst<BitVectorRotateRight>().rotateRightAmount << ")";
+          << n.getConst<BitVectorRotateRight>().d_rotateRightAmount << ")";
       break;
     case kind::INT_TO_BITVECTOR_OP:
-      out << "(_ int2bv " << n.getConst<IntToBitVector>().size << ")";
+      out << "(_ int2bv " << n.getConst<IntToBitVector>().d_size << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
       // out << "to_fp_bv "
@@ -333,20 +335,20 @@ void Smt2Printer::toStream(std::ostream& out,
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_OP:
-      out << "(_ fp.to_ubv " << n.getConst<FloatingPointToUBV>().bvs.size
+      out << "(_ fp.to_ubv " << n.getConst<FloatingPointToUBV>().bvs.d_size
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_SBV_OP:
-      out << "(_ fp.to_sbv " << n.getConst<FloatingPointToSBV>().bvs.size
+      out << "(_ fp.to_sbv " << n.getConst<FloatingPointToSBV>().bvs.d_size
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_TOTAL_OP:
       out << "(_ fp.to_ubv_total "
-          << n.getConst<FloatingPointToUBVTotal>().bvs.size << ")";
+          << n.getConst<FloatingPointToUBVTotal>().bvs.d_size << ")";
       break;
     case kind::FLOATINGPOINT_TO_SBV_TOTAL_OP:
       out << "(_ fp.to_sbv_total "
-          << n.getConst<FloatingPointToSBVTotal>().bvs.size << ")";
+          << n.getConst<FloatingPointToSBVTotal>().bvs.d_size << ")";
       break;
     default:
       // fall back on whatever operator<< does on underlying type; we
@@ -664,6 +666,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_OPT:
   case kind::REGEXP_RANGE:
   case kind::REGEXP_LOOP:
+  case kind::REGEXP_COMPLEMENT:
   case kind::REGEXP_EMPTY:
   case kind::REGEXP_SIGMA: out << smtKindString(k, d_variant) << " "; break;
 
@@ -1206,7 +1209,8 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
   case kind::STRING_STRREPL: return "str.replace" ;
-  case kind::STRING_STRREPLALL: return "str.replaceall";
+  case kind::STRING_STRREPLALL:
+    return v == smt2_6_1_variant ? "str.replace_all" : "str.replaceall";
   case kind::STRING_TOLOWER: return "str.tolower";
   case kind::STRING_TOUPPER: return "str.toupper";
   case kind::STRING_REV: return "str.rev";
@@ -1214,15 +1218,16 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_LEQ: return "str.<=";
   case kind::STRING_LT: return "str.<";
-  case kind::STRING_CODE: return "str.code";
+  case kind::STRING_CODE:
+    return v == smt2_6_1_variant ? "str.to_code" : "str.code";
   case kind::STRING_ITOS:
-    return v == smt2_6_1_variant ? "str.from-int" : "int.to.str";
+    return v == smt2_6_1_variant ? "str.from_int" : "int.to.str";
   case kind::STRING_STOI:
-    return v == smt2_6_1_variant ? "str.to-int" : "str.to.int";
+    return v == smt2_6_1_variant ? "str.to_int" : "str.to.int";
   case kind::STRING_IN_REGEXP:
-    return v == smt2_6_1_variant ? "str.in-re" : "str.in.re";
+    return v == smt2_6_1_variant ? "str.in_re" : "str.in.re";
   case kind::STRING_TO_REGEXP:
-    return v == smt2_6_1_variant ? "str.to-re" : "str.to.re";
+    return v == smt2_6_1_variant ? "str.to_re" : "str.to.re";
   case kind::REGEXP_EMPTY: return "re.nostr";
   case kind::REGEXP_SIGMA: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
@@ -1233,6 +1238,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_OPT: return "re.opt";
   case kind::REGEXP_RANGE: return "re.range";
   case kind::REGEXP_LOOP: return "re.loop";
+  case kind::REGEXP_COMPLEMENT: return "re.comp";
 
   //sep theory
   case kind::SEP_STAR: return "sep";
@@ -1517,7 +1523,8 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
         {
           out << "(";
         }
-        out << dt[cIndex].getSygusOp();
+        // print operator without letification (the fifth argument is set to 0).
+        toStream(out, dt[cIndex].getSygusOp(), -1, false, 0);
         if (n.getNumChildren() > 0)
         {
           for (Node nc : n)
@@ -1532,15 +1539,12 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
     }
   }
   Node p = n.getAttribute(theory::SygusPrintProxyAttribute());
-  if (!p.isNull())
+  if (p.isNull())
   {
-    out << p;
+    p = n;
   }
-  else
-  {
-    // cannot convert term to analog, print original
-    out << n;
-  }
+  // cannot convert term to analog, print original, without letification.
+  toStream(out, p, -1, false, 0);
 }
 
 static void toStream(std::ostream& out, const AssertCommand* c)
@@ -2071,25 +2075,23 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
   Type type = c->getFunction().getType();
   const std::vector<Expr>& vars = c->getVars();
   Assert(!type.isFunction() || !vars.empty());
-  c->getCommandName();
+  out << '(';
   if (type.isFunction())
   {
     // print variable list
     std::vector<Expr>::const_iterator i = vars.begin(), i_end = vars.end();
     Assert(i != i_end);
-    out << '(';
-    do
+    out << '(' << *i << ' ' << i->getType() << ')';
+    ++i;
+    while (i != i_end)
     {
-      out << '(' << *i << ' ' << (*i).getType() << ')';
-      if (++i != i_end)
-      {
-        out << ' ';
-      }
-    } while (i != i_end);
-    out << ')';
+      out << " (" << *i << ' ' << i->getType() << ')';
+      ++i;
+    }
     FunctionType ft = type;
     type = ft.getRangeType();
   }
+  out << ')';
   // if not invariant-to-synthesize, print return type
   if (!c->isInv())
   {
@@ -2105,6 +2107,7 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
     std::list<Type> typesToPrint;
     grammarTypes.insert(sygusType);
     typesToPrint.push_back(sygusType);
+    NodeManager* nm = NodeManager::currentNM();
     // for each datatype in grammar
     //   name
     //   sygus type
@@ -2118,61 +2121,41 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
       Assert(curr.isDatatype()
              && static_cast<DatatypeType>(curr).getDatatype().isSygus());
       const Datatype& dt = static_cast<DatatypeType>(curr).getDatatype();
-      types_list << "(" << dt.getName() << " " << dt.getSygusType() << "\n(";
-      types_predecl << "(" << dt.getName() << " " << dt.getSygusType() << ")";
+      types_list << '(' << dt.getName() << ' ' << dt.getSygusType() << " (";
+      types_predecl << '(' << dt.getName() << ' ' << dt.getSygusType() << ") ";
       if (dt.getSygusAllowConst())
       {
         types_list << "(Constant " << dt.getSygusType() << ") ";
       }
       for (const DatatypeConstructor& cons : dt)
       {
-        DatatypeConstructor::const_iterator i = cons.begin(),
-                                            i_end = cons.end();
-        if (i != i_end)
+        // make a sygus term
+        std::vector<Node> cchildren;
+        cchildren.push_back(Node::fromExpr(cons.getConstructor()));
+        for (const DatatypeConstructorArg& i : cons)
         {
-          types_list << "(";
-          SygusPrintCallback* spc = cons.getSygusPrintCallback().get();
-          if (spc != nullptr && options::sygusPrintCallbacks())
+          Type argType = i.getRangeType();
+          std::stringstream ss;
+          ss << argType;
+          Node bv = nm->mkBoundVar(ss.str(), TypeNode::fromType(argType));
+          cchildren.push_back(bv);
+          // if fresh type, store it for later processing
+          if (grammarTypes.insert(argType).second)
           {
-            spc->toStreamSygus(sygus_printer, types_list, cons.getSygusOp());
-          }
-          else
-          {
-            types_list << cons.getSygusOp();
-          }
-          do
-          {
-            Type argType = (*i).getRangeType();
-            // print argument type
-            types_list << " " << argType;
-            // if fresh type, store it for later processing
-            if (grammarTypes.insert(argType).second)
-            {
-              typesToPrint.push_back(argType);
-            }
-          } while (++i != i_end);
-          types_list << ")";
-        }
-        else
-        {
-          SygusPrintCallback* spc = cons.getSygusPrintCallback().get();
-          if (spc != nullptr && options::sygusPrintCallbacks())
-          {
-            spc->toStreamSygus(sygus_printer, types_list, cons.getSygusOp());
-          }
-          else
-          {
-            types_list << cons.getSygusOp();
+            typesToPrint.push_back(argType);
           }
         }
-        types_list << "\n";
+        Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
+        // now, print it
+        sygus_printer->toStreamSygus(types_list, consToPrint);
+        types_list << ' ';
       }
       types_list << "))\n";
     } while (!typesToPrint.empty());
 
-    out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ")";
+    out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ')';
   }
-  out << ")";
+  out << ')';
 }
 
 static void toStream(std::ostream& out, const DeclareSygusFunctionCommand* c)

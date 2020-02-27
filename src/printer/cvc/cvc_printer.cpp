@@ -138,7 +138,7 @@ void CvcPrinter::toStream(
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
     case kind::BITVECTOR_TYPE:
-      out << "BITVECTOR(" << n.getConst<BitVectorSize>().size << ")";
+      out << "BITVECTOR(" << n.getConst<BitVectorSize>().d_size << ")";
       break;
     case kind::CONST_BITVECTOR: {
       const BitVector& bv = n.getConst<BitVector>();
