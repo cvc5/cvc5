@@ -200,7 +200,8 @@ inline Node RewriteRule<RepeatEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<RepeatEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
-  unsigned amount = node.getOperator().getConst<BitVectorRepeat>().repeatAmount;
+  unsigned amount =
+      node.getOperator().getConst<BitVectorRepeat>().d_repeatAmount;
   Assert(amount >= 1);
   if(amount == 1) {
     return a; 
@@ -224,7 +225,8 @@ inline Node RewriteRule<RotateLeftEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<RotateLeftEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
-  unsigned amount = node.getOperator().getConst<BitVectorRotateLeft>().rotateLeftAmount;
+  unsigned amount =
+      node.getOperator().getConst<BitVectorRotateLeft>().d_rotateLeftAmount;
   amount = amount % utils::getSize(a); 
   if (amount == 0) {
     return a; 
@@ -248,7 +250,8 @@ inline Node RewriteRule<RotateRightEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<RotateRightEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
-  unsigned amount = node.getOperator().getConst<BitVectorRotateRight>().rotateRightAmount;
+  unsigned amount =
+      node.getOperator().getConst<BitVectorRotateRight>().d_rotateRightAmount;
   amount = amount % utils::getSize(a); 
   if (amount == 0) {
     return a; 
@@ -506,7 +509,8 @@ inline Node RewriteRule<ZeroExtendEliminate>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<ZeroExtendEliminate>(" << node << ")" << std::endl;
 
   TNode bv = node[0];
-  unsigned amount = node.getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
+  unsigned amount =
+      node.getOperator().getConst<BitVectorZeroExtend>().d_zeroExtendAmount;
   if (amount == 0) {
     return node[0]; 
   }
@@ -527,7 +531,8 @@ inline Node RewriteRule<SignExtendEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SignExtendEliminate>(" << node << ")" << std::endl;
 
-  unsigned amount = node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+  unsigned amount =
+      node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
   if(amount == 0) {
     return node[0]; 
   }

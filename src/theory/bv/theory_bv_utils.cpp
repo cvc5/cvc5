@@ -43,17 +43,17 @@ const bool getBit(TNode node, unsigned i)
 
 unsigned getExtractHigh(TNode node)
 {
-  return node.getOperator().getConst<BitVectorExtract>().high;
+  return node.getOperator().getConst<BitVectorExtract>().d_high;
 }
 
 unsigned getExtractLow(TNode node)
 {
-  return node.getOperator().getConst<BitVectorExtract>().low;
+  return node.getOperator().getConst<BitVectorExtract>().d_low;
 }
 
 unsigned getSignExtendAmount(TNode node)
 {
-  return node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+  return node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -483,7 +483,7 @@ Node eliminateBv2Nat(TNode node)
 
 Node eliminateInt2Bv(TNode node)
 {
-  const uint32_t size = node.getOperator().getConst<IntToBitVector>().size;
+  const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
   NodeManager* const nm = NodeManager::currentNM();
   const Node bvzero = utils::mkZero(1);
   const Node bvone = utils::mkOne(1);
