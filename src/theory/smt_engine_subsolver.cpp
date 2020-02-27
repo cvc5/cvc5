@@ -40,6 +40,14 @@ Result quickCheck(Node& query)
   return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
+void initializeSubsolver(std::unique_ptr<SmtEngine>& smte)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  smte.reset(new SmtEngine(nm->toExprManager()));
+  smte->setIsInternalSubsolver();
+  smte->setLogic(smt::currentSmtEngine()->getLogicInfo());
+}
+
 void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
                                    ExprManager& em,
                                    ExprManagerMapCollection& varMap,
@@ -76,9 +84,7 @@ void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
 
 void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Node query)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  smte.reset(new SmtEngine(nm->toExprManager()));
-  smte->setIsInternalSubsolver();
+  initializeSubsolver(smte);
   smte->assertFormula(query.toExpr());
 }
 

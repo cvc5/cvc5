@@ -736,9 +736,8 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
   {
     addSuccess = false;
     // try a new core
-    SmtEngine checkSol(nm->toExprManager());
-    checkSol.setIsInternalSubsolver();
-    checkSol.setLogic(smt::currentSmtEngine()->getLogicInfo());
+    std::unique_ptr<SmtEngine> checkSol;
+    initializeSubsolver(checkSol);
     Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
     std::vector<Node> rasserts = asserts;
     rasserts.push_back(d_sc);
@@ -747,9 +746,9 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     Node query = rasserts.size() == 1 ? rasserts[0] : nm->mkNode(AND, rasserts);
     for (const Node& a : rasserts)
     {
-      checkSol.assertFormula(a.toExpr());
+      checkSol->assertFormula(a.toExpr());
     }
-    Result r = checkSol.checkSat();
+    Result r = checkSol->checkSat();
     Trace("sygus-ccore") << "----- check-sat returned " << r << std::endl;
     // In terms of Variant #2, this is the check "if (S ^ D) => B"
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
@@ -762,7 +761,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       std::unordered_set<Node, NodeHashFunction> queryAsserts;
       queryAsserts.insert(ccheck.getFormula());
       queryAsserts.insert(d_sc);
-      bool hasQuery = getUnsatCore(checkSol, queryAsserts, uasserts);
+      bool hasQuery = getUnsatCore(*checkSol, queryAsserts, uasserts);
       // now, check the side condition
       bool falseCore = false;
       if (!d_sc.isNull())
@@ -777,18 +776,17 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         {
           // In terms of Variant #2, this is the check "if S ^ U is unsat"
           Trace("sygus-ccore") << "----- Check side condition" << std::endl;
-          SmtEngine checkSc(nm->toExprManager());
-          checkSc.setIsInternalSubsolver();
-          checkSc.setLogic(smt::currentSmtEngine()->getLogicInfo());
+          std::unique_ptr<SmtEngine> checkSc;
+          initializeSubsolver(checkSc);
           std::vector<Node> scasserts;
           scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());
           scasserts.push_back(d_sc);
           std::shuffle(scasserts.begin(), scasserts.end(), Random::getRandom());
           for (const Node& sca : scasserts)
           {
-            checkSc.assertFormula(sca.toExpr());
+            checkSc->assertFormula(sca.toExpr());
           }
-          Result rsc = checkSc.checkSat();
+          Result rsc = checkSc->checkSat();
           Trace("sygus-ccore")
               << "----- check-sat returned " << rsc << std::endl;
           if (rsc.asSatisfiabilityResult().isSat() == Result::UNSAT)
@@ -799,7 +797,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
             uasserts.clear();
             std::unordered_set<Node, NodeHashFunction> queryAsserts2;
             queryAsserts2.insert(d_sc);
-            getUnsatCore(checkSc, queryAsserts2, uasserts);
+            getUnsatCore(*checkSc, queryAsserts2, uasserts);
             falseCore = true;
           }
         }
@@ -843,7 +841,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       // it does not entail the postcondition, add an assertion that blocks
       // the current point
       mvs.clear();
-      getModel(checkSol, mvs);
+      getModel(*checkSol, mvs);
       // should evaluate to true
       Node ean = evaluate(an, Node::null(), mvs);
       Assert(ean.isConst() && ean.getConst<bool>());
