@@ -595,7 +595,7 @@ definedFun[CVC4::ParseOp& p]
     }
   | '$quotient'
     {
-      p.d_kind = kind::DIVISION_TOTAL;
+      p.d_kind = kind::DIVISION;
     }
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }

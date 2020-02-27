@@ -1634,13 +1634,13 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   // First phase: process the operator
   if (Debug.isOn("parser"))
   {
-    Debug("parser") << "Apply parse op to:" << std::endl;
-    Debug("parser") << "args has size " << args.size() << std::endl;
+    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
     for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
     {
       Debug("parser") << "++ " << *i << std::endl;
     }
   }
+  api::Op op;
   if (p.d_kind != kind::NULL_EXPR)
   {
     // It is a special case, e.g. tupSel or array constant specification.
@@ -1658,6 +1658,11 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       // since they require a kind.
       kind = fkind;
     }
+  }
+  else if (!p.d_op.isNull())
+  {
+    // it was given an operator
+    op = p.d_op;
   }
   else
   {
@@ -1808,37 +1813,8 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         }
       }
     }
-    if (args.size() > 2)
-    {
-      if (kind == kind::INTS_DIVISION || kind == kind::XOR
-          || kind == kind::MINUS || kind == kind::DIVISION
-          || (kind == kind::BITVECTOR_XNOR && v2_6()))
-      {
-        // Builtin operators that are not tokenized, are left associative,
-        // but not internally variadic must set this.
-        return em->mkLeftAssociative(kind, args);
-      }
-      else if (kind == kind::IMPLIES)
-      {
-        /* right-associative, but CVC4 internally only supports 2 args */
-        return em->mkRightAssociative(kind, args);
-      }
-      else if (kind == kind::EQUAL || kind == kind::LT || kind == kind::GT
-               || kind == kind::LEQ || kind == kind::GEQ)
-      {
-        /* "chainable", but CVC4 internally only supports 2 args */
-        return em->mkChain(kind, args);
-      }
-    }
-
-    if (kind::isAssociative(kind) && args.size() > em->maxArity(kind))
-    {
-      /* Special treatment for associative operators with lots of children
-       */
-      return em->mkAssociative(kind, args);
-    }
-    else if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
-             && args.size() == 1)
+    if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
+        && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
       return args[0];
@@ -1847,11 +1823,11 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       return em->mkExpr(kind::UMINUS, args[0]);
     }
-    else
-    {
-      checkOperator(kind, args.size());
-      return em->mkExpr(kind, args);
-    }
+    api::Term ret =
+        d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args));
+    Debug("parser") << "applyParseOp: return default builtin " << ret
+                    << std::endl;
+    return ret.getExpr();
   }
 
   if (args.size() >= 2)
@@ -1874,6 +1850,12 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         return em->mkLeftAssociative(kind::HO_APPLY, args);
       }
     }
+  }
+  if (!op.isNull())
+  {
+    api::Term ret = d_solver->mkTerm(op, api::exprVectorToTerms(args));
+    Debug("parser") << "applyParseOp: return op : " << ret << std::endl;
+    return ret.getExpr();
   }
   if (kind == kind::NULL_EXPR)
   {

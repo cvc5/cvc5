@@ -241,6 +241,14 @@ Expr Tptp::parseOpToExpr(ParseOp& p)
 
 Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
 {
+  if (Debug.isOn("parser"))
+  {
+    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
+    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+    {
+      Debug("parser") << "++ " << *i << std::endl;
+    }
+  }
   assert(!args.empty());
   ExprManager* em = getExprManager();
   // If operator already defined, just build application
@@ -308,35 +316,6 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         }
       }
     }
-
-    if (args.size() > 2)
-    {
-      if (kind == kind::INTS_DIVISION || kind == kind::XOR
-          || kind == kind::MINUS || kind == kind::DIVISION)
-      {
-        // Builtin operators that are not tokenized, are left associative,
-        // but not internally variadic must set this.
-        return em->mkLeftAssociative(kind, args);
-      }
-      if (kind == kind::IMPLIES)
-      {
-        /* right-associative, but CVC4 internally only supports 2 args */
-        return em->mkRightAssociative(kind, args);
-      }
-      if (kind == kind::EQUAL || kind == kind::LT || kind == kind::GT
-          || kind == kind::LEQ || kind == kind::GEQ)
-      {
-        /* "chainable", but CVC4 internally only supports 2 args */
-        return em->mkChain(kind, args);
-      }
-    }
-
-    if (kind::isAssociative(kind) && args.size() > em->maxArity(kind))
-    {
-      /* Special treatment for associative operators with lots of children
-       */
-      return em->mkAssociative(kind, args);
-    }
     if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
         && args.size() == 1)
     {
@@ -347,8 +326,8 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       return em->mkExpr(kind::UMINUS, args[0]);
     }
-    checkOperator(kind, args.size());
-    return em->mkExpr(kind, args);
+    return d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args))
+        .getExpr();
   }
 
   // check if partially applied function, in this case we use HO_APPLY
@@ -368,7 +347,8 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
         // must curry the partial application
-        return em->mkLeftAssociative(kind::HO_APPLY, args);
+        return d_solver->mkTerm(api::HO_APPLY, api::exprVectorToTerms(args))
+            .getExpr();
       }
     }
   }
