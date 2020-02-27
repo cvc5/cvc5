@@ -163,6 +163,23 @@ class NlModel
   void setUsedApproximate();
   /** Did we use an approximation during this check? */
   bool usedApproximate() const;
+  /** Set tautology
+   *
+   * This states that formula n is a tautology (satisfied in all models).
+   * We call this on internally generated lemmas. This method computes a
+   * set of literals that are implied by n, that are hence tautological
+   * as well, such as:
+   *   l_pi <= real.pi <= u_pi (pi approximations)
+   *   sin(x) = -1*sin(-x)
+   * where these literals are internally generated for the purposes
+   * of guiding the models of the linear solver.
+   *
+   * TODO (cvc4-projects #113: would be helpful if we could do this even
+   * more aggressively by ignoring all internally generated literals.
+   *
+   * Tautological literals do not need be checked during checkModel.
+   */
+  void addTautology(Node n);
   //------------------------------ end recording model substitutions and bounds
 
   /** print model value, for debugging.
@@ -180,10 +197,12 @@ class NlModel
    * The mapping arithModel is updated by this method to map arithmetic terms v
    * to their (exact) value that was computed during checkModel; the mapping
    * approximations is updated to store approximate values in the form of a
-   * predicate over v.
+   * pair (P, w), where P is a predicate that describes the possible values of
+   * v and w is a witness point that satisfies this predicate.
    */
-  void getModelValueRepair(std::map<Node, Node>& arithModel,
-                           std::map<Node, Node>& approximations);
+  void getModelValueRepair(
+      std::map<Node, Node>& arithModel,
+      std::map<Node, std::pair<Node, Node>>& approximations);
 
  private:
   /** The current model */
@@ -312,6 +331,8 @@ class NlModel
   std::unordered_map<Node, Node, NodeHashFunction> d_check_model_solved;
   /** did we use an approximation on this call to last-call effort? */
   bool d_used_approx;
+  /** the set of all tautological literals */
+  std::unordered_set<Node, NodeHashFunction> d_tautology;
 }; /* class NlModel */
 
 }  // namespace arith

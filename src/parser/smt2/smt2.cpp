@@ -163,7 +163,6 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_CHARAT, "str.at" );
   addOperator(kind::STRING_STRIDOF, "str.indexof" );
   addOperator(kind::STRING_STRREPL, "str.replace" );
-  addOperator(kind::STRING_STRREPLALL, "str.replaceall");
   if (!strictModeEnabled())
   {
     addOperator(kind::STRING_TOLOWER, "str.tolower");
@@ -173,12 +172,15 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
   // at the moment, we only use this syntax for smt2.6.1
-  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
+      || getLanguage() == language::input::LANG_SYGUS_V2)
   {
-    addOperator(kind::STRING_ITOS, "str.from-int");
-    addOperator(kind::STRING_STOI, "str.to-int");
-    addOperator(kind::STRING_IN_REGEXP, "str.in-re");
-    addOperator(kind::STRING_TO_REGEXP, "str.to-re");
+    addOperator(kind::STRING_ITOS, "str.from_int");
+    addOperator(kind::STRING_STOI, "str.to_int");
+    addOperator(kind::STRING_IN_REGEXP, "str.in_re");
+    addOperator(kind::STRING_TO_REGEXP, "str.to_re");
+    addOperator(kind::STRING_CODE, "str.to_code");
+    addOperator(kind::STRING_STRREPLALL, "str.replace_all");
   }
   else
   {
@@ -186,6 +188,8 @@ void Smt2::addStringOperators() {
     addOperator(kind::STRING_STOI, "str.to.int");
     addOperator(kind::STRING_IN_REGEXP, "str.in.re");
     addOperator(kind::STRING_TO_REGEXP, "str.to.re");
+    addOperator(kind::STRING_CODE, "str.code");
+    addOperator(kind::STRING_STRREPLALL, "str.replaceall");
   }
 
   addOperator(kind::REGEXP_CONCAT, "re.++");
@@ -196,7 +200,7 @@ void Smt2::addStringOperators() {
   addOperator(kind::REGEXP_OPT, "re.opt");
   addOperator(kind::REGEXP_RANGE, "re.range");
   addOperator(kind::REGEXP_LOOP, "re.loop");
-  addOperator(kind::STRING_CODE, "str.code");
+  addOperator(kind::REGEXP_COMPLEMENT, "re.comp");
   addOperator(kind::STRING_LT, "str.<");
   addOperator(kind::STRING_LEQ, "str.<=");
 }
@@ -365,7 +369,14 @@ void Smt2::addTheory(Theory theory) {
     defineType("RegLan", getExprManager()->regExpType());
     defineType("Int", getExprManager()->integerType());
 
-    defineVar("re.nostr", d_solver->mkRegexpEmpty().getExpr());
+    if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+    {
+      defineVar("re.none", d_solver->mkRegexpEmpty().getExpr());
+    }
+    else
+    {
+      defineVar("re.nostr", d_solver->mkRegexpEmpty().getExpr());
+    }
     defineVar("re.allchar", d_solver->mkRegexpSigma().getExpr());
 
     addStringOperators();
@@ -744,12 +755,6 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       warning("Logics in sygus are assumed to contain quantifiers.");
       warning("Omit QF_ from the logic to avoid this warning.");
     }
-    // get unlocked copy, modify, copy and relock
-    LogicInfo log(d_logic.getUnlockedCopy());
-    // enable everything needed for sygus
-    log.enableSygus();
-    d_logic = log;
-    d_logic.lock();
   }
 
   // Core theory belongs to every logic
@@ -922,6 +927,19 @@ void Smt2::includeFile(const std::string& filename) {
   if(!newInputStream(path, lexer)) {
     parseError("Couldn't open include file `" + path + "'");
   }
+}
+
+bool Smt2::isAbstractValue(const std::string& name)
+{
+  return name.length() >= 2 && name[0] == '@' && name[1] != '0'
+         && name.find_first_not_of("0123456789", 1) == std::string::npos;
+}
+
+Expr Smt2::mkAbstractValue(const std::string& name)
+{
+  assert(isAbstractValue(name));
+  // remove the '@'
+  return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
 }
 
 void Smt2::mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops ) {
@@ -1555,8 +1573,10 @@ InputLanguage Smt2::getLanguage() const
   return em->getOptions().getInputLanguage();
 }
 
-void Smt2::applyTypeAscription(ParseOp& p, Type type)
+void Smt2::parseOpApplyTypeAscription(ParseOp& p, Type type)
 {
+  Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type
+                  << std::endl;
   // (as const (Array T1 T2))
   if (p.d_kind == kind::STORE_ALL)
   {
@@ -1589,66 +1609,12 @@ void Smt2::applyTypeAscription(ParseOp& p, Type type)
       parseError(ss.str());
     }
   }
-  ExprManager* em = getExprManager();
-  Type etype = p.d_expr.getType();
-  Kind ekind = p.d_expr.getKind();
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
-  Trace("parser-qid") << " " << ekind << " " << etype;
+  Trace("parser-qid") << " " << p.d_expr.getKind() << " " << p.d_expr.getType();
   Trace("parser-qid") << std::endl;
-  if (ekind == kind::APPLY_CONSTRUCTOR && type.isDatatype())
-  {
-    // nullary constructors with a type ascription
-    // could be a parametric constructor or just an overloaded constructor
-    DatatypeType dtype = static_cast<DatatypeType>(type);
-    if (dtype.isParametric())
-    {
-      std::vector<Expr> v;
-      Expr e = p.d_expr.getOperator();
-      const DatatypeConstructor& dtc =
-          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-      v.push_back(em->mkExpr(
-          kind::APPLY_TYPE_ASCRIPTION,
-          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
-          p.d_expr.getOperator()));
-      v.insert(v.end(), p.d_expr.begin(), p.d_expr.end());
-      p.d_expr = em->mkExpr(kind::APPLY_CONSTRUCTOR, v);
-    }
-  }
-  else if (etype.isConstructor())
-  {
-    // a non-nullary constructor with a type ascription
-    DatatypeType dtype = static_cast<DatatypeType>(type);
-    if (dtype.isParametric())
-    {
-      const DatatypeConstructor& dtc =
-          Datatype::datatypeOf(p.d_expr)[Datatype::indexOf(p.d_expr)];
-      p.d_expr = em->mkExpr(
-          kind::APPLY_TYPE_ASCRIPTION,
-          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
-          p.d_expr);
-    }
-  }
-  else if (ekind == kind::EMPTYSET)
-  {
-    Debug("parser") << "Empty set encountered: " << p.d_expr << " " << type
-                    << std::endl;
-    p.d_expr = em->mkConst(EmptySet(type));
-  }
-  else if (ekind == kind::UNIVERSE_SET)
-  {
-    p.d_expr = em->mkNullaryOperator(type, kind::UNIVERSE_SET);
-  }
-  else if (ekind == kind::SEP_NIL)
-  {
-    // We don't want the nil reference to be a constant: for instance, it
-    // could be of type Int but is not a const rational. However, the
-    // expression has 0 children. So we convert to a SEP_NIL variable.
-    p.d_expr = em->mkNullaryOperator(type, kind::SEP_NIL);
-  }
-  else if (etype != type)
-  {
-    parseError("Type ascription not satisfied.");
-  }
+  // otherwise, we process the type ascription
+  p.d_expr =
+      applyTypeAscription(api::Term(p.d_expr), api::Sort(type)).getExpr();
 }
 
 Expr Smt2::parseOpToExpr(ParseOp& p)
@@ -1887,7 +1853,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
                || kind == kind::LEQ || kind == kind::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
-        return em->mkExpr(em->mkConst(Chain(kind)), args);
+        return em->mkChain(kind, args);
       }
     }
 
