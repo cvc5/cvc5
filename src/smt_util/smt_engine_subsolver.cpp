@@ -21,11 +21,11 @@
 namespace CVC4 {
 
 void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
-                                  ExprManager& em,
-                                  ExprManagerMapCollection& varMap,
-                                  Expr query,
-                        bool needsTimeout,
-                        unsigned long timeout)
+                                   ExprManager& em,
+                                   ExprManagerMapCollection& varMap,
+                                   Expr query,
+                                   bool needsTimeout,
+                                   unsigned long timeout)
 {
   // To support a separate timeout for the subsolver, we need to create
   // a separate ExprManager with its own options. This requires that
@@ -49,7 +49,7 @@ void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
     std::stringstream msg;
     msg << "Unable to export " << query
         << " but exporting expressions is "
-            "required for a subsolver.";
+           "required for a subsolver.";
     throw OptionException(msg.str());
   }
 }
