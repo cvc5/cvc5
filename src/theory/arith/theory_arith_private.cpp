@@ -3940,56 +3940,39 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   TNode var = d_partialModel.asNode(x);
   Integer floor_d = d.floor();
 
-  Integer ceil_d = d.ceiling();
-
-  Rational f = r - floor_d;
-
-  Rational c = (r - ceil_d) * -1; 
-
-  Trace("integers") << "Trying substraction. r - floor(r) : " << f << " ceil - r: " << c << endl;
-
-  //Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d+1)));
-  //Node diseq = eq.notNode();
-
-    Node ub;
-    Node lb;
-    Node eq;
-    Node lem;
-
-
-  // Closer to floor
-  if (c > f)
+  Node ub;
+  Node lb;
+  Node lem;
+  if (options::cubeTest())
   {
-    Trace("integers") << "floor"  << endl;
-    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d - 1)));
-    lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(floor_d + 1)));
+    Trace("integers") << "cube test enabled"  << endl;
+    Integer ceil_d = d.ceiling();
+    Rational f = r - floor_d;
+    // Multiply by -1 to get abs value.
+    Rational c = (r - ceil_d) * (-1); 
+
+    Integer nearest;
+    (c > f) ? nearest = floor_d : nearest = ceil_d;
+
+    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
+    lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
     lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
-    eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d)));
+    Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
     Node literal = d_containing.getValuation().ensureLiteral(eq);
-    // d_containing.getOutputChannel().requirePhase(eq, true);
-    // lem = NodeManager::currentNM()->mkNode(kind::OR, eq, lem);
     d_containing.getOutputChannel().requirePhase(literal, true);
     lem = NodeManager::currentNM()->mkNode(kind::OR, literal, lem);
   }
-  // Closer to ceiling
-  else 
+  else
   {
-    Trace("integers") << "ceiling"  << endl;
-    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(ceil_d - 1)));
-    lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(ceil_d + 1)));
+    //Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d+1)));
+    //Node diseq = eq.notNode();
+    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
+    lb = ub.notNode();
+
+    //Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, diseq);
     lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
-    eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(ceil_d)));
-    Node literal = d_containing.getValuation().ensureLiteral(eq);
-    // d_containing.getOutputChannel().requirePhase(eq, true);
-    // lem = NodeManager::currentNM()->mkNode(kind::OR, eq, lem);
-    d_containing.getOutputChannel().requirePhase(literal, true);
-    lem = NodeManager::currentNM()->mkNode(kind::OR, literal, lem);
   }
 
-  //Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, diseq);
-
-  /*Original!!*/
-  //Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
   Trace("integers") << "integers: branch & bound: " << lem << endl;
   if(isSatLiteral(lem[0])) {
     Debug("integers") << "    " << lem[0] << " == " << getSatValue(lem[0]) << endl;
