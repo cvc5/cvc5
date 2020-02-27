@@ -93,11 +93,11 @@ std::string toLFSCKind(Kind kind);
 std::string toLFSCKindTerm(Expr node);
 
 inline unsigned getExtractHigh(Expr node) {
-  return node.getOperator().getConst<BitVectorExtract>().high;
+  return node.getOperator().getConst<BitVectorExtract>().d_high;
 }
 
 inline unsigned getExtractLow(Expr node) {
-  return node.getOperator().getConst<BitVectorExtract>().low;
+  return node.getOperator().getConst<BitVectorExtract>().d_low;
 }
 
 inline unsigned getSize(Type type) {
