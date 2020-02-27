@@ -1683,6 +1683,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // it was given an operator
     op = p.d_op;
   }
+  else if (!p.d_op.isNull())
+  {
+    // it was given an operator
+    op = p.d_op;
+  }
   else
   {
     isBuiltinOperator = isOperatorEnabled(p.d_name);
@@ -1854,13 +1859,10 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
-    else
-    {
-      api::Term ret = d_solver->mkTerm(kind, args);
-      Debug("parser") << "applyParseOp: return default builtin " << ret
-                      << std::endl;
-      return ret;
-    }
+    api::Term ret = d_solver->mkTerm(kind, args);
+    Debug("parser") << "applyParseOp: return default builtin " << ret
+                    << std::endl;
+    return ret;
   }
 
   if (args.size() >= 2)

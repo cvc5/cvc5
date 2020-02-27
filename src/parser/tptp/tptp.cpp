@@ -251,6 +251,14 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
 
 api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
 {
+  if (Debug.isOn("parser"))
+  {
+    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
+    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+    {
+      Debug("parser") << "++ " << *i << std::endl;
+    }
+  }
   assert(!args.empty());
   // If operator already defined, just build application
   if (!p.d_expr.isNull())
