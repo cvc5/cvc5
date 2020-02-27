@@ -20,11 +20,11 @@
 #include "proof/unsat_core.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/smt_engine_subsolver.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/smt_engine_subsolver.h"
 #include "util/random.h"
 
 using namespace CVC4::kind;
@@ -628,7 +628,7 @@ bool CegisCoreConnective::getUnsatCore(
 Result CegisCoreConnective::checkSat(Node n, std::vector<Node>& mvs) const
 {
   Trace("sygus-ccore-debug") << "...check-sat " << n << "..." << std::endl;
-  Result r = checkWithSubsolver(n,d_vars,mvs);
+  Result r = checkWithSubsolver(n, d_vars, mvs);
   Trace("sygus-ccore-debug") << "...got " << r << std::endl;
   return r;
 }
