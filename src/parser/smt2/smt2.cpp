@@ -1512,15 +1512,11 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     api::Term ret = d_solver->mkVar(term.getSort());
     Trace("parser-sygus2-debug")
         << "...unresolved non-terminal, intro " << ret << std::endl;
-    args.push_back(ret);
+    args.push_back(ret.getExpr());
     cargs.push_back(itn->second);
     return ret;
   }
   std::vector<api::Term> pchildren;
-  // To test whether the operator should be passed to mkapi::Term below, we
-  // check whether this term is parameterized. This includes APPLY_UF terms and
-  // BV extraction terms, but excludes applications of most interpreted symbols
-  // like PLUS.
   bool childChanged = false;
   for (unsigned i = 0, nchild = term.getNumChildren(); i < nchild; i++)
   {

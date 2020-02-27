@@ -231,11 +231,9 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   {
     return p.d_expr;
   }
-  // if it has a kind, it's a builtin one
-  if (p.d_kind != api::NULL_EXPR)
-  {
-    return api::Term(getExprManager()->operatorOf(extToIntKind(p.d_kind)));
-  }
+  // if it has a kind, it's a builtin one and this function should not have been
+  // called
+  assert(p.d_kind == api::NULL_EXPR);
   if (isDeclared(p.d_name))
   {  // already appeared
     expr = getVariable(p.d_name);
@@ -254,17 +252,18 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
 api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
 {
   assert(!args.empty());
-  bool isBuiltinOperator = false;
-  // the builtin kind of the overall return expression
-  api::Kind kind = api::NULL_EXPR;
-  // First phase: process the operator
-  ExprManager* em = getExprManager();
   // If operator already defined, just build application
   if (!p.d_expr.isNull())
   {
-    return mkBuiltinApp(p.d_expr, args);
+    // this happens with some arithmetic kinds, which are wrapped around
+    // lambdas.
+    args.insert(args.begin(), p.d_expr);
+    return d_solver->mkTerm(api::APPLY_UF, args);
   }
-  // Otherwise piece operator together
+  bool isBuiltinKind = false;
+  // the builtin kind of the overall return expression
+  api::Kind kind = api::NULL_EXPR;
+  // First phase: piece operator together
   if (p.d_kind == api::NULL_EXPR)
   {
     // A non-built-in function application, get the expression
@@ -301,11 +300,12 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else
   {
     kind = p.d_kind;
-    isBuiltinOperator = true;
+    isBuiltinKind = true;
   }
   assert(kind != api::NULL_EXPR);
-  // Second phase: apply the arguments to the parse op
-  if (isBuiltinOperator)
+  ExprManager* em = getExprManager();
+  // Second phase: apply parse op to the arguments
+  if (isBuiltinKind)
   {
     if (!em->getOptions().getUfHo()
         && (kind == api::EQUAL || kind == api::DISTINCT))
@@ -417,8 +417,10 @@ api::Term Tptp::convertStrToUnsorted(std::string str)
   return e;
 }
 
-void Tptp::mkLambdaWrapper(api::Term& expr, api::Sort argType)
+api::Term Tptp::mkLambdaWrapper(api::Kind k, api::Sort argType)
 {
+  Debug("parser") << "mkLambdaWrapper: kind " << k << " and type " << argType
+                  << "\n";
   std::vector<api::Term> lvars;
   std::vector<api::Sort> domainTypes = argType.getFunctionDomainSorts();
   for (unsigned i = 0, size = domainTypes.size(); i < size; ++i)
@@ -433,9 +435,9 @@ void Tptp::mkLambdaWrapper(api::Term& expr, api::Sort argType)
   api::Term wrapper =
       d_solver->mkTerm(api::LAMBDA,
                        d_solver->mkTerm(api::BOUND_VAR_LIST, lvars),
-                       mkBuiltinApp(expr, lvars));
+                       d_solver->mkTerm(k, lvars));
 
-  expr = wrapper;
+  return wrapper;
 }
 
 api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr)
