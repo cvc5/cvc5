@@ -629,34 +629,12 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 }
 
 //!!!!!!!!!!! temporary
-api::Term Parser::mkBuiltinApp(api::Term f,
-                               const std::vector<api::Term>& args) const
-{
-  return api::Term(
-      getExprManager()->mkExpr(f.getExpr(), termVectorToExprs(args)));
-}
-
-api::Term Parser::mkBuiltinApp(api::Term f, api::Term t1) const
-{
-  std::vector<api::Term> args;
-  args.push_back(t1);
-  return mkBuiltinApp(f, args);
-}
-api::Term Parser::mkBuiltinApp(api::Term f, api::Term t1, api::Term t2) const
-{
-  std::vector<api::Term> args;
-  args.push_back(t1);
-  args.push_back(t2);
-  return mkBuiltinApp(f, args);
-}
-
 api::Term Parser::mkVar(const std::string& name,
                         const api::Sort& type,
                         uint32_t flags)
 {
   return api::Term(getExprManager()->mkVar(name, type.getType(), flags));
 }
-
 //!!!!!!!!!!! temporary
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {

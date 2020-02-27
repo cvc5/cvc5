@@ -684,12 +684,8 @@ public:
 
   //!!!!!!!!!!! temporary
   /**
-   * Make builtin application
+   * Make var, with flags required by the ExprManager, see ExprManager::mkVar.
    */
-  api::Term mkBuiltinApp(api::Term f, const std::vector<api::Term>& args) const;
-  api::Term mkBuiltinApp(api::Term f, api::Term t1) const;
-  api::Term mkBuiltinApp(api::Term f, api::Term t1, api::Term t2) const;
-  /** Make var, with flags */
   api::Term mkVar(const std::string& name,
                   const api::Sort& type,
                   uint32_t flags);
