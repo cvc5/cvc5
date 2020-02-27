@@ -22,7 +22,7 @@
 namespace CVC4 {
 namespace theory {
 
-// optimization: try to rewrite to constant 
+// optimization: try to rewrite to constant
 Result quickCheck(Expr& query)
 {
   query = theory::Rewriter::rewrite(Node::fromExpr(query)).toExpr();
@@ -39,7 +39,7 @@ Result quickCheck(Expr& query)
   }
   return Result(Result::SAT_UNKNOWN);
 }
-  
+
 void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
                                    ExprManager& em,
                                    ExprManagerMapCollection& varMap,
@@ -94,9 +94,7 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query)
   return smte->checkSat();
 }
 
-Result checkWithSubsolver(Expr query,
-                          bool needsTimeout,
-                          unsigned long timeout)
+Result checkWithSubsolver(Expr query, bool needsTimeout, unsigned long timeout)
 {
   Assert(query.getType().isBoolean());
   Result r = quickCheck(query);
@@ -110,11 +108,12 @@ Result checkWithSubsolver(Expr query,
     ExprManagerMapCollection varMap;
     NodeManager* nm = NodeManager::currentNM();
     ExprManager em(nm->getOptions());
-    initializeSubsolverWithExport(smte,em,varMap,query,needsTimeout,timeout);
+    initializeSubsolverWithExport(
+        smte, em, varMap, query, needsTimeout, timeout);
   }
   else
   {
-    initializeSubsolver(smte,query);
+    initializeSubsolver(smte, query);
   }
   return smte->checkSat();
 }
@@ -122,8 +121,8 @@ Result checkWithSubsolver(Expr query,
 Result checkWithSubsolver(Expr query,
                           const std::vector<Expr>& vars,
                           std::vector<Expr>& modelVals,
-                                   bool needsTimeout,
-                                   unsigned long timeout)
+                          bool needsTimeout,
+                          unsigned long timeout)
 {
   Assert(query.getType().isBoolean());
   Result r = quickCheck(query);
@@ -139,11 +138,12 @@ Result checkWithSubsolver(Expr query,
   if (needsTimeout)
   {
     needsExport = true;
-    initializeSubsolverWithExport(smte,em,varMap,query,needsTimeout,timeout);
+    initializeSubsolverWithExport(
+        smte, em, varMap, query, needsTimeout, timeout);
   }
   else
   {
-    initializeSubsolver(smte,query);
+    initializeSubsolver(smte, query);
   }
   r = smte->checkSat();
   modelVals.clear();
@@ -155,8 +155,7 @@ Result checkWithSubsolver(Expr query,
       if (needsExport)
       {
         Expr ev = v.exportTo(&em, varMap);
-        val = smte->getValue(ev).exportTo(
-            nm->toExprManager(), varMap);
+        val = smte->getValue(ev).exportTo(nm->toExprManager(), varMap);
       }
       else
       {
@@ -168,5 +167,5 @@ Result checkWithSubsolver(Expr query,
   return r;
 }
 
-} 
+}  // namespace theory
 }  // namespace CVC4

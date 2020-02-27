@@ -79,14 +79,19 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   Node squery = convertToSkolem(query);
   if (options::sygusExprMinerCheckUseExport())
   {
-    initializeSubsolverWithExport(checker,em,varMap,squery.toExpr(),true,options::sygusExprMinerCheckTimeout());
+    initializeSubsolverWithExport(checker,
+                                  em,
+                                  varMap,
+                                  squery.toExpr(),
+                                  true,
+                                  options::sygusExprMinerCheckTimeout());
     checker->setOption("sygus-rr-synth-input", false);
     checker->setOption("input-language", "smt2");
     needExport = true;
   }
   else
   {
-    initializeSubsolver(checker,squery.toExpr());
+    initializeSubsolver(checker, squery.toExpr());
     needExport = false;
   }
 }
