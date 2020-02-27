@@ -68,6 +68,7 @@ operator REGEXP_PLUS 1 "regexp +"
 operator REGEXP_OPT 1 "regexp ?"
 operator REGEXP_RANGE 2 "regexp range"
 operator REGEXP_LOOP 2:3 "regexp loop"
+operator REGEXP_COMPLEMENT 1 "regexp complement"
 
 operator REGEXP_EMPTY 0 "regexp empty"
 operator REGEXP_SIGMA 0 "regexp all characters"
@@ -85,6 +86,7 @@ typerule REGEXP_PLUS "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_OPT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_RANGE ::CVC4::theory::strings::RegExpRangeTypeRule
 typerule REGEXP_LOOP "SimpleTypeRule<RRegExp, ARegExp, AInteger, AOptional<AInteger>>"
+typerule REGEXP_COMPLEMENT "SimpleTypeRule<RRegExp, ARegExp>"
 
 typerule STRING_TO_REGEXP "SimpleTypeRule<RRegExp, AString>"
 

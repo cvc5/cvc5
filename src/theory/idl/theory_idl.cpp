@@ -62,10 +62,11 @@ void TheoryIdl::check(Effort level) {
 
     // Get the next assertion
     Assertion assertion = get();
-    Debug("theory::idl") << "TheoryIdl::check(): processing " << assertion.assertion << std::endl;
+    Debug("theory::idl") << "TheoryIdl::check(): processing "
+                         << assertion.d_assertion << std::endl;
 
     // Convert the assertion into the internal representation
-    IDLAssertion idlAssertion(assertion.assertion);
+    IDLAssertion idlAssertion(assertion.d_assertion);
     Debug("theory::idl") << "TheoryIdl::check(): got " << idlAssertion << std::endl;
 
     if (idlAssertion.ok()) {

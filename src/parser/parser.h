@@ -678,15 +678,29 @@ public:
    */
   Expr mkHoApply(Expr expr, std::vector<Expr>& args);
 
-  /** make chain
+  /** Apply type ascription
    *
-   * Given a kind k and argument terms t_1, ..., t_n, this returns the
-   * conjunction of:
-   *  (k t_1 t_2) .... (k t_{n-1} t_n)
-   * It is expected that k is a kind denoting a predicate, and args is a list
-   * of terms of size >= 2 such that the terms above are well-typed.
+   * Return term t with a type ascription applied to it. This is used for
+   * syntax like (as t T) in smt2 and t::T in the CVC language. This includes:
+   * - (as emptyset (Set T))
+   * - (as univset (Set T))
+   * - (as sep.nil T)
+   * - (cons T)
+   * - ((as cons T) t1 ... tn) where cons is a parametric datatype constructor.
+   *
+   * The term to ascribe t is a term whose kind and children (but not type)
+   * are equivalent to that of the term returned by this method.
+   *
+   * Notice that method is not necessarily a cast. In actuality, the above terms
+   * should be understood as symbols indexed by types. However, SMT-LIB does not
+   * permit types as indices, so we must use, e.g. (as emptyset (Set T))
+   * instead of (_ emptyset (Set T)).
+   *
+   * @param t The term to ascribe a type
+   * @param s The sort to ascribe
+   * @return Term t with sort s ascribed.
    */
-  api::Term mkChain(api::Kind k, const std::vector<api::Term>& args);
+  api::Term applyTypeAscription(api::Term t, api::Sort s);
 
   /**
    * Add an operator to the current legal set.

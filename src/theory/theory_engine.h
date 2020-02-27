@@ -34,7 +34,6 @@
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "smt/command.h"
-#include "smt_util/lemma_channels.h"
 #include "theory/atom_requests.h"
 #include "theory/decision_manager.h"
 #include "theory/interrupted.h"
@@ -61,15 +60,17 @@ class LemmaProofRecipe;
  * propagations between theories.
  */
 struct NodeTheoryPair {
-  Node node;
-  theory::TheoryId theory;
-  size_t timestamp;
-  NodeTheoryPair(TNode node, theory::TheoryId theory, size_t timestamp = 0)
-  : node(node), theory(theory), timestamp(timestamp) {}
-  NodeTheoryPair() : theory(theory::THEORY_LAST), timestamp() {}
+  Node d_node;
+  theory::TheoryId d_theory;
+  size_t d_timestamp;
+  NodeTheoryPair(TNode n, theory::TheoryId t, size_t ts = 0)
+      : d_node(n), d_theory(t), d_timestamp(ts)
+  {
+  }
+  NodeTheoryPair() : d_theory(theory::THEORY_LAST), d_timestamp() {}
   // Comparison doesn't take into account the timestamp
   bool operator == (const NodeTheoryPair& pair) const {
-    return node == pair.node && theory == pair.theory;
+    return d_node == pair.d_node && d_theory == pair.d_theory;
   }
 };/* struct NodeTheoryPair */
 
@@ -77,8 +78,8 @@ struct NodeTheoryPairHashFunction {
   NodeHashFunction hashFunction;
   // Hash doesn't take into account the timestamp
   size_t operator()(const NodeTheoryPair& pair) const {
-    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.node));
-    return static_cast<size_t>(fnv1a::fnv1a_64(pair.theory, hash));
+    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.d_node));
+    return static_cast<size_t>(fnv1a::fnv1a_64(pair.d_theory, hash));
   }
 };/* struct NodeTheoryPairHashFunction */
 
@@ -468,15 +469,12 @@ class TheoryEngine {
   bool d_interrupted;
   ResourceManager* d_resourceManager;
 
-  /** Container for lemma input and output channels. */
-  LemmaChannels* d_channels;
-
-public:
-
+ public:
   /** Constructs a theory engine */
-  TheoryEngine(context::Context* context, context::UserContext* userContext,
-               RemoveTermFormulas& iteRemover, const LogicInfo& logic,
-               LemmaChannels* channels);
+  TheoryEngine(context::Context* context,
+               context::UserContext* userContext,
+               RemoveTermFormulas& iteRemover,
+               const LogicInfo& logic);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -491,12 +489,15 @@ public:
    * there is another theory it will be deleted.
    */
   template <class TheoryClass>
-  inline void addTheory(theory::TheoryId theoryId) {
+  inline void addTheory(theory::TheoryId theoryId)
+  {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] =
-        new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId],
-                        theory::Valuation(this), d_logicInfo);
+    d_theoryTable[theoryId] = new TheoryClass(d_context,
+                                              d_userContext,
+                                              *d_theoryOut[theoryId],
+                                              theory::Valuation(this),
+                                              d_logicInfo);
   }
 
   inline void setPropEngine(prop::PropEngine* propEngine) {

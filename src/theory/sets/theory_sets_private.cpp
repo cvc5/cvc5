@@ -955,7 +955,7 @@ void TheorySetsPrivate::check(Theory::Effort level)
   {
     // Get all the assertions
     Assertion assertion = d_external.get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
     Trace("sets-assert") << "Assert from input " << fact << std::endl;
     // assert the fact
     assertFact(fact, fact);
