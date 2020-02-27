@@ -1522,7 +1522,8 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
         {
           out << "(";
         }
-        out << dt[cIndex].getSygusOp();
+        // print operator without letification (the fifth argument is set to 0).
+        toStream(out, dt[cIndex].getSygusOp(), -1, false, 0);
         if (n.getNumChildren() > 0)
         {
           for (Node nc : n)
@@ -1537,15 +1538,12 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
     }
   }
   Node p = n.getAttribute(theory::SygusPrintProxyAttribute());
-  if (!p.isNull())
+  if (p.isNull())
   {
-    out << p;
+    p = n;
   }
-  else
-  {
-    // cannot convert term to analog, print original
-    out << n;
-  }
+  // cannot convert term to analog, print original, without letification.
+  toStream(out, p, -1, false, 0);
 }
 
 static void toStream(std::ostream& out, const AssertCommand* c)

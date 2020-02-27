@@ -1,6 +1,6 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-out=status
-(set-logic SAT)
+(set-logic LIA)
 (synth-fun f () Bool)
 (synth-fun g () Bool)
 (synth-fun h () Bool)

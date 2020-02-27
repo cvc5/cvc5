@@ -757,12 +757,6 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       warning("Logics in sygus are assumed to contain quantifiers.");
       warning("Omit QF_ from the logic to avoid this warning.");
     }
-    // get unlocked copy, modify, copy and relock
-    LogicInfo log(d_logic.getUnlockedCopy());
-    // enable everything needed for sygus
-    log.enableSygus();
-    d_logic = log;
-    d_logic.lock();
   }
 
   // Core theory belongs to every logic

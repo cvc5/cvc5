@@ -338,7 +338,7 @@ void TheoryBV::check(Effort e)
 
     std::vector<TNode> assertions;
     while (!done()) {
-      TNode fact = get().assertion;
+      TNode fact = get().d_assertion;
       Assert(fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
       assertions.push_back(fact);
       d_eagerSolver->assertFormula(fact[0]);
@@ -369,7 +369,7 @@ void TheoryBV::check(Effort e)
   }
 
   while (!done()) {
-    TNode fact = get().assertion;
+    TNode fact = get().d_assertion;
 
     checkForLemma(fact);
 
@@ -622,7 +622,7 @@ int TheoryBV::getReduction(int effort, Node n, Node& nr)
   }
   else if (n.getKind() == kind::INT_TO_BITVECTOR)
   {
-    nr = utils::eliminateBv2Nat(n);
+    nr = utils::eliminateInt2Bv(n);
     return -1;
   }
   return 0;
