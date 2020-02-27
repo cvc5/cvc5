@@ -30,6 +30,7 @@ int main() {
   smt.setOption("produce-models", "true");
   // smt.setOption("debug", "arith");
   smt.setOption("trace", "integers");
+  smt.setOption("cube-test", "true");
   // smt.setOption("trace", "amalee");
 
 

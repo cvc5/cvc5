@@ -551,3 +551,12 @@ header = "options/arith_options.h"
   default    = "true"
   read_only  = true
   help       = "whether to increment the precision for irrational function constraints"
+
+[[option]]
+  name       = "cubeTest"
+  category   = "regular"
+  long       = "cube-test"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "whether to use an approach similar to a unit-cube test for integers"

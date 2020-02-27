@@ -751,6 +751,7 @@ set<string> getOptionStrings() {
       "no-sets-propagate",
       "sets-eager-lemmas",
       "no-sets-eager-lemmas",
+      "cube-test",
       NULL,
   }; /* cmdlineOptions */
   int i = 0;
