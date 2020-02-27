@@ -393,7 +393,7 @@ atomicFormula[CVC4::Expr& expr]
   | definedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)
     {
       p.d_type = EXPR_MANAGER->booleanType();
-      expr = PARSER_STATE->applyParseOp(p, args);;
+      expr = PARSER_STATE->applyParseOp(p, args);
     }
   | definedProp[expr]
   ;
@@ -1042,6 +1042,8 @@ thfLogicFormula[CVC4::ParseOp& p]
         }
         else if (p.d_expr.isNull() && p1.d_expr.isNull())
         {
+          // Without a reference type it's not possible in general to know what
+          // the lambda wrapping should be, so we fail in these cases
           UNSUPPORTED("Equality between theory functions");
         }
         args.push_back(p.d_expr);
