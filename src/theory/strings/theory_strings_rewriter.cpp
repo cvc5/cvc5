@@ -1835,7 +1835,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         // take up to the end of the string
         size_t lenS = Word::getLength(s);
-        Node ret = Word::suffix(s,lenS-start);
+        Node ret = Word::suffix(s, lenS - start);
         return returnRewrite(node, ret, "ss-const-len-max-oob");
       }
       else if (node[2].getConst<Rational>().sgn() <= 0)
@@ -1851,13 +1851,13 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         {
           // take up to the end of the string
           size_t lenS = Word::getLength(s);
-          Node ret = Word::suffix(s,lenS-start);
+          Node ret = Word::suffix(s, lenS - start);
           return returnRewrite(node, ret, "ss-const-end-oob");
         }
         else
         {
           // compute the substr using the constant string
-          Node ret = Word::substr(s,start,len);
+          Node ret = Word::substr(s, start, len);
           return returnRewrite(node, ret, "ss-const-ss");
         }
       }
@@ -3380,20 +3380,20 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
       size_t lenT = Word::getLength(t);
       if (lenS >= lenT)
       {
-        if ((isPrefix && t == Word::prefix(s,lenT))
-            || (!isPrefix && t == Word::suffix(s,lenT)))
+        if ((isPrefix && t == Word::prefix(s, lenT))
+            || (!isPrefix && t == Word::suffix(s, lenT)))
         {
           ret = NodeManager::currentNM()->mkConst(true);
         }
       }
       return returnRewrite(n, ret, "suf/prefix-const");
     }
-    else if (lenS==0)
+    else if (lenS == 0)
     {
       Node ret = n[0].eqNode(n[1]);
       return returnRewrite(n, ret, "suf/prefix-empty");
     }
-    else if (lenS== 1)
+    else if (lenS == 1)
     {
       // (str.prefix x "A") and (str.suffix x "A") are equivalent to
       // (str.contains "A" x )
@@ -3458,18 +3458,18 @@ Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRe
   size_t lenA = Word::getLength(a);
   size_t lenB = Word::getLength(b);
   index = lenA <= lenB ? 1 : 0;
-  unsigned len_short = index==1 ? lenA : lenB;
+  unsigned len_short = index == 1 ? lenA : lenB;
   bool cmp = isRev ? a.getConst<String>().rstrncmp(b.getConst<String>(), len_short): a.getConst<String>().strncmp(b.getConst<String>(), len_short);
   if( cmp ) {
     Node l = index==0 ? a : b;
     if( isRev ){
       int new_len = l.getConst<String>().size() - len_short;
-      return Word::substr( l, 0, new_len );
+      return Word::substr(l, 0, new_len);
     }else{
-      return Word::substr( l, len_short );
+      return Word::substr(l, len_short);
     }
   }
-  //not the same prefix/suffix
+  // not the same prefix/suffix
   return Node::null();
 }
 
@@ -3522,7 +3522,7 @@ bool TheoryStringsRewriter::canConstantContainList( Node c, std::vector< Node >&
     if( l[i].isConst() ){
       firstc = firstc==-1 ? i : firstc;
       lastc = i;
-      size_t new_pos = Word::find(c,l[i],pos);
+      size_t new_pos = Word::find(c, l[i], pos);
       if( new_pos==std::string::npos ) {
         return false;
       }else{
@@ -3796,40 +3796,40 @@ bool TheoryStringsRewriter::componentContainsBase(
       {
         if (dir == 1)
         {
-          if (Word::suffix(n1,len2) == n2)
+          if (Word::suffix(n1, len2) == n2)
           {
             if (computeRemainder)
             {
-              n1rb = Word::prefix(n1,len1 - len2);
+              n1rb = Word::prefix(n1, len1 - len2);
             }
             return true;
           }
         }
         else if (dir == -1)
         {
-          if (Word::prefix(n1,len2) == n2)
+          if (Word::prefix(n1, len2) == n2)
           {
             if (computeRemainder)
             {
-              n1re = Word::suffix(n1,len1 - len2);
+              n1re = Word::suffix(n1, len1 - len2);
             }
             return true;
           }
         }
         else
         {
-          size_t f = Word::find(n1,n2);
+          size_t f = Word::find(n1, n2);
           if (f != std::string::npos)
           {
             if (computeRemainder)
             {
               if (f > 0)
               {
-                n1rb = Word::prefix(n1,f);
+                n1rb = Word::prefix(n1, f);
               }
               if (len1 > f + len2)
               {
-                n1re = Word::suffix(n1,len1 - (f + len2));
+                n1re = Word::suffix(n1, len1 - (f + len2));
               }
             }
             return true;

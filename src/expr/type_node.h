@@ -505,7 +505,7 @@ public:
 
   /** Is this the String type? */
   bool isString() const;
-  
+
   /** Is this a string-like type? (string or sequence) */
   bool isStringLike() const;
 
