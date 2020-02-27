@@ -96,26 +96,9 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Expr query)
 
 Result checkWithSubsolver(Expr query, bool needsTimeout, unsigned long timeout)
 {
-  Assert(query.getType().isBoolean());
-  Result r = quickCheck(query);
-  if (!r.isUnknown())
-  {
-    return r;
-  }
-  std::unique_ptr<SmtEngine> smte;
-  if (needsTimeout)
-  {
-    ExprManagerMapCollection varMap;
-    NodeManager* nm = NodeManager::currentNM();
-    ExprManager em(nm->getOptions());
-    initializeSubsolverWithExport(
-        smte, em, varMap, query, needsTimeout, timeout);
-  }
-  else
-  {
-    initializeSubsolver(smte, query);
-  }
-  return smte->checkSat();
+  std::vector<Expr> vars;
+  std::vector<Expr> modelVals;
+  return checkWithSubsolver(query, vars, modelVals, needsTimeout, timeout);
 }
 
 Result checkWithSubsolver(Expr query,

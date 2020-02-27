@@ -92,11 +92,8 @@ Result checkWithSubsolver(Expr query,
 
 /**
  * This returns the result of checking the satisfiability of formula query.
- * If the query is satisfiable, it adds the model values for vars into
- * modelVars.
- *
- * In contrast to above, this is used if the user of this method is not
- * concerned with the state of the SMT engine after the check.
+ * Additionally, if the query is satisfiable, it adds the model values for vars
+ * into modelVars.
  *
  * @param query The query to check
  * @param vars The variables we are interesting in getting a model for.
