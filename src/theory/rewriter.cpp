@@ -156,11 +156,11 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
               d_theoryRewriters[rewriteStackTop.getTheoryId()]->preRewrite(
                   rewriteStackTop.node);
           // Put the rewritten node to the top of the stack
-          rewriteStackTop.node = response.node;
+          rewriteStackTop.node = response.d_node;
           TheoryId newTheory = theoryOf(rewriteStackTop.node);
           // In the pre-rewrite, if changing theories, we just call the other theories pre-rewrite
           if (newTheory == rewriteStackTop.getTheoryId()
-              && response.status == REWRITE_DONE)
+              && response.d_status == REWRITE_DONE)
           {
             break;
           }
@@ -225,41 +225,42 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
             d_theoryRewriters[rewriteStackTop.getTheoryId()]->postRewrite(
                 rewriteStackTop.node);
         // We continue with the response we got
-        TheoryId newTheoryId = theoryOf(response.node);
+        TheoryId newTheoryId = theoryOf(response.d_node);
         if (newTheoryId != rewriteStackTop.getTheoryId()
-            || response.status == REWRITE_AGAIN_FULL)
+            || response.d_status == REWRITE_AGAIN_FULL)
         {
           // In the post rewrite if we've changed theories, we must do a full rewrite
-          Assert(response.node != rewriteStackTop.node);
+          Assert(response.d_node != rewriteStackTop.node);
           //TODO: this is not thread-safe - should make this assertion dependent on sequential build
 #ifdef CVC4_ASSERTIONS
-          Assert(d_rewriteStack->find(response.node) == d_rewriteStack->end());
-          d_rewriteStack->insert(response.node);
+          Assert(d_rewriteStack->find(response.d_node)
+                 == d_rewriteStack->end());
+          d_rewriteStack->insert(response.d_node);
 #endif
-          Node rewritten = rewriteTo(newTheoryId, response.node);
+          Node rewritten = rewriteTo(newTheoryId, response.d_node);
           rewriteStackTop.node = rewritten;
 #ifdef CVC4_ASSERTIONS
-          d_rewriteStack->erase(response.node);
+          d_rewriteStack->erase(response.d_node);
 #endif
           break;
         }
-        else if (response.status == REWRITE_DONE)
+        else if (response.d_status == REWRITE_DONE)
         {
 #ifdef CVC4_ASSERTIONS
           RewriteResponse r2 =
-              d_theoryRewriters[newTheoryId]->postRewrite(response.node);
-          Assert(r2.node == response.node);
+              d_theoryRewriters[newTheoryId]->postRewrite(response.d_node);
+          Assert(r2.d_node == response.d_node);
 #endif
-	  rewriteStackTop.node = response.node;
+          rewriteStackTop.node = response.d_node;
           break;
         }
         // Check for trivial rewrite loops of size 1 or 2
-        Assert(response.node != rewriteStackTop.node);
+        Assert(response.d_node != rewriteStackTop.node);
         Assert(d_theoryRewriters[rewriteStackTop.getTheoryId()]
-                   ->postRewrite(response.node)
-                   .node
+                   ->postRewrite(response.d_node)
+                   .d_node
                != rewriteStackTop.node);
-        rewriteStackTop.node = response.node;
+        rewriteStackTop.node = response.d_node;
       }
       // We're done with the post rewrite, so we add to the cache
       setPostRewriteCache(rewriteStackTop.getOriginalTheoryId(),

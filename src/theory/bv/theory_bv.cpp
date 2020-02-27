@@ -338,7 +338,7 @@ void TheoryBV::check(Effort e)
 
     std::vector<TNode> assertions;
     while (!done()) {
-      TNode fact = get().assertion;
+      TNode fact = get().d_assertion;
       Assert(fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
       assertions.push_back(fact);
       d_eagerSolver->assertFormula(fact[0]);
@@ -369,7 +369,7 @@ void TheoryBV::check(Effort e)
   }
 
   while (!done()) {
-    TNode fact = get().assertion;
+    TNode fact = get().d_assertion;
 
     checkForLemma(fact);
 
