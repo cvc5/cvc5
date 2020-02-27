@@ -211,8 +211,8 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
         }
       }else{
         //simplify term
-        std::map<Node, Node> visited;
-        getConstraints(n, constraints, visited);
+        std::map<Node, Node> visitedT;
+        getConstraints(n, constraints, visitedT);
       }
       if( !constraints.empty() && isBool && hasPol ){
         //conjoin with current

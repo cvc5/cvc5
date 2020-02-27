@@ -1031,6 +1031,9 @@ sygusGrammar[CVC4::api::Sort & ret,
       Trace("parser-sygus2") << "- " << datatypes[i].getName()
                              << ", #cons= " << datatypes[i].getNumConstructors()
                              << ", aci= " << aci << std::endl;
+      // We can be in a case where the only rule specified was (Variable T)
+      // and there are no variables of type T, in which case this is a bogus
+      // grammar. This results in the error below.
       if (datatypes[i].getNumConstructors() == 0)
       {
         std::stringstream se;

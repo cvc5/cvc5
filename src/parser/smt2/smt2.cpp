@@ -150,8 +150,7 @@ void Smt2::addDatatypesOperators()
 void Smt2::addStringOperators() {
   defineVar("re.all",
             getSolver()
-                ->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma())
-                .getExpr());
+                ->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma()));
   addOperator(api::STRING_CONCAT, "str.++");
   addOperator(api::STRING_LENGTH, "str.len");
   addOperator(api::STRING_SUBSTR, "str.substr");
@@ -165,8 +164,9 @@ void Smt2::addStringOperators() {
     addOperator(api::STRING_TOUPPER, "str.toupper");
     addOperator(api::STRING_REV, "str.rev");
   }
-  addOperator(api::STRING_PREFIX, "str.prefixof");
-  addOperator(api::STRING_SUFFIX, "str.suffixof");
+  addOperator(api::STRING_PREFIX, "str.prefixof" );
+  addOperator(api::STRING_SUFFIX, "str.suffixof" );
+  addOperator(api::STRING_IS_DIGIT, "str.is_digit" );
   // at the moment, we only use this syntax for smt2.6.1
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
   {
@@ -196,6 +196,7 @@ void Smt2::addStringOperators() {
   addOperator(api::REGEXP_RANGE, "re.range");
   addOperator(api::REGEXP_LOOP, "re.loop");
   addOperator(api::REGEXP_COMPLEMENT, "re.comp");
+  addOperator(api::REGEXP_DIFF, "re.diff");
   addOperator(api::STRING_LT, "str.<");
   addOperator(api::STRING_LEQ, "str.<=");
 }

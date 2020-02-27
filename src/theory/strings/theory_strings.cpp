@@ -620,7 +620,7 @@ void TheoryStrings::check(Effort e) {
   {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Trace("strings-assertion") << "get assertion: " << fact << endl;
     polarity = fact.getKind() != kind::NOT;
