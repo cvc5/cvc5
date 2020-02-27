@@ -148,9 +148,9 @@ void Smt2::addDatatypesOperators()
 }
 
 void Smt2::addStringOperators() {
-  defineVar("re.all",
-            getSolver()
-                ->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma()));
+  defineVar(
+      "re.all",
+      getSolver()->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma()));
   addOperator(api::STRING_CONCAT, "str.++");
   addOperator(api::STRING_LENGTH, "str.len");
   addOperator(api::STRING_SUBSTR, "str.substr");
@@ -164,9 +164,9 @@ void Smt2::addStringOperators() {
     addOperator(api::STRING_TOUPPER, "str.toupper");
     addOperator(api::STRING_REV, "str.rev");
   }
-  addOperator(api::STRING_PREFIX, "str.prefixof" );
-  addOperator(api::STRING_SUFFIX, "str.suffixof" );
-  addOperator(api::STRING_IS_DIGIT, "str.is_digit" );
+  addOperator(api::STRING_PREFIX, "str.prefixof");
+  addOperator(api::STRING_SUFFIX, "str.suffixof");
+  addOperator(api::STRING_IS_DIGIT, "str.is_digit");
   // at the moment, we only use this syntax for smt2.6.1
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
   {
@@ -930,7 +930,6 @@ api::Term Smt2::mkAbstractValue(const std::string& name)
 void Smt2::mkSygusConstantsForType(const api::Sort& type,
                                    std::vector<api::Term>& ops)
 {
-
   if( type.isInteger() ){
     ops.push_back(d_solver->mkReal(0));
     ops.push_back(d_solver->mkReal(1));
