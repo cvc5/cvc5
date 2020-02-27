@@ -22,6 +22,16 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+Node Word::mkEmptyWord(TypeNode tn)
+{
+  if (tn.isString())
+  {
+    return mkEmptyWord(CONST_STRING);
+  }
+  Unimplemented();
+  return Node::null();
+}
+
 Node Word::mkEmptyWord(Kind k)
 {
   NodeManager* nm = NodeManager::currentNM();

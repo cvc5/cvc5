@@ -169,7 +169,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     }
     if (!done) {
       RewriteResponse ret = flattenNode(n, /* trivialNode = */ ff, /* skipNode = */ tt);
-      Debug("bool-flatten") << n << ": " << ret.node << std::endl;
+      Debug("bool-flatten") << n << ": " << ret.d_node << std::endl;
       return ret;
     }
     break;

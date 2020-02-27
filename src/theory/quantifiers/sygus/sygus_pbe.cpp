@@ -229,9 +229,9 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
         // the lemmas must be guarded by the active guard of the enumerator
         Node g = d_tds->getActiveGuardForEnumerator(e);
         Assert(!g.isNull());
-        for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
+        for (unsigned k = 0, size = enum_lems.size(); k < size; k++)
         {
-          enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);
+          enum_lems[k] = nm->mkNode(OR, g.negate(), enum_lems[k]);
         }
         lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
       }

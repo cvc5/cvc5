@@ -823,9 +823,9 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
             //   "Let W be a subset of D such that S ^ W is unsat."
             // and uasserts is set to W.
             uasserts.clear();
-            std::unordered_set<Node, NodeHashFunction> queryAsserts;
-            queryAsserts.insert(d_sc);
-            getUnsatCore(checkSc, queryAsserts, uasserts);
+            std::unordered_set<Node, NodeHashFunction> queryAsserts2;
+            queryAsserts2.insert(d_sc);
+            getUnsatCore(checkSc, queryAsserts2, uasserts);
             falseCore = true;
           }
         }
