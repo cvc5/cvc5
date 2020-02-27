@@ -1927,7 +1927,6 @@ set(regress_2_tests
   regress2/arith/prp-13-24.smt2
   regress2/arith/pursuit-safety-11.smtv1.smt2
   regress2/arith/pursuit-safety-12.smtv1.smt2
-  regress2/arith/real2int-test.smt2
   regress2/arith/sc-7.base.cvc.smtv1.smt2
   regress2/arith/uart-8.base.cvc.smtv1.smt2
   regress2/auflia-fuzz06.smtv1.smt2
@@ -2342,6 +2341,8 @@ set(regression_disabled_tests
   regress2/arith/arith-int-098.cvc
   regress2/arith/miplib-opt1217--27.smt2
   regress2/arith/miplib-pp08a-3000.smt2
+  # timeout on debug
+  regress2/arith/real2int-test.smt2
   regress2/bug396.smt2
   regress2/nl/dumortier-050317.smt2
   regress2/nl/nt-lemmas-bad.smt2
