@@ -224,23 +224,25 @@ class FunctionProperties {
     return valueCard ^ argsCard;
   }
   /** Function type is well-founded if its component sorts are */
-  static bool isWellFounded(TypeNode type) {
-    for(TypeNode::iterator i = type.begin(),
-          i_end = type.end();
-        i != i_end;
-        ++i) {
-      if(! (*i).isWellFounded()) {
+  static bool isWellFounded(TypeNode type)
+  {
+    for (TypeNode::iterator i = type.begin(), i_end = type.end(); i != i_end;
+         ++i)
+    {
+      if (!(*i).isWellFounded())
+      {
         return false;
       }
     }
     return true;
   }
   /** Function type is well-founded if its component sorts are */
-  static Node mkGroundTerm(TypeNode type) {
-    NodeManager * nm = NodeManager::currentNM();
-    Node bvl = nm->getBoundVarListForFunctionType( type );
+  static Node mkGroundTerm(TypeNode type)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node bvl = nm->getBoundVarListForFunctionType(type);
     Node ret = type.getRangeType().mkGroundTerm();
-    return nm->mkNode(kind::LAMBDA, bvl,ret);
+    return nm->mkNode(kind::LAMBDA, bvl, ret);
   }
 };/* class FuctionProperties */
 

@@ -29,7 +29,6 @@
 namespace CVC4 {
 namespace theory {
 
-
 /**
  * This function initializes the smt engine smte as a subsolver, e.g. it
  * creates a new SMT engine and sets the options of the current SMT engine.

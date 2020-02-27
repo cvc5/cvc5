@@ -127,7 +127,7 @@ void SygusRepairConst::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   else
   {
     needExport = false;
-    initializeSubsolver(checker,query.toExpr());
+    initializeSubsolver(checker, query.toExpr());
   }
 }
 
