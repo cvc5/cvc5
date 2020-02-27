@@ -1683,11 +1683,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // it was given an operator
     op = p.d_op;
   }
-  else if (!p.d_op.isNull())
-  {
-    // it was given an operator
-    op = p.d_op;
-  }
   else
   {
     isBuiltinOperator = isOperatorEnabled(p.d_name);
