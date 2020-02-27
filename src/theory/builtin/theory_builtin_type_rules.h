@@ -236,7 +236,11 @@ class FunctionProperties {
     }
     return true;
   }
-  /** Function type is well-founded if its component sorts are */
+  /**
+   * Ground term for function sorts is (lambda x. t) where x is the
+   * canonical variable list for its type and t is the canonical ground term of
+   * its range.
+   */
   static Node mkGroundTerm(TypeNode type)
   {
     NodeManager* nm = NodeManager::currentNM();
