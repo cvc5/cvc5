@@ -21,12 +21,12 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/strings/theory_strings_utils.h"
-#include "theory/quantifiers/extended_rewrite.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
     case COMPUTE_AGGRESSIVE_MINISCOPING:
       out << "COMPUTE_AGGRESSIVE_MINISCOPING";
       break;
-    case COMPUTE_EXT_REWRITE: out << "COMPUTE_EXT_REWRITE";break;
+    case COMPUTE_EXT_REWRITE: out << "COMPUTE_EXT_REWRITE"; break;
     case COMPUTE_PROCESS_TERMS: out << "COMPUTE_PROCESS_TERMS"; break;
     case COMPUTE_PRENEX: out << "COMPUTE_PRENEX"; break;
     case COMPUTE_VAR_ELIMINATION: out << "COMPUTE_VAR_ELIMINATION"; break;
@@ -601,16 +601,16 @@ Node QuantifiersRewriter::computeExtendedRewrite(Node q)
   // apply extended rewriter
   ExtendedRewriter er;
   Node bodyr = er.extendedRewrite(body);
-  if (body!=bodyr)
+  if (body != bodyr)
   {
     std::vector<Node> children;
     children.push_back(q[0]);
     children.push_back(bodyr);
-    if (q.getNumChildren()==3)
+    if (q.getNumChildren() == 3)
     {
       children.push_back(q[2]);
     }
-    return NodeManager::currentNM()->mkNode(FORALL,children);
+    return NodeManager::currentNM()->mkNode(FORALL, children);
   }
   return q;
 }
@@ -1900,18 +1900,26 @@ Node QuantifiersRewriter::computeOperation(Node f,
     return computeMiniscoping( args, n, qa );
   }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
     return computeAggressiveMiniscoping( args, n );
-  }else if (computeOption == COMPUTE_EXT_REWRITE){
+  }
+  else if (computeOption == COMPUTE_EXT_REWRITE)
+  {
     return computeExtendedRewrite(f);
-  }else if( computeOption==COMPUTE_PROCESS_TERMS ){
+  }
+  else if (computeOption == COMPUTE_PROCESS_TERMS)
+  {
     std::vector< Node > new_conds;
     n = computeProcessTerms( n, args, new_conds, f, qa );
     if( !new_conds.empty() ){
       new_conds.push_back( n );
       n = NodeManager::currentNM()->mkNode( OR, new_conds );
     }
-  }else if( computeOption==COMPUTE_COND_SPLIT ){
+  }
+  else if (computeOption == COMPUTE_COND_SPLIT)
+  {
     n = computeCondSplit(n, args, qa);
-  }else if( computeOption==COMPUTE_PRENEX ){
+  }
+  else if (computeOption == COMPUTE_PRENEX)
+  {
     if (options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
         || options::prenexQuant() == options::PrenexQuantMode::NORMAL)
     {
@@ -1924,7 +1932,9 @@ Node QuantifiersRewriter::computeOperation(Node f,
       n = computePrenex( n, args, nargs, true, false );
       Assert(nargs.empty());
     }
-  }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
+  }
+  else if (computeOption == COMPUTE_VAR_ELIMINATION)
+  {
     n = computeVarElimination( n, args, qa );
   }
   Trace("quantifiers-rewrite-debug") << "Compute Operation: return " << n << ", " << args.size() << std::endl;
