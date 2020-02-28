@@ -34,20 +34,21 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
+
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
   switch (s)
   {
-    case COMPUTE_ELIM_SYMBOLS:out << "COMPUTE_ELIM_SYMBOLS";break;
-  case COMPUTE_MINISCOPING:out << "COMPUTE_MINISCOPING";break;
-  case COMPUTE_AGGRESSIVE_MINISCOPING:out << "COMPUTE_AGGRESSIVE_MINISCOPING";break;
-  case COMPUTE_PROCESS_TERMS:out << "COMPUTE_PROCESS_TERMS";break;
-  case COMPUTE_PRENEX:out << "COMPUTE_PRENEX";break;
-  case COMPUTE_VAR_ELIMINATION:out << "COMPUTE_VAR_ELIMINATION";break;
-  case COMPUTE_COND_SPLIT:out << "COMPUTE_COND_SPLIT";break;
-  default: out << "UnknownRewriteStep";
-  break;
+    case COMPUTE_ELIM_SYMBOLS: out << "COMPUTE_ELIM_SYMBOLS"; break;
+    case COMPUTE_MINISCOPING: out << "COMPUTE_MINISCOPING"; break;
+    case COMPUTE_AGGRESSIVE_MINISCOPING:
+      out << "COMPUTE_AGGRESSIVE_MINISCOPING";
+      break;
+    case COMPUTE_PROCESS_TERMS: out << "COMPUTE_PROCESS_TERMS"; break;
+    case COMPUTE_PRENEX: out << "COMPUTE_PRENEX"; break;
+    case COMPUTE_VAR_ELIMINATION: out << "COMPUTE_VAR_ELIMINATION"; break;
+    case COMPUTE_COND_SPLIT: out << "COMPUTE_COND_SPLIT"; break;
+    default: out << "UnknownRewriteStep"; break;
   }
   return out;
 }
@@ -202,7 +203,8 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
       //compute attributes
       QAttributes qa;
       QuantAttributes::computeQuantAttributes( in, qa );
-      for( unsigned i=0; i<COMPUTE_LAST; ++i ){
+      for (unsigned i = 0; i < COMPUTE_LAST; ++i)
+      {
         RewriteStep op = static_cast<RewriteStep>(i);
         if( doOperation( in, op, qa ) ){
           ret = computeOperation( in, op, qa );
@@ -1996,7 +1998,10 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
   return mkForAll( args, body, qa );
 }
 
-bool QuantifiersRewriter::doOperation( Node q, RewriteStep computeOption, QAttributes& qa ){
+bool QuantifiersRewriter::doOperation(Node q,
+                                      RewriteStep computeOption,
+                                      QAttributes& qa)
+{
   bool is_strict_trigger =
       qa.d_hasPattern
       && options::userPatternsQuant() == options::UserPatMode::TRUST;
@@ -2039,7 +2044,10 @@ bool QuantifiersRewriter::doOperation( Node q, RewriteStep computeOption, QAttri
 }
 
 //general method for computing various rewrites
-Node QuantifiersRewriter::computeOperation( Node f, RewriteStep computeOption, QAttributes& qa ){
+Node QuantifiersRewriter::computeOperation(Node f,
+                                           RewriteStep computeOption,
+                                           QAttributes& qa)
+{
   Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << " " << qa.d_qid_num << std::endl;
   std::vector< Node > args;
   for( unsigned i=0; i<f[0].getNumChildren(); i++ ){

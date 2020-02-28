@@ -27,7 +27,7 @@ namespace quantifiers {
 
 struct QAttributes;
 
-/** 
+/**
  * List of steps used by the quantifiers rewriter, details on these steps
  * can be found in the class below.
  */
@@ -39,9 +39,9 @@ enum RewriteStep
   COMPUTE_MINISCOPING,
   /** Aggressive miniscoping */
   COMPUTE_AGGRESSIVE_MINISCOPING,
-  /** 
+  /**
    * Term processing (e.g. simplifying terms based on ITE conditions,
-   * eliminating extended arithmetic symbols). 
+   * eliminating extended arithmetic symbols).
    */
   COMPUTE_PROCESS_TERMS,
   /** Prenexing */
@@ -54,7 +54,6 @@ enum RewriteStep
   COMPUTE_LAST
 };
 std::ostream& operator<<(std::ostream& out, RewriteStep s);
-
 
 class QuantifiersRewriter : public TheoryRewriter
 {
@@ -212,14 +211,18 @@ class QuantifiersRewriter : public TheoryRewriter
   static Node computePrenexAgg( Node n, bool topLevel, std::map< unsigned, std::map< Node, Node > >& visited );
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
 private:
-  static Node computeOperation( Node f, RewriteStep computeOption, QAttributes& qa );
+ static Node computeOperation(Node f,
+                              RewriteStep computeOption,
+                              QAttributes& qa);
+
 public:
  RewriteResponse preRewrite(TNode in) override;
  RewriteResponse postRewrite(TNode in) override;
 
 private:
   /** options */
-  static bool doOperation( Node f, RewriteStep computeOption, QAttributes& qa );
+ static bool doOperation(Node f, RewriteStep computeOption, QAttributes& qa);
+
 private:
   static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
 public:
