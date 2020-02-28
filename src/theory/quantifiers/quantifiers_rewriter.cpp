@@ -26,6 +26,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/quantifiers/extended_rewrite.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -44,6 +45,7 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
     case COMPUTE_AGGRESSIVE_MINISCOPING:
       out << "COMPUTE_AGGRESSIVE_MINISCOPING";
       break;
+    case COMPUTE_EXT_REWRITE: out << "COMPUTE_EXT_REWRITE";break;
     case COMPUTE_PROCESS_TERMS: out << "COMPUTE_PROCESS_TERMS"; break;
     case COMPUTE_PRENEX: out << "COMPUTE_PRENEX"; break;
     case COMPUTE_VAR_ELIMINATION: out << "COMPUTE_VAR_ELIMINATION"; break;
@@ -591,6 +593,26 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
   }
   cache[body] = ret;
   return ret;
+}
+
+Node QuantifiersRewriter::computeExtendedRewrite(Node q)
+{
+  Node body = q[1];
+  // apply extended rewriter
+  ExtendedRewriter er;
+  Node bodyr = er.extendedRewrite(body);
+  if (body!=bodyr)
+  {
+    std::vector<Node> children;
+    children.push_back(q[0]);
+    children.push_back(bodyr);
+    if (q.getNumChildren()==3)
+    {
+      children.push_back(q[2]);
+    }
+    return NodeManager::currentNM()->mkNode(FORALL,children);
+  }
+  return q;
 }
 
 Node QuantifiersRewriter::computeCondSplit(Node body,
@@ -1823,9 +1845,13 @@ bool QuantifiersRewriter::doOperation(Node q,
   {
     return options::aggressiveMiniscopeQuant() && is_std;
   }
+  else if (computeOption == COMPUTE_EXT_REWRITE)
+  {
+    return options::extRewriteQuant();
+  }
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
-    return options::condRewriteQuant() || options::elimExtArithQuant()
+    return options::elimExtArithQuant()
            || options::iteLiftQuant() != options::IteLiftQuantMode::NONE;
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
@@ -1874,6 +1900,8 @@ Node QuantifiersRewriter::computeOperation(Node f,
     return computeMiniscoping( args, n, qa );
   }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
     return computeAggressiveMiniscoping( args, n );
+  }else if (computeOption == COMPUTE_EXT_REWRITE){
+    return computeExtendedRewrite(f);
   }else if( computeOption==COMPUTE_PROCESS_TERMS ){
     std::vector< Node > new_conds;
     n = computeProcessTerms( n, args, new_conds, f, qa );

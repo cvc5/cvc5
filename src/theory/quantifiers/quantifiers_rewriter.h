@@ -39,8 +39,10 @@ enum RewriteStep
   COMPUTE_MINISCOPING,
   /** Aggressive miniscoping */
   COMPUTE_AGGRESSIVE_MINISCOPING,
+  /** Apply the extended rewriter to quantified formula bodies */
+  COMPUTE_EXT_REWRITE,
   /**
-   * Term processing (e.g. simplifying terms based on ITE conditions,
+   * Term processing (e.g. simplifying terms based on ITE lifting,
    * eliminating extended arithmetic symbols).
    */
   COMPUTE_PROCESS_TERMS,
@@ -220,7 +222,14 @@ class QuantifiersRewriter : public TheoryRewriter
                                   Node q,
                                   QAttributes& qa);
   //------------------------------------- end process terms
-
+  //------------------------------------- extended rewrite
+  /** compute extended rewrite
+   *
+   * This returns the result of apply the extended rewriter on the body
+   * of quantified formula q.
+   */
+  static Node computeExtendedRewrite(Node q);
+  //------------------------------------- end extended rewrite
  public:
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
