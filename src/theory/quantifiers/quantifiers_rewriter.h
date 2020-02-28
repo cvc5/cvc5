@@ -150,8 +150,6 @@ class QuantifiersRewriter : public TheoryRewriter
                              Node n,
                              Node ipl);
   static Node computeProcessTerms2(Node body,
-                                   bool hasPol,
-                                   bool pol,
                                    std::map<Node, bool>& currCond,
                                    int nCurrCond,
                                    std::map<Node, Node>& cache,
