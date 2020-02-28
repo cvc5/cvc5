@@ -193,7 +193,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "ext-rewrite-quant"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   read_only  = true
   help       = "apply extended rewriting to bodies of quantified formulas"
 
