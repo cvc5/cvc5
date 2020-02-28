@@ -121,7 +121,7 @@ class TheoryStrings : public Theory {
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp) override;
-  /** 
+  /**
    * Get all relevant information in this theory regarding the current
    * model. Return false if a contradiction is discovered.
    */
@@ -298,15 +298,18 @@ private:
    */
   bool areCareDisequal(TNode x, TNode y);
 
-  /** Collect model info for type tn 
-   * 
+  /** Collect model info for type tn
+   *
    * Assigns model values (in m) to all relevant terms of the string-like type
    * tn in the current context, which are stored in repSet.
-   * 
+   *
    * Returns false if a conflict is discovered while doing this assignment.
    */
-  bool collectModelInfoType(TypeNode tn, const std::unordered_set<Node, NodeHashFunction>& repSet, TheoryModel* m);
-  
+  bool collectModelInfoType(
+      TypeNode tn,
+      const std::unordered_set<Node, NodeHashFunction>& repSet,
+      TheoryModel* m);
+
   /** assert pending fact
    *
    * This asserts atom with polarity to the equality engine of this class,

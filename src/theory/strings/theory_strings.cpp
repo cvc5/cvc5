@@ -259,7 +259,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     return false;
   }
 
-  std::map< TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
+  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
   // Generate model
   // get the relevant string equivalence classes
   for (const Node& s : termSet)
@@ -271,20 +271,24 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       repSet[tn].insert(r);
     }
   }
-  for (std::pair<TypeNode, std::unordered_set<Node, NodeHashFunction> >& rst : repSet )
+  for (std::pair<TypeNode, std::unordered_set<Node, NodeHashFunction> >& rst :
+       repSet)
   {
-    collectModelInfoType( rst.first, rst.second, m );
+    collectModelInfoType(rst.first, rst.second, m);
   }
 }
 
-bool TheoryStrings::collectModelInfoType(TypeNode tn, std::unordered_set< Node, NodeHashFunction >& repSet, TheoryModel* m)
+bool TheoryStrings::collectModelInfoType(
+    TypeNode tn,
+    std::unordered_set<Node, NodeHashFunction>& repSet,
+    TheoryModel* m)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> nodes(repSet.begin(), repSet.end());
   std::map< Node, Node > processed;
   std::vector< std::vector< Node > > col;
   std::vector< Node > lts;
-  std::vector< TypeNode > types;
+  std::vector<TypeNode> types;
   d_state.separateByLength(nodes, col, lts, types);
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
