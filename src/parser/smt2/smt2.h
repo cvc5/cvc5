@@ -26,8 +26,8 @@
 #include <utility>
 
 #include "api/cvc4cpp.h"
+#include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "parser/smt2/parse_op.h"
 #include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
@@ -198,24 +198,6 @@ class Smt2 : public Parser
   void resetAssertions();
 
   /**
-   * Creates a command that asserts a rule.
-   *
-   * @param kind The kind of rule (RR_REWRITE, RR_REDUCTION, RR_DEDUCTION)
-   * @param bvl Bound variable list
-   * @param triggers List of triggers
-   * @param guards List of guards
-   * @param heads List of heads
-   * @param body The body of the rule
-   * @return The command that asserts the rewrite rule
-   */
-  std::unique_ptr<Command> assertRewriteRule(Kind kind,
-                                             Expr bvl,
-                                             const std::vector<Expr>& triggers,
-                                             const std::vector<Expr>& guards,
-                                             const std::vector<Expr>& heads,
-                                             Expr body);
-
-  /**
    * Class for creating instances of `SynthFunCommand`s. Creating an instance
    * of this class pushes the scope, destroying it pops the scope.
    */
@@ -351,19 +333,15 @@ class Smt2 : public Parser
     return d_lastNamedTerm;
   }
 
-  bool isAbstractValue(const std::string& name) {
-    return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
-      name.find_first_not_of("0123456789", 1) == std::string::npos;
-  }
+  /** Does name denote an abstract value? (of the form '@n' for numeral n). */
+  bool isAbstractValue(const std::string& name);
 
-  Expr mkAbstractValue(const std::string& name) {
-    assert(isAbstractValue(name));
-    return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
-  }
-
-  void mkSygusVar(const std::string& name,
-                  const Type& type,
-                  bool isPrimed = false);
+  /** Make abstract value
+   *
+   * Abstract values are used for processing get-value calls. The argument
+   * name should be such that isAbstractValue(name) is true.
+   */
+  Expr mkAbstractValue(const std::string& name);
 
   void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
 
@@ -372,7 +350,7 @@ class Smt2 : public Parser
       int index,
       std::vector<CVC4::Datatype>& datatypes,
       std::vector<CVC4::Type>& sorts,
-      std::vector<std::vector<CVC4::Expr>>& ops,
+      std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
       std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
       std::vector<bool>& allow_const,
@@ -388,7 +366,7 @@ class Smt2 : public Parser
       std::string& dname,
       std::vector<CVC4::Datatype>& datatypes,
       std::vector<CVC4::Type>& sorts,
-      std::vector<std::vector<CVC4::Expr>>& ops,
+      std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
       std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
       std::vector<bool>& allow_const,
@@ -397,7 +375,7 @@ class Smt2 : public Parser
   bool popSygusDatatypeDef(
       std::vector<CVC4::Datatype>& datatypes,
       std::vector<CVC4::Type>& sorts,
-      std::vector<std::vector<CVC4::Expr>>& ops,
+      std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
       std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
       std::vector<bool>& allow_const,
@@ -407,12 +385,14 @@ class Smt2 : public Parser
                           int startIndex,
                           std::vector<CVC4::Datatype>& datatypes,
                           std::vector<CVC4::Type>& sorts,
-                          std::vector<std::vector<CVC4::Expr>>& ops);
+                          std::vector<std::vector<ParseOp>>& ops);
 
-  void mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
-                        std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs,
-                        std::vector<std::string>& unresolved_gterm_sym,
-                        std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
+  void mkSygusDatatype(CVC4::Datatype& dt,
+                       std::vector<ParseOp>& ops,
+                       std::vector<std::string>& cnames,
+                       std::vector<std::vector<CVC4::Type>>& cargs,
+                       std::vector<std::string>& unresolved_gterm_sym,
+                       std::map<CVC4::Type, CVC4::Type>& sygus_to_builtin);
 
   /**
    * Adds a constructor to sygus datatype dt whose sygus operator is term.
@@ -536,7 +516,7 @@ class Smt2 : public Parser
    * - If p's expression field is set, then we leave p unchanged, check if
    * that expression has the given type and throw a parse error otherwise.
    */
-  void applyTypeAscription(ParseOp& p, Type type);
+  void parseOpApplyTypeAscription(ParseOp& p, Type type);
   /**
    * This converts a ParseOp to expression, assuming it is a standalone term.
    *
@@ -584,15 +564,19 @@ class Smt2 : public Parser
  private:
   std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
 
-  Type processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
-                                std::vector< CVC4::Type>& sorts,
-                                std::vector< std::vector<CVC4::Expr> >& ops,
-                                std::vector< std::vector<std::string> >& cnames,
-                                std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
-                                std::vector< bool >& allow_const,
-                                std::vector< std::vector< std::string > >& unresolved_gterm_sym,
-                                std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin,
-                                std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr, Type sub_ret );
+  Type processSygusNestedGTerm(
+      int sub_dt_index,
+      std::string& sub_dname,
+      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<CVC4::Type>& sorts,
+      std::vector<std::vector<ParseOp>>& ops,
+      std::vector<std::vector<std::string>>& cnames,
+      std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
+      std::vector<bool>& allow_const,
+      std::vector<std::vector<std::string>>& unresolved_gterm_sym,
+      std::map<CVC4::Type, CVC4::Type>& sygus_to_builtin,
+      std::map<CVC4::Type, CVC4::Expr>& sygus_to_builtin_expr,
+      Type sub_ret);
 
   /** make sygus bound var list
    *
@@ -618,10 +602,10 @@ class Smt2 : public Parser
    * by a lambda), and cargs contains the types of the arguments of the
    * sygus constructor.
    */
-  Expr purifySygusGTerm(Expr term,
-                        std::map<Expr, Type>& ntsToUnres,
-                        std::vector<Expr>& args,
-                        std::vector<Type>& cargs) const;
+  api::Term purifySygusGTerm(api::Term term,
+                             std::map<Expr, Type>& ntsToUnres,
+                             std::vector<api::Term>& args,
+                             std::vector<api::Sort>& cargs) const;
 
   void addArithmeticOperators();
 

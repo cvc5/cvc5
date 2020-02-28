@@ -155,11 +155,7 @@ Kind Parser::getKindForFunction(Expr fun) {
   {
     return APPLY_TESTER;
   }
-  else
-  {
-    parseError("internal error: unhandled function application kind");
-    return UNDEFINED_KIND;
-  }
+  return UNDEFINED_KIND;
 }
 
 Type Parser::getSort(const std::string& name) {
@@ -367,10 +363,11 @@ bool Parser::isUnresolvedType(const std::string& name) {
 }
 
 std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
-    std::vector<Datatype>& datatypes, bool doOverload) {
+    std::vector<Datatype>& datatypes, bool doOverload, uint32_t flags)
+{
   try {
     std::vector<DatatypeType> types =
-        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved);
+        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved, flags);
 
     assert(datatypes.size() == types.size());
 
@@ -513,6 +510,78 @@ Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args)
   return expr;
 }
 
+api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
+{
+  api::Kind k = t.getKind();
+  if (k == api::EMPTYSET)
+  {
+    t = d_solver->mkEmptySet(s);
+  }
+  else if (k == api::UNIVERSE_SET)
+  {
+    t = d_solver->mkUniverseSet(s);
+  }
+  else if (k == api::SEP_NIL)
+  {
+    t = d_solver->mkSepNil(s);
+  }
+  else if (k == api::APPLY_CONSTRUCTOR)
+  {
+    std::vector<api::Term> children(t.begin(), t.end());
+    // apply type ascription to the operator and reconstruct
+    children[0] = applyTypeAscription(children[0], s);
+    t = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, children);
+  }
+  // !!! temporary until datatypes are refactored in the new API
+  api::Sort etype = t.getSort();
+  if (etype.isConstructor())
+  {
+    api::Sort etype = t.getSort();
+    // get the datatype that t belongs to
+    api::Sort etyped = etype.getConstructorCodomainSort();
+    api::Datatype d = etyped.getDatatype();
+    // lookup by name
+    api::DatatypeConstructor dc = d.getConstructor(t.toString());
+
+    // Type ascriptions only have an effect on the node structure if this is a
+    // parametric datatype.
+    if (s.isParametricDatatype())
+    {
+      ExprManager* em = getExprManager();
+      // apply type ascription to the operator
+      Expr e = t.getExpr();
+      const DatatypeConstructor& dtc =
+          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+      t = api::Term(em->mkExpr(
+          kind::APPLY_TYPE_ASCRIPTION,
+          em->mkConst(
+              AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
+          e));
+    }
+    // the type of t does not match the sort s by design (constructor type
+    // vs datatype type), thus we use an alternative check here.
+    if (t.getSort().getConstructorCodomainSort() != s)
+    {
+      std::stringstream ss;
+      ss << "Type ascription on constructor not satisfied, term " << t
+         << " expected sort " << s << " but has sort "
+         << t.getSort().getConstructorCodomainSort();
+      parseError(ss.str());
+    }
+    return t;
+  }
+  // otherwise, nothing to do
+  // check that the type is correct
+  if (t.getSort() != s)
+  {
+    std::stringstream ss;
+    ss << "Type ascription not satisfied, term " << t << " expected sort " << s
+       << " but has sort " << t.getSort();
+    parseError(ss.str());
+  }
+  return t;
+}
+
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch (type) {
     case SYM_VARIABLE:
@@ -638,18 +707,16 @@ Command* Parser::nextCommand()
       dynamic_cast<QuitCommand*>(cmd) == NULL) {
     // don't count set-option commands as to not get stuck in an infinite
     // loop of resourcing out
-    const Options& options = getExprManager()->getOptions();
-    d_resourceManager->spendResource(options.getParseStep());
+    d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
   }
   return cmd;
 }
 
-Expr Parser::nextExpression()
+api::Term Parser::nextExpression()
 {
   Debug("parser") << "nextExpression()" << std::endl;
-  const Options& options = getExprManager()->getOptions();
-  d_resourceManager->spendResource(options.getParseStep());
-  Expr result;
+  d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
+  api::Term result;
   if (!done()) {
     try {
       result = d_input->parseExpr();

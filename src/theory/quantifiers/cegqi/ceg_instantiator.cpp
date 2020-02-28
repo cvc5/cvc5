@@ -1386,7 +1386,8 @@ void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& ter
 void CegInstantiator::presolve( Node q ) {
   //at preregister time, add proxy of obvious instantiations up front, which helps learning during preprocessing
   //only if no nested quantifiers
-  if( !QuantifiersRewriter::containsQuantifiers( q[1] ) ){
+  if (!expr::hasClosure(q[1]))
+  {
     std::vector< Node > ps_vars;
     std::map< Node, std::vector< Node > > teq;
     for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
@@ -1447,7 +1448,7 @@ void CegInstantiator::processAssertions() {
       d_curr_asserts[tid].clear();
       //collect all assertions from theory
       for( context::CDList<Assertion>::const_iterator it = theory->facts_begin(); it != theory->facts_end(); ++ it) {
-        Node lit = (*it).assertion;
+        Node lit = (*it).d_assertion;
         Node atom = lit.getKind()==NOT ? lit[0] : lit;
         if( d_is_nested_quant || std::find( d_ce_atoms.begin(), d_ce_atoms.end(), atom )!=d_ce_atoms.end() ){
           d_curr_asserts[tid].push_back( lit );

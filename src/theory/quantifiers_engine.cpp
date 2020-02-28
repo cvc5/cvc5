@@ -30,7 +30,6 @@
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
@@ -53,7 +52,6 @@ class QuantifiersEnginePrivate
         d_model_engine(nullptr),
         d_bint(nullptr),
         d_qcf(nullptr),
-        d_rr_engine(nullptr),
         d_sg_gen(nullptr),
         d_synth_e(nullptr),
         d_lte_part_inst(nullptr),
@@ -81,8 +79,6 @@ class QuantifiersEnginePrivate
   std::unique_ptr<quantifiers::BoundedIntegers> d_bint;
   /** Conflict find mechanism for quantifiers */
   std::unique_ptr<quantifiers::QuantConflictFind> d_qcf;
-  /** rewrite rules utility */
-  std::unique_ptr<quantifiers::RewriteEngine> d_rr_engine;
   /** subgoal generator */
   std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
   /** ceg instantiation */
@@ -111,7 +107,7 @@ class QuantifiersEnginePrivate
                   bool& needsBuilder)
   {
     // add quantifiers modules
-    if (options::quantConflictFind() || options::quantRewriteRules())
+    if (options::quantConflictFind())
     {
       d_qcf.reset(new quantifiers::QuantConflictFind(qe, c));
       modules.push_back(d_qcf.get());
@@ -149,11 +145,6 @@ class QuantifiersEnginePrivate
       modules.push_back(d_model_engine.get());
       // finite model finder has special ways of building the model
       needsBuilder = true;
-    }
-    if (options::quantRewriteRules())
-    {
-      d_rr_engine.reset(new quantifiers::RewriteEngine(c, qe, d_qcf.get()));
-      modules.push_back(d_rr_engine.get());
     }
     if (options::ltePartialInst())
     {
@@ -397,16 +388,6 @@ void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m, int priority ) 
 
 void QuantifiersEngine::setOwner(Node q, quantifiers::QAttributes& qa)
 {
-  if (!qa.d_rr.isNull())
-  {
-    if (d_private->d_rr_engine.get() == nullptr)
-    {
-      Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : "
-                          << q << std::endl;
-    }
-    // set rewrite engine as owner
-    setOwner(q, d_private->d_rr_engine.get(), 2);
-  }
   if (qa.d_sygus || (options::sygusRecFun() && !qa.d_fundef_f.isNull()))
   {
     if (d_private->d_synth_e.get() == nullptr)
@@ -636,7 +617,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( !d_lemmas_waiting.empty() ){
         Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
       }
-      Trace("quant-engine-debug") << "  Theory engine finished : " << !d_te->needCheck() << std::endl;
+      Trace("quant-engine-debug")
+          << "  Theory engine finished : " << !theoryEngineNeedsCheck()
+          << std::endl;
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
     }
     if( Trace.isOn("quant-engine-ee-pre") ){
@@ -1072,6 +1055,14 @@ void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
+bool QuantifiersEngine::hasAddedLemma() const
+{
+  return !d_lemmas_waiting.empty() || d_hasAddedLemma;
+}
+bool QuantifiersEngine::theoryEngineNeedsCheck() const
+{
+  return d_te->needCheck();
+}
 
 void QuantifiersEngine::setConflict() { 
   d_conflict = true; 
@@ -1088,7 +1079,7 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
   {
-    performCheck = ( e >= Theory::EFFORT_FULL ) && !getTheoryEngine()->needCheck();
+    performCheck = (e >= Theory::EFFORT_FULL) && !theoryEngineNeedsCheck();
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
   {
@@ -1097,7 +1088,9 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   else if (options::instWhenMode()
            == options::InstWhenMode::FULL_DELAY_LAST_CALL)
   {
-    performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ((e == Theory::EFFORT_FULL && !theoryEngineNeedsCheck()
+                     && d_ierCounter % d_inst_when_phase != 0)
+                    || e == Theory::EFFORT_LAST_CALL);
   }
   else if (options::instWhenMode() == options::InstWhenMode::LAST_CALL)
   {

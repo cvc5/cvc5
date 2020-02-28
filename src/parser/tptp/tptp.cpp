@@ -22,6 +22,7 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/type.h"
+#include "options/options.h"
 #include "parser/parser.h"
 
 // ANTLR defines these, which is really bad!
@@ -214,6 +215,146 @@ void Tptp::checkLetBinding(const std::vector<Expr>& bvlist, Expr lhs, Expr rhs,
   }
 }
 
+Expr Tptp::parseOpToExpr(ParseOp& p)
+{
+  Expr expr;
+  if (!p.d_expr.isNull())
+  {
+    return p.d_expr;
+  }
+  // if it has a kind, it's a builtin one and this function should not have been
+  // called
+  assert(p.d_kind == kind::NULL_EXPR);
+  if (isDeclared(p.d_name))
+  {  // already appeared
+    expr = getVariable(p.d_name);
+  }
+  else
+  {
+    Type t =
+        p.d_type == getExprManager()->booleanType() ? p.d_type : d_unsorted;
+    expr = mkVar(p.d_name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
+    preemptCommand(new DeclareFunctionCommand(p.d_name, expr, t));
+  }
+  return expr;
+}
+
+Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
+{
+  if (Debug.isOn("parser"))
+  {
+    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
+    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+    {
+      Debug("parser") << "++ " << *i << std::endl;
+    }
+  }
+  assert(!args.empty());
+  ExprManager* em = getExprManager();
+  // If operator already defined, just build application
+  if (!p.d_expr.isNull())
+  {
+    // this happens with some arithmetic kinds, which are wrapped around
+    // lambdas.
+    args.insert(args.begin(), p.d_expr);
+    return em->mkExpr(kind::APPLY_UF, args);
+  }
+  bool isBuiltinKind = false;
+  // the builtin kind of the overall return expression
+  Kind kind = kind::NULL_EXPR;
+  // First phase: piece operator together
+  if (p.d_kind == kind::NULL_EXPR)
+  {
+    // A non-built-in function application, get the expression
+    Expr v;
+    if (isDeclared(p.d_name))
+    {  // already appeared
+      v = getVariable(p.d_name);
+    }
+    else
+    {
+      std::vector<Type> sorts(args.size(), d_unsorted);
+      Type t = p.d_type == em->booleanType() ? p.d_type : d_unsorted;
+      t = getExprManager()->mkFunctionType(sorts, t);
+      v = mkVar(p.d_name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
+      preemptCommand(new DeclareFunctionCommand(p.d_name, v, t));
+    }
+    // args might be rationals, in which case we need to create
+    // distinct constants of the "unsorted" sort to represent them
+    for (size_t i = 0; i < args.size(); ++i)
+    {
+      if (args[i].getType().isReal()
+          && FunctionType(v.getType()).getArgTypes()[i] == d_unsorted)
+      {
+        args[i] = convertRatToUnsorted(args[i]);
+      }
+    }
+    assert(!v.isNull());
+    checkFunctionLike(v);
+    kind = getKindForFunction(v);
+    args.insert(args.begin(), v);
+  }
+  else
+  {
+    kind = p.d_kind;
+    isBuiltinKind = true;
+  }
+  assert(kind != kind::NULL_EXPR);
+  // Second phase: apply parse op to the arguments
+  if (isBuiltinKind)
+  {
+    if (!em->getOptions().getUfHo()
+        && (kind == kind::EQUAL || kind == kind::DISTINCT))
+    {
+      // need --uf-ho if these operators are applied over function args
+      for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+      {
+        if ((*i).getType().isFunction())
+        {
+          parseError(
+              "Cannot apply equalty to functions unless --uf-ho is set.");
+        }
+      }
+    }
+    if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
+        && args.size() == 1)
+    {
+      // Unary AND/OR can be replaced with the argument.
+      return args[0];
+    }
+    if (kind == kind::MINUS && args.size() == 1)
+    {
+      return em->mkExpr(kind::UMINUS, args[0]);
+    }
+    return d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args))
+        .getExpr();
+  }
+
+  // check if partially applied function, in this case we use HO_APPLY
+  if (args.size() >= 2)
+  {
+    Type argt = args[0].getType();
+    if (argt.isFunction())
+    {
+      unsigned arity = static_cast<FunctionType>(argt).getArity();
+      if (args.size() - 1 < arity)
+      {
+        if (!em->getOptions().getUfHo())
+        {
+          parseError("Cannot partially apply functions unless --uf-ho is set.");
+        }
+        Debug("parser") << "Partial application of " << args[0];
+        Debug("parser") << " : #argTypes = " << arity;
+        Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
+        // must curry the partial application
+        return d_solver->mkTerm(api::HO_APPLY, api::exprVectorToTerms(args))
+            .getExpr();
+      }
+    }
+  }
+  return em->mkExpr(kind, args);
+}
+
 void Tptp::forceLogic(const std::string& logic)
 {
   Parser::forceLogic(logic);
@@ -269,58 +410,27 @@ Expr Tptp::convertStrToUnsorted(std::string str) {
   return e;
 }
 
-void Tptp::makeApplication(Expr& expr, std::string& name,
-                           std::vector<Expr>& args, bool term) {
-  if (args.empty()) {        // Its a constant
-    if (isDeclared(name)) {  // already appeared
-      expr = getVariable(name);
-    } else {
-      Type t = term ? d_unsorted : getExprManager()->booleanType();
-      expr = mkVar(name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
-      preemptCommand(new DeclareFunctionCommand(name, expr, t));
-    }
-  } else {                   // Its an application
-    if (isDeclared(name)) {  // already appeared
-      expr = getVariable(name);
-    } else {
-      std::vector<Type> sorts(args.size(), d_unsorted);
-      Type t = term ? d_unsorted : getExprManager()->booleanType();
-      t = getExprManager()->mkFunctionType(sorts, t);
-      expr = mkVar(name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
-      preemptCommand(new DeclareFunctionCommand(name, expr, t));
-    }
-    // args might be rationals, in which case we need to create
-    // distinct constants of the "unsorted" sort to represent them
-    for (size_t i = 0; i < args.size(); ++i) {
-      if (args[i].getType().isReal() &&
-          FunctionType(expr.getType()).getArgTypes()[i] == d_unsorted) {
-        args[i] = convertRatToUnsorted(args[i]);
-      }
-    }
-    expr = getExprManager()->mkExpr(kind::APPLY_UF, expr, args);
-  }
-}
-
-void Tptp::mkLambdaWrapper(Expr& expr, Type argType)
+Expr Tptp::mkLambdaWrapper(Kind k, Type argType)
 {
+  Debug("parser") << "mkLambdaWrapper: kind " << k << " and type " << argType
+                  << "\n";
   std::vector<Expr> lvars;
   std::vector<Type> domainTypes =
       (static_cast<FunctionType>(argType)).getArgTypes();
+  ExprManager* em = getExprManager();
   for (unsigned i = 0, size = domainTypes.size(); i < size; ++i)
   {
     // the introduced variable is internal (not parsable)
     std::stringstream ss;
     ss << "_lvar_" << i;
-    Expr v = getExprManager()->mkBoundVar(ss.str(), domainTypes[i]);
+    Expr v = em->mkBoundVar(ss.str(), domainTypes[i]);
     lvars.push_back(v);
   }
   // apply body of lambda to variables
-  Expr wrapper = getExprManager()->mkExpr(
-      kind::LAMBDA,
-      getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars),
-      getExprManager()->mkExpr(expr, lvars));
-
-  expr = wrapper;
+  Expr wrapper = em->mkExpr(kind::LAMBDA,
+                            em->mkExpr(kind::BOUND_VAR_LIST, lvars),
+                            em->mkExpr(k, lvars));
+  return wrapper;
 }
 
 Expr Tptp::getAssertionExpr(FormulaRole fr, Expr expr) {

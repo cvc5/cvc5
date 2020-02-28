@@ -20,7 +20,7 @@
  ** A very simple CVC4 tutorial example.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class HelloWorld {
   public static void main(String[] args) {

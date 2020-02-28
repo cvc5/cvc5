@@ -95,7 +95,6 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/fun_def_process.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -652,9 +651,10 @@ class SmtEnginePrivate : public NodeManagerListener {
   void cleanupPreprocessingPasses() { d_passes.clear(); }
 
   ResourceManager* getResourceManager() { return d_resourceManager; }
-  void spendResource(unsigned amount)
+
+  void spendResource(ResourceManager::Resource r)
   {
-    d_resourceManager->spendResource(amount);
+    d_resourceManager->spendResource(r);
   }
 
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
@@ -877,8 +877,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_replayStream(NULL),
       d_private(NULL),
       d_statisticsRegistry(NULL),
-      d_stats(NULL),
-      d_channels(new LemmaChannels())
+      d_stats(NULL)
 {
   SmtScope smts(this);
   d_originalOptions.copyValues(em->getOptions());
@@ -913,8 +912,7 @@ void SmtEngine::finishInit()
   d_theoryEngine = new TheoryEngine(d_context,
                                     d_userContext,
                                     d_private->d_iteRemover,
-                                    const_cast<const LogicInfo&>(d_logic),
-                                    d_channels);
+                                    const_cast<const LogicInfo&>(d_logic));
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
@@ -941,9 +939,12 @@ void SmtEngine::finishInit()
   d_decisionEngine->init();   // enable appropriate strategies
 
   Trace("smt-debug") << "Making prop engine..." << std::endl;
-  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context,
-                                d_userContext, d_private->getReplayLog(),
-                                d_replayStream, d_channels);
+  d_propEngine = new PropEngine(d_theoryEngine,
+                                d_decisionEngine,
+                                d_context,
+                                d_userContext,
+                                d_private->getReplayLog(),
+                                d_replayStream);
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(d_propEngine);
@@ -963,16 +964,18 @@ void SmtEngine::finishInit()
     d_assertionList = new(true) AssertionList(d_userContext);
   }
 
-  // dump out a set-logic command
-  if(Dump.isOn("benchmark")) {
-    if (Dump.isOn("raw-benchmark")) {
-      Dump("raw-benchmark") << SetBenchmarkLogicCommand(d_logic.getLogicString());
-    } else {
+  // dump out a set-logic command only when raw-benchmark is disabled to avoid
+  // dumping the command twice.
+  if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
+  {
       LogicInfo everything;
       everything.lock();
-      Dump("benchmark") << CommentCommand("CVC4 always dumps the most general, all-supported logic (below), as some internals might require the use of a logic more general than the input.")
-                        << SetBenchmarkLogicCommand(everything.getLogicString());
-    }
+      Dump("benchmark") << CommentCommand(
+          "CVC4 always dumps the most general, all-supported logic (below), as "
+          "some internals might require the use of a logic more general than "
+          "the input.")
+                        << SetBenchmarkLogicCommand(
+                               everything.getLogicString());
   }
 
   Trace("smt-debug") << "Dump declaration commands..." << std::endl;
@@ -1105,9 +1108,6 @@ SmtEngine::~SmtEngine()
     delete d_context;
     d_context = NULL;
 
-    delete d_channels;
-    d_channels = NULL;
-
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
               << e << endl;
@@ -1128,9 +1128,18 @@ void SmtEngine::setLogic(const LogicInfo& logic)
 void SmtEngine::setLogic(const std::string& s)
 {
   SmtScope smts(this);
-  try {
+  try
+  {
     setLogic(LogicInfo(s));
-  } catch(IllegalArgumentException& e) {
+    // dump out a set-logic command
+    if (Dump.isOn("raw-benchmark"))
+    {
+      Dump("raw-benchmark")
+          << SetBenchmarkLogicCommand(d_logic.getLogicString());
+    }
+  }
+  catch (IllegalArgumentException& e)
+  {
     throw LogicException(e.what());
   }
 }
@@ -1204,9 +1213,17 @@ void SmtEngine::setDefaults() {
     }
     d_logic = LogicInfo("QF_BV");
   }
-  else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt())
+
+  if (options::solveBVAsInt() > 0)
   {
-    d_logic = LogicInfo("QF_NIA");
+    if (d_logic.isTheoryEnabled(THEORY_BV))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_BV);
+      d_logic.enableTheory(THEORY_ARITH);
+      d_logic.arithNonLinear();
+      d_logic.lock();
+    }
   }
 
   // set options about ackermannization
@@ -1296,11 +1313,16 @@ void SmtEngine::setDefaults() {
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
-      // we change the logic to incorporate sygus immediately
-      d_logic = d_logic.getUnlockedCopy();
-      d_logic.enableSygus();
-      d_logic.lock();
     }
+  }
+
+  // We now know whether the input is sygus. Update the logic to incorporate
+  // the theories we need internally for handling sygus problems.
+  if (is_sygus)
+  {
+    d_logic = d_logic.getUnlockedCopy();
+    d_logic.enableSygus();
+    d_logic.lock();
   }
 
   // sygus core connective requires unsat cores
@@ -1428,6 +1450,17 @@ void SmtEngine::setDefaults() {
                   "cores/proofs"
                << endl;
       options::preSkolemQuant.set(false);
+    }
+
+    if (options::solveBVAsInt() > 0)
+    {
+      /**
+       * Operations on 1 bits are better handled as Boolean operations
+       * than as integer operations.
+       * Therefore, we enable bv-to-bool, which runs before
+       * the translation to integers.
+       */
+      options::bitvectorToBool.set(true);
     }
 
     if (options::bitvectorToBool())
@@ -2754,7 +2787,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
   // or upward pass).
 
   do {
-    spendResource(options::preprocessStep());
+    spendResource(ResourceManager::Resource::PreprocessStep);
 
     // n is the input / original
     // node is the output / result
@@ -2945,7 +2978,7 @@ static void dumpAssertions(const char* key,
 // returns false if simplification led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
 {
-  spendResource(options::preprocessStep());
+  spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_smt.d_pendingPops == 0);
   try {
     ScopeCounter depth(d_simplifyAssertionsDepth);
@@ -3203,7 +3236,7 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<N
 
 void SmtEnginePrivate::processAssertions() {
   TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
-  spendResource(options::preprocessStep());
+  spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
   SubstitutionMap& top_level_substs =
@@ -3286,7 +3319,7 @@ void SmtEnginePrivate::processAssertions() {
   if (options::solveRealAsInt()) {
     d_passes["real-to-int"]->apply(&d_assertions);
   }
-
+  
   if (options::solveIntAsBV() > 0)
   {
     d_passes["int-to-bv"]->apply(&d_assertions);
@@ -3332,30 +3365,49 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["bv-intro-pow2"]->apply(&d_assertions);
   }
 
-  if (options::unsatCores())
-  {
-    // special rewriting pass for unsat cores, since many of the passes below
-    // are skipped
-    d_passes["rewrite"]->apply(&d_assertions);
-  }
-  else
+  // Since this pass is not robust for the information tracking necessary for
+  // unsat cores, it's only applied if we are not doing unsat core computation
+  if (!options::unsatCores())
   {
     d_passes["apply-substs"]->apply(&d_assertions);
   }
 
-  // Assertions ARE guaranteed to be rewritten by this point
-#ifdef CVC4_ASSERTIONS
-  for (unsigned i = 0; i < d_assertions.size(); ++i)
-  {
-    Assert(Rewriter::rewrite(d_assertions[i]) == d_assertions[i]);
-  }
-#endif
+  // Assertions MUST BE guaranteed to be rewritten by this point
+  d_passes["rewrite"]->apply(&d_assertions);
 
   // Lift bit-vectors of size 1 to bool
   if (options::bitvectorToBool())
   {
     d_passes["bv-to-bool"]->apply(&d_assertions);
   }
+  if (options::solveBVAsInt() > 0)
+  {
+    if (options::incrementalSolving())
+    {
+      throw ModalException(
+          "solving bitvectors as integers is currently not supported "
+          "when solving incrementally.");
+    } else if (options::boolToBitvector() != options::BoolToBVMode::OFF) {
+      throw ModalException(
+          "solving bitvectors as integers is incompatible with --bool-to-bv.");
+    }
+    else if (options::solveBVAsInt() > 8)
+    {
+      /**
+       * The granularity sets the size of the ITE in each element
+       * of the sum that is generated for bitwise operators.
+       * The size of the ITE is 2^{2*granularity}.
+       * Since we don't want to introduce ITEs with unbounded size,
+       * we bound the granularity.
+       */
+      throw ModalException("solve-bv-as-int accepts values from 0 to 8.");
+    }
+    else
+    {
+      d_passes["bv-to-int"]->apply(&d_assertions);
+    }
+  }
+
   // Convert non-top-level Booleans to bit-vectors of size 1
   if (options::boolToBitvector() != options::BoolToBVMode::OFF)
   {
@@ -3640,12 +3692,6 @@ void SmtEnginePrivate::addFormula(
       // n is the result of an unknown preprocessing step, add it to dependency map to null
       ProofManager::currentPM()->addDependence(n, Node::null());
     }
-    // rewrite rules are by default in the unsat core because
-    // they need to be applied until saturation
-    if(options::unsatCores() &&
-       n.getKind() == kind::REWRITE_RULE ){
-      ProofManager::currentPM()->addUnsatCore(n.toExpr());
-    }
   );
 
   // Add the normalized formula to the queue
@@ -3668,16 +3714,27 @@ void SmtEngine::ensureBoolean(const Expr& e)
 
 Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 {
+  Dump("benchmark") << CheckSatCommand(assumption);
   return checkSatisfiability(assumption, inUnsatCore, false);
 }
 
 Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 {
+  if (assumptions.empty())
+  {
+    Dump("benchmark") << CheckSatCommand();
+  }
+  else
+  {
+    Dump("benchmark") << CheckSatAssumingCommand(assumptions);
+  }
+
   return checkSatisfiability(assumptions, inUnsatCore, false);
 }
 
 Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
 {
+  Dump("benchmark") << QueryCommand(assumption, inUnsatCore);
   return checkSatisfiability(assumption.isNull()
                                  ? std::vector<Expr>()
                                  : std::vector<Expr>{assumption},
@@ -3805,25 +3862,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     d_needPostsolve = true;
 
-    // Dump the query if requested
-    if (Dump.isOn("benchmark"))
-    {
-      size_t size = assumptions.size();
-      // the expr already got dumped out if assertion-dumping is on
-      if (isQuery && size == 1)
-      {
-        Dump("benchmark") << QueryCommand(assumptions[0]);
-      }
-      else if (size == 0)
-      {
-        Dump("benchmark") << CheckSatCommand();
-      }
-      else
-      {
-        Dump("benchmark") << CheckSatAssumingCommand(d_assumptions);
-      }
-    }
-
     // Pop the context
     if (didInternalPush)
     {
@@ -3950,13 +3988,18 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
 
 void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
 {
+  SmtScope smts(this);
+  finalOptionsAreSet();
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
+  Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
   // don't need to set that the conjecture is stale
 }
 
 void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
 {
+  SmtScope smts(this);
+  finalOptionsAreSet();
   // do nothing (the command is spurious)
   Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
   // don't need to set that the conjecture is stale
@@ -3966,8 +4009,12 @@ void SmtEngine::declareSygusFunctionVar(const std::string& id,
                                         Expr var,
                                         Type type)
 {
+  SmtScope smts(this);
+  finalOptionsAreSet();
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
+  Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
+
   // don't need to set that the conjecture is stale
 }
 
@@ -4000,6 +4047,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
     setUserAttribute("sygus-synth-grammar", func, attr_value, "");
   }
   Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
+  Dump("raw-benchmark") << SynthFunCommand(id, func, sygusType, isInv, vars);
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }
@@ -4007,9 +4055,11 @@ void SmtEngine::declareSynthFun(const std::string& id,
 void SmtEngine::assertSygusConstraint(Expr constraint)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
+  Dump("raw-benchmark") << SygusConstraintCommand(constraint);
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }
@@ -4020,6 +4070,7 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
                                          const Expr& post)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   // build invariant constraint
 
   // get variables (regular and their respective primed versions)
@@ -4081,6 +4132,7 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusInvConstrant: " << constraint << "\n";
+  Dump("raw-benchmark") << SygusInvConstraintCommand(inv, pre, trans, post);
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }
@@ -4134,6 +4186,7 @@ Result SmtEngine::checkSynth()
     setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
+    Dump("raw-benchmark") << CheckSynthCommand();
 
     d_private->d_sygusConjectureStale = false;
 
@@ -4197,7 +4250,7 @@ Expr SmtEngine::simplify(const Expr& ex)
 
 Expr SmtEngine::expandDefinitions(const Expr& ex)
 {
-  d_private->spendResource(options::preprocessStep());
+  d_private->spendResource(ResourceManager::Resource::PreprocessStep);
 
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
@@ -4211,9 +4264,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex)
     // Ensure expr is type-checked at this point.
     e.getType(true);
   }
-  if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << ExpandDefinitionsCommand(e);
-  }
+
   unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_private->expandDefinitions(Node::fromExpr(e), cache, /* expandOnly = */ true);
   n = postprocess(n, TypeNode::fromType(e.getType()));
@@ -4642,11 +4693,12 @@ void SmtEngine::checkUnsatCore() {
   }
   Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
   if(r.asSatisfiabilityResult().isUnknown()) {
-    InternalError()
-        << "SmtEngine::checkUnsatCore(): could not check core result unknown.";
+    Warning()
+        << "SmtEngine::checkUnsatCore(): could not check core result unknown."
+        << std::endl;
   }
-
-  if(r.asSatisfiabilityResult().isSat()) {
+  else if (r.asSatisfiabilityResult().isSat())
+  {
     InternalError()
         << "SmtEngine::checkUnsatCore(): produced core was satisfiable.";
   }
@@ -4785,21 +4837,11 @@ void SmtEngine::checkModel(bool hardFailure) {
     Debug("boolean-terms") << "++ got " << n << endl;
     Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
 
-    if( n.getKind() != kind::REWRITE_RULE ){
-      // In case it's a quantifier (or contains one), look up its value before
-      // simplifying, or the quantifier might be irreparably altered.
-      n = m->getValue(n);
-      Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
-    } else {
-      // Note this "skip" is done here, rather than above.  This is
-      // because (1) the quantifier could in principle simplify to false,
-      // which should be reported, and (2) checking for the quantifier
-      // above, before simplification, doesn't catch buried quantifiers
-      // anyway (those not at the top-level).
-      Notice() << "SmtEngine::checkModel(): -- skipping rewrite-rules assertion"
-               << endl;
-      continue;
-    }
+    // We look up the value before simplifying. If n contains quantifiers,
+    // this may increases the chance of finding its value before the node is
+    // altered by simplification below.
+    n = m->getValue(n);
+    Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
 
     // Simplify the result.
     n = d_private->simplify(n);
@@ -4821,36 +4863,56 @@ void SmtEngine::checkModel(bool hardFailure) {
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n << endl;
 
-    if( d_logic.isQuantified() ){
-      // AJR: since quantified formulas are not checkable, we assign them to true/false based on the satisfying assignment.
-      // however, quantified formulas can be modified during preprocess, so they may not correspond to those in the satisfying assignment.
-      // hence we use a relaxed version of check model here.
-      // this is necessary until preprocessing passes explicitly record how they rewrite quantified formulas
-      if( hardFailure && !n.isConst() && n.getKind() != kind::LAMBDA ){
-        Notice() << "SmtEngine::checkModel(): -- relax check model wrt quantified formulas..." << endl;
-        AlwaysAssert(quantifiers::QuantifiersRewriter::containsQuantifiers(n));
-        Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified assertion : " << n << endl;
+    if (n.isConst())
+    {
+      if (n.getConst<bool>())
+      {
+        // assertion is true, everything is fine
         continue;
       }
-    }else{
-      AlwaysAssert(!hardFailure || n.isConst() || n.getKind() == kind::LAMBDA);
     }
-    // The result should be == true.
-    if(n != NodeManager::currentNM()->mkConst(true)) {
-      Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
-               << endl;
-      stringstream ss;
-      ss << "SmtEngine::checkModel(): "
-         << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-         << "assertion:     " << *i << endl
-         << "simplifies to: " << n << endl
-         << "expected `true'." << endl
-         << "Run with `--check-models -v' for additional diagnostics.";
-      if(hardFailure) {
-        InternalError() << ss.str();
-      } else {
-        Warning() << ss.str() << endl;
-      }
+
+    // Otherwise, we did not succeed in showing the current assertion to be
+    // true. This may either indicate that our model is wrong, or that we cannot
+    // check it. The latter may be the case for several reasons.
+    // For example, quantified formulas are not checkable, although we assign
+    // them to true/false based on the satisfying assignment. However,
+    // quantified formulas can be modified during preprocess, so they may not
+    // correspond to those in the satisfying assignment. Hence we throw
+    // warnings for assertions that do not simplify to either true or false.
+    // Other theories such as non-linear arithmetic (in particular,
+    // transcendental functions) also have the property of not being able to
+    // be checked precisely here.
+    // Note that warnings like these can be avoided for quantified formulas
+    // by making preprocessing passes explicitly record how they
+    // rewrite quantified formulas (see cvc4-wishues#43).
+    if (!n.isConst())
+    {
+      // Not constant, print a less severe warning message here.
+      Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified "
+                   "assertion : "
+                << n << endl;
+      continue;
+    }
+    // Assertions that simplify to false result in an InternalError or
+    // Warning being thrown below (when hardFailure is false).
+    Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
+             << endl;
+    stringstream ss;
+    ss << "SmtEngine::checkModel(): "
+       << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+       << "assertion:     " << *i << endl
+       << "simplifies to: " << n << endl
+       << "expected `true'." << endl
+       << "Run with `--check-models -v' for additional diagnostics.";
+    if (hardFailure)
+    {
+      // internal error if hardFailure is true
+      InternalError() << ss.str();
+    }
+    else
+    {
+      Warning() << ss.str() << endl;
     }
   }
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;

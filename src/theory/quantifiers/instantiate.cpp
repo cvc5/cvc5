@@ -110,7 +110,7 @@ bool Instantiate::addInstantiation(
     Node q, std::vector<Node>& terms, bool mkRep, bool modEq, bool doVts)
 {
   // For resource-limiting (also does a time check).
-  d_qe->getOutputChannel().safePoint(options::quantifierStep());
+  d_qe->getOutputChannel().safePoint(ResourceManager::Resource::QuantifierStep);
   Assert(!d_qe->inConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Assert(d_term_db != nullptr);
@@ -339,7 +339,6 @@ bool Instantiate::addInstantiation(
   }
   if (options::trackInstLemmas())
   {
-    bool recorded;
     if (options::incrementalSolving())
     {
       recorded = d_c_inst_match_trie[q]->recordInstLemma(q, terms, lem);

@@ -138,7 +138,7 @@ void CvcPrinter::toStream(
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
     case kind::BITVECTOR_TYPE:
-      out << "BITVECTOR(" << n.getConst<BitVectorSize>().size << ")";
+      out << "BITVECTOR(" << n.getConst<BitVectorSize>().d_size << ")";
       break;
     case kind::CONST_BITVECTOR: {
       const BitVector& bv = n.getConst<BitVector>();
@@ -283,8 +283,8 @@ void CvcPrinter::toStream(
       out << ")";
       return;
       break;
-    case kind::CHAIN:
-    case kind::DISTINCT: // chain and distinct not supported directly in CVC4, blast them away with the rewriter
+    case kind::DISTINCT:
+      // distinct not supported directly, blast it away with the rewriter
       toStream(out, theory::Rewriter::rewrite(n), depth, types, true);
       return;
     case kind::SORT_TYPE:

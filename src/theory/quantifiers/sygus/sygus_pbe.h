@@ -34,13 +34,14 @@ class SynthConjecture;
  *
  * [EX#1] An example of a synthesis conjecture in PBE form is :
  * exists f. forall x.
- * ( x = 0 => f( x ) = 2 ) ^ ( x = 5 => f( x ) = 7 ) ^ ( x = 6 => f( x ) = 8 )
+ * ( f( 0 ) = 2 ) ^ ( f( 5 ) = 7 ) ^ ( f( 6 ) = 8 )
  *
  * We say that the above conjecture has I/O examples (0)->2, (5)->7, (6)->8.
  *
  * Internally, this class does the following for SyGuS inputs:
  *
- * (1) Infers whether the input conjecture is in PBE form or not.
+ * (1) Infers whether the input conjecture is in PBE form or not, which
+ *     is based on looking up information in the ExampleInfer utility.
  * (2) Based on this information and on the syntactic restrictions, it
  *     devises a strategy for enumerating terms and construction solutions,
  *     which is inspired by Alur et al. "Scaling Enumerative Program Synthesis
@@ -68,22 +69,11 @@ class SynthConjecture;
  * syntactic restrictions for it. The search may continue unless all enumerators
  * become inactive.
  *
- * (4) During search, the extension of quantifier-free datatypes procedure for
- *     SyGuS datatypes may ask this class whether current candidates can be
- *     discarded based on inferring when two candidate solutions are equivalent
- *     up to examples. For example, the candidate solutions:
- *     f = \x ite( x < 0, x+1, x ) and f = \x x
- *     are equivalent up to examples on the above conjecture, since they have
- * the same value on the points x = 0,5,6. Hence, we need only consider one of
- *     them. The interface for querying this is
- *       SygusPbe::addSearchVal(...).
- *     For details, see Reynolds et al. SYNT 2017.
- *
- * (5) When the extension of quantifier-free datatypes procedure for SyGuS
+ * (4) When the extension of quantifier-free datatypes procedure for SyGuS
  *     datatypes terminates with a model, the parent of this class calls
  *     SygusPbe::getCandidateList(...), where this class returns the list
  *     of active enumerators.
- * (6) The parent class subsequently calls
+ * (5) The parent class subsequently calls
  *     SygusPbe::constructValues(...), which informs this class that new
  *     values have been enumerated for active enumerators, as indicated by the
  *     current model. This call also requests that based on these
@@ -153,67 +143,6 @@ class SygusPbe : public SygusModule
                            std::vector<Node>& lems) override;
   /** is PBE enabled for any enumerator? */
   bool isPbe() { return d_is_pbe; }
-  /**
-   * Is the enumerator e associated with examples? This is true if the
-   * function-to-synthesize associated with e is only applied to concrete
-   * arguments. Notice that the conjecture need not be in PBE form for this
-   * to be the case. For example, f has examples in:
-   *   exists f. f( 1 ) = 3 ^ f( 2 ) = 4
-   *   exists f. f( 45 ) > 0 ^ f( 99 ) > 0
-   *   exists f. forall x. ( x > 5 => f( 4 ) < x )
-   * It does not have examples in:
-   *   exists f. forall x. f( x ) > 5
-   *   exists f. f( f( 4 ) ) = 5
-   * This class implements techniques for functions-to-synthesize that
-   * have examples. In particular, the method addSearchVal below can be
-   * called.
-   */
-  bool hasExamples(Node e);
-  /** get number of examples for enumerator e */
-  unsigned getNumExamples(Node e);
-  /**
-   * Get the input arguments for i^th example for e, which is added to the
-   * vector ex
-   */
-  void getExample(Node e, unsigned i, std::vector<Node>& ex);
-  /**
-   * Get the output value of the i^th example for enumerator e, or null if
-   * it does not exist (an example does not have an associate output if it is
-   * not a top-level equality).
-   */
-  Node getExampleOut(Node e, unsigned i);
-
-  /** add the search val
-   * This function is called by the extension of quantifier-free datatypes
-   * procedure for SyGuS datatypes or the SyGuS fast enumerator when we are
-   * considering a value of enumerator e of sygus type tn whose analog in the
-   * signature of builtin theory is bvr.
-   *
-   * For example, bvr = x + 1 when e is the datatype value Plus( x(), One() )
-   * and tn is a sygus datatype that encodes a subsignature of the integers.
-   *
-   * This returns either:
-   * - A SyGuS term whose analog is equivalent to bvr up to examples
-   *   In the above example,
-   *   it may return a term t of the form Plus( One(), x() ), such that this
-   *   function was previously called with t as input.
-   * - e, indicating that no previous terms are equivalent to e up to examples.
-   *
-   * This method should only be called if hasExamples(e) returns true.
-   */
-  Node addSearchVal(TypeNode tn, Node e, Node bvr);
-  /** evaluate builtin
-  * This returns the evaluation of bn on the i^th example for the
-  * function-to-synthesis
-  * associated with enumerator e. If there are not at least i examples, it
-  * returns the rewritten form of bn.
-  * For example, if bn = x+5, e is an enumerator for f in the above example
-  * [EX#1], then
-  *   evaluateBuiltin( tn, bn, e, 0 ) = 7
-  *   evaluateBuiltin( tn, bn, e, 1 ) = 9
-  *   evaluateBuiltin( tn, bn, e, 2 ) = 10
-  */
-  Node evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i);
 
  private:
   /** true and false nodes */
@@ -221,31 +150,12 @@ class SygusPbe : public SygusModule
   Node d_false;
   /** is this a PBE conjecture for any function? */
   bool d_is_pbe;
-  /** for each candidate variable f (a function-to-synthesize), whether the
-  * conjecture is purely PBE for that variable
-  * In other words, all occurrences of f are guarded by equalities that
-  * constraint its arguments to constants.
-  */
-  std::map<Node, bool> d_examples_invalid;
-  /** for each candidate variable (function-to-synthesize), whether the
-  * conjecture is purely PBE for that variable.
-  * An example of a conjecture for which d_examples_invalid is false but
-  * d_examples_out_invalid is true is:
-  *   exists f. forall x. ( x = 0 => f( x ) > 2 )
-  * another example is:
-  *   exists f. forall x. ( ( x = 0 => f( x ) = 2 ) V ( x = 3 => f( x ) = 3 ) )
-  * since the formula is not a conjunction (the example values are not
-  * entailed).
-  * However, the domain of f in both cases is finite, which can be used for
-  * search space pruning.
-  */
-  std::map<Node, bool> d_examples_out_invalid;
   /**
    * Map from candidates to sygus unif utility. This class implements
    * the core algorithm (e.g. decision tree learning) that this module relies
    * upon.
    */
-  std::map<Node, SygusUnifIo> d_sygus_unif;
+  std::map<Node, std::unique_ptr<SygusUnifIo> > d_sygus_unif;
   /**
    * map from candidates to the list of enumerators that are being used to
    * build solutions for that candidate by the above utility.
@@ -253,63 +163,6 @@ class SygusPbe : public SygusModule
   std::map<Node, std::vector<Node> > d_candidate_to_enum;
   /** reverse map of above */
   std::map<Node, Node> d_enum_to_candidate;
-  /** for each candidate variable (function-to-synthesize), input of I/O
-   * examples */
-  std::map<Node, std::vector<std::vector<Node> > > d_examples;
-  /** for each candidate variable (function-to-synthesize), output of I/O
-   * examples */
-  std::map<Node, std::vector<Node> > d_examples_out;
-  /** the list of example terms
-   * For the example [EX#1] above, this is f( 0 ), f( 5 ), f( 6 )
-   */
-  std::map<Node, std::vector<Node> > d_examples_term;
-  /**
-   * Map from example input terms to their output, for example [EX#1] above,
-   * this is { f( 0 ) -> 2, f( 5 ) -> 7, f( 6 ) -> 8 }.
-   */
-  std::map<Node, Node> d_exampleTermMap;
-  /** collect the PBE examples in n
-   * This is called on the input conjecture, and will populate the above
-   * vectors, where hasPol/pol denote the polarity of n in the conjecture. This
-   * function returns false if it finds two examples that are contradictory.
-   */
-  bool collectExamples(Node n,
-                       std::map<Node, bool>& visited,
-                       bool hasPol,
-                       bool pol);
-
-  //--------------------------------- PBE search values
-  /**
-   * This class is an index of candidate solutions for PBE synthesis and their
-   * (concrete) evaluation on the set of input examples. For example, if the
-   * set of input examples for (x,y) is (0,1), (1,3), then:
-   *   term x is indexed by 0,1
-   *   term x+y is indexed by 1,4
-   *   term 0 is indexed by 0,0.
-   */
-  class PbeTrie
-  {
-   public:
-    PbeTrie() {}
-    ~PbeTrie() {}
-    /** the children for this node in the trie */
-    std::map<Node, PbeTrie> d_children;
-    /** clear this trie */
-    void clear() { d_children.clear(); }
-    /**
-     * Add term b whose value on examples is exOut to the trie. Return
-     * the first term registered to this trie whose evaluation was exOut.
-     */
-    Node addTerm(Node b, const std::vector<Node>& exOut);
-  };
-  /** trie of candidate solutions tried
-  * This stores information for each (enumerator, type),
-  * where type is a type in the grammar of the space of solutions for a subterm
-  * of e. This is used for symmetry breaking in quantifier-free reasoning
-  * about SyGuS datatypes.
-  */
-  std::map<Node, std::map<TypeNode, PbeTrie> > d_pbe_trie;
-  //--------------------------------- end PBE search values
 };
 
 } /* namespace CVC4::theory::quantifiers */

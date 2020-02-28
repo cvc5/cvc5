@@ -45,6 +45,13 @@ bool hasSubterm(TNode n, TNode t, bool strict = false);
 bool hasSubtermMulti(TNode n, TNode t);
 
 /**
+ * @param k The kind of node to check
+ * @param n The node to search in.
+ * @return true iff there is a term in n that has kind k
+ */
+bool hasSubtermKind(Kind k, Node n);
+
+/**
  * Check if the node n has a subterm that occurs in t.
  * @param n The node to search in
  * @param t The set of subterms to search for
@@ -68,6 +75,15 @@ bool hasBoundVar(TNode n);
  * @return true iff this node contains a free variable.
  */
 bool hasFreeVar(TNode n);
+
+/**
+ * Returns true iff the node n contains a closure, that is, a node
+ * whose kind is FORALL, EXISTS, CHOICE, LAMBDA, or any other closure currently
+ * supported.
+ * @param n The node under investigation
+ * @return true iff this node contains a closure.
+ */
+bool hasClosure(Node n);
 
 /**
  * Get the free variables in n, that is, the subterms of n of kind
@@ -150,6 +166,16 @@ Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
 Node substituteCaptureAvoiding(TNode n,
                                std::vector<Node>& src,
                                std::vector<Node>& dest);
+
+/**
+ * Get component types in type t. This adds all types that are subterms of t
+ * when viewed as a term. For example, if t is (Array T1 T2), then
+ * (Array T1 T2), T1 and T2 are component types of t.
+ * @param t The type node under investigation
+ * @param types The set which component types are added to.
+ */
+void getComponentTypes(
+    TypeNode t, std::unordered_set<TypeNode, TypeNodeHashFunction>& types);
 
 }  // namespace expr
 }  // namespace CVC4
