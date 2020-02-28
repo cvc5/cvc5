@@ -37,7 +37,6 @@ set(regress_0_tests
   regress0/arith/issue3413.smt2
   regress0/arith/issue3480.smt2
   regress0/arith/issue3683.smt2
-  regress0/arith/issue3729-cm-solved-tf.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
@@ -573,6 +572,7 @@ set(regress_0_tests
   regress0/nl/issue3652.smt2
   regress0/nl/issue3718.smt2
   regress0/nl/issue3719.smt2
+  regress0/nl/issue3729-cm-solved-tf.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -1831,7 +1831,6 @@ set(regress_1_tests
   regress1/sygus/issue3648.smt2
   regress1/sygus/issue3649.sy
   regress1/sygus/issue3802-default-consts.sy
-  regress1/sygus/issue3839-cond-rewrite.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
