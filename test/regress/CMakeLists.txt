@@ -963,7 +963,6 @@ set(regress_0_tests
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
-  regress0/sygus/issue3645-grammar-sets.smt2
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
   regress0/sygus/no-logic.sy
@@ -2413,4 +2412,3 @@ endforeach()
 foreach(file ${regress_4_tests})
   cvc4_add_regression_test(4 ${file})
 endforeach()
-                                             
