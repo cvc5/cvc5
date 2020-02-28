@@ -391,7 +391,6 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
 
 Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa ){
   std::map< Node, Node > cache;
-  std::map< Node, Node > icache;
   if( qa.isFunDef() ){
     Node h = QuantAttributes::getFunDefHead( q );
     Assert(!h.isNull());
@@ -402,7 +401,6 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     {
       Node r = computeProcessTerms2(fbody,
                                     cache,
-                                    icache,
                                     new_vars,
                                     new_conds,
                                     false);
@@ -415,14 +413,13 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
   }
   return computeProcessTerms2(body,
                               cache,
-                              icache,
                               new_vars,
                               new_conds,
                               options::elimExtArithQuant());
 }
 
 Node QuantifiersRewriter::computeProcessTerms2( Node body, 
-                                                std::map< Node, Node >& cache, std::map< Node, Node >& icache,
+                                                std::map< Node, Node >& cache,
                                                 std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith ) {
   NodeManager* nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2") << "computeProcessTerms " << body << std::endl;
@@ -434,7 +431,7 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body,
   std::vector< Node > children;
   for( size_t i=0; i<body.getNumChildren(); i++ ){
     //do the recursive call on children
-    Node nn = computeProcessTerms2( body[i], cache, icache, new_vars, new_conds, elimExtArith );
+    Node nn = computeProcessTerms2( body[i], cache, new_vars, new_conds, elimExtArith );
     children.push_back( nn );
     changed = changed || nn!=body[i];
   }
