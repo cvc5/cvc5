@@ -130,7 +130,7 @@ class Tptp : public Parser {
   /** returns the appropriate AssertCommand, given a role, expression expr to
    * assert, and information about the assertion. The assertion expr is
    * literally what should be asserted (it is already been processed with
-   * getAssertionapi::Term above). This may set a flag in the parser to mark
+   * getAssertionExpr above). This may set a flag in the parser to mark
    * that we have asserted a conjecture.
    */
   Command* makeAssertCommand(FormulaRole fr,
