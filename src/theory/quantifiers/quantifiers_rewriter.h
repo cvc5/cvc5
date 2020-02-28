@@ -204,7 +204,7 @@ class QuantifiersRewriter : public TheoryRewriter
    * This takes as input a quantified formula q with attributes qa whose
    * body is body.
    *
-   * This rewrite steps eliminates problematic terms from the bodies of
+   * This rewrite eliminates problematic terms from the bodies of
    * quantified formulas, which includes performing:
    * - Certain cases of ITE lifting,
    * - Elimination of extended arithmetic functions like to_int/is_int/div/mod,
@@ -225,7 +225,7 @@ class QuantifiersRewriter : public TheoryRewriter
   //------------------------------------- extended rewrite
   /** compute extended rewrite
    *
-   * This returns the result of apply the extended rewriter on the body
+   * This returns the result of applying the extended rewriter on the body
    * of quantified formula q.
    */
   static Node computeExtendedRewrite(Node q);
