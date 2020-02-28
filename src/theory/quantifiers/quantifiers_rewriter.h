@@ -219,6 +219,7 @@ class QuantifiersRewriter : public TheoryRewriter
                                   std::vector<Node>& new_conds,
                                   Node q,
                                   QAttributes& qa);
+  //------------------------------------- end process terms
 
  public:
   static Node computeElimSymbols( Node body );
