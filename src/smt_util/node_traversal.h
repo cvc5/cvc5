@@ -13,6 +13,7 @@
  **/
 
 #include <cstddef>
+
 #include "cvc4_private.h"
 
 #ifndef CVC4__SMT_UTIL__NODE_TRAVERSAL_H
@@ -27,8 +28,9 @@
 namespace CVC4 {
 
 // Iterator for traversing a node in post-order
-class NodePostorderIterator {
-public:
+class NodePostorderIterator
+{
+ public:
   // Construct a traversal iterator beginning at `n`
   NodePostorderIterator(TNode n);
   // Construct an end-of-traversal iterator
@@ -42,10 +44,10 @@ public:
   using difference_type = std::ptrdiff_t;
 
   // Move/copy construction and assignment. Destructor.
-  NodePostorderIterator(NodePostorderIterator &&) = default;
-  NodePostorderIterator& operator=(NodePostorderIterator &&) = default;
-  NodePostorderIterator(NodePostorderIterator &) = default;
-  NodePostorderIterator& operator=(NodePostorderIterator &) = default;
+  NodePostorderIterator(NodePostorderIterator&&) = default;
+  NodePostorderIterator& operator=(NodePostorderIterator&&) = default;
+  NodePostorderIterator(NodePostorderIterator&) = default;
+  NodePostorderIterator& operator=(NodePostorderIterator&) = default;
   ~NodePostorderIterator() = default;
 
   // Preincrement
@@ -59,23 +61,22 @@ public:
   // Equals
   bool operator!=(const NodePostorderIterator&) const;
 
-private:
-
+ private:
   // The next thing on the stack is the next thing to visit.
-  // If it is associated with `false`, then its children haven't been visited yet, and we visit them first.
-  // If it is associated with `true`, then we visit it.
-  // Invariant: the top (back) node is always associated with `true`.
+  // If it is associated with `false`, then its children haven't been visited
+  // yet, and we visit them first. If it is associated with `true`, then we
+  // visit it. Invariant: the top (back) node is always associated with `true`.
   std::vector<std::pair<bool, TNode>> d_stack;
 
   // Adds the children of the top node (on the stack) to the stack, until the
   // top node is a leaf
   void enqueueChildrenUntilLeaf();
-
 };
 
 // Node wrapper that is iterable in post-order
-class NodePostorderIterable {
-public:
+class NodePostorderIterable
+{
+ public:
   NodePostorderIterable(TNode n);
 
   // STL type definitions for an iterable
@@ -85,18 +86,19 @@ public:
   using difference_type = std::ptrdiff_t;
 
   // Move/copy construction and assignment. Destructor.
-  NodePostorderIterable(NodePostorderIterable &&) = default;
-  NodePostorderIterable& operator=(NodePostorderIterable &&) = default;
-  NodePostorderIterable(NodePostorderIterable &) = default;
-  NodePostorderIterable& operator=(NodePostorderIterable &) = default;
+  NodePostorderIterable(NodePostorderIterable&&) = default;
+  NodePostorderIterable& operator=(NodePostorderIterable&&) = default;
+  NodePostorderIterable(NodePostorderIterable&) = default;
+  NodePostorderIterable& operator=(NodePostorderIterable&) = default;
   ~NodePostorderIterable() = default;
 
   NodePostorderIterator begin();
   NodePostorderIterator end();
-private:
+
+ private:
   TNode d_node;
 };
 
-}/* CVC4 namespace */
+}  // namespace CVC4
 
-#endif // CVC4__SMT_UTIL__NODE_TRAVERSAL_H
+#endif  // CVC4__SMT_UTIL__NODE_TRAVERSAL_H

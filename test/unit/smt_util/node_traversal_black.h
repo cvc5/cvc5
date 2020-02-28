@@ -33,7 +33,8 @@ using namespace CVC4;
 using namespace CVC4::kind;
 using namespace std;
 
-class NodeBlack : public CxxTest::TestSuite {
+class NodeBlack : public CxxTest::TestSuite
+{
  private:
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
@@ -51,7 +52,8 @@ class NodeBlack : public CxxTest::TestSuite {
     delete d_nodeManager;
   }
 
-  void testPreincrementIteration() {
+  void testPreincrementIteration()
+  {
     Node tb = d_nodeManager->mkConst(true);
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
@@ -71,7 +73,8 @@ class NodeBlack : public CxxTest::TestSuite {
     TS_ASSERT(i == end);
   }
 
-  void testPostincrementIteration() {
+  void testPostincrementIteration()
+  {
     Node tb = d_nodeManager->mkConst(true);
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
@@ -84,33 +87,39 @@ class NodeBlack : public CxxTest::TestSuite {
     TS_ASSERT(i == end);
   }
 
-  void testRangeForLoop() {
+  void testRangeForLoop()
+  {
     Node tb = d_nodeManager->mkConst(true);
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
     size_t count = 0;
-    for (auto i : NodePostorderIterable(cnd)) {
+    for (auto i : NodePostorderIterable(cnd))
+    {
       ++count;
     }
     TS_ASSERT(count == 3);
   }
 
-  void testCountIfWithLoop() {
+  void testCountIfWithLoop()
+  {
     Node tb = d_nodeManager->mkConst(true);
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
     size_t count = 0;
-    for (auto i : NodePostorderIterable(cnd)) {
-      if (i.isConst()) {
+    for (auto i : NodePostorderIterable(cnd))
+    {
+      if (i.isConst())
+      {
         ++count;
       }
     }
     TS_ASSERT(count == 2);
   }
 
-  void testStlCountIf() {
+  void testStlCountIf()
+  {
     Node tb = d_nodeManager->mkConst(true);
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
@@ -118,11 +127,14 @@ class NodeBlack : public CxxTest::TestSuite {
 
     auto traversal = NodePostorderIterable(top);
 
-    size_t count = std::count_if(traversal.begin(), traversal.end(), [](TNode n) { return n.isConst(); });
+    size_t count = std::count_if(traversal.begin(),
+                                 traversal.end(),
+                                 [](TNode n) { return n.isConst(); });
     TS_ASSERT(count == 4);
   }
 
-  void testStlCopy() {
+  void testStlCopy()
+  {
     Node tb = d_nodeManager->mkConst(true);
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
@@ -135,5 +147,4 @@ class NodeBlack : public CxxTest::TestSuite {
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
     TS_ASSERT(actual == expected);
   }
-
 };
