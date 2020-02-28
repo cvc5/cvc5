@@ -12,8 +12,6 @@
  ** \brief Iterators for traversing nodes.
  **/
 
-#include <cstddef>
-
 #include "cvc4_private.h"
 
 #ifndef CVC4__SMT_UTIL__NODE_TRAVERSAL_H
