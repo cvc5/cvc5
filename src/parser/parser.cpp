@@ -138,11 +138,6 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
 }
 
 Kind Parser::getKindForFunction(Expr fun) {
-  Kind k = getExprManager()->operatorToKind(fun);
-  if (k != UNDEFINED_KIND)
-  {
-    return k;
-  }
   Type t = fun.getType();
   if (t.isFunction())
   {

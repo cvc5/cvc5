@@ -34,24 +34,18 @@ public:
   /** Which atom and where to send it */
   struct Request {
     /** Atom */
-    Node atom;
+    Node d_atom;
     /** Where to send it */
-    theory::TheoryId toTheory;
+    theory::TheoryId d_toTheory;
 
-    Request(TNode atom, theory::TheoryId toTheory)
-    : atom(atom), toTheory(toTheory) {}
-    Request()
-    : toTheory(theory::THEORY_LAST)
-    {}
+    Request(TNode a, theory::TheoryId tt) : d_atom(a), d_toTheory(tt) {}
+    Request() : d_toTheory(theory::THEORY_LAST) {}
 
     bool operator == (const Request& other) const {
-      return atom == other.atom && toTheory == other.toTheory;
+      return d_atom == other.d_atom && d_toTheory == other.d_toTheory;
     }
 
-    size_t hash() const {
-      return atom.getId();
-    }
-
+    size_t hash() const { return d_atom.getId(); }
   };
 
   AtomRequests(context::Context* context);
@@ -66,11 +60,14 @@ public:
   typedef size_t element_index;
 
   class atom_iterator {
-    const AtomRequests& requests;
-    element_index index;
+    const AtomRequests& d_requests;
+    element_index d_index;
     friend class AtomRequests;
     atom_iterator(const AtomRequests& requests, element_index start)
-    : requests(requests), index(start) {}
+        : d_requests(requests), d_index(start)
+    {
+    }
+
   public:
     /** Is this iterator done  */
     bool done() const;
@@ -97,13 +94,11 @@ private:
 
   struct Element {
     /** Current request */
-    Request request;
+    Request d_request;
     /** Previous request */
-    element_index previous;
+    element_index d_previous;
 
-    Element(const Request& request, element_index previous)
-    : request(request), previous(previous)
-    {}
+    Element(const Request& r, element_index p) : d_request(r), d_previous(p) {}
   };
 
   /** We index the requests in this vector, it's a list */
