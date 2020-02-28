@@ -797,19 +797,15 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           << "...building for array type " << types[i] << "\n";
       TypeNode indexType = types[i].getArrayIndexType();
       TypeNode elemType = types[i].getArrayConstituentType();
-      Trace("sygus-grammar-def") << "......finding unres type for index type "
-                                 << indexType<< "\n";
+      Trace("sygus-grammar-def")
+          << "......finding unres type for index type " << indexType << "\n";
       // retrieve index and constituent unresolved types
-      Assert( type_to_unres.find(indexType)!=type_to_unres.end());
+      Assert(type_to_unres.find(indexType) != type_to_unres.end());
       TypeNode unres_indexType = type_to_unres[indexType];
-      Assert(std::find(
-                 types.begin(), types.end(), elemType)
-             != types.end());
+      Assert(std::find(types.begin(), types.end(), elemType) != types.end());
       // must get this index since we add to sdt[i_constituentType] below.
       unsigned i_constituentType = std::distance(
-          types.begin(),
-          std::find(
-              types.begin(), types.end(), elemType));
+          types.begin(), std::find(types.begin(), types.end(), elemType));
       TypeNode unres_constituentType = unres_types[i_constituentType];
       // add (store ArrayType IndexType ConstituentType)
       Trace("sygus-grammar-def") << "...add for STORE\n";
@@ -831,19 +827,17 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     {
       TypeNode etype = types[i].getSetElementType();
       // retrieve element unresolved type
-      Assert( type_to_unres.find(etype)!=type_to_unres.end());
+      Assert(type_to_unres.find(etype) != type_to_unres.end());
       TypeNode unresElemType = type_to_unres[etype];
-      
+
       // add for singleton
       Trace("sygus-grammar-def") << "...add for singleton" << std::endl;
       std::vector<TypeNode> cargsSingleton;
       cargsSingleton.push_back(unresElemType);
       sdts[i].addConstructor(SINGLETON, cargsSingleton);
-      
+
       // add for union, difference, intersection
-      std::vector<Kind> bin_kinds = {UNION,
-                                     INTERSECTION,
-                                     SETMINUS};
+      std::vector<Kind> bin_kinds = {UNION, INTERSECTION, SETMINUS};
       std::vector<TypeNode> cargsBinary;
       cargsBinary.push_back(unres_t);
       cargsBinary.push_back(unres_t);
@@ -1229,13 +1223,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     {
       // add for member
       TypeNode etype = types[i].getSetElementType();
-      Assert( type_to_unres.find(etype)!=type_to_unres.end());
+      Assert(type_to_unres.find(etype) != type_to_unres.end());
       TypeNode unresElemType = type_to_unres[etype];
       std::vector<TypeNode> cargsMember;
       cargsMember.push_back(unresElemType);
       cargsMember.push_back(unres_types[iuse]);
-        Trace("sygus-grammar-def")
-            << "...for MEMBER" << std::endl;
+      Trace("sygus-grammar-def") << "...for MEMBER" << std::endl;
       sdtBool.addConstructor(MEMBER, cargsMember);
     }
   }
