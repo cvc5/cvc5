@@ -1430,11 +1430,7 @@ tffLetTermDefn[CVC4::api::Term& lhs, CVC4::api::Term& rhs]
 tffLetTermBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs, CVC4::api::Term& rhs]
   : term[lhs] EQUAL_TOK term[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
-      std::vector<api::Term> lchildren;
-      for( unsigned i=1, nchild = lhs.getNumChildren(); i<nchild; i++)
-      {
-        lchildren.push_back(lhs[i]);
-      }
+      std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
       rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
       lhs = api::Term(lhs.getExpr().getOperator());
     }
@@ -1452,11 +1448,7 @@ tffLetFormulaDefn[CVC4::api::Term& lhs, CVC4::api::Term& rhs]
 tffLetFormulaBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs, CVC4::api::Term& rhs]
   : atomicFormula[lhs] IFF_TOK tffUnitaryFormula[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
-      std::vector<api::Term> lchildren;
-      for( unsigned i=1, nchild = lhs.getNumChildren(); i<nchild; i++)
-      {
-        lchildren.push_back(lhs[i]);
-      }
+      std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
       rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
       lhs = api::Term(lhs.getExpr().getOperator());
     }
