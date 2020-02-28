@@ -2270,13 +2270,12 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         {
           std::stringstream ss;
           ss << theoryId
-              << " has an asserted fact that the model doesn't satisfy."
-              << endl
-              << "The fact: " << assertion << endl
-              << "Model value: " << val << endl;
+             << " has an asserted fact that the model doesn't satisfy." << endl
+             << "The fact: " << assertion << endl
+             << "Model value: " << val << endl;
           if (hardFailure)
           {
-            if (val==d_false)
+            if (val == d_false)
             {
               // Always an error if it is false
               InternalError() << ss.str();
