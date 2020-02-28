@@ -198,23 +198,28 @@ class QuantifiersRewriter : public TheoryRewriter
   //-------------------------------------end conditional splitting
   //------------------------------------- process terms
   /** compute process terms
-   * 
+   *
    * This takes as input a quantified formula q with attributes qa whose
    * body is body.
-   * 
+   *
    * This rewrite steps eliminates problematic terms from the bodies of
    * quantified formulas, which includes performing:
    * - Certain cases of ITE lifting,
    * - Elimination of extended arithmetic functions like to_int/is_int/div/mod,
    * - Elimination of select over store.
-   * 
+   *
    * It may introduce new variables V into new_vars and new conditions C into
    * new_conds. It returns a node retBody such that q of the form
    *   forall X. body
    * is equivalent to:
    *   forall X, V. ( C => retBody )
    */
-  static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
+  static Node computeProcessTerms(Node body,
+                                  std::vector<Node>& new_vars,
+                                  std::vector<Node>& new_conds,
+                                  Node q,
+                                  QAttributes& qa);
+
  public:
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
