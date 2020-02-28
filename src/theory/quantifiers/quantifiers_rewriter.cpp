@@ -390,7 +390,6 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
 }
 
 Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa ){
-  std::map< Node, bool > curr_cond;
   std::map< Node, Node > cache;
   std::map< Node, Node > icache;
   if( qa.isFunDef() ){
@@ -402,8 +401,6 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     if (!fbody.isNull())
     {
       Node r = computeProcessTerms2(fbody,
-                                    curr_cond,
-                                    0,
                                     cache,
                                     icache,
                                     new_vars,
@@ -417,8 +414,6 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     // forall xy. false.
   }
   return computeProcessTerms2(body,
-                              curr_cond,
-                              0,
                               cache,
                               icache,
                               new_vars,
@@ -426,143 +421,131 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
                               options::elimExtArithQuant());
 }
 
-Node QuantifiersRewriter::computeProcessTerms2( Node body, std::map< Node, bool >& currCond, int nCurrCond,
+Node QuantifiersRewriter::computeProcessTerms2( Node body, 
                                                 std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                                 std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith ) {
   NodeManager* nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2") << "computeProcessTerms " << body << std::endl;
-  Node ret;
   std::map< Node, Node >::iterator iti = cache.find( body );
   if( iti!=cache.end() ){
-    ret = iti->second;
-    Trace("quantifiers-rewrite-term-debug2") << "Return (cached) " << ret << " for " << body << std::endl;
-  }else{
-    bool changed = false;
-    std::vector< Node > children;
-    for( size_t i=0; i<body.getNumChildren(); i++ ){
-      //do the recursive call on children
-      Node nn = computeProcessTerms2( body[i], currCond, nCurrCond, cache, icache, new_vars, new_conds, elimExtArith );
-      children.push_back( nn );
-      changed = changed || nn!=body[i];
-    }
-    
-    //make return value
-    if( ret.isNull() ){
-      if( changed ){
-        if( body.getMetaKind() == kind::metakind::PARAMETERIZED ){
-          children.insert( children.begin(), body.getOperator() );
-        }
-        ret = NodeManager::currentNM()->mkNode( body.getKind(), children );
-      }else{
-        ret = body;
-      }
-    }
-    
-    Trace("quantifiers-rewrite-term-debug2") << "Returning " << ret << " for " << body << std::endl;
-    cache[body] = ret;
-  }
-
-  //do context-independent rewriting
-  iti = icache.find( ret );
-  if( iti!=icache.end() ){
     return iti->second;
-  }else{
-    Node prev = ret;
-    if (ret.getKind() == EQUAL
-        && options::iteLiftQuant() != options::IteLiftQuantMode::NONE)
-    {
-      for( size_t i=0; i<2; i++ ){
-        if( ret[i].getKind()==ITE ){
-          Node no = i==0 ? ret[1] : ret[0];
-          if( no.getKind()!=ITE ){
-            bool doRewrite =
-                options::iteLiftQuant() == options::IteLiftQuantMode::ALL;
-            std::vector< Node > children;
-            children.push_back( ret[i][0] );
-            for( size_t j=1; j<=2; j++ ){
-              //check if it rewrites to a constant
-              Node nn = NodeManager::currentNM()->mkNode( EQUAL, no, ret[i][j] );
-              nn = Rewriter::rewrite( nn );
-              children.push_back( nn );
-              if( nn.isConst() ){
-                doRewrite = true;
-              }
-            }
-            if( doRewrite ){
-              ret = NodeManager::currentNM()->mkNode( ITE, children );
-              break;
-            }
-          }
-        }
-      }
-    }
-    else if (ret.getKind() == SELECT && ret[0].getKind() == STORE)
-    {
-      Node st = ret[0];
-      Node index = ret[1];
-      std::vector<Node> iconds;
-      std::vector<Node> elements;
-      while (st.getKind() == STORE)
-      {
-        iconds.push_back(index.eqNode(st[1]));
-        elements.push_back(st[2]);
-        st = st[0];
-      }
-      ret = nm->mkNode(SELECT, st, index);
-      // conditions
-      for (int i = (iconds.size() - 1); i >= 0; i--)
-      {
-        ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
-      }
-    }
-    else if( elimExtArith )
-    {
-      if( ret.getKind()==INTS_DIVISION_TOTAL || ret.getKind()==INTS_MODULUS_TOTAL ){
-        Node num = ret[0];
-        Node den = ret[1];
-        if(den.isConst()) {
-          const Rational& rat = den.getConst<Rational>();
-          Assert(!num.isConst());
-          if(rat != 0) {
-            Node intVar = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
-            new_vars.push_back( intVar );
-            Node cond;
-            if(rat > 0) {
-              cond = NodeManager::currentNM()->mkNode(kind::AND,
-                       NodeManager::currentNM()->mkNode(kind::LEQ, NodeManager::currentNM()->mkNode(kind::MULT, den, intVar), num),
-                       NodeManager::currentNM()->mkNode(kind::LT, num,
-                         NodeManager::currentNM()->mkNode(kind::MULT, den, NodeManager::currentNM()->mkNode(kind::PLUS, intVar, NodeManager::currentNM()->mkConst(Rational(1))))));
-            } else {
-              cond = NodeManager::currentNM()->mkNode(kind::AND,
-                       NodeManager::currentNM()->mkNode(kind::LEQ, NodeManager::currentNM()->mkNode(kind::MULT, den, intVar), num),
-                       NodeManager::currentNM()->mkNode(kind::LT, num,
-                         NodeManager::currentNM()->mkNode(kind::MULT, den, NodeManager::currentNM()->mkNode(kind::PLUS, intVar, NodeManager::currentNM()->mkConst(Rational(-1))))));
-            }
-            new_conds.push_back( cond.negate() );
-            if( ret.getKind()==INTS_DIVISION_TOTAL ){
-              ret = intVar;
-            }else{
-              ret = NodeManager::currentNM()->mkNode(kind::MINUS, num, NodeManager::currentNM()->mkNode(kind::MULT, den, intVar));
-            }
-          }
-        }
-      }else if( ret.getKind()==TO_INTEGER || ret.getKind()==IS_INTEGER ){
-        Node intVar = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
-        new_vars.push_back( intVar );
-        new_conds.push_back(NodeManager::currentNM()->mkNode(kind::AND,
-                              NodeManager::currentNM()->mkNode(kind::LT,
-                                NodeManager::currentNM()->mkNode(kind::MINUS, ret[0], NodeManager::currentNM()->mkConst(Rational(1))), intVar),
-                              NodeManager::currentNM()->mkNode(kind::LEQ, intVar, ret[0])).negate());
-        if( ret.getKind()==TO_INTEGER ){
-          ret = intVar;
-        }else{
-          ret = ret[0].eqNode( intVar );
-        }
-      }
-    }
-    icache[prev] = ret;
-    return ret;
   }
+  bool changed = false;
+  std::vector< Node > children;
+  for( size_t i=0; i<body.getNumChildren(); i++ ){
+    //do the recursive call on children
+    Node nn = computeProcessTerms2( body[i], cache, icache, new_vars, new_conds, elimExtArith );
+    children.push_back( nn );
+    changed = changed || nn!=body[i];
+  }
+  
+  //make return value
+  Node ret;
+  if( changed ){
+    if( body.getMetaKind() == kind::metakind::PARAMETERIZED ){
+      children.insert( children.begin(), body.getOperator() );
+    }
+    ret = nm->mkNode( body.getKind(), children );
+  }else{
+    ret = body;
+  }
+  
+  Trace("quantifiers-rewrite-term-debug2") << "Returning " << ret << " for " << body << std::endl;
+  //do context-independent rewriting
+  if (ret.getKind() == EQUAL
+      && options::iteLiftQuant() != options::IteLiftQuantMode::NONE)
+  {
+    for( size_t i=0; i<2; i++ ){
+      if( ret[i].getKind()==ITE ){
+        Node no = i==0 ? ret[1] : ret[0];
+        if( no.getKind()!=ITE ){
+          bool doRewrite =
+              options::iteLiftQuant() == options::IteLiftQuantMode::ALL;
+          std::vector< Node > children;
+          children.push_back( ret[i][0] );
+          for( size_t j=1; j<=2; j++ ){
+            //check if it rewrites to a constant
+            Node nn = nm->mkNode( EQUAL, no, ret[i][j] );
+            nn = Rewriter::rewrite( nn );
+            children.push_back( nn );
+            if( nn.isConst() ){
+              doRewrite = true;
+            }
+          }
+          if( doRewrite ){
+            ret = nm->mkNode( ITE, children );
+            break;
+          }
+        }
+      }
+    }
+  }
+  else if (ret.getKind() == SELECT && ret[0].getKind() == STORE)
+  {
+    Node st = ret[0];
+    Node index = ret[1];
+    std::vector<Node> iconds;
+    std::vector<Node> elements;
+    while (st.getKind() == STORE)
+    {
+      iconds.push_back(index.eqNode(st[1]));
+      elements.push_back(st[2]);
+      st = st[0];
+    }
+    ret = nm->mkNode(SELECT, st, index);
+    // conditions
+    for (int i = (iconds.size() - 1); i >= 0; i--)
+    {
+      ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
+    }
+  }
+  else if( elimExtArith )
+  {
+    if( ret.getKind()==INTS_DIVISION_TOTAL || ret.getKind()==INTS_MODULUS_TOTAL ){
+      Node num = ret[0];
+      Node den = ret[1];
+      if(den.isConst()) {
+        const Rational& rat = den.getConst<Rational>();
+        Assert(!num.isConst());
+        if(rat != 0) {
+          Node intVar = nm->mkBoundVar(nm->integerType());
+          new_vars.push_back( intVar );
+          Node cond;
+          if(rat > 0) {
+            cond = nm->mkNode(AND,
+                      nm->mkNode(LEQ, nm->mkNode(MULT, den, intVar), num),
+                      nm->mkNode(LT, num,
+                        nm->mkNode(MULT, den, nm->mkNode(PLUS, intVar, nm->mkConst(Rational(1))))));
+          } else {
+            cond = nm->mkNode(AND,
+                      nm->mkNode(LEQ, nm->mkNode(MULT, den, intVar), num),
+                      nm->mkNode(LT, num,
+                        nm->mkNode(MULT, den, nm->mkNode(PLUS, intVar, nm->mkConst(Rational(-1))))));
+          }
+          new_conds.push_back( cond.negate() );
+          if( ret.getKind()==INTS_DIVISION_TOTAL ){
+            ret = intVar;
+          }else{
+            ret = nm->mkNode(MINUS, num, nm->mkNode(MULT, den, intVar));
+          }
+        }
+      }
+    }else if( ret.getKind()==TO_INTEGER || ret.getKind()==IS_INTEGER ){
+      Node intVar = nm->mkBoundVar(nm->integerType());
+      new_vars.push_back( intVar );
+      new_conds.push_back(nm->mkNode(AND,
+                            nm->mkNode(LT,
+                              nm->mkNode(MINUS, ret[0], nm->mkConst(Rational(1))), intVar),
+                            nm->mkNode(LEQ, intVar, ret[0])).negate());
+      if( ret.getKind()==TO_INTEGER ){
+        ret = intVar;
+      }else{
+        ret = ret[0].eqNode( intVar );
+      }
+    }
+  }
+  cache[body] = ret;
+  return ret;
 }
 
 Node QuantifiersRewriter::computeCondSplit(Node body,
