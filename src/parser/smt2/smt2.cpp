@@ -172,6 +172,7 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
   addOperator(kind::STRING_FROM_CODE, "str.from_code");
+  addOperator(kind::STRING_IS_DIGIT, "str.is_digit" );
 
   // at the moment, we only use this syntax for smt2.6.1
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
@@ -203,6 +204,7 @@ void Smt2::addStringOperators() {
   addOperator(kind::REGEXP_RANGE, "re.range");
   addOperator(kind::REGEXP_LOOP, "re.loop");
   addOperator(kind::REGEXP_COMPLEMENT, "re.comp");
+  addOperator(kind::REGEXP_DIFF, "re.diff");
   addOperator(kind::STRING_LT, "str.<");
   addOperator(kind::STRING_LEQ, "str.<=");
 }
@@ -1460,83 +1462,55 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   // should be treated as distinct terms.
   // Notice that let expressions are forbidden in the input syntax of term, so
   // this does not lead to exponential behavior with respect to input size.
-  std::vector<Expr> args;
-  std::vector<Type> cargs;
-  Expr op = purifySygusGTerm(term, ntsToUnres, args, cargs);
+  std::vector<api::Term> args;
+  std::vector<api::Sort> cargs;
+  api::Term op = purifySygusGTerm(api::Term(term), ntsToUnres, args, cargs);
+  std::stringstream ssCName;
+  ssCName << op.getKind();
   Trace("parser-sygus2") << "Purified operator " << op
                          << ", #args/cargs=" << args.size() << "/"
                          << cargs.size() << std::endl;
   std::shared_ptr<SygusPrintCallback> spc;
   // callback prints as the expression
-  spc = std::make_shared<printer::SygusExprPrintCallback>(op, args);
+  spc = std::make_shared<printer::SygusExprPrintCallback>(
+      op.getExpr(), api::termVectorToExprs(args));
   if (!args.empty())
   {
-    bool pureVar = false;
-    if (op.getNumChildren() == args.size())
-    {
-      pureVar = true;
-      for (unsigned i = 0, nchild = op.getNumChildren(); i < nchild; i++)
-      {
-        if (op[i] != args[i])
-        {
-          pureVar = false;
-          break;
-        }
-      }
-    }
-    Trace("parser-sygus2") << "Pure var is " << pureVar
-                           << ", hasOp=" << op.hasOperator() << std::endl;
-    if (pureVar && op.hasOperator())
-    {
-      // optimization: use just the operator if it an application to only vars
-      op = op.getOperator();
-    }
-    else
-    {
-      Expr lbvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, args);
-      // its operator is a lambda
-      op = getExprManager()->mkExpr(kind::LAMBDA, lbvl, op);
-    }
+    api::Term lbvl = d_solver->mkTerm(api::BOUND_VAR_LIST, args);
+    // its operator is a lambda
+    op = d_solver->mkTerm(api::LAMBDA, lbvl, op);
   }
-  Trace("parser-sygus2") << "Generated operator " << op << std::endl;
-  std::stringstream ss;
-  ss << op.getKind();
-  dt.addSygusConstructor(op, ss.str(), cargs, spc);
+  Trace("parser-sygus2") << "addSygusConstructor:  operator " << op
+                         << std::endl;
+  dt.addSygusConstructor(
+      op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
 }
 
-Expr Smt2::purifySygusGTerm(Expr term,
-                            std::map<Expr, Type>& ntsToUnres,
-                            std::vector<Expr>& args,
-                            std::vector<Type>& cargs) const
+api::Term Smt2::purifySygusGTerm(api::Term term,
+                                 std::map<Expr, Type>& ntsToUnres,
+                                 std::vector<api::Term>& args,
+                                 std::vector<api::Sort>& cargs) const
 {
   Trace("parser-sygus2-debug")
-      << "purifySygusGTerm: " << term << " #nchild=" << term.getNumChildren()
-      << std::endl;
-  std::map<Expr, Type>::iterator itn = ntsToUnres.find(term);
+      << "purifySygusGTerm: " << term
+      << " #nchild=" << term.getExpr().getNumChildren() << std::endl;
+  std::map<Expr, Type>::iterator itn = ntsToUnres.find(term.getExpr());
   if (itn != ntsToUnres.end())
   {
-    Expr ret = getExprManager()->mkBoundVar(term.getType());
+    api::Term ret = d_solver->mkVar(term.getSort());
     Trace("parser-sygus2-debug")
         << "...unresolved non-terminal, intro " << ret << std::endl;
-    args.push_back(ret);
+    args.push_back(ret.getExpr());
     cargs.push_back(itn->second);
     return ret;
   }
-  std::vector<Expr> pchildren;
-  // To test whether the operator should be passed to mkExpr below, we check
-  // whether this term is parameterized. This includes APPLY_UF terms and BV
-  // extraction terms, but excludes applications of most interpreted symbols
-  // like PLUS.
-  if (term.isParameterized())
-  {
-    pchildren.push_back(term.getOperator());
-  }
+  std::vector<api::Term> pchildren;
   bool childChanged = false;
   for (unsigned i = 0, nchild = term.getNumChildren(); i < nchild; i++)
   {
     Trace("parser-sygus2-debug")
         << "......purify child " << i << " : " << term[i] << std::endl;
-    Expr ptermc = purifySygusGTerm(term[i], ntsToUnres, args, cargs);
+    api::Term ptermc = purifySygusGTerm(term[i], ntsToUnres, args, cargs);
     pchildren.push_back(ptermc);
     childChanged = childChanged || ptermc != term[i];
   }
@@ -1545,7 +1519,7 @@ Expr Smt2::purifySygusGTerm(Expr term,
     Trace("parser-sygus2-debug") << "...no child changed" << std::endl;
     return term;
   }
-  Expr nret = getExprManager()->mkExpr(term.getKind(), pchildren);
+  api::Term nret = d_solver->mkTerm(term.getOp(), pchildren);
   Trace("parser-sygus2-debug")
       << "...child changed, return " << nret << std::endl;
   return nret;
@@ -1662,13 +1636,13 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   // First phase: process the operator
   if (Debug.isOn("parser"))
   {
-    Debug("parser") << "Apply parse op to:" << std::endl;
-    Debug("parser") << "args has size " << args.size() << std::endl;
+    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
     for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
     {
       Debug("parser") << "++ " << *i << std::endl;
     }
   }
+  api::Op op;
   if (p.d_kind != kind::NULL_EXPR)
   {
     // It is a special case, e.g. tupSel or array constant specification.
@@ -1686,6 +1660,11 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       // since they require a kind.
       kind = fkind;
     }
+  }
+  else if (!p.d_op.isNull())
+  {
+    // it was given an operator
+    op = p.d_op;
   }
   else
   {
@@ -1836,37 +1815,8 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         }
       }
     }
-    if (args.size() > 2)
-    {
-      if (kind == kind::INTS_DIVISION || kind == kind::XOR
-          || kind == kind::MINUS || kind == kind::DIVISION
-          || (kind == kind::BITVECTOR_XNOR && v2_6()))
-      {
-        // Builtin operators that are not tokenized, are left associative,
-        // but not internally variadic must set this.
-        return em->mkLeftAssociative(kind, args);
-      }
-      else if (kind == kind::IMPLIES)
-      {
-        /* right-associative, but CVC4 internally only supports 2 args */
-        return em->mkRightAssociative(kind, args);
-      }
-      else if (kind == kind::EQUAL || kind == kind::LT || kind == kind::GT
-               || kind == kind::LEQ || kind == kind::GEQ)
-      {
-        /* "chainable", but CVC4 internally only supports 2 args */
-        return em->mkChain(kind, args);
-      }
-    }
-
-    if (kind::isAssociative(kind) && args.size() > em->maxArity(kind))
-    {
-      /* Special treatment for associative operators with lots of children
-       */
-      return em->mkAssociative(kind, args);
-    }
-    else if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
-             && args.size() == 1)
+    if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
+        && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
       return args[0];
@@ -1875,11 +1825,11 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       return em->mkExpr(kind::UMINUS, args[0]);
     }
-    else
-    {
-      checkOperator(kind, args.size());
-      return em->mkExpr(kind, args);
-    }
+    api::Term ret =
+        d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args));
+    Debug("parser") << "applyParseOp: return default builtin " << ret
+                    << std::endl;
+    return ret.getExpr();
   }
 
   if (args.size() >= 2)
@@ -1902,6 +1852,12 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         return em->mkLeftAssociative(kind::HO_APPLY, args);
       }
     }
+  }
+  if (!op.isNull())
+  {
+    api::Term ret = d_solver->mkTerm(op, api::exprVectorToTerms(args));
+    Debug("parser") << "applyParseOp: return op : " << ret << std::endl;
+    return ret.getExpr();
   }
   if (kind == kind::NULL_EXPR)
   {
