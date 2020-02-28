@@ -2268,14 +2268,27 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         Node val = getModel()->getValue(assertion);
         if (val != d_true)
         {
+          std::stringstream ss;
+          ss << theoryId
+              << " has an asserted fact that the model doesn't satisfy."
+              << endl
+              << "The fact: " << assertion << endl
+              << "Model value: " << val << endl;
           if (hardFailure)
           {
-            InternalError()
-                << theoryId
-                << " has an asserted fact that the model doesn't satisfy."
-                << endl
-                << "The fact: " << assertion << endl
-                << "Model value: " << val << endl;
+            if (val==d_false)
+            {
+              // Always an error if it is false
+              InternalError() << ss.str();
+            }
+            else
+            {
+              // Otherwise just a warning. Notice this case may happen for
+              // assertions with unevaluable operators, e.g. trancendental
+              // functions. It also may happen for separation logic, where
+              // check-model support is limited.
+              Warning() << ss.str();
+            }
           }
         }
       }
