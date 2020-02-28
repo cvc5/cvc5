@@ -598,7 +598,8 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
 
   if (node.getKind() == STRING_FROM_CODE)
   {
-    // str.from_code(t) ---> choice k. ite(0 <= t < |A|, t = str.to_code(k), "")
+    // str.from_code(t) --->
+    //   choice k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
     Node t = node[0];
     Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
