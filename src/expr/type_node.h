@@ -506,6 +506,9 @@ public:
   /** Is this the String type? */
   bool isString() const;
 
+  /** Is this a string-like type? (string or sequence) */
+  bool isStringLike() const;
+
   /** Is this the Rounding Mode type? */
   bool isRoundingMode() const;
 
@@ -798,9 +801,9 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
       // push the operator
       nb << TypeNode(d_nv->d_children[0]);
     }
-    for (const TypeNode& tn : *this)
+    for (TypeNode::const_iterator it = begin(), iend = end(); it != iend; ++it)
     {
-      nb << tn.substitute(
+      nb << (*it).substitute(
           typesBegin, typesEnd, replacementsBegin, replacementsEnd, cache);
     }
     TypeNode tn = nb.constructTypeNode();
