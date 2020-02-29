@@ -15,9 +15,8 @@
 #include "parser/parse_op.h"
 
 namespace CVC4 {
-namespace parser {
   
-inline std::ostream& operator<<(std::ostream& os, const ParseOp& p)
+std::ostream& operator<<(std::ostream& os, const ParseOp& p)
 {
   std::stringstream out;
   out << "(ParseOp ";
@@ -45,5 +44,4 @@ inline std::ostream& operator<<(std::ostream& os, const ParseOp& p)
   return os << out.str();
 }
 
-} /* CVC4::parser namespace */
 } /* CVC4 namespace */

@@ -77,7 +77,7 @@ struct CVC4_PUBLIC ParseOp
   }
 };
 
-inline std::ostream& operator<<(std::ostream& os, const ParseOp& p);
+std::ostream& operator<<(std::ostream& os, const ParseOp& p);
 
 }  // namespace CVC4
 
