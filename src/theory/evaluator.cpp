@@ -18,6 +18,7 @@
 
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
 #include "util/integer.h"
 
@@ -605,7 +606,22 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_CODE:
+        case kind::STRING_FROM_CODE:
+        {
+          Integer i = results[currNode[0]].d_rat.getNumerator();
+          if (i >= 0 && i < strings::utils::getAlphabetCardinality())
+          {
+            std::vector<unsigned> svec = {i.toUnsignedInt()};
+            results[currNode] = EvalResult(String(svec));
+          }
+          else
+          {
+            results[currNode] = EvalResult(String(""));
+          }
+          break;
+        }
+
+        case kind::STRING_TO_CODE:
         {
           const String& s = results[currNode[0]].d_str;
           if (s.size() == 1)

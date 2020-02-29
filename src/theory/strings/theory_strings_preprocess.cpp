@@ -217,8 +217,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node sx = nm->mkNode(STRING_SUBSTR, itost, x, d_one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, xPlusOne);
-    Node c0 = nm->mkNode(STRING_CODE, nm->mkConst(String("0")));
-    Node c = nm->mkNode(MINUS, nm->mkNode(STRING_CODE, sx), c0);
+    Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
+    Node c = nm->mkNode(MINUS, nm->mkNode(STRING_TO_CODE, sx), c0);
 
     Node ten = nm->mkConst(Rational(10));
     Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
@@ -279,10 +279,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node k = nm->mkSkolem("k", nm->integerType());
     Node kc1 = nm->mkNode(GEQ, k, d_zero);
     Node kc2 = nm->mkNode(LT, k, lens);
-    Node c0 = nm->mkNode(STRING_CODE, nm->mkConst(String("0")));
+    Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
     Node codeSk = nm->mkNode(
         MINUS,
-        nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, s, k, d_one)),
+        nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, s, k, d_one)),
         c0);
     Node ten = nm->mkConst(Rational(10));
     Node kc3 = nm->mkNode(
@@ -310,7 +310,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node sx = nm->mkNode(STRING_SUBSTR, s, x, d_one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS, x, d_one));
-    Node c = nm->mkNode(MINUS, nm->mkNode(STRING_CODE, sx), c0);
+    Node c = nm->mkNode(MINUS, nm->mkNode(STRING_TO_CODE, sx), c0);
 
     Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
     Node cb =
@@ -495,8 +495,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node i = nm->mkBoundVar(nm->integerType());
     Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
 
-    Node ci = nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, x, i, d_one));
-    Node ri = nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, r, i, d_one));
+    Node ci =
+        nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, d_one));
+    Node ri =
+        nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, r, i, d_one));
 
     Node lb = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 97 : 65));
     Node ub = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 122 : 90));
@@ -589,7 +591,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       Node tb = t[1 - r];
       substr[r] = nm->mkNode(STRING_SUBSTR, ta, d_zero, k);
       code[r] =
-          nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, ta, k, d_one));
+          nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, ta, k, d_one));
       conj.push_back(nm->mkNode(LEQ, k, nm->mkNode(STRING_LENGTH, ta)));
     }
     conj.push_back(substr[0].eqNode(substr[1]));
