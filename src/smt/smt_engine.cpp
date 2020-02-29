@@ -4788,7 +4788,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       else if (!val.isConst())
       {
         // This is only a warning since it could have been assigned an
-        // unevaluable term (e.g. an application of a trancendental function).
+        // unevaluable term (e.g. an application of a transcendental function).
         // This parallels the behavior (warnings for non-constant expressions)
         // when checking whether assertions are satisfied below.
         Warning() << "Warning : SmtEngine::checkModel(): "
