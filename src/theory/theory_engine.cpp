@@ -2283,7 +2283,7 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
             else
             {
               // Otherwise just a warning. Notice this case may happen for
-              // assertions with unevaluable operators, e.g. trancendental
+              // assertions with unevaluable operators, e.g. transcendental
               // functions. It also may happen for separation logic, where
               // check-model support is limited.
               Warning() << ss.str();
