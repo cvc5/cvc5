@@ -464,7 +464,7 @@ CVC4::api::Term createPrecedenceTree(Parser* parser, api::Solver* solver,
   }
 
   api::Term e = solver->mkTerm(k, lhs, rhs);
-  return negate ? solver->mkTerm(api::NOT, e) : e;
+  return negate ? e.notTerm() : e;
 }/* createPrecedenceTree() recursive variant */
 
 api::Term createPrecedenceTree(Parser* parser, api::Solver* s,
@@ -491,7 +491,7 @@ api::Term createPrecedenceTree(Parser* parser, api::Solver* s,
 /** Add n NOTs to the front of e and return the result. */
 api::Term addNots(api::Solver* s, size_t n, api::Term e) {
   while(n-- > 0) {
-    e = s->mkTerm(api::NOT, e);
+    e = e.notTerm();
   }
   return e;
 }/* addNots() */
