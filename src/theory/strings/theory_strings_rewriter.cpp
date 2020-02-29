@@ -1668,7 +1668,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   else if (nk == STRING_IS_DIGIT)
   {
     // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
-    Node t = nm->mkNode(STRING_CODE, node[0]);
+    Node t = nm->mkNode(STRING_TO_CODE, node[0]);
     retNode = nm->mkNode(AND,
                          nm->mkNode(LEQ, nm->mkConst(Rational(48)), t),
                          nm->mkNode(LEQ, t, nm->mkConst(Rational(57))));
