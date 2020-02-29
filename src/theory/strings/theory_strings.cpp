@@ -271,16 +271,20 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       repSet[tn].insert(r);
     }
   }
-  for (std::pair<TypeNode, std::unordered_set<Node, NodeHashFunction> >& rst :
+  for (const std::pair<const TypeNode, std::unordered_set<Node, NodeHashFunction> >& rst :
        repSet)
   {
-    collectModelInfoType(rst.first, rst.second, m);
+    if (!collectModelInfoType(rst.first, rst.second, m))
+    {
+      return false;
+    }
   }
+  return true;
 }
 
 bool TheoryStrings::collectModelInfoType(
     TypeNode tn,
-    std::unordered_set<Node, NodeHashFunction>& repSet,
+    const std::unordered_set<Node, NodeHashFunction>& repSet,
     TheoryModel* m)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -288,8 +292,7 @@ bool TheoryStrings::collectModelInfoType(
   std::map< Node, Node > processed;
   std::vector< std::vector< Node > > col;
   std::vector< Node > lts;
-  std::vector<TypeNode> types;
-  d_state.separateByLength(nodes, col, lts, types);
+  d_state.separateByLength(nodes, col, lts);
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
   std::map<unsigned, Node> values_used;
@@ -408,7 +411,7 @@ bool TheoryStrings::collectModelInfoType(
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
-      StringEnumeratorLength sel(lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
+      StringEnumeratorLength sel(tn,lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
       for (const Node& eqc : pure_eq)
       {
         Node c;
@@ -504,7 +507,7 @@ bool TheoryStrings::collectModelInfoType(
         nc.push_back(r.isConst() ? r : processed[r]);
       }
       Node cc = utils::mkNConcat(nc);
-      Assert(cc.getKind() == kind::CONST_STRING);
+      Assert(cc.isConst());
       Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
       processed[nodes[i]] = cc;
       if (!m->assertEquality(nodes[i], cc, true))
