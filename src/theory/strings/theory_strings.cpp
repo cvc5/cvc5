@@ -271,7 +271,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       repSet[tn].insert(r);
     }
   }
-  for (const std::pair<const TypeNode, std::unordered_set<Node, NodeHashFunction> >& rst :
+  for (const std::pair<const TypeNode,
+                       std::unordered_set<Node, NodeHashFunction> >& rst :
        repSet)
   {
     if (!collectModelInfoType(rst.first, rst.second, m))
@@ -411,7 +412,9 @@ bool TheoryStrings::collectModelInfoType(
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
-      StringEnumeratorLength sel(tn,lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
+      StringEnumeratorLength sel(
+          tn,
+          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
       for (const Node& eqc : pure_eq)
       {
         Node c;

@@ -83,7 +83,6 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   bool isFinished() override { return d_curr.isNull(); }
 };/* class StringEnumerator */
 
-
 /**
  * Enumerates string values for a given length.
  */
@@ -121,17 +120,19 @@ class StringEnumeratorLength {
   }
 
   bool isFinished() { return d_curr.isNull(); }
+
  private:
   /** The type we are enumerating */
   TypeNode d_type;
   /** The cardinality of the alphabet */
   uint32_t d_cardinality;
   /** The data (index to members) */
-  std::vector< unsigned > d_data;
+  std::vector<unsigned> d_data;
   Node d_curr;
-  void mkCurr() {
-    //make constant from d_data
-    d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
+  void mkCurr()
+  {
+    // make constant from d_data
+    d_curr = NodeManager::currentNM()->mkConst(::CVC4::String(d_data));
   }
 };
 
