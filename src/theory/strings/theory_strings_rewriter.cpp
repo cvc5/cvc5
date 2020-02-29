@@ -3458,7 +3458,7 @@ Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRe
   size_t lenA = Word::getLength(a);
   size_t lenB = Word::getLength(b);
   index = lenA <= lenB ? 1 : 0;
-  unsigned len_short = index == 1 ? lenA : lenB;
+  size_t len_short = index == 1 ? lenA : lenB;
   bool cmp = isRev ? a.getConst<String>().rstrncmp(b.getConst<String>(), len_short): a.getConst<String>().strncmp(b.getConst<String>(), len_short);
   if( cmp ) {
     Node l = index==0 ? a : b;
