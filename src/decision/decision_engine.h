@@ -170,11 +170,6 @@ public:
 
   // External World helping us help the Strategies
 
-  /** If one of the enabled strategies needs them  */
-  /* bool needIteSkolemMap() { */
-  /*   return d_needIteSkolemMap.size() > 0; */
-  /* } */
-
   /**
    * Add a list of assertions from an AssertionPipeline.
    */
