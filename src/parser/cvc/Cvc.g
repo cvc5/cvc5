@@ -1780,8 +1780,9 @@ postfixTerm[CVC4::Expr& f]
     | LPAREN { args.push_back(f); }
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
-      // TODO: check arity
-      { Kind k = PARSER_STATE->getKindForFunction(args.front());
+      { 
+        PARSER_STATE->checkFunctionLike(args.front());
+        Kind k = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
         Debug("parser") << "kind is " << k << std::endl;
         f = MK_EXPR(k, args);

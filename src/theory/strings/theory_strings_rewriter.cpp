@@ -1494,10 +1494,11 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
   else if (r.getKind() == REGEXP_RANGE)
   {
     // x in re.range( char_i, char_j ) ---> i <= str.code(x) <= j
-    Node xcode = nm->mkNode(STRING_CODE, x);
-    retNode = nm->mkNode(AND,
-                         nm->mkNode(LEQ, nm->mkNode(STRING_CODE, r[0]), xcode),
-                         nm->mkNode(LEQ, xcode, nm->mkNode(STRING_CODE, r[1])));
+    Node xcode = nm->mkNode(STRING_TO_CODE, x);
+    retNode =
+        nm->mkNode(AND,
+                   nm->mkNode(LEQ, nm->mkNode(STRING_TO_CODE, r[0]), xcode),
+                   nm->mkNode(LEQ, xcode, nm->mkNode(STRING_TO_CODE, r[1])));
   }
   else if (r.getKind() == REGEXP_COMPLEMENT)
   {
@@ -1683,7 +1684,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   else if (nk == STRING_IS_DIGIT)
   {
     // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
-    Node t = nm->mkNode(STRING_CODE, node[0]);
+    Node t = nm->mkNode(STRING_TO_CODE, node[0]);
     retNode = nm->mkNode(AND,
                          nm->mkNode(LEQ, nm->mkConst(Rational(48)), t),
                          nm->mkNode(LEQ, t, nm->mkConst(Rational(57))));
@@ -1725,9 +1726,9 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   {
     retNode = rewriteMembership(node);
   }
-  else if (nk == STRING_CODE)
+  else if (nk == STRING_TO_CODE)
   {
-    retNode = rewriteStringCode(node);
+    retNode = rewriteStringToCode(node);
   }
   else if (nk == REGEXP_CONCAT)
   {
@@ -3429,9 +3430,33 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   return retNode;
 }
 
-Node TheoryStringsRewriter::rewriteStringCode(Node n)
+Node TheoryStringsRewriter::rewriteStringFromCode(Node n)
 {
-  Assert(n.getKind() == kind::STRING_CODE);
+  Assert(n.getKind() == kind::STRING_FROM_CODE);
+  NodeManager* nm = NodeManager::currentNM();
+
+  if (n[0].isConst())
+  {
+    Integer i = n[0].getConst<Rational>().getNumerator();
+    Node ret;
+    if (i >= 0 && i < strings::utils::getAlphabetCardinality())
+    {
+      std::vector<unsigned> svec = {i.toUnsignedInt()};
+      ret = nm->mkConst(String(svec));
+    }
+    else
+    {
+      ret = nm->mkConst(String(""));
+    }
+    return returnRewrite(n, ret, "from-code-eval");
+  }
+
+  return n;
+}
+
+Node TheoryStringsRewriter::rewriteStringToCode(Node n)
+{
+  Assert(n.getKind() == kind::STRING_TO_CODE);
   if (n[0].isConst())
   {
     CVC4::String s = n[0].getConst<String>();
@@ -3447,7 +3472,7 @@ Node TheoryStringsRewriter::rewriteStringCode(Node n)
     {
       ret = NodeManager::currentNM()->mkConst(Rational(-1));
     }
-    return returnRewrite(n, ret, "code-eval");
+    return returnRewrite(n, ret, "to-code-eval");
   }
 
   return n;

@@ -602,10 +602,10 @@ class Smt2 : public Parser
    * by a lambda), and cargs contains the types of the arguments of the
    * sygus constructor.
    */
-  Expr purifySygusGTerm(Expr term,
-                        std::map<Expr, Type>& ntsToUnres,
-                        std::vector<Expr>& args,
-                        std::vector<Type>& cargs) const;
+  api::Term purifySygusGTerm(api::Term term,
+                             std::map<Expr, Type>& ntsToUnres,
+                             std::vector<api::Term>& args,
+                             std::vector<api::Sort>& cargs) const;
 
   void addArithmeticOperators();
 

@@ -258,7 +258,8 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {STRING_TOLOWER, CVC4::Kind::STRING_TOLOWER},
     {STRING_TOUPPER, CVC4::Kind::STRING_TOUPPER},
     {STRING_REV, CVC4::Kind::STRING_REV},
-    {STRING_CODE, CVC4::Kind::STRING_CODE},
+    {STRING_FROM_CODE, CVC4::Kind::STRING_FROM_CODE},
+    {STRING_TO_CODE, CVC4::Kind::STRING_TO_CODE},
     {STRING_LT, CVC4::Kind::STRING_LT},
     {STRING_LEQ, CVC4::Kind::STRING_LEQ},
     {STRING_PREFIX, CVC4::Kind::STRING_PREFIX},
@@ -524,7 +525,8 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::STRING_TOLOWER, STRING_TOLOWER},
         {CVC4::Kind::STRING_TOUPPER, STRING_TOUPPER},
         {CVC4::Kind::STRING_REV, STRING_REV},
-        {CVC4::Kind::STRING_CODE, STRING_CODE},
+        {CVC4::Kind::STRING_FROM_CODE, STRING_FROM_CODE},
+        {CVC4::Kind::STRING_TO_CODE, STRING_TO_CODE},
         {CVC4::Kind::STRING_LT, STRING_LT},
         {CVC4::Kind::STRING_LEQ, STRING_LEQ},
         {CVC4::Kind::STRING_PREFIX, STRING_PREFIX},
@@ -1189,26 +1191,26 @@ uint32_t Op::getIndices() const
   switch (k)
   {
     case BITVECTOR_REPEAT:
-      i = d_expr->getConst<BitVectorRepeat>().repeatAmount;
+      i = d_expr->getConst<BitVectorRepeat>().d_repeatAmount;
       break;
     case BITVECTOR_ZERO_EXTEND:
-      i = d_expr->getConst<BitVectorZeroExtend>().zeroExtendAmount;
+      i = d_expr->getConst<BitVectorZeroExtend>().d_zeroExtendAmount;
       break;
     case BITVECTOR_SIGN_EXTEND:
-      i = d_expr->getConst<BitVectorSignExtend>().signExtendAmount;
+      i = d_expr->getConst<BitVectorSignExtend>().d_signExtendAmount;
       break;
     case BITVECTOR_ROTATE_LEFT:
-      i = d_expr->getConst<BitVectorRotateLeft>().rotateLeftAmount;
+      i = d_expr->getConst<BitVectorRotateLeft>().d_rotateLeftAmount;
       break;
     case BITVECTOR_ROTATE_RIGHT:
-      i = d_expr->getConst<BitVectorRotateRight>().rotateRightAmount;
+      i = d_expr->getConst<BitVectorRotateRight>().d_rotateRightAmount;
       break;
-    case INT_TO_BITVECTOR: i = d_expr->getConst<IntToBitVector>().size; break;
+    case INT_TO_BITVECTOR: i = d_expr->getConst<IntToBitVector>().d_size; break;
     case FLOATINGPOINT_TO_UBV:
-      i = d_expr->getConst<FloatingPointToUBV>().bvs.size;
+      i = d_expr->getConst<FloatingPointToUBV>().bvs.d_size;
       break;
     case FLOATINGPOINT_TO_SBV:
-      i = d_expr->getConst<FloatingPointToSBV>().bvs.size;
+      i = d_expr->getConst<FloatingPointToSBV>().bvs.d_size;
       break;
     case TUPLE_UPDATE: i = d_expr->getConst<TupleUpdate>().getIndex(); break;
     default:
@@ -1232,7 +1234,7 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
   if (k == BITVECTOR_EXTRACT)
   {
     CVC4::BitVectorExtract ext = d_expr->getConst<BitVectorExtract>();
-    indices = std::make_pair(ext.high, ext.low);
+    indices = std::make_pair(ext.d_high, ext.d_low);
   }
   else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR)
   {
