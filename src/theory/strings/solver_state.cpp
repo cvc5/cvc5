@@ -159,7 +159,7 @@ void SolverState::eqNotifyPreMerge(TNode t1, TNode t2)
 
 void SolverState::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
 {
-  if (t1.getType().isString())
+  if (t1.getType().isStringLike())
   {
     // store disequalities between strings, may need to check if their lengths
     // are equal/disequal

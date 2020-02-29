@@ -202,11 +202,9 @@ void Smt2Printer::toStream(std::ostream& out,
     }
 
     case kind::CONST_STRING: {
-      //const std::vector<unsigned int>& s = n.getConst<String>().getVec();
       std::string s = n.getConst<String>().toString(true);
       out << '"';
       for(size_t i = 0; i < s.size(); ++i) {
-        //char c = String::convertUnsignedIntToChar(s[i]);
         char c = s[i];
         if(c == '"') {
           if(d_variant == smt2_0_variant) {
