@@ -128,10 +128,11 @@ class StringEnumeratorLength {
   uint32_t d_cardinality;
   /** The data (index to members) */
   std::vector<unsigned> d_data;
+  /** The current term */
   Node d_curr;
+  /** Make the current term from d_data */
   void mkCurr()
   {
-    // make constant from d_data
     d_curr = NodeManager::currentNM()->mkConst(::CVC4::String(d_data));
   }
 };
