@@ -95,7 +95,7 @@ const context::CDList<Node>& SolverState::getDisequalityList() const
 void SolverState::eqNotifyNewClass(TNode t)
 {
   Kind k = t.getKind();
-  if (k == STRING_LENGTH || k == STRING_CODE)
+  if (k == STRING_LENGTH || k == STRING_TO_CODE)
   {
     Node r = d_ee.getRepresentative(t[0]);
     EqcInfo* ei = getOrMakeEqcInfo(r);
