@@ -49,7 +49,8 @@ namespace strings {
 Node makeStandardModelConstant(const std::vector<unsigned>& vec,
                                uint32_t cardinality);
 
-class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
+class StringEnumerator : public TypeEnumeratorBase<StringEnumerator>
+{
  public:
   StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
   Node operator*() override { return d_curr; }
@@ -63,7 +64,7 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   std::vector<unsigned> d_data;
   /** The current term */
   Node d_curr;
-};/* class StringEnumerator */
+}; /* class StringEnumerator */
 
 /**
  * Enumerates string values for a given length.
