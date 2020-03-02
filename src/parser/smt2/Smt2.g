@@ -2039,7 +2039,7 @@ termAtomic[CVC4::api::Term& atomTerm]
     }
 
   // String constant
-  | str[s,false] { atomTerm = SOLVER->mkString(s, true); }
+  | str[s,false] { atomTerm = PARSER_STATE->mkStringConstant(s); }
 
   // NOTE: Theory constants go here
 
