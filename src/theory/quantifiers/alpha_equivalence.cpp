@@ -41,16 +41,22 @@ Node AlphaEquivalenceNode::registerNode(Node q, Node t)
     if( tt.size()==arg_index.size()+1 ){
       Node tb = tt.back();
       Node op;
-      if( tb.hasOperator() ){
-        if( visited.find( tb )==visited.end() ){
+      if (tb.hasOperator())
+      {
+        if (visited.find(tb) == visited.end())
+        {
           visited[tb] = true;
           op = tb.getOperator();
           arg_index.push_back( 0 );
-        }else{
+        }
+        else
+        {
           op = tb;
           arg_index.push_back( -1 );
         }
-      }else{
+      }
+      else
+      {
         op = tb;
         arg_index.push_back( 0 );
       }
@@ -59,11 +65,14 @@ Node AlphaEquivalenceNode::registerNode(Node q, Node t)
     }else{
       Node tb = tt.back();
       int i = arg_index.back();
-      if( i==-1 || i==(int)tb.getNumChildren() ){
+      if (i == -1 || i == (int)tb.getNumChildren())
+      {
         tt.pop_back();
         arg_index.pop_back();
-      }else{
-        tt.push_back( tb[i] );
+      }
+      else
+      {
+        tt.push_back(tb[i]);
         arg_index[arg_index.size()-1]++;
       }
     }

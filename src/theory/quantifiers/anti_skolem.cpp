@@ -232,7 +232,7 @@ bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool 
     Node q0 = quants[0];
     for (unsigned i = 0, size = d_ask_types[q0].size(); i < size; i++)
     {
-      Node v = NodeManager::currentNM()->mkBoundVar( d_ask_types[q0][i] );
+      Node v = NodeManager::currentNM()->mkBoundVar(d_ask_types[q0][i]);
       Trace("anti-sk-debug") << "Outer var " << i << " : " << v << std::endl;
       outer_vars.push_back( v );
     }
