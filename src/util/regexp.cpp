@@ -211,6 +211,12 @@ std::vector<unsigned> String::toInternal(const std::string& s,
             isEnd = true;
             break;
           }
+          else if (hasBrace && hexString.size()>5)
+          {
+            // too many digits enclosed in brace, not an escape sequence
+            isEscapeSequence = false;
+            break;
+          }
         }
         if (!isEnd)
         {
@@ -219,16 +225,28 @@ std::vector<unsigned> String::toInternal(const std::string& s,
           isEscapeSequence = false;
         }
       }
+      if (isEscapeSequence)
+      {
+        std::string hstr = hexString.str();
+        Assert (!hstr.empty() && hstr.size()<=5);
+        // otherwise, we add the escaped character
+        unsigned val = Integer(hstr, 16).toUnsignedInt();
+        if (val>num_codes)
+        {
+          // Failed due to out of range. This can happen for strings of the
+          // form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexidecimal not
+          // in the range [0-2].
+          isEscapeSequence = false;
+        }
+        else
+        {
+          str.push_back(val);
+        }
+      }
       // if we are not an escape sequence, we add back all characters
       if (!isEscapeSequence)
       {
         str.insert(str.end(), nonEscCache.begin(), nonEscCache.end());
-      }
-      else
-      {
-        // otherwise, we add the escaped character
-        unsigned val = Integer(hexString.str(), 16).toUnsignedInt();
-        str.push_back(val);
       }
       continue;
     }

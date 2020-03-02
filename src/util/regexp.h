@@ -53,8 +53,11 @@ class CVC4_PUBLIC String {
    * of the alphabet that the string theory reasons about.
    *
    * This must be strictly less than std::numeric_limits<unsigned>::max().
+   * 
+   * As per the SMT-LIB standard for strings, we support the first 3 planes of
+   * Unicode characters, where 196608 = 3*16^4.
    */
-  static inline unsigned num_codes() { return 256; }
+  static inline unsigned num_codes() { return 196608; }
   /**
    * Convert unsigned char to the unsigned used in the internal representation
    * in d_str below.
