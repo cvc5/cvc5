@@ -58,19 +58,6 @@ class CVC4_PUBLIC String {
    * Unicode characters, where 196608 = 3*16^4.
    */
   static inline unsigned num_codes() { return 196608; }
-  /**
-   * Convert unsigned char to the unsigned used in the internal representation
-   * in d_str below.
-   */
-  static unsigned convertCharToUnsignedInt(unsigned char c);
-  /** Convert the internal unsigned to a unsigned char. */
-  static unsigned char convertUnsignedIntToChar(unsigned i);
-  /** Does the internal unsigned correspond to a printable character? */
-  static bool isPrintable(unsigned i);
-  /** get the internal unsigned for ASCII code c. */
-  static unsigned convertCodeToUnsignedInt(unsigned c);
-  /** get the ASCII code number that internal unsigned i corresponds to. */
-  static unsigned convertUnsignedIntToCode(unsigned i);
   /** Escape sequence mode */
   enum EscSeqMode
   {
@@ -245,13 +232,18 @@ class CVC4_PUBLIC String {
   /** get the internal unsigned value of the last character in this string */
   unsigned back() const;
   /** is the unsigned a digit?
-  * The input should be the same type as the element type of d_str
-  */
+   * 
+   * This is true for all unsigned whose code point is between 41
+   */
   static bool isDigit(unsigned character);
   /** is the unsigned a digit?
-   * The input should be the same type as the element type of d_str
    */
   static bool isHexDigit(unsigned character);
+  /** is the unsigned printable?
+   * 
+   * The input 
+   */
+  static bool isPrintable(unsigned character);
 
   /**
    * Returns the maximum length of string representable by this class.

@@ -169,7 +169,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       std::stringstream ssv;
       if (varCounter < 26)
       {
-        ssv << String::convertUnsignedIntToChar(varCounter + 32);
+        ssv << static_cast<char>(varCounter + 61);
       }
       else
       {

@@ -357,7 +357,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
                   ctv.getConst<Rational>().getNumerator().toUnsignedInt();
               Trace("strings-model") << "(code: " << cvalue << ") ";
               std::vector<unsigned> vec;
-              vec.push_back(String::convertCodeToUnsignedInt(cvalue));
+              vec.push_back(cvalue);
               Node mv = nm->mkConst(String(vec));
               pure_eq_assign[eqc] = mv;
               m->getEqualityEngine()->addTerm(mv);

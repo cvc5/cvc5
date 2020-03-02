@@ -32,38 +32,12 @@ namespace CVC4 {
 
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
-unsigned String::convertCharToUnsignedInt(unsigned char c)
-{
-  return convertCodeToUnsignedInt(static_cast<unsigned>(c));
-}
-unsigned char String::convertUnsignedIntToChar(unsigned i)
-{
-  Assert(i < num_codes());
-  return static_cast<unsigned char>(convertUnsignedIntToCode(i));
-}
-bool String::isPrintable(unsigned i)
-{
-  Assert(i < num_codes());
-  unsigned char c = convertUnsignedIntToChar(i);
-  return (c >= ' ' && c <= '~');
-}
-unsigned String::convertCodeToUnsignedInt(unsigned c)
-{
-  Assert(c < num_codes());
-  return (c < start_code() ? c + num_codes() : c) - start_code();
-}
-unsigned String::convertUnsignedIntToCode(unsigned i)
-{
-  Assert(i < num_codes());
-  return (i + start_code()) % num_codes();
-}
-
 String::String(const std::vector<unsigned> &s) : d_str(s)
 {
 #ifdef CVC4_ASSERTIONS
   for (unsigned u : d_str)
   {
-    Assert(convertUnsignedIntToCode(u) < num_codes());
+    Assert(u < num_codes());
   }
 #endif
 }
@@ -74,8 +48,8 @@ int String::cmp(const String &y) const {
   }
   for (unsigned int i = 0; i < size(); ++i) {
     if (d_str[i] != y.d_str[i]) {
-      unsigned cp = convertUnsignedIntToCode(d_str[i]);
-      unsigned cpy = convertUnsignedIntToCode(y.d_str[i]);
+      unsigned cp = d_str[i];
+      unsigned cpy = y.d_str[i];
       return cp < cpy ? -1 : 1;
     }
   }
@@ -133,7 +107,7 @@ void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
   }
   else
   {
-    str.push_back(convertCharToUnsignedInt(ch));
+    str.push_back(static_cast<unsigned>(ch));
   }
 }
 
@@ -201,7 +175,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
             break;
           }
           // must be a hex digit at this point
-          if (!isHexDigit(convertCharToUnsignedInt(si)))
+          if (!isHexDigit(static_cast<unsigned>(si)))
           {
             isEscapeSequence = false;
             break;
@@ -265,49 +239,49 @@ std::vector<unsigned> String::toInternal(const std::string& s,
     {
       case 'n':
       {
-        str.push_back(convertCharToUnsignedInt('\n'));
+        str.push_back(static_cast<unsigned>('\n'));
         i++;
       }
       break;
       case 't':
       {
-        str.push_back(convertCharToUnsignedInt('\t'));
+        str.push_back(static_cast<unsigned>('\t'));
         i++;
       }
       break;
       case 'v':
       {
-        str.push_back(convertCharToUnsignedInt('\v'));
+        str.push_back(static_cast<unsigned>('\v'));
         i++;
       }
       break;
       case 'b':
       {
-        str.push_back(convertCharToUnsignedInt('\b'));
+        str.push_back(static_cast<unsigned>('\b'));
         i++;
       }
       break;
       case 'r':
       {
-        str.push_back(convertCharToUnsignedInt('\r'));
+        str.push_back(static_cast<unsigned>('\r'));
         i++;
       }
       break;
       case 'f':
       {
-        str.push_back(convertCharToUnsignedInt('\f'));
+        str.push_back(static_cast<unsigned>('\f'));
         i++;
       }
       break;
       case 'a':
       {
-        str.push_back(convertCharToUnsignedInt('\a'));
+        str.push_back(static_cast<unsigned>('\a'));
         i++;
       }
       break;
       case '\\':
       {
-        str.push_back(convertCharToUnsignedInt('\\'));
+        str.push_back(static_cast<unsigned>('\\'));
         i++;
       }
       break;
@@ -317,8 +291,8 @@ std::vector<unsigned> String::toInternal(const std::string& s,
         {
           if (isxdigit(s[i + 1]) && isxdigit(s[i + 2]))
           {
-            str.push_back(convertCharToUnsignedInt(hexToDec(s[i + 1]) * 16
-                                                   + hexToDec(s[i + 2])));
+            str.push_back(static_cast<unsigned>(hexToDec(s[i + 1]) * 16
+                                                  + hexToDec(s[i + 2])));
             i += 3;
           }
           else
@@ -347,18 +321,18 @@ std::vector<unsigned> String::toInternal(const std::string& s,
             if (flag && i + 2 < s.size() && isdigit(s[i + 2]) && s[i + 2] < '8')
             {
               num = num * 8 + (int)s[i + 2] - (int)'0';
-              str.push_back(convertCharToUnsignedInt((unsigned char)num));
+              str.push_back(static_cast<unsigned>((unsigned char)num));
               i += 3;
             }
             else
             {
-              str.push_back(convertCharToUnsignedInt((unsigned char)num));
+              str.push_back(static_cast<unsigned>((unsigned char)num));
               i += 2;
             }
           }
           else
           {
-            str.push_back(convertCharToUnsignedInt((unsigned char)num));
+            str.push_back(static_cast<unsigned>((unsigned char)num));
             i++;
           }
         }
@@ -372,7 +346,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
 #ifdef CVC4_ASSERTIONS
   for (unsigned u : str)
   {
-    Assert(convertUnsignedIntToCode(u) < num_codes());
+    Assert(u < num_codes());
   }
 #endif
   return str;
@@ -415,62 +389,18 @@ std::size_t String::roverlap(const String &y) const {
 }
 
 std::string String::toString(bool useEscSequences) const {
-  std::string str;
+  std::stringstream str;
   for (unsigned int i = 0; i < size(); ++i) {
-    unsigned char c = convertUnsignedIntToChar(d_str[i]);
-    if (!useEscSequences) {
-      str += c;
-    } else if (isprint(c)) {
-      if (c == '\\') {
-        str += "\\\\";
-      }
-      // else if(c == '\"') {
-      //  str += "\\\"";
-      //}
-      else {
-        str += c;
-      }
-    } else {
-      std::string s;
-      switch (c) {
-        case '\a':
-          s = "\\a";
-          break;
-        case '\b':
-          s = "\\b";
-          break;
-        case '\t':
-          s = "\\t";
-          break;
-        case '\r':
-          s = "\\r";
-          break;
-        case '\v':
-          s = "\\v";
-          break;
-        case '\f':
-          s = "\\f";
-          break;
-        case '\n':
-          s = "\\n";
-          break;
-        case '\e':
-          s = "\\e";
-          break;
-        default: {
-          std::stringstream ss;
-          ss << std::setfill('0') << std::setw(2) << std::hex << ((int)c);
-          std::string t = ss.str();
-          t = t.substr(t.size() - 2, 2);
-          s = "\\x" + t;
-          // std::string s2 = static_cast<std::ostringstream*>(
-          // &(std::ostringstream() << (int)c) )->str();
-        }
-      }
-      str += s;
+    if (isPrintable(d_str[i]))
+    {
+      str << static_cast<char>(d_str[i]);
+    }
+    else
+    {
+      str << "\\u{" << d_str[i] << "}";
     }
   }
-  return str;
+  return str.str();
 }
 
 bool String::isLeq(const String &y) const
@@ -481,8 +411,8 @@ bool String::isLeq(const String &y) const
     {
       return false;
     }
-    unsigned ci = convertUnsignedIntToCode(d_str[i]);
-    unsigned cyi = convertUnsignedIntToCode(y.d_str[i]);
+    unsigned ci = d_str[i];
+    unsigned cyi = y.d_str[i];
     if (ci > cyi)
     {
       return false;
@@ -634,14 +564,20 @@ bool String::isNumber() const {
 
 bool String::isDigit(unsigned character)
 {
-  unsigned char c = convertUnsignedIntToChar(character);
-  return c >= '0' && c <= '9';
+  // '0' to '9'
+  return 48 <= character && character <= 57;
 }
 
 bool String::isHexDigit(unsigned character)
 {
-  unsigned char c = convertUnsignedIntToChar(character);
-  return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+  // '0' to '9' or 'A' to 'F'
+  return isDigit(character) || (41 <= character && character <= 46);
+}
+
+bool String::isPrintable(unsigned character)
+{
+  // Unicode 0x00020 (' ') to 0x0007E ('~')
+  return 32 <= character && character <= 126;
 }
 
 size_t String::maxSize() { return std::numeric_limits<uint32_t>::max(); }

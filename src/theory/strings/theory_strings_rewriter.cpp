@@ -1278,11 +1278,8 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
     case kind::REGEXP_RANGE: {
       if(s.size() == index_start + 1) {
         unsigned a = r[0].getConst<String>().front();
-        a = String::convertUnsignedIntToCode(a);
         unsigned b = r[1].getConst<String>().front();
-        b = String::convertUnsignedIntToCode(b);
         unsigned c = s.back();
-        c = String::convertUnsignedIntToCode(c);
         return (a <= c && c <= b);
       } else {
         return false;
@@ -3213,7 +3210,7 @@ Node TheoryStringsRewriter::rewriteStrConvert(Node node)
     std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
     for (unsigned i = 0, nvsize = nvec.size(); i < nvsize; i++)
     {
-      unsigned newChar = CVC4::String::convertUnsignedIntToCode(nvec[i]);
+      unsigned newChar = nvec[i];
       // transform it
       // upper 65 ... 90
       // lower 97 ... 122
@@ -3231,7 +3228,6 @@ Node TheoryStringsRewriter::rewriteStrConvert(Node node)
           newChar = newChar + 32;
         }
       }
-      newChar = CVC4::String::convertCodeToUnsignedInt(newChar);
       nvec[i] = newChar;
     }
     Node retNode = nm->mkConst(String(nvec));
@@ -3466,7 +3462,7 @@ Node TheoryStringsRewriter::rewriteStringToCode(Node n)
       std::vector<unsigned> vec = s.getVec();
       Assert(vec.size() == 1);
       ret = NodeManager::currentNM()->mkConst(
-          Rational(CVC4::String::convertUnsignedIntToCode(vec[0])));
+          Rational(vec[0]));
     }
     else
     {

@@ -627,7 +627,7 @@ EvalResult Evaluator::evalInternal(
           if (s.size() == 1)
           {
             results[currNode] = EvalResult(
-                Rational(String::convertUnsignedIntToCode(s.getVec()[0])));
+                Rational(s.getVec()[0]));
           }
           else
           {
