@@ -203,15 +203,18 @@ class CVC4_PUBLIC String {
   unsigned back() const;
   /** is the unsigned a digit?
    *
-   * This is true for all unsigned whose code point is between 41
+   * This is true for code points between 48 ('0') and 57 ('9').
    */
   static bool isDigit(unsigned character);
-  /** is the unsigned a digit?
+  /** is the unsigned a hexidecimal digit?
+   *
+   * This is true for code points between 48 ('0') and 57 ('9'), code points
+   * between 65 ('A') and 70 ('F) and code points between 97 ('a') and 102 ('f).
    */
   static bool isHexDigit(unsigned character);
-  /** is the unsigned printable?
+  /** is the unsigned a printable code point?
    *
-   * The input
+   * This is true for Unicode 32 (' ') to 126 ('~').
    */
   static bool isPrintable(unsigned character);
 
