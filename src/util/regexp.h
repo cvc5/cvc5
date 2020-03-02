@@ -53,7 +53,7 @@ class CVC4_PUBLIC String {
    * of the alphabet that the string theory reasons about.
    *
    * This must be strictly less than std::numeric_limits<unsigned>::max().
-   * 
+   *
    * As per the SMT-LIB standard for strings, we support the first 3 planes of
    * Unicode characters, where 196608 = 3*16^4.
    */
@@ -95,13 +95,11 @@ class CVC4_PUBLIC String {
    * CVC4::String correspond one-to-one with the input string.
    */
   String() = default;
-  explicit String(const std::string& s,
-                  EscSeqMode esmode = ESC_SEQ_UNICODE_STD)
+  explicit String(const std::string& s, EscSeqMode esmode = ESC_SEQ_UNICODE_STD)
       : d_str(toInternal(s, esmode))
   {
   }
-  explicit String(const char* s,
-                  EscSeqMode esmode = ESC_SEQ_UNICODE_STD)
+  explicit String(const char* s, EscSeqMode esmode = ESC_SEQ_UNICODE_STD)
       : d_str(toInternal(std::string(s), esmode))
   {
   }
@@ -232,7 +230,7 @@ class CVC4_PUBLIC String {
   /** get the internal unsigned value of the last character in this string */
   unsigned back() const;
   /** is the unsigned a digit?
-   * 
+   *
    * This is true for all unsigned whose code point is between 41
    */
   static bool isDigit(unsigned character);
@@ -240,8 +238,8 @@ class CVC4_PUBLIC String {
    */
   static bool isHexDigit(unsigned character);
   /** is the unsigned printable?
-   * 
-   * The input 
+   *
+   * The input
    */
   static bool isPrintable(unsigned character);
 
@@ -254,13 +252,13 @@ class CVC4_PUBLIC String {
   // guarded
   static unsigned char hexToDec(unsigned char c);
 
-  /** 
+  /**
    * Helper for toInternal: add character ch to vector vec, storing a string in
    * internal format. This throws an error if ch is not a printable character,
    * since non-printable characters must be escaped.
    */
   static void addCharToInternal(unsigned char ch, std::vector<unsigned>& vec);
-  /** 
+  /**
    * Convert the string s to the internal format based on escaped sequence
    * mode esmode.
    */

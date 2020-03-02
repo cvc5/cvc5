@@ -2905,7 +2905,9 @@ Term Solver::mkSepNil(Sort sort) const
 Term Solver::mkString(const char* s, bool useEscSequences) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::String::EscSeqMode emode = useEscSequences ? String::EscSeqMode::ESC_SEQ_UNICODE_STD : String::EscSeqMode::ESC_SEQ_NONE;
+  CVC4::String::EscSeqMode emode = useEscSequences
+                                       ? String::EscSeqMode::ESC_SEQ_UNICODE_STD
+                                       : String::EscSeqMode::ESC_SEQ_NONE;
   return mkValHelper<CVC4::String>(CVC4::String(s, emode));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -2913,7 +2915,9 @@ Term Solver::mkString(const char* s, bool useEscSequences) const
 Term Solver::mkString(const std::string& s, bool useEscSequences) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::String::EscSeqMode emode = useEscSequences ? String::EscSeqMode::ESC_SEQ_UNICODE_STD : String::EscSeqMode::ESC_SEQ_NONE;
+  CVC4::String::EscSeqMode emode = useEscSequences
+                                       ? String::EscSeqMode::ESC_SEQ_UNICODE_STD
+                                       : String::EscSeqMode::ESC_SEQ_NONE;
   return mkValHelper<CVC4::String>(CVC4::String(s, emode));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }

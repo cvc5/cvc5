@@ -747,7 +747,8 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
 {
   std::vector<unsigned> str;
   unsigned i = 0;
-  while (i < s.size()) {
+  while (i < s.size())
+  {
     // get the current character
     if (s[i] != '\\')
     {
@@ -759,7 +760,8 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
       else
       {
         std::stringstream serr;
-        serr << "Non-printable character in: \"" << s << "\", must use escape sequence";
+        serr << "Non-printable character in: \"" << s
+             << "\", must use escape sequence";
         parseError(serr.str());
       }
       continue;
@@ -770,7 +772,8 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
     {
       // slash cannot be the last character if we are parsing escape sequences
       std::stringstream serr;
-      serr << "Escape sequence at the end of string: \"" << s << "\" should be handled by lexer";
+      serr << "Escape sequence at the end of string: \"" << s
+           << "\" should be handled by lexer";
       parseError(serr.str());
     }
     switch (s[i])
@@ -831,7 +834,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
           if (std::isxdigit(s[i + 1]) && std::isxdigit(s[i + 2]))
           {
             std::stringstream shex;
-            shex << s[i+1] << s[i+2];
+            shex << s[i + 1] << s[i + 2];
             unsigned val;
             shex >> std::hex >> val;
             str.push_back(val);
@@ -842,7 +845,8 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
         if (!isValid)
         {
           std::stringstream serr;
-          serr << "Illegal String Literal: \"" << s << "\", must have two digits after \\x";
+          serr << "Illegal String Literal: \"" << s
+               << "\", must have two digits after \\x";
           parseError(serr.str());
         }
       }
@@ -857,10 +861,11 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
           if (i + 1 < s.size() && num < 8 && std::isdigit(s[i + 1])
               && s[i + 1] < '8')
           {
-            num = num * 8 + static_cast<unsigned>(s[i+1]) - 48;
-            if (flag && i + 2 < s.size() && std::isdigit(s[i + 2]) && s[i + 2] < '8')
+            num = num * 8 + static_cast<unsigned>(s[i + 1]) - 48;
+            if (flag && i + 2 < s.size() && std::isdigit(s[i + 2])
+                && s[i + 2] < '8')
             {
-              num = num * 8 + static_cast<unsigned>(s[i+2]) - 48;
+              num = num * 8 + static_cast<unsigned>(s[i + 2]) - 48;
               str.push_back(num);
               i += 3;
             }
@@ -884,10 +889,11 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
 
 Expr Parser::mkStringConstant(const std::string& s)
 {
-  ExprManager * em = getExprManager();
-  if (em->getOptions().getInputLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+  ExprManager* em = getExprManager();
+  if (em->getOptions().getInputLanguage()
+      == language::input::LANG_SMTLIB_V2_6_1)
   {
-    return d_solver->mkString(s,true).getExpr();
+    return d_solver->mkString(s, true).getExpr();
   }
   // otherwise, we must process ad-hoc escape sequences
   std::vector<unsigned> str = processAdHocStringEsc(s);

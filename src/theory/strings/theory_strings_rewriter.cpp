@@ -3461,8 +3461,7 @@ Node TheoryStringsRewriter::rewriteStringToCode(Node n)
     {
       std::vector<unsigned> vec = s.getVec();
       Assert(vec.size() == 1);
-      ret = NodeManager::currentNM()->mkConst(
-          Rational(vec[0]));
+      ret = NodeManager::currentNM()->mkConst(Rational(vec[0]));
     }
     else
     {

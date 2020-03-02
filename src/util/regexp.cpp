@@ -99,10 +99,11 @@ bool String::rstrncmp(const String &y, const std::size_t np) const {
 void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
 {
   // if not a printable character
-  if (ch > 127 || ch<32)
+  if (ch > 127 || ch < 32)
   {
     std::stringstream serr;
-    serr << "Illegal string character: \"" << ch << "\", must use escape sequence";
+    serr << "Illegal string character: \"" << ch
+         << "\", must use escape sequence";
     throw CVC4::Exception(serr.str());
   }
   else
@@ -188,7 +189,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
             isEnd = true;
             break;
           }
-          else if (hasBrace && hexString.str().size()>5)
+          else if (hasBrace && hexString.str().size() > 5)
           {
             // too many digits enclosed in brace, not an escape sequence
             isEscapeSequence = false;
@@ -205,11 +206,11 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       if (isEscapeSequence)
       {
         std::string hstr = hexString.str();
-        Assert (!hstr.empty() && hstr.size()<=5);
+        Assert(!hstr.empty() && hstr.size() <= 5);
         // Otherwise, we add the escaped character.
         // This is guaranteed not to overflow due to the length of hstr.
         uint32_t val = Integer(hstr, 16).toUnsignedInt();
-        if (val>num_codes())
+        if (val > num_codes())
         {
           // Failed due to being out of range. This can happen for strings of
           // the form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexidecimal not
@@ -229,7 +230,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       continue;
     }
     // ad-hoc escape sequences
-    Assert( esmode == ESC_SEQ_AD_HOC );
+    Assert(esmode == ESC_SEQ_AD_HOC);
     if (i >= s.size())
     {
       // slash cannot be the last character if we are parsing escape sequences
@@ -292,7 +293,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
           if (isxdigit(s[i + 1]) && isxdigit(s[i + 2]))
           {
             str.push_back(static_cast<unsigned>(hexToDec(s[i + 1]) * 16
-                                                  + hexToDec(s[i + 2])));
+                                                + hexToDec(s[i + 2])));
             i += 3;
           }
           else
