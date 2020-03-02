@@ -1,9 +1,13 @@
 ; COMMAND-LINE: --lang=smt2.6.1 --produce-models
 ; EXPECT: sat
-; EXPECT: ((x "\u{A}"))
+; EXPECT: ((x "\u{a}"))
+; EXPECT: ((y "\u{7f}"))
 (set-logic ALL)
 (set-info :status sat)
 (declare-fun x () String)
-(assert (= (str.code x) 10))
+(declare-fun y () String)
+(assert (= (str.to_code x) 10))
+(assert (= (str.to_code y) 127))
 (check-sat)
 (get-value (x))
+(get-value (y))
