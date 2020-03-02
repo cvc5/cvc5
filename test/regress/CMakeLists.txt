@@ -921,6 +921,8 @@ set(regress_0_tests
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
   regress0/strings/model001.smt2
+  regress0/strings/model-code-point.smt2
+  regress0/strings/model-friendly.smt2
   regress0/strings/ncontrib-rewrites.smt2
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
