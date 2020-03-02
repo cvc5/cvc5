@@ -259,18 +259,36 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     return false;
   }
 
-  std::unordered_set<Node, NodeHashFunction> repSet;
-  NodeManager* nm = NodeManager::currentNM();
+  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
   // Generate model
   // get the relevant string equivalence classes
   for (const Node& s : termSet)
   {
-    if (s.getType().isString())
+    TypeNode tn = s.getType();
+    if (tn.isStringLike())
     {
       Node r = d_state.getRepresentative(s);
-      repSet.insert(r);
+      repSet[tn].insert(r);
     }
   }
+  for (const std::pair<const TypeNode,
+                       std::unordered_set<Node, NodeHashFunction> >& rst :
+       repSet)
+  {
+    if (!collectModelInfoType(rst.first, rst.second, m))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool TheoryStrings::collectModelInfoType(
+    TypeNode tn,
+    const std::unordered_set<Node, NodeHashFunction>& repSet,
+    TheoryModel* m)
+{
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> nodes(repSet.begin(), repSet.end());
   std::map< Node, Node > processed;
   std::vector< std::vector< Node > > col;
@@ -394,7 +412,9 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
-      StringEnumeratorLength sel(lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
+      StringEnumeratorLength sel(
+          tn,
+          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
       for (const Node& eqc : pure_eq)
       {
         Node c;
@@ -490,7 +510,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         nc.push_back(r.isConst() ? r : processed[r]);
       }
       Node cc = utils::mkNConcat(nc);
-      Assert(cc.getKind() == kind::CONST_STRING);
+      Assert(cc.isConst());
       Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
       processed[nodes[i]] = cc;
       if (!m->assertEquality(nodes[i], cc, true))

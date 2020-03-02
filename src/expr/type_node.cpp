@@ -298,7 +298,11 @@ Node TypeNode::mkGroundValue() const
   return *te;
 }
 
-bool TypeNode::isStringLike() const { return isString(); }
+bool TypeNode::isStringLike() const
+{
+  // TODO (cvc4-projects #23): sequence here
+  return isString();
+}
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
