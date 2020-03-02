@@ -66,23 +66,23 @@ class CVC4_PUBLIC String {
    * To build a string from a C++ string, we may process escape sequences
    * according to the SMT-LIB standard. In particular, if useEscSequences is
    * true, we convert unicode escape sequences:
-  *  \u d_3 d_2 d_1 d_0
-  *  \u{d_0}
-  *  \u{d_1 d_0}
-  *  \u{d_2 d_1 d_0}
-  *  \u{d_3 d_2 d_1 d_0}
-  *  \u{d_4 d_3 d_2 d_1 d_0}
-  * where d_0 ... d_4 are hexidecimal digits, to the appropriate character.
+   *  \u d_3 d_2 d_1 d_0
+   *  \u{d_0}
+   *  \u{d_1 d_0}
+   *  \u{d_2 d_1 d_0}
+   *  \u{d_3 d_2 d_1 d_0}
+   *  \u{d_4 d_3 d_2 d_1 d_0}
+   * where d_0 ... d_4 are hexidecimal digits, to the appropriate character.
    *
    * If useEscSequences is false, then the characters of the constructed
    * CVC4::String correspond one-to-one with the input string.
    */
   String() = default;
-  explicit String(const std::string& s, bool useEscSequences=false)
+  explicit String(const std::string& s, bool useEscSequences = false)
       : d_str(toInternal(s, useEscSequences))
   {
   }
-  explicit String(const char* s, bool useEscSequences=false)
+  explicit String(const char* s, bool useEscSequences = false)
       : d_str(toInternal(std::string(s), useEscSequences))
   {
   }
@@ -232,7 +232,6 @@ class CVC4_PUBLIC String {
    */
   static size_t maxSize();
  private:
-
   /**
    * Helper for toInternal: add character ch to vector vec, storing a string in
    * internal format. This throws an error if ch is not a printable character,

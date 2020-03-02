@@ -117,7 +117,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
 {
   std::vector<unsigned> str;
   unsigned i = 0;
-  while (i < s.size()) 
+  while (i < s.size())
   {
     // get the current character
     char si = s[i];
