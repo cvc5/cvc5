@@ -89,8 +89,8 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       else
       {
         Options& nodeManagerOptions = nm->getOptions();
-        std::ostream* out = nodeManagerOptions.getOut();
-        (*out) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
+        std::ostream* nodeManagerOut = nodeManagerOptions.getOut();
+        (*nodeManagerOut) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
                << std::endl;
       }
     }
