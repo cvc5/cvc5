@@ -1254,7 +1254,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
           // x = ( y & x ) ---> y | ~x
           // x = ( y & ~x ) ---> ~y & ~x
           std::vector<Node> new_children;
-          for (unsigned k = 0, nchild = c.getNumChildren(); k < nchild; k++)
+          for (unsigned k = 0, nchildc = c.getNumChildren(); k < nchildc; k++)
           {
             if (j != k)
             {
@@ -1515,10 +1515,10 @@ Node ExtendedRewriter::partialSubstitute(Node n,
 
     if (it == visited.end())
     {
-      std::map<Node, Node>::iterator it = assign.find(cur);
-      if (it != assign.end())
+      std::map<Node, Node>::iterator ita = assign.find(cur);
+      if (ita != assign.end())
       {
-        visited[cur] = it->second;
+        visited[cur] = ita->second;
       }
       else
       {

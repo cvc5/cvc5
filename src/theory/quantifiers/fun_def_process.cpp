@@ -62,9 +62,9 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
         //create functions f1...fn mapping from this sort to concrete elements
         for( unsigned j=0; j<n.getNumChildren(); j++ ){
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( iType, n[j].getType() );
-          std::stringstream ss;
-          ss << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back( NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during fun def fmf" ) );
+          std::stringstream ssf;
+          ssf << f << "_arg_" << j;
+          d_input_arg_inj[f].push_back( NodeManager::currentNM()->mkSkolem( ssf.str(), typ, "op created during fun def fmf" ) );
         }
 
         //construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
