@@ -28,27 +28,26 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
-/** 
+
+/**
  * Make standard model constant
- * 
-  * In our string representation, we represent characters using vectors
-  * of unsigned integers indicating code points for the characters of that
-  * string.
-  *
-  * To make models user-friendly, we make unsigned integer 0 correspond to the
-  * 65th character ("A") in the ASCII alphabet to make models intuitive. In
-  * particular, say if we have a set of string variables that are distinct but
-  * otherwise unconstrained, then the model may assign them "A", "B", "C", ...
- * 
+ *
+ * In our string representation, we represent characters using vectors
+ * of unsigned integers indicating code points for the characters of that
+ * string.
+ *
+ * To make models user-friendly, we make unsigned integer 0 correspond to the
+ * 65th character ("A") in the ASCII alphabet to make models intuitive. In
+ * particular, say if we have a set of string variables that are distinct but
+ * otherwise unconstrained, then the model may assign them "A", "B", "C", ...
+ *
  * @param vec The code points of the string in a given model,
  * @param cardinality The cardinality of the alphabet,
  * @return A string whose characters have the code points corresponding
  * to vec in the standard model construction described above.
  */
 Node makeStandardModelConstant(const std::vector<unsigned>& vec,
-  uint32_t cardinality
-);
+                               uint32_t cardinality);
 
 class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
  public:
@@ -56,6 +55,7 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   Node operator*() override { return d_curr; }
   StringEnumerator& operator++() override;
   bool isFinished() override { return d_curr.isNull(); }
+
  private:
   /** The cardinality of the alphabet */
   uint32_t d_cardinality;
