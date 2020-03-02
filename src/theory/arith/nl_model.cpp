@@ -781,8 +781,8 @@ bool NlModel::simpleCheckModelLit(Node lit)
       {
         lit2 = lit2.negate();
       }
-      lit2 = Rewriter::rewrite(lit);
-      bool success = simpleCheckModelLit(lit);
+      lit2 = Rewriter::rewrite(lit2);
+      bool success = simpleCheckModelLit(lit2);
       if (success != pol)
       {
         // false != true -> one conjunct of equality is false, we fail
