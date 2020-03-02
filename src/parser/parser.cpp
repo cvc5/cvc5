@@ -752,18 +752,9 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
     // get the current character
     if (s[i] != '\\')
     {
-      if (String::isPrintable(static_cast<unsigned>(s[i])))
-      {
-        str.push_back(static_cast<unsigned>(s[i]));
-        ++i;
-      }
-      else
-      {
-        std::stringstream serr;
-        serr << "Non-printable character in: \"" << s
-             << "\", must use escape sequence";
-        parseError(serr.str());
-      }
+      // don't worry about printable here
+      str.push_back(static_cast<unsigned>(s[i]));
+      ++i;
       continue;
     }
     // slash is always escaped
