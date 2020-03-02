@@ -136,21 +136,21 @@ void addChar(unsigned ch, std::vector<unsigned>& str)
 }
 
 std::vector<unsigned> String::toInternal(const std::string& s,
-                                         EscapeSequenceMode esmode)
+                                         EscSeqMode esmode)
 {
   std::vector<unsigned> str;
   unsigned i = 0;
   while (i < s.size()) {
     // get the current character
     char si = s[i];
-    if (si != '\\' || esmode == ESC_SEQUENCE_NONE)
+    if (si != '\\' || esmode == ESC_SEQ_NONE)
     {
       addChar(static_cast<unsigned>(si), str);
       ++i;
       continue;
     }
     // if handling standard escape sequences
-    if (esmode == ESC_SEQUENCE_UNICODE_STD)
+    if (esmode == ESC_SEQ_UNICODE_STD)
     {
       // the vector of characters, in case we fail to read an escape sequence
       std::vector<unsigned> nonEscCache;
@@ -218,11 +218,14 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       }
       else
       {
+        // otherwise, we add the escaped character
+        // FIXME
       }
       continue;
     }
+    // ad-hoc escape sequences
+    Assert( esmode == ESC_SEQ_AD_HOC );
     if (i >= s.size())
-      ;
     {
       // slash cannot be the last character if we are parsing escape sequences
       throw CVC4::Exception("should be handled by lexer: \"" + s + "\"");
