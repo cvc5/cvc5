@@ -61,11 +61,11 @@ class CVC4_PUBLIC String {
   /** constructors for String
    *
    * Internally, a CVC4::String is represented by a vector of unsigned
-   * integers (d_str), where the correspondence between C++ characters
-   * to and from unsigned integers is determined by
-   * by convertCharToUnsignedInt and convertUnsignedIntToChar.
+   * integers (d_str) representing the code points of the characters.
    *
-   * If useEscSequences is true, we convert unicode escape sequences:
+   * To build a string from a C++ string, we may process escape sequences
+   * according to the SMT-LIB standard. In particular, if useEscSequences is
+   * true, we convert unicode escape sequences:
   *  \u d_3 d_2 d_1 d_0
   *  \u{d_0}
   *  \u{d_1 d_0}
