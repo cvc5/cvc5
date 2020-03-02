@@ -259,8 +259,18 @@ class CVC4_PUBLIC String {
   // guarded
   static unsigned char hexToDec(unsigned char c);
 
+  /** 
+   * Helper for toInternal: add character ch to vector vec, storing a string in
+   * internal format. This throws an error if ch is not a printable character,
+   * since non-printable characters must be escaped.
+   */
+  static void addCharToInternal(unsigned char ch, std::vector<unsigned>& vec);
+  /** 
+   * Convert the string s to the internal format based on escaped sequence
+   * mode esmode.
+   */
   static std::vector<unsigned> toInternal(const std::string& s,
-                                          bool useEscSequences = true);
+                                          EscSeqMode esmode);
 
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a

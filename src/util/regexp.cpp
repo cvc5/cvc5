@@ -122,12 +122,13 @@ bool String::rstrncmp(const String &y, const std::size_t np) const {
   return true;
 }
 
-void addChar(unsigned ch, std::vector<unsigned>& str)
+void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
 {
   if (ch > 127)
   {
-    throw CVC4::Exception("Illegal String Literal: \"" + s
-                          + "\", must use escaped sequence");
+    std::stringstream serr;
+    serr << "Illegal string character: \"" << ch << "\", must use escape sequence";
+    throw CVC4::Exception(serr.str());
   }
   else
   {
@@ -145,7 +146,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
     char si = s[i];
     if (si != '\\' || esmode == ESC_SEQ_NONE)
     {
-      addChar(static_cast<unsigned>(si), str);
+      addCharToInternal(si, str);
       ++i;
       continue;
     }
@@ -155,7 +156,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       // the vector of characters, in case we fail to read an escape sequence
       std::vector<unsigned> nonEscCache;
       // process the '\'
-      addChar(static_cast<unsigned>(si), nonEscCache);
+      addCharToInternal(si, nonEscCache);
       ++i;
       // are we an escape sequence?
       bool isEscapeSequence = true;
@@ -169,16 +170,16 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       else
       {
         // process the 'u'
-        addChar(static_cast<unsigned>(s[i]), nonEscCache);
+        addCharToInternal(s[i], nonEscCache);
         ++i;
         bool isStart = true;
         bool isEnd = false;
         bool hasBrace = false;
-        while (i < s.size() && !isEnd && isValid)
+        while (i < s.size())
         {
           // add the next character
           si = s[i];
-          addChar(static_cast<unsigned>(si), nonEscCache);
+          addCharToInternal(static_cast<unsigned>(si), nonEscCache);
           ++i;
           if (isStart)
           {
@@ -193,14 +194,9 @@ std::vector<unsigned> String::toInternal(const std::string& s,
           else if (si == '}')
           {
             // can only end if we had an open brace and read at least one digit
-            isEscapeSequence = hasBrace && !hexString.empty();
+            isEscapeSequence = hasBrace && !hexString.str().empty();
             isEnd = true;
             break;
-          }
-          else if (!hasBrace && hexString.size() == 3)
-          {
-            // will be finished reading \ u d_3 d_2 d_1 d_0 with no parens
-            isEnd = true;
           }
           // must be a hex digit at this point
           if (!isHexDigit(convertCharToUnsignedInt(si)))
@@ -209,6 +205,18 @@ std::vector<unsigned> String::toInternal(const std::string& s,
             break;
           }
           hexString << si;
+          if (!hasBrace && hexString.str().size() == 4)
+          {
+            // will be finished reading \ u d_3 d_2 d_1 d_0 with no parens
+            isEnd = true;
+            break;
+          }
+        }
+        if (!isEnd)
+        {
+          // if we were interupted before ending, then this is not a valid
+          // escape sequence
+          isEscapeSequence = false;
         }
       }
       // if we are not an escape sequence, we add back all characters
@@ -219,7 +227,8 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       else
       {
         // otherwise, we add the escaped character
-        // FIXME
+        unsigned val = Integer(hexString.str(), 16).toUnsignedInt();
+        str.push_back(val);
       }
       continue;
     }
@@ -333,7 +342,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
         }
         else
         {
-          addChar(si, str);
+          addCharToInternal(si, str);
         }
       }
     }

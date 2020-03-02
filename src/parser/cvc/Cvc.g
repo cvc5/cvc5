@@ -2056,7 +2056,7 @@ stringTerm[CVC4::Expr& f]
 
     /* string literal */
   | str[s]
-    { f = MK_CONST(CVC4::String(s, true)); }
+    { f = MK_CONST(CVC4::String(s)); }
 
   | setsTerm[f]
   ;
