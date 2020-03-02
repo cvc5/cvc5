@@ -33,21 +33,21 @@ Node makeStandardModelConstant(const std::vector<unsigned>& vec,
       unsigned curr = vec[i];
       // convert
       Assert(vec[i] < cardinality);
-      if (vec[i] <= 62)
+      if (vec[i] <= 61)
       {
         // first 62 printable characters [\u{65}-\u{126}]: 'A', 'B', 'C', ...
         curr = vec[i] + 65;
       }
-      else if (vec[i] <= 95)
+      else if (vec[i] <= 94)
       {
         // remaining 33 printable characters [\u{32}-\u{64}]: ' ', '!', '"', ...
-        curr = vec[i] - 31;
+        curr = vec[i] - 30;
       }
       else
       {
         // the remaining characters, starting with \u{127} and wrapping around
         // the first 32 non-printable characters.
-        curr = (vec[i] + 31) % cardinality;
+        curr = (vec[i] + 32) % cardinality;
       }
       mvec.push_back(curr);
     }
