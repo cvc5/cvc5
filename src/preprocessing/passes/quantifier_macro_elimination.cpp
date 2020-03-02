@@ -45,9 +45,6 @@ bool getApplicationVariableArgumentsIfUnique(Node application,
                                              vector<Node>& arguments)
 {
   std::set<Node> seenVars;
-  // TODO question: is this necessary because we're not sure whether type
-  // checking has occurred at this stage?
-  TypeNode operatorType = application.getOperator().getType();
   for (size_t i = 0; i < application.getNumChildren(); ++i)
   {
     Node arg = application[i];
@@ -58,10 +55,6 @@ bool getApplicationVariableArgumentsIfUnique(Node application,
       return false;
     }
     if (setContains(seenVars, arg))
-    {
-      return false;
-    }
-    if (arg.getType() != operatorType[i])
     {
       return false;
     }
@@ -85,7 +78,7 @@ bool QuantifierMacroElimination::isDefinitionValid(Node predicate,
     stack.pop_back();
     if (current.getKind() == APPLY_UF)
     {
-      auto currentOperator = current.getOperator();
+      Node currentOperator = current.getOperator();
       if (currentOperator == predicate)
       {
         return false;
@@ -175,7 +168,7 @@ Node QuantifierMacroElimination::replaceMacroInstances(Node n)
       Node macroDefinition = d_macroDefinitions[predicate];
       vector<Node> macro_variables = d_macroBoundVariables[predicate];
       Trace("QME") << "applying substitution for\n  " << n << endl;
-      auto new_node = macroDefinition.substitute(macro_variables.begin(),
+      Node new_node = macroDefinition.substitute(macro_variables.begin(),
                                                  macro_variables.end(),
                                                  children.begin(),
                                                  children.end());
