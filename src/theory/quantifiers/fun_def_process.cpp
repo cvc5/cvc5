@@ -33,6 +33,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
   std::vector< int > fd_assertions;
   std::map< int, Node > subs_head;
   //first pass : find defined functions, transform quantifiers
+  NodeManager * nm = NodeManager::currentNM();
   for( unsigned i=0; i<assertions.size(); i++ ){
     Node n = QuantAttributes::getFunDefHead( assertions[i] );
     if( !n.isNull() ){
@@ -64,7 +65,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( iType, n[j].getType() );
           std::stringstream ssf;
           ssf << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back(NodeManager::currentNM()->mkSkolem(
+          d_input_arg_inj[f].push_back(nm->mkSkolem(
               ssf.str(), typ, "op created during fun def fmf"));
         }
 

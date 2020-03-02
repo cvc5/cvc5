@@ -1610,7 +1610,7 @@ Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QA
       Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, eqc_to_var[eqc]);
       Node bd =
           it->second.size() == 1 ? it->second[0] : nm->mkNode(OR, it->second);
-      Node fa = NodeManager::currentNM()->mkNode(FORALL, bvl, bd);
+      Node fa = nm->mkNode(FORALL, bvl, bd);
       lits.push_back(fa);
     }
     Assert(!lits.empty());
