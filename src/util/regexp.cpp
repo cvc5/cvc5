@@ -124,7 +124,8 @@ bool String::rstrncmp(const String &y, const std::size_t np) const {
 
 void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
 {
-  if (ch > 127)
+  // if not a printable character
+  if (ch > 127 || ch<32)
   {
     std::stringstream serr;
     serr << "Illegal string character: \"" << ch << "\", must use escape sequence";
@@ -179,8 +180,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
         {
           // add the next character
           si = s[i];
-          addCharToInternal(static_cast<unsigned>(si), nonEscCache);
-          ++i;
+          addCharToInternal(si, nonEscCache);
           if (isStart)
           {
             isStart = false;
@@ -188,6 +188,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
             if (si == '{')
             {
               hasBrace = true;
+              ++i;
               continue;
             }
           }
@@ -196,6 +197,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
             // can only end if we had an open brace and read at least one digit
             isEscapeSequence = hasBrace && !hexString.str().empty();
             isEnd = true;
+            ++i;
             break;
           }
           // must be a hex digit at this point
@@ -205,13 +207,14 @@ std::vector<unsigned> String::toInternal(const std::string& s,
             break;
           }
           hexString << si;
+          ++i;
           if (!hasBrace && hexString.str().size() == 4)
           {
             // will be finished reading \ u d_3 d_2 d_1 d_0 with no parens
             isEnd = true;
             break;
           }
-          else if (hasBrace && hexString.size()>5)
+          else if (hasBrace && hexString.str().size()>5)
           {
             // too many digits enclosed in brace, not an escape sequence
             isEscapeSequence = false;
@@ -229,12 +232,13 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       {
         std::string hstr = hexString.str();
         Assert (!hstr.empty() && hstr.size()<=5);
-        // otherwise, we add the escaped character
-        unsigned val = Integer(hstr, 16).toUnsignedInt();
-        if (val>num_codes)
+        // Otherwise, we add the escaped character.
+        // This is guaranteed not to overflow due to the length of hstr.
+        uint32_t val = Integer(hstr, 16).toUnsignedInt();
+        if (val>num_codes())
         {
-          // Failed due to out of range. This can happen for strings of the
-          // form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexidecimal not
+          // Failed due to being out of range. This can happen for strings of
+          // the form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexidecimal not
           // in the range [0-2].
           isEscapeSequence = false;
         }
