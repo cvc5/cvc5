@@ -153,7 +153,6 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       {
         // add the next character
         si = s[i];
-        addCharToInternal(si, nonEscCache);
         if (isStart)
         {
           isStart = false;
@@ -161,6 +160,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
           if (si == '{')
           {
             hasBrace = true;
+            addCharToInternal(si, nonEscCache);
             ++i;
             continue;
           }
@@ -170,6 +170,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
           // can only end if we had an open brace and read at least one digit
           isEscapeSequence = hasBrace && !hexString.str().empty();
           isEnd = true;
+          addCharToInternal(si, nonEscCache);
           ++i;
           break;
         }
@@ -180,6 +181,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
           break;
         }
         hexString << si;
+        addCharToInternal(si, nonEscCache);
         ++i;
         if (!hasBrace && hexString.str().size() == 4)
         {
@@ -203,11 +205,11 @@ std::vector<unsigned> String::toInternal(const std::string& s,
     }
     if (isEscapeSequence)
     {
-      std::string hstr = hexString.str();
-      Assert(!hstr.empty() && hstr.size() <= 5);
+      Assert(!hexString.str().empty() && hexString.str().size() <= 5);
       // Otherwise, we add the escaped character.
       // This is guaranteed not to overflow due to the length of hstr.
-      uint32_t val = Integer(hstr, 16).toUnsignedInt();
+      uint32_t val;
+      hexString >> std::hex >> val;
       if (val > num_codes())
       {
         // Failed due to being out of range. This can happen for strings of
@@ -453,8 +455,8 @@ bool String::isDigit(unsigned character)
 
 bool String::isHexDigit(unsigned character)
 {
-  // '0' to '9' or 'A' to 'F'
-  return isDigit(character) || (41 <= character && character <= 46);
+  // '0' to '9' or 'A' to 'F' or 'a' to 'f'
+  return isDigit(character) || (65 <= character && character <= 70) || (97 <= character && character <= 102);
 }
 
 bool String::isPrintable(unsigned character)
