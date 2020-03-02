@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file type_enumerator.h
+/*! \file type_enumerator.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Tianyi Liang, Tim King, Andrew Reynolds

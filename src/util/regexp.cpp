@@ -222,7 +222,8 @@ std::vector<unsigned> String::toInternal(const std::string& s,
         str.push_back(val);
       }
     }
-    // if we are not an escape sequence, we add back all characters
+    // if we did not successfully parse an escape sequence, we add back all
+    // characters that we cached
     if (!isEscapeSequence)
     {
       str.insert(str.end(), nonEscCache.begin(), nonEscCache.end());
@@ -276,7 +277,7 @@ std::size_t String::roverlap(const String &y) const {
 std::string String::toString(bool useEscSequences) const {
   std::stringstream str;
   for (unsigned int i = 0; i < size(); ++i) {
-    if (isPrintable(d_str[i]))
+    if (isPrintable(d_str[i]) || !useEscSequences)
     {
       str << static_cast<char>(d_str[i]);
     }

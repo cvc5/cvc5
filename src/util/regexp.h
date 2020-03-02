@@ -100,11 +100,7 @@ class CVC4_PUBLIC String {
   * Converts this string to a std::string.
   *
   * If useEscSequences is true, then unprintable characters
-  * are converted to escape sequences. The escape sequences
-  * \n, \t, \v, \b, \r, \f, \a, \\ are printed in this way.
-  * For all other unprintable characters, we print \x[N] where
-  * [N] is the 2 digit hexidecimal corresponding to value of
-  * the character.
+  * are converted to unicode escape sequences as described above.
   *
   * If useEscSequences is false, the returned std::string's characters
   * map one-to-one with the characters in this string.
@@ -195,11 +191,15 @@ class CVC4_PUBLIC String {
   bool isNumber() const;
   /** Returns the corresponding rational for the text of this string. */
   Rational toNumber() const;
-  /** get the internal unsigned representation of this string */
+  /** Get the unsigned representation (code points) of this string */
   const std::vector<unsigned>& getVec() const { return d_str; }
-  /** get the internal unsigned value of the first character in this string */
+  /** 
+   * Get the unsigned (code point) value of the first character in this string
+   */
   unsigned front() const;
-  /** get the internal unsigned value of the last character in this string */
+  /** 
+   * Get the unsigned (code point) value of the last character in this string 
+   */
   unsigned back() const;
   /** is the unsigned a digit?
    *
@@ -224,12 +224,12 @@ class CVC4_PUBLIC String {
   /**
    * Helper for toInternal: add character ch to vector vec, storing a string in
    * internal format. This throws an error if ch is not a printable character,
-   * since non-printable characters must be escaped.
+   * since non-printable characters must be escaped in SMT-LIB.
    */
   static void addCharToInternal(unsigned char ch, std::vector<unsigned>& vec);
   /**
    * Convert the string s to the internal format (vector of code points).
-   * The argument useEscSequences is whether to process (unicode) escape
+   * The argument useEscSequences is whether to process unicode escape
    * sequences.
    */
   static std::vector<unsigned> toInternal(const std::string& s,
