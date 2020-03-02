@@ -72,11 +72,11 @@ struct RewriteStackElement {
   /** Original node */
   Node d_original;
   /** Id of the theory that's currently rewriting this node */
-  unsigned d_theoryId         : 8;
+  unsigned d_theoryId : 8;
   /** Id of the original theory that started the rewrite */
   unsigned d_originalTheoryId : 8;
   /** Index of the child this node is done rewriting */
-  unsigned d_nextChild        : 32;
+  unsigned d_nextChild : 32;
   /** Builder for this node */
   NodeBuilder<> d_builder;
 };
@@ -143,11 +143,11 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
                       << rewriteStackTop.d_node << std::endl;
 
     // Before rewriting children we need to do a pre-rewrite of the node
-    if (rewriteStackTop.d_nextChild == 0) {
-
+    if (rewriteStackTop.d_nextChild == 0)
+    {
       // Check if the pre-rewrite has already been done (it's in the cache)
       cached = getPreRewriteCache(rewriteStackTop.getTheoryId(),
-                                       rewriteStackTop.d_node);
+                                  rewriteStackTop.d_node);
       if (cached.isNull()) {
         // Rewrite until fix-point is reached
         for(;;) {
@@ -179,10 +179,10 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
       }
     }
 
-    rewriteStackTop.d_original =rewriteStackTop.d_node;
+    rewriteStackTop.d_original = rewriteStackTop.d_node;
     // Now it's time to rewrite the children, check if this has already been done
     cached = getPostRewriteCache(rewriteStackTop.getTheoryId(),
-                                      rewriteStackTop.d_node);
+                                 rewriteStackTop.d_node);
     // If not, go through the children
     if(cached.isNull()) {
 
@@ -191,7 +191,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
       // To build the rewritten expression we set up the builder
       if(child == 0) {
-        if (rewriteStackTop.d_node.getNumChildren() > 0) {
+        if (rewriteStackTop.d_node.getNumChildren() > 0)
+        {
           // The children will add themselves to the builder once they're done
           rewriteStackTop.d_builder << rewriteStackTop.d_node.getKind();
           kind::MetaKind metaKind = rewriteStackTop.d_node.getMetaKind();
@@ -202,7 +203,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
       }
 
       // Process the next child
-      if(child < rewriteStackTop.d_node.getNumChildren()) {
+      if (child < rewriteStackTop.d_node.getNumChildren())
+      {
         // The child node
         Node childNode = rewriteStackTop.d_node[child];
         // Push the rewrite request to the stack (NOTE: rewriteStackTop might be a bad reference now)
@@ -212,7 +214,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
       }
 
       // Incorporate the children if necessary
-      if (rewriteStackTop.d_node.getNumChildren() > 0) {
+      if (rewriteStackTop.d_node.getNumChildren() > 0)
+      {
         Node rewritten = rewriteStackTop.d_builder;
         rewriteStackTop.d_node = rewritten;
         rewriteStackTop.d_theoryId = theoryOf(rewriteStackTop.d_node);
