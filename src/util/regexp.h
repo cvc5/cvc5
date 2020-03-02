@@ -69,15 +69,15 @@ class CVC4_PUBLIC String {
   /** get the ASCII code number that internal unsigned i corresponds to. */
   static unsigned convertUnsignedIntToCode(unsigned i);
   /** Escape sequence mode */
-  enum EscapeSequenceMode 
+  enum EscapeSequenceMode
   {
-    /** 
+    /**
      * Handle escape sequences, including \n, \t, \v, \b, \r, \f, \a, \\,
      * \x[N] and octal escape sequences of the form \[c1]([c2]([c3])?)? where
      * c1, c2, c3 are digits from 0 to 7.
      */
     ESC_SEQUENCE_AD_HOC,
-    /** 
+    /**
      * Handle only unicode escape sequences of the form:
      *  \u d_3 d_2 d_1 d_0
      *  \u{d_0}
@@ -92,23 +92,29 @@ class CVC4_PUBLIC String {
     ESC_SEQUENCE_NONE,
   };
   /** constructors for String
-  *
-  * Internally, a CVC4::String is represented by a vector of unsigned
-  * integers (d_str), where the correspondence between C++ characters
-  * to and from unsigned integers is determined by
-  * by convertCharToUnsignedInt and convertUnsignedIntToChar.
-  *
-  * Argument esmode determines which escape sequences to process, as
-  * described above.
-  *
-  * If esmode is ESC_SEQUENCE_NONE, then the characters of the constructed
-  * CVC4::String correspond one-to-one with the input string.
-  */
+   *
+   * Internally, a CVC4::String is represented by a vector of unsigned
+   * integers (d_str), where the correspondence between C++ characters
+   * to and from unsigned integers is determined by
+   * by convertCharToUnsignedInt and convertUnsignedIntToChar.
+   *
+   * Argument esmode determines which escape sequences to process, as
+   * described above.
+   *
+   * If esmode is ESC_SEQUENCE_NONE, then the characters of the constructed
+   * CVC4::String correspond one-to-one with the input string.
+   */
   String() = default;
-  explicit String(const std::string& s, EscapeSequenceMode esmode = ESC_SEQUENCE_UNICODE_STD)
-      : d_str(toInternal(s, esmode)) {}
-  explicit String(const char* s, EscapeSequenceMode esmode = ESC_SEQUENCE_UNICODE_STD)
-      : d_str(toInternal(std::string(s), esmode)) {}
+  explicit String(const std::string& s,
+                  EscapeSequenceMode esmode = ESC_SEQUENCE_UNICODE_STD)
+      : d_str(toInternal(s, esmode))
+  {
+  }
+  explicit String(const char* s,
+                  EscapeSequenceMode esmode = ESC_SEQUENCE_UNICODE_STD)
+      : d_str(toInternal(std::string(s), esmode))
+  {
+  }
   explicit String(const std::vector<unsigned>& s);
 
   String& operator=(const String& y) {
@@ -240,8 +246,8 @@ class CVC4_PUBLIC String {
   */
   static bool isDigit(unsigned character);
   /** is the unsigned a digit?
-  * The input should be the same type as the element type of d_str
-  */
+   * The input should be the same type as the element type of d_str
+   */
   static bool isHexDigit(unsigned character);
 
   /**
