@@ -202,11 +202,9 @@ void Smt2Printer::toStream(std::ostream& out,
     }
 
     case kind::CONST_STRING: {
-      //const std::vector<unsigned int>& s = n.getConst<String>().getVec();
       std::string s = n.getConst<String>().toString(true);
       out << '"';
       for(size_t i = 0; i < s.size(); ++i) {
-        //char c = String::convertUnsignedIntToChar(s[i]);
         char c = s[i];
         if(c == '"') {
           if(d_variant == smt2_0_variant) {
@@ -656,7 +654,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_LT:
   case kind::STRING_ITOS:
   case kind::STRING_STOI:
-  case kind::STRING_CODE:
+  case kind::STRING_FROM_CODE:
+  case kind::STRING_TO_CODE:
   case kind::STRING_TO_REGEXP:
   case kind::REGEXP_CONCAT:
   case kind::REGEXP_UNION:
@@ -1218,7 +1217,8 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_LEQ: return "str.<=";
   case kind::STRING_LT: return "str.<";
-  case kind::STRING_CODE:
+  case kind::STRING_FROM_CODE: return "str.from_code";
+  case kind::STRING_TO_CODE:
     return v == smt2_6_1_variant ? "str.to_code" : "str.code";
   case kind::STRING_ITOS:
     return v == smt2_6_1_variant ? "str.from_int" : "int.to.str";

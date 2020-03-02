@@ -39,8 +39,10 @@ enum RewriteStep
   COMPUTE_MINISCOPING,
   /** Aggressive miniscoping */
   COMPUTE_AGGRESSIVE_MINISCOPING,
+  /** Apply the extended rewriter to quantified formula bodies */
+  COMPUTE_EXT_REWRITE,
   /**
-   * Term processing (e.g. simplifying terms based on ITE conditions,
+   * Term processing (e.g. simplifying terms based on ITE lifting,
    * eliminating extended arithmetic symbols).
    */
   COMPUTE_PROCESS_TERMS,
@@ -150,12 +152,7 @@ class QuantifiersRewriter : public TheoryRewriter
                              Node n,
                              Node ipl);
   static Node computeProcessTerms2(Node body,
-                                   bool hasPol,
-                                   bool pol,
-                                   std::map<Node, bool>& currCond,
-                                   int nCurrCond,
                                    std::map<Node, Node>& cache,
-                                   std::map<Node, Node>& icache,
                                    std::vector<Node>& new_vars,
                                    std::vector<Node>& new_conds,
                                    bool elimExtArith);
@@ -201,12 +198,42 @@ class QuantifiersRewriter : public TheoryRewriter
                                const std::vector<Node>& args,
                                QAttributes& qa);
   //-------------------------------------end conditional splitting
+  //------------------------------------- process terms
+  /** compute process terms
+   *
+   * This takes as input a quantified formula q with attributes qa whose
+   * body is body.
+   *
+   * This rewrite eliminates problematic terms from the bodies of
+   * quantified formulas, which includes performing:
+   * - Certain cases of ITE lifting,
+   * - Elimination of extended arithmetic functions like to_int/is_int/div/mod,
+   * - Elimination of select over store.
+   *
+   * It may introduce new variables V into new_vars and new conditions C into
+   * new_conds. It returns a node retBody such that q of the form
+   *   forall X. body
+   * is equivalent to:
+   *   forall X, V. ( C => retBody )
+   */
+  static Node computeProcessTerms(Node body,
+                                  std::vector<Node>& new_vars,
+                                  std::vector<Node>& new_conds,
+                                  Node q,
+                                  QAttributes& qa);
+  //------------------------------------- end process terms
+  //------------------------------------- extended rewrite
+  /** compute extended rewrite
+   *
+   * This returns the result of applying the extended rewriter on the body
+   * of quantified formula q.
+   */
+  static Node computeExtendedRewrite(Node q);
+  //------------------------------------- end extended rewrite
  public:
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
-  //cache is dependent upon currCond, icache is not, new_conds are negated conditions
-  static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
   static Node computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
   static Node computePrenexAgg( Node n, bool topLevel, std::map< unsigned, std::map< Node, Node > >& visited );
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );

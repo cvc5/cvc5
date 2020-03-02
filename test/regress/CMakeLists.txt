@@ -75,6 +75,7 @@ set(regress_0_tests
   regress0/arrays/incorrect8.minimized.smtv1.smt2
   regress0/arrays/incorrect8.smtv1.smt2
   regress0/arrays/incorrect9.smtv1.smt2
+  regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
   regress0/arrays/x3.smtv1.smt2
@@ -572,6 +573,7 @@ set(regress_0_tests
   regress0/nl/issue3652.smt2
   regress0/nl/issue3718.smt2
   regress0/nl/issue3719.smt2
+  regress0/nl/issue3729-cm-solved-tf.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -810,6 +812,7 @@ set(regress_0_tests
   regress0/reset-assertions.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
+  regress0/sep/issue3720-check-model.smt2
   regress0/sep/nemp.smt2
   regress0/sep/nil-no-elim.smt2
   regress0/sep/nspatial-simp.smt2
@@ -901,6 +904,7 @@ set(regress_0_tests
   regress0/strings/complement-simple.smt2
   regress0/strings/escchar.smt2
   regress0/strings/escchar_25.smt2
+  regress0/strings/from_code.smt2
   regress0/strings/hconst-092618.smt2
   regress0/strings/idof-rewrites.smt2
   regress0/strings/idof-sem.smt2
@@ -1830,6 +1834,7 @@ set(regress_1_tests
   regress1/sygus/issue3648.smt2
   regress1/sygus/issue3649.sy
   regress1/sygus/issue3802-default-consts.sy
+  regress1/sygus/issue3839-cond-rewrite.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy

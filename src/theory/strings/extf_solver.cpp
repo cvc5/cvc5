@@ -54,7 +54,7 @@ ExtfSolver::ExtfSolver(context::Context* c,
   d_extt->addFunctionKind(kind::STRING_STRCTN);
   d_extt->addFunctionKind(kind::STRING_IN_REGEXP);
   d_extt->addFunctionKind(kind::STRING_LEQ);
-  d_extt->addFunctionKind(kind::STRING_CODE);
+  d_extt->addFunctionKind(kind::STRING_TO_CODE);
   d_extt->addFunctionKind(kind::STRING_TOLOWER);
   d_extt->addFunctionKind(kind::STRING_TOUPPER);
   d_extt->addFunctionKind(kind::STRING_REV);
@@ -166,7 +166,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     // context-dependent because it depends on the polarity of n itself
     isCd = true;
   }
-  else if (k != kind::STRING_CODE)
+  else if (k != kind::STRING_TO_CODE)
   {
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
