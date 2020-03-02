@@ -984,9 +984,8 @@ Node mergeExplanations(const std::vector<Node>& expls) {
     TNode expl = expls[i];
     Assert(expl.getType().isBoolean());
     if (expl.getKind() == kind::AND) {
-      for (unsigned j = 0; j < expl.getNumChildren(); ++j)
+      for (const TNode& child : expl)
       {
-        TNode child = expl[j];
         if (child == utils::mkTrue()) continue;
         literals.insert(child);
       }
