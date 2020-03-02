@@ -284,7 +284,7 @@ std::string String::toString(bool useEscSequences) const {
     else
     {
       std::stringstream ss;
-      ss<< std::hex << d_str[i]; 
+      ss << std::hex << d_str[i];
       str << "\\u{" << ss.str() << "}";
     }
   }

@@ -97,16 +97,16 @@ class CVC4_PUBLIC String {
   bool rstrncmp(const String& y, const std::size_t np) const;
 
   /* toString
-  * Converts this string to a std::string.
-  *
-  * If useEscSequences is true, then unprintable characters
-  * are converted to unicode escape sequences as described above.
-  *
-  * If useEscSequences is false, the returned std::string's characters
-  * map one-to-one with the characters in this string.
-  * Notice that for all std::string s, we have that
-  *    CVC4::String( s ).toString() = s.
-  */
+   * Converts this string to a std::string.
+   *
+   * If useEscSequences is true, then unprintable characters
+   * are converted to unicode escape sequences as described above.
+   *
+   * If useEscSequences is false, the returned std::string's characters
+   * map one-to-one with the characters in this string.
+   * Notice that for all std::string s, we have that
+   *    CVC4::String( s ).toString() = s.
+   */
   std::string toString(bool useEscSequences = false) const;
   /** is this the empty string? */
   bool empty() const { return d_str.empty(); }
@@ -193,12 +193,12 @@ class CVC4_PUBLIC String {
   Rational toNumber() const;
   /** Get the unsigned representation (code points) of this string */
   const std::vector<unsigned>& getVec() const { return d_str; }
-  /** 
+  /**
    * Get the unsigned (code point) value of the first character in this string
    */
   unsigned front() const;
-  /** 
-   * Get the unsigned (code point) value of the last character in this string 
+  /**
+   * Get the unsigned (code point) value of the last character in this string
    */
   unsigned back() const;
   /** is the unsigned a digit?
