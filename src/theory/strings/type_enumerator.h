@@ -19,68 +19,50 @@
 #ifndef CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
 
-#include <sstream>
+#include <vector>
 
-#include "expr/kind.h"
+#include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/strings/theory_strings_rewriter.h"
-#include "theory/strings/theory_strings_utils.h"
 #include "theory/type_enumerator.h"
-#include "util/regexp.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
+  
+/** 
+ * Make standard model constant
+ * 
+  * In our string representation, we represent characters using vectors
+  * of unsigned integers indicating code points for the characters of that
+  * string.
+  *
+  * To make models user-friendly, we make unsigned integer 0 correspond to the
+  * 65th character ("A") in the ASCII alphabet to make models intuitive. In
+  * particular, say if we have a set of string variables that are distinct but
+  * otherwise unconstrained, then the model may assign them "A", "B", "C", ...
+ * 
+ * @param vec The code points of the string in a given model,
+ * @param cardinality The cardinality of the alphabet,
+ * @return A string whose characters have the code points corresponding
+ * to vec in the standard model construction described above.
+ */
+Node makeStandardModelConstant(const std::vector<unsigned>& vec,
+  uint32_t cardinality
+);
 
 class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
-  std::vector< unsigned > d_data;
-  uint32_t d_cardinality;
-  Node d_curr;
-  void mkCurr() {
-    //make constant from d_data
-    d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
-  }
-
  public:
-  StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
-      : TypeEnumeratorBase<StringEnumerator>(type)
-  {
-    Assert(type.getKind() == kind::TYPE_CONSTANT
-           && type.getConst<TypeConstant>() == STRING_TYPE);
-    d_cardinality = utils::getAlphabetCardinality();
-    mkCurr();
-  }
+  StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
   Node operator*() override { return d_curr; }
-  StringEnumerator& operator++() override
-  {
-    bool changed = false;
-    do
-    {
-      for (unsigned i = 0; i < d_data.size(); ++i)
-      {
-        if (d_data[i] + 1 < d_cardinality)
-        {
-          ++d_data[i];
-          changed = true;
-          break;
-        }
-        else
-        {
-          d_data[i] = 0;
-        }
-      }
-
-      if (!changed)
-      {
-        d_data.push_back(0);
-      }
-    } while (!changed);
-
-    mkCurr();
-    return *this;
-  }
-
+  StringEnumerator& operator++() override;
   bool isFinished() override { return d_curr.isNull(); }
+ private:
+  /** The cardinality of the alphabet */
+  uint32_t d_cardinality;
+  /** The data (index to members) */
+  std::vector<unsigned> d_data;
+  /** The current term */
+  Node d_curr;
 };/* class StringEnumerator */
 
 /**
@@ -88,39 +70,10 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
  */
 class StringEnumeratorLength {
  public:
-  StringEnumeratorLength(TypeNode tn, uint32_t length, uint32_t card = 256)
-      : d_type(tn), d_cardinality(card)
-  {
-    // TODO (cvc4-projects #23): sequence here
-    Assert(tn.isString());
-    for( unsigned i=0; i<length; i++ ){
-      d_data.push_back( 0 );
-    }
-    mkCurr();
-  }
-
+  StringEnumeratorLength(TypeNode tn, uint32_t length, uint32_t card = 256);
   Node operator*() { return d_curr; }
-  StringEnumeratorLength& operator++() {
-    bool changed = false;
-    for(unsigned i=0; i<d_data.size(); ++i) {
-      if( d_data[i] + 1 < d_cardinality ) {
-        ++d_data[i]; changed = true;
-        break;
-      } else {
-        d_data[i] = 0;
-      }
-    }
-
-    if(!changed) {
-      d_curr = Node::null();
-    }else{
-      mkCurr();
-    }
-    return *this;
-  }
-
+  StringEnumeratorLength& operator++();
   bool isFinished() { return d_curr.isNull(); }
-
  private:
   /** The type we are enumerating */
   TypeNode d_type;
@@ -130,11 +83,6 @@ class StringEnumeratorLength {
   std::vector<unsigned> d_data;
   /** The current term */
   Node d_curr;
-  /** Make the current term from d_data */
-  void mkCurr()
-  {
-    d_curr = NodeManager::currentNM()->mkConst(::CVC4::String(d_data));
-  }
 };
 
 }/* CVC4::theory::strings namespace */

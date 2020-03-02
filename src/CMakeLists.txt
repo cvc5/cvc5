@@ -702,6 +702,7 @@ libcvc4_add_sources(
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
+  theory/strings/type_enumerator.cpp
   theory/strings/type_enumerator.h
   theory/strings/word.cpp
   theory/strings/word.h

@@ -37,17 +37,6 @@ namespace CVC4 {
 class CVC4_PUBLIC String {
  public:
   /**
-   * The start ASCII code. In our string representation below, we represent
-   * characters using a vector d_str of unsigned integers. We refer to this as
-   * the "internal representation" for the string.
-   *
-   * We make unsigned integer 0 correspond to the 65th character ("A") in the
-   * ASCII alphabet to make models intuitive. In particular, say if we have
-   * a set of string variables that are distinct but otherwise unconstrained,
-   * then the model may assign them "A", "B", "C", ...
-   */
-  static inline unsigned start_code() { return 65; }
-  /**
    * This is the cardinality of the alphabet that is representable by this
    * class. Notice that this must be greater than or equal to the cardinality
    * of the alphabet that the string theory reasons about.
