@@ -1002,15 +1002,22 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         if (eqpc->d_id == eq::MERGED_THROUGH_TRANS) {
           std::vector<std::shared_ptr<EqProof>> orderedChildren;
           bool nullCongruenceFound = false;
-          for (unsigned i = 0; i < eqpc->d_children.size(); ++i) {
-            if (eqpc->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE &&
-                eqpc->d_children[i]->d_node.isNull()) {
+          for (const auto& child : eqpc->d_children)
+          {
+            if (child->d_id == eq::MERGED_THROUGH_CONGRUENCE
+                && child->d_node.isNull())
+            {
               nullCongruenceFound = true;
-              Debug("pf::ee") << "Have congruence with empty d_node. Splitting..." << std::endl;
-              orderedChildren.insert(orderedChildren.begin(), eqpc->d_children[i]->d_children[0]);
-              orderedChildren.push_back(eqpc->d_children[i]->d_children[1]);
-            } else {
-              orderedChildren.push_back(eqpc->d_children[i]);
+              Debug("pf::ee")
+                  << "Have congruence with empty d_node. Splitting..."
+                  << std::endl;
+              orderedChildren.insert(orderedChildren.begin(),
+                                     child->d_children[0]);
+              orderedChildren.push_back(child->d_children[1]);
+            }
+            else
+            {
+              orderedChildren.push_back(child);
             }
           }
 
@@ -1935,11 +1942,12 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
       newSetTriggersSize = 0;
       // Copy into to new one, and insert the new tag/id
       unsigned i = 0;
-      Theory::Set tags = newSetTags;
+      Theory::Set tags2 = newSetTags;
       TheoryId current;
-      while ((current = Theory::setPop(tags)) != THEORY_LAST) {
+      while ((current = Theory::setPop(tags2)) != THEORY_LAST)
+      {
         // Remove from the tags
-        tags = Theory::setRemove(current, tags);
+        tags2 = Theory::setRemove(current, tags2);
         // Insert the id into the triggers
         newSetTriggers[newSetTriggersSize++] =
             current == tag ? eqNodeId : triggerSet.d_triggers[i++];
