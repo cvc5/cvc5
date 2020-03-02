@@ -682,11 +682,9 @@ void LFSCProof::toStream(std::ostream& out) const
     d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
 
     // collects the atoms in the assertions
-    for (NodeSet::const_iterator it = used_assertions.begin();
-         it != used_assertions.end();
-         ++it)
+    for (TNode used_assertion : used_assertions)
     {
-      utils::collectAtoms(*it, atoms);
+      utils::collectAtoms(used_assertion, atoms);
     }
 
     std::set<Node>::iterator atomIt;
