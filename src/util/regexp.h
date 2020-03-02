@@ -88,19 +88,25 @@ class CVC4_PUBLIC String {
    * to and from unsigned integers is determined by
    * by convertCharToUnsignedInt and convertUnsignedIntToChar.
    *
-   * Argument esmode determines which escape sequences to process, as
-   * described above.
+   * If useEscSequences is true, we convert unicode escape sequences:
+  *  \u d_3 d_2 d_1 d_0
+  *  \u{d_0}
+  *  \u{d_1 d_0}
+  *  \u{d_2 d_1 d_0}
+  *  \u{d_3 d_2 d_1 d_0}
+  *  \u{d_4 d_3 d_2 d_1 d_0}
+  * where d_0 ... d_4 are hexidecimal digits, to the appropriate character.
    *
-   * If esmode is ESC_SEQUENCE_NONE, then the characters of the constructed
+   * If useEscSequences is false, then the characters of the constructed
    * CVC4::String correspond one-to-one with the input string.
    */
   String() = default;
-  explicit String(const std::string& s, EscSeqMode esmode = ESC_SEQ_UNICODE_STD)
-      : d_str(toInternal(s, esmode))
+  explicit String(const std::string& s, bool useEscSequences=false)
+      : d_str(toInternal(s, useEscSequences))
   {
   }
-  explicit String(const char* s, EscSeqMode esmode = ESC_SEQ_UNICODE_STD)
-      : d_str(toInternal(std::string(s), esmode))
+  explicit String(const char* s, bool useEscSequences=false)
+      : d_str(toInternal(std::string(s), useEscSequences))
   {
   }
   explicit String(const std::vector<unsigned>& s);
@@ -259,11 +265,12 @@ class CVC4_PUBLIC String {
    */
   static void addCharToInternal(unsigned char ch, std::vector<unsigned>& vec);
   /**
-   * Convert the string s to the internal format based on escaped sequence
-   * mode esmode.
+   * Convert the string s to the internal format (vector of code points).
+   * The argument useEscSequences is whether to process (unicode) escape
+   * sequences.
    */
   static std::vector<unsigned> toInternal(const std::string& s,
-                                          EscSeqMode esmode);
+                                          bool useEscSequences);
 
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a

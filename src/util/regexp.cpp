@@ -113,235 +113,117 @@ void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
 }
 
 std::vector<unsigned> String::toInternal(const std::string& s,
-                                         EscSeqMode esmode)
+                                         bool useEscSequences)
 {
   std::vector<unsigned> str;
   unsigned i = 0;
-  while (i < s.size()) {
+  while (i < s.size()) 
+  {
     // get the current character
     char si = s[i];
-    if (si != '\\' || esmode == ESC_SEQ_NONE)
+    if (si != '\\' || !useEscSequences)
     {
       addCharToInternal(si, str);
       ++i;
       continue;
     }
-    // if handling standard escape sequences
-    if (esmode == ESC_SEQ_UNICODE_STD)
+    // the vector of characters, in case we fail to read an escape sequence
+    std::vector<unsigned> nonEscCache;
+    // process the '\'
+    addCharToInternal(si, nonEscCache);
+    ++i;
+    // are we an escape sequence?
+    bool isEscapeSequence = true;
+    // the string corresponding to the hexidecimal code point
+    std::stringstream hexString;
+    // is the slash followed by a 'u'? Could be last character.
+    if (i >= s.size() || s[i] != 'u')
     {
-      // the vector of characters, in case we fail to read an escape sequence
-      std::vector<unsigned> nonEscCache;
-      // process the '\'
-      addCharToInternal(si, nonEscCache);
+      isEscapeSequence = false;
+    }
+    else
+    {
+      // process the 'u'
+      addCharToInternal(s[i], nonEscCache);
       ++i;
-      // are we an escape sequence?
-      bool isEscapeSequence = true;
-      // the string corresponding to the hexidecimal code point
-      std::stringstream hexString;
-      // is the slash followed by a 'u'? Could be last character.
-      if (i >= s.size() || s[i] != 'u')
+      bool isStart = true;
+      bool isEnd = false;
+      bool hasBrace = false;
+      while (i < s.size())
       {
+        // add the next character
+        si = s[i];
+        addCharToInternal(si, nonEscCache);
+        if (isStart)
+        {
+          isStart = false;
+          // possibly read '{'
+          if (si == '{')
+          {
+            hasBrace = true;
+            ++i;
+            continue;
+          }
+        }
+        else if (si == '}')
+        {
+          // can only end if we had an open brace and read at least one digit
+          isEscapeSequence = hasBrace && !hexString.str().empty();
+          isEnd = true;
+          ++i;
+          break;
+        }
+        // must be a hex digit at this point
+        if (!isHexDigit(static_cast<unsigned>(si)))
+        {
+          isEscapeSequence = false;
+          break;
+        }
+        hexString << si;
+        ++i;
+        if (!hasBrace && hexString.str().size() == 4)
+        {
+          // will be finished reading \ u d_3 d_2 d_1 d_0 with no parens
+          isEnd = true;
+          break;
+        }
+        else if (hasBrace && hexString.str().size() > 5)
+        {
+          // too many digits enclosed in brace, not an escape sequence
+          isEscapeSequence = false;
+          break;
+        }
+      }
+      if (!isEnd)
+      {
+        // if we were interupted before ending, then this is not a valid
+        // escape sequence
+        isEscapeSequence = false;
+      }
+    }
+    if (isEscapeSequence)
+    {
+      std::string hstr = hexString.str();
+      Assert(!hstr.empty() && hstr.size() <= 5);
+      // Otherwise, we add the escaped character.
+      // This is guaranteed not to overflow due to the length of hstr.
+      uint32_t val = Integer(hstr, 16).toUnsignedInt();
+      if (val > num_codes())
+      {
+        // Failed due to being out of range. This can happen for strings of
+        // the form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexidecimal not
+        // in the range [0-2].
         isEscapeSequence = false;
       }
       else
       {
-        // process the 'u'
-        addCharToInternal(s[i], nonEscCache);
-        ++i;
-        bool isStart = true;
-        bool isEnd = false;
-        bool hasBrace = false;
-        while (i < s.size())
-        {
-          // add the next character
-          si = s[i];
-          addCharToInternal(si, nonEscCache);
-          if (isStart)
-          {
-            isStart = false;
-            // possibly read '{'
-            if (si == '{')
-            {
-              hasBrace = true;
-              ++i;
-              continue;
-            }
-          }
-          else if (si == '}')
-          {
-            // can only end if we had an open brace and read at least one digit
-            isEscapeSequence = hasBrace && !hexString.str().empty();
-            isEnd = true;
-            ++i;
-            break;
-          }
-          // must be a hex digit at this point
-          if (!isHexDigit(static_cast<unsigned>(si)))
-          {
-            isEscapeSequence = false;
-            break;
-          }
-          hexString << si;
-          ++i;
-          if (!hasBrace && hexString.str().size() == 4)
-          {
-            // will be finished reading \ u d_3 d_2 d_1 d_0 with no parens
-            isEnd = true;
-            break;
-          }
-          else if (hasBrace && hexString.str().size() > 5)
-          {
-            // too many digits enclosed in brace, not an escape sequence
-            isEscapeSequence = false;
-            break;
-          }
-        }
-        if (!isEnd)
-        {
-          // if we were interupted before ending, then this is not a valid
-          // escape sequence
-          isEscapeSequence = false;
-        }
+        str.push_back(val);
       }
-      if (isEscapeSequence)
-      {
-        std::string hstr = hexString.str();
-        Assert(!hstr.empty() && hstr.size() <= 5);
-        // Otherwise, we add the escaped character.
-        // This is guaranteed not to overflow due to the length of hstr.
-        uint32_t val = Integer(hstr, 16).toUnsignedInt();
-        if (val > num_codes())
-        {
-          // Failed due to being out of range. This can happen for strings of
-          // the form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexidecimal not
-          // in the range [0-2].
-          isEscapeSequence = false;
-        }
-        else
-        {
-          str.push_back(val);
-        }
-      }
-      // if we are not an escape sequence, we add back all characters
-      if (!isEscapeSequence)
-      {
-        str.insert(str.end(), nonEscCache.begin(), nonEscCache.end());
-      }
-      continue;
     }
-    // ad-hoc escape sequences
-    Assert(esmode == ESC_SEQ_AD_HOC);
-    if (i >= s.size())
+    // if we are not an escape sequence, we add back all characters
+    if (!isEscapeSequence)
     {
-      // slash cannot be the last character if we are parsing escape sequences
-      throw CVC4::Exception("should be handled by lexer: \"" + s + "\"");
-    }
-    switch (si)
-    {
-      case 'n':
-      {
-        str.push_back(static_cast<unsigned>('\n'));
-        i++;
-      }
-      break;
-      case 't':
-      {
-        str.push_back(static_cast<unsigned>('\t'));
-        i++;
-      }
-      break;
-      case 'v':
-      {
-        str.push_back(static_cast<unsigned>('\v'));
-        i++;
-      }
-      break;
-      case 'b':
-      {
-        str.push_back(static_cast<unsigned>('\b'));
-        i++;
-      }
-      break;
-      case 'r':
-      {
-        str.push_back(static_cast<unsigned>('\r'));
-        i++;
-      }
-      break;
-      case 'f':
-      {
-        str.push_back(static_cast<unsigned>('\f'));
-        i++;
-      }
-      break;
-      case 'a':
-      {
-        str.push_back(static_cast<unsigned>('\a'));
-        i++;
-      }
-      break;
-      case '\\':
-      {
-        str.push_back(static_cast<unsigned>('\\'));
-        i++;
-      }
-      break;
-      case 'x':
-      {
-        if (i + 2 < s.size())
-        {
-          if (isxdigit(s[i + 1]) && isxdigit(s[i + 2]))
-          {
-            str.push_back(static_cast<unsigned>(hexToDec(s[i + 1]) * 16
-                                                + hexToDec(s[i + 2])));
-            i += 3;
-          }
-          else
-          {
-            throw CVC4::Exception("Illegal String Literal: \"" + s + "\"");
-          }
-        }
-        else
-        {
-          throw CVC4::Exception("Illegal String Literal: \"" + s
-                                + "\", must have two digits after \\x");
-        }
-      }
-      break;
-      default:
-      {
-        if (isdigit(s[i]))
-        {
-          // octal escape sequences  TODO : revisit (issue #1251).
-          int num = (int)s[i] - (int)'0';
-          bool flag = num < 4;
-          if (i + 1 < s.size() && num < 8 && isdigit(s[i + 1])
-              && s[i + 1] < '8')
-          {
-            num = num * 8 + (int)s[i + 1] - (int)'0';
-            if (flag && i + 2 < s.size() && isdigit(s[i + 2]) && s[i + 2] < '8')
-            {
-              num = num * 8 + (int)s[i + 2] - (int)'0';
-              str.push_back(static_cast<unsigned>((unsigned char)num));
-              i += 3;
-            }
-            else
-            {
-              str.push_back(static_cast<unsigned>((unsigned char)num));
-              i += 2;
-            }
-          }
-          else
-          {
-            str.push_back(static_cast<unsigned>((unsigned char)num));
-            i++;
-          }
-        }
-        else
-        {
-          addCharToInternal(si, str);
-        }
-      }
+      str.insert(str.end(), nonEscCache.begin(), nonEscCache.end());
     }
   }
 #ifdef CVC4_ASSERTIONS
