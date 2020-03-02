@@ -456,7 +456,8 @@ bool String::isDigit(unsigned character)
 bool String::isHexDigit(unsigned character)
 {
   // '0' to '9' or 'A' to 'F' or 'a' to 'f'
-  return isDigit(character) || (65 <= character && character <= 70) || (97 <= character && character <= 102);
+  return isDigit(character) || (65 <= character && character <= 70)
+         || (97 <= character && character <= 102);
 }
 
 bool String::isPrintable(unsigned character)
