@@ -64,7 +64,8 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( iType, n[j].getType() );
           std::stringstream ssf;
           ssf << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back( NodeManager::currentNM()->mkSkolem( ssf.str(), typ, "op created during fun def fmf" ) );
+          d_input_arg_inj[f].push_back(NodeManager::currentNM()->mkSkolem(
+              ssf.str(), typ, "op created during fun def fmf"));
         }
 
         //construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]

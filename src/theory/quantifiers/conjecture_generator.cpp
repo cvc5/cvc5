@@ -265,24 +265,32 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
           if( !eq_terms.empty() ){
             Trace("thm-ee-add") << "UEE : Based on ground EE/theorem DB, it is equivalent to " << eq_terms.size() << " terms : " << std::endl;
             //add equivalent terms as equalities to universal engine
-            for (const Node& eqt : eq_terms){
+            for (const Node& eqt : eq_terms)
+            {
               Trace("thm-ee-add") << "  " << eqt << std::endl;
               bool assertEq = false;
-              if( d_urelevant_terms.find( eqt )!=d_urelevant_terms.end() ){
+              if (d_urelevant_terms.find(eqt) != d_urelevant_terms.end())
+              {
                 assertEq = true;
-              }else{
+              }
+              else
+              {
                 Assert(eqt.getType() == tn);
-                registerPattern( eqt, tn );
-                if( isUniversalLessThan( eqt, t ) || ( options::conjectureUeeIntro() && d_pattern_fun_sum[t]>=d_pattern_fun_sum[eqt] ) ){
-                  setUniversalRelevant( eqt );
+                registerPattern(eqt, tn);
+                if (isUniversalLessThan(eqt, t)
+                    || (options::conjectureUeeIntro()
+                        && d_pattern_fun_sum[t] >= d_pattern_fun_sum[eqt]))
+                {
+                  setUniversalRelevant(eqt);
                   assertEq = true;
                 }
               }
               if( assertEq ){
                 Node exp;
-                d_uequalityEngine.assertEquality( t.eqNode( eqt ), true, exp );
+                d_uequalityEngine.assertEquality(t.eqNode(eqt), true, exp);
               }else{
-                Trace("thm-ee-no-add") << "Do not add : " << t << " == " << eqt << std::endl;
+                Trace("thm-ee-no-add")
+                    << "Do not add : " << t << " == " << eqt << std::endl;
               }
             }
           }else{
@@ -467,7 +475,8 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( n.hasOperator() ){
                 Trace("sg-gen-eqc") << "   (" << n.getOperator();
                 getTermDatabase()->computeArgReps( n );
-                for (const Node& ar : getTermDatabase()->d_arg_reps[n]){
+                for (const Node& ar : getTermDatabase()->d_arg_reps[n])
+                {
                   Trace("sg-gen-eqc") << " e" << d_em[ar];
                 }
                 Trace("sg-gen-eqc") << ") :: " << n << std::endl;
@@ -549,16 +558,20 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 inEe = d_ee_conjectures.find( q[1] )!=d_ee_conjectures.end();
                 if( !inEe ){
                   //add to universal equality engine
-                  Node nlu = getUniversalRepresentative( eq[0], true );
-                  Node nru = getUniversalRepresentative( eq[1], true );
-                  if( areUniversalEqual( nlu, nru ) ){
+                  Node nlu = getUniversalRepresentative(eq[0], true);
+                  Node nru = getUniversalRepresentative(eq[1], true);
+                  if (areUniversalEqual(nlu, nru))
+                  {
                     isSubsume = true;
                     //set inactive (will be ignored by other modules)
                     d_quantEngine->getModel()->setQuantifierActive( q, false );
-                  }else{
+                  }
+                  else
+                  {
                     Node exp;
                     d_ee_conjectures[q[1]] = true;
-                    d_uequalityEngine.assertEquality( nlu.eqNode( nru ), true, exp );
+                    d_uequalityEngine.assertEquality(
+                        nlu.eqNode(nru), true, exp);
                   }
                 }
                 Trace("sg-conjecture") << "*** CONJECTURE : currently proven" << (isSubsume ? " and subsumed" : "");
@@ -589,7 +602,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           std::vector< Node > ce;
           for (unsigned j = 0; j < skolems.size(); j++)
           {
-            TNode rk = getRepresentative( skolems[j] );
+            TNode rk = getRepresentative(skolems[j]);
             std::map< TNode, Node >::iterator git = d_ground_eqc_map.find( rk );
             //check if it is a ground term
             if( git==d_ground_eqc_map.end() ){
@@ -612,7 +625,8 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           }
           if( disproven ){
             Trace("sg-conjecture") << "disproven : " << q << " : ";
-            for( unsigned j=0, ceSize = ce.size(); j<ceSize; j++ ){
+            for (unsigned j = 0, ceSize = ce.size(); j < ceSize; j++)
+            {
               Trace("sg-conjecture") << q[0][j] << " -> " << ce[j] << " ";
             }
             Trace("sg-conjecture") << std::endl;
@@ -1158,9 +1172,10 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
               children.push_back( nn );
             }
             children.push_back( lc );
-            Node nenum = NodeManager::currentNM()->mkNode( APPLY_UF, children );
-            Trace("sg-gt-enum") << "Ground term enumerate : " << nenum << std::endl;
-            terms.push_back( nenum );
+            Node nenum = NodeManager::currentNM()->mkNode(APPLY_UF, children);
+            Trace("sg-gt-enum")
+                << "Ground term enumerate : " << nenum << std::endl;
+            terms.push_back(nenum);
           }
           // pop the index for the last child
           vec.pop_back();

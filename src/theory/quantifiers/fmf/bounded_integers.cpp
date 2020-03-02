@@ -437,10 +437,12 @@ void BoundedIntegers::checkOwnership(Node f)
           }
         }else if( d_bound_type[f][v]==BOUND_FIXED_SET ){
           Trace("bound-int") << "  " << v << " in { ";
-          for (const Node& fnr : d_fixed_set_ngr_range[f][v]){
+          for (const Node& fnr : d_fixed_set_ngr_range[f][v])
+          {
             Trace("bound-int") << fnr << " ";
           }
-          for (const Node& fgr : d_fixed_set_gr_range[f][v]){
+          for (const Node& fgr : d_fixed_set_gr_range[f][v])
+          {
             Trace("bound-int") << fgr << " ";
           }
           Trace("bound-int") << "}" << std::endl;
@@ -705,7 +707,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
   for( int i=0; i<vindex; i++) {
     Assert(d_set_nums[q][d_set[q][i]] == i);
     Trace("bound-int-rsi") << "Look up the value for " << d_set[q][i] << " " << i << std::endl;
-    int vo = rsi->getVariableOrder( i );
+    int vo = rsi->getVariableOrder(i);
     Assert(q[0][vo] == d_set[q][i]);
     Node t = rsi->getCurrentTerm(vo, true);
     Trace("bound-int-rsi") << "term : " << t << std::endl;

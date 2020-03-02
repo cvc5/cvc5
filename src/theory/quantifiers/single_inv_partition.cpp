@@ -337,8 +337,8 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
           }
         }
         Assert(termsNs.size() == subsNs.size());
-        cr =
-            cr.substitute(termsNs.begin(), termsNs.end(), subsNs.begin(), subsNs.end());
+        cr = cr.substitute(
+            termsNs.begin(), termsNs.end(), subsNs.begin(), subsNs.end());
       }
       cr = Rewriter::rewrite(cr);
       Trace("si-prt") << ".....got si=" << singleInvocation

@@ -64,7 +64,8 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
       if( fm->isQuantifierActive( q ) ){
         //check if any of these quantified formulas can be set inactive
         if( options::fmfEmptySorts() ){
-          for (const Node& var : q[0]){
+          for (const Node& var : q[0])
+          {
             TypeNode tn = var.getType();
             //we are allowed to assume the type is empty
             if( tn.isSort() && eqc_usort.find( tn )==eqc_usort.end() ){

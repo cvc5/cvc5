@@ -1588,7 +1588,7 @@ Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QA
     }
   }
   if ( eqc_active>1 || !lits.empty() || var_to_eqc.size()!=args.size() ){
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Trace("clause-split-debug") << "Split quantified formula with body " << body << std::endl;
     Trace("clause-split-debug") << "   Ground literals: " << std::endl;
     for( size_t i=0; i<lits.size(); i++) {
@@ -1608,8 +1608,9 @@ Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QA
       }
       Trace("clause-split-debug") << std::endl;
       Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, eqc_to_var[eqc]);
-      Node bd = it->second.size()==1 ? it->second[0] : nm->mkNode( OR, it->second );
-      Node fa = NodeManager::currentNM()->mkNode( FORALL, bvl, bd );
+      Node bd =
+          it->second.size() == 1 ? it->second[0] : nm->mkNode(OR, it->second);
+      Node fa = NodeManager::currentNM()->mkNode(FORALL, bvl, bd);
       lits.push_back(fa);
     }
     Assert(!lits.empty());
