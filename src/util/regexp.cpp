@@ -472,17 +472,6 @@ Rational String::toNumber() const
   return Rational(toString());
 }
 
-unsigned char String::hexToDec(unsigned char c) {
-  if (c >= '0' && c <= '9') {
-    return c - '0';
-  } else if (c >= 'a' && c <= 'f') {
-    return c - 'a' + 10;
-  } else {
-    Assert(c >= 'A' && c <= 'F');
-    return c - 'A' + 10;
-  }
-}
-
 std::ostream &operator<<(std::ostream &os, const String &s) {
   return os << "\"" << s.toString(true) << "\"";
 }

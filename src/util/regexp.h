@@ -58,29 +58,6 @@ class CVC4_PUBLIC String {
    * Unicode characters, where 196608 = 3*16^4.
    */
   static inline unsigned num_codes() { return 196608; }
-  /** Escape sequence mode */
-  enum EscSeqMode
-  {
-    /**
-     * Handle escape sequences, including \n, \t, \v, \b, \r, \f, \a, \\,
-     * \x[N] and octal escape sequences of the form \[c1]([c2]([c3])?)? where
-     * c1, c2, c3 are digits from 0 to 7.
-     */
-    ESC_SEQ_AD_HOC,
-    /**
-     * Handle only unicode escape sequences of the form:
-     *  \u d_3 d_2 d_1 d_0
-     *  \u{d_0}
-     *  \u{d_1 d_0}
-     *  \u{d_2 d_1 d_0}
-     *  \u{d_3 d_2 d_1 d_0}
-     *  \u{d_4 d_3 d_2 d_1 d_0}
-     * where d_0 ... d_4 are hexidecimal digits.
-     */
-    ESC_SEQ_UNICODE_STD,
-    /** Handle no escape sequences */
-    ESC_SEQ_NONE,
-  };
   /** constructors for String
    *
    * Internally, a CVC4::String is represented by a vector of unsigned
@@ -255,8 +232,6 @@ class CVC4_PUBLIC String {
    */
   static size_t maxSize();
  private:
-  // guarded
-  static unsigned char hexToDec(unsigned char c);
 
   /**
    * Helper for toInternal: add character ch to vector vec, storing a string in
