@@ -153,7 +153,7 @@ void UfModelTreeNode::simplify( Node op, Node defaultVal, int argIndex ){
       }
     }
     //now see if any children can be removed, and simplify the ones that cannot
-    for (const auto& kv : d_data)
+    for (auto& kv : d_data)
     {
       if (!kv.first.isNull())
       {
@@ -163,8 +163,8 @@ void UfModelTreeNode::simplify( Node op, Node defaultVal, int argIndex ){
         }
         else
         {
-          it->second.simplify(op, defaultVal, argIndex + 1);
-          if (it->second.isEmpty())
+          kv.second.simplify(op, defaultVal, argIndex + 1);
+          if (kv.second.isEmpty())
           {
             eraseData.push_back(kv.first);
           }
