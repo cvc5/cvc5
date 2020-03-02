@@ -1,11 +1,6 @@
 #-----------------------------------------------------------------------------#
 # Collect libcvc4 source files
 
-set_source_files_properties(
-  #smt/model_core_builder.cpp smt/model_core_builder.h smt/smt_engine.cpp smt/smt_engine.h smt/smt_engine_scope.cpp smt/smt_engine_scope.h smt/smt_statistics_registry.cpp smt/smt_statistics_registry.h
-  theory/idl/idl_assertion.cpp theory/idl/idl_assertion.h theory/idl/idl_assertion_db.cpp theory/idl/idl_assertion_db.h theory/idl/idl_model.cpp theory/idl/idl_model.h theory/idl/theory_idl.cpp theory/idl/theory_idl.h
-  PROPERTIES COMPILE_FLAGS -Wshadow
-)
 libcvc4_add_sources(
   api/cvc4cpp.cpp
   api/cvc4cpp.h
