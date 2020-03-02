@@ -1056,7 +1056,8 @@ void TheoryStrings::registerTerm(Node n, int effort)
     Node code_range = nm->mkNode(
         AND,
         nm->mkNode(GEQ, n, d_zero),
-        nm->mkNode(LT, n, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
+        nm->mkNode(
+            LT, n, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
     Node lem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
     Trace("strings-lemma") << "Strings::Lemma CODE : " << lem << std::endl;
     Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
