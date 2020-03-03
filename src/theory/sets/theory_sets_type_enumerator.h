@@ -79,16 +79,11 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
     Trace("set-type-enum") << "operator++ called, **this = " << **this
                            << std::endl;
 
-    Trace("set-type-enum") << "d_constituentVec: "
-                           << (*d_elementTypeEnumerator).getType() << std::endl;
-
     if (d_finished)
     {
       Trace("set-type-enum") << "operator++ finished!" << std::endl;
       return *this;
     }
-
-    Node last_pre_increment = *d_elementTypeEnumerator;
 
     ++d_elementTypeEnumerator;
 
