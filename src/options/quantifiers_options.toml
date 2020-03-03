@@ -1983,13 +1983,4 @@ header = "options/quantifiers_options.h"
   long       = "sygus-inst"
   type       = "bool"
   default    = "false"
-  help       = "Enable SyGuS instantiation engine"
-
-[[option]]
-  name       = "sygusInstDt"
-  category   = "regular"
-  long       = "sygus-inst-dt"
-  type       = "bool"
-  default    = "false"
-  help       = "Enable SyGuS datatype instantiation engine"
-
+  help       = "Enable SyGuS instantiation quantifiers module"
