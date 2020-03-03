@@ -1216,6 +1216,11 @@ void SmtEngine::setDefaults() {
 
   if (options::solveBVAsInt() > 0)
   {
+    if (d_logic > LogicInfo("QF_UFBV")) {
+      throw OptionException(
+          "--solve-bv-as-int=X only supported for QF_BV and QF_UFBV.");
+    }
+
     if (d_logic.isTheoryEnabled(THEORY_BV))
     {
       d_logic = d_logic.getUnlockedCopy();
