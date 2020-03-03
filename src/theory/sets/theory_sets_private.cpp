@@ -97,7 +97,6 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2)
     {
       s2 = e2->d_singleton;
       EqcInfo* e1 = getOrMakeEqcInfo(t1);
-      Node s1;
       Trace("sets-prop-debug") << "Merging singletons..." << std::endl;
       if (e1)
       {
