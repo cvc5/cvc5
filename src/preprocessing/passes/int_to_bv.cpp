@@ -214,6 +214,11 @@ Node intToBV(TNode n, NodeMap& cache)
             break;
           case kind::APPLY_UF:
           {
+            /* The domain and range of UFs are changed.
+             * If an argument is of type INT, it it changed
+             * to BV. 
+             * Otherwise, it stays intact.
+             */
             newKind = kind::APPLY_UF;
             Node intUF = current.getOperator();
             TypeNode tn = intUF.getType();
