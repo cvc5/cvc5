@@ -92,11 +92,14 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
     }
     else
     {
-      std::vector<unsigned> indices = fromDecimalToBinary(d_currentSetIndex);
+      BitVector indices = BitVector(d_elementsSoFar.size(), d_currentSetIndex);
       std::vector<Node> elements;
-      for (unsigned i : indices)
+      for (unsigned i = 0; i < d_elementsSoFar.size(); i++)
       {
-        elements.push_back(d_elementsSoFar[i - 1]);
+        if (indices.isBitSet(i))
+        {
+          elements.push_back(d_elementsSoFar[i]);
+        }
       }
       d_currentSet = NormalForm::elementsToSet(
           std::set<TNode>(elements.begin(), elements.end()), getType());
@@ -115,22 +118,6 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
   }
 
  private:
-  std::vector<unsigned> fromDecimalToBinary(unsigned decimal)
-  {
-    std::vector<unsigned> binary;
-    int i = 0;
-    while (decimal > 0)
-    {
-      i++;
-      if (decimal % 2 == 1)
-      {
-        binary.push_back(i);
-      }
-      decimal = (unsigned)decimal >> 1;
-    }
-    return std::move(binary);
-  }
-
   NodeManager* d_nodeManager;
   TypeEnumerator d_elementEnumerator;
   bool d_isFinished;
