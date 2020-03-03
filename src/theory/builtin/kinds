@@ -309,7 +309,10 @@ operator FUNCTION_TYPE 2: "a function type"
 cardinality FUNCTION_TYPE \
     "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
-well-founded FUNCTION_TYPE false
+well-founded FUNCTION_TYPE \
+    "::CVC4::theory::builtin::FunctionProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::builtin::FunctionProperties::mkGroundTerm(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
 enumerator FUNCTION_TYPE \
     ::CVC4::theory::builtin::FunctionEnumerator \
     "theory/builtin/type_enumerator.h"

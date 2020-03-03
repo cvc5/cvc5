@@ -16,12 +16,11 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -169,9 +168,8 @@ void SynthEngine::assignConjecture(Node q)
     if (!sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation())
     {
       // create new smt engine to do quantifier elimination
-      SmtEngine smt_qe(nm->toExprManager());
-      smt_qe.setIsInternalSubsolver();
-      smt_qe.setLogic(smt::currentSmtEngine()->getLogicInfo());
+      std::unique_ptr<SmtEngine> smt_qe;
+      initializeSubsolver(smt_qe);
       Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                             "QE to obtain single invocation."
                          << std::endl;
@@ -234,7 +232,7 @@ void SynthEngine::assignConjecture(Node q)
 
       Trace("cegqi-qep") << "Run quantifier elimination on "
                          << conj_se_ngsi_subs << std::endl;
-      Expr qe_res = smt_qe.doQuantifierElimination(
+      Expr qe_res = smt_qe->doQuantifierElimination(
           conj_se_ngsi_subs.toExpr(), true, false);
       Trace("cegqi-qep") << "Result : " << qe_res << std::endl;
 
