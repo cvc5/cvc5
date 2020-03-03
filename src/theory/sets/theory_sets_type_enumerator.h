@@ -92,12 +92,11 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 
     ++d_elementTypeEnumerator;
 
-    TypeEnumerator* newEnumerator = new TypeEnumerator(d_elementTypeEnumerator);
-    ++(*newEnumerator);
-    if (newEnumerator->isFinished())
+    TypeEnumerator newEnumerator(d_elementTypeEnumerator);
+    ++newEnumerator;
+    if (newEnumerator.isFinished())
     {
       Trace("set-type-enum") << "operator++ finished!" << std::endl;
-      delete newEnumerator;
       d_finished = true;
       return *this;
     }
