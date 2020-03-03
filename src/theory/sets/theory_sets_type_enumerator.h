@@ -33,41 +33,11 @@ namespace sets {
 class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 {
  public:
-  SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
-      : TypeEnumeratorBase<SetEnumerator>(type),
-        d_nodeManager(NodeManager::currentNM()),
-        d_elementEnumerator(type.getSetElementType(), tep),
-        d_isFinished(false),
-        d_currentSetIndex(0),
-        d_currentSet()
-  {
-    d_currentSet = d_nodeManager->mkConst(EmptySet(type.toType()));
-  }
+  SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
+  SetEnumerator(const SetEnumerator& enumerator);
+  ~SetEnumerator();
 
-  SetEnumerator(const SetEnumerator& enumerator)
-      : TypeEnumeratorBase<SetEnumerator>(enumerator.getType()),
-        d_nodeManager(enumerator.d_nodeManager),
-        d_elementEnumerator(enumerator.d_elementEnumerator),
-        d_isFinished(enumerator.d_isFinished),
-        d_currentSetIndex(enumerator.d_currentSetIndex),
-        d_currentSet(enumerator.d_currentSet)
-  {
-  }
-
-  ~SetEnumerator() {}
-
-  Node operator*() override
-  {
-    if (d_isFinished)
-    {
-      throw NoMoreValuesException(getType());
-    }
-
-    Trace("set-type-enum") << "SetEnumerator::operator* d_currentSet = "
-                           << d_currentSet << std::endl;
-
-    return d_currentSet;
-  }
+  Node operator*() override;
 
   /**
    * This operator iterates over the power set of the element type
@@ -77,77 +47,9 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
    * {}, {00}, {01}, {00, 01}, {10}, {00, 10}, {01, 10}, {00, 01, 10}, ...,
    * {00, 01, 10, 11}
    */
-  SetEnumerator& operator++() override
-  {
-    if (d_isFinished)
-    {
-      Trace("set-type-enum")
-          << "SetEnumerator::operator++ finished!" << std::endl;
-      Trace("set-type-enum")
-          << "SetEnumerator::operator++ d_currentSet = " << d_currentSet
-          << std::endl;
-      return *this;
-    }
+  SetEnumerator& operator++() override;
 
-    d_currentSetIndex++;
-
-    // if the index is a power of 2, get a new element from d_elementEnumerator
-    if (d_currentSetIndex == (unsigned)(1 << d_elementsSoFar.size()))
-    {
-      // if there are no more values from d_elementEnumerator, set d_isFinished
-      // to true
-      if (d_elementEnumerator.isFinished())
-      {
-        d_isFinished = true;
-
-        Trace("set-type-enum")
-            << "SetEnumerator::operator++ finished!" << std::endl;
-        Trace("set-type-enum")
-            << "SetEnumerator::operator++ d_currentSet = " << d_currentSet
-            << std::endl;
-        return *this;
-      }
-
-      // get a new element and return it as a singleton set
-      Node element = *d_elementEnumerator;
-      d_elementsSoFar.push_back(element);
-      d_currentSet = d_nodeManager->mkNode(Kind::SINGLETON, element);
-      d_elementEnumerator++;
-    }
-    else
-    {
-      // determine which elements are included in the set
-      BitVector indices = BitVector(d_elementsSoFar.size(), d_currentSetIndex);
-      std::vector<Node> elements;
-      for (unsigned i = 0; i < d_elementsSoFar.size(); i++)
-      {
-        // add the element to the set if its corresponding bit is set
-        if (indices.isBitSet(i))
-        {
-          elements.push_back(d_elementsSoFar[i]);
-        }
-      }
-      d_currentSet = NormalForm::elementsToSet(
-          std::set<TNode>(elements.begin(), elements.end()), getType());
-    }
-
-    Assert(d_currentSet.isConst());
-    Assert(d_currentSet == Rewriter::rewrite(d_currentSet));
-
-    Trace("set-type-enum") << "SetEnumerator::operator++ d_elementsSoFar = "
-                           << d_elementsSoFar << std::endl;
-    Trace("set-type-enum") << "SetEnumerator::operator++ d_currentSet = "
-                           << d_currentSet << std::endl;
-
-    return *this;
-  }
-
-  bool isFinished() override
-  {
-    Trace("set-type-enum") << "SetEnumerator::isFinished = " << d_isFinished
-                           << std::endl;
-    return d_isFinished;
-  }
+  bool isFinished() override;
 
  private:
   NodeManager* d_nodeManager;
