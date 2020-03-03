@@ -11,7 +11,7 @@
  **
  ** \brief type enumerator for sets
  **
- ** A set enumerator that iterates over the powerset of the element type
+ ** A set enumerator that iterates over the power set of the element type
  ** starting with the empty set as the initial value
  **/
 
@@ -69,6 +69,14 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
     return d_currentSet;
   }
 
+  /**
+   * This operator iterates over the power set of the element type
+   * following the order of a bitvector counter.
+   * Example: iterating over a set of bitvecotors of length 2 will return the
+   * following sequence consisting of 16 sets:
+   * {}, {00}, {01}, {00, 01}, {10}, {00, 10}, {01, 10}, {00, 01, 10}, ...,
+   * {00, 01, 10, 11}
+   */
   SetEnumerator& operator++() override
   {
     if (d_isFinished)
@@ -83,9 +91,11 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 
     d_currentSetIndex++;
 
-    // generate new element
+    // if the index is a power of 2, get a new element from d_elementEnumerator
     if (d_currentSetIndex == (unsigned)(1 << d_elementsSoFar.size()))
     {
+      // if there are no more values from d_elementEnumerator, set d_isFinished
+      // to true
       if (d_elementEnumerator.isFinished())
       {
         d_isFinished = true;
@@ -98,6 +108,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
         return *this;
       }
 
+      // get a new element and return it as a singleton set
       Node element = *d_elementEnumerator;
       d_elementsSoFar.push_back(element);
       d_currentSet = d_nodeManager->mkNode(Kind::SINGLETON, element);
@@ -105,10 +116,12 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
     }
     else
     {
+      // determine which elements are included in the set
       BitVector indices = BitVector(d_elementsSoFar.size(), d_currentSetIndex);
       std::vector<Node> elements;
       for (unsigned i = 0; i < d_elementsSoFar.size(); i++)
       {
+        // add the element to the set if its corresponding bit is set
         if (indices.isBitSet(i))
         {
           elements.push_back(d_elementsSoFar[i]);
