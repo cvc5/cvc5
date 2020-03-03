@@ -37,7 +37,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator> {
   unsigned d_index;
   TypeNode d_constituentType;
   NodeManager* d_nm;
-  std::vector<bool> d_indexVec;
+//  std::vector<bool> d_indexVec;
   std::vector<TypeEnumerator*> d_constituentVec;
   bool d_finished;
   Node d_setConst;
@@ -49,7 +49,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator> {
         d_index(0),
         d_constituentType(type.getSetElementType()),
         d_nm(NodeManager::currentNM()),
-        d_indexVec(),
+//        d_indexVec(),
         d_constituentVec(),
         d_finished(false),
         d_setConst()
@@ -69,7 +69,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator> {
         d_index(ae.d_index),
         d_constituentType(ae.d_constituentType),
         d_nm(ae.d_nm),
-        d_indexVec(ae.d_indexVec),
+//        d_indexVec(ae.d_indexVec),
         d_constituentVec(),  // copied below
         d_finished(ae.d_finished),
         d_setConst(ae.d_setConst)
