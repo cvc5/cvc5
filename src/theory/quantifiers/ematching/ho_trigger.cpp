@@ -112,7 +112,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
           bool curWithinApply = withinApply[cur];
           visited[cur] = Node::null();
           visit.push_back(cur);
-          for (unsigned j = 0, size = cur.getNumChildren(); j < size; j++)
+          for (unsigned j = 0, sizec = cur.getNumChildren(); j < sizec; j++)
           {
             withinApply[cur[j]] = curWithinApply && j == 0;
             visit.push_back(cur[j]);
