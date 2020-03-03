@@ -37,7 +37,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
       : TypeEnumeratorBase<SetEnumerator>(type),
         d_nodeManager(NodeManager::currentNM()),
         d_elementEnumerator(type.getSetElementType(), tep),
-        d_isElementEnumeratorFinished(false),
+        d_isFinished(false),
         d_currentSetIndex(0),
         d_currentSet()
   {
@@ -48,7 +48,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
       : TypeEnumeratorBase<SetEnumerator>(enumerator.getType()),
         d_nodeManager(enumerator.d_nodeManager),
         d_elementEnumerator(enumerator.d_elementEnumerator),
-        d_isElementEnumeratorFinished(enumerator.d_isElementEnumeratorFinished),
+        d_isFinished(enumerator.d_isFinished),
         d_currentSetIndex(enumerator.d_currentSetIndex),
         d_currentSet(enumerator.d_currentSet)
   {
@@ -58,7 +58,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 
   Node operator*() override
   {
-    if (d_isElementEnumeratorFinished)
+    if (d_isFinished)
     {
       throw NoMoreValuesException(getType());
     }
@@ -68,7 +68,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 
   SetEnumerator& operator++() override
   {
-    if (d_isElementEnumeratorFinished)
+    if (d_isFinished)
     {
       Trace("set-type-enum") << "operator++ finished!" << std::endl;
       return *this;
@@ -79,17 +79,16 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
     // generate new element
     if (d_currentSetIndex == (unsigned)(1 << d_elementsSoFar.size()))
     {
+      if(d_elementEnumerator.isFinished())
+      {
+        d_isFinished = true;
+        return *this;
+      }
+
       Node element = *d_elementEnumerator;
       d_elementsSoFar.push_back(element);
-      d_elementEnumerator++;
       d_currentSet = d_nodeManager->mkNode(Kind::SINGLETON, element);
-
-      TypeEnumerator newEnumerator(d_elementEnumerator);
-      newEnumerator++;
-      if (newEnumerator.isFinished())
-      {
-        d_isElementEnumeratorFinished = true;
-      }
+      d_elementEnumerator++;
     }
     else
     {
@@ -111,8 +110,9 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
   bool isFinished() override
   {
     Trace("set-type-enum") << "isFinished returning: "
-                           << d_isElementEnumeratorFinished << std::endl;
-    return d_isElementEnumeratorFinished;
+                           << d_isFinished
+                           << std::endl;
+    return d_isFinished;
   }
 
  private:
@@ -134,7 +134,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 
   NodeManager* d_nodeManager;
   TypeEnumerator d_elementEnumerator;
-  bool d_isElementEnumeratorFinished;
+  bool d_isFinished;
   std::vector<Node> d_elementsSoFar;
   unsigned int d_currentSetIndex;
   Node d_currentSet;
