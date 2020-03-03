@@ -1252,8 +1252,8 @@ Node ITESimplifier::attemptEagerRemoval(TNode atom)
       Assert(leaves != NULL);
       if (!std::binary_search(leaves->begin(), leaves->end(), constant))
       {
-        std::pair<Node, Node> pair = make_pair(cite, constant);
-        d_constantIteEqualsConstantCache[pair] = d_false;
+        std::pair<Node, Node> pair_1 = make_pair(cite, constant);
+        d_constantIteEqualsConstantCache[pair_1] = d_false;
         return d_false;
       }
     }
@@ -1875,9 +1875,9 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
         continue;
       }
 
-      for (unsigned i = 0; i < v.getNumChildren(); ++i)
+      for (unsigned j = 0; j < v.getNumChildren(); ++j)
       {
-        updateQueue(queue, v[i], cs);
+        updateQueue(queue, v[j], cs);
       }
     }
   }
