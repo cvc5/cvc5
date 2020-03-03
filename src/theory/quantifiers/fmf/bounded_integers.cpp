@@ -437,11 +437,11 @@ void BoundedIntegers::checkOwnership(Node f)
           }
         }else if( d_bound_type[f][v]==BOUND_FIXED_SET ){
           Trace("bound-int") << "  " << v << " in { ";
-          for (const Node& fnr : d_fixed_set_ngr_range[f][v])
+          for (TNode fnr : d_fixed_set_ngr_range[f][v])
           {
             Trace("bound-int") << fnr << " ";
           }
-          for (const Node& fgr : d_fixed_set_gr_range[f][v])
+          for (TNode fgr : d_fixed_set_gr_range[f][v])
           {
             Trace("bound-int") << fgr << " ";
           }

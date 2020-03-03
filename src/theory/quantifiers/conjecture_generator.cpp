@@ -475,7 +475,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( n.hasOperator() ){
                 Trace("sg-gen-eqc") << "   (" << n.getOperator();
                 getTermDatabase()->computeArgReps( n );
-                for (const Node& ar : getTermDatabase()->d_arg_reps[n])
+                for (TNode ar : getTermDatabase()->d_arg_reps[n])
                 {
                   Trace("sg-gen-eqc") << " e" << d_em[ar];
                 }
