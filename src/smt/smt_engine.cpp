@@ -1205,13 +1205,12 @@ void SmtEngine::setDefaults() {
 
   if (options::solveIntAsBV() > 0)
   {
-    if (!(d_logic <= LogicInfo("QF_NIA")))
+    if (!(d_logic <= LogicInfo("QF_UFNIA")))
     {
       throw OptionException(
-          "--solve-int-as-bv=X only supported for pure integer logics (QF_NIA, "
-          "QF_LIA, QF_IDL)");
+          "--solve-int-as-bv=X only supported for sub-logics of QF_UFNIA");
     }
-    d_logic = LogicInfo("QF_BV");
+    d_logic = LogicInfo("QF_UFBV");
   }
 
   if (options::solveBVAsInt() > 0)
