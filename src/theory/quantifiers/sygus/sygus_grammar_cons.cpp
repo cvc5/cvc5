@@ -860,7 +860,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           Node sel = dt[l][j].getSelector();
           sdts[i_selType].addConstructor(sel, dt[l][j].getName(), cargsSel);
         }
-        sdts[l].addConstructor(cop, dt[l].getName(), cargsCons);
+        sdts[i].addConstructor(cop, dt[l].getName(), cargsCons);
       }
     }
     else if (types[i].isSort() || types[i].isFunction())
