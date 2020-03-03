@@ -1252,7 +1252,6 @@ Node ITESimplifier::attemptEagerRemoval(TNode atom)
       Assert(leaves != NULL);
       if (!std::binary_search(leaves->begin(), leaves->end(), constant))
       {
-        std::pair<Node, Node> pair = make_pair(cite, constant);
         d_constantIteEqualsConstantCache[pair] = d_false;
         return d_false;
       }
@@ -1875,7 +1874,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
         continue;
       }
 
-      for (unsigned i = 0; i < v.getNumChildren(); ++i)
+      for (i = 0; i < v.getNumChildren(); ++i)
       {
         updateQueue(queue, v[i], cs);
       }
