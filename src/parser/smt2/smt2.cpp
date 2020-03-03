@@ -166,6 +166,7 @@ void Smt2::addStringOperators() {
   }
   addOperator(api::STRING_PREFIX, "str.prefixof");
   addOperator(api::STRING_SUFFIX, "str.suffixof");
+  addOperator(api::STRING_FROM_CODE, "str.from_code");
   addOperator(api::STRING_IS_DIGIT, "str.is_digit");
   // at the moment, we only use this syntax for smt2.6.1
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1

@@ -1499,7 +1499,6 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
                itr != cset.end();
                ++itr)
           {
-            //CVC4::String c( *itr );
             if(itr != cset.begin()) {
               Trace("regexp-int-debug") << ", ";
             }
