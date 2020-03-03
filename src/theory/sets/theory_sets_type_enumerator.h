@@ -2,17 +2,17 @@
 /*! \file theory_sets_type_enumerator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Andrew Reynolds
+ **   Kshitij Bansal, Tim King, Andrew Reynolds, Mudathir Mahgoub
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief type enumerator for sets
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** A set enumerator that iterates over the powerset of the element type
+ ** starting with the empty set as the initial value
  **/
 
 #include "cvc4_private.h"
@@ -63,6 +63,9 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
       throw NoMoreValuesException(getType());
     }
 
+    Trace("set-type-enum") << "SetEnumerator::operator* d_currentSet = "
+                           << d_currentSet << std::endl;
+
     return d_currentSet;
   }
 
@@ -70,7 +73,11 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
   {
     if (d_isFinished)
     {
-      Trace("set-type-enum") << "operator++ finished!" << std::endl;
+      Trace("set-type-enum")
+          << "SetEnumerator::operator++ finished!" << std::endl;
+      Trace("set-type-enum")
+          << "SetEnumerator::operator++ d_currentSet = " << d_currentSet
+          << std::endl;
       return *this;
     }
 
@@ -82,6 +89,12 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
       if (d_elementEnumerator.isFinished())
       {
         d_isFinished = true;
+
+        Trace("set-type-enum")
+            << "SetEnumerator::operator++ finished!" << std::endl;
+        Trace("set-type-enum")
+            << "SetEnumerator::operator++ d_currentSet = " << d_currentSet
+            << std::endl;
         return *this;
       }
 
@@ -107,12 +120,18 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 
     Assert(d_currentSet.isConst());
     Assert(d_currentSet == Rewriter::rewrite(d_currentSet));
+
+    Trace("set-type-enum") << "SetEnumerator::operator++ d_elementsSoFar = "
+                           << d_elementsSoFar << std::endl;
+    Trace("set-type-enum") << "SetEnumerator::operator++ d_currentSet = "
+                           << d_currentSet << std::endl;
+
     return *this;
   }
 
   bool isFinished() override
   {
-    Trace("set-type-enum") << "isFinished returning: " << d_isFinished
+    Trace("set-type-enum") << "SetEnumerator::isFinished = " << d_isFinished
                            << std::endl;
     return d_isFinished;
   }
