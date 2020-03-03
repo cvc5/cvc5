@@ -209,8 +209,8 @@ bool CegisCoreConnective::processInitialize(Node conj,
   SygusTypeInfo& gti = d_tds->getTypeInfo(gt);
   for (unsigned r = 0; r < 2; r++)
   {
-    Node f = prePost[r];
-    if (f.isConst())
+    Node node = prePost[r];
+    if (node.isConst())
     {
       // this direction is trivial, ignore
       continue;
@@ -225,7 +225,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
       Trace("sygus-ccore-init") << "  will do " << (r == 0 ? "pre" : "post")
                                 << "condition." << std::endl;
       Node cons = gdt[i].getConstructor();
-      c.initialize(f, cons);
+      c.initialize(node, cons);
       // Register the symmetry breaking lemma: do not do top-level solutions
       // with this constructor (e.g. we want to enumerate literals, not
       // conjunctions).
@@ -667,8 +667,7 @@ Node CegisCoreConnective::evaluate(Node n,
   Node cn = d_eval.eval(n, d_vars, mvs);
   if (cn.isNull())
   {
-    Node cn =
-        n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
+    cn = n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
     cn = Rewriter::rewrite(cn);
   }
   if (!id.isNull())
