@@ -166,7 +166,7 @@ class SygusInst : public QuantifiersModule
   /** Maps variables to their corresponding instantiation pool. */
   std::unordered_map<Node, InstPool, NodeHashFunction> d_inst_pools;
 
-  std::unordered_map<Node, Node, NodeHashFunction> d_var_inst;
+  std::unordered_map<Node, Node, NodeHashFunction> d_inst_constants;
   std::unordered_map<Node, Node, NodeHashFunction> d_var_eval;
   std::unordered_map<Node, Node, NodeHashFunction> d_ce_lits;
 

@@ -132,11 +132,14 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     TypeNode tn = types[i];
     TNode var = q[0][i];
 
-    Node sk = nm->mkSkolem("", tn);
-    db->registerEnumerator(sk, sk, nullptr, ROLE_ENUM_MULTI_SOLUTION);
+    Node ic = nm->mkInstConstant(tn);
+    InstConstantAttribute ica;
+    ic.setAttribute(ica, q);
+
+    db->registerEnumerator(ic, ic, nullptr, ROLE_ENUM_MULTI_SOLUTION);
 
     std::vector<Node> args;
-    args.push_back(sk);
+    args.push_back(ic);
 
     Node svl = tn.getDType().getSygusVarList();
     if (!svl.isNull())
@@ -145,7 +148,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     }
     Node eval = nm->mkNode(kind::DT_SYGUS_EVAL, args);
 
-    d_var_inst.emplace(std::make_pair(var, sk));
+    d_inst_constants.emplace(std::make_pair(var, ic));
     d_var_eval.emplace(std::make_pair(var, eval));
 
     vars.push_back(var);
@@ -405,7 +408,7 @@ void SygusInst::checkDatatypes(Theory::Effort e, QEffort quant_e)
     std::vector<Node> terms;
     for (const Node& var : q[0])
     {
-      Node dt_var = d_var_inst[var];
+      Node dt_var = d_inst_constants[var];
       Node dt_eval = d_var_eval[var];
       Node value = model->getValue(dt_var);
       Node t = datatypes::utils::sygusToBuiltin(value);
