@@ -1,3 +1,5 @@
+; COMMAND-LINE: --ext-rewrite-quant
+; EXPECT: sat
 (set-logic UFLIA)
 (set-info :status sat)
 (declare-fun Q (Int Int) Bool)

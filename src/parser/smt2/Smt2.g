@@ -1973,8 +1973,7 @@ identifier[CVC4::ParseOp& p]
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
-        p.d_expr = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals)
-                   .getExpr();
+        p.d_op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals);
       }
     )
     RPAREN_TOK
