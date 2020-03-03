@@ -71,7 +71,7 @@ class NormalForm {
             << "[sets-checknormal]              element = " << n[1][0] << " "
             << n[1][0].getId() << std::endl;
         if (n[1][0] >= prvs) return false;
-        TNode prvs = n[1][0];
+        prvs = n[1][0];
         n = n[0];
       }
 
