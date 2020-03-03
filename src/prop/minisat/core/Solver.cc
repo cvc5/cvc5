@@ -1959,8 +1959,8 @@ CRef Solver::updateLemmas() {
     } else {
       PROOF
         (
-         Node cnf_assertion = lemmas_cnf_assertion[i].first;
-         Node cnf_def = lemmas_cnf_assertion[i].second;
+         Node cnf_assertion = lemmas_cnf_assertion[j].first;
+         Node cnf_def = lemmas_cnf_assertion[j].second;
 
          Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (3)" << std::endl;
          ClauseId id = ProofManager::getSatProof()->registerUnitClause(lemma[0], THEORY_LEMMA);
