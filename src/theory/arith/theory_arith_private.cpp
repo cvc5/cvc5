@@ -1329,7 +1329,6 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
     Comparison cmp = Comparison::parseNormalForm(in);
 
     Polynomial left = cmp.getLeft();
-    Polynomial right = cmp.getRight();
 
     Monomial m = left.getHead();
     if (m.getVarList().singleton()){
@@ -2173,11 +2172,11 @@ void TheoryArithPrivate::outputConflicts(){
         //
         // Anyways, we reverse the children in `conflict` here.
         NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
-        for (size_t i = 0, nchildren = conflict.getNumChildren(); i < nchildren;
-             ++i)
+        for (size_t j = 0, nchildren = conflict.getNumChildren(); j < nchildren;
+             ++j)
         {
           conflictInFarkasCoefficientOrder
-              << conflict[conflict.getNumChildren() - i - 1];
+              << conflict[conflict.getNumChildren() - j - 1];
         }
 
         if (Debug.isOn("arith::pf::tree")) {
@@ -3103,7 +3102,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   if(!safeToCallApprox()) { return; }
 
   Assert(safeToCallApprox());
-  TimerStat::CodeTimer codeTimer(d_statistics.d_solveIntTimer);
+  TimerStat::CodeTimer codeTimer0(d_statistics.d_solveIntTimer);
 
   ++(d_statistics.d_solveIntCalls);
   d_statistics.d_inSolveInteger.setData(1);
@@ -3145,7 +3144,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
     if( relaxRes == LinFeasible ){
       MipResult mipRes = MipUnknown;
       {
-        TimerStat::CodeTimer codeTimer(d_statistics.d_mipTimer);
+        TimerStat::CodeTimer codeTimer1(d_statistics.d_mipTimer);
         mipRes = approx->solveMIP(false);
       }
 
@@ -3183,7 +3182,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         /* All integer branches closed */
         approx->setPivotLimit(2*mipLimit);
         {
-          TimerStat::CodeTimer codeTimer(d_statistics.d_mipTimer);
+          TimerStat::CodeTimer codeTimer2(d_statistics.d_mipTimer);
           mipRes = approx->solveMIP(true);
         }
 
@@ -3215,7 +3214,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         approx->setPivotLimit(2*mipLimit);
         approx->setBranchingDepth(2);
         {
-          TimerStat::CodeTimer codeTimer(d_statistics.d_mipTimer);
+          TimerStat::CodeTimer codeTimer3(d_statistics.d_mipTimer);
           mipRes = approx->solveMIP(true);
         }
         replayLemmas(approx);
@@ -3316,7 +3315,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
 }
 
 bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
-  TimerStat::CodeTimer codeTimer(d_statistics.d_solveRealRelaxTimer);
+  TimerStat::CodeTimer codeTimer0(d_statistics.d_solveRealRelaxTimer);
   Assert(d_qflraStatus != Result::SAT);
 
   d_partialModel.stopQueueingBoundCounts();
@@ -3370,7 +3369,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     ApproximateSimplex::Solution relaxSolution;
     LinResult relaxRes = LinUnknown;
     {
-      TimerStat::CodeTimer codeTimer(d_statistics.d_lpTimer);
+      TimerStat::CodeTimer codeTimer1(d_statistics.d_lpTimer);
       relaxRes = approxSolver->solveRelaxation();
     }
       Debug("solveRealRelaxation") << "solve relaxation? " << endl;
@@ -3770,7 +3769,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
           || options::arithPropagationMode()
                  == options::ArithPropagationMode::BOTH_PROP))
   {
-    TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
+    TimerStat::CodeTimer codeTimer0(d_statistics.d_newPropTime);
     Assert(d_qflraStatus != Result::UNSAT);
 
     while(!d_currentPropagationList.empty()  && !anyConflict()){
@@ -3823,7 +3822,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }
   else
   {
-    TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
+    TimerStat::CodeTimer codeTimer1(d_statistics.d_newPropTime);
     d_currentPropagationList.clear();
   }
   Assert(d_currentPropagationList.empty());
@@ -5810,11 +5809,11 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
       const Tableau::Entry& entry = *ri;
       ArithVar v = entry.getColVar();
       if(v != optVar){
-        int sgn = entry.getCoefficient().sgn();
-        Assert(sgn != 0);
-        bool candidate = (sgn > 0)
-          ? (d_partialModel.cmpAssignmentUpperBound(v) != 0)
-          : (d_partialModel.cmpAssignmentLowerBound(v) != 0);
+        int sgn1 = entry.getCoefficient().sgn();
+        Assert(sgn1 != 0);
+        bool candidate = (sgn1 > 0)
+                             ? (d_partialModel.cmpAssignmentUpperBound(v) != 0)
+                             : (d_partialModel.cmpAssignmentLowerBound(v) != 0);
         if(candidate && (entering == ARITHVAR_SENTINEL || entering > v)){
           entering = v;
           enteringEntry = &entry;
