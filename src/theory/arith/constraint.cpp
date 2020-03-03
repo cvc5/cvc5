@@ -1253,9 +1253,12 @@ bool Constraint::allHaveProof(const ConstraintCPVec& b){
 }
 
 void Constraint::impliedByIntTighten(ConstraintCP a, bool nowInConflict){
+  Debug("constraints::pf") << "impliedByIntTighten(" << this << ", " << *a << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(a->hasProof());
+  Debug("pf::arith") << "impliedByIntTighten(" << this << ", " << a << ")"
+                     << std::endl;
 
   d_database->d_antecedents.push_back(NullConstraint);
   d_database->d_antecedents.push_back(a);
@@ -1263,6 +1266,9 @@ void Constraint::impliedByIntTighten(ConstraintCP a, bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, IntTightenAP, antecedentEnd));
 
   Assert(inConflict() == nowInConflict);
+  if(inConflict()){
+    Debug("constraint::conflictCommit") << "inConflict impliedByIntTighten" << this << std::endl;
+  }
 }
 
 void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
