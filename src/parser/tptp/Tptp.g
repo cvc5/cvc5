@@ -129,7 +129,8 @@ using namespace CVC4::parser;
 
 /**
  * Parses an expression.
- * @return the parsed expression, or the Null CVC4::api::Term if we've reached the end of the input
+ * @return the parsed expression, or the Null CVC4::api::Term if we've reached
+ * the end of the input
  */
 parseExpr returns [CVC4::parser::tptp::myExpr expr]
   : cnfFormula[expr]
@@ -467,7 +468,7 @@ definedPred[CVC4::ParseOp& p]
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
-    { 
+    {
       api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
       api::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
       api::Term qr = MK_TERM(api::TO_REAL, q);
@@ -1003,7 +1004,8 @@ thfAtomTyping[CVC4::Command*& cmd]
           {
             freshExpr = PARSER_STATE->bindVar(name, type);
           }
-          cmd = new DeclareFunctionCommand(name, freshExpr.getExpr(), type.getType());
+          cmd = new DeclareFunctionCommand(
+              name, freshExpr.getExpr(), type.getType());
         }
       }
     )
@@ -1334,7 +1336,8 @@ tffTypedAtom[CVC4::Command*& cmd]
         } else {
           // as yet, it's undeclared
           CVC4::api::Term expr = PARSER_STATE->bindVar(name, type);
-          cmd = new DeclareFunctionCommand(name, expr.getExpr(), type.getType());
+          cmd =
+              new DeclareFunctionCommand(name, expr.getExpr(), type.getType());
         }
       }
     )
@@ -1427,13 +1430,16 @@ tffLetTermDefn[CVC4::api::Term& lhs, CVC4::api::Term& rhs]
     tffLetTermBinding[bvlist, lhs, rhs]
   ;
 
-tffLetTermBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs, CVC4::api::Term& rhs]
+tffLetTermBinding[std::vector<CVC4::api::Term> & bvlist,
+                  CVC4::api::Term& lhs,
+                  CVC4::api::Term& rhs]
   : term[lhs] EQUAL_TOK term[rhs]
-    { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
-      std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
-      rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
-      lhs = api::Term(lhs.getExpr().getOperator());
-    }
+  {
+    PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
+    std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
+    rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
+    lhs = api::Term(lhs.getExpr().getOperator());
+  }
   | LPAREN_TOK tffLetTermBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
 
@@ -1445,13 +1451,17 @@ tffLetFormulaDefn[CVC4::api::Term& lhs, CVC4::api::Term& rhs]
     tffLetFormulaBinding[bvlist, lhs, rhs]
   ;
 
-tffLetFormulaBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs, CVC4::api::Term& rhs]
+tffLetFormulaBinding[std::vector<CVC4::api::Term> & bvlist,
+                     CVC4::api::Term& lhs,
+                     CVC4::api::Term& rhs]
+
   : atomicFormula[lhs] IFF_TOK tffUnitaryFormula[rhs]
-    { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
-      std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
-      rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
-      lhs = api::Term(lhs.getExpr().getOperator());
-    }
+  {
+    PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
+    std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
+    rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
+    lhs = api::Term(lhs.getExpr().getOperator());
+  }
   | LPAREN_TOK tffLetFormulaBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
 
@@ -1739,7 +1749,7 @@ NUMBER
         PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
       }
     | SIGN[pos]? num=DECIMAL DOT den=DECIMAL (EXPONENT SIGN[posE]? e=DECIMAL)?
-      { 
+      {
         std::string snum = AntlrInput::tokenText($num);
         std::string sden = AntlrInput::tokenText($den);
         /* compute the numerator */

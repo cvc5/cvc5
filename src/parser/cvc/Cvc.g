@@ -109,7 +109,7 @@ tokens {
 
   SUBTYPE_TOK = 'SUBTYPE';
   SET_TOK = 'SET';
-  
+
   TUPLE_TOK = 'TUPLE';
 
   FORALL_TOK = 'FORALL';
@@ -203,14 +203,14 @@ tokens {
   BVSGT_TOK = 'BVSGT';
   BVSLE_TOK = 'BVSLE';
   BVSGE_TOK = 'BVSGE';
-  
+
   // Relations
   JOIN_TOK = 'JOIN';
   TRANSPOSE_TOK = 'TRANSPOSE';
   PRODUCT_TOK = 'PRODUCT';
   TRANSCLOSURE_TOK = 'TCLOSURE';
   IDEN_TOK = 'IDEN';
-  JOIN_IMAGE_TOK = 'JOIN_IMAGE';  
+  JOIN_IMAGE_TOK = 'JOIN_IMAGE';
 
   // Strings
   STRING_TOK = 'STRING';
@@ -241,9 +241,9 @@ tokens {
   REGEXP_EMPTY_TOK = 'RE_EMPTY';
   REGEXP_SIGMA_TOK = 'RE_SIGMA';
   REGEXP_COMPLEMENT_TOK = 'RE_COMPLEMENT';
-  
+
   SETS_CARD_TOK = 'CARD';
-  
+
   FMF_CARD_TOK = 'HAS_CARD';
   UNIVSET_TOK = 'UNIVERSE';
 
@@ -325,13 +325,13 @@ int getOperatorPrecedence(int type) {
   case TRANSPOSE_TOK:
   case PRODUCT_TOK:
   case IDEN_TOK:
-  case JOIN_IMAGE_TOK:  
+  case JOIN_IMAGE_TOK:
   case TRANSCLOSURE_TOK: return 24;
   case LEQ_TOK:
   case LT_TOK:
   case GEQ_TOK:
   case GT_TOK:
-  case MEMBER_TOK: 
+  case MEMBER_TOK:
   case SETS_CARD_TOK:
   case FMF_CARD_TOK: return 25;
   case EQUAL_TOK:
@@ -364,10 +364,10 @@ api::Kind getOperatorKind(int type, bool& negate) {
   case OR_TOK: return api::OR;
   case XOR_TOK: return api::XOR;
   case AND_TOK: return api::AND;
-  
+
   case PRODUCT_TOK: return api::PRODUCT;
   case JOIN_TOK: return api::JOIN;
-  case JOIN_IMAGE_TOK: return api::JOIN_IMAGE;  
+  case JOIN_IMAGE_TOK: return api::JOIN_IMAGE;
 
     // comparisonBinop
   case EQUAL_TOK: return api::EQUAL;
@@ -393,7 +393,7 @@ api::Kind getOperatorKind(int type, bool& negate) {
   case CONCAT_TOK: return api::BITVECTOR_CONCAT;
   case BAR: return api::BITVECTOR_OR;
   case BVAND_TOK: return api::BITVECTOR_AND;
-  
+
   }
 
   std::stringstream ss;
@@ -440,8 +440,10 @@ CVC4::api::Term createPrecedenceTree(Parser* parser, api::Solver* solver,
   //Debug("prec") << "pivot[" << startIndex << "," << stopIndex - 1 << "] at " << pivot << std::endl;
   bool negate;
   api::Kind k = getOperatorKind(operators[pivot], negate);
-  CVC4::api::Term lhs = createPrecedenceTree(parser, solver, expressions, operators, startIndex, pivot);
-  CVC4::api::Term rhs = createPrecedenceTree(parser, solver, expressions, operators, pivot + 1, stopIndex);
+  CVC4::api::Term lhs = createPrecedenceTree(
+      parser, solver, expressions, operators, startIndex, pivot);
+  CVC4::api::Term rhs = createPrecedenceTree(
+      parser, solver, expressions, operators, pivot + 1, stopIndex);
 
   if (lhs.getSort().isSet())
   {
@@ -480,7 +482,8 @@ api::Term createPrecedenceTree(Parser* parser, api::Solver* s,
     Debug("prec") << std::endl;
   }
 
-  api::Term e = createPrecedenceTree(parser, s, expressions, operators, 0, expressions.size() - 1);
+  api::Term e = createPrecedenceTree(
+      parser, s, expressions, operators, 0, expressions.size() - 1);
   if(Debug.isOn("prec") && operators.size() > 1) {
     language::SetLanguage::Scope ls(Debug("prec"), language::output::LANG_AST);
     Debug("prec") << "=> " << e << std::endl;
@@ -698,7 +701,10 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
 
   | QUERY_TOK formula[f] { cmd->reset(new QueryCommand(f.getExpr())); }
   | CHECKSAT_TOK formula[f]?
-    { cmd->reset(f.isNull() ? new CheckSatCommand() : new CheckSatCommand(f.getExpr())); }
+    {
+      cmd->reset(f.isNull() ? new CheckSatCommand()
+                            : new CheckSatCommand(f.getExpr()));
+    }
     /* options */
   | OPTION_TOK
     ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
@@ -750,7 +756,8 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( COMMA datatypeDef[dts] )*
     END_TOK
     { PARSER_STATE->popScope();
-      cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)));
+      cmd->reset(new DatatypeDeclarationCommand(
+          PARSER_STATE->mkMutualDatatypeTypes(dts)));
     }
 
   | CONTEXT_TOK
@@ -864,7 +871,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | CONTINUE_TOK
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
-  | RECURSIVE_FUNCTION_TOK (identifier[id,CHECK_NONE,SYM_VARIABLE] 
+  | RECURSIVE_FUNCTION_TOK (identifier[id,CHECK_NONE,SYM_VARIABLE]
     {
       if(idCommaFlag){
         idCommaFlag=false;
@@ -875,7 +882,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     }
     COLON type[t,CHECK_DECLARED] (COMMA {
       idCommaFlag=true;
-      })? 
+      })?
     {
       func = PARSER_STATE->bindVar(id, t, ExprManager::VAR_FLAG_NONE, true);
       ids.push_back(id);
@@ -927,7 +934,10 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       {
         eformals.push_back(api::termVectorToExprs(formals[i]));
       }
-      cmd->reset(new DefineFunctionRecCommand(api::termVectorToExprs(funcs),eformals,api::termVectorToExprs(formulas)));
+      cmd->reset(
+          new DefineFunctionRecCommand(api::termVectorToExprs(funcs),
+                                       eformals,
+                                       api::termVectorToExprs(formulas)));
     }
   | toplevelDeclaration[cmd]
   ;
@@ -1113,8 +1123,10 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           } else {
             Debug("parser") << "  " << *i << " not declared" << std::endl;
             if(topLevel) {
-              api::Term func = PARSER_STATE->bindVar(*i, t, ExprManager::VAR_FLAG_GLOBAL);
-              Command* decl = new DeclareFunctionCommand(*i, func.getExpr(), t.getType());
+              api::Term func =
+                  PARSER_STATE->bindVar(*i, t, ExprManager::VAR_FLAG_GLOBAL);
+              Command* decl =
+                  new DeclareFunctionCommand(*i, func.getExpr(), t.getType());
               seq->addCommand(decl);
             } else {
               PARSER_STATE->bindBoundVar(*i, t);
@@ -1139,9 +1151,13 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
             ++i) {
           Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
-          api::Term func = PARSER_STATE->mkVar(*i, t.getType(), ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
+          api::Term func = PARSER_STATE->mkVar(
+              *i,
+              t.getType(),
+              ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
           PARSER_STATE->defineVar(*i, f);
-          Command* decl = new DefineFunctionCommand(*i, func.getExpr(), f.getExpr());
+          Command* decl =
+              new DefineFunctionCommand(*i, func.getExpr(), f.getExpr());
           seq->addCommand(decl);
         }
       }
@@ -1298,8 +1314,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
   | ARRAY_TOK restrictedType[t,check] OF_TOK restrictedType[t2,check]
     { t = SOLVER->mkArraySort(t, t2); }
   | SET_TOK OF_TOK restrictedType[t,check]
-    { t = SOLVER->mkSetSort(t); } 
-  
+    { t = SOLVER->mkSetSort(t); }
+
     /* subtypes */
   | SUBTYPE_TOK LPAREN
     /* A bit tricky: this LAMBDA expression cannot refer to constants
@@ -1408,7 +1424,9 @@ formula[CVC4::api::Term& f]
         expressions.push_back(f);
       }
       morecomparisons[expressions,operators]?
-      { f = createPrecedenceTree(PARSER_STATE, SOLVER, expressions, operators); }
+      {
+        f = createPrecedenceTree(PARSER_STATE, SOLVER, expressions, operators);
+      }
     )
   ;
 
@@ -1516,7 +1534,9 @@ letDecl
   std::string name;
 }
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
-    { Debug("parser") << language::SetLanguage(language::output::LANG_CVC4) << e.getSort() << std::endl;
+    {
+      Debug("parser") << language::SetLanguage(language::output::LANG_CVC4)
+                      << e.getSort() << std::endl;
       PARSER_STATE->defineVar(name, e);
       Debug("parser") << "LET[" << PARSER_STATE->scopeLevel() << "]: "
                       << name << std::endl
@@ -1630,7 +1650,8 @@ tupleStore[CVC4::api::Term& f]
         PARSER_STATE->parseError(ss.str());
       }
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-      f2 = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][k].getSelector()),f);
+      f2 = SOLVER->mkTerm(
+          api::APPLY_SELECTOR, api::Term(dt[0][k].getSelector()), f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1662,7 +1683,8 @@ recordStore[CVC4::api::Term& f]
         PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
       }
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-      f2 = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
+      f2 = SOLVER->mkTerm(
+          api::APPLY_SELECTOR, api::Term(dt[0][id].getSelector()), f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1678,8 +1700,13 @@ uminusTerm[CVC4::api::Term& f]
 }
     /* Unary minus */
   : (MINUS_TOK { ++minusCount; })* bvBinaryOpTerm[f]
-    { while(minusCount > 0) { --minusCount; f = MK_TERM(CVC4::api::UMINUS, f); } }
-  ;
+    {
+      while (minusCount > 0)
+      {
+        --minusCount;
+        f = MK_TERM(CVC4::api::UMINUS, f);
+      }
+    };
 
 /** Parses bitvectors.  Starts with binary operators @, &, and |. */
 bvBinaryOpTerm[CVC4::api::Term& f]
@@ -1704,7 +1731,10 @@ bvBinop[unsigned& op]
 bvNegTerm[CVC4::api::Term& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
-    { f = f.getSort().isSet() ? MK_TERM(CVC4::api::COMPLEMENT, f) : MK_TERM(CVC4::api::BITVECTOR_NOT, f); }
+    {
+      f = f.getSort().isSet() ? MK_TERM(CVC4::api::COMPLEMENT, f)
+                              : MK_TERM(CVC4::api::BITVECTOR_NOT, f);
+    }
   | relationBinopTerm[f]
   ;
 
@@ -1762,13 +1792,15 @@ postfixTerm[CVC4::api::Term& f]
       /* left- or right-shift */
     | ( LEFTSHIFT_TOK { left = true; }
       | RIGHTSHIFT_TOK { left = false; } ) k=numeral
-      { 
+      {
         if(left) {
           f = MK_TERM(api::BITVECTOR_CONCAT, f, SOLVER->mkBitVector(k));
         } else {
           unsigned n = f.getSort().getBVSize();
-          f = MK_TERM(api::BITVECTOR_CONCAT, SOLVER->mkBitVector(k),
-                      SOLVER->mkTerm(SOLVER->mkOp(api::BITVECTOR_EXTRACT, n - 1, k), f));
+          f = MK_TERM(api::BITVECTOR_CONCAT,
+                      SOLVER->mkBitVector(k),
+                      SOLVER->mkTerm(
+                          SOLVER->mkOp(api::BITVECTOR_EXTRACT, n - 1, k), f));
         }
       }
 
@@ -1799,7 +1831,8 @@ postfixTerm[CVC4::api::Term& f]
           f = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
         }
       | k=numeral
-        { api::Sort t = f.getSort();
+        {
+          api::Sort t = f.getSort();
           if(! t.isTuple()) {
             PARSER_STATE->parseError("tuple-select applied to non-tuple");
           }
@@ -1825,7 +1858,10 @@ postfixTerm[CVC4::api::Term& f]
     | DISTINCT_TOK LPAREN
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
-      { f = (args.size() == 1) ? SOLVER->mkTrue() : MK_TERM(CVC4::api::DISTINCT, args); }
+      {
+        f = (args.size() == 1) ? SOLVER->mkTrue()
+                               : MK_TERM(CVC4::api::DISTINCT, args);
+      }
     )
     ( typeAscription[f, t]
       {
@@ -1833,11 +1869,11 @@ postfixTerm[CVC4::api::Term& f]
       }
     )?
   ;
-  
+
 relationTerm[CVC4::api::Term& f]
     /* relation terms */
   : TRANSPOSE_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::TRANSPOSE, f); } 
+    { f = MK_TERM(CVC4::api::TRANSPOSE, f); }
   | TRANSCLOSURE_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::TCLOSURE, f); }
   | TUPLE_TOK LPAREN formula[f] RPAREN
@@ -1851,10 +1887,10 @@ relationTerm[CVC4::api::Term& f]
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }
   | IDEN_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::IDEN, f); }                 
+    { f = MK_TERM(CVC4::api::IDEN, f); }
   | bvTerm[f]
   ;
-  
+
 bvTerm[CVC4::api::Term& f]
 @init {
   api::Term f2;
@@ -2011,7 +2047,7 @@ stringTerm[CVC4::api::Term& f]
   | STRING_STOI_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::STRING_STOI, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_ITOS, f); }   
+    { f = MK_TERM(CVC4::api::STRING_ITOS, f); }
   | STRING_TO_REGEXP_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::STRING_TO_REGEXP, f); }
   | STRING_TOLOWER_TOK LPAREN formula[f] RPAREN
@@ -2052,7 +2088,7 @@ stringTerm[CVC4::api::Term& f]
 
   | setsTerm[f]
   ;
-  
+
 setsTerm[CVC4::api::Term& f]
 @init {
 }
@@ -2061,7 +2097,7 @@ setsTerm[CVC4::api::Term& f]
     { f = MK_TERM(CVC4::api::CARD, f); }
   | simpleTerm[f]
   ;
-  
+
 
 /** Parses a simple term. */
 simpleTerm[CVC4::api::Term& f]
@@ -2074,8 +2110,8 @@ simpleTerm[CVC4::api::Term& f]
   api::Sort t, t2;
 }
     /* if-then-else */
-  : iteTerm[f] 
-        
+  : iteTerm[f]
+
     /* parenthesized sub-formula / tuple literals */
   | LPAREN formula[f] { args.push_back(f); }
     ( COMMA formula[f] { args.push_back(f); } )* RPAREN
@@ -2084,7 +2120,10 @@ simpleTerm[CVC4::api::Term& f]
          * Otherwise, f is already the sub-formula, and
          * there's nothing to do */
         std::vector<api::Sort> types;
-        for(std::vector<api::Term>::const_iterator i = args.begin(); i != args.end(); ++i) {
+        for (std::vector<api::Term>::const_iterator i = args.begin();
+             i != args.end();
+             ++i)
+        {
           types.push_back((*i).getSort());
         }
         api::Sort t = SOLVER->mkTupleSort(types);
@@ -2092,18 +2131,20 @@ simpleTerm[CVC4::api::Term& f]
         args.insert( args.begin(), dt[0].getConstructor() );
         f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
       }
-    }    
+    }
 
     /* empty tuple literal */
   | LPAREN RPAREN
     { std::vector<api::Sort> types;
       api::Sort t = SOLVER->mkTupleSort(types);
       const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-      f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor())); }       
-                  
+      f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor())); }
+
     /* empty record literal */
   | PARENHASH HASHPAREN
-    { api::Sort t = SOLVER->mkRecordSort(std::vector< std::pair<std::string, api::Sort> >());
+    {
+      api::Sort t = SOLVER->mkRecordSort(
+          std::vector<std::pair<std::string, api::Sort>>());
       const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
       f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor()));
     }
@@ -2174,9 +2215,9 @@ simpleTerm[CVC4::api::Term& f]
         // We do this cast using division with 1.
         // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
         f = MK_TERM(api::DIVISION, f, SOLVER->mkReal(1));
-      } 
+      }
     }
-  | INTEGER_LITERAL { 
+  | INTEGER_LITERAL {
       Rational r = AntlrInput::tokenToRational($INTEGER_LITERAL);
       std::stringstream strRat;
       strRat << r;
@@ -2290,7 +2331,11 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
         params.push_back( t ); }
       )* RBRACKET
     )?
-    { datatypes.push_back(Datatype(PARSER_STATE->getExprManager(), id, api::sortVectorToTypes(params), false));
+    {
+      datatypes.push_back(Datatype(PARSER_STATE->getExprManager(),
+                                   id,
+                                   api::sortVectorToTypes(params),
+                                   false));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);

@@ -91,7 +91,7 @@ namespace CVC4 {
     class Term;
     class Sort;
   }
-  
+
   namespace parser {
     namespace smt2 {
       /**
@@ -290,7 +290,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // Do NOT call mkSort, since that creates a new sort!
       // This name is not its own distinct sort, it's an alias.
       PARSER_STATE->defineParameterizedType(name, sorts, t.getType());
-      cmd->reset(new DefineTypeCommand(name, api::sortVectorToTypes(sorts), t.getType()));
+      cmd->reset(new DefineTypeCommand(
+          name, api::sortVectorToTypes(sorts), t.getType()));
     }
   | /* function declaration */
     DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -314,7 +315,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       {
         // it is a higher-order universal variable
         api::Term func = PARSER_STATE->bindBoundVar(name, t);
-        cmd->reset(new DeclareSygusFunctionCommand(name, func.getExpr(), t.getType()));
+        cmd->reset(
+            new DeclareSygusFunctionCommand(name, func.getExpr(), t.getType()));
       }
       else if( PARSER_STATE->sygus() )
       {
@@ -323,8 +325,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
       else
       {
-        api::Term func = PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        cmd->reset(new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
+        api::Term func =
+            PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+        cmd->reset(
+            new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
       }
     }
   | /* function definition */
@@ -363,7 +367,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // we allow overloading for function definitions
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED, true);
-      cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::termVectorToExprs(terms), expr.getExpr()));
+      cmd->reset(new DefineFunctionCommand(
+          name, func.getExpr(), api::termVectorToExprs(terms), expr.getExpr()));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
@@ -388,8 +393,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       cmd->reset(new AssertCommand(expr.getExpr(), inUnsatCore));
       if(inUnsatCore) {
         // set the expression name, if there was a named term
-        std::pair<api::Term, std::string> namedTerm = PARSER_STATE->lastNamedTerm();
-        Command* csen = new SetExpressionNameCommand(namedTerm.first.getExpr(), namedTerm.second);
+        std::pair<api::Term, std::string> namedTerm =
+            PARSER_STATE->lastNamedTerm();
+        Command* csen = new SetExpressionNameCommand(namedTerm.first.getExpr(),
+                                                     namedTerm.second);
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
       }
@@ -413,7 +420,9 @@ command [std::unique_ptr<CVC4::Command>* cmd]
   | /* check-sat-assuming */
     CHECK_SAT_ASSUMING_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
-      { cmd->reset(new CheckSatAssumingCommand(api::termVectorToExprs(terms))); }
+      {
+        cmd->reset(new CheckSatAssumingCommand(api::termVectorToExprs(terms)));
+      }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The check-sat-assuming command expects a "
                                  "list of terms.  Perhaps you forgot a pair of "
@@ -761,7 +770,8 @@ sygusGrammarV1[CVC4::api::Sort & ret,
             "Internal error : could not infer "
             "builtin sort for nested gterm.");
       }
-      datatypes[i].setSygus(sorts[i].getType(), bvl.getExpr(), allow_const[i], false);
+      datatypes[i].setSygus(
+          sorts[i].getType(), bvl.getExpr(), allow_const[i], false);
       PARSER_STATE->mkSygusDatatype(datatypes[i],
                                     ops[i],
                                     cnames[i],
@@ -1093,7 +1103,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   CVC4::api::Sort t;
   CVC4::api::Term func;
   std::vector<CVC4::api::Term> bvs;
-  std::vector< std::vector<std::pair<std::string, CVC4::api::Sort> > > sortedVarNamesList;
+  std::vector<std::vector<std::pair<std::string, CVC4::api::Sort>>>
+      sortedVarNamesList;
   std::vector<std::vector<CVC4::api::Term>> flattenVarsList;
   std::vector<std::vector<CVC4::api::Term>> formals;
   std::vector<CVC4::api::Term> funcs;
@@ -1109,7 +1120,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     { // allow overloading here
-      api::Term c = PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+      api::Term c =
+          PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
       cmd->reset(new DeclareFunctionCommand(name, c.getExpr(), t.getType())); }
 
     /* get model */
@@ -1142,15 +1154,18 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
     {
-      func = PARSER_STATE->bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
-      PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs, true );
+      func =
+          PARSER_STATE->bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
+      PARSER_STATE->pushDefineFunRecScope(
+          sortedVarNames, func, flattenVars, bvs, true);
     }
     term[expr, expr2]
     { PARSER_STATE->popScope();
       if( !flattenVars.empty() ){
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
-      cmd->reset(new DefineFunctionRecCommand(func.getExpr(),api::termVectorToExprs(bvs),expr.getExpr()));
+      cmd->reset(new DefineFunctionRecCommand(
+          func.getExpr(), api::termVectorToExprs(bvs), expr.getExpr()));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}
@@ -1162,7 +1177,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       sortSymbol[t,CHECK_DECLARED]
       {
         flattenVars.clear();
-        func = PARSER_STATE->bindDefineFunRec( fname, sortedVarNames, t, flattenVars );
+        func = PARSER_STATE->bindDefineFunRec(
+            fname, sortedVarNames, t, flattenVars);
         funcs.push_back( func );
 
         // add to lists (need to remember for when parsing the bodies)
@@ -1217,7 +1233,10 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       {
         eformals.push_back(api::termVectorToExprs(formals[i]));
       }
-      cmd->reset( new DefineFunctionRecCommand(api::termVectorToExprs(funcs),eformals,api::termVectorToExprs(func_defs)));
+      cmd->reset(
+          new DefineFunctionRecCommand(api::termVectorToExprs(funcs),
+                                       eformals,
+                                       api::termVectorToExprs(func_defs)));
     }
   ;
 
@@ -1284,8 +1303,10 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           t = sorts[0];
         }
         // allow overloading
-        api::Term func = PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
+        api::Term func =
+            PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+        seq->addCommand(
+            new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
         sorts.clear();
       }
     )+
@@ -1309,8 +1330,10 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           t = SOLVER->mkFunctionSort(sorts, t);
         }
         // allow overloading
-        api::Term func = PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
+        api::Term func =
+            PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+        seq->addCommand(
+            new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
         sorts.clear();
       }
     )+
@@ -1352,7 +1375,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         api::Term func = PARSER_STATE->bindVar(name, t,
                                         ExprManager::VAR_FLAG_DEFINED);
-        cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
+        cmd->reset(new DefineFunctionCommand(
+            name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
       }
     )
   | DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1371,7 +1395,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       // permitted)
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED);
-      cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
+      cmd->reset(new DefineFunctionCommand(
+          name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1383,14 +1408,14 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | GET_QE_DISJUNCT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
     { cmd->reset(new GetQuantifierEliminationCommand(e.getExpr(), false)); }
-  | GET_ABDUCT_TOK { 
+  | GET_ABDUCT_TOK {
       PARSER_STATE->checkThatLogicIsSet();
     }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     term[e,e2]
     (
       sygusGrammar[t, terms, name]
-    )? 
+    )?
     {
       cmd->reset(new GetAbductCommand(name,e.getExpr(), t.getType()));
     }
@@ -1428,8 +1453,8 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
     PARSER_STATE->pushScope(true); }
   LPAREN_TOK /* parametric sorts */
   ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-    { 
-      sorts.push_back(PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER)); 
+    {
+      sorts.push_back(PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER));
     }
   )*
   RPAREN_TOK
@@ -1501,7 +1526,8 @@ datatypesDef[bool isCo,
     }
     ( PAR_TOK { PARSER_STATE->pushScope(true); } LPAREN_TOK
       ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-        { params.push_back( PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER)); }
+        {
+          params.push_back( PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER)); }
       )*
       RPAREN_TOK {
         // if the arity was fixed by prelude and is not equal to the number of parameters
@@ -1519,7 +1545,10 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("No parameters given for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(PARSER_STATE->getExprManager(), dnames[dts.size()],api::sortVectorToTypes(params),isCo));
+        dts.push_back(Datatype(PARSER_STATE->getExprManager(),
+                               dnames[dts.size()],
+                               api::sortVectorToTypes(params),
+                               isCo));
       }
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
     )
@@ -1657,8 +1686,8 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       args.push_back(bvl);
     }
     term[f, f2] { args.push_back(f); }
-    term[f, f2] { 
-      args.push_back(f); 
+    term[f, f2] {
+      args.push_back(f);
       expr = MK_TERM(api::COMPREHENSION, args);
     }
     RPAREN_TOK
@@ -1736,7 +1765,8 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           Expr ef = f.getExpr();
           if (Datatype::datatypeOf(ef).isParametric())
           {
-            type = Datatype::datatypeOf(ef)[Datatype::indexOf(ef)].getSpecializedConstructorType(expr.getSort().getType());
+            type = Datatype::datatypeOf(ef)[Datatype::indexOf(ef)]
+                       .getSpecializedConstructorType(expr.getSort().getType());
           }
           argTypes = type.getConstructorDomainSorts();
         }
@@ -1770,7 +1800,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           {
             f = PARSER_STATE->getVariable(name);
             type = f.getSort();
-            if (!type.isConstructor() || 
+            if (!type.isConstructor() ||
                 !type.getConstructorDomainSorts().empty())
             {
               PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
@@ -2167,7 +2197,8 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       api::Sort t = SOLVER->getBooleanSort();
       api::Term avar = PARSER_STATE->bindVar(attr_name, t);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand( attr_name, avar.getExpr(), api::termVectorToExprs(values) );
+      Command* c = new SetUserAttributeCommand(
+          attr_name, avar.getExpr(), api::termVectorToExprs(values));
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
@@ -2177,8 +2208,8 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       api::Term func = PARSER_STATE->setNamedAttribute(expr, sexpr);
       std::string name = sexpr.getValue();
       // bind name to expr with define-fun
-      Command* c =
-        new DefineNamedFunctionCommand(name, func.getExpr(), std::vector<Expr>(), expr.getExpr());
+      Command* c = new DefineNamedFunctionCommand(
+          name, func.getExpr(), std::vector<Expr>(), expr.getExpr());
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
@@ -2308,7 +2339,8 @@ boundVarList[CVC4::api::Term& expr]
 }
  : LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
    {
-     std::vector<CVC4::api::Term> args = PARSER_STATE->bindBoundVars(sortedVarNames);
+     std::vector<CVC4::api::Term> args =
+         PARSER_STATE->bindBoundVars(sortedVarNames);
      expr = MK_TERM(api::BOUND_VAR_LIST, args);
    }
  ;
@@ -2496,8 +2528,11 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes,
      * "defined" as an unresolved type; don't worry, we check
      * below. */
   : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(true); }
-    { 
-      datatypes.push_back(Datatype(PARSER_STATE->getExprManager(), id, api::sortVectorToTypes(params), isCo));
+    {
+      datatypes.push_back(Datatype(PARSER_STATE->getExprManager(),
+                                   id,
+                                   api::sortVectorToTypes(params),
+                                   isCo));
     }
     ( LPAREN_TOK constructorDef[datatypes.back()] RPAREN_TOK )+
     { PARSER_STATE->popScope(); }
