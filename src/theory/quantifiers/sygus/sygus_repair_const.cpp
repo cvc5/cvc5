@@ -25,6 +25,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::kind;
 
@@ -111,36 +112,22 @@ void SygusRepairConst::initializeChecker(std::unique_ptr<SmtEngine>& checker,
     // To support a separate timeout for the subsolver, we need to create
     // a separate ExprManager with its own options. This requires that
     // the expressions sent to the subsolver can be exported from on
-    // ExprManager to another. If the export fails, we throw an
-    // OptionException.
-    try
-    {
-      checker.reset(new SmtEngine(&em));
-      checker->setIsInternalSubsolver();
-      checker->setTimeLimit(options::sygusRepairConstTimeout(), true);
-      checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
-      // renable options disabled by sygus
-      checker->setOption("miniscope-quant", true);
-      checker->setOption("miniscope-quant-fv", true);
-      checker->setOption("quant-split", true);
-      // export
-      Expr e_query = query.toExpr().exportTo(&em, varMap);
-      checker->assertFormula(e_query);
-    }
-    catch (const CVC4::ExportUnsupportedException& e)
-    {
-      std::stringstream msg;
-      msg << "Unable to export " << query
-          << " but exporting expressions is required for "
-             "--sygus-repair-const-timeout.";
-      throw OptionException(msg.str());
-    }
+    // ExprManager to another.
+    initializeSubsolverWithExport(checker,
+                                  em,
+                                  varMap,
+                                  query.toExpr(),
+                                  true,
+                                  options::sygusRepairConstTimeout());
+    // renable options disabled by sygus
+    checker->setOption("miniscope-quant", true);
+    checker->setOption("miniscope-quant-fv", true);
+    checker->setOption("quant-split", true);
   }
   else
   {
     needExport = false;
-    checker.reset(new SmtEngine(nm->toExprManager()));
-    checker->assertFormula(query.toExpr());
+    initializeSubsolver(checker, query.toExpr());
   }
 }
 

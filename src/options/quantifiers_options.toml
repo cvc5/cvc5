@@ -189,13 +189,13 @@ header = "options/quantifiers_options.h"
   help       = "eliminate extended arithmetic symbols in quantified formulas"
 
 [[option]]
-  name       = "condRewriteQuant"
+  name       = "extRewriteQuant"
   category   = "regular"
-  long       = "cond-rewrite-quant"
+  long       = "ext-rewrite-quant"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   read_only  = true
-  help       = "conditional rewriting of quantified formulas"
+  help       = "apply extended rewriting to bodies of quantified formulas"
 
 [[option]]
   name       = "globalNegate"
