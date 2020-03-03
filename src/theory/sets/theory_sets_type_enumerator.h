@@ -36,26 +36,18 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
   TypeEnumeratorProperties* d_tep;
   TypeNode d_constituentType;
   NodeManager* d_nm;
-  //  std::vector<bool> d_indexVec;
-  TypeEnumerator* d_elementTypeEnumerator;
+  TypeEnumerator d_elementTypeEnumerator;
   bool d_finished;
-  Node d_setConst;
 
  public:
   SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<SetEnumerator>(type),
         d_tep(tep),
-        d_constituentType(type.getSetElementType()),
+        d_constituentType(),
         d_nm(NodeManager::currentNM()),
-        //        d_indexVec(),
-        d_elementTypeEnumerator(),
-        d_finished(false),
-        d_setConst()
+        d_elementTypeEnumerator(type.getSetElementType(), d_tep),
+        d_finished(false)
   {
-    // d_indexVec.push_back(false);
-    // d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
-    d_setConst = d_nm->mkConst(EmptySet(type.toType()));
-    d_elementTypeEnumerator = new TypeEnumerator(d_constituentType, d_tep);
   }
 
   // An set enumerator could be large, and generally you don't want to
@@ -69,12 +61,11 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
         d_nm(ae.d_nm),
         //        d_indexVec(ae.d_indexVec),
         d_elementTypeEnumerator(ae.d_elementTypeEnumerator),  // copied below
-        d_finished(ae.d_finished),
-        d_setConst(ae.d_setConst)
+        d_finished(ae.d_finished)
   {
   }
 
-  ~SetEnumerator() { delete d_elementTypeEnumerator; }
+  ~SetEnumerator() {}
 
   Node operator*() override
   {
@@ -83,10 +74,10 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
       throw NoMoreValuesException(getType());
     }
 
-    Trace("set-type-enum") << "elements: " << **d_elementTypeEnumerator
+    Trace("set-type-enum") << "elements: " << *d_elementTypeEnumerator
                            << std::endl;
 
-    Node n = d_nm->mkNode(Kind::SINGLETON, **d_elementTypeEnumerator);
+    Node n = d_nm->mkNode(Kind::SINGLETON, *d_elementTypeEnumerator);
 
     Assert(n.isConst());
     Assert(n == Rewriter::rewrite(n));
@@ -100,8 +91,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
                            << std::endl;
 
     Trace("set-type-enum") << "d_constituentVec: "
-                           << (**d_elementTypeEnumerator).getType()
-                           << std::endl;
+                           << (*d_elementTypeEnumerator).getType() << std::endl;
 
     if (d_finished)
     {
@@ -109,28 +99,11 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
       return *this;
     }
 
-    // increment by one, at the same time deleting all elements that
-    // cannot be incremented any further (note: we are keeping a set
-    // -- no repetitions -- thus some trickery to know what to pop and
-    // what not to.)
+    Node last_pre_increment = *d_elementTypeEnumerator;
 
-    Node last_pre_increment = **d_elementTypeEnumerator;
+    ++d_elementTypeEnumerator;
 
-    ++(*d_elementTypeEnumerator);
-
-    if (d_elementTypeEnumerator->isFinished())
-    {
-      delete d_elementTypeEnumerator;
-      //        d_elementTypeEnumerator.pop_back();
-    }
-
-    if (d_elementTypeEnumerator->isFinished())
-    {
-      d_elementTypeEnumerator = new TypeEnumerator(d_constituentType, d_tep);
-    }
-
-    TypeEnumerator* newEnumerator =
-        new TypeEnumerator(*d_elementTypeEnumerator);
+    TypeEnumerator* newEnumerator = new TypeEnumerator(d_elementTypeEnumerator);
     ++(*newEnumerator);
     if (newEnumerator->isFinished())
     {
