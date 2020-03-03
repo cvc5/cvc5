@@ -84,6 +84,14 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       else
       {
         NodeBuilder<> builder(current.getKind());
+        if (current.getKind() == kind::APPLY_UF) {
+        /* uninterpreted functions need this extra step
+         * div and mod are uninterpreted when the second
+         * argument is zero, and so they fall in this
+         * category.
+         */
+          builder << current.getOperator();
+        }
         for (unsigned i = 0; i < current.getNumChildren(); ++i)
         {
           Assert(cache.find(current[i]) != cache.end());
@@ -196,6 +204,40 @@ Node intToBV(TNode n, NodeMap& cache)
             newKind = kind::BITVECTOR_NEG;
             max = max + 1;
             break;
+          case kind::INTS_DIVISION_TOTAL:
+            Assert(children.size() == 2);
+            newKind = kind::BITVECTOR_SDIV;
+            break;
+          case kind::INTS_MODULUS_TOTAL:
+            Assert(children.size() == 2);
+            newKind = kind::BITVECTOR_SREM;
+            break;
+          case kind::APPLY_UF:
+          {
+            newKind = kind::APPLY_UF;
+            Node intUF = current.getOperator();
+            TypeNode tn = intUF.getType();
+            TypeNode intRange = tn.getRangeType();
+            vector<TypeNode> intDomain = tn.getArgTypes();
+          
+            Node bvUF;
+            TypeNode bvRange;
+            vector<TypeNode> bvDomain;
+
+            if (cache.find(intUF) != cache.end()) {
+              bvUF = cache[intUF];
+            } else {
+              bvRange = intRange.isInteger() ? nm->mkBitVectorType(size) : intRange;
+              for (TypeNode d: intDomain) {
+                bvDomain.push_back(d.isInteger() ? nm->mkBitVectorType(size) : d);
+              }
+              ostringstream os;
+              os << "__intToBV_fun_" << bvUF << "_bv";
+              bvUF = nm->mkSkolem(os.str(), nm->mkFunctionType(bvDomain, bvRange), "int2bv function");
+              cache[intUF] = bvUF;
+            }
+            break;
+          }
           case kind::LT: newKind = kind::BITVECTOR_SLT; break;
           case kind::LEQ: newKind = kind::BITVECTOR_SLE; break;
           case kind::GT: newKind = kind::BITVECTOR_SGT; break;
@@ -229,6 +271,9 @@ Node intToBV(TNode n, NodeMap& cache)
         }
       }
       NodeBuilder<> builder(newKind);
+      if (newKind == kind::APPLY_UF) {
+        builder << cache[current.getOperator()];
+      }
       for (unsigned i = 0; i < children.size(); ++i)
       {
         builder << children[i];
@@ -328,6 +373,7 @@ PreprocessingPassResult IntToBV::applyInternal(
   unordered_map<Node, Node, NodeHashFunction> cache;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
+    Trace("int-to-bv-debug") << "processing: " << (*assertionsToPreprocess)[i];
     assertionsToPreprocess->replace(
         i, intToBV((*assertionsToPreprocess)[i], cache));
   }
