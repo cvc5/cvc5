@@ -32,7 +32,7 @@ namespace sets {
 
 class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 {
-  /** type properties */
+ private:
   NodeManager* d_nm;
   TypeEnumerator d_elementTypeEnumerator;
   bool d_finished;
