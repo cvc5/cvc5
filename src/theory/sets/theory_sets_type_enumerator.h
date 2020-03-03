@@ -33,7 +33,6 @@ namespace sets {
 class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 {
   /** type properties */
-  TypeEnumeratorProperties* d_tep;
   NodeManager* d_nm;
   TypeEnumerator d_elementTypeEnumerator;
   bool d_finished;
@@ -41,16 +40,14 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
  public:
   SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<SetEnumerator>(type),
-        d_tep(tep),
         d_nm(NodeManager::currentNM()),
-        d_elementTypeEnumerator(type.getSetElementType(), d_tep),
+        d_elementTypeEnumerator(type.getSetElementType(), tep),
         d_finished(false)
   {
   }
 
   SetEnumerator(const SetEnumerator& enumerator)
       : TypeEnumeratorBase<SetEnumerator>(enumerator.getType()),
-        d_tep(enumerator.d_tep),
         d_nm(enumerator.d_nm),
         d_elementTypeEnumerator(enumerator.d_elementTypeEnumerator),
         d_finished(enumerator.d_finished)
