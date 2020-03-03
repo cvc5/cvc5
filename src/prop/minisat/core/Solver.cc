@@ -129,7 +129,8 @@ static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction o
 CRef Solver::TCRef_Undef = CRef_Undef;
 CRef Solver::TCRef_Lazy = CRef_Lazy;
 
-class ScopedBool {
+class ScopedBool
+{
   bool& d_watch;
   bool d_oldValue;
 
@@ -140,7 +141,6 @@ class ScopedBool {
   }
   ~ScopedBool() { d_watch = d_oldValue; }
 };
-
 
 //=================================================================================================
 // Constructor/Destructor:
