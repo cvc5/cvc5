@@ -459,8 +459,9 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                   if ((kk & 0x1) == 1)
                   {
                     Assert(pos.getKind() == kind::AND);
-                    Debug("miplib") << "var " << v1 << " : " << pos[v1 - 1]
-                                    << " coef:" << coef[pos_var][v1 - 1] << endl;
+                    Debug("miplib")
+                        << "var " << v1 << " : " << pos[v1 - 1]
+                        << " coef:" << coef[pos_var][v1 - 1] << endl;
                     sum += coef[pos_var][v1 - 1];
                   }
                 }

@@ -161,12 +161,15 @@ Node CegSingleInvSol::reconstructSolution(Node sol,
         TypeNode tn = it->first;
         Node ns = d_qe->getTermEnumeration()->getEnumerateTerm(tn, index);
         if( ns.isNull() ){
-          to_erase.push_back( tn );
+          to_erase.push_back(tn);
         }else{
-          Node nb = d_qe->getTermDatabaseSygus()->sygusToBuiltin( ns, tn );
-          Node nr = Rewriter::rewrite( nb );//d_qe->getTermDatabaseSygus()->getNormalized( tn, nb, false, false );
-          Trace("csi-rcons-debug2") << "  - try " << ns << " -> " << nr << " for " << tn << " " << nr.getKind() << std::endl;
-          std::map< Node, int >::iterator itt = d_rcons_to_id[tn].find( nr );
+          Node nb = d_qe->getTermDatabaseSygus()->sygusToBuiltin(ns, tn);
+          Node nr = Rewriter::rewrite(nb);  // d_qe->getTermDatabaseSygus()->getNormalized(
+                                            // tn, nb, false, false );
+          Trace("csi-rcons-debug2")
+              << "  - try " << ns << " -> " << nr << " for " << tn << " "
+              << nr.getKind() << std::endl;
+          std::map<Node, int>::iterator itt = d_rcons_to_id[tn].find(nr);
           if (itt != d_rcons_to_id[tn].end())
           {
             // if it is not already reconstructed

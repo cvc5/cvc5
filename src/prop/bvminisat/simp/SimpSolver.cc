@@ -440,7 +440,7 @@ bool SimpSolver::backwardSubsumptionCheck(bool verbose)
               // at index j again:
               if (var(l) == best) j--;
             }
-            }
+          }
     }
 
     return true;
@@ -467,10 +467,11 @@ bool SimpSolver::asymm(Var v, CRef cr)
     cancelUntil(0);
     asymm_lits++;
     if (!strengthenClause(cr, l)) return false;
-    }else
-        cancelUntil(0);
+  }
+  else
+    cancelUntil(0);
 
-    return true;
+  return true;
 }
 
 

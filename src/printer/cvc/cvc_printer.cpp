@@ -145,7 +145,8 @@ void CvcPrinter::toStream(
       const Integer& x = bv.getValue();
       out << "0bin";
       unsigned size = bv.getSize();
-      while(size-- > 0) {
+      while (size-- > 0)
+      {
         out << (x.testBit(size) ? '1' : '0');
       }
       break;
@@ -1497,10 +1498,14 @@ static void toStream(std::ostream& out,
         firstConstructor = false;
         const DatatypeConstructor& cons = *j;
         out << cons.getName();
-        if(cons.getNumArgs() > 0) {
+        if (cons.getNumArgs() > 0)
+        {
           out << '(';
           bool firstSelector = true;
-          for(DatatypeConstructor::const_iterator k = cons.begin(); k != cons.end(); ++k) {
+          for (DatatypeConstructor::const_iterator k = cons.begin();
+               k != cons.end();
+               ++k)
+          {
             if(! firstSelector) {
               out << ", ";
             }

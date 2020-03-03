@@ -472,7 +472,7 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
       }
     }
 
-    for (const Permutation& p: d_permutations)
+    for (const Permutation& p : d_permutations)
     {
       ++(d_stats.d_permutationSetsConsidered);
       Debug("ufsymm") << "UFSYMM looking at permutation: " << p << endl;

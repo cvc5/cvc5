@@ -561,8 +561,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
             while (j < pf.d_children.size() && !sequenceOver)
             {
               std::stringstream ignore;
-              nodeAfterEqualitySequence = toStreamRecLFSC(
-                  ignore, tp, *(pf.d_children[j]), tb + 1, map);
+              nodeAfterEqualitySequence =
+                  toStreamRecLFSC(ignore, tp, *(pf.d_children[j]), tb + 1, map);
               if (((nodeAfterEqualitySequence[0] == n1[0])
                    && (nodeAfterEqualitySequence[1] == n1[1]))
                   || ((nodeAfterEqualitySequence[0] == n1[1])

@@ -417,12 +417,15 @@ inline void Solver::varBumpActivity(Var v, double inc) {
         order_heap.decrease(v); }
 
 inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
-inline void Solver::claBumpActivity (Clause& clause) {
-        if ( (clause.activity() += cla_inc) > 1e20 ) {
-            // Rescale:
-            for (int i = 0; i < learnts.size(); i++)
-                ca[learnts[i]].activity() *= 1e-20;
-            cla_inc *= 1e-20; } }
+inline void Solver::claBumpActivity(Clause& clause)
+{
+  if ((clause.activity() += cla_inc) > 1e20)
+  {
+    // Rescale:
+    for (int i = 0; i < learnts.size(); i++) ca[learnts[i]].activity() *= 1e-20;
+    cla_inc *= 1e-20;
+  }
+}
 
 inline void Solver::checkGarbage(void){ return checkGarbage(garbage_frac); }
 inline void Solver::checkGarbage(double gf){
@@ -436,7 +439,11 @@ inline bool     Solver::addEmptyClause  ()                      { add_tmp.clear(
 inline bool     Solver::addClause       (Lit p, ClauseId& id)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, id); }
 inline bool     Solver::addClause       (Lit p, Lit q, ClauseId& id)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, id); }
 inline bool     Solver::addClause       (Lit p, Lit q, Lit r, ClauseId& id)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, id); }
-inline bool     Solver::locked          (const Clause& clause) const { return value(clause[0]) == l_True && reason(var(clause[0])) != CRef_Undef && ca.lea(reason(var(clause[0]))) == &clause; }
+inline bool Solver::locked(const Clause& clause) const
+{
+  return value(clause[0]) == l_True && reason(var(clause[0])) != CRef_Undef
+         && ca.lea(reason(var(clause[0]))) == &clause;
+}
 inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
