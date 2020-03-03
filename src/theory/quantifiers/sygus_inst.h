@@ -177,6 +177,7 @@ class SygusInst : public QuantifiersModule
 
   std::unordered_set<Node, NodeHashFunction> d_active_quant;
   std::unordered_set<Node, NodeHashFunction> d_inactive_quant;
+  std::unordered_set<Node, NodeHashFunction> d_added_dt_lemmas;
 };
 
 }  // namespace quantifiers

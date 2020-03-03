@@ -428,8 +428,12 @@ void SygusInst::checkDatatypes(Theory::Effort e, QEffort quant_e)
                          dt_eval.eqNode(t));
       }
 
-      Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
-      d_quantEngine->addLemma(lem, false);
+      if (d_added_dt_lemmas.find(lem) == d_added_dt_lemmas.end())
+      {
+        Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
+        d_quantEngine->addLemma(lem, false);
+        d_added_dt_lemmas.insert(lem);
+      }
     }
 
     if (inst->addInstantiation(q, terms))
