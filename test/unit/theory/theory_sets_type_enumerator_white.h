@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file type_enumerator_white.h
+/*! \file theory_sets_type_enumerator_white.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mahgoub
@@ -12,22 +12,13 @@
  ** \brief White box testing of CVC4::theory::sets::SetEnumerator
  **
  ** White box testing of CVC4::theory::sets::SetEnumerator.  (These tests
- *depends
- ** on the ordering that the SetEnumerator use, so it's a white-box test.)
+ ** depends  on the ordering that the SetEnumerator use, so it's a white-box
+ *  test.)
  **/
 
 #include <cxxtest/TestSuite.h>
 
-#include <unordered_set>
-
-#include "expr/array_store_all.h"
-#include "expr/expr_manager.h"
-#include "expr/kind.h"
-#include "expr/node_manager.h"
-#include "expr/type_node.h"
-#include "options/language.h"
 #include "theory/sets/theory_sets_type_enumerator.h"
-#include "theory/type_enumerator.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -150,21 +141,17 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
     TypeNode datatype = TypeNode::fromType(d_em->mkDatatypeType(dt));
     SetEnumerator setEnumerator(d_nm->mkSetType(datatype));
 
-    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                            DatatypeType(datatype.toType())
-                                .getDatatype()
-                                .getConstructor("red"));
+    Node red = d_nm->mkNode(
+        APPLY_CONSTRUCTOR,
+        DatatypeType(datatype.toType()).getDatatype().getConstructor("red"));
 
-    Node green = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                            DatatypeType(datatype.toType())
-                                .getDatatype()
-                                .getConstructor("green"));
+    Node green = d_nm->mkNode(
+        APPLY_CONSTRUCTOR,
+        DatatypeType(datatype.toType()).getDatatype().getConstructor("green"));
 
-    Node blue = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                            DatatypeType(datatype.toType())
-                                .getDatatype()
-                                .getConstructor("blue"));
-
+    Node blue = d_nm->mkNode(
+        APPLY_CONSTRUCTOR,
+        DatatypeType(datatype.toType()).getDatatype().getConstructor("blue"));
 
     Node actual0 = *setEnumerator;
     Node expected0 =
