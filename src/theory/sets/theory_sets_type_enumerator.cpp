@@ -70,7 +70,7 @@ SetEnumerator& SetEnumerator::operator++()
   d_currentSetIndex++;
 
   // if the index is a power of 2, get a new element from d_elementEnumerator
-  if (d_currentSetIndex == (unsigned)(1 << d_elementsSoFar.size()))
+  if (d_currentSetIndex == static_cast<unsigned>(1 << d_elementsSoFar.size()))
   {
     // if there are no more values from d_elementEnumerator, set d_isFinished
     // to true
@@ -89,7 +89,7 @@ SetEnumerator& SetEnumerator::operator++()
     // get a new element and return it as a singleton set
     Node element = *d_elementEnumerator;
     d_elementsSoFar.push_back(element);
-    d_currentSet = d_nodeManager->mkNode(Kind::SINGLETON, element);
+    d_currentSet = d_nodeManager->mkNode(kind::SINGLETON, element);
     d_elementEnumerator++;
   }
   else

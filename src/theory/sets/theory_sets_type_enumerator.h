@@ -52,11 +52,17 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
   bool isFinished() override;
 
  private:
+  /** a pointer to the node manager */
   NodeManager* d_nodeManager;
+  /** an enumerator for the elements' type */
   TypeEnumerator d_elementEnumerator;
+  /** a boolean to indicate whether the set enumerator is finished */
   bool d_isFinished;
+  /** a list of the elements encountered so far */
   std::vector<Node> d_elementsSoFar;
-  unsigned int d_currentSetIndex;
+  /** stores the index of the current set in the power set */
+  unsigned d_currentSetIndex;
+  /** the current set returned by the set enumerator */
   Node d_currentSet;
 }; /* class SetEnumerator */
 
