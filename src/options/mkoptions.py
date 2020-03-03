@@ -239,24 +239,24 @@ enum class {type}
 TPL_DECL_MODE_FUNC = \
 """
 std::ostream&
-operator<<(std::ostream& out, {type} mode) CVC4_PUBLIC;"""
+operator<<(std::ostream& os, {type} mode) CVC4_PUBLIC;"""
 
 TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(" CVC4_PUBLIC;")] + \
 """
 {{
-  out << "{type}::";
+  os << "{type}::";
   switch(mode) {{{cases}
     default:
         Unreachable();
   }}
-  return out;
+  return os;
 }}
 """
 
 TPL_IMPL_MODE_CASE = \
 """
     case {type}::{enum}:
-      out << "{enum}";
+      os << "{enum}";
       break;"""
 
 TPL_DECL_MODE_HANDLER = \
