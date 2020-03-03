@@ -471,8 +471,11 @@ void TheoryEngine::printAssertions(const char* tag) {
         Trace(tag) << "--------------------------------------------" << endl;
         Trace(tag) << "Assertions of " << theory->getId() << ": " << endl;
         {
-          context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-          for (unsigned i = 0; it != it_end; ++ it, ++i) {
+          context::CDList<Assertion>::const_iterator it = theory->facts_begin(),
+                                                     it_end =
+                                                         theory->facts_end();
+          for (unsigned i = 0; it != it_end; ++it, ++i)
+          {
             if ((*it).d_isPreregistered)
             {
               Trace(tag) << "[" << i << "]: ";
@@ -1148,8 +1151,7 @@ void TheoryEngine::preprocessStart()
 struct preprocess_stack_element {
   TNode node;
   bool children_added;
-  preprocess_stack_element(TNode n)
-  : node(n), children_added(false) {}
+  preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };/* struct preprocess_stack_element */
 
 
