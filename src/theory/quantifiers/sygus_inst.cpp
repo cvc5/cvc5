@@ -168,7 +168,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
                                     d_quantEngine->getSatContext(),
                                     d_quantEngine->getValuation());
 
-  d_dstrat.emplace(std::make_pair(q, ds));
+  d_dstrat[q].reset(ds);
   d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_CEGQI_FEASIBLE, ds);
 
