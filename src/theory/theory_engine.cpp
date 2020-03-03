@@ -37,7 +37,6 @@
 #include "proof/theory_proof.h"
 #include "smt/logic_exception.h"
 #include "smt/term_formula_removal.h"
-#include "smt_util/lemma_output_channel.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -314,8 +313,7 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveTermFormulas& iteRemover,
-                           const LogicInfo& logicInfo,
-                           LemmaChannels* channels)
+                           const LogicInfo& logicInfo)
     : d_propEngine(nullptr),
       d_decisionEngine(nullptr),
       d_context(context),
@@ -349,7 +347,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_false(),
       d_interrupted(false),
       d_resourceManager(NodeManager::currentResourceManager()),
-      d_channels(channels),
       d_inPreregister(false),
       d_factsAsserted(context, false),
       d_preRegistrationVisitor(this, context),
@@ -475,12 +472,15 @@ void TheoryEngine::printAssertions(const char* tag) {
         Trace(tag) << "Assertions of " << theory->getId() << ": " << endl;
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (unsigned i = 0; it != it_end; ++ it, ++i) {
-            if ((*it).isPreregistered) {
-              Trace(tag) << "[" << i << "]: ";
-            } else {
-              Trace(tag) << "(" << i << "): ";
-            }
-            Trace(tag) << (*it).assertion << endl;
+          if ((*it).d_isPreregistered)
+          {
+            Trace(tag) << "[" << i << "]: ";
+          }
+          else
+          {
+            Trace(tag) << "(" << i << "): ";
+          }
+          Trace(tag) << (*it).d_assertion << endl;
         }
 
         if (d_logicInfo.isSharingEnabled()) {
@@ -520,12 +520,15 @@ void TheoryEngine::dumpAssertions(const char* tag) {
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (; it != it_end; ++ it) {
           // Get the assertion
-          Node assertionNode = (*it).assertion;
+          Node assertionNode = (*it).d_assertion;
           // Purify all the terms
 
-          if ((*it).isPreregistered) {
+          if ((*it).d_isPreregistered)
+          {
             Dump(tag) << CommentCommand("Preregistered");
-          } else {
+          }
+          else
+          {
             Dump(tag) << CommentCommand("Shared assertion");
           }
           Dump(tag) << AssertCommand(assertionNode.toExpr());
@@ -728,14 +731,16 @@ void TheoryEngine::combineTheories() {
   for (; care_it != care_it_end; ++ care_it) {
     const CarePair& carePair = *care_it;
 
-    Debug("combineTheories") << "TheoryEngine::combineTheories(): checking " << carePair.a << " = " << carePair.b << " from " << carePair.theory << endl;
+    Debug("combineTheories")
+        << "TheoryEngine::combineTheories(): checking " << carePair.d_a << " = "
+        << carePair.d_b << " from " << carePair.d_theory << endl;
 
-    Assert(d_sharedTerms.isShared(carePair.a) || carePair.a.isConst());
-    Assert(d_sharedTerms.isShared(carePair.b) || carePair.b.isConst());
+    Assert(d_sharedTerms.isShared(carePair.d_a) || carePair.d_a.isConst());
+    Assert(d_sharedTerms.isShared(carePair.d_b) || carePair.d_b.isConst());
 
     // The equality in question (order for no repetition)
-    Node equality = carePair.a.eqNode(carePair.b);
-    // EqualityStatus es = getEqualityStatus(carePair.a, carePair.b);
+    Node equality = carePair.d_a.eqNode(carePair.d_b);
+    // EqualityStatus es = getEqualityStatus(carePair.d_a, carePair.d_b);
     // Debug("combineTheories") << "TheoryEngine::combineTheories(): " <<
     //   (es == EQUALITY_TRUE_AND_PROPAGATED ? "EQUALITY_TRUE_AND_PROPAGATED" :
     //   es == EQUALITY_FALSE_AND_PROPAGATED ? "EQUALITY_FALSE_AND_PROPAGATED" :
@@ -749,7 +754,12 @@ void TheoryEngine::combineTheories() {
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
 
-    lemma(equality.orNode(equality.notNode()), RULE_INVALID, false, false, false, carePair.theory);
+    lemma(equality.orNode(equality.notNode()),
+          RULE_INVALID,
+          false,
+          false,
+          false,
+          carePair.d_theory);
 
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
@@ -1443,9 +1453,11 @@ void TheoryEngine::assertFact(TNode literal)
       AtomRequests::atom_iterator it = d_atomRequests.getAtomIterator(atom);
       while (!it.done()) {
         const AtomRequests::Request& request = it.get();
-        Node toAssert = polarity ? (Node) request.atom : request.atom.notNode();
+        Node toAssert =
+            polarity ? (Node)request.d_atom : request.d_atom.notNode();
         Debug("theory::atoms") << "TheoryEngine::assertFact(" << literal << "): sending requested " << toAssert << endl;
-        assertToTheory(toAssert, literal, request.toTheory, THEORY_SAT_SOLVER);
+        assertToTheory(
+            toAssert, literal, request.d_toTheory, THEORY_SAT_SOLVER);
         it.next();
       }
 
@@ -1624,8 +1636,8 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
   std::set<TNode> all;
   for (unsigned i = 0; i < explanation.size(); ++ i) {
-    Assert(explanation[i].theory == THEORY_SAT_SOLVER);
-    all.insert(explanation[i].node);
+    Assert(explanation[i].d_theory == THEORY_SAT_SOLVER);
+    all.insert(explanation[i].d_node);
   }
 
   if (all.size() == 0) {
@@ -1635,7 +1647,7 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
   if (all.size() == 1) {
     // All the same, or just one
-    return explanation[0].node;
+    return explanation[0].d_node;
   }
 
   NodeBuilder<> conjunction(kind::AND);
@@ -1713,10 +1725,11 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
   Assert(d_propagationMap.find(toExplain) != d_propagationMap.end());
 
   NodeTheoryPair nodeExplainerPair = d_propagationMap[toExplain];
-  Debug("theory::explain") << "TheoryEngine::getExplanation: explainer for node "
-                           << nodeExplainerPair.node
-                           << " is theory: " << nodeExplainerPair.theory << std::endl;
-  TheoryId explainer = nodeExplainerPair.theory;
+  Debug("theory::explain")
+      << "TheoryEngine::getExplanation: explainer for node "
+      << nodeExplainerPair.d_node
+      << " is theory: " << nodeExplainerPair.d_theory << std::endl;
+  TheoryId explainer = nodeExplainerPair.d_theory;
 
   // Create the workplace for explanations
   std::vector<NodeTheoryPair> explanationVector;
@@ -1865,11 +1878,6 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     }
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
                      << CheckSatCommand(n.toExpr());
-  }
-
-  // Share with other portfolio threads
-  if(d_channels->getLemmaOutputChannel() != NULL) {
-    d_channels->getLemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
   AssertionPipeline additionalLemmas;
@@ -2069,31 +2077,42 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     // Get the current literal to explain
     NodeTheoryPair toExplain = explanationVector[i];
 
-    Debug("theory::explain") << "[i=" << i << "] TheoryEngine::explain(): processing [" << toExplain.timestamp << "] " << toExplain.node << " sent from " << toExplain.theory << endl;
-
+    Debug("theory::explain")
+        << "[i=" << i << "] TheoryEngine::explain(): processing ["
+        << toExplain.d_timestamp << "] " << toExplain.d_node << " sent from "
+        << toExplain.d_theory << endl;
 
     // If a true constant or a negation of a false constant we can ignore it
-    if (toExplain.node.isConst() && toExplain.node.getConst<bool>()) {
+    if (toExplain.d_node.isConst() && toExplain.d_node.getConst<bool>())
+    {
       ++ i;
       continue;
     }
-    if (toExplain.node.getKind() == kind::NOT && toExplain.node[0].isConst() && !toExplain.node[0].getConst<bool>()) {
+    if (toExplain.d_node.getKind() == kind::NOT && toExplain.d_node[0].isConst()
+        && !toExplain.d_node[0].getConst<bool>())
+    {
       ++ i;
       continue;
     }
 
     // If from the SAT solver, keep it
-    if (toExplain.theory == THEORY_SAT_SOLVER) {
+    if (toExplain.d_theory == THEORY_SAT_SOLVER)
+    {
       Debug("theory::explain") << "\tLiteral came from THEORY_SAT_SOLVER. Kepping it." << endl;
       explanationVector[j++] = explanationVector[i++];
       continue;
     }
 
     // If an and, expand it
-    if (toExplain.node.getKind() == kind::AND) {
-      Debug("theory::explain") << "TheoryEngine::explain(): expanding " << toExplain.node << " got from " << toExplain.theory << endl;
-      for (unsigned k = 0; k < toExplain.node.getNumChildren(); ++ k) {
-        NodeTheoryPair newExplain(toExplain.node[k], toExplain.theory, toExplain.timestamp);
+    if (toExplain.d_node.getKind() == kind::AND)
+    {
+      Debug("theory::explain")
+          << "TheoryEngine::explain(): expanding " << toExplain.d_node
+          << " got from " << toExplain.d_theory << endl;
+      for (unsigned k = 0; k < toExplain.d_node.getNumChildren(); ++k)
+      {
+        NodeTheoryPair newExplain(
+            toExplain.d_node[k], toExplain.d_theory, toExplain.d_timestamp);
         explanationVector.push_back(newExplain);
       }
       ++ i;
@@ -2105,24 +2124,31 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     if (find != d_propagationMap.end()) {
       Debug("theory::explain")
           << "\tTerm was propagated by another theory (theory = "
-          << getTheoryString((*find).second.theory) << ")" << std::endl;
+          << getTheoryString((*find).second.d_theory) << ")" << std::endl;
       // There is some propagation, check if its a timely one
-      if ((*find).second.timestamp < toExplain.timestamp) {
-        Debug("theory::explain") << "\tRelevant timetsamp, pushing "
-                                 << (*find).second.node << "to index = " << explanationVector.size() << std::endl;
+      if ((*find).second.d_timestamp < toExplain.d_timestamp)
+      {
+        Debug("theory::explain")
+            << "\tRelevant timetsamp, pushing " << (*find).second.d_node
+            << "to index = " << explanationVector.size() << std::endl;
         explanationVector.push_back((*find).second);
         ++i;
 
         PROOF({
-            if (toExplain.node != (*find).second.node) {
-              Debug("pf::explain") << "TheoryEngine::getExplanation: Rewrite alert! toAssert = " << toExplain.node
-                                   << ", toExplain = " << (*find).second.node << std::endl;
+          if (toExplain.d_node != (*find).second.d_node)
+          {
+            Debug("pf::explain")
+                << "TheoryEngine::getExplanation: Rewrite alert! toAssert = "
+                << toExplain.d_node << ", toExplain = " << (*find).second.d_node
+                << std::endl;
 
-              if (proofRecipe) {
-                proofRecipe->addRewriteRule(toExplain.node, (*find).second.node);
-              }
+            if (proofRecipe)
+            {
+              proofRecipe->addRewriteRule(toExplain.d_node,
+                                          (*find).second.d_node);
             }
-          })
+          }
+        })
 
         continue;
       }
@@ -2130,21 +2156,27 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
 
     // It was produced by the theory, so ask for an explanation
     Node explanation;
-    if (toExplain.theory == THEORY_BUILTIN) {
-      explanation = d_sharedTerms.explain(toExplain.node);
+    if (toExplain.d_theory == THEORY_BUILTIN)
+    {
+      explanation = d_sharedTerms.explain(toExplain.d_node);
       Debug("theory::explain") << "\tTerm was propagated by THEORY_BUILTIN. Explanation: " << explanation << std::endl;
-    } else {
-      explanation = theoryOf(toExplain.theory)->explain(toExplain.node);
+    }
+    else
+    {
+      explanation = theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
       Debug("theory::explain") << "\tTerm was propagated by owner theory: "
-                               << theoryOf(toExplain.theory)->getId()
+                               << theoryOf(toExplain.d_theory)->getId()
                                << ". Explanation: " << explanation << std::endl;
     }
 
-    Debug("theory::explain") << "TheoryEngine::explain(): got explanation " << explanation << " got from " << toExplain.theory << endl;
-    Assert(explanation != toExplain.node)
+    Debug("theory::explain")
+        << "TheoryEngine::explain(): got explanation " << explanation
+        << " got from " << toExplain.d_theory << endl;
+    Assert(explanation != toExplain.d_node)
         << "wasn't sent to you, so why are you explaining it trivially";
     // Mark the explanation
-    NodeTheoryPair newExplain(explanation, toExplain.theory, toExplain.timestamp);
+    NodeTheoryPair newExplain(
+        explanation, toExplain.d_theory, toExplain.d_timestamp);
     explanationVector.push_back(newExplain);
 
     ++ i;
@@ -2155,10 +2187,10 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         // If we're expanding the target node of the explanation (this is the
         // first expansion...), we don't want to add it as a separate proof
         // step. It is already part of the assertions.
-        if (!ContainsKey(*inputAssertions, toExplain.node))
+        if (!ContainsKey(*inputAssertions, toExplain.d_node))
         {
-          LemmaProofRecipe::ProofStep proofStep(toExplain.theory,
-                                                toExplain.node);
+          LemmaProofRecipe::ProofStep proofStep(toExplain.d_theory,
+                                                toExplain.d_node);
           if (explanation.getKind() == kind::AND)
           {
             Node flat = flattenAnd(explanation);
@@ -2197,7 +2229,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
       if (proofRecipe) {
         // The remaining literals are the base of the proof
         for (unsigned k = 0; k < explanationVector.size(); ++k) {
-          proofRecipe->addBaseAssertion(explanationVector[k].node.negate());
+          proofRecipe->addBaseAssertion(explanationVector[k].d_node.negate());
         }
       }
     });
@@ -2232,18 +2264,30 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
             it_end = theory->facts_end();
           it != it_end;
           ++it) {
-        Node assertion = (*it).assertion;
+        Node assertion = (*it).d_assertion;
         Node val = getModel()->getValue(assertion);
         if (val != d_true)
         {
+          std::stringstream ss;
+          ss << theoryId
+             << " has an asserted fact that the model doesn't satisfy." << endl
+             << "The fact: " << assertion << endl
+             << "Model value: " << val << endl;
           if (hardFailure)
           {
-            InternalError()
-                << theoryId
-                << " has an asserted fact that the model doesn't satisfy."
-                << endl
-                << "The fact: " << assertion << endl
-                << "Model value: " << val << endl;
+            if (val == d_false)
+            {
+              // Always an error if it is false
+              InternalError() << ss.str();
+            }
+            else
+            {
+              // Otherwise just a warning. Notice this case may happen for
+              // assertions with unevaluable operators, e.g. transcendental
+              // functions. It also may happen for separation logic, where
+              // check-model support is limited.
+              Warning() << ss.str();
+            }
           }
         }
       }

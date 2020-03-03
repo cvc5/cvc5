@@ -1013,6 +1013,22 @@ Expr ExprManager::mkRightAssociative(Kind kind,
   return n.toExpr();
 }
 
+Expr ExprManager::mkChain(Kind kind, const std::vector<Expr>& children)
+{
+  if (children.size() == 2)
+  {
+    // if this is the case exactly 1 pair will be generated so the
+    // AND is not required
+    return mkExpr(kind, children[0], children[1]);
+  }
+  std::vector<Expr> cchildren;
+  for (size_t i = 0, nargsmo = children.size() - 1; i < nargsmo; i++)
+  {
+    cchildren.push_back(mkExpr(kind, children[i], children[i + 1]));
+  }
+  return mkExpr(kind::AND, cchildren);
+}
+
 unsigned ExprManager::minArity(Kind kind) {
   return metakind::getLowerBoundForKind(kind);
 }

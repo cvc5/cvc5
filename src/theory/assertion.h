@@ -28,19 +28,21 @@ namespace theory {
 /** Information about an assertion for the theories. */
 struct Assertion {
   /** The assertion expression. */
-  const Node assertion;
+  const Node d_assertion;
 
   /** Has this assertion been preregistered with this theory. */
-  const bool isPreregistered;
+  const bool d_isPreregistered;
 
   Assertion(TNode assertion, bool isPreregistered)
-      : assertion(assertion), isPreregistered(isPreregistered) {}
+      : d_assertion(assertion), d_isPreregistered(isPreregistered)
+  {
+  }
 
   /** Convert the assertion to a TNode. */
-  operator TNode() const { return assertion; }
+  operator TNode() const { return d_assertion; }
 
   /** Convert the assertion to a Node. */
-  operator Node() const { return assertion; }
+  operator Node() const { return d_assertion; }
 
 }; /* struct Assertion */
 

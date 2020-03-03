@@ -138,11 +138,6 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
 }
 
 Kind Parser::getKindForFunction(Expr fun) {
-  Kind k = getExprManager()->operatorToKind(fun);
-  if (k != UNDEFINED_KIND)
-  {
-    return k;
-  }
   Type t = fun.getType();
   if (t.isFunction())
   {
@@ -515,20 +510,76 @@ Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args)
   return expr;
 }
 
-api::Term Parser::mkChain(api::Kind k, const std::vector<api::Term>& args)
+api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 {
-  if (args.size() == 2)
+  api::Kind k = t.getKind();
+  if (k == api::EMPTYSET)
   {
-    // if this is the case exactly 1 pair will be generated so the
-    // AND is not required
-    return d_solver->mkTerm(k, args[0], args[1]);
+    t = d_solver->mkEmptySet(s);
   }
-  std::vector<api::Term> children;
-  for (size_t i = 0, nargsmo = args.size() - 1; i < nargsmo; i++)
+  else if (k == api::UNIVERSE_SET)
   {
-    children.push_back(d_solver->mkTerm(k, args[i], args[i + 1]));
+    t = d_solver->mkUniverseSet(s);
   }
-  return d_solver->mkTerm(api::AND, children);
+  else if (k == api::SEP_NIL)
+  {
+    t = d_solver->mkSepNil(s);
+  }
+  else if (k == api::APPLY_CONSTRUCTOR)
+  {
+    std::vector<api::Term> children(t.begin(), t.end());
+    // apply type ascription to the operator and reconstruct
+    children[0] = applyTypeAscription(children[0], s);
+    t = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, children);
+  }
+  // !!! temporary until datatypes are refactored in the new API
+  api::Sort etype = t.getSort();
+  if (etype.isConstructor())
+  {
+    api::Sort etype = t.getSort();
+    // get the datatype that t belongs to
+    api::Sort etyped = etype.getConstructorCodomainSort();
+    api::Datatype d = etyped.getDatatype();
+    // lookup by name
+    api::DatatypeConstructor dc = d.getConstructor(t.toString());
+
+    // Type ascriptions only have an effect on the node structure if this is a
+    // parametric datatype.
+    if (s.isParametricDatatype())
+    {
+      ExprManager* em = getExprManager();
+      // apply type ascription to the operator
+      Expr e = t.getExpr();
+      const DatatypeConstructor& dtc =
+          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+      t = api::Term(em->mkExpr(
+          kind::APPLY_TYPE_ASCRIPTION,
+          em->mkConst(
+              AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
+          e));
+    }
+    // the type of t does not match the sort s by design (constructor type
+    // vs datatype type), thus we use an alternative check here.
+    if (t.getSort().getConstructorCodomainSort() != s)
+    {
+      std::stringstream ss;
+      ss << "Type ascription on constructor not satisfied, term " << t
+         << " expected sort " << s << " but has sort "
+         << t.getSort().getConstructorCodomainSort();
+      parseError(ss.str());
+    }
+    return t;
+  }
+  // otherwise, nothing to do
+  // check that the type is correct
+  if (t.getSort() != s)
+  {
+    std::stringstream ss;
+    ss << "Type ascription not satisfied, term " << t << " expected sort " << s
+       << " but has sort " << t.getSort();
+    parseError(ss.str());
+  }
+  return t;
 }
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {

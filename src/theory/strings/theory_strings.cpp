@@ -93,7 +93,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
   d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
   d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
-  d_equalityEngine.addFunctionKind(kind::STRING_CODE);
+  d_equalityEngine.addFunctionKind(kind::STRING_TO_CODE);
 
   // extended functions
   d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
@@ -259,18 +259,36 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     return false;
   }
 
-  std::unordered_set<Node, NodeHashFunction> repSet;
-  NodeManager* nm = NodeManager::currentNM();
+  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
   // Generate model
   // get the relevant string equivalence classes
   for (const Node& s : termSet)
   {
-    if (s.getType().isString())
+    TypeNode tn = s.getType();
+    if (tn.isStringLike())
     {
       Node r = d_state.getRepresentative(s);
-      repSet.insert(r);
+      repSet[tn].insert(r);
     }
   }
+  for (const std::pair<const TypeNode,
+                       std::unordered_set<Node, NodeHashFunction> >& rst :
+       repSet)
+  {
+    if (!collectModelInfoType(rst.first, rst.second, m))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool TheoryStrings::collectModelInfoType(
+    TypeNode tn,
+    const std::unordered_set<Node, NodeHashFunction>& repSet,
+    TheoryModel* m)
+{
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> nodes(repSet.begin(), repSet.end());
   std::map< Node, Node > processed;
   std::vector< std::vector< Node > > col;
@@ -304,8 +322,13 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     }
     else
     {
-      Assert(len_value.getConst<Rational>() <= Rational(String::maxSize()))
-          << "Exceeded UINT32_MAX in string model";
+      // must throw logic exception if we cannot construct the string
+      if (len_value.getConst<Rational>() > Rational(String::maxSize()))
+      {
+        std::stringstream ss;
+        ss << "Cannot generate model with string whose length exceeds UINT32_MAX";
+        throw LogicException(ss.str());
+      }
       unsigned lvalue =
           len_value.getConst<Rational>().getNumerator().toUnsignedInt();
       std::map<unsigned, Node>::iterator itvu = values_used.find(lvalue);
@@ -346,7 +369,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
             if (eip && !eip->d_codeTerm.get().isNull())
             {
               // its value must be equal to its code
-              Node ct = nm->mkNode(kind::STRING_CODE, eip->d_codeTerm.get());
+              Node ct = nm->mkNode(kind::STRING_TO_CODE, eip->d_codeTerm.get());
               Node ctv = d_valuation.getModelValue(ct);
               unsigned cvalue =
                   ctv.getConst<Rational>().getNumerator().toUnsignedInt();
@@ -389,7 +412,9 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
-      StringEnumeratorLength sel(lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
+      StringEnumeratorLength sel(
+          tn,
+          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
       for (const Node& eqc : pure_eq)
       {
         Node c;
@@ -485,7 +510,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         nc.push_back(r.isConst() ? r : processed[r]);
       }
       Node cc = utils::mkNConcat(nc);
-      Assert(cc.getKind() == kind::CONST_STRING);
+      Assert(cc.isConst());
       Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
       processed[nodes[i]] = cc;
       if (!m->assertEquality(nodes[i], cc, true))
@@ -595,6 +620,26 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 
 Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
+
+  if (node.getKind() == STRING_FROM_CODE)
+  {
+    // str.from_code(t) --->
+    //   choice k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
+    NodeManager* nm = NodeManager::currentNM();
+    Node t = node[0];
+    Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
+    Node cond =
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
+    Node k = nm->mkBoundVar(nm->stringType());
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+    node = nm->mkNode(CHOICE,
+                      bvl,
+                      nm->mkNode(ITE,
+                                 cond,
+                                 t.eqNode(nm->mkNode(STRING_TO_CODE, k)),
+                                 k.eqNode(d_emptyString)));
+  }
+
   return node;
 }
 
@@ -620,7 +665,7 @@ void TheoryStrings::check(Effort e) {
   {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Trace("strings-assertion") << "get assertion: " << fact << endl;
     polarity = fact.getKind() != kind::NOT;
@@ -729,7 +774,7 @@ void TheoryStrings::conflict(TNode a, TNode b){
 
 void TheoryStrings::eqNotifyNewClass(TNode t){
   Kind k = t.getKind();
-  if (k == STRING_LENGTH || k == STRING_CODE)
+  if (k == STRING_LENGTH || k == STRING_TO_CODE)
   {
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
     //we care about the length of this string
@@ -935,12 +980,12 @@ void TheoryStrings::checkCodes()
         Node c = nfe.d_nf[0];
         Trace("strings-code-debug") << "Get proxy variable for " << c
                                     << std::endl;
-        Node cc = nm->mkNode(kind::STRING_CODE, c);
+        Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
         cc = Rewriter::rewrite(cc);
         Assert(cc.isConst());
         Node cp = d_im.getProxyVariableFor(c);
         AlwaysAssert(!cp.isNull());
-        Node vc = nm->mkNode(STRING_CODE, cp);
+        Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
         {
           d_im.sendInference(d_empty_vec, cc.eqNode(vc), "Code_Proxy");
@@ -952,7 +997,7 @@ void TheoryStrings::checkCodes()
         EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
         if (ei && !ei->d_codeTerm.get().isNull())
         {
-          Node vc = nm->mkNode(kind::STRING_CODE, ei->d_codeTerm.get());
+          Node vc = nm->mkNode(kind::STRING_TO_CODE, ei->d_codeTerm.get());
           nconst_codes.push_back(vc);
         }
       }
@@ -1022,7 +1067,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
     //  for concat/const/replace, introduce proxy var and state length relation
     d_im.registerLength(n);
   }
-  else if (n.getKind() == STRING_CODE)
+  else if (n.getKind() == STRING_TO_CODE)
   {
     d_has_str_code = true;
     // ite( str.len(s)==1, 0 <= str.code(s) < num_codes, str.code(s)=-1 )

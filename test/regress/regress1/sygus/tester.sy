@@ -1,7 +1,7 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-out=status
 
-(set-logic SLIA)
+(set-logic DTSLIA)
 (declare-datatype DT ((A (a Int)) (B (b String)) (JSBool (jsBool Bool))))
 
 (define-fun isA ((i DT)) Bool ((_ is A) i) )

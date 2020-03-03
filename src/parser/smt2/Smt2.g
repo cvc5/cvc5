@@ -1036,18 +1036,7 @@ sygusGrammar[CVC4::Type & ret,
       // We can be in a case where the only rule specified was (Variable T)
       // and there are no variables of type T, in which case this is a bogus
       // grammar. This results in the error below.
-      // We can also be in a case where the only rule specified was
-      // (Constant T), in which case we have not yet added a constructor. We
-      // ensure an arbitrary constant is added in this case. We additionally
-      // add a constant if the grammar allows it regardless of whether the
-      // datatype has other constructors, since this ensures the datatype is
-      // well-founded (see 3423).
-      if (aci)
-      {
-        Expr c = btt.mkGroundTerm();
-        PARSER_STATE->addSygusConstructorTerm(datatypes[i], c, ntsToUnres);
-      }
-      else if (datatypes[i].getNumConstructors() == 0)
+      if (datatypes[i].getNumConstructors() == 0)
       {
         std::stringstream se;
         se << "Grouped rule listing for " << datatypes[i].getName()
@@ -1536,16 +1525,6 @@ datatypesDef[bool isCo,
   }
   ;
 
-pattern[CVC4::Expr& expr]
-@declarations {
-  std::vector<Expr> patexpr;
-}
-  : LPAREN_TOK termList[patexpr,expr] RPAREN_TOK
-    {
-      expr = MK_EXPR(kind::INST_PATTERN, patexpr);
-    }
-  ;
-
 simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
 @declarations {
   CVC4::Kind k;
@@ -1568,13 +1547,6 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
     }
   | str[s,false]
     { sexpr = SExpr(s); }
-//  | LPAREN_TOK STRCST_TOK
-//      ( INTEGER_LITERAL {
-//      s_vec.push_back( atoi( AntlrInput::tokenText($INTEGER_LITERAL) ) + 65 );
-//    } )* RPAREN_TOK
-//   {
-//  sexpr = SExpr( MK_CONST( ::CVC4::String(s_vec) ) );
-//  }
   | symbol[s,CHECK_NONE,SYM_SORT]
     { sexpr = SExpr(SExpr::Keyword(s)); }
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
@@ -1948,12 +1920,12 @@ qualIdentifier[CVC4::ParseOp& p]
     ( CONST_TOK sortSymbol[type, CHECK_DECLARED]
       {
         p.d_kind = kind::STORE_ALL;
-        PARSER_STATE->applyTypeAscription(p, type);
+        PARSER_STATE->parseOpApplyTypeAscription(p, type);
       }
     | identifier[p]
       sortSymbol[type, CHECK_DECLARED]
       {
-        PARSER_STATE->applyTypeAscription(p, type);
+        PARSER_STATE->parseOpApplyTypeAscription(p, type);
       }
     )
     RPAREN_TOK
@@ -2001,8 +1973,7 @@ identifier[CVC4::ParseOp& p]
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
-        p.d_expr = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals)
-                   .getExpr();
+        p.d_op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals);
       }
     )
     RPAREN_TOK
@@ -2512,15 +2483,6 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes,
      * "defined" as an unresolved type; don't worry, we check
      * below. */
   : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(true); }
-   /* ( '[' symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2);
-        params.push_back( t );
-      }
-      ( symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2);
-        params.push_back( t ); }
-      )* ']'
-    )?*/ //AJR: this isn't necessary if we use z3's style
     { datatypes.push_back(Datatype(EXPR_MANAGER, id, params, isCo));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
@@ -2649,7 +2611,6 @@ ATTRIBUTE_PATTERN_TOK : ':pattern';
 ATTRIBUTE_NO_PATTERN_TOK : ':no-pattern';
 ATTRIBUTE_NAMED_TOK : ':named';
 ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
-ATTRIBUTE_RR_PRIORITY : ':rr-priority';
 
 // operators (NOTE: theory symbols go here)
 EXISTS_TOK        : 'exists';

@@ -222,11 +222,9 @@ Expr Tptp::parseOpToExpr(ParseOp& p)
   {
     return p.d_expr;
   }
-  // if it has a kind, it's a builtin one
-  if (p.d_kind != kind::NULL_EXPR)
-  {
-    return getExprManager()->operatorOf(p.d_kind);
-  }
+  // if it has a kind, it's a builtin one and this function should not have been
+  // called
+  assert(p.d_kind == kind::NULL_EXPR);
   if (isDeclared(p.d_name))
   {  // already appeared
     expr = getVariable(p.d_name);
@@ -243,18 +241,28 @@ Expr Tptp::parseOpToExpr(ParseOp& p)
 
 Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
 {
+  if (Debug.isOn("parser"))
+  {
+    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
+    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+    {
+      Debug("parser") << "++ " << *i << std::endl;
+    }
+  }
   assert(!args.empty());
-  bool isBuiltinOperator = false;
-  // the builtin kind of the overall return expression
-  Kind kind = kind::NULL_EXPR;
-  // First phase: process the operator
   ExprManager* em = getExprManager();
   // If operator already defined, just build application
   if (!p.d_expr.isNull())
   {
-    return em->mkExpr(p.d_expr, args);
+    // this happens with some arithmetic kinds, which are wrapped around
+    // lambdas.
+    args.insert(args.begin(), p.d_expr);
+    return em->mkExpr(kind::APPLY_UF, args);
   }
-  // Otherwise piece operator together
+  bool isBuiltinKind = false;
+  // the builtin kind of the overall return expression
+  Kind kind = kind::NULL_EXPR;
+  // First phase: piece operator together
   if (p.d_kind == kind::NULL_EXPR)
   {
     // A non-built-in function application, get the expression
@@ -289,11 +297,11 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   else
   {
     kind = p.d_kind;
-    isBuiltinOperator = true;
+    isBuiltinKind = true;
   }
   assert(kind != kind::NULL_EXPR);
-  // Second phase: apply the arguments to the parse op
-  if (isBuiltinOperator)
+  // Second phase: apply parse op to the arguments
+  if (isBuiltinKind)
   {
     if (!em->getOptions().getUfHo()
         && (kind == kind::EQUAL || kind == kind::DISTINCT))
@@ -308,36 +316,6 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         }
       }
     }
-    if (args.size() > 2)
-    {
-      if (kind == kind::INTS_DIVISION || kind == kind::XOR
-          || kind == kind::MINUS || kind == kind::DIVISION)
-      {
-        // Builtin operators that are not tokenized, are left associative,
-        // but not internally variadic must set this.
-        return em->mkLeftAssociative(kind, args);
-      }
-      if (kind == kind::IMPLIES)
-      {
-        /* right-associative, but CVC4 internally only supports 2 args */
-        return em->mkRightAssociative(kind, args);
-      }
-      if (kind == kind::EQUAL || kind == kind::LT || kind == kind::GT
-          || kind == kind::LEQ || kind == kind::GEQ)
-      {
-        /* "chainable", but CVC4 internally only supports 2 args */
-        api::Term ret =
-            mkChain(intToExtKind(kind), api::exprVectorToTerms(args));
-        return ret.getExpr();
-      }
-    }
-
-    if (kind::isAssociative(kind) && args.size() > em->maxArity(kind))
-    {
-      /* Special treatment for associative operators with lots of children
-       */
-      return em->mkAssociative(kind, args);
-    }
     if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
         && args.size() == 1)
     {
@@ -348,8 +326,8 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       return em->mkExpr(kind::UMINUS, args[0]);
     }
-    checkOperator(kind, args.size());
-    return em->mkExpr(kind, args);
+    return d_solver->mkTerm(intToExtKind(kind), api::exprVectorToTerms(args))
+        .getExpr();
   }
 
   // check if partially applied function, in this case we use HO_APPLY
@@ -369,7 +347,8 @@ Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
         // must curry the partial application
-        return em->mkLeftAssociative(kind::HO_APPLY, args);
+        return d_solver->mkTerm(api::HO_APPLY, api::exprVectorToTerms(args))
+            .getExpr();
       }
     }
   }
@@ -431,26 +410,27 @@ Expr Tptp::convertStrToUnsorted(std::string str) {
   return e;
 }
 
-void Tptp::mkLambdaWrapper(Expr& expr, Type argType)
+Expr Tptp::mkLambdaWrapper(Kind k, Type argType)
 {
+  Debug("parser") << "mkLambdaWrapper: kind " << k << " and type " << argType
+                  << "\n";
   std::vector<Expr> lvars;
   std::vector<Type> domainTypes =
       (static_cast<FunctionType>(argType)).getArgTypes();
+  ExprManager* em = getExprManager();
   for (unsigned i = 0, size = domainTypes.size(); i < size; ++i)
   {
     // the introduced variable is internal (not parsable)
     std::stringstream ss;
     ss << "_lvar_" << i;
-    Expr v = getExprManager()->mkBoundVar(ss.str(), domainTypes[i]);
+    Expr v = em->mkBoundVar(ss.str(), domainTypes[i]);
     lvars.push_back(v);
   }
   // apply body of lambda to variables
-  Expr wrapper = getExprManager()->mkExpr(
-      kind::LAMBDA,
-      getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars),
-      getExprManager()->mkExpr(expr, lvars));
-
-  expr = wrapper;
+  Expr wrapper = em->mkExpr(kind::LAMBDA,
+                            em->mkExpr(kind::BOUND_VAR_LIST, lvars),
+                            em->mkExpr(k, lvars));
+  return wrapper;
 }
 
 Expr Tptp::getAssertionExpr(FormulaRole fr, Expr expr) {
