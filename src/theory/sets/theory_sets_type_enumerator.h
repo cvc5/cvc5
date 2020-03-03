@@ -79,7 +79,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
     // generate new element
     if (d_currentSetIndex == (unsigned)(1 << d_elementsSoFar.size()))
     {
-      if(d_elementEnumerator.isFinished())
+      if (d_elementEnumerator.isFinished())
       {
         d_isFinished = true;
         return *this;
@@ -109,8 +109,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 
   bool isFinished() override
   {
-    Trace("set-type-enum") << "isFinished returning: "
-                           << d_isFinished
+    Trace("set-type-enum") << "isFinished returning: " << d_isFinished
                            << std::endl;
     return d_isFinished;
   }
