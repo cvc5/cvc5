@@ -828,7 +828,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     {
       Trace("sygus-grammar-def") << "...add for constructors" << std::endl;
       const DType& dt = types[i].getDType();
-      for (unsigned l = 0, size_k = dt.getNumConstructors(); l < size_k; ++l)
+      for (unsigned l = 0, size_l = dt.getNumConstructors(); l < size_l; ++l)
       {
         Trace("sygus-grammar-def") << "...for " << dt[l].getName() << std::endl;
         Node cop = dt[l].getConstructor();
