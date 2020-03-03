@@ -34,7 +34,6 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 {
   /** type properties */
   TypeEnumeratorProperties* d_tep;
-  TypeNode d_constituentType;
   NodeManager* d_nm;
   TypeEnumerator d_elementTypeEnumerator;
   bool d_finished;
@@ -43,25 +42,18 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
   SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<SetEnumerator>(type),
         d_tep(tep),
-        d_constituentType(),
         d_nm(NodeManager::currentNM()),
         d_elementTypeEnumerator(type.getSetElementType(), d_tep),
         d_finished(false)
   {
   }
 
-  // An set enumerator could be large, and generally you don't want to
-  // go around copying these things; but a copy ctor is presently required
-  // by the TypeEnumerator framework.
-  SetEnumerator(const SetEnumerator& ae)
-      : TypeEnumeratorBase<SetEnumerator>(
-          ae.d_nm->mkSetType(ae.d_constituentType)),
-        d_tep(ae.d_tep),
-        d_constituentType(ae.d_constituentType),
-        d_nm(ae.d_nm),
-        //        d_indexVec(ae.d_indexVec),
-        d_elementTypeEnumerator(ae.d_elementTypeEnumerator),  // copied below
-        d_finished(ae.d_finished)
+  SetEnumerator(const SetEnumerator& enumerator)
+      : TypeEnumeratorBase<SetEnumerator>(enumerator.getType()),
+        d_tep(enumerator.d_tep),
+        d_nm(enumerator.d_nm),
+        d_elementTypeEnumerator(enumerator.d_elementTypeEnumerator),
+        d_finished(enumerator.d_finished)
   {
   }
 
