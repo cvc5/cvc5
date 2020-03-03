@@ -27,16 +27,21 @@ class NormalForm {
  public:
   template <bool ref_count>
   static Node elementsToSet(const std::set<NodeTemplate<ref_count> >& elements,
-                            TypeNode setType) {
+                            TypeNode setType)
+  {
     typedef typename std::set<NodeTemplate<ref_count> >::const_iterator
         ElementsIterator;
     NodeManager* nm = NodeManager::currentNM();
-    if (elements.size() == 0) {
+    if (elements.size() == 0)
+    {
       return nm->mkConst(EmptySet(nm->toType(setType)));
-    } else {
+    }
+    else
+    {
       ElementsIterator it = elements.begin();
       Node cur = nm->mkNode(kind::SINGLETON, *it);
-      while (++it != elements.end()) {
+      while (++it != elements.end())
+      {
         cur = nm->mkNode(kind::UNION, cur, nm->mkNode(kind::SINGLETON, *it));
       }
       return cur;
