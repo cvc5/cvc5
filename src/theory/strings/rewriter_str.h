@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** 
+/**
  * An extension of TheoryStringsRewriter that handles operators that
  * are specific to strings (and cannot be applied to sequences).
  */
