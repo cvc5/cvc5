@@ -34,7 +34,7 @@ class RewriterStr
    * Returns the rewritten form of n.
    */
   static Node rewriteStrToInt(Node n);
-  
+
   /** rewrite integer to string
    *
    * This is the entry point for post-rewriting terms n of the form
@@ -42,7 +42,7 @@ class RewriterStr
    * Returns the rewritten form of n.
    */
   static Node rewriteIntToStr(Node n);
-  
+
   /** rewrite string convert
    *
    * This is the entry point for post-rewriting terms n of the form
@@ -50,17 +50,17 @@ class RewriterStr
    * Returns the rewritten form of n.
    */
   static Node rewriteStrConvert(Node n);
-  
+
   /** rewrite string less than or equal
-   * 
-  * This is the entry point for post-rewriting terms n of the form
-  *   str.<=( t, s )
-  * Returns the rewritten form of n.
-  */
+   *
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.<=( t, s )
+   * Returns the rewritten form of n.
+   */
   static Node rewriteStringLeq(Node n);
-  
+
   /** rewrite str.from_code
-   * 
+   *
    * This is the entry point for post-rewriting terms n of the form
    *   str.from_code( t )
    * Returns the rewritten form of n.
@@ -68,13 +68,14 @@ class RewriterStr
   static Node rewriteStringFromCode(Node n);
 
   /** rewrite str.to_code
-   * 
+   *
    * This is the entry point for post-rewriting terms n of the form
    *   str.to_code( t )
    * Returns the rewritten form of n.
    */
   static Node rewriteStringToCode(Node n);
-private:
+
+ private:
   /**
    * Called when node rewrites to ret.
    *
@@ -89,8 +90,8 @@ private:
   static Node returnRewrite(Node node, Node ret, const char* c);
 }; /* class TheoryStringsRewriter */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__STRINGS__REWRITER_STR_H */

@@ -27,22 +27,29 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
+
 Node RewriterStr::rewriteStrToInt(Node node)
 {
   Assert(node.getKind() == STRING_STOI);
   NodeManager* nm = NodeManager::currentNM();
-  if(node[0].isConst()) {
+  if (node[0].isConst())
+  {
     String s = node[0].getConst<String>();
-    if(s.isNumber()) {
+    if (s.isNumber())
+    {
       return nm->mkConst(s.toNumber());
-    } 
+    }
     return nm->mkConst(Rational(-1));
-  } else if(node[0].getKind() == STRING_CONCAT) {
-    for (TNode nc : node[0]){
-      if(nc.isConst()) {
+  }
+  else if (node[0].getKind() == STRING_CONCAT)
+  {
+    for (TNode nc : node[0])
+    {
+      if (nc.isConst())
+      {
         String t = nc.getConst<String>();
-        if(!t.isNumber()) {
+        if (!t.isNumber())
+        {
           return nm->mkConst(Rational(-1));
         }
       }
@@ -55,17 +62,19 @@ Node RewriterStr::rewriteIntToStr(Node node)
 {
   Assert(node.getKind() == STRING_ITOS);
   NodeManager* nm = NodeManager::currentNM();
-  if(node[0].isConst()) {
-    if( node[0].getConst<Rational>().sgn()==-1 ){
+  if (node[0].isConst())
+  {
+    if (node[0].getConst<Rational>().sgn() == -1)
+    {
       return nm->mkConst(String(""));
     }
-      std::string stmp = node[0].getConst<Rational>().getNumerator().toString();
-      Assert(stmp[0] != '-');
-      return nm->mkConst( String(stmp) );
+    std::string stmp = node[0].getConst<Rational>().getNumerator().toString();
+    Assert(stmp[0] != '-');
+    return nm->mkConst(String(stmp));
   }
   return node;
 }
-  
+
 Node RewriterStr::rewriteStrConvert(Node node)
 {
   Kind nk = node.getKind();
@@ -210,15 +219,14 @@ Node RewriterStr::rewriteStringToCode(Node n)
   Assert(n.getKind() == kind::STRING_TO_CODE);
   if (n[0].isConst())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     String s = n[0].getConst<String>();
     Node ret;
     if (s.size() == 1)
     {
       std::vector<unsigned> vec = s.getVec();
       Assert(vec.size() == 1);
-      ret = nm->mkConst(
-          Rational(String::convertUnsignedIntToCode(vec[0])));
+      ret = nm->mkConst(Rational(String::convertUnsignedIntToCode(vec[0])));
     }
     else
     {
@@ -230,6 +238,6 @@ Node RewriterStr::rewriteStringToCode(Node n)
   return n;
 }
 
-}
-}
-}
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
