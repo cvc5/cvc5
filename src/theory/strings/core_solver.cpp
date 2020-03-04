@@ -1137,13 +1137,13 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       // Constants in both normal forms.
       //
       // E.g. "abc" ++ ... = "ab" ++ ...
-      String c1 = x.getConst<String>();
-      String c2 = y.getConst<String>();
+      size_t lenX = Word::getLength(x);
+      size_t lenY = Word::getLength(y);
       Trace("strings-solve-debug")
           << "Simple Case 4 : Const Split : " << x << " vs " << y
           << " at index " << index << ", isRev = " << isRev << std::endl;
-      size_t minLen = std::min(c1.size(), c2.size());
-      bool isSameFix = isRev ? c1.rstrncmp(c2, minLen) : c1.strncmp(c2, minLen);
+      size_t minLen = std::min(lenX, lenY);
+      bool isSameFix = isRev ? Word::rstrncmp(x, y, minLen) : Word::strncmp(x, y, minLen);
       if (isSameFix)
       {
         // The shorter constant is a prefix/suffix of the longer constant. We
@@ -1152,20 +1152,20 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         //
         // E.g. "abc" ++ x' ++ ... = "ab" ++ y' ++ ... --->
         //      "c" ++ x' ++ ... = y' ++ ...
-        bool c1Shorter = c1.size() < c2.size();
-        NormalForm& nfl = c1Shorter ? nfj : nfi;
-        const String& cl = c1Shorter ? c2 : c1;
-        Node ns = c1Shorter ? x : y;
+        bool xShorter = lenX < lenY;
+        NormalForm& nfl = xShorter ? nfj : nfi;
+        Node cl = xShorter ? y : x;
+        Node ns = xShorter ? x : y;
 
         Node remainderStr;
         if (isRev)
         {
-          int newlen = cl.size() - minLen;
-          remainderStr = nm->mkConst(cl.substr(0, newlen));
+          size_t newlen = std::max(lenX, lenY) - minLen;
+          remainderStr = Word::substr(cl,0, newlen);
         }
         else
         {
-          remainderStr = nm->mkConst(cl.substr(minLen));
+          remainderStr = Word::substr(cl,minLen);
         }
         Trace("strings-solve-debug-test")
             << "Break normal form of " << cl << " into " << ns << ", "
@@ -1769,8 +1769,7 @@ void CoreSolver::processDeq( Node ni, Node nj ) {
                 return;
               }else{
                 //split on first character
-                CVC4::String str = const_k.getConst<String>();
-                Node firstChar = str.size() == 1 ? const_k : NodeManager::currentNM()->mkConst( str.prefix( 1 ) );
+                Node firstChar = Word::getLength(const_k) == 1 ? const_k : Word::prefix( const_k, 1 );
                 if (d_state.areEqual(lnck, d_one))
                 {
                   if (d_state.areDisequal(firstChar, nconst_k))
@@ -1946,23 +1945,25 @@ int CoreSolver::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >&
       if (!d_state.areEqual(i, j))
       {
         if( i.getKind()==kind::CONST_STRING && j.getKind()==kind::CONST_STRING ) {
-          unsigned int len_short = i.getConst<String>().size() < j.getConst<String>().size() ? i.getConst<String>().size() : j.getConst<String>().size();
+          size_t lenI = Word::getLength(i);
+          size_t lenJ = Word::getLength(j);
+          unsigned int len_short = lenI < lenJ ? lenI : lenJ;
           bool isSameFix = isRev ? i.getConst<String>().rstrncmp(j.getConst<String>(), len_short): i.getConst<String>().strncmp(j.getConst<String>(), len_short);
           if( isSameFix ) {
             //same prefix/suffix
             //k is the index of the string that is shorter
-            Node nk = i.getConst<String>().size() < j.getConst<String>().size() ? i : j;
-            Node nl = i.getConst<String>().size() < j.getConst<String>().size() ? j : i;
+            Node nk = lenI < lenJ ? i : j;
+            Node nl = lenI < lenJ ? j : i;
             Node remainderStr;
             if( isRev ){
-              int new_len = nl.getConst<String>().size() - len_short;
-              remainderStr = NodeManager::currentNM()->mkConst( nl.getConst<String>().substr(0, new_len) );
+              int new_len = Word::getLength(nl) - len_short;
+              remainderStr = Word::substr(nl, 0, new_len);
               Trace("strings-solve-debug-test") << "Rev. Break normal form of " << nl << " into " << nk << ", " << remainderStr << std::endl;
             } else {
-              remainderStr = NodeManager::currentNM()->mkConst( nl.getConst<String>().substr( len_short ) );
+              remainderStr = Word::substr(nl, len_short);
               Trace("strings-solve-debug-test") << "Break normal form of " << nl << " into " << nk << ", " << remainderStr << std::endl;
             }
-            if( i.getConst<String>().size() < j.getConst<String>().size() ) {
+            if( lenI < lenJ ) {
               nfj.insert( nfj.begin() + index + 1, remainderStr );
               nfj[index] = nfi[index];
             } else {
