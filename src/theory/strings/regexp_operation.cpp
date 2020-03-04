@@ -30,11 +30,8 @@ namespace theory {
 namespace strings {
 
 RegExpOpr::RegExpOpr()
-    : d_emptyString(NodeManager::currentNM()->mkConst(::CVC4::String(""))),
-      d_true(NodeManager::currentNM()->mkConst(true)),
+    : d_true(NodeManager::currentNM()->mkConst(true)),
       d_false(NodeManager::currentNM()->mkConst(false)),
-      d_emptySingleton(NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP,
-                                                        d_emptyString)),
       d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_EMPTY,
                                                      std::vector<Node>{})),
       d_zero(NodeManager::currentNM()->mkConst(::CVC4::Rational(0))),
@@ -43,6 +40,10 @@ RegExpOpr::RegExpOpr()
                                                std::vector<Node>{})),
       d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
 {
+  d_emptyString = Word::mkEmptyWord(CONST_STRING);
+  
+    d_emptySingleton = NodeManager::currentNM()->mkNode(STRING_TO_REGEXP,
+                                                        d_emptyString);
   d_lastchar = utils::getAlphabetCardinality() - 1;
 }
 
@@ -334,7 +335,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
           if(tmp == d_emptyString) {
             ret = 2;
           } else {
-            if (tmp.getConst<CVC4::String>().front() == c.front())
+            if (tmp.getConst<String>().front() == c.front())
             {
               retNode =
                   nm->mkNode(STRING_TO_REGEXP,
@@ -350,7 +351,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
           if(tmp.getKind() == kind::STRING_CONCAT) {
             Node t2 = tmp[0];
             if(t2.isConst()) {
-              if (t2.getConst<CVC4::String>().front() == c.front())
+              if (t2.getConst<String>().front() == c.front())
               {
                 Node n = nm->mkNode(STRING_TO_REGEXP,
                                     Word::getLength(tmp) == 1
@@ -583,7 +584,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
           if(r[0] == d_emptyString) {
             retNode = d_emptyRegexp;
           } else {
-            if (r[0].getConst<CVC4::String>().front() == c.front())
+            if (r[0].getConst<String>().front() == c.front())
             {
               retNode = nm->mkNode(STRING_TO_REGEXP,
                                    Word::getLength(r[0]) == 1
@@ -1647,7 +1648,7 @@ Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
 //printing
 std::string RegExpOpr::niceChar(Node r) {
   if(r.isConst()) {
-    std::string s = r.getConst<CVC4::String>().toString() ;
+    std::string s = r.getConst<String>().toString() ;
     return s == "." ? "\\." : s;
   } else {
     std::string ss = "$" + r.toString();

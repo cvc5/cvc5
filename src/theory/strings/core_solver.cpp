@@ -19,7 +19,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "options/strings_options.h"
 #include "theory/strings/theory_strings_rewriter.h"
-
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -37,7 +37,7 @@ d_nf_pairs(c)
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
+  d_emptyString = Word::mkEmptyWord(CONST_STRING);
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
@@ -1625,13 +1625,12 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   {
     Trace("strings-loop") << "Strings::Loop: Const Normal Breaking."
                           << std::endl;
-    CVC4::String s = t_yz.getConst<CVC4::String>();
-    unsigned size = s.size();
+    unsigned size = Word::getLength(t_yz);
     std::vector<Node> vconc;
     for (unsigned len = 1; len <= size; len++)
     {
-      Node y = nm->mkConst(s.substr(0, len));
-      Node z = nm->mkConst(s.substr(len, size - len));
+      Node y = Word::substr(t_yz,0, len);
+      Node z = Word::substr(t_yz,len, size - len);
       Node restr = s_zy;
       Node cc;
       if (r != d_emptyString)
