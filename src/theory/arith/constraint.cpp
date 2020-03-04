@@ -500,21 +500,39 @@ bool Constraint::hasSimpleFarkasProof() const
                                << std::endl;
     return false;
   }
-  const ConstraintRule& rule = getConstraintRule();
-  AntecedentId antId = rule.d_antecedentEnd;
-  ConstraintCP antecdent = d_database->getAntecedent(antId);
-  while (antecdent != NullConstraint)
+
+  // For each antecdent ...
+  for (AntecedentId i = getConstraintRule().d_antecedentEnd;
+       i != AntecedentIdSentinel;
+       --i)
   {
-    if (antecdent->getProofType() != AssumeAP)
+    ConstraintCP a = d_database->getAntecedent(i);
+    // ... that antecdent must be an assumption ...
+    if (a->isAssumption())
+    {
+      continue;
+    }
+
+    // ... OR a tightened assumption ...
+    if (a->hasIntTightenProof()
+        && a->getConstraintRule().d_antecedentEnd != AntecedentIdSentinel
+        && d_database->getAntecedent(a->getConstraintRule().d_antecedentEnd)
+               ->isAssumption())
+
+    {
+      continue;
+    }
+
+    // ... otherwise, we do not have a simple Farkas proof.
+    if (Debug.isOn("constraints::hsfp"))
     {
       Debug("constraints::hsfp") << "There is no simple Farkas proof b/c there "
                                     "is an antecdent w/ rule ";
-      antecdent->getConstraintRule().print(Debug("constraints::hsfp"));
+      a->getConstraintRule().print(Debug("constraints::hsfp"));
       Debug("constraints::hsfp") << std::endl;
-      return false;
     }
-    --antId;
-    antecdent = d_database->getAntecedent(antId);
+
+    return false;
   }
   return true;
 }
