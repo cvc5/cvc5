@@ -29,9 +29,9 @@
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/type_enumerator.h"
+#include "theory/strings/word.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
-#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::context;

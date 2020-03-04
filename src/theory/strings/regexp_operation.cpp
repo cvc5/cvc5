@@ -41,9 +41,9 @@ RegExpOpr::RegExpOpr()
       d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
 {
   d_emptyString = Word::mkEmptyWord(CONST_STRING);
-  
-    d_emptySingleton = NodeManager::currentNM()->mkNode(STRING_TO_REGEXP,
-                                                        d_emptyString);
+
+  d_emptySingleton =
+      NodeManager::currentNM()->mkNode(STRING_TO_REGEXP, d_emptyString);
   d_lastchar = utils::getAlphabetCardinality() - 1;
 }
 
@@ -1648,7 +1648,7 @@ Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
 //printing
 std::string RegExpOpr::niceChar(Node r) {
   if(r.isConst()) {
-    std::string s = r.getConst<String>().toString() ;
+    std::string s = r.getConst<String>().toString();
     return s == "." ? "\\." : s;
   } else {
     std::string ss = "$" + r.toString();

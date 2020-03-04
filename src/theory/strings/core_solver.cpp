@@ -16,9 +16,9 @@
 
 #include "theory/strings/core_solver.h"
 
-#include "theory/strings/theory_strings_utils.h"
 #include "options/strings_options.h"
 #include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
 using namespace std;
@@ -1629,8 +1629,8 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     std::vector<Node> vconc;
     for (unsigned len = 1; len <= size; len++)
     {
-      Node y = Word::substr(t_yz,0, len);
-      Node z = Word::substr(t_yz,len, size - len);
+      Node y = Word::substr(t_yz, 0, len);
+      Node z = Word::substr(t_yz, len, size - len);
       Node restr = s_zy;
       Node cc;
       if (r != d_emptyString)
