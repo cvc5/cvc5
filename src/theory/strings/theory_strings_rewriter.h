@@ -223,13 +223,6 @@ class TheoryStringsRewriter : public TheoryRewriter
    * str.replaceall. If it returns a non-null ret, then node rewrites to ret.
    */
   static Node rewriteReplaceInternal(Node node);
-  /** rewrite string convert
-   *
-   * This is the entry point for post-rewriting terms n of the form
-   *   str.tolower( s ) and str.toupper( s )
-   * Returns the rewritten form of node.
-   */
-  static Node rewriteStrConvert(Node node);
   /** rewrite string reverse
    *
    * This is the entry point for post-rewriting terms n of the form
@@ -237,25 +230,12 @@ class TheoryStringsRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   static Node rewriteStrReverse(Node node);
-  /** rewrite string less than or equal
-  * This is the entry point for post-rewriting terms n of the form
-  *   str.<=( t, s )
-  * Returns the rewritten form of n.
-  */
-  static Node rewriteStringLeq(Node n);
   /** rewrite prefix/suffix
   * This is the entry point for post-rewriting terms n of the form
   *   str.prefixof( s, t ) / str.suffixof( s, t )
   * Returns the rewritten form of node.
   */
   static Node rewritePrefixSuffix(Node node);
-
-  /** rewrite str.from_code
-   * This is the entry point for post-rewriting terms n of the form
-   *   str.from_code( t )
-   * Returns the rewritten form of node.
-   */
-  static Node rewriteStringFromCode(Node node);
 
   /** rewrite str.to_code
    * This is the entry point for post-rewriting terms n of the form

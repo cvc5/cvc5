@@ -29,6 +29,7 @@
 #include "theory/theory.h"
 #include "util/integer.h"
 #include "util/rational.h"
+#include "theory/strings/rewriter_str.h"
 
 using namespace std;
 using namespace CVC4;
@@ -1655,7 +1656,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
   else if (nk == kind::STRING_LEQ)
   {
-    retNode = rewriteStringLeq(node);
+    retNode = RewriterStr::rewriteStringLeq(node);
   }
   else if (nk == kind::STRING_STRIDOF)
   {
@@ -1671,7 +1672,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
   else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
   {
-    retNode = rewriteStrConvert(node);
+    retNode = RewriterStr::rewriteStrConvert(node);
   }
   else if (nk == STRING_REV)
   {
@@ -1691,36 +1692,11 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
   else if (nk == kind::STRING_ITOS)
   {
-    if(node[0].isConst()) {
-      if( node[0].getConst<Rational>().sgn()==-1 ){
-        retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-      }else{
-        std::string stmp = node[0].getConst<Rational>().getNumerator().toString();
-        Assert(stmp[0] != '-');
-        retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(stmp) );
-      }
-    }
+    retNode = RewriterStr::rewriteIntToStr(node);
   }
   else if (nk == kind::STRING_STOI)
   {
-    if(node[0].isConst()) {
-      CVC4::String s = node[0].getConst<String>();
-      if(s.isNumber()) {
-        retNode = nm->mkConst(s.toNumber());
-      } else {
-        retNode = nm->mkConst(Rational(-1));
-      }
-    } else if(node[0].getKind() == kind::STRING_CONCAT) {
-      for(unsigned i=0; i<node[0].getNumChildren(); ++i) {
-        if(node[0][i].isConst()) {
-          CVC4::String t = node[0][i].getConst<String>();
-          if(!t.isNumber()) {
-            retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
-            break;
-          }
-        }
-      }
-    }
+    retNode = RewriterStr::rewriteStrToInt(node);
   }
   else if (nk == kind::STRING_IN_REGEXP)
   {
@@ -1728,7 +1704,11 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
   else if (nk == STRING_TO_CODE)
   {
-    retNode = rewriteStringToCode(node);
+    retNode = RewriterStr::rewriteStringToCode(node);
+  }
+  else if (nk == STRING_FROM_CODE)
+  {
+    retNode = RewriterStr::rewriteStringFromCode(node);
   }
   else if (nk == REGEXP_CONCAT)
   {
@@ -3203,67 +3183,6 @@ Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
   return Node::null();
 }
 
-Node TheoryStringsRewriter::rewriteStrConvert(Node node)
-{
-  Kind nk = node.getKind();
-  Assert(nk == STRING_TOLOWER || nk == STRING_TOUPPER);
-  NodeManager* nm = NodeManager::currentNM();
-  if (node[0].isConst())
-  {
-    std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
-    for (unsigned i = 0, nvsize = nvec.size(); i < nvsize; i++)
-    {
-      unsigned newChar = CVC4::String::convertUnsignedIntToCode(nvec[i]);
-      // transform it
-      // upper 65 ... 90
-      // lower 97 ... 122
-      if (nk == STRING_TOUPPER)
-      {
-        if (newChar >= 97 && newChar <= 122)
-        {
-          newChar = newChar - 32;
-        }
-      }
-      else if (nk == STRING_TOLOWER)
-      {
-        if (newChar >= 65 && newChar <= 90)
-        {
-          newChar = newChar + 32;
-        }
-      }
-      newChar = CVC4::String::convertCodeToUnsignedInt(newChar);
-      nvec[i] = newChar;
-    }
-    Node retNode = nm->mkConst(String(nvec));
-    return returnRewrite(node, retNode, "str-conv-const");
-  }
-  else if (node[0].getKind() == STRING_CONCAT)
-  {
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
-    for (const Node& nc : node[0])
-    {
-      concatBuilder << nm->mkNode(nk, nc);
-    }
-    // tolower( x1 ++ x2 ) --> tolower( x1 ) ++ tolower( x2 )
-    Node retNode = concatBuilder.constructNode();
-    return returnRewrite(node, retNode, "str-conv-minscope-concat");
-  }
-  else if (node[0].getKind() == STRING_TOLOWER
-           || node[0].getKind() == STRING_TOUPPER)
-  {
-    // tolower( tolower( x ) ) --> tolower( x )
-    // tolower( toupper( x ) ) --> tolower( x )
-    Node retNode = nm->mkNode(nk, node[0][0]);
-    return returnRewrite(node, retNode, "str-conv-idem");
-  }
-  else if (node[0].getKind() == STRING_ITOS)
-  {
-    // tolower( str.from.int( x ) ) --> str.from.int( x )
-    return returnRewrite(node, node[0], "str-conv-itos");
-  }
-  return node;
-}
-
 Node TheoryStringsRewriter::rewriteStrReverse(Node node)
 {
   Assert(node.getKind() == STRING_REV);
@@ -3295,60 +3214,6 @@ Node TheoryStringsRewriter::rewriteStrReverse(Node node)
     return returnRewrite(node, retNode, "str-rev-idem");
   }
   return node;
-}
-
-Node TheoryStringsRewriter::rewriteStringLeq(Node n)
-{
-  Assert(n.getKind() == kind::STRING_LEQ);
-  NodeManager* nm = NodeManager::currentNM();
-  if (n[0] == n[1])
-  {
-    Node ret = nm->mkConst(true);
-    return returnRewrite(n, ret, "str-leq-id");
-  }
-  if (n[0].isConst() && n[1].isConst())
-  {
-    String s = n[0].getConst<String>();
-    String t = n[1].getConst<String>();
-    Node ret = nm->mkConst(s.isLeq(t));
-    return returnRewrite(n, ret, "str-leq-eval");
-  }
-  // empty strings
-  for (unsigned i = 0; i < 2; i++)
-  {
-    if (n[i].isConst() && n[i].getConst<String>().isEmptyString())
-    {
-      Node ret = i == 0 ? nm->mkConst(true) : n[0].eqNode(n[1]);
-      return returnRewrite(n, ret, "str-leq-empty");
-    }
-  }
-
-  std::vector<Node> n1;
-  utils::getConcat(n[0], n1);
-  std::vector<Node> n2;
-  utils::getConcat(n[1], n2);
-  Assert(!n1.empty() && !n2.empty());
-
-  // constant prefixes
-  if (n1[0].isConst() && n2[0].isConst() && n1[0] != n2[0])
-  {
-    String s = n1[0].getConst<String>();
-    String t = n2[0].getConst<String>();
-    // only need to truncate if s is longer
-    if (s.size() > t.size())
-    {
-      s = s.prefix(t.size());
-    }
-    // if prefix is not leq, then entire string is not leq
-    if (!s.isLeq(t))
-    {
-      Node ret = nm->mkConst(false);
-      return returnRewrite(n, ret, "str-leq-cprefix");
-    }
-  }
-
-  Trace("strings-rewrite-nf") << "No rewrites for : " << n << std::endl;
-  return n;
 }
 
 Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
@@ -3428,54 +3293,6 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
       NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, n[1], val, lens));
 
   return retNode;
-}
-
-Node TheoryStringsRewriter::rewriteStringFromCode(Node n)
-{
-  Assert(n.getKind() == kind::STRING_FROM_CODE);
-  NodeManager* nm = NodeManager::currentNM();
-
-  if (n[0].isConst())
-  {
-    Integer i = n[0].getConst<Rational>().getNumerator();
-    Node ret;
-    if (i >= 0 && i < strings::utils::getAlphabetCardinality())
-    {
-      std::vector<unsigned> svec = {i.toUnsignedInt()};
-      ret = nm->mkConst(String(svec));
-    }
-    else
-    {
-      ret = nm->mkConst(String(""));
-    }
-    return returnRewrite(n, ret, "from-code-eval");
-  }
-
-  return n;
-}
-
-Node TheoryStringsRewriter::rewriteStringToCode(Node n)
-{
-  Assert(n.getKind() == kind::STRING_TO_CODE);
-  if (n[0].isConst())
-  {
-    CVC4::String s = n[0].getConst<String>();
-    Node ret;
-    if (s.size() == 1)
-    {
-      std::vector<unsigned> vec = s.getVec();
-      Assert(vec.size() == 1);
-      ret = NodeManager::currentNM()->mkConst(
-          Rational(CVC4::String::convertUnsignedIntToCode(vec[0])));
-    }
-    else
-    {
-      ret = NodeManager::currentNM()->mkConst(Rational(-1));
-    }
-    return returnRewrite(n, ret, "to-code-eval");
-  }
-
-  return n;
 }
 
 Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRev ) {
