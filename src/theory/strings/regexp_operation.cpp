@@ -296,7 +296,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
 
   int ret = 1;
   retNode = d_emptyRegexp;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
 
   PairNodeStr dv = std::make_pair( r, c );
   if( d_deriv_cache.find( dv ) != d_deriv_cache.end() ) {
@@ -336,8 +336,10 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
           } else {
             if (tmp.getConst<CVC4::String>().front() == c.front())
             {
-              retNode =  nm->mkNode( STRING_TO_REGEXP,
-                Word::getLength(tmp) == 1 ? d_emptyString : Word::substr(tmp,1) );
+              retNode =
+                  nm->mkNode(STRING_TO_REGEXP,
+                             Word::getLength(tmp) == 1 ? d_emptyString
+                                                       : Word::substr(tmp, 1));
             } else {
               ret = 2;
             }
@@ -350,8 +352,10 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
             if(t2.isConst()) {
               if (t2.getConst<CVC4::String>().front() == c.front())
               {
-                Node n =  nm->mkNode( STRING_TO_REGEXP,
-                  Word::getLength(tmp) == 1 ? d_emptyString : Word::substr(tmp,1) );
+                Node n = nm->mkNode(STRING_TO_REGEXP,
+                                    Word::getLength(tmp) == 1
+                                        ? d_emptyString
+                                        : Word::substr(tmp, 1));
                 std::vector< Node > vec_nodes;
                 vec_nodes.push_back(n);
                 for(unsigned i=1; i<tmp.getNumChildren(); i++) {
@@ -543,7 +547,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
   Node retNode = d_emptyRegexp;
   PairNodeStr dv = std::make_pair( r, c );
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   if( d_dv_cache.find( dv ) != d_dv_cache.end() ) {
     retNode = d_dv_cache[dv];
   } else if( c.isEmptyString() ){
@@ -581,8 +585,10 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
           } else {
             if (r[0].getConst<CVC4::String>().front() == c.front())
             {
-              retNode =  nm->mkNode( STRING_TO_REGEXP,
-                Word::getLength(r[0]) == 1 ? d_emptyString : Word::substr(r[0],1) );
+              retNode = nm->mkNode(STRING_TO_REGEXP,
+                                   Word::getLength(r[0]) == 1
+                                       ? d_emptyString
+                                       : Word::substr(r[0], 1));
             } else {
               retNode = d_emptyRegexp;
             }
