@@ -38,7 +38,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   }
   else
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node ret = n;
     if (n.getNumChildren() > 0)
     {
@@ -160,19 +160,17 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
       TypeNode tn = n.getType();
       if (tn.isReal() && !tn.isInteger())
       {
-        if (n.getKind()==kind::BOUND_VARIABLE)
+        if (n.getKind() == kind::BOUND_VARIABLE)
         {
           // special case for bound variables (must call mkBoundVar)
-          ret = nm->mkBoundVar(
-              "__realToIntInternal_bound_var",
-              nm->integerType());
+          ret = nm->mkBoundVar("__realToIntInternal_bound_var",
+                               nm->integerType());
         }
         else if (n.isVar())
         {
-          ret = nm->mkSkolem(
-              "__realToIntInternal_var",
-              nm->integerType(),
-              "Variable introduced in realToIntInternal pass");
+          ret = nm->mkSkolem("__realToIntInternal_var",
+                             nm->integerType(),
+                             "Variable introduced in realToIntInternal pass");
           var_eq.push_back(n.eqNode(ret));
           TheoryModel* m = d_preprocContext->getTheoryEngine()->getModel();
           m->addSubstitution(n, ret);
