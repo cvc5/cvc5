@@ -16,10 +16,7 @@
 #include "theory/strings/rewriter_str.h"
 
 #include "expr/node_builder.h"
-#include "options/strings_options.h"
-#include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
-#include "theory/strings/word.h"
 #include "util/rational.h"
 
 using namespace CVC4::kind;
