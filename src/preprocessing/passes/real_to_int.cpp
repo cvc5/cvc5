@@ -163,8 +163,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         if (n.getKind() == kind::BOUND_VARIABLE)
         {
           // special case for bound variables (must call mkBoundVar)
-          ret = nm->mkBoundVar("__realToIntInternal_bound_var",
-                               nm->integerType());
+          ret = nm->mkBoundVar(nm->integerType());
         }
         else if (n.isVar())
         {
