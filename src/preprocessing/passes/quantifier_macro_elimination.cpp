@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file foo.cpp
+/*! \file quantifier_macro_elimination.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Scott Kovach, Andrew Reynolds
@@ -11,7 +11,7 @@
  **
  ** \brief TODO add summary
  **
- ** TODO question: should I rename this pass?
+ ** TODO
  **    main TODOs:
  **    - don't recurse in rewriting function
  **    - fix unsat-core issue
