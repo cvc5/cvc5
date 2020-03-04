@@ -1143,7 +1143,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           << "Simple Case 4 : Const Split : " << x << " vs " << y
           << " at index " << index << ", isRev = " << isRev << std::endl;
       size_t minLen = std::min(lenX, lenY);
-      bool isSameFix = isRev ? Word::rstrncmp(x, y, minLen) : Word::strncmp(x, y, minLen);
+      bool isSameFix =
+          isRev ? Word::rstrncmp(x, y, minLen) : Word::strncmp(x, y, minLen);
       if (isSameFix)
       {
         // The shorter constant is a prefix/suffix of the longer constant. We
@@ -1161,11 +1162,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         if (isRev)
         {
           size_t newlen = std::max(lenX, lenY) - minLen;
-          remainderStr = Word::substr(cl,0, newlen);
+          remainderStr = Word::substr(cl, 0, newlen);
         }
         else
         {
-          remainderStr = Word::substr(cl,minLen);
+          remainderStr = Word::substr(cl, minLen);
         }
         Trace("strings-solve-debug-test")
             << "Break normal form of " << cl << " into " << ns << ", "
@@ -1769,7 +1770,9 @@ void CoreSolver::processDeq( Node ni, Node nj ) {
                 return;
               }else{
                 //split on first character
-                Node firstChar = Word::getLength(const_k) == 1 ? const_k : Word::prefix( const_k, 1 );
+                Node firstChar = Word::getLength(const_k) == 1
+                                     ? const_k
+                                     : Word::prefix(const_k, 1);
                 if (d_state.areEqual(lnck, d_one))
                 {
                   if (d_state.areDisequal(firstChar, nconst_k))
@@ -1963,10 +1966,13 @@ int CoreSolver::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >&
               remainderStr = Word::substr(nl, len_short);
               Trace("strings-solve-debug-test") << "Break normal form of " << nl << " into " << nk << ", " << remainderStr << std::endl;
             }
-            if( lenI < lenJ ) {
+            if (lenI < lenJ)
+            {
               nfj.insert( nfj.begin() + index + 1, remainderStr );
               nfj[index] = nfi[index];
-            } else {
+            }
+            else
+            {
               nfi.insert( nfi.begin() + index + 1, remainderStr );
               nfi[index] = nfj[index];
             }

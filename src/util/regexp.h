@@ -109,13 +109,13 @@ class CVC4_PUBLIC String {
   bool operator<=(const String& y) const { return cmp(y) <= 0; }
   bool operator>=(const String& y) const { return cmp(y) >= 0; }
 
-  /** 
+  /**
    * Returns true if this string is equal to y for their first n characters.
    * If n is larger than the length of this string or y, this method returns
    * true if and only if this string is equal to y.
    */
   bool strncmp(const String& y, std::size_t n) const;
-  /** 
+  /**
    * Returns true if this string is equal to y for their last n characters.
    * Similar to strncmp, if n is larger than the length of this string or y,
    * this method returns true if and only if this string is equal to y.
