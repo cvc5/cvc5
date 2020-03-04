@@ -185,8 +185,6 @@ Node RewriterStr::rewriteStringLeq(Node n)
       return returnRewrite(n, ret, "str-leq-cprefix");
     }
   }
-
-  Trace("strings-rewrite-nf") << "No rewrites for : " << n << std::endl;
   return n;
 }
 
@@ -210,7 +208,6 @@ Node RewriterStr::rewriteStringFromCode(Node n)
     }
     return returnRewrite(n, ret, "from-code-eval");
   }
-
   return n;
 }
 
@@ -234,7 +231,6 @@ Node RewriterStr::rewriteStringToCode(Node n)
     }
     return returnRewrite(n, ret, "to-code-eval");
   }
-
   return n;
 }
 
