@@ -41,7 +41,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
     Node ret = n;
     if (n.getNumChildren() > 0)
     {
-      if (n.getKind() == kind::EQUAL || n.getKind() == kind::GEQ
+      if ((n.getKind() == kind::EQUAL && n[0].getType().isReal()) || n.getKind() == kind::GEQ
           || n.getKind() == kind::LT
           || n.getKind() == kind::GT
           || n.getKind() == kind::LEQ)
@@ -137,11 +137,6 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
             Trace("real-as-int") << "   " << n << std::endl;
             Trace("real-as-int") << "   " << ret << std::endl;
           }
-          else
-          {
-            throw TypeCheckingException(
-                n.toExpr(), string("Cannot translate to Int: ") + n.toString());
-          }
         }
       }
       else
@@ -164,7 +159,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
     {
       if (n.isVar())
       {
-        if (!n.getType().isInteger())
+        TypeNode tn = n.getType();
+        if (tn.isReal() && !tn.isInteger())
         {
           ret = NodeManager::currentNM()->mkSkolem(
               "__realToIntInternal_var",
