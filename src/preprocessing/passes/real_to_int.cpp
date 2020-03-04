@@ -41,10 +41,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
     Node ret = n;
     if (n.getNumChildren() > 0)
     {
-      if ((n.getKind() == kind::EQUAL && n[0].getType().isReal()) || n.getKind() == kind::GEQ
-          || n.getKind() == kind::LT
-          || n.getKind() == kind::GT
-          || n.getKind() == kind::LEQ)
+      if ((n.getKind() == kind::EQUAL && n[0].getType().isReal())
+          || n.getKind() == kind::GEQ || n.getKind() == kind::LT
+          || n.getKind() == kind::GT || n.getKind() == kind::LEQ)
       {
         ret = Rewriter::rewrite(n);
         Trace("real-as-int-debug") << "Now looking at : " << ret << std::endl;
