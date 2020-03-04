@@ -19,12 +19,13 @@
 #define CVC4__THEORY__STRINGS__REWRITER_STR_H
 
 #include "expr/node.h"
+#include "theory/strings/theory_strings_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-class RewriterStr
+class RewriterStr : public TheoryStringsRewriter
 {
  public:
   /** rewrite string to integer

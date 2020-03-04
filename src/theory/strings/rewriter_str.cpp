@@ -21,7 +21,6 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
-#include "theory/strings/rewriter_core.h"
 
 using namespace CVC4::kind;
 
@@ -45,7 +44,7 @@ Node RewriterStr::rewriteStrToInt(Node node)
     {
       ret = nm->mkConst(Rational(-1));
     }
-    return RewriterCore::returnRewrite(node, ret, "stoi-eval");
+    return returnRewrite(node, ret, "stoi-eval");
   }
   else if (node[0].getKind() == STRING_CONCAT)
   {
@@ -57,7 +56,7 @@ Node RewriterStr::rewriteStrToInt(Node node)
         if (!t.isNumber())
         {
           Node ret = nm->mkConst(Rational(-1));
-          return RewriterCore::returnRewrite(node, ret, "stoi-concat-nonnum");
+          return returnRewrite(node, ret, "stoi-concat-nonnum");
         }
       }
     }
@@ -82,7 +81,7 @@ Node RewriterStr::rewriteIntToStr(Node node)
       Assert(stmp[0] != '-');
       ret = nm->mkConst(String(stmp));
     }
-    return RewriterCore::returnRewrite(node, ret, "itos-eval");
+    return returnRewrite(node, ret, "itos-eval");
   }
   return node;
 }
@@ -119,7 +118,7 @@ Node RewriterStr::rewriteStrConvert(Node node)
       nvec[i] = newChar;
     }
     Node retNode = nm->mkConst(String(nvec));
-    return RewriterCore::returnRewrite(node, retNode, "str-conv-const");
+    return returnRewrite(node, retNode, "str-conv-const");
   }
   else if (node[0].getKind() == STRING_CONCAT)
   {
@@ -130,7 +129,7 @@ Node RewriterStr::rewriteStrConvert(Node node)
     }
     // tolower( x1 ++ x2 ) --> tolower( x1 ) ++ tolower( x2 )
     Node retNode = concatBuilder.constructNode();
-    return RewriterCore::returnRewrite(node, retNode, "str-conv-minscope-concat");
+    return returnRewrite(node, retNode, "str-conv-minscope-concat");
   }
   else if (node[0].getKind() == STRING_TOLOWER
            || node[0].getKind() == STRING_TOUPPER)
@@ -138,12 +137,12 @@ Node RewriterStr::rewriteStrConvert(Node node)
     // tolower( tolower( x ) ) --> tolower( x )
     // tolower( toupper( x ) ) --> tolower( x )
     Node retNode = nm->mkNode(nk, node[0][0]);
-    return RewriterCore::returnRewrite(node, retNode, "str-conv-idem");
+    return returnRewrite(node, retNode, "str-conv-idem");
   }
   else if (node[0].getKind() == STRING_ITOS)
   {
     // tolower( str.from.int( x ) ) --> str.from.int( x )
-    return RewriterCore::returnRewrite(node, node[0], "str-conv-itos");
+    return returnRewrite(node, node[0], "str-conv-itos");
   }
   return node;
 }
@@ -155,14 +154,14 @@ Node RewriterStr::rewriteStringLeq(Node n)
   if (n[0] == n[1])
   {
     Node ret = nm->mkConst(true);
-    return RewriterCore::returnRewrite(n, ret, "str-leq-id");
+    return returnRewrite(n, ret, "str-leq-id");
   }
   if (n[0].isConst() && n[1].isConst())
   {
     String s = n[0].getConst<String>();
     String t = n[1].getConst<String>();
     Node ret = nm->mkConst(s.isLeq(t));
-    return RewriterCore::returnRewrite(n, ret, "str-leq-eval");
+    return returnRewrite(n, ret, "str-leq-eval");
   }
   // empty strings
   for (unsigned i = 0; i < 2; i++)
@@ -170,7 +169,7 @@ Node RewriterStr::rewriteStringLeq(Node n)
     if (n[i].isConst() && n[i].getConst<String>().isEmptyString())
     {
       Node ret = i == 0 ? nm->mkConst(true) : n[0].eqNode(n[1]);
-      return RewriterCore::returnRewrite(n, ret, "str-leq-empty");
+      return returnRewrite(n, ret, "str-leq-empty");
     }
   }
 
@@ -194,7 +193,7 @@ Node RewriterStr::rewriteStringLeq(Node n)
     if (!s.isLeq(t))
     {
       Node ret = nm->mkConst(false);
-      return RewriterCore::returnRewrite(n, ret, "str-leq-cprefix");
+      return returnRewrite(n, ret, "str-leq-cprefix");
     }
   }
   return n;
@@ -218,7 +217,7 @@ Node RewriterStr::rewriteStringFromCode(Node n)
     {
       ret = nm->mkConst(String(""));
     }
-    return RewriterCore::returnRewrite(n, ret, "from-code-eval");
+    return returnRewrite(n, ret, "from-code-eval");
   }
   return n;
 }
@@ -241,7 +240,7 @@ Node RewriterStr::rewriteStringToCode(Node n)
     {
       ret = nm->mkConst(Rational(-1));
     }
-    return RewriterCore::returnRewrite(n, ret, "to-code-eval");
+    return returnRewrite(n, ret, "to-code-eval");
   }
   return n;
 }
