@@ -20,8 +20,6 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr.h"
-#include "expr/kind.h"
 
 namespace CVC4 {
 
@@ -59,15 +57,15 @@ namespace CVC4 {
  */
 struct CVC4_PUBLIC ParseOp
 {
-  ParseOp(Kind k = kind::NULL_EXPR) : d_kind(k) {}
+  ParseOp(api::Kind k = api::NULL_EXPR) : d_kind(k) {}
   /** The kind associated with the parsed operator, if it exists */
-  Kind d_kind;
+  api::Kind d_kind;
   /** The name associated with the parsed operator, if it exists */
   std::string d_name;
   /** The expression associated with the parsed operator, if it exists */
-  Expr d_expr;
+  api::Term d_expr;
   /** The type associated with the parsed operator, if it exists */
-  Type d_type;
+  api::Sort d_type;
   /** The operator associated with the parsed operator, if it exists */
   api::Op d_op;
 
@@ -79,33 +77,7 @@ struct CVC4_PUBLIC ParseOp
   }
 };
 
-inline std::ostream& operator<<(std::ostream& os, const ParseOp& p)
-{
-  std::stringstream out;
-  out << "(ParseOp ";
-  if (!p.d_expr.isNull())
-  {
-    out << " :expr " << p.d_expr;
-  }
-  if (!p.d_op.isNull())
-  {
-    out << " :op " << p.d_op;
-  }
-  if (p.d_kind != kind::NULL_EXPR)
-  {
-    out << " :kind " << p.d_kind;
-  }
-  if (!p.d_type.isNull())
-  {
-    out << " :type " << p.d_type;
-  }
-  if (!p.d_name.empty())
-  {
-    out << " :name " << p.d_name;
-  }
-  out << ")";
-  return os << out.str();
-}
+std::ostream& operator<<(std::ostream& os, const ParseOp& p);
 
 }  // namespace CVC4
 

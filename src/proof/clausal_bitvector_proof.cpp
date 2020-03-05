@@ -196,11 +196,11 @@ void ClausalBitVectorProof::optimizeDratProof()
 
     if (options::bvOptimizeSatProof() == options::BvOptimizeSatProof::FORMULA)
     {
-      std::ifstream optFormulaStream{optFormulaFilename};
-      const int64_t startPos = static_cast<int64_t>(optFormulaStream.tellg());
-      std::vector<prop::SatClause> core = parseDimacs(optFormulaStream);
+      std::ifstream optFormulaInStream{optFormulaFilename};
+      const int64_t startPos = static_cast<int64_t>(optFormulaInStream.tellg());
+      std::vector<prop::SatClause> core = parseDimacs(optFormulaInStream);
       d_dratOptimizationStatistics.d_optimizedFormulaSize.setData(
-          static_cast<int64_t>(optFormulaStream.tellg()) - startPos);
+          static_cast<int64_t>(optFormulaInStream.tellg()) - startPos);
 
       CodeTimer clauseMatchingTimer{
           d_dratOptimizationStatistics.d_clauseMatchingTime};
