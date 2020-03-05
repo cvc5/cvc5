@@ -3951,7 +3951,7 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
     Integer nearest;
     (c > f) ? nearest = floor_d : nearest = ceil_d;
 
-    Node ubub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
+    Node ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
     Node lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
     Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
     Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
