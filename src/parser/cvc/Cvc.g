@@ -1483,7 +1483,6 @@ prefixFormula[CVC4::Expr& f]
     boundVarDeclsReturn[terms,types]
     RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
-      Type t = EXPR_MANAGER->mkFunctionType(types, f.getType());
       Expr bvl = EXPR_MANAGER->mkExpr( kind::BOUND_VAR_LIST, terms );
       f = EXPR_MANAGER->mkExpr( kind::LAMBDA, bvl, f );
     }
@@ -1770,9 +1769,9 @@ postfixTerm[CVC4::Expr& f]
         if(left) {
           f = MK_EXPR(kind::BITVECTOR_CONCAT, f, MK_CONST(BitVector(k)));
         } else {
-          unsigned n = BitVectorType(f.getType()).getSize();
+          unsigned bv_size = BitVectorType(f.getType()).getSize();
           f = MK_EXPR(kind::BITVECTOR_CONCAT, MK_CONST(BitVector(k)),
-                      MK_EXPR(MK_CONST(BitVectorExtract(n - 1, k)), f));
+                      MK_EXPR(MK_CONST(BitVectorExtract(bv_size - 1, k)), f));
         }
       }
 
@@ -1782,41 +1781,41 @@ postfixTerm[CVC4::Expr& f]
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
       { 
         PARSER_STATE->checkFunctionLike(args.front());
-        Kind k = PARSER_STATE->getKindForFunction(args.front());
+        Kind kind = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
-        Debug("parser") << "kind is " << k << std::endl;
-        f = MK_EXPR(k, args);
+        Debug("parser") << "kind is " << kind << std::endl;
+        f = MK_EXPR(kind, args);
       }
 
       /* record / tuple select */
     | DOT
       ( identifier[id,CHECK_NONE,SYM_VARIABLE]
-        { Type t = f.getType();
-          if(! t.isRecord()) {
+        { Type type = f.getType();
+          if(! type.isRecord()) {
             PARSER_STATE->parseError("record-select applied to non-record");
           }
-          const Record& rec = ((DatatypeType)t).getRecord();
+          const Record& rec = ((DatatypeType)type).getRecord();
           if(!rec.contains(id)){
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
-          const Datatype & dt = ((DatatypeType)t).getDatatype();
+          const Datatype & dt = ((DatatypeType)type).getDatatype();
           std::vector<Expr> sargs;
           sargs.push_back( dt[0][id].getSelector() );
           sargs.push_back( f );
           f = MK_EXPR(CVC4::kind::APPLY_SELECTOR,sargs);
         }
       | k=numeral
-        { Type t = f.getType();
-          if(! t.isTuple()) {
+        { Type type = f.getType();
+          if(! type.isTuple()) {
             PARSER_STATE->parseError("tuple-select applied to non-tuple");
           }
-          size_t length = ((DatatypeType)t).getTupleLength();
+          size_t length = ((DatatypeType)type).getTupleLength();
           if(k >= length) {
             std::stringstream ss;
             ss << "tuple is of length " << length << "; cannot access index " << k;
             PARSER_STATE->parseError(ss.str());
           }
-          const Datatype & dt = ((DatatypeType)t).getDatatype();
+          const Datatype & dt = ((DatatypeType)type).getDatatype();
           std::vector<Expr> sargs;
           sargs.push_back( dt[0][k].getSelector() );
           sargs.push_back( f );
@@ -2095,8 +2094,8 @@ simpleTerm[CVC4::Expr& f]
         for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
           types.push_back((*i).getType());
         }
-        DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-        const Datatype& dt = t.getDatatype();
+        DatatypeType dtype = EXPR_MANAGER->mkTupleType(types);
+        const Datatype& dt = dtype.getDatatype();
         args.insert( args.begin(), dt[0].getConstructor() );
         f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
       }
@@ -2105,14 +2104,14 @@ simpleTerm[CVC4::Expr& f]
     /* empty tuple literal */
   | LPAREN RPAREN
     { std::vector<Type> types;
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-      const Datatype& dt = t.getDatatype();
+      DatatypeType dtype = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = dtype.getDatatype();
       f = MK_EXPR(kind::APPLY_CONSTRUCTOR, dt[0].getConstructor()); }       
                   
     /* empty record literal */
   | PARENHASH HASHPAREN
-    { DatatypeType t = EXPR_MANAGER->mkRecordType(std::vector< std::pair<std::string, Type> >());
-      const Datatype& dt = t.getDatatype();
+    { DatatypeType dtype = EXPR_MANAGER->mkRecordType(std::vector< std::pair<std::string, Type> >());
+      const Datatype& dt = dtype.getDatatype();
       f = MK_EXPR(kind::APPLY_CONSTRUCTOR, dt[0].getConstructor());
     }
     /* empty set literal */
@@ -2197,8 +2196,8 @@ simpleTerm[CVC4::Expr& f]
       for(unsigned i = 0; i < names.size(); ++i) {
         typeIds.push_back(std::make_pair(names[i], args[i].getType()));
       }
-      DatatypeType t = EXPR_MANAGER->mkRecordType(typeIds);
-      const Datatype& dt = t.getDatatype();
+      DatatypeType dtype = EXPR_MANAGER->mkRecordType(typeIds);
+      const Datatype& dt = dtype.getDatatype();
       args.insert( args.begin(), dt[0].getConstructor() );
       f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
     }
@@ -2208,8 +2207,8 @@ simpleTerm[CVC4::Expr& f]
     /* ascriptions will be required for parameterized zero-ary constructors */
     { f = PARSER_STATE->getVariable(name);
       // datatypes: zero-ary constructors
-      Type t2 = f.getType();
-      if(t2.isConstructor() && ConstructorType(t2).getArity() == 0) {
+      Type dtype = f.getType();
+      if(dtype.isConstructor() && ConstructorType(dtype).getArity() == 0) {
         // don't require parentheses, immediately turn it into an apply
         f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, f);
       }

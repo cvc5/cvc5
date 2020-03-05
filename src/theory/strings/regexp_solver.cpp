@@ -100,15 +100,15 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   Trace("regexp-process") << "Checking Memberships ... " << std::endl;
   for (const std::pair<const Node, std::vector<Node> >& mr : mems)
   {
-    std::vector<Node> mems = mr.second;
+    std::vector<Node> mems2 = mr.second;
     Trace("regexp-process")
         << "Memberships(" << mr.first << ") = " << mr.second << std::endl;
-    if (!checkEqcInclusion(mems))
+    if (!checkEqcInclusion(mems2))
     {
       // conflict discovered, return
       return;
     }
-    if (!checkEqcIntersect(mems))
+    if (!checkEqcIntersect(mems2))
     {
       // conflict discovered, return
       return;
