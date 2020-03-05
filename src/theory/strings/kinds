@@ -70,7 +70,13 @@ well-founded SEQUENCE_TYPE \
 enumerator SEQUENCE_TYPE \
     "::CVC4::theory::strings::SequenceEnumerator" \
     "theory/strings/type_enumerator.h"
-    
+
+constant CONST_SEQUENCE \
+    ::CVC4::Sequence \
+    ::CVC4::strings::StringHashFunction \
+    "expr/sequence.h" \
+    "a sequence of characters"
+
 typerule CONST_STRING "SimpleTypeRule<RString>"
 
 # equal equal / less than / output

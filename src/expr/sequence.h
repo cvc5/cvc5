@@ -26,7 +26,7 @@ namespace CVC4 {
  *
  * This data structure is the domain of values for the sequence type.
  */
-class Sequence
+class CVC4_PUBLIC Sequence
 {
  public:
   /** constructors for Sequence
@@ -159,12 +159,12 @@ class Sequence
 
 namespace strings {
 
-/*
+
 struct CVC4_PUBLIC SequenceHashFunction {
 size_t operator()(const ::CVC4::Sequence& s) const {
-  return std::hash<std::string>()(s.toSequence());
+  return std::hash<std::vector<Node>>()(s.getVec());
 }
-}; *//* struct SequenceHashFunction */
+}; /* struct SequenceHashFunction */
 
 }  // namespace strings
 
