@@ -401,9 +401,13 @@ std::vector<api::Sort> Parser::mkMutualDatatypeTypes(
 {
   try {
     std::set<Type> tset = api::sortSetToTypes(d_unresolved);
-    std::vector<DatatypeType> dtypes;
-    // FIXME
-    //        getExprManager()->mkMutualDatatypeTypes(datatypes, tset, flags);
+    std::vector<Datatype> oldDatatypes;
+    for (unsigned i=0, ndts=datatypes.size(); i<ndts; i++)
+    {
+      oldDatatypes.push_back(datatypes[i].getDatatype());
+    }
+    std::vector<DatatypeType> dtypes =
+            getExprManager()->mkMutualDatatypeTypes(oldDatatypes, tset, flags);
     std::vector<api::Sort> types;
     for (unsigned i = 0, dtsize = dtypes.size(); i < dtsize; i++)
     {
