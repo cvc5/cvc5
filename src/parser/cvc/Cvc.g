@@ -1503,7 +1503,6 @@ prefixFormula[CVC4::api::Term& f]
     boundVarDeclsReturn[terms,types]
     RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
-      api::Sort t = SOLVER->mkFunctionSort(types, f.getSort());
       api::Term bvl = MK_TERM( api::BOUND_VAR_LIST, terms );
       f = MK_TERM( api::LAMBDA, bvl, f );
     }
@@ -1796,11 +1795,11 @@ postfixTerm[CVC4::api::Term& f]
         if(left) {
           f = MK_TERM(api::BITVECTOR_CONCAT, f, SOLVER->mkBitVector(k));
         } else {
-          unsigned n = f.getSort().getBVSize();
+          unsigned bv_size = f.getSort().getBVSize();
           f = MK_TERM(api::BITVECTOR_CONCAT,
                       SOLVER->mkBitVector(k),
                       SOLVER->mkTerm(
-                          SOLVER->mkOp(api::BITVECTOR_EXTRACT, n - 1, k), f));
+                          SOLVER->mkOp(api::BITVECTOR_EXTRACT, bv_size - 1, k), f));
         }
       }
 
@@ -1810,39 +1809,39 @@ postfixTerm[CVC4::api::Term& f]
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
       {
         PARSER_STATE->checkFunctionLike(args.front());
-        api::Kind k = PARSER_STATE->getKindForFunction(args.front());
+        api::Kind kind = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
-        Debug("parser") << "kind is " << k << std::endl;
-        f = SOLVER->mkTerm(k,args);
+        Debug("parser") << "kind is " << kind << std::endl;
+        f = SOLVER->mkTerm(kind,args);
       }
 
       /* record / tuple select */
     | DOT
       ( identifier[id,CHECK_NONE,SYM_VARIABLE]
-        { api::Sort t = f.getSort();
-          if(! t.isRecord()) {
+        { api::Sort type = f.getSort();
+          if(! type.isRecord()) {
             PARSER_STATE->parseError("record-select applied to non-record");
           }
-          const Record& rec = ((DatatypeType)t.getType()).getRecord();
+          const Record& rec = ((DatatypeType)type.getType()).getRecord();
           if(!rec.contains(id)){
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
-          const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
+          const Datatype & dt = ((DatatypeType)type.getType()).getDatatype();
           f = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
         }
       | k=numeral
         {
-          api::Sort t = f.getSort();
-          if(! t.isTuple()) {
+          api::Sort type = f.getSort();
+          if(! type.isTuple()) {
             PARSER_STATE->parseError("tuple-select applied to non-tuple");
           }
-          size_t length = t.getTupleLength();
+          size_t length = type.getTupleLength();
           if(k >= length) {
             std::stringstream ss;
             ss << "tuple is of length " << length << "; cannot access index " << k;
             PARSER_STATE->parseError(ss.str());
           }
-          const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
+          const Datatype & dt = ((DatatypeType)type.getType()).getDatatype();
           f = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][k].getSelector()), f);
         }
       )
@@ -2126,8 +2125,8 @@ simpleTerm[CVC4::api::Term& f]
         {
           types.push_back((*i).getSort());
         }
-        api::Sort t = SOLVER->mkTupleSort(types);
-        const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
+        api::Sort dtype = SOLVER->mkTupleSort(types);
+        const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
         args.insert( args.begin(), dt[0].getConstructor() );
         f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
       }
@@ -2136,16 +2135,16 @@ simpleTerm[CVC4::api::Term& f]
     /* empty tuple literal */
   | LPAREN RPAREN
     { std::vector<api::Sort> types;
-      api::Sort t = SOLVER->mkTupleSort(types);
-      const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
+      api::Sort dtype = SOLVER->mkTupleSort(types);
+      const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
       f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor())); }
 
     /* empty record literal */
   | PARENHASH HASHPAREN
     {
-      api::Sort t = SOLVER->mkRecordSort(
+      api::Sort dtype = SOLVER->mkRecordSort(
           std::vector<std::pair<std::string, api::Sort>>());
-      const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
+      const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
       f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor()));
     }
     /* empty set literal */
@@ -2242,8 +2241,8 @@ simpleTerm[CVC4::api::Term& f]
       for(unsigned i = 0; i < names.size(); ++i) {
         typeIds.push_back(std::make_pair(names[i], args[i].getSort()));
       }
-      api::Sort t = SOLVER->mkRecordSort(typeIds);
-      const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
+      api::Sort dtype = SOLVER->mkRecordSort(typeIds);
+      const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
       args.insert( args.begin(), dt[0].getConstructor() );
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }
@@ -2253,8 +2252,8 @@ simpleTerm[CVC4::api::Term& f]
     /* ascriptions will be required for parameterized zero-ary constructors */
     { f = PARSER_STATE->getVariable(name);
       // datatypes: zero-ary constructors
-      api::Sort t2 = f.getSort();
-      if(t2.isConstructor() && t2.getConstructorArity() == 0) {
+      api::Sort dtype = f.getSort();
+      if(dtype.isConstructor() && dtype.getConstructorArity() == 0) {
         // don't require parentheses, immediately turn it into an apply
         f = MK_TERM(CVC4::api::APPLY_CONSTRUCTOR, f);
       }

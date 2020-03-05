@@ -3828,9 +3828,9 @@ std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d)
   std::vector<Node> bounds;
   TNode tfv = d_taylor_real_fv;
   TNode tfs = tf[0];
-  for (unsigned d = 0; d < 2; d++)
+  for (unsigned d2 = 0; d2 < 2; d2++)
   {
-    int index = d == 0 ? (isNeg ? 1 : 0) : (isNeg ? 3 : 2);
+    int index = d2 == 0 ? (isNeg ? 1 : 0) : (isNeg ? 3 : 2);
     Node pab = pbounds[index];
     if (!pab.isNull())
     {

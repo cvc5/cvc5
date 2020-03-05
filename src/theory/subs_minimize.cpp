@@ -194,15 +194,15 @@ bool SubstitutionMinimize::findInternal(Node n,
     {
       if (cur.isVar())
       {
-        const std::vector<Node>::const_iterator& it =
+        const std::vector<Node>::const_iterator& iit =
             std::find(vars.begin(), vars.end(), cur);
-        if (it == vars.end())
+        if (iit == vars.end())
         {
           value[cur] = cur;
         }
         else
         {
-          ptrdiff_t pos = std::distance(vars.begin(), it);
+          ptrdiff_t pos = std::distance(vars.begin(), iit);
           value[cur] = subs[pos];
         }
       }

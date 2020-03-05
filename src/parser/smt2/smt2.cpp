@@ -1388,9 +1388,9 @@ void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
       }
       else
       {
-        std::stringstream ss;
-        ss << "unexpected parse operator for sygus constructor" << ops[i];
-        parseError(ss.str());
+        std::stringstream ess;
+        ess << "unexpected parse operator for sygus constructor" << ops[i];
+        parseError(ess.str());
       }
       Debug("parser-sygus") << "  finished constructing the datatype"
                             << std::endl;
@@ -1715,12 +1715,12 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         {
           argTypes.push_back((*i).getSort());
         }
-        api::Term op = getOverloadedFunctionForTypes(p.d_name, argTypes);
-        if (!op.isNull())
+        api::Term fop = getOverloadedFunctionForTypes(p.d_name, argTypes);
+        if (!fop.isNull())
         {
-          checkFunctionLike(op);
-          kind = getKindForFunction(op);
-          args.insert(args.begin(), op);
+          checkFunctionLike(fop);
+          kind = getKindForFunction(fop);
+          args.insert(args.begin(), fop);
         }
         else
         {

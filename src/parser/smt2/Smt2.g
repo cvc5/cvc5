@@ -448,10 +448,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     }
     ( k=INTEGER_LITERAL
-      { unsigned n = AntlrInput::tokenToUnsigned(k);
-        if(n == 0) {
+      { unsigned num = AntlrInput::tokenToUnsigned(k);
+        if(num == 0) {
           cmd->reset(new EmptyCommand());
-        } else if(n == 1) {
+        } else if(num == 1) {
           PARSER_STATE->pushScope();
           cmd->reset(new PushCommand());
         } else {
@@ -459,10 +459,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
           do {
             PARSER_STATE->pushScope();
             Command* push_cmd = new PushCommand();
-            push_cmd->setMuted(n > 1);
+            push_cmd->setMuted(num > 1);
             seq->addCommand(push_cmd);
-            --n;
-            } while(n > 0);
+            --num;
+            } while(num > 0);
           cmd->reset(seq.release());
         }
       }
@@ -481,14 +481,14 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     }
     ( k=INTEGER_LITERAL
-      { unsigned n = AntlrInput::tokenToUnsigned(k);
-        if(n > PARSER_STATE->scopeLevel()) {
+      { unsigned num = AntlrInput::tokenToUnsigned(k);
+        if(num > PARSER_STATE->scopeLevel()) {
           PARSER_STATE->parseError("Attempted to pop above the top stack "
                                    "frame.");
         }
-        if(n == 0) {
+        if(num == 0) {
           cmd->reset(new EmptyCommand());
-        } else if(n == 1) {
+        } else if(num == 1) {
           PARSER_STATE->popScope();
           cmd->reset(new PopCommand());
         } else {
@@ -496,10 +496,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
           do {
             PARSER_STATE->popScope();
             Command* pop_command = new PopCommand();
-            pop_command->setMuted(n > 1);
+            pop_command->setMuted(num > 1);
             seq->addCommand(pop_command);
-            --n;
-          } while(n > 0);
+            --num;
+          } while(num > 0);
           cmd->reset(seq.release());
         }
       }
@@ -1286,7 +1286,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       nonemptySortList[sorts] RPAREN_TOK
-      { api::Sort t;
+      { api::Sort tt;
         if(sorts.size() > 1) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
             PARSER_STATE->parseError(
@@ -1298,15 +1298,15 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           // must flatten
           api::Sort range = sorts.back();
           sorts.pop_back();
-          t = PARSER_STATE->mkFlatFunctionType(sorts, range);
+          tt = PARSER_STATE->mkFlatFunctionType(sorts, range);
         } else {
-          t = sorts[0];
+          tt = sorts[0];
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+            PARSER_STATE->bindVar(name, tt, ExprManager::VAR_FLAG_NONE, true);
         seq->addCommand(
-            new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
+            new DeclareFunctionCommand(name, func.getExpr(), tt.getType()));
         sorts.clear();
       }
     )+
@@ -1318,7 +1318,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       sortList[sorts] RPAREN_TOK
-      { api::Sort t = SOLVER->getBooleanSort();
+      { t = SOLVER->getBooleanSort();
         if(sorts.size() > 0) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
             PARSER_STATE->parseError(
@@ -1362,18 +1362,17 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         // declare the name down here (while parsing term, signature
         // must not be extended with the name itself; no recursion
         // permitted)
-        api::Sort t = e.getSort();
+        api::Sort tt = e.getSort();
         if( sortedVarNames.size() > 0 ) {
-          std::vector<api::Sort> sorts;
           sorts.reserve(sortedVarNames.size());
           for(std::vector<std::pair<std::string, api::Sort> >::const_iterator
                 i = sortedVarNames.begin(), iend = sortedVarNames.end();
               i != iend; ++i) {
             sorts.push_back((*i).second);
           }
-          t = SOLVER->mkFunctionSort(sorts, t);
+          tt = SOLVER->mkFunctionSort(sorts, tt);
         }
-        api::Term func = PARSER_STATE->bindVar(name, t,
+        api::Term func = PARSER_STATE->bindVar(name, tt,
                                         ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(
             name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
@@ -1787,8 +1786,8 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           cargs.push_back(f);
           cargs.insert(cargs.end(),args.begin(),args.end());
           api::Term c = MK_TERM(api::APPLY_CONSTRUCTOR,cargs);
-          api::Term bvl = MK_TERM(api::BOUND_VAR_LIST,args);
-          api::Term mc = MK_TERM(api::MATCH_BIND_CASE, bvl, c, f3);
+          api::Term bvla = MK_TERM(api::BOUND_VAR_LIST,args);
+          api::Term mc = MK_TERM(api::MATCH_BIND_CASE, bvla, c, f3);
           matchcases.push_back(mc);
           // now, pop the scope
           PARSER_STATE->popScope();
@@ -1818,8 +1817,8 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           api::Term mc;
           if (f.getKind() == api::VARIABLE)
           {
-            api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, f);
-            mc = MK_TERM(api::MATCH_BIND_CASE, bvl, f, f3);
+            api::Term bvlf = MK_TERM(api::BOUND_VAR_LIST, f);
+            mc = MK_TERM(api::MATCH_BIND_CASE, bvlf, f, f3);
           }
           else
           {
@@ -2157,8 +2156,8 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
           avar = expr[0];
         }
       }else{
-        api::Sort t = SOLVER->getBooleanSort();
-        avar = PARSER_STATE->bindVar(attr_name, t);
+        api::Sort boolType = SOLVER->getBooleanSort();
+        avar = PARSER_STATE->bindVar(attr_name, boolType);
       }
       if( success ){
         //Will set the attribute on auxiliary var (preserves attribute on
@@ -2194,8 +2193,8 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       values.push_back( n );
       std::string attr_name(AntlrInput::tokenText($tok));
       attr_name.erase( attr_name.begin() );
-      api::Sort t = SOLVER->getBooleanSort();
-      api::Term avar = PARSER_STATE->bindVar(attr_name, t);
+      api::Sort boolType = SOLVER->getBooleanSort();
+      api::Term avar = PARSER_STATE->bindVar(attr_name, boolType);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
       Command* c = new SetUserAttributeCommand(
           attr_name, avar.getExpr(), api::termVectorToExprs(values));

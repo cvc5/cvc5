@@ -963,8 +963,8 @@ thfAtomTyping[CVC4::Command*& cmd]
         else
         {
           // as yet, it's undeclared
-          api::Sort type = PARSER_STATE->mkSort(name);
-          cmd = new DeclareTypeCommand(name, 0, type.getType());
+          api::Sort atype = PARSER_STATE->mkSort(name);
+          cmd = new DeclareTypeCommand(name, 0, atype.getType());
         }
       }
     | parseThfType[type]
@@ -1316,8 +1316,8 @@ tffTypedAtom[CVC4::Command*& cmd]
           PARSER_STATE->parseError("Symbol `" + name + "' previously declared as a constant; cannot also be a sort");
         } else {
           // as yet, it's undeclared
-          api::Sort type = PARSER_STATE->mkSort(name);
-          cmd = new DeclareTypeCommand(name, 0, type.getType());
+          api::Sort atype = PARSER_STATE->mkSort(name);
+          cmd = new DeclareTypeCommand(name, 0, atype.getType());
         }
       }
     | parseType[type]
@@ -1335,9 +1335,9 @@ tffTypedAtom[CVC4::Command*& cmd]
           }
         } else {
           // as yet, it's undeclared
-          CVC4::api::Term expr = PARSER_STATE->bindVar(name, type);
+          CVC4::api::Term aexpr = PARSER_STATE->bindVar(name, type);
           cmd =
-              new DeclareFunctionCommand(name, expr.getExpr(), type.getType());
+              new DeclareFunctionCommand(name, aexpr.getExpr(), type.getType());
         }
       }
     )
