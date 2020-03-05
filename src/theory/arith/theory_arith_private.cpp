@@ -3302,7 +3302,6 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
     ArithVar canBranch = nextIntegerViolatation(false);
     if(canBranch != ARITHVAR_SENTINEL){
       ++d_statistics.d_panicBranches;
-      Trace("integers") << "Calling branchIntegerVariable line: " << __LINE__ << endl;
       Node branch = branchIntegerVariable(canBranch);
       Assert(branch.getKind() == kind::OR);
       Node rwbranch = Rewriter::rewrite(branch[0]);
@@ -3874,7 +3873,6 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     }
 
     if(!emmittedConflictOrSplit) {
-      Trace("integers") << "Calling roundRobinBranch line: " << __LINE__ << endl;
       Node possibleLemma = roundRobinBranch();
       if(!possibleLemma.isNull()){
         ++(d_statistics.d_externalBranchAndBounds);
@@ -4013,7 +4011,6 @@ Node TheoryArithPrivate::roundRobinBranch(){
 
     Assert(isInteger(v));
     Assert(!isAuxiliaryVariable(v));
-    Trace("integers") << "Calling branchIntegerVariable line: " << __LINE__ << endl;
     return branchIntegerVariable(v);
   }
 }
