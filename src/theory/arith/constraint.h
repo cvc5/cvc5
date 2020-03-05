@@ -124,8 +124,6 @@ namespace arith {
  *                    :   !(x > a) and !(x < a) => x = a
  * - EqualityEngineAP : This is propagated by the equality engine.
  *                    : Consult this for the proof.
- * - IntTightenAP     : This is indicates that a bound involving integers was tightened.
- *                    : e.g. i < 5.5 became i <= 5, when i is an integer.
  * - IntHoleAP        : This is currently a catch-all for all integer specific reason.
  */
 enum ArithProofType
@@ -135,7 +133,6 @@ enum ArithProofType
     FarkasAP,
     TrichotomyAP,
     EqualityEngineAP,
-    IntTightenAP,
     IntHoleAP};
 
 /**
@@ -514,9 +511,6 @@ class Constraint {
    */
   bool hasSimpleFarkasProof() const;
 
-  /** Returns true if the node has a int bound tightening proof. */
-  bool hasIntTightenProof() const;
-
   /** Returns true if the node has a int hole proof. */
   bool hasIntHoleProof() const;
 
@@ -665,16 +659,7 @@ class Constraint {
 
   /**
    * Marks a the constraint c as being entailed by a.
-   * The reason has to do with integer bound tightening.
-   *
-   * After calling impliedByIntTighten(), the caller should either raise a conflict
-   * or try call tryToPropagate().
-   */
-  void impliedByIntTighten(ConstraintCP a, bool inConflict);
-
-  /**
-   * Marks a the constraint c as being entailed by a.
-   * The reason has to do with integer reasoning.
+   * The reason has to do with integer rounding.
    *
    * After calling impliedByIntHole(), the caller should either raise a conflict
    * or try call tryToPropagate().
@@ -683,7 +668,7 @@ class Constraint {
 
   /**
    * Marks a the constraint c as being entailed by a.
-   * The reason has to do with integer reasoning.
+   * The reason has to do with integer rounding.
    *
    * After calling impliedByIntHole(), the caller should either raise a conflict
    * or try call tryToPropagate().
