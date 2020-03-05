@@ -3938,6 +3938,7 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   TNode var = d_partialModel.asNode(x);
   Integer floor_d = d.floor();
 
+  Node lem;
   if (options::cubeTest())
   {
     Trace("integers") << "cube test enabled"  << endl;
@@ -3946,26 +3947,23 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
     // Multiply by -1 to get abs value.
     Rational c = (r - ceil_d) * (-1); 
  
-    Integer nearest;
-    (c > f) ? nearest = floor_d : nearest = ceil_d;
+    Integer nearest = (c > f) ? floor_d : ceil_d;
 
+    // Prioritize trying a simple rounding of the real solution first,
+    // it that fails, fall back on original branch and bound strategy. 
     Node ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
     Node lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
-    Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
+    lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
     Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
     Node literal = d_containing.getValuation().ensureLiteral(eq);
     d_containing.getOutputChannel().requirePhase(literal, true);
-    Node lem = NodeManager::currentNM()->mkNode(kind::OR, literal, lem);
+    lem = NodeManager::currentNM()->mkNode(kind::OR, literal, lem);
   }
   else
   {
-    //Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d+1)));
-    //Node diseq = eq.notNode();
     Node ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
     Node lb = ub.notNode();
-
-    //Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, diseq);
-    Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
+    lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
   }
 
   Trace("integers") << "integers: branch & bound: " << lem << endl;
