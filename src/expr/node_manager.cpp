@@ -330,8 +330,9 @@ void NodeManager::reclaimZombies() {
         TNode n;
         n.d_nv = nv;
         nv->d_rc = 1; // so that TNode doesn't assert-fail
-        for(vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-          (*i)->nmNotifyDeleteNode(n);
+        for (NodeManagerListener* listener : d_listeners)
+        {
+          listener->nmNotifyDeleteNode(n);
         }
         // this would mean that one of the listeners stowed away
         // a reference to this node!

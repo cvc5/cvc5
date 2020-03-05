@@ -152,7 +152,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::CONST_BITVECTOR: {
       const BitVector& bv = n.getConst<BitVector>();
       const Integer& x = bv.getValue();
-      unsigned n = bv.getSize();
+      unsigned width = bv.getSize();
       if (d_variant == sygus_variant || options::bvPrintConstsInBinary())
       {
         out << "#b" << bv.toString();
@@ -160,7 +160,7 @@ void Smt2Printer::toStream(std::ostream& out,
       else
       {
         out << "(_ ";
-        out << "bv" << x << " " << n;
+        out << "bv" << x << " " << width;
         out << ")";
       }
 
@@ -232,15 +232,15 @@ void Smt2Printer::toStream(std::ostream& out,
           n.getConst<DatatypeIndexConstant>().getIndex()));
       if (dt.isTuple())
       {
-        unsigned int n = dt[0].getNumArgs();
-        if (n == 0)
+        unsigned int nargs = dt[0].getNumArgs();
+        if (nargs == 0)
         {
           out << "Tuple";
         }
         else
         {
           out << "(Tuple";
-          for (unsigned int i = 0; i < n; i++)
+          for (unsigned int i = 0; i < nargs; i++)
           {
             out << " " << dt[0][i].getRangeType();
           }
@@ -2027,9 +2027,9 @@ static void toStream(std::ostream& out,
          i != i_end;
          ++i)
     {
-      const Datatype& d = i->getDatatype();
-      out << "(" << CVC4::quoteSymbol(d.getName()) << " ";
-      toStream(out, d);
+      const Datatype& dt = i->getDatatype();
+      out << "(" << CVC4::quoteSymbol(dt.getName()) << " ";
+      toStream(out, dt);
       out << ")";
     }
     out << ")";

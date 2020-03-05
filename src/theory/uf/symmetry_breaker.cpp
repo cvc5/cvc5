@@ -400,18 +400,17 @@ void SymmetryBreaker::assertFormula(TNode phi) {
       }
     }
     unordered_map<TNode, set<TNode>, TNodeHashFunction>& ps = t.partitions();
-    for(unordered_map<TNode, set<TNode>, TNodeHashFunction>::iterator i = ps.begin();
-        i != ps.end();
-        ++i) {
-      Debug("ufsymm") << "UFSYMM partition*: " << (*i).first;
-      set<TNode>& p = (*i).second;
+    for (auto& kv : ps)
+    {
+      Debug("ufsymm") << "UFSYMM partition*: " << kv.first;
+      set<TNode>& p = kv.second;
       for(set<TNode>::iterator j = p.begin();
           j != p.end();
           ++j) {
         Debug("ufsymm") << " " << *j;
       }
       Debug("ufsymm") << endl;
-      p.insert((*i).first);
+      p.insert(kv.first);
       Permutations::iterator pi = d_permutations.find(p);
       if(pi == d_permutations.end()) {
         d_permutations.insert(p);
@@ -473,11 +472,9 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
       }
     }
 
-    for(Permutations::iterator i = d_permutations.begin();
-        i != d_permutations.end();
-        ++i) {
+    for (const Permutation& p : d_permutations)
+    {
       ++(d_stats.d_permutationSetsConsidered);
-      const Permutation& p = *i;
       Debug("ufsymm") << "UFSYMM looking at permutation: " << p << endl;
       size_t n = p.size() - 1;
       if(invariantByPermutations(p)) {
@@ -529,11 +526,12 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
           if(i != p.end() || p.size() != cts.size()) {
             Debug("ufsymm") << "UFSYMM cts != p" << endl;
             NodeBuilder<> disj(kind::OR);
-            for(set<Node>::const_iterator i = cts.begin();
-                i != cts.end();
-                ++i) {
-              if(t != *i) {
-                disj << NodeManager::currentNM()->mkNode(kind::EQUAL, t, *i);
+            NodeManager* nm = NodeManager::currentNM();
+            for (const Node& nn : cts)
+            {
+              if (t != nn)
+              {
+                disj << nm->mkNode(kind::EQUAL, t, nn);
               }
             }
             Node d;
@@ -596,20 +594,29 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p) {
   subs.push_back(p1);
   repls.push_back(p1);
   repls.push_back(p0);
-  for(vector<Node>::iterator i = d_phi.begin(); i != d_phi.end(); ++i) {
-    Node s = (*i).substitute(subs.begin(), subs.end(), repls.begin(), repls.end());
+  for (const Node nn : d_phi)
+  {
+    Node s =
+        nn.substitute(subs.begin(), subs.end(), repls.begin(), repls.end());
     Node n = norm(s);
-    if(*i != n && d_phiSet.find(n) == d_phiSet.end()) {
-      Debug("ufsymm") << "UFSYMM P_swap is NOT an inv perm op for " << p << endl
-                      << "UFSYMM because this node: " << *i << endl
-                      << "UFSYMM rewrite-norms to : " << n << endl
-                      << "UFSYMM which is not in our set of normalized assertions" << endl;
+    if (nn != n && d_phiSet.find(n) == d_phiSet.end())
+    {
+      Debug("ufsymm")
+          << "UFSYMM P_swap is NOT an inv perm op for " << p << endl
+          << "UFSYMM because this node: " << nn << endl
+          << "UFSYMM rewrite-norms to : " << n << endl
+          << "UFSYMM which is not in our set of normalized assertions" << endl;
       return false;
-    } else if(Debug.isOn("ufsymm:p")) {
-      if(*i == s) {
-        Debug("ufsymm:p") << "UFSYMM P_swap passes trivially: " << *i << endl;
-      } else {
-        Debug("ufsymm:p") << "UFSYMM P_swap passes: " << *i << endl
+    }
+    else if (Debug.isOn("ufsymm:p"))
+    {
+      if (nn == s)
+      {
+        Debug("ufsymm:p") << "UFSYMM P_swap passes trivially: " << nn << endl;
+      }
+      else
+      {
+        Debug("ufsymm:p") << "UFSYMM P_swap passes: " << nn << endl
                           << "UFSYMM      rewrites: " << s << endl
                           << "UFSYMM         norms: " << n << endl;
       }
@@ -622,30 +629,41 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p) {
     subs.clear();
     repls.clear();
     bool first = true;
-    for(Permutation::const_iterator i = p.begin(); i != p.end(); ++i) {
-      subs.push_back(*i);
+    for (const Node& nn : p)
+    {
+      subs.push_back(nn);
       if(!first) {
-        repls.push_back(*i);
+        repls.push_back(nn);
       } else {
         first = false;
       }
     }
     repls.push_back(*p.begin());
     Assert(subs.size() == repls.size());
-    for(vector<Node>::iterator i = d_phi.begin(); i != d_phi.end(); ++i) {
-      Node s = (*i).substitute(subs.begin(), subs.end(), repls.begin(), repls.end());
+    for (const Node& nn : d_phi)
+    {
+      Node s =
+          nn.substitute(subs.begin(), subs.end(), repls.begin(), repls.end());
       Node n = norm(s);
-      if(*i != n && d_phiSet.find(n) == d_phiSet.end()) {
-        Debug("ufsymm") << "UFSYMM P_circ is NOT an inv perm op for " << p << endl
-                        << "UFSYMM because this node: " << *i << endl
-                        << "UFSYMM rewrite-norms to : " << n << endl
-                        << "UFSYMM which is not in our set of normalized assertions" << endl;
+      if (nn != n && d_phiSet.find(n) == d_phiSet.end())
+      {
+        Debug("ufsymm")
+            << "UFSYMM P_circ is NOT an inv perm op for " << p << endl
+            << "UFSYMM because this node: " << nn << endl
+            << "UFSYMM rewrite-norms to : " << n << endl
+            << "UFSYMM which is not in our set of normalized assertions"
+            << endl;
         return false;
-      } else if(Debug.isOn("ufsymm:p")) {
-        if(*i == s) {
-          Debug("ufsymm:p") << "UFSYMM P_circ passes trivially: " << *i << endl;
-        } else {
-          Debug("ufsymm:p") << "UFSYMM P_circ passes: " << *i << endl
+      }
+      else if (Debug.isOn("ufsymm:p"))
+      {
+        if (nn == s)
+        {
+          Debug("ufsymm:p") << "UFSYMM P_circ passes trivially: " << nn << endl;
+        }
+        else
+        {
+          Debug("ufsymm:p") << "UFSYMM P_circ passes: " << nn << endl
                             << "UFSYMM      rewrites: " << s << endl
                             << "UFSYMM         norms: " << n << endl;
         }
