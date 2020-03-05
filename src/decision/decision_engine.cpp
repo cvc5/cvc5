@@ -56,21 +56,20 @@ void DecisionEngine::init()
   {
     ITEDecisionStrategy* ds =
       new decision::JustificationHeuristic(this, d_userContext, d_satContext);
-    d_enabledStrategies.push_back(ds);
+    enableStrategy(ds);
     d_needIteSkolemMap.push_back(ds);
   }
 }
 
-void DecisionEngine::shutdown()
+
+void DecisionEngine::enableStrategy(DecisionStrategy* ds)
 {
-  Trace("decision") << "Shutting down decision engine" << std::endl;
+  d_enabledStrategies.push_back(ds);
+}
 
-  Assert(d_engineState == 1);
-  d_engineState = 2;
-
-  for (DecisionStrategy* s : d_enabledStrategies)
-  {
-    delete s;
+void DecisionEngine::clearStrategies(){
+  for(unsigned i = 0; i < d_enabledStrategies.size(); ++i){
+    delete d_enabledStrategies[i];
   }
   d_enabledStrategies.clear();
   d_needIteSkolemMap.clear();

@@ -1059,7 +1059,9 @@ class CVC4_PUBLIC SmtEngine
   ExprManager* d_exprManager;
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
+  /** The decision engine */
 
+  DecisionEngine* d_decisionEngine;
   /** The theory engine */
   TheoryEngine* d_theoryEngine;
   /** The propositional engine */
