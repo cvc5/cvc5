@@ -384,14 +384,6 @@ header = "options/smt_options.h"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
   
 [[option]]
-  name       = "symmetryBreakerExp"
-  category   = "regular"
-  long       = "symmetry-breaker-exp"
-  type       = "bool"
-  default    = "false"
-  help       = "generate symmetry breaking constraints after symmetry detection"    
-  
-[[option]]
   name       = "incrementalSolving"
   category   = "common"
   short      = "i"
