@@ -97,7 +97,6 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2)
     {
       s2 = e2->d_singleton;
       EqcInfo* e1 = getOrMakeEqcInfo(t1);
-      Node s1;
       Trace("sets-prop-debug") << "Merging singletons..." << std::endl;
       if (e1)
       {
@@ -955,7 +954,7 @@ void TheorySetsPrivate::check(Theory::Effort level)
   {
     // Get all the assertions
     Assertion assertion = d_external.get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
     Trace("sets-assert") << "Assert from input " << fact << std::endl;
     // assert the fact
     assertFact(fact, fact);

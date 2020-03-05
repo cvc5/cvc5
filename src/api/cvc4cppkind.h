@@ -78,18 +78,19 @@ enum CVC4_PUBLIC Kind : int32_t
   BUILTIN,
 #endif
   /**
-   * Equality.
-   * Parameters: 2
-   *   -[1]..[2]: Terms with same sort
+   * Equality, chainable.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms with same sorts
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   EQUAL,
   /**
    * Disequality.
    * Parameters: n > 1
-   *   -[1]..[n]: Terms with same sort
+   *   -[1]..[n]: Terms with same sorts
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
@@ -173,10 +174,11 @@ enum CVC4_PUBLIC Kind : int32_t
   AND,
   /**
    * Logical implication.
-   * Parameters: 2
-   *   -[1]..[2]: Boolean Terms, [1] implies [2]
+   * Parameters: n > 1
+   *   -[1]..[n]: Boolean Terms, right associative
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   IMPLIES,
@@ -189,11 +191,12 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   OR,
-  /* Logical exclusive or.
-   * Parameters: 2
-   *   -[1]..[2]: Boolean Terms, [1] xor [2]
+  /* Logical exclusive or, left associative.
+   * Parameters: n > 1
+   *   -[1]..[n]: Boolean Terms, [1] xor ... xor [n]
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   XOR,
@@ -255,12 +258,14 @@ enum CVC4_PUBLIC Kind : int32_t
   PARTIAL_APPLY_UF,
 #endif
   /**
-   * Higher-order applicative encoding of function application.
-   * Parameters: 2
+   * Higher-order applicative encoding of function application, left
+   * associative.
+   * Parameters: n > 1
    *   -[1]: Function to apply
-   *   -[2]: Argument of the function
+   *   -[2] ... [n]: Arguments of the function
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   HO_APPLY,
@@ -292,11 +297,12 @@ enum CVC4_PUBLIC Kind : int32_t
   NONLINEAR_MULT,
 #endif
   /**
-   * Arithmetic subtraction.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real (sorts must match)
+   * Arithmetic subtraction, left associative.
+   * Parameters: n
+   *   -[1]..[n]: Terms of sort Integer, Real (sorts must match)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   MINUS,
@@ -309,41 +315,25 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   UMINUS,
   /**
-   * Real division, division by 0 undefined
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real
+   * Real division, division by 0 undefined, left associative.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of sort Integer, Real
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   DIVISION,
   /**
-   * Real division with interpreted division by 0
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real
+   * Integer division, division by 0 undefined, left associative.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of sort Integer
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  DIVISION_TOTAL,
-  /**
-   * Integer division, division by 0 undefined.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   INTS_DIVISION,
-  /**
-   * Integer division with interpreted division by 0.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  INTS_DIVISION_TOTAL,
   /**
    * Integer modulus, division by 0 undefined.
    * Parameters: 2
@@ -353,15 +343,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   INTS_MODULUS,
-  /**
-   * Integer modulus with interpreted division by 0.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  INTS_MODULUS_TOTAL,
   /**
    * Absolute value.
    * Parameters: 1
@@ -531,38 +512,41 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   CONST_RATIONAL,
   /**
-   * Less than.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real; [1] < [2]
+   * Less than, chainable.
+   * Parameters: n
+   *   -[1]..[n]: Terms of sort Integer, Real; [1] < ... < [n]
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   LT,
   /**
-   * Less than or equal.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real; [1] <= [2]
+   * Less than or equal, chainable.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of sort Integer, Real; [1] <= ... <= [n]
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   LEQ,
   /**
-   * Greater than.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real, [1] > [2]
+   * Greater than, chainable.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of sort Integer, Real, [1] > ... > [n]
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   GT,
   /**
-   * Greater than or equal.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of sort Integer, Real; [1] >= [2]
+   * Greater than or equal, chainable.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of sort Integer, Real; [1] >= ... >= [n]
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   GEQ,
@@ -676,9 +660,9 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   BITVECTOR_NOR,
   /**
-   * Bit-wise xnor.
-   * Parameters: 2
-   *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
+   * Bit-wise xnor, left associative.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of bit-vector sort (sorts must match)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
@@ -690,6 +674,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   BITVECTOR_COMP,
@@ -777,26 +762,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   BITVECTOR_SMOD,
-  /**
-   * Unsigned division of two bit-vectors, truncating towards 0
-   * (defined to be the all-ones bit pattern, if divisor is 0).
-   * Parameters: 2
-   *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  BITVECTOR_UDIV_TOTAL,
-  /**
-   * Unsigned remainder from truncating division of two bit-vectors
-   * (defined to be equal to the dividend, if divisor is 0).
-   * Parameters: 2
-   *   -[1]..[2]: Terms of bit-vector sort (sorts must match)
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  BITVECTOR_UREM_TOTAL,
   /**
    * Bit-vector shift left.
    * The two bit-vector parameters must have same width.
@@ -1242,12 +1207,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   FLOATINGPOINT_MAX,
-#if 0
-  /* floating-point minimum (defined for all inputs) */
-  FLOATINGPOINT_MIN_TOTAL,
-  /* floating-point maximum (defined for all inputs) */
-  FLOATINGPOINT_MAX_TOTAL,
-#endif
   /**
    * Floating-point less than or equal.
    * Parameters: 2
@@ -1458,23 +1417,6 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   FLOATINGPOINT_TO_UBV,
   /**
-   * Operator for to_ubv_total.
-   * Parameters: 1
-   *   -[1]: Size of the bit-vector to convert to
-   * Create with:
-   *   mkOp(Kind kind, uint32_t param)
-   *
-   * Conversion from  a floating-point value to an unsigned bit vector
-   * (defined for all inputs).
-   * Parameters: 2
-   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_TO_UBV_TOTAL
-   *   -[2]: Term of sort FloatingPoint
-   * Create with:
-   *   mkTerm(Op op, Term child)
-   *   mkTerm(Op op, const std::vector<Term>& children)
-   */
-  FLOATINGPOINT_TO_UBV_TOTAL,
-  /**
    * Operator for to_sbv.
    * Parameters: 1
    *   -[1]: Size of the bit-vector to convert to
@@ -1491,23 +1433,6 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   FLOATINGPOINT_TO_SBV,
   /**
-   * Operator for to_sbv_total.
-   * Parameters: 1
-   *   -[1]: Size of the bit-vector to convert to
-   * Create with:
-   *   mkOp(Kind kind, uint32_t param)
-   *
-   * Conversion from a floating-point value to a signed bit vector
-   * (defined for all inputs).
-   * Parameters: 2
-   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_TO_SBV_TOTAL
-   *   -[2]: Term of sort FloatingPoint
-   * Create with:
-   *   mkTerm(Op op, Term child)
-   *   mkTerm(Op op, const std::vector<Term>& children)
-   */
-  FLOATINGPOINT_TO_SBV_TOTAL,
-  /**
    * Floating-point to real.
    * Parameters: 1
    *   -[1]: Term of sort FloatingPoint
@@ -1515,14 +1440,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child)
    */
   FLOATINGPOINT_TO_REAL,
-  /**
-   * Floating-point to real (defined for all inputs).
-   * Parameters: 1
-   *   -[1]: Term of sort FloatingPoint
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
-   */
-  FLOATINGPOINT_TO_REAL_TOTAL,
 
   /* Arrays ---------------------------------------------------------------- */
 
@@ -1596,15 +1513,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Op op, Term child)
    */
   APPLY_SELECTOR,
-  /**
-   * Datatype selector application.
-   * Parameters: 1
-   *   -[1]: Selector (operator)
-   *   -[2]: Datatype term (defined rigidly if mis-applied)
-   * Create with:
-   *   mkTerm(Kind kind, Op op, Term child)
-   */
-  APPLY_SELECTOR_TOTAL,
   /**
    * Datatype tester application.
    * Parameters: 2
@@ -2080,7 +1988,7 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   STRING_REV,
   /**
-   * String code.
+   * String to code.
    * Returns the code point of a string if it has length one, or returns -1
    * otherwise.
    * Parameters: 1
@@ -2088,7 +1996,18 @@ enum CVC4_PUBLIC Kind : int32_t
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  STRING_CODE,
+  STRING_TO_CODE,
+  /**
+   * String from code.
+   * Returns a string containing a single character whose code point matches
+   * the argument to this function, or the empty string if the argument is
+   * out-of-bounds.
+   * Parameters: 1
+   *   -[1]: Term of Integer sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  STRING_FROM_CODE,
   /**
    * String less than.
    * Returns true if string s1 is (strictly) less than s2 based on a
@@ -2137,6 +2056,16 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   STRING_SUFFIX,
+  /**
+   * String is-digit.
+   * Returns true if string s is digit (it is one of "0", ..., "9").
+   * Parameters: 1
+   *   -[1]: Term of sort String
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_IS_DIGIT,
   /**
    * Integer to string.
    * If the integer is negative this operator returns the empty string.
@@ -2203,6 +2132,15 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   REGEXP_INTER,
   /**
+   * Regexp difference.
+   * Parameters: 2
+   *   -[1]..[2]: Terms of Regexp sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  REGEXP_DIFF,
+  /**
    * Regexp *.
    * Parameters: 1
    *   -[1]: Term of sort Regexp
@@ -2264,6 +2202,14 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind)
    */
   REGEXP_SIGMA,
+  /**
+   * Regexp complement.
+   * Parameters: 1
+   *   -[1]: Term of sort RegExp
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   */
+  REGEXP_COMPLEMENT,
 #if 0
   /* regexp rv (internal use only) */
   REGEXP_RV,

@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 
 std::ostream& operator<<(std::ostream& out, const Assertion& a) {
-  return out << a.assertion;
+  return out << a.d_assertion;
 }
 
 }/* CVC4::theory namespace */

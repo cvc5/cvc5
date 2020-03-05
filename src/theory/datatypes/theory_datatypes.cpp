@@ -154,7 +154,7 @@ void TheoryDatatypes::check(Effort e) {
   while(!done() && !d_conflict) {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
     Trace("datatypes-assert") << "Assert " << fact << std::endl;
 
     TNode atom CVC4_UNUSED = fact.getKind() == kind::NOT ? fact[0] : fact;

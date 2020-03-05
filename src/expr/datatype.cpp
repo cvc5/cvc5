@@ -223,6 +223,41 @@ void Datatype::addConstructor(const DatatypeConstructor& c) {
 void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
   PrettyCheckArgument(
       !isResolved(), this, "cannot set sygus type to a finalized Datatype");
+  // We can be in a case where the only rule specified was
+  // (Constant T), in which case we have not yet added a constructor. We
+  // ensure an arbitrary constant is added in this case. We additionally
+  // add a constant if the grammar has only non-nullary constructors, since this
+  // ensures the datatype is well-founded (see 3423).
+  // Notice we only want to do this for sygus datatypes that are user-provided.
+  // At the moment, the condition !allow_all implies the grammar is
+  // user-provided and hence may require a default constant.
+  // TODO (https://github.com/CVC4/cvc4-projects/issues/38):
+  // In an API for SyGuS, it probably makes more sense for the user to
+  // explicitly add the "any constant" constructor with a call instead of
+  // passing a flag. This would make the block of code unnecessary.
+  if (allow_const && !allow_all)
+  {
+    // if i don't already have a constant (0-ary constructor)
+    bool hasConstant = false;
+    for (unsigned i = 0, ncons = getNumConstructors(); i < ncons; i++)
+    {
+      if ((*this)[i].getNumArgs() == 0)
+      {
+        hasConstant = true;
+        break;
+      }
+    }
+    if (!hasConstant)
+    {
+      // add an arbitrary one
+      Expr op = st.mkGroundTerm();
+      std::stringstream cname;
+      cname << op;
+      std::vector<Type> cargs;
+      addSygusConstructor(op, cname.str(), cargs);
+    }
+  }
+
   TypeNode stn = TypeNode::fromType(st);
   Node bvln = Node::fromExpr(bvl);
   d_internal->setSygus(stn, bvln, allow_const, allow_all);

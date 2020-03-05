@@ -240,6 +240,7 @@ tokens {
   REGEXP_LOOP_TOK = 'RE_LOOP';
   REGEXP_EMPTY_TOK = 'RE_EMPTY';
   REGEXP_SIGMA_TOK = 'RE_SIGMA';
+  REGEXP_COMPLEMENT_TOK = 'RE_COMPLEMENT';
   
   SETS_CARD_TOK = 'CARD';
   
@@ -1306,14 +1307,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     { /*symtab = PARSER_STATE->getSymbolTable();
       PARSER_STATE->useDeclarationsFrom(new SymbolTable());*/ }
     formula[f] ( COMMA formula[f2] )? RPAREN
-    { /*SymbolTable* old = PARSER_STATE->getSymbolTable();
-      PARSER_STATE->useDeclarationsFrom(symtab);
-      delete old;*/
+    {
       PARSER_STATE->unimplementedFeature("predicate subtyping not supported in this release");
-      /*t = f2.isNull() ?
-        EXPR_MANAGER->mkPredicateSubtype(f) :
-        EXPR_MANAGER->mkPredicateSubtype(f, f2);
-      */
     }
 
     /* subrange types */
@@ -1785,8 +1780,9 @@ postfixTerm[CVC4::Expr& f]
     | LPAREN { args.push_back(f); }
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
-      // TODO: check arity
-      { Kind k = PARSER_STATE->getKindForFunction(args.front());
+      { 
+        PARSER_STATE->checkFunctionLike(args.front());
+        Kind k = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
         Debug("parser") << "kind is " << k << std::endl;
         f = MK_EXPR(k, args);
@@ -1842,23 +1838,8 @@ postfixTerm[CVC4::Expr& f]
       { f = (args.size() == 1) ? MK_CONST(bool(true)) : MK_EXPR(CVC4::kind::DISTINCT, args); }
     )
     ( typeAscription[f, t]
-      { if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && t.isDatatype()) {
-          std::vector<CVC4::Expr> v;
-          Expr e = f.getOperator();
-          const DatatypeConstructor& dtc = Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-          v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(t))), f.getOperator() ));
-          v.insert(v.end(), f.begin(), f.end());
-          f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
-        } else if(f.getKind() == CVC4::kind::EMPTYSET && t.isSet()) {
-          f = MK_CONST(CVC4::EmptySet(t));
-        } else if(f.getKind() == CVC4::kind::UNIVERSE_SET && t.isSet()) {
-          f = EXPR_MANAGER->mkNullaryOperator(t, kind::UNIVERSE_SET);
-        } else {
-          if(f.getType() != t) {
-            PARSER_STATE->parseError("Type ascription not satisfied.");
-          }
-        }
+      {
+        f = PARSER_STATE->applyTypeAscription(f,t).getExpr();
       }
     )?
   ;
@@ -2066,6 +2047,8 @@ stringTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::REGEXP_RANGE, f, f2); }
   | REGEXP_LOOP_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::REGEXP_LOOP, f, f2, f3); }
+  | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_COMPLEMENT, f); }
   | REGEXP_EMPTY_TOK
     { f = MK_EXPR(CVC4::kind::REGEXP_EMPTY, std::vector<Expr>()); }
   | REGEXP_SIGMA_TOK
