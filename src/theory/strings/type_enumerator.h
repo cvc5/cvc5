@@ -145,7 +145,7 @@ class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator> {
       d_childEnum(type.getSequenceElementType())
   {
     Assert(type.getKind() == kind::TYPE_CONSTANT
-           && type.getConst<TypeConstant>() == SEQUENCE_TYPE);
+           && type.getConst<TypeConstant>() == kind::SEQUENCE_TYPE);
     mkCurr();
   }
   Node operator*() override { return d_curr; }

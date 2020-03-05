@@ -79,7 +79,8 @@ struct SequenceProperties {
   inline static Node mkGroundTerm(TypeNode type) {
     Assert(type.isSequence());
     // empty sequence
-    return NodeManager::currentNM()->mkConst(Sequence(SequenceType(type.toType())));
+    std::vector<Node> seq;
+    return NodeManager::currentNM()->mkConst(Sequence(TypeNode::fromType(SequenceType(type.toType())), seq));
   }
 };/* struct SequenceProperties */
 
