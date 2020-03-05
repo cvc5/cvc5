@@ -517,7 +517,7 @@ public:
 
   /** Is this a Set type? */
   bool isSet() const;
-  
+
   /** Is this a Sequence type? */
   bool isSequence() const;
 
@@ -966,7 +966,8 @@ inline bool TypeNode::isSet() const {
   return getKind() == kind::SET_TYPE;
 }
 
-inline bool TypeNode::isSequence() const {
+inline bool TypeNode::isSequence() const
+{
   return getKind() == kind::SEQUENCE_TYPE;
 }
 

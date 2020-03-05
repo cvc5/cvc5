@@ -26,18 +26,21 @@ namespace CVC4 {
  *
  * This data structure is the domain of values for the sequence type.
  */
-class Sequence {
+class Sequence
+{
  public:
   /** constructors for Sequence
-  *
-  * Internally, a CVC4::Sequence is represented by a vector of Nodes (d_seq), 
-  * where each Node in this vector must be a constant.
-  */
+   *
+   * Internally, a CVC4::Sequence is represented by a vector of Nodes (d_seq),
+   * where each Node in this vector must be a constant.
+   */
   Sequence() = default;
   explicit Sequence(TypeNode t, const std::vector<Node>& s);
 
-  Sequence& operator=(const Sequence& y) {
-    if (this != &y) {
+  Sequence& operator=(const Sequence& y)
+  {
+    if (this != &y)
+    {
       d_seq = y.d_seq;
     }
     return *this;
@@ -102,30 +105,32 @@ class Sequence {
   bool noOverlapWith(const Sequence& y) const;
 
   /** string overlap
-  *
-  * if overlap returns m>0,
-  * then the maximal suffix of this string that is a prefix of y is of length m.
-  *
-  * For example, if x is "abcdef", then:
-  * x.overlap("defg") = 3
-  * x.overlap("ab") = 0
-  * x.overlap("d") = 0
-  * x.overlap("bcdefdef") = 5
-  */
+   *
+   * if overlap returns m>0,
+   * then the maximal suffix of this string that is a prefix of y is of length
+   * m.
+   *
+   * For example, if x is "abcdef", then:
+   * x.overlap("defg") = 3
+   * x.overlap("ab") = 0
+   * x.overlap("d") = 0
+   * x.overlap("bcdefdef") = 5
+   */
   std::size_t overlap(const Sequence& y) const;
   /** string reverse overlap
-  *
-  * if roverlap returns m>0,
-  * then the maximal prefix of this string that is a suffix of y is of length m.
-  *
-  * For example, if x is "abcdef", then:
-  * x.roverlap("aaabc") = 3
-  * x.roverlap("def") = 0
-  * x.roverlap("d") = 0
-  * x.roverlap("defabcde") = 5
-  *
-  * Notice that x.overlap(y) = y.roverlap(x)
-  */
+   *
+   * if roverlap returns m>0,
+   * then the maximal prefix of this string that is a suffix of y is of length
+   * m.
+   *
+   * For example, if x is "abcdef", then:
+   * x.roverlap("aaabc") = 3
+   * x.roverlap("def") = 0
+   * x.roverlap("d") = 0
+   * x.roverlap("defabcde") = 5
+   *
+   * Notice that x.overlap(y) = y.roverlap(x)
+   */
   std::size_t roverlap(const Sequence& y) const;
 
   /** get the internal Node representation of this string */
@@ -139,6 +144,7 @@ class Sequence {
    * Corresponds to the maximum size of d_seq.
    */
   static size_t maxSize();
+
  private:
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a
@@ -153,11 +159,11 @@ class Sequence {
 
 namespace strings {
 
-  /*
+/*
 struct CVC4_PUBLIC SequenceHashFunction {
-  size_t operator()(const ::CVC4::Sequence& s) const {
-    return std::hash<std::string>()(s.toSequence());
-  }
+size_t operator()(const ::CVC4::Sequence& s) const {
+  return std::hash<std::string>()(s.toSequence());
+}
 }; *//* struct SequenceHashFunction */
 
 }  // namespace strings

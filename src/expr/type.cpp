@@ -561,7 +561,8 @@ Type SetType::getElementType() const {
   return makeType(d_typeNode->getSetElementType());
 }
 
-Type SequenceType::getElementType() const {
+Type SequenceType::getElementType() const
+{
   return makeType(d_typeNode->getSequenceElementType());
 }
 

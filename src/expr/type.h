@@ -378,8 +378,8 @@ protected:
    * @return true if the type is a Sequence type
    */
   bool isSequence() const;
-  
- /**
+
+  /**
    * Is this a datatype type?
    * @return true if the type is a datatype type
    */
@@ -529,17 +529,18 @@ class CVC4_PUBLIC SetType : public Type {
 
   /** Get the element type */
   Type getElementType() const;
-};/* class SetType */
+}; /* class SetType */
 
 /** Class encapsulating a sequence type. */
-class CVC4_PUBLIC SequenceType : public Type {
+class CVC4_PUBLIC SequenceType : public Type
+{
  public:
   /** Construct from the base type */
   SequenceType(const Type& type = Type());
 
   /** Get the element type */
   Type getElementType() const;
-};/* class SetType */
+}; /* class SetType */
 
 /** Class encapsulating a user-defined sort. */
 class CVC4_PUBLIC SortType : public Type {

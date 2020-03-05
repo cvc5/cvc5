@@ -137,12 +137,12 @@ class StringEnumeratorLength {
   }
 };
 
-
-class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator> {
+class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator>
+{
  public:
   SequenceEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<SequenceEnumerator>(type),
-      d_childEnum(type.getSequenceElementType())
+        d_childEnum(type.getSequenceElementType())
   {
     Assert(type.getKind() == kind::TYPE_CONSTANT
            && type.getConst<TypeConstant>() == kind::SEQUENCE_TYPE);
@@ -156,12 +156,13 @@ class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator> {
     {
       for (unsigned i = 0; i < d_data.size(); ++i)
       {
-        while (!d_childEnum.isFinished() && d_data[i] + 1 >= d_childDomain.size())
+        while (!d_childEnum.isFinished()
+               && d_data[i] + 1 >= d_childDomain.size())
         {
           d_childDomain.push_back(*d_childEnum);
           ++d_childEnum;
         }
-        
+
         if (d_data[i] + 1 < d_childDomain.size())
         {
           ++d_data[i];
@@ -185,21 +186,22 @@ class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator> {
   }
 
   bool isFinished() override { return d_curr.isNull(); }
-private:
-  void mkCurr() {
-    //make constant from d_data  FIXME : use sequence
-    d_curr = NodeManager::currentNM()->mkConst( CVC4::String( d_data ) );
+
+ private:
+  void mkCurr()
+  {
+    // make constant from d_data  FIXME : use sequence
+    d_curr = NodeManager::currentNM()->mkConst(CVC4::String(d_data));
   }
   /** The current data */
-  std::vector< unsigned > d_data;
+  std::vector<unsigned> d_data;
   /** The enumerated domain so far */
-  std::vector< Node > d_childDomain;
+  std::vector<Node> d_childDomain;
   /** The current term */
   Node d_curr;
   /** Child enumeration */
   TypeEnumerator d_childEnum;
-};/* class SequenceEnumerator */
-
+}; /* class SequenceEnumerator */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

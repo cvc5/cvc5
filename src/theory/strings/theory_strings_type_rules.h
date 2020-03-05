@@ -66,23 +66,28 @@ public:
 };
 
 /** Properties of the sequence type */
-struct SequenceProperties {
-  inline static Cardinality computeCardinality(TypeNode type) {
+struct SequenceProperties
+{
+  inline static Cardinality computeCardinality(TypeNode type)
+  {
     Assert(type.getKind() == kind::SEQUENCE_TYPE);
     return Cardinality::INTEGERS;
   }
   /** A sequence is well-founded if its element type is */
-  inline static bool isWellFounded(TypeNode type) {
+  inline static bool isWellFounded(TypeNode type)
+  {
     return type[0].isWellFounded();
   }
   /** Make ground term for sequence type (return the empty sequence) */
-  inline static Node mkGroundTerm(TypeNode type) {
+  inline static Node mkGroundTerm(TypeNode type)
+  {
     Assert(type.isSequence());
     // empty sequence
     std::vector<Node> seq;
-    return NodeManager::currentNM()->mkConst(Sequence(TypeNode::fromType(SequenceType(type.toType())), seq));
+    return NodeManager::currentNM()->mkConst(
+        Sequence(TypeNode::fromType(SequenceType(type.toType())), seq));
   }
-};/* struct SequenceProperties */
+}; /* struct SequenceProperties */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
