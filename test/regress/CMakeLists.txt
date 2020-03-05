@@ -682,6 +682,7 @@ set(regress_0_tests
   regress0/push-pop/incremental-subst-bug.cvc
   regress0/push-pop/issue1986.smt2
   regress0/push-pop/issue2137.min.smt2
+  regress0/push-pop/issue3915-real-as-int.smt2
   regress0/push-pop/quant-fun-proc-unfd.smt2
   regress0/push-pop/simple_unsat_cores.smt2
   regress0/push-pop/test.00.cvc
@@ -1508,6 +1509,7 @@ set(regress_1_tests
   regress1/quantifiers/qe.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
+  regress1/quantifiers/real-to-int-quant.smt2
   regress1/quantifiers/recfact.cvc
   regress1/quantifiers/rel-trigger-unusable.smt2
   regress1/quantifiers/repair-const-nterm.smt2
