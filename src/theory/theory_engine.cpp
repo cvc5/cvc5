@@ -315,7 +315,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
                            RemoveTermFormulas& iteRemover,
                            const LogicInfo& logicInfo)
     : d_propEngine(nullptr),
-      d_decisionEngine(nullptr),
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
@@ -1924,8 +1923,9 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // assert to decision engine
-  if(!removable) {
-    d_decisionEngine->addAssertions(additionalLemmas);
+  if (!removable)
+  {
+    d_propEngine->addAssertionsToDecisionEngine(additionalLemmas);
   }
 
   // Mark that we added some lemmas
