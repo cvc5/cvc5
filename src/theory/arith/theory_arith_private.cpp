@@ -3940,9 +3940,6 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   TNode var = d_partialModel.asNode(x);
   Integer floor_d = d.floor();
 
-  Node ub;
-  Node lb;
-  Node lem;
   if (options::cubeTest())
   {
     Trace("integers") << "cube test enabled"  << endl;
@@ -3954,23 +3951,23 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
     Integer nearest;
     (c > f) ? nearest = floor_d : nearest = ceil_d;
 
-    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
-    lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
-    lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
+    Node ubub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
+    Node lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
+    Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
     Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
     Node literal = d_containing.getValuation().ensureLiteral(eq);
     d_containing.getOutputChannel().requirePhase(literal, true);
-    lem = NodeManager::currentNM()->mkNode(kind::OR, literal, lem);
+    Node lem = NodeManager::currentNM()->mkNode(kind::OR, literal, lem);
   }
   else
   {
     //Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d+1)));
     //Node diseq = eq.notNode();
-    ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
-    lb = ub.notNode();
+    Node ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
+    Node lb = ub.notNode();
 
     //Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, diseq);
-    lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
+    Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
   }
 
   Trace("integers") << "integers: branch & bound: " << lem << endl;
