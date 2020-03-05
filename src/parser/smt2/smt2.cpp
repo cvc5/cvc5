@@ -1374,14 +1374,14 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
       // ops[i], or the kind.
       if (!ops[i].d_expr.isNull())
       {
-        dt.addSygusConstructor(ops[i].d_expr.getExpr(),
+        dt.getDatatype().addSygusConstructor(ops[i].d_expr.getExpr(),
                                cnames[i],
                                api::sortVectorToTypes(cargs[i]),
                                spc);
       }
       else if (ops[i].d_kind != api::NULL_EXPR)
       {
-        dt.addSygusConstructor(extToIntKind(ops[i].d_kind),
+        dt.getDatatype().addSygusConstructor(extToIntKind(ops[i].d_kind),
                                cnames[i],
                                api::sortVectorToTypes(cargs[i]),
                                spc);
@@ -1409,7 +1409,7 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
         if( std::find( types.begin(), types.end(), t )==types.end() ){
           types.push_back( t );
           //identity element
-          api::Sort bt = dt.getSygusType();
+          api::Sort bt = dt.getDatatype().getSygusType();
           Debug("parser-sygus") << ":  make identity function for " << bt << ", argument type " << t << std::endl;
 
           std::stringstream ss;
@@ -1427,7 +1427,7 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
           //make the sygus argument list
           std::vector<api::Sort> id_carg;
           id_carg.push_back( t );
-          dt.addSygusConstructor(id_op.getExpr(),
+          dt.getDatatype().addSygusConstructor(id_op.getExpr(),
                                  unresolved_gterm_sym[i],
                                  api::sortVectorToTypes(id_carg),
                                  sepc);
@@ -1446,7 +1446,7 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
   }
 }
 
-api::Term Smt2::makeSygusBoundVarList(CVC4::Datatype& dt,
+api::Term Smt2::makeSygusBoundVarList(api::DatatypeDecl& dt,
                                       unsigned i,
                                       const std::vector<api::Sort>& ltypes,
                                       std::vector<api::Term>& lvars)
@@ -1462,7 +1462,7 @@ api::Term Smt2::makeSygusBoundVarList(CVC4::Datatype& dt,
 }
 
 void Smt2::addSygusConstructorTerm(
-    Datatype& dt,
+    api::DatatypeDecl& dt,
     api::Term term,
     std::map<api::Term, api::Sort>& ntsToUnres) const
 {
@@ -1495,7 +1495,7 @@ void Smt2::addSygusConstructorTerm(
   }
   Trace("parser-sygus2") << "addSygusConstructor:  operator " << op
                          << std::endl;
-  dt.addSygusConstructor(
+  dt.getDatatype().addSygusConstructor(
       op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
 }
 
@@ -1551,7 +1551,7 @@ void Smt2::addSygusConstructorVariables(api::DatatypeDecl& dt,
       std::stringstream ss;
       ss << v;
       std::vector<api::Sort> cargs;
-      dt.addSygusConstructor(
+      dt.getDatatype().addSygusConstructor(
           v.getExpr(), ss.str(), api::sortVectorToTypes(cargs));
     }
   }

@@ -1260,9 +1260,12 @@ class CVC4_PUBLIC DatatypeDecl
    */
   std::string toString() const;
 
+  /** @return the name of this datatype declaration. */
+  std::string getName() const;
+  
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::Datatype& getDatatype(void) const;
+  CVC4::Datatype& getDatatype(void) const;
 
  private:
   /**

@@ -770,7 +770,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
             "Internal error : could not infer "
             "builtin sort for nested gterm.");
       }
-      datatypes[i].setSygus(
+      datatypes[i].getDatatype().setSygus(
           sorts[i].getType(), bvl.getExpr(), allow_const[i], false);
       PARSER_STATE->mkSygusDatatype(datatypes[i],
                                     ops[i],
@@ -1037,7 +1037,7 @@ sygusGrammar[CVC4::api::Sort & ret,
     {
       bool aci = allowConst.find(i)!=allowConst.end();
       api::Sort btt = sortedVarNames[i].second;
-      datatypes[i].setSygus(btt.getType(), bvl.getExpr(), aci, false);
+      datatypes[i].getDatatype().setSygus(btt.getType(), bvl.getExpr(), aci, false);
       Trace("parser-sygus2") << "- " << datatypes[i].getName()
                              << ", #cons= " << datatypes[i].getNumConstructors()
                              << ", aci= " << aci << std::endl;
@@ -2529,10 +2529,7 @@ datatypeDef[bool isCo, std::vector<CVC4::api::DatatypeDecl>& datatypes,
      * below. */
   : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(true); }
     {
-      datatypes.push_back(Datatype(PARSER_STATE->getExprManager(),
-                                   id,
-                                   api::sortVectorToTypes(params),
-                                   isCo));
+      datatypes.push_back(SOLVER->mkDatatypeDecl(id, params, isCo));
     }
     ( LPAREN_TOK constructorDef[datatypes.back()] RPAREN_TOK )+
     { PARSER_STATE->popScope(); }
@@ -2547,10 +2544,8 @@ constructorDef[CVC4::api::DatatypeDecl& type]
   CVC4::api::DatatypeConstructorDecl* ctor = NULL;
 }
   : symbol[id,CHECK_NONE,SYM_VARIABLE]
-    { // make the tester
-      std::string testerId("is-");
-      testerId.append(id);
-      ctor = new api::DatatypeConstructorDecl(id, testerId);
+    {
+      ctor = new api::DatatypeConstructorDecl(id);
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
     { // make the constructor

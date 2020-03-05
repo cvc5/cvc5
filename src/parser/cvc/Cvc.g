@@ -2331,10 +2331,7 @@ datatypeDef[std::vector<CVC4::api::DatatypeDecl>& datatypes]
       )* RBRACKET
     )?
     {
-      datatypes.push_back(Datatype(PARSER_STATE->getExprManager(),
-                                   id,
-                                   api::sortVectorToTypes(params),
-                                   false));
+      datatypes.push_back(SOLVER->mkDatatypeDecl(id, params, false));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
@@ -2354,11 +2351,8 @@ constructorDef[CVC4::api::DatatypeDecl& type]
   std::unique_ptr<CVC4::api::DatatypeConstructorDecl> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
-    { // make the tester
-      std::string testerId("is_");
-      testerId.append(id);
-      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_SORT);
-      ctor.reset(new CVC4::api::DatatypeConstructorDecl(id, testerId));
+    { 
+      ctor.reset(new CVC4::api::DatatypeConstructorDecl(id));
     }
     ( LPAREN
       selector[&ctor]
@@ -2379,7 +2373,7 @@ selector[std::unique_ptr<CVC4::api::DatatypeConstructorDecl>* ctor]
   : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON type[t,CHECK_NONE]
     { 
       api::DatatypeSelectorDecl sel(id, t);
-      (*ctor)->addArg(sel);
+      (*ctor)->addSelector(sel);
       Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
     }
   ;

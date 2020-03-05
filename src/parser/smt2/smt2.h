@@ -554,7 +554,7 @@ class Smt2 : public Parser
    * It appends a bound variable to lvars for each type in ltypes, and returns
    * a bound variable list whose children are lvars.
    */
-  api::Term makeSygusBoundVarList(CVC4::Datatype& dt,
+  api::Term makeSygusBoundVarList(api::DatatypeDecl& dt,
                                   unsigned i,
                                   const std::vector<api::Sort>& ltypes,
                                   std::vector<api::Term>& lvars);

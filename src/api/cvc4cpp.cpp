@@ -1878,11 +1878,17 @@ std::string DatatypeDecl::toString() const
   return ss.str();
 }
 
+std::string DatatypeDecl::getName() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_dtype->getName();
+}
+
 bool DatatypeDecl::isNull() const { return isNullHelper(); }
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
+CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeSelectorDecl& stordecl)
