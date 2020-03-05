@@ -501,8 +501,8 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
         if (!svarsInit)
         {
           svarsInit = true;
-          TypeNode tn = cur.getType();
-          Node varList = tn.getDType().getSygusVarList();
+          TypeNode type = cur.getType();
+          Node varList = type.getDType().getSygusVarList();
           for (const Node& v : varList)
           {
             svars.push_back(v);

@@ -661,6 +661,7 @@ libcvc4_add_sources(
   theory/sets/theory_sets_rels.h
   theory/sets/theory_sets_rewriter.cpp
   theory/sets/theory_sets_rewriter.h
+  theory/sets/theory_sets_type_enumerator.cpp
   theory/sets/theory_sets_type_enumerator.h
   theory/sets/theory_sets_type_rules.h
   theory/shared_terms_database.cpp

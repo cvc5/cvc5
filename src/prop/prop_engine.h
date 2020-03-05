@@ -27,6 +27,7 @@
 #include "expr/expr_stream.h"
 #include "expr/node.h"
 #include "options/options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_manager.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
@@ -60,9 +61,8 @@ class PropEngine
    * Create a PropEngine with a particular decision and theory engine.
    */
   PropEngine(TheoryEngine*,
-             DecisionEngine*,
              context::Context* satContext,
-             context::Context* userContext,
+             context::UserContext* userContext,
              std::ostream* replayLog,
              ExprStream* replayStream);
 
@@ -103,6 +103,12 @@ class PropEngine
                    bool removable,
                    ProofRule rule,
                    TNode from = TNode::null());
+
+  /**
+   * Pass a list of assertions from an AssertionPipeline to the decision engine.
+   */
+  void addAssertionsToDecisionEngine(
+      const preprocessing::AssertionPipeline& assertions);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -223,7 +229,7 @@ class PropEngine
   TheoryEngine* d_theoryEngine;
 
   /** The decision engine we will be using */
-  DecisionEngine* d_decisionEngine;
+  std::unique_ptr<DecisionEngine> d_decisionEngine;
 
   /** The context */
   context::Context* d_context;

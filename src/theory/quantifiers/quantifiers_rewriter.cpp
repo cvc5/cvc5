@@ -474,14 +474,14 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
         {
           bool doRewrite =
               options::iteLiftQuant() == options::IteLiftQuantMode::ALL;
-          std::vector<Node> children;
-          children.push_back(ret[i][0]);
+          std::vector<Node> childrenIte;
+          childrenIte.push_back(ret[i][0]);
           for (size_t j = 1; j <= 2; j++)
           {
             // check if it rewrites to a constant
             Node nn = nm->mkNode(EQUAL, no, ret[i][j]);
             nn = Rewriter::rewrite(nn);
-            children.push_back(nn);
+            childrenIte.push_back(nn);
             if (nn.isConst())
             {
               doRewrite = true;
@@ -489,7 +489,7 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
           }
           if (doRewrite)
           {
-            ret = nm->mkNode(ITE, children);
+            ret = nm->mkNode(ITE, childrenIte);
             break;
           }
         }
@@ -1588,6 +1588,7 @@ Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QA
     }
   }
   if ( eqc_active>1 || !lits.empty() || var_to_eqc.size()!=args.size() ){
+    NodeManager* nm = NodeManager::currentNM();
     Trace("clause-split-debug") << "Split quantified formula with body " << body << std::endl;
     Trace("clause-split-debug") << "   Ground literals: " << std::endl;
     for( size_t i=0; i<lits.size(); i++) {
@@ -1607,8 +1608,9 @@ Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QA
       }
       Trace("clause-split-debug") << std::endl;
       Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, eqc_to_var[eqc]);
-      Node body = it->second.size()==1 ? it->second[0] : NodeManager::currentNM()->mkNode( OR, it->second );
-      Node fa = NodeManager::currentNM()->mkNode( FORALL, bvl, body );
+      Node bd =
+          it->second.size() == 1 ? it->second[0] : nm->mkNode(OR, it->second);
+      Node fa = nm->mkNode(FORALL, bvl, bd);
       lits.push_back(fa);
     }
     Assert(!lits.empty());
