@@ -662,7 +662,6 @@ sygusGrammarV1[CVC4::Type & ret,
   std::vector<std::vector<CVC4::SygusGTerm>> sgts;
   std::vector<CVC4::Datatype> datatypes;
   std::vector<Type> sorts;
-  std::set<Type> unresTypes;
   std::vector<std::vector<ParseOp>> ops;
   std::vector<std::vector<std::string>> cnames;
   std::vector<std::vector<std::vector<CVC4::Type>>> cargs;
@@ -703,7 +702,6 @@ sygusGrammarV1[CVC4::Type & ret,
            Debug("parser-sygus") << "Get sort : " << name << std::endl;
            unres_t = PARSER_STATE->getSort(name);
          }
-         unresTypes.insert(unres_t);
          sygus_to_builtin[unres_t] = t;
          Debug("parser-sygus") << "--- Read sygus grammar " << name
                                << " under function " << fun << "..."
@@ -783,8 +781,8 @@ sygusGrammarV1[CVC4::Type & ret,
                             << std::endl;
     }
     std::vector<DatatypeType> datatypeTypes =
-        EXPR_MANAGER->mkMutualDatatypeTypes(
-            datatypes, unresTypes, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+        PARSER_STATE->mkMutualDatatypeTypes(
+            datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     ret = datatypeTypes[0];
   };
 
