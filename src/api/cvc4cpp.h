@@ -1415,11 +1415,6 @@ class CVC4_PUBLIC DatatypeConstructor
   Term getTesterTerm() const;
 
   /**
-   * @return the tester name for this Datatype constructor.
-   */
-  std::string getTesterName() const;
-
-  /**
    * @return the number of selectors (so far) of this Datatype constructor.
    */
   size_t getNumSelectors() const;
@@ -1927,6 +1922,13 @@ class CVC4_PUBLIC Solver
    * @return the datatype sort
    */
   Sort mkDatatypeSort(DatatypeDecl dtypedecl) const;
+
+  /**
+   * Create a list of datatype sorts.
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls) const;
 
   /**
    * Create function sort.

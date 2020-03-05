@@ -1965,11 +1965,6 @@ Term DatatypeConstructor::getTesterTerm() const
   return tst;
 }
 
-std::string DatatypeConstructor::getTesterName() const
-{
-  return d_ctor->getTesterName();
-}
-
 size_t DatatypeConstructor::getNumSelectors() const
 {
   return d_ctor->getNumArgs();
@@ -2612,6 +2607,25 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
 
   return d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype);
 
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+std::vector<Sort> Solver::mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  //CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
+  //    << "a datatype declaration with at least one constructor";
+
+  std::vector<Datatype> datatypes;
+  for (unsigned i = 0, ndts = dtypedecls.size(); i < ndts; i++)
+  {
+    datatypes.push_back(dtypedecls[i].getDatatype());
+  }
+
+  std::vector<DatatypeType> dtypes = d_exprMgr->mkMutualDatatypeTypes(datatypes);
+  // FIXME
+  return typeVectorToSorts(dtypes);
+  
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
