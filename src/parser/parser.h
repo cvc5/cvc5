@@ -588,8 +588,8 @@ public:
    * printed out as a definition in models or not
    *   (see enum in expr_manager_template.h).
    */
-  std::vector<DatatypeType> mkMutualDatatypeTypes(
-      std::vector<Datatype>& datatypes,
+  std::vector<api::Sort> mkMutualDatatypeTypes(
+      std::vector<api::DatatypeDecl>& datatypes,
       bool doOverload = false,
       uint32_t flags = ExprManager::DATATYPE_FLAG_NONE);
 

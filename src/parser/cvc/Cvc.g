@@ -683,7 +683,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   SExpr sexpr;
   std::string id;
   api::Sort t;
-  std::vector<CVC4::Datatype> dts;
+  std::vector<CVC4::api::DatatypeDecl> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
   api::Term func;
@@ -757,7 +757,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     END_TOK
     { PARSER_STATE->popScope();
       cmd->reset(new DatatypeDeclarationCommand(
-          PARSER_STATE->mkMutualDatatypeTypes(dts)));
+          api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts))));
     }
 
   | CONTEXT_TOK
@@ -2310,7 +2310,7 @@ iteElseTerm[CVC4::api::Term& f]
 /**
  * Parses a datatype definition
  */
-datatypeDef[std::vector<CVC4::Datatype>& datatypes]
+datatypeDef[std::vector<CVC4::api::DatatypeDecl>& datatypes]
 @init {
   std::string id, id2;
   api::Sort t;
@@ -2348,17 +2348,17 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 /**
  * Parses a constructor defintion for type
  */
-constructorDef[CVC4::Datatype& type]
+constructorDef[CVC4::api::DatatypeDecl& type]
 @init {
   std::string id;
-  std::unique_ptr<CVC4::DatatypeConstructor> ctor;
+  std::unique_ptr<CVC4::api::DatatypeConstructorDecl> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
     { // make the tester
       std::string testerId("is_");
       testerId.append(id);
       PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_SORT);
-      ctor.reset(new CVC4::DatatypeConstructor(id, testerId));
+      ctor.reset(new CVC4::api::DatatypeConstructorDecl(id, testerId));
     }
     ( LPAREN
       selector[&ctor]
@@ -2371,13 +2371,15 @@ constructorDef[CVC4::Datatype& type]
     }
   ;
 
-selector[std::unique_ptr<CVC4::DatatypeConstructor>* ctor]
+selector[std::unique_ptr<CVC4::api::DatatypeConstructorDecl>* ctor]
 @init {
   std::string id;
   api::Sort t, t2;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON type[t,CHECK_NONE]
-    { (*ctor)->addArg(id, t.getType());
+    { 
+      api::DatatypeSelectorDecl sel(id, t);
+      (*ctor)->addArg(sel);
       Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
     }
   ;

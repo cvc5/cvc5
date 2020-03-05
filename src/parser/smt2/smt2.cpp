@@ -951,7 +951,7 @@ void Smt2::mkSygusConstantsForType(const api::Sort& type,
 void Smt2::processSygusGTerm(
     CVC4::SygusGTerm& sgt,
     int index,
-    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::DatatypeDecl>& datatypes,
     std::vector<api::Sort>& sorts,
     std::vector<std::vector<ParseOp>>& ops,
     std::vector<std::vector<std::string>>& cnames,
@@ -1089,7 +1089,7 @@ void Smt2::processSygusGTerm(
 bool Smt2::pushSygusDatatypeDef(
     api::Sort t,
     std::string& dname,
-    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::DatatypeDecl>& datatypes,
     std::vector<api::Sort>& sorts,
     std::vector<std::vector<ParseOp>>& ops,
     std::vector<std::vector<std::string>>& cnames,
@@ -1098,7 +1098,7 @@ bool Smt2::pushSygusDatatypeDef(
     std::vector<std::vector<std::string>>& unresolved_gterm_sym)
 {
   sorts.push_back(t);
-  datatypes.push_back(Datatype(getExprManager(), dname));
+  datatypes.push_back(d_solver->mkDatatypeDecl(dname));
   ops.push_back(std::vector<ParseOp>());
   cnames.push_back(std::vector<std::string>());
   cargs.push_back(std::vector<std::vector<api::Sort>>());
@@ -1108,7 +1108,7 @@ bool Smt2::pushSygusDatatypeDef(
 }
 
 bool Smt2::popSygusDatatypeDef(
-    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::DatatypeDecl>& datatypes,
     std::vector<api::Sort>& sorts,
     std::vector<std::vector<ParseOp>>& ops,
     std::vector<std::vector<std::string>>& cnames,
@@ -1129,7 +1129,7 @@ bool Smt2::popSygusDatatypeDef(
 api::Sort Smt2::processSygusNestedGTerm(
     int sub_dt_index,
     std::string& sub_dname,
-    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::DatatypeDecl>& datatypes,
     std::vector<api::Sort>& sorts,
     std::vector<std::vector<ParseOp>>& ops,
     std::vector<std::vector<std::string>>& cnames,
@@ -1224,12 +1224,12 @@ api::Sort Smt2::processSygusNestedGTerm(
 
 void Smt2::setSygusStartIndex(const std::string& fun,
                               int startIndex,
-                              std::vector<CVC4::Datatype>& datatypes,
+                              std::vector<api::DatatypeDecl>& datatypes,
                               std::vector<api::Sort>& sorts,
                               std::vector<std::vector<ParseOp>>& ops)
 {
   if( startIndex>0 ){
-    CVC4::Datatype tmp_dt = datatypes[0];
+    api::DatatypeDecl tmp_dt = datatypes[0];
     api::Sort tmp_sort = sorts[0];
     std::vector<ParseOp> tmp_ops;
     tmp_ops.insert( tmp_ops.end(), ops[0].begin(), ops[0].end() );
@@ -1248,7 +1248,7 @@ void Smt2::setSygusStartIndex(const std::string& fun,
   }
 }
 
-void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
+void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
                            std::vector<ParseOp>& ops,
                            std::vector<std::string>& cnames,
                            std::vector<std::vector<api::Sort>>& cargs,
@@ -1538,7 +1538,7 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
   return nret;
 }
 
-void Smt2::addSygusConstructorVariables(Datatype& dt,
+void Smt2::addSygusConstructorVariables(api::DatatypeDecl& dt,
                                         const std::vector<api::Term>& sygusVars,
                                         api::Sort type) const
 {

@@ -36,6 +36,7 @@
 #include "smt/smt_engine_scope.h"
 #include "util/sexpr.h"
 #include "util/utility.h"
+#include "expr/type.h"
 
 using namespace std;
 
@@ -2784,16 +2785,19 @@ std::string SetExpressionNameCommand::getCommandName() const
 /* -------------------------------------------------------------------------- */
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const DatatypeType& datatype)
+    const Type& datatype)
     : d_datatypes()
 {
-  d_datatypes.push_back(datatype);
+  d_datatypes.push_back(DatatypeType(datatype));
 }
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const std::vector<DatatypeType>& datatypes)
-    : d_datatypes(datatypes)
+    const std::vector<Type>& datatypes)
 {
+  for (Type t : datatypes)
+  {
+    d_datatypes.push_back(DatatypeType(t));
+  }
 }
 
 const std::vector<DatatypeType>& DatatypeDeclarationCommand::getDatatypes()
@@ -2816,7 +2820,9 @@ Command* DatatypeDeclarationCommand::exportTo(
 
 Command* DatatypeDeclarationCommand::clone() const
 {
-  return new DatatypeDeclarationCommand(d_datatypes);
+  std::vector<Type> types;
+  types.insert(types.end(),d_datatypes.begin(),d_datatypes.end());
+  return new DatatypeDeclarationCommand(types);
 }
 
 std::string DatatypeDeclarationCommand::getCommandName() const

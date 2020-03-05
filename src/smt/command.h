@@ -1304,9 +1304,9 @@ class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
   std::vector<DatatypeType> d_datatypes;
 
  public:
-  DatatypeDeclarationCommand(const DatatypeType& datatype);
+  DatatypeDeclarationCommand(const Type& datatype);
 
-  DatatypeDeclarationCommand(const std::vector<DatatypeType>& datatypes);
+  DatatypeDeclarationCommand(const std::vector<Type>& datatypes);
   const std::vector<DatatypeType>& getDatatypes() const;
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
