@@ -255,7 +255,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   if (!smte.isInternalSubsolver())
   {
     if (options::produceAbducts() || options::sygusInference()
-        || options::sygusRewSynthInput())
+        || options::sygusRewSynthInput() || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;

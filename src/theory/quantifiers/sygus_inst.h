@@ -30,6 +30,35 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 
+/**
+ * SyGuS quantifier instantion module.
+ *
+ * This module uses SyGuS techniques to find terms for instantiation and
+ * combines it with counterexample guided instantiation. It uses the datatypes
+ * solver to find instantiation for each variable based on a specified SyGuS
+ * grammar.
+ *
+ * The CE lemma generated for a quantified formula
+ *
+ *   \forall x . P[x]
+ *
+ * is
+ *
+ *   ce_lit => ~P[DT_SYGUS_EVAL(dt_x)]
+ *
+ * where ce_lit is a the counterexample literal for the quantified formula and
+ * dt_x is a fresh datatype variable with the SyGuS grammar for x as type.
+ *
+ * While checking, for active quantifiers, we add (full) evaluation unfolding
+ * lemmas as follows (see Reynolds at al. CAV 2019b for more information):
+ *
+ *   explain(dt_x=dt_x^M) => DT_SYGUS_EVAL(dt_x) = t
+ *
+ * where t = sygusToBuiltin(dt_x^M).
+ *
+ * We collect the t_i for each bound variable x_i and use them to instantiate
+ * the quantified formula.
+ */
 class SygusInst : public QuantifiersModule
 {
  public:
@@ -46,27 +75,55 @@ class SygusInst : public QuantifiersModule
 
   bool checkCompleteFor(Node q) override;
 
+  /* Called once for every quantifier 'q' globally (not dependent on context).
+   */
+  void registerQuantifier(Node q) override;
+
+  /* Called once for every quantifier 'q' per context. */
   void preRegisterQuantifier(Node q) override;
 
   std::string identify() const override { return "SygusInst"; }
 
  private:
-  Node getCeLiteral(Node n);
+  /* Lookup counterexample literal or create a new one for quantifier 'q'. */
+  Node getCeLiteral(Node q);
 
+  /* Generate counterexample lemma for quantifier 'q'. This is done once per
+   * quantifier on registerQuantifier() calls. */
   void registerCeLemma(Node q, std::vector<TypeNode>& dtypes);
 
+  /* Add counterexample lemma for quantifier 'q'. This is done on every
+   * preRegisterQuantifier() call.*/
+  void addCeLemma(Node q);
+
+  /* Maps bound variables to corresponding instantiation constants. */
   std::unordered_map<Node, Node, NodeHashFunction> d_inst_constants;
+
+  /* Maps bound variables to corresponding DT_SYGUS_EVAL term. */
   std::unordered_map<Node, Node, NodeHashFunction> d_var_eval;
+
+  /* Maps quantified formulas to registered counterexample literals. */
   std::unordered_map<Node, Node, NodeHashFunction> d_ce_lits;
 
+  /* Decision strategies registered for quantified formulas. */
   std::unordered_map<Node, std::unique_ptr<DecisionStrategy>, NodeHashFunction>
       d_dstrat;
 
+  /* Currently active quantifiers. */
   std::unordered_set<Node, NodeHashFunction> d_active_quant;
+
+  /* Currently inactive quantifiers. */
   std::unordered_set<Node, NodeHashFunction> d_inactive_quant;
 
+  /* Evaluation unfolding lemma. */
   context::CDHashSet<Node, NodeHashFunction> d_lemma_cache;
-  context::CDHashSet<Node, NodeHashFunction> d_ce_lemma_cache;
+
+  /* Registered counterexample lemma cache. */
+  std::unordered_map<Node, Node, NodeHashFunction> d_ce_lemmas;
+
+  /* Indicates whether a counterexample lemma was added for a quantified
+   * formula in the current context. */
+  context::CDHashSet<Node, NodeHashFunction> d_ce_lemma_added;
 };
 
 }  // namespace quantifiers
