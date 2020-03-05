@@ -485,10 +485,10 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
             if( eqc==d_emptyString ){
               //for empty eqc, ensure all components are empty
               if( nr!=d_emptyString ){
-                std::vector< Node > exp;
-                exp.push_back( n.eqNode( d_emptyString ) );
+                std::vector<Node> exps;
+                exps.push_back(n.eqNode(d_emptyString));
                 d_im.sendInference(
-                    exp, n[i].eqNode(d_emptyString), "I_CYCLE_E");
+                    exps, n[i].eqNode(d_emptyString), "I_CYCLE_E");
                 return Node::null();
               }
             }else{
@@ -1576,9 +1576,9 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   }
 
   Node split_eq;
-  for (unsigned r = 0; r < 2; r++)
+  for (unsigned i = 0; i < 2; i++)
   {
-    Node t = r == 0 ? veci[loop_index] : t_yz;
+    Node t = i == 0 ? veci[loop_index] : t_yz;
     split_eq = t.eqNode(d_emptyString);
     Node split_eqr = Rewriter::rewrite(split_eq);
     // the equality could rewrite to false

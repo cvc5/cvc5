@@ -215,12 +215,12 @@ DratProof DratProof::fromBinary(const std::string& s)
       }
       default:
       {
-        std::ostringstream s;
-        s << "Invalid instruction in Drat proof. Instruction bits: "
-          << std::bitset<8>(*i)
-          << ". Expected 'a' (01100001) or 'd' "
-             "(01100100).";
-        throw InvalidDratProofException(s.str());
+        std::ostringstream errmsg;
+        errmsg << "Invalid instruction in Drat proof. Instruction bits: "
+               << std::bitset<8>(*i)
+               << ". Expected 'a' (01100001) or 'd' "
+                  "(01100100).";
+        throw InvalidDratProofException(errmsg.str());
       }
     }
   }
