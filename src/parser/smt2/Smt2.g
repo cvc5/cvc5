@@ -662,6 +662,7 @@ sygusGrammarV1[CVC4::Type & ret,
   std::vector<std::vector<CVC4::SygusGTerm>> sgts;
   std::vector<CVC4::Datatype> datatypes;
   std::vector<Type> sorts;
+  std::set<Type> unresTypes;
   std::vector<std::vector<ParseOp>> ops;
   std::vector<std::vector<std::string>> cnames;
   std::vector<std::vector<std::vector<CVC4::Type>>> cargs;
@@ -702,6 +703,7 @@ sygusGrammarV1[CVC4::Type & ret,
            Debug("parser-sygus") << "Get sort : " << name << std::endl;
            unres_t = PARSER_STATE->getSort(name);
          }
+         unresTypes.insert(unres_t);
          sygus_to_builtin[unres_t] = t;
          Debug("parser-sygus") << "--- Read sygus grammar " << name
                                << " under function " << fun << "..."
@@ -781,8 +783,8 @@ sygusGrammarV1[CVC4::Type & ret,
                             << std::endl;
     }
     std::vector<DatatypeType> datatypeTypes =
-        PARSER_STATE->mkMutualDatatypeTypes(
-            datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+        EXPR_MANAGER->mkMutualDatatypeTypes(
+            datatypes, unresTypes, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     ret = datatypeTypes[0];
   };
 
@@ -935,7 +937,7 @@ sygusGrammar[CVC4::Type & ret,
   std::string name;
   Expr e, e2;
   std::vector<CVC4::Datatype> datatypes;
-  std::vector<Type> unresTypes;
+  std::set<Type> unresTypes;
   std::map<Expr, CVC4::Type> ntsToUnres;
   unsigned dtProcessed = 0;
   std::unordered_set<unsigned> allowConst;
@@ -956,7 +958,7 @@ sygusGrammar[CVC4::Type & ret,
       // the datatype
       PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
       Type urt = PARSER_STATE->mkUnresolvedType(dname);
-      unresTypes.push_back(urt);
+      unresTypes.insert(urt);
       // make the non-terminal symbol, which will be parsed as an ordinary
       // free variable.
       Expr nts = PARSER_STATE->mkBoundVar(i.first, i.second);
@@ -1049,8 +1051,8 @@ sygusGrammar[CVC4::Type & ret,
     // now, make the sygus datatype
     Trace("parser-sygus2") << "Make the sygus datatypes..." << std::endl;
     std::vector<DatatypeType> datatypeTypes =
-        PARSER_STATE->mkMutualDatatypeTypes(
-            datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+        EXPR_MANAGER->mkMutualDatatypeTypes(
+            datatypes, unresTypes, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     // return is the first datatype
     ret = datatypeTypes[0];
   }
