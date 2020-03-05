@@ -3157,8 +3157,7 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
-    if (it != getIteSkolemMap().end())
+    if (getIteSkolemMap().find(n) != getIteSkolemMap().end())
     {
       skolemSet.insert(n);
     }
@@ -3183,11 +3182,12 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<N
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
+    IteSkolemMap::iterator iit = getIteSkolemMap().find(n);
     bool bad = false;
-    if (it != getIteSkolemMap().end())
+    if (iit != getIteSkolemMap().end())
     {
-      if (!((*it).first < n)) {
+      if (!((*iit).first < n))
+      {
         bad = true;
       }
     }
@@ -4759,16 +4759,19 @@ void SmtEngine::checkModel(bool hardFailure) {
       }
 
       // (2) check that the value is actually a value
-      else if (!val.isConst()) {
-        Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT A CONSTANT ***" << endl;
-        InternalError()
-            << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH "
-               "MODEL:"
-            << endl
-            << "model value for " << func << endl
-            << "             is " << val << endl
-            << "and that is not a constant (.isConst() == false)." << endl
-            << "Run with `--check-models -v' for additional diagnostics.";
+      else if (!val.isConst())
+      {
+        // This is only a warning since it could have been assigned an
+        // unevaluable term (e.g. an application of a transcendental function).
+        // This parallels the behavior (warnings for non-constant expressions)
+        // when checking whether assertions are satisfied below.
+        Warning() << "Warning : SmtEngine::checkModel(): "
+                  << "model value for " << func << endl
+                  << "             is " << val << endl
+                  << "and that is not a constant (.isConst() == false)."
+                  << std::endl
+                  << "Run with `--check-models -v' for additional diagnostics."
+                  << std::endl;
       }
 
       // (3) check that it's the correct (sub)type

@@ -112,7 +112,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
           bool curWithinApply = withinApply[cur];
           visited[cur] = Node::null();
           visit.push_back(cur);
-          for (unsigned j = 0, size = cur.getNumChildren(); j < size; j++)
+          for (unsigned j = 0, sizec = cur.getNumChildren(); j < sizec; j++)
           {
             withinApply[cur[j]] = curWithinApply && j == 0;
             visit.push_back(cur[j]);
@@ -486,7 +486,7 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
         // for each function type suffix of the type of f, for example if
         // f : (Int -> (Int -> Int))
         // we iterate with stn = (Int -> (Int -> Int)) and (Int -> Int)
-        for (unsigned a = 0, size = argTypes.size(); a < size; a++)
+        for (unsigned a = 0, arg_size = argTypes.size(); a < arg_size; a++)
         {
           std::vector<TypeNode> sargts;
           sargts.insert(sargts.begin(), argTypes.begin() + a, argTypes.end());

@@ -150,7 +150,7 @@ Node BvInverter::getPathToPv(
           {
             children.push_back(lit.getOperator());
           }
-          for (size_t j = 0, num = lit.getNumChildren(); j < num; j++)
+          for (size_t j = 0, num2 = lit.getNumChildren(); j < num2; j++)
           {
             children.push_back(j == ii ? litc : lit[j]);
           }

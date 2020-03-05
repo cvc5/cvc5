@@ -441,10 +441,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     }
     ( k=INTEGER_LITERAL
-      { unsigned n = AntlrInput::tokenToUnsigned(k);
-        if(n == 0) {
+      { unsigned num = AntlrInput::tokenToUnsigned(k);
+        if(num == 0) {
           cmd->reset(new EmptyCommand());
-        } else if(n == 1) {
+        } else if(num == 1) {
           PARSER_STATE->pushScope();
           cmd->reset(new PushCommand());
         } else {
@@ -452,10 +452,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
           do {
             PARSER_STATE->pushScope();
             Command* push_cmd = new PushCommand();
-            push_cmd->setMuted(n > 1);
+            push_cmd->setMuted(num > 1);
             seq->addCommand(push_cmd);
-            --n;
-            } while(n > 0);
+            --num;
+            } while(num > 0);
           cmd->reset(seq.release());
         }
       }
@@ -474,14 +474,14 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     }
     ( k=INTEGER_LITERAL
-      { unsigned n = AntlrInput::tokenToUnsigned(k);
-        if(n > PARSER_STATE->scopeLevel()) {
+      { unsigned num = AntlrInput::tokenToUnsigned(k);
+        if(num > PARSER_STATE->scopeLevel()) {
           PARSER_STATE->parseError("Attempted to pop above the top stack "
                                    "frame.");
         }
-        if(n == 0) {
+        if(num == 0) {
           cmd->reset(new EmptyCommand());
-        } else if(n == 1) {
+        } else if(num == 1) {
           PARSER_STATE->popScope();
           cmd->reset(new PopCommand());
         } else {
@@ -489,10 +489,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
           do {
             PARSER_STATE->popScope();
             Command* pop_command = new PopCommand();
-            pop_command->setMuted(n > 1);
+            pop_command->setMuted(num > 1);
             seq->addCommand(pop_command);
-            --n;
-          } while(n > 0);
+            --num;
+          } while(num > 0);
           cmd->reset(seq.release());
         }
       }
@@ -1263,7 +1263,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       nonemptySortList[sorts] RPAREN_TOK
-      { Type t;
+      { Type tt;
         if(sorts.size() > 1) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
             PARSER_STATE->parseError(
@@ -1275,13 +1275,13 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           // must flatten
           Type range = sorts.back();
           sorts.pop_back();
-          t = PARSER_STATE->mkFlatFunctionType(sorts, range);
+          tt = PARSER_STATE->mkFlatFunctionType(sorts, range);
         } else {
-          t = sorts[0];
+          tt = sorts[0];
         }
         // allow overloading
-        Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func, t));
+        Expr func = PARSER_STATE->mkVar(name, tt, ExprManager::VAR_FLAG_NONE, true);
+        seq->addCommand(new DeclareFunctionCommand(name, func, tt));
         sorts.clear();
       }
     )+
@@ -1293,7 +1293,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       sortList[sorts] RPAREN_TOK
-      { Type t = EXPR_MANAGER->booleanType();
+      { Type boolType = EXPR_MANAGER->booleanType();
         if(sorts.size() > 0) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
             PARSER_STATE->parseError(
@@ -1302,11 +1302,11 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
                 + PARSER_STATE->getLogic().getLogicString()
                 + " unless option --uf-ho is used");
           }
-          t = EXPR_MANAGER->mkFunctionType(sorts, t);
+          boolType = EXPR_MANAGER->mkFunctionType(sorts, boolType);
         }
         // allow overloading
-        Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func, t));
+        Expr func = PARSER_STATE->mkVar(name, boolType, ExprManager::VAR_FLAG_NONE, true);
+        seq->addCommand(new DeclareFunctionCommand(name, func, boolType));
         sorts.clear();
       }
     )+
@@ -1335,18 +1335,18 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         // declare the name down here (while parsing term, signature
         // must not be extended with the name itself; no recursion
         // permitted)
-        Type t = e.getType();
+        Type tt = e.getType();
         if( sortedVarNames.size() > 0 ) {
-          std::vector<CVC4::Type> sorts;
-          sorts.reserve(sortedVarNames.size());
+          std::vector<CVC4::Type> types;
+          types.reserve(sortedVarNames.size());
           for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
                 i = sortedVarNames.begin(), iend = sortedVarNames.end();
               i != iend; ++i) {
-            sorts.push_back((*i).second);
+            types.push_back((*i).second);
           }
-          t = EXPR_MANAGER->mkFunctionType(sorts, t);
+          tt = EXPR_MANAGER->mkFunctionType(types, tt);
         }
-        Expr func = PARSER_STATE->mkVar(name, t,
+        Expr func = PARSER_STATE->mkVar(name, tt,
                                         ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(name, func, terms, e));
       }
@@ -1750,8 +1750,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           cargs.push_back(f);
           cargs.insert(cargs.end(),args.begin(),args.end());
           Expr c = MK_EXPR(kind::APPLY_CONSTRUCTOR,cargs);
-          Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST,args);
-          Expr mc = MK_EXPR(kind::MATCH_BIND_CASE, bvl, c, f3);
+          Expr bvla = MK_EXPR(kind::BOUND_VAR_LIST,args);
+          Expr mc = MK_EXPR(kind::MATCH_BIND_CASE, bvla, c, f3);
           matchcases.push_back(mc);
           // now, pop the scope
           PARSER_STATE->popScope();
@@ -1781,8 +1781,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           Expr mc;
           if (f.getKind() == kind::BOUND_VARIABLE)
           {
-            Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, f);
-            mc = MK_EXPR(kind::MATCH_BIND_CASE, bvl, f, f3);
+            Expr bvlf = MK_EXPR(kind::BOUND_VAR_LIST, f);
+            mc = MK_EXPR(kind::MATCH_BIND_CASE, bvlf, f, f3);
           }
           else
           {
@@ -2116,8 +2116,8 @@ attribute[CVC4::Expr& expr, CVC4::Expr& retExpr, std::string& attr]
           avar = expr[0];
         }
       }else{
-        Type t = EXPR_MANAGER->booleanType();
-        avar = PARSER_STATE->mkVar(attr_name, t);
+        Type boolType = EXPR_MANAGER->booleanType();
+        avar = PARSER_STATE->mkVar(attr_name, boolType);
       }
       if( success ){
         //Will set the attribute on auxiliary var (preserves attribute on
@@ -2151,8 +2151,8 @@ attribute[CVC4::Expr& expr, CVC4::Expr& retExpr, std::string& attr]
       values.push_back( n );
       std::string attr_name(AntlrInput::tokenText($tok));
       attr_name.erase( attr_name.begin() );
-      Type t = EXPR_MANAGER->booleanType();
-      Expr avar = PARSER_STATE->mkVar(attr_name, t);
+      Type boolType = EXPR_MANAGER->booleanType();
+      Expr avar = PARSER_STATE->mkVar(attr_name, boolType);
       retExpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
       Command* c = new SetUserAttributeCommand( attr_name, avar, values );
       c->setMuted(true);
