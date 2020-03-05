@@ -54,7 +54,7 @@ class QuantifierMacroElimination : public PreprocessingPass
  private:
   map<Node, Node> d_macroDefinitions;
   map<Node, vector<Node>> d_macroBoundVariables;
-  void addMacroDefinitionIfPresent(Node assertion);
+  bool addMacroDefinitionIfPresent(Node assertion);
   Node replaceMacroInstances(Node assertion);
   bool isDefinitionValid(Node predicate, Node definition);
 

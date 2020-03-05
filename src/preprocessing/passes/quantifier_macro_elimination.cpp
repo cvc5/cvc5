@@ -13,8 +13,6 @@
  **
  ** TODO
  **    main TODOs:
- **    - don't recurse in rewriting function
- **    - fix unsat-core issue
  **    - handle nontrivial arithmetic (see solveInEquality)
  **/
 #include "preprocessing/passes/quantifier_macro_elimination.h"
@@ -64,7 +62,7 @@ bool getApplicationVariableArgumentsIfUnique(Node application,
   return true;
 }
 
-// if the definition contains a reference to predicate, or a reference to any
+// If the definition contains a reference to predicate, or a reference to any
 // earlier defined macro, it is not valid
 bool QuantifierMacroElimination::isDefinitionValid(Node predicate,
                                                    Node definition)
@@ -96,7 +94,8 @@ bool QuantifierMacroElimination::isDefinitionValid(Node predicate,
   return true;
 }
 
-void QuantifierMacroElimination::addMacroDefinitionIfPresent(Node assertion)
+// Returns true if a macro definition is derived from the input
+bool QuantifierMacroElimination::addMacroDefinitionIfPresent(Node assertion)
 {
   Trace("QME:all") << "checking " << assertion << endl;
   if (assertion.getKind() == FORALL)
@@ -124,7 +123,7 @@ void QuantifierMacroElimination::addMacroDefinitionIfPresent(Node assertion)
           Trace("QME:all")
               << "application is not applied to unique variable list"
               << equality_node << endl;
-          return;
+          return false;
         }
         Node predicate = application.getOperator();
         Node definition = equality_node[1];
@@ -133,7 +132,7 @@ void QuantifierMacroElimination::addMacroDefinitionIfPresent(Node assertion)
           Trace("QME") << "definition recursively references predicate or "
                           "earlier macro, skipping"
                        << endl;
-          return;
+          return false;
         }
         Trace("QME") << "found definition:\n  " << predicate
                      << " := " << definition << endl;
@@ -141,9 +140,11 @@ void QuantifierMacroElimination::addMacroDefinitionIfPresent(Node assertion)
         d_macroBoundVariables[predicate] = application_children;
         // don't bother rewriting in definition node
         d_definitionNodes.insert(application);
+        return true;
       }
     }
   }
+  return false;
 }
 
 Node QuantifierMacroElimination::replaceMacroInstances(Node n)
@@ -154,7 +155,6 @@ Node QuantifierMacroElimination::replaceMacroInstances(Node n)
     Trace("QME:all") << "skipping: " << n << endl;
     return n;
   }
-  // TODO question: more obvious way to get a children iterator?
   vector<Node> children;
   for (size_t i = 0; i < n.getNumChildren(); ++i)
   {
@@ -185,17 +185,26 @@ Node QuantifierMacroElimination::replaceMacroInstances(Node n)
     vector<Node> newChildren;
     if (n.getNumChildren() > 0)
     {
+      bool anyChildChanged = false;
       for (size_t i = 0; i < n.getNumChildren(); ++i)
       {
-        // TODO don't recurse
-        newChildren.push_back(replaceMacroInstances(n[i]));
+        // TODO check if any changed
+        Node newChild = replaceMacroInstances(n[i]);
+        newChildren.push_back(newChild);
+        anyChildChanged = anyChildChanged || newChild != n[i];
       }
-      Assert(newChildren.size() == children.size());
-      if (n.getMetaKind() == metakind::PARAMETERIZED)
+      if (anyChildChanged)
       {
-        newChildren.insert(newChildren.begin(), n.getOperator());
+        if (n.getMetaKind() == metakind::PARAMETERIZED)
+        {
+          newChildren.insert(newChildren.begin(), n.getOperator());
+        }
+        return NodeManager::currentNM()->mkNode(n.getKind(), newChildren);
       }
-      return NodeManager::currentNM()->mkNode(n.getKind(), newChildren);
+      else
+      {
+        return n;
+      }
     }
     else
     {
@@ -207,17 +216,18 @@ Node QuantifierMacroElimination::replaceMacroInstances(Node n)
 PreprocessingPassResult QuantifierMacroElimination::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(options::preprocessStep());
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
-  std::vector<Node>& assertions = assertionsToPreprocess->ref();
+  vector<Node>& assertions = assertionsToPreprocess->ref();
+  vector<Node> macroAssertions;
   // Find macro definitions:
   for (Node& assertion : assertions)
   {
-    addMacroDefinitionIfPresent(assertion);
+    bool addedDefinition = addMacroDefinitionIfPresent(assertion);
+    PROOF(if (addedDefinition) { macroAssertions.push_back(assertion); });
   }
   // TODO remove macro definition assertions from problem?
   Trace("QME") << "definitions:\n\n" << d_macroDefinitions << endl << endl;
-  Trace("QME") << "definition bindings:\n" << d_macroBoundVariables << endl;
   // Apply macro substitutions:
   if (d_macroDefinitions.size() == 0)
   {
@@ -227,13 +237,30 @@ PreprocessingPassResult QuantifierMacroElimination::applyInternal(
   {
     // TODO currently 10 quantifier regression tests fail when check-unsat-cores
     // is enabled
-    assertion = replaceMacroInstances(assertion);
+    Node current = replaceMacroInstances(assertion);
+    if (current != assertion)
+    {
+      current = Rewriter::rewrite(current);
+      Trace("QME") << "simplified rewritten node: " << current << endl;
+      // Mark it as dependent on all assertions containing macro definitions;
+      // this is an over-approximation.
+      PROOF(ProofManager::currentPM()->addDependence(current, assertion);
+            for (Node& macroAssertion
+                 : macroAssertions) {
+              if (macroAssertion != assertion)
+              {
+                ProofManager::currentPM()->addDependence(current,
+                                                         macroAssertion);
+              }
+            });
+      assertion = current;
+    }
   }
+  Trace("QME:all") << "rewritten assertions:" << endl;
   for (Node& assertion : assertions)
   {
     Trace("QME:all") << assertion << endl;
   }
-  Trace("QME") << "done rewriting" << endl;
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
