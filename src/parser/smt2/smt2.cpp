@@ -1375,16 +1375,16 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
       if (!ops[i].d_expr.isNull())
       {
         dt.getDatatype().addSygusConstructor(ops[i].d_expr.getExpr(),
-                               cnames[i],
-                               api::sortVectorToTypes(cargs[i]),
-                               spc);
+                                             cnames[i],
+                                             api::sortVectorToTypes(cargs[i]),
+                                             spc);
       }
       else if (ops[i].d_kind != api::NULL_EXPR)
       {
         dt.getDatatype().addSygusConstructor(extToIntKind(ops[i].d_kind),
-                               cnames[i],
-                               api::sortVectorToTypes(cargs[i]),
-                               spc);
+                                             cnames[i],
+                                             api::sortVectorToTypes(cargs[i]),
+                                             spc);
       }
       else
       {
@@ -1428,9 +1428,9 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
           std::vector<api::Sort> id_carg;
           id_carg.push_back( t );
           dt.getDatatype().addSygusConstructor(id_op.getExpr(),
-                                 unresolved_gterm_sym[i],
-                                 api::sortVectorToTypes(id_carg),
-                                 sepc);
+                                               unresolved_gterm_sym[i],
+                                               api::sortVectorToTypes(id_carg),
+                                               sepc);
 
           //add to operators
           ParseOp idOp;

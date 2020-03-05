@@ -27,6 +27,7 @@
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
+#include "expr/type.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -36,7 +37,6 @@
 #include "smt/smt_engine_scope.h"
 #include "util/sexpr.h"
 #include "util/utility.h"
-#include "expr/type.h"
 
 using namespace std;
 
@@ -2784,8 +2784,7 @@ std::string SetExpressionNameCommand::getCommandName() const
 /* class DatatypeDeclarationCommand                                           */
 /* -------------------------------------------------------------------------- */
 
-DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const Type& datatype)
+DatatypeDeclarationCommand::DatatypeDeclarationCommand(const Type& datatype)
     : d_datatypes()
 {
   d_datatypes.push_back(DatatypeType(datatype));
@@ -2821,7 +2820,7 @@ Command* DatatypeDeclarationCommand::exportTo(
 Command* DatatypeDeclarationCommand::clone() const
 {
   std::vector<Type> types;
-  types.insert(types.end(),d_datatypes.begin(),d_datatypes.end());
+  types.insert(types.end(), d_datatypes.begin(), d_datatypes.end());
   return new DatatypeDeclarationCommand(types);
 }
 
