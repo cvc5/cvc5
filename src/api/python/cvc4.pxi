@@ -231,11 +231,6 @@ cdef class Op:
             pass
 
         try:
-            indices = kind(<int> self.cop.getIndices[c_Kind]())
-        except:
-            pass
-
-        try:
             indices = self.cop.getIndices[uint32_t]()
         except:
             pass
