@@ -2611,7 +2611,8 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
 }
 
 std::vector<Sort> Solver::mkDatatypeSorts(
-    std::vector<DatatypeDecl>& dtypedecls) const
+    std::vector<DatatypeDecl>& dtypedecls,
+    std::set<Sort>& unresolvedSorts) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   // CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
@@ -2622,9 +2623,9 @@ std::vector<Sort> Solver::mkDatatypeSorts(
   {
     datatypes.push_back(dtypedecls[i].getDatatype());
   }
-
+  std::set<Type> utypes = sortSetToTypes(unresolvedSorts);
   std::vector<CVC4::DatatypeType> dtypes =
-      d_exprMgr->mkMutualDatatypeTypes(datatypes);
+      d_exprMgr->mkMutualDatatypeTypes(datatypes, utypes);
   std::vector<Sort> retTypes;
   for (CVC4::DatatypeType t : dtypes)
   {

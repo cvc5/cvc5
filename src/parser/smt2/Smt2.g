@@ -789,8 +789,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
                             << std::endl;
     }
     std::vector<api::Sort> datatypeTypes =
-        PARSER_STATE->mkMutualDatatypeTypes(
-            datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+        PARSER_STATE->bindMutualDatatypeTypes(datatypes, false);
     ret = datatypeTypes[0];
   };
 
@@ -942,13 +941,8 @@ sygusGrammar[CVC4::api::Sort & ret,
   CVC4::api::Sort t;
   std::string name;
   CVC4::api::Term e, e2;
-<<<<<<< HEAD
   std::vector<api::DatatypeDecl> datatypes;
-  std::vector<api::Sort> unresTypes;
-=======
-  std::vector<CVC4::Datatype> datatypes;
   std::set<api::Sort> unresTypes;
->>>>>>> f3a773dc772cc3ef0590f01e7ce2ebe0ce87bfd3
   std::map<CVC4::api::Term, CVC4::api::Sort> ntsToUnres;
   unsigned dtProcessed = 0;
   std::unordered_set<unsigned> allowConst;
@@ -1061,13 +1055,10 @@ sygusGrammar[CVC4::api::Sort & ret,
     PARSER_STATE->popScope();
     // now, make the sygus datatype
     Trace("parser-sygus2") << "Make the sygus datatypes..." << std::endl;
-    std::set<Type> utypes = api::sortSetToTypes(unresTypes);
-    std::vector<DatatypeType> datatypeTypes =
-        SOLVER->getExprManager()->mkMutualDatatypeTypes(
-            datatypes, utypes,
-            ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+    std::vector<api::Sort> datatypeTypes =
+      SOLVER->mkDatatypeSorts(datatypes, unresTypes);
     // return is the first datatype
-    ret = api::Sort(datatypeTypes[0]);
+    ret = datatypeTypes[0];
   }
 ;
 
@@ -1467,7 +1458,7 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
   { PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
-      api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts, true))));
+      api::sortVectorToTypes(PARSER_STATE->bindMutualDatatypeTypes(dts, true))));
   }
   ;
 
@@ -1563,7 +1554,7 @@ datatypesDef[bool isCo,
   {
     PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
-      api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts, true))));
+      api::sortVectorToTypes(PARSER_STATE->bindMutualDatatypeTypes(dts, true))));
   }
   ;
 

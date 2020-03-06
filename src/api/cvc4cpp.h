@@ -1924,12 +1924,14 @@ class CVC4_PUBLIC Solver
   Sort mkDatatypeSort(DatatypeDecl dtypedecl) const;
 
   /**
-   * Create a list of datatype sorts.
+   * Create a vector of datatype sorts.
+   *
    * @param dtypedecls the datatype declarations from which the sort is created
    * @return the datatype sorts
    */
   std::vector<Sort> mkDatatypeSorts(
-      std::vector<DatatypeDecl>& dtypedecls) const;
+      std::vector<DatatypeDecl>& dtypedecls,
+      std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Create function sort.

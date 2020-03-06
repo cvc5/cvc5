@@ -757,7 +757,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     END_TOK
     { PARSER_STATE->popScope();
       cmd->reset(new DatatypeDeclarationCommand(
-          api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts))));
+          api::sortVectorToTypes(PARSER_STATE->bindMutualDatatypeTypes(dts))));
     }
 
   | CONTEXT_TOK
@@ -1204,7 +1204,7 @@ identifier[std::string& id,
  * forward-declaration in CVC language datatype definitions, we have
  * to create types for them on-the-fly).  Before passing CHECK_NONE
  * you really should have a clear idea of WHY you need to parse that
- * way; then you should trace through Parser::mkMutualDatatypeType()
+ * way; then you should trace through Parser::bindMutualDatatypeType()
  * to figure out just what you're in for.
  */
 type[CVC4::api::Sort& t,
