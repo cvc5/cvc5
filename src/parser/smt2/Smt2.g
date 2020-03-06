@@ -942,8 +942,13 @@ sygusGrammar[CVC4::api::Sort & ret,
   CVC4::api::Sort t;
   std::string name;
   CVC4::api::Term e, e2;
+<<<<<<< HEAD
   std::vector<api::DatatypeDecl> datatypes;
   std::vector<api::Sort> unresTypes;
+=======
+  std::vector<CVC4::Datatype> datatypes;
+  std::set<api::Sort> unresTypes;
+>>>>>>> f3a773dc772cc3ef0590f01e7ce2ebe0ce87bfd3
   std::map<CVC4::api::Term, CVC4::api::Sort> ntsToUnres;
   unsigned dtProcessed = 0;
   std::unordered_set<unsigned> allowConst;
@@ -964,7 +969,7 @@ sygusGrammar[CVC4::api::Sort & ret,
       // the datatype
       PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
       api::Sort urt = PARSER_STATE->mkUnresolvedType(dname);
-      unresTypes.push_back(urt);
+      unresTypes.insert(urt);
       // make the non-terminal symbol, which will be parsed as an ordinary
       // free variable.
       api::Term nts = PARSER_STATE->bindBoundVar(i.first, i.second);
@@ -1056,11 +1061,13 @@ sygusGrammar[CVC4::api::Sort & ret,
     PARSER_STATE->popScope();
     // now, make the sygus datatype
     Trace("parser-sygus2") << "Make the sygus datatypes..." << std::endl;
-    std::vector<api::Sort> datatypeTypes =
-        PARSER_STATE->mkMutualDatatypeTypes(
-            datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+    std::set<Type> utypes = api::sortSetToTypes(unresTypes);
+    std::vector<DatatypeType> datatypeTypes =
+        SOLVER->getExprManager()->mkMutualDatatypeTypes(
+            datatypes, utypes,
+            ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     // return is the first datatype
-    ret = datatypeTypes[0];
+    ret = api::Sort(datatypeTypes[0]);
   }
 ;
 
