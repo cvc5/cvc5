@@ -1925,8 +1925,8 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create a vector of datatype sorts. The names of the datatype declarations
-   * must be distinct. 
-   * 
+   * must be distinct.
+   *
    * @param dtypedecls the datatype declarations from which the sort is created
    * @return the datatype sorts
    */
@@ -1936,7 +1936,7 @@ class CVC4_PUBLIC Solver
   /**
    * Create a vector of datatype sorts using unresolved sorts. The names of
    * the datatype declarations in dtypedecls must be distinct.
-   * 
+   *
    * This method is called when the DatatypeDecl objects dtypedecls have been
    * built using "unresolved" sorts.
    *

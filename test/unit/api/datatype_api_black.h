@@ -61,18 +61,18 @@ void DatatypeBlack::testMkDatatypeSort()
 void DatatypeBlack::testMkDatatypeSorts()
 {
   /* Create two mutual datatypes corresponding to this definition
-    * block:
-    *
-    *   DATATYPE
-    *     tree = node(left: tree, right: tree) | leaf(data: list),
-    *     list = cons(car: tree, cdr: list) | nil
-    *   END;
-    */
+   * block:
+   *
+   *   DATATYPE
+   *     tree = node(left: tree, right: tree) | leaf(data: list),
+   *     list = cons(car: tree, cdr: list) | nil
+   *   END;
+   */
   // Make unresolved types as placeholders
   std::set<Sort> unresTypes;
   Sort unresTree = d_solver.mkUninterpretedSort("tree");
   Sort unresList = d_solver.mkUninterpretedSort("list");
-  
+
   DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
   DatatypeConstructorDecl node("node");
   DatatypeSelectorDecl left("left", unresTree);
@@ -101,19 +101,20 @@ void DatatypeBlack::testMkDatatypeSorts()
   dtdecls.push_back(tree);
   dtdecls.push_back(list);
   std::vector<Sort> dtsorts;
-  TS_ASSERT_THROWS_NOTHING(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
-  TS_ASSERT(dtsorts.size()==dtdecls.size());
-  for (unsigned i=0, ndecl = dtdecls.size(); i<ndecl; i++)
+  TS_ASSERT_THROWS_NOTHING(dtsorts =
+                               d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  TS_ASSERT(dtsorts.size() == dtdecls.size());
+  for (unsigned i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
   {
     TS_ASSERT(dtsorts[i].isDatatype());
     TS_ASSERT(!dtsorts[i].getDatatype().isFinite());
-    TS_ASSERT(dtsorts[i].getDatatype().getName()==dtdecls[i].getName());
+    TS_ASSERT(dtsorts[i].getDatatype().getName() == dtdecls[i].getName());
   }
   // verify the resolution was correct
   Datatype dtTree = dtsorts[0].getDatatype();
   DatatypeConstructor dtcTreeNode = dtTree[0];
-  TS_ASSERT(dtcTreeNode.getName()=="node");
-  
+  TS_ASSERT(dtcTreeNode.getName() == "node");
+
   // fails due to empty datatype
   std::vector<DatatypeDecl> dtdeclsBad;
   DatatypeDecl emptyD = d_solver.mkDatatypeDecl("emptyD");
