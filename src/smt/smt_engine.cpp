@@ -3559,11 +3559,6 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-repeat-simplify", d_assertions);
 
-  if (options::rewriteApplyToConst())
-  {
-    d_passes["apply-to-const"]->apply(&d_assertions);
-  }
-
   if (options::ufHo())
   {
     d_passes["ho-elim"]->apply(&d_assertions);
