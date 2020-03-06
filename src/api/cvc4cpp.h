@@ -1924,7 +1924,9 @@ class CVC4_PUBLIC Solver
   Sort mkDatatypeSort(DatatypeDecl dtypedecl) const;
 
   /**
-   * Create a vector of datatype sorts.
+   * Create a vector of datatype sorts. The names of the datatype declarations
+   * must be distinct. 
+   * 
    * @param dtypedecls the datatype declarations from which the sort is created
    * @return the datatype sorts
    */
@@ -1932,13 +1934,18 @@ class CVC4_PUBLIC Solver
       std::vector<DatatypeDecl>& dtypedecls) const;
 
   /**
-   * Create a vector of datatype sorts based on unresolved sorts.
-   * This method is called when the DatatypeDecl objects dtypedecls have
-   * been built using "unresolved" sorts (required for mutually recursive
-   * datatypes).
+   * Create a vector of datatype sorts using unresolved sorts. The names of
+   * the datatype declarations in dtypedecls must be distinct.
+   * 
+   * This method is called when the DatatypeDecl objects dtypedecls have been
+   * built using "unresolved" sorts.
    *
-   * In detail, each sort in unresolvedSorts must have a name that
-   * matches the name of a datatype in dtypedecls.
+   * We associate each sort in unresolvedSorts with exacly one datatype from
+   * dtypedecls. In particular, it must have the same name as exactly one
+   * datatype declaration in dtypedecls.
+   *
+   * When constructing datatypes, unresolved sorts are replaced by the datatype
+   * sort constructed for the datatype declaration it is associated with.
    *
    * @param dtypedecls the datatype declarations from which the sort is created
    * @param unresolvedSorts the list of unresolved sorts
