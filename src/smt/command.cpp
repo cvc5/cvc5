@@ -2787,19 +2787,16 @@ std::string SetExpressionNameCommand::getCommandName() const
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(const Type& datatype)
     : d_datatypes()
 {
-  d_datatypes.push_back(DatatypeType(datatype));
+  d_datatypes.push_back(datatype);
 }
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const std::vector<Type>& datatypes)
+    const std::vector<Type>& datatypes) :
+    d_datatypes(datatypes)
 {
-  for (Type t : datatypes)
-  {
-    d_datatypes.push_back(DatatypeType(t));
-  }
 }
 
-const std::vector<DatatypeType>& DatatypeDeclarationCommand::getDatatypes()
+const std::vector<Type>& DatatypeDeclarationCommand::getDatatypes()
     const
 {
   return d_datatypes;
@@ -2819,9 +2816,7 @@ Command* DatatypeDeclarationCommand::exportTo(
 
 Command* DatatypeDeclarationCommand::clone() const
 {
-  std::vector<Type> types;
-  types.insert(types.end(), d_datatypes.begin(), d_datatypes.end());
-  return new DatatypeDeclarationCommand(types);
+  return new DatatypeDeclarationCommand(d_datatypes);
 }
 
 std::string DatatypeDeclarationCommand::getCommandName() const
