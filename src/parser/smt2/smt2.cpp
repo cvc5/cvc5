@@ -511,7 +511,7 @@ bool Smt2::getTesterName(api::Term cons, std::string& name)
   {
     // 2.6 or above uses indexed tester symbols, if we are in strict mode,
     // we do not automatically define is-cons for constructor cons.
-    if( strictModeEnabled() ) 
+    if (strictModeEnabled())
     {
       return false;
     }
