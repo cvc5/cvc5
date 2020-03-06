@@ -1917,6 +1917,11 @@ Term DatatypeSelector::getSelectorTerm() const
   return sel;
 }
 
+Sort DatatypeSelector::getRangeSort() const
+{
+  return Sort(d_stor->getRangeType());
+}
+
 std::string DatatypeSelector::toString() const
 {
   std::stringstream ss;

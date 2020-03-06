@@ -1352,7 +1352,10 @@ class CVC4_PUBLIC DatatypeSelector
    * @return the selector term
    */
   Term getSelectorTerm() const;
-
+  
+  /** @return the range sort of this argument. */
+  Sort getRangeSort() const;
+  
   /**
    * @return a string representation of this datatype selector
    */

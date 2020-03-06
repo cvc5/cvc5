@@ -72,6 +72,8 @@ void DatatypeBlack::testMkDatatypeSorts()
   std::set<Sort> unresTypes;
   Sort unresTree = d_solver.mkUninterpretedSort("tree");
   Sort unresList = d_solver.mkUninterpretedSort("list");
+  unresTypes.insert(unresTree);
+  unresTypes.insert(unresList);
 
   DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
   DatatypeConstructorDecl node("node");
@@ -113,7 +115,12 @@ void DatatypeBlack::testMkDatatypeSorts()
   // verify the resolution was correct
   Datatype dtTree = dtsorts[0].getDatatype();
   DatatypeConstructor dtcTreeNode = dtTree[0];
-  TS_ASSERT(dtcTreeNode.getName() == "node");
+  TS_ASSERT(dtcTreeNode.getName()=="node");
+  DatatypeSelector dtsTreeNodeLeft = dtcTreeNode[0];
+  TS_ASSERT(dtsTreeNodeLeft.getName()=="left");
+  // argument type should have resolved to be recursive
+  TS_ASSERT(dtsTreeNodeLeft.getRangeSort().isDatatype());
+  TS_ASSERT(dtsTreeNodeLeft.getRangeSort()==dtsorts[0]);
 
   // fails due to empty datatype
   std::vector<DatatypeDecl> dtdeclsBad;
@@ -229,4 +236,5 @@ void DatatypeBlack::testDatatypeNames()
   // get selector
   DatatypeSelector dselTail = dcons[1];
   TS_ASSERT(dselTail.getName() == std::string("tail"));
+  TS_ASSERT(dselTail.getRangeSort()==dtypeSort);
 }
