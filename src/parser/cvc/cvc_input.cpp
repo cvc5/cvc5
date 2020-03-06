@@ -63,7 +63,7 @@ Command* CvcInput::parseCommand() {
 
 api::Term CvcInput::parseExpr()
 {
-  return api::Term(d_pCvcParser->parseExpr(d_pCvcParser));
+  return d_pCvcParser->parseExpr(d_pCvcParser);
 }
 
 /*

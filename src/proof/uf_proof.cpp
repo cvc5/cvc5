@@ -337,7 +337,6 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
 
     Node n1 = toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
     Debug("pf::uf") << "\ndoing trans proof, got n1 " << n1 << "\n";
-    Node n2;
     if(tb == 1) {
       Debug("pf::uf") << "\ntrans proof[0], got n1 " << n1 << "\n";
     }
@@ -349,7 +348,6 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
         toStreamRecLFSC(dontCare, tp, *(pf.d_children[0]), tb + 1, map);
 
     std::map<size_t, Node> childToStream;
-    std::stringstream ss1(ss.str()), ss2;
     std::pair<Node, Node> nodePair;
     for(size_t i = 1; i < pf.d_children.size(); ++i) {
       std::stringstream ss1(ss.str()), ss2;
@@ -410,9 +408,9 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
 
             while (j < pf.d_children.size() && !sequenceOver)
             {
-              std::stringstream dontCare;
-              nodeAfterEqualitySequence = toStreamRecLFSC(
-                  dontCare, tp, *(pf.d_children[j]), tb + 1, map);
+              std::stringstream ignore;
+              nodeAfterEqualitySequence =
+                  toStreamRecLFSC(ignore, tp, *(pf.d_children[j]), tb + 1, map);
 
               if (((nodeAfterEqualitySequence[0] == n1[0])
                    && (nodeAfterEqualitySequence[1] == n1[1]))

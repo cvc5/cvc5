@@ -303,15 +303,15 @@ Node RegExpElimination::eliminateConcat(Node atom)
       // process the non-greedy find variables
       if (!non_greedy_find_vars.empty())
       {
-        std::vector<Node> children;
+        std::vector<Node> children2;
         for (const Node& v : non_greedy_find_vars)
         {
           Node bound = nm->mkNode(
               AND, nm->mkNode(LEQ, d_zero, v), nm->mkNode(LT, v, lenx));
-          children.push_back(bound);
+          children2.push_back(bound);
         }
-        children.push_back(res);
-        Node body = nm->mkNode(AND, children);
+        children2.push_back(res);
+        Node body = nm->mkNode(AND, children2);
         Node bvl = nm->mkNode(BOUND_VAR_LIST, non_greedy_find_vars);
         res = nm->mkNode(EXISTS, bvl, body);
       }
