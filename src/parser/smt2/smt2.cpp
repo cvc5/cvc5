@@ -507,14 +507,11 @@ api::Term Smt2::getExpressionForNameAndType(const std::string& name,
 
 bool Smt2::getTesterName(api::Term cons, std::string& name)
 {
-  if (v2_6())
+  if (v2_6() && strictModeEnabled())
   {
     // 2.6 or above uses indexed tester symbols, if we are in strict mode,
     // we do not automatically define is-cons for constructor cons.
-    if (strictModeEnabled())
-    {
-      return false;
-    }
+    return false;
   }
   std::stringstream ss;
   ss << "is-" << cons;
