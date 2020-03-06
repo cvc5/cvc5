@@ -1949,7 +1949,7 @@ static void toStream(std::ostream& out,
       out << " " << d.getNumParameters() << ")";
     }
     out << ") (";
-    for (Type t : datatypes)
+    for (const Type& t : datatypes)
     {
       Assert(t.isDatatype());
       const Datatype& d = DatatypeType(t).getDatatype();
