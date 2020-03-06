@@ -2616,15 +2616,19 @@ std::vector<Sort> Solver::mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls)
   //CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
   //    << "a datatype declaration with at least one constructor";
 
-  std::vector<Datatype> datatypes;
+  std::vector<CVC4::Datatype> datatypes;
   for (unsigned i = 0, ndts = dtypedecls.size(); i < ndts; i++)
   {
     datatypes.push_back(dtypedecls[i].getDatatype());
   }
 
-  std::vector<DatatypeType> dtypes = d_exprMgr->mkMutualDatatypeTypes(datatypes);
-  // FIXME
-  return typeVectorToSorts(dtypes);
+  std::vector<CVC4::DatatypeType> dtypes = d_exprMgr->mkMutualDatatypeTypes(datatypes);
+  std::vector<Sort> retTypes;
+  for (CVC4::DatatypeType t : dtypes)
+  {
+    retTypes.push_back(Sort(t));
+  }
+  return retTypes;
   
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
