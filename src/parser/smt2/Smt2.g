@@ -788,7 +788,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
       Debug("parser-sygus") << "  " << i << " : " << datatypes[i].getName()
                             << std::endl;
     }
-    std::vector<DatatypeType> datatypeTypes =
+    std::vector<api::Sort> datatypeTypes =
         PARSER_STATE->mkMutualDatatypeTypes(
             datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     ret = datatypeTypes[0];
@@ -1056,7 +1056,7 @@ sygusGrammar[CVC4::api::Sort & ret,
     PARSER_STATE->popScope();
     // now, make the sygus datatype
     Trace("parser-sygus2") << "Make the sygus datatypes..." << std::endl;
-    std::vector<DatatypeType> datatypeTypes =
+    std::vector<api::Sort> datatypeTypes =
         PARSER_STATE->mkMutualDatatypeTypes(
             datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     // return is the first datatype
@@ -1459,7 +1459,8 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   RPAREN_TOK
   LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
   { PARSER_STATE->popScope();
-    cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts, true)));
+    cmd->reset(new DatatypeDeclarationCommand(
+      api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts, true))));
   }
   ;
 
@@ -1555,7 +1556,8 @@ datatypesDef[bool isCo,
     )+
   {
     PARSER_STATE->popScope();
-    cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts, true)));
+    cmd->reset(new DatatypeDeclarationCommand(
+      api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts, true))));
   }
   ;
 

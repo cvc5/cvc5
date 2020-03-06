@@ -1301,13 +1301,13 @@ class CVC4_PUBLIC SetExpressionNameCommand : public Command
 class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
 {
  private:
-  std::vector<DatatypeType> d_datatypes;
+  std::vector<Type> d_datatypes;
 
  public:
-  DatatypeDeclarationCommand(const DatatypeType& datatype);
+  DatatypeDeclarationCommand(const Type& datatype);
 
-  DatatypeDeclarationCommand(const std::vector<DatatypeType>& datatypes);
-  const std::vector<DatatypeType>& getDatatypes() const;
+  DatatypeDeclarationCommand(const std::vector<Type>& datatypes);
+  const std::vector<Type>& getDatatypes() const;
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;

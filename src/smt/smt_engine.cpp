@@ -683,7 +683,9 @@ class SmtEnginePrivate : public NodeManagerListener {
   {
     if ((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
     {
-      DatatypeDeclarationCommand c(dtts);
+      std::vector<Type> types;
+      types.insert(types.end(), dtts.begin(), dtts.end());
+      DatatypeDeclarationCommand c(types);
       d_smt.addToModelCommandAndDump(c);
     }
   }
