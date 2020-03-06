@@ -604,9 +604,10 @@ public:
    * Creates and binds sorts of a list of mutually-recursive datatype
    * declarations.
    *
-   * For each symbol defined by the datatype, if a symbol with name already exists,
-   *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   * For each symbol defined by the datatype, if a symbol with name already
+   * exists, then if doOverload is true, we create overloaded operators. else if
+   * doOverload is false, the existing expression is shadowed by the new
+   * expression.
    */
   std::vector<api::Sort> bindMutualDatatypeTypes(
       std::vector<api::DatatypeDecl>& datatypes, bool doOverload = false);
