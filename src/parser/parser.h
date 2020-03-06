@@ -367,10 +367,10 @@ public:
   virtual api::Term getExpressionForNameAndType(const std::string& name,
                                                 api::Sort t);
 
-  /** 
+  /**
    * If this method returns true, then name is updated with the tester name
    * for constructor cons.
-   * 
+   *
    * In detail, notice that (user-defined) datatypes associate a unary predicate
    * for each constructor, called its "tester". This symbol is automatically
    * defined when a datatype is defined. The tester name for a constructor
@@ -381,7 +381,7 @@ public:
    * - In cvc, the syntax for testers is "is_cons".
    */
   virtual bool getTesterName(api::Term cons, std::string& name);
-  
+
   /**
    * Returns the kind that should be used for applications of expression fun.
    * This is a generalization of ExprManager::operatorToKind that also

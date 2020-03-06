@@ -143,10 +143,7 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name,
   return expr;
 }
 
-bool Parser::getTesterName(api::Term cons, std::string& name)
-{
-  return false;
-}
+bool Parser::getTesterName(api::Term cons, std::string& name) { return false; }
 
 api::Kind Parser::getKindForFunction(api::Term fun)
 {
@@ -460,9 +457,10 @@ std::vector<api::Sort> Parser::mkMutualDatatypeTypes(
         api::Term tester = ctor.getTesterTerm();
         Debug("parser-idt") << "+ define " << tester << std::endl;
         std::string testerName;
-        if (getTesterName(constructor,testerName))
+        if (getTesterName(constructor, testerName))
         {
-          if(!doOverload) {
+          if (!doOverload)
+          {
             checkDeclaration(testerName, CHECK_UNDECLARED);
           }
           defineVar(testerName, tester, d_globalDeclarations, doOverload);
