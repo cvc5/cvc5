@@ -1513,10 +1513,13 @@ static void toStream(std::ostream& out,
             firstSelector = false;
             const DatatypeConstructorArg& selector = *k;
             Type tr = SelectorType(selector.getType()).getRangeType();
-            if( tr.isDatatype() ){
-              const Datatype & sdt = DatatypeType(tr).getDatatype();
+            if (tr.isDatatype())
+            {
+              const Datatype& sdt = DatatypeType(tr).getDatatype();
               out << selector.getName() << ": " << sdt.getName();
-            }else{
+            }
+            else
+            {
               out << selector.getName() << ": " << tr;
             }
           }
