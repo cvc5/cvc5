@@ -143,6 +143,8 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name,
   return expr;
 }
 
+bool Parser::getTesterName(api::Term cons, std::string& name) { return false; }
+
 api::Kind Parser::getKindForFunction(api::Term fun)
 {
   api::Sort t = fun.getSort();
@@ -447,13 +449,17 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
         }
-        api::Term tester = ctor.getTesterTerm();
-        Debug("parser-idt") << "+ define " << tester << std::endl;
-        string testerName = ctor.getTesterName();
-        if(!doOverload) {
-          checkDeclaration(testerName, CHECK_UNDECLARED);
+        std::string testerName;
+        if (getTesterName(constructor, testerName))
+        {
+          api::Term tester = ctor.getTesterTerm();
+          Debug("parser-idt") << "+ define " << testerName << std::endl;
+          if (!doOverload)
+          {
+            checkDeclaration(testerName, CHECK_UNDECLARED);
+          }
+          defineVar(testerName, tester, d_globalDeclarations, doOverload);
         }
-        defineVar(testerName, tester, d_globalDeclarations, doOverload);
         for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
         {
           const api::DatatypeSelector& sel = ctor[k];

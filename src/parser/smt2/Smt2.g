@@ -2548,10 +2548,8 @@ constructorDef[CVC4::Datatype& type]
   CVC4::DatatypeConstructor* ctor = NULL;
 }
   : symbol[id,CHECK_NONE,SYM_VARIABLE]
-    { // make the tester
-      std::string testerId("is-");
-      testerId.append(id);
-      ctor = new CVC4::DatatypeConstructor(id, testerId);
+    {
+      ctor = new CVC4::DatatypeConstructor(id);
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
     { // make the constructor

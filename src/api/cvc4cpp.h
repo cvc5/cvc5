@@ -1412,11 +1412,6 @@ class CVC4_PUBLIC DatatypeConstructor
   Term getTesterTerm() const;
 
   /**
-   * @return the tester name for this Datatype constructor.
-   */
-  std::string getTesterName() const;
-
-  /**
    * @return the number of selectors (so far) of this Datatype constructor.
    */
   size_t getNumSelectors() const;

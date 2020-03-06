@@ -1959,11 +1959,6 @@ Term DatatypeConstructor::getTesterTerm() const
   return tst;
 }
 
-std::string DatatypeConstructor::getTesterName() const
-{
-  return d_ctor->getTesterName();
-}
-
 size_t DatatypeConstructor::getNumSelectors() const
 {
   return d_ctor->getNumArgs();
