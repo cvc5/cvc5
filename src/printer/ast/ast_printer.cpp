@@ -393,10 +393,11 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c)
 {
   const vector<Type>& datatypes = c->getDatatypes();
   out << "DatatypeDeclarationCommand([";
-  for(vector<Type>::const_iterator i = datatypes.begin(),
-        i_end = datatypes.end();
-      i != i_end;
-      ++i) {
+  for (vector<Type>::const_iterator i = datatypes.begin(),
+                                    i_end = datatypes.end();
+       i != i_end;
+       ++i)
+  {
     out << *i << ";" << endl;
   }
   out << "])";

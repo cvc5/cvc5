@@ -513,8 +513,7 @@ const std::vector<DatatypeConstructor>* Datatype::getConstructors() const
   return &d_constructors;
 }
 
-DatatypeConstructor::DatatypeConstructor(std::string name,
-                                         unsigned weight)
+DatatypeConstructor::DatatypeConstructor(std::string name, unsigned weight)
     : d_internal(nullptr)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");

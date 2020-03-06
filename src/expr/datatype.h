@@ -220,8 +220,7 @@ class CVC4_PUBLIC DatatypeConstructor {
    * For example, if A, B, C have weights 0, 1, and 3 respectively, then
    * C( B( A() ), B( A() ) ) has size 5.
    */
-  explicit DatatypeConstructor(std::string name,
-                      unsigned weight = 1);
+  explicit DatatypeConstructor(std::string name, unsigned weight = 1);
 
   ~DatatypeConstructor() {}
   /**
@@ -299,7 +298,7 @@ class CVC4_PUBLIC DatatypeConstructor {
    * size of datatype terms that involve this constructor.
    */
   unsigned getWeight() const;
-  
+
   /**
    * Get the number of arguments (so far) of this Datatype constructor.
    */

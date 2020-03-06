@@ -1466,16 +1466,18 @@ static void toStream(std::ostream& out,
                      bool cvc3Mode)
 {
   const vector<Type>& datatypes = c->getDatatypes();
-  Assert( !datatypes.empty() && datatypes[0].isDatatype());
+  Assert(!datatypes.empty() && datatypes[0].isDatatype());
   const Datatype& dt0 = DatatypeType(datatypes[0]).getDatatype();
   //do not print tuple/datatype internal declarations
-  if( datatypes.size()!=1 || ( !dt0.isTuple() && !dt0.isRecord() ) ){
+  if (datatypes.size() != 1 || (!dt0.isTuple() && !dt0.isRecord()))
+  {
     out << "DATATYPE" << endl;
     bool firstDatatype = true;
-    for(vector<Type>::const_iterator i = datatypes.begin(),
-          i_end = datatypes.end();
-        i != i_end;
-        ++i) {
+    for (vector<Type>::const_iterator i = datatypes.begin(),
+                                      i_end = datatypes.end();
+         i != i_end;
+         ++i)
+    {
       if(! firstDatatype) {
         out << ',' << endl;
       }

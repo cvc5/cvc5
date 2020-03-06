@@ -1943,7 +1943,7 @@ static void toStream(std::ostream& out,
     out << " (";
     for (Type t : datatypes)
     {
-      Assert( t.isDatatype() );
+      Assert(t.isDatatype());
       const Datatype& d = DatatypeType(t).getDatatype();
       out << "(" << CVC4::quoteSymbol(d.getName());
       out << " " << d.getNumParameters() << ")";
@@ -1951,7 +1951,7 @@ static void toStream(std::ostream& out,
     out << ") (";
     for (Type t : datatypes)
     {
-      Assert( t.isDatatype() );
+      Assert(t.isDatatype());
       const Datatype& d = DatatypeType(t).getDatatype();
       if (d.isParametric())
       {
@@ -1983,7 +1983,7 @@ static void toStream(std::ostream& out,
     unsigned nparam = d0.getNumParameters();
     for (unsigned j = 1, ndt = datatypes.size(); j < ndt; j++)
     {
-      Assert( datatypes[j].isDatatype() );
+      Assert(datatypes[j].isDatatype());
       const Datatype& dj = DatatypeType(datatypes[j]).getDatatype();
       if (dj.getNumParameters() != nparam)
       {
@@ -2023,7 +2023,7 @@ static void toStream(std::ostream& out,
     out << ") (";
     for (Type t : datatypes)
     {
-      Assert( t.isDatatype() );
+      Assert(t.isDatatype());
       const Datatype& dt = DatatypeType(t).getDatatype();
       out << "(" << CVC4::quoteSymbol(dt.getName()) << " ";
       toStream(out, dt);

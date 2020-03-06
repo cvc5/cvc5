@@ -2791,13 +2791,12 @@ DatatypeDeclarationCommand::DatatypeDeclarationCommand(const Type& datatype)
 }
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const std::vector<Type>& datatypes) :
-    d_datatypes(datatypes)
+    const std::vector<Type>& datatypes)
+    : d_datatypes(datatypes)
 {
 }
 
-const std::vector<Type>& DatatypeDeclarationCommand::getDatatypes()
-    const
+const std::vector<Type>& DatatypeDeclarationCommand::getDatatypes() const
 {
   return d_datatypes;
 }
