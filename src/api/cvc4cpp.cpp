@@ -2464,9 +2464,10 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-std::vector<Sort> Solver::mkDatatypeSortsInternal(std::vector<DatatypeDecl>& dtypedecls,
-                                  std::set<Sort>& unresolvedSorts) const
-                                  {
+std::vector<Sort> Solver::mkDatatypeSortsInternal(
+    std::vector<DatatypeDecl>& dtypedecls,
+    std::set<Sort>& unresolvedSorts) const
+{
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   // CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
   //    << "a datatype declaration with at least one constructor";
@@ -2487,8 +2488,8 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(std::vector<DatatypeDecl>& dty
   return retTypes;
 
   CVC4_API_SOLVER_TRY_CATCH_END;
-                                  }
-                                    
+}
+
 /* Helpers for converting vectors.                                            */
 /* .......................................................................... */
 
@@ -2635,7 +2636,8 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-std::vector<Sort> Solver::mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls) const
+std::vector<Sort> Solver::mkDatatypeSorts(
+    std::vector<DatatypeDecl>& dtypedecls) const
 {
   std::set<Sort> unresolvedSorts;
   return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
