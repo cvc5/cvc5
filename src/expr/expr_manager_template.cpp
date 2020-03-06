@@ -43,21 +43,32 @@ ${includes}
     } \
     ++ *(d_exprStatistics[kind]); \
   }
-  #define INC_STAT_VAR(type, bound_var) \
-  { \
-    TypeNode* typeNode = Type::getTypeNode(type); \
-    TypeConstant type = typeNode->getKind() == kind::TYPE_CONSTANT ? typeNode->getConst<TypeConstant>() : LAST_TYPE; \
-    if (d_exprStatisticsVars[type] == NULL) { \
-      stringstream statName; \
-      if (type == LAST_TYPE) { \
-        statName << "expr::ExprManager::" << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":Parameterized type"; \
-      } else { \
-        statName << "expr::ExprManager::" << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":" << type; \
-      } \
-      d_exprStatisticsVars[type] = new IntStat(statName.str(), 0); \
-      d_nodeManager->getStatisticsRegistry()->registerStat(d_exprStatisticsVars[type]); \
-    } \
-    ++ *(d_exprStatisticsVars[type]); \
+#define INC_STAT_VAR(type, bound_var)                                      \
+  {                                                                        \
+    TypeNode* isv_typeNode = Type::getTypeNode(type);                      \
+    TypeConstant isv_type = isv_typeNode->getKind() == kind::TYPE_CONSTANT \
+                                ? isv_typeNode->getConst<TypeConstant>()   \
+                                : LAST_TYPE;                               \
+    if (d_exprStatisticsVars[isv_type] == NULL)                            \
+    {                                                                      \
+      stringstream statName;                                               \
+      if (isv_type == LAST_TYPE)                                           \
+      {                                                                    \
+        statName << "expr::ExprManager::"                                  \
+                 << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE")          \
+                 << ":Parameterized isv_type";                             \
+      }                                                                    \
+      else                                                                 \
+      {                                                                    \
+        statName << "expr::ExprManager::"                                  \
+                 << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":"   \
+                 << isv_type;                                              \
+      }                                                                    \
+      d_exprStatisticsVars[isv_type] = new IntStat(statName.str(), 0);     \
+      d_nodeManager->getStatisticsRegistry()->registerStat(                \
+          d_exprStatisticsVars[isv_type]);                                 \
+    }                                                                      \
+    ++*(d_exprStatisticsVars[isv_type]);                                   \
   }
 #else
   #define INC_STAT(kind)
@@ -882,13 +893,13 @@ SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
  * @param check whether we should check the type as we compute it
  * (default: false)
  */
-Type ExprManager::getType(Expr e, bool check)
+Type ExprManager::getType(Expr expr, bool check)
 {
   NodeManagerScope nms(d_nodeManager);
   Type t;
   try {
     t = Type(d_nodeManager,
-             new TypeNode(d_nodeManager->getType(e.getNode(), check)));
+             new TypeNode(d_nodeManager->getType(expr.getNode(), check)));
   } catch (const TypeCheckingExceptionPrivate& e) {
     throw TypeCheckingException(this, &e);
   }

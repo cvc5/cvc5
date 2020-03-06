@@ -267,9 +267,9 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     // choice z. P(z).
     Node v = nm->mkBoundVar(n.getType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-    Node ret = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
-    d_modelCache[n] = ret;
-    return ret;
+    Node answer = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
+    d_modelCache[n] = answer;
+    return answer;
   }
   // must rewrite the term at this point
   ret = Rewriter::rewrite(n);
@@ -315,11 +315,11 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     {
       if (d_enableFuncModels)
       {
-        std::map<Node, Node>::const_iterator it = d_uf_models.find(n);
-        if (it != d_uf_models.end())
+        std::map<Node, Node>::const_iterator entry = d_uf_models.find(n);
+        if (entry != d_uf_models.end())
         {
           // Existing function
-          ret = it->second;
+          ret = entry->second;
           d_modelCache[n] = ret;
           return ret;
         }
@@ -327,7 +327,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
         // constant in the enumeration of the range type
         vector<TypeNode> argTypes = t.getArgTypes();
         vector<Node> args;
-        NodeManager* nm = NodeManager::currentNM();
         for (unsigned i = 0, size = argTypes.size(); i < size; ++i)
         {
           args.push_back(nm->mkBoundVar(argTypes[i]));

@@ -570,16 +570,16 @@ void ExtfSolver::checkExtfInference(Node n,
           {
             bool do_infer = false;
             conc = conc.negate();
-            bool pol = conc.getKind() != NOT;
-            Node lit = pol ? conc : conc[0];
+            bool pol2 = conc.getKind() != NOT;
+            Node lit = pol2 ? conc : conc[0];
             if (lit.getKind() == EQUAL)
             {
-              do_infer = pol ? !d_state.areEqual(lit[0], lit[1])
-                             : !d_state.areDisequal(lit[0], lit[1]);
+              do_infer = pol2 ? !d_state.areEqual(lit[0], lit[1])
+                              : !d_state.areDisequal(lit[0], lit[1]);
             }
             else
             {
-              do_infer = !d_state.areEqual(lit, pol ? d_true : d_false);
+              do_infer = !d_state.areEqual(lit, pol2 ? d_true : d_false);
             }
             if (do_infer)
             {

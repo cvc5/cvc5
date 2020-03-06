@@ -324,13 +324,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
               if (interrupted) break;
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
               {
-                Command* cmd = allCommands[i][j]->clone();
-                cmd->setMuted(true);
-                pExecutor->doCommand(cmd);
-                if(cmd->interrupted()) {
+                Command* ccmd = allCommands[i][j]->clone();
+                ccmd->setMuted(true);
+                pExecutor->doCommand(ccmd);
+                if (ccmd->interrupted())
+                {
                   interrupted = true;
                 }
-                delete cmd;
+                delete ccmd;
               }
             }
             needReset = 0;
@@ -350,13 +351,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
               {
-                Command* cmd = allCommands[i][j]->clone();
-                cmd->setMuted(true);
-                pExecutor->doCommand(cmd);
-                if(cmd->interrupted()) {
+                Command* ccmd = allCommands[i][j]->clone();
+                ccmd->setMuted(true);
+                pExecutor->doCommand(ccmd);
+                if (ccmd->interrupted())
+                {
                   interrupted = true;
                 }
-                delete cmd;
+                delete ccmd;
               }
             }
             if (interrupted) continue;
@@ -376,13 +378,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
               {
-                Command* cmd = allCommands[i][j]->clone();
-                cmd->setMuted(true);
-                pExecutor->doCommand(cmd);
-                if(cmd->interrupted()) {
+                Command* ccmd = allCommands[i][j]->clone();
+                ccmd->setMuted(true);
+                pExecutor->doCommand(ccmd);
+                if (ccmd->interrupted())
+                {
                   interrupted = true;
                 }
-                delete cmd;
+                delete ccmd;
               }
             }
             needReset = 0;
