@@ -1922,11 +1922,25 @@ class CVC4_PUBLIC Solver
    * @return the datatype sort
    */
   Sort mkDatatypeSort(DatatypeDecl dtypedecl) const;
-
+  
   /**
    * Create a vector of datatype sorts.
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls) const;
+
+  /**
+   * Create a vector of datatype sorts based on unresolved sorts.
+   * This method is called when the DatatypeDecl objects dtypedecls have
+   * been built using "unresolved" sorts (required for mutually recursive
+   * datatypes).
+   * 
+   * In detail, each sort in unresolvedSorts must have a name that
+   * matches the name of a datatype in dtypedecls.
    *
    * @param dtypedecls the datatype declarations from which the sort is created
+   * @param unresolvedSorts the list of unresolved sorts
    * @return the datatype sorts
    */
   std::vector<Sort> mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
@@ -2879,6 +2893,15 @@ class CVC4_PUBLIC Solver
    */
   Term mkTermInternal(Kind kind, const std::vector<Term>& children) const;
 
+  /**
+   * Create a vector of datatype sorts, using unresolved sorts.
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @param unresolvedSorts the list of unresolved sorts
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSortsInternal(std::vector<DatatypeDecl>& dtypedecls,
+                                    std::set<Sort>& unresolvedSorts) const;
+                                    
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;
   /* The SMT engine of this solver. */
