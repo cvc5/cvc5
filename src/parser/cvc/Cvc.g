@@ -757,7 +757,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     END_TOK
     { PARSER_STATE->popScope();
       cmd->reset(new DatatypeDeclarationCommand(
-          PARSER_STATE->mkMutualDatatypeTypes(dts)));
+          api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts))));
     }
 
   | CONTEXT_TOK
