@@ -2021,7 +2021,7 @@ static void toStream(std::ostream& out,
       out << std::endl;
     }
     out << ") (";
-    for (Type t : datatypes)
+    for (const Type& t : datatypes)
     {
       Assert(t.isDatatype());
       const Datatype& dt = DatatypeType(t).getDatatype();
