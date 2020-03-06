@@ -505,6 +505,23 @@ api::Term Smt2::getExpressionForNameAndType(const std::string& name,
   return Parser::getExpressionForNameAndType(name, t);
 }
 
+bool Smt2::getTesterName(api::Term cons, std::string& name)
+{
+  if (v2_6())
+  {
+    // 2.6 or above uses indexed tester symbols, if we are in strict mode,
+    // we do not automatically define is-cons for constructor cons.
+    if( strictModeEnabled() ) 
+    {
+      return false;
+    }
+  }
+  std::stringstream ss;
+  ss << "is-" << cons;
+  name = ss.str();
+  return true;
+}
+
 api::Term Smt2::mkIndexedConstant(const std::string& name,
                                   const std::vector<uint64_t>& numerals)
 {
