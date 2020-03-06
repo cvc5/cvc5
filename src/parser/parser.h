@@ -375,9 +375,16 @@ public:
    * for each constructor, called its "tester". This symbol is automatically
    * defined when a datatype is defined. The tester name for a constructor
    * (e.g. "cons") depends on the language:
+<<<<<<< HEAD
    * - In smt versions >= 2.6, the indexed symbol "(_ is cons)" is used. Thus,
    * no tester symbol is necessary, since "is" is a builtin symbol,
    * - In smt versions < 2.6, the (non-standard) syntax is "is-cons",
+=======
+   * - In smt versions < 2.6, the (non-standard) syntax is "is-cons",
+   * - In smt versions >= 2.6, the indexed symbol "(_ is cons)" is used. Thus,
+   * no tester symbol is necessary, since "is" is a builtin symbol. We still use
+   * the above syntax if strict mode is disabled.
+>>>>>>> 75502e8c943d747df6c9d10a237238e8443d6c38
    * - In cvc, the syntax for testers is "is_cons".
    */
   virtual bool getTesterName(api::Term cons, std::string& name);
@@ -594,7 +601,9 @@ public:
   bool isUnresolvedType(const std::string& name);
 
   /**
-   * Create sorts of mutually-recursive datatypes.
+   * Creates and binds sorts of a list of mutually-recursive datatype
+   * declarations.
+   *
    * For each symbol defined by the datatype, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.

@@ -789,7 +789,12 @@ sygusGrammarV1[CVC4::api::Sort & ret,
                             << std::endl;
     }
     std::vector<api::Sort> datatypeTypes =
+<<<<<<< HEAD
         PARSER_STATE->bindMutualDatatypeTypes(datatypes, false);
+=======
+        PARSER_STATE->mkMutualDatatypeTypes(
+            datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+>>>>>>> 75502e8c943d747df6c9d10a237238e8443d6c38
     ret = datatypeTypes[0];
   };
 
@@ -1058,7 +1063,7 @@ sygusGrammar[CVC4::api::Sort & ret,
     std::vector<api::Sort> datatypeTypes =
       SOLVER->mkDatatypeSorts(datatypes, unresTypes);
     // return is the first datatype
-    ret = datatypeTypes[0];
+    ret = api::Sort(datatypeTypes[0]);
   }
 ;
 
@@ -1458,7 +1463,8 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
   { PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
-      api::sortVectorToTypes(PARSER_STATE->bindMutualDatatypeTypes(dts, true))));
+      api::sortVectorToTypes(
+        PARSER_STATE->bindMutualDatatypeTypes(dts, true))));
   }
   ;
 
@@ -1554,7 +1560,11 @@ datatypesDef[bool isCo,
   {
     PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
+<<<<<<< HEAD
       api::sortVectorToTypes(PARSER_STATE->bindMutualDatatypeTypes(dts, true))));
+=======
+      api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts, true))));
+>>>>>>> 75502e8c943d747df6c9d10a237238e8443d6c38
   }
   ;
 
@@ -2543,7 +2553,11 @@ constructorDef[CVC4::api::DatatypeDecl& type]
 }
   : symbol[id,CHECK_NONE,SYM_VARIABLE]
     {
+<<<<<<< HEAD
       ctor = new api::DatatypeConstructorDecl(id);
+=======
+      ctor = new CVC4::DatatypeConstructor(id);
+>>>>>>> 75502e8c943d747df6c9d10a237238e8443d6c38
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
     { // make the constructor

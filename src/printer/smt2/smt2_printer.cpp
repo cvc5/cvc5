@@ -1941,7 +1941,7 @@ static void toStream(std::ostream& out,
   if (isVariant_2_6(v))
   {
     out << " (";
-    for (Type t : datatypes)
+    for (const Type& t : datatypes)
     {
       Assert(t.isDatatype());
       const Datatype& d = DatatypeType(t).getDatatype();
@@ -1949,7 +1949,7 @@ static void toStream(std::ostream& out,
       out << " " << d.getNumParameters() << ")";
     }
     out << ") (";
-    for (Type t : datatypes)
+    for (const Type& t : datatypes)
     {
       Assert(t.isDatatype());
       const Datatype& d = DatatypeType(t).getDatatype();
@@ -2021,7 +2021,7 @@ static void toStream(std::ostream& out,
       out << std::endl;
     }
     out << ") (";
-    for (Type t : datatypes)
+    for (const Type& t : datatypes)
     {
       Assert(t.isDatatype());
       const Datatype& dt = DatatypeType(t).getDatatype();

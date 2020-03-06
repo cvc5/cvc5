@@ -1473,15 +1473,12 @@ static void toStream(std::ostream& out,
   {
     out << "DATATYPE" << endl;
     bool firstDatatype = true;
-    for (vector<Type>::const_iterator i = datatypes.begin(),
-                                      i_end = datatypes.end();
-         i != i_end;
-         ++i)
+    for (const Type& t : datatypes)
     {
       if(! firstDatatype) {
         out << ',' << endl;
       }
-      const Datatype& dt = DatatypeType(*i).getDatatype();
+      const Datatype& dt = DatatypeType(t).getDatatype();
       out << "  " << dt.getName();
       if(dt.isParametric()) {
         out << '[';
@@ -1515,12 +1512,15 @@ static void toStream(std::ostream& out,
             }
             firstSelector = false;
             const DatatypeConstructorArg& selector = *k;
-            Type t = SelectorType(selector.getType()).getRangeType();
-            if( t.isDatatype() ){
-              const Datatype & sdt = ((DatatypeType)t).getDatatype();
+            Type tr = SelectorType(selector.getType()).getRangeType();
+            if (tr.isDatatype())
+            {
+              const Datatype& sdt = DatatypeType(tr).getDatatype();
               out << selector.getName() << ": " << sdt.getName();
-            }else{
-              out << selector.getName() << ": " << t;
+            }
+            else
+            {
+              out << selector.getName() << ": " << tr;
             }
           }
           out << ')';
