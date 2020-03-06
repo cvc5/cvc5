@@ -789,12 +789,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
                             << std::endl;
     }
     std::vector<api::Sort> datatypeTypes =
-<<<<<<< HEAD
         PARSER_STATE->bindMutualDatatypeTypes(datatypes, false);
-=======
-        PARSER_STATE->mkMutualDatatypeTypes(
-            datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
->>>>>>> 75502e8c943d747df6c9d10a237238e8443d6c38
     ret = datatypeTypes[0];
   };
 
@@ -1560,11 +1555,8 @@ datatypesDef[bool isCo,
   {
     PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
-<<<<<<< HEAD
-      api::sortVectorToTypes(PARSER_STATE->bindMutualDatatypeTypes(dts, true))));
-=======
-      api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts, true))));
->>>>>>> 75502e8c943d747df6c9d10a237238e8443d6c38
+      api::sortVectorToTypes(
+        PARSER_STATE->bindMutualDatatypeTypes(dts, true))));
   }
   ;
 
@@ -2553,11 +2545,7 @@ constructorDef[CVC4::api::DatatypeDecl& type]
 }
   : symbol[id,CHECK_NONE,SYM_VARIABLE]
     {
-<<<<<<< HEAD
       ctor = new api::DatatypeConstructorDecl(id);
-=======
-      ctor = new CVC4::DatatypeConstructor(id);
->>>>>>> 75502e8c943d747df6c9d10a237238e8443d6c38
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
     { // make the constructor
