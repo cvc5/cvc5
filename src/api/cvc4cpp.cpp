@@ -2469,12 +2469,12 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
     std::set<Sort>& unresolvedSorts) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  // CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
-  //    << "a datatype declaration with at least one constructor";
 
   std::vector<CVC4::Datatype> datatypes;
   for (unsigned i = 0, ndts = dtypedecls.size(); i < ndts; i++)
   {
+  CVC4_API_ARG_CHECK_EXPECTED(dtypedecls[i].getNumConstructors() > 0, dtypedecls[i])
+     << "a datatype declaration with at least one constructor";
     datatypes.push_back(dtypedecls[i].getDatatype());
   }
   std::set<Type> utypes = sortSetToTypes(unresolvedSorts);
