@@ -152,7 +152,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::CONST_BITVECTOR: {
       const BitVector& bv = n.getConst<BitVector>();
       const Integer& x = bv.getValue();
-      unsigned n = bv.getSize();
+      unsigned width = bv.getSize();
       if (d_variant == sygus_variant || options::bvPrintConstsInBinary())
       {
         out << "#b" << bv.toString();
@@ -160,7 +160,7 @@ void Smt2Printer::toStream(std::ostream& out,
       else
       {
         out << "(_ ";
-        out << "bv" << x << " " << n;
+        out << "bv" << x << " " << width;
         out << ")";
       }
 
@@ -202,11 +202,9 @@ void Smt2Printer::toStream(std::ostream& out,
     }
 
     case kind::CONST_STRING: {
-      //const std::vector<unsigned int>& s = n.getConst<String>().getVec();
       std::string s = n.getConst<String>().toString(true);
       out << '"';
       for(size_t i = 0; i < s.size(); ++i) {
-        //char c = String::convertUnsignedIntToChar(s[i]);
         char c = s[i];
         if(c == '"') {
           if(d_variant == smt2_0_variant) {
@@ -234,15 +232,15 @@ void Smt2Printer::toStream(std::ostream& out,
           n.getConst<DatatypeIndexConstant>().getIndex()));
       if (dt.isTuple())
       {
-        unsigned int n = dt[0].getNumArgs();
-        if (n == 0)
+        unsigned int nargs = dt[0].getNumArgs();
+        if (nargs == 0)
         {
           out << "Tuple";
         }
         else
         {
           out << "(Tuple";
-          for (unsigned int i = 0; i < n; i++)
+          for (unsigned int i = 0; i < nargs; i++)
           {
             out << " " << dt[0][i].getRangeType();
           }
@@ -656,7 +654,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_LT:
   case kind::STRING_ITOS:
   case kind::STRING_STOI:
-  case kind::STRING_CODE:
+  case kind::STRING_FROM_CODE:
+  case kind::STRING_TO_CODE:
   case kind::STRING_TO_REGEXP:
   case kind::REGEXP_CONCAT:
   case kind::REGEXP_UNION:
@@ -1218,7 +1217,8 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_LEQ: return "str.<=";
   case kind::STRING_LT: return "str.<";
-  case kind::STRING_CODE:
+  case kind::STRING_FROM_CODE: return "str.from_code";
+  case kind::STRING_TO_CODE:
     return v == smt2_6_1_variant ? "str.to_code" : "str.code";
   case kind::STRING_ITOS:
     return v == smt2_6_1_variant ? "str.from_int" : "int.to.str";
@@ -2027,9 +2027,9 @@ static void toStream(std::ostream& out,
          i != i_end;
          ++i)
     {
-      const Datatype& d = i->getDatatype();
-      out << "(" << CVC4::quoteSymbol(d.getName()) << " ";
-      toStream(out, d);
+      const Datatype& dt = i->getDatatype();
+      out << "(" << CVC4::quoteSymbol(dt.getName()) << " ";
+      toStream(out, dt);
       out << ")";
     }
     out << ")";

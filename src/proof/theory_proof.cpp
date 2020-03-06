@@ -1026,7 +1026,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
 
       for (unsigned i = 0; i < term.getNumChildren(); ++i) {
         for (unsigned j = i + 1; j < term.getNumChildren(); ++j) {
-          TypeNode armType = equalityType(term[i], term[j]);
+          armType = equalityType(term[i], term[j]);
           if ((i != 0) || (j != 1)) {
             os << "(not (= ";
             printSort(term[0].getType(), os);

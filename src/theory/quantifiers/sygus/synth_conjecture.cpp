@@ -20,8 +20,6 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -34,6 +32,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -592,24 +591,22 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     if (options::sygusVerifySubcall())
     {
       Trace("cegqi-engine") << "  *** Verify with subcall..." << std::endl;
-      SmtEngine verifySmt(nm->toExprManager());
-      verifySmt.setIsInternalSubsolver();
-      verifySmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-      verifySmt.assertFormula(query.toExpr());
-      Result r = verifySmt.checkSat();
+
+      Result r =
+          checkWithSubsolver(query.toExpr(), d_ce_sk_vars, d_ce_sk_var_mvs);
       Trace("cegqi-engine") << "  ...got " << r << std::endl;
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
       {
-        Trace("cegqi-engine") << "  * Verification lemma failed for:\n   ";
-        // do not send out
-        for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
+        if (Trace.isOn("cegqi-engine"))
         {
-          Node v = d_ce_sk_vars[i];
-          Node mv = Node::fromExpr(verifySmt.getValue(v.toExpr()));
-          Trace("cegqi-engine") << vars[i] << " -> " << mv << " ";
-          d_ce_sk_var_mvs.push_back(mv);
+          Trace("cegqi-engine") << "  * Verification lemma failed for:\n   ";
+          for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
+          {
+            Trace("cegqi-engine")
+                << d_ce_sk_vars[i] << " -> " << d_ce_sk_var_mvs[i] << " ";
+          }
+          Trace("cegqi-engine") << std::endl;
         }
-        Trace("cegqi-engine") << std::endl;
 #ifdef CVC4_ASSERTIONS
         // the values for the query should be a complete model
         Node squery = query.substitute(d_ce_sk_vars.begin(),
@@ -661,15 +658,9 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
   {
     Node sc = d_embedSideCondition.substitute(
         d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
-    sc = Rewriter::rewrite(sc);
     Trace("cegqi-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
-    SmtEngine scSmt(nm->toExprManager());
-    scSmt.setIsInternalSubsolver();
-    scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-    scSmt.assertFormula(sc.toExpr());
-    Result r = scSmt.checkSat();
+    Result r = checkWithSubsolver(sc);
     Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
     if (r == Result::UNSAT)
     {

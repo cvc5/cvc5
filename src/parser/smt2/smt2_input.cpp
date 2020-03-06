@@ -64,7 +64,7 @@ Command* Smt2Input::parseCommand() {
 
 api::Term Smt2Input::parseExpr()
 {
-  return api::Term(d_pSmt2Parser->parseExpr(d_pSmt2Parser));
+  return d_pSmt2Parser->parseExpr(d_pSmt2Parser);
 }
 
 }/* CVC4::parser namespace */

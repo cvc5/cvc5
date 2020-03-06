@@ -97,7 +97,6 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2)
     {
       s2 = e2->d_singleton;
       EqcInfo* e1 = getOrMakeEqcInfo(t1);
-      Node s1;
       Trace("sets-prop-debug") << "Merging singletons..." << std::endl;
       if (e1)
       {
@@ -305,24 +304,25 @@ bool TheorySetsPrivate::assertFact(Node fact, Node exp)
           Node s = e->d_singleton;
           if (!s.isNull())
           {
-            Node exp = NodeManager::currentNM()->mkNode(
+            Node pexp = NodeManager::currentNM()->mkNode(
                 kind::AND, atom, atom[1].eqNode(s));
-            d_keep.insert(exp);
+            d_keep.insert(pexp);
             if (s.getKind() == kind::SINGLETON)
             {
               if (s[0] != atom[0])
               {
-                Trace("sets-prop") << "Propagate mem-eq : " << exp << std::endl;
+                Trace("sets-prop")
+                    << "Propagate mem-eq : " << pexp << std::endl;
                 Node eq = s[0].eqNode(atom[0]);
                 d_keep.insert(eq);
-                assertFact(eq, exp);
+                assertFact(eq, pexp);
               }
             }
             else
             {
               Trace("sets-prop")
-                  << "Propagate mem-eq conflict : " << exp << std::endl;
-              d_state.setConflict(exp);
+                  << "Propagate mem-eq conflict : " << pexp << std::endl;
+              d_state.setConflict(pexp);
             }
           }
         }
@@ -775,8 +775,8 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     std::vector<Node> exp;
                     exp.push_back(itm2m.second);
                     d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
-                    Node k = d_state.getProxy(term);
-                    Node fact = nm->mkNode(kind::MEMBER, x, k);
+                    Node r = d_state.getProxy(term);
+                    Node fact = nm->mkNode(kind::MEMBER, x, r);
                     d_im.assertInference(fact, exp, "upc2");
                     if (d_state.isInConflict())
                     {

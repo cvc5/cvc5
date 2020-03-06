@@ -431,8 +431,9 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       children.push_back(op);
       entry_children.push_back(op);
       bool hasNonStar = false;
-      for( unsigned i=0; i<c.getNumChildren(); i++) {
-        Node ri = fm->getRepresentative( c[i] );
+      for (const Node& ci : c)
+      {
+        Node ri = fm->getRepresentative(ci);
         children.push_back(ri);
         bool isStar = false;
         if (fm->isModelBasisTerm(ri))
@@ -445,7 +446,9 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
           hasNonStar = true;
         }
         if( !isStar && !ri.isConst() ){
-          Trace("fmc-warn") << "Warning : model for " << op << " has non-constant argument in model " << ri << " (from " << c[i] << ")" << std::endl;
+          Trace("fmc-warn") << "Warning : model for " << op
+                            << " has non-constant argument in model " << ri
+                            << " (from " << ci << ")" << std::endl;
           Assert(false);
         }
         entry_children.push_back(ri);
