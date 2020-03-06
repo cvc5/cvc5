@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-real-as-int
+; COMMAND-LINE: --solve-real-as-int --quiet
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
