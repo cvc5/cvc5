@@ -42,8 +42,6 @@ libcvc4_add_sources(
   preprocessing/passes/ackermann.h
   preprocessing/passes/apply_substs.cpp
   preprocessing/passes/apply_substs.h
-  preprocessing/passes/apply_to_const.cpp
-  preprocessing/passes/apply_to_const.h
   preprocessing/passes/bool_to_bv.cpp
   preprocessing/passes/bool_to_bv.h
   preprocessing/passes/bv_abstraction.cpp
