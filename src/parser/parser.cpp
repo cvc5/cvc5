@@ -348,7 +348,8 @@ api::Sort Parser::mkSortConstructor(const std::string& name,
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  api::Sort type = d_solver->getExprManager()->mkSortConstructor(name, arity, flags);
+  api::Sort type =
+      d_solver->getExprManager()->mkSortConstructor(name, arity, flags);
   defineType(
       name,
       vector<api::Sort>(arity),
@@ -399,7 +400,8 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
   try {
     std::set<Type> tset = api::sortSetToTypes(d_unresolved);
     std::vector<DatatypeType> dtypes =
-        d_solver->getExprManager()->mkMutualDatatypeTypes(datatypes, tset, flags);
+        d_solver->getExprManager()->mkMutualDatatypeTypes(
+            datatypes, tset, flags);
     std::vector<api::Sort> types;
     for (unsigned i = 0, dtsize = dtypes.size(); i < dtsize; i++)
     {
@@ -633,7 +635,8 @@ api::Term Parser::mkVar(const std::string& name,
                         const api::Sort& type,
                         uint32_t flags)
 {
-  return api::Term(d_solver->getExprManager()->mkVar(name, type.getType(), flags));
+  return api::Term(
+      d_solver->getExprManager()->mkVar(name, type.getType(), flags));
 }
 //!!!!!!!!!!! temporary
 

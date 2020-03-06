@@ -1842,8 +1842,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (isBuiltinOperator)
   {
     Trace("ajr-temp") << "mkTerm builtin operator" << std::endl;
-    if (!opts.getUfHo()
-        && (kind == api::EQUAL || kind == api::DISTINCT))
+    if (!opts.getUfHo() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need --uf-ho if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
