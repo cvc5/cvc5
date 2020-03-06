@@ -402,7 +402,8 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
     std::vector<api::DatatypeDecl>& datatypes, bool doOverload)
 {
   try {
-    std::vector<api::Sort> types = d_solver->mkDatatypeSorts(datatypes, d_unresolved);
+    std::vector<api::Sort> types =
+        d_solver->mkDatatypeSorts(datatypes, d_unresolved);
 
     assert(datatypes.size() == types.size());
 

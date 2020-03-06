@@ -600,8 +600,7 @@ public:
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   std::vector<api::Sort> bindMutualDatatypeTypes(
-      std::vector<api::DatatypeDecl>& datatypes,
-      bool doOverload = false);
+      std::vector<api::DatatypeDecl>& datatypes, bool doOverload = false);
 
   /** make flat function type
    *

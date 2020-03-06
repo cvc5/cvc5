@@ -1929,9 +1929,8 @@ class CVC4_PUBLIC Solver
    * @param dtypedecls the datatype declarations from which the sort is created
    * @return the datatype sorts
    */
-  std::vector<Sort> mkDatatypeSorts(
-      std::vector<DatatypeDecl>& dtypedecls,
-      std::set<Sort>& unresolvedSorts) const;
+  std::vector<Sort> mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
+                                    std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Create function sort.

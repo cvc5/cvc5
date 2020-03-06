@@ -2610,9 +2610,8 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-std::vector<Sort> Solver::mkDatatypeSorts(
-    std::vector<DatatypeDecl>& dtypedecls,
-    std::set<Sort>& unresolvedSorts) const
+std::vector<Sort> Solver::mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
+                                          std::set<Sort>& unresolvedSorts) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   // CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
