@@ -69,20 +69,19 @@ Tptp::~Tptp() {
 }
 
 void Tptp::addTheory(Theory theory) {
-  ExprManager * em = getExprManager();
   switch(theory) {
   case THEORY_CORE:
     //TPTP (CNF and FOF) is unsorted so we define this common type
     {
       std::string d_unsorted_name = "$$unsorted";
-      d_unsorted = api::Sort(em->mkSort(d_unsorted_name));
+      d_unsorted = d_solver->mkUninterpretedSort(d_unsorted_name);
       preemptCommand(
           new DeclareTypeCommand(d_unsorted_name, 0, d_unsorted.getType()));
     }
     // propositionnal
-    defineType("Bool", em->booleanType());
-    defineVar("$true", em->mkConst(true));
-    defineVar("$false", em->mkConst(false));
+    defineType("Bool", d_solver->getBooleanSort());
+    defineVar("$true", d_solver->mkTrue());
+    defineVar("$false", d_solver->mkFalse());
     addOperator(api::AND);
     addOperator(api::EQUAL);
     addOperator(api::IMPLIES);
@@ -312,11 +311,11 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     isBuiltinKind = true;
   }
   assert(kind != api::NULL_EXPR);
-  ExprManager* em = getExprManager();
+  const Options& opts = d_solver->getExprManager()->getOptions();
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {
-    if (!em->getOptions().getUfHo()
+    if (!opts.getUfHo()
         && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need --uf-ho if these operators are applied over function args
@@ -352,7 +351,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
-        if (!em->getOptions().getUfHo())
+        if (!opts.getUfHo())
         {
           parseError("Cannot partially apply functions unless --uf-ho is set.");
         }

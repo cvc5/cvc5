@@ -1112,7 +1112,7 @@ bool Smt2::pushSygusDatatypeDef(
     std::vector<std::vector<std::string>>& unresolved_gterm_sym)
 {
   sorts.push_back(t);
-  datatypes.push_back(Datatype(getExprManager(), dname));
+  datatypes.push_back(Datatype(d_solver->getExprManager(), dname));
   ops.push_back(std::vector<ParseOp>());
   cnames.push_back(std::vector<std::string>());
   cargs.push_back(std::vector<std::vector<api::Sort>>());
@@ -1573,7 +1573,7 @@ void Smt2::addSygusConstructorVariables(Datatype& dt,
 
 InputLanguage Smt2::getLanguage() const
 {
-  return getExprManager()->getOptions().getInputLanguage();
+  return d_solver->getExprManager()->getOptions().getInputLanguage();
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
@@ -1746,7 +1746,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
   }
   // Second phase: apply the arguments to the parse op
-  ExprManager* em = getExprManager();
+  const Options& opts = d_solver->getExprManager()->getOptions();
   // handle special cases
   if (p.d_kind == api::STORE_ALL && !p.d_type.isNull())
   {
@@ -1842,7 +1842,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (isBuiltinOperator)
   {
     Trace("ajr-temp") << "mkTerm builtin operator" << std::endl;
-    if (!em->getOptions().getUfHo()
+    if (!opts.getUfHo()
         && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need --uf-ho if these operators are applied over function args
@@ -1884,7 +1884,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
-        if (!em->getOptions().getUfHo())
+        if (!opts.getUfHo())
         {
           parseError("Cannot partially apply functions unless --uf-ho is set.");
         }
