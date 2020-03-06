@@ -160,7 +160,12 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
     // If we were called with something other than a theory atom (or
     // Boolean variable), we get a SatLiteral that is definitionally
     // equal to it.
+
+    PROOF(if (d_cnfProof) { d_cnfProof->pushCurrentAssertion(Node::null()); });
+
     lit = toCNF(n, false);
+
+    PROOF(if (d_cnfProof) { d_cnfProof->popCurrentAssertion(); });
 
     // Store backward-mappings
     // These may already exist
