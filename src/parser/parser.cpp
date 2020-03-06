@@ -454,11 +454,11 @@ std::vector<api::Sort> Parser::mkMutualDatatypeTypes(
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
         }
-        api::Term tester = ctor.getTesterTerm();
-        Debug("parser-idt") << "+ define " << tester << std::endl;
         std::string testerName;
         if (getTesterName(constructor, testerName))
         {
+          api::Term tester = ctor.getTesterTerm();
+          Debug("parser-idt") << "+ define " << testerName << std::endl;
           if (!doOverload)
           {
             checkDeclaration(testerName, CHECK_UNDECLARED);
