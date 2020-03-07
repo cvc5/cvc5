@@ -150,6 +150,12 @@ class Smt2 : public Parser
   api::Term getExpressionForNameAndType(const std::string& name,
                                         api::Sort t) override;
 
+  /**
+   * If we are in a version < 2.6, this updates name to the tester name of cons,
+   * e.g. "is-cons".
+   */
+  bool getTesterName(api::Term cons, std::string& name) override;
+
   /** Make function defined by a define-fun(s)-rec command.
    *
    * fname : the name of the function.

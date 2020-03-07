@@ -143,6 +143,8 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name,
   return expr;
 }
 
+bool Parser::getTesterName(api::Term cons, std::string& name) { return false; }
+
 api::Kind Parser::getKindForFunction(api::Term fun)
 {
   api::Sort t = fun.getSort();
@@ -396,7 +398,7 @@ bool Parser::isUnresolvedType(const std::string& name) {
   return d_unresolved.find(getSort(name)) != d_unresolved.end();
 }
 
-std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
+std::vector<api::Sort> Parser::mkMutualDatatypeTypes(
     std::vector<Datatype>& datatypes, bool doOverload, uint32_t flags)
 {
   try {
@@ -447,13 +449,17 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
         }
-        api::Term tester = ctor.getTesterTerm();
-        Debug("parser-idt") << "+ define " << tester << std::endl;
-        string testerName = ctor.getTesterName();
-        if(!doOverload) {
-          checkDeclaration(testerName, CHECK_UNDECLARED);
+        std::string testerName;
+        if (getTesterName(constructor, testerName))
+        {
+          api::Term tester = ctor.getTesterTerm();
+          Debug("parser-idt") << "+ define " << testerName << std::endl;
+          if (!doOverload)
+          {
+            checkDeclaration(testerName, CHECK_UNDECLARED);
+          }
+          defineVar(testerName, tester, d_globalDeclarations, doOverload);
         }
-        defineVar(testerName, tester, d_globalDeclarations, doOverload);
         for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
         {
           const api::DatatypeSelector& sel = ctor[k];
@@ -485,12 +491,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         throw ParserException(dt.getName() + " is not well-founded");
       }
     }
-    std::vector<DatatypeType> retTypes;
-    for (unsigned i = 0, ntypes = types.size(); i < ntypes; i++)
-    {
-      retTypes.push_back(DatatypeType(types[i].getType()));
-    }
-    return retTypes;
+    return types;
   } catch (IllegalArgumentException& ie) {
     throw ParserException(ie.getMessage());
   }

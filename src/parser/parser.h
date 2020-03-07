@@ -368,6 +368,22 @@ public:
                                                 api::Sort t);
 
   /**
+   * If this method returns true, then name is updated with the tester name
+   * for constructor cons.
+   *
+   * In detail, notice that (user-defined) datatypes associate a unary predicate
+   * for each constructor, called its "tester". This symbol is automatically
+   * defined when a datatype is defined. The tester name for a constructor
+   * (e.g. "cons") depends on the language:
+   * - In smt versions < 2.6, the (non-standard) syntax is "is-cons",
+   * - In smt versions >= 2.6, the indexed symbol "(_ is cons)" is used. Thus,
+   * no tester symbol is necessary, since "is" is a builtin symbol. We still use
+   * the above syntax if strict mode is disabled.
+   * - In cvc, the syntax for testers is "is_cons".
+   */
+  virtual bool getTesterName(api::Term cons, std::string& name);
+
+  /**
    * Returns the kind that should be used for applications of expression fun.
    * This is a generalization of ExprManager::operatorToKind that also
    * handles variables whose types are "function-like", i.e. where
@@ -588,7 +604,7 @@ public:
    * printed out as a definition in models or not
    *   (see enum in expr_manager_template.h).
    */
-  std::vector<DatatypeType> mkMutualDatatypeTypes(
+  std::vector<api::Sort> mkMutualDatatypeTypes(
       std::vector<Datatype>& datatypes,
       bool doOverload = false,
       uint32_t flags = ExprManager::DATATYPE_FLAG_NONE);

@@ -757,7 +757,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     END_TOK
     { PARSER_STATE->popScope();
       cmd->reset(new DatatypeDeclarationCommand(
-          PARSER_STATE->mkMutualDatatypeTypes(dts)));
+          api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts))));
     }
 
   | CONTEXT_TOK
@@ -2354,11 +2354,8 @@ constructorDef[CVC4::Datatype& type]
   std::unique_ptr<CVC4::DatatypeConstructor> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
-    { // make the tester
-      std::string testerId("is_");
-      testerId.append(id);
-      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_SORT);
-      ctor.reset(new CVC4::DatatypeConstructor(id, testerId));
+    {
+      ctor.reset(new CVC4::DatatypeConstructor(id));
     }
     ( LPAREN
       selector[&ctor]
