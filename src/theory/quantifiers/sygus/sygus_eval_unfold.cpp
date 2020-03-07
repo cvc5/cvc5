@@ -122,9 +122,9 @@ void SygusEvalUnfold::registerModelValue(Node a,
       Trace("sygus-eval-unfold") << "Built-in term : " << bTerm << std::endl;
       std::vector<Node> vars;
       Node var_list = dt.getSygusVarList();
-      for (const Node& v : var_list)
+      for (const Node& var : var_list)
       {
-        vars.push_back(v);
+        vars.push_back(var);
       }
       // evaluation children
       std::vector<Node> eval_children;

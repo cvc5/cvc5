@@ -310,11 +310,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         std::map<TypeNode, bool> hasArgType;
         for (unsigned j = 0, size = argListTmp.size(); j < size; j++)
         {
-          TypeNode t = argListTmp[j];
-          if (hasArgType.find(t) == hasArgType.end())
+          TypeNode tn = argListTmp[j];
+          if (hasArgType.find(tn) == hasArgType.end())
           {
-            hasArgType[t] = true;
-            argList.push_back(t);
+            hasArgType[tn] = true;
+            argList.push_back(tn);
           }
         }
       }

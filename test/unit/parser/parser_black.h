@@ -45,21 +45,21 @@ class ParserBlack
   /* Set up declaration context for expr inputs */
   virtual void setupContext(Parser& parser) {
     /* a, b, c: BOOLEAN */
-    parser.mkVar("a", d_solver->getExprManager()->booleanType());
-    parser.mkVar("b", d_solver->getExprManager()->booleanType());
-    parser.mkVar("c", d_solver->getExprManager()->booleanType());
+    parser.bindVar("a", d_solver->getBooleanSort());
+    parser.bindVar("b", d_solver->getBooleanSort());
+    parser.bindVar("c", d_solver->getBooleanSort());
     /* t, u, v: TYPE */
-    Type t = parser.mkSort("t");
-    Type u = parser.mkSort("u");
-    Type v = parser.mkSort("v");
+    api::Sort t = parser.mkSort("t");
+    api::Sort u = parser.mkSort("u");
+    api::Sort v = parser.mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
-    parser.mkVar("f", d_solver->getExprManager()->mkFunctionType(t, u));
-    parser.mkVar("g", d_solver->getExprManager()->mkFunctionType(u, v));
-    parser.mkVar("h", d_solver->getExprManager()->mkFunctionType(v, t));
+    parser.bindVar("f", d_solver->mkFunctionSort(t, u));
+    parser.bindVar("g", d_solver->mkFunctionSort(u, v));
+    parser.bindVar("h", d_solver->mkFunctionSort(v, t));
     /* x:t; y:u; z:v; */
-    parser.mkVar("x",t);
-    parser.mkVar("y",u);
-    parser.mkVar("z",v);
+    parser.bindVar("x", t);
+    parser.bindVar("y", u);
+    parser.bindVar("z", v);
   }
 
   void tryGoodInput(const string goodInput)

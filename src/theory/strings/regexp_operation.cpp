@@ -768,8 +768,8 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
           firstChars(r[i], cset, vset);
           Node n = r[i];
           Node exp;
-          int r = delta( n, exp );
-          if(r != 1) {
+          if (delta(n, exp) != 1)
+          {
             break;
           }
         }
@@ -822,15 +822,15 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
 
   if(Trace.isOn("regexp-fset")) {
     Trace("regexp-fset") << "END FSET(" << mkString(r) << ") = {";
-    for (std::set<unsigned>::const_iterator itr = pcset.begin();
-         itr != pcset.end();
-         ++itr)
+    for (std::set<unsigned>::const_iterator it = pcset.begin();
+         it != pcset.end();
+         ++it)
     {
-      if (itr != pcset.begin())
+      if (it != pcset.begin())
       {
         Trace("regexp-fset") << ",";
       }
-      Trace("regexp-fset") << (*itr);
+      Trace("regexp-fset") << (*it);
       }
     Trace("regexp-fset") << "}" << std::endl;
   }
@@ -1185,7 +1185,6 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         } else if(r[0].getKind() == kind::REGEXP_SIGMA) {
           conc = d_true;
         } else {
-          NodeManager* nm = NodeManager::currentNM();
           Node se = s.eqNode(d_emptyString);
           Node sinr = nm->mkNode(kind::STRING_IN_REGEXP, s, r[0]);
           Node sk1 = nm->mkSkolem(
@@ -1489,24 +1488,25 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
         }
         if(Trace.isOn("regexp-int-debug")) {
           Trace("regexp-int-debug") << "Try CSET(" << cset.size() << ") = {";
-          for (std::vector<unsigned>::const_iterator itr = cset.begin();
-               itr != cset.end();
-               ++itr)
+          for (std::vector<unsigned>::const_iterator it = cset.begin();
+               it != cset.end();
+               ++it)
           {
-            if(itr != cset.begin()) {
+            if (it != cset.begin())
+            {
               Trace("regexp-int-debug") << ", ";
             }
-            Trace("regexp-int-debug") << ( *itr );
+            Trace("regexp-int-debug") << (*it);
           }
           Trace("regexp-int-debug") << std::endl;
         }
         std::map< PairNodes, Node > cacheX;
-        for (std::vector<unsigned>::const_iterator itr = cset.begin();
-             itr != cset.end();
-             ++itr)
+        for (std::vector<unsigned>::const_iterator it = cset.begin();
+             it != cset.end();
+             ++it)
         {
           std::vector<unsigned> cvec;
-          cvec.push_back(*itr);
+          cvec.push_back(*it);
           String c(cvec);
           Trace("regexp-int-debug") << "Try character " << c << " ... " << std::endl;
           Node r1l = derivativeSingle(r1, c);

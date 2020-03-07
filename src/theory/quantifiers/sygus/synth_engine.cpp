@@ -16,12 +16,11 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -160,18 +159,17 @@ void SynthEngine::assignConjecture(Node q)
     Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
                        << std::endl;
     quantifiers::SingleInvocationPartition sip;
-    std::vector<Node> funcs;
-    funcs.insert(funcs.end(), q[0].begin(), q[0].end());
-    sip.init(funcs, body);
+    std::vector<Node> funcs0;
+    funcs0.insert(funcs0.end(), q[0].begin(), q[0].end());
+    sip.init(funcs0, body);
     Trace("cegqi-qep") << "...finished, got:" << std::endl;
     sip.debugPrint("cegqi-qep");
 
     if (!sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation())
     {
       // create new smt engine to do quantifier elimination
-      SmtEngine smt_qe(nm->toExprManager());
-      smt_qe.setIsInternalSubsolver();
-      smt_qe.setLogic(smt::currentSmtEngine()->getLogicInfo());
+      std::unique_ptr<SmtEngine> smt_qe;
+      initializeSubsolver(smt_qe);
       Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                             "QE to obtain single invocation."
                          << std::endl;
@@ -206,11 +204,11 @@ void SynthEngine::assignConjecture(Node q)
         Trace("cegqi-qep") << "  subs : " << nqe_vars[i] << " -> " << k
                            << std::endl;
       }
-      std::vector<Node> funcs;
-      sip.getFunctions(funcs);
-      for (unsigned i = 0, size = funcs.size(); i < size; i++)
+      std::vector<Node> funcs1;
+      sip.getFunctions(funcs1);
+      for (unsigned i = 0, size = funcs1.size(); i < size; i++)
       {
-        Node f = funcs[i];
+        Node f = funcs1[i];
         Node fi = sip.getFunctionInvocationFor(f);
         Node fv = sip.getFirstOrderVariableForFunction(f);
         Assert(!fi.isNull());
@@ -234,7 +232,7 @@ void SynthEngine::assignConjecture(Node q)
 
       Trace("cegqi-qep") << "Run quantifier elimination on "
                          << conj_se_ngsi_subs << std::endl;
-      Expr qe_res = smt_qe.doQuantifierElimination(
+      Expr qe_res = smt_qe->doQuantifierElimination(
           conj_se_ngsi_subs.toExpr(), true, false);
       Trace("cegqi-qep") << "Result : " << qe_res << std::endl;
 
