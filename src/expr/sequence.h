@@ -14,8 +14,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SEQUENCE_H
-#define CVC4__SEQUENCE_H
+#ifndef CVC4__EXPR__SEQUENCE_H
+#define CVC4__EXPR__SEQUENCE_H
 
 #include <vector>
 #include "expr/node.h"
@@ -172,4 +172,4 @@ std::ostream& operator<<(std::ostream& os, const Sequence& s) CVC4_PUBLIC;
 
 }  // namespace CVC4
 
-#endif /* CVC4__SEQUENCE_H */
+#endif /* CVC4__EXPR__SEQUENCE_H */
