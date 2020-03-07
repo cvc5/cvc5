@@ -207,7 +207,7 @@ function parameterized {
 }
 
 function constant {
-  # constant K T Hasher header ["comment"] [no_export]
+  # constant K T Hasher header ["comment"]
   lineno=${BASH_LINENO[0]}
   check_theory_seen
 
@@ -228,12 +228,11 @@ template <> Expr ExprManager::mkConst($2 const& val) {
   return Expr(this, new Node(d_nodeManager->mkConst< $2 >(val)));
 }
 "
-  if [[ "$6" != "no_export" ]]; then
-    getConst_instantiations="${getConst_instantiations}
+  getConst_instantiations="${getConst_instantiations}
 #line $lineno \"$kf\"
 template <> $2 const & Expr::getConst< $2 >() const;
 "
-    getConst_implementations="${getConst_implementations}
+  getConst_implementations="${getConst_implementations}
 #line $lineno \"$kf\"
 template <> $2 const & Expr::getConst() const {
 #line $lineno \"$kf\"
@@ -242,7 +241,6 @@ template <> $2 const & Expr::getConst() const {
   return d_node->getConst< $2 >();
 }
 "
-  fi
   exportConstant_cases="${exportConstant_cases}
   case $1: return to->mkConst(n.getConst< $2 >());"
 }
