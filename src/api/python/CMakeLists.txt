@@ -47,7 +47,12 @@ set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
 configure_file(${SETUP_PY_IN} ${SETUP_PY})
 set(PYCVC4_MODULE "${CMAKE_CURRENT_BINARY_DIR}/pycvc4")
 file(MAKE_DIRECTORY "${PYCVC4_MODULE}" FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
-file(WRITE ${PYCVC4_MODULE}/__init__.py "from .pycvc4 import *")
+file(WRITE ${PYCVC4_MODULE}/__init__.py
+"import sys
+from .pycvc4 import *
+# fake a submodule for dotted imports, e.g. from pycvc4.kinds import *
+sys.modules['%s.%s'%(__name__, kinds.__name__)] = kinds")
+
 set(PYCVC4_LOC "${PYCVC4_MODULE}/$<TARGET_FILE_NAME:pycvc4>")
 add_custom_command(TARGET pycvc4 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:pycvc4> ${PYCVC4_LOC}
