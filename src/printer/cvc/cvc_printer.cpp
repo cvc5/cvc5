@@ -1175,15 +1175,16 @@ void DeclareFunctionCommandToStream(std::ostream& out,
 
 void CvcPrinter::toStream(std::ostream& out, const Model& m) const
 {
-  //print the model comments
+  // print the model comments
   std::stringstream c;
   m.getComments(c);
   std::string ln;
-  while (std::getline(c, ln)) {
+  while (std::getline(c, ln))
+  {
     out << "; " << ln << std::endl;
   }
 
-  //print the model
+  // print the model
   out << "MODEL BEGIN" << std::endl;
   this->Printer::toStream(out, m);
   out << "MODEL END" << std::endl;
