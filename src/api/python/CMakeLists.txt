@@ -58,5 +58,20 @@ add_custom_command(TARGET pycvc4 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:pycvc4> ${PYCVC4_LOC}
 )
 
-install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install)"
-  FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+# figure out if we're in a virtualenv
+execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
+  COMMAND
+  "${PYTHON_EXECUTABLE}"
+  -c "import sys; print('YES', end='') if (hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)) else print('NO', end='')")
+
+if ("${IN_VIRTUALENV}" STREQUAL "YES")
+  # if we're in a virtualenv, better to put it in the virtualenv lib location
+  set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${SETUP_PY} install")
+else()
+  # otherwise, respect the install prefix
+  set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX}")
+endif()
+
+message("Python bindings install command: ${INSTALL_CMD}")
+
+install(CODE "execute_process(COMMAND ${INSTALL_CMD})"  FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
