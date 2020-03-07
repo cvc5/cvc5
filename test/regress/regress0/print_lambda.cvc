@@ -3,7 +3,7 @@
 % EXPECT: sat
 % EXPECT: MODEL BEGIN
 % EXPECT: f : (INT) -> INT = (LAMBDA(VAR:INT): 0);
-% EXPECT: MODEL END
+% EXPECT: MODEL END;
 
 f : INT -> INT;
 ASSERT f(1) = 0;
