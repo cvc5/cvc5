@@ -72,9 +72,9 @@ enumerator SEQUENCE_TYPE \
     "theory/strings/type_enumerator.h"
 
 constant CONST_SEQUENCE \
-    ::CVC4::Sequence \
-    ::CVC4::strings::StringHashFunction \
-    "expr/sequence.h" \
+    ::CVC4::ExprSequence \
+    ::CVC4::strings::ExprSequenceHashFunction \
+    "expr/expr_sequence.h" \
     "a sequence of characters"
 
 typerule CONST_STRING "SimpleTypeRule<RString>"

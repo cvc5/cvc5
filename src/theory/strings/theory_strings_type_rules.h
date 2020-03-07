@@ -20,7 +20,7 @@
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 
-#include "expr/sequence.h"
+#include "expr/expr_sequence.h"
 
 namespace CVC4 {
 namespace theory {
@@ -83,9 +83,8 @@ struct SequenceProperties
   {
     Assert(type.isSequence());
     // empty sequence
-    std::vector<Node> seq;
     return NodeManager::currentNM()->mkConst(
-        Sequence(TypeNode::fromType(SequenceType(type.toType())), seq));
+        ExprSequence(TypeNode::fromType(SequenceType(type.toType()))));
   }
 }; /* struct SequenceProperties */
 

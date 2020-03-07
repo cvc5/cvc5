@@ -12,8 +12,6 @@
  ** \brief The sequence data type.
  **/
 
-#include "cvc4_public.h"
-
 #ifndef CVC4__EXPR__SEQUENCE_H
 #define CVC4__EXPR__SEQUENCE_H
 
@@ -26,7 +24,7 @@ namespace CVC4 {
  *
  * This data structure is the domain of values for the sequence type.
  */
-class CVC4_PUBLIC Sequence
+class Sequence
 {
  public:
   /** constructors for Sequence
