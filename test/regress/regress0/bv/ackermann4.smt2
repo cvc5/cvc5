@@ -12,5 +12,4 @@
 (assert (= (f (f (f v0))) (g (f v0))))
 
 (check-sat)
-(get-model)
 (exit)
