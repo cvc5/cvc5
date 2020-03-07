@@ -14,8 +14,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__EXPR__SEQUENCE_H
-#define CVC4__EXPR__SEQUENCE_H
+#ifndef CVC4__EXPR__EXPR_SEQUENCE_H
+#define CVC4__EXPR__EXPR_SEQUENCE_H
 
 #include <iosfwd>
 #include <memory>
