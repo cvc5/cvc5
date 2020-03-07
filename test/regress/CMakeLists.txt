@@ -645,6 +645,7 @@ set(regress_0_tests
   regress0/preprocess/preprocess_14.cvc
   regress0/preprocess/preprocess_15.cvc
   regress0/print_lambda.cvc
+  regress0/print_model.cvc
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/empty_sort.smt2
