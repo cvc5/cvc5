@@ -304,24 +304,25 @@ bool TheorySetsPrivate::assertFact(Node fact, Node exp)
           Node s = e->d_singleton;
           if (!s.isNull())
           {
-            Node exp = NodeManager::currentNM()->mkNode(
+            Node pexp = NodeManager::currentNM()->mkNode(
                 kind::AND, atom, atom[1].eqNode(s));
-            d_keep.insert(exp);
+            d_keep.insert(pexp);
             if (s.getKind() == kind::SINGLETON)
             {
               if (s[0] != atom[0])
               {
-                Trace("sets-prop") << "Propagate mem-eq : " << exp << std::endl;
+                Trace("sets-prop")
+                    << "Propagate mem-eq : " << pexp << std::endl;
                 Node eq = s[0].eqNode(atom[0]);
                 d_keep.insert(eq);
-                assertFact(eq, exp);
+                assertFact(eq, pexp);
               }
             }
             else
             {
               Trace("sets-prop")
-                  << "Propagate mem-eq conflict : " << exp << std::endl;
-              d_state.setConflict(exp);
+                  << "Propagate mem-eq conflict : " << pexp << std::endl;
+              d_state.setConflict(pexp);
             }
           }
         }
@@ -372,6 +373,8 @@ void TheorySetsPrivate::fullEffortCheck()
   Trace("sets") << "----- Full effort check ------" << std::endl;
   do
   {
+    Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
+
     Trace("sets") << "...iterate full effort check..." << std::endl;
     fullEffortReset();
 
@@ -475,71 +478,88 @@ void TheorySetsPrivate::fullEffortCheck()
 
     // We may have sent lemmas while registering the terms in the loop above,
     // e.g. the cardinality solver.
-    if (!d_im.hasProcessed())
+    if (d_im.hasProcessed())
     {
-      if (Trace.isOn("sets-mem"))
+      continue;
+    }
+    if (Trace.isOn("sets-mem"))
+    {
+      const std::vector<Node>& sec = d_state.getSetsEqClasses();
+      for (const Node& s : sec)
       {
-        const std::vector<Node>& sec = d_state.getSetsEqClasses();
-        for (const Node& s : sec)
+        Trace("sets-mem") << "Eqc " << s << " : ";
+        const std::map<Node, Node>& smem = d_state.getMembers(s);
+        if (!smem.empty())
         {
-          Trace("sets-mem") << "Eqc " << s << " : ";
-          const std::map<Node, Node>& smem = d_state.getMembers(s);
-          if (!smem.empty())
+          Trace("sets-mem") << "Memberships : ";
+          for (const std::pair<const Node, Node>& it2 : smem)
           {
-            Trace("sets-mem") << "Memberships : ";
-            for (const std::pair<const Node, Node>& it2 : smem)
-            {
-              Trace("sets-mem") << it2.first << " ";
-            }
-          }
-          Node ss = d_state.getSingletonEqClass(s);
-          if (!ss.isNull())
-          {
-            Trace("sets-mem") << " : Singleton : " << ss;
-          }
-          Trace("sets-mem") << std::endl;
-        }
-      }
-      checkSubtypes();
-      d_im.flushPendingLemmas(true);
-      if (!d_im.hasProcessed())
-      {
-        checkDownwardsClosure();
-        if (options::setsInferAsLemmas())
-        {
-          d_im.flushPendingLemmas();
-        }
-        if (!d_im.hasProcessed())
-        {
-          checkUpwardsClosure();
-          d_im.flushPendingLemmas();
-          if (!d_im.hasProcessed())
-          {
-            checkDisequalities();
-            d_im.flushPendingLemmas();
-            if (!d_im.hasProcessed())
-            {
-              checkReduceComprehensions();
-              d_im.flushPendingLemmas();
-
-              if (!d_im.hasProcessed() && d_card_enabled)
-              {
-                // call the check method of the cardinality solver
-                d_cardSolver->check();
-              }
-            }
+            Trace("sets-mem") << it2.first << " ";
           }
         }
+        Node ss = d_state.getSingletonEqClass(s);
+        if (!ss.isNull())
+        {
+          Trace("sets-mem") << " : Singleton : " << ss;
+        }
+        Trace("sets-mem") << std::endl;
       }
     }
-    if (!d_im.hasProcessed())
+    // check subtypes
+    checkSubtypes();
+    d_im.flushPendingLemmas(true);
+    if (d_im.hasProcessed())
     {
-      // invoke relations solver
+      continue;
+    }
+    // check downwards closure
+    checkDownwardsClosure();
+    if (options::setsInferAsLemmas())
+    {
+      d_im.flushPendingLemmas();
+    }
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    // check upwards closure
+    checkUpwardsClosure();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    // check disequalities
+    checkDisequalities();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    // check reduce comprehensions
+    checkReduceComprehensions();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    if (d_card_enabled)
+    {
+      // call the check method of the cardinality solver
+      d_cardSolver->check();
+      if (d_im.hasProcessed())
+      {
+        continue;
+      }
+    }
+    if (d_rels_enabled)
+    {
+      // call the check method of the relations solver
       d_rels->check(Theory::EFFORT_FULL);
     }
-    Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
   } while (!d_im.hasSentLemma() && !d_state.isInConflict()
            && d_im.hasAddedFact());
+  Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
   Trace("sets") << "----- End full effort check, conflict="
                 << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
                 << std::endl;
@@ -774,8 +794,8 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     std::vector<Node> exp;
                     exp.push_back(itm2m.second);
                     d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
-                    Node k = d_state.getProxy(term);
-                    Node fact = nm->mkNode(kind::MEMBER, x, k);
+                    Node r = d_state.getProxy(term);
+                    Node fact = nm->mkNode(kind::MEMBER, x, r);
                     d_im.assertInference(fact, exp, "upc2");
                     if (d_state.isInConflict())
                     {

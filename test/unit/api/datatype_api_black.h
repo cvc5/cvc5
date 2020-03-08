@@ -83,9 +83,6 @@ void DatatypeBlack::testDatatypeStructs()
   DatatypeConstructor dcons = dt[0];
   Term consTerm = dcons.getConstructorTerm();
   TS_ASSERT(dcons.getNumSelectors() == 2);
-  // get tester name: notice this is only to support the Z3-style datatypes
-  // prior to SMT-LIB 2.6 where testers where changed to indexed symbols.
-  TS_ASSERT_THROWS_NOTHING(dcons.getTesterName());
 
   // create datatype sort to test
   DatatypeDecl dtypeSpecEnum = d_solver.mkDatatypeDecl("enum");

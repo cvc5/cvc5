@@ -159,9 +159,9 @@ void SynthEngine::assignConjecture(Node q)
     Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
                        << std::endl;
     quantifiers::SingleInvocationPartition sip;
-    std::vector<Node> funcs;
-    funcs.insert(funcs.end(), q[0].begin(), q[0].end());
-    sip.init(funcs, body);
+    std::vector<Node> funcs0;
+    funcs0.insert(funcs0.end(), q[0].begin(), q[0].end());
+    sip.init(funcs0, body);
     Trace("cegqi-qep") << "...finished, got:" << std::endl;
     sip.debugPrint("cegqi-qep");
 
@@ -204,11 +204,11 @@ void SynthEngine::assignConjecture(Node q)
         Trace("cegqi-qep") << "  subs : " << nqe_vars[i] << " -> " << k
                            << std::endl;
       }
-      std::vector<Node> funcs;
-      sip.getFunctions(funcs);
-      for (unsigned i = 0, size = funcs.size(); i < size; i++)
+      std::vector<Node> funcs1;
+      sip.getFunctions(funcs1);
+      for (unsigned i = 0, size = funcs1.size(); i < size; i++)
       {
-        Node f = funcs[i];
+        Node f = funcs1[i];
         Node fi = sip.getFunctionInvocationFor(f);
         Node fv = sip.getFirstOrderVariableForFunction(f);
         Assert(!fi.isNull());

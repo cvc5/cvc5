@@ -25,5 +25,13 @@ void Cvc::forceLogic(const std::string& logic)
   preemptCommand(new SetBenchmarkLogicCommand(logic));
 }
 
+bool Cvc::getTesterName(api::Term cons, std::string& name)
+{
+  std::stringstream ss;
+  ss << "is_" << cons;
+  name = ss.str();
+  return true;
+}
+
 }  // namespace parser
 }  // namespace CVC4

@@ -517,8 +517,7 @@ Node substituteCaptureAvoiding(TNode n,
             (std::distance(src.begin(), itt.base()) - 1) >= 0
             && static_cast<unsigned>(std::distance(src.begin(), itt.base()) - 1)
                    < dest.size());
-        Node n = dest[std::distance(src.begin(), itt.base()) - 1];
-        visited[curr] = n;
+        visited[curr] = dest[std::distance(src.begin(), itt.base()) - 1];
         continue;
       }
       if (curr.getNumChildren() == 0)
@@ -568,8 +567,7 @@ Node substituteCaptureAvoiding(TNode n,
         Assert(visited.find(curr[i]) != visited.end());
         nb << visited[curr[i]];
       }
-      Node n = nb;
-      visited[curr] = n;
+      visited[curr] = nb;
 
       // remove renaming
       if (curr.isClosure())
