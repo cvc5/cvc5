@@ -28,6 +28,9 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+
+using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+
 class IntToBV : public PreprocessingPass
 {
  public:
@@ -36,6 +39,10 @@ class IntToBV : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+  Node intToBVElimDivMod(TNode n, NodeMap& cache);
+  Node intToBV(TNode n, NodeMap& cache);
+  void saveDivModEliminationAssertion(Node current, Node skolem);
+  unordered_set<Node, NodeHashFunction> d_divModAssertions;
 };
 
 }  // namespace passes
