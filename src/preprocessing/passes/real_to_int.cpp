@@ -170,11 +170,12 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
           ret = nm->mkSkolem("__realToIntInternal_var",
                              nm->integerType(),
                              "Variable introduced in realToIntInternal pass");
-          var_eq.push_back(n.eqNode(ret)); 
+          var_eq.push_back(n.eqNode(ret));
           // ensure that the original variable is defined to be the returned
           // one, which is important for models and for incremental solving.
           std::vector<Expr> args;
-          smt::currentSmtEngine()->defineFunction( n.toExpr(), args, ret.toExpr() );
+          smt::currentSmtEngine()->defineFunction(
+              n.toExpr(), args, ret.toExpr());
         }
       }
     }
