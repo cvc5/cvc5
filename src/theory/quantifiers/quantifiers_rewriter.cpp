@@ -1672,7 +1672,9 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
     }
     return mkForAll( newArgs, body[1], qa );
   }else if( body.getKind()==AND ){
-    if( options::miniscopeQuant() ){
+    if( options::miniscopeQuant() || options::aggressiveMiniscopeQuant() ){
+      // aggressive miniscoping implies that structural miniscoping should
+      // be applied first
       //break apart
       NodeBuilder<> t(kind::AND);
       for( unsigned i=0; i<body.getNumChildren(); i++ ){
@@ -1685,7 +1687,9 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
     if( options::quantSplit() ){
       //splitting subsumes free variable miniscoping, apply it with higher priority
       return computeSplit( args, body, qa );
-    }else if( options::miniscopeQuantFreeVar() ){
+    }else if( options::miniscopeQuantFreeVar() || options::aggressiveMiniscopeQuant() ){
+      // aggressive miniscoping implies that free variable miniscoping should
+      // be applied first
       Node newBody = body;
       NodeBuilder<> body_split(kind::OR);
       NodeBuilder<> tb(kind::OR);
