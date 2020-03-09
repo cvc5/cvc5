@@ -66,12 +66,10 @@ execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
   "from __future__ import print_function; import os;
 print('YES', end='') if 'VIRTUAL_ENV' in os.environ else print('NO', end='')")
 
-if ("${IN_VIRTUALENV}" STREQUAL "YES")
-  # if we're in a virtualenv, better to put it in the virtualenv lib location
-  set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${SETUP_PY} install")
-else()
-  # otherwise, respect the install prefix
-  set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX}")
+set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${SETUP_PY} install")
+# if we're in a virtualenv, we install it in the virtualenv lib location
+if ("${IN_VIRTUALENV}" STREQUAL "NO")
+  set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}")
 endif()
 
 message("Python bindings install command: ${INSTALL_CMD}")
