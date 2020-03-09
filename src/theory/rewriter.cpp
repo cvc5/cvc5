@@ -99,12 +99,14 @@ Node Rewriter::rewrite(TNode node) {
 void Rewriter::registerPreRewrite(
     Kind k, std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn)
 {
+  Assert(k != kind::EQUAL) << "Register pre-rewrites for EQUAL with registerPreRewriteEqual.";
   d_preRewriters[k] = fn;
 }
 
 void Rewriter::registerPostRewrite(
     Kind k, std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn)
 {
+  Assert(k != kind::EQUAL) << "Register post-rewrites for EQUAL with registerPostRewriteEqual.";
   d_postRewriters[k] = fn;
 }
 
