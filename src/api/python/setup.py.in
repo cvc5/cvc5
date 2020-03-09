@@ -12,7 +12,7 @@ from distutils.core import setup
 from distutils.command.clean import clean
 from distutils.command.install import install
 
-class Pycvc4Install(install):
+class PyCVC4Install(install):
 
     # Calls the default run command, then deletes the build area
     # (equivalent to "setup clean --all").
@@ -28,4 +28,4 @@ setup(name='pycvc4',
       packages=['pycvc4'],
       package_dir={'pycvc4': '${CMAKE_CURRENT_BINARY_DIR}/pycvc4'},
       package_data={'pycvc4': ['pycvc4.so']},
-      cmdclass={'install': Pycvc4Install})
+      cmdclass={'install': PyCVC4Install})
