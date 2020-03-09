@@ -27,6 +27,36 @@ namespace quantifiers {
 
 struct QAttributes;
 
+/**
+ * List of steps used by the quantifiers rewriter, details on these steps
+ * can be found in the class below.
+ */
+enum RewriteStep
+{
+  /** Eliminate symbols (e.g. implies, xor) */
+  COMPUTE_ELIM_SYMBOLS = 0,
+  /** Miniscoping */
+  COMPUTE_MINISCOPING,
+  /** Aggressive miniscoping */
+  COMPUTE_AGGRESSIVE_MINISCOPING,
+  /** Apply the extended rewriter to quantified formula bodies */
+  COMPUTE_EXT_REWRITE,
+  /**
+   * Term processing (e.g. simplifying terms based on ITE lifting,
+   * eliminating extended arithmetic symbols).
+   */
+  COMPUTE_PROCESS_TERMS,
+  /** Prenexing */
+  COMPUTE_PRENEX,
+  /** Variable elimination */
+  COMPUTE_VAR_ELIMINATION,
+  /** Conditional splitting */
+  COMPUTE_COND_SPLIT,
+  /** Placeholder for end of steps */
+  COMPUTE_LAST
+};
+std::ostream& operator<<(std::ostream& out, RewriteStep s);
+
 class QuantifiersRewriter : public TheoryRewriter
 {
  public:
@@ -122,12 +152,7 @@ class QuantifiersRewriter : public TheoryRewriter
                              Node n,
                              Node ipl);
   static Node computeProcessTerms2(Node body,
-                                   bool hasPol,
-                                   bool pol,
-                                   std::map<Node, bool>& currCond,
-                                   int nCurrCond,
                                    std::map<Node, Node>& cache,
-                                   std::map<Node, Node>& icache,
                                    std::vector<Node>& new_vars,
                                    std::vector<Node>& new_conds,
                                    bool elimExtArith);
@@ -173,34 +198,58 @@ class QuantifiersRewriter : public TheoryRewriter
                                const std::vector<Node>& args,
                                QAttributes& qa);
   //-------------------------------------end conditional splitting
+  //------------------------------------- process terms
+  /** compute process terms
+   *
+   * This takes as input a quantified formula q with attributes qa whose
+   * body is body.
+   *
+   * This rewrite eliminates problematic terms from the bodies of
+   * quantified formulas, which includes performing:
+   * - Certain cases of ITE lifting,
+   * - Elimination of extended arithmetic functions like to_int/is_int/div/mod,
+   * - Elimination of select over store.
+   *
+   * It may introduce new variables V into new_vars and new conditions C into
+   * new_conds. It returns a node retBody such that q of the form
+   *   forall X. body
+   * is equivalent to:
+   *   forall X, V. ( C => retBody )
+   */
+  static Node computeProcessTerms(Node body,
+                                  std::vector<Node>& new_vars,
+                                  std::vector<Node>& new_conds,
+                                  Node q,
+                                  QAttributes& qa);
+  //------------------------------------- end process terms
+  //------------------------------------- extended rewrite
+  /** compute extended rewrite
+   *
+   * This returns the result of applying the extended rewriter on the body
+   * of quantified formula q.
+   */
+  static Node computeExtendedRewrite(Node q);
+  //------------------------------------- end extended rewrite
  public:
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
-  //cache is dependent upon currCond, icache is not, new_conds are negated conditions
-  static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
   static Node computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
   static Node computePrenexAgg( Node n, bool topLevel, std::map< unsigned, std::map< Node, Node > >& visited );
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
 private:
-  enum{
-    COMPUTE_ELIM_SYMBOLS = 0,
-    COMPUTE_MINISCOPING,
-    COMPUTE_AGGRESSIVE_MINISCOPING,
-    COMPUTE_PROCESS_TERMS,
-    COMPUTE_PRENEX,
-    COMPUTE_VAR_ELIMINATION,
-    COMPUTE_COND_SPLIT,
-    COMPUTE_LAST
-  };
-  static Node computeOperation( Node f, int computeOption, QAttributes& qa );
+ static Node computeOperation(Node f,
+                              RewriteStep computeOption,
+                              QAttributes& qa);
+
 public:
  RewriteResponse preRewrite(TNode in) override;
  RewriteResponse postRewrite(TNode in) override;
 
 private:
   /** options */
-  static bool doOperation( Node f, int computeOption, QAttributes& qa );
+ static bool doOperation(Node f, RewriteStep computeOption, QAttributes& qa);
+
 private:
   static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
 public:

@@ -328,10 +328,10 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;
-      Node body = Node::fromExpr(it->second);
-      Trace("sygus-infer") << "Define " << ff << " as " << body << std::endl;
+      Node body2 = Node::fromExpr(it->second);
+      Trace("sygus-infer") << "Define " << ff << " as " << body2 << std::endl;
       funs.push_back(ff);
-      sols.push_back(body);
+      sols.push_back(body2);
     }
   }
   return true;

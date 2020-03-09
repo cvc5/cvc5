@@ -258,11 +258,13 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {STRING_TOLOWER, CVC4::Kind::STRING_TOLOWER},
     {STRING_TOUPPER, CVC4::Kind::STRING_TOUPPER},
     {STRING_REV, CVC4::Kind::STRING_REV},
-    {STRING_CODE, CVC4::Kind::STRING_CODE},
+    {STRING_FROM_CODE, CVC4::Kind::STRING_FROM_CODE},
+    {STRING_TO_CODE, CVC4::Kind::STRING_TO_CODE},
     {STRING_LT, CVC4::Kind::STRING_LT},
     {STRING_LEQ, CVC4::Kind::STRING_LEQ},
     {STRING_PREFIX, CVC4::Kind::STRING_PREFIX},
     {STRING_SUFFIX, CVC4::Kind::STRING_SUFFIX},
+    {STRING_IS_DIGIT, CVC4::Kind::STRING_IS_DIGIT},
     {STRING_ITOS, CVC4::Kind::STRING_ITOS},
     {STRING_STOI, CVC4::Kind::STRING_STOI},
     {CONST_STRING, CVC4::Kind::CONST_STRING},
@@ -270,6 +272,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {REGEXP_CONCAT, CVC4::Kind::REGEXP_CONCAT},
     {REGEXP_UNION, CVC4::Kind::REGEXP_UNION},
     {REGEXP_INTER, CVC4::Kind::REGEXP_INTER},
+    {REGEXP_DIFF, CVC4::Kind::REGEXP_DIFF},
     {REGEXP_STAR, CVC4::Kind::REGEXP_STAR},
     {REGEXP_PLUS, CVC4::Kind::REGEXP_PLUS},
     {REGEXP_OPT, CVC4::Kind::REGEXP_OPT},
@@ -522,11 +525,13 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::STRING_TOLOWER, STRING_TOLOWER},
         {CVC4::Kind::STRING_TOUPPER, STRING_TOUPPER},
         {CVC4::Kind::STRING_REV, STRING_REV},
-        {CVC4::Kind::STRING_CODE, STRING_CODE},
+        {CVC4::Kind::STRING_FROM_CODE, STRING_FROM_CODE},
+        {CVC4::Kind::STRING_TO_CODE, STRING_TO_CODE},
         {CVC4::Kind::STRING_LT, STRING_LT},
         {CVC4::Kind::STRING_LEQ, STRING_LEQ},
         {CVC4::Kind::STRING_PREFIX, STRING_PREFIX},
         {CVC4::Kind::STRING_SUFFIX, STRING_SUFFIX},
+        {CVC4::Kind::STRING_IS_DIGIT, STRING_IS_DIGIT},
         {CVC4::Kind::STRING_ITOS, STRING_ITOS},
         {CVC4::Kind::STRING_STOI, STRING_STOI},
         {CVC4::Kind::CONST_STRING, CONST_STRING},
@@ -534,6 +539,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::REGEXP_CONCAT, REGEXP_CONCAT},
         {CVC4::Kind::REGEXP_UNION, REGEXP_UNION},
         {CVC4::Kind::REGEXP_INTER, REGEXP_INTER},
+        {CVC4::Kind::REGEXP_DIFF, REGEXP_DIFF},
         {CVC4::Kind::REGEXP_STAR, REGEXP_STAR},
         {CVC4::Kind::REGEXP_PLUS, REGEXP_PLUS},
         {CVC4::Kind::REGEXP_OPT, REGEXP_OPT},
@@ -1185,26 +1191,26 @@ uint32_t Op::getIndices() const
   switch (k)
   {
     case BITVECTOR_REPEAT:
-      i = d_expr->getConst<BitVectorRepeat>().repeatAmount;
+      i = d_expr->getConst<BitVectorRepeat>().d_repeatAmount;
       break;
     case BITVECTOR_ZERO_EXTEND:
-      i = d_expr->getConst<BitVectorZeroExtend>().zeroExtendAmount;
+      i = d_expr->getConst<BitVectorZeroExtend>().d_zeroExtendAmount;
       break;
     case BITVECTOR_SIGN_EXTEND:
-      i = d_expr->getConst<BitVectorSignExtend>().signExtendAmount;
+      i = d_expr->getConst<BitVectorSignExtend>().d_signExtendAmount;
       break;
     case BITVECTOR_ROTATE_LEFT:
-      i = d_expr->getConst<BitVectorRotateLeft>().rotateLeftAmount;
+      i = d_expr->getConst<BitVectorRotateLeft>().d_rotateLeftAmount;
       break;
     case BITVECTOR_ROTATE_RIGHT:
-      i = d_expr->getConst<BitVectorRotateRight>().rotateRightAmount;
+      i = d_expr->getConst<BitVectorRotateRight>().d_rotateRightAmount;
       break;
-    case INT_TO_BITVECTOR: i = d_expr->getConst<IntToBitVector>().size; break;
+    case INT_TO_BITVECTOR: i = d_expr->getConst<IntToBitVector>().d_size; break;
     case FLOATINGPOINT_TO_UBV:
-      i = d_expr->getConst<FloatingPointToUBV>().bvs.size;
+      i = d_expr->getConst<FloatingPointToUBV>().bvs.d_size;
       break;
     case FLOATINGPOINT_TO_SBV:
-      i = d_expr->getConst<FloatingPointToSBV>().bvs.size;
+      i = d_expr->getConst<FloatingPointToSBV>().bvs.d_size;
       break;
     case TUPLE_UPDATE: i = d_expr->getConst<TupleUpdate>().getIndex(); break;
     default:
@@ -1228,7 +1234,7 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
   if (k == BITVECTOR_EXTRACT)
   {
     CVC4::BitVectorExtract ext = d_expr->getConst<BitVectorExtract>();
-    indices = std::make_pair(ext.high, ext.low);
+    indices = std::make_pair(ext.d_high, ext.d_low);
   }
   else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR)
   {
@@ -1832,9 +1838,9 @@ DatatypeDecl::DatatypeDecl(const Solver* s,
                            bool isCoDatatype)
 {
   std::vector<Type> tparams;
-  for (const Sort& s : params)
+  for (const Sort& p : params)
   {
-    tparams.push_back(*s.d_type);
+    tparams.push_back(*p.d_type);
   }
   d_dtype = std::shared_ptr<CVC4::Datatype>(
       new CVC4::Datatype(s->getExprManager(), name, tparams, isCoDatatype));
@@ -1951,11 +1957,6 @@ Term DatatypeConstructor::getTesterTerm() const
 {
   Term tst = d_ctor->getTester();
   return tst;
-}
-
-std::string DatatypeConstructor::getTesterName() const
-{
-  return d_ctor->getTesterName();
 }
 
 size_t DatatypeConstructor::getNumSelectors() const
@@ -2404,7 +2405,8 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
 
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
-  Assert(isDefinedIntKind(k));
+  Assert(isDefinedIntKind(k))
+      << "Not a defined internal kind : " << k << " " << kind;
 
   Term res;
   if (echildren.size() > 2)
@@ -2982,7 +2984,7 @@ Term Solver::mkConstArray(Sort sort, Term val) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(val);
   CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
-  CVC4_API_CHECK(sort.getArrayElementSort() == val.getSort())
+  CVC4_API_CHECK(sort.getArrayElementSort().isComparableTo(val.getSort()))
       << "Value does not match element sort.";
   Term res = mkValHelper<CVC4::ArrayStoreAll>(
       CVC4::ArrayStoreAll(*sort.d_type, *val.d_expr));

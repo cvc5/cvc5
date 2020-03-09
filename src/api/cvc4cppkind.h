@@ -1988,7 +1988,7 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   STRING_REV,
   /**
-   * String code.
+   * String to code.
    * Returns the code point of a string if it has length one, or returns -1
    * otherwise.
    * Parameters: 1
@@ -1996,7 +1996,18 @@ enum CVC4_PUBLIC Kind : int32_t
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  STRING_CODE,
+  STRING_TO_CODE,
+  /**
+   * String from code.
+   * Returns a string containing a single character whose code point matches
+   * the argument to this function, or the empty string if the argument is
+   * out-of-bounds.
+   * Parameters: 1
+   *   -[1]: Term of Integer sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  STRING_FROM_CODE,
   /**
    * String less than.
    * Returns true if string s1 is (strictly) less than s2 based on a
@@ -2045,6 +2056,16 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   STRING_SUFFIX,
+  /**
+   * String is-digit.
+   * Returns true if string s is digit (it is one of "0", ..., "9").
+   * Parameters: 1
+   *   -[1]: Term of sort String
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_IS_DIGIT,
   /**
    * Integer to string.
    * If the integer is negative this operator returns the empty string.
@@ -2110,6 +2131,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   REGEXP_INTER,
+  /**
+   * Regexp difference.
+   * Parameters: 2
+   *   -[1]..[2]: Terms of Regexp sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  REGEXP_DIFF,
   /**
    * Regexp *.
    * Parameters: 1

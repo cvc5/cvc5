@@ -83,21 +83,16 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   bool isFinished() override { return d_curr.isNull(); }
 };/* class StringEnumerator */
 
-
+/**
+ * Enumerates string values for a given length.
+ */
 class StringEnumeratorLength {
- private:
-  uint32_t d_cardinality;
-  std::vector< unsigned > d_data;
-  Node d_curr;
-  void mkCurr() {
-    //make constant from d_data
-    d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
-  }
-
  public:
-  StringEnumeratorLength(uint32_t length, uint32_t card = 256)
-      : d_cardinality(card)
+  StringEnumeratorLength(TypeNode tn, uint32_t length, uint32_t card = 256)
+      : d_type(tn), d_cardinality(card)
   {
+    // TODO (cvc4-projects #23): sequence here
+    Assert(tn.isString());
     for( unsigned i=0; i<length; i++ ){
       d_data.push_back( 0 );
     }
@@ -125,6 +120,21 @@ class StringEnumeratorLength {
   }
 
   bool isFinished() { return d_curr.isNull(); }
+
+ private:
+  /** The type we are enumerating */
+  TypeNode d_type;
+  /** The cardinality of the alphabet */
+  uint32_t d_cardinality;
+  /** The data (index to members) */
+  std::vector<unsigned> d_data;
+  /** The current term */
+  Node d_curr;
+  /** Make the current term from d_data */
+  void mkCurr()
+  {
+    d_curr = NodeManager::currentNM()->mkConst(::CVC4::String(d_data));
+  }
 };
 
 }/* CVC4::theory::strings namespace */

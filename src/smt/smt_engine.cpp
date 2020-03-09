@@ -683,7 +683,8 @@ class SmtEnginePrivate : public NodeManagerListener {
   {
     if ((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
     {
-      DatatypeDeclarationCommand c(dtts);
+      std::vector<Type> types(dtts.begin(), dtts.end());
+      DatatypeDeclarationCommand c(types);
       d_smt.addToModelCommandAndDump(c);
     }
   }
@@ -850,7 +851,6 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_userLevels(),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
-      d_decisionEngine(NULL),
       d_theoryEngine(NULL),
       d_propEngine(NULL),
       d_proofManager(NULL),
@@ -935,12 +935,8 @@ void SmtEngine::finishInit()
 
   Trace("smt-debug") << "Making decision engine..." << std::endl;
 
-  d_decisionEngine = new DecisionEngine(d_context, d_userContext);
-  d_decisionEngine->init();   // enable appropriate strategies
-
   Trace("smt-debug") << "Making prop engine..." << std::endl;
   d_propEngine = new PropEngine(d_theoryEngine,
-                                d_decisionEngine,
                                 d_context,
                                 d_userContext,
                                 d_private->getReplayLog(),
@@ -948,7 +944,6 @@ void SmtEngine::finishInit()
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(d_propEngine);
-  d_theoryEngine->setDecisionEngine(d_decisionEngine);
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
 
@@ -1033,9 +1028,6 @@ void SmtEngine::shutdown() {
   if(d_theoryEngine != NULL) {
     d_theoryEngine->shutdown();
   }
-  if(d_decisionEngine != NULL) {
-    d_decisionEngine->shutdown();
-  }
 }
 
 SmtEngine::~SmtEngine()
@@ -1092,8 +1084,6 @@ SmtEngine::~SmtEngine()
     d_theoryEngine = NULL;
     delete d_propEngine;
     d_propEngine = NULL;
-    delete d_decisionEngine;
-    d_decisionEngine = NULL;
 
     delete d_stats;
     d_stats = NULL;
@@ -3100,22 +3090,6 @@ Result SmtEngine::check() {
   d_private->processAssertions();
   Trace("smt") << "SmtEngine::check(): done processing assertions" << endl;
 
-  // Turn off stop only for QF_LRA
-  // TODO: Bring up in a meeting where to put this
-  if(options::decisionStopOnly() && !options::decisionMode.wasSetByUser() ){
-    if( // QF_LRA
-       (not d_logic.isQuantified() &&
-        d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
-        )){
-      if (d_private->getIteSkolemMap().empty())
-      {
-        options::decisionStopOnly.set(false);
-        d_decisionEngine->clearStrategies();
-        Trace("smt") << "SmtEngine::check(): turning off stop only" << endl;
-      }
-    }
-  }
-
   TimerStat::CodeTimer solveTimer(d_stats->d_solveTime);
 
   Chat() << "solving..." << endl;
@@ -3184,8 +3158,7 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
-    if (it != getIteSkolemMap().end())
+    if (getIteSkolemMap().find(n) != getIteSkolemMap().end())
     {
       skolemSet.insert(n);
     }
@@ -3210,11 +3183,12 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<N
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
+    IteSkolemMap::iterator iit = getIteSkolemMap().find(n);
     bool bad = false;
-    if (it != getIteSkolemMap().end())
+    if (iit != getIteSkolemMap().end())
     {
-      if (!((*it).first < n)) {
+      if (!((*iit).first < n))
+      {
         bad = true;
       }
     }
@@ -3584,11 +3558,6 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-repeat-simplify", d_assertions);
 
-  if (options::rewriteApplyToConst())
-  {
-    d_passes["apply-to-const"]->apply(&d_assertions);
-  }
-
   if (options::ufHo())
   {
     d_passes["ho-elim"]->apply(&d_assertions);
@@ -3616,10 +3585,11 @@ void SmtEnginePrivate::processAssertions() {
   d_smt.d_theoryEngine->notifyPreprocessedAssertions( d_assertions.ref() );
 
   // Push the formula to decision engine
-  if(noConflict) {
+  if (noConflict)
+  {
     Chat() << "pushing to decision engine..." << endl;
     Assert(iteRewriteAssertionsEnd == d_assertions.size());
-    d_smt.d_decisionEngine->addAssertions(d_assertions);
+    d_smt.d_propEngine->addAssertionsToDecisionEngine(d_assertions);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
@@ -4785,16 +4755,19 @@ void SmtEngine::checkModel(bool hardFailure) {
       }
 
       // (2) check that the value is actually a value
-      else if (!val.isConst()) {
-        Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT A CONSTANT ***" << endl;
-        InternalError()
-            << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH "
-               "MODEL:"
-            << endl
-            << "model value for " << func << endl
-            << "             is " << val << endl
-            << "and that is not a constant (.isConst() == false)." << endl
-            << "Run with `--check-models -v' for additional diagnostics.";
+      else if (!val.isConst())
+      {
+        // This is only a warning since it could have been assigned an
+        // unevaluable term (e.g. an application of a transcendental function).
+        // This parallels the behavior (warnings for non-constant expressions)
+        // when checking whether assertions are satisfied below.
+        Warning() << "Warning : SmtEngine::checkModel(): "
+                  << "model value for " << func << endl
+                  << "             is " << val << endl
+                  << "and that is not a constant (.isConst() == false)."
+                  << std::endl
+                  << "Run with `--check-models -v' for additional diagnostics."
+                  << std::endl;
       }
 
       // (3) check that it's the correct (sub)type

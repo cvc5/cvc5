@@ -211,13 +211,13 @@ public:
   /** Statistics about the equality engine instance */
   struct Statistics {
     /** Total number of merges */
-    IntStat mergesCount;
+    IntStat d_mergesCount;
     /** Number of terms managed by the system */
-    IntStat termsCount;
+    IntStat d_termsCount;
     /** Number of function terms managed by the system */
-    IntStat functionTermsCount;
+    IntStat d_functionTermsCount;
     /** Number of constant terms managed by the system */
-    IntStat constantTermsCount;
+    IntStat d_constantTermsCount;
 
     Statistics(std::string name);
 
@@ -300,12 +300,14 @@ private:
    */
   struct Equality {
     /** Left hand side of the equality */
-    EqualityNodeId lhs;
+    EqualityNodeId d_lhs;
     /** Right hand side of the equality */
-    EqualityNodeId rhs;
+    EqualityNodeId d_rhs;
     /** Equality constructor */
-    Equality(EqualityNodeId lhs = null_id, EqualityNodeId rhs = null_id)
-    : lhs(lhs), rhs(rhs) {}
+    Equality(EqualityNodeId l = null_id, EqualityNodeId r = null_id)
+        : d_lhs(l), d_rhs(r)
+    {
+    }
   };/* struct EqualityEngine::Equality */
 
   /** The ids of the classes we have merged */
@@ -402,12 +404,15 @@ private:
    */
   struct Trigger {
     /** The current class id of the LHS of the trigger */
-    EqualityNodeId classId;
+    EqualityNodeId d_classId;
     /** Next trigger for class */
-    TriggerId nextTrigger;
+    TriggerId d_nextTrigger;
 
-    Trigger(EqualityNodeId classId = null_id, TriggerId nextTrigger = null_trigger)
-    : classId(classId), nextTrigger(nextTrigger) {}
+    Trigger(EqualityNodeId classId = null_id,
+            TriggerId nextTrigger = null_trigger)
+        : d_classId(classId), d_nextTrigger(nextTrigger)
+    {
+    }
   };/* struct EqualityEngine::Trigger */
 
   /**
@@ -573,14 +578,17 @@ private:
   /** Set of trigger terms */
   struct TriggerTermSet {
     /** Set of theories in this set */
-    Theory::Set tags;
+    Theory::Set d_tags;
     /** The trigger terms */
-    EqualityNodeId triggers[0];
+    EqualityNodeId d_triggers[0];
     /** Returns the theory tags */
-    Theory::Set hasTrigger(TheoryId tag) const { return Theory::setContains(tag, tags); }
+    Theory::Set hasTrigger(TheoryId tag) const
+    {
+      return Theory::setContains(tag, d_tags);
+    }
     /** Returns a trigger by tag */
     EqualityNodeId getTrigger(TheoryId tag) const {
-      return triggers[Theory::setIndex(tag, tags)];
+      return d_triggers[Theory::setIndex(tag, d_tags)];
     }
   };/* struct EqualityEngine::TriggerTermSet */
 
@@ -618,10 +626,13 @@ private:
   context::CDO<DefaultSizeType> d_triggerDatabaseSize;
 
   struct TriggerSetUpdate {
-    EqualityNodeId classId;
-    TriggerTermSetRef oldValue;
-    TriggerSetUpdate(EqualityNodeId classId = null_id, TriggerTermSetRef oldValue = null_set_id)
-    : classId(classId), oldValue(oldValue) {}
+    EqualityNodeId d_classId;
+    TriggerTermSetRef d_oldValue;
+    TriggerSetUpdate(EqualityNodeId classId = null_id,
+                     TriggerTermSetRef oldValue = null_set_id)
+        : d_classId(classId), d_oldValue(oldValue)
+    {
+    }
   };/* struct EqualityEngine::TriggerSetUpdate */
 
   /**
@@ -693,14 +704,18 @@ private:
    */
   struct TaggedEquality {
     /** Id of the equality */
-    EqualityNodeId equalityId;
+    EqualityNodeId d_equalityId;
     /** TriggerSet reference for the class of one of the sides */
-    TriggerTermSetRef triggerSetRef;
+    TriggerTermSetRef d_triggerSetRef;
     /** Is trigger equivalent to the lhs (rhs otherwise) */
-    bool lhs;
+    bool d_lhs;
 
-    TaggedEquality(EqualityNodeId equalityId = null_id, TriggerTermSetRef triggerSetRef = null_set_id, bool lhs = true)
-    : equalityId(equalityId), triggerSetRef(triggerSetRef), lhs(lhs) {}
+    TaggedEquality(EqualityNodeId equalityId = null_id,
+                   TriggerTermSetRef triggerSetRef = null_set_id,
+                   bool lhs = true)
+        : d_equalityId(equalityId), d_triggerSetRef(triggerSetRef), d_lhs(lhs)
+    {
+    }
   };
 
   /** A map from equivalence class id's to tagged equalities */
