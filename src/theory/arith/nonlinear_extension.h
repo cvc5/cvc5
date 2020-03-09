@@ -511,13 +511,21 @@ class NonlinearExtension {
   
   //transcendental functions
   /**
-   * Maps arguments of SINE applications to a fresh skolem. This is used for
-   * ensuring that the argument of SINE we process are on the interval
-   * [-pi .. pi].
+   * Some transcendental functions f(t) are "purified", e.g. we add
+   * t = y ^ f(t) = f(y) where y is a fresh variable. Those that are not
+   * purified we call "master terms".
+   *
+   * The maps below maintain a master/slave relationship over
+   * transcendental functions (SINE, EXPONENTIAL, PI), where above
+   * f(y) is the master of itself and of f(t).
+   *
+   * This is used for ensuring that the argument y of SINE we process is on the
+   * interval [-pi .. pi], and that exponentials are not applied to arguments
+   * that contain transcendental functions.
    */
-  std::map<Node, Node> d_tr_base;
-  /** Stores skolems in the range of the above map */
-  std::map<Node, bool> d_tr_is_base;
+  std::map<Node, Node> d_trMaster;
+  std::map<Node, std::vector<Node> > d_trSlaves;
+  /** The transcendental functions we have done initial refinements on */
   std::map< Node, bool > d_tf_initial_refine;
 
   void mkPi();
@@ -544,8 +552,24 @@ class NonlinearExtension {
   std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
 
-  /** A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI } */
-  std::map<Kind, std::vector<Node> > d_f_map;
+  /**
+   * Maps representives of a congruence class to the members of that class.
+   *
+   * In detail, a congruence class is a set of terms of the form
+   *   { f(t1), ..., f(tn) }
+   * such that t1 = ... = tn in the current context. We choose an arbitrary
+   * term among these to be the repesentative of this congruence class.
+   *
+   * Moreover, notice we compute congruence classes only over terms that
+   * are transcendental function applications that are "master terms",
+   * see d_trMaster/d_trSlave.
+   */
+  std::map<Node, std::vector<Node> > d_funcCongClass;
+  /**
+   * A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI }
+   * that are representives of their congruence class.
+   */
+  std::map<Kind, std::vector<Node> > d_funcMap;
 
   // factor skolems
   std::map< Node, Node > d_factor_skolem;
@@ -644,13 +668,6 @@ class NonlinearExtension {
    * on the model value of its argument.
    */
   std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d);
-  /** is refinable transcendental function
-   *
-   * A transcendental function application is not refineable if its current
-   * model value is zero, or if it is an application of SINE applied
-   * to a non-variable.
-   */
-  bool isRefineableTfFun(Node tf);
   /** get approximate sqrt
    *
    * This approximates the square root of positive constant c. If this method
@@ -953,14 +970,20 @@ class NonlinearExtension {
       std::map<Node, NlLemmaSideEffect>& lemSE);
   /** check transcendental function refinement for tf
    *
-   * This method is called by the above method for each refineable
-   * transcendental function (see isRefineableTfFun) that occurs in an
-   * assertion in the current context.
+   * This method is called by the above method for each "master"
+   * transcendental function application that occurs in an assertion in the
+   * current context. For example, an application like sin(t) is not a master
+   * if we have introduced the constraints:
+   *   t=y+2*pi*n ^ -pi <= y <= pi ^ sin(t) = sin(y).
+   * See d_trMaster/d_trSlaves for more detail.
    *
    * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
    * function application tf for Taylor degree d. It may add a secant or
    * tangent plane lemma to lems and its side effect (if one exists)
    * to lemSE.
+   *
+   * It returns false if the bounds are not precise enough to add a
+   * secant or tangent plane lemma.
    */
   bool checkTfTangentPlanesFun(Node tf,
                                unsigned d,
