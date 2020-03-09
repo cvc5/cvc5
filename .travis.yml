@@ -97,7 +97,7 @@ script:
    [ -n "$TRAVIS_CVC4" ] && run makeCheck
    [ -z "$CVC4_SYMFPU_BUILD" ] && run makeInstallCheck && run makeExamples
    [ -z "$TRAVIS_CVC4" ] && error "Unknown Travis-CI configuration"
-   [ -n "$TRAVIS_CVC4_PYTHON_BINDINGS" ] && $TRAVIS_PYTHON -c "import pycvc4"
+   [ "$TRAVIS_CVC4_PYTHON_BINDINGS" == "yes" ] && $TRAVIS_PYTHON -c "import pycvc4"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
  - ccache -s
@@ -109,12 +109,14 @@ matrix:
       env:
         - TRAVIS_CVC4=yes
         - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_PYTHON_BINDINGS=no
         - TRAVIS_CVC4_CONFIG="production --language-bindings=java --lfsc"
         - TRAVIS_PYTHON=python
     - compiler: gcc
       env:
         - TRAVIS_CVC4=yes
         - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_PYTHON_BINDINGS=no
         - TRAVIS_CVC4_CONFIG="debug --symfpu --lfsc --no-debug-symbols"
         - TRAVIS_PYTHON=python
     # Test python bindings
@@ -138,6 +140,7 @@ matrix:
       env:
         - TRAVIS_CVC4=yes
         - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_PYTHON_BINDINGS=no
         - TRAVIS_CVC4_CONFIG="debug --symfpu --cln --gpl --no-debug-symbols --no-proofs"
         - TRAVIS_PYTHON=python
 notifications:
