@@ -414,9 +414,15 @@ bool TheoryStrings::collectModelInfoType(
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
       unsigned currLen = lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt(); 
-      StringEnumeratorLength sel(
-          tn,
-          currLen, currLen, utils::getAlphabetCardinality());
+      std::unique_ptr<StringEnumeratorLength> sel;
+      if (tn.isString())
+      {
+        sel.reset( new StringEnumeratorLength(currLen, currLen, utils::getAlphabetCardinality()));
+      }
+      else
+      {
+        sel.reset(new StringEnumeratorLength(tn,nullptr,currLen,currLen));
+      }
       for (const Node& eqc : pure_eq)
       {
         Node c;
@@ -425,7 +431,7 @@ bool TheoryStrings::collectModelInfoType(
         {
           do
           {
-            if (sel.isFinished())
+            if (sel->isFinished())
             {
               // We are in a case where model construction is impossible due to
               // an insufficient number of constants of a given length.
@@ -461,8 +467,8 @@ bool TheoryStrings::collectModelInfoType(
               }
               return false;
             }
-            c = *sel;
-            ++sel;
+            c = **sel;
+            ++(*sel);
           } while (m->hasTerm(c));
         }
         else

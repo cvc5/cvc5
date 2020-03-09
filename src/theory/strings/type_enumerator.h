@@ -57,8 +57,14 @@ class WordIter {
  */
 class StringEnumeratorLength {
  public:
-  StringEnumeratorLength(TypeNode tn, uint32_t startLength, uint32_t card);
-  StringEnumeratorLength(TypeNode tn, uint32_t startLength, uint32_t endLength, uint32_t card);
+  /** For sequences */
+  StringEnumeratorLength(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength);
+  StringEnumeratorLength(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength, uint32_t endLength);
+  /** For strings */
+  StringEnumeratorLength(uint32_t startLength, uint32_t card);
+  StringEnumeratorLength(uint32_t startLength, uint32_t endLength, uint32_t card);
+  /** destructor */
+  ~StringEnumeratorLength(){}
   /** dereference */
   Node operator*();
   /** increment */
@@ -69,17 +75,22 @@ class StringEnumeratorLength {
   /** The type we are enumerating */
   TypeNode d_type;
   /** The word iterator utility */
-  WordIter d_witer;
+  std::unique_ptr<WordIter> d_witer;
+  /** an enumerator for the elements' type */
+  std::unique_ptr<TypeEnumerator> d_elementEnumerator;
+  /** The domain */
+  std::vector<Node> d_elementDomain;
   /** The current term */
   Node d_curr;
   /** Make the current term from d_data */
   void mkCurr();
 };
 
-
 class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
  public:
   StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
+  StringEnumerator(const StringEnumerator& enumerator);
+  ~StringEnumerator(){}
   Node operator*() override;
   StringEnumerator& operator++() override;
   bool isFinished() override;
