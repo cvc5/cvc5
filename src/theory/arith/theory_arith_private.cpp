@@ -1301,7 +1301,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
 Node TheoryArithPrivate::ppRewrite(TNode atom) {
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
-  if (options::arithRewriteEq()) 
+  if (options::arithRewriteEq())
   {
     if (atom.getKind() == kind::EQUAL && atom[0].getType().isReal())
     {
@@ -1310,8 +1310,8 @@ Node TheoryArithPrivate::ppRewrite(TNode atom) {
       leq = ppRewriteTerms(leq);
       geq = ppRewriteTerms(geq);
       Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-      Debug("arith::preprocess") << "arith::preprocess() : returning "
-                                << rewritten << endl;
+      Debug("arith::preprocess")
+          << "arith::preprocess() : returning " << rewritten << endl;
       return rewritten;
     }
   }
