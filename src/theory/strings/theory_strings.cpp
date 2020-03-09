@@ -413,9 +413,10 @@ bool TheoryStrings::collectModelInfoType(
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
+      unsigned currLen = lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt(); 
       StringEnumeratorLength sel(
           tn,
-          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
+          currLen, currLen, utils::getAlphabetCardinality());
       for (const Node& eqc : pure_eq)
       {
         Node c;

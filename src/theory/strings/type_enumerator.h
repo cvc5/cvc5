@@ -33,96 +33,32 @@ namespace theory {
 namespace strings {
 
 /** Generic iteration over vectors of indices of a given length and cardinality */
-class WordIterFixedLen {
+class WordIter {
  public:
-  WordIterFixedLen(uint32_t length, uint32_t card);
+  WordIter(uint32_t startLength, uint32_t card);
+  WordIter(uint32_t startLength, uint32_t endLength, uint32_t card);
   /** Get the data */
   const std::vector<unsigned>& getData() const;
   /** increment */
   bool increment();
  private:
+  /** has end length */
+  bool d_hasEndLength;
+  /** end length */
+  uint32_t d_endLength;
   /** The cardinality of the alphabet */
   uint32_t d_cardinality;
   /** The data (index to members) */
   std::vector<unsigned> d_data;
 };
 
-/** 
- * Generic iterator over vectors of indices with given cardinality, in
- * increasing order of length, starting with start length.
- */
-class WordIter {
- public:
-  WordIter(uint32_t startLength, uint32_t card);
-  /** Get the data */
-  const std::vector<unsigned>& getData() const;
-  /** increment (always succeeds) */
-  void increment();
- private:
-  /** The cardinality of the alphabet */
-  uint32_t d_cardinality;
-  /** The current fixed length iterator */
-  std::unique_ptr<WordIterFixedLen> d_witerFixed;
-};
-
-
-class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
-  std::vector< unsigned > d_data;
-  uint32_t d_cardinality;
-  Node d_curr;
-  void mkCurr() {
-    //make constant from d_data
-    d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
-  }
-
- public:
-  StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
-      : TypeEnumeratorBase<StringEnumerator>(type)
-  {
-    Assert(type.getKind() == kind::TYPE_CONSTANT
-           && type.getConst<TypeConstant>() == STRING_TYPE);
-    d_cardinality = utils::getAlphabetCardinality();
-    mkCurr();
-  }
-  Node operator*() override { return d_curr; }
-  StringEnumerator& operator++() override
-  {
-    bool changed = false;
-    do
-    {
-      for (unsigned i = 0; i < d_data.size(); ++i)
-      {
-        if (d_data[i] + 1 < d_cardinality)
-        {
-          ++d_data[i];
-          changed = true;
-          break;
-        }
-        else
-        {
-          d_data[i] = 0;
-        }
-      }
-
-      if (!changed)
-      {
-        d_data.push_back(0);
-      }
-    } while (!changed);
-
-    mkCurr();
-    return *this;
-  }
-
-  bool isFinished() override { return d_curr.isNull(); }
-};/* class StringEnumerator */
-
 /**
  * Enumerates string values for a given length.
  */
 class StringEnumeratorLength {
  public:
-  StringEnumeratorLength(TypeNode tn, uint32_t length, uint32_t card = 256);
+  StringEnumeratorLength(TypeNode tn, uint32_t startLength, uint32_t card);
+  StringEnumeratorLength(TypeNode tn, uint32_t startLength, uint32_t endLength, uint32_t card);
   /** dereference */
   Node operator*();
   /** increment */
@@ -133,12 +69,25 @@ class StringEnumeratorLength {
   /** The type we are enumerating */
   TypeNode d_type;
   /** The word iterator utility */
-  WordIterFixedLen d_witer;
+  WordIter d_witer;
   /** The current term */
   Node d_curr;
   /** Make the current term from d_data */
   void mkCurr();
 };
+
+
+class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
+ public:
+  StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
+  Node operator*() override;
+  StringEnumerator& operator++() override;
+  bool isFinished() override;
+private:
+  /** underlying string enumerator */
+  StringEnumeratorLength d_strEnum;
+};/* class StringEnumerator */
+
 
 class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator>
 {
