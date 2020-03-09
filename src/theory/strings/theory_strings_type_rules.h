@@ -25,21 +25,27 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
-class StringConcatTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+
+class StringConcatTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TypeNode tret;
-    for (const Node& nc : n){
+    for (const Node& nc : n)
+    {
       TypeNode t = nc.getType(check);
       if (tret.isNull())
       {
         tret = t;
         if (check)
         {
-          if (!t.isStringLike()) {
-            throw TypeCheckingExceptionPrivate(n, "expecting string-like terms in concat");
+          if (!t.isStringLike())
+          {
+            throw TypeCheckingExceptionPrivate(
+                n, "expecting string-like terms in concat");
           }
         }
         else
@@ -47,88 +53,130 @@ public:
           break;
         }
       }
-      else if (t!=tret)
+      else if (t != tret)
       {
-        throw TypeCheckingExceptionPrivate(n, "expecting all children to have the same type in concat");
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting all children to have the same type in concat");
       }
     }
     return tret;
   }
 };
 
-class StringSubstrTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+class StringSubstrTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TypeNode t = n[0].getType(check);
-    if( check ) {
-      if (!t.isStringLike()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting a string-like term in substr");
+    if (check)
+    {
+      if (!t.isStringLike())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting a string-like term in substr");
       }
       TypeNode t2 = n[1].getType(check);
-      if (!t2.isInteger()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting an integer start term in substr");
+      if (!t2.isInteger())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an integer start term in substr");
       }
       t2 = n[2].getType(check);
-      if (!t2.isInteger()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting an integer length term in substr");
+      if (!t2.isInteger())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an integer length term in substr");
       }
     }
     return t;
   }
 };
 
-class StringIndexOfTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+class StringIndexOfTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
-    if( check ) {
+    if (check)
+    {
       TypeNode t = n[0].getType(check);
-      if (!t.isStringLike()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting a string-like term in indexof");
+      if (!t.isStringLike())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting a string-like term in indexof");
       }
       TypeNode t2 = n[1].getType(check);
-      if (t != t2) {
-        throw TypeCheckingExceptionPrivate(n, "expecting a term in second argument of indexof that is the same type as the first argument");
+      if (t != t2)
+      {
+        throw TypeCheckingExceptionPrivate(
+            n,
+            "expecting a term in second argument of indexof that is the same "
+            "type as the first argument");
       }
       t = n[2].getType(check);
-      if (!t.isInteger()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting an integer term in third argument of indexof");
+      if (!t.isInteger())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an integer term in third argument of indexof");
       }
     }
     return nodeManager->integerType();
   }
 };
 
-class StringReplaceTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+class StringReplaceTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TypeNode t = n[0].getType(check);
-    if( check ) {
-      if (!t.isStringLike()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting a string-like term in replace");
+    if (check)
+    {
+      if (!t.isStringLike())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting a string-like term in replace");
       }
       TypeNode t2 = n[1].getType(check);
-      if (t != t2) {
-        throw TypeCheckingExceptionPrivate(n, "expecting a term in second argument of replace that is the same type as the first argument");
+      if (t != t2)
+      {
+        throw TypeCheckingExceptionPrivate(
+            n,
+            "expecting a term in second argument of replace that is the same "
+            "type as the first argument");
       }
       t2 = n[2].getType(check);
-      if (t != t2) {
-        throw TypeCheckingExceptionPrivate(n, "expecting a term in third argument of replace that is the same type as the first argument");
+      if (t != t2)
+      {
+        throw TypeCheckingExceptionPrivate(
+            n,
+            "expecting a term in third argument of replace that is the same "
+            "type as the first argument");
       }
     }
     return t;
   }
 };
 
-class StringStrToBoolTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+class StringStrToBoolTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
-    if( check ) {
+    if (check)
+    {
       TypeNode t = n[0].getType(check);
-      if (!t.isStringLike()) {
+      if (!t.isStringLike())
+      {
         std::stringstream ss;
         ss << "expecting a string-like term in argument of " << n.getKind();
         throw TypeCheckingExceptionPrivate(n, ss.str());
@@ -138,13 +186,18 @@ public:
   }
 };
 
-class StringStrToIntTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+class StringStrToIntTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
-    if( check ) {
+    if (check)
+    {
       TypeNode t = n[0].getType(check);
-      if (!t.isStringLike()) {
+      if (!t.isStringLike())
+      {
         std::stringstream ss;
         ss << "expecting a string-like term in argument of " << n.getKind();
         throw TypeCheckingExceptionPrivate(n, ss.str());
@@ -178,16 +231,21 @@ class StringStrToStrTypeRule
 class StringRelationTypeRule
 {
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
-    if( check ) {
+    if (check)
+    {
       TypeNode t = n[0].getType(check);
-      if (!t.isStringLike()) {
+      if (!t.isStringLike())
+      {
         throw TypeCheckingExceptionPrivate(
             n, "expecting a string-like term in relation");
       }
       TypeNode t2 = n[1].getType(check);
-      if (t!=t2) {
+      if (t != t2)
+      {
         throw TypeCheckingExceptionPrivate(
             n, "expecting two terms of the same string-like type in relation");
       }
@@ -195,7 +253,7 @@ class StringRelationTypeRule
     return nodeManager->booleanType();
   }
 };
-  
+
 class RegExpRangeTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
