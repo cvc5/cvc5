@@ -1071,10 +1071,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     Assert(!d_state.areEqual(x, y));
 
     std::vector<Node> lenExp;
-    Node xLen = d_state.getLength(x, lenExp);
-    Node yLen = d_state.getLength(y, lenExp);
+    Node xLenTerm = d_state.getLength(x, lenExp);
+    Node yLenTerm = d_state.getLength(y, lenExp);
 
-    if (d_state.areEqual(xLen, yLen))
+    if (d_state.areEqual(xLenTerm, yLenTerm))
     {
       // `x` and `y` have the same length. We infer that the two components
       // have to be the same.
@@ -1083,7 +1083,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Trace("strings-solve-debug")
           << "Simple Case 2 : string lengths are equal" << std::endl;
       Node eq = x.eqNode(y);
-      Node leneq = xLen.eqNode(yLen);
+      Node leneq = xLenTerm.eqNode(yLenTerm);
       NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, lenExp);
       lenExp.push_back(leneq);
       d_im.sendInference(lenExp, eq, "N_Unify");
@@ -1196,7 +1196,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     info.d_j = nfj.d_base;
     info.d_rev = isRev;
     Assert(index < nfiv.size() - rproc && index < nfjv.size() - rproc);
-    if (!d_state.areDisequal(xLen, yLen) && !d_state.areEqual(xLen, yLen)
+    if (!d_state.areDisequal(xLenTerm, yLenTerm) && !d_state.areEqual(xLenTerm, yLenTerm)
         && !x.isConst()
         && !y.isConst())  // AJR: remove the latter 2 conditions?
     {
@@ -1208,7 +1208,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Trace("strings-solve-debug")
           << "Non-simple Case 1 : string lengths neither equal nor disequal"
           << std::endl;
-      Node lenEq = nm->mkNode(EQUAL, xLen, yLen);
+      Node lenEq = nm->mkNode(EQUAL, xLenTerm, yLenTerm);
       lenEq = Rewriter::rewrite(lenEq);
       info.d_conc = nm->mkNode(OR, lenEq, lenEq.negate());
       info.d_pending_phase[lenEq] = true;
@@ -1396,7 +1396,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     // is a prefix/suffix of the other.
     //
     // E.g. x ++ ... = y ++ ... ---> (x = y ++ k) v (y = x ++ k)
-    Assert(d_state.areDisequal(xLen, yLen));
+    Assert(d_state.areDisequal(xLenTerm, yLenTerm));
     Assert(x.getKind() != CONST_STRING);
     Assert(y.getKind() != CONST_STRING);
 
@@ -1412,8 +1412,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         // do not infer constants are larger than variables
         if (t.getKind() != CONST_STRING)
         {
-          Node lt1 = e == 0 ? xLen : yLen;
-          Node lt2 = e == 0 ? yLen : xLen;
+          Node lt1 = e == 0 ? xLenTerm : yLenTerm;
+          Node lt2 = e == 0 ? yLenTerm : xLenTerm;
           Node entLit = Rewriter::rewrite(nm->mkNode(GT, lt1, lt2));
           std::pair<bool, Node> et = d_state.entailmentCheck(
               options::TheoryOfMode::THEORY_OF_TYPE_BASED, entLit);
@@ -1466,7 +1466,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     }
     else
     {
-      Node ldeq = nm->mkNode(EQUAL, xLen, yLen).negate();
+      Node ldeq = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
       info.d_ant.push_back(ldeq);
       info.d_conc = nm->mkNode(OR, eq1, eq2);
       info.d_id = INFER_SSPLIT_VAR;
