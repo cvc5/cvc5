@@ -265,9 +265,6 @@ public:
 
   virtual ~Parser();
 
-  /** Get the associated <code>ExprManager</code>. */
-  ExprManager* getExprManager() const;
-
   /** Get the associated solver. */
   api::Solver* getSolver() const;
 
