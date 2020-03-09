@@ -160,7 +160,7 @@ namespace strings {
 
 struct CVC4_PUBLIC SequenceHashFunction {
 size_t operator()(const ::CVC4::Sequence& s) const {
-  return std::hash<std::vector<Node>>()(s.getVec());
+  return 0;
 }
 }; /* struct SequenceHashFunction */
 

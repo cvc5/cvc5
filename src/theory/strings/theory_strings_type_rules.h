@@ -84,7 +84,7 @@ struct SequenceProperties
     Assert(type.isSequence());
     // empty sequence
     return NodeManager::currentNM()->mkConst(
-        ExprSequence(TypeNode::fromType(SequenceType(type.toType()))));
+        ExprSequence(SequenceType(type.toType())));
   }
 }; /* struct SequenceProperties */
 

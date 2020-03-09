@@ -14,18 +14,56 @@
 
 #include "expr/expr_sequence.h"
 
-using namespace std;
+#include "expr/expr.h"
+#include "expr/type.h"
 
 namespace CVC4 {
 
-ExprSequence::ExprSequence(Type t) : d_type(t)
+ExprSequence::ExprSequence(const Type& t)
 {
+  d_type.reset(new Type(t));
 }
 
-const Type& ExprSequence::getType() const { return d_type; }
+const Type& ExprSequence::getType() const { return *d_type; }
+
+const Expr& getExpr() const {
+  return *d_expr;
+}
 
 size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const {
   return TypeHashFunction()(es.getType());
+}
+
+bool ExprSequence::operator==(const ExprSequence& es) const
+{
+  return getType() == es.getType() && getExpr() == es.getExpr();
+}
+
+bool ExprSequence::operator!=(const ExprSequence& es) const
+{
+  return !(*this == es);
+}
+
+bool ExprSequence::operator<(const ExprSequence& es) const
+{
+  return (getType() < es.getType()) ||
+         (getType() == es.getType() && getExpr() < es.getExpr());
+}
+
+bool ExprSequence::operator<=(const ExprSequence& es) const
+{
+  return (getType() < es.getType()) ||
+         (getType() == es.getType() && getExpr() <= es.getExpr());
+}
+
+bool ExprSequence::operator>(const ExprSequence& es) const
+{
+  return !(*this <= es);
+}
+
+bool ExprSequence::operator>=(const ExprSequence& es) const
+{
+  return !(*this < es);
 }
 
 std::ostream& operator<<(std::ostream& os, const Sequence& s)

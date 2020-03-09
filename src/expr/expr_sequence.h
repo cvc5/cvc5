@@ -23,6 +23,7 @@
 namespace CVC4 {
 // messy; Expr needs ArrayStoreAll (because it's the payload of a
 // CONSTANT-kinded expression), and ArrayStoreAll needs Expr.
+class Expr;
 class Type;
 }  // namespace CVC4
 
@@ -43,12 +44,21 @@ class CVC4_PUBLIC ExprSequence
   ExprSequence() = default;
   explicit ExprSequence(const Type& type);
 
+  bool operator==(const ExprSequence& es) const;
+  bool operator!=(const ExprSequence& es) const;
+  bool operator<(const ExprSequence& es) const;
+  bool operator<=(const ExprSequence& es) const;
+  bool operator>(const ExprSequence& es) const;
+  bool operator>=(const ExprSequence& es) const;
+
   const Type& getType() const;
+  const Expr& getExpr() const;
   //const Expr& getExpr() const;
  private:
   /** The element type of the sequence */
-  Type d_type;
+  std::unique_ptr<Type> d_type;
   /** The data of the sequence */
+  std::unique_ptr<Expr> d_expr;
 }; /* class ExprSequence */
 
 namespace strings {
