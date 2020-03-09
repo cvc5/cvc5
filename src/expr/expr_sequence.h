@@ -38,15 +38,15 @@ class CVC4_PUBLIC ExprSequence
  public:
   /** constructors for ExprSequence
    *
-   * Internally, a CVC4::ExprSequence is represented by a vector of Nodes (d_seq),
-   * where each Node in this vector must be a constant.
+   * Internally, a CVC4::ExprSequence is represented by a vector of Nodes
+   * (d_seq), where each Node in this vector must be a constant.
    */
   ExprSequence(const Type& type);
   ~ExprSequence();
 
   ExprSequence(const ExprSequence& other);
   ExprSequence& operator=(const ExprSequence& other);
-  
+
   bool operator==(const ExprSequence& es) const;
   bool operator!=(const ExprSequence& es) const;
   bool operator<(const ExprSequence& es) const;
@@ -56,7 +56,7 @@ class CVC4_PUBLIC ExprSequence
 
   const Type& getType() const;
   const Expr& getExpr() const;
-  //const Expr& getExpr() const;
+  // const Expr& getExpr() const;
  private:
   /** The element type of the sequence */
   std::unique_ptr<Type> d_type;
@@ -66,8 +66,8 @@ class CVC4_PUBLIC ExprSequence
 
 namespace strings {
 
-
-struct CVC4_PUBLIC ExprSequenceHashFunction {
+struct CVC4_PUBLIC ExprSequenceHashFunction
+{
   size_t operator()(const ::CVC4::ExprSequence& s) const;
 }; /* struct ExprSequenceHashFunction */
 

@@ -157,11 +157,9 @@ class Sequence
 
 namespace strings {
 
-
-struct CVC4_PUBLIC SequenceHashFunction {
-size_t operator()(const ::CVC4::Sequence& s) const {
-  return 0;
-}
+struct CVC4_PUBLIC SequenceHashFunction
+{
+  size_t operator()(const ::CVC4::Sequence& s) const { return 0; }
 }; /* struct SequenceHashFunction */
 
 }  // namespace strings

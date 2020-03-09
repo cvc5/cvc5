@@ -19,17 +19,16 @@
 
 namespace CVC4 {
 
-ExprSequence::ExprSequence(const Type& t)
-{
-  d_type.reset(new Type(t));
-}
+ExprSequence::ExprSequence(const Type& t) { d_type.reset(new Type(t)); }
 ExprSequence::~ExprSequence() {}
 
 ExprSequence::ExprSequence(const ExprSequence& other)
-    : d_type(new ArrayType(other.getType())),
-      d_expr(new Expr(other.getExpr())) {}
+    : d_type(new ArrayType(other.getType())), d_expr(new Expr(other.getExpr()))
+{
+}
 
-ExprSequence& ExprSequence::operator=(const ExprSequence& other) {
+ExprSequence& ExprSequence::operator=(const ExprSequence& other)
+{
   (*d_type) = other.getType();
   (*d_expr) = other.getExpr();
   return *this;
@@ -37,9 +36,7 @@ ExprSequence& ExprSequence::operator=(const ExprSequence& other) {
 
 const Type& ExprSequence::getType() const { return *d_type; }
 
-const Expr& ExprSequence::getExpr() const {
-  return *d_expr;
-}
+const Expr& ExprSequence::getExpr() const { return *d_expr; }
 
 bool ExprSequence::operator==(const ExprSequence& es) const
 {
@@ -53,14 +50,14 @@ bool ExprSequence::operator!=(const ExprSequence& es) const
 
 bool ExprSequence::operator<(const ExprSequence& es) const
 {
-  return (getType() < es.getType()) ||
-         (getType() == es.getType() && getExpr() < es.getExpr());
+  return (getType() < es.getType())
+         || (getType() == es.getType() && getExpr() < es.getExpr());
 }
 
 bool ExprSequence::operator<=(const ExprSequence& es) const
 {
-  return (getType() < es.getType()) ||
-         (getType() == es.getType() && getExpr() <= es.getExpr());
+  return (getType() < es.getType())
+         || (getType() == es.getType() && getExpr() <= es.getExpr());
 }
 
 bool ExprSequence::operator>(const ExprSequence& es) const
@@ -81,9 +78,10 @@ std::ostream& operator<<(std::ostream& os, const ExprSequence& s)
 }
 
 namespace strings {
-size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const {
+size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const
+{
   return TypeHashFunction()(es.getType());
 }
-}
+}  // namespace strings
 
 }  // namespace CVC4
