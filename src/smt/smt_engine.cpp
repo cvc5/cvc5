@@ -2374,7 +2374,7 @@ void SmtEngine::setDefaults() {
       {
         std::stringstream ss;
         ss << "Cannot use " << sOptNoModel.str()
-           << " model generation (produce-assignments).";
+           << " with model generation (produce-assignments).";
         throw OptionException(ss.str());
       }
       Notice() << "SmtEngine: turning off produce-assignments to support "
