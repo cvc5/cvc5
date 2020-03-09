@@ -2387,7 +2387,7 @@ void SmtEngine::setDefaults() {
       {
         std::stringstream ss;
         ss << "Cannot use " << sOptNoModel.str()
-           << " model generation (check-models).";
+           << " with model generation (check-models).";
         throw OptionException(ss.str());
       }
       Notice() << "SmtEngine: turning off check-models to support "
