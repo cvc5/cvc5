@@ -41,9 +41,12 @@ class CVC4_PUBLIC ExprSequence
    * Internally, a CVC4::ExprSequence is represented by a vector of Nodes (d_seq),
    * where each Node in this vector must be a constant.
    */
-  ExprSequence() = default;
-  explicit ExprSequence(const Type& type);
+  ExprSequence(const Type& type);
+  ~ExprSequence();
 
+  ExprSequence(const ExprSequence& other);
+  ExprSequence& operator=(const ExprSequence& other);
+  
   bool operator==(const ExprSequence& es) const;
   bool operator!=(const ExprSequence& es) const;
   bool operator<(const ExprSequence& es) const;

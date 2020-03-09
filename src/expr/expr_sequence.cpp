@@ -23,6 +23,17 @@ ExprSequence::ExprSequence(const Type& t)
 {
   d_type.reset(new Type(t));
 }
+ExprSequence::~ExprSequence() {}
+
+ExprSequence::ExprSequence(const ExprSequence& other)
+    : d_type(new ArrayType(other.getType())),
+      d_expr(new Expr(other.getExpr())) {}
+
+ExprSequence& ExprSequence::operator=(const ExprSequence& other) {
+  (*d_type) = other.getType();
+  (*d_expr) = other.getExpr();
+  return *this;
+}
 
 const Type& ExprSequence::getType() const { return *d_type; }
 
