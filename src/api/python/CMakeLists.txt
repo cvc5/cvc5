@@ -62,7 +62,7 @@ execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
   "${PYTHON_EXECUTABLE}"
   -c
   "from __future__ import print_function; import os;
-print('YES', end='') if 'VIRTUAL_ENV' in os.environ else print('NO', end='')")
+print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
 
 set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
 # if we're in a virtualenv, we install it in the virtualenv lib location
