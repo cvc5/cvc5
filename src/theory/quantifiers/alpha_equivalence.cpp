@@ -39,31 +39,40 @@ Node AlphaEquivalenceNode::registerNode(Node q, Node t)
   std::map< Node, bool > visited;
   while( !tt.empty() ){
     if( tt.size()==arg_index.size()+1 ){
-      Node t = tt.back();
+      Node tb = tt.back();
       Node op;
-      if( t.hasOperator() ){
-        if( visited.find( t )==visited.end() ){
-          visited[t] = true;
-          op = t.getOperator();
+      if (tb.hasOperator())
+      {
+        if (visited.find(tb) == visited.end())
+        {
+          visited[tb] = true;
+          op = tb.getOperator();
           arg_index.push_back( 0 );
-        }else{
-          op = t;
+        }
+        else
+        {
+          op = tb;
           arg_index.push_back( -1 );
         }
-      }else{
-        op = t;
+      }
+      else
+      {
+        op = tb;
         arg_index.push_back( 0 );
       }
       Trace("aeq-debug") << op << " ";
-      aen = &(aen->d_children[op][t.getNumChildren()]);
+      aen = &(aen->d_children[op][tb.getNumChildren()]);
     }else{
-      Node t = tt.back();
+      Node tb = tt.back();
       int i = arg_index.back();
-      if( i==-1 || i==(int)t.getNumChildren() ){
+      if (i == -1 || i == (int)tb.getNumChildren())
+      {
         tt.pop_back();
         arg_index.pop_back();
-      }else{
-        tt.push_back( t[i] );
+      }
+      else
+      {
+        tt.push_back(tb[i]);
         arg_index[arg_index.size()-1]++;
       }
     }

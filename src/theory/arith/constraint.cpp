@@ -93,6 +93,7 @@ std::ostream& operator<<(std::ostream& o, const ArithProofType apt){
   case FarkasAP:  o << "FarkasAP"; break;
   case TrichotomyAP:  o << "TrichotomyAP"; break;
   case EqualityEngineAP:  o << "EqualityEngineAP"; break;
+  case IntTightenAP: o << "IntTightenAP"; break;
   case IntHoleAP: o << "IntHoleAP"; break;
   default: break;
   }
@@ -516,6 +517,10 @@ bool Constraint::hasSimpleFarkasProof() const
     antecdent = d_database->getAntecedent(antId);
   }
   return true;
+}
+
+bool Constraint::hasIntTightenProof() const {
+  return getProofType() == IntTightenAP;
 }
 
 bool Constraint::hasIntHoleProof() const {
@@ -1247,6 +1252,25 @@ bool Constraint::allHaveProof(const ConstraintCPVec& b){
   return true;
 }
 
+void Constraint::impliedByIntTighten(ConstraintCP a, bool nowInConflict){
+  Debug("constraints::pf") << "impliedByIntTighten(" << this << ", " << *a << ")" << std::endl;
+  Assert(!hasProof());
+  Assert(negationHasProof() == nowInConflict);
+  Assert(a->hasProof());
+  Debug("pf::arith") << "impliedByIntTighten(" << this << ", " << a << ")"
+                     << std::endl;
+
+  d_database->d_antecedents.push_back(NullConstraint);
+  d_database->d_antecedents.push_back(a);
+  AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
+  d_database->pushConstraintRule(ConstraintRule(this, IntTightenAP, antecedentEnd));
+
+  Assert(inConflict() == nowInConflict);
+  if(inConflict()){
+    Debug("constraint::conflictCommit") << "inConflict impliedByIntTighten" << this << std::endl;
+  }
+}
+
 void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
   Debug("constraints::pf") << "impliedByIntHole(" << this << ", " << *a << ")" << std::endl;
   Assert(!hasProof());
@@ -1439,7 +1463,7 @@ void Constraint::assertionFringe(ConstraintCPVec& v){
           writePos++;
         }else{
           Assert(vi->hasTrichotomyProof() || vi->hasFarkasProof()
-                 || vi->hasIntHoleProof());
+                 || vi->hasIntHoleProof() || vi->hasIntTightenProof());
           AntecedentId p = vi->getEndAntecedent();
 
           ConstraintCP antecedent = antecedents[p];
@@ -1509,7 +1533,7 @@ Node Constraint::externalExplain(AssertionOrder order) const{
   }else if(hasEqualityEngineProof()){
     return d_database->eeExplain(this);
   }else{
-    Assert(hasFarkasProof() || hasIntHoleProof() || hasTrichotomyProof());
+    Assert(hasFarkasProof() || hasIntHoleProof() || hasIntTightenProof() || hasTrichotomyProof());
     Assert(!antecentListIsEmpty());
     //Force the selection of the layer above if the node is
     // assertedToTheTheory()!
