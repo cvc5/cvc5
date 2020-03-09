@@ -21,14 +21,12 @@
 #include <memory>
 
 namespace CVC4 {
+
 // messy; Expr needs ArrayStoreAll (because it's the payload of a
 // CONSTANT-kinded expression), and ArrayStoreAll needs Expr.
-class Expr;
 class Type;
-}  // namespace CVC4
-
-namespace CVC4 {
-
+class Sequence;
+  
 /** The CVC4 sequence class
  *
  * This data structure is the domain of values for the sequence type.
@@ -55,13 +53,12 @@ class CVC4_PUBLIC ExprSequence
   bool operator>=(const ExprSequence& es) const;
 
   const Type& getType() const;
-  const Expr& getExpr() const;
-  // const Expr& getExpr() const;
+  const Sequence& getSequence() const;
  private:
   /** The element type of the sequence */
   std::unique_ptr<Type> d_type;
   /** The data of the sequence */
-  std::unique_ptr<Expr> d_expr;
+  std::unique_ptr<Sequence> d_sequence;
 }; /* class ExprSequence */
 
 namespace strings {

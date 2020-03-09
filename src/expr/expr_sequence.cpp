@@ -16,31 +16,38 @@
 
 #include "expr/expr.h"
 #include "expr/type.h"
+#include "expr/type_node.h"
+#include "expr/node.h"
+#include "expr/sequence.h"
 
 namespace CVC4 {
 
-ExprSequence::ExprSequence(const Type& t) { d_type.reset(new Type(t)); }
+ExprSequence::ExprSequence(const Type& t) { 
+  d_type.reset(new Type(t)); 
+  std::vector<Node> seq;
+  d_sequence.reset(new Sequence(TypeNode::fromType(t),seq));
+}
 ExprSequence::~ExprSequence() {}
 
 ExprSequence::ExprSequence(const ExprSequence& other)
-    : d_type(new ArrayType(other.getType())), d_expr(new Expr(other.getExpr()))
+    : d_type(new Type(other.getType())), d_sequence(new Sequence(other.getSequence()))
 {
 }
 
 ExprSequence& ExprSequence::operator=(const ExprSequence& other)
 {
   (*d_type) = other.getType();
-  (*d_expr) = other.getExpr();
+  (*d_sequence) = other.getSequence();
   return *this;
 }
 
 const Type& ExprSequence::getType() const { return *d_type; }
 
-const Expr& ExprSequence::getExpr() const { return *d_expr; }
+const Sequence& ExprSequence::getSequence() const { return *d_sequence; }
 
 bool ExprSequence::operator==(const ExprSequence& es) const
 {
-  return getType() == es.getType() && getExpr() == es.getExpr();
+  return getType() == es.getType() && getSequence() == es.getSequence();
 }
 
 bool ExprSequence::operator!=(const ExprSequence& es) const
@@ -51,13 +58,13 @@ bool ExprSequence::operator!=(const ExprSequence& es) const
 bool ExprSequence::operator<(const ExprSequence& es) const
 {
   return (getType() < es.getType())
-         || (getType() == es.getType() && getExpr() < es.getExpr());
+         || (getType() == es.getType() && getSequence() < es.getSequence());
 }
 
 bool ExprSequence::operator<=(const ExprSequence& es) const
 {
   return (getType() < es.getType())
-         || (getType() == es.getType() && getExpr() <= es.getExpr());
+         || (getType() == es.getType() && getSequence() <= es.getSequence());
 }
 
 bool ExprSequence::operator>(const ExprSequence& es) const

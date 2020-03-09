@@ -32,6 +32,40 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/** Generic iteration over vectors of indices of a given length and cardinality */
+class WordIterFixedLen {
+ public:
+  WordIterFixedLen(uint32_t length, uint32_t card);
+  /** Get the data */
+  const std::vector<unsigned>& getData() const;
+  /** increment */
+  bool increment();
+ private:
+  /** The cardinality of the alphabet */
+  uint32_t d_cardinality;
+  /** The data (index to members) */
+  std::vector<unsigned> d_data;
+};
+
+/** 
+ * Generic iterator over vectors of indices with given cardinality, in
+ * increasing order of length, starting with start length.
+ */
+class WordIter {
+ public:
+  WordIter(uint32_t startLength, uint32_t card);
+  /** Get the data */
+  const std::vector<unsigned>& getData() const;
+  /** increment (always succeeds) */
+  void increment();
+ private:
+  /** The cardinality of the alphabet */
+  uint32_t d_cardinality;
+  /** The current fixed length iterator */
+  std::unique_ptr<WordIterFixedLen> d_witerFixed;
+};
+
+
 class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   std::vector< unsigned > d_data;
   uint32_t d_cardinality;
@@ -88,53 +122,22 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
  */
 class StringEnumeratorLength {
  public:
-  StringEnumeratorLength(TypeNode tn, uint32_t length, uint32_t card = 256)
-      : d_type(tn), d_cardinality(card)
-  {
-    // TODO (cvc4-projects #23): sequence here
-    Assert(tn.isString());
-    for( unsigned i=0; i<length; i++ ){
-      d_data.push_back( 0 );
-    }
-    mkCurr();
-  }
-
-  Node operator*() { return d_curr; }
-  StringEnumeratorLength& operator++() {
-    bool changed = false;
-    for(unsigned i=0; i<d_data.size(); ++i) {
-      if( d_data[i] + 1 < d_cardinality ) {
-        ++d_data[i]; changed = true;
-        break;
-      } else {
-        d_data[i] = 0;
-      }
-    }
-
-    if(!changed) {
-      d_curr = Node::null();
-    }else{
-      mkCurr();
-    }
-    return *this;
-  }
-
-  bool isFinished() { return d_curr.isNull(); }
-
+  StringEnumeratorLength(TypeNode tn, uint32_t length, uint32_t card = 256);
+  /** dereference */
+  Node operator*();
+  /** increment */
+  StringEnumeratorLength& operator++();
+  /** Is this enumerator finished? */
+  bool isFinished();
  private:
   /** The type we are enumerating */
   TypeNode d_type;
-  /** The cardinality of the alphabet */
-  uint32_t d_cardinality;
-  /** The data (index to members) */
-  std::vector<unsigned> d_data;
+  /** The word iterator utility */
+  WordIterFixedLen d_witer;
   /** The current term */
   Node d_curr;
   /** Make the current term from d_data */
-  void mkCurr()
-  {
-    d_curr = NodeManager::currentNM()->mkConst(::CVC4::String(d_data));
-  }
+  void mkCurr();
 };
 
 class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator>
@@ -144,8 +147,6 @@ class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator>
       : TypeEnumeratorBase<SequenceEnumerator>(type),
         d_childEnum(type.getSequenceElementType())
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT
-           && type.getConst<TypeConstant>() == kind::SEQUENCE_TYPE);
     mkCurr();
   }
   Node operator*() override { return d_curr; }
