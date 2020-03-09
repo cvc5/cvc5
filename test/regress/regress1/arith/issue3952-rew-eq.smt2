@@ -1,3 +1,6 @@
+; COMMAND-LINE: --incremental
+; EXPECT: unsat
+; EXPECT: unsat
 (set-logic QF_UFNIA)
 (set-option :check-models true)
 (set-option :produce-models true)
