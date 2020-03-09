@@ -1839,6 +1839,7 @@ set(regress_1_tests
   regress1/sygus/issue3649.sy
   regress1/sygus/issue3802-default-consts.sy
   regress1/sygus/issue3839-cond-rewrite.smt2
+  regress1/sygus/issue3944-div-rewrite.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
