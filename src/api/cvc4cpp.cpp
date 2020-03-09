@@ -258,7 +258,8 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {STRING_TOLOWER, CVC4::Kind::STRING_TOLOWER},
     {STRING_TOUPPER, CVC4::Kind::STRING_TOUPPER},
     {STRING_REV, CVC4::Kind::STRING_REV},
-    {STRING_CODE, CVC4::Kind::STRING_CODE},
+    {STRING_FROM_CODE, CVC4::Kind::STRING_FROM_CODE},
+    {STRING_TO_CODE, CVC4::Kind::STRING_TO_CODE},
     {STRING_LT, CVC4::Kind::STRING_LT},
     {STRING_LEQ, CVC4::Kind::STRING_LEQ},
     {STRING_PREFIX, CVC4::Kind::STRING_PREFIX},
@@ -524,7 +525,8 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::STRING_TOLOWER, STRING_TOLOWER},
         {CVC4::Kind::STRING_TOUPPER, STRING_TOUPPER},
         {CVC4::Kind::STRING_REV, STRING_REV},
-        {CVC4::Kind::STRING_CODE, STRING_CODE},
+        {CVC4::Kind::STRING_FROM_CODE, STRING_FROM_CODE},
+        {CVC4::Kind::STRING_TO_CODE, STRING_TO_CODE},
         {CVC4::Kind::STRING_LT, STRING_LT},
         {CVC4::Kind::STRING_LEQ, STRING_LEQ},
         {CVC4::Kind::STRING_PREFIX, STRING_PREFIX},
@@ -1957,11 +1959,6 @@ Term DatatypeConstructor::getTesterTerm() const
   return tst;
 }
 
-std::string DatatypeConstructor::getTesterName() const
-{
-  return d_ctor->getTesterName();
-}
-
 size_t DatatypeConstructor::getNumSelectors() const
 {
   return d_ctor->getNumArgs();
@@ -2408,7 +2405,8 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
 
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
-  Assert(isDefinedIntKind(k));
+  Assert(isDefinedIntKind(k))
+      << "Not a defined internal kind : " << k << " " << kind;
 
   Term res;
   if (echildren.size() > 2)
@@ -2986,7 +2984,7 @@ Term Solver::mkConstArray(Sort sort, Term val) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(val);
   CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
-  CVC4_API_CHECK(sort.getArrayElementSort() == val.getSort())
+  CVC4_API_CHECK(sort.getArrayElementSort().isComparableTo(val.getSort()))
       << "Value does not match element sort.";
   Term res = mkValHelper<CVC4::ArrayStoreAll>(
       CVC4::ArrayStoreAll(*sort.d_type, *val.d_expr));

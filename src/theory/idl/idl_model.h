@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "expr/node.h"
 #include "context/cdhashmap.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -30,14 +30,14 @@ namespace idl {
  * value of x is 0, then the variable x and the constraint (y > 0) are a reason
  * for the y taking the value 1.
  */
-struct IDLReason {
+struct IDLReason
+{
   /** The variable of the reason */
-  TNode x;
+  TNode d_x;
   /** The constraint of the reason */
-  TNode constraint;
+  TNode d_constraint;
 
-  IDLReason(TNode x, TNode constraint)
-  : x(x), constraint(constraint) {}
+  IDLReason(TNode x, TNode constraint) : d_x(x), d_constraint(constraint) {}
   IDLReason() {}
 };
 
@@ -45,10 +45,11 @@ struct IDLReason {
  * A model maps variables to integer values and backs them up with reasons.
  * Default values (if not set with setValue) for all variables are 0.
  */
-class IDLModel {
-
+class IDLModel
+{
   typedef context::CDHashMap<TNode, Integer, TNodeHashFunction> model_value_map;
-  typedef context::CDHashMap<TNode, IDLReason, TNodeHashFunction> model_reason_map;
+  typedef context::CDHashMap<TNode, IDLReason, TNodeHashFunction>
+      model_reason_map;
 
   /** Values assigned to individual variables */
   model_value_map d_model;
@@ -56,8 +57,7 @@ class IDLModel {
   /** Reasons constraining the individual variables */
   model_reason_map d_reason;
 
-public:
-
+ public:
   IDLModel(context::Context* context);
 
   /** Get the model value of the variable */
@@ -71,14 +71,14 @@ public:
 
   /** Output to the given stream */
   void toStream(std::ostream& out) const;
-
 };
 
-inline std::ostream& operator << (std::ostream& out, const IDLModel& model) {
+inline std::ostream& operator<<(std::ostream& out, const IDLModel& model)
+{
   model.toStream(out);
   return out;
 }
 
-}
-}
-}
+}  // namespace idl
+}  // namespace theory
+}  // namespace CVC4
