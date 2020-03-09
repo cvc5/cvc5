@@ -1,3 +1,4 @@
+; REQUIRES: proof
 ; COMMAND-LINE: --produce-unsat-cores --incremental
 ; EXPECT: sat
 
