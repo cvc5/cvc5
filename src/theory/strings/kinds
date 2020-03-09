@@ -113,18 +113,19 @@ typerule REGEXP_COMPLEMENT "SimpleTypeRule<RRegExp, ARegExp>"
 
 typerule STRING_TO_REGEXP "SimpleTypeRule<RRegExp, AString>"
 
-typerule STRING_CONCAT "SimpleTypeRuleVar<RString, AString>"
-typerule STRING_LENGTH "SimpleTypeRule<RInteger, AString>"
-typerule STRING_SUBSTR "SimpleTypeRule<RString, AString, AInteger, AInteger>"
-typerule STRING_CHARAT "SimpleTypeRule<RString, AString, AInteger>"
-typerule STRING_STRCTN "SimpleTypeRule<RBool, AString, AString>"
+typerule STRING_CONCAT ::CVC4::theory::strings::StringConcatTypeRule
+typerule STRING_LENGTH ::CVC4::theory::strings::StringStrToIntTypeRule
+typerule STRING_SUBSTR ::CVC4::theory::strings::StringSubstrTypeRule
+typerule STRING_CHARAT ::CVC4::theory::strings::StringStrToStrTypeRule
+typerule STRING_STRCTN ::CVC4::theory::strings::StringRelationTypeRule
+typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
+typerule STRING_STRREPL ::CVC4::theory::strings::StringReplaceTypeRule
+typerule STRING_STRREPLALL ::CVC4::theory::strings::StringReplaceTypeRule
+typerule STRING_PREFIX ::CVC4::theory::strings::StringStrToBoolTypeRule
+typerule STRING_SUFFIX ::CVC4::theory::strings::StringStrToBoolTypeRule
+
 typerule STRING_LT "SimpleTypeRule<RBool, AString, AString>"
 typerule STRING_LEQ "SimpleTypeRule<RBool, AString, AString>"
-typerule STRING_STRIDOF "SimpleTypeRule<RInteger, AString, AString, AInteger>"
-typerule STRING_STRREPL "SimpleTypeRule<RString, AString, AString, AString>"
-typerule STRING_STRREPLALL "SimpleTypeRule<RString, AString, AString, AString>"
-typerule STRING_PREFIX "SimpleTypeRule<RBool, AString, AString>"
-typerule STRING_SUFFIX "SimpleTypeRule<RBool, AString, AString>"
 typerule STRING_IS_DIGIT "SimpleTypeRule<RBool, AString>"
 typerule STRING_ITOS "SimpleTypeRule<RString, AInteger>"
 typerule STRING_STOI "SimpleTypeRule<RInteger, AString>"
