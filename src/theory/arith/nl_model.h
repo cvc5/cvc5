@@ -256,15 +256,6 @@ class NlModel
   bool simpleCheckModelLit(Node lit);
   bool simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol);
   //---------------------------end check model
-
-  /** is refinable transcendental function
-   *
-   * A transcendental function application is not refineable if its current
-   * model value is zero, or if it is an application of SINE applied
-   * to a non-variable.
-   */
-  bool isRefineableTfFun(Node tf);
-
   /** get approximate sqrt
    *
    * This approximates the square root of positive constant c. If this method
