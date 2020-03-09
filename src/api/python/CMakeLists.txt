@@ -62,7 +62,9 @@ add_custom_command(TARGET pycvc4 POST_BUILD
 execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
   COMMAND
   "${PYTHON_EXECUTABLE}"
-  -c "from __future__ import print_function; import sys; print('YES', end='') if (hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)) else print('NO', end='')")
+  -c
+  "from __future__ import print_function; import os;
+print('YES', end='') if 'VIRTUAL_ENV' in os.environ else print('NO', end='')")
 
 if ("${IN_VIRTUALENV}" STREQUAL "YES")
   # if we're in a virtualenv, better to put it in the virtualenv lib location
