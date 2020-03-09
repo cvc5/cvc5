@@ -45,6 +45,22 @@ class Word
   /** Return true if x is empty */
   static bool isEmpty(TNode x);
 
+  /** string compare
+   *
+   * Returns true if x is equal to y for their first n characters.
+   * If n is larger than the length of x or y, this method returns
+   * true if and only if x is equal to y.
+   */
+  static bool strncmp(TNode x, TNode y, std::size_t n);
+
+  /** reverse string compare
+   *
+   * Returns true if x is equal to y for their last n characters.
+   * If n is larger than the length of tx or y, this method returns
+   * true if and only if x is equal to y.
+   */
+  static bool rstrncmp(TNode x, TNode y, std::size_t n);
+
   /** Return the first position y occurs in x, or std::string::npos otherwise */
   static std::size_t find(TNode x, TNode y, std::size_t start = 0);
 

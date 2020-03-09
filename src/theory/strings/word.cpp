@@ -78,6 +78,34 @@ size_t Word::getLength(TNode x)
 
 bool Word::isEmpty(TNode x) { return getLength(x) == 0; }
 
+bool Word::strncmp(TNode x, TNode y, std::size_t n)
+{
+  Kind k = x.getKind();
+  if (k == CONST_STRING)
+  {
+    Assert(y.getKind() == CONST_STRING);
+    String sx = x.getConst<String>();
+    String sy = y.getConst<String>();
+    return sx.strncmp(sy, n);
+  }
+  Unimplemented();
+  return false;
+}
+
+bool Word::rstrncmp(TNode x, TNode y, std::size_t n)
+{
+  Kind k = x.getKind();
+  if (k == CONST_STRING)
+  {
+    Assert(y.getKind() == CONST_STRING);
+    String sx = x.getConst<String>();
+    String sy = y.getConst<String>();
+    return sx.rstrncmp(sy, n);
+  }
+  Unimplemented();
+  return false;
+}
+
 std::size_t Word::find(TNode x, TNode y, std::size_t start)
 {
   Kind k = x.getKind();
