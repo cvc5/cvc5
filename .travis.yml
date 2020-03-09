@@ -97,7 +97,7 @@ script:
    [ -n "$TRAVIS_CVC4" ] && run makeCheck
    [ -z "$CVC4_SYMFPU_BUILD" ] && run makeInstallCheck && run makeExamples
    [ -z "$TRAVIS_CVC4" ] && error "Unknown Travis-CI configuration"
-   [ "$TRAVIS_CVC4_PYTHON_BINDINGS" == "yes" ] && $TRAVIS_PYTHON -c "import pycvc4"
+   [[ "$TRAVIS_CVC4_PYTHON_BINDINGS" == "yes" ]] && $TRAVIS_PYTHON -c "import pycvc4"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
  - ccache -s
