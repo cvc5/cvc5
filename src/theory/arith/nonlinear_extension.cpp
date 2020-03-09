@@ -2673,8 +2673,8 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
           // if they have common factors
           std::map<Node, Node>::iterator ita = d_mono_diff[a].find(b);
           if (ita != d_mono_diff[a].end()) {
-            Trace("nl-ext-rbound") << "Get resolution inferences for [a] "
-                                   << a << " vs [b] " << b << std::endl;
+            Trace("nl-ext-rbound") << "Get resolution inferences for [a] " << a
+                                   << " vs [b] " << b << std::endl;
             std::map<Node, Node>::iterator itb = d_mono_diff[b].find(a);
             Assert(itb != d_mono_diff[b].end());
             Node mv_a = d_model.computeAbstractModelValue(ita->second);
@@ -2687,7 +2687,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
             Node mv_b = d_model.computeAbstractModelValue(itb->second);
             Assert(mv_b.isConst());
             int mv_b_sgn = mv_b.getConst<Rational>().sgn();
-            if(mv_b_sgn == 0)
+            if (mv_b_sgn == 0)
             {
               continue;
             }
