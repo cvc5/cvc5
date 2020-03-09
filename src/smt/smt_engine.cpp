@@ -1950,14 +1950,15 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  //apply counterexample guided instantiation options
-  // if we are attempting to rewrite everything to SyGuS, use ceGuidedInst
+  //apply sygus options
+  // if we are attempting to rewrite everything to SyGuS, use sygus()
   if (is_sygus)
   {
-    if (!options::ceGuidedInst.wasSetByUser())
+    if (!options::sygus())
     {
-      options::ceGuidedInst.set(true);
+      Trace("smt") << "turning on sygus" << std::endl;
     }
+    options::sygus.set(true);
     // must use Ferrante/Rackoff for real arithmetic
     if (!options::cbqiMidpoint.wasSetByUser())
     {
@@ -1970,27 +1971,18 @@ void SmtEngine::setDefaults() {
         options::cbqi.set(true);
       }
     }
-  }
-  if (options::sygusInference())
-  {
-    // optimization: apply preskolemization, makes it succeed more often
-    if (!options::preSkolemQuant.wasSetByUser())
+    if (options::sygusInference())
     {
-      options::preSkolemQuant.set(true);
+      // optimization: apply preskolemization, makes it succeed more often
+      if (!options::preSkolemQuant.wasSetByUser())
+      {
+        options::preSkolemQuant.set(true);
+      }
+      if (!options::preSkolemQuantNested.wasSetByUser())
+      {
+        options::preSkolemQuantNested.set(true);
+      }
     }
-    if (!options::preSkolemQuantNested.wasSetByUser())
-    {
-      options::preSkolemQuantNested.set(true);
-    }
-  }
-  if (options::cegqiSingleInvMode() != options::CegqiSingleInvMode::NONE)
-  {
-    if( !options::ceGuidedInst.wasSetByUser() ){
-      options::ceGuidedInst.set( true );
-    }
-  }
-  // if sygus is enabled, set the defaults for sygus
-  if( options::ceGuidedInst() ){
     //counterexample-guided instantiation for sygus
     if( !options::cegqiSingleInvMode.wasSetByUser() ){
       options::cegqiSingleInvMode.set(options::CegqiSingleInvMode::USE);
