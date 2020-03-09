@@ -1208,31 +1208,6 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
   return comp == d_true;
 }
 
-bool NlModel::isRefineableTfFun(Node tf)
-{
-  Assert(tf.getKind() == SINE || tf.getKind() == EXPONENTIAL);
-  if (tf.getKind() == SINE)
-  {
-    // we do not consider e.g. sin( -1*x ), since considering sin( x ) will
-    // have the same effect. We also do not consider sin(x+y) since this is
-    // handled by introducing a fresh variable (see the map d_tr_base in
-    // NonlinearExtension).
-    if (!tf[0].isVar())
-    {
-      return false;
-    }
-  }
-  // Figure 3 : c
-  Node c = computeAbstractModelValue(tf[0]);
-  Assert(c.isConst());
-  int csign = c.getConst<Rational>().sgn();
-  if (csign == 0)
-  {
-    return false;
-  }
-  return true;
-}
-
 bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
 {
   Assert(c.isConst());
