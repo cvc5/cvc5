@@ -1174,6 +1174,23 @@ void DeclareFunctionCommandToStream(std::ostream& out,
 
 }  // namespace
 
+void CvcPrinter::toStream(std::ostream& out, const Model& m) const
+{
+  // print the model comments
+  std::stringstream c;
+  m.getComments(c);
+  std::string ln;
+  while (std::getline(c, ln))
+  {
+    out << "; " << ln << std::endl;
+  }
+
+  // print the model
+  out << "MODEL BEGIN" << std::endl;
+  this->Printer::toStream(out, m);
+  out << "MODEL END;" << std::endl;
+}
+
 void CvcPrinter::toStream(std::ostream& out,
                           const Model& model,
                           const Command* command) const
