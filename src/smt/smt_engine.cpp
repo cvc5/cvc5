@@ -1950,7 +1950,7 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  //apply sygus options
+  // apply sygus options
   // if we are attempting to rewrite everything to SyGuS, use sygus()
   if (is_sygus)
   {

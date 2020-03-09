@@ -216,7 +216,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
 
-  if (options::sygus()) {
+  if (options::sygus())
+  {
     d_sygus_tdb.reset(new quantifiers::TermDbSygus(c, this));
   }
 

@@ -548,7 +548,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
 }
 
 void TheoryDatatypes::finishInit() {
-  if( getQuantifiersEngine() && options::sygus() ){
+  if (getQuantifiersEngine() && options::sygus())
+  {
     d_sygusExtension.reset(
         new SygusExtension(this, getQuantifiersEngine(), getSatContext()));
     // do congruence on evaluation functions
