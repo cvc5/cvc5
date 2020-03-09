@@ -574,6 +574,7 @@ set(regress_0_tests
   regress0/nl/issue3718.smt2
   regress0/nl/issue3719.smt2
   regress0/nl/issue3729-cm-solved-tf.smt2
+  regress0/nl/issue3959.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -1172,6 +1173,7 @@ set(regress_1_tests
   regress1/arith/div.06.smt2
   regress1/arith/div.08.smt2
   regress1/arith/div.09.smt2
+  regress1/arith/issue3952-rew-eq.smt2
   regress1/arith/miplib3.cvc
   regress1/arith/mod.02.smt2
   regress1/arith/mod.03.smt2
