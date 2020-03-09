@@ -42,9 +42,7 @@ python_extension_module(pycvc4)
 
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 # Create a wrapper python directory and generate a distutils setup.py file
-set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
-set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-configure_file(${SETUP_PY_IN} ${SETUP_PY})
+configure_file(setup.py.in setup.py)
 set(PYCVC4_MODULE "${CMAKE_CURRENT_BINARY_DIR}/pycvc4")
 file(MAKE_DIRECTORY "${PYCVC4_MODULE}")
 file(WRITE ${PYCVC4_MODULE}/__init__.py
@@ -66,7 +64,7 @@ execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
   "from __future__ import print_function; import os;
 print('YES', end='') if 'VIRTUAL_ENV' in os.environ else print('NO', end='')")
 
-set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${SETUP_PY} install")
+set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
 # if we're in a virtualenv, we install it in the virtualenv lib location
 if ("${IN_VIRTUALENV}" STREQUAL "NO")
   set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}")
