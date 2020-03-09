@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
         dynamic_cast<DeclareFunctionCommand*>(cmd);
     if (declare) {
       string name = declare->getSymbol();
-      Expr var = parser->getVariable(name);
+      Expr var = parser->getVariable(name).getExpr();
       unsigned n = variables.size();
       variables[var] = n;
       delete cmd;

@@ -54,7 +54,7 @@ ExtfSolver::ExtfSolver(context::Context* c,
   d_extt->addFunctionKind(kind::STRING_STRCTN);
   d_extt->addFunctionKind(kind::STRING_IN_REGEXP);
   d_extt->addFunctionKind(kind::STRING_LEQ);
-  d_extt->addFunctionKind(kind::STRING_CODE);
+  d_extt->addFunctionKind(kind::STRING_TO_CODE);
   d_extt->addFunctionKind(kind::STRING_TOLOWER);
   d_extt->addFunctionKind(kind::STRING_TOUPPER);
   d_extt->addFunctionKind(kind::STRING_REV);
@@ -166,7 +166,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     // context-dependent because it depends on the polarity of n itself
     isCd = true;
   }
-  else if (k != kind::STRING_CODE)
+  else if (k != kind::STRING_TO_CODE)
   {
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
@@ -570,16 +570,16 @@ void ExtfSolver::checkExtfInference(Node n,
           {
             bool do_infer = false;
             conc = conc.negate();
-            bool pol = conc.getKind() != NOT;
-            Node lit = pol ? conc : conc[0];
+            bool pol2 = conc.getKind() != NOT;
+            Node lit = pol2 ? conc : conc[0];
             if (lit.getKind() == EQUAL)
             {
-              do_infer = pol ? !d_state.areEqual(lit[0], lit[1])
-                             : !d_state.areDisequal(lit[0], lit[1]);
+              do_infer = pol2 ? !d_state.areEqual(lit[0], lit[1])
+                              : !d_state.areDisequal(lit[0], lit[1]);
             }
             else
             {
-              do_infer = !d_state.areEqual(lit, pol ? d_true : d_false);
+              do_infer = !d_state.areEqual(lit, pol2 ? d_true : d_false);
             }
             if (do_infer)
             {

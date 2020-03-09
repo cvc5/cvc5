@@ -1412,11 +1412,6 @@ class CVC4_PUBLIC DatatypeConstructor
   Term getTesterTerm() const;
 
   /**
-   * @return the tester name for this Datatype constructor.
-   */
-  std::string getTesterName() const;
-
-  /**
    * @return the number of selectors (so far) of this Datatype constructor.
    */
   size_t getNumSelectors() const;
@@ -2861,6 +2856,16 @@ class CVC4_PUBLIC Solver
    * @return a term of sort real
    */
   Term ensureRealSort(Term expr) const;
+
+  /**
+   * Create n-ary term of given kind. This handles the cases of left/right
+   * associative operators, chainable operators, and cases when the number of
+   * children exceeds the maximum arity for the kind.
+   * @param kind the kind of the term
+   * @param children the children of the term
+   * @return the Term
+   */
+  Term mkTermInternal(Kind kind, const std::vector<Term>& children) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;

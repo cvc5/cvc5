@@ -121,6 +121,11 @@ class TheoryStrings : public Theory {
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp) override;
+  /**
+   * Get all relevant information in this theory regarding the current
+   * model. Return false if a contradiction is discovered.
+   */
+  bool collectModelInfo(TheoryModel* m) override;
 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -231,11 +236,6 @@ private:
 
   std::map< Node, Node > d_eqc_to_len_term;
 
-  /////////////////////////////////////////////////////////////////////////////
-  // MODEL GENERATION
-  /////////////////////////////////////////////////////////////////////////////
- public:
-  bool collectModelInfo(TheoryModel* m) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // NOTIFICATIONS
@@ -297,6 +297,18 @@ private:
    * the care graph in the above function.
    */
   bool areCareDisequal(TNode x, TNode y);
+
+  /** Collect model info for type tn
+   *
+   * Assigns model values (in m) to all relevant terms of the string-like type
+   * tn in the current context, which are stored in repSet.
+   *
+   * Returns false if a conflict is discovered while doing this assignment.
+   */
+  bool collectModelInfoType(
+      TypeNode tn,
+      const std::unordered_set<Node, NodeHashFunction>& repSet,
+      TheoryModel* m);
 
   /** assert pending fact
    *

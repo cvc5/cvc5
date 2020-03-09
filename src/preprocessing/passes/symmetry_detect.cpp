@@ -374,24 +374,24 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
           Assert(d_base_indices.find(i) == d_base_indices.end());
           d_base_indices.insert(i);
           Trace("sym-dt-debug") << i << " ";
-          const Partition& p = partitions[i];
-          children.push_back(p.d_term);
-          schildren.push_back(p.d_sterm);
+          const Partition& p2 = partitions[i];
+          children.push_back(p2.d_term);
+          schildren.push_back(p2.d_sterm);
           Assert(active_indices.find(i) != active_indices.end());
           active_indices.erase(i);
         }
         Trace("sym-dt-debug") << "}" << std::endl;
         Trace("sym-dt-debug") << "Reconstruct master partition "
                               << d_master_base_index << std::endl;
-        Partition& p = partitions[d_master_base_index];
+        Partition& p3 = partitions[d_master_base_index];
         // reconstruct the master partition
-        p.d_term = mkAssociativeNode(d_kind, children);
-        p.d_sterm = mkAssociativeNode(d_kind, schildren);
-        Assert(p.d_subvar_to_vars.size() == 1);
-        Node sb_v = p.d_subvar_to_vars.begin()->first;
+        p3.d_term = mkAssociativeNode(d_kind, children);
+        p3.d_sterm = mkAssociativeNode(d_kind, schildren);
+        Assert(p3.d_subvar_to_vars.size() == 1);
+        Node sb_v = p3.d_subvar_to_vars.begin()->first;
         Trace("sym-dt-debug") << "- set var to svar: " << merge_var << " -> "
                               << sb_v << std::endl;
-        p.addVariable(sb_v, merge_var);
+        p3.addVariable(sb_v, merge_var);
         return true;
       }
       if (mergeNewVar(curr_index + 1,
@@ -1139,7 +1139,7 @@ void SymmetryDetect::processPartitions(
           k, partitions, svee.second, active_indices, fixedSVar, fixedVar);
 
       // remove the list of fixed variables
-      for (unsigned k = 0; k < nfvars; k++)
+      for (unsigned i = 0; i < nfvars; i++)
       {
         fixedVar.pop_back();
         fixedSVar.pop_back();
@@ -1218,7 +1218,7 @@ void SymmetryDetect::processPartitions(
       // if still active
       if (active_indices.find(index) != active_indices.end())
       {
-        for (unsigned i = 0, size = fixedSVar.size(); i < size; i++)
+        for (unsigned i = 0, size2 = fixedSVar.size(); i < size2; i++)
         {
           // add variable
           partitions[index].addVariable(fixedSVar[i], fixedVar[i]);
