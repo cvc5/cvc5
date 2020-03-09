@@ -512,7 +512,7 @@ class NonlinearExtension {
   //transcendental functions
   /**
    * Some transcendental functions f(t) are "purified", e.g. we add
-   * t = y ^ f(t) = f(y) where y is a fresh varaible. Those that are not
+   * t = y ^ f(t) = f(y) where y is a fresh variable. Those that are not
    * purified we call "master terms".
    *
    * The maps below maintain a master/slave relationship over
