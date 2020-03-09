@@ -1672,10 +1672,10 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
     }
     return mkForAll( newArgs, body[1], qa );
   }else if( body.getKind()==AND ){
+    // aggressive miniscoping implies that structural miniscoping should
+    // be applied first
     if (options::miniscopeQuant() || options::aggressiveMiniscopeQuant())
     {
-      // aggressive miniscoping implies that structural miniscoping should
-      // be applied first
       // break apart
       NodeBuilder<> t(kind::AND);
       for( unsigned i=0; i<body.getNumChildren(); i++ ){
