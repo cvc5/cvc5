@@ -1001,7 +1001,7 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
 
     if (!withinQuant)
     {
-      if (d_sygus_tdb)
+      if (d_sygus_tdb && options::sygusEvalUnfold())
       {
         d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
       }
