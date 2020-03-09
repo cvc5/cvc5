@@ -12,6 +12,8 @@ libcvc4_add_sources(
   expr_iomanip.cpp
   expr_iomanip.h
   expr_manager_scope.h
+  expr_sequence.cpp
+  expr_sequence.h
   expr_stream.h
   kind_map.h
   match_trie.cpp

@@ -37,12 +37,8 @@ ExprSequence& ExprSequence::operator=(const ExprSequence& other) {
 
 const Type& ExprSequence::getType() const { return *d_type; }
 
-const Expr& getExpr() const {
+const Expr& ExprSequence::getExpr() const {
   return *d_expr;
-}
-
-size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const {
-  return TypeHashFunction()(es.getType());
 }
 
 bool ExprSequence::operator==(const ExprSequence& es) const
@@ -77,11 +73,17 @@ bool ExprSequence::operator>=(const ExprSequence& es) const
   return !(*this < es);
 }
 
-std::ostream& operator<<(std::ostream& os, const Sequence& s)
+std::ostream& operator<<(std::ostream& os, const ExprSequence& s)
 {
   // FIXME
   return os << "\""
             << "\"";
+}
+
+namespace strings {
+size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const {
+  return TypeHashFunction()(es.getType());
+}
 }
 
 }  // namespace CVC4
