@@ -2326,10 +2326,8 @@ void SmtEngine::setDefaults() {
   }
 
   // !!! All options that require disabling models go here
-  // Unconstrained simp currently does *not* support model generation
   bool disableModels = false;
   std::stringstream sOptNoModel;
-  ;
   if (options::unconstrainedSimp.wasSetByUser() && options::unconstrainedSimp())
   {
     disableModels = true;
