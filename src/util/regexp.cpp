@@ -88,8 +88,8 @@ String String::concat(const String &other) const {
   return String(ret_vec);
 }
 
-bool String::strncmp(const String &y, const std::size_t np) const {
-  std::size_t n = np;
+bool String::strncmp(const String& y, std::size_t n) const
+{
   std::size_t b = (size() >= y.size()) ? size() : y.size();
   std::size_t s = (size() <= y.size()) ? size() : y.size();
   if (n > s) {
@@ -105,8 +105,8 @@ bool String::strncmp(const String &y, const std::size_t np) const {
   return true;
 }
 
-bool String::rstrncmp(const String &y, const std::size_t np) const {
-  std::size_t n = np;
+bool String::rstrncmp(const String& y, std::size_t n) const
+{
   std::size_t b = (size() >= y.size()) ? size() : y.size();
   std::size_t s = (size() <= y.size()) ? size() : y.size();
   if (n > s) {

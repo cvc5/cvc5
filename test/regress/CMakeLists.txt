@@ -646,6 +646,7 @@ set(regress_0_tests
   regress0/preprocess/preprocess_14.cvc
   regress0/preprocess/preprocess_15.cvc
   regress0/print_lambda.cvc
+  regress0/print_model.cvc
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/empty_sort.smt2
@@ -1839,6 +1840,7 @@ set(regress_1_tests
   regress1/sygus/issue3649.sy
   regress1/sygus/issue3802-default-consts.sy
   regress1/sygus/issue3839-cond-rewrite.smt2
+  regress1/sygus/issue3944-div-rewrite.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
