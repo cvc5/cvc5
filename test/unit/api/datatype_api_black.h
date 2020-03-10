@@ -117,6 +117,7 @@ void DatatypeBlack::testMkDatatypeSorts()
   DatatypeConstructor dtcTreeNode = dtTree[0];
   TS_ASSERT(dtcTreeNode.getName() == "node");
   DatatypeSelector dtsTreeNodeLeft = dtcTreeNode[0];
+  TS_ASSERT_THROWS_NOTHING(dtsTreeNodeLeft.getName());
   TS_ASSERT(dtsTreeNodeLeft.getName() == "left");
   // argument type should have resolved to be recursive
   TS_ASSERT(dtsTreeNodeLeft.getRangeSort().isDatatype());
