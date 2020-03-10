@@ -37,6 +37,8 @@ class WordIter {
  public:
   WordIter(uint32_t startLength, uint32_t card);
   WordIter(uint32_t startLength, uint32_t endLength, uint32_t card);
+  /** copy constructor */
+  WordIter(const WordIter& witer);
   /** Get the data */
   const std::vector<unsigned>& getData() const;
   /** increment */
@@ -52,41 +54,71 @@ class WordIter {
   std::vector<unsigned> d_data;
 };
 
-/**
- * Enumerates string values for a given length.
- */
-class StringEnumeratorLength {
- public:
-  /** For sequences */
-  StringEnumeratorLength(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength);
-  StringEnumeratorLength(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength, uint32_t endLength);
-  /** For strings */
-  StringEnumeratorLength(uint32_t startLength, uint32_t card);
-  StringEnumeratorLength(uint32_t startLength, uint32_t endLength, uint32_t card);
-  /** destructor */
-  ~StringEnumeratorLength(){}
-  /** dereference */
-  Node operator*();
-  /** increment */
-  StringEnumeratorLength& operator++();
+/** String Enum len */
+class SEnumLen
+{
+public:
+  SEnumLen(TypeNode tn);
+  virtual ~SEnumLen(){}
+  SEnumLen(const SEnumLen& e);
+  /** get current */
+  Node getCurrent() const;
   /** Is this enumerator finished? */
-  bool isFinished();
- private:
+  bool isFinished() const;
+  /** increment */
+  virtual bool increment() = 0;
+protected:
   /** The type we are enumerating */
   TypeNode d_type;
   /** The word iterator utility */
   std::unique_ptr<WordIter> d_witer;
-  /** an enumerator for the elements' type */
-  std::unique_ptr<TypeEnumerator> d_elementEnumerator;
-  /** The domain */
-  std::vector<Node> d_elementDomain;
   /** The current term */
   Node d_curr;
+};
+
+/**
+ * Enumerates string values for a given length.
+ */
+class StringEnumLen : public SEnumLen {
+ public:
+  /** For strings */
+  StringEnumLen(uint32_t startLength, uint32_t card);
+  StringEnumLen(uint32_t startLength, uint32_t endLength, uint32_t card);
+  /** destructor */
+  ~StringEnumLen(){}
+  /** increment */
+  bool increment() override;
+ private:
   /** Make the current term from d_data */
   void mkCurr();
 };
 
-class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
+
+/**
+ * Enumerates sequence values for a given length.
+ */
+class SeqEnumLen : public SEnumLen {
+ public:
+  /** For sequences */
+  SeqEnumLen(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength);
+  SeqEnumLen(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength, uint32_t endLength);
+  /** copy constructor */
+  SeqEnumLen(const SeqEnumLen& wenum);
+  /** destructor */
+  ~SeqEnumLen(){}
+  /** increment */
+  bool increment() override;
+ private:
+  /** an enumerator for the elements' type */
+  std::unique_ptr<TypeEnumerator> d_elementEnumerator;
+  /** The domain */
+  std::vector<Node> d_elementDomain;
+  /** Make the current term from d_data */
+  void mkCurr();
+};
+
+class StringEnumerator : public TypeEnumeratorBase<StringEnumerator>
+{
  public:
   StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
   StringEnumerator(const StringEnumerator& enumerator);
@@ -94,74 +126,24 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   Node operator*() override;
   StringEnumerator& operator++() override;
   bool isFinished() override;
-private:
+ private:
   /** underlying string enumerator */
-  StringEnumeratorLength d_strEnum;
+  StringEnumLen d_wenum;
 };/* class StringEnumerator */
 
 
 class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator>
 {
  public:
-  SequenceEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
-      : TypeEnumeratorBase<SequenceEnumerator>(type),
-        d_childEnum(type.getSequenceElementType())
-  {
-    mkCurr();
-  }
-  Node operator*() override { return d_curr; }
-  SequenceEnumerator& operator++() override
-  {
-    bool changed = false;
-    do
-    {
-      for (unsigned i = 0; i < d_data.size(); ++i)
-      {
-        while (!d_childEnum.isFinished()
-               && d_data[i] + 1 >= d_childDomain.size())
-        {
-          d_childDomain.push_back(*d_childEnum);
-          ++d_childEnum;
-        }
-
-        if (d_data[i] + 1 < d_childDomain.size())
-        {
-          ++d_data[i];
-          changed = true;
-          break;
-        }
-        else
-        {
-          d_data[i] = 0;
-        }
-      }
-      // increase length
-      if (!changed)
-      {
-        d_data.push_back(0);
-      }
-    } while (!changed);
-
-    mkCurr();
-    return *this;
-  }
-
-  bool isFinished() override { return d_curr.isNull(); }
-
- private:
-  void mkCurr()
-  {
-    // make constant from d_data  FIXME : use sequence
-    d_curr = NodeManager::currentNM()->mkConst(CVC4::String(d_data));
-  }
-  /** The current data */
-  std::vector<unsigned> d_data;
-  /** The enumerated domain so far */
-  std::vector<Node> d_childDomain;
-  /** The current term */
-  Node d_curr;
-  /** Child enumeration */
-  TypeEnumerator d_childEnum;
+  SequenceEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
+  SequenceEnumerator(const SequenceEnumerator& enumerator);
+  ~SequenceEnumerator(){}
+  Node operator*() override;
+  SequenceEnumerator& operator++() override;
+  bool isFinished() override;
+private:
+  /** underlying sequence enumerator */
+  SeqEnumLen d_wenum;
 }; /* class SequenceEnumerator */
 
 }/* CVC4::theory::strings namespace */
