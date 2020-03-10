@@ -32,42 +32,58 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** Generic iteration over vectors of indices of a given start/end length */
+/** 
+ * Generic iteration over vectors of indices of a given start/end length.
+ */
 class WordIter {
  public:
+  /** 
+   * This iterator will start with words at length startLength and continue
+   * indefinitely.
+   */
   WordIter(uint32_t startLength);
+  /** 
+   * This iterator will start with words at length startLength and continue
+   * until length endLength.
+   */
   WordIter(uint32_t startLength, uint32_t endLength);
   /** copy constructor */
   WordIter(const WordIter& witer);
-  /** Get the data */
+  /** Get the current data */
   const std::vector<unsigned>& getData() const;
   /** 
    * Increment assuming the cardinality of the alphabet is card. Notice that
    * card may change dynamically.
+   * 
+   * This method returns true if the increment was successful, otherwise we
+   * are finished with this iterator.
    */
   bool increment(uint32_t card);
  private:
-  /** has end length */
+  /** Whether we have an end length */
   bool d_hasEndLength;
-  /** end length */
+  /** The end length */
   uint32_t d_endLength;
-  /** The data (index to members) */
+  /** The data. */
   std::vector<unsigned> d_data;
 };
 
-/** String Enum len */
+/** 
+ * A virtual class for enumerating string-like terms, with a similar
+ * interface to the one above.
+ */
 class SEnumLen
 {
 public:
   SEnumLen(TypeNode tn, uint32_t startLength);
   SEnumLen(TypeNode tn, uint32_t startLength, uint32_t endLength);
-  virtual ~SEnumLen(){}
   SEnumLen(const SEnumLen& e);
-  /** get current */
+  virtual ~SEnumLen(){}
+  /** Get current term */
   Node getCurrent() const;
   /** Is this enumerator finished? */
   bool isFinished() const;
-  /** increment */
+  /** increment, returns true if the increment was successful. */
   virtual bool increment() = 0;
 protected:
   /** The type we are enumerating */
@@ -96,7 +112,6 @@ class StringEnumLen : public SEnumLen {
   /** Make the current term from d_data */
   void mkCurr();
 };
-
 
 /**
  * Enumerates sequence values for a given length.
@@ -127,8 +142,11 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator>
   StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
   StringEnumerator(const StringEnumerator& enumerator);
   ~StringEnumerator(){}
+  /** get the current term */
   Node operator*() override;
+  /** increment */
   StringEnumerator& operator++() override;
+  /** is this enumerator finished? */
   bool isFinished() override;
  private:
   /** underlying string enumerator */
