@@ -189,6 +189,9 @@ set(regress_0_tests
   regress0/bv/ackermann8.smt2
   regress0/bv/bool-model.smt2
   regress0/bv/bool-to-bv-all.smt2
+  regress0/bv/bool-to-bv-all-array-bool.smt2
+  regress0/bv/bool-to-bv-ite-array-bool.smt2
+  regress0/bv/bool-to-bv-all-test.smt2
   regress0/bv/bool-to-bv-ite.smt2
   regress0/bv/bug260a.smtv1.smt2
   regress0/bv/bug260b.smtv1.smt2
@@ -686,6 +689,7 @@ set(regress_0_tests
   regress0/push-pop/issue2137.min.smt2
   regress0/push-pop/issue3915-real-as-int.smt2
   regress0/push-pop/quant-fun-proc-unfd.smt2
+  regress0/push-pop/real-as-int-incremental.smt2
   regress0/push-pop/simple_unsat_cores.smt2
   regress0/push-pop/test.00.cvc
   regress0/push-pop/test.01.cvc
@@ -1296,6 +1300,8 @@ set(regress_1_tests
   regress1/ho/SYO056^1.p
   regress1/hole6.cvc
   regress1/ite5.smt2
+  regress1/issue3970-nl-ext-purify.smt2
+  regress1/issue3990-sort-inference.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
@@ -1327,6 +1333,7 @@ set(regress_1_tests
   regress1/nl/issue3617.smt2
   regress1/nl/issue3647.smt2
   regress1/nl/issue3656.smt2
+  regress1/nl/issue3803-nl-check-model.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -1844,6 +1851,7 @@ set(regress_1_tests
   regress1/sygus/issue3802-default-consts.sy
   regress1/sygus/issue3839-cond-rewrite.smt2
   regress1/sygus/issue3944-div-rewrite.smt2
+  regress1/sygus/issue3947-agg-miniscope.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
