@@ -124,7 +124,7 @@ class QuantifiersEnginePrivate
       modules.push_back(d_i_cbqi.get());
       qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
     }
-    if (options::ceGuidedInst())
+    if (options::sygus())
     {
       d_synth_e.reset(new quantifiers::SynthEngine(qe, c));
       modules.push_back(d_synth_e.get());
@@ -212,7 +212,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
 
-  if (options::ceGuidedInst()) {
+  if (options::sygus())
+  {
     d_sygus_tdb.reset(new quantifiers::TermDbSygus(c, this));
   }  
 
@@ -499,7 +500,7 @@ void QuantifiersEngine::ppNotifyAssertions(
     theory_sep->initializeBounds();
     d_qepr->finishInit();
   }
-  if (options::ceGuidedInst())
+  if (options::sygus())
   {
     quantifiers::SynthEngine* sye = d_private->d_synth_e.get();
     for (const Node& a : assertions)
@@ -989,7 +990,7 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
 
     if (!withinQuant)
     {
-      if (d_sygus_tdb)
+      if (d_sygus_tdb && options::sygusEvalUnfold())
       {
         d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
       }
