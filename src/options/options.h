@@ -240,7 +240,6 @@ public:
   void setOut(std::ostream*);
   void setOutputLanguage(OutputLanguage);
 
-  bool wasSetByUserCeGuidedInst() const;
   bool wasSetByUserDumpSynth() const;
   bool wasSetByUserEarlyExit() const;
   bool wasSetByUserForceLogicString() const;

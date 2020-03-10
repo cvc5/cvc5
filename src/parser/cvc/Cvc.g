@@ -2331,7 +2331,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
       )* RBRACKET
     )?
     {
-      datatypes.push_back(Datatype(PARSER_STATE->getExprManager(),
+      datatypes.push_back(Datatype(SOLVER->getExprManager(),
                                    id,
                                    api::sortVectorToTypes(params),
                                    false));
