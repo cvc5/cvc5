@@ -189,6 +189,9 @@ set(regress_0_tests
   regress0/bv/ackermann8.smt2
   regress0/bv/bool-model.smt2
   regress0/bv/bool-to-bv-all.smt2
+  regress0/bv/bool-to-bv-all-array-bool.smt2
+  regress0/bv/bool-to-bv-ite-array-bool.smt2
+  regress0/bv/bool-to-bv-all-test.smt2
   regress0/bv/bool-to-bv-ite.smt2
   regress0/bv/bug260a.smtv1.smt2
   regress0/bv/bug260b.smtv1.smt2
