@@ -511,8 +511,6 @@ libcvc4_add_sources(
   theory/quantifiers/inst_match.h
   theory/quantifiers/inst_match_trie.cpp
   theory/quantifiers/inst_match_trie.h
-  theory/quantifiers/inst_propagator.cpp
-  theory/quantifiers/inst_propagator.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
   theory/quantifiers/instantiate.cpp

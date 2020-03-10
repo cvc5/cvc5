@@ -34,41 +34,6 @@ namespace quantifiers {
 class TermDb;
 class TermUtil;
 
-/** instantiation notify
- *
- * This class is a listener for all instantiations generated with quantifiers.
- * By default, no notify classes are used. For an example of an instantiation
- * notify class, see quantifiers/inst_propagate.h, which has a notify class
- * that recognizes when the set of enqueued instantiations form a conflict.
- */
-class InstantiationNotify
-{
- public:
-  InstantiationNotify() {}
-  virtual ~InstantiationNotify() {}
-  /** notify instantiation
-   *
-   * This is called when an instantiation of quantified formula q is
-   * instantiated by a substitution whose range is terms at quantifier effort
-   * quant_e. Furthermore:
-   *   body is the substituted, preprocessed body of the quantified formula,
-   *   lem is the instantiation lemma ( ~q V body ) after rewriting.
-   */
-  virtual bool notifyInstantiation(QuantifiersModule::QEffort quant_e,
-                                   Node q,
-                                   Node lem,
-                                   std::vector<Node>& terms,
-                                   Node body) = 0;
-  /** filter instantiations
-   *
-   * This is called just before the quantifiers engine flushes its lemmas to the
-   * output channel. During this call, the instantiation notify object may
-   * call, e.g. QuantifiersEngine::getInstantiate()->removeInstantiation
-   * to remove instantiations that should not be sent on the output channel.
-   */
-  virtual void filterInstantiations() = 0;
-};
-
 /** Instantiation rewriter
  *
  * This class is used for cases where instantiation lemmas can be rewritten by
@@ -129,15 +94,7 @@ class Instantiate : public QuantifiersUtil
   /** check incomplete */
   bool checkComplete() override;
 
-  //--------------------------------------notify/rewrite objects
-  /** add instantiation notify
-   *
-   * Adds an instantiation notify class to listen to the instantiations reported
-   * to this class.
-   */
-  void addNotify(InstantiationNotify* in);
-  /** get number of instantiation notify added to this class */
-  bool hasNotify() const { return !d_inst_notify.empty(); }
+  //--------------------------------------rewrite objects
   /** add instantiation rewriter */
   void addRewriter(InstantiationRewriter* ir);
   /** notify flush lemmas
@@ -146,7 +103,7 @@ class Instantiate : public QuantifiersUtil
    * the output channel.
    */
   void notifyFlushLemmas();
-  //--------------------------------------end notify objects
+  //--------------------------------------end rewrite objects
 
   /** do instantiation specified by m
    *
@@ -368,8 +325,6 @@ class Instantiate : public QuantifiersUtil
   TermDb* d_term_db;
   /** cache of term util for quantifiers engine */
   TermUtil* d_term_util;
-  /** instantiation notify classes */
-  std::vector<InstantiationNotify*> d_inst_notify;
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 

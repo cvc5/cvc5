@@ -243,6 +243,10 @@ add_check_c_cxx_flag("-Wshadow")
 # cdlist.h warnings. Remove when fixed.
 add_check_cxx_flag("-Wno-class-memaccess")
 
+if (WIN32)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
+endif ()
+
 #-----------------------------------------------------------------------------#
 # Use ld.gold if available
 
@@ -670,6 +674,7 @@ message("")
 message("CPPLAGS (-D...)                : ${CVC4_DEFINITIONS}")
 message("CXXFLAGS                       : ${CMAKE_CXX_FLAGS}")
 message("CFLAGS                         : ${CMAKE_C_FLAGS}")
+message("Linker flags                   : ${CMAKE_EXE_LINKER_FLAGS}")
 message("")
 message("Install prefix                 : ${CMAKE_INSTALL_PREFIX}")
 message("")
