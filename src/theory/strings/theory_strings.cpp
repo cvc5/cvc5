@@ -413,7 +413,7 @@ bool TheoryStrings::collectModelInfoType(
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
-      unsigned currLen =
+      uint32_t currLen =
           lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
       std::unique_ptr<SEnumLen> sel;
       if (tn.isString())
