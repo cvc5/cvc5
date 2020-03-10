@@ -290,7 +290,10 @@ bool Instantiate::addInstantiation(
     {
       // virtual term substitution/instantiation level features are
       // incompatible
-      Assert(false);
+      std::stringstream ss;
+      ss << "Cannot combine instantiation strategies that require virtual term "
+            "substitution with those that restrict instantiation levels";
+      throw LogicException(ss.str());
     }
     else
     {

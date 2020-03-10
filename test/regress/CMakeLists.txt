@@ -546,6 +546,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-fun.smt2
   regress0/issue1063-overloading-dt-sel.smt2
   regress0/issue2832-qualId.smt2
+  regress0/issue4010-sort-inf-var.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -816,7 +817,6 @@ set(regress_0_tests
   regress0/rels/rel_transpose_7.cvc
   regress0/rels/relations-ops.smt2
   regress0/rels/rels-sharing-simp.cvc
-  regress0/reset-assertions.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue3720-check-model.smt2
@@ -897,6 +897,9 @@ set(regress_0_tests
   regress0/smtlib/get-unsat-assumptions.smt2
   regress0/smtlib/global-decls.smt2
   regress0/smtlib/reason-unknown.smt2
+  regress0/smtlib/reset-assertions1.smt2
+  regress0/smtlib/reset-assertions2.smt2
+  regress0/smtlib/reset-assertions-global.smt2
   regress0/smtlib/reset-force-logic.smt2
   regress0/smtlib/reset-set-logic.smt2
   regress0/smtlib/set-info-status.smt2
