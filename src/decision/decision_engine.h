@@ -38,8 +38,7 @@ using namespace CVC4::decision;
 namespace CVC4 {
 
 class DecisionEngine {
-
-  vector <DecisionStrategy* > d_enabledStrategies;
+  vector<std::unique_ptr<ITEDecisionStrategy>> d_enabledITEStrategies;
   vector <ITEDecisionStrategy* > d_needIteSkolemMap;
   RelevancyStrategy* d_relevancyStrategy;
 
@@ -71,13 +70,6 @@ public:
   ~DecisionEngine() {
     Trace("decision") << "Destroying decision engine" << std::endl;
   }
-
-  // void setPropEngine(PropEngine* pe) {
-  //   // setPropEngine should not be called more than once
-  //   Assert(d_propEngine == NULL);
-  //   Assert(pe != NULL);
-  //   d_propEngine = pe;
-  // }
 
   void setSatSolver(DPLLSatSolverInterface* ss) {
     // setPropEngine should not be called more than once
@@ -115,11 +107,11 @@ public:
         << "Forgot to set satSolver for decision engine?";
 
     SatLiteral ret = undefSatLiteral;
-    for(unsigned i = 0;
-        i < d_enabledStrategies.size()
-          and ret == undefSatLiteral
-          and stopSearch == false; ++i) {
-      ret = d_enabledStrategies[i]->getNext(stopSearch);
+    for (unsigned i = 0; i < d_enabledITEStrategies.size()
+                         and ret == undefSatLiteral and stopSearch == false;
+         ++i)
+    {
+      ret = d_enabledITEStrategies[i]->getNext(stopSearch);
     }
     return ret;
   }
