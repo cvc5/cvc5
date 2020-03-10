@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --solve-bv-as-int=1
-; EXPECT: (error "Error in option parsing: --solve-bv-as-int=X only supported for QF_BV and QF_UFBV.")
+; EXPECT: (error "Error in option parsing: --solve-bv-as-int=X is only supported for sub-logics of QF_UFBVNIRA.")
 ; EXIT: 1
 
 (set-logic QF_ALIA)

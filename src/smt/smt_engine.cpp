@@ -1208,7 +1208,7 @@ void SmtEngine::setDefaults() {
   {
     if (!(d_logic <= LogicInfo("QF_UFBVNIRA"))) {
       throw OptionException(
-          "--solve-bv-as-int=X only supported for QF_BV and QF_UFBV.");
+          "--solve-bv-as-int=X is only supported for sub-logics of QF_UFBVNIRA.");
     }
 
     if (d_logic.isTheoryEnabled(THEORY_BV))
