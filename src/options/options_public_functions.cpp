@@ -218,10 +218,6 @@ void Options::setOutputLanguage(OutputLanguage value) {
   set(options::outputLanguage, value);
 }
 
-bool Options::wasSetByUserCeGuidedInst() const {
-  return wasSetByUser(options::ceGuidedInst);
-}
-
 bool Options::wasSetByUserDumpSynth() const {
   return wasSetByUser(options::dumpSynth);
 }
