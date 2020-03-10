@@ -155,19 +155,19 @@ void BaseSolver::checkInit()
                   std::vector<Node> exp;
                   // explain empty components
                   bool foundNEmpty = false;
-                  for (const Node& nc : n)
+                  for (const Node& nnc : n)
                   {
-                    if (d_state.areEqual(nc, d_emptyString))
+                    if (d_state.areEqual(nnc, d_emptyString))
                     {
-                      if (nc != d_emptyString)
+                      if (nnc != d_emptyString)
                       {
-                        exp.push_back(nc.eqNode(d_emptyString));
+                        exp.push_back(nnc.eqNode(d_emptyString));
                       }
                     }
                     else
                     {
                       Assert(!foundNEmpty);
-                      ns = nc;
+                      ns = nnc;
                       foundNEmpty = true;
                     }
                   }
