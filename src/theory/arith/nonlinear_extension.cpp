@@ -2682,6 +2682,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
             int mv_a_sgn = mv_a.getConst<Rational>().sgn();
             if (mv_a_sgn == 0)
             {
+              // we don't compare monomials whose current model value is zero
               continue;
             }
             Node mv_b = d_model.computeAbstractModelValue(itb->second);
@@ -2689,6 +2690,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
             int mv_b_sgn = mv_b.getConst<Rational>().sgn();
             if (mv_b_sgn == 0)
             {
+              // we don't compare monomials whose current model value is zero
               continue;
             }
             Trace("nl-ext-rbound")
