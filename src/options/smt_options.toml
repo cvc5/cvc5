@@ -420,6 +420,15 @@ header = "options/smt_options.h"
   help       = "in models, output uninterpreted sorts as datatype enumerations"
 
 [[option]]
+  name       = "modelWitnessChoice"
+  category   = "regular"
+  long       = "model-witness-choice"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "in models, use a witness constant for choice functions"
+
+[[option]]
   name       = "regularChannelName"
   smt_name   = "regular-output-channel"
   category   = "regular"
@@ -625,15 +634,6 @@ header = "options/smt_options.h"
   read_only  = true
   help       = "amount of resources spent for each sat conflict (bitvectors)"
 
-[[option]]
-  name       = "rewriteApplyToConst"
-  category   = "expert"
-  long       = "rewrite-apply-to-const"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "eliminate function applications, rewriting e.g. f(5) to a new symbol f_5"
-
 # --replay is currently broken; don't document it for 1.0
 [[option]]
   name       = "replayInputFilename"
@@ -663,6 +663,15 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "Force no CPU limit when dumping models and proofs"
+
+[[option]]
+  name       = "solveBVAsInt"
+  category   = "undocumented"
+  long       = "solve-bv-as-int=N"
+  type       = "uint32_t"
+  default    = "0"
+  read_only  = true
+  help       = "attempt to solve BV formulas by translation to integer arithmetic (experimental)"
 
 [[option]]
   name       = "solveIntAsBV"

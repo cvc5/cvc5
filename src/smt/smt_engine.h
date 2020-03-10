@@ -32,7 +32,6 @@
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
-#include "smt_util/lemma_channels.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
 #include "util/proof.h"
@@ -798,8 +797,6 @@ class CVC4_PUBLIC SmtEngine
    */
   void beforeSearch();
 
-  LemmaChannels* channels() { return d_channels; }
-
   /**
    * Expermintal feature: Sets the sequence of decisions.
    * This currently requires very fine grained knowledge about literal
@@ -1062,9 +1059,7 @@ class CVC4_PUBLIC SmtEngine
   ExprManager* d_exprManager;
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
-  /** The decision engine */
 
-  DecisionEngine* d_decisionEngine;
   /** The theory engine */
   TheoryEngine* d_theoryEngine;
   /** The propositional engine */
@@ -1242,9 +1237,6 @@ class CVC4_PUBLIC SmtEngine
   StatisticsRegistry* d_statisticsRegistry;
 
   smt::SmtEngineStatistics* d_stats;
-
-  /** Container for the lemma input and output channels for this SmtEngine.*/
-  LemmaChannels* d_channels;
 
   /*---------------------------- sygus commands  ---------------------------*/
 

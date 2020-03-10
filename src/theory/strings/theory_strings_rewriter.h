@@ -159,8 +159,6 @@ class TheoryStringsRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
 
-  /** get the cardinality of the alphabet used, based on the options */
-  static unsigned getAlphabetCardinality();
   /** rewrite equality
    *
    * This method returns a formula that is equivalent to the equality between
@@ -251,12 +249,20 @@ class TheoryStringsRewriter : public TheoryRewriter
   * Returns the rewritten form of node.
   */
   static Node rewritePrefixSuffix(Node node);
-  /** rewrite str.code
+
+  /** rewrite str.from_code
    * This is the entry point for post-rewriting terms n of the form
-   *   str.code( t )
+   *   str.from_code( t )
    * Returns the rewritten form of node.
    */
-  static Node rewriteStringCode(Node node);
+  static Node rewriteStringFromCode(Node node);
+
+  /** rewrite str.to_code
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.to_code( t )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStringToCode(Node node);
 
   static Node splitConstant( Node a, Node b, int& index, bool isRev );
   /** can constant contain list

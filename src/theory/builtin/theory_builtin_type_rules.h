@@ -223,6 +223,31 @@ class FunctionProperties {
 
     return valueCard ^ argsCard;
   }
+  /** Function type is well-founded if its component sorts are */
+  static bool isWellFounded(TypeNode type)
+  {
+    for (TypeNode::iterator i = type.begin(), i_end = type.end(); i != i_end;
+         ++i)
+    {
+      if (!(*i).isWellFounded())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  /**
+   * Ground term for function sorts is (lambda x. t) where x is the
+   * canonical variable list for its type and t is the canonical ground term of
+   * its range.
+   */
+  static Node mkGroundTerm(TypeNode type)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node bvl = nm->getBoundVarListForFunctionType(type);
+    Node ret = type.getRangeType().mkGroundTerm();
+    return nm->mkNode(kind::LAMBDA, bvl, ret);
+  }
 };/* class FuctionProperties */
 
 class SExprProperties {

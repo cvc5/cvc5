@@ -1,0 +1,12 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status
+(set-logic ALL)
+(synth-fun P ((x (Set Int))) Bool)
+
+(constraint (not (P (as emptyset (Set Int)))))
+(constraint (not (P (insert 1 2 (as emptyset (Set Int))))))
+(constraint (P (insert 0 (as emptyset (Set Int)))))
+(constraint (P (insert 0 4 5 (as emptyset (Set Int)))))
+(constraint (not (P (singleton 45))))
+
+(check-synth)

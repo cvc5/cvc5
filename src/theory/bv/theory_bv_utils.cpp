@@ -43,17 +43,17 @@ const bool getBit(TNode node, unsigned i)
 
 unsigned getExtractHigh(TNode node)
 {
-  return node.getOperator().getConst<BitVectorExtract>().high;
+  return node.getOperator().getConst<BitVectorExtract>().d_high;
 }
 
 unsigned getExtractLow(TNode node)
 {
-  return node.getOperator().getConst<BitVectorExtract>().low;
+  return node.getOperator().getConst<BitVectorExtract>().d_low;
 }
 
 unsigned getSignExtendAmount(TNode node)
 {
-  return node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+  return node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -479,6 +479,33 @@ Node eliminateBv2Nat(TNode node)
   }
   // avoid plus with one child
   return children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
+}
+
+Node eliminateInt2Bv(TNode node)
+{
+  const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
+  NodeManager* const nm = NodeManager::currentNM();
+  const Node bvzero = utils::mkZero(1);
+  const Node bvone = utils::mkOne(1);
+
+  std::vector<Node> v;
+  Integer i = 2;
+  while (v.size() < size)
+  {
+    Node cond = nm->mkNode(
+        kind::GEQ,
+        nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0], nm->mkConst(Rational(i))),
+        nm->mkConst(Rational(i, 2)));
+    v.push_back(nm->mkNode(kind::ITE, cond, bvone, bvzero));
+    i *= 2;
+  }
+  if (v.size() == 1)
+  {
+    return v[0];
+  }
+  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  result.append(v.rbegin(), v.rend());
+  return Node(result);
 }
 
 }/* CVC4::theory::bv::utils namespace */

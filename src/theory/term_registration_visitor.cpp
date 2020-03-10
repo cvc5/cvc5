@@ -88,9 +88,9 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
     // The current theory has already visited it, so now it depends on the parent and the type
     if (Theory::setContains(parentTheoryId, visitedTheories)) {
       if (useType) {
-        TheoryId typeTheoryId = Theory::theoryOf(current.getType());
-        d_theories = Theory::setInsert(typeTheoryId, d_theories);
-        return Theory::setContains(typeTheoryId, visitedTheories);
+        TheoryId typeTheoryId2 = Theory::theoryOf(current.getType());
+        d_theories = Theory::setInsert(typeTheoryId2, d_theories);
+        return Theory::setContains(typeTheoryId2, visitedTheories);
       } else {
         return true;
       }

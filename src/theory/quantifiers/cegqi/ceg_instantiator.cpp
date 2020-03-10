@@ -478,7 +478,6 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     if( tn.isReal() ){
       vinst = new ArithInstantiator(tn, d_parent->getVtsTermCache());
     }else if( tn.isSort() ){
-      Assert(options::quantEpr());
       vinst = new EprInstantiator(tn);
     }else if( tn.isDatatype() ){
       vinst = new DtInstantiator(tn);
@@ -1448,7 +1447,7 @@ void CegInstantiator::processAssertions() {
       d_curr_asserts[tid].clear();
       //collect all assertions from theory
       for( context::CDList<Assertion>::const_iterator it = theory->facts_begin(); it != theory->facts_end(); ++ it) {
-        Node lit = (*it).assertion;
+        Node lit = (*it).d_assertion;
         Node atom = lit.getKind()==NOT ? lit[0] : lit;
         if( d_is_nested_quant || std::find( d_ce_atoms.begin(), d_ce_atoms.end(), atom )!=d_ce_atoms.end() ){
           d_curr_asserts[tid].push_back( lit );
