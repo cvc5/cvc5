@@ -841,10 +841,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<TypeNode> cargsBinary;
       cargsBinary.push_back(unres_t);
       cargsBinary.push_back(unres_t);
-      for (const Kind k : bin_kinds)
+      for (const Kind kind : bin_kinds)
       {
-        Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-        sdts[i].addConstructor(k, cargsBinary);
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargsBinary);
       }
     }
     else if (types[i].isDatatype())
