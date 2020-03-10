@@ -42,8 +42,6 @@ libcvc4_add_sources(
   preprocessing/passes/ackermann.h
   preprocessing/passes/apply_substs.cpp
   preprocessing/passes/apply_substs.h
-  preprocessing/passes/apply_to_const.cpp
-  preprocessing/passes/apply_to_const.h
   preprocessing/passes/bool_to_bv.cpp
   preprocessing/passes/bool_to_bv.h
   preprocessing/passes/bv_abstraction.cpp
@@ -513,8 +511,6 @@ libcvc4_add_sources(
   theory/quantifiers/inst_match.h
   theory/quantifiers/inst_match_trie.cpp
   theory/quantifiers/inst_match_trie.h
-  theory/quantifiers/inst_propagator.cpp
-  theory/quantifiers/inst_propagator.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
   theory/quantifiers/instantiate.cpp
@@ -661,10 +657,13 @@ libcvc4_add_sources(
   theory/sets/theory_sets_rels.h
   theory/sets/theory_sets_rewriter.cpp
   theory/sets/theory_sets_rewriter.h
+  theory/sets/theory_sets_type_enumerator.cpp
   theory/sets/theory_sets_type_enumerator.h
   theory/sets/theory_sets_type_rules.h
   theory/shared_terms_database.cpp
   theory/shared_terms_database.h
+  theory/smt_engine_subsolver.cpp
+  theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
   theory/sort_inference.h
   theory/strings/base_solver.cpp
