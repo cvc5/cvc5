@@ -29,27 +29,28 @@
 namespace CVC4 {
 
 JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
-                                               context::UserContext *uc,
-                                               context::Context *c):
-  ITEDecisionStrategy(de, c),
-  d_justified(c),
-  d_exploredThreshold(c),
-  d_prvsIndex(c, 0),
-  d_threshPrvsIndex(c, 0),
-  d_helfulness("decision::jh::helpfulness", 0),
-  d_giveup("decision::jh::giveup", 0),
-  d_timestat("decision::jh::time"),
-  d_assertions(uc),
-  d_iteAssertions(uc),
-  d_iteCache(uc),
-  d_visited(),
-  d_visitedComputeITE(),
-  d_curDecision(),
-  d_curThreshold(0),
-  d_childCache(uc),
-  d_weightCache(uc),
-  d_startIndexCache(c) {
-  smtStatisticsRegistry()->registerStat(&d_helfulness);
+                                               context::UserContext* uc,
+                                               context::Context* c)
+    : ITEDecisionStrategy(de, c),
+      d_justified(c),
+      d_exploredThreshold(c),
+      d_prvsIndex(c, 0),
+      d_threshPrvsIndex(c, 0),
+      d_helpfulness("decision::jh::helpfulness", 0),
+      d_giveup("decision::jh::giveup", 0),
+      d_timestat("decision::jh::time"),
+      d_assertions(uc),
+      d_iteAssertions(uc),
+      d_iteCache(uc),
+      d_visited(),
+      d_visitedComputeITE(),
+      d_curDecision(),
+      d_curThreshold(0),
+      d_childCache(uc),
+      d_weightCache(uc),
+      d_startIndexCache(c)
+{
+  smtStatisticsRegistry()->registerStat(&d_helpfulness);
   smtStatisticsRegistry()->registerStat(&d_giveup);
   smtStatisticsRegistry()->registerStat(&d_timestat);
   Trace("decision") << "Justification heuristic enabled" << std::endl;
@@ -57,7 +58,7 @@ JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
 
 JustificationHeuristic::~JustificationHeuristic()
 {
-  smtStatisticsRegistry()->unregisterStat(&d_helfulness);
+  smtStatisticsRegistry()->unregisterStat(&d_helpfulness);
   smtStatisticsRegistry()->unregisterStat(&d_giveup);
   smtStatisticsRegistry()->unregisterStat(&d_timestat);
 }
@@ -109,7 +110,7 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
     if(litDecision != undefSatLiteral) {
       setPrvsIndex(i);
       Trace("decision") << "jh: splitting on " << litDecision << std::endl;
-      ++d_helfulness;
+      ++d_helpfulness;
       return litDecision;
     }
   }
