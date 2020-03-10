@@ -1692,30 +1692,6 @@ void SmtEngine::setDefaults() {
     Trace("smt") << "setting repeat simplification to " << repeatSimp << endl;
     options::repeatSimp.set(repeatSimp);
   }
-  // Unconstrained simp currently does *not* support model generation
-  if (options::unconstrainedSimp.wasSetByUser() && options::unconstrainedSimp()) {
-    if (options::produceModels()) {
-      if (options::produceModels.wasSetByUser()) {
-        throw OptionException("Cannot use unconstrained-simp with model generation.");
-      }
-      Notice() << "SmtEngine: turning off produce-models to support unconstrainedSimp" << endl;
-      setOption("produce-models", SExpr("false"));
-    }
-    if (options::produceAssignments()) {
-      if (options::produceAssignments.wasSetByUser()) {
-        throw OptionException("Cannot use unconstrained-simp with model generation (produce-assignments).");
-      }
-      Notice() << "SmtEngine: turning off produce-assignments to support unconstrainedSimp" << endl;
-      setOption("produce-assignments", SExpr("false"));
-    }
-    if (options::checkModels()) {
-      if (options::checkModels.wasSetByUser()) {
-        throw OptionException("Cannot use unconstrained-simp with model generation (check-models).");
-      }
-      Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << endl;
-      setOption("check-models", SExpr("false"));
-    }
-  }
 
   if (options::boolToBitvector() == options::BoolToBVMode::ALL
       && !d_logic.isTheoryEnabled(THEORY_BV))
@@ -2239,64 +2215,11 @@ void SmtEngine::setDefaults() {
       options::minisatUseElim.set( false );
     }
   }
-  else if (options::minisatUseElim()) {
-    if (options::produceModels()) {
-      Notice() << "SmtEngine: turning off produce-models to support minisatUseElim" << endl;
-      setOption("produce-models", SExpr("false"));
-    }
-    if (options::produceAssignments()) {
-      Notice() << "SmtEngine: turning off produce-assignments to support minisatUseElim" << endl;
-      setOption("produce-assignments", SExpr("false"));
-    }
-    if (options::checkModels()) {
-      Notice() << "SmtEngine: turning off check-models to support minisatUseElim" << endl;
-      setOption("check-models", SExpr("false"));
-    }
-  }
 
   // For now, these array theory optimizations do not support model-building
   if (options::produceModels() || options::produceAssignments() || options::checkModels()) {
     options::arraysOptimizeLinear.set(false);
     options::arraysLazyRIntro1.set(false);
-  }
-
-  // Non-linear arithmetic does not support models unless nlExt is enabled
-  if ((d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()
-       && !options::nlExt())
-      || options::globalNegate())
-  {
-    std::string reason =
-        options::globalNegate() ? "--global-negate" : "nonlinear arithmetic";
-    if (options::produceModels()) {
-      if(options::produceModels.wasSetByUser()) {
-        throw OptionException(
-            std::string("produce-model not supported with " + reason));
-      }
-      Warning()
-          << "SmtEngine: turning off produce-models because unsupported for "
-          << reason << endl;
-      setOption("produce-models", SExpr("false"));
-    }
-    if (options::produceAssignments()) {
-      if(options::produceAssignments.wasSetByUser()) {
-        throw OptionException(
-            std::string("produce-assignments not supported with " + reason));
-      }
-      Warning() << "SmtEngine: turning off produce-assignments because "
-                   "unsupported for "
-                << reason << endl;
-      setOption("produce-assignments", SExpr("false"));
-    }
-    if (options::checkModels()) {
-      if(options::checkModels.wasSetByUser()) {
-        throw OptionException(
-            std::string("check-models not supported with " + reason));
-      }
-      Warning()
-          << "SmtEngine: turning off check-models because unsupported for "
-          << reason << endl;
-      setOption("check-models", SExpr("false"));
-    }
   }
 
   if (options::proof())
@@ -2392,6 +2315,77 @@ void SmtEngine::setDefaults() {
                     "--strings-fmf enabled"
                  << endl;
     options::stringProcessLoopMode.set(options::ProcessLoopMode::SIMPLE);
+  }
+
+  // !!! All options that require disabling models go here
+  bool disableModels = false;
+  std::string sOptNoModel;
+  if (options::unconstrainedSimp.wasSetByUser() && options::unconstrainedSimp())
+  {
+    disableModels = true;
+    sOptNoModel = "unconstrained-simp";
+  }
+  else if (options::sortInference())
+  {
+    disableModels = true;
+    sOptNoModel = "sort-inference";
+  }
+  else if (options::minisatUseElim())
+  {
+    disableModels = true;
+    sOptNoModel = "minisat-elimination";
+  }
+  else if (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()
+           && !options::nlExt())
+  {
+    disableModels = true;
+    sOptNoModel = "nonlinear arithmetic without nl-ext";
+  }
+  else if (options::globalNegate())
+  {
+    disableModels = true;
+    sOptNoModel = "global-negate";
+  }
+  if (disableModels)
+  {
+    if (options::produceModels())
+    {
+      if (options::produceModels.wasSetByUser())
+      {
+        std::stringstream ss;
+        ss << "Cannot use " << sOptNoModel << " with model generation.";
+        throw OptionException(ss.str());
+      }
+      Notice() << "SmtEngine: turning off produce-models to support "
+               << sOptNoModel << endl;
+      setOption("produce-models", SExpr("false"));
+    }
+    if (options::produceAssignments())
+    {
+      if (options::produceAssignments.wasSetByUser())
+      {
+        std::stringstream ss;
+        ss << "Cannot use " << sOptNoModel
+           << " with model generation (produce-assignments).";
+        throw OptionException(ss.str());
+      }
+      Notice() << "SmtEngine: turning off produce-assignments to support "
+               << sOptNoModel << endl;
+      setOption("produce-assignments", SExpr("false"));
+    }
+    if (options::checkModels())
+    {
+      if (options::checkModels.wasSetByUser())
+      {
+        std::stringstream ss;
+        ss << "Cannot use " << sOptNoModel
+           << " with model generation (check-models).";
+        throw OptionException(ss.str());
+      }
+      Notice() << "SmtEngine: turning off check-models to support "
+               << sOptNoModel << endl;
+      setOption("check-models", SExpr("false"));
+    }
   }
 }
 
