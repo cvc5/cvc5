@@ -76,11 +76,6 @@ Parser::~Parser() {
   delete d_input;
 }
 
-ExprManager* Parser::getExprManager() const
-{
-  return d_solver->getExprManager();
-}
-
 api::Solver* Parser::getSolver() const { return d_solver; }
 
 api::Term Parser::getSymbol(const std::string& name, SymbolType type)
@@ -339,7 +334,7 @@ void Parser::defineParameterizedType(const std::string& name,
 api::Sort Parser::mkSort(const std::string& name, uint32_t flags)
 {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
-  api::Sort type = getExprManager()->mkSort(name, flags);
+  api::Sort type = d_solver->getExprManager()->mkSort(name, flags);
   defineType(
       name,
       type,
@@ -353,7 +348,8 @@ api::Sort Parser::mkSortConstructor(const std::string& name,
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  api::Sort type = getExprManager()->mkSortConstructor(name, arity, flags);
+  api::Sort type =
+      d_solver->getExprManager()->mkSortConstructor(name, arity, flags);
   defineType(
       name,
       vector<api::Sort>(arity),
@@ -383,7 +379,7 @@ api::Sort Parser::mkUnresolvedTypeConstructor(
 {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  api::Sort unresolved = getExprManager()->mkSortConstructor(
+  api::Sort unresolved = d_solver->getExprManager()->mkSortConstructor(
       name, params.size(), ExprManager::SORT_FLAG_PLACEHOLDER);
   defineType(name, params, unresolved);
   api::Sort t = getSort(name, params);
@@ -404,7 +400,8 @@ std::vector<api::Sort> Parser::mkMutualDatatypeTypes(
   try {
     std::set<Type> tset = api::sortSetToTypes(d_unresolved);
     std::vector<DatatypeType> dtypes =
-        getExprManager()->mkMutualDatatypeTypes(datatypes, tset, flags);
+        d_solver->getExprManager()->mkMutualDatatypeTypes(
+            datatypes, tset, flags);
     std::vector<api::Sort> types;
     for (unsigned i = 0, dtsize = dtypes.size(); i < dtsize; i++)
     {
@@ -593,7 +590,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     // parametric datatype.
     if (s.isParametricDatatype())
     {
-      ExprManager* em = getExprManager();
+      ExprManager* em = d_solver->getExprManager();
       // apply type ascription to the operator
       Expr e = t.getExpr();
       const DatatypeConstructor& dtc =
@@ -633,7 +630,8 @@ api::Term Parser::mkVar(const std::string& name,
                         const api::Sort& type,
                         uint32_t flags)
 {
-  return api::Term(getExprManager()->mkVar(name, type.getType(), flags));
+  return api::Term(
+      d_solver->getExprManager()->mkVar(name, type.getType(), flags));
 }
 //!!!!!!!!!!! temporary
 
