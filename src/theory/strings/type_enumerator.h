@@ -49,7 +49,10 @@ class WordIter
   const std::vector<unsigned>& getData() const;
   /**
    * Increment assuming the cardinality of the alphabet is card. Notice that
-   * card may change dynamically.
+   * the value of card may be different for multiple calls; the caller is
+   * responsible for using this function to achieve the required result. This
+   * is required for enumerating sequences where the cardinality of the
+   * alphabet is not known upfront, but a lower bound can be determined.
    *
    * This method returns true if the increment was successful, otherwise we
    * are finished with this iterator.
