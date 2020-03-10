@@ -15,22 +15,24 @@
 #include "expr/expr_sequence.h"
 
 #include "expr/expr.h"
-#include "expr/type.h"
-#include "expr/type_node.h"
 #include "expr/node.h"
 #include "expr/sequence.h"
+#include "expr/type.h"
+#include "expr/type_node.h"
 
 namespace CVC4 {
 
-ExprSequence::ExprSequence(const Type& t) { 
-  d_type.reset(new Type(t)); 
+ExprSequence::ExprSequence(const Type& t)
+{
+  d_type.reset(new Type(t));
   std::vector<Node> seq;
-  d_sequence.reset(new Sequence(TypeNode::fromType(t),seq));
+  d_sequence.reset(new Sequence(TypeNode::fromType(t), seq));
 }
 ExprSequence::~ExprSequence() {}
 
 ExprSequence::ExprSequence(const ExprSequence& other)
-    : d_type(new Type(other.getType())), d_sequence(new Sequence(other.getSequence()))
+    : d_type(new Type(other.getType())),
+      d_sequence(new Sequence(other.getSequence()))
 {
 }
 

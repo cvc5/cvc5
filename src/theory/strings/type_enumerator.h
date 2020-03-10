@@ -32,17 +32,18 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** 
+/**
  * Generic iteration over vectors of indices of a given start/end length.
  */
-class WordIter {
+class WordIter
+{
  public:
-  /** 
+  /**
    * This iterator will start with words at length startLength and continue
    * indefinitely.
    */
   WordIter(uint32_t startLength);
-  /** 
+  /**
    * This iterator will start with words at length startLength and continue
    * until length endLength.
    */
@@ -51,14 +52,15 @@ class WordIter {
   WordIter(const WordIter& witer);
   /** Get the current data */
   const std::vector<unsigned>& getData() const;
-  /** 
+  /**
    * Increment assuming the cardinality of the alphabet is card. Notice that
    * card may change dynamically.
-   * 
+   *
    * This method returns true if the increment was successful, otherwise we
    * are finished with this iterator.
    */
   bool increment(uint32_t card);
+
  private:
   /** Whether we have an end length */
   bool d_hasEndLength;
@@ -68,24 +70,25 @@ class WordIter {
   std::vector<unsigned> d_data;
 };
 
-/** 
+/**
  * A virtual class for enumerating string-like terms, with a similar
  * interface to the one above.
  */
 class SEnumLen
 {
-public:
+ public:
   SEnumLen(TypeNode tn, uint32_t startLength);
   SEnumLen(TypeNode tn, uint32_t startLength, uint32_t endLength);
   SEnumLen(const SEnumLen& e);
-  virtual ~SEnumLen(){}
+  virtual ~SEnumLen() {}
   /** Get current term */
   Node getCurrent() const;
   /** Is this enumerator finished? */
   bool isFinished() const;
   /** increment, returns true if the increment was successful. */
   virtual bool increment() = 0;
-protected:
+
+ protected:
   /** The type we are enumerating */
   TypeNode d_type;
   /** The word iterator utility */
@@ -97,15 +100,17 @@ protected:
 /**
  * Enumerates string values for a given length.
  */
-class StringEnumLen : public SEnumLen {
+class StringEnumLen : public SEnumLen
+{
  public:
   /** For strings */
   StringEnumLen(uint32_t startLength, uint32_t card);
   StringEnumLen(uint32_t startLength, uint32_t endLength, uint32_t card);
   /** destructor */
-  ~StringEnumLen(){}
+  ~StringEnumLen() {}
   /** increment */
   bool increment() override;
+
  private:
   /** The cardinality of the alphabet */
   uint32_t d_cardinality;
@@ -116,17 +121,22 @@ class StringEnumLen : public SEnumLen {
 /**
  * Enumerates sequence values for a given length.
  */
-class SeqEnumLen : public SEnumLen {
+class SeqEnumLen : public SEnumLen
+{
  public:
   /** For sequences */
   SeqEnumLen(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength);
-  SeqEnumLen(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength, uint32_t endLength);
+  SeqEnumLen(TypeNode tn,
+             TypeEnumeratorProperties* tep,
+             uint32_t startLength,
+             uint32_t endLength);
   /** copy constructor */
   SeqEnumLen(const SeqEnumLen& wenum);
   /** destructor */
-  ~SeqEnumLen(){}
+  ~SeqEnumLen() {}
   /** increment */
   bool increment() override;
+
  private:
   /** an enumerator for the elements' type */
   std::unique_ptr<TypeEnumerator> d_elementEnumerator;
@@ -141,29 +151,30 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator>
  public:
   StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
   StringEnumerator(const StringEnumerator& enumerator);
-  ~StringEnumerator(){}
+  ~StringEnumerator() {}
   /** get the current term */
   Node operator*() override;
   /** increment */
   StringEnumerator& operator++() override;
   /** is this enumerator finished? */
   bool isFinished() override;
+
  private:
   /** underlying string enumerator */
   StringEnumLen d_wenum;
-};/* class StringEnumerator */
-
+}; /* class StringEnumerator */
 
 class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator>
 {
  public:
   SequenceEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
   SequenceEnumerator(const SequenceEnumerator& enumerator);
-  ~SequenceEnumerator(){}
+  ~SequenceEnumerator() {}
   Node operator*() override;
   SequenceEnumerator& operator++() override;
   bool isFinished() override;
-private:
+
+ private:
   /** underlying sequence enumerator */
   SeqEnumLen d_wenum;
 }; /* class SequenceEnumerator */

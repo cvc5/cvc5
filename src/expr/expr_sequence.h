@@ -26,7 +26,7 @@ namespace CVC4 {
 // CONSTANT-kinded expression), and ArrayStoreAll needs Expr.
 class Type;
 class Sequence;
-  
+
 /** The CVC4 sequence class
  *
  * This data structure is the domain of values for the sequence type.
@@ -54,6 +54,7 @@ class CVC4_PUBLIC ExprSequence
 
   const Type& getType() const;
   const Sequence& getSequence() const;
+
  private:
   /** The element type of the sequence */
   std::unique_ptr<Type> d_type;

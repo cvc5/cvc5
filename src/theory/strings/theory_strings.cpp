@@ -413,16 +413,18 @@ bool TheoryStrings::collectModelInfoType(
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
-      unsigned currLen = lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt(); 
+      unsigned currLen =
+          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
       std::unique_ptr<SEnumLen> sel;
       if (tn.isString())
       {
-        sel.reset( new StringEnumLen(currLen, currLen, utils::getAlphabetCardinality()));
+        sel.reset(new StringEnumLen(
+            currLen, currLen, utils::getAlphabetCardinality()));
       }
       else
       {
         Unimplemented() << "Collect model info not implemented for sequences";
-        sel.reset(new SeqEnumLen(tn,nullptr,currLen,currLen));
+        sel.reset(new SeqEnumLen(tn, nullptr, currLen, currLen));
       }
       for (const Node& eqc : pure_eq)
       {
