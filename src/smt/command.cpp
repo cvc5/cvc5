@@ -27,6 +27,7 @@
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
+#include "expr/type.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -2783,21 +2784,19 @@ std::string SetExpressionNameCommand::getCommandName() const
 /* class DatatypeDeclarationCommand                                           */
 /* -------------------------------------------------------------------------- */
 
-DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const DatatypeType& datatype)
+DatatypeDeclarationCommand::DatatypeDeclarationCommand(const Type& datatype)
     : d_datatypes()
 {
   d_datatypes.push_back(datatype);
 }
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const std::vector<DatatypeType>& datatypes)
+    const std::vector<Type>& datatypes)
     : d_datatypes(datatypes)
 {
 }
 
-const std::vector<DatatypeType>& DatatypeDeclarationCommand::getDatatypes()
-    const
+const std::vector<Type>& DatatypeDeclarationCommand::getDatatypes() const
 {
   return d_datatypes;
 }

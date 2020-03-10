@@ -25,7 +25,6 @@
 #include "base/output.h"
 #include "preprocessing/passes/ackermann.h"
 #include "preprocessing/passes/apply_substs.h"
-#include "preprocessing/passes/apply_to_const.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_abstraction.h"
 #include "preprocessing/passes/bv_eager_atoms.h"
@@ -120,7 +119,6 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("bv-gauss", callCtor<BVGauss>);
   registerPassInfo("static-learning", callCtor<StaticLearning>);
   registerPassInfo("ite-simp", callCtor<ITESimp>);
-  registerPassInfo("apply-to-const", callCtor<ApplyToConst>);
   registerPassInfo("global-negate", callCtor<GlobalNegate>);
   registerPassInfo("int-to-bv", callCtor<IntToBV>);
   registerPassInfo("bv-to-int", callCtor<BVToInt>);

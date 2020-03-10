@@ -404,17 +404,17 @@ void TermDbSygus::registerEnumerator(Node e,
     SygusTypeInfo& sti = getTypeInfo(stn);
     const DType& dt = stn.getDType();
     int anyC = sti.getAnyConstantConsNum();
-    for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+    for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
     {
-      bool isAnyC = static_cast<int>(i) == anyC;
+      bool isAnyC = static_cast<int>(j) == anyC;
       if (anyC != -1 && !isAnyC)
       {
         // if we are using the any constant constructor, do not use any
         // concrete constant
-        Node c_op = sti.getConsNumConst(i);
+        Node c_op = sti.getConsNumConst(j);
         if (!c_op.isNull())
         {
-          rm_indices.push_back(i);
+          rm_indices.push_back(j);
         }
       }
     }
@@ -844,10 +844,10 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
       {
         bool success = true;
         std::vector<TypeNode> disj_types[2];
-        for (unsigned c = 0; c < 2; c++)
+        for (unsigned cc = 0; cc < 2; cc++)
         {
-          if (!canConstructKind(conj_types[c], OR, disj_types[c], true)
-              || disj_types[c].size() != 2)
+          if (!canConstructKind(conj_types[cc], OR, disj_types[cc], true)
+              || disj_types[cc].size() != 2)
           {
             success = false;
             break;
@@ -865,8 +865,8 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
               if (canConstructKind(dtn, NOT, ntypes) && ntypes.size() == 1)
               {
                 TypeNode ntn = ntypes[0];
-                for (unsigned dd = 0, size = disj_types[1 - r].size();
-                     dd < size;
+                for (unsigned dd = 0, inner_size = disj_types[1 - r].size();
+                     dd < inner_size;
                      dd++)
                 {
                   if (disj_types[1 - r][dd] == ntn)

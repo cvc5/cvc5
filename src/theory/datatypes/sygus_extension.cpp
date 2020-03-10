@@ -271,9 +271,10 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
         if( xa==a ){
           IntMap::const_iterator ittv = d_testers.find( x );
           Assert(ittv != d_testers.end());
-          int tindex = (*ittv).second;
+          int tidx = (*ittv).second;
           const DType& dti = x.getType().getDType();
-          if( dti[tindex].getNumArgs()>0 ){
+          if (dti[tidx].getNumArgs() > 0)
+          {
             NodeMap::const_iterator itt = d_testers_exp.find( x );
             Assert(itt != d_testers_exp.end());
             conflict.push_back( (*itt).second );

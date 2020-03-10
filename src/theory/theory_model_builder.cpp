@@ -736,7 +736,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       }
 #endif
 
-      set<Node>* repSet = typeRepSet.getSet(t);
       TypeNode tb = t.getBaseType();
       if (!assignOne)
       {
@@ -755,6 +754,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       bool assignable, evaluable CVC4_UNUSED;
       std::map<Node, Assigner>::iterator itAssigner;
       std::map<Node, Node>::iterator itAssignerM;
+      set<Node>* repSet = typeRepSet.getSet(t);
       for (i = noRepSet.begin(); i != noRepSet.end();)
       {
         i2 = i;
@@ -928,11 +928,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it)
   {
     set<Node>& noRepSet = TypeSet::getSet(it);
-    set<Node>::iterator i;
-    for (i = noRepSet.begin(); i != noRepSet.end(); ++i)
+    for (const Node& node : noRepSet)
     {
-      tm->d_reps[*i] = *i;
-      tm->d_rep_set.add((*i).getType(), *i);
+      tm->d_reps[node] = node;
+      tm->d_rep_set.add(node.getType(), node);
     }
   }
 

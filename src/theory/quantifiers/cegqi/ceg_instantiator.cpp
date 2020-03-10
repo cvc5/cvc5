@@ -478,7 +478,6 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     if( tn.isReal() ){
       vinst = new ArithInstantiator(tn, d_parent->getVtsTermCache());
     }else if( tn.isSort() ){
-      Assert(options::quantEpr());
       vinst = new EprInstantiator(tn);
     }else if( tn.isDatatype() ){
       vinst = new DtInstantiator(tn);
