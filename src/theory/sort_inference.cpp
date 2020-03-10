@@ -663,7 +663,10 @@ Node SortInference::simplifyNode(
           Assert(d_op_arg_types.find(op) != d_op_arg_types.end());
           tnnc = getOrCreateTypeForId( d_op_arg_types[op][i], n[i].getType() );
           Assert(!tnnc.isNull());
-        }else if( n.getKind()==kind::EQUAL && !n[0].getType().isBoolean() && i==0 ){
+        }
+        else if (n.getKind() == kind::EQUAL && !n[0].getType().isBoolean()
+                 && i == 0)
+        {
           Assert(d_equality_types.find(n) != d_equality_types.end());
           tnnc = getOrCreateTypeForId( d_equality_types[n], n[0].getType() );
           Assert(!tnnc.isNull());
