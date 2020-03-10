@@ -151,8 +151,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         }
         if (childChanged)
         {
-          if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-            children.insert( children.begin(), n.getOperator() );
+          if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+          {
+            children.insert(children.begin(), n.getOperator());
           }
           ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
         }
