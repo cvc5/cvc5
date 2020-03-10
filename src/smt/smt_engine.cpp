@@ -5598,7 +5598,10 @@ void SmtEngine::resetAssertions()
   d_userContext->push();
   d_context->push();
 
-  // Create new PropEngine.
+  /* Create new PropEngine.
+   * First force destruction of referenced PropEngine to enforce that
+   * statistics are unregistered by the obsolete PropEngine object before
+   * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
   d_propEngine.reset(new PropEngine(d_theoryEngine,
                                     d_context,
