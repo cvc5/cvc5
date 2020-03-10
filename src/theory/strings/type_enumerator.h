@@ -32,24 +32,25 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** Generic iteration over vectors of indices of a given length and cardinality */
+/** Generic iteration over vectors of indices of a given start/end length */
 class WordIter {
  public:
-  WordIter(uint32_t startLength, uint32_t card);
-  WordIter(uint32_t startLength, uint32_t endLength, uint32_t card);
+  WordIter(uint32_t startLength);
+  WordIter(uint32_t startLength, uint32_t endLength);
   /** copy constructor */
   WordIter(const WordIter& witer);
   /** Get the data */
   const std::vector<unsigned>& getData() const;
-  /** increment */
-  bool increment();
+  /** 
+   * Increment assuming the cardinality of the alphabet is card. Notice that
+   * card may change dynamically.
+   */
+  bool increment(uint32_t card);
  private:
   /** has end length */
   bool d_hasEndLength;
   /** end length */
   uint32_t d_endLength;
-  /** The cardinality of the alphabet */
-  uint32_t d_cardinality;
   /** The data (index to members) */
   std::vector<unsigned> d_data;
 };
@@ -58,7 +59,8 @@ class WordIter {
 class SEnumLen
 {
 public:
-  SEnumLen(TypeNode tn);
+  SEnumLen(TypeNode tn, uint32_t startLength);
+  SEnumLen(TypeNode tn, uint32_t startLength, uint32_t endLength);
   virtual ~SEnumLen(){}
   SEnumLen(const SEnumLen& e);
   /** get current */
@@ -89,6 +91,8 @@ class StringEnumLen : public SEnumLen {
   /** increment */
   bool increment() override;
  private:
+  /** The cardinality of the alphabet */
+  uint32_t d_cardinality;
   /** Make the current term from d_data */
   void mkCurr();
 };
