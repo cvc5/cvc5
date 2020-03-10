@@ -1956,22 +1956,24 @@ CRef Solver::updateLemmas() {
         clauses_persistent.push(lemma_ref);
       }
       attachClause(lemma_ref);
-    } else {
-      PROOF
-        (
-         Node cnf_assertion = lemmas_cnf_assertion[j].first;
-         Node cnf_def = lemmas_cnf_assertion[j].second;
-
-         Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (3)" << std::endl;
-         ClauseId id = ProofManager::getSatProof()->registerUnitClause(lemma[0], THEORY_LEMMA);
-         ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
-         ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);
-         );
     }
 
     // If the lemma is propagating enqueue its literal (or set the conflict)
     if (conflict == CRef_Undef && value(lemma[0]) != l_True) {
       if (lemma.size() == 1 || (value(lemma[1]) == l_False && trail_index(var(lemma[1])) < backtrack_index)) {
+        if (PROOF_ON() && lemma.size() == 1)
+        {
+          Node cnf_assertion = lemmas_cnf_assertion[j].first;
+          Node cnf_def = lemmas_cnf_assertion[j].second;
+
+          Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (3) "
+                           << cnf_assertion << value(lemma[0]) << std::endl;
+          ClauseId id = ProofManager::getSatProof()->registerUnitClause(
+              lemma[0], THEORY_LEMMA);
+          ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
+          ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);
+        }
+
         if (value(lemma[0]) == l_False) {
           // We have a conflict
           if (lemma.size() > 1) {

@@ -1277,11 +1277,12 @@ void NlModel::getModelValueRepair(
     std::map<Node, Node>& arithModel,
     std::map<Node, std::pair<Node, Node>>& approximations)
 {
+  Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
+
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to
   // this class.
-  Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::pair<Node, Node> >& cb :
        d_check_model_bounds)
@@ -1323,6 +1324,21 @@ void NlModel::getModelValueRepair(
     // overwrite
     arithModel[v] = s;
     Trace("nl-model") << v << " solved is " << s << std::endl;
+  }
+
+  // multiplication terms should not be given values; their values are
+  // implied by the monomials that they consist of
+  std::vector<Node> amErase;
+  for (const std::pair<const Node, Node>& am : arithModel)
+  {
+    if (am.first.getKind() == NONLINEAR_MULT)
+    {
+      amErase.push_back(am.first);
+    }
+  }
+  for (const Node& ae : amErase)
+  {
+    arithModel.erase(ae);
   }
 }
 
