@@ -1299,6 +1299,7 @@ set(regress_1_tests
   regress1/hole6.cvc
   regress1/ite5.smt2
   regress1/issue3970-nl-ext-purify.smt2
+  regress1/issue3990-sort-inference.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
