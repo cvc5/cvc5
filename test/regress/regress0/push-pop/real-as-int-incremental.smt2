@@ -2,6 +2,7 @@
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
+(set-logic ALL)
 (declare-fun x () Real)
 (declare-fun y () Real)
 
