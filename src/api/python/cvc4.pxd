@@ -56,6 +56,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
     cdef cppclass DatatypeConstructorDecl:
         DatatypeConstructorDecl(const string& name) except +
         void addSelector(const string& name, Sort sort) except +
+        void addSelectorSelf(const string& name) except +
         string toString() except +
 
 
