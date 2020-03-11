@@ -134,7 +134,7 @@ void DatatypeBlack::testDatatypeStructs()
   cons.addSelector("head", intSort);
   cons.addSelectorSelf("tail");
   Sort nullSort;
-  TS_ASSERT_THROWS(cons.addSelector("null",nullSort), CVC4ApiException&);
+  TS_ASSERT_THROWS(cons.addSelector("null", nullSort), CVC4ApiException&);
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
