@@ -346,7 +346,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
       d_conjuncts[2].push_back(cr);
       std::unordered_set<Node, NodeHashFunction> fvs;
       expr::getFreeVariables(cr, fvs);
-      d_all_vars.insert(d_all_vars.end(), fvs.begin(), fvs.end());
+      d_all_vars.insert(fvs.begin(), fvs.end());
       if (singleInvocation)
       {
         // replace with single invocation formulation
