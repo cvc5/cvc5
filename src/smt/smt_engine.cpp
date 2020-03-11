@@ -5594,6 +5594,7 @@ void SmtEngine::resetAssertions()
                                     d_userContext,
                                     d_private->getReplayLog(),
                                     d_replayStream));
+  d_theoryEngine->setPropEngine(getPropEngine());
 }
 
 void SmtEngine::interrupt()
