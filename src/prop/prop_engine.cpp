@@ -120,6 +120,7 @@ PropEngine::PropEngine(TheoryEngine* te,
 PropEngine::~PropEngine() {
   Debug("prop") << "Destructing the PropEngine" << endl;
   d_decisionEngine->shutdown();
+  d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
   delete d_registrar;
   delete d_satSolver;

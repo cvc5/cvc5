@@ -25,7 +25,6 @@
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
-#include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -52,7 +51,6 @@ class QuantifiersEnginePrivate
         d_qcf(nullptr),
         d_sg_gen(nullptr),
         d_synth_e(nullptr),
-        d_lte_part_inst(nullptr),
         d_fs(nullptr),
         d_i_cbqi(nullptr),
         d_qsplit(nullptr),
@@ -79,8 +77,6 @@ class QuantifiersEnginePrivate
   std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
   /** ceg instantiation */
   std::unique_ptr<quantifiers::SynthEngine> d_synth_e;
-  /** lte partial instantiation */
-  std::unique_ptr<quantifiers::LtePartialInst> d_lte_part_inst;
   /** full saturation */
   std::unique_ptr<quantifiers::InstStrategyEnum> d_fs;
   /** counterexample-based quantifier instantiation */
@@ -141,11 +137,6 @@ class QuantifiersEnginePrivate
       modules.push_back(d_model_engine.get());
       // finite model finder has special ways of building the model
       needsBuilder = true;
-    }
-    if (options::ltePartialInst())
-    {
-      d_lte_part_inst.reset(new quantifiers::LtePartialInst(qe, c));
-      modules.push_back(d_lte_part_inst.get());
     }
     if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
     {

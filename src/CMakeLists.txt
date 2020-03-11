@@ -517,8 +517,6 @@ libcvc4_add_sources(
   theory/quantifiers/instantiate.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
-  theory/quantifiers/local_theory_ext.cpp
-  theory/quantifiers/local_theory_ext.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
   theory/quantifiers/quant_epr.cpp
