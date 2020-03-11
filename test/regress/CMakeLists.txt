@@ -76,6 +76,7 @@ set(regress_0_tests
   regress0/arrays/incorrect8.smtv1.smt2
   regress0/arrays/incorrect9.smtv1.smt2
   regress0/arrays/issue3813-massign-assert.smt2
+  regress0/arrays/issue3814.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
   regress0/arrays/x3.smtv1.smt2
@@ -546,6 +547,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-fun.smt2
   regress0/issue1063-overloading-dt-sel.smt2
   regress0/issue2832-qualId.smt2
+  regress0/issue4010-sort-inf-var.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -578,6 +580,7 @@ set(regress_0_tests
   regress0/nl/issue3719.smt2
   regress0/nl/issue3729-cm-solved-tf.smt2
   regress0/nl/issue3959.smt2
+  regress0/nl/issue4007-rint-uf.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -816,7 +819,6 @@ set(regress_0_tests
   regress0/rels/rel_transpose_7.cvc
   regress0/rels/relations-ops.smt2
   regress0/rels/rels-sharing-simp.cvc
-  regress0/reset-assertions.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue3720-check-model.smt2
@@ -896,7 +898,11 @@ set(regress_0_tests
   regress0/smt2output.smt2
   regress0/smtlib/get-unsat-assumptions.smt2
   regress0/smtlib/global-decls.smt2
+  regress0/smtlib/issue4028.smt2
   regress0/smtlib/reason-unknown.smt2
+  regress0/smtlib/reset-assertions1.smt2
+  regress0/smtlib/reset-assertions2.smt2
+  regress0/smtlib/reset-assertions-global.smt2
   regress0/smtlib/reset-force-logic.smt2
   regress0/smtlib/reset-set-logic.smt2
   regress0/smtlib/set-info-status.smt2
@@ -1485,6 +1491,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3724-quant.smt2
   regress1/quantifiers/issue3765.smt2
   regress1/quantifiers/issue3765-quant-dd.smt2
+  regress1/quantifiers/issue4021-ind-opts.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1850,6 +1857,7 @@ set(regress_1_tests
   regress1/sygus/issue3839-cond-rewrite.smt2
   regress1/sygus/issue3944-div-rewrite.smt2
   regress1/sygus/issue3947-agg-miniscope.smt2
+  regress1/sygus/issue4009-qep.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy

@@ -851,8 +851,8 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_userLevels(),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
-      d_theoryEngine(NULL),
-      d_propEngine(NULL),
+      d_theoryEngine(nullptr),
+      d_propEngine(nullptr),
       d_proofManager(NULL),
       d_definedFunctions(NULL),
       d_fmfRecFunctionsDefined(NULL),
@@ -936,14 +936,18 @@ void SmtEngine::finishInit()
   Trace("smt-debug") << "Making decision engine..." << std::endl;
 
   Trace("smt-debug") << "Making prop engine..." << std::endl;
-  d_propEngine = new PropEngine(d_theoryEngine,
-                                d_context,
-                                d_userContext,
-                                d_private->getReplayLog(),
-                                d_replayStream);
+  /* force destruction of referenced PropEngine to enforce that statistics
+   * are unregistered by the obsolete PropEngine object before registered
+   * again by the new PropEngine object */
+  d_propEngine.reset(nullptr);
+  d_propEngine.reset(new PropEngine(d_theoryEngine,
+                                    d_context,
+                                    d_userContext,
+                                    d_private->getReplayLog(),
+                                    d_replayStream));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
-  d_theoryEngine->setPropEngine(d_propEngine);
+  d_theoryEngine->setPropEngine(getPropEngine());
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
 
@@ -1022,10 +1026,12 @@ void SmtEngine::shutdown() {
     internalPop(true);
   }
 
-  if(d_propEngine != NULL) {
+  if (d_propEngine != nullptr)
+  {
     d_propEngine->shutdown();
   }
-  if(d_theoryEngine != NULL) {
+  if (d_theoryEngine != nullptr)
+  {
     d_theoryEngine->shutdown();
   }
 }
@@ -1082,8 +1088,7 @@ SmtEngine::~SmtEngine()
 
     delete d_theoryEngine;
     d_theoryEngine = NULL;
-    delete d_propEngine;
-    d_propEngine = NULL;
+    d_propEngine.reset(nullptr);
 
     delete d_stats;
     d_stats = NULL;
@@ -3449,12 +3454,6 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if (options::symmetryBreakerExp() && !options::incrementalSolving())
-  {
-    // apply symmetry breaking if not in incremental mode
-    d_passes["sym-break"]->apply(&d_assertions);
-  }
-
   if(options::doStaticLearning()) {
     d_passes["static-learning"]->apply(&d_assertions);
   }
@@ -5546,24 +5545,50 @@ void SmtEngine::reset()
 void SmtEngine::resetAssertions()
 {
   SmtScope smts(this);
+
+  if (!d_fullyInited)
+  {
+    // We're still in Start Mode, nothing asserted yet, do nothing.
+    // (see solver execution modes in the SMT-LIB standard)
+    Assert(d_context->getLevel() == 0);
+    Assert(d_userContext->getLevel() == 0);
+    DeleteAndClearCommandVector(d_modelGlobalCommands);
+    return;
+  }
+
   doPendingPops();
 
   Trace("smt") << "SMT resetAssertions()" << endl;
-  if(Dump.isOn("benchmark")) {
+  if (Dump.isOn("benchmark"))
+  {
     Dump("benchmark") << ResetAssertionsCommand();
   }
 
-  while(!d_userLevels.empty()) {
+  while (!d_userLevels.empty())
+  {
     pop();
   }
 
-  // Also remember the global push/pop around everything.
+  // Remember the global push/pop around everything when beyond Start mode
+  // (see solver execution modes in the SMT-LIB standard)
   Assert(d_userLevels.size() == 0 && d_userContext->getLevel() == 1);
   d_context->popto(0);
   d_userContext->popto(0);
   DeleteAndClearCommandVector(d_modelGlobalCommands);
   d_userContext->push();
   d_context->push();
+
+  /* Create new PropEngine.
+   * First force destruction of referenced PropEngine to enforce that
+   * statistics are unregistered by the obsolete PropEngine object before
+   * registered again by the new PropEngine object */
+  d_propEngine.reset(nullptr);
+  d_propEngine.reset(new PropEngine(d_theoryEngine,
+                                    d_context,
+                                    d_userContext,
+                                    d_private->getReplayLog(),
+                                    d_replayStream));
+  d_theoryEngine->setPropEngine(getPropEngine());
 }
 
 void SmtEngine::interrupt()

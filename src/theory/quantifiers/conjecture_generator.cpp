@@ -66,12 +66,14 @@ Node OpArgIndex::getGroundTerm( ConjectureGenerator * s, std::vector< TNode >& a
       }
     }
     return Node::null();
-  }else{
-    std::vector< TNode > args2;
-    args2.push_back( d_ops[0] );
-    args2.insert( args2.end(), args.begin(), args.end() );
-    return NodeManager::currentNM()->mkNode( d_op_terms[0].getKind(), args2 );
   }
+  std::vector<TNode> args2;
+  if (d_op_terms[0].getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
+    args2.push_back( d_ops[0] );
+  }
+  args2.insert(args2.end(), args.begin(), args.end());
+  return NodeManager::currentNM()->mkNode(d_op_terms[0].getKind(), args2);
 }
 
 void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& terms ) {
