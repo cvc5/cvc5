@@ -1878,11 +1878,17 @@ std::string DatatypeDecl::toString() const
   return ss.str();
 }
 
+std::string DatatypeDecl::getName() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_dtype->getName();
+}
+
 bool DatatypeDecl::isNull() const { return isNullHelper(); }
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
+CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeSelectorDecl& stordecl)
@@ -1909,6 +1915,11 @@ Term DatatypeSelector::getSelectorTerm() const
 {
   Term sel = d_stor->getSelector();
   return sel;
+}
+
+Sort DatatypeSelector::getRangeSort() const
+{
+  return Sort(d_stor->getRangeType());
 }
 
 std::string DatatypeSelector::toString() const
@@ -2458,6 +2469,33 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+std::vector<Sort> Solver::mkDatatypeSortsInternal(
+    std::vector<DatatypeDecl>& dtypedecls,
+    std::set<Sort>& unresolvedSorts) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+
+  std::vector<CVC4::Datatype> datatypes;
+  for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; i++)
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(dtypedecls[i].getNumConstructors() > 0,
+                                dtypedecls[i])
+        << "a datatype declaration with at least one constructor";
+    datatypes.push_back(dtypedecls[i].getDatatype());
+  }
+  std::set<Type> utypes = sortSetToTypes(unresolvedSorts);
+  std::vector<CVC4::DatatypeType> dtypes =
+      d_exprMgr->mkMutualDatatypeTypes(datatypes, utypes);
+  std::vector<Sort> retTypes;
+  for (CVC4::DatatypeType t : dtypes)
+  {
+    retTypes.push_back(Sort(t));
+  }
+  return retTypes;
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 /* Helpers for converting vectors.                                            */
 /* .......................................................................... */
 
@@ -2602,6 +2640,19 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
   return d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+std::vector<Sort> Solver::mkDatatypeSorts(
+    std::vector<DatatypeDecl>& dtypedecls) const
+{
+  std::set<Sort> unresolvedSorts;
+  return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
+}
+
+std::vector<Sort> Solver::mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
+                                          std::set<Sort>& unresolvedSorts) const
+{
+  return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
 }
 
 Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
