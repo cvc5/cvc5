@@ -1626,7 +1626,7 @@ void SmtEngine::setDefaults() {
   } else {
     Theory::setUninterpretedSortOwner(THEORY_UF);
   }
-  
+
   if(! options::simplifyWithCareEnabled.wasSetByUser() ){
     bool qf_aufbv = !d_logic.isQuantified() &&
       d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
