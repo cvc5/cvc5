@@ -248,11 +248,6 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
 
   Debug("equality") << d_name << "::eq::newNode(" << node << ") => " << newId << std::endl;
 
-  // notify e.g. the theory that owns this equality engine.
-  if (d_performNotify) {
-    d_notify.eqNotifyNewClass(node);
-  }
-
   return newId;
 }
 
@@ -298,7 +293,8 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
 
   EqualityNodeId result;
 
-  if (t.getKind() == kind::EQUAL) {
+  Kind tk = t.getKind();
+  if (tk == kind::EQUAL) {
     addTermInternal(t[0]);
     addTermInternal(t[1]);
     EqualityNodeId t0id = getNodeId(t[0]);
@@ -306,13 +302,13 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     result = newApplicationNode(t, t0id, t1id, APP_EQUALITY);
     d_isInternal[result] = false;
     d_isConstant[result] = false;
-  } else if (t.getNumChildren() > 0 && d_congruenceKinds[t.getKind()]) {
+  } else if (t.getNumChildren() > 0 && d_congruenceKinds[tk]) {
     TNode tOp = t.getOperator();
     // Add the operator
-    addTermInternal(tOp, !isExternalOperatorKind(t.getKind()));
+    addTermInternal(tOp, !isExternalOperatorKind(tk));
     result = getNodeId(tOp);
     // Add all the children and Curryfy
-    bool isInterpreted = isInterpretedFunctionKind(t.getKind());
+    bool isInterpreted = isInterpretedFunctionKind(tk);
     for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
       // Add the child
       addTermInternal(t[i]);
@@ -340,8 +336,17 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     d_isInternal[result] = isOperator;
     d_isConstant[result] = !isOperator && t.isConst();
   }
+  
+  if (tk != kind::EQUAL) {
+    // Notify e.g. the theory that owns this equality engine that there is a
+    // new equivalence class.
+    if (d_performNotify) {
+      d_notify.eqNotifyNewClass(t);
+    }
+  }
+  
 
-  if (t.getKind() == kind::EQUAL) {
+  if (tk == kind::EQUAL) {
     // We set this here as this only applies to actual terms, not the
     // intermediate application terms
     d_isEquality[result] = true;
