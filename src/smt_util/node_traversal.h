@@ -26,6 +26,7 @@
 namespace CVC4 {
 
 // Iterator for traversing a node in post-order
+// It does DAG-traversal, so indentical sub-nodes will be visited once only.
 class NodePostorderIterator
 {
  public:
@@ -56,22 +57,36 @@ class NodePostorderIterator
   reference operator*();
   // Equals
   bool operator==(const NodePostorderIterator&) const;
-  // Equals
+  // Not equals
   bool operator!=(const NodePostorderIterator&) const;
 
  private:
-  // The next thing on the stack is the next thing to visit.
-  // If it is associated with `false`, then its children haven't been visited
-  // yet, and we visit them first. If it is associated with `true`, then we
-  // visit it. Invariant: the top (back) node is always associated with `true`.
-  std::vector<std::pair<bool, TNode>> d_stack;
+  // General Invariant: The top node on the stack (`d_stack.back()`) is the
+  // current location of the traversal.
+  //
+  // There is one exception to this: when an iterator is constructed
+  // (the stack has one node and nothing has been visited)
+  //
+  // While we could expand the stack, adding children until the top node is a
+  // leaf, we do not do so, because this is expensive, and we want construction
+  // to be cheap.
+  std::vector<TNode> d_stack;
 
-  // Adds the children of the top node (on the stack) to the stack, until the
-  // top node is a leaf
-  void enqueueChildrenUntilLeaf();
+  // Whether (and how) we've visited a node.
+  // Absent if we haven't visited it.
+  // Set to `false` if we've pre-visited it (enqueued its children).
+  // Set to `true` if we've also post-visited it.
+  std::unordered_map<TNode, bool, TNodeHashFunction> d_visited;
+
+  // Continues the traversal until the next post-visit.
+  void advanceToNextPostVisit();
+
+  // Return `true` iff this iterator has not been dereferenced or incremented
+  // yet.
+  bool justConstructed() const;
 };
 
-// Node wrapper that is iterable in post-order
+// Node wrapper that is iterable in DAG post-order
 class NodePostorderIterable
 {
  public:
@@ -80,7 +95,7 @@ class NodePostorderIterable
   // STL type definitions for an iterable
   using iterator = NodePostorderIterator;
   using value_type = TNode;
-  using reference = TNode;
+  using reference = TNode&;
   using difference_type = std::ptrdiff_t;
 
   // Move/copy construction and assignment. Destructor.

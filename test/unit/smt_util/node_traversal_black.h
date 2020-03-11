@@ -130,7 +130,7 @@ class NodeBlack : public CxxTest::TestSuite
     size_t count = std::count_if(traversal.begin(),
                                  traversal.end(),
                                  [](TNode n) { return n.isConst(); });
-    TS_ASSERT(count == 4);
+    TS_ASSERT(count == 2);
   }
 
   void testStlCopy()
@@ -139,7 +139,7 @@ class NodeBlack : public CxxTest::TestSuite
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
-    std::vector<TNode> expected = {tb, eb, cnd, tb, eb, cnd, top};
+    std::vector<TNode> expected = {tb, eb, cnd, top};
 
     auto traversal = NodePostorderIterable(top);
 
