@@ -117,7 +117,6 @@ void DatatypeBlack::testMkDatatypeSorts()
   DatatypeConstructor dtcTreeNode = dtTree[0];
   TS_ASSERT(dtcTreeNode.getName() == "node");
   DatatypeSelector dtsTreeNodeLeft = dtcTreeNode[0];
-  TS_ASSERT_THROWS_NOTHING(dtsTreeNodeLeft.getName());
   TS_ASSERT(dtsTreeNodeLeft.getName() == "left");
   // argument type should have resolved to be recursive
   TS_ASSERT(dtsTreeNodeLeft.getRangeSort().isDatatype());
@@ -211,6 +210,7 @@ void DatatypeBlack::testDatatypeNames()
 
   // create datatype sort to test
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
+  TS_ASSERT_THROWS_NOTHING(dtypeSpec.getName());
   TS_ASSERT(dtypeSpec.getName() == std::string("list"));
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", intSort);
@@ -238,4 +238,7 @@ void DatatypeBlack::testDatatypeNames()
   DatatypeSelector dselTail = dcons[1];
   TS_ASSERT(dselTail.getName() == std::string("tail"));
   TS_ASSERT(dselTail.getRangeSort() == dtypeSort);
+
+  // possible to construct null datatype declarations if not using solver
+  TS_ASSERT_THROWS_NOTHING(DatatypeDecl().getName());
 }
