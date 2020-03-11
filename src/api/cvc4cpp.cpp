@@ -1861,10 +1861,10 @@ bool DatatypeDecl::isNull() const { return isNullHelper(); }
 // to the new API. !!!
 CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
-std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)	
-{	
-  out << dtdecl.toString();	
-  return out;	
+std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
+{
+  out << dtdecl.toString();
+  return out;
 }
 
 /* DatatypeSelector --------------------------------------------------------- */

@@ -1162,7 +1162,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * @param name the name of the datatype selector declaration to add
    */
   void addSelectorSelf(const std::string& name);
-  
+
   /**
    * @return a string representation of this datatype constructor declaration
    */
