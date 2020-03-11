@@ -1746,6 +1746,8 @@ DatatypeConstructorDecl::DatatypeConstructorDecl(const std::string& name)
 
 void DatatypeConstructorDecl::addSelector(const std::string& name, Sort sort)
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort)
+      << "non-null range sort for selector";
   d_ctor->addArg(name, *sort.d_type);
 }
 
