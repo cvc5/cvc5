@@ -294,7 +294,8 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
   EqualityNodeId result;
 
   Kind tk = t.getKind();
-  if (tk == kind::EQUAL) {
+  if (tk == kind::EQUAL)
+  {
     addTermInternal(t[0]);
     addTermInternal(t[1]);
     EqualityNodeId t0id = getNodeId(t[0]);
@@ -302,7 +303,9 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     result = newApplicationNode(t, t0id, t1id, APP_EQUALITY);
     d_isInternal[result] = false;
     d_isConstant[result] = false;
-  } else if (t.getNumChildren() > 0 && d_congruenceKinds[tk]) {
+  }
+  else if (t.getNumChildren() > 0 && d_congruenceKinds[tk])
+  {
     TNode tOp = t.getOperator();
     // Add the operator
     addTermInternal(tOp, !isExternalOperatorKind(tk));
@@ -329,28 +332,34 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
         }
       }
     }
-  } else {
+  }
+  else
+  {
     // Otherwise we just create the new id
     result = newNode(t);
     // Is this an operator
     d_isInternal[result] = isOperator;
     d_isConstant[result] = !isOperator && t.isConst();
   }
-  
-  if (tk != kind::EQUAL) {
+
+  if (tk != kind::EQUAL)
+  {
     // Notify e.g. the theory that owns this equality engine that there is a
     // new equivalence class.
-    if (d_performNotify) {
+    if (d_performNotify)
+    {
       d_notify.eqNotifyNewClass(t);
     }
   }
-  
 
-  if (tk == kind::EQUAL) {
+  if (tk == kind::EQUAL)
+  {
     // We set this here as this only applies to actual terms, not the
     // intermediate application terms
     d_isEquality[result] = true;
-  } else if (d_constantsAreTriggers && d_isConstant[result]) {
+  }
+  else if (d_constantsAreTriggers && d_isConstant[result])
+  {
     // Non-Boolean constants are trigger terms for all tags
     EqualityNodeId tId = getNodeId(t);
     // Setup the new set
