@@ -240,5 +240,5 @@ void DatatypeBlack::testDatatypeNames()
   TS_ASSERT(dselTail.getRangeSort() == dtypeSort);
 
   // possible to construct null datatype declarations if not using solver
-  TS_ASSERT_THROWS_NOTHING(DatatypeDecl().getName());
+  TS_ASSERT_THROWS(DatatypeDecl().getName(), CVC4ApiException&);
 }
