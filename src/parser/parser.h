@@ -265,9 +265,6 @@ public:
 
   virtual ~Parser();
 
-  /** Get the associated <code>ExprManager</code>. */
-  ExprManager* getExprManager() const;
-
   /** Get the associated solver. */
   api::Solver* getSolver() const;
 
@@ -604,7 +601,7 @@ public:
    * printed out as a definition in models or not
    *   (see enum in expr_manager_template.h).
    */
-  std::vector<DatatypeType> mkMutualDatatypeTypes(
+  std::vector<api::Sort> mkMutualDatatypeTypes(
       std::vector<Datatype>& datatypes,
       bool doOverload = false,
       uint32_t flags = ExprManager::DATATYPE_FLAG_NONE);

@@ -160,7 +160,18 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
     // If we were called with something other than a theory atom (or
     // Boolean variable), we get a SatLiteral that is definitionally
     // equal to it.
+    //
+    // We are setting the current assertion to be null. This is because `toCNF`
+    // may add clauses to the SAT solver and we look up the current assertion
+    // in that case. Setting it to null ensures that the assertion stack is
+    // non-empty and that we are not associating a bogus assertion with the
+    // clause. This should be ok because we use the mapping back to assertions
+    // for clauses from input assertions only.
+    PROOF(if (d_cnfProof) { d_cnfProof->pushCurrentAssertion(Node::null()); });
+
     lit = toCNF(n, false);
+
+    PROOF(if (d_cnfProof) { d_cnfProof->popCurrentAssertion(); });
 
     // Store backward-mappings
     // These may already exist

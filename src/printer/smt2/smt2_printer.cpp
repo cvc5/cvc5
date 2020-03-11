@@ -1921,16 +1921,19 @@ static void toStream(std::ostream& out,
                      const DatatypeDeclarationCommand* c,
                      Variant v)
 {
-  const vector<DatatypeType>& datatypes = c->getDatatypes();
+  const std::vector<Type>& datatypes = c->getDatatypes();
   Assert(!datatypes.empty());
-  if (datatypes[0].getDatatype().isTuple())
+  Assert(datatypes[0].isDatatype());
+  DatatypeType dt0 = DatatypeType(datatypes[0]);
+  const Datatype& d0 = dt0.getDatatype();
+  if (d0.isTuple())
   {
     // not necessary to print tuples
     Assert(datatypes.size() == 1);
     return;
   }
   out << "(declare-";
-  if (datatypes[0].getDatatype().isCodatatype())
+  if (d0.isCodatatype())
   {
     out << "co";
   }
@@ -1938,22 +1941,18 @@ static void toStream(std::ostream& out,
   if (isVariant_2_6(v))
   {
     out << " (";
-    for (vector<DatatypeType>::const_iterator i = datatypes.begin(),
-                                              i_end = datatypes.end();
-         i != i_end;
-         ++i)
+    for (const Type& t : datatypes)
     {
-      const Datatype& d = i->getDatatype();
+      Assert(t.isDatatype());
+      const Datatype& d = DatatypeType(t).getDatatype();
       out << "(" << CVC4::quoteSymbol(d.getName());
       out << " " << d.getNumParameters() << ")";
     }
     out << ") (";
-    for (vector<DatatypeType>::const_iterator i = datatypes.begin(),
-                                              i_end = datatypes.end();
-         i != i_end;
-         ++i)
+    for (const Type& t : datatypes)
     {
-      const Datatype& d = i->getDatatype();
+      Assert(t.isDatatype());
+      const Datatype& d = DatatypeType(t).getDatatype();
       if (d.isParametric())
       {
         out << "(par (";
@@ -1981,11 +1980,11 @@ static void toStream(std::ostream& out,
     // be impossible to print a datatype block where datatypes were given
     // different parameter lists.
     bool success = true;
-    const Datatype& d = datatypes[0].getDatatype();
-    unsigned nparam = d.getNumParameters();
+    unsigned nparam = d0.getNumParameters();
     for (unsigned j = 1, ndt = datatypes.size(); j < ndt; j++)
     {
-      const Datatype& dj = datatypes[j].getDatatype();
+      Assert(datatypes[j].isDatatype());
+      const Datatype& dj = DatatypeType(datatypes[j]).getDatatype();
       if (dj.getNumParameters() != nparam)
       {
         success = false;
@@ -1995,7 +1994,7 @@ static void toStream(std::ostream& out,
         // must also have identical parameter lists
         for (unsigned k = 0; k < nparam; k++)
         {
-          if (dj.getParameter(k) != d.getParameter(k))
+          if (dj.getParameter(k) != d0.getParameter(k))
           {
             success = false;
             break;
@@ -2011,7 +2010,7 @@ static void toStream(std::ostream& out,
     {
       for (unsigned j = 0; j < nparam; j++)
       {
-        out << (j > 0 ? " " : "") << d.getParameter(j);
+        out << (j > 0 ? " " : "") << d0.getParameter(j);
       }
     }
     else
@@ -2022,12 +2021,10 @@ static void toStream(std::ostream& out,
       out << std::endl;
     }
     out << ") (";
-    for (vector<DatatypeType>::const_iterator i = datatypes.begin(),
-                                              i_end = datatypes.end();
-         i != i_end;
-         ++i)
+    for (const Type& t : datatypes)
     {
-      const Datatype& dt = i->getDatatype();
+      Assert(t.isDatatype());
+      const Datatype& dt = DatatypeType(t).getDatatype();
       out << "(" << CVC4::quoteSymbol(dt.getName()) << " ";
       toStream(out, dt);
       out << ")";
