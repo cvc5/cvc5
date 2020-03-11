@@ -233,7 +233,7 @@ public:
   /** debug print equality engine */
   void debugPrintEqualityEngine( const char * c );
   /** get internal representative
-   * 
+   *
    * Choose the best term that is equivalent to a in the current context for
    * instantiating the index^th variable of quantified formula q. If no
    * valid term can be found, we return null. This can occur if:

@@ -115,7 +115,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
   if (options::quantRepMode() == options::QuantRepMode::EE)
   {
     int score = getRepScore(r, q, index, v_tn);
-    if (score>=0)
+    if (score >= 0)
     {
       // if we are not a valid representative, try to select one below
       return r;
@@ -127,31 +127,41 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
   {
     return itir->second;
   }
-  //find best selection for representative
+  // find best selection for representative
   Node r_best;
-  std::vector< Node > eqc;
-  getEquivalenceClass( r, eqc );
-  Trace("internal-rep-select") << "Choose representative for equivalence class : " << eqc << ", type = " << v_tn << std::endl;
+  std::vector<Node> eqc;
+  getEquivalenceClass(r, eqc);
+  Trace("internal-rep-select")
+      << "Choose representative for equivalence class : " << eqc
+      << ", type = " << v_tn << std::endl;
   int r_best_score = -1;
-  for (const Node& n : eqc){
+  for (const Node& n : eqc)
+  {
     int score = getRepScore(n, q, index, v_tn);
-    if( score!=-2 ){
-      if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
+    if (score != -2)
+    {
+      if (r_best.isNull()
+          || (score >= 0 && (r_best_score < 0 || score < r_best_score)))
+      {
         r_best = n;
         r_best_score = score;
       }
     }
   }
-  if( r_best.isNull() ){
-    Trace("internal-rep-warn") << "No valid choice for representative in eqc class " << eqc << std::endl;
+  if (r_best.isNull())
+  {
+    Trace("internal-rep-warn")
+        << "No valid choice for representative in eqc class " << eqc
+        << std::endl;
     return Node::null();
   }
-  //now, make sure that no other member of the class is an instance
+  // now, make sure that no other member of the class is an instance
   std::unordered_map<TNode, Node, TNodeHashFunction> cache;
-  r_best = getInstance( r_best, eqc, cache );
-  //store that this representative was chosen at this point
-  if( d_rep_score.find( r_best )==d_rep_score.end() ){
-    d_rep_score[ r_best ] = d_reset_count;
+  r_best = getInstance(r_best, eqc, cache);
+  // store that this representative was chosen at this point
+  if (d_rep_score.find(r_best) == d_rep_score.end())
+  {
+    d_rep_score[r_best] = d_reset_count;
   }
   Trace("internal-rep-select")
       << "...Choose " << r_best << " with score " << r_best_score
@@ -160,9 +170,12 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
   v_int_rep[r] = r_best;
   if (Trace.isOn("internal-rep-debug"))
   {
-    if( r_best!=a ){
-      Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
-      Trace("internal-rep-debug") << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
+    if (r_best != a)
+    {
+      Trace("internal-rep-debug")
+          << "rep( " << a << " ) = " << r << ", " << std::endl;
+      Trace("internal-rep-debug")
+          << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
     }
   }
   return r_best;
