@@ -571,7 +571,10 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
   }
 
   size_t nvars = vars.size();
-  Assert(nvars);
+  if (nvars == 0)
+  {
+    return BVGauss::Result::INVALID;
+  }
   size_t nrows = vars.begin()->second.size();
 #ifdef CVC4_ASSERTIONS
   for (const auto& p : vars)
