@@ -232,7 +232,16 @@ public:
   bool usingModelEqualityEngine() const { return d_useModelEe; }
   /** debug print equality engine */
   void debugPrintEqualityEngine( const char * c );
-  /** get internal representative */
+  /** get internal representative
+   * 
+   * Choose the best term that is equivalent to a in the current context for
+   * instantiating the index^th variable of quantified formula q. If no
+   * valid term can be found, we return null. This can occur if:
+   * - a's type is not a subtype of the type of the index^th variable of q,
+   * - a is in an equivalent class with all terms that are restricted not to
+   * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
+   * guided instantiation.
+   */
   Node getInternalRepresentative( Node a, Node q, int index );
 
  public:
