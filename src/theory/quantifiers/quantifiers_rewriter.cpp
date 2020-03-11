@@ -1792,7 +1792,6 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
         }
       }
       Assert(!qvl1.empty());
-      Assert(!qvl2.empty() || !qvsh.empty());
       //check for literals that only contain shared variables
       std::vector<Node> qlitsh;
       std::vector<Node> qlit2;

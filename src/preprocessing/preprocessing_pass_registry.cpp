@@ -50,8 +50,6 @@
 #include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/sygus_inference.h"
-#include "preprocessing/passes/symmetry_breaker.h"
-#include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/passes/theory_preprocess.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
@@ -143,7 +141,6 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("miplib-trick", callCtor<MipLibTrick>);
   registerPassInfo("non-clausal-simp", callCtor<NonClausalSimp>);
   registerPassInfo("ackermann", callCtor<Ackermann>);
-  registerPassInfo("sym-break", callCtor<SymBreakerPass>);
   registerPassInfo("ext-rew-pre", callCtor<ExtRewPre>);
   registerPassInfo("theory-preprocess", callCtor<TheoryPreprocess>);
   registerPassInfo("quantifier-macros", callCtor<QuantifierMacros>);
