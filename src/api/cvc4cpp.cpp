@@ -2476,7 +2476,7 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
   std::vector<CVC4::Datatype> datatypes;
-  for (unsigned i = 0, ndts = dtypedecls.size(); i < ndts; i++)
+  for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; i++)
   {
     CVC4_API_ARG_CHECK_EXPECTED(dtypedecls[i].getNumConstructors() > 0,
                                 dtypedecls[i])
