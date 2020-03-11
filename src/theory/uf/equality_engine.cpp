@@ -348,7 +348,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     // intermediate application terms
     d_isEquality[result] = true;
   }
-  else 
+  else
   {
     // Notify e.g. the theory that owns this equality engine that there is a
     // new equivalence class.
@@ -364,7 +364,9 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
       Theory::Set newSetTags = 0;
       EqualityNodeId newSetTriggers[THEORY_LAST];
       unsigned newSetTriggersSize = THEORY_LAST;
-      for (TheoryId currentTheory = THEORY_FIRST; currentTheory != THEORY_LAST; ++ currentTheory) {
+      for (TheoryId currentTheory = THEORY_FIRST; currentTheory != THEORY_LAST;
+           ++currentTheory)
+      {
         newSetTags = Theory::setInsert(currentTheory, newSetTags);
         newSetTriggers[currentTheory] = tId;
       }
@@ -372,7 +374,8 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
       d_triggerTermSetUpdates.push_back(TriggerSetUpdate(tId, null_set_id));
       d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
       // Mark the the new set as a trigger
-      d_nodeIndividualTrigger[tId] = newTriggerTermSet(newSetTags, newSetTriggers, newSetTriggersSize);
+      d_nodeIndividualTrigger[tId] =
+          newTriggerTermSet(newSetTags, newSetTriggers, newSetTriggersSize);
     }
   }
 
