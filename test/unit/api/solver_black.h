@@ -631,7 +631,7 @@ void SolverBlack::testMkTermFromOp()
   DatatypeConstructorDecl cons("cons");
   DatatypeConstructorDecl nil("nil");
   cons.addSelector("head", sort);
-  cons.addSelector("tail", DatatypeDeclSelfSort());
+  cons.addSelectorSelf("tail");
   listDecl.addConstructor(cons);
   listDecl.addConstructor(nil);
   Sort listSort = d_solver->mkDatatypeSort(listDecl);
@@ -939,7 +939,7 @@ void SolverBlack::testGetOp()
   DatatypeDecl consListSpec = d_solver->mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   cons.addSelector("head", d_solver->getIntegerSort());
-  cons.addSelector("tail", DatatypeDeclSelfSort());
+  cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   consListSpec.addConstructor(nil);
@@ -1040,7 +1040,7 @@ void SolverBlack::testSimplify()
   DatatypeDecl consListSpec = d_solver->mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   cons.addSelector("head", d_solver->getIntegerSort());
-  cons.addSelector("tail", DatatypeDeclSelfSort());
+  cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   consListSpec.addConstructor(nil);

@@ -200,7 +200,7 @@ void TermBlack::testGetOp()
   DatatypeConstructorDecl cons("cons");
   DatatypeConstructorDecl nil("nil");
   cons.addSelector("head", sort);
-  cons.addSelector("tail", DatatypeDeclSelfSort());
+  cons.addSelectorSelf("tail");
   listDecl.addConstructor(cons);
   listDecl.addConstructor(nil);
   Sort listSort = d_solver.mkDatatypeSort(listDecl);

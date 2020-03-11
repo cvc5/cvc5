@@ -65,10 +65,6 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         string toString() except +
 
 
-    cdef cppclass DatatypeDeclSelfSort:
-        DatatypeDeclSelfSort() except +
-
-
     cdef cppclass DatatypeSelector:
         DatatypeSelector() except +
         string toString() except +

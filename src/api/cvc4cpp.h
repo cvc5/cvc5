@@ -1137,15 +1137,6 @@ class DatatypeConstructorIterator;
 class DatatypeIterator;
 
 /**
- * A place-holder sort to allow a DatatypeDecl to refer to itself.
- * Self-sorted fields of DatatypeDecls will be properly sorted when a Sort is
- * created for the DatatypeDecl.
- */
-class CVC4_PUBLIC DatatypeDeclSelfSort
-{
-};
-
-/**
  * A CVC4 datatype constructor declaration.
  */
 class CVC4_PUBLIC DatatypeConstructorDecl
@@ -1166,7 +1157,12 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * @param sort the range sort of the datatype selector declaration to add
    */
   void addSelector(const std::string& name, Sort sort);
-
+  /**
+   * Add datatype selector declaration whose range type is the datatype itself.
+   * @param name the name of the datatype selector declaration to add
+   */
+  void addSelectorSelf(const std::string& name);
+  
   /**
    * @return a string representation of this datatype constructor declaration
    */

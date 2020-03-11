@@ -82,7 +82,7 @@ void SortBlack::testDatatypeSorts()
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   cons.addSelector("head", intSort);
-  cons.addSelector("tail", DatatypeDeclSelfSort());
+  cons.addSelectorSelf("tail");
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);

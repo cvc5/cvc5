@@ -11,7 +11,6 @@ from cvc4 cimport Datatype as c_Datatype
 from cvc4 cimport DatatypeConstructor as c_DatatypeConstructor
 from cvc4 cimport DatatypeConstructorDecl as c_DatatypeConstructorDecl
 from cvc4 cimport DatatypeDecl as c_DatatypeDecl
-from cvc4 cimport DatatypeDeclSelfSort as c_DatatypeDeclSelfSort
 from cvc4 cimport DatatypeSelector as c_DatatypeSelector
 from cvc4 cimport Result as c_Result
 from cvc4 cimport RoundingMode as c_RoundingMode
@@ -131,7 +130,10 @@ cdef class DatatypeConstructorDecl:
         self.cddc = new c_DatatypeConstructorDecl(name.encode())
 
     def addSelector(self, str name, Sort sort):
-        self.cddc.addSelector(stor.cdsd[0])
+        self.cddc.addSelector(name.encode(), sort)
+        
+    def addSelectorSelf(self, str name):
+        self.cddc.addSelectorSelf(name.encode())
 
     def __str__(self):
         return self.cddc.toString().decode()
@@ -156,12 +158,6 @@ cdef class DatatypeDecl:
 
     def __repr__(self):
         return self.cdd.toString().decode()
-
-
-cdef class DatatypeDeclSelfSort:
-    cdef c_DatatypeDeclSelfSort cddss
-    def __cinit__(self):
-        self.cddss = c_DatatypeDeclSelfSort()
 
 
 cdef class DatatypeSelector:

@@ -1746,15 +1746,12 @@ DatatypeConstructorDecl::DatatypeConstructorDecl(const std::string& name)
 
 void DatatypeConstructorDecl::addSelector(const std::string& name, Sort sort)
 {
-  CVC4::Type t = *sort.d_type;
-  if (t.isNull())
-  {
-    d_ctor->addArg(name, DatatypeSelfType());
-  }
-  else
-  {
-    d_ctor->addArg(name, t);
-  }
+  d_ctor->addArg(name, *sort.d_type);
+}
+
+void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
+{
+  d_ctor->addArg(name, DatatypeSelfType());
 }
 
 std::string DatatypeConstructorDecl::toString() const
@@ -1863,6 +1860,12 @@ bool DatatypeDecl::isNull() const { return isNullHelper(); }
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
 CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
+
+std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)	
+{	
+  out << dtdecl.toString();	
+  return out;	
+}
 
 /* DatatypeSelector --------------------------------------------------------- */
 

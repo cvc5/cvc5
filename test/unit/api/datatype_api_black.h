@@ -132,7 +132,7 @@ void DatatypeBlack::testDatatypeStructs()
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   cons.addSelector("head", intSort);
-  cons.addSelector("tail", DatatypeDeclSelfSort());
+  cons.addSelectorSelf("tail");
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
@@ -165,7 +165,7 @@ void DatatypeBlack::testDatatypeStructs()
   DatatypeDecl dtypeSpecStream = d_solver.mkDatatypeDecl("stream", true);
   DatatypeConstructorDecl consStream("cons");
   consStream.addSelector("head", intSort);
-  consStream.addSelector("tail", DatatypeDeclSelfSort());
+  consStream.addSelectorSelf("tail");
   dtypeSpecStream.addConstructor(consStream);
   Sort dtypeSortStream = d_solver.mkDatatypeSort(dtypeSpecStream);
   Datatype dtStream = dtypeSortStream.getDatatype();
@@ -204,7 +204,7 @@ void DatatypeBlack::testDatatypeNames()
   TS_ASSERT(dtypeSpec.getName() == std::string("list"));
   DatatypeConstructorDecl cons("cons");
   cons.addSelector("head", intSort);
-  cons.addSelector("tail", DatatypeDeclSelfSort());
+  cons.addSelectorSelf("tail");
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
