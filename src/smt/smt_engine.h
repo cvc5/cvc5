@@ -859,6 +859,9 @@ class CVC4_PUBLIC SmtEngine
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
 
+  /** Get a pointer to the PropEngine owned by this SmtEngine. */
+  prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
+
   /**
    * Check that a generated proof (via getProof()) checks.
    */
@@ -1059,13 +1062,11 @@ class CVC4_PUBLIC SmtEngine
   ExprManager* d_exprManager;
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
-  /** The decision engine */
 
-  DecisionEngine* d_decisionEngine;
   /** The theory engine */
   TheoryEngine* d_theoryEngine;
   /** The propositional engine */
-  prop::PropEngine* d_propEngine;
+  std::unique_ptr<prop::PropEngine> d_propEngine;
 
   /** The proof manager */
   ProofManager* d_proofManager;

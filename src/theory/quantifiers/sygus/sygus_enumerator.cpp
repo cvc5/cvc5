@@ -74,17 +74,17 @@ void SygusEnumerator::initialize(Node e)
       {
         sblc.push_back(slem);
       }
-      for (const Node& sbl : sblc)
+      for (const Node& sblemma : sblc)
       {
         Trace("sygus-enum")
-            << "  symmetry breaking lemma : " << sbl << std::endl;
+            << "  symmetry breaking lemma : " << sblemma << std::endl;
         // if its a negation of a unit top-level tester, then this specifies
         // that we should not enumerate terms whose top symbol is that
         // constructor
-        if (sbl.getKind() == NOT)
+        if (sblemma.getKind() == NOT)
         {
           Node a;
-          int tst = datatypes::utils::isTester(sbl[0], a);
+          int tst = datatypes::utils::isTester(sblemma[0], a);
           if (tst >= 0)
           {
             if (a == e)
@@ -205,8 +205,8 @@ void SygusEnumerator::TermCache::initialize(SygusStatistics* s,
     // record type information
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {
-      TypeNode tn = dt[i].getArgType(j);
-      argTypes[i].push_back(tn);
+      TypeNode type = dt[i].getArgType(j);
+      argTypes[i].push_back(type);
     }
   }
   NodeManager* nm = NodeManager::currentNM();

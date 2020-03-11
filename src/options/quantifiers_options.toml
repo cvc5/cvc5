@@ -189,13 +189,13 @@ header = "options/quantifiers_options.h"
   help       = "eliminate extended arithmetic symbols in quantified formulas"
 
 [[option]]
-  name       = "condRewriteQuant"
+  name       = "extRewriteQuant"
   category   = "regular"
-  long       = "cond-rewrite-quant"
+  long       = "ext-rewrite-quant"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   read_only  = true
-  help       = "conditional rewriting of quantified formulas"
+  help       = "apply extended rewriting to bodies of quantified formulas"
 
 [[option]]
   name       = "globalNegate"
@@ -1032,12 +1032,12 @@ header = "options/quantifiers_options.h"
   help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
 
 [[option]]
-  name       = "ceGuidedInst"
+  name       = "sygus"
   category   = "regular"
-  long       = "cegqi"
+  long       = "sygus"
   type       = "bool"
   default    = "false"
-  help       = "counterexample-guided quantifier instantiation for sygus"
+  help       = "use sygus solver (default is true for sygus inputs)"
 
 [[option]]
   name       = "cegqiSingleInvMode"
@@ -1933,15 +1933,6 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = true
   help       = "do instantiation based on local theory extensions"
-
-[[option]]
-  name       = "ltePartialInst"
-  category   = "regular"
-  long       = "lte-partial-inst"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "partially instantiate local theory quantifiers"
 
 [[option]]
   name       = "lteRestrictInstClosure"
