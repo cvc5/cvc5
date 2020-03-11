@@ -1858,6 +1858,7 @@ set(regress_1_tests
   regress1/sygus/issue3944-div-rewrite.smt2
   regress1/sygus/issue3947-agg-miniscope.smt2
   regress1/sygus/issue4009-qep.smt2
+  regress1/sygus/issue4025-no-rlv-cond.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
