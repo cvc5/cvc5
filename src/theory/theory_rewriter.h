@@ -24,6 +24,8 @@
 namespace CVC4 {
 namespace theory {
 
+class Rewriter;
+
 /**
  * Theory rewriters signal whether more rewriting is needed (or not)
  * by using a member of this enumeration.  See RewriteResponse, below.
@@ -62,6 +64,13 @@ class TheoryRewriter
 {
  public:
   virtual ~TheoryRewriter() = default;
+
+  /**
+   * Registers the rewrites of a given theory with the rewriter.
+   *
+   * @param rewriter The rewriter to register the rewrites with.
+   */
+  virtual void registerRewrites(Rewriter* rewriter) {}
 
   /**
    * Performs a pre-rewrite step.

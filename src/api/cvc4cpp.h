@@ -1260,9 +1260,12 @@ class CVC4_PUBLIC DatatypeDecl
    */
   std::string toString() const;
 
+  /** @return the name of this datatype declaration. */
+  std::string getName() const;
+
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::Datatype& getDatatype(void) const;
+  CVC4::Datatype& getDatatype(void) const;
 
  private:
   /**
@@ -1349,6 +1352,9 @@ class CVC4_PUBLIC DatatypeSelector
    * @return the selector term
    */
   Term getSelectorTerm() const;
+
+  /** @return the range sort of this argument. */
+  Sort getRangeSort() const;
 
   /**
    * @return a string representation of this datatype selector
@@ -1919,6 +1925,37 @@ class CVC4_PUBLIC Solver
    * @return the datatype sort
    */
   Sort mkDatatypeSort(DatatypeDecl dtypedecl) const;
+
+  /**
+   * Create a vector of datatype sorts. The names of the datatype declarations
+   * must be distinct.
+   *
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSorts(
+      std::vector<DatatypeDecl>& dtypedecls) const;
+
+  /**
+   * Create a vector of datatype sorts using unresolved sorts. The names of
+   * the datatype declarations in dtypedecls must be distinct.
+   *
+   * This method is called when the DatatypeDecl objects dtypedecls have been
+   * built using "unresolved" sorts.
+   *
+   * We associate each sort in unresolvedSorts with exacly one datatype from
+   * dtypedecls. In particular, it must have the same name as exactly one
+   * datatype declaration in dtypedecls.
+   *
+   * When constructing datatypes, unresolved sorts are replaced by the datatype
+   * sort constructed for the datatype declaration it is associated with.
+   *
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @param unresolvedSorts the list of unresolved sorts
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
+                                    std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Create function sort.
@@ -2866,6 +2903,16 @@ class CVC4_PUBLIC Solver
    * @return the Term
    */
   Term mkTermInternal(Kind kind, const std::vector<Term>& children) const;
+
+  /**
+   * Create a vector of datatype sorts, using unresolved sorts.
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @param unresolvedSorts the list of unresolved sorts
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSortsInternal(
+      std::vector<DatatypeDecl>& dtypedecls,
+      std::set<Sort>& unresolvedSorts) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;
