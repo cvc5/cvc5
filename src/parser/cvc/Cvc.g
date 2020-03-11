@@ -2371,9 +2371,8 @@ selector[std::unique_ptr<CVC4::api::DatatypeConstructorDecl>* ctor]
   api::Sort t, t2;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON type[t,CHECK_NONE]
-    { 
-      api::DatatypeSelectorDecl sel(id, t);
-      (*ctor)->addSelector(sel);
+    {
+      (*ctor)->addSelector(id, t);
       Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
     }
   ;

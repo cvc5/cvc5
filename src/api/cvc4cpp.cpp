@@ -1737,32 +1737,6 @@ size_t TermHashFunction::operator()(const Term& t) const
 /* Datatypes                                                                  */
 /* -------------------------------------------------------------------------- */
 
-/* DatatypeSelectorDecl ----------------------------------------------------- */
-
-DatatypeSelectorDecl::DatatypeSelectorDecl(const std::string& name, Sort sort)
-    : d_name(name), d_sort(sort)
-{
-}
-
-DatatypeSelectorDecl::DatatypeSelectorDecl(const std::string& name,
-                                           DatatypeDeclSelfSort sort)
-    : d_name(name), d_sort(Sort(CVC4::Type()))
-{
-}
-
-std::string DatatypeSelectorDecl::toString() const
-{
-  std::stringstream ss;
-  ss << d_name << ": " << d_sort;
-  return ss.str();
-}
-
-std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
-{
-  out << dtdecl.toString();
-  return out;
-}
-
 /* DatatypeConstructorDecl -------------------------------------------------- */
 
 DatatypeConstructorDecl::DatatypeConstructorDecl(const std::string& name)
@@ -1770,16 +1744,16 @@ DatatypeConstructorDecl::DatatypeConstructorDecl(const std::string& name)
 {
 }
 
-void DatatypeConstructorDecl::addSelector(const DatatypeSelectorDecl& stor)
+void DatatypeConstructorDecl::addSelector(const std::string& name, Sort sort)
 {
-  CVC4::Type t = *stor.d_sort.d_type;
+  CVC4::Type t = *sort.d_type;
   if (t.isNull())
   {
-    d_ctor->addArg(stor.d_name, DatatypeSelfType());
+    d_ctor->addArg(name, DatatypeSelfType());
   }
   else
   {
-    d_ctor->addArg(stor.d_name, t);
+    d_ctor->addArg(name, t);
   }
 }
 
@@ -1889,13 +1863,6 @@ bool DatatypeDecl::isNull() const { return isNullHelper(); }
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
 CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
-
-std::ostream& operator<<(std::ostream& out,
-                         const DatatypeSelectorDecl& stordecl)
-{
-  out << stordecl.toString();
-  return out;
-}
 
 /* DatatypeSelector --------------------------------------------------------- */
 

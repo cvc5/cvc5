@@ -2562,8 +2562,7 @@ selector[CVC4::api::DatatypeConstructorDecl& ctor]
 }
   : symbol[id,CHECK_NONE,SYM_SORT] sortSymbol[t,CHECK_NONE]
     { 
-      api::DatatypeSelectorDecl sel(id, t);
-      ctor.addSelector(sel);
+      ctor.addSelector(id, t);
       Debug("parser-idt") << "selector: " << id.c_str()
                           << " of type " << t << std::endl;
     }

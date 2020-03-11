@@ -189,7 +189,6 @@ class CVC4_PUBLIC Sort
 {
   friend class DatatypeConstructorDecl;
   friend class DatatypeDecl;
-  friend class DatatypeSelectorDecl;
   friend class Op;
   friend class Solver;
   friend struct SortHashFunction;
@@ -1147,42 +1146,6 @@ class CVC4_PUBLIC DatatypeDeclSelfSort
 };
 
 /**
- * A CVC4 datatype selector declaration.
- */
-class CVC4_PUBLIC DatatypeSelectorDecl
-{
-  friend class DatatypeConstructorDecl;
-
- public:
-  /**
-   * Constructor.
-   * @param name the name of the datatype selector
-   * @param sort the sort of the datatype selector
-   * @return the DatatypeSelectorDecl
-   */
-  DatatypeSelectorDecl(const std::string& name, Sort sort);
-
-  /**
-   * Constructor.
-   * @param name the name of the datatype selector
-   * @param sort the sort of the datatype selector
-   * @return the DAtatypeSelectorDecl
-   */
-  DatatypeSelectorDecl(const std::string& name, DatatypeDeclSelfSort sort);
-
-  /**
-   * @return a string representation of this datatype selector
-   */
-  std::string toString() const;
-
- private:
-  /* The name of the datatype selector. */
-  std::string d_name;
-  /* The sort of the datatype selector. */
-  Sort d_sort;
-};
-
-/**
  * A CVC4 datatype constructor declaration.
  */
 class CVC4_PUBLIC DatatypeConstructorDecl
@@ -1199,9 +1162,10 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
   /**
    * Add datatype selector declaration.
-   * @param stor the datatype selector declaration to add
+   * @param name the name of the datatype selector declaration to add
+   * @param sort the range sort of the datatype selector declaration to add
    */
-  void addSelector(const DatatypeSelectorDecl& stor);
+  void addSelector(const std::string& name, Sort sort);
 
   /**
    * @return a string representation of this datatype constructor declaration
@@ -1766,15 +1730,6 @@ std::ostream& operator<<(std::ostream& out,
  */
 std::ostream& operator<<(std::ostream& out,
                          const std::vector<DatatypeConstructorDecl>& vector);
-
-/**
- * Serialize a datatype selector declaration to given stream.
- * @param out the output stream
- * @param stordecl the datatype selector declaration to be serialized
- * @return the output stream
- */
-std::ostream& operator<<(std::ostream& out,
-                         const DatatypeSelectorDecl& stordecl) CVC4_PUBLIC;
 
 /**
  * Serialize a datatype to given stream.
