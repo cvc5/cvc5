@@ -546,6 +546,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-fun.smt2
   regress0/issue1063-overloading-dt-sel.smt2
   regress0/issue2832-qualId.smt2
+  regress0/issue4010-sort-inf-var.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -578,6 +579,7 @@ set(regress_0_tests
   regress0/nl/issue3719.smt2
   regress0/nl/issue3729-cm-solved-tf.smt2
   regress0/nl/issue3959.smt2
+  regress0/nl/issue4007-rint-uf.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
