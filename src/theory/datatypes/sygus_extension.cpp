@@ -395,7 +395,8 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
   std::map< Node, Node >::iterator itr = d_rlv_cond.find( n );
   if( itr==d_rlv_cond.end() ){
     Node cond;
-    if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+    if (n.getKind() == APPLY_SELECTOR_TOTAL)
+    {
       TypeNode ntn = n[0].getType();
       const DType& dt = ntn.getDType();
       Node sel = n.getOperator();
