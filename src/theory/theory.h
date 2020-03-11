@@ -867,7 +867,7 @@ inline theory::Assertion Theory::get() {
   Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
 
   if(Dump.isOn("state")) {
-    Dump("state") << AssertCommand(fact.assertion.toExpr());
+    Dump("state") << AssertCommand(fact.d_assertion.toExpr());
   }
 
   return fact;

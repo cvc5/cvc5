@@ -6,7 +6,7 @@ include_directories(${JNI_INCLUDE_DIRS})
 
 set(SWIG_MODULE_cvc4jni_EXTRA_DEPS cvc4 cvc4parser)
 set_property(SOURCE ${CVC4_SWIG_INTERFACE} PROPERTY CPLUSPLUS ON)
-set(CMAKE_SWIG_FLAGS -package edu.nyu.acsys.CVC4)
+set(CMAKE_SWIG_FLAGS -package edu.stanford.CVC4)
 
 if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
   swig_add_module(cvc4jni Java ${CVC4_SWIG_INTERFACE})
@@ -22,8 +22,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/ArrayType.java
   ${CMAKE_CURRENT_BINARY_DIR}/AscriptionType.java
   ${CMAKE_CURRENT_BINARY_DIR}/AscriptionTypeHashFunction.java
-  ${CMAKE_CURRENT_BINARY_DIR}/AssertCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/BenchmarkStatus.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVector.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorBitOf.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorBitOfHashFunction.java
@@ -37,8 +35,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorSize.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorType.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorZeroExtend.java
-  ${CMAKE_CURRENT_BINARY_DIR}/BlockModelCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/BlockModelValuesCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/BoolHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/BooleanType.java
   ${CMAKE_CURRENT_BINARY_DIR}/CVC4.java
@@ -49,25 +45,11 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/Cardinality.java
   ${CMAKE_CURRENT_BINARY_DIR}/CardinalityBeth.java
   ${CMAKE_CURRENT_BINARY_DIR}/CardinalityUnknown.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CheckSatAssumingCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CheckSatCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CheckSynthCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/Command.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CommandFailure.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CommandInterrupted.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CommandPrintSuccess.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CommandRecoverableFailure.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CommandSequence.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CommandStatus.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CommandSuccess.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CommandUnsupported.java
-  ${CMAKE_CURRENT_BINARY_DIR}/CommentCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/Configuration.java
   ${CMAKE_CURRENT_BINARY_DIR}/ConstructorType.java
   ${CMAKE_CURRENT_BINARY_DIR}/Datatype.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeConstructor.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeConstructorArg.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DatatypeDeclarationCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeIndexConstant.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeIndexConstantHashFunction.java
@@ -75,24 +57,9 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeSelfType.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeType.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeUnresolvedType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DeclarationCheck.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DeclarationDefinitionCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DeclarationSequence.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DeclareFunctionCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DeclareSygusFunctionCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DeclareSygusPrimedVarCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DeclareSygusVarCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DeclareTypeCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DefineFunctionCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DefineFunctionRecCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DefineNamedFunctionCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DefineTypeCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/EchoCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/EmptyCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/EmptySet.java
   ${CMAKE_CURRENT_BINARY_DIR}/EmptySetHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/Exception.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ExpandDefinitionsCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/ExportUnsupportedException.java
   ${CMAKE_CURRENT_BINARY_DIR}/Expr.java
   ${CMAKE_CURRENT_BINARY_DIR}/ExprHashFunction.java
@@ -113,28 +80,12 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToUBV.java
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointType.java
   ${CMAKE_CURRENT_BINARY_DIR}/FunctionType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetAbductCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetAssertionsCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetAssignmentCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetInfoCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetInstantiationsCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetModelCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetOptionCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetQuantifierEliminationCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetSynthSolutionCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetUnsatAssumptionsCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetUnsatCoreCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/GetValueCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/Input.java
   ${CMAKE_CURRENT_BINARY_DIR}/InputLanguage.java
-  ${CMAKE_CURRENT_BINARY_DIR}/InputStream.java
-  ${CMAKE_CURRENT_BINARY_DIR}/InputStreamException.java
   ${CMAKE_CURRENT_BINARY_DIR}/IntToBitVector.java
   ${CMAKE_CURRENT_BINARY_DIR}/Integer.java
   ${CMAKE_CURRENT_BINARY_DIR}/IntegerHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/IntegerType.java
   ${CMAKE_CURRENT_BINARY_DIR}/JavaInputStreamAdapter.java
-  ${CMAKE_CURRENT_BINARY_DIR}/JavaIteratorAdapter_CommandSequence.java
   ${CMAKE_CURRENT_BINARY_DIR}/JavaIteratorAdapter_Datatype.java
   ${CMAKE_CURRENT_BINARY_DIR}/JavaIteratorAdapter_DatatypeConstructor.java
   ${CMAKE_CURRENT_BINARY_DIR}/JavaIteratorAdapter_Expr.java
@@ -151,18 +102,8 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/OptionException.java
   ${CMAKE_CURRENT_BINARY_DIR}/Options.java
   ${CMAKE_CURRENT_BINARY_DIR}/OutputLanguage.java
-  ${CMAKE_CURRENT_BINARY_DIR}/Parser.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ParserBuilder.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ParserEndOfFileException.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ParserException.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ParserExprStream.java
-  ${CMAKE_CURRENT_BINARY_DIR}/PopCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/PrettySExprs.java
   ${CMAKE_CURRENT_BINARY_DIR}/Proof.java
-  ${CMAKE_CURRENT_BINARY_DIR}/PropagateRuleCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/PushCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/QueryCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/QuitCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/Rational.java
   ${CMAKE_CURRENT_BINARY_DIR}/RationalHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/RealType.java
@@ -172,11 +113,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/RecordUpdateHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/RecoverableModalException.java
   ${CMAKE_CURRENT_BINARY_DIR}/RegExpType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ResetAssertionsCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ResetCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ResourceManager.java
   ${CMAKE_CURRENT_BINARY_DIR}/Result.java
-  ${CMAKE_CURRENT_BINARY_DIR}/RewriteRuleCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/RoundingMode.java
   ${CMAKE_CURRENT_BINARY_DIR}/RoundingModeType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExpr.java
@@ -184,9 +121,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SExprType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Model.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Printer.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__api__Solver.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__options__InstFormatMode.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_LemmaChannels.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_Listener.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_ListenerCollection__Registration.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_MaybeT_CVC4__Rational_t.java
@@ -198,19 +133,10 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__unordered_mapT_CVC4__Expr_CVC4__ProofLetCount_CVC4__ExprHashFunction_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_CVC4__DatatypeConstructorArg_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_CVC4__DatatypeConstructor_t.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_CVC4__SygusGTerm_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__pairT_CVC4__Expr_CVC4__Expr_t_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__vectorT_std__string_t_t.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ScopeException.java
   ${CMAKE_CURRENT_BINARY_DIR}/SelectorType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SetBenchmarkLogicCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SetBenchmarkStatusCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SetExpressionNameCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SetInfoCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SetOptionCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/SetType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SetUserAttributeCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SimplifyCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/SmtEngine.java
   ${CMAKE_CURRENT_BINARY_DIR}/SortConstructorType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SortType.java
@@ -218,16 +144,9 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/Statistics.java
   ${CMAKE_CURRENT_BINARY_DIR}/StatisticsBase.java
   ${CMAKE_CURRENT_BINARY_DIR}/StringType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SygusConstraintCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SygusGTerm.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SygusInvConstraintCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusPrintCallback.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SymbolTable.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SymbolType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SynthFunCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/TesterType.java
   ${CMAKE_CURRENT_BINARY_DIR}/TheoryId.java
-  ${CMAKE_CURRENT_BINARY_DIR}/Timer.java
   ${CMAKE_CURRENT_BINARY_DIR}/TupleUpdate.java
   ${CMAKE_CURRENT_BINARY_DIR}/TupleUpdateHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/Type.java
@@ -244,7 +163,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/hashmapExpr.java
   ${CMAKE_CURRENT_BINARY_DIR}/pairStringType.java
   ${CMAKE_CURRENT_BINARY_DIR}/setOfType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/vectorCommandPtr.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorDatatype.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorDatatypeType.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorExpr.java

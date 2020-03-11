@@ -23,9 +23,11 @@ addons:
   - libgmp-dev
   - libhamcrest-java
   - openjdk-8-jdk
+  - python3
+  - python3-pip
+  - python3-setuptools
   - swig3.0
 before_install:
- - eval "${MATRIX_EVAL}"
  # Clang does not play nice with ccache (at least the versions offered by
  # Travis), use a workaround:
  # https://github.com/travis-ci/travis-ci/issues/5383#issuecomment-224630584
@@ -43,7 +45,8 @@ script:
  - ccache -z
  - ${CC} --version
  - ${CXX} --version
- - sudo pip install toml
+ - sudo ${TRAVIS_PYTHON} -m pip install toml
+ - sudo ${TRAVIS_PYTHON} -m pip install Cython==0.29 --install-option="--no-cython-compile"
  - |
    echo "travis_fold:start:load_script"
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
@@ -103,16 +106,37 @@ matrix:
     # Test with GCC
     - compiler: gcc
       env:
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='production --language-bindings=java --lfsc'
+        - TRAVIS_CVC4=yes
+        - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_CONFIG="production --language-bindings=java --lfsc"
+        - TRAVIS_PYTHON=python
     - compiler: gcc
       env:
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --symfpu --lfsc --no-debug-symbols'
-
+        - TRAVIS_CVC4=yes
+        - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_CONFIG="debug --symfpu --lfsc --no-debug-symbols"
+        - TRAVIS_PYTHON=python
+    # Test python bindings
+    - compiler: gcc
+      env:
+        - TRAVIS_CVC4=yes
+        - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_CONFIG="production --python-bindings --python2"
+        - TRAVIS_PYTHON=python
+    - compiler: gcc
+      env:
+        - TRAVIS_CVC4=yes
+        - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_CONFIG="production --python-bindings --python3"
+        - TRAVIS_PYTHON=python3
     #
     # Test with Clang
     - compiler: clang
       env:
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --symfpu --cln --gpl --no-debug-symbols --no-proofs'
+        - TRAVIS_CVC4=yes
+        - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_CONFIG="debug --symfpu --cln --gpl --no-debug-symbols --no-proofs"
+        - TRAVIS_PYTHON=python
 notifications:
   email:
     on_success: change

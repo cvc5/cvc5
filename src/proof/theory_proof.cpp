@@ -971,7 +971,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
     }
     else
     {
-      printBoundTerm(term[2], os, map);
+      printBoundTerm(term[2], os, map, armType);
     }
     os << ")";
     return;
@@ -1026,7 +1026,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
 
       for (unsigned i = 0; i < term.getNumChildren(); ++i) {
         for (unsigned j = i + 1; j < term.getNumChildren(); ++j) {
-          TypeNode armType = equalityType(term[i], term[j]);
+          armType = equalityType(term[i], term[j]);
           if ((i != 0) || (j != 1)) {
             os << "(not (= ";
             printSort(term[0].getType(), os);
@@ -1047,42 +1047,6 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
         }
       }
     }
-    return;
-  }
-
-  case kind::CHAIN: {
-    // LFSC doesn't allow declarations with variable numbers of
-    // arguments, so we have to flatten chained operators, like =.
-    Kind op = term.getOperator().getConst<Chain>().getOperator();
-    std::string op_str;
-    bool booleanCase = false;
-    if (op==kind::EQUAL && term[0].getType().isBoolean()) {
-      booleanCase = term[0].getType().isBoolean();
-      op_str = "iff";
-    } else {
-      op_str = utils::toLFSCKind(op);
-    }
-    size_t n = term.getNumChildren();
-    std::ostringstream paren;
-    for(size_t i = 1; i < n; ++i) {
-      if(i + 1 < n) {
-        os << "(" << utils::toLFSCKind(kind::AND) << " ";
-        paren << ")";
-      }
-      os << "(" << op_str << " ";
-      if (booleanCase && printsAsBool(term[i - 1])) os << "(p_app ";
-      printBoundTerm(term[i - 1], os, map);
-      if (booleanCase && printsAsBool(term[i - 1])) os << ")";
-      os << " ";
-      if (booleanCase && printsAsBool(term[i])) os << "(p_app ";
-      printBoundTerm(term[i], os, map);
-      if (booleanCase && printsAsBool(term[i])) os << ")";
-      os << ")";
-      if(i + 1 < n) {
-        os << " ";
-      }
-    }
-    os << paren.str();
     return;
   }
 

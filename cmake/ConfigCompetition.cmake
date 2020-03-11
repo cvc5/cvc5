@@ -3,8 +3,6 @@ add_check_c_cxx_flag("-funroll-all-loops")
 add_check_c_cxx_flag("-fexpensive-optimizations")
 add_check_c_cxx_flag("-fno-enforce-eh-specs")
 # OPTLEVEL=9
-# enable_optimized=yes
-cvc4_set_option(ENABLE_OPTIMIZED ON)
 set(OPTIMIZATION_LEVEL 9)
 # enable_debug_symbols=no
 cvc4_set_option(ENABLE_DEBUG_SYMBOLS OFF)

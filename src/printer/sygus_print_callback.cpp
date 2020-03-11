@@ -24,7 +24,7 @@ namespace CVC4 {
 namespace printer {
 
 SygusExprPrintCallback::SygusExprPrintCallback(Expr body,
-                                               std::vector<Expr>& args)
+                                               const std::vector<Expr>& args)
     : d_body(body), d_body_argument(-1)
 {
   d_args.insert(d_args.end(), args.begin(), args.end());
@@ -78,8 +78,9 @@ void SygusExprPrintCallback::toStreamSygus(const Printer* p,
     sbody =
         sbody.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
 
+    // print to stream without letification
     std::stringstream body_out;
-    body_out << sbody;
+    p->toStream(body_out, sbody, -1, false, 0);
 
     // do string substitution
     Assert(e.getNumChildren() == d_args.size());

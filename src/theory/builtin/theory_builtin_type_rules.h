@@ -194,59 +194,6 @@ class ChoiceTypeRule
   }
 }; /* class ChoiceTypeRule */
 
-class ChainTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::CHAIN);
-
-    if(!check) {
-      return nodeManager->booleanType();
-    }
-
-    TypeNode tn;
-    try {
-      tn = nodeManager->getType(TheoryBuiltinRewriter::blastChain(n), check);
-    } catch(TypeCheckingExceptionPrivate& e) {
-      std::stringstream ss;
-      ss << "Cannot typecheck the expansion of chained operator `" << n.getOperator() << "':"
-         << std::endl;
-      // indent the sub-exception for clarity
-      std::stringstream ss2;
-      ss2 << e;
-      std::string eStr = ss2.str();
-      for(size_t i = eStr.find('\n'); i != std::string::npos; i = eStr.find('\n', i)) {
-        eStr.insert(++i, "| ");
-      }
-      ss << "| " << eStr;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-
-    // This check is intentionally != booleanType() rather than
-    // !(...isBoolean()): if we ever add a type compatible with
-    // Boolean (pseudobooleans or whatever), we have to revisit
-    // the above "!check" case where booleanType() is returned
-    // directly.  Putting this check here will cause a failure if
-    // it's ever relevant.
-    if(tn != nodeManager->booleanType()) {
-      std::stringstream ss;
-      ss << "Chains can only be formed over predicates; "
-         << "the operator here returns `" << tn << "', expected `"
-         << nodeManager->booleanType() << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-
-    return nodeManager->booleanType();
-  }
-};/* class ChainTypeRule */
-
-class ChainedOperatorTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::CHAIN_OP);
-    return nodeManager->getType(nodeManager->operatorOf(n.getConst<Chain>().getOperator()), check);
-  }
-};/* class ChainedOperatorTypeRule */
-
 class SortProperties {
  public:
   inline static bool isWellFounded(TypeNode type) {
@@ -275,6 +222,31 @@ class FunctionProperties {
     Cardinality valueCard = type[type.getNumChildren() - 1].getCardinality();
 
     return valueCard ^ argsCard;
+  }
+  /** Function type is well-founded if its component sorts are */
+  static bool isWellFounded(TypeNode type)
+  {
+    for (TypeNode::iterator i = type.begin(), i_end = type.end(); i != i_end;
+         ++i)
+    {
+      if (!(*i).isWellFounded())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  /**
+   * Ground term for function sorts is (lambda x. t) where x is the
+   * canonical variable list for its type and t is the canonical ground term of
+   * its range.
+   */
+  static Node mkGroundTerm(TypeNode type)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node bvl = nm->getBoundVarListForFunctionType(type);
+    Node ret = type.getRangeType().mkGroundTerm();
+    return nm->mkNode(kind::LAMBDA, bvl, ret);
   }
 };/* class FuctionProperties */
 

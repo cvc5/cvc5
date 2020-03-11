@@ -27,6 +27,7 @@
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
+#include "expr/type.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -40,23 +41,6 @@
 using namespace std;
 
 namespace CVC4 {
-
-namespace {
-
-std::vector<Expr> ExportTo(ExprManager* exprManager,
-                           ExprManagerMapCollection& variableMap,
-                           const std::vector<Expr>& exprs)
-{
-  std::vector<Expr> exported;
-  exported.reserve(exprs.size());
-  for (const Expr& expr : exprs)
-  {
-    exported.push_back(expr.exportTo(exprManager, variableMap));
-  }
-  return exported;
-}
-
-}  // namespace
 
 const int CommandPrintSuccess::s_iosIndex = std::ios_base::xalloc();
 const CommandSuccess* CommandSuccess::s_instance = new CommandSuccess();
@@ -2800,21 +2784,19 @@ std::string SetExpressionNameCommand::getCommandName() const
 /* class DatatypeDeclarationCommand                                           */
 /* -------------------------------------------------------------------------- */
 
-DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const DatatypeType& datatype)
+DatatypeDeclarationCommand::DatatypeDeclarationCommand(const Type& datatype)
     : d_datatypes()
 {
   d_datatypes.push_back(datatype);
 }
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(
-    const std::vector<DatatypeType>& datatypes)
+    const std::vector<Type>& datatypes)
     : d_datatypes(datatypes)
 {
 }
 
-const std::vector<DatatypeType>& DatatypeDeclarationCommand::getDatatypes()
-    const
+const std::vector<Type>& DatatypeDeclarationCommand::getDatatypes() const
 {
   return d_datatypes;
 }
@@ -2841,251 +2823,4 @@ std::string DatatypeDeclarationCommand::getCommandName() const
   return "declare-datatypes";
 }
 
-/* -------------------------------------------------------------------------- */
-/* class RewriteRuleCommand                                                   */
-/* -------------------------------------------------------------------------- */
-
-RewriteRuleCommand::RewriteRuleCommand(const std::vector<Expr>& vars,
-                                       const std::vector<Expr>& guards,
-                                       Expr head,
-                                       Expr body,
-                                       const Triggers& triggers)
-    : d_vars(vars),
-      d_guards(guards),
-      d_head(head),
-      d_body(body),
-      d_triggers(triggers)
-{
-}
-
-RewriteRuleCommand::RewriteRuleCommand(const std::vector<Expr>& vars,
-                                       Expr head,
-                                       Expr body)
-    : d_vars(vars), d_head(head), d_body(body)
-{
-}
-
-const std::vector<Expr>& RewriteRuleCommand::getVars() const { return d_vars; }
-const std::vector<Expr>& RewriteRuleCommand::getGuards() const
-{
-  return d_guards;
-}
-
-Expr RewriteRuleCommand::getHead() const { return d_head; }
-Expr RewriteRuleCommand::getBody() const { return d_body; }
-const RewriteRuleCommand::Triggers& RewriteRuleCommand::getTriggers() const
-{
-  return d_triggers;
-}
-
-void RewriteRuleCommand::invoke(SmtEngine* smtEngine)
-{
-  try
-  {
-    ExprManager* em = smtEngine->getExprManager();
-    /** build vars list */
-    Expr vars = em->mkExpr(kind::BOUND_VAR_LIST, d_vars);
-    /** build guards list */
-    Expr guards;
-    if (d_guards.size() == 0)
-      guards = em->mkConst<bool>(true);
-    else if (d_guards.size() == 1)
-      guards = d_guards[0];
-    else
-      guards = em->mkExpr(kind::AND, d_guards);
-    /** build expression */
-    Expr expr;
-    if (d_triggers.empty())
-    {
-      expr = em->mkExpr(kind::RR_REWRITE, vars, guards, d_head, d_body);
-    }
-    else
-    {
-      /** build triggers list */
-      std::vector<Expr> vtriggers;
-      vtriggers.reserve(d_triggers.size());
-      for (Triggers::const_iterator i = d_triggers.begin(),
-                                    end = d_triggers.end();
-           i != end;
-           ++i)
-      {
-        vtriggers.push_back(em->mkExpr(kind::INST_PATTERN, *i));
-      }
-      Expr triggers = em->mkExpr(kind::INST_PATTERN_LIST, vtriggers);
-      expr =
-          em->mkExpr(kind::RR_REWRITE, vars, guards, d_head, d_body, triggers);
-    }
-    smtEngine->assertFormula(expr);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* RewriteRuleCommand::exportTo(ExprManager* exprManager,
-                                      ExprManagerMapCollection& variableMap)
-{
-  /** Convert variables */
-  VExpr vars = ExportTo(exprManager, variableMap, d_vars);
-  /** Convert guards */
-  VExpr guards = ExportTo(exprManager, variableMap, d_guards);
-  /** Convert triggers */
-  Triggers triggers;
-  triggers.reserve(d_triggers.size());
-  for (const std::vector<Expr>& trigger_list : d_triggers)
-  {
-    triggers.push_back(ExportTo(exprManager, variableMap, trigger_list));
-  }
-  /** Convert head and body */
-  Expr head = d_head.exportTo(exprManager, variableMap);
-  Expr body = d_body.exportTo(exprManager, variableMap);
-  /** Create the converted rules */
-  return new RewriteRuleCommand(vars, guards, head, body, triggers);
-}
-
-Command* RewriteRuleCommand::clone() const
-{
-  return new RewriteRuleCommand(d_vars, d_guards, d_head, d_body, d_triggers);
-}
-
-std::string RewriteRuleCommand::getCommandName() const
-{
-  return "rewrite-rule";
-}
-
-/* -------------------------------------------------------------------------- */
-/* class PropagateRuleCommand                                                 */
-/* -------------------------------------------------------------------------- */
-
-PropagateRuleCommand::PropagateRuleCommand(const std::vector<Expr>& vars,
-                                           const std::vector<Expr>& guards,
-                                           const std::vector<Expr>& heads,
-                                           Expr body,
-                                           const Triggers& triggers,
-                                           bool deduction)
-    : d_vars(vars),
-      d_guards(guards),
-      d_heads(heads),
-      d_body(body),
-      d_triggers(triggers),
-      d_deduction(deduction)
-{
-}
-
-PropagateRuleCommand::PropagateRuleCommand(const std::vector<Expr>& vars,
-                                           const std::vector<Expr>& heads,
-                                           Expr body,
-                                           bool deduction)
-    : d_vars(vars), d_heads(heads), d_body(body), d_deduction(deduction)
-{
-}
-
-const std::vector<Expr>& PropagateRuleCommand::getVars() const
-{
-  return d_vars;
-}
-
-const std::vector<Expr>& PropagateRuleCommand::getGuards() const
-{
-  return d_guards;
-}
-
-const std::vector<Expr>& PropagateRuleCommand::getHeads() const
-{
-  return d_heads;
-}
-
-Expr PropagateRuleCommand::getBody() const { return d_body; }
-const PropagateRuleCommand::Triggers& PropagateRuleCommand::getTriggers() const
-{
-  return d_triggers;
-}
-
-bool PropagateRuleCommand::isDeduction() const { return d_deduction; }
-void PropagateRuleCommand::invoke(SmtEngine* smtEngine)
-{
-  try
-  {
-    ExprManager* em = smtEngine->getExprManager();
-    /** build vars list */
-    Expr vars = em->mkExpr(kind::BOUND_VAR_LIST, d_vars);
-    /** build guards list */
-    Expr guards;
-    if (d_guards.size() == 0)
-      guards = em->mkConst<bool>(true);
-    else if (d_guards.size() == 1)
-      guards = d_guards[0];
-    else
-      guards = em->mkExpr(kind::AND, d_guards);
-    /** build heads list */
-    Expr heads;
-    if (d_heads.size() == 1)
-      heads = d_heads[0];
-    else
-      heads = em->mkExpr(kind::AND, d_heads);
-    /** build expression */
-    Expr expr;
-    if (d_triggers.empty())
-    {
-      expr = em->mkExpr(kind::RR_REWRITE, vars, guards, heads, d_body);
-    }
-    else
-    {
-      /** build triggers list */
-      std::vector<Expr> vtriggers;
-      vtriggers.reserve(d_triggers.size());
-      for (Triggers::const_iterator i = d_triggers.begin(),
-                                    end = d_triggers.end();
-           i != end;
-           ++i)
-      {
-        vtriggers.push_back(em->mkExpr(kind::INST_PATTERN, *i));
-      }
-      Expr triggers = em->mkExpr(kind::INST_PATTERN_LIST, vtriggers);
-      expr =
-          em->mkExpr(kind::RR_REWRITE, vars, guards, heads, d_body, triggers);
-    }
-    smtEngine->assertFormula(expr);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* PropagateRuleCommand::exportTo(ExprManager* exprManager,
-                                        ExprManagerMapCollection& variableMap)
-{
-  /** Convert variables */
-  VExpr vars = ExportTo(exprManager, variableMap, d_vars);
-  /** Convert guards */
-  VExpr guards = ExportTo(exprManager, variableMap, d_guards);
-  /** Convert heads */
-  VExpr heads = ExportTo(exprManager, variableMap, d_heads);
-  /** Convert triggers */
-  Triggers triggers;
-  triggers.reserve(d_triggers.size());
-  for (const std::vector<Expr>& trigger_list : d_triggers)
-  {
-    triggers.push_back(ExportTo(exprManager, variableMap, trigger_list));
-  }
-  /** Convert head and body */
-  Expr body = d_body.exportTo(exprManager, variableMap);
-  /** Create the converted rules */
-  return new PropagateRuleCommand(vars, guards, heads, body, triggers);
-}
-
-Command* PropagateRuleCommand::clone() const
-{
-  return new PropagateRuleCommand(
-      d_vars, d_guards, d_heads, d_body, d_triggers);
-}
-
-std::string PropagateRuleCommand::getCommandName() const
-{
-  return "propagate-rule";
-}
 }  // namespace CVC4

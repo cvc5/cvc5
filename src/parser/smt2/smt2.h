@@ -26,8 +26,8 @@
 #include <utility>
 
 #include "api/cvc4cpp.h"
+#include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "parser/smt2/parse_op.h"
 #include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
@@ -72,15 +72,15 @@ class Smt2 : public Parser
   bool d_seenSetLogic;
 
   LogicInfo d_logic;
-  std::unordered_map<std::string, Kind> operatorKindMap;
+  std::unordered_map<std::string, api::Kind> operatorKindMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
    * BITVECTOR_EXTRACT).
    */
   std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
-  std::pair<Expr, std::string> d_lastNamedTerm;
+  std::pair<api::Term, std::string> d_lastNamedTerm;
   // for sygus
-  std::vector<Expr> d_sygusVars, d_sygusVarPrimed, d_sygusConstraints,
+  std::vector<api::Term> d_sygusVars, d_sygusVarPrimed, d_sygusConstraints,
       d_sygusFunSymbols;
 
  protected:
@@ -97,7 +97,7 @@ class Smt2 : public Parser
    */
   void addTheory(Theory theory);
 
-  void addOperator(Kind k, const std::string& name);
+  void addOperator(api::Kind k, const std::string& name);
 
   /**
    * Registers an indexed function symbol.
@@ -109,11 +109,11 @@ class Smt2 : public Parser
    * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT)
    * @param name The name of the symbol (e.g. "extract")
    */
-  void addIndexedOperator(Kind tKind,
+  void addIndexedOperator(api::Kind tKind,
                           api::Kind opKind,
                           const std::string& name);
 
-  Kind getOperatorKind(const std::string& name) const;
+  api::Kind getOperatorKind(const std::string& name) const;
 
   bool isOperatorEnabled(const std::string& name) const;
 
@@ -147,7 +147,14 @@ class Smt2 : public Parser
   /**
    * Returns the expression that name should be interpreted as.
    */
-  Expr getExpressionForNameAndType(const std::string& name, Type t) override;
+  api::Term getExpressionForNameAndType(const std::string& name,
+                                        api::Sort t) override;
+
+  /**
+   * If we are in a version < 2.6, this updates name to the tester name of cons,
+   * e.g. "is-cons".
+   */
+  bool getTesterName(api::Term cons, std::string& name) override;
 
   /** Make function defined by a define-fun(s)-rec command.
    *
@@ -163,11 +170,11 @@ class Smt2 : public Parser
    * added to flattenVars in this function if the function is given a function
    * range type.
    */
-  Expr mkDefineFunRec(
+  api::Term bindDefineFunRec(
       const std::string& fname,
-      const std::vector<std::pair<std::string, Type> >& sortedVarNames,
-      Type t,
-      std::vector<Expr>& flattenVars);
+      const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
+      api::Sort t,
+      std::vector<api::Term>& flattenVars);
 
   /** Push scope for define-fun-rec
    *
@@ -187,33 +194,15 @@ class Smt2 : public Parser
    *     that defined this definition and stores it in bvs.
    */
   void pushDefineFunRecScope(
-      const std::vector<std::pair<std::string, Type> >& sortedVarNames,
-      Expr func,
-      const std::vector<Expr>& flattenVars,
-      std::vector<Expr>& bvs,
+      const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
+      api::Term func,
+      const std::vector<api::Term>& flattenVars,
+      std::vector<api::Term>& bvs,
       bool bindingLevel = false);
 
   void reset() override;
 
   void resetAssertions();
-
-  /**
-   * Creates a command that asserts a rule.
-   *
-   * @param kind The kind of rule (RR_REWRITE, RR_REDUCTION, RR_DEDUCTION)
-   * @param bvl Bound variable list
-   * @param triggers List of triggers
-   * @param guards List of guards
-   * @param heads List of heads
-   * @param body The body of the rule
-   * @return The command that asserts the rewrite rule
-   */
-  std::unique_ptr<Command> assertRewriteRule(Kind kind,
-                                             Expr bvl,
-                                             const std::vector<Expr>& triggers,
-                                             const std::vector<Expr>& guards,
-                                             const std::vector<Expr>& heads,
-                                             Expr body);
 
   /**
    * Class for creating instances of `SynthFunCommand`s. Creating an instance
@@ -236,11 +225,11 @@ class Smt2 : public Parser
         Smt2* smt2,
         const std::string& fun,
         bool isInv,
-        Type range,
-        std::vector<std::pair<std::string, CVC4::Type>>& sortedVarNames);
+        api::Sort range,
+        std::vector<std::pair<std::string, api::Sort>>& sortedVarNames);
     ~SynthFunFactory();
 
-    const std::vector<Expr>& getSygusVars() const { return d_sygusVars; }
+    const std::vector<api::Term>& getSygusVars() const { return d_sygusVars; }
 
     /**
      * Create an instance of `SynthFunCommand`.
@@ -248,15 +237,15 @@ class Smt2 : public Parser
      * @param grammar Optional grammar associated with the synth-fun command
      * @return The instance of `SynthFunCommand`
      */
-    std::unique_ptr<Command> mkCommand(Type grammar);
+    std::unique_ptr<Command> mkCommand(api::Sort grammar);
 
    private:
     Smt2* d_smt2;
     std::string d_fun;
-    Expr d_synthFun;
-    Type d_sygusType;
+    api::Term d_synthFun;
+    api::Sort d_sygusType;
     bool d_isInv;
-    std::vector<Expr> d_sygusVars;
+    std::vector<api::Term> d_sygusVars;
   };
 
   /**
@@ -339,80 +328,78 @@ class Smt2 : public Parser
 
   void includeFile(const std::string& filename);
 
-  void setLastNamedTerm(Expr e, std::string name) {
+  void setLastNamedTerm(api::Term e, std::string name)
+  {
     d_lastNamedTerm = std::make_pair(e, name);
   }
 
   void clearLastNamedTerm() {
-    d_lastNamedTerm = std::make_pair(Expr(), "");
+    d_lastNamedTerm = std::make_pair(api::Term(), "");
   }
 
-  std::pair<Expr, std::string> lastNamedTerm() {
-    return d_lastNamedTerm;
-  }
+  std::pair<api::Term, std::string> lastNamedTerm() { return d_lastNamedTerm; }
 
-  bool isAbstractValue(const std::string& name) {
-    return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
-      name.find_first_not_of("0123456789", 1) == std::string::npos;
-  }
+  /** Does name denote an abstract value? (of the form '@n' for numeral n). */
+  bool isAbstractValue(const std::string& name);
 
-  Expr mkAbstractValue(const std::string& name) {
-    assert(isAbstractValue(name));
-    return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
-  }
+  /** Make abstract value
+   *
+   * Abstract values are used for processing get-value calls. The argument
+   * name should be such that isAbstractValue(name) is true.
+   */
+  api::Term mkAbstractValue(const std::string& name);
 
-  void mkSygusVar(const std::string& name,
-                  const Type& type,
-                  bool isPrimed = false);
-
-  void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
+  void mkSygusConstantsForType(const api::Sort& type,
+                               std::vector<api::Term>& ops);
 
   void processSygusGTerm(
       CVC4::SygusGTerm& sgt,
       int index,
       std::vector<CVC4::Datatype>& datatypes,
-      std::vector<CVC4::Type>& sorts,
-      std::vector<std::vector<CVC4::Expr>>& ops,
+      std::vector<api::Sort>& sorts,
+      std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
+      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
       std::vector<bool>& allow_const,
       std::vector<std::vector<std::string>>& unresolved_gterm_sym,
-      const std::vector<CVC4::Expr>& sygus_vars,
-      std::map<CVC4::Type, CVC4::Type>& sygus_to_builtin,
-      std::map<CVC4::Type, CVC4::Expr>& sygus_to_builtin_expr,
-      CVC4::Type& ret,
+      const std::vector<api::Term>& sygus_vars,
+      std::map<api::Sort, api::Sort>& sygus_to_builtin,
+      std::map<api::Sort, api::Term>& sygus_to_builtin_expr,
+      api::Sort& ret,
       bool isNested = false);
 
   bool pushSygusDatatypeDef(
-      Type t,
+      api::Sort t,
       std::string& dname,
       std::vector<CVC4::Datatype>& datatypes,
-      std::vector<CVC4::Type>& sorts,
-      std::vector<std::vector<CVC4::Expr>>& ops,
+      std::vector<api::Sort>& sorts,
+      std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
+      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
       std::vector<bool>& allow_const,
       std::vector<std::vector<std::string>>& unresolved_gterm_sym);
 
   bool popSygusDatatypeDef(
       std::vector<CVC4::Datatype>& datatypes,
-      std::vector<CVC4::Type>& sorts,
-      std::vector<std::vector<CVC4::Expr>>& ops,
+      std::vector<api::Sort>& sorts,
+      std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
+      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
       std::vector<bool>& allow_const,
       std::vector<std::vector<std::string>>& unresolved_gterm_sym);
 
   void setSygusStartIndex(const std::string& fun,
                           int startIndex,
                           std::vector<CVC4::Datatype>& datatypes,
-                          std::vector<CVC4::Type>& sorts,
-                          std::vector<std::vector<CVC4::Expr>>& ops);
+                          std::vector<api::Sort>& sorts,
+                          std::vector<std::vector<ParseOp>>& ops);
 
-  void mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
-                        std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs,
-                        std::vector<std::string>& unresolved_gterm_sym,
-                        std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
+  void mkSygusDatatype(CVC4::Datatype& dt,
+                       std::vector<ParseOp>& ops,
+                       std::vector<std::string>& cnames,
+                       std::vector<std::vector<api::Sort>>& cargs,
+                       std::vector<std::string>& unresolved_gterm_sym,
+                       std::map<api::Sort, api::Sort>& sygus_to_builtin);
 
   /**
    * Adds a constructor to sygus datatype dt whose sygus operator is term.
@@ -427,17 +414,18 @@ class Smt2 : public Parser
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    */
-  void addSygusConstructorTerm(Datatype& dt,
-                               Expr term,
-                               std::map<Expr, Type>& ntsToUnres) const;
+  void addSygusConstructorTerm(
+      Datatype& dt,
+      api::Term term,
+      std::map<api::Term, api::Sort>& ntsToUnres) const;
   /**
    * This adds constructors to dt for sygus variables in sygusVars whose
    * type is argument type. This method should be called when the sygus grammar
    * term (Variable type) is encountered.
    */
   void addSygusConstructorVariables(Datatype& dt,
-                                    const std::vector<Expr>& sygusVars,
-                                    Type type) const;
+                                    const std::vector<api::Term>& sygusVars,
+                                    api::Sort type) const;
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
@@ -466,40 +454,6 @@ class Smt2 : public Parser
     }
     this->Parser::checkDeclaration(name, check, type, notes);
   }
-
-  void checkOperator(Kind kind, unsigned numArgs)
-  {
-    Parser::checkOperator(kind, numArgs);
-    // strict SMT-LIB mode enables extra checks for some bitvector operators
-    // that CVC4 permits as N-ary but the standard requires is binary
-    if(strictModeEnabled()) {
-      switch(kind) {
-      case kind::BITVECTOR_AND:
-      case kind::BITVECTOR_MULT:
-      case kind::BITVECTOR_OR:
-      case kind::BITVECTOR_PLUS:
-      case kind::BITVECTOR_XOR:
-        if (numArgs != 2 && !v2_6())
-        {
-          parseError(
-              "Operator requires exactly 2 arguments in strict SMT-LIB "
-              "compliance mode (for versions <2.6): "
-              + kindToString(kind));
-        }
-        break;
-      case kind::BITVECTOR_CONCAT:
-        if(numArgs != 2) {
-          parseError(
-              "Operator requires exactly 2 arguments in strict SMT-LIB "
-              "compliance mode: "
-              + kindToString(kind));
-        }
-        break;
-      default:
-        break; /* no problem */
-      }
-    }
-  }
   /** Set named attribute
    *
    * This is called when expression expr is annotated with a name, i.e.
@@ -510,7 +464,7 @@ class Smt2 : public Parser
    * which is used later for tracking assertions in unsat cores. This
    * symbol is returned by this method.
    */
-  Expr setNamedAttribute(Expr& expr, const SExpr& sexpr);
+  api::Term setNamedAttribute(api::Term& expr, const SExpr& sexpr);
 
   // Throw a ParserException with msg appended with the current logic.
   inline void parseErrorLogic(const std::string& msg)
@@ -536,7 +490,7 @@ class Smt2 : public Parser
    * - If p's expression field is set, then we leave p unchanged, check if
    * that expression has the given type and throw a parse error otherwise.
    */
-  void applyTypeAscription(ParseOp& p, Type type);
+  void parseOpApplyTypeAscription(ParseOp& p, api::Sort type);
   /**
    * This converts a ParseOp to expression, assuming it is a standalone term.
    *
@@ -546,7 +500,7 @@ class Smt2 : public Parser
    * of this class.
    * In other cases, a parse error is thrown.
    */
-  Expr parseOpToExpr(ParseOp& p);
+  api::Term parseOpToExpr(ParseOp& p);
   /**
    * Apply parse operator to list of arguments, and return the resulting
    * expression.
@@ -579,20 +533,24 @@ class Smt2 : public Parser
    * - If the overall expression is a partial application, then we process this
    * as a chain of HO_APPLY terms.
    */
-  Expr applyParseOp(ParseOp& p, std::vector<Expr>& args);
+  api::Term applyParseOp(ParseOp& p, std::vector<api::Term>& args);
   //------------------------- end processing parse operators
  private:
-  std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
+  std::map<api::Term, api::Sort> d_sygus_bound_var_type;
 
-  Type processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
-                                std::vector< CVC4::Type>& sorts,
-                                std::vector< std::vector<CVC4::Expr> >& ops,
-                                std::vector< std::vector<std::string> >& cnames,
-                                std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
-                                std::vector< bool >& allow_const,
-                                std::vector< std::vector< std::string > >& unresolved_gterm_sym,
-                                std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin,
-                                std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr, Type sub_ret );
+  api::Sort processSygusNestedGTerm(
+      int sub_dt_index,
+      std::string& sub_dname,
+      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<api::Sort>& sorts,
+      std::vector<std::vector<ParseOp>>& ops,
+      std::vector<std::vector<std::string>>& cnames,
+      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
+      std::vector<bool>& allow_const,
+      std::vector<std::vector<std::string>>& unresolved_gterm_sym,
+      std::map<api::Sort, api::Sort>& sygus_to_builtin,
+      std::map<api::Sort, api::Term>& sygus_to_builtin_expr,
+      api::Sort sub_ret);
 
   /** make sygus bound var list
    *
@@ -602,10 +560,10 @@ class Smt2 : public Parser
    * It appends a bound variable to lvars for each type in ltypes, and returns
    * a bound variable list whose children are lvars.
    */
-  Expr makeSygusBoundVarList(Datatype& dt,
-                             unsigned i,
-                             const std::vector<Type>& ltypes,
-                             std::vector<Expr>& lvars);
+  api::Term makeSygusBoundVarList(CVC4::Datatype& dt,
+                                  unsigned i,
+                                  const std::vector<api::Sort>& ltypes,
+                                  std::vector<api::Term>& lvars);
 
   /** Purify sygus grammar term
    *
@@ -618,10 +576,10 @@ class Smt2 : public Parser
    * by a lambda), and cargs contains the types of the arguments of the
    * sygus constructor.
    */
-  Expr purifySygusGTerm(Expr term,
-                        std::map<Expr, Type>& ntsToUnres,
-                        std::vector<Expr>& args,
-                        std::vector<Type>& cargs) const;
+  api::Term purifySygusGTerm(api::Term term,
+                             std::map<api::Term, api::Sort>& ntsToUnres,
+                             std::vector<api::Term>& args,
+                             std::vector<api::Sort>& cargs) const;
 
   void addArithmeticOperators();
 
@@ -648,7 +606,7 @@ class Smt2 : public Parser
    * @return True if `es` is empty, `e` if `es` consists of a single element
    *         `e`, the conjunction of expressions otherwise.
    */
-  Expr mkAnd(const std::vector<Expr>& es);
+  api::Term mkAnd(const std::vector<api::Term>& es);
 }; /* class Smt2 */
 
 }/* CVC4::parser namespace */

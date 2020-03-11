@@ -129,6 +129,32 @@ bool hasSubtermMulti(TNode n, TNode t)
   return false;
 }
 
+bool hasSubtermKind(Kind k, Node n)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == k)
+      {
+        return true;
+      }
+      for (const Node& cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+  return false;
+}
+
 bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
 {
   if (t.empty())
@@ -491,8 +517,7 @@ Node substituteCaptureAvoiding(TNode n,
             (std::distance(src.begin(), itt.base()) - 1) >= 0
             && static_cast<unsigned>(std::distance(src.begin(), itt.base()) - 1)
                    < dest.size());
-        Node n = dest[std::distance(src.begin(), itt.base()) - 1];
-        visited[curr] = n;
+        visited[curr] = dest[std::distance(src.begin(), itt.base()) - 1];
         continue;
       }
       if (curr.getNumChildren() == 0)
@@ -542,8 +567,7 @@ Node substituteCaptureAvoiding(TNode n,
         Assert(visited.find(curr[i]) != visited.end());
         nb << visited[curr[i]];
       }
-      Node n = nb;
-      visited[curr] = n;
+      visited[curr] = nb;
 
       // remove renaming
       if (curr.isClosure())

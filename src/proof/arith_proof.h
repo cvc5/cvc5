@@ -68,7 +68,6 @@ protected:
    */
   proof::ArithProofRecorder d_recorder;
 
-  bool d_realMode;
   theory::TheoryId getTheoryId() override;
 
  public:
@@ -192,9 +191,24 @@ public:
                                  const ProofLetMap& globalLetMap) override;
 
   /**
+   * Given a node that is an arith literal (an arith comparison or negation
+   * thereof), prints a proof of that literal.
+   *
+   * If the node represents a tightenable bound (e.g. [Int] < 3) then it prints
+   * a proof of the tightening instead. (e.g. [Int] <= 2).
+   *
+   * @return a pair comprising:
+   *            * the new node (after tightening) and
+   *            * a string proving it.
+   */
+  std::pair<Node, std::string> printProofAndMaybeTighten(const Node& bound);
+
+  /**
    * Return whether this node, when serialized to LFSC, has sort `Bool`. Otherwise, the sort is `formula`.
    */
   bool printsAsBool(const Node& n) override;
+
+  TypeNode equalityType(const Expr& left, const Expr& right) override;
 };
 
 

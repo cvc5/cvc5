@@ -43,7 +43,7 @@ ExampleEvalCache::ExampleEvalCache(TermDbSygus* tds,
 
 ExampleEvalCache::~ExampleEvalCache() {}
 
-Node ExampleEvalCache::addSearchVal(Node bv)
+Node ExampleEvalCache::addSearchVal(TypeNode tn, Node bv)
 {
   if (!d_indexSearchVals)
   {
@@ -51,17 +51,17 @@ Node ExampleEvalCache::addSearchVal(Node bv)
     return Node::null();
   }
   std::vector<Node> vals;
-  evaluateVec(bv, vals, false);
+  evaluateVec(bv, vals, true);
   Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
-  Node ret = d_trie.addOrGetTerm(bv, vals);
+  Node ret = d_trie[tn].addOrGetTerm(bv, vals);
   Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
   // Only save the cache data if necessary: if the enumerated term
   // is redundant, its cached data will not be used later and thus should
-  // be discarded.
-  if (ret == bv)
+  // be discarded. This applies also to the case where the evaluation
+  // was cached prior to this call.
+  if (ret != bv)
   {
-    std::vector<Node>& eocv = d_exOutCache[bv];
-    eocv.insert(eocv.end(), vals.begin(), vals.end());
+    clearEvaluationCache(bv);
   }
   Assert(ret.getType().isComparableTo(bv.getType()));
   return ret;

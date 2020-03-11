@@ -15,7 +15,7 @@
  ** the push pop of CVC4. This also gives an example option.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class LinearArith {
   public static void main(String[] args) {

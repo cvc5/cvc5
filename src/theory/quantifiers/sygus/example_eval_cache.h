@@ -81,6 +81,10 @@ class ExampleEvalCache
    * procedure for SyGuS datatypes or the SyGuS fast enumerator when we are
    * considering a value of enumerator e passed to the constructor of this
    * class whose analog in the signature of builtin theory is bvr.
+   * 
+   * The type tn passed to this function is the sygus type of the term whose
+   * builtin equivalent is bvr. Terms with distinct types must be cached
+   * independently since two sygus types may not generate the same terms.
    *
    * This returns either:
    * - A term that is equivalent to bvr up to examples that was passed as the
@@ -94,7 +98,7 @@ class ExampleEvalCache
    * result of the evaluation of bvr is cached by this class, and can be
    * later accessed by evaluateVec below.
    */
-  Node addSearchVal(Node bvr);
+  Node addSearchVal(TypeNode tn, Node bvr);
   //----------------------------------- evaluating terms
   /** Evaluate vector
    *
@@ -149,7 +153,7 @@ class ExampleEvalCache
    * This is used for symmetry breaking in quantifier-free reasoning
    * about SyGuS datatypes.
    */
-  NodeTrie d_trie;
+  std::map< TypeNode, NodeTrie> d_trie;
   /** cache for evaluate */
   std::map<Node, std::vector<Node>> d_exOutCache;
 };

@@ -16,8 +16,11 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/evaluator.h"
+#include "theory/quantifiers/sygus/example_infer.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "util/random.h"
 
 #include <math.h>
@@ -495,8 +498,9 @@ void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
   getLeavesInternal(vals, pol, v, 0, -2);
 }
 
-SygusUnifIo::SygusUnifIo()
-    : d_check_sol(false),
+SygusUnifIo::SygusUnifIo(SynthConjecture* p)
+    : d_parent(p),
+      d_check_sol(false),
       d_cond_count(0),
       d_sol_term_size(0),
       d_sol_cons_nondet(false),
@@ -507,51 +511,34 @@ SygusUnifIo::SygusUnifIo()
 }
 
 SygusUnifIo::~SygusUnifIo() {}
+
 void SygusUnifIo::initializeCandidate(
     QuantifiersEngine* qe,
     Node f,
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
+  d_candidate = f;
+  // copy the examples from the parent
+  ExampleInfer* ei = d_parent->getExampleInfer();
   d_examples.clear();
   d_examples_out.clear();
+  // copy the examples
+  if (ei->hasExamples(f))
+  {
+    for (unsigned i = 0, nex = ei->getNumExamples(f); i < nex; i++)
+    {
+      std::vector<Node> input;
+      ei->getExample(f, i, input);
+      Node output = ei->getExampleOut(f, i);
+      d_examples.push_back(input);
+      d_examples_out.push_back(output);
+    }
+  }
   d_ecache.clear();
-  d_candidate = f;
   SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
   // learn redundant operators based on the strategy
   d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
-}
-
-void SygusUnifIo::addExample(const std::vector<Node>& input, Node output)
-{
-  d_examples.push_back(input);
-  d_examples_out.push_back(output);
-}
-
-void SygusUnifIo::computeExamples(Node e, Node bv, std::vector<Node>& exOut)
-{
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
-  std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
-  if (it != eoc.end())
-  {
-    exOut.insert(exOut.end(), it->second.begin(), it->second.end());
-    return;
-  }
-  TypeNode xtn = e.getType();
-  std::vector<Node>& eocv = eoc[bv];
-  for (size_t j = 0, size = d_examples.size(); j < size; j++)
-  {
-    Node res = d_tds->evaluateBuiltin(xtn, bv, d_examples[j]);
-    exOut.push_back(res);
-    eocv.push_back(res);
-  }
-}
-
-void SygusUnifIo::clearExampleCache(Node e, Node bv)
-{
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
-  Assert(eoc.find(bv) != eoc.end());
-  eoc.erase(bv);
 }
 
 void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
@@ -573,9 +560,13 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   bv = d_tds->getExtRewriter()->extendedRewrite(bv);
   Trace("sygus-sui-enum") << "PBE Compute Examples for " << bv << std::endl;
   // compte the results (should be cached)
-  computeExamples(e, bv, base_results);
-  // don't need it after this
-  clearExampleCache(e, bv);
+  ExampleEvalCache* eec = d_parent->getExampleEvalCache(e);
+  Assert(eec != nullptr);
+  // Evaluate, which should be cached (assuming we have performed example-based
+  // symmetry breaking on bv). Moreover don't cache the result in the case it
+  // is not there already, since we won't need this evaluation anywhere outside
+  // of this class.
+  eec->evaluateVec(bv, base_results);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;
   Evaluator* ev = d_tds->getEvaluator();
@@ -1352,9 +1343,9 @@ Node SygusUnifIo::constructSol(
       if (snode.d_strats[i]->d_this == strat_ITE)
       {
         // flip the two
-        EnumTypeInfoStrat* etis = snode.d_strats[i];
+        EnumTypeInfoStrat* etis_i = snode.d_strats[i];
         snode.d_strats[i] = snode.d_strats[0];
-        snode.d_strats[0] = etis;
+        snode.d_strats[0] = etis_i;
         break;
       }
     }

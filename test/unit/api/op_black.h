@@ -29,7 +29,6 @@ class OpBlack : public CxxTest::TestSuite
   void testIsNull();
   void testOpFromKind();
   void testGetIndicesString();
-  void testGetIndicesKind();
   void testGetIndicesUint();
   void testGetIndicesPairUint();
 
@@ -88,14 +87,6 @@ void OpBlack::testGetIndicesString()
   TS_ASSERT_THROWS(record_update_ot.getIndices<uint32_t>(), CVC4ApiException&);
 }
 
-void OpBlack::testGetIndicesKind()
-{
-  Op chain_ot = d_solver.mkOp(CHAIN, AND);
-  TS_ASSERT(chain_ot.isIndexed());
-  Kind chain_idx = chain_ot.getIndices<Kind>();
-  TS_ASSERT(chain_idx == AND);
-}
-
 void OpBlack::testGetIndicesUint()
 {
   Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);
@@ -135,22 +126,10 @@ void OpBlack::testGetIndicesUint()
       floatingpoint_to_ubv_ot.getIndices<uint32_t>();
   TS_ASSERT(floatingpoint_to_ubv_idx == 11);
 
-  Op floatingpoint_to_ubv_total_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_UBV_TOTAL, 12);
-  uint32_t floatingpoint_to_ubv_total_idx =
-      floatingpoint_to_ubv_total_ot.getIndices<uint32_t>();
-  TS_ASSERT(floatingpoint_to_ubv_total_idx == 12);
-
   Op floatingpoint_to_sbv_ot = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
   uint32_t floatingpoint_to_sbv_idx =
       floatingpoint_to_sbv_ot.getIndices<uint32_t>();
   TS_ASSERT(floatingpoint_to_sbv_idx == 13);
-
-  Op floatingpoint_to_sbv_total_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_SBV_TOTAL, 14);
-  uint32_t floatingpoint_to_sbv_total_idx =
-      floatingpoint_to_sbv_total_ot.getIndices<uint32_t>();
-  TS_ASSERT(floatingpoint_to_sbv_total_idx == 14);
 
   Op tuple_update_ot = d_solver.mkOp(TUPLE_UPDATE, 5);
   uint32_t tuple_update_idx = tuple_update_ot.getIndices<uint32_t>();
