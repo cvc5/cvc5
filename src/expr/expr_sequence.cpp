@@ -22,11 +22,15 @@
 
 namespace CVC4 {
 
-ExprSequence::ExprSequence(const Type& t)
+ExprSequence::ExprSequence(const Type& t, const std::vector<Expr>& seq)
 {
   d_type.reset(new Type(t));
-  std::vector<Node> seq;
-  d_sequence.reset(new Sequence(TypeNode::fromType(t), seq));
+  std::vector<Node> nseq;
+  for (const Expr& e : seq)
+  {
+    nseq.push_back(Node::fromExpr(e));
+  }
+  d_sequence.reset(new Sequence(TypeNode::fromType(t), nseq));
 }
 ExprSequence::~ExprSequence() {}
 

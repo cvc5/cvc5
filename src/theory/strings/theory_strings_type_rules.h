@@ -311,8 +311,9 @@ struct SequenceProperties
   {
     Assert(type.isSequence());
     // empty sequence
+    std::vector<Expr> seq;
     return NodeManager::currentNM()->mkConst(
-        ExprSequence(SequenceType(type.toType())));
+        ExprSequence(SequenceType(type.toType()),seq));
   }
 }; /* struct SequenceProperties */
 

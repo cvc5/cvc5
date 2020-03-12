@@ -19,12 +19,14 @@
 
 #include <iosfwd>
 #include <memory>
+#include <vector>
 
 namespace CVC4 {
 
-// messy; Expr needs ArrayStoreAll (because it's the payload of a
-// CONSTANT-kinded expression), and ArrayStoreAll needs Expr.
+// messy; Expr needs ExprSequence (because it's the payload of a
+// CONSTANT-kinded expression), and ExprSequence needs Expr.
 class Type;
+class Expr;
 class Sequence;
 
 /** The CVC4 sequence class
@@ -39,7 +41,7 @@ class CVC4_PUBLIC ExprSequence
    * Internally, a CVC4::ExprSequence is represented by a vector of Nodes
    * (d_seq), where each Node in this vector must be a constant.
    */
-  ExprSequence(const Type& type);
+  ExprSequence(const Type& type, const std::vector<Expr>& seq);
   ~ExprSequence();
 
   ExprSequence(const ExprSequence& other);
