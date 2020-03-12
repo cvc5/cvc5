@@ -871,14 +871,6 @@ header = "options/quantifiers_options.h"
   help       = "do not consider instances of quantified formulas that are currently true in model, if it is available"
 
 [[option]]
-  name       = "instPropagate"
-  category   = "regular"
-  long       = "inst-prop"
-  type       = "bool"
-  default    = "false"
-  help       = "internal propagation for instantiations for selecting relevant instances"
-
-[[option]]
   name       = "qcfEagerTest"
   category   = "regular"
   long       = "qcf-eager-test"
