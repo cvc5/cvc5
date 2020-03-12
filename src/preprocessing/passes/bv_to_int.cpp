@@ -316,7 +316,7 @@ Node BVToInt::bvToInt(Node n)
             }
             else
             {
-              variables other than bit-vector variables are left intact
+              // variables other than bit-vector variables are left intact
               d_bvToIntCache[current] = current;
             }
           }
