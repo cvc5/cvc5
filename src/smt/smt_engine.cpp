@@ -1214,7 +1214,6 @@ void SmtEngine::setDefaults() {
     if (d_logic.isTheoryEnabled(THEORY_BV))
     {
       d_logic = d_logic.getUnlockedCopy();
-      d_logic.disableTheory(THEORY_BV);
       d_logic.enableTheory(THEORY_ARITH);
       d_logic.arithNonLinear();
       d_logic.lock();
