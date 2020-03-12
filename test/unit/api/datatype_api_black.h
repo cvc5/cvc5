@@ -44,8 +44,7 @@ void DatatypeBlack::testMkDatatypeSort()
 {
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", d_solver.getIntegerSort());
-  cons.addSelector(head);
+  cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
@@ -77,23 +76,18 @@ void DatatypeBlack::testMkDatatypeSorts()
 
   DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
   DatatypeConstructorDecl node("node");
-  DatatypeSelectorDecl left("left", unresTree);
-  node.addSelector(left);
-  DatatypeSelectorDecl right("right", unresTree);
-  node.addSelector(right);
+  node.addSelector("left", unresTree);
+  node.addSelector("right", unresTree);
   tree.addConstructor(node);
 
   DatatypeConstructorDecl leaf("leaf");
-  DatatypeSelectorDecl data("data", unresList);
-  leaf.addSelector(data);
+  leaf.addSelector("data", unresList);
   tree.addConstructor(leaf);
 
   DatatypeDecl list = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl car("car", unresTree);
-  cons.addSelector(car);
-  DatatypeSelectorDecl cdr("cdr", unresTree);
-  cons.addSelector(cdr);
+  cons.addSelector("car", unresTree);
+  cons.addSelector("cdr", unresTree);
   list.addConstructor(cons);
 
   DatatypeConstructorDecl nil("nil");
@@ -137,10 +131,10 @@ void DatatypeBlack::testDatatypeStructs()
   // create datatype sort to test
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", intSort);
-  cons.addSelector(head);
-  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
-  cons.addSelector(tail);
+  cons.addSelector("head", intSort);
+  cons.addSelectorSelf("tail");
+  Sort nullSort;
+  TS_ASSERT_THROWS(cons.addSelector("null", nullSort), CVC4ApiException&);
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
@@ -172,10 +166,8 @@ void DatatypeBlack::testDatatypeStructs()
   // create codatatype
   DatatypeDecl dtypeSpecStream = d_solver.mkDatatypeDecl("stream", true);
   DatatypeConstructorDecl consStream("cons");
-  DatatypeSelectorDecl headStream("head", intSort);
-  consStream.addSelector(headStream);
-  DatatypeSelectorDecl tailStream("tail", DatatypeDeclSelfSort());
-  consStream.addSelector(tailStream);
+  consStream.addSelector("head", intSort);
+  consStream.addSelectorSelf("tail");
   dtypeSpecStream.addConstructor(consStream);
   Sort dtypeSortStream = d_solver.mkDatatypeSort(dtypeSpecStream);
   Datatype dtStream = dtypeSortStream.getDatatype();
@@ -213,10 +205,8 @@ void DatatypeBlack::testDatatypeNames()
   TS_ASSERT_THROWS_NOTHING(dtypeSpec.getName());
   TS_ASSERT(dtypeSpec.getName() == std::string("list"));
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", intSort);
-  cons.addSelector(head);
-  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
-  cons.addSelector(tail);
+  cons.addSelector("head", intSort);
+  cons.addSelectorSelf("tail");
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
