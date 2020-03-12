@@ -18,6 +18,7 @@
 
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
+#include "theory/strings/word.h"
 
 using namespace CVC4::kind;
 
@@ -117,10 +118,23 @@ void getConcat(Node n, std::vector<Node>& c)
 
 Node mkConcat(Kind k, const std::vector<Node>& c)
 {
-  Assert(!c.empty() || k == STRING_CONCAT);
-  NodeManager* nm = NodeManager::currentNM();
-  return c.size() > 1 ? nm->mkNode(k, c)
-                      : (c.size() == 1 ? c[0] : nm->mkConst(String("")));
+  Assert(!c.empty());
+  return c.size() == 1 ? c[0] : NodeManager::currentNM()->mkNode(k, c);
+}
+
+Node mkConcatTyped(const std::vector<Node>& c, TypeNode tn)
+{
+  if (c.empty())
+  {
+    Assert(tn.isStringLike());
+    return Word::mkEmptyWord(tn);
+  }
+  else if (c.size()==1)
+  {
+    return c[0];
+  }
+  Kind k = tn.isStringLike() ? STRING_CONCAT : REGEXP_CONCAT;
+  return NodeManager::currentNM()->mkNode(k, c);
 }
 
 Node mkNConcat(Node n1, Node n2)
@@ -137,7 +151,13 @@ Node mkNConcat(Node n1, Node n2, Node n3)
 
 Node mkNConcat(const std::vector<Node>& c)
 {
+  Assert(!c.empty());
   return Rewriter::rewrite(mkConcat(STRING_CONCAT, c));
+}
+
+Node mkNConcatTyped(const std::vector<Node>& c, TypeNode tn)
+{
+  return Rewriter::rewrite(mkConcatTyped(c, tn));
 }
 
 Node mkNLength(Node t)
@@ -147,12 +167,11 @@ Node mkNLength(Node t)
 
 Node getConstantComponent(Node t)
 {
-  Kind tk = t.getKind();
-  if (tk == STRING_TO_REGEXP)
+  if (t.getKind() == STRING_TO_REGEXP)
   {
     return t[0].isConst() ? t[0] : Node::null();
   }
-  return tk == CONST_STRING ? t : Node::null();
+  return t.isConst() ? t : Node::null();
 }
 
 Node getConstantEndpoint(Node e, bool isSuf)
