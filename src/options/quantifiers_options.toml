@@ -677,15 +677,6 @@ header = "options/quantifiers_options.h"
   help       = "only add one instantiation per quantifier per round for mbqi"
 
 [[option]]
-  name       = "fmfOneQuantPerRound"
-  category   = "regular"
-  long       = "mbqi-one-quant-per-round"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "only add instantiations for one quantifier per round for mbqi"
-
-[[option]]
   name       = "mbqiInterleave"
   category   = "regular"
   long       = "mbqi-interleave"
@@ -701,24 +692,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "use instantiation engine in conjunction with finite model finding"
-
-[[option]]
-  name       = "fmfInstGen"
-  category   = "regular"
-  long       = "fmf-inst-gen"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "enable Inst-Gen instantiation techniques for finite model finding"
-
-[[option]]
-  name       = "fmfInstGenOneQuantPerRound"
-  category   = "regular"
-  long       = "fmf-inst-gen-one-quant-per-round"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "only perform Inst-Gen instantiation techniques on one quantifier per round"
 
 [[option]]
   name       = "fmfFreshDistConst"
