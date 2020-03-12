@@ -45,7 +45,7 @@ class PreprocessingPassContext
 
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
-  prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
+  prop::PropEngine* getPropEngine() { return d_smt->getPropEngine(); }
   context::Context* getUserContext() { return d_smt->d_userContext; }
   context::Context* getDecisionContext() { return d_smt->d_context; }
   RemoveTermFormulas* getIteRemover() { return d_iteRemover; }
