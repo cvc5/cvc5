@@ -231,6 +231,27 @@ class StringStrToIntTypeRule
   }
 };
 
+class StringStrToStrTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    TypeNode t = n[0].getType(check);
+    if (check)
+    {
+      if (!t.isStringLike())
+      {
+        std::stringstream ss;
+        ss << "expecting a string term in argument of " << n.getKind();
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+    return t;
+  }
+};
+
 class StringRelationTypeRule
 {
  public:
