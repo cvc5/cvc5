@@ -231,11 +231,6 @@ cdef class Op:
             pass
 
         try:
-            indices = kind(<int> self.cop.getIndices[c_Kind]())
-        except:
-            pass
-
-        try:
             indices = self.cop.getIndices[uint32_t]()
         except:
             pass
@@ -553,12 +548,7 @@ cdef class Solver:
     def mkReal(self, val, den=None):
         cdef Term term = Term()
         if den is None:
-            try:
-                term.cterm = self.csolver.mkReal(str(val).encode())
-            except Exception as e:
-                raise ValueError("Expecting a number"
-                                 " or a string representing a number"
-                                 " but got: {}".format(val))
+            term.cterm = self.csolver.mkReal(str(val).encode())
         else:
             if not isinstance(val, int) or not isinstance(den, int):
                 raise ValueError("Expecting integers when"
