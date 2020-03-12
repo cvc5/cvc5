@@ -3941,9 +3941,10 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   Integer floor_d = d.floor();
 
   Node lem;
+  NodeManager* nm = NodeManager::currentNM();
   if (options::cubeTest())
   {
-    Trace("integers") << "cube test enabled"  << endl;
+    Trace("integers") << "branch-round-and-bound enabled" << endl;
     Integer ceil_d = d.ceiling();
     Rational f = r - floor_d;
     // Multiply by -1 to get abs value.
@@ -3951,20 +3952,24 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
     Integer nearest = (c > f) ? floor_d : ceil_d;
 
     // Prioritize trying a simple rounding of the real solution first,
-    // it that fails, fall back on original branch and bound strategy. 
-    Node ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
-    Node lb = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
-    lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
-    Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
+    // it that fails, fall back on original branch and bound strategy.
+    Node ub = Rewriter::rewrite(
+        nm->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
+    Node lb = Rewriter::rewrite(
+        nm->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
+    lem = nm->mkNode(kind::OR, ub, lb);
+    Node eq = Rewriter::rewrite(
+        nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
     Node literal = d_containing.getValuation().ensureLiteral(eq);
     d_containing.getOutputChannel().requirePhase(literal, true);
-    lem = NodeManager::currentNM()->mkNode(kind::OR, literal, lem);
+    lem = nm->mkNode(kind::OR, literal, lem);
   }
   else
   {
-    Node ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
+    Node ub =
+        Rewriter::rewrite(nm->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
     Node lb = ub.notNode();
-    lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
+    lem = nm->mkNode(kind::OR, ub, lb);
   }
 
   Trace("integers") << "integers: branch & bound: " << lem << endl;
