@@ -293,11 +293,35 @@ bool Sequence::noOverlapWith(const Sequence& y) const
 
 size_t Sequence::maxSize() { return std::numeric_limits<uint32_t>::max(); }
 
+
+ExprSequence Sequence::toExprSequence()
+{
+  std::vector<Expr> seq;
+  for (const Node& n : d_seq)
+  {
+    seq.push_back(n.toExpr());
+  }
+  return ExprSequence(d_type.toType(),seq);
+}
+
 std::ostream& operator<<(std::ostream& os, const Sequence& s)
 {
-  // FIXME
-  return os << "\""
-            << "\"";
+  const std::vector<Node>& vec = s.getVec();
+  std::stringstream ss;
+  if (vec.empty())
+  {
+    ss << "(as seq.empty " << s.getType() << ")";
+  }
+  else
+  {
+    ss << "(seq.++";
+    for (const Node& n : vec)
+    {
+      ss << " " << n;
+    }
+    ss << ")";
+  }
+  return os << ss.str();
 }
 
 }  // namespace CVC4

@@ -238,8 +238,7 @@ Node Word::replace(TNode x, TNode y, TNode t)
     const Sequence& sy = y.getConst<ExprSequence>().getSequence();
     const Sequence& st = t.getConst<ExprSequence>().getSequence();
     Sequence res = sx.replace(sy, st);
-    // FIXME
-    //return nm->mkConst(ExprSequence(x.getType().toType(),));
+    return nm->mkConst(res.toExprSequence());
   }
   Unimplemented();
   return Node::null();
@@ -257,7 +256,7 @@ Node Word::substr(TNode x, std::size_t i)
   {
     const Sequence& sx = x.getConst<ExprSequence>().getSequence();
     Sequence res = sx.substr(i);
-    // FIXME
+    return nm->mkConst(res.toExprSequence());
   }
   Unimplemented();
   return Node::null();
@@ -275,6 +274,7 @@ Node Word::substr(TNode x, std::size_t i, std::size_t j)
   {
     const Sequence& sx = x.getConst<ExprSequence>().getSequence();
     Sequence res = sx.substr(i, j);
+    return nm->mkConst(res.toExprSequence());
   }
   Unimplemented();
   return Node::null();
@@ -295,6 +295,7 @@ Node Word::suffix(TNode x, std::size_t i)
   {
     const Sequence& sx = x.getConst<ExprSequence>().getSequence();
     Sequence res = sx.suffix(i);
+    return nm->mkConst(res.toExprSequence());
   }
   Unimplemented();
   return Node::null();

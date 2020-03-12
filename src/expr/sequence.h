@@ -19,6 +19,8 @@
 #include "expr/node.h"
 
 namespace CVC4 {
+  
+class ExprSequence;
 
 /** The CVC4 sequence class
  *
@@ -131,6 +133,8 @@ class Sequence
    */
   std::size_t roverlap(const Sequence& y) const;
 
+  /** get type */
+  TypeNode getType() const { return d_type; }
   /** get the internal Node representation of this string */
   const std::vector<Node>& getVec() const { return d_seq; }
   /** get the internal unsigned value of the first character in this string */
@@ -142,7 +146,11 @@ class Sequence
    * Corresponds to the maximum size of d_seq.
    */
   static size_t maxSize();
+  
 
+  //!!!!!!!!!!!!!!! temporary 
+  ExprSequence toExprSequence();
+  //!!!!!!!!!!!!!!! end temporary 
  private:
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a
