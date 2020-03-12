@@ -151,6 +151,10 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         }
         if (childChanged)
         {
+          if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+          {
+            children.insert(children.begin(), n.getOperator());
+          }
           ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
         }
       }
@@ -171,8 +175,11 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                              nm->integerType(),
                              "Variable introduced in realToIntInternal pass");
           var_eq.push_back(n.eqNode(ret));
-          TheoryModel* m = d_preprocContext->getTheoryEngine()->getModel();
-          m->addSubstitution(n, ret);
+          // ensure that the original variable is defined to be the returned
+          // one, which is important for models and for incremental solving.
+          std::vector<Expr> args;
+          smt::currentSmtEngine()->defineFunction(
+              n.toExpr(), args, ret.toExpr());
         }
       }
     }

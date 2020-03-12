@@ -408,8 +408,10 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   else if (type.isString())
   {
     ops.push_back(nm->mkConst(String("")));
+    // dummy character "A"
+    ops.push_back(nm->mkConst(String("A")));
   }
-  else if (type.isArray())
+  else if (type.isArray() || type.isSet())
   {
     // generate constant array over the first element of the constituent type
     Node c = type.mkGroundTerm();
@@ -442,6 +444,10 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         // add index and constituent type
         collectSygusGrammarTypesFor(range.getArrayIndexType(), types);
         collectSygusGrammarTypesFor(range.getArrayConstituentType(), types);
+      }
+      else if (range.isSet())
+      {
+        collectSygusGrammarTypesFor(range.getSetElementType(), types);
       }
       else if (range.isString() )
       {
@@ -791,22 +797,17 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     {
       Trace("sygus-grammar-def")
           << "...building for array type " << types[i] << "\n";
-      Trace("sygus-grammar-def") << "......finding unres type for index type "
-                                 << types[i].getArrayIndexType() << "\n";
+      TypeNode indexType = types[i].getArrayIndexType();
+      TypeNode elemType = types[i].getArrayConstituentType();
+      Trace("sygus-grammar-def")
+          << "......finding unres type for index type " << indexType << "\n";
       // retrieve index and constituent unresolved types
-      Assert(std::find(types.begin(), types.end(), types[i].getArrayIndexType())
-             != types.end());
-      unsigned i_indexType = std::distance(
-          types.begin(),
-          std::find(types.begin(), types.end(), types[i].getArrayIndexType()));
-      TypeNode unres_indexType = unres_types[i_indexType];
-      Assert(std::find(
-                 types.begin(), types.end(), types[i].getArrayConstituentType())
-             != types.end());
+      Assert(type_to_unres.find(indexType) != type_to_unres.end());
+      TypeNode unres_indexType = type_to_unres[indexType];
+      Assert(std::find(types.begin(), types.end(), elemType) != types.end());
+      // must get this index since we add to sdt[i_constituentType] below.
       unsigned i_constituentType = std::distance(
-          types.begin(),
-          std::find(
-              types.begin(), types.end(), types[i].getArrayConstituentType()));
+          types.begin(), std::find(types.begin(), types.end(), elemType));
       TypeNode unres_constituentType = unres_types[i_constituentType];
       // add (store ArrayType IndexType ConstituentType)
       Trace("sygus-grammar-def") << "...add for STORE\n";
@@ -823,6 +824,30 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       cargsSelect.push_back(unres_t);
       cargsSelect.push_back(unres_indexType);
       sdts[i_constituentType].addConstructor(SELECT, cargsSelect);
+    }
+    else if (types[i].isSet())
+    {
+      TypeNode etype = types[i].getSetElementType();
+      // retrieve element unresolved type
+      Assert(type_to_unres.find(etype) != type_to_unres.end());
+      TypeNode unresElemType = type_to_unres[etype];
+
+      // add for singleton
+      Trace("sygus-grammar-def") << "...add for singleton" << std::endl;
+      std::vector<TypeNode> cargsSingleton;
+      cargsSingleton.push_back(unresElemType);
+      sdts[i].addConstructor(SINGLETON, cargsSingleton);
+
+      // add for union, difference, intersection
+      std::vector<Kind> bin_kinds = {UNION, INTERSECTION, SETMINUS};
+      std::vector<TypeNode> cargsBinary;
+      cargsBinary.push_back(unres_t);
+      cargsBinary.push_back(unres_t);
+      for (const Kind kind : bin_kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargsBinary);
+      }
     }
     else if (types[i].isDatatype())
     {
@@ -1196,6 +1221,18 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sst << dt[kind].getTester();
         sdtBool.addConstructor(dt[kind].getTester(), sst.str(), cargsTester);
       }
+    }
+    else if (types[i].isSet())
+    {
+      // add for member
+      TypeNode etype = types[i].getSetElementType();
+      Assert(type_to_unres.find(etype) != type_to_unres.end());
+      TypeNode unresElemType = type_to_unres[etype];
+      std::vector<TypeNode> cargsMember;
+      cargsMember.push_back(unresElemType);
+      cargsMember.push_back(unres_types[iuse]);
+      Trace("sygus-grammar-def") << "...for MEMBER" << std::endl;
+      sdtBool.addConstructor(MEMBER, cargsMember);
     }
   }
   // add Boolean connectives, if not in a degenerate case of (recursively)
