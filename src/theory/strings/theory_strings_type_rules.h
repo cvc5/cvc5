@@ -93,6 +93,32 @@ class StringSubstrTypeRule
   }
 };
 
+class StringAtTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    TypeNode t = n[0].getType(check);
+    if (check)
+    {
+      if (!t.isStringLike())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting a string-like term in str.at");
+      }
+      TypeNode t2 = n[1].getType(check);
+      if (!t2.isInteger())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an integer start term in str.at");
+      }
+    }
+    return t;
+  }
+};
+
 class StringIndexOfTypeRule
 {
  public:
@@ -202,27 +228,6 @@ class StringStrToIntTypeRule
       }
     }
     return nodeManager->integerType();
-  }
-};
-
-class StringStrToStrTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    TypeNode t = n[0].getType(check);
-    if (check)
-    {
-      if (!t.isStringLike())
-      {
-        std::stringstream ss;
-        ss << "expecting a string term in argument of " << n.getKind();
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
-    }
-    return t;
   }
 };
 
