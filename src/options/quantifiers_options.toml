@@ -870,17 +870,6 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
 
-### Rewrite rules options
-
-[[option]]
-  name       = "rrOneInstPerRound"
-  category   = "regular"
-  long       = "rr-one-inst-per-round"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "add one instance of rewrite rule per round"
-
 ### Induction options
 
 [[option]]
