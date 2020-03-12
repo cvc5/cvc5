@@ -1378,15 +1378,6 @@ header = "options/quantifiers_options.h"
   help       = "do unfolding of Boolean evaluation functions that appear in refinement lemmas"
 
 [[option]]
-  name       = "sygusRefEval"
-  category   = "regular"
-  long       = "sygus-ref-eval"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "direct evaluation of refinement lemmas for conflict analysis"
-
-[[option]]
   name       = "sygusStream"
   category   = "regular"
   long       = "sygus-stream"
