@@ -596,7 +596,7 @@ public:
    * declarations.
    *
    * For each symbol defined by the datatype, if a symbol with name already
-   * exists, then if doOverload is true, we create overloaded operators. else if
+   * exists, then if doOverload is true, we create overloaded operators. Else, if
    * doOverload is false, the existing expression is shadowed by the new
    * expression.
    */
