@@ -170,7 +170,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
           // to incompleteness.
           throw TypeCheckingException(
               n.toExpr(),
-              std::string("Cannot translate bound variable to Int: ") + n.toString());
+              std::string("Cannot translate bound variable to Int: ")
+                  + n.toString());
         }
         else if (n.isVar())
         {
