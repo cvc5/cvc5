@@ -15,6 +15,7 @@
 #include "theory/strings/word.h"
 
 #include "util/regexp.h"
+#include "expr/sequence.h"
 
 using namespace CVC4::kind;
 
@@ -65,6 +66,10 @@ Node Word::mkWord(const std::vector<Node>& xs)
     }
     return nm->mkConst(String(vec));
   }
+  else if (k==CONST_SEQUENCE)
+  {
+    // FIXME
+  }
   Unimplemented();
   return Node::null();
 }
@@ -75,6 +80,10 @@ size_t Word::getLength(TNode x)
   if (k == CONST_STRING)
   {
     return x.getConst<String>().size();
+  }
+  else if (k==CONST_SEQUENCE)
+  {
+    return x.getConst<ExprSequence>().getSequence().size();
   }
   Unimplemented();
   return 0;
@@ -92,6 +101,13 @@ bool Word::strncmp(TNode x, TNode y, std::size_t n)
     String sy = y.getConst<String>();
     return sx.strncmp(sy, n);
   }
+  else if (k==CONST_SEQUENCE)
+  {
+    Assert(y.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const Sequence& sy = y.getConst<ExprSequence>().getSequence();
+    return sx.strncmp(sy, n);
+  }
   Unimplemented();
   return false;
 }
@@ -104,6 +120,13 @@ bool Word::rstrncmp(TNode x, TNode y, std::size_t n)
     Assert(y.getKind() == CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
+    return sx.rstrncmp(sy, n);
+  }
+  else if (k==CONST_SEQUENCE)
+  {
+    Assert(y.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const Sequence& sy = y.getConst<ExprSequence>().getSequence();
     return sx.rstrncmp(sy, n);
   }
   Unimplemented();
@@ -120,6 +143,13 @@ std::size_t Word::find(TNode x, TNode y, std::size_t start)
     String sy = y.getConst<String>();
     return sx.find(sy, start);
   }
+  else if (k==CONST_SEQUENCE)
+  {
+    Assert(y.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const Sequence& sy = y.getConst<ExprSequence>().getSequence();
+    return sx.find(sy, start);
+  }
   Unimplemented();
   return 0;
 }
@@ -132,6 +162,13 @@ std::size_t Word::rfind(TNode x, TNode y, std::size_t start)
     Assert(y.getKind() == CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
+    return sx.rfind(sy, start);
+  }
+  else if (k==CONST_SEQUENCE)
+  {
+    Assert(y.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const Sequence& sy = y.getConst<ExprSequence>().getSequence();
     return sx.rfind(sy, start);
   }
   Unimplemented();
@@ -148,6 +185,13 @@ bool Word::hasPrefix(TNode x, TNode y)
     String sy = y.getConst<String>();
     return sx.hasPrefix(sy);
   }
+  else if (k==CONST_SEQUENCE)
+  {
+    Assert(y.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const Sequence& sy = y.getConst<ExprSequence>().getSequence();
+    return sx.hasPrefix(sy);
+  }
   Unimplemented();
   return false;
 }
@@ -160,6 +204,13 @@ bool Word::hasSuffix(TNode x, TNode y)
     Assert(y.getKind() == CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
+    return sx.hasSuffix(sy);
+  }
+  else if (k==CONST_SEQUENCE)
+  {
+    Assert(y.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const Sequence& sy = y.getConst<ExprSequence>().getSequence();
     return sx.hasSuffix(sy);
   }
   Unimplemented();
@@ -179,6 +230,17 @@ Node Word::replace(TNode x, TNode y, TNode t)
     String st = t.getConst<String>();
     return nm->mkConst(String(sx.replace(sy, st)));
   }
+  else if (k==CONST_SEQUENCE)
+  {
+    Assert(y.getKind() == CONST_SEQUENCE);
+    Assert(t.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const Sequence& sy = y.getConst<ExprSequence>().getSequence();
+    const Sequence& st = t.getConst<ExprSequence>().getSequence();
+    Sequence res = sx.replace(sy, st);
+    // FIXME
+    //return nm->mkConst(ExprSequence(x.getType().toType(),));
+  }
   Unimplemented();
   return Node::null();
 }
@@ -191,6 +253,12 @@ Node Word::substr(TNode x, std::size_t i)
     String sx = x.getConst<String>();
     return nm->mkConst(String(sx.substr(i)));
   }
+  else if (k==CONST_SEQUENCE)
+  {
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    Sequence res = sx.substr(i);
+    // FIXME
+  }
   Unimplemented();
   return Node::null();
 }
@@ -202,6 +270,11 @@ Node Word::substr(TNode x, std::size_t i, std::size_t j)
   {
     String sx = x.getConst<String>();
     return nm->mkConst(String(sx.substr(i, j)));
+  }
+  else if (k==CONST_SEQUENCE)
+  {
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    Sequence res = sx.substr(i, j);
   }
   Unimplemented();
   return Node::null();
@@ -218,6 +291,11 @@ Node Word::suffix(TNode x, std::size_t i)
     String sx = x.getConst<String>();
     return nm->mkConst(String(sx.suffix(i)));
   }
+  else if (k==CONST_SEQUENCE)
+  {
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    Sequence res = sx.suffix(i);
+  }
   Unimplemented();
   return Node::null();
 }
@@ -230,6 +308,13 @@ bool Word::noOverlapWith(TNode x, TNode y)
     Assert(y.getKind() == CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
+    return sx.noOverlapWith(sy);
+  }
+  else if (k==CONST_SEQUENCE)
+  {
+    Assert(y.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const Sequence& sy = y.getConst<ExprSequence>().getSequence();
     return sx.noOverlapWith(sy);
   }
   Unimplemented();
@@ -246,6 +331,13 @@ std::size_t Word::overlap(TNode x, TNode y)
     String sy = y.getConst<String>();
     return sx.overlap(sy);
   }
+  else if (k==CONST_SEQUENCE)
+  {
+    Assert(y.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const Sequence& sy = y.getConst<ExprSequence>().getSequence();
+    return sx.overlap(sy);
+  }
   Unimplemented();
   return 0;
 }
@@ -258,6 +350,13 @@ std::size_t Word::roverlap(TNode x, TNode y)
     Assert(y.getKind() == CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
+    return sx.roverlap(sy);
+  }
+  else if (k==CONST_SEQUENCE)
+  {
+    Assert(y.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const Sequence& sy = y.getConst<ExprSequence>().getSequence();
     return sx.roverlap(sy);
   }
   Unimplemented();
