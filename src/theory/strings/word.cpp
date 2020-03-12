@@ -72,7 +72,7 @@ Node Word::mkWordFlatten(const std::vector<Node>& xs)
     TypeNode tn = xs[0].getType();
     for (TNode x : xs)
     {
-      Assert( x.getType()==tn );
+      Assert(x.getType() == tn);
       const Sequence& sx = x.getConst<ExprSequence>().getSequence();
       const std::vector<Node>& vecc = sx.getVec();
       for (const Node& c : vecc)
