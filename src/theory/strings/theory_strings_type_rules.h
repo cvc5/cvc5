@@ -327,7 +327,7 @@ class ConstSequenceTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind()==kind::CONST_SEQUENCE);
+    Assert(n.getKind() == kind::CONST_SEQUENCE);
     return n.getConst<ExprSequence>().getSequence().getType();
   }
 };

@@ -877,7 +877,7 @@ public:
 
   /** Make the type of set with the given parameterization */
   inline TypeNode mkSetType(TypeNode elementType);
-  
+
   /** Make the type of sequences with the given parameterization */
   TypeNode mkSequenceType(TypeNode elementType);
 

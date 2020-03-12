@@ -263,7 +263,7 @@ class TheoryStringsRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   static Node rewriteStringToCode(Node node);
-  
+
   /** rewrite seq.unit
    * This is the entry point for post-rewriting terms n of the form
    *   seq.unit( t )

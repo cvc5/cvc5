@@ -490,8 +490,8 @@ Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, cons
 
 TypeNode NodeManager::mkSequenceType(TypeNode elementType)
 {
-  CheckArgument(!elementType.isNull(), elementType,
-                "unexpected NULL element type");
+  CheckArgument(
+      !elementType.isNull(), elementType, "unexpected NULL element type");
   CheckArgument(elementType.isFirstClass(),
                 elementType,
                 "cannot store types that are not first-class in sequences. Try "

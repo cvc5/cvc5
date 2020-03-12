@@ -3489,7 +3489,7 @@ Node TheoryStringsRewriter::rewriteStringToCode(Node n)
 
 Node TheoryStringsRewriter::rewriteSeqUnit(Node node)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
     std::vector<Expr> seq;
