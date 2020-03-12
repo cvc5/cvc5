@@ -204,7 +204,7 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "bvAbstraction"
-  category   = "expert"
+  category   = "undocumented"
   long       = "bv-abstraction"
   type       = "bool"
   default    = "false"
@@ -212,7 +212,7 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "skolemizeArguments"
-  category   = "expert"
+  category   = "undocumented"
   long       = "bv-skolemize"
   type       = "bool"
   default    = "false"
