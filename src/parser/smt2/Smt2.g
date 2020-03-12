@@ -952,18 +952,27 @@ sygusGrammar[CVC4::api::Sort & ret,
   // predeclaration
   LPAREN_TOK
   // We read a sorted variable list here in a custom way that throws an
-  // error to recognize if the user is using the (discouraged) version 1.0
+  // error to recognize if the user is using the (deprecated) version 1.0
   // sygus syntax.
   ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
     sortSymbol[t,CHECK_DECLARED] (
       LPAREN_TOK
       {
         std::stringstream sse;
-        sse << "The default sygus language is version 2.0, whereas the input "
-            << "appears to be sygus version 1.0 format. The version 2.0 format "
-            << "requires a predeclaration of the non-terminal symbols of the "
-            << "grammar to be given prior to the definition of the grammar. "
-            << "See https://sygus.org/language/ for details.";
+        if (sortedVarNames.empty())
+        {
+          sse << "The expected SyGuS language is version 2.0, whereas the "
+              << "input appears to be SyGuS version 1.0 format. The version "
+              << "2.0 format requires a predeclaration of the non-terminal "
+              << "symbols of the grammar to be given prior to the definition "
+              << "of the grammar. See https://sygus.org/language/ for details "
+              << "and examples. CVC4 versions past 1.8 do not support SyGuS "
+              << "version 1.0.";
+        }
+        else
+        {
+          sse << "Unexpected syntax for SyGuS predeclaration.";
+        }
         PARSER_STATE->parseError(sse.str().c_str());
       }
     | RPAREN_TOK )
