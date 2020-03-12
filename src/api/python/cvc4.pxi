@@ -130,7 +130,7 @@ cdef class DatatypeConstructorDecl:
         self.cddc = new c_DatatypeConstructorDecl(name.encode())
 
     def addSelector(self, str name, Sort sort):
-        self.cddc.addSelector(name.encode(), sort)
+        self.cddc.addSelector(name.encode(), sort.csort)
         
 
     def addSelectorSelf(self, str name):
