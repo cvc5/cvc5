@@ -1184,6 +1184,7 @@ set(regress_1_tests
   regress1/arith/div.08.smt2
   regress1/arith/div.09.smt2
   regress1/arith/issue3952-rew-eq.smt2
+  regress1/arith/issue789.smt2
   regress1/arith/miplib3.cvc
   regress1/arith/mod.02.smt2
   regress1/arith/mod.03.smt2
@@ -1858,6 +1859,7 @@ set(regress_1_tests
   regress1/sygus/issue3944-div-rewrite.smt2
   regress1/sygus/issue3947-agg-miniscope.smt2
   regress1/sygus/issue4009-qep.smt2
+  regress1/sygus/issue4025-no-rlv-cond.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
