@@ -1297,8 +1297,12 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     return;
   }
 
-  // If sharing is disabled, things are easy
-  if (!d_logicInfo.isSharingEnabled()) {
+  // If sharing is disabled, things are easy. If we are doing incremental
+  // solving, we cannot be sure whether we will eventually have sharing enabled
+  // (e.g. if we have a QF_NIA problem that introduces a division after the
+  // first check-sat command).
+  if (!d_logicInfo.isSharingEnabled() && !options::incrementalSolving())
+  {
     Assert(assertion == originalAssertion);
     if (fromTheoryId == THEORY_SAT_SOLVER) {
       // Send to the apropriate theory
