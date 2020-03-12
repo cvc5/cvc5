@@ -82,6 +82,11 @@ script:
        make install -j2
        echo -e "#include <cvc4/cvc4.h>\nint main() { CVC4::ExprManager em; return 0; }" > /tmp/test.cpp
        $CXX -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4 -lcln || exit 1
+       # set PYTHONPATH to include the directory containing pycvc4 module
+       export PYTHONPATH=$PYTHONPATH:$(dirname $(find ./install/ -name "pycvc4" -type d))
+       if [[ "$TRAVIS_CVC4_PYTHON_BINDINGS" == "yes" ]]; then
+           $TRAVIS_PYTHON -c "import pycvc4" || exit 1
+       fi
      )
    }
    run() {
@@ -108,12 +113,14 @@ matrix:
       env:
         - TRAVIS_CVC4=yes
         - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_PYTHON_BINDINGS=no
         - TRAVIS_CVC4_CONFIG="production --language-bindings=java --lfsc"
         - TRAVIS_PYTHON=python
     - compiler: gcc
       env:
         - TRAVIS_CVC4=yes
         - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_PYTHON_BINDINGS=no
         - TRAVIS_CVC4_CONFIG="debug --symfpu --lfsc --no-debug-symbols"
         - TRAVIS_PYTHON=python
     # Test python bindings
@@ -121,12 +128,14 @@ matrix:
       env:
         - TRAVIS_CVC4=yes
         - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_PYTHON_BINDINGS=yes
         - TRAVIS_CVC4_CONFIG="production --python-bindings --python2"
         - TRAVIS_PYTHON=python
     - compiler: gcc
       env:
         - TRAVIS_CVC4=yes
         - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_PYTHON_BINDINGS=yes
         - TRAVIS_CVC4_CONFIG="production --python-bindings --python3"
         - TRAVIS_PYTHON=python3
     #
@@ -135,6 +144,7 @@ matrix:
       env:
         - TRAVIS_CVC4=yes
         - TRAVIS_WITH_LFSC=yes
+        - TRAVIS_CVC4_PYTHON_BINDINGS=no
         - TRAVIS_CVC4_CONFIG="debug --symfpu --cln --gpl --no-debug-symbols --no-proofs"
         - TRAVIS_PYTHON=python
 notifications:
