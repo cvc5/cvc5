@@ -2762,12 +2762,6 @@ class CVC4_PUBLIC Solver
   void push(uint32_t nscopes = 1) const;
 
   /**
-   * Reset the solver.
-   * SMT-LIB: ( reset )
-   */
-  void reset() const;
-
-  /**
    * Remove all assertions.
    * SMT-LIB: ( reset-assertions )
    */

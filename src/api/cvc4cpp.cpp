@@ -4106,11 +4106,6 @@ void Solver::push(uint32_t nscopes) const
 }
 
 /**
- *  ( reset )
- */
-void Solver::reset(void) const { d_smtEngine->reset(); }
-
-/**
  *  ( reset-assertions )
  */
 void Solver::resetAssertions(void) const { d_smtEngine->resetAssertions(); }
