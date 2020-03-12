@@ -1636,6 +1636,11 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
       retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     }
+    else if (nk0 == SEQ_UNIT)
+    {
+      // len( seq.unit( x ) ) = 1
+      retNode = nm->mkConst(Rational(1));
+    }
   }
   else if (nk == kind::STRING_CHARAT)
   {
@@ -3480,6 +3485,20 @@ Node TheoryStringsRewriter::rewriteStringToCode(Node n)
   }
 
   return n;
+}
+
+Node TheoryStringsRewriter::rewriteSeqUnit(Node node)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  if (node[0].isConst())
+  {
+    std::vector<Expr> seq;
+    seq.push_back(node[0].toExpr());
+    TypeNode stype = nm->mkSequenceType(node[0].getType());
+    Node ret = nm->mkConst(ExprSequence(stype.toType(), seq));
+    return returnRewrite(node, ret, "seq-unit-eval");
+  }
+  return node;
 }
 
 Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRev ) {

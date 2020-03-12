@@ -95,6 +95,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
   d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
   d_equalityEngine.addFunctionKind(kind::STRING_TO_CODE);
+  d_equalityEngine.addFunctionKind(kind::SEQ_UNIT);
 
   // extended functions
   d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
