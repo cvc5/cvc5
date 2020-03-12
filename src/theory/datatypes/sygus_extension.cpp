@@ -388,10 +388,15 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
 }
 
 Node SygusExtension::getRelevancyCondition( Node n ) {
+  if (!options::sygusSymBreakRlv())
+  {
+    return Node::null();
+  }
   std::map< Node, Node >::iterator itr = d_rlv_cond.find( n );
   if( itr==d_rlv_cond.end() ){
     Node cond;
-    if( n.getKind()==APPLY_SELECTOR_TOTAL && options::sygusSymBreakRlv() ){
+    if (n.getKind() == APPLY_SELECTOR_TOTAL)
+    {
       TypeNode ntn = n[0].getType();
       const DType& dt = ntn.getDType();
       Node sel = n.getOperator();
@@ -1502,7 +1507,10 @@ void SygusExtension::incrementCurrentSearchSize( Node m, std::vector< Node >& le
                 for (const Node& lem : it->second)
                 {
                   Node slem = lem.substitute(x, t, cache);
-                  slem = nm->mkNode(OR, rlv, slem);
+                  if (!rlv.isNull())
+                  {
+                    slem = nm->mkNode(OR, rlv, slem);
+                  }
                   lemmas.push_back(slem);
                 }
               }

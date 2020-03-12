@@ -17,7 +17,7 @@ QF_LRA)
   finishwith --no-restrict-pivots --use-soi --new-prop
   ;;
 QF_LIA)
-  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --use-soi
+  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --use-soi --ite-simp --simp-ite-compress
   ;;
 QF_NIA)
   finishwith --nl-ext --nl-ext-tplanes
@@ -42,7 +42,7 @@ NIA|NRA)
   finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
-  finishwith --decision=justification-stoponly
+  finishwith --decision=justification-stoponly --ite-simp
   ;;
 QF_ABV)
   finishwith --ite-simp --simp-with-care --arrays-weak-equiv
