@@ -116,13 +116,7 @@ void getConcat(Node n, std::vector<Node>& c)
   }
 }
 
-Node mkConcat(Kind k, const std::vector<Node>& c)
-{
-  Assert(!c.empty());
-  return c.size() == 1 ? c[0] : NodeManager::currentNM()->mkNode(k, c);
-}
-
-Node mkConcatTyped(const std::vector<Node>& c, TypeNode tn)
+Node mkConcat(const std::vector<Node>& c, TypeNode tn)
 {
   if (c.empty())
   {
@@ -149,15 +143,9 @@ Node mkNConcat(Node n1, Node n2, Node n3)
       NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
 }
 
-Node mkNConcat(const std::vector<Node>& c)
+Node mkNConcat(const std::vector<Node>& c, TypeNode tn)
 {
-  Assert(!c.empty());
-  return Rewriter::rewrite(mkConcat(STRING_CONCAT, c));
-}
-
-Node mkNConcatTyped(const std::vector<Node>& c, TypeNode tn)
-{
-  return Rewriter::rewrite(mkConcatTyped(c, tn));
+  return Rewriter::rewrite(mkConcat(c, tn));
 }
 
 Node mkNLength(Node t)

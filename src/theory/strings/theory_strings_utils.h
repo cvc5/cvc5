@@ -56,16 +56,10 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj);
 void getConcat(Node n, std::vector<Node>& c);
 
 /**
- * Make the concatentation from non-empty vector c
- * The kind k is either STRING_CONCAT or REGEXP_CONCAT.
- */
-Node mkConcat(Kind k, const std::vector<Node>& c);
-
-/**
  * Make the concatentation from vector c of (string-like or regular
  * expression) type tn.
  */
-Node mkConcatTyped(const std::vector<Node>& c, TypeNode tn);
+Node mkConcat(const std::vector<Node>& c, TypeNode tn);
 
 /**
  * Returns the rewritten form of the string concatenation of n1 and n2.
@@ -78,16 +72,10 @@ Node mkNConcat(Node n1, Node n2);
 Node mkNConcat(Node n1, Node n2, Node n3);
 
 /**
- * Returns the rewritten form of the string concatenation of nodes in
- * non-empty vector c.
- */
-Node mkNConcat(const std::vector<Node>& c);
-
-/**
  * Returns the rewritten form of the concatentation from vector c of
  * (string-like) type tn.
  */
-Node mkNConcatTyped(const std::vector<Node>& c, TypeNode tn);
+Node mkNConcat(const std::vector<Node>& c, TypeNode tn);
 
 /**
  * Returns the rewritten form of the length of string term t.
