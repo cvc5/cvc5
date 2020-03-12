@@ -332,6 +332,17 @@ class ConstSequenceTypeRule
   }
 };
 
+class SeqUnitTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    return nodeManager->mkSequenceType(n[0].getType(check));
+  }
+};
+
 /** Properties of the sequence type */
 struct SequenceProperties
 {
