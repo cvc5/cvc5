@@ -299,7 +299,7 @@ private:
   bool needsCheckLastEffort() override;
   void preRegisterTerm(TNode n) override;
   void finishInit() override;
-  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
+  Node expandDefinition(Node n) override;
   Node ppRewrite(TNode n) override;
   void presolve() override;
   void addSharedTerm(TNode t) override;

@@ -192,7 +192,7 @@ private:
   void finishInit() override;
 
   void check(Effort) override;
-  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  Node expandDefinition(Node node) override;
   void preRegisterTerm(TNode term) override;
   Node explain(TNode n) override;
 

@@ -88,7 +88,8 @@ void TheorySets::preRegisterTerm(TNode node) {
   d_internal->preRegisterTerm(node);
 }
 
-Node TheorySets::expandDefinition(LogicRequest &logicRequest, Node n) {
+Node TheorySets::expandDefinition(Node n)
+{
   Kind nk = n.getKind();
   if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE
       || nk == COMPREHENSION)
@@ -111,7 +112,7 @@ Node TheorySets::expandDefinition(LogicRequest &logicRequest, Node n) {
       throw LogicException(ss.str());
     }
   }
-  return d_internal->expandDefinition(logicRequest, n);
+  return d_internal->expandDefinition(n);
 }
 
 Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {

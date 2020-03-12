@@ -5030,8 +5030,8 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   return d_rowTracking[ridx];
 }
 
-
-Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node) {
+Node TheoryArithPrivate::expandDefinition(Node node)
+{
   NodeManager* nm = NodeManager::currentNM();
 
   // eliminate here since the rewritten form of these may introduce division
@@ -5051,8 +5051,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node divByZeroNum =
-            getArithSkolemApp(logicRequest, num, ArithSkolemId::DIV_BY_ZERO);
+        Node divByZeroNum = getArithSkolemApp(num, ArithSkolemId::DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
       }
@@ -5067,8 +5066,8 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node intDivByZeroNum = getArithSkolemApp(
-            logicRequest, num, ArithSkolemId::INT_DIV_BY_ZERO);
+        Node intDivByZeroNum =
+            getArithSkolemApp(num, ArithSkolemId::INT_DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
       }
@@ -5083,8 +5082,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node modZeroNum =
-            getArithSkolemApp(logicRequest, num, ArithSkolemId::MOD_BY_ZERO);
+        Node modZeroNum = getArithSkolemApp(num, ArithSkolemId::MOD_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
       }
@@ -5116,8 +5114,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
         Node lem;
         if (k == kind::SQRT)
         {
-          Node skolemApp =
-              getArithSkolemApp(logicRequest, node[0], ArithSkolemId::SQRT);
+          Node skolemApp = getArithSkolemApp(node[0], ArithSkolemId::SQRT);
           Node uf = skolemApp.eqNode(var);
           Node nonNeg = nm->mkNode(
               kind::AND, nm->mkNode(kind::MULT, var, var).eqNode(node[0]), uf);
@@ -5188,8 +5185,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
   Unreachable();
 }
 
-Node TheoryArithPrivate::getArithSkolem(LogicRequest& logicRequest,
-                                        ArithSkolemId asi)
+Node TheoryArithPrivate::getArithSkolem(ArithSkolemId asi)
 {
   std::map<ArithSkolemId, Node>::iterator it = d_arith_skolem.find(asi);
   if (it == d_arith_skolem.end())
@@ -5237,7 +5233,6 @@ Node TheoryArithPrivate::getArithSkolem(LogicRequest& logicRequest,
                             nm->mkFunctionType(tn, tn),
                             desc,
                             NodeManager::SKOLEM_EXACT_NAME);
-      logicRequest.widenLogic(THEORY_UF);
     }
     d_arith_skolem[asi] = skolem;
     return skolem;
@@ -5245,11 +5240,9 @@ Node TheoryArithPrivate::getArithSkolem(LogicRequest& logicRequest,
   return it->second;
 }
 
-Node TheoryArithPrivate::getArithSkolemApp(LogicRequest& logicRequest,
-                                           Node n,
-                                           ArithSkolemId asi)
+Node TheoryArithPrivate::getArithSkolemApp(Node n, ArithSkolemId asi)
 {
-  Node skolem = getArithSkolem(logicRequest, asi);
+  Node skolem = getArithSkolem(asi);
   if (!options::arithNoPartialFun())
   {
     skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);

@@ -1588,11 +1588,13 @@ void SmtEngine::setDefaults() {
     LogicInfo log(d_logic.getUnlockedCopy());
     // Strings requires arith for length constraints, and also UF
     if(!d_logic.isTheoryEnabled(THEORY_UF)) {
-      Trace("smt") << "because strings are enabled, also enabling UF" << endl;
+      Notice() << "Enabling UF because strings are enabled" << endl;
       log.enableTheory(THEORY_UF);
     }
     if(!d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isDifferenceLogic() || !d_logic.areIntegersUsed()) {
-      Trace("smt") << "because strings are enabled, also enabling linear integer arithmetic" << endl;
+      Notice()
+          << "Enabling linear integer arithmetic because strings are enabled"
+          << endl;
       log.enableTheory(THEORY_ARITH);
       log.enableIntegers();
       log.arithOnlyLinear();
@@ -1603,9 +1605,54 @@ void SmtEngine::setDefaults() {
   if(d_logic.isTheoryEnabled(THEORY_ARRAYS) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_SETS)) {
     if(!d_logic.isTheoryEnabled(THEORY_UF)) {
       LogicInfo log(d_logic.getUnlockedCopy());
-      Trace("smt") << "because a theory that permits Boolean terms is enabled, also enabling UF" << endl;
+      Notice() << "Enabling UF because a theory that permits Boolean terms is "
+                  "enabled"
+               << endl;
       log.enableTheory(THEORY_UF);
       d_logic = log;
+      d_logic.lock();
+    }
+  }
+  if (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear())
+  {
+    // Non-linear arithmetic requires UF to deal with division/mod because
+    // their expansion introduces UFs for the division/mod-by-zero case.
+    if (!d_logic.isTheoryEnabled(THEORY_UF))
+    {
+      LogicInfo linfo(d_logic.getUnlockedCopy());
+      Notice() << "Enabling UF because non-linear arithmetic is enabled"
+               << endl;
+      linfo.enableTheory(THEORY_UF);
+      d_logic = linfo;
+      d_logic.lock();
+    }
+  }
+  if (d_logic.isTheoryEnabled(THEORY_BV) && !options::bitvectorDivByZeroConst())
+  {
+    // If division/mod-by-zero is not treated as a constant value in BV, we
+    // need UF.
+    if (!d_logic.isTheoryEnabled(THEORY_UF))
+    {
+      LogicInfo linfo(d_logic.getUnlockedCopy());
+      Notice() << "Enabling UF because bit-vectors with partially defined "
+                  "division/mod enabled"
+               << endl;
+      linfo.enableTheory(THEORY_UF);
+      d_logic = linfo;
+      d_logic.lock();
+    }
+  }
+  if (d_logic.isTheoryEnabled(THEORY_FP))
+  {
+    // FP requires UF since there are multiple operators that are partially
+    // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
+    // details).
+    if (!d_logic.isTheoryEnabled(THEORY_UF))
+    {
+      LogicInfo linfo(d_logic.getUnlockedCopy());
+      Notice() << "Enabling UF because floating-point theory enabled" << endl;
+      linfo.enableTheory(THEORY_UF);
+      d_logic = linfo;
       d_logic.lock();
     }
   }
@@ -2865,8 +2912,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
         theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
 
         Assert(t != NULL);
-        LogicRequest req(d_smt);
-        node = t->expandDefinition(req, n);
+        node = t->expandDefinition(n);
       }
 
       // the partial functions can fall through, in which case we still

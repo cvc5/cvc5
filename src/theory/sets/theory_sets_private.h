@@ -206,7 +206,7 @@ class TheorySetsPrivate {
    * Another option to fix this is to make TheoryModel::getValue more general
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
-  Node expandDefinition(LogicRequest &logicRequest, Node n);
+  Node expandDefinition(Node n);
 
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   

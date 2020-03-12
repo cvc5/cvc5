@@ -319,17 +319,6 @@ Node TheoryFp::toRealUF(Node node) {
   return nm->mkNode(kind::APPLY_UF, fun, node[0]);
 }
 
-void TheoryFp::enableUF(LogicRequest &lr)
-{
-  if (!this->d_expansionRequested) {
-    // Needed for conversions to/from real and min/max
-    lr.widenLogic(THEORY_UF);
-    // THEORY_BV has to be enabled when the logic is set
-    this->d_expansionRequested = true;
-  }
-  return;
-}
-
 Node TheoryFp::abstractRealToFloat(Node node)
 {
   Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
@@ -394,7 +383,7 @@ Node TheoryFp::abstractFloatToReal(Node node)
   return uf;
 }
 
-Node TheoryFp::expandDefinition(LogicRequest &lr, Node node)
+Node TheoryFp::expandDefinition(Node node)
 {
   Trace("fp-expandDefinition") << "TheoryFp::expandDefinition(): " << node
                                << std::endl;
@@ -405,17 +394,14 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node)
     res = removeToFPGeneric::removeToFPGeneric(node);
 
   } else if (node.getKind() == kind::FLOATINGPOINT_MIN) {
-    enableUF(lr);
     res = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_MIN_TOTAL,
                                            node[0], node[1], minUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_MAX) {
-    enableUF(lr);
     res = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_MAX_TOTAL,
                                            node[0], node[1], maxUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_TO_UBV) {
-    enableUF(lr);
     FloatingPointToUBV info = node.getOperator().getConst<FloatingPointToUBV>();
     FloatingPointToUBVTotal newInfo(info);
 
@@ -425,7 +411,6 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node)
             toUBVUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_TO_SBV) {
-    enableUF(lr);
     FloatingPointToSBV info = node.getOperator().getConst<FloatingPointToSBV>();
     FloatingPointToSBVTotal newInfo(info);
 
@@ -435,19 +420,11 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node)
             toSBVUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_TO_REAL) {
-    enableUF(lr);
     res = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
                                            node[0], toRealUF(node));
 
   } else {
     // Do nothing
-  }
-
-  // We will need to enable UF to abstract these in ppRewrite
-  if (res.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL
-      || res.getKind() == kind::FLOATINGPOINT_TO_FP_REAL)
-  {
-    enableUF(lr);
   }
 
   if (res != node) {

@@ -76,7 +76,7 @@ public:
 
   void finishInit() override;
 
-  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  Node expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode n) override;
 

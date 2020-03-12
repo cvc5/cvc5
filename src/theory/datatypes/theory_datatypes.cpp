@@ -557,7 +557,8 @@ void TheoryDatatypes::finishInit() {
   }
 }
 
-Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
+Node TheoryDatatypes::expandDefinition(Node n)
+{
   NodeManager* nm = NodeManager::currentNM();
   switch (n.getKind())
   {
