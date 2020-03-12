@@ -316,6 +316,7 @@ Node BVToInt::bvToInt(Node n)
             }
             else
             {
+              variables other than bit-vector variables are left intact
               d_bvToIntCache[current] = current;
             }
           }
@@ -730,6 +731,13 @@ Node BVToInt::bvToInt(Node n)
                 d_bvToIntCache[bvUF] = intUF;
               }
               if (childrenTypesChanged(current) && options::ufHo()) {
+              /**
+               * higher order logic allows comparing between functions
+               * The current translation does not support this,
+               * as the translated functions may be different outside
+               * of the bounds that were relevant for the original
+               * bit-vectors.
+               */
                   throw TypeCheckingException(
                       current.toExpr(),
                       string("Cannot translate to Int: ") + current.toString());
@@ -757,6 +765,13 @@ Node BVToInt::bvToInt(Node n)
             default:
             {
               if (childrenTypesChanged(current)) {
+                /**
+                 * This is "failing on demand":
+                 * We throw an exception if we encounter a case
+                 * that we do not know how to translate,
+                 * only if we actually need to construct a new
+                 * node for such a case.
+                 */
                   throw TypeCheckingException(
                       current.toExpr(),
                       string("Cannot translate to Int: ") + current.toString());
