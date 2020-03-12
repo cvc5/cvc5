@@ -49,7 +49,7 @@ Node Word::mkEmptyWord(Kind k)
   return Node::null();
 }
 
-Node Word::mkWord(const std::vector<Node>& xs)
+Node Word::mkWordFlatten(const std::vector<Node>& xs)
 {
   Assert(!xs.empty());
   NodeManager* nm = NodeManager::currentNM();
@@ -68,7 +68,19 @@ Node Word::mkWord(const std::vector<Node>& xs)
   }
   else if (k == CONST_SEQUENCE)
   {
-    // FIXME
+    std::vector<Expr> seq;
+    TypeNode tn = xs[0].getType();
+    for (TNode x : xs)
+    {
+      Assert( x.getType()==tn );
+      const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+      const std::vector<Node>& vecc = sx.getVec();
+      for (const Node& c : vecc)
+      {
+        seq.push_back(c.toExpr());
+      }
+    }
+    return NodeManager::currentNM()->mkConst(ExprSequence(tn.toType(), seq));
   }
   Unimplemented();
   return Node::null();

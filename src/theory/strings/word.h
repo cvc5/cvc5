@@ -37,7 +37,7 @@ class Word
   static Node mkEmptyWord(Kind k);
 
   /** make word from constants in (non-empty) vector vec */
-  static Node mkWord(const std::vector<Node>& xs);
+  static Node mkWordFlatten(const std::vector<Node>& xs);
 
   /** Return the length of word x */
   static size_t getLength(TNode x);

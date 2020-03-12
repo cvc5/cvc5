@@ -777,7 +777,7 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
         std::vector<Node> vec;
         vec.push_back(preNode);
         vec.push_back(tmpNode);
-        preNode = Word::mkWord(vec);
+        preNode = Word::mkWordFlatten(vec);
       }
     }
   }
