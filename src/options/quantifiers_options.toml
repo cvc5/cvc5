@@ -1374,14 +1374,6 @@ header = "options/quantifiers_options.h"
   help = "Trust that when a solution for a conjecture is always true under sampling, then it is indeed a solution. Note this option may print out spurious solutions for synthesis conjectures."
 
 [[option]]
-  name       = "minSynthSol"
-  category   = "regular"
-  long       = "min-synth-sol"
-  type       = "bool"
-  default    = "true"
-  help       = "Minimize synthesis solutions"
-
-[[option]]
   name       = "sygusEvalOpt"
   category   = "regular"
   long       = "sygus-eval-opt"
