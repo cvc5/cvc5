@@ -18,19 +18,20 @@
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 
+#include <climits>
 #include <utility>
 #include <vector>
 
-#include "theory/rewriter.h"
-#include "theory/type_enumerator.h"
 #include "expr/attribute.h"
-#include <climits>
+#include "theory/theory_rewriter.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-class TheoryStringsRewriter {
+class TheoryStringsRewriter : public TheoryRewriter
+{
  private:
   /** simple regular expression consume
    *
@@ -155,13 +156,9 @@ class TheoryStringsRewriter {
   static Node returnRewrite(Node node, Node ret, const char* c);
 
  public:
-  static RewriteResponse postRewrite(TNode node);
-  static RewriteResponse preRewrite(TNode node);
+  RewriteResponse postRewrite(TNode node) override;
+  RewriteResponse preRewrite(TNode node) override;
 
-  static inline void init() {}
-  static inline void shutdown() {}
-  /** get the cardinality of the alphabet used, based on the options */
-  static unsigned getAlphabetCardinality();
   /** rewrite equality
    *
    * This method returns a formula that is equivalent to the equality between
@@ -233,6 +230,13 @@ class TheoryStringsRewriter {
    * Returns the rewritten form of node.
    */
   static Node rewriteStrConvert(Node node);
+  /** rewrite string reverse
+   *
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.rev( s )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStrReverse(Node node);
   /** rewrite string less than or equal
   * This is the entry point for post-rewriting terms n of the form
   *   str.<=( t, s )
@@ -245,12 +249,20 @@ class TheoryStringsRewriter {
   * Returns the rewritten form of node.
   */
   static Node rewritePrefixSuffix(Node node);
-  /** rewrite str.code
+
+  /** rewrite str.from_code
    * This is the entry point for post-rewriting terms n of the form
-   *   str.code( t )
+   *   str.from_code( t )
    * Returns the rewritten form of node.
    */
-  static Node rewriteStringCode(Node node);
+  static Node rewriteStringFromCode(Node node);
+
+  /** rewrite str.to_code
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.to_code( t )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStringToCode(Node node);
 
   static Node splitConstant( Node a, Node b, int& index, bool isRev );
   /** can constant contain list
@@ -277,8 +289,6 @@ class TheoryStringsRewriter {
   * same as above but with n = str.++( l ) instead of l
   */
   static bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc);
-  static Node getNextConstantAt( std::vector< Node >& vec, unsigned& start_index, unsigned& end_index, bool isRev );
-  static Node collectConstantStringAt( std::vector< Node >& vec, unsigned& end_index, bool isRev );
 
   /** strip symbolic length
    *
@@ -769,7 +779,7 @@ class TheoryStringsRewriter {
    * and the list of nodes that are compared to the empty string
    */
   static std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
-};/* class TheoryStringsRewriter */
+}; /* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

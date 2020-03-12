@@ -158,7 +158,9 @@ void DratInstruction::outputAsText(std::ostream& os) const
       os << '0' << std::endl;
       break;
     }
-    default: { Unreachable("Unknown DRAT instruction kind");
+    default:
+    {
+      Unreachable() << "Unknown DRAT instruction kind";
     }
   }
 }
@@ -213,12 +215,12 @@ DratProof DratProof::fromBinary(const std::string& s)
       }
       default:
       {
-        std::ostringstream s;
-        s << "Invalid instruction in Drat proof. Instruction bits: "
-          << std::bitset<8>(*i)
-          << ". Expected 'a' (01100001) or 'd' "
-             "(01100100).";
-        throw InvalidDratProofException(s.str());
+        std::ostringstream errmsg;
+        errmsg << "Invalid instruction in Drat proof. Instruction bits: "
+               << std::bitset<8>(*i)
+               << ". Expected 'a' (01100001) or 'd' "
+                  "(01100100).";
+        throw InvalidDratProofException(errmsg.str());
       }
     }
   }
@@ -267,7 +269,9 @@ void DratProof::outputAsLfsc(std::ostream& os, uint8_t indentation) const
         os << "DRATProofd ";
         break;
       }
-      default: { Unreachable("Unrecognized DRAT instruction kind");
+      default:
+      {
+        Unreachable() << "Unrecognized DRAT instruction kind";
       }
     }
     for (const SatLiteral& l : i.d_clause)

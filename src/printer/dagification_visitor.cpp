@@ -132,7 +132,7 @@ void DagificationVisitor::visit(TNode current, TNode parent) {
 }
 
 void DagificationVisitor::start(TNode node) {
-  AlwaysAssert(!d_done, "DagificationVisitor cannot be re-used");
+  AlwaysAssert(!d_done) << "DagificationVisitor cannot be re-used";
   d_top = node;
 }
 
@@ -175,18 +175,22 @@ void DagificationVisitor::done(TNode node) {
 
     // apply previous substitutions to the rhs, enabling cascading LETs
     Node n = d_substitutions->apply(*i);
-    Assert(! d_substitutions->hasSubstitution(n));
+    Assert(!d_substitutions->hasSubstitution(n));
     d_substitutions->addSubstitution(n, letvar);
   }
 }
 
 const theory::SubstitutionMap& DagificationVisitor::getLets() {
-  AlwaysAssert(d_done, "DagificationVisitor must be used as a visitor before getting the dagified version out!");
+  AlwaysAssert(d_done)
+      << "DagificationVisitor must be used as a visitor before "
+         "getting the dagified version out!";
   return *d_substitutions;
 }
 
 Node DagificationVisitor::getDagifiedBody() {
-  AlwaysAssert(d_done, "DagificationVisitor must be used as a visitor before getting the dagified version out!");
+  AlwaysAssert(d_done)
+      << "DagificationVisitor must be used as a visitor before "
+         "getting the dagified version out!";
 
 #ifdef CVC4_TRACING
 #  ifdef CVC4_DEBUG

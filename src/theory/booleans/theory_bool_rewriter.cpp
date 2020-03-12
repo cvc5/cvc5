@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <unordered_set>
 
+#include "expr/node_value.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 
 namespace CVC4 {
@@ -77,17 +78,22 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 
   /* Trickery to stay under number of children possible in a node */
   NodeManager* nodeManager = NodeManager::currentNM();
-  static const unsigned MAX_CHILDREN = (1u << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN ) - 1;
-  if (childList.size() < MAX_CHILDREN) {
+  if (childList.size() < expr::NodeValue::MAX_CHILDREN)
+  {
     Node retNode = nodeManager->mkNode(k, childList);
     return RewriteResponse(REWRITE_DONE, retNode);
-  } else {
-    Assert(childList.size() < size_t(MAX_CHILDREN) * size_t(MAX_CHILDREN) );
+  }
+  else
+  {
+    Assert(childList.size()
+           < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
+                 * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
     NodeBuilder<> nb(k);
     ChildList::iterator cur = childList.begin(), next, en = childList.end();
-    while( cur != en ) {
-      next = min(cur + MAX_CHILDREN, en);
-      nb << (nodeManager->mkNode(k, ChildList(cur, next) ));
+    while (cur != en)
+    {
+      next = min(cur + expr::NodeValue::MAX_CHILDREN, en);
+      nb << (nodeManager->mkNode(k, ChildList(cur, next)));
       cur = next;
     }
     return RewriteResponse(REWRITE_DONE, nb.constructNode());
@@ -163,7 +169,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     }
     if (!done) {
       RewriteResponse ret = flattenNode(n, /* trivialNode = */ ff, /* skipNode = */ tt);
-      Debug("bool-flatten") << n << ": " << ret.node << std::endl;
+      Debug("bool-flatten") << n << ": " << ret.d_node << std::endl;
       return ret;
     }
     break;
@@ -310,6 +316,14 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       //   return RewriteResponse(REWRITE_AGAIN, resp);
       // }
     }
+
+    if (n[0].getKind() == kind::NOT)
+    {
+      // ite(not(c), x, y) ---> ite(c, y, x)
+      return RewriteResponse(
+          REWRITE_AGAIN, nodeManager->mkNode(kind::ITE, n[0][0], n[2], n[1]));
+    }
+
     // else if (n[2].isConst()) {
     //   if(n[2] == ff){
     //     Node resp = (n[0]).andNode(n[1]);

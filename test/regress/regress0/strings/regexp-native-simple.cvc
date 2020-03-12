@@ -1,0 +1,13 @@
+% EXPECT: sat
+
+x : STRING;
+
+ASSERT x IS_IN RE_CONCAT(RE_OPT(RE_STAR(RE_UNION(RE_RANGE("i", "j"), RE_RANGE("k", "l")))),
+                                RE_PLUS(STRING_TO_REGEXP("abc")),
+                                RE_LOOP(STRING_TO_REGEXP("def"), 1, 2),
+                                RE_SIGMA);
+ASSERT NOT(x IS_IN RE_INTER(RE_STAR(RE_SIGMA), RE_EMPTY));
+
+ASSERT x = "ikljabcabcdefe";
+
+CHECKSAT;

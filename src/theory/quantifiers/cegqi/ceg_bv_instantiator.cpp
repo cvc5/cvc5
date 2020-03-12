@@ -153,7 +153,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   {
     return Node::null();
   }
-  else if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_KEEP
+  else if (options::cbqiBvIneqMode() == options::CbqiBvIneqMode::KEEP
            || (pol && k == EQUAL))
   {
     return lit;
@@ -172,7 +172,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
 
   Node ret;
-  if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_EQ_SLACK)
+  if (options::cbqiBvIneqMode() == options::CbqiBvIneqMode::EQ_SLACK)
   {
     // if using slack, we convert constraints to a positive equality based on
     // the current model M, e.g.:
@@ -384,7 +384,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
   std::stack<std::unordered_map<TNode, Node, TNodeHashFunction> > visited;
   visited.push(std::unordered_map<TNode, Node, TNodeHashFunction>());
   // whether the visited term contains pv
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited_contains_pv;
+  std::unordered_map<Node, bool, NodeHashFunction> visited_contains_pv;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::unordered_map<TNode, Node, TNodeHashFunction> curr_subs;
   std::stack<std::stack<TNode> > visit;
@@ -534,7 +534,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
     Node pv,
     Node n,
     std::vector<Node>& children,
-    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
 {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -619,14 +619,14 @@ struct SortBvExtractInterval
     Assert(j.getKind() == BITVECTOR_EXTRACT);
     BitVectorExtract ie = i.getOperator().getConst<BitVectorExtract>();
     BitVectorExtract je = j.getOperator().getConst<BitVectorExtract>();
-    if (ie.high > je.high)
+    if (ie.d_high > je.d_high)
     {
       return true;
     }
-    else if (ie.high == je.high)
+    else if (ie.d_high == je.d_high)
     {
-      Assert(ie.low != je.low);
-      return ie.low > je.low;
+      Assert(ie.d_low != je.d_low);
+      return ie.d_low > je.d_low;
     }
     return false;
   }
@@ -675,15 +675,15 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         Trace("cegqi-bv-pp") << "  " << i << " : " << curr_vec[i] << std::endl;
         BitVectorExtract e =
             curr_vec[i].getOperator().getConst<BitVectorExtract>();
-        if (std::find(boundaries.begin(), boundaries.end(), e.high + 1)
+        if (std::find(boundaries.begin(), boundaries.end(), e.d_high + 1)
             == boundaries.end())
         {
-          boundaries.push_back(e.high + 1);
+          boundaries.push_back(e.d_high + 1);
         }
-        if (std::find(boundaries.begin(), boundaries.end(), e.low)
+        if (std::find(boundaries.begin(), boundaries.end(), e.d_low)
             == boundaries.end())
         {
-          boundaries.push_back(e.low);
+          boundaries.push_back(e.d_low);
         }
       }
       std::sort(boundaries.rbegin(), boundaries.rend());

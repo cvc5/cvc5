@@ -21,7 +21,7 @@
 #ifndef CVC4__THEORY__FP__FP_CONVERTER_H
 #define CVC4__THEORY__FP__FP_CONVERTER_H
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -318,11 +318,11 @@ class FpConverter
   typedef context::CDHashMap<Node, ubv, NodeHashFunction> ubvMap;
   typedef context::CDHashMap<Node, sbv, NodeHashFunction> sbvMap;
 
-  fpMap f;
-  rmMap r;
-  boolMap b;
-  ubvMap u;
-  sbvMap s;
+  fpMap d_fpMap;
+  rmMap d_rmMap;
+  boolMap d_boolMap;
+  ubvMap d_ubvMap;
+  sbvMap d_sbvMap;
 
   /* These functions take a symfpu object and convert it to a node.
    * These should ensure that constant folding it will give a

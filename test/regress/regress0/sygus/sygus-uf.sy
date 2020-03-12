@@ -1,4 +1,6 @@
-(set-logic LIA)
+; COMMAND-LINE: --sygus-out=status --uf-ho
+; EXPECT: unsat
+(set-logic UFLIA)
 
 (declare-fun uf (Int) Int)
 

@@ -16,8 +16,7 @@
 
 #include <iostream>
 
-// #include "cvc4/api/cvc4cpp.h" // use this after CVC4 is properly installed
-#include "api/cvc4cpp.h"
+#include <cvc4/api/cvc4cpp.h>
 
 using namespace CVC4::api;
 
@@ -28,7 +27,7 @@ void test(Solver& slv, Sort& consListSort)
   // the complete spec for the datatype from the DatatypeSort, and
   // this Datatype object has constructor symbols (and others) filled in.
 
-  Datatype consList = consListSort.getDatatype();
+  const Datatype& consList = consListSort.getDatatype();
 
   // t = cons 0 nil
   //
@@ -89,14 +88,13 @@ void test(Solver& slv, Sort& consListSort)
   // This example builds a simple parameterized list of sort T, with one
   // constructor "cons".
   Sort sort = slv.mkParamSort("T");
-  DatatypeDecl paramConsListSpec("paramlist",
-                                 sort);  // give the datatype a name
+  DatatypeDecl paramConsListSpec =
+      slv.mkDatatypeDecl("paramlist",
+                         sort);  // give the datatype a name
   DatatypeConstructorDecl paramCons("cons");
   DatatypeConstructorDecl paramNil("nil");
-  DatatypeSelectorDecl paramHead("head", sort);
-  DatatypeSelectorDecl paramTail("tail", DatatypeDeclSelfSort());
-  paramCons.addSelector(paramHead);
-  paramCons.addSelector(paramTail);
+  paramCons.addSelector("head", sort);
+  paramCons.addSelectorSelf("tail");
   paramConsListSpec.addConstructor(paramCons);
   paramConsListSpec.addConstructor(paramNil);
 
@@ -104,7 +102,7 @@ void test(Solver& slv, Sort& consListSort)
   Sort paramConsIntListSort =
       paramConsListSort.instantiate(std::vector<Sort>{slv.getIntegerSort()});
 
-  Datatype paramConsList = paramConsListSort.getDatatype();
+  const Datatype& paramConsList = paramConsListSort.getDatatype();
 
   std::cout << "parameterized datatype sort is " << std::endl;
   for (const DatatypeConstructor& ctor : paramConsList)
@@ -144,12 +142,11 @@ int main()
   // Second, it is "resolved" to an actual sort, at which point function
   // symbols are assigned to its constructors, selectors, and testers.
 
-  DatatypeDecl consListSpec("list");  // give the datatype a name
+  DatatypeDecl consListSpec =
+      slv.mkDatatypeDecl("list");  // give the datatype a name
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", slv.getIntegerSort());
-  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
-  cons.addSelector(head);
-  cons.addSelector(tail);
+  cons.addSelector("head", slv.getIntegerSort());
+  cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   consListSpec.addConstructor(nil);
@@ -170,7 +167,11 @@ int main()
             << ">>> Alternatively, use declareDatatype" << std::endl;
   std::cout << std::endl;
 
-  std::vector<DatatypeConstructorDecl> ctors = {cons, nil};
+  DatatypeConstructorDecl cons2("cons");
+  cons2.addSelector("head", slv.getIntegerSort());
+  cons2.addSelectorSelf("tail");
+  DatatypeConstructorDecl nil2("nil");
+  std::vector<DatatypeConstructorDecl> ctors = {cons2, nil2};
   Sort consListSort2 = slv.declareDatatype("list2", ctors);
   test(slv, consListSort2);
 

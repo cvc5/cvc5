@@ -77,7 +77,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     doCheck = quant_e == QEFFORT_MODEL;
   }
   if( doCheck ){
-    Assert( !d_quantEngine->inConflict() );
+    Assert(!d_quantEngine->inConflict());
     int addedLemmas = 0;
     FirstOrderModel* fm = d_quantEngine->getModel();
 
@@ -219,9 +219,9 @@ int ModelEngine::checkModel(){
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   // FMC uses two sub-effort levels
-  int e_max = options::mbqiMode() == MBQI_FMC
+  int e_max = options::mbqiMode() == options::MbqiMode::FMC
                   ? 2
-                  : (options::mbqiMode() == MBQI_TRUST ? 0 : 1);
+                  : (options::mbqiMode() == options::MbqiMode::TRUST ? 0 : 1);
   for( int e=0; e<e_max; e++) {
     d_incomplete_quants.clear();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -240,7 +240,7 @@ int ModelEngine::checkModel(){
     if( d_addedLemmas>0 ){
       break;
     }else{
-      Assert( !d_quantEngine->inConflict() );
+      Assert(!d_quantEngine->inConflict());
     }
   }
 

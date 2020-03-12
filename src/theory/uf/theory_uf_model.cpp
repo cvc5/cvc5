@@ -91,7 +91,9 @@ Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node 
             stk.push(val);
             val = val[2];
           } while(val.getKind() == ITE);
-          AlwaysAssert(val == defaultValue, "default values don't match when constructing function definition!");
+          AlwaysAssert(val == defaultValue)
+              << "default values don't match when constructing function "
+                 "definition!";
           while(!stk.empty()) {
             val = stk.top();
             stk.pop();
@@ -151,14 +153,20 @@ void UfModelTreeNode::simplify( Node op, Node defaultVal, int argIndex ){
       }
     }
     //now see if any children can be removed, and simplify the ones that cannot
-    for( std::map< Node, UfModelTreeNode >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
-      if( !it->first.isNull() ){
-        if( !defaultVal.isNull() && it->second.d_value==defaultVal ){
-          eraseData.push_back( it->first );
-        }else{
-          it->second.simplify( op, defaultVal, argIndex+1 );
-          if( it->second.isEmpty() ){
-            eraseData.push_back( it->first );
+    for (auto& kv : d_data)
+    {
+      if (!kv.first.isNull())
+      {
+        if (!defaultVal.isNull() && kv.second.d_value == defaultVal)
+        {
+          eraseData.push_back(kv.first);
+        }
+        else
+        {
+          kv.second.simplify(op, defaultVal, argIndex + 1);
+          if (kv.second.isEmpty())
+          {
+            eraseData.push_back(kv.first);
           }
         }
       }

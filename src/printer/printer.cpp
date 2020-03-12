@@ -77,16 +77,16 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
     return unique_ptr<Printer>(
         new printer::cvc::CvcPrinter(/* cvc3-mode = */ true));
 
-  default:
-    Unhandled(lang);
+  default: Unhandled() << lang;
   }
 }
 
 void Printer::toStreamSygus(std::ostream& out, TNode n) const
 {
   // no sygus-specific printing associated with this printer,
-  // just print the original term
-  toStream(out, n, -1, false, 1);
+  // just print the original term, without letification (the fifth argument is
+  // set to 0).
+  toStream(out, n, -1, false, 0);
 }
 
 void Printer::toStream(std::ostream& out, const Model& m) const

@@ -18,7 +18,6 @@
 #include "decision/decision_attributes.h"
 #include "decision/justification_heuristic.h"
 #include "expr/node.h"
-#include "options/decision_mode.h"
 #include "options/decision_options.h"
 #include "options/smt_options.h"
 
@@ -26,18 +25,17 @@ using namespace std;
 
 namespace CVC4 {
 
-DecisionEngine::DecisionEngine(context::Context *sc,
-                               context::UserContext *uc) :
-  d_enabledStrategies(),
-  d_needIteSkolemMap(),
-  d_relevancyStrategy(NULL),
-  d_assertions(uc),
-  d_cnfStream(NULL),
-  d_satSolver(NULL),
-  d_satContext(sc),
-  d_userContext(uc),
-  d_result(sc, SAT_VALUE_UNKNOWN),
-  d_engineState(0)
+DecisionEngine::DecisionEngine(context::Context* sc, context::UserContext* uc)
+    : d_enabledITEStrategies(),
+      d_needIteSkolemMap(),
+      d_relevancyStrategy(NULL),
+      d_assertions(uc),
+      d_cnfStream(NULL),
+      d_satSolver(NULL),
+      d_satContext(sc),
+      d_userContext(uc),
+      d_result(sc, SAT_VALUE_UNKNOWN),
+      d_engineState(0)
 {
   Trace("decision") << "Creating decision engine" << std::endl;
 }
@@ -53,26 +51,22 @@ void DecisionEngine::init()
   Trace("decision-init") << " * options->decisionStopOnly: "
                          << options::decisionStopOnly() << std::endl;
 
-  if(options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL) { }
-  if(options::decisionMode() == decision::DECISION_STRATEGY_JUSTIFICATION) {
-    ITEDecisionStrategy* ds =
-      new decision::JustificationHeuristic(this, d_userContext, d_satContext);
-    enableStrategy(ds);
-    d_needIteSkolemMap.push_back(ds);
+  if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
+  {
+    d_enabledITEStrategies.emplace_back(new decision::JustificationHeuristic(
+        this, d_userContext, d_satContext));
+    d_needIteSkolemMap.push_back(d_enabledITEStrategies.back().get());
   }
 }
 
-
-void DecisionEngine::enableStrategy(DecisionStrategy* ds)
+void DecisionEngine::shutdown()
 {
-  d_enabledStrategies.push_back(ds);
-}
+  Trace("decision") << "Shutting down decision engine" << std::endl;
 
-void DecisionEngine::clearStrategies(){
-  for(unsigned i = 0; i < d_enabledStrategies.size(); ++i){
-    delete d_enabledStrategies[i];
-  }
-  d_enabledStrategies.clear();
+  Assert(d_engineState == 1);
+  d_engineState = 2;
+
+  d_enabledITEStrategies.clear();
   d_needIteSkolemMap.clear();
 }
 

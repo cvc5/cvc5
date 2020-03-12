@@ -29,38 +29,26 @@ using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
-
-// thread_local AllRewriteRules* TheoryBVRewriter::s_allRules = NULL;
-// thread_local TimerStat* TheoryBVRewriter::d_rewriteTimer = NULL;
-RewriteFunction TheoryBVRewriter::d_rewriteTable[kind::LAST_KIND]; 
-void TheoryBVRewriter::init() {
-   // s_allRules = new AllRewriteRules;
-   // d_rewriteTimer = new TimerStat("theory::bv::rewriteTimer");
-   // smtStatisticsRegistry()->registerStat(d_rewriteTimer); 
-   initializeRewrites();
-
-}
-
-void TheoryBVRewriter::shutdown() {
-   // delete s_allRules;
-   // smtStatisticsRegistry()->unregisterStat(d_rewriteTimer); 
-   //delete d_rewriteTimer;
-}
+TheoryBVRewriter::TheoryBVRewriter() { initializeRewrites(); }
 
 RewriteResponse TheoryBVRewriter::preRewrite(TNode node) {
   RewriteResponse res = d_rewriteTable[node.getKind()](node, true);
-  if(res.node != node) {
+  if (res.d_node != node)
+  {
     Debug("bitvector-rewrite") << "TheoryBV::preRewrite    " << node << std::endl;
-    Debug("bitvector-rewrite") << "TheoryBV::preRewrite to " << res.node << std::endl;
+    Debug("bitvector-rewrite")
+        << "TheoryBV::preRewrite to " << res.d_node << std::endl;
   }
   return res; 
 }
 
 RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   RewriteResponse res = d_rewriteTable[node.getKind()](node, false);
-  if(res.node!= node) {
+  if (res.d_node != node)
+  {
     Debug("bitvector-rewrite") << "TheoryBV::postRewrite    " << node << std::endl;
-    Debug("bitvector-rewrite") << "TheoryBV::postRewrite to " << res.node << std::endl;
+    Debug("bitvector-rewrite")
+        << "TheoryBV::postRewrite to " << res.d_node << std::endl;
   }
   return res; 
 }

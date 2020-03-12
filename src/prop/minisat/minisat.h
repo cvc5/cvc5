@@ -27,8 +27,7 @@ class MinisatSatSolver : public DPLLSatSolverInterface {
 public:
 
   MinisatSatSolver(StatisticsRegistry* registry);
-  virtual ~MinisatSatSolver();
-;
+  ~MinisatSatSolver() override;
 
   static SatVariable     toSatVariable(Minisat::Var var);
   static Minisat::Lit    toMinisatLit(SatLiteral lit);
@@ -44,7 +43,7 @@ public:
   ClauseId addClause(SatClause& clause, bool removable) override;
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
   {
-    Unreachable("Minisat does not support native XOR reasoning");
+    Unreachable() << "Minisat does not support native XOR reasoning";
   }
 
   SatVariable newVar(bool isTheoryAtom,

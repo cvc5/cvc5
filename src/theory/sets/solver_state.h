@@ -121,8 +121,13 @@ class SolverState
    * class.
    */
   bool isCongruent(Node n) const;
-  /** Get the list of all equivalence classes of set type */
+
+  /** Get the list of all equivalence classes of set terms */
   const std::vector<Node>& getSetsEqClasses() const { return d_set_eqc; }
+  /** Get the list of all equivalence classes of set terms that have element
+   * type t */
+  const std::vector<Node> getSetsEqClasses(const TypeNode& t) const;
+
   /**
    * Get the list of non-variable sets that exists in the equivalence class
    * whose representative is r.
@@ -133,6 +138,8 @@ class SolverState
    * if none exist.
    */
   Node getVariableSet(Node r) const;
+  /** Get comprehension sets in equivalence class with representative r */
+  const std::vector<Node>& getComprehensionSets(Node r) const;
   /** Get (positive) members of the set equivalence class r
    *
    * The members are return as a map, which maps members to their explanation.
@@ -161,6 +168,8 @@ class SolverState
    * map is a representative of its congruence class.
    */
   const std::map<Kind, std::vector<Node> >& getOperatorList() const;
+  /** Get the list of all comprehension sets in the current context */
+  const std::vector<Node>& getComprehensionSets() const;
 
   // --------------------------------------- commonly used terms
   /** Get type constraint skolem
@@ -189,7 +198,7 @@ class SolverState
   Node getProxy(Node n);
   /** Get the empty set of type tn */
   Node getEmptySet(TypeNode tn);
-  /** Get the universe set of type tn */
+  /** Get the universe set of type tn if it exists or create a new one */
   Node getUnivSet(TypeNode tn);
   /**
    * Get the skolem cache of this theory, which manages a database of introduced
@@ -225,6 +234,8 @@ class SolverState
   std::map<Node, Node> d_congruent;
   /** Map from equivalence classes to the list of non-variable sets in it */
   std::map<Node, std::vector<Node> > d_nvar_sets;
+  /** Map from equivalence classes to the list of comprehension sets in it */
+  std::map<Node, std::vector<Node> > d_compSets;
   /** Map from equivalence classes to a variable sets in it */
   std::map<Node, Node> d_var_set;
   /** polarity memberships
@@ -262,6 +273,8 @@ class SolverState
   std::map<Node, Node> d_singleton_index;
   /** Indices for the binary kinds INTERSECT, SETMINUS and UNION. */
   std::map<Kind, std::map<Node, std::map<Node, Node> > > d_bop_index;
+  /** A list of comprehension sets */
+  std::vector<Node> d_allCompSets;
   // -------------------------------- end term indices
   std::map<Kind, std::vector<Node> > d_op_list;
   /** the skolem cache */

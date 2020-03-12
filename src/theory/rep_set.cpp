@@ -96,7 +96,7 @@ void RepSet::add( TypeNode tn, Node n ){
     }
   }
   Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn << " : " << n << std::endl;
-  Assert( n.getType().isSubtypeOf( tn ) );
+  Assert(n.getType().isSubtypeOf(tn));
   d_tmap[ n ] = (int)d_type_reps[tn].size();
   d_type_reps[tn].push_back( n );
 }
@@ -201,10 +201,12 @@ unsigned RepSetIterator::domainSize(unsigned i)
   return d_domain_elements[v].size();
 }
 
+TypeNode RepSetIterator::getTypeOf(unsigned i) const { return d_types[i]; }
+
 bool RepSetIterator::setQuantifier(Node q)
 {
   Trace("rsi") << "Make rsi for quantified formula " << q << std::endl;
-  Assert( d_types.empty() );
+  Assert(d_types.empty());
   //store indicies
   for (size_t i = 0; i < q[0].getNumChildren(); i++)
   {
@@ -217,7 +219,7 @@ bool RepSetIterator::setQuantifier(Node q)
 bool RepSetIterator::setFunctionDomain(Node op)
 {
   Trace("rsi") << "Make rsi for function " << op << std::endl;
-  Assert( d_types.empty() );
+  Assert(d_types.empty());
   TypeNode tn = op.getType();
   for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
     d_types.push_back( tn[i] );
@@ -273,7 +275,7 @@ bool RepSetIterator::initialize()
                                    type_reps->begin(), type_reps->end());
         }
       }else{
-        Assert( d_incomplete );
+        Assert(d_incomplete);
         return false;
       }
     }
@@ -344,10 +346,11 @@ int RepSetIterator::resetIndex(unsigned i, bool initial)
 
 int RepSetIterator::incrementAtIndex(int i)
 {
-  Assert( !isFinished() );
+  Assert(!isFinished());
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
   i = (int)d_index.size()-1;
 #endif
+  Trace("rsi-debug") << "RepSetIterator::incrementAtIndex: " << i << std::endl;
   //increment d_index
   if( i>=0){
     Trace("rsi-debug") << "domain size of " << i << " is " << domainSize(i) << std::endl;
@@ -359,6 +362,7 @@ int RepSetIterator::incrementAtIndex(int i)
     }
   }
   if( i==-1 ){
+    Trace("rsi-debug") << "increment failed" << std::endl;
     d_index.clear();
     return -1;
   }else{
@@ -369,8 +373,10 @@ int RepSetIterator::incrementAtIndex(int i)
 }
 
 int RepSetIterator::do_reset_increment( int i, bool initial ) {
-  bool emptyDomain = false;
+  Trace("rsi-debug") << "RepSetIterator::do_reset_increment: " << i
+                     << ", initial=" << initial << std::endl;
   for( unsigned ii=(i+1); ii<d_index.size(); ii++ ){
+    bool emptyDomain = false;
     int ri_res = resetIndex( ii, initial );
     if( ri_res==-1 ){
       //failed
@@ -381,16 +387,25 @@ int RepSetIterator::do_reset_increment( int i, bool initial ) {
       emptyDomain = true;
     }
     //force next iteration if currently an empty domain
-    if( emptyDomain ){
-      d_index[ii] = domainSize(ii)-1;
+    if (emptyDomain)
+    {
+      Trace("rsi-debug") << "This is an empty domain (index " << ii << ")."
+                         << std::endl;
+      if (ii > 0)
+      {
+        // increment at the previous index
+        return incrementAtIndex(ii - 1);
+      }
+      else
+      {
+        // this is the first index, we are done
+        d_index.clear();
+        return -1;
+      }
     }
   }
-  if( emptyDomain ){
-    Trace("rsi-debug") << "This is an empty domain, increment." << std::endl;
-    return increment();
-  }else{
-    return i;
-  }
+  Trace("rsi-debug") << "Finished, return " << i << std::endl;
+  return i;
 }
 
 int RepSetIterator::increment(){
@@ -403,14 +418,16 @@ int RepSetIterator::increment(){
 
 bool RepSetIterator::isFinished() const { return d_index.empty(); }
 
-Node RepSetIterator::getCurrentTerm(unsigned v, bool valTerm) const
+Node RepSetIterator::getCurrentTerm(unsigned i, bool valTerm) const
 {
-  unsigned ii = d_index_order[v];
+  unsigned ii = d_index_order[i];
   unsigned curr = d_index[ii];
-  Trace("rsi-debug") << "rsi : get term " << v << ", index order = " << d_index_order[v] << std::endl;
-  Trace("rsi-debug") << "rsi : curr = " << curr << " / " << d_domain_elements[v].size() << std::endl;
-  Assert(0 <= curr && curr < d_domain_elements[v].size());
-  Node t = d_domain_elements[v][curr];
+  Trace("rsi-debug") << "rsi : get term " << i
+                     << ", index order = " << d_index_order[i] << std::endl;
+  Trace("rsi-debug") << "rsi : curr = " << curr << " / "
+                     << d_domain_elements[i].size() << std::endl;
+  Assert(0 <= curr && curr < d_domain_elements[i].size());
+  Node t = d_domain_elements[i][curr];
   if (valTerm)
   {
     Node tt = d_rs->getTermForRepresentative(t);

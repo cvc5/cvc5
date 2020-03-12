@@ -32,7 +32,6 @@
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
-#include "smt_util/lemma_channels.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
 #include "util/proof.h"
@@ -510,7 +509,10 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Get synth solution.
    *
-   * This function adds entries to sol_map that map functions-to-synthesize with
+   * This method returns true if we are in a state immediately preceeded by
+   * a successful call to checkSynth.
+   *
+   * This method adds entries to sol_map that map functions-to-synthesize with
    * their solutions, for all active conjectures. This should be called
    * immediately after the solver answers unsat for sygus input.
    *
@@ -521,7 +523,7 @@ class CVC4_PUBLIC SmtEngine
    *    forall y1...yn. P( sol_map[x1]...sol_map[xn], y1...yn )
    * is a valid formula.
    */
-  void getSynthSolutions(std::map<Expr, Expr>& sol_map);
+  bool getSynthSolutions(std::map<Expr, Expr>& sol_map);
 
   /**
    * Do quantifier elimination.
@@ -795,8 +797,6 @@ class CVC4_PUBLIC SmtEngine
    */
   void beforeSearch();
 
-  LemmaChannels* channels() { return d_channels; }
-
   /**
    * Expermintal feature: Sets the sequence of decisions.
    * This currently requires very fine grained knowledge about literal
@@ -835,8 +835,8 @@ class CVC4_PUBLIC SmtEngine
   typedef context::CDList<Node> NodeList;
 
   /**
-   * The current mode of the solver, see Figure 4.1 on page 52 of the
-   * SMT-LIB version 2.6 standard
+   * The current mode of the solver, which is an extension of Figure 4.1 on
+   * page 52 of the SMT-LIB version 2.6 standard
    * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
    */
   enum SmtMode
@@ -845,8 +845,10 @@ class CVC4_PUBLIC SmtEngine
     SMT_MODE_START,
     // normal state of the solver, after assert/push/pop/declare/define
     SMT_MODE_ASSERT,
-    // immediately after a check-sat returning "sat" or "unknown"
+    // immediately after a check-sat returning "sat"
     SMT_MODE_SAT,
+    // immediately after a check-sat returning "unknown"
+    SMT_MODE_SAT_UNKNOWN,
     // immediately after a check-sat returning "unsat"
     SMT_MODE_UNSAT,
     // immediately after a successful call to get-abduct
@@ -856,6 +858,9 @@ class CVC4_PUBLIC SmtEngine
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
+
+  /** Get a pointer to the PropEngine owned by this SmtEngine. */
+  prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
 
   /**
    * Check that a generated proof (via getProof()) checks.
@@ -1057,13 +1062,11 @@ class CVC4_PUBLIC SmtEngine
   ExprManager* d_exprManager;
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
-  /** The decision engine */
 
-  DecisionEngine* d_decisionEngine;
   /** The theory engine */
   TheoryEngine* d_theoryEngine;
   /** The propositional engine */
-  prop::PropEngine* d_propEngine;
+  std::unique_ptr<prop::PropEngine> d_propEngine;
 
   /** The proof manager */
   ProofManager* d_proofManager;
@@ -1237,9 +1240,6 @@ class CVC4_PUBLIC SmtEngine
   StatisticsRegistry* d_statisticsRegistry;
 
   smt::SmtEngineStatistics* d_stats;
-
-  /** Container for the lemma input and output channels for this SmtEngine.*/
-  LemmaChannels* d_channels;
 
   /*---------------------------- sygus commands  ---------------------------*/
 

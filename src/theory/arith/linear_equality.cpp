@@ -365,7 +365,6 @@ void LinearEqualityModule::debugCheckTracking(){
         << "computed " << computed
         << " tracking " << d_btracking[ridx] << endl;
       Assert(computed == d_btracking[ridx]);
-
     }
   }
 }
@@ -574,12 +573,10 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
     Assert(sgn != 0);
     bool selectUb = rowUp ? (sgn > 0) : (sgn < 0);
 
-    Assert( nonbasic != v ||
-            ( rowUp && a_ij.sgn() > 0 && c->isLowerBound()) ||
-            ( rowUp && a_ij.sgn() < 0 && c->isUpperBound()) ||
-            (!rowUp && a_ij.sgn() > 0 && c->isUpperBound()) ||
-            (!rowUp && a_ij.sgn() < 0 && c->isLowerBound())
-            );
+    Assert(nonbasic != v || (rowUp && a_ij.sgn() > 0 && c->isLowerBound())
+           || (rowUp && a_ij.sgn() < 0 && c->isUpperBound())
+           || (!rowUp && a_ij.sgn() > 0 && c->isUpperBound())
+           || (!rowUp && a_ij.sgn() < 0 && c->isLowerBound()));
 
     if(Debug.isOn("arith::propagateRow")){
       if(nonbasic == v){
@@ -743,7 +740,7 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
 
     fcs.addConstraint(c, coeff, adjustSgn);
     if(basicVar == v){
-      Assert(! c->negationHasProof() );
+      Assert(!c->negationHasProof());
       fcs.makeLastConsequent();
     }
   }
@@ -1400,8 +1397,8 @@ void LinearEqualityModule::pop_block(BorderHeap& heap, int& brokenInBlock, int& 
       heap.pop_heap();
     }else{
       // does not belong to the block
-      Assert((heap.direction() > 0) ?
-             (blockValue < top.d_diff) : (blockValue > top.d_diff));
+      Assert((heap.direction() > 0) ? (blockValue < top.d_diff)
+                                    : (blockValue > top.d_diff));
       break;
     }
   }

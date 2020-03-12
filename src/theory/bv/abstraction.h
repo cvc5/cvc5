@@ -60,7 +60,11 @@ class AbstractionModule {
     iterator end() { return d_data.end(); }
     unsigned getArity() { return d_arity; }
     unsigned getNumEntries() { return d_data.size(); }
-    ArgsVec& getEntry(unsigned i ) { Assert (i < d_data.size()); return d_data[i]; }
+    ArgsVec& getEntry(unsigned i)
+    {
+      Assert(i < d_data.size());
+      return d_data[i];
+    }
   };
 
   class ArgsTable {

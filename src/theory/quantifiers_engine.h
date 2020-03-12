@@ -25,7 +25,6 @@
 #include "expr/attribute.h"
 #include "expr/term_canonize.h"
 #include "theory/quantifiers/ematching/trigger.h"
-#include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
@@ -33,7 +32,6 @@
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
@@ -104,12 +102,6 @@ public:
   quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() const;
-  //---------------------- end utilities
-  //---------------------- utilities (TODO move these utilities #1163)
-  /** get the equality inference */
-  quantifiers::EqualityInference* getEqualityInference() const;
-  /** get relevant domain */
-  quantifiers::RelevantDomain* getRelevantDomain() const;
   //---------------------- end utilities
  private:
   /**
@@ -210,7 +202,14 @@ public:
   /** mark relevant quantified formula, this will indicate it should be checked before the others */
   void markRelevant( Node q );
   /** has added lemma */
-  bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
+  bool hasAddedLemma() const;
+  /** theory engine needs check
+   *
+   * This is true if the theory engine has more constraints to process. When
+   * it is false, we are tentatively going to terminate solving with
+   * sat/unknown. For details, see TheoryEngine::needCheck.
+   */
+  bool theoryEngineNeedsCheck() const;
   /** is in conflict */
   bool inConflict() { return d_conflict; }
   /** set conflict */
@@ -222,15 +221,13 @@ public:
   /** get needs check */
   bool getInstWhenNeedsCheck( Theory::Effort e );
   /** get user pat mode */
-  quantifiers::UserPatMode getInstUserPatMode();
-public:
+  options::UserPatMode getInstUserPatMode();
+
+ public:
   /** add term to database */
   void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** notification when master equality engine is updated */
   void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** use model equality engine */
   bool usingModelEqualityEngine() const { return d_useModelEe; }
   /** debug print equality engine */
@@ -267,14 +264,19 @@ public:
 
   /** get synth solutions
    *
-   * This function adds entries to sol_map that map functions-to-synthesize with
+   * This method returns true if there is a synthesis solution available. This
+   * is the case if the last call to check satisfiability originated in a
+   * check-synth call, and the synthesis engine module of this class
+   * successfully found a solution for all active synthesis conjectures.
+   *
+   * This method adds entries to sol_map that map functions-to-synthesize with
    * their solutions, for all active conjectures. This should be called
    * immediately after the solver answers unsat for sygus input.
    *
    * For details on what is added to sol_map, see
-   * CegConjecture::getSynthSolutions.
+   * SynthConjecture::getSynthSolutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
 
   //----------end user interface for instantiations
 
@@ -316,14 +318,10 @@ public:
   //------------- quantifiers utilities
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
-  /** equality inference class */
-  std::unique_ptr<quantifiers::EqualityInference> d_eq_inference;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
-  /** relevant domain */
-  std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** utility for effectively propositional logic */

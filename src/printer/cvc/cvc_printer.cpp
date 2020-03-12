@@ -24,11 +24,12 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h" // for ExprSetDepth etc..
-#include "expr/node_manager_attributes.h" // for VarNameAttr
-#include "options/language.h" // for LANG_AST
-#include "printer/dagification_visitor.h"
+#include "expr/dtype.h"
+#include "expr/expr.h"                     // for ExprSetDepth etc..
+#include "expr/node_manager_attributes.h"  // for VarNameAttr
+#include "options/language.h"              // for LANG_AST
 #include "options/smt_options.h"
+#include "printer/dagification_visitor.h"
 #include "smt/command.h"
 #include "smt/smt_engine.h"
 #include "smt_util/node_visitor.h"
@@ -137,15 +138,16 @@ void CvcPrinter::toStream(
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
     case kind::BITVECTOR_TYPE:
-      out << "BITVECTOR(" << n.getConst<BitVectorSize>().size << ")";
+      out << "BITVECTOR(" << n.getConst<BitVectorSize>().d_size << ")";
       break;
     case kind::CONST_BITVECTOR: {
       const BitVector& bv = n.getConst<BitVector>();
       const Integer& x = bv.getValue();
       out << "0bin";
-      unsigned n = bv.getSize();
-      while(n-- > 0) {
-        out << (x.testBit(n) ? '1' : '0');
+      unsigned size = bv.getSize();
+      while (size-- > 0)
+      {
+        out << (x.testBit(size) ? '1' : '0');
       }
       break;
     }
@@ -179,7 +181,9 @@ void CvcPrinter::toStream(
       break;
 
     case kind::DATATYPE_TYPE: {
-      const Datatype& dt = (NodeManager::currentNM()->getDatatypeForIndex( n.getConst< DatatypeIndexConstant >().getIndex() ));
+      const Datatype& dt =
+          NodeManager::currentNM()->toExprManager()->getDatatypeForIndex(
+              n.getConst<DatatypeIndexConstant>().getIndex());
       if( dt.isTuple() ){
         out << '[';
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
@@ -280,8 +284,8 @@ void CvcPrinter::toStream(
       out << ")";
       return;
       break;
-    case kind::CHAIN:
-    case kind::DISTINCT: // chain and distinct not supported directly in CVC4, blast them away with the rewriter
+    case kind::DISTINCT:
+      // distinct not supported directly, blast it away with the rewriter
       toStream(out, theory::Rewriter::rewrite(n), depth, types, true);
       return;
     case kind::SORT_TYPE:
@@ -347,14 +351,17 @@ void CvcPrinter::toStream(
 
     // DATATYPES
     case kind::PARAMETRIC_DATATYPE: {
-        const Datatype & dt = (NodeManager::currentNM()->getDatatypeForIndex( n[0].getConst< DatatypeIndexConstant >().getIndex() ));
-        out << dt.getName() << '[';
-        for(unsigned i = 1; i < n.getNumChildren(); ++i) {
-          if(i > 1) {
-            out << ',';
-          }
-          out << n[i];
+      const DType& dt = NodeManager::currentNM()->getDTypeForIndex(
+          n[0].getConst<DatatypeIndexConstant>().getIndex());
+      out << dt.getName() << '[';
+      for (unsigned i = 1; i < n.getNumChildren(); ++i)
+      {
+        if (i > 1)
+        {
+          out << ',';
         }
+        out << n[i];
+      }
         out << ']';
       }
       return;
@@ -373,8 +380,10 @@ void CvcPrinter::toStream(
           if( n.getNumChildren()==1 ){
             out << "TUPLE";
           }
-        }else if( t.isRecord() ){
-          const Record& rec = t.getRecord();
+        }
+        else if (t.toType().isRecord())
+        {
+          const Record& rec = static_cast<DatatypeType>(t.toType()).getRecord();
           out << "(# ";
           TNode::iterator i = n.begin();
           bool first = true;
@@ -389,7 +398,9 @@ void CvcPrinter::toStream(
           }
           out << " #)";
           return;
-        }else{
+        }
+        else
+        {
           toStream(op, n.getOperator(), depth, types, false);
           if (n.getNumChildren() == 0)
           {
@@ -404,7 +415,12 @@ void CvcPrinter::toStream(
     case kind::APPLY_SELECTOR_TOTAL: {
         TypeNode t = n[0].getType();
         Node opn = n.getOperator();
-        if (t.isTuple() || t.isRecord())
+        if (!t.isDatatype())
+        {
+          toStream(op, opn, depth, types, false);
+        }
+        else if (t.isTuple()
+                 || DatatypeType(t.toType()).isRecord())
         {
           toStream(out, n[0], depth, types, true);
           out << '.';
@@ -434,7 +450,7 @@ void CvcPrinter::toStream(
       }
       break;
     case kind::APPLY_TESTER: {
-      Assert( !n.getType().isTuple() && !n.getType().isRecord() );
+      Assert(!n.getType().isTuple() && !n.getType().toType().isRecord());
       op << "is_";
       unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
       const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
@@ -1048,10 +1064,12 @@ static bool tryToStream(std::ostream& out,
 
 void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 {
-  if(tryToStream<CommandSuccess>(out, s, d_cvc3Mode) ||
-     tryToStream<CommandFailure>(out, s, d_cvc3Mode) ||
-     tryToStream<CommandUnsupported>(out, s, d_cvc3Mode) ||
-     tryToStream<CommandInterrupted>(out, s, d_cvc3Mode)) {
+  if (tryToStream<CommandSuccess>(out, s, d_cvc3Mode)
+      || tryToStream<CommandFailure>(out, s, d_cvc3Mode)
+      || tryToStream<CommandRecoverableFailure>(out, s, d_cvc3Mode)
+      || tryToStream<CommandUnsupported>(out, s, d_cvc3Mode)
+      || tryToStream<CommandInterrupted>(out, s, d_cvc3Mode))
+  {
     return;
   }
 
@@ -1155,6 +1173,23 @@ void DeclareFunctionCommandToStream(std::ostream& out,
 }
 
 }  // namespace
+
+void CvcPrinter::toStream(std::ostream& out, const Model& m) const
+{
+  // print the model comments
+  std::stringstream c;
+  m.getComments(c);
+  std::string ln;
+  while (std::getline(c, ln))
+  {
+    out << "; " << ln << std::endl;
+  }
+
+  // print the model
+  out << "MODEL BEGIN" << std::endl;
+  this->Printer::toStream(out, m);
+  out << "MODEL END;" << std::endl;
+}
 
 void CvcPrinter::toStream(std::ostream& out,
                           const Model& model,
@@ -1447,19 +1482,20 @@ static void toStream(std::ostream& out,
                      const DatatypeDeclarationCommand* c,
                      bool cvc3Mode)
 {
-  const vector<DatatypeType>& datatypes = c->getDatatypes();
+  const vector<Type>& datatypes = c->getDatatypes();
+  Assert(!datatypes.empty() && datatypes[0].isDatatype());
+  const Datatype& dt0 = DatatypeType(datatypes[0]).getDatatype();
   //do not print tuple/datatype internal declarations
-  if( datatypes.size()!=1 || ( !datatypes[0].getDatatype().isTuple() && !datatypes[0].getDatatype().isRecord() ) ){
+  if (datatypes.size() != 1 || (!dt0.isTuple() && !dt0.isRecord()))
+  {
     out << "DATATYPE" << endl;
     bool firstDatatype = true;
-    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
-          i_end = datatypes.end();
-        i != i_end;
-        ++i) {
+    for (const Type& t : datatypes)
+    {
       if(! firstDatatype) {
         out << ',' << endl;
       }
-      const Datatype& dt = (*i).getDatatype();
+      const Datatype& dt = DatatypeType(t).getDatatype();
       out << "  " << dt.getName();
       if(dt.isParametric()) {
         out << '[';
@@ -1478,23 +1514,30 @@ static void toStream(std::ostream& out,
           out << " | ";
         }
         firstConstructor = false;
-        const DatatypeConstructor& c = *j;
-        out << c.getName();
-        if(c.getNumArgs() > 0) {
+        const DatatypeConstructor& cons = *j;
+        out << cons.getName();
+        if (cons.getNumArgs() > 0)
+        {
           out << '(';
           bool firstSelector = true;
-          for(DatatypeConstructor::const_iterator k = c.begin(); k != c.end(); ++k) {
+          for (DatatypeConstructor::const_iterator k = cons.begin();
+               k != cons.end();
+               ++k)
+          {
             if(! firstSelector) {
               out << ", ";
             }
             firstSelector = false;
             const DatatypeConstructorArg& selector = *k;
-            Type t = SelectorType(selector.getType()).getRangeType();
-            if( t.isDatatype() ){
-              const Datatype & sdt = ((DatatypeType)t).getDatatype();
+            Type tr = SelectorType(selector.getType()).getRangeType();
+            if (tr.isDatatype())
+            {
+              const Datatype& sdt = DatatypeType(tr).getDatatype();
               out << selector.getName() << ": " << sdt.getName();
-            }else{
-              out << selector.getName() << ": " << t;
+            }
+            else
+            {
+              out << selector.getName() << ": " << tr;
             }
           }
           out << ')';
@@ -1550,6 +1593,13 @@ static void toStream(std::ostream& out,
 }
 
 static void toStream(std::ostream& out, const CommandFailure* s, bool cvc3Mode)
+{
+  out << s->getMessage() << endl;
+}
+
+static void toStream(std::ostream& out,
+                     const CommandRecoverableFailure* s,
+                     bool cvc3Mode)
 {
   out << s->getMessage() << endl;
 }

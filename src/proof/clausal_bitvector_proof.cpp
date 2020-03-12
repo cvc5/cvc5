@@ -131,11 +131,8 @@ void ClausalBitVectorProof::optimizeDratProof()
 {
   TimerStat::CodeTimer optimizeDratProofTimer{
       d_dratOptimizationStatistics.d_totalTime};
-  if (options::bvOptimizeSatProof()
-          == theory::bv::BvOptimizeSatProof::BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF
-      || options::bvOptimizeSatProof()
-             == theory::bv::BvOptimizeSatProof::
-                    BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA)
+  if (options::bvOptimizeSatProof() == options::BvOptimizeSatProof::PROOF
+      || options::bvOptimizeSatProof() == options::BvOptimizeSatProof::FORMULA)
   {
     Debug("bv::clausal") << "Optimizing DRAT" << std::endl;
     std::string formulaFilename("cvc4-dimacs-XXXXXX");
@@ -175,13 +172,13 @@ void ClausalBitVectorProof::optimizeDratProof()
                                                    optFormulaFilename,
                                                    optDratFilename,
                                                    drat2er::options::QUIET);
-      AlwaysAssert(
-          dratTrimExitCode == 0, "drat-trim exited with %d", dratTrimExitCode);
+      AlwaysAssert(dratTrimExitCode == 0)
+          << "drat-trim exited with " << dratTrimExitCode;
     }
 #else
-    Unimplemented(
-        "Proof production when using CryptoMiniSat requires drat2er.\n"
-        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented()
+        << "Proof production when using CryptoMiniSat requires drat2er.\n"
+        << "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild";
 #endif
 
     {
@@ -197,14 +194,13 @@ void ClausalBitVectorProof::optimizeDratProof()
           static_cast<int64_t>(d_binaryDratProof.tellp()) - startPos);
     }
 
-    if (options::bvOptimizeSatProof()
-        == theory::bv::BvOptimizeSatProof::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA)
+    if (options::bvOptimizeSatProof() == options::BvOptimizeSatProof::FORMULA)
     {
-      std::ifstream optFormulaStream{optFormulaFilename};
-      const int64_t startPos = static_cast<int64_t>(optFormulaStream.tellg());
-      std::vector<prop::SatClause> core = parseDimacs(optFormulaStream);
+      std::ifstream optFormulaInStream{optFormulaFilename};
+      const int64_t startPos = static_cast<int64_t>(optFormulaInStream.tellg());
+      std::vector<prop::SatClause> core = parseDimacs(optFormulaInStream);
       d_dratOptimizationStatistics.d_optimizedFormulaSize.setData(
-          static_cast<int64_t>(optFormulaStream.tellg()) - startPos);
+          static_cast<int64_t>(optFormulaInStream.tellg()) - startPos);
 
       CodeTimer clauseMatchingTimer{
           d_dratOptimizationStatistics.d_clauseMatchingTime};
@@ -314,9 +310,9 @@ void LfscClausalBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                                       std::ostream& paren,
                                                       const ProofLetMap& map)
 {
-  Unreachable(
-      "Clausal bit-vector proofs should only be used in combination with eager "
-      "bitblasting, which **does not use theory lemmas**");
+  Unreachable() << "Clausal bit-vector proofs should only be used in "
+                   "combination with eager "
+                   "bitblasting, which **does not use theory lemmas**";
 }
 
 void LfscClausalBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
@@ -339,9 +335,9 @@ void LfscClausalBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
 void LfscDratBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                    std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
+  Assert(options::bitblastMode() == options::BitblastMode::EAGER)
+      << "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode";
 
   os << "\n;; Proof of input to SAT solver\n";
   os << "(@ proofOfSatInput ";
@@ -366,9 +362,9 @@ void LfscDratBitVectorProof::printEmptyClauseProof(std::ostream& os,
 void LfscLratBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                    std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
+  Assert(options::bitblastMode() == options::BitblastMode::EAGER)
+      << "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode";
 
   os << "\n;; Proof of input to SAT solver\n";
   os << "(@ proofOfCMap ";
@@ -396,9 +392,9 @@ void LfscLratBitVectorProof::printEmptyClauseProof(std::ostream& os,
 void LfscErBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                  std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
+  Assert(options::bitblastMode() == options::BitblastMode::EAGER)
+      << "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode";
 
   d_dratTranslationStatistics.d_totalTime.start();
   er::ErProof pf =

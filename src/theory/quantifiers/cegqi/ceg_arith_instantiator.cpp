@@ -32,7 +32,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ArithInstantiator::ArithInstantiator(TypeNode tn) : Instantiator(tn)
+ArithInstantiator::ArithInstantiator(TypeNode tn, VtsTermCache* vtc)
+    : Instantiator(tn), d_vtc(vtc)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -43,10 +44,8 @@ void ArithInstantiator::reset(CegInstantiator* ci,
                               Node pv,
                               CegInstEffort effort)
 {
-  d_vts_sym[0] = ci->getQuantifiersEngine()->getTermUtil()->getVtsInfinity(
-      d_type, false, false);
-  d_vts_sym[1] =
-      ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta(false, false);
+  d_vts_sym[0] = d_vtc->getVtsInfinity(d_type, false, false);
+  d_vts_sym[1] = d_vtc->getVtsDelta(false, false);
   for (unsigned i = 0; i < 2; i++)
   {
     d_mbp_bounds[i].clear();
@@ -237,9 +236,11 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
           // since the quantifier-free arithmetic solver may pass full
           // effort with no lemmas even when we are not guaranteed to have a
           // model. By convention, we use GEQ to compare the values here.
+          // It also may be the case that cmp is non-constant, in the case
+          // where lhs or rhs contains a transcendental function. We consider
+          // the bound to be an upper bound in this case.
           Node cmp = nm->mkNode(GEQ, lhs_value, rhs_value);
           cmp = Rewriter::rewrite(cmp);
-          Assert(cmp.isConst());
           is_upper = !cmp.isConst() || !cmp.getConst<bool>();
         }
       }
@@ -288,7 +289,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       }
       else
       {
-        Node delta = ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta();
+        Node delta = d_vtc->getVtsDelta();
         uval = nm->mkNode(
             uires == CEG_TT_UPPER_STRICT ? PLUS : MINUS, uval, delta);
         uval = Rewriter::rewrite(uval);
@@ -357,8 +358,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             << "No " << (rr == 0 ? "lower" : "upper") << " bounds for " << pv
             << " (type=" << d_type << ")" << std::endl;
         // no bounds, we do +- infinity
-        Node val =
-            ci->getQuantifiersEngine()->getTermUtil()->getVtsInfinity(d_type);
+        Node val = d_vtc->getVtsInfinity(d_type);
         // could get rho value for infinity here
         if (rr == 0)
         {
@@ -468,8 +468,9 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
               cmp_bound = Rewriter::rewrite(cmp_bound);
               // Should be comparing two constant values which should rewrite
               // to a constant. If a step failed, we assume that this is not
-              // the new best bound.
-              Assert(cmp_bound.isConst());
+              // the new best bound. We might not be comparing constant
+              // values (for instance if transcendental functions are
+              // involved), in which case we do update the best bound value.
               if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
               {
                 new_best = false;
@@ -1034,11 +1035,7 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
   {
     // create delta here if necessary
     val = nm->mkNode(
-        PLUS,
-        val,
-        nm->mkNode(MULT,
-                   delta_coeff,
-                   ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta()));
+        PLUS, val, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
     val = Rewriter::rewrite(val);
   }
   return val;

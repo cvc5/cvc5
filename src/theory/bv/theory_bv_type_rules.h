@@ -224,18 +224,6 @@ class BitVectorITETypeRule
 /* parameterized operator kinds                                               */
 /* -------------------------------------------------------------------------- */
 
-class BitVectorBitOfOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_BITOF_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorBitOfOpTypeRule */
-
 class BitVectorBitOfTypeRule
 {
  public:
@@ -252,7 +240,7 @@ class BitVectorBitOfTypeRule
       {
         throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
       }
-      if (info.bitIndex >= t.getBitVectorSize())
+      if (info.d_bitIndex >= t.getBitVectorSize())
       {
         throw TypeCheckingExceptionPrivate(
             n, "extract index is larger than the bitvector size");
@@ -261,18 +249,6 @@ class BitVectorBitOfTypeRule
     return nodeManager->booleanType();
   }
 }; /* class BitVectorBitOfTypeRule */
-
-class BitVectorExtractOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_EXTRACT_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorExtractOpTypeRule */
 
 class BitVectorExtractTypeRule
 {
@@ -286,7 +262,7 @@ class BitVectorExtractTypeRule
     // NOTE: We're throwing a type-checking exception here even
     // if check is false, bc if we allow high < low the resulting
     // type will be illegal
-    if (extractInfo.high < extractInfo.low)
+    if (extractInfo.d_high < extractInfo.d_low)
     {
       throw TypeCheckingExceptionPrivate(
           n, "high extract index is smaller than the low extract index");
@@ -299,27 +275,16 @@ class BitVectorExtractTypeRule
       {
         throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
       }
-      if (extractInfo.high >= t.getBitVectorSize())
+      if (extractInfo.d_high >= t.getBitVectorSize())
       {
         throw TypeCheckingExceptionPrivate(
             n, "high extract index is bigger than the size of the bit-vector");
       }
     }
-    return nodeManager->mkBitVectorType(extractInfo.high - extractInfo.low + 1);
+    return nodeManager->mkBitVectorType(extractInfo.d_high - extractInfo.d_low
+                                        + 1);
   }
 }; /* class BitVectorExtractTypeRule */
-
-class BitVectorRepeatOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_REPEAT_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorRepeatOpTypeRule */
 
 class BitVectorRepeatTypeRule
 {
@@ -340,54 +305,6 @@ class BitVectorRepeatTypeRule
     return nodeManager->mkBitVectorType(repeatAmount * t.getBitVectorSize());
   }
 }; /* class BitVectorRepeatTypeRule */
-
-class BitVectorRotateLeftOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_ROTATE_LEFT_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorRotateLeftOpTypeRule */
-
-class BitVectorRotateRightOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_ROTATE_RIGHT_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorRotateRightOpTypeRule */
-
-class BitVectorSignExtendOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_SIGN_EXTEND_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorSignExtendOpTypeRule */
-
-class BitVectorZeroExtendOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_ZERO_EXTEND_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorZeroExtendOpTypeRule */
 
 class BitVectorExtendTypeRule
 {
@@ -426,7 +343,8 @@ class IntToBitVectorOpTypeRule
                                          nodeManager->mkBitVectorType(bvSize));
     }
 
-    InternalError("bv-conversion typerule invoked for non-bv-conversion kind");
+    InternalError()
+        << "bv-conversion typerule invoked for non-bv-conversion kind";
   }
 }; /* class IntToBitVectorOpTypeRule */
 
@@ -456,7 +374,8 @@ class BitVectorConversionTypeRule
       return nodeManager->mkBitVectorType(bvSize);
     }
 
-    InternalError("bv-conversion typerule invoked for non-bv-conversion kind");
+    InternalError()
+        << "bv-conversion typerule invoked for non-bv-conversion kind";
   }
 }; /* class BitVectorConversionTypeRule */
 

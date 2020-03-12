@@ -489,7 +489,7 @@ bool ArithCongruenceManager::fixpointInfer() {
           explain( eq_exp, assumptions );
         }else{
           //eq_exp should be true
-          Assert( eq_exp==d_true );
+          Assert(eq_exp == d_true);
         }
         Node req_exp;
         if( assumptions.empty() ){

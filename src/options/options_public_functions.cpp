@@ -28,12 +28,13 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
+#include "options/option_exception.h"
 #include "options/parser_options.h"
 #include "options/printer_modes.h"
 #include "options/printer_options.h"
-#include "options/option_exception.h"
-#include "options/smt_options.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "options/uf_options.h"
 
 namespace CVC4 {
 
@@ -42,13 +43,16 @@ InputLanguage Options::getInputLanguage() const {
   return (*this)[options::inputLanguage];
 }
 
-InstFormatMode Options::getInstFormatMode() const {
+options::InstFormatMode Options::getInstFormatMode() const
+{
   return (*this)[options::instFormatMode];
 }
 
 OutputLanguage Options::getOutputLanguage() const {
   return (*this)[options::outputLanguage];
 }
+
+bool Options::getUfHo() const { return (*this)[options::ufHo]; }
 
 bool Options::getCheckProofs() const{
   return (*this)[options::checkProofs];
@@ -78,10 +82,6 @@ bool Options::getEarlyExit() const{
   return (*this)[options::earlyExit];
 }
 
-bool Options::getFallbackSequential() const{
-  return (*this)[options::fallbackSequential];
-}
-
 bool Options::getFilesystemAccess() const{
   return (*this)[options::filesystemAccess];
 }
@@ -92,10 +92,6 @@ bool Options::getForceNoLimitCpuWhileDump() const{
 
 bool Options::getHelp() const{
   return (*this)[options::help];
-}
-
-bool Options::getIncrementalParallel() const{
-  return (*this)[options::incrementalParallel];
 }
 
 bool Options::getIncrementalSolving() const{
@@ -162,10 +158,6 @@ bool Options::getVersion() const{
   return (*this)[options::version];
 }
 
-bool Options::getWaitToJoin() const{
-  return (*this)[options::waitToJoin];
-}
-
 const std::string& Options::getForceLogicString() const{
   return (*this)[options::forceLogicString];
 }
@@ -224,10 +216,6 @@ void Options::setOut(std::ostream* value) {
 
 void Options::setOutputLanguage(OutputLanguage value) {
   set(options::outputLanguage, value);
-}
-
-bool Options::wasSetByUserCeGuidedInst() const {
-  return wasSetByUser(options::ceGuidedInst);
 }
 
 bool Options::wasSetByUserDumpSynth() const {

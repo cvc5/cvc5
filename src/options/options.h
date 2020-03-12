@@ -195,8 +195,9 @@ public:
 
   // Get accessor functions.
   InputLanguage getInputLanguage() const;
-  InstFormatMode getInstFormatMode() const;
+  options::InstFormatMode getInstFormatMode() const;
   OutputLanguage getOutputLanguage() const;
+  bool getUfHo() const;
   bool getCheckProofs() const;
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
@@ -204,11 +205,9 @@ public:
   bool getDumpSynth() const;
   bool getDumpUnsatCores() const;
   bool getEarlyExit() const;
-  bool getFallbackSequential() const;
   bool getFilesystemAccess() const;
   bool getForceNoLimitCpuWhileDump() const;
   bool getHelp() const;
-  bool getIncrementalParallel() const;
   bool getIncrementalSolving() const;
   bool getInteractive() const;
   bool getInteractivePrompt() const;
@@ -225,9 +224,7 @@ public:
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
   bool getVersion() const;
-  bool getWaitToJoin() const;
   const std::string& getForceLogicString() const;
-  const std::vector<std::string>& getThreadArgv() const;
   int getVerbosity() const;
   std::istream* getIn() const;
   std::ostream* getErr();
@@ -243,7 +240,6 @@ public:
   void setOut(std::ostream*);
   void setOutputLanguage(OutputLanguage);
 
-  bool wasSetByUserCeGuidedInst() const;
   bool wasSetByUserDumpSynth() const;
   bool wasSetByUserEarlyExit() const;
   bool wasSetByUserForceLogicString() const;

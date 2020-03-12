@@ -13,6 +13,7 @@
  **/
 
 #include "theory/quantifiers/ematching/candidate_generator.h"
+#include "expr/dtype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/instantiate.h"
@@ -40,7 +41,7 @@ CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersEngine* qe, Node pat)
       d_mode(cand_term_none)
 {
   d_op = qe->getTermDatabase()->getMatchOperator( pat );
-  Assert( !d_op.isNull() );
+  Assert(!d_op.isNull());
 }
 
 void CandidateGeneratorQE::resetInstantiationRound(){
@@ -130,8 +131,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
 
 CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat ) :
 CandidateGenerator( qe ), d_match_pattern( mpat ){
-
-  Assert( d_match_pattern.getKind()==EQUAL );
+  Assert(d_match_pattern.getKind() == EQUAL);
   d_match_pattern_type = d_match_pattern[0].getType();
 }
 
@@ -146,7 +146,9 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
     Node n = (*d_eqc_false);
     ++d_eqc_false;
     if( n.getKind()==d_match_pattern.getKind() ){
-      if( n[0].getType().isComparableTo( d_match_pattern_type ) ){
+      if (n[0].getType().isComparableTo(d_match_pattern_type)
+          && isLegalCandidate(n))
+      {
         //found an iff or equality, try to match it
         //DO_THIS: cache to avoid redundancies?
         //DO_THIS: do we need to try the symmetric equality for n?  or will it also exist in the eq class of false?
@@ -161,7 +163,7 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
 CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat ) :
   CandidateGenerator( qe ), d_match_pattern( mpat ){
   d_match_pattern_type = mpat.getType();
-  Assert( mpat.getKind()==INST_CONSTANT );
+  Assert(mpat.getKind() == INST_CONSTANT);
   d_f = quantifiers::TermUtil::getInstConstAttr( mpat );
   d_index = mpat.getAttribute(InstVarNumAttribute());
   d_firstTime = false;
@@ -209,7 +211,7 @@ CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(
     : CandidateGeneratorQE(qe, mpat)
 {
   Assert(mpat.getKind() == APPLY_CONSTRUCTOR);
-  d_mpat_type = static_cast<DatatypeType>(mpat.getType().toType());
+  d_mpat_type = mpat.getType();
 }
 
 void CandidateGeneratorConsExpand::reset(Node eqc)
@@ -223,7 +225,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
   {
     d_eqc = eqc;
     d_mode = cand_term_ident;
-    Assert(d_eqc.getType().toType() == d_mpat_type);
+    Assert(d_eqc.getType() == d_mpat_type);
   }
 }
 
@@ -238,15 +240,13 @@ Node CandidateGeneratorConsExpand::getNextCandidate()
   // expand it
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
-  const Datatype& dt = d_mpat_type.getDatatype();
+  const DType& dt = d_mpat_type.getDType();
   Assert(dt.getNumConstructors() == 1);
   children.push_back(d_op);
   for (unsigned i = 0, nargs = dt[0].getNumArgs(); i < nargs; i++)
   {
-    Node sel =
-        nm->mkNode(APPLY_SELECTOR_TOTAL,
-                   Node::fromExpr(dt[0].getSelectorInternal(d_mpat_type, i)),
-                   curr);
+    Node sel = nm->mkNode(
+        APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(d_mpat_type, i), curr);
     children.push_back(sel);
   }
   return nm->mkNode(APPLY_CONSTRUCTOR, children);

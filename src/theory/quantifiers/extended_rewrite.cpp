@@ -155,6 +155,16 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         // we may have subsumed children down to one
         ret = children[0];
       }
+      else if (isAssoc && children.size() > kind::metakind::getUpperBoundForKind(k))
+      {
+        Assert(kind::metakind::getUpperBoundForKind(k) >= 2);
+        // kind may require binary construction
+        ret = children[0];
+        for (unsigned i = 1, nchild = children.size(); i < nchild; i++)
+        {
+          ret = nm->mkNode(k, ret, children[i]);
+        }
+      }
       else
       {
         ret = nm->mkNode(k, children);
@@ -1137,6 +1147,13 @@ Node ExtendedRewriter::extendedRewriteEqChain(
 {
   Assert(ret.getKind() == eqk);
 
+  // this rewrite is aggressive; it in fact has the precondition that other
+  // aggressive rewrites (including BCP) have been applied.
+  if (!d_aggr)
+  {
+    return Node::null();
+  }
+
   NodeManager* nm = NodeManager::currentNM();
 
   TypeNode tn = ret[0].getType();
@@ -1237,7 +1254,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
           // x = ( y & x ) ---> y | ~x
           // x = ( y & ~x ) ---> ~y & ~x
           std::vector<Node> new_children;
-          for (unsigned k = 0, nchild = c.getNumChildren(); k < nchild; k++)
+          for (unsigned k = 0, nchildc = c.getNumChildren(); k < nchildc; k++)
           {
             if (j != k)
             {
@@ -1498,10 +1515,10 @@ Node ExtendedRewriter::partialSubstitute(Node n,
 
     if (it == visited.end())
     {
-      std::map<Node, Node>::iterator it = assign.find(cur);
-      if (it != assign.end())
+      std::map<Node, Node>::iterator ita = assign.find(cur);
+      if (ita != assign.end())
       {
-        visited[cur] = it->second;
+        visited[cur] = ita->second;
       }
       else
       {

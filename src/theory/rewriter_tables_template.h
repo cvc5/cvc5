@@ -29,22 +29,6 @@ ${rewriter_includes}
 namespace CVC4 {
 namespace theory {
 
-RewriteResponse Rewriter::callPreRewrite(theory::TheoryId theoryId, TNode node) {
-  switch(theoryId) {
-${pre_rewrite_calls}
-  default:
-    Unreachable();
-  }
-}
-
-RewriteResponse Rewriter::callPostRewrite(theory::TheoryId theoryId, TNode node) {
-  switch(theoryId) {
-${post_rewrite_calls}
-  default:
-    Unreachable();
-  }
-}
-
 Node Rewriter::getPreRewriteCache(theory::TheoryId theoryId, TNode node) {
   switch(theoryId) {
 ${pre_rewrite_get_cache}
@@ -77,12 +61,22 @@ ${post_rewrite_set_cache}
   }
 }
 
-void Rewriter::init() {
+Rewriter::Rewriter()
+{
 ${rewrite_init}
+
+for (size_t i = 0; i < kind::LAST_KIND; ++i)
+{
+  d_preRewriters[i] = nullptr;
+  d_postRewriters[i] = nullptr;
 }
 
-void Rewriter::shutdown() {
-${rewrite_shutdown}
+for (size_t i = 0; i < theory::THEORY_LAST; ++i)
+{
+  d_preRewritersEqual[i] = nullptr;
+  d_postRewritersEqual[i] = nullptr;
+  d_theoryRewriters[i]->registerRewrites(this);
+}
 }
 
 void Rewriter::clearCachesInternal() {

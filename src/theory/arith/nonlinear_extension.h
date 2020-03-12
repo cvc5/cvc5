@@ -34,6 +34,8 @@
 #include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl_lemma_utils.h"
+#include "theory/arith/nl_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/uf/equality_engine.h"
 
@@ -62,8 +64,7 @@ typedef std::map<Node, unsigned> NodeMultiset;
  *
  * It's main functionality is a check(...) method,
  * which is called by TheoryArithPrivate either:
- * (1) at full effort with no conflicts or lemmas emitted,
- * or
+ * (1) at full effort with no conflicts or lemmas emitted, or
  * (2) at last call effort.
  * In this method, this class calls d_out->lemma(...)
  * for valid arithmetic theory lemmas, based on the current set of assertions,
@@ -114,11 +115,46 @@ class NonlinearExtension {
                                       const std::vector<Node>& exp) const;
   /** Check at effort level e.
    *
-   * This call may result in (possibly multiple)
-   * calls to d_out->lemma(...) where d_out
-   * is the output channel of TheoryArith.
+   * This call may result in (possibly multiple) calls to d_out->lemma(...)
+   * where d_out is the output channel of TheoryArith.
+   *
+   * If e is FULL, then we add lemmas based on context-depedent
+   * simplification (see Reynolds et al FroCoS 2017).
+   *
+   * If e is LAST_CALL, we add lemmas based on model-based refinement
+   * (see additionally Cimatti et al., TACAS 2017). The lemmas added at this
+   * effort may be computed during a call to interceptModel as described below.
    */
   void check(Theory::Effort e);
+  /** intercept model
+   *
+   * This method is called during TheoryArith::collectModelInfo, which is
+   * invoked after the linear arithmetic solver passes a full effort check
+   * with no lemmas.
+   *
+   * The argument arithModel is a map of the form { v1 -> c1, ..., vn -> cn }
+   * which represents the linear arithmetic theory solver's contribution to the
+   * current candidate model. That is, its collectModelInfo method is requesting
+   * that equalities v1 = c1, ..., vn = cn be added to the current model, where
+   * v1, ..., vn are arithmetic variables and c1, ..., cn are constants. Notice
+   * arithmetic variables may be real-valued terms belonging to other theories,
+   * or abstractions of applications of multiplication (kind NONLINEAR_MULT).
+   *
+   * This method requests that the non-linear solver inspect this model and
+   * do any number of the following:
+   * (1) Construct lemmas based on a model-based refinement procedure inspired
+   * by Cimatti et al., TACAS 2017.,
+   * (2) In the case that the nonlinear solver finds that the current
+   * constraints are satisfiable, it may "repair" the values in the argument
+   * arithModel so that it satisfies certain nonlinear constraints. This may
+   * involve e.g. solving for variables in nonlinear equations.
+   *
+   * Notice that in the former case, the lemmas it constructs are not sent out
+   * immediately. Instead, they are put in temporary vectors d_cmiLemmas
+   * and d_cmiLemmasPp, which are then sent out (if necessary) when a last call
+   * effort check is issued to this class.
+   */
+  void interceptModel(std::map<Node, Node>& arithModel);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** presolve
@@ -129,24 +165,27 @@ class NonlinearExtension {
    * on the output channel of TheoryArith in this function.
    */
   void presolve();
-  /** Compare arithmetic terms i and j based an ordering.
-   *
-   * orderType = 0 : compare concrete model values
-   * orderType = 1 : compare abstract model values
-   * orderType = 2 : compare abs of concrete model values
-   * orderType = 3 : compare abs of abstract model values
-   * TODO (#1287) make this an enum?
-   *
-   * For definitions of concrete vs abstract model values,
-   * see computeModelValue below.
-   */
-  int compare(Node i, Node j, unsigned orderType) const;
-  /** Compare constant rationals i and j based an ordering.
-   * orderType is the same as above.
-   */
-  int compare_value(Node i, Node j, unsigned orderType) const;
-
  private:
+  /** Model-based refinement
+   *
+   * This is the main entry point of this class for generating lemmas on the
+   * output channel of the theory of arithmetic.
+   *
+   * It is currently run at last call effort. It applies lemma schemas
+   * described in Reynolds et al. FroCoS 2017 that are based on ruling out
+   * the current candidate model.
+   *
+   * This function returns true if a lemma was added to the vector lems/lemsPp.
+   * Otherwise, it returns false. In the latter case, the model object d_model
+   * may have information regarding how to construct a model, in the case that
+   * we determined the problem is satisfiable.
+   *
+   * The argument lemSE is the "side effect" of the lemmas in mlems and mlemsPp
+   * (for details, see checkLastCall).
+   */
+  bool modelBasedRefinement(std::vector<Node>& mlems,
+                            std::vector<Node>& mlemsPp,
+                            std::map<Node, NlLemmaSideEffect>& lemSE);
   /** returns true if the multiset containing the
    * factors of monomial a is a subset of the multiset
    * containing the factors of monomial b.
@@ -183,21 +222,38 @@ class NonlinearExtension {
    *
    * xts : the list of (non-reduced) extended terms in the current context.
    *
-   * This method returns the number of lemmas added on the output channel of
-   * TheoryArith.
+   * This method adds lemmas to arguments lems, lemsPp, and wlems, each of
+   * which are intended to be sent out on the output channel of TheoryArith
+   * under certain conditions.
+   *
+   * If the set lems or lemsPp is non-empty, then no further processing is
+   * necessary. The last call effort check should terminate and these
+   * lemmas should be sent. The set lemsPp is distinguished from lems since
+   * the preprocess flag on the lemma(...) call should be set to true.
+   *
+   * The "waiting" lemmas wlems contain lemmas that should be sent on the
+   * output channel as a last resort. In other words, only if we are not
+   * able to establish SAT via a call to checkModel(...) should wlems be
+   * considered. This set typically contains tangent plane lemmas.
+   *
+   * The argument lemSE is the "side effect" of the lemmas from the previous
+   * three calls. If a lemma is mapping to a side effect, it should be
+   * processed via a call to processSideEffect(...) immediately after the
+   * lemma is sent (if it is indeed sent on this call to check).
    */
   int checkLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+                    const std::vector<Node>& xts,
+                    std::vector<Node>& lems,
+                    std::vector<Node>& lemsPp,
+                    std::vector<Node>& wlems,
+                    std::map<Node, NlLemmaSideEffect>& lemSE);
   //---------------------------------------term utilities
   static bool isArithKind(Kind k);
-  static Node mkLit(Node a, Node b, int status, int orderType = 0);
+  static Node mkLit(Node a, Node b, int status, bool isAbsolute = false);
   static Node mkAbs(Node a);
   static Node mkValidPhase(Node a, Node pi);
   static Node mkBounded( Node l, Node a, Node u );
-  static Kind joinKinds(Kind k1, Kind k2);
-  static Kind transKinds(Kind k1, Kind k2);
-  static bool isTranscendentalKind(Kind k);
   Node mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) const;
   //---------------------------------------end term utilities
 
@@ -206,35 +262,11 @@ class NonlinearExtension {
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
   void registerConstraint(Node atom);
-  /** compute model value
-   *
-   * This computes model values for terms based on two semantics, a "concrete"
-   * semantics and an "abstract" semantics.
-   *
-   * index = 0 means compute the value of n based on its children recursively.
-   *          (we call this its "concrete" value)
-   * index = 1 means lookup the value of n in the model.
-   *          (we call this its "abstract" value)
-   * In other words, index = 1 treats multiplication terms and transcendental
-   * function applications as variables, whereas index = 0 computes their
-   * actual values. This is a key distinction used in the model-based
-   * refinement scheme in Cimatti et al. TACAS 2017.
-   *
-   * For example, if M( a ) = 2, M( b ) = 3, M( a * b ) = 5, then :
-   *
-   *   computeModelValue( a*b, 0 ) =
-   *   computeModelValue( a, 0 )*computeModelValue( b, 0 ) = 2*3 = 6
-   * whereas:
-   *   computeModelValue( a*b, 1 ) = 5
-   */
-  Node computeModelValue(Node n, unsigned index = 0);
-  /** returns the Node corresponding to the value of i in the
-   * type of order orderType, which is one of values
-   * described above ::compare(...).
-   */
-  Node get_compare_value(Node i, unsigned orderType) const;
-  void assignOrderIds(std::vector<Node>& vars, NodeMultiset& d_order,
-                      unsigned orderType);
+  /** assign order ids */
+  void assignOrderIds(std::vector<Node>& vars,
+                      NodeMultiset& d_order,
+                      bool isConcrete,
+                      bool isAbsolute);
 
   /** get assertions
    *
@@ -269,101 +301,15 @@ class NonlinearExtension {
    *
    * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
    * "Detecting Satisfiable Formulas".
+   *
+   * The arguments lemmas and gs store the lemmas and guard literals to be sent
+   * out on the output channel of TheoryArith as lemmas and calls to
+   * ensureLiteral respectively.
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts);
-
-  /** solve equality simple
-   *
-   * This method is used during checkModel(...). It takes as input an
-   * equality eq. If it returns true, then eq is correct-by-construction based
-   * on the information stored in our model representation (see
-   * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq
-   * is added to d_check_model_solved.
-   */
-  bool solveEqualitySimple(Node eq);
-
-  /** simple check model for transcendental functions for literal
-   *
-   * This method returns true if literal is true for all interpretations of
-   * transcendental functions within their error bounds (as stored
-   * in d_check_model_bounds). This is determined by a simple under/over
-   * approximation of the value of sum of (linear) monomials. For example,
-   * if we determine that .8 < sin( 1 ) < .9, this function will return
-   * true for literals like:
-   *   2.0*sin( 1 ) > 1.5
-   *   -1.0*sin( 1 ) < -0.79
-   *   -1.0*sin( 1 ) > -0.91
-   *   sin( 1 )*sin( 1 ) + sin( 1 ) > 0.0
-   * It will return false for literals like:
-   *   sin( 1 ) > 0.85
-   * It will also return false for literals like:
-   *   -0.3*sin( 1 )*sin( 2 ) + sin( 2 ) > .7
-   *   sin( sin( 1 ) ) > .5
-   * since the bounds on these terms cannot quickly be determined.
-   */
-  bool simpleCheckModelLit(Node lit);
-  bool simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol);
-  /**
-   * A substitution from variables that appear in assertions to a solved form
-   * term. These vectors are ordered in the form:
-   *   x_1 -> t_1 ... x_n -> t_n
-   * where x_i is not in the free variables of t_j for j>=i.
-   */
-  std::vector<Node> d_check_model_vars;
-  std::vector<Node> d_check_model_subs;
-  /** add check model substitution
-   *
-   * Adds the model substitution v -> s. This applies the substitution
-   * { v -> s } to each term in d_check_model_subs and adds v,s to
-   * d_check_model_vars and d_check_model_subs respectively.
-   * If this method returns false, then the substitution v -> s is inconsistent
-   * with the current substitution and bounds.
-   */
-  bool addCheckModelSubstitution(TNode v, TNode s);
-  /** lower and upper bounds for check model
-   *
-   * For each term t in the domain of this map, if this stores the pair
-   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u.
-   *
-   * We add terms whose value is approximated in the model to this map, which
-   * includes:
-   * (1) applications of transcendental functions, whose value is approximated
-   * by the Taylor series,
-   * (2) variables we have solved quadratic equations for, whose value
-   * involves approximations of square roots.
-   */
-  std::map<Node, std::pair<Node, Node> > d_check_model_bounds;
-  /** add check model bound
-   *
-   * Adds the bound x -> < l, u > to the map above, and records the
-   * approximation ( x, l <= x <= u ) in the model. This method returns false
-   * if the bound is inconsistent with the current model substitution or
-   * bounds.
-   */
-  bool addCheckModelBound(TNode v, TNode l, TNode u);
-  /**
-   * The map from literals that our model construction solved, to the variable
-   * that was solved for. Examples of such literals are:
-   * (1) Equalities x = t, which we turned into a model substitution x -> t,
-   * where x not in FV( t ), and
-   * (2) Equalities a*x*x + b*x + c = 0, which we turned into a model bound
-   * -b+s*sqrt(b*b-4*a*c)/2a - E <= x <= -b+s*sqrt(b*b-4*a*c)/2a + E.
-   *
-   * These literals are exempt from check-model, since they are satisfied by
-   * definition of our model construction.
-   */
-  std::unordered_map<Node, Node, NodeHashFunction> d_check_model_solved;
-  /** has check model assignment
-   *
-   * Have we assigned v in the current checkModel(...) call?
-   *
-   * This method returns true if variable v is in the domain of
-   * d_check_model_bounds or if it occurs in d_check_model_vars.
-   */
-  bool hasCheckModelAssignment(Node v) const;
-  /** have we successfully built the model in this SAT context? */
-  context::CDO<bool> d_builtModel;
+                  const std::vector<Node>& false_asserts,
+                  std::vector<Node>& lemmas,
+                  std::vector<Node>& gs);
   //---------------------------end check model
 
   /** In the following functions, status states a relationship
@@ -448,18 +394,23 @@ class NonlinearExtension {
   /** Is n entailed with polarity pol in the current context? */
   bool isEntailed(Node n, bool pol);
 
-  /** flush lemmas
-   *
-   * Potentially sends lem on the output channel if lem has not been sent on the
-   * output channel in this context. Returns the number of lemmas sent on the
-   * output channel of TheoryArith.
+  /**
+   * Potentially adds lemmas to the set out and clears lemmas. Returns
+   * the number of lemmas added to out. We do not add lemmas that have already
+   * been sent on the output channel of TheoryArith.
    */
-  int flushLemma(Node lem);
+  unsigned filterLemmas(std::vector<Node>& lemmas, std::vector<Node>& out);
+  /** singleton version of above */
+  unsigned filterLemma(Node lem, std::vector<Node>& out);
 
-  /** Potentially sends lemmas to the output channel and clears lemmas. Returns
-   * the number of lemmas sent to the output channel.
+  /**
+   * Send lemmas in out on the output channel of theory of arithmetic.
    */
-  int flushLemmas(std::vector<Node>& lemmas);
+  void sendLemmas(const std::vector<Node>& out,
+                  bool preprocess,
+                  std::map<Node, NlLemmaSideEffect>& lemSE);
+  /** Process side effect se */
+  void processSideEffect(const NlLemmaSideEffect& se);
 
   // Returns the NodeMultiset for an existing monomial.
   const NodeMultiset& getMonomialExponentMap(Node monomial) const;
@@ -490,12 +441,6 @@ class NonlinearExtension {
   NodeSet d_lemmas;
   /** cache of terms t for which we have added the lemma ( t = 0 V t != 0 ). */
   NodeSet d_zero_split;
-  
-  /** 
-   * The set of atoms with Skolems that this solver introduced. We do not
-   * require that models satisfy literals over Skolem atoms.
-   */
-  NodeSet d_skolem_atoms;
 
   /** commonly used terms */
   Node d_zero;
@@ -536,32 +481,55 @@ class NonlinearExtension {
   // per last-call effort
 
   // model values/orderings
-  /** cache of model values
+
+  /** The non-linear model object
    *
-   * Stores the the concrete/abstract model values
-   * at indices 0 and 1 respectively.
+   * This class is responsible for computing model values for arithmetic terms
+   * and for establishing when we are able to answer "SAT".
    */
-  std::map<Node, Node> d_mv[2];
+  NlModel d_model;
+  /**
+   * The lemmas we computed during collectModelInfo. We store two vectors of
+   * lemmas to be sent out on the output channel of TheoryArith. The first
+   * is not preprocessed, the second is.
+   */
+  std::vector<Node> d_cmiLemmas;
+  std::vector<Node> d_cmiLemmasPp;
+  /** the side effects of the above lemmas */
+  std::map<Node, NlLemmaSideEffect> d_cmiLemmasSE;
+  /**
+   * The approximations computed during collectModelInfo. For details, see
+   * NlModel::getModelValueRepair.
+   */
+  std::map<Node, std::pair<Node, Node>> d_approximations;
+  /** have we successfully built the model in this SAT context? */
+  context::CDO<bool> d_builtModel;
 
   // ordering, stores variables and 0,1,-1
   std::map<Node, unsigned> d_order_vars;
   std::vector<Node> d_order_points;
   
   //transcendental functions
-  std::map<Node, Node> d_tr_base;
-  std::map<Node, bool> d_tr_is_base;
+  /**
+   * Some transcendental functions f(t) are "purified", e.g. we add
+   * t = y ^ f(t) = f(y) where y is a fresh variable. Those that are not
+   * purified we call "master terms".
+   *
+   * The maps below maintain a master/slave relationship over
+   * transcendental functions (SINE, EXPONENTIAL, PI), where above
+   * f(y) is the master of itself and of f(t).
+   *
+   * This is used for ensuring that the argument y of SINE we process is on the
+   * interval [-pi .. pi], and that exponentials are not applied to arguments
+   * that contain transcendental functions.
+   */
+  std::map<Node, Node> d_trMaster;
+  std::map<Node, std::vector<Node> > d_trSlaves;
+  /** The transcendental functions we have done initial refinements on */
   std::map< Node, bool > d_tf_initial_refine;
-  /** the list of lemmas we are waiting to flush until after check model */
-  std::vector<Node> d_waiting_lemmas;
-  /** did we use an approximation on this call to last-call effort? */
-  bool d_used_approx;
 
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
-  /** print rational approximation */
-  void printRationalApprox(const char* c, Node cr, unsigned prec = 5) const;
-  /** print model value */
-  void printModelValue(const char* c, Node n, unsigned prec = 5) const;
 
  private:
   //per last-call effort check
@@ -584,8 +552,24 @@ class NonlinearExtension {
   std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
 
-  /** A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI } */
-  std::map<Kind, std::vector<Node> > d_f_map;
+  /**
+   * Maps representives of a congruence class to the members of that class.
+   *
+   * In detail, a congruence class is a set of terms of the form
+   *   { f(t1), ..., f(tn) }
+   * such that t1 = ... = tn in the current context. We choose an arbitrary
+   * term among these to be the repesentative of this congruence class.
+   *
+   * Moreover, notice we compute congruence classes only over terms that
+   * are transcendental function applications that are "master terms",
+   * see d_trMaster/d_trSlave.
+   */
+  std::map<Node, std::vector<Node> > d_funcCongClass;
+  /**
+   * A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI }
+   * that are representives of their congruence class.
+   */
+  std::map<Kind, std::vector<Node> > d_funcMap;
 
   // factor skolems
   std::map< Node, Node > d_factor_skolem;
@@ -684,21 +668,6 @@ class NonlinearExtension {
    * on the model value of its argument.
    */
   std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d);
-  /** is refinable transcendental function
-   *
-   * A transcendental function application is not refineable if its current
-   * model value is zero, or if it is an application of SINE applied
-   * to a non-variable.
-   */
-  bool isRefineableTfFun(Node tf);
-  /**
-   * Get a lower/upper approximation of the constant r within the given
-   * level of precision. In other words, this returns a constant c' such that
-   *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
-   *   c' + 1/(10^prec) <= c <= c' if isLower is false.
-   * where c' is a rational of the form n/d for some n and d <= 10^prec.
-   */
-  Node getApproximateConstant(Node c, bool isLower, unsigned prec) const;
   /** get approximate sqrt
    *
    * This approximates the square root of positive constant c. If this method
@@ -937,75 +906,89 @@ class NonlinearExtension {
   std::vector<Node> checkTranscendentalMonotonic();
 
   /** check transcendental tangent planes
-  *
-  * Returns a set of valid theory lemmas, based on
-  * computing an "incremental linearization" of
-  * transcendental functions based on the model values
-  * of transcendental functions and their arguments.
-  * It is based on Figure 3 of "Satisfiability
-  * Modulo Transcendental Functions via Incremental
-  * Linearization" by Cimatti et al., CADE 2017.
-  * This schema is not terminating in general.
-  * It is not enabled by default, and can
-  * be enabled by --nl-ext-tf-tplanes.
-  *
-  * Example:
-  *
-  * Assume we have a term sin(y) where M( y ) = 1 where M is the current model.
-  * Note that:
-  *   sin(1) ~= .841471
-  *
-  * The Taylor series and remainder of sin(y) of degree 7 is
-  *   P_{7,sin(0)}( x ) = x + (-1/6)*x^3 + (1/20)*x^5
-  *   R_{7,sin(0),b}( x ) = (-1/5040)*x^7
-  *
-  * This gives us lower and upper bounds :
-  *   P_u( x ) = P_{7,sin(0)}( x ) + R_{7,sin(0),b}( x )
-  *     ...where note P_u( 1 ) = 4243/5040 ~= .841865
-  *   P_l( x ) = P_{7,sin(0)}( x ) - R_{7,sin(0),b}( x )
-  *     ...where note P_l( 1 ) = 4241/5040 ~= .841468
-  *
-  * Assume that M( sin(y) ) > P_u( 1 ).
-  * Since the concavity of sine in the region 0 < x < PI/2 is -1,
-  * we add a tangent plane refinement.
-  * The tangent plane at the point 1 in P_u is
-  * given by the formula:
-  *   T( x ) = P_u( 1 ) + ((d/dx)(P_u(x)))( 1 )*( x - 1 )
-  * We add the lemma:
-  *   ( 0 < y < PI/2 ) => sin( y ) <= T( y )
-  * which is:
-  *   ( 0 < y < PI/2 ) => sin( y ) <= (391/720)*(y - 2737/1506)
-  *
-  * Assume that M( sin(y) ) < P_u( 1 ).
-  * Since the concavity of sine in the region 0 < x < PI/2 is -1,
-  * we add a secant plane refinement for some constants ( l, u )
-  * such that 0 <= l < M( y ) < u <= PI/2. Assume we choose
-  * l = 0 and u = M( PI/2 ) = 150517/47912.
-  * The secant planes at point 1 for P_l
-  * are given by the formulas:
-  *   S_l( x ) = (x-l)*(P_l( l )-P_l(c))/(l-1) + P_l( l )
-  *   S_u( x ) = (x-u)*(P_l( u )-P_l(c))/(u-1) + P_l( u )
-  * We add the lemmas:
-  *   ( 0 < y < 1 ) => sin( y ) >= S_l( y )
-  *   ( 1 < y < PI/2 ) => sin( y ) >= S_u( y )
-  * which are:
-  *   ( 0 < y < 1 ) => (sin y) >= 4251/5040*y
-  *   ( 1 < y < PI/2 ) => (sin y) >= c1*(y+c2)
-  *     where c1, c2 are rationals (for brevity, omitted here)
-  *     such that c1 ~= .277 and c2 ~= 2.032.
-  */
-  std::vector<Node> checkTranscendentalTangentPlanes();
+   *
+   * Returns a set of valid theory lemmas, based on
+   * computing an "incremental linearization" of
+   * transcendental functions based on the model values
+   * of transcendental functions and their arguments.
+   * It is based on Figure 3 of "Satisfiability
+   * Modulo Transcendental Functions via Incremental
+   * Linearization" by Cimatti et al., CADE 2017.
+   * This schema is not terminating in general.
+   * It is not enabled by default, and can
+   * be enabled by --nl-ext-tf-tplanes.
+   *
+   * Example:
+   *
+   * Assume we have a term sin(y) where M( y ) = 1 where M is the current model.
+   * Note that:
+   *   sin(1) ~= .841471
+   *
+   * The Taylor series and remainder of sin(y) of degree 7 is
+   *   P_{7,sin(0)}( x ) = x + (-1/6)*x^3 + (1/20)*x^5
+   *   R_{7,sin(0),b}( x ) = (-1/5040)*x^7
+   *
+   * This gives us lower and upper bounds :
+   *   P_u( x ) = P_{7,sin(0)}( x ) + R_{7,sin(0),b}( x )
+   *     ...where note P_u( 1 ) = 4243/5040 ~= .841865
+   *   P_l( x ) = P_{7,sin(0)}( x ) - R_{7,sin(0),b}( x )
+   *     ...where note P_l( 1 ) = 4241/5040 ~= .841468
+   *
+   * Assume that M( sin(y) ) > P_u( 1 ).
+   * Since the concavity of sine in the region 0 < x < PI/2 is -1,
+   * we add a tangent plane refinement.
+   * The tangent plane at the point 1 in P_u is
+   * given by the formula:
+   *   T( x ) = P_u( 1 ) + ((d/dx)(P_u(x)))( 1 )*( x - 1 )
+   * We add the lemma:
+   *   ( 0 < y < PI/2 ) => sin( y ) <= T( y )
+   * which is:
+   *   ( 0 < y < PI/2 ) => sin( y ) <= (391/720)*(y - 2737/1506)
+   *
+   * Assume that M( sin(y) ) < P_u( 1 ).
+   * Since the concavity of sine in the region 0 < x < PI/2 is -1,
+   * we add a secant plane refinement for some constants ( l, u )
+   * such that 0 <= l < M( y ) < u <= PI/2. Assume we choose
+   * l = 0 and u = M( PI/2 ) = 150517/47912.
+   * The secant planes at point 1 for P_l
+   * are given by the formulas:
+   *   S_l( x ) = (x-l)*(P_l( l )-P_l(c))/(l-1) + P_l( l )
+   *   S_u( x ) = (x-u)*(P_l( u )-P_l(c))/(u-1) + P_l( u )
+   * We add the lemmas:
+   *   ( 0 < y < 1 ) => sin( y ) >= S_l( y )
+   *   ( 1 < y < PI/2 ) => sin( y ) >= S_u( y )
+   * which are:
+   *   ( 0 < y < 1 ) => (sin y) >= 4251/5040*y
+   *   ( 1 < y < PI/2 ) => (sin y) >= c1*(y+c2)
+   *     where c1, c2 are rationals (for brevity, omitted here)
+   *     such that c1 ~= .277 and c2 ~= 2.032.
+   *
+   * The argument lemSE is the "side effect" of the lemmas in the return
+   * value of this function (for details, see checkLastCall).
+   */
+  std::vector<Node> checkTranscendentalTangentPlanes(
+      std::map<Node, NlLemmaSideEffect>& lemSE);
   /** check transcendental function refinement for tf
    *
-   * This method is called by the above method for each refineable
-   * transcendental function (see isRefineableTfFun) that occurs in an
-   * assertion in the current context.
+   * This method is called by the above method for each "master"
+   * transcendental function application that occurs in an assertion in the
+   * current context. For example, an application like sin(t) is not a master
+   * if we have introduced the constraints:
+   *   t=y+2*pi*n ^ -pi <= y <= pi ^ sin(t) = sin(y).
+   * See d_trMaster/d_trSlaves for more detail.
    *
    * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
    * function application tf for Taylor degree d. It may add a secant or
-   * tangent plane lemma to lems.
+   * tangent plane lemma to lems and its side effect (if one exists)
+   * to lemSE.
+   *
+   * It returns false if the bounds are not precise enough to add a
+   * secant or tangent plane lemma.
    */
-  bool checkTfTangentPlanesFun(Node tf, unsigned d, std::vector<Node>& lems);
+  bool checkTfTangentPlanesFun(Node tf,
+                               unsigned d,
+                               std::vector<Node>& lems,
+                               std::map<Node, NlLemmaSideEffect>& lemSE);
   //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
 

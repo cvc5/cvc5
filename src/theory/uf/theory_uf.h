@@ -20,8 +20,6 @@
 #ifndef CVC4__THEORY__UF__THEORY_UF_H
 #define CVC4__THEORY__UF__THEORY_UF_H
 
-#include "context/cdhashmap.h"
-#include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "expr/node_trie.h"
@@ -38,8 +36,6 @@ class HoExtension;
 
 class TheoryUF : public Theory {
 
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 public:
 
   class NotifyClass : public eq::EqualityEngineNotify {

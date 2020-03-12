@@ -32,12 +32,13 @@ set(libcvc4parser_src_files
   line_buffer.h
   memory_mapped_input_buffer.cpp
   memory_mapped_input_buffer.h
+  parse_op.cpp
+  parse_op.h
   parser.cpp
   parser.h
   parser_builder.cpp
   parser_builder.h
   parser_exception.h
-  smt2/parse_op.h
   smt2/smt2.cpp
   smt2/smt2.h
   smt2/smt2_input.cpp
@@ -98,7 +99,7 @@ target_link_libraries(cvc4parser cvc4 ${ANTLR_LIBRARIES})
 target_include_directories(cvc4parser PRIVATE ${ANTLR_INCLUDE_DIR})
 install(TARGETS cvc4parser
   EXPORT cvc4-targets
-  DESTINATION lib)
+  DESTINATION ${LIBRARY_INSTALL_DIR})
 
 # The generated lexer/parser files define some functions as
 # __declspec(dllexport) via the ANTLR3_API macro, which leads to lots of

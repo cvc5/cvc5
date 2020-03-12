@@ -9,9 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Arith utilities are common inline functions for dealing with nodes.
- **
- ** Arith utilities are common functions for dealing with nodes.
+ ** \brief Common functions for dealing with nodes.
  **/
 
 #include "cvc4_private.h"
@@ -19,6 +17,7 @@
 #ifndef CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 #define CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 
+#include <math.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -208,10 +207,8 @@ inline Node negateConjunctionAsClause(TNode conjunction){
 }
 
 inline Node maybeUnaryConvert(NodeBuilder<>& builder){
-  Assert(builder.getKind() == kind::OR ||
-         builder.getKind() == kind::AND ||
-         builder.getKind() == kind::PLUS ||
-         builder.getKind() == kind::MULT);
+  Assert(builder.getKind() == kind::OR || builder.getKind() == kind::AND
+         || builder.getKind() == kind::PLUS || builder.getKind() == kind::MULT);
   Assert(builder.getNumChildren() >= 1);
   if(builder.getNumChildren() == 1){
     return builder[0];
@@ -302,6 +299,41 @@ inline Node mkPi()
   return NodeManager::currentNM()->mkNullaryOperator(
       NodeManager::currentNM()->realType(), kind::PI);
 }
+/** Join kinds, where k1 and k2 are arithmetic relations returns an
+ * arithmetic relation ret such that
+ * if (a <k1> b) and (a <k2> b), then (a <ret> b).
+ */
+Kind joinKinds(Kind k1, Kind k2);
+
+/** Transitive kinds, where k1 and k2 are arithmetic relations returns an
+ * arithmetic relation ret such that
+ * if (a <k1> b) and (b <k2> c) then (a <ret> c).
+ */
+Kind transKinds(Kind k1, Kind k2);
+
+/** Is k a transcendental function kind? */
+bool isTranscendentalKind(Kind k);
+/**
+ * Get a lower/upper approximation of the constant r within the given
+ * level of precision. In other words, this returns a constant c' such that
+ *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
+ *   c' + 1/(10^prec) <= c <= c' if isLower is false.
+ * where c' is a rational of the form n/d for some n and d <= 10^prec.
+ */
+Node getApproximateConstant(Node c, bool isLower, unsigned prec);
+
+/** print rational approximation of cr with precision prec on trace c */
+void printRationalApprox(const char* c, Node cr, unsigned prec = 5);
+
+/** Arithmetic substitute
+ *
+ * This computes the substitution n { vars -> subs }, but with the caveat
+ * that subterms of n that belong to a theory other than arithmetic are
+ * not traversed. In other words, terms that belong to other theories are
+ * treated as atomic variables. For example:
+ *   (5*f(x) + 7*x ){ x -> 3 } returns 5*f(x) + 7*3.
+ */
+Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs);
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

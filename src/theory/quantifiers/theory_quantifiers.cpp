@@ -16,8 +16,7 @@
 
 #include "theory/quantifiers/theory_quantifiers.h"
 
-
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
@@ -96,13 +95,17 @@ void TheoryQuantifiers::ppNotifyAssertions(
 bool TheoryQuantifiers::collectModelInfo(TheoryModel* m)
 {
   for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
-    if((*i).assertion.getKind() == kind::NOT) {
-      Debug("quantifiers::collectModelInfo") << "got quant FALSE: " << (*i).assertion[0] << endl;
-      if (!m->assertPredicate((*i).assertion[0], false))
+    if ((*i).d_assertion.getKind() == kind::NOT)
+    {
+      Debug("quantifiers::collectModelInfo")
+          << "got quant FALSE: " << (*i).d_assertion[0] << endl;
+      if (!m->assertPredicate((*i).d_assertion[0], false))
       {
         return false;
       }
-    } else {
+    }
+    else
+    {
       Debug("quantifiers::collectModelInfo") << "got quant TRUE : " << *i << endl;
       if (!m->assertPredicate(*i, true))
       {
@@ -147,15 +150,11 @@ void TheoryQuantifiers::check(Effort e) {
           //do nothing
           break;
         case kind::INST_CLOSURE:
-        default:
-          Unhandled(assertion[0].getKind());
-          break;
+        default: Unhandled() << assertion[0].getKind(); break;
         }
       }
       break;
-    default:
-      Unhandled(assertion.getKind());
-      break;
+      default: Unhandled() << assertion.getKind(); break;
     }
   }
   // call the quantifiers engine to check

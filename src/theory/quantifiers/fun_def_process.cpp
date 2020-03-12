@@ -33,10 +33,11 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
   std::vector< int > fd_assertions;
   std::map< int, Node > subs_head;
   //first pass : find defined functions, transform quantifiers
+  NodeManager* nm = NodeManager::currentNM();
   for( unsigned i=0; i<assertions.size(); i++ ){
     Node n = QuantAttributes::getFunDefHead( assertions[i] );
     if( !n.isNull() ){
-      Assert( n.getKind()==APPLY_UF );
+      Assert(n.getKind() == APPLY_UF);
       Node f = n.getOperator();
 
       //check if already defined, if so, throw error
@@ -62,9 +63,10 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
         //create functions f1...fn mapping from this sort to concrete elements
         for( unsigned j=0; j<n.getNumChildren(); j++ ){
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( iType, n[j].getType() );
-          std::stringstream ss;
-          ss << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back( NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during fun def fmf" ) );
+          std::stringstream ssf;
+          ssf << f << "_arg_" << j;
+          d_input_arg_inj[f].push_back(
+              nm->mkSkolem(ssf.str(), typ, "op created during fun def fmf"));
         }
 
         //construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
@@ -127,7 +129,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
 Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, bool is_fun_def,
                                  std::map< int, std::map< Node, Node > >& visited,
                                  std::map< int, std::map< Node, Node > >& visited_cons ) {
-  Assert( constraints.empty() );
+  Assert(constraints.empty());
   int index = ( is_fun_def ? 1 : 0 ) + 2*( hasPol ? ( pol ? 1 : -1 ) : 0 );
   std::map< Node, Node >::iterator itv = visited[index].find( n );
   if( itv!=visited[index].end() ){
@@ -211,8 +213,8 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
         }
       }else{
         //simplify term
-        std::map<Node, Node> visited;
-        getConstraints(n, constraints, visited);
+        std::map<Node, Node> visitedT;
+        getConstraints(n, constraints, visitedT);
       }
       if( !constraints.empty() && isBool && hasPol ){
         //conjoin with current
@@ -240,7 +242,7 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
         cons = constraints[0];
       }
       visited_cons[index][n] = cons;
-      Assert( constraints.size()==1 && constraints[0]==cons );
+      Assert(constraints.size() == 1 && constraints[0] == cons);
     }
     visited[index][n] = ret;
     return ret;

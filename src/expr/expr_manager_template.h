@@ -80,11 +80,10 @@ private:
   ExprManager(const ExprManager&) = delete;
   ExprManager& operator=(const ExprManager&) = delete;
 
-  std::vector<DatatypeType> d_keep_dtt;
-  std::vector<Datatype> d_keep_dt;
+  /** A list of datatypes owned by this expr manager. */
+  std::vector<std::unique_ptr<Datatype> > d_ownedDatatypes;
 
-public:
-
+ public:
   /**
    * Creates an expression manager with default options.
    */
@@ -306,6 +305,16 @@ public:
    * f( a, f( b, c ) ).
    */
   Expr mkRightAssociative(Kind kind, const std::vector<Expr>& children);
+
+  /** make chain
+   *
+   * Given a kind k and arguments t_1, ..., t_n, this returns the
+   * conjunction of:
+   *  (k t_1 t_2) .... (k t_{n-1} t_n)
+   * It is expected that k is a kind denoting a predicate, and args is a list
+   * of terms of size >= 2 such that the terms above are well-typed.
+   */
+  Expr mkChain(Kind kind, const std::vector<Expr>& children);
 
   /**
    * Determine whether Exprs of a particular Kind have operators.
@@ -574,6 +583,12 @@ public:
   /** Returns the maximum arity of the given kind. */
   static unsigned maxArity(Kind kind);
 
+  /**
+   * Return the datatype at the given index owned by this class. Type nodes are
+   * associated with datatypes through the DatatypeIndexConstant class. The
+   * argument index is intended to be a value taken from that class.
+   */
+  const Datatype& getDatatypeForIndex(unsigned index) const;
 };/* class ExprManager */
 
 ${mkConst_instantiations}

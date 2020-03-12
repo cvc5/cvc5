@@ -145,13 +145,13 @@ class HoApplyTypeRule {
   // the typing rule for HO_APPLY terms
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
-    Assert( n.getKind()==kind::HO_APPLY );
+    Assert(n.getKind() == kind::HO_APPLY);
     TypeNode fType = n[0].getType(check);
     if (!fType.isFunction()) {
       throw TypeCheckingExceptionPrivate(
           n, "first argument does not have function type");
     }
-    Assert( fType.getNumChildren()>=2 );
+    Assert(fType.getNumChildren() >= 2);
     if (check) {
       TypeNode aType = n[1].getType(check);
       if( !aType.isSubtypeOf( fType[0] ) ){

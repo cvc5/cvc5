@@ -110,18 +110,23 @@ class TheoryEngineModelBuilder : public ModelBuilder
    */
   void debugCheckModel(TheoryModel* m);
 
-  /** is n assignable?
+  /** Evaluate equivalence class
    *
-   * A term n is assignable if its value
-   * is unconstrained by a standard model.
-   * Examples of assignable terms are:
+   * If this method returns a non-null node c, then c is a constant and some
+   * term in the equivalence class of r evaluates to c based on the current
+   * state of the model m.
+   */
+  Node evaluateEqc(TheoryModel* m, TNode r);
+  /** is n an assignable expression?
+   *
+   * A term n is an assignable expression if its value is unconstrained by a
+   * standard model. Examples of assignable terms are:
    * - variables,
    * - applications of array select,
    * - applications of datatype selectors,
    * - applications of uninterpreted functions.
-   * Assignable terms must be first-order, that is,
-   * all instances of the above terms are not
-   * assignable if they have a higher-order (function) type.
+   * Assignable terms must be first-order, that is, all instances of the above
+   * terms are not assignable if they have a higher-order (function) type.
    */
   bool isAssignable(TNode n);
   /** add assignable subterms
@@ -210,6 +215,82 @@ class TheoryEngineModelBuilder : public ModelBuilder
    */
   std::map<Node, Node> d_constantReps;
 
+  /** Theory engine model builder assigner class
+   *
+   * This manages the assignment of values to terms of a given type.
+   * In particular, it is a wrapper around a type enumerator that is restricted
+   * by a set of values that it cannot generate, called an "assignment exclusion
+   * set".
+   */
+  class Assigner
+  {
+   public:
+    Assigner() : d_te(nullptr), d_isActive(false) {}
+    /**
+     * Initialize this assigner to generate values of type tn, with properties
+     * tep and assignment exclusion set aes.
+     */
+    void initialize(TypeNode tn,
+                    TypeEnumeratorProperties* tep,
+                    const std::vector<Node>& aes);
+    /** get the next term in the enumeration
+     *
+     * This method returns the next legal term based on type enumeration, where
+     * a term is legal it does not belong to the assignment exclusion set of
+     * this assigner. If no more terms exist, this method returns null. This
+     * should never be the case due to the conditions ensured by theory solvers
+     * for finite types. If it is the case, we give an assertion failure.
+     */
+    Node getNextAssignment();
+    /** The type enumerator */
+    std::unique_ptr<TypeEnumerator> d_te;
+    /** The assignment exclusion set of this Assigner */
+    std::vector<Node> d_assignExcSet;
+    /**
+     * Is active, flag set to true when all values in d_assignExcSet are
+     * constant.
+     */
+    bool d_isActive;
+  };
+  /** Is the given Assigner ready to assign values?
+   *
+   * This returns true if all values in the assignment exclusion set of a have
+   * a known value according to the state of this model builder (via a lookup
+   * in d_constantReps). It updates the assignment exclusion vector of a to
+   * these values whenever possible.
+   */
+  bool isAssignerActive(TheoryModel* tm, Assigner& a);
+  /** compute assignable information
+   *
+   * This computes necessary information pertaining to how values should be
+   * assigned to equivalence classes in the equality engine of tm.
+   *
+   * The argument tep stores global information about how values should be
+   * assigned, such as information on how many uninterpreted constant
+   * values are available, which is restricted if finite model finding is
+   * enabled.
+   *
+   * In particular this method constructs the following, passed as arguments:
+   * (1) assignableEqc: the set of equivalence classes that are "assignable",
+   * i.e. those that have an assignable expression in them (see isAssignable),
+   * and have not already been assigned a constant,
+   * (2) evaluableEqc: the set of equivalence classes that are "evaluable", i.e.
+   * those that have an expression in them that is not assignable, and have not
+   * already been assigned a constant,
+   * (3) eqcToAssigner: assigner objects for relevant equivalence classes that
+   * require special ways of assigning values, e.g. those that take into
+   * account assignment exclusion sets,
+   * (4) eqcToAssignerMaster: a map from equivalence classes to the equivalence
+   * class that it shares an assigner object with (all elements in the range of
+   * this map are in the domain of eqcToAssigner).
+   */
+  void computeAssignableInfo(
+      TheoryModel* tm,
+      TypeEnumeratorProperties& tep,
+      std::unordered_set<Node, NodeHashFunction>& assignableEqc,
+      std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
+      std::map<Node, Assigner>& eqcToAssigner,
+      std::map<Node, Node>& eqcToAssignerMaster);
   //------------------------------------for codatatypes
   /** is v an excluded codatatype value?
    *

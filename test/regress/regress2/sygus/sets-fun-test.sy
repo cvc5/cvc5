@@ -1,0 +1,10 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status
+(set-logic ALL)
+(synth-fun f ((x Int)) (Set Int))
+
+(constraint (member 45 (f 45)))
+(constraint (member 8 (f 8)))
+(constraint (member 0 (f 3)))
+
+(check-synth)

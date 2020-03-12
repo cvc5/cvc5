@@ -15,9 +15,8 @@
  **/
 
 #include <iostream>
-#include "options/language.h" // for use with make examples
-#include "smt/smt_engine.h" // for use with make examples
-//#include <cvc4/cvc4.h> // To follow the wiki
+
+#include <cvc4/cvc4.h>
 
 using namespace CVC4;
 
@@ -32,7 +31,7 @@ int main() {
   // is specified.  Second, it is "resolved"---at which point function
   // symbols are assigned to its constructors, selectors, and testers.
 
-  Datatype consListSpec("list"); // give the datatype a name
+  Datatype consListSpec(&em, "list");  // give the datatype a name
   DatatypeConstructor cons("cons");
   cons.addArg("head", em.integerType());
   cons.addArg("tail", DatatypeSelfType()); // a list
@@ -104,7 +103,7 @@ int main() {
   // This example builds a simple parameterized list of sort T, with one
   // constructor "cons".
   Type sort = em.mkSort("T", ExprManager::SORT_FLAG_PLACEHOLDER);
-  Datatype paramConsListSpec("list", std::vector<Type>{sort});
+  Datatype paramConsListSpec(&em, "list", std::vector<Type>{sort});
   DatatypeConstructor paramCons("cons");
   DatatypeConstructor paramNil("nil");
   paramCons.addArg("head", sort);
@@ -115,7 +114,7 @@ int main() {
   DatatypeType paramConsListType = em.mkDatatypeType(paramConsListSpec);
   Type paramConsIntListType = paramConsListType.instantiate(std::vector<Type>{em.integerType()});
 
-  Datatype paramConsList = paramConsListType.getDatatype();
+  const Datatype& paramConsList = paramConsListType.getDatatype();
 
   std::cout << "parameterized datatype sort is " << std::endl;
   for (const DatatypeConstructor& ctor : paramConsList)

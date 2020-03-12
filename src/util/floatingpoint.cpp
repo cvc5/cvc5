@@ -15,7 +15,7 @@
  **/
 
 #include "util/floatingpoint.h"
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "util/integer.h"
 
 #include <math.h>
@@ -459,7 +459,7 @@ void traits::invariant(const prop &p)
 #ifndef CVC4_USE_SYMFPU
 void FloatingPointLiteral::unfinished(void) const
 {
-  Unimplemented("Floating-point literals not yet implemented.");
+  Unimplemented() << "Floating-point literals not yet implemented.";
 }
 #endif
 
@@ -500,7 +500,7 @@ static FloatingPointLiteral constructorHelperBitVector(
 #else
   return FloatingPointLiteral(2, 2, 0.0);
 #endif
-  Unreachable("Constructor helper broken");
+  Unreachable() << "Constructor helper broken";
   }
   
   FloatingPoint::FloatingPoint (const FloatingPointSize &ct, const RoundingMode &rm, const BitVector &bv, bool signedBV) :
@@ -592,7 +592,7 @@ static FloatingPointLiteral constructorHelperBitVector(
 
       // Compute the sticky bit
       Rational remainder(r - workingSig);
-      Assert(Rational(0,1) <= remainder);
+      Assert(Rational(0, 1) <= remainder);
 
       if (!remainder.isZero()) {
 	sig = sig | one;
@@ -616,10 +616,10 @@ static FloatingPointLiteral constructorHelperBitVector(
           symfpu::convertFloatToFloat(exactFormat, ct, rm, exactFloat));
       return rounded;
 #else
-      Unreachable("no concrete implementation of FloatingPointLiteral");
+      Unreachable() << "no concrete implementation of FloatingPointLiteral";
 #endif
     }
-    Unreachable("Constructor helper broken");
+    Unreachable() << "Constructor helper broken";
   }
   
   FloatingPoint::FloatingPoint (const FloatingPointSize &ct, const RoundingMode &rm, const Rational &r) :
@@ -923,7 +923,7 @@ static FloatingPointLiteral constructorHelperBitVector(
       
       // Only have pow(uint32_t) so we should check this.
       Assert(this->t.significand() <= 32);
-      
+
       if (!(exp.strictlyNegative())) {
 	Integer r(signedSignificand.multiplyByPow2(exp.toUnsignedInt()));
 	return PartialRational(Rational(r), true);
@@ -935,7 +935,7 @@ static FloatingPointLiteral constructorHelperBitVector(
       }
     }
 
-    Unreachable("Convert float literal to real broken.");
+    Unreachable() << "Convert float literal to real broken.";
   }
 
   BitVector FloatingPoint::pack (void) const {

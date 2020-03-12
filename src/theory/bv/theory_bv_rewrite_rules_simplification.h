@@ -308,7 +308,7 @@ Node RewriteRule<ShlByConst>::apply(TNode node) {
   
   // make sure we do not lose information casting
   Assert(amount < Integer(1).multiplyByPow2(32));
-  
+
   uint32_t uint32_amount = amount.toUnsignedInt();
 
   Node left = utils::mkExtract(a, size - 1 - uint32_amount, 0);
@@ -350,7 +350,7 @@ Node RewriteRule<LshrByConst>::apply(TNode node) {
   
   // make sure we do not lose information casting
   Assert(amount < Integer(1).multiplyByPow2(32));
-  
+
   uint32_t uint32_amount = amount.toUnsignedInt();
   Node right = utils::mkExtract(a, size - 1, uint32_amount);
   Node left = utils::mkZero(uint32_amount);
@@ -481,7 +481,7 @@ Node RewriteRule<AndOne>::apply(TNode node) {
   if (node[0] == utils::mkOnes(size)) {
     return node[1]; 
   } else {
-    Assert (node[1] == utils::mkOnes(size)); 
+    Assert(node[1] == utils::mkOnes(size));
     return node[0]; 
   }
 }
@@ -1619,12 +1619,14 @@ template<> inline
 Node RewriteRule<MergeSignExtend>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<MergeSignExtend>(" << node << ")" << std::endl;
   unsigned amount1 =
-      node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+      node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
 
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND) {
-    unsigned amount2 =
-        node[0].getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
+    unsigned amount2 = node[0]
+                           .getOperator()
+                           .getConst<BitVectorZeroExtend>()
+                           .d_zeroExtendAmount;
     if (amount2 == 0)
     {
       NodeBuilder<> nb(kind::BITVECTOR_SIGN_EXTEND);
@@ -1640,9 +1642,9 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
     Node res = nb;
     return res;
   }
-  Assert (node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND);
+  Assert(node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND);
   unsigned amount2 =
-      node[0].getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+      node[0].getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
   return utils::mkSignExtend(node[0][0], amount1 + amount2);
 }
 

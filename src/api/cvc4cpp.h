@@ -20,6 +20,10 @@
 #define CVC4__API__CVC4CPP_H
 
 #include "api/cvc4cppkind.h"
+// !!! Only temporarily public until the parser is fully migrated to the new
+// API. !!!
+#include "expr/kind.h"
+// !!!
 
 #include <map>
 #include <memory>
@@ -81,6 +85,15 @@ class CVC4_PUBLIC Result
    * @return the Result
    */
   Result(const CVC4::Result& r);
+
+  /** Constructor. */
+  Result();
+
+  /**
+   * Return true if Result is empty, i.e., a nullary Result, and not an actual
+   * result returned from a checkSat() (and friends) query.
+   */
+  bool isNull() const;
 
   /**
    * Return true if query was a satisfiable checkSat() or checkSatAssuming()
@@ -176,8 +189,7 @@ class CVC4_PUBLIC Sort
 {
   friend class DatatypeConstructorDecl;
   friend class DatatypeDecl;
-  friend class DatatypeSelectorDecl;
-  friend class OpTerm;
+  friend class Op;
   friend class Solver;
   friend struct SortHashFunction;
   friend class Term;
@@ -215,6 +227,34 @@ class CVC4_PUBLIC Sort
    * @return true if the sorts are not equal
    */
   bool operator!=(const Sort& s) const;
+
+  /**
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is less than s
+   */
+  bool operator<(const Sort& s) const;
+
+  /**
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is greater than s
+   */
+  bool operator>(const Sort& s) const;
+
+  /**
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is less than or equal to s
+   */
+  bool operator<=(const Sort& s) const;
+
+  /**
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is greater than or equal to s
+   */
+  bool operator>=(const Sort& s) const;
 
   /**
    * @return true if this Sort is a null sort.
@@ -281,6 +321,23 @@ class CVC4_PUBLIC Sort
    */
   bool isParametricDatatype() const;
 
+  /**
+   * Is this a constructor sort?
+   * @return true if the sort is a constructor sort
+   */
+  bool isConstructor() const;
+
+  /**
+   * Is this a selector sort?
+   * @return true if the sort is a selector sort
+   */
+  bool isSelector() const;
+
+  /**
+   * Is this a tester sort?
+   * @return true if the sort is a tester sort
+   */
+  bool isTester() const;
   /**
    * Is this a function sort?
    * @return true if the sort is a function sort
@@ -360,6 +417,19 @@ class CVC4_PUBLIC Sort
   bool isFunctionLike() const;
 
   /**
+   * Is this sort a subsort of the given sort?
+   * @return true if this sort is a subsort of s
+   */
+  bool isSubsortOf(Sort s) const;
+
+  /**
+   * Is this sort comparable to the given sort (i.e., do they share
+   * a common ancestor in the subsort tree)?
+   * @return true if this sort is comparable to s
+   */
+  bool isComparableTo(Sort s) const;
+
+  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -386,10 +456,27 @@ class CVC4_PUBLIC Sort
   // to the new API. !!!
   CVC4::Type getType(void) const;
 
+  /* Constructor sort ------------------------------------------------------- */
+
+  /**
+   * @return the arity of a constructor sort
+   */
+  size_t getConstructorArity() const;
+
+  /**
+   * @return the domain sorts of a constructor sort
+   */
+  std::vector<Sort> getConstructorDomainSorts() const;
+
+  /**
+   * @return the codomain sort of a constructor sort
+   */
+  Sort getConstructorCodomainSort() const;
+
   /* Function sort ------------------------------------------------------- */
 
   /**
-   * @return the arity  of a function sort
+   * @return the arity of a function sort
    */
   size_t getFunctionArity() const;
 
@@ -495,9 +582,12 @@ class CVC4_PUBLIC Sort
   std::vector<Sort> getTupleSorts() const;
 
  private:
-  /* Helper to convert a vector of sorts into a vector of internal types. */
-  std::vector<Sort> typeVectorToSorts(
-      const std::vector<CVC4::Type>& vector) const;
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
+
   /**
    * The interal type wrapped by this sort.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
@@ -521,6 +611,136 @@ std::ostream& operator<<(std::ostream& out, const Sort& s) CVC4_PUBLIC;
 struct CVC4_PUBLIC SortHashFunction
 {
   size_t operator()(const Sort& s) const;
+};
+
+/* -------------------------------------------------------------------------- */
+/* Op                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A CVC4 operator.
+ * An operator is a term that represents certain operators, instantiated
+ * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
+ */
+class CVC4_PUBLIC Op
+{
+  friend class Solver;
+  friend struct OpHashFunction;
+
+ public:
+  /**
+   * Constructor.
+   */
+  Op();
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor for a single kind (non-indexed operator).
+   * @param k the kind of this Op
+   */
+  Op(const Kind k);
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param k the kind of this Op
+   * @param e the internal expression that is to be wrapped by this term
+   * @return the Term
+   */
+  Op(const Kind k, const CVC4::Expr& e);
+
+  /**
+   * Destructor.
+   */
+  ~Op();
+
+  /**
+   * Syntactic equality operator.
+   * Return true if both operators are syntactically identical.
+   * Both operators must belong to the same solver object.
+   * @param t the operator to compare to for equality
+   * @return true if the operators are equal
+   */
+  bool operator==(const Op& t) const;
+
+  /**
+   * Syntactic disequality operator.
+   * Return true if both operators differ syntactically.
+   * Both terms must belong to the same solver object.
+   * @param t the operator to compare to for disequality
+   * @return true if operators are disequal
+   */
+  bool operator!=(const Op& t) const;
+
+  /**
+   * @return the kind of this operator
+   */
+  Kind getKind() const;
+
+  /**
+   * @return the sort of this operator
+   */
+  Sort getSort() const;
+
+  /**
+   * @return true if this operator is a null term
+   */
+  bool isNull() const;
+
+  /**
+   * @return true iff this operator is indexed
+   */
+  bool isIndexed() const;
+
+  /**
+   * Get the indices used to create this Op.
+   * Supports the following template arguments:
+   *   - string
+   *   - Kind
+   *   - uint32_t
+   *   - pair<uint32_t, uint32_t>
+   * Check the Op Kind with getKind() to determine which argument to use.
+   * @return the indices used to create this Op
+   */
+  template <typename T>
+  T getIndices() const;
+
+  /**
+   * @return a string representation of this operator
+   */
+  std::string toString() const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::Expr getExpr(void) const;
+
+ private:
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
+
+  /**
+   * Note: An indexed operator has a non-null internal expr, d_expr
+   * Note 2: We use a helper method to avoid having API functions call
+   *         other API functions (we need to call this internally)
+   * @return true iff this Op is indexed
+   */
+  bool isIndexedHelper() const;
+
+  /* The kind of this operator. */
+  Kind d_kind;
+
+  /**
+   * The internal expression wrapped by this operator.
+   * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
+   * memory allocation (CVC4::Expr is already ref counted, so this could be
+   * a unique_ptr instead).
+   */
+  std::shared_ptr<CVC4::Expr> d_expr;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -576,6 +796,53 @@ class CVC4_PUBLIC Term
   bool operator!=(const Term& t) const;
 
   /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is less than t
+   */
+  bool operator<(const Term& t) const;
+
+  /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is greater than t
+   */
+  bool operator>(const Term& t) const;
+
+  /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is less than or equal to t
+   */
+  bool operator<=(const Term& t) const;
+
+  /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is greater than or equal to t
+   */
+  bool operator>=(const Term& t) const;
+
+  /**
+   * Returns the number of children of this term.
+   *
+   * @return the number of term
+   */
+  size_t getNumChildren() const;
+
+  /**
+   * Get the child term at a given index.
+   * @param index the index of the child term to return
+   * @return the child term with the given index
+   */
+  Term operator[](size_t index) const;
+
+  /**
+   * @return the id of this term
+   */
+  uint64_t getId() const;
+
+  /**
    * @return the kind of this term
    */
   Kind getKind() const;
@@ -586,9 +853,39 @@ class CVC4_PUBLIC Term
   Sort getSort() const;
 
   /**
+   * @return the result of replacing "e" by "replacement" in this term
+   */
+  Term substitute(Term e, Term replacement) const;
+
+  /**
+   * @return the result of simulatenously replacing "es" by "replacements" in
+   * this term
+   */
+  Term substitute(const std::vector<Term> es,
+                  const std::vector<Term>& replacements) const;
+
+  /**
+   * @return true iff this term has an operator
+   */
+  bool hasOp() const;
+
+  /**
+   * @return the Op used to create this term
+   * Note: This is safe to call when hasOp() returns true.
+   */
+  Op getOp() const;
+
+  /**
    * @return true if this Term is a null term
    */
   bool isNull() const;
+
+  /**
+   * Check if this is a Term representing a constant.
+   *
+   * @return true if a constant Term
+   */
+  bool isConst() const;
 
   /**
    * Boolean negation.
@@ -646,6 +943,9 @@ class CVC4_PUBLIC Term
 
   /**
    * Iterator for the children of a Term.
+   * Note: This treats uninterpreted functions as Term just like any other term
+   *       for example, the term f(x, y) will have Kind APPLY_UF and three
+   *       children: f, x, and y
    */
   class const_iterator : public std::iterator<std::input_iterator_tag, Term>
   {
@@ -653,19 +953,21 @@ class CVC4_PUBLIC Term
 
    public:
     /**
-     * Constructor.
+     * Null Constructor.
      */
     const_iterator();
+
+    /**
+     * Constructor
+     * @param e a shared pointer to the expression that we're iterating over
+     * @param p the position of the iterator (e.g. which child it's on)
+     */
+    const_iterator(const std::shared_ptr<CVC4::Expr>& e, uint32_t p);
 
     /**
      * Copy constructor.
      */
     const_iterator(const const_iterator& it);
-
-    /**
-     * Destructor.
-     */
-    ~const_iterator();
 
     /**
      * Assignment operator.
@@ -707,10 +1009,10 @@ class CVC4_PUBLIC Term
     Term operator*() const;
 
    private:
-    /* The internal expression iterator wrapped by this iterator. */
-    void* d_iterator;
-    /* Constructor. */
-    explicit const_iterator(void*);
+    /* The original expression to be iterated over */
+    std::shared_ptr<CVC4::Expr> d_orig_expr;
+    /* Keeps track of the iteration position */
+    uint32_t d_pos;
   };
 
   /**
@@ -728,6 +1030,12 @@ class CVC4_PUBLIC Term
   CVC4::Expr getExpr(void) const;
 
  private:
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
+
   /**
    * The internal expression wrapped by this term.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
@@ -805,119 +1113,20 @@ std::ostream& operator<<(std::ostream& out,
                          const std::unordered_map<Term, V, TermHashFunction>&
                              unordered_map) CVC4_PUBLIC;
 
-/* -------------------------------------------------------------------------- */
-/* OpTerm                                                                     */
-/* -------------------------------------------------------------------------- */
-
 /**
- * A CVC4 operator term.
- * An operator term is a term that represents certain operators, instantiated
- * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
- */
-class CVC4_PUBLIC OpTerm
-{
-  friend class Solver;
-  friend struct OpTermHashFunction;
-
- public:
-  /**
-   * Constructor.
-   */
-  OpTerm();
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param e the internal expression that is to be wrapped by this term
-   * @return the Term
-   */
-  OpTerm(const CVC4::Expr& e);
-
-  /**
-   * Destructor.
-   */
-  ~OpTerm();
-
-  /**
-   * Syntactic equality operator.
-   * Return true if both operator terms are syntactically identical.
-   * Both operator terms must belong to the same solver object.
-   * @param t the operator term to compare to for equality
-   * @return true if the operator terms are equal
-   */
-  bool operator==(const OpTerm& t) const;
-
-  /**
-   * Syntactic disequality operator.
-   * Return true if both operator terms differ syntactically.
-   * Both terms must belong to the same solver object.
-   * @param t the operator term to compare to for disequality
-   * @return true if operator terms are disequal
-   */
-  bool operator!=(const OpTerm& t) const;
-
-  /**
-   * @return the kind of this operator term
-   */
-  Kind getKind() const;
-
-  /**
-   * @return the sort of this operator term
-   */
-  Sort getSort() const;
-
-  /**
-   * @return true if this operator term is a null term
-   */
-  bool isNull() const;
-
-  /**
-   * Get the indices used to create this OpTerm.
-   * Supports the following template arguments:
-   *   - string
-   *   - Kind
-   *   - uint32_t
-   *   - pair<uint32_t, uint32_t>
-   * Check the OpTerm Kind with getKind() to determine which argument to use.
-   * @return the indices used to create this OpTerm
-   */
-  template <typename T>
-  T getIndices() const;
-
-  /**
-   * @return a string representation of this operator term
-   */
-  std::string toString() const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::Expr getExpr(void) const;
-
- private:
-  /**
-   * The internal expression wrapped by this operator term.
-   * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
-   * memory allocation (CVC4::Expr is already ref counted, so this could be
-   * a unique_ptr instead).
-   */
-  std::shared_ptr<CVC4::Expr> d_expr;
-};
-
-/**
- * Serialize an operator term to given stream.
+ * Serialize an operator to given stream.
  * @param out the output stream
- * @param t the operator term to be serialized to the given output stream
+ * @param t the operator to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const OpTerm& t) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Op& t) CVC4_PUBLIC;
 
 /**
- * Hash function for OpTerms.
+ * Hash function for Ops.
  */
-struct CVC4_PUBLIC OpTermHashFunction
+struct CVC4_PUBLIC OpHashFunction
 {
-  size_t operator()(const OpTerm& t) const;
+  size_t operator()(const Op& t) const;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -926,51 +1135,6 @@ struct CVC4_PUBLIC OpTermHashFunction
 
 class DatatypeConstructorIterator;
 class DatatypeIterator;
-
-/**
- * A place-holder sort to allow a DatatypeDecl to refer to itself.
- * Self-sorted fields of DatatypeDecls will be properly sorted when a Sort is
- * created for the DatatypeDecl.
- */
-class CVC4_PUBLIC DatatypeDeclSelfSort
-{
-};
-
-/**
- * A CVC4 datatype selector declaration.
- */
-class CVC4_PUBLIC DatatypeSelectorDecl
-{
-  friend class DatatypeConstructorDecl;
-
- public:
-  /**
-   * Constructor.
-   * @param name the name of the datatype selector
-   * @param sort the sort of the datatype selector
-   * @return the DatatypeSelectorDecl
-   */
-  DatatypeSelectorDecl(const std::string& name, Sort sort);
-
-  /**
-   * Constructor.
-   * @param name the name of the datatype selector
-   * @param sort the sort of the datatype selector
-   * @return the DAtatypeSelectorDecl
-   */
-  DatatypeSelectorDecl(const std::string& name, DatatypeDeclSelfSort sort);
-
-  /**
-   * @return a string representation of this datatype selector
-   */
-  std::string toString() const;
-
- private:
-  /* The name of the datatype selector. */
-  std::string d_name;
-  /* The sort of the datatype selector. */
-  Sort d_sort;
-};
 
 /**
  * A CVC4 datatype constructor declaration.
@@ -989,9 +1153,15 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
   /**
    * Add datatype selector declaration.
-   * @param stor the datatype selector declaration to add
+   * @param name the name of the datatype selector declaration to add
+   * @param sort the range sort of the datatype selector declaration to add
    */
-  void addSelector(const DatatypeSelectorDecl& stor);
+  void addSelector(const std::string& name, Sort sort);
+  /**
+   * Add datatype selector declaration whose range type is the datatype itself.
+   * @param name the name of the datatype selector declaration to add
+   */
+  void addSelectorSelf(const std::string& name);
 
   /**
    * @return a string representation of this datatype constructor declaration
@@ -1000,7 +1170,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::DatatypeConstructor getDatatypeConstructor(void) const;
+  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1012,6 +1182,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
 };
 
+class Solver;
 /**
  * A CVC4 datatype declaration.
  */
@@ -1019,35 +1190,11 @@ class CVC4_PUBLIC DatatypeDecl
 {
   friend class DatatypeConstructorArg;
   friend class Solver;
-
  public:
   /**
-   * Constructor.
-   * @param name the name of the datatype
-   * @param isCoDatatype true if a codatatype is to be constructed
-   * @return the DatatypeDecl
+   * Nullary constructor for Cython
    */
-  DatatypeDecl(const std::string& name, bool isCoDatatype = false);
-
-  /**
-   * Constructor for parameterized datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param param the sort parameter
-   * @param isCoDatatype true if a codatatype is to be constructed
-   */
-  DatatypeDecl(const std::string& name, Sort param, bool isCoDatatype = false);
-
-  /**
-   * Constructor for parameterized datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param params a list of sort parameters
-   * @param isCoDatatype true if a codatatype is to be constructed
-   */
-  DatatypeDecl(const std::string& name,
-               const std::vector<Sort>& params,
-               bool isCoDatatype = false);
+  DatatypeDecl();
 
   /**
    * Destructor.
@@ -1066,16 +1213,61 @@ class CVC4_PUBLIC DatatypeDecl
   /** Is this Datatype declaration parametric? */
   bool isParametric() const;
 
+  bool isNull() const;
+
   /**
    * @return a string representation of this datatype declaration
    */
   std::string toString() const;
 
+  /** @return the name of this datatype declaration. */
+  std::string getName() const;
+
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::Datatype getDatatype(void) const;
+  CVC4::Datatype& getDatatype(void) const;
 
  private:
+  /**
+   * Constructor.
+   * @param s the solver that created this datatype declaration
+   * @param name the name of the datatype
+   * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
+   */
+  DatatypeDecl(const Solver* s,
+               const std::string& name,
+               bool isCoDatatype = false);
+
+  /**
+   * Constructor for parameterized datatype declaration.
+   * Create sorts parameter with Solver::mkParamSort().
+   * @param s the solver that created this datatype declaration
+   * @param name the name of the datatype
+   * @param param the sort parameter
+   * @param isCoDatatype true if a codatatype is to be constructed
+   */
+  DatatypeDecl(const Solver* s,
+               const std::string& name,
+               Sort param,
+               bool isCoDatatype = false);
+
+  /**
+   * Constructor for parameterized datatype declaration.
+   * Create sorts parameter with Solver::mkParamSort().
+   * @param s the solver that created this datatype declaration
+   * @param name the name of the datatype
+   * @param params a list of sort parameters
+   * @param isCoDatatype true if a codatatype is to be constructed
+   */
+  DatatypeDecl(const Solver* s,
+               const std::string& name,
+               const std::vector<Sort>& params,
+               bool isCoDatatype = false);
+
+  // helper for isNull() to avoid calling API functions from other API functions
+  bool isNullHelper() const;
+
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -1112,16 +1304,17 @@ class CVC4_PUBLIC DatatypeSelector
    */
   ~DatatypeSelector();
 
-  /**
-   * @return true if this datatype selector has been resolved.
-   */
-  bool isResolved() const;
+  /** @return the name of this Datatype selector. */
+  std::string getName() const;
 
   /**
    * Get the selector operator of this datatype selector.
-   * @return the selector operator
+   * @return the selector term
    */
-  OpTerm getSelectorTerm() const;
+  Term getSelectorTerm() const;
+
+  /** @return the range sort of this argument. */
+  Sort getRangeSort() const;
 
   /**
    * @return a string representation of this datatype selector
@@ -1169,17 +1362,28 @@ class CVC4_PUBLIC DatatypeConstructor
    */
   ~DatatypeConstructor();
 
-  /**
-   * @return true if this datatype constructor has been resolved.
-   */
-  bool isResolved() const;
+  /** @return the name of this Datatype constructor. */
+  std::string getName() const;
 
   /**
    * Get the constructor operator of this datatype constructor.
-   * @return the constructor operator
+   * @return the constructor term
    */
-  OpTerm getConstructorTerm() const;
+  Term getConstructorTerm() const;
 
+  /**
+   * Get the tester operator of this datatype constructor.
+   * @return the tester operator
+   */
+  Term getTesterTerm() const;
+
+  /**
+   * @return the number of selectors (so far) of this Datatype constructor.
+   */
+  size_t getNumSelectors() const;
+
+  /** @return the i^th DatatypeSelector. */
+  DatatypeSelector operator[](size_t index) const;
   /**
    * Get the datatype selector with the given name.
    * This is a linear search through the selectors, so in case of
@@ -1197,7 +1401,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param name the name of the datatype selector
    * @return a term representing the datatype selector with the given name
    */
-  OpTerm getSelectorTerm(const std::string& name) const;
+  Term getSelectorTerm(const std::string& name) const;
 
   /**
    * @return a string representation of this datatype constructor
@@ -1213,6 +1417,9 @@ class CVC4_PUBLIC DatatypeConstructor
     friend class DatatypeConstructor;  // to access constructor
 
    public:
+    /** Nullary constructor (required for Cython). */
+    const_iterator();
+
     /**
      * Assignment operator.
      * @param it the iterator to assign to
@@ -1287,9 +1494,15 @@ class CVC4_PUBLIC DatatypeConstructor
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::DatatypeConstructor getDatatypeConstructor(void) const;
+  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
 
  private:
+  /**
+   * Return selector for name.
+   * @param name The name of selector to find
+   * @return the selector object for the name
+   */
+  DatatypeSelector getSelectorForName(const std::string& name) const;
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -1315,6 +1528,9 @@ class CVC4_PUBLIC Datatype
    * @return the Datatype
    */
   Datatype(const CVC4::Datatype& dtype);
+
+  // Nullary constructor for Cython
+  Datatype();
 
   /**
    * Destructor.
@@ -1344,13 +1560,37 @@ class CVC4_PUBLIC Datatype
    * similarly-named constructors, the
    * first is returned.
    */
-  OpTerm getConstructorTerm(const std::string& name) const;
+  Term getConstructorTerm(const std::string& name) const;
 
-  /** Get the number of constructors for this Datatype. */
+  /** @return the name of this Datatype. */
+  std::string getName() const;
+
+  /** @return the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
 
-  /** Is this Datatype parametric? */
+  /** @return true if this datatype is parametric */
   bool isParametric() const;
+
+  /** @return true if this datatype corresponds to a co-datatype */
+  bool isCodatatype() const;
+
+  /** @return true if this datatype corresponds to a tuple */
+  bool isTuple() const;
+
+  /** @return true if this datatype corresponds to a record */
+  bool isRecord() const;
+
+  /** @return true if this datatype is finite */
+  bool isFinite() const;
+
+  /**
+   * Is this datatype well-founded? If this datatype is not a codatatype,
+   * this returns false if there are no values of this datatype that are of
+   * finite size.
+   *
+   * @return true if this datatype is well-founded
+   */
+  bool isWellFounded() const;
 
   /**
    * @return a string representation of this datatype
@@ -1365,6 +1605,9 @@ class CVC4_PUBLIC Datatype
     friend class Datatype;  // to access constructor
 
    public:
+    /** Nullary constructor (required for Cython). */
+    const_iterator();
+
     /**
      * Assignment operator.
      * @param it the iterator to assign to
@@ -1439,9 +1682,15 @@ class CVC4_PUBLIC Datatype
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::Datatype getDatatype(void) const;
+  const CVC4::Datatype& getDatatype(void) const;
 
  private:
+  /**
+   * Return constructor for name.
+   * @param name The name of constructor to find
+   * @return the constructor object for the name
+   */
+  DatatypeConstructor getConstructorForName(const std::string& name) const;
   /**
    * The internal datatype wrapped by this datatype.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -1477,15 +1726,6 @@ std::ostream& operator<<(std::ostream& out,
  */
 std::ostream& operator<<(std::ostream& out,
                          const std::vector<DatatypeConstructorDecl>& vector);
-
-/**
- * Serialize a datatype selector declaration to given stream.
- * @param out the output stream
- * @param stordecl the datatype selector declaration to be serialized
- * @return the output stream
- */
-std::ostream& operator<<(std::ostream& out,
-                         const DatatypeSelectorDecl& stordecl) CVC4_PUBLIC;
 
 /**
  * Serialize a datatype to given stream.
@@ -1638,6 +1878,37 @@ class CVC4_PUBLIC Solver
   Sort mkDatatypeSort(DatatypeDecl dtypedecl) const;
 
   /**
+   * Create a vector of datatype sorts. The names of the datatype declarations
+   * must be distinct.
+   *
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSorts(
+      std::vector<DatatypeDecl>& dtypedecls) const;
+
+  /**
+   * Create a vector of datatype sorts using unresolved sorts. The names of
+   * the datatype declarations in dtypedecls must be distinct.
+   *
+   * This method is called when the DatatypeDecl objects dtypedecls have been
+   * built using "unresolved" sorts.
+   *
+   * We associate each sort in unresolvedSorts with exacly one datatype from
+   * dtypedecls. In particular, it must have the same name as exactly one
+   * datatype declaration in dtypedecls.
+   *
+   * When constructing datatypes, unresolved sorts are replaced by the datatype
+   * sort constructed for the datatype declaration it is associated with.
+   *
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @param unresolvedSorts the list of unresolved sorts
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
+                                    std::set<Sort>& unresolvedSorts) const;
+
+  /**
    * Create function sort.
    * @param domain the sort of the fuction argument
    * @param codomain the sort of the function return value
@@ -1751,59 +2022,52 @@ class CVC4_PUBLIC Solver
   Term mkTerm(Kind kind, const std::vector<Term>& children) const;
 
   /**
-   * Create nullary term of given kind from a given operator term.
-   * Create operator terms with mkOpTerm().
-   * @param kind the kind of the term
-   * @param the operator term
+   * Create nullary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param the operator
    * @return the Term
    */
-  Term mkTerm(Kind kind, OpTerm opTerm) const;
+  Term mkTerm(Op op) const;
 
   /**
-   * Create unary term of given kind from a given operator term.
-   * Create operator terms with mkOpTerm().
-   * @param kind the kind of the term
-   * @param the operator term
+   * Create unary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param the operator
    * @child the child of the term
    * @return the Term
    */
-  Term mkTerm(Kind kind, OpTerm opTerm, Term child) const;
+  Term mkTerm(Op op, Term child) const;
 
   /**
-   * Create binary term of given kind from a given operator term.
-   * @param kind the kind of the term
-   * Create operator terms with mkOpTerm().
-   * @param the operator term
+   * Create binary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param the operator
    * @child1 the first child of the term
    * @child2 the second child of the term
    * @return the Term
    */
-  Term mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2) const;
+  Term mkTerm(Op op, Term child1, Term child2) const;
 
   /**
-   * Create ternary term of given kind from a given operator term.
-   * Create operator terms with mkOpTerm().
-   * @param kind the kind of the term
-   * @param the operator term
+   * Create ternary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param the operator
    * @child1 the first child of the term
    * @child2 the second child of the term
    * @child3 the third child of the term
    * @return the Term
    */
-  Term mkTerm(
-      Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3) const;
+  Term mkTerm(Op op, Term child1, Term child2, Term child3) const;
 
   /**
-   * Create n-ary term of given kind from a given operator term.
-   * Create operator terms with mkOpTerm().
+   * Create n-ary term of given kind from a given operator.
+   * Create operators with mkOp().
    * @param kind the kind of the term
-   * @param the operator term
+   * @param the operator
    * @children the children of the term
    * @return the Term
    */
-  Term mkTerm(Kind kind,
-              OpTerm opTerm,
-              const std::vector<Term>& children) const;
+  Term mkTerm(Op op, const std::vector<Term>& children) const;
 
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
@@ -1816,63 +2080,65 @@ class CVC4_PUBLIC Solver
                const std::vector<Term>& terms) const;
 
   /* .................................................................... */
-  /* Create Operator Terms                                                */
+  /* Create Operators                                                     */
   /* .................................................................... */
 
   /**
-   * Create operator term of kind:
-   *   - CHAIN_OP
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param k the kind argument to this operator
+   * Create an operator for a builtin Kind
+   * The Kind may not be the Kind for an indexed operator
+   *   (e.g. BITVECTOR_EXTRACT)
+   * Note: in this case, the Op simply wraps the Kind.
+   * The Kind can be used in mkTerm directly without
+   *   creating an op first.
+   * @param kind the kind to wrap
    */
-  OpTerm mkOpTerm(Kind kind, Kind k) const;
+  Op mkOp(Kind kind) const;
 
   /**
    * Create operator of kind:
-   *   - RECORD_UPDATE_OP
-   *   - DIVISIBLE_OP (to support arbitrary precision integers)
+   *   - RECORD_UPDATE
+   *   - DIVISIBLE (to support arbitrary precision integers)
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, const std::string& arg) const;
+  Op mkOp(Kind kind, const std::string& arg) const;
 
   /**
    * Create operator of kind:
-   *   - DIVISIBLE_OP
-   *   - BITVECTOR_REPEAT_OP
-   *   - BITVECTOR_ZERO_EXTEND_OP
-   *   - BITVECTOR_SIGN_EXTEND_OP
-   *   - BITVECTOR_ROTATE_LEFT_OP
-   *   - BITVECTOR_ROTATE_RIGHT_OP
-   *   - INT_TO_BITVECTOR_OP
-   *   - FLOATINGPOINT_TO_UBV_OP
-   *   - FLOATINGPOINT_TO_UBV_TOTAL_OP
-   *   - FLOATINGPOINT_TO_SBV_OP
-   *   - FLOATINGPOINT_TO_SBV_TOTAL_OP
-   *   - TUPLE_UPDATE_OP
+   *   - DIVISIBLE
+   *   - BITVECTOR_REPEAT
+   *   - BITVECTOR_ZERO_EXTEND
+   *   - BITVECTOR_SIGN_EXTEND
+   *   - BITVECTOR_ROTATE_LEFT
+   *   - BITVECTOR_ROTATE_RIGHT
+   *   - INT_TO_BITVECTOR
+   *   - FLOATINGPOINT_TO_UBV
+   *   - FLOATINGPOINT_TO_UBV_TOTAL
+   *   - FLOATINGPOINT_TO_SBV
+   *   - FLOATINGPOINT_TO_SBV_TOTAL
+   *   - TUPLE_UPDATE
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg) const;
+  Op mkOp(Kind kind, uint32_t arg) const;
 
   /**
    * Create operator of Kind:
-   *   - BITVECTOR_EXTRACT_OP
-   *   - FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP
-   *   - FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP
-   *   - FLOATINGPOINT_TO_FP_REAL_OP
-   *   - FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP
-   *   - FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP
-   *   - FLOATINGPOINT_TO_FP_GENERIC_OP
+   *   - BITVECTOR_EXTRACT
+   *   - FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_FLOATINGPOINT
+   *   - FLOATINGPOINT_TO_FP_REAL
+   *   - FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_GENERIC
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg1 the first uint32_t argument to this operator
    * @param arg2 the second uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) const;
+  Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -2097,6 +2363,15 @@ class CVC4_PUBLIC Solver
   Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
 
   /**
+   * Create a constant array with the provided constant value stored at every
+   * index
+   * @param sort the sort of the constant array (must be an array sort)
+   * @param val the constant value to store (must match the sort's element sort)
+   * @return the constant array term
+   */
+  Term mkConstArray(Sort sort, Term val) const;
+
+  /**
    * Create a positive infinity floating-point constant. Requires CVC4 to be
    * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
@@ -2197,6 +2472,43 @@ class CVC4_PUBLIC Solver
    * @return the variable
    */
   Term mkVar(Sort sort, const std::string& symbol = std::string()) const;
+
+  /* .................................................................... */
+  /* Create datatype declarations                                         */
+  /* .................................................................... */
+
+  /**
+   * Create a datatype declaration.
+   * @param name the name of the datatype
+   * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
+   */
+  DatatypeDecl mkDatatypeDecl(const std::string& name,
+                              bool isCoDatatype = false);
+
+  /**
+   * Create a datatype declaration.
+   * Create sorts parameter with Solver::mkParamSort().
+   * @param name the name of the datatype
+   * @param param the sort parameter
+   * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
+   */
+  DatatypeDecl mkDatatypeDecl(const std::string& name,
+                              Sort param,
+                              bool isCoDatatype = false);
+
+  /**
+   * Create a datatype declaration.
+   * Create sorts parameter with Solver::mkParamSort().
+   * @param name the name of the datatype
+   * @param params a list of sort parameters
+   * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
+   */
+  DatatypeDecl mkDatatypeDecl(const std::string& name,
+                              const std::vector<Sort>& params,
+                              bool isCoDatatype = false);
 
   /* .................................................................... */
   /* Formula Handling                                                     */
@@ -2506,9 +2818,7 @@ class CVC4_PUBLIC Solver
   std::vector<Type> sortVectorToTypes(const std::vector<Sort>& vector) const;
   /* Helper to convert a vector of sorts to internal types. */
   std::vector<Expr> termVectorToExprs(const std::vector<Term>& vector) const;
-  /* Helper to check for API misuse in mkTerm functions. */
-  void checkMkOpTerm(Kind kind, OpTerm opTerm, uint32_t nchildren) const;
-  /* Helper to check for API misuse in mkOpTerm functions. */
+  /* Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /* Helper for mk-functions that call d_exprMgr->mkConst(). */
   template <typename T>
@@ -2524,6 +2834,8 @@ class CVC4_PUBLIC Solver
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
   /* Helper for setLogic. */
   void setLogicHelper(const std::string& logic) const;
+  /* Helper for mkTerm functions that create Term from a Kind */
+  Term mkTermFromKind(Kind kind) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed
@@ -2533,6 +2845,26 @@ class CVC4_PUBLIC Solver
    */
   Term ensureRealSort(Term expr) const;
 
+  /**
+   * Create n-ary term of given kind. This handles the cases of left/right
+   * associative operators, chainable operators, and cases when the number of
+   * children exceeds the maximum arity for the kind.
+   * @param kind the kind of the term
+   * @param children the children of the term
+   * @return the Term
+   */
+  Term mkTermInternal(Kind kind, const std::vector<Term>& children) const;
+
+  /**
+   * Create a vector of datatype sorts, using unresolved sorts.
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @param unresolvedSorts the list of unresolved sorts
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSortsInternal(
+      std::vector<DatatypeDecl>& dtypedecls,
+      std::set<Sort>& unresolvedSorts) const;
+
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;
   /* The SMT engine of this solver. */
@@ -2541,6 +2873,20 @@ class CVC4_PUBLIC Solver
   std::unique_ptr<Random> d_rng;
 };
 
+// !!! Only temporarily public until the parser is fully migrated to the
+// new API. !!!
+std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
+std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
+std::vector<Term> exprVectorToTerms(const std::vector<Expr>& terms);
+std::vector<Sort> typeVectorToSorts(const std::vector<Type>& sorts);
+std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
+
 }  // namespace api
+
+// !!! Only temporarily public until the parser is fully migrated to the
+// new API. !!!
+CVC4::api::Kind intToExtKind(CVC4::Kind k);
+CVC4::Kind extToIntKind(CVC4::api::Kind k);
+
 }  // namespace CVC4
 #endif

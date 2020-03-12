@@ -76,7 +76,7 @@ class CardinalityExtension
           ~DiseqList(){}
 
           void setDisequal( Node n, bool valid ){
-            Assert( (!isSet(n)) || getDisequalityValue(n) != valid );
+            Assert((!isSet(n)) || getDisequalityValue(n) != valid);
             d_disequalities[ n ] = valid;
             d_size = d_size + ( valid ? 1 : -1 );
           }

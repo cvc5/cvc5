@@ -23,20 +23,8 @@
     }
   }
 
-#ifdef SWIGOCAML
-  /* OCaml bindings cannot deal with this degree of overloading */
-  %ignore CVC4::ExprManager::mkExpr(Kind, const std::vector<Expr>&);
-  %ignore CVC4::ExprManager::mkExpr(Kind, Expr, const std::vector<Expr>&);
-  %ignore CVC4::ExprManager::mkExpr(Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, Expr, Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, Expr, Expr, Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, Expr, Expr, Expr, Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, Expr, Expr, Expr, Expr, Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, const std::vector<Expr>&);
-#endif /* SWIGOCAML */
-
 %ignore CVC4::stats::getStatisticsRegistry(ExprManager*);
+%ignore CVC4::ExprManager::getResourceManager();
 
 %include "expr/expr_manager.h"
 
@@ -52,7 +40,6 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorRotateRight>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::IntToBitVector>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPoint>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RoundingMode>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointSize>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToFPIEEEBitVector>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::FloatingPointToFPFloatingPoint>;
@@ -77,12 +64,14 @@
  * case into mkBoolConst.
 */
 %template(mkBoolConst) CVC4::ExprManager::mkConst<bool>;
+%template(mkRoundingMode) CVC4::ExprManager::mkConst<RoundingMode>;
 
 // These cases have trouble too.  Remove them for now.
 //%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
 #else
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<bool>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RoundingMode>;
 #endif
 
 %include "expr/expr_manager.h"

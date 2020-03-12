@@ -123,7 +123,13 @@ class TransitionInference
    * The node n should be the inner body of the negated synthesis conjecture,
    * prior to generating the deep embedding. That is, given:
    *   forall f. ~forall x. P( f, x ),
-   * this method expects n to be P( f, x ).
+   * this method expects n to be P( f, x ), and the argument f to be the
+   * function f above.
+   */
+  void process(Node n, Node f);
+  /**
+   * Same as above, without specifying f. This will try to infer a function f
+   * based on the body of n.
    */
   void process(Node n);
   /**
@@ -152,6 +158,11 @@ class TransitionInference
    * was called on formula that does not have the shape of a transition system.
    */
   bool isComplete() const { return d_complete; }
+  /**
+   * Was the analysis of the conjecture trivial? This is true if the function
+   * did not occur in the conjecture.
+   */
+  bool isTrivial() const { return d_trivial; }
 
   /**
    * The following two functions are used for computing whether this transition
@@ -206,6 +217,8 @@ class TransitionInference
    * of this class complete?
    */
   bool d_complete;
+  /** Was the analyis trivial? */
+  bool d_trivial;
 
   /** process disjunct
    *

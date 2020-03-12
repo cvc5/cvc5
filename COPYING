@@ -47,26 +47,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The CVC4 source code includes third-party software which has its own copyright
 and licensing terms, as described below.
 
-Each of the following files contains third-party software.
+The following file contains third-party software.
 
-  autogen.sh
-  config/ax_cxx_compile_stdcxx.m4
-  config/ax_cxx_compile_stdcxx_11.m4
-  config/ax_prog_doxygen.m4
-  config/boost.m4
-  config/doxygen.am
-  config/pkg.m4
+  cmake/CodeCoverage.cmake
 
-The copyright and licensing information for each of these files is in the
-header of the corresponding file.
+The copyright and licensing information of this file is in its header.
 
 CVC4 incorporates MiniSat code (see src/prop/minisat and src/prop/bvminisat),
 excluded from the above copyright.  See src/prop/minisat/LICENSE and
 src/prop/bvminisat/LICENSE for copyright and licensing information.
-
-CVC4 incorporates some code from Boost (see src/util/channel.h), excluded from
-the above copyright.  See licenses/channel.h-LICENSE for copyright and
-licensing information.
 
 CVC4 incorporates code from ANTLR3 (http://www.antlr3.org/), the files
 src/parser/bounded_token_buffer.h, src/parser/bounded_token_buffer.cpp, and
@@ -104,8 +93,8 @@ Please be advised that the following libraries are covered under the GPLv3
 license.  If you choose to link CVC4 against one of these libraries, the
 resulting combined work is also covered under the GPLv3. If you want to make
 sure you build a version of CVC4 that uses no GPLed libraries, configure CVC4
-with the "--bsd" option before building (which is the default).  CVC4 can then
-be used in contexts where you want to use CVC4 under the terms of the
+with the "--no-gpl" option before building (which is the default).  CVC4 can
+then be used in contexts where you want to use CVC4 under the terms of the
 (modified) BSD license.  See licenses/gpl-3.0.txt for more information.
 
 CVC4 can be optionally configured to link against CLN, the Class Library for

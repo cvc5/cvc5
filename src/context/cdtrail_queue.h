@@ -74,7 +74,7 @@ public:
 
   /** Moves the iterator for the queue forward. */
   void dequeue(){
-    Assert(!empty(), "Attempting to queue from an empty queue.");
+    Assert(!empty()) << "Attempting to queue from an empty queue.";
     d_iter = d_iter + 1;
   }
 

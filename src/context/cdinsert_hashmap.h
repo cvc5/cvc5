@@ -38,12 +38,11 @@
 #include <unordered_map>
 #include <utility>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
-#include "context/context.h"
 #include "context/cdinsert_hashmap_forward.h"
+#include "context/context.h"
 #include "expr/node.h"
-
 
 #pragma once
 

@@ -19,89 +19,37 @@
 #pragma once
 
 #include "expr/node.h"
+#include "theory/theory_rewriter.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 namespace theory {
 
-/**
- * Theory rewriters signal whether more rewriting is needed (or not)
- * by using a member of this enumeration.  See RewriteResponse, below.
- */
-enum RewriteStatus {
-  REWRITE_DONE,
-  REWRITE_AGAIN,
-  REWRITE_AGAIN_FULL
-};/* enum RewriteStatus */
-
-/**
- * Instances of this class serve as response codes from
- * Theory::preRewrite() and Theory::postRewrite().  Instances of
- * derived classes RewriteComplete(n), RewriteAgain(n), and
- * FullRewriteNeeded(n) should be used, giving self-documenting
- * rewrite behavior.
- */
-struct RewriteResponse {
-  const RewriteStatus status;
-  const Node node;
-  RewriteResponse(RewriteStatus status, Node node) :
-    status(status), node(node) {}
-};/* struct RewriteResponse */
-
 class RewriterInitializer;
 
 /**
- * The main rewriter class.  All functionality is static.
+ * The rewrite environment holds everything that the individual rewrites have
+ * access to.
+ */
+class RewriteEnvironment
+{
+};
+
+/**
+ * The identity rewrite just returns the original node.
+ *
+ * @param re The rewrite environment
+ * @param n The node to rewrite
+ * @return The original node
+ */
+RewriteResponse identityRewrite(RewriteEnvironment* re, TNode n);
+
+/**
+ * The main rewriter class.
  */
 class Rewriter {
-
-  friend class RewriterInitializer;
-  static unsigned long d_iterationCount;
-  /** Returns the appropriate cache for a node */
-  static Node getPreRewriteCache(theory::TheoryId theoryId, TNode node);
-
-  /** Returns the appropriate cache for a node */
-  static Node getPostRewriteCache(theory::TheoryId theoryId, TNode node);
-
-  /** Sets the appropriate cache for a node */
-  static void setPreRewriteCache(theory::TheoryId theoryId,
-                                 TNode node, TNode cache);
-
-  /** Sets the appropriate cache for a node */
-  static void setPostRewriteCache(theory::TheoryId theoryId,
-                                  TNode node, TNode cache);
-
-  // disable construction of rewriters; all functionality is static
-  Rewriter() = delete;
-  Rewriter(const Rewriter&) = delete;
-
-  /**
-   * Rewrites the node using the given theory rewriter.
-   */
-  static Node rewriteTo(theory::TheoryId theoryId, Node node);
-
-  /** Calls the pre-rewriter for the given theory */
-  static RewriteResponse callPreRewrite(theory::TheoryId theoryId, TNode node);
-
-  /** Calls the post-rewriter for the given theory */
-  static RewriteResponse callPostRewrite(theory::TheoryId theoryId, TNode node);
-
-  /**
-   * Calls the equality-rewriter for the given theory.
-   */
-  static Node callRewriteEquality(theory::TheoryId theoryId, TNode equality);
-
-  /**
-   * Should be called before the rewriter gets used for the first time.
-   */
-  static void init();
-
-  /**
-   * Should be called to clean up any state.
-   */
-  static void shutdown();
-  static void clearCachesInternal();
-public:
+ public:
+  Rewriter();
 
   /**
    * Rewrites the node using theoryOf() to determine which rewriter to
@@ -113,6 +61,113 @@ public:
    * Garbage collects the rewrite caches.
    */
   static void clearCaches();
+
+  /**
+   * Register a prerewrite for a given kind.
+   *
+   * @param k The kind to register a rewrite for.
+   * @param fn The function that performs the rewrite.
+   */
+  void registerPreRewrite(
+      Kind k, std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
+
+  /**
+   * Register a postrewrite for a given kind.
+   *
+   * @param k The kind to register a rewrite for.
+   * @param fn The function that performs the rewrite.
+   */
+  void registerPostRewrite(
+      Kind k, std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
+
+  /**
+   * Register a prerewrite for equalities belonging to a given theory.
+   *
+   * @param tid The theory to register a rewrite for.
+   * @param fn The function that performs the rewrite.
+   */
+  void registerPreRewriteEqual(
+      theory::TheoryId tid,
+      std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
+
+  /**
+   * Register a postrewrite for equalities belonging to a given theory.
+   *
+   * @param tid The theory to register a rewrite for.
+   * @param fn The function that performs the rewrite.
+   */
+  void registerPostRewriteEqual(
+      theory::TheoryId tid,
+      std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
+
+ private:
+  /**
+   * Get the (singleton) instance of the rewriter.
+   *
+   * TODO(#3468): Get rid of this singleton
+   */
+  static Rewriter& getInstance();
+
+  /** Returns the appropriate cache for a node */
+  Node getPreRewriteCache(theory::TheoryId theoryId, TNode node);
+
+  /** Returns the appropriate cache for a node */
+  Node getPostRewriteCache(theory::TheoryId theoryId, TNode node);
+
+  /** Sets the appropriate cache for a node */
+  void setPreRewriteCache(theory::TheoryId theoryId, TNode node, TNode cache);
+
+  /** Sets the appropriate cache for a node */
+  void setPostRewriteCache(theory::TheoryId theoryId, TNode node, TNode cache);
+
+  /**
+   * Rewrites the node using the given theory rewriter.
+   */
+  Node rewriteTo(theory::TheoryId theoryId, Node node);
+
+  /** Calls the pre-rewriter for the given theory */
+  RewriteResponse preRewrite(theory::TheoryId theoryId, TNode n);
+
+  /** Calls the post-rewriter for the given theory */
+  RewriteResponse postRewrite(theory::TheoryId theoryId, TNode n);
+
+  /**
+   * Calls the equality-rewriter for the given theory.
+   */
+  Node callRewriteEquality(theory::TheoryId theoryId, TNode equality);
+
+  void clearCachesInternal();
+
+  /** Theory rewriters managed by this rewriter instance */
+  std::unique_ptr<TheoryRewriter> d_theoryRewriters[theory::THEORY_LAST];
+
+  unsigned long d_iterationCount = 0;
+
+  /** Rewriter table for prewrites. Maps kinds to rewriter function. */
+  std::function<RewriteResponse(RewriteEnvironment*, TNode)>
+      d_preRewriters[kind::LAST_KIND];
+  /** Rewriter table for postrewrites. Maps kinds to rewriter function. */
+  std::function<RewriteResponse(RewriteEnvironment*, TNode)>
+      d_postRewriters[kind::LAST_KIND];
+  /**
+   * Rewriter table for prerewrites of equalities. Maps theory to rewriter
+   * function.
+   */
+  std::function<RewriteResponse(RewriteEnvironment*, TNode)>
+      d_preRewritersEqual[theory::THEORY_LAST];
+  /**
+   * Rewriter table for postrewrites of equalities. Maps theory to rewriter
+   * function.
+   */
+  std::function<RewriteResponse(RewriteEnvironment*, TNode)>
+      d_postRewritersEqual[theory::THEORY_LAST];
+
+  RewriteEnvironment d_re;
+
+#ifdef CVC4_ASSERTIONS
+  std::unique_ptr<std::unordered_set<Node, NodeHashFunction>> d_rewriteStack =
+      nullptr;
+#endif /* CVC4_ASSERTIONS */
 };/* class Rewriter */
 
 }/* CVC4::theory namespace */

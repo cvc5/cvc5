@@ -31,22 +31,25 @@ namespace theory {
  * A (ordered) pair of terms a theory cares about.
  */
 struct CarePair {
-  const TNode a, b;
-  const TheoryId theory;
+  const TNode d_a, d_b;
+  const TheoryId d_theory;
 
   CarePair(TNode a, TNode b, TheoryId theory)
-      : a(a < b ? a : b), b(a < b ? b : a), theory(theory) {}
+      : d_a(a < b ? a : b), d_b(a < b ? b : a), d_theory(theory)
+  {
+  }
 
   bool operator==(const CarePair& other) const {
-    return (theory == other.theory) && (a == other.a) && (b == other.b);
+    return (d_theory == other.d_theory) && (d_a == other.d_a)
+           && (d_b == other.d_b);
   }
 
   bool operator<(const CarePair& other) const {
-    if (theory < other.theory) return true;
-    if (theory > other.theory) return false;
-    if (a < other.a) return true;
-    if (a > other.a) return false;
-    return b < other.b;
+    if (d_theory < other.d_theory) return true;
+    if (d_theory > other.d_theory) return false;
+    if (d_a < other.d_a) return true;
+    if (d_a > other.d_a) return false;
+    return d_b < other.d_b;
   }
 
 }; /* struct CarePair */

@@ -232,15 +232,15 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
     getBBTerm(node, bits);
     return;
   }
-  Assert( node.getType().isBitVector() );
+  Assert(node.getType().isBitVector());
 
-  d_bv->spendResource(options::bitblastStep());
+  d_bv->spendResource(ResourceManager::Resource::BitblastStep);
   Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
   ++d_statistics.d_numTerms;
 
   d_termBBStrategies[node.getKind()] (node, bits,this);
 
-  Assert (bits.size() == utils::getSize(node));
+  Assert(bits.size() == utils::getSize(node));
 
   storeBBTerm(node, bits);
 }
@@ -257,7 +257,7 @@ void TLazyBitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
 
   ++(d_statistics.d_numExplainedPropagations);
   if (options::bvEagerExplanations()) {
-    Assert (d_explanations->find(lit) != d_explanations->end());
+    Assert(d_explanations->find(lit) != d_explanations->end());
     const std::vector<prop::SatLiteral>& literal_explanation = (*d_explanations)[lit].get();
     for (unsigned i = 0; i < literal_explanation.size(); ++i) {
       explanation.push_back(d_cnfStream->getNode(literal_explanation[i]));
@@ -292,9 +292,9 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
   } else {
     atom = lit;
   }
-  Assert( utils::isBitblastAtom( atom ) );
+  Assert(utils::isBitblastAtom(atom));
 
-  Assert (hasBBAtom(atom));
+  Assert(hasBBAtom(atom));
 
   prop::SatLiteral markerLit = d_cnfStream->getLiteral(atom);
 
@@ -426,14 +426,14 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   }
 }
 
-void TLazyBitblaster::MinisatNotify::spendResource(unsigned amount)
+void TLazyBitblaster::MinisatNotify::spendResource(ResourceManager::Resource r)
 {
-  d_bv->spendResource(amount);
+  d_bv->spendResource(r);
 }
 
-void TLazyBitblaster::MinisatNotify::safePoint(unsigned amount)
+void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
 {
-  d_bv->d_out->safePoint(amount);
+  d_bv->d_out->safePoint(r);
 }
 
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
@@ -483,7 +483,7 @@ bool TLazyBitblaster::isSharedTerm(TNode node) {
 }
 
 bool TLazyBitblaster::hasValue(TNode a) {
-  Assert (hasBBTerm(a));
+  Assert(hasBBTerm(a));
   Bits bits;
   getBBTerm(a, bits);
   for (int i = bits.size() -1; i >= 0; --i) {
@@ -522,7 +522,7 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
     if (d_cnfStream->hasLiteral(bits[i])) {
       prop::SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
       bit_value = d_satSolver->value(bit);
-      Assert (bit_value != prop::SAT_VALUE_UNKNOWN);
+      Assert(bit_value != prop::SAT_VALUE_UNKNOWN);
     } else {
       if (!fullModel) return Node();
       // unconstrained bits default to false
@@ -545,12 +545,12 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
     if (d_variables.find(var) == d_variables.end())
       continue;
 
-    Assert (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var));
+    Assert(Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var));
     // only shared terms could not have been bit-blasted
-    Assert (hasBBTerm(var) || isSharedTerm(var));
+    Assert(hasBBTerm(var) || isSharedTerm(var));
 
     Node const_value = getModelFromSatSolver(var, true);
-    Assert (const_value.isNull() || const_value.isConst());
+    Assert(const_value.isNull() || const_value.isConst());
     if(const_value != Node()) {
       Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
                                << var << " "
@@ -565,7 +565,7 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
 }
 
 void TLazyBitblaster::clearSolver() {
-  Assert (d_ctx->getLevel() == 0);
+  Assert(d_ctx->getLevel() == 0);
   d_assertedAtoms->deleteSelf();
   d_assertedAtoms = new(true) context::CDList<prop::SatLiteral>(d_ctx);
   d_explanations->deleteSelf();

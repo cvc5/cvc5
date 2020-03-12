@@ -44,7 +44,7 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
 #ifdef CVC4_USE_CRYPTOMINISAT
   return new CryptoMinisatSolver(registry, name);
 #else
-  Unreachable("CVC4 was not compiled with Cryptominisat support.");
+  Unreachable() << "CVC4 was not compiled with Cryptominisat support.";
 #endif
 }
 
@@ -54,7 +54,7 @@ SatSolver* SatSolverFactory::createCadical(StatisticsRegistry* registry,
 #ifdef CVC4_USE_CADICAL
   return new CadicalSolver(registry, name);
 #else
-  Unreachable("CVC4 was not compiled with CaDiCaL support.");
+  Unreachable() << "CVC4 was not compiled with CaDiCaL support.";
 #endif
 }
 

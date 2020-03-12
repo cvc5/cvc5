@@ -251,6 +251,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             checkParent = true;
             break;
           }
+          CVC4_FALLTHROUGH;
         case kind::BITVECTOR_COMP:
         case kind::LT:
         case kind::LEQ:
@@ -424,6 +425,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           {
             break;
           }
+          CVC4_FALLTHROUGH;
         case kind::XOR:
         case kind::BITVECTOR_XOR:
         case kind::BITVECTOR_XNOR:
@@ -811,7 +813,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(options::preprocessStep());
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   std::vector<Node>& assertions = assertionsToPreprocess->ref();
 

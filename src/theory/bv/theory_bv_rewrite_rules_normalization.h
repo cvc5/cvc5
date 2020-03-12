@@ -312,7 +312,7 @@ static inline void updateCoefMap(TNode current, unsigned size,
       break;
     }
     case kind::BITVECTOR_SUB:
-      // turn into a + (-1)*b 
+      // turn into a + (-1)*b
       Assert(current.getNumChildren() == 2);
       addToCoefMap(factorToCoefficient, current[0], BitVector(size, (unsigned)1)); 
       addToCoefMap(factorToCoefficient, current[1], -BitVector(size, (unsigned)1)); 
@@ -1382,12 +1382,11 @@ bool RewriteRule<BitwiseSlicing>::applies(TNode node) {
     if (node[i].getKind() == kind::CONST_BITVECTOR) {
       BitVector constant = node[i].getConst<BitVector>();
       // we do not apply the rule if the constant is all 0s or all 1s
-      if (constant == BitVector(utils::getSize(node), 0u)) 
-        return false; 
-      
-      for (unsigned i = 0; i < constant.getSize(); ++i) {
-        if (!constant.isBitSet(i)) 
-          return true; 
+      if (constant == BitVector(utils::getSize(node), 0u)) return false;
+
+      for (unsigned j = 0, csize = constant.getSize(); j < csize; ++j)
+      {
+        if (!constant.isBitSet(j)) return true;
       }
       return false; 
     }
