@@ -935,9 +935,6 @@ cdef class Solver:
     def push(self, nscopes=1):
         self.csolver.push(nscopes)
 
-    def reset(self):
-        self.csolver.reset()
-
     def resetAssertions(self):
         self.csolver.resetAssertions()
 
