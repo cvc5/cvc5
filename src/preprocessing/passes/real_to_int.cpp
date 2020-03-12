@@ -36,6 +36,12 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   {
     return (*find).second;
   }
+  else if (n.isClosure())
+  {
+    throw TypeCheckingException(
+        n.toExpr(),
+        std::string("Cannot translate quantifiers to Int: ") + n.toString());
+  }
   else
   {
     NodeManager* nm = NodeManager::currentNM();
@@ -115,7 +121,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                 {
                   throw TypeCheckingException(
                       v.toExpr(),
-                      string("Cannot translate to Int: ") + v.toString());
+                      std::string("Cannot translate to Int: ") + v.toString());
                 }
               }
             }
