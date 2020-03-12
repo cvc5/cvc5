@@ -1843,12 +1843,6 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  //local theory extensions
-  if( options::localTheoryExt() ){
-    if( !options::instMaxLevel.wasSetByUser() ){
-      options::instMaxLevel.set( 0 );
-    }
-  }
   if( options::instMaxLevel()!=-1 ){
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
     options::cbqi.set(false);
