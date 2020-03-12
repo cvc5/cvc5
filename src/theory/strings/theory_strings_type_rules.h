@@ -21,6 +21,7 @@
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 
 #include "expr/expr_sequence.h"
+#include "expr/sequence.h"
 
 namespace CVC4 {
 namespace theory {
@@ -326,7 +327,7 @@ class ConstSequenceTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind()==CONST_SEQUENCE);
+    Assert(n.getKind()==kind::CONST_SEQUENCE);
     return n.getConst<ExprSequence>().getSequence().getType();
   }
 };

@@ -121,7 +121,7 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = true;
   }
-  else if (isString() || isRegExp() || isReal())
+  else if (isString() || isRegExp() || isSequence() || isReal())
   {
     ret = false;
   }
@@ -243,6 +243,10 @@ bool TypeNode::isClosedEnumerable()
     else if (isSet())
     {
       ret = getSetElementType().isClosedEnumerable();
+    }
+    else if (isSequence())
+    {
+      ret = getSequenceElementType().isClosedEnumerable();
     }
     else if (isDatatype())
     {
