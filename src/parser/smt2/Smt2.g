@@ -956,6 +956,8 @@ sygusGrammar[CVC4::api::Sort & ret,
   // sygus syntax.
   ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
     sortSymbol[t,CHECK_DECLARED] (
+      // SyGuS version 1.0 expects a grammar ((Start Int ( ...
+      // SyGuS version 2.0 expects a predeclaration ((Start Int) ...
       LPAREN_TOK
       {
         std::stringstream sse;
@@ -971,6 +973,7 @@ sygusGrammar[CVC4::api::Sort & ret,
         }
         else
         {
+          // an unknown syntax error
           sse << "Unexpected syntax for SyGuS predeclaration.";
         }
         PARSER_STATE->parseError(sse.str().c_str());
