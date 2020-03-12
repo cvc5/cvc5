@@ -629,9 +629,6 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::EQUAL:
             {
-              cout << "panda 1 " << current << endl;
-              cout << "panda 2 " << translated_children[0] << endl;
-              cout << "panda 3 " << translated_children[1] << endl;
               d_bvToIntCache[current] =
                   d_nm->mkNode(kind::EQUAL, translated_children);
               break;
