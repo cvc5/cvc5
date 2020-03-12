@@ -1484,7 +1484,8 @@ bool CoreSolver::detectLoop(NormalForm& nfi,
                                unsigned rproc)
 {
   int has_loop[2] = { -1, -1 };
-  for( unsigned r=0; r<2; r++ ) {
+  for (unsigned r = 0; r < 2; r++)
+  {
     NormalForm& nf = r == 0 ? nfi : nfj;
     NormalForm& nfo = r == 0 ? nfj : nfi;
     std::vector<Node>& nfv = nf.d_nf;
