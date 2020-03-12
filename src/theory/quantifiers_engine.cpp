@@ -24,9 +24,7 @@
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_engine.h"
-#include "theory/quantifiers/inst_propagator.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
-#include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -45,8 +43,7 @@ class QuantifiersEnginePrivate
 {
  public:
   QuantifiersEnginePrivate()
-      : d_inst_prop(nullptr),
-        d_rel_dom(nullptr),
+      : d_rel_dom(nullptr),
         d_alpha_equiv(nullptr),
         d_inst_engine(nullptr),
         d_model_engine(nullptr),
@@ -54,7 +51,6 @@ class QuantifiersEnginePrivate
         d_qcf(nullptr),
         d_sg_gen(nullptr),
         d_synth_e(nullptr),
-        d_lte_part_inst(nullptr),
         d_fs(nullptr),
         d_i_cbqi(nullptr),
         d_qsplit(nullptr),
@@ -63,8 +59,6 @@ class QuantifiersEnginePrivate
   }
   ~QuantifiersEnginePrivate() {}
   //------------------------------ private quantifier utilities
-  /** quantifiers instantiation propagator */
-  std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
   /** relevant domain */
   std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
   //------------------------------ end private quantifier utilities
@@ -83,8 +77,6 @@ class QuantifiersEnginePrivate
   std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
   /** ceg instantiation */
   std::unique_ptr<quantifiers::SynthEngine> d_synth_e;
-  /** lte partial instantiation */
-  std::unique_ptr<quantifiers::LtePartialInst> d_lte_part_inst;
   /** full saturation */
   std::unique_ptr<quantifiers::InstStrategyEnum> d_fs;
   /** counterexample-based quantifier instantiation */
@@ -128,7 +120,7 @@ class QuantifiersEnginePrivate
       modules.push_back(d_i_cbqi.get());
       qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
     }
-    if (options::ceGuidedInst())
+    if (options::sygus())
     {
       d_synth_e.reset(new quantifiers::SynthEngine(qe, c));
       modules.push_back(d_synth_e.get());
@@ -145,11 +137,6 @@ class QuantifiersEnginePrivate
       modules.push_back(d_model_engine.get());
       // finite model finder has special ways of building the model
       needsBuilder = true;
-    }
-    if (options::ltePartialInst())
-    {
-      d_lte_part_inst.reset(new quantifiers::LtePartialInst(qe, c));
-      modules.push_back(d_lte_part_inst.get());
     }
     if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
     {
@@ -216,17 +203,10 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
 
-  if (options::ceGuidedInst()) {
+  if (options::sygus())
+  {
     d_sygus_tdb.reset(new quantifiers::TermDbSygus(c, this));
-  }
-
-  if( options::instPropagate() ){
-    // notice that this option is incompatible with options::qcfAllConflict()
-    d_private->d_inst_prop.reset(new quantifiers::InstPropagator(this));
-    d_util.push_back(d_private->d_inst_prop.get());
-    d_instantiate->addNotify(d_private->d_inst_prop->getInstantiationNotify());
-  }
-  
+  }  
 
   d_util.push_back(d_instantiate.get());
 
@@ -511,7 +491,7 @@ void QuantifiersEngine::ppNotifyAssertions(
     theory_sep->initializeBounds();
     d_qepr->finishInit();
   }
-  if (options::ceGuidedInst())
+  if (options::sygus())
   {
     quantifiers::SynthEngine* sye = d_private->d_synth_e.get();
     for (const Node& a : assertions)
@@ -1001,7 +981,7 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
 
     if (!withinQuant)
     {
-      if (d_sygus_tdb)
+      if (d_sygus_tdb && options::sygusEvalUnfold())
       {
         d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
       }
@@ -1125,15 +1105,6 @@ options::UserPatMode QuantifiersEngine::getInstUserPatMode()
 
 void QuantifiersEngine::flushLemmas(){
   if( !d_lemmas_waiting.empty() ){
-    //filter based on notify classes
-    if (d_instantiate->hasNotify())
-    {
-      unsigned prev_lem_sz = d_lemmas_waiting.size();
-      d_instantiate->notifyFlushLemmas();
-      if( prev_lem_sz!=d_lemmas_waiting.size() ){
-        Trace("quant-engine") << "...filtered instances : " << d_lemmas_waiting.size() << " / " << prev_lem_sz << std::endl;
-      }
-    }
     //take default output channel if none is provided
     d_hasAddedLemma = true;
     for( unsigned i=0; i<d_lemmas_waiting.size(); i++ ){

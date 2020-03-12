@@ -201,7 +201,7 @@ class SingleInvocationPartition
   std::vector<Node> d_si_vars;
 
   /** every free variable of conjuncts[2] */
-  std::vector<Node> d_all_vars;
+  std::unordered_set<Node, NodeHashFunction> d_all_vars;
   /** map from functions to first-order variables that anti-skolemized them */
   std::map<Node, Node> d_func_fo_var;
   /** map from first-order variables to the function it anti-skolemized */
