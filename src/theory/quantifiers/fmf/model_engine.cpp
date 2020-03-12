@@ -225,7 +225,8 @@ int ModelEngine::checkModel(){
       //determine if we should check this quantifier
       if( d_quantEngine->getModel()->isQuantifierActive( q ) && d_quantEngine->hasOwnership( q, this ) ){
         exhaustiveInstantiate( q, e );
-        if( d_quantEngine->inConflict() ){
+        if (d_quantEngine->inConflict())
+        {
           break;
         }
       }else{
