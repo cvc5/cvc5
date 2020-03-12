@@ -28,17 +28,21 @@ Node Word::mkEmptyWord(TypeNode tn)
   {
     return mkEmptyWord(CONST_STRING);
   }
+  else if (tn.isSequence())
+  {
+    std::vector<Expr> seq;
+    return NodeManager::currentNM()->mkConst(ExprSequence(tn.toType(),seq));
+  }
   Unimplemented();
   return Node::null();
 }
 
 Node Word::mkEmptyWord(Kind k)
 {
-  NodeManager* nm = NodeManager::currentNM();
   if (k == CONST_STRING)
   {
     std::vector<unsigned> vec;
-    return nm->mkConst(String(vec));
+    return NodeManager::currentNM()->mkConst(String(vec));
   }
   Unimplemented();
   return Node::null();
