@@ -19,7 +19,7 @@
 #include "expr/node.h"
 
 namespace CVC4 {
-  
+
 class ExprSequence;
 
 /** The CVC4 sequence class
@@ -146,11 +146,10 @@ class Sequence
    * Corresponds to the maximum size of d_seq.
    */
   static size_t maxSize();
-  
 
-  //!!!!!!!!!!!!!!! temporary 
+  //!!!!!!!!!!!!!!! temporary
   ExprSequence toExprSequence();
-  //!!!!!!!!!!!!!!! end temporary 
+  //!!!!!!!!!!!!!!! end temporary
  private:
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a

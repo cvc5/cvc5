@@ -293,7 +293,6 @@ bool Sequence::noOverlapWith(const Sequence& y) const
 
 size_t Sequence::maxSize() { return std::numeric_limits<uint32_t>::max(); }
 
-
 ExprSequence Sequence::toExprSequence()
 {
   std::vector<Expr> seq;
@@ -301,7 +300,7 @@ ExprSequence Sequence::toExprSequence()
   {
     seq.push_back(n.toExpr());
   }
-  return ExprSequence(d_type.toType(),seq);
+  return ExprSequence(d_type.toType(), seq);
 }
 
 std::ostream& operator<<(std::ostream& os, const Sequence& s)
