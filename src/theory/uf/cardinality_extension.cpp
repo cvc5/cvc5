@@ -1072,7 +1072,7 @@ void SortModel::addCliqueLemma( std::vector< Node >& clique, OutputChannel* out 
 void SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
   if( std::find( d_totality_terms[0].begin(), d_totality_terms[0].end(), n )==d_totality_terms[0].end() ){
     if( std::find( d_totality_lems[n].begin(), d_totality_lems[n].end(), cardinality ) == d_totality_lems[n].end() ){
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       d_totality_lems[n].push_back( cardinality );
       Node cardLit = d_cardinality_literal[ cardinality ];
       int sort_id = 0;
@@ -1113,7 +1113,7 @@ void SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
       for( int i=0; i<use_cardinality; i++ ){
         eqs.push_back( n.eqNode( getTotalityLemmaTerm( cardinality, i ) ) );
       }
-      Node ax = eqs.size()==1 ? eqs[0] : nm->mkNode( OR, eqs );
+      Node ax = eqs.size() == 1 ? eqs[0] : nm->mkNode(OR, eqs);
       Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
       Trace("uf-ss-lemma") << "*** Add totality axiom " << lem << std::endl;
       //send as lemma to the output channel
