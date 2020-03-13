@@ -685,7 +685,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     d_uf_models[f] = f_def;
   }
 
-  if( options::ufHo() && d_equalityEngine->hasTerm(f) ){
+  if (options::ufHo() && d_equalityEngine->hasTerm(f))
+  {
     Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
     // assign to representative if higher-order
     Node r = d_equalityEngine->getRepresentative( f );
