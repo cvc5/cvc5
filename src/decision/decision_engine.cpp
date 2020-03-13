@@ -26,12 +26,12 @@ using namespace std;
 namespace CVC4 {
 
 DecisionEngine::DecisionEngine(context::Context* sc, context::UserContext* uc)
-    : d_enabledITEStrategies(),
+    : d_enabledITEStrategy(nullptr),
       d_needIteSkolemMap(),
-      d_relevancyStrategy(NULL),
+      d_relevancyStrategy(nullptr),
       d_assertions(uc),
-      d_cnfStream(NULL),
-      d_satSolver(NULL),
+      d_cnfStream(nullptr),
+      d_satSolver(nullptr),
       d_satContext(sc),
       d_userContext(uc),
       d_result(sc, SAT_VALUE_UNKNOWN),
@@ -53,9 +53,9 @@ void DecisionEngine::init()
 
   if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
   {
-    d_enabledITEStrategies.emplace_back(new decision::JustificationHeuristic(
+    d_enabledITEStrategy.reset(new decision::JustificationHeuristic(
         this, d_userContext, d_satContext));
-    d_needIteSkolemMap.push_back(d_enabledITEStrategies.back().get());
+    d_needIteSkolemMap.push_back(d_enabledITEStrategy.get());
   }
 }
 
@@ -65,9 +65,20 @@ void DecisionEngine::shutdown()
 
   Assert(d_engineState == 1);
   d_engineState = 2;
-
-  d_enabledITEStrategies.clear();
+  d_enabledITEStrategy.reset(nullptr);
   d_needIteSkolemMap.clear();
+}
+
+SatLiteral DecisionEngine::getNext(bool& stopSearch)
+{
+  NodeManager::currentResourceManager()->spendResource(
+      ResourceManager::Resource::DecisionStep);
+  Assert(d_cnfStream != NULL) << "Forgot to set cnfStream for decision engine?";
+  Assert(d_satSolver != NULL) << "Forgot to set satSolver for decision engine?";
+
+  return d_enabledITEStrategy == nullptr
+             ? undefSatLiteral
+             : d_enabledITEStrategy->getNext(stopSearch);
 }
 
 bool DecisionEngine::isRelevant(SatVariable var)
