@@ -1200,13 +1200,9 @@ void SmtEngine::setDefaults() {
 
   if (options::solveIntAsBV() > 0)
   {
-    if (!(d_logic <= LogicInfo("QF_NIA")))
-    {
-      throw OptionException(
-          "--solve-int-as-bv=X only supported for pure integer logics (QF_NIA, "
-          "QF_LIA, QF_IDL)");
-    }
-    d_logic = LogicInfo("QF_BV");
+    d_logic = d_logic.getUnlockedCopy();
+    d_logic.enableTheory(THEORY_BV);
+    d_logic.lock();
   }
 
   if (options::solveBVAsInt() > 0)
