@@ -15,6 +15,7 @@
  **/
 #include "theory/quantifiers/sygus/synth_engine.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -22,7 +23,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
-#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -245,19 +245,19 @@ void SynthEngine::assignConjecture(Node q)
             subs.begin(), subs.end(), orig.begin(), orig.end());
         if (!nqe_vars.empty())
         {
-          qe_res_n =
-              nm->mkNode(EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qe_res_n);
+          qe_res_n = nm->mkNode(
+              EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qe_res_n);
         }
         Assert(q.getNumChildren() == 3);
         qe_res_n = nm->mkNode(FORALL, q[0], qe_res_n, q[2]);
         Trace("cegqi-qep") << "Converted conjecture after QE : " << qe_res_n
-                          << std::endl;
+                           << std::endl;
         qe_res_n = Rewriter::rewrite(qe_res_n);
         Node nq = qe_res_n;
         // must assert it is equivalent to the original
         Node lem = q.eqNode(nq);
-        Trace("cegqi-lemma") << "Cegqi::Lemma : qe-preprocess : " << lem
-                            << std::endl;
+        Trace("cegqi-lemma")
+            << "Cegqi::Lemma : qe-preprocess : " << lem << std::endl;
         d_quantEngine->getOutputChannel().lemma(lem);
         // we've reduced the original to a preprocessed version, return
         return;
