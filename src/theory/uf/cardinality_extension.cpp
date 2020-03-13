@@ -1021,8 +1021,8 @@ int SortModel::addSplit( Region* r, OutputChannel* out ){
     if (si != nullptr)
     {
       for( int i=0; i<2; i++ ){
-        int si = si->getSortId(ss[i]);
-        Trace("uf-ss-split-si") << si << " ";
+        int sid = si->getSortId(ss[i]);
+        Trace("uf-ss-split-si") << sid << " ";
       }
       Trace("uf-ss-split-si")  << std::endl;
     }
