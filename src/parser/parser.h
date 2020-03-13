@@ -592,19 +592,16 @@ public:
   bool isUnresolvedType(const std::string& name);
 
   /**
-   * Create sorts of mutually-recursive datatypes.
-   * For each symbol defined by the datatype, if a symbol with name already exists,
-   *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   * Creates and binds sorts of a list of mutually-recursive datatype
+   * declarations.
    *
-   * flags specify information about the datatype, e.g. whether it should be
-   * printed out as a definition in models or not
-   *   (see enum in expr_manager_template.h).
+   * For each symbol defined by the datatype, if a symbol with name already
+   * exists, then if doOverload is true, we create overloaded operators. Else, if
+   * doOverload is false, the existing expression is shadowed by the new
+   * expression.
    */
-  std::vector<api::Sort> mkMutualDatatypeTypes(
-      std::vector<Datatype>& datatypes,
-      bool doOverload = false,
-      uint32_t flags = ExprManager::DATATYPE_FLAG_NONE);
+  std::vector<api::Sort> bindMutualDatatypeTypes(
+      std::vector<api::DatatypeDecl>& datatypes, bool doOverload = false);
 
   /** make flat function type
    *
