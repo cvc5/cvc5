@@ -690,7 +690,6 @@ set(regress_0_tests
   regress0/push-pop/incremental-subst-bug.cvc
   regress0/push-pop/issue1986.smt2
   regress0/push-pop/issue2137.min.smt2
-  regress0/push-pop/issue3915-real-as-int.smt2
   regress0/push-pop/quant-fun-proc-unfd.smt2
   regress0/push-pop/real-as-int-incremental.smt2
   regress0/push-pop/simple_unsat_cores.smt2
@@ -900,6 +899,7 @@ set(regress_0_tests
   regress0/smtlib/global-decls.smt2
   regress0/smtlib/issue4028.smt2
   regress0/smtlib/reason-unknown.smt2
+  regress0/smtlib/reset.smt2
   regress0/smtlib/reset-assertions1.smt2
   regress0/smtlib/reset-assertions2.smt2
   regress0/smtlib/reset-assertions-global.smt2
@@ -1529,7 +1529,6 @@ set(regress_1_tests
   regress1/quantifiers/qe.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
-  regress1/quantifiers/real-to-int-quant.smt2
   regress1/quantifiers/recfact.cvc
   regress1/quantifiers/rel-trigger-unusable.smt2
   regress1/quantifiers/repair-const-nterm.smt2
@@ -1859,6 +1858,7 @@ set(regress_1_tests
   regress1/sygus/issue3839-cond-rewrite.smt2
   regress1/sygus/issue3944-div-rewrite.smt2
   regress1/sygus/issue3947-agg-miniscope.smt2
+  regress1/sygus/issue3995-fmf-var-op.smt2
   regress1/sygus/issue4009-qep.smt2
   regress1/sygus/issue4025-no-rlv-cond.smt2
   regress1/sygus/large-const-simp.sy
