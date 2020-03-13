@@ -1,8 +1,7 @@
+; COMMAND-LINE: --uf-ss-totality --fmf-fun --sort-inference --no-check-models
+; EXPECT: sat
 (set-logic QF_UFNIA)
 (set-info :status sat)
-(set-option :uf-ss-totality true)
-(set-option :fmf-fun true)
-(set-option :sort-inference true)
 (declare-const i15 Int)
 (assert (= true true true (not (= i15 0))))
 (check-sat)
