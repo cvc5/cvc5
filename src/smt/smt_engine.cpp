@@ -1627,35 +1627,6 @@ void SmtEngine::setDefaults() {
     Theory::setUninterpretedSortOwner(THEORY_UF);
   }
 
-  // Turn on ite simplification for QF_LIA and QF_AUFBV
-  // WARNING: These checks match much more than just QF_AUFBV and
-  // QF_LIA logics. --K [2014/10/15]
-  if(! options::doITESimp.wasSetByUser()) {
-    bool qf_aufbv = !d_logic.isQuantified() &&
-      d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
-      d_logic.isTheoryEnabled(THEORY_UF) &&
-      d_logic.isTheoryEnabled(THEORY_BV);
-    bool qf_lia = !d_logic.isQuantified() &&
-      d_logic.isPure(THEORY_ARITH) &&
-      d_logic.isLinear() &&
-      !d_logic.isDifferenceLogic() &&
-      !d_logic.areRealsUsed();
-
-    bool iteSimp = (qf_aufbv || qf_lia);
-    Trace("smt") << "setting ite simplification to " << iteSimp << endl;
-    options::doITESimp.set(iteSimp);
-  }
-  if(! options::compressItes.wasSetByUser() ){
-    bool qf_lia = !d_logic.isQuantified() &&
-      d_logic.isPure(THEORY_ARITH) &&
-      d_logic.isLinear() &&
-      !d_logic.isDifferenceLogic() &&
-      !d_logic.areRealsUsed();
-
-    bool compressIte = qf_lia;
-    Trace("smt") << "setting ite compression to " << compressIte << endl;
-    options::compressItes.set(compressIte);
-  }
   if(! options::simplifyWithCareEnabled.wasSetByUser() ){
     bool qf_aufbv = !d_logic.isQuantified() &&
       d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
@@ -1843,12 +1814,6 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  //local theory extensions
-  if( options::localTheoryExt() ){
-    if( !options::instMaxLevel.wasSetByUser() ){
-      options::instMaxLevel.set( 0 );
-    }
-  }
   if( options::instMaxLevel()!=-1 ){
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
     options::cbqi.set(false);
@@ -3453,12 +3418,6 @@ void SmtEnginePrivate::processAssertions() {
   }
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
-
-  if (options::symmetryBreakerExp() && !options::incrementalSolving())
-  {
-    // apply symmetry breaking if not in incremental mode
-    d_passes["sym-break"]->apply(&d_assertions);
-  }
 
   if(options::doStaticLearning()) {
     d_passes["static-learning"]->apply(&d_assertions);
@@ -5594,6 +5553,7 @@ void SmtEngine::resetAssertions()
                                     d_userContext,
                                     d_private->getReplayLog(),
                                     d_replayStream));
+  d_theoryEngine->setPropEngine(getPropEngine());
 }
 
 void SmtEngine::interrupt()

@@ -11,9 +11,7 @@ from cvc4 cimport Datatype as c_Datatype
 from cvc4 cimport DatatypeConstructor as c_DatatypeConstructor
 from cvc4 cimport DatatypeConstructorDecl as c_DatatypeConstructorDecl
 from cvc4 cimport DatatypeDecl as c_DatatypeDecl
-from cvc4 cimport DatatypeDeclSelfSort as c_DatatypeDeclSelfSort
 from cvc4 cimport DatatypeSelector as c_DatatypeSelector
-from cvc4 cimport DatatypeSelectorDecl as c_DatatypeSelectorDecl
 from cvc4 cimport Result as c_Result
 from cvc4 cimport RoundingMode as c_RoundingMode
 from cvc4 cimport Op as c_Op
@@ -131,8 +129,10 @@ cdef class DatatypeConstructorDecl:
     def __cinit__(self, str name):
         self.cddc = new c_DatatypeConstructorDecl(name.encode())
 
-    def addSelector(self, DatatypeSelectorDecl stor):
-        self.cddc.addSelector(stor.cdsd[0])
+    def addSelector(self, str name, Sort sort):
+        self.cddc.addSelector(name.encode(), sort.csort)
+    def addSelectorSelf(self, str name):
+        self.cddc.addSelectorSelf(name.encode())
 
     def __str__(self):
         return self.cddc.toString().decode()
@@ -159,12 +159,6 @@ cdef class DatatypeDecl:
         return self.cdd.toString().decode()
 
 
-cdef class DatatypeDeclSelfSort:
-    cdef c_DatatypeDeclSelfSort cddss
-    def __cinit__(self):
-        self.cddss = c_DatatypeDeclSelfSort()
-
-
 cdef class DatatypeSelector:
     cdef c_DatatypeSelector cds
     def __cinit__(self):
@@ -175,24 +169,6 @@ cdef class DatatypeSelector:
 
     def __repr__(self):
         return self.cds.toString().decode()
-
-
-cdef class DatatypeSelectorDecl:
-    cdef c_DatatypeSelectorDecl* cdsd
-    def __cinit__(self, str name, sort):
-        if isinstance(sort, Sort):
-            self.cdsd = new c_DatatypeSelectorDecl(
-                <const string &> name.encode(), (<Sort?> sort).csort)
-        elif isinstance(sort, DatatypeDeclSelfSort):
-            self.cdsd = new c_DatatypeSelectorDecl(
-                <const string &> name.encode(),
-                (<DatatypeDeclSelfSort?> sort).cddss)
-
-    def __str__(self):
-        return self.cdsd.toString().decode()
-
-    def __repr__(self):
-        return self.cdsd.toString().decode()
 
 
 cdef class Op:
@@ -227,11 +203,6 @@ cdef class Op:
         indices = None
         try:
             indices = self.cop.getIndices[string]()
-        except:
-            pass
-
-        try:
-            indices = kind(<int> self.cop.getIndices[c_Kind]())
         except:
             pass
 
@@ -553,12 +524,7 @@ cdef class Solver:
     def mkReal(self, val, den=None):
         cdef Term term = Term()
         if den is None:
-            try:
-                term.cterm = self.csolver.mkReal(str(val).encode())
-            except Exception as e:
-                raise ValueError("Expecting a number"
-                                 " or a string representing a number"
-                                 " but got: {}".format(val))
+            term.cterm = self.csolver.mkReal(str(val).encode())
         else:
             if not isinstance(val, int) or not isinstance(den, int):
                 raise ValueError("Expecting integers when"
@@ -968,9 +934,6 @@ cdef class Solver:
 
     def push(self, nscopes=1):
         self.csolver.push(nscopes)
-
-    def reset(self):
-        self.csolver.reset()
 
     def resetAssertions(self):
         self.csolver.resetAssertions()

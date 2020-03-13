@@ -713,8 +713,12 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
       Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
       ret = Rewriter::rewrite(ret);
       Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
-      Assert(ret.isConst());
-      return ret;
+      // A rare case where we generate a non-constant value from constant
+      // leaves is (/ n 0).
+      if(ret.isConst())
+      {
+        return ret;
+      }
     }
   }
   Trace("sygus-sample-grammar") << "...resort to random value" << std::endl;

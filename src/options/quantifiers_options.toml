@@ -1926,24 +1926,6 @@ header = "options/quantifiers_options.h"
 ### Local theory extensions options
 
 [[option]]
-  name       = "localTheoryExt"
-  category   = "regular"
-  long       = "local-t-ext"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "do instantiation based on local theory extensions"
-
-[[option]]
-  name       = "ltePartialInst"
-  category   = "regular"
-  long       = "lte-partial-inst"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "partially instantiate local theory quantifiers"
-
-[[option]]
   name       = "lteRestrictInstClosure"
   category   = "regular"
   long       = "lte-restrict-inst-closure"
