@@ -809,7 +809,9 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
     }
     if (!ptDisequalConst)
     {
-      Notice() << "Warning: " << bv << " and " << bvr << " evaluate to different (non-constant) values on point:" << std::endl;
+      Notice() << "Warning: " << bv << " and " << bvr
+               << " evaluate to different (non-constant) values on point:"
+               << std::endl;
       Notice() << ptOut.str();
       return;
     }
@@ -826,8 +828,7 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
     Assert(vars.size() == pt.size());
     (*out) << ptOut.str();
     Assert(bve != bvre);
-    (*out) << "where they evaluate to " << bve << " and " << bvre
-           << std::endl;
+    (*out) << "where they evaluate to " << bve << " and " << bvre << std::endl;
 
     if (options::sygusRewVerifyAbort())
     {
