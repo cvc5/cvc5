@@ -847,15 +847,6 @@ bool SortInference::isWellSorted( Node n ) {
   }
 }
 
-void SortInference::getSortConstraints( Node n, UnionFind& uf ) {
-  if( n.getKind()==kind::APPLY_UF ){
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      getSortConstraints( n[i], uf );
-      uf.setEqual( getSortId( n[i] ), d_type_union_find.getRepresentative( d_op_arg_types[ n.getOperator() ][i] ) );
-    }
-  }
-}
-
 bool SortInference::isMonotonic( TypeNode tn ) {
   Assert(tn.isSort());
   return d_non_monotonic_sorts_orig.find( tn )==d_non_monotonic_sorts_orig.end();
