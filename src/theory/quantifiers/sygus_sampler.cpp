@@ -802,6 +802,11 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
   // bv and bvr should be equivalent under examples
   if (ptDisequal)
   {
+    std::vector<Node> vars;
+    getVariables(vars);
+    std::vector<Node> pt;
+    getSamplePoint(pt_index, pt);
+    Assert(vars.size() == pt.size());
     std::stringstream ptOut;
     for (unsigned i = 0, size = pt.size(); i < size; i++)
     {
@@ -821,11 +826,6 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
     (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
     // debugging information
     (*out) << "Terms are not equivalent for : " << std::endl;
-    std::vector<Node> vars;
-    getVariables(vars);
-    std::vector<Node> pt;
-    getSamplePoint(pt_index, pt);
-    Assert(vars.size() == pt.size());
     (*out) << ptOut.str();
     Assert(bve != bvre);
     (*out) << "where they evaluate to " << bve << " and " << bvre << std::endl;
