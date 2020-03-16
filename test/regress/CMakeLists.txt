@@ -898,6 +898,7 @@ set(regress_0_tests
   regress0/smtlib/get-unsat-assumptions.smt2
   regress0/smtlib/global-decls.smt2
   regress0/smtlib/issue4028.smt2
+  regress0/smtlib/issue4077.smt2
   regress0/smtlib/reason-unknown.smt2
   regress0/smtlib/reset.smt2
   regress0/smtlib/reset-assertions1.smt2

@@ -104,6 +104,8 @@ class SolverBlack : public CxxTest::TestSuite
   void testSetLogic();
   void testSetOption();
 
+  void testResetAssertions();
+
  private:
   std::unique_ptr<Solver> d_solver;
 };
@@ -1211,4 +1213,19 @@ void SolverBlack::testSetOption()
   d_solver->assertFormula(d_solver->mkTrue());
   TS_ASSERT_THROWS(d_solver->setOption("bv-sat-solver", "minisat"),
                    CVC4ApiException&);
+}
+
+void SolverBlack::testResetAssertions()
+{
+  d_solver->setOption("incremental", "true");
+
+  Sort bvSort = d_solver->mkBitVectorSort(4);
+  Term one = d_solver->mkBitVector(4, 1);
+  Term x = d_solver->mkConst(bvSort, "x");
+  Term ule = d_solver->mkTerm(BITVECTOR_ULE, x, one);
+  Term srem = d_solver->mkTerm(BITVECTOR_SREM, one, x);
+  d_solver->push(4);
+  Term slt = d_solver->mkTerm(BITVECTOR_SLT, srem, one);
+  d_solver->resetAssertions();
+  d_solver->checkSatAssuming({slt, ule});
 }
