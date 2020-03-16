@@ -4954,7 +4954,9 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         Assert(coeffs != RationalVectorPSentinel);
         Assert(conflictInFarkasCoefficientOrder.getNumChildren()
                == coeffs->size());
-        if (std::all_of(explain.begin(), explain.end(), [](ConstraintCP c) { return c->isAssumption() || c->hasIntTightenProof(); }))
+        if (std::all_of(explain.begin(), explain.end(), [](ConstraintCP c) {
+              return c->isAssumption() || c->hasIntTightenProof();
+            }))
         {
           d_containing.d_proofRecorder->saveFarkasCoefficients(
               conflictInFarkasCoefficientOrder, coeffs);
