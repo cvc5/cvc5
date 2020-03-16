@@ -781,6 +781,7 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
 
   // see if they evaluate to same thing on all sample points
   bool ptDisequal = false;
+  bool ptDisequalConst = false;
   unsigned pt_index = 0;
   Node bve, bvre;
   for (unsigned i = 0, npoints = getNumSamplePoints(); i < npoints; i++)
@@ -791,30 +792,43 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
     {
       ptDisequal = true;
       pt_index = i;
-      break;
+      if (bve.isConst() && bvre.isConst())
+      {
+        ptDisequalConst = true;
+        break;
+      }
     }
   }
   // bv and bvr should be equivalent under examples
   if (ptDisequal)
   {
-    // we have detected unsoundness in the rewriter
-    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-    std::ostream* out = nodeManagerOptions.getOut();
-    (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
-    // debugging information
-    (*out) << "; unsound: are not equivalent for : " << std::endl;
     std::vector<Node> vars;
     getVariables(vars);
     std::vector<Node> pt;
     getSamplePoint(pt_index, pt);
     Assert(vars.size() == pt.size());
+    std::stringstream ptOut;
     for (unsigned i = 0, size = pt.size(); i < size; i++)
     {
-      (*out) << "; unsound:    " << vars[i] << " -> " << pt[i] << std::endl;
+      ptOut << "  " << vars[i] << " -> " << pt[i] << std::endl;
     }
+    if (!ptDisequalConst)
+    {
+      Notice() << "Warning: " << bv << " and " << bvr
+               << " evaluate to different (non-constant) values on point:"
+               << std::endl;
+      Notice() << ptOut.str();
+      return;
+    }
+    // we have detected unsoundness in the rewriter
+    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+    std::ostream* out = nodeManagerOptions.getOut();
+    (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
+    // debugging information
+    (*out) << "Terms are not equivalent for : " << std::endl;
+    (*out) << ptOut.str();
     Assert(bve != bvre);
-    (*out) << "; unsound: where they evaluate to " << bve << " and " << bvre
-           << std::endl;
+    (*out) << "where they evaluate to " << bve << " and " << bvre << std::endl;
 
     if (options::sygusRewVerifyAbort())
     {
