@@ -73,8 +73,10 @@ SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
   NodeManager::currentResourceManager()->spendResource(
       ResourceManager::Resource::DecisionStep);
-  Assert(d_cnfStream != NULL) << "Forgot to set cnfStream for decision engine?";
-  Assert(d_satSolver != NULL) << "Forgot to set satSolver for decision engine?";
+  Assert(d_cnfStream != nullptr)
+      << "Forgot to set cnfStream for decision engine?";
+  Assert(d_satSolver != nullptr)
+      << "Forgot to set satSolver for decision engine?";
 
   return d_enabledITEStrategy == nullptr
              ? undefSatLiteral
@@ -84,10 +86,13 @@ SatLiteral DecisionEngine::getNext(bool& stopSearch)
 bool DecisionEngine::isRelevant(SatVariable var)
 {
   Debug("decision") << "isRelevant(" << var <<")" << std::endl;
-  if(d_relevancyStrategy != NULL) {
+  if (d_relevancyStrategy != nullptr)
+  {
     //Assert(d_cnfStream->hasNode(var));
     return d_relevancyStrategy->isRelevant( d_cnfStream->getNode(SatLiteral(var)) );
-  } else {
+  }
+  else
+  {
     return true;
   }
 }
@@ -95,10 +100,13 @@ bool DecisionEngine::isRelevant(SatVariable var)
 SatValue DecisionEngine::getPolarity(SatVariable var)
 {
   Debug("decision") << "getPolarity(" << var <<")" << std::endl;
-  if(d_relevancyStrategy != NULL) {
+  if (d_relevancyStrategy != nullptr)
+  {
     Assert(isRelevant(var));
     return d_relevancyStrategy->getPolarity( d_cnfStream->getNode(SatLiteral(var)) );
-  } else {
+  }
+  else
+  {
     return SAT_VALUE_UNKNOWN;
   }
 }
