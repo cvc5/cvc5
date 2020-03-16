@@ -925,11 +925,6 @@ void SmtEngine::finishInit()
 
   d_private->addUseTheoryListListener(d_theoryEngine);
 
-  // global push/pop around everything, to ensure proper destruction
-  // of context-dependent data structures
-  d_userContext->push();
-  d_context->push();
-
   // ensure that our heuristics are properly set up
   setDefaults();
 
@@ -950,6 +945,11 @@ void SmtEngine::finishInit()
   d_theoryEngine->setPropEngine(getPropEngine());
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
+
+  // global push/pop around everything, to ensure proper destruction
+  // of context-dependent data structures
+  d_userContext->push();
+  d_context->push();
 
   Trace("smt-debug") << "Set up assertion list..." << std::endl;
   // [MGD 10/20/2011] keep around in incremental mode, due to a
