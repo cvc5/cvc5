@@ -3942,7 +3942,7 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
 
   Node lem;
   NodeManager* nm = NodeManager::currentNM();
-  if (options::cubeTest())
+  if (options::brabTest())
   {
     Trace("integers") << "branch-round-and-bound enabled" << endl;
     Integer ceil_d = d.ceiling();
