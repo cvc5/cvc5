@@ -1156,8 +1156,10 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   }
   else
   {
+    AlwaysAssert(false) << "arith hole!";
     os << "\n; Arithmetic proofs which use reasoning more complex than Farkas "
-          "proofs are currently unsupported\n(clausify_false trust)\n";
+          "proofs and bound tightening are currently unsupported\n"
+          "(clausify_false trust)\n";
   }
 }
 
