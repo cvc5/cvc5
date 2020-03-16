@@ -503,8 +503,7 @@ bool Constraint::hasSimpleFarkasProof() const
 
   // For each antecdent ...
   AntecedentId i = getConstraintRule().d_antecedentEnd;
-  for (ConstraintCP a = d_database->getAntecedent(i);
-       a != NullConstraint;
+  for (ConstraintCP a = d_database->getAntecedent(i); a != NullConstraint;
        a = d_database->getAntecedent(--i))
   {
     // ... that antecdent must be an assumption ...
