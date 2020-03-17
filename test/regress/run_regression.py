@@ -18,6 +18,15 @@ import subprocess
 import sys
 import threading
 
+
+class Color:
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    ENDC = '\033[0m'
+
+
 SCRUBBER = 'SCRUBBER:'
 ERROR_SCRUBBER = 'ERROR-SCRUBBER:'
 EXPECT = 'EXPECT:'
@@ -30,6 +39,30 @@ EXIT_OK = 0
 EXIT_FAILURE = 1
 EXIT_SKIP = 77
 STATUS_TIMEOUT = 124
+
+
+def print_colored(color, text):
+    """Prints `text` in color `color`."""
+
+    for line in text.splitlines():
+        print(color + line + Color.ENDC)
+
+
+def print_diff(actual, expected):
+    """Prints the difference between `actual` and `expected`."""
+
+    for line in difflib.unified_diff(expected.splitlines(),
+                                     actual.splitlines(),
+                                     'expected',
+                                     'actual',
+                                     lineterm=''):
+        if line.startswith('+'):
+            print_colored(Color.GREEN, line)
+        elif line.startswith('-'):
+            print_colored(Color.RED, line)
+        else:
+            print(line)
+
 
 def run_process(args, cwd, timeout, s_input=None):
     """Runs a process with a timeout `timeout` in seconds. `args` are the
@@ -352,23 +385,31 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
             print('Timeout - Flags: {}'.format(command_line_args))
         elif output != expected_output:
             exit_code = EXIT_FAILURE
-            print(
-                'not ok - Differences between expected and actual output on stdout - Flags: {}'
-                .format(command_line_args))
-            for line in difflib.context_diff(output.splitlines(),
-                                             expected_output.splitlines()):
-                print(line)
+            print('not ok - Flags: {}'.format(command_line_args))
             print()
-            print('Error output:')
-            print(error)
+            print('Standard output difference')
+            print('=' * 80)
+            print_diff(output, expected_output)
+            print('=' * 80)
+            print()
+            print()
+            if error:
+                print('Error output')
+                print('=' * 80)
+                print_colored(Color.YELLOW, error)
+                print('=' * 80)
+                print()
         elif error != expected_error:
             exit_code = EXIT_FAILURE
             print(
                 'not ok - Differences between expected and actual output on stderr - Flags: {}'
                 .format(command_line_args))
-            for line in difflib.context_diff(error.splitlines(),
-                                             expected_error.splitlines()):
-                print(line)
+            print()
+            print('Error output difference')
+            print('=' * 80)
+            print_diff(error, expected_error)
+            print('=' * 80)
+            print()
         elif expected_exit_status != exit_status:
             exit_code = EXIT_FAILURE
             print(
@@ -376,10 +417,16 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
                 format(expected_exit_status, exit_status, command_line_args))
             print()
             print('Output:')
-            print(output)
+            print('=' * 80)
+            print_colored(Color.BLUE, output)
+            print('=' * 80)
+            print()
             print()
             print('Error output:')
-            print(error)
+            print('=' * 80)
+            print_colored(Color.YELLOW, error)
+            print('=' * 80)
+            print()
         else:
             print('ok - Flags: {}'.format(command_line_args))
 

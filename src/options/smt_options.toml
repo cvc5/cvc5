@@ -384,14 +384,6 @@ header = "options/smt_options.h"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
   
 [[option]]
-  name       = "symmetryBreakerExp"
-  category   = "regular"
-  long       = "symmetry-breaker-exp"
-  type       = "bool"
-  default    = "false"
-  help       = "generate symmetry breaking constraints after symmetry detection"    
-  
-[[option]]
   name       = "incrementalSolving"
   category   = "common"
   short      = "i"
@@ -633,15 +625,6 @@ header = "options/smt_options.h"
   default    = "1"
   read_only  = true
   help       = "amount of resources spent for each sat conflict (bitvectors)"
-
-[[option]]
-  name       = "rewriteApplyToConst"
-  category   = "expert"
-  long       = "rewrite-apply-to-const"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "eliminate function applications, rewriting e.g. f(5) to a new symbol f_5"
 
 # --replay is currently broken; don't document it for 1.0
 [[option]]

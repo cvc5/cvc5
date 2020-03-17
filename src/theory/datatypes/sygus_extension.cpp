@@ -130,39 +130,10 @@ void SygusExtension::assertFact( Node n, bool polarity, std::vector< Node >& lem
 Node SygusExtension::getTermOrderPredicate( Node n1, Node n2 ) {
   NodeManager* nm = NodeManager::currentNM();
   std::vector< Node > comm_disj;
-  // (1) size of left is greater than size of right
-  Node sz_less =
-      nm->mkNode(GT, nm->mkNode(DT_SIZE, n1), nm->mkNode(DT_SIZE, n2));
-  comm_disj.push_back( sz_less );
-  // (2) ...or sizes are equal and first child is less by term order
-  std::vector<Node> sz_eq_cases;
-  Node sz_eq =
-      nm->mkNode(EQUAL, nm->mkNode(DT_SIZE, n1), nm->mkNode(DT_SIZE, n2));
-  sz_eq_cases.push_back( sz_eq );
-  if( options::sygusOpt1() ){
-    TypeNode tnc = n1.getType();
-    const DType& cdt = tnc.getDType();
-    for( unsigned j=0; j<cdt.getNumConstructors(); j++ ){
-      std::vector<Node> case_conj;
-      for (unsigned k = 0; k < j; k++)
-      {
-        case_conj.push_back(utils::mkTester(n2, k, cdt).negate());
-      }
-      if (!case_conj.empty())
-      {
-        Node corder = nm->mkNode(
-            OR,
-            utils::mkTester(n1, j, cdt).negate(),
-            case_conj.size() == 1 ? case_conj[0] : nm->mkNode(AND, case_conj));
-        sz_eq_cases.push_back(corder);
-      }
-    }
-  }
-  Node sz_eqc = sz_eq_cases.size() == 1 ? sz_eq_cases[0]
-                                        : nm->mkNode(kind::AND, sz_eq_cases);
-  comm_disj.push_back( sz_eqc );
-
-  return nm->mkNode(kind::OR, comm_disj);
+  // size of left is greater than or equal to the size of right
+  Node szGeq =
+      nm->mkNode(GEQ, nm->mkNode(DT_SIZE, n1), nm->mkNode(DT_SIZE, n2));
+  return szGeq;
 }
 
 void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
@@ -271,9 +242,10 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
         if( xa==a ){
           IntMap::const_iterator ittv = d_testers.find( x );
           Assert(ittv != d_testers.end());
-          int tindex = (*ittv).second;
+          int tidx = (*ittv).second;
           const DType& dti = x.getType().getDType();
-          if( dti[tindex].getNumArgs()>0 ){
+          if (dti[tidx].getNumArgs() > 0)
+          {
             NodeMap::const_iterator itt = d_testers_exp.find( x );
             Assert(itt != d_testers_exp.end());
             conflict.push_back( (*itt).second );
@@ -387,10 +359,15 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
 }
 
 Node SygusExtension::getRelevancyCondition( Node n ) {
+  if (!options::sygusSymBreakRlv())
+  {
+    return Node::null();
+  }
   std::map< Node, Node >::iterator itr = d_rlv_cond.find( n );
   if( itr==d_rlv_cond.end() ){
     Node cond;
-    if( n.getKind()==APPLY_SELECTOR_TOTAL && options::sygusSymBreakRlv() ){
+    if (n.getKind() == APPLY_SELECTOR_TOTAL)
+    {
       TypeNode ntn = n[0].getType();
       const DType& dt = ntn.getDType();
       Node sel = n.getOperator();
@@ -1501,7 +1478,10 @@ void SygusExtension::incrementCurrentSearchSize( Node m, std::vector< Node >& le
                 for (const Node& lem : it->second)
                 {
                   Node slem = lem.substitute(x, t, cache);
-                  slem = nm->mkNode(OR, rlv, slem);
+                  if (!rlv.isNull())
+                  {
+                    slem = nm->mkNode(OR, rlv, slem);
+                  }
                   lemmas.push_back(slem);
                 }
               }

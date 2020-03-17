@@ -736,7 +736,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       }
 #endif
 
-      set<Node>* repSet = typeRepSet.getSet(t);
       TypeNode tb = t.getBaseType();
       if (!assignOne)
       {
@@ -755,6 +754,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       bool assignable, evaluable CVC4_UNUSED;
       std::map<Node, Assigner>::iterator itAssigner;
       std::map<Node, Node>::iterator itAssignerM;
+      set<Node>* repSet = typeRepSet.getSet(t);
       for (i = noRepSet.begin(); i != noRepSet.end();)
       {
         i2 = i;
@@ -788,13 +788,12 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           Assert(!evaluable || assignOne);
           // this assertion ensures that if we are assigning to a term of
-          // Boolean type, then the term is either a variable or an APPLY_UF.
+          // Boolean type, then the term must be assignable.
           // Note we only assign to terms of Boolean type if the term occurs in
           // a singleton equivalence class; otherwise the term would have been
           // in the equivalence class of true or false and would not need
           // assigning.
-          Assert(!t.isBoolean() || (*i2).isVar()
-                 || (*i2).getKind() == kind::APPLY_UF);
+          Assert(!t.isBoolean() || isAssignable(*i2));
           Node n;
           if (itAssigner != eqcToAssigner.end())
           {
@@ -929,11 +928,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it)
   {
     set<Node>& noRepSet = TypeSet::getSet(it);
-    set<Node>::iterator i;
-    for (i = noRepSet.begin(); i != noRepSet.end(); ++i)
+    for (const Node& node : noRepSet)
     {
-      tm->d_reps[*i] = *i;
-      tm->d_rep_set.add((*i).getType(), *i);
+      tm->d_reps[node] = node;
+      tm->d_rep_set.add(node.getType(), node);
     }
   }
 

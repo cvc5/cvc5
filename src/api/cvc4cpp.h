@@ -189,7 +189,6 @@ class CVC4_PUBLIC Sort
 {
   friend class DatatypeConstructorDecl;
   friend class DatatypeDecl;
-  friend class DatatypeSelectorDecl;
   friend class Op;
   friend class Solver;
   friend struct SortHashFunction;
@@ -1138,51 +1137,6 @@ class DatatypeConstructorIterator;
 class DatatypeIterator;
 
 /**
- * A place-holder sort to allow a DatatypeDecl to refer to itself.
- * Self-sorted fields of DatatypeDecls will be properly sorted when a Sort is
- * created for the DatatypeDecl.
- */
-class CVC4_PUBLIC DatatypeDeclSelfSort
-{
-};
-
-/**
- * A CVC4 datatype selector declaration.
- */
-class CVC4_PUBLIC DatatypeSelectorDecl
-{
-  friend class DatatypeConstructorDecl;
-
- public:
-  /**
-   * Constructor.
-   * @param name the name of the datatype selector
-   * @param sort the sort of the datatype selector
-   * @return the DatatypeSelectorDecl
-   */
-  DatatypeSelectorDecl(const std::string& name, Sort sort);
-
-  /**
-   * Constructor.
-   * @param name the name of the datatype selector
-   * @param sort the sort of the datatype selector
-   * @return the DAtatypeSelectorDecl
-   */
-  DatatypeSelectorDecl(const std::string& name, DatatypeDeclSelfSort sort);
-
-  /**
-   * @return a string representation of this datatype selector
-   */
-  std::string toString() const;
-
- private:
-  /* The name of the datatype selector. */
-  std::string d_name;
-  /* The sort of the datatype selector. */
-  Sort d_sort;
-};
-
-/**
  * A CVC4 datatype constructor declaration.
  */
 class CVC4_PUBLIC DatatypeConstructorDecl
@@ -1199,9 +1153,15 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
   /**
    * Add datatype selector declaration.
-   * @param stor the datatype selector declaration to add
+   * @param name the name of the datatype selector declaration to add
+   * @param sort the range sort of the datatype selector declaration to add
    */
-  void addSelector(const DatatypeSelectorDecl& stor);
+  void addSelector(const std::string& name, Sort sort);
+  /**
+   * Add datatype selector declaration whose range type is the datatype itself.
+   * @param name the name of the datatype selector declaration to add
+   */
+  void addSelectorSelf(const std::string& name);
 
   /**
    * @return a string representation of this datatype constructor declaration
@@ -1260,9 +1220,12 @@ class CVC4_PUBLIC DatatypeDecl
    */
   std::string toString() const;
 
+  /** @return the name of this datatype declaration. */
+  std::string getName() const;
+
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::Datatype& getDatatype(void) const;
+  CVC4::Datatype& getDatatype(void) const;
 
  private:
   /**
@@ -1350,6 +1313,9 @@ class CVC4_PUBLIC DatatypeSelector
    */
   Term getSelectorTerm() const;
 
+  /** @return the range sort of this argument. */
+  Sort getRangeSort() const;
+
   /**
    * @return a string representation of this datatype selector
    */
@@ -1410,11 +1376,6 @@ class CVC4_PUBLIC DatatypeConstructor
    * @return the tester operator
    */
   Term getTesterTerm() const;
-
-  /**
-   * @return the tester name for this Datatype constructor.
-   */
-  std::string getTesterName() const;
 
   /**
    * @return the number of selectors (so far) of this Datatype constructor.
@@ -1767,15 +1728,6 @@ std::ostream& operator<<(std::ostream& out,
                          const std::vector<DatatypeConstructorDecl>& vector);
 
 /**
- * Serialize a datatype selector declaration to given stream.
- * @param out the output stream
- * @param stordecl the datatype selector declaration to be serialized
- * @return the output stream
- */
-std::ostream& operator<<(std::ostream& out,
-                         const DatatypeSelectorDecl& stordecl) CVC4_PUBLIC;
-
-/**
  * Serialize a datatype to given stream.
  * @param out the output stream
  * @param dtdecl the datatype to be serialized to given stream
@@ -1924,6 +1876,37 @@ class CVC4_PUBLIC Solver
    * @return the datatype sort
    */
   Sort mkDatatypeSort(DatatypeDecl dtypedecl) const;
+
+  /**
+   * Create a vector of datatype sorts. The names of the datatype declarations
+   * must be distinct.
+   *
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSorts(
+      std::vector<DatatypeDecl>& dtypedecls) const;
+
+  /**
+   * Create a vector of datatype sorts using unresolved sorts. The names of
+   * the datatype declarations in dtypedecls must be distinct.
+   *
+   * This method is called when the DatatypeDecl objects dtypedecls have been
+   * built using "unresolved" sorts.
+   *
+   * We associate each sort in unresolvedSorts with exacly one datatype from
+   * dtypedecls. In particular, it must have the same name as exactly one
+   * datatype declaration in dtypedecls.
+   *
+   * When constructing datatypes, unresolved sorts are replaced by the datatype
+   * sort constructed for the datatype declaration it is associated with.
+   *
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @param unresolvedSorts the list of unresolved sorts
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
+                                    std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Create function sort.
@@ -2779,12 +2762,6 @@ class CVC4_PUBLIC Solver
   void push(uint32_t nscopes = 1) const;
 
   /**
-   * Reset the solver.
-   * SMT-LIB: ( reset )
-   */
-  void reset() const;
-
-  /**
    * Remove all assertions.
    * SMT-LIB: ( reset-assertions )
    */
@@ -2871,6 +2848,16 @@ class CVC4_PUBLIC Solver
    * @return the Term
    */
   Term mkTermInternal(Kind kind, const std::vector<Term>& children) const;
+
+  /**
+   * Create a vector of datatype sorts, using unresolved sorts.
+   * @param dtypedecls the datatype declarations from which the sort is created
+   * @param unresolvedSorts the list of unresolved sorts
+   * @return the datatype sorts
+   */
+  std::vector<Sort> mkDatatypeSortsInternal(
+      std::vector<DatatypeDecl>& dtypedecls,
+      std::set<Sort>& unresolvedSorts) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;

@@ -753,7 +753,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
     Node ret = (k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL)
                    ? nm->mkNode(kind::UMINUS, nn)
                    : nn;
-    return RewriteResponse(REWRITE_AGAIN, ret);
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
   else if (dIsConstant && n.getKind() == kind::CONST_RATIONAL)
   {

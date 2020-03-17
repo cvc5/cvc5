@@ -119,11 +119,15 @@ void SortInference::initialize(const std::vector<Node>& assertions)
   Trace("sort-inference-proc") << "Calculating sort inference..." << std::endl;
   // process all assertions
   std::map<Node, int> visited;
+  NodeManager * nm = NodeManager::currentNM();
+  int btId = getIdForType( nm->booleanType() );
   for (const Node& a : assertions)
   {
     Trace("sort-inference-debug") << "Process " << a << std::endl;
     std::map<Node, Node> var_bound;
-    process(a, var_bound, visited);
+    int pid = process(a, var_bound, visited);
+    // the type of the topmost term must be Boolean
+    setEqual( pid, btId );
   }
   Trace("sort-inference-proc") << "...done" << std::endl;
   for (const std::pair<const Node, int>& rt : d_op_return_types)
@@ -471,7 +475,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
         Trace("sort-inference-debug") << n << " is a bound variable." << std::endl;
         //the return type was specified while binding
         retType = d_var_types[it->second][n];
-      }else if( n.getKind() == kind::VARIABLE || n.getKind()==kind::SKOLEM ){
+      }else if( n.isVar() ){
         Trace("sort-inference-debug") << n << " is a variable." << std::endl;
         if( d_op_return_types.find( n )==d_op_return_types.end() ){
           //assign arbitrary sort
@@ -663,7 +667,10 @@ Node SortInference::simplifyNode(
           Assert(d_op_arg_types.find(op) != d_op_arg_types.end());
           tnnc = getOrCreateTypeForId( d_op_arg_types[op][i], n[i].getType() );
           Assert(!tnnc.isNull());
-        }else if( n.getKind()==kind::EQUAL && i==0 ){
+        }
+        else if (n.getKind() == kind::EQUAL && !n[0].getType().isBoolean()
+                 && i == 0)
+        {
           Assert(d_equality_types.find(n) != d_equality_types.end());
           tnnc = getOrCreateTypeForId( d_equality_types[n], n[0].getType() );
           Assert(!tnnc.isNull());
@@ -691,7 +698,7 @@ Node SortInference::simplifyNode(
     }else if( n.getKind()==kind::EQUAL ){
       TypeNode tn1 = children[0].getType();
       TypeNode tn2 = children[1].getType();
-      if( !tn1.isSubtypeOf( tn2 ) && !tn2.isSubtypeOf( tn1 ) ){
+      if( !tn1.isComparableTo( tn2 ) ){
         Trace("sort-inference-warn") << "Sort inference created bad equality: " << children[0] << " = " << children[1] << std::endl;
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
         Assert(false);

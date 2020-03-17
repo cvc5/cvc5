@@ -81,6 +81,11 @@ void EqualityEngine::init() {
   Debug("equality") << "EqualityEdge::EqualityEngine(): edge_null = " << +null_edge << std::endl;
   Debug("equality") << "EqualityEdge::EqualityEngine(): trigger_null = " << +null_trigger << std::endl;
 
+  // If we are not at level zero when we initialize this equality engine, we
+  // may remove true/false from the equality engine when we pop to level zero,
+  // which leads to issues.
+  Assert(d_context->getLevel() == 0);
+
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 
@@ -248,11 +253,6 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
 
   Debug("equality") << d_name << "::eq::newNode(" << node << ") => " << newId << std::endl;
 
-  // notify e.g. the theory that owns this equality engine.
-  if (d_performNotify) {
-    d_notify.eqNotifyNewClass(node);
-  }
-
   return newId;
 }
 
@@ -298,7 +298,9 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
 
   EqualityNodeId result;
 
-  if (t.getKind() == kind::EQUAL) {
+  Kind tk = t.getKind();
+  if (tk == kind::EQUAL)
+  {
     addTermInternal(t[0]);
     addTermInternal(t[1]);
     EqualityNodeId t0id = getNodeId(t[0]);
@@ -306,13 +308,15 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     result = newApplicationNode(t, t0id, t1id, APP_EQUALITY);
     d_isInternal[result] = false;
     d_isConstant[result] = false;
-  } else if (t.getNumChildren() > 0 && d_congruenceKinds[t.getKind()]) {
+  }
+  else if (t.getNumChildren() > 0 && d_congruenceKinds[tk])
+  {
     TNode tOp = t.getOperator();
     // Add the operator
-    addTermInternal(tOp, !isExternalOperatorKind(t.getKind()));
+    addTermInternal(tOp, !isExternalOperatorKind(tk));
     result = getNodeId(tOp);
     // Add all the children and Curryfy
-    bool isInterpreted = isInterpretedFunctionKind(t.getKind());
+    bool isInterpreted = isInterpretedFunctionKind(tk);
     for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
       // Add the child
       addTermInternal(t[i]);
@@ -333,7 +337,9 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
         }
       }
     }
-  } else {
+  }
+  else
+  {
     // Otherwise we just create the new id
     result = newNode(t);
     // Is this an operator
@@ -341,26 +347,41 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     d_isConstant[result] = !isOperator && t.isConst();
   }
 
-  if (t.getKind() == kind::EQUAL) {
+  if (tk == kind::EQUAL)
+  {
     // We set this here as this only applies to actual terms, not the
     // intermediate application terms
     d_isEquality[result] = true;
-  } else if (d_constantsAreTriggers && d_isConstant[result]) {
-    // Non-Boolean constants are trigger terms for all tags
-    EqualityNodeId tId = getNodeId(t);
-    // Setup the new set
-    Theory::Set newSetTags = 0;
-    EqualityNodeId newSetTriggers[THEORY_LAST];
-    unsigned newSetTriggersSize = THEORY_LAST;
-    for (TheoryId currentTheory = THEORY_FIRST; currentTheory != THEORY_LAST; ++ currentTheory) {
-      newSetTags = Theory::setInsert(currentTheory, newSetTags);
-      newSetTriggers[currentTheory] = tId;
+  }
+  else
+  {
+    // Notify e.g. the theory that owns this equality engine that there is a
+    // new equivalence class.
+    if (d_performNotify)
+    {
+      d_notify.eqNotifyNewClass(t);
     }
-    // Add it to the list for backtracking
-    d_triggerTermSetUpdates.push_back(TriggerSetUpdate(tId, null_set_id));
-    d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
-    // Mark the the new set as a trigger
-    d_nodeIndividualTrigger[tId] = newTriggerTermSet(newSetTags, newSetTriggers, newSetTriggersSize);
+    if (d_constantsAreTriggers && d_isConstant[result])
+    {
+      // Non-Boolean constants are trigger terms for all tags
+      EqualityNodeId tId = getNodeId(t);
+      // Setup the new set
+      Theory::Set newSetTags = 0;
+      EqualityNodeId newSetTriggers[THEORY_LAST];
+      unsigned newSetTriggersSize = THEORY_LAST;
+      for (TheoryId currentTheory = THEORY_FIRST; currentTheory != THEORY_LAST;
+           ++currentTheory)
+      {
+        newSetTags = Theory::setInsert(currentTheory, newSetTags);
+        newSetTriggers[currentTheory] = tId;
+      }
+      // Add it to the list for backtracking
+      d_triggerTermSetUpdates.push_back(TriggerSetUpdate(tId, null_set_id));
+      d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
+      // Mark the the new set as a trigger
+      d_nodeIndividualTrigger[tId] =
+          newTriggerTermSet(newSetTags, newSetTriggers, newSetTriggersSize);
+    }
   }
 
   // If this is not an internal node, add it to the master
@@ -1002,15 +1023,22 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         if (eqpc->d_id == eq::MERGED_THROUGH_TRANS) {
           std::vector<std::shared_ptr<EqProof>> orderedChildren;
           bool nullCongruenceFound = false;
-          for (unsigned i = 0; i < eqpc->d_children.size(); ++i) {
-            if (eqpc->d_children[i]->d_id==eq::MERGED_THROUGH_CONGRUENCE &&
-                eqpc->d_children[i]->d_node.isNull()) {
+          for (const auto& child : eqpc->d_children)
+          {
+            if (child->d_id == eq::MERGED_THROUGH_CONGRUENCE
+                && child->d_node.isNull())
+            {
               nullCongruenceFound = true;
-              Debug("pf::ee") << "Have congruence with empty d_node. Splitting..." << std::endl;
-              orderedChildren.insert(orderedChildren.begin(), eqpc->d_children[i]->d_children[0]);
-              orderedChildren.push_back(eqpc->d_children[i]->d_children[1]);
-            } else {
-              orderedChildren.push_back(eqpc->d_children[i]);
+              Debug("pf::ee")
+                  << "Have congruence with empty d_node. Splitting..."
+                  << std::endl;
+              orderedChildren.insert(orderedChildren.begin(),
+                                     child->d_children[0]);
+              orderedChildren.push_back(child->d_children[1]);
+            }
+            else
+            {
+              orderedChildren.push_back(child);
             }
           }
 
@@ -1935,11 +1963,12 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
       newSetTriggersSize = 0;
       // Copy into to new one, and insert the new tag/id
       unsigned i = 0;
-      Theory::Set tags = newSetTags;
+      Theory::Set tags2 = newSetTags;
       TheoryId current;
-      while ((current = Theory::setPop(tags)) != THEORY_LAST) {
+      while ((current = Theory::setPop(tags2)) != THEORY_LAST)
+      {
         // Remove from the tags
-        tags = Theory::setRemove(current, tags);
+        tags2 = Theory::setRemove(current, tags2);
         // Insert the id into the triggers
         newSetTriggers[newSetTriggersSize++] =
             current == tag ? eqNodeId : triggerSet.d_triggers[i++];

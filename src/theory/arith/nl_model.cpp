@@ -45,9 +45,9 @@ void NlModel::reset(TheoryModel* m, std::map<Node, Node>& arithModel)
   d_arithVal.clear();
   // process arithModel
   std::map<Node, Node>::iterator it;
-  for (const std::pair<const Node, Node>& m : arithModel)
+  for (const std::pair<const Node, Node>& m2 : arithModel)
   {
-    d_arithVal[m.first] = m.second;
+    d_arithVal[m2.first] = m2.second;
   }
 }
 
@@ -700,14 +700,14 @@ bool NlModel::solveEqualitySimple(Node eq,
   Assert(m_var.isConst());
   for (unsigned r = 0; r < 2; r++)
   {
-    for (unsigned b = 0; b < 2; b++)
+    for (unsigned b2 = 0; b2 < 2; b2++)
     {
-      Node val = b == 0 ? l : u;
+      Node val = b2 == 0 ? l : u;
       // (-b +- approx_sqrt( b^2 - 4ac ))/2a
       Node approx = nm->mkNode(
           MULT, coeffa, nm->mkNode(r == 0 ? MINUS : PLUS, negb, val));
       approx = Rewriter::rewrite(approx);
-      bounds[r][b] = approx;
+      bounds[r][b2] = approx;
       Assert(approx.isConst());
     }
     if (bounds[r][0].getConst<Rational>() > bounds[r][1].getConst<Rational>())
@@ -776,13 +776,13 @@ bool NlModel::simpleCheckModelLit(Node lit)
     // x = a is ( x >= a ^ x <= a )
     for (unsigned i = 0; i < 2; i++)
     {
-      Node lit = nm->mkNode(GEQ, atom[i], atom[1 - i]);
+      Node lit2 = nm->mkNode(GEQ, atom[i], atom[1 - i]);
       if (!pol)
       {
-        lit = lit.negate();
+        lit2 = lit2.negate();
       }
-      lit = Rewriter::rewrite(lit);
-      bool success = simpleCheckModelLit(lit);
+      lit2 = Rewriter::rewrite(lit2);
+      bool success = simpleCheckModelLit(lit2);
       if (success != pol)
       {
         // false != true -> one conjunct of equality is false, we fail
@@ -1167,7 +1167,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
         }
         // must over/under approximate based on vc_set_lower, computed above
         Node vb = vc_set_lower ? l : u;
-        for (unsigned i = 0; i < vcfact; i++)
+        for (unsigned i2 = 0; i2 < vcfact; i2++)
         {
           vbs.push_back(vb);
         }
@@ -1206,31 +1206,6 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
   Assert(comp.isConst());
   Trace("nl-ext-cms") << "  returned : " << comp << std::endl;
   return comp == d_true;
-}
-
-bool NlModel::isRefineableTfFun(Node tf)
-{
-  Assert(tf.getKind() == SINE || tf.getKind() == EXPONENTIAL);
-  if (tf.getKind() == SINE)
-  {
-    // we do not consider e.g. sin( -1*x ), since considering sin( x ) will
-    // have the same effect. We also do not consider sin(x+y) since this is
-    // handled by introducing a fresh variable (see the map d_tr_base in
-    // NonlinearExtension).
-    if (!tf[0].isVar())
-    {
-      return false;
-    }
-  }
-  // Figure 3 : c
-  Node c = computeAbstractModelValue(tf[0]);
-  Assert(c.isConst());
-  int csign = c.getConst<Rational>().sgn();
-  if (csign == 0)
-  {
-    return false;
-  }
-  return true;
 }
 
 bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
@@ -1302,11 +1277,12 @@ void NlModel::getModelValueRepair(
     std::map<Node, Node>& arithModel,
     std::map<Node, std::pair<Node, Node>>& approximations)
 {
+  Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
+
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to
   // this class.
-  Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::pair<Node, Node> >& cb :
        d_check_model_bounds)
@@ -1317,7 +1293,7 @@ void NlModel::getModelValueRepair(
     Node v = cb.first;
     if (l != u)
     {
-      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
+      pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
       Trace("nl-model") << v << " approximated as " << pred << std::endl;
       Node witness;
       if (options::modelWitnessChoice())
@@ -1348,6 +1324,21 @@ void NlModel::getModelValueRepair(
     // overwrite
     arithModel[v] = s;
     Trace("nl-model") << v << " solved is " << s << std::endl;
+  }
+
+  // multiplication terms should not be given values; their values are
+  // implied by the monomials that they consist of
+  std::vector<Node> amErase;
+  for (const std::pair<const Node, Node>& am : arithModel)
+  {
+    if (am.first.getKind() == NONLINEAR_MULT)
+    {
+      amErase.push_back(am.first);
+    }
+  }
+  for (const Node& ae : amErase)
+  {
+    arithModel.erase(ae);
   }
 }
 

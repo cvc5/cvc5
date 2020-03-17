@@ -144,9 +144,10 @@ void CvcPrinter::toStream(
       const BitVector& bv = n.getConst<BitVector>();
       const Integer& x = bv.getValue();
       out << "0bin";
-      unsigned n = bv.getSize();
-      while(n-- > 0) {
-        out << (x.testBit(n) ? '1' : '0');
+      unsigned size = bv.getSize();
+      while (size-- > 0)
+      {
+        out << (x.testBit(size) ? '1' : '0');
       }
       break;
     }
@@ -1173,6 +1174,23 @@ void DeclareFunctionCommandToStream(std::ostream& out,
 
 }  // namespace
 
+void CvcPrinter::toStream(std::ostream& out, const Model& m) const
+{
+  // print the model comments
+  std::stringstream c;
+  m.getComments(c);
+  std::string ln;
+  while (std::getline(c, ln))
+  {
+    out << "; " << ln << std::endl;
+  }
+
+  // print the model
+  out << "MODEL BEGIN" << std::endl;
+  this->Printer::toStream(out, m);
+  out << "MODEL END;" << std::endl;
+}
+
 void CvcPrinter::toStream(std::ostream& out,
                           const Model& model,
                           const Command* command) const
@@ -1464,19 +1482,20 @@ static void toStream(std::ostream& out,
                      const DatatypeDeclarationCommand* c,
                      bool cvc3Mode)
 {
-  const vector<DatatypeType>& datatypes = c->getDatatypes();
+  const vector<Type>& datatypes = c->getDatatypes();
+  Assert(!datatypes.empty() && datatypes[0].isDatatype());
+  const Datatype& dt0 = DatatypeType(datatypes[0]).getDatatype();
   //do not print tuple/datatype internal declarations
-  if( datatypes.size()!=1 || ( !datatypes[0].getDatatype().isTuple() && !datatypes[0].getDatatype().isRecord() ) ){
+  if (datatypes.size() != 1 || (!dt0.isTuple() && !dt0.isRecord()))
+  {
     out << "DATATYPE" << endl;
     bool firstDatatype = true;
-    for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
-          i_end = datatypes.end();
-        i != i_end;
-        ++i) {
+    for (const Type& t : datatypes)
+    {
       if(! firstDatatype) {
         out << ',' << endl;
       }
-      const Datatype& dt = (*i).getDatatype();
+      const Datatype& dt = DatatypeType(t).getDatatype();
       out << "  " << dt.getName();
       if(dt.isParametric()) {
         out << '[';
@@ -1495,23 +1514,30 @@ static void toStream(std::ostream& out,
           out << " | ";
         }
         firstConstructor = false;
-        const DatatypeConstructor& c = *j;
-        out << c.getName();
-        if(c.getNumArgs() > 0) {
+        const DatatypeConstructor& cons = *j;
+        out << cons.getName();
+        if (cons.getNumArgs() > 0)
+        {
           out << '(';
           bool firstSelector = true;
-          for(DatatypeConstructor::const_iterator k = c.begin(); k != c.end(); ++k) {
+          for (DatatypeConstructor::const_iterator k = cons.begin();
+               k != cons.end();
+               ++k)
+          {
             if(! firstSelector) {
               out << ", ";
             }
             firstSelector = false;
             const DatatypeConstructorArg& selector = *k;
-            Type t = SelectorType(selector.getType()).getRangeType();
-            if( t.isDatatype() ){
-              const Datatype & sdt = ((DatatypeType)t).getDatatype();
+            Type tr = SelectorType(selector.getType()).getRangeType();
+            if (tr.isDatatype())
+            {
+              const Datatype& sdt = DatatypeType(tr).getDatatype();
               out << selector.getName() << ": " << sdt.getName();
-            }else{
-              out << selector.getName() << ": " << t;
+            }
+            else
+            {
+              out << selector.getName() << ": " << tr;
             }
           }
           out << ')';

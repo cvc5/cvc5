@@ -119,15 +119,6 @@ header = "options/datatypes_options.h"
   type       = "bool"
   default    = "true"
   help       = "sygus symmetry breaking lemmas based on pbe conjectures"
-  
-[[option]]
-  name       = "sygusOpt1"
-  category   = "regular"
-  long       = "sygus-opt1"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "sygus experimental option"
 
 [[option]]
   name       = "sygusSymBreakLazy"

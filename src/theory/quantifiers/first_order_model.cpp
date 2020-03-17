@@ -356,8 +356,14 @@ void FirstOrderModelFmc::processInitialize( bool ispre ) {
 
 void FirstOrderModelFmc::processInitializeModelForTerm(Node n) {
   if( n.getKind()==APPLY_UF ){
-    if( d_models.find(n.getOperator())==d_models.end()) {
-      d_models[n.getOperator()] = new Def;
+    // cannot be a bound variable
+    Node op = n.getOperator();
+    if (op.getKind() != BOUND_VARIABLE)
+    {
+      if (d_models.find(op) == d_models.end())
+      {
+        d_models[op] = new Def;
+      }
     }
   }
 }

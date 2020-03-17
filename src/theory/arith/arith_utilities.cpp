@@ -224,10 +224,13 @@ Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs)
       else
       {
         TheoryId ctid = theory::kindToTheoryId(ck);
-        if (ctid != THEORY_ARITH && ctid != THEORY_BOOL
-            && ctid != THEORY_BUILTIN)
+        if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL
+             && ctid != THEORY_BUILTIN)
+            || isTranscendentalKind(ck))
         {
-          // do not traverse beneath applications that belong to another theory
+          // Do not traverse beneath applications that belong to another theory
+          // besides (core) arithmetic. Notice that transcendental function
+          // applications are also not traversed here.
           visited[cur] = cur;
         }
         else

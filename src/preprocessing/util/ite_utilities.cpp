@@ -1252,7 +1252,6 @@ Node ITESimplifier::attemptEagerRemoval(TNode atom)
       Assert(leaves != NULL);
       if (!std::binary_search(leaves->begin(), leaves->end(), constant))
       {
-        std::pair<Node, Node> pair = make_pair(cite, constant);
         d_constantIteEqualsConstantCache[pair] = d_false;
         return d_false;
       }
@@ -1534,9 +1533,11 @@ Node ITESimplifier::simpITEAtom(TNode atom)
 
 struct preprocess_stack_element
 {
-  TNode node;
-  bool children_added;
-  preprocess_stack_element(TNode node) : node(node), children_added(false) {}
+  TNode d_node;
+  bool d_children_added;
+  preprocess_stack_element(TNode node) : d_node(node), d_children_added(false)
+  {
+  }
 }; /* struct preprocess_stack_element */
 
 Node ITESimplifier::simpITE(TNode assertion)
@@ -1555,7 +1556,7 @@ Node ITESimplifier::simpITE(TNode assertion)
     // cout << "call  " << call << " : " << iteration << endl;
     // The current node we are processing
     preprocess_stack_element& stackHead = toVisit.back();
-    TNode current = stackHead.node;
+    TNode current = stackHead.d_node;
 
     // If node has no ITE's or already in the cache we're done, pop from the
     // stack
@@ -1577,7 +1578,7 @@ Node ITESimplifier::simpITE(TNode assertion)
     }
 
     // Not yet substituted, so process
-    if (stackHead.children_added)
+    if (stackHead.d_children_added)
     {
       // Children have been processed, so substitute
       NodeBuilder<> builder(current.getKind());
@@ -1617,7 +1618,7 @@ Node ITESimplifier::simpITE(TNode assertion)
       // Mark that we have added the children if any
       if (current.getNumChildren() > 0)
       {
-        stackHead.children_added = true;
+        stackHead.d_children_added = true;
         // We need to add the children
         for (TNode::iterator child_it = current.begin();
              child_it != current.end();
@@ -1875,7 +1876,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
         continue;
       }
 
-      for (unsigned i = 0; i < v.getNumChildren(); ++i)
+      for (i = 0; i < v.getNumChildren(); ++i)
       {
         updateQueue(queue, v[i], cs);
       }

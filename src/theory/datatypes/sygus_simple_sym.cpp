@@ -178,8 +178,8 @@ bool SygusSimpleSymBreak::considerArgKind(
     // the argument types of the child must be the parent's type
     for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
     {
-      TypeNode tn = dt[c].getArgType(i);
-      if (tn != tnp)
+      TypeNode type = dt[c].getArgType(i);
+      if (type != tnp)
       {
         return true;
       }
