@@ -38,7 +38,7 @@ bool smtEngineInScope() { return s_smtEngine_current != NULL; }
 ProofManager* currentProofManager() {
 #if IS_PROOFS_BUILD
   Assert(s_smtEngine_current != NULL);
-  return s_smtEngine_current->d_proofManager;
+  return s_smtEngine_current->getProofManager();
 #else  /* IS_PROOFS_BUILD */
   InternalError()
       << "proofs/unsat cores are not on, but ProofManager requested";
@@ -62,7 +62,7 @@ SmtScope::~SmtScope() {
 
 StatisticsRegistry* SmtScope::currentStatisticsRegistry() {
   Assert(smtEngineInScope());
-  return s_smtEngine_current->d_statisticsRegistry;
+  return s_smtEngine_current->getStatisticsRegistry();
 }
 
 }/* CVC4::smt namespace */
