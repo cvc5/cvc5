@@ -61,6 +61,32 @@ class NodeDagIterator
   bool operator!=(const NodeDagIterator&) const;
 
  private:
+  // Advance one step.
+  // Options:
+  //   * enqueue children of a not-yet-pre-visited node (and mark it
+  //     previsited)
+  //   * pop a not-yet-post-visited node (and mark it post-visited)
+  //   * pop an already post-visited node.
+  void advance();
+
+  // While we're not at an appropriate visit (see d_postorder), advance.
+  void advanceUntilVisit();
+
+  // If this iterator hasn't been dereferenced or incremented yet, advance to
+  // first visit.
+  // Necessary because we break the "top of stack is current visit" invariant
+  // during construction to keep construction cheap. See `d_stack`.
+  void advanceUntilVisitIfJustConstructed();
+
+  // Whether the current state is a pre-visit
+  bool atPreVisit() const;
+  // Whether the current state is a post-visit
+  bool atPostVisit() const;
+  // Step past a pre-visit: record it and enqueue children
+  void finishPreVisit();
+  // Step past a post-visit: record it and pop the node
+  void finishPostVisit();
+
   // General Invariant: The top node on the stack (`d_stack.back()`) is the
   // current location of the traversal.
   //
@@ -81,33 +107,6 @@ class NodeDagIterator
   // Whether this is a post-order iterator (the alternative is pre-order)
   //
   bool d_postorder;
-
-  // Advance one step.
-  // Options:
-  //   * enqueue children of a not-yet-pre-visited node (and mark it
-  //     previsited)
-  //   * pop a not-yet-post-visited node (and mark it post-visited)
-  //   * pop an already post-visited node.
-  void advance();
-
-  // While we're not at an appropriate visit (see d_postorder), advance.
-  void advanceUntilVisit();
-
-
-  // If this iterator hasn't been dereferenced or incremented yet, advance to
-  // first visit.
-  // Necessary because we break the "top of stack is current visit" invariant
-  // during construction to keep construction cheap. See `d_stack`.
-  void advanceUntilVisitIfJustConstructed();
-
-  // Whether the current state is a pre-visit
-  bool atPreVisit() const;
-  // Whether the current state is a post-visit
-  bool atPostVisit() const;
-  // Step past a pre-visit: record it and enqueue children
-  void finishPreVisit();
-  // Step past a post-visit: record it and pop the node
-  void finishPostVisit();
 };
 
 // Node wrapper that is iterable in DAG post-order
@@ -136,8 +135,8 @@ class NodeDagIterable
   NodeDagIterable& operator=(NodeDagIterable&) = default;
   ~NodeDagIterable() = default;
 
-  NodeDagIterator begin();
-  NodeDagIterator end();
+  NodeDagIterator begin() const;
+  NodeDagIterator end() const;
 
  private:
   TNode d_node;

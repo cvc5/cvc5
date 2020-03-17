@@ -155,11 +155,14 @@ NodeDagIterable& NodeDagIterable::in_preorder()
   return *this;
 }
 
-NodeDagIterator NodeDagIterable::begin()
+NodeDagIterator NodeDagIterable::begin() const
 {
   return NodeDagIterator(d_node, d_postorder);
 }
 
-NodeDagIterator NodeDagIterable::end() { return NodeDagIterator(d_postorder); }
+NodeDagIterator NodeDagIterable::end() const
+{
+  return NodeDagIterator(d_postorder);
+}
 
 }  // namespace CVC4
