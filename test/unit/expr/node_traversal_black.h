@@ -26,8 +26,8 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
+#include "expr/node_traversal.h"
 #include "expr/node_value.h"
-#include "smt_util/node_traversal.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
