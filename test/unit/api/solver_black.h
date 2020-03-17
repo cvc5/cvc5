@@ -104,6 +104,8 @@ class SolverBlack : public CxxTest::TestSuite
   void testSetLogic();
   void testSetOption();
 
+  void testResetAssertions();
+
  private:
   std::unique_ptr<Solver> d_solver;
 };
@@ -181,8 +183,7 @@ void SolverBlack::testMkDatatypeSort()
 {
   DatatypeDecl dtypeSpec = d_solver->mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", d_solver->getIntegerSort());
-  cons.addSelector(head);
+  cons.addSelector("head", d_solver->getIntegerSort());
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
@@ -631,10 +632,8 @@ void SolverBlack::testMkTermFromOp()
   DatatypeDecl listDecl = d_solver->mkDatatypeDecl("paramlist", sort);
   DatatypeConstructorDecl cons("cons");
   DatatypeConstructorDecl nil("nil");
-  DatatypeSelectorDecl head("head", sort);
-  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
-  cons.addSelector(head);
-  cons.addSelector(tail);
+  cons.addSelector("head", sort);
+  cons.addSelectorSelf("tail");
   listDecl.addConstructor(cons);
   listDecl.addConstructor(nil);
   Sort listSort = d_solver->mkDatatypeSort(listDecl);
@@ -941,10 +940,8 @@ void SolverBlack::testGetOp()
   // Test Datatypes -- more complicated
   DatatypeDecl consListSpec = d_solver->mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", d_solver->getIntegerSort());
-  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
-  cons.addSelector(head);
-  cons.addSelector(tail);
+  cons.addSelector("head", d_solver->getIntegerSort());
+  cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   consListSpec.addConstructor(nil);
@@ -1044,10 +1041,8 @@ void SolverBlack::testSimplify()
   Sort funSort2 = d_solver->mkFunctionSort(uSort, d_solver->getIntegerSort());
   DatatypeDecl consListSpec = d_solver->mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", d_solver->getIntegerSort());
-  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
-  cons.addSelector(head);
-  cons.addSelector(tail);
+  cons.addSelector("head", d_solver->getIntegerSort());
+  cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   consListSpec.addConstructor(nil);
@@ -1218,4 +1213,19 @@ void SolverBlack::testSetOption()
   d_solver->assertFormula(d_solver->mkTrue());
   TS_ASSERT_THROWS(d_solver->setOption("bv-sat-solver", "minisat"),
                    CVC4ApiException&);
+}
+
+void SolverBlack::testResetAssertions()
+{
+  d_solver->setOption("incremental", "true");
+
+  Sort bvSort = d_solver->mkBitVectorSort(4);
+  Term one = d_solver->mkBitVector(4, 1);
+  Term x = d_solver->mkConst(bvSort, "x");
+  Term ule = d_solver->mkTerm(BITVECTOR_ULE, x, one);
+  Term srem = d_solver->mkTerm(BITVECTOR_SREM, one, x);
+  d_solver->push(4);
+  Term slt = d_solver->mkTerm(BITVECTOR_SLT, srem, one);
+  d_solver->resetAssertions();
+  d_solver->checkSatAssuming({slt, ule});
 }

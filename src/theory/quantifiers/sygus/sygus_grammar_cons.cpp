@@ -408,6 +408,8 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   else if (type.isString())
   {
     ops.push_back(nm->mkConst(String("")));
+    // dummy character "A"
+    ops.push_back(nm->mkConst(String("A")));
   }
   else if (type.isArray() || type.isSet())
   {

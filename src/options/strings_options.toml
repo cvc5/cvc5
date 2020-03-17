@@ -11,17 +11,6 @@ header = "options/strings_options.h"
   help       = "experimental features in the theory of strings"
 
 [[option]]
-  name       = "stringLB"
-  smt_name   = "strings-lb"
-  category   = "regular"
-  long       = "strings-lb=N"
-  type       = "unsigned"
-  default    = "0"
-  predicates = ["unsignedLessEqual2"]
-  read_only  = true
-  help       = "the strategy of LB rule application: 0-lazy, 1-eager, 2-no"
-
-[[option]]
   name       = "stdPrintASCII"
   category   = "regular"
   long       = "strings-print-ascii"
@@ -46,15 +35,6 @@ header = "options/strings_options.h"
   default    = "false"
   read_only  = true
   help       = "strings eager check"
-
-[[option]]
-  name       = "stringEIT"
-  category   = "regular"
-  long       = "strings-eit"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "the eager intersection used by the theory of strings"
 
 [[option]]
   name       = "stringIgnNegMembership"

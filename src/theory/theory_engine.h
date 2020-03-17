@@ -496,8 +496,8 @@ class TheoryEngine {
                                               d_logicInfo);
   }
 
-  inline void setPropEngine(prop::PropEngine* propEngine) {
-    Assert(d_propEngine == NULL);
+  void setPropEngine(prop::PropEngine* propEngine)
+  {
     d_propEngine = propEngine;
   }
 

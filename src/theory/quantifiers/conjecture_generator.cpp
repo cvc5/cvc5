@@ -237,7 +237,8 @@ bool ConjectureGenerator::areUniversalDisequal( TNode n1, TNode n2 ) {
   return n1!=n2 && d_uequalityEngine.hasTerm( n1 ) && d_uequalityEngine.hasTerm( n2 ) && d_uequalityEngine.areDisequal( n1, n2, false );
 }
 
-TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
+Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
+{
   if( add ){
     if( d_urelevant_terms.find( n )==d_urelevant_terms.end() ){
       setUniversalRelevant( n );
@@ -258,7 +259,7 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
           Trace("thm-ee-add") << "UEE : Add universal term " << t << std::endl;
           std::vector< Node > eq_terms;
           //if occurs modulo equality at ground level, it is equivalent to representative of ground equality engine
-          TNode gt = getTermDatabase()->evaluateTerm( t );
+          Node gt = getTermDatabase()->evaluateTerm(t);
           if( !gt.isNull() && gt!=t ){
             eq_terms.push_back( gt );
           }
@@ -850,7 +851,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         while( !ueqcs_i.isFinished() ){
           TNode r = (*ueqcs_i);
           bool firstTime = true;
-          TNode rr = getUniversalRepresentative( r );
+          Node rr = getUniversalRepresentative(r);
           Trace("thm-ee") << "  " << rr;
           Trace("thm-ee") << " : { ";
           eq::EqClassIterator ueqc_i = eq::EqClassIterator( r, &d_uequalityEngine );
@@ -961,7 +962,7 @@ bool ConjectureGenerator::considerTermCanon( Node ln, bool genRelevant ){
     //do not consider if it is non-canonical, and either:
     //  (1) we are not generating relevant terms, or
     //  (2) its canonical form is a generalization.
-    TNode lnr = getUniversalRepresentative( ln, true );
+    Node lnr = getUniversalRepresentative(ln, true);
     if( lnr==ln ){
       markReportedCanon( ln );
     }else if( !genRelevant || isGeneralization( lnr, ln ) ){
