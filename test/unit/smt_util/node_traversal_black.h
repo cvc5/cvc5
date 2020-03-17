@@ -61,16 +61,16 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     auto traversal = NodeDagIterable(cnd).in_postorder();
     NodeDagIterator i = traversal.begin();
     NodeDagIterator end = traversal.end();
-    TS_ASSERT(*i == tb);
-    TS_ASSERT(i != end);
+    TS_ASSERT_EQUALS(*i, tb);
+    TS_ASSERT_DIFFERS(i, end);
     ++i;
-    TS_ASSERT(*i == eb);
-    TS_ASSERT(i != end);
+    TS_ASSERT_EQUALS(*i, eb);
+    TS_ASSERT_DIFFERS(i, end);
     ++i;
-    TS_ASSERT(*i == cnd);
-    TS_ASSERT(i != end);
+    TS_ASSERT_EQUALS(*i, cnd);
+    TS_ASSERT_DIFFERS(i, end);
     ++i;
-    TS_ASSERT(i == end);
+    TS_ASSERT_EQUALS(i, end);
   }
 
   void testPostincrementIteration()
@@ -82,10 +82,10 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     auto traversal = NodeDagIterable(cnd).in_postorder();
     NodeDagIterator i = traversal.begin();
     NodeDagIterator end = traversal.end();
-    TS_ASSERT(*(i++) == tb);
-    TS_ASSERT(*(i++) == eb);
-    TS_ASSERT(*(i++) == cnd);
-    TS_ASSERT(i == end);
+    TS_ASSERT_EQUALS(*(i++), tb);
+    TS_ASSERT_EQUALS(*(i++), eb);
+    TS_ASSERT_EQUALS(*(i++), cnd);
+    TS_ASSERT_EQUALS(i, end);
   }
 
   void testPostorderIsDefault()
@@ -97,8 +97,8 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     auto traversal = NodeDagIterable(cnd);
     NodeDagIterator i = traversal.begin();
     NodeDagIterator end = traversal.end();
-    TS_ASSERT(*i == tb);
-    TS_ASSERT(i != end);
+    TS_ASSERT_EQUALS(*i, tb);
+    TS_ASSERT_DIFFERS(i, end);
   }
 
   void testRangeForLoop()
@@ -112,7 +112,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     {
       ++count;
     }
-    TS_ASSERT(count == 3);
+    TS_ASSERT_EQUALS(count, 3);
   }
 
   void testCountIfWithLoop()
@@ -129,7 +129,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
         ++count;
       }
     }
-    TS_ASSERT(count == 2);
+    TS_ASSERT_EQUALS(count, 2);
   }
 
   void testStlCountIf()
@@ -144,7 +144,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     size_t count = std::count_if(traversal.begin(),
                                  traversal.end(),
                                  [](TNode n) { return n.isConst(); });
-    TS_ASSERT(count == 2);
+    TS_ASSERT_EQUALS(count, 2);
   }
 
   void testStlCopy()
@@ -160,7 +160,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
     std::cerr << actual << endl;
-    TS_ASSERT(actual == expected);
+    TS_ASSERT_EQUALS(actual, expected);
   }
 };
 
@@ -192,16 +192,16 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     auto traversal = NodeDagIterable(cnd).in_preorder();
     NodeDagIterator i = traversal.begin();
     NodeDagIterator end = traversal.end();
-    TS_ASSERT(*i == cnd);
-    TS_ASSERT(i != end);
+    TS_ASSERT_EQUALS(*i, cnd);
+    TS_ASSERT_DIFFERS(i, end);
     ++i;
-    TS_ASSERT(*i == tb);
-    TS_ASSERT(i != end);
+    TS_ASSERT_EQUALS(*i, tb);
+    TS_ASSERT_DIFFERS(i, end);
     ++i;
-    TS_ASSERT(*i == eb);
-    TS_ASSERT(i != end);
+    TS_ASSERT_EQUALS(*i, eb);
+    TS_ASSERT_DIFFERS(i, end);
     ++i;
-    TS_ASSERT(i == end);
+    TS_ASSERT_EQUALS(i, end);
   }
 
   void testPostincrementIteration()
@@ -213,10 +213,10 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     auto traversal = NodeDagIterable(cnd).in_preorder();
     NodeDagIterator i = traversal.begin();
     NodeDagIterator end = traversal.end();
-    TS_ASSERT(*(i++) == cnd);
-    TS_ASSERT(*(i++) == tb);
-    TS_ASSERT(*(i++) == eb);
-    TS_ASSERT(i == end);
+    TS_ASSERT_EQUALS(*(i++), cnd);
+    TS_ASSERT_EQUALS(*(i++), tb);
+    TS_ASSERT_EQUALS(*(i++), eb);
+    TS_ASSERT_EQUALS(i, end);
   }
 
   void testRangeForLoop()
@@ -230,7 +230,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     {
       ++count;
     }
-    TS_ASSERT(count == 3);
+    TS_ASSERT_EQUALS(count, 3);
   }
 
   void testCountIfWithLoop()
@@ -247,7 +247,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
         ++count;
       }
     }
-    TS_ASSERT(count == 2);
+    TS_ASSERT_EQUALS(count, 2);
   }
 
   void testStlCountIf()
@@ -262,7 +262,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     size_t count = std::count_if(traversal.begin(),
                                  traversal.end(),
                                  [](TNode n) { return n.isConst(); });
-    TS_ASSERT(count == 2);
+    TS_ASSERT_EQUALS(count, 2);
   }
 
   void testStlCopy()
@@ -277,6 +277,6 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
 
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
-    TS_ASSERT(actual == expected);
+    TS_ASSERT_EQUALS(actual, expected);
   }
 };
