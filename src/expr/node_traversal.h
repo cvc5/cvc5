@@ -27,13 +27,13 @@ namespace CVC4 {
 
 // Iterator for traversing a node in post-order
 // It does DAG-traversal, so indentical sub-nodes will be visited once only.
-class NodeDagIterator
+class NodeDfsIterator
 {
  public:
   // Construct a traversal iterator beginning at `n`
-  NodeDagIterator(TNode n, bool postorder);
+  NodeDfsIterator(TNode n, bool postorder);
   // Construct an end-of-traversal iterator
-  NodeDagIterator(bool postorder);
+  NodeDfsIterator(bool postorder);
 
   // STL type definitions for an iterator
   using value_type = TNode;
@@ -43,22 +43,22 @@ class NodeDagIterator
   using difference_type = std::ptrdiff_t;
 
   // Move/copy construction and assignment. Destructor.
-  NodeDagIterator(NodeDagIterator&&) = default;
-  NodeDagIterator& operator=(NodeDagIterator&&) = default;
-  NodeDagIterator(NodeDagIterator&) = default;
-  NodeDagIterator& operator=(NodeDagIterator&) = default;
-  ~NodeDagIterator() = default;
+  NodeDfsIterator(NodeDfsIterator&&) = default;
+  NodeDfsIterator& operator=(NodeDfsIterator&&) = default;
+  NodeDfsIterator(NodeDfsIterator&) = default;
+  NodeDfsIterator& operator=(NodeDfsIterator&) = default;
+  ~NodeDfsIterator() = default;
 
   // Preincrement
-  NodeDagIterator& operator++();
+  NodeDfsIterator& operator++();
   // Postincrement
-  NodeDagIterator operator++(int);
+  NodeDfsIterator operator++(int);
   // Dereference
   reference operator*();
   // Equals
-  bool operator==(const NodeDagIterator&) const;
+  bool operator==(const NodeDfsIterator&) const;
   // Not equals
-  bool operator!=(const NodeDagIterator&) const;
+  bool operator!=(const NodeDfsIterator&) const;
 
  private:
   // Advance one step.
@@ -110,13 +110,13 @@ class NodeDagIterator
 };
 
 // Node wrapper that is iterable in DAG post-order
-class NodeDagIterable
+class NodeDfsIterable
 {
  public:
-  NodeDagIterable(TNode n);
+  NodeDfsIterable(TNode n);
 
   // STL type definitions for an iterable
-  using iterator = NodeDagIterator;
+  using iterator = NodeDfsIterator;
   using value_type = TNode;
   using reference = TNode&;
   using difference_type = std::ptrdiff_t;
@@ -124,19 +124,19 @@ class NodeDagIterable
   // Modifying the traversal order
 
   // Modify this iterable to be in post-order (default)
-  NodeDagIterable& in_postorder();
+  NodeDfsIterable& in_postorder();
   // Modify this iterable to be in pre-order
-  NodeDagIterable& in_preorder();
+  NodeDfsIterable& in_preorder();
 
   // Move/copy construction and assignment. Destructor.
-  NodeDagIterable(NodeDagIterable&&) = default;
-  NodeDagIterable& operator=(NodeDagIterable&&) = default;
-  NodeDagIterable(NodeDagIterable&) = default;
-  NodeDagIterable& operator=(NodeDagIterable&) = default;
-  ~NodeDagIterable() = default;
+  NodeDfsIterable(NodeDfsIterable&&) = default;
+  NodeDfsIterable& operator=(NodeDfsIterable&&) = default;
+  NodeDfsIterable(NodeDfsIterable&) = default;
+  NodeDfsIterable& operator=(NodeDfsIterable&) = default;
+  ~NodeDfsIterable() = default;
 
-  NodeDagIterator begin() const;
-  NodeDagIterator end() const;
+  NodeDfsIterator begin() const;
+  NodeDfsIterator end() const;
 
  private:
   TNode d_node;

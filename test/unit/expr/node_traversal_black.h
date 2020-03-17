@@ -58,9 +58,9 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
-    auto traversal = NodeDagIterable(cnd).in_postorder();
-    NodeDagIterator i = traversal.begin();
-    NodeDagIterator end = traversal.end();
+    auto traversal = NodeDfsIterable(cnd).in_postorder();
+    NodeDfsIterator i = traversal.begin();
+    NodeDfsIterator end = traversal.end();
     TS_ASSERT_EQUALS(*i, tb);
     TS_ASSERT_DIFFERS(i, end);
     ++i;
@@ -79,9 +79,9 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
-    auto traversal = NodeDagIterable(cnd).in_postorder();
-    NodeDagIterator i = traversal.begin();
-    NodeDagIterator end = traversal.end();
+    auto traversal = NodeDfsIterable(cnd).in_postorder();
+    NodeDfsIterator i = traversal.begin();
+    NodeDfsIterator end = traversal.end();
     TS_ASSERT_EQUALS(*(i++), tb);
     TS_ASSERT_EQUALS(*(i++), eb);
     TS_ASSERT_EQUALS(*(i++), cnd);
@@ -94,9 +94,9 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
-    auto traversal = NodeDagIterable(cnd);
-    NodeDagIterator i = traversal.begin();
-    NodeDagIterator end = traversal.end();
+    auto traversal = NodeDfsIterable(cnd);
+    NodeDfsIterator i = traversal.begin();
+    NodeDfsIterator end = traversal.end();
     TS_ASSERT_EQUALS(*i, tb);
     TS_ASSERT_DIFFERS(i, end);
   }
@@ -108,7 +108,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
     size_t count = 0;
-    for (auto i : NodeDagIterable(cnd).in_postorder())
+    for (auto i : NodeDfsIterable(cnd).in_postorder())
     {
       ++count;
     }
@@ -122,7 +122,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
     size_t count = 0;
-    for (auto i : NodeDagIterable(cnd).in_postorder())
+    for (auto i : NodeDfsIterable(cnd).in_postorder())
     {
       if (i.isConst())
       {
@@ -139,7 +139,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
 
-    auto traversal = NodeDagIterable(top).in_postorder();
+    auto traversal = NodeDfsIterable(top).in_postorder();
 
     size_t count = std::count_if(traversal.begin(),
                                  traversal.end(),
@@ -155,7 +155,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
     std::vector<TNode> expected = {tb, eb, cnd, top};
 
-    auto traversal = NodeDagIterable(top).in_postorder();
+    auto traversal = NodeDfsIterable(top).in_postorder();
 
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
@@ -189,9 +189,9 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
-    auto traversal = NodeDagIterable(cnd).in_preorder();
-    NodeDagIterator i = traversal.begin();
-    NodeDagIterator end = traversal.end();
+    auto traversal = NodeDfsIterable(cnd).in_preorder();
+    NodeDfsIterator i = traversal.begin();
+    NodeDfsIterator end = traversal.end();
     TS_ASSERT_EQUALS(*i, cnd);
     TS_ASSERT_DIFFERS(i, end);
     ++i;
@@ -210,9 +210,9 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
-    auto traversal = NodeDagIterable(cnd).in_preorder();
-    NodeDagIterator i = traversal.begin();
-    NodeDagIterator end = traversal.end();
+    auto traversal = NodeDfsIterable(cnd).in_preorder();
+    NodeDfsIterator i = traversal.begin();
+    NodeDfsIterator end = traversal.end();
     TS_ASSERT_EQUALS(*(i++), cnd);
     TS_ASSERT_EQUALS(*(i++), tb);
     TS_ASSERT_EQUALS(*(i++), eb);
@@ -226,7 +226,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
     size_t count = 0;
-    for (auto i : NodeDagIterable(cnd).in_preorder())
+    for (auto i : NodeDfsIterable(cnd).in_preorder())
     {
       ++count;
     }
@@ -240,7 +240,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
     size_t count = 0;
-    for (auto i : NodeDagIterable(cnd).in_preorder())
+    for (auto i : NodeDfsIterable(cnd).in_preorder())
     {
       if (i.isConst())
       {
@@ -257,7 +257,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
 
-    auto traversal = NodeDagIterable(top).in_preorder();
+    auto traversal = NodeDfsIterable(top).in_preorder();
 
     size_t count = std::count_if(traversal.begin(),
                                  traversal.end(),
@@ -273,7 +273,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
     std::vector<TNode> expected = {top, cnd, tb, eb};
 
-    auto traversal = NodeDagIterable(top).in_preorder();
+    auto traversal = NodeDfsIterable(top).in_preorder();
 
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
