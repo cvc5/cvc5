@@ -95,8 +95,6 @@ cdef class kind:
 
 # create a kinds submodule
 kinds = ModuleType('kinds')
-# fake a submodule for dotted imports, e.g. from pycvc4.kinds import *
-sys.modules['%s.%s'%(__name__, kinds.__name__)] = kinds
 kinds.__file__ = kinds.__name__ + ".py"
 """
 

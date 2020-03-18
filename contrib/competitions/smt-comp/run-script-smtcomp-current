@@ -32,7 +32,7 @@ QF_LRA)
   ;;
 QF_LIA)
   # same as QF_LRA but add --pb-rewrites
-  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
+  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites --ite-simp --simp-ite-compress
   ;;
 QF_NIA)
   trywith 600 --nl-ext-tplanes --decision=internal
@@ -110,8 +110,8 @@ LIA|LRA|NIA|NRA)
   finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
-  trywith 1200
-  finishwith --decision=justification-stoponly
+  trywith 1200 --ite-simp
+  finishwith --decision=justification-stoponly --ite-simp
   ;;
 QF_ABV)
   trywith 100 --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv

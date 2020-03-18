@@ -146,7 +146,9 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
     Node n = (*d_eqc_false);
     ++d_eqc_false;
     if( n.getKind()==d_match_pattern.getKind() ){
-      if( n[0].getType().isComparableTo( d_match_pattern_type ) ){
+      if (n[0].getType().isComparableTo(d_match_pattern_type)
+          && isLegalCandidate(n))
+      {
         //found an iff or equality, try to match it
         //DO_THIS: cache to avoid redundancies?
         //DO_THIS: do we need to try the symmetric equality for n?  or will it also exist in the eq class of false?

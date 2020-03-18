@@ -49,6 +49,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
+#include "expr/node_visitor.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
@@ -90,7 +91,6 @@
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
-#include "smt_util/node_visitor.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
@@ -557,15 +557,15 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_listenerRegistrations(new ListenerRegistrationList()),
         d_propagator(true, true),
         d_assertions(),
-        d_assertionsProcessed(smt.d_userContext, false),
+        d_assertionsProcessed(smt.getUserContext(), false),
         d_fakeContext(),
         d_abstractValueMap(&d_fakeContext),
         d_abstractValues(),
         d_simplifyAssertionsDepth(0),
         // d_needsExpandDefs(true),  //TODO?
-        d_exprNames(smt.d_userContext),
-        d_iteRemover(smt.d_userContext),
-        d_sygusConjectureStale(smt.d_userContext, true)
+        d_exprNames(smt.getUserContext()),
+        d_iteRemover(smt.getUserContext()),
+        d_sygusConjectureStale(smt.getUserContext(), true)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
@@ -853,13 +853,13 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_nodeManager(d_exprManager->getNodeManager()),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
-      d_proofManager(NULL),
-      d_definedFunctions(NULL),
-      d_fmfRecFunctionsDefined(NULL),
-      d_assertionList(NULL),
-      d_assignments(NULL),
+      d_proofManager(nullptr),
+      d_definedFunctions(nullptr),
+      d_fmfRecFunctionsDefined(nullptr),
+      d_assertionList(nullptr),
+      d_assignments(nullptr),
       d_modelGlobalCommands(),
-      d_modelCommands(NULL),
+      d_modelCommands(nullptr),
       d_dumpCommands(),
       d_defineCommands(),
       d_logic(),
@@ -874,34 +874,34 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_status(),
       d_expectedStatus(),
       d_smtMode(SMT_MODE_START),
-      d_replayStream(NULL),
-      d_private(NULL),
-      d_statisticsRegistry(NULL),
-      d_stats(NULL)
+      d_replayStream(nullptr),
+      d_private(nullptr),
+      d_statisticsRegistry(nullptr),
+      d_stats(nullptr)
 {
   SmtScope smts(this);
   d_originalOptions.copyValues(em->getOptions());
-  d_private = new smt::SmtEnginePrivate(*this);
-  d_statisticsRegistry = new StatisticsRegistry();
-  d_stats = new SmtEngineStatistics();
+  d_private.reset(new smt::SmtEnginePrivate(*this));
+  d_statisticsRegistry.reset(new StatisticsRegistry());
+  d_stats.reset(new SmtEngineStatistics());
   d_stats->d_resourceUnitsUsed.setData(
       d_private->getResourceManager()->getResourceUsage());
 
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
   // initialized in TheoryEngine and PropEngine respectively.
-  Assert(d_proofManager == NULL);
+  Assert(d_proofManager == nullptr);
 
   // d_proofManager must be created before Options has been finished
   // being parsed from the input file. Because of this, we cannot trust
   // that options::proof() is set correctly yet.
 #ifdef CVC4_PROOF
-  d_proofManager = new ProofManager(d_userContext);
+  d_proofManager.reset(new ProofManager(getUserContext()));
 #endif
 
-  d_definedFunctions = new (true) DefinedFunctionMap(d_userContext);
-  d_fmfRecFunctionsDefined = new (true) NodeList(d_userContext);
-  d_modelCommands = new (true) smt::CommandList(d_userContext);
+  d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
+  d_fmfRecFunctionsDefined = new (true) NodeList(getUserContext());
+  d_modelCommands = new (true) smt::CommandList(getUserContext());
 }
 
 void SmtEngine::finishInit()
@@ -909,26 +909,21 @@ void SmtEngine::finishInit()
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_context,
-                                    d_userContext,
-                                    d_private->d_iteRemover,
-                                    const_cast<const LogicInfo&>(d_logic));
+  d_theoryEngine.reset(new TheoryEngine(getContext(),
+                                        getUserContext(),
+                                        d_private->d_iteRemover,
+                                        const_cast<const LogicInfo&>(d_logic)));
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
-    TheoryConstructor::addTheory(d_theoryEngine, id);
+    TheoryConstructor::addTheory(getTheoryEngine(), id);
     //register with proof engine if applicable
 #ifdef CVC4_PROOF
     ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id));
 #endif
   }
 
-  d_private->addUseTheoryListListener(d_theoryEngine);
-
-  // global push/pop around everything, to ensure proper destruction
-  // of context-dependent data structures
-  d_userContext->push();
-  d_context->push();
+  d_private->addUseTheoryListListener(getTheoryEngine());
 
   // ensure that our heuristics are properly set up
   setDefaults();
@@ -940,9 +935,9 @@ void SmtEngine::finishInit()
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(d_theoryEngine,
-                                    d_context,
-                                    d_userContext,
+  d_propEngine.reset(new PropEngine(getTheoryEngine(),
+                                    getContext(),
+                                    getUserContext(),
                                     d_private->getReplayLog(),
                                     d_replayStream));
 
@@ -950,6 +945,11 @@ void SmtEngine::finishInit()
   d_theoryEngine->setPropEngine(getPropEngine());
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
+
+  // global push/pop around everything, to ensure proper destruction
+  // of context-dependent data structures
+  d_userContext->push();
+  d_context->push();
 
   Trace("smt-debug") << "Set up assertion list..." << std::endl;
   // [MGD 10/20/2011] keep around in incremental mode, due to a
@@ -960,7 +960,7 @@ void SmtEngine::finishInit()
      options::incrementalSolving()) {
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
-    d_assertionList = new(true) AssertionList(d_userContext);
+    d_assertionList = new (true) AssertionList(getUserContext());
   }
 
   // dump out a set-logic command only when raw-benchmark is disabled to avoid
@@ -1082,27 +1082,19 @@ SmtEngine::~SmtEngine()
     // Because the destruction of the proofs depends on contexts owned be the
     // theory solvers.
 #ifdef CVC4_PROOF
-    delete d_proofManager;
-    d_proofManager = NULL;
+    d_proofManager.reset(nullptr);
 #endif
 
-    delete d_theoryEngine;
-    d_theoryEngine = NULL;
+    d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
 
-    delete d_stats;
-    d_stats = NULL;
-    delete d_statisticsRegistry;
-    d_statisticsRegistry = NULL;
+    d_stats.reset(nullptr);
+    d_statisticsRegistry.reset(nullptr);
 
-    delete d_private;
-    d_private = NULL;
+    d_private.reset(nullptr);
 
-    delete d_userContext;
-    d_userContext = NULL;
-    delete d_context;
-    d_context = NULL;
-
+    d_userContext.reset(nullptr);
+    d_context.reset(nullptr);
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
               << e << endl;
@@ -1627,35 +1619,6 @@ void SmtEngine::setDefaults() {
     Theory::setUninterpretedSortOwner(THEORY_UF);
   }
 
-  // Turn on ite simplification for QF_LIA and QF_AUFBV
-  // WARNING: These checks match much more than just QF_AUFBV and
-  // QF_LIA logics. --K [2014/10/15]
-  if(! options::doITESimp.wasSetByUser()) {
-    bool qf_aufbv = !d_logic.isQuantified() &&
-      d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
-      d_logic.isTheoryEnabled(THEORY_UF) &&
-      d_logic.isTheoryEnabled(THEORY_BV);
-    bool qf_lia = !d_logic.isQuantified() &&
-      d_logic.isPure(THEORY_ARITH) &&
-      d_logic.isLinear() &&
-      !d_logic.isDifferenceLogic() &&
-      !d_logic.areRealsUsed();
-
-    bool iteSimp = (qf_aufbv || qf_lia);
-    Trace("smt") << "setting ite simplification to " << iteSimp << endl;
-    options::doITESimp.set(iteSimp);
-  }
-  if(! options::compressItes.wasSetByUser() ){
-    bool qf_lia = !d_logic.isQuantified() &&
-      d_logic.isPure(THEORY_ARITH) &&
-      d_logic.isLinear() &&
-      !d_logic.isDifferenceLogic() &&
-      !d_logic.areRealsUsed();
-
-    bool compressIte = qf_lia;
-    Trace("smt") << "setting ite compression to " << compressIte << endl;
-    options::compressItes.set(compressIte);
-  }
   if(! options::simplifyWithCareEnabled.wasSetByUser() ){
     bool qf_aufbv = !d_logic.isQuantified() &&
       d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
@@ -1843,12 +1806,6 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  //local theory extensions
-  if( options::localTheoryExt() ){
-    if( !options::instMaxLevel.wasSetByUser() ){
-      options::instMaxLevel.set( 0 );
-    }
-  }
   if( options::instMaxLevel()!=-1 ){
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
     options::cbqi.set(false);
@@ -3454,12 +3411,6 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if (options::symmetryBreakerExp() && !options::incrementalSolving())
-  {
-    // apply symmetry breaking if not in incremental mode
-    d_passes["sym-break"]->apply(&d_assertions);
-  }
-
   if(options::doStaticLearning()) {
     d_passes["static-learning"]->apply(&d_assertions);
   }
@@ -4339,7 +4290,7 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
     return false;
   }
   if(d_assignments == NULL) {
-    d_assignments = new(true) AssignmentSet(d_context);
+    d_assignments = new (true) AssignmentSet(getContext());
   }
   d_assignments->insert(n);
 
@@ -5589,11 +5540,12 @@ void SmtEngine::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(d_theoryEngine,
-                                    d_context,
-                                    d_userContext,
+  d_propEngine.reset(new PropEngine(getTheoryEngine(),
+                                    getContext(),
+                                    getUserContext(),
                                     d_private->getReplayLog(),
                                     d_replayStream));
+  d_theoryEngine->setPropEngine(getPropEngine());
 }
 
 void SmtEngine::interrupt()
