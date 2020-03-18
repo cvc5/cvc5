@@ -20,12 +20,12 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h" // for ExprSetDepth etc..
-#include "expr/node_manager_attributes.h" // for VarNameAttr
-#include "options/language.h" // for LANG_AST
+#include "expr/expr.h"                     // for ExprSetDepth etc..
+#include "expr/node_manager_attributes.h"  // for VarNameAttr
+#include "expr/node_visitor.h"
+#include "options/language.h"  // for LANG_AST
 #include "printer/dagification_visitor.h"
 #include "smt/command.h"
-#include "smt_util/node_visitor.h"
 #include "theory/substitutions.h"
 
 using namespace std;
