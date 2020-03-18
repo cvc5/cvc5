@@ -22,8 +22,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/smt_statistics_registry.h"
 #include "expr/node_visitor.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
