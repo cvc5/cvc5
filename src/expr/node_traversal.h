@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT_UTIL__NODE_TRAVERSAL_H
-#define CVC4__SMT_UTIL__NODE_TRAVERSAL_H
+#ifndef CVC4__EXPR__NODE_TRAVERSAL_H
+#define CVC4__EXPR__NODE_TRAVERSAL_H
 
 #include <cstddef>
 #include <iterator>
@@ -30,17 +30,17 @@ namespace CVC4 {
 class NodeDfsIterator
 {
  public:
-  // Construct a traversal iterator beginning at `n`
-  NodeDfsIterator(TNode n, bool postorder);
-  // Construct an end-of-traversal iterator
-  NodeDfsIterator(bool postorder);
-
   // STL type definitions for an iterator
   using value_type = TNode;
   using pointer = TNode*;
   using reference = TNode&;
   using iterator_category = std::forward_iterator_tag;
   using difference_type = std::ptrdiff_t;
+
+  // Construct a traversal iterator beginning at `n`
+  NodeDfsIterator(TNode n, bool postorder);
+  // Construct an end-of-traversal iterator
+  NodeDfsIterator(bool postorder);
 
   // Move/copy construction and assignment. Destructor.
   NodeDfsIterator(NodeDfsIterator&&) = default;
@@ -115,14 +115,7 @@ class NodeDfsIterable
  public:
   NodeDfsIterable(TNode n);
 
-  // STL type definitions for an iterable
-  using iterator = NodeDfsIterator;
-  using value_type = TNode;
-  using reference = TNode&;
-  using difference_type = std::ptrdiff_t;
-
   // Modifying the traversal order
-
   // Modify this iterable to be in post-order (default)
   NodeDfsIterable& in_postorder();
   // Modify this iterable to be in pre-order
@@ -145,4 +138,4 @@ class NodeDfsIterable
 
 }  // namespace CVC4
 
-#endif  // CVC4__SMT_UTIL__NODE_TRAVERSAL_H
+#endif  // CVC4__EXPR__NODE_TRAVERSAL_H
