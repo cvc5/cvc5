@@ -154,8 +154,6 @@ public:
   //is well sorted
   bool isWellSortedFormula( Node n );
   bool isWellSorted( Node n );
-  //get constraints for being well-typed according to computed sub-types
-  void getSortConstraints( Node n, SortInference::UnionFind& uf );
 private:
   // store monotonicity for original sorts as well
  std::map<TypeNode, bool> d_non_monotonic_sorts_orig;
