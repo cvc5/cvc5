@@ -133,8 +133,6 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
               }else{
                 Assert(false);
               }                  
-            }else{
-              Assert(!options::cbqiAll());
             }
           }
         }
