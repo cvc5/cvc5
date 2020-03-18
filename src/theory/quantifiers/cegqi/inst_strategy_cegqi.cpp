@@ -94,7 +94,7 @@ QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
 bool InstStrategyCegqi::registerCbqiLemma(Node q)
 {
   if( !hasAddedCbqiLemma( q ) ){
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     d_added_cbqi_lemma.insert( q );
     Trace("cbqi-debug") << "Do cbqi for " << q << std::endl;
     //add cbqi lemma
@@ -142,28 +142,33 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       }      
       
       //compute dependencies between quantified formulas
-      std::vector< Node > ics;
+      std::vector<Node> ics;
       TermUtil::computeInstConstContains(q, ics);
       d_parent_quant[q].clear();
       d_children_quant[q].clear();
-      std::vector< Node > dep;
-      for (const Node& ic : ics){
+      std::vector<Node> dep;
+      for (const Node& ic : ics)
+      {
         Node qi = ic.getAttribute(InstConstantAttribute());
-        if( std::find( d_parent_quant[q].begin(), d_parent_quant[q].end(), qi )==d_parent_quant[q].end() ){
-          d_parent_quant[q].push_back( qi );
-          d_children_quant[qi].push_back( q );
+        if (std::find(d_parent_quant[q].begin(), d_parent_quant[q].end(), qi)
+            == d_parent_quant[q].end())
+        {
+          d_parent_quant[q].push_back(qi);
+          d_children_quant[qi].push_back(q);
           Assert(hasAddedCbqiLemma(qi));
           Node qicel = getCounterexampleLiteral(qi);
-          dep.push_back( qi );
-          dep.push_back( qicel );
+          dep.push_back(qi);
+          dep.push_back(qicel);
         }
       }
-      if( !dep.empty() ){
-        Node dep_lemma = nm->mkNode( IMPLIES, ceLit, nm->mkNode( AND, dep ) );
-        Trace("cbqi-lemma") << "Counterexample dependency lemma : " << dep_lemma << std::endl;
-        d_quantEngine->getOutputChannel().lemma( dep_lemma );
+      if (!dep.empty())
+      {
+        Node dep_lemma = nm->mkNode(IMPLIES, ceLit, nm->mkNode(AND, dep));
+        Trace("cbqi-lemma")
+            << "Counterexample dependency lemma : " << dep_lemma << std::endl;
+        d_quantEngine->getOutputChannel().lemma(dep_lemma);
       }
-      
+
       //must register all sub-quantifiers of counterexample lemma, register their lemmas
       std::vector< Node > quants;
       TermUtil::computeQuantContains( lem, quants );
