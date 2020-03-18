@@ -77,6 +77,7 @@ Optional Path to Optional Packages:
   --gmp-dir=PATH           path to top level of GMP installation
   --lfsc-dir=PATH          path to top level of LFSC source tree
   --symfpu-dir=PATH        path to top level of SymFPU source tree
+  --python-dir=PATH        path to Python binary
 
 EOF
   exit 0
@@ -157,6 +158,7 @@ glpk_dir=default
 gmp_dir=default
 lfsc_dir=default
 symfpu_dir=default
+python_dir=default
 
 #--------------------------------------------------------------------------#
 
@@ -334,6 +336,9 @@ do
     --symfpu-dir) die "missing argument to $1 (try -h)" ;;
     --symfpu-dir=*) symfpu_dir=${1##*=} ;;
 
+    --python-dir) die "missing argument to $1 (try -h)" ;;
+    --python-dir=*) python_dir=${1##*=} ;;
+
     -*) die "invalid option '$1' (try -h)";;
 
     *) case $1 in
@@ -453,6 +458,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DLFSC_DIR=$lfsc_dir"
 [ "$symfpu_dir" != default ] \
   && cmake_opts="$cmake_opts -DSYMFPU_DIR=$symfpu_dir"
+[ "$python_dir" != default ] \
+  && cmake_opts="$cmake_opts -DPYTHON_DIR=$python_dir"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \

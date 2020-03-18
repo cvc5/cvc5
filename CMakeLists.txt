@@ -73,6 +73,9 @@ endif()
 if(SYMFPU_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${SYMFPU_DIR}")
 endif()
+if(PYTHON_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${PYTHON_DIR}")
+endif()
 
 # By default the contrib/get-* scripts install dependencies to deps/install.
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
@@ -677,6 +680,8 @@ message("CFLAGS                         : ${CMAKE_C_FLAGS}")
 message("Linker flags                   : ${CMAKE_EXE_LINKER_FLAGS}")
 message("")
 message("Install prefix                 : ${CMAKE_INSTALL_PREFIX}")
+message("")
+message("Python                         : ${PYTHON_EXECUTABLE}")
 message("")
 
 if(GPL_LIBS)
