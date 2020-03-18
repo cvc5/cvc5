@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
 #include "main/main.h"
 #include "smt/command.h"
 
@@ -49,14 +48,15 @@ void setNoLimitCPU() {
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
-CommandExecutor::CommandExecutor(api::Solver* solver, Options& options)
-    : d_solver(solver),
+CommandExecutor::CommandExecutor(Options& options)
+    : d_solver(new api::Solver(&options)),
       d_smtEngine(d_solver->getSmtEngine()),
       d_options(options),
       d_stats("driver"),
       d_result(),
-      d_replayStream(NULL)
-{}
+      d_replayStream(nullptr)
+{
+}
 
 void CommandExecutor::flushStatistics(std::ostream& out) const
 {
@@ -112,7 +112,13 @@ void CommandExecutor::reset()
   {
     flushStatistics(*d_options.getErr());
   }
-  d_solver->reset();
+  /* We have to keep options passed via CL on reset. These options are stored
+   * in CommandExecutor::d_options (populated and created in the driver), and
+   * CommandExecutor::d_options only contains *these* options since the
+   * NodeManager copies the options into a new options object before SmtEngine
+   * configures additional options based on the given CL options.
+   * We can thus safely reuse CommandExecutor::d_options here. */
+  d_solver.reset(new api::Solver(&d_options));
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)
