@@ -105,7 +105,6 @@ class NodeDfsIterator
   std::unordered_map<TNode, bool, TNodeHashFunction> d_visited;
 
   // Whether this is a post-order iterator (the alternative is pre-order)
-  //
   bool d_postorder;
 };
 
