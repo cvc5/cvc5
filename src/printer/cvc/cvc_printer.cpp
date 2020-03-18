@@ -32,7 +32,7 @@
 #include "printer/dagification_visitor.h"
 #include "smt/command.h"
 #include "smt/smt_engine.h"
-#include "smt_util/node_visitor.h"
+#include "expr/node_visitor.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"

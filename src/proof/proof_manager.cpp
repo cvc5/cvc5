@@ -31,7 +31,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/node_visitor.h"
+#include "expr/node_visitor.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/output_channel.h"
 #include "theory/term_registration_visitor.h"

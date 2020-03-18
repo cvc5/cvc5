@@ -90,7 +90,7 @@
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
-#include "smt_util/node_visitor.h"
+#include "expr/node_visitor.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
