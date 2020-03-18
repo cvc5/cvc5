@@ -434,7 +434,9 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
       }
       d_equality_types[n] = child_types[0];
       retType = getIdForType( n.getType() );
-    }else if( n.getKind()==kind::APPLY_UF && !options::ufHo() ){
+    }
+    else if (n.getKind() == kind::APPLY_UF && !options::ufHo())
+    {
       Node op = n.getOperator();
       TypeNode tn_op = op.getType();
       if( d_op_return_types.find( op )==d_op_return_types.end() ){
@@ -663,7 +665,8 @@ Node SortInference::simplifyNode(
                 : i >= 1;
       }
       if( processChild ){
-        if( n.getKind()==kind::APPLY_UF && !options::ufHo() ){
+        if (n.getKind() == kind::APPLY_UF && !options::ufHo())
+        {
           Assert(d_op_arg_types.find(op) != d_op_arg_types.end());
           tnnc = getOrCreateTypeForId( d_op_arg_types[op][i], n[i].getType() );
           Assert(!tnnc.isNull());
@@ -704,7 +707,9 @@ Node SortInference::simplifyNode(
         Assert(false);
       }
       ret = NodeManager::currentNM()->mkNode( kind::EQUAL, children );
-    }else if( n.getKind()==kind::APPLY_UF && !options::ufHo() ){
+    }
+    else if (n.getKind() == kind::APPLY_UF && !options::ufHo())
+    {
       if( d_symbol_map.find( op )==d_symbol_map.end() ){
         //make the new operator if necessary
         bool opChanged = false;
