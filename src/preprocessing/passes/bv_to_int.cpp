@@ -750,7 +750,7 @@ Node BVToInt::bvToInt(Node n)
                 /**
                  * Add range constraints if necessary.
                  * If the original range was a BV sort, the current application of
-                 * the fucntion Must be within the range determined by the
+                 * the function Must be within the range determined by the
                  * bitwidth.
                  */
                 if (bvRange.isBitVector())
