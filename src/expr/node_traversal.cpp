@@ -17,19 +17,19 @@
 namespace CVC4 {
 
 NodeDfsIterator::NodeDfsIterator(TNode n, bool postorder)
-    : d_stack{n}, d_visited(), d_postorder(postorder)
+    : d_stack{n}, d_visited(), d_postorder(postorder), d_initialized(!postorder)
 {
 }
 
 NodeDfsIterator::NodeDfsIterator(bool postorder)
-    : d_stack(), d_visited(), d_postorder(postorder)
+    : d_stack(), d_visited(), d_postorder(postorder), d_initialized(true)
 {
 }
 
 NodeDfsIterator& NodeDfsIterator::operator++()
 {
   // If we were just constructed, advance to first visit
-  advanceUntilVisitIfJustConstructed();
+  initializeIfUninitialized();
 
   // Advance past our current visit
   if (d_postorder)
@@ -56,7 +56,7 @@ NodeDfsIterator NodeDfsIterator::operator++(int)
 TNode& NodeDfsIterator::operator*()
 {
   // If we were just constructed, advance to first visit
-  advanceUntilVisitIfJustConstructed();
+  initializeIfUninitialized();
 
   return d_stack.back();
 }
@@ -108,11 +108,12 @@ void NodeDfsIterator::advanceUntilVisit()
   }
 }
 
-void NodeDfsIterator::advanceUntilVisitIfJustConstructed()
+void NodeDfsIterator::initializeIfUninitialized()
 {
-  if (d_stack.size() == 1 && d_visited.size() == 0)
+  if (!d_initialized)
   {
     advanceUntilVisit();
+    d_initialized = true;
   }
 }
 

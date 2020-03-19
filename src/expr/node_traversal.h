@@ -61,7 +61,6 @@ class NodeDfsIterator
   bool operator!=(const NodeDfsIterator&) const;
 
  private:
-
   // While we're not at an appropriate visit (see d_postorder), advance.
   // In each step:
   //   * enqueue children of a not-yet-pre-visited node (and mark it
@@ -74,7 +73,7 @@ class NodeDfsIterator
   // first visit.
   // Necessary because we break the "top of stack is current visit" invariant
   // during construction to keep construction cheap. See `d_stack`.
-  void advanceUntilVisitIfJustConstructed();
+  void initializeIfUninitialized();
 
   // Step past a pre-visit: record it and enqueue children
   void finishPreVisit();
@@ -100,6 +99,10 @@ class NodeDfsIterator
 
   // Whether this is a post-order iterator (the alternative is pre-order)
   bool d_postorder;
+
+  // Whether this iterator has been initialized (advanced to its first
+  // visit)
+  bool d_initialized;
 };
 
 // Node wrapper that is iterable in DAG post-order
