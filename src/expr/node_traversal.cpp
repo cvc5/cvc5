@@ -34,7 +34,9 @@ NodeDfsIterator& NodeDfsIterator::operator++()
   // Advance past our current visit
   if (d_postorder)
   {
-    finishPostVisit();
+    Assert(!d_stack.empty());
+    d_visited[d_stack.back()] = true;
+    d_stack.pop_back();
   }
   else
   {
@@ -103,7 +105,8 @@ void NodeDfsIterator::advanceUntilVisit()
       {
         return;
       }
-      finishPostVisit();
+      visitEntry->second = true;
+      d_stack.pop_back();
     }
   }
 }
@@ -127,13 +130,6 @@ void NodeDfsIterator::finishPreVisit()
   {
     d_stack.push_back(back[i]);
   }
-}
-
-void NodeDfsIterator::finishPostVisit()
-{
-  Assert(!d_stack.empty());
-  d_visited[d_stack.back()] = true;
-  d_stack.pop_back();
 }
 
 NodeDfsIterable::NodeDfsIterable(TNode n) : d_node(n), d_postorder(true) {}

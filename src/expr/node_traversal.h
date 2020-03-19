@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <iterator>
+#include <unordered_map>
 #include <vector>
 
 #include "expr/node.h"
@@ -77,8 +78,6 @@ class NodeDfsIterator
 
   // Step past a pre-visit: record it and enqueue children
   void finishPreVisit();
-  // Step past a post-visit: record it and pop the node
-  void finishPostVisit();
 
   // General Invariant: The top node on the stack (`d_stack.back()`) is the
   // current location of the traversal.
