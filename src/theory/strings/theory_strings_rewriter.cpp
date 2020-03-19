@@ -828,8 +828,9 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
   Node emptyRe;
 
   // get the string type that are members of this regular expression
+  TypeNode rtype = node.getType();
   TypeNode stype;
-  if (node.getType().isRegExp())
+  if (rtype.isRegExp())
   {
     // standard regular expressions are for strings
     stype = nm->stringType();
@@ -911,7 +912,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
       Assert(!lastAllStar);
       // this groups consecutive strings a++b ---> ab
       Node acc = nm->mkNode(STRING_TO_REGEXP,
-                            utils::mkConcat(preReStr, preReStr[0].getType()));
+                            utils::mkConcat(preReStr, stype));
       cvec.push_back(acc);
       preReStr.clear();
     }
@@ -954,7 +955,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
     }
   }
   Assert(!cvec.empty());
-  retNode = utils::mkConcat(cvec, stype);
+  retNode = utils::mkConcat(cvec, rtype);
   if (retNode != node)
   {
     // handles all cases where consecutive re constants are combined or
@@ -975,7 +976,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
   }
   if (changed)
   {
-    retNode = utils::mkConcat(cvec, stype);
+    retNode = utils::mkConcat(cvec, rtype);
     return returnRewrite(node, retNode, "re.concat.opt");
   }
   return node;
