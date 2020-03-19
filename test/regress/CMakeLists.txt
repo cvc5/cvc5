@@ -725,6 +725,7 @@ set(regress_0_tests
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
   regress0/quantifiers/issue3655.smt2
+  regress0/quantifiers/issue4086-infs.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
