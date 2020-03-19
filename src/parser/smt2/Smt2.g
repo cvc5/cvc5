@@ -250,13 +250,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
           AntlrInput::tokenText($KEYWORD).c_str() + 1));
     }
   | /* sort declaration */
-    DECLARE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF) &&
-         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) &&
-         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) &&
-         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS)) {
-          PARSER_STATE->parseErrorLogic("Free sort symbols not allowed in ");
-      }
+    DECLARE_SORT_TOK
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      PARSER_STATE->checkLogicAllowsFreeSorts();
     }
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
@@ -303,12 +300,9 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       if( !sorts.empty() ) {
         t = PARSER_STATE->mkFlatFunctionType(sorts, t);
       }
-      if(t.isFunction() && !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-        PARSER_STATE->parseError(
-            "Functions (of non-zero arity) cannot "
-            "be declared in logic "
-            + PARSER_STATE->getLogic().getLogicString()
-            + " unless option --uf-ho is used.");
+      if(t.isFunction())
+      {
+        PARSER_STATE->checkLogicAllowsFunctions();
       }
       // we allow overloading for function declarations
       if (PARSER_STATE->sygus_v1())
@@ -1259,15 +1253,12 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 
     /* Support some of Z3's extended SMT-LIB commands */
 
-  | DECLARE_SORTS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF) &&
-         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) &&
-         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) &&
-         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS)) {
-        PARSER_STATE->parseErrorLogic("Free sort symbols not allowed in ");
-      }
+  | DECLARE_SORTS_TOK
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      PARSER_STATE->checkLogicAllowsFreeSorts();
+      seq.reset(new CVC4::CommandSequence());
     }
-    { seq.reset(new CVC4::CommandSequence()); }
     LPAREN_TOK
     ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
       { PARSER_STATE->checkUserSymbol(name);
@@ -1286,13 +1277,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       nonemptySortList[sorts] RPAREN_TOK
       { api::Sort tt;
         if(sorts.size() > 1) {
-          if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-            PARSER_STATE->parseError(
-                "Functions (of non-zero arity) cannot "
-                "be declared in logic "
-                + PARSER_STATE->getLogic().getLogicString()
-                + " unless option --uf-ho is used");
-          }
+          PARSER_STATE->checkLogicAllowsFunctions();
           // must flatten
           api::Sort range = sorts.back();
           sorts.pop_back();
@@ -1318,13 +1303,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sortList[sorts] RPAREN_TOK
       { t = SOLVER->getBooleanSort();
         if(sorts.size() > 0) {
-          if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-            PARSER_STATE->parseError(
-                "Functions (of non-zero arity) cannot "
-                "be declared in logic "
-                + PARSER_STATE->getLogic().getLogicString()
-                + " unless option --uf-ho is used");
-          }
+          PARSER_STATE->checkLogicAllowsFunctions();
           t = SOLVER->mkFunctionSort(sorts, t);
         }
         // allow overloading
@@ -2414,13 +2393,13 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
           PARSER_STATE->parseError("Extra parentheses around sort name not "
                                    "permitted in SMT-LIB");
         } else if(name == "Array" &&
-           PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) ) {
+           PARSER_STATE->isTheoryEnabled(theory::THEORY_ARRAYS) ) {
           if(args.size() != 2) {
             PARSER_STATE->parseError("Illegal array type.");
           }
           t = SOLVER->mkArraySort( args[0], args[1] );
         } else if(name == "Set" &&
-                  PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) ) {
+                  PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) ) {
           if(args.size() != 1) {
             PARSER_STATE->parseError("Illegal set type.");
           }
@@ -2611,9 +2590,9 @@ DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'decla
 DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
 PAR_TOK : { PARSER_STATE->v2_6() }?'par';
-COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }?'comprehension';
-TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'is';
-MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'match';
+COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'comprehension';
+TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'is';
+MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
 BLOCK_MODEL_VALUES_TOK : 'block-model-values';
@@ -2657,9 +2636,9 @@ ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 
-EMP_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SEP) }? 'emp';
-TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'mkTuple';
-TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'tupSel';
+EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
+TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
+TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
 
 HO_ARROW_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? 'lambda';
