@@ -103,8 +103,8 @@ public:
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_smt->setOption("incremental", CVC4::SExpr(false));
-    d_ctxt = d_smt->d_context;
-    d_uctxt = d_smt->d_userContext;
+    d_ctxt = d_smt->getContext();
+    d_uctxt = d_smt->getUserContext();
     d_scope = new SmtScope(d_smt);
     d_outputChannel.clear();
     d_logicInfo.lock();
@@ -114,14 +114,10 @@ public:
     // the following call, which constructs its underlying theory engine.
     d_smt->finalOptionsAreSet();
 
-    // guard against duplicate statistics assertion errors
-    delete d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH];
-    delete d_smt->d_theoryEngine->d_theoryOut[THEORY_ARITH];
-    d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH] = NULL;
-    d_smt->d_theoryEngine->d_theoryOut[THEORY_ARITH] = NULL;
-
-    d_arith = new TheoryArith(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL),
-                              d_logicInfo);
+    d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH]->setOutputChannel(
+        d_outputChannel);
+    d_arith = static_cast<TheoryArith*>(
+        d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH]);
 
     preregistered = new std::set<Node>();
 
@@ -139,7 +135,6 @@ public:
 
     delete preregistered;
 
-    delete d_arith;
     d_outputChannel.clear();
     delete d_scope;
     delete d_smt;
