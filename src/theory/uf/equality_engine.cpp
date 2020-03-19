@@ -81,6 +81,11 @@ void EqualityEngine::init() {
   Debug("equality") << "EqualityEdge::EqualityEngine(): edge_null = " << +null_edge << std::endl;
   Debug("equality") << "EqualityEdge::EqualityEngine(): trigger_null = " << +null_trigger << std::endl;
 
+  // If we are not at level zero when we initialize this equality engine, we
+  // may remove true/false from the equality engine when we pop to level zero,
+  // which leads to issues.
+  Assert(d_context->getLevel() == 0);
+
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 

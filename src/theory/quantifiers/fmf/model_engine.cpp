@@ -163,11 +163,6 @@ void ModelEngine::assertNode( Node f ){
 
 }
 
-bool ModelEngine::optOneQuantPerRound(){
-  return options::fmfOneQuantPerRound();
-}
-
-
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
 
@@ -230,7 +225,8 @@ int ModelEngine::checkModel(){
       //determine if we should check this quantifier
       if( d_quantEngine->getModel()->isQuantifierActive( q ) && d_quantEngine->hasOwnership( q, this ) ){
         exhaustiveInstantiate( q, e );
-        if( d_quantEngine->inConflict() || ( optOneQuantPerRound() && d_addedLemmas>0 ) ){
+        if (d_quantEngine->inConflict())
+        {
           break;
         }
       }else{

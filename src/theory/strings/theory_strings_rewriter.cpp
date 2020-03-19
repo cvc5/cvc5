@@ -922,7 +922,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
     {
       // if empty, drop it
       // e.g. this ensures we rewrite (_)* ++ (a)* ---> (_)*
-      if (testConstStringInRegExp(emptyStr, 0, curr))
+      if (isConstRegExp(curr) && testConstStringInRegExp(emptyStr, 0, curr))
       {
         curr = Node::null();
       }
@@ -943,7 +943,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
           lastAllStar = true;
           // go back and remove empty ones from back of cvec
           // e.g. this ensures we rewrite (a)* ++ (_)* ---> (_)*
-          while (!cvec.empty()
+          while (!cvec.empty() && isConstRegExp(cvec.back())
                  && testConstStringInRegExp(emptyStr, 0, cvec.back()))
           {
             cvec.pop_back();
