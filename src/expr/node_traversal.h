@@ -61,15 +61,13 @@ class NodeDfsIterator
   bool operator!=(const NodeDfsIterator&) const;
 
  private:
-  // Advance one step.
-  // Options:
+
+  // While we're not at an appropriate visit (see d_postorder), advance.
+  // In each step:
   //   * enqueue children of a not-yet-pre-visited node (and mark it
   //     previsited)
   //   * pop a not-yet-post-visited node (and mark it post-visited)
   //   * pop an already post-visited node.
-  void advance();
-
-  // While we're not at an appropriate visit (see d_postorder), advance.
   void advanceUntilVisit();
 
   // If this iterator hasn't been dereferenced or incremented yet, advance to
@@ -78,10 +76,6 @@ class NodeDfsIterator
   // during construction to keep construction cheap. See `d_stack`.
   void advanceUntilVisitIfJustConstructed();
 
-  // Whether the current state is a pre-visit
-  bool atPreVisit() const;
-  // Whether the current state is a post-visit
-  bool atPostVisit() const;
   // Step past a pre-visit: record it and enqueue children
   void finishPreVisit();
   // Step past a post-visit: record it and pop the node

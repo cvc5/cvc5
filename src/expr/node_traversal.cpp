@@ -14,8 +14,6 @@
 
 #include "node_traversal.h"
 
-#include <iostream>
-
 namespace CVC4 {
 
 NodeDfsIterator::NodeDfsIterator(TNode n, bool postorder)
@@ -30,7 +28,6 @@ NodeDfsIterator::NodeDfsIterator(bool postorder)
 
 NodeDfsIterator& NodeDfsIterator::operator++()
 {
-  std::cout << "post-increment: " << d_stack << std::endl;
   // If we were just constructed, advance to first visit
   advanceUntilVisitIfJustConstructed();
 
@@ -58,7 +55,6 @@ NodeDfsIterator NodeDfsIterator::operator++(int)
 
 TNode& NodeDfsIterator::operator*()
 {
-  std::cout << "deref         : " << d_stack << std::endl;
   // If we were just constructed, advance to first visit
   advanceUntilVisitIfJustConstructed();
 
@@ -78,34 +74,37 @@ bool NodeDfsIterator::operator!=(const NodeDfsIterator& other) const
   return !(*this == other);
 }
 
-void NodeDfsIterator::advance()
-{
-  Assert(!d_stack.empty());
-  TNode back = d_stack.back();
-  auto visitEntry = d_visited.find(back);
-  if (visitEntry == d_visited.end())
-  {
-    // if we haven't pre-visited this node, pre-visit it
-    finishPreVisit();
-  }
-  else if (visitEntry->second)
-  {
-    // if we've already post-visited this node: skip it
-    d_stack.pop_back();
-  }
-  else
-  {
-    // otherwise, post-visit it
-    finishPostVisit();
-  }
-}
-
 void NodeDfsIterator::advanceUntilVisit()
 {
-  // While a node is enqueued ..
-  while (d_postorder ? !atPostVisit() : !atPreVisit())
+  // While a node is enqueued and we're not at the right visit type
+
+  while (!d_stack.empty())
   {
-    advance();
+    TNode back = d_stack.back();
+    auto visitEntry = d_visited.find(back);
+    if (visitEntry == d_visited.end())
+    {
+      // if we haven't pre-visited this node, pre-visit it
+      if (!d_postorder)
+      {
+        return;
+      }
+      finishPreVisit();
+    }
+    else if (visitEntry->second)
+    {
+      // if we've already post-visited this node: skip it
+      d_stack.pop_back();
+    }
+    else
+    {
+      // otherwise, this is a post-visit
+      if (d_postorder)
+      {
+        return;
+      }
+      finishPostVisit();
+    }
   }
 }
 
@@ -117,27 +116,9 @@ void NodeDfsIterator::advanceUntilVisitIfJustConstructed()
   }
 }
 
-bool NodeDfsIterator::atPreVisit() const
-{
-  return d_stack.empty() || d_visited.count(d_stack.back()) == 0;
-}
-
-bool NodeDfsIterator::atPostVisit() const
-{
-  if (d_stack.empty())
-  {
-    return true;
-  }
-  auto visitEntry = d_visited.find(d_stack.back());
-
-  // Have we pre-visited, but not post-visited, this node?
-  return visitEntry != d_visited.end() && visitEntry->second == false;
-}
-
 void NodeDfsIterator::finishPreVisit()
 {
   Assert(!d_stack.empty());
-  Assert(atPreVisit());
   TNode back = d_stack.back();
   d_visited[back] = false;
   // Use integer underflow to reverse-iterate
@@ -150,7 +131,6 @@ void NodeDfsIterator::finishPreVisit()
 void NodeDfsIterator::finishPostVisit()
 {
   Assert(!d_stack.empty());
-  Assert(atPostVisit());
   d_visited[d_stack.back()] = true;
   d_stack.pop_back();
 }
