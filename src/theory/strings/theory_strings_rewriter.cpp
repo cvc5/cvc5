@@ -337,7 +337,7 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
 Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL && node[0].getType().isString());
-  TypeNode tt = node[0].getType();
+  TypeNode stype = node[0].getType();
 
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> c[2];
@@ -389,8 +389,8 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
   if (changed)
   {
     // e.g. x++y = x++z ---> y = z, "AB" ++ x = "A" ++ y --> "B" ++ x = y
-    Node s1 = utils::mkConcat(c[0],tt);
-    Node s2 = utils::mkConcat(c[1],tt);
+    Node s1 = utils::mkConcat(c[0],stype);
+    Node s2 = utils::mkConcat(c[1],stype);
     new_ret = s1.eqNode(s2);
     node = returnRewrite(node, new_ret, "str-eq-unify");
   }
@@ -459,8 +459,8 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
         }
       }
 
-      Node lhs = utils::mkConcat(trimmed[i],tt);
-      Node ss = utils::mkConcat(trimmed[1 - i],tt);
+      Node lhs = utils::mkConcat(trimmed[i],stype);
+      Node ss = utils::mkConcat(trimmed[1 - i],stype);
       if (lhs != node[i] || ss != node[1 - i])
       {
         // e.g.
@@ -624,13 +624,13 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
     for (size_t i = 0, size0 = v0.size(); i <= size0; i++)
     {
       std::vector<Node> pfxv0(v0.begin(), v0.begin() + i);
-      Node pfx0 = utils::mkConcat(pfxv0,tt);
+      Node pfx0 = utils::mkConcat(pfxv0,stype);
       for (size_t j = startRhs, size1 = v1.size(); j <= size1; j++)
       {
         if (!(i == 0 && j == 0) && !(i == v0.size() && j == v1.size()))
         {
           std::vector<Node> pfxv1(v1.begin(), v1.begin() + j);
-          Node pfx1 = utils::mkConcat(pfxv1,tt);
+          Node pfx1 = utils::mkConcat(pfxv1,stype);
           Node lenPfx0 = nm->mkNode(STRING_LENGTH, pfx0);
           Node lenPfx1 = nm->mkNode(STRING_LENGTH, pfx1);
 
@@ -641,8 +641,8 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
             Node ret =
                 nm->mkNode(kind::AND,
                            pfx0.eqNode(pfx1),
-                           utils::mkConcat(sfxv0,tt)
-                               .eqNode(utils::mkConcat(sfxv1,tt)));
+                           utils::mkConcat(sfxv0,stype)
+                               .eqNode(utils::mkConcat(sfxv1,stype)));
             return returnRewrite(node, ret, "split-eq");
           }
           else if (checkEntailArith(lenPfx1, lenPfx0, true))
@@ -661,9 +661,9 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
               pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
               Node ret = nm->mkNode(
                   kind::AND,
-                  pfx0.eqNode(utils::mkConcat(rpfxv1,tt)),
-                  utils::mkConcat(sfxv0,tt)
-                      .eqNode(utils::mkConcat(pfxv1,tt)));
+                  pfx0.eqNode(utils::mkConcat(rpfxv1,stype)),
+                  utils::mkConcat(sfxv0,stype)
+                      .eqNode(utils::mkConcat(pfxv1,stype)));
               return returnRewrite(node, ret, "split-eq-strip-r");
             }
 
@@ -689,9 +689,9 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
               std::vector<Node> sfxv1(v1.begin() + j, v1.end());
               Node ret = nm->mkNode(
                   kind::AND,
-                  utils::mkConcat(rpfxv0,tt).eqNode(pfx1),
-                  utils::mkConcat(pfxv0,tt)
-                      .eqNode(utils::mkConcat(sfxv1,tt)));
+                  utils::mkConcat(rpfxv0,stype).eqNode(pfx1),
+                  utils::mkConcat(pfxv0,stype)
+                      .eqNode(utils::mkConcat(sfxv1,stype)));
               return returnRewrite(node, ret, "split-eq-strip-l");
             }
 
