@@ -2188,8 +2188,11 @@ void TheoryArithPrivate::outputConflicts(){
         }
 
         Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
-        d_containing.d_proofRecorder->saveFarkasCoefficients(
-            conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
+        if (confConstraint->hasSimpleFarkasProof())
+        {
+          d_containing.d_proofRecorder->saveFarkasCoefficients(
+              conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
+        }
       })
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
@@ -4951,8 +4954,13 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         Assert(coeffs != RationalVectorPSentinel);
         Assert(conflictInFarkasCoefficientOrder.getNumChildren()
                == coeffs->size());
-        d_containing.d_proofRecorder->saveFarkasCoefficients(
-            conflictInFarkasCoefficientOrder, coeffs);
+        if (std::all_of(explain.begin(), explain.end(), [](ConstraintCP c) {
+              return c->isAssumption() || c->hasIntTightenProof();
+            }))
+        {
+          d_containing.d_proofRecorder->saveFarkasCoefficients(
+              conflictInFarkasCoefficientOrder, coeffs);
+        }
       })
       outputLemma(clause);
     }else{
