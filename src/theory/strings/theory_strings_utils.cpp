@@ -118,6 +118,7 @@ void getConcat(Node n, std::vector<Node>& c)
 
 Node mkConcat(const std::vector<Node>& c, TypeNode tn)
 {
+  Assert(tn.isStringLike() || tn.isRegExp());
   if (c.empty())
   {
     Assert(tn.isStringLike());

@@ -911,8 +911,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
     {
       Assert(!lastAllStar);
       // this groups consecutive strings a++b ---> ab
-      Node acc = nm->mkNode(STRING_TO_REGEXP,
-                            utils::mkConcat(preReStr, stype));
+      Node acc = nm->mkNode(STRING_TO_REGEXP, utils::mkConcat(preReStr, stype));
       cvec.push_back(acc);
       preReStr.clear();
     }
