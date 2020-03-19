@@ -389,8 +389,8 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
   if (changed)
   {
     // e.g. x++y = x++z ---> y = z, "AB" ++ x = "A" ++ y --> "B" ++ x = y
-    Node s1 = utils::mkConcat(c[0],stype);
-    Node s2 = utils::mkConcat(c[1],stype);
+    Node s1 = utils::mkConcat(c[0], stype);
+    Node s2 = utils::mkConcat(c[1], stype);
     new_ret = s1.eqNode(s2);
     node = returnRewrite(node, new_ret, "str-eq-unify");
   }
@@ -459,8 +459,8 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
         }
       }
 
-      Node lhs = utils::mkConcat(trimmed[i],stype);
-      Node ss = utils::mkConcat(trimmed[1 - i],stype);
+      Node lhs = utils::mkConcat(trimmed[i], stype);
+      Node ss = utils::mkConcat(trimmed[1 - i], stype);
       if (lhs != node[i] || ss != node[1 - i])
       {
         // e.g.
@@ -624,13 +624,13 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
     for (size_t i = 0, size0 = v0.size(); i <= size0; i++)
     {
       std::vector<Node> pfxv0(v0.begin(), v0.begin() + i);
-      Node pfx0 = utils::mkConcat(pfxv0,stype);
+      Node pfx0 = utils::mkConcat(pfxv0, stype);
       for (size_t j = startRhs, size1 = v1.size(); j <= size1; j++)
       {
         if (!(i == 0 && j == 0) && !(i == v0.size() && j == v1.size()))
         {
           std::vector<Node> pfxv1(v1.begin(), v1.begin() + j);
-          Node pfx1 = utils::mkConcat(pfxv1,stype);
+          Node pfx1 = utils::mkConcat(pfxv1, stype);
           Node lenPfx0 = nm->mkNode(STRING_LENGTH, pfx0);
           Node lenPfx1 = nm->mkNode(STRING_LENGTH, pfx1);
 
@@ -638,11 +638,10 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
           {
             std::vector<Node> sfxv0(v0.begin() + i, v0.end());
             std::vector<Node> sfxv1(v1.begin() + j, v1.end());
-            Node ret =
-                nm->mkNode(kind::AND,
-                           pfx0.eqNode(pfx1),
-                           utils::mkConcat(sfxv0,stype)
-                               .eqNode(utils::mkConcat(sfxv1,stype)));
+            Node ret = nm->mkNode(kind::AND,
+                                  pfx0.eqNode(pfx1),
+                                  utils::mkConcat(sfxv0, stype)
+                                      .eqNode(utils::mkConcat(sfxv1, stype)));
             return returnRewrite(node, ret, "split-eq");
           }
           else if (checkEntailArith(lenPfx1, lenPfx0, true))
@@ -659,11 +658,10 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
             {
               std::vector<Node> sfxv0(v0.begin() + i, v0.end());
               pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
-              Node ret = nm->mkNode(
-                  kind::AND,
-                  pfx0.eqNode(utils::mkConcat(rpfxv1,stype)),
-                  utils::mkConcat(sfxv0,stype)
-                      .eqNode(utils::mkConcat(pfxv1,stype)));
+              Node ret = nm->mkNode(kind::AND,
+                                    pfx0.eqNode(utils::mkConcat(rpfxv1, stype)),
+                                    utils::mkConcat(sfxv0, stype)
+                                        .eqNode(utils::mkConcat(pfxv1, stype)));
               return returnRewrite(node, ret, "split-eq-strip-r");
             }
 
@@ -687,11 +685,10 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
             {
               pfxv0.insert(pfxv0.end(), v0.begin() + i, v0.end());
               std::vector<Node> sfxv1(v1.begin() + j, v1.end());
-              Node ret = nm->mkNode(
-                  kind::AND,
-                  utils::mkConcat(rpfxv0,stype).eqNode(pfx1),
-                  utils::mkConcat(pfxv0,stype)
-                      .eqNode(utils::mkConcat(sfxv1,stype)));
+              Node ret = nm->mkNode(kind::AND,
+                                    utils::mkConcat(rpfxv0, stype).eqNode(pfx1),
+                                    utils::mkConcat(pfxv0, stype)
+                                        .eqNode(utils::mkConcat(sfxv1, stype)));
               return returnRewrite(node, ret, "split-eq-strip-l");
             }
 
@@ -813,7 +810,7 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
   std::sort(node_vec.begin() + lastIdx, node_vec.end());
 
   TypeNode tn = node.getType();
-  retNode = utils::mkConcat(node_vec,tn);
+  retNode = utils::mkConcat(node_vec, tn);
   Trace("strings-rewrite-debug")
       << "Strings::rewriteConcat end " << retNode << std::endl;
   return retNode;
@@ -829,7 +826,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
   std::vector<Node> vec;
   bool changed = false;
   Node emptyRe;
-  
+
   // get the string type that are members of this regular expression
   TypeNode stype;
   if (node.getType().isRegExp())
@@ -841,7 +838,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
   {
     Unimplemented();
   }
-  
+
   for (const Node& c : node)
   {
     if (c.getKind() == REGEXP_CONCAT)
@@ -1377,7 +1374,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
   Node retNode = node;
   Node x = node[0];
   Node r = node[1];
-  
+
   TypeNode stype = x.getType();
   TypeNode rtype = r.getType();
 
@@ -1553,9 +1550,8 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
               Trace("regexp-ext-rewrite") << "Regexp star : full consume : " << node << std::endl;
               return NodeManager::currentNM()->mkConst( true );
             }else{
-              retNode = nm->mkNode(STRING_IN_REGEXP,
-                                   utils::mkConcat(mchildren, stype),
-                                   r);
+              retNode = nm->mkNode(
+                  STRING_IN_REGEXP, utils::mkConcat(mchildren, stype), r);
               success = true;
             }
           }
@@ -1960,10 +1956,8 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     {
       if (curr != zero && !n1.empty())
       {
-        childrenr.push_back(nm->mkNode(kind::STRING_SUBSTR,
-                                       utils::mkConcat(n1, stype),
-                                       node[1],
-                                       curr));
+        childrenr.push_back(nm->mkNode(
+            kind::STRING_SUBSTR, utils::mkConcat(n1, stype), node[1], curr));
       }
       Node ret = utils::mkConcat(childrenr, stype);
       return returnRewrite(node, ret, "ss-len-include");
@@ -2046,10 +2040,8 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         if (r == 0)
         {
-          Node ret = nm->mkNode(kind::STRING_SUBSTR,
-                                utils::mkConcat(n1, stype),
-                                curr,
-                                node[2]);
+          Node ret = nm->mkNode(
+              kind::STRING_SUBSTR, utils::mkConcat(n1, stype), curr, node[2]);
           return returnRewrite(node, ret, "ss-strip-start-pt");
         }
         else
@@ -2347,14 +2339,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
             spl[1].insert(spl[1].end(), nc0.begin() + i + 1, nc0.end());
             Node ret = NodeManager::currentNM()->mkNode(
                 kind::OR,
-                NodeManager::currentNM()->mkNode(
-                    kind::STRING_STRCTN,
-                    utils::mkConcat(spl[0], stype),
-                    node[1]),
-                NodeManager::currentNM()->mkNode(
-                    kind::STRING_STRCTN,
-                    utils::mkConcat(spl[1], stype),
-                    node[1]));
+                NodeManager::currentNM()->mkNode(kind::STRING_STRCTN,
+                                                 utils::mkConcat(spl[0], stype),
+                                                 node[1]),
+                NodeManager::currentNM()->mkNode(kind::STRING_STRCTN,
+                                                 utils::mkConcat(spl[1], stype),
+                                                 node[1]));
             return returnRewrite(node, ret, "ctn-split");
           }
         }
@@ -2471,7 +2461,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     Node negone = nm->mkConst(Rational(-1));
     return returnRewrite(node, negone, "idof-neg");
   }
-  
+
   // the string type
   TypeNode stype = node[0].getType();
 
@@ -2593,14 +2583,13 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
         {
           // str.indexof(str.++("AB", x, "C"), "C", 0) --->
           // 2 + str.indexof(str.++(x, "C"), "C", 0)
-          Node ret =
-              nm->mkNode(kind::PLUS,
-                         nm->mkNode(kind::STRING_LENGTH,
-                                    utils::mkConcat(nb, stype)),
-                         nm->mkNode(kind::STRING_STRIDOF,
-                                    utils::mkConcat(children0, stype),
-                                    node[1],
-                                    node[2]));
+          Node ret = nm->mkNode(
+              kind::PLUS,
+              nm->mkNode(kind::STRING_LENGTH, utils::mkConcat(nb, stype)),
+              nm->mkNode(kind::STRING_STRIDOF,
+                         utils::mkConcat(children0, stype),
+                         node[1],
+                         node[2]));
           return returnRewrite(node, ret, "idof-strip-cnst-endpts");
         }
       }
@@ -2885,11 +2874,11 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       {
         std::vector<Node> cc;
         cc.insert(cc.end(), cb.begin(), cb.end());
-        cc.push_back(NodeManager::currentNM()->mkNode(
-            kind::STRING_STRREPL,
-            utils::mkConcat(children0, stype),
-            node[1],
-            node[2]));
+        cc.push_back(
+            NodeManager::currentNM()->mkNode(kind::STRING_STRREPL,
+                                             utils::mkConcat(children0, stype),
+                                             node[1],
+                                             node[2]));
         cc.insert(cc.end(), ce.begin(), ce.end());
         Node ret = utils::mkConcat(cc, stype);
         return returnRewrite(node, ret, "rpl-pull-endpt");
@@ -2913,8 +2902,8 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 
     children1.pop_back();
     // Length of the non-substr components in the second argument
-    Node partLen1 = nm->mkNode(kind::STRING_LENGTH,
-                               utils::mkConcat(children1, stype));
+    Node partLen1 =
+        nm->mkNode(kind::STRING_LENGTH, utils::mkConcat(children1, stype));
     Node maxLen1 = nm->mkNode(kind::PLUS, partLen1, lastChild1[2]);
 
     Node zero = nm->mkConst(Rational(0));
@@ -5386,7 +5375,7 @@ Node TheoryStringsRewriter::inferEqsFromContains(Node x, Node y)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node emp = nm->mkConst(String(""));
-  Assert( x.getType()==y.getType());
+  Assert(x.getType() == y.getType());
   TypeNode stype = x.getType();
 
   Node xLen = nm->mkNode(STRING_LENGTH, x);
@@ -5458,7 +5447,7 @@ Node TheoryStringsRewriter::inferEqsFromContains(Node x, Node y)
   // (= x (str.++ y1' ... ym'))
   if (!cs.empty())
   {
-    nb << nm->mkNode(EQUAL, x, utils::mkConcat(cs,stype));
+    nb << nm->mkNode(EQUAL, x, utils::mkConcat(cs, stype));
   }
   // (= y1'' "") ... (= yk'' "")
   for (const Node& zeroLen : zeroLens)

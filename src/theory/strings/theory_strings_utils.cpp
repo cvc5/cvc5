@@ -123,7 +123,7 @@ Node mkConcat(const std::vector<Node>& c, TypeNode tn)
     Assert(tn.isStringLike());
     return Word::mkEmptyWord(tn);
   }
-  else if (c.size()==1)
+  else if (c.size() == 1)
   {
     return c[0];
   }
