@@ -1862,6 +1862,7 @@ set(regress_1_tests
   regress1/sygus/issue3995-fmf-var-op.smt2
   regress1/sygus/issue4009-qep.smt2
   regress1/sygus/issue4025-no-rlv-cond.smt2
+  regress1/sygus/issue4083-var-shadow.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
