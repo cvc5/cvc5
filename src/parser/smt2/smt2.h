@@ -46,25 +46,6 @@ class Smt2 : public Parser
 {
   friend class ParserBuilder;
 
- public:
-  enum Theory
-  {
-    THEORY_ARRAYS,
-    THEORY_BITVECTORS,
-    THEORY_CORE,
-    THEORY_DATATYPES,
-    THEORY_INTS,
-    THEORY_REALS,
-    THEORY_TRANSCENDENTALS,
-    THEORY_REALS_INTS,
-    THEORY_QUANTIFIERS,
-    THEORY_SETS,
-    THEORY_STRINGS,
-    THEORY_UF,
-    THEORY_FP,
-    THEORY_SEP
-  };
-
  private:
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
@@ -91,11 +72,9 @@ class Smt2 : public Parser
 
  public:
   /**
-   * Add theory symbols to the parser state.
-   *
-   * @param theory the theory to open (e.g., Core, Ints)
+   * Add core theory symbols to the parser state.
    */
-  void addTheory(Theory theory);
+  void addCoreSymbols();
 
   void addOperator(api::Kind k, const std::string& name);
 
@@ -117,7 +96,7 @@ class Smt2 : public Parser
 
   bool isOperatorEnabled(const std::string& name) const;
 
-  bool isTheoryEnabled(Theory theory) const;
+  bool isTheoryEnabled(theory::TheoryId theory) const;
 
   bool logicIsSet() override;
 
@@ -311,6 +290,19 @@ class Smt2 : public Parser
   void setOption(const std::string& flag, const SExpr& sexpr);
 
   void checkThatLogicIsSet();
+
+  /**
+   * Checks whether the current logic allows free sorts. If the logic does not
+   * support free sorts, the function triggers a parse error.
+   */
+  void checkLogicAllowsFreeSorts();
+
+  /**
+   * Checks whether the current logic allows functions of non-zero arity. If
+   * the logic does not support such functions, the function triggers a parse
+   * error.
+   */
+  void checkLogicAllowsFunctions();
 
   void checkUserSymbol(const std::string& name) {
     if(name.length() > 0 && (name[0] == '.' || name[0] == '@')) {
