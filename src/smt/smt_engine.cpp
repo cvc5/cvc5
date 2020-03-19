@@ -2004,7 +2004,8 @@ void SmtEngine::setDefaults() {
       }
     }
     //do not allow partial functions
-    if( !options::bitvectorDivByZeroConst.wasSetByUser() ){
+    if( !options::bitvectorDivByZeroConst() ){
+      Notice() << "SmtEngine: setting bv-div-zero-const to true to support SyGuS" << std::endl;
       options::bitvectorDivByZeroConst.set( true );
     }
     if( !options::dtRewriteErrorSel.wasSetByUser() ){
