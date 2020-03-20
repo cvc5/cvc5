@@ -578,11 +578,10 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
 {
   Assert(sorts.size() >= 2);
-  std::vector<TypeNode> sortNodes;
   CheckArgument(!sorts[sorts.size() - 1].isFunction(),
                 sorts[sorts.size() - 1],
                 "must flatten function types");
-  return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
+  return mkTypeNode(kind::FUNCTION_TYPE, sorts);
 }
 
 TypeNode NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts)
