@@ -154,16 +154,18 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
         TypeNode tnv = v.getType();
         unsigned vnum = type_count[tnv];
         type_count[tnv]++;
+        vars.push_back(v);
         if (vnum < qtvars[tnv].size())
         {
-          vars.push_back(v);
           subs.push_back(qtvars[tnv][vnum]);
         }
         else
         {
           Assert(vnum == qtvars[tnv].size());
-          qtvars[tnv].push_back(v);
-          qvars.push_back(v);
+          Node bv = nm->mkBoundVar(tnv);
+          qtvars[tnv].push_back(bv);
+          qvars.push_back(bv);
+          subs.push_back(bv);
         }
       }
       pas = pas[1];

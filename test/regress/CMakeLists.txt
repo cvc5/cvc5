@@ -1282,6 +1282,7 @@ set(regress_1_tests
   regress1/fmf/issue3615.smt2
   regress1/fmf/issue3626.smt2
   regress1/fmf/issue3689.smt2
+  regress1/fmf/issue4068-si-qf.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
@@ -1866,6 +1867,7 @@ set(regress_1_tests
   regress1/sygus/issue3995-fmf-var-op.smt2
   regress1/sygus/issue4009-qep.smt2
   regress1/sygus/issue4025-no-rlv-cond.smt2
+  regress1/sygus/issue4083-var-shadow.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy

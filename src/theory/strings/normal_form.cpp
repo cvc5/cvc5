@@ -150,7 +150,7 @@ Node NormalForm::collectConstantStringAt(size_t& index)
     {
       std::reverse(c.begin(), c.end());
     }
-    Node cc = Rewriter::rewrite(utils::mkConcat(STRING_CONCAT, c));
+    Node cc = Rewriter::rewrite(utils::mkConcat(c, c[0].getType()));
     Assert(cc.isConst());
     return cc;
   }

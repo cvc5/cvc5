@@ -191,6 +191,8 @@ class BaseSolver
   std::map<Kind, TermIndex> d_termIndex;
   /** the cardinality of the alphabet */
   uint32_t d_cardSize;
+  /** The string-like type for this base solver */
+  TypeNode d_type;
 }; /* class BaseSolver */
 
 }  // namespace strings
