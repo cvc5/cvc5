@@ -952,10 +952,6 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms)
         {
           return;
         }
-        else if (!pinfer.empty() && pinfer.back().d_id == 1)
-        {
-          break;
-        }
         //AJR: for less aggressive endpoint inference
         //rindex = 0;
 
@@ -964,10 +960,6 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms)
         if (d_im.hasProcessed())
         {
           return;
-        }
-        else if (!pinfer.empty() && pinfer.back().d_id == 1)
-        {
-          break;
         }
       }
     }
