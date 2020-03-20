@@ -29,10 +29,13 @@ namespace strings {
  *
  * These are variants of the inference rules in Figures 3-5 of Liang et al.
  * "A DPLL(T) Solver for a Theory of Strings and Regular Expressions", CAV 2014.
+ *
+ * Note: The order in this enum matters in certain cases (e.g. inferences
+ * related to normal forms), inferences that come first are generally
+ * preferred.
  */
 enum class Inference : uint32_t
 {
-  NONE,
   // Given two normal forms, infers that the remainder one of them has to be
   // empty. For example:
   //    If x1 ++ x2 = y1 and x1 = y1, then x2 = ""
@@ -89,6 +92,7 @@ enum class Inference : uint32_t
   //        for fresh u, u1, u2.
   // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
   FLOOP,
+  NONE,
 };
 std::ostream& operator<<(std::ostream& out, Inference i);
 
