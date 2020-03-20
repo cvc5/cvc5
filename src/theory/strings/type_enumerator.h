@@ -10,8 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Enumerators for strings
- **
- ** Enumerators for strings.
  **/
 
 #include "cvc4_private.h"
@@ -19,14 +17,11 @@
 #ifndef CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
 
-#include <sstream>
+#include <vector>
 
-#include "expr/kind.h"
+#include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/strings/theory_strings_rewriter.h"
-#include "theory/strings/theory_strings_utils.h"
 #include "theory/type_enumerator.h"
-#include "util/regexp.h"
 
 namespace CVC4 {
 namespace theory {
@@ -54,7 +49,10 @@ class WordIter
   const std::vector<unsigned>& getData() const;
   /**
    * Increment assuming the cardinality of the alphabet is card. Notice that
-   * card may change dynamically.
+   * the value of card may be different for multiple calls; the caller is
+   * responsible for using this function to achieve the required result. This
+   * is required for enumerating sequences where the cardinality of the
+   * alphabet is not known upfront, but a lower bound can be determined.
    *
    * This method returns true if the increment was successful, otherwise we
    * are finished with this iterator.

@@ -249,7 +249,6 @@ libcvc4_add_sources(
   smt_util/boolean_simplification.h
   smt_util/nary_builder.cpp
   smt_util/nary_builder.h
-  smt_util/node_visitor.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
@@ -680,18 +679,20 @@ libcvc4_add_sources(
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp
   theory/strings/regexp_solver.h
+  theory/strings/sequences_rewriter.cpp
+  theory/strings/sequences_rewriter.h
   theory/strings/skolem_cache.cpp
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
   theory/strings/solver_state.h
   theory/strings/strings_fmf.cpp
   theory/strings/strings_fmf.h
+  theory/strings/strings_rewriter.cpp
+  theory/strings/strings_rewriter.h
   theory/strings/theory_strings.cpp
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
   theory/strings/theory_strings_preprocess.h
-  theory/strings/theory_strings_rewriter.cpp
-  theory/strings/theory_strings_rewriter.h
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h

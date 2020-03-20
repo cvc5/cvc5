@@ -8,7 +8,7 @@ theory THEORY_STRINGS ::CVC4::theory::strings::TheoryStrings "theory/strings/the
 
 properties check parametric propagate presolve
 
-rewriter ::CVC4::theory::strings::TheoryStringsRewriter "theory/strings/theory_strings_rewriter.h"
+rewriter ::CVC4::theory::strings::SequencesRewriter "theory/strings/sequences_rewriter.h"
 
 typechecker "theory/strings/theory_strings_type_rules.h"
 
@@ -99,7 +99,7 @@ operator REGEXP_SIGMA 0 "regexp all characters"
 operator REGEXP_RV 1 "regexp rv (internal use only)"
 typerule REGEXP_RV "SimpleTypeRule<RRegExp, AInteger>"
 
-# regular expressions 
+# regular expressions
 
 typerule REGEXP_CONCAT "SimpleTypeRuleVar<RRegExp, ARegExp>"
 typerule REGEXP_UNION "SimpleTypeRuleVar<RRegExp, ARegExp>"
@@ -111,11 +111,10 @@ typerule REGEXP_OPT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_RANGE ::CVC4::theory::strings::RegExpRangeTypeRule
 typerule REGEXP_LOOP "SimpleTypeRule<RRegExp, ARegExp, AInteger, AOptional<AInteger>>"
 typerule REGEXP_COMPLEMENT "SimpleTypeRule<RRegExp, ARegExp>"
-typerule REGEXP_EMPTY "SimpleTypeRule<RRegExp>"
-typerule REGEXP_SIGMA "SimpleTypeRule<RRegExp>"
-
 typerule STRING_TO_REGEXP "SimpleTypeRule<RRegExp, AString>"
 typerule STRING_IN_REGEXP "SimpleTypeRule<RBool, AString, ARegExp>"
+typerule REGEXP_EMPTY "SimpleTypeRule<RRegExp>"
+typerule REGEXP_SIGMA "SimpleTypeRule<RRegExp>"
 
 ### operators that apply to both strings and sequences
 

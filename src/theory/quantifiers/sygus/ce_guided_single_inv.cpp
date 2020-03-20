@@ -556,12 +556,9 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   }else{
     Trace("csi-sol") << "Post-process solution..." << std::endl;
     Node prev = d_solution;
-    if (options::minSynthSol())
-    {
-      d_solution =
-          d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(
-              d_solution);
-    }
+    d_solution =
+        d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(
+            d_solution);
     if( prev!=d_solution ){
       Trace("csi-sol") << "Solution (after post process) : " << d_solution << std::endl;
     }

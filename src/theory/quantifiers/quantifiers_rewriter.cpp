@@ -818,6 +818,7 @@ Node QuantifiersRewriter::getVarElimLitString(Node lit,
   {
     if (lit[i].getKind() == STRING_CONCAT)
     {
+      TypeNode stype = lit[i].getType();
       for (unsigned j = 0, nchildren = lit[i].getNumChildren(); j < nchildren;
            j++)
       {
@@ -827,8 +828,8 @@ Node QuantifiersRewriter::getVarElimLitString(Node lit,
           Node slv = lit[1 - i];
           std::vector<Node> preL(lit[i].begin(), lit[i].begin() + j);
           std::vector<Node> postL(lit[i].begin() + j + 1, lit[i].end());
-          Node tpre = strings::utils::mkConcat(STRING_CONCAT, preL);
-          Node tpost = strings::utils::mkConcat(STRING_CONCAT, postL);
+          Node tpre = strings::utils::mkConcat(preL, stype);
+          Node tpost = strings::utils::mkConcat(postL, stype);
           Node slvL = nm->mkNode(STRING_LENGTH, slv);
           Node tpreL = nm->mkNode(STRING_LENGTH, tpre);
           Node tpostL = nm->mkNode(STRING_LENGTH, tpost);
