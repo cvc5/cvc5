@@ -141,6 +141,28 @@ class InferenceManager
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+
+  /**
+   * The same as `sendInference()` above but with an `Inference` instead of a
+   * string. This variant updates the statistics about the number of inferences
+   * made of each type.
+   */
+  void sendInference(const std::vector<Node>& exp,
+                     const std::vector<Node>& exp_n,
+                     Node eq,
+                     Inference infer,
+                     bool asLemma = false);
+
+  /**
+   * The same as `sendInference()` above but with an `Inference` instead of a
+   * string. This variant updates the statistics about the number of inferences
+   * made of each type.
+   */
+  void sendInference(const std::vector<Node>& exp,
+                     Node eq,
+                     Inference infer,
+                     bool asLemma = false);
+
   /** Send inference
    *
    * Makes the appropriate call to send inference based on the infer info
@@ -295,6 +317,16 @@ class InferenceManager
   void markCongruent(Node a, Node b);
 
  private:
+  class Statistics
+  {
+   public:
+    Statistics();
+    ~Statistics();
+
+    /** Counts the number of inferences made of each type of inference */
+    HistogramStat<Inference> d_inferences;
+  };
+
   /**
    * Indicates that ant => conc should be sent on the output channel of this
    * class. This will either trigger an immediate call to the conflict
@@ -366,6 +398,10 @@ class InferenceManager
   NodeNodeMap d_proxyVarToLength;
   /** List of terms that we have register length for */
   NodeSet d_lengthLemmaTermsCache;
+
+  /** Statistics regarding inferences. */
+  Statistics d_statistics;
+
   /** infer substitution proxy vars
    *
    * This method attempts to (partially) convert the formula n into a

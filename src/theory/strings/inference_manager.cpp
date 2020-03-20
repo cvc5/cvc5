@@ -16,6 +16,7 @@
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings.h"
@@ -186,11 +187,43 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   sendInference(exp, exp_n, eq, c, asLemma);
 }
 
+void InferenceManager::sendInference(const std::vector<Node>& exp,
+                                     const std::vector<Node>& exp_n,
+                                     Node eq,
+                                     Inference infer,
+                                     bool asLemma)
+{
+  d_statistics.d_inferences << infer;
+  std::stringstream ss;
+  ss << infer;
+  sendInference(exp, exp_n, eq, ss.str().c_str(), asLemma);
+}
+
+void InferenceManager::sendInference(const std::vector<Node>& exp,
+                                     Node eq,
+                                     Inference infer,
+                                     bool asLemma)
+{
+  d_statistics.d_inferences << infer;
+  std::stringstream ss;
+  ss << infer;
+  sendInference(exp, eq, ss.str().c_str(), asLemma);
+}
+
 void InferenceManager::sendInference(const InferInfo& i)
 {
-  std::stringstream ssi;
-  ssi << i.d_id;
-  sendInference(i.d_ant, i.d_antn, i.d_conc, ssi.str().c_str(), true);
+  sendInference(i.d_ant, i.d_antn, i.d_conc, i.d_id, true);
+}
+
+InferenceManager::Statistics::Statistics()
+    : d_inferences("theory::strings::inferences")
+{
+  smtStatisticsRegistry()->registerStat(&d_inferences);
+}
+
+InferenceManager::Statistics::~Statistics()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_inferences);
 }
 
 void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
