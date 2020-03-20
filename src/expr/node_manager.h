@@ -818,7 +818,7 @@ public:
    * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
   TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes,
-                                 const TypeNode& range);
+                          const TypeNode& range);
 
   /**
    * Make a function type with input types from
