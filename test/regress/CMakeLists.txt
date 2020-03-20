@@ -1282,6 +1282,7 @@ set(regress_1_tests
   regress1/fmf/issue3615.smt2
   regress1/fmf/issue3626.smt2
   regress1/fmf/issue3689.smt2
+  regress1/fmf/issue4068-si-qf.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
@@ -1300,6 +1301,7 @@ set(regress_1_tests
   regress1/gensys_brn001.smt2
   regress1/ho/fta0328.lfho.p
   regress1/ho/issue3136-fconst-bool-bool.smt2
+  regress1/ho/issue4065-no-rep.smt2
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/NUM638^1.smt2

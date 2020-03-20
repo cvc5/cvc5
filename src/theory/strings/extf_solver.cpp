@@ -15,8 +15,8 @@
 #include "theory/strings/extf_solver.h"
 
 #include "options/strings_options.h"
+#include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
-#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
@@ -617,7 +617,7 @@ void ExtfSolver::checkExtfInference(Node n,
   if (inferEqr.getKind() == EQUAL)
   {
     // try to use the extended rewriter for equalities
-    inferEqrr = TheoryStringsRewriter::rewriteEqualityExt(inferEqr);
+    inferEqrr = SequencesRewriter::rewriteEqualityExt(inferEqr);
   }
   if (inferEqrr != inferEqr)
   {

@@ -26,7 +26,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/type_enumerator.h"
 #include "theory/strings/word.h"
