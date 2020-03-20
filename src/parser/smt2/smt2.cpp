@@ -40,7 +40,7 @@ Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
 {
   if (!strictModeEnabled())
   {
-    addTheory(Smt2::THEORY_CORE);
+    addCoreSymbols();
   }
 }
 
@@ -120,7 +120,6 @@ void Smt2::addBitvectorOperators() {
   addOperator(api::BITVECTOR_SGE, "bvsge");
   addOperator(api::BITVECTOR_REDOR, "bvredor");
   addOperator(api::BITVECTOR_REDAND, "bvredand");
-  addOperator(api::BITVECTOR_TO_NAT, "bv2nat");
 
   addIndexedOperator(api::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(api::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT, "repeat");
@@ -132,7 +131,6 @@ void Smt2::addBitvectorOperators() {
       api::BITVECTOR_ROTATE_LEFT, api::BITVECTOR_ROTATE_LEFT, "rotate_left");
   addIndexedOperator(
       api::BITVECTOR_ROTATE_RIGHT, api::BITVECTOR_ROTATE_RIGHT, "rotate_right");
-  addIndexedOperator(api::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR, "int2bv");
 }
 
 void Smt2::addDatatypesOperators()
@@ -270,161 +268,19 @@ void Smt2::addSepOperators() {
   Parser::addOperator(api::SEP_EMP);
 }
 
-void Smt2::addTheory(Theory theory) {
-  switch(theory) {
-  case THEORY_ARRAYS:
-    addOperator(api::SELECT, "select");
-    addOperator(api::STORE, "store");
-    break;
-
-  case THEORY_BITVECTORS:
-    addBitvectorOperators();
-    break;
-
-  case THEORY_CORE:
-    defineType("Bool", d_solver->getBooleanSort());
-    defineVar("true", d_solver->mkTrue());
-    defineVar("false", d_solver->mkFalse());
-    addOperator(api::AND, "and");
-    addOperator(api::DISTINCT, "distinct");
-    addOperator(api::EQUAL, "=");
-    addOperator(api::IMPLIES, "=>");
-    addOperator(api::ITE, "ite");
-    addOperator(api::NOT, "not");
-    addOperator(api::OR, "or");
-    addOperator(api::XOR, "xor");
-    break;
-
-  case THEORY_REALS_INTS:
-    defineType("Real", d_solver->getRealSort());
-    addOperator(api::DIVISION, "/");
-    addOperator(api::TO_INTEGER, "to_int");
-    addOperator(api::IS_INTEGER, "is_int");
-    addOperator(api::TO_REAL, "to_real");
-    // falling through on purpose, to add Ints part of Reals_Ints
-    CVC4_FALLTHROUGH;
-  case THEORY_INTS:
-    defineType("Int", d_solver->getIntegerSort());
-    addArithmeticOperators();
-    addOperator(api::INTS_DIVISION, "div");
-    addOperator(api::INTS_MODULUS, "mod");
-    addOperator(api::ABS, "abs");
-    addIndexedOperator(api::DIVISIBLE, api::DIVISIBLE, "divisible");
-    break;
-
-  case THEORY_REALS:
-    defineType("Real", d_solver->getRealSort());
-    addArithmeticOperators();
-    addOperator(api::DIVISION, "/");
-    if (!strictModeEnabled())
-    {
-      addOperator(api::ABS, "abs");
-    }
-    break;
-
-  case THEORY_TRANSCENDENTALS:
-    defineVar("real.pi", d_solver->mkTerm(api::PI));
-    addTranscendentalOperators();
-    break;
-
-  case THEORY_QUANTIFIERS: addQuantifiersOperators(); break;
-
-  case THEORY_SETS:
-    defineVar("emptyset", d_solver->mkEmptySet(d_solver->getNullSort()));
-    // the Boolean sort is a placeholder here since we don't have type info
-    // without type annotation
-    defineVar("univset", d_solver->mkUniverseSet(d_solver->getBooleanSort()));
-
-    addOperator(api::UNION, "union");
-    addOperator(api::INTERSECTION, "intersection");
-    addOperator(api::SETMINUS, "setminus");
-    addOperator(api::SUBSET, "subset");
-    addOperator(api::MEMBER, "member");
-    addOperator(api::SINGLETON, "singleton");
-    addOperator(api::INSERT, "insert");
-    addOperator(api::CARD, "card");
-    addOperator(api::COMPLEMENT, "complement");
-    addOperator(api::JOIN, "join");
-    addOperator(api::PRODUCT, "product");
-    addOperator(api::TRANSPOSE, "transpose");
-    addOperator(api::TCLOSURE, "tclosure");
-    break;
-
-  case THEORY_DATATYPES:
-  {
-    const std::vector<api::Sort> types;
-    defineType("Tuple", d_solver->mkTupleSort(types));
-    addDatatypesOperators();
-    break;
-  }
-
-  case THEORY_STRINGS:
-    defineType("String", d_solver->getStringSort());
-    defineType("RegLan", d_solver->getRegExpSort());
-    defineType("Int", d_solver->getIntegerSort());
-
-    if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
-    {
-      defineVar("re.none", d_solver->mkRegexpEmpty());
-    }
-    else
-    {
-      defineVar("re.nostr", d_solver->mkRegexpEmpty());
-    }
-    defineVar("re.allchar", d_solver->mkRegexpSigma());
-
-    addStringOperators();
-    break;
-
-  case THEORY_UF:
-    Parser::addOperator(api::APPLY_UF);
-
-    if (!strictModeEnabled() && d_logic.hasCardinalityConstraints())
-    {
-      addOperator(api::CARDINALITY_CONSTRAINT, "fmf.card");
-      addOperator(api::CARDINALITY_VALUE, "fmf.card.val");
-    }
-    break;
-
-  case THEORY_FP:
-    defineType("RoundingMode", d_solver->getRoundingmodeSort());
-    defineType("Float16", d_solver->mkFloatingPointSort(5, 11));
-    defineType("Float32", d_solver->mkFloatingPointSort(8, 24));
-    defineType("Float64", d_solver->mkFloatingPointSort(11, 53));
-    defineType("Float128", d_solver->mkFloatingPointSort(15, 113));
-
-    defineVar("RNE", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
-    defineVar("roundNearestTiesToEven",
-              d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
-    defineVar("RNA", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
-    defineVar("roundNearestTiesToAway",
-              d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
-    defineVar("RTP", d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
-    defineVar("roundTowardPositive",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
-    defineVar("RTN", d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
-    defineVar("roundTowardNegative",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
-    defineVar("RTZ", d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
-    defineVar("roundTowardZero",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
-
-    addFloatingPointOperators();
-    break;
-    
-  case THEORY_SEP:
-    // the Boolean sort is a placeholder here since we don't have type info
-    // without type annotation
-    defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
-
-    addSepOperators();
-    break;
-    
-  default:
-    std::stringstream ss;
-    ss << "internal error: unsupported theory " << theory;
-    throw ParserException(ss.str());
-  }
+void Smt2::addCoreSymbols()
+{
+  defineType("Bool", d_solver->getBooleanSort());
+  defineVar("true", d_solver->mkTrue());
+  defineVar("false", d_solver->mkFalse());
+  addOperator(api::AND, "and");
+  addOperator(api::DISTINCT, "distinct");
+  addOperator(api::EQUAL, "=");
+  addOperator(api::IMPLIES, "=>");
+  addOperator(api::ITE, "ite");
+  addOperator(api::NOT, "not");
+  addOperator(api::OR, "or");
+  addOperator(api::XOR, "xor");
 }
 
 void Smt2::addOperator(api::Kind kind, const std::string& name)
@@ -453,42 +309,9 @@ bool Smt2::isOperatorEnabled(const std::string& name) const {
   return operatorKindMap.find(name) != operatorKindMap.end();
 }
 
-bool Smt2::isTheoryEnabled(Theory theory) const {
-  switch(theory) {
-  case THEORY_ARRAYS:
-    return d_logic.isTheoryEnabled(theory::THEORY_ARRAYS);
-  case THEORY_BITVECTORS:
-    return d_logic.isTheoryEnabled(theory::THEORY_BV);
-  case THEORY_CORE:
-    return true;
-  case THEORY_DATATYPES:
-    return d_logic.isTheoryEnabled(theory::THEORY_DATATYPES);
-  case THEORY_INTS:
-    return d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
-      d_logic.areIntegersUsed() && ( !d_logic.areRealsUsed() );
-  case THEORY_REALS:
-    return d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
-      ( !d_logic.areIntegersUsed() ) && d_logic.areRealsUsed();
-  case THEORY_REALS_INTS:
-    return d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
-      d_logic.areIntegersUsed() && d_logic.areRealsUsed();
-  case THEORY_QUANTIFIERS:
-    return d_logic.isQuantified();
-  case THEORY_SETS:
-    return d_logic.isTheoryEnabled(theory::THEORY_SETS);
-  case THEORY_STRINGS:
-    return d_logic.isTheoryEnabled(theory::THEORY_STRINGS);
-  case THEORY_UF:
-    return d_logic.isTheoryEnabled(theory::THEORY_UF);
-  case THEORY_FP:
-    return d_logic.isTheoryEnabled(theory::THEORY_FP);
-  case THEORY_SEP:
-    return d_logic.isTheoryEnabled(theory::THEORY_SEP);
-  default:
-    std::stringstream ss;
-    ss << "internal error: unsupported theory " << theory;
-    throw ParserException(ss.str());
-  }
+bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
+{
+  return d_logic.isTheoryEnabled(theory);
 }
 
 bool Smt2::logicIsSet() {
@@ -522,7 +345,7 @@ bool Smt2::getTesterName(api::Term cons, std::string& name)
 api::Term Smt2::mkIndexedConstant(const std::string& name,
                                   const std::vector<uint64_t>& numerals)
 {
-  if (isTheoryEnabled(THEORY_FP))
+  if (d_logic.isTheoryEnabled(theory::THEORY_FP))
   {
     if (name == "+oo")
     {
@@ -546,7 +369,7 @@ api::Term Smt2::mkIndexedConstant(const std::string& name,
     }
   }
 
-  if (isTheoryEnabled(THEORY_BITVECTORS) && name.find("bv") == 0)
+  if (d_logic.isTheoryEnabled(theory::THEORY_BV) && name.find("bv") == 0)
   {
     std::string bvStr = name.substr(2);
     return d_solver->mkBitVector(numerals[0], bvStr, 10);
@@ -628,7 +451,7 @@ void Smt2::reset() {
   this->Parser::reset();
 
   if( !strictModeEnabled() ) {
-    addTheory(Smt2::THEORY_CORE);
+    addCoreSymbols();
   }
 }
 
@@ -760,59 +583,152 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
 
   // Core theory belongs to every logic
-  addTheory(THEORY_CORE);
+  addCoreSymbols();
 
   if(d_logic.isTheoryEnabled(theory::THEORY_UF)) {
-    addTheory(THEORY_UF);
+    Parser::addOperator(api::APPLY_UF);
+
+    if (!strictModeEnabled() && d_logic.hasCardinalityConstraints())
+    {
+      addOperator(api::CARDINALITY_CONSTRAINT, "fmf.card");
+      addOperator(api::CARDINALITY_VALUE, "fmf.card.val");
+    }
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
     if(d_logic.areIntegersUsed()) {
-      if(d_logic.areRealsUsed()) {
-        addTheory(THEORY_REALS_INTS);
-      } else {
-        addTheory(THEORY_INTS);
+      defineType("Int", d_solver->getIntegerSort());
+      addArithmeticOperators();
+      addOperator(api::INTS_DIVISION, "div");
+      addOperator(api::INTS_MODULUS, "mod");
+      addOperator(api::ABS, "abs");
+      addIndexedOperator(api::DIVISIBLE, api::DIVISIBLE, "divisible");
+    }
+
+    if (d_logic.areRealsUsed())
+    {
+      defineType("Real", d_solver->getRealSort());
+      addArithmeticOperators();
+      addOperator(api::DIVISION, "/");
+      if (!strictModeEnabled())
+      {
+        addOperator(api::ABS, "abs");
       }
-    } else if(d_logic.areRealsUsed()) {
-      addTheory(THEORY_REALS);
+    }
+
+    if (d_logic.areIntegersUsed() && d_logic.areRealsUsed())
+    {
+      addOperator(api::TO_INTEGER, "to_int");
+      addOperator(api::IS_INTEGER, "is_int");
+      addOperator(api::TO_REAL, "to_real");
     }
 
     if (d_logic.areTranscendentalsUsed())
     {
-      addTheory(THEORY_TRANSCENDENTALS);
+      defineVar("real.pi", d_solver->mkTerm(api::PI));
+      addTranscendentalOperators();
     }
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)) {
-    addTheory(THEORY_ARRAYS);
+    addOperator(api::SELECT, "select");
+    addOperator(api::STORE, "store");
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_BV)) {
-    addTheory(THEORY_BITVECTORS);
+    addBitvectorOperators();
+
+    if (!strictModeEnabled() && d_logic.isTheoryEnabled(theory::THEORY_ARITH)
+        && d_logic.areIntegersUsed())
+    {
+      // Conversions between bit-vectors and integers
+      addOperator(api::BITVECTOR_TO_NAT, "bv2nat");
+      addIndexedOperator(
+          api::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR, "int2bv");
+    }
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
-    addTheory(THEORY_DATATYPES);
+    const std::vector<api::Sort> types;
+    defineType("Tuple", d_solver->mkTupleSort(types));
+    addDatatypesOperators();
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_SETS)) {
-    addTheory(THEORY_SETS);
+    defineVar("emptyset", d_solver->mkEmptySet(d_solver->getNullSort()));
+    // the Boolean sort is a placeholder here since we don't have type info
+    // without type annotation
+    defineVar("univset", d_solver->mkUniverseSet(d_solver->getBooleanSort()));
+
+    addOperator(api::UNION, "union");
+    addOperator(api::INTERSECTION, "intersection");
+    addOperator(api::SETMINUS, "setminus");
+    addOperator(api::SUBSET, "subset");
+    addOperator(api::MEMBER, "member");
+    addOperator(api::SINGLETON, "singleton");
+    addOperator(api::INSERT, "insert");
+    addOperator(api::CARD, "card");
+    addOperator(api::COMPLEMENT, "complement");
+    addOperator(api::JOIN, "join");
+    addOperator(api::PRODUCT, "product");
+    addOperator(api::TRANSPOSE, "transpose");
+    addOperator(api::TCLOSURE, "tclosure");
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
-    addTheory(THEORY_STRINGS);
+    defineType("String", d_solver->getStringSort());
+    defineType("RegLan", d_solver->getRegExpSort());
+    defineType("Int", d_solver->getIntegerSort());
+
+    if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+    {
+      defineVar("re.none", d_solver->mkRegexpEmpty());
+    }
+    else
+    {
+      defineVar("re.nostr", d_solver->mkRegexpEmpty());
+    }
+    defineVar("re.allchar", d_solver->mkRegexpSigma());
+
+    addStringOperators();
   }
 
   if(d_logic.isQuantified()) {
-    addTheory(THEORY_QUANTIFIERS);
+    addQuantifiersOperators();
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_FP)) {
-    addTheory(THEORY_FP);
+    defineType("RoundingMode", d_solver->getRoundingmodeSort());
+    defineType("Float16", d_solver->mkFloatingPointSort(5, 11));
+    defineType("Float32", d_solver->mkFloatingPointSort(8, 24));
+    defineType("Float64", d_solver->mkFloatingPointSort(11, 53));
+    defineType("Float128", d_solver->mkFloatingPointSort(15, 113));
+
+    defineVar("RNE", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
+    defineVar("roundNearestTiesToEven",
+              d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
+    defineVar("RNA", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
+    defineVar("roundNearestTiesToAway",
+              d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
+    defineVar("RTP", d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
+    defineVar("roundTowardPositive",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
+    defineVar("RTN", d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
+    defineVar("roundTowardNegative",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
+    defineVar("RTZ", d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
+    defineVar("roundTowardZero",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
+
+    addFloatingPointOperators();
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_SEP)) {
-    addTheory(THEORY_SEP);
+    // the Boolean sort is a placeholder here since we don't have type info
+    // without type annotation
+    defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
+
+    addSepOperators();
   }
 
   Command* cmd =
@@ -868,6 +784,28 @@ void Smt2::checkThatLogicIsSet()
       }
       preemptCommand(cmd);
     }
+  }
+}
+
+void Smt2::checkLogicAllowsFreeSorts()
+{
+  if (!d_logic.isTheoryEnabled(theory::THEORY_UF)
+      && !d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)
+      && !d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)
+      && !d_logic.isTheoryEnabled(theory::THEORY_SETS))
+  {
+    parseErrorLogic("Free sort symbols not allowed in ");
+  }
+}
+
+void Smt2::checkLogicAllowsFunctions()
+{
+  if (!d_logic.isTheoryEnabled(theory::THEORY_UF))
+  {
+    parseError(
+        "Functions (of non-zero arity) cannot "
+        "be declared in logic "
+        + d_logic.getLogicString() + " unless option --uf-ho is used");
   }
 }
 
@@ -965,7 +903,7 @@ void Smt2::mkSygusConstantsForType(const api::Sort& type,
 void Smt2::processSygusGTerm(
     CVC4::SygusGTerm& sgt,
     int index,
-    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::DatatypeDecl>& datatypes,
     std::vector<api::Sort>& sorts,
     std::vector<std::vector<ParseOp>>& ops,
     std::vector<std::vector<std::string>>& cnames,
@@ -1103,7 +1041,7 @@ void Smt2::processSygusGTerm(
 bool Smt2::pushSygusDatatypeDef(
     api::Sort t,
     std::string& dname,
-    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::DatatypeDecl>& datatypes,
     std::vector<api::Sort>& sorts,
     std::vector<std::vector<ParseOp>>& ops,
     std::vector<std::vector<std::string>>& cnames,
@@ -1112,7 +1050,7 @@ bool Smt2::pushSygusDatatypeDef(
     std::vector<std::vector<std::string>>& unresolved_gterm_sym)
 {
   sorts.push_back(t);
-  datatypes.push_back(Datatype(d_solver->getExprManager(), dname));
+  datatypes.push_back(d_solver->mkDatatypeDecl(dname));
   ops.push_back(std::vector<ParseOp>());
   cnames.push_back(std::vector<std::string>());
   cargs.push_back(std::vector<std::vector<api::Sort>>());
@@ -1122,7 +1060,7 @@ bool Smt2::pushSygusDatatypeDef(
 }
 
 bool Smt2::popSygusDatatypeDef(
-    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::DatatypeDecl>& datatypes,
     std::vector<api::Sort>& sorts,
     std::vector<std::vector<ParseOp>>& ops,
     std::vector<std::vector<std::string>>& cnames,
@@ -1143,7 +1081,7 @@ bool Smt2::popSygusDatatypeDef(
 api::Sort Smt2::processSygusNestedGTerm(
     int sub_dt_index,
     std::string& sub_dname,
-    std::vector<CVC4::Datatype>& datatypes,
+    std::vector<api::DatatypeDecl>& datatypes,
     std::vector<api::Sort>& sorts,
     std::vector<std::vector<ParseOp>>& ops,
     std::vector<std::vector<std::string>>& cnames,
@@ -1238,12 +1176,12 @@ api::Sort Smt2::processSygusNestedGTerm(
 
 void Smt2::setSygusStartIndex(const std::string& fun,
                               int startIndex,
-                              std::vector<CVC4::Datatype>& datatypes,
+                              std::vector<api::DatatypeDecl>& datatypes,
                               std::vector<api::Sort>& sorts,
                               std::vector<std::vector<ParseOp>>& ops)
 {
   if( startIndex>0 ){
-    CVC4::Datatype tmp_dt = datatypes[0];
+    api::DatatypeDecl tmp_dt = datatypes[0];
     api::Sort tmp_sort = sorts[0];
     std::vector<ParseOp> tmp_ops;
     tmp_ops.insert( tmp_ops.end(), ops[0].begin(), ops[0].end() );
@@ -1262,7 +1200,7 @@ void Smt2::setSygusStartIndex(const std::string& fun,
   }
 }
 
-void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
+void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
                            std::vector<ParseOp>& ops,
                            std::vector<std::string>& cnames,
                            std::vector<std::vector<api::Sort>>& cargs,
@@ -1388,17 +1326,17 @@ void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
       // ops[i], or the kind.
       if (!ops[i].d_expr.isNull())
       {
-        dt.addSygusConstructor(ops[i].d_expr.getExpr(),
-                               cnames[i],
-                               api::sortVectorToTypes(cargs[i]),
-                               spc);
+        dt.getDatatype().addSygusConstructor(ops[i].d_expr.getExpr(),
+                                             cnames[i],
+                                             api::sortVectorToTypes(cargs[i]),
+                                             spc);
       }
       else if (ops[i].d_kind != api::NULL_EXPR)
       {
-        dt.addSygusConstructor(extToIntKind(ops[i].d_kind),
-                               cnames[i],
-                               api::sortVectorToTypes(cargs[i]),
-                               spc);
+        dt.getDatatype().addSygusConstructor(extToIntKind(ops[i].d_kind),
+                                             cnames[i],
+                                             api::sortVectorToTypes(cargs[i]),
+                                             spc);
       }
       else
       {
@@ -1423,7 +1361,7 @@ void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
         if( std::find( types.begin(), types.end(), t )==types.end() ){
           types.push_back( t );
           //identity element
-          api::Sort bt = dt.getSygusType();
+          api::Sort bt = dt.getDatatype().getSygusType();
           Debug("parser-sygus") << ":  make identity function for " << bt << ", argument type " << t << std::endl;
 
           std::stringstream ss;
@@ -1441,10 +1379,10 @@ void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
           //make the sygus argument list
           std::vector<api::Sort> id_carg;
           id_carg.push_back( t );
-          dt.addSygusConstructor(id_op.getExpr(),
-                                 unresolved_gterm_sym[i],
-                                 api::sortVectorToTypes(id_carg),
-                                 sepc);
+          dt.getDatatype().addSygusConstructor(id_op.getExpr(),
+                                               unresolved_gterm_sym[i],
+                                               api::sortVectorToTypes(id_carg),
+                                               sepc);
 
           //add to operators
           ParseOp idOp;
@@ -1460,7 +1398,7 @@ void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
   }
 }
 
-api::Term Smt2::makeSygusBoundVarList(CVC4::Datatype& dt,
+api::Term Smt2::makeSygusBoundVarList(api::DatatypeDecl& dt,
                                       unsigned i,
                                       const std::vector<api::Sort>& ltypes,
                                       std::vector<api::Term>& lvars)
@@ -1476,7 +1414,7 @@ api::Term Smt2::makeSygusBoundVarList(CVC4::Datatype& dt,
 }
 
 void Smt2::addSygusConstructorTerm(
-    Datatype& dt,
+    api::DatatypeDecl& dt,
     api::Term term,
     std::map<api::Term, api::Sort>& ntsToUnres) const
 {
@@ -1509,7 +1447,7 @@ void Smt2::addSygusConstructorTerm(
   }
   Trace("parser-sygus2") << "addSygusConstructor:  operator " << op
                          << std::endl;
-  dt.addSygusConstructor(
+  dt.getDatatype().addSygusConstructor(
       op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
 }
 
@@ -1552,7 +1490,7 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
   return nret;
 }
 
-void Smt2::addSygusConstructorVariables(Datatype& dt,
+void Smt2::addSygusConstructorVariables(api::DatatypeDecl& dt,
                                         const std::vector<api::Term>& sygusVars,
                                         api::Sort type) const
 {
@@ -1565,7 +1503,7 @@ void Smt2::addSygusConstructorVariables(Datatype& dt,
       std::stringstream ss;
       ss << v;
       std::vector<api::Sort> cargs;
-      dt.addSygusConstructor(
+      dt.getDatatype().addSygusConstructor(
           v.getExpr(), ss.str(), api::sortVectorToTypes(cargs));
     }
   }
@@ -1841,7 +1779,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   else if (isBuiltinOperator)
   {
-    Trace("ajr-temp") << "mkTerm builtin operator" << std::endl;
     if (!opts.getUfHo() && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need --uf-ho if these operators are applied over function args

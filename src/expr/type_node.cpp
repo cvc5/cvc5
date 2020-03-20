@@ -117,7 +117,8 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = usortFinite;
   }
-  else if (isBoolean() || isBitVector() || isFloatingPoint())
+  else if (isBoolean() || isBitVector() || isFloatingPoint()
+           || isRoundingMode())
   {
     ret = true;
   }
