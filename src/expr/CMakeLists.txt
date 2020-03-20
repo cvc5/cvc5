@@ -31,6 +31,7 @@ libcvc4_add_sources(
   node_trie.h
   node_value.cpp
   node_value.h
+  node_visitor.h
   symbol_table.cpp
   symbol_table.h
   term_canonize.cpp

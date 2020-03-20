@@ -58,6 +58,15 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     delete d_em;
   }
 
+  void inNormalForm(Node t)
+  {
+    Node res_t = d_rewriter->extendedRewrite(t);
+
+    std::cout << std::endl;
+    std::cout << t << " ---> " << res_t << std::endl;
+    TS_ASSERT_EQUALS(t, res_t);
+  }
+
   void sameNormalForm(Node t1, Node t2)
   {
     Node res_t1 = d_rewriter->extendedRewrite(t1);
@@ -1525,6 +1534,37 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                        d_nm->mkNode(kind::REGEXP_CONCAT, sig_star, re_abc));
       Node rhs = d_nm->mkNode(kind::STRING_STRCTN, x, abc);
       differentNormalForms(lhs, rhs);
+    }
+  }
+
+  void testRewriteRegexpConcat()
+  {
+    TypeNode strType = d_nm->stringType();
+
+    std::vector<Node> emptyArgs;
+    Node x = d_nm->mkVar("x", strType);
+    Node y = d_nm->mkVar("y", strType);
+    Node allStar = d_nm->mkNode(kind::REGEXP_STAR,
+                                d_nm->mkNode(kind::REGEXP_SIGMA, emptyArgs));
+    Node xReg = d_nm->mkNode(kind::STRING_TO_REGEXP, x);
+    Node yReg = d_nm->mkNode(kind::STRING_TO_REGEXP, y);
+
+    {
+      // In normal form:
+      //
+      // (re.++ (re.* re.allchar) (re.union (str.to.re x) (str.to.re y)))
+      Node n = d_nm->mkNode(kind::REGEXP_CONCAT,
+                            allStar,
+                            d_nm->mkNode(kind::REGEXP_UNION, xReg, yReg));
+      inNormalForm(n);
+    }
+
+    {
+      // In normal form:
+      //
+      // (re.++ (str.to.re x) (re.* re.allchar))
+      Node n = d_nm->mkNode(kind::REGEXP_CONCAT, xReg, allStar);
+      inNormalForm(n);
     }
   }
 

@@ -23,6 +23,7 @@
 
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/node_visitor.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -30,7 +31,6 @@
 #include "printer/dagification_visitor.h"
 #include "smt/smt_engine.h"
 #include "smt_util/boolean_simplification.h"
-#include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/substitutions.h"

@@ -249,7 +249,6 @@ libcvc4_add_sources(
   smt_util/boolean_simplification.h
   smt_util/nary_builder.cpp
   smt_util/nary_builder.h
-  smt_util/node_visitor.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
@@ -695,6 +694,7 @@ libcvc4_add_sources(
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
+  theory/strings/type_enumerator.cpp
   theory/strings/type_enumerator.h
   theory/strings/word.cpp
   theory/strings/word.h
