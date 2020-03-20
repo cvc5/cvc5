@@ -117,9 +117,9 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
     int score = getRepScore(r, q, index, v_tn);
     if (score >= 0)
     {
-      // if we are not a valid representative, try to select one below
       return r;
     }
+    // if we are not a valid representative, try to select one below
   }
   std::map<Node, Node>& v_int_rep = d_int_rep[v_tn];
   std::map<Node, Node>::const_iterator itir = v_int_rep.find(r);
