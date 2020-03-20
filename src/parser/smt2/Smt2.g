@@ -943,7 +943,38 @@ sygusGrammar[CVC4::api::Sort & ret,
 }
   :
   // predeclaration
-  LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+  LPAREN_TOK
+  // We read a sorted variable list here in a custom way that throws an
+  // error to recognize if the user is using the (deprecated) version 1.0
+  // sygus syntax.
+  ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
+    sortSymbol[t,CHECK_DECLARED] (
+      // SyGuS version 1.0 expects a grammar ((Start Int ( ...
+      // SyGuS version 2.0 expects a predeclaration ((Start Int) ...
+      LPAREN_TOK
+      {
+        std::stringstream sse;
+        if (sortedVarNames.empty())
+        {
+          sse << "The expected SyGuS language is version 2.0, whereas the "
+              << "input appears to be SyGuS version 1.0 format. The version "
+              << "2.0 format requires a predeclaration of the non-terminal "
+              << "symbols of the grammar to be given prior to the definition "
+              << "of the grammar. See https://sygus.org/language/ for details "
+              << "and examples. CVC4 versions past 1.8 do not support SyGuS "
+              << "version 1.0.";
+        }
+        else
+        {
+          // an unknown syntax error
+          sse << "Unexpected syntax for SyGuS predeclaration.";
+        }
+        PARSER_STATE->parseError(sse.str().c_str());
+      }
+    | RPAREN_TOK )
+    { sortedVarNames.push_back(make_pair(name, t)); }
+  )*
+  RPAREN_TOK
   {
     // non-terminal symbols in the pre-declaration are locally scoped
     PARSER_STATE->pushScope(true);

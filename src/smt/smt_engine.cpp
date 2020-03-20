@@ -5164,9 +5164,11 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if(r.asSatisfiabilityResult().isSat() != Result::UNSAT ) {
     if( r.asSatisfiabilityResult().isSat() != Result::SAT && doFull ){
-      InternalError()
+      Notice()
           << "While performing quantifier elimination, unexpected result : "
           << r << " for query.";
+      // failed, return original
+      return e;
     }
     std::vector< Node > inst_qs;
     d_theoryEngine->getInstantiatedQuantifiedFormulas( inst_qs );
