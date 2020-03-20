@@ -316,9 +316,6 @@ public:
 
   void setupContext(Parser& parser) override
   {
-    if(dynamic_cast<Smt2*>(&parser) != NULL){
-      dynamic_cast<Smt2*>(&parser)->addTheory(Smt2::THEORY_CORE);
-    }
     super::setupContext(parser);
   }
 

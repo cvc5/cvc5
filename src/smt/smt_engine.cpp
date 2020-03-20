@@ -1206,7 +1206,6 @@ void SmtEngine::setDefaults() {
     if (d_logic.isTheoryEnabled(THEORY_BV))
     {
       d_logic = d_logic.getUnlockedCopy();
-      d_logic.disableTheory(THEORY_BV);
       d_logic.enableTheory(THEORY_ARITH);
       d_logic.arithNonLinear();
       d_logic.lock();
@@ -2004,7 +2003,16 @@ void SmtEngine::setDefaults() {
       }
     }
     //do not allow partial functions
-    if( !options::bitvectorDivByZeroConst.wasSetByUser() ){
+    if (!options::bitvectorDivByZeroConst())
+    {
+      if (options::bitvectorDivByZeroConst.wasSetByUser())
+      {
+        throw OptionException(
+            "--no-bv-div-zero-const is not supported with SyGuS");
+      }
+      Notice()
+          << "SmtEngine: setting bv-div-zero-const to true to support SyGuS"
+          << std::endl;
       options::bitvectorDivByZeroConst.set( true );
     }
     if( !options::dtRewriteErrorSel.wasSetByUser() ){
