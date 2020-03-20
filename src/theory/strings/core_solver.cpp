@@ -17,7 +17,7 @@
 #include "theory/strings/core_solver.h"
 
 #include "options/strings_options.h"
-#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -155,7 +155,7 @@ void CoreSolver::checkFlatForms()
         for (const Node& n : it->second)
         {
           int firstc, lastc;
-          if (!TheoryStringsRewriter::canConstantContainList(
+          if (!SequencesRewriter::canConstantContainList(
                   c, d_flat_form[n], firstc, lastc))
           {
             Trace("strings-ff-debug") << "Flat form for " << n
@@ -348,8 +348,8 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
             {
               // check for constant conflict
               int index;
-              Node s = TheoryStringsRewriter::splitConstant(
-                  cc_c, curr_c, index, isRev);
+              Node s =
+                  SequencesRewriter::splitConstant(cc_c, curr_c, index, isRev);
               if (s.isNull())
               {
                 d_bsolver.explainConstantEqc(ac,curr,exp);
@@ -905,7 +905,7 @@ void CoreSolver::getNormalForms(Node eqc,
       {
         NormalForm& nf = normal_forms[i];
         int firstc, lastc;
-        if (!TheoryStringsRewriter::canConstantContainList(
+        if (!SequencesRewriter::canConstantContainList(
                 c, nf.d_nf, firstc, lastc))
         {
           Node n = nf.d_base;
@@ -1484,22 +1484,22 @@ bool CoreSolver::detectLoop(NormalForm& nfi,
                                unsigned rproc)
 {
   int has_loop[2] = { -1, -1 };
-  if( options::stringLB() != 2 ) {
-    for( unsigned r=0; r<2; r++ ) {
-      NormalForm& nf = r == 0 ? nfi : nfj;
-      NormalForm& nfo = r == 0 ? nfj : nfi;
-      std::vector<Node>& nfv = nf.d_nf;
-      std::vector<Node>& nfov = nfo.d_nf;
-      if (!nfov[index].isConst())
+  for (unsigned r = 0; r < 2; r++)
+  {
+    NormalForm& nf = r == 0 ? nfi : nfj;
+    NormalForm& nfo = r == 0 ? nfj : nfi;
+    std::vector<Node>& nfv = nf.d_nf;
+    std::vector<Node>& nfov = nfo.d_nf;
+    if (nfov[index].isConst())
+    {
+      continue;
+    }
+    for (unsigned lp = index + 1, lpEnd = nfv.size() - rproc; lp < lpEnd; lp++)
+    {
+      if (nfv[lp] == nfov[index])
       {
-        for (unsigned lp = index + 1; lp < nfv.size() - rproc; lp++)
-        {
-          if (nfv[lp] == nfov[index])
-          {
-            has_loop[r] = lp;
-            break;
-          }
-        }
+        has_loop[r] = lp;
+        break;
       }
     }
   }
@@ -1910,7 +1910,7 @@ int CoreSolver::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >&
       if (!c.isNull())
       {
         int findex, lindex;
-        if (!TheoryStringsRewriter::canConstantContainList(
+        if (!SequencesRewriter::canConstantContainList(
                 c, i == 0 ? nfj : nfi, findex, lindex))
         {
           Trace("strings-solve-debug")

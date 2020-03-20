@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_strings_rewriter.h
+/*! \file sequences_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
@@ -9,14 +9,14 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Rewriter for the theory of strings
+ ** \brief Rewriter for the theory of strings and sequences
  **
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
-#define CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
+#ifndef CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H
+#define CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H
 
 #include <climits>
 #include <utility>
@@ -30,9 +30,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-class TheoryStringsRewriter : public TheoryRewriter
+class SequencesRewriter : public TheoryRewriter
 {
- private:
+ protected:
   /** simple regular expression consume
    *
    * This method is called when we are rewriting a membership of the form
@@ -88,9 +88,13 @@ class TheoryStringsRewriter : public TheoryRewriter
    *   "bb" ++ x  in ( "b" ++ ("a")* )*
    * is equivalent to false.
    */
-  static Node simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir = -1 );
-  static bool isConstRegExp( TNode t );
-  static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r );
+  static Node simpleRegexpConsume(std::vector<Node>& mchildren,
+                                  std::vector<Node>& children,
+                                  int dir = -1);
+  static bool isConstRegExp(TNode t);
+  static bool testConstStringInRegExp(CVC4::String& s,
+                                      unsigned int index_start,
+                                      TNode r);
 
   /** rewrite regular expression concatenation
    *
@@ -178,38 +182,38 @@ class TheoryStringsRewriter : public TheoryRewriter
    */
   static Node rewriteEqualityExt(Node node);
   /** rewrite concat
-  * This is the entry point for post-rewriting terms node of the form
-  *   str.++( t1, .., tn )
-  * Returns the rewritten form of node.
-  */
+   * This is the entry point for post-rewriting terms node of the form
+   *   str.++( t1, .., tn )
+   * Returns the rewritten form of node.
+   */
   static Node rewriteConcat(Node node);
   /** rewrite substr
-  * This is the entry point for post-rewriting terms node of the form
-  *   str.substr( s, i1, i2 )
-  * Returns the rewritten form of node.
-  */
+   * This is the entry point for post-rewriting terms node of the form
+   *   str.substr( s, i1, i2 )
+   * Returns the rewritten form of node.
+   */
   static Node rewriteSubstr(Node node);
   /** rewrite contains
-  * This is the entry point for post-rewriting terms node of the form
-  *   str.contains( t, s )
-  * Returns the rewritten form of node.
-  *
-  * For details on some of the basic rewrites done in this function, see Figure
-  * 7 of Reynolds et al "Scaling Up DPLL(T) String Solvers Using
-  * Context-Dependent Rewriting", CAV 2017.
-  */
+   * This is the entry point for post-rewriting terms node of the form
+   *   str.contains( t, s )
+   * Returns the rewritten form of node.
+   *
+   * For details on some of the basic rewrites done in this function, see Figure
+   * 7 of Reynolds et al "Scaling Up DPLL(T) String Solvers Using
+   * Context-Dependent Rewriting", CAV 2017.
+   */
   static Node rewriteContains(Node node);
   /** rewrite indexof
-  * This is the entry point for post-rewriting terms n of the form
-  *   str.indexof( s, t, n )
-  * Returns the rewritten form of node.
-  */
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.indexof( s, t, n )
+   * Returns the rewritten form of node.
+   */
   static Node rewriteIndexof(Node node);
   /** rewrite replace
-  * This is the entry point for post-rewriting terms n of the form
-  *   str.replace( s, t, r )
-  * Returns the rewritten form of node.
-  */
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.replace( s, t, r )
+   * Returns the rewritten form of node.
+   */
   static Node rewriteReplace(Node node);
   /** rewrite replace all
    * This is the entry point for post-rewriting terms n of the form
@@ -223,13 +227,6 @@ class TheoryStringsRewriter : public TheoryRewriter
    * str.replaceall. If it returns a non-null ret, then node rewrites to ret.
    */
   static Node rewriteReplaceInternal(Node node);
-  /** rewrite string convert
-   *
-   * This is the entry point for post-rewriting terms n of the form
-   *   str.tolower( s ) and str.toupper( s )
-   * Returns the rewritten form of node.
-   */
-  static Node rewriteStrConvert(Node node);
   /** rewrite string reverse
    *
    * This is the entry point for post-rewriting terms n of the form
@@ -237,25 +234,12 @@ class TheoryStringsRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   static Node rewriteStrReverse(Node node);
-  /** rewrite string less than or equal
-  * This is the entry point for post-rewriting terms n of the form
-  *   str.<=( t, s )
-  * Returns the rewritten form of n.
-  */
-  static Node rewriteStringLeq(Node n);
   /** rewrite prefix/suffix
-  * This is the entry point for post-rewriting terms n of the form
-  *   str.prefixof( s, t ) / str.suffixof( s, t )
-  * Returns the rewritten form of node.
-  */
-  static Node rewritePrefixSuffix(Node node);
-
-  /** rewrite str.from_code
    * This is the entry point for post-rewriting terms n of the form
-   *   str.from_code( t )
+   *   str.prefixof( s, t ) / str.suffixof( s, t )
    * Returns the rewritten form of node.
    */
-  static Node rewriteStringFromCode(Node node);
+  static Node rewritePrefixSuffix(Node node);
 
   /** rewrite str.to_code
    * This is the entry point for post-rewriting terms n of the form
@@ -264,7 +248,7 @@ class TheoryStringsRewriter : public TheoryRewriter
    */
   static Node rewriteStringToCode(Node node);
 
-  static Node splitConstant( Node a, Node b, int& index, bool isRev );
+  static Node splitConstant(Node a, Node b, int& index, bool isRev);
   /** can constant contain list
    * return true if constant c can contain the list l in order
    * firstc/lastc store which indices in l were used to determine the return
@@ -277,17 +261,20 @@ class TheoryStringsRewriter : public TheoryRewriter
    *     firstc/lastc are updated to 1/1
    *   canConstantContainList( "abc", { x, "d", y } ) returns false
    *     firstc/lastc are updated to 1/1
-   *   canConstantContainList( "abcdef", { x, "b", y, "a", z, "c", w } 
+   *   canConstantContainList( "abcdef", { x, "b", y, "a", z, "c", w }
    *     returns false
    *     firstc/lastc are updated to 1/3
-   *   canConstantContainList( "abcdef", { x, "b", y, "e", z, "c", w } 
+   *   canConstantContainList( "abcdef", { x, "b", y, "e", z, "c", w }
    *     returns false
    *     firstc/lastc are updated to 1/5
    */
-  static bool canConstantContainList( Node c, std::vector< Node >& l, int& firstc, int& lastc );
+  static bool canConstantContainList(Node c,
+                                     std::vector<Node>& l,
+                                     int& firstc,
+                                     int& lastc);
   /** can constant contain concat
-  * same as above but with n = str.++( l ) instead of l
-  */
+   * same as above but with n = str.++( l ) instead of l
+   */
   static bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc);
 
   /** strip symbolic length
@@ -334,54 +321,54 @@ class TheoryStringsRewriter : public TheoryRewriter
                                   int dir,
                                   Node& curr);
   /** component contains
-  * This function is used when rewriting str.contains( t1, t2 ), where
-  * n1 is the vector form of t1
-  * n2 is the vector form of t2
-  *
-  * If this function returns n>=0 for some n, then
-  *    n1 = { x1...x{n-1} xn...x{n+s} x{n+s+1}...xm },
-  *    n2 = { y1...ys },
-  *    y1 is a suffix of xn,
-  *    y2...y{s-1} = x{n+1}...x{n+s-1}, and
-  *    ys is a prefix of x{n+s}
-  * Otherwise it returns -1.
-  *
-  * This function may update n1 if computeRemainder = true.
-  *   We maintain the invariant that the resulting value n1'
-  *   of n1 after this function is such that:
-  *     n1 = str.++( nb, n1', ne )
-  * The vectors nb and ne have the following properties.
-  * If computeRemainder = true, then
-  *   If remainderDir != -1, then
-  *     ne is { x{n+s}' x{n+s+1}...xm }
-  *     where x{n+s} = str.++( ys, x{n+s}' ).
-  *   If remainderDir != 1, then
-  *     nb is { x1, ..., x{n-1}, xn' }
-  *     where xn = str.++( xn', y1 ).
-  *
-  * For example:
-  *
-  * componentContains({ x, "abc", x }, { "b" }, {}, true, 0)
-  *   returns 1,
-  *   n1 is updated to { "b" },
-  *   nb is updated to { x, "a" },
-  *   ne is updated to { "c", x }
-  *
-  * componentContains({ x, "abc", x }, { "b" }, {}, true, 1)
-  *   returns 1,
-  *   n1 is updated to { x, "ab" },
-  *   ne is updated to { "c", x }
-  *
-  * componentContains({ y, z, "abc", x, "def" }, { "c", x, "de" }, {}, true, 1)
-  *   returns 2,
-  *   n1 is updated to { y, z, "abc", x, "de" },
-  *   ne is updated to { "f" }
-  *
-  * componentContains({ y, "abc", x, "def" }, { "c", x, "de" }, {}, true, -1)
-  *   returns 1,
-  *   n1 is updated to { "c", x, "def" },
-  *   nb is updated to { y, "ab" }
-  */
+   * This function is used when rewriting str.contains( t1, t2 ), where
+   * n1 is the vector form of t1
+   * n2 is the vector form of t2
+   *
+   * If this function returns n>=0 for some n, then
+   *    n1 = { x1...x{n-1} xn...x{n+s} x{n+s+1}...xm },
+   *    n2 = { y1...ys },
+   *    y1 is a suffix of xn,
+   *    y2...y{s-1} = x{n+1}...x{n+s-1}, and
+   *    ys is a prefix of x{n+s}
+   * Otherwise it returns -1.
+   *
+   * This function may update n1 if computeRemainder = true.
+   *   We maintain the invariant that the resulting value n1'
+   *   of n1 after this function is such that:
+   *     n1 = str.++( nb, n1', ne )
+   * The vectors nb and ne have the following properties.
+   * If computeRemainder = true, then
+   *   If remainderDir != -1, then
+   *     ne is { x{n+s}' x{n+s+1}...xm }
+   *     where x{n+s} = str.++( ys, x{n+s}' ).
+   *   If remainderDir != 1, then
+   *     nb is { x1, ..., x{n-1}, xn' }
+   *     where xn = str.++( xn', y1 ).
+   *
+   * For example:
+   *
+   * componentContains({ x, "abc", x }, { "b" }, {}, true, 0)
+   *   returns 1,
+   *   n1 is updated to { "b" },
+   *   nb is updated to { x, "a" },
+   *   ne is updated to { "c", x }
+   *
+   * componentContains({ x, "abc", x }, { "b" }, {}, true, 1)
+   *   returns 1,
+   *   n1 is updated to { x, "ab" },
+   *   ne is updated to { "c", x }
+   *
+   * componentContains({ y, z, "abc", x, "def" }, { "c", x, "de" }, {}, true, 1)
+   *   returns 2,
+   *   n1 is updated to { y, z, "abc", x, "de" },
+   *   ne is updated to { "f" }
+   *
+   * componentContains({ y, "abc", x, "def" }, { "c", x, "de" }, {}, true, -1)
+   *   returns 1,
+   *   n1 is updated to { "c", x, "def" },
+   *   nb is updated to { y, "ab" }
+   */
   static int componentContains(std::vector<Node>& n1,
                                std::vector<Node>& n2,
                                std::vector<Node>& nb,
@@ -443,37 +430,37 @@ class TheoryStringsRewriter : public TheoryRewriter
   static bool componentContainsBase(
       Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
   /** strip constant endpoints
-  * This function is used when rewriting str.contains( t1, t2 ), where
-  * n1 is the vector form of t1
-  * n2 is the vector form of t2
-  *
-  * It modifies n1 to a new vector n1' such that:
-  * (1) str.contains( str.++( n1 ), str.++( n2 ) ) is equivalent to
-  * str.contains( str.++( n1' ), str.++( n2 ) )
-  * (2) str.++( n1 ) = str.++( nb, n1', ne )
-  *
-  * "dir" is the direction in which we can modify n1:
-  * if dir = 1, then we allow dropping components from the front of n1,
-  * if dir = -1, then we allow dropping components from the back of n1,
-  * if dir = 0, then we allow dropping components from either.
-  *
-  * It returns true if n1 is modified.
-  *
-  * For example:
-  * stripConstantEndpoints({ "ab", x, "de" }, { "c" }, {}, {}, 1)
-  *   returns true,
-  *   n1 is updated to { x, "de" }
-  *   nb is updated to { "ab" }
-  * stripConstantEndpoints({ "ab", x, "de" }, { "bd" }, {}, {}, 0)
-  *   returns true,
-  *   n1 is updated to { "b", x, "d" }
-  *   nb is updated to { "a" }
-  *   ne is updated to { "e" }
-  * stripConstantEndpoints({ "ad", substr("ccc",x,y) }, { "d" }, {}, {}, -1)
-  *   returns true,
-  *   n1 is updated to {"ad"}
-  *   ne is updated to { substr("ccc",x,y) }
-  */
+   * This function is used when rewriting str.contains( t1, t2 ), where
+   * n1 is the vector form of t1
+   * n2 is the vector form of t2
+   *
+   * It modifies n1 to a new vector n1' such that:
+   * (1) str.contains( str.++( n1 ), str.++( n2 ) ) is equivalent to
+   * str.contains( str.++( n1' ), str.++( n2 ) )
+   * (2) str.++( n1 ) = str.++( nb, n1', ne )
+   *
+   * "dir" is the direction in which we can modify n1:
+   * if dir = 1, then we allow dropping components from the front of n1,
+   * if dir = -1, then we allow dropping components from the back of n1,
+   * if dir = 0, then we allow dropping components from either.
+   *
+   * It returns true if n1 is modified.
+   *
+   * For example:
+   * stripConstantEndpoints({ "ab", x, "de" }, { "c" }, {}, {}, 1)
+   *   returns true,
+   *   n1 is updated to { x, "de" }
+   *   nb is updated to { "ab" }
+   * stripConstantEndpoints({ "ab", x, "de" }, { "bd" }, {}, {}, 0)
+   *   returns true,
+   *   n1 is updated to { "b", x, "d" }
+   *   nb is updated to { "a" }
+   *   ne is updated to { "e" }
+   * stripConstantEndpoints({ "ad", substr("ccc",x,y) }, { "d" }, {}, {}, -1)
+   *   returns true,
+   *   n1 is updated to {"ad"}
+   *   ne is updated to { substr("ccc",x,y) }
+   */
   static bool stripConstantEndpoints(std::vector<Node>& n1,
                                      std::vector<Node>& n2,
                                      std::vector<Node>& nb,
@@ -779,10 +766,10 @@ class TheoryStringsRewriter : public TheoryRewriter
    * and the list of nodes that are compared to the empty string
    */
   static std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
-}; /* class TheoryStringsRewriter */
+}; /* class SequencesRewriter */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
-#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H */
+#endif /* CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H */

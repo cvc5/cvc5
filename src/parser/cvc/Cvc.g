@@ -683,7 +683,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   SExpr sexpr;
   std::string id;
   api::Sort t;
-  std::vector<CVC4::Datatype> dts;
+  std::vector<CVC4::api::DatatypeDecl> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
   api::Term func;
@@ -757,7 +757,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     END_TOK
     { PARSER_STATE->popScope();
       cmd->reset(new DatatypeDeclarationCommand(
-          api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts))));
+          api::sortVectorToTypes(PARSER_STATE->bindMutualDatatypeTypes(dts))));
     }
 
   | CONTEXT_TOK
@@ -1204,7 +1204,7 @@ identifier[std::string& id,
  * forward-declaration in CVC language datatype definitions, we have
  * to create types for them on-the-fly).  Before passing CHECK_NONE
  * you really should have a clear idea of WHY you need to parse that
- * way; then you should trace through Parser::mkMutualDatatypeType()
+ * way; then you should trace through Parser::bindMutualDatatypeType()
  * to figure out just what you're in for.
  */
 type[CVC4::api::Sort& t,
@@ -2310,7 +2310,7 @@ iteElseTerm[CVC4::api::Term& f]
 /**
  * Parses a datatype definition
  */
-datatypeDef[std::vector<CVC4::Datatype>& datatypes]
+datatypeDef[std::vector<CVC4::api::DatatypeDecl>& datatypes]
 @init {
   std::string id, id2;
   api::Sort t;
@@ -2331,10 +2331,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
       )* RBRACKET
     )?
     {
-      datatypes.push_back(Datatype(SOLVER->getExprManager(),
-                                   id,
-                                   api::sortVectorToTypes(params),
-                                   false));
+      datatypes.push_back(SOLVER->mkDatatypeDecl(id, params, false));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
@@ -2348,14 +2345,14 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 /**
  * Parses a constructor defintion for type
  */
-constructorDef[CVC4::Datatype& type]
+constructorDef[CVC4::api::DatatypeDecl& type]
 @init {
   std::string id;
-  std::unique_ptr<CVC4::DatatypeConstructor> ctor;
+  std::unique_ptr<CVC4::api::DatatypeConstructorDecl> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
-    {
-      ctor.reset(new CVC4::DatatypeConstructor(id));
+    { 
+      ctor.reset(new CVC4::api::DatatypeConstructorDecl(id));
     }
     ( LPAREN
       selector[&ctor]
@@ -2368,13 +2365,14 @@ constructorDef[CVC4::Datatype& type]
     }
   ;
 
-selector[std::unique_ptr<CVC4::DatatypeConstructor>* ctor]
+selector[std::unique_ptr<CVC4::api::DatatypeConstructorDecl>* ctor]
 @init {
   std::string id;
   api::Sort t, t2;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON type[t,CHECK_NONE]
-    { (*ctor)->addArg(id, t.getType());
+    {
+      (*ctor)->addSelector(id, t);
       Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
     }
   ;

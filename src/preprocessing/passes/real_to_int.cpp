@@ -115,7 +115,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                 {
                   throw TypeCheckingException(
                       v.toExpr(),
-                      string("Cannot translate to Int: ") + v.toString());
+                      std::string("Cannot translate to Int: ") + v.toString());
                 }
               }
             }
@@ -166,8 +166,12 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
       {
         if (n.getKind() == kind::BOUND_VARIABLE)
         {
-          // special case for bound variables (must call mkBoundVar)
-          ret = nm->mkBoundVar(nm->integerType());
+          // cannot change the type of quantified variables, since this leads
+          // to incompleteness.
+          throw TypeCheckingException(
+              n.toExpr(),
+              std::string("Cannot translate bound variable to Int: ")
+                  + n.toString());
         }
         else if (n.isVar())
         {
