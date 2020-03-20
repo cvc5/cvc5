@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_strings_rewriter.cpp
+/*! \file sequences_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
@@ -14,7 +14,7 @@
  ** Implementation of the theory of strings.
  **/
 
-#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/sequences_rewriter.h"
 
 #include <stdint.h>
 #include <algorithm>
@@ -24,7 +24,7 @@
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/strings/regexp_operation.h"
-#include "theory/strings/rewriter_str.h"
+#include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "theory/theory.h"
@@ -37,7 +37,7 @@ using namespace CVC4::kind;
 using namespace CVC4::theory;
 using namespace CVC4::theory::strings;
 
-Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir ){
+Node SequencesRewriter::simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir ){
   Trace("regexp-ext-rewrite-debug")
       << "Simple reg exp consume, dir=" << dir << ":" << std::endl;
   Trace("regexp-ext-rewrite-debug")
@@ -233,7 +233,7 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
   return Node::null();
 }
 
-Node TheoryStringsRewriter::rewriteEquality(Node node)
+Node SequencesRewriter::rewriteEquality(Node node)
 {
   Assert(node.getKind() == kind::EQUAL);
   if (node[0] == node[1])
@@ -321,7 +321,7 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
+Node SequencesRewriter::rewriteEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL);
   if (node[0].getType().isInteger())
@@ -335,7 +335,7 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
+Node SequencesRewriter::rewriteStrEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL && node[0].getType().isString());
 
@@ -709,7 +709,7 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteArithEqualityExt(Node node)
+Node SequencesRewriter::rewriteArithEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL && node[0].getType().isInteger());
 
@@ -723,7 +723,7 @@ Node TheoryStringsRewriter::rewriteArithEqualityExt(Node node)
 // TODO (#1180) add rewrite
 //  str.++( str.substr( x, n1, n2 ), str.substr( x, n1+n2, n3 ) ) --->
 //  str.substr( x, n1, n2+n3 )
-Node TheoryStringsRewriter::rewriteConcat(Node node)
+Node SequencesRewriter::rewriteConcat(Node node)
 {
   Assert(node.getKind() == kind::STRING_CONCAT);
   Trace("strings-rewrite-debug")
@@ -818,7 +818,7 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
   return retNode;
 }
 
-Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
+Node SequencesRewriter::rewriteConcatRegExp(TNode node)
 {
   Assert(node.getKind() == kind::REGEXP_CONCAT);
   NodeManager* nm = NodeManager::currentNM();
@@ -970,7 +970,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
+Node SequencesRewriter::rewriteStarRegExp(TNode node)
 {
   Assert(node.getKind() == REGEXP_STAR);
   NodeManager* nm = NodeManager::currentNM();
@@ -1026,7 +1026,7 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteAndOrRegExp(TNode node)
+Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
 {
   Kind nk = node.getKind();
   Assert(nk == REGEXP_UNION || nk == REGEXP_INTER);
@@ -1092,7 +1092,7 @@ Node TheoryStringsRewriter::rewriteAndOrRegExp(TNode node)
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
+Node SequencesRewriter::rewriteLoopRegExp(TNode node)
 {
   Assert(node.getKind() == REGEXP_LOOP);
   Node retNode = node;
@@ -1165,7 +1165,7 @@ Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
   return node;
 }
 
-bool TheoryStringsRewriter::isConstRegExp( TNode t ) {
+bool SequencesRewriter::isConstRegExp( TNode t ) {
   if( t.getKind()==kind::STRING_TO_REGEXP ) {
     return t[0].isConst();
   }
@@ -1182,7 +1182,7 @@ bool TheoryStringsRewriter::isConstRegExp( TNode t ) {
   }
 }
 
-bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r ) {
+bool SequencesRewriter::testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r ) {
   Assert(index_start <= s.size());
   Trace("regexp-debug") << "Checking " << s << " in " << r << ", starting at " << index_start << std::endl;
   Assert(!r.isVar());
@@ -1357,7 +1357,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
   }
 }
 
-Node TheoryStringsRewriter::rewriteMembership(TNode node) {
+Node SequencesRewriter::rewriteMembership(TNode node) {
   NodeManager* nm = NodeManager::currentNM();
   Node retNode = node;
   Node x = node[0];
@@ -1583,7 +1583,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
   return retNode;
 }
 
-RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
+RewriteResponse SequencesRewriter::postRewrite(TNode node) {
   Trace("strings-postrewrite") << "Strings::postRewrite start " << node << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Node retNode = node;
@@ -1660,7 +1660,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
   else if (nk == kind::STRING_LEQ)
   {
-    retNode = RewriterStr::rewriteStringLeq(node);
+    retNode = StringsRewriter::rewriteStringLeq(node);
   }
   else if (nk == kind::STRING_STRIDOF)
   {
@@ -1676,7 +1676,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
   else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
   {
-    retNode = RewriterStr::rewriteStrConvert(node);
+    retNode = StringsRewriter::rewriteStrConvert(node);
   }
   else if (nk == STRING_REV)
   {
@@ -1696,11 +1696,11 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
   else if (nk == kind::STRING_ITOS)
   {
-    retNode = RewriterStr::rewriteIntToStr(node);
+    retNode = StringsRewriter::rewriteIntToStr(node);
   }
   else if (nk == kind::STRING_STOI)
   {
-    retNode = RewriterStr::rewriteStrToInt(node);
+    retNode = StringsRewriter::rewriteStrToInt(node);
   }
   else if (nk == kind::STRING_IN_REGEXP)
   {
@@ -1708,11 +1708,11 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
   else if (nk == STRING_TO_CODE)
   {
-    retNode = RewriterStr::rewriteStringToCode(node);
+    retNode = StringsRewriter::rewriteStringToCode(node);
   }
   else if (nk == STRING_FROM_CODE)
   {
-    retNode = RewriterStr::rewriteStringFromCode(node);
+    retNode = StringsRewriter::rewriteStringFromCode(node);
   }
   else if (nk == REGEXP_CONCAT)
   {
@@ -1760,7 +1760,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   return RewriteResponse(orig==retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL, retNode);
 }
 
-bool TheoryStringsRewriter::hasEpsilonNode(TNode node) {
+bool SequencesRewriter::hasEpsilonNode(TNode node) {
   for(unsigned int i=0; i<node.getNumChildren(); i++) {
     if (node[i].getKind() == kind::STRING_TO_REGEXP && node[i][0].isConst()
         && Word::isEmpty(node[i][0]))
@@ -1771,11 +1771,11 @@ bool TheoryStringsRewriter::hasEpsilonNode(TNode node) {
   return false;
 }
 
-RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
+RewriteResponse SequencesRewriter::preRewrite(TNode node) {
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-Node TheoryStringsRewriter::rewriteSubstr(Node node)
+Node SequencesRewriter::rewriteSubstr(Node node)
 {
   Assert(node.getKind() == kind::STRING_SUBSTR);
 
@@ -2066,7 +2066,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteContains( Node node ) {
+Node SequencesRewriter::rewriteContains( Node node ) {
   Assert(node.getKind() == kind::STRING_STRCTN);
   NodeManager* nm = NodeManager::currentNM();
 
@@ -2420,7 +2420,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
+Node SequencesRewriter::rewriteIndexof( Node node ) {
   Assert(node.getKind() == kind::STRING_STRIDOF);
   NodeManager* nm = NodeManager::currentNM();
 
@@ -2630,7 +2630,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteReplace( Node node ) {
+Node SequencesRewriter::rewriteReplace( Node node ) {
   Assert(node.getKind() == kind::STRING_STRREPL);
   NodeManager* nm = NodeManager::currentNM();
 
@@ -3114,7 +3114,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteReplaceAll(Node node)
+Node SequencesRewriter::rewriteReplaceAll(Node node)
 {
   Assert(node.getKind() == STRING_STRREPLALL);
 
@@ -3165,7 +3165,7 @@ Node TheoryStringsRewriter::rewriteReplaceAll(Node node)
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
+Node SequencesRewriter::rewriteReplaceInternal(Node node)
 {
   Kind nk = node.getKind();
   Assert(nk == STRING_STRREPL || nk == STRING_STRREPLALL);
@@ -3187,7 +3187,7 @@ Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
   return Node::null();
 }
 
-Node TheoryStringsRewriter::rewriteStrReverse(Node node)
+Node SequencesRewriter::rewriteStrReverse(Node node)
 {
   Assert(node.getKind() == STRING_REV);
   NodeManager* nm = NodeManager::currentNM();
@@ -3220,7 +3220,7 @@ Node TheoryStringsRewriter::rewriteStrReverse(Node node)
   return node;
 }
 
-Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
+Node SequencesRewriter::rewritePrefixSuffix(Node n)
 {
   Assert(n.getKind() == kind::STRING_PREFIX
          || n.getKind() == kind::STRING_SUFFIX);
@@ -3299,7 +3299,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   return retNode;
 }
 
-Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRev ) {
+Node SequencesRewriter::splitConstant( Node a, Node b, int& index, bool isRev ) {
   Assert(a.isConst() && b.isConst());
   size_t lenA = Word::getLength(a);
   size_t lenB = Word::getLength(b);
@@ -3319,7 +3319,7 @@ Node TheoryStringsRewriter::splitConstant( Node a, Node b, int& index, bool isRe
   return Node::null();
 }
 
-bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& firstc, int& lastc ) {
+bool SequencesRewriter::canConstantContainConcat( Node c, Node n, int& firstc, int& lastc ) {
   Assert(c.isConst());
   CVC4::String t = c.getConst<String>();
   const std::vector<unsigned>& tvec = t.getVec();
@@ -3358,7 +3358,7 @@ bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& first
   return true;
 }
 
-bool TheoryStringsRewriter::canConstantContainList( Node c, std::vector< Node >& l, int& firstc, int& lastc ) {
+bool SequencesRewriter::canConstantContainList( Node c, std::vector< Node >& l, int& firstc, int& lastc ) {
   Assert(c.isConst());
   //must find constant components in order
   size_t pos = 0;
@@ -3379,7 +3379,7 @@ bool TheoryStringsRewriter::canConstantContainList( Node c, std::vector< Node >&
   return true;
 }
 
-bool TheoryStringsRewriter::stripSymbolicLength(std::vector<Node>& n1,
+bool SequencesRewriter::stripSymbolicLength(std::vector<Node>& n1,
                                                 std::vector<Node>& nr,
                                                 int dir,
                                                 Node& curr)
@@ -3493,7 +3493,7 @@ bool TheoryStringsRewriter::stripSymbolicLength(std::vector<Node>& n1,
   return ret;
 }
 
-int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
+int SequencesRewriter::componentContains(std::vector<Node>& n1,
                                              std::vector<Node>& n2,
                                              std::vector<Node>& nb,
                                              std::vector<Node>& ne,
@@ -3620,7 +3620,7 @@ int TheoryStringsRewriter::componentContains(std::vector<Node>& n1,
   return -1;
 }
 
-bool TheoryStringsRewriter::componentContainsBase(
+bool SequencesRewriter::componentContainsBase(
     Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder)
 {
   Assert(n1rb.isNull());
@@ -3759,7 +3759,7 @@ bool TheoryStringsRewriter::componentContainsBase(
   return false;
 }
 
-bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
+bool SequencesRewriter::stripConstantEndpoints(std::vector<Node>& n1,
                                                    std::vector<Node>& n2,
                                                    std::vector<Node>& nb,
                                                    std::vector<Node>& ne,
@@ -3940,7 +3940,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
   return changed;
 }
 
-Node TheoryStringsRewriter::canonicalStrForSymbolicLength(Node len)
+Node SequencesRewriter::canonicalStrForSymbolicLength(Node len)
 {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -3996,7 +3996,7 @@ Node TheoryStringsRewriter::canonicalStrForSymbolicLength(Node len)
   return res;
 }
 
-Node TheoryStringsRewriter::lengthPreserveRewrite(Node n)
+Node SequencesRewriter::lengthPreserveRewrite(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node len = Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, n));
@@ -4004,7 +4004,7 @@ Node TheoryStringsRewriter::lengthPreserveRewrite(Node n)
   return res.isNull() ? n : res;
 }
 
-Node TheoryStringsRewriter::checkEntailContains(Node a,
+Node SequencesRewriter::checkEntailContains(Node a,
                                                 Node b,
                                                 bool fullRewriter)
 {
@@ -4029,14 +4029,14 @@ Node TheoryStringsRewriter::checkEntailContains(Node a,
   return ctn.isConst() ? ctn : Node::null();
 }
 
-bool TheoryStringsRewriter::checkEntailNonEmpty(Node a)
+bool SequencesRewriter::checkEntailNonEmpty(Node a)
 {
   Node len = NodeManager::currentNM()->mkNode(STRING_LENGTH, a);
   len = Rewriter::rewrite(len);
   return checkEntailArith(len, true);
 }
 
-bool TheoryStringsRewriter::checkEntailLengthOne(Node s, bool strict)
+bool SequencesRewriter::checkEntailLengthOne(Node s, bool strict)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node one = nm->mkConst(Rational(1));
@@ -4045,7 +4045,7 @@ bool TheoryStringsRewriter::checkEntailLengthOne(Node s, bool strict)
   return checkEntailArith(one, len) && (!strict || checkEntailArith(len, true));
 }
 
-bool TheoryStringsRewriter::checkEntailArithEq(Node a, Node b)
+bool SequencesRewriter::checkEntailArithEq(Node a, Node b)
 {
   if (a == b)
   {
@@ -4059,7 +4059,7 @@ bool TheoryStringsRewriter::checkEntailArithEq(Node a, Node b)
   }
 }
 
-bool TheoryStringsRewriter::checkEntailArith(Node a, Node b, bool strict)
+bool SequencesRewriter::checkEntailArith(Node a, Node b, bool strict)
 {
   if (a == b)
   {
@@ -4083,7 +4083,7 @@ typedef expr::Attribute<StrCheckEntailArithTag, bool> StrCheckEntailArithAttr;
 typedef expr::Attribute<StrCheckEntailArithComputedTag, bool>
     StrCheckEntailArithComputedAttr;
 
-bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
+bool SequencesRewriter::checkEntailArith(Node a, bool strict)
 {
   if (a.isConst())
   {
@@ -4114,7 +4114,7 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
   return ret;
 }
 
-bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
+bool SequencesRewriter::checkEntailArithApprox(Node ar)
 {
   Assert(Rewriter::rewrite(ar) == ar);
   NodeManager* nm = NodeManager::currentNM();
@@ -4389,7 +4389,7 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
   return false;
 }
 
-void TheoryStringsRewriter::getArithApproximations(Node a,
+void SequencesRewriter::getArithApproximations(Node a,
                                                    std::vector<Node>& approx,
                                                    bool isOverApprox)
 {
@@ -4577,7 +4577,7 @@ void TheoryStringsRewriter::getArithApproximations(Node a,
   Trace("strings-ent-approx-debug") << "Return " << approx.size() << std::endl;
 }
 
-bool TheoryStringsRewriter::checkEntailMultisetSubset(Node a, Node b)
+bool SequencesRewriter::checkEntailMultisetSubset(Node a, Node b)
 {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -4663,7 +4663,7 @@ bool TheoryStringsRewriter::checkEntailMultisetSubset(Node a, Node b)
   return false;
 }
 
-Node TheoryStringsRewriter::checkEntailHomogeneousString(Node a)
+Node SequencesRewriter::checkEntailHomogeneousString(Node a)
 {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -4707,7 +4707,7 @@ Node TheoryStringsRewriter::checkEntailHomogeneousString(Node a)
   return nm->mkConst(String(cv));
 }
 
-Node TheoryStringsRewriter::getMultisetApproximation(Node a)
+Node SequencesRewriter::getMultisetApproximation(Node a)
 {
   NodeManager* nm = NodeManager::currentNM();
   if (a.getKind() == STRING_SUBSTR)
@@ -4733,7 +4733,7 @@ Node TheoryStringsRewriter::getMultisetApproximation(Node a)
   }
 }
 
-bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
+bool SequencesRewriter::checkEntailArithWithEqAssumption(Node assumption,
                                                              Node a,
                                                              bool strict)
 {
@@ -4804,7 +4804,7 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
   return checkEntailArith(a, strict);
 }
 
-bool TheoryStringsRewriter::checkEntailArithWithAssumption(Node assumption,
+bool SequencesRewriter::checkEntailArithWithAssumption(Node assumption,
                                                            Node a,
                                                            Node b,
                                                            bool strict)
@@ -4860,7 +4860,7 @@ bool TheoryStringsRewriter::checkEntailArithWithAssumption(Node assumption,
   return res;
 }
 
-bool TheoryStringsRewriter::checkEntailArithWithAssumptions(
+bool SequencesRewriter::checkEntailArithWithAssumptions(
     std::vector<Node> assumptions, Node a, Node b, bool strict)
 {
   // TODO: We currently try to show the entailment with each assumption
@@ -4880,7 +4880,7 @@ bool TheoryStringsRewriter::checkEntailArithWithAssumptions(
   return res;
 }
 
-Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
+Node SequencesRewriter::getConstantArithBound(Node a, bool isLower)
 {
   Assert(Rewriter::rewrite(a) == a);
   Node ret;
@@ -4963,7 +4963,7 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
   return ret;
 }
 
-Node TheoryStringsRewriter::getFixedLengthForRegexp(Node n)
+Node SequencesRewriter::getFixedLengthForRegexp(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   if (n.getKind() == STRING_TO_REGEXP)
@@ -5016,7 +5016,7 @@ Node TheoryStringsRewriter::getFixedLengthForRegexp(Node n)
   return Node::null();
 }
 
-bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
+bool SequencesRewriter::checkEntailArithInternal(Node a)
 {
   Assert(Rewriter::rewrite(a) == a);
   // check whether a >= 0
@@ -5045,7 +5045,7 @@ bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
   return false;
 }
 
-Node TheoryStringsRewriter::decomposeSubstrChain(Node s,
+Node SequencesRewriter::decomposeSubstrChain(Node s,
                                                  std::vector<Node>& ss,
                                                  std::vector<Node>& ls)
 {
@@ -5062,7 +5062,7 @@ Node TheoryStringsRewriter::decomposeSubstrChain(Node s,
   return s;
 }
 
-Node TheoryStringsRewriter::mkSubstrChain(Node base,
+Node SequencesRewriter::mkSubstrChain(Node base,
                                           const std::vector<Node>& ss,
                                           const std::vector<Node>& ls)
 {
@@ -5074,7 +5074,7 @@ Node TheoryStringsRewriter::mkSubstrChain(Node base,
   return base;
 }
 
-Node TheoryStringsRewriter::getStringOrEmpty(Node n)
+Node SequencesRewriter::getStringOrEmpty(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node res;
@@ -5123,7 +5123,7 @@ Node TheoryStringsRewriter::getStringOrEmpty(Node n)
   return res;
 }
 
-bool TheoryStringsRewriter::inferZerosInSumGeq(Node x,
+bool SequencesRewriter::inferZerosInSumGeq(Node x,
                                                std::vector<Node>& ys,
                                                std::vector<Node>& zeroYs)
 {
@@ -5171,7 +5171,7 @@ bool TheoryStringsRewriter::inferZerosInSumGeq(Node x,
   return true;
 }
 
-Node TheoryStringsRewriter::inferEqsFromContains(Node x, Node y)
+Node SequencesRewriter::inferEqsFromContains(Node x, Node y)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node emp = nm->mkConst(String(""));
@@ -5258,7 +5258,7 @@ Node TheoryStringsRewriter::inferEqsFromContains(Node x, Node y)
   return nb.constructNode();
 }
 
-std::pair<bool, std::vector<Node> > TheoryStringsRewriter::collectEmptyEqs(
+std::pair<bool, std::vector<Node> > SequencesRewriter::collectEmptyEqs(
     Node x)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -5313,7 +5313,7 @@ std::pair<bool, std::vector<Node> > TheoryStringsRewriter::collectEmptyEqs(
       allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
 }
 
-Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
+Node SequencesRewriter::returnRewrite(Node node, Node ret, const char* c)
 {
   Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by " << c
                            << "." << std::endl;

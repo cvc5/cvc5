@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_strings_rewriter.h
+/*! \file sequences_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
@@ -9,14 +9,14 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Rewriter for the theory of strings
+ ** \brief Rewriter for the theory of strings and sequences
  **
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
-#define CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
+#ifndef CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H
+#define CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H
 
 #include <climits>
 #include <utility>
@@ -30,7 +30,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-class TheoryStringsRewriter : public TheoryRewriter
+class SequencesRewriter : public TheoryRewriter
 {
  protected:
   /** simple regular expression consume
@@ -759,10 +759,10 @@ class TheoryStringsRewriter : public TheoryRewriter
    * and the list of nodes that are compared to the empty string
    */
   static std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
-}; /* class TheoryStringsRewriter */
+}; /* class SequencesRewriter */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H */
+#endif /* CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H */

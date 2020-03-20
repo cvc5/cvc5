@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file rewriter_str.cpp
+/*! \file strings_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
@@ -13,7 +13,7 @@
  ** theory of strings.
  **/
 
-#include "theory/strings/rewriter_str.h"
+#include "theory/strings/strings_rewriter.h"
 
 #include "expr/node_builder.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-Node RewriterStr::rewriteStrToInt(Node node)
+Node StringsRewriter::rewriteStrToInt(Node node)
 {
   Assert(node.getKind() == STRING_STOI);
   NodeManager* nm = NodeManager::currentNM();
@@ -61,7 +61,7 @@ Node RewriterStr::rewriteStrToInt(Node node)
   return node;
 }
 
-Node RewriterStr::rewriteIntToStr(Node node)
+Node StringsRewriter::rewriteIntToStr(Node node)
 {
   Assert(node.getKind() == STRING_ITOS);
   NodeManager* nm = NodeManager::currentNM();
@@ -83,7 +83,7 @@ Node RewriterStr::rewriteIntToStr(Node node)
   return node;
 }
 
-Node RewriterStr::rewriteStrConvert(Node node)
+Node StringsRewriter::rewriteStrConvert(Node node)
 {
   Kind nk = node.getKind();
   Assert(nk == STRING_TOLOWER || nk == STRING_TOUPPER);
@@ -144,7 +144,7 @@ Node RewriterStr::rewriteStrConvert(Node node)
   return node;
 }
 
-Node RewriterStr::rewriteStringLeq(Node n)
+Node StringsRewriter::rewriteStringLeq(Node n)
 {
   Assert(n.getKind() == kind::STRING_LEQ);
   NodeManager* nm = NodeManager::currentNM();
@@ -196,7 +196,7 @@ Node RewriterStr::rewriteStringLeq(Node n)
   return n;
 }
 
-Node RewriterStr::rewriteStringFromCode(Node n)
+Node StringsRewriter::rewriteStringFromCode(Node n)
 {
   Assert(n.getKind() == kind::STRING_FROM_CODE);
   NodeManager* nm = NodeManager::currentNM();
@@ -219,7 +219,7 @@ Node RewriterStr::rewriteStringFromCode(Node n)
   return n;
 }
 
-Node RewriterStr::rewriteStringToCode(Node n)
+Node StringsRewriter::rewriteStringToCode(Node n)
 {
   Assert(n.getKind() == kind::STRING_TO_CODE);
   if (n[0].isConst())

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file rewriter_str.h
+/*! \file strings_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
@@ -15,21 +15,21 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__REWRITER_STR_H
-#define CVC4__THEORY__STRINGS__REWRITER_STR_H
+#ifndef CVC4__THEORY__STRINGS__STRINGS_REWRITER_H
+#define CVC4__THEORY__STRINGS__STRINGS_REWRITER_H
 
 #include "expr/node.h"
-#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/sequences_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
 /**
- * An extension of TheoryStringsRewriter that handles operators that
+ * An extension of SequencesRewriter that handles operators that
  * are specific to strings (and cannot be applied to sequences).
  */
-class RewriterStr : public TheoryStringsRewriter
+class StringsRewriter : public SequencesRewriter
 {
  public:
   /** rewrite string to integer
@@ -79,10 +79,10 @@ class RewriterStr : public TheoryStringsRewriter
    * Returns the rewritten form of n.
    */
   static Node rewriteStringToCode(Node n);
-}; /* class TheoryStringsRewriter */
+};
 
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__STRINGS__REWRITER_STR_H */
+#endif /* CVC4__THEORY__STRINGS__STRINGS_REWRITER_H */
