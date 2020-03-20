@@ -677,15 +677,6 @@ header = "options/quantifiers_options.h"
   help       = "only add one instantiation per quantifier per round for mbqi"
 
 [[option]]
-  name       = "fmfOneQuantPerRound"
-  category   = "regular"
-  long       = "mbqi-one-quant-per-round"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "only add instantiations for one quantifier per round for mbqi"
-
-[[option]]
   name       = "mbqiInterleave"
   category   = "regular"
   long       = "mbqi-interleave"
@@ -701,24 +692,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "use instantiation engine in conjunction with finite model finding"
-
-[[option]]
-  name       = "fmfInstGen"
-  category   = "regular"
-  long       = "fmf-inst-gen"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "enable Inst-Gen instantiation techniques for finite model finding"
-
-[[option]]
-  name       = "fmfInstGenOneQuantPerRound"
-  category   = "regular"
-  long       = "fmf-inst-gen-one-quant-per-round"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "only perform Inst-Gen instantiation techniques on one quantifier per round"
 
 [[option]]
   name       = "fmfFreshDistConst"
@@ -871,14 +844,6 @@ header = "options/quantifiers_options.h"
   help       = "do not consider instances of quantified formulas that are currently true in model, if it is available"
 
 [[option]]
-  name       = "instPropagate"
-  category   = "regular"
-  long       = "inst-prop"
-  type       = "bool"
-  default    = "false"
-  help       = "internal propagation for instantiations for selecting relevant instances"
-
-[[option]]
   name       = "qcfEagerTest"
   category   = "regular"
   long       = "qcf-eager-test"
@@ -904,17 +869,6 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = true
   help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
-
-### Rewrite rules options
-
-[[option]]
-  name       = "rrOneInstPerRound"
-  category   = "regular"
-  long       = "rr-one-inst-per-round"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "add one instance of rewrite rule per round"
 
 ### Induction options
 
@@ -1032,12 +986,12 @@ header = "options/quantifiers_options.h"
   help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
 
 [[option]]
-  name       = "ceGuidedInst"
+  name       = "sygus"
   category   = "regular"
-  long       = "cegqi"
+  long       = "sygus"
   type       = "bool"
   default    = "false"
-  help       = "counterexample-guided quantifier instantiation for sygus"
+  help       = "use sygus solver (default is true for sygus inputs)"
 
 [[option]]
   name       = "cegqiSingleInvMode"
@@ -1378,15 +1332,6 @@ header = "options/quantifiers_options.h"
   help       = "do unfolding of Boolean evaluation functions that appear in refinement lemmas"
 
 [[option]]
-  name       = "sygusRefEval"
-  category   = "regular"
-  long       = "sygus-ref-eval"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "direct evaluation of refinement lemmas for conflict analysis"
-
-[[option]]
   name       = "sygusStream"
   category   = "regular"
   long       = "sygus-stream"
@@ -1427,14 +1372,6 @@ header = "options/quantifiers_options.h"
 [[option.mode.TRUST]]
   name = "trust"
   help = "Trust that when a solution for a conjecture is always true under sampling, then it is indeed a solution. Note this option may print out spurious solutions for synthesis conjectures."
-
-[[option]]
-  name       = "minSynthSol"
-  category   = "regular"
-  long       = "min-synth-sol"
-  type       = "bool"
-  default    = "true"
-  help       = "Minimize synthesis solutions"
 
 [[option]]
   name       = "sygusEvalOpt"
@@ -1827,15 +1764,6 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "non-optimal bounds for counterexample-based quantifier instantiation"
 
-[[option]]
-  name       = "cbqiLitDepend"
-  category   = "regular"
-  long       = "cbqi-lit-dep"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "dependency lemmas for quantifier alternation in counterexample-based quantifier instantiation"
-
 # CEGQI for EPR
 
 [[option]]
@@ -1924,24 +1852,6 @@ header = "options/quantifiers_options.h"
   help       = "compute inverse for concat over equalities rather than producing an invertibility condition"
 
 ### Local theory extensions options
-
-[[option]]
-  name       = "localTheoryExt"
-  category   = "regular"
-  long       = "local-t-ext"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "do instantiation based on local theory extensions"
-
-[[option]]
-  name       = "ltePartialInst"
-  category   = "regular"
-  long       = "lte-partial-inst"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "partially instantiate local theory quantifiers"
 
 [[option]]
   name       = "lteRestrictInstClosure"

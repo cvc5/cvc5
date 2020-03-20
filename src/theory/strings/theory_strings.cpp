@@ -29,6 +29,7 @@
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/type_enumerator.h"
+#include "theory/strings/word.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
@@ -111,7 +112,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
+  d_emptyString = Word::mkEmptyWord(CONST_STRING);
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -412,9 +413,18 @@ bool TheoryStrings::collectModelInfoType(
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
-      StringEnumeratorLength sel(
-          tn,
-          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
+      uint32_t currLen =
+          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
+      std::unique_ptr<SEnumLen> sel;
+      if (tn.isString())
+      {
+        sel.reset(new StringEnumLen(
+            currLen, currLen, utils::getAlphabetCardinality()));
+      }
+      else
+      {
+        Unimplemented() << "Collect model info not implemented for type " << tn;
+      }
       for (const Node& eqc : pure_eq)
       {
         Node c;
@@ -423,7 +433,7 @@ bool TheoryStrings::collectModelInfoType(
         {
           do
           {
-            if (sel.isFinished())
+            if (sel->isFinished())
             {
               // We are in a case where model construction is impossible due to
               // an insufficient number of constants of a given length.
@@ -459,8 +469,9 @@ bool TheoryStrings::collectModelInfoType(
               }
               return false;
             }
-            c = *sel;
-            ++sel;
+            c = sel->getCurrent();
+            // increment
+            sel->increment();
           } while (m->hasTerm(c));
         }
         else

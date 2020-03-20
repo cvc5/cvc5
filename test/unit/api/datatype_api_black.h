@@ -27,6 +27,7 @@ class DatatypeBlack : public CxxTest::TestSuite
   void tearDown() override;
 
   void testMkDatatypeSort();
+  void testMkDatatypeSorts();
 
   void testDatatypeStructs();
   void testDatatypeNames();
@@ -43,8 +44,7 @@ void DatatypeBlack::testMkDatatypeSort()
 {
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", d_solver.getIntegerSort());
-  cons.addSelector(head);
+  cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
@@ -57,6 +57,72 @@ void DatatypeBlack::testMkDatatypeSort()
   TS_ASSERT_THROWS_NOTHING(nilConstr.getConstructorTerm());
 }
 
+void DatatypeBlack::testMkDatatypeSorts()
+{
+  /* Create two mutual datatypes corresponding to this definition
+   * block:
+   *
+   *   DATATYPE
+   *     tree = node(left: tree, right: tree) | leaf(data: list),
+   *     list = cons(car: tree, cdr: list) | nil
+   *   END;
+   */
+  // Make unresolved types as placeholders
+  std::set<Sort> unresTypes;
+  Sort unresTree = d_solver.mkUninterpretedSort("tree");
+  Sort unresList = d_solver.mkUninterpretedSort("list");
+  unresTypes.insert(unresTree);
+  unresTypes.insert(unresList);
+
+  DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
+  DatatypeConstructorDecl node("node");
+  node.addSelector("left", unresTree);
+  node.addSelector("right", unresTree);
+  tree.addConstructor(node);
+
+  DatatypeConstructorDecl leaf("leaf");
+  leaf.addSelector("data", unresList);
+  tree.addConstructor(leaf);
+
+  DatatypeDecl list = d_solver.mkDatatypeDecl("list");
+  DatatypeConstructorDecl cons("cons");
+  cons.addSelector("car", unresTree);
+  cons.addSelector("cdr", unresTree);
+  list.addConstructor(cons);
+
+  DatatypeConstructorDecl nil("nil");
+  list.addConstructor(nil);
+
+  std::vector<DatatypeDecl> dtdecls;
+  dtdecls.push_back(tree);
+  dtdecls.push_back(list);
+  std::vector<Sort> dtsorts;
+  TS_ASSERT_THROWS_NOTHING(dtsorts =
+                               d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  TS_ASSERT(dtsorts.size() == dtdecls.size());
+  for (unsigned i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
+  {
+    TS_ASSERT(dtsorts[i].isDatatype());
+    TS_ASSERT(!dtsorts[i].getDatatype().isFinite());
+    TS_ASSERT(dtsorts[i].getDatatype().getName() == dtdecls[i].getName());
+  }
+  // verify the resolution was correct
+  Datatype dtTree = dtsorts[0].getDatatype();
+  DatatypeConstructor dtcTreeNode = dtTree[0];
+  TS_ASSERT(dtcTreeNode.getName() == "node");
+  DatatypeSelector dtsTreeNodeLeft = dtcTreeNode[0];
+  TS_ASSERT(dtsTreeNodeLeft.getName() == "left");
+  // argument type should have resolved to be recursive
+  TS_ASSERT(dtsTreeNodeLeft.getRangeSort().isDatatype());
+  TS_ASSERT(dtsTreeNodeLeft.getRangeSort() == dtsorts[0]);
+
+  // fails due to empty datatype
+  std::vector<DatatypeDecl> dtdeclsBad;
+  DatatypeDecl emptyD = d_solver.mkDatatypeDecl("emptyD");
+  dtdeclsBad.push_back(emptyD);
+  TS_ASSERT_THROWS(d_solver.mkDatatypeSorts(dtdeclsBad), CVC4ApiException&);
+}
+
 void DatatypeBlack::testDatatypeStructs()
 {
   Sort intSort = d_solver.getIntegerSort();
@@ -65,10 +131,10 @@ void DatatypeBlack::testDatatypeStructs()
   // create datatype sort to test
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", intSort);
-  cons.addSelector(head);
-  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
-  cons.addSelector(tail);
+  cons.addSelector("head", intSort);
+  cons.addSelectorSelf("tail");
+  Sort nullSort;
+  TS_ASSERT_THROWS(cons.addSelector("null", nullSort), CVC4ApiException&);
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
@@ -83,9 +149,6 @@ void DatatypeBlack::testDatatypeStructs()
   DatatypeConstructor dcons = dt[0];
   Term consTerm = dcons.getConstructorTerm();
   TS_ASSERT(dcons.getNumSelectors() == 2);
-  // get tester name: notice this is only to support the Z3-style datatypes
-  // prior to SMT-LIB 2.6 where testers where changed to indexed symbols.
-  TS_ASSERT_THROWS_NOTHING(dcons.getTesterName());
 
   // create datatype sort to test
   DatatypeDecl dtypeSpecEnum = d_solver.mkDatatypeDecl("enum");
@@ -103,10 +166,8 @@ void DatatypeBlack::testDatatypeStructs()
   // create codatatype
   DatatypeDecl dtypeSpecStream = d_solver.mkDatatypeDecl("stream", true);
   DatatypeConstructorDecl consStream("cons");
-  DatatypeSelectorDecl headStream("head", intSort);
-  consStream.addSelector(headStream);
-  DatatypeSelectorDecl tailStream("tail", DatatypeDeclSelfSort());
-  consStream.addSelector(tailStream);
+  consStream.addSelector("head", intSort);
+  consStream.addSelectorSelf("tail");
   dtypeSpecStream.addConstructor(consStream);
   Sort dtypeSortStream = d_solver.mkDatatypeSort(dtypeSpecStream);
   Datatype dtStream = dtypeSortStream.getDatatype();
@@ -141,11 +202,11 @@ void DatatypeBlack::testDatatypeNames()
 
   // create datatype sort to test
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
+  TS_ASSERT_THROWS_NOTHING(dtypeSpec.getName());
+  TS_ASSERT(dtypeSpec.getName() == std::string("list"));
   DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", intSort);
-  cons.addSelector(head);
-  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
-  cons.addSelector(tail);
+  cons.addSelector("head", intSort);
+  cons.addSelectorSelf("tail");
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
@@ -166,4 +227,8 @@ void DatatypeBlack::testDatatypeNames()
   // get selector
   DatatypeSelector dselTail = dcons[1];
   TS_ASSERT(dselTail.getName() == std::string("tail"));
+  TS_ASSERT(dselTail.getRangeSort() == dtypeSort);
+
+  // possible to construct null datatype declarations if not using solver
+  TS_ASSERT_THROWS(DatatypeDecl().getName(), CVC4ApiException&);
 }

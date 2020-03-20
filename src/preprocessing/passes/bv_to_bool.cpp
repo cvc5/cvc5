@@ -12,6 +12,7 @@
  ** \brief Preprocessing pass that lifts bit-vectors of size 1 to booleans.
  **
  ** Preprocessing pass that lifts bit-vectors of size 1 to booleans.
+ ** Implemented recursively.
  **/
 
 #include "preprocessing/passes/bv_to_bool.h"
@@ -21,8 +22,8 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/node_visitor.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/node_visitor.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -258,6 +259,7 @@ Node BVToBool::liftNode(TNode current)
       }
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
+        // Recursively lift children
         Node converted = liftNode(current[i]);
         Assert(converted.getType() == current[i].getType());
         builder << converted;

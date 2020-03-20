@@ -215,7 +215,11 @@ public:
   void registerTerm(TNode) { Unimplemented(); }
   void check(Theory::Effort) override { Unimplemented(); }
   void propagate(Theory::Effort) override { Unimplemented(); }
-  Node explain(TNode) override { Unimplemented(); }
+  Node explain(TNode) override
+  {
+    Unimplemented();
+    return Node::null();
+  }
   Node getValue(TNode n) { return Node::null(); }
 };/* class FakeTheory */
 
@@ -246,8 +250,8 @@ public:
     d_nm = NodeManager::fromExprManager(d_em);
     d_scope = new SmtScope(d_smt);
 
-    d_ctxt = d_smt->d_context;
-    d_uctxt = d_smt->d_userContext;
+    d_ctxt = d_smt->getContext();
+    d_uctxt = d_smt->getUserContext();
 
     d_nullChannel = new FakeOutputChannel();
 
@@ -255,7 +259,7 @@ public:
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
     d_smt->finalOptionsAreSet();
-    d_theoryEngine = d_smt->d_theoryEngine;
+    d_theoryEngine = d_smt->getTheoryEngine();
     for(TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id) {
       delete d_theoryEngine->d_theoryOut[id];
       delete d_theoryEngine->d_theoryTable[id];

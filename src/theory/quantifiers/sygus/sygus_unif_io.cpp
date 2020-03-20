@@ -1343,9 +1343,9 @@ Node SygusUnifIo::constructSol(
       if (snode.d_strats[i]->d_this == strat_ITE)
       {
         // flip the two
-        EnumTypeInfoStrat* etis = snode.d_strats[i];
+        EnumTypeInfoStrat* etis_i = snode.d_strats[i];
         snode.d_strats[i] = snode.d_strats[0];
-        snode.d_strats[0] = etis;
+        snode.d_strats[0] = etis_i;
         break;
       }
     }

@@ -20,6 +20,7 @@
 #include "options/strings_options.h"
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -29,11 +30,8 @@ namespace theory {
 namespace strings {
 
 RegExpOpr::RegExpOpr()
-    : d_emptyString(NodeManager::currentNM()->mkConst(::CVC4::String(""))),
-      d_true(NodeManager::currentNM()->mkConst(true)),
+    : d_true(NodeManager::currentNM()->mkConst(true)),
       d_false(NodeManager::currentNM()->mkConst(false)),
-      d_emptySingleton(NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP,
-                                                        d_emptyString)),
       d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_EMPTY,
                                                      std::vector<Node>{})),
       d_zero(NodeManager::currentNM()->mkConst(::CVC4::Rational(0))),
@@ -42,6 +40,10 @@ RegExpOpr::RegExpOpr()
                                                std::vector<Node>{})),
       d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
 {
+  d_emptyString = Word::mkEmptyWord(CONST_STRING);
+
+  d_emptySingleton =
+      NodeManager::currentNM()->mkNode(STRING_TO_REGEXP, d_emptyString);
   d_lastchar = utils::getAlphabetCardinality() - 1;
 }
 
@@ -295,6 +297,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
 
   int ret = 1;
   retNode = d_emptyRegexp;
+  NodeManager* nm = NodeManager::currentNM();
 
   PairNodeStr dv = std::make_pair( r, c );
   if( d_deriv_cache.find( dv ) != d_deriv_cache.end() ) {
@@ -332,10 +335,12 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
           if(tmp == d_emptyString) {
             ret = 2;
           } else {
-            if (tmp.getConst<CVC4::String>().front() == c.front())
+            if (tmp.getConst<String>().front() == c.front())
             {
-              retNode =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP,
-                tmp.getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( tmp.getConst< CVC4::String >().substr(1) ) );
+              retNode =
+                  nm->mkNode(STRING_TO_REGEXP,
+                             Word::getLength(tmp) == 1 ? d_emptyString
+                                                       : Word::substr(tmp, 1));
             } else {
               ret = 2;
             }
@@ -346,10 +351,12 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
           if(tmp.getKind() == kind::STRING_CONCAT) {
             Node t2 = tmp[0];
             if(t2.isConst()) {
-              if (t2.getConst<CVC4::String>().front() == c.front())
+              if (t2.getConst<String>().front() == c.front())
               {
-                Node n =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP,
-                  tmp.getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( tmp.getConst< CVC4::String >().substr(1) ) );
+                Node n = nm->mkNode(STRING_TO_REGEXP,
+                                    Word::getLength(tmp) == 1
+                                        ? d_emptyString
+                                        : Word::substr(tmp, 1));
                 std::vector< Node > vec_nodes;
                 vec_nodes.push_back(n);
                 for(unsigned i=1; i<tmp.getNumChildren(); i++) {
@@ -541,6 +548,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
   Node retNode = d_emptyRegexp;
   PairNodeStr dv = std::make_pair( r, c );
+  NodeManager* nm = NodeManager::currentNM();
   if( d_dv_cache.find( dv ) != d_dv_cache.end() ) {
     retNode = d_dv_cache[dv];
   } else if( c.isEmptyString() ){
@@ -576,10 +584,12 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
           if(r[0] == d_emptyString) {
             retNode = d_emptyRegexp;
           } else {
-            if (r[0].getConst<CVC4::String>().front() == c.front())
+            if (r[0].getConst<String>().front() == c.front())
             {
-              retNode =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP,
-                r[0].getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( r[0].getConst< CVC4::String >().substr(1) ) );
+              retNode = nm->mkNode(STRING_TO_REGEXP,
+                                   Word::getLength(r[0]) == 1
+                                       ? d_emptyString
+                                       : Word::substr(r[0], 1));
             } else {
               retNode = d_emptyRegexp;
             }
@@ -743,7 +753,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
       case kind::STRING_TO_REGEXP: {
         Node st = Rewriter::rewrite(r[0]);
         if(st.isConst()) {
-          CVC4::String s = st.getConst< CVC4::String >();
+          String s = st.getConst<String>();
           if(s.size() != 0) {
             unsigned sc = s.front();
             sc = String::convertUnsignedIntToCode(sc);
@@ -753,7 +763,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         else if (st.getKind() == kind::STRING_CONCAT)
         {
           if(st[0].isConst()) {
-            CVC4::String s = st[0].getConst<CVC4::String>();
+            String s = st[0].getConst<String>();
             unsigned sc = s.front();
             sc = String::convertUnsignedIntToCode(sc);
             cset.insert(sc);
@@ -772,8 +782,8 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
           firstChars(r[i], cset, vset);
           Node n = r[i];
           Node exp;
-          int r = delta( n, exp );
-          if(r != 1) {
+          if (delta(n, exp) != 1)
+          {
             break;
           }
         }
@@ -826,15 +836,15 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
 
   if(Trace.isOn("regexp-fset")) {
     Trace("regexp-fset") << "END FSET(" << mkString(r) << ") = {";
-    for (std::set<unsigned>::const_iterator itr = pcset.begin();
-         itr != pcset.end();
-         ++itr)
+    for (std::set<unsigned>::const_iterator it = pcset.begin();
+         it != pcset.end();
+         ++it)
     {
-      if (itr != pcset.begin())
+      if (it != pcset.begin())
       {
         Trace("regexp-fset") << ",";
       }
-      Trace("regexp-fset") << (*itr);
+      Trace("regexp-fset") << (*it);
       }
     Trace("regexp-fset") << "}" << std::endl;
   }
@@ -1191,7 +1201,6 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         } else if(r[0].getKind() == kind::REGEXP_SIGMA) {
           conc = d_true;
         } else {
-          NodeManager* nm = NodeManager::currentNM();
           Node se = s.eqNode(d_emptyString);
           Node sinr = nm->mkNode(kind::STRING_IN_REGEXP, s, r[0]);
           Node sk1 = nm->mkSkolem(
@@ -1495,24 +1504,25 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
         }
         if(Trace.isOn("regexp-int-debug")) {
           Trace("regexp-int-debug") << "Try CSET(" << cset.size() << ") = {";
-          for (std::vector<unsigned>::const_iterator itr = cset.begin();
-               itr != cset.end();
-               ++itr)
+          for (std::vector<unsigned>::const_iterator it = cset.begin();
+               it != cset.end();
+               ++it)
           {
-            if(itr != cset.begin()) {
+            if (it != cset.begin())
+            {
               Trace("regexp-int-debug") << ", ";
             }
-            Trace("regexp-int-debug") << ( *itr );
+            Trace("regexp-int-debug") << (*it);
           }
           Trace("regexp-int-debug") << std::endl;
         }
         std::map< PairNodes, Node > cacheX;
-        for (std::vector<unsigned>::const_iterator itr = cset.begin();
-             itr != cset.end();
-             ++itr)
+        for (std::vector<unsigned>::const_iterator it = cset.begin();
+             it != cset.end();
+             ++it)
         {
           std::vector<unsigned> cvec;
-          cvec.push_back(String::convertCodeToUnsignedInt(*itr));
+          cvec.push_back(String::convertCodeToUnsignedInt(*it));
           String c(cvec);
           Trace("regexp-int-debug") << "Try character " << c << " ... " << std::endl;
           Node r1l = derivativeSingle(r1, c);
@@ -1638,7 +1648,7 @@ Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
 //printing
 std::string RegExpOpr::niceChar(Node r) {
   if(r.isConst()) {
-    std::string s = r.getConst<CVC4::String>().toString() ;
+    std::string s = r.getConst<String>().toString();
     return s == "." ? "\\." : s;
   } else {
     std::string ss = "$" + r.toString();

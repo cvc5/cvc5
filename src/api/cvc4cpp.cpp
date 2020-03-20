@@ -1737,32 +1737,6 @@ size_t TermHashFunction::operator()(const Term& t) const
 /* Datatypes                                                                  */
 /* -------------------------------------------------------------------------- */
 
-/* DatatypeSelectorDecl ----------------------------------------------------- */
-
-DatatypeSelectorDecl::DatatypeSelectorDecl(const std::string& name, Sort sort)
-    : d_name(name), d_sort(sort)
-{
-}
-
-DatatypeSelectorDecl::DatatypeSelectorDecl(const std::string& name,
-                                           DatatypeDeclSelfSort sort)
-    : d_name(name), d_sort(Sort(CVC4::Type()))
-{
-}
-
-std::string DatatypeSelectorDecl::toString() const
-{
-  std::stringstream ss;
-  ss << d_name << ": " << d_sort;
-  return ss.str();
-}
-
-std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
-{
-  out << dtdecl.toString();
-  return out;
-}
-
 /* DatatypeConstructorDecl -------------------------------------------------- */
 
 DatatypeConstructorDecl::DatatypeConstructorDecl(const std::string& name)
@@ -1770,17 +1744,16 @@ DatatypeConstructorDecl::DatatypeConstructorDecl(const std::string& name)
 {
 }
 
-void DatatypeConstructorDecl::addSelector(const DatatypeSelectorDecl& stor)
+void DatatypeConstructorDecl::addSelector(const std::string& name, Sort sort)
 {
-  CVC4::Type t = *stor.d_sort.d_type;
-  if (t.isNull())
-  {
-    d_ctor->addArg(stor.d_name, DatatypeSelfType());
-  }
-  else
-  {
-    d_ctor->addArg(stor.d_name, t);
-  }
+  CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort)
+      << "non-null range sort for selector";
+  d_ctor->addArg(name, *sort.d_type);
+}
+
+void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
+{
+  d_ctor->addArg(name, DatatypeSelfType());
 }
 
 std::string DatatypeConstructorDecl::toString() const
@@ -1878,16 +1851,21 @@ std::string DatatypeDecl::toString() const
   return ss.str();
 }
 
+std::string DatatypeDecl::getName() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_dtype->getName();
+}
+
 bool DatatypeDecl::isNull() const { return isNullHelper(); }
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
+CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
-std::ostream& operator<<(std::ostream& out,
-                         const DatatypeSelectorDecl& stordecl)
+std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
 {
-  out << stordecl.toString();
+  out << dtdecl.toString();
   return out;
 }
 
@@ -1909,6 +1887,11 @@ Term DatatypeSelector::getSelectorTerm() const
 {
   Term sel = d_stor->getSelector();
   return sel;
+}
+
+Sort DatatypeSelector::getRangeSort() const
+{
+  return Sort(d_stor->getRangeType());
 }
 
 std::string DatatypeSelector::toString() const
@@ -1957,11 +1940,6 @@ Term DatatypeConstructor::getTesterTerm() const
 {
   Term tst = d_ctor->getTester();
   return tst;
-}
-
-std::string DatatypeConstructor::getTesterName() const
-{
-  return d_ctor->getTesterName();
 }
 
 size_t DatatypeConstructor::getNumSelectors() const
@@ -2410,7 +2388,8 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
 
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
-  Assert(isDefinedIntKind(k));
+  Assert(isDefinedIntKind(k))
+      << "Not a defined internal kind : " << k << " " << kind;
 
   Term res;
   if (echildren.size() > 2)
@@ -2459,6 +2438,33 @@ Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
 
   (void)res.d_expr->getType(true); /* kick off type checking */
   return res;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+std::vector<Sort> Solver::mkDatatypeSortsInternal(
+    std::vector<DatatypeDecl>& dtypedecls,
+    std::set<Sort>& unresolvedSorts) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+
+  std::vector<CVC4::Datatype> datatypes;
+  for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; i++)
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(dtypedecls[i].getNumConstructors() > 0,
+                                dtypedecls[i])
+        << "a datatype declaration with at least one constructor";
+    datatypes.push_back(dtypedecls[i].getDatatype());
+  }
+  std::set<Type> utypes = sortSetToTypes(unresolvedSorts);
+  std::vector<CVC4::DatatypeType> dtypes =
+      d_exprMgr->mkMutualDatatypeTypes(datatypes, utypes);
+  std::vector<Sort> retTypes;
+  for (CVC4::DatatypeType t : dtypes)
+  {
+    retTypes.push_back(Sort(t));
+  }
+  return retTypes;
+
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -2606,6 +2612,19 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
   return d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+std::vector<Sort> Solver::mkDatatypeSorts(
+    std::vector<DatatypeDecl>& dtypedecls) const
+{
+  std::set<Sort> unresolvedSorts;
+  return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
+}
+
+std::vector<Sort> Solver::mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
+                                          std::set<Sort>& unresolvedSorts) const
+{
+  return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
 }
 
 Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
@@ -2988,7 +3007,7 @@ Term Solver::mkConstArray(Sort sort, Term val) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(val);
   CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
-  CVC4_API_CHECK(sort.getArrayElementSort() == val.getSort())
+  CVC4_API_CHECK(sort.getArrayElementSort().isComparableTo(val.getSort()))
       << "Value does not match element sort.";
   Term res = mkValHelper<CVC4::ArrayStoreAll>(
       CVC4::ArrayStoreAll(*sort.d_type, *val.d_expr));
@@ -4085,11 +4104,6 @@ void Solver::push(uint32_t nscopes) const
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
-
-/**
- *  ( reset )
- */
-void Solver::reset(void) const { d_smtEngine->reset(); }
 
 /**
  *  ( reset-assertions )

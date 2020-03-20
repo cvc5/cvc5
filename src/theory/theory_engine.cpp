@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
+#include "expr/node_visitor.h"
 #include "options/bv_options.h"
 #include "options/options.h"
 #include "options/proof_options.h"
@@ -37,7 +38,6 @@
 #include "proof/theory_proof.h"
 #include "smt/logic_exception.h"
 #include "smt/term_formula_removal.h"
-#include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/care_graph.h"
@@ -315,7 +315,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
                            RemoveTermFormulas& iteRemover,
                            const LogicInfo& logicInfo)
     : d_propEngine(nullptr),
-      d_decisionEngine(nullptr),
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
@@ -470,17 +469,22 @@ void TheoryEngine::printAssertions(const char* tag) {
       if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
         Trace(tag) << "--------------------------------------------" << endl;
         Trace(tag) << "Assertions of " << theory->getId() << ": " << endl;
-        context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-        for (unsigned i = 0; it != it_end; ++ it, ++i) {
-          if ((*it).d_isPreregistered)
+        {
+          context::CDList<Assertion>::const_iterator it = theory->facts_begin(),
+                                                     it_end =
+                                                         theory->facts_end();
+          for (unsigned i = 0; it != it_end; ++it, ++i)
           {
-            Trace(tag) << "[" << i << "]: ";
+            if ((*it).d_isPreregistered)
+            {
+              Trace(tag) << "[" << i << "]: ";
+            }
+            else
+            {
+              Trace(tag) << "(" << i << "): ";
+            }
+            Trace(tag) << (*it).d_assertion << endl;
           }
-          else
-          {
-            Trace(tag) << "(" << i << "): ";
-          }
-          Trace(tag) << (*it).d_assertion << endl;
         }
 
         if (d_logicInfo.isSharingEnabled()) {
@@ -1146,8 +1150,7 @@ void TheoryEngine::preprocessStart()
 struct preprocess_stack_element {
   TNode node;
   bool children_added;
-  preprocess_stack_element(TNode node)
-  : node(node), children_added(false) {}
+  preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };/* struct preprocess_stack_element */
 
 
@@ -1920,8 +1923,9 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // assert to decision engine
-  if(!removable) {
-    d_decisionEngine->addAssertions(additionalLemmas);
+  if (!removable)
+  {
+    d_propEngine->addAssertionsToDecisionEngine(additionalLemmas);
   }
 
   // Mark that we added some lemmas

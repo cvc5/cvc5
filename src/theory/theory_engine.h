@@ -101,7 +101,6 @@ namespace theory {
   class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
 
-class DecisionEngine;
 class RemoveTermFormulas;
 
 /**
@@ -118,9 +117,6 @@ class TheoryEngine {
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
-
-  /** Access to decision engine */
-  DecisionEngine* d_decisionEngine;
 
   /** Our context */
   context::Context* d_context;
@@ -500,14 +496,9 @@ class TheoryEngine {
                                               d_logicInfo);
   }
 
-  inline void setPropEngine(prop::PropEngine* propEngine) {
-    Assert(d_propEngine == NULL);
+  void setPropEngine(prop::PropEngine* propEngine)
+  {
     d_propEngine = propEngine;
-  }
-
-  inline void setDecisionEngine(DecisionEngine* decisionEngine) {
-    Assert(d_decisionEngine == NULL);
-    d_decisionEngine = decisionEngine;
   }
 
   /** Called when all initialization of options/logic is done */

@@ -46,14 +46,15 @@ TypeNode TypeNode::substitute(const TypeNode& type,
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);
   }
-  for(TypeNode::const_iterator i = begin(),
-        iend = end();
-      i != iend;
-      ++i) {
-    if(*i == type) {
+  for (TypeNode::const_iterator j = begin(), iend = end(); j != iend; ++j)
+  {
+    if (*j == type)
+    {
       nb << replacement;
-    } else {
-      (*i).substitute(type, replacement);
+    }
+    else
+    {
+      (*j).substitute(type, replacement);
     }
   }
 
@@ -116,7 +117,8 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = usortFinite;
   }
-  else if (isBoolean() || isBitVector() || isFloatingPoint())
+  else if (isBoolean() || isBitVector() || isFloatingPoint()
+           || isRoundingMode())
   {
     ret = true;
   }

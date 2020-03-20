@@ -45,6 +45,11 @@ Node NlExtPurify::purifyNlTerms(TNode n,
       return (*find).second;
     }
   }
+  if (n.isClosure())
+  {
+    // don't traverse quantified formulas
+    return n;
+  }
   Node ret = n;
   if (n.getNumChildren() > 0)
   {

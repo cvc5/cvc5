@@ -474,14 +474,14 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
         {
           bool doRewrite =
               options::iteLiftQuant() == options::IteLiftQuantMode::ALL;
-          std::vector<Node> children;
-          children.push_back(ret[i][0]);
+          std::vector<Node> childrenIte;
+          childrenIte.push_back(ret[i][0]);
           for (size_t j = 1; j <= 2; j++)
           {
             // check if it rewrites to a constant
             Node nn = nm->mkNode(EQUAL, no, ret[i][j]);
             nn = Rewriter::rewrite(nn);
-            children.push_back(nn);
+            childrenIte.push_back(nn);
             if (nn.isConst())
             {
               doRewrite = true;
@@ -489,7 +489,7 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
           }
           if (doRewrite)
           {
-            ret = nm->mkNode(ITE, children);
+            ret = nm->mkNode(ITE, childrenIte);
             break;
           }
         }
@@ -1588,6 +1588,7 @@ Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QA
     }
   }
   if ( eqc_active>1 || !lits.empty() || var_to_eqc.size()!=args.size() ){
+    NodeManager* nm = NodeManager::currentNM();
     Trace("clause-split-debug") << "Split quantified formula with body " << body << std::endl;
     Trace("clause-split-debug") << "   Ground literals: " << std::endl;
     for( size_t i=0; i<lits.size(); i++) {
@@ -1607,8 +1608,9 @@ Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QA
       }
       Trace("clause-split-debug") << std::endl;
       Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, eqc_to_var[eqc]);
-      Node body = it->second.size()==1 ? it->second[0] : NodeManager::currentNM()->mkNode( OR, it->second );
-      Node fa = NodeManager::currentNM()->mkNode( FORALL, bvl, body );
+      Node bd =
+          it->second.size() == 1 ? it->second[0] : nm->mkNode(OR, it->second);
+      Node fa = nm->mkNode(FORALL, bvl, bd);
       lits.push_back(fa);
     }
     Assert(!lits.empty());
@@ -1670,8 +1672,11 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
     }
     return mkForAll( newArgs, body[1], qa );
   }else if( body.getKind()==AND ){
-    if( options::miniscopeQuant() ){
-      //break apart
+    // aggressive miniscoping implies that structural miniscoping should
+    // be applied first
+    if (options::miniscopeQuant() || options::aggressiveMiniscopeQuant())
+    {
+      // break apart
       NodeBuilder<> t(kind::AND);
       for( unsigned i=0; i<body.getNumChildren(); i++ ){
         t << computeMiniscoping( args, body[i], qa );
@@ -1683,7 +1688,12 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
     if( options::quantSplit() ){
       //splitting subsumes free variable miniscoping, apply it with higher priority
       return computeSplit( args, body, qa );
-    }else if( options::miniscopeQuantFreeVar() ){
+    }
+    else if (options::miniscopeQuantFreeVar()
+             || options::aggressiveMiniscopeQuant())
+    {
+      // aggressive miniscoping implies that free variable miniscoping should
+      // be applied first
       Node newBody = body;
       NodeBuilder<> body_split(kind::OR);
       NodeBuilder<> tb(kind::OR);
@@ -1782,7 +1792,6 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
         }
       }
       Assert(!qvl1.empty());
-      Assert(!qvl2.empty() || !qvsh.empty());
       //check for literals that only contain shared variables
       std::vector<Node> qlitsh;
       std::vector<Node> qlit2;

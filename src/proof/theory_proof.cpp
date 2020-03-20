@@ -18,6 +18,7 @@
 
 #include "base/check.h"
 #include "context/context.h"
+#include "expr/node_visitor.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
 #include "proof/arith_proof.h"
@@ -35,7 +36,6 @@
 #include "prop/sat_solver_types.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/output_channel.h"
@@ -1026,7 +1026,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
 
       for (unsigned i = 0; i < term.getNumChildren(); ++i) {
         for (unsigned j = i + 1; j < term.getNumChildren(); ++j) {
-          TypeNode armType = equalityType(term[i], term[j]);
+          armType = equalityType(term[i], term[j]);
           if ((i != 0) || (j != 1)) {
             os << "(not (= ";
             printSort(term[0].getType(), os);
