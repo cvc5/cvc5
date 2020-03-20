@@ -163,8 +163,8 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
       a = s;
       b = m;
     }
-    else if (SequencesRewriter::checkEntailArith(
-                 nm->mkNode(PLUS, n, m), nm->mkNode(STRING_LENGTH, s)))
+    else if (SequencesRewriter::checkEntailArith(nm->mkNode(PLUS, n, m),
+                                                 nm->mkNode(STRING_LENGTH, s)))
     {
       // SK_PURIFY((str.substr x n m)) ---> SK_SUFFIX_REM(x, n)
       // if n + m >= (str.len x)

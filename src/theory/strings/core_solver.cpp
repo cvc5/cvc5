@@ -348,8 +348,8 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
             {
               // check for constant conflict
               int index;
-              Node s = SequencesRewriter::splitConstant(
-                  cc_c, curr_c, index, isRev);
+              Node s =
+                  SequencesRewriter::splitConstant(cc_c, curr_c, index, isRev);
               if (s.isNull())
               {
                 d_bsolver.explainConstantEqc(ac,curr,exp);

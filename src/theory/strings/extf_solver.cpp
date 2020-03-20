@@ -15,8 +15,8 @@
 #include "theory/strings/extf_solver.h"
 
 #include "options/strings_options.h"
-#include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/sequences_rewriter.h"
+#include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
