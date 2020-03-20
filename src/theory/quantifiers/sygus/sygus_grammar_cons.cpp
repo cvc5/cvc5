@@ -890,8 +890,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           << "Warning: No implementation for default Sygus grammar of type "
           << types[i] << std::endl;
     }
-    
-    if (sdts[i].d_sdt.getNumConstructors()==0)
+
+    if (sdts[i].d_sdt.getNumConstructors() == 0)
     {
       // if there are no constructors yet by this point, we cannot make
       // datatype, which can happen e.g. for unimplemented types
@@ -901,7 +901,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       ss << "Cannot make default grammar for " << types[i];
       throw LogicException(ss.str());
     }
-    
+
     // always add ITE
     Kind k = ITE;
     Trace("sygus-grammar-def") << "...add for " << k << std::endl;
