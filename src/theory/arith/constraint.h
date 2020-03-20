@@ -496,15 +496,16 @@ class Constraint {
 
   /**
    * @brief Returns whether this constraint is provable using a Farkas
-   * proof that has input assertions as its antecedents.
+   * proof applied to (possibly tightened) input assertions.
    *
    * An example of a constraint that has a simple Farkas proof:
    *    x <= 0 proven from x + y <= 0 and x - y <= 0.
    *
-   * An example of a constraint that does not have a simple Farkas proof:
+   * An example of another constraint that has a simple Farkas proof:
    *    x <= 0 proven from x + y <= 0 and x - y <= 0.5 for integers x, y
-   *       (since integer reasoning is also required!).
-   * Another example of a constraint that might be proven without a simple
+   *       (integer bound-tightening is applied first!).
+   *
+   * An example of a constraint that might be proven **without** a simple
    * Farkas proof:
    *    x < 0 proven from not(x == 0) and not(x > 0).
    *
