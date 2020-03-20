@@ -92,10 +92,6 @@ libcvc4_add_sources(
   preprocessing/passes/static_learning.h
   preprocessing/passes/sygus_inference.cpp
   preprocessing/passes/sygus_inference.h
-  preprocessing/passes/symmetry_breaker.cpp
-  preprocessing/passes/symmetry_breaker.h
-  preprocessing/passes/symmetry_detect.cpp
-  preprocessing/passes/symmetry_detect.h
   preprocessing/passes/synth_rew_rules.cpp
   preprocessing/passes/synth_rew_rules.h
   preprocessing/passes/theory_preprocess.cpp
@@ -253,7 +249,6 @@ libcvc4_add_sources(
   smt_util/boolean_simplification.h
   smt_util/nary_builder.cpp
   smt_util/nary_builder.h
-  smt_util/node_visitor.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
@@ -517,8 +512,6 @@ libcvc4_add_sources(
   theory/quantifiers/instantiate.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
-  theory/quantifiers/local_theory_ext.cpp
-  theory/quantifiers/local_theory_ext.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
   theory/quantifiers/quant_epr.cpp
@@ -701,6 +694,7 @@ libcvc4_add_sources(
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
+  theory/strings/type_enumerator.cpp
   theory/strings/type_enumerator.h
   theory/strings/word.cpp
   theory/strings/word.h
