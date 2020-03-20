@@ -20,7 +20,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
-#include "theory/strings/sequence_rewriter.h"
+#include "theory/strings/sequences_rewriter.h"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>
