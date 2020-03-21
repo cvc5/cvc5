@@ -1,15 +1,19 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic LIA)
-(define-fun letf ((z Int) (v1 Int) (v2 Int)) Bool  
-  (or 
-    (= v1 z) 
+(define-fun letf ((z Int) (v1 Int) (v2 Int)) Bool
+  (or
+    (= v1 z)
     (= v2 z)))
 (synth-fun f ((x0 Int) (x1 Int)) Bool
+((Start Bool) (StartInt Int) (IntVar Int))
 (
-	(StartInt Int (5))
+  (Start Bool ( (letf StartInt IntVar IntVar) ))
 
-	(Start Bool (  (letf StartInt (Variable Int) (Variable Int)) ))
+  (StartInt Int (5))
+
+  ; "Hack" to avoid parse errors in V2 format.
+  (IntVar Int ((Variable Int)))
 )
 )
 

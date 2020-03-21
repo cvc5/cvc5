@@ -1,10 +1,11 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic ALL)
 
-(synth-fun SC ((y (BitVec 32)) (w (BitVec 32)) ) (BitVec 32)
+(synth-fun SC ((y (_ BitVec 32)) (w (_ BitVec 32)) ) (_ BitVec 32)
+  ((Start (_ BitVec 32)) (StartBool Bool))
   (
-   (Start (BitVec 32) (
+   (Start (_ BitVec 32) (
      y
      w
      #x00000000
