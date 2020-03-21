@@ -896,6 +896,7 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
+          expr/expr_sequence.h
           expr/expr_stream.h
           expr/record.h
           expr/symbol_table.h
