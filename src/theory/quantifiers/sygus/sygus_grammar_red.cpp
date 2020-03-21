@@ -65,7 +65,8 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
       // This is not the case for constants, since those that are represented by
       // AST (e.g. datatypes) are such that g may have >0 children but dt[i]
       // has no arguments.
-      Assert(sop.getKind() != LAMBDA || g.getNumChildren() == dt[i].getNumArgs());
+      Assert(sop.getKind() != LAMBDA
+             || g.getNumChildren() == dt[i].getNumArgs());
       // Regardless, g should always have at least as many children as there
       // are datatype arguments.
       Assert(g.getNumChildren() >= dt[i].getNumArgs());
