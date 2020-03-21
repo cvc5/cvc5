@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "options/uf_options.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
@@ -315,9 +316,7 @@ Node BVToInt::bvToInt(Node n)
             }
             else
             {
-              // Boolean variables are left unchanged.
-              AlwaysAssert(current.getType() == d_nm->booleanType()
-                           || current.getType().isSort());
+              // variables other than bit-vector variables are left intact
               d_bvToIntCache[current] = current;
             }
           }
@@ -696,6 +695,8 @@ Node BVToInt::bvToInt(Node n)
                * We cache both the term itself (e.g., f(a)) and the function
                * symbol f.
                */
+
+              //Construct the function itself
               Node bvUF = current.getOperator();
               Node intUF;
               TypeNode tn = current.getOperator().getType();
@@ -729,38 +730,57 @@ Node BVToInt::bvToInt(Node n)
                 // Insert the function symbol itself to the cache
                 d_bvToIntCache[bvUF] = intUF;
               }
-              translated_children.insert(translated_children.begin(), intUF);
-              // Insert the term to the cache
-              d_bvToIntCache[current] =
-                  d_nm->mkNode(kind::APPLY_UF, translated_children);
+              if (childrenTypesChanged(current) && options::ufHo()) {
               /**
-               * Add range constraints if necessary.
-               * If the original range was a BV sort, the current application of
-               * the fucntion Must be within the range determined by the
-               * bitwidth.
+               * higher order logic allows comparing between functions
+               * The current translation does not support this,
+               * as the translated functions may be different outside
+               * of the bounds that were relevant for the original
+               * bit-vectors.
                */
-              if (bvRange.isBitVector())
-              {
-                d_rangeAssertions.insert(
-                    mkRangeConstraint(d_bvToIntCache[current],
-                                      current.getType().getBitVectorSize()));
+                  throw TypeCheckingException(
+                      current.toExpr(),
+                      string("Cannot translate to Int: ") + current.toString());
               }
-              break;
+              else {
+                translated_children.insert(translated_children.begin(), intUF);
+                // Insert the term to the cache
+                d_bvToIntCache[current] =
+                    d_nm->mkNode(kind::APPLY_UF, translated_children);
+                /**
+                 * Add range constraints if necessary.
+                 * If the original range was a BV sort, the current application of
+                 * the function Must be within the range determined by the
+                 * bitwidth.
+                 */
+                if (bvRange.isBitVector())
+                {
+                  d_rangeAssertions.insert(
+                      mkRangeConstraint(d_bvToIntCache[current],
+                                        current.getType().getBitVectorSize()));
+                }
+              }
+                break;
             }
             default:
             {
-              if (Theory::theoryOf(current) == THEORY_BOOL)
-              {
+              if (childrenTypesChanged(current)) {
+                /**
+                 * This is "failing on demand":
+                 * We throw an exception if we encounter a case
+                 * that we do not know how to translate,
+                 * only if we actually need to construct a new
+                 * node for such a case.
+                 */
+                  throw TypeCheckingException(
+                      current.toExpr(),
+                      string("Cannot translate to Int: ") + current.toString());
+              }
+              else {
                 d_bvToIntCache[current] =
                     d_nm->mkNode(oldKind, translated_children);
-                break;
               }
-              else
-              {
-                // Currently, only QF_UFBV formulas are handled.
-                // In the future, more theories should be supported, e.g., arrays.
-                Unimplemented();
-              }
+              break;
             }
           }
         }
@@ -769,6 +789,19 @@ Node BVToInt::bvToInt(Node n)
     }
   }
   return d_bvToIntCache[n];
+}
+
+bool BVToInt::childrenTypesChanged(Node n) {
+  bool result = false;
+  for (Node child : n) {
+    TypeNode originalType = child.getType();
+    TypeNode newType = d_bvToIntCache[child].getType();
+    if (! newType.isSubtypeOf(originalType)) {
+      result = true;
+      break;
+    }
+  }
+  return result;
 }
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)

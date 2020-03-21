@@ -47,6 +47,8 @@ class RegExpElimination
   Node d_zero;
   Node d_one;
   Node d_neg_one;
+  /** The type of regular expressions */
+  TypeNode d_regExpType;
   /** return elimination
    *
    * This method is called when atom is rewritten to atomElim, and returns
