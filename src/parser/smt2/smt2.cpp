@@ -680,7 +680,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     defineType("RegLan", d_solver->getRegExpSort());
     defineType("Int", d_solver->getIntegerSort());
 
-    if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+    if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
+        || getLanguage() == language::input::LANG_SYGUS_V2)
     {
       defineVar("re.none", d_solver->mkRegexpEmpty());
     }
