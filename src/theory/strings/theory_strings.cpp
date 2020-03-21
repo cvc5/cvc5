@@ -1155,26 +1155,6 @@ Node TheoryStrings::ppRewrite(TNode atom) {
   return atom;
 }
 
-// Stats
-TheoryStrings::Statistics::Statistics()
-    : d_splits("theory::strings::NumOfSplitOnDemands", 0),
-      d_eq_splits("theory::strings::NumOfEqSplits", 0),
-      d_deq_splits("theory::strings::NumOfDiseqSplits", 0),
-      d_loop_lemmas("theory::strings::NumOfLoops", 0)
-{
-  smtStatisticsRegistry()->registerStat(&d_splits);
-  smtStatisticsRegistry()->registerStat(&d_eq_splits);
-  smtStatisticsRegistry()->registerStat(&d_deq_splits);
-  smtStatisticsRegistry()->registerStat(&d_loop_lemmas);
-}
-
-TheoryStrings::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_eq_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_deq_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_loop_lemmas);
-}
-
 /** run the given inference step */
 void TheoryStrings::runInferStep(InferStep s, int effort)
 {
