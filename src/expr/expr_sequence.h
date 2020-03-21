@@ -64,14 +64,10 @@ class CVC4_PUBLIC ExprSequence
   std::unique_ptr<Sequence> d_sequence;
 }; /* class ExprSequence */
 
-namespace strings {
-
 struct CVC4_PUBLIC ExprSequenceHashFunction
 {
   size_t operator()(const ::CVC4::ExprSequence& s) const;
 }; /* struct ExprSequenceHashFunction */
-
-}  // namespace strings
 
 std::ostream& operator<<(std::ostream& os, const ExprSequence& s) CVC4_PUBLIC;
 
