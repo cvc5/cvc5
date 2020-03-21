@@ -152,7 +152,6 @@ namespace CVC4 {
 %template(getConstRational) CVC4::Expr::getConst<CVC4::Rational>;
 %template(getConstRoundingMode) CVC4::Expr::getConst<CVC4::RoundingMode>;
 %template(getConstString) CVC4::Expr::getConst<CVC4::String>;
-%template(getConstSequence) CVC4::Expr::getConst<CVC4::Sequence>;
 %template(getConstUninterpretedConstant) CVC4::Expr::getConst<CVC4::UninterpretedConstant>;
 
 #ifdef SWIGJAVA

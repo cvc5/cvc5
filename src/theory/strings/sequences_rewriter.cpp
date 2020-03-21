@@ -3562,7 +3562,7 @@ Node SequencesRewriter::splitConstant(Node a, Node b, int& index, bool isRev)
   return Node::null();
 }
 
-Node TheoryStringsRewriter::rewriteSeqUnit(Node node)
+Node SequencesRewriter::rewriteSeqUnit(Node node)
 {
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
