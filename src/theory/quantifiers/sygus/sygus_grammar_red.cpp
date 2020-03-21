@@ -60,7 +60,15 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     std::vector<Node> glist;
     if (sop.isConst() || sop.getKind() == LAMBDA)
     {
-      Assert(g.getNumChildren() == dt[i].getNumArgs());
+      // g should have the same number of children as there are arguments to
+      // the datatype, if the sygus operator is a lambda.
+      // This is not the case for constants, since those that are represented by
+      // AST (e.g. datatypes) are such that g may have >0 children but dt[i]
+      // has no arguments.
+      Assert(sop.getKind() != LAMBDA || g.getNumChildren() == dt[i].getNumArgs());
+      // Regardless, g should always have at least as many children as there
+      // are datatype arguments.
+      Assert(g.getNumChildren() >= dt[i].getNumArgs());
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         pre[j] = g[j];
