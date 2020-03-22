@@ -125,15 +125,15 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       // See if it is a builtin kind, possible if the operator is of the form:
       // lambda x1 ... xn. f( x1, ..., xn ) and f is not a parametrized kind
       // (e.g. APPLY_UF).
-      if (sop[1].getMetaKind() != kind::metakind::PARAMETERIZED )
+      if (sop[1].getMetaKind() != kind::metakind::PARAMETERIZED)
       {
         size_t nchild = sop[0].getNumChildren();
-        if (nchild==sop[1].getNumChildren())
+        if (nchild == sop[1].getNumChildren())
         {
           builtinKind = sop[1].getKind();
-          for (size_t j=0; j<nchild; j++)
+          for (size_t j = 0; j < nchild; j++)
           {
-            if (sop[0][j]!=sop[1][j])
+            if (sop[0][j] != sop[1][j])
             {
               // arguments not in order
               builtinKind = UNDEFINED_KIND;
@@ -143,7 +143,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         }
       }
     }
-    if (builtinKind!=UNDEFINED_KIND)
+    if (builtinKind != UNDEFINED_KIND)
     {
       d_kinds[builtinKind] = i;
       d_arg_kind[i] = builtinKind;
