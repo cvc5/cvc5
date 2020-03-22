@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
@@ -76,7 +77,8 @@ class InferenceManager
                    context::UserContext* u,
                    SolverState& s,
                    SkolemCache& skc,
-                   OutputChannel& out);
+                   OutputChannel& out,
+                   SequencesStatistics& statistics);
   ~InferenceManager() {}
 
   /** send internal inferences
@@ -349,6 +351,10 @@ class InferenceManager
    * This is a reference to the output channel of the theory of strings.
    */
   OutputChannel& d_out;
+
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
+
   /** Common constants */
   Node d_emptyString;
   Node d_true;

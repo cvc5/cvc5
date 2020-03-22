@@ -34,11 +34,13 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::UserContext* u,
                                    SolverState& s,
                                    SkolemCache& skc,
-                                   OutputChannel& out)
+                                   OutputChannel& out,
+                                   SequencesStatistics& statistics)
     : d_parent(p),
       d_state(s),
       d_skCache(skc),
       d_out(out),
+      d_statistics(statistics),
       d_keep(c),
       d_proxyVar(u),
       d_proxyVarToLength(u),
@@ -192,7 +194,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Inference infer,
                                      bool asLemma)
 {
-  d_parent.getStatistics()->d_inferences << infer;
+  d_statistics.d_inferences << infer;
   std::stringstream ss;
   ss << infer;
   sendInference(exp, exp_n, eq, ss.str().c_str(), asLemma);
@@ -203,7 +205,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Inference infer,
                                      bool asLemma)
 {
-  d_parent.getStatistics()->d_inferences << infer;
+  d_statistics.d_inferences << infer;
   std::stringstream ss;
   ss << infer;
   sendInference(exp, eq, ss.str().c_str(), asLemma);

@@ -109,8 +109,6 @@ class TheoryStrings : public Theory {
                 const LogicInfo& logicInfo);
   ~TheoryStrings();
 
-  SequencesStatistics* getStatistics() { return &d_statistics; }
-
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   std::string identify() const override { return std::string("TheoryStrings"); }
@@ -225,6 +223,13 @@ class TheoryStrings : public Theory {
   uint32_t d_cardSize;
   /** The notify class */
   NotifyClass d_notify;
+
+  /**
+   * Statistics for the theory of strings/sequences. All statistics for these
+   * theories is collected in this object.
+   */
+  SequencesStatistics d_statistics;
+
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
   /** The solver state object */
@@ -433,12 +438,6 @@ private:
    */
   void runStrategy(unsigned sbegin, unsigned send);
   //-----------------------end representation of the strategy
-
-  /**
-   * Statistics for the theory of strings/sequences. All statistics for these
-   * theories is collected in this object.
-   */
-  SequencesStatistics d_statistics;
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */
