@@ -1,10 +1,10 @@
-; COMMAND-LINE: --sygus-out=status --cegqi-si=none
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegqi-si=none
 ; EXPECT: unsat
 
 (set-logic BV)
 
-(synth-fun f ((x (BitVec 32))) (BitVec 32))
+(synth-fun f ((x (_ BitVec 32))) (_ BitVec 32))
 
-(declare-var x (BitVec 32))
+(declare-var x (_ BitVec 32))
 (constraint (= (bvor x #x00000001) (f x)))
 (check-synth)

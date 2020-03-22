@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=none --sygus-out=status --sygus-add-const-grammar
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=none --sygus-out=status --sygus-add-const-grammar
 (set-logic LIA)
 
 (synth-fun lc ((x Int)) Int)

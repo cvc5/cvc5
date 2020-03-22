@@ -1,9 +1,13 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
-  ( set-logic BV )
-  ( define-fun hd05  (    ( x  ( BitVec 32 ) ) )  ( BitVec 32 )  ( bvor     x  ( bvsub     x   #x00000001 ) ) )
-( synth-fun f  (    ( x  ( BitVec 32 ) ) )  ( BitVec 32 ) (
-	(Start  ( BitVec 32 ) (		#x00000001
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic BV)
+
+(define-fun hd05 ((x (_ BitVec 32))) (_ BitVec 32) (bvor x (bvsub x #x00000001)))
+
+(synth-fun f ((x (_ BitVec 32))) (_ BitVec 32)
+	((Start (_ BitVec 32)) (NT0 (_ BitVec 32)) (NT4 (_ BitVec 32))) (
+	(Start (_ BitVec 32) (
+		#x00000001
 		#x00000000
 		#xffffffff
 		x
@@ -22,12 +26,14 @@
 		(bvor NT4 NT0)
 		(bvadd NT4 NT0)
 ))
-	(NT0  ( BitVec 32 ) (		#x00000001
+	(NT0 (_ BitVec 32) (
+		#x00000001
 		#x00000000
 		#xffffffff
 		x
 ))
-	(NT4  ( BitVec 32 ) (		(bvnot NT0)
+	(NT4 (_ BitVec 32) (
+		(bvnot NT0)
 		(bvneg NT0)
 		(bvadd NT0 NT0)
 		(bvor NT0 NT0)
@@ -37,6 +43,6 @@
 		(bvurem NT0 NT0)
 ))
 ))
-  ( declare-var x  ( BitVec 32 ) )
-  ( constraint  ( =     ( hd05    x )  ( f    x ) ) )
-  ( check-synth )
+(declare-var x (_ BitVec 32))
+(constraint (= (hd05 x) (f x)))
+(check-synth)

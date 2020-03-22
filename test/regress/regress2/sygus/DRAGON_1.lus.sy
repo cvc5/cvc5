@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --sygus-unif-pi=complete --cegis-sample=use
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-unif-pi=complete --cegis-sample=use
 
 (set-logic LIA)
 
@@ -740,12 +740,12 @@
    (= DRAGON.usr.exclusive_a_0 0)
    (let
     ((X1
-      Bool (let
-            ((X1 Int DRAGON.res.nondet_4)
-             (X2 Int DRAGON.res.nondet_3)
-             (X3 Int DRAGON.res.nondet_2)
-             (X4 Int DRAGON.res.nondet_1)
-             (X5 Int DRAGON.res.nondet_0))
+      (let
+            ((X1 DRAGON.res.nondet_4)
+             (X2 DRAGON.res.nondet_3)
+             (X3 DRAGON.res.nondet_2)
+             (X4 DRAGON.res.nondet_1)
+             (X5 DRAGON.res.nondet_0))
             (and
              (and (and (and (>= X5 1) (= X4 0)) (= X3 0)) (= X2 0))
              (= X1 0)))))
@@ -755,63 +755,63 @@
      (= DRAGON.usr.dirty_a_0 0)
      (let
       ((X2
-        Bool (let
-              ((X2 Int DRAGON.res.nondet_9)
-               (X3 Int DRAGON.res.nondet_8)
-               (X4 Int DRAGON.res.nondet_7)
-               (X5 Int DRAGON.res.nondet_6)
-               (X6 Int DRAGON.res.nondet_5))
+        (let
+              ((X2 DRAGON.res.nondet_9)
+               (X3 DRAGON.res.nondet_8)
+               (X4 DRAGON.res.nondet_7)
+               (X5 DRAGON.res.nondet_6)
+               (X6 DRAGON.res.nondet_5))
               (and (>= X6 1) (>= (+ (+ (+ X5 X4) X3) X2) 1)))))
       (and
        (= DRAGON.impl.usr.mem_init_a_0 DRAGON.usr.init_invalid_a_0)
        (= DRAGON.usr.invalid_a_0 DRAGON.impl.usr.mem_init_a_0)
        (let
         ((X3
-          Bool (let
-                ((X3 Int DRAGON.res.nondet_21)
-                 (X4 Int DRAGON.res.nondet_20)
-                 (X5 Int DRAGON.res.nondet_19)
-                 (X6 Int DRAGON.res.nondet_18)
-                 (X7 Int DRAGON.res.nondet_17))
+          (let
+                ((X3 DRAGON.res.nondet_21)
+                 (X4 DRAGON.res.nondet_20)
+                 (X5 DRAGON.res.nondet_19)
+                 (X6 DRAGON.res.nondet_18)
+                 (X7 DRAGON.res.nondet_17))
                 (and
                  (and (and (and (>= X7 1) (= X6 0)) (= X5 0)) (= X4 0))
                  (= X3 0)))))
         (let
          ((X4
-           Bool (let
-                 ((X4 Int DRAGON.res.nondet_26)
-                  (X5 Int DRAGON.res.nondet_25)
-                  (X6 Int DRAGON.res.nondet_24)
-                  (X7 Int DRAGON.res.nondet_23)
-                  (X8 Int DRAGON.res.nondet_22))
+           (let
+                 ((X4 DRAGON.res.nondet_26)
+                  (X5 DRAGON.res.nondet_25)
+                  (X6 DRAGON.res.nondet_24)
+                  (X7 DRAGON.res.nondet_23)
+                  (X8 DRAGON.res.nondet_22))
                  (and (>= X8 1) (>= (+ (+ (+ X7 X6) X5) X4) 1)))))
          (let
-          ((X5 Bool (let ((X5 Int DRAGON.res.nondet_27)) (>= X5 1))))
+          ((X5 (let ((X5 DRAGON.res.nondet_27)) (>= X5 1))))
           (let
-           ((X6 Bool (let ((X6 Int DRAGON.res.nondet_28)) (>= X6 1))))
+           ((X6 (let ((X6 DRAGON.res.nondet_28)) (>= X6 1))))
            (let
-            ((X7 Bool (let ((X7 Int DRAGON.res.nondet_29)) (>= X7 1))))
+            ((X7 (let ((X7 DRAGON.res.nondet_29)) (>= X7 1))))
             (let
-             ((X8 Bool (let ((X8 Int DRAGON.res.nondet_30)) (>= X8 1))))
+             ((X8 (let ((X8 DRAGON.res.nondet_30)) (>= X8 1))))
              (let
-              ((X9 Bool (let ((X9 Int DRAGON.res.nondet_10)) (>= X9 1))))
+              ((X9 (let ((X9 DRAGON.res.nondet_10)) (>= X9 1))))
               (let
                ((X10
-                 Bool (let
-                       ((X10 Int DRAGON.res.nondet_12)
-                        (X11 Int DRAGON.res.nondet_11))
+                 (let
+                       ((X10 DRAGON.res.nondet_12)
+                        (X11 DRAGON.res.nondet_11))
                        (and (= X11 1) (= X10 0)))))
                (let
                 ((X11
-                  Bool (let
-                        ((X11 Int DRAGON.res.nondet_14)
-                         (X12 Int DRAGON.res.nondet_13))
+                  (let
+                        ((X11 DRAGON.res.nondet_14)
+                         (X12 DRAGON.res.nondet_13))
                         (and (= X12 0) (= X11 1)))))
                 (let
                  ((X12
-                   Bool (let
-                         ((X12 Int DRAGON.res.nondet_16)
-                          (X13 Int DRAGON.res.nondet_15))
+                   (let
+                         ((X12 DRAGON.res.nondet_16)
+                          (X13 DRAGON.res.nondet_15))
                          (>= (+ X13 X12) 2))))
                  (and
                   (=
@@ -898,10 +898,10 @@
   ) Bool
   
   (let
-   ((X1 Bool (>= DRAGON.usr.exclusive_a_0 1)))
+   ((X1 (>= DRAGON.usr.exclusive_a_0 1)))
    (let
     ((X2
-      Bool (and
+      (and
             (>= DRAGON.usr.invalid_a_0 1)
             (>=
              (+
@@ -911,10 +911,10 @@
               DRAGON.usr.shared_dirty_a_0)
              1))))
     (let
-     ((X3 Bool (>= DRAGON.usr.exclusive_a_0 1)))
+     ((X3 (>= DRAGON.usr.exclusive_a_0 1)))
      (let
       ((X4
-        Bool (and
+        (and
               (>= DRAGON.usr.invalid_a_0 1)
               (>=
                (+
@@ -925,7 +925,7 @@
                1))))
       (let
        ((X5
-         Bool (and
+         (and
                (and
                 (and
                  (and (>= DRAGON.usr.invalid_a_0 1) (= DRAGON.usr.dirty_a_0 0))
@@ -952,12 +952,12 @@
               (ite X1 (- DRAGON.usr.exclusive_a_0 1) DRAGON.usr.exclusive_a_0)
               DRAGON.usr.exclusive_a_0))))))
         (let
-         ((X6 Bool (>= DRAGON.usr.shared_a_0 1)))
+         ((X6 (>= DRAGON.usr.shared_a_0 1)))
          (let
-          ((X7 Bool (>= (+ DRAGON.usr.shared_dirty_a_0 DRAGON.usr.shared_a_0) 2)))
+          ((X7 (>= (+ DRAGON.usr.shared_dirty_a_0 DRAGON.usr.shared_a_0) 2)))
           (let
            ((X8
-             Bool (and
+             (and
                    (= DRAGON.usr.shared_dirty_a_0 0)
                    (= DRAGON.usr.shared_a_0 1))))
            (and
@@ -993,10 +993,10 @@
                   (ite X6 (- DRAGON.usr.shared_a_0 1) DRAGON.usr.shared_a_0)
                   DRAGON.usr.shared_a_0))))))
             (let
-             ((X9 Bool (>= DRAGON.usr.shared_dirty_a_0 1)))
+             ((X9 (>= DRAGON.usr.shared_dirty_a_0 1)))
              (let
               ((X10
-                Bool (and
+                (and
                       (= DRAGON.usr.shared_dirty_a_0 1)
                       (= DRAGON.usr.shared_a_0 0))))
               (and
@@ -1025,10 +1025,10 @@
                       DRAGON.usr.shared_dirty_a_0)
                      DRAGON.usr.shared_dirty_a_0))))))
                (let
-                ((X11 Bool (>= DRAGON.usr.dirty_a_0 1)))
+                ((X11 (>= DRAGON.usr.dirty_a_0 1)))
                 (let
                  ((X12
-                   Bool (and
+                   (and
                          (and
                           (and
                            (and
@@ -1183,7 +1183,7 @@
   (and
    (= top.res.abs_7_a_0 (and top.res.abs_6_a_0 (> top.usr.init_invalid_a_0 0)))
    (let
-    ((X1 Bool top.res.abs_5_a_0))
+    ((X1 top.res.abs_5_a_0))
     (and
      (= top.usr.OK_a_0 (=> top.res.abs_8_a_0 (not X1)))
      (__node_init_DRAGON_0
@@ -1352,7 +1352,7 @@
   (and
    (= top.res.abs_7_a_1 (and top.res.abs_6_a_1 (> top.usr.init_invalid_a_1 0)))
    (let
-    ((X1 Bool top.res.abs_5_a_1))
+    ((X1 top.res.abs_5_a_1))
     (and
      (= top.usr.OK_a_1 (=> top.res.abs_8_a_1 (not X1)))
      (__node_trans_DRAGON_0
@@ -1501,66 +1501,37 @@
   (top.res.inst_0 Bool)
 ))
 
-(declare-fun top.res.nondet_30 () Int)
-(declare-fun top.res.nondet_29 () Int)
-(declare-fun top.res.nondet_28 () Int)
-(declare-fun top.res.nondet_27 () Int)
-(declare-fun top.res.nondet_26 () Int)
-(declare-fun top.res.nondet_25 () Int)
-(declare-fun top.res.nondet_24 () Int)
-(declare-fun top.res.nondet_23 () Int)
-(declare-fun top.res.nondet_22 () Int)
-(declare-fun top.res.nondet_21 () Int)
-(declare-fun top.res.nondet_20 () Int)
-(declare-fun top.res.nondet_19 () Int)
-(declare-fun top.res.nondet_18 () Int)
-(declare-fun top.res.nondet_17 () Int)
-(declare-fun top.res.nondet_16 () Int)
-(declare-fun top.res.nondet_15 () Int)
-(declare-fun top.res.nondet_14 () Int)
-(declare-fun top.res.nondet_13 () Int)
-(declare-fun top.res.nondet_12 () Int)
-(declare-fun top.res.nondet_11 () Int)
-(declare-fun top.res.nondet_10 () Int)
-(declare-fun top.res.nondet_9 () Int)
-(declare-fun top.res.nondet_8 () Int)
-(declare-fun top.res.nondet_7 () Int)
-(declare-fun top.res.nondet_6 () Int)
-(declare-fun top.res.nondet_5 () Int)
-(declare-fun top.res.nondet_4 () Int)
-(declare-fun top.res.nondet_3 () Int)
-(declare-fun top.res.nondet_2 () Int)
-(declare-fun top.res.nondet_1 () Int)
-(declare-fun top.res.nondet_0 () Int)
-
-(declare-primed-var top.usr.e01 Bool)
-(declare-primed-var top.usr.e02 Bool)
-(declare-primed-var top.usr.e03 Bool)
-(declare-primed-var top.usr.e04 Bool)
-(declare-primed-var top.usr.e05 Bool)
-(declare-primed-var top.usr.e06 Bool)
-(declare-primed-var top.usr.e07 Bool)
-(declare-primed-var top.usr.e08 Bool)
-(declare-primed-var top.usr.e09 Bool)
-(declare-primed-var top.usr.e10 Bool)
-(declare-primed-var top.usr.e11 Bool)
-(declare-primed-var top.usr.e12 Bool)
-(declare-primed-var top.usr.init_invalid Int)
-(declare-primed-var top.usr.OK Bool)
-(declare-primed-var top.res.init_flag Bool)
-(declare-primed-var top.res.abs_0 Int)
-(declare-primed-var top.res.abs_1 Int)
-(declare-primed-var top.res.abs_2 Int)
-(declare-primed-var top.res.abs_3 Int)
-(declare-primed-var top.res.abs_4 Int)
-(declare-primed-var top.res.abs_5 Bool)
-(declare-primed-var top.res.abs_6 Bool)
-(declare-primed-var top.res.abs_7 Bool)
-(declare-primed-var top.res.abs_8 Bool)
-(declare-primed-var top.res.inst_3 Bool)
-(declare-primed-var top.res.inst_2 Int)
-(declare-primed-var top.res.inst_1 Bool)
-(declare-primed-var top.res.inst_0 Bool)
+(declare-var top.res.nondet_30 Int)
+(declare-var top.res.nondet_29 Int)
+(declare-var top.res.nondet_28 Int)
+(declare-var top.res.nondet_27 Int)
+(declare-var top.res.nondet_26 Int)
+(declare-var top.res.nondet_25 Int)
+(declare-var top.res.nondet_24 Int)
+(declare-var top.res.nondet_23 Int)
+(declare-var top.res.nondet_22 Int)
+(declare-var top.res.nondet_21 Int)
+(declare-var top.res.nondet_20 Int)
+(declare-var top.res.nondet_19 Int)
+(declare-var top.res.nondet_18 Int)
+(declare-var top.res.nondet_17 Int)
+(declare-var top.res.nondet_16 Int)
+(declare-var top.res.nondet_15 Int)
+(declare-var top.res.nondet_14 Int)
+(declare-var top.res.nondet_13 Int)
+(declare-var top.res.nondet_12 Int)
+(declare-var top.res.nondet_11 Int)
+(declare-var top.res.nondet_10 Int)
+(declare-var top.res.nondet_9 Int)
+(declare-var top.res.nondet_8 Int)
+(declare-var top.res.nondet_7 Int)
+(declare-var top.res.nondet_6 Int)
+(declare-var top.res.nondet_5 Int)
+(declare-var top.res.nondet_4 Int)
+(declare-var top.res.nondet_3 Int)
+(declare-var top.res.nondet_2 Int)
+(declare-var top.res.nondet_1 Int)
+(declare-var top.res.nondet_0 Int)
 
 (define-fun
   init (
@@ -1597,7 +1568,7 @@
   (and
    (= top.res.abs_7 (and top.res.abs_6 (> top.usr.init_invalid 0)))
    (let
-    ((X1 Bool top.res.abs_5))
+    ((X1 top.res.abs_5))
     (and
      (= top.usr.OK (=> top.res.abs_8 (not X1)))
      (__node_init_DRAGON_0
@@ -1741,7 +1712,7 @@
    (and
     (= top.res.abs_7! (and top.res.abs_6! (> top.usr.init_invalid! 0)))
     (let
-     ((X1 Bool top.res.abs_5!))
+     ((X1 top.res.abs_5!))
      (and
       (= top.usr.OK! (=> top.res.abs_8! (not X1)))
       (__node_trans_DRAGON_0

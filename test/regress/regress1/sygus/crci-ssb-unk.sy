@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 
 (set-logic BV)
 
@@ -10,6 +10,7 @@
 
 
 (synth-fun skel ( (LN4 Bool) (LN91 Bool)  )  Bool    
+          ((Start Bool) (depth1 Bool) (depth2 Bool) (depth3 Bool) (depth4 Bool))
           ((Start Bool (
                                   (and depth1 depth1)
                                   (xor depth1 depth1)
