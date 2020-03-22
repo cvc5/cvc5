@@ -1302,6 +1302,8 @@ set(regress_1_tests
   regress1/ho/fta0328.lfho.p
   regress1/ho/issue3136-fconst-bool-bool.smt2
   regress1/ho/issue4065-no-rep.smt2
+  regress1/ho/issue4092-sinf.smt2
+  regress1/ho/issue4134-sinf.smt2
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/NUM638^1.smt2
