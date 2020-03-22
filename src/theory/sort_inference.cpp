@@ -821,7 +821,8 @@ void SortInference::setSkolemVar( Node f, Node v, Node sk ){
 }
 
 bool SortInference::isWellSortedFormula( Node n ) {
-  if( n.getType().isBoolean() && !isHandledApplyUf(n.getKind()) ){
+  if (n.getType().isBoolean() && !isHandledApplyUf(n.getKind()))
+  {
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( !isWellSortedFormula( n[i] ) ){
         return false;
@@ -837,7 +838,8 @@ bool SortInference::isWellSorted( Node n ) {
   if( getSortId( n )==0 ){
     return false;
   }else{
-    if( isHandledApplyUf(n.getKind()) ){
+    if (isHandledApplyUf(n.getKind()))
+    {
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         int s1 = getSortId( n[i] );
         int s2 = d_type_union_find.getRepresentative( d_op_arg_types[ n.getOperator() ][i] );
@@ -860,7 +862,7 @@ bool SortInference::isMonotonic( TypeNode tn ) {
 
 bool SortInference::isHandledApplyUf(Kind k) const
 {
-  return k==APPLY_UF && !options::ufHo();
+  return k == APPLY_UF && !options::ufHo();
 }
 
 }/* CVC4 namespace */

@@ -157,7 +157,7 @@ public:
 private:
   // store monotonicity for original sorts as well
  std::map<TypeNode, bool> d_non_monotonic_sorts_orig;
- /** 
+ /**
   * Returns true if k is the APPLY_UF kind and we are not using higher-order
   * techniques. This is called in places where we want to know whether to
   * treat a term as uninterpreted function.
