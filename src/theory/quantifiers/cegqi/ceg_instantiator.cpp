@@ -1401,7 +1401,8 @@ void CegInstantiator::presolve( Node q ) {
 }
 
 void CegInstantiator::processAssertions() {
-  Trace("cbqi-proc") << "--- Process assertions, #var = " << d_vars.size() << std::endl;
+  Trace("cbqi-proc") << "--- Process assertions, #var = " << d_vars.size()
+                     << std::endl;
   d_curr_asserts.clear();
   d_curr_eqc.clear();
   d_curr_type_eqc.clear();
