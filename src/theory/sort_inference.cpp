@@ -29,6 +29,7 @@
 #include "theory/quantifiers/quant_util.h"
 
 using namespace CVC4;
+using namespace CVC4::kind;
 using namespace std;
 
 namespace CVC4 {
@@ -435,7 +436,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
       d_equality_types[n] = child_types[0];
       retType = getIdForType( n.getType() );
     }
-    else if (n.getKind() == kind::APPLY_UF && !options::ufHo())
+    else if (isHandledApplyUf(n.getKind()))
     {
       Node op = n.getOperator();
       TypeNode tn_op = op.getType();
@@ -665,7 +666,7 @@ Node SortInference::simplifyNode(
                 : i >= 1;
       }
       if( processChild ){
-        if (n.getKind() == kind::APPLY_UF && !options::ufHo())
+        if (isHandledApplyUf(n.getKind()))
         {
           Assert(d_op_arg_types.find(op) != d_op_arg_types.end());
           tnnc = getOrCreateTypeForId( d_op_arg_types[op][i], n[i].getType() );
@@ -708,7 +709,7 @@ Node SortInference::simplifyNode(
       }
       ret = NodeManager::currentNM()->mkNode( kind::EQUAL, children );
     }
-    else if (n.getKind() == kind::APPLY_UF && !options::ufHo())
+    else if (isHandledApplyUf(n.getKind()))
     {
       if( d_symbol_map.find( op )==d_symbol_map.end() ){
         //make the new operator if necessary
@@ -820,7 +821,7 @@ void SortInference::setSkolemVar( Node f, Node v, Node sk ){
 }
 
 bool SortInference::isWellSortedFormula( Node n ) {
-  if( n.getType().isBoolean() && n.getKind()!=kind::APPLY_UF ){
+  if( n.getType().isBoolean() && !isHandledApplyUf(n.getKind()) ){
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( !isWellSortedFormula( n[i] ) ){
         return false;
@@ -836,7 +837,7 @@ bool SortInference::isWellSorted( Node n ) {
   if( getSortId( n )==0 ){
     return false;
   }else{
-    if( n.getKind()==kind::APPLY_UF ){
+    if( isHandledApplyUf(n.getKind()) ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         int s1 = getSortId( n[i] );
         int s2 = d_type_union_find.getRepresentative( d_op_arg_types[ n.getOperator() ][i] );
@@ -855,6 +856,11 @@ bool SortInference::isWellSorted( Node n ) {
 bool SortInference::isMonotonic( TypeNode tn ) {
   Assert(tn.isSort());
   return d_non_monotonic_sorts_orig.find( tn )==d_non_monotonic_sorts_orig.end();
+}
+
+bool SortInference::isHandledApplyUf(Kind k) const
+{
+  return k==APPLY_UF && !options::ufHo();
 }
 
 }/* CVC4 namespace */
