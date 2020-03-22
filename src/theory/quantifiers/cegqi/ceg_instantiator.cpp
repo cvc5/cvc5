@@ -556,6 +556,7 @@ void CegInstantiator::registerVariable(Node v, bool is_aux)
   else
   {
     d_aux_vars.push_back(v);
+    d_vars_set.insert(v);
   }
   TypeNode vtn = v.getType();
   Trace("cbqi-proc-debug") << "Collect theory ids from type " << vtn << " of "
@@ -1325,6 +1326,7 @@ bool CegInstantiator::check() {
     d_effort = r == 0 ? CEG_INST_EFFORT_STANDARD : CEG_INST_EFFORT_FULL;
     SolvedForm sf;
     d_stack_vars.clear();
+    d_stack_vars.insert(d_stack_vars.end(),d_aux_vars.begin(),d_aux_vars.end());
     d_bound_var_index.clear();
     d_solved_asserts.clear();
     //try to add an instantiation
@@ -1504,6 +1506,7 @@ void CegInstantiator::processAssertions() {
   //construct substitution from auxiliary variable equalities (if e.g. ITE removal was applied to CE body of quantified formula)
   std::vector< Node > subs_lhs;
   std::vector< Node > subs_rhs;
+  /*
   for( unsigned i=0; i<d_aux_vars.size(); i++ ){
     Node r = d_aux_vars[i];
     std::map< Node, Node >::iterator it = aux_subs.find( r );
@@ -1514,6 +1517,7 @@ void CegInstantiator::processAssertions() {
       Assert(false);
     }
   }
+  */
 
   //apply substitutions to everything, if necessary
   if( !subs_lhs.empty() ){
