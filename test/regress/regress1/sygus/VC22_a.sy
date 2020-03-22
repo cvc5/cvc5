@@ -1,9 +1,10 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
-; COMMAND-LINE: --sygus-out=status --cegis-sample=use
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegis-sample=use
 (set-logic LIA)
 
 (synth-fun f ((x1 Int) (x2 Int)) Int
+	((Start Int) (StartBool Bool))
 	((Start Int (0 1 x1 x2
 				(ite StartBool Start Start)))
 		(StartBool Bool ((= Start Start)))))
@@ -23,7 +24,6 @@
 
 (define-fun InVorZero ((v Int)) Bool
 	(or (InV1 v) (Zero v)))
-
 
 (define-fun UnsafeSame ((x1 Int) (x2 Int) (v1 Int) (v2 Int)) Bool
 	(or (and (>= x1 x2) (>= (+ x2 v2) (+ x1 v1)))
@@ -58,4 +58,3 @@
 (constraint (or (Bad x1 x2) (not (Zero (f x1 x2)))))
 
 (check-synth)
-

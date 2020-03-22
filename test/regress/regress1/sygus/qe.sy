@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status --sygus-qe-preproc
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status --sygus-qe-preproc
 (set-logic LIA)
 
 (synth-fun f ((x Int)) Int)

@@ -1,10 +1,10 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic SLIA)
 (synth-fun f ((x String)) String
-((Start String (ntString))
+((ntString String) (ntStringConst String))
 
-(ntString String (x "" (str.++ ntStringConst ntString ntString)))
+((ntString String (x "" (str.++ ntStringConst ntString ntString)))
 
 (ntStringConst String ("a" "b" " "))
 
@@ -15,4 +15,3 @@
 (constraint (= (f "def") "ab def"))
 
 (check-synth)
-
