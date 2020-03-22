@@ -548,15 +548,11 @@ void CegInstantiator::registerVariable(Node v, bool is_aux)
   Assert(std::find(d_vars.begin(), d_vars.end(), v) == d_vars.end());
   Assert(std::find(d_aux_vars.begin(), d_aux_vars.end(), v)
          == d_aux_vars.end());
-  if (!is_aux)
-  {
-    d_vars.push_back(v);
-    d_vars_set.insert(v);
-  }
-  else
+  d_vars.push_back(v);
+  d_vars_set.insert(v);
+  if (is_aux)
   {
     d_aux_vars.push_back(v);
-    d_vars_set.insert(v);
   }
   TypeNode vtn = v.getType();
   Trace("cbqi-proc-debug") << "Collect theory ids from type " << vtn << " of "
@@ -1326,7 +1322,6 @@ bool CegInstantiator::check() {
     d_effort = r == 0 ? CEG_INST_EFFORT_STANDARD : CEG_INST_EFFORT_FULL;
     SolvedForm sf;
     d_stack_vars.clear();
-    d_stack_vars.insert(d_stack_vars.end(),d_aux_vars.begin(),d_aux_vars.end());
     d_bound_var_index.clear();
     d_solved_asserts.clear();
     //try to add an instantiation
