@@ -1,22 +1,21 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 
 (set-logic NIA)
 
 (synth-fun cube ((x Int)) Int
+  ((ntInt Int) (ntBool Bool))
   (
-    (Start Int (ntInt))
-  
-    (ntBool Bool
-      ( 
-        (> ntInt ntInt)
-        (= ntInt ntInt)
-      )
-    )
     (ntInt Int
       (1 x
         (* ntInt ntInt)
         (ite ntBool ntInt ntInt)
+      )
+    )
+    (ntBool Bool
+      ( 
+        (> ntInt ntInt)
+        (= ntInt ntInt)
       )
     )
   )

@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic SAT)
 
 (define-fun
@@ -29,9 +29,6 @@
   (top.res.init_flag Bool)
 ))
 
-
-(declare-primed-var top.usr.OK Bool)
-(declare-primed-var top.res.init_flag Bool)
 
 (define-fun
   init (

@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --no-sygus-pbe --cegqi-si=none --sygus-grammar-cons=any-term-concise
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --no-sygus-pbe --cegqi-si=none --sygus-grammar-cons=any-term-concise
 
 (set-logic LRA)
 (synth-fun f ((x Real) (y Real)) Real)

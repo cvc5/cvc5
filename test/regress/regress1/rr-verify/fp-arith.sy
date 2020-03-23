@@ -1,5 +1,5 @@
 ; REQUIRES: symfpu
-; COMMAND-LINE: --sygus-rr --sygus-samples=0 --sygus-rr-synth-check --sygus-abort-size=1 --sygus-rr-verify-abort --no-sygus-sym-break --fp-exp
+; COMMAND-LINE: --lang=sygus2 --sygus-rr --sygus-samples=0 --sygus-rr-synth-check --sygus-abort-size=1 --sygus-rr-verify-abort --no-sygus-sym-break --fp-exp
 ; EXPECT: (error "Maximum term size (1) for enumerative SyGuS exceeded.")
 ; SCRUBBER: grep -v -E '(\(define-fun|\(rewrite)'
 ; EXIT: 1
@@ -13,6 +13,7 @@
 (define-fun fp_nan () Float16 (_ NaN 5 11))
 
 (synth-fun f ( (r RoundingMode) (x Float16) (y Float16)) Float16
+((Start Float16))
 (
  (Start Float16 (
   (fp.abs Start)

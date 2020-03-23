@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --cegqi-si=none --no-sygus-pbe
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegqi-si=none --no-sygus-pbe
 
 (set-logic LRA)
 
@@ -7,7 +7,7 @@
 
 (declare-var x Real)
 
-(constraint (and (= (f -4) -2) (= (f -9) (/ -9 2))))
+(constraint (and (= (f (- 4)) (- 2)) (= (f (- 9)) (/ (- 9) 2))))
 
 (check-synth)
 
