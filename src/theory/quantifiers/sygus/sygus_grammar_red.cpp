@@ -80,7 +80,6 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
       // arguments, then we can add variants of this operator by permuting
       // the argument list (see getGenericList).
       Assert(g.getNumChildren()==dt[i].getNumArgs());
-      // If we are a lambda operator whose arguments
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         pre[j] = g[j];
