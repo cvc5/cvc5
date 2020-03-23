@@ -1,24 +1,25 @@
-; COMMAND-LINE: --sygus-rr --sygus-samples=1000 --sygus-abort-size=1 --sygus-rr-verify-abort --no-sygus-sym-break
+; COMMAND-LINE: --lang=sygus2 --sygus-rr --sygus-samples=1000 --sygus-abort-size=1 --sygus-rr-verify-abort --no-sygus-sym-break
 ; EXPECT: (error "Maximum term size (1) for enumerative SyGuS exceeded.")
 ; SCRUBBER: grep -v -E '(\(define-fun|\(candidate-rewrite)'
 ; EXIT: 1
 
 (set-logic SLIA)
 
-(synth-fun f ((x String) (y String) (z Int)) String (
+(synth-fun f ((x String) (y String) (z Int)) String
+((Start String) (StartInt Int)) (
 (Start String (
   x y "A" "B" ""
   (str.++ Start Start)
   (str.replace Start Start Start)
   (str.at Start StartInt)
-  (int.to.str StartInt)
+  (str.from_int StartInt)
   (str.substr Start StartInt StartInt)))
 (StartInt Int (
   0 1 z
   (+ StartInt StartInt)
   (- StartInt StartInt)
   (str.len Start)
-  (str.to.int Start)
+  (str.to_int Start)
   (str.indexof Start Start StartInt)))
 ))
 

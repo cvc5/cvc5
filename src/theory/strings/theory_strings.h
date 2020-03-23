@@ -19,6 +19,9 @@
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 
+#include <climits>
+#include <deque>
+
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
@@ -32,14 +35,12 @@
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strings_fmf.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-
-#include <climits>
-#include <deque>
 
 namespace CVC4 {
 namespace theory {
@@ -222,6 +223,13 @@ class TheoryStrings : public Theory {
   uint32_t d_cardSize;
   /** The notify class */
   NotifyClass d_notify;
+
+  /**
+   * Statistics for the theory of strings/sequences. All statistics for these
+   * theories is collected in this object.
+   */
+  SequencesStatistics d_statistics;
+
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
   /** The solver state object */
@@ -368,19 +376,6 @@ private:
   // ppRewrite
   Node ppRewrite(TNode atom) override;
 
- public:
-  /** statistics class */
-  class Statistics {
-  public:
-    IntStat d_splits;
-    IntStat d_eq_splits;
-    IntStat d_deq_splits;
-    IntStat d_loop_lemmas;
-    Statistics();
-    ~Statistics();
-  };/* class TheoryStrings::Statistics */
-  Statistics d_statistics;
-
  private:
   //-----------------------inference steps
   /** check register terms pre-normal forms
@@ -443,7 +438,6 @@ private:
    */
   void runStrategy(unsigned sbegin, unsigned send);
   //-----------------------end representation of the strategy
-
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

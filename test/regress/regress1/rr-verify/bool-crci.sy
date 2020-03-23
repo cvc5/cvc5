@@ -1,11 +1,12 @@
-; COMMAND-LINE: --sygus-rr --sygus-samples=1000 --sygus-abort-size=3 --sygus-rr-verify-abort --no-sygus-sym-break
+; COMMAND-LINE: --lang=sygus2 --sygus-rr --sygus-samples=1000 --sygus-abort-size=3 --sygus-rr-verify-abort --no-sygus-sym-break
 ; EXPECT: (error "Maximum term size (3) for enumerative SyGuS exceeded.")
 ; SCRUBBER: grep -v -E '(\(define-fun|\(candidate-rewrite)'
 ; EXIT: 1
 
 (set-logic BV)
 
-(synth-fun f ( (x Bool) (y Bool) (z Bool) (w Bool) ) Bool 
+(synth-fun f ( (x Bool) (y Bool) (z Bool) (w Bool) ) Bool
+ ( (Start Bool) (depth1 Bool) (depth2 Bool) (depth3 Bool) (depth4 Bool) )
  ((Start Bool (
    (and depth1 depth1)
    (not depth1)

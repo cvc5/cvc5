@@ -682,14 +682,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdts[i].addConstructor(consts[j], ss.str(), cargsEmpty);
       }
     }
-    // ITE
-    Kind k = ITE;
-    Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-    std::vector<TypeNode> cargsIte;
-    cargsIte.push_back(unres_bt);
-    cargsIte.push_back(unres_t);
-    cargsIte.push_back(unres_t);
-    sdts[i].addConstructor(k, cargsIte);
 
     if (types[i].isReal())
     {
@@ -898,6 +890,26 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           << "Warning: No implementation for default Sygus grammar of type "
           << types[i] << std::endl;
     }
+
+    if (sdts[i].d_sdt.getNumConstructors() == 0)
+    {
+      // if there are no constructors yet by this point, we cannot make
+      // datatype, which can happen e.g. for unimplemented types
+      // that have no variables in the argument list of the
+      // function-to-synthesize.
+      std::stringstream ss;
+      ss << "Cannot make default grammar for " << types[i];
+      throw LogicException(ss.str());
+    }
+
+    // always add ITE
+    Kind k = ITE;
+    Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+    std::vector<TypeNode> cargsIte;
+    cargsIte.push_back(unres_bt);
+    cargsIte.push_back(unres_t);
+    cargsIte.push_back(unres_t);
+    sdts[i].addConstructor(k, cargsIte);
   }
   std::map<TypeNode, unsigned>::iterator itgat;
   // initialize the datatypes (except for the last one, reserved for Bool)
