@@ -56,20 +56,31 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     Node g = tds->mkGeneric(dt, i, pre, false);
     Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
     d_gen_terms[i] = g;
+    // is the operator a lambda of the form (lambda x1...xn. f(x1...xn))?
+    bool lamInOrder = false;
+    if (sop.getKind() == LAMBDA && sop[0].getNumChildren() == sop[1].getNumChildren())
+    {
+      Assert(g.getNumChildren()==sop[0].getNumChildren());
+      lamInOrder = true;
+      for (size_t j = 0, nchild = sop[1].getNumChildren(); j < nchild; j++)
+      {
+        if (sop[0][j] != sop[1][j])
+        {
+          // arguments not in order
+          lamInOrder = false;
+          break;
+        }
+      }
+    }
     // a list of variants of the generic term (see getGenericList).
     std::vector<Node> glist;
-    if (sop.isConst() || sop.getKind() == LAMBDA)
+    if (lamInOrder)
     {
-      // g should have the same number of children as there are arguments to
-      // the datatype, if the sygus operator is a lambda.
-      // This is not the case for constants, since those that are represented by
-      // AST (e.g. datatypes) are such that g may have >0 children but dt[i]
-      // has no arguments.
-      Assert(sop.getKind() != LAMBDA
-             || g.getNumChildren() == dt[i].getNumArgs());
-      // Regardless, g should always have at least as many children as there
-      // are datatype arguments.
-      Assert(g.getNumChildren() >= dt[i].getNumArgs());
+      // If it is a lambda whose arguments are one-to-one with the datatype
+      // arguments, then we can add variants of this operator by permuting
+      // the argument list (see getGenericList).
+      Assert(g.getNumChildren()==dt[i].getNumArgs());
+      // If we are a lambda operator whose arguments
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         pre[j] = g[j];
