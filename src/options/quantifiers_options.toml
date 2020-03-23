@@ -1764,15 +1764,6 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "non-optimal bounds for counterexample-based quantifier instantiation"
 
-[[option]]
-  name       = "cbqiLitDepend"
-  category   = "regular"
-  long       = "cbqi-lit-dep"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "dependency lemmas for quantifier alternation in counterexample-based quantifier instantiation"
-
 # CEGQI for EPR
 
 [[option]]

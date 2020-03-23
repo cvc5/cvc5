@@ -49,6 +49,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
+#include "expr/node_visitor.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
@@ -90,7 +91,6 @@
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
-#include "smt_util/node_visitor.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
@@ -1206,7 +1206,6 @@ void SmtEngine::setDefaults() {
     if (d_logic.isTheoryEnabled(THEORY_BV))
     {
       d_logic = d_logic.getUnlockedCopy();
-      d_logic.disableTheory(THEORY_BV);
       d_logic.enableTheory(THEORY_ARITH);
       d_logic.arithNonLinear();
       d_logic.lock();
@@ -2004,7 +2003,16 @@ void SmtEngine::setDefaults() {
       }
     }
     //do not allow partial functions
-    if( !options::bitvectorDivByZeroConst.wasSetByUser() ){
+    if (!options::bitvectorDivByZeroConst())
+    {
+      if (options::bitvectorDivByZeroConst.wasSetByUser())
+      {
+        throw OptionException(
+            "--no-bv-div-zero-const is not supported with SyGuS");
+      }
+      Notice()
+          << "SmtEngine: setting bv-div-zero-const to true to support SyGuS"
+          << std::endl;
       options::bitvectorDivByZeroConst.set( true );
     }
     if( !options::dtRewriteErrorSel.wasSetByUser() ){
@@ -5156,9 +5164,11 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if(r.asSatisfiabilityResult().isSat() != Result::UNSAT ) {
     if( r.asSatisfiabilityResult().isSat() != Result::SAT && doFull ){
-      InternalError()
+      Notice()
           << "While performing quantifier elimination, unexpected result : "
           << r << " for query.";
+      // failed, return original
+      return e;
     }
     std::vector< Node > inst_qs;
     d_theoryEngine->getInstantiatedQuantifiedFormulas( inst_qs );

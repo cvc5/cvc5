@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --decision=justification
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --decision=justification
 
 (set-logic LIA)
 
@@ -7,8 +7,10 @@
 (define-fun g ((x Int)) List (cons (+ x 1) nil))
 (define-fun i () List (cons 3 nil))
 
-(synth-fun f ((x Int)) List ((Start List ((g StartInt) i (cons StartInt Start) nil (tail Start)))
-                             (StartInt Int (x 0 1 (+ StartInt StartInt)))))
+(synth-fun f ((x Int)) List
+    ((Start List) (StartInt Int))
+    ((Start List ((g StartInt) i (cons StartInt Start) nil (tail Start)))
+     (StartInt Int (x 0 1 (+ StartInt StartInt)))))
 
 (declare-var x Int)
 

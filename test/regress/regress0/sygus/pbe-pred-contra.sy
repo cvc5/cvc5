@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi-si=none --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=none --sygus-out=status
 ; EXPECT: unknown
 (set-logic LIA)
 (synth-fun P ((x Int)) Bool)

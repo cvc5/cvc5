@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-unif-pi=complete --sygus-bool-ite-return-const --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-unif-pi=complete --sygus-bool-ite-return-const --sygus-out=status
 (set-logic LIA)
 
 (define-fun
@@ -187,9 +187,9 @@
   ) Bool
   
   (let
-   ((X1 Bool top.res.abs_10@0))
+   ((X1 top.res.abs_10@0))
    (let
-    ((X2 Int top.res.abs_4@0))
+    ((X2 top.res.abs_4@0))
     (and
      (= top.usr.OK@0 (=> X1 (< X2 4)))
      (__node_init_voiture_0
@@ -258,9 +258,9 @@
   ) Bool
   
   (let
-   ((X1 Bool top.res.abs_10@1))
+   ((X1 top.res.abs_10@1))
    (let
-    ((X2 Int top.res.abs_4@1))
+    ((X2 top.res.abs_4@1))
     (and
      (= top.usr.OK@1 (=> X1 (< X2 4)))
      (__node_trans_voiture_0
@@ -334,25 +334,6 @@
 ))
 
 
-(declare-primed-var top.usr.m Bool)
-(declare-primed-var top.usr.s Bool)
-(declare-primed-var top.usr.OK Bool)
-(declare-primed-var top.res.init_flag Bool)
-(declare-primed-var top.res.abs_0 Bool)
-(declare-primed-var top.res.abs_1 Bool)
-(declare-primed-var top.res.abs_2 Bool)
-(declare-primed-var top.res.abs_3 Int)
-(declare-primed-var top.res.abs_4 Int)
-(declare-primed-var top.res.abs_5 Int)
-(declare-primed-var top.res.abs_6 Bool)
-(declare-primed-var top.res.abs_7 Bool)
-(declare-primed-var top.res.abs_8 Bool)
-(declare-primed-var top.res.abs_9 Bool)
-(declare-primed-var top.res.abs_10 Bool)
-(declare-primed-var top.res.inst_3 Bool)
-(declare-primed-var top.res.inst_2 Bool)
-(declare-primed-var top.res.inst_1 Bool)
-(declare-primed-var top.res.inst_0 Bool)
 
 (define-fun
   init (
@@ -378,9 +359,9 @@
   ) Bool
   
   (let
-   ((X1 Bool top.res.abs_10))
+   ((X1 top.res.abs_10))
    (let
-    ((X2 Int top.res.abs_4))
+    ((X2 top.res.abs_4))
     (and
      (= top.usr.OK (=> X1 (< X2 4)))
      (__node_init_voiture_0
@@ -454,9 +435,9 @@
   ) Bool
   
   (let
-   ((X1 Bool top.res.abs_10!))
+   ((X1 top.res.abs_10!))
    (let
-    ((X2 Int top.res.abs_4!))
+    ((X2 top.res.abs_4!))
     (and
      (= top.usr.OK! (=> X1 (< X2 4)))
      (__node_trans_voiture_0

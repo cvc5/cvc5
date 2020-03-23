@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_strings_rewriter_white.h
+/*! \file sequences_rewriter_white.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andres Noetzli
@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Unit tests for the strings rewriter
+ ** \brief Unit tests for the strings/sequences rewriter
  **
- ** Unit tests for the strings rewriter.
+ ** Unit tests for the strings/sequences rewriter.
  **/
 
 #include "expr/node.h"
@@ -20,7 +20,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/sequences_rewriter.h"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>
@@ -33,10 +33,10 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::strings;
 
-class TheoryStringsRewriterWhite : public CxxTest::TestSuite
+class SequencesRewriterWhite : public CxxTest::TestSuite
 {
  public:
-  TheoryStringsRewriterWhite() {}
+  SequencesRewriterWhite() {}
 
   void setUp() override
   {
@@ -56,6 +56,15 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     delete d_scope;
     delete d_smt;
     delete d_em;
+  }
+
+  void inNormalForm(Node t)
+  {
+    Node res_t = d_rewriter->extendedRewrite(t);
+
+    std::cout << std::endl;
+    std::cout << t << " ---> " << res_t << std::endl;
+    TS_ASSERT_EQUALS(t, res_t);
   }
 
   void sameNormalForm(Node t1, Node t2)
@@ -98,23 +107,23 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node three = d_nm->mkConst(Rational(3));
     Node i = d_nm->mkVar("i", intType);
 
-    TS_ASSERT(TheoryStringsRewriter::checkEntailLengthOne(a));
-    TS_ASSERT(TheoryStringsRewriter::checkEntailLengthOne(a, true));
+    TS_ASSERT(SequencesRewriter::checkEntailLengthOne(a));
+    TS_ASSERT(SequencesRewriter::checkEntailLengthOne(a, true));
 
     Node substr = d_nm->mkNode(kind::STRING_SUBSTR, x, zero, one);
-    TS_ASSERT(TheoryStringsRewriter::checkEntailLengthOne(substr));
-    TS_ASSERT(!TheoryStringsRewriter::checkEntailLengthOne(substr, true));
+    TS_ASSERT(SequencesRewriter::checkEntailLengthOne(substr));
+    TS_ASSERT(!SequencesRewriter::checkEntailLengthOne(substr, true));
 
     substr = d_nm->mkNode(kind::STRING_SUBSTR,
                           d_nm->mkNode(kind::STRING_CONCAT, a, x),
                           zero,
                           one);
-    TS_ASSERT(TheoryStringsRewriter::checkEntailLengthOne(substr));
-    TS_ASSERT(TheoryStringsRewriter::checkEntailLengthOne(substr, true));
+    TS_ASSERT(SequencesRewriter::checkEntailLengthOne(substr));
+    TS_ASSERT(SequencesRewriter::checkEntailLengthOne(substr, true));
 
     substr = d_nm->mkNode(kind::STRING_SUBSTR, x, zero, two);
-    TS_ASSERT(!TheoryStringsRewriter::checkEntailLengthOne(substr));
-    TS_ASSERT(!TheoryStringsRewriter::checkEntailLengthOne(substr, true));
+    TS_ASSERT(!SequencesRewriter::checkEntailLengthOne(substr));
+    TS_ASSERT(!SequencesRewriter::checkEntailLengthOne(substr, true));
   }
 
   void testCheckEntailArith()
@@ -129,10 +138,10 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     // 1 >= (str.len (str.substr z n 1)) ---> true
     Node substr_z = d_nm->mkNode(kind::STRING_LENGTH,
                                  d_nm->mkNode(kind::STRING_SUBSTR, z, n, one));
-    TS_ASSERT(TheoryStringsRewriter::checkEntailArith(one, substr_z));
+    TS_ASSERT(SequencesRewriter::checkEntailArith(one, substr_z));
 
     // (str.len (str.substr z n 1)) >= 1 ---> false
-    TS_ASSERT(!TheoryStringsRewriter::checkEntailArith(substr_z, one));
+    TS_ASSERT(!SequencesRewriter::checkEntailArith(substr_z, one));
   }
 
   void testCheckEntailArithWithAssumption()
@@ -156,25 +165,25 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
         Rewriter::rewrite(d_nm->mkNode(kind::EQUAL, x_plus_slen_y, zero));
 
     // x + (str.len y) = 0 |= 0 >= x --> true
-    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+    TS_ASSERT(SequencesRewriter::checkEntailArithWithAssumption(
         x_plus_slen_y_eq_zero, zero, x, false));
 
     // x + (str.len y) = 0 |= 0 > x --> false
-    TS_ASSERT(!TheoryStringsRewriter::checkEntailArithWithAssumption(
+    TS_ASSERT(!SequencesRewriter::checkEntailArithWithAssumption(
         x_plus_slen_y_eq_zero, zero, x, true));
 
     Node x_plus_slen_y_plus_z_eq_zero = Rewriter::rewrite(d_nm->mkNode(
         kind::EQUAL, d_nm->mkNode(kind::PLUS, x_plus_slen_y, z), zero));
 
     // x + (str.len y) + z = 0 |= 0 > x --> false
-    TS_ASSERT(!TheoryStringsRewriter::checkEntailArithWithAssumption(
+    TS_ASSERT(!SequencesRewriter::checkEntailArithWithAssumption(
         x_plus_slen_y_plus_z_eq_zero, zero, x, true));
 
     Node x_plus_slen_y_plus_slen_y_eq_zero = Rewriter::rewrite(d_nm->mkNode(
         kind::EQUAL, d_nm->mkNode(kind::PLUS, x_plus_slen_y, slen_y), zero));
 
     // x + (str.len y) + (str.len y) = 0 |= 0 >= x --> true
-    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+    TS_ASSERT(SequencesRewriter::checkEntailArithWithAssumption(
         x_plus_slen_y_plus_slen_y_eq_zero, zero, x, false));
 
     Node five = d_nm->mkConst(Rational(5));
@@ -184,11 +193,11 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
         Rewriter::rewrite(d_nm->mkNode(kind::LT, x_plus_five, six));
 
     // x + 5 < 6 |= 0 >= x --> true
-    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+    TS_ASSERT(SequencesRewriter::checkEntailArithWithAssumption(
         x_plus_five_lt_six, zero, x, false));
 
     // x + 5 < 6 |= 0 > x --> false
-    TS_ASSERT(!TheoryStringsRewriter::checkEntailArithWithAssumption(
+    TS_ASSERT(!SequencesRewriter::checkEntailArithWithAssumption(
         x_plus_five_lt_six, zero, x, true));
 
     Node neg_x = d_nm->mkNode(kind::UMINUS, x);
@@ -196,16 +205,16 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
         Rewriter::rewrite(d_nm->mkNode(kind::LT, x_plus_five, five));
 
     // x + 5 < 5 |= -x >= 0 --> true
-    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+    TS_ASSERT(SequencesRewriter::checkEntailArithWithAssumption(
         x_plus_five_lt_five, neg_x, zero, false));
 
     // x + 5 < 5 |= 0 > x --> true
-    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+    TS_ASSERT(SequencesRewriter::checkEntailArithWithAssumption(
         x_plus_five_lt_five, zero, x, false));
 
     // 0 < x |= x >= (str.len (int.to.str x))
     Node assm = Rewriter::rewrite(d_nm->mkNode(kind::LT, zero, x));
-    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+    TS_ASSERT(SequencesRewriter::checkEntailArithWithAssumption(
         assm,
         x,
         d_nm->mkNode(kind::STRING_LENGTH, d_nm->mkNode(kind::STRING_ITOS, x)),
@@ -234,7 +243,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
 
     // (str.substr "A" x x) --> ""
     Node n = d_nm->mkNode(kind::STRING_SUBSTR, a, x, x);
-    Node res = TheoryStringsRewriter::rewriteSubstr(n);
+    Node res = SequencesRewriter::rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, empty);
 
     // (str.substr "A" (+ x 1) x) -> ""
@@ -242,7 +251,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                      a,
                      d_nm->mkNode(kind::PLUS, x, d_nm->mkConst(Rational(1))),
                      x);
-    res = TheoryStringsRewriter::rewriteSubstr(n);
+    res = SequencesRewriter::rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, empty);
 
     // (str.substr "A" (+ x (str.len s2)) x) -> ""
@@ -251,24 +260,24 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
         a,
         d_nm->mkNode(kind::PLUS, x, d_nm->mkNode(kind::STRING_LENGTH, s)),
         x);
-    res = TheoryStringsRewriter::rewriteSubstr(n);
+    res = SequencesRewriter::rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, empty);
 
     // (str.substr "A" x y) -> (str.substr "A" x y)
     n = d_nm->mkNode(kind::STRING_SUBSTR, a, x, y);
-    res = TheoryStringsRewriter::rewriteSubstr(n);
+    res = SequencesRewriter::rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, n);
 
     // (str.substr "ABCD" (+ x 3) x) -> ""
     n = d_nm->mkNode(
         kind::STRING_SUBSTR, abcd, d_nm->mkNode(kind::PLUS, x, three), x);
-    res = TheoryStringsRewriter::rewriteSubstr(n);
+    res = SequencesRewriter::rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, empty);
 
     // (str.substr "ABCD" (+ x 2) x) -> (str.substr "ABCD" (+ x 2) x)
     n = d_nm->mkNode(
         kind::STRING_SUBSTR, abcd, d_nm->mkNode(kind::PLUS, x, two), x);
-    res = TheoryStringsRewriter::rewriteSubstr(n);
+    res = SequencesRewriter::rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, n);
 
     // (str.substr (str.substr s x x) x x) -> ""
@@ -431,8 +440,8 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                                 x,
                                 d_nm->mkNode(kind::STRING_STRREPL, x, gh, ij),
                                 ij);
-    Node res_concat1 = TheoryStringsRewriter::lengthPreserveRewrite(concat1);
-    Node res_concat2 = TheoryStringsRewriter::lengthPreserveRewrite(concat2);
+    Node res_concat1 = SequencesRewriter::lengthPreserveRewrite(concat1);
+    Node res_concat2 = SequencesRewriter::lengthPreserveRewrite(concat2);
     TS_ASSERT_EQUALS(res_concat1, res_concat2);
   }
 
@@ -1040,32 +1049,32 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node empty_x_y = d_nm->mkNode(kind::AND,
                                   d_nm->mkNode(kind::EQUAL, empty, x),
                                   d_nm->mkNode(kind::EQUAL, empty, y));
-    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(empty, xy),
+    sameNormalForm(SequencesRewriter::inferEqsFromContains(empty, xy),
                    empty_x_y);
 
     // inferEqsFromContains(x, (str.++ x y)) returns false
     Node bxya = d_nm->mkNode(kind::STRING_CONCAT, b, y, x, a);
-    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(x, bxya), f);
+    sameNormalForm(SequencesRewriter::inferEqsFromContains(x, bxya), f);
 
     // inferEqsFromContains(x, y) returns null
-    Node n = TheoryStringsRewriter::inferEqsFromContains(x, y);
+    Node n = SequencesRewriter::inferEqsFromContains(x, y);
     TS_ASSERT(n.isNull());
 
     // inferEqsFromContains(x, x) returns something equivalent to (= x x)
     Node eq_x_x = d_nm->mkNode(kind::EQUAL, x, x);
-    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(x, x), eq_x_x);
+    sameNormalForm(SequencesRewriter::inferEqsFromContains(x, x), eq_x_x);
 
     // inferEqsFromContains((str.replace x "B" "A"), x) returns something
     // equivalent to (= (str.replace x "B" "A") x)
     Node repl = d_nm->mkNode(kind::STRING_STRREPL, x, b, a);
     Node eq_repl_x = d_nm->mkNode(kind::EQUAL, repl, x);
-    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(repl, x),
+    sameNormalForm(SequencesRewriter::inferEqsFromContains(repl, x),
                    eq_repl_x);
 
     // inferEqsFromContains(x, (str.replace x "B" "A")) returns something
     // equivalent to (= (str.replace x "B" "A") x)
     Node eq_x_repl = d_nm->mkNode(kind::EQUAL, x, repl);
-    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(x, repl),
+    sameNormalForm(SequencesRewriter::inferEqsFromContains(x, repl),
                    eq_x_repl);
   }
 
@@ -1393,7 +1402,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> nb;
       std::vector<Node> ne;
       bool res =
-          TheoryStringsRewriter::stripConstantEndpoints(n1, n2, nb, ne, 0);
+          SequencesRewriter::stripConstantEndpoints(n1, n2, nb, ne, 0);
       TS_ASSERT(!res);
     }
 
@@ -1405,7 +1414,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> nb;
       std::vector<Node> ne;
       bool res =
-          TheoryStringsRewriter::stripConstantEndpoints(n1, n2, nb, ne, 0);
+          SequencesRewriter::stripConstantEndpoints(n1, n2, nb, ne, 0);
       TS_ASSERT(!res);
     }
 
@@ -1421,7 +1430,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> n1r = {cd};
       std::vector<Node> nbr = {ab};
       bool res =
-          TheoryStringsRewriter::stripConstantEndpoints(n1, n2, nb, ne, 1);
+          SequencesRewriter::stripConstantEndpoints(n1, n2, nb, ne, 1);
       TS_ASSERT(res);
       TS_ASSERT_EQUALS(n1, n1r);
       TS_ASSERT_EQUALS(nb, nbr);
@@ -1439,7 +1448,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> n1r = {c, x};
       std::vector<Node> nbr = {ab};
       bool res =
-          TheoryStringsRewriter::stripConstantEndpoints(n1, n2, nb, ne, 1);
+          SequencesRewriter::stripConstantEndpoints(n1, n2, nb, ne, 1);
       TS_ASSERT(res);
       TS_ASSERT_EQUALS(n1, n1r);
       TS_ASSERT_EQUALS(nb, nbr);
@@ -1457,7 +1466,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> n1r = {a};
       std::vector<Node> ner = {bc};
       bool res =
-          TheoryStringsRewriter::stripConstantEndpoints(n1, n2, nb, ne, -1);
+          SequencesRewriter::stripConstantEndpoints(n1, n2, nb, ne, -1);
       TS_ASSERT(res);
       TS_ASSERT_EQUALS(n1, n1r);
       TS_ASSERT_EQUALS(ne, ner);
@@ -1475,7 +1484,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> n1r = {x, a};
       std::vector<Node> ner = {bc};
       bool res =
-          TheoryStringsRewriter::stripConstantEndpoints(n1, n2, nb, ne, -1);
+          SequencesRewriter::stripConstantEndpoints(n1, n2, nb, ne, -1);
       TS_ASSERT(res);
       TS_ASSERT_EQUALS(n1, n1r);
       TS_ASSERT_EQUALS(ne, ner);
@@ -1525,6 +1534,37 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                        d_nm->mkNode(kind::REGEXP_CONCAT, sig_star, re_abc));
       Node rhs = d_nm->mkNode(kind::STRING_STRCTN, x, abc);
       differentNormalForms(lhs, rhs);
+    }
+  }
+
+  void testRewriteRegexpConcat()
+  {
+    TypeNode strType = d_nm->stringType();
+
+    std::vector<Node> emptyArgs;
+    Node x = d_nm->mkVar("x", strType);
+    Node y = d_nm->mkVar("y", strType);
+    Node allStar = d_nm->mkNode(kind::REGEXP_STAR,
+                                d_nm->mkNode(kind::REGEXP_SIGMA, emptyArgs));
+    Node xReg = d_nm->mkNode(kind::STRING_TO_REGEXP, x);
+    Node yReg = d_nm->mkNode(kind::STRING_TO_REGEXP, y);
+
+    {
+      // In normal form:
+      //
+      // (re.++ (re.* re.allchar) (re.union (str.to.re x) (str.to.re y)))
+      Node n = d_nm->mkNode(kind::REGEXP_CONCAT,
+                            allStar,
+                            d_nm->mkNode(kind::REGEXP_UNION, xReg, yReg));
+      inNormalForm(n);
+    }
+
+    {
+      // In normal form:
+      //
+      // (re.++ (str.to.re x) (re.* re.allchar))
+      Node n = d_nm->mkNode(kind::REGEXP_CONCAT, xReg, allStar);
+      inNormalForm(n);
     }
   }
 

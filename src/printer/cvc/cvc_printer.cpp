@@ -27,12 +27,12 @@
 #include "expr/dtype.h"
 #include "expr/expr.h"                     // for ExprSetDepth etc..
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
-#include "options/language.h"              // for LANG_AST
+#include "expr/node_visitor.h"
+#include "options/language.h"  // for LANG_AST
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
 #include "smt/command.h"
 #include "smt/smt_engine.h"
-#include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
