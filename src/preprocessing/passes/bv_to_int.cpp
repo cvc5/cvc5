@@ -404,11 +404,13 @@ Node BVToInt::bvToInt(Node n)
               if (translated_children[0].isConst()
                   || translated_children[1].isConst())
               {
+                // this is an optimization when one of the children is constant
                 Node c = translated_children[0].isConst()
                              ? translated_children[0]
                              : translated_children[1];
                 d_rangeAssertions.insert(
                     d_nm->mkNode(kind::LEQ, d_zero, sigma));
+                // the value of sigma is bounded by the constant multiplicand
                 d_rangeAssertions.insert(d_nm->mkNode(kind::LT, sigma, c));
               }
               else
