@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
@@ -76,7 +77,8 @@ class InferenceManager
                    context::UserContext* u,
                    SolverState& s,
                    SkolemCache& skc,
-                   OutputChannel& out);
+                   OutputChannel& out,
+                   SequencesStatistics& statistics);
   ~InferenceManager() {}
 
   /** send internal inferences
@@ -141,6 +143,28 @@ class InferenceManager
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+
+  /**
+   * The same as `sendInference()` above but with an `Inference` instead of a
+   * string. This variant updates the statistics about the number of inferences
+   * made of each type.
+   */
+  void sendInference(const std::vector<Node>& exp,
+                     const std::vector<Node>& exp_n,
+                     Node eq,
+                     Inference infer,
+                     bool asLemma = false);
+
+  /**
+   * The same as `sendInference()` above but with an `Inference` instead of a
+   * string. This variant updates the statistics about the number of inferences
+   * made of each type.
+   */
+  void sendInference(const std::vector<Node>& exp,
+                     Node eq,
+                     Inference infer,
+                     bool asLemma = false);
+
   /** Send inference
    *
    * Makes the appropriate call to send inference based on the infer info
@@ -327,6 +351,10 @@ class InferenceManager
    * This is a reference to the output channel of the theory of strings.
    */
   OutputChannel& d_out;
+
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
+
   /** Common constants */
   Node d_emptyString;
   Node d_true;
@@ -366,6 +394,7 @@ class InferenceManager
   NodeNodeMap d_proxyVarToLength;
   /** List of terms that we have register length for */
   NodeSet d_lengthLemmaTermsCache;
+
   /** infer substitution proxy vars
    *
    * This method attempts to (partially) convert the formula n into a

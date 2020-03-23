@@ -16,7 +16,6 @@
 #include "theory/strings/base_solver.h"
 
 #include "options/strings_options.h"
-#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
@@ -36,6 +35,7 @@ BaseSolver::BaseSolver(context::Context* c,
   d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = utils::getAlphabetCardinality();
+  d_type = NodeManager::currentNM()->stringType();
 }
 
 BaseSolver::~BaseSolver() {}
@@ -254,7 +254,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
   if (!n.isNull())
   {
     // construct the constant
-    Node c = utils::mkNConcat(vecc);
+    Node c = utils::mkNConcat(vecc, d_type);
     if (!d_state.areEqual(n, c))
     {
       if (Trace.isOn("strings-debug"))

@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 ; Synthesize the maximum of 2 integers, but property has 4 variables (requires 2 passes)
 (set-logic LIA)
 (synth-fun max2 ((x Int) (y Int)) Int)
@@ -9,4 +9,3 @@
 (declare-var w Int)
 (constraint (=> (< r 0) (=> (or (and (= x w) (= y (+ w r))) (and (= x (+ w r)) (= y w))) (= (max2 x y) w))))
 (check-synth)
-
