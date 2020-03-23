@@ -123,8 +123,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
             << ", argument to a lambda constructor is not " << lat << std::endl;
       }
       // See if it is a builtin kind, possible if the operator is of the form:
-      // lambda x1 ... xn. f( x1, ..., xn ) and f is not a parametrized kind
-      // (e.g. APPLY_UF).
+      // lambda x1 ... xn. f( x1, ..., xn ) and f is not a parameterized kind
+      // (e.g. APPLY_UF is a parameterized kind).
       if (sop[1].getMetaKind() != kind::metakind::PARAMETERIZED)
       {
         size_t nchild = sop[0].getNumChildren();
