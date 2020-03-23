@@ -73,7 +73,7 @@ enumerator SEQUENCE_TYPE \
 
 constant CONST_SEQUENCE \
     ::CVC4::ExprSequence \
-    ::CVC4::strings::ExprSequenceHashFunction \
+    ::CVC4::ExprSequenceHashFunction \
     "expr/expr_sequence.h" \
     "a sequence of characters"
 

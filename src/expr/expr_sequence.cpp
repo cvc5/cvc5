@@ -90,11 +90,9 @@ std::ostream& operator<<(std::ostream& os, const ExprSequence& s)
             << "\"";
 }
 
-namespace strings {
 size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const
 {
   return TypeHashFunction()(es.getType());
 }
-}  // namespace strings
 
 }  // namespace CVC4
