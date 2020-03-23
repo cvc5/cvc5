@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status --decision=justification
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status --decision=justification
 
 (set-logic ALL_SUPPORTED)
 (declare-var m Int)
@@ -8,7 +8,7 @@
 (declare-datatypes ((tuple2 0)) ( ((tuple2 (_m Int) (_s Int))) ))
 
 (synth-fun x12 ((m Int) (s Int) (inc Int)) tuple2)
-(constraint (=> 
-(and (>= m 0) (>= s 0) (< s 3) (> inc 0)) 
+(constraint (=>
+(and (>= m 0) (>= s 0) (< s 3) (> inc 0))
 (and (>= (_m (x12 m s inc)) 0) (>= (_s (x12 m s inc)) 0) (< (_s (x12 m s inc)) 3) (= (+ (* (_m (x12 m s inc)) 3) (_s (x12 m s inc))) (+ (+ (* m 3) s) inc)))))
 (check-synth)
