@@ -410,7 +410,9 @@ Node BVToInt::bvToInt(Node n)
                              : translated_children[1];
                 d_rangeAssertions.insert(
                     d_nm->mkNode(kind::LEQ, d_zero, sigma));
-                // the value of sigma is bounded by the constant multiplicand
+                // the value of sigma is bounded by
+                // 2^bitwidth * (c - 1)
+                // where c is the constant multiplicand
                 d_rangeAssertions.insert(d_nm->mkNode(kind::LT, sigma, c));
               }
               else
