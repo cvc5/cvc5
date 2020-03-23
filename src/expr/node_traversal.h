@@ -68,26 +68,18 @@ class NodeDfsIterator
   //     previsited)
   //   * pop a not-yet-post-visited node (and mark it post-visited)
   //   * pop an already post-visited node.
-  void advanceUntilVisit();
+  void advanceToNextVisit();
 
   // If this iterator hasn't been dereferenced or incremented yet, advance to
   // first visit.
-  // Necessary because we break the "top of stack is current visit" invariant
-  // during construction to keep construction cheap. See `d_stack`.
+  // Necessary because we are lazy and don't find our first visit node at
+  // construction time.
   void initializeIfUninitialized();
 
   // Step past a pre-visit: record it and enqueue children
   void finishPreVisit();
 
-  // General Invariant: The top node on the stack (`d_stack.back()`) is the
-  // current location of the traversal.
-  //
-  // There is one exception to this: when an iterator is constructed
-  // (the stack has one node and nothing has been visited)
-  //
-  // While we could expand the stack, adding children until the top node is a
-  // leaf, we do not do so, because this is expensive, and we want construction
-  // to be cheap.
+  // Stack of nodes to visit.
   std::vector<TNode> d_stack;
 
   // Whether (and how) we've visited a node.
@@ -102,6 +94,9 @@ class NodeDfsIterator
   // Whether this iterator has been initialized (advanced to its first
   // visit)
   bool d_initialized;
+
+  // Current referent node. Valid if `d_initialized` and we're not at the end.
+  TNode d_current;
 };
 
 // Node wrapper that is iterable in DAG post-order

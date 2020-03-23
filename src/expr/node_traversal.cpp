@@ -17,12 +17,20 @@
 namespace CVC4 {
 
 NodeDfsIterator::NodeDfsIterator(TNode n, bool postorder)
-    : d_stack{n}, d_visited(), d_postorder(postorder), d_initialized(!postorder)
+    : d_stack{n},
+      d_visited(),
+      d_postorder(postorder),
+      d_initialized(false),
+      d_current(TNode())
 {
 }
 
 NodeDfsIterator::NodeDfsIterator(bool postorder)
-    : d_stack(), d_visited(), d_postorder(postorder), d_initialized(true)
+    : d_stack(),
+      d_visited(),
+      d_postorder(postorder),
+      d_initialized(true),
+      d_current(TNode())
 {
 }
 
@@ -31,20 +39,9 @@ NodeDfsIterator& NodeDfsIterator::operator++()
   // If we were just constructed, advance to first visit
   initializeIfUninitialized();
 
-  // Advance past our current visit
-  if (d_postorder)
-  {
-    Assert(!d_stack.empty());
-    d_visited[d_stack.back()] = true;
-    d_stack.pop_back();
-  }
-  else
-  {
-    finishPreVisit();
-  }
-
-  // Make sure we're at an appropriate visit
-  advanceUntilVisit();
+  // Void our current visit, and advance to the next one
+  d_current = TNode();
+  advanceToNextVisit();
   return *this;
 }
 
@@ -59,16 +56,17 @@ TNode& NodeDfsIterator::operator*()
 {
   // If we were just constructed, advance to first visit
   initializeIfUninitialized();
+  Assert(d_initialized);
 
-  return d_stack.back();
+  return d_current;
 }
 
 bool NodeDfsIterator::operator==(const NodeDfsIterator& other) const
 {
-  // The stack uniquely represents traversal state. We need not use the
-  // scheduled node set. We also ignore the order: users should not compare
-  // nodes of different order.
-  return d_stack == other.d_stack;
+  // The stack and current node uniquely represent traversal state. We need not
+  // use the scheduled node set. We also ignore the order: users should not
+  // compare nodes of different order.
+  return d_stack == other.d_stack && d_current == other.d_current;
 }
 
 bool NodeDfsIterator::operator!=(const NodeDfsIterator& other) const
@@ -76,10 +74,9 @@ bool NodeDfsIterator::operator!=(const NodeDfsIterator& other) const
   return !(*this == other);
 }
 
-void NodeDfsIterator::advanceUntilVisit()
+void NodeDfsIterator::advanceToNextVisit()
 {
   // While a node is enqueued and we're not at the right visit type
-
   while (!d_stack.empty())
   {
     TNode back = d_stack.back();
@@ -87,26 +84,30 @@ void NodeDfsIterator::advanceUntilVisit()
     if (visitEntry == d_visited.end())
     {
       // if we haven't pre-visited this node, pre-visit it
+      d_visited[back] = false;
+      d_current = back;
+      // Use integer underflow to reverse-iterate
+      for (size_t n = back.getNumChildren(), i = n - 1; i < n; --i)
+      {
+        d_stack.push_back(back[i]);
+      }
       if (!d_postorder)
       {
         return;
       }
-      finishPreVisit();
     }
-    else if (visitEntry->second)
+    else if (!d_postorder || visitEntry->second)
     {
-      // if we've already post-visited this node: skip it
+      // if we're previsiting or we've already post-visited this node: skip it
       d_stack.pop_back();
     }
     else
     {
       // otherwise, this is a post-visit
-      if (d_postorder)
-      {
-        return;
-      }
       visitEntry->second = true;
+      d_current = back;
       d_stack.pop_back();
+      return;
     }
   }
 }
@@ -115,7 +116,7 @@ void NodeDfsIterator::initializeIfUninitialized()
 {
   if (!d_initialized)
   {
-    advanceUntilVisit();
+    advanceToNextVisit();
     d_initialized = true;
   }
 }

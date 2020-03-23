@@ -159,7 +159,6 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
 
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
-    std::cerr << actual << endl;
     TS_ASSERT_EQUALS(actual, expected);
   }
 };
