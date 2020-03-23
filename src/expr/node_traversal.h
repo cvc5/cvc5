@@ -68,6 +68,8 @@ class NodeDfsIterator
   //     previsited)
   //   * pop a not-yet-post-visited node (and mark it post-visited)
   //   * pop an already post-visited node.
+  // After calling this, `d_current` will be changed to the next node, if there
+  // is another node in the traversal.
   void advanceToNextVisit();
 
   // If this iterator hasn't been dereferenced or incremented yet, advance to
@@ -75,9 +77,6 @@ class NodeDfsIterator
   // Necessary because we are lazy and don't find our first visit node at
   // construction time.
   void initializeIfUninitialized();
-
-  // Step past a pre-visit: record it and enqueue children
-  void finishPreVisit();
 
   // Stack of nodes to visit.
   std::vector<TNode> d_stack;
@@ -95,7 +94,8 @@ class NodeDfsIterator
   // visit)
   bool d_initialized;
 
-  // Current referent node. Valid if `d_initialized` and we're not at the end.
+  // Current referent node. A valid node to visit if non-null.
+  // Null after construction (but before first access) and at the end.
   TNode d_current;
 };
 

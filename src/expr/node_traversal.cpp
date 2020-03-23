@@ -20,7 +20,6 @@ NodeDfsIterator::NodeDfsIterator(TNode n, bool postorder)
     : d_stack{n},
       d_visited(),
       d_postorder(postorder),
-      d_initialized(false),
       d_current(TNode())
 {
 }
@@ -29,7 +28,6 @@ NodeDfsIterator::NodeDfsIterator(bool postorder)
     : d_stack(),
       d_visited(),
       d_postorder(postorder),
-      d_initialized(true),
       d_current(TNode())
 {
 }
@@ -56,7 +54,7 @@ TNode& NodeDfsIterator::operator*()
 {
   // If we were just constructed, advance to first visit
   initializeIfUninitialized();
-  Assert(d_initialized);
+  Assert(!d_current.isNull());
 
   return d_current;
 }
@@ -114,22 +112,9 @@ void NodeDfsIterator::advanceToNextVisit()
 
 void NodeDfsIterator::initializeIfUninitialized()
 {
-  if (!d_initialized)
+  if (d_current.isNull())
   {
     advanceToNextVisit();
-    d_initialized = true;
-  }
-}
-
-void NodeDfsIterator::finishPreVisit()
-{
-  Assert(!d_stack.empty());
-  TNode back = d_stack.back();
-  d_visited[back] = false;
-  // Use integer underflow to reverse-iterate
-  for (size_t n = back.getNumChildren(), i = n - 1; i < n; --i)
-  {
-    d_stack.push_back(back[i]);
   }
 }
 
