@@ -608,6 +608,7 @@ set(regress_0_tests
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
   regress0/parser/bv_arity_smt2.6.smt2
+  regress0/parser/bv_nat.smt2
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/force_logic_set_logic.smt2
@@ -724,6 +725,7 @@ set(regress_0_tests
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
   regress0/quantifiers/issue3655.smt2
+  regress0/quantifiers/issue4086-infs.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
@@ -930,6 +932,7 @@ set(regress_0_tests
   regress0/strings/issue3440.smt2
   regress0/strings/issue3497.smt2
   regress0/strings/issue3657-evalLeq.smt2
+  regress0/strings/issue4070.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1279,6 +1282,7 @@ set(regress_1_tests
   regress1/fmf/issue3615.smt2
   regress1/fmf/issue3626.smt2
   regress1/fmf/issue3689.smt2
+  regress1/fmf/issue4068-si-qf.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
@@ -1297,6 +1301,9 @@ set(regress_1_tests
   regress1/gensys_brn001.smt2
   regress1/ho/fta0328.lfho.p
   regress1/ho/issue3136-fconst-bool-bool.smt2
+  regress1/ho/issue4065-no-rep.smt2
+  regress1/ho/issue4092-sinf.smt2
+  regress1/ho/issue4134-sinf.smt2
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/NUM638^1.smt2
@@ -1862,6 +1869,7 @@ set(regress_1_tests
   regress1/sygus/issue3995-fmf-var-op.smt2
   regress1/sygus/issue4009-qep.smt2
   regress1/sygus/issue4025-no-rlv-cond.smt2
+  regress1/sygus/issue4083-var-shadow.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -1973,6 +1981,8 @@ set(regress_2_tests
   regress2/bug765.smt2
   regress2/bug812.smt2
   regress2/bv_to_int_ashr.smt2
+  regress2/bv_to_int_mask_array_1.smt2
+  regress2/bv_to_int_mask_array_2.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/error0.smt2
   regress2/error1.smtv1.smt2

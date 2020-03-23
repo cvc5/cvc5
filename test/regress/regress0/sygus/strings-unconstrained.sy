@@ -1,10 +1,9 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic SLIA)
 (synth-fun f ((firstname String) (lastname String)) String
-((Start String (ntString))
-
-(ntString String (
+((ntString String))
+((ntString String (
 firstname 
 lastname 
 " "
@@ -12,4 +11,3 @@ lastname
 ))
 
 (check-synth)
-

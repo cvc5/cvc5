@@ -19,7 +19,6 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings.h"
-#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
@@ -35,11 +34,13 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::UserContext* u,
                                    SolverState& s,
                                    SkolemCache& skc,
-                                   OutputChannel& out)
+                                   OutputChannel& out,
+                                   SequencesStatistics& statistics)
     : d_parent(p),
       d_state(s),
       d_skCache(skc),
       d_out(out),
+      d_statistics(statistics),
       d_keep(c),
       d_proxyVar(u),
       d_proxyVarToLength(u),
@@ -187,13 +188,33 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   sendInference(exp, exp_n, eq, c, asLemma);
 }
 
-void InferenceManager::sendInference(const InferInfo& i)
+void InferenceManager::sendInference(const std::vector<Node>& exp,
+                                     const std::vector<Node>& exp_n,
+                                     Node eq,
+                                     Inference infer,
+                                     bool asLemma)
 {
-  std::stringstream ssi;
-  ssi << i.d_id;
-  sendInference(i.d_ant, i.d_antn, i.d_conc, ssi.str().c_str(), true);
+  d_statistics.d_inferences << infer;
+  std::stringstream ss;
+  ss << infer;
+  sendInference(exp, exp_n, eq, ss.str().c_str(), asLemma);
 }
 
+void InferenceManager::sendInference(const std::vector<Node>& exp,
+                                     Node eq,
+                                     Inference infer,
+                                     bool asLemma)
+{
+  d_statistics.d_inferences << infer;
+  std::stringstream ss;
+  ss << infer;
+  sendInference(exp, eq, ss.str().c_str(), asLemma);
+}
+
+void InferenceManager::sendInference(const InferInfo& i)
+{
+  sendInference(i.d_ant, i.d_antn, i.d_conc, i.d_id, true);
+}
 void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
 {
   if (conc.isNull() || conc == d_false)
