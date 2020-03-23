@@ -1,3 +1,4 @@
+; COMMAND-LINE: --arith-brab
 ; EXPECT: sat
 (set-logic ALL)
 
