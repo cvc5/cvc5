@@ -1,3 +1,4 @@
+; REQUIRES: no-competition
 ; EXPECT: sat
 ; EXPECT: not declared
 ; SCRUBBER: grep -o "sat\|not declared"

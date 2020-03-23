@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --no-sygus-pbe --cegqi-si=none --sygus-grammar-cons=any-term
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --no-sygus-pbe --cegqi-si=none --sygus-grammar-cons=any-term
 (set-logic ALL)
 (synth-fun f ((x String) (y String)) Int)
 (declare-var x String)

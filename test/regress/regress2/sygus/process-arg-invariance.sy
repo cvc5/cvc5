@@ -1,9 +1,8 @@
-; COMMAND-LINE: --cegqi-si=none --sygus-out=status --no-sygus-add-const-grammar --sygus-arg-relevant
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=none --sygus-out=status --no-sygus-add-const-grammar --sygus-arg-relevant
 ; EXPECT: unsat
 (set-logic LIA)
 
 (synth-fun f ((x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int) (x6 Int) (x7 Int) (x8 Int) (x9 Int) (x10 Int)) Int)
-
 
 (declare-var x Int)
 (declare-var y Int)
@@ -15,4 +14,3 @@
 (constraint (<= (f x x x x x x x x x 0) (+ x x x)))
 
 (check-synth)
-

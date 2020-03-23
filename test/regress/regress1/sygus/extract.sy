@@ -1,18 +1,19 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 
 (set-logic ALL_SUPPORTED)
 (declare-datatype Ex ((Ex2 (ex Int))))
 
 (synth-fun ident ((x1 Ex)) Int
+	((Start Int) (ntInt Int) (ntEx Ex))
 	(
 		(Start Int (ntInt))
 		(ntInt Int
 			(
 				(ex ntEx)
- 			)
+			)
 		)
-		(ntEx Ex ( x1 ) )
+		(ntEx Ex ( x1 ))
 	)
 )
 (constraint (= (ident (Ex2 1)) 1))

@@ -524,7 +524,7 @@ class NonlinearExtension {
    * that contain transcendental functions.
    */
   std::map<Node, Node> d_trMaster;
-  std::map<Node, std::vector<Node> > d_trSlaves;
+  std::map<Node, std::unordered_set<Node, NodeHashFunction>> d_trSlaves;
   /** The transcendental functions we have done initial refinements on */
   std::map< Node, bool > d_tf_initial_refine;
 

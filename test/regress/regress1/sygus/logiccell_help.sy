@@ -1,119 +1,118 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --sygus-repair-const
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-repair-const
 (set-logic BV)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Utils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-sort Bit () (BitVec 1))
+(define-sort Bit () (_ BitVec 1))
 
-(define-fun bit2bool ((b Bit)) Bool 
+(define-fun bit2bool ((b Bit)) Bool
     (= b #b1)
 )
 
-(define-fun extend ((i (BitVec 4))) (BitVec 16)
+(define-fun extend ((i (_ BitVec 4))) (_ BitVec 16)
     (concat #b000000000000 i)
 )
 
-(define-fun extractBit ((i (BitVec 4)) (x (BitVec 16))) Bit
-	((_ extract 0 0) (bvlshr x (extend i)))
+(define-fun extractBit ((i (_ BitVec 4)) (x (_ BitVec 16))) Bit
+    ((_ extract 0 0) (bvlshr x (extend i)))
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Arch
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun lut4 ((i0 Bit) (i1 Bit) (i2 Bit) (i3 Bit) (lut_val (BitVec 16))) Bit
+(define-fun lut4 ((i0 Bit) (i1 Bit) (i2 Bit) (i3 Bit) (lut_val (_ BitVec 16))) Bit
     (extractBit (concat i0 i1 i2 i3) lut_val)
 )
 
 (define-fun carry ((i0 Bit) (i1 Bit) (ci Bit)) Bit
-	(bvor (bvand i0 i1) (bvand i0 ci) (bvand i1 ci))
+    (bvor (bvand i0 i1) (bvand i0 ci) (bvand i1 ci))
 )
 
 (define-fun mux2 ((s Bit) (i0 Bit) (i1 Bit)) Bit
     ;(ite (bit2bool s) i0 i1)
-	(bvor (bvand s i0) (bvand (bvnot s) i1))
+    (bvor (bvand s i0) (bvand (bvnot s) i1))
 )
 
 (define-fun logic-cell (
-		(i0 Bit) (i1 Bit) (i2 Bit) (i3 Bit) (c_in Bit) ; inputs
-		(s Bit) (lut_val (BitVec 16)) ;configs
-	) (BitVec 2) ; Cout O
-	(let (
-		(c_out Bit (carry i1 i2 c_in)) 
-		(l_out Bit (lut4 i0 i1 i2 (mux2 s i3 c_in) lut_val))
-	)
-	(concat c_out l_out)
+        (i0 Bit) (i1 Bit) (i2 Bit) (i3 Bit) (c_in Bit) ; inputs
+        (s Bit) (lut_val (_ BitVec 16)) ;configs
+    ) (_ BitVec 2) ; Cout O
+    (let (
+        (c_out (carry i1 i2 c_in))
+        (l_out (lut4 i0 i1 i2 (mux2 s i3 c_in) lut_val))
+    )
+    (concat c_out l_out)
 ))
 
 (define-fun plb2 (
-		(i_0_0 Bit) (i_0_1 Bit) (i_0_2 Bit) (i_0_3 Bit)
-		(i_1_0 Bit) (i_1_1 Bit) (i_1_2 Bit) (i_1_3 Bit)
-		(c_in Bit)
-		(s_0 Bit) (lut_val_0 (BitVec 16)) ;configs
-		(s_1 Bit) (lut_val_1 (BitVec 16)) ;configs
-	) (BitVec 3)
-	(let ((lc0 (BitVec 2) (logic-cell i_0_0 i_0_1 i_0_2 i_0_3 c_in s_0 lut_val_0)))
-	(let ((lc1 (BitVec 2) (logic-cell i_1_0 i_1_1 i_1_2 i_1_3 ((_ extract 1 1) lc0) s_1 lut_val_1)))
-	(concat lc1 ((_ extract 0 0) lc0))
-	))
+        (i_0_0 Bit) (i_0_1 Bit) (i_0_2 Bit) (i_0_3 Bit)
+        (i_1_0 Bit) (i_1_1 Bit) (i_1_2 Bit) (i_1_3 Bit)
+        (c_in Bit)
+        (s_0 Bit) (lut_val_0 (_ BitVec 16)) ;configs
+        (s_1 Bit) (lut_val_1 (_ BitVec 16)) ;configs
+    ) (_ BitVec 3)
+    (let ((lc0 (logic-cell i_0_0 i_0_1 i_0_2 i_0_3 c_in s_0 lut_val_0)))
+    (let ((lc1 (logic-cell i_1_0 i_1_1 i_1_2 i_1_3 ((_ extract 1 1) lc0) s_1 lut_val_1)))
+    (concat lc1 ((_ extract 0 0) lc0))
+    ))
 )
-	
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; synth
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-fun extract2 ((i (BitVec 1)) (x (BitVec 2))) Bit
-	((_ extract 0 0) (bvlshr x (concat #b0 i)))
+(define-fun extract2 ((i (_ BitVec 1)) (x (_ BitVec 2))) Bit
+    ((_ extract 0 0) (bvlshr x (concat #b0 i)))
 )
 
-(synth-fun f ((x (BitVec 2)) (y (BitVec 2)) (c_in Bit)) (BitVec 3) (
-	(Start (BitVec 3) (
-		(plb2 #b0 (extract2 #b0 x) (extract2 #b0 y) #b0
-			  #b0 (extract2 #b1 x) (extract2 #b1 y) #b0
-			  Cin
-			  S LUT_VAL 
-			  S LUT_VAL)
-	))
-	(Cin Bit (
-		c_in
-		(Constant Bit)
-	))
-	(S Bit (
-		(Constant Bit)
-	))
-	(LUT_VAL (BitVec 16) (	
-		(Constant (BitVec 16))
-	))
+(synth-fun f ((x (_ BitVec 2)) (y (_ BitVec 2)) (c_in Bit)) (_ BitVec 3)
+    ((Start (_ BitVec 3)) (Cin Bit) (S Bit) (LUT_VAL (_ BitVec 16))) (
+    (Start (_ BitVec 3) (
+        (plb2 #b0 (extract2 #b0 x) (extract2 #b0 y) #b0
+              #b0 (extract2 #b1 x) (extract2 #b1 y) #b0
+              Cin
+              S LUT_VAL
+              S LUT_VAL)
+    ))
+    (Cin Bit (
+        c_in
+        (Constant Bit)
+    ))
+    (S Bit (
+        (Constant Bit)
+    ))
+    (LUT_VAL (_ BitVec 16) (
+        (Constant (_ BitVec 16))
+    ))
 ))
 
-(declare-var x (BitVec 2))
-(declare-var y (BitVec 2))
+(declare-var x (_ BitVec 2))
+(declare-var y (_ BitVec 2))
 
-(constraint (= 
-			(bvadd (concat #b0 x) (concat #b0 y))
-			(f x y #b0)
+(constraint (=
+            (bvadd (concat #b0 x) (concat #b0 y))
+            (f x y #b0)
 ))
 
-(constraint (= 
-			(bvadd (bvadd (concat #b0 x) (concat #b0 y)) #b001)
-			(f x y #b1)
+(constraint (=
+            (bvadd (bvadd (concat #b0 x) (concat #b0 y)) #b001)
+            (f x y #b1)
 ))
-
 
 (check-synth)
-	
-;(define-fun lut4_ite ((I0 Bit) (I1 Bit) (I2 Bit) (I3 Bit) (LUT_VAL (BitVec 16))) Bit
-;	(let ((s3 (BitVec 8)  (ite (bit2bool I3) ((_ extract 15 8) LUT_VAL) ((_ extract 7 0) LUT_VAL))))
-;	 (let ((s2 (BitVec 4) (ite (bit2bool I2) ((_ extract 7 4) s3) ((_ extract 3 0) s3))))
-;	  (let ((s1 (BitVec 2) (ite (bit2bool I1) ((_ extract 3 2) s2) ((_ extract 1 0) s2))))
-;	   (let ((s0 (BitVec 1) (ite (bit2bool I0) ((_ extract 1 1) s1) ((_ extract 0 0) s1))))
-;	    s0
-;	   )
-;	  )
-;	 )
-;	)
+
+;(define-fun lut4_ite ((I0 Bit) (I1 Bit) (I2 Bit) (I3 Bit) (LUT_VAL (_ BitVec 16))) Bit
+;    (let ((s3 (_ BitVec 8)  (ite (bit2bool I3) ((_ extract 15 8) LUT_VAL) ((_ extract 7 0) LUT_VAL))))
+;     (let ((s2 (ite (bit2bool I2) ((_ extract 7 4) s3) ((_ extract 3 0) s3))))
+;      (let ((s1 (ite (bit2bool I1) ((_ extract 3 2) s2) ((_ extract 1 0) s2))))
+;       (let ((s0 (ite (bit2bool I0) ((_ extract 1 1) s1) ((_ extract 0 0) s1))))
+;        s0
+;       )
+;      )
+;     )
+;    )
 ;)
