@@ -637,6 +637,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
         Trace("strings-preprocess") << "   " << new_nodes[i] << std::endl;
       }
     }
+    d_statistics.d_reductions << t.getKind();
   }
   else
   {
