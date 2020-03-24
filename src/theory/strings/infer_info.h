@@ -19,7 +19,9 @@
 
 #include <map>
 #include <vector>
+
 #include "expr/node.h"
+#include "util/safe_print.h"
 
 namespace CVC4 {
 namespace theory {
@@ -94,6 +96,22 @@ enum class Inference : uint32_t
   FLOOP,
   NONE,
 };
+
+/**
+ * Converts an inference to a string.
+ *
+ * @param i The inference
+ * @return The name of the inference
+ */
+const char* toString(Inference i);
+
+/**
+ * Writes an inference name to a stream.
+ *
+ * @param out The stream to write to
+ * @param i The inference to write to the stream
+ * @return The stream
+ */
 std::ostream& operator<<(std::ostream& out, Inference i);
 
 /**
@@ -173,6 +191,17 @@ class InferInfo
 
 }  // namespace strings
 }  // namespace theory
+
+/**
+ * Provides a template specialization for printing inference names in an
+ * async-signal-safe manner.
+ *
+ * @param fd The file descriptor to print to
+ * @param i The inference to print
+ */
+template <>
+void safe_print(int fd, const theory::strings::Inference& i);
+
 }  // namespace CVC4
 
 #endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */
