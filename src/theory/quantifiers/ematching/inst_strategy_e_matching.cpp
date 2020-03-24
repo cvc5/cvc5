@@ -361,9 +361,8 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       Trace("auto-gen-trigger-partial") << "Quantified formula : " << f << std::endl;
       Trace("auto-gen-trigger-partial") << "...does not contain all variables in triggers!!!" << std::endl;
       // Invoke partial trigger strategy: partition variables of quantified
-      // formula so that those X that are contained in a trigger and those that
-      // are not Y. We then force a split of the quantified formula so that it
-      // becomes:
+      // formula into (X,Y) where X are contained in a trigger and Y are not.
+      // We then force a split of the quantified formula so that it becomes:
       //   forall X. forall Y. P( X, Y )
       // and hence is treatable by E-matching. We only do this for "standard"
       // quantified formulas (those with only two children), since this
