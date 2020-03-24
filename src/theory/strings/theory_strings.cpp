@@ -85,8 +85,15 @@ TheoryStrings::TheoryStrings(context::Context* c,
 {
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
-  d_esolver.reset(new ExtfSolver(
-      c, u, d_state, d_im, d_sk_cache, d_bsolver, d_csolver, extt, d_statistics));
+  d_esolver.reset(new ExtfSolver(c,
+                                 u,
+                                 d_state,
+                                 d_im,
+                                 d_sk_cache,
+                                 d_bsolver,
+                                 d_csolver,
+                                 extt,
+                                 d_statistics));
   d_rsolver.reset(new RegExpSolver(*this, d_state, d_im, *d_esolver, c, u));
 
   // The kinds we are treating as function application in congruence
@@ -1097,12 +1104,13 @@ void TheoryStrings::registerTerm(Node n, int effort)
   {
     Node len = utils::mkNLength(n[0]);
     regTermLem = nm->mkNode(AND,
-                          nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
-                          nm->mkNode(LEQ, n, len));
+                            nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
+                            nm->mkNode(LEQ, n, len));
   }
   if (!regTermLem.isNull())
   {
-    Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem << std::endl;
+    Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem
+                           << std::endl;
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmaRegisterTerm);
     d_out->lemma(regTermLem);

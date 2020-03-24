@@ -215,7 +215,7 @@ class InferenceManager
    * This method is called on non-constant string terms n. It returns a lemma
    * that ensures that the length n satisfies its assigned status (given by
    * argument s), or null if no lemma is necessary.
-   * 
+   *
    * If n is an atomic term, the method registerTermAtomic is called for n
    * and s = LENGTH_SPLIT and no lemma is returned.
    */
@@ -224,7 +224,7 @@ class InferenceManager
    *
    * This method is called on non-constant string terms n that are "atomic"
    * with respect to length. That is, the rewritten form of len(n) is itself.
-   * 
+   *
    * It sends a lemma on the output channel that ensures that the length n
    * satisfies its assigned status (given by argument s).
    *
@@ -342,15 +342,17 @@ class InferenceManager
    * equality engine of this class.
    */
   void sendInfer(Node eq_exp, Node eq, const char* c);
-  /** 
+  /**
    * Get the lemma required for registering the length information for
    * atomic term n given length status s. For details, see registerTermAtomic.
-   * 
+   *
    * Additionally, this method may map literals to a required polarity in the
    * argument reqPhase, which should be processed by a call to requiredPhase by
    * the caller of this method.
    */
-  Node getRegisterTermAtomicLemma(Node n, LengthStatus s, std::map<Node,bool>& reqPhase);
+  Node getRegisterTermAtomicLemma(Node n,
+                                  LengthStatus s,
+                                  std::map<Node, bool>& reqPhase);
 
   /** the parent theory of strings object */
   TheoryStrings& d_parent;

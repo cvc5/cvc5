@@ -427,7 +427,7 @@ Node InferenceManager::registerTerm(Node n)
   Assert(!lsum.isNull());
   d_proxyVarToLength[sk] = lsum;
   Node ceq = Rewriter::rewrite(skl.eqNode(lsum));
-  
+
   return nm->mkNode(AND, eq, ceq);
 }
 
@@ -444,8 +444,8 @@ void InferenceManager::registerTermAtomic(Node n, LengthStatus s)
     // ignore it
     return;
   }
-  std::map<Node,bool> reqPhase;
-  Node lenLem = getRegisterTermAtomicLemma(n,s,reqPhase);
+  std::map<Node, bool> reqPhase;
+  Node lenLem = getRegisterTermAtomicLemma(n, s, reqPhase);
   if (!lenLem.isNull())
   {
     Trace("strings-lemma") << "Strings::Lemma REGISTER-TERM-ATOMIC : " << lenLem
@@ -454,13 +454,14 @@ void InferenceManager::registerTermAtomic(Node n, LengthStatus s)
     ++(d_statistics.d_lemmaRegisterTermAtomic);
     d_out.lemma(lenLem);
   }
-  for (const std::pair<const Node, bool >& rp : reqPhase)
+  for (const std::pair<const Node, bool>& rp : reqPhase)
   {
-    d_out.requirePhase(rp.first,rp.second);
+    d_out.requirePhase(rp.first, rp.second);
   }
 }
 
-Node InferenceManager::getRegisterTermAtomicLemma(Node n, LengthStatus s, std::map<Node,bool>& reqPhase)
+Node InferenceManager::getRegisterTermAtomicLemma(
+    Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node n_len = nm->mkNode(kind::STRING_LENGTH, n);
@@ -534,12 +535,12 @@ Node InferenceManager::getRegisterTermAtomicLemma(Node n, LengthStatus s, std::m
     n_len_geq = Rewriter::rewrite(n_len_geq);
     lems.push_back(n_len_geq);
   }
-  
+
   if (lems.empty())
   {
     return Node::null();
   }
-  return lems.size()==1 ? lems[0] : nm->mkNode(AND,lems);
+  return lems.size() == 1 ? lems[0] : nm->mkNode(AND, lems);
 }
 
 void InferenceManager::addToExplanation(Node a,

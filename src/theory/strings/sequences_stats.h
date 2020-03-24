@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__STRINGS__SEQUENCES_STATS_H
 #define CVC4__THEORY__STRINGS__SEQUENCES_STATS_H
 
-#include "theory/strings/infer_info.h"
 #include "expr/kind.h"
+#include "theory/strings/infer_info.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {

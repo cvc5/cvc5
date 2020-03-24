@@ -34,7 +34,8 @@ ExtfSolver::ExtfSolver(context::Context* c,
                        SkolemCache& skc,
                        BaseSolver& bs,
                        CoreSolver& cs,
-                       ExtTheory* et, SequencesStatistics& stats)
+                       ExtTheory* et,
+                       SequencesStatistics& stats)
     : d_state(s),
       d_im(im),
       d_skCache(skc),
