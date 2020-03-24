@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status --nl-ext-tplanes
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status --nl-ext-tplanes
 (set-logic NIA)
 
 (synth-fun max ((x Int) (y Int)) Int)

@@ -368,6 +368,8 @@ class CoreSolver
    * the argument number of the t1 ... tn they were generated from.
    */
   std::map<Node, std::vector<int> > d_flat_form_index;
+  /** The string-like type for this solver */
+  TypeNode d_type;
 }; /* class CoreSolver */
 
 }  // namespace strings

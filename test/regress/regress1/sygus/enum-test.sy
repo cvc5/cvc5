@@ -1,9 +1,9 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status
 (set-logic LIA)
 ;; this is the custom enumeration datatype syntax from an early proposal of the sygus standard
 (define-sort D (Enum (a b)))
 (define-fun f ((x D)) Int (ite (= x D::a) 3 7))
-(synth-fun g () D ((Start D (D::a D::b))))
+(synth-fun g () D ((Start D)) ((Start D (D::a D::b))))
 (constraint (= (f g) 7))
 (check-synth)

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 ; EXPECT: unsat
 (set-logic LIA)
 
