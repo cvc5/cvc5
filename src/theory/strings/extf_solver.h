@@ -29,6 +29,7 @@
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/theory_strings_preprocess.h"
+#include "theory/strings/sequences_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -88,7 +89,7 @@ class ExtfSolver
              SkolemCache& skc,
              BaseSolver& bs,
              CoreSolver& cs,
-             ExtTheory* et);
+             ExtTheory* et, SequencesStatistics& stats);
   ~ExtfSolver();
 
   /** check extended functions evaluation

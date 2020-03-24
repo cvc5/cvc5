@@ -22,14 +22,17 @@ namespace theory {
 namespace strings {
 
 SequencesStatistics::SequencesStatistics()
-    : d_inferences("theory::strings::inferences")
+    : d_inferences("theory::strings::inferences"),
+      d_reductions("theory::strings::reductions")
 {
   smtStatisticsRegistry()->registerStat(&d_inferences);
+  smtStatisticsRegistry()->registerStat(&d_reductions);
 }
 
 SequencesStatistics::~SequencesStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_inferences);
+  smtStatisticsRegistry()->unregisterStat(&d_reductions);
 }
 
 }

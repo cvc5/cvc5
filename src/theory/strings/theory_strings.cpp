@@ -86,7 +86,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
   d_esolver.reset(new ExtfSolver(
-      c, u, d_state, d_im, d_sk_cache, d_bsolver, d_csolver, extt));
+      c, u, d_state, d_im, d_sk_cache, d_bsolver, d_csolver, extt, d_statistics));
   d_rsolver.reset(new RegExpSolver(*this, d_state, d_im, *d_esolver, c, u));
 
   // The kinds we are treating as function application in congruence

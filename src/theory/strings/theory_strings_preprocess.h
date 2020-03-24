@@ -25,6 +25,7 @@
 #include "theory/strings/skolem_cache.h"
 #include "theory/theory.h"
 #include "util/hash.h"
+#include "theory/strings/sequences_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -38,8 +39,8 @@ namespace strings {
  * reductions" inference schema of TheoryStrings.
  */
 class StringsPreprocess {
-public:
- StringsPreprocess(SkolemCache *sc, context::UserContext *u);
+ public:
+ StringsPreprocess(SkolemCache *sc, context::UserContext *u, SequencesStatistics& stats);
  ~StringsPreprocess();
  /**
   * Returns a node t' such that
@@ -72,6 +73,8 @@ private:
  Node d_empty_str;
  /** pointer to the skolem cache used by this class */
  SkolemCache *d_sc;
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
  /**
   * Applies simplify to all top-level extended function subterms of t. New
   * assertions created in this reduction are added to new_nodes. The argument

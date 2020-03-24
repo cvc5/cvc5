@@ -31,8 +31,8 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess(SkolemCache *sc, context::UserContext *u)
-    : d_sc(sc)
+StringsPreprocess::StringsPreprocess(SkolemCache *sc, context::UserContext *u, SequencesStatistics& stats)
+    : d_sc(sc), d_statistics(stats)
 {
   //Constants
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));

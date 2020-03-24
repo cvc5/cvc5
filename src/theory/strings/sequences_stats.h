@@ -32,6 +32,8 @@ class SequencesStatistics
 
   /** Counts the number of inferences made of each type of inference */
   HistogramStat<Inference> d_inferences;
+  /** Counts the number of inferences made of each type of reduction */
+  HistogramStat<Kind> d_reductions;
 };
 
 
