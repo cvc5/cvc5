@@ -700,7 +700,8 @@ void TheoryStrings::check(Effort e) {
         Trace("strings-eqc") << (t==0 ? "STRINGS:" : "OTHER:") << std::endl;
         while( !eqcs2_i.isFinished() ){
           Node eqc = (*eqcs2_i);
-          bool print = (t==0 && eqc.getType().isStringLike() ) || (t==1 && !eqc.getType().isStringLike() );
+          bool print = (t == 0 && eqc.getType().isStringLike())
+                       || (t == 1 && !eqc.getType().isStringLike());
           if (print) {
             eq::EqClassIterator eqc2_i = eq::EqClassIterator( eqc, &d_equalityEngine );
             Trace("strings-eqc") << "Eqc( " << eqc << " ) : { ";
@@ -907,7 +908,9 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   if( atom.getKind()==kind::EQUAL ){
     Trace("strings-pending-debug") << "  Register term" << std::endl;
     for( unsigned j=0; j<2; j++ ) {
-      if( !d_equalityEngine.hasTerm( atom[j] ) && atom[j].getType().isStringLike() ) {
+      if (!d_equalityEngine.hasTerm(atom[j])
+          && atom[j].getType().isStringLike())
+      {
         registerTerm( atom[j], 0 );
       }
     }

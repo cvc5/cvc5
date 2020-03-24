@@ -25,8 +25,8 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 #include "theory/strings/word.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;

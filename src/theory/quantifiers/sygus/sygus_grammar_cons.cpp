@@ -454,7 +454,7 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
       {
         collectSygusGrammarTypesFor(range.getSetElementType(), types);
       }
-      else if (range.isStringLike() )
+      else if (range.isStringLike())
       {
         // theory of strings shares the integer type
         TypeNode intType = NodeManager::currentNM()->integerType();

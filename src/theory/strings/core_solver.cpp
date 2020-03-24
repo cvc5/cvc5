@@ -803,8 +803,7 @@ void CoreSolver::getNormalForms(Node eqc,
         }
         //if not equal to self
         std::vector<Node>& currv = nf_curr.d_nf;
-        if (currv.size() > 1
-            || (currv.size() == 1 && currv[0].isConst()))
+        if (currv.size() > 1 || (currv.size() == 1 && currv[0].isConst()))
         {
           // if in a build with assertions, check that normal form is acyclic
           if (Configuration::isAssertionBuild())
@@ -1083,8 +1082,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       break;
     }
     else if ((!x.isConst() && index == nfiv.size() - rproc - 1)
-             || (!y.isConst()
-                 && index == nfjv.size() - rproc - 1))
+             || (!y.isConst() && index == nfjv.size() - rproc - 1))
     {
       // We have reached the last component in one of the normal forms and it
       // is not a constant. Thus, the last component must be equal to the
@@ -1745,14 +1743,14 @@ void CoreSolver::processDeq( Node ni, Node nj ) {
         Trace("strings-solve-debug")  << "...Processing(DEQ) " << i << " " << j << std::endl;
         if (!d_state.areEqual(i, j))
         {
-          Assert(!i.isConst()
-                 || !j.isConst());
+          Assert(!i.isConst() || !j.isConst());
           std::vector< Node > lexp;
           Node li = d_state.getLength(i, lexp);
           Node lj = d_state.getLength(j, lexp);
           if (d_state.areDisequal(li, lj))
           {
-            if( i.isConst() || j.isConst() ){
+            if (i.isConst() || j.isConst())
+            {
               //check if empty
               Node const_k = i.isConst() ? i : j;
               Node nconst_k = i.isConst() ? j : i;
@@ -1941,7 +1939,8 @@ int CoreSolver::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >&
       Trace("strings-solve-debug")  << "...Processing(QED) " << i << " " << j << std::endl;
       if (!d_state.areEqual(i, j))
       {
-        if( i.isConst() && j.isConst() ) {
+        if (i.isConst() && j.isConst())
+        {
           size_t lenI = Word::getLength(i);
           size_t lenJ = Word::getLength(j);
           unsigned int len_short = lenI < lenJ ? lenI : lenJ;

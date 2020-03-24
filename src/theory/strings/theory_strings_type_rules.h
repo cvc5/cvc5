@@ -291,7 +291,8 @@ public:
         if (!t.isString()) {
           throw TypeCheckingExceptionPrivate(n, "expecting a string term in regexp range");
         }
-        if( !(*it).isConst() ) {
+        if (!(*it).isConst())
+        {
           throw TypeCheckingExceptionPrivate(n, "expecting a constant string term in regexp range");
         }
         if( (*it).getConst<String>().size() != 1 ) {
