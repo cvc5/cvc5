@@ -18,6 +18,7 @@
 #define CVC4__THEORY__STRINGS__SEQUENCES_STATS_H
 
 #include "theory/strings/infer_info.h"
+#include "expr/kind.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -30,12 +31,31 @@ class SequencesStatistics
   SequencesStatistics();
   ~SequencesStatistics();
 
-  /** Counts the number of inferences made of each type of inference */
+  /** Counts the number of applications of each type of inference */
   HistogramStat<Inference> d_inferences;
-  /** Counts the number of inferences made of each type of reduction */
+  /** Counts the number of applications of each type of reduction */
   HistogramStat<Kind> d_reductions;
+  //-------------------------------- types of conflicts
+  /** Number of equality engine conflicts */
+  IntStat d_conflictsEqEngine;
+  /** Number of eager prefix conflicts */
+  IntStat d_conflictsEagerPrefix;
+  /** Number of inference conflicts */
+  IntStat d_conflictsInfer;
+  //-------------------------------- end types of conflicts
+  //-------------------------------- types of lemmas
+  /** Number of lemmas added due to eager preprocessing */
+  IntStat d_lemmaEagerPreproc;
+  /** Number of collect model info splits */
+  IntStat d_lemmaCmiSplit;
+  /** Number of lemmas added due to registering terms */
+  IntStat d_lemmaRegisterTerm;
+  /** Number of lemmas added due to registering atomic terms */
+  IntStat d_lemmaRegisterTermAtomic;
+  /** Number of lemmas added due to inferences */
+  IntStat d_lemmaInfer;
+  //-------------------------------- end of lemmas
 };
-
 
 }
 }
