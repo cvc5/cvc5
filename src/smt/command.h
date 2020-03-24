@@ -1040,6 +1040,10 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
   SmtEngine* d_smtEngine;
 }; /* class GetSynthSolutionCommand */
 
+/** The command (get-interpol s B)
+ *
+ */
+
 /** The command (get-abduct s B (G)?)
  *
  * This command asks for an abduct from the current set of assertions and
