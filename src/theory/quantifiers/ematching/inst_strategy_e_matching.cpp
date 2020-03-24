@@ -368,7 +368,9 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       // quantified formulas (those with only two children), since this
       // technique should not be used for e.g. quantifiers marked for
       // quantifier elimination.
-      if (options::partialTriggers() && f.getNumChildren() == 2)
+      QAttributes qa;
+      QuantAttributes::computeQuantAttributes( f, qa );
+      if (options::partialTriggers() && qa.isStandard())
       {
         std::vector< Node > vcs[2];
         for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
