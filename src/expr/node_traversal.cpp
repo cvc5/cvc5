@@ -120,13 +120,13 @@ void NodeDfsIterator::initializeIfUninitialized()
 
 NodeDfsIterable::NodeDfsIterable(TNode n) : d_node(n), d_postorder(true) {}
 
-NodeDfsIterable& NodeDfsIterable::in_postorder()
+NodeDfsIterable& NodeDfsIterable::inPostorder()
 {
   d_postorder = true;
   return *this;
 }
 
-NodeDfsIterable& NodeDfsIterable::in_preorder()
+NodeDfsIterable& NodeDfsIterable::inPreorder()
 {
   d_postorder = false;
   return *this;

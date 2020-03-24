@@ -107,9 +107,9 @@ class NodeDfsIterable
 
   // Modifying the traversal order
   // Modify this iterable to be in post-order (default)
-  NodeDfsIterable& in_postorder();
+  NodeDfsIterable& inPostorder();
   // Modify this iterable to be in pre-order
-  NodeDfsIterable& in_preorder();
+  NodeDfsIterable& inPreorder();
 
   // Move/copy construction and assignment. Destructor.
   NodeDfsIterable(NodeDfsIterable&&) = default;
