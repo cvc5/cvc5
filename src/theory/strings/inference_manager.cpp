@@ -370,12 +370,13 @@ Node InferenceManager::getSymbolicDefinition(Node n,
 
 void InferenceManager::registerLength(Node n)
 {
+  Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
   // register length information:
   //  for variables, split on empty vs positive length
   //  for concat/const/replace, introduce proxy var and state length relation
   Node lsum;
-  if (n.getKind() != STRING_CONCAT && n.getKind() != CONST_STRING)
+  if (n.getKind() != STRING_CONCAT && !n.isConst())
   {
     Node lsumb = nm->mkNode(STRING_LENGTH, n);
     lsum = Rewriter::rewrite(lsumb);
@@ -422,9 +423,9 @@ void InferenceManager::registerLength(Node n)
     lsum = nm->mkNode(PLUS, nodeVec);
     lsum = Rewriter::rewrite(lsum);
   }
-  else if (n.getKind() == CONST_STRING)
+  else if (n.isConst())
   {
-    lsum = nm->mkConst(Rational(n.getConst<String>().size()));
+    lsum = nm->mkConst(Rational(Word::getLength(n)));
   }
   Assert(!lsum.isNull());
   d_proxyVarToLength[sk] = lsum;
