@@ -30,7 +30,8 @@ SequencesStatistics::SequencesStatistics()
       d_lemmasEagerPreproc("theory::strings::lemmasEagerPreproc", 0),
       d_lemmasCmiSplit("theory::strings::lemmasCmiSplit", 0),
       d_lemmasRegisterTerm("theory::strings::lemmasRegisterTerm", 0),
-      d_lemmasRegisterTermAtomic("theory::strings::lemmasRegisterTermAtomic", 0),
+      d_lemmasRegisterTermAtomic("theory::strings::lemmasRegisterTermAtomic",
+                                 0),
       d_lemmasInfer("theory::strings::lemmasInfer", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_inferences);
