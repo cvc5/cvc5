@@ -369,7 +369,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       // technique should not be used for e.g. quantifiers marked for
       // quantifier elimination.
       QAttributes qa;
-      QuantAttributes::computeQuantAttributes( f, qa );
+      QuantAttributes::computeQuantAttributes(f, qa);
       if (options::partialTriggers() && qa.isStandard())
       {
         std::vector< Node > vcs[2];
