@@ -62,9 +62,11 @@ TNode& NodeDfsIterator::operator*()
 bool NodeDfsIterator::operator==(const NodeDfsIterator& other) const
 {
   // The stack and current node uniquely represent traversal state. We need not
-  // use the scheduled node set. We also ignore the order: users should not
-  // compare nodes of different order.
-  return d_stack == other.d_stack && d_current == other.d_current;
+  // use the scheduled node set.
+  //
+  // Users should not compare iterators for traversals of different nodes.
+  return d_stack == other.d_stack && d_current == other.d_current
+         && d_postorder == other.d_postorder;
 }
 
 bool NodeDfsIterator::operator!=(const NodeDfsIterator& other) const
