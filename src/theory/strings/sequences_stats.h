@@ -35,26 +35,26 @@ class SequencesStatistics
   HistogramStat<Inference> d_inferences;
   /** Counts the number of applications of each type of reduction */
   HistogramStat<Kind> d_reductions;
-  //-------------------------------- types of conflicts
+  //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
   IntStat d_conflictsEqEngine;
   /** Number of eager prefix conflicts */
   IntStat d_conflictsEagerPrefix;
   /** Number of inference conflicts */
   IntStat d_conflictsInfer;
-  //-------------------------------- end types of conflicts
-  //-------------------------------- types of lemmas
-  /** Number of lemmas added due to eager preprocessing */
-  IntStat d_lemmaEagerPreproc;
+  //--------------- end of conflicts
+  //--------------- lemmas, partition of calls to OutputChannel::lemma
+  /** Number of lemmass added due to eager preprocessing */
+  IntStat d_lemmasEagerPreproc;
   /** Number of collect model info splits */
-  IntStat d_lemmaCmiSplit;
-  /** Number of lemmas added due to registering terms */
-  IntStat d_lemmaRegisterTerm;
-  /** Number of lemmas added due to registering atomic terms */
-  IntStat d_lemmaRegisterTermAtomic;
-  /** Number of lemmas added due to inferences */
-  IntStat d_lemmaInfer;
-  //-------------------------------- end of lemmas
+  IntStat d_lemmasCmiSplit;
+  /** Number of lemmass added due to registering terms */
+  IntStat d_lemmasRegisterTerm;
+  /** Number of lemmass added due to registering atomic terms */
+  IntStat d_lemmasRegisterTermAtomic;
+  /** Number of lemmass added due to inferences */
+  IntStat d_lemmasInfer;
+  //--------------- end of lemmas
 };
 
 }

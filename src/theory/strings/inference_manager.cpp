@@ -451,7 +451,7 @@ void InferenceManager::registerTermAtomic(Node n, LengthStatus s)
     Trace("strings-lemma") << "Strings::Lemma REGISTER-TERM-ATOMIC : " << lenLem
                            << std::endl;
     Trace("strings-assert") << "(assert " << lenLem << ")" << std::endl;
-    ++(d_statistics.d_lemmaRegisterTermAtomic);
+    ++(d_statistics.d_lemmasRegisterTermAtomic);
     d_out.lemma(lenLem);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)

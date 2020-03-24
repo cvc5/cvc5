@@ -27,22 +27,22 @@ SequencesStatistics::SequencesStatistics()
       d_conflictsEqEngine("theory::strings::conflictsEqEngine", 0),
       d_conflictsEagerPrefix("theory::strings::conflictsEagerPrefix", 0),
       d_conflictsInfer("theory::strings::conflictsInfer", 0),
-      d_lemmaEagerPreproc("theory::strings::lemmaEagerPreproc", 0),
-      d_lemmaCmiSplit("theory::strings::lemmaCmiSplit", 0),
-      d_lemmaRegisterTerm("theory::strings::lemmaRegisterTerm", 0),
-      d_lemmaRegisterTermAtomic("theory::strings::lemmaRegisterTermAtomic", 0),
-      d_lemmaInfer("theory::strings::lemmaInfer", 0)
+      d_lemmasEagerPreproc("theory::strings::lemmasEagerPreproc", 0),
+      d_lemmasCmiSplit("theory::strings::lemmasCmiSplit", 0),
+      d_lemmasRegisterTerm("theory::strings::lemmasRegisterTerm", 0),
+      d_lemmasRegisterTermAtomic("theory::strings::lemmasRegisterTermAtomic", 0),
+      d_lemmasInfer("theory::strings::lemmasInfer", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_inferences);
   smtStatisticsRegistry()->registerStat(&d_reductions);
   smtStatisticsRegistry()->registerStat(&d_conflictsEqEngine);
   smtStatisticsRegistry()->registerStat(&d_conflictsEagerPrefix);
   smtStatisticsRegistry()->registerStat(&d_conflictsInfer);
-  smtStatisticsRegistry()->registerStat(&d_lemmaEagerPreproc);
-  smtStatisticsRegistry()->registerStat(&d_lemmaCmiSplit);
-  smtStatisticsRegistry()->registerStat(&d_lemmaRegisterTerm);
-  smtStatisticsRegistry()->registerStat(&d_lemmaRegisterTermAtomic);
-  smtStatisticsRegistry()->registerStat(&d_lemmaInfer);
+  smtStatisticsRegistry()->registerStat(&d_lemmasEagerPreproc);
+  smtStatisticsRegistry()->registerStat(&d_lemmasCmiSplit);
+  smtStatisticsRegistry()->registerStat(&d_lemmasRegisterTerm);
+  smtStatisticsRegistry()->registerStat(&d_lemmasRegisterTermAtomic);
+  smtStatisticsRegistry()->registerStat(&d_lemmasInfer);
 }
 
 SequencesStatistics::~SequencesStatistics()
@@ -52,11 +52,11 @@ SequencesStatistics::~SequencesStatistics()
   smtStatisticsRegistry()->unregisterStat(&d_conflictsEqEngine);
   smtStatisticsRegistry()->unregisterStat(&d_conflictsEagerPrefix);
   smtStatisticsRegistry()->unregisterStat(&d_conflictsInfer);
-  smtStatisticsRegistry()->unregisterStat(&d_lemmaEagerPreproc);
-  smtStatisticsRegistry()->unregisterStat(&d_lemmaCmiSplit);
-  smtStatisticsRegistry()->unregisterStat(&d_lemmaRegisterTerm);
-  smtStatisticsRegistry()->unregisterStat(&d_lemmaRegisterTermAtomic);
-  smtStatisticsRegistry()->unregisterStat(&d_lemmaInfer);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmasEagerPreproc);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmasCmiSplit);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmasRegisterTerm);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmasRegisterTermAtomic);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmasInfer);
 }
 
 }

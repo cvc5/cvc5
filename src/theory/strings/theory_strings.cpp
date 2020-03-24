@@ -471,7 +471,7 @@ bool TheoryStrings::collectModelInfoType(
               for (const Node& sl : len_splits)
               {
                 Node spl = nm->mkNode(OR, sl, sl.negate());
-                ++(d_statistics.d_lemmaCmiSplit);
+                ++(d_statistics.d_lemmasCmiSplit);
                 d_out->lemma(spl);
               }
               return false;
@@ -1112,7 +1112,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
     Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem
                            << std::endl;
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
-    ++(d_statistics.d_lemmaRegisterTerm);
+    ++(d_statistics.d_lemmasRegisterTerm);
     d_out->lemma(regTermLem);
   }
 }
@@ -1158,7 +1158,7 @@ Node TheoryStrings::ppRewrite(TNode atom) {
       Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
       for( unsigned i=0; i<new_nodes.size(); i++ ){
         Trace("strings-ppr") << "    lemma : " << new_nodes[i] << std::endl;
-        ++(d_statistics.d_lemmaEagerPreproc);
+        ++(d_statistics.d_lemmasEagerPreproc);
         d_out->lemma( new_nodes[i] );
       }
       return ret;
