@@ -44,6 +44,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --unit-testing           support for unit testing
   --python2                prefer using Python 2 (also for Python bindings)
   --python3                prefer using Python 3 (also for Python bindings)
+  --python-bindings        build Python bindings based on new C++ API
   --asan                   build with ASan instrumentation
   --ubsan                  build with UBSan instrumentation
   --tsan                   build with TSan instrumentation
@@ -63,8 +64,6 @@ The following flags enable optional packages (disable with --no-<option name>).
   --drat2er                use drat2er (required for eager BV proofs)
   --lfsc                   use the LFSC proof checker
   --symfpu                 use SymFPU for floating point solver
-  --portfolio              build the multithreaded portfolio version of CVC4
-                           (pcvc4)
   --readline               support the readline library
 
 Optional Path to Optional Packages:
@@ -130,7 +129,6 @@ glpk=default
 lfsc=default
 muzzle=default
 optimized=default
-portfolio=default
 proofs=default
 replay=default
 shared=default
@@ -141,6 +139,7 @@ tracing=default
 unit_testing=default
 python2=default
 python3=default
+python_bindings=default
 valgrind=default
 profiling=default
 readline=default
@@ -246,9 +245,6 @@ do
     --optimized) optimized=ON;;
     --no-optimized) optimized=OFF;;
 
-    --portfolio) portfolio=ON;;
-    --no-portfolio) portfolio=OFF;;
-
     --proofs) proofs=ON;;
     --no-proofs) proofs=OFF;;
 
@@ -278,6 +274,9 @@ do
 
     --python3) python3=ON;;
     --no-python3) python3=OFF;;
+
+    --python-bindings) python_bindings=ON;;
+    --no-python-bindings) python_bindings=OFF;;
 
     --valgrind) valgrind=ON;;
     --no-valgrind) valgrind=OFF;;
@@ -404,6 +403,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2"
 [ $python3 != default ] \
   && cmake_opts="$cmake_opts -DUSE_PYTHON3=$python3"
+[ $python_bindings != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
 [ $valgrind != default ] \
   && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind"
 [ $profiling != default ] \
@@ -428,9 +429,9 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
 
 [ $language_bindings_java != default ] \
-  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$language_bindings_java"
+  && cmake_opts="$cmake_opts -DBUILD_SWIG_BINDINGS_JAVA=$language_bindings_java"
 [ $language_bindings_python != default ] \
-  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$language_bindings_python"
+  && cmake_opts="$cmake_opts -DBUILD_SWIG_BINDINGS_PYTHON=$language_bindings_python"
 
 [ "$abc_dir" != default ] \
   && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"

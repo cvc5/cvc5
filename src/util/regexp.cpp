@@ -88,8 +88,8 @@ String String::concat(const String &other) const {
   return String(ret_vec);
 }
 
-bool String::strncmp(const String &y, const std::size_t np) const {
-  std::size_t n = np;
+bool String::strncmp(const String& y, std::size_t n) const
+{
   std::size_t b = (size() >= y.size()) ? size() : y.size();
   std::size_t s = (size() <= y.size()) ? size() : y.size();
   if (n > s) {
@@ -105,8 +105,8 @@ bool String::strncmp(const String &y, const std::size_t np) const {
   return true;
 }
 
-bool String::rstrncmp(const String &y, const std::size_t np) const {
-  std::size_t n = np;
+bool String::rstrncmp(const String& y, std::size_t n) const
+{
   std::size_t b = (size() >= y.size()) ? size() : y.size();
   std::size_t s = (size() <= y.size()) ? size() : y.size();
   if (n > s) {
@@ -331,11 +331,13 @@ bool String::isLeq(const String &y) const
     {
       return false;
     }
-    if (d_str[i] > y.d_str[i])
+    unsigned ci = convertUnsignedIntToCode(d_str[i]);
+    unsigned cyi = convertUnsignedIntToCode(y.d_str[i]);
+    if (ci > cyi)
     {
       return false;
     }
-    if (d_str[i] < y.d_str[i])
+    if (ci < cyi)
     {
       return true;
     }
@@ -458,6 +460,13 @@ String String::substr(std::size_t i, std::size_t j) const {
   std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
   ret_vec.insert(ret_vec.end(), itr, itr + j);
   return String(ret_vec);
+}
+
+bool String::noOverlapWith(const String& y) const
+{
+  return y.find(*this) == std::string::npos
+         && this->find(y) == std::string::npos && this->overlap(y) == 0
+         && y.overlap(*this) == 0;
 }
 
 bool String::isNumber() const {

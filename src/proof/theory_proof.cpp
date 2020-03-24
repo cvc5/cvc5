@@ -18,6 +18,7 @@
 
 #include "base/check.h"
 #include "context/context.h"
+#include "expr/node_visitor.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
 #include "proof/arith_proof.h"
@@ -35,7 +36,6 @@
 #include "prop/sat_solver_types.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/output_channel.h"
@@ -82,23 +82,23 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
 
       if (id == theory::THEORY_BV) {
         auto thBv = static_cast<theory::bv::TheoryBV*>(th);
-        if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-            && options::bvSatSolver() == theory::bv::SAT_SOLVER_CRYPTOMINISAT)
+        if (options::bitblastMode() == options::BitblastMode::EAGER
+            && options::bvSatSolver() == options::SatSolverMode::CRYPTOMINISAT)
         {
           proof::BitVectorProof* bvp = nullptr;
           switch (options::bvProofFormat())
           {
-            case theory::bv::BvProofFormat::BITVECTOR_PROOF_DRAT:
+            case options::BvProofFormat::DRAT:
             {
               bvp = new proof::LfscDratBitVectorProof(thBv, this);
               break;
             }
-            case theory::bv::BvProofFormat::BITVECTOR_PROOF_LRAT:
+            case options::BvProofFormat::LRAT:
             {
               bvp = new proof::LfscLratBitVectorProof(thBv, this);
               break;
             }
-            case theory::bv::BvProofFormat::BITVECTOR_PROOF_ER:
+            case options::BvProofFormat::ER:
             {
               bvp = new proof::LfscErBitVectorProof(thBv, this);
               break;
@@ -174,6 +174,30 @@ void TheoryProofEngine::printConstantDisequalityProof(std::ostream& os, Expr c1,
 
   Assert(theory::Theory::theoryOf(c1) == theory::Theory::theoryOf(c2));
   getTheoryProof(theory::Theory::theoryOf(c1))->printConstantDisequalityProof(os, c1, c2, globalLetMap);
+}
+
+void TheoryProofEngine::printTheoryTerm(Expr term,
+                                        std::ostream& os,
+                                        const ProofLetMap& map,
+                                        TypeNode expectedType)
+{
+  this->printTheoryTermAsType(term, os, map, expectedType);
+}
+
+TypeNode TheoryProofEngine::equalityType(const Expr& left, const Expr& right)
+{
+  // Ask the two theories what they think..
+  TypeNode leftType = getTheoryProof(theory::Theory::theoryOf(left))->equalityType(left, right);
+  TypeNode rightType = getTheoryProof(theory::Theory::theoryOf(right))->equalityType(left, right);
+
+  // Error if the disagree.
+  Assert(leftType.isNull() || rightType.isNull() || leftType == rightType)
+    << "TheoryProofEngine::equalityType(" << left << ", " << right << "):" << std::endl
+    << "theories disagree about the type of an equality:" << std::endl
+    << "\tleft: " << leftType << std::endl
+    << "\tright:" << rightType;
+
+  return leftType.isNull() ? rightType : leftType;
 }
 
 void TheoryProofEngine::registerTerm(Expr term) {
@@ -283,7 +307,11 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
   os << paren.str();
 }
 
-void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCTheoryProofEngine::printTheoryTermAsType(Expr term,
+                                                  std::ostream& os,
+                                                  const ProofLetMap& map,
+                                                  TypeNode expectedType)
+{
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
 
   // boolean terms and ITEs are special because they
@@ -291,11 +319,11 @@ void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const P
   if (theory_id == theory::THEORY_BUILTIN ||
       term.getKind() == kind::ITE ||
       term.getKind() == kind::EQUAL) {
-    printCoreTerm(term, os, map);
+    printCoreTerm(term, os, map, expectedType);
     return;
   }
   // dispatch to proper theory
-  getTheoryProof(theory_id)->printOwnedTerm(term, os, map);
+  getTheoryProof(theory_id)->printOwnedTerm(term, os, map, expectedType);
 }
 
 void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
@@ -585,7 +613,8 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   //  finalizeBvConflicts(lemmas, os, paren, map);
   ProofManager::getBitVectorProof()->printBBDeclarationAndCnf(os, paren, map);
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
     Assert(lemmas.size() == 1);
     // nothing more to do (no combination with eager so far)
     return;
@@ -854,24 +883,60 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   }
 }
 
-void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCTheoryProofEngine::printBoundTermAsType(Expr term,
+                                                 std::ostream& os,
+                                                 const ProofLetMap& map,
+                                                 TypeNode expectedType)
+{
   Debug("pf::tp") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
 
-  ProofLetMap::const_iterator it = map.find(term);
-  if (it != map.end()) {
-    unsigned id = it->second.id;
-    unsigned count = it->second.count;
+  // Since let-abbreviated terms are abbreviated with their default type, only
+  // use the let map if there is no expectedType or the expectedType matches
+  // the default.
+  if (expectedType.isNull()
+      || TypeNode::fromType(term.getType()) == expectedType)
+  {
+    ProofLetMap::const_iterator it = map.find(term);
+    if (it != map.end())
+    {
+      unsigned id = it->second.id;
+      unsigned count = it->second.count;
 
-    if (count > LET_COUNT) {
-      os << "let" << id;
-      return;
+      if (count > LET_COUNT)
+      {
+        os << "let" << id;
+        Debug("pf::tp::letmap") << "Using let map for " << term << std::endl;
+        return;
+      }
     }
   }
+  Debug("pf::tp::letmap") << "Skipping let map for " << term << std::endl;
 
-  printTheoryTerm(term, os, map);
+  printTheoryTerm(term, os, map, expectedType);
 }
 
-void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCTheoryProofEngine::printBoundFormula(Expr term,
+                                              std::ostream& os,
+                                              const ProofLetMap& map)
+{
+  Assert(term.getType().isBoolean() or term.getType().isPredicate());
+  bool wrapWithBoolToPred = term.getType().isBoolean() and printsAsBool(term);
+  if (wrapWithBoolToPred)
+  {
+    os << "(p_app ";
+  }
+  printBoundTerm(term, os, map);
+  if (wrapWithBoolToPred)
+  {
+    os << ")";
+  }
+}
+
+void LFSCTheoryProofEngine::printCoreTerm(Expr term,
+                                          std::ostream& os,
+                                          const ProofLetMap& map,
+                                          TypeNode expectedType)
+{
   if (term.isVariable()) {
     os << ProofManager::sanitize(term);
     return;
@@ -881,23 +946,40 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
 
   switch(k) {
   case kind::ITE: {
-    os << (term.getType().isBoolean() ? "(ifte ": "(ite _ ");
+    TypeNode armType = expectedType.isNull()
+                           ? TypeNode::fromType(term.getType())
+                           : expectedType;
+    bool useFormulaType = term.getType().isBoolean();
+    Assert(term[1].getType().isSubtypeOf(term.getType()));
+    Assert(term[2].getType().isSubtypeOf(term.getType()));
+    os << (useFormulaType ? "(ifte " : "(ite _ ");
 
-    bool booleanCase = term[0].getType().isBoolean();
-    if (booleanCase && printsAsBool(term[0])) os << "(p_app ";
-    printBoundTerm(term[0], os, map);
-    if (booleanCase && printsAsBool(term[0])) os << ")";
-
+    printBoundFormula(term[0], os, map);
     os << " ";
-    printBoundTerm(term[1], os, map);
+    if (useFormulaType)
+    {
+      printBoundFormula(term[1], os, map);
+    }
+    else
+    {
+      printBoundTerm(term[1], os, map, armType);
+    }
     os << " ";
-    printBoundTerm(term[2], os, map);
+    if (useFormulaType)
+    {
+      printBoundFormula(term[2], os, map);
+    }
+    else
+    {
+      printBoundTerm(term[2], os, map, armType);
+    }
     os << ")";
     return;
   }
 
   case kind::EQUAL: {
     bool booleanCase = term[0].getType().isBoolean();
+    TypeNode armType = equalityType(term[0], term[1]);
 
     os << "(";
     if (booleanCase) {
@@ -909,13 +991,13 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
     }
 
     if (booleanCase && printsAsBool(term[0])) os << "(p_app ";
-    printBoundTerm(term[0], os, map);
+    printBoundTerm(term[0], os, map, armType);
     if (booleanCase && printsAsBool(term[0])) os << ")";
 
     os << " ";
 
     if (booleanCase && printsAsBool(term[1])) os << "(p_app ";
-    printBoundTerm(term[1], os, map);
+    printBoundTerm(term[1], os, map, armType);
     if (booleanCase && printsAsBool(term[1])) os << ") ";
     os << ")";
 
@@ -923,16 +1005,18 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
   }
 
   case kind::DISTINCT:
+  {
     // Distinct nodes can have any number of chidlren.
     Assert(term.getNumChildren() >= 2);
+    TypeNode armType = equalityType(term[0], term[1]);
 
     if (term.getNumChildren() == 2) {
       os << "(not (= ";
       printSort(term[0].getType(), os);
       os << " ";
-      printBoundTerm(term[0], os, map);
+      printBoundTerm(term[0], os, map, armType);
       os << " ";
-      printBoundTerm(term[1], os, map);
+      printBoundTerm(term[1], os, map, armType);
       os << "))";
     } else {
       unsigned numOfPairs = term.getNumChildren() * (term.getNumChildren() - 1) / 2;
@@ -942,68 +1026,32 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
 
       for (unsigned i = 0; i < term.getNumChildren(); ++i) {
         for (unsigned j = i + 1; j < term.getNumChildren(); ++j) {
+          armType = equalityType(term[i], term[j]);
           if ((i != 0) || (j != 1)) {
             os << "(not (= ";
             printSort(term[0].getType(), os);
             os << " ";
-            printBoundTerm(term[i], os, map);
+            printBoundTerm(term[i], os, map, armType);
             os << " ";
-            printBoundTerm(term[j], os, map);
+            printBoundTerm(term[j], os, map, armType);
             os << ")))";
           } else {
             os << "(not (= ";
             printSort(term[0].getType(), os);
             os << " ";
-            printBoundTerm(term[0], os, map);
+            printBoundTerm(term[0], os, map, armType);
             os << " ";
-            printBoundTerm(term[1], os, map);
+            printBoundTerm(term[1], os, map, armType);
             os << "))";
           }
         }
       }
     }
-
-    return;
-
-  case kind::CHAIN: {
-    // LFSC doesn't allow declarations with variable numbers of
-    // arguments, so we have to flatten chained operators, like =.
-    Kind op = term.getOperator().getConst<Chain>().getOperator();
-    std::string op_str;
-    bool booleanCase = false;
-    if (op==kind::EQUAL && term[0].getType().isBoolean()) {
-      booleanCase = term[0].getType().isBoolean();
-      op_str = "iff";
-    } else {
-      op_str = utils::toLFSCKind(op);
-    }
-    size_t n = term.getNumChildren();
-    std::ostringstream paren;
-    for(size_t i = 1; i < n; ++i) {
-      if(i + 1 < n) {
-        os << "(" << utils::toLFSCKind(kind::AND) << " ";
-        paren << ")";
-      }
-      os << "(" << op_str << " ";
-      if (booleanCase && printsAsBool(term[i - 1])) os << "(p_app ";
-      printBoundTerm(term[i - 1], os, map);
-      if (booleanCase && printsAsBool(term[i - 1])) os << ")";
-      os << " ";
-      if (booleanCase && printsAsBool(term[i])) os << "(p_app ";
-      printBoundTerm(term[i], os, map);
-      if (booleanCase && printsAsBool(term[i])) os << ")";
-      os << ")";
-      if(i + 1 < n) {
-        os << " ";
-      }
-    }
-    os << paren.str();
     return;
   }
 
   default: Unhandled() << k;
   }
-
 }
 
 void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
@@ -1150,7 +1198,11 @@ void LFSCBooleanProof::printConstantDisequalityProof(std::ostream& os, Expr c1, 
     os << "(negsymm _ _ _ t_t_neq_f)";
 }
 
-void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCBooleanProof::printOwnedTermAsType(Expr term,
+                                            std::ostream& os,
+                                            const ProofLetMap& map,
+                                            TypeNode expectedType)
+{
   Assert(term.getType().isBoolean());
   if (term.isVariable()) {
     os << ProofManager::sanitize(term);
@@ -1228,7 +1280,6 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
 
   default: Unhandled() << k;
   }
-
 }
 
 void LFSCBooleanProof::printOwnedSort(Type type, std::ostream& os) {
@@ -1298,6 +1349,24 @@ void TheoryProof::printRewriteProof(std::ostream& os, const Node &n1, const Node
   os << " ";
   d_proofEngine->printBoundTerm(n2.toExpr(), os, emptyMap);
   os << "))";
+}
+
+void TheoryProof::printOwnedTerm(Expr term,
+                                 std::ostream& os,
+                                 const ProofLetMap& map,
+                                 TypeNode expectedType)
+{
+  this->printOwnedTermAsType(term, os, map, expectedType);
+}
+
+TypeNode TheoryProof::equalityType(const Expr& left, const Expr& right)
+{
+  Assert(left.getType() == right.getType())
+    << "TheoryProof::equalityType(" << left << ", " << right << "):" << std::endl
+    << "types disagree:" << std::endl
+    << "\tleft: " << left.getType() << std::endl
+    << "\tright:" << right.getType();
+  return TypeNode::fromType(left.getType());
 }
 
 bool TheoryProof::match(TNode n1, TNode n2)

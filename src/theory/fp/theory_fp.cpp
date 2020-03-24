@@ -813,33 +813,40 @@ void TheoryFp::registerTerm(TNode node) {
   Trace("fp-registerTerm") << "TheoryFp::registerTerm(): " << node << std::endl;
 
   if (!isRegistered(node)) {
+    Kind k = node.getKind();
+    Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC
+           && k != kind::FLOATINGPOINT_SUB && k != kind::FLOATINGPOINT_EQ
+           && k != kind::FLOATINGPOINT_GEQ && k != kind::FLOATINGPOINT_GT);
+
     bool success = d_registeredTerms.insert(node);
     (void)success;  // Only used for assertion
     Assert(success);
 
     // Add to the equality engine
-    if (node.getKind() == kind::EQUAL) {
+    if (k == kind::EQUAL)
+    {
       d_equalityEngine.addTriggerEquality(node);
-    } else {
+    }
+    else
+    {
       d_equalityEngine.addTerm(node);
     }
 
     // Give the expansion of classifications in terms of equalities
     // This should make equality reasoning slightly more powerful.
-    if ((node.getKind() == kind::FLOATINGPOINT_ISNAN)
-        || (node.getKind() == kind::FLOATINGPOINT_ISZ)
-        || (node.getKind() == kind::FLOATINGPOINT_ISINF))
+    if ((k == kind::FLOATINGPOINT_ISNAN) || (k == kind::FLOATINGPOINT_ISZ)
+        || (k == kind::FLOATINGPOINT_ISINF))
     {
       NodeManager *nm = NodeManager::currentNM();
       FloatingPointSize s = node[0].getType().getConst<FloatingPointSize>();
       Node equalityAlias = Node::null();
 
-      if (node.getKind() == kind::FLOATINGPOINT_ISNAN)
+      if (k == kind::FLOATINGPOINT_ISNAN)
       {
         equalityAlias = nm->mkNode(
             kind::EQUAL, node[0], nm->mkConst(FloatingPoint::makeNaN(s)));
       }
-      else if (node.getKind() == kind::FLOATINGPOINT_ISZ)
+      else if (k == kind::FLOATINGPOINT_ISZ)
       {
         equalityAlias = nm->mkNode(
             kind::OR,
@@ -850,7 +857,7 @@ void TheoryFp::registerTerm(TNode node) {
                        node[0],
                        nm->mkConst(FloatingPoint::makeZero(s, false))));
       }
-      else if (node.getKind() == kind::FLOATINGPOINT_ISINF)
+      else if (k == kind::FLOATINGPOINT_ISINF)
       {
         equalityAlias = nm->mkNode(
             kind::OR,
@@ -895,7 +902,8 @@ void TheoryFp::preRegisterTerm(TNode node)
            << sig_sz
            << " is not supported, only Float32 (8/24) or Float64 (11/53) types "
               "are supported in default mode. Try the experimental solver via "
-              "--fp-exp";
+              "--fp-exp. Note: There are known issues with the experimental "
+              "solver, use at your own risk.";
         throw LogicException(ss.str());
       }
     }
@@ -954,7 +962,7 @@ void TheoryFp::check(Effort level) {
   while (!done() && !d_conflict) {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Debug("fp") << "TheoryFp::check(): processing " << fact << std::endl;
 

@@ -25,7 +25,7 @@ namespace CVC4 {
 
 Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
                                    theory::TheoryModel* m,
-                                   BlockModelsMode mode,
+                                   options::BlockModelsMode mode,
                                    const std::vector<Expr>& exprToBlock)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -43,7 +43,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
   }
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
-  if (mode == BLOCK_MODELS_LITERALS)
+  if (mode == options::BlockModelsMode::LITERALS)
   {
     Assert(nodesToBlock.empty());
     // optimization: filter out top-level unit assertions, as they cannot
@@ -234,7 +234,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
   }
   else
   {
-    Assert(mode == BLOCK_MODELS_VALUES);
+    Assert(mode == options::BlockModelsMode::VALUES);
     std::vector<Node> blockers;
     // if specific terms were not specified, block all variables of
     // the model

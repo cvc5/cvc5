@@ -91,34 +91,34 @@ namespace attr {
 // attribute that stores the canonical bound variable list for function types
 typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
-NodeManager::NodeManager(ExprManager* exprManager) :
-  d_options(new Options()),
-  d_statisticsRegistry(new StatisticsRegistry()),
-  d_resourceManager(new ResourceManager()),
-  d_registrations(new ListenerRegistrationList()),
-  next_id(0),
-  d_attrManager(new expr::attr::AttributeManager()),
-  d_exprManager(exprManager),
-  d_nodeUnderDeletion(NULL),
-  d_inReclaimZombies(false),
-  d_abstractValueCount(0),
-  d_skolemCounter(0) {
+NodeManager::NodeManager(ExprManager* exprManager)
+    : d_options(new Options()),
+      d_statisticsRegistry(new StatisticsRegistry()),
+      d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+      d_registrations(new ListenerRegistrationList()),
+      next_id(0),
+      d_attrManager(new expr::attr::AttributeManager()),
+      d_exprManager(exprManager),
+      d_nodeUnderDeletion(NULL),
+      d_inReclaimZombies(false),
+      d_abstractValueCount(0),
+      d_skolemCounter(0)
+{
   init();
 }
 
-NodeManager::NodeManager(ExprManager* exprManager,
-                         const Options& options) :
-  d_options(new Options()),
-  d_statisticsRegistry(new StatisticsRegistry()),
-  d_resourceManager(new ResourceManager()),
-  d_registrations(new ListenerRegistrationList()),
-  next_id(0),
-  d_attrManager(new expr::attr::AttributeManager()),
-  d_exprManager(exprManager),
-  d_nodeUnderDeletion(NULL),
-  d_inReclaimZombies(false),
-  d_abstractValueCount(0),
-  d_skolemCounter(0)
+NodeManager::NodeManager(ExprManager* exprManager, const Options& options)
+    : d_options(new Options()),
+      d_statisticsRegistry(new StatisticsRegistry()),
+      d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+      d_registrations(new ListenerRegistrationList()),
+      next_id(0),
+      d_attrManager(new expr::attr::AttributeManager()),
+      d_exprManager(exprManager),
+      d_nodeUnderDeletion(NULL),
+      d_inReclaimZombies(false),
+      d_abstractValueCount(0),
+      d_skolemCounter(0)
 {
   d_options->copyValues(options);
   init();
@@ -228,12 +228,12 @@ NodeManager::~NodeManager() {
   }
 
   // defensive coding, in case destruction-order issues pop up (they often do)
+  delete d_resourceManager;
+  d_resourceManager = NULL;
   delete d_statisticsRegistry;
   d_statisticsRegistry = NULL;
   delete d_registrations;
   d_registrations = NULL;
-  delete d_resourceManager;
-  d_resourceManager = NULL;
   delete d_attrManager;
   d_attrManager = NULL;
   delete d_options;
@@ -330,8 +330,9 @@ void NodeManager::reclaimZombies() {
         TNode n;
         n.d_nv = nv;
         nv->d_rc = 1; // so that TNode doesn't assert-fail
-        for(vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-          (*i)->nmNotifyDeleteNode(n);
+        for (NodeManagerListener* listener : d_listeners)
+        {
+          listener->nmNotifyDeleteNode(n);
         }
         // this would mean that one of the listeners stowed away
         // a reference to this node!

@@ -43,7 +43,8 @@ InputLanguage Options::getInputLanguage() const {
   return (*this)[options::inputLanguage];
 }
 
-InstFormatMode Options::getInstFormatMode() const {
+options::InstFormatMode Options::getInstFormatMode() const
+{
   return (*this)[options::instFormatMode];
 }
 
@@ -81,10 +82,6 @@ bool Options::getEarlyExit() const{
   return (*this)[options::earlyExit];
 }
 
-bool Options::getFallbackSequential() const{
-  return (*this)[options::fallbackSequential];
-}
-
 bool Options::getFilesystemAccess() const{
   return (*this)[options::filesystemAccess];
 }
@@ -95,10 +92,6 @@ bool Options::getForceNoLimitCpuWhileDump() const{
 
 bool Options::getHelp() const{
   return (*this)[options::help];
-}
-
-bool Options::getIncrementalParallel() const{
-  return (*this)[options::incrementalParallel];
 }
 
 bool Options::getIncrementalSolving() const{
@@ -165,10 +158,6 @@ bool Options::getVersion() const{
   return (*this)[options::version];
 }
 
-bool Options::getWaitToJoin() const{
-  return (*this)[options::waitToJoin];
-}
-
 const std::string& Options::getForceLogicString() const{
   return (*this)[options::forceLogicString];
 }
@@ -227,10 +216,6 @@ void Options::setOut(std::ostream* value) {
 
 void Options::setOutputLanguage(OutputLanguage value) {
   set(options::outputLanguage, value);
-}
-
-bool Options::wasSetByUserCeGuidedInst() const {
-  return wasSetByUser(options::ceGuidedInst);
 }
 
 bool Options::wasSetByUserDumpSynth() const {

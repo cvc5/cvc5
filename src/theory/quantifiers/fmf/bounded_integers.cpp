@@ -409,7 +409,7 @@ void BoundedIntegers::checkOwnership(Node f)
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if (tn.isSort()
+          if ((tn.isSort() && tn.isInterpretedFinite())
               || d_quantEngine->getTermEnumeration()->mayComplete(tn))
           {
             success = true;
@@ -437,11 +437,13 @@ void BoundedIntegers::checkOwnership(Node f)
           }
         }else if( d_bound_type[f][v]==BOUND_FIXED_SET ){
           Trace("bound-int") << "  " << v << " in { ";
-          for( unsigned i=0; i<d_fixed_set_ngr_range[f][v].size(); i++ ){ 
-            Trace("bound-int") << d_fixed_set_ngr_range[f][v][i] << " ";
+          for (TNode fnr : d_fixed_set_ngr_range[f][v])
+          {
+            Trace("bound-int") << fnr << " ";
           }
-          for( unsigned i=0; i<d_fixed_set_gr_range[f][v].size(); i++ ){ 
-            Trace("bound-int") << d_fixed_set_gr_range[f][v][i] << " ";
+          for (TNode fgr : d_fixed_set_gr_range[f][v])
+          {
+            Trace("bound-int") << fgr << " ";
           }
           Trace("bound-int") << "}" << std::endl;
         }else if( d_bound_type[f][v]==BOUND_FINITE ){
@@ -705,9 +707,9 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
   for( int i=0; i<vindex; i++) {
     Assert(d_set_nums[q][d_set[q][i]] == i);
     Trace("bound-int-rsi") << "Look up the value for " << d_set[q][i] << " " << i << std::endl;
-    int v = rsi->getVariableOrder( i );
-    Assert(q[0][v] == d_set[q][i]);
-    Node t = rsi->getCurrentTerm(v, true);
+    int vo = rsi->getVariableOrder(i);
+    Assert(q[0][vo] == d_set[q][i]);
+    Node t = rsi->getCurrentTerm(vo, true);
     Trace("bound-int-rsi") << "term : " << t << std::endl;
     vars.push_back( d_set[q][i] );
     subs.push_back( t );

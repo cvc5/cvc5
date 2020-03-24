@@ -24,6 +24,8 @@
 namespace CVC4 {
 namespace theory {
 
+class Rewriter;
+
 /**
  * Theory rewriters signal whether more rewriting is needed (or not)
  * by using a member of this enumeration.  See RewriteResponse, below.
@@ -46,17 +48,29 @@ enum RewriteStatus
  */
 struct RewriteResponse
 {
-  const RewriteStatus status;
-  const Node node;
-  RewriteResponse(RewriteStatus status, Node node) : status(status), node(node)
-  {
-  }
+  const RewriteStatus d_status;
+  const Node d_node;
+  RewriteResponse(RewriteStatus status, Node n) : d_status(status), d_node(n) {}
 }; /* struct RewriteResponse */
 
+/**
+ * The interface that a theory rewriter has to implement.
+ *
+ * Note: A theory rewriter is expected to handle all kinds of a theory, even
+ * the ones that are removed by `Theory::expandDefinition()` since it may be
+ * called on terms before the definitions have been expanded.
+ */
 class TheoryRewriter
 {
  public:
   virtual ~TheoryRewriter() = default;
+
+  /**
+   * Registers the rewrites of a given theory with the rewriter.
+   *
+   * @param rewriter The rewriter to register the rewrites with.
+   */
+  virtual void registerRewrites(Rewriter* rewriter) {}
 
   /**
    * Performs a pre-rewrite step.

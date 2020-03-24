@@ -77,7 +77,8 @@ TheoryBV::TheoryBV(context::Context* c,
   setupExtTheory();
   getExtTheory()->addFunctionKind(kind::BITVECTOR_TO_NAT);
   getExtTheory()->addFunctionKind(kind::INT_TO_BITVECTOR);
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
     d_eagerSolver.reset(new EagerBitblastSolver(c, this));
     return;
   }
@@ -112,7 +113,8 @@ TheoryBV::TheoryBV(context::Context* c,
 TheoryBV::~TheoryBV() {}
 
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
     return;
   }
   if (options::bitvectorEqualitySolver()) {
@@ -120,9 +122,9 @@ void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   }
 }
 
-void TheoryBV::spendResource(unsigned amount)
+void TheoryBV::spendResource(ResourceManager::Resource r)
 {
-  getOutputChannel().spendResource(amount);
+  getOutputChannel().spendResource(r);
 }
 
 TheoryBV::Statistics::Statistics():
@@ -237,7 +239,7 @@ void TheoryBV::preRegisterTerm(TNode node) {
   d_calledPreregister = true;
   Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
-  if (options::bitblastMode() == BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     // the aig bit-blaster option is set heuristically
     // if bv abstraction is used
@@ -325,7 +327,8 @@ void TheoryBV::check(Effort e)
   // we may be getting new assertions so the model cache may not be sound
   d_invalidateModelCache.set(true);
   // if we are using the eager solver
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
     // this can only happen on an empty benchmark
     if (!d_eagerSolver->isInitialized()) {
       d_eagerSolver->initialize();
@@ -335,7 +338,7 @@ void TheoryBV::check(Effort e)
 
     std::vector<TNode> assertions;
     while (!done()) {
-      TNode fact = get().assertion;
+      TNode fact = get().d_assertion;
       Assert(fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
       assertions.push_back(fact);
       d_eagerSolver->assertFormula(fact[0]);
@@ -354,7 +357,6 @@ void TheoryBV::check(Effort e)
     return;
   }
 
-
   if (Theory::fullEffort(e)) {
     ++(d_statistics.d_numCallsToCheckFullEffort);
   } else {
@@ -367,7 +369,7 @@ void TheoryBV::check(Effort e)
   }
 
   while (!done()) {
-    TNode fact = get().assertion;
+    TNode fact = get().d_assertion;
 
     checkForLemma(fact);
 
@@ -521,7 +523,8 @@ bool TheoryBV::needsCheckLastEffort() {
 bool TheoryBV::collectModelInfo(TheoryModel* m)
 {
   Assert(!inConflict());
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
     if (!d_eagerSolver->collectModelInfo(m, true))
     {
       return false;
@@ -547,7 +550,8 @@ Node TheoryBV::getModelValue(TNode var) {
 
 void TheoryBV::propagate(Effort e) {
   Debug("bitvector") << indent() << "TheoryBV::propagate()" << std::endl;
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
     return;
   }
 
@@ -611,47 +615,14 @@ bool TheoryBV::getCurrentSubstitution( int effort, std::vector< Node >& vars, st
 int TheoryBV::getReduction(int effort, Node n, Node& nr)
 {
   Trace("bv-ext") << "TheoryBV::checkExt : non-reduced : " << n << std::endl;
-  NodeManager* const nm = NodeManager::currentNM();
   if (n.getKind() == kind::BITVECTOR_TO_NAT)
   {
-    // taken from rewrite code
-    const unsigned size = utils::getSize(n[0]);
-    const Node z = nm->mkConst(Rational(0));
-    const Node bvone = utils::mkOne(1);
-    NodeBuilder<> result(kind::PLUS);
-    Integer i = 1;
-    for (unsigned bit = 0; bit < size; ++bit, i *= 2)
-    {
-      Node cond =
-          nm->mkNode(kind::EQUAL,
-                     nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), n[0]),
-                     bvone);
-      result << nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z);
-    }
-    nr = Node(result);
+    nr = utils::eliminateBv2Nat(n);
     return -1;
   }
   else if (n.getKind() == kind::INT_TO_BITVECTOR)
   {
-    // taken from rewrite code
-    const unsigned size = n.getOperator().getConst<IntToBitVector>().size;
-    const Node bvzero = utils::mkZero(1);
-    const Node bvone = utils::mkOne(1);
-    std::vector<Node> v;
-    Integer i = 2;
-    while (v.size() < size)
-    {
-      Node cond = nm->mkNode(
-          kind::GEQ,
-          nm->mkNode(kind::INTS_MODULUS_TOTAL, n[0], nm->mkConst(Rational(i))),
-          nm->mkConst(Rational(i, 2)));
-      cond = Rewriter::rewrite(cond);
-      v.push_back(nm->mkNode(kind::ITE, cond, bvone, bvzero));
-      i *= 2;
-    }
-    NodeBuilder<> result(kind::BITVECTOR_CONCAT);
-    result.append(v.rbegin(), v.rend());
-    nr = Node(result);
+    nr = utils::eliminateInt2Bv(n);
     return -1;
   }
   return 0;
@@ -910,9 +881,9 @@ void TheoryBV::addSharedTerm(TNode t) {
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
     return EQUALITY_UNKNOWN;
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
+  Assert(options::bitblastMode() == options::BitblastMode::LAZY);
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     EqualityStatus status = d_subtheories[i]->getEqualityStatus(a, b);
     if (status != EQUALITY_UNKNOWN) {
@@ -975,9 +946,9 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
 
 bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   bool changed = d_abstractionModule->applyAbstraction(assertions, new_assertions);
-  if (changed &&
-      options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
-      options::bitvectorAig()) {
+  if (changed && options::bitblastMode() == options::BitblastMode::EAGER
+      && options::bitvectorAig())
+  {
     // disable AIG mode
     AlwaysAssert(!d_eagerSolver->isInitialized());
     d_eagerSolver->turnOffAig();
@@ -988,9 +959,12 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector
 
 void TheoryBV::setProofLog(proof::BitVectorProof* bvp)
 {
-  if( options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER ){
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
     d_eagerSolver->setProofLog(bvp);
-  }else{
+  }
+  else
+  {
     for( unsigned i=0; i< d_subtheories.size(); i++ ){
       d_subtheories[i]->setProofLog( bvp );
     }

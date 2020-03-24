@@ -33,7 +33,6 @@
 #include "lib/ffs.h"
 #include "options/options.h"
 #include "options/theory_options.h"
-#include "options/theoryof_mode.h"
 #include "smt/command.h"
 #include "smt/dump.h"
 #include "smt/logic_request.h"
@@ -273,7 +272,7 @@ public:
   /**
    * Returns the ID of the theory responsible for the given node.
    */
-  static TheoryId theoryOf(TheoryOfMode mode, TNode node);
+  static TheoryId theoryOf(options::TheoryOfMode mode, TNode node);
 
   /**
    * Returns the ID of the theory responsible for the given node.
@@ -868,7 +867,7 @@ inline theory::Assertion Theory::get() {
   Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
 
   if(Dump.isOn("state")) {
-    Dump("state") << AssertCommand(fact.assertion.toExpr());
+    Dump("state") << AssertCommand(fact.d_assertion.toExpr());
   }
 
   return fact;

@@ -267,9 +267,9 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     // choice z. P(z).
     Node v = nm->mkBoundVar(n.getType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-    Node ret = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
-    d_modelCache[n] = ret;
-    return ret;
+    Node answer = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
+    d_modelCache[n] = answer;
+    return answer;
   }
   // must rewrite the term at this point
   ret = Rewriter::rewrite(n);
@@ -315,11 +315,11 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     {
       if (d_enableFuncModels)
       {
-        std::map<Node, Node>::const_iterator it = d_uf_models.find(n);
-        if (it != d_uf_models.end())
+        std::map<Node, Node>::const_iterator entry = d_uf_models.find(n);
+        if (entry != d_uf_models.end())
         {
           // Existing function
-          ret = it->second;
+          ret = entry->second;
           d_modelCache[n] = ret;
           return ret;
         }
@@ -327,7 +327,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
         // constant in the enumeration of the range type
         vector<TypeNode> argTypes = t.getArgTypes();
         vector<Node> args;
-        NodeManager* nm = NodeManager::currentNM();
         for (unsigned i = 0, size = argTypes.size(); i < size; ++i)
         {
           args.push_back(nm->mkBoundVar(argTypes[i]));
@@ -598,6 +597,11 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   // model cache is invalid
   d_modelCache.clear();
 }
+void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
+{
+  Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
+  recordApproximation(n, predDisj);
+}
 void TheoryModel::setUsingModelCore()
 {
   d_using_model_core = true;
@@ -665,8 +669,8 @@ bool TheoryModel::areFunctionValuesEnabled() const
 }
 
 void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
-  Assert(d_uf_models.find(f) == d_uf_models.end());
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
+  Assert(d_uf_models.find(f) == d_uf_models.end());
 
   if( options::ufHo() ){
     //we must rewrite the function value since the definition needs to be a constant value
@@ -681,9 +685,9 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     d_uf_models[f] = f_def;
   }
 
-  if( options::ufHo() ){
+  if (options::ufHo() && d_equalityEngine->hasTerm(f))
+  {
     Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
-    Assert(d_equalityEngine->hasTerm(f));
     // assign to representative if higher-order
     Node r = d_equalityEngine->getRepresentative( f );
     //always replace the representative, since it is initially assigned to itself

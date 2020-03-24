@@ -1319,7 +1319,7 @@ void TheoryArrays::check(Effort e) {
     return;
   }
 
-  getOutputChannel().spendResource(options::theoryCheckStep());
+  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
@@ -1327,14 +1327,15 @@ void TheoryArrays::check(Effort e) {
   {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::check(): processing " << fact << std::endl;
 
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
 
-    if (!assertion.isPreregistered) {
+    if (!assertion.d_isPreregistered)
+    {
       if (atom.getKind() == kind::EQUAL) {
         if (!d_equalityEngine.hasTerm(atom[0])) {
           Assert(atom[0].isConst());
@@ -1475,18 +1476,21 @@ void TheoryArrays::check(Effort e) {
       mayRep = d_mayEqualEqualityEngine.getRepresentative(r[0]);
       iRep = d_equalityEngine.getRepresentative(r[1]);
       std::pair<TNode, TNode> key(mayRep, iRep);
-      ReadBucketMap::iterator it = d_readBucketTable.find(key);
-      if (it == d_readBucketTable.end()) {
+      ReadBucketMap::iterator rbm_it = d_readBucketTable.find(key);
+      if (rbm_it == d_readBucketTable.end())
+      {
         bucketList = new(true) CTNodeList(d_readTableContext);
         d_readBucketAllocations.push_back(bucketList);
         d_readBucketTable[key] = bucketList;
       }
       else {
-        bucketList = it->second;
+        bucketList = rbm_it->second;
       }
-      CTNodeList::const_iterator it2 = bucketList->begin(), iend = bucketList->end();
-      for (; it2 != iend; ++it2) {
-        const TNode& r2 = *it2;
+      CTNodeList::const_iterator ctnl_it = bucketList->begin(),
+                                 ctnl_iend = bucketList->end();
+      for (; ctnl_it != ctnl_iend; ++ctnl_it)
+      {
+        const TNode& r2 = *ctnl_it;
         Assert(r2.getKind() == kind::SELECT);
         Assert(mayRep == d_mayEqualEqualityEngine.getRepresentative(r2[0]));
         Assert(iRep == d_equalityEngine.getRepresentative(r2[1]));

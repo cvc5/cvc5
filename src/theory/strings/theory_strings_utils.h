@@ -28,6 +28,9 @@ namespace theory {
 namespace strings {
 namespace utils {
 
+/** get the cardinality of the alphabet used, based on the options */
+uint32_t getAlphabetCardinality();
+
 /**
  * Make the conjunction of nodes in a. Removes duplicate conjuncts, returns
  * true if a is empty, and a single literal if a has size 1.
@@ -53,10 +56,10 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj);
 void getConcat(Node n, std::vector<Node>& c);
 
 /**
- * Make the concatentation from vector c
- * The kind k is either STRING_CONCAT or REGEXP_CONCAT.
+ * Make the concatentation from vector c of (string-like or regular
+ * expression) type tn.
  */
-Node mkConcat(Kind k, const std::vector<Node>& c);
+Node mkConcat(const std::vector<Node>& c, TypeNode tn);
 
 /**
  * Returns the rewritten form of the string concatenation of n1 and n2.
@@ -69,9 +72,10 @@ Node mkNConcat(Node n1, Node n2);
 Node mkNConcat(Node n1, Node n2, Node n3);
 
 /**
- * Returns the rewritten form of the string concatenation of nodes in c.
+ * Returns the rewritten form of the concatentation from vector c of
+ * (string-like) type tn.
  */
-Node mkNConcat(const std::vector<Node>& c);
+Node mkNConcat(const std::vector<Node>& c, TypeNode tn);
 
 /**
  * Returns the rewritten form of the length of string term t.
@@ -130,6 +134,11 @@ bool isSimpleRegExp(Node r);
  * @param result The resulting components
  */
 void getRegexpComponents(Node r, std::vector<Node>& result);
+
+/** Print the vector n as a concatentation term on output stream out */
+void printConcat(std::ostream& out, std::vector<Node>& n);
+/** Print the vector n as a concatentation term on trace given by c */
+void printConcatTrace(std::vector<Node>& n, const char* c);
 
 }  // namespace utils
 }  // namespace strings

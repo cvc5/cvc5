@@ -431,8 +431,9 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       children.push_back(op);
       entry_children.push_back(op);
       bool hasNonStar = false;
-      for( unsigned i=0; i<c.getNumChildren(); i++) {
-        Node ri = fm->getRepresentative( c[i] );
+      for (const Node& ci : c)
+      {
+        Node ri = fm->getRepresentative(ci);
         children.push_back(ri);
         bool isStar = false;
         if (fm->isModelBasisTerm(ri))
@@ -445,7 +446,9 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
           hasNonStar = true;
         }
         if( !isStar && !ri.isConst() ){
-          Trace("fmc-warn") << "Warning : model for " << op << " has non-constant argument in model " << ri << " (from " << c[i] << ")" << std::endl;
+          Trace("fmc-warn") << "Warning : model for " << op
+                            << " has non-constant argument in model " << ri
+                            << " (from " << ci << ")" << std::endl;
           Assert(false);
         }
         entry_children.push_back(ri);
@@ -603,12 +606,15 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_quant_cond[f] = op;
       }
 
-      if( options::mbqiMode()==MBQI_NONE ){
+      if (options::mbqiMode() == options::MbqiMode::NONE)
+      {
         //just exhaustive instantiate
         Node c = mkCondDefault( fmfmc, f );
         d_quant_models[f].addEntry( fmfmc, c, d_false );
         return exhaustiveInstantiate( fmfmc, f, c, -1);
-      }else{
+      }
+      else
+      {
         //model check the quantifier
         doCheck(fmfmc, f, d_quant_models[f], f[1]);
         Trace("fmc") << "Definition for quantifier " << f << " is : " << std::endl;

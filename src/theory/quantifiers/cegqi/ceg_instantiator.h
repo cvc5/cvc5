@@ -396,15 +396,6 @@ class CegInstantiator {
    * such as the above data structures.
    */
   void processAssertions();
-  /** add to auxiliary variable substitution
-   * This adds the substitution l -> r to the auxiliary
-   * variable substitution subs_lhs -> subs_rhs, and serializes
-   * it (applies it to existing substitutions).
-   */
-  void addToAuxVarSubstitution(std::vector<Node>& subs_lhs,
-                               std::vector<Node>& subs_rhs,
-                               Node l,
-                               Node r);
   /** cache bound variables for type returned
    * by getBoundVariable(...).
    */
@@ -462,35 +453,8 @@ class CegInstantiator {
    * and sending on the output channel of this class.
    */
   std::vector<Node> d_input_vars;
-  /** literals to equalities for aux vars
-   * This stores entries of the form
-   *   L -> ( k -> t )
-   * where
-   *   k is a variable in d_aux_vars,
-   *   L is a literal that if asserted implies that our
-   *    instantiation should map { k -> t }.
-   * For example, if a term of the form
-   *   ite( C, t1, t2 )
-   * was replaced by k, we get this (top-level) assertion:
-   *   ite( C, k=t1, k=t2 )
-   * The vector d_aux_eq contains the exact form of
-   * the literals in the above constraint that they would
-   * appear in assertions, meaning d_aux_eq may contain:
-   *   t1=k -> ( k -> t1 )
-   *   t2=k -> ( k -> t2 )
-   * where t1=k and t2=k are the rewritten form of
-   * k=t1 and k=t2 respectively.
-   */
-  std::map<Node, std::map<Node, Node> > d_aux_eq;
-  /** auxiliary variables
-   * These variables include the result of removing ITE
-   * terms from the quantified formula we are processing.
-   * These variables must be eliminated from constraints
-   * as a preprocess step to check().
-   */
-  std::vector<Node> d_aux_vars;
   /** register variable */
-  void registerVariable(Node v, bool is_aux = false);
+  void registerVariable(Node v);
   //-------------------------------the variables
 
   //-------------------------------quantified formula info

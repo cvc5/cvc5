@@ -16,10 +16,11 @@
 
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
@@ -402,7 +403,7 @@ void TermDb::computeUfTerms( TNode f ) {
           {
             Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
                                    << n << "!!!!" << std::endl;
-            if (!d_quantEngine->getTheoryEngine()->needCheck())
+            if (!d_quantEngine->theoryEngineNeedsCheck())
             {
               Trace("term-db-lemma") << "  all theories passed with no lemmas."
                                      << std::endl;
@@ -672,7 +673,8 @@ Node TermDb::evaluateTerm2(TNode n,
             for (unsigned j = 0; j < 2; j++)
             {
               std::pair<bool, Node> et = te->entailmentCheck(
-                  THEORY_OF_TYPE_BASED, j == 0 ? ret : ret.negate());
+                  options::TheoryOfMode::THEORY_OF_TYPE_BASED,
+                  j == 0 ? ret : ret.negate());
               if (et.first)
               {
                 ret = j == 0 ? d_true : d_false;
@@ -905,11 +907,16 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
     return d_has_map.find( n )!=d_has_map.end();
   }else{
     //return d_quantEngine->getActiveEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
-    if( options::termDbMode()==TERM_DB_ALL ){
+    if (options::termDbMode() == options::TermDbMode::ALL)
+    {
       return true;
-    }else if( options::termDbMode()==TERM_DB_RELEVANT ){
+    }
+    else if (options::termDbMode() == options::TermDbMode::RELEVANT)
+    {
       return d_has_map.find( n )!=d_has_map.end();
-    }else{
+    }
+    else
+    {
       Assert(false);
       return false;
     }
@@ -1061,7 +1068,9 @@ bool TermDb::reset( Theory::Effort effort ){
   }
 
   //compute has map
-  if( options::termDbMode()==TERM_DB_RELEVANT || options::lteRestrictInstClosure() ){
+  if (options::termDbMode() == options::TermDbMode::RELEVANT
+      || options::lteRestrictInstClosure())
+  {
     d_has_map.clear();
     d_term_elig_eqc.clear();
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
@@ -1091,8 +1100,9 @@ bool TermDb::reset( Theory::Effort effort ){
       if (theory && d_quantEngine->getTheoryEngine()->d_logicInfo.isTheoryEnabled(theoryId)) {
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (unsigned i = 0; it != it_end; ++ it, ++i) {
-          if( (*it).assertion.getKind()!=INST_CLOSURE ){
-            setHasTerm( (*it).assertion );
+          if ((*it).d_assertion.getKind() != INST_CLOSURE)
+          {
+            setHasTerm((*it).d_assertion);
           }
         }
       }

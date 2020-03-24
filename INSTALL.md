@@ -49,6 +49,7 @@ compatible.
 - [CMake >= 3.1](https://cmake.org)
 - [GNU Bash](https://www.gnu.org/software/bash/)
 - [Python >= 2.7](https://www.python.org)
+  + module [toml](https://pypi.org/project/toml/)
 - [GMP v4.2 (GNU Multi-Precision arithmetic library)](https://gmplib.org)
 - [libantlr3c v3.2 or v3.4 (ANTLR parser generator C support library)](http://www.antlr3.org/)
 - [Java >= 1.6](https://www.java.com)
@@ -109,7 +110,7 @@ Configure CVC4 with `configure.sh --lfsc` to build with this dependency.
 ### SWIG >= 3.0.x (Simplified Wrapper and Interface Generator)
 
 SWIG 3.0.x (and a JDK) is necessary to build the Java API.
-See [Language Bindings](language-bindings) below for build instructions.
+See [Language Bindings](#language-bindings) below for build instructions.
 
 ### CLN >= v1.3 (Class Library for Numbers)
 

@@ -1,4 +1,3 @@
-; COMMAND-LINE: --symmetry-breaker-exp
 (set-info :smt-lib-version 2.6)
 (set-logic QF_LIA)
 (set-info :category "crafted")

@@ -310,7 +310,7 @@ private:
   /** are universal disequal */
   bool areUniversalDisequal( TNode n1, TNode n2 );
   /** get universal representative */
-  TNode getUniversalRepresentative( TNode n, bool add = false );
+  Node getUniversalRepresentative(TNode n, bool add = false);
   /** set relevant */
   void setUniversalRelevant( TNode n );
   /** ordering for universal terms */

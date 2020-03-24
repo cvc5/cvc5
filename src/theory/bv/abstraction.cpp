@@ -88,17 +88,17 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
   }
 
   // if we are using the eager solver reverse the abstraction
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     if (d_funcToSignature.size() == 0)
     {
       // we did not change anything
       return false;
     }
-    NodeNodeMap seen;
+    NodeNodeMap seen_rev;
     for (unsigned i = 0; i < new_assertions.size(); ++i)
     {
-      new_assertions[i] = reverseAbstraction(new_assertions[i], seen);
+      new_assertions[i] = reverseAbstraction(new_assertions[i], seen_rev);
     }
     // we undo the abstraction functions so the logic is QF_BV still
     return true;
@@ -235,13 +235,15 @@ void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions)
 
       // enumerate arguments assignments
       std::vector<Node> or_assignments;
-      for (ArgsTableEntry::iterator it = args.begin(); it != args.end(); ++it)
+      for (const ArgsVec& av : args)
+      // for (ArgsTableEntry::iterator it = args.begin(); it != args.end();
+      // ++it)
       {
         NodeBuilder<> arg_assignment(kind::AND);
-        ArgsVec& args = *it;
-        for (unsigned k = 0; k < args.size(); ++k)
+        // ArgsVec& args = *it;
+        for (unsigned k = 0; k < av.size(); ++k)
         {
-          Node eq = nm->mkNode(kind::EQUAL, args[k], skolem_args[k]);
+          Node eq = nm->mkNode(kind::EQUAL, av[k], skolem_args[k]);
           arg_assignment << eq;
         }
         or_assignments.push_back(arg_assignment);
@@ -1081,7 +1083,8 @@ bool AbstractionModule::isLemmaAtom(TNode node) const {
 }
 
 void AbstractionModule::addInputAtom(TNode atom) {
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY) {
+  if (options::bitblastMode() == options::BitblastMode::LAZY)
+  {
     d_inputAtoms.insert(atom);
   }
 }

@@ -117,7 +117,7 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   d_errorSet.reduceToSignals();
 
   // We must start tracking NOW
-  d_errorSet.setSelectionRule(SUM_METRIC);
+  d_errorSet.setSelectionRule(options::ErrorSelectionRule::SUM_METRIC);
 
   if(initialProcessSignals()){
     d_conflictVariables.purge();

@@ -36,10 +36,15 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "simplification=MODE"
   type       = "SimplificationMode"
-  default    = "SIMPLIFICATION_MODE_BATCH"
-  handler    = "stringToSimplificationMode"
-  includes   = ["options/smt_modes.h"]
+  default    = "BATCH"
   help       = "choose simplification mode, see --simplification=help"
+  help_mode  = "Simplification modes."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not perform nonclausal simplification."
+[[option.mode.BATCH]]
+  name = "batch"
+  help = "Save up all ASSERTions; run nonclausal simplification and clausal (MiniSat) propagation for all of them only after reaching a querying command (CHECKSAT or QUERY or predicate SUBTYPE declaration)."
 
 [[alias]]
   category   = "regular"
@@ -101,21 +106,36 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "model-cores=MODE"
   type       = "ModelCoresMode"
-  default    = "MODEL_CORES_NONE"
-  handler    = "stringToModelCoresMode"
-  includes   = ["options/smt_modes.h"]
+  default    = "NONE"
   help       = "mode for producing model cores"
-
+  help_mode  = "Model cores modes."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not compute model cores."
+[[option.mode.SIMPLE]]
+  name = "simple"
+  help = "Only include a subset of variables whose values are sufficient to show the input formula is satisfied by the given model."
+[[option.mode.NON_IMPLIED]]
+  name = "non-implied"
+  help = "Only include a subset of variables whose values, in addition to the values of variables whose values are implied, are sufficient to show the input formula is satisfied by the given model."
 
 [[option]]
   name       = "blockModelsMode"
   category   = "regular"
   long       = "block-models=MODE"
   type       = "BlockModelsMode"
-  default    = "BLOCK_MODELS_NONE"
-  handler    = "stringToBlockModelsMode"
-  includes   = ["options/smt_modes.h"]
+  default    = "NONE"
   help       = "mode for producing several models"
+  help_mode  = "Blocking models modes."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not block models."
+[[option.mode.LITERALS]]
+  name = "literals"
+  help = "Block models based on the SAT skeleton."
+[[option.mode.VALUES]]
+  name = "values"
+  help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
   name       = "proof"
@@ -163,10 +183,21 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "sygus-out=MODE"
   type       = "SygusSolutionOutMode"
-  default    = "SYGUS_SOL_OUT_STATUS_AND_DEF"
-  handler    = "stringToSygusSolutionOutMode"
-  includes   = ["options/sygus_out_mode.h"]
+  default    = "STATUS_AND_DEF"
   help       = "output mode for sygus"
+  help_mode  = "Modes for sygus solution output."
+[[option.mode.STATUS]]
+  name = "status"
+  help = "Print only status for check-synth calls."
+[[option.mode.STATUS_AND_DEF]]
+  name = "status-and-def"
+  help = "Print status followed by definition corresponding to solution."
+[[option.mode.STATUS_OR_DEF]]
+  name = "status-or-def"
+  help = "Print status if infeasible, or definition corresponding to solution if feasible."
+[[option.mode.STANDARD]]
+  name = "sygus-standard"
+  help = "Print based on SyGuS standard."
 
 [[option]]
   name       = "sygusPrintCallbacks"
@@ -353,14 +384,6 @@ header = "options/smt_options.h"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
   
 [[option]]
-  name       = "symmetryBreakerExp"
-  category   = "regular"
-  long       = "symmetry-breaker-exp"
-  type       = "bool"
-  default    = "false"
-  help       = "generate symmetry breaking constraints after symmetry detection"    
-  
-[[option]]
   name       = "incrementalSolving"
   category   = "common"
   short      = "i"
@@ -387,6 +410,15 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "in models, output uninterpreted sorts as datatype enumerations"
+
+[[option]]
+  name       = "modelWitnessChoice"
+  category   = "regular"
+  long       = "model-witness-choice"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "in models, use a witness constant for choice functions"
 
 [[option]]
   name       = "regularChannelName"
@@ -505,6 +537,24 @@ header = "options/smt_options.h"
   help       = "amount of resources spent for each bitblast step"
 
 [[option]]
+  name       = "bvPropagationStep"
+  category   = "expert"
+  long       = "bv-propagation-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each BV propagation step"
+
+[[option]]
+  name       = "bvEagerAssertStep"
+  category   = "expert"
+  long       = "bv-eager-assert-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each eager BV assert step"
+
+[[option]]
   name       = "parseStep"
   category   = "expert"
   long       = "parse-step=N"
@@ -576,15 +626,6 @@ header = "options/smt_options.h"
   read_only  = true
   help       = "amount of resources spent for each sat conflict (bitvectors)"
 
-[[option]]
-  name       = "rewriteApplyToConst"
-  category   = "expert"
-  long       = "rewrite-apply-to-const"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "eliminate function applications, rewriting e.g. f(5) to a new symbol f_5"
-
 # --replay is currently broken; don't document it for 1.0
 [[option]]
   name       = "replayInputFilename"
@@ -614,6 +655,15 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "Force no CPU limit when dumping models and proofs"
+
+[[option]]
+  name       = "solveBVAsInt"
+  category   = "undocumented"
+  long       = "solve-bv-as-int=N"
+  type       = "uint32_t"
+  default    = "0"
+  read_only  = true
+  help       = "attempt to solve BV formulas by translation to integer arithmetic (experimental)"
 
 [[option]]
   name       = "solveIntAsBV"

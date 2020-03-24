@@ -19,6 +19,7 @@
 
 #include "base/check.h"
 #include "context/context.h"
+#include "expr/node_visitor.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
 #include "proof/clause_id.h"
@@ -31,7 +32,6 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/output_channel.h"
 #include "theory/term_registration_visitor.h"
@@ -682,11 +682,9 @@ void LFSCProof::toStream(std::ostream& out) const
     d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
 
     // collects the atoms in the assertions
-    for (NodeSet::const_iterator it = used_assertions.begin();
-         it != used_assertions.end();
-         ++it)
+    for (TNode used_assertion : used_assertions)
     {
-      utils::collectAtoms(*it, atoms);
+      utils::collectAtoms(used_assertion, atoms);
     }
 
     std::set<Node>::iterator atomIt;
@@ -798,7 +796,7 @@ void LFSCProof::toStream(std::ostream& out) const
     CodeTimer finalProofTimer{
         ProofManager::currentPM()->getStats().d_finalProofTime};
     out << ";; Printing final unsat proof \n";
-    if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+    if (options::bitblastMode() == options::BitblastMode::EAGER
         && ProofManager::getBitVectorProof())
     {
       ProofManager::getBitVectorProof()->printEmptyClauseProof(out, paren);

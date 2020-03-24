@@ -7,11 +7,21 @@ header = "options/arith_options.h"
   category   = "regular"
   long       = "unate-lemmas=MODE"
   type       = "ArithUnateLemmaMode"
-  default    = "ALL_PRESOLVE_LEMMAS"
-  handler    = "stringToArithUnateLemmaMode"
-  includes   = ["options/arith_unate_lemma_mode.h"]
+  default    = "ALL"
   read_only  = true
   help       = "determines which lemmas to add before solving (default is 'all', see --unate-lemmas=help)"
+  help_mode  = "Unate lemmas are generated before SAT search begins using the relationship of constant terms and polynomials."
+[[option.mode.ALL]]
+  name = "all"
+  help = "A combination of inequalities and equalities."
+[[option.mode.EQUALITY]]
+  name = "eqs"
+  help = "Outputs lemmas of the general forms (= p c) implies (<= p d) for c < d, or (= p c) implies (not (= p d)) for c != d."
+[[option.mode.INEQUALITY]]
+  name = "ineqs"
+  help  = "Outputs lemmas of the general form (<= p c) implies (<= p d) for c < d."
+[[option.mode.NO]]
+  name = "none"
 
 [[option]]
   name       = "arithPropagationMode"
@@ -19,10 +29,22 @@ header = "options/arith_options.h"
   long       = "arith-prop=MODE"
   type       = "ArithPropagationMode"
   default    = "BOTH_PROP"
-  handler    = "stringToArithPropagationMode"
-  includes   = ["options/arith_propagation_mode.h"]
   read_only  = true
   help       = "turns on arithmetic propagation (default is 'old', see --arith-prop=help)"
+  help_mode  = "This decides on kind of propagation arithmetic attempts to do during the search."
+[[option.mode.NO_PROP]]
+  name = "none"
+[[option.mode.UNATE_PROP]]
+  name = "unate"
+  help = "Use constraints to do unate propagation."
+[[option.mode.BOUND_INFERENCE_PROP]]
+  name = "bi"
+  help  = "(Bounds Inference) infers bounds on basic variables using the upper and lower bounds of the non-basic variables in the tableau."
+[[option.mode.BOTH_PROP]]
+  name = "both"
+  help = "Use bounds inference and unate."
+
+
 
 # The maximum number of difference pivots to do per invocation of simplex.
 # If this is negative, the number of pivots done is the number of variables.
@@ -55,10 +77,20 @@ header = "options/arith_options.h"
   long       = "error-selection-rule=RULE"
   type       = "ErrorSelectionRule"
   default    = "MINIMUM_AMOUNT"
-  handler    = "stringToErrorSelectionRule"
-  includes   = ["options/arith_heuristic_pivot_rule.h"]
   read_only  = true
   help       = "change the pivot rule for the basic variable (default is 'min', see --pivot-rule help)"
+  help_mode  = "This decides on the rule used by simplex during heuristic rounds for deciding the next basic variable to select."
+[[option.mode.MINIMUM_AMOUNT]]
+  name = "min"
+  help = "The minimum abs() value of the variable's violation of its bound."
+[[option.mode.VAR_ORDER]]
+  name = "varord"
+  help = "The variable order."
+[[option.mode.MAXIMUM_AMOUNT]]
+  name = "max"
+  help = "The maximum violation the bound."
+[[option.mode.SUM_METRIC]]
+  name = "sum"
 
 # The number of pivots before simplex rechecks every basic variable for a conflict
 [[option]]
