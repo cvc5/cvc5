@@ -1041,8 +1041,41 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
 }; /* class GetSynthSolutionCommand */
 
 /** The command (get-interpol s B)
+ * 
+ * This command asks for an interpolation from the current set of assertions and conjecture (goal) given by the argument B.
  *
+ * The symbol s is the name for the interpolation predicate. If we successfully find a predicate P, then the output response
+ * of this command is:
+ *   (define-fun s () Bool P)
  */
+class CVC4_PUBLIC GetInterpolCommand : public Command
+{
+	public:
+		GetInterpolCommand();
+		GetInterpolCommand(const std::string& name, Expr conj);
+
+		/** Get the conjecture of the interpolation query */
+		Expr getConjecture() const;
+		/** Get the result of the query, which is the solution to the interpolation query. */
+		Expr getResult() const;
+
+		void invoke(SmtEngine* smtEngine) override;
+		void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+		Command* exportTo(ExprManager* exprManager,
+				ExprManagerMapCollection& variableMap) override;
+		Command* clone() const override;
+		std::string getCommandName() const override;
+
+	protected:
+		/** The name of the interpolation predicate */
+		std::string d_name;
+		/** The conjecture of the interpolation query */
+		Expr d_conj;
+		/** the return status of the command */
+		bool d_resultStatus;
+		/** the return expression of the command */
+		Expr d_result;
+} /* class GetInterpolCommand */
 
 /** The command (get-abduct s B (G)?)
  *
