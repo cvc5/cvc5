@@ -1009,7 +1009,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
     {
       slv = getVarElimLitBv(lit, args, var);
     }
-    else if (tt.isString())
+    else if (tt.isStringLike())
     {
       slv = getVarElimLitString(lit, args, var);
     }
