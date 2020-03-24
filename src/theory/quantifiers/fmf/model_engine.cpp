@@ -182,6 +182,11 @@ int ModelEngine::checkModel(){
       Trace("model-engine-debug") << "   Term reps : ";
       for( size_t i=0; i<it->second.size(); i++ ){
         Node r = d_quantEngine->getInternalRepresentative( it->second[i], Node::null(), 0 );
+        if (r.isNull())
+        {
+          // there was an invalid equivalence class
+          d_incomplete_check = true;
+        }
         Trace("model-engine-debug") << r << " ";
       }
       Trace("model-engine-debug") << std::endl;

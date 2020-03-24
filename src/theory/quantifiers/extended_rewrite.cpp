@@ -20,7 +20,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/sequences_rewriter.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -1692,7 +1692,7 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
 
   if (ret.getKind() == EQUAL)
   {
-    new_ret = strings::TheoryStringsRewriter::rewriteEqualityExt(ret);
+    new_ret = strings::SequencesRewriter::rewriteEqualityExt(ret);
   }
 
   return new_ret;

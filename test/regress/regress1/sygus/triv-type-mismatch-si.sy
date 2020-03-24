@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic LIA)
 
 (synth-fun R ((y Int)) Bool)
@@ -10,4 +10,3 @@
 (constraint (=> (= x e) (R x)))
 
 (check-synth)
-

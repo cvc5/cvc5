@@ -21,7 +21,6 @@
 #include "options/strings_options.h"
 #include "theory/ext_theory.h"
 #include "theory/strings/theory_strings.h"
-#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
 
@@ -622,7 +621,7 @@ bool RegExpSolver::deriveRegExp(Node x,
         {
           vec_nodes.push_back(x[i]);
         }
-        Node left = utils::mkConcat(STRING_CONCAT, vec_nodes);
+        Node left = utils::mkConcat(vec_nodes, x.getType());
         left = Rewriter::rewrite(left);
         conc = NodeManager::currentNM()->mkNode(STRING_IN_REGEXP, left, dc);
       }

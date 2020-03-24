@@ -17,7 +17,7 @@
 #include "theory/strings/core_solver.h"
 
 #include "options/strings_options.h"
-#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -40,6 +40,7 @@ d_nf_pairs(c)
   d_emptyString = Word::mkEmptyWord(CONST_STRING);
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+  d_type = NodeManager::currentNM()->stringType();
 }
 
 CoreSolver::~CoreSolver() {
@@ -155,7 +156,7 @@ void CoreSolver::checkFlatForms()
         for (const Node& n : it->second)
         {
           int firstc, lastc;
-          if (!TheoryStringsRewriter::canConstantContainList(
+          if (!SequencesRewriter::canConstantContainList(
                   c, d_flat_form[n], firstc, lastc))
           {
             Trace("strings-ff-debug") << "Flat form for " << n
@@ -348,8 +349,8 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
             {
               // check for constant conflict
               int index;
-              Node s = TheoryStringsRewriter::splitConstant(
-                  cc_c, curr_c, index, isRev);
+              Node s =
+                  SequencesRewriter::splitConstant(cc_c, curr_c, index, isRev);
               if (s.isNull())
               {
                 d_bsolver.explainConstantEqc(ac,curr,exp);
@@ -559,7 +560,7 @@ void CoreSolver::checkNormalFormsEq()
       return;
     }
     NormalForm& nfe = getNormalForm(eqc);
-    Node nf_term = utils::mkNConcat(nfe.d_nf);
+    Node nf_term = utils::mkNConcat(nfe.d_nf, d_type);
     std::map<Node, Node>::iterator itn = nf_to_eqc.find(nf_term);
     if (itn != nf_to_eqc.end())
     {
@@ -682,7 +683,7 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
     if (it != d_normal_form.end())
     {
       NormalForm& nf = it->second;
-      Node ret = utils::mkNConcat(nf.d_nf);
+      Node ret = utils::mkNConcat(nf.d_nf, d_type);
       nf_exp.insert(nf_exp.end(), nf.d_exp.begin(), nf.d_exp.end());
       d_im.addToExplanation(x, nf.d_base, nf_exp);
       Trace("strings-debug")
@@ -700,7 +701,7 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
         Node nc = getNormalString(x[i], nf_exp);
         vec_nodes.push_back(nc);
       }
-      return utils::mkNConcat(vec_nodes);
+      return utils::mkNConcat(vec_nodes, d_type);
     }
   }
   return x;
@@ -905,7 +906,7 @@ void CoreSolver::getNormalForms(Node eqc,
       {
         NormalForm& nf = normal_forms[i];
         int firstc, lastc;
-        if (!TheoryStringsRewriter::canConstantContainList(
+        if (!SequencesRewriter::canConstantContainList(
                 c, nf.d_nf, firstc, lastc))
         {
           Node n = nf.d_base;
@@ -952,10 +953,6 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms)
         {
           return;
         }
-        else if (!pinfer.empty() && pinfer.back().d_id == 1)
-        {
-          break;
-        }
         //AJR: for less aggressive endpoint inference
         //rindex = 0;
 
@@ -964,10 +961,6 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms)
         if (d_im.hasProcessed())
         {
           return;
-        }
-        else if (!pinfer.empty() && pinfer.back().d_id == 1)
-        {
-          break;
         }
       }
     }
@@ -981,7 +974,7 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms)
   bool set_use_index = false;
   Trace("strings-solve") << "Possible inferences (" << pinfer.size()
                          << ") : " << std::endl;
-  unsigned min_id = 9;
+  Inference min_id = Inference::NONE;
   unsigned max_index = 0;
   for (unsigned i = 0, size = pinfer.size(); i < size; i++)
   {
@@ -1038,7 +1031,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         // can infer that this string must be empty
         Node eq = nfkv[index_k].eqNode(d_emptyString);
         Assert(!d_state.areEqual(d_emptyString, nfkv[index_k]));
-        d_im.sendInference(curr_exp, eq, "N_EndpointEmp");
+        d_im.sendInference(curr_exp, eq, Inference::N_ENDPOINT_EMP);
         index_k++;
       }
       break;
@@ -1086,7 +1079,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Node leneq = xLenTerm.eqNode(yLenTerm);
       NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, lenExp);
       lenExp.push_back(leneq);
-      d_im.sendInference(lenExp, eq, "N_Unify");
+      d_im.sendInference(lenExp, eq, Inference::N_UNIFY);
       break;
     }
     else if ((x.getKind() != CONST_STRING && index == nfiv.size() - rproc - 1)
@@ -1117,13 +1110,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
             eqnc.push_back(nfkv[i]);
           }
         }
-        eqn[r] = utils::mkNConcat(eqnc);
+        eqn[r] = utils::mkNConcat(eqnc, d_type);
       }
       if (!d_state.areEqual(eqn[0], eqn[1]))
       {
         std::vector<Node> antec;
         NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, antec);
-        d_im.sendInference(antec, eqn[0].eqNode(eqn[1]), "N_EndpointEq", true);
+        d_im.sendInference(
+            antec, eqn[0].eqNode(eqn[1]), Inference::N_ENDPOINT_EQ, true);
       }
       else
       {
@@ -1183,7 +1177,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         // E.g. "abc" ++ ... = "bc" ++ ... ---> conflict
         std::vector<Node> antec;
         NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, antec);
-        d_im.sendInference(antec, d_false, "N_Const", true);
+        d_im.sendInference(antec, d_false, Inference::N_CONST, true);
         break;
       }
     }
@@ -1212,7 +1206,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       lenEq = Rewriter::rewrite(lenEq);
       info.d_conc = nm->mkNode(OR, lenEq, lenEq.negate());
       info.d_pending_phase[lenEq] = true;
-      info.d_id = INFER_LEN_SPLIT;
+      info.d_id = Inference::LEN_SPLIT;
       pinfer.push_back(info);
       break;
     }
@@ -1283,12 +1277,12 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           // inferred
           info.d_conc = nm->mkNode(
               AND, p.eqNode(nc), !eq.getConst<bool>() ? pEq.negate() : pEq);
-          info.d_id = INFER_INFER_EMP;
+          info.d_id = Inference::INFER_EMP;
         }
         else
         {
           info.d_conc = nm->mkNode(OR, eq, eq.negate());
-          info.d_id = INFER_LEN_SPLIT_EMP;
+          info.d_id = Inference::LEN_SPLIT_EMP;
         }
         pinfer.push_back(info);
         break;
@@ -1360,7 +1354,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, prea)
                                         : utils::mkNConcat(prea, sk));
           info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
-          info.d_id = INFER_SSPLIT_CST_PROP;
+          info.d_id = Inference::SSPLIT_CST_PROP;
           pinfer.push_back(info);
           break;
         }
@@ -1386,7 +1380,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
                                     : utils::mkNConcat(firstChar, sk));
       info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
-      info.d_id = INFER_SSPLIT_CST;
+      info.d_id = Inference::SSPLIT_CST;
       pinfer.push_back(info);
       break;
     }
@@ -1462,14 +1456,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     {
       info.d_antn.push_back(lentTestExp);
       info.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
-      info.d_id = INFER_SSPLIT_VAR_PROP;
+      info.d_id = Inference::SSPLIT_VAR_PROP;
     }
     else
     {
       Node ldeq = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
       info.d_ant.push_back(ldeq);
       info.d_conc = nm->mkNode(OR, eq1, eq2);
-      info.d_id = INFER_SSPLIT_VAR;
+      info.d_id = Inference::SSPLIT_VAR;
     }
     pinfer.push_back(info);
     break;
@@ -1540,15 +1534,15 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   Trace("strings-loop") << " ... (X)= " << vecoi[index] << std::endl;
   Trace("strings-loop") << " ... T(Y.Z)= ";
   std::vector<Node> vec_t(veci.begin() + index, veci.begin() + loop_index);
-  Node t_yz = utils::mkNConcat(vec_t);
+  Node t_yz = utils::mkNConcat(vec_t, d_type);
   Trace("strings-loop") << " (" << t_yz << ")" << std::endl;
   Trace("strings-loop") << " ... S(Z.Y)= ";
   std::vector<Node> vec_s(vecoi.begin() + index + 1, vecoi.end());
-  Node s_zy = utils::mkNConcat(vec_s);
+  Node s_zy = utils::mkNConcat(vec_s, d_type);
   Trace("strings-loop") << s_zy << std::endl;
   Trace("strings-loop") << " ... R= ";
   std::vector<Node> vec_r(veci.begin() + loop_index + 1, veci.end());
-  Node r = utils::mkNConcat(vec_r);
+  Node r = utils::mkNConcat(vec_r, d_type);
   Trace("strings-loop") << r << std::endl;
 
   if (s_zy.isConst() && r.isConst() && r != d_emptyString)
@@ -1589,7 +1583,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
       {
         // try to make t equal to empty to avoid loop
         info.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
-        info.d_id = INFER_LEN_SPLIT_EMP;
+        info.d_id = Inference::LEN_SPLIT_EMP;
         return ProcessLoopResult::INFERENCE;
       }
       else
@@ -1640,7 +1634,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
         v2.insert(v2.begin(), y);
         v2.insert(v2.begin(), z);
         restr = utils::mkNConcat(z, y);
-        cc = Rewriter::rewrite(s_zy.eqNode(utils::mkNConcat(v2)));
+        cc = Rewriter::rewrite(s_zy.eqNode(utils::mkNConcat(v2, d_type)));
       }
       else
       {
@@ -1690,7 +1684,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     // s1 * ... * sk = z * y * r
     vec_r.insert(vec_r.begin(), sk_y);
     vec_r.insert(vec_r.begin(), sk_z);
-    Node conc2 = s_zy.eqNode(utils::mkNConcat(vec_r));
+    Node conc2 = s_zy.eqNode(utils::mkNConcat(vec_r, d_type));
     Node conc3 = vecoi[index].eqNode(utils::mkNConcat(sk_y, sk_w));
     Node restr = r == d_emptyString ? s_zy : utils::mkNConcat(sk_z, sk_y);
     str_in_re =
@@ -1710,7 +1704,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
   // we will be done
   info.d_conc = conc;
-  info.d_id = INFER_FLOOP;
+  info.d_id = Inference::FLOOP;
   info.d_nf_pair[0] = nfi.d_base;
   info.d_nf_pair[1] = nfj.d_base;
   return ProcessLoopResult::INFERENCE;
@@ -1910,7 +1904,7 @@ int CoreSolver::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >&
       if (!c.isNull())
       {
         int findex, lindex;
-        if (!TheoryStringsRewriter::canConstantContainList(
+        if (!SequencesRewriter::canConstantContainList(
                 c, i == 0 ? nfj : nfi, findex, lindex))
         {
           Trace("strings-solve-debug")
@@ -2147,7 +2141,7 @@ void CoreSolver::checkLengthsEqc() {
     // now, check if length normalization has occurred
     if (ei->d_normalizedLength.get().isNull())
     {
-      Node nf = utils::mkNConcat(nfi.d_nf);
+      Node nf = utils::mkNConcat(nfi.d_nf, d_type);
       if (Trace.isOn("strings-process-debug"))
       {
         Trace("strings-process-debug")

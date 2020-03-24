@@ -17,7 +17,7 @@
 
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace CVC4;
@@ -30,6 +30,7 @@ RegExpElimination::RegExpElimination()
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_regExpType = NodeManager::currentNM()->regExpType();
 }
 
 Node RegExpElimination::eliminate(Node atom)
@@ -70,7 +71,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
   for (unsigned i = 0, size = children.size(); i < size; i++)
   {
     Node c = children[i];
-    Node fl = TheoryStringsRewriter::getFixedLengthForRegexp(c);
+    Node fl = SequencesRewriter::getFixedLengthForRegexp(c);
     if (fl.isNull())
     {
       if (!hasPivotIndex && c.getKind() == REGEXP_STAR
@@ -382,7 +383,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     Assert(rexpElimChildren.size() + sConstraints.size() == nchildren);
     Node ss = nm->mkNode(STRING_SUBSTR, x, sStartIndex, sLength);
     Assert(!rexpElimChildren.empty());
-    Node regElim = utils::mkConcat(REGEXP_CONCAT, rexpElimChildren);
+    Node regElim = utils::mkConcat(rexpElimChildren, d_regExpType);
     sConstraints.push_back(nm->mkNode(STRING_IN_REGEXP, ss, regElim));
     Node ret = nm->mkNode(AND, sConstraints);
     // e.g.
@@ -422,7 +423,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       {
         std::vector<Node> rprefix;
         rprefix.insert(rprefix.end(), children.begin(), children.begin() + i);
-        Node rpn = utils::mkConcat(REGEXP_CONCAT, rprefix);
+        Node rpn = utils::mkConcat(rprefix, d_regExpType);
         Node substrPrefix = nm->mkNode(
             STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, x, d_zero, k), rpn);
         echildren.push_back(substrPrefix);
@@ -431,7 +432,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       {
         std::vector<Node> rsuffix;
         rsuffix.insert(rsuffix.end(), children.begin() + i + 1, children.end());
-        Node rps = utils::mkConcat(REGEXP_CONCAT, rsuffix);
+        Node rps = utils::mkConcat(rsuffix, d_regExpType);
         Node ks = nm->mkNode(PLUS, k, lens);
         Node substrSuffix = nm->mkNode(
             STRING_IN_REGEXP,

@@ -1,17 +1,18 @@
 ; EXPECT: unsat
-; COMMAND-LINE:  --sygus-qe-preproc --cbqi-full --sygus-out=status --cegqi-si=all
+; COMMAND-LINE: --lang=sygus2 --sygus-qe-preproc --cbqi-full --sygus-out=status --cegqi-si=all
 (set-logic BV)
 
-(define-fun B ((h (BitVec 8)) (l (BitVec 8)) (v (BitVec 8))) (BitVec 8) (bvlshr (bvshl v (bvsub #x07 h)) (bvsub #x07 (bvsub h l))))
+(define-fun B ((h (_ BitVec 8)) (l (_ BitVec 8)) (v (_ BitVec 8))) (_ BitVec 8) (bvlshr (bvshl v (bvsub #x07 h)) (bvsub #x07 (bvsub h l))))
 
-(define-fun E ((x (BitVec 8))) (BitVec 8)  (bvadd x #x41))
+(define-fun E ((x (_ BitVec 8))) (_ BitVec 8)  (bvadd x #x41))
 
-(define-fun f ((x (BitVec 8))) (BitVec 8) (bvsub x #x41))
+(define-fun f ((x (_ BitVec 8))) (_ BitVec 8) (bvsub x #x41))
 
-(define-fun d ((x (BitVec 8))) Bool (bvule x #x3f))
+(define-fun d ((x (_ BitVec 8))) Bool (bvule x #x3f))
 
-(synth-fun D ((x (BitVec 8)) (y (BitVec 8)) ) (BitVec 8)
-    	((Start (BitVec 8) (
+(synth-fun D ((x (_ BitVec 8)) (y (_ BitVec 8)) ) (_ BitVec 8)
+		((Start (_ BitVec 8)) (Const (_ BitVec 8)))
+		((Start (_ BitVec 8) (
 			(f Start) x y Const
 				(bvshl Start Start) 	 (bvnot Start)
 						 (bvand Start Start)
@@ -22,13 +23,11 @@
 						 (bvlshr Start Start)
 						 (bvsub Start Start)
 			))
-	 (Const (BitVec 8) (#x01 #x03 #x06 #x07 #x04 #x05 #x02 #x00))
+	 (Const (_ BitVec 8) (#x01 #x03 #x06 #x07 #x04 #x05 #x02 #x00))
 ))
 
-(declare-var x (BitVec 8))
+(declare-var x (_ BitVec 8))
 (constraint  (= x (D (E (B #x07 #x04 x) ) (E  (B #x03 #x00 x))  )) )
 
 ; notice we don't have solution reconstruction for this
-(check-synth)    
-
-
+(check-synth)

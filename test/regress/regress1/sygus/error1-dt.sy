@@ -1,21 +1,21 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --cegqi-si=none --sygus-active-gen=enum
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegqi-si=none --sygus-active-gen=enum
 
 (set-logic ALL_SUPPORTED)
 
-(declare-datatypes ((IntRange 0)) 
+(declare-datatypes ((IntRange 0))
    (((IntRange (lower Int) (upper Int)))))
 
-(declare-datatypes ((Loc 0)) 
+(declare-datatypes ((Loc 0))
    (((Loc (x Int) (y Int)))))
 
-(declare-datatypes ((LocRange 0)) 
+(declare-datatypes ((LocRange 0))
    (((LocRange (xD IntRange) (yD IntRange)))))
 
-(declare-datatypes ((Ship 0)) 
+(declare-datatypes ((Ship 0))
    (((Ship (shipCapacity Int) (shipLoc Loc)))))
 
-(declare-datatypes ((ShipRange 0)) 
+(declare-datatypes ((ShipRange 0))
    (((ShipRange (shipCapacityD IntRange) (shipLocD LocRange)))))
 
 (define-fun betweenInt ((x Int) (r IntRange)) Bool
@@ -61,10 +61,10 @@
 (declare-var prior ShipRange)
 (declare-var response Bool)
 
-(constraint 
-  (=> (betweenShip secret (f secret prior response)) 
-          (= response 
-             (and (atLeast secret) 
+(constraint
+  (=> (betweenShip secret (f secret prior response))
+          (= response
+             (and (atLeast secret)
                   (subsetShip (f secret prior response) prior))))
 )
 

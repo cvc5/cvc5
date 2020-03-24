@@ -22,7 +22,7 @@
 #include "options/strings_options.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
-#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/sequences_rewriter.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -71,7 +71,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node sk1 = n == d_zero ? d_empty_str
                            : d_sc->mkSkolemCached(
                                  s, n, SkolemCache::SK_PREFIX, "sspre");
-    Node sk2 = TheoryStringsRewriter::checkEntailArith(t12, lt0)
+    Node sk2 = SequencesRewriter::checkEntailArith(t12, lt0)
                    ? d_empty_str
                    : d_sc->mkSkolemCached(
                          s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");

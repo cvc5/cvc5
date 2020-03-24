@@ -26,7 +26,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/type_enumerator.h"
 #include "theory/strings/word.h"
@@ -72,7 +71,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::strings", true),
       d_state(c, d_equalityEngine, d_valuation),
-      d_im(*this, c, u, d_state, d_sk_cache, out),
+      d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
       d_functionsTerms(c),
@@ -413,9 +412,18 @@ bool TheoryStrings::collectModelInfoType(
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
-      StringEnumeratorLength sel(
-          tn,
-          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
+      uint32_t currLen =
+          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
+      std::unique_ptr<SEnumLen> sel;
+      if (tn.isString())
+      {
+        sel.reset(new StringEnumLen(
+            currLen, currLen, utils::getAlphabetCardinality()));
+      }
+      else
+      {
+        Unimplemented() << "Collect model info not implemented for type " << tn;
+      }
       for (const Node& eqc : pure_eq)
       {
         Node c;
@@ -424,7 +432,7 @@ bool TheoryStrings::collectModelInfoType(
         {
           do
           {
-            if (sel.isFinished())
+            if (sel->isFinished())
             {
               // We are in a case where model construction is impossible due to
               // an insufficient number of constants of a given length.
@@ -460,8 +468,9 @@ bool TheoryStrings::collectModelInfoType(
               }
               return false;
             }
-            c = *sel;
-            ++sel;
+            c = sel->getCurrent();
+            // increment
+            sel->increment();
           } while (m->hasTerm(c));
         }
         else
@@ -510,7 +519,7 @@ bool TheoryStrings::collectModelInfoType(
         Assert(r.isConst() || processed.find(r) != processed.end());
         nc.push_back(r.isConst() ? r : processed[r]);
       }
-      Node cc = utils::mkNConcat(nc);
+      Node cc = utils::mkNConcat(nc, tn);
       Assert(cc.isConst());
       Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
       processed[nodes[i]] = cc;
@@ -1106,7 +1115,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
     Node lt = ei ? ei->d_lengthTerm : Node::null();
     if (lt.isNull())
     {
-      Node c = utils::mkNConcat(nfi.d_nf);
+      Node c = utils::mkNConcat(nfi.d_nf, eqc.getType());
       registerTerm(c, 3);
     }
   }
@@ -1144,26 +1153,6 @@ Node TheoryStrings::ppRewrite(TNode atom) {
     }
   }
   return atom;
-}
-
-// Stats
-TheoryStrings::Statistics::Statistics()
-    : d_splits("theory::strings::NumOfSplitOnDemands", 0),
-      d_eq_splits("theory::strings::NumOfEqSplits", 0),
-      d_deq_splits("theory::strings::NumOfDiseqSplits", 0),
-      d_loop_lemmas("theory::strings::NumOfLoops", 0)
-{
-  smtStatisticsRegistry()->registerStat(&d_splits);
-  smtStatisticsRegistry()->registerStat(&d_eq_splits);
-  smtStatisticsRegistry()->registerStat(&d_deq_splits);
-  smtStatisticsRegistry()->registerStat(&d_loop_lemmas);
-}
-
-TheoryStrings::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_eq_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_deq_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_loop_lemmas);
 }
 
 /** run the given inference step */
