@@ -219,7 +219,7 @@ void TranscendentalExtension::initLastCall(
                           << std::endl;
     lemsPp.push_back(lem);
   }
-  
+
   if (Trace.isOn("nl-ext-mv"))
   {
     Trace("nl-ext-mv") << "Arguments of trancendental functions : "
@@ -239,11 +239,10 @@ void TranscendentalExtension::initLastCall(
       }
     }
   }
-  
 }
 
 void TranscendentalExtension::getModelSubsitution(std::vector<Node>& vars,
-std::vector<Node>& subs) const
+                                                  std::vector<Node>& subs) const
 {
   for (const std::pair<const Node, Node>& tb : d_trMaster)
   {
@@ -252,10 +251,7 @@ std::vector<Node>& subs) const
   }
 }
 
-void TranscendentalExtension::incrementTaylorDegree()
-{
-  d_taylor_degree++;
-}
+void TranscendentalExtension::incrementTaylorDegree() { d_taylor_degree++; }
 unsigned TranscendentalExtension::getTaylorDegree() const
 {
   return d_taylor_degree;

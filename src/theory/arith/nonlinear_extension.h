@@ -450,7 +450,6 @@ class NonlinearExtension {
   Node d_true;
   Node d_false;
 
-
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
 

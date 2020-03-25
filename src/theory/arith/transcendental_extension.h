@@ -58,7 +58,7 @@ class TranscendentalExtension
   /** get taylor degree */
   unsigned getTaylorDegree() const;
   void getModelSubsitution(std::vector<Node>& vars,
-  std::vector<Node>& subs) const;
+                           std::vector<Node>& subs) const;
   bool addCurrentBoundsToModel();
   /** Process side effect se */
   void processSideEffect(const NlLemmaSideEffect& se);
