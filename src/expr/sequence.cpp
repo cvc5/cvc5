@@ -22,6 +22,15 @@ Sequence::Sequence(TypeNode t, const std::vector<Node>& s) : d_type(t), d_seq(s)
 {
 }
 
+Sequence& Sequence::operator=(const Sequence& y)
+{
+  if (this != &y)
+  {
+    d_seq = y.d_seq;
+  }
+  return *this;
+}
+
 int Sequence::cmp(const Sequence& y) const
 {
   if (size() != y.size())
@@ -303,6 +312,16 @@ std::ostream& operator<<(std::ostream& os, const Sequence& s)
     ss << ")";
   }
   return os << ss.str();
+}
+
+namespace strings
+{
+  
+size_t SequenceHashFunction::operator()(const Sequence& s) const
+{ 
+  return 0; 
+}
+
 }
 
 }  // namespace CVC4
