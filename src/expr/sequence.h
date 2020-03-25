@@ -37,14 +37,7 @@ class Sequence
   Sequence() = default;
   explicit Sequence(TypeNode t, const std::vector<Node>& s);
 
-  Sequence& operator=(const Sequence& y)
-  {
-    if (this != &y)
-    {
-      d_seq = y.d_seq;
-    }
-    return *this;
-  }
+  Sequence& operator=(const Sequence& y);
 
   Sequence concat(const Sequence& other) const;
 
@@ -147,9 +140,6 @@ class Sequence
    */
   static size_t maxSize();
 
-  //!!!!!!!!!!!!!!! temporary
-  ExprSequence toExprSequence();
-  //!!!!!!!!!!!!!!! end temporary
  private:
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a
@@ -160,14 +150,14 @@ class Sequence
   TypeNode d_type;
   /** The data of the sequence */
   std::vector<Node> d_seq;
-}; /* class Sequence */
+};
 
 namespace strings {
 
 struct CVC4_PUBLIC SequenceHashFunction
 {
-  size_t operator()(const ::CVC4::Sequence& s) const { return 0; }
-}; /* struct SequenceHashFunction */
+  size_t operator()(const Sequence& s) const;
+};
 
 }  // namespace strings
 

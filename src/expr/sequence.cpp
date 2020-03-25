@@ -22,6 +22,15 @@ Sequence::Sequence(TypeNode t, const std::vector<Node>& s) : d_type(t), d_seq(s)
 {
 }
 
+Sequence& Sequence::operator=(const Sequence& y)
+{
+  if (this != &y)
+  {
+    d_seq = y.d_seq;
+  }
+  return *this;
+}
+
 int Sequence::cmp(const Sequence& y) const
 {
   if (size() != y.size())
@@ -275,16 +284,6 @@ bool Sequence::noOverlapWith(const Sequence& y) const
 
 size_t Sequence::maxSize() { return std::numeric_limits<uint32_t>::max(); }
 
-ExprSequence Sequence::toExprSequence()
-{
-  std::vector<Expr> seq;
-  for (const Node& n : d_seq)
-  {
-    seq.push_back(n.toExpr());
-  }
-  return ExprSequence(d_type.toType(), seq);
-}
-
 std::ostream& operator<<(std::ostream& os, const Sequence& s)
 {
   const std::vector<Node>& vec = s.getVec();
@@ -304,5 +303,20 @@ std::ostream& operator<<(std::ostream& os, const Sequence& s)
   }
   return os << ss.str();
 }
+
+namespace strings {
+
+size_t SequenceHashFunction::operator()(const Sequence& s) const
+{
+  size_t ret = 0;
+  const std::vector<Node>& vec = s.getVec();
+  for (const Node& n : vec)
+  {
+    ret = ret + NodeHashFunction(n);
+  }
+  return ret;
+}
+
+}  // namespace strings
 
 }  // namespace CVC4
