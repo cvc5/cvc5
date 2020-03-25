@@ -316,7 +316,15 @@ std::ostream& operator<<(std::ostream& os, const Sequence& s)
 
 namespace strings {
 
-size_t SequenceHashFunction::operator()(const Sequence& s) const { return 0; }
+size_t SequenceHashFunction::operator()(const Sequence& s) const { 
+  size_t ret = 0;
+  const std::vector<Node>& vec = s.getVec();
+  for (const Node& n : vec)
+  {
+    ret = ret + NodeHashFunction(n);
+  }
+  return ret;
+}
 
 }  // namespace strings
 
