@@ -146,6 +146,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_ee(ee),
       d_needsLastCall(false),
       d_model(containing.getSatContext()),
+      d_trExt(d_model),
       d_builtModel(containing.getSatContext(), false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -832,33 +833,6 @@ std::vector<Node> NonlinearExtension::checkSplitZero() {
   return lemmas;
 }
 
-/** An argument trie, for computing congruent terms */
-class ArgTrie
-{
- public:
-  /** children of this node */
-  std::map<Node, ArgTrie> d_children;
-  /** the data of this node */
-  Node d_data;
-  /**
-   * Set d as the data on the node whose path is [args], return either d if
-   * that node has no data, or the data that already occurs there.
-   */
-  Node add(Node d, const std::vector<Node>& args)
-  {
-    ArgTrie* at = this;
-    for (const Node& a : args)
-    {
-      at = &(at->d_children[a]);
-    }
-    if (at->d_data.isNull())
-    {
-      at->d_data = d;
-    }
-    return at->d_data;
-  }
-};
-
 int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                       const std::vector<Node>& false_asserts,
                                       const std::vector<Node>& xts,
@@ -885,7 +859,6 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   Trace("nl-ext-mv") << "Extended terms : " << std::endl;
   // register the extended function terms
-  std::map< Node, Node > mvarg_to_term;
   std::vector<Node> trNeedsMaster;
   bool needPi = false;
   // for computing congruence

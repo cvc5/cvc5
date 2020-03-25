@@ -46,6 +46,194 @@ TranscendentalExtension::TranscendentalExtension(NlModel& m) : d_model(m)
 
 TranscendentalExtension::~TranscendentalExtension() {}
 
+
+void TranscendentalExtension::initLastCall(const std::vector<Node>& assertions,
+                                      const std::vector<Node>& false_asserts,
+                                      const std::vector<Node>& xts,
+                                      std::vector<Node>& lems,
+                                      std::vector<Node>& lemsPp,
+                                      std::vector<Node>& wlems,
+                                      std::map<Node, NlLemmaSideEffect>& lemSE)
+{
+  d_funcCongClass.clear();
+  d_funcMap.clear();
+  d_tf_region.clear();
+
+  std::vector<Node> lemmas;
+  NodeManager* nm = NodeManager::currentNM();
+
+  Trace("nl-ext-mv") << "Extended terms : " << std::endl;
+  // register the extended function terms
+  std::vector<Node> trNeedsMaster;
+  bool needPi = false;
+  // for computing congruence
+  std::map<Kind, ArgTrie> argTrie;
+  for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
+  {
+    Node a = xts[i];
+    d_model.computeConcreteModelValue(a);
+    d_model.computeAbstractModelValue(a);
+    d_model.printModelValue("nl-ext-mv", a);
+    Kind ak = a.getKind();
+    bool consider = true;
+    // if is an unpurified application of SINE, or it is a transcendental
+    // applied to a trancendental, purify.
+    if (isTranscendentalKind(ak))
+    {
+      // if we've already computed master for a
+      if (d_trMaster.find(a) != d_trMaster.end())
+      {
+        // a master has at least one slave
+        consider = (d_trSlaves.find(a) != d_trSlaves.end());
+      }
+      else
+      {
+        if (ak == SINE)
+        {
+          // always not a master
+          consider = false;
+        }
+        else
+        {
+          for (const Node& ac : a)
+          {
+            if (isTranscendentalKind(ac.getKind()))
+            {
+              consider = false;
+              break;
+            }
+          }
+        }
+        if (!consider)
+        {
+          // wait to assign a master below
+          trNeedsMaster.push_back(a);
+        }
+        else
+        {
+          d_trMaster[a] = a;
+          d_trSlaves[a].insert(a);
+        }
+      }
+    }
+    if (ak == EXPONENTIAL || ak == SINE)
+    {
+      needPi = needPi || (ak == SINE);
+      // if we didn't indicate that it should be purified above
+      if( consider ){
+        std::vector<Node> repList;
+        for (const Node& ac : a)
+        {
+          Node r = d_model.computeConcreteModelValue(ac);
+          repList.push_back(r);
+        }
+        Node aa = argTrie[ak].add(a, repList);
+        if (aa != a)
+        {
+          // apply congruence to pairs of terms that are disequal and congruent
+          Assert(aa.getNumChildren() == a.getNumChildren());
+          Node mvaa = d_model.computeAbstractModelValue(a);
+          Node mvaaa = d_model.computeAbstractModelValue(aa);
+          if (mvaa != mvaaa)
+          {
+            std::vector<Node> exp;
+            for (unsigned j = 0, size = a.getNumChildren(); j < size; j++)
+            {
+              exp.push_back(a[j].eqNode(aa[j]));
+            }
+            Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+            Node cong_lemma = nm->mkNode(OR, expn.negate(), a.eqNode(aa));
+            lemmas.push_back( cong_lemma );
+          }
+        }
+        else
+        {
+          // new representative of congruence class
+          d_funcMap[ak].push_back(a);
+        }
+        // add to congruence class
+        d_funcCongClass[aa].push_back(a);
+      }
+    }
+    else if (ak == PI)
+    {
+      Assert(consider);
+      needPi = true;
+      d_funcMap[ak].push_back(a);
+      d_funcCongClass[a].push_back(a);
+    }
+    else
+    {
+      Assert(false);
+    }
+  }
+  // initialize pi if necessary
+  if (needPi && d_pi.isNull())
+  {
+    mkPi();
+    getCurrentPiBounds(lemmas);
+  }
+
+  // FIXME
+  /*
+  filterLemmas(lemmas, lems);
+  if (!lems.empty())
+  {
+    Trace("nl-ext") << "  ...finished with " << lems.size()
+                    << " new lemmas during registration." << std::endl;
+    return lems.size();
+  }
+  */
+
+  // process SINE phase shifting
+  for (const Node& a : trNeedsMaster)
+  {
+    // should not have processed this already
+    Assert(d_trMaster.find(a) == d_trMaster.end());
+    Kind k = a.getKind();
+    Assert(k == SINE || k == EXPONENTIAL);
+    Node y =
+        nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
+    Node new_a = nm->mkNode(k, y);
+    d_trSlaves[new_a].insert(new_a);
+    d_trSlaves[new_a].insert(a);
+    d_trMaster[a] = new_a;
+    d_trMaster[new_a] = new_a;
+    Node lem;
+    if (k == SINE)
+    {
+      Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a
+                         << std::endl;
+      Assert(!d_pi.isNull());
+      Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
+      // TODO : do not introduce shift here, instead needs model-based
+      // refinement for constant shifts (cvc4-projects #1284)
+      lem = nm->mkNode(
+          AND,
+          mkValidPhase(y, d_pi),
+          nm->mkNode(
+              ITE,
+              mkValidPhase(a[0], d_pi),
+              a[0].eqNode(y),
+              a[0].eqNode(nm->mkNode(
+                  PLUS,
+                  y,
+                  nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
+          new_a.eqNode(a));
+    }
+    else
+    {
+      // do both equalities to ensure that new_a becomes a preregistered term
+      lem = nm->mkNode(AND, a.eqNode(new_a), a[0].eqNode(y));
+    }
+    // note we must do preprocess on this lemma
+    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
+                          << std::endl;
+    lemsPp.push_back(lem);
+  }
+}
+
+
 void TranscendentalExtension::mkPi()
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -1165,6 +1353,11 @@ std::pair<Node, Node> TranscendentalExtension::getTfModelBounds(Node tf,
     }
   }
   return std::pair<Node, Node>(bounds[0], bounds[1]);
+}
+
+Node TranscendentalExtension::mkValidPhase(Node a, Node pi) {
+  return mkBounded(
+      NodeManager::currentNM()->mkNode(MULT, mkRationalNode(-1), pi), a, pi);
 }
 
 }  // namespace arith

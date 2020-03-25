@@ -45,6 +45,16 @@ class TranscendentalExtension
  public:
   TranscendentalExtension(NlModel& m);
   ~TranscendentalExtension();
+  
+  /** init last call
+   */
+  void initLastCall(const std::vector<Node>& assertions,
+                    const std::vector<Node>& false_asserts,
+                    const std::vector<Node>& xts,
+                    std::vector<Node>& lems,
+                    std::vector<Node>& lemsPp,
+                    std::vector<Node>& wlems,
+                    std::map<Node, NlLemmaSideEffect>& lemSE);
   //-------------------------------------------- lemma schemas
   /** check transcendental initial refine
    *
@@ -244,6 +254,8 @@ class TranscendentalExtension
 
   void mkPi();
   void getCurrentPiBounds(std::vector<Node>& lemmas);
+  /** Make the node -pi <= a <= pi */
+  static Node mkValidPhase(Node a, Node pi);
 
   /** Reference to the non-linear model object */
   NlModel& d_model;
