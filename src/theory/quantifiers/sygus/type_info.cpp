@@ -97,17 +97,11 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     Node sop = dt[i].getSygusOp();
     Assert(!sop.isNull());
     Trace("sygus-db") << "  Operator #" << i << " : " << sop;
+    Kind builtinKind = UNDEFINED_KIND;
     if (sop.getKind() == kind::BUILTIN)
     {
-      Kind sk = NodeManager::operatorToKind(sop);
-      Trace("sygus-db") << ", kind = " << sk;
-      d_kinds[sk] = i;
-      d_arg_kind[i] = sk;
-      if (sk == ITE)
-      {
-        // mark that this type has an ITE
-        d_hasIte = true;
-      }
+      builtinKind = NodeManager::operatorToKind(sop);
+      Trace("sygus-db") << ", kind = " << builtinKind;
     }
     else if (sop.isConst() && dt[i].getNumArgs() == 0)
     {
@@ -128,7 +122,32 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
             << "In sygus datatype " << dt.getName()
             << ", argument to a lambda constructor is not " << lat << std::endl;
       }
-      if (sop[0].getKind() == ITE)
+      // See if it is a builtin kind, possible if the operator is of the form:
+      // lambda x1 ... xn. f( x1, ..., xn ) and f is not a parameterized kind
+      // (e.g. APPLY_UF is a parameterized kind).
+      if (sop[1].getMetaKind() != kind::metakind::PARAMETERIZED)
+      {
+        size_t nchild = sop[0].getNumChildren();
+        if (nchild == sop[1].getNumChildren())
+        {
+          builtinKind = sop[1].getKind();
+          for (size_t j = 0; j < nchild; j++)
+          {
+            if (sop[0][j] != sop[1][j])
+            {
+              // arguments not in order
+              builtinKind = UNDEFINED_KIND;
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (builtinKind != UNDEFINED_KIND)
+    {
+      d_kinds[builtinKind] = i;
+      d_arg_kind[i] = builtinKind;
+      if (builtinKind == ITE)
       {
         // mark that this type has an ITE
         d_hasIte = true;
