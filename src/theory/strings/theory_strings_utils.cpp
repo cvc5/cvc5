@@ -235,8 +235,7 @@ void getRegexpComponents(Node r, std::vector<Node>& result)
     size_t rlen = Word::getLength(r[0]);
     for (size_t i = 0; i < rlen; i++)
     {
-      result.push_back(
-          nm->mkNode(STRING_TO_REGEXP, Word::substr(r[0], i, 1)));
+      result.push_back(nm->mkNode(STRING_TO_REGEXP, Word::substr(r[0], i, 1)));
     }
   }
   else

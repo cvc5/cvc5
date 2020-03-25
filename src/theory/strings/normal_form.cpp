@@ -38,7 +38,7 @@ void NormalForm::init(Node base)
   d_expDep.clear();
 
   // add to normal form
-  if (!base.isConst() || Word::getLength(base)>0)
+  if (!base.isConst() || Word::getLength(base) > 0)
   {
     d_nf.push_back(base);
   }
