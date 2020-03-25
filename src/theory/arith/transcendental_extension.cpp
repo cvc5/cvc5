@@ -46,14 +46,14 @@ TranscendentalExtension::TranscendentalExtension(NlModel& m) : d_model(m)
 
 TranscendentalExtension::~TranscendentalExtension() {}
 
-
-void TranscendentalExtension::initLastCall(const std::vector<Node>& assertions,
-                                      const std::vector<Node>& false_asserts,
-                                      const std::vector<Node>& xts,
-                                      std::vector<Node>& lems,
-                                      std::vector<Node>& lemsPp,
-                                      std::vector<Node>& wlems,
-                                      std::map<Node, NlLemmaSideEffect>& lemSE)
+void TranscendentalExtension::initLastCall(
+    const std::vector<Node>& assertions,
+    const std::vector<Node>& false_asserts,
+    const std::vector<Node>& xts,
+    std::vector<Node>& lems,
+    std::vector<Node>& lemsPp,
+    std::vector<Node>& wlems,
+    std::map<Node, NlLemmaSideEffect>& lemSE)
 {
   d_funcCongClass.clear();
   d_funcMap.clear();
@@ -120,7 +120,8 @@ void TranscendentalExtension::initLastCall(const std::vector<Node>& assertions,
     {
       needPi = needPi || (ak == SINE);
       // if we didn't indicate that it should be purified above
-      if( consider ){
+      if (consider)
+      {
         std::vector<Node> repList;
         for (const Node& ac : a)
         {
@@ -143,7 +144,7 @@ void TranscendentalExtension::initLastCall(const std::vector<Node>& assertions,
             }
             Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
             Node cong_lemma = nm->mkNode(OR, expn.negate(), a.eqNode(aa));
-            lemmas.push_back( cong_lemma );
+            lemmas.push_back(cong_lemma);
           }
         }
         else
@@ -232,7 +233,6 @@ void TranscendentalExtension::initLastCall(const std::vector<Node>& assertions,
     lemsPp.push_back(lem);
   }
 }
-
 
 void TranscendentalExtension::mkPi()
 {
@@ -1355,7 +1355,8 @@ std::pair<Node, Node> TranscendentalExtension::getTfModelBounds(Node tf,
   return std::pair<Node, Node>(bounds[0], bounds[1]);
 }
 
-Node TranscendentalExtension::mkValidPhase(Node a, Node pi) {
+Node TranscendentalExtension::mkValidPhase(Node a, Node pi)
+{
   return mkBounded(
       NodeManager::currentNM()->mkNode(MULT, mkRationalNode(-1), pi), a, pi);
 }

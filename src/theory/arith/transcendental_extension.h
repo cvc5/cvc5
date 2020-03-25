@@ -45,7 +45,7 @@ class TranscendentalExtension
  public:
   TranscendentalExtension(NlModel& m);
   ~TranscendentalExtension();
-  
+
   /** init last call
    */
   void initLastCall(const std::vector<Node>& assertions,

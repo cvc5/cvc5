@@ -37,8 +37,8 @@
 #include "theory/arith/nl_lemma_utils.h"
 #include "theory/arith/nl_model.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/arith/transcendental_extension.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -489,7 +489,7 @@ class NonlinearExtension {
    */
   NlModel d_model;
   /** The transcendental extension object
-   * 
+   *
    * This is the subsolver responsible for running the procedure for
    * transcendental functions.
    */
