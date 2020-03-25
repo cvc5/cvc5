@@ -45,6 +45,7 @@
 #endif
 
 #include <unistd.h>
+
 #include <cstring>
 #include <type_traits>
 
@@ -72,7 +73,8 @@ void CVC4_PUBLIC safe_print(int fd, const char (&msg)[N]) {
  * `toString()`.
  */
 template <typename T>
-const char* toStringImpl(const T& obj, long) {
+const char* toStringImpl(const T& obj, long)
+{
   return "<unsupported>";
 }
 
@@ -85,7 +87,8 @@ const char* toStringImpl(const T& obj, long) {
  * "<unsupported>".
  */
 template <typename T>
-auto toStringImpl(const T& obj, int) -> decltype(toString(obj)) {
+auto toStringImpl(const T& obj, int) -> decltype(toString(obj))
+{
   return toString(obj);
 }
 
@@ -99,8 +102,10 @@ auto toStringImpl(const T& obj, int) -> decltype(toString(obj)) {
  * @param obj The object to print
  */
 template <typename T>
-void CVC4_PUBLIC safe_print(int fd, const T& obj) {
-  const char* s = toStringImpl(obj, /* prefer the method that uses `toString()` */ 0);
+void CVC4_PUBLIC safe_print(int fd, const T& obj)
+{
+  const char* s =
+      toStringImpl(obj, /* prefer the method that uses `toString()` */ 0);
   ssize_t slen = static_cast<ssize_t>(strlen(s));
   if (write(fd, s, slen) != slen)
   {
