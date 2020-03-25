@@ -272,12 +272,10 @@ Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs)
   return visited[n];
 }
 
-Node mkBounded( Node l, Node a, Node u ) {
-  NodeManager * nm = NodeManager::currentNM();
-  return nm->mkNode(
-      AND,
-      nm->mkNode(GEQ, a, l),
-      nm->mkNode(LEQ, a, u));
+Node mkBounded(Node l, Node a, Node u)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(AND, nm->mkNode(GEQ, a, l), nm->mkNode(LEQ, a, u));
 }
 
 }  // namespace arith

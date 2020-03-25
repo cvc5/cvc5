@@ -19,10 +19,12 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
-  
-bool SortNlModel::operator()(Node i, Node j) {
+
+bool SortNlModel::operator()(Node i, Node j)
+{
   int cv = d_nlm->compare(i, j, d_isConcrete, d_isAbsolute);
-  if (cv == 0) {
+  if (cv == 0)
+  {
     return i < j;
   }
   return d_reverse_order ? cv < 0 : cv > 0;
@@ -35,8 +37,9 @@ bool SortNonlinearDegree::operator()(Node i, Node j)
   return i_count == j_count ? (i < j) : (i_count < j_count ? true : false);
 }
 
-unsigned SortNonlinearDegree::getDegree(Node n) const {
-  std::map<Node, unsigned >::const_iterator it = d_mdegree.find(n);
+unsigned SortNonlinearDegree::getDegree(Node n) const
+{
+  std::map<Node, unsigned>::const_iterator it = d_mdegree.find(n);
   Assert(it != d_mdegree.end());
   return it->second;
 }

@@ -30,134 +30,113 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-TranscendentalExtension::TranscendentalExtension(NlModel& m) :
-d_model(m)
+TranscendentalExtension::TranscendentalExtension(NlModel& m) : d_model(m)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
   d_neg_one = nm->mkConst(Rational(-1));
-  d_taylor_real_fv = nm->mkBoundVar(
-      "x", nm->realType());
-  d_taylor_real_fv_base = nm->mkBoundVar(
-      "a", nm->realType());
-  d_taylor_real_fv_base_rem = nm->mkBoundVar(
-      "b", nm->realType());
+  d_taylor_real_fv = nm->mkBoundVar("x", nm->realType());
+  d_taylor_real_fv_base = nm->mkBoundVar("a", nm->realType());
+  d_taylor_real_fv_base_rem = nm->mkBoundVar("b", nm->realType());
   d_taylor_degree = options::nlExtTfTaylorDegree();
 }
 
 TranscendentalExtension::~TranscendentalExtension() {}
 
-void TranscendentalExtension::mkPi(){
-  NodeManager * nm = NodeManager::currentNM();
-  if( d_pi.isNull() ){
-    d_pi = nm->mkNullaryOperator(
-        nm->realType(), PI);
-    d_pi_2 = Rewriter::rewrite(nm->mkNode(
-        MULT,
-        d_pi,
-        nm->mkConst(Rational(1) / Rational(2))));
-    d_pi_neg_2 = Rewriter::rewrite(nm->mkNode(
-        MULT,
-        d_pi,
-        nm->mkConst(Rational(-1) / Rational(2))));
-    d_pi_neg = Rewriter::rewrite(nm->mkNode(
-        MULT, d_pi, nm->mkConst(Rational(-1))));
-    //initialize bounds
-    d_pi_bound[0] =
-        nm->mkConst(Rational(103993) / Rational(33102));
-    d_pi_bound[1] =
-        nm->mkConst(Rational(104348) / Rational(33215));
+void TranscendentalExtension::mkPi()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (d_pi.isNull())
+  {
+    d_pi = nm->mkNullaryOperator(nm->realType(), PI);
+    d_pi_2 = Rewriter::rewrite(
+        nm->mkNode(MULT, d_pi, nm->mkConst(Rational(1) / Rational(2))));
+    d_pi_neg_2 = Rewriter::rewrite(
+        nm->mkNode(MULT, d_pi, nm->mkConst(Rational(-1) / Rational(2))));
+    d_pi_neg =
+        Rewriter::rewrite(nm->mkNode(MULT, d_pi, nm->mkConst(Rational(-1))));
+    // initialize bounds
+    d_pi_bound[0] = nm->mkConst(Rational(103993) / Rational(33102));
+    d_pi_bound[1] = nm->mkConst(Rational(104348) / Rational(33215));
   }
 }
 
-void TranscendentalExtension::getCurrentPiBounds( std::vector< Node >& lemmas ) {
-  NodeManager * nm = NodeManager::currentNM();
-  Node pi_lem = nm->mkNode(
-      AND,
-      nm->mkNode(GEQ, d_pi, d_pi_bound[0]),
-      nm->mkNode(LEQ, d_pi, d_pi_bound[1]));
-  lemmas.push_back( pi_lem );
+void TranscendentalExtension::getCurrentPiBounds(std::vector<Node>& lemmas)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node pi_lem = nm->mkNode(AND,
+                           nm->mkNode(GEQ, d_pi, d_pi_bound[0]),
+                           nm->mkNode(LEQ, d_pi, d_pi_bound[1]));
+  lemmas.push_back(pi_lem);
 }
-                    
-std::vector<Node> TranscendentalExtension::checkTranscendentalInitialRefine() {
-  NodeManager * nm = NodeManager::currentNM();
-  std::vector< Node > lemmas;
-  Trace("nl-ext") << "Get initial refinement lemmas for transcendental functions..." << std::endl;
+
+std::vector<Node> TranscendentalExtension::checkTranscendentalInitialRefine()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> lemmas;
+  Trace("nl-ext")
+      << "Get initial refinement lemmas for transcendental functions..."
+      << std::endl;
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_funcMap)
   {
     Kind k = tfl.first;
     for (const Node& t : tfl.second)
     {
-      //initial refinements
-      if( d_tf_initial_refine.find( t )==d_tf_initial_refine.end() ){
+      // initial refinements
+      if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
+      {
         d_tf_initial_refine[t] = true;
         Node lem;
         if (k == SINE)
         {
-          Node symn = nm->mkNode(
-              SINE, nm->mkNode(MULT, d_neg_one, t[0]));
-          symn = Rewriter::rewrite( symn );
+          Node symn = nm->mkNode(SINE, nm->mkNode(MULT, d_neg_one, t[0]));
+          symn = Rewriter::rewrite(symn);
           // Can assume it is its own master since phase is split over 0,
           // hence  -pi <= t[0] <= pi implies -pi <= -t[0] <= pi.
           d_trMaster[symn] = symn;
           d_trSlaves[symn].insert(symn);
           Assert(d_trSlaves.find(t) != d_trSlaves.end());
-          std::vector< Node > children;
+          std::vector<Node> children;
 
-          lem = nm->mkNode(
-              AND,
-              // bounds
-              nm->mkNode(
-                  AND,
-                  nm->mkNode(LEQ, t, d_one),
-                  nm->mkNode(GEQ, t, d_neg_one)),
-              // symmetry
-              nm->mkNode(PLUS, t, symn).eqNode(d_zero),
-              // sign
-              nm->mkNode(
-                  EQUAL,
-                  nm->mkNode(LT, t[0], d_zero),
-                  nm->mkNode(LT, t, d_zero)),
-              // zero val
-              nm->mkNode(
-                  EQUAL,
-                  nm->mkNode(GT, t[0], d_zero),
-                  nm->mkNode(GT, t, d_zero)));
+          lem = nm->mkNode(AND,
+                           // bounds
+                           nm->mkNode(AND,
+                                      nm->mkNode(LEQ, t, d_one),
+                                      nm->mkNode(GEQ, t, d_neg_one)),
+                           // symmetry
+                           nm->mkNode(PLUS, t, symn).eqNode(d_zero),
+                           // sign
+                           nm->mkNode(EQUAL,
+                                      nm->mkNode(LT, t[0], d_zero),
+                                      nm->mkNode(LT, t, d_zero)),
+                           // zero val
+                           nm->mkNode(EQUAL,
+                                      nm->mkNode(GT, t[0], d_zero),
+                                      nm->mkNode(GT, t, d_zero)));
           lem = nm->mkNode(
               AND,
               lem,
               // zero tangent
-              nm->mkNode(
-                  AND,
-                  nm->mkNode(
-                      IMPLIES,
-                      nm->mkNode(GT, t[0], d_zero),
-                      nm->mkNode(LT, t, t[0])),
-                  nm->mkNode(
-                      IMPLIES,
-                      nm->mkNode(LT, t[0], d_zero),
-                      nm->mkNode(GT, t, t[0]))),
+              nm->mkNode(AND,
+                         nm->mkNode(IMPLIES,
+                                    nm->mkNode(GT, t[0], d_zero),
+                                    nm->mkNode(LT, t, t[0])),
+                         nm->mkNode(IMPLIES,
+                                    nm->mkNode(LT, t[0], d_zero),
+                                    nm->mkNode(GT, t, t[0]))),
               // pi tangent
               nm->mkNode(
                   AND,
-                  nm->mkNode(
-                      IMPLIES,
-                      nm->mkNode(LT, t[0], d_pi),
-                      nm->mkNode(
-                          LT,
-                          t,
-                          nm->mkNode(MINUS, d_pi, t[0]))),
+                  nm->mkNode(IMPLIES,
+                             nm->mkNode(LT, t[0], d_pi),
+                             nm->mkNode(LT, t, nm->mkNode(MINUS, d_pi, t[0]))),
                   nm->mkNode(
                       IMPLIES,
                       nm->mkNode(GT, t[0], d_pi_neg),
-                      nm->mkNode(
-                          GT,
-                          t,
-                          nm->mkNode(
-                              MINUS, d_pi_neg, t[0])))));
+                      nm->mkNode(GT, t, nm->mkNode(MINUS, d_pi_neg, t[0])))));
         }
         else if (k == EXPONENTIAL)
         {
@@ -166,37 +145,34 @@ std::vector<Node> TranscendentalExtension::checkTranscendentalInitialRefine() {
           lem = nm->mkNode(
               AND,
               nm->mkNode(GT, t, d_zero),
-              nm->mkNode(
-                  EQUAL, t[0].eqNode(d_zero), t.eqNode(d_one)),
-              nm->mkNode(
-                  EQUAL,
-                  nm->mkNode(LT, t[0], d_zero),
-                  nm->mkNode(LT, t, d_one)),
-              nm->mkNode(
-                  OR,
-                  nm->mkNode(LEQ, t[0], d_zero),
-                  nm->mkNode(
-                      GT,
-                      t,
-                      nm->mkNode(PLUS, t[0], d_one))));
+              nm->mkNode(EQUAL, t[0].eqNode(d_zero), t.eqNode(d_one)),
+              nm->mkNode(EQUAL,
+                         nm->mkNode(LT, t[0], d_zero),
+                         nm->mkNode(LT, t, d_one)),
+              nm->mkNode(OR,
+                         nm->mkNode(LEQ, t[0], d_zero),
+                         nm->mkNode(GT, t, nm->mkNode(PLUS, t[0], d_one))));
         }
-        if( !lem.isNull() ){
-          lemmas.push_back( lem );
+        if (!lem.isNull())
+        {
+          lemmas.push_back(lem);
         }
       }
     }
   }
-  
+
   return lemmas;
 }
 
-std::vector<Node> TranscendentalExtension::checkTranscendentalMonotonic() {
-  std::vector< Node > lemmas;
-  Trace("nl-ext") << "Get monotonicity lemmas for transcendental functions..." << std::endl;
-  
-  //sort arguments of all transcendentals
-  std::map< Kind, std::vector< Node > > sorted_tf_args;
-  std::map< Kind, std::map< Node, Node > > tf_arg_to_term;
+std::vector<Node> TranscendentalExtension::checkTranscendentalMonotonic()
+{
+  std::vector<Node> lemmas;
+  Trace("nl-ext") << "Get monotonicity lemmas for transcendental functions..."
+                  << std::endl;
+
+  // sort arguments of all transcendentals
+  std::map<Kind, std::vector<Node> > sorted_tf_args;
+  std::map<Kind, std::map<Node, Node> > tf_arg_to_term;
 
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_funcMap)
   {
@@ -219,15 +195,17 @@ std::vector<Node> TranscendentalExtension::checkTranscendentalMonotonic() {
 
   SortNlModel smv;
   smv.d_nlm = &d_model;
-  //sort by concrete values
+  // sort by concrete values
   smv.d_isConcrete = true;
   smv.d_reverse_order = true;
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_funcMap)
   {
     Kind k = tfl.first;
-    if( !sorted_tf_args[k].empty() ){
-      std::sort( sorted_tf_args[k].begin(), sorted_tf_args[k].end(), smv );
-      Trace("nl-ext-tf-mono") << "Sorted transcendental function list for " << k << " : " << std::endl;
+    if (!sorted_tf_args[k].empty())
+    {
+      std::sort(sorted_tf_args[k].begin(), sorted_tf_args[k].end(), smv);
+      Trace("nl-ext-tf-mono") << "Sorted transcendental function list for " << k
+                              << " : " << std::endl;
       for (unsigned i = 0; i < sorted_tf_args[k].size(); i++)
       {
         Node targ = sorted_tf_args[k][i];
@@ -238,31 +216,34 @@ std::vector<Node> TranscendentalExtension::checkTranscendentalMonotonic() {
         Node mvat = d_model.computeAbstractModelValue(t);
         Trace("nl-ext-tf-mono") << "     f-val : " << mvat << std::endl;
       }
-      std::vector< Node > mpoints;
-      std::vector< Node > mpoints_vals;
+      std::vector<Node> mpoints;
+      std::vector<Node> mpoints_vals;
       if (k == SINE)
       {
-        mpoints.push_back( d_pi );
-        mpoints.push_back( d_pi_2 );
+        mpoints.push_back(d_pi);
+        mpoints.push_back(d_pi_2);
         mpoints.push_back(d_zero);
-        mpoints.push_back( d_pi_neg_2 );
-        mpoints.push_back( d_pi_neg );
+        mpoints.push_back(d_pi_neg_2);
+        mpoints.push_back(d_pi_neg);
       }
       else if (k == EXPONENTIAL)
       {
-        mpoints.push_back( Node::null() );
+        mpoints.push_back(Node::null());
       }
-      if( !mpoints.empty() ){
-        //get model values for points
-        for( unsigned i=0; i<mpoints.size(); i++ ){
+      if (!mpoints.empty())
+      {
+        // get model values for points
+        for (unsigned i = 0; i < mpoints.size(); i++)
+        {
           Node mpv;
-          if( !mpoints[i].isNull() ){
+          if (!mpoints[i].isNull())
+          {
             mpv = d_model.computeAbstractModelValue(mpoints[i]);
             Assert(mpv.isConst());
           }
-          mpoints_vals.push_back( mpv );
+          mpoints_vals.push_back(mpv);
         }
-        
+
         unsigned mdir_index = 0;
         int monotonic_dir = -1;
         Node mono_bounds[2];
@@ -272,26 +253,33 @@ std::vector<Node> TranscendentalExtension::checkTranscendentalMonotonic() {
           Node sarg = sorted_tf_args[k][i];
           Node sargval = d_model.computeAbstractModelValue(sarg);
           Assert(sargval.isConst());
-          Node s = tf_arg_to_term[k][ sarg ];
+          Node s = tf_arg_to_term[k][sarg];
           Node sval = d_model.computeAbstractModelValue(s);
           Assert(sval.isConst());
 
-          //increment to the proper monotonicity region
+          // increment to the proper monotonicity region
           bool increment = true;
           while (increment && mdir_index < mpoints.size())
           {
             increment = false;
-            if( mpoints[mdir_index].isNull() ){
+            if (mpoints[mdir_index].isNull())
+            {
               increment = true;
-            }else{
+            }
+            else
+            {
               Node pval = mpoints_vals[mdir_index];
               Assert(pval.isConst());
-              if( sargval.getConst<Rational>() < pval.getConst<Rational>() ){
+              if (sargval.getConst<Rational>() < pval.getConst<Rational>())
+              {
                 increment = true;
-                Trace("nl-ext-tf-mono") << "...increment at " << sarg << " since model value is less than " << mpoints[mdir_index] << std::endl;
+                Trace("nl-ext-tf-mono") << "...increment at " << sarg
+                                        << " since model value is less than "
+                                        << mpoints[mdir_index] << std::endl;
               }
             }
-            if( increment ){
+            if (increment)
+            {
               tval = Node::null();
               mono_bounds[1] = mpoints[mdir_index];
               mdir_index++;
@@ -299,7 +287,9 @@ std::vector<Node> TranscendentalExtension::checkTranscendentalMonotonic() {
               if (mdir_index < mpoints.size())
               {
                 mono_bounds[0] = mpoints[mdir_index];
-              }else{
+              }
+              else
+              {
                 mono_bounds[0] = Node::null();
               }
             }
@@ -308,36 +298,40 @@ std::vector<Node> TranscendentalExtension::checkTranscendentalMonotonic() {
           d_tf_region[s] = mdir_index;
           Trace("nl-ext-concavity") << "Transcendental function " << s
                                     << " is in region #" << mdir_index;
-          Trace("nl-ext-concavity") << ", arg model value = " << sargval
-                                    << std::endl;
+          Trace("nl-ext-concavity")
+              << ", arg model value = " << sargval << std::endl;
 
-          if( !tval.isNull() ){
-            NodeManager * nm = NodeManager::currentNM();
+          if (!tval.isNull())
+          {
+            NodeManager* nm = NodeManager::currentNM();
             Node mono_lem;
-            if( monotonic_dir==1 && sval.getConst<Rational>() > tval.getConst<Rational>() ){
+            if (monotonic_dir == 1
+                && sval.getConst<Rational>() > tval.getConst<Rational>())
+            {
               mono_lem = nm->mkNode(
-                  IMPLIES,
-                  nm->mkNode(GEQ, targ, sarg),
-                  nm->mkNode(GEQ, t, s));
-            }else if( monotonic_dir==-1 && sval.getConst<Rational>() < tval.getConst<Rational>() ){
-              mono_lem = nm->mkNode(
-                  IMPLIES,
-                  nm->mkNode(LEQ, targ, sarg),
-                  nm->mkNode(LEQ, t, s));
+                  IMPLIES, nm->mkNode(GEQ, targ, sarg), nm->mkNode(GEQ, t, s));
             }
-            if( !mono_lem.isNull() ){        
-              if( !mono_bounds[0].isNull() ){
+            else if (monotonic_dir == -1
+                     && sval.getConst<Rational>() < tval.getConst<Rational>())
+            {
+              mono_lem = nm->mkNode(
+                  IMPLIES, nm->mkNode(LEQ, targ, sarg), nm->mkNode(LEQ, t, s));
+            }
+            if (!mono_lem.isNull())
+            {
+              if (!mono_bounds[0].isNull())
+              {
                 Assert(!mono_bounds[1].isNull());
                 mono_lem = nm->mkNode(
                     IMPLIES,
-                    nm->mkNode(
-                        AND,
-                        mkBounded(mono_bounds[0], targ, mono_bounds[1]),
-                        mkBounded(mono_bounds[0], sarg, mono_bounds[1])),
+                    nm->mkNode(AND,
+                               mkBounded(mono_bounds[0], targ, mono_bounds[1]),
+                               mkBounded(mono_bounds[0], sarg, mono_bounds[1])),
                     mono_lem);
-              }      
-              Trace("nl-ext-tf-mono") << "Monotonicity lemma : " << mono_lem << std::endl;
-              lemmas.push_back( mono_lem );
+              }
+              Trace("nl-ext-tf-mono")
+                  << "Monotonicity lemma : " << mono_lem << std::endl;
+              lemmas.push_back(mono_lem);
             }
           }
           // store the previous values
@@ -414,7 +408,7 @@ bool TranscendentalExtension::checkTfTangentPlanesFun(
     std::vector<Node>& lemmas,
     std::map<Node, NlLemmaSideEffect>& lemSE)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
   // this should only be run on master applications
   Assert(d_trSlaves.find(tf) != d_trSlaves.end());
@@ -492,8 +486,8 @@ bool TranscendentalExtension::checkTfTangentPlanesFun(
     Node v_pab = r == 0 ? mvb.first : mvb.second;
     if (!v_pab.isNull())
     {
-      Trace("nl-ext-tftp-debug2") << "...model value of " << pab << " is "
-                                  << v_pab << std::endl;
+      Trace("nl-ext-tftp-debug2")
+          << "...model value of " << pab << " is " << v_pab << std::endl;
 
       Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
@@ -521,18 +515,18 @@ bool TranscendentalExtension::checkTfTangentPlanesFun(
           Trace("nl-ext-tftp") << (r == 0 ? "low" : "high") << ") ";
           printRationalApprox("nl-ext-tftp", v_pab);
           Trace("nl-ext-tftp") << ", will refine..." << std::endl;
-          Trace("nl-ext-tftp") << "    poly_approx = " << poly_approx
-                               << std::endl;
-          Trace("nl-ext-tftp") << "    is_tangent = " << is_tangent
-                               << std::endl;
+          Trace("nl-ext-tftp")
+              << "    poly_approx = " << poly_approx << std::endl;
+          Trace("nl-ext-tftp")
+              << "    is_tangent = " << is_tangent << std::endl;
           Trace("nl-ext-tftp") << "    is_secant = " << is_secant << std::endl;
         }
         break;
       }
       else
       {
-        Trace("nl-ext-tftp") << "  ...within " << (r == 0 ? "low" : "high")
-                             << " bound : ";
+        Trace("nl-ext-tftp")
+            << "  ...within " << (r == 0 ? "low" : "high") << " bound : ";
         printRationalApprox("nl-ext-tftp", v_pab);
         Trace("nl-ext-tftp") << std::endl;
       }
@@ -551,8 +545,8 @@ bool TranscendentalExtension::checkTfTangentPlanesFun(
                                            taylor_vars.end(),
                                            taylor_subs.begin(),
                                            taylor_subs.end());
-    Trace("nl-ext-tftp-debug2") << "...poly approximation at c is "
-                                << poly_approx_c << std::endl;
+    Trace("nl-ext-tftp-debug2")
+        << "...poly approximation at c is " << poly_approx_c << std::endl;
   }
   else
   {
@@ -590,8 +584,8 @@ bool TranscendentalExtension::checkTfTangentPlanesFun(
     Trace("nl-ext-tftp-debug2")
         << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
     lem = Rewriter::rewrite(lem);
-    Trace("nl-ext-tftp-lemma") << "*** Tangent plane lemma : " << lem
-                               << std::endl;
+    Trace("nl-ext-tftp-lemma")
+        << "*** Tangent plane lemma : " << lem << std::endl;
     Assert(d_model.computeAbstractModelValue(lem) == d_false);
     // Figure 3 : line 9
     lemmas.push_back(lem);
@@ -718,8 +712,8 @@ bool TranscendentalExtension::checkTfTangentPlanesFun(
         Trace("nl-ext-tftp-debug2")
             << "*** Secant plane lemma (pre-rewrite) : " << lem << std::endl;
         lem = Rewriter::rewrite(lem);
-        Trace("nl-ext-tftp-lemma") << "*** Secant plane lemma : " << lem
-                                   << std::endl;
+        Trace("nl-ext-tftp-lemma")
+            << "*** Secant plane lemma : " << lem << std::endl;
         lemmaConj.push_back(lem);
         Assert(d_model.computeAbstractModelValue(lem) == d_false);
       }
@@ -832,7 +826,7 @@ Node TranscendentalExtension::regionToUpperBound(Kind k, int region)
 
 Node TranscendentalExtension::getDerivative(Node n, Node x)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Assert(x.isVar());
   // only handle the cases of the taylor expansion of d
   if (n.getKind() == EXPONENTIAL)
@@ -862,7 +856,9 @@ Node TranscendentalExtension::getDerivative(Node n, Node x)
       if (dc.isNull())
       {
         return dc;
-      }else{
+      }
+      else
+      {
         dchildren.push_back(dc);
       }
     }
@@ -916,7 +912,7 @@ Node TranscendentalExtension::getDerivative(Node n, Node x)
 
 std::pair<Node, Node> TranscendentalExtension::getTaylor(Node fa, unsigned n)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Assert(n > 0);
   Node fac;  // what term we cache for fa
   if (fa[0] == d_zero)
@@ -942,8 +938,8 @@ std::pair<Node, Node> TranscendentalExtension::getTaylor(Node fa, unsigned n)
     }
     else
     {
-      i_exp_base = Rewriter::rewrite(nm->mkNode(
-          MINUS, d_taylor_real_fv, d_taylor_real_fv_base));
+      i_exp_base = Rewriter::rewrite(
+          nm->mkNode(MINUS, d_taylor_real_fv, d_taylor_real_fv_base));
     }
     Node i_derv = fac;
     Node i_fact = d_one;
@@ -962,8 +958,7 @@ std::pair<Node, Node> TranscendentalExtension::getTaylor(Node fa, unsigned n)
       {
         if (i_derv_status % 2 == 1)
         {
-          Node arg = nm->mkNode(
-              PLUS, d_pi_2, d_taylor_real_fv_base);
+          Node arg = nm->mkNode(PLUS, d_pi_2, d_taylor_real_fv_base);
           i_derv = nm->mkNode(SINE, arg);
         }
         else
@@ -982,10 +977,7 @@ std::pair<Node, Node> TranscendentalExtension::getTaylor(Node fa, unsigned n)
         TNode x = d_taylor_real_fv_base;
         i_derv = i_derv.substitute(x, d_taylor_real_fv_base_rem);
       }
-      Node curr = nm->mkNode(
-          MULT,
-          nm->mkNode(DIVISION, i_derv, i_fact),
-          i_exp);
+      Node curr = nm->mkNode(MULT, nm->mkNode(DIVISION, i_derv, i_fact), i_exp);
       if (counter == (n + 1))
       {
         taylor_rem = curr;
@@ -993,16 +985,12 @@ std::pair<Node, Node> TranscendentalExtension::getTaylor(Node fa, unsigned n)
       else
       {
         sum.push_back(curr);
-        i_fact = Rewriter::rewrite(nm->mkNode(
-            MULT,
-            nm->mkConst(Rational(counter)),
-            i_fact));
-        i_exp = Rewriter::rewrite(
-            nm->mkNode(MULT, i_exp_base, i_exp));
+        i_fact = Rewriter::rewrite(
+            nm->mkNode(MULT, nm->mkConst(Rational(counter)), i_fact));
+        i_exp = Rewriter::rewrite(nm->mkNode(MULT, i_exp_base, i_exp));
       }
     } while (counter <= n);
-    taylor_sum =
-        sum.size() == 1 ? sum[0] : nm->mkNode(PLUS, sum);
+    taylor_sum = sum.size() == 1 ? sum[0] : nm->mkNode(PLUS, sum);
 
     if (fac[0] != d_taylor_real_fv_base)
     {
@@ -1035,23 +1023,23 @@ void TranscendentalExtension::getPolynomialApproximationBounds(
 {
   if (d_poly_bounds[k][d].empty())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node tft = nm->mkNode(k, d_zero);
     // n is the Taylor degree we are currently considering
     unsigned n = 2 * d;
     // n must be even
     std::pair<Node, Node> taylor = getTaylor(tft, n);
-    Trace("nl-ext-tftp-debug2") << "Taylor for " << k
-                                << " is : " << taylor.first << std::endl;
+    Trace("nl-ext-tftp-debug2")
+        << "Taylor for " << k << " is : " << taylor.first << std::endl;
     Node taylor_sum = Rewriter::rewrite(taylor.first);
-    Trace("nl-ext-tftp-debug2") << "Taylor for " << k
-                                << " is (post-rewrite) : " << taylor_sum
-                                << std::endl;
+    Trace("nl-ext-tftp-debug2")
+        << "Taylor for " << k << " is (post-rewrite) : " << taylor_sum
+        << std::endl;
     Assert(taylor.second.getKind() == MULT);
     Assert(taylor.second.getNumChildren() == 2);
     Assert(taylor.second[0].getKind() == DIVISION);
-    Trace("nl-ext-tftp-debug2") << "Taylor remainder for " << k << " is "
-                                << taylor.second << std::endl;
+    Trace("nl-ext-tftp-debug2")
+        << "Taylor remainder for " << k << " is " << taylor.second << std::endl;
     // ru is x^{n+1}/(n+1)!
     Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
     ru = Rewriter::rewrite(ru);
@@ -1075,8 +1063,8 @@ void TranscendentalExtension::getPolynomialApproximationBounds(
       pbounds.push_back(u);
       pbounds.push_back(u);
     }
-    Trace("nl-ext-tf-tplanes") << "Polynomial approximation for " << k
-                               << " is: " << std::endl;
+    Trace("nl-ext-tf-tplanes")
+        << "Polynomial approximation for " << k << " is: " << std::endl;
     Trace("nl-ext-tf-tplanes") << " Lower (pos): " << pbounds[0] << std::endl;
     Trace("nl-ext-tf-tplanes") << " Upper (pos): " << pbounds[2] << std::endl;
     Trace("nl-ext-tf-tplanes") << " Lower (neg): " << pbounds[1] << std::endl;
@@ -1098,7 +1086,7 @@ void TranscendentalExtension::getPolynomialApproximationBoundForArg(
   Assert(c.isConst());
   if (k == EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node tft = nm->mkNode(k, d_zero);
     bool success = false;
     unsigned ds = d;
@@ -1133,7 +1121,8 @@ void TranscendentalExtension::getPolynomialApproximationBoundForArg(
   }
 }
 
-std::pair<Node, Node> TranscendentalExtension::getTfModelBounds(Node tf, unsigned d)
+std::pair<Node, Node> TranscendentalExtension::getTfModelBounds(Node tf,
+                                                                unsigned d)
 {
   // compute the model value of the argument
   Node c = d_model.computeAbstractModelValue(tf[0]);

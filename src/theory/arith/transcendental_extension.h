@@ -16,9 +16,9 @@
 #define CVC4__THEORY__ARITH__TRANSCENDENTAL_EXTENSION_H
 
 #include <map>
-#include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "expr/node.h"
 #include "theory/arith/nl_lemma_utils.h"
@@ -40,41 +40,42 @@ namespace arith {
  * It's main functionality are methods that implement lemma schemas below,
  * which return a set of lemmas that should be sent on the output channel.
  */
-class TranscendentalExtension {
+class TranscendentalExtension
+{
  public:
   TranscendentalExtension(NlModel& m);
   ~TranscendentalExtension();
   //-------------------------------------------- lemma schemas
   /** check transcendental initial refine
-  *
-  * Returns a set of valid theory lemmas, based on
-  * simple facts about transcendental functions.
-  * This mostly follows the initial axioms described in
-  * Section 4 of "Satisfiability
-  * Modulo Transcendental Functions via Incremental
-  * Linearization" by Cimatti et al., CADE 2017.
-  *
-  * Examples:
-  *
-  * sin( x ) = -sin( -x )
-  * ( PI > x > 0 ) => 0 < sin( x ) < 1
-  * exp( x )>0
-  * x<0 => exp( x )<1
-  */
+   *
+   * Returns a set of valid theory lemmas, based on
+   * simple facts about transcendental functions.
+   * This mostly follows the initial axioms described in
+   * Section 4 of "Satisfiability
+   * Modulo Transcendental Functions via Incremental
+   * Linearization" by Cimatti et al., CADE 2017.
+   *
+   * Examples:
+   *
+   * sin( x ) = -sin( -x )
+   * ( PI > x > 0 ) => 0 < sin( x ) < 1
+   * exp( x )>0
+   * x<0 => exp( x )<1
+   */
   std::vector<Node> checkTranscendentalInitialRefine();
 
   /** check transcendental monotonic
-  *
-  * Returns a set of valid theory lemmas, based on a
-  * lemma scheme that ensures that applications
-  * of transcendental functions respect monotonicity.
-  *
-  * Examples:
-  *
-  * x > y => exp( x ) > exp( y )
-  * PI/2 > x > y > 0 => sin( x ) > sin( y )
-  * PI > x > y > PI/2 => sin( x ) < sin( y )
-  */
+   *
+   * Returns a set of valid theory lemmas, based on a
+   * lemma scheme that ensures that applications
+   * of transcendental functions respect monotonicity.
+   *
+   * Examples:
+   *
+   * x > y => exp( x ) > exp( y )
+   * PI/2 > x > y > 0 => sin( x ) > sin( y )
+   * PI > x > y > PI/2 => sin( x ) < sin( y )
+   */
   std::vector<Node> checkTranscendentalMonotonic();
 
   /** check transcendental tangent planes
@@ -162,7 +163,7 @@ class TranscendentalExtension {
                                std::vector<Node>& lems,
                                std::map<Node, NlLemmaSideEffect>& lemSE);
   //-------------------------------------------- end lemma schemas
-private:
+ private:
   /** polynomial approximation bounds
    *
    * This adds P_l+[x], P_l-[x], P_u+[x], P_u-[x] to pbounds, where x is
@@ -200,18 +201,18 @@ private:
   std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d);
   /** get monotonicity direction
    *
-  * Returns whether the slope is positive (+1) or negative(-1)
-  * in region of transcendental function with kind k.
-  * Returns 0 if region is invalid.
-  */
+   * Returns whether the slope is positive (+1) or negative(-1)
+   * in region of transcendental function with kind k.
+   * Returns 0 if region is invalid.
+   */
   int regionToMonotonicityDir(Kind k, int region);
   /** get concavity
    *
-  * Returns whether we are concave (+1) or convex (-1)
-  * in region of transcendental function with kind k,
-  * where region is defined above.
-  * Returns 0 if region is invalid.
-  */
+   * Returns whether we are concave (+1) or convex (-1)
+   * in region of transcendental function with kind k,
+   * where region is defined above.
+   * Returns 0 if region is invalid.
+   */
   int regionToConcavity(Kind k, int region);
   /** region to lower bound
    *
@@ -240,10 +241,10 @@ private:
    * unhandled case.
    */
   Node getDerivative(Node n, Node x);
-  
+
   void mkPi();
-  void getCurrentPiBounds( std::vector< Node >& lemmas );
-  
+  void getCurrentPiBounds(std::vector<Node>& lemmas);
+
   /** Reference to the non-linear model object */
   NlModel& d_model;
   /** commonly used terms */
@@ -268,31 +269,31 @@ private:
   std::map<Node, Node> d_trMaster;
   std::map<Node, std::unordered_set<Node, NodeHashFunction>> d_trSlaves;
   /** The transcendental functions we have done initial refinements on */
-  std::map< Node, bool > d_tf_initial_refine;
-  
+  std::map<Node, bool> d_tf_initial_refine;
+
   /** concavity region for transcendental functions
-  *
-  * This stores an integer that identifies an interval in
-  * which the current model value for an argument of an
-  * application of a transcendental function resides.
-  *
-  * For exp( x ):
-  *   region #1 is -infty < x < infty
-  * For sin( x ):
-  *   region #0 is pi < x < infty (this is an invalid region)
-  *   region #1 is pi/2 < x <= pi
-  *   region #2 is 0 < x <= pi/2
-  *   region #3 is -pi/2 < x <= 0
-  *   region #4 is -pi < x <= -pi/2
-  *   region #5 is -infty < x <= -pi (this is an invalid region)
-  * All regions not listed above, as well as regions 0 and 5
-  * for SINE are "invalid". We only process applications
-  * of transcendental functions whose arguments have model
-  * values that reside in valid regions.
-  */
+   *
+   * This stores an integer that identifies an interval in
+   * which the current model value for an argument of an
+   * application of a transcendental function resides.
+   *
+   * For exp( x ):
+   *   region #1 is -infty < x < infty
+   * For sin( x ):
+   *   region #0 is pi < x < infty (this is an invalid region)
+   *   region #1 is pi/2 < x <= pi
+   *   region #2 is 0 < x <= pi/2
+   *   region #3 is -pi/2 < x <= 0
+   *   region #4 is -pi < x <= -pi/2
+   *   region #5 is -infty < x <= -pi (this is an invalid region)
+   * All regions not listed above, as well as regions 0 and 5
+   * for SINE are "invalid". We only process applications
+   * of transcendental functions whose arguments have model
+   * values that reside in valid regions.
+   */
   std::unordered_map<Node, int, NodeHashFunction> d_tf_region;
   /** cache of the above function */
-  std::map<Kind, std::map<unsigned, std::vector<Node> > > d_poly_bounds;
+  std::map<Kind, std::map<unsigned, std::vector<Node>>> d_poly_bounds;
 
   /**
    * Maps representives of a congruence class to the members of that class.
@@ -306,16 +307,15 @@ private:
    * are transcendental function applications that are "master terms",
    * see d_trMaster/d_trSlave.
    */
-  std::map<Node, std::vector<Node> > d_funcCongClass;
+  std::map<Node, std::vector<Node>> d_funcCongClass;
   /**
    * A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI }
    * that are representives of their congruence class.
    */
-  std::map<Kind, std::vector<Node> > d_funcMap;
-
+  std::map<Kind, std::vector<Node>> d_funcMap;
 
   // tangent plane bounds
-  std::map< Node, std::map< Node, Node > > d_tangent_val_bound[4];
+  std::map<Node, std::map<Node, Node>> d_tangent_val_bound[4];
 
   /** secant points (sorted list) for transcendental functions
    *
@@ -328,7 +328,7 @@ private:
    * Taylor degree.
    */
   std::unordered_map<Node,
-                     std::map<unsigned, std::vector<Node> >,
+                     std::map<unsigned, std::vector<Node>>,
                      NodeHashFunction>
       d_secant_points;
 
@@ -369,7 +369,7 @@ private:
    * initially to options::nlExtTfTaylorDegree() and may be incremented
    * if the option options::nlExtTfIncPrecision() is enabled.
    */
-  unsigned d_taylor_degree;  
+  unsigned d_taylor_degree;
   /** PI
    *
    * Note that PI is a (symbolic, non-constant) nullary operator. This is

@@ -22,7 +22,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
-  
+
 class NlModel;
 
 /**
