@@ -312,7 +312,7 @@ size_t SequenceHashFunction::operator()(const Sequence& s) const
   const std::vector<Node>& vec = s.getVec();
   for (const Node& n : vec)
   {
-    ret = ret + NodeHashFunction(n);
+    ret = ret + NodeHashFunction()(n);
   }
   return ret;
 }
