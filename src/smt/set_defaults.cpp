@@ -14,6 +14,7 @@
 
 #include "smt/set_defaults.h"
 
+#include "base/output.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
@@ -35,7 +36,6 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "base/output.h"
 #include "theory/theory.h"
 
 using namespace CVC4::theory;
@@ -43,7 +43,8 @@ using namespace CVC4::theory;
 namespace CVC4 {
 namespace smt {
 
-void setDefaults(SmtEngine& smte, LogicInfo& logic) {
+void setDefaults(SmtEngine& smte, LogicInfo& logic)
+{
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
@@ -164,7 +165,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
     // We require bounded quantifier handling.
     if (!options::fmfBound.wasSetByUser())
     {
-      options::fmfBound.set( true );
+      options::fmfBound.set(true);
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
     // Turn off E-matching, since some bounded quantifiers introduced by strings
@@ -454,26 +455,34 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
   }
 
   // Set the options for the theoryOf
-  if(!options::theoryOfMode.wasSetByUser()) {
-    if(logic.isSharingEnabled() &&
-       !logic.isTheoryEnabled(THEORY_BV) &&
-       !logic.isTheoryEnabled(THEORY_STRINGS) &&
-       !logic.isTheoryEnabled(THEORY_SETS) ) {
+  if (!options::theoryOfMode.wasSetByUser())
+  {
+    if (logic.isSharingEnabled() && !logic.isTheoryEnabled(THEORY_BV)
+        && !logic.isTheoryEnabled(THEORY_STRINGS)
+        && !logic.isTheoryEnabled(THEORY_SETS))
+    {
       Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
       options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
     }
   }
 
   // strings require LIA, UF; widen the logic
-  if(logic.isTheoryEnabled(THEORY_STRINGS)) {
+  if (logic.isTheoryEnabled(THEORY_STRINGS))
+  {
     LogicInfo log(logic.getUnlockedCopy());
     // Strings requires arith for length constraints, and also UF
-    if(!logic.isTheoryEnabled(THEORY_UF)) {
-      Trace("smt") << "because strings are enabled, also enabling UF" << std::endl;
+    if (!logic.isTheoryEnabled(THEORY_UF))
+    {
+      Trace("smt") << "because strings are enabled, also enabling UF"
+                   << std::endl;
       log.enableTheory(THEORY_UF);
     }
-    if(!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic() || !logic.areIntegersUsed()) {
-      Trace("smt") << "because strings are enabled, also enabling linear integer arithmetic" << std::endl;
+    if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic()
+        || !logic.areIntegersUsed())
+    {
+      Trace("smt") << "because strings are enabled, also enabling linear "
+                      "integer arithmetic"
+                   << std::endl;
       log.enableTheory(THEORY_ARITH);
       log.enableIntegers();
       log.arithOnlyLinear();
@@ -481,10 +490,16 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
     logic = log;
     logic.lock();
   }
-  if(logic.isTheoryEnabled(THEORY_ARRAYS) || logic.isTheoryEnabled(THEORY_DATATYPES) || logic.isTheoryEnabled(THEORY_SETS)) {
-    if(!logic.isTheoryEnabled(THEORY_UF)) {
+  if (logic.isTheoryEnabled(THEORY_ARRAYS)
+      || logic.isTheoryEnabled(THEORY_DATATYPES)
+      || logic.isTheoryEnabled(THEORY_SETS))
+  {
+    if (!logic.isTheoryEnabled(THEORY_UF))
+    {
       LogicInfo log(logic.getUnlockedCopy());
-      Trace("smt") << "because a theory that permits Boolean terms is enabled, also enabling UF" << std::endl;
+      Trace("smt") << "because a theory that permits Boolean terms is enabled, "
+                      "also enabling UF"
+                   << std::endl;
       log.enableTheory(THEORY_UF);
       logic = log;
       logic.lock();
@@ -492,50 +507,61 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
   }
 
   // by default, symmetry breaker is on only for non-incremental QF_UF
-  if(! options::ufSymmetryBreaker.wasSetByUser()) {
+  if (!options::ufSymmetryBreaker.wasSetByUser())
+  {
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !options::incrementalSolving() && !options::proof()
                        && !options::unsatCores();
-    Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc << std::endl;
+    Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
+                 << std::endl;
     options::ufSymmetryBreaker.set(qf_uf_noinc);
   }
 
   // If in arrays, set the UF handler to arrays
-  if(logic.isTheoryEnabled(THEORY_ARRAYS) && ( !logic.isQuantified() ||
-     (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF)))) {
+  if (logic.isTheoryEnabled(THEORY_ARRAYS)
+      && (!logic.isQuantified()
+          || (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF))))
+  {
     Theory::setUninterpretedSortOwner(THEORY_ARRAYS);
-  } else {
+  }
+  else
+  {
     Theory::setUninterpretedSortOwner(THEORY_UF);
   }
 
-  if(! options::simplifyWithCareEnabled.wasSetByUser() ){
-    bool qf_aufbv = !logic.isQuantified() &&
-      logic.isTheoryEnabled(THEORY_ARRAYS) &&
-      logic.isTheoryEnabled(THEORY_UF) &&
-      logic.isTheoryEnabled(THEORY_BV);
+  if (!options::simplifyWithCareEnabled.wasSetByUser())
+  {
+    bool qf_aufbv =
+        !logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
+        && logic.isTheoryEnabled(THEORY_UF) && logic.isTheoryEnabled(THEORY_BV);
 
     bool withCare = qf_aufbv;
-    Trace("smt") << "setting ite simplify with care to " << withCare << std::endl;
+    Trace("smt") << "setting ite simplify with care to " << withCare
+                 << std::endl;
     options::simplifyWithCareEnabled.set(withCare);
   }
   // Turn off array eager index splitting for QF_AUFLIA
-  if(! options::arraysEagerIndexSplitting.wasSetByUser()) {
-    if (not logic.isQuantified() &&
-        logic.isTheoryEnabled(THEORY_ARRAYS) &&
-        logic.isTheoryEnabled(THEORY_UF) &&
-        logic.isTheoryEnabled(THEORY_ARITH)) {
-      Trace("smt") << "setting array eager index splitting to false" << std::endl;
+  if (!options::arraysEagerIndexSplitting.wasSetByUser())
+  {
+    if (not logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
+        && logic.isTheoryEnabled(THEORY_UF)
+        && logic.isTheoryEnabled(THEORY_ARITH))
+    {
+      Trace("smt") << "setting array eager index splitting to false"
+                   << std::endl;
       options::arraysEagerIndexSplitting.set(false);
     }
   }
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
-  if(! options::repeatSimp.wasSetByUser()) {
-    bool repeatSimp = !logic.isQuantified() &&
-                      (logic.isTheoryEnabled(THEORY_ARRAYS) &&
-                      logic.isTheoryEnabled(THEORY_UF) &&
-                      logic.isTheoryEnabled(THEORY_BV)) &&
-                      !options::unsatCores();
-    Trace("smt") << "setting repeat simplification to " << repeatSimp << std::endl;
+  if (!options::repeatSimp.wasSetByUser())
+  {
+    bool repeatSimp = !logic.isQuantified()
+                      && (logic.isTheoryEnabled(THEORY_ARRAYS)
+                          && logic.isTheoryEnabled(THEORY_UF)
+                          && logic.isTheoryEnabled(THEORY_BV))
+                      && !options::unsatCores();
+    Trace("smt") << "setting repeat simplification to " << repeatSimp
+                 << std::endl;
     options::repeatSimp.set(repeatSimp);
   }
 
@@ -552,60 +578,79 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
     smte.setOption("boolToBitvector", SExpr("off"));
   }
 
-  if (! options::bvEagerExplanations.wasSetByUser() &&
-      logic.isTheoryEnabled(THEORY_ARRAYS) &&
-      logic.isTheoryEnabled(THEORY_BV)) {
+  if (!options::bvEagerExplanations.wasSetByUser()
+      && logic.isTheoryEnabled(THEORY_ARRAYS)
+      && logic.isTheoryEnabled(THEORY_BV))
+  {
     Trace("smt") << "enabling eager bit-vector explanations " << std::endl;
     options::bvEagerExplanations.set(true);
   }
 
   // Turn on arith rewrite equalities only for pure arithmetic
-  if(! options::arithRewriteEq.wasSetByUser()) {
-    bool arithRewriteEq = logic.isPure(THEORY_ARITH) && logic.isLinear() && !logic.isQuantified();
-    Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq << std::endl;
+  if (!options::arithRewriteEq.wasSetByUser())
+  {
+    bool arithRewriteEq =
+        logic.isPure(THEORY_ARITH) && logic.isLinear() && !logic.isQuantified();
+    Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq
+                 << std::endl;
     options::arithRewriteEq.set(arithRewriteEq);
   }
-  if(!  options::arithHeuristicPivots.wasSetByUser()) {
+  if (!options::arithHeuristicPivots.wasSetByUser())
+  {
     int16_t heuristicPivots = 5;
-    if(logic.isPure(THEORY_ARITH) && !logic.isQuantified()) {
-      if(logic.isDifferenceLogic()) {
+    if (logic.isPure(THEORY_ARITH) && !logic.isQuantified())
+    {
+      if (logic.isDifferenceLogic())
+      {
         heuristicPivots = -1;
-      } else if(!logic.areIntegersUsed()) {
+      }
+      else if (!logic.areIntegersUsed())
+      {
         heuristicPivots = 0;
       }
     }
-    Trace("smt") << "setting arithHeuristicPivots  " << heuristicPivots << std::endl;
+    Trace("smt") << "setting arithHeuristicPivots  " << heuristicPivots
+                 << std::endl;
     options::arithHeuristicPivots.set(heuristicPivots);
   }
-  if(! options::arithPivotThreshold.wasSetByUser()){
+  if (!options::arithPivotThreshold.wasSetByUser())
+  {
     uint16_t pivotThreshold = 2;
-    if(logic.isPure(THEORY_ARITH) && !logic.isQuantified()){
-      if(logic.isDifferenceLogic()){
+    if (logic.isPure(THEORY_ARITH) && !logic.isQuantified())
+    {
+      if (logic.isDifferenceLogic())
+      {
         pivotThreshold = 16;
       }
     }
-    Trace("smt") << "setting arith arithPivotThreshold  " << pivotThreshold << std::endl;
+    Trace("smt") << "setting arith arithPivotThreshold  " << pivotThreshold
+                 << std::endl;
     options::arithPivotThreshold.set(pivotThreshold);
   }
-  if(! options::arithStandardCheckVarOrderPivots.wasSetByUser()){
+  if (!options::arithStandardCheckVarOrderPivots.wasSetByUser())
+  {
     int16_t varOrderPivots = -1;
-    if(logic.isPure(THEORY_ARITH) && !logic.isQuantified()){
+    if (logic.isPure(THEORY_ARITH) && !logic.isQuantified())
+    {
       varOrderPivots = 200;
     }
-    Trace("smt") << "setting arithStandardCheckVarOrderPivots  " << varOrderPivots << std::endl;
+    Trace("smt") << "setting arithStandardCheckVarOrderPivots  "
+                 << varOrderPivots << std::endl;
     options::arithStandardCheckVarOrderPivots.set(varOrderPivots);
   }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {
     if (!options::nlExtTangentPlanesInterleave.wasSetByUser())
     {
-      Trace("smt") << "setting nlExtTangentPlanesInterleave to true" << std::endl;
+      Trace("smt") << "setting nlExtTangentPlanesInterleave to true"
+                   << std::endl;
       options::nlExtTangentPlanesInterleave.set(true);
     }
   }
 
   // Set decision mode based on logic (if not set by user)
-  if(!options::decisionMode.wasSetByUser()) {
+  if (!options::decisionMode.wasSetByUser())
+  {
     options::DecisionMode decMode =
         // sygus uses internal
         is_sygus ? options::DecisionMode::INTERNAL :
@@ -613,75 +658,84 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
-                    (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
-                            // QF_AUFBV or QF_ABV or QF_UFBV
-                            (not logic.isQuantified()
-                             && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                                 || logic.isTheoryEnabled(THEORY_UF))
-                             && logic.isTheoryEnabled(THEORY_BV))
-                            ||
-                            // QF_AUFLIA (and may be ends up enabling
-                            // QF_AUFLRA?)
-                            (not logic.isQuantified()
-                             && logic.isTheoryEnabled(THEORY_ARRAYS)
-                             && logic.isTheoryEnabled(THEORY_UF)
-                             && logic.isTheoryEnabled(THEORY_ARITH))
-                            ||
-                            // QF_LRA
-                            (not logic.isQuantified()
-                             && logic.isPure(THEORY_ARITH)
-                             && logic.isLinear()
-                             && !logic.isDifferenceLogic()
-                             && !logic.areIntegersUsed())
-                            ||
-                            // Quantifiers
-                            logic.isQuantified() ||
-                            // Strings
-                            logic.isTheoryEnabled(THEORY_STRINGS)
-                        ? options::DecisionMode::JUSTIFICATION
-                        : options::DecisionMode::INTERNAL);
+                      (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
+                              // QF_AUFBV or QF_ABV or QF_UFBV
+                              (not logic.isQuantified()
+                               && (logic.isTheoryEnabled(THEORY_ARRAYS)
+                                   || logic.isTheoryEnabled(THEORY_UF))
+                               && logic.isTheoryEnabled(THEORY_BV))
+                              ||
+                              // QF_AUFLIA (and may be ends up enabling
+                              // QF_AUFLRA?)
+                              (not logic.isQuantified()
+                               && logic.isTheoryEnabled(THEORY_ARRAYS)
+                               && logic.isTheoryEnabled(THEORY_UF)
+                               && logic.isTheoryEnabled(THEORY_ARITH))
+                              ||
+                              // QF_LRA
+                              (not logic.isQuantified()
+                               && logic.isPure(THEORY_ARITH) && logic.isLinear()
+                               && !logic.isDifferenceLogic()
+                               && !logic.areIntegersUsed())
+                              ||
+                              // Quantifiers
+                              logic.isQuantified() ||
+                              // Strings
+                              logic.isTheoryEnabled(THEORY_STRINGS)
+                          ? options::DecisionMode::JUSTIFICATION
+                          : options::DecisionMode::INTERNAL);
 
     bool stoponly =
-      // ALL
-      logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS) ? false :
-      ( // QF_AUFLIA
-        (not logic.isQuantified() &&
-         logic.isTheoryEnabled(THEORY_ARRAYS) &&
-         logic.isTheoryEnabled(THEORY_UF) &&
-         logic.isTheoryEnabled(THEORY_ARITH)
-         ) ||
-        // QF_LRA
-        (not logic.isQuantified() &&
-         logic.isPure(THEORY_ARITH) && logic.isLinear() && !logic.isDifferenceLogic() &&  !logic.areIntegersUsed()
-         )
-        ? true : false
-      );
+        // ALL
+        logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
+            ? false
+            : (  // QF_AUFLIA
+                  (not logic.isQuantified()
+                   && logic.isTheoryEnabled(THEORY_ARRAYS)
+                   && logic.isTheoryEnabled(THEORY_UF)
+                   && logic.isTheoryEnabled(THEORY_ARITH))
+                          ||
+                          // QF_LRA
+                          (not logic.isQuantified()
+                           && logic.isPure(THEORY_ARITH) && logic.isLinear()
+                           && !logic.isDifferenceLogic()
+                           && !logic.areIntegersUsed())
+                      ? true
+                      : false);
 
     Trace("smt") << "setting decision mode to " << decMode << std::endl;
     options::decisionMode.set(decMode);
     options::decisionStopOnly.set(stoponly);
   }
-  if( options::incrementalSolving() ){
-    //disable modes not supported by incremental
-    options::sortInference.set( false );
-    options::ufssFairnessMonotone.set( false );
-    options::quantEpr.set( false );
+  if (options::incrementalSolving())
+  {
+    // disable modes not supported by incremental
+    options::sortInference.set(false);
+    options::ufssFairnessMonotone.set(false);
+    options::quantEpr.set(false);
     options::globalNegate.set(false);
   }
-  if( logic.hasCardinalityConstraints() ){
-    //must have finite model finding on
-    options::finiteModelFind.set( true );
+  if (logic.hasCardinalityConstraints())
+  {
+    // must have finite model finding on
+    options::finiteModelFind.set(true);
   }
 
-  //if it contains a theory with non-termination, do not strictly enforce that quantifiers and theory combination must be interleaved
-  if( logic.isTheoryEnabled(THEORY_STRINGS) || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()) ){
-    if( !options::instWhenStrictInterleave.wasSetByUser() ){
-      options::instWhenStrictInterleave.set( false );
+  // if it contains a theory with non-termination, do not strictly enforce that
+  // quantifiers and theory combination must be interleaved
+  if (logic.isTheoryEnabled(THEORY_STRINGS)
+      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
+  {
+    if (!options::instWhenStrictInterleave.wasSetByUser())
+    {
+      options::instWhenStrictInterleave.set(false);
     }
   }
 
-  if( options::instMaxLevel()!=-1 ){
-    Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << std::endl;
+  if (options::instMaxLevel() != -1)
+  {
+    Notice() << "SmtEngine: turning off cbqi to support instMaxLevel"
+             << std::endl;
     options::cbqi.set(false);
   }
   // Do we need to track instantiations?
@@ -690,29 +744,34 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       || (options::proof() && !options::trackInstLemmas.wasSetByUser())
       || is_sygus)
   {
-    options::trackInstLemmas.set( true );
+    options::trackInstLemmas.set(true);
   }
 
-  if( ( options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy() ) ||
-      ( options::fmfBoundInt.wasSetByUser() && options::fmfBoundInt() ) ) {
-    options::fmfBound.set( true );
+  if ((options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy())
+      || (options::fmfBoundInt.wasSetByUser() && options::fmfBoundInt()))
+  {
+    options::fmfBound.set(true);
   }
-  //now have determined whether fmfBoundInt is on/off
-  //apply fmfBoundInt options
-  if( options::fmfBound() ){
+  // now have determined whether fmfBoundInt is on/off
+  // apply fmfBoundInt options
+  if (options::fmfBound())
+  {
     if (!options::mbqiMode.wasSetByUser()
         || (options::mbqiMode() != options::MbqiMode::NONE
             && options::mbqiMode() != options::MbqiMode::FMC))
     {
-      //if bounded integers are set, use no MBQI by default
+      // if bounded integers are set, use no MBQI by default
       options::mbqiMode.set(options::MbqiMode::NONE);
     }
-    if( ! options::prenexQuant.wasSetByUser() ){
+    if (!options::prenexQuant.wasSetByUser())
+    {
       options::prenexQuant.set(options::PrenexQuantMode::NONE);
     }
   }
-  if( options::ufHo() ){
-    //if higher-order, then current variants of model-based instantiation cannot be used
+  if (options::ufHo())
+  {
+    // if higher-order, then current variants of model-based instantiation
+    // cannot be used
     if (options::mbqiMode() != options::MbqiMode::NONE)
     {
       options::mbqiMode.set(options::MbqiMode::NONE);
@@ -723,40 +782,52 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       options::hoElimStoreAx.set(options::hoElim());
     }
   }
-  if( options::fmfFunWellDefinedRelevant() ){
-    if( !options::fmfFunWellDefined.wasSetByUser() ){
-      options::fmfFunWellDefined.set( true );
+  if (options::fmfFunWellDefinedRelevant())
+  {
+    if (!options::fmfFunWellDefined.wasSetByUser())
+    {
+      options::fmfFunWellDefined.set(true);
     }
   }
-  if( options::fmfFunWellDefined() ){
-    if( !options::finiteModelFind.wasSetByUser() ){
-      options::finiteModelFind.set( true );
+  if (options::fmfFunWellDefined())
+  {
+    if (!options::finiteModelFind.wasSetByUser())
+    {
+      options::finiteModelFind.set(true);
     }
   }
-  //EPR
-  if( options::quantEpr() ){
-    if( !options::preSkolemQuant.wasSetByUser() ){
-      options::preSkolemQuant.set( true );
+  // EPR
+  if (options::quantEpr())
+  {
+    if (!options::preSkolemQuant.wasSetByUser())
+    {
+      options::preSkolemQuant.set(true);
     }
   }
 
-  //now, have determined whether finite model find is on/off
-  //apply finite model finding options
-  if( options::finiteModelFind() ){
-    //apply conservative quantifiers splitting
-    if( !options::quantDynamicSplit.wasSetByUser() ){
+  // now, have determined whether finite model find is on/off
+  // apply finite model finding options
+  if (options::finiteModelFind())
+  {
+    // apply conservative quantifiers splitting
+    if (!options::quantDynamicSplit.wasSetByUser())
+    {
       options::quantDynamicSplit.set(options::QuantDSplitMode::DEFAULT);
     }
-    //do not eliminate extended arithmetic symbols from quantified formulas
-    if( !options::elimExtArithQuant.wasSetByUser() ){
-      options::elimExtArithQuant.set( false );
+    // do not eliminate extended arithmetic symbols from quantified formulas
+    if (!options::elimExtArithQuant.wasSetByUser())
+    {
+      options::elimExtArithQuant.set(false);
     }
-    if( !options::eMatching.wasSetByUser() ){
-      options::eMatching.set( options::fmfInstEngine() );
+    if (!options::eMatching.wasSetByUser())
+    {
+      options::eMatching.set(options::fmfInstEngine());
     }
-    if( !options::instWhenMode.wasSetByUser() ){
-      //instantiate only on last call
-      if( options::eMatching() ){
+    if (!options::instWhenMode.wasSetByUser())
+    {
+      // instantiate only on last call
+      if (options::eMatching())
+      {
         options::instWhenMode.set(options::InstWhenMode::LAST_CALL);
       }
     }
@@ -795,15 +866,18 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
         options::preSkolemQuantNested.set(true);
       }
     }
-    //counterexample-guided instantiation for sygus
-    if( !options::cegqiSingleInvMode.wasSetByUser() ){
+    // counterexample-guided instantiation for sygus
+    if (!options::cegqiSingleInvMode.wasSetByUser())
+    {
       options::cegqiSingleInvMode.set(options::CegqiSingleInvMode::USE);
     }
-    if( !options::quantConflictFind.wasSetByUser() ){
-      options::quantConflictFind.set( false );
+    if (!options::quantConflictFind.wasSetByUser())
+    {
+      options::quantConflictFind.set(false);
     }
-    if( !options::instNoEntail.wasSetByUser() ){
-      options::instNoEntail.set( false );
+    if (!options::instNoEntail.wasSetByUser())
+    {
+      options::instNoEntail.set(false);
     }
     if (!options::cbqiFullEffort.wasSetByUser())
     {
@@ -877,7 +951,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
         options::cegqiSingleInvMode.set(options::CegqiSingleInvMode::NONE);
       }
     }
-    //do not allow partial functions
+    // do not allow partial functions
     if (!options::bitvectorDivByZeroConst())
     {
       if (options::bitvectorDivByZeroConst.wasSetByUser())
@@ -888,35 +962,41 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       Notice()
           << "SmtEngine: setting bv-div-zero-const to true to support SyGuS"
           << std::endl;
-      options::bitvectorDivByZeroConst.set( true );
+      options::bitvectorDivByZeroConst.set(true);
     }
-    if( !options::dtRewriteErrorSel.wasSetByUser() ){
-      options::dtRewriteErrorSel.set( true );
+    if (!options::dtRewriteErrorSel.wasSetByUser())
+    {
+      options::dtRewriteErrorSel.set(true);
     }
-    //do not miniscope
-    if( !options::miniscopeQuant.wasSetByUser() ){
-      options::miniscopeQuant.set( false );
+    // do not miniscope
+    if (!options::miniscopeQuant.wasSetByUser())
+    {
+      options::miniscopeQuant.set(false);
     }
-    if( !options::miniscopeQuantFreeVar.wasSetByUser() ){
-      options::miniscopeQuantFreeVar.set( false );
+    if (!options::miniscopeQuantFreeVar.wasSetByUser())
+    {
+      options::miniscopeQuantFreeVar.set(false);
     }
     if (!options::quantSplit.wasSetByUser())
     {
       options::quantSplit.set(false);
     }
-    //rewrite divk
-    if( !options::rewriteDivk.wasSetByUser()) {
-      options::rewriteDivk.set( true );
+    // rewrite divk
+    if (!options::rewriteDivk.wasSetByUser())
+    {
+      options::rewriteDivk.set(true);
     }
-    //do not do macros
-    if( !options::macrosQuant.wasSetByUser()) {
-      options::macrosQuant.set( false );
+    // do not do macros
+    if (!options::macrosQuant.wasSetByUser())
+    {
+      options::macrosQuant.set(false);
     }
-    if( !options::cbqiPreRegInst.wasSetByUser()) {
-      options::cbqiPreRegInst.set( true );
+    if (!options::cbqiPreRegInst.wasSetByUser())
+    {
+      options::cbqiPreRegInst.set(true);
     }
   }
-  //counterexample-guided instantiation for non-sygus
+  // counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
   if ((logic.isQuantified()
        && (logic.isTheoryEnabled(THEORY_ARITH)
@@ -925,8 +1005,9 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
            || logic.isTheoryEnabled(THEORY_FP)))
       || options::cbqiAll())
   {
-    if( !options::cbqi.wasSetByUser() ){
-      options::cbqi.set( true );
+    if (!options::cbqi.wasSetByUser())
+    {
+      options::cbqi.set(true);
     }
     // check whether we should apply full cbqi
     if (logic.isPure(THEORY_BV))
@@ -937,10 +1018,12 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
     }
   }
-  if( options::cbqi() ){
-    //must rewrite divk
-    if( !options::rewriteDivk.wasSetByUser()) {
-      options::rewriteDivk.set( true );
+  if (options::cbqi())
+  {
+    // must rewrite divk
+    if (!options::rewriteDivk.wasSetByUser())
+    {
+      options::rewriteDivk.set(true);
     }
     if (options::incrementalSolving())
     {
@@ -949,17 +1032,22 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
-      if( !options::quantConflictFind.wasSetByUser() ){
-        options::quantConflictFind.set( false );
+      if (!options::quantConflictFind.wasSetByUser())
+      {
+        options::quantConflictFind.set(false);
       }
-      if( !options::instNoEntail.wasSetByUser() ){
-        options::instNoEntail.set( false );
+      if (!options::instNoEntail.wasSetByUser())
+      {
+        options::instNoEntail.set(false);
       }
-      if( !options::instWhenMode.wasSetByUser() && options::cbqiModel() ){
-        //only instantiation should happen at last call when model is avaiable
+      if (!options::instWhenMode.wasSetByUser() && options::cbqiModel())
+      {
+        // only instantiation should happen at last call when model is avaiable
         options::instWhenMode.set(options::InstWhenMode::LAST_CALL);
       }
-    }else{
+    }
+    else
+    {
       // only supported in pure arithmetic or pure BV
       options::cbqiNestedQE.set(false);
     }
@@ -980,74 +1068,99 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
     }
   }
-  //implied options...
-  if( options::strictTriggers() ){
-    if( !options::userPatternsQuant.wasSetByUser() ){
+  // implied options...
+  if (options::strictTriggers())
+  {
+    if (!options::userPatternsQuant.wasSetByUser())
+    {
       options::userPatternsQuant.set(options::UserPatMode::TRUST);
     }
   }
-  if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
-    options::quantConflictFind.set( true );
+  if (options::qcfMode.wasSetByUser() || options::qcfTConstraint())
+  {
+    options::quantConflictFind.set(true);
   }
-  if( options::cbqiNestedQE() ){
-    options::prenexQuantUser.set( true );
-    if( !options::preSkolemQuant.wasSetByUser() ){
-      options::preSkolemQuant.set( true );
-    }
-  }
-  //for induction techniques
-  if( options::quantInduction() ){
-    if( !options::dtStcInduction.wasSetByUser() ){
-      options::dtStcInduction.set( true );
-    }
-    if( !options::intWfInduction.wasSetByUser() ){
-      options::intWfInduction.set( true );
+  if (options::cbqiNestedQE())
+  {
+    options::prenexQuantUser.set(true);
+    if (!options::preSkolemQuant.wasSetByUser())
+    {
+      options::preSkolemQuant.set(true);
     }
   }
-  if( options::dtStcInduction() ){
-    //try to remove ITEs from quantified formulas
-    if( !options::iteDtTesterSplitQuant.wasSetByUser() ){
-      options::iteDtTesterSplitQuant.set( true );
+  // for induction techniques
+  if (options::quantInduction())
+  {
+    if (!options::dtStcInduction.wasSetByUser())
+    {
+      options::dtStcInduction.set(true);
     }
-    if( !options::iteLiftQuant.wasSetByUser() ){
+    if (!options::intWfInduction.wasSetByUser())
+    {
+      options::intWfInduction.set(true);
+    }
+  }
+  if (options::dtStcInduction())
+  {
+    // try to remove ITEs from quantified formulas
+    if (!options::iteDtTesterSplitQuant.wasSetByUser())
+    {
+      options::iteDtTesterSplitQuant.set(true);
+    }
+    if (!options::iteLiftQuant.wasSetByUser())
+    {
       options::iteLiftQuant.set(options::IteLiftQuantMode::ALL);
     }
   }
-  if( options::intWfInduction() ){
-    if( !options::purifyTriggers.wasSetByUser() ){
-      options::purifyTriggers.set( true );
+  if (options::intWfInduction())
+  {
+    if (!options::purifyTriggers.wasSetByUser())
+    {
+      options::purifyTriggers.set(true);
     }
   }
-  if( options::conjectureNoFilter() ){
-    if( !options::conjectureFilterActiveTerms.wasSetByUser() ){
-      options::conjectureFilterActiveTerms.set( false );
+  if (options::conjectureNoFilter())
+  {
+    if (!options::conjectureFilterActiveTerms.wasSetByUser())
+    {
+      options::conjectureFilterActiveTerms.set(false);
     }
-    if( !options::conjectureFilterCanonical.wasSetByUser() ){
-      options::conjectureFilterCanonical.set( false );
+    if (!options::conjectureFilterCanonical.wasSetByUser())
+    {
+      options::conjectureFilterCanonical.set(false);
     }
-    if( !options::conjectureFilterModel.wasSetByUser() ){
-      options::conjectureFilterModel.set( false );
-    }
-  }
-  if( options::conjectureGenPerRound.wasSetByUser() ){
-    if( options::conjectureGenPerRound()>0 ){
-      options::conjectureGen.set( true );
-    }else{
-      options::conjectureGen.set( false );
+    if (!options::conjectureFilterModel.wasSetByUser())
+    {
+      options::conjectureFilterModel.set(false);
     }
   }
-  //can't pre-skolemize nested quantifiers without UF theory
-  if( !logic.isTheoryEnabled(THEORY_UF) && options::preSkolemQuant() ){
-    if( !options::preSkolemQuantNested.wasSetByUser() ){
-      options::preSkolemQuantNested.set( false );
+  if (options::conjectureGenPerRound.wasSetByUser())
+  {
+    if (options::conjectureGenPerRound() > 0)
+    {
+      options::conjectureGen.set(true);
+    }
+    else
+    {
+      options::conjectureGen.set(false);
     }
   }
-  if( !logic.isTheoryEnabled(THEORY_DATATYPES) ){
+  // can't pre-skolemize nested quantifiers without UF theory
+  if (!logic.isTheoryEnabled(THEORY_UF) && options::preSkolemQuant())
+  {
+    if (!options::preSkolemQuantNested.wasSetByUser())
+    {
+      options::preSkolemQuantNested.set(false);
+    }
+  }
+  if (!logic.isTheoryEnabled(THEORY_DATATYPES))
+  {
     options::quantDynamicSplit.set(options::QuantDSplitMode::NONE);
   }
 
-  //until bugs 371,431 are fixed
-  if( ! options::minisatUseElim.wasSetByUser()){
+  // until bugs 371,431 are fixed
+  if (!options::minisatUseElim.wasSetByUser())
+  {
     // cannot use minisat elimination for logics where a theory solver
     // introduces new literals into the search. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
@@ -1057,12 +1170,14 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
         || options::checkModels()
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
-      options::minisatUseElim.set( false );
+      options::minisatUseElim.set(false);
     }
   }
 
   // For now, these array theory optimizations do not support model-building
-  if (options::produceModels() || options::produceAssignments() || options::checkModels()) {
+  if (options::produceModels() || options::produceAssignments()
+      || options::checkModels())
+  {
     options::arraysOptimizeLinear.set(false);
     options::arraysLazyRIntro1.set(false);
   }
@@ -1234,5 +1349,5 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
   }
 }
 
-}
-}
+}  // namespace smt
+}  // namespace CVC4

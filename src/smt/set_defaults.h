@@ -21,21 +21,21 @@
 namespace CVC4 {
 namespace smt {
 
-/** 
+/**
  * The purpose of this method is to set the default options and update the logic
  * info for SMT engine smte.
- * 
+ *
  * The argument logic is a reference to the logic of SmtEngine, which can be
  * updated based on the options.
- * 
+ *
  * Currently, options are associated with the ExprManager. Thus, this
  * call updates the options associated with the current ExprManager.
  * If this designed is updated in the future so that SmtEngine has its own
  * copy of options, this method should be updated accordingly.
  */
 void setDefaults(SmtEngine& smte, LogicInfo& logic);
-  
-}
-}
+
+}  // namespace smt
+}  // namespace CVC4
 
 #endif /* CVC4__SMT__SET_DEFAULTS_H */

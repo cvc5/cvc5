@@ -71,7 +71,6 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "smt/set_defaults.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -87,6 +86,7 @@
 #include "smt/managed_ostreams.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
+#include "smt/set_defaults.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
@@ -927,9 +927,9 @@ void SmtEngine::finishInit()
 
   // set the random seed
   Random::getRandom().setSeed(options::seed());
-  
+
   // ensure that our heuristics are properly set up
-  setDefaults(*this,d_logic);
+  setDefaults(*this, d_logic);
 
   Trace("smt-debug") << "Making decision engine..." << std::endl;
 
