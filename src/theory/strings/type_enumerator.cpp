@@ -120,38 +120,46 @@ void StringEnumLen::mkCurr()
   d_curr = NodeManager::currentNM()->mkConst(String(d_witer->getData()));
 }
 
-SeqEnumLen::SeqEnumLen(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength) :
-SEnumLen(tn, startLength)
+SeqEnumLen::SeqEnumLen(TypeNode tn,
+                       TypeEnumeratorProperties* tep,
+                       uint32_t startLength)
+    : SEnumLen(tn, startLength)
 {
-  d_elementEnumerator.reset(new TypeEnumerator(d_type.getSequenceElementType(), tep));
+  d_elementEnumerator.reset(
+      new TypeEnumerator(d_type.getSequenceElementType(), tep));
   mkCurr();
 }
 
-SeqEnumLen::SeqEnumLen(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength, uint32_t endLength) :
-SEnumLen(tn, startLength, endLength)
+SeqEnumLen::SeqEnumLen(TypeNode tn,
+                       TypeEnumeratorProperties* tep,
+                       uint32_t startLength,
+                       uint32_t endLength)
+    : SEnumLen(tn, startLength, endLength)
 {
-  d_elementEnumerator.reset(new TypeEnumerator(d_type.getSequenceElementType(), tep));
+  d_elementEnumerator.reset(
+      new TypeEnumerator(d_type.getSequenceElementType(), tep));
   mkCurr();
 }
 
-SeqEnumLen::SeqEnumLen(const SeqEnumLen& wenum) :
-SEnumLen(wenum),
-d_elementEnumerator(new TypeEnumerator(*wenum.d_elementEnumerator)),
-d_elementDomain(wenum.d_elementDomain)
+SeqEnumLen::SeqEnumLen(const SeqEnumLen& wenum)
+    : SEnumLen(wenum),
+      d_elementEnumerator(new TypeEnumerator(*wenum.d_elementEnumerator)),
+      d_elementDomain(wenum.d_elementDomain)
 {
-  
 }
 
-bool SeqEnumLen::increment() {
+bool SeqEnumLen::increment()
+{
   if (!d_elementEnumerator->isFinished())
   {
     // yet to establish domain
-    Assert( d_elementEnumerator!=nullptr );
+    Assert(d_elementEnumerator != nullptr);
     d_elementDomain.push_back((**d_elementEnumerator).toExpr());
     ++(*d_elementEnumerator);
   }
   // the current cardinality is the domain size of the element
-  if(!d_witer->increment(d_elementDomain.size())) {
+  if (!d_witer->increment(d_elementDomain.size()))
+  {
     Assert(d_elementEnumerator->isFinished());
     d_curr = Node::null();
     return false;
@@ -164,12 +172,13 @@ void SeqEnumLen::mkCurr()
 {
   std::vector<Expr> seq;
   const std::vector<unsigned>& data = d_witer->getData();
-  for (unsigned i : data )
+  for (unsigned i : data)
   {
     seq.push_back(d_elementDomain[i]);
   }
   // make sequence from seq
-  d_curr = NodeManager::currentNM()->mkConst(ExprSequence(d_type.toType(),seq));
+  d_curr =
+      NodeManager::currentNM()->mkConst(ExprSequence(d_type.toType(), seq));
 }
 
 StringEnumerator::StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
@@ -196,33 +205,27 @@ StringEnumerator& StringEnumerator::operator++()
 
 bool StringEnumerator::isFinished() { return d_wenum.isFinished(); }
 
-SequenceEnumerator::SequenceEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
-    : TypeEnumeratorBase<SequenceEnumerator>(type), d_wenum(type,tep,0)
+SequenceEnumerator::SequenceEnumerator(TypeNode type,
+                                       TypeEnumeratorProperties* tep)
+    : TypeEnumeratorBase<SequenceEnumerator>(type), d_wenum(type, tep, 0)
 {
-  
 }
 
-SequenceEnumerator::SequenceEnumerator(const SequenceEnumerator& enumerator) :
-TypeEnumeratorBase<SequenceEnumerator>(enumerator.getType()), d_wenum(enumerator.d_wenum)
+SequenceEnumerator::SequenceEnumerator(const SequenceEnumerator& enumerator)
+    : TypeEnumeratorBase<SequenceEnumerator>(enumerator.getType()),
+      d_wenum(enumerator.d_wenum)
 {
-  
 }
 
-Node SequenceEnumerator::operator*()
-{
-  return d_wenum.getCurrent();
-}
+Node SequenceEnumerator::operator*() { return d_wenum.getCurrent(); }
 
-SequenceEnumerator& SequenceEnumerator::operator++() 
-{  
+SequenceEnumerator& SequenceEnumerator::operator++()
+{
   d_wenum.increment();
   return *this;
 }
 
-bool SequenceEnumerator::isFinished() 
-{
-  return d_wenum.isFinished();
-}
+bool SequenceEnumerator::isFinished() { return d_wenum.isFinished(); }
 
 }  // namespace strings
 }  // namespace theory

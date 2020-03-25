@@ -132,7 +132,7 @@ class Word
    * Notice that x.overlap(y) = y.roverlap(x)
    */
   static std::size_t roverlap(TNode x, TNode y);
-  
+
   /** Return true if word x is a repetition of the same character */
   static bool isRepeated(TNode x);
 };
