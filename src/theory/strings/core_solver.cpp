@@ -1300,19 +1300,19 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         //
         // E.g. "abc" ++ ... = nc ++ "b" ++ ... ---> nc = "a" ++ k
         size_t cIndex = index;
-        Node constStr = nfc.collectConstantStringAt(cIndex);
-        Assert(!constStr.isNull());
-        CVC4::String stra = constStr.getConst<String>();
-        CVC4::String strb = nextConstStr.getConst<String>();
+        Node stra = nfc.collectConstantStringAt(cIndex);
+        size_t straLen = Word::getLength(stra);
+        Assert(!stra.isNull());
+        Node strb = nextConstStr;
         // Since `nc` is non-empty, we start with character 1
         size_t p;
         if (isRev)
         {
-          CVC4::String stra1 = stra.prefix(stra.size() - 1);
-          p = stra.size() - stra1.roverlap(strb);
+          Node stra1 = Word::prefix(stra, straLen - 1);
+          p = straLen - Word::roverlap(stra1, strb);
           Trace("strings-csp-debug") << "Compute roverlap : " << constStr << " "
                                      << nextConstStr << std::endl;
-          size_t p2 = stra1.rfind(strb);
+          size_t p2 = Word::rfind(stra1, strb);
           p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
           Trace("strings-csp-debug")
               << "roverlap : " << stra1 << " " << strb << " returned " << p
@@ -1320,11 +1320,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         }
         else
         {
-          CVC4::String stra1 = stra.substr(1);
-          p = stra.size() - stra1.overlap(strb);
+          Node stra1 = Word::substr(stra,1);
+          p = straLen - Word::overlap(stra1,strb);
           Trace("strings-csp-debug") << "Compute overlap : " << constStr << " "
                                      << nextConstStr << std::endl;
-          size_t p2 = stra1.find(strb);
+          size_t p2 = Word::find(stra1, strb);
           p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
           Trace("strings-csp-debug")
               << "overlap : " << stra1 << " " << strb << " returned " << p
@@ -1338,9 +1338,9 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         {
           NormalForm::getExplanationForPrefixEq(
               nfc, nfnc, cIndex, ncIndex, info.d_ant);
-          Node prea = p == stra.size() ? constStr
-                                       : nm->mkConst(isRev ? stra.suffix(p)
-                                                           : stra.prefix(p));
+          Node prea = p == straLen ? constStr
+                                       : (isRev ? Word::suffix(stra,p)
+                                                           : Word::prefix(stra,p));
           Node sk = d_skCache.mkSkolemCached(
               nc,
               prea,
@@ -1362,11 +1362,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       // to start with the first character of the constant.
       //
       // E.g. "abc" ++ ... = nc ++ ... ---> nc = "a" ++ k
-      Node constStr = nfcv[index];
-      CVC4::String stra = constStr.getConst<String>();
-      Node firstChar = stra.size() == 1 ? constStr
-                                        : nm->mkConst(isRev ? stra.suffix(1)
-                                                            : stra.prefix(1));
+      Node stra = nfcv[index];
+      size_t straLen = Word::getLength(stra);
+      Node firstChar = straLen == 1 ? constStr
+                                        : (isRev ? Word::suffix(stra, 1)
+                                                            : Word::prefix(stra, 1));
       Node sk = d_skCache.mkSkolemCached(
           nc,
           isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
@@ -1551,7 +1551,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     {
       if (c >= 0)
       {
-        s_zy = nm->mkConst(s_zy.getConst<String>().substr(0, c));
+        s_zy = Word::substr(s_zy,0,c);
         r = d_emptyString;
         vec_r.clear();
         Trace("strings-loop") << "Strings::Loop: Refactor S(Z.Y)= " << s_zy
