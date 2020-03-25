@@ -14,10 +14,6 @@
 
 #include "theory/strings/infer_info.h"
 
-#include <cstring>
-
-using namespace CVC4::kind;
-
 namespace CVC4 {
 namespace theory {
 namespace strings {
