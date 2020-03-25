@@ -59,10 +59,8 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
       Assert(!t.isConst() || !prev.isConst());
       Trace("strings-eager-pconf-debug")
           << "Check conflict constants " << prevC << ", " << c << std::endl;
-      const String& ps = prevC.getConst<String>();
-      const String& cs = c.getConst<String>();
-      unsigned pvs = ps.size();
-      unsigned cvs = cs.size();
+      size_t pvs = Word::getLength(prevC);
+      size_t cvs = Word::getLength(c);
       if (pvs == cvs || (pvs > cvs && t.isConst())
           || (cvs > pvs && prev.isConst()))
       {
@@ -73,15 +71,15 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
       }
       else
       {
-        const String& larges = pvs > cvs ? ps : cs;
-        const String& smalls = pvs > cvs ? cs : ps;
+        Node larges = pvs > cvs ? prevC : c;
+        Node smalls = pvs > cvs ? c : prevC;
         if (isSuf)
         {
-          conflict = !larges.hasSuffix(smalls);
+          conflict = !Word::hasSuffix(larges, smalls);
         }
         else
         {
-          conflict = !larges.hasPrefix(smalls);
+          conflict = !Word::hasPrefix(larges, smalls);
         }
       }
       if (!conflict && (pvs > cvs || prev.isConst()))

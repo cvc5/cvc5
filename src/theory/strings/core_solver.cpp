@@ -1944,7 +1944,7 @@ int CoreSolver::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >&
           size_t lenI = Word::getLength(i);
           size_t lenJ = Word::getLength(j);
           unsigned int len_short = lenI < lenJ ? lenI : lenJ;
-          bool isSameFix = isRev ? i.getConst<String>().rstrncmp(j.getConst<String>(), len_short): i.getConst<String>().strncmp(j.getConst<String>(), len_short);
+          bool isSameFix = isRev ? Word::rstrncmp(i,j, len_short): Word::strncmp(i,j, len_short);
           if( isSameFix ) {
             //same prefix/suffix
             //k is the index of the string that is shorter
