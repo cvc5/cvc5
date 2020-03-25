@@ -71,7 +71,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::strings", true),
       d_state(c, d_equalityEngine, d_valuation),
-      d_im(*this, c, u, d_state, d_sk_cache, out),
+      d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
       d_functionsTerms(c),
@@ -700,7 +700,8 @@ void TheoryStrings::check(Effort e) {
         Trace("strings-eqc") << (t==0 ? "STRINGS:" : "OTHER:") << std::endl;
         while( !eqcs2_i.isFinished() ){
           Node eqc = (*eqcs2_i);
-          bool print = (t==0 && eqc.getType().isString() ) || (t==1 && !eqc.getType().isString() );
+          bool print = (t == 0 && eqc.getType().isStringLike())
+                       || (t == 1 && !eqc.getType().isStringLike());
           if (print) {
             eq::EqClassIterator eqc2_i = eq::EqClassIterator( eqc, &d_equalityEngine );
             Trace("strings-eqc") << "Eqc( " << eqc << " ) : { ";
@@ -907,7 +908,9 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   if( atom.getKind()==kind::EQUAL ){
     Trace("strings-pending-debug") << "  Register term" << std::endl;
     for( unsigned j=0; j<2; j++ ) {
-      if( !d_equalityEngine.hasTerm( atom[j] ) && atom[j].getType().isString() ) {
+      if (!d_equalityEngine.hasTerm(atom[j])
+          && atom[j].getType().isStringLike())
+      {
         registerTerm( atom[j], 0 );
       }
     }
@@ -1047,7 +1050,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
 {
   TypeNode tn = n.getType();
   bool do_register = true;
-  if (!tn.isString())
+  if (!tn.isStringLike())
   {
     if (options::stringEagerLen())
     {
@@ -1070,7 +1073,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
   NodeManager* nm = NodeManager::currentNM();
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
-  if (tn.isString())
+  if (tn.isStringLike())
   {
     // register length information:
     //  for variables, split on empty vs positive length
@@ -1153,26 +1156,6 @@ Node TheoryStrings::ppRewrite(TNode atom) {
     }
   }
   return atom;
-}
-
-// Stats
-TheoryStrings::Statistics::Statistics()
-    : d_splits("theory::strings::NumOfSplitOnDemands", 0),
-      d_eq_splits("theory::strings::NumOfEqSplits", 0),
-      d_deq_splits("theory::strings::NumOfDiseqSplits", 0),
-      d_loop_lemmas("theory::strings::NumOfLoops", 0)
-{
-  smtStatisticsRegistry()->registerStat(&d_splits);
-  smtStatisticsRegistry()->registerStat(&d_eq_splits);
-  smtStatisticsRegistry()->registerStat(&d_deq_splits);
-  smtStatisticsRegistry()->registerStat(&d_loop_lemmas);
-}
-
-TheoryStrings::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_eq_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_deq_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_loop_lemmas);
 }
 
 /** run the given inference step */
