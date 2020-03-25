@@ -1603,7 +1603,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   if (s_zy == t_yz && r == d_emptyString && s_zy.isConst()
       && s_zy.getConst<String>().isRepeated())
   {
-    Node rep_c = nm->mkConst(s_zy.getConst<String>().substr(0, 1));
+    Node rep_c = Word::substr(s_zy, 0, 1);
     Trace("strings-loop") << "Special case (X)=" << vecoi[index] << " "
                           << std::endl;
     Trace("strings-loop") << "... (C)=" << rep_c << " " << std::endl;
