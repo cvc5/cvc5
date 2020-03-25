@@ -253,7 +253,6 @@ class NonlinearExtension {
   static Node mkLit(Node a, Node b, int status, bool isAbsolute = false);
   static Node mkAbs(Node a);
   static Node mkValidPhase(Node a, Node pi);
-  static Node mkBounded( Node l, Node a, Node u );
   Node mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) const;
   //---------------------------------------end term utilities
 

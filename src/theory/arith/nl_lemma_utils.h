@@ -22,6 +22,8 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+  
+class NlModel;
 
 /**
  * A side effect of adding a lemma in the non-linear solver. This is used
@@ -44,6 +46,41 @@ struct NlLemmaSideEffect
    * Cimatti et al., CADE 2017.
    */
   std::vector<std::tuple<Node, unsigned, Node> > d_secantPoint;
+};
+
+struct SortNlModel
+{
+  SortNlModel()
+      : d_nlm(nullptr),
+        d_isConcrete(true),
+        d_isAbsolute(false),
+        d_reverse_order(false)
+  {
+  }
+  /** pointer to the model */
+  NlModel* d_nlm;
+  /** are we comparing concrete model values? */
+  bool d_isConcrete;
+  /** are we comparing absolute values? */
+  bool d_isAbsolute;
+  /** are we in reverse order? */
+  bool d_reverse_order;
+  /** the comparison */
+  bool operator()(Node i, Node j);
+};
+
+struct SortNonlinearDegree
+{
+  SortNonlinearDegree(std::map<Node, unsigned>& m) : d_mdegree(m) {}
+  /** pointer to the non-linear extension */
+  std::map<Node, unsigned>& d_mdegree;
+  /** Get the degree of n in d_mdegree */
+  unsigned getDegree(Node n) const;
+  /**
+   * Sorts by degree of the monomials, where lower degree monomials come
+   * first.
+   */
+  bool operator()(Node i, Node j);
 };
 
 }  // namespace arith

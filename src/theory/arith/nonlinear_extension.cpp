@@ -113,49 +113,6 @@ void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs) {
   Trace(c) << t << " " << type << " " << rhs;
 }
 
-struct SortNlModel
-{
-  SortNlModel()
-      : d_nlm(nullptr),
-        d_isConcrete(true),
-        d_isAbsolute(false),
-        d_reverse_order(false)
-  {
-  }
-  /** pointer to the model */
-  NlModel* d_nlm;
-  /** are we comparing concrete model values? */
-  bool d_isConcrete;
-  /** are we comparing absolute values? */
-  bool d_isAbsolute;
-  /** are we in reverse order? */
-  bool d_reverse_order;
-  /** the comparison */
-  bool operator()(Node i, Node j) {
-    int cv = d_nlm->compare(i, j, d_isConcrete, d_isAbsolute);
-    if (cv == 0) {
-      return i < j;
-    }
-    return d_reverse_order ? cv < 0 : cv > 0;
-  }
-};
-struct SortNonlinearDegree
-{
-  SortNonlinearDegree(NodeMultiset& m) : d_mdegree(m) {}
-  /** pointer to the non-linear extension */
-  NodeMultiset& d_mdegree;
-  /**
-   * Sorts by degree of the monomials, where lower degree monomials come
-   * first.
-   */
-  bool operator()(Node i, Node j)
-  {
-    unsigned i_count = getCount(d_mdegree, i);
-    unsigned j_count = getCount(d_mdegree, j);
-    return i_count == j_count ? (i < j) : (i_count < j_count ? true : false);
-  }
-};
-
 bool hasNewMonomials(Node n, const std::vector<Node>& existing) {
   std::set<Node> visited;
 
@@ -507,13 +464,6 @@ Node NonlinearExtension::mkAbs(Node a) {
 Node NonlinearExtension::mkValidPhase(Node a, Node pi) {
   return mkBounded(
       NodeManager::currentNM()->mkNode(MULT, mkRationalNode(-1), pi), a, pi);
-}
-
-Node NonlinearExtension::mkBounded( Node l, Node a, Node u ) {
-  return NodeManager::currentNM()->mkNode(
-      AND,
-      NodeManager::currentNM()->mkNode(GEQ, a, l),
-      NodeManager::currentNM()->mkNode(LEQ, a, u));
 }
 
 Node NonlinearExtension::mkMonomialRemFactor(
