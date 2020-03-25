@@ -203,6 +203,8 @@ class CVC4_PUBLIC SmtEngine
    * --sygus-abduct.
    */
   void setIsInternalSubsolver();
+  /** Is this an internal subsolver? */
+  bool isInternalSubsolver() const;
 
   /** set the input name */
   void setFilename(std::string filename);

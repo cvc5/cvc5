@@ -14,6 +14,7 @@
 
 #include "smt/set_defaults.h"
 
+#include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
 #include "options/booleans_options.h"
@@ -34,6 +35,10 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "util/random.h"
+#include "base/output.h"
+
+using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace smt {
@@ -67,7 +72,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
             "functions. Try --bitblast=lazy"));
       }
       Notice() << "SmtEngine: setting bit-blast mode to lazy to support model"
-               << "generation" << endl;
+               << "generation" << std::endl;
       smte.setOption("bitblastMode", SExpr("lazy"));
     }
     else if (!options::incrementalSolving())
@@ -112,7 +117,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
           "Ackermannization currently does not support model generation."));
     }
     Notice() << "SmtEngine: turn off ackermannization to support model"
-             << "generation" << endl;
+             << "generation" << std::endl;
     options::ackermann.set(false);
   }
 
@@ -181,7 +186,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
   }
 
   // sygus inference may require datatypes
-  if (!d_isInternalSubsolver)
+  if (!smte.isInternalSubsolver())
   {
     if (options::produceAbducts() || options::sygusInference()
         || options::sygusRewSynthInput())
@@ -213,7 +218,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
-             << "option requiring assertions." << endl;
+             << "option requiring assertions." << std::endl;
     smte.setOption("produce-assertions", SExpr("true"));
   }
 
@@ -232,7 +237,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
       Notice() << "SmtEngine: turning off unconstrained simplification to "
                   "support unsat cores/proofs/incremental solving"
-               << endl;
+               << std::endl;
       options::unconstrainedSimp.set(false);
     }
   }
@@ -247,7 +252,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
                      && (logic.isTheoryEnabled(THEORY_ARRAYS)
                          && logic.isTheoryEnabled(THEORY_BV));
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
-                   << endl;
+                   << std::endl;
       options::unconstrainedSimp.set(uncSimp);
     }
   }
@@ -281,7 +286,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
       Notice() << "SmtEngine: turning off simplification to support unsat "
                   "cores/proofs"
-               << endl;
+               << std::endl;
       options::simplificationMode.set(options::SimplificationMode::NONE);
     }
 
@@ -294,7 +299,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
       Notice() << "SmtEngine: turning off pseudoboolean rewrites to support "
                   "unsat cores/proofs"
-               << endl;
+               << std::endl;
       smte.setOption("pb-rewrites", false);
     }
 
@@ -307,7 +312,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
       Notice() << "SmtEngine: turning off sort inference to support unsat "
                   "cores/proofs"
-               << endl;
+               << std::endl;
       options::sortInference.set(false);
     }
 
@@ -320,7 +325,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
       Notice() << "SmtEngine: turning off pre-skolemization to support unsat "
                   "cores/proofs"
-               << endl;
+               << std::endl;
       options::preSkolemQuant.set(false);
     }
 
@@ -344,7 +349,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
       Notice() << "SmtEngine: turning off bitvector-to-bool to support unsat "
                   "cores/proofs"
-               << endl;
+               << std::endl;
       options::bitvectorToBool.set(false);
     }
 
@@ -357,7 +362,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
       Notice() << "SmtEngine: turning off bool-to-bv to support unsat "
                   "cores/proofs"
-               << endl;
+               << std::endl;
       smte.setOption("boolToBitvector", SExpr("off"));
     }
 
@@ -370,7 +375,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
       Notice() << "SmtEngine: turning off bv-intro-pow2 to support "
                   "unsat-cores/proofs"
-               << endl;
+               << std::endl;
       smte.setOption("bv-intro-pow2", false);
     }
 
@@ -383,7 +388,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
       Notice() << "SmtEngine: turning off repeat-simp to support unsat "
                   "cores/proofs"
-               << endl;
+               << std::endl;
       smte.setOption("repeat-simp", false);
     }
 
@@ -396,7 +401,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       }
       Notice() << "SmtEngine: turning off global-negate to support unsat "
                   "cores/proofs"
-               << endl;
+               << std::endl;
       smte.setOption("global-negate", false);
     }
 
@@ -413,7 +418,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
     {
       bool qf_sat = logic.isPure(THEORY_BOOL) && !logic.isQuantified();
       Trace("smt") << "setting simplification mode to <"
-                   << logic.getLogicString() << "> " << (!qf_sat) << endl;
+                   << logic.getLogicString() << "> " << (!qf_sat) << std::endl;
       // simplification=none works better for SMT LIB benchmarks with
       // quantifiers, not others options::simplificationMode.set(qf_sat ||
       // quantifiers ? options::SimplificationMode::NONE :
@@ -435,7 +440,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
             "logics");
       }
       Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
-               << endl;
+               << std::endl;
       smte.setOption("boolToBitvector", SExpr("off"));
     }
   }
@@ -445,7 +450,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       && (options::produceAssignments() || options::sygusRewSynthCheck()
           || is_sygus))
   {
-    Notice() << "SmtEngine: turning on produce-models" << endl;
+    Notice() << "SmtEngine: turning on produce-models" << std::endl;
     smte.setOption("produce-models", SExpr("true"));
   }
 
@@ -455,7 +460,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
        !logic.isTheoryEnabled(THEORY_BV) &&
        !logic.isTheoryEnabled(THEORY_STRINGS) &&
        !logic.isTheoryEnabled(THEORY_SETS) ) {
-      Trace("smt") << "setting theoryof-mode to term-based" << endl;
+      Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
       options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
     }
   }
@@ -465,11 +470,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
     LogicInfo log(logic.getUnlockedCopy());
     // Strings requires arith for length constraints, and also UF
     if(!logic.isTheoryEnabled(THEORY_UF)) {
-      Trace("smt") << "because strings are enabled, also enabling UF" << endl;
+      Trace("smt") << "because strings are enabled, also enabling UF" << std::endl;
       log.enableTheory(THEORY_UF);
     }
     if(!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic() || !logic.areIntegersUsed()) {
-      Trace("smt") << "because strings are enabled, also enabling linear integer arithmetic" << endl;
+      Trace("smt") << "because strings are enabled, also enabling linear integer arithmetic" << std::endl;
       log.enableTheory(THEORY_ARITH);
       log.enableIntegers();
       log.arithOnlyLinear();
@@ -480,7 +485,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
   if(logic.isTheoryEnabled(THEORY_ARRAYS) || logic.isTheoryEnabled(THEORY_DATATYPES) || logic.isTheoryEnabled(THEORY_SETS)) {
     if(!logic.isTheoryEnabled(THEORY_UF)) {
       LogicInfo log(logic.getUnlockedCopy());
-      Trace("smt") << "because a theory that permits Boolean terms is enabled, also enabling UF" << endl;
+      Trace("smt") << "because a theory that permits Boolean terms is enabled, also enabling UF" << std::endl;
       log.enableTheory(THEORY_UF);
       logic = log;
       logic.lock();
@@ -492,7 +497,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !options::incrementalSolving() && !options::proof()
                        && !options::unsatCores();
-    Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc << endl;
+    Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc << std::endl;
     options::ufSymmetryBreaker.set(qf_uf_noinc);
   }
 
@@ -511,7 +516,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       logic.isTheoryEnabled(THEORY_BV);
 
     bool withCare = qf_aufbv;
-    Trace("smt") << "setting ite simplify with care to " << withCare << endl;
+    Trace("smt") << "setting ite simplify with care to " << withCare << std::endl;
     options::simplifyWithCareEnabled.set(withCare);
   }
   // Turn off array eager index splitting for QF_AUFLIA
@@ -520,7 +525,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
         logic.isTheoryEnabled(THEORY_ARRAYS) &&
         logic.isTheoryEnabled(THEORY_UF) &&
         logic.isTheoryEnabled(THEORY_ARITH)) {
-      Trace("smt") << "setting array eager index splitting to false" << endl;
+      Trace("smt") << "setting array eager index splitting to false" << std::endl;
       options::arraysEagerIndexSplitting.set(false);
     }
   }
@@ -531,7 +536,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
                       logic.isTheoryEnabled(THEORY_UF) &&
                       logic.isTheoryEnabled(THEORY_BV)) &&
                       !options::unsatCores();
-    Trace("smt") << "setting repeat simplification to " << repeatSimp << endl;
+    Trace("smt") << "setting repeat simplification to " << repeatSimp << std::endl;
     options::repeatSimp.set(repeatSimp);
   }
 
@@ -551,14 +556,14 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
   if (! options::bvEagerExplanations.wasSetByUser() &&
       logic.isTheoryEnabled(THEORY_ARRAYS) &&
       logic.isTheoryEnabled(THEORY_BV)) {
-    Trace("smt") << "enabling eager bit-vector explanations " << endl;
+    Trace("smt") << "enabling eager bit-vector explanations " << std::endl;
     options::bvEagerExplanations.set(true);
   }
 
   // Turn on arith rewrite equalities only for pure arithmetic
   if(! options::arithRewriteEq.wasSetByUser()) {
     bool arithRewriteEq = logic.isPure(THEORY_ARITH) && logic.isLinear() && !logic.isQuantified();
-    Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq << endl;
+    Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq << std::endl;
     options::arithRewriteEq.set(arithRewriteEq);
   }
   if(!  options::arithHeuristicPivots.wasSetByUser()) {
@@ -570,7 +575,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
         heuristicPivots = 0;
       }
     }
-    Trace("smt") << "setting arithHeuristicPivots  " << heuristicPivots << endl;
+    Trace("smt") << "setting arithHeuristicPivots  " << heuristicPivots << std::endl;
     options::arithHeuristicPivots.set(heuristicPivots);
   }
   if(! options::arithPivotThreshold.wasSetByUser()){
@@ -580,7 +585,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
         pivotThreshold = 16;
       }
     }
-    Trace("smt") << "setting arith arithPivotThreshold  " << pivotThreshold << endl;
+    Trace("smt") << "setting arith arithPivotThreshold  " << pivotThreshold << std::endl;
     options::arithPivotThreshold.set(pivotThreshold);
   }
   if(! options::arithStandardCheckVarOrderPivots.wasSetByUser()){
@@ -588,18 +593,14 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
     if(logic.isPure(THEORY_ARITH) && !logic.isQuantified()){
       varOrderPivots = 200;
     }
-    Trace("smt") << "setting arithStandardCheckVarOrderPivots  " << varOrderPivots << endl;
+    Trace("smt") << "setting arithStandardCheckVarOrderPivots  " << varOrderPivots << std::endl;
     options::arithStandardCheckVarOrderPivots.set(varOrderPivots);
-  }
-  // Turn off early theory preprocessing if arithRewriteEq is on
-  if (options::arithRewriteEq()) {
-    d_earlyTheoryPP = false;
   }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {
     if (!options::nlExtTangentPlanesInterleave.wasSetByUser())
     {
-      Trace("smt") << "setting nlExtTangentPlanesInterleave to true" << endl;
+      Trace("smt") << "setting nlExtTangentPlanesInterleave to true" << std::endl;
       options::nlExtTangentPlanesInterleave.set(true);
     }
   }
@@ -657,7 +658,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
         ? true : false
       );
 
-    Trace("smt") << "setting decision mode to " << decMode << endl;
+    Trace("smt") << "setting decision mode to " << decMode << std::endl;
     options::decisionMode.set(decMode);
     options::decisionStopOnly.set(stoponly);
   }
@@ -681,7 +682,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
   }
 
   if( options::instMaxLevel()!=-1 ){
-    Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
+    Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << std::endl;
     options::cbqi.set(false);
   }
   // Do we need to track instantiations?
@@ -1078,7 +1079,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
       Warning()
           << "SmtEngine: turning off incremental solving mode (not yet "
              "supported with --proof, try --tear-down-incremental instead)"
-          << endl;
+          << std::endl;
       smte.setOption("incremental", SExpr("false"));
     }
     if (logic > LogicInfo("QF_AUFBVLRA"))
@@ -1132,7 +1133,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
     }
     Trace("smt")
         << "disabling bvLazyRewriteExtf since equality solver is disabled"
-        << endl;
+        << std::endl;
     options::bvLazyRewriteExtf.set(false);
   }
 
@@ -1158,7 +1159,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
   {
     Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
                     "--strings-fmf enabled"
-                 << endl;
+                 << std::endl;
     options::stringProcessLoopMode.set(options::ProcessLoopMode::SIMPLE);
   }
 
@@ -1202,7 +1203,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
         throw OptionException(ss.str());
       }
       Notice() << "SmtEngine: turning off produce-models to support "
-               << sOptNoModel << endl;
+               << sOptNoModel << std::endl;
       smte.setOption("produce-models", SExpr("false"));
     }
     if (options::produceAssignments())
@@ -1215,7 +1216,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
         throw OptionException(ss.str());
       }
       Notice() << "SmtEngine: turning off produce-assignments to support "
-               << sOptNoModel << endl;
+               << sOptNoModel << std::endl;
       smte.setOption("produce-assignments", SExpr("false"));
     }
     if (options::checkModels())
@@ -1228,7 +1229,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic) {
         throw OptionException(ss.str());
       }
       Notice() << "SmtEngine: turning off check-models to support "
-               << sOptNoModel << endl;
+               << sOptNoModel << std::endl;
       smte.setOption("check-models", SExpr("false"));
     }
   }

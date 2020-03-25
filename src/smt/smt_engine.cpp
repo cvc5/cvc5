@@ -869,7 +869,6 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_fullyInited(false),
       d_queryMade(false),
       d_needPostsolve(false),
-      d_earlyTheoryPP(true),
       d_globalNegation(false),
       d_status(),
       d_expectedStatus(),
@@ -1711,10 +1710,6 @@ void SmtEngine::setDefaults() {
     }
     Trace("smt") << "setting arithStandardCheckVarOrderPivots  " << varOrderPivots << endl;
     options::arithStandardCheckVarOrderPivots.set(varOrderPivots);
-  }
-  // Turn off early theory preprocessing if arithRewriteEq is on
-  if (options::arithRewriteEq()) {
-    d_earlyTheoryPP = false;
   }
   if (d_logic.isPure(THEORY_ARITH) && !d_logic.areRealsUsed())
   {
@@ -2966,7 +2961,8 @@ bool SmtEnginePrivate::simplifyAssertions()
     d_smt.d_theoryEngine->staticInitializeBVOptions(d_assertions.ref());
 
     // Theory preprocessing
-    if (d_smt.d_earlyTheoryPP)
+    bool doEarlyTheoryPp = !options::arithRewriteEq();
+    if (doEarlyTheoryPp)
     {
       d_passes["theory-preprocess"]->apply(&d_assertions);
     }
@@ -5684,6 +5680,9 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 }
 
 void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
+
+bool SmtEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
+
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 {
   NodeManagerScope nms(d_nodeManager);
