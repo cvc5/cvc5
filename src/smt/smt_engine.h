@@ -941,12 +941,6 @@ class CVC4_PUBLIC SmtEngine
   void finalOptionsAreSet();
 
   /**
-   * Apply heuristics settings and other defaults.  Done once, at
-   * finishInit() time.
-   */
-  void setDefaults();
-
-  /**
    * Sets that the problem has been extended. This sets the smt mode of the
    * solver to SMT_MODE_ASSERT, and clears the list of assumptions from the
    * previous call to checkSatisfiability.

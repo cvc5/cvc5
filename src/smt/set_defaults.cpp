@@ -35,8 +35,8 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "util/random.h"
 #include "base/output.h"
+#include "theory/theory.h"
 
 using namespace CVC4::theory;
 
@@ -44,7 +44,6 @@ namespace CVC4 {
 namespace smt {
 
 void setDefaults(SmtEngine& smte, LogicInfo& logic) {
-  Random::getRandom().setSeed(options::seed());
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
