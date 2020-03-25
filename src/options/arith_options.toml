@@ -557,6 +557,6 @@ header = "options/arith_options.h"
   category   = "regular"
   long       = "arith-brab"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   read_only  = true
   help       = "whether to use simple rounding, similar to a unit-cube test, for integers"
