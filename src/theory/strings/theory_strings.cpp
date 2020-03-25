@@ -891,7 +891,7 @@ void TheoryStrings::computeCareGraph(){
       }
     }
     if( has_trigger_arg ){
-      TypeNode ft = f1.getType();
+      TypeNode ft = utils::getOwnerStringType(f1);
       std::pair<TypeNode, Node> ikey = std::pair<TypeNode, Node>(ft, op);
       index[ikey].addTerm(f1, reps);
       arity[op] = reps.size();
