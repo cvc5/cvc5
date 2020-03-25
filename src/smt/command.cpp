@@ -2130,6 +2130,70 @@ std::string GetSynthSolutionCommand::getCommandName() const
   return "get-instantiations";
 }
 
+GetInterpolCommand::GetInterpolCommand() {}
+GetInterpolCommand::GetInterpolCommand(const std::string& name, Expr conj)
+    : d_name(name), d_conj(conj), d_resultStatus(false)
+{
+}
+
+Expr GetInterpolCommand::getConjecture() const { return d_conj; }
+Expr GetInterpolCommand::getResult() const { return d_result; }
+
+void GetInterpolCommand::invoke(SmtEngine* smtEngine)
+{
+	try
+	{
+		d_resultStatus = smtEngine->getInterpol(d_conj, d_result);
+		d_commandStatus = CommandSuccess::instance();
+	}
+	catch (exception& e)
+	{
+		d_commandStatus = new CommandFailure(e.what());
+	}
+}
+
+void GetInterpolCommand::printResult(std::ostream& out, uint32_t verbosity) const
+{
+  if (!ok()) // TODO why??
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    expr::ExprDag::Scope scope(out, false);
+    if (d_resultStatus)
+    {
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+          << std::endl;
+	  // TODO also output as func?
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
+Command* GetInterpolCommand::exportTo(ExprManager* exprManager,
+                                    ExprManagerMapCollection& variableMap)
+{
+  GetInterpolCommand* c =
+      new GetInterpolCommand(d_name, d_conj.exportTo(exprManager, variableMap));
+  c->d_result = d_result.exportTo(exprManager, variableMap);
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+Command* GetInterpolCommand::clone() const
+{
+  GetInterpolCommand* c = new GetInterpolCommand(d_name, d_conj);
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+std::string GetInterpolCommand::getCommandName() const { return "get-interpol"; }
+
 GetAbductCommand::GetAbductCommand() {}
 GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj)
     : d_name(name), d_conj(conj), d_resultStatus(false)
