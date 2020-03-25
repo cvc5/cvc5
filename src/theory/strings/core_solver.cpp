@@ -1310,8 +1310,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         {
           Node stra1 = Word::prefix(stra, straLen - 1);
           p = straLen - Word::roverlap(stra1, strb);
-          Trace("strings-csp-debug") << "Compute roverlap : " << constStr << " "
-                                     << nextConstStr << std::endl;
+          Trace("strings-csp-debug") << "Compute roverlap : " << stra1 << " "
+                                     << strb << std::endl;
           size_t p2 = Word::rfind(stra1, strb);
           p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
           Trace("strings-csp-debug")
@@ -1322,8 +1322,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         {
           Node stra1 = Word::substr(stra,1);
           p = straLen - Word::overlap(stra1,strb);
-          Trace("strings-csp-debug") << "Compute overlap : " << constStr << " "
-                                     << nextConstStr << std::endl;
+          Trace("strings-csp-debug") << "Compute overlap : " << stra1 << " "
+                                     << strb << std::endl;
           size_t p2 = Word::find(stra1, strb);
           p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
           Trace("strings-csp-debug")
@@ -1338,7 +1338,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         {
           NormalForm::getExplanationForPrefixEq(
               nfc, nfnc, cIndex, ncIndex, info.d_ant);
-          Node prea = p == straLen ? constStr
+          Node prea = p == straLen ? stra
                                        : (isRev ? Word::suffix(stra,p)
                                                            : Word::prefix(stra,p));
           Node sk = d_skCache.mkSkolemCached(
@@ -1364,7 +1364,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       // E.g. "abc" ++ ... = nc ++ ... ---> nc = "a" ++ k
       Node stra = nfcv[index];
       size_t straLen = Word::getLength(stra);
-      Node firstChar = straLen == 1 ? constStr
+      Node firstChar = straLen == 1 ? stra
                                         : (isRev ? Word::suffix(stra, 1)
                                                             : Word::prefix(stra, 1));
       Node sk = d_skCache.mkSkolemCached(
@@ -1372,7 +1372,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
           "c_spt");
       Trace("strings-csp") << "Const Split: " << firstChar
-                           << " is removed from " << constStr << " (serial) "
+                           << " is removed from " << stra << " (serial) "
                            << std::endl;
       NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, info.d_ant);
       info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)

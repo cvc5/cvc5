@@ -15,6 +15,7 @@
 #include "theory/strings/eqc_info.h"
 
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::context;
