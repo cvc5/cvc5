@@ -26,12 +26,13 @@ namespace smt {
  * info for SMT engine smte.
  *
  * The argument logic is a reference to the logic of SmtEngine, which can be
- * updated based on the options.
+ * updated by this method based on the current options and the logic itself.
  *
- * Currently, options are associated with the ExprManager. Thus, this
+ * Note that currently, options are associated with the ExprManager. Thus, this
  * call updates the options associated with the current ExprManager.
  * If this designed is updated in the future so that SmtEngine has its own
- * copy of options, this method should be updated accordingly.
+ * copy of options, this method should be updated accordingly so that it
+ * is responsible for updating this copy.
  */
 void setDefaults(SmtEngine& smte, LogicInfo& logic);
 
