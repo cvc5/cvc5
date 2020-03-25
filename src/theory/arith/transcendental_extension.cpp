@@ -51,18 +51,14 @@ void TranscendentalExtension::initLastCall(
     const std::vector<Node>& false_asserts,
     const std::vector<Node>& xts,
     std::vector<Node>& lems,
-    std::vector<Node>& lemsPp,
-    std::vector<Node>& wlems,
-    std::map<Node, NlLemmaSideEffect>& lemSE)
+    std::vector<Node>& lemsPp)
 {
   d_funcCongClass.clear();
   d_funcMap.clear();
   d_tf_region.clear();
 
-  std::vector<Node> lemmas;
   NodeManager* nm = NodeManager::currentNM();
 
-  Trace("nl-ext-mv") << "Extended terms : " << std::endl;
   // register the extended function terms
   std::vector<Node> trNeedsMaster;
   bool needPi = false;
@@ -71,9 +67,6 @@ void TranscendentalExtension::initLastCall(
   for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
   {
     Node a = xts[i];
-    d_model.computeConcreteModelValue(a);
-    d_model.computeAbstractModelValue(a);
-    d_model.printModelValue("nl-ext-mv", a);
     Kind ak = a.getKind();
     bool consider = true;
     // if is an unpurified application of SINE, or it is a transcendental
@@ -144,7 +137,7 @@ void TranscendentalExtension::initLastCall(
             }
             Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
             Node cong_lemma = nm->mkNode(OR, expn.negate(), a.eqNode(aa));
-            lemmas.push_back(cong_lemma);
+            lems.push_back(cong_lemma);
           }
         }
         else
@@ -172,19 +165,13 @@ void TranscendentalExtension::initLastCall(
   if (needPi && d_pi.isNull())
   {
     mkPi();
-    getCurrentPiBounds(lemmas);
+    getCurrentPiBounds(lems);
   }
 
-  // FIXME
-  /*
-  filterLemmas(lemmas, lems);
   if (!lems.empty())
   {
-    Trace("nl-ext") << "  ...finished with " << lems.size()
-                    << " new lemmas during registration." << std::endl;
-    return lems.size();
+    return;
   }
-  */
 
   // process SINE phase shifting
   for (const Node& a : trNeedsMaster)
@@ -231,6 +218,119 @@ void TranscendentalExtension::initLastCall(
     Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                           << std::endl;
     lemsPp.push_back(lem);
+  }
+  
+  if (Trace.isOn("nl-ext-mv"))
+  {
+    Trace("nl-ext-mv") << "Arguments of trancendental functions : "
+                       << std::endl;
+    for (std::pair<const Kind, std::vector<Node> >& tfl : d_funcMap)
+    {
+      Kind k = tfl.first;
+      if (k == SINE || k == EXPONENTIAL)
+      {
+        for (const Node& tf : tfl.second)
+        {
+          Node v = tf[0];
+          d_model.computeConcreteModelValue(v);
+          d_model.computeAbstractModelValue(v);
+          d_model.printModelValue("nl-ext-mv", v);
+        }
+      }
+    }
+  }
+  
+}
+
+void TranscendentalExtension::getModelSubsitution(std::vector<Node>& vars,
+std::vector<Node>& subs) const
+{
+  for (const std::pair<const Node, Node>& tb : d_trMaster)
+  {
+    vars.push_back(tb.first);
+    subs.push_back(tb.second);
+  }
+}
+
+void TranscendentalExtension::incrementTaylorDegree()
+{
+  d_taylor_degree++;
+}
+unsigned TranscendentalExtension::getTaylorDegree() const
+{
+  return d_taylor_degree;
+}
+
+bool TranscendentalExtension::addCurrentBoundsToModel()
+{
+  // get model bounds for all transcendental functions
+  Trace("nl-ext-cm") << "----- Get bounds for transcendental functions..."
+                     << std::endl;
+  for (std::pair<const Kind, std::vector<Node> >& tfs : d_funcMap)
+  {
+    Kind k = tfs.first;
+    for (const Node& tf : tfs.second)
+    {
+      Trace("nl-ext-cm") << "- Term: " << tf << std::endl;
+      bool success = true;
+      // tf is Figure 3 : tf( x )
+      Node bl;
+      Node bu;
+      if (k == PI)
+      {
+        bl = d_pi_bound[0];
+        bu = d_pi_bound[1];
+      }
+      else
+      {
+        std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
+        bl = bounds.first;
+        bu = bounds.second;
+        if (bl != bu)
+        {
+          d_model.setUsedApproximate();
+        }
+      }
+      if (!bl.isNull() && !bu.isNull())
+      {
+        // for each function in the congruence classe
+        for (const Node& ctf : d_funcCongClass[tf])
+        {
+          // each term in congruence classes should be master terms
+          Assert(d_trSlaves.find(ctf) != d_trSlaves.end());
+          // we set the bounds for each slave of tf
+          for (const Node& stf : d_trSlaves[ctf])
+          {
+            Trace("nl-ext-cm") << "...bound for " << stf << " : [" << bl << ", "
+                               << bu << "]" << std::endl;
+            success = d_model.addCheckModelBound(stf, bl, bu);
+          }
+        }
+      }
+      else
+      {
+        Trace("nl-ext-cm") << "...no bound for " << tf << std::endl;
+      }
+      if (!success)
+      {
+        // a bound was conflicting
+        Trace("nl-ext-cm") << "...failed to set bound for " << tf << std::endl;
+        Trace("nl-ext-cm") << "-----" << std::endl;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+void TranscendentalExtension::processSideEffect(const NlLemmaSideEffect& se)
+{
+  for (const std::tuple<Node, unsigned, Node>& sp : se.d_secantPoint)
+  {
+    Node tf = std::get<0>(sp);
+    unsigned d = std::get<1>(sp);
+    Node c = std::get<2>(sp);
+    d_secant_points[tf][d].push_back(c);
   }
 }
 

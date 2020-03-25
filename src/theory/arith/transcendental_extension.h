@@ -52,9 +52,16 @@ class TranscendentalExtension
                     const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts,
                     std::vector<Node>& lems,
-                    std::vector<Node>& lemsPp,
-                    std::vector<Node>& wlems,
-                    std::map<Node, NlLemmaSideEffect>& lemSE);
+                    std::vector<Node>& lemsPp);
+  /** increment taylor degree */
+  void incrementTaylorDegree();
+  /** get taylor degree */
+  unsigned getTaylorDegree() const;
+  void getModelSubsitution(std::vector<Node>& vars,
+  std::vector<Node>& subs) const;
+  bool addCurrentBoundsToModel();
+  /** Process side effect se */
+  void processSideEffect(const NlLemmaSideEffect& se);
   //-------------------------------------------- lemma schemas
   /** check transcendental initial refine
    *
