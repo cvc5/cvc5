@@ -147,6 +147,7 @@ class CVC4_PUBLIC String {
   /** Return the length of the string */
   std::size_t size() const { return d_str.size(); }
 
+  /** Return true if this string is a repetition of the same character */
   bool isRepeated() const;
   bool tailcmp(const String& y, int& c) const;
 

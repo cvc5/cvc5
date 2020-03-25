@@ -376,6 +376,21 @@ std::size_t Word::roverlap(TNode x, TNode y)
   return 0;
 }
 
+bool Word::isRepeated(TNode x)
+{
+  Kind k = x.getKind();
+  if (k == CONST_STRING)
+  {
+    return x.getConst<String>().isRepeated();
+  }
+  else if (k == CONST_SEQUENCE)
+  {
+    return x.getConst<ExprSequence>().getSequence().isRepeated();
+  }
+  Unimplemented();
+  return false;
+}
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4
