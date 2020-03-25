@@ -98,7 +98,10 @@ enum class Inference : uint32_t
 };
 
 /**
- * Converts an inference to a string.
+ * Converts an inference to a string. Note: This function is also used in
+ * `safe_print()`. Changing this functions name or signature will result in
+ * `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
  *
  * @param i The inference
  * @return The name of the inference
@@ -191,17 +194,6 @@ class InferInfo
 
 }  // namespace strings
 }  // namespace theory
-
-/**
- * Provides a template specialization for printing inference names in an
- * async-signal-safe manner.
- *
- * @param fd The file descriptor to print to
- * @param i The inference to print
- */
-template <>
-void safe_print(int fd, const theory::strings::Inference& i);
-
 }  // namespace CVC4
 
 #endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */

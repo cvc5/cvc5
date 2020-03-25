@@ -52,16 +52,4 @@ InferInfo::InferInfo() : d_id(Inference::NONE), d_index(0), d_rev(false) {}
 
 }  // namespace strings
 }  // namespace theory
-
-template <>
-void safe_print(int fd, const theory::strings::Inference& i)
-{
-  const char* s = toString(i);
-  ssize_t slen = static_cast<ssize_t>(strlen(s));
-  if (write(fd, s, slen) != slen)
-  {
-    abort();
-  }
-}
-
 }  // namespace CVC4
