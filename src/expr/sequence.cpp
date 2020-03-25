@@ -314,14 +314,10 @@ std::ostream& operator<<(std::ostream& os, const Sequence& s)
   return os << ss.str();
 }
 
-namespace strings
-{
-  
-size_t SequenceHashFunction::operator()(const Sequence& s) const
-{ 
-  return 0; 
-}
+namespace strings {
 
-}
+size_t SequenceHashFunction::operator()(const Sequence& s) const { return 0; }
+
+}  // namespace strings
 
 }  // namespace CVC4
