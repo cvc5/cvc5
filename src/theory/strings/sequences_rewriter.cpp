@@ -400,7 +400,7 @@ Node SequencesRewriter::rewriteEqualityExt(Node node)
   {
     return rewriteArithEqualityExt(node);
   }
-  if (node[0].getType().isString())
+  if (node[0].getType().isStringLike())
   {
     return rewriteStrEqualityExt(node);
   }
@@ -409,7 +409,7 @@ Node SequencesRewriter::rewriteEqualityExt(Node node)
 
 Node SequencesRewriter::rewriteStrEqualityExt(Node node)
 {
-  Assert(node.getKind() == EQUAL && node[0].getType().isString());
+  Assert(node.getKind() == EQUAL && node[0].getType().isStringLike());
   TypeNode stype = node[0].getType();
 
   NodeManager* nm = NodeManager::currentNM();

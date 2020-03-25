@@ -1,8 +1,8 @@
 ; REQUIRES: proof
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status --cegqi-si-sol-min-core --proof
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status --cegqi-si-sol-min-core --proof
 (set-logic LIA)
-(synth-fun findIdx ( (y1 Int) (y2 Int) (k1 Int)) Int ((Start Int ( 0 1 2 y1 y2 k1 (ite BoolExpr Start Start))) (BoolExpr Bool ((< Start Start) (<= Start Start) (> Start Start) (>= Start Start)))))
+(synth-fun findIdx ((y1 Int) (y2 Int) (k1 Int)) Int ((Start Int) (BoolExpr Bool)) ((Start Int ( 0 1 2 y1 y2 k1 (ite BoolExpr Start Start))) (BoolExpr Bool ((< Start Start) (<= Start Start) (> Start Start) (>= Start Start)))))
 (declare-var x1 Int)
 (declare-var x2 Int)
 (declare-var k Int)

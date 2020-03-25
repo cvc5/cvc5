@@ -1,14 +1,15 @@
-; COMMAND-LINE: --sygus-rr --sygus-samples=1000 --sygus-abort-size=2 --sygus-rr-verify-abort --no-sygus-sym-break
-; COMMAND-LINE: --sygus-rr-synth --sygus-samples=1000 --sygus-abort-size=2 --sygus-rr-verify-abort --sygus-rr-synth-check
+; COMMAND-LINE: --lang=sygus2 --sygus-rr --sygus-samples=1000 --sygus-abort-size=2 --sygus-rr-verify-abort --no-sygus-sym-break
+; COMMAND-LINE: --lang=sygus2 --sygus-rr-synth --sygus-samples=1000 --sygus-abort-size=2 --sygus-rr-verify-abort --sygus-rr-synth-check
 ; EXPECT: (error "Maximum term size (2) for enumerative SyGuS exceeded.")
 ; SCRUBBER: grep -v -E '(\(define-fun|\(candidate-rewrite|\(rewrite)'
 ; EXIT: 1
 
 (set-logic BV)
 
-(synth-fun f ((s (BitVec 4)) (t (BitVec 4))) (BitVec 4)
+(synth-fun f ((s (_ BitVec 4)) (t (_ BitVec 4))) (_ BitVec 4)
+  ((Start (_ BitVec 4)))
   (
-   (Start (BitVec 4) (
+   (Start (_ BitVec 4) (
      s
      t
      #x0

@@ -564,13 +564,15 @@ Node CegSingleInv::reconstructToSyntax(Node s,
     }
   }
 
-
-  if( Trace.isOn("csi-sol") ){
-    //debug solution
-    if (!d_sol->debugSolution(d_solution))
-    {
-      Trace("csi-sol") << "WARNING : solution " << d_solution << " contains free constants." << std::endl;
-    }
+  // debug solution
+  if (!d_sol->debugSolution(d_solution))
+  {
+    // This can happen if we encountered free variables in either the
+    // instantiation terms, or in the instantiation lemmas after postprocessing.
+    // In this case, we fail, since the solution is not valid.
+    Trace("csi-sol") << "FAIL : solution " << d_solution
+                     << " contains free constants." << std::endl;
+    reconstructed = -1;
   }
   if( Trace.isOn("cegqi-stats") ){
     int tsize, itesize;
