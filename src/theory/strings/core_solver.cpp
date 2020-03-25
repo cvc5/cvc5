@@ -719,11 +719,11 @@ void CoreSolver::getNormalForms(Node eqc,
   while( !eqc_i.isFinished() ){
     Node n = (*eqc_i);
     if( !d_bsolver.isCongruent(n) ){
-      if (n.getKind() == CONST_STRING || n.getKind() == STRING_CONCAT)
+      if (n.isConst() || n.getKind() == STRING_CONCAT)
       {
         Trace("strings-process-debug") << "Get Normal Form : Process term " << n << " in eqc " << eqc << std::endl;
         NormalForm nf_curr;
-        if (n.getKind() == CONST_STRING)
+        if (n.isConst())
         {
           nf_curr.init(n);
         }
@@ -803,8 +803,7 @@ void CoreSolver::getNormalForms(Node eqc,
         }
         //if not equal to self
         std::vector<Node>& currv = nf_curr.d_nf;
-        if (currv.size() > 1
-            || (currv.size() == 1 && currv[0].getKind() == CONST_STRING))
+        if (currv.size() > 1 || (currv.size() == 1 && currv[0].isConst()))
         {
           // if in a build with assertions, check that normal form is acyclic
           if (Configuration::isAssertionBuild())
@@ -1082,9 +1081,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       d_im.sendInference(lenExp, eq, Inference::N_UNIFY);
       break;
     }
-    else if ((x.getKind() != CONST_STRING && index == nfiv.size() - rproc - 1)
-             || (y.getKind() != CONST_STRING
-                 && index == nfjv.size() - rproc - 1))
+    else if ((!x.isConst() && index == nfiv.size() - rproc - 1)
+             || (!y.isConst() && index == nfjv.size() - rproc - 1))
     {
       // We have reached the last component in one of the normal forms and it
       // is not a constant. Thus, the last component must be equal to the
@@ -1253,7 +1251,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       NormalForm& nfnc = x.isConst() ? nfj : nfi;
       const std::vector<Node>& nfncv = nfnc.d_nf;
       Node nc = nfncv[index];
-      Assert(nc.getKind() != CONST_STRING) << "Other string is not constant.";
+      Assert(!nc.isConst()) << "Other string is not constant.";
       Assert(nc.getKind() != STRING_CONCAT) << "Other string is not CONCAT.";
       if (!ee->areDisequal(nc, d_emptyString, true))
       {
@@ -1391,8 +1389,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     //
     // E.g. x ++ ... = y ++ ... ---> (x = y ++ k) v (y = x ++ k)
     Assert(d_state.areDisequal(xLenTerm, yLenTerm));
-    Assert(x.getKind() != CONST_STRING);
-    Assert(y.getKind() != CONST_STRING);
+    Assert(!x.isConst());
+    Assert(!y.isConst());
 
     int32_t lentTestSuccess = -1;
     Node lentTestExp;
@@ -1404,7 +1402,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       {
         Node t = e == 0 ? x : y;
         // do not infer constants are larger than variables
-        if (t.getKind() != CONST_STRING)
+        if (!t.isConst())
         {
           Node lt1 = e == 0 ? xLenTerm : yLenTerm;
           Node lt2 = e == 0 ? yLenTerm : xLenTerm;
@@ -1745,18 +1743,18 @@ void CoreSolver::processDeq( Node ni, Node nj ) {
         Trace("strings-solve-debug")  << "...Processing(DEQ) " << i << " " << j << std::endl;
         if (!d_state.areEqual(i, j))
         {
-          Assert(i.getKind() != kind::CONST_STRING
-                 || j.getKind() != kind::CONST_STRING);
+          Assert(!i.isConst() || !j.isConst());
           std::vector< Node > lexp;
           Node li = d_state.getLength(i, lexp);
           Node lj = d_state.getLength(j, lexp);
           if (d_state.areDisequal(li, lj))
           {
-            if( i.getKind()==kind::CONST_STRING || j.getKind()==kind::CONST_STRING ){
+            if (i.isConst() || j.isConst())
+            {
               //check if empty
-              Node const_k = i.getKind() == kind::CONST_STRING ? i : j;
-              Node nconst_k = i.getKind() == kind::CONST_STRING ? j : i;
-              Node lnck = i.getKind() == kind::CONST_STRING ? lj : li;
+              Node const_k = i.isConst() ? i : j;
+              Node nconst_k = i.isConst() ? j : i;
+              Node lnck = i.isConst() ? lj : li;
               if( !ee->areDisequal( nconst_k, d_emptyString, true ) ){
                 Node eq = nconst_k.eqNode( d_emptyString );
                 Node conc = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
@@ -1941,7 +1939,8 @@ int CoreSolver::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >&
       Trace("strings-solve-debug")  << "...Processing(QED) " << i << " " << j << std::endl;
       if (!d_state.areEqual(i, j))
       {
-        if( i.getKind()==kind::CONST_STRING && j.getKind()==kind::CONST_STRING ) {
+        if (i.isConst() && j.isConst())
+        {
           size_t lenI = Word::getLength(i);
           size_t lenJ = Word::getLength(j);
           unsigned int len_short = lenI < lenJ ? lenI : lenJ;
