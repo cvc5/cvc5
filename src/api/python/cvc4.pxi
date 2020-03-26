@@ -227,27 +227,27 @@ cdef class Op:
     def isNull(self):
         return self.cop.isNull()
 
-    # def getIndices(self):
-    #     indices = None
-    #     try:
-    #         indices = self.cop.getIndices[string]()
-    #     except:
-    #         pass
+    def getIndices(self):
+        indices = None
+        try:
+            indices = self.cop.getIndices[string]()
+        except:
+            pass
 
-    #     try:
-    #         indices = self.cop.getIndices[uint32_t]()
-    #     except:
-    #         pass
+        try:
+            indices = self.cop.getIndices[uint32_t]()
+        except:
+            pass
 
-    #     try:
-    #         indices = self.cop.getIndices[pair[uint32_t, uint32_t]]()
-    #     except:
-    #         pass
+        try:
+            indices = self.cop.getIndices[pair[uint32_t, uint32_t]]()
+        except:
+            pass
 
-    #     if indices is None:
-    #         raise RuntimeError("Unable to retrieve indices from {}".format(self))
+        if indices is None:
+            raise RuntimeError("unable to retrieve indices from " + str(self))
 
-    #     return indices
+        return indices
 
 
 class Result:
