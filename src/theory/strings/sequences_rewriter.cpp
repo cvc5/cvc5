@@ -4196,7 +4196,7 @@ bool SequencesRewriter::stripConstantEndpoints(std::vector<Node>& n1,
   return changed;
 }
 
-Node SequencesRewriter::canonicalStrForSymbolicLength(Node len)
+Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
 {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -4207,7 +4207,15 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len)
     Rational ratLen = len.getConst<Rational>();
     Assert(ratLen.getDenominator() == 1);
     Integer intLen = ratLen.getNumerator();
-    res = nm->mkConst(String(std::string(intLen.getUnsignedInt(), 'A')));
+    uint32_t u = intLen.getUnsignedInt();
+    if (stype.isString())
+    {
+      res = nm->mkConst(String(std::string(u, 'A')));
+    }
+    else
+    {
+      Unimplemented() << "canonicalStrForSymbolicLength for non-string";
+    }
   }
   else if (len.getKind() == kind::PLUS)
   {
@@ -4215,7 +4223,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len)
     NodeBuilder<> concatBuilder(kind::STRING_CONCAT);
     for (const auto& n : len)
     {
-      Node sn = canonicalStrForSymbolicLength(n);
+      Node sn = canonicalStrForSymbolicLength(n, stype);
       if (sn.isNull())
       {
         return Node::null();
@@ -4234,7 +4242,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len)
     Assert(ratReps.getDenominator() == 1);
     Integer intReps = ratReps.getNumerator();
 
-    Node nRep = canonicalStrForSymbolicLength(len[1]);
+    Node nRep = canonicalStrForSymbolicLength(len[1], stype);
     std::vector<Node> nRepChildren;
     utils::getConcat(nRep, nRepChildren);
     NodeBuilder<> concatBuilder(kind::STRING_CONCAT);
@@ -4256,7 +4264,7 @@ Node SequencesRewriter::lengthPreserveRewrite(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node len = Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, n));
-  Node res = canonicalStrForSymbolicLength(len);
+  Node res = canonicalStrForSymbolicLength(len, n.getType());
   return res.isNull() ? n : res;
 }
 
