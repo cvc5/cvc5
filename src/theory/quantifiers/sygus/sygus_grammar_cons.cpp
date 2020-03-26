@@ -799,7 +799,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         // retrieve element unresolved type
         Assert(type_to_unres.find(etype) != type_to_unres.end());
         TypeNode unresElemType = type_to_unres[etype];
-        
+
         Trace("sygus-grammar-def") << "...add for seq.unit" << std::endl;
         std::vector<TypeNode> cargsSeqUnit;
         cargsSeqUnit.push_back(unresElemType);
