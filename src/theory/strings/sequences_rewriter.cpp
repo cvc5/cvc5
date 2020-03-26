@@ -4885,14 +4885,9 @@ bool SequencesRewriter::checkEntailMultisetSubset(Node a, Node b)
       {
         Node cn = ncp.first;
         Assert(cn.isConst());
-        std::vector<unsigned> cc_vec;
-        const std::vector<unsigned>& cvec = cn.getConst<String>().getVec();
-        for (unsigned i = 0, size = cvec.size(); i < size; i++)
+        std::vector<Node> cnChars = Word::getChars(cn);
+        for (const Node& ch : cnChars)
         {
-          // make the character
-          cc_vec.clear();
-          cc_vec.insert(cc_vec.end(), cvec.begin() + i, cvec.begin() + i + 1);
-          Node ch = nm->mkConst(String(cc_vec));
           count_const[j][ch] += ncp.second;
           if (std::find(chars.begin(), chars.end(), ch) == chars.end())
           {

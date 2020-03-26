@@ -76,6 +76,30 @@ size_t Word::getLength(TNode x)
   return 0;
 }
 
+std::vector<Node> Word::getChars(TNode x)
+{
+  std::vector<Node> ret;
+  Kind k = x.getKind();
+  if (k==CONST_STRING)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<unsigned> cc_vec;
+    const std::vector<unsigned>& cvec = x.getConst<String>().getVec();
+    for (unsigned i = 0, size = cvec.size(); i < size; i++)
+    {
+      cc_vec.clear();
+      cc_vec.insert(cc_vec.end(), cvec.begin() + i, cvec.begin() + i + 1);
+      Node ch = nm->mkConst(String(cc_vec));
+      ret.push_back(ch);
+    }
+  }
+  else
+  {
+    Unimplemented();
+  }
+  return ret;
+}
+
 bool Word::isEmpty(TNode x) { return getLength(x) == 0; }
 
 bool Word::strncmp(TNode x, TNode y, std::size_t n)
