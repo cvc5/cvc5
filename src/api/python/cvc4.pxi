@@ -24,21 +24,6 @@ from cvc4 cimport Term as c_Term
 from cvc4kinds cimport Kind as c_Kind
 
 
-################################## DECORATORS #################################
-def expand_list_arg(num_req_args=0):
-    '''
-    Creates a decorator that looks at index num_req_args of the args,
-    if it's a list, it expands it before calling the function.
-    '''
-    def decorator(func):
-        def wrapper(owner, *targs):
-            if len(targs)-1 == num_req_args and \
-               isinstance(targs[num_req_args], list):
-                targs = list(targs[:num_req_args]) + targs[num_req_args]
-            return func(owner, *targs)
-        return wrapper
-    return decorator
-###############################################################################
 
 # Style Guidelines
 ### Using PEP-8 spacing recommendations
@@ -487,64 +472,75 @@ cdef class Solver:
         sort.csort = self.csolver.mkTupleSort(v)
         return sort
 
-    # @expand_list_arg(num_req_args=1)
-    # def mkTerm(self, kind_or_op, *term_args):
-    #     '''
-    #         Supports the following arguments:
-    #                 Term mkTerm(Kind kind)
-    #                 Term mkTerm(Kind kind, Op child1, List[Term] children)
-    #                 Term mkTerm(Kind kind, List[Term] children)
+    def mkTerm(self, kind_or_op, *term_args):
+        '''
+            Supports the following arguments:
+                    Term mkTerm(Kind kind)
+                    Term mkTerm(Kind kind, Op child1, List[Term] children)
+                    Term mkTerm(Kind kind, List[Term] children)
 
-    #             where List[Term] can also be comma-separated arguments
-    #     '''
-    #     cdef Term term = Term()
-    #     cdef vector[c_Term] v
+                where List[Term] can also be comma-separated arguments
+        '''
 
-    #     op = kind_or_op
-    #     if isinstance(kind_or_op, kind):
-    #         op = self.mkOp(kind_or_op)
+        # check if arguments are a list
+        if len(term_args) == 1 and isinstance(term_args[0], list):
+            term_args = term_args[0]
 
-    #     if len(term_args) == 0:
-    #         term.cterm = self.csolver.mkTerm((<Op?> op).cop)
-    #     else:
-    #         for a in term_args:
-    #             v.push_back((<Term?> a).cterm)
-    #         term.cterm = self.csolver.mkTerm((<Op?> op).cop, v)
-    #     return term
+        cdef Term term = Term()
+        cdef vector[c_Term] v
 
-    # def mkOp(self, kind k, arg0=None, arg1 = None):
-    #     '''
-    #     Supports the following uses:
-    #             Op mkOp(Kind kind)
-    #             Op mkOp(Kind kind, Kind k)
-    #             Op mkOp(Kind kind, const string& arg)
-    #             Op mkOp(Kind kind, uint32_t arg)
-    #             Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
-    #     '''
-    #     cdef Op op = Op()
+        cdef c_Op cop
+        if isinstance(kind_or_op, Op):
+            pass
+            cop = (<Op?> kind_or_op).cop
+        elif (isinstance(kind_or_op, kind)):
+            cop = self.csolver.mkOp((<kind?> kind_or_op).k)
+        else:
+            raise ValueError("Expecting first argument to be kind or Op but got " + str(type(kind_or_op)))
 
-    #     if arg0 is None:
-    #         op.cop = self.csolver.mkOp(k.k)
-    #     elif arg1 is None:
-    #         if isinstance(arg0, kind):
-    #             op.cop = self.csolver.mkOp(k.k, (<kind?> arg0).k)
-    #         elif isinstance(arg0, str):
-    #             op.cop = self.csolver.mkOp(k.k,
-    #                                        <const string &>
-    #                                        arg0.encode())
-    #         elif isinstance(arg0, int):
-    #             op.cop = self.csolver.mkOp(k.k, <int?> arg0)
-    #         else:
-    #             raise ValueError("Unsupported signature"
-    #                              " mkOp: {}".format(" X ".join([k, arg0])))
-    #     else:
-    #         if isinstance(arg0, int) and isinstance(arg1, int):
-    #             op.cop = self.csolver.mkOp(k.k, <int> arg0,
-    #                                                    <int> arg1)
-    #         else:
-    #             raise ValueError("Unsupported signature"
-    #                              " mkOp: {}".format(" X ".join([k, arg0, arg1])))
-    #     return op
+        if len(term_args) == 0:
+            term.cterm = self.csolver.mkTerm(cop)
+        else:
+            for a in term_args:
+                v.push_back((<Term?> a).cterm)
+            term.cterm = self.csolver.mkTerm(cop, v)
+        return term
+
+    def mkOp(self, kind k, arg0=None, arg1 = None):
+        '''
+        Supports the following uses:
+                Op mkOp(Kind kind)
+                Op mkOp(Kind kind, Kind k)
+                Op mkOp(Kind kind, const string& arg)
+                Op mkOp(Kind kind, uint32_t arg)
+                Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
+        '''
+        cdef Op op = Op()
+
+        if arg0 is None:
+            op.cop = self.csolver.mkOp(k.k)
+        elif arg1 is None:
+            if isinstance(arg0, kind):
+                op.cop = self.csolver.mkOp(k.k, (<kind?> arg0).k)
+            elif isinstance(arg0, str):
+                op.cop = self.csolver.mkOp(k.k,
+                                           <const string &>
+                                           arg0.encode())
+            elif isinstance(arg0, int):
+                op.cop = self.csolver.mkOp(k.k, <int?> arg0)
+            else:
+                signature = " X ".join([k.name, str(type(arg0))])
+                raise ValueError("Unsupported signature"
+                                 " mkOp: " + signature)
+        else:
+            if isinstance(arg0, int) and isinstance(arg1, int):
+                op.cop = self.csolver.mkOp(k.k, <int> arg0,
+                                                       <int> arg1)
+            else:
+                signature = " X ".join([k.name, str(type(arg0))])
+                raise ValueError("Unsupported signature"
+                                 " mkOp: " + signature)
+        return op
 
     def mkTrue(self):
         cdef Term term = Term()
