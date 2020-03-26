@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sequence.h
+/*! \file expr_sequence.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds

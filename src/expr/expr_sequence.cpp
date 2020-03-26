@@ -92,7 +92,7 @@ std::ostream& operator<<(std::ostream& os, const ExprSequence& s)
 
 size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const
 {
-  return TypeHashFunction()(es.getType());
+  return TypeHashFunction()(es.getType()) + SequenceHashFunction()(es.getSequence());
 }
 
 }  // namespace CVC4
