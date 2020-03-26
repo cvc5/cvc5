@@ -23,6 +23,7 @@ from cvc4 cimport Term as c_Term
 
 from cvc4kinds cimport Kind as c_Kind
 
+
 ################################## DECORATORS #################################
 def expand_list_arg(num_req_args=0):
     '''
@@ -50,6 +51,14 @@ def expand_list_arg(num_req_args=0):
 ### always use c++ default arguments
 #### only use default args of None at python level
 #### Result class can have default because it's pure python
+
+### IMPORTANT: __iter__ implementations
+#### It appears that a regular generator (using yield) implementation for __iter__
+#### produces generated code that gives a -Wshadow warning which we are trying to
+#### avoid in CVC4. Thus, see one of the existing implementations which carefully
+#### avoids this by implementing iter with __next__ as well.
+#### Note, apparently collections.deque in cython code also causes this warning
+
 
 
 cdef class Datatype:
@@ -84,11 +93,28 @@ cdef class Datatype:
     def __repr__(self):
         return self.cd.toString().decode()
 
-    # def __iter__(self):
-    #     for ci in self.cd:
-    #         dc = DatatypeConstructor()
-    #         dc.cdc = ci
-    #         yield dc
+    def __iter__(self):
+        cdc_iter = []
+        for ci in self.cd:
+            dc = DatatypeConstructor()
+            dc.cdc = ci
+            cdc_iter.append(dc)
+
+        if cdc_iter:
+            ret = cdc_iter[0]
+            del cdc_iter[0]
+            self.cdc_iter = cdc_iter
+            return ret
+        else:
+            raise StopIteration
+
+    def __next__(self):
+        if not self.cdc_iter:
+            raise StopIteration
+        else:
+            ret = self.cdc_iter[0]
+            del self.cdc_iter[0]
+            return ret
 
 
 cdef class DatatypeConstructor:
@@ -117,11 +143,28 @@ cdef class DatatypeConstructor:
     def __repr__(self):
         return self.cdc.toString().decode()
 
-    # def __iter__(self):
-    #     for ci in self.cdc:
-    #         ds = DatatypeSelector()
-    #         ds.cds = ci
-    #         yield ds
+    def __iter__(self):
+        cds_iter = []
+        for ci in self.cdc:
+            ds = DatatypeSelector()
+            ds.cds = ci
+            cds_iter.append(ds)
+
+        if cds_iter:
+            ret = cds_iter[0]
+            del cds_iter[0]
+            self.cds_iter = cds_iter
+            return ret
+        else:
+            raise StopIteration
+
+    def __next__(self):
+        if not self.cds_iter:
+            raise StopIteration
+        else:
+            ret = self.cds_iter[0]
+            del self.cds_iter[0]
+            return ret
 
 
 cdef class DatatypeConstructorDecl:
@@ -1063,11 +1106,28 @@ cdef class Term:
     def __repr__(self):
         return self.cterm.toString().decode()
 
-    # def __iter__(self):
-    #     for ci in self.cterm:
-    #         term = Term()
-    #         term.cterm = ci
-    #         yield term
+    def __iter__(self):
+        children = []
+        for ci in self.cterm:
+            term = Term()
+            term.cterm = ci
+            children.append(term)
+
+        if children:
+            ret = children[0]
+            del children[0]
+            self.children = children
+            return ret
+        else:
+            raise StopIteration
+
+    def __next__(self):
+        if not self.children:
+            raise StopIteration
+        else:
+            ret = self.children[0]
+            del self.children[0]
+            return ret
 
     def getKind(self):
         return kind(<int> self.cterm.getKind())
