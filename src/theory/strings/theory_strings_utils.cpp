@@ -18,6 +18,7 @@
 
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
+#include "theory/strings/word.h"
 
 using namespace CVC4::kind;
 
@@ -115,12 +116,20 @@ void getConcat(Node n, std::vector<Node>& c)
   }
 }
 
-Node mkConcat(Kind k, const std::vector<Node>& c)
+Node mkConcat(const std::vector<Node>& c, TypeNode tn)
 {
-  Assert(!c.empty() || k == STRING_CONCAT);
-  NodeManager* nm = NodeManager::currentNM();
-  return c.size() > 1 ? nm->mkNode(k, c)
-                      : (c.size() == 1 ? c[0] : nm->mkConst(String("")));
+  Assert(tn.isStringLike() || tn.isRegExp());
+  if (c.empty())
+  {
+    Assert(tn.isStringLike());
+    return Word::mkEmptyWord(tn);
+  }
+  else if (c.size() == 1)
+  {
+    return c[0];
+  }
+  Kind k = tn.isStringLike() ? STRING_CONCAT : REGEXP_CONCAT;
+  return NodeManager::currentNM()->mkNode(k, c);
 }
 
 Node mkNConcat(Node n1, Node n2)
@@ -135,9 +144,9 @@ Node mkNConcat(Node n1, Node n2, Node n3)
       NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
 }
 
-Node mkNConcat(const std::vector<Node>& c)
+Node mkNConcat(const std::vector<Node>& c, TypeNode tn)
 {
-  return Rewriter::rewrite(mkConcat(STRING_CONCAT, c));
+  return Rewriter::rewrite(mkConcat(c, tn));
 }
 
 Node mkNLength(Node t)
@@ -147,12 +156,11 @@ Node mkNLength(Node t)
 
 Node getConstantComponent(Node t)
 {
-  Kind tk = t.getKind();
-  if (tk == STRING_TO_REGEXP)
+  if (t.getKind() == STRING_TO_REGEXP)
   {
     return t[0].isConst() ? t[0] : Node::null();
   }
-  return tk == CONST_STRING ? t : Node::null();
+  return t.isConst() ? t : Node::null();
 }
 
 Node getConstantEndpoint(Node e, bool isSuf)
@@ -224,11 +232,10 @@ void getRegexpComponents(Node r, std::vector<Node>& result)
   }
   else if (r.getKind() == STRING_TO_REGEXP && r[0].isConst())
   {
-    String s = r[0].getConst<String>();
-    for (size_t i = 0, size = s.size(); i < size; i++)
+    size_t rlen = Word::getLength(r[0]);
+    for (size_t i = 0; i < rlen; i++)
     {
-      result.push_back(
-          nm->mkNode(STRING_TO_REGEXP, nm->mkConst(s.substr(i, 1))));
+      result.push_back(nm->mkNode(STRING_TO_REGEXP, Word::substr(r[0], i, 1)));
     }
   }
   else
@@ -254,6 +261,36 @@ void printConcatTrace(std::vector<Node>& n, const char* c)
   std::stringstream ss;
   printConcat(ss, n);
   Trace(c) << ss.str();
+}
+
+bool isStringKind(Kind k)
+{
+  return k == STRING_STOI || k == STRING_ITOS || k == STRING_TOLOWER
+         || k == STRING_TOUPPER || k == STRING_LEQ || k == STRING_LT
+         || k == STRING_FROM_CODE || k == STRING_TO_CODE;
+}
+
+TypeNode getOwnerStringType(Node n)
+{
+  TypeNode tn;
+  Kind k = n.getKind();
+  if (k == STRING_STRIDOF || k == STRING_LENGTH || k == STRING_STRCTN
+      || k == STRING_PREFIX || k == STRING_SUFFIX)
+  {
+    // owning string type is the type of first argument
+    tn = n[0].getType();
+  }
+  else if (isStringKind(k))
+  {
+    tn = NodeManager::currentNM()->stringType();
+  }
+  else
+  {
+    tn = n.getType();
+  }
+  AlwaysAssert(tn.isStringLike())
+      << "Unexpected term in getOwnerStringType : " << n << ", type " << tn;
+  return tn;
 }
 
 }  // namespace utils

@@ -1208,31 +1208,6 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
   return comp == d_true;
 }
 
-bool NlModel::isRefineableTfFun(Node tf)
-{
-  Assert(tf.getKind() == SINE || tf.getKind() == EXPONENTIAL);
-  if (tf.getKind() == SINE)
-  {
-    // we do not consider e.g. sin( -1*x ), since considering sin( x ) will
-    // have the same effect. We also do not consider sin(x+y) since this is
-    // handled by introducing a fresh variable (see the map d_tr_base in
-    // NonlinearExtension).
-    if (!tf[0].isVar())
-    {
-      return false;
-    }
-  }
-  // Figure 3 : c
-  Node c = computeAbstractModelValue(tf[0]);
-  Assert(c.isConst());
-  int csign = c.getConst<Rational>().sgn();
-  if (csign == 0)
-  {
-    return false;
-  }
-  return true;
-}
-
 bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
 {
   Assert(c.isConst());
@@ -1302,11 +1277,12 @@ void NlModel::getModelValueRepair(
     std::map<Node, Node>& arithModel,
     std::map<Node, std::pair<Node, Node>>& approximations)
 {
+  Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
+
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to
   // this class.
-  Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::pair<Node, Node> >& cb :
        d_check_model_bounds)
@@ -1348,6 +1324,21 @@ void NlModel::getModelValueRepair(
     // overwrite
     arithModel[v] = s;
     Trace("nl-model") << v << " solved is " << s << std::endl;
+  }
+
+  // multiplication terms should not be given values; their values are
+  // implied by the monomials that they consist of
+  std::vector<Node> amErase;
+  for (const std::pair<const Node, Node>& am : arithModel)
+  {
+    if (am.first.getKind() == NONLINEAR_MULT)
+    {
+      amErase.push_back(am.first);
+    }
+  }
+  for (const Node& ae : amErase)
+  {
+    arithModel.erase(ae);
   }
 }
 

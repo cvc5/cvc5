@@ -81,22 +81,9 @@ bool Instantiate::checkComplete()
   return true;
 }
 
-void Instantiate::addNotify(InstantiationNotify* in)
-{
-  d_inst_notify.push_back(in);
-}
-
 void Instantiate::addRewriter(InstantiationRewriter* ir)
 {
   d_instRewrite.push_back(ir);
-}
-
-void Instantiate::notifyFlushLemmas()
-{
-  for (InstantiationNotify*& in : d_inst_notify)
-  {
-    in->filterInstantiations();
-  }
 }
 
 bool Instantiate::addInstantiation(
@@ -303,7 +290,10 @@ bool Instantiate::addInstantiation(
     {
       // virtual term substitution/instantiation level features are
       // incompatible
-      Assert(false);
+      std::stringstream ss;
+      ss << "Cannot combine instantiation strategies that require virtual term "
+            "substitution with those that restrict instantiation levels";
+      throw LogicException(ss.str());
     }
     else
     {
@@ -318,23 +308,6 @@ bool Instantiate::addInstantiation(
       }
       QuantAttributes::setInstantiationLevelAttr(
           orig_body, q[1], maxInstLevel + 1);
-    }
-  }
-  QuantifiersModule::QEffort elevel = d_qe->getCurrentQEffort();
-  if (elevel > QuantifiersModule::QEFFORT_CONFLICT
-      && elevel < QuantifiersModule::QEFFORT_NONE
-      && !d_inst_notify.empty())
-  {
-    // notify listeners
-    for (InstantiationNotify*& in : d_inst_notify)
-    {
-      if (!in->notifyInstantiation(elevel, q, lem, terms, body))
-      {
-        Trace("inst-add-debug") << "...we are in conflict." << std::endl;
-        d_qe->setConflict();
-        Assert(d_qe->getNumLemmasWaiting() > 0);
-        break;
-      }
     }
   }
   if (options::trackInstLemmas())

@@ -1,27 +1,27 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic SLIA)
 (synth-fun f ((firstname String) (lastname String)) String
-((Start String (ntString))
+((ntString String) (ntInt Int) (ntBool Bool))
 
-(ntString String (
-firstname 
-lastname 
+((ntString String (
+firstname
+lastname
 " "
 (str.++ ntString ntString)))
 
 (ntInt Int (
-0 
-1 
+0
+1
 2
 (+ ntInt ntInt)
 (- ntInt ntInt)
 (str.len ntString)
-(str.to.int ntString)
+(str.to_int ntString)
 (str.indexof ntString ntString ntInt)))
 
 (ntBool Bool (
-true 
+true
 false
 (str.prefixof ntString ntString)
 (str.suffixof ntString ntString)
@@ -32,4 +32,3 @@ false
 (constraint (= (f "Nancy" "FreeHafer") "Nancy FreeHafer"))
 
 (check-synth)
-

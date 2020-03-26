@@ -859,6 +859,27 @@ class CVC4_PUBLIC SmtEngine
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
 
+  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
+  TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
+
+  /** Get a pointer to the PropEngine owned by this SmtEngine. */
+  prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
+
+  /** Get a pointer to the UserContext owned by this SmtEngine. */
+  context::UserContext* getUserContext() { return d_userContext.get(); };
+
+  /** Get a pointer to the Context owned by this SmtEngine. */
+  context::Context* getContext() { return d_context.get(); };
+
+  /** Get a pointer to the ProofManager owned by this SmtEngine. */
+  ProofManager* getProofManager() { return d_proofManager.get(); };
+
+  /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
+  StatisticsRegistry* getStatisticsRegistry()
+  {
+    return d_statisticsRegistry.get();
+  };
+
   /**
    * Check that a generated proof (via getProof()) checks.
    */
@@ -1049,9 +1070,9 @@ class CVC4_PUBLIC SmtEngine
   /* Members -------------------------------------------------------------- */
 
   /** Expr manager context */
-  context::Context* d_context;
+  std::unique_ptr<context::Context> d_context;
   /** User level context */
-  context::UserContext* d_userContext;
+  std::unique_ptr<context::UserContext> d_userContext;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
 
@@ -1061,12 +1082,12 @@ class CVC4_PUBLIC SmtEngine
   NodeManager* d_nodeManager;
 
   /** The theory engine */
-  TheoryEngine* d_theoryEngine;
+  std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */
-  prop::PropEngine* d_propEngine;
+  std::unique_ptr<prop::PropEngine> d_propEngine;
 
   /** The proof manager */
-  ProofManager* d_proofManager;
+  std::unique_ptr<ProofManager> d_proofManager;
 
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
@@ -1232,11 +1253,11 @@ class CVC4_PUBLIC SmtEngine
   /**
    * A private utility class to SmtEngine.
    */
-  smt::SmtEnginePrivate* d_private;
+  std::unique_ptr<smt::SmtEnginePrivate> d_private;
 
-  StatisticsRegistry* d_statisticsRegistry;
+  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
 
-  smt::SmtEngineStatistics* d_stats;
+  std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
   /*---------------------------- sygus commands  ---------------------------*/
 

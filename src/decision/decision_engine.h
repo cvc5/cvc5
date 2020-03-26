@@ -38,8 +38,7 @@ using namespace CVC4::decision;
 namespace CVC4 {
 
 class DecisionEngine {
-
-  vector <DecisionStrategy* > d_enabledStrategies;
+  std::unique_ptr<ITEDecisionStrategy> d_enabledITEStrategy;
   vector <ITEDecisionStrategy* > d_needIteSkolemMap;
   RelevancyStrategy* d_relevancyStrategy;
 
@@ -72,13 +71,6 @@ public:
     Trace("decision") << "Destroying decision engine" << std::endl;
   }
 
-  // void setPropEngine(PropEngine* pe) {
-  //   // setPropEngine should not be called more than once
-  //   Assert(d_propEngine == NULL);
-  //   Assert(pe != NULL);
-  //   d_propEngine = pe;
-  // }
-
   void setSatSolver(DPLLSatSolverInterface* ss) {
     // setPropEngine should not be called more than once
     Assert(d_satSolver == NULL);
@@ -93,7 +85,7 @@ public:
     d_cnfStream = cs;
   }
 
-  /* enables decision stragies based on options */
+  /* Enables decision strategy based on options. */
   void init();
 
   /**
@@ -106,23 +98,7 @@ public:
   // Interface for External World to use our services
 
   /** Gets the next decision based on strategies that are enabled */
-  SatLiteral getNext(bool &stopSearch) {
-    NodeManager::currentResourceManager()->spendResource(
-        ResourceManager::Resource::DecisionStep);
-    Assert(d_cnfStream != NULL)
-        << "Forgot to set cnfStream for decision engine?";
-    Assert(d_satSolver != NULL)
-        << "Forgot to set satSolver for decision engine?";
-
-    SatLiteral ret = undefSatLiteral;
-    for(unsigned i = 0;
-        i < d_enabledStrategies.size()
-          and ret == undefSatLiteral
-          and stopSearch == false; ++i) {
-      ret = d_enabledStrategies[i]->getNext(stopSearch);
-    }
-    return ret;
-  }
+  SatLiteral getNext(bool& stopSearch);
 
   /** Is a sat variable relevant */
   bool isRelevant(SatVariable var);

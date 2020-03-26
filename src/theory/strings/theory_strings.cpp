@@ -26,9 +26,9 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/type_enumerator.h"
+#include "theory/strings/word.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
@@ -71,7 +71,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::strings", true),
       d_state(c, d_equalityEngine, d_valuation),
-      d_im(*this, c, u, d_state, d_sk_cache, out),
+      d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
       d_functionsTerms(c),
@@ -111,7 +111,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
+  d_emptyString = Word::mkEmptyWord(CONST_STRING);
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -412,9 +412,18 @@ bool TheoryStrings::collectModelInfoType(
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
-      StringEnumeratorLength sel(
-          tn,
-          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
+      uint32_t currLen =
+          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
+      std::unique_ptr<SEnumLen> sel;
+      if (tn.isString())
+      {
+        sel.reset(new StringEnumLen(
+            currLen, currLen, utils::getAlphabetCardinality()));
+      }
+      else
+      {
+        Unimplemented() << "Collect model info not implemented for type " << tn;
+      }
       for (const Node& eqc : pure_eq)
       {
         Node c;
@@ -423,7 +432,7 @@ bool TheoryStrings::collectModelInfoType(
         {
           do
           {
-            if (sel.isFinished())
+            if (sel->isFinished())
             {
               // We are in a case where model construction is impossible due to
               // an insufficient number of constants of a given length.
@@ -459,8 +468,9 @@ bool TheoryStrings::collectModelInfoType(
               }
               return false;
             }
-            c = *sel;
-            ++sel;
+            c = sel->getCurrent();
+            // increment
+            sel->increment();
           } while (m->hasTerm(c));
         }
         else
@@ -509,7 +519,7 @@ bool TheoryStrings::collectModelInfoType(
         Assert(r.isConst() || processed.find(r) != processed.end());
         nc.push_back(r.isConst() ? r : processed[r]);
       }
-      Node cc = utils::mkNConcat(nc);
+      Node cc = utils::mkNConcat(nc, tn);
       Assert(cc.isConst());
       Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
       processed[nodes[i]] = cc;
@@ -690,7 +700,8 @@ void TheoryStrings::check(Effort e) {
         Trace("strings-eqc") << (t==0 ? "STRINGS:" : "OTHER:") << std::endl;
         while( !eqcs2_i.isFinished() ){
           Node eqc = (*eqcs2_i);
-          bool print = (t==0 && eqc.getType().isString() ) || (t==1 && !eqc.getType().isString() );
+          bool print = (t == 0 && eqc.getType().isStringLike())
+                       || (t == 1 && !eqc.getType().isStringLike());
           if (print) {
             eq::EqClassIterator eqc2_i = eq::EqClassIterator( eqc, &d_equalityEngine );
             Trace("strings-eqc") << "Eqc( " << eqc << " ) : { ";
@@ -862,7 +873,9 @@ void TheoryStrings::addCarePairs(TNodeTrie* t1,
 void TheoryStrings::computeCareGraph(){
   //computing the care graph here is probably still necessary, due to operators that take non-string arguments  TODO: verify
   Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Build term indices..." << std::endl;
-  std::map<Node, TNodeTrie> index;
+  // Term index for each (type, operator) pair. We require the operator here
+  // since operators are polymorphic, taking strings/sequences.
+  std::map<std::pair<TypeNode, Node>, TNodeTrie> index;
   std::map< Node, unsigned > arity;
   unsigned functionTerms = d_functionsTerms.size();
   for (unsigned i = 0; i < functionTerms; ++ i) {
@@ -878,16 +891,19 @@ void TheoryStrings::computeCareGraph(){
       }
     }
     if( has_trigger_arg ){
-      index[op].addTerm( f1, reps );
+      TypeNode ft = utils::getOwnerStringType(f1);
+      std::pair<TypeNode, Node> ikey = std::pair<TypeNode, Node>(ft, op);
+      index[ikey].addTerm(f1, reps);
       arity[op] = reps.size();
     }
   }
   //for each index
-  for (std::pair<const Node, TNodeTrie>& tt : index)
+  for (std::pair<const std::pair<TypeNode, Node>, TNodeTrie>& ti : index)
   {
     Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Process index "
-                        << tt.first << "..." << std::endl;
-    addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
+                        << ti.first << "..." << std::endl;
+    Node op = ti.first.second;
+    addCarePairs(&ti.second, nullptr, arity[op], 0);
   }
 }
 
@@ -897,7 +913,9 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   if( atom.getKind()==kind::EQUAL ){
     Trace("strings-pending-debug") << "  Register term" << std::endl;
     for( unsigned j=0; j<2; j++ ) {
-      if( !d_equalityEngine.hasTerm( atom[j] ) && atom[j].getType().isString() ) {
+      if (!d_equalityEngine.hasTerm(atom[j])
+          && atom[j].getType().isStringLike())
+      {
         registerTerm( atom[j], 0 );
       }
     }
@@ -1037,7 +1055,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
 {
   TypeNode tn = n.getType();
   bool do_register = true;
-  if (!tn.isString())
+  if (!tn.isStringLike())
   {
     if (options::stringEagerLen())
     {
@@ -1060,7 +1078,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
   NodeManager* nm = NodeManager::currentNM();
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
-  if (tn.isString())
+  if (tn.isStringLike())
   {
     // register length information:
     //  for variables, split on empty vs positive length
@@ -1106,7 +1124,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
     Node lt = ei ? ei->d_lengthTerm : Node::null();
     if (lt.isNull())
     {
-      Node c = utils::mkNConcat(nfi.d_nf);
+      Node c = utils::mkNConcat(nfi.d_nf, eqc.getType());
       registerTerm(c, 3);
     }
   }
@@ -1144,26 +1162,6 @@ Node TheoryStrings::ppRewrite(TNode atom) {
     }
   }
   return atom;
-}
-
-// Stats
-TheoryStrings::Statistics::Statistics()
-    : d_splits("theory::strings::NumOfSplitOnDemands", 0),
-      d_eq_splits("theory::strings::NumOfEqSplits", 0),
-      d_deq_splits("theory::strings::NumOfDiseqSplits", 0),
-      d_loop_lemmas("theory::strings::NumOfLoops", 0)
-{
-  smtStatisticsRegistry()->registerStat(&d_splits);
-  smtStatisticsRegistry()->registerStat(&d_eq_splits);
-  smtStatisticsRegistry()->registerStat(&d_deq_splits);
-  smtStatisticsRegistry()->registerStat(&d_loop_lemmas);
-}
-
-TheoryStrings::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_eq_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_deq_splits);
-  smtStatisticsRegistry()->unregisterStat(&d_loop_lemmas);
 }
 
 /** run the given inference step */

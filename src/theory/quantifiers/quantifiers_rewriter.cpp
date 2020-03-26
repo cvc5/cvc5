@@ -818,6 +818,7 @@ Node QuantifiersRewriter::getVarElimLitString(Node lit,
   {
     if (lit[i].getKind() == STRING_CONCAT)
     {
+      TypeNode stype = lit[i].getType();
       for (unsigned j = 0, nchildren = lit[i].getNumChildren(); j < nchildren;
            j++)
       {
@@ -827,8 +828,8 @@ Node QuantifiersRewriter::getVarElimLitString(Node lit,
           Node slv = lit[1 - i];
           std::vector<Node> preL(lit[i].begin(), lit[i].begin() + j);
           std::vector<Node> postL(lit[i].begin() + j + 1, lit[i].end());
-          Node tpre = strings::utils::mkConcat(STRING_CONCAT, preL);
-          Node tpost = strings::utils::mkConcat(STRING_CONCAT, postL);
+          Node tpre = strings::utils::mkConcat(preL, stype);
+          Node tpost = strings::utils::mkConcat(postL, stype);
           Node slvL = nm->mkNode(STRING_LENGTH, slv);
           Node tpreL = nm->mkNode(STRING_LENGTH, tpre);
           Node tpostL = nm->mkNode(STRING_LENGTH, tpost);
@@ -1008,7 +1009,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
     {
       slv = getVarElimLitBv(lit, args, var);
     }
-    else if (tt.isString())
+    else if (tt.isStringLike())
     {
       slv = getVarElimLitString(lit, args, var);
     }
@@ -1672,8 +1673,11 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
     }
     return mkForAll( newArgs, body[1], qa );
   }else if( body.getKind()==AND ){
-    if( options::miniscopeQuant() ){
-      //break apart
+    // aggressive miniscoping implies that structural miniscoping should
+    // be applied first
+    if (options::miniscopeQuant() || options::aggressiveMiniscopeQuant())
+    {
+      // break apart
       NodeBuilder<> t(kind::AND);
       for( unsigned i=0; i<body.getNumChildren(); i++ ){
         t << computeMiniscoping( args, body[i], qa );
@@ -1685,7 +1689,12 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
     if( options::quantSplit() ){
       //splitting subsumes free variable miniscoping, apply it with higher priority
       return computeSplit( args, body, qa );
-    }else if( options::miniscopeQuantFreeVar() ){
+    }
+    else if (options::miniscopeQuantFreeVar()
+             || options::aggressiveMiniscopeQuant())
+    {
+      // aggressive miniscoping implies that free variable miniscoping should
+      // be applied first
       Node newBody = body;
       NodeBuilder<> body_split(kind::OR);
       NodeBuilder<> tb(kind::OR);
@@ -1784,7 +1793,6 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
         }
       }
       Assert(!qvl1.empty());
-      Assert(!qvl2.empty() || !qvsh.empty());
       //check for literals that only contain shared variables
       std::vector<Node> qlitsh;
       std::vector<Node> qlit2;

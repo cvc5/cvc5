@@ -1,4 +1,6 @@
 (set-logic QF_LIA)
+(set-option :ite-simp true)
+(set-option :simp-ite-compress true)
 (set-info :source |http://www.nec-labs.com/~fsoft/bench.html 
  The following changes have been made: 
  The logic is changed to QF_LIA. 

@@ -92,10 +92,6 @@ libcvc4_add_sources(
   preprocessing/passes/static_learning.h
   preprocessing/passes/sygus_inference.cpp
   preprocessing/passes/sygus_inference.h
-  preprocessing/passes/symmetry_breaker.cpp
-  preprocessing/passes/symmetry_breaker.h
-  preprocessing/passes/symmetry_detect.cpp
-  preprocessing/passes/symmetry_detect.h
   preprocessing/passes/synth_rew_rules.cpp
   preprocessing/passes/synth_rew_rules.h
   preprocessing/passes/theory_preprocess.cpp
@@ -253,7 +249,6 @@ libcvc4_add_sources(
   smt_util/boolean_simplification.h
   smt_util/nary_builder.cpp
   smt_util/nary_builder.h
-  smt_util/node_visitor.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
@@ -511,16 +506,12 @@ libcvc4_add_sources(
   theory/quantifiers/inst_match.h
   theory/quantifiers/inst_match_trie.cpp
   theory/quantifiers/inst_match_trie.h
-  theory/quantifiers/inst_propagator.cpp
-  theory/quantifiers/inst_propagator.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
-  theory/quantifiers/local_theory_ext.cpp
-  theory/quantifiers/local_theory_ext.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
   theory/quantifiers/quant_epr.cpp
@@ -688,18 +679,22 @@ libcvc4_add_sources(
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp
   theory/strings/regexp_solver.h
+  theory/strings/sequences_rewriter.cpp
+  theory/strings/sequences_rewriter.h
+  theory/strings/sequences_stats.cpp
+  theory/strings/sequences_stats.h
   theory/strings/skolem_cache.cpp
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
   theory/strings/solver_state.h
   theory/strings/strings_fmf.cpp
   theory/strings/strings_fmf.h
+  theory/strings/strings_rewriter.cpp
+  theory/strings/strings_rewriter.h
   theory/strings/theory_strings.cpp
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
   theory/strings/theory_strings_preprocess.h
-  theory/strings/theory_strings_rewriter.cpp
-  theory/strings/theory_strings_rewriter.h
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h

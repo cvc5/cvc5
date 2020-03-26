@@ -1301,18 +1301,21 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
 Node TheoryArithPrivate::ppRewrite(TNode atom) {
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
-  if (atom.getKind() == kind::EQUAL  && options::arithRewriteEq()) {
-    Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-    Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-    leq = ppRewriteTerms(leq);
-    geq = ppRewriteTerms(geq);
-    Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-    Debug("arith::preprocess") << "arith::preprocess() : returning "
-                               << rewritten << endl;
-    return rewritten;
-  } else {
-    return ppRewriteTerms(atom);
+  if (options::arithRewriteEq())
+  {
+    if (atom.getKind() == kind::EQUAL && atom[0].getType().isReal())
+    {
+      Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
+      Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+      leq = ppRewriteTerms(leq);
+      geq = ppRewriteTerms(geq);
+      Node rewritten = Rewriter::rewrite(leq.andNode(geq));
+      Debug("arith::preprocess")
+          << "arith::preprocess() : returning " << rewritten << endl;
+      return rewritten;
+    }
   }
+  return ppRewriteTerms(atom);
 }
 
 Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
@@ -2185,8 +2188,11 @@ void TheoryArithPrivate::outputConflicts(){
         }
 
         Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
-        d_containing.d_proofRecorder->saveFarkasCoefficients(
-            conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
+        if (confConstraint->hasSimpleFarkasProof())
+        {
+          d_containing.d_proofRecorder->saveFarkasCoefficients(
+              conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
+        }
       })
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
@@ -4948,8 +4954,13 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         Assert(coeffs != RationalVectorPSentinel);
         Assert(conflictInFarkasCoefficientOrder.getNumChildren()
                == coeffs->size());
-        d_containing.d_proofRecorder->saveFarkasCoefficients(
-            conflictInFarkasCoefficientOrder, coeffs);
+        if (std::all_of(explain.begin(), explain.end(), [](ConstraintCP c) {
+              return c->isAssumption() || c->hasIntTightenProof();
+            }))
+        {
+          d_containing.d_proofRecorder->saveFarkasCoefficients(
+              conflictInFarkasCoefficientOrder, coeffs);
+        }
       })
       outputLemma(clause);
     }else{

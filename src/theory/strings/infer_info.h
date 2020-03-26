@@ -19,7 +19,9 @@
 
 #include <map>
 #include <vector>
+
 #include "expr/node.h"
+#include "util/safe_print.h"
 
 namespace CVC4 {
 namespace theory {
@@ -29,51 +31,90 @@ namespace strings {
  *
  * These are variants of the inference rules in Figures 3-5 of Liang et al.
  * "A DPLL(T) Solver for a Theory of Strings and Regular Expressions", CAV 2014.
+ *
+ * Note: The order in this enum matters in certain cases (e.g. inferences
+ * related to normal forms), inferences that come first are generally
+ * preferred.
  */
-enum Inference
+enum class Inference : uint32_t
 {
-  INFER_NONE = 0,
+  // Given two normal forms, infers that the remainder one of them has to be
+  // empty. For example:
+  //    If x1 ++ x2 = y1 and x1 = y1, then x2 = ""
+  N_ENDPOINT_EMP,
+  // Given two normal forms, infers that two components have to be the same if
+  // they have the same length. For example:
+  //   If x1 ++ x2 = x3 ++ x4 and len(x1) = len(x3) then x1 = x3
+  N_UNIFY,
+  // Given two normal forms, infers that the endpoints have to be the same. For
+  // example:
+  //   If x1 ++ x2 = x3 ++ x4 ++ x5 and x1 = x3 then x2 = x4 ++ x5
+  N_ENDPOINT_EQ,
+  // Given two normal forms with constant endpoints, infers a conflict if the
+  // endpoints do not agree. For example:
+  //   If "abc" ++ ... = "bc" ++ ... then conflict
+  N_CONST,
   // infer empty, for example:
   //     (~) x = ""
   // This is inferred when we encounter an x such that x = "" rewrites to a
   // constant. This inference is used for instance when we otherwise would have
   // split on the emptiness of x but the rewriter tells us the emptiness of x
   // can be inferred.
-  INFER_INFER_EMP = 1,
+  INFER_EMP,
   // string split constant propagation, for example:
   //     x = y, x = "abc", y = y1 ++ "b" ++ y2
   //       implies y1 = "a" ++ y1'
-  INFER_SSPLIT_CST_PROP,
+  SSPLIT_CST_PROP,
   // string split variable propagation, for example:
   //     x = y, x = x1 ++ x2, y = y1 ++ y2, len( x1 ) >= len( y1 )
   //       implies x1 = y1 ++ x1'
   // This is inspired by Zheng et al CAV 2015.
-  INFER_SSPLIT_VAR_PROP,
+  SSPLIT_VAR_PROP,
   // length split, for example:
   //     len( x1 ) = len( y1 ) V len( x1 ) != len( y1 )
   // This is inferred when e.g. x = y, x = x1 ++ x2, y = y1 ++ y2.
-  INFER_LEN_SPLIT,
+  LEN_SPLIT,
   // length split empty, for example:
   //     z = "" V z != ""
   // This is inferred when, e.g. x = y, x = z ++ x1, y = y1 ++ z
-  INFER_LEN_SPLIT_EMP,
+  LEN_SPLIT_EMP,
   // string split constant
   //    x = y, x = "c" ++ x2, y = y1 ++ y2, y1 != ""
   //      implies y1 = "c" ++ y1'
   // This is a special case of F-Split in Figure 5 of Liang et al CAV 2014.
-  INFER_SSPLIT_CST,
+  SSPLIT_CST,
   // string split variable, for example:
   //    x = y, x = x1 ++ x2, y = y1 ++ y2
   //      implies x1 = y1 ++ x1' V y1 = x1 ++ y1'
   // This is rule F-Split in Figure 5 of Liang et al CAV 2014.
-  INFER_SSPLIT_VAR,
+  SSPLIT_VAR,
   // flat form loop, for example:
   //    x = y, x = x1 ++ z, y = z ++ y2
   //      implies z = u2 ++ u1, u in ( u1 ++ u2 )*, x1 = u2 ++ u, y2 = u ++ u1
   //        for fresh u, u1, u2.
   // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
-  INFER_FLOOP,
+  FLOOP,
+  NONE,
 };
+
+/**
+ * Converts an inference to a string. Note: This function is also used in
+ * `safe_print()`. Changing this functions name or signature will result in
+ * `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
+ *
+ * @param i The inference
+ * @return The name of the inference
+ */
+const char* toString(Inference i);
+
+/**
+ * Writes an inference name to a stream.
+ *
+ * @param out The stream to write to
+ * @param i The inference to write to the stream
+ * @return The stream
+ */
 std::ostream& operator<<(std::ostream& out, Inference i);
 
 /**
