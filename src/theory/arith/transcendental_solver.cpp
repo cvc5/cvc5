@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file transcendental_extension.cpp
+/*! \file transcendental_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of extension for handling of transcendental functions.
+ ** \brief Implementation of solver for handling transcendental functions.
  **/
 
-#include "theory/arith/transcendental_extension.h"
+#include "theory/arith/transcendental_solver.h"
 
 #include <cmath>
 #include <set>
@@ -30,7 +30,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-TranscendentalExtension::TranscendentalExtension(NlModel& m) : d_model(m)
+TranscendentalSolver::TranscendentalSolver(NlModel& m) : d_model(m)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -44,9 +44,9 @@ TranscendentalExtension::TranscendentalExtension(NlModel& m) : d_model(m)
   d_taylor_degree = options::nlExtTfTaylorDegree();
 }
 
-TranscendentalExtension::~TranscendentalExtension() {}
+TranscendentalSolver::~TranscendentalSolver() {}
 
-void TranscendentalExtension::initLastCall(
+void TranscendentalSolver::initLastCall(
     const std::vector<Node>& assertions,
     const std::vector<Node>& false_asserts,
     const std::vector<Node>& xts,
@@ -237,7 +237,7 @@ void TranscendentalExtension::initLastCall(
   }
 }
 
-bool TranscendentalExtension::preprocessAssertionsCheckModel(
+bool TranscendentalSolver::preprocessAssertionsCheckModel(
     std::vector<Node>& assertions)
 {
   std::vector<Node> pvars;
@@ -327,13 +327,13 @@ bool TranscendentalExtension::preprocessAssertionsCheckModel(
   return true;
 }
 
-void TranscendentalExtension::incrementTaylorDegree() { d_taylor_degree++; }
-unsigned TranscendentalExtension::getTaylorDegree() const
+void TranscendentalSolver::incrementTaylorDegree() { d_taylor_degree++; }
+unsigned TranscendentalSolver::getTaylorDegree() const
 {
   return d_taylor_degree;
 }
 
-void TranscendentalExtension::processSideEffect(const NlLemmaSideEffect& se)
+void TranscendentalSolver::processSideEffect(const NlLemmaSideEffect& se)
 {
   for (const std::tuple<Node, unsigned, Node>& sp : se.d_secantPoint)
   {
@@ -344,7 +344,7 @@ void TranscendentalExtension::processSideEffect(const NlLemmaSideEffect& se)
   }
 }
 
-void TranscendentalExtension::mkPi()
+void TranscendentalSolver::mkPi()
 {
   NodeManager* nm = NodeManager::currentNM();
   if (d_pi.isNull())
@@ -362,7 +362,7 @@ void TranscendentalExtension::mkPi()
   }
 }
 
-void TranscendentalExtension::getCurrentPiBounds(std::vector<Node>& lemmas)
+void TranscendentalSolver::getCurrentPiBounds(std::vector<Node>& lemmas)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node pi_lem = nm->mkNode(AND,
@@ -371,7 +371,7 @@ void TranscendentalExtension::getCurrentPiBounds(std::vector<Node>& lemmas)
   lemmas.push_back(pi_lem);
 }
 
-std::vector<Node> TranscendentalExtension::checkTranscendentalInitialRefine()
+std::vector<Node> TranscendentalSolver::checkTranscendentalInitialRefine()
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> lemmas;
@@ -462,7 +462,7 @@ std::vector<Node> TranscendentalExtension::checkTranscendentalInitialRefine()
   return lemmas;
 }
 
-std::vector<Node> TranscendentalExtension::checkTranscendentalMonotonic()
+std::vector<Node> TranscendentalSolver::checkTranscendentalMonotonic()
 {
   std::vector<Node> lemmas;
   Trace("nl-ext") << "Get monotonicity lemmas for transcendental functions..."
@@ -644,7 +644,7 @@ std::vector<Node> TranscendentalExtension::checkTranscendentalMonotonic()
   return lemmas;
 }
 
-std::vector<Node> TranscendentalExtension::checkTranscendentalTangentPlanes(
+std::vector<Node> TranscendentalSolver::checkTranscendentalTangentPlanes(
     std::map<Node, NlLemmaSideEffect>& lemSE)
 {
   std::vector<Node> lemmas;
@@ -700,7 +700,7 @@ std::vector<Node> TranscendentalExtension::checkTranscendentalTangentPlanes(
   return lemmas;
 }
 
-bool TranscendentalExtension::checkTfTangentPlanesFun(
+bool TranscendentalSolver::checkTfTangentPlanesFun(
     Node tf,
     unsigned d,
     std::vector<Node>& lemmas,
@@ -1028,7 +1028,7 @@ bool TranscendentalExtension::checkTfTangentPlanesFun(
   return true;
 }
 
-int TranscendentalExtension::regionToMonotonicityDir(Kind k, int region)
+int TranscendentalSolver::regionToMonotonicityDir(Kind k, int region)
 {
   if (k == EXPONENTIAL)
   {
@@ -1051,7 +1051,7 @@ int TranscendentalExtension::regionToMonotonicityDir(Kind k, int region)
   return 0;
 }
 
-int TranscendentalExtension::regionToConcavity(Kind k, int region)
+int TranscendentalSolver::regionToConcavity(Kind k, int region)
 {
   if (k == EXPONENTIAL)
   {
@@ -1074,7 +1074,7 @@ int TranscendentalExtension::regionToConcavity(Kind k, int region)
   return 0;
 }
 
-Node TranscendentalExtension::regionToLowerBound(Kind k, int region)
+Node TranscendentalSolver::regionToLowerBound(Kind k, int region)
 {
   if (k == SINE)
   {
@@ -1098,7 +1098,7 @@ Node TranscendentalExtension::regionToLowerBound(Kind k, int region)
   return Node::null();
 }
 
-Node TranscendentalExtension::regionToUpperBound(Kind k, int region)
+Node TranscendentalSolver::regionToUpperBound(Kind k, int region)
 {
   if (k == SINE)
   {
@@ -1122,7 +1122,7 @@ Node TranscendentalExtension::regionToUpperBound(Kind k, int region)
   return Node::null();
 }
 
-Node TranscendentalExtension::getDerivative(Node n, Node x)
+Node TranscendentalSolver::getDerivative(Node n, Node x)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(x.isVar());
@@ -1208,7 +1208,7 @@ Node TranscendentalExtension::getDerivative(Node n, Node x)
   return Node::null();
 }
 
-std::pair<Node, Node> TranscendentalExtension::getTaylor(Node fa, unsigned n)
+std::pair<Node, Node> TranscendentalSolver::getTaylor(Node fa, unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(n > 0);
@@ -1316,7 +1316,7 @@ std::pair<Node, Node> TranscendentalExtension::getTaylor(Node fa, unsigned n)
   return std::pair<Node, Node>(taylor_sum, taylor_rem);
 }
 
-void TranscendentalExtension::getPolynomialApproximationBounds(
+void TranscendentalSolver::getPolynomialApproximationBounds(
     Kind k, unsigned d, std::vector<Node>& pbounds)
 {
   if (d_poly_bounds[k][d].empty())
@@ -1377,7 +1377,7 @@ void TranscendentalExtension::getPolynomialApproximationBounds(
   }
 }
 
-void TranscendentalExtension::getPolynomialApproximationBoundForArg(
+void TranscendentalSolver::getPolynomialApproximationBoundForArg(
     Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
 {
   getPolynomialApproximationBounds(k, d, pbounds);
@@ -1419,7 +1419,7 @@ void TranscendentalExtension::getPolynomialApproximationBoundForArg(
   }
 }
 
-std::pair<Node, Node> TranscendentalExtension::getTfModelBounds(Node tf,
+std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
                                                                 unsigned d)
 {
   // compute the model value of the argument
@@ -1465,7 +1465,7 @@ std::pair<Node, Node> TranscendentalExtension::getTfModelBounds(Node tf,
   return std::pair<Node, Node>(bounds[0], bounds[1]);
 }
 
-Node TranscendentalExtension::mkValidPhase(Node a, Node pi)
+Node TranscendentalSolver::mkValidPhase(Node a, Node pi)
 {
   return mkBounded(
       NodeManager::currentNM()->mkNode(MULT, mkRationalNode(-1), pi), a, pi);

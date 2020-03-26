@@ -37,7 +37,7 @@
 #include "theory/arith/nl_lemma_utils.h"
 #include "theory/arith/nl_model.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/transcendental_extension.h"
+#include "theory/arith/transcendental_solver.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -478,7 +478,7 @@ class NonlinearExtension {
    * This is the subsolver responsible for running the procedure for
    * transcendental functions.
    */
-  TranscendentalExtension d_trExt;
+  TranscendentalSolver d_trSlv;
   /**
    * The lemmas we computed during collectModelInfo. We store two vectors of
    * lemmas to be sent out on the output channel of TheoryArith. The first

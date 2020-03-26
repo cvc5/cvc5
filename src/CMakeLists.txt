@@ -317,8 +317,8 @@ libcvc4_add_sources(
   theory/arith/theory_arith_private.h
   theory/arith/theory_arith_private_forward.h
   theory/arith/theory_arith_type_rules.h
-  theory/arith/transcendental_extension.cpp
-  theory/arith/transcendental_extension.h
+  theory/arith/transcendental_solver.cpp
+  theory/arith/transcendental_solver.h
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h

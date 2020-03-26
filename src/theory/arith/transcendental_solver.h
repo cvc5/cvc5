@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file transcendental_extension.h
+/*! \file transcendental_solver.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,11 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Extension for handling of transcendental functions.
+ ** \brief Solving for handling transcendental functions.
  **/
 
-#ifndef CVC4__THEORY__ARITH__TRANSCENDENTAL_EXTENSION_H
-#define CVC4__THEORY__ARITH__TRANSCENDENTAL_EXTENSION_H
+#ifndef CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H
+#define CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H
 
 #include <map>
 #include <unordered_map>
@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-/** Transcendental extension class
+/** Transcendental solver class
  *
  * This class implements model-based refinement schemes
  * for transcendental functions, described in:
@@ -40,11 +40,11 @@ namespace arith {
  * It's main functionality are methods that implement lemma schemas below,
  * which return a set of lemmas that should be sent on the output channel.
  */
-class TranscendentalExtension
+class TranscendentalSolver
 {
  public:
-  TranscendentalExtension(NlModel& m);
-  ~TranscendentalExtension();
+  TranscendentalSolver(NlModel& m);
+  ~TranscendentalSolver();
 
   /** init last call
    */
@@ -410,10 +410,10 @@ class TranscendentalExtension
   Node d_pi_neg;
   /** the concrete lower and upper bounds for PI */
   Node d_pi_bound[2];
-}; /* class TranscendentalExtension */
+}; /* class TranscendentalSolver */
 
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__ARITH__TRANSCENDENTAL_EXTENSION_H */
+#endif /* CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */
