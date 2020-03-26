@@ -58,10 +58,10 @@ class TranscendentalExtension
   /** get taylor degree */
   unsigned getTaylorDegree() const;
   /** preprocess assertions check model
-   * 
+   *
    * This modifies the given assertions in preparation for running a call
-   * to check model. 
-   * 
+   * to check model.
+   *
    * This method returns false if a bound for a transcendental function
    * was conflicting.
    */

@@ -237,7 +237,8 @@ void TranscendentalExtension::initLastCall(
   }
 }
 
-bool TranscendentalExtension::preprocessAssertionsCheckModel(std::vector<Node>& assertions)
+bool TranscendentalExtension::preprocessAssertionsCheckModel(
+    std::vector<Node>& assertions)
 {
   std::vector<Node> pvars;
   std::vector<Node> psubs;
@@ -250,7 +251,7 @@ bool TranscendentalExtension::preprocessAssertionsCheckModel(std::vector<Node>& 
   // initialize representation of assertions
   std::vector<Node> passertions;
   for (const Node& a : assertions)
-  
+
   {
     Node pa = a;
     if (!pvars.empty())
