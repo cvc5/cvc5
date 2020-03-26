@@ -58,7 +58,7 @@ Node makeStandardModelConstant(const std::vector<unsigned>& vec,
   }
   return NodeManager::currentNM()->mkConst(String(mvec));
 }
-  
+
 WordIter::WordIter(uint32_t startLength) : d_hasEndLength(false), d_endLength(0)
 {
   for (uint32_t i = 0; i < startLength; i++)

@@ -46,7 +46,7 @@ namespace strings {
  */
 Node makeStandardModelConstant(const std::vector<unsigned>& vec,
                                uint32_t cardinality);
-  
+
 /**
  * Generic iteration over vectors of indices of a given start/end length.
  */

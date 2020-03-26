@@ -558,7 +558,7 @@ void SolverBlack::testMkString()
   TS_ASSERT_EQUALS(d_solver->mkString("asdf\\nasdf").toString(),
                    "\"asdf\\\\nasdf\"");
   TS_ASSERT_NOT_EQUALS(d_solver->mkString("asdf\\nasdf", true).toString(),
-                   "\"asdf\\nasdf\"");
+                       "\"asdf\\nasdf\"");
 }
 
 void SolverBlack::testMkTerm()
