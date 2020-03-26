@@ -44,7 +44,7 @@ class SequencesStatistics
   IntStat d_conflictsInfer;
   //--------------- end of conflicts
   //--------------- lemmas, partition of calls to OutputChannel::lemma
-  /** Number of lemmass added due to eager preprocessing */
+  /** Number of lemmas added due to eager preprocessing */
   IntStat d_lemmasEagerPreproc;
   /** Number of collect model info splits */
   IntStat d_lemmasCmiSplit;
