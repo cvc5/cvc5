@@ -52,7 +52,7 @@ class SequencesStatistics
   IntStat d_lemmasRegisterTerm;
   /** Number of lemmas added due to registering atomic terms */
   IntStat d_lemmasRegisterTermAtomic;
-  /** Number of lemmass added due to inferences */
+  /** Number of lemmas added due to inferences */
   IntStat d_lemmasInfer;
   //--------------- end of lemmas
 };
