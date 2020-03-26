@@ -46,12 +46,11 @@ TranscendentalSolver::TranscendentalSolver(NlModel& m) : d_model(m)
 
 TranscendentalSolver::~TranscendentalSolver() {}
 
-void TranscendentalSolver::initLastCall(
-    const std::vector<Node>& assertions,
-    const std::vector<Node>& false_asserts,
-    const std::vector<Node>& xts,
-    std::vector<Node>& lems,
-    std::vector<Node>& lemsPp)
+void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
+                                        const std::vector<Node>& false_asserts,
+                                        const std::vector<Node>& xts,
+                                        std::vector<Node>& lems,
+                                        std::vector<Node>& lemsPp)
 {
   d_funcCongClass.clear();
   d_funcMap.clear();
@@ -1420,7 +1419,7 @@ void TranscendentalSolver::getPolynomialApproximationBoundForArg(
 }
 
 std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
-                                                                unsigned d)
+                                                             unsigned d)
 {
   // compute the model value of the argument
   Node c = d_model.computeAbstractModelValue(tf[0]);
