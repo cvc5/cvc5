@@ -35,7 +35,7 @@ NodeDfsIterator::NodeDfsIterator(bool postorder)
 NodeDfsIterator& NodeDfsIterator::operator++()
 {
   // If we were just constructed, advance to first visit, **before**
-  // advancing past it to the enxt visit (below).
+  // advancing past it to the next visit (below).
   initializeIfUninitialized();
 
   // Advance to the next visit
