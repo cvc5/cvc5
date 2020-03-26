@@ -232,11 +232,10 @@ void getRegexpComponents(Node r, std::vector<Node>& result)
   }
   else if (r.getKind() == STRING_TO_REGEXP && r[0].isConst())
   {
-    String s = r[0].getConst<String>();
-    for (size_t i = 0, size = s.size(); i < size; i++)
+    size_t rlen = Word::getLength(r[0]);
+    for (size_t i = 0; i < rlen; i++)
     {
-      result.push_back(
-          nm->mkNode(STRING_TO_REGEXP, nm->mkConst(s.substr(i, 1))));
+      result.push_back(nm->mkNode(STRING_TO_REGEXP, Word::substr(r[0], i, 1)));
     }
   }
   else
