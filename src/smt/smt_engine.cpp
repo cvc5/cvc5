@@ -5014,8 +5014,7 @@ void SmtEngine::checkInterpol(Expr a)
 	{
 		itpChecker.assertFormula(a);
 		Assert(!d_interpolConj.isNull());
-		Expr negGoal = d_interpolConj.negate();
-		itpChecker.assertFormula(negGoal);
+		itpChecker.assertFormula(d_interpolConj);
 	}
 	Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
 		<< ": check the assertions" << std::endl;
