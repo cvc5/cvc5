@@ -1692,7 +1692,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     // right
     Node sk_w = d_skCache.mkSkolem("w_loop");
     Node sk_y = d_skCache.mkSkolem("y_loop");
-    d_im.registerLength(sk_y, LENGTH_GEQ_ONE);
+    d_im.registerTermAtomic(sk_y, LENGTH_GEQ_ONE);
     Node sk_z = d_skCache.mkSkolem("z_loop");
     // t1 * ... * tn = y * z
     Node conc1 = t_yz.eqNode(utils::mkNConcat(sk_y, sk_z));
@@ -1803,7 +1803,7 @@ void CoreSolver::processDeq( Node ni, Node nj ) {
                 {
                   Node sk = d_skCache.mkSkolemCached(
                       nconst_k, SkolemCache::SK_ID_DC_SPT, "dc_spt");
-                  d_im.registerLength(sk, LENGTH_ONE);
+                  d_im.registerTermAtomic(sk, LENGTH_ONE);
                   Node skr =
                       d_skCache.mkSkolemCached(nconst_k,
                                                 SkolemCache::SK_ID_DC_SPT_REM,
@@ -1852,7 +1852,7 @@ void CoreSolver::processDeq( Node ni, Node nj ) {
                   i, j, SkolemCache::SK_ID_DEQ_Y, "y_dsplit");
               Node sk3 = d_skCache.mkSkolemCached(
                   i, j, SkolemCache::SK_ID_DEQ_Z, "z_dsplit");
-              d_im.registerLength(sk3, LENGTH_GEQ_ONE);
+              d_im.registerTermAtomic(sk3, LENGTH_GEQ_ONE);
               Node lsk1 = utils::mkNLength(sk1);
               conc.push_back( lsk1.eqNode( li ) );
               Node lsk2 = utils::mkNLength(sk2);
@@ -2209,7 +2209,7 @@ void CoreSolver::doInferInfo(const InferInfo& ii)
   {
     for (const Node& n : sks.second)
     {
-      d_im.registerLength(n, sks.first);
+      d_im.registerTermAtomic(n, sks.first);
     }
   }
 }

@@ -69,7 +69,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       d_notify(*this),
-      d_equalityEngine(d_notify, c, "theory::strings", true),
+      d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, d_equalityEngine, d_valuation),
       d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
       d_pregistered_terms_cache(u),
@@ -85,8 +85,15 @@ TheoryStrings::TheoryStrings(context::Context* c,
 {
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
-  d_esolver.reset(new ExtfSolver(
-      c, u, d_state, d_im, d_sk_cache, d_bsolver, d_csolver, extt));
+  d_esolver.reset(new ExtfSolver(c,
+                                 u,
+                                 d_state,
+                                 d_im,
+                                 d_sk_cache,
+                                 d_bsolver,
+                                 d_csolver,
+                                 extt,
+                                 d_statistics));
   d_rsolver.reset(new RegExpSolver(*this, d_state, d_im, *d_esolver, c, u));
 
   // The kinds we are treating as function application in congruence
@@ -464,6 +471,7 @@ bool TheoryStrings::collectModelInfoType(
               for (const Node& sl : len_splits)
               {
                 Node spl = nm->mkNode(OR, sl, sl.negate());
+                ++(d_statistics.d_lemmasCmiSplit);
                 d_out->lemma(spl);
               }
               return false;
@@ -779,6 +787,7 @@ void TheoryStrings::conflict(TNode a, TNode b){
     Node conflictNode;
     conflictNode = explain( a.eqNode(b) );
     Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode << std::endl;
+    ++(d_statistics.d_conflictsEqEngine);
     d_out->conflict( conflictNode );
   }
 }
@@ -947,6 +956,7 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
       d_state.setConflict();
       Trace("strings-conflict")
           << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
+      ++(d_statistics.d_conflictsEagerPrefix);
       d_out->conflict(conflictNode);
     }
   }
@@ -1078,12 +1088,13 @@ void TheoryStrings::registerTerm(Node n, int effort)
   NodeManager* nm = NodeManager::currentNM();
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
+  Node regTermLem;
   if (tn.isStringLike())
   {
     // register length information:
     //  for variables, split on empty vs positive length
     //  for concat/const/replace, introduce proxy var and state length relation
-    d_im.registerLength(n);
+    regTermLem = d_im.registerTerm(n);
   }
   else if (n.getKind() == STRING_TO_CODE)
   {
@@ -1095,20 +1106,22 @@ void TheoryStrings::registerTerm(Node n, int effort)
         AND,
         nm->mkNode(GEQ, n, d_zero),
         nm->mkNode(LT, n, nm->mkConst(Rational(CVC4::String::num_codes()))));
-    Node lem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
-    Trace("strings-lemma") << "Strings::Lemma CODE : " << lem << std::endl;
-    Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
-    d_out->lemma(lem);
+    regTermLem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
   else if (n.getKind() == STRING_STRIDOF)
   {
     Node len = utils::mkNLength(n[0]);
-    Node lem = nm->mkNode(AND,
-                          nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
-                          nm->mkNode(LEQ, n, len));
-    Trace("strings-lemma") << "Strings::Lemma IDOF range : " << lem
+    regTermLem = nm->mkNode(AND,
+                            nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
+                            nm->mkNode(LEQ, n, len));
+  }
+  if (!regTermLem.isNull())
+  {
+    Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem
                            << std::endl;
-    d_out->lemma(lem);
+    Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
+    ++(d_statistics.d_lemmasRegisterTerm);
+    d_out->lemma(regTermLem);
   }
 }
 
@@ -1153,6 +1166,7 @@ Node TheoryStrings::ppRewrite(TNode atom) {
       Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
       for( unsigned i=0; i<new_nodes.size(); i++ ){
         Trace("strings-ppr") << "    lemma : " << new_nodes[i] << std::endl;
+        ++(d_statistics.d_lemmasEagerPreproc);
         d_out->lemma( new_nodes[i] );
       }
       return ret;
