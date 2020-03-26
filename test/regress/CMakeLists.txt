@@ -2387,7 +2387,7 @@ set(regression_disabled_tests
   regress1/sygus/array_search_2.sy
   regress1/sygus/array_sum_2_5.sy
   regress1/sygus/crcy-si-rcons.sy
-  # currently slow
+  # currently slow at c9fd28a
   regress1/sygus/issue3580.sy
   regress2/arith/arith-int-098.cvc
   regress2/arith/miplib-opt1217--27.smt2
