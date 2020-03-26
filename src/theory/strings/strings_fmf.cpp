@@ -40,7 +40,7 @@ StringsFmf::~StringsFmf() {}
 
 void StringsFmf::preRegisterTerm(TNode n)
 {
-  if (!n.getType().isString())
+  if (!n.getType().isStringLike())
   {
     return;
   }
