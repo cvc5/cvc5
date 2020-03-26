@@ -69,7 +69,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //length is positive
     Node c3 = nm->mkNode(GT, m, d_zero);
     Node cond = nm->mkNode(AND, c1, c2, c3);
-    
+
     Node emp = Word::mkEmptyWord(t.getType());
 
     Node sk1 = n == d_zero ? emp
@@ -243,8 +243,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node nonneg = nm->mkNode(GEQ, n, d_zero);
 
     Node emp = Word::mkEmptyWord(t.getType());
-    lem = nm->mkNode(
-        ITE, nonneg, nm->mkNode(AND, conc), itost.eqNode(emp));
+    lem = nm->mkNode(ITE, nonneg, nm->mkNode(AND, conc), itost.eqNode(emp));
     new_nodes.push_back(lem);
     // assert:
     // IF n>=0
@@ -484,8 +483,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // x, and Us( i ) is the result of processing the remainder after processing
     // the i^th occurrence of y in x.
     Node emp = Word::mkEmptyWord(t.getType());
-    Node assert = nm->mkNode(
-        ITE, y.eqNode(emp), rpaw.eqNode(x), nm->mkNode(AND, lem));
+    Node assert =
+        nm->mkNode(ITE, y.eqNode(emp), rpaw.eqNode(x), nm->mkNode(AND, lem));
     new_nodes.push_back(assert);
 
     // Thus, replaceall( x, y, z ) = rpaw

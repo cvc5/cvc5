@@ -79,7 +79,7 @@ size_t Word::getLength(TNode x)
 std::vector<Node> Word::getChars(TNode x)
 {
   Kind k = x.getKind();
-  if (k==CONST_STRING)
+  if (k == CONST_STRING)
   {
     std::vector<Node> ret;
     NodeManager* nm = NodeManager::currentNM();
@@ -101,12 +101,12 @@ std::vector<Node> Word::getChars(TNode x)
 
 Node Word::getChar(TNode x, std::size_t i)
 {
-  Assert( i<getLength(x));
+  Assert(i < getLength(x));
   Kind k = x.getKind();
-  if (k==CONST_STRING)
+  if (k == CONST_STRING)
   {
     const std::vector<unsigned>& cvec = x.getConst<String>().getVec();
-    std::vector<unsigned> ccVec = { cvec[i] };
+    std::vector<unsigned> ccVec = {cvec[i]};
     return NodeManager::currentNM()->mkConst(String(ccVec));
   }
   Unimplemented();
