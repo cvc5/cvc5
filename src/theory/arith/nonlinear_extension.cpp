@@ -719,7 +719,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
   std::vector<Node> passertions = assertions;
 
-  // add current bounds to model
+  // preprocess the assertions with the trancendental solver
   if (!d_trExt.preprocessAssertionsCheckModel(passertions))
   {
     return false;

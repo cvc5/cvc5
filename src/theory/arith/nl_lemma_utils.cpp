@@ -44,6 +44,20 @@ unsigned SortNonlinearDegree::getDegree(Node n) const
   return it->second;
 }
 
+Node ArgTrie::add(Node d, const std::vector<Node>& args)
+{
+  ArgTrie* at = this;
+  for (const Node& a : args)
+  {
+    at = &(at->d_children[a]);
+  }
+  if (at->d_data.isNull())
+  {
+    at->d_data = d;
+  }
+  return at->d_data;
+}
+  
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

@@ -95,19 +95,7 @@ class ArgTrie
    * Set d as the data on the node whose path is [args], return either d if
    * that node has no data, or the data that already occurs there.
    */
-  Node add(Node d, const std::vector<Node>& args)
-  {
-    ArgTrie* at = this;
-    for (const Node& a : args)
-    {
-      at = &(at->d_children[a]);
-    }
-    if (at->d_data.isNull())
-    {
-      at->d_data = d;
-    }
-    return at->d_data;
-  }
+  Node add(Node d, const std::vector<Node>& args);
 };
 
 }  // namespace arith
