@@ -708,7 +708,8 @@ void TheoryStrings::check(Effort e) {
         Trace("strings-eqc") << (t==0 ? "STRINGS:" : "OTHER:") << std::endl;
         while( !eqcs2_i.isFinished() ){
           Node eqc = (*eqcs2_i);
-          bool print = (t==0 && eqc.getType().isString() ) || (t==1 && !eqc.getType().isString() );
+          bool print = (t == 0 && eqc.getType().isStringLike())
+                       || (t == 1 && !eqc.getType().isStringLike());
           if (print) {
             eq::EqClassIterator eqc2_i = eq::EqClassIterator( eqc, &d_equalityEngine );
             Trace("strings-eqc") << "Eqc( " << eqc << " ) : { ";
@@ -881,7 +882,9 @@ void TheoryStrings::addCarePairs(TNodeTrie* t1,
 void TheoryStrings::computeCareGraph(){
   //computing the care graph here is probably still necessary, due to operators that take non-string arguments  TODO: verify
   Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Build term indices..." << std::endl;
-  std::map<Node, TNodeTrie> index;
+  // Term index for each (type, operator) pair. We require the operator here
+  // since operators are polymorphic, taking strings/sequences.
+  std::map<std::pair<TypeNode, Node>, TNodeTrie> index;
   std::map< Node, unsigned > arity;
   unsigned functionTerms = d_functionsTerms.size();
   for (unsigned i = 0; i < functionTerms; ++ i) {
@@ -897,16 +900,19 @@ void TheoryStrings::computeCareGraph(){
       }
     }
     if( has_trigger_arg ){
-      index[op].addTerm( f1, reps );
+      TypeNode ft = utils::getOwnerStringType(f1);
+      std::pair<TypeNode, Node> ikey = std::pair<TypeNode, Node>(ft, op);
+      index[ikey].addTerm(f1, reps);
       arity[op] = reps.size();
     }
   }
   //for each index
-  for (std::pair<const Node, TNodeTrie>& tt : index)
+  for (std::pair<const std::pair<TypeNode, Node>, TNodeTrie>& ti : index)
   {
     Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Process index "
-                        << tt.first << "..." << std::endl;
-    addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
+                        << ti.first << "..." << std::endl;
+    Node op = ti.first.second;
+    addCarePairs(&ti.second, nullptr, arity[op], 0);
   }
 }
 
@@ -916,7 +922,9 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   if( atom.getKind()==kind::EQUAL ){
     Trace("strings-pending-debug") << "  Register term" << std::endl;
     for( unsigned j=0; j<2; j++ ) {
-      if( !d_equalityEngine.hasTerm( atom[j] ) && atom[j].getType().isString() ) {
+      if (!d_equalityEngine.hasTerm(atom[j])
+          && atom[j].getType().isStringLike())
+      {
         registerTerm( atom[j], 0 );
       }
     }
@@ -1057,7 +1065,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
 {
   TypeNode tn = n.getType();
   bool do_register = true;
-  if (!tn.isString())
+  if (!tn.isStringLike())
   {
     if (options::stringEagerLen())
     {
@@ -1081,7 +1089,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
   Node regTermLem;
-  if (tn.isString())
+  if (tn.isStringLike())
   {
     // register length information:
     //  for variables, split on empty vs positive length

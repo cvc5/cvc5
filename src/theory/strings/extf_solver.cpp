@@ -646,7 +646,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
   {
     return c;
   }
-  else if (effort >= 1 && n.getType().isString())
+  else if (effort >= 1 && n.getType().isStringLike())
   {
     Assert(effort < 3);
     // normal forms

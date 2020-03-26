@@ -19,7 +19,9 @@
 
 #include <map>
 #include <vector>
+
 #include "expr/node.h"
+#include "util/safe_print.h"
 
 namespace CVC4 {
 namespace theory {
@@ -94,6 +96,25 @@ enum class Inference : uint32_t
   FLOOP,
   NONE,
 };
+
+/**
+ * Converts an inference to a string. Note: This function is also used in
+ * `safe_print()`. Changing this functions name or signature will result in
+ * `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
+ *
+ * @param i The inference
+ * @return The name of the inference
+ */
+const char* toString(Inference i);
+
+/**
+ * Writes an inference name to a stream.
+ *
+ * @param out The stream to write to
+ * @param i The inference to write to the stream
+ * @return The stream
+ */
 std::ostream& operator<<(std::ostream& out, Inference i);
 
 /**
