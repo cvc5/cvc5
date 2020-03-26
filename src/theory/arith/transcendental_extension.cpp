@@ -156,10 +156,6 @@ void TranscendentalExtension::initLastCall(
       d_funcMap[ak].push_back(a);
       d_funcCongClass[a].push_back(a);
     }
-    else
-    {
-      Assert(false);
-    }
   }
   // initialize pi if necessary
   if (needPi && d_pi.isNull())
