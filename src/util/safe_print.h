@@ -21,6 +21,11 @@
  ** in statistics_registry.h would require specialization or we would have to
  ** use function overloading).
  **
+ ** If there exists a function `toString(obj)` for a given object, it will be
+ ** used automatically. This is useful for printing enum values for example.
+ ** IMPORTANT: The `toString(obj)` function *must not* perform any allocations
+ ** or call other functions that are not async-signal-safe.
+ **
  ** This header is a "cvc4_private_library.h" header because it is private but
  ** the safe_print functions are used in the driver. See also the description
  ** of "statistics_registry.h" for more information on
@@ -41,6 +46,9 @@
 
 #include <unistd.h>
 
+#include <cstring>
+#include <type_traits>
+
 #include "lib/clock_gettime.h"
 #include "util/result.h"
 
@@ -58,10 +66,51 @@ void CVC4_PUBLIC safe_print(int fd, const char (&msg)[N]) {
   }
 }
 
-/** Prints a variable of type T. Safe to use in a signal handler. */
+/**
+ * The default method for converting an object to a string for safe printing.
+ * This method simply returns "<unsupported>". The `long` argument is used to
+ * indicate that we do not prefer this method over the version that calls
+ * `toString()`.
+ */
 template <typename T>
-void CVC4_PUBLIC safe_print(int fd, const T& msg) {
-  safe_print(fd, "<unsupported>");
+const char* toStringImpl(const T& obj, long)
+{
+  return "<unsupported>";
+}
+
+/**
+ * Returns the result of calling `toString(obj)`. This method is only defined
+ * if such an overload of `toString()` exists. To detect the existence of such
+ * a method, we use SFINAE and a trailing return type. The trailing return type
+ * is necessary because it allows us to refer to `obj`. The `int` argument is
+ * used to prefer this version of the function instead of the one that prints
+ * "<unsupported>".
+ */
+template <typename T>
+auto toStringImpl(const T& obj, int) -> decltype(toString(obj))
+{
+  return toString(obj);
+}
+
+/**
+ * Prints a variable of type T. Safe to use in a signal handler. The default
+ * implementation either prints "<unsupported>" or the result of calling
+ * `toString(obj)` if such a method exists (this is useful for printing enum
+ * values for example without implementing a template specialization here).
+ *
+ * @param fd The file descriptor to print to
+ * @param obj The object to print
+ */
+template <typename T>
+void CVC4_PUBLIC safe_print(int fd, const T& obj)
+{
+  const char* s =
+      toStringImpl(obj, /* prefer the method that uses `toString()` */ 0);
+  ssize_t slen = static_cast<ssize_t>(strlen(s));
+  if (write(fd, s, slen) != slen)
+  {
+    abort();
+  }
 }
 
 template <>
