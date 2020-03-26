@@ -213,8 +213,8 @@ class InferenceManager
   /** register term
    *
    * This method is called on non-constant string terms n. It returns a lemma
-   * that ensures that the length n satisfies its assigned status (given by
-   * argument s), or null if no lemma is necessary.
+   * that should be sent on the output channel of theory of strings upon
+   * registration of this term, or null if no lemma is necessary.
    *
    * If n is an atomic term, the method registerTermAtomic is called for n
    * and s = LENGTH_SPLIT and no lemma is returned.
