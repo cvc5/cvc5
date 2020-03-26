@@ -257,8 +257,7 @@ class Result:
         if "(incomplete)" in name:
             incomplete = True
             name = name.replace("(incomplete)", "").strip()
-        # assert name in {"sat", "unsat", "valid", "invalid", "unknown"}, \
-        #     "can't interpret result = {}".format(name)
+        assert name in {"sat", "unsat", "valid", "invalid", "unknown"}
 
         self._name = name
         self._explanation = explanation
@@ -280,8 +279,8 @@ class Result:
 
         return self._name == other._name
 
-    # def __ne__(self, other):
-    #     return not self.__eq__(other)
+    def __ne__(self, other):
+        return not self == other
 
     def __str__(self):
         return self._name
