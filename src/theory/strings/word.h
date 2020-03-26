@@ -49,13 +49,6 @@ class Word
    */
   static std::vector<Node> getChars(TNode x);
 
-  /** Get character at index
-   *
-   * Given word x, this returns the vector of words of length one whose
-   * concatenation is equivalent to x.
-   */
-  static Node getChar(TNode x, std::size_t i);
-
   /** Return true if x is empty */
   static bool isEmpty(TNode x);
 

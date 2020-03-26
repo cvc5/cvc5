@@ -99,20 +99,6 @@ std::vector<Node> Word::getChars(TNode x)
   return ret;
 }
 
-Node Word::getChar(TNode x, std::size_t i)
-{
-  Assert(i < getLength(x));
-  Kind k = x.getKind();
-  if (k == CONST_STRING)
-  {
-    const std::vector<unsigned>& cvec = x.getConst<String>().getVec();
-    std::vector<unsigned> ccVec = {cvec[i]};
-    return NodeManager::currentNM()->mkConst(String(ccVec));
-  }
-  Unimplemented();
-  return Node::null();
-}
-
 bool Word::isEmpty(TNode x) { return getLength(x) == 0; }
 
 bool Word::strncmp(TNode x, TNode y, std::size_t n)
