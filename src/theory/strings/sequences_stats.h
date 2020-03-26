@@ -48,7 +48,7 @@ class SequencesStatistics
   IntStat d_lemmasEagerPreproc;
   /** Number of collect model info splits */
   IntStat d_lemmasCmiSplit;
-  /** Number of lemmass added due to registering terms */
+  /** Number of lemmas added due to registering terms */
   IntStat d_lemmasRegisterTerm;
   /** Number of lemmas added due to registering atomic terms */
   IntStat d_lemmasRegisterTermAtomic;
