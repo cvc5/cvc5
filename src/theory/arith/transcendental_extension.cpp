@@ -237,24 +237,33 @@ void TranscendentalExtension::initLastCall(
   }
 }
 
-void TranscendentalExtension::getModelSubsitution(std::vector<Node>& vars,
-                                                  std::vector<Node>& subs) const
+bool TranscendentalExtension::preprocessAssertionsCheckModel(std::vector<Node>& assertions)
 {
+  std::vector<Node> pvars;
+  std::vector<Node> psubs;
   for (const std::pair<const Node, Node>& tb : d_trMaster)
   {
-    vars.push_back(tb.first);
-    subs.push_back(tb.second);
+    pvars.push_back(tb.first);
+    psubs.push_back(tb.second);
   }
-}
 
-void TranscendentalExtension::incrementTaylorDegree() { d_taylor_degree++; }
-unsigned TranscendentalExtension::getTaylorDegree() const
-{
-  return d_taylor_degree;
-}
-
-bool TranscendentalExtension::addCurrentBoundsToModel()
-{
+  // initialize representation of assertions
+  std::vector<Node> passertions;
+  for (const Node& a : assertions)
+  
+  {
+    Node pa = a;
+    if (!pvars.empty())
+    {
+      pa = arithSubstitute(pa, pvars, psubs);
+      pa = Rewriter::rewrite(pa);
+    }
+    if (!pa.isConst() || !pa.getConst<bool>())
+    {
+      Trace("nl-ext-cm-assert") << "- assert : " << pa << std::endl;
+      passertions.push_back(pa);
+    }
+  }
   // get model bounds for all transcendental functions
   Trace("nl-ext-cm") << "----- Get bounds for transcendental functions..."
                      << std::endl;
@@ -312,7 +321,15 @@ bool TranscendentalExtension::addCurrentBoundsToModel()
       }
     }
   }
+  // replace the assertions
+  assertions = passertions;
   return true;
+}
+
+void TranscendentalExtension::incrementTaylorDegree() { d_taylor_degree++; }
+unsigned TranscendentalExtension::getTaylorDegree() const
+{
+  return d_taylor_degree;
 }
 
 void TranscendentalExtension::processSideEffect(const NlLemmaSideEffect& se)

@@ -57,9 +57,15 @@ class TranscendentalExtension
   void incrementTaylorDegree();
   /** get taylor degree */
   unsigned getTaylorDegree() const;
-  void getModelSubsitution(std::vector<Node>& vars,
-                           std::vector<Node>& subs) const;
-  bool addCurrentBoundsToModel();
+  /** preprocess assertions check model
+   * 
+   * This modifies the given assertions in preparation for running a call
+   * to check model. 
+   * 
+   * This method returns false if a bound for a transcendental function
+   * was conflicting.
+   */
+  bool preprocessAssertionsCheckModel(std::vector<Node>& assertions);
   /** Process side effect se */
   void processSideEffect(const NlLemmaSideEffect& se);
   //-------------------------------------------- lemma schemas

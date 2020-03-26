@@ -717,29 +717,10 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 
   // get the presubstitution
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
-  std::vector<Node> pvars;
-  std::vector<Node> psubs;
-  d_trExt.getModelSubsitution(pvars, psubs);
-
-  // initialize representation of assertions
-  std::vector<Node> passertions;
-  for (const Node& a : assertions)
-  {
-    Node pa = a;
-    if (!pvars.empty())
-    {
-      pa = arithSubstitute(pa, pvars, psubs);
-      pa = Rewriter::rewrite(pa);
-    }
-    if (!pa.isConst() || !pa.getConst<bool>())
-    {
-      Trace("nl-ext-cm-assert") << "- assert : " << pa << std::endl;
-      passertions.push_back(pa);
-    }
-  }
+  std::vector<Node> passertions = assertions;
 
   // add current bounds to model
-  if (!d_trExt.addCurrentBoundsToModel())
+  if (!d_trExt.preprocessAssertionsCheckModel(passertions))
   {
     return false;
   }
