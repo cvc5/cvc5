@@ -34,11 +34,11 @@ NodeDfsIterator::NodeDfsIterator(bool postorder)
 
 NodeDfsIterator& NodeDfsIterator::operator++()
 {
-  // If we were just constructed, advance to first visit
+  // If we were just constructed, advance to first visit, **before**
+  // advancing past it to the enxt visit (below).
   initializeIfUninitialized();
 
-  // Void our current visit, and advance to the next one
-  d_current = TNode();
+  // Advance to the next visit
   advanceToNextVisit();
   return *this;
 }
@@ -110,6 +110,9 @@ void NodeDfsIterator::advanceToNextVisit()
       return;
     }
   }
+  // We're at the end of the traversal: nullify the current node to agree
+  // with the "end" iterator.
+  d_current = TNode();
 }
 
 void NodeDfsIterator::initializeIfUninitialized()
