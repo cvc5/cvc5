@@ -263,6 +263,36 @@ void printConcatTrace(std::vector<Node>& n, const char* c)
   Trace(c) << ss.str();
 }
 
+bool isStringKind(Kind k)
+{
+  return k == STRING_STOI || k == STRING_ITOS || k == STRING_TOLOWER
+         || k == STRING_TOUPPER || k == STRING_LEQ || k == STRING_LT
+         || k == STRING_FROM_CODE || k == STRING_TO_CODE;
+}
+
+TypeNode getOwnerStringType(Node n)
+{
+  TypeNode tn;
+  Kind k = n.getKind();
+  if (k == STRING_STRIDOF || k == STRING_LENGTH || k == STRING_STRCTN
+      || k == STRING_PREFIX || k == STRING_SUFFIX)
+  {
+    // owning string type is the type of first argument
+    tn = n[0].getType();
+  }
+  else if (isStringKind(k))
+  {
+    tn = NodeManager::currentNM()->stringType();
+  }
+  else
+  {
+    tn = n.getType();
+  }
+  AlwaysAssert(tn.isStringLike())
+      << "Unexpected term in getOwnerStringType : " << n << ", type " << tn;
+  return tn;
+}
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

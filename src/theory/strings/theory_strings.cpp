@@ -873,7 +873,9 @@ void TheoryStrings::addCarePairs(TNodeTrie* t1,
 void TheoryStrings::computeCareGraph(){
   //computing the care graph here is probably still necessary, due to operators that take non-string arguments  TODO: verify
   Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Build term indices..." << std::endl;
-  std::map<Node, TNodeTrie> index;
+  // Term index for each (type, operator) pair. We require the operator here
+  // since operators are polymorphic, taking strings/sequences.
+  std::map<std::pair<TypeNode, Node>, TNodeTrie> index;
   std::map< Node, unsigned > arity;
   unsigned functionTerms = d_functionsTerms.size();
   for (unsigned i = 0; i < functionTerms; ++ i) {
@@ -889,16 +891,19 @@ void TheoryStrings::computeCareGraph(){
       }
     }
     if( has_trigger_arg ){
-      index[op].addTerm( f1, reps );
+      TypeNode ft = utils::getOwnerStringType(f1);
+      std::pair<TypeNode, Node> ikey = std::pair<TypeNode, Node>(ft, op);
+      index[ikey].addTerm(f1, reps);
       arity[op] = reps.size();
     }
   }
   //for each index
-  for (std::pair<const Node, TNodeTrie>& tt : index)
+  for (std::pair<const std::pair<TypeNode, Node>, TNodeTrie>& ti : index)
   {
     Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Process index "
-                        << tt.first << "..." << std::endl;
-    addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
+                        << ti.first << "..." << std::endl;
+    Node op = ti.first.second;
+    addCarePairs(&ti.second, nullptr, arity[op], 0);
   }
 }
 
