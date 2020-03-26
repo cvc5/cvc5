@@ -50,7 +50,7 @@ class SequencesStatistics
   IntStat d_lemmasCmiSplit;
   /** Number of lemmass added due to registering terms */
   IntStat d_lemmasRegisterTerm;
-  /** Number of lemmass added due to registering atomic terms */
+  /** Number of lemmas added due to registering atomic terms */
   IntStat d_lemmasRegisterTermAtomic;
   /** Number of lemmass added due to inferences */
   IntStat d_lemmasInfer;
