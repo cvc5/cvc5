@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file regexp.h
+/*! \file string.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Tianyi Liang
@@ -9,16 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** \brief The string data type.
  **/
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__REGEXP_H
-#define CVC4__REGEXP_H
+#ifndef CVC4__UTIL__STRING_H
+#define CVC4__UTIL__STRING_H
 
 #include <cstddef>
 #include <functional>
@@ -271,4 +268,4 @@ std::ostream& operator<<(std::ostream& os, const String& s) CVC4_PUBLIC;
 
 }  // namespace CVC4
 
-#endif /* CVC4__REGEXP_H */
+#endif /* CVC4__UTIL__STRING_H */

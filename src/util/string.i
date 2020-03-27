@@ -1,5 +1,5 @@
 %{
-#include "util/regexp.h"
+#include "util/string.h"
 %}
 
 %rename(CVC4String) String;
@@ -21,5 +21,5 @@
 %ignore CVC4::operator<<(std::ostream&, const String&);
 
 %apply int &OUTPUT { int &c };
-%include "util/regexp.h"
+%include "util/string.h"
 %clear int &c;
