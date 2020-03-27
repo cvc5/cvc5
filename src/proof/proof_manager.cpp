@@ -140,7 +140,8 @@ SkolemizationManager* ProofManager::getSkolemizationManager() {
   return &(currentPM()->d_skolemizationManager);
 }
 
-void ProofManager::initSatProof(Minisat::Solver* solver) {
+void ProofManager::initSatProof(Minisat::Solver* solver)
+{
   Assert(d_format == LFSC);
   // Destroy old instance before initializing new one to avoid issues with
   // registering stats
@@ -149,7 +150,8 @@ void ProofManager::initSatProof(Minisat::Solver* solver) {
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
-                                context::Context* ctx) {
+                                context::Context* ctx)
+{
   Assert(d_satProof != nullptr);
   Assert(d_format == LFSC);
 
@@ -172,7 +174,8 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
   d_cnfProof->popCurrentDefinition();
 }
 
-void ProofManager::initTheoryProofEngine() {
+void ProofManager::initTheoryProofEngine()
+{
   Assert(d_theoryProof == NULL);
   Assert(d_format == LFSC);
   d_theoryProof.reset(new LFSCTheoryProofEngine());
