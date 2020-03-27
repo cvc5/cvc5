@@ -2,6 +2,7 @@ import sys
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 
+from libcpp.deque cimport deque
 from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.vector cimport vector
@@ -37,11 +38,11 @@ from cvc4kinds cimport Kind as c_Kind
 #### only use default args of None at python level
 #### Result class can have default because it's pure python
 
-### IMPORTANT: __iter__ implementations
+### IMPORTANT: -Wshadow warnings
 #### It appears that a regular generator (using yield) implementation for __iter__
 #### produces generated code that gives a -Wshadow warning which we are trying to
 #### avoid in CVC4. Thus, see one of the existing implementations which carefully
-#### avoids this by implementing iter with __next__ as well.
+#### avoids this by implementing iter without using yield
 #### Here is a list of other things observed to cause this warning
 #### - collections.deque
 #### - using format on types other than strings or ints
@@ -86,22 +87,7 @@ cdef class Datatype:
             dc = DatatypeConstructor()
             dc.cdc = ci
             cdc_iter.append(dc)
-
-        if cdc_iter:
-            ret = cdc_iter[0]
-            del cdc_iter[0]
-            self.cdc_iter = cdc_iter
-            return ret
-        else:
-            raise StopIteration
-
-    def __next__(self):
-        if not self.cdc_iter:
-            raise StopIteration
-        else:
-            ret = self.cdc_iter[0]
-            del self.cdc_iter[0]
-            return ret
+        return cdc_iter.__iter__()
 
 
 cdef class DatatypeConstructor:
@@ -136,22 +122,7 @@ cdef class DatatypeConstructor:
             ds = DatatypeSelector()
             ds.cds = ci
             cds_iter.append(ds)
-
-        if cds_iter:
-            ret = cds_iter[0]
-            del cds_iter[0]
-            self.cds_iter = cds_iter
-            return ret
-        else:
-            raise StopIteration
-
-    def __next__(self):
-        if not self.cds_iter:
-            raise StopIteration
-        else:
-            ret = self.cds_iter[0]
-            del self.cds_iter[0]
-            return ret
+        return cds_iter.__iter__()
 
 
 cdef class DatatypeConstructorDecl:
@@ -1104,6 +1075,7 @@ cdef class Sort:
 
 cdef class Term:
     cdef c_Term cterm
+    # cdef deque[c_Term] children
     def __cinit__(self):
         # cterm always set in the Solver object
         pass
@@ -1126,22 +1098,7 @@ cdef class Term:
             term = Term()
             term.cterm = ci
             children.append(term)
-
-        if children:
-            ret = children[0]
-            del children[0]
-            self.children = children
-            return ret
-        else:
-            raise StopIteration
-
-    def __next__(self):
-        if not self.children:
-            raise StopIteration
-        else:
-            ret = self.children[0]
-            del self.children[0]
-            return ret
+        return children.__iter__()
 
     def getKind(self):
         return kind(<int> self.cterm.getKind())
