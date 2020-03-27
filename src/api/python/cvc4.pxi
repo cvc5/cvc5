@@ -674,14 +674,14 @@ cdef class Solver:
         term.cterm = self.csolver.mkUninterpretedConst(sort.csort, index)
         return term
 
-    # def mkAbstractValue(self, index):
-    #     cdef Term term = Term()
-    #     try:
-    #         term.cterm = self.csolver.mkAbstractValue(str(index).encode())
-    #     except:
-    #         raise ValueError("mkAbstractValue expects a str representing a number"
-    #                          " or an int, but got{}".format(index))
-    #     return term
+    def mkAbstractValue(self, index):
+        cdef Term term = Term()
+        try:
+            term.cterm = self.csolver.mkAbstractValue(str(index).encode())
+        except:
+            raise ValueError("mkAbstractValue expects a str representing a number"
+                             " or an int, but got " + str(index))
+        return term
 
     def mkFloatingPoint(self, int exp, int sig, Term val):
         cdef Term term = Term()
@@ -706,49 +706,46 @@ cdef class Solver:
                                             (<str?> symbol).encode())
         return term
 
-    # def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
-    #     cdef DatatypeDecl dd = DatatypeDecl()
-    #     cdef vector[c_Sort] v
+    def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
+        cdef DatatypeDecl dd = DatatypeDecl()
+        cdef vector[c_Sort] v
 
-    #     # argument cases
-    #     if sorts_or_bool is None and isCoDatatype is None:
-    #         dd.cdd = self.csolver.mkDatatypeDecl(name.encode())
-    #     elif sorts_or_bool is not None and isCoDatatype is None:
-    #         if isinstance(sorts_or_bool, bool):
-    #             dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
-    #                                                  <bint> sorts_or_bool)
-    #         elif isinstance(sorts_or_bool, Sort):
-    #             dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
-    #                                                  (<Sort> sorts_or_bool).csort)
-    #         elif isinstance(sorts_or_bool, list):
-    #             for s in sorts_or_bool:
-    #                 v.push_back((<Sort?> s).csort)
-    #             dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
-    #                                                  <const vector[c_Sort]&> v)
-    #         else:
-    #             raise ValueError("Unhandled second argument type {}"
-    #                              .format(type(sorts_or_bool)))
-    #     elif sorts_or_bool is not None and isCoDatatype is not None:
-    #         if isinstance(sorts_or_bool, Sort):
-    #             dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
-    #                                                  (<Sort> sorts_or_bool).csort,
-    #                                                  <bint> isCoDatatype)
-    #         elif isinstance(sorts_or_bool, list):
-    #             for s in sorts_or_bool:
-    #                 v.push_back((<Sort?> s).csort)
-    #             dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
-    #                                                  <const vector[c_Sort]&> v,
-    #                                                  <bint> isCoDatatype)
-    #         else:
-    #             raise ValueError("Unhandled second argument type {}"
-    #                              .format(type(sorts_or_bool)))
-    #     else:
-    #         raise ValueError("Can't create DatatypeDecl with {}".format([type(a)
-    #                                                                      for a in [name,
-    #                                                                                sorts_or_bool,
-    #                                                                                isCoDatatype]]))
+        # argument cases
+        if sorts_or_bool is None and isCoDatatype is None:
+            dd.cdd = self.csolver.mkDatatypeDecl(name.encode())
+        elif sorts_or_bool is not None and isCoDatatype is None:
+            if isinstance(sorts_or_bool, bool):
+                dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
+                                                     <bint> sorts_or_bool)
+            elif isinstance(sorts_or_bool, Sort):
+                dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
+                                                     (<Sort> sorts_or_bool).csort)
+            elif isinstance(sorts_or_bool, list):
+                for s in sorts_or_bool:
+                    v.push_back((<Sort?> s).csort)
+                dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
+                                                     <const vector[c_Sort]&> v)
+            else:
+                raise ValueError("Unhandled second argument type " + str(type(sorts_or_bool)))
+        elif sorts_or_bool is not None and isCoDatatype is not None:
+            if isinstance(sorts_or_bool, Sort):
+                dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
+                                                     (<Sort> sorts_or_bool).csort,
+                                                     <bint> isCoDatatype)
+            elif isinstance(sorts_or_bool, list):
+                for s in sorts_or_bool:
+                    v.push_back((<Sort?> s).csort)
+                dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
+                                                     <const vector[c_Sort]&> v,
+                                                     <bint> isCoDatatype)
+            else:
+                raise ValueError("Unhandled second argument type " + str(type(sorts_or_bool)))
+        else:
+            raise ValueError("Can't create DatatypeDecl with {}, {}, {}".format(str(type(name)),
+                                                                                str(type(sorts_or_bool)),
+                                                                                str(type(isCoDatatype))))
 
-    #     return dd
+        return dd
 
     def simplify(self, Term t):
         cdef Term term = Term()
