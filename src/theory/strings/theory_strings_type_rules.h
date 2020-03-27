@@ -299,7 +299,7 @@ public:
           throw TypeCheckingExceptionPrivate(n, "expecting a single constant string term in regexp range");
         }
         unsigned ci = (*it).getConst<String>().front();
-        ch[i] = String::convertUnsignedIntToCode(ci);
+        ch[i] = ci;
         ++it;
       }
       if(ch[0] > ch[1]) {

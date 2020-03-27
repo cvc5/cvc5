@@ -203,6 +203,8 @@ class CVC4_PUBLIC SmtEngine
    * --sygus-abduct.
    */
   void setIsInternalSubsolver();
+  /** Is this an internal subsolver? */
+  bool isInternalSubsolver() const;
 
   /** set the input name */
   void setFilename(std::string filename);
@@ -937,12 +939,6 @@ class CVC4_PUBLIC SmtEngine
    * not permitted to change after assertions and queries are made).
    */
   void finalOptionsAreSet();
-
-  /**
-   * Apply heuristics settings and other defaults.  Done once, at
-   * finishInit() time.
-   */
-  void setDefaults();
 
   /**
    * Sets that the problem has been extended. This sets the smt mode of the

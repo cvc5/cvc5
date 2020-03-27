@@ -22,14 +22,42 @@ namespace theory {
 namespace strings {
 
 SequencesStatistics::SequencesStatistics()
-    : d_inferences("theory::strings::inferences")
+    : d_inferences("theory::strings::inferences"),
+      d_reductions("theory::strings::reductions"),
+      d_conflictsEqEngine("theory::strings::conflictsEqEngine", 0),
+      d_conflictsEagerPrefix("theory::strings::conflictsEagerPrefix", 0),
+      d_conflictsInfer("theory::strings::conflictsInfer", 0),
+      d_lemmasEagerPreproc("theory::strings::lemmasEagerPreproc", 0),
+      d_lemmasCmiSplit("theory::strings::lemmasCmiSplit", 0),
+      d_lemmasRegisterTerm("theory::strings::lemmasRegisterTerm", 0),
+      d_lemmasRegisterTermAtomic("theory::strings::lemmasRegisterTermAtomic",
+                                 0),
+      d_lemmasInfer("theory::strings::lemmasInfer", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_inferences);
+  smtStatisticsRegistry()->registerStat(&d_reductions);
+  smtStatisticsRegistry()->registerStat(&d_conflictsEqEngine);
+  smtStatisticsRegistry()->registerStat(&d_conflictsEagerPrefix);
+  smtStatisticsRegistry()->registerStat(&d_conflictsInfer);
+  smtStatisticsRegistry()->registerStat(&d_lemmasEagerPreproc);
+  smtStatisticsRegistry()->registerStat(&d_lemmasCmiSplit);
+  smtStatisticsRegistry()->registerStat(&d_lemmasRegisterTerm);
+  smtStatisticsRegistry()->registerStat(&d_lemmasRegisterTermAtomic);
+  smtStatisticsRegistry()->registerStat(&d_lemmasInfer);
 }
 
 SequencesStatistics::~SequencesStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_inferences);
+  smtStatisticsRegistry()->unregisterStat(&d_reductions);
+  smtStatisticsRegistry()->unregisterStat(&d_conflictsEqEngine);
+  smtStatisticsRegistry()->unregisterStat(&d_conflictsEagerPrefix);
+  smtStatisticsRegistry()->unregisterStat(&d_conflictsInfer);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmasEagerPreproc);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmasCmiSplit);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmasRegisterTerm);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmasRegisterTermAtomic);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmasInfer);
 }
 
 }
