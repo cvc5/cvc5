@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of note traversal iterators.
+ ** \brief Black box testing of node traversal iterators.
  **/
 
 #include <cxxtest/TestSuite.h>
