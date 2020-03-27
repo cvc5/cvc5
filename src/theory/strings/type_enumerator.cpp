@@ -21,6 +21,44 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+Node makeStandardModelConstant(const std::vector<unsigned>& vec,
+                               uint32_t cardinality)
+{
+  std::vector<unsigned> mvec;
+  // if we contain all of the printable characters
+  if (cardinality >= 255)
+  {
+    for (unsigned i = 0, vsize = vec.size(); i < vsize; i++)
+    {
+      unsigned curr = vec[i];
+      // convert
+      Assert(vec[i] < cardinality);
+      if (vec[i] <= 61)
+      {
+        // first 62 printable characters [\u{65}-\u{126}]: 'A', 'B', 'C', ...
+        curr = vec[i] + 65;
+      }
+      else if (vec[i] <= 94)
+      {
+        // remaining 33 printable characters [\u{32}-\u{64}]: ' ', '!', '"', ...
+        curr = vec[i] - 30;
+      }
+      else
+      {
+        // the remaining characters, starting with \u{127} and wrapping around
+        // the first 32 non-printable characters.
+        curr = (vec[i] + 32) % cardinality;
+      }
+      mvec.push_back(curr);
+    }
+  }
+  else
+  {
+    mvec = vec;
+  }
+  return NodeManager::currentNM()->mkConst(String(mvec));
+}
+
 WordIter::WordIter(uint32_t startLength) : d_hasEndLength(false), d_endLength(0)
 {
   for (uint32_t i = 0; i < startLength; i++)
@@ -117,7 +155,7 @@ bool StringEnumLen::increment()
 
 void StringEnumLen::mkCurr()
 {
-  d_curr = NodeManager::currentNM()->mkConst(String(d_witer->getData()));
+  d_curr = makeStandardModelConstant(d_witer->getData(), d_cardinality);
 }
 
 StringEnumerator::StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep)

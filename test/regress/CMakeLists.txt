@@ -358,6 +358,7 @@ set(regress_0_tests
   regress0/bv/fuzz40.smtv1.smt2
   regress0/bv/fuzz41.smtv1.smt2
   regress0/bv/issue3621.smt2
+  regress0/bv/int_to_bv_err_on_demand_1.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
@@ -921,6 +922,7 @@ set(regress_0_tests
   regress0/strings/escchar.smt2
   regress0/strings/escchar_25.smt2
   regress0/strings/from_code.smt2
+  regress0/strings/gen-esc-seq.smt2
   regress0/strings/hconst-092618.smt2
   regress0/strings/idof-rewrites.smt2
   regress0/strings/idof-sem.smt2
@@ -938,6 +940,8 @@ set(regress_0_tests
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
   regress0/strings/model001.smt2
+  regress0/strings/model-code-point.smt2
+  regress0/strings/model-friendly.smt2
   regress0/strings/ncontrib-rewrites.smt2
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
@@ -966,6 +970,7 @@ set(regress_0_tests
   regress0/strings/tolower-rrs.smt2
   regress0/strings/tolower-simple.smt2
   regress0/strings/type001.smt2
+  regress0/strings/unicode-esc.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
   regress0/sygus/General_plus10.sy
@@ -1302,6 +1307,8 @@ set(regress_1_tests
   regress1/ho/fta0328.lfho.p
   regress1/ho/issue3136-fconst-bool-bool.smt2
   regress1/ho/issue4065-no-rep.smt2
+  regress1/ho/issue4092-sinf.smt2
+  regress1/ho/issue4134-sinf.smt2
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/NUM638^1.smt2
@@ -1500,6 +1507,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3765.smt2
   regress1/quantifiers/issue3765-quant-dd.smt2
   regress1/quantifiers/issue4021-ind-opts.smt2
+  regress1/quantifiers/issue4062-cegqi-aux.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1853,7 +1861,6 @@ set(regress_1_tests
   regress1/sygus/issue3498.smt2
   regress1/sygus/issue3514.smt2
   regress1/sygus/issue3507.smt2
-  regress1/sygus/issue3580.sy
   regress1/sygus/issue3633.smt2
   regress1/sygus/issue3634.smt2
   regress1/sygus/issue3635.smt2
@@ -1867,6 +1874,7 @@ set(regress_1_tests
   regress1/sygus/issue3995-fmf-var-op.smt2
   regress1/sygus/issue4009-qep.smt2
   regress1/sygus/issue4025-no-rlv-cond.smt2
+  regress1/sygus/issue4083-var-shadow.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -2383,6 +2391,8 @@ set(regression_disabled_tests
   regress1/sygus/array_search_2.sy
   regress1/sygus/array_sum_2_5.sy
   regress1/sygus/crcy-si-rcons.sy
+  # currently slow at c9fd28a
+  regress1/sygus/issue3580.sy
   regress2/arith/arith-int-098.cvc
   regress2/arith/miplib-opt1217--27.smt2
   regress2/arith/miplib-pp08a-3000.smt2

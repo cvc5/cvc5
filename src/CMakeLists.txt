@@ -236,6 +236,8 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/set_defaults.cpp
+  smt/set_defaults.h
   smt/smt_engine.cpp
   smt/smt_engine.h
   smt/smt_engine_scope.cpp
@@ -681,6 +683,8 @@ libcvc4_add_sources(
   theory/strings/regexp_solver.h
   theory/strings/sequences_rewriter.cpp
   theory/strings/sequences_rewriter.h
+  theory/strings/sequences_stats.cpp
+  theory/strings/sequences_stats.h
   theory/strings/skolem_cache.cpp
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp

@@ -31,8 +31,10 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess(SkolemCache *sc, context::UserContext *u)
-    : d_sc(sc)
+StringsPreprocess::StringsPreprocess(SkolemCache* sc,
+                                     context::UserContext* u,
+                                     SequencesStatistics& stats)
+    : d_sc(sc), d_statistics(stats)
 {
   //Constants
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
@@ -637,6 +639,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
         Trace("strings-preprocess") << "   " << new_nodes[i] << std::endl;
       }
     }
+    d_statistics.d_reductions << t.getKind();
   }
   else
   {

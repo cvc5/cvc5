@@ -218,16 +218,21 @@ class CoreSolver
    * current normal form for each term in this equivalence class is identical.
    * If it is not, then we add an inference via sendInference and abort the
    * call.
+   *
+   * stype is the string-like type of the equivalence class we are processing.
    */
-  void normalizeEquivalenceClass(Node n);
+  void normalizeEquivalenceClass(Node n, TypeNode stype);
   /**
    * For each term in the equivalence class of eqc, this adds data regarding its
    * normal form to normal_forms. The map term_to_nf_index maps terms to the
    * index in normal_forms where their normal form data is located.
+   *
+   * stype is the string-like type of the equivalence class we are processing.
    */
   void getNormalForms(Node eqc,
                       std::vector<NormalForm>& normal_forms,
-                      std::map<Node, unsigned>& term_to_nf_index);
+                      std::map<Node, unsigned>& term_to_nf_index,
+                      TypeNode stype);
   /** process normalize equivalence class
    *
    * This is called when an equivalence class contains a set of terms that
@@ -240,8 +245,10 @@ class CoreSolver
    * corresponding to processing the normal form pair in the (forward, reverse)
    * directions. Once all possible inferences are recorded, it executes the
    * one with highest priority based on the enumeration type Inference.
+   *
+   * stype is the string-like type of the equivalence class we are processing.
    */
-  void processNEqc(std::vector<NormalForm>& normal_forms);
+  void processNEqc(std::vector<NormalForm>& normal_forms, TypeNode stype);
   /** process simple normal equality
    *
    * This method is called when two equal terms have normal forms nfi and nfj.
@@ -265,13 +272,16 @@ class CoreSolver
    *   fowards/backwards traversals of normal forms to ensure that duplicate
    *   inferences are not processed.
    * pinfer: the set of possible inferences we add to.
+   *
+   * stype is the string-like type of the equivalence class we are processing.
    */
   void processSimpleNEq(NormalForm& nfi,
                         NormalForm& nfj,
                         unsigned& index,
                         bool isRev,
                         unsigned rproc,
-                        std::vector<InferInfo>& pinfer);
+                        std::vector<InferInfo>& pinfer,
+                        TypeNode stype);
   //--------------------------end for checkNormalFormsEq
 
   //--------------------------for checkNormalFormsEq with loops
@@ -325,7 +335,6 @@ class CoreSolver
   /** reference to the base solver, used for certain queries */
   BaseSolver& d_bsolver;
   /** Commonly used constants */
-  Node d_emptyString;
   Node d_true;
   Node d_false;
   Node d_zero;

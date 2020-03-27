@@ -202,7 +202,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
 
     case kind::CONST_STRING: {
-      std::string s = n.getConst<String>().toString(true);
+      std::string s = n.getConst<String>().toString();
       out << '"';
       for(size_t i = 0; i < s.size(); ++i) {
         char c = s[i];

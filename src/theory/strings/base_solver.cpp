@@ -253,7 +253,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
   if (!n.isNull())
   {
     // construct the constant
-    Node c = utils::mkNConcat(vecc);
+    Node c = utils::mkNConcat(vecc, n.getType());
     if (!d_state.areEqual(n, c))
     {
       if (Trace.isOn("strings-debug"))

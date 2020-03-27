@@ -44,6 +44,20 @@ struct intToBV_stack_element
   intToBV_stack_element(TNode node) : d_node(node), d_children_added(false) {}
 }; /* struct intToBV_stack_element */
 
+bool childrenTypesChanged(Node n, NodeMap& cache) {
+  bool result = false;
+  for (Node child : n) {
+    TypeNode originalType = child.getType();
+    TypeNode newType = cache[child].getType();
+    if (! newType.isSubtypeOf(originalType)) {
+      result = true;
+      break;
+    }
+  }
+  return result;
+}
+
+
 Node intToBVMakeBinary(TNode n, NodeMap& cache)
 {
   // Do a topological sort of the subexpressions and substitute them
@@ -84,6 +98,10 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       else
       {
         NodeBuilder<> builder(current.getKind());
+        if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+          builder << current.getOperator();
+        }
+
         for (unsigned i = 0; i < current.getNumChildren(); ++i)
         {
           Assert(cache.find(current[i]) != cache.end());
@@ -203,13 +221,12 @@ Node intToBV(TNode n, NodeMap& cache)
           case kind::EQUAL:
           case kind::ITE: break;
           default:
-            if (Theory::theoryOf(current) == THEORY_BOOL)
-            {
-              break;
-            }
-            throw TypeCheckingException(
+            if (childrenTypesChanged(current, cache)) {
+              throw TypeCheckingException(
                 current.toExpr(),
                 string("Cannot translate to BV: ") + current.toString());
+            }
+            break;
         }
         for (unsigned i = 0; i < children.size(); ++i)
         {
@@ -229,6 +246,9 @@ Node intToBV(TNode n, NodeMap& cache)
         }
       }
       NodeBuilder<> builder(newKind);
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        builder << current.getOperator();
+      }
       for (unsigned i = 0; i < children.size(); ++i)
       {
         builder << children[i];
@@ -271,10 +291,6 @@ Node intToBV(TNode n, NodeMap& cache)
                                   nm->mkBitVectorType(size),
                                   "Variable introduced in intToBV pass");
           }
-          else
-          {
-            AlwaysAssert(current.getType() == nm->booleanType());
-          }
         }
         else if (current.isConst())
         {
@@ -283,25 +299,21 @@ Node intToBV(TNode n, NodeMap& cache)
             case kind::CONST_RATIONAL:
             {
               Rational constant = current.getConst<Rational>();
-              AlwaysAssert(constant.isIntegral());
-              AlwaysAssert(constant >= 0);
-              BitVector bv(size, constant.getNumerator());
-              if (bv.toSignedInteger() != constant.getNumerator())
-              {
-                throw TypeCheckingException(
-                    current.toExpr(),
-                    string("Not enough bits for constant in intToBV: ")
-                        + current.toString());
+              if (constant.isIntegral()) {
+                AlwaysAssert(constant >= 0);
+                BitVector bv(size, constant.getNumerator());
+                if (bv.toSignedInteger() != constant.getNumerator())
+                {
+                  throw TypeCheckingException(
+                      current.toExpr(),
+                      string("Not enough bits for constant in intToBV: ")
+                          + current.toString());
+                }
+                result = nm->mkConst(bv);
               }
-              result = nm->mkConst(bv);
               break;
             }
-            case kind::CONST_BOOLEAN: break;
-            default:
-              throw TypeCheckingException(
-                  current.toExpr(),
-                  string("Cannot translate const to BV: ")
-                      + current.toString());
+            default: break;
           }
         }
         else
@@ -325,7 +337,7 @@ IntToBV::IntToBV(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult IntToBV::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  unordered_map<Node, Node, NodeHashFunction> cache;
+  NodeMap cache;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     assertionsToPreprocess->replace(

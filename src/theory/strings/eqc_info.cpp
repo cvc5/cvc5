@@ -15,6 +15,7 @@
 #include "theory/strings/eqc_info.h"
 
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -44,13 +45,13 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
                                        << " post=" << isSuf << std::endl;
     Node prevC = utils::getConstantEndpoint(prev, isSuf);
     Assert(!prevC.isNull());
-    Assert(prevC.getKind() == CONST_STRING);
+    Assert(prevC.isConst());
     if (c.isNull())
     {
       c = utils::getConstantEndpoint(t, isSuf);
       Assert(!c.isNull());
     }
-    Assert(c.getKind() == CONST_STRING);
+    Assert(c.isConst());
     bool conflict = false;
     // if the constant prefixes are different
     if (c != prevC)
@@ -59,10 +60,8 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
       Assert(!t.isConst() || !prev.isConst());
       Trace("strings-eager-pconf-debug")
           << "Check conflict constants " << prevC << ", " << c << std::endl;
-      const String& ps = prevC.getConst<String>();
-      const String& cs = c.getConst<String>();
-      unsigned pvs = ps.size();
-      unsigned cvs = cs.size();
+      size_t pvs = Word::getLength(prevC);
+      size_t cvs = Word::getLength(c);
       if (pvs == cvs || (pvs > cvs && t.isConst())
           || (cvs > pvs && prev.isConst()))
       {
@@ -73,15 +72,15 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
       }
       else
       {
-        const String& larges = pvs > cvs ? ps : cs;
-        const String& smalls = pvs > cvs ? cs : ps;
+        Node larges = pvs > cvs ? prevC : c;
+        Node smalls = pvs > cvs ? c : prevC;
         if (isSuf)
         {
-          conflict = !larges.hasSuffix(smalls);
+          conflict = !Word::hasSuffix(larges, smalls);
         }
         else
         {
-          conflict = !larges.hasPrefix(smalls);
+          conflict = !Word::hasPrefix(larges, smalls);
         }
       }
       if (!conflict && (pvs > cvs || prev.isConst()))

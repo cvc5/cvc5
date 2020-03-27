@@ -401,7 +401,28 @@ Node BVToInt::bvToInt(Node n)
                   d_nm->mkNode(kind::MINUS, mult, multSig);
               d_rangeAssertions.insert(
                   mkRangeConstraint(d_bvToIntCache[current], bvsize));
-              d_rangeAssertions.insert(mkRangeConstraint(sigma, bvsize));
+              if (translated_children[0].isConst()
+                  || translated_children[1].isConst())
+              {
+                /*
+                 * based on equation (23), section 3.2.3 of:
+                 * Bozzano et al.
+                 * Encoding RTL Constructs for MathSAT: a Preliminary Report.
+                 */
+                // this is an optimization when one of the children is constant
+                Node c = translated_children[0].isConst()
+                             ? translated_children[0]
+                             : translated_children[1];
+                d_rangeAssertions.insert(
+                    d_nm->mkNode(kind::LEQ, d_zero, sigma));
+                // the value of sigma is bounded by (c - 1)
+                // where c is the constant multiplicand
+                d_rangeAssertions.insert(d_nm->mkNode(kind::LT, sigma, c));
+              }
+              else
+              {
+                d_rangeAssertions.insert(mkRangeConstraint(sigma, bvsize));
+              }
               break;
             }
             case kind::BITVECTOR_UDIV_TOTAL:
