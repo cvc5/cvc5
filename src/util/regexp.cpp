@@ -277,7 +277,10 @@ std::size_t String::roverlap(const String &y) const {
 std::string String::toString(bool useEscSequences) const {
   std::stringstream str;
   for (unsigned int i = 0; i < size(); ++i) {
-    if (isPrintable(d_str[i]) && !useEscSequences)
+    // we always print forward slash as a code point so that it cannot
+    // be interpreted as specifying part of a code point, e.g. the string 
+    // '\' + 'u' + '0' of length three.
+    if (isPrintable(d_str[i]) && d_str[i]!='\\' && !useEscSequences)
     {
       str << static_cast<char>(d_str[i]);
     }
