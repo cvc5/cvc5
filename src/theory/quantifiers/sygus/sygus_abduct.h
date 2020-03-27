@@ -80,9 +80,9 @@ Node mkAbductionConjecture(const std::string& name,
                                   const std::vector<Node>& axioms,
                                   TypeNode abdGType);
 
+}  // namespace sygus_abduct
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
-}  // namespace sygus_abduct
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H */
