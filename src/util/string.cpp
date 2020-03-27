@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of the string data type
+ ** \brief Implementation of the string data type.
  **/
 
 #include "util/string.h"
