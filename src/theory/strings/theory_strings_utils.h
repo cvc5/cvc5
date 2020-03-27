@@ -161,7 +161,6 @@ unsigned getLoopHigh(TNode node);
 /* Get the lower index of given extract node. */
 unsigned getLoopLow(TNode node);
 
-
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

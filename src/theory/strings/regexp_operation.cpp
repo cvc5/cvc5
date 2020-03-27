@@ -253,7 +253,8 @@ int RegExpOpr::delta( Node r, Node &exp ) {
       }
       case kind::REGEXP_LOOP: {
         unsigned lo = utils::getLoopLow(r);
-        if(lo==0) {
+        if (lo == 0)
+        {
           ret = 1;
         } else {
           ret = delta(r[0], exp);
@@ -496,14 +497,15 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
       case kind::REGEXP_LOOP: {
         unsigned l = utils::getLoopLow(r);
         unsigned u = utils::getLoopHigh(r);
-        if(l == u && l == 0) {
+        if (l == u && l == 0)
+        {
           ret = 2;
           //retNode = d_emptyRegexp;
         } else {
           Node dc;
           ret = derivativeS(r[0], c, dc);
           if(dc==d_emptyRegexp) {
-            Node lop = nm->mkConst(RegExpLoop(l==0? 0 : (l-1),u-1));
+            Node lop = nm->mkConst(RegExpLoop(l == 0 ? 0 : (l - 1), u - 1));
             Node r2 = nm->mkNode(REGEXP_LOOP, lop, r[0]);
             retNode = dc==d_emptySingleton? r2 : NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, dc, r2 );
           } else {
@@ -680,12 +682,13 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
       case kind::REGEXP_LOOP: {
         unsigned l = utils::getLoopLow(r);
         unsigned u = utils::getLoopHigh(r);
-        if(l==u || l==0) {
+        if (l == u || l == 0)
+        {
           retNode = d_emptyRegexp;
         } else {
           Node dc = derivativeSingle(r[0], c);
           if(dc != d_emptyRegexp) {
-            Node lop = nm->mkConst(RegExpLoop(l==0? 0 : (l-1),u-1));
+            Node lop = nm->mkConst(RegExpLoop(l == 0 ? 0 : (l - 1), u - 1));
             Node r2 = nm->mkNode(REGEXP_LOOP, lop, r[0]);
             retNode = dc==d_emptySingleton? r2 : NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, dc, r2 );
           } else {

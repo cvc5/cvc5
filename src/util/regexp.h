@@ -25,11 +25,8 @@ namespace CVC4 {
 struct CVC4_PUBLIC RegExpRepeat
 {
   unsigned d_repeatAmount;
-  RegExpRepeat(unsigned repeatAmount)
-      : d_repeatAmount(repeatAmount)
-  {
-  }
-  
+  RegExpRepeat(unsigned repeatAmount) : d_repeatAmount(repeatAmount) {}
+
   bool operator==(const RegExpRepeat& r) const
   {
     return d_repeatAmount == r.d_repeatAmount;
@@ -41,10 +38,11 @@ struct CVC4_PUBLIC RegExpLoop
   unsigned d_loopAmountLo;
   unsigned d_loopAmountHi;
   RegExpLoop(unsigned l, unsigned h) : d_loopAmountLo(l), d_loopAmountHi(h) {}
-  
+
   bool operator==(const RegExpLoop& r) const
   {
-    return d_loopAmountLo == r.d_loopAmountLo && d_loopAmountHi == r.d_loopAmountHi;
+    return d_loopAmountLo == r.d_loopAmountLo
+           && d_loopAmountHi == r.d_loopAmountHi;
   }
 };
 
@@ -57,7 +55,10 @@ struct CVC4_PUBLIC RegExpLoop
  */
 struct CVC4_PUBLIC RegExpRepeatHashFunction
 {
-  inline size_t operator()(const RegExpRepeat& r) const { return r.d_repeatAmount; }
+  inline size_t operator()(const RegExpRepeat& r) const
+  {
+    return r.d_repeatAmount;
+  }
 };
 
 /**
