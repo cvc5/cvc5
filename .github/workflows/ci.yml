@@ -1,0 +1,77 @@
+on: [push, pull_request]
+
+name: CI
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v1
+
+    - name: Install Packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          antlr3 \
+          ccache \
+          cmake \
+          cxxtest \
+          libantlr3c-dev \
+          libcln-dev \
+          libgmp-dev
+        pip install toml
+
+    - name: Restore Dependencies
+      id: restore-deps
+      uses: actions/cache@v1
+      with:
+        path: deps/install
+        key: ${{ runner.os }}-deps-symfpu-cadical-cms-lfsc-${{ hashFiles('contrib/get-**.sh') }}
+
+    - name: Setup Dependencies
+      if: steps.restore-deps.outputs.cache-hit != 'true'
+      run: |
+        ./contrib/get-symfpu
+        ./contrib/get-cadical
+        ./contrib/get-cryptominisat
+        ./contrib/get-lfsc-checker
+
+    # GitHub actions currently does not support modifying an already existing
+    # cache. Hence, we create a new cache for each commit with key
+    # cache-${{ runner.os }}-debug-${{ github.sha }}. This will result
+    # in an initial cache miss. However, restore-keys will search for the most
+    # recent cache with prefix cache-${{ runner.os }}-debug-, and if found
+    # uses it as a base for the new cache.
+    - name: Restore ccache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: ccache-dir
+        key: cache-${{ runner.os }}-debug-${{ github.sha }}
+        restore-keys: cache-${{ runner.os }}-debug-
+
+    - name: Configure ccache
+      run: |
+        ccache --set-config=cache_dir=${{ github.workspace }}/ccache-dir
+        ccache --set-config=compression=true
+        ccache --set-config=compression_level=6
+        ccache -M 500M
+        ccache -z
+
+    - name: Configure
+      run: |
+        export PATH="/usr/lib/ccache/:$PATH"
+        ./configure.sh debug --lfsc --symfpu --cadical --cryptominisat --unit-testing
+
+    - name: Build
+      run: make -j2
+      working-directory: build
+
+    - name: ccache Statistics
+      run: ccache -s
+
+    - name: Run CTest
+      run: make -j2 check ARGS='--output-on-failure -LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' RUN_REGRESSION_ARGS="--use-skip-return-code"
+      working-directory: build
