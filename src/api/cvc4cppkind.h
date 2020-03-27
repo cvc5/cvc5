@@ -2175,13 +2175,22 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   REGEXP_RANGE,
   /**
+   * Regexp repeat.
+   * Parameters: 
+   *   -[1]: Term of sort RegExp
+   *   -[2]: The number of repetitions of the first argument
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  REGEXP_REPEAT,
+  /**
    * Regexp loop.
-   * Parameters: 2 (3)
+   * Parameters: 3
    *   -[1]: Term of sort RegExp
    *   -[2]: Lower bound for the number of repetitions of the first argument
    *   -[3]: Upper bound for the number of repetitions of the first argument
    * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
