@@ -603,6 +603,9 @@ public:
   std::vector<api::Sort> bindMutualDatatypeTypes(
       std::vector<api::DatatypeDecl>& datatypes, bool doOverload = false);
 
+  std::vector<api::Sort> mkMutualDatatypeTypes(
+      std::vector<CVC4::Datatype>& datatypes, bool doOverload, uint32_t flags);
+
   /** make flat function type
    *
    * Returns the "flat" function type corresponding to the function taking
