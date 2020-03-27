@@ -1074,7 +1074,6 @@ cdef class Sort:
 
 cdef class Term:
     cdef c_Term cterm
-    # cdef deque[c_Term] children
     def __cinit__(self):
         # cterm always set in the Solver object
         pass
