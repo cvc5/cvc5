@@ -1291,7 +1291,7 @@ void SmtEngine::setDefaults() {
   // sygus inference may require datatypes
   if (!d_isInternalSubsolver)
   {
-    if (options::produceAbducts() || options::sygusInference()
+    if (options::produceInterpols() || options::produceAbducts() || options::sygusInference()
         || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
@@ -1315,6 +1315,7 @@ void SmtEngine::setDefaults() {
   }
 
   if ((options::checkModels() || options::checkSynthSol()
+	   || options::produceInterpols()
        || options::produceAbducts()
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE)
@@ -5264,7 +5265,7 @@ bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
 {
   SmtScope smts(this); // TODO what is this?
 
-  if (!options::produceInterpol())
+  if (!options::produceInterpols())
   {
     const char* msg = "Cannot get interpolation when produce-interpol options is off.";
     throw ModalException(msg);
@@ -5361,7 +5362,7 @@ bool SmtEngine::getInterpolInternal(Expr& interpol)
       interpol = interpoln.toExpr();
 
       // if check abducts option is set, we check the correctness
-      if (options::checkInterpol())
+      if (options::checkInterpols())
       {
         checkInterpol(interpol);
       }

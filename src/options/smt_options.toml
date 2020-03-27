@@ -684,6 +684,15 @@ header = "options/smt_options.h"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
+  name       = "produceInterpols"
+  category   = "undocumented"
+  long       = "produce-interpols"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "support the get-interpol command"
+
+[[option]]
   name       = "produceAbducts"
   category   = "undocumented"
   long       = "produce-abducts"
@@ -691,6 +700,15 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "support the get-abduct command"
+
+[[option]]
+  name       = "checkInterpols"
+  category   = "regular"
+  long       = "check-interpols"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "checks whether produced solutions to get-interpol are correct"
 
 [[option]]
   name       = "checkAbducts"
