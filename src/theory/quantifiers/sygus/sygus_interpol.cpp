@@ -47,7 +47,7 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
   for (size_t i = 0, size = axioms.size(); i < size; i++)
   {
     expr::getSymbols(axioms[i], symsetAxioms);
-          expr::getSymbols(axiomspi], symsetAll);
+          expr::getSymbols(axioms[i], symsetAll);
   }
   expr::getSymbols(conj, symsetConj);
   expr::getSymbols(conj, symsetAll);

@@ -26,8 +26,7 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-/** sygus_interpol
- *
+/**
  * A utility that turns a set of quantifier-free assertions into
  * a sygus conjecture that encodes an interpolation problem. In detail, if our
  * input formula is F( x ) for free symbols x, and is partitioned into axioms Fa
