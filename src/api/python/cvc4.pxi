@@ -613,26 +613,26 @@ cdef class Solver:
         term.cterm = self.csolver.mkUniverseSet(sort.csort)
         return term
 
-    # def mkBitVector(self, size_or_str, val = None):
-    #     cdef Term term = Term()
-    #     if isinstance(size_or_str, int):
-    #         if val is None:
-    #             term.cterm = self.csolver.mkBitVector(<int> size_or_str)
-    #         else:
-    #             term.cterm = self.csolver.mkBitVector(<int> size_or_str,
-    #                                                   <int> val)
-    #     elif isinstance(size_or_str, str):
-    #         # handle default value
-    #         if val is None:
-    #             term.cterm = self.csolver.mkBitVector(
-    #                 <const string &> size_or_str.encode())
-    #         else:
-    #             term.cterm = self.csolver.mkBitVector(
-    #                 <const string &> size_or_str.encode(), <int> val)
-    #     else:
-    #         raise ValueError("Unexpected inputs {} to"
-    #                          " mkBitVector".format((size_or_str, val)))
-    #     return term
+    def mkBitVector(self, size_or_str, val = None):
+        cdef Term term = Term()
+        if isinstance(size_or_str, int):
+            if val is None:
+                term.cterm = self.csolver.mkBitVector(<int> size_or_str)
+            else:
+                term.cterm = self.csolver.mkBitVector(<int> size_or_str,
+                                                      <int> val)
+        elif isinstance(size_or_str, str):
+            # handle default value
+            if val is None:
+                term.cterm = self.csolver.mkBitVector(
+                    <const string &> size_or_str.encode())
+            else:
+                term.cterm = self.csolver.mkBitVector(
+                    <const string &> size_or_str.encode(), <int> val)
+        else:
+            raise ValueError("Unexpected inputs {}, {} to"
+                             " mkBitVector".format(str(size_or_str), str(val)))
+        return term
 
     def mkConstArray(self, Sort sort, Term val):
         cdef Term term = Term()
