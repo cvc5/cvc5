@@ -34,9 +34,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusInterpol::SygusInterpol() {}
-
-Node SygusInterpol::mkInterpolationConjecture(const std::string& name,
+Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
                                               const std::vector<Node>& axioms,
                                               const Node& conj)
 {

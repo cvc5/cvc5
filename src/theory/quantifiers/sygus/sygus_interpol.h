@@ -26,8 +26,7 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-/** SygusInterpol
+/** sygus_interpol
  *
  * A utility that turns a set of quantifier-free assertions into
  * a sygus conjecture that encodes an interpolation problem. In detail, if our
@@ -41,11 +40,7 @@ namespace quantifiers {
  * axioms Fa and imply Fc( x ). We encode this conjecture using
  * SygusSideConditionAttribute.
  */
-class SygusInterpol
-{
- public:
-  SygusInterpol();
-
+namespace sygus_interpol {
   /**
    * Returns the sygus conjecture corresponding to the interpolation problem for
    * input problem (F above) given by axioms (Fa above), and conj (Fc above).
@@ -62,11 +57,10 @@ class SygusInterpol
    * term whose free variables are a subset of asserts, is the term
    * t * { varlist -> SygusVarToTermAttribute(varlist) }.
    */
-  static Node mkInterpolationConjecture(const std::string& name,
+  Node mkInterpolationConjecture(const std::string& name,
                                     const std::vector<Node>& axioms,
                                     const Node& conj);
-};
-
+}  // namespace sygus_interpol
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

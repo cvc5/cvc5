@@ -5286,7 +5286,7 @@ bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
   std::string name("A");  // TODO why not pass the customized name?
 
   Node sygusConj =
-      theory::quantifiers::SygusInterpol::mkInterpolationConjecture(
+      theory::quantifiers::sygus_interpol::mkInterpolationConjecture(
           name, axioms, conjn);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(sygusConj.getKind() == kind::FORALL
