@@ -160,7 +160,8 @@ void CvcPrinter::toStream(
       toStreamRational(out, n, false);
       break;
     }
-    case kind::CONST_STRING: {
+    case kind::CONST_STRING:
+    {
       out << '"' << n.getConst<String>().toString() << '"';
       break;
     }
