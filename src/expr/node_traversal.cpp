@@ -65,8 +65,8 @@ bool NodeDfsIterator::operator==(const NodeDfsIterator& other) const
   // use the scheduled node set.
   //
   // Users should not compare iterators for traversals of different nodes.
-  return d_stack == other.d_stack && d_current == other.d_current
-         && d_postorder == other.d_postorder;
+  Assert(d_postorder == other.d_postorder);
+  return d_stack == other.d_stack && d_current == other.d_current;
 }
 
 bool NodeDfsIterator::operator!=(const NodeDfsIterator& other) const
