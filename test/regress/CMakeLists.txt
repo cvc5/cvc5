@@ -922,6 +922,7 @@ set(regress_0_tests
   regress0/strings/escchar.smt2
   regress0/strings/escchar_25.smt2
   regress0/strings/from_code.smt2
+  regress0/strings/gen-esc-seq.smt2
   regress0/strings/hconst-092618.smt2
   regress0/strings/idof-rewrites.smt2
   regress0/strings/idof-sem.smt2
@@ -939,6 +940,8 @@ set(regress_0_tests
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
   regress0/strings/model001.smt2
+  regress0/strings/model-code-point.smt2
+  regress0/strings/model-friendly.smt2
   regress0/strings/ncontrib-rewrites.smt2
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
@@ -967,6 +970,7 @@ set(regress_0_tests
   regress0/strings/tolower-rrs.smt2
   regress0/strings/tolower-simple.smt2
   regress0/strings/type001.smt2
+  regress0/strings/unicode-esc.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
   regress0/sygus/General_plus10.sy

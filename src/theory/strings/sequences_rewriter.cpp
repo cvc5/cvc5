@@ -1421,11 +1421,8 @@ bool SequencesRewriter::testConstStringInRegExp(CVC4::String& s,
       if (s.size() == index_start + 1)
       {
         unsigned a = r[0].getConst<String>().front();
-        a = String::convertUnsignedIntToCode(a);
         unsigned b = r[1].getConst<String>().front();
-        b = String::convertUnsignedIntToCode(b);
         unsigned c = s.back();
-        c = String::convertUnsignedIntToCode(c);
         return (a <= c && c <= b);
       }
       else

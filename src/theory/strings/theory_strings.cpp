@@ -382,7 +382,7 @@ bool TheoryStrings::collectModelInfoType(
                   ctv.getConst<Rational>().getNumerator().toUnsignedInt();
               Trace("strings-model") << "(code: " << cvalue << ") ";
               std::vector<unsigned> vec;
-              vec.push_back(String::convertCodeToUnsignedInt(cvalue));
+              vec.push_back(cvalue);
               Node mv = nm->mkConst(String(vec));
               pure_eq_assign[eqc] = mv;
               m->getEqualityEngine()->addTerm(mv);
@@ -1099,13 +1099,14 @@ void TheoryStrings::registerTerm(Node n, int effort)
   else if (n.getKind() == STRING_TO_CODE)
   {
     d_has_str_code = true;
-    // ite( str.len(s)==1, 0 <= str.code(s) < num_codes, str.code(s)=-1 )
+    // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
     Node code_len = utils::mkNLength(n[0]).eqNode(d_one);
     Node code_eq_neg1 = n.eqNode(d_neg_one);
     Node code_range = nm->mkNode(
         AND,
         nm->mkNode(GEQ, n, d_zero),
-        nm->mkNode(LT, n, nm->mkConst(Rational(CVC4::String::num_codes()))));
+        nm->mkNode(
+            LT, n, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
     regTermLem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
   else if (n.getKind() == STRING_STRIDOF)

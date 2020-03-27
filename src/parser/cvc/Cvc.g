@@ -2083,7 +2083,7 @@ stringTerm[CVC4::api::Term& f]
 
     /* string literal */
   | str[s]
-    { f = SOLVER->mkString(s, true); }
+    { f = PARSER_STATE->mkStringConstant(s); }
 
   | setsTerm[f]
   ;
