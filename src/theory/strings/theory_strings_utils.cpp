@@ -293,6 +293,21 @@ TypeNode getOwnerStringType(Node n)
   return tn;
 }
 
+unsigned getRepeatAmount(TNode node)
+{
+  return node.getOperator().getConst<RegExpRepeat>().d_repeatAmount;
+}
+
+unsigned getLoopHigh(TNode node)
+{
+  return node.getOperator().getConst<RegexpLoop>().d_loopAmountHi;
+}
+
+unsigned getLoopLow(TNode node)
+{
+  return node.getOperator().getConst<RegexpLoop>().d_loopAmountLo;
+}
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

@@ -153,6 +153,15 @@ bool isStringKind(Kind k);
  */
 TypeNode getOwnerStringType(Node n);
 
+/* Get the number of bits by which a given node is extended. */
+unsigned getRepeatAmount(TNode node);
+
+/* Get the upper index of given extract node. */
+unsigned getLoopHigh(TNode node);
+/* Get the lower index of given extract node. */
+unsigned getLoopLow(TNode node);
+
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

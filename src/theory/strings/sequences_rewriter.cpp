@@ -1963,6 +1963,13 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteLoopRegExp(node);
   }
+  else if (nk == REGEXP_REPEAT)
+  {
+    // ((_ re.^ n) R) --> ((_ re.loop n n) R)
+    unsigned r = utils::getRepeatAmount(node);
+    Node lop = nm->mkConst(RegExpLoop(r,r));
+    retNode = nm->mkNode(REGEXP_LOOP,lop, node[0]);
+  }
 
   Trace("strings-postrewrite")
       << "Strings::postRewrite returning " << retNode << std::endl;
