@@ -922,6 +922,7 @@ set(regress_0_tests
   regress0/strings/escchar.smt2
   regress0/strings/escchar_25.smt2
   regress0/strings/from_code.smt2
+  regress0/strings/gen-esc-seq.smt2
   regress0/strings/hconst-092618.smt2
   regress0/strings/idof-rewrites.smt2
   regress0/strings/idof-sem.smt2
