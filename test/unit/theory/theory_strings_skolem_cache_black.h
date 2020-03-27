@@ -20,7 +20,7 @@
 #include "expr/node_manager.h"
 #include "theory/strings/skolem_cache.h"
 #include "util/rational.h"
-#include "util/regexp.h"
+#include "util/string.h"
 
 using namespace CVC4;
 using namespace CVC4::theory::strings;

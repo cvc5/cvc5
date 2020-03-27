@@ -34,14 +34,15 @@ ExtfSolver::ExtfSolver(context::Context* c,
                        SkolemCache& skc,
                        BaseSolver& bs,
                        CoreSolver& cs,
-                       ExtTheory* et)
+                       ExtTheory* et,
+                       SequencesStatistics& stats)
     : d_state(s),
       d_im(im),
       d_skCache(skc),
       d_bsolver(bs),
       d_csolver(cs),
       d_extt(et),
-      d_preproc(&skc, u),
+      d_preproc(&skc, u, stats),
       d_hasExtf(c, false),
       d_extfInferCache(c)
 {
@@ -645,7 +646,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
   {
     return c;
   }
-  else if (effort >= 1 && n.getType().isString())
+  else if (effort >= 1 && n.getType().isStringLike())
   {
     Assert(effort < 3);
     // normal forms

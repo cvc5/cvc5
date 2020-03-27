@@ -14,7 +14,7 @@
 
 #include "theory/strings/word.h"
 
-#include "util/regexp.h"
+#include "util/string.h"
 
 using namespace CVC4::kind;
 

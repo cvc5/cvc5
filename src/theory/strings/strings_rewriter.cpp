@@ -93,7 +93,7 @@ Node StringsRewriter::rewriteStrConvert(Node node)
     std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
     for (unsigned i = 0, nvsize = nvec.size(); i < nvsize; i++)
     {
-      unsigned newChar = String::convertUnsignedIntToCode(nvec[i]);
+      unsigned newChar = nvec[i];
       // transform it
       // upper 65 ... 90
       // lower 97 ... 122
@@ -111,7 +111,6 @@ Node StringsRewriter::rewriteStrConvert(Node node)
           newChar = newChar + 32;
         }
       }
-      newChar = String::convertCodeToUnsignedInt(newChar);
       nvec[i] = newChar;
     }
     Node retNode = nm->mkConst(String(nvec));
@@ -231,7 +230,7 @@ Node StringsRewriter::rewriteStringToCode(Node n)
     {
       std::vector<unsigned> vec = s.getVec();
       Assert(vec.size() == 1);
-      ret = nm->mkConst(Rational(String::convertUnsignedIntToCode(vec[0])));
+      ret = nm->mkConst(Rational(vec[0]));
     }
     else
     {

@@ -236,6 +236,8 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/set_defaults.cpp
+  smt/set_defaults.h
   smt/smt_engine.cpp
   smt/smt_engine.h
   smt/smt_engine_scope.cpp
@@ -959,11 +961,11 @@ install(FILES
           util/proof.h
           util/rational_cln_imp.h
           util/rational_gmp_imp.h
-          util/regexp.h
           util/resource_manager.h
           util/result.h
           util/sexpr.h
           util/statistics.h
+          util/string.h
           util/tuple.h
           util/unsafe_interrupt_exception.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h
