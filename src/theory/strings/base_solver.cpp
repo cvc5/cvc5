@@ -16,7 +16,6 @@
 #include "theory/strings/base_solver.h"
 
 #include "options/strings_options.h"
-#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
@@ -254,7 +253,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
   if (!n.isNull())
   {
     // construct the constant
-    Node c = utils::mkNConcat(vecc);
+    Node c = utils::mkNConcat(vecc, n.getType());
     if (!d_state.areEqual(n, c))
     {
       if (Trace.isOn("strings-debug"))

@@ -984,7 +984,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         else
         {
           d_trMaster[a] = a;
-          d_trSlaves[a].push_back(a);
+          d_trSlaves[a].insert(a);
         }
       }
     }
@@ -1087,8 +1087,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     Node y =
         nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
     Node new_a = nm->mkNode(k, y);
-    d_trSlaves[new_a].push_back(new_a);
-    d_trSlaves[new_a].push_back(a);
+    d_trSlaves[new_a].insert(new_a);
+    d_trSlaves[new_a].insert(a);
     d_trMaster[a] = new_a;
     d_trMaster[new_a] = new_a;
     Node lem;
@@ -2828,7 +2828,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
           // Can assume it is its own master since phase is split over 0,
           // hence  -pi <= t[0] <= pi implies -pi <= -t[0] <= pi.
           d_trMaster[symn] = symn;
-          d_trSlaves[symn].push_back(symn);
+          d_trSlaves[symn].insert(symn);
           Assert(d_trSlaves.find(t) != d_trSlaves.end());
           std::vector< Node > children;
 

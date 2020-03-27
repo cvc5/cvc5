@@ -18,6 +18,7 @@
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -28,7 +29,7 @@ namespace strings {
 
 void NormalForm::init(Node base)
 {
-  Assert(base.getType().isString());
+  Assert(base.getType().isStringLike());
   Assert(base.getKind() != STRING_CONCAT);
   d_base = base;
   d_nf.clear();
@@ -37,7 +38,7 @@ void NormalForm::init(Node base)
   d_expDep.clear();
 
   // add to normal form
-  if (!base.isConst() || !base.getConst<String>().isEmptyString())
+  if (!base.isConst() || Word::getLength(base) > 0)
   {
     d_nf.push_back(base);
   }
@@ -150,7 +151,7 @@ Node NormalForm::collectConstantStringAt(size_t& index)
     {
       std::reverse(c.begin(), c.end());
     }
-    Node cc = Rewriter::rewrite(utils::mkConcat(STRING_CONCAT, c));
+    Node cc = Rewriter::rewrite(utils::mkConcat(c, c[0].getType()));
     Assert(cc.isConst());
     return cc;
   }

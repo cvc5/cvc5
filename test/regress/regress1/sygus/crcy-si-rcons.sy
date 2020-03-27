@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --cegqi-si-abort --decision=internal --cegqi-si-rcons=try --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --cegqi-si-abort --decision=internal --cegqi-si-rcons=try --sygus-out=status
 
 (set-logic BV)
 
@@ -10,6 +10,8 @@
 
 
 (synth-fun skel ( (LN24 Bool) (k3 Bool) (LN129 Bool) (LN141 Bool)  )  Bool    
+          ((Start Bool) (depth1 Bool) (depth2 Bool) (depth3 Bool) (depth4 Bool)
+           (depth5 Bool) (depth6 Bool) (depth7 Bool) (depth8 Bool))
           ((Start Bool (
 		                                  (and depth1 depth1)
 		                                  (not depth1)

@@ -10,8 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Enumerators for strings
- **
- ** Enumerators for strings.
  **/
 
 #include "cvc4_private.h"
@@ -19,123 +17,142 @@
 #ifndef CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
 
-#include <sstream>
+#include <vector>
 
-#include "expr/kind.h"
+#include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/strings/theory_strings_rewriter.h"
-#include "theory/strings/theory_strings_utils.h"
 #include "theory/type_enumerator.h"
-#include "util/regexp.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
-  std::vector< unsigned > d_data;
-  uint32_t d_cardinality;
-  Node d_curr;
-  void mkCurr() {
-    //make constant from d_data
-    d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
-  }
+/**
+ * Make standard model constant
+ *
+ * In our string representation, we represent characters using vectors
+ * of unsigned integers indicating code points for the characters of that
+ * string.
+ *
+ * To make models user-friendly, we make unsigned integer 0 correspond to the
+ * 65th character ("A") in the ASCII alphabet to make models intuitive. In
+ * particular, say if we have a set of string variables that are distinct but
+ * otherwise unconstrained, then the model may assign them "A", "B", "C", ...
+ *
+ * @param vec The code points of the string in a given model,
+ * @param cardinality The cardinality of the alphabet,
+ * @return A string whose characters have the code points corresponding
+ * to vec in the standard model construction described above.
+ */
+Node makeStandardModelConstant(const std::vector<unsigned>& vec,
+                               uint32_t cardinality);
 
+/**
+ * Generic iteration over vectors of indices of a given start/end length.
+ */
+class WordIter
+{
  public:
-  StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
-      : TypeEnumeratorBase<StringEnumerator>(type)
-  {
-    Assert(type.getKind() == kind::TYPE_CONSTANT
-           && type.getConst<TypeConstant>() == STRING_TYPE);
-    d_cardinality = utils::getAlphabetCardinality();
-    mkCurr();
-  }
-  Node operator*() override { return d_curr; }
-  StringEnumerator& operator++() override
-  {
-    bool changed = false;
-    do
-    {
-      for (unsigned i = 0; i < d_data.size(); ++i)
-      {
-        if (d_data[i] + 1 < d_cardinality)
-        {
-          ++d_data[i];
-          changed = true;
-          break;
-        }
-        else
-        {
-          d_data[i] = 0;
-        }
-      }
+  /**
+   * This iterator will start with words at length startLength and continue
+   * indefinitely.
+   */
+  WordIter(uint32_t startLength);
+  /**
+   * This iterator will start with words at length startLength and continue
+   * until length endLength.
+   */
+  WordIter(uint32_t startLength, uint32_t endLength);
+  /** copy constructor */
+  WordIter(const WordIter& witer);
+  /** Get the current data */
+  const std::vector<unsigned>& getData() const;
+  /**
+   * Increment assuming the cardinality of the alphabet is card. Notice that
+   * the value of card may be different for multiple calls; the caller is
+   * responsible for using this function to achieve the required result. This
+   * is required for enumerating sequences where the cardinality of the
+   * alphabet is not known upfront, but a lower bound can be determined.
+   *
+   * This method returns true if the increment was successful, otherwise we
+   * are finished with this iterator.
+   */
+  bool increment(uint32_t card);
 
-      if (!changed)
-      {
-        d_data.push_back(0);
-      }
-    } while (!changed);
+ private:
+  /** Whether we have an end length */
+  bool d_hasEndLength;
+  /** The end length */
+  uint32_t d_endLength;
+  /** The data. */
+  std::vector<unsigned> d_data;
+};
 
-    mkCurr();
-    return *this;
-  }
+/**
+ * A virtual class for enumerating string-like terms, with a similar
+ * interface to the one above.
+ */
+class SEnumLen
+{
+ public:
+  SEnumLen(TypeNode tn, uint32_t startLength);
+  SEnumLen(TypeNode tn, uint32_t startLength, uint32_t endLength);
+  SEnumLen(const SEnumLen& e);
+  virtual ~SEnumLen() {}
+  /** Get current term */
+  Node getCurrent() const;
+  /** Is this enumerator finished? */
+  bool isFinished() const;
+  /** increment, returns true if the increment was successful. */
+  virtual bool increment() = 0;
 
-  bool isFinished() override { return d_curr.isNull(); }
-};/* class StringEnumerator */
+ protected:
+  /** The type we are enumerating */
+  TypeNode d_type;
+  /** The word iterator utility */
+  std::unique_ptr<WordIter> d_witer;
+  /** The current term */
+  Node d_curr;
+};
 
 /**
  * Enumerates string values for a given length.
  */
-class StringEnumeratorLength {
+class StringEnumLen : public SEnumLen
+{
  public:
-  StringEnumeratorLength(TypeNode tn, uint32_t length, uint32_t card = 256)
-      : d_type(tn), d_cardinality(card)
-  {
-    // TODO (cvc4-projects #23): sequence here
-    Assert(tn.isString());
-    for( unsigned i=0; i<length; i++ ){
-      d_data.push_back( 0 );
-    }
-    mkCurr();
-  }
-
-  Node operator*() { return d_curr; }
-  StringEnumeratorLength& operator++() {
-    bool changed = false;
-    for(unsigned i=0; i<d_data.size(); ++i) {
-      if( d_data[i] + 1 < d_cardinality ) {
-        ++d_data[i]; changed = true;
-        break;
-      } else {
-        d_data[i] = 0;
-      }
-    }
-
-    if(!changed) {
-      d_curr = Node::null();
-    }else{
-      mkCurr();
-    }
-    return *this;
-  }
-
-  bool isFinished() { return d_curr.isNull(); }
+  /** For strings */
+  StringEnumLen(uint32_t startLength, uint32_t card);
+  StringEnumLen(uint32_t startLength, uint32_t endLength, uint32_t card);
+  /** destructor */
+  ~StringEnumLen() {}
+  /** increment */
+  bool increment() override;
 
  private:
-  /** The type we are enumerating */
-  TypeNode d_type;
   /** The cardinality of the alphabet */
   uint32_t d_cardinality;
-  /** The data (index to members) */
-  std::vector<unsigned> d_data;
-  /** The current term */
-  Node d_curr;
   /** Make the current term from d_data */
-  void mkCurr()
-  {
-    d_curr = NodeManager::currentNM()->mkConst(::CVC4::String(d_data));
-  }
+  void mkCurr();
 };
+
+class StringEnumerator : public TypeEnumeratorBase<StringEnumerator>
+{
+ public:
+  StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
+  StringEnumerator(const StringEnumerator& enumerator);
+  ~StringEnumerator() {}
+  /** get the current term */
+  Node operator*() override;
+  /** increment */
+  StringEnumerator& operator++() override;
+  /** is this enumerator finished? */
+  bool isFinished() override;
+
+ private:
+  /** underlying string enumerator */
+  StringEnumLen d_wenum;
+}; /* class StringEnumerator */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

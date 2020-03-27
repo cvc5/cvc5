@@ -56,10 +56,10 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj);
 void getConcat(Node n, std::vector<Node>& c);
 
 /**
- * Make the concatentation from vector c
- * The kind k is either STRING_CONCAT or REGEXP_CONCAT.
+ * Make the concatentation from vector c of (string-like or regular
+ * expression) type tn.
  */
-Node mkConcat(Kind k, const std::vector<Node>& c);
+Node mkConcat(const std::vector<Node>& c, TypeNode tn);
 
 /**
  * Returns the rewritten form of the string concatenation of n1 and n2.
@@ -72,9 +72,10 @@ Node mkNConcat(Node n1, Node n2);
 Node mkNConcat(Node n1, Node n2, Node n3);
 
 /**
- * Returns the rewritten form of the string concatenation of nodes in c.
+ * Returns the rewritten form of the concatentation from vector c of
+ * (string-like) type tn.
  */
-Node mkNConcat(const std::vector<Node>& c);
+Node mkNConcat(const std::vector<Node>& c, TypeNode tn);
 
 /**
  * Returns the rewritten form of the length of string term t.
@@ -138,6 +139,19 @@ void getRegexpComponents(Node r, std::vector<Node>& result);
 void printConcat(std::ostream& out, std::vector<Node>& n);
 /** Print the vector n as a concatentation term on trace given by c */
 void printConcatTrace(std::vector<Node>& n, const char* c);
+
+/** Is k a string-specific kind? */
+bool isStringKind(Kind k);
+
+/** Get owner string type
+ *
+ * This returns a string-like type for a term n that belongs to the theory of
+ * strings. This type conceptually represents the subtheory of strings
+ * (Sequence(T) or String) that owns n. This is typically the type of n,
+ * but for instance, operators like str.indexof( s, t, n ), this is the type
+ * of s.
+ */
+TypeNode getOwnerStringType(Node n);
 
 }  // namespace utils
 }  // namespace strings

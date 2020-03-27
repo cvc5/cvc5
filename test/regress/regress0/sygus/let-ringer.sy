@@ -1,11 +1,12 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status
-; COMMAND-LINE: --cegqi-si=all --sygus-unif-pi=complete --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-unif-pi=complete --sygus-out=status
 (set-logic LIA)
 (define-fun g ((x Int)) Int (ite (= x 1) 15 19))
 (define-fun letf ((z Int) (w Int) (s Int) (x Int)) Int (+ z (+ x (+ x (+ s (+ 1 (+ (g w) z)))))))
 
 (synth-fun f ((x Int)) Int
+    ((Start Int))
     ((Start Int (x
                  0
                  1

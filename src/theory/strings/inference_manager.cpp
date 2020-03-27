@@ -19,8 +19,8 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings.h"
-#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -35,11 +35,13 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::UserContext* u,
                                    SolverState& s,
                                    SkolemCache& skc,
-                                   OutputChannel& out)
+                                   OutputChannel& out,
+                                   SequencesStatistics& statistics)
     : d_parent(p),
       d_state(s),
       d_skCache(skc),
       d_out(out),
+      d_statistics(statistics),
       d_keep(c),
       d_proxyVar(u),
       d_proxyVarToLength(u),
@@ -187,13 +189,33 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   sendInference(exp, exp_n, eq, c, asLemma);
 }
 
-void InferenceManager::sendInference(const InferInfo& i)
+void InferenceManager::sendInference(const std::vector<Node>& exp,
+                                     const std::vector<Node>& exp_n,
+                                     Node eq,
+                                     Inference infer,
+                                     bool asLemma)
 {
-  std::stringstream ssi;
-  ssi << i.d_id;
-  sendInference(i.d_ant, i.d_antn, i.d_conc, ssi.str().c_str(), true);
+  d_statistics.d_inferences << infer;
+  std::stringstream ss;
+  ss << infer;
+  sendInference(exp, exp_n, eq, ss.str().c_str(), asLemma);
 }
 
+void InferenceManager::sendInference(const std::vector<Node>& exp,
+                                     Node eq,
+                                     Inference infer,
+                                     bool asLemma)
+{
+  d_statistics.d_inferences << infer;
+  std::stringstream ss;
+  ss << infer;
+  sendInference(exp, eq, ss.str().c_str(), asLemma);
+}
+
+void InferenceManager::sendInference(const InferInfo& i)
+{
+  sendInference(i.d_ant, i.d_antn, i.d_conc, i.d_id, true);
+}
 void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
 {
   if (conc.isNull() || conc == d_false)
@@ -204,6 +226,7 @@ void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
                            << std::endl;
     Trace("strings-assert")
         << "(assert (not " << ant << ")) ; conflict " << c << std::endl;
+    ++(d_statistics.d_conflictsInfer);
     d_out.conflict(ant);
     d_state.setConflict();
     return;
@@ -347,29 +370,29 @@ Node InferenceManager::getSymbolicDefinition(Node n,
   return NodeManager::currentNM()->mkNode(n.getKind(), children);
 }
 
-void InferenceManager::registerLength(Node n)
+Node InferenceManager::registerTerm(Node n)
 {
+  Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
   // register length information:
   //  for variables, split on empty vs positive length
   //  for concat/const/replace, introduce proxy var and state length relation
   Node lsum;
-  if (n.getKind() != STRING_CONCAT && n.getKind() != CONST_STRING)
+  if (n.getKind() != STRING_CONCAT && !n.isConst())
   {
     Node lsumb = nm->mkNode(STRING_LENGTH, n);
     lsum = Rewriter::rewrite(lsumb);
     // can register length term if it does not rewrite
     if (lsum == lsumb)
     {
-      registerLength(n, LENGTH_SPLIT);
-      return;
+      registerTermAtomic(n, LENGTH_SPLIT);
+      return Node::null();
     }
   }
   Node sk = d_skCache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
   StringsProxyVarAttribute spva;
   sk.setAttribute(spva, true);
   Node eq = Rewriter::rewrite(sk.eqNode(n));
-  Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq << std::endl;
   d_proxyVar[n] = sk;
   // If we are introducing a proxy for a constant or concat term, we do not
   // need to send lemmas about its length, since its length is already
@@ -377,10 +400,8 @@ void InferenceManager::registerLength(Node n)
   if (n.isConst() || n.getKind() == STRING_CONCAT)
   {
     // do not send length lemma for sk.
-    registerLength(sk, LENGTH_IGNORE);
+    registerTermAtomic(sk, LENGTH_IGNORE);
   }
-  Trace("strings-assert") << "(assert " << eq << ")" << std::endl;
-  d_out.lemma(eq);
   Node skl = nm->mkNode(STRING_LENGTH, sk);
   if (n.getKind() == STRING_CONCAT)
   {
@@ -401,21 +422,18 @@ void InferenceManager::registerLength(Node n)
     lsum = nm->mkNode(PLUS, nodeVec);
     lsum = Rewriter::rewrite(lsum);
   }
-  else if (n.getKind() == CONST_STRING)
+  else if (n.isConst())
   {
-    lsum = nm->mkConst(Rational(n.getConst<String>().size()));
+    lsum = nm->mkConst(Rational(Word::getLength(n)));
   }
   Assert(!lsum.isNull());
   d_proxyVarToLength[sk] = lsum;
   Node ceq = Rewriter::rewrite(skl.eqNode(lsum));
-  Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
-  Trace("strings-lemma-debug")
-      << "  prerewrite : " << skl.eqNode(lsum) << std::endl;
-  Trace("strings-assert") << "(assert " << ceq << ")" << std::endl;
-  d_out.lemma(ceq);
+
+  return nm->mkNode(AND, eq, ceq);
 }
 
-void InferenceManager::registerLength(Node n, LengthStatus s)
+void InferenceManager::registerTermAtomic(Node n, LengthStatus s)
 {
   if (d_lengthLemmaTermsCache.find(n) != d_lengthLemmaTermsCache.end())
   {
@@ -428,7 +446,25 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
     // ignore it
     return;
   }
+  std::map<Node, bool> reqPhase;
+  Node lenLem = getRegisterTermAtomicLemma(n, s, reqPhase);
+  if (!lenLem.isNull())
+  {
+    Trace("strings-lemma") << "Strings::Lemma REGISTER-TERM-ATOMIC : " << lenLem
+                           << std::endl;
+    Trace("strings-assert") << "(assert " << lenLem << ")" << std::endl;
+    ++(d_statistics.d_lemmasRegisterTermAtomic);
+    d_out.lemma(lenLem);
+  }
+  for (const std::pair<const Node, bool>& rp : reqPhase)
+  {
+    d_out.requirePhase(rp.first, rp.second);
+  }
+}
 
+Node InferenceManager::getRegisterTermAtomicLemma(
+    Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
+{
   NodeManager* nm = NodeManager::currentNM();
   Node n_len = nm->mkNode(kind::STRING_LENGTH, n);
 
@@ -440,8 +476,7 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
     Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
-    d_out.lemma(len_geq_one);
-    return;
+    return len_geq_one;
   }
 
   if (s == LENGTH_ONE)
@@ -450,11 +485,11 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
     Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
-    d_out.lemma(len_one);
-    return;
+    return len_one;
   }
   Assert(s == LENGTH_SPLIT);
 
+  std::vector<Node> lems;
   if (options::stringSplitEmp() || !options::stringLenGeqZ())
   {
     Node n_len_eq_z = n_len.eqNode(d_zero);
@@ -465,7 +500,7 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
     if (!case_empty.isConst())
     {
       Node lem = nm->mkNode(OR, case_empty, case_nempty);
-      d_out.lemma(lem);
+      lems.push_back(lem);
       Trace("strings-lemma")
           << "Strings::Lemma LENGTH >= 0 : " << lem << std::endl;
       // prefer trying the empty case first
@@ -473,10 +508,10 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
       // occur in the CNF stream.
       n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
       Assert(!n_len_eq_z.isConst());
-      d_out.requirePhase(n_len_eq_z, true);
+      reqPhase[n_len_eq_z] = true;
       n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
       Assert(!n_len_eq_z_2.isConst());
-      d_out.requirePhase(n_len_eq_z_2, true);
+      reqPhase[n_len_eq_z_2] = true;
     }
     else if (!case_empty.getConst<bool>())
     {
@@ -484,7 +519,7 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
       Trace("strings-lemma")
           << "Strings::Lemma LENGTH > 0 (non-empty): " << case_nempty
           << std::endl;
-      d_out.lemma(case_nempty);
+      lems.push_back(case_nempty);
     }
     else
     {
@@ -500,8 +535,14 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
   {
     Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
     n_len_geq = Rewriter::rewrite(n_len_geq);
-    d_out.lemma(n_len_geq);
+    lems.push_back(n_len_geq);
   }
+
+  if (lems.empty())
+  {
+    return Node::null();
+  }
+  return lems.size() == 1 ? lems[0] : nm->mkNode(AND, lems);
 }
 
 void InferenceManager::addToExplanation(Node a,

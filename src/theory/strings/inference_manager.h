@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
@@ -76,7 +77,8 @@ class InferenceManager
                    context::UserContext* u,
                    SolverState& s,
                    SkolemCache& skc,
-                   OutputChannel& out);
+                   OutputChannel& out,
+                   SequencesStatistics& statistics);
   ~InferenceManager() {}
 
   /** send internal inferences
@@ -141,6 +143,28 @@ class InferenceManager
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+
+  /**
+   * The same as `sendInference()` above but with an `Inference` instead of a
+   * string. This variant updates the statistics about the number of inferences
+   * made of each type.
+   */
+  void sendInference(const std::vector<Node>& exp,
+                     const std::vector<Node>& exp_n,
+                     Node eq,
+                     Inference infer,
+                     bool asLemma = false);
+
+  /**
+   * The same as `sendInference()` above but with an `Inference` instead of a
+   * string. This variant updates the statistics about the number of inferences
+   * made of each type.
+   */
+  void sendInference(const std::vector<Node>& exp,
+                     Node eq,
+                     Inference infer,
+                     bool asLemma = false);
+
   /** Send inference
    *
    * Makes the appropriate call to send inference based on the infer info
@@ -186,18 +210,23 @@ class InferenceManager
    * exists, otherwise it returns null.
    */
   Node getProxyVariableFor(Node n) const;
-  /** register length
+  /** register term
    *
-   * This method is called on non-constant string terms n. It sends a lemma
-   * on the output channel that ensures that the length n satisfies its assigned
-   * status (given by argument s).
+   * This method is called on non-constant string terms n. It returns a lemma
+   * that should be sent on the output channel of theory of strings upon
+   * registration of this term, or null if no lemma is necessary.
+   *
+   * If n is an atomic term, the method registerTermAtomic is called for n
+   * and s = LENGTH_SPLIT and no lemma is returned.
    */
-  void registerLength(Node n);
+  Node registerTerm(Node n);
   /** register length
    *
-   * This method is called on non-constant string terms n. It sends a lemma
-   * on the output channel that ensures that the length n satisfies its assigned
-   * status (given by argument s).
+   * This method is called on non-constant string terms n that are "atomic"
+   * with respect to length. That is, the rewritten form of len(n) is itself.
+   *
+   * It sends a lemma on the output channel that ensures that the length n
+   * satisfies its assigned status (given by argument s).
    *
    * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
    *
@@ -214,7 +243,7 @@ class InferenceManager
    * In contrast to the above functions, it makes immediate calls to the output
    * channel instead of adding them to pending lists.
    */
-  void registerLength(Node n, LengthStatus s);
+  void registerTermAtomic(Node n, LengthStatus s);
   //---------------------------- end proxy variables and length elaboration
 
   //----------------------------constructing antecedants
@@ -313,6 +342,17 @@ class InferenceManager
    * equality engine of this class.
    */
   void sendInfer(Node eq_exp, Node eq, const char* c);
+  /**
+   * Get the lemma required for registering the length information for
+   * atomic term n given length status s. For details, see registerTermAtomic.
+   *
+   * Additionally, this method may map literals to a required polarity in the
+   * argument reqPhase, which should be processed by a call to requiredPhase by
+   * the caller of this method.
+   */
+  Node getRegisterTermAtomicLemma(Node n,
+                                  LengthStatus s,
+                                  std::map<Node, bool>& reqPhase);
 
   /** the parent theory of strings object */
   TheoryStrings& d_parent;
@@ -327,6 +367,10 @@ class InferenceManager
    * This is a reference to the output channel of the theory of strings.
    */
   OutputChannel& d_out;
+
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
+
   /** Common constants */
   Node d_emptyString;
   Node d_true;
@@ -366,6 +410,7 @@ class InferenceManager
   NodeNodeMap d_proxyVarToLength;
   /** List of terms that we have register length for */
   NodeSet d_lengthLemmaTermsCache;
+
   /** infer substitution proxy vars
    *
    * This method attempts to (partially) convert the formula n into a

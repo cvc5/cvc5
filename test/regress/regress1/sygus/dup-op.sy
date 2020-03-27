@@ -1,11 +1,11 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=none --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=none --sygus-out=status
 (set-logic LIA)
 (synth-fun f ((x Int)) Int
+    ((Start Int) (Con Int))
     ((Start Int ((+ Con Con) (+ Start Start) x))
      (Con Int (0 1))))
 
 (declare-var x Int)
 (constraint (= (f x) (* 2 x)))
 (check-synth)
-

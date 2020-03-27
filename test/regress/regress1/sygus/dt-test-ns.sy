@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status
 (set-logic LIA)
 
 (declare-datatypes ((List 0)) (((cons (head Int) (tail List)) (nil))))
@@ -11,4 +11,3 @@
 (constraint (is-cons (f x)))
 (constraint (and (= (head (f x)) x) (= (head (f x)) (+ 5 (head (tail (f x)))))))
 (check-synth)
-

@@ -185,7 +185,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
         if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
           nh = d_qe->getInternalRepresentative( nh, d_f, d_index );
           //don't consider this if already the instantiation is ineligible
-          if (!tdb->isTermEligibleForInstantiation(nh, d_f))
+          if (!nh.isNull() && !tdb->isTermEligibleForInstantiation(nh, d_f))
           {
             nh = Node::null();
           }

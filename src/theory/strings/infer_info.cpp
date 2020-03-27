@@ -14,30 +14,37 @@
 
 #include "theory/strings/infer_info.h"
 
-using namespace CVC4::kind;
-
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-std::ostream& operator<<(std::ostream& out, Inference i)
+const char* toString(Inference i)
 {
   switch (i)
   {
-    case INFER_INFER_EMP: out << "Infer-Emp"; break;
-    case INFER_SSPLIT_CST_PROP: out << "S-Split(CST-P)-prop"; break;
-    case INFER_SSPLIT_VAR_PROP: out << "S-Split(VAR)-prop"; break;
-    case INFER_LEN_SPLIT: out << "Len-Split(Len)"; break;
-    case INFER_LEN_SPLIT_EMP: out << "Len-Split(Emp)"; break;
-    case INFER_SSPLIT_CST: out << "S-Split(CST-P)"; break;
-    case INFER_SSPLIT_VAR: out << "S-Split(VAR)"; break;
-    case INFER_FLOOP: out << "F-Loop"; break;
-    default: out << "?"; break;
+    case Inference::N_ENDPOINT_EMP: return "N_EndpointEmp";
+    case Inference::N_UNIFY: return "N_Unify";
+    case Inference::N_ENDPOINT_EQ: return "N_EndpointEq";
+    case Inference::N_CONST: return "N_Const";
+    case Inference::INFER_EMP: return "Infer-Emp";
+    case Inference::SSPLIT_CST_PROP: return "S-Split(CST-P)-prop";
+    case Inference::SSPLIT_VAR_PROP: return "S-Split(VAR)-prop";
+    case Inference::LEN_SPLIT: return "Len-Split(Len)";
+    case Inference::LEN_SPLIT_EMP: return "Len-Split(Emp)";
+    case Inference::SSPLIT_CST: return "S-Split(CST-P)";
+    case Inference::SSPLIT_VAR: return "S-Split(VAR)";
+    case Inference::FLOOP: return "F-Loop";
+    default: return "?";
   }
+}
+
+std::ostream& operator<<(std::ostream& out, Inference i)
+{
+  out << toString(i);
   return out;
 }
 
-InferInfo::InferInfo() : d_id(INFER_NONE), d_index(0), d_rev(false) {}
+InferInfo::InferInfo() : d_id(Inference::NONE), d_index(0), d_rev(false) {}
 
 }  // namespace strings
 }  // namespace theory

@@ -551,3 +551,12 @@ header = "options/arith_options.h"
   default    = "true"
   read_only  = true
   help       = "whether to increment the precision for irrational function constraints"
+
+[[option]]
+  name       = "brabTest"
+  category   = "regular"
+  long       = "arith-brab"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "whether to use simple rounding, similar to a unit-cube test, for integers"
