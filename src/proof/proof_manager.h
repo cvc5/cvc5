@@ -143,9 +143,9 @@ private:
 class ProofManager {
   context::Context* d_context;
 
-  CoreSatProof*  d_satProof;
-  CnfProof*      d_cnfProof;
-  TheoryProofEngine* d_theoryProof;
+  std::unique_ptr<CoreSatProof> d_satProof;
+  std::unique_ptr<CnfProof> d_cnfProof;
+  std::unique_ptr<TheoryProofEngine> d_theoryProof;
 
   // information that will need to be shared across proofs
   ExprSet    d_inputFormulas;
@@ -180,9 +180,8 @@ public:
 
   // initialization
   void         initSatProof(Minisat::Solver* solver);
-  static void         initCnfProof(CVC4::prop::CnfStream* cnfStream,
-                                   context::Context* ctx);
-  static void         initTheoryProofEngine();
+  void initCnfProof(CVC4::prop::CnfStream* cnfStream, context::Context* ctx);
+  void initTheoryProofEngine();
 
   // getting various proofs
   static const Proof& getProof(SmtEngine* smt);
