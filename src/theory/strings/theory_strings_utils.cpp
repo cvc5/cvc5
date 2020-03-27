@@ -300,12 +300,12 @@ unsigned getRepeatAmount(TNode node)
 
 unsigned getLoopHigh(TNode node)
 {
-  return node.getOperator().getConst<RegexpLoop>().d_loopAmountHi;
+  return node.getOperator().getConst<RegExpLoop>().d_loopAmountHi;
 }
 
 unsigned getLoopLow(TNode node)
 {
-  return node.getOperator().getConst<RegexpLoop>().d_loopAmountLo;
+  return node.getOperator().getConst<RegExpLoop>().d_loopAmountLo;
 }
 
 }  // namespace utils
