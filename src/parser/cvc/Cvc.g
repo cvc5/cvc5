@@ -2020,8 +2020,6 @@ stringTerm[CVC4::api::Term& f]
   api::Term f3;
   std::string s;
   std::vector<api::Term> args;
-  unsigned lo;
-  unsigned hi;
 }
     /* String prefix operators */
   : STRING_CONCAT_TOK LPAREN formula[f] { args.push_back(f); }
@@ -2076,8 +2074,8 @@ stringTerm[CVC4::api::Term& f]
     { f = MK_TERM(CVC4::api::REGEXP_RANGE, f, f2); }
   | REGEXP_LOOP_TOK LPAREN formula[f] COMMA lo=numeral COMMA hi=numeral RPAREN
     {
-      api::Op lop = SOLVER->mkOp(REGEXP_LOOP,lo,hi);
-      f = MK_TERM(CVC4::api::REGEXP_LOOP, lop, f); 
+      api::Op lop = SOLVER->mkOp(CVC4::api::REGEXP_LOOP,lo,hi);
+      f = MK_TERM(lop, f); 
     }
   | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }
