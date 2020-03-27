@@ -109,12 +109,12 @@ class CVC4_PUBLIC String {
   /* toString
    * Converts this string to a std::string.
    *
-   * If useEscSequences is true, then unprintable characters
-   * are converted to unicode escape sequences as described above.
+   * The unprintable characters are converted to unicode escape sequences as
+   * described above.
    *
-   * If useEscSequences is false, the returned std::string's characters
-   * map one-to-one with the characters in this string.
-   * Notice that for all std::string s, we have that
+   * If useEscSequences is false, the string's printable characters are
+   * printed as characters. Notice that for all std::string s having only
+   * printable characters, we have that
    *    CVC4::String( s ).toString() = s.
    */
   std::string toString(bool useEscSequences = false) const;
