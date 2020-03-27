@@ -2175,24 +2175,36 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   REGEXP_RANGE,
   /**
-   * Regexp repeat.
-   * Parameters: 
-   *   -[1]: Term of sort RegExp
-   *   -[2]: The number of repetitions of the first argument
+   * Operator for regular expression repeat.
+   * Parameters: 1
+   *   -[1]: The number of repetitions
    * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   *   mkOp(Kind kind, uint32_t param)
+   *
+   * Apply regular expression loop.
+   * Parameters: 2
+   *   -[1]: Op of kind REGEXP_REPEAT
+   *   -[2]: Term of regular expression sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   REGEXP_REPEAT,
   /**
-   * Regexp loop.
-   * Parameters: 3
-   *   -[1]: Term of sort RegExp
-   *   -[2]: Lower bound for the number of repetitions of the first argument
-   *   -[3]: Upper bound for the number of repetitions of the first argument
+   * Operator for regular expression loop (from index 'high' to 'low').
+   * Parameters: 2
+   *   -[1]: The 'high' index
+   *   -[2]: The 'low' index
    * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   *   mkOp(Kind kind, uint32_t param, uint32_t param)
+   *
+   * Apply regular expression loop.
+   * Parameters: 2
+   *   -[1]: Op of kind REGEXP_LOOP
+   *   -[2]: Term of regular expression sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   REGEXP_LOOP,
   /**
