@@ -1192,61 +1192,35 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   {
     return returnRewrite(node, r, "re.loop-star");
   }
-  TNode n1 = node[1];
   NodeManager* nm = NodeManager::currentNM();
   CVC4::Rational rMaxInt(String::maxSize());
-  AlwaysAssert(n1.isConst()) << "re.loop contains non-constant integer (1).";
-  AlwaysAssert(n1.getConst<Rational>().sgn() >= 0)
-      << "Negative integer in string REGEXP_LOOP (1)";
-  Assert(n1.getConst<Rational>() <= rMaxInt)
-      << "Exceeded UINT32_MAX in string REGEXP_LOOP (1)";
-  uint32_t l = n1.getConst<Rational>().getNumerator().toUnsignedInt();
+  uint32_t l = utils::getLoopLow(node);
   std::vector<Node> vec_nodes;
   for (unsigned i = 0; i < l; i++)
   {
     vec_nodes.push_back(r);
   }
-  if (node.getNumChildren() == 3)
+  Node n =
+      vec_nodes.size() == 0
+          ? nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")))
+          : vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT, vec_nodes);
+  uint32_t u = utils::getLoopHigh(node);
+  if (u <= l)
   {
-    TNode n2 = Rewriter::rewrite(node[2]);
-    Node n =
-        vec_nodes.size() == 0
-            ? nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")))
-            : vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT, vec_nodes);
-    AlwaysAssert(n2.isConst()) << "re.loop contains non-constant integer (2).";
-    AlwaysAssert(n2.getConst<Rational>().sgn() >= 0)
-        << "Negative integer in string REGEXP_LOOP (2)";
-    Assert(n2.getConst<Rational>() <= rMaxInt)
-        << "Exceeded UINT32_MAX in string REGEXP_LOOP (2)";
-    uint32_t u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
-    if (u <= l)
-    {
-      retNode = n;
-    }
-    else
-    {
-      std::vector<Node> vec2;
-      vec2.push_back(n);
-      TypeNode rtype = nm->regExpType();
-      for (unsigned j = l; j < u; j++)
-      {
-        vec_nodes.push_back(r);
-        n = utils::mkConcat(vec_nodes, rtype);
-        vec2.push_back(n);
-      }
-      retNode = nm->mkNode(REGEXP_UNION, vec2);
-    }
+    retNode = n;
   }
   else
   {
-    Node rest = nm->mkNode(REGEXP_STAR, r);
-    retNode = vec_nodes.size() == 0
-                  ? rest
-                  : vec_nodes.size() == 1
-                        ? nm->mkNode(REGEXP_CONCAT, r, rest)
-                        : nm->mkNode(REGEXP_CONCAT,
-                                     nm->mkNode(REGEXP_CONCAT, vec_nodes),
-                                     rest);
+    std::vector<Node> vec2;
+    vec2.push_back(n);
+    TypeNode rtype = nm->regExpType();
+    for (unsigned j = l; j < u; j++)
+    {
+      vec_nodes.push_back(r);
+      n = utils::mkConcat(vec_nodes, rtype);
+      vec2.push_back(n);
+    }
+    retNode = nm->mkNode(REGEXP_UNION, vec2);
   }
   Trace("strings-lp") << "Strings::lp " << node << " => " << retNode
                       << std::endl;
