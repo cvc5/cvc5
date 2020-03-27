@@ -2141,20 +2141,21 @@ Expr GetInterpolCommand::getResult() const { return d_result; }
 
 void GetInterpolCommand::invoke(SmtEngine* smtEngine)
 {
-	try
-	{
-		d_resultStatus = smtEngine->getInterpol(d_conj, d_result);
-		d_commandStatus = CommandSuccess::instance();
-	}
-	catch (exception& e)
-	{
-		d_commandStatus = new CommandFailure(e.what());
-	}
+  try
+  {
+    d_resultStatus = smtEngine->getInterpol(d_conj, d_result);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
 }
 
-void GetInterpolCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void GetInterpolCommand::printResult(std::ostream& out,
+                                     uint32_t verbosity) const
 {
-  if (!ok()) // TODO why??
+  if (!ok())  // TODO why??
   {
     this->Command::printResult(out, verbosity);
   }
@@ -2165,7 +2166,7 @@ void GetInterpolCommand::printResult(std::ostream& out, uint32_t verbosity) cons
     {
       out << "(define-fun " << d_name << " () Bool " << d_result << ")"
           << std::endl;
-	  // TODO also output as func?
+      // TODO also output as func?
     }
     else
     {
@@ -2175,7 +2176,7 @@ void GetInterpolCommand::printResult(std::ostream& out, uint32_t verbosity) cons
 }
 
 Command* GetInterpolCommand::exportTo(ExprManager* exprManager,
-                                    ExprManagerMapCollection& variableMap)
+                                      ExprManagerMapCollection& variableMap)
 {
   GetInterpolCommand* c =
       new GetInterpolCommand(d_name, d_conj.exportTo(exprManager, variableMap));
@@ -2192,7 +2193,10 @@ Command* GetInterpolCommand::clone() const
   return c;
 }
 
-std::string GetInterpolCommand::getCommandName() const { return "get-interpol"; }
+std::string GetInterpolCommand::getCommandName() const
+{
+  return "get-interpol";
+}
 
 GetAbductCommand::GetAbductCommand() {}
 GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj)

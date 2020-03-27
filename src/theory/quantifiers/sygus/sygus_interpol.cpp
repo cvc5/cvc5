@@ -37,8 +37,8 @@ namespace quantifiers {
 SygusInterpol::SygusInterpol() {}
 
 Node SygusInterpol::mkInterpolationConjecture(const std::string& name,
-                                        const std::vector<Node>& axioms,
-										const Node& conj)
+                                              const std::vector<Node>& axioms,
+                                              const Node& conj)
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-interpol-debug") << "Collect symbols..." << std::endl;
@@ -48,20 +48,21 @@ Node SygusInterpol::mkInterpolationConjecture(const std::string& name,
   std::unordered_set<Node, NodeHashFunction> symsetShared;
   for (size_t i = 0, size = axioms.size(); i < size; i++)
   {
-	  expr::getSymbols(axioms[i], symsetAxioms);
-	  expr::getSymbols(axiomspi], symsetAll);
+    expr::getSymbols(axioms[i], symsetAxioms);
+          expr::getSymbols(axiomspi], symsetAll);
   }
   expr::getSymbols(conj, symsetConj);
   expr::getSymbols(conj, symsetAll);
-  for (const auto& elem: symsetConj)
+  for (const auto& elem : symsetConj)
   {
-	  if (symsetAxioms.find(elem) != symsetAxioms.end())
-	  {
-		  symsetShared.insert(elem);
-	  }
+    if (symsetAxioms.find(elem) != symsetAxioms.end())
+    {
+      symsetShared.insert(elem);
+    }
   }
   Trace("sygus-interpol-debug")
-      << "...finish, got " << symsetAll.size() << " symbols in total. And " << symsetShared.size() << " shared symbols." << std::endl;
+      << "...finish, got " << symsetAll.size() << " symbols in total. And "
+      << symsetShared.size() << " shared symbols." << std::endl;
 
   Trace("sygus-interpol-debug") << "Setup symbols..." << std::endl;
   std::vector<Node> syms;
@@ -74,43 +75,52 @@ Node SygusInterpol::mkInterpolationConjecture(const std::string& name,
   for (const Node& s : symsetAll)
   {
     TypeNode tn = s.getType();
-    // Notice that we allow for non-first class (e.g. function) variables here. TODO do we allow non-first class?
-    // This is applicable to the case where we are doing get-interpol in a logic
-    // with UF.
+    // Notice that we allow for non-first class (e.g. function) variables here.
+    // TODO do we allow non-first class? This is applicable to the case where we
+    // are doing get-interpol in a logic with UF.
     std::stringstream ss;
     ss << s;
     Node var = nm->mkBoundVar(tn);
     syms.push_back(s);
     vars.push_back(var);
-    Node vlv = nm->mkBoundVar(ss.str(), tn); // TODO what is the difference with var?
+    Node vlv =
+        nm->mkBoundVar(ss.str(), tn);  // TODO what is the difference with var?
     varlist.push_back(vlv);
     varlistTypes.push_back(tn);
-	if (symsetShared.find(s) != symsetShared.end())
-	{
-		varsShared.push_back(var);
-		varlistShared.push_back(vlv);
-		varlistTypesShared.push_back(tn);
-	}
-	// set that this variable encodes the term s
-	SygusVarToTermAttribute sta;
-	vlv.setAttribute(sta, s);
+    if (symsetShared.find(s) != symsetShared.end())
+    {
+      varsShared.push_back(var);
+      varlistShared.push_back(vlv);
+      varlistTypesShared.push_back(tn);
+    }
+    // set that this variable encodes the term s
+    SygusVarToTermAttribute sta;
+    vlv.setAttribute(sta, s);
   }
   // make the sygus variable list
   Node abvlShared = nm->mkNode(BOUND_VAR_LIST, varlistShared);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
-  Trace("sygus-interpol-debug") << "Make interpolation predicate..." << std::endl;
+  Trace("sygus-interpol-debug")
+      << "Make interpolation predicate..." << std::endl;
   // make the interpolation predicate to synthesize
-  TypeNode itpType = varlistTypesShared.empty() ? nm->booleanType()
-                                          : nm->mkPredicateType(varlistTypesShared);
+  TypeNode itpType = varlistTypesShared.empty()
+                         ? nm->booleanType()
+                         : nm->mkPredicateType(varlistTypesShared);
   Node itp = nm->mkBoundVar(name.c_str(), itpType);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
-  Trace("sygus-interpol-debug") << "Make interpolation predicate app..." << std::endl; // TODO what is "app"?
-  std::vector<Node> achildren; // TODO achildren? why this name?
+  Trace("sygus-interpol-debug") << "Make interpolation predicate app..."
+                                << std::endl;  // TODO what is "app"?
+  std::vector<Node> achildren;                 // TODO achildren? why this name?
   achildren.push_back(itp);
   achildren.insert(achildren.end(), varsShared.begin(), varsShared.end());
-  Node itpApp = varsShared.empty() ? itp : nm->mkNode(APPLY_UF, achildren); // TODO what's the meanning of apply_uf on itp
+  Node itpApp =
+      varsShared.empty()
+          ? itp
+          : nm->mkNode(
+              APPLY_UF,
+              achildren);  // TODO what's the meanning of apply_uf on itp
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
@@ -121,7 +131,7 @@ Node SygusInterpol::mkInterpolationConjecture(const std::string& name,
   theory::SygusAttribute ca;
   sygusVar.setAttribute(ca, true);
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
-  std::vector<Node> iplc; // TODO what is this?
+  std::vector<Node> iplc;  // TODO what is this?
   iplc.push_back(instAttr);
   Node instAttrList = nm->mkNode(INST_PATTERN_LIST, iplc);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
@@ -141,13 +151,13 @@ Node SygusInterpol::mkInterpolationConjecture(const std::string& name,
   Trace("sygus-interpol-debug") << "Make conjecture..." << std::endl;
   // forall A. exists x. ~( Fa( x ) => A( x ) ^ A( x ) => Fc( x ) )
   Node res = constraint.negate();
-  Node bvl = nm->mkNode(BOUND_VAR_LIST, vars); // TODO difference between bvl and abvl??
+  Node bvl = nm->mkNode(BOUND_VAR_LIST,
+                        vars);  // TODO difference between bvl and abvl??
   res = nm->mkNode(EXISTS, bvl, res);
   Node fbvl = nm->mkNode(BOUND_VAR_LIST, itp);
   res = nm->mkNode(FORALL, fbvl, res, instAttrList);
   res = theory::Rewriter::rewrite(res);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
-
 
   Trace("sygus-interpol") << "Generate: " << res << std::endl;
 

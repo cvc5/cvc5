@@ -202,7 +202,7 @@ class CVC4_PUBLIC SmtEngine
    * passes that rephrase the input, such as --sygus-rr-synth-input or
    * --sygus-abduct.
    */
-  void setIsInternalSubsolver(); // TODO anything needs to be done here?
+  void setIsInternalSubsolver();  // TODO anything needs to be done here?
 
   /** set the input name */
   void setFilename(std::string filename);
@@ -576,10 +576,10 @@ class CVC4_PUBLIC SmtEngine
   Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict = true);
 
   /**
-   * This method asks this SMT engine to find an interpolation with respect to the
-   * current assertion stack (call it A) and the conjecture (call it C).
-   * If this method returns true, then interpol is set to a formula B such that
-   * A ^ ~B and B ^ ~C are both unsatisfiable.
+   * This method asks this SMT engine to find an interpolation with respect to
+   * the current assertion stack (call it A) and the conjecture (call it C). If
+   * this method returns true, then interpol is set to a formula B such that A ^
+   * ~B and B ^ ~C are both unsatisfiable.
    *
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
@@ -864,8 +864,8 @@ class CVC4_PUBLIC SmtEngine
     SMT_MODE_UNSAT,
     // immediately after a successful call to get-abduct
     SMT_MODE_ABDUCT,
-	// immediately after a successful call to get-interpol
-	SMT_MODE_INTERPOL
+    // immediately after a successful call to get-interpol
+    SMT_MODE_INTERPOL
   };
 
   // disallow copy/assignment
@@ -929,10 +929,10 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Check that a solution to an interpolation conjecture is indeed a solution.
    *
-   * The check is made by determining that the assertions conjoined with the negation
-   * of the solution to the interpolation problem (a) is UNSAT, and the solution conjoined
-   * with the negation of the goal is also UNSAT. If these criteria are not met,
-   * an internal error is thrown.
+   * The check is made by determining that the assertions conjoined with the
+   * negation of the solution to the interpolation problem (a) is UNSAT, and the
+   * solution conjoined with the negation of the goal is also UNSAT. If these
+   * criteria are not met, an internal error is thrown.
    */
   void checkInterpol(Expr a);
   /**
@@ -1069,9 +1069,11 @@ class CVC4_PUBLIC SmtEngine
    * Get interpolation internal.
    *
    * Get the next interpolation from the internal subsolver d_subsolver. If
-   * successful, this method returns true and sets interpol to that interpolation.
+   * successful, this method returns true and sets interpol to that
+   * interpolation.
    *
-   * This method assumes d_subsolver has been initialized to do interpolation problems.
+   * This method assumes d_subsolver has been initialized to do interpolation
+   * problems.
    */
   bool getInterpolInternal(Expr& interpol);
 
@@ -1148,7 +1150,8 @@ class CVC4_PUBLIC SmtEngine
    * If applicable, the function-to-synthesize that the subsolver is solving
    * for. This is used for the get-interpol command.
    */
-  Expr d_sssf2; // TODO how does the name come from? why should we save the conjectures in class?
+  Expr d_sssf2;  // TODO how does the name come from? why should we save the
+                 // conjectures in class?
 
   /**
    * The conjecture of the current interpolation problem. This expression is

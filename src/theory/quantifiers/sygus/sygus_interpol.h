@@ -2,14 +2,15 @@
 /*! \file sygus_interpol.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Ying Sheng 
+ **   Ying Sheng
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sygus interpolation utility, which transforms an arbitrary input into an
+ ** \brief Sygus interpolation utility, which transforms an arbitrary input into
+ *an
  ** interpolation problem.
  **/
 
@@ -18,6 +19,7 @@
 
 #include <string>
 #include <vector>
+
 #include "expr/node.h"
 #include "expr/type.h"
 
@@ -34,10 +36,10 @@ namespace quantifiers {
  *
  * exists A. forall x. ( (Fa( x ) => A( x )) ^ (A( x ) => Fc( x )) )
  *
- * where A( x ) is a predicate over the free symbols of our input that are shared
- * between Fa and Fc.
- * In other words, A( x ) must be implied by our axioms Fa and imply Fc( x ).
- * We encode this conjecture using SygusSideConditionAttribute.
+ * where A( x ) is a predicate over the free symbols of our input that are
+ * shared between Fa and Fc. In other words, A( x ) must be implied by our
+ * axioms Fa and imply Fc( x ). We encode this conjecture using
+ * SygusSideConditionAttribute.
  */
 class SygusInterpol
 {
@@ -62,7 +64,7 @@ class SygusInterpol
    */
   static Node mkAbductionConjecture(const std::string& name,
                                     const std::vector<Node>& axioms,
-									const Node& conj);
+                                    const Node& conj);
 };
 
 }  // namespace quantifiers
