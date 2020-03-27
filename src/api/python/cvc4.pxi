@@ -303,16 +303,14 @@ cdef class RoundingMode:
     cdef c_RoundingMode crm
     cdef str name
     def __cinit__(self, int rm):
-        # crm always assigned externally
-        # self.crm = <c_RoundingMode> rm
-        # self.name = __rounding_modes[rm]
-        pass
+        self.crm = <c_RoundingMode> rm
+        self.name = __rounding_modes[rm]
 
-    # def __eq__(self, RoundingMode other):
-    #     return (<int> self.crm) == (<int> other.crm)
+    def __eq__(self, RoundingMode other):
+        return (<int> self.crm) == (<int> other.crm)
 
-    # def __ne__(self, RoundingMode other):
-    #     return not self.__eq__(other)
+    def __ne__(self, RoundingMode other):
+        return not self == other
 
     def __hash__(self):
         return hash((<int> self.crm, self.name))
