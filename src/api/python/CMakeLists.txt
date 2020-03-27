@@ -27,7 +27,7 @@ add_custom_target(
   DEPENDS
     genkinds.py
   COMMENT
-    "Generate cvc4kinds.{pxd,pyx}"
+    "Generate cvc4kinds.{pxd,pxi}"
 )
 
 add_cython_target(pycvc4 CXX)
