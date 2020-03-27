@@ -62,7 +62,7 @@ class SygusInterpol
    * term whose free variables are a subset of asserts, is the term
    * t * { varlist -> SygusVarToTermAttribute(varlist) }.
    */
-  static Node mkAbductionConjecture(const std::string& name,
+  static Node mkInterpolationConjecture(const std::string& name,
                                     const std::vector<Node>& axioms,
                                     const Node& conj);
 };

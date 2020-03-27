@@ -5007,7 +5007,7 @@ void SmtEngine::checkInterpol(Expr a)
       {
         itpChecker.assertFormula(e);
       }
-      Expr nega = a.negate();
+      Expr nega = a.notExpr();
       itpChecker.assertFormula(nega);
     }
     else
