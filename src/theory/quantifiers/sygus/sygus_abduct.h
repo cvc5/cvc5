@@ -25,7 +25,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** SygusAbduct
+namespace sygus_abduct {
+
+ /** 
  *
  * A utility that turns a set of quantifier-free assertions into
  * a sygus conjecture that encodes an abduction problem. In detail, if our
@@ -53,38 +55,34 @@ namespace quantifiers {
  * In other words, A( y ) must be consistent with our axioms Fa and imply
  * ~F( x ). We encode this conjecture using SygusSideConditionAttribute.
  */
-class SygusAbduct
-{
- public:
-  SygusAbduct();
 
-  /**
-   * Returns the sygus conjecture corresponding to the abduction problem for
-   * input problem (F above) given by asserts, and axioms (Fa above) given by
-   * axioms. Note that axioms is expected to be a subset of asserts.
-   *
-   * The argument name is the name for the abduct-to-synthesize.
-   *
-   * The type abdGType (if non-null) is a sygus datatype type that encodes the
-   * grammar that should be used for solutions of the abduction conjecture.
-   *
-   * The relationship between the free variables of asserts and the formal
-   * rgument list of the abduct-to-synthesize are tracked by the attribute
-   * SygusVarToTermAttribute.
-   *
-   * In particular, solutions to the synthesis conjecture will be in the form
-   * of a closed term (lambda varlist. t). The intended solution, which is a
-   * term whose free variables are a subset of asserts, is the term
-   * t * { varlist -> SygusVarToTermAttribute(varlist) }.
-   */
-  static Node mkAbductionConjecture(const std::string& name,
-                                    const std::vector<Node>& asserts,
-                                    const std::vector<Node>& axioms,
-                                    TypeNode abdGType);
-};
+/**
+ * Returns the sygus conjecture corresponding to the abduction problem for
+ * input problem (F above) given by asserts, and axioms (Fa above) given by
+ * axioms. Note that axioms is expected to be a subset of asserts.
+ *
+ * The argument name is the name for the abduct-to-synthesize.
+ *
+ * The type abdGType (if non-null) is a sygus datatype type that encodes the
+ * grammar that should be used for solutions of the abduction conjecture.
+ *
+ * The relationship between the free variables of asserts and the formal
+ * rgument list of the abduct-to-synthesize are tracked by the attribute
+ * SygusVarToTermAttribute.
+ *
+ * In particular, solutions to the synthesis conjecture will be in the form
+ * of a closed term (lambda varlist. t). The intended solution, which is a
+ * term whose free variables are a subset of asserts, is the term
+ * t * { varlist -> SygusVarToTermAttribute(varlist) }.
+ */
+Node mkAbductionConjecture(const std::string& name,
+                                  const std::vector<Node>& asserts,
+                                  const std::vector<Node>& axioms,
+                                  TypeNode abdGType);
 
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
+}  // namespace sygus_abduct
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H */

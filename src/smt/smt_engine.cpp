@@ -4017,7 +4017,7 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   d_abdConj = conjn.toExpr();
   asserts.push_back(conjn);
   std::string name("A");
-  Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
+  Node aconj = theory::quantifiers::sygus_abduct::mkAbductionConjecture(
       name, asserts, axioms, TypeNode::fromType(grammarType));
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);

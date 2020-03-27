@@ -34,9 +34,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusAbduct::SygusAbduct() {}
-
-Node SygusAbduct::mkAbductionConjecture(const std::string& name,
+Node sygus_abduct::mkAbductionConjecture(const std::string& name,
                                         const std::vector<Node>& asserts,
                                         const std::vector<Node>& axioms,
                                         TypeNode abdGType)
