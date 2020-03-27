@@ -2638,6 +2638,7 @@ SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
+GET_INTERPOL_TOK : 'get-interpol';
 GET_ABDUCT_TOK : 'get-abduct';
 DECLARE_HEAP : 'declare-heap';
 
