@@ -5277,20 +5277,15 @@ bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
   {
     axioms.push_back(Node::fromExpr(easserts[i]));
   }
-  std::vector<Node> asserts(axioms.begin(), axioms.end());
-  // negate the conjecture
   Node conjn = Node::fromExpr(conj);
   // must expand definitions
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   conjn = d_private->expandDefinitions(conjn, cache); //TODO what is this??
-  // now negate
-  conjn = conjn.negate();
   d_interpolConj = conjn.toExpr();
-  asserts.push_back(conjn);
   std::string name("A"); // TODO why not pass the customized name?
 
   Node sygusConj = theory::quantifiers::SygusInterpol::mkInterpolationConjecture(
-      name, asserts, axioms);
+      name, axioms, conjn);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(sygusConj.getKind() == kind::FORALL && sygusConj[0].getNumChildren() == 1);
   // remember the interpol-to-synthesize
@@ -5331,7 +5326,7 @@ bool SmtEngine::getInterpolInternal(Expr& interpol)
   {
     // get the synthesis solution
     std::map<Expr, Expr> sols;
-    d_subsolver->getSynthSolutions(sols); // TODO what does it mean?
+    d_subsolver->getSynthSolutions(sols);
     Assert(sols.size() == 1);
     std::map<Expr, Expr>::iterator its = sols.find(d_sssf2);
     if (its != sols.end())

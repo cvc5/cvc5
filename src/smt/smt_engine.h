@@ -1151,10 +1151,10 @@ class CVC4_PUBLIC SmtEngine
   Expr d_sssf2; // TODO how does the name come from? why should we save the conjectures in class?
 
   /**
-   * The negated conjecture of the current interpolation problem. This expression is
+   * The conjecture of the current interpolation problem. This expression is
    * only valid while we are in mode SMT_MODE_INTERPOL. // TODO not precise?
    */
-  Expr d_interpolConj; // TODO shouldn't it be negated conjecture?
+  Expr d_interpolConj;
 
   /**
    * If applicable, the function-to-synthesize that the subsolver is solving
