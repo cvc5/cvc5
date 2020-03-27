@@ -3492,6 +3492,12 @@ Op Solver::mkOp(Kind kind, uint32_t arg) const
           kind,
           *mkValHelper<CVC4::TupleUpdate>(CVC4::TupleUpdate(arg)).d_expr.get());
       break;
+    case REGEXP_REPEAT:
+      res = Op(kind,
+               *mkValHelper<CVC4::RegExpRepeat>(
+                    CVC4::RegExpRepeat(arg))
+                    .d_expr.get());
+      break;
     default:
       CVC4_API_KIND_CHECK_EXPECTED(false, kind)
           << "operator kind with uint32_t argument";
@@ -3550,6 +3556,12 @@ Op Solver::mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const
       res = Op(kind,
                *mkValHelper<CVC4::FloatingPointToFPGeneric>(
                     CVC4::FloatingPointToFPGeneric(arg1, arg2))
+                    .d_expr.get());
+      break;
+    case REGEXP_LOOP:
+      res = Op(kind,
+               *mkValHelper<CVC4::RegExpLoop>(
+                    CVC4::RegExpLoop(arg1, arg2))
                     .d_expr.get());
       break;
     default:
