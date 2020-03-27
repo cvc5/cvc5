@@ -403,7 +403,6 @@ cdef class Solver:
         sort.csort = self.csolver.mkParamSort(symbolname.encode())
         return sort
 
-    # @expand_list_arg(num_req_args=0)
     def mkPredicateSort(self, *sorts):
         '''
         Supports the following arguments:
@@ -412,6 +411,11 @@ cdef class Solver:
                  where sorts can also be comma-separated arguments of
                   type Sort
         '''
+
+        # check if arguments are a list
+        if len(sorts) == 1 and isinstance(sorts[0], list):
+            sorts = sorts[0]
+
         cdef Sort sort = Sort()
         cdef vector[c_Sort] v
         for s in sorts:
@@ -419,7 +423,6 @@ cdef class Solver:
         sort.csort = self.csolver.mkPredicateSort(<const vector[c_Sort]&> v)
         return sort
 
-    # @expand_list_arg(num_req_args=0)
     def mkRecordSort(self, *fields):
         '''
         Supports the following arguments:
@@ -428,6 +431,11 @@ cdef class Solver:
                   where fields can also be comma-separated arguments of
           type Tuple[str, Sort]
         '''
+
+        # check if arguments are a list
+        if len(fields) == 1 and isinstance(fields[0], list):
+            fields = fields[0]
+
         cdef Sort sort = Sort()
         cdef vector[pair[string, c_Sort]] v
         cdef pair[string, c_Sort] p
@@ -455,7 +463,6 @@ cdef class Solver:
         sort.csort =self.csolver.mkSortConstructorSort(symbol.encode(), arity)
         return sort
 
-    # @expand_list_arg(num_req_args=0)
     def mkTupleSort(self, *sorts):
         '''
            Supports the following arguments:
@@ -464,6 +471,11 @@ cdef class Solver:
                  where sorts can also be comma-separated arguments of
                  type Sort
         '''
+
+        # check if arguments are a list
+        if len(sorts) == 1 and isinstance(sorts[0], list):
+            sorts = sorts[0]
+
         cdef Sort sort = Sort()
         cdef vector[c_Sort] v
         for s in sorts:
@@ -763,7 +775,6 @@ cdef class Solver:
             explanation = r.getUnknownExplanation().decode()
         return Result(name, explanation)
 
-    # @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
         '''
             Supports the following arguments:
@@ -772,6 +783,11 @@ cdef class Solver:
                  where assumptions can also be comma-separated arguments of
                  type (boolean) Term
         '''
+
+        # check if arguments are a list
+        if len(assumptions) == 1 and isinstance(assumptions[0], list):
+            assumptions = assumptions[0]
+
         cdef c_Result r
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
@@ -792,7 +808,6 @@ cdef class Solver:
             explanation = r.getUnknownExplanation().decode()
         return Result(name, explanation)
 
-    # @expand_list_arg(num_req_args=0)
     def checkValidAssuming(self, *assumptions):
         '''
             Supports the following arguments:
@@ -801,6 +816,11 @@ cdef class Solver:
                  where assumptions can also be comma-separated arguments of
                  type (boolean) Term
         '''
+
+        # check if arguments are a list
+        if len(assumptions) == 1 and isinstance(assumptions[0], list):
+            assumptions = assumptions[0]
+
         cdef c_Result r
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
@@ -813,7 +833,6 @@ cdef class Solver:
             explanation = r.getUnknownExplanation().decode()
         return Result(name, explanation)
 
-    # @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
         '''
             Supports the following arguments:
@@ -822,6 +841,11 @@ cdef class Solver:
                  where ctors can also be comma-separated arguments of
                   type DatatypeConstructorDecl
         '''
+
+        # check if arguments are a list
+        if len(ctors) == 1 and isinstance(ctors[0], list):
+            ctors = ctors[0]
+
         cdef Sort sort = Sort()
         cdef vector[c_DatatypeConstructorDecl] v
 
