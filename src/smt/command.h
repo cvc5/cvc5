@@ -1075,7 +1075,7 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
 		bool d_resultStatus;
 		/** the return expression of the command */
 		Expr d_result;
-} /* class GetInterpolCommand */
+}; /* class GetInterpolCommand */
 
 /** The command (get-abduct s B (G)?)
  *
