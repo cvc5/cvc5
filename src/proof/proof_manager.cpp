@@ -92,17 +92,20 @@ const Proof& ProofManager::getProof(SmtEngine* smt)
   return *(currentPM()->d_fullProof);
 }
 
-CoreSatProof* ProofManager::getSatProof() {
+CoreSatProof* ProofManager::getSatProof()
+{
   Assert(currentPM()->d_satProof);
   return currentPM()->d_satProof.get();
 }
 
-CnfProof* ProofManager::getCnfProof() {
+CnfProof* ProofManager::getCnfProof()
+{
   Assert(currentPM()->d_cnfProof);
   return currentPM()->d_cnfProof.get();
 }
 
-TheoryProofEngine* ProofManager::getTheoryProofEngine() {
+TheoryProofEngine* ProofManager::getTheoryProofEngine()
+{
   Assert(currentPM()->d_theoryProof != NULL);
   return currentPM()->d_theoryProof.get();
 }

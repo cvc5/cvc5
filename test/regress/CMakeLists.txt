@@ -904,9 +904,9 @@ set(regress_0_tests
   regress0/smtlib/issue4077.smt2
   regress0/smtlib/issue4151.smt2
   regress0/smtlib/reason-unknown.smt2
+  regress0/smtlib/reset.smt2
   regress0/smtlib/reset-assertions1.smt2
   regress0/smtlib/reset-assertions2.smt2
-  regress0/smtlib/reset.smt2
   regress0/smtlib/reset-assertions-global.smt2
   regress0/smtlib/reset-force-logic.smt2
   regress0/smtlib/reset-set-logic.smt2
