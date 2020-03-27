@@ -961,11 +961,11 @@ install(FILES
           util/proof.h
           util/rational_cln_imp.h
           util/rational_gmp_imp.h
-          util/regexp.h
           util/resource_manager.h
           util/result.h
           util/sexpr.h
           util/statistics.h
+          util/string.h
           util/tuple.h
           util/unsafe_interrupt_exception.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h

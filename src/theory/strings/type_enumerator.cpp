@@ -15,7 +15,7 @@
 #include "theory/strings/type_enumerator.h"
 
 #include "theory/strings/theory_strings_utils.h"
-#include "util/regexp.h"
+#include "util/string.h"
 
 namespace CVC4 {
 namespace theory {

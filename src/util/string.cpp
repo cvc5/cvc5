@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file regexp.cpp
+/*! \file string.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Tim King, Tianyi Liang, Andrew Reynolds
@@ -9,13 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** \brief Implementation of the string data type.
  **/
 
-#include "util/regexp.h"
+#include "util/string.h"
 
 #include <algorithm>
 #include <climits>

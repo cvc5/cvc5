@@ -274,10 +274,10 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/cardinality.i"
 %include "util/hash.i"
 %include "util/proof.i"
-%include "util/regexp.i"
 %include "util/result.i"
 %include "util/sexpr.i"
 %include "util/statistics.i"
+%include "util/string.i"
 %include "util/tuple.i"
 %include "util/unsafe_interrupt_exception.i"
 
