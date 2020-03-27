@@ -40,25 +40,25 @@ namespace quantifiers {
  * SygusSideConditionAttribute.
  */
 namespace sygus_interpol {
-  /**
-   * Returns the sygus conjecture corresponding to the interpolation problem for
-   * input problem (F above) given by axioms (Fa above), and conj (Fc above).
-   * Note that axioms is expected to be a subset of asserts.
-   *
-   * The argument name is the name for the interpol-to-synthesize.
-   *
-   * The relationship between the free variables of asserts and the formal
-   * argument list of the interpol-to-synthesize are tracked by the attribute
-   * SygusVarToTermAttribute.
-   *
-   * In particular, solutions to the synthesis conjecture will be in the form
-   * of a closed term (lambda varlist. t). The intended solution, which is a
-   * term whose free variables are a subset of asserts, is the term
-   * t * { varlist -> SygusVarToTermAttribute(varlist) }.
-   */
-  Node mkInterpolationConjecture(const std::string& name,
-                                    const std::vector<Node>& axioms,
-                                    const Node& conj);
+/**
+ * Returns the sygus conjecture corresponding to the interpolation problem for
+ * input problem (F above) given by axioms (Fa above), and conj (Fc above).
+ * Note that axioms is expected to be a subset of asserts.
+ *
+ * The argument name is the name for the interpol-to-synthesize.
+ *
+ * The relationship between the free variables of asserts and the formal
+ * argument list of the interpol-to-synthesize are tracked by the attribute
+ * SygusVarToTermAttribute.
+ *
+ * In particular, solutions to the synthesis conjecture will be in the form
+ * of a closed term (lambda varlist. t). The intended solution, which is a
+ * term whose free variables are a subset of asserts, is the term
+ * t * { varlist -> SygusVarToTermAttribute(varlist) }.
+ */
+Node mkInterpolationConjecture(const std::string& name,
+                               const std::vector<Node>& axioms,
+                               const Node& conj);
 }  // namespace sygus_interpol
 }  // namespace quantifiers
 }  // namespace theory

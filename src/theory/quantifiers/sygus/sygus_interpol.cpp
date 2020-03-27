@@ -35,8 +35,8 @@ namespace theory {
 namespace quantifiers {
 
 Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
-                                              const std::vector<Node>& axioms,
-                                              const Node& conj)
+                                               const std::vector<Node>& axioms,
+                                               const Node& conj)
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-interpol-debug") << "Collect symbols..." << std::endl;
@@ -47,7 +47,7 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
   for (size_t i = 0, size = axioms.size(); i < size; i++)
   {
     expr::getSymbols(axioms[i], symsetAxioms);
-          expr::getSymbols(axioms[i], symsetAll);
+    expr::getSymbols(axioms[i], symsetAll);
   }
   expr::getSymbols(conj, symsetConj);
   expr::getSymbols(conj, symsetAll);
