@@ -42,7 +42,9 @@ from cvc4kinds cimport Kind as c_Kind
 #### produces generated code that gives a -Wshadow warning which we are trying to
 #### avoid in CVC4. Thus, see one of the existing implementations which carefully
 #### avoids this by implementing iter with __next__ as well.
-#### Note, apparently collections.deque in cython code also causes this warning
+#### Here is a list of other things observed to cause this warning
+#### - collections.deque
+#### - using format on types other than strings or ints
 
 
 
@@ -559,17 +561,17 @@ cdef class Solver:
         term.cterm = self.csolver.mkPi()
         return term
 
-    # def mkReal(self, val, den=None):
-    #     cdef Term term = Term()
-    #     if den is None:
-    #         term.cterm = self.csolver.mkReal(str(val).encode())
-    #     else:
-    #         if not isinstance(val, int) or not isinstance(den, int):
-    #             raise ValueError("Expecting integers when"
-    #                              " constructing a rational"
-    #                              " but got: {}".format((val, den)))
-    #         term.cterm = self.csolver.mkReal("{}/{}".format(val, den).encode())
-    #     return term
+    def mkReal(self, val, den=None):
+        cdef Term term = Term()
+        if den is None:
+            term.cterm = self.csolver.mkReal(str(val).encode())
+        else:
+            if not isinstance(val, int) or not isinstance(den, int):
+                raise ValueError("Expecting integers when"
+                                 " constructing a rational"
+                                 " but got: {}, {}".format(val, den))
+            term.cterm = self.csolver.mkReal("{}/{}".format(val, den).encode())
+        return term
 
     def mkRegexpEmpty(self):
         cdef Term term = Term()
@@ -591,22 +593,20 @@ cdef class Solver:
         term.cterm = self.csolver.mkSepNil(sort.csort)
         return term
 
-    # def mkString(self, str_or_vec):
-    #     cdef Term term = Term()
-    #     cdef vector[unsigned] v
-    #     if isinstance(str_or_vec, str):
-    #         term.cterm = self.csolver.mkString(<string &> str_or_vec.encode())
-    #     elif isinstance(str_or_vec, list):
-    #         for u in str_or_vec:
-    #             if not isinstance(u, int):
-    #                 raise ValueError("List should contain ints but got: {}"
-    #                                  .format(str_or_vec))
-    #             v.push_back(<unsigned> u)
-    #         term.cterm = self.csolver.mkString(<const vector[unsigned]&> v)
-    #     else:
-    #         raise ValueError("Expected string or vector of ASCII codes"
-    #                          " but got: {}".format(str_or_vec))
-    #     return term
+    def mkString(self, str_or_vec):
+        cdef Term term = Term()
+        cdef vector[unsigned] v
+        if isinstance(str_or_vec, str):
+            term.cterm = self.csolver.mkString(<string &> str_or_vec.encode())
+        elif isinstance(str_or_vec, list):
+            for u in str_or_vec:
+                if not isinstance(u, int):
+                    raise ValueError("List should contain ints but got: " + str(u))
+                v.push_back(<unsigned> u)
+            term.cterm = self.csolver.mkString(<const vector[unsigned]&> v)
+        else:
+            raise ValueError("Expected string or vector of ASCII codes in mkString")
+        return term
 
     def mkUniverseSet(self, Sort sort):
         cdef Term term = Term()
