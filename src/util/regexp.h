@@ -29,6 +29,11 @@ struct CVC4_PUBLIC RegExpRepeat
       : d_repeatAmount(repeatAmount)
   {
   }
+  
+  bool operator==(const RegExpRepeat& r) const
+  {
+    return d_repeatAmount == r.d_repeatAmount;
+  }
 };
 
 struct CVC4_PUBLIC RegExpLoop
