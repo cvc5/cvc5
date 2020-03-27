@@ -807,7 +807,7 @@ public:
    * @param range the range type
    * @returns the functional type domain -> range
    */
-  inline TypeNode mkFunctionType(const TypeNode& domain, const TypeNode& range);
+  TypeNode mkFunctionType(const TypeNode& domain, const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -817,8 +817,8 @@ public:
    * @param range the range type
    * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
-  inline TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes,
-                                 const TypeNode& range);
+  TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes,
+                          const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -826,7 +826,7 @@ public:
    * <code>sorts[sorts.size()-1]</code>. <code>sorts</code> must have
    * at least 2 elements.
    */
-  inline TypeNode mkFunctionType(const std::vector<TypeNode>& sorts);
+  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts);
 
   /**
    * Make a predicate type with input types from
@@ -834,7 +834,7 @@ public:
    * <code>BOOLEAN</code>. <code>sorts</code> must have at least one
    * element.
    */
-  inline TypeNode mkPredicateType(const std::vector<TypeNode>& sorts);
+  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts);
 
   /**
    * Make a tuple type with types from
@@ -1084,52 +1084,6 @@ inline TypeNode NodeManager::instPatternListType() {
 /** Get the (singleton) type for builtin operators. */
 inline TypeNode NodeManager::builtinOperatorType() {
   return TypeNode(mkTypeConst<TypeConstant>(BUILTIN_OPERATOR_TYPE));
-}
-
-/** Make a function type from domain to range. */
-inline TypeNode NodeManager::mkFunctionType(const TypeNode& domain, const TypeNode& range) {
-  std::vector<TypeNode> sorts;
-  sorts.push_back(domain);
-  sorts.push_back(range);
-  return mkFunctionType(sorts);
-}
-
-inline TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes, const TypeNode& range) {
-  Assert(argTypes.size() >= 1);
-  std::vector<TypeNode> sorts(argTypes);
-  sorts.push_back(range);
-  return mkFunctionType(sorts);
-}
-
-inline TypeNode
-NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts) {
-  Assert(sorts.size() >= 2);
-  std::vector<TypeNode> sortNodes;
-  for (unsigned i = 0; i < sorts.size(); ++ i) {
-    CheckArgument(sorts[i].isFirstClass(),
-                  sorts,
-                  "cannot create function types for argument types that are "
-                  "not first-class. Try option --uf-ho.");
-    sortNodes.push_back(sorts[i]);
-  }
-  CheckArgument(!sorts[sorts.size()-1].isFunction(), sorts[sorts.size()-1],
-                "must flatten function types");
-  return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
-}
-
-inline TypeNode
-NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
-  Assert(sorts.size() >= 1);
-  std::vector<TypeNode> sortNodes;
-  for (unsigned i = 0; i < sorts.size(); ++ i) {
-    CheckArgument(sorts[i].isFirstClass(),
-                  sorts,
-                  "cannot create predicate types for argument types that are "
-                  "not first-class. Try option --uf-ho.");
-    sortNodes.push_back(sorts[i]);
-  }
-  sortNodes.push_back(booleanType());
-  return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
 }
 
 inline TypeNode NodeManager::mkSExprType(const std::vector<TypeNode>& types) {
