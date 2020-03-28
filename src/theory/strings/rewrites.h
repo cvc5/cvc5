@@ -17,7 +17,7 @@
 #ifndef CVC4__THEORY__STRINGS__REWRITES_H
 #define CVC4__THEORY__STRINGS__REWRITES_H
 
-#include "util/safe_print.h"
+#include <iosfwd>
 
 namespace CVC4 {
 namespace theory {
