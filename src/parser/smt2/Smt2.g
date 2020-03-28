@@ -670,7 +670,6 @@ sygusGrammarV1[CVC4::api::Sort & ret,
   std::vector<std::vector<std::string>> unresolved_gterm_sym;
   std::map<CVC4::api::Sort, CVC4::api::Sort> sygus_to_builtin;
   std::map<CVC4::api::Sort, CVC4::api::Term> sygus_to_builtin_expr;
-  std::set<api::Sort> unresolved;
 }
   : LPAREN_TOK { PARSER_STATE->pushScope(); }
   (LPAREN_TOK
@@ -698,7 +697,6 @@ sygusGrammarV1[CVC4::api::Sort & ret,
                                  << std::endl;
            PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_SORT);
            unres_t = PARSER_STATE->mkUnresolvedType(name);
-           unresolved.insert(unres_t);
          }
          else
          {
@@ -793,10 +791,13 @@ sygusGrammarV1[CVC4::api::Sort & ret,
       dtypes.push_back(i.getDatatype());
     }
 
-    std::set<Type> tset = api::sortSetToTypes(unresolved);
+    std::set<Type> tset = api::sortSetToTypes(PARSER_STATE->getUnresolvedTypes());
+
     std::vector<DatatypeType> datatypeTypes =
         SOLVER->getExprManager()->mkMutualDatatypeTypes(
             dtypes, tset, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+
+    PARSER_STATE->getUnresolvedTypes().clear();
 
     ret = datatypeTypes[0];
   };

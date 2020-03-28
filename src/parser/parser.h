@@ -273,6 +273,11 @@ public:
     return d_input;
   }
 
+  /** Get the unresolved sorts */
+  inline std::set<api::Sort>& getUnresolvedTypes() {
+    return d_unresolved;
+  }
+
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
     delete d_input;
