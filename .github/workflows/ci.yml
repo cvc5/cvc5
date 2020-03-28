@@ -14,18 +14,19 @@ jobs:
           ubuntu-debug,
           ubuntu-debug-cln
         ]
-        python: python
 
         include:
           - name: ubuntu
             os: ubuntu-latest
             config: production --language-bindings=java --lfsc
             cache-key: production
+            python: python
 
           - name: ubuntu-py2
             os: ubuntu-latest
             config: production --python-bindings --python2
             cache-key: production
+            python: python
             cython: true
 
           - name: ubuntu-py3
@@ -39,11 +40,13 @@ jobs:
             os: ubuntu-latest
             config: debug --symfpu --lfsc --no-debug-symbols
             cache-key: debug
+            python: python
 
           - name: ubuntu-debug-cln
             os: ubuntu-latest
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
             cache-key: debug
+            python: python
 
 
     name: ${{ matrix.name }}
