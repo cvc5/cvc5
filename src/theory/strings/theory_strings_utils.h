@@ -153,12 +153,12 @@ bool isStringKind(Kind k);
  */
 TypeNode getOwnerStringType(Node n);
 
-/* Get the number of bits by which a given node is extended. */
+/* Get the number of repetitions for a regexp repeat node */
 unsigned getRepeatAmount(TNode node);
 
-/* Get the upper index of given extract node. */
+/* Get the upper index of given regexp loop node. */
 unsigned getLoopHigh(TNode node);
-/* Get the lower index of given extract node. */
+/* Get the lower index of given regexp loop node. */
 unsigned getLoopLow(TNode node);
 
 }  // namespace utils

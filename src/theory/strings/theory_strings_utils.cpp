@@ -295,16 +295,19 @@ TypeNode getOwnerStringType(Node n)
 
 unsigned getRepeatAmount(TNode node)
 {
+  Assert(node.getKind()==REGEXP_REPEAT);
   return node.getOperator().getConst<RegExpRepeat>().d_repeatAmount;
 }
 
 unsigned getLoopHigh(TNode node)
 {
+  Assert(node.getKind()==REGEXP_LOOP);
   return node.getOperator().getConst<RegExpLoop>().d_loopAmountHi;
 }
 
 unsigned getLoopLow(TNode node)
 {
+  Assert(node.getKind()==REGEXP_LOOP);
   return node.getOperator().getConst<RegExpLoop>().d_loopAmountLo;
 }
 
