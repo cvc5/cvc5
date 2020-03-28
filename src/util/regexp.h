@@ -40,8 +40,7 @@ struct CVC4_PUBLIC RegExpLoop
 
   bool operator==(const RegExpLoop& r) const
   {
-    return d_loopMinOcc == r.d_loopMinOcc
-           && d_loopMaxOcc == r.d_loopMaxOcc;
+    return d_loopMinOcc == r.d_loopMinOcc && d_loopMaxOcc == r.d_loopMaxOcc;
   }
   /** The minimum number of repetitions of the regular expression */
   uint32_t d_loopMinOcc;
@@ -73,11 +72,9 @@ struct CVC4_PUBLIC RegExpLoopHashFunction
  ** Output stream
  * ----------------------------------------------------------------------- */
 
-std::ostream& operator<<(std::ostream& os,
-                                const RegExpRepeat& bv) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const RegExpRepeat& bv) CVC4_PUBLIC;
 
-std::ostream& operator<<(std::ostream& os,
-                                const RegExpLoop& bv) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv) CVC4_PUBLIC;
 
 }  // namespace CVC4
 
