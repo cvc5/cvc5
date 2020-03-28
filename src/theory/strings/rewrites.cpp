@@ -120,11 +120,13 @@ const char* toString(Rewrite r)
     case Rewrite::SS_CONST_START_OOB: return "SS_CONST_START_OOB";
     case Rewrite::SS_EMPTYSTR: return "SS_EMPTYSTR";
     case Rewrite::SS_END_PT_NORM: return "SS_END_PT_NORM";
-    case Rewrite::SS_GEQ_ZERO_START_ENTAILS_EMP_S: return "SS_GEQ_ZERO_START_ENTAILS_EMP_S";
+    case Rewrite::SS_GEQ_ZERO_START_ENTAILS_EMP_S:
+      return "SS_GEQ_ZERO_START_ENTAILS_EMP_S";
     case Rewrite::SS_LEN_INCLUDE: return "SS_LEN_INCLUDE";
     case Rewrite::SS_LEN_NON_POS: return "SS_LEN_NON_POS";
     case Rewrite::SS_LEN_ONE_Z_Z: return "SS_LEN_ONE_Z_Z";
-    case Rewrite::SS_NON_ZERO_LEN_ENTAILS_OOB: return "SS_NON_ZERO_LEN_ENTAILS_OOB";
+    case Rewrite::SS_NON_ZERO_LEN_ENTAILS_OOB:
+      return "SS_NON_ZERO_LEN_ENTAILS_OOB";
     case Rewrite::SS_START_ENTAILS_ZERO_LEN: return "SS_START_ENTAILS_ZERO_LEN";
     case Rewrite::SS_START_GEQ_LEN: return "SS_START_GEQ_LEN";
     case Rewrite::SS_START_NEG: return "SS_START_NEG";

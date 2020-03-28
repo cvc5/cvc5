@@ -24,7 +24,7 @@ namespace theory {
 namespace strings {
 
 /** Types of rewrites used by strings
- * 
+ *
  * This rewrites are documented where they are used in the rewriter.
  */
 enum class Rewrite : uint32_t
@@ -192,7 +192,6 @@ const char* toString(Rewrite r);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, Rewrite r);
-
 
 }  // namespace strings
 }  // namespace theory
