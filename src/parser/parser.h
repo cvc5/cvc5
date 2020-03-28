@@ -274,7 +274,7 @@ public:
   }
 
   /** Get unresolved sorts */
-  inline std::set<api::Sort>& getUnresolvedTypes() {
+  inline std::set<api::Sort>& getUnresolvedSorts() {
     return d_unresolved;
   }
 
