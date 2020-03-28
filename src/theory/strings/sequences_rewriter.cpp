@@ -575,7 +575,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
         if (checkEntailLengthOne(ne[1]) && ne[2] == empty)
         {
           Node ret = nm->mkNode(STRING_PREFIX, ne[0], ne[1]);
-          return returnRewrite(node, ret, "str-emp-repl-emp");
+          return returnRewrite(node, ret, "str-emp-repl-emp-r");
         }
       }
       else if (ne.getKind() == STRING_SUBSTR)
@@ -588,7 +588,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
           if (ne[1] == zero)
           {
             Node ret = nm->mkNode(EQUAL, ne[0], empty);
-            return returnRewrite(node, ret, "str-emp-substr-leq-len");
+            return returnRewrite(node, ret, "str-emp-substr-elim");
           }
 
           // (= "" (str.substr x n m)) ---> (<= (str.len x) n)
@@ -2331,7 +2331,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         // t = "" v t = "A" v t = "B" v t = "C" v t = "a" v t = "b" v t = "c"
         // if len(t) <= 1
         Node ret = nb;
-        return returnRewrite(node, ret, "ctn-split");
+        return returnRewrite(node, ret, "ctn-split-ones");
       }
       else if (node[1].getKind() == kind::STRING_CONCAT)
       {
@@ -2845,7 +2845,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
       ret = nm->mkNode(STRING_STRIDOF, ret, node[1], node[2]);
       // For example:
       // str.indexof( str.++( x, "A" ), "B", 0 ) ---> str.indexof( x, "B", 0 )
-      return returnRewrite(node, ret, "rpl-pull-endpt");
+      return returnRewrite(node, ret, "idof-pull-endpt");
     }
   }
 
@@ -3425,7 +3425,7 @@ Node SequencesRewriter::rewriteStrReverse(Node node)
     std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
     std::reverse(nvec.begin(), nvec.end());
     Node retNode = nm->mkConst(String(nvec));
-    return returnRewrite(node, retNode, "str-conv-const");
+    return returnRewrite(node, retNode, "str-rev-const");
   }
   else if (x.getKind() == STRING_CONCAT)
   {
