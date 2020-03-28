@@ -1,9 +1,10 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status
 
 (set-logic LIA)
 
 (synth-fun constant ((x Int)) Int
+    ((Start Int))
     ((Start Int (0
                  2
                  3
@@ -15,4 +16,3 @@
 (declare-var x Int)
 (constraint (= (constant x) 100))
 (check-synth)
-
