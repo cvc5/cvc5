@@ -14,7 +14,7 @@ jobs:
           ubuntu-debug,
           ubuntu-debug-cln
         ]
-        python: python  # Default is Python 2.7
+        python: python
 
         include:
           - name: ubuntu
