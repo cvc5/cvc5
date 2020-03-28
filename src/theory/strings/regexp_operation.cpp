@@ -495,8 +495,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        unsigned l = utils::getLoopLow(r);
-        unsigned u = utils::getLoopHigh(r);
+        uint32_t l = utils::getLoopLow(r);
+        uint32_t u = utils::getLoopHigh(r);
         if (l == u && l == 0)
         {
           ret = 2;
