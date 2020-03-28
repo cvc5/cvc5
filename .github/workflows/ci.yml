@@ -143,7 +143,7 @@ jobs:
       run: |
         make -j2 install
         echo -e "#include <cvc4/api/cvc4cpp.h>\nint main() { CVC4::api::Solver s; return 0; }" > /tmp/test.cpp
-        $CXX -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
+        g++ -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
       working-directory: build
 
     - name: Python Install Check
