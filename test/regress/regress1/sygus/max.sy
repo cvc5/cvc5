@@ -1,8 +1,9 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status
 (set-logic LIA)
 
 (synth-fun max ((x Int) (y Int)) Int
+  ((Start Int) (StartBool Bool))
   ((Start Int (0 1 x y
                (+ Start Start)
                (- Start Start)
@@ -12,6 +13,7 @@
                     (<= Start Start)))))
 
 ;(synth-fun min ((x Int) (y Int)) Int
+;  ((Start Int) (StartBool Bool))
 ;  ((Start Int ((Constant Int) (Variable Int)
 ;               (+ Start Start)
 ;               (- Start Start)
