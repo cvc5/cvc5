@@ -5,7 +5,7 @@ if(POLICY CMP0057)
 endif()
 
 find_package(PythonExtensions REQUIRED)
-find_package(Cython 0.29 REQUIRED)
+find_package(Cython REQUIRED)
 
 include_directories(${PYTHON_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_LIST_DIR})         # cvc4kinds.pxd
