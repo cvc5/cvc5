@@ -76,16 +76,16 @@ struct CVC4_PUBLIC RegExpLoopHashFunction
  ** Output stream
  * ----------------------------------------------------------------------- */
 
-inline std::ostream& operator<<(std::ostream& os,
+std::ostream& operator<<(std::ostream& os,
                                 const RegExpRepeat& bv) CVC4_PUBLIC;
-inline std::ostream& operator<<(std::ostream& os, const RegExpRepeat& r)
+std::ostream& operator<<(std::ostream& os, const RegExpRepeat& r)
 {
   return os << r.d_repeatAmount;
 }
 
-inline std::ostream& operator<<(std::ostream& os,
+std::ostream& operator<<(std::ostream& os,
                                 const RegExpLoop& bv) CVC4_PUBLIC;
-inline std::ostream& operator<<(std::ostream& os, const RegExpLoop& r)
+std::ostream& operator<<(std::ostream& os, const RegExpLoop& r)
 {
   return os << "[" << r.d_loopAmountLo << ":" << r.d_loopAmountHi << "]";
 }
