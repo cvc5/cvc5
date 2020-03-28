@@ -2191,10 +2191,11 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   REGEXP_REPEAT,
   /**
-   * Operator for regular expression loop (from index 'high' to 'low').
+   * Operator for regular expression loop, from lower bound to upper bound
+   * number of repetitions.
    * Parameters: 2
-   *   -[1]: The 'high' index
-   *   -[2]: The 'low' index
+   *   -[1]: The lower bound
+   *   -[2]: The upper bound
    * Create with:
    *   mkOp(Kind kind, uint32_t param, uint32_t param)
    *
