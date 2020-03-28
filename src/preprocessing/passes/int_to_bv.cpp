@@ -55,9 +55,13 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
   {
     Node result;
     NodeManager* nm = NodeManager::currentNM();
-    if (current.getNumChildren() > 2
-        && (current.getKind() == kind::PLUS
-            || current.getKind() == kind::MULT))
+    if (current.getNumChildren() == 0)
+    {
+      result = current;
+    }
+    else if (current.getNumChildren() > 2
+             && (current.getKind() == kind::PLUS
+                 || current.getKind() == kind::MULT))
     {
       Assert(cache.find(current[0]) != cache.end());
       result = cache[current[0]];
