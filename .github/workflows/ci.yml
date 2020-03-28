@@ -9,7 +9,7 @@ jobs:
       matrix:
         name: [
           ubuntu,
-          ubuntu-py2,
+#          ubuntu-py2,
 #          ubuntu-py3,
           ubuntu-debug,
           ubuntu-debug-cln
