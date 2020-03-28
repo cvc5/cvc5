@@ -24,10 +24,9 @@
 #include <algorithm>
 #include <climits>
 #include "util/hash.h"
-#include "util/regexp.h"
+#include "util/string.h"
 #include "theory/theory.h"
 #include "theory/rewriter.h"
-//#include "context/cdhashmap.h"
 
 namespace CVC4 {
 namespace theory {

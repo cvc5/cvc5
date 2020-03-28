@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file regexp.cpp
+/*! \file string.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Tim King, Tianyi Liang, Andrew Reynolds
@@ -9,13 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** \brief Implementation of the string data type.
  **/
 
-#include "util/regexp.h"
+#include "util/string.h"
 
 #include <algorithm>
 #include <climits>
@@ -32,38 +29,12 @@ namespace CVC4 {
 
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
-unsigned String::convertCharToUnsignedInt(unsigned char c)
-{
-  return convertCodeToUnsignedInt(static_cast<unsigned>(c));
-}
-unsigned char String::convertUnsignedIntToChar(unsigned i)
-{
-  Assert(i < num_codes());
-  return static_cast<unsigned char>(convertUnsignedIntToCode(i));
-}
-bool String::isPrintable(unsigned i)
-{
-  Assert(i < num_codes());
-  unsigned char c = convertUnsignedIntToChar(i);
-  return (c >= ' ' && c <= '~');
-}
-unsigned String::convertCodeToUnsignedInt(unsigned c)
-{
-  Assert(c < num_codes());
-  return (c < start_code() ? c + num_codes() : c) - start_code();
-}
-unsigned String::convertUnsignedIntToCode(unsigned i)
-{
-  Assert(i < num_codes());
-  return (i + start_code()) % num_codes();
-}
-
 String::String(const std::vector<unsigned> &s) : d_str(s)
 {
 #ifdef CVC4_ASSERTIONS
   for (unsigned u : d_str)
   {
-    Assert(convertUnsignedIntToCode(u) < num_codes());
+    Assert(u < num_codes());
   }
 #endif
 }
@@ -74,8 +45,8 @@ int String::cmp(const String &y) const {
   }
   for (unsigned int i = 0; i < size(); ++i) {
     if (d_str[i] != y.d_str[i]) {
-      unsigned cp = convertUnsignedIntToCode(d_str[i]);
-      unsigned cpy = convertUnsignedIntToCode(y.d_str[i]);
+      unsigned cp = d_str[i];
+      unsigned cpy = y.d_str[i];
       return cp < cpy ? -1 : 1;
     }
   }
@@ -122,107 +93,143 @@ bool String::rstrncmp(const String& y, std::size_t n) const
   return true;
 }
 
-std::vector<unsigned> String::toInternal(const std::string &s,
-                                         bool useEscSequences) {
+void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
+{
+  // if not a printable character
+  if (ch > 127 || ch < 32)
+  {
+    std::stringstream serr;
+    serr << "Illegal string character: \"" << ch
+         << "\", must use escape sequence";
+    throw CVC4::Exception(serr.str());
+  }
+  else
+  {
+    str.push_back(static_cast<unsigned>(ch));
+  }
+}
+
+std::vector<unsigned> String::toInternal(const std::string& s,
+                                         bool useEscSequences)
+{
   std::vector<unsigned> str;
   unsigned i = 0;
-  while (i < s.size()) {
-    if (s[i] == '\\' && useEscSequences) {
-      i++;
-      if (i < s.size()) {
-        switch (s[i]) {
-          case 'n': {
-            str.push_back(convertCharToUnsignedInt('\n'));
-            i++;
-          } break;
-          case 't': {
-            str.push_back(convertCharToUnsignedInt('\t'));
-            i++;
-          } break;
-          case 'v': {
-            str.push_back(convertCharToUnsignedInt('\v'));
-            i++;
-          } break;
-          case 'b': {
-            str.push_back(convertCharToUnsignedInt('\b'));
-            i++;
-          } break;
-          case 'r': {
-            str.push_back(convertCharToUnsignedInt('\r'));
-            i++;
-          } break;
-          case 'f': {
-            str.push_back(convertCharToUnsignedInt('\f'));
-            i++;
-          } break;
-          case 'a': {
-            str.push_back(convertCharToUnsignedInt('\a'));
-            i++;
-          } break;
-          case '\\': {
-            str.push_back(convertCharToUnsignedInt('\\'));
-            i++;
-          } break;
-          case 'x': {
-            if (i + 2 < s.size()) {
-              if (isxdigit(s[i + 1]) && isxdigit(s[i + 2])) {
-                str.push_back(convertCharToUnsignedInt(hexToDec(s[i + 1]) * 16 +
-                                                       hexToDec(s[i + 2])));
-                i += 3;
-              } else {
-                throw CVC4::Exception("Illegal String Literal: \"" + s + "\"");
-              }
-            } else {
-              throw CVC4::Exception("Illegal String Literal: \"" + s +
-                                    "\", must have two digits after \\x");
-            }
-          } break;
-          default: {
-            if (isdigit(s[i])) {
-              // octal escape sequences  TODO : revisit (issue #1251).
-              int num = (int)s[i] - (int)'0';
-              bool flag = num < 4;
-              if (i + 1 < s.size() && num < 8 && isdigit(s[i + 1]) &&
-                  s[i + 1] < '8') {
-                num = num * 8 + (int)s[i + 1] - (int)'0';
-                if (flag && i + 2 < s.size() && isdigit(s[i + 2]) &&
-                    s[i + 2] < '8') {
-                  num = num * 8 + (int)s[i + 2] - (int)'0';
-                  str.push_back(convertCharToUnsignedInt((unsigned char)num));
-                  i += 3;
-                } else {
-                  str.push_back(convertCharToUnsignedInt((unsigned char)num));
-                  i += 2;
-                }
-              } else {
-                str.push_back(convertCharToUnsignedInt((unsigned char)num));
-                i++;
-              }
-            } else if ((unsigned)s[i] > 127) {
-              throw CVC4::Exception("Illegal String Literal: \"" + s +
-                                    "\", must use escaped sequence");
-            } else {
-              str.push_back(convertCharToUnsignedInt(s[i]));
-              i++;
-            }
+  while (i < s.size())
+  {
+    // get the current character
+    char si = s[i];
+    if (si != '\\' || !useEscSequences)
+    {
+      addCharToInternal(si, str);
+      ++i;
+      continue;
+    }
+    // the vector of characters, in case we fail to read an escape sequence
+    std::vector<unsigned> nonEscCache;
+    // process the '\'
+    addCharToInternal(si, nonEscCache);
+    ++i;
+    // are we an escape sequence?
+    bool isEscapeSequence = true;
+    // the string corresponding to the hexidecimal code point
+    std::stringstream hexString;
+    // is the slash followed by a 'u'? Could be last character.
+    if (i >= s.size() || s[i] != 'u')
+    {
+      isEscapeSequence = false;
+    }
+    else
+    {
+      // process the 'u'
+      addCharToInternal(s[i], nonEscCache);
+      ++i;
+      bool isStart = true;
+      bool isEnd = false;
+      bool hasBrace = false;
+      while (i < s.size())
+      {
+        // add the next character
+        si = s[i];
+        if (isStart)
+        {
+          isStart = false;
+          // possibly read '{'
+          if (si == '{')
+          {
+            hasBrace = true;
+            addCharToInternal(si, nonEscCache);
+            ++i;
+            continue;
           }
         }
-      } else {
-        throw CVC4::Exception("should be handled by lexer: \"" + s + "\"");
-        // str.push_back( convertCharToUnsignedInt('\\') );
+        else if (si == '}')
+        {
+          // can only end if we had an open brace and read at least one digit
+          isEscapeSequence = hasBrace && !hexString.str().empty();
+          isEnd = true;
+          addCharToInternal(si, nonEscCache);
+          ++i;
+          break;
+        }
+        // must be a hex digit at this point
+        if (!isHexDigit(static_cast<unsigned>(si)))
+        {
+          isEscapeSequence = false;
+          break;
+        }
+        hexString << si;
+        addCharToInternal(si, nonEscCache);
+        ++i;
+        if (!hasBrace && hexString.str().size() == 4)
+        {
+          // will be finished reading \ u d_3 d_2 d_1 d_0 with no parens
+          isEnd = true;
+          break;
+        }
+        else if (hasBrace && hexString.str().size() > 5)
+        {
+          // too many digits enclosed in brace, not an escape sequence
+          isEscapeSequence = false;
+          break;
+        }
       }
-    } else if ((unsigned)s[i] > 127 && useEscSequences) {
-      throw CVC4::Exception("Illegal String Literal: \"" + s +
-                            "\", must use escaped sequence");
-    } else {
-      str.push_back(convertCharToUnsignedInt(s[i]));
-      i++;
+      if (!isEnd)
+      {
+        // if we were interupted before ending, then this is not a valid
+        // escape sequence
+        isEscapeSequence = false;
+      }
+    }
+    if (isEscapeSequence)
+    {
+      Assert(!hexString.str().empty() && hexString.str().size() <= 5);
+      // Otherwise, we add the escaped character.
+      // This is guaranteed not to overflow due to the length of hstr.
+      uint32_t val;
+      hexString >> std::hex >> val;
+      if (val > num_codes())
+      {
+        // Failed due to being out of range. This can happen for strings of
+        // the form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexidecimal not
+        // in the range [0-2].
+        isEscapeSequence = false;
+      }
+      else
+      {
+        str.push_back(val);
+      }
+    }
+    // if we did not successfully parse an escape sequence, we add back all
+    // characters that we cached
+    if (!isEscapeSequence)
+    {
+      str.insert(str.end(), nonEscCache.begin(), nonEscCache.end());
     }
   }
 #ifdef CVC4_ASSERTIONS
   for (unsigned u : str)
   {
-    Assert(convertUnsignedIntToCode(u) < num_codes());
+    Assert(u < num_codes());
   }
 #endif
   return str;
@@ -265,62 +272,23 @@ std::size_t String::roverlap(const String &y) const {
 }
 
 std::string String::toString(bool useEscSequences) const {
-  std::string str;
+  std::stringstream str;
   for (unsigned int i = 0; i < size(); ++i) {
-    unsigned char c = convertUnsignedIntToChar(d_str[i]);
-    if (!useEscSequences) {
-      str += c;
-    } else if (isprint(c)) {
-      if (c == '\\') {
-        str += "\\\\";
-      }
-      // else if(c == '\"') {
-      //  str += "\\\"";
-      //}
-      else {
-        str += c;
-      }
-    } else {
-      std::string s;
-      switch (c) {
-        case '\a':
-          s = "\\a";
-          break;
-        case '\b':
-          s = "\\b";
-          break;
-        case '\t':
-          s = "\\t";
-          break;
-        case '\r':
-          s = "\\r";
-          break;
-        case '\v':
-          s = "\\v";
-          break;
-        case '\f':
-          s = "\\f";
-          break;
-        case '\n':
-          s = "\\n";
-          break;
-        case '\e':
-          s = "\\e";
-          break;
-        default: {
-          std::stringstream ss;
-          ss << std::setfill('0') << std::setw(2) << std::hex << ((int)c);
-          std::string t = ss.str();
-          t = t.substr(t.size() - 2, 2);
-          s = "\\x" + t;
-          // std::string s2 = static_cast<std::ostringstream*>(
-          // &(std::ostringstream() << (int)c) )->str();
-        }
-      }
-      str += s;
+    // we always print forward slash as a code point so that it cannot
+    // be interpreted as specifying part of a code point, e.g. the string
+    // '\' + 'u' + '0' of length three.
+    if (isPrintable(d_str[i]) && d_str[i] != '\\' && !useEscSequences)
+    {
+      str << static_cast<char>(d_str[i]);
+    }
+    else
+    {
+      std::stringstream ss;
+      ss << std::hex << d_str[i];
+      str << "\\u{" << ss.str() << "}";
     }
   }
-  return str;
+  return str.str();
 }
 
 bool String::isLeq(const String &y) const
@@ -331,8 +299,8 @@ bool String::isLeq(const String &y) const
     {
       return false;
     }
-    unsigned ci = convertUnsignedIntToCode(d_str[i]);
-    unsigned cyi = convertUnsignedIntToCode(y.d_str[i]);
+    unsigned ci = d_str[i];
+    unsigned cyi = y.d_str[i];
     if (ci > cyi)
     {
       return false;
@@ -484,8 +452,21 @@ bool String::isNumber() const {
 
 bool String::isDigit(unsigned character)
 {
-  unsigned char c = convertUnsignedIntToChar(character);
-  return c >= '0' && c <= '9';
+  // '0' to '9'
+  return 48 <= character && character <= 57;
+}
+
+bool String::isHexDigit(unsigned character)
+{
+  // '0' to '9' or 'A' to 'F' or 'a' to 'f'
+  return isDigit(character) || (65 <= character && character <= 70)
+         || (97 <= character && character <= 102);
+}
+
+bool String::isPrintable(unsigned character)
+{
+  // Unicode 0x00020 (' ') to 0x0007E ('~')
+  return 32 <= character && character <= 126;
 }
 
 size_t String::maxSize() { return std::numeric_limits<uint32_t>::max(); }
@@ -495,17 +476,6 @@ Rational String::toNumber() const
   // when smt2 standard for strings is set, this may change, based on the
   // semantics of str.from.int for leading zeros
   return Rational(toString());
-}
-
-unsigned char String::hexToDec(unsigned char c) {
-  if (c >= '0' && c <= '9') {
-    return c - '0';
-  } else if (c >= 'a' && c <= 'f') {
-    return c - 'a' + 10;
-  } else {
-    Assert(c >= 'A' && c <= 'F');
-    return c - 'A' + 10;
-  }
 }
 
 std::ostream &operator<<(std::ostream &os, const String &s) {

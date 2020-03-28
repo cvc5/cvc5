@@ -232,11 +232,10 @@ void getRegexpComponents(Node r, std::vector<Node>& result)
   }
   else if (r.getKind() == STRING_TO_REGEXP && r[0].isConst())
   {
-    String s = r[0].getConst<String>();
-    for (size_t i = 0, size = s.size(); i < size; i++)
+    size_t rlen = Word::getLength(r[0]);
+    for (size_t i = 0; i < rlen; i++)
     {
-      result.push_back(
-          nm->mkNode(STRING_TO_REGEXP, nm->mkConst(s.substr(i, 1))));
+      result.push_back(nm->mkNode(STRING_TO_REGEXP, Word::substr(r[0], i, 1)));
     }
   }
   else
@@ -262,6 +261,36 @@ void printConcatTrace(std::vector<Node>& n, const char* c)
   std::stringstream ss;
   printConcat(ss, n);
   Trace(c) << ss.str();
+}
+
+bool isStringKind(Kind k)
+{
+  return k == STRING_STOI || k == STRING_ITOS || k == STRING_TOLOWER
+         || k == STRING_TOUPPER || k == STRING_LEQ || k == STRING_LT
+         || k == STRING_FROM_CODE || k == STRING_TO_CODE;
+}
+
+TypeNode getOwnerStringType(Node n)
+{
+  TypeNode tn;
+  Kind k = n.getKind();
+  if (k == STRING_STRIDOF || k == STRING_LENGTH || k == STRING_STRCTN
+      || k == STRING_PREFIX || k == STRING_SUFFIX)
+  {
+    // owning string type is the type of first argument
+    tn = n[0].getType();
+  }
+  else if (isStringKind(k))
+  {
+    tn = NodeManager::currentNM()->stringType();
+  }
+  else
+  {
+    tn = n.getType();
+  }
+  AlwaysAssert(tn.isStringLike())
+      << "Unexpected term in getOwnerStringType : " << n << ", type " << tn;
+  return tn;
 }
 
 }  // namespace utils

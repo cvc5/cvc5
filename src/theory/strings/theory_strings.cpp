@@ -69,7 +69,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       d_notify(*this),
-      d_equalityEngine(d_notify, c, "theory::strings", true),
+      d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, d_equalityEngine, d_valuation),
       d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
       d_pregistered_terms_cache(u),
@@ -85,8 +85,15 @@ TheoryStrings::TheoryStrings(context::Context* c,
 {
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
-  d_esolver.reset(new ExtfSolver(
-      c, u, d_state, d_im, d_sk_cache, d_bsolver, d_csolver, extt));
+  d_esolver.reset(new ExtfSolver(c,
+                                 u,
+                                 d_state,
+                                 d_im,
+                                 d_sk_cache,
+                                 d_bsolver,
+                                 d_csolver,
+                                 extt,
+                                 d_statistics));
   d_rsolver.reset(new RegExpSolver(*this, d_state, d_im, *d_esolver, c, u));
 
   // The kinds we are treating as function application in congruence
@@ -375,7 +382,7 @@ bool TheoryStrings::collectModelInfoType(
                   ctv.getConst<Rational>().getNumerator().toUnsignedInt();
               Trace("strings-model") << "(code: " << cvalue << ") ";
               std::vector<unsigned> vec;
-              vec.push_back(String::convertCodeToUnsignedInt(cvalue));
+              vec.push_back(cvalue);
               Node mv = nm->mkConst(String(vec));
               pure_eq_assign[eqc] = mv;
               m->getEqualityEngine()->addTerm(mv);
@@ -464,6 +471,7 @@ bool TheoryStrings::collectModelInfoType(
               for (const Node& sl : len_splits)
               {
                 Node spl = nm->mkNode(OR, sl, sl.negate());
+                ++(d_statistics.d_lemmasCmiSplit);
                 d_out->lemma(spl);
               }
               return false;
@@ -700,7 +708,8 @@ void TheoryStrings::check(Effort e) {
         Trace("strings-eqc") << (t==0 ? "STRINGS:" : "OTHER:") << std::endl;
         while( !eqcs2_i.isFinished() ){
           Node eqc = (*eqcs2_i);
-          bool print = (t==0 && eqc.getType().isString() ) || (t==1 && !eqc.getType().isString() );
+          bool print = (t == 0 && eqc.getType().isStringLike())
+                       || (t == 1 && !eqc.getType().isStringLike());
           if (print) {
             eq::EqClassIterator eqc2_i = eq::EqClassIterator( eqc, &d_equalityEngine );
             Trace("strings-eqc") << "Eqc( " << eqc << " ) : { ";
@@ -778,6 +787,7 @@ void TheoryStrings::conflict(TNode a, TNode b){
     Node conflictNode;
     conflictNode = explain( a.eqNode(b) );
     Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode << std::endl;
+    ++(d_statistics.d_conflictsEqEngine);
     d_out->conflict( conflictNode );
   }
 }
@@ -872,7 +882,9 @@ void TheoryStrings::addCarePairs(TNodeTrie* t1,
 void TheoryStrings::computeCareGraph(){
   //computing the care graph here is probably still necessary, due to operators that take non-string arguments  TODO: verify
   Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Build term indices..." << std::endl;
-  std::map<Node, TNodeTrie> index;
+  // Term index for each (type, operator) pair. We require the operator here
+  // since operators are polymorphic, taking strings/sequences.
+  std::map<std::pair<TypeNode, Node>, TNodeTrie> index;
   std::map< Node, unsigned > arity;
   unsigned functionTerms = d_functionsTerms.size();
   for (unsigned i = 0; i < functionTerms; ++ i) {
@@ -888,16 +900,19 @@ void TheoryStrings::computeCareGraph(){
       }
     }
     if( has_trigger_arg ){
-      index[op].addTerm( f1, reps );
+      TypeNode ft = utils::getOwnerStringType(f1);
+      std::pair<TypeNode, Node> ikey = std::pair<TypeNode, Node>(ft, op);
+      index[ikey].addTerm(f1, reps);
       arity[op] = reps.size();
     }
   }
   //for each index
-  for (std::pair<const Node, TNodeTrie>& tt : index)
+  for (std::pair<const std::pair<TypeNode, Node>, TNodeTrie>& ti : index)
   {
     Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Process index "
-                        << tt.first << "..." << std::endl;
-    addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
+                        << ti.first << "..." << std::endl;
+    Node op = ti.first.second;
+    addCarePairs(&ti.second, nullptr, arity[op], 0);
   }
 }
 
@@ -907,7 +922,9 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   if( atom.getKind()==kind::EQUAL ){
     Trace("strings-pending-debug") << "  Register term" << std::endl;
     for( unsigned j=0; j<2; j++ ) {
-      if( !d_equalityEngine.hasTerm( atom[j] ) && atom[j].getType().isString() ) {
+      if (!d_equalityEngine.hasTerm(atom[j])
+          && atom[j].getType().isStringLike())
+      {
         registerTerm( atom[j], 0 );
       }
     }
@@ -939,6 +956,7 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
       d_state.setConflict();
       Trace("strings-conflict")
           << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
+      ++(d_statistics.d_conflictsEagerPrefix);
       d_out->conflict(conflictNode);
     }
   }
@@ -1047,7 +1065,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
 {
   TypeNode tn = n.getType();
   bool do_register = true;
-  if (!tn.isString())
+  if (!tn.isStringLike())
   {
     if (options::stringEagerLen())
     {
@@ -1070,37 +1088,41 @@ void TheoryStrings::registerTerm(Node n, int effort)
   NodeManager* nm = NodeManager::currentNM();
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
-  if (tn.isString())
+  Node regTermLem;
+  if (tn.isStringLike())
   {
     // register length information:
     //  for variables, split on empty vs positive length
     //  for concat/const/replace, introduce proxy var and state length relation
-    d_im.registerLength(n);
+    regTermLem = d_im.registerTerm(n);
   }
   else if (n.getKind() == STRING_TO_CODE)
   {
     d_has_str_code = true;
-    // ite( str.len(s)==1, 0 <= str.code(s) < num_codes, str.code(s)=-1 )
+    // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
     Node code_len = utils::mkNLength(n[0]).eqNode(d_one);
     Node code_eq_neg1 = n.eqNode(d_neg_one);
     Node code_range = nm->mkNode(
         AND,
         nm->mkNode(GEQ, n, d_zero),
-        nm->mkNode(LT, n, nm->mkConst(Rational(CVC4::String::num_codes()))));
-    Node lem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
-    Trace("strings-lemma") << "Strings::Lemma CODE : " << lem << std::endl;
-    Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
-    d_out->lemma(lem);
+        nm->mkNode(
+            LT, n, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
+    regTermLem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
   else if (n.getKind() == STRING_STRIDOF)
   {
     Node len = utils::mkNLength(n[0]);
-    Node lem = nm->mkNode(AND,
-                          nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
-                          nm->mkNode(LEQ, n, len));
-    Trace("strings-lemma") << "Strings::Lemma IDOF range : " << lem
+    regTermLem = nm->mkNode(AND,
+                            nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
+                            nm->mkNode(LEQ, n, len));
+  }
+  if (!regTermLem.isNull())
+  {
+    Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem
                            << std::endl;
-    d_out->lemma(lem);
+    Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
+    ++(d_statistics.d_lemmasRegisterTerm);
+    d_out->lemma(regTermLem);
   }
 }
 
@@ -1145,6 +1167,7 @@ Node TheoryStrings::ppRewrite(TNode atom) {
       Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
       for( unsigned i=0; i<new_nodes.size(); i++ ){
         Trace("strings-ppr") << "    lemma : " << new_nodes[i] << std::endl;
+        ++(d_statistics.d_lemmasEagerPreproc);
         d_out->lemma( new_nodes[i] );
       }
       return ret;

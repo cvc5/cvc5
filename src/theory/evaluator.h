@@ -27,7 +27,7 @@
 #include "expr/node.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
-#include "util/regexp.h"
+#include "util/string.h"
 
 namespace CVC4 {
 namespace theory {

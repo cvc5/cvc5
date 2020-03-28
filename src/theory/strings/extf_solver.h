@@ -26,6 +26,7 @@
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/inference_manager.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/theory_strings_preprocess.h"
@@ -88,7 +89,8 @@ class ExtfSolver
              SkolemCache& skc,
              BaseSolver& bs,
              CoreSolver& cs,
-             ExtTheory* et);
+             ExtTheory* et,
+             SequencesStatistics& stats);
   ~ExtfSolver();
 
   /** check extended functions evaluation

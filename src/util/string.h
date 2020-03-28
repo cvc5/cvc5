@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file regexp.h
+/*! \file string.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Tianyi Liang
@@ -9,16 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** \brief The string data type.
  **/
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__REGEXP_H
-#define CVC4__REGEXP_H
+#ifndef CVC4__UTIL__STRING_H
+#define CVC4__UTIL__STRING_H
 
 #include <cstddef>
 #include <functional>
@@ -37,60 +34,44 @@ namespace CVC4 {
 class CVC4_PUBLIC String {
  public:
   /**
-   * The start ASCII code. In our string representation below, we represent
-   * characters using a vector d_str of unsigned integers. We refer to this as
-   * the "internal representation" for the string.
-   *
-   * We make unsigned integer 0 correspond to the 65th character ("A") in the
-   * ASCII alphabet to make models intuitive. In particular, say if we have
-   * a set of string variables that are distinct but otherwise unconstrained,
-   * then the model may assign them "A", "B", "C", ...
-   */
-  static inline unsigned start_code() { return 65; }
-  /**
    * This is the cardinality of the alphabet that is representable by this
    * class. Notice that this must be greater than or equal to the cardinality
    * of the alphabet that the string theory reasons about.
    *
    * This must be strictly less than std::numeric_limits<unsigned>::max().
+   *
+   * As per the SMT-LIB standard for strings, we support the first 3 planes of
+   * Unicode characters, where 196608 = 3*16^4.
    */
-  static inline unsigned num_codes() { return 256; }
-  /**
-   * Convert unsigned char to the unsigned used in the internal representation
-   * in d_str below.
-   */
-  static unsigned convertCharToUnsignedInt(unsigned char c);
-  /** Convert the internal unsigned to a unsigned char. */
-  static unsigned char convertUnsignedIntToChar(unsigned i);
-  /** Does the internal unsigned correspond to a printable character? */
-  static bool isPrintable(unsigned i);
-  /** get the internal unsigned for ASCII code c. */
-  static unsigned convertCodeToUnsignedInt(unsigned c);
-  /** get the ASCII code number that internal unsigned i corresponds to. */
-  static unsigned convertUnsignedIntToCode(unsigned i);
-
+  static inline unsigned num_codes() { return 196608; }
   /** constructors for String
-  *
-  * Internally, a CVC4::String is represented by a vector of unsigned
-  * integers (d_str), where the correspondence between C++ characters
-  * to and from unsigned integers is determined by
-  * by convertCharToUnsignedInt and convertUnsignedIntToChar.
-  *
-  * If useEscSequences is true, then the escape sequences in the input
-  * are converted to the corresponding character. This constructor may
-  * throw an exception if the input contains unrecognized escape sequences.
-  * Currently supported escape sequences are \n, \t, \v, \b, \r, \f, \a, \\,
-  * \x[N] where N is a hexidecimal, and octal escape sequences of the
-  * form \[c1]([c2]([c3])?)? where c1, c2, c3 are digits from 0 to 7.
-  *
-  * If useEscSequences is false, then the characters of the constructed
-  * CVC4::String correspond one-to-one with the input string.
-  */
+   *
+   * Internally, a CVC4::String is represented by a vector of unsigned
+   * integers (d_str) representing the code points of the characters.
+   *
+   * To build a string from a C++ string, we may process escape sequences
+   * according to the SMT-LIB standard. In particular, if useEscSequences is
+   * true, we convert unicode escape sequences:
+   *  \u d_3 d_2 d_1 d_0
+   *  \u{d_0}
+   *  \u{d_1 d_0}
+   *  \u{d_2 d_1 d_0}
+   *  \u{d_3 d_2 d_1 d_0}
+   *  \u{d_4 d_3 d_2 d_1 d_0}
+   * where d_0 ... d_4 are hexidecimal digits, to the appropriate character.
+   *
+   * If useEscSequences is false, then the characters of the constructed
+   * CVC4::String correspond one-to-one with the input string.
+   */
   String() = default;
   explicit String(const std::string& s, bool useEscSequences = false)
-      : d_str(toInternal(s, useEscSequences)) {}
+      : d_str(toInternal(s, useEscSequences))
+  {
+  }
   explicit String(const char* s, bool useEscSequences = false)
-      : d_str(toInternal(std::string(s), useEscSequences)) {}
+      : d_str(toInternal(std::string(s), useEscSequences))
+  {
+  }
   explicit String(const std::vector<unsigned>& s);
 
   String& operator=(const String& y) {
@@ -123,20 +104,16 @@ class CVC4_PUBLIC String {
   bool rstrncmp(const String& y, std::size_t n) const;
 
   /* toString
-  * Converts this string to a std::string.
-  *
-  * If useEscSequences is true, then unprintable characters
-  * are converted to escape sequences. The escape sequences
-  * \n, \t, \v, \b, \r, \f, \a, \\ are printed in this way.
-  * For all other unprintable characters, we print \x[N] where
-  * [N] is the 2 digit hexidecimal corresponding to value of
-  * the character.
-  *
-  * If useEscSequences is false, the returned std::string's characters
-  * map one-to-one with the characters in this string.
-  * Notice that for all std::string s, we have that
-  *    CVC4::String( s ).toString() = s.
-  */
+   * Converts this string to a std::string.
+   *
+   * The unprintable characters are converted to unicode escape sequences as
+   * described above.
+   *
+   * If useEscSequences is false, the string's printable characters are
+   * printed as characters. Notice that for all std::string s having only
+   * printable characters, we have that
+   *    CVC4::String( s ).toString() = s.
+   */
   std::string toString(bool useEscSequences = false) const;
   /** is this the empty string? */
   bool empty() const { return d_str.empty(); }
@@ -221,16 +198,32 @@ class CVC4_PUBLIC String {
   bool isNumber() const;
   /** Returns the corresponding rational for the text of this string. */
   Rational toNumber() const;
-  /** get the internal unsigned representation of this string */
+  /** Get the unsigned representation (code points) of this string */
   const std::vector<unsigned>& getVec() const { return d_str; }
-  /** get the internal unsigned value of the first character in this string */
+  /**
+   * Get the unsigned (code point) value of the first character in this string
+   */
   unsigned front() const;
-  /** get the internal unsigned value of the last character in this string */
+  /**
+   * Get the unsigned (code point) value of the last character in this string
+   */
   unsigned back() const;
   /** is the unsigned a digit?
-  * The input should be the same type as the element type of d_str
-  */
+   *
+   * This is true for code points between 48 ('0') and 57 ('9').
+   */
   static bool isDigit(unsigned character);
+  /** is the unsigned a hexidecimal digit?
+   *
+   * This is true for code points between 48 ('0') and 57 ('9'), code points
+   * between 65 ('A') and 70 ('F) and code points between 97 ('a') and 102 ('f).
+   */
+  static bool isHexDigit(unsigned character);
+  /** is the unsigned a printable code point?
+   *
+   * This is true for Unicode 32 (' ') to 126 ('~').
+   */
+  static bool isPrintable(unsigned character);
 
   /**
    * Returns the maximum length of string representable by this class.
@@ -238,11 +231,19 @@ class CVC4_PUBLIC String {
    */
   static size_t maxSize();
  private:
-  // guarded
-  static unsigned char hexToDec(unsigned char c);
-
+  /**
+   * Helper for toInternal: add character ch to vector vec, storing a string in
+   * internal format. This throws an error if ch is not a printable character,
+   * since non-printable characters must be escaped in SMT-LIB.
+   */
+  static void addCharToInternal(unsigned char ch, std::vector<unsigned>& vec);
+  /**
+   * Convert the string s to the internal format (vector of code points).
+   * The argument useEscSequences is whether to process unicode escape
+   * sequences.
+   */
   static std::vector<unsigned> toInternal(const std::string& s,
-                                          bool useEscSequences = true);
+                                          bool useEscSequences);
 
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a
@@ -267,4 +268,4 @@ std::ostream& operator<<(std::ostream& os, const String& s) CVC4_PUBLIC;
 
 }  // namespace CVC4
 
-#endif /* CVC4__REGEXP_H */
+#endif /* CVC4__UTIL__STRING_H */

@@ -25,8 +25,6 @@ libcvc4_add_sources(
   proof.h
   random.cpp
   random.h
-  regexp.cpp
-  regexp.h
   resource_manager.cpp
   resource_manager.h
   result.cpp
@@ -43,6 +41,8 @@ libcvc4_add_sources(
   statistics.h
   statistics_registry.cpp
   statistics_registry.h
+  string.cpp
+  string.h
   tuple.h
   unsafe_interrupt_exception.h
   utility.cpp

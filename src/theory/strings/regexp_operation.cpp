@@ -739,9 +739,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
       }
       case kind::REGEXP_RANGE: {
         unsigned a = r[0].getConst<String>().front();
-        a = String::convertUnsignedIntToCode(a);
         unsigned b = r[1].getConst<String>().front();
-        b = String::convertUnsignedIntToCode(b);
         Assert(a < b);
         Assert(b < std::numeric_limits<unsigned>::max());
         for (unsigned c = a; c <= b; c++)
@@ -756,7 +754,6 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
           String s = st.getConst<String>();
           if(s.size() != 0) {
             unsigned sc = s.front();
-            sc = String::convertUnsignedIntToCode(sc);
             cset.insert(sc);
           }
         }
@@ -765,7 +762,6 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
           if(st[0].isConst()) {
             String s = st[0].getConst<String>();
             unsigned sc = s.front();
-            sc = String::convertUnsignedIntToCode(sc);
             cset.insert(sc);
           } else {
             vset.insert( st[0] );
@@ -887,13 +883,11 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
       case kind::REGEXP_RANGE: {
         std::vector< Node > vec;
         unsigned a = r[0].getConst<String>().front();
-        a = String::convertUnsignedIntToCode(a);
         unsigned b = r[1].getConst<String>().front();
-        b = String::convertUnsignedIntToCode(b);
         for (unsigned c = a; c <= b; c++)
         {
           std::vector<unsigned> tmpVec;
-          tmpVec.push_back(String::convertCodeToUnsignedInt(c));
+          tmpVec.push_back(c);
           Node tmp = s.eqNode(nm->mkConst(String(tmpVec))).negate();
           vec.push_back( tmp );
         }
@@ -1522,7 +1516,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
              ++it)
         {
           std::vector<unsigned> cvec;
-          cvec.push_back(String::convertCodeToUnsignedInt(*it));
+          cvec.push_back(*it);
           String c(cvec);
           Trace("regexp-int-debug") << "Try character " << c << " ... " << std::endl;
           Node r1l = derivativeSingle(r1, c);
