@@ -112,6 +112,8 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/RecordUpdate.java
   ${CMAKE_CURRENT_BINARY_DIR}/RecordUpdateHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/RecoverableModalException.java
+  ${CMAKE_CURRENT_BINARY_DIR}/RegExpLoop.java
+  ${CMAKE_CURRENT_BINARY_DIR}/RegExpRepeat.java
   ${CMAKE_CURRENT_BINARY_DIR}/RegExpType.java
   ${CMAKE_CURRENT_BINARY_DIR}/Result.java
   ${CMAKE_CURRENT_BINARY_DIR}/RoundingMode.java
