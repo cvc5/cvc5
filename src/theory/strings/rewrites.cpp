@@ -14,6 +14,8 @@
 
 #include "theory/strings/rewrites.h"
 
+#include <iostream>
+
 namespace CVC4 {
 namespace theory {
 namespace strings {
