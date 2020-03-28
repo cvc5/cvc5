@@ -1,6 +1,8 @@
 #!/bin/sh
 #--------------------------------------------------------------------------#
 
+set -e -o pipefail
+
 usage () {
 cat <<EOF
 Usage: $0 [<build type>] [<option> ...]
@@ -465,7 +467,7 @@ root_dir=$(pwd)
 [ $win64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
 mkdir -p "$build_dir"
 
-cd "$build_dir" || exit 1
+cd "$build_dir"
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
 build_dir_escaped=$(echo "$build_dir" | sed 's/\//\\\//g')
