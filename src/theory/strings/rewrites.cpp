@@ -145,6 +145,7 @@ const char* toString(Rewrite r)
     case Rewrite::STR_EMP_SUBSTR_LEQ_LEN: return "STR_EMP_SUBSTR_LEQ_LEN";
     case Rewrite::STR_EMP_SUBSTR_LEQ_Z: return "STR_EMP_SUBSTR_LEQ_Z";
     case Rewrite::STR_EQ_CONJ_LEN_ENTAIL: return "STR_EQ_CONJ_LEN_ENTAIL";
+    case Rewrite::STR_EQ_CONST_NHOMOG: return "STR_EQ_CONST_NHOMOG";
     case Rewrite::STR_EQ_HOMOG_CONST: return "STR_EQ_HOMOG_CONST";
     case Rewrite::STR_EQ_REPL_EMP: return "STR_EQ_REPL_EMP";
     case Rewrite::STR_EQ_REPL_NOT_CTN: return "STR_EQ_REPL_NOT_CTN";
