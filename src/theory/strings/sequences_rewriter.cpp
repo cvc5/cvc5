@@ -1192,40 +1192,61 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   {
     return returnRewrite(node, r, "re.loop-star");
   }
+  TNode n1 = node[1];
   NodeManager* nm = NodeManager::currentNM();
   CVC4::Rational rMaxInt(String::maxSize());
-  uint32_t l = utils::getLoopMinOccurrences(node);
+  AlwaysAssert(n1.isConst()) << "re.loop contains non-constant integer (1).";
+  AlwaysAssert(n1.getConst<Rational>().sgn() >= 0)
+      << "Negative integer in string REGEXP_LOOP (1)";
+  Assert(n1.getConst<Rational>() <= rMaxInt)
+      << "Exceeded UINT32_MAX in string REGEXP_LOOP (1)";
+  uint32_t l = n1.getConst<Rational>().getNumerator().toUnsignedInt();
   std::vector<Node> vec_nodes;
   for (unsigned i = 0; i < l; i++)
   {
     vec_nodes.push_back(r);
   }
-  Node n =
-      vec_nodes.size() == 0
-          ? nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")))
-          : vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT, vec_nodes);
-  uint32_t u = utils::getLoopMaxOccurrences(node);
-  if (u < l)
+  if (node.getNumChildren() == 3)
   {
-    std::vector<Node> nvec;
-    retNode = nm->mkNode(REGEXP_EMPTY, nvec);
-  }
-  else if (u == l)
-  {
-    retNode = n;
+    TNode n2 = Rewriter::rewrite(node[2]);
+    Node n =
+        vec_nodes.size() == 0
+            ? nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")))
+            : vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT, vec_nodes);
+    AlwaysAssert(n2.isConst()) << "re.loop contains non-constant integer (2).";
+    AlwaysAssert(n2.getConst<Rational>().sgn() >= 0)
+        << "Negative integer in string REGEXP_LOOP (2)";
+    Assert(n2.getConst<Rational>() <= rMaxInt)
+        << "Exceeded UINT32_MAX in string REGEXP_LOOP (2)";
+    uint32_t u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
+    if (u <= l)
+    {
+      retNode = n;
+    }
+    else
+    {
+      std::vector<Node> vec2;
+      vec2.push_back(n);
+      TypeNode rtype = nm->regExpType();
+      for (unsigned j = l; j < u; j++)
+      {
+        vec_nodes.push_back(r);
+        n = utils::mkConcat(vec_nodes, rtype);
+        vec2.push_back(n);
+      }
+      retNode = nm->mkNode(REGEXP_UNION, vec2);
+    }
   }
   else
   {
-    std::vector<Node> vec2;
-    vec2.push_back(n);
-    TypeNode rtype = nm->regExpType();
-    for (uint32_t j = l; j < u; j++)
-    {
-      vec_nodes.push_back(r);
-      n = utils::mkConcat(vec_nodes, rtype);
-      vec2.push_back(n);
-    }
-    retNode = nm->mkNode(REGEXP_UNION, vec2);
+    Node rest = nm->mkNode(REGEXP_STAR, r);
+    retNode = vec_nodes.size() == 0
+                  ? rest
+                  : vec_nodes.size() == 1
+                        ? nm->mkNode(REGEXP_CONCAT, r, rest)
+                        : nm->mkNode(REGEXP_CONCAT,
+                                     nm->mkNode(REGEXP_CONCAT, vec_nodes),
+                                     rest);
   }
   Trace("strings-lp") << "Strings::lp " << node << " => " << retNode
                       << std::endl;
@@ -1941,13 +1962,6 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   else if (nk == REGEXP_LOOP)
   {
     retNode = rewriteLoopRegExp(node);
-  }
-  else if (nk == REGEXP_REPEAT)
-  {
-    // ((_ re.^ n) R) --> ((_ re.loop n n) R)
-    unsigned r = utils::getRepeatAmount(node);
-    Node lop = nm->mkConst(RegExpLoop(r, r));
-    retNode = nm->mkNode(REGEXP_LOOP, lop, node[0]);
   }
 
   Trace("strings-postrewrite")
@@ -3442,7 +3456,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   if (n[0] == n[1])
   {
     Node ret = NodeManager::currentNM()->mkConst(true);
-    return returnRewrite(n, ret, "suf/prefix-eq");
+    return returnRewrite(n, ret, "suf-prefix-eq");
   }
   if (n[0].isConst())
   {
@@ -3450,7 +3464,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
     if (t.isEmptyString())
     {
       Node ret = NodeManager::currentNM()->mkConst(true);
-      return returnRewrite(n, ret, "suf/prefix-empty-const");
+      return returnRewrite(n, ret, "suf-prefix-empty-const");
     }
   }
   if (n[1].isConst())
@@ -3470,12 +3484,12 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
           ret = NodeManager::currentNM()->mkConst(true);
         }
       }
-      return returnRewrite(n, ret, "suf/prefix-const");
+      return returnRewrite(n, ret, "suf-prefix-const");
     }
     else if (lenS == 0)
     {
       Node ret = n[0].eqNode(n[1]);
-      return returnRewrite(n, ret, "suf/prefix-empty");
+      return returnRewrite(n, ret, "suf-prefix-empty");
     }
     else if (lenS == 1)
     {
@@ -3483,7 +3497,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
       // (str.contains "A" x )
       Node ret =
           NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, n[1], n[0]);
-      return returnRewrite(n, ret, "suf/prefix-ctn");
+      return returnRewrite(n, ret, "suf-prefix-ctn");
     }
   }
   Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n[0]);
@@ -3503,7 +3517,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   Node eqs = inferEqsFromContains(n[1], n[0]);
   if (!eqs.isNull())
   {
-    return returnRewrite(n, eqs, "suf/prefix-to-eqs");
+    return returnRewrite(n, eqs, "suf-prefix-to-eqs");
   }
 
   // general reduction to equality + substr
@@ -5551,9 +5565,9 @@ std::pair<bool, std::vector<Node> > SequencesRewriter::collectEmptyEqs(Node x)
       allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
 }
 
-Node SequencesRewriter::returnRewrite(Node node, Node ret, const char* c)
+Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
 {
-  Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by " << c
+  Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by " << r
                            << "." << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
