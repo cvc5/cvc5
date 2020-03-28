@@ -10,7 +10,7 @@ jobs:
         name: [
           ubuntu,
           ubuntu-py2,
-          ubuntu-py3,
+#          ubuntu-py3,
           ubuntu-debug,
           ubuntu-debug-cln
         ]
@@ -27,14 +27,14 @@ jobs:
             config: production --python-bindings --python2
             cache-key: production
             python: python
-            cython: true
+            python-bindings: true
 
-          - name: ubuntu-py3
-            os: ubuntu-latest
-            config: production --python-bindings --python3
-            cache-key: production
-            python: python3
-            cython: true
+#          - name: ubuntu-py3
+#            os: ubuntu-latest
+#            config: production --python-bindings --python3
+#            cache-key: production
+#            python: python3
+#            python-bindings: true
 
           - name: ubuntu-debug
             os: ubuntu-latest
@@ -71,10 +71,11 @@ jobs:
         ${{ matrix.python }} -m pip install toml
 
     - name: Install Cython
-      if: matrix.cython && runner.os == 'Linux'
+      if: matrix.python-bindings && runner.os == 'Linux'
       run: |
-        ${{ matrix.python }} -m pip install \
-          Cython==0.29 --install-option="--no-cython-compile"
+        ${{ matrix.python }} -m pip install cython
+        #        \
+        #  Cython==0.29 --install-option="--no-cython-compile"
 
     - name: Restore Dependencies
       id: restore-deps
@@ -117,9 +118,11 @@ jobs:
     - name: Configure
       run: |
         export PATH="/usr/lib/ccache/:$PATH"
-        ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
+        ./configure.sh ${{ matrix.config }} \
           --prefix=$(pwd)/build/install \
           --unit-testing
+#      Enable for clang
+#      env: ${{ matrix.env }}
 
     - name: Build
       run: make -j2
@@ -129,9 +132,10 @@ jobs:
       run: ccache -s
 
     - name: Run CTest
-      run: make -j2 check \
-            ARGS='--output-on-failure -LE regress[1-4]' \
-            CVC4_REGRESSION_ARGS='--no-early-exit'
+      run: make -j2 check
+      env:
+        ARGS: --output-on-failure -LE regress[1-4]
+        CVC4_REGRESSION_ARGS: --no-early-exit
       working-directory: build
 
 #    - name: Install Check
@@ -140,7 +144,13 @@ jobs:
 #        echo -e "#include <cvc4/api/cvc4cpp.h>\nint main() { CVC4::api::Solver s; return 0; }" > /tmp/test.cpp
 #        $CXX -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
 #      working-directory: build
-
+#
+#    - name: Python Install Check
+#      if: matrix.python-bindings
+#      run: |
+#       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
+#       ${{ matrix.python }} -c "import pycvc4"
+#
 #    - name: Check Examples
 #      run: |
 #        mkdir build
