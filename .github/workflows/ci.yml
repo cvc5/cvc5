@@ -67,7 +67,8 @@ jobs:
           libantlr3c-dev \
           libcln-dev \
           libgmp-dev \
-          swig3.0
+          swig3.0 \
+          python3-setuptools
         ${{ matrix.python }} -m pip install toml
 
     # Note: We install Cython with sudo since cmake can't find Cython otherwise.
