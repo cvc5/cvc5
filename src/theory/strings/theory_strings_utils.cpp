@@ -299,16 +299,16 @@ unsigned getRepeatAmount(TNode node)
   return node.getOperator().getConst<RegExpRepeat>().d_repeatAmount;
 }
 
-unsigned getLoopHigh(TNode node)
+unsigned getLoopMaxOccurrences(TNode node)
 {
   Assert(node.getKind()==REGEXP_LOOP);
-  return node.getOperator().getConst<RegExpLoop>().d_loopAmountHi;
+  return node.getOperator().getConst<RegExpLoop>().d_loopMaxOcc;
 }
 
-unsigned getLoopLow(TNode node)
+unsigned getLoopMinOccurrences(TNode node)
 {
   Assert(node.getKind()==REGEXP_LOOP);
-  return node.getOperator().getConst<RegExpLoop>().d_loopAmountLo;
+  return node.getOperator().getConst<RegExpLoop>().d_loopMinOcc;
 }
 
 }  // namespace utils

@@ -156,10 +156,10 @@ TypeNode getOwnerStringType(Node n);
 /* Get the number of repetitions for a regexp repeat node */
 unsigned getRepeatAmount(TNode node);
 
-/* Get the upper index of given regexp loop node. */
-unsigned getLoopHigh(TNode node);
-/* Get the lower index of given regexp loop node. */
-unsigned getLoopLow(TNode node);
+/* Get the maximum occurrences of given regexp loop node. */
+unsigned getLoopMaxOccurrences(TNode node);
+/* Get the minimum occurrences of given regexp loop node. */
+unsigned getLoopMinOccurrences(TNode node);
 
 }  // namespace utils
 }  // namespace strings

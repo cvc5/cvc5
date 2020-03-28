@@ -1194,7 +1194,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   }
   NodeManager* nm = NodeManager::currentNM();
   CVC4::Rational rMaxInt(String::maxSize());
-  uint32_t l = utils::getLoopLow(node);
+  uint32_t l = utils::getLoopMinOccurrences(node);
   std::vector<Node> vec_nodes;
   for (unsigned i = 0; i < l; i++)
   {
@@ -1204,8 +1204,13 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
       vec_nodes.size() == 0
           ? nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")))
           : vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT, vec_nodes);
-  uint32_t u = utils::getLoopHigh(node);
-  if (u <= l)
+  uint32_t u = utils::getLoopMaxOccurrences(node);
+  if (u < l)
+  {
+    std::vector<Node> nvec;
+    retNode = nm->mkNode(REGEXP_EMPTY, nvec);
+  }
+  else if (u == l)
   {
     retNode = n;
   }

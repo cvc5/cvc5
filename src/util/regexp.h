@@ -24,26 +24,29 @@ namespace CVC4 {
 
 struct CVC4_PUBLIC RegExpRepeat
 {
-  uint32_t d_repeatAmount;
   RegExpRepeat(uint32_t repeatAmount) : d_repeatAmount(repeatAmount) {}
 
   bool operator==(const RegExpRepeat& r) const
   {
     return d_repeatAmount == r.d_repeatAmount;
   }
+  /** The amount of repetitions of the regular expression */
+  uint32_t d_repeatAmount;
 };
 
 struct CVC4_PUBLIC RegExpLoop
 {
-  uint32_t d_loopAmountLo;
-  uint32_t d_loopAmountHi;
-  RegExpLoop(uint32_t l, uint32_t h) : d_loopAmountLo(l), d_loopAmountHi(h) {}
+  RegExpLoop(uint32_t l, uint32_t h) : d_loopMinOcc(l), d_loopMaxOcc(h) {}
 
   bool operator==(const RegExpLoop& r) const
   {
-    return d_loopAmountLo == r.d_loopAmountLo
-           && d_loopAmountHi == r.d_loopAmountHi;
+    return d_loopMinOcc == r.d_loopMinOcc
+           && d_loopMaxOcc == r.d_loopMaxOcc;
   }
+  /** The minimum number of repetitions of the regular expression */
+  uint32_t d_loopMinOcc;
+  /** The maximum number of repetitions of the regular expression */
+  uint32_t d_loopMaxOcc;
 };
 
 /* -----------------------------------------------------------------------
@@ -55,10 +58,7 @@ struct CVC4_PUBLIC RegExpLoop
  */
 struct CVC4_PUBLIC RegExpRepeatHashFunction
 {
-  inline size_t operator()(const RegExpRepeat& r) const
-  {
-    return r.d_repeatAmount;
-  }
+  inline size_t operator()(const RegExpRepeat& r) const;
 };
 
 /**
@@ -66,10 +66,7 @@ struct CVC4_PUBLIC RegExpRepeatHashFunction
  */
 struct CVC4_PUBLIC RegExpLoopHashFunction
 {
-  size_t operator()(const RegExpLoop& r) const
-  {
-    return r.d_loopAmountLo + r.d_loopAmountHi;
-  }
+  size_t operator()(const RegExpLoop& r) const;
 };
 
 /* -----------------------------------------------------------------------
@@ -78,17 +75,9 @@ struct CVC4_PUBLIC RegExpLoopHashFunction
 
 std::ostream& operator<<(std::ostream& os,
                                 const RegExpRepeat& bv) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream& os, const RegExpRepeat& r)
-{
-  return os << r.d_repeatAmount;
-}
 
 std::ostream& operator<<(std::ostream& os,
                                 const RegExpLoop& bv) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream& os, const RegExpLoop& r)
-{
-  return os << "[" << r.d_loopAmountLo << ":" << r.d_loopAmountHi << "]";
-}
 
 }  // namespace CVC4
 

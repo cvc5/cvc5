@@ -252,7 +252,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        uint32_t lo = utils::getLoopLow(r);
+        uint32_t lo = utils::getLoopMinOccurrences(r);
         if (lo == 0)
         {
           ret = 1;
@@ -495,8 +495,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        uint32_t l = utils::getLoopLow(r);
-        uint32_t u = utils::getLoopHigh(r);
+        uint32_t l = utils::getLoopMinOccurrences(r);
+        uint32_t u = utils::getLoopMaxOccurrences(r);
         if (l == u && l == 0)
         {
           ret = 2;
@@ -680,8 +680,8 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        uint32_t l = utils::getLoopLow(r);
-        uint32_t u = utils::getLoopHigh(r);
+        uint32_t l = utils::getLoopMinOccurrences(r);
+        uint32_t u = utils::getLoopMaxOccurrences(r);
         if (l == u || l == 0)
         {
           retNode = d_emptyRegexp;
