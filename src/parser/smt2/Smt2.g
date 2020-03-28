@@ -791,7 +791,8 @@ sygusGrammarV1[CVC4::api::Sort & ret,
       dtypes.push_back(i.getDatatype());
     }
 
-    std::set<Type> tset = api::sortSetToTypes(PARSER_STATE->getUnresolvedSorts());
+    std::set<Type> tset =
+        api::sortSetToTypes(PARSER_STATE->getUnresolvedSorts());
 
     std::vector<DatatypeType> datatypeTypes =
         SOLVER->getExprManager()->mkMutualDatatypeTypes(

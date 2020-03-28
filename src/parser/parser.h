@@ -274,9 +274,7 @@ public:
   }
 
   /** Get unresolved sorts */
-  inline std::set<api::Sort>& getUnresolvedSorts() {
-    return d_unresolved;
-  }
+  inline std::set<api::Sort>& getUnresolvedSorts() { return d_unresolved; }
 
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
