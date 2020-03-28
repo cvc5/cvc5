@@ -10,7 +10,7 @@ jobs:
         name: [
           ubuntu,
           ubuntu-py2,
-#          ubuntu-py3,
+          ubuntu-py3,
           ubuntu-debug,
           ubuntu-debug-cln
         ]
@@ -29,12 +29,12 @@ jobs:
             python: python
             python-bindings: true
 
-#          - name: ubuntu-py3
-#            os: ubuntu-latest
-#            config: production --python-bindings --python3
-#            cache-key: production
-#            python: python3
-#            python-bindings: true
+          - name: ubuntu-py3
+            os: ubuntu-latest
+            config: production --python-bindings --python3
+            cache-key: production
+            python: python3
+            python-bindings: true
 
           - name: ubuntu-debug
             os: ubuntu-latest
@@ -138,18 +138,18 @@ jobs:
         CVC4_REGRESSION_ARGS: --no-early-exit
       working-directory: build
 
-#    - name: Install Check
-#      run: |
-#        make -j2 install
-#        echo -e "#include <cvc4/api/cvc4cpp.h>\nint main() { CVC4::api::Solver s; return 0; }" > /tmp/test.cpp
-#        $CXX -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
-#      working-directory: build
-#
-#    - name: Python Install Check
-#      if: matrix.python-bindings
-#      run: |
-#       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
-#       ${{ matrix.python }} -c "import pycvc4"
+    - name: Install Check
+      run: |
+        make -j2 install
+        echo -e "#include <cvc4/api/cvc4cpp.h>\nint main() { CVC4::api::Solver s; return 0; }" > /tmp/test.cpp
+        $CXX -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
+      working-directory: build
+
+    - name: Python Install Check
+      if: matrix.python-bindings
+      run: |
+       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
+       ${{ matrix.python }} -c "import pycvc4"
 #
 #    - name: Check Examples
 #      run: |
