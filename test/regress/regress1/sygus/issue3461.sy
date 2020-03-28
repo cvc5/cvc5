@@ -10,8 +10,9 @@
    (por (left Policy) (right Policy))))
 
 (synth-fun mkPolicy ((d Doc)) Policy
-  ((Q Policy))
-  ((Q Policy ((p 0) (p 1) (por Q Q))))
+  ((Start Policy) (Q Policy))
+  ((Start Policy (Q))
+   (Q Policy ((p 0) (p 1) (por Q Q))))
 )
 
 (check-synth)
