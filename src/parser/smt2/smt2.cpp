@@ -1261,7 +1261,8 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
         api::Term lbvl = makeSygusBoundVarList(dt, i, ltypes, largs);
 
         // make the let_body
-        api::Term body = applyParseOp(ops[i], largs);
+        std::vector<api::Term> largsApply = largs;
+        api::Term body = applyParseOp(ops[i], largsApply);
         // replace by lambda
         ParseOp pLam;
         pLam.d_expr = d_solver->mkTerm(api::LAMBDA, lbvl, body);
