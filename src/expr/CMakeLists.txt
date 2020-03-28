@@ -29,6 +29,8 @@ libcvc4_add_sources(
   node_self_iterator.h
   node_trie.cpp
   node_trie.h
+  node_traversal.cpp
+  node_traversal.h
   node_value.cpp
   node_value.h
   node_visitor.h
