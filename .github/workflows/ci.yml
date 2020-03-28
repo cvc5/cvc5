@@ -70,6 +70,7 @@ jobs:
           swig3.0
         ${{ matrix.python }} -m pip install toml
 
+    # Note: We install Cython with sudo since cmake can't find Cython otherwise.
     - name: Install Cython
       if: matrix.python-bindings && runner.os == 'Linux'
       run: |
