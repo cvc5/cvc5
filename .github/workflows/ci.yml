@@ -9,11 +9,12 @@ jobs:
       matrix:
         name: [
           ubuntu,
-#          ubuntu-py2,
-#          ubuntu-py3,
+          ubuntu-py2,
+          ubuntu-py3,
           ubuntu-debug,
           ubuntu-debug-cln
         ]
+        python: python  # Default is Python 2.7
 
         include:
           - name: ubuntu
@@ -21,17 +22,18 @@ jobs:
             config: production --language-bindings=java --lfsc
             cache-key: production
 
-#          - name: ubuntu-py2
-#            os: ubuntu-latest
-#            config: production --python-bindings --python2
-#            cache-key: production
-#            cython: true
+          - name: ubuntu-py2
+            os: ubuntu-latest
+            config: production --python-bindings --python2
+            cache-key: production
+            cython: true
 
-#          - name: ubuntu-py3
-#            os: ubuntu-latest
-#            config: production --python-bindings --python3
-#            cache-key: production
-#            cython: true
+          - name: ubuntu-py3
+            os: ubuntu-latest
+            config: production --python-bindings --python3
+            cache-key: production
+            python: python3
+            cython: true
 
           - name: ubuntu-debug
             os: ubuntu-latest
@@ -63,11 +65,13 @@ jobs:
           libcln-dev \
           libgmp-dev \
           swig3.0
-        pip install toml
+        ${{ matrix.python }} -m pip install toml
 
     - name: Install Cython
       if: matrix.cython && runner.os == 'Linux'
-      run: pip install Cython==0.29 --install-option="--no-cython-compile"
+      run: |
+        ${{ matrix.python }} -m pip install \
+          Cython==0.29 --install-option="--no-cython-compile"
 
     - name: Restore Dependencies
       id: restore-deps
