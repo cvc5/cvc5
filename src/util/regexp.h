@@ -52,7 +52,7 @@ struct CVC4_PUBLIC RegExpLoop
  */
 struct CVC4_PUBLIC RegExpRepeatHashFunction
 {
-  inline size_t operator()(const RegExpRepeat& r) const;
+  size_t operator()(const RegExpRepeat& r) const;
 };
 
 /**
