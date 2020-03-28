@@ -2204,7 +2204,8 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       if (checkEntailArithWithAssumption(geq_zero_start, zero, tot_len, false))
       {
         Node ret = Word::mkEmptyWord(node.getType());
-        return returnRewrite(node, ret, Rewrite::SS_GEQ_ZERO_START_ENTAILS_EMP_S);
+        return returnRewrite(
+            node, ret, Rewrite::SS_GEQ_ZERO_START_ENTAILS_EMP_S);
       }
 
       // (str.substr s x x) ---> "" if (str.len s) <= 1

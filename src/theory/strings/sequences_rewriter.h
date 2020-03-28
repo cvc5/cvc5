@@ -23,9 +23,9 @@
 #include <vector>
 
 #include "expr/attribute.h"
+#include "theory/strings/rewrites.h"
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
-#include "theory/strings/rewrites.h"
 
 namespace CVC4 {
 namespace theory {
