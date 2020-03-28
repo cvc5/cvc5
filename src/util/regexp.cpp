@@ -46,11 +46,9 @@ std::ostream& operator<<(std::ostream& os, const RegExpRepeat& r)
   return os << r.d_repeatAmount;
 }
 
-std::ostream& operator<<(std::ostream& os,
-                                const RegExpLoop& bv) CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream& os, const RegExpLoop& r)
 {
-  return os << "[" << r.d_loopAmountLo << ":" << r.d_loopAmountHi << "]";
+  return os << "[" << r.d_loopMinOcc << ".." << r.d_loopMaxOcc << "]";
 }
 
 }  // namespace CVC4
