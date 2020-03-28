@@ -24,8 +24,8 @@ namespace CVC4 {
 
 struct CVC4_PUBLIC RegExpRepeat
 {
-  unsigned d_repeatAmount;
-  RegExpRepeat(unsigned repeatAmount) : d_repeatAmount(repeatAmount) {}
+  uint32_t d_repeatAmount;
+  RegExpRepeat(uint32_t repeatAmount) : d_repeatAmount(repeatAmount) {}
 
   bool operator==(const RegExpRepeat& r) const
   {
