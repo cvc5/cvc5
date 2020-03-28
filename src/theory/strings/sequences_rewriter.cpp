@@ -1214,7 +1214,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
     std::vector<Node> vec2;
     vec2.push_back(n);
     TypeNode rtype = nm->regExpType();
-    for (unsigned j = l; j < u; j++)
+    for (uint32_t j = l; j < u; j++)
     {
       vec_nodes.push_back(r);
       n = utils::mkConcat(vec_nodes, rtype);
