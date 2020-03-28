@@ -21,11 +21,11 @@ jobs:
             config: production --language-bindings=java --lfsc
             cache-key: production
 
-          - name: ubuntu-py2
-            os: ubuntu-latest
-            config: production --python-bindings --python2
-            cache-key: production
-            cython: true
+#          - name: ubuntu-py2
+#            os: ubuntu-latest
+#            config: production --python-bindings --python2
+#            cache-key: production
+#            cython: true
 
 #          - name: ubuntu-py3
 #            os: ubuntu-latest
@@ -62,10 +62,7 @@ jobs:
           libantlr3c-dev \
           libcln-dev \
           libgmp-dev \
-          swig3.0 \
-          python3 \
-          python3-pip \
-          python3-setuptools
+          swig3.0
         pip install toml
 
     - name: Install Cython
