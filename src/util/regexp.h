@@ -35,9 +35,9 @@ struct CVC4_PUBLIC RegExpRepeat
 
 struct CVC4_PUBLIC RegExpLoop
 {
-  unsigned d_loopAmountLo;
-  unsigned d_loopAmountHi;
-  RegExpLoop(unsigned l, unsigned h) : d_loopAmountLo(l), d_loopAmountHi(h) {}
+  uint32_t d_loopAmountLo;
+  uint32_t d_loopAmountHi;
+  RegExpLoop(uint32_t l, uint32_t h) : d_loopAmountLo(l), d_loopAmountHi(h) {}
 
   bool operator==(const RegExpLoop& r) const
   {
