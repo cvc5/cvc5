@@ -73,9 +73,8 @@ jobs:
     - name: Install Cython
       if: matrix.python-bindings && runner.os == 'Linux'
       run: |
-        ${{ matrix.python }} -m pip install cython
-        #        \
-        #  Cython==0.29 --install-option="--no-cython-compile"
+        sudo ${{ matrix.python }} -m pip install \
+          Cython==0.29 --install-option="--no-cython-compile"
 
     - name: Restore Dependencies
       id: restore-deps
