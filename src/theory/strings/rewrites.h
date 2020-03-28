@@ -179,8 +179,8 @@ enum class Rewrite : uint32_t
  * `safe_print()` printing "<unsupported>" instead of the proper strings for
  * the enum values.
  *
- * @param i The inference
- * @return The name of the inference
+ * @param r The rewrite
+ * @return The name of the rewrite
  */
 const char* toString(Rewrite r);
 
