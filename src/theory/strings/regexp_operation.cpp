@@ -252,7 +252,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        unsigned lo = utils::getLoopLow(r);
+        uint32_t lo = utils::getLoopLow(r);
         if (lo == 0)
         {
           ret = 1;
