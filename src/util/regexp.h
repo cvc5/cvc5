@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <iosfwd>
+#include <ostream>
 
 namespace CVC4 {
 
