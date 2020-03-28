@@ -75,6 +75,7 @@ const char* toString(Rewrite r)
     case Rewrite::RE_CONCAT_PURE_ALLCHAR: return "RE_CONCAT_PURE_ALLCHAR";
     case Rewrite::RE_CONCAT_TO_CONTAINS: return "RE_CONCAT_TO_CONTAINS";
     case Rewrite::RE_EMPTY_IN_STR_STAR: return "RE_EMPTY_IN_STR_STAR";
+    case Rewrite::RE_IN_DIST_CHAR_STAR: return "RE_IN_DIST_CHAR_STAR";
     case Rewrite::RE_IN_SIGMA_STAR: return "RE_IN_SIGMA_STAR";
     case Rewrite::RE_LOOP: return "RE_LOOP";
     case Rewrite::RE_LOOP_STAR: return "RE_LOOP_STAR";

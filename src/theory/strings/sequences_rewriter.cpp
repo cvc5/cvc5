@@ -1585,7 +1585,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
             nb << nm->mkNode(STRING_IN_REGEXP, xc, r);
           }
           return returnRewrite(
-              node, nb.constructNode(), "re-in-dist-char-star");
+              node, nb.constructNode(), Rewrite::RE_IN_DIST_CHAR_STAR);
         }
       }
     }
