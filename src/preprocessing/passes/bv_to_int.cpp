@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/node_traversal.h"
 #include "options/uf_options.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
@@ -91,73 +92,44 @@ Node BVToInt::modpow2(Node n, uint64_t exponent)
  */
 Node BVToInt::makeBinary(Node n)
 {
-  vector<Node> toVisit;
-  toVisit.push_back(n);
-  while (!toVisit.empty())
+  for (TNode current : NodeDfsIterable(n).inPostorder())
   {
-    Node current = toVisit.back();
     uint64_t numChildren = current.getNumChildren();
-    if (d_binarizeCache.find(current) == d_binarizeCache.end())
+    kind::Kind_t k = current.getKind();
+    if ((numChildren > 2)
+        && (k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+            || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
+            || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
     {
-      /**
-       * We still haven't visited the sub-dag rooted at the current node.
-       * In this case, we:
-       * mark that we have visited this node by assigning a null node to it in
-       * the cache, and add its children to toVisit.
-       */
-      d_binarizeCache[current] = Node();
-      toVisit.insert(toVisit.end(), current.begin(), current.end());
+      // We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
+      Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
+      Node result = d_binarizeCache[current[0]];
+      for (uint64_t i = 1; i < numChildren; i++)
+      {
+        Assert(d_binarizeCache.find(current[i]) != d_binarizeCache.end());
+        Node child = d_binarizeCache[current[i]];
+        result = d_nm->mkNode(current.getKind(), result, child);
+      }
+      d_binarizeCache[current] = result;
     }
-    else if (d_binarizeCache[current].isNull())
+    else if (numChildren > 0)
     {
-      /*
-       * We already visited the sub-dag rooted at the current node,
-       * and binarized all its children.
-       * Now we binarize the current node itself.
-       */
-      toVisit.pop_back();
-      kind::Kind_t k = current.getKind();
-      if ((numChildren > 2)
-          && (k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
-              || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
-              || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
+      // current has children, but we do not binarize it
+      NodeBuilder<> builder(k);
+      if (current.getKind() == kind::BITVECTOR_EXTRACT
+          || current.getKind() == kind::APPLY_UF)
       {
-        // We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
-        Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
-        Node result = d_binarizeCache[current[0]];
-        for (uint64_t i = 1; i < numChildren; i++)
-        {
-          Assert(d_binarizeCache.find(current[i]) != d_binarizeCache.end());
-          Node child = d_binarizeCache[current[i]];
-          result = d_nm->mkNode(current.getKind(), result, child);
-        }
-        d_binarizeCache[current] = result;
+        builder << current.getOperator();
       }
-      else if (numChildren > 0)
+      for (Node child : current)
       {
-        // current has children, but we do not binarize it
-        NodeBuilder<> builder(k);
-        if (current.getKind() == kind::BITVECTOR_EXTRACT
-            || current.getKind() == kind::APPLY_UF)
-        {
-          builder << current.getOperator();
-        }
-        for (Node child : current)
-        {
-          builder << d_binarizeCache[child];
-        }
-        d_binarizeCache[current] = builder.constructNode();
+        builder << d_binarizeCache[child];
       }
-      else
-      {
-        // current has no children
-        d_binarizeCache[current] = current;
-      }
+      d_binarizeCache[current] = builder.constructNode();
     }
     else
     {
-      // We already binarized current and it is in the cache.
-      toVisit.pop_back();
+      d_binarizeCache[current] = current;
     }
   }
   return d_binarizeCache[n];
@@ -813,16 +785,14 @@ Node BVToInt::bvToInt(Node n)
 }
 
 bool BVToInt::childrenTypesChanged(Node n) {
-  bool result = false;
   for (Node child : n) {
     TypeNode originalType = child.getType();
     TypeNode newType = d_bvToIntCache[child].getType();
     if (! newType.isSubtypeOf(originalType)) {
-      result = true;
-      break;
+      return true;
     }
   }
-  return result;
+  return false;
 }
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
