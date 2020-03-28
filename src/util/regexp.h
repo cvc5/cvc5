@@ -24,24 +24,18 @@ namespace CVC4 {
 
 struct CVC4_PUBLIC RegExpRepeat
 {
-  RegExpRepeat(uint32_t repeatAmount) : d_repeatAmount(repeatAmount) {}
+  RegExpRepeat(uint32_t repeatAmount);
 
-  bool operator==(const RegExpRepeat& r) const
-  {
-    return d_repeatAmount == r.d_repeatAmount;
-  }
+  bool operator==(const RegExpRepeat& r) const;
   /** The amount of repetitions of the regular expression */
   uint32_t d_repeatAmount;
 };
 
 struct CVC4_PUBLIC RegExpLoop
 {
-  RegExpLoop(uint32_t l, uint32_t h) : d_loopMinOcc(l), d_loopMaxOcc(h) {}
+  RegExpLoop(uint32_t l, uint32_t h);
 
-  bool operator==(const RegExpLoop& r) const
-  {
-    return d_loopMinOcc == r.d_loopMinOcc && d_loopMaxOcc == r.d_loopMaxOcc;
-  }
+  bool operator==(const RegExpLoop& r) const;
   /** The minimum number of repetitions of the regular expression */
   uint32_t d_loopMinOcc;
   /** The maximum number of repetitions of the regular expression */
