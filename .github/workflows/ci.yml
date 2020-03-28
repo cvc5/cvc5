@@ -108,6 +108,7 @@ jobs:
       run: |
         export PATH="/usr/lib/ccache/:$PATH"
         ./configure.sh ${{ matrix.config }} \
+          --python3 \
           --prefix=$(pwd)/build/install \
           --unit-testing
 #      Enable for clang
