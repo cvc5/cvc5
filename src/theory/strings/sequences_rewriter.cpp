@@ -895,7 +895,7 @@ Node SequencesRewriter::rewriteConcat(Node node)
   Node retNode = utils::mkConcat(node_vec, tn);
   Trace("strings-rewrite-debug")
       << "Strings::rewriteConcat end " << retNode << std::endl;
-  if (retNode!=node)
+  if (retNode != node)
   {
     return returnRewrite(node, retNode, Rewrite::CONCAT_NORM);
   }
@@ -1539,8 +1539,8 @@ Node SequencesRewriter::rewriteMembership(TNode node)
 
   if(r.getKind() == kind::REGEXP_EMPTY) 
   {
-    Node retNode = NodeManager::currentNM()->mkConst( false );
-    return returnRewrite(node,retNode,Rewrite::RE_MEM_EMPTY);
+    Node retNode = NodeManager::currentNM()->mkConst(false);
+    return returnRewrite(node, retNode, Rewrite::RE_MEM_EMPTY);
   }
   else if (x.isConst() && isConstRegExp(r))
   {
@@ -1548,13 +1548,13 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     CVC4::String s = x.getConst<String>();
     Node retNode =
         NodeManager::currentNM()->mkConst(testConstStringInRegExp(s, 0, r));
-    return returnRewrite(node,retNode,Rewrite::RE_MEM_EVAL);
+    return returnRewrite(node, retNode, Rewrite::RE_MEM_EVAL);
   }
   else if (r.getKind() == kind::REGEXP_SIGMA)
   {
     Node one = nm->mkConst(Rational(1));
     Node retNode = one.eqNode(nm->mkNode(STRING_LENGTH, x));
-    return returnRewrite(node,retNode,Rewrite::RE_MEM_SIGMA);
+    return returnRewrite(node, retNode, Rewrite::RE_MEM_SIGMA);
   }
   else if (r.getKind() == kind::REGEXP_STAR)
   {
@@ -1695,7 +1695,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     Node retNode = nm->mkNode(STRING_IN_REGEXP, x, r[0]).negate();
     return returnRewrite(node, retNode, Rewrite::RE_MEM_COMPLEMENT);
   }
-  
+
   // do simple consumes
   Node retNode = node;
   if (r.getKind() == kind::REGEXP_STAR)
@@ -1729,9 +1729,8 @@ Node SequencesRewriter::rewriteMembership(TNode node)
           }
           else
           {
-            retNode = nm->mkNode(STRING_IN_REGEXP,
-                                  utils::mkConcat(mchildren, stype),
-                                  r);
+            retNode = nm->mkNode(
+                STRING_IN_REGEXP, utils::mkConcat(mchildren, stype), r);
             success = true;
           }
         }
@@ -1775,11 +1774,11 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       else
       {
         // otherwise, construct the updated regular expression
-        retNode = nm->mkNode(
-            STRING_IN_REGEXP, xn, utils::mkConcat(children, rtype));
+        retNode =
+            nm->mkNode(STRING_IN_REGEXP, xn, utils::mkConcat(children, rtype));
       }
-      Trace("regexp-ext-rewrite") << "Regexp : rewrite : " << node << " -> "
-                                  << retNode << std::endl;
+      Trace("regexp-ext-rewrite")
+          << "Regexp : rewrite : " << node << " -> " << retNode << std::endl;
       return returnRewrite(node, retNode, Rewrite::RE_SIMPLE_CONSUME);
     }
   }
