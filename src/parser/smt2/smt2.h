@@ -277,6 +277,8 @@ class Smt2 : public Parser
   bool sygus() const;
   /** Are we using the sygus version 1.0 format? */
   bool sygus_v1() const;
+  /** Are we using the sygus version 2.0 format? */
+  bool sygus_v2() const;
 
   /**
    * Returns true if the language that we are parsing (SMT-LIB version >=2.5
