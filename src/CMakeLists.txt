@@ -293,6 +293,7 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl_lemma_utils.cpp
   theory/arith/nl_lemma_utils.h
   theory/arith/nl_model.cpp
   theory/arith/nl_model.h
@@ -318,6 +319,8 @@ libcvc4_add_sources(
   theory/arith/theory_arith_private.h
   theory/arith/theory_arith_private_forward.h
   theory/arith/theory_arith_type_rules.h
+  theory/arith/transcendental_solver.cpp
+  theory/arith/transcendental_solver.h
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
@@ -681,6 +684,8 @@ libcvc4_add_sources(
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp
   theory/strings/regexp_solver.h
+  theory/strings/rewrites.cpp
+  theory/strings/rewrites.h
   theory/strings/sequences_rewriter.cpp
   theory/strings/sequences_rewriter.h
   theory/strings/sequences_stats.cpp
