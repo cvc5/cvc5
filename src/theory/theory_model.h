@@ -390,9 +390,8 @@ public:
   /** Get model value function.
    *
    * This function is a helper function for getValue.
-   *   hasBoundVars is whether n may contain bound variables
    */
-  Node getModelValue(TNode n, bool hasBoundVars = false) const;
+  Node getModelValue(TNode n) const;
   /** add term internal
    *
    * This will do any model-specific processing necessary for n,
