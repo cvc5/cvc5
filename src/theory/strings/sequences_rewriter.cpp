@@ -1540,7 +1540,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   if(r.getKind() == kind::REGEXP_EMPTY) 
   {
     Node retNode = NodeManager::currentNM()->mkConst(false);
-    return returnRewrite(node, retNode, Rewrite::RE_MEM_EMPTY);
+    return returnRewrite(node, retNode, Rewrite::RE_IN_EMPTY);
   }
   else if (x.isConst() && isConstRegExp(r))
   {
@@ -1548,13 +1548,13 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     CVC4::String s = x.getConst<String>();
     Node retNode =
         NodeManager::currentNM()->mkConst(testConstStringInRegExp(s, 0, r));
-    return returnRewrite(node, retNode, Rewrite::RE_MEM_EVAL);
+    return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
   }
   else if (r.getKind() == kind::REGEXP_SIGMA)
   {
     Node one = nm->mkConst(Rational(1));
     Node retNode = one.eqNode(nm->mkNode(STRING_LENGTH, x));
-    return returnRewrite(node, retNode, Rewrite::RE_MEM_SIGMA);
+    return returnRewrite(node, retNode, Rewrite::RE_IN_SIGMA);
   }
   else if (r.getKind() == kind::REGEXP_STAR)
   {
@@ -1673,12 +1673,12 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     }
     Node retNode = NodeManager::currentNM()->mkNode(
         r.getKind() == kind::REGEXP_INTER ? kind::AND : kind::OR, mvec);
-    return returnRewrite(node, retNode, Rewrite::RE_MEM_ANDOR);
+    return returnRewrite(node, retNode, Rewrite::RE_IN_ANDOR);
   }
   else if (r.getKind() == kind::STRING_TO_REGEXP)
   {
     Node retNode = x.eqNode(r[0]);
-    return returnRewrite(node, retNode, Rewrite::RE_MEM_CSTRING);
+    return returnRewrite(node, retNode, Rewrite::RE_IN_CSTRING);
   }
   else if (r.getKind() == REGEXP_RANGE)
   {
@@ -1688,12 +1688,12 @@ Node SequencesRewriter::rewriteMembership(TNode node)
         nm->mkNode(AND,
                    nm->mkNode(LEQ, nm->mkNode(STRING_TO_CODE, r[0]), xcode),
                    nm->mkNode(LEQ, xcode, nm->mkNode(STRING_TO_CODE, r[1])));
-    return returnRewrite(node, retNode, Rewrite::RE_MEM_RANGE);
+    return returnRewrite(node, retNode, Rewrite::RE_IN_RANGE);
   }
   else if (r.getKind() == REGEXP_COMPLEMENT)
   {
     Node retNode = nm->mkNode(STRING_IN_REGEXP, x, r[0]).negate();
-    return returnRewrite(node, retNode, Rewrite::RE_MEM_COMPLEMENT);
+    return returnRewrite(node, retNode, Rewrite::RE_IN_COMPLEMENT);
   }
 
   // do simple consumes
