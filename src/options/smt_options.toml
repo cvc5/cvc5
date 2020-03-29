@@ -46,12 +46,6 @@ header = "options/smt_options.h"
   name = "batch"
   help = "Save up all ASSERTions; run nonclausal simplification and clausal (MiniSat) propagation for all of them only after reaching a querying command (CHECKSAT or QUERY or predicate SUBTYPE declaration)."
 
-[[alias]]
-  category   = "regular"
-  long       = "no-simplification"
-  links      = ["--simplification=none"]
-  help       = "turn off all simplification (same as --simplification=none)"
-
 [[option]]
   name       = "doStaticLearning"
   category   = "regular"
