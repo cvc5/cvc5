@@ -684,6 +684,8 @@ libcvc4_add_sources(
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp
   theory/strings/regexp_solver.h
+  theory/strings/rewrites.cpp
+  theory/strings/rewrites.h
   theory/strings/sequences_rewriter.cpp
   theory/strings/sequences_rewriter.h
   theory/strings/sequences_stats.cpp
