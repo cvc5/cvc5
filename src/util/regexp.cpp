@@ -14,6 +14,8 @@
 
 #include "util/regexp.h"
 
+#include <ostream>
+
 namespace CVC4 {
 
 RegExpRepeat::RegExpRepeat(uint32_t repeatAmount) : d_repeatAmount(repeatAmount) {}
