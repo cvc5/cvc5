@@ -244,20 +244,6 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
   }
 }
 
-// theory/options_handlers.h
-std::string OptionsHandler::handleUseTheoryList(std::string option, std::string optarg) {
-  std::string currentList = options::useTheoryList();
-  if(currentList.empty()){
-    return optarg;
-  } else {
-    return currentList +','+ optarg;
-  }
-}
-
-void OptionsHandler::notifyUseTheoryList(std::string option) {
-  d_options->d_useTheoryListListeners.notify();
-}
-
 // printer/options_handlers.h
 const std::string OptionsHandler::s_instFormatHelp = "\
 Inst format modes currently supported by the --inst-format option:\n\
