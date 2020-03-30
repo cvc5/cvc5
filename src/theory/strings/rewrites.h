@@ -190,6 +190,7 @@ enum class Rewrite : uint32_t
   RE_IN_RANGE,
   RE_IN_CSTRING,
   RE_IN_ANDOR,
+  RE_REPEAT_ELIM,
   SUF_PREFIX_ELIM,
   STR_LT_ELIM,
   RE_RANGE_SINGLE,

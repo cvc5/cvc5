@@ -121,6 +121,12 @@ class SequencesRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   static Node rewriteLoopRegExp(TNode node);
+  /** rewrite regular expression repeat
+   *
+   * This is the entry point for post-rewriting applications of re.repeat.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteRepeatRegExp(TNode node);
   /** rewrite regular expression option
    *
    * This is the entry point for post-rewriting applications of re.opt.

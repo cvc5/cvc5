@@ -1296,6 +1296,17 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   return node;
 }
 
+Node SequencesRewriter::rewriteRepeatRegExp(TNode node)
+{
+  Assert(node.getKind() == REGEXP_REPEAT);
+  NodeManager* nm = NodeManager::currentNM();
+  // ((_ re.^ n) R) --> ((_ re.loop n n) R)
+  unsigned r = utils::getRepeatAmount(node);
+  Node lop = nm->mkConst(RegExpLoop(r, r));
+  Node retNode = nm->mkNode(REGEXP_LOOP, lop, node[0]);
+  return returnRewrite(node, retNode, Rewrite::RE_REPEAT_ELIM);
+}
+
 Node SequencesRewriter::rewriteOptionRegExp(TNode node)
 {
   Assert(node.getKind() == REGEXP_OPT);
@@ -1979,10 +1990,7 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   }
   else if (nk == REGEXP_REPEAT)
   {
-    // ((_ re.^ n) R) --> ((_ re.loop n n) R)
-    unsigned r = utils::getRepeatAmount(node);
-    Node lop = nm->mkConst(RegExpLoop(r, r));
-    retNode = nm->mkNode(REGEXP_LOOP, lop, node[0]);
+    retNode = rewriteRepeatRegExp(node);
   }
 
   Trace("strings-postrewrite")
