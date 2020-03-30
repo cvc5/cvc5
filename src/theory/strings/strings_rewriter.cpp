@@ -146,9 +146,8 @@ Node StringsRewriter::rewriteStrConvert(Node node)
 Node StringsRewriter::rewriteStringLt(Node n)
 {
   // eliminate s < t ---> s != t AND s <= t
-  Node retNode = nm->mkNode(AND,
-                        n[0].eqNode(n[1]).negate(),
-                        nm->mkNode(STRING_LEQ, n[0], n[1]));
+  Node retNode = nm->mkNode(
+      AND, n[0].eqNode(n[1]).negate(), nm->mkNode(STRING_LEQ, n[0], n[1]));
   return returnRewrite(n, retNode, Rewrite::STR_LT_ELIM);
 }
 
@@ -255,8 +254,8 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
   // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
   Node t = nm->mkNode(STRING_TO_CODE, n[0]);
   Node retNode = nm->mkNode(AND,
-                        nm->mkNode(LEQ, nm->mkConst(Rational(48)), t),
-                        nm->mkNode(LEQ, t, nm->mkConst(Rational(57))));
+                            nm->mkNode(LEQ, nm->mkConst(Rational(48)), t),
+                            nm->mkNode(LEQ, t, nm->mkConst(Rational(57))));
   return returnRewrite(n, retNode, Rewrite::IS_DIGIT_ELIM);
 }
 
