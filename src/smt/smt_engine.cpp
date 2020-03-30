@@ -399,9 +399,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Manager for the memory of --dump-to. */
   ManagedDumpOStream d_managedDumpChannel;
 
-  /** Manager for --replay-log. */
-  ManagedReplayLogOstream d_managedReplayLog;
-
   /**
    * This list contains:
    *  softResourceOut
@@ -519,7 +516,6 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_managedRegularChannel(),
         d_managedDiagnosticChannel(),
         d_managedDumpChannel(),
-        d_managedReplayLog(),
         d_listenerRegistrations(new ListenerRegistrationList()),
         d_propagator(true, true),
         d_assertions(),
@@ -583,9 +579,6 @@ class SmtEnginePrivate : public NodeManagerListener {
       d_listenerRegistrations->add(
           nodeManagerOptions.registerDumpToFileNameListener(
               new SetToDefaultSourceListener(&d_managedDumpChannel), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetReplayLogFilename(
-              new SetToDefaultSourceListener(&d_managedReplayLog), true));
     }
     catch (OptionException& e)
     {
@@ -777,10 +770,6 @@ class SmtEnginePrivate : public NodeManagerListener {
     Node ascription = current->mkConst(AscriptionType(n.getType().toType()));
     Node retval = current->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
     return retval;
-  }
-
-  std::ostream* getReplayLog() const {
-    return d_managedReplayLog.getReplayLog();
   }
 
   //------------------------------- expression names

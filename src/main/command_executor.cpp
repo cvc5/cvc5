@@ -72,12 +72,6 @@ void CommandExecutor::safeFlushStatistics(int fd) const
   d_stats.safeFlushInformation(fd);
 }
 
-void CommandExecutor::setReplayStream(ExprStream* replayStream) {
-  assert(d_replayStream == NULL);
-  d_replayStream = replayStream;
-  d_smtEngine->setReplayStream(d_replayStream);
-}
-
 bool CommandExecutor::doCommand(Command* cmd)
 {
   if( d_options.getParseOnly() ) {

@@ -44,7 +44,6 @@ class CommandExecutor
   Options& d_options;
   StatisticsRegistry d_stats;
   Result d_result;
-  ExprStream* d_replayStream;
 
  public:
   CommandExecutor(Options& options);
@@ -91,9 +90,7 @@ class CommandExecutor
                                     const std::string& statsString);
 
   void flushOutputStreams();
-
-  void setReplayStream(ExprStream* replayStream);
-
+  
 protected:
   /** Executes treating cmd as a singleton */
   virtual bool doCommandSingleton(CVC4::Command* cmd);
