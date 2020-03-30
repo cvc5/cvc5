@@ -173,7 +173,6 @@ enum class Rewrite : uint32_t
   SUF_PREFIX_EQ,
   SUF_PREFIX_TO_EQS,
   TO_CODE_EVAL,
-
   EQ_REFL,
   EQ_CONST_FALSE,
   EQ_SYM,
@@ -201,7 +200,6 @@ enum class Rewrite : uint32_t
   LEN_REPL_INV,
   LEN_CONV_INV,
   CHARAT_ELIM
-
 };
 
 /**
