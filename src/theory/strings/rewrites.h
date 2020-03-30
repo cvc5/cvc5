@@ -178,6 +178,7 @@ enum class Rewrite : uint32_t
   EQ_CONST_FALSE,
   EQ_SYM,
   CONCAT_NORM,
+  IS_DIGIT_ELIM,
   RE_CONCAT_EMPTY,
   RE_CONSUME_CCONF,
   RE_CONSUME_S_CCONF,
@@ -188,7 +189,9 @@ enum class Rewrite : uint32_t
   RE_IN_COMPLEMENT,
   RE_IN_RANGE,
   RE_IN_CSTRING,
-  RE_IN_ANDOR
+  RE_IN_ANDOR,
+  SUF_PREFIX_ELIM,
+  STR_LT_ELIM
   
 };
 

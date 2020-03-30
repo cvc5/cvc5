@@ -1867,10 +1867,7 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   }
   else if (nk == kind::STRING_LT)
   {
-    // eliminate s < t ---> s != t AND s <= t
-    retNode = nm->mkNode(AND,
-                         node[0].eqNode(node[1]).negate(),
-                         nm->mkNode(STRING_LEQ, node[0], node[1]));
+    retNode = StringsRewriter::rewriteStringLt(node);
   }
   else if (nk == kind::STRING_LEQ)
   {
@@ -1902,11 +1899,7 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   }
   else if (nk == STRING_IS_DIGIT)
   {
-    // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
-    Node t = nm->mkNode(STRING_TO_CODE, node[0]);
-    retNode = nm->mkNode(AND,
-                         nm->mkNode(LEQ, nm->mkConst(Rational(48)), t),
-                         nm->mkNode(LEQ, t, nm->mkConst(Rational(57))));
+    retNode = StringsRewriter::rewriteStringIsDigit(node);
   }
   else if (nk == kind::STRING_ITOS)
   {
@@ -3529,7 +3522,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   Node retNode = n[0].eqNode(
       NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, n[1], val, lens));
 
-  return retNode;
+  return returnRewrite(n, retNode, Rewrite::SUF_PREFIX_ELIM);
 }
 
 Node SequencesRewriter::splitConstant(Node a, Node b, int& index, bool isRev)
