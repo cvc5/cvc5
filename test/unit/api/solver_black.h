@@ -570,7 +570,7 @@ void SolverBlack::testMkChar()
   TS_ASSERT_THROWS(d_solver->mkChar(""), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkChar("0g0"), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkChar("100000"), CVC4ApiException&);
-  TS_ASSERT_EQUALS(d_solver->mkChar("abc"),d_solver->mkChar("ABC"));
+  TS_ASSERT_EQUALS(d_solver->mkChar("abc"), d_solver->mkChar("ABC"));
 }
 
 void SolverBlack::testMkTerm()
