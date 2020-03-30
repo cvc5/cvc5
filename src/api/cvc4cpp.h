@@ -2304,6 +2304,20 @@ class CVC4_PUBLIC Solver
   Term mkString(const std::vector<unsigned>& s) const;
 
   /**
+   * Create a character constant from a given string.
+   * @param s the string denoting the code point of the character (in base 16)
+   * @return the character constant
+   */
+  Term mkChar(const std::string& s) const;
+  
+  /**
+   * Create a character constant from a given string.
+   * @param s the string denoting the code point of the character (in base 16)
+   * @return the character constant
+   */
+  Term mkChar(const char* s) const;
+
+  /**
    * Create a universe set of the given sort.
    * @param sort the sort of the set elements
    * @return the universe set constant
@@ -2361,7 +2375,7 @@ class CVC4_PUBLIC Solver
    * @return the bit-vector constant
    */
   Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
-
+  
   /**
    * Create a constant array with the provided constant value stored at every
    * index
@@ -2830,6 +2844,8 @@ class CVC4_PUBLIC Solver
   void setLogicHelper(const std::string& logic) const;
   /* Helper for mkTerm functions that create Term from a Kind */
   Term mkTermFromKind(Kind kind) const;
+  /* Helper for mkChar functions that take a string as argument. */
+  Term mkCharFromStrHelper(std::string s) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed

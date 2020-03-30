@@ -2353,6 +2353,13 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
   return mkValHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
 }
 
+Term Solver::mkCharFromStrHelper(std::string s) const
+{
+  // FIXME
+  std::vector<unsigned> cpts;
+  return mkValHelper<CVC4::String>(CVC4::String(cpts));
+}
+
 Term Solver::mkTermFromKind(Kind kind) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -2948,6 +2955,21 @@ Term Solver::mkString(const std::vector<unsigned>& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return mkValHelper<CVC4::String>(CVC4::String(s));
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkChar(const std::string& s) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  return mkCharFromStrHelper(s);
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkChar(const char* s) const
+{  
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
+  return mkCharFromStrHelper(std::string(s));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
