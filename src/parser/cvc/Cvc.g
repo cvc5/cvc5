@@ -2074,8 +2074,11 @@ stringTerm[CVC4::api::Term& f]
     { f = MK_TERM(CVC4::api::REGEXP_OPT, f); }
   | REGEXP_RANGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_RANGE, f, f2); }
-  | REGEXP_LOOP_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_LOOP, f, f2, f3); }
+  | REGEXP_LOOP_TOK LPAREN formula[f] COMMA lo=numeral COMMA hi=numeral RPAREN
+    {
+      api::Op lop = SOLVER->mkOp(CVC4::api::REGEXP_LOOP, lo, hi);
+      f = MK_TERM(lop, f); 
+    }
   | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }
   | REGEXP_EMPTY_TOK

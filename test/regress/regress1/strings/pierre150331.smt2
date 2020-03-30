@@ -6,7 +6,7 @@
 (define-fun stringEval ((?s String)) Bool (str.in.re ?s 
 (re.union 
 (str.to.re "H")
-(re.++ (re.loop (str.to.re "{") 2 2 ) (re.loop (re.union re.nostr (re.range "" "]") (re.range "" "^") ) 2 4 ) ) ) ) )
+(re.++ ((_ re.loop 2 2) (str.to.re "{") ) ((_ re.loop 2 4) (re.union re.nostr (re.range "" "]") (re.range "" "^") ) ) ) ) ) )
 (declare-fun s0() String)
 (declare-fun s1() String)
 (declare-fun s2() String)

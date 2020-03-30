@@ -193,8 +193,9 @@ void Smt2::addStringOperators() {
   addOperator(api::REGEXP_STAR, "re.*");
   addOperator(api::REGEXP_PLUS, "re.+");
   addOperator(api::REGEXP_OPT, "re.opt");
+  addIndexedOperator(api::REGEXP_REPEAT, api::REGEXP_REPEAT, "re.^");
+  addIndexedOperator(api::REGEXP_LOOP, api::REGEXP_LOOP, "re.loop");
   addOperator(api::REGEXP_RANGE, "re.range");
-  addOperator(api::REGEXP_LOOP, "re.loop");
   addOperator(api::REGEXP_COMPLEMENT, "re.comp");
   addOperator(api::REGEXP_DIFF, "re.diff");
   addOperator(api::STRING_LT, "str.<");
