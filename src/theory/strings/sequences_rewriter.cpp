@@ -1266,23 +1266,24 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
 
 Node SequencesRewriter::rewriteOptionRegExp(TNode node)
 {
-  Node retNode = nm->mkNode(REGEXP_UNION,
-                         nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String(""))),
-                         node[0]);
+  Node retNode =
+      nm->mkNode(REGEXP_UNION,
+                 nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String(""))),
+                 node[0]);
   return returnRewrite(node, retNode, Rewrite::RE_OPT_ELIM);
 }
 
 Node SequencesRewriter::rewritePlusRegExp(TNode node)
 {
   Node retNode =
-        nm->mkNode(REGEXP_CONCAT, node[0], nm->mkNode(REGEXP_STAR, node[0]));
+      nm->mkNode(REGEXP_CONCAT, node[0], nm->mkNode(REGEXP_STAR, node[0]));
   return returnRewrite(node, retNode, Rewrite::RE_PLUS_ELIM);
 }
 
 Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
 {
-  Node retNode = nm->mkNode(
-        REGEXP_INTER, node[0], nm->mkNode(REGEXP_COMPLEMENT, node[1]));
+  Node retNode =
+      nm->mkNode(REGEXP_INTER, node[0], nm->mkNode(REGEXP_COMPLEMENT, node[1]));
   return returnRewrite(node, retNode, Rewrite::RE_DIFF_ELIM);
 }
 

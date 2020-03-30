@@ -145,7 +145,7 @@ class SequencesRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   static Node rewriteRangeRegExp(TNode node);
-  
+
   /** rewrite regular expression membership
    *
    * This is the entry point for post-rewriting applications of str.in.re
