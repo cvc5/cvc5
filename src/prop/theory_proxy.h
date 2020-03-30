@@ -27,7 +27,6 @@
 #include <unordered_set>
 
 #include "context/cdqueue.h"
-#include "expr/expr_stream.h"
 #include "expr/node.h"
 #include "prop/sat_solver.h"
 #include "theory/theory.h"

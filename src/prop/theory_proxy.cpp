@@ -18,7 +18,6 @@
 
 #include "context/context.h"
 #include "decision/decision_engine.h"
-#include "expr/expr_stream.h"
 #include "options/decision_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"

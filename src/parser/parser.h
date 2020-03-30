@@ -26,7 +26,6 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/expr.h"
-#include "expr/expr_stream.h"
 #include "expr/kind.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
@@ -809,23 +808,6 @@ public:
   inline SymbolTable* getSymbolTable() const {
     return d_symtab;
   }
-
-  /**
-   * An expression stream interface for a parser.  This stream simply
-   * pulls expressions from the given Parser object.
-   *
-   * Here, the ExprStream base class allows a Parser (from the parser
-   * library) and core components of CVC4 (in the core library) to
-   * communicate without polluting the public interface or having them
-   * reach into private (undocumented) interfaces.
-   */
-  class ExprStream : public CVC4::ExprStream {
-    Parser* d_parser;
-  public:
-    ExprStream(Parser* parser) : d_parser(parser) {}
-    ~ExprStream() { delete d_parser; }
-    Expr nextExpr() override { return d_parser->nextExpression().getExpr(); }
-  };/* class Parser::ExprStream */
   
   //------------------------ operator overloading
   /** is this function overloaded? */
