@@ -2355,8 +2355,12 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 
 Term Solver::mkCharFromStrHelper(std::string s) const
 {
-  // FIXME
+  std::stringstream hexString;
+  hexString << s;
+  uint32_t val;
+  hexString >> std::hex >> val;  
   std::vector<unsigned> cpts;
+  cpts.push_back(val);
   return mkValHelper<CVC4::String>(CVC4::String(cpts));
 }
 
