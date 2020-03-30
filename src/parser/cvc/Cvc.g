@@ -1322,8 +1322,6 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
      * declared in the outer context.  What follows isn't quite right,
      * though, since type aliases and function definitions should be
      * retained in the set of current declarations. */
-    { /*symtab = PARSER_STATE->getSymbolTable();
-      PARSER_STATE->useDeclarationsFrom(new SymbolTable());*/ }
     formula[f] ( COMMA formula[f2] )? RPAREN
     {
       PARSER_STATE->unimplementedFeature("predicate subtyping not supported in this release");

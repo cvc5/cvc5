@@ -806,43 +806,6 @@ public:
     d_globalDeclarations = flag;
   }
 
-  /**
-   * Set the current symbol table used by this parser.
-   * From now on, this parser will perform its definitions and
-   * lookups in the declaration scope of the "parser" argument
-   * (but doesn't re-delegate if the other parser's declaration scope
-   * changes later).  A NULL argument restores this parser's
-   * "primordial" declaration scope assigned at its creation.  Calling
-   * p->useDeclarationsFrom(p) is a no-op.
-   *
-   * This feature is useful when e.g. reading out-of-band expression data:
-   * 1. Parsing --replay log files produced with --replay-log.
-   * 2. Perhaps a multi-query benchmark file is being single-stepped
-   *    with intervening queries on stdin that must reference the same
-   *    declaration scope(s).
-   *
-   * However, the feature must be used carefully.  Pushes and pops
-   * should be performed with the correct current declaration scope.
-   * Care must be taken to match up declaration scopes, of course;
-   * If variables in the deferred-to parser go out of scope, the
-   * secondary parser will give errors that they are undeclared.
-   * Also, an outer-scope variable shadowed by an inner-scope one of
-   * the same name may be temporarily inaccessible.
-   *
-   * In short, caveat emptor.
-   */
-  inline void useDeclarationsFrom(Parser* parser) {
-    if(parser == NULL) {
-      d_symtab = &d_symtabAllocated;
-    } else {
-      d_symtab = parser->d_symtab;
-    }
-  }
-
-  inline void useDeclarationsFrom(SymbolTable* symtab) {
-    d_symtab = symtab;
-  }
-
   inline SymbolTable* getSymbolTable() const {
     return d_symtab;
   }
