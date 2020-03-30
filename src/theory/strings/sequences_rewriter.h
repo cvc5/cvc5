@@ -207,6 +207,12 @@ class SequencesRewriter : public TheoryRewriter
    * necessarily one of { s = t, t = s, true, false }.
    */
   static Node rewriteEqualityExt(Node node);
+  /** rewrite string length
+   * This is the entry point for post-rewriting terms node of the form
+   *   str.len( t )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteLength(Node node);
   /** rewrite concat
    * This is the entry point for post-rewriting terms node of the form
    *   str.++( t1, .., tn )

@@ -793,6 +793,11 @@ Node SequencesRewriter::rewriteArithEqualityExt(Node node)
   return node;
 }
 
+Node SequencesRewriter::rewriteLength(Node node)
+{
+  return node;
+}
+
 // TODO (#1180) add rewrite
 //  str.++( str.substr( x, n1, n2 ), str.substr( x, n1+n2, n3 ) ) --->
 //  str.substr( x, n1, n2+n3 )
@@ -1266,6 +1271,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
 
 Node SequencesRewriter::rewriteOptionRegExp(TNode node)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Node retNode =
       nm->mkNode(REGEXP_UNION,
                  nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String(""))),
@@ -1275,6 +1281,7 @@ Node SequencesRewriter::rewriteOptionRegExp(TNode node)
 
 Node SequencesRewriter::rewritePlusRegExp(TNode node)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Node retNode =
       nm->mkNode(REGEXP_CONCAT, node[0], nm->mkNode(REGEXP_STAR, node[0]));
   return returnRewrite(node, retNode, Rewrite::RE_PLUS_ELIM);
@@ -1282,6 +1289,7 @@ Node SequencesRewriter::rewritePlusRegExp(TNode node)
 
 Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Node retNode =
       nm->mkNode(REGEXP_INTER, node[0], nm->mkNode(REGEXP_COMPLEMENT, node[1]));
   return returnRewrite(node, retNode, Rewrite::RE_DIFF_ELIM);
@@ -1291,6 +1299,7 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
 {
   if (node[0] == node[1])
   {
+    NodeManager* nm = NodeManager::currentNM();
     Node retNode = nm->mkNode(STRING_TO_REGEXP, node[0]);
     // re.range( "A", "A" ) ---> str.to_re( "A" )
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_SINGLE);
