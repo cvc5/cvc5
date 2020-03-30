@@ -782,8 +782,24 @@ sygusGrammarV1[CVC4::api::Sort & ret,
       Debug("parser-sygus") << "  " << i << " : " << datatypes[i].getName()
                             << std::endl;
     }
-    std::vector<api::Sort> datatypeTypes =
-        PARSER_STATE->bindMutualDatatypeTypes(datatypes, false);
+
+    std::vector<CVC4::Datatype> dtypes;
+    dtypes.reserve(ndatatypes);
+
+    for (api::DatatypeDecl i : datatypes)
+    {
+      dtypes.push_back(i.getDatatype());
+    }
+
+    std::set<Type> tset =
+        api::sortSetToTypes(PARSER_STATE->getUnresolvedSorts());
+
+    std::vector<DatatypeType> datatypeTypes =
+        SOLVER->getExprManager()->mkMutualDatatypeTypes(
+            dtypes, tset, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+
+    PARSER_STATE->getUnresolvedSorts().clear();
+
     ret = datatypeTypes[0];
   };
 

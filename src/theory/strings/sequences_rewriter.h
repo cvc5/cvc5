@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/attribute.h"
+#include "theory/strings/rewrites.h"
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
@@ -149,7 +150,7 @@ class SequencesRewriter : public TheoryRewriter
   /**
    * Called when node rewrites to ret.
    *
-   * The string c indicates the justification for the rewrite, which is printed
+   * The rewrite r indicates the justification for the rewrite, which is printed
    * by this function for debugging.
    *
    * If node is not an equality and ret is an equality, this method applies
@@ -157,7 +158,7 @@ class SequencesRewriter : public TheoryRewriter
    * additional rewrites on ret, after which we return the result of this call.
    * Otherwise, this method simply returns ret.
    */
-  static Node returnRewrite(Node node, Node ret, const char* c);
+  static Node returnRewrite(Node node, Node ret, Rewrite r);
 
  public:
   RewriteResponse postRewrite(TNode node) override;

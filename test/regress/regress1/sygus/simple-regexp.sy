@@ -1,30 +1,32 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic SLIA)
-(synth-fun P ((x String)) Bool (
-(Start Bool (
-  (str.in.re StartStr StartRL)
+(synth-fun P ((x String)) Bool
+  ((Start Bool) (StartStr String) (StartStrC String) (StartRL RegLan) (StartRLi RegLan)) (
+  (Start Bool (
+    (str.in_re StartStr StartRL)
   ))
-(StartStr String (
-  x
-  (str.++ StartStr StartStr)
+  (StartStr String (
+    x
+    (str.++ StartStr StartStr)
   ))
-(StartStrC String (
-  "A" "B" ""
-  (str.++ StartStrC StartStrC)))
-(StartRL RegLan (
-(re.++ StartRLi StartRLi)
-(re.inter StartRL StartRL)
-(re.union StartRL StartRL)
-(re.* StartRLi)
-))
-(StartRLi RegLan (
-(str.to.re StartStrC)
-(re.inter StartRLi StartRLi)
-(re.union StartRLi StartRLi)
-(re.++ StartRLi StartRLi)
-(re.* StartRLi)
-))
+  (StartStrC String (
+    "A" "B" ""
+    (str.++ StartStrC StartStrC)
+  ))
+  (StartRL RegLan (
+    (re.++ StartRLi StartRLi)
+    (re.inter StartRL StartRL)
+    (re.union StartRL StartRL)
+    (re.* StartRLi)
+  ))
+  (StartRLi RegLan (
+    (str.to_re StartStrC)
+    (re.inter StartRLi StartRLi)
+    (re.union StartRLi StartRLi)
+    (re.++ StartRLi StartRLi)
+    (re.* StartRLi)
+  ))
 ))
 
 (constraint (P "AAAAA"))
@@ -33,5 +35,5 @@
 (constraint (not (P "AB")))
 (constraint (not (P "B")))
 
-; (str.in.re x (re.* (str.to.re "A"))) is a solution
+; (str.in_re x (re.* (str.to_re "A"))) is a solution
 (check-synth)
