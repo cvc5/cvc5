@@ -331,7 +331,7 @@ api::Term Smt2::getExpressionForNameAndType(const std::string& name,
 
 bool Smt2::getTesterName(api::Term cons, std::string& name)
 {
-  if (v2_6() && strictModeEnabled())
+  if ((v2_6() || sygus_v2()) && strictModeEnabled())
   {
     // 2.6 or above uses indexed tester symbols, if we are in strict mode,
     // we do not automatically define is-cons for constructor cons.
@@ -745,9 +745,15 @@ bool Smt2::sygus() const
   return ilang == language::input::LANG_SYGUS
          || ilang == language::input::LANG_SYGUS_V2;
 }
+
 bool Smt2::sygus_v1() const
 {
   return getLanguage() == language::input::LANG_SYGUS;
+}
+
+bool Smt2::sygus_v2() const
+{
+  return getLanguage() == language::input::LANG_SYGUS_V2;
 }
 
 void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
@@ -1262,7 +1268,8 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
         api::Term lbvl = makeSygusBoundVarList(dt, i, ltypes, largs);
 
         // make the let_body
-        api::Term body = applyParseOp(ops[i], largs);
+        std::vector<api::Term> largsApply = largs;
+        api::Term body = applyParseOp(ops[i], largsApply);
         // replace by lambda
         ParseOp pLam;
         pLam.d_expr = d_solver->mkTerm(api::LAMBDA, lbvl, body);

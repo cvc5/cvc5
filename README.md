@@ -4,6 +4,9 @@
 [![Build Status](
     https://travis-ci.org/CVC4/CVC4.svg?branch=master)](
         https://travis-ci.org/CVC4/CVC4)
+[![Coverage](
+  https://img.shields.io/endpoint?url=https://cvc4.cs.stanford.edu/downloads/builds/coverage/nightly-coverage.json)](
+    https://cvc4.cs.stanford.edu/downloads/builds/coverage)
 
 CVC4
 ===============================================================================

@@ -22,18 +22,18 @@ const char* toString(Inference i)
 {
   switch (i)
   {
-    case Inference::N_ENDPOINT_EMP: return "N_EndpointEmp";
-    case Inference::N_UNIFY: return "N_Unify";
-    case Inference::N_ENDPOINT_EQ: return "N_EndpointEq";
-    case Inference::N_CONST: return "N_Const";
-    case Inference::INFER_EMP: return "Infer-Emp";
-    case Inference::SSPLIT_CST_PROP: return "S-Split(CST-P)-prop";
-    case Inference::SSPLIT_VAR_PROP: return "S-Split(VAR)-prop";
-    case Inference::LEN_SPLIT: return "Len-Split(Len)";
-    case Inference::LEN_SPLIT_EMP: return "Len-Split(Emp)";
-    case Inference::SSPLIT_CST: return "S-Split(CST-P)";
-    case Inference::SSPLIT_VAR: return "S-Split(VAR)";
-    case Inference::FLOOP: return "F-Loop";
+    case Inference::N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
+    case Inference::N_UNIFY: return "N_UNIFY";
+    case Inference::N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";
+    case Inference::N_CONST: return "N_CONST";
+    case Inference::INFER_EMP: return "INFER_EMP";
+    case Inference::SSPLIT_CST_PROP: return "SSPLIT_CST_PROP";
+    case Inference::SSPLIT_VAR_PROP: return "SSPLIT_VAR_PROP";
+    case Inference::LEN_SPLIT: return "LEN_SPLIT";
+    case Inference::LEN_SPLIT_EMP: return "LEN_SPLIT_EMP";
+    case Inference::SSPLIT_CST: return "SSPLIT_CST";
+    case Inference::SSPLIT_VAR: return "SSPLIT_VAR";
+    case Inference::FLOOP: return "FLOOP";
     default: return "?";
   }
 }

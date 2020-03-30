@@ -1,13 +1,13 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic SLIA)
-(synth-fun f () RegLan (
+(synth-fun f () RegLan ((Start RegLan) (Tokens String)) (
                          (Start RegLan (
-                                         (str.to.re Tokens)
+                                         (str.to_re Tokens)
                                          (re.++ Start Start)))
                          (Tokens String ("A" "B"))
                          ))
 
-(constraint (str.in.re "AB" f))
+(constraint (str.in_re "AB" f))
 
 (check-synth)

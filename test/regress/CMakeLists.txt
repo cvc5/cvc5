@@ -610,6 +610,8 @@ set(regress_0_tests
   regress0/parser/as.smt2
   regress0/parser/bv_arity_smt2.6.smt2
   regress0/parser/bv_nat.smt2
+  regress0/parser/choice.cvc
+  regress0/parser/choice.smt2
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/force_logic_set_logic.smt2

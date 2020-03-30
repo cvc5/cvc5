@@ -15,9 +15,10 @@
  **/
 
 #include "theory/builtin/theory_builtin.h"
-#include "theory/valuation.h"
+
 #include "expr/kind.h"
 #include "theory/theory_model.h"
+#include "theory/valuation.h"
 
 using namespace std;
 
@@ -25,6 +26,28 @@ namespace CVC4 {
 namespace theory {
 namespace builtin {
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory */
-}/* CVC4 namespace */
+TheoryBuiltin::TheoryBuiltin(context::Context* c,
+                             context::UserContext* u,
+                             OutputChannel& out,
+                             Valuation valuation,
+                             const LogicInfo& logicInfo)
+    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo)
+{
+}
+
+std::string TheoryBuiltin::identify() const
+{
+  return std::string("TheoryBuiltin");
+}
+
+void TheoryBuiltin::finishInit()
+{
+  // choice nodes are not evaluated in getModelValue
+  TheoryModel* theoryModel = d_valuation.getModel();
+  Assert(theoryModel != nullptr);
+  theoryModel->setUnevaluatedKind(kind::CHOICE);
+}
+
+}  // namespace builtin
+}  // namespace theory
+}  // namespace CVC4
