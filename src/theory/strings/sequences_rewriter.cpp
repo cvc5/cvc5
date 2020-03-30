@@ -795,8 +795,8 @@ Node SequencesRewriter::rewriteArithEqualityExt(Node node)
 
 Node SequencesRewriter::rewriteLength(Node node)
 {
-  Assert(node.getKind()==STRING_LENGTH);
-  NodeManager * nm = NodeManager::currentNM();
+  Assert(node.getKind() == STRING_LENGTH);
+  NodeManager* nm = NodeManager::currentNM();
   Kind nk0 = node[0].getKind();
   if (node[0].isConst())
   {
@@ -837,8 +837,7 @@ Node SequencesRewriter::rewriteLength(Node node)
       return returnRewrite(node, retNode, Rewrite::LEN_REPL_INV);
     }
   }
-  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER
-            || nk0 == STRING_REV)
+  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER || nk0 == STRING_REV)
   {
     // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
@@ -2008,7 +2007,7 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
         << "Strings: post-rewrite " << node << " to " << retNode << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, retNode);
   }
-  return RewriteResponse(REWRITE_DONE,retNode);
+  return RewriteResponse(REWRITE_DONE, retNode);
 }
 
 bool SequencesRewriter::hasEpsilonNode(TNode node)
