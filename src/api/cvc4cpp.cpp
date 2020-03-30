@@ -2355,7 +2355,7 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 
 Term Solver::mkCharFromStrHelper(std::string s) const
 {
-  CVC4_API_CHECK( s.find_first_not_of("0123456789abcdefABCDEF", 2) == std::string::npos && s.size()>0) 
+  CVC4_API_CHECK( s.find_first_not_of("0123456789abcdefABCDEF", 2) == std::string::npos && s.size()<=5 && s.size()>0) 
         << "Unexpected string for hexidecimal character " << s;
   std::stringstream hexString;
   hexString << s;
