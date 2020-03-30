@@ -1236,9 +1236,6 @@ class CVC4_PUBLIC SmtEngine
    */
   std::map<std::string, Integer> d_commandVerbosity;
 
-  /** ReplayStream for the solver. */
-  ExprStream* d_replayStream;
-
   /**
    * A private utility class to SmtEngine.
    */

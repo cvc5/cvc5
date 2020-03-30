@@ -42,15 +42,12 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_cnfStream(cnfStream),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
-      d_queue(context),
-      d_replayedDecisions("prop::theoryproxy::replayedDecisions", 0)
+      d_queue(context)
 {
-  smtStatisticsRegistry()->registerStat(&d_replayedDecisions);
 }
 
 TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
-  smtStatisticsRegistry()->unregisterStat(&d_replayedDecisions);
 }
 
 void TheoryProxy::variableNotify(SatVariable var) {

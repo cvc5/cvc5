@@ -105,12 +105,6 @@ class TheoryProxy
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
 
-  /** Stream on which to log replay events. */
-  std::ostream* d_replayLog;
-
-  /** Stream for replaying decisions. */
-  ExprStream* d_replayStream;
-
   /** Queue of asserted facts */
   context::CDQueue<TNode> d_queue;
 
@@ -119,11 +113,6 @@ class TheoryProxy
    * all imported and exported lemmas.
    */
   std::unordered_set<Node, NodeHashFunction> d_shared;
-
-  /**
-   * Statistic: the number of replayed decisions (via --replay).
-   */
-  IntStat d_replayedDecisions;
 
 }; /* class SatSolver */
 

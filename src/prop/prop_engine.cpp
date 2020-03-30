@@ -44,13 +44,6 @@
 using namespace std;
 using namespace CVC4::context;
 
-
-#ifdef CVC4_REPLAY
-#  define CVC4_USE_REPLAY true
-#else /* CVC4_REPLAY */
-#  define CVC4_USE_REPLAY false
-#endif /* CVC4_REPLAY */
-
 namespace CVC4 {
 namespace prop {
 
