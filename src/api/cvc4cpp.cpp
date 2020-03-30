@@ -2966,7 +2966,7 @@ Term Solver::mkChar(const std::string& s) const
 }
 
 Term Solver::mkChar(const char* s) const
-{  
+{
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
   return mkCharFromStrHelper(std::string(s));

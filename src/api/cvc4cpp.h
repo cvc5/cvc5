@@ -2309,7 +2309,7 @@ class CVC4_PUBLIC Solver
    * @return the character constant
    */
   Term mkChar(const std::string& s) const;
-  
+
   /**
    * Create a character constant from a given string.
    * @param s the string denoting the code point of the character (in base 16)
@@ -2375,7 +2375,7 @@ class CVC4_PUBLIC Solver
    * @return the bit-vector constant
    */
   Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
-  
+
   /**
    * Create a constant array with the provided constant value stored at every
    * index
