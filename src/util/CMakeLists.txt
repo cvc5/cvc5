@@ -29,6 +29,8 @@ libcvc4_add_sources(
   resource_manager.h
   result.cpp
   result.h
+  regexp.cpp
+  regexp.h
   safe_print.cpp
   safe_print.h
   sampler.cpp

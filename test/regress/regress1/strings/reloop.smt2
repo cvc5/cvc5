@@ -8,11 +8,11 @@
 (declare-fun z () String)
 (declare-fun w () String)
 
-(assert (str.in.re x (re.loop (str.to.re "a") 5)))
-(assert (str.in.re y (re.loop (str.to.re "b") 2 5)))
-(assert (str.in.re z (re.loop (str.to.re "c") 5)))
+(assert (str.in.re x ((_ re.^ 5) (str.to.re "a"))))
+(assert (str.in.re y ((_ re.loop 2 5) (str.to.re "b"))))
+(assert (str.in.re z ((_ re.loop 5 15) (str.to.re "c"))))
 (assert (> (str.len z) 7))
-(assert (str.in.re w (re.loop (str.to.re "b") 2 7)))
+(assert (str.in.re w ((_ re.loop  2 7) (str.to.re "b"))))
 (assert (> (str.len w) 2))
 (assert (< (str.len w) 5))
 

@@ -114,6 +114,7 @@ tokens {
 
   FORALL_TOK = 'FORALL';
   EXISTS_TOK = 'EXISTS';
+  CHOICE_TOK = 'CHOICE';
   PATTERN_TOK = 'PATTERN';
 
   LAMBDA_TOK = 'LAMBDA';
@@ -343,7 +344,8 @@ int getOperatorPrecedence(int type) {
   case IMPLIES_TOK: return 30;// right-to-left
   case IFF_TOK: return 31;
   case FORALL_TOK:
-  case EXISTS_TOK: return 32;
+  case EXISTS_TOK:
+  case CHOICE_TOK: return 32;
   case ASSIGN_TOK:
   case IN_TOK: return 33;
 
@@ -1465,7 +1467,7 @@ prefixFormula[CVC4::api::Term& f]
   api::Term ipl;
 }
     /* quantifiers */
-  : ( FORALL_TOK { k = api::FORALL; } | EXISTS_TOK { k = api::EXISTS; } )
+  : ( FORALL_TOK { k = api::FORALL; } | EXISTS_TOK { k = api::EXISTS; } | CHOICE_TOK { k = api::CHOICE; } )
     { PARSER_STATE->pushScope(); } LPAREN
     boundVarDecl[ids,t]
     { for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
@@ -2072,8 +2074,11 @@ stringTerm[CVC4::api::Term& f]
     { f = MK_TERM(CVC4::api::REGEXP_OPT, f); }
   | REGEXP_RANGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_RANGE, f, f2); }
-  | REGEXP_LOOP_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_LOOP, f, f2, f3); }
+  | REGEXP_LOOP_TOK LPAREN formula[f] COMMA lo=numeral COMMA hi=numeral RPAREN
+    {
+      api::Op lop = SOLVER->mkOp(CVC4::api::REGEXP_LOOP, lo, hi);
+      f = MK_TERM(lop, f); 
+    }
   | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }
   | REGEXP_EMPTY_TOK
