@@ -1834,7 +1834,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       {
         Trace("regexp-ext-rewrite") << "Regexp star : rewrite " << node
                                     << " -> " << retNode << std::endl;
-        break;
+        return returnRewrite(node, retNode, Rewrite::RE_CONSUME_S);
       }
     }
   }

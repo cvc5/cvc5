@@ -177,6 +177,7 @@ const char* toString(Rewrite r)
     case Rewrite::IS_DIGIT_ELIM: return "IS_DIGIT_ELIM";
     case Rewrite::RE_CONCAT_EMPTY: return "RE_CONCAT_EMPTY";
     case Rewrite::RE_CONSUME_CCONF: return "RE_CONSUME_CCONF";
+    case Rewrite::RE_CONSUME_S: return "RE_CONSUME_S";
     case Rewrite::RE_CONSUME_S_CCONF: return "RE_CONSUME_S_CCONF";
     case Rewrite::RE_CONSUME_S_FULL: return "RE_CONSUME_S_FULL";
     case Rewrite::RE_IN_EMPTY: return "RE_IN_EMPTY";
