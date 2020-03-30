@@ -139,12 +139,14 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
   Fa = Fa.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
   // Fa( x ) => A( x )
   Node firstImplication = nm->mkNode(IMPLIES, Fa, itpApp);
+  Trace("sygus-interpol-debug") << "first implication: " << firstImplication << std::endl;
   // A( x ) => Fc( x )
   Node secondImplication = nm->mkNode(IMPLIES, itpApp, conj);
+  Trace("sygus-interpol-debug") << "second implication: " << secondImplication << std::endl;
   // Fa( x ) => A( x ) ^ A( x ) => Fc( x )
   Node constraint = nm->mkNode(AND, firstImplication, secondImplication);
+  Trace("sygus-interpol-debug") << constraint <<  "...finish" << std::endl;
   constraint = theory::Rewriter::rewrite(constraint);
-  Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   Trace("sygus-interpol-debug") << "Make conjecture..." << std::endl;
   // forall A. exists x. ~( Fa( x ) => A( x ) ^ A( x ) => Fc( x ) )
@@ -152,6 +154,7 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
   Node bvl = nm->mkNode(BOUND_VAR_LIST,
                         vars);  // TODO difference between bvl and abvl??
   res = nm->mkNode(EXISTS, bvl, res);
+  Trace("sygus-interpol-debug") << "exists body: " << res << std::endl;
   Node fbvl = nm->mkNode(BOUND_VAR_LIST, itp);
   res = nm->mkNode(FORALL, fbvl, res, instAttrList);
   res = theory::Rewriter::rewrite(res);

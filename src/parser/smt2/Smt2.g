@@ -1426,6 +1426,17 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     {
       cmd->reset(new GetAbductCommand(name,e.getExpr(), t.getType()));
     }
+  | GET_INTERPOL_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+    }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    term[e,e2]
+    (
+      sygusGrammar[t, terms, name]
+    )?
+    {
+      cmd->reset(new GetInterpolCommand(name, e.getExpr()));
+    }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
     sortSymbol[t, CHECK_DECLARED]
