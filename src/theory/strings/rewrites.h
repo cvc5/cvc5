@@ -191,7 +191,11 @@ enum class Rewrite : uint32_t
   RE_IN_CSTRING,
   RE_IN_ANDOR,
   SUF_PREFIX_ELIM,
-  STR_LT_ELIM
+  STR_LT_ELIM,
+  RE_RANGE_SINGLE,
+  RE_OPT_ELIM,
+  RE_PLUS_ELIM,
+  RE_DIFF_ELIM
 
 };
 

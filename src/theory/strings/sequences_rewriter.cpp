@@ -1264,6 +1264,39 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   return node;
 }
 
+Node SequencesRewriter::rewriteOptionRegExp(TNode node)
+{
+  Node retNode = nm->mkNode(REGEXP_UNION,
+                         nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String(""))),
+                         node[0]);
+  return returnRewrite(node, retNode, Rewrite::RE_OPT_ELIM);
+}
+
+Node SequencesRewriter::rewritePlusRegExp(TNode node)
+{
+  Node retNode =
+        nm->mkNode(REGEXP_CONCAT, node[0], nm->mkNode(REGEXP_STAR, node[0]));
+  return returnRewrite(node, retNode, Rewrite::RE_PLUS_ELIM);
+}
+
+Node SequencesRewriter::rewriteDifferenceRegExp(TNode node)
+{
+  Node retNode = nm->mkNode(
+        REGEXP_INTER, node[0], nm->mkNode(REGEXP_COMPLEMENT, node[1]));
+  return returnRewrite(node, retNode, Rewrite::RE_DIFF_ELIM);
+}
+
+Node SequencesRewriter::rewriteRangeRegExp(TNode node)
+{
+  if (node[0] == node[1])
+  {
+    Node retNode = nm->mkNode(STRING_TO_REGEXP, node[0]);
+    // re.range( "A", "A" ) ---> str.to_re( "A" )
+    return returnRewrite(node, retNode, Rewrite::RE_RANGE_SINGLE);
+  }
+  return node;
+}
+
 bool SequencesRewriter::isConstRegExp(TNode t)
 {
   if (t.getKind() == kind::STRING_TO_REGEXP)
@@ -1931,8 +1964,7 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   }
   else if (nk == REGEXP_DIFF)
   {
-    retNode = nm->mkNode(
-        REGEXP_INTER, node[0], nm->mkNode(REGEXP_COMPLEMENT, node[1]));
+    retNode = rewriteDifferenceRegExp(node);
   }
   else if (nk == REGEXP_STAR)
   {
@@ -1940,21 +1972,15 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   }
   else if (nk == REGEXP_PLUS)
   {
-    retNode =
-        nm->mkNode(REGEXP_CONCAT, node[0], nm->mkNode(REGEXP_STAR, node[0]));
+    retNode = rewritePlusRegExp(node);
   }
   else if (nk == REGEXP_OPT)
   {
-    retNode = nm->mkNode(REGEXP_UNION,
-                         nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String(""))),
-                         node[0]);
+    retNode = rewriteOptionRegExp(node);
   }
   else if (nk == REGEXP_RANGE)
   {
-    if (node[0] == node[1])
-    {
-      retNode = nm->mkNode(STRING_TO_REGEXP, node[0]);
-    }
+    retNode = rewriteRangeRegExp(node);
   }
   else if (nk == REGEXP_LOOP)
   {
