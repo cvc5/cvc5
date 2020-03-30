@@ -1,5 +1,7 @@
+; COMMAND-LINE: --lang=smt2.6.1
+; EXPECT: sat
 (set-logic SLIA)
-;(set-info :status sat)
+(set-info :status sat)
 
 (declare-fun x () String)
 (declare-fun y () String)
@@ -15,5 +17,6 @@
 (assert (= z (_ char #xAF)))
 (assert (= z (_ char #x0af)))
 (assert (= z "\u{af}"))
+(assert (= z "\u00af"))
 
 (check-sat)
