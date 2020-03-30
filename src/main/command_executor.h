@@ -50,10 +50,6 @@ class CommandExecutor
 
   virtual ~CommandExecutor()
   {
-    if (d_replayStream != NULL)
-    {
-      delete d_replayStream;
-    }
   }
 
   /**

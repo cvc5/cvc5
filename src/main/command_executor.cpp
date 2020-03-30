@@ -53,8 +53,7 @@ CommandExecutor::CommandExecutor(Options& options)
       d_smtEngine(d_solver->getSmtEngine()),
       d_options(options),
       d_stats("driver"),
-      d_result(),
-      d_replayStream(nullptr)
+      d_result()
 {
 }
 
