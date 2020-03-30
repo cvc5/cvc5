@@ -76,9 +76,7 @@ public:
 
 PropEngine::PropEngine(TheoryEngine* te,
                        Context* satContext,
-                       UserContext* userContext,
-                       std::ostream* replayLog,
-                       ExprStream* replayStream)
+                       UserContext* userContext)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_context(satContext),
@@ -105,9 +103,7 @@ PropEngine::PropEngine(TheoryEngine* te,
                                   d_theoryEngine,
                                   d_decisionEngine.get(),
                                   d_context,
-                                  d_cnfStream,
-                                  replayLog,
-                                  replayStream);
+                                  d_cnfStream);
   d_satSolver->initialize(d_context, d_theoryProxy);
 
   d_decisionEngine->setSatSolver(d_satSolver);

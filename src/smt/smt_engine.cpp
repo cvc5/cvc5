@@ -294,40 +294,6 @@ class BeforeSearchListener : public Listener {
   SmtEngine* d_smt;
 }; /* class BeforeSearchListener */
 
-class UseTheoryListListener : public Listener {
- public:
-  UseTheoryListListener(TheoryEngine* theoryEngine)
-      : d_theoryEngine(theoryEngine)
-  {}
-
-  void notify() override
-  {
-    std::stringstream commaList(options::useTheoryList());
-    std::string token;
-
-    Debug("UseTheoryListListener") << "UseTheoryListListener::notify() "
-                                   << options::useTheoryList() << std::endl;
-
-    while(std::getline(commaList, token, ',')){
-      if(token == "help") {
-        puts(theory::useTheoryHelp);
-        exit(1);
-      }
-      if(theory::useTheoryValidate(token)) {
-        d_theoryEngine->enableTheoryAlternative(token);
-      } else {
-        throw OptionException(
-            std::string("unknown option for --use-theory : `") + token +
-            "'.  Try --use-theory=help.");
-      }
-    }
-  }
-
- private:
-  TheoryEngine* d_theoryEngine;
-}; /* class UseTheoryListListener */
-
-
 class SetDefaultExprDepthListener : public Listener {
  public:
   void notify() override
@@ -441,7 +407,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    *  softResourceOut
    *  hardResourceOut
    *  beforeSearchListener
-   *  UseTheoryListListener
    *
    * This needs to be deleted before both NodeManager's Options,
    * SmtEngine, d_resourceManager, and TheoryEngine.
@@ -814,13 +779,6 @@ class SmtEnginePrivate : public NodeManagerListener {
     return retval;
   }
 
-  void addUseTheoryListListener(TheoryEngine* theoryEngine){
-    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerUseTheoryListListener(
-            new UseTheoryListListener(theoryEngine), true));
-  }
-
   std::ostream* getReplayLog() const {
     return d_managedReplayLog.getReplayLog();
   }
@@ -874,7 +832,6 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_status(),
       d_expectedStatus(),
       d_smtMode(SMT_MODE_START),
-      d_replayStream(nullptr),
       d_private(nullptr),
       d_statisticsRegistry(nullptr),
       d_stats(nullptr)
@@ -923,8 +880,6 @@ void SmtEngine::finishInit()
 #endif
   }
 
-  d_private->addUseTheoryListListener(getTheoryEngine());
-
   // set the random seed
   Random::getRandom().setSeed(options::seed());
 
@@ -940,9 +895,7 @@ void SmtEngine::finishInit()
   d_propEngine.reset(nullptr);
   d_propEngine.reset(new PropEngine(getTheoryEngine(),
                                     getContext(),
-                                    getUserContext(),
-                                    d_private->getReplayLog(),
-                                    d_replayStream));
+                                    getUserContext()));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -4339,9 +4292,7 @@ void SmtEngine::resetAssertions()
   d_propEngine.reset(nullptr);
   d_propEngine.reset(new PropEngine(getTheoryEngine(),
                                     getContext(),
-                                    getUserContext(),
-                                    d_private->getReplayLog(),
-                                    d_replayStream));
+                                    getUserContext()));
   d_theoryEngine->setPropEngine(getPropEngine());
 }
 
@@ -4532,12 +4483,6 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 
   Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
   return SExpr::parseAtom(nodeManagerOptions.getOption(key));
-}
-
-void SmtEngine::setReplayStream(ExprStream* replayStream) {
-  AlwaysAssert(!d_fullyInited)
-      << "Cannot set replay stream once fully initialized";
-  d_replayStream = replayStream;
 }
 
 bool SmtEngine::getExpressionName(Expr e, std::string& name) const {

@@ -54,9 +54,7 @@ class TheoryProxy
               TheoryEngine* theoryEngine,
               DecisionEngine* decisionEngine,
               context::Context* context,
-              CnfStream* cnfStream,
-              std::ostream* replayLog,
-              ExprStream* replayStream);
+              CnfStream* cnfStream);
 
   ~TheoryProxy();
 
@@ -82,10 +80,6 @@ class TheoryProxy
   TNode getNode(SatLiteral lit);
 
   void notifyRestart();
-
-  SatLiteral getNextReplayDecision();
-
-  void logDecision(SatLiteral lit);
 
   void spendResource(ResourceManager::Resource r);
 

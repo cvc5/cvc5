@@ -800,13 +800,6 @@ class CVC4_PUBLIC SmtEngine
   void beforeSearch();
 
   /**
-   * Expermintal feature: Sets the sequence of decisions.
-   * This currently requires very fine grained knowledge about literal
-   * translation.
-   */
-  void setReplayStream(ExprStream* exprStream);
-
-  /**
    * Get expression name.
    *
    * Return true if given expressoion has a name in the current context.

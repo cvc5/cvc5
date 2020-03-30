@@ -62,9 +62,7 @@ class PropEngine
    */
   PropEngine(TheoryEngine*,
              context::Context* satContext,
-             context::UserContext* userContext,
-             std::ostream* replayLog,
-             ExprStream* replayStream);
+             context::UserContext* userContext);
 
   /**
    * Destructor.
