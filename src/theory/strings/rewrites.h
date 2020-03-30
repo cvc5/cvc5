@@ -195,7 +195,12 @@ enum class Rewrite : uint32_t
   RE_RANGE_SINGLE,
   RE_OPT_ELIM,
   RE_PLUS_ELIM,
-  RE_DIFF_ELIM
+  RE_DIFF_ELIM,
+  LEN_EVAL,
+  LEN_CONCAT,
+  LEN_REPL_INV,
+  LEN_CONV_INV,
+  CHARAT_ELIM
 
 };
 

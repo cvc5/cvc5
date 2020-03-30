@@ -219,6 +219,12 @@ class SequencesRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   static Node rewriteConcat(Node node);
+  /** rewrite character at
+   * This is the entry point for post-rewriting terms node of the form
+   *   str.charat( s, i1 )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteCharAt(Node node);
   /** rewrite substr
    * This is the entry point for post-rewriting terms node of the form
    *   str.substr( s, i1, i2 )
