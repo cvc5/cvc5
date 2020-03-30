@@ -32,15 +32,6 @@ header = "options/datatypes_options.h"
   help       = "do binary splits for datatype constructor types"
 
 [[option]]
-  name       = "dtRefIntro"
-  category   = "regular"
-  long       = "dt-ref-sk-intro"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "introduce reference skolems for shorter explanations"
-
-[[option]]
   name       = "cdtBisimilar"
   category   = "regular"
   long       = "cdt-bisimilar"
