@@ -2683,7 +2683,7 @@ ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 // operators (NOTE: theory symbols go here)
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
-CHOICE_TOK        : 'choice';
+CHOICE_TOK        : { !PARSER_STATE->strictModeEnabled() }? 'choice';
 
 EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
