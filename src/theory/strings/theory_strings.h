@@ -110,10 +110,7 @@ class TheoryStrings : public Theory {
   ~TheoryStrings();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-
   std::string identify() const override { return std::string("TheoryStrings"); }
-
- public:
   void propagate(Effort e) override;
   bool propagate(TNode literal);
   Node explain(TNode literal) override;
@@ -122,11 +119,44 @@ class TheoryStrings : public Theory {
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp) override;
+  /** presolve */
+  void presolve() override;
+  /** shutdown */
+  void shutdown() override {}
+  /** add shared term */
+  void addSharedTerm(TNode n) override;
+  /** get equality status */
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+  /** preregister term */
+  void preRegisterTerm(TNode n) override;
+  /** Expand definition */
+  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
+  /** Check at effort e */
+  void check(Effort e) override;
+  /** needs check last effort */
+  bool needsCheckLastEffort() override;
+  /** Conflict when merging two constants */
+  void conflict(TNode a, TNode b);
+  /** called when a new equivalence class is created */
+  void eqNotifyNewClass(TNode t);
+  /** preprocess rewrite */
+  Node ppRewrite(TNode atom) override;
   /**
    * Get all relevant information in this theory regarding the current
    * model. Return false if a contradiction is discovered.
    */
   bool collectModelInfo(TheoryModel* m) override;
+  //--------------------------- helper functions
+  /** get normal string
+   *
+   * This method returns the node that is equivalent to the normal form of x,
+   * and adds the corresponding explanation to nf_exp.
+   *
+   * For example, if x = y ++ z is an assertion in the current context, then
+   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
+   */
+  Node getNormalString(Node x, std::vector<Node>& nf_exp);
+  //-------------------------- end helper functions
 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -199,18 +229,6 @@ class TheoryStrings : public Theory {
     SolverState& d_state;
   };/* class TheoryStrings::NotifyClass */
 
-  //--------------------------- helper functions
-  /** get normal string
-   *
-   * This method returns the node that is equivalent to the normal form of x,
-   * and adds the corresponding explanation to nf_exp.
-   *
-   * For example, if x = y ++ z is an assertion in the current context, then
-   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
-   */
-  Node getNormalString(Node x, std::vector<Node>& nf_exp);
-  //-------------------------- end helper functions
-
  private:
   // Constants
   Node d_emptyString;
@@ -223,13 +241,11 @@ class TheoryStrings : public Theory {
   uint32_t d_cardSize;
   /** The notify class */
   NotifyClass d_notify;
-
   /**
    * Statistics for the theory of strings/sequences. All statistics for these
    * theories is collected in this object.
    */
   SequencesStatistics d_statistics;
-
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
   /** The solver state object */
@@ -240,63 +256,34 @@ class TheoryStrings : public Theory {
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
   std::vector< Node > d_empty_vec;
-private:
-
-  std::map< Node, Node > d_eqc_to_len_term;
-
-
-  /////////////////////////////////////////////////////////////////////////////
-  // NOTIFICATIONS
-  /////////////////////////////////////////////////////////////////////////////
- public:
-  void presolve() override;
-  void shutdown() override {}
-
-  /////////////////////////////////////////////////////////////////////////////
-  // MAIN SOLVER
-  /////////////////////////////////////////////////////////////////////////////
- private:
-  void addSharedTerm(TNode n) override;
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
-
- private:
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
-private:
   /** have we asserted any str.code terms? */
   bool d_has_str_code;
-  // static information about extf
-  class ExtfInfo {
-  public:
-    //all variables in this term
-    std::vector< Node > d_vars;
-  };
-
- private:
-
   /** cache of all skolems */
   SkolemCache d_sk_cache;
-
- private:
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
-                    unsigned arity,
-                    unsigned depth);
-
- public:
-  /** preregister term */
-  void preRegisterTerm(TNode n) override;
-  /** Expand definition */
-  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
-  /** Check at effort e */
-  void check(Effort e) override;
-  /** needs check last effort */
-  bool needsCheckLastEffort() override;
-  /** Conflict when merging two constants */
-  void conflict(TNode a, TNode b);
-  /** called when a new equivalence class is created */
-  void eqNotifyNewClass(TNode t);
-
+  /**
+   * The base solver, responsible for reasoning about congruent terms and
+   * inferring constants for equivalence classes.
+   */
+  BaseSolver d_bsolver;
+  /**
+   * The core solver, responsible for reasoning about string concatenation
+   * with length constraints.
+   */
+  CoreSolver d_csolver;
+  /**
+   * Extended function solver, responsible for reductions and simplifications
+   * involving extended string functions.
+   */
+  std::unique_ptr<ExtfSolver> d_esolver;
+  /** regular expression solver module */
+  std::unique_ptr<RegExpSolver> d_rsolver;
+  /** regular expression elimination module */
+  RegExpElimination d_regexp_elim;
+  /** Strings finite model finding decision strategy */
+  StringsFmf d_stringsFmf;
+  
  protected:
   /** compute care graph */
   void computeCareGraph() override;
@@ -305,7 +292,11 @@ private:
    * the care graph in the above function.
    */
   bool areCareDisequal(TNode x, TNode y);
-
+  /** Add care pairs */
+  void addCarePairs(TNodeTrie* t1,
+                    TNodeTrie* t2,
+                    unsigned arity,
+                    unsigned depth);  
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type
@@ -347,34 +338,6 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
-
-  // Symbolic Regular Expression
- private:
-  /**
-   * The base solver, responsible for reasoning about congruent terms and
-   * inferring constants for equivalence classes.
-   */
-  BaseSolver d_bsolver;
-  /**
-   * The core solver, responsible for reasoning about string concatenation
-   * with length constraints.
-   */
-  CoreSolver d_csolver;
-  /**
-   * Extended function solver, responsible for reductions and simplifications
-   * involving extended string functions.
-   */
-  std::unique_ptr<ExtfSolver> d_esolver;
-  /** regular expression solver module */
-  std::unique_ptr<RegExpSolver> d_rsolver;
-  /** regular expression elimination module */
-  RegExpElimination d_regexp_elim;
-  /** Strings finite model finding decision strategy */
-  StringsFmf d_stringsFmf;
-
- public:
-  // ppRewrite
-  Node ppRewrite(TNode atom) override;
 
  private:
   //-----------------------inference steps
