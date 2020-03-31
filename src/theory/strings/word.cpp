@@ -85,10 +85,10 @@ std::vector<Node> Word::getChars(TNode x)
     NodeManager* nm = NodeManager::currentNM();
     std::vector<unsigned> ccVec;
     const std::vector<unsigned>& cvec = x.getConst<String>().getVec();
-    for (unsigned ch : cvec)
+    for (unsigned chVal : cvec)
     {
       ccVec.clear();
-      ccVec.push_back(ch);
+      ccVec.push_back(chVal);
       Node ch = nm->mkConst(String(ccVec));
       ret.push_back(ch);
     }
