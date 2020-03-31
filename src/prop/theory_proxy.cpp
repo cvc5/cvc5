@@ -18,7 +18,6 @@
 
 #include "context/context.h"
 #include "decision/decision_engine.h"
-#include "expr/expr_stream.h"
 #include "options/decision_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
@@ -37,24 +36,17 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
                          DecisionEngine* decisionEngine,
                          context::Context* context,
-                         CnfStream* cnfStream,
-                         std::ostream* replayLog,
-                         ExprStream* replayStream)
+                         CnfStream* cnfStream)
     : d_propEngine(propEngine),
       d_cnfStream(cnfStream),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
-      d_replayLog(replayLog),
-      d_replayStream(replayStream),
-      d_queue(context),
-      d_replayedDecisions("prop::theoryproxy::replayedDecisions", 0)
+      d_queue(context)
 {
-  smtStatisticsRegistry()->registerStat(&d_replayedDecisions);
 }
 
 TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
-  smtStatisticsRegistry()->unregisterStat(&d_replayedDecisions);
 }
 
 void TheoryProxy::variableNotify(SatVariable var) {
@@ -148,29 +140,6 @@ TNode TheoryProxy::getNode(SatLiteral lit) {
 void TheoryProxy::notifyRestart() {
   d_propEngine->spendResource(ResourceManager::Resource::RestartStep);
   d_theoryEngine->notifyRestart();
-}
-
-SatLiteral TheoryProxy::getNextReplayDecision() {
-#ifdef CVC4_REPLAY
-  if(d_replayStream != NULL) {
-    Expr e = d_replayStream->nextExpr();
-    if(!e.isNull()) { // we get null node when out of decisions to replay
-      // convert & return
-      ++d_replayedDecisions;
-      return d_cnfStream->getLiteral(e);
-    }
-  }
-#endif /* CVC4_REPLAY */
-  return undefSatLiteral;
-}
-
-void TheoryProxy::logDecision(SatLiteral lit) {
-#ifdef CVC4_REPLAY
-  if(d_replayLog != NULL) {
-    Assert(lit != undefSatLiteral) << "logging an `undef' decision ?!";
-    (*d_replayLog) << d_cnfStream->getNode(lit) << std::endl;
-  }
-#endif /* CVC4_REPLAY */
 }
 
 void TheoryProxy::spendResource(ResourceManager::Resource r)
