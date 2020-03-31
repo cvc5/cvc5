@@ -10,7 +10,6 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         name: [
           production,
-          production-python,
           production-clang,
           debug,
           debug-cln
@@ -18,12 +17,7 @@ jobs:
 
         include:
           - name: production
-            config: production --language-bindings=java --lfsc
-            cache-key: production
-            check-examples: true
-
-          - name: production-python
-            config: production --python-bindings
+            config: production --language-bindings=java --lfsc --python-bindings
             cache-key: production
             python-bindings: true
             check-examples: true
