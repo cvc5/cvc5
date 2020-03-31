@@ -34,7 +34,7 @@ jobs:
 
           - name: debug-cln
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
-            cache-key: debug
+            cache-key: debug-cln
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
