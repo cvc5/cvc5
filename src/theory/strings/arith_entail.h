@@ -27,7 +27,8 @@ namespace strings {
   
 /** 
  * Techniques for computing arithmetic entailment for string terms. This
- * is an implementation of the techniques from Reynolds et al CAV 2019.
+ * is an implementation of the techniques from Reynolds et al, "High Level
+ * Abstractions for Simplifying Extended String Constraints in SMT", CAV 2019.
  */
 class ArithEntail
 {

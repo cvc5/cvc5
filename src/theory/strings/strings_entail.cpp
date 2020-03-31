@@ -30,7 +30,7 @@ namespace strings {
 Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node ctn = nm->mkNode(kind::STRING_STRCTN, a, b);
+  Node ctn = nm->mkNode(STRING_STRCTN, a, b);
 
   if (fullRewriter)
   {
@@ -43,7 +43,7 @@ Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
     {
       prev = ctn;
       ctn = SequencesRewriter::rewriteContains(ctn);
-    } while (prev != ctn && ctn.getKind() == kind::STRING_STRCTN);
+    } while (prev != ctn && ctn.getKind() == STRING_STRCTN);
   }
 
   Assert(ctn.getType().isBoolean());
@@ -220,7 +220,7 @@ Node StringsEntail::getStringOrEmpty(Node n)
   {
     switch (n.getKind())
     {
-      case kind::STRING_STRREPL:
+      case STRING_STRREPL:
       {
         Node empty = nm->mkConst(::CVC4::String(""));
         if (n[0] == empty)
@@ -240,7 +240,7 @@ Node StringsEntail::getStringOrEmpty(Node n)
         res = n;
         break;
       }
-      case kind::STRING_SUBSTR:
+      case STRING_SUBSTR:
       {
         if (checkLengthOne(n[0]))
         {

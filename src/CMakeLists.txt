@@ -682,6 +682,8 @@ libcvc4_add_sources(
   theory/strings/normal_form.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
+  theory/strings/regexp_entail.cpp
+  theory/strings/regexp_entail.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp

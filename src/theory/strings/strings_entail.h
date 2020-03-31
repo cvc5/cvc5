@@ -25,7 +25,11 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** Entailment tests involving strings */
+/** 
+ * Entailment tests involving strings.
+ * Some of these techniques are described in Reynolds et al, "High Level
+ * Abstractions for Simplifying Extended String Constraints in SMT", CAV 2019.
+ */
 class StringsEntail
 {
 public:
@@ -139,10 +143,10 @@ public:
    * infer that any of the yi must be empty.
    */
   static Node inferEqsFromContains(Node x, Node y);
-}; /* class SequencesRewriter */
+}; 
 
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H */
+#endif /* CVC4__THEORY__STRINGS__STRING_ENTAIL_H */
