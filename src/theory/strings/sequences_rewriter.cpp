@@ -16,22 +16,15 @@
 
 #include "theory/strings/sequences_rewriter.h"
 
-#include <stdint.h>
-#include <algorithm>
-
 #include "expr/node_builder.h"
-#include "options/strings_options.h"
-#include "smt/logic_exception.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/regexp_entail.h"
-#include "theory/strings/regexp_operation.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "theory/theory.h"
-#include "util/integer.h"
-#include "util/rational.h"
+#include "expr/attribute.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -1139,7 +1132,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       // (str.in.re (str.++ x1 ... xn) (re.* R)) -->
       //   (str.in.re x1 (re.* R)) AND ... AND (str.in.re xn (re.* R))
       //     if the length of all strings in R is one.
-      Node flr = utils::getFixedLengthForRegexp(r[0]);
+      Node flr = RegExpEntail::getFixedLengthForRegexp(r[0]);
       if (!flr.isNull())
       {
         Node one = nm->mkConst(Rational(1));
@@ -3033,9 +3026,75 @@ Node SequencesRewriter::lengthPreserveRewrite(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node len = Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, n));
-  Node res = utils::canonicalStrForSymbolicLength(len, n.getType());
+  Node res = canonicalStrForSymbolicLength(len, n.getType());
   return res.isNull() ? n : res;
 }
+
+
+Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
+{
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node res;
+  if (len.getKind() == CONST_RATIONAL)
+  {
+    // c -> "A" repeated c times
+    Rational ratLen = len.getConst<Rational>();
+    Assert(ratLen.getDenominator() == 1);
+    Integer intLen = ratLen.getNumerator();
+    uint32_t u = intLen.getUnsignedInt();
+    if (stype.isString())
+    {
+      res = nm->mkConst(String(std::string(u, 'A')));
+    }
+    else
+    {
+      Unimplemented() << "canonicalStrForSymbolicLength for non-string";
+    }
+  }
+  else if (len.getKind() == PLUS)
+  {
+    // x + y -> norm(x) + norm(y)
+    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    for (const auto& n : len)
+    {
+      Node sn = canonicalStrForSymbolicLength(n, stype);
+      if (sn.isNull())
+      {
+        return Node::null();
+      }
+      std::vector<Node> snChildren;
+      utils::getConcat(sn, snChildren);
+      concatBuilder.append(snChildren);
+    }
+    res = concatBuilder.constructNode();
+  }
+  else if (len.getKind() == MULT && len.getNumChildren() == 2
+           && len[0].isConst())
+  {
+    // c * x -> norm(x) repeated c times
+    Rational ratReps = len[0].getConst<Rational>();
+    Assert(ratReps.getDenominator() == 1);
+    Integer intReps = ratReps.getNumerator();
+
+    Node nRep = canonicalStrForSymbolicLength(len[1], stype);
+    std::vector<Node> nRepChildren;
+    utils::getConcat(nRep, nRepChildren);
+    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    for (size_t i = 0, reps = intReps.getUnsignedInt(); i < reps; i++)
+    {
+      concatBuilder.append(nRepChildren);
+    }
+    res = concatBuilder.constructNode();
+  }
+  else if (len.getKind() == STRING_LENGTH)
+  {
+    // len(x) -> x
+    res = len[0];
+  }
+  return res;
+}
+
 
 Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
 {

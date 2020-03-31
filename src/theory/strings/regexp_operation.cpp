@@ -18,7 +18,7 @@
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
-#include "theory/strings/sequences_rewriter.h"
+#include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -899,12 +899,12 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         // all strings in the language of R1 have the same length, say n,
         // then the conclusion of the reduction is quantifier-free:
         //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
-        Node reLength = utils::getFixedLengthForRegexp(r[0]);
+        Node reLength = RegExpEntail::getFixedLengthForRegexp(r[0]);
         if (reLength.isNull())
         {
           // try from the opposite end
           unsigned indexE = r.getNumChildren() - 1;
-          reLength = utils::getFixedLengthForRegexp(r[indexE]);
+          reLength = RegExpEntail::getFixedLengthForRegexp(r[indexE]);
           if (!reLength.isNull())
           {
             indexRm = indexE;

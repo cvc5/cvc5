@@ -207,70 +207,6 @@ Node mkSubstrChain(Node base,
   return base;
 }
 
-Node canonicalStrForSymbolicLength(Node len, TypeNode stype)
-{
-  NodeManager* nm = NodeManager::currentNM();
-
-  Node res;
-  if (len.getKind() == CONST_RATIONAL)
-  {
-    // c -> "A" repeated c times
-    Rational ratLen = len.getConst<Rational>();
-    Assert(ratLen.getDenominator() == 1);
-    Integer intLen = ratLen.getNumerator();
-    uint32_t u = intLen.getUnsignedInt();
-    if (stype.isString())
-    {
-      res = nm->mkConst(String(std::string(u, 'A')));
-    }
-    else
-    {
-      Unimplemented() << "canonicalStrForSymbolicLength for non-string";
-    }
-  }
-  else if (len.getKind() == PLUS)
-  {
-    // x + y -> norm(x) + norm(y)
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
-    for (const auto& n : len)
-    {
-      Node sn = canonicalStrForSymbolicLength(n, stype);
-      if (sn.isNull())
-      {
-        return Node::null();
-      }
-      std::vector<Node> snChildren;
-      utils::getConcat(sn, snChildren);
-      concatBuilder.append(snChildren);
-    }
-    res = concatBuilder.constructNode();
-  }
-  else if (len.getKind() == MULT && len.getNumChildren() == 2
-           && len[0].isConst())
-  {
-    // c * x -> norm(x) repeated c times
-    Rational ratReps = len[0].getConst<Rational>();
-    Assert(ratReps.getDenominator() == 1);
-    Integer intReps = ratReps.getNumerator();
-
-    Node nRep = canonicalStrForSymbolicLength(len[1], stype);
-    std::vector<Node> nRepChildren;
-    utils::getConcat(nRep, nRepChildren);
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
-    for (size_t i = 0, reps = intReps.getUnsignedInt(); i < reps; i++)
-    {
-      concatBuilder.append(nRepChildren);
-    }
-    res = concatBuilder.constructNode();
-  }
-  else if (len.getKind() == STRING_LENGTH)
-  {
-    // len(x) -> x
-    res = len[0];
-  }
-  return res;
-}
-
 std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
 {
   // Collect the equalities of the form (= x "") (sorted)
@@ -462,59 +398,6 @@ unsigned getLoopMinOccurrences(TNode node)
 {
   Assert(node.getKind() == REGEXP_LOOP);
   return node.getOperator().getConst<RegExpLoop>().d_loopMinOcc;
-}
-
-Node getFixedLengthForRegexp(Node n)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  if (n.getKind() == STRING_TO_REGEXP)
-  {
-    Node ret = nm->mkNode(STRING_LENGTH, n[0]);
-    ret = Rewriter::rewrite(ret);
-    if (ret.isConst())
-    {
-      return ret;
-    }
-  }
-  else if (n.getKind() == REGEXP_SIGMA || n.getKind() == REGEXP_RANGE)
-  {
-    return nm->mkConst(Rational(1));
-  }
-  else if (n.getKind() == REGEXP_UNION || n.getKind() == REGEXP_INTER)
-  {
-    Node ret;
-    for (const Node& nc : n)
-    {
-      Node flc = getFixedLengthForRegexp(nc);
-      if (flc.isNull() || (!ret.isNull() && ret != flc))
-      {
-        return Node::null();
-      }
-      else if (ret.isNull())
-      {
-        // first time
-        ret = flc;
-      }
-    }
-    return ret;
-  }
-  else if (n.getKind() == REGEXP_CONCAT)
-  {
-    NodeBuilder<> nb(PLUS);
-    for (const Node& nc : n)
-    {
-      Node flc = getFixedLengthForRegexp(nc);
-      if (flc.isNull())
-      {
-        return flc;
-      }
-      nb << flc;
-    }
-    Node ret = nb.constructNode();
-    ret = Rewriter::rewrite(ret);
-    return ret;
-  }
-  return Node::null();
 }
 
 }  // namespace utils

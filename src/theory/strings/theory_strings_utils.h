@@ -118,14 +118,6 @@ Node mkSubstrChain(Node base,
                    const std::vector<Node>& ls);
 
 /**
- * Given a symbolic length n, returns the canonical string (of type stype)
- * for that length. For example if n is constant, this function returns a
- * string consisting of "A" repeated n times. Returns the null node if no such
- * string exists.
- */
-Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
-
-/**
  * Collects equal-to-empty nodes from a conjunction or a single
  * node. Returns a list of nodes that are compared to empty nodes
  * and a boolean that indicates whether all nodes in the
@@ -205,13 +197,6 @@ unsigned getRepeatAmount(TNode node);
 unsigned getLoopMaxOccurrences(TNode node);
 /* Get the minimum occurrences of given regexp loop node. */
 unsigned getLoopMinOccurrences(TNode node);
-
-/** get length for regular expression
- *
- * Given regular expression n, if this method returns a non-null value c, then
- * x in n entails len( x ) = c.
- */
-Node getFixedLengthForRegexp(Node n);
 
 }  // namespace utils
 }  // namespace strings

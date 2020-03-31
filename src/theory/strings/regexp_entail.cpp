@@ -16,6 +16,7 @@
 
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -309,7 +310,7 @@ bool RegExpEntail::isConstRegExp(TNode t)
 }
 
 bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
-                                           unsigned int index_start,
+                                           unsigned index_start,
                                            TNode r)
 {
   Assert(index_start <= s.size());
@@ -562,6 +563,60 @@ bool RegExpEntail::hasEpsilonNode(TNode node)
     }
   }
   return false;
+}
+
+
+Node RegExpEntail::getFixedLengthForRegexp(Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (n.getKind() == STRING_TO_REGEXP)
+  {
+    Node ret = nm->mkNode(STRING_LENGTH, n[0]);
+    ret = Rewriter::rewrite(ret);
+    if (ret.isConst())
+    {
+      return ret;
+    }
+  }
+  else if (n.getKind() == REGEXP_SIGMA || n.getKind() == REGEXP_RANGE)
+  {
+    return nm->mkConst(Rational(1));
+  }
+  else if (n.getKind() == REGEXP_UNION || n.getKind() == REGEXP_INTER)
+  {
+    Node ret;
+    for (const Node& nc : n)
+    {
+      Node flc = getFixedLengthForRegexp(nc);
+      if (flc.isNull() || (!ret.isNull() && ret != flc))
+      {
+        return Node::null();
+      }
+      else if (ret.isNull())
+      {
+        // first time
+        ret = flc;
+      }
+    }
+    return ret;
+  }
+  else if (n.getKind() == REGEXP_CONCAT)
+  {
+    NodeBuilder<> nb(PLUS);
+    for (const Node& nc : n)
+    {
+      Node flc = getFixedLengthForRegexp(nc);
+      if (flc.isNull())
+      {
+        return flc;
+      }
+      nb << flc;
+    }
+    Node ret = nb.constructNode();
+    ret = Rewriter::rewrite(ret);
+    return ret;
+  }
+  return Node::null();
 }
 
 }  // namespace strings

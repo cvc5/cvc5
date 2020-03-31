@@ -18,14 +18,11 @@
 #ifndef CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H
 #define CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H
 
-#include <climits>
-#include <utility>
 #include <vector>
 
-#include "expr/attribute.h"
+#include "expr/node.h"
 #include "theory/strings/rewrites.h"
 #include "theory/theory_rewriter.h"
-#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -230,6 +227,14 @@ class SequencesRewriter : public TheoryRewriter
    * that are not relevant to length by "A".
    */
   static Node lengthPreserveRewrite(Node n);
+
+  /**
+  * Given a symbolic length n, returns the canonical string (of type stype)
+  * for that length. For example if n is constant, this function returns a
+  * string consisting of "A" repeated n times. Returns the null node if no such
+  * string exists.
+  */
+  static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 }; /* class SequencesRewriter */
 
 }  // namespace strings
