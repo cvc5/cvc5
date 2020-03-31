@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-bound
+; COMMAND-LINE: --fmf-bound --finite-model-find
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
@@ -22,6 +22,12 @@
 (=> (member x S)
 (=> (and (<= 0 y) (<= y (h z)))
 (P x y z))))))
+
+(assert (forall ((x Int) (y Int) (z U)) (=>
+(or (= x 5) (= x 6))
+(=> (and (<= 0 y) (<= y x))
+(P x y z)))))
+
 
 
 (declare-fun Q (U Int) Bool)
