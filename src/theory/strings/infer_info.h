@@ -145,9 +145,13 @@ enum class Inference : uint32_t
   // intersection inference
   //   (x in R1 ^ y in R2 ^ x = y) => (x in re.inter(R1,R2))
   RE_INTER_INFER,
-  // regular expression delta ???
+  // regular expression delta
+  //   (x = "" ^ x in R) => C
+  // where "" in R holds if and only if C holds.
   RE_DELTA,
-  // regular expression delta conflict ???
+  // regular expression delta conflict
+  //   (x = "" ^ x in R) => false
+  // where R does not accept the empty string.
   RE_DELTA_CONF,
   // regular expression derive ???
   RE_DERIVE,
