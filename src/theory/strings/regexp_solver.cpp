@@ -268,7 +268,8 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             std::vector<Node> exp_n;
             exp_n.push_back(assertion);
             Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
-            Inference inf = polarity ? Inference::RE_UNFOLD_POS : Inference::RE_UNFOLD_NEG;
+            Inference inf =
+                polarity ? Inference::RE_UNFOLD_POS : Inference::RE_UNFOLD_NEG;
             d_im.sendInference(rnfexp, exp_n, conc, inf);
             addedLemma = true;
             if (changed)
@@ -388,7 +389,8 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
           }
 
           Node conc;
-          d_im.sendInference(vec_nodes, conc, Inference::RE_INTER_INCLUDE, true);
+          d_im.sendInference(
+              vec_nodes, conc, Inference::RE_INTER_INCLUDE, true);
           return false;
         }
       }

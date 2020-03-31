@@ -40,7 +40,7 @@ enum class Inference : uint32_t
 {
   //-------------------------------------- base solver
   // initial normalize singular
-  //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" => 
+  //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>
   //   x1 ++ ... ++ xn = xi
   I_NORM_S,
   // initial constant merge
@@ -157,7 +157,7 @@ enum class Inference : uint32_t
   // contain transitive
   //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
   CTN_TRANS,
-  // contain decompose 
+  // contain decompose
   //  ~str.contains( str.++( x1, ..., xn ), y ) => ~str.contains( xi, y )
   CTN_DECOMPOSE,
   // contain neg equal
@@ -169,7 +169,7 @@ enum class Inference : uint32_t
   CTN_POS,
   // All reduction inferences of the form:
   //   f(x1, .., xn) = y ^ P(x1, ..., xn, y)
-  // where f is an extended function, y is the purification variable for 
+  // where f is an extended function, y is the purification variable for
   // f(x1, .., xn) and P is the reduction predicate for f
   // (see theory_strings_preprocess).
   REDUCTION,

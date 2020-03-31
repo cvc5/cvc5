@@ -364,9 +364,8 @@ void ExtfSolver::checkExtfEval(int effort)
           {
             Trace("strings-extf")
                 << "  resolve extf : " << sn << " -> " << nrc << std::endl;
-                Inference inf = effort == 0 ? Inference::EXTF : Inference::EXTF_N;
-            d_im.sendInference(
-                einfo.d_exp, conc, inf, true);
+            Inference inf = effort == 0 ? Inference::EXTF : Inference::EXTF_N;
+            d_im.sendInference(einfo.d_exp, conc, inf, true);
             d_statistics.d_cdSimplifications << n.getKind();
             if (d_state.isInConflict())
             {

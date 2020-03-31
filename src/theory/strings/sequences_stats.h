@@ -33,7 +33,8 @@ class SequencesStatistics
 
   /** Counts the number of applications of each type of inference */
   HistogramStat<Inference> d_inferences;
-  /** Counts the number of applications of each type of context-dependent simplification */
+  /** Counts the number of applications of each type of context-dependent
+   * simplification */
   HistogramStat<Kind> d_cdSimplifications;
   /** Counts the number of applications of each type of reduction */
   HistogramStat<Kind> d_reductions;

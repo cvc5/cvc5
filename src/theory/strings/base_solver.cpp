@@ -483,7 +483,8 @@ void BaseSolver::checkCardinality()
       if (!cons.isConst() || !cons.getConst<bool>())
       {
         std::vector<Node> emptyVec;
-        d_im.sendInference(emptyVec, vec_node, cons, Inference::CARDINALITY, true);
+        d_im.sendInference(
+            emptyVec, vec_node, cons, Inference::CARDINALITY, true);
         return;
       }
     }
