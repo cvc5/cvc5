@@ -17,11 +17,10 @@
 (assert (>= (h (g 77)) 2))
 (assert (not (= (g 77) (f 77))))
 
-(assert (forall ((x Int) (y Int) (z U)) (=> 
+(assert (forall ((x Int) (z U)) (=> 
 (or (= z (f x)) (= z (g x)))
 (=> (member x S)
-(=> (and (<= 0 y) (<= y (h z)))
-(P x y z))))))
+(P x 0 z)))))
 
 (assert (forall ((x Int) (y Int) (z U)) (=>
 (or (= x 5) (= x 6))
