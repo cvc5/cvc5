@@ -11,6 +11,7 @@ jobs:
         name: [
           production,
           production-python,
+          production-clang,
           debug,
           debug-cln
         ]
