@@ -63,7 +63,7 @@ jobs:
         python3 -m pip install toml
         python3 -m pip install setuptools
 
-    - name: Install Packages (Linux)
+    - name: Install Packages (macOS)
       if: runner.os == 'macOS'
       run: |
         brew install \
@@ -87,7 +87,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps/install
-        key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**.sh') }}
+        key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**.sh') }}-${{ hashFiles('.github/workflows/ci.yml' }}
 
     - name: Setup Dependencies
       if: steps.restore-deps.outputs.cache-hit != 'true'
