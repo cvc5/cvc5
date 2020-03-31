@@ -45,8 +45,9 @@ enum class Inference : uint32_t
   I_NORM_S,
   // initial constant merge
   //   explain_constant(x, c) => x = c
-  // Above, explain_constant(x,c) is a basic explanation of why x is a constant,
-  // computed by taking constant arguments of concatentation terms. For example:
+  // Above, explain_constant(x,c) is a basic explanation of why x must be equal
+  // to string constant c, which is computed by taking arguments of
+  // concatentation terms that are entailed to be constants. For example:
   //  ( y = "AB" ^ z = "C" ) => y ++ z = "ABC"
   I_CONST_MERGE,
   // initial constant conflict
@@ -54,6 +55,9 @@ enum class Inference : uint32_t
   // where c1 != c2.
   I_CONST_CONFLICT,
   // initial normalize
+  // Given two concatenation terms, this is applied when we find that they are
+  // equal after e.g. removing strings that are currently empty. For example:
+  //   y = "" ^ z = "" => x ++ y = z ++ x
   I_NORM,
   // The cardinality inference for strings, see Liang et al CAV 2014.
   CARDINALITY,
@@ -141,8 +145,11 @@ enum class Inference : uint32_t
   // intersection inference
   //   (x in R1 ^ y in R2 ^ x = y) => (x in re.inter(R1,R2))
   RE_INTER_INFER,
+  // regular expression delta ???
   RE_DELTA,
+  // regular expression delta conflict ???
   RE_DELTA_CONF,
+  // regular expression derive ???
   RE_DERIVE,
   //-------------------------------------- end regexp solver
   //-------------------------------------- extended function solver
@@ -158,6 +165,7 @@ enum class Inference : uint32_t
   //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
   CTN_TRANS,
   // contain decompose
+  //  str.contains( x, str.++( y1, ..., yn ) ) => str.contains( x, yi ) or
   //  ~str.contains( str.++( x1, ..., xn ), y ) => ~str.contains( xi, y )
   CTN_DECOMPOSE,
   // contain neg equal
