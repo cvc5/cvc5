@@ -1,17 +1,15 @@
 /*********************                                                        */
-/*! \file theory_strings.h
+/*! \file strategy.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Theory of strings
- **
- ** Theory of strings.
+ ** \brief Strategy of the theory of strings
  **/
 
 #include "cvc4_private.h"
@@ -80,14 +78,6 @@ class Strategy {
   bool hasStrategyEffort(Effort e) const;
   /** initialize the strategy
    *
-   * This adds (s,effort) as a strategy step to the vectors d_infer_steps and
-   * d_infer_step_effort. This indicates that a call to runInferStep should
-   * be run as the next step in the strategy. If addBreak is true, we add
-   * a BREAK to the strategy following this step.
-   */
-  void addStrategyStep(InferStep s, int effort = 0, bool addBreak = true);
-  /** initialize the strategy
-   *
    * This initializes the above information based on the options. This makes
    * a series of calls to addStrategyStep above.
    */
@@ -104,14 +94,20 @@ private:
   TheoryStrings& d_parent;
   /** is strategy initialized */
   bool d_strategy_init;
-  /** run the given inference step */
-  void runInferStep(InferStep s, int effort);
   /** the strategy */
   std::vector<InferStep> d_infer_steps;
   /** the effort levels */
   std::vector<int> d_infer_step_effort;
   /** the range (begin, end) of steps to run at given efforts */
   std::map<Effort, std::pair<unsigned, unsigned> > d_strat_steps;
+  /** add strategy step
+   *
+   * This adds (s,effort) as a strategy step to the vectors d_infer_steps and
+   * d_infer_step_effort. This indicates that a call to runInferStep should
+   * be run as the next step in the strategy. If addBreak is true, we add
+   * a BREAK to the strategy following this step.
+   */
+  void addStrategyStep(InferStep s, int effort = 0, bool addBreak = true);
 };/* class Strategy */
 
 }/* CVC4::theory::strings namespace */
