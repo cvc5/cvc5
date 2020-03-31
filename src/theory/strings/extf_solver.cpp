@@ -113,7 +113,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
             lexp.push_back(lenx.eqNode(lens));
             lexp.push_back(n.negate());
             Node xneqs = x.eqNode(s).negate();
-            d_im.sendInference(lexp, xneqs, "NEG-CTN-EQL", true);
+            d_im.sendInference(lexp, xneqs, CTN_NEG_EQUAL, true);
           }
           // this depends on the current assertions, so we set that this
           // inference is context-dependent.
@@ -158,7 +158,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
     std::vector<Node> exp_vec;
     exp_vec.push_back(n);
-    d_im.sendInference(d_emptyVec, exp_vec, eq, "POS-CTN", true);
+    d_im.sendInference(d_emptyVec, exp_vec, eq, CTN_POS, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;
@@ -184,7 +184,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     Trace("strings-red-lemma")
         << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
     Trace("strings-red-lemma") << "...from " << n << std::endl;
-    d_im.sendInference(d_emptyVec, nnlem, "Reduction", true);
+    d_im.sendInference(d_emptyVec, nnlem, REDUCTION, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on reduction." << std::endl;
     isCd = false;
@@ -364,7 +364,7 @@ void ExtfSolver::checkExtfEval(int effort)
             Trace("strings-extf")
                 << "  resolve extf : " << sn << " -> " << nrc << std::endl;
             d_im.sendInference(
-                einfo.d_exp, conc, effort == 0 ? "EXTF" : "EXTF-N", true);
+                einfo.d_exp, conc, effort == 0 ? EXTF : EXTF_N, true);
             if (d_state.isInConflict())
             {
               Trace("strings-extf-debug") << "  conflict, return." << std::endl;
@@ -591,7 +591,7 @@ void ExtfSolver::checkExtfInference(Node n,
               exp_c.insert(exp_c.end(),
                            d_extfInfoTmp[ofrom].d_exp.begin(),
                            d_extfInfoTmp[ofrom].d_exp.end());
-              d_im.sendInference(exp_c, conc, "CTN_Trans");
+              d_im.sendInference(exp_c, conc, CTN_TRANS);
             }
           }
         }

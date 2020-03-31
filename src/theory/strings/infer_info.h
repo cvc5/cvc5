@@ -94,6 +94,25 @@ enum class Inference : uint32_t
   //        for fresh u, u1, u2.
   // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
   FLOOP,
+  RE_NF_CONFLICT,
+  RE_UNFOLD,
+  RE_INTER_INCLUDE,
+  RE_INTER_CONF,
+  RE_INTER_INFER,
+  RE_DELTA,
+  RE_DELTA_CONF,
+  RE_DERIVE,
+  CTN_TRANS,
+  CTN_NEG_EQUAL,
+  CTN_POS,
+  REDUCTION,
+  EXTF,
+  EXTF_N,
+  CARDINALITY,
+  I_NORM_S,
+  I_CONST_MERGE,
+  I_CONST_CONFLICT,
+  I_NORM,
   NONE,
 };
 
