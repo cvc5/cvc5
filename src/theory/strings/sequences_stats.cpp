@@ -23,6 +23,7 @@ namespace strings {
 
 SequencesStatistics::SequencesStatistics()
     : d_inferences("theory::strings::inferences"),
+      d_cdSimplifications("theory::strings::cdSimplifications"),
       d_reductions("theory::strings::reductions"),
       d_conflictsEqEngine("theory::strings::conflictsEqEngine", 0),
       d_conflictsEagerPrefix("theory::strings::conflictsEagerPrefix", 0),
@@ -35,6 +36,7 @@ SequencesStatistics::SequencesStatistics()
       d_lemmasInfer("theory::strings::lemmasInfer", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_inferences);
+  smtStatisticsRegistry()->registerStat(&d_cdSimplifications);
   smtStatisticsRegistry()->registerStat(&d_reductions);
   smtStatisticsRegistry()->registerStat(&d_conflictsEqEngine);
   smtStatisticsRegistry()->registerStat(&d_conflictsEagerPrefix);
@@ -49,6 +51,7 @@ SequencesStatistics::SequencesStatistics()
 SequencesStatistics::~SequencesStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_inferences);
+  smtStatisticsRegistry()->unregisterStat(&d_cdSimplifications);
   smtStatisticsRegistry()->unregisterStat(&d_reductions);
   smtStatisticsRegistry()->unregisterStat(&d_conflictsEqEngine);
   smtStatisticsRegistry()->unregisterStat(&d_conflictsEagerPrefix);
