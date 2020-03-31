@@ -33,7 +33,7 @@ jobs:
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
             cache-key: debug
 
-    name: ${{ runner.os }}-${{ matrix.name }}
+    name: ${{ matrix.os }}-${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
     steps:
