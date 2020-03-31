@@ -74,6 +74,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
+      d_registeredTypesCache(u),
       d_functionsTerms(c),
       d_has_str_code(false),
       d_bsolver(c, u, d_state, d_im),
@@ -118,7 +119,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_emptyString = Word::mkEmptyWord(CONST_STRING);
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -671,12 +671,6 @@ void TheoryStrings::check(Effort e) {
 
   bool polarity;
   TNode atom;
-
-  if (!done() && !d_equalityEngine.hasTerm(d_emptyString))
-  {
-    preRegisterTerm( d_emptyString );
-  }
-
   // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
   Trace("strings-check-debug")
       << "Theory of strings, check : " << e << std::endl;
@@ -1086,6 +1080,8 @@ void TheoryStrings::registerTerm(Node n, int effort)
     return;
   }
   d_registered_terms_cache.insert(n);
+  // ensure the type is registered
+  registerType(tn);
   NodeManager* nm = NodeManager::currentNM();
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
@@ -1124,6 +1120,21 @@ void TheoryStrings::registerTerm(Node n, int effort)
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
     d_out->lemma(regTermLem);
+  }
+}
+
+void TheoryStrings::registerType(TypeNode tn)
+{
+  if (d_registeredTypesCache.find(tn)!=d_registeredTypesCache.end())
+  {
+    return;
+  }
+  d_registeredTypesCache.insert(tn);
+  // preregister the empty word for the type
+  Node emp = Word::mkEmptyWord(tn);
+  if (!d_equalityEngine.hasTerm(emp))
+  {
+    preRegisterTerm(emp);
   }
 }
 
