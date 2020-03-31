@@ -16,7 +16,7 @@ jobs:
         ]
 
         include:
-          - name:production
+          - name: production
             config: production --language-bindings=java --lfsc
             cache-key: production
 
