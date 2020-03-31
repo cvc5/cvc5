@@ -27,6 +27,7 @@
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/sequences_stats.h"
 #include "util/string.h"
 
 namespace CVC4 {
@@ -49,6 +50,7 @@ class RegExpSolver
                SolverState& s,
                InferenceManager& im,
                ExtfSolver& es,
+             SequencesStatistics& stats,
                context::Context* c,
                context::UserContext* u);
   ~RegExpSolver() {}
@@ -119,6 +121,8 @@ class RegExpSolver
   InferenceManager& d_im;
   /** reference to the extended function solver of the parent */
   ExtfSolver& d_esolver;
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
   /**

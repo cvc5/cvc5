@@ -36,12 +36,14 @@ RegExpSolver::RegExpSolver(TheoryStrings& p,
                            SolverState& s,
                            InferenceManager& im,
                            ExtfSolver& es,
+             SequencesStatistics& stats,
                            context::Context* c,
                            context::UserContext* u)
     : d_parent(p),
       d_state(s),
       d_im(im),
       d_esolver(es),
+      d_stats(stats),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
       d_processed_memberships(c)
@@ -160,6 +162,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             << "We have regular expression assertion : " << assertion
             << std::endl;
         Node atom = assertion.getKind() == NOT ? assertion[0] : assertion;
+        Assert(atom == Rewriter::rewrite(atom));
         bool polarity = assertion.getKind() != NOT;
         if (polarity != (e == 0))
         {
@@ -268,6 +271,8 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             std::vector<Node> exp_n;
             exp_n.push_back(assertion);
             Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
+            Assert(atom.getKind()==STRING_IN_REGEXP);
+            d_statistics.d_regexpUnfoldings << atom[1].getKind();
             Inference inf =
                 polarity ? Inference::RE_UNFOLD_POS : Inference::RE_UNFOLD_NEG;
             d_im.sendInference(rnfexp, exp_n, conc, inf);

@@ -25,6 +25,7 @@ SequencesStatistics::SequencesStatistics()
     : d_inferences("theory::strings::inferences"),
       d_cdSimplifications("theory::strings::cdSimplifications"),
       d_reductions("theory::strings::reductions"),
+      d_regexpUnfoldings("theory::strings::regexpUnfoldings"),
       d_conflictsEqEngine("theory::strings::conflictsEqEngine", 0),
       d_conflictsEagerPrefix("theory::strings::conflictsEagerPrefix", 0),
       d_conflictsInfer("theory::strings::conflictsInfer", 0),
@@ -38,6 +39,7 @@ SequencesStatistics::SequencesStatistics()
   smtStatisticsRegistry()->registerStat(&d_inferences);
   smtStatisticsRegistry()->registerStat(&d_cdSimplifications);
   smtStatisticsRegistry()->registerStat(&d_reductions);
+  smtStatisticsRegistry()->registerStat(&d_regexpUnfoldings);
   smtStatisticsRegistry()->registerStat(&d_conflictsEqEngine);
   smtStatisticsRegistry()->registerStat(&d_conflictsEagerPrefix);
   smtStatisticsRegistry()->registerStat(&d_conflictsInfer);
@@ -53,6 +55,7 @@ SequencesStatistics::~SequencesStatistics()
   smtStatisticsRegistry()->unregisterStat(&d_inferences);
   smtStatisticsRegistry()->unregisterStat(&d_cdSimplifications);
   smtStatisticsRegistry()->unregisterStat(&d_reductions);
+  smtStatisticsRegistry()->unregisterStat(&d_regexpUnfoldings);
   smtStatisticsRegistry()->unregisterStat(&d_conflictsEqEngine);
   smtStatisticsRegistry()->unregisterStat(&d_conflictsEagerPrefix);
   smtStatisticsRegistry()->unregisterStat(&d_conflictsInfer);
