@@ -160,6 +160,11 @@ void CvcPrinter::toStream(
       toStreamRational(out, n, false);
       break;
     }
+    case kind::CONST_STRING:
+    {
+      out << '"' << n.getConst<String>().toString() << '"';
+      break;
+    }
     case kind::TYPE_CONSTANT:
       switch(TypeConstant tc = n.getConst<TypeConstant>()) {
       case REAL_TYPE:

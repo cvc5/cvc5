@@ -93,15 +93,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
       {
         d_constCache[cur] = RE_C_UNKNOWN;
         visit.push_back(cur);
-        if (ck == REGEXP_LOOP)
-        {
-          // only add the first child of loop
-          visit.push_back(cur[0]);
-        }
-        else
-        {
-          visit.insert(visit.end(), cur.begin(), cur.end());
-        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
     else if (it->second == RE_C_UNKNOWN)
@@ -260,7 +252,9 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        if(r[1] == d_zero) {
+        uint32_t lo = utils::getLoopMinOccurrences(r);
+        if (lo == 0)
+        {
           ret = 1;
         } else {
           ret = delta(r[0], exp);
@@ -501,18 +495,18 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        if(r[1] == r[2] && r[1] == d_zero) {
+        uint32_t l = utils::getLoopMinOccurrences(r);
+        uint32_t u = utils::getLoopMaxOccurrences(r);
+        if (l == u && l == 0)
+        {
           ret = 2;
           //retNode = d_emptyRegexp;
         } else {
           Node dc;
           ret = derivativeS(r[0], c, dc);
           if(dc==d_emptyRegexp) {
-            unsigned l = r[1].getConst<Rational>().getNumerator().toUnsignedInt();
-            unsigned u = r[2].getConst<Rational>().getNumerator().toUnsignedInt();
-            Node r2 = NodeManager::currentNM()->mkNode(kind::REGEXP_LOOP, r[0], 
-              NodeManager::currentNM()->mkConst(CVC4::Rational(l==0? 0 : (l-1))),
-              NodeManager::currentNM()->mkConst(CVC4::Rational(u-1)));
+            Node lop = nm->mkConst(RegExpLoop(l == 0 ? 0 : (l - 1), u - 1));
+            Node r2 = nm->mkNode(REGEXP_LOOP, lop, r[0]);
             retNode = dc==d_emptySingleton? r2 : NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, dc, r2 );
           } else {
             retNode = d_emptyRegexp;
@@ -686,16 +680,16 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        if(r[1] == r[2] && r[1] == d_zero) {
+        uint32_t l = utils::getLoopMinOccurrences(r);
+        uint32_t u = utils::getLoopMaxOccurrences(r);
+        if (l == u || l == 0)
+        {
           retNode = d_emptyRegexp;
         } else {
           Node dc = derivativeSingle(r[0], c);
           if(dc != d_emptyRegexp) {
-            unsigned l = r[1].getConst<Rational>().getNumerator().toUnsignedInt();
-            unsigned u = r[2].getConst<Rational>().getNumerator().toUnsignedInt();
-            Node r2 = NodeManager::currentNM()->mkNode(kind::REGEXP_LOOP, r[0], 
-              NodeManager::currentNM()->mkConst(CVC4::Rational(l==0? 0 : (l-1))),
-              NodeManager::currentNM()->mkConst(CVC4::Rational(u-1)));
+            Node lop = nm->mkConst(RegExpLoop(l == 0 ? 0 : (l - 1), u - 1));
+            Node r2 = nm->mkNode(REGEXP_LOOP, lop, r[0]);
             retNode = dc==d_emptySingleton? r2 : NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, dc, r2 );
           } else {
             retNode = d_emptyRegexp;
@@ -739,9 +733,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
       }
       case kind::REGEXP_RANGE: {
         unsigned a = r[0].getConst<String>().front();
-        a = String::convertUnsignedIntToCode(a);
         unsigned b = r[1].getConst<String>().front();
-        b = String::convertUnsignedIntToCode(b);
         Assert(a < b);
         Assert(b < std::numeric_limits<unsigned>::max());
         for (unsigned c = a; c <= b; c++)
@@ -756,7 +748,6 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
           String s = st.getConst<String>();
           if(s.size() != 0) {
             unsigned sc = s.front();
-            sc = String::convertUnsignedIntToCode(sc);
             cset.insert(sc);
           }
         }
@@ -765,7 +756,6 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
           if(st[0].isConst()) {
             String s = st[0].getConst<String>();
             unsigned sc = s.front();
-            sc = String::convertUnsignedIntToCode(sc);
             cset.insert(sc);
           } else {
             vset.insert( st[0] );
@@ -887,13 +877,11 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
       case kind::REGEXP_RANGE: {
         std::vector< Node > vec;
         unsigned a = r[0].getConst<String>().front();
-        a = String::convertUnsignedIntToCode(a);
         unsigned b = r[1].getConst<String>().front();
-        b = String::convertUnsignedIntToCode(b);
         for (unsigned c = a; c <= b; c++)
         {
           std::vector<unsigned> tmpVec;
-          tmpVec.push_back(String::convertCodeToUnsignedInt(c));
+          tmpVec.push_back(c);
           Node tmp = s.eqNode(nm->mkConst(String(tmpVec))).negate();
           vec.push_back( tmp );
         }
@@ -1522,7 +1510,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
              ++it)
         {
           std::vector<unsigned> cvec;
-          cvec.push_back(String::convertCodeToUnsignedInt(*it));
+          cvec.push_back(*it);
           String c(cvec);
           Trace("regexp-int-debug") << "Try character " << c << " ... " << std::endl;
           Node r1l = derivativeSingle(r1, c);

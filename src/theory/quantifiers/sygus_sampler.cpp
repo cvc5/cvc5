@@ -560,8 +560,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       for (unsigned ch : alphas)
       {
         d_rstring_alphabet.push_back(ch);
-        Trace("sygus-sample-str-alpha")
-            << " \"" << String::convertUnsignedIntToChar(ch) << "\"";
+        Trace("sygus-sample-str-alpha") << " \\u" << ch;
       }
       Trace("sygus-sample-str-alpha") << std::endl;
     }

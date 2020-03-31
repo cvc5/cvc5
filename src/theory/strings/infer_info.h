@@ -196,4 +196,4 @@ class InferInfo
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */
+#endif /* CVC4__THEORY__STRINGS__INFER_INFO_H */

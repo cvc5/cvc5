@@ -27,7 +27,7 @@
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/solver_state.h"
-#include "util/regexp.h"
+#include "util/string.h"
 
 namespace CVC4 {
 namespace theory {

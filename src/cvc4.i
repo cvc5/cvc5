@@ -278,6 +278,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/result.i"
 %include "util/sexpr.i"
 %include "util/statistics.i"
+%include "util/string.i"
 %include "util/tuple.i"
 %include "util/unsafe_interrupt_exception.i"
 

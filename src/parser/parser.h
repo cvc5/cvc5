@@ -273,6 +273,9 @@ public:
     return d_input;
   }
 
+  /** Get unresolved sorts */
+  inline std::set<api::Sort>& getUnresolvedSorts() { return d_unresolved; }
+
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
     delete d_input;
@@ -889,6 +892,28 @@ public:
         name, api::sortVectorToTypes(argTypes));
   }
   //------------------------ end operator overloading
+  /**
+   * Make string constant
+   *
+   * This makes the string constant based on the string s. This may involve
+   * processing ad-hoc escape sequences (if the language is not
+   * SMT-LIB 2.6.1 or higher), or otherwise calling the solver to construct
+   * the string.
+   */
+  Expr mkStringConstant(const std::string& s);
+
+ private:
+  /** ad-hoc string escaping
+   *
+   * Returns the (internal) vector of code points corresponding to processing
+   * the escape sequences in string s. This is to support string inputs that
+   * do no comply with the SMT-LIB standard.
+   *
+   * This method handles escape sequences, including \n, \t, \v, \b, \r, \f, \a,
+   * \\, \x[N] and octal escape sequences of the form \[c1]([c2]([c3])?)? where
+   * c1, c2, c3 are digits from 0 to 7.
+   */
+  std::vector<unsigned> processAdHocStringEsc(const std::string& s);
 };/* class Parser */
 
 }/* CVC4::parser namespace */
