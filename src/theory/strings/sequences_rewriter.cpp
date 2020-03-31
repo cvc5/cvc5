@@ -786,8 +786,7 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
     {
       // if empty, drop it
       // e.g. this ensures we rewrite (_)* ++ (a)* ---> (_)*
-      bool test = RegExpEntail::testConstStringInRegExp(emptyStr, 0, curr);
-      if (RegExpEntail::isConstRegExp(curr) && test)
+      if (RegExpEntail::isConstRegExp(curr) && RegExpEntail::testConstStringInRegExp(emptyStr, 0, curr))
       {
         curr = Node::null();
       }
