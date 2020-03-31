@@ -7,43 +7,34 @@ jobs:
 
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]
         name: [
-          ubuntu,
-          ubuntu-python,
-          ubuntu-debug,
-          ubuntu-debug-cln,
-          macos
+          production,
+          production-python,
+          debug,
+          debug-cln
         ]
 
         include:
-          - name: ubuntu
-            platform: ubuntu-latest
+          - name:production
             config: production --language-bindings=java --lfsc
             cache-key: production
 
-          - name: ubuntu-python
-            platform: ubuntu-latest
+          - name: production-python
             config: production --python-bindings
             cache-key: production
             python-bindings: true
 
           - name: ubuntu-debug
-            platform: ubuntu-latest
             config: debug --symfpu --lfsc --no-debug-symbols
             cache-key: debug
 
           - name: ubuntu-debug-cln
-            platform: ubuntu-latest
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
             cache-key: debug
 
-          - name: macos
-            platform: macos-latest
-            config: production --language-bindings=java --lfsc
-            cache-key: production
-
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.platform }}
+    name: ${{ runner.os }}-${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
 
     steps:
 
@@ -62,6 +53,7 @@ jobs:
           swig3.0
         python3 -m pip install toml
         python3 -m pip install setuptools
+        echo "::add-path::/usr/lib/ccache"
 
     - name: Install Packages (macOS)
       if: runner.os == 'macOS'
@@ -74,6 +66,7 @@ jobs:
           swig
         python3 -m pip install toml
         python3 -m pip install setuptools
+        echo "::add-path::/usr/local/opt/ccache/libexec"
 
     # Note: We install Cython with sudo since cmake can't find Cython otherwise.
     - name: Install Cython
@@ -123,7 +116,6 @@ jobs:
 
     - name: Configure
       run: |
-        export PATH="/usr/lib/ccache/:$PATH"
         ./configure.sh ${{ matrix.config }} \
           --python3 \
           --prefix=$(pwd)/build/install \
@@ -157,13 +149,13 @@ jobs:
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
-#
-#    - name: Check Examples
-#      run: |
-#        mkdir build
-#        cd build
-#        cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
-#        make -j2
-#        ctest -j2 --output-on-failure
-#      working-directory: examples
+
+    - name: Check Examples
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
+        make -j2
+        ctest -j2 --output-on-failure
+      working-directory: examples
 
