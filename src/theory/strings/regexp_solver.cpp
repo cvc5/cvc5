@@ -490,7 +490,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     else
     {
       // new conclusion
-      // (x in R ^ y in R2 ^ x = y) => (x in intersect(R1,R2))
+      // (x in R1 ^ y in R2 ^ x = y) => (x in intersect(R1,R2))
       std::vector<Node> vec_nodes;
       vec_nodes.push_back(mi);
       vec_nodes.push_back(m);

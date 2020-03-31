@@ -94,24 +94,66 @@ enum class Inference : uint32_t
   //        for fresh u, u1, u2.
   // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
   FLOOP,
+  // regular expression normal form conflict
+  //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
+  // where y is the normal form computed for y.
   RE_NF_CONFLICT,
+  // FIXME: split
   RE_UNFOLD,
+  // intersection inclusion conflict
+  //   (x in R1 ^ ~ x in R2) => false  where [[includes(R2,R1)]]
+  // Where includes(R2,R1) is a heuristic check for whether R2 includes R1.
   RE_INTER_INCLUDE,
+  // intersection conflict, using regexp intersection computation
+  //   (x in R1 ^ x in R2) => false   where [[intersect(R1, R2) = empty]]
   RE_INTER_CONF,
+  // intersection inference
+  //   (x in R1 ^ y in R2 ^ x = y) => (x in re.inter(R1,R2))
   RE_INTER_INFER,
   RE_DELTA,
   RE_DELTA_CONF,
   RE_DERIVE,
+  // contain transitive
+  //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
   CTN_TRANS,
+  // contain neg equal
+  //   ( len( x ) = len( s ) ^ ~contains( x, s ) ) => x != s
   CTN_NEG_EQUAL,
+  // contain positive
+  //   str.contains( x, y ) => x = w1 ++ y ++ w2
+  // where w1 and w2 are skolem variables.
   CTN_POS,
+  // All reduction inferences of the form:
+  //   f(x1, .., xn) = y ^ P(x1, ..., xn, y)
+  // where f is an extended function, y is the purification variable for 
+  // f(x1, .., xn) and P is the reduction predicate for f
+  // (see theory_strings_preprocess).
   REDUCTION,
+  // All extended function inferences from context-dependent rewriting produced
+  // by constant substitutions. See Reynolds et al CAV 2017. These are
+  // inferences of the form:
+  //   X = Y => f(X) = t   when   rewrite( f(Y) ) = t
+  // where X = Y is a vector of equalities, where some of Y may be constants.
   EXTF,
+  // Same as above, for normal form substitutions.
   EXTF_N,
+  // The cardinality inference for strings, see Liang et al CAV 2014.
   CARDINALITY,
+  // initial normalize singular
+  //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" => 
+  //   x1 ++ ... ++ xn = xi
   I_NORM_S,
+  // initial constant merge
+  //   explain_constant(x, c) => x = c
+  // Above, explain_constant(x,c) is a basic explanation of why x is a constant,
+  // computed by evaluating arguments of concatentation terms. For example:
+  //  ( y = "AB" ^ z = "C" ) => y ++ z = "ABC"
   I_CONST_MERGE,
+  // initial constant conflict
+  //    ( explain_constant(x, c1) ^ explain_constant(x, c2) ^ x = y( => false
+  // where c1 != c2.
   I_CONST_CONFLICT,
+  // initial normalize
   I_NORM,
   NONE,
 };
