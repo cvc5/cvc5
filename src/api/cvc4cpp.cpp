@@ -2294,7 +2294,7 @@ Term Solver::mkValHelper(T t) const
   return res;
 }
 
-Term Solver::mkRealFromStrHelper(std::string s) const
+Term Solver::mkRealFromStrHelper(const std::string& s) const
 {
   /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
    * throws an std::invalid_argument exception. For consistency, we treat it
@@ -2318,7 +2318,7 @@ Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkBVFromStrHelper(std::string s, uint32_t base) const
+Term Solver::mkBVFromStrHelper(const std::string& s, uint32_t base) const
 {
   CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
   CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, s)
@@ -2328,7 +2328,7 @@ Term Solver::mkBVFromStrHelper(std::string s, uint32_t base) const
 }
 
 Term Solver::mkBVFromStrHelper(uint32_t size,
-                               std::string s,
+                               const std::string& s,
                                uint32_t base) const
 {
   CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
@@ -2353,7 +2353,7 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
   return mkValHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
 }
 
-Term Solver::mkCharFromStrHelper(std::string s) const
+Term Solver::mkCharFromStrHelper(const std::string& s) const
 {
   CVC4_API_CHECK(s.find_first_not_of("0123456789abcdefABCDEF", 0)
                      == std::string::npos
