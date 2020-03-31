@@ -292,8 +292,9 @@ class StringsEntail
    * infer that any of the yi must be empty.
    */
   static Node inferEqsFromContains(Node x, Node y);
-private:
- /** component contains base
+
+ private:
+  /** component contains base
    *
    * This function is a helper for the above function.
    *
@@ -346,7 +347,7 @@ private:
    * return false, indicating that we cannot compute the remainder.
    */
   static bool componentContainsBase(
-      Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder); 
+      Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
   /**
    * Simplifies a given node `a` s.t. the result is a concatenation of string
    * terms that can be interpreted as a multiset and which contains all
