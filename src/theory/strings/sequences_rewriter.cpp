@@ -479,13 +479,12 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
     {
       Assert(cn.isConst());
       Assert(Word::getLength(cn) == 1);
-      unsigned hchar = cn.getConst<String>().front();
 
       // The operands of the concat on each side of the equality without
       // constant strings
       std::vector<Node> trimmed[2];
-      // Counts the number of `hchar`s on each side
-      size_t numHChars[2] = {0, 0};
+      // Counts the number of `cn`s on each side
+      size_t numCns[2] = {0, 0};
       for (size_t j = 0; j < 2; j++)
       {
         // Sort the operands of the concats on both sides of the equality
@@ -496,12 +495,12 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
         {
           if (cc.isConst())
           {
-            // Count the number of `hchar`s in the string constant and make
-            // sure that all chars are `hchar`s
-            std::vector<unsigned> veccc = cc.getConst<String>().getVec();
-            for (size_t k = 0, size = veccc.size(); k < size; k++)
+            // Count the number of `cn`s in the string constant and make
+            // sure that all chars are `cn`s
+            std::vector<Node> veccc = Word::getChars(cc);
+            for (const Node& cv : veccc)
             {
-              if (veccc[k] != hchar)
+              if (cv != cn)
               {
                 // This conflict case should mostly should be taken care of by
                 // multiset reasoning in the strings rewriter, but we recognize
@@ -510,7 +509,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
                 return returnRewrite(
                     node, new_ret, Rewrite::STR_EQ_CONST_NHOMOG);
               }
-              numHChars[j]++;
+              numCns[j]++;
             }
           }
           else
@@ -520,18 +519,18 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
         }
       }
 
-      // We have to remove the same number of `hchar`s from both sides, so the
-      // side with less `hchar`s determines how many we can remove
-      size_t trimmedConst = std::min(numHChars[0], numHChars[1]);
+      // We have to remove the same number of `cn`s from both sides, so the
+      // side with less `cn`s determines how many we can remove
+      size_t trimmedConst = std::min(numCns[0], numCns[1]);
       for (size_t j = 0; j < 2; j++)
       {
-        size_t diff = numHChars[j] - trimmedConst;
+        size_t diff = numCns[j] - trimmedConst;
         if (diff != 0)
         {
-          // Add a constant string to the side with more `hchar`s to restore
-          // the difference in number of `hchar`s
-          std::vector<unsigned> vec(diff, hchar);
-          trimmed[j].push_back(nm->mkConst(String(vec)));
+          // Add a constant string to the side with more `cn`s to restore
+          // the difference in number of `cn`s
+          std::vector<Node> vec(diff, cn);
+          trimmed[j].push_back(Word::mkWord(vec));
         }
       }
 
@@ -2332,7 +2331,6 @@ Node SequencesRewriter::rewriteContains(Node node)
   }
   if (node[0].isConst())
   {
-    CVC4::String s = node[0].getConst<String>();
     if (node[1].isConst())
     {
       Node ret = nm->mkConst(Word::find(node[0], node[1]) != std::string::npos);
@@ -2356,14 +2354,13 @@ Node SequencesRewriter::rewriteContains(Node node)
       }
       else if (checkEntailLengthOne(t))
       {
-        const std::vector<unsigned>& vec = s.getVec();
-
+        std::vector<Node> vec = Word::getChars(node[0]);
+        Node emp = Word::mkEmptyWord(t.getType());
         NodeBuilder<> nb(OR);
-        nb << nm->mkConst(String("")).eqNode(t);
-        for (unsigned c : vec)
+        nb << emp.eqNode(t);
+        for (const Node& c : vec)
         {
-          std::vector<unsigned> sv = {c};
-          nb << nm->mkConst(String(sv)).eqNode(t);
+          nb << c.eqNode(t);
         }
 
         // str.contains("ABCabc", t) --->
@@ -4232,7 +4229,7 @@ bool SequencesRewriter::stripConstantEndpoints(std::vector<Node>& n1,
   return changed;
 }
 
-Node SequencesRewriter::canonicalStrForSymbolicLength(Node len)
+Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
 {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -4243,7 +4240,15 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len)
     Rational ratLen = len.getConst<Rational>();
     Assert(ratLen.getDenominator() == 1);
     Integer intLen = ratLen.getNumerator();
-    res = nm->mkConst(String(std::string(intLen.getUnsignedInt(), 'A')));
+    uint32_t u = intLen.getUnsignedInt();
+    if (stype.isString())
+    {
+      res = nm->mkConst(String(std::string(u, 'A')));
+    }
+    else
+    {
+      Unimplemented() << "canonicalStrForSymbolicLength for non-string";
+    }
   }
   else if (len.getKind() == kind::PLUS)
   {
@@ -4251,7 +4256,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len)
     NodeBuilder<> concatBuilder(kind::STRING_CONCAT);
     for (const auto& n : len)
     {
-      Node sn = canonicalStrForSymbolicLength(n);
+      Node sn = canonicalStrForSymbolicLength(n, stype);
       if (sn.isNull())
       {
         return Node::null();
@@ -4270,7 +4275,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len)
     Assert(ratReps.getDenominator() == 1);
     Integer intReps = ratReps.getNumerator();
 
-    Node nRep = canonicalStrForSymbolicLength(len[1]);
+    Node nRep = canonicalStrForSymbolicLength(len[1], stype);
     std::vector<Node> nRepChildren;
     utils::getConcat(nRep, nRepChildren);
     NodeBuilder<> concatBuilder(kind::STRING_CONCAT);
@@ -4292,7 +4297,7 @@ Node SequencesRewriter::lengthPreserveRewrite(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node len = Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, n));
-  Node res = canonicalStrForSymbolicLength(len);
+  Node res = canonicalStrForSymbolicLength(len, n.getType());
   return res.isNull() ? n : res;
 }
 
@@ -4869,8 +4874,6 @@ void SequencesRewriter::getArithApproximations(Node a,
 
 bool SequencesRewriter::checkEntailMultisetSubset(Node a, Node b)
 {
-  NodeManager* nm = NodeManager::currentNM();
-
   std::vector<Node> avec;
   utils::getConcat(getMultisetApproximation(a), avec);
   std::vector<Node> bvec;
@@ -4913,14 +4916,9 @@ bool SequencesRewriter::checkEntailMultisetSubset(Node a, Node b)
       {
         Node cn = ncp.first;
         Assert(cn.isConst());
-        std::vector<unsigned> cc_vec;
-        const std::vector<unsigned>& cvec = cn.getConst<String>().getVec();
-        for (unsigned i = 0, size = cvec.size(); i < size; i++)
+        std::vector<Node> cnChars = Word::getChars(cn);
+        for (const Node& ch : cnChars)
         {
-          // make the character
-          cc_vec.clear();
-          cc_vec.insert(cc_vec.end(), cvec.begin() + i, cvec.begin() + i + 1);
-          Node ch = nm->mkConst(String(cc_vec));
           count_const[j][ch] += ncp.second;
           if (std::find(chars.begin(), chars.end(), ch) == chars.end())
           {
@@ -4955,19 +4953,17 @@ bool SequencesRewriter::checkEntailMultisetSubset(Node a, Node b)
 
 Node SequencesRewriter::checkEntailHomogeneousString(Node a)
 {
-  NodeManager* nm = NodeManager::currentNM();
-
   std::vector<Node> avec;
   utils::getConcat(getMultisetApproximation(a), avec);
 
   bool cValid = false;
-  unsigned c = 0;
+  Node c;
   for (const Node& ac : avec)
   {
     if (ac.isConst())
     {
-      std::vector<unsigned> acv = ac.getConst<String>().getVec();
-      for (unsigned cc : acv)
+      std::vector<Node> acv = Word::getChars(ac);
+      for (const Node& cc : acv)
       {
         if (!cValid)
         {
@@ -4990,11 +4986,10 @@ Node SequencesRewriter::checkEntailHomogeneousString(Node a)
 
   if (!cValid)
   {
-    return nm->mkConst(String(""));
+    return Word::mkEmptyWord(a.getType());
   }
 
-  std::vector<unsigned> cv = {c};
-  return nm->mkConst(String(cv));
+  return c;
 }
 
 Node SequencesRewriter::getMultisetApproximation(Node a)
