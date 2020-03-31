@@ -3355,8 +3355,8 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
-        "Cannot get an unsat core unless immediately preceded by UNSAT/ENTAILED"
-        "response.");
+        "Cannot get an unsat core unless immediately preceded by "
+        "UNSAT/ENTAILED response.");
   }
 
   d_proofManager->traceUnsatCore();  // just to trigger core creation
@@ -3861,7 +3861,7 @@ const Proof& SmtEngine::getProof()
   if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
-        "Cannot get a proof unless immediately preceded by UNSAT/ENTAILED"
+        "Cannot get a proof unless immediately preceded by UNSAT/ENTAILED "
         "response.");
   }
 
