@@ -139,6 +139,11 @@ class Word
    * Notice that x.overlap(y) = y.roverlap(x)
    */
   static std::size_t roverlap(TNode x, TNode y);
+  /** Split constant
+  *
+  * FIXME
+  */
+  static Node splitConstant(Node a, Node b, int& index, bool isRev);
 };
 
 // ------------------------------ end for words (string or sequence constants)

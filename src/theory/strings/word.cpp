@@ -283,6 +283,33 @@ std::size_t Word::roverlap(TNode x, TNode y)
   return 0;
 }
 
+Node Word::splitConstant(Node x, Node y, int& index, bool isRev)
+{
+  Assert(x.isConst() && y.isConst());
+  size_t lenA = getLength(x);
+  size_t lenB = getLength(y);
+  index = lenA <= lenB ? 1 : 0;
+  size_t len_short = index == 1 ? lenA : lenB;
+  bool cmp =
+      isRev ? rstrncmp(x, y, len_short)
+            : strncmp(x, y, len_short);
+  if (cmp)
+  {
+    Node l = index == 0 ? x : y;
+    if (isRev)
+    {
+      size_t new_len = getLength(l) - len_short;
+      return substr(l, 0, new_len);
+    }
+    else
+    {
+      return substr(l, len_short);
+    }
+  }
+  // not the same prefix/suffix
+  return Node::null();
+}
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4

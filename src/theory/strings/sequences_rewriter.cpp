@@ -464,7 +464,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             // (= (str.++ "A" x y) (str.++ x "AB" z)) --->
             //   (and (= (str.++ "A" x) (str.++ x "A")) (= y (str.++ "B" z)))
             std::vector<Node> rpfxv1;
-            if (utils::stripSymbolicLength(pfxv1, rpfxv1, 1, lenPfx0))
+            if (StringsEntail::stripSymbolicLength(pfxv1, rpfxv1, 1, lenPfx0))
             {
               std::vector<Node> sfxv0(v0.begin() + i, v0.end());
               pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
@@ -491,7 +491,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             // (= (str.++ x "AB" z) (str.++ "A" x y)) --->
             //   (and (= (str.++ x "A") (str.++ "A" x)) (= (str.++ "B" z) y))
             std::vector<Node> rpfxv0;
-            if (utils::stripSymbolicLength(pfxv0, rpfxv0, 1, lenPfx1))
+            if (StringsEntail::stripSymbolicLength(pfxv0, rpfxv0, 1, lenPfx1))
             {
               pfxv0.insert(pfxv0.end(), v0.begin() + i, v0.end());
               std::vector<Node> sfxv1(v1.begin() + j, v1.end());
@@ -1632,7 +1632,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
   {
     Node curr = node[2];
     std::vector<Node> childrenr;
-    if (utils::stripSymbolicLength(n1, childrenr, 1, curr))
+    if (StringsEntail::stripSymbolicLength(n1, childrenr, 1, curr))
     {
       if (curr != zero && !n1.empty())
       {
@@ -1719,7 +1719,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       // strip off components while quantity is entailed positive
       int dir = r == 0 ? 1 : -1;
       std::vector<Node> childrenr;
-      if (utils::stripSymbolicLength(n1, childrenr, dir, curr))
+      if (StringsEntail::stripSymbolicLength(n1, childrenr, dir, curr))
       {
         if (r == 0)
         {
@@ -1834,7 +1834,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       else if (node[1].getKind() == kind::STRING_CONCAT)
       {
         int firstc, lastc;
-        if (!utils::canConstantContainConcat(node[0], node[1], firstc, lastc))
+        if (!StringsEntail::canConstantContainConcat(node[0], node[1], firstc, lastc))
         {
           Node ret = NodeManager::currentNM()->mkConst(false);
           return returnRewrite(node, ret, Rewrite::CTN_NCONST_CTN_CONCAT);
@@ -1898,7 +1898,7 @@ Node SequencesRewriter::rewriteContains(Node node)
   // component-wise containment
   std::vector<Node> nc1rb;
   std::vector<Node> nc1re;
-  if (utils::componentContains(nc1, nc2, nc1rb, nc1re) != -1)
+  if (StringsEntail::componentContains(nc1, nc2, nc1rb, nc1re) != -1)
   {
     Node ret = NodeManager::currentNM()->mkConst(true);
     return returnRewrite(node, ret, Rewrite::CTN_COMPONENT);
@@ -1908,7 +1908,7 @@ Node SequencesRewriter::rewriteContains(Node node)
   // strip endpoints
   std::vector<Node> nb;
   std::vector<Node> ne;
-  if (utils::stripConstantEndpoints(nc1, nc2, nb, ne))
+  if (StringsEntail::stripConstantEndpoints(nc1, nc2, nb, ne))
   {
     Node ret = NodeManager::currentNM()->mkNode(
         kind::STRING_STRCTN, utils::mkConcat(nc1, stype), node[1]);
@@ -2257,7 +2257,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         std::vector<Node> nb;
         std::vector<Node> ne;
         int cc =
-            utils::componentContains(children0, children1, nb, ne, true, 1);
+            StringsEntail::componentContains(children0, children1, nb, ne, true, 1);
         if (cc != -1 && !ne.empty())
         {
           // For example:
@@ -2268,7 +2268,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         }
 
         // Strip components from the beginning that are guaranteed not to match
-        if (utils::stripConstantEndpoints(children0, children1, nb, ne, 1))
+        if (StringsEntail::stripConstantEndpoints(children0, children1, nb, ne, 1))
         {
           // str.indexof(str.++("AB", x, "C"), "C", 0) --->
           // 2 + str.indexof(str.++(x, "C"), "C", 0)
@@ -2286,7 +2286,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
       // strip symbolic length
       Node new_len = node[2];
       std::vector<Node> nr;
-      if (utils::stripSymbolicLength(children0, nr, 1, new_len))
+      if (StringsEntail::stripSymbolicLength(children0, nr, 1, new_len))
       {
         // For example:
         // z>str.len( x1 ) and str.contains( x2, y )-->true
@@ -2312,7 +2312,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   {
     Node new_len = node[2];
     std::vector<Node> nr;
-    if (utils::stripSymbolicLength(children0, nr, 1, new_len))
+    if (StringsEntail::stripSymbolicLength(children0, nr, 1, new_len))
     {
       // Normalize the string before the start index.
       //
@@ -2338,7 +2338,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   {
     std::vector<Node> cb;
     std::vector<Node> ce;
-    if (utils::stripConstantEndpoints(children0, children1, cb, ce, -1))
+    if (StringsEntail::stripConstantEndpoints(children0, children1, cb, ce, -1))
     {
       Node ret = utils::mkConcat(children0, stype);
       ret = nm->mkNode(STRING_STRIDOF, ret, node[1], node[2]);
@@ -2457,7 +2457,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
       // component-wise containment
       std::vector<Node> cb;
       std::vector<Node> ce;
-      int cc = utils::componentContains(children0, children1, cb, ce, true, 1);
+      int cc = StringsEntail::componentContains(children0, children1, cb, ce, true, 1);
       if (cc != -1)
       {
         if (cc == 0 && children0[0] == children1[0])
@@ -2560,7 +2560,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
       //   str.++( "b", str.replace( x, "a", y ), "b" )
       std::vector<Node> cb;
       std::vector<Node> ce;
-      if (utils::stripConstantEndpoints(children0, children1, cb, ce))
+      if (StringsEntail::stripConstantEndpoints(children0, children1, cb, ce))
       {
         std::vector<Node> cc;
         cc.insert(cc.end(), cb.begin(), cb.end());
