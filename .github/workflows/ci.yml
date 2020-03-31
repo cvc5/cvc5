@@ -33,7 +33,7 @@ jobs:
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
             cache-key: debug
 
-    name: ${{ matrix.os }}-${{ matrix.name }}
+    name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -73,6 +73,12 @@ jobs:
       if: matrix.python-bindings && runner.os == 'Linux'
       run: |
         sudo python3 -m pip install \
+          Cython==0.29 --install-option="--no-cython-compile"
+
+    - name: Install Cython (macOS)
+      if: matrix.python-bindings && runner.os == 'macOS'
+      run: |
+        python3 -m pip install \
           Cython==0.29 --install-option="--no-cython-compile"
 
     - name: Restore Dependencies
