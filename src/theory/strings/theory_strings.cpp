@@ -650,12 +650,13 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+    Node emp = Word::mkEmptyWord(node.getType());
     node = nm->mkNode(CHOICE,
                       bvl,
                       nm->mkNode(ITE,
                                  cond,
                                  t.eqNode(nm->mkNode(STRING_TO_CODE, k)),
-                                 k.eqNode(d_emptyString)));
+                                 k.eqNode(emp)));
   }
 
   return node;
