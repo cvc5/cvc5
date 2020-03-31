@@ -1017,9 +1017,6 @@ void SmtEngine::finalOptionsAreSet() {
 
   d_fullyInited = true;
   Assert(d_logic.isLocked());
-
-  d_propEngine->assertFormula(NodeManager::currentNM()->mkConst<bool>(true));
-  d_propEngine->assertFormula(NodeManager::currentNM()->mkConst<bool>(false).notNode());
 }
 
 void SmtEngine::shutdown() {

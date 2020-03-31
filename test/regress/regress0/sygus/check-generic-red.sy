@@ -1,8 +1,9 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status --decision=justification
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status --decision=justification
 (set-logic LIA)
 
 (synth-fun P ((x Int) (y Int)) Bool
+  ((Start Bool) (StartIntC Int) (StartInt Int))
   ((Start Bool ((and Start Start)
                 (not Start)
                 (<= StartInt StartIntC)

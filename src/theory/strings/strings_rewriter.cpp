@@ -41,7 +41,7 @@ Node StringsRewriter::rewriteStrToInt(Node node)
     {
       ret = nm->mkConst(Rational(-1));
     }
-    return returnRewrite(node, ret, "stoi-eval");
+    return returnRewrite(node, ret, Rewrite::STOI_EVAL);
   }
   else if (node[0].getKind() == STRING_CONCAT)
   {
@@ -53,7 +53,7 @@ Node StringsRewriter::rewriteStrToInt(Node node)
         if (!t.isNumber())
         {
           Node ret = nm->mkConst(Rational(-1));
-          return returnRewrite(node, ret, "stoi-concat-nonnum");
+          return returnRewrite(node, ret, Rewrite::STOI_CONCAT_NONNUM);
         }
       }
     }
@@ -78,7 +78,7 @@ Node StringsRewriter::rewriteIntToStr(Node node)
       Assert(stmp[0] != '-');
       ret = nm->mkConst(String(stmp));
     }
-    return returnRewrite(node, ret, "itos-eval");
+    return returnRewrite(node, ret, Rewrite::ITOS_EVAL);
   }
   return node;
 }
@@ -114,7 +114,7 @@ Node StringsRewriter::rewriteStrConvert(Node node)
       nvec[i] = newChar;
     }
     Node retNode = nm->mkConst(String(nvec));
-    return returnRewrite(node, retNode, "str-conv-const");
+    return returnRewrite(node, retNode, Rewrite::STR_CONV_CONST);
   }
   else if (node[0].getKind() == STRING_CONCAT)
   {
@@ -125,7 +125,7 @@ Node StringsRewriter::rewriteStrConvert(Node node)
     }
     // tolower( x1 ++ x2 ) --> tolower( x1 ) ++ tolower( x2 )
     Node retNode = concatBuilder.constructNode();
-    return returnRewrite(node, retNode, "str-conv-minscope-concat");
+    return returnRewrite(node, retNode, Rewrite::STR_CONV_MINSCOPE_CONCAT);
   }
   else if (node[0].getKind() == STRING_TOLOWER
            || node[0].getKind() == STRING_TOUPPER)
@@ -133,14 +133,24 @@ Node StringsRewriter::rewriteStrConvert(Node node)
     // tolower( tolower( x ) ) --> tolower( x )
     // tolower( toupper( x ) ) --> tolower( x )
     Node retNode = nm->mkNode(nk, node[0][0]);
-    return returnRewrite(node, retNode, "str-conv-idem");
+    return returnRewrite(node, retNode, Rewrite::STR_CONV_IDEM);
   }
   else if (node[0].getKind() == STRING_ITOS)
   {
     // tolower( str.from.int( x ) ) --> str.from.int( x )
-    return returnRewrite(node, node[0], "str-conv-itos");
+    return returnRewrite(node, node[0], Rewrite::STR_CONV_ITOS);
   }
   return node;
+}
+
+Node StringsRewriter::rewriteStringLt(Node n)
+{
+  Assert(n.getKind() == kind::STRING_LT);
+  NodeManager* nm = NodeManager::currentNM();
+  // eliminate s < t ---> s != t AND s <= t
+  Node retNode = nm->mkNode(
+      AND, n[0].eqNode(n[1]).negate(), nm->mkNode(STRING_LEQ, n[0], n[1]));
+  return returnRewrite(n, retNode, Rewrite::STR_LT_ELIM);
 }
 
 Node StringsRewriter::rewriteStringLeq(Node n)
@@ -150,14 +160,14 @@ Node StringsRewriter::rewriteStringLeq(Node n)
   if (n[0] == n[1])
   {
     Node ret = nm->mkConst(true);
-    return returnRewrite(n, ret, "str-leq-id");
+    return returnRewrite(n, ret, Rewrite::STR_LEQ_ID);
   }
   if (n[0].isConst() && n[1].isConst())
   {
     String s = n[0].getConst<String>();
     String t = n[1].getConst<String>();
     Node ret = nm->mkConst(s.isLeq(t));
-    return returnRewrite(n, ret, "str-leq-eval");
+    return returnRewrite(n, ret, Rewrite::STR_LEQ_EVAL);
   }
   // empty strings
   for (unsigned i = 0; i < 2; i++)
@@ -165,7 +175,7 @@ Node StringsRewriter::rewriteStringLeq(Node n)
     if (n[i].isConst() && n[i].getConst<String>().isEmptyString())
     {
       Node ret = i == 0 ? nm->mkConst(true) : n[0].eqNode(n[1]);
-      return returnRewrite(n, ret, "str-leq-empty");
+      return returnRewrite(n, ret, Rewrite::STR_LEQ_EMPTY);
     }
   }
 
@@ -189,7 +199,7 @@ Node StringsRewriter::rewriteStringLeq(Node n)
     if (!s.isLeq(t))
     {
       Node ret = nm->mkConst(false);
-      return returnRewrite(n, ret, "str-leq-cprefix");
+      return returnRewrite(n, ret, Rewrite::STR_LEQ_CPREFIX);
     }
   }
   return n;
@@ -213,7 +223,7 @@ Node StringsRewriter::rewriteStringFromCode(Node n)
     {
       ret = nm->mkConst(String(""));
     }
-    return returnRewrite(n, ret, "from-code-eval");
+    return returnRewrite(n, ret, Rewrite::FROM_CODE_EVAL);
   }
   return n;
 }
@@ -236,9 +246,21 @@ Node StringsRewriter::rewriteStringToCode(Node n)
     {
       ret = nm->mkConst(Rational(-1));
     }
-    return returnRewrite(n, ret, "to-code-eval");
+    return returnRewrite(n, ret, Rewrite::TO_CODE_EVAL);
   }
   return n;
+}
+
+Node StringsRewriter::rewriteStringIsDigit(Node n)
+{
+  Assert(n.getKind() == kind::STRING_IS_DIGIT);
+  NodeManager* nm = NodeManager::currentNM();
+  // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
+  Node t = nm->mkNode(STRING_TO_CODE, n[0]);
+  Node retNode = nm->mkNode(AND,
+                            nm->mkNode(LEQ, nm->mkConst(Rational(48)), t),
+                            nm->mkNode(LEQ, t, nm->mkConst(Rational(57))));
+  return returnRewrite(n, retNode, Rewrite::IS_DIGIT_ELIM);
 }
 
 }  // namespace strings

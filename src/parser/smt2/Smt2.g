@@ -782,8 +782,24 @@ sygusGrammarV1[CVC4::api::Sort & ret,
       Debug("parser-sygus") << "  " << i << " : " << datatypes[i].getName()
                             << std::endl;
     }
-    std::vector<api::Sort> datatypeTypes =
-        PARSER_STATE->bindMutualDatatypeTypes(datatypes, false);
+
+    std::vector<CVC4::Datatype> dtypes;
+    dtypes.reserve(ndatatypes);
+
+    for (api::DatatypeDecl i : datatypes)
+    {
+      dtypes.push_back(i.getDatatype());
+    }
+
+    std::set<Type> tset =
+        api::sortSetToTypes(PARSER_STATE->getUnresolvedSorts());
+
+    std::vector<DatatypeType> datatypeTypes =
+        SOLVER->getExprManager()->mkMutualDatatypeTypes(
+            dtypes, tset, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+
+    PARSER_STATE->getUnresolvedSorts().clear();
+
     ret = datatypeTypes[0];
   };
 
@@ -2296,6 +2312,7 @@ quantOp[CVC4::api::Kind& kind]
 }
   : EXISTS_TOK    { $kind = api::EXISTS; }
   | FORALL_TOK    { $kind = api::FORALL; }
+  | CHOICE_TOK    { $kind = api::CHOICE; }
   ;
 
 /**
@@ -2666,6 +2683,7 @@ ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 // operators (NOTE: theory symbols go here)
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
+CHOICE_TOK        : { !PARSER_STATE->strictModeEnabled() }? 'choice';
 
 EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
