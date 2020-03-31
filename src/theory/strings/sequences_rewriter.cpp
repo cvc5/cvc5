@@ -674,7 +674,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
   {
     if (node[1 - i].getKind() == STRING_CONCAT)
     {
-      new_ret = inferEqsFromContains(node[i], node[1 - i]);
+      new_ret = StringsEntail::inferEqsFromContains(node[i], node[1 - i]);
       if (!new_ret.isNull())
       {
         return returnRewrite(node, new_ret, Rewrite::STR_EQ_CONJ_LEN_ENTAIL);
@@ -2968,7 +2968,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
       {
         std::vector<Node> emptyNodes;
         bool allEmptyEqs;
-        std::tie(allEmptyEqs, emptyNodes) = collectEmptyEqs(rn1);
+        std::tie(allEmptyEqs, emptyNodes) = utils::collectEmptyEqs(rn1);
 
         if (allEmptyEqs)
         {
@@ -3054,7 +3054,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
 
     std::vector<Node> emptyNodes;
     bool allEmptyEqs;
-    std::tie(allEmptyEqs, emptyNodes) = collectEmptyEqs(cmp_conr);
+    std::tie(allEmptyEqs, emptyNodes) = utils::collectEmptyEqs(cmp_conr);
 
     if (emptyNodes.size() > 0)
     {
@@ -3552,7 +3552,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
 
   // Check if we can turn the prefix/suffix into equalities by showing that the
   // prefix/suffix is at least as long as the string
-  Node eqs = inferEqsFromContains(n[1], n[0]);
+  Node eqs = StringsEntail::inferEqsFromContains(n[1], n[0]);
   if (!eqs.isNull())
   {
     return returnRewrite(n, eqs, Rewrite::SUF_PREFIX_TO_EQS);
