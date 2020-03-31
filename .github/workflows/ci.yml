@@ -27,6 +27,14 @@ jobs:
             python-bindings: true
             check-examples: true
 
+          - name: production-clang
+            config: production
+            cache-key: production-clang
+            check-examples: true
+            env:
+              CC: clang
+              CXX: clang++
+
           - name: debug
             config: debug --symfpu --lfsc --no-debug-symbols
             cache-key: debug
@@ -124,12 +132,11 @@ jobs:
 
     - name: Configure
       run: |
-        ./configure.sh ${{ matrix.config }} \
+        ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
           --python3 \
           --prefix=$(pwd)/build/install \
           --unit-testing
-#      Enable for clang
-#      env: ${{ matrix.env }}
+      env: ${{ matrix.env }}
 
     - name: Build
       run: make -j2
@@ -160,7 +167,7 @@ jobs:
 
       # Examples are built for non-symfpu builds
     - name: Check Examples
-      if: matrix.check-examples
+      if: matrix.check-examples && runner.os == 'Linux'
       run: |
         mkdir build
         cd build
