@@ -114,22 +114,21 @@ class CVC4_PUBLIC Result
   bool isSatUnknown() const;
 
   /**
-   * Return true if corresponding query was a valid checkValid() or
-   * checkValidAssuming() query.
+   * Return true if corresponding query was an entailed checkEntailed() query.
    */
-  bool isValid() const;
+  bool isEntailed() const;
 
   /**
-   * Return true if corresponding query was an invalid checkValid() or
-   * checkValidAssuming() query.
+   * Return true if corresponding query was a checkEntailed() query that is
+   * not entailed.
    */
-  bool isInvalid() const;
+  bool isNotEntailed() const;
 
   /**
-   * Return true if query was a checkValid() or checkValidAssuming() query
-   * and CVC4 was not able to determine (in)validity.
+   * Return true if query was a checkEntailed() () query and CVC4 was not able
+   * to determine if it is entailed.
    */
-  bool isValidUnknown() const;
+  bool isEntailmentUnknown() const;
 
   /**
    * Operator overloading for equality of two results.
@@ -2555,24 +2554,19 @@ class CVC4_PUBLIC Solver
   Result checkSatAssuming(const std::vector<Term>& assumptions) const;
 
   /**
-   * Check validity.
-   * @return the result of the validity check.
+   * Check entailment of the given formula w.r.t. the current set of assertions.
+   * @param term the formula to check entailment for
+   * @return the result of the entailment check.
    */
-  Result checkValid() const;
+  Result checkEntailed(Term term) const;
 
   /**
-   * Check validity assuming the given formula.
-   * @param assumption the formula to assume
-   * @return the result of the validity check.
+   * Check entailment of the given set of given formulas w.r.t. the current
+   * set of assertions.
+   * @param terms the terms to check entailment for
+   * @return the result of the entailmentcheck.
    */
-  Result checkValidAssuming(Term assumption) const;
-
-  /**
-   * Check validity assuming the given formulas.
-   * @param assumptions the formulas to assume
-   * @return the result of the validity check.
-   */
-  Result checkValidAssuming(const std::vector<Term>& assumptions) const;
+  Result checkEntailed(const std::vector<Term>& terms) const;
 
   /**
    * Create datatype sort.
