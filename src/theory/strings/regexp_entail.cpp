@@ -14,9 +14,9 @@
 
 #include "theory/strings/regexp_entail.h"
 
+#include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -564,7 +564,6 @@ bool RegExpEntail::hasEpsilonNode(TNode node)
   }
   return false;
 }
-
 
 Node RegExpEntail::getFixedLengthForRegexp(Node n)
 {

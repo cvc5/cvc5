@@ -93,21 +93,21 @@ class RegExpEntail
                                   int dir = -1);
   /** Is t a constant regular expression? */
   static bool isConstRegExp(TNode t);
-  /** 
+  /**
    * Does the substring of s starting at index_start occur in constant regular
-   * expression r? 
+   * expression r?
    */
   static bool testConstStringInRegExp(CVC4::String& s,
                                       unsigned index_start,
                                       TNode r);
   /** Does regular expression node have (str.to.re "") as a child? */
   static bool hasEpsilonNode(TNode node);
-/** get length for regular expression
- *
- * Given regular expression n, if this method returns a non-null value c, then
- * x in n entails len( x ) = c.
- */
-static Node getFixedLengthForRegexp(Node n);
+  /** get length for regular expression
+   *
+   * Given regular expression n, if this method returns a non-null value c, then
+   * x in n entails len( x ) = c.
+   */
+  static Node getFixedLengthForRegexp(Node n);
 };
 
 }  // namespace strings

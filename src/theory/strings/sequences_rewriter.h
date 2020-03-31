@@ -229,11 +229,11 @@ class SequencesRewriter : public TheoryRewriter
   static Node lengthPreserveRewrite(Node n);
 
   /**
-  * Given a symbolic length n, returns the canonical string (of type stype)
-  * for that length. For example if n is constant, this function returns a
-  * string consisting of "A" repeated n times. Returns the null node if no such
-  * string exists.
-  */
+   * Given a symbolic length n, returns the canonical string (of type stype)
+   * for that length. For example if n is constant, this function returns a
+   * string consisting of "A" repeated n times. Returns the null node if no such
+   * string exists.
+   */
   static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 }; /* class SequencesRewriter */
 

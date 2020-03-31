@@ -17,8 +17,8 @@
 
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/regexp_entail.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

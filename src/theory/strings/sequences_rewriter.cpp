@@ -16,15 +16,15 @@
 
 #include "theory/strings/sequences_rewriter.h"
 
+#include "expr/attribute.h"
 #include "expr/node_builder.h"
+#include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "expr/attribute.h"
-#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -3029,7 +3029,6 @@ Node SequencesRewriter::lengthPreserveRewrite(Node n)
   Node res = canonicalStrForSymbolicLength(len, n.getType());
   return res.isNull() ? n : res;
 }
-
 
 Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
 {
