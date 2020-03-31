@@ -47,7 +47,6 @@ set(options_toml_files
   decision_options.toml
   expr_options.toml
   fp_options.toml
-  idl_options.toml
   main_options.toml
   parser_options.toml
   printer_options.toml

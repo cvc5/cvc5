@@ -427,14 +427,6 @@ libcvc4_add_sources(
   theory/fp/theory_fp_rewriter.h
   theory/fp/theory_fp_type_rules.h
   theory/fp/type_enumerator.h
-  theory/idl/idl_assertion.cpp
-  theory/idl/idl_assertion.h
-  theory/idl/idl_assertion_db.cpp
-  theory/idl/idl_assertion_db.h
-  theory/idl/idl_model.cpp
-  theory/idl/idl_model.h
-  theory/idl/theory_idl.cpp
-  theory/idl/theory_idl.h
   theory/interrupted.h
   theory/logic_info.cpp
   theory/logic_info.h
@@ -769,8 +761,7 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/idl/kinds)
+  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories
@@ -905,7 +896,6 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
-          expr/expr_stream.h
           expr/record.h
           expr/symbol_table.h
           expr/type.h
