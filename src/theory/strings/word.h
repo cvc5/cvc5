@@ -142,11 +142,14 @@ class Word
   /** Split constant
    *
    * This returns the suffix remainder (resp. prefix remainder when isRev is
-   * true) r of words a and b, such that:
-   * (1) a ++ r = b, or
-   * (2) a = b ++ r
-   * when isRev = false.  The argument index is set to 0 if we are in the first
-   * case, and 1 if we are in the second case.
+   * true) of words a and b, call it r, such that:
+   * (1) a = b ++ r , or
+   * (2) a ++ r = b
+   * when isRev = false.  The argument index is set to 1 if we are in the second
+   * case, and 0 otherwise.
+   *
+   * If a and b do not share a common prefix (resp. suffix), then this method
+   * returns the null node.
    */
   static Node splitConstant(Node a, Node b, int& index, bool isRev);
 };
