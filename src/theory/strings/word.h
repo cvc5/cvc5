@@ -141,7 +141,12 @@ class Word
   static std::size_t roverlap(TNode x, TNode y);
   /** Split constant
    *
-   * FIXME
+   * This returns the suffix remainder (resp. prefix remainder when isRev is
+   * true) r of words a and b, such that:
+   * (1) a ++ r = b, or
+   * (2) a = b ++ r
+   * when isRev = false.  The argument index is set to 0 if we are in the first
+   * case, and 1 if we are in the second case.
    */
   static Node splitConstant(Node a, Node b, int& index, bool isRev);
 };
