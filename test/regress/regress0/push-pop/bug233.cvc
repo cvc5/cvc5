@@ -3,7 +3,7 @@
 
 a, b: BOOLEAN;
 
-% EXPECT: valid
+% EXPECT: entailed
 QUERY (a AND b) OR NOT (a AND b);
 
 % EXPECT: invalid

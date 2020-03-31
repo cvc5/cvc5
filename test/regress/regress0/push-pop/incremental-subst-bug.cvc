@@ -4,11 +4,11 @@ x, y : U;
 % EXPECT: invalid
 QUERY x = y;
 ASSERT x = y;
-% EXPECT: valid
+% EXPECT: entailed
 QUERY x = y;
 PUSH;
 z : U;
-% EXPECT: valid
+% EXPECT: entailed
 QUERY x = y;
 % EXPECT: invalid
 QUERY x = z;
