@@ -17,7 +17,6 @@
 
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
-#include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace CVC4;
@@ -71,7 +70,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
   for (unsigned i = 0, size = children.size(); i < size; i++)
   {
     Node c = children[i];
-    Node fl = SequencesRewriter::getFixedLengthForRegexp(c);
+    Node fl = utils::getFixedLengthForRegexp(c);
     if (fl.isNull())
     {
       if (!hasPivotIndex && c.getKind() == REGEXP_STAR

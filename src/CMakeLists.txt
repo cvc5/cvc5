@@ -664,6 +664,8 @@ libcvc4_add_sources(
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/strings/arith_entail.cpp
+  theory/strings/arith_entail.h
   theory/strings/base_solver.cpp
   theory/strings/base_solver.h
   theory/strings/core_solver.cpp
