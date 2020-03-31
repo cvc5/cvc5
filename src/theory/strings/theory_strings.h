@@ -354,7 +354,7 @@ private:
    *
    * Ensures the theory solver is setup to handle string-like type tn. In
    * particular, this includes:
-   * - Adding the empty word for tn to the equality engine.
+   * - Calling preRegisterTerm on the empty word for tn
    */
   void registerType(TypeNode tn);
 
