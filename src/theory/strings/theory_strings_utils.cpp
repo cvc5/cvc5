@@ -293,6 +293,24 @@ TypeNode getOwnerStringType(Node n)
   return tn;
 }
 
+unsigned getRepeatAmount(TNode node)
+{
+  Assert(node.getKind() == REGEXP_REPEAT);
+  return node.getOperator().getConst<RegExpRepeat>().d_repeatAmount;
+}
+
+unsigned getLoopMaxOccurrences(TNode node)
+{
+  Assert(node.getKind() == REGEXP_LOOP);
+  return node.getOperator().getConst<RegExpLoop>().d_loopMaxOcc;
+}
+
+unsigned getLoopMinOccurrences(TNode node)
+{
+  Assert(node.getKind() == REGEXP_LOOP);
+  return node.getOperator().getConst<RegExpLoop>().d_loopMinOcc;
+}
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
