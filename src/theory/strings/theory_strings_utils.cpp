@@ -679,10 +679,10 @@ bool componentContainsBase(
         {
           // (str.contains (str.replace x y z) w) ---> true
           // if (str.contains x w) --> true and (str.contains z w) ---> true
-          Node xCtnW = checkEntailContains(n1[0], n2);
+          Node xCtnW = StringsEntail::checkContains(n1[0], n2);
           if (!xCtnW.isNull() && xCtnW.getConst<bool>())
           {
-            Node zCtnW = checkEntailContains(n1[2], n2);
+            Node zCtnW = StringsEntail::checkContains(n1[2], n2);
             if (!zCtnW.isNull() && zCtnW.getConst<bool>())
             {
               return true;
@@ -940,10 +940,8 @@ Node canonicalStrForSymbolicLength(Node len, TypeNode stype)
   return res;
 }
 
-std::pair<bool, std::vector<Node> > SequencesRewriter::collectEmptyEqs(Node x)
+std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
 {
-  NodeManager* nm = NodeManager::currentNM();
-
   // Collect the equalities of the form (= x "") (sorted)
   std::set<TNode> emptyNodes;
   bool allEmptyEqs = true;

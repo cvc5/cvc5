@@ -12,12 +12,14 @@
  ** \brief Implementation of entailment tests involving strings.
  **/
 
-#include "theory/strings/string_entail.h"
+#include "theory/strings/strings_entail.h"
 
 #include "expr/node_builder.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "theory/rewriter.h"
+#include "theory/strings/sequences_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -40,7 +42,7 @@ Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
     do
     {
       prev = ctn;
-      ctn = rewriteContains(ctn);
+      ctn = SequencesRewriter::rewriteContains(ctn);
     } while (prev != ctn && ctn.getKind() == kind::STRING_STRCTN);
   }
 
@@ -228,7 +230,7 @@ Node StringsEntail::getStringOrEmpty(Node n)
           break;
         }
 
-        if (checkEntailLengthOne(n[0]) && n[2] == empty)
+        if (checkLengthOne(n[0]) && n[2] == empty)
         {
           // (str.replace "A" x "") --> "A"
           res = n[0];
@@ -240,7 +242,7 @@ Node StringsEntail::getStringOrEmpty(Node n)
       }
       case kind::STRING_SUBSTR:
       {
-        if (checkEntailLengthOne(n[0]))
+        if (checkLengthOne(n[0]))
         {
           // (str.substr "A" x y) --> "A"
           res = n[0];
