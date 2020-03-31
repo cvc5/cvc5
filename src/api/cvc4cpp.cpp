@@ -2359,10 +2359,7 @@ Term Solver::mkCharFromStrHelper(std::string s) const
                      == std::string::npos
                  && s.size() <= 5 && s.size() > 0)
       << "Unexpected string for hexidecimal character " << s;
-  std::stringstream hexString;
-  hexString << s;
-  uint32_t val;
-  hexString >> std::hex >> val;
+  uint32_t val = static_cast<uint32_t>(std::stoul(s, 0, 16));
   CVC4_API_CHECK(val < String::num_codes())
       << "Not a valid code point for hexidecimal character " << s;
   std::vector<unsigned> cpts;
