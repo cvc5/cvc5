@@ -373,23 +373,6 @@ class SequencesRewriter : public TheoryRewriter
    */
   static Node getMultisetApproximation(Node a);
 
-  /** decompose substr chain
-   *
-   * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
-   * function returns base, adds { x1 ... xn } to ss, and { y1 ... yn } to ls.
-   */
-  static Node decomposeSubstrChain(Node s,
-                                   std::vector<Node>& ss,
-                                   std::vector<Node>& ls);
-  /** make substr chain
-   *
-   * If ss is { x1 ... xn } and ls is { y1 ... yn }, this returns the term
-   * substr( ... substr( base, x1, y1 ) ..., xn, yn ).
-   */
-  static Node mkSubstrChain(Node base,
-                            const std::vector<Node>& ss,
-                            const std::vector<Node>& ls);
-
   /**
    * Overapproximates the possible values of node n. This overapproximation
    * assumes that n can return a value x or the empty string and tries to find

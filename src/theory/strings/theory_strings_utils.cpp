@@ -19,6 +19,8 @@
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/word.h"
+#include "theory/strings/arith_entail.h"
+#include "theory/strings/strings_entail.h"
 
 using namespace CVC4::kind;
 
@@ -179,6 +181,35 @@ Node getConstantEndpoint(Node e, bool isSuf)
 }
 
 
+Node decomposeSubstrChain(Node s,
+                                             std::vector<Node>& ss,
+                                             std::vector<Node>& ls)
+{
+  Assert(ss.empty());
+  Assert(ls.empty());
+  while (s.getKind() == STRING_SUBSTR)
+  {
+    ss.push_back(s[1]);
+    ls.push_back(s[2]);
+    s = s[0];
+  }
+  std::reverse(ss.begin(), ss.end());
+  std::reverse(ls.begin(), ls.end());
+  return s;
+}
+
+Node mkSubstrChain(Node base,
+                                      const std::vector<Node>& ss,
+                                      const std::vector<Node>& ls)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  for (unsigned i = 0, size = ss.size(); i < size; i++)
+  {
+    base = nm->mkNode(STRING_SUBSTR, base, ss[i], ls[i]);
+  }
+  return base;
+}
+
 Node splitConstant(Node a, Node b, int& index, bool isRev)
 {
   Assert(a.isConst() && b.isConst());
@@ -214,7 +245,7 @@ bool canConstantContainConcat(Node c,
   Assert(c.isConst());
   CVC4::String t = c.getConst<String>();
   const std::vector<unsigned>& tvec = t.getVec();
-  Assert(n.getKind() == kind::STRING_CONCAT);
+  Assert(n.getKind() == STRING_CONCAT);
   // must find constant components in order
   size_t pos = 0;
   firstc = -1;
@@ -236,7 +267,7 @@ bool canConstantContainConcat(Node c,
         pos = new_pos + s.size();
       }
     }
-    else if (n[i].getKind() == kind::STRING_ITOS && checkEntailArith(n[i][0]))
+    else if (n[i].getKind() == STRING_ITOS && ArithEntail::check(n[i][0]))
     {
       // find the first occurrence of a digit starting at pos
       while (pos < tvec.size() && !String::isDigit(tvec[pos]))
@@ -305,26 +336,26 @@ bool stripSymbolicLength(std::vector<Node>& n1,
       if (n1[sindex_use].isConst())
       {
         // could strip part of a constant
-        Node lowerBound = getConstantArithBound(Rewriter::rewrite(curr));
+        Node lowerBound = ArithEntail::getConstantBound(Rewriter::rewrite(curr));
         if (!lowerBound.isNull())
         {
           Assert(lowerBound.isConst());
           Rational lbr = lowerBound.getConst<Rational>();
           if (lbr.sgn() > 0)
           {
-            Assert(checkEntailArith(curr, true));
+            Assert(ArithEntail::check(curr, true));
             CVC4::String s = n1[sindex_use].getConst<String>();
             Node ncl =
                 NodeManager::currentNM()->mkConst(CVC4::Rational(s.size()));
             Node next_s =
-                NodeManager::currentNM()->mkNode(kind::MINUS, lowerBound, ncl);
+                NodeManager::currentNM()->mkNode(MINUS, lowerBound, ncl);
             next_s = Rewriter::rewrite(next_s);
             Assert(next_s.isConst());
             // we can remove the entire constant
             if (next_s.getConst<Rational>().sgn() >= 0)
             {
               curr = Rewriter::rewrite(
-                  NodeManager::currentNM()->mkNode(kind::MINUS, curr, ncl));
+                  NodeManager::currentNM()->mkNode(MINUS, curr, ncl));
               success = true;
               sindex++;
             }
@@ -335,7 +366,7 @@ bool stripSymbolicLength(std::vector<Node>& n1,
               // hence lowerBound cannot be larger than long max
               Assert(lbr < Rational(String::maxSize()));
               curr = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-                  kind::MINUS, curr, lowerBound));
+                  MINUS, curr, lowerBound));
               uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
               Assert(lbsize < s.size());
               if (dir == 1)
@@ -356,7 +387,7 @@ bool stripSymbolicLength(std::vector<Node>& n1,
               }
               ret = true;
             }
-            Assert(checkEntailArith(curr));
+            Assert(ArithEntail::check(curr));
           }
           else
           {
@@ -367,12 +398,12 @@ bool stripSymbolicLength(std::vector<Node>& n1,
       else
       {
         Node next_s = NodeManager::currentNM()->mkNode(
-            kind::MINUS,
+            MINUS,
             curr,
-            NodeManager::currentNM()->mkNode(kind::STRING_LENGTH,
+            NodeManager::currentNM()->mkNode(STRING_LENGTH,
                                              n1[sindex_use]));
         next_s = Rewriter::rewrite(next_s);
-        if (checkEntailArith(next_s))
+        if (ArithEntail::check(next_s))
         {
           success = true;
           curr = next_s;
@@ -431,7 +462,7 @@ int componentContains(std::vector<Node>& n1,
           else if (!n1re.isNull())
           {
             n1[i] = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-                kind::STRING_CONCAT, n1[i], n1re));
+                STRING_CONCAT, n1[i], n1re));
           }
           if (remainderDir != 1)
           {
@@ -445,7 +476,7 @@ int componentContains(std::vector<Node>& n1,
           else if (!n1rb.isNull())
           {
             n1[i] = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-                kind::STRING_CONCAT, n1rb, n1[i]));
+                STRING_CONCAT, n1rb, n1[i]));
           }
         }
         return i;
@@ -592,19 +623,19 @@ bool componentContainsBase(
     {
       // cases for:
       //   n1 = x   containing   n2 = substr( x, n2[1], n2[2] )
-      if (n2.getKind() == kind::STRING_SUBSTR)
+      if (n2.getKind() == STRING_SUBSTR)
       {
         if (n2[0] == n1)
         {
           bool success = true;
           Node start_pos = n2[1];
-          Node end_pos = nm->mkNode(kind::PLUS, n2[1], n2[2]);
-          Node len_n2s = nm->mkNode(kind::STRING_LENGTH, n2[0]);
+          Node end_pos = nm->mkNode(PLUS, n2[1], n2[2]);
+          Node len_n2s = nm->mkNode(STRING_LENGTH, n2[0]);
           if (dir == 1)
           {
             // To be a suffix, start + length must be greater than
             // or equal to the length of the string.
-            success = checkEntailArith(end_pos, len_n2s);
+            success = ArithEntail::check(end_pos, len_n2s);
           }
           else if (dir == -1)
           {
@@ -621,20 +652,20 @@ bool componentContainsBase(
             {
               // we can only compute the remainder if start_pos and end_pos
               // are known to be non-negative.
-              if (!checkEntailArith(start_pos) || !checkEntailArith(end_pos))
+              if (!ArithEntail::check(start_pos) || !ArithEntail::check(end_pos))
               {
                 return false;
               }
               if (dir != 1)
               {
-                n1rb = nm->mkNode(kind::STRING_SUBSTR,
+                n1rb = nm->mkNode(STRING_SUBSTR,
                                   n2[0],
                                   nm->mkConst(Rational(0)),
                                   start_pos);
               }
               if (dir != -1)
               {
-                n1re = nm->mkNode(kind::STRING_SUBSTR, n2[0], end_pos, len_n2s);
+                n1re = nm->mkNode(STRING_SUBSTR, n2[0], end_pos, len_n2s);
               }
             }
             return true;
@@ -773,7 +804,7 @@ bool stripConstantEndpoints(std::vector<Node>& n1,
           }
         }
       }
-      else if (n1cmp.getKind() == kind::STRING_ITOS)
+      else if (n1cmp.getKind() == STRING_ITOS)
       {
         if (n2[index1].isConst())
         {
@@ -850,7 +881,7 @@ Node canonicalStrForSymbolicLength(Node len, TypeNode stype)
   NodeManager* nm = NodeManager::currentNM();
 
   Node res;
-  if (len.getKind() == kind::CONST_RATIONAL)
+  if (len.getKind() == CONST_RATIONAL)
   {
     // c -> "A" repeated c times
     Rational ratLen = len.getConst<Rational>();
@@ -866,10 +897,10 @@ Node canonicalStrForSymbolicLength(Node len, TypeNode stype)
       Unimplemented() << "canonicalStrForSymbolicLength for non-string";
     }
   }
-  else if (len.getKind() == kind::PLUS)
+  else if (len.getKind() == PLUS)
   {
     // x + y -> norm(x) + norm(y)
-    NodeBuilder<> concatBuilder(kind::STRING_CONCAT);
+    NodeBuilder<> concatBuilder(STRING_CONCAT);
     for (const auto& n : len)
     {
       Node sn = canonicalStrForSymbolicLength(n, stype);
@@ -883,7 +914,7 @@ Node canonicalStrForSymbolicLength(Node len, TypeNode stype)
     }
     res = concatBuilder.constructNode();
   }
-  else if (len.getKind() == kind::MULT && len.getNumChildren() == 2
+  else if (len.getKind() == MULT && len.getNumChildren() == 2
            && len[0].isConst())
   {
     // c * x -> norm(x) repeated c times
@@ -894,19 +925,72 @@ Node canonicalStrForSymbolicLength(Node len, TypeNode stype)
     Node nRep = canonicalStrForSymbolicLength(len[1], stype);
     std::vector<Node> nRepChildren;
     utils::getConcat(nRep, nRepChildren);
-    NodeBuilder<> concatBuilder(kind::STRING_CONCAT);
+    NodeBuilder<> concatBuilder(STRING_CONCAT);
     for (size_t i = 0, reps = intReps.getUnsignedInt(); i < reps; i++)
     {
       concatBuilder.append(nRepChildren);
     }
     res = concatBuilder.constructNode();
   }
-  else if (len.getKind() == kind::STRING_LENGTH)
+  else if (len.getKind() == STRING_LENGTH)
   {
     // len(x) -> x
     res = len[0];
   }
   return res;
+}
+
+std::pair<bool, std::vector<Node> > SequencesRewriter::collectEmptyEqs(Node x)
+{
+  NodeManager* nm = NodeManager::currentNM();
+
+  // Collect the equalities of the form (= x "") (sorted)
+  std::set<TNode> emptyNodes;
+  bool allEmptyEqs = true;
+  if (x.getKind() == EQUAL)
+  {
+    if (Word::isEmpty(x[0]))
+    {
+      emptyNodes.insert(x[1]);
+    }
+    else if (Word::isEmpty(x[1]))
+    {
+      emptyNodes.insert(x[0]);
+    }
+    else
+    {
+      allEmptyEqs = false;
+    }
+  }
+  else if (x.getKind() == AND)
+  {
+    for (const Node& c : x)
+    {
+      if (c.getKind() == EQUAL)
+      {
+        if (Word::isEmpty(c[0]))
+        {
+          emptyNodes.insert(c[1]);
+        }
+        else if (Word::isEmpty(c[1]))
+        {
+          emptyNodes.insert(c[0]);
+        }
+      }
+      else
+      {
+        allEmptyEqs = false;
+      }
+    }
+  }
+
+  if (emptyNodes.size() == 0)
+  {
+    allEmptyEqs = false;
+  }
+
+  return std::make_pair(
+      allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
 }
 
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
@@ -1095,7 +1179,6 @@ Node getFixedLengthForRegexp(Node n)
   }
   return Node::null();
 }
-
 
 }  // namespace utils
 }  // namespace strings

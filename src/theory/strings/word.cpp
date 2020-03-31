@@ -99,7 +99,7 @@ std::vector<Node> Word::getChars(TNode x)
   return ret;
 }
 
-bool Word::isEmpty(TNode x) { return getLength(x) == 0; }
+bool Word::isEmpty(TNode x) { return x.isConst() && getLength(x) == 0; }
 
 bool Word::strncmp(TNode x, TNode y, std::size_t n)
 {

@@ -3755,35 +3755,6 @@ Node SequencesRewriter::getMultisetApproximation(Node a)
   }
 }
 
-Node SequencesRewriter::decomposeSubstrChain(Node s,
-                                             std::vector<Node>& ss,
-                                             std::vector<Node>& ls)
-{
-  Assert(ss.empty());
-  Assert(ls.empty());
-  while (s.getKind() == STRING_SUBSTR)
-  {
-    ss.push_back(s[1]);
-    ls.push_back(s[2]);
-    s = s[0];
-  }
-  std::reverse(ss.begin(), ss.end());
-  std::reverse(ls.begin(), ls.end());
-  return s;
-}
-
-Node SequencesRewriter::mkSubstrChain(Node base,
-                                      const std::vector<Node>& ss,
-                                      const std::vector<Node>& ls)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  for (unsigned i = 0, size = ss.size(); i < size; i++)
-  {
-    base = nm->mkNode(STRING_SUBSTR, base, ss[i], ls[i]);
-  }
-  return base;
-}
-
 Node SequencesRewriter::getStringOrEmpty(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -3920,60 +3891,6 @@ Node SequencesRewriter::inferEqsFromContains(Node x, Node y)
 
   // (and (= x (str.++ y1' ... ym')) (= y1'' "") ... (= yk'' ""))
   return nb.constructNode();
-}
-
-std::pair<bool, std::vector<Node> > SequencesRewriter::collectEmptyEqs(Node x)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  Node empty = nm->mkConst(::CVC4::String(""));
-
-  // Collect the equalities of the form (= x "") (sorted)
-  std::set<TNode> emptyNodes;
-  bool allEmptyEqs = true;
-  if (x.getKind() == kind::EQUAL)
-  {
-    if (x[0] == empty)
-    {
-      emptyNodes.insert(x[1]);
-    }
-    else if (x[1] == empty)
-    {
-      emptyNodes.insert(x[0]);
-    }
-    else
-    {
-      allEmptyEqs = false;
-    }
-  }
-  else if (x.getKind() == kind::AND)
-  {
-    for (const Node& c : x)
-    {
-      if (c.getKind() == kind::EQUAL)
-      {
-        if (c[0] == empty)
-        {
-          emptyNodes.insert(c[1]);
-        }
-        else if (c[1] == empty)
-        {
-          emptyNodes.insert(c[0]);
-        }
-      }
-      else
-      {
-        allEmptyEqs = false;
-      }
-    }
-  }
-
-  if (emptyNodes.size() == 0)
-  {
-    allEmptyEqs = false;
-  }
-
-  return std::make_pair(
-      allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
 }
 
 Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)

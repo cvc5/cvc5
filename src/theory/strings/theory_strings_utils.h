@@ -102,9 +102,26 @@ Node getConstantComponent(Node t);
  */
 Node getConstantEndpoint(Node e, bool isSuf);
 
+/** decompose substr chain
+  *
+  * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
+  * function returns base, adds { x1 ... xn } to ss, and { y1 ... yn } to ls.
+  */
+Node decomposeSubstrChain(Node s,
+                                  std::vector<Node>& ss,
+                                  std::vector<Node>& ls);
+/** make substr chain
+  *
+  * If ss is { x1 ... xn } and ls is { y1 ... yn }, this returns the term
+  * substr( ... substr( base, x1, y1 ) ..., xn, yn ).
+  */
+Node mkSubstrChain(Node base,
+                          const std::vector<Node>& ss,
+                          const std::vector<Node>& ls);
+
 /** Split constant 
  * 
- * 
+ * FIXME
  */
 Node splitConstant(Node a, Node b, int& index, bool isRev);
 
@@ -334,6 +351,26 @@ bool stripConstantEndpoints(std::vector<Node>& n1,
   */
 Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 
+/**
+  * Collects equal-to-empty nodes from a conjunction or a single
+  * node. Returns a list of nodes that are compared to empty nodes
+  * and a boolean that indicates whether all nodes in the
+  * conjunction were a comparison with the empty node. The nodes in
+  * the list are sorted and duplicates removed.
+  *
+  * Examples:
+  *
+  * collectEmptyEqs( (= "" x) ) = { true, [x] }
+  * collectEmptyEqs( (and (= "" x) (= "" y)) ) = { true, [x, y] }
+  * collectEmptyEqs( (and (= "A" x) (= "" y) (= "" y)) ) = { false, [y] }
+  *
+  * @param x The conjunction of equalities or a single equality
+  * @return A pair of a boolean that indicates whether the
+  * conjunction consists only of comparisons to the empty string
+  * and the list of nodes that are compared to the empty string
+  */
+std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
+  
 /**
  * Given a vector of regular expression nodes and a start index that points to
  * a wildcard, returns true if the wildcard is unbounded (i.e. it is followed

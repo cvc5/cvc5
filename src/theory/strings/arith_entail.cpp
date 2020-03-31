@@ -33,12 +33,9 @@ bool ArithEntail::checkEq(Node a, Node b)
   {
     return true;
   }
-  else
-  {
-    Node ar = Rewriter::rewrite(a);
-    Node br = Rewriter::rewrite(b);
-    return ar == br;
-  }
+  Node ar = Rewriter::rewrite(a);
+  Node br = Rewriter::rewrite(b);
+  return ar == br;
 }
 
 bool ArithEntail::check(Node a, Node b, bool strict)
@@ -47,11 +44,8 @@ bool ArithEntail::check(Node a, Node b, bool strict)
   {
     return !strict;
   }
-  else
-  {
-    Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
-    return check(diff, strict);
-  }
+  Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
+  return check(diff, strict);
 }
 
 struct StrCheckEntailArithTag
@@ -706,7 +700,7 @@ bool ArithEntail::checkWithAssumptions(
   return res;
 }
 
-Node ArithEntail::getConstantArithBound(Node a, bool isLower)
+Node ArithEntail::getConstantBound(Node a, bool isLower)
 {
   Assert(Rewriter::rewrite(a) == a);
   Node ret;
@@ -727,7 +721,7 @@ Node ArithEntail::getConstantArithBound(Node a, bool isLower)
     bool success = true;
     for (unsigned i = 0; i < a.getNumChildren(); i++)
     {
-      Node ac = getConstantArithBound(a[i], isLower);
+      Node ac = getConstantBound(a[i], isLower);
       if (ac.isNull())
       {
         ret = ac;

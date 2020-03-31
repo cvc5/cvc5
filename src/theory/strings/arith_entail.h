@@ -143,7 +143,7 @@ public:
    *     if and only if
    *   check( a, strict ) = true.
    */
-  static Node getConstantArithBound(Node a, bool isLower = true);
+  static Node getConstantBound(Node a, bool isLower = true);
 
   /**
    * Given an inequality y1 + ... + yn >= x, removes operands yi s.t. the
