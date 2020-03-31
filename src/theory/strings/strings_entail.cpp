@@ -27,7 +27,10 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-bool StringsEntail::canConstantContainConcat(Node c, Node n, int& firstc, int& lastc)
+bool StringsEntail::canConstantContainConcat(Node c,
+                                             Node n,
+                                             int& firstc,
+                                             int& lastc)
 {
   Assert(c.isConst());
   CVC4::String t = c.getConst<String>();
@@ -73,9 +76,9 @@ bool StringsEntail::canConstantContainConcat(Node c, Node n, int& firstc, int& l
 }
 
 bool StringsEntail::canConstantContainList(Node c,
-                            std::vector<Node>& l,
-                            int& firstc,
-                            int& lastc)
+                                           std::vector<Node>& l,
+                                           int& firstc,
+                                           int& lastc)
 {
   Assert(c.isConst());
   // must find constant components in order
@@ -103,9 +106,9 @@ bool StringsEntail::canConstantContainList(Node c,
 }
 
 bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
-                         std::vector<Node>& nr,
-                         int dir,
-                         Node& curr)
+                                        std::vector<Node>& nr,
+                                        int dir,
+                                        Node& curr)
 {
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
@@ -217,11 +220,11 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
 }
 
 int StringsEntail::componentContains(std::vector<Node>& n1,
-                      std::vector<Node>& n2,
-                      std::vector<Node>& nb,
-                      std::vector<Node>& ne,
-                      bool computeRemainder,
-                      int remainderDir)
+                                     std::vector<Node>& n2,
+                                     std::vector<Node>& nb,
+                                     std::vector<Node>& ne,
+                                     bool computeRemainder,
+                                     int remainderDir)
 {
   Assert(nb.empty());
   Assert(ne.empty());
@@ -482,10 +485,10 @@ bool StringsEntail::componentContainsBase(
 }
 
 bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
-                            std::vector<Node>& n2,
-                            std::vector<Node>& nb,
-                            std::vector<Node>& ne,
-                            int dir)
+                                           std::vector<Node>& n2,
+                                           std::vector<Node>& nb,
+                                           std::vector<Node>& ne,
+                                           int dir)
 {
   Assert(nb.empty());
   Assert(ne.empty());

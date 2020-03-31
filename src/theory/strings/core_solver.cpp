@@ -155,7 +155,8 @@ void CoreSolver::checkFlatForms()
         for (const Node& n : it->second)
         {
           int firstc, lastc;
-          if (!StringsEntail::canConstantContainList(c, d_flat_form[n], firstc, lastc))
+          if (!StringsEntail::canConstantContainList(
+                  c, d_flat_form[n], firstc, lastc))
           {
             Trace("strings-ff-debug") << "Flat form for " << n
                                       << " cannot be contained in constant "

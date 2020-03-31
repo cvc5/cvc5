@@ -1834,7 +1834,8 @@ Node SequencesRewriter::rewriteContains(Node node)
       else if (node[1].getKind() == kind::STRING_CONCAT)
       {
         int firstc, lastc;
-        if (!StringsEntail::canConstantContainConcat(node[0], node[1], firstc, lastc))
+        if (!StringsEntail::canConstantContainConcat(
+                node[0], node[1], firstc, lastc))
         {
           Node ret = NodeManager::currentNM()->mkConst(false);
           return returnRewrite(node, ret, Rewrite::CTN_NCONST_CTN_CONCAT);
@@ -2256,8 +2257,8 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         // past the first position in node[0] that contains node[1], we can drop
         std::vector<Node> nb;
         std::vector<Node> ne;
-        int cc =
-            StringsEntail::componentContains(children0, children1, nb, ne, true, 1);
+        int cc = StringsEntail::componentContains(
+            children0, children1, nb, ne, true, 1);
         if (cc != -1 && !ne.empty())
         {
           // For example:
@@ -2268,7 +2269,8 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         }
 
         // Strip components from the beginning that are guaranteed not to match
-        if (StringsEntail::stripConstantEndpoints(children0, children1, nb, ne, 1))
+        if (StringsEntail::stripConstantEndpoints(
+                children0, children1, nb, ne, 1))
         {
           // str.indexof(str.++("AB", x, "C"), "C", 0) --->
           // 2 + str.indexof(str.++(x, "C"), "C", 0)
@@ -2457,7 +2459,8 @@ Node SequencesRewriter::rewriteReplace(Node node)
       // component-wise containment
       std::vector<Node> cb;
       std::vector<Node> ce;
-      int cc = StringsEntail::componentContains(children0, children1, cb, ce, true, 1);
+      int cc = StringsEntail::componentContains(
+          children0, children1, cb, ce, true, 1);
       if (cc != -1)
       {
         if (cc == 0 && children0[0] == children1[0])

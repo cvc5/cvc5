@@ -140,9 +140,9 @@ class Word
    */
   static std::size_t roverlap(TNode x, TNode y);
   /** Split constant
-  *
-  * FIXME
-  */
+   *
+   * FIXME
+   */
   static Node splitConstant(Node a, Node b, int& index, bool isRev);
 };
 

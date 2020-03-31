@@ -290,9 +290,7 @@ Node Word::splitConstant(Node x, Node y, int& index, bool isRev)
   size_t lenB = getLength(y);
   index = lenA <= lenB ? 1 : 0;
   size_t len_short = index == 1 ? lenA : lenB;
-  bool cmp =
-      isRev ? rstrncmp(x, y, len_short)
-            : strncmp(x, y, len_short);
+  bool cmp = isRev ? rstrncmp(x, y, len_short) : strncmp(x, y, len_short);
   if (cmp)
   {
     Node l = index == 0 ? x : y;
