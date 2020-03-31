@@ -25,11 +25,11 @@ jobs:
             cache-key: production
             python-bindings: true
 
-          - name: ubuntu-debug
+          - name: debug
             config: debug --symfpu --lfsc --no-debug-symbols
             cache-key: debug
 
-          - name: ubuntu-debug-cln
+          - name: debug-cln
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
             cache-key: debug
 
