@@ -19,11 +19,13 @@ jobs:
           - name: production
             config: production --language-bindings=java --lfsc
             cache-key: production
+            check-examples: true
 
           - name: production-python
             config: production --python-bindings
             cache-key: production
             python-bindings: true
+            check-examples: true
 
           - name: debug
             config: debug --symfpu --lfsc --no-debug-symbols
@@ -156,7 +158,9 @@ jobs:
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
 
+      # Examples are built for non-symfpu builds
     - name: Check Examples
+      if: matrix.check-examples
       run: |
         mkdir build
         cd build
