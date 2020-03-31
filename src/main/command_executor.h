@@ -86,7 +86,7 @@ class CommandExecutor
                                     const std::string& statsString);
 
   void flushOutputStreams();
-  
+
 protected:
   /** Executes treating cmd as a singleton */
   virtual bool doCommandSingleton(CVC4::Command* cmd);

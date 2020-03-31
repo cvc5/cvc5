@@ -92,11 +92,8 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_cnfStream = new CVC4::prop::TseitinCnfStream(
       d_satSolver, d_registrar, userContext, true);
 
-  d_theoryProxy = new TheoryProxy(this,
-                                  d_theoryEngine,
-                                  d_decisionEngine.get(),
-                                  d_context,
-                                  d_cnfStream);
+  d_theoryProxy = new TheoryProxy(
+      this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
   d_satSolver->initialize(d_context, d_theoryProxy);
 
   d_decisionEngine->setSatSolver(d_satSolver);
