@@ -20,9 +20,9 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/strings_entail.h"
-#include "theory/strings/arith_entail.h"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>
@@ -195,12 +195,12 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
         Rewriter::rewrite(d_nm->mkNode(kind::LT, x_plus_five, six));
 
     // x + 5 < 6 |= 0 >= x --> true
-    TS_ASSERT(ArithEntail::checkWithAssumption(
-        x_plus_five_lt_six, zero, x, false));
+    TS_ASSERT(
+        ArithEntail::checkWithAssumption(x_plus_five_lt_six, zero, x, false));
 
     // x + 5 < 6 |= 0 > x --> false
-    TS_ASSERT(!ArithEntail::checkWithAssumption(
-        x_plus_five_lt_six, zero, x, true));
+    TS_ASSERT(
+        !ArithEntail::checkWithAssumption(x_plus_five_lt_six, zero, x, true));
 
     Node neg_x = d_nm->mkNode(kind::UMINUS, x);
     Node x_plus_five_lt_five =
@@ -211,8 +211,8 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
         x_plus_five_lt_five, neg_x, zero, false));
 
     // x + 5 < 5 |= 0 > x --> true
-    TS_ASSERT(ArithEntail::checkWithAssumption(
-        x_plus_five_lt_five, zero, x, false));
+    TS_ASSERT(
+        ArithEntail::checkWithAssumption(x_plus_five_lt_five, zero, x, false));
 
     // 0 < x |= x >= (str.len (int.to.str x))
     Node assm = Rewriter::rewrite(d_nm->mkNode(kind::LT, zero, x));
@@ -1051,8 +1051,7 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
     Node empty_x_y = d_nm->mkNode(kind::AND,
                                   d_nm->mkNode(kind::EQUAL, empty, x),
                                   d_nm->mkNode(kind::EQUAL, empty, y));
-    sameNormalForm(StringsEntail::inferEqsFromContains(empty, xy),
-                   empty_x_y);
+    sameNormalForm(StringsEntail::inferEqsFromContains(empty, xy), empty_x_y);
 
     // inferEqsFromContains(x, (str.++ x y)) returns false
     Node bxya = d_nm->mkNode(kind::STRING_CONCAT, b, y, x, a);
@@ -1070,14 +1069,12 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
     // equivalent to (= (str.replace x "B" "A") x)
     Node repl = d_nm->mkNode(kind::STRING_STRREPL, x, b, a);
     Node eq_repl_x = d_nm->mkNode(kind::EQUAL, repl, x);
-    sameNormalForm(StringsEntail::inferEqsFromContains(repl, x),
-                   eq_repl_x);
+    sameNormalForm(StringsEntail::inferEqsFromContains(repl, x), eq_repl_x);
 
     // inferEqsFromContains(x, (str.replace x "B" "A")) returns something
     // equivalent to (= (str.replace x "B" "A") x)
     Node eq_x_repl = d_nm->mkNode(kind::EQUAL, x, repl);
-    sameNormalForm(StringsEntail::inferEqsFromContains(x, repl),
-                   eq_x_repl);
+    sameNormalForm(StringsEntail::inferEqsFromContains(x, repl), eq_x_repl);
   }
 
   void testRewritePrefixSuffix()
@@ -1403,8 +1400,7 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> n2 = {a};
       std::vector<Node> nb;
       std::vector<Node> ne;
-      bool res =
-          StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 0);
+      bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 0);
       TS_ASSERT(!res);
     }
 
@@ -1415,8 +1411,7 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> n2 = {a, d_nm->mkNode(kind::STRING_ITOS, n)};
       std::vector<Node> nb;
       std::vector<Node> ne;
-      bool res =
-          StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 0);
+      bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 0);
       TS_ASSERT(!res);
     }
 
@@ -1431,8 +1426,7 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> ne;
       std::vector<Node> n1r = {cd};
       std::vector<Node> nbr = {ab};
-      bool res =
-          StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 1);
+      bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 1);
       TS_ASSERT(res);
       TS_ASSERT_EQUALS(n1, n1r);
       TS_ASSERT_EQUALS(nb, nbr);
@@ -1449,8 +1443,7 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> ne;
       std::vector<Node> n1r = {c, x};
       std::vector<Node> nbr = {ab};
-      bool res =
-          StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 1);
+      bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 1);
       TS_ASSERT(res);
       TS_ASSERT_EQUALS(n1, n1r);
       TS_ASSERT_EQUALS(nb, nbr);
@@ -1467,8 +1460,7 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> ne;
       std::vector<Node> n1r = {a};
       std::vector<Node> ner = {bc};
-      bool res =
-          StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, -1);
+      bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, -1);
       TS_ASSERT(res);
       TS_ASSERT_EQUALS(n1, n1r);
       TS_ASSERT_EQUALS(ne, ner);
@@ -1485,8 +1477,7 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
       std::vector<Node> ne;
       std::vector<Node> n1r = {x, a};
       std::vector<Node> ner = {bc};
-      bool res =
-          StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, -1);
+      bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, -1);
       TS_ASSERT(res);
       TS_ASSERT_EQUALS(n1, n1r);
       TS_ASSERT_EQUALS(ne, ner);
