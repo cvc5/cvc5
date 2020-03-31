@@ -43,7 +43,7 @@ RegExpSolver::RegExpSolver(TheoryStrings& p,
       d_state(s),
       d_im(im),
       d_esolver(es),
-      d_stats(stats),
+      d_statistics(stats),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
       d_processed_memberships(c)
@@ -272,7 +272,14 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             exp_n.push_back(assertion);
             Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
             Assert(atom.getKind() == STRING_IN_REGEXP);
-            d_statistics.d_regexpUnfoldings << atom[1].getKind();
+            if (polarity)
+            {
+              d_statistics.d_regexpUnfoldingsPos << atom[1].getKind();
+            }
+            else
+            {
+              d_statistics.d_regexpUnfoldingsNeg << atom[1].getKind();
+            }
             Inference inf =
                 polarity ? Inference::RE_UNFOLD_POS : Inference::RE_UNFOLD_NEG;
             d_im.sendInference(rnfexp, exp_n, conc, inf);
