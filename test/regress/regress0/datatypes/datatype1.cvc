@@ -1,4 +1,4 @@
-% EXPECT: invalid
+% EXPECT: not_entailed
 
 DATATYPE
   tree = node(left : tree, right : tree) | leaf

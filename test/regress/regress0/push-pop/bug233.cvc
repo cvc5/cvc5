@@ -6,6 +6,6 @@ a, b: BOOLEAN;
 % EXPECT: entailed
 QUERY (a AND b) OR NOT (a AND b);
 
-% EXPECT: invalid
+% EXPECT: not_entailed
 QUERY (a OR b);
 
