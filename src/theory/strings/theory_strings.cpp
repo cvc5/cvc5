@@ -651,12 +651,11 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
     Node emp = Word::mkEmptyWord(node.getType());
-    node = nm->mkNode(CHOICE,
-                      bvl,
-                      nm->mkNode(ITE,
-                                 cond,
-                                 t.eqNode(nm->mkNode(STRING_TO_CODE, k)),
-                                 k.eqNode(emp)));
+    node = nm->mkNode(
+        CHOICE,
+        bvl,
+        nm->mkNode(
+            ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
   }
 
   return node;
@@ -1125,7 +1124,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
 
 void TheoryStrings::registerType(TypeNode tn)
 {
-  if (d_registeredTypesCache.find(tn)!=d_registeredTypesCache.end())
+  if (d_registeredTypesCache.find(tn) != d_registeredTypesCache.end())
   {
     return;
   }
