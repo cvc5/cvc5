@@ -4,8 +4,6 @@ set(OPTIMIZATION_LEVEL 3)
 cvc4_set_option(ENABLE_DEBUG_SYMBOLS OFF)
 # enable_statistics=yes
 cvc4_set_option(ENABLE_STATISTICS ON)
-# enable_replay=no
-cvc4_set_option(ENABLE_REPLAY OFF)
 # enable_assertions=no
 cvc4_set_option(ENABLE_ASSERTIONS OFF)
 # enable_proof=yes

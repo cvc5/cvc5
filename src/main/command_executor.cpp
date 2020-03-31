@@ -53,8 +53,7 @@ CommandExecutor::CommandExecutor(Options& options)
       d_smtEngine(d_solver->getSmtEngine()),
       d_options(options),
       d_stats("driver"),
-      d_result(),
-      d_replayStream(nullptr)
+      d_result()
 {
 }
 
@@ -70,12 +69,6 @@ void CommandExecutor::safeFlushStatistics(int fd) const
   d_solver->getExprManager()->safeFlushStatistics(fd);
   d_smtEngine->safeFlushStatistics(fd);
   d_stats.safeFlushInformation(fd);
-}
-
-void CommandExecutor::setReplayStream(ExprStream* replayStream) {
-  assert(d_replayStream == NULL);
-  d_replayStream = replayStream;
-  d_smtEngine->setReplayStream(d_replayStream);
 }
 
 bool CommandExecutor::doCommand(Command* cmd)

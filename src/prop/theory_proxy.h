@@ -27,7 +27,6 @@
 #include <unordered_set>
 
 #include "context/cdqueue.h"
-#include "expr/expr_stream.h"
 #include "expr/node.h"
 #include "prop/sat_solver.h"
 #include "theory/theory.h"
@@ -54,9 +53,7 @@ class TheoryProxy
               TheoryEngine* theoryEngine,
               DecisionEngine* decisionEngine,
               context::Context* context,
-              CnfStream* cnfStream,
-              std::ostream* replayLog,
-              ExprStream* replayStream);
+              CnfStream* cnfStream);
 
   ~TheoryProxy();
 
@@ -83,10 +80,6 @@ class TheoryProxy
 
   void notifyRestart();
 
-  SatLiteral getNextReplayDecision();
-
-  void logDecision(SatLiteral lit);
-
   void spendResource(ResourceManager::Resource r);
 
   bool isDecisionEngineDone();
@@ -111,12 +104,6 @@ class TheoryProxy
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
 
-  /** Stream on which to log replay events. */
-  std::ostream* d_replayLog;
-
-  /** Stream for replaying decisions. */
-  ExprStream* d_replayStream;
-
   /** Queue of asserted facts */
   context::CDQueue<TNode> d_queue;
 
@@ -125,11 +112,6 @@ class TheoryProxy
    * all imported and exported lemmas.
    */
   std::unordered_set<Node, NodeHashFunction> d_shared;
-
-  /**
-   * Statistic: the number of replayed decisions (via --replay).
-   */
-  IntStat d_replayedDecisions;
 
 }; /* class SatSolver */
 
