@@ -845,7 +845,7 @@ void RegExpOpr::simplify(Node t, std::vector< Node > &new_nodes, bool polarity) 
   Trace("strings-regexp-simpl") << "RegExp-Simpl starts with " << t << ", polarity=" << polarity << std::endl;
   Assert(t.getKind() == kind::STRING_IN_REGEXP);
   Node str = t[0];
-  Node re  = t[1];
+  Node re = t[1];
   if(polarity) {
     simplifyPRegExp( str, re, new_nodes );
   } else {

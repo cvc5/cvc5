@@ -26,8 +26,8 @@
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
-#include "theory/strings/solver_state.h"
 #include "theory/strings/sequences_stats.h"
+#include "theory/strings/solver_state.h"
 #include "util/string.h"
 
 namespace CVC4 {
@@ -50,7 +50,7 @@ class RegExpSolver
                SolverState& s,
                InferenceManager& im,
                ExtfSolver& es,
-             SequencesStatistics& stats,
+               SequencesStatistics& stats,
                context::Context* c,
                context::UserContext* u);
   ~RegExpSolver() {}

@@ -38,7 +38,8 @@ class SequencesStatistics
   HistogramStat<Kind> d_cdSimplifications;
   /** Counts the number of applications of each type of reduction */
   HistogramStat<Kind> d_reductions;
-  /** Counts the number of applications of each type of regular expression unfolding */
+  /** Counts the number of applications of each type of regular expression
+   * unfolding */
   HistogramStat<Kind> d_regexpUnfoldings;
   //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
