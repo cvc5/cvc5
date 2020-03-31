@@ -159,60 +159,6 @@ class StringsEntail
                                std::vector<Node>& ne,
                                bool computeRemainder = false,
                                int remainderDir = 0);
-  /** component contains base
-   *
-   * This function is a helper for the above function.
-   *
-   * It returns true if n2 is contained in n1 with the following
-   * restrictions:
-   *   If dir=1, then n2 must be a suffix of n1.
-   *   If dir=-1, then n2 must be a prefix of n1.
-   *
-   * If computeRemainder is true, then n1rb and n1re are
-   * updated such that :
-   *   n1 = str.++( n1rb, n2, n1re )
-   * where a null value of n1rb and n1re indicates the
-   * empty string.
-   *
-   * For example:
-   *
-   * componentContainsBase("cabe", "ab", n1rb, n1re, 1, false)
-   *   returns false.
-   *
-   * componentContainsBase("cabe", "ab", n1rb, n1re, 0, true)
-   *   returns true,
-   *   n1rb is set to "c",
-   *   n1re is set to "e".
-   *
-   * componentContainsBase(y, str.substr(y,0,5), n1rb, n1re, -1, true)
-   *   returns true,
-   *   n1re is set to str.substr(y,5,str.len(y)).
-   *
-   *
-   * Notice that this function may return false when it cannot compute a
-   * remainder when it otherwise would have returned true. For example:
-   *
-   * componentContainsBase(y, str.substr(y,x,z), n1rb, n1re, 0, false)
-   *   returns true.
-   *
-   * Hence, we know that str.substr(y,x,z) is contained in y. However:
-   *
-   * componentContainsBase(y, str.substr(y,x,z), n1rb, n1re, 0, true)
-   *   returns false.
-   *
-   * The reason is since computeRemainder=true, it must be that
-   *   y = str.++( n1rb, str.substr(y,x,z), n1re )
-   * for some n1rb, n1re. However, to construct such n1rb, n1re would require
-   * e.g. the terms:
-   *   y = str.++( ite( x+z < 0 OR x < 0, "", str.substr(y,0,x) ),
-   *               str.substr(y,x,z),
-   *               ite( x+z < 0 OR x < 0, y, str.substr(y,x+z,len(y)) ) )
-   *
-   * Since we do not wish to introduce ITE terms in the rewriter, we instead
-   * return false, indicating that we cannot compute the remainder.
-   */
-  static bool componentContainsBase(
-      Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
   /** strip constant endpoints
    * This function is used when rewriting str.contains( t1, t2 ), where
    * n1 is the vector form of t1
@@ -315,21 +261,6 @@ class StringsEntail
   static Node checkHomogeneousString(Node a);
 
   /**
-   * Simplifies a given node `a` s.t. the result is a concatenation of string
-   * terms that can be interpreted as a multiset and which contains all
-   * multisets that `a` could form.
-   *
-   * Examples:
-   *
-   * (str.substr "AA" 0 n) ---> "AA"
-   * (str.replace "AAA" x "BB") ---> (str.++ "AAA" "BB")
-   *
-   * @param a The node to simplify
-   * @return A concatenation that can be interpreted as a multiset
-   */
-  static Node getMultisetApproximation(Node a);
-
-  /**
    * Overapproximates the possible values of node n. This overapproximation
    * assumes that n can return a value x or the empty string and tries to find
    * the simplest x such that this holds. In the general case, x is the same as
@@ -361,6 +292,75 @@ class StringsEntail
    * infer that any of the yi must be empty.
    */
   static Node inferEqsFromContains(Node x, Node y);
+private:
+ /** component contains base
+   *
+   * This function is a helper for the above function.
+   *
+   * It returns true if n2 is contained in n1 with the following
+   * restrictions:
+   *   If dir=1, then n2 must be a suffix of n1.
+   *   If dir=-1, then n2 must be a prefix of n1.
+   *
+   * If computeRemainder is true, then n1rb and n1re are
+   * updated such that :
+   *   n1 = str.++( n1rb, n2, n1re )
+   * where a null value of n1rb and n1re indicates the
+   * empty string.
+   *
+   * For example:
+   *
+   * componentContainsBase("cabe", "ab", n1rb, n1re, 1, false)
+   *   returns false.
+   *
+   * componentContainsBase("cabe", "ab", n1rb, n1re, 0, true)
+   *   returns true,
+   *   n1rb is set to "c",
+   *   n1re is set to "e".
+   *
+   * componentContainsBase(y, str.substr(y,0,5), n1rb, n1re, -1, true)
+   *   returns true,
+   *   n1re is set to str.substr(y,5,str.len(y)).
+   *
+   *
+   * Notice that this function may return false when it cannot compute a
+   * remainder when it otherwise would have returned true. For example:
+   *
+   * componentContainsBase(y, str.substr(y,x,z), n1rb, n1re, 0, false)
+   *   returns true.
+   *
+   * Hence, we know that str.substr(y,x,z) is contained in y. However:
+   *
+   * componentContainsBase(y, str.substr(y,x,z), n1rb, n1re, 0, true)
+   *   returns false.
+   *
+   * The reason is since computeRemainder=true, it must be that
+   *   y = str.++( n1rb, str.substr(y,x,z), n1re )
+   * for some n1rb, n1re. However, to construct such n1rb, n1re would require
+   * e.g. the terms:
+   *   y = str.++( ite( x+z < 0 OR x < 0, "", str.substr(y,0,x) ),
+   *               str.substr(y,x,z),
+   *               ite( x+z < 0 OR x < 0, y, str.substr(y,x+z,len(y)) ) )
+   *
+   * Since we do not wish to introduce ITE terms in the rewriter, we instead
+   * return false, indicating that we cannot compute the remainder.
+   */
+  static bool componentContainsBase(
+      Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder); 
+  /**
+   * Simplifies a given node `a` s.t. the result is a concatenation of string
+   * terms that can be interpreted as a multiset and which contains all
+   * multisets that `a` could form.
+   *
+   * Examples:
+   *
+   * (str.substr "AA" 0 n) ---> "AA"
+   * (str.replace "AAA" x "BB") ---> (str.++ "AAA" "BB")
+   *
+   * @param a The node to simplify
+   * @return A concatenation that can be interpreted as a multiset
+   */
+  static Node getMultisetApproximation(Node a);
 };
 
 }  // namespace strings

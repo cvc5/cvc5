@@ -61,24 +61,6 @@ class ArithEntail
    * holds.
    */
   static bool checkApprox(Node a);
-  /** Get arithmetic approximations
-   *
-   * This gets the (set of) arithmetic approximations for term a and stores
-   * them in approx. If isOverApprox is true, these are over-approximations
-   * for the value of a, otherwise, they are underapproximations. For example,
-   * an over-approximation for len( substr( y, n, m ) ) is m; an
-   * under-approximation for indexof( x, y, n ) is -1.
-   *
-   * Notice that this function is not generally recursive (although it may make
-   * a small bounded of recursive calls). Instead, it returns the shape
-   * of the approximations for a. For example, an under-approximation
-   * for the term len( replace( substr( x, 0, n ), y, z ) ) returned by this
-   * function might be len( substr( x, 0, n ) ) - len( y ), where we don't
-   * consider (recursively) the approximations for len( substr( x, 0, n ) ).
-   */
-  static void getArithApproximations(Node a,
-                                     std::vector<Node>& approx,
-                                     bool isOverApprox = false);
 
   /**
    * Checks whether assumption |= a >= 0 (if strict is false) or
@@ -171,6 +153,24 @@ class ArithEntail
    * a is in rewritten form.
    */
   static bool checkInternal(Node a);
+  /** Get arithmetic approximations
+   *
+   * This gets the (set of) arithmetic approximations for term a and stores
+   * them in approx. If isOverApprox is true, these are over-approximations
+   * for the value of a, otherwise, they are underapproximations. For example,
+   * an over-approximation for len( substr( y, n, m ) ) is m; an
+   * under-approximation for indexof( x, y, n ) is -1.
+   *
+   * Notice that this function is not generally recursive (although it may make
+   * a small bounded of recursive calls). Instead, it returns the shape
+   * of the approximations for a. For example, an under-approximation
+   * for the term len( replace( substr( x, 0, n ), y, z ) ) returned by this
+   * function might be len( substr( x, 0, n ) ) - len( y ), where we don't
+   * consider (recursively) the approximations for len( substr( x, 0, n ) ).
+   */
+  static void getArithApproximations(Node a,
+                                     std::vector<Node>& approx,
+                                     bool isOverApprox = false);
 };
 
 }  // namespace strings
