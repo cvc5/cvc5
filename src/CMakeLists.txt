@@ -966,6 +966,7 @@ install(FILES
           util/proof.h
           util/rational_cln_imp.h
           util/rational_gmp_imp.h
+          util/regexp.h
           util/resource_manager.h
           util/result.h
           util/sexpr.h

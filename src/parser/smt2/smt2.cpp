@@ -193,8 +193,9 @@ void Smt2::addStringOperators() {
   addOperator(api::REGEXP_STAR, "re.*");
   addOperator(api::REGEXP_PLUS, "re.+");
   addOperator(api::REGEXP_OPT, "re.opt");
+  addIndexedOperator(api::REGEXP_REPEAT, api::REGEXP_REPEAT, "re.^");
+  addIndexedOperator(api::REGEXP_LOOP, api::REGEXP_LOOP, "re.loop");
   addOperator(api::REGEXP_RANGE, "re.range");
-  addOperator(api::REGEXP_LOOP, "re.loop");
   addOperator(api::REGEXP_COMPLEMENT, "re.comp");
   addOperator(api::REGEXP_DIFF, "re.diff");
   addOperator(api::STRING_LT, "str.<");
@@ -1267,7 +1268,8 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
         api::Term lbvl = makeSygusBoundVarList(dt, i, ltypes, largs);
 
         // make the let_body
-        api::Term body = applyParseOp(ops[i], largs);
+        std::vector<api::Term> largsApply = largs;
+        api::Term body = applyParseOp(ops[i], largsApply);
         // replace by lambda
         ParseOp pLam;
         pLam.d_expr = d_solver->mkTerm(api::LAMBDA, lbvl, body);

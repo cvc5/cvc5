@@ -143,6 +143,16 @@ Node StringsRewriter::rewriteStrConvert(Node node)
   return node;
 }
 
+Node StringsRewriter::rewriteStringLt(Node n)
+{
+  Assert(n.getKind() == kind::STRING_LT);
+  NodeManager* nm = NodeManager::currentNM();
+  // eliminate s < t ---> s != t AND s <= t
+  Node retNode = nm->mkNode(
+      AND, n[0].eqNode(n[1]).negate(), nm->mkNode(STRING_LEQ, n[0], n[1]));
+  return returnRewrite(n, retNode, Rewrite::STR_LT_ELIM);
+}
+
 Node StringsRewriter::rewriteStringLeq(Node n)
 {
   Assert(n.getKind() == kind::STRING_LEQ);
@@ -239,6 +249,18 @@ Node StringsRewriter::rewriteStringToCode(Node n)
     return returnRewrite(n, ret, Rewrite::TO_CODE_EVAL);
   }
   return n;
+}
+
+Node StringsRewriter::rewriteStringIsDigit(Node n)
+{
+  Assert(n.getKind() == kind::STRING_IS_DIGIT);
+  NodeManager* nm = NodeManager::currentNM();
+  // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
+  Node t = nm->mkNode(STRING_TO_CODE, n[0]);
+  Node retNode = nm->mkNode(AND,
+                            nm->mkNode(LEQ, nm->mkConst(Rational(48)), t),
+                            nm->mkNode(LEQ, t, nm->mkConst(Rational(57))));
+  return returnRewrite(n, retNode, Rewrite::IS_DIGIT_ELIM);
 }
 
 }  // namespace strings
