@@ -15,18 +15,18 @@
 #include "theory/strings/strings_entail.h"
 
 #include "expr/node_builder.h"
+#include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
+#include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "theory/rewriter.h"
-#include "theory/strings/sequences_rewriter.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
+
 Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -63,7 +63,8 @@ bool StringsEntail::checkLengthOne(Node s, bool strict)
   Node one = nm->mkConst(Rational(1));
   Node len = nm->mkNode(STRING_LENGTH, s);
   len = Rewriter::rewrite(len);
-  return ArithEntail::check(one, len) && (!strict || ArithEntail::check(len, true));
+  return ArithEntail::check(one, len)
+         && (!strict || ArithEntail::check(len, true));
 }
 
 bool StringsEntail::checkMultisetSubset(Node a, Node b)
@@ -350,7 +351,6 @@ Node StringsEntail::inferEqsFromContains(Node x, Node y)
   return nb.constructNode();
 }
 
-
-}
-}
-}
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4

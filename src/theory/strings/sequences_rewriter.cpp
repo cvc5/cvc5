@@ -25,13 +25,13 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/strings_entail.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "theory/theory.h"
 #include "util/integer.h"
 #include "util/rational.h"
-#include "theory/strings/strings_entail.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -816,7 +816,8 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
           // go back and remove empty ones from back of cvec
           // e.g. this ensures we rewrite (a)* ++ (_)* ---> (_)*
           while (!cvec.empty() && RegExpEntail::isConstRegExp(cvec.back())
-                 && RegExpEntail::testConstStringInRegExp(emptyStr, 0, cvec.back()))
+                 && RegExpEntail::testConstStringInRegExp(
+                        emptyStr, 0, cvec.back()))
           {
             cvec.pop_back();
           }
@@ -1103,8 +1104,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     // test whether x in node[1]
     CVC4::String s = x.getConst<String>();
     bool test = RegExpEntail::testConstStringInRegExp(s, 0, r);
-    Node retNode =
-        NodeManager::currentNM()->mkConst(test);
+    Node retNode = NodeManager::currentNM()->mkConst(test);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
   }
   else if (r.getKind() == kind::REGEXP_SIGMA)
@@ -1689,7 +1689,8 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
       Node non_zero_len =
           Rewriter::rewrite(nm->mkNode(kind::LT, zero, node[2]));
-      if (ArithEntail::checkWithAssumption(non_zero_len, node[1], tot_len, false))
+      if (ArithEntail::checkWithAssumption(
+              non_zero_len, node[1], tot_len, false))
       {
         Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, Rewrite::SS_NON_ZERO_LEN_ENTAILS_OOB);
@@ -1698,7 +1699,8 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
       Node geq_zero_start =
           Rewriter::rewrite(nm->mkNode(kind::GEQ, node[1], zero));
-      if (ArithEntail::checkWithAssumption(geq_zero_start, zero, tot_len, false))
+      if (ArithEntail::checkWithAssumption(
+              geq_zero_start, zero, tot_len, false))
       {
         Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(
@@ -2254,7 +2256,8 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         // past the first position in node[0] that contains node[1], we can drop
         std::vector<Node> nb;
         std::vector<Node> ne;
-        int cc = utils::componentContains(children0, children1, nb, ne, true, 1);
+        int cc =
+            utils::componentContains(children0, children1, nb, ne, true, 1);
         if (cc != -1 && !ne.empty())
         {
           // For example:
@@ -3079,6 +3082,6 @@ Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
   return ret;
 }
 
-}
-}
-}
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4

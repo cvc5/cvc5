@@ -18,9 +18,9 @@
 
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
-#include "theory/strings/word.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/strings_entail.h"
+#include "theory/strings/word.h"
 
 using namespace CVC4::kind;
 
@@ -180,10 +180,7 @@ Node getConstantEndpoint(Node e, bool isSuf)
   return getConstantComponent(e);
 }
 
-
-Node decomposeSubstrChain(Node s,
-                                             std::vector<Node>& ss,
-                                             std::vector<Node>& ls)
+Node decomposeSubstrChain(Node s, std::vector<Node>& ss, std::vector<Node>& ls)
 {
   Assert(ss.empty());
   Assert(ls.empty());
@@ -199,8 +196,8 @@ Node decomposeSubstrChain(Node s,
 }
 
 Node mkSubstrChain(Node base,
-                                      const std::vector<Node>& ss,
-                                      const std::vector<Node>& ls)
+                   const std::vector<Node>& ss,
+                   const std::vector<Node>& ls)
 {
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = ss.size(); i < size; i++)
@@ -237,10 +234,7 @@ Node splitConstant(Node a, Node b, int& index, bool isRev)
   return Node::null();
 }
 
-bool canConstantContainConcat(Node c,
-                                                 Node n,
-                                                 int& firstc,
-                                                 int& lastc)
+bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc)
 {
   Assert(c.isConst());
   CVC4::String t = c.getConst<String>();
@@ -286,9 +280,9 @@ bool canConstantContainConcat(Node c,
 }
 
 bool canConstantContainList(Node c,
-                                               std::vector<Node>& l,
-                                               int& firstc,
-                                               int& lastc)
+                            std::vector<Node>& l,
+                            int& firstc,
+                            int& lastc)
 {
   Assert(c.isConst());
   // must find constant components in order
@@ -316,9 +310,9 @@ bool canConstantContainList(Node c,
 }
 
 bool stripSymbolicLength(std::vector<Node>& n1,
-                                            std::vector<Node>& nr,
-                                            int dir,
-                                            Node& curr)
+                         std::vector<Node>& nr,
+                         int dir,
+                         Node& curr)
 {
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
@@ -336,7 +330,8 @@ bool stripSymbolicLength(std::vector<Node>& n1,
       if (n1[sindex_use].isConst())
       {
         // could strip part of a constant
-        Node lowerBound = ArithEntail::getConstantBound(Rewriter::rewrite(curr));
+        Node lowerBound =
+            ArithEntail::getConstantBound(Rewriter::rewrite(curr));
         if (!lowerBound.isNull())
         {
           Assert(lowerBound.isConst());
@@ -365,8 +360,8 @@ bool stripSymbolicLength(std::vector<Node>& n1,
               // lower bound minus the length of a concrete string is negative,
               // hence lowerBound cannot be larger than long max
               Assert(lbr < Rational(String::maxSize()));
-              curr = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-                  MINUS, curr, lowerBound));
+              curr = Rewriter::rewrite(
+                  NodeManager::currentNM()->mkNode(MINUS, curr, lowerBound));
               uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
               Assert(lbsize < s.size());
               if (dir == 1)
@@ -400,8 +395,7 @@ bool stripSymbolicLength(std::vector<Node>& n1,
         Node next_s = NodeManager::currentNM()->mkNode(
             MINUS,
             curr,
-            NodeManager::currentNM()->mkNode(STRING_LENGTH,
-                                             n1[sindex_use]));
+            NodeManager::currentNM()->mkNode(STRING_LENGTH, n1[sindex_use]));
         next_s = Rewriter::rewrite(next_s);
         if (ArithEntail::check(next_s))
         {
@@ -430,11 +424,11 @@ bool stripSymbolicLength(std::vector<Node>& n1,
 }
 
 int componentContains(std::vector<Node>& n1,
-                                         std::vector<Node>& n2,
-                                         std::vector<Node>& nb,
-                                         std::vector<Node>& ne,
-                                         bool computeRemainder,
-                                         int remainderDir)
+                      std::vector<Node>& n2,
+                      std::vector<Node>& nb,
+                      std::vector<Node>& ne,
+                      bool computeRemainder,
+                      int remainderDir)
 {
   Assert(nb.empty());
   Assert(ne.empty());
@@ -461,8 +455,8 @@ int componentContains(std::vector<Node>& n1,
           }
           else if (!n1re.isNull())
           {
-            n1[i] = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-                STRING_CONCAT, n1[i], n1re));
+            n1[i] = Rewriter::rewrite(
+                NodeManager::currentNM()->mkNode(STRING_CONCAT, n1[i], n1re));
           }
           if (remainderDir != 1)
           {
@@ -475,8 +469,8 @@ int componentContains(std::vector<Node>& n1,
           }
           else if (!n1rb.isNull())
           {
-            n1[i] = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-                STRING_CONCAT, n1rb, n1[i]));
+            n1[i] = Rewriter::rewrite(
+                NodeManager::currentNM()->mkNode(STRING_CONCAT, n1rb, n1[i]));
           }
         }
         return i;
@@ -652,16 +646,15 @@ bool componentContainsBase(
             {
               // we can only compute the remainder if start_pos and end_pos
               // are known to be non-negative.
-              if (!ArithEntail::check(start_pos) || !ArithEntail::check(end_pos))
+              if (!ArithEntail::check(start_pos)
+                  || !ArithEntail::check(end_pos))
               {
                 return false;
               }
               if (dir != 1)
               {
-                n1rb = nm->mkNode(STRING_SUBSTR,
-                                  n2[0],
-                                  nm->mkConst(Rational(0)),
-                                  start_pos);
+                n1rb = nm->mkNode(
+                    STRING_SUBSTR, n2[0], nm->mkConst(Rational(0)), start_pos);
               }
               if (dir != -1)
               {
@@ -696,10 +689,10 @@ bool componentContainsBase(
 }
 
 bool stripConstantEndpoints(std::vector<Node>& n1,
-                                               std::vector<Node>& n2,
-                                               std::vector<Node>& nb,
-                                               std::vector<Node>& ne,
-                                               int dir)
+                            std::vector<Node>& n2,
+                            std::vector<Node>& nb,
+                            std::vector<Node>& ne,
+                            int dir)
 {
   Assert(nb.empty());
   Assert(ne.empty());
@@ -1123,7 +1116,6 @@ unsigned getLoopMinOccurrences(TNode node)
   Assert(node.getKind() == REGEXP_LOOP);
   return node.getOperator().getConst<RegExpLoop>().d_loopMinOcc;
 }
-
 
 Node getFixedLengthForRegexp(Node n)
 {

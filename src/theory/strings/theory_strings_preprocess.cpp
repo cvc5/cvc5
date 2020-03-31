@@ -22,9 +22,9 @@
 #include "options/strings_options.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
-#include "theory/strings/arith_entail.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

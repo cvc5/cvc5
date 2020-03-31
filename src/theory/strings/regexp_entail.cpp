@@ -25,8 +25,8 @@ namespace theory {
 namespace strings {
 
 Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
-                                            std::vector<Node>& children,
-                                            int dir)
+                                       std::vector<Node>& children,
+                                       int dir)
 {
   Trace("regexp-ext-rewrite-debug")
       << "Simple reg exp consume, dir=" << dir << ":" << std::endl;
@@ -101,8 +101,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
             mchildren.pop_back();
             do_next = true;
           }
-          else if (rc.getKind() == REGEXP_RANGE
-                   || rc.getKind() == REGEXP_SIGMA)
+          else if (rc.getKind() == REGEXP_RANGE || rc.getKind() == REGEXP_SIGMA)
           {
             std::vector<unsigned> ssVec;
             ssVec.push_back(t == 0 ? s.back() : s.front());
@@ -115,13 +114,11 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
               {
                 if (t == 0)
                 {
-                  mchildren.push_back(nm->mkConst(
-                      s.substr(0, s.size() - 1)));
+                  mchildren.push_back(nm->mkConst(s.substr(0, s.size() - 1)));
                 }
                 else
                 {
-                  mchildren.push_back(
-                      nm->mkConst(s.substr(1)));
+                  mchildren.push_back(nm->mkConst(s.substr(1)));
                 }
               }
               children.pop_back();
@@ -132,8 +129,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
               return nm->mkConst(false);
             }
           }
-          else if (rc.getKind() == REGEXP_INTER
-                   || rc.getKind() == REGEXP_UNION)
+          else if (rc.getKind() == REGEXP_INTER || rc.getKind() == REGEXP_UNION)
           {
             // see if any/each child does not work
             bool result_valid = true;
@@ -313,8 +309,8 @@ bool RegExpEntail::isConstRegExp(TNode t)
 }
 
 bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
-                                                unsigned int index_start,
-                                                TNode r)
+                                           unsigned int index_start,
+                                           TNode r)
 {
   Assert(index_start <= s.size());
   Trace("regexp-debug") << "Checking " << s << " in " << r << ", starting at "
@@ -470,7 +466,7 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
     }
     case REGEXP_LOOP:
     {
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       uint32_t l = r[1].getConst<Rational>().getNumerator().toUnsignedInt();
       if (s.size() == index_start)
       {
@@ -499,10 +495,8 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
               }
               else
               {
-                Node num2 =
-                    nm->mkConst(CVC4::Rational(u - 1));
-                Node r2 = nm->mkNode(
-                    REGEXP_LOOP, r[0], r[1], num2);
+                Node num2 = nm->mkConst(CVC4::Rational(u - 1));
+                Node r2 = nm->mkNode(REGEXP_LOOP, r[0], r[1], num2);
                 if (testConstStringInRegExp(s, index_start + len, r2))
                 {
                   return true;
@@ -533,10 +527,8 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
             CVC4::String t = s.substr(index_start, len);
             if (testConstStringInRegExp(t, 0, r[0]))
             {
-              Node num2 =
-                  nm->mkConst(CVC4::Rational(l - 1));
-              Node r2 = nm->mkNode(
-                  REGEXP_LOOP, r[0], num2, num2);
+              Node num2 = nm->mkConst(CVC4::Rational(l - 1));
+              Node r2 = nm->mkNode(REGEXP_LOOP, r[0], num2, num2);
               if (testConstStringInRegExp(s, index_start + len, r2))
               {
                 return true;
@@ -572,6 +564,6 @@ bool RegExpEntail::hasEpsilonNode(TNode node)
   return false;
 }
 
-}
-}
-}
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4

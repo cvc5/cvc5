@@ -24,16 +24,15 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
-/** 
+
+/**
  * Techniques for computing arithmetic entailment for string terms. This
  * is an implementation of the techniques from Reynolds et al, "High Level
  * Abstractions for Simplifying Extended String Constraints in SMT", CAV 2019.
  */
 class ArithEntail
 {
-public:
-
+ public:
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */
@@ -93,8 +92,8 @@ public:
    * Because: x = -(str.len y), so -x >= 0 --> (str.len y) >= 0 --> true
    */
   static bool checkWithEqAssumption(Node assumption,
-                                               Node a,
-                                               bool strict = false);
+                                    Node a,
+                                    bool strict = false);
 
   /**
    * Checks whether assumption |= a >= b (if strict is false) or
@@ -109,9 +108,9 @@ public:
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
    */
   static bool checkWithAssumption(Node assumption,
-                                             Node a,
-                                             Node b,
-                                             bool strict = false);
+                                  Node a,
+                                  Node b,
+                                  bool strict = false);
 
   /**
    * Checks whether assumptions |= a >= b (if strict is false) or
@@ -127,9 +126,9 @@ public:
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
    */
   static bool checkWithAssumptions(std::vector<Node> assumptions,
-                                              Node a,
-                                              Node b,
-                                              bool strict = false);
+                                   Node a,
+                                   Node b,
+                                   bool strict = false);
 
   /** get arithmetic lower bound
    * If this function returns a non-null Node ret,
@@ -165,14 +164,15 @@ public:
   static bool inferZerosInSumGeq(Node x,
                                  std::vector<Node>& ys,
                                  std::vector<Node>& zeroYs);
-private:
+
+ private:
   /** check entail arithmetic internal
    * Returns true if we can show a >= 0 always.
    * a is in rewritten form.
    */
   static bool checkInternal(Node a);
 };
-  
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4

@@ -14,11 +14,11 @@
 
 #include "theory/strings/arith_entail.h"
 
+#include "expr/attribute.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "expr/attribute.h"
 #include "theory/theory.h"
 
 using namespace CVC4::kind;
@@ -366,8 +366,8 @@ bool ArithEntail::checkApprox(Node ar)
 }
 
 void ArithEntail::getArithApproximations(Node a,
-                                               std::vector<Node>& approx,
-                                               bool isOverApprox)
+                                         std::vector<Node>& approx,
+                                         bool isOverApprox)
 {
   NodeManager* nm = NodeManager::currentNM();
   // We do not handle PLUS here since this leads to exponential behavior.
@@ -553,9 +553,7 @@ void ArithEntail::getArithApproximations(Node a,
   Trace("strings-ent-approx-debug") << "Return " << approx.size() << std::endl;
 }
 
-bool ArithEntail::checkWithEqAssumption(Node assumption,
-                                                         Node a,
-                                                         bool strict)
+bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
 {
   Assert(assumption.getKind() == kind::EQUAL);
   Assert(Rewriter::rewrite(assumption) == assumption);
@@ -625,9 +623,9 @@ bool ArithEntail::checkWithEqAssumption(Node assumption,
 }
 
 bool ArithEntail::checkWithAssumption(Node assumption,
-                                                       Node a,
-                                                       Node b,
-                                                       bool strict)
+                                      Node a,
+                                      Node b,
+                                      bool strict)
 {
   Assert(Rewriter::rewrite(assumption) == assumption);
 
@@ -680,8 +678,10 @@ bool ArithEntail::checkWithAssumption(Node assumption,
   return res;
 }
 
-bool ArithEntail::checkWithAssumptions(
-    std::vector<Node> assumptions, Node a, Node b, bool strict)
+bool ArithEntail::checkWithAssumptions(std::vector<Node> assumptions,
+                                       Node a,
+                                       Node b,
+                                       bool strict)
 {
   // TODO: We currently try to show the entailment with each assumption
   // independently. In the future, we should make better use of multiple
@@ -812,10 +812,9 @@ bool ArithEntail::checkInternal(Node a)
   return false;
 }
 
-
 bool ArithEntail::inferZerosInSumGeq(Node x,
-                                           std::vector<Node>& ys,
-                                           std::vector<Node>& zeroYs)
+                                     std::vector<Node>& ys,
+                                     std::vector<Node>& zeroYs)
 {
   Assert(zeroYs.empty());
 
@@ -861,6 +860,6 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
   return true;
 }
 
-}
-}
-}
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
