@@ -414,6 +414,15 @@ bool isStringKind(Kind k)
          || k == STRING_FROM_CODE || k == STRING_TO_CODE;
 }
 
+bool isRegExpKind(Kind k)
+{
+  return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
+         || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
+         || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
+         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV
+         || k == REGEXP_COMPLEMENT;
+}
+
 TypeNode getOwnerStringType(Node n)
 {
   TypeNode tn;

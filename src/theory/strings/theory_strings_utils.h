@@ -185,7 +185,9 @@ void printConcatTrace(std::vector<Node>& n, const char* c);
 
 /** Is k a string-specific kind? */
 bool isStringKind(Kind k);
-
+/** is k a native operator whose return type is a regular expression? */
+bool isRegExpKind(Kind k);
+  
 /** Get owner string type
  *
  * This returns a string-like type for a term n that belongs to the theory of

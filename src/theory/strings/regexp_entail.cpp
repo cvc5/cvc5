@@ -546,7 +546,7 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
     }
     default:
     {
-      Assert(!RegExpOpr::isRegExpKind(k));
+      Assert(!utils::isRegExpKind(k));
       return false;
     }
   }

@@ -83,7 +83,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
       {
         d_constCache[cur] = RE_C_CONSTANT;
       }
-      else if (!isRegExpKind(ck))
+      else if (!utils::isRegExpKind(ck))
       {
         // non-regular expression applications, e.g. function applications
         // with regular expression return type are treated as variables.
@@ -113,15 +113,6 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
   } while (!visit.empty());
   Assert(d_constCache.find(r) != d_constCache.end());
   return d_constCache[r];
-}
-
-bool RegExpOpr::isRegExpKind(Kind k)
-{
-  return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
-         || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
-         || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
-         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV
-         || k == REGEXP_COMPLEMENT;
 }
 
 // 0-unknown, 1-yes, 2-no
@@ -270,7 +261,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       default: {
-        Assert(!isRegExpKind(k));
+        Assert(!utils::isRegExpKind(k));
         break;
       }
     }
@@ -521,7 +512,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       default: {
-        Assert(!isRegExpKind(r.getKind()));
+        Assert(!utils::isRegExpKind(r.getKind()));
         return 0;
         break;
       }
@@ -808,7 +799,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         // aren't a standard regular expression kind. However, if we do, then
         // the following code is conservative and says that the current
         // regular expression can begin with any character.
-        Assert(isRegExpKind(k));
+        Assert(utils::isRegExpKind(k));
         // can start with any character
         Assert(d_lastchar < std::numeric_limits<unsigned>::max());
         for (unsigned i = 0; i <= d_lastchar; i++)
@@ -1068,7 +1059,7 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        Assert(!isRegExpKind(k));
+        Assert(!utils::isRegExpKind(k));
         break;
       }
     }
@@ -1267,7 +1258,7 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        Assert(!isRegExpKind(k));
+        Assert(!utils::isRegExpKind(k));
         break;
       }
     }
@@ -1744,7 +1735,7 @@ std::string RegExpOpr::mkString( Node r ) {
         std::stringstream ss;
         ss << r;
         retStr = ss.str();
-        Assert(!isRegExpKind(r.getKind()));
+        Assert(!utils::isRegExpKind(r.getKind()));
         break;
       }
     }
