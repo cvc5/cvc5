@@ -36,16 +36,16 @@ public:
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */
-  static bool checkEntailArithEq(Node a, Node b);
+  static bool checkEq(Node a, Node b);
   /** check arithmetic entailment
    * Returns true if it is always the case that a >= b,
    * and a>b if strict is true.
    */
-  static bool checkEntailArith(Node a, Node b, bool strict = false);
+  static bool check(Node a, Node b, bool strict = false);
   /** check arithmetic entailment
    * Returns true if it is always the case that a >= 0.
    */
-  static bool checkEntailArith(Node a, bool strict = false);
+  static bool check(Node a, bool strict = false);
   /** check arithmetic entailment with approximations
    *
    * Returns true if it is always the case that a >= 0. We expect that a is in
@@ -60,7 +60,7 @@ public:
    * and thus the entailment len( x ) - len( substr( y, 0, len( x ) ) ) >= 0
    * holds.
    */
-  static bool checkEntailArithApprox(Node a);
+  static bool checkApprox(Node a);
   /** Get arithmetic approximations
    *
    * This gets the (set of) arithmetic approximations for term a and stores
@@ -87,11 +87,11 @@ public:
    *
    * Example:
    *
-   * checkEntailArithWithEqAssumption(x + (str.len y) = 0, -x, false) = true
+   * checkWithEqAssumption(x + (str.len y) = 0, -x, false) = true
    *
    * Because: x = -(str.len y), so -x >= 0 --> (str.len y) >= 0 --> true
    */
-  static bool checkEntailArithWithEqAssumption(Node assumption,
+  static bool checkWithEqAssumption(Node assumption,
                                                Node a,
                                                bool strict = false);
 
@@ -103,11 +103,11 @@ public:
    *
    * Example:
    *
-   * checkEntailArithWithAssumption(x + (str.len y) = 0, 0, x, false) = true
+   * checkWithAssumption(x + (str.len y) = 0, 0, x, false) = true
    *
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
    */
-  static bool checkEntailArithWithAssumption(Node assumption,
+  static bool checkWithAssumption(Node assumption,
                                              Node a,
                                              Node b,
                                              bool strict = false);
@@ -121,11 +121,11 @@ public:
    *
    * Example:
    *
-   * checkEntailArithWithAssumptions([x + (str.len y) = 0], 0, x, false) = true
+   * checkWithAssumptions([x + (str.len y) = 0], 0, x, false) = true
    *
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
    */
-  static bool checkEntailArithWithAssumptions(std::vector<Node> assumptions,
+  static bool checkWithAssumptions(std::vector<Node> assumptions,
                                               Node a,
                                               Node b,
                                               bool strict = false);
@@ -141,7 +141,7 @@ public:
    * strict = { true, false } :
    *   ret >= strict ? 1 : 0
    *     if and only if
-   *   checkEntailArith( a, strict ) = true.
+   *   check( a, strict ) = true.
    */
   static Node getConstantArithBound(Node a, bool isLower = true);
 
@@ -169,7 +169,7 @@ private:
    * Returns true if we can show a >= 0 always.
    * a is in rewritten form.
    */
-  static bool checkEntailArithInternal(Node a);
+  static bool checkInternal(Node a);
 };
   
 }  // namespace strings

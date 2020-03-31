@@ -18,12 +18,16 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "expr/attribute.h"
+#include "theory/theory.h"
+
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-bool ArithEntail::checkEntailArithEq(Node a, Node b)
+bool ArithEntail::checkEq(Node a, Node b)
 {
   if (a == b)
   {
@@ -37,7 +41,7 @@ bool ArithEntail::checkEntailArithEq(Node a, Node b)
   }
 }
 
-bool ArithEntail::checkEntailArith(Node a, Node b, bool strict)
+bool ArithEntail::check(Node a, Node b, bool strict)
 {
   if (a == b)
   {
@@ -46,7 +50,7 @@ bool ArithEntail::checkEntailArith(Node a, Node b, bool strict)
   else
   {
     Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
-    return checkEntailArith(diff, strict);
+    return check(diff, strict);
   }
 }
 
@@ -56,12 +60,12 @@ struct StrCheckEntailArithTag
 struct StrCheckEntailArithComputedTag
 {
 };
-/** Attribute true for expressions for which checkEntailArith returned true */
+/** Attribute true for expressions for which check returned true */
 typedef expr::Attribute<StrCheckEntailArithTag, bool> StrCheckEntailArithAttr;
 typedef expr::Attribute<StrCheckEntailArithComputedTag, bool>
     StrCheckEntailArithComputedAttr;
 
-bool ArithEntail::checkEntailArith(Node a, bool strict)
+bool ArithEntail::check(Node a, bool strict)
 {
   if (a.isConst())
   {
@@ -80,11 +84,11 @@ bool ArithEntail::checkEntailArith(Node a, bool strict)
     return ar.getAttribute(StrCheckEntailArithAttr());
   }
 
-  bool ret = checkEntailArithInternal(ar);
+  bool ret = checkInternal(ar);
   if (!ret)
   {
     // try with approximations
-    ret = checkEntailArithApprox(ar);
+    ret = checkApprox(ar);
   }
   // cache the result
   ar.setAttribute(StrCheckEntailArithAttr(), ret);
@@ -92,7 +96,7 @@ bool ArithEntail::checkEntailArith(Node a, bool strict)
   return ret;
 }
 
-bool ArithEntail::checkEntailArithApprox(Node ar)
+bool ArithEntail::checkApprox(Node ar)
 {
   Assert(Rewriter::rewrite(ar) == ar);
   NodeManager* nm = NodeManager::currentNM();
@@ -355,7 +359,7 @@ bool ArithEntail::checkEntailArithApprox(Node ar)
   // len( substr( x, 0, n ) ) as len( x ). In this example, we can infer
   // that len( replace( x ++ y, substr( x, 0, n ), z ) ) >= len( y ) in two
   // steps.
-  if (checkEntailArith(aar))
+  if (check(aar))
   {
     Trace("strings-ent-approx")
         << "*** StrArithApprox: showed " << ar
@@ -373,7 +377,7 @@ void ArithEntail::getArithApproximations(Node a,
 {
   NodeManager* nm = NodeManager::currentNM();
   // We do not handle PLUS here since this leads to exponential behavior.
-  // Instead, this is managed, e.g. during checkEntailArithApprox, where
+  // Instead, this is managed, e.g. during checkApprox, where
   // PLUS terms are expanded "on-demand" during the reasoning.
   Trace("strings-ent-approx-debug")
       << "Get arith approximations " << a << std::endl;
@@ -403,11 +407,11 @@ void ArithEntail::getArithApproximations(Node a,
       {
         // m >= 0 implies
         //  m >= len( substr( x, n, m ) )
-        if (checkEntailArith(a[0][2]))
+        if (check(a[0][2]))
         {
           approx.push_back(a[0][2]);
         }
-        if (checkEntailArith(lenx, a[0][1]))
+        if (check(lenx, a[0][1]))
         {
           // n <= len( x ) implies
           //   len( x ) - n >= len( substr( x, n, m ) )
@@ -424,13 +428,13 @@ void ArithEntail::getArithApproximations(Node a,
         // 0 <= n and n+m <= len( x ) implies
         //   m <= len( substr( x, n, m ) )
         Node npm = nm->mkNode(PLUS, a[0][1], a[0][2]);
-        if (checkEntailArith(a[0][1]) && checkEntailArith(lenx, npm))
+        if (check(a[0][1]) && check(lenx, npm))
         {
           approx.push_back(a[0][2]);
         }
         // 0 <= n and n+m >= len( x ) implies
         //   len(x)-n <= len( substr( x, n, m ) )
-        if (checkEntailArith(a[0][1]) && checkEntailArith(npm, lenx))
+        if (check(a[0][1]) && check(npm, lenx))
         {
           approx.push_back(nm->mkNode(MINUS, lenx, a[0][1]));
         }
@@ -445,7 +449,7 @@ void ArithEntail::getArithApproximations(Node a,
       Node lenz = nm->mkNode(STRING_LENGTH, a[0][2]);
       if (isOverApprox)
       {
-        if (checkEntailArith(leny, lenz))
+        if (check(leny, lenz))
         {
           // len( y ) >= len( z ) implies
           //   len( x ) >= len( replace( x, y, z ) )
@@ -459,7 +463,7 @@ void ArithEntail::getArithApproximations(Node a,
       }
       else
       {
-        if (checkEntailArith(lenz, leny) || checkEntailArith(lenz, lenx))
+        if (check(lenz, leny) || check(lenz, lenx))
         {
           // len( y ) <= len( z ) or len( x ) <= len( z ) implies
           //   len( x ) <= len( replace( x, y, z ) )
@@ -477,9 +481,9 @@ void ArithEntail::getArithApproximations(Node a,
       // over,under-approximations for len( int.to.str( x ) )
       if (isOverApprox)
       {
-        if (checkEntailArith(a[0][0], false))
+        if (check(a[0][0], false))
         {
-          if (checkEntailArith(a[0][0], true))
+          if (check(a[0][0], true))
           {
             // x > 0 implies
             //   x >= len( int.to.str( x ) )
@@ -496,7 +500,7 @@ void ArithEntail::getArithApproximations(Node a,
       }
       else
       {
-        if (checkEntailArith(a[0][0]))
+        if (check(a[0][0]))
         {
           // x >= 0 implies
           //   len( int.to.str( x ) ) >= 1
@@ -514,7 +518,7 @@ void ArithEntail::getArithApproximations(Node a,
     {
       Node lenx = nm->mkNode(STRING_LENGTH, a[0]);
       Node leny = nm->mkNode(STRING_LENGTH, a[1]);
-      if (checkEntailArith(lenx, leny))
+      if (check(lenx, leny))
       {
         // len( x ) >= len( y ) implies
         //   len( x ) - len( y ) >= indexof( x, y, n )
@@ -555,7 +559,7 @@ void ArithEntail::getArithApproximations(Node a,
   Trace("strings-ent-approx-debug") << "Return " << approx.size() << std::endl;
 }
 
-bool ArithEntail::checkEntailArithWithEqAssumption(Node assumption,
+bool ArithEntail::checkWithEqAssumption(Node assumption,
                                                          Node a,
                                                          bool strict)
 {
@@ -623,10 +627,10 @@ bool ArithEntail::checkEntailArithWithEqAssumption(Node assumption,
   }
 
   a = a.substitute(TNode(v), TNode(solution));
-  return checkEntailArith(a, strict);
+  return check(a, strict);
 }
 
-bool ArithEntail::checkEntailArithWithAssumption(Node assumption,
+bool ArithEntail::checkWithAssumption(Node assumption,
                                                        Node a,
                                                        Node b,
                                                        bool strict)
@@ -668,7 +672,7 @@ bool ArithEntail::checkEntailArithWithAssumption(Node assumption,
     bool assumptionBool = assumption.getConst<bool>();
     if (assumptionBool)
     {
-      res = checkEntailArith(diff, strict);
+      res = check(diff, strict);
     }
     else
     {
@@ -677,12 +681,12 @@ bool ArithEntail::checkEntailArithWithAssumption(Node assumption,
   }
   else
   {
-    res = checkEntailArithWithEqAssumption(assumption, diff, strict);
+    res = checkWithEqAssumption(assumption, diff, strict);
   }
   return res;
 }
 
-bool ArithEntail::checkEntailArithWithAssumptions(
+bool ArithEntail::checkWithAssumptions(
     std::vector<Node> assumptions, Node a, Node b, bool strict)
 {
   // TODO: We currently try to show the entailment with each assumption
@@ -693,7 +697,7 @@ bool ArithEntail::checkEntailArithWithAssumptions(
   {
     Assert(Rewriter::rewrite(assumption) == assumption);
 
-    if (checkEntailArithWithAssumption(assumption, a, b, strict))
+    if (checkWithAssumption(assumption, a, b, strict))
     {
       res = true;
       break;
@@ -779,13 +783,13 @@ Node ArithEntail::getConstantArithBound(Node a, bool isLower)
   Assert(ret.isNull() || ret.isConst());
   // entailment check should be at least as powerful as computing a lower bound
   Assert(!isLower || ret.isNull() || ret.getConst<Rational>().sgn() < 0
-         || checkEntailArith(a, false));
+         || check(a, false));
   Assert(!isLower || ret.isNull() || ret.getConst<Rational>().sgn() <= 0
-         || checkEntailArith(a, true));
+         || check(a, true));
   return ret;
 }
 
-bool ArithEntail::checkEntailArithInternal(Node a)
+bool ArithEntail::checkInternal(Node a)
 {
   Assert(Rewriter::rewrite(a) == a);
   // check whether a >= 0
@@ -802,7 +806,7 @@ bool ArithEntail::checkEntailArithInternal(Node a)
   {
     for (unsigned i = 0; i < a.getNumChildren(); i++)
     {
-      if (!checkEntailArithInternal(a[i]))
+      if (!checkInternal(a[i]))
       {
         return false;
       }
@@ -825,7 +829,7 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
 
   // Check if we can show that y1 + ... + yn >= x
   Node sum = (ys.size() > 1) ? nm->mkNode(PLUS, ys) : ys[0];
-  if (!checkEntailArith(sum, x))
+  if (!check(sum, x))
   {
     return false;
   }
@@ -850,7 +854,7 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
       sum = ys.size() == 1 ? ys[0] : nm->mkConst(Rational(0));
     }
 
-    if (checkEntailArith(sum, x))
+    if (check(sum, x))
     {
       zeroYs.push_back(yi);
     }

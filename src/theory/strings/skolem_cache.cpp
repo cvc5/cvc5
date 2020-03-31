@@ -163,7 +163,7 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
       a = s;
       b = m;
     }
-    else if (ArithEntail::checkEntailArith(nm->mkNode(PLUS, n, m),
+    else if (ArithEntail::check(nm->mkNode(PLUS, n, m),
                                                  nm->mkNode(STRING_LENGTH, s)))
     {
       // SK_PURIFY((str.substr x n m)) ---> SK_SUFFIX_REM(x, n)

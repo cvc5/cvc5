@@ -22,7 +22,7 @@
 #include "expr/node_builder.h"
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
-#include "theory/arith/arith_msum.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -75,7 +75,7 @@ Node SequencesRewriter::simpleRegexpConsume(std::vector<Node>& mchildren,
           {
             // split the constant
             int index;
-            Node s = splitConstant(xc, rc[0], index, t == 0);
+            Node s = utils::splitConstant(xc, rc[0], index, t == 0);
             Trace("regexp-ext-rewrite-debug")
                 << "CRE: Regexp const split : " << xc << " " << rc[0] << " -> "
                 << s << " " << index << " " << t << std::endl;
@@ -584,7 +584,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
       {
         Node zero = nm->mkConst(Rational(0));
 
-        if (checkEntailArith(ne[1], false) && checkEntailArith(ne[2], true))
+        if (ArithEntail::check(ne[1], false) && ArithEntail::check(ne[2], true))
         {
           // (= "" (str.substr x 0 m)) ---> (= "" x) if m > 0
           if (ne[1] == zero)
@@ -649,7 +649,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
       {
         Node lenY = nm->mkNode(STRING_LENGTH, repl[1]);
         Node lenZ = nm->mkNode(STRING_LENGTH, repl[2]);
-        if (checkEntailArithEq(lenY, lenZ))
+        if (ArithEntail::checkEq(lenY, lenZ))
         {
           Node ret = nm->mkNode(OR,
                                 nm->mkNode(EQUAL, repl[0], repl[1]),
@@ -709,7 +709,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
           Node lenPfx0 = nm->mkNode(STRING_LENGTH, pfx0);
           Node lenPfx1 = nm->mkNode(STRING_LENGTH, pfx1);
 
-          if (checkEntailArithEq(lenPfx0, lenPfx1))
+          if (ArithEntail::checkEq(lenPfx0, lenPfx1))
           {
             std::vector<Node> sfxv0(v0.begin() + i, v0.end());
             std::vector<Node> sfxv1(v1.begin() + j, v1.end());
@@ -719,7 +719,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
                                       .eqNode(utils::mkConcat(sfxv1, stype)));
             return returnRewrite(node, ret, Rewrite::SPLIT_EQ);
           }
-          else if (checkEntailArith(lenPfx1, lenPfx0, true))
+          else if (ArithEntail::check(lenPfx1, lenPfx0, true))
           {
             // The prefix on the right-hand side is strictly longer than the
             // prefix on the left-hand side, so we try to strip the right-hand
@@ -729,7 +729,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             // (= (str.++ "A" x y) (str.++ x "AB" z)) --->
             //   (and (= (str.++ "A" x) (str.++ x "A")) (= y (str.++ "B" z)))
             std::vector<Node> rpfxv1;
-            if (stripSymbolicLength(pfxv1, rpfxv1, 1, lenPfx0))
+            if (utils::stripSymbolicLength(pfxv1, rpfxv1, 1, lenPfx0))
             {
               std::vector<Node> sfxv0(v0.begin() + i, v0.end());
               pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
@@ -746,7 +746,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             // in the inner loop)
             break;
           }
-          else if (checkEntailArith(lenPfx0, lenPfx1, true))
+          else if (ArithEntail::check(lenPfx0, lenPfx1, true))
           {
             // The prefix on the left-hand side is strictly longer than the
             // prefix on the right-hand side, so we try to strip the left-hand
@@ -756,7 +756,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
             // (= (str.++ x "AB" z) (str.++ "A" x y)) --->
             //   (and (= (str.++ x "A") (str.++ "A" x)) (= (str.++ "B" z) y))
             std::vector<Node> rpfxv0;
-            if (stripSymbolicLength(pfxv0, rpfxv0, 1, lenPfx1))
+            if (utils::stripSymbolicLength(pfxv0, rpfxv0, 1, lenPfx1))
             {
               pfxv0.insert(pfxv0.end(), v0.begin() + i, v0.end());
               std::vector<Node> sfxv1(v1.begin() + j, v1.end());
@@ -1666,7 +1666,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       // (str.in.re (str.++ x1 ... xn) (re.* R)) -->
       //   (str.in.re x1 (re.* R)) AND ... AND (str.in.re xn (re.* R))
       //     if the length of all strings in R is one.
-      Node flr = getFixedLengthForRegexp(r[0]);
+      Node flr = utils::getFixedLengthForRegexp(r[0]);
       if (!flr.isNull())
       {
         Node one = nm->mkConst(Rational(1));
@@ -2106,12 +2106,12 @@ Node SequencesRewriter::rewriteSubstr(Node node)
   Node zero = nm->mkConst(CVC4::Rational(0));
 
   // if entailed non-positive length or negative start point
-  if (checkEntailArith(zero, node[1], true))
+  if (ArithEntail::check(zero, node[1], true))
   {
     Node ret = Word::mkEmptyWord(node.getType());
     return returnRewrite(node, ret, Rewrite::SS_START_NEG);
   }
-  else if (checkEntailArith(zero, node[2]))
+  else if (ArithEntail::check(zero, node[2]))
   {
     Node ret = Word::mkEmptyWord(node.getType());
     return returnRewrite(node, ret, Rewrite::SS_LEN_NON_POS);
@@ -2137,7 +2137,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     // over-approximation of the length of (str.substr x a a), which
     // then allows us to reason that the result of the whole term must
     // be empty.
-    if (checkEntailArith(node[1], node[0][2]))
+    if (ArithEntail::check(node[1], node[0][2]))
     {
       Node ret = Word::mkEmptyWord(node.getType());
       return returnRewrite(node, ret, Rewrite::SS_START_GEQ_LEN);
@@ -2172,7 +2172,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
   {
     Node curr = node[2];
     std::vector<Node> childrenr;
-    if (stripSymbolicLength(n1, childrenr, 1, curr))
+    if (utils::stripSymbolicLength(n1, childrenr, 1, curr))
     {
       if (curr != zero && !n1.empty())
       {
@@ -2204,7 +2204,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       Node end_pt = Rewriter::rewrite(nm->mkNode(kind::PLUS, node[1], node[2]));
       if (node[2] != tot_len)
       {
-        if (checkEntailArith(node[2], tot_len))
+        if (ArithEntail::check(node[2], tot_len))
         {
           // end point beyond end point of string, map to tot_len
           Node ret = nm->mkNode(kind::STRING_SUBSTR, node[0], node[1], tot_len);
@@ -2220,7 +2220,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
       Node n1_lt_tot_len =
           Rewriter::rewrite(nm->mkNode(kind::LT, node[1], tot_len));
-      if (checkEntailArithWithAssumption(n1_lt_tot_len, zero, node[2], false))
+      if (ArithEntail::checkWithAssumption(n1_lt_tot_len, zero, node[2], false))
       {
         Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, Rewrite::SS_START_ENTAILS_ZERO_LEN);
@@ -2229,7 +2229,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
       Node non_zero_len =
           Rewriter::rewrite(nm->mkNode(kind::LT, zero, node[2]));
-      if (checkEntailArithWithAssumption(non_zero_len, node[1], tot_len, false))
+      if (ArithEntail::checkWithAssumption(non_zero_len, node[1], tot_len, false))
       {
         Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, Rewrite::SS_NON_ZERO_LEN_ENTAILS_OOB);
@@ -2238,7 +2238,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
       Node geq_zero_start =
           Rewriter::rewrite(nm->mkNode(kind::GEQ, node[1], zero));
-      if (checkEntailArithWithAssumption(geq_zero_start, zero, tot_len, false))
+      if (ArithEntail::checkWithAssumption(geq_zero_start, zero, tot_len, false))
       {
         Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(
@@ -2257,7 +2257,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       // strip off components while quantity is entailed positive
       int dir = r == 0 ? 1 : -1;
       std::vector<Node> childrenr;
-      if (stripSymbolicLength(n1, childrenr, dir, curr))
+      if (utils::stripSymbolicLength(n1, childrenr, dir, curr))
       {
         if (r == 0)
         {
@@ -2281,7 +2281,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
   {
     Node start_inner = node[0][1];
     Node start_outer = node[1];
-    if (checkEntailArith(start_outer) && checkEntailArith(start_inner))
+    if (ArithEntail::check(start_outer) && ArithEntail::check(start_inner))
     {
       // both are positive
       // thus, start point is definitely start_inner+start_outer.
@@ -2298,11 +2298,11 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       {
         new_len = len_from_inner;
       }
-      else if (checkEntailArith(len_from_inner, len_from_outer))
+      else if (ArithEntail::check(len_from_inner, len_from_outer))
       {
         new_len = len_from_outer;
       }
-      else if (checkEntailArith(len_from_outer, len_from_inner))
+      else if (ArithEntail::check(len_from_outer, len_from_inner))
       {
         new_len = len_from_inner;
       }
@@ -2343,7 +2343,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       {
         Node len1 =
             NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
-        if (checkEntailArith(len1, true))
+        if (ArithEntail::check(len1, true))
         {
           // we handle the false case here since the rewrite for equality
           // uses this function, hence we want to conclude false if possible.
@@ -2372,7 +2372,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       else if (node[1].getKind() == kind::STRING_CONCAT)
       {
         int firstc, lastc;
-        if (!canConstantContainConcat(node[0], node[1], firstc, lastc))
+        if (!utils::canConstantContainConcat(node[0], node[1], firstc, lastc))
         {
           Node ret = NodeManager::currentNM()->mkConst(false);
           return returnRewrite(node, ret, Rewrite::CTN_NCONST_CTN_CONCAT);
@@ -2436,7 +2436,7 @@ Node SequencesRewriter::rewriteContains(Node node)
   // component-wise containment
   std::vector<Node> nc1rb;
   std::vector<Node> nc1re;
-  if (componentContains(nc1, nc2, nc1rb, nc1re) != -1)
+  if (utils::componentContains(nc1, nc2, nc1rb, nc1re) != -1)
   {
     Node ret = NodeManager::currentNM()->mkConst(true);
     return returnRewrite(node, ret, Rewrite::CTN_COMPONENT);
@@ -2446,7 +2446,7 @@ Node SequencesRewriter::rewriteContains(Node node)
   // strip endpoints
   std::vector<Node> nb;
   std::vector<Node> ne;
-  if (stripConstantEndpoints(nc1, nc2, nb, ne))
+  if (utils::stripConstantEndpoints(nc1, nc2, nb, ne))
   {
     Node ret = NodeManager::currentNM()->mkNode(
         kind::STRING_STRCTN, utils::mkConcat(nc1, stype), node[1]);
@@ -2511,7 +2511,7 @@ Node SequencesRewriter::rewriteContains(Node node)
   // length entailment
   Node len_n1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[0]);
   Node len_n2 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
-  if (checkEntailArith(len_n2, len_n1, true))
+  if (ArithEntail::check(len_n2, len_n1, true))
   {
     // len( n2 ) > len( n1 ) => contains( n1, n2 ) ---> false
     Node ret = NodeManager::currentNM()->mkConst(false);
@@ -2528,7 +2528,7 @@ Node SequencesRewriter::rewriteContains(Node node)
     return returnRewrite(node, ret, Rewrite::CTN_MSET_NSS);
   }
 
-  if (checkEntailArith(len_n2, len_n1, false))
+  if (ArithEntail::check(len_n2, len_n1, false))
   {
     // len( n2 ) >= len( n1 ) => contains( n1, n2 ) ---> n1 = n2
     Node ret = node[0].eqNode(node[1]);
@@ -2734,7 +2734,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         return returnRewrite(node, zero, Rewrite::IDOF_EQ_CST_START);
       }
     }
-    if (checkEntailArith(node[2], true))
+    if (ArithEntail::check(node[2], true))
     {
       // y>0  implies  indexof( x, x, y ) --> -1
       Node negone = nm->mkConst(Rational(-1));
@@ -2757,7 +2757,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   {
     if (Word::isEmpty(node[1]))
     {
-      if (checkEntailArith(len0, node[2]) && checkEntailArith(node[2]))
+      if (ArithEntail::check(len0, node[2]) && ArithEntail::check(node[2]))
       {
         // len(x)>=z ^ z >=0 implies indexof( x, "", z ) ---> z
         return returnRewrite(node, node[2], Rewrite::IDOF_EMP_IDOF);
@@ -2765,7 +2765,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
     }
   }
 
-  if (checkEntailArith(len1, len0m2, true))
+  if (ArithEntail::check(len1, len0m2, true))
   {
     // len(x)-z < len(y)  implies  indexof( x, y, z ) ----> -1
     Node negone = nm->mkConst(Rational(-1));
@@ -2794,7 +2794,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         // past the first position in node[0] that contains node[1], we can drop
         std::vector<Node> nb;
         std::vector<Node> ne;
-        int cc = componentContains(children0, children1, nb, ne, true, 1);
+        int cc = utils::componentContains(children0, children1, nb, ne, true, 1);
         if (cc != -1 && !ne.empty())
         {
           // For example:
@@ -2805,7 +2805,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         }
 
         // Strip components from the beginning that are guaranteed not to match
-        if (stripConstantEndpoints(children0, children1, nb, ne, 1))
+        if (utils::stripConstantEndpoints(children0, children1, nb, ne, 1))
         {
           // str.indexof(str.++("AB", x, "C"), "C", 0) --->
           // 2 + str.indexof(str.++(x, "C"), "C", 0)
@@ -2823,7 +2823,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
       // strip symbolic length
       Node new_len = node[2];
       std::vector<Node> nr;
-      if (stripSymbolicLength(children0, nr, 1, new_len))
+      if (utils::stripSymbolicLength(children0, nr, 1, new_len))
       {
         // For example:
         // z>str.len( x1 ) and str.contains( x2, y )-->true
@@ -2849,7 +2849,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   {
     Node new_len = node[2];
     std::vector<Node> nr;
-    if (stripSymbolicLength(children0, nr, 1, new_len))
+    if (utils::stripSymbolicLength(children0, nr, 1, new_len))
     {
       // Normalize the string before the start index.
       //
@@ -2875,7 +2875,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   {
     std::vector<Node> cb;
     std::vector<Node> ce;
-    if (stripConstantEndpoints(children0, children1, cb, ce, -1))
+    if (utils::stripConstantEndpoints(children0, children1, cb, ce, -1))
     {
       Node ret = utils::mkConcat(children0, stype);
       ret = nm->mkNode(STRING_STRIDOF, ret, node[1], node[2]);
@@ -2950,7 +2950,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
     // ( len( y )>=len(x) ) => str.replace( x, y, x ) ---> x
     Node l0 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[0]);
     Node l1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
-    if (checkEntailArith(l1, l0))
+    if (ArithEntail::check(l1, l0))
     {
       return returnRewrite(node, node[0], Rewrite::RPL_RPL_LEN_ID);
     }
@@ -2994,7 +2994,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
       // component-wise containment
       std::vector<Node> cb;
       std::vector<Node> ce;
-      int cc = componentContains(children0, children1, cb, ce, true, 1);
+      int cc = utils::componentContains(children0, children1, cb, ce, true, 1);
       if (cc != -1)
       {
         if (cc == 0 && children0[0] == children1[0])
@@ -3097,7 +3097,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
       //   str.++( "b", str.replace( x, "a", y ), "b" )
       std::vector<Node> cb;
       std::vector<Node> ce;
-      if (stripConstantEndpoints(children0, children1, cb, ce))
+      if (utils::stripConstantEndpoints(children0, children1, cb, ce))
       {
         std::vector<Node> cc;
         cc.insert(cc.end(), cb.begin(), cb.end());
@@ -3138,7 +3138,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
     Node len0 = nm->mkNode(kind::STRING_LENGTH, node[0]);
     Node len0_1 = nm->mkNode(kind::PLUS, len0, one);
     // Check len(t) + j > len(x) + 1
-    if (checkEntailArith(maxLen1, len0_1, true))
+    if (ArithEntail::check(maxLen1, len0_1, true))
     {
       children1.push_back(nm->mkNode(
           kind::STRING_SUBSTR,
@@ -3188,7 +3188,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
       // (str.len w) >= (str.len z)
       Node wlen = nm->mkNode(kind::STRING_LENGTH, w);
       Node zlen = nm->mkNode(kind::STRING_LENGTH, z);
-      if (checkEntailArith(wlen, zlen))
+      if (ArithEntail::check(wlen, zlen))
       {
         // w != z
         Node wEqZ = Rewriter::rewrite(nm->mkNode(kind::EQUAL, w, z));
@@ -3567,7 +3567,7 @@ Node SequencesRewriter::lengthPreserveRewrite(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node len = Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, n));
-  Node res = canonicalStrForSymbolicLength(len, n.getType());
+  Node res = utils::canonicalStrForSymbolicLength(len, n.getType());
   return res.isNull() ? n : res;
 }
 
@@ -3598,7 +3598,7 @@ bool SequencesRewriter::checkEntailNonEmpty(Node a)
 {
   Node len = NodeManager::currentNM()->mkNode(STRING_LENGTH, a);
   len = Rewriter::rewrite(len);
-  return checkEntailArith(len, true);
+  return ArithEntail::check(len, true);
 }
 
 bool SequencesRewriter::checkEntailLengthOne(Node s, bool strict)
@@ -3607,541 +3607,8 @@ bool SequencesRewriter::checkEntailLengthOne(Node s, bool strict)
   Node one = nm->mkConst(Rational(1));
   Node len = nm->mkNode(STRING_LENGTH, s);
   len = Rewriter::rewrite(len);
-  return checkEntailArith(one, len) && (!strict || checkEntailArith(len, true));
+  return ArithEntail::check(one, len) && (!strict || ArithEntail::check(len, true));
 }
-
-bool SequencesRewriter::checkEntailArithEq(Node a, Node b)
-{
-  if (a == b)
-  {
-    return true;
-  }
-  else
-  {
-    Node ar = Rewriter::rewrite(a);
-    Node br = Rewriter::rewrite(b);
-    return ar == br;
-  }
-}
-
-bool SequencesRewriter::checkEntailArith(Node a, Node b, bool strict)
-{
-  if (a == b)
-  {
-    return !strict;
-  }
-  else
-  {
-    Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
-    return checkEntailArith(diff, strict);
-  }
-}
-
-struct StrCheckEntailArithTag
-{
-};
-struct StrCheckEntailArithComputedTag
-{
-};
-/** Attribute true for expressions for which checkEntailArith returned true */
-typedef expr::Attribute<StrCheckEntailArithTag, bool> StrCheckEntailArithAttr;
-typedef expr::Attribute<StrCheckEntailArithComputedTag, bool>
-    StrCheckEntailArithComputedAttr;
-
-bool SequencesRewriter::checkEntailArith(Node a, bool strict)
-{
-  if (a.isConst())
-  {
-    return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
-  }
-
-  Node ar =
-      strict
-          ? NodeManager::currentNM()->mkNode(
-                kind::MINUS, a, NodeManager::currentNM()->mkConst(Rational(1)))
-          : a;
-  ar = Rewriter::rewrite(ar);
-
-  if (ar.getAttribute(StrCheckEntailArithComputedAttr()))
-  {
-    return ar.getAttribute(StrCheckEntailArithAttr());
-  }
-
-  bool ret = checkEntailArithInternal(ar);
-  if (!ret)
-  {
-    // try with approximations
-    ret = checkEntailArithApprox(ar);
-  }
-  // cache the result
-  ar.setAttribute(StrCheckEntailArithAttr(), ret);
-  ar.setAttribute(StrCheckEntailArithComputedAttr(), true);
-  return ret;
-}
-
-bool SequencesRewriter::checkEntailArithApprox(Node ar)
-{
-  Assert(Rewriter::rewrite(ar) == ar);
-  NodeManager* nm = NodeManager::currentNM();
-  std::map<Node, Node> msum;
-  Trace("strings-ent-approx-debug")
-      << "Setup arithmetic approximations for " << ar << std::endl;
-  if (!ArithMSum::getMonomialSum(ar, msum))
-  {
-    Trace("strings-ent-approx-debug")
-        << "...failed to get monomial sum!" << std::endl;
-    return false;
-  }
-  // for each monomial v*c, mApprox[v] a list of
-  // possibilities for how the term can be soundly approximated, that is,
-  // if mApprox[v] contains av, then v*c > av*c. Notice that if c
-  // is positive, then v > av, otherwise if c is negative, then v < av.
-  // In other words, av is an under-approximation if c is positive, and an
-  // over-approximation if c is negative.
-  bool changed = false;
-  std::map<Node, std::vector<Node> > mApprox;
-  // map from approximations to their monomial sums
-  std::map<Node, std::map<Node, Node> > approxMsums;
-  // aarSum stores each monomial that does not have multiple approximations
-  std::vector<Node> aarSum;
-  for (std::pair<const Node, Node>& m : msum)
-  {
-    Node v = m.first;
-    Node c = m.second;
-    Trace("strings-ent-approx-debug")
-        << "Get approximations " << v << "..." << std::endl;
-    if (v.isNull())
-    {
-      Node mn = c.isNull() ? nm->mkConst(Rational(1)) : c;
-      aarSum.push_back(mn);
-    }
-    else
-    {
-      // c.isNull() means c = 1
-      bool isOverApprox = !c.isNull() && c.getConst<Rational>().sgn() == -1;
-      std::vector<Node>& approx = mApprox[v];
-      std::unordered_set<Node, NodeHashFunction> visited;
-      std::vector<Node> toProcess;
-      toProcess.push_back(v);
-      do
-      {
-        Node curr = toProcess.back();
-        Trace("strings-ent-approx-debug") << "  process " << curr << std::endl;
-        curr = Rewriter::rewrite(curr);
-        toProcess.pop_back();
-        if (visited.find(curr) == visited.end())
-        {
-          visited.insert(curr);
-          std::vector<Node> currApprox;
-          getArithApproximations(curr, currApprox, isOverApprox);
-          if (currApprox.empty())
-          {
-            Trace("strings-ent-approx-debug")
-                << "...approximation: " << curr << std::endl;
-            // no approximations, thus curr is a possibility
-            approx.push_back(curr);
-          }
-          else
-          {
-            toProcess.insert(
-                toProcess.end(), currApprox.begin(), currApprox.end());
-          }
-        }
-      } while (!toProcess.empty());
-      Assert(!approx.empty());
-      // if we have only one approximation, move it to final
-      if (approx.size() == 1)
-      {
-        changed = v != approx[0];
-        Node mn = ArithMSum::mkCoeffTerm(c, approx[0]);
-        aarSum.push_back(mn);
-        mApprox.erase(v);
-      }
-      else
-      {
-        // compute monomial sum form for each approximation, used below
-        for (const Node& aa : approx)
-        {
-          if (approxMsums.find(aa) == approxMsums.end())
-          {
-            CVC4_UNUSED bool ret =
-                ArithMSum::getMonomialSum(aa, approxMsums[aa]);
-            Assert(ret);
-          }
-        }
-        changed = true;
-      }
-    }
-  }
-  if (!changed)
-  {
-    // approximations had no effect, return
-    Trace("strings-ent-approx-debug") << "...no approximations" << std::endl;
-    return false;
-  }
-  // get the current "fixed" sum for the abstraction of ar
-  Node aar = aarSum.empty()
-                 ? nm->mkConst(Rational(0))
-                 : (aarSum.size() == 1 ? aarSum[0] : nm->mkNode(PLUS, aarSum));
-  aar = Rewriter::rewrite(aar);
-  Trace("strings-ent-approx-debug")
-      << "...processed fixed sum " << aar << " with " << mApprox.size()
-      << " approximated monomials." << std::endl;
-  // if we have a choice of how to approximate
-  if (!mApprox.empty())
-  {
-    // convert aar back to monomial sum
-    std::map<Node, Node> msumAar;
-    if (!ArithMSum::getMonomialSum(aar, msumAar))
-    {
-      return false;
-    }
-    if (Trace.isOn("strings-ent-approx"))
-    {
-      Trace("strings-ent-approx")
-          << "---- Check arithmetic entailment by under-approximation " << ar
-          << " >= 0" << std::endl;
-      Trace("strings-ent-approx") << "FIXED:" << std::endl;
-      ArithMSum::debugPrintMonomialSum(msumAar, "strings-ent-approx");
-      Trace("strings-ent-approx") << "APPROX:" << std::endl;
-      for (std::pair<const Node, std::vector<Node> >& a : mApprox)
-      {
-        Node c = msum[a.first];
-        Trace("strings-ent-approx") << "  ";
-        if (!c.isNull())
-        {
-          Trace("strings-ent-approx") << c << " * ";
-        }
-        Trace("strings-ent-approx")
-            << a.second << " ...from " << a.first << std::endl;
-      }
-      Trace("strings-ent-approx") << std::endl;
-    }
-    Rational one(1);
-    // incorporate monomials one at a time that have a choice of approximations
-    while (!mApprox.empty())
-    {
-      Node v;
-      Node vapprox;
-      int maxScore = -1;
-      // Look at each approximation, take the one with the best score.
-      // Notice that we are in the process of trying to prove
-      // ( c1*t1 + .. + cn*tn ) + ( approx_1 | ... | approx_m ) >= 0,
-      // where c1*t1 + .. + cn*tn is the "fixed" component of our sum (aar)
-      // and approx_1 ... approx_m are possible approximations. The
-      // intution here is that we want coefficients c1...cn to be positive.
-      // This is because arithmetic string terms t1...tn (which may be
-      // applications of len, indexof, str.to.int) are never entailed to be
-      // negative. Hence, we add the approx_i that contributes the "most"
-      // towards making all constants c1...cn positive and cancelling negative
-      // monomials in approx_i itself.
-      for (std::pair<const Node, std::vector<Node> >& nam : mApprox)
-      {
-        Node cr = msum[nam.first];
-        for (const Node& aa : nam.second)
-        {
-          unsigned helpsCancelCount = 0;
-          unsigned addsObligationCount = 0;
-          std::map<Node, Node>::iterator it;
-          // we are processing an approximation cr*( c1*t1 + ... + cn*tn )
-          for (std::pair<const Node, Node>& aam : approxMsums[aa])
-          {
-            // Say aar is of the form t + c*ti, and aam is the monomial ci*ti
-            // where ci != 0. We say aam:
-            // (1) helps cancel if c != 0 and c>0 != ci>0
-            // (2) adds obligation if c>=0 and c+ci<0
-            Node ti = aam.first;
-            Node ci = aam.second;
-            if (!cr.isNull())
-            {
-              ci = ci.isNull() ? cr
-                               : Rewriter::rewrite(nm->mkNode(MULT, ci, cr));
-            }
-            Trace("strings-ent-approx-debug") << ci << "*" << ti << " ";
-            int ciSgn = ci.isNull() ? 1 : ci.getConst<Rational>().sgn();
-            it = msumAar.find(ti);
-            if (it != msumAar.end())
-            {
-              Node c = it->second;
-              int cSgn = c.isNull() ? 1 : c.getConst<Rational>().sgn();
-              if (cSgn == 0)
-              {
-                addsObligationCount += (ciSgn == -1 ? 1 : 0);
-              }
-              else if (cSgn != ciSgn)
-              {
-                helpsCancelCount++;
-                Rational r1 = c.isNull() ? one : c.getConst<Rational>();
-                Rational r2 = ci.isNull() ? one : ci.getConst<Rational>();
-                Rational r12 = r1 + r2;
-                if (r12.sgn() == -1)
-                {
-                  addsObligationCount++;
-                }
-              }
-            }
-            else
-            {
-              addsObligationCount += (ciSgn == -1 ? 1 : 0);
-            }
-          }
-          Trace("strings-ent-approx-debug")
-              << "counts=" << helpsCancelCount << "," << addsObligationCount
-              << " for " << aa << " into " << aar << std::endl;
-          int score = (addsObligationCount > 0 ? 0 : 2)
-                      + (helpsCancelCount > 0 ? 1 : 0);
-          // if its the best, update v and vapprox
-          if (v.isNull() || score > maxScore)
-          {
-            v = nam.first;
-            vapprox = aa;
-            maxScore = score;
-          }
-        }
-        if (!v.isNull())
-        {
-          break;
-        }
-      }
-      Trace("strings-ent-approx")
-          << "- Decide " << v << " = " << vapprox << std::endl;
-      // we incorporate v approximated by vapprox into the overall approximation
-      // for ar
-      Assert(!v.isNull() && !vapprox.isNull());
-      Assert(msum.find(v) != msum.end());
-      Node mn = ArithMSum::mkCoeffTerm(msum[v], vapprox);
-      aar = nm->mkNode(PLUS, aar, mn);
-      // update the msumAar map
-      aar = Rewriter::rewrite(aar);
-      msumAar.clear();
-      if (!ArithMSum::getMonomialSum(aar, msumAar))
-      {
-        Assert(false);
-        Trace("strings-ent-approx")
-            << "...failed to get monomial sum!" << std::endl;
-        return false;
-      }
-      // we have processed the approximation for v
-      mApprox.erase(v);
-    }
-    Trace("strings-ent-approx") << "-----------------" << std::endl;
-  }
-  if (aar == ar)
-  {
-    Trace("strings-ent-approx-debug")
-        << "...approximation had no effect" << std::endl;
-    // this should never happen, but we avoid the infinite loop for sanity here
-    Assert(false);
-    return false;
-  }
-  // Check entailment on the approximation of ar.
-  // Notice that this may trigger further reasoning by approximation. For
-  // example, len( replace( x ++ y, substr( x, 0, n ), z ) ) may be
-  // under-approximated as len( x ) + len( y ) - len( substr( x, 0, n ) ) on
-  // this call, where in the recursive call we may over-approximate
-  // len( substr( x, 0, n ) ) as len( x ). In this example, we can infer
-  // that len( replace( x ++ y, substr( x, 0, n ), z ) ) >= len( y ) in two
-  // steps.
-  if (checkEntailArith(aar))
-  {
-    Trace("strings-ent-approx")
-        << "*** StrArithApprox: showed " << ar
-        << " >= 0 using under-approximation!" << std::endl;
-    Trace("strings-ent-approx")
-        << "*** StrArithApprox: under-approximation was " << aar << std::endl;
-    return true;
-  }
-  return false;
-}
-
-void SequencesRewriter::getArithApproximations(Node a,
-                                               std::vector<Node>& approx,
-                                               bool isOverApprox)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  // We do not handle PLUS here since this leads to exponential behavior.
-  // Instead, this is managed, e.g. during checkEntailArithApprox, where
-  // PLUS terms are expanded "on-demand" during the reasoning.
-  Trace("strings-ent-approx-debug")
-      << "Get arith approximations " << a << std::endl;
-  Kind ak = a.getKind();
-  if (ak == MULT)
-  {
-    Node c;
-    Node v;
-    if (ArithMSum::getMonomial(a, c, v))
-    {
-      bool isNeg = c.getConst<Rational>().sgn() == -1;
-      getArithApproximations(v, approx, isNeg ? !isOverApprox : isOverApprox);
-      for (unsigned i = 0, size = approx.size(); i < size; i++)
-      {
-        approx[i] = nm->mkNode(MULT, c, approx[i]);
-      }
-    }
-  }
-  else if (ak == STRING_LENGTH)
-  {
-    Kind aak = a[0].getKind();
-    if (aak == STRING_SUBSTR)
-    {
-      // over,under-approximations for len( substr( x, n, m ) )
-      Node lenx = nm->mkNode(STRING_LENGTH, a[0][0]);
-      if (isOverApprox)
-      {
-        // m >= 0 implies
-        //  m >= len( substr( x, n, m ) )
-        if (checkEntailArith(a[0][2]))
-        {
-          approx.push_back(a[0][2]);
-        }
-        if (checkEntailArith(lenx, a[0][1]))
-        {
-          // n <= len( x ) implies
-          //   len( x ) - n >= len( substr( x, n, m ) )
-          approx.push_back(nm->mkNode(MINUS, lenx, a[0][1]));
-        }
-        else
-        {
-          // len( x ) >= len( substr( x, n, m ) )
-          approx.push_back(lenx);
-        }
-      }
-      else
-      {
-        // 0 <= n and n+m <= len( x ) implies
-        //   m <= len( substr( x, n, m ) )
-        Node npm = nm->mkNode(PLUS, a[0][1], a[0][2]);
-        if (checkEntailArith(a[0][1]) && checkEntailArith(lenx, npm))
-        {
-          approx.push_back(a[0][2]);
-        }
-        // 0 <= n and n+m >= len( x ) implies
-        //   len(x)-n <= len( substr( x, n, m ) )
-        if (checkEntailArith(a[0][1]) && checkEntailArith(npm, lenx))
-        {
-          approx.push_back(nm->mkNode(MINUS, lenx, a[0][1]));
-        }
-      }
-    }
-    else if (aak == STRING_STRREPL)
-    {
-      // over,under-approximations for len( replace( x, y, z ) )
-      // notice this is either len( x ) or ( len( x ) + len( z ) - len( y ) )
-      Node lenx = nm->mkNode(STRING_LENGTH, a[0][0]);
-      Node leny = nm->mkNode(STRING_LENGTH, a[0][1]);
-      Node lenz = nm->mkNode(STRING_LENGTH, a[0][2]);
-      if (isOverApprox)
-      {
-        if (checkEntailArith(leny, lenz))
-        {
-          // len( y ) >= len( z ) implies
-          //   len( x ) >= len( replace( x, y, z ) )
-          approx.push_back(lenx);
-        }
-        else
-        {
-          // len( x ) + len( z ) >= len( replace( x, y, z ) )
-          approx.push_back(nm->mkNode(PLUS, lenx, lenz));
-        }
-      }
-      else
-      {
-        if (checkEntailArith(lenz, leny) || checkEntailArith(lenz, lenx))
-        {
-          // len( y ) <= len( z ) or len( x ) <= len( z ) implies
-          //   len( x ) <= len( replace( x, y, z ) )
-          approx.push_back(lenx);
-        }
-        else
-        {
-          // len( x ) - len( y ) <= len( replace( x, y, z ) )
-          approx.push_back(nm->mkNode(MINUS, lenx, leny));
-        }
-      }
-    }
-    else if (aak == STRING_ITOS)
-    {
-      // over,under-approximations for len( int.to.str( x ) )
-      if (isOverApprox)
-      {
-        if (checkEntailArith(a[0][0], false))
-        {
-          if (checkEntailArith(a[0][0], true))
-          {
-            // x > 0 implies
-            //   x >= len( int.to.str( x ) )
-            approx.push_back(a[0][0]);
-          }
-          else
-          {
-            // x >= 0 implies
-            //   x+1 >= len( int.to.str( x ) )
-            approx.push_back(
-                nm->mkNode(PLUS, nm->mkConst(Rational(1)), a[0][0]));
-          }
-        }
-      }
-      else
-      {
-        if (checkEntailArith(a[0][0]))
-        {
-          // x >= 0 implies
-          //   len( int.to.str( x ) ) >= 1
-          approx.push_back(nm->mkConst(Rational(1)));
-        }
-        // other crazy things are possible here, e.g.
-        // len( int.to.str( len( y ) + 10 ) ) >= 2
-      }
-    }
-  }
-  else if (ak == STRING_STRIDOF)
-  {
-    // over,under-approximations for indexof( x, y, n )
-    if (isOverApprox)
-    {
-      Node lenx = nm->mkNode(STRING_LENGTH, a[0]);
-      Node leny = nm->mkNode(STRING_LENGTH, a[1]);
-      if (checkEntailArith(lenx, leny))
-      {
-        // len( x ) >= len( y ) implies
-        //   len( x ) - len( y ) >= indexof( x, y, n )
-        approx.push_back(nm->mkNode(MINUS, lenx, leny));
-      }
-      else
-      {
-        // len( x ) >= indexof( x, y, n )
-        approx.push_back(lenx);
-      }
-    }
-    else
-    {
-      // TODO?:
-      // contains( substr( x, n, len( x ) ), y ) implies
-      //   n <= indexof( x, y, n )
-      // ...hard to test, runs risk of non-termination
-
-      // -1 <= indexof( x, y, n )
-      approx.push_back(nm->mkConst(Rational(-1)));
-    }
-  }
-  else if (ak == STRING_STOI)
-  {
-    // over,under-approximations for str.to.int( x )
-    if (isOverApprox)
-    {
-      // TODO?:
-      // y >= 0 implies
-      //   y >= str.to.int( int.to.str( y ) )
-    }
-    else
-    {
-      // -1 <= str.to.int( x )
-      approx.push_back(nm->mkConst(Rational(-1)));
-    }
-  }
-  Trace("strings-ent-approx-debug") << "Return " << approx.size() << std::endl;
-}
-
 bool SequencesRewriter::checkEntailMultisetSubset(Node a, Node b)
 {
   std::vector<Node> avec;
@@ -4288,265 +3755,6 @@ Node SequencesRewriter::getMultisetApproximation(Node a)
   }
 }
 
-bool SequencesRewriter::checkEntailArithWithEqAssumption(Node assumption,
-                                                         Node a,
-                                                         bool strict)
-{
-  Assert(assumption.getKind() == kind::EQUAL);
-  Assert(Rewriter::rewrite(assumption) == assumption);
-
-  // Find candidates variables to compute substitutions for
-  std::unordered_set<Node, NodeHashFunction> candVars;
-  std::vector<Node> toVisit = {assumption};
-  while (!toVisit.empty())
-  {
-    Node curr = toVisit.back();
-    toVisit.pop_back();
-
-    if (curr.getKind() == kind::PLUS || curr.getKind() == kind::MULT
-        || curr.getKind() == kind::MINUS || curr.getKind() == kind::EQUAL)
-    {
-      for (const auto& currChild : curr)
-      {
-        toVisit.push_back(currChild);
-      }
-    }
-    else if (curr.isVar() && Theory::theoryOf(curr) == THEORY_ARITH)
-    {
-      candVars.insert(curr);
-    }
-    else if (curr.getKind() == kind::STRING_LENGTH)
-    {
-      candVars.insert(curr);
-    }
-  }
-
-  // Check if any of the candidate variables are in n
-  Node v;
-  Assert(toVisit.empty());
-  toVisit.push_back(a);
-  while (!toVisit.empty())
-  {
-    Node curr = toVisit.back();
-    toVisit.pop_back();
-
-    for (const auto& currChild : curr)
-    {
-      toVisit.push_back(currChild);
-    }
-
-    if (candVars.find(curr) != candVars.end())
-    {
-      v = curr;
-      break;
-    }
-  }
-
-  if (v.isNull())
-  {
-    // No suitable candidate found
-    return false;
-  }
-
-  Node solution = ArithMSum::solveEqualityFor(assumption, v);
-  if (solution.isNull())
-  {
-    // Could not solve for v
-    return false;
-  }
-
-  a = a.substitute(TNode(v), TNode(solution));
-  return checkEntailArith(a, strict);
-}
-
-bool SequencesRewriter::checkEntailArithWithAssumption(Node assumption,
-                                                       Node a,
-                                                       Node b,
-                                                       bool strict)
-{
-  Assert(Rewriter::rewrite(assumption) == assumption);
-
-  NodeManager* nm = NodeManager::currentNM();
-
-  if (!assumption.isConst() && assumption.getKind() != kind::EQUAL)
-  {
-    // We rewrite inequality assumptions from x <= y to x + (str.len s) = y
-    // where s is some fresh string variable. We use (str.len s) because
-    // (str.len s) must be non-negative for the equation to hold.
-    Node x, y;
-    if (assumption.getKind() == kind::GEQ)
-    {
-      x = assumption[0];
-      y = assumption[1];
-    }
-    else
-    {
-      // (not (>= s t)) --> (>= (t - 1) s)
-      Assert(assumption.getKind() == kind::NOT
-             && assumption[0].getKind() == kind::GEQ);
-      x = nm->mkNode(kind::MINUS, assumption[0][1], nm->mkConst(Rational(1)));
-      y = assumption[0][0];
-    }
-
-    Node s = nm->mkBoundVar("slackVal", nm->stringType());
-    Node slen = nm->mkNode(kind::STRING_LENGTH, s);
-    assumption = Rewriter::rewrite(
-        nm->mkNode(kind::EQUAL, x, nm->mkNode(kind::PLUS, y, slen)));
-  }
-
-  Node diff = nm->mkNode(kind::MINUS, a, b);
-  bool res = false;
-  if (assumption.isConst())
-  {
-    bool assumptionBool = assumption.getConst<bool>();
-    if (assumptionBool)
-    {
-      res = checkEntailArith(diff, strict);
-    }
-    else
-    {
-      res = true;
-    }
-  }
-  else
-  {
-    res = checkEntailArithWithEqAssumption(assumption, diff, strict);
-  }
-  return res;
-}
-
-bool SequencesRewriter::checkEntailArithWithAssumptions(
-    std::vector<Node> assumptions, Node a, Node b, bool strict)
-{
-  // TODO: We currently try to show the entailment with each assumption
-  // independently. In the future, we should make better use of multiple
-  // assumptions.
-  bool res = false;
-  for (const auto& assumption : assumptions)
-  {
-    Assert(Rewriter::rewrite(assumption) == assumption);
-
-    if (checkEntailArithWithAssumption(assumption, a, b, strict))
-    {
-      res = true;
-      break;
-    }
-  }
-  return res;
-}
-
-Node SequencesRewriter::getConstantArithBound(Node a, bool isLower)
-{
-  Assert(Rewriter::rewrite(a) == a);
-  Node ret;
-  if (a.isConst())
-  {
-    ret = a;
-  }
-  else if (a.getKind() == kind::STRING_LENGTH)
-  {
-    if (isLower)
-    {
-      ret = NodeManager::currentNM()->mkConst(Rational(0));
-    }
-  }
-  else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
-  {
-    std::vector<Node> children;
-    bool success = true;
-    for (unsigned i = 0; i < a.getNumChildren(); i++)
-    {
-      Node ac = getConstantArithBound(a[i], isLower);
-      if (ac.isNull())
-      {
-        ret = ac;
-        success = false;
-        break;
-      }
-      else
-      {
-        if (ac.getConst<Rational>().sgn() == 0)
-        {
-          if (a.getKind() == kind::MULT)
-          {
-            ret = ac;
-            success = false;
-            break;
-          }
-        }
-        else
-        {
-          if (a.getKind() == kind::MULT)
-          {
-            if ((ac.getConst<Rational>().sgn() > 0) != isLower)
-            {
-              ret = Node::null();
-              success = false;
-              break;
-            }
-          }
-          children.push_back(ac);
-        }
-      }
-    }
-    if (success)
-    {
-      if (children.empty())
-      {
-        ret = NodeManager::currentNM()->mkConst(Rational(0));
-      }
-      else if (children.size() == 1)
-      {
-        ret = children[0];
-      }
-      else
-      {
-        ret = NodeManager::currentNM()->mkNode(a.getKind(), children);
-        ret = Rewriter::rewrite(ret);
-      }
-    }
-  }
-  Trace("strings-rewrite-cbound")
-      << "Constant " << (isLower ? "lower" : "upper") << " bound for " << a
-      << " is " << ret << std::endl;
-  Assert(ret.isNull() || ret.isConst());
-  // entailment check should be at least as powerful as computing a lower bound
-  Assert(!isLower || ret.isNull() || ret.getConst<Rational>().sgn() < 0
-         || checkEntailArith(a, false));
-  Assert(!isLower || ret.isNull() || ret.getConst<Rational>().sgn() <= 0
-         || checkEntailArith(a, true));
-  return ret;
-}
-
-bool SequencesRewriter::checkEntailArithInternal(Node a)
-{
-  Assert(Rewriter::rewrite(a) == a);
-  // check whether a >= 0
-  if (a.isConst())
-  {
-    return a.getConst<Rational>().sgn() >= 0;
-  }
-  else if (a.getKind() == kind::STRING_LENGTH)
-  {
-    // str.len( t ) >= 0
-    return true;
-  }
-  else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
-  {
-    for (unsigned i = 0; i < a.getNumChildren(); i++)
-    {
-      if (!checkEntailArithInternal(a[i]))
-      {
-        return false;
-      }
-    }
-    // t1 >= 0 ^ ... ^ tn >= 0 => t1 op ... op tn >= 0
-    return true;
-  }
-
-  return false;
-}
-
 Node SequencesRewriter::decomposeSubstrChain(Node s,
                                              std::vector<Node>& ss,
                                              std::vector<Node>& ls)
@@ -4625,54 +3833,6 @@ Node SequencesRewriter::getStringOrEmpty(Node n)
   return res;
 }
 
-bool SequencesRewriter::inferZerosInSumGeq(Node x,
-                                           std::vector<Node>& ys,
-                                           std::vector<Node>& zeroYs)
-{
-  Assert(zeroYs.empty());
-
-  NodeManager* nm = NodeManager::currentNM();
-
-  // Check if we can show that y1 + ... + yn >= x
-  Node sum = (ys.size() > 1) ? nm->mkNode(PLUS, ys) : ys[0];
-  if (!checkEntailArith(sum, x))
-  {
-    return false;
-  }
-
-  // Try to remove yi one-by-one and check if we can still show:
-  //
-  // y1 + ... + yi-1 +  yi+1 + ... + yn >= x
-  //
-  // If that's the case, we know that yi can be zero and the inequality still
-  // holds.
-  size_t i = 0;
-  while (i < ys.size())
-  {
-    Node yi = ys[i];
-    std::vector<Node>::iterator pos = ys.erase(ys.begin() + i);
-    if (ys.size() > 1)
-    {
-      sum = nm->mkNode(PLUS, ys);
-    }
-    else
-    {
-      sum = ys.size() == 1 ? ys[0] : nm->mkConst(Rational(0));
-    }
-
-    if (checkEntailArith(sum, x))
-    {
-      zeroYs.push_back(yi);
-    }
-    else
-    {
-      ys.insert(pos, yi);
-      i++;
-    }
-  }
-  return true;
-}
-
 Node SequencesRewriter::inferEqsFromContains(Node x, Node y)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -4709,7 +3869,7 @@ Node SequencesRewriter::inferEqsFromContains(Node x, Node y)
     // str.len(yn) (where y = y1 ++ ... ++ yn) while keeping the inequality
     // true. The terms that can have length zero without making the inequality
     // false must be all be empty if (str.contains x y) is true.
-    if (!inferZerosInSumGeq(xLen, yLens, zeroLens))
+    if (!ArithEntail::inferZerosInSumGeq(xLen, yLens, zeroLens))
     {
       // We could not prove that the inequality holds
       return Node::null();
