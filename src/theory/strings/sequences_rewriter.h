@@ -121,6 +121,37 @@ class SequencesRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   static Node rewriteLoopRegExp(TNode node);
+  /** rewrite regular expression repeat
+   *
+   * This is the entry point for post-rewriting applications of re.repeat.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteRepeatRegExp(TNode node);
+  /** rewrite regular expression option
+   *
+   * This is the entry point for post-rewriting applications of re.opt.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteOptionRegExp(TNode node);
+  /** rewrite regular expression plus
+   *
+   * This is the entry point for post-rewriting applications of re.+.
+   * Returns the rewritten form of node.
+   */
+  static Node rewritePlusRegExp(TNode node);
+  /** rewrite regular expression difference
+   *
+   * This is the entry point for post-rewriting applications of re.diff.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteDifferenceRegExp(TNode node);
+  /** rewrite regular expression range
+   *
+   * This is the entry point for post-rewriting applications of re.range.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteRangeRegExp(TNode node);
+
   /** rewrite regular expression membership
    *
    * This is the entry point for post-rewriting applications of str.in.re
@@ -182,12 +213,24 @@ class SequencesRewriter : public TheoryRewriter
    * necessarily one of { s = t, t = s, true, false }.
    */
   static Node rewriteEqualityExt(Node node);
+  /** rewrite string length
+   * This is the entry point for post-rewriting terms node of the form
+   *   str.len( t )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteLength(Node node);
   /** rewrite concat
    * This is the entry point for post-rewriting terms node of the form
    *   str.++( t1, .., tn )
    * Returns the rewritten form of node.
    */
   static Node rewriteConcat(Node node);
+  /** rewrite character at
+   * This is the entry point for post-rewriting terms node of the form
+   *   str.charat( s, i1 )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteCharAt(Node node);
   /** rewrite substr
    * This is the entry point for post-rewriting terms node of the form
    *   str.substr( s, i1, i2 )
@@ -469,11 +512,12 @@ class SequencesRewriter : public TheoryRewriter
                                      int dir = 0);
 
   /**
-   * Given a symbolic length n, returns the canonical string for that length.
-   * For example if n is constant, this function returns a string consisting of
-   * "A" repeated n times. Returns the null node if no such string exists.
+   * Given a symbolic length n, returns the canonical string (of type stype)
+   * for that length. For example if n is constant, this function returns a
+   * string consisting of "A" repeated n times. Returns the null node if no such
+   * string exists.
    */
-  static Node canonicalStrForSymbolicLength(Node n);
+  static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 
   /** length preserving rewrite
    *

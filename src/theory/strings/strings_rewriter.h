@@ -56,6 +56,14 @@ class StringsRewriter : public SequencesRewriter
    */
   static Node rewriteStrConvert(Node n);
 
+  /** rewrite string less than
+   *
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.<( t, s )
+   * Returns the rewritten form of n.
+   */
+  static Node rewriteStringLt(Node n);
+
   /** rewrite string less than or equal
    *
    * This is the entry point for post-rewriting terms n of the form
@@ -79,6 +87,14 @@ class StringsRewriter : public SequencesRewriter
    * Returns the rewritten form of n.
    */
   static Node rewriteStringToCode(Node n);
+
+  /** rewrite is digit
+   *
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.is_digit( t )
+   * Returns the rewritten form of n.
+   */
+  static Node rewriteStringIsDigit(Node n);
 };
 
 }  // namespace strings
