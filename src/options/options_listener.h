@@ -21,15 +21,16 @@
 
 namespace CVC4 {
 
-class OptionListener {
-  OptionListener(){}
-  virtual ~OptionListener(){}
+class OptionListener
+{
+  OptionListener() {}
+  virtual ~OptionListener() {}
   /**
    * Notify that option key has been set to optarg.
    */
   virtual void setOption(const std::string& key, const std::string& optarg) = 0;
 };
 
-}
+}  // namespace CVC4
 
 #endif /* CVC4__OPTIONS__OPTION_LISTENER_H */
