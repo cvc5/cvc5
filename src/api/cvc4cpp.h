@@ -2303,6 +2303,20 @@ class CVC4_PUBLIC Solver
   Term mkString(const std::vector<unsigned>& s) const;
 
   /**
+   * Create a character constant from a given string.
+   * @param s the string denoting the code point of the character (in base 16)
+   * @return the character constant
+   */
+  Term mkChar(const std::string& s) const;
+
+  /**
+   * Create a character constant from a given string.
+   * @param s the string denoting the code point of the character (in base 16)
+   * @return the character constant
+   */
+  Term mkChar(const char* s) const;
+
+  /**
    * Create a universe set of the given sort.
    * @param sort the sort of the set elements
    * @return the universe set constant
@@ -2812,18 +2826,20 @@ class CVC4_PUBLIC Solver
   template <typename T>
   Term mkValHelper(T t) const;
   /* Helper for mkReal functions that take a string as argument. */
-  Term mkRealFromStrHelper(std::string s) const;
+  Term mkRealFromStrHelper(const std::string& s) const;
   /* Helper for mkBitVector functions that take a string as argument. */
-  Term mkBVFromStrHelper(std::string s, uint32_t base) const;
+  Term mkBVFromStrHelper(const std::string& s, uint32_t base) const;
   /* Helper for mkBitVector functions that take a string and a size as
    * arguments. */
-  Term mkBVFromStrHelper(uint32_t size, std::string s, uint32_t base) const;
+  Term mkBVFromStrHelper(uint32_t size, const std::string& s, uint32_t base) const;
   /* Helper for mkBitVector functions that take an integer as argument. */
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
   /* Helper for setLogic. */
   void setLogicHelper(const std::string& logic) const;
   /* Helper for mkTerm functions that create Term from a Kind */
   Term mkTermFromKind(Kind kind) const;
+  /* Helper for mkChar functions that take a string as argument. */
+  Term mkCharFromStrHelper(const std::string& s) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed

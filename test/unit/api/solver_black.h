@@ -69,6 +69,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkRoundingMode();
   void testMkSepNil();
   void testMkString();
+  void testMkChar();
   void testMkTerm();
   void testMkTermFromOp();
   void testMkTrue();
@@ -558,6 +559,17 @@ void SolverBlack::testMkString()
                    "\"asdf\\u{5c}nasdf\"");
   TS_ASSERT_EQUALS(d_solver->mkString("asdf\\u{005c}nasdf", true).toString(),
                     "\"asdf\\u{5c}nasdf\"");
+}
+
+void SolverBlack::testMkChar()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkChar(std::string("0123")));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkChar("aA"));
+  TS_ASSERT_THROWS(d_solver->mkChar(nullptr), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkChar(""), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkChar("0g0"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkChar("100000"), CVC4ApiException&);
+  TS_ASSERT_EQUALS(d_solver->mkChar("abc"), d_solver->mkChar("ABC"));
 }
 
 void SolverBlack::testMkTerm()
