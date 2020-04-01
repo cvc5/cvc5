@@ -232,10 +232,6 @@ Options::Options(OptionsListener * ol)
     : d_holder(new options::OptionsHolder())
     , d_handler(new options::OptionsHandler(this))
     , d_beforeSearchListeners()
-    , d_tlimitListeners()
-    , d_tlimitPerListeners()
-    , d_rlimitListeners()
-    , d_rlimitPerListeners()
     , d_olisten(ol)
 {
   
