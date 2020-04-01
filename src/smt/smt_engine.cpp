@@ -391,7 +391,7 @@ class SmtEnginePrivate : public NodeManagerListener {
     SmtEnginePrivateOptionsListener(SmtEnginePrivate& smtp) : d_smtp(smtp){}
     ~SmtEnginePrivateOptionsListener(){}
     /** set option */
-    void setOption(const std::string& key, const std::string& optarg) 
+    void setOption(const std::string& key, const std::string& optarg) override
     {
       d_smtp.notifySetOption(key, optarg);
     }
@@ -539,7 +539,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_abstractValueMap(&d_fakeContext),
         d_abstractValues(),
         d_simplifyAssertionsDepth(0),
-        d_smtOptListen(smt),
+        d_smtOptListen(*this),
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
         d_sygusConjectureStale(smt.getUserContext(), true)
@@ -697,8 +697,11 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   void notifySetOption(const std::string& key, const std::string& optarg)
   {
-    // TODO: this could be improved so that key is "tokenized" so that
-    // we don't have option names in two places.
+    // TODO: this could be improved so that we have a way of extracting the
+    // expected name of the option. This would ensure we don't maintain
+    // std::string option names in two places.  In other words, the below
+    // condition should be:
+    //     (key == options::cumulativeMillisecondLimit.getName())
     if (key == "tlimit")
     {
       d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(), true);
