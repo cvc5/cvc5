@@ -609,9 +609,9 @@ class SmtEnginePrivate : public NodeManagerListener {
   void nmNotifyDeleteNode(TNode n) override {}
   
   /**
-   * Called when a set option call is made on the options object of this class.
-   * This handles all options that should be taken into account immediately
-   * instead of e.g. at finishInit time.
+   * Called when a set option call is made on the options object associated
+   * with this class. This handles all options that should be taken into account
+   * immediately instead of e.g. at SmtEngine::finishInit time.
    * 
    * This function call is made after the option has been updated. This means
    * that the value of the option can be queried, instead of reparsing the
@@ -619,6 +619,8 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   void notifySetOption(const std::string& key, const std::string& optarg)
   {
+    Trace("options") << "SmtEnginePrivate::setOption(" << key << ", " << optarg << ")"
+                    << std::endl;
     // TODO: this could be improved so that we have a way of extracting the
     // expected name of the option. This would ensure we don't maintain
     // std::string option names in two places.  In other words, the below
@@ -689,6 +691,7 @@ class SmtEnginePrivate : public NodeManagerListener {
       Warning.getStream() << Command::printsuccess(value);
       *options::out() << Command::printsuccess(value);
     }    
+    // otherwise, no action is necessary
   }
 
   Node applySubstitutions(TNode node)

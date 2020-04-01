@@ -228,7 +228,7 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
   // that can throw exceptions.
 }
 
-Options(OptionsListener * ol)
+Options::Options(OptionsListener * ol)
     : d_holder(new options::OptionsHolder())
     , d_handler(new options::OptionsHandler(this))
     , d_beforeSearchListeners()
@@ -718,7 +718,7 @@ std::vector<std::vector<std::string> > Options::getOptions() const
 
 void Options::setOption(const std::string& key, const std::string& optionarg)
 {
-  Trace("options") << "SMT setOption(" << key << ", " << optionarg << ")"
+  Trace("options") << "setOption(" << key << ", " << optionarg << ")"
                    << std::endl;
   // first update this object
   setOptionInternal(key, optionarg);
@@ -739,7 +739,7 @@ void Options::setOptionInternal(const std::string& key, const std::string& optio
 
 std::string Options::getOption(const std::string& key) const
 {
-  Trace("options") << "SMT getOption(" << key << ")" << std::endl;
+  Trace("options") << "getOption(" << key << ")" << std::endl;
 
   ${getoption_handlers}$
 
