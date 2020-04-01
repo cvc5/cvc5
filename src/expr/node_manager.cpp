@@ -26,7 +26,6 @@
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
-#include "expr/node_manager_listeners.h"
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
@@ -95,7 +94,6 @@ NodeManager::NodeManager(ExprManager* exprManager)
     : d_options(new Options()),
       d_statisticsRegistry(new StatisticsRegistry()),
       d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
-      d_registrations(new ListenerRegistrationList()),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_exprManager(exprManager),
@@ -111,7 +109,6 @@ NodeManager::NodeManager(ExprManager* exprManager, const Options& options)
     : d_options(new Options()),
       d_statisticsRegistry(new StatisticsRegistry()),
       d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
-      d_registrations(new ListenerRegistrationList()),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_exprManager(exprManager),
@@ -150,16 +147,6 @@ void NodeManager::init() {
   if((*d_options)[options::cpuTime]) {
     d_resourceManager->useCPUTime(true);
   }
-
-  // Do not notify() upon registration as these were handled manually above.
-  d_registrations->add(d_options->registerTlimitListener(
-      new TlimitListener(d_resourceManager), false));
-  d_registrations->add(d_options->registerTlimitPerListener(
-      new TlimitPerListener(d_resourceManager), false));
-  d_registrations->add(d_options->registerRlimitListener(
-      new RlimitListener(d_resourceManager), false));
-  d_registrations->add(d_options->registerRlimitPerListener(
-      new RlimitPerListener(d_resourceManager), false));
 }
 
 NodeManager::~NodeManager() {
@@ -232,8 +219,6 @@ NodeManager::~NodeManager() {
   d_resourceManager = NULL;
   delete d_statisticsRegistry;
   d_statisticsRegistry = NULL;
-  delete d_registrations;
-  d_registrations = NULL;
   delete d_attrManager;
   d_attrManager = NULL;
   delete d_options;

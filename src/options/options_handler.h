@@ -97,18 +97,9 @@ public:
 
   unsigned long limitHandler(std::string option, std::string optarg);
 
-  void notifyTlimit(const std::string& option);
-  void notifyTlimitPer(const std::string& option);
-  void notifyRlimit(const std::string& option);
-  void notifyRlimitPer(const std::string& option);
-
-
   /* expr/options_handlers.h */
   void setDefaultExprDepthPredicate(std::string option, int depth);
   void setDefaultDagThreshPredicate(std::string option, int dag);
-  void notifySetDefaultExprDepth(std::string option);
-  void notifySetDefaultDagThresh(std::string option);
-  void notifySetPrintExprTypes(std::string option);
 
   /* main/options_handlers.h */
   void copyright(std::string option);
@@ -125,7 +116,6 @@ public:
   InputLanguage stringToInputLanguage(std::string option, std::string optarg);
   void enableTraceTag(std::string option, std::string optarg);
   void enableDebugTag(std::string option, std::string optarg);
-  void notifyPrintSuccess(std::string option);
 
  private:
 

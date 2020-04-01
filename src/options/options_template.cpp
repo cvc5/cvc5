@@ -291,70 +291,6 @@ ListenerCollection::Registration* Options::registerBeforeSearchListener(
   return d_beforeSearchListeners.registerListener(listener);
 }
 
-ListenerCollection::Registration* Options::registerTlimitListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet &&
-      wasSetByUser(options::cumulativeMillisecondLimit);
-  return registerAndNotify(d_tlimitListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerTlimitPerListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::perCallMillisecondLimit);
-  return registerAndNotify(d_tlimitPerListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerRlimitListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::cumulativeResourceLimit);
-  return registerAndNotify(d_rlimitListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerRlimitPerListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::perCallResourceLimit);
-  return registerAndNotify(d_rlimitPerListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetDefaultExprDepthListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::defaultExprDepth);
-  return registerAndNotify(d_setDefaultExprDepthListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetDefaultExprDagListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::defaultDagThresh);
-  return registerAndNotify(d_setDefaultDagThreshListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetPrintExprTypesListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::printExprTypes);
-  return registerAndNotify(d_setPrintExprTypesListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetDumpModeListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::dumpModeString);
-  return registerAndNotify(d_setDumpModeListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetPrintSuccessListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::printSuccess);
-  return registerAndNotify(d_setPrintSuccessListeners, listener, notify);
-}
-
 ListenerCollection::Registration* Options::registerDumpToFileNameListener(
     Listener* listener, bool notifyIfSet)
 {
@@ -789,7 +725,7 @@ void Options::setOption(const std::string& key, const std::string& optionarg)
   // then, notify the provided listener
   if (d_olisten!=nullptr)
   {
-    d_olisten->setOption(ket, optionarg);
+    d_olisten->setOption(key, optionarg);
   }
 }
   

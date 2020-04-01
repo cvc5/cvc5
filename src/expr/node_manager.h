@@ -113,12 +113,6 @@ class NodeManager {
 
   ResourceManager* d_resourceManager;
 
-  /**
-   * A list of registrations on d_options to that call into d_resourceManager.
-   * These must be garbage collected before d_options and d_resourceManager.
-   */
-  ListenerRegistrationList* d_registrations;
-
   NodeValuePool d_nodeValuePool;
 
   size_t next_id;

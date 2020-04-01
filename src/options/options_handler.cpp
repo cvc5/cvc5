@@ -76,23 +76,6 @@ void OptionsHandler::notifyBeforeSearch(const std::string& option)
   }
 }
 
-
-void OptionsHandler::notifyTlimit(const std::string& option) {
-  d_options->d_tlimitListeners.notify();
-}
-
-void OptionsHandler::notifyTlimitPer(const std::string& option) {
-  d_options->d_tlimitPerListeners.notify();
-}
-
-void OptionsHandler::notifyRlimit(const std::string& option) {
-  d_options->d_rlimitListeners.notify();
-}
-
-void OptionsHandler::notifyRlimitPer(const std::string& option) {
-  d_options->d_rlimitPerListeners.notify();
-}
-
 unsigned long OptionsHandler::limitHandler(std::string option,
                                            std::string optarg)
 {
@@ -105,12 +88,6 @@ unsigned long OptionsHandler::limitHandler(std::string option,
   }
   return ms;
 }
-
-/* options/base_options_handlers.h */
-void OptionsHandler::notifyPrintSuccess(std::string option) {
-  d_options->d_setPrintSuccessListeners.notify();
-}
-
 // theory/quantifiers/options_handlers.h
 
 void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
@@ -341,12 +318,6 @@ void OptionsHandler::threadN(std::string option) {
   throw OptionException(option + " is not a real option by itself.  Use e.g. --thread0=\"--random-seed=10 --random-freq=0.02\" --thread1=\"--random-seed=20 --random-freq=0.05\"");
 }
 
-void OptionsHandler::notifyDumpMode(std::string option)
-{
-  d_options->d_setDumpModeListeners.notify();
-}
-
-
 // expr/options_handlers.h
 void OptionsHandler::setDefaultExprDepthPredicate(std::string option, int depth) {
   if(depth < -1) {
@@ -359,19 +330,6 @@ void OptionsHandler::setDefaultDagThreshPredicate(std::string option, int dag) {
     throw OptionException("--default-dag-thresh requires a nonnegative argument.");
   }
 }
-
-void OptionsHandler::notifySetDefaultExprDepth(std::string option) {
-  d_options->d_setDefaultExprDepthListeners.notify();
-}
-
-void OptionsHandler::notifySetDefaultDagThresh(std::string option) {
-  d_options->d_setDefaultDagThreshListeners.notify();
-}
-
-void OptionsHandler::notifySetPrintExprTypes(std::string option) {
-  d_options->d_setPrintExprTypesListeners.notify();
-}
-
 
 // main/options_handlers.h
 

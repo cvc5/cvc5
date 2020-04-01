@@ -295,75 +295,6 @@ class BeforeSearchListener : public Listener {
   SmtEngine* d_smt;
 }; /* class BeforeSearchListener */
 
-class SetDefaultExprDepthListener : public Listener {
- public:
-  void notify() override
-  {
-    int depth = options::defaultExprDepth();
-    Debug.getStream() << expr::ExprSetDepth(depth);
-    Trace.getStream() << expr::ExprSetDepth(depth);
-    Notice.getStream() << expr::ExprSetDepth(depth);
-    Chat.getStream() << expr::ExprSetDepth(depth);
-    Message.getStream() << expr::ExprSetDepth(depth);
-    Warning.getStream() << expr::ExprSetDepth(depth);
-    // intentionally exclude Dump stream from this list
-  }
-};
-
-class SetDefaultExprDagListener : public Listener {
- public:
-  void notify() override
-  {
-    int dag = options::defaultDagThresh();
-    Debug.getStream() << expr::ExprDag(dag);
-    Trace.getStream() << expr::ExprDag(dag);
-    Notice.getStream() << expr::ExprDag(dag);
-    Chat.getStream() << expr::ExprDag(dag);
-    Message.getStream() << expr::ExprDag(dag);
-    Warning.getStream() << expr::ExprDag(dag);
-    Dump.getStream() << expr::ExprDag(dag);
-  }
-};
-
-class SetPrintExprTypesListener : public Listener {
- public:
-  void notify() override
-  {
-    bool value = options::printExprTypes();
-    Debug.getStream() << expr::ExprPrintTypes(value);
-    Trace.getStream() << expr::ExprPrintTypes(value);
-    Notice.getStream() << expr::ExprPrintTypes(value);
-    Chat.getStream() << expr::ExprPrintTypes(value);
-    Message.getStream() << expr::ExprPrintTypes(value);
-    Warning.getStream() << expr::ExprPrintTypes(value);
-    // intentionally exclude Dump stream from this list
-  }
-};
-
-class DumpModeListener : public Listener {
- public:
-  void notify() override
-  {
-    const std::string& value = options::dumpModeString();
-    Dump.setDumpFromString(value);
-  }
-};
-
-class PrintSuccessListener : public Listener {
- public:
-  void notify() override
-  {
-    bool value = options::printSuccess();
-    Debug.getStream() << Command::printsuccess(value);
-    Trace.getStream() << Command::printsuccess(value);
-    Notice.getStream() << Command::printsuccess(value);
-    Chat.getStream() << Command::printsuccess(value);
-    Message.getStream() << Command::printsuccess(value);
-    Warning.getStream() << Command::printsuccess(value);
-    *options::out() << Command::printsuccess(value);
-  }
-};
-
 /**
  * This is an inelegant solution, but for the present, it will work.
  * The point of this is to separate the public and private portions of
@@ -573,21 +504,6 @@ class SmtEnginePrivate : public NodeManagerListener {
 
       // These do need registration calls.
       d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDefaultExprDepthListener(
-              new SetDefaultExprDepthListener(), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDefaultExprDagListener(
-              new SetDefaultExprDagListener(), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetPrintExprTypesListener(
-              new SetPrintExprTypesListener(), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDumpModeListener(new DumpModeListener(),
-                                                         true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetPrintSuccessListener(
-              new PrintSuccessListener(), true));
-      d_listenerRegistrations->add(
           nodeManagerOptions.registerSetRegularOutputChannelListener(
               new SetToDefaultSourceListener(&d_managedRegularChannel), true));
       d_listenerRegistrations->add(
@@ -694,6 +610,12 @@ class SmtEnginePrivate : public NodeManagerListener {
   
   /**
    * Called when a set option call is made on the options object of this class.
+   * This handles all options that should be taken into account immediately
+   * instead of e.g. at finishInit time.
+   * 
+   * This function call is made after the option has been updated. This means
+   * that the value of the option can be queried, instead of reparsing the
+   * option argument. Thus, optarg is only for debugging.
    */
   void notifySetOption(const std::string& key, const std::string& optarg)
   {
@@ -714,7 +636,7 @@ class SmtEnginePrivate : public NodeManagerListener {
     {
       d_resourceManager->setTimeLimit(options::cumulativeResourceLimit(), true);
     }
-    else if (key == "rlimit-per")
+    else if (key == "reproducible-resource-limit" || key == "rlimit-per")
     {
       d_resourceManager->setTimeLimit(options::perCallResourceLimit(), false);
     }
