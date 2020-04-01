@@ -87,7 +87,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps/install
-        key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**.sh') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Setup Dependencies
       if: steps.restore-deps.outputs.cache-hit != 'true'
