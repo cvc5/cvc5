@@ -350,7 +350,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_factsAsserted(context, false),
       d_preRegistrationVisitor(this, context),
       d_sharedTermsVisitor(d_sharedTerms),
-      d_theoryAlternatives(),
       d_attr_handle(),
       d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
 {
@@ -2373,18 +2372,6 @@ void TheoryEngine::spendResource(ResourceManager::Resource r)
 {
   d_resourceManager->spendResource(r);
 }
-
-void TheoryEngine::enableTheoryAlternative(const std::string& name){
-  Debug("TheoryEngine::enableTheoryAlternative")
-      << "TheoryEngine::enableTheoryAlternative(" << name << ")" << std::endl;
-
-  d_theoryAlternatives.insert(name);
-}
-
-bool TheoryEngine::useTheoryAlternative(const std::string& name) {
-  return d_theoryAlternatives.find(name) != d_theoryAlternatives.end();
-}
-
 
 TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
     conflicts(getStatsPrefix(theory) + "::conflicts", 0),

@@ -626,27 +626,6 @@ header = "options/smt_options.h"
   read_only  = true
   help       = "amount of resources spent for each sat conflict (bitvectors)"
 
-# --replay is currently broken; don't document it for 1.0
-[[option]]
-  name       = "replayInputFilename"
-  category   = "undocumented"
-  long       = "replay=FILE"
-  type       = "std::string"
-  handler    = "checkReplayFilename"
-  read_only  = true
-  help       = "replay decisions from file"
-
-# --replay is currently broken; don't document it for 1.0
-[[option]]
-  name       = "replayLogFilename"
-  category   = "undocumented"
-  long       = "replay-log=FILE"
-  type       = "std::string"
-  handler    = "checkReplayFilename"
-  notifies   = ["notifySetReplayLogFilename", "notifyBeforeSearch"]
-  read_only  = true
-  help       = "replay decisions from file"
-
 [[option]]
   name       = "forceNoLimitCpuWhileDump"
   category   = "regular"

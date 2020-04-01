@@ -170,6 +170,35 @@ const char* toString(Rewrite r)
     case Rewrite::SUF_PREFIX_EQ: return "SUF_PREFIX_EQ";
     case Rewrite::SUF_PREFIX_TO_EQS: return "SUF_PREFIX_TO_EQS";
     case Rewrite::TO_CODE_EVAL: return "TO_CODE_EVAL";
+    case Rewrite::EQ_REFL: return "EQ_REFL";
+    case Rewrite::EQ_CONST_FALSE: return "EQ_CONST_FALSE";
+    case Rewrite::EQ_SYM: return "EQ_SYM";
+    case Rewrite::CONCAT_NORM: return "CONCAT_NORM";
+    case Rewrite::IS_DIGIT_ELIM: return "IS_DIGIT_ELIM";
+    case Rewrite::RE_CONCAT_EMPTY: return "RE_CONCAT_EMPTY";
+    case Rewrite::RE_CONSUME_CCONF: return "RE_CONSUME_CCONF";
+    case Rewrite::RE_CONSUME_S: return "RE_CONSUME_S";
+    case Rewrite::RE_CONSUME_S_CCONF: return "RE_CONSUME_S_CCONF";
+    case Rewrite::RE_CONSUME_S_FULL: return "RE_CONSUME_S_FULL";
+    case Rewrite::RE_IN_EMPTY: return "RE_IN_EMPTY";
+    case Rewrite::RE_IN_SIGMA: return "RE_IN_SIGMA";
+    case Rewrite::RE_IN_EVAL: return "RE_IN_EVAL";
+    case Rewrite::RE_IN_COMPLEMENT: return "RE_IN_COMPLEMENT";
+    case Rewrite::RE_IN_RANGE: return "RE_IN_RANGE";
+    case Rewrite::RE_IN_CSTRING: return "RE_IN_CSTRING";
+    case Rewrite::RE_IN_ANDOR: return "RE_IN_ANDOR";
+    case Rewrite::RE_REPEAT_ELIM: return "RE_REPEAT_ELIM";
+    case Rewrite::SUF_PREFIX_ELIM: return "SUF_PREFIX_ELIM";
+    case Rewrite::STR_LT_ELIM: return "STR_LT_ELIM";
+    case Rewrite::RE_RANGE_SINGLE: return "RE_RANGE_SINGLE";
+    case Rewrite::RE_OPT_ELIM: return "RE_OPT_ELIM";
+    case Rewrite::RE_PLUS_ELIM: return "RE_PLUS_ELIM";
+    case Rewrite::RE_DIFF_ELIM: return "RE_DIFF_ELIM";
+    case Rewrite::LEN_EVAL: return "LEN_EVAL";
+    case Rewrite::LEN_CONCAT: return "LEN_CONCAT";
+    case Rewrite::LEN_REPL_INV: return "LEN_REPL_INV";
+    case Rewrite::LEN_CONV_INV: return "LEN_CONV_INV";
+    case Rewrite::CHARAT_ELIM: return "CHARAT_ELIM";
     default: return "?";
   }
 }

@@ -4,7 +4,7 @@
 #! \file bitvectors.py
  ## \verbatim
  ## Top contributors (to current version):
- ##   Makai Mann
+ ##   Makai Mann, Aina Niemetz
  ## This file is part of the CVC4 project.
  ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ## in the top-level source directory) and their institutional affiliations.
@@ -82,9 +82,9 @@ if __name__ == "__main__":
     slv.assertFormula(assignment1)
     new_x_eq_new_x_ = slv.mkTerm(kinds.Equal, new_x, new_x_)
 
-    print("Checking validity assuming:", new_x_eq_new_x_)
-    print("Expect valid.")
-    print("CVC4:", slv.checkValidAssuming(new_x_eq_new_x_))
+    print("Checking entailment assuming:", new_x_eq_new_x_)
+    print("Expect ENTAILED.")
+    print("CVC4:", slv.checkEntailment(new_x_eq_new_x_))
     print("Popping context.")
     slv.pop()
 
@@ -98,16 +98,16 @@ if __name__ == "__main__":
     print("Asserting {} to CVC4".format(assignment2))
     slv.assertFormula(assignment2)
 
-    print("Checking validity assuming:", new_x_eq_new_x_)
-    print("Expect valid.")
-    print("CVC4:", slv.checkValidAssuming(new_x_eq_new_x_))
+    print("Checking entailment assuming:", new_x_eq_new_x_)
+    print("Expect ENTAILED.")
+    print("CVC4:", slv.checkEntailed(new_x_eq_new_x_))
 
 
     x_neq_x = slv.mkTerm(kinds.Equal, x, x).notTerm()
     v = [new_x_eq_new_x_, x_neq_x]
-    print("Check Validity Assuming: ", v)
-    print("Expect invalid.")
-    print("CVC4:", slv.checkValidAssuming(v))
+    print("Check entailment assuming: ", v)
+    print("Expect NOT_ENTAILED.")
+    print("CVC4:", slv.checkEntailed(v))
 
     # Assert that a is odd
     extract_op = slv.mkOp(kinds.BVExtract, 0, 0)
