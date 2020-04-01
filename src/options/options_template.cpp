@@ -782,8 +782,6 @@ std::vector<std::vector<std::string> > Options::getOptions() const
 
 void Options::setOption(const std::string& key, const std::string& optionarg)
 {
-  options::OptionsHandler* handler = d_handler;
-  Options *options = Options::current();
   Trace("options") << "SMT setOption(" << key << ", " << optionarg << ")"
                    << std::endl;
   // first update this object
@@ -797,6 +795,8 @@ void Options::setOption(const std::string& key, const std::string& optionarg)
   
 void Options::setOptionInternal(const std::string& key, const std::string& optionarg)
 {
+  options::OptionsHandler* handler = d_handler;
+  Options *options = Options::current();
   ${setoption_handlers}$
   throw UnrecognizedOptionException(key);
 }

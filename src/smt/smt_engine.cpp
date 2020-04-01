@@ -71,6 +71,7 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "options/options_listener.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -363,22 +364,6 @@ class PrintSuccessListener : public Listener {
   }
 };
 
-
-class SmtEngineOptionsListener : public OptionsListener
-{
-public:
-  SmtEngineOptionsListener(SmtEngine& smt) : d_smt(smt){}
-  ~SmtEngineOptionsListener(){}
-  /** set option */
-  void setOption(const std::string& key, const std::string& optarg) 
-  {
-    d_smt.notifySetOption(key, optarg);
-  }
-private:
-  /** reference to the SMT engine */
-  SmtEngine& d_smt;
-};
-
 /**
  * This is an inelegant solution, but for the present, it will work.
  * The point of this is to separate the public and private portions of
@@ -398,6 +383,22 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
+
+  /** An options listener class */
+  class SmtEnginePrivateOptionsListener : public OptionsListener
+  {
+  public:
+    SmtEnginePrivateOptionsListener(SmtEnginePrivate& smtp) : d_smtp(smtp){}
+    ~SmtEnginePrivateOptionsListener(){}
+    /** set option */
+    void setOption(const std::string& key, const std::string& optarg) 
+    {
+      d_smtp.notifySetOption(key, optarg);
+    }
+  private:
+    /** reference to the SMT engine */
+    SmtEnginePrivate& d_smtp;
+  };
 
   /**
    * Manager for limiting time and abstract resource usage.
@@ -461,7 +462,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   unsigned d_simplifyAssertionsDepth;
 
   /** The options listener */
-  SmtEngineOptionsListener d_smtOptListen;
+  SmtEnginePrivateOptionsListener d_smtOptListen;
 
   //------------------------------- expression names
   /** mapping from expressions to name */
@@ -690,6 +691,80 @@ class SmtEnginePrivate : public NodeManagerListener {
   }
 
   void nmNotifyDeleteNode(TNode n) override {}
+  
+  /**
+   * Called when a set option call is made on the options object of this class.
+   */
+  void notifySetOption(const std::string& key, const std::string& optarg)
+  {
+    // TODO: this could be improved so that key is "tokenized" so that
+    // we don't have option names in two places.
+    if (key == "tlimit")
+    {
+      d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(), true);
+    }
+    else if (key == "tlimit-per")
+    {
+      d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
+    }
+    else if (key == "rlimit")
+    {
+      d_resourceManager->setTimeLimit(options::cumulativeResourceLimit(), true);
+    }
+    else if (key == "rlimit-per")
+    {
+      d_resourceManager->setTimeLimit(options::perCallResourceLimit(), false);
+    }
+    else if (key == "default-expr-depth")
+    {
+      int depth = options::defaultExprDepth();
+      Debug.getStream() << expr::ExprSetDepth(depth);
+      Trace.getStream() << expr::ExprSetDepth(depth);
+      Notice.getStream() << expr::ExprSetDepth(depth);
+      Chat.getStream() << expr::ExprSetDepth(depth);
+      Message.getStream() << expr::ExprSetDepth(depth);
+      Warning.getStream() << expr::ExprSetDepth(depth);
+      // intentionally exclude Dump stream from this list
+    }
+    else if (key == "default-dag-thresh")
+    {
+      int dag = options::defaultDagThresh();
+      Debug.getStream() << expr::ExprDag(dag);
+      Trace.getStream() << expr::ExprDag(dag);
+      Notice.getStream() << expr::ExprDag(dag);
+      Chat.getStream() << expr::ExprDag(dag);
+      Message.getStream() << expr::ExprDag(dag);
+      Warning.getStream() << expr::ExprDag(dag);
+      Dump.getStream() << expr::ExprDag(dag);
+    }
+    else if (key == "print-expr-types")
+    {
+      bool value = options::printExprTypes();
+      Debug.getStream() << expr::ExprPrintTypes(value);
+      Trace.getStream() << expr::ExprPrintTypes(value);
+      Notice.getStream() << expr::ExprPrintTypes(value);
+      Chat.getStream() << expr::ExprPrintTypes(value);
+      Message.getStream() << expr::ExprPrintTypes(value);
+      Warning.getStream() << expr::ExprPrintTypes(value);
+      // intentionally exclude Dump stream from this list
+    }
+    else if (key == "dump")
+    {
+      const std::string& value = options::dumpModeString();
+      Dump.setDumpFromString(value);
+    }
+    else if (key=="print-success")
+    {
+      bool value = options::printSuccess();
+      Debug.getStream() << Command::printsuccess(value);
+      Trace.getStream() << Command::printsuccess(value);
+      Notice.getStream() << Command::printsuccess(value);
+      Chat.getStream() << Command::printsuccess(value);
+      Message.getStream() << Command::printsuccess(value);
+      Warning.getStream() << Command::printsuccess(value);
+      *options::out() << Command::printsuccess(value);
+    }    
+  }
 
   Node applySubstitutions(TNode node)
   {
@@ -975,12 +1050,6 @@ void SmtEngine::finalOptionsAreSet() {
 
   d_fullyInited = true;
   Assert(d_logic.isLocked());
-}
-
-
-void SmtEngine::notifySetOption(const std::string& key, const std::string& optarg)
-{
-  // FIXME
 }
 
 void SmtEngine::shutdown() {
