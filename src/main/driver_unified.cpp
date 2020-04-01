@@ -92,6 +92,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Initialize the signal handlers
   cvc4_init();
+  
+  // Create the command executor to execute the parsed commands
+  // This must come before modifying the options, since the SMT engine needs
+  // to react to changes made to the options.
+  pExecutor = new CommandExecutor(opts);
 
   progPath = argv[0];
 
@@ -180,9 +185,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // important even for muzzled builds (to get result output right)
   (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
-
-  // Create the command executor to execute the parsed commands
-  pExecutor = new CommandExecutor(opts);
 
   int returnValue = 0;
   {

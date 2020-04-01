@@ -513,6 +513,12 @@ std::vector<std::string> Options::parseOptions(Options* options,
     argumentExtender->pushBackArgument(argv[position]);
   }
 
+  std::cout << "Parse::: " << argc << std::endl;
+  for (unsigned i=0; i<argc; i++)
+  {
+    std::cout << i << ": " << argv[i] << std::endl;
+  }
+  
   std::vector<std::string> nonoptions;
   parseOptionsRecursive(options, argumentExtender, &nonoptions);
   if(Debug.isOn("options")){

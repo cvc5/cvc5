@@ -619,7 +619,7 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   void notifySetOption(const std::string& key, const std::string& optarg)
   {
-    Trace("options") << "SmtEnginePrivate::setOption(" << key << ", " << optarg << ")"
+    Trace("smt") << "SmtEnginePrivate::setOption(" << key << ", " << optarg << ")"
                     << std::endl;
     // TODO: this could be improved so that we have a way of extracting the
     // expected name of the option. This would ensure we don't maintain
