@@ -96,6 +96,12 @@ Node Rewriter::rewrite(TNode node) {
   return getInstance().rewriteTo(theoryOf(node), node);
 }
 
+void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
+                                      std::unique_ptr<TheoryRewriter> trew)
+{
+  getInstance().d_theoryRewriters[tid] = std::move(trew);
+}
+
 void Rewriter::registerPreRewrite(
     Kind k, std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn)
 {

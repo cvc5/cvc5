@@ -29,6 +29,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
+#include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
@@ -62,6 +63,11 @@ TheorySep::~TheorySep() {
   for( std::map< Node, HeapAssertInfo * >::iterator it = d_eqc_info.begin(); it != d_eqc_info.end(); ++it ){
     delete it->second;
   }
+}
+
+std::unique_ptr<TheoryRewriter> TheorySep::mkTheoryRewriter()
+{
+  return std::unique_ptr<TheoryRewriter>(new TheorySepRewriter());
 }
 
 void TheorySep::setMasterEqualityEngine(eq::EqualityEngine* eq) {
