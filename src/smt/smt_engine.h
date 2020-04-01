@@ -28,7 +28,6 @@
 #include "context/cdlist_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "expr/expr_stream.h"
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
@@ -808,13 +807,6 @@ class CVC4_PUBLIC SmtEngine
   void beforeSearch();
 
   /**
-   * Expermintal feature: Sets the sequence of decisions.
-   * This currently requires very fine grained knowledge about literal
-   * translation.
-   */
-  void setReplayStream(ExprStream* exprStream);
-
-  /**
    * Get expression name.
    *
    * Return true if given expressoion has a name in the current context.
@@ -1251,9 +1243,6 @@ class CVC4_PUBLIC SmtEngine
    * Verbosity of various commands.
    */
   std::map<std::string, Integer> d_commandVerbosity;
-
-  /** ReplayStream for the solver. */
-  ExprStream* d_replayStream;
 
   /**
    * A private utility class to SmtEngine.

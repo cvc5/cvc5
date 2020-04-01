@@ -187,10 +187,6 @@ std::string Options::getBinaryName() const{
   return (*this)[options::binary_name];
 }
 
-std::string Options::getReplayInputFilename() const{
-  return (*this)[options::replayInputFilename];
-}
-
 unsigned Options::getParseStep() const{
   return (*this)[options::parseStep];
 }

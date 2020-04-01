@@ -44,17 +44,12 @@ class CommandExecutor
   Options& d_options;
   StatisticsRegistry d_stats;
   Result d_result;
-  ExprStream* d_replayStream;
 
  public:
   CommandExecutor(Options& options);
 
   virtual ~CommandExecutor()
   {
-    if (d_replayStream != NULL)
-    {
-      delete d_replayStream;
-    }
   }
 
   /**
@@ -91,8 +86,6 @@ class CommandExecutor
                                     const std::string& statsString);
 
   void flushOutputStreams();
-
-  void setReplayStream(ExprStream* replayStream);
 
 protected:
   /** Executes treating cmd as a singleton */

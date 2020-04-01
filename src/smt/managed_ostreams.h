@@ -156,27 +156,6 @@ class ManagedDiagnosticOutputChannel : public ManagedOstream {
   void addSpecialCases(OstreamOpener* opener) const override;
 };/* class ManagedRegularOutputChannel */
 
-/** This controls the memory associated with replay-log. */
-class ManagedReplayLogOstream : public ManagedOstream {
- public:
-  ManagedReplayLogOstream();
-  ~ManagedReplayLogOstream();
-
-  std::ostream* getReplayLog() const { return d_replayLog; }
-  const char* getName() const override { return "replay-log"; }
-  std::string defaultSource() const override;
-
- protected:
-  /** Initializes an output stream. Not necessarily managed. */
-  void initialize(std::ostream* outStream) override;
-
-  /** Adds special cases to an ostreamopener. */
-  void addSpecialCases(OstreamOpener* opener) const override;
-
- private:
-  std::ostream* d_replayLog;
-};/* class ManagedRegularOutputChannel */
-
 }/* CVC4 namespace */
 
 #endif /* CVC4__MANAGED_OSTREAMS_H */
