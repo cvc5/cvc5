@@ -1,4 +1,4 @@
-% EXPECT: invalid
+% EXPECT: not_entailed
 
 Mem_0 : TYPE = ARRAY INT OF INT;
 

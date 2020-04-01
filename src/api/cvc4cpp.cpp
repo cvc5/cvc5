@@ -768,22 +768,22 @@ bool Result::isSatUnknown(void) const
          && d_result->isSat() == CVC4::Result::SAT_UNKNOWN;
 }
 
-bool Result::isValid(void) const
+bool Result::isEntailed(void) const
 {
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::VALID;
+  return d_result->getType() == CVC4::Result::TYPE_ENTAILMENT
+         && d_result->isEntailed() == CVC4::Result::ENTAILED;
 }
 
-bool Result::isInvalid(void) const
+bool Result::isNotEntailed(void) const
 {
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::INVALID;
+  return d_result->getType() == CVC4::Result::TYPE_ENTAILMENT
+         && d_result->isEntailed() == CVC4::Result::NOT_ENTAILED;
 }
 
-bool Result::isValidUnknown(void) const
+bool Result::isEntailmentUnknown(void) const
 {
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::VALIDITY_UNKNOWN;
+  return d_result->getType() == CVC4::Result::TYPE_ENTAILMENT
+         && d_result->isEntailed() == CVC4::Result::ENTAILMENT_UNKNOWN;
 }
 
 bool Result::operator==(const Result& r) const
@@ -3585,7 +3585,7 @@ Term Solver::simplify(const Term& t)
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Result Solver::checkValid(void) const
+Result Solver::checkEntailed(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
@@ -3593,14 +3593,15 @@ Result Solver::checkValid(void) const
                  || CVC4::options::incrementalSolving())
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
+  CVC4_API_ARG_CHECK_NOT_NULL(term);
 
-  CVC4::Result r = d_smtEngine->query();
+  CVC4::Result r = d_smtEngine->checkEntailed(*term.d_expr);
   return Result(r);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Result Solver::checkValidAssuming(Term assumption) const
+Result Solver::checkEntailed(const std::vector<Term>& terms) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
@@ -3608,29 +3609,13 @@ Result Solver::checkValidAssuming(Term assumption) const
                  || CVC4::options::incrementalSolving())
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
-  CVC4_API_ARG_CHECK_NOT_NULL(assumption);
-
-  CVC4::Result r = d_smtEngine->query(*assumption.d_expr);
-  return Result(r);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(!d_smtEngine->isQueryMade()
-                 || CVC4::options::incrementalSolving())
-      << "Cannot make multiple queries unless incremental solving is enabled "
-         "(try --incremental)";
-  for (const Term& assumption : assumptions)
+  for (const Term& term : terms)
   {
-    CVC4_API_ARG_CHECK_NOT_NULL(assumption);
+    CVC4_API_ARG_CHECK_NOT_NULL(term);
   }
 
-  std::vector<Expr> eassumptions = termVectorToExprs(assumptions);
-  CVC4::Result r = d_smtEngine->query(eassumptions);
+  std::vector<Expr> exprs = termVectorToExprs(terms);
+  CVC4::Result r = d_smtEngine->checkEntailed(exprs);
   return Result(r);
 
   CVC4_API_SOLVER_TRY_CATCH_END;

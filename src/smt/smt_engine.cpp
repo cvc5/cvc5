@@ -1766,7 +1766,7 @@ Result SmtEngine::check() {
       resourceManager->out()) {
     Result::UnknownExplanation why = resourceManager->outOfResources() ?
                              Result::RESOURCEOUT : Result::TIMEOUT;
-    return Result(Result::VALIDITY_UNKNOWN, why, d_filename);
+    return Result(Result::ENTAILMENT_UNKNOWN, why, d_filename);
   }
 
   // Make sure the prop layer has all of the assertions
@@ -1791,7 +1791,8 @@ Result SmtEngine::check() {
 Result SmtEngine::quickCheck() {
   Assert(d_fullyInited);
   Trace("smt") << "SMT quickCheck()" << endl;
-  return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
+  return Result(
+      Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
 }
 
 theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
@@ -1807,7 +1808,8 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   {
     std::stringstream ss;
     ss << "Cannot " << c
-       << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
+       << " unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN "
+          "response.";
     throw RecoverableModalException(ss.str().c_str());
   }
 
@@ -2380,35 +2382,34 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
   return checkSatisfiability(assumptions, inUnsatCore, false);
 }
 
-Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const Expr& expr, bool inUnsatCore)
 {
-  Dump("benchmark") << QueryCommand(assumption, inUnsatCore);
-  return checkSatisfiability(assumption.isNull()
-                                 ? std::vector<Expr>()
-                                 : std::vector<Expr>{assumption},
-                             inUnsatCore,
-                             true)
-      .asValidityResult();
+  Dump("benchmark") << QueryCommand(expr, inUnsatCore);
+  return checkSatisfiability(
+             expr.isNull() ? std::vector<Expr>() : std::vector<Expr>{expr},
+             inUnsatCore,
+             true)
+      .asEntailmentResult();
 }
 
-Result SmtEngine::query(const vector<Expr>& assumptions, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const vector<Expr>& exprs, bool inUnsatCore)
 {
-  return checkSatisfiability(assumptions, inUnsatCore, true).asValidityResult();
+  return checkSatisfiability(exprs, inUnsatCore, true).asEntailmentResult();
 }
 
 Result SmtEngine::checkSatisfiability(const Expr& expr,
                                       bool inUnsatCore,
-                                      bool isQuery)
+                                      bool isEntailmentCheck)
 {
   return checkSatisfiability(
       expr.isNull() ? std::vector<Expr>() : std::vector<Expr>{expr},
       inUnsatCore,
-      isQuery);
+      isEntailmentCheck);
 }
 
 Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                                       bool inUnsatCore,
-                                      bool isQuery)
+                                      bool isEntailmentCheck)
 {
   try
   {
@@ -2416,7 +2417,8 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     finalOptionsAreSet();
     doPendingPops();
 
-    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
+    Trace("smt") << "SmtEngine::"
+                 << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
 
     if(d_queryMade && !options::incrementalSolving()) {
@@ -2434,7 +2436,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     setProblemExtended();
 
-    if (isQuery)
+    if (isEntailmentCheck)
     {
       size_t size = assumptions.size();
       if (size > 1)
@@ -2540,8 +2542,8 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       d_smtMode = SMT_MODE_SAT_UNKNOWN;
     }
 
-    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
-                 << assumptions << ") => " << r << endl;
+    Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
+                 << "(" << assumptions << ") => " << r << endl;
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
@@ -2587,7 +2589,7 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
   {
     throw RecoverableModalException(
         "Cannot get unsat assumptions unless immediately preceded by "
-        "UNSAT/VALID response.");
+        "UNSAT/ENTAILED.");
   }
   finalOptionsAreSet();
   if (Dump.isOn("benchmark"))
@@ -2625,7 +2627,7 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
   }
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
   d_private->addFormula(e.getNode(), inUnsatCore, true, false, maybeHasFv);
-  return quickCheck().asValidityResult();
+  return quickCheck().asEntailmentResult();
 }/* SmtEngine::assertFormula() */
 
 /*
@@ -3218,13 +3220,13 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   Expr heap;
   Expr nil;
   Model* m = getAvailableModel("get separation logic heap and nil");
-  if (m->getHeapModel(heap, nil))
+  if (!m->getHeapModel(heap, nil))
   {
-    return std::make_pair(heap, nil);
+    InternalError()
+        << "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
+           "expressions from theory model.";
   }
-  InternalError()
-      << "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
-         "expressions from theory model.";
+  return std::make_pair(heap, nil);
 }
 
 std::vector<Expr> SmtEngine::getExpandedAssertions()
@@ -3294,8 +3296,8 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
-        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
-        "response.");
+        "Cannot get an unsat core unless immediately preceded by "
+        "UNSAT/ENTAILED response.");
   }
 
   d_proofManager->traceUnsatCore();  // just to trigger core creation
@@ -3800,7 +3802,7 @@ const Proof& SmtEngine::getProof()
   if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
-        "Cannot get a proof unless immediately preceded by UNSAT/VALID "
+        "Cannot get a proof unless immediately preceded by UNSAT/ENTAILED "
         "response.");
   }
 
