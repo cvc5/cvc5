@@ -364,6 +364,20 @@ class PrintSuccessListener : public Listener {
 };
 
 
+class SmtEngineOptionsListener : public OptionsListener
+{
+public:
+  SmtEngineOptionsListener(SmtEngine& smt) : d_smt(smt){}
+  ~SmtEngineOptionsListener(){}
+  /** set option */
+  void setOption(const std::string& key, const std::string& optarg) 
+  {
+    d_smt.notifySetOption(key, optarg);
+  }
+private:
+  /** reference to the SMT engine */
+  SmtEngine& d_smt;
+};
 
 /**
  * This is an inelegant solution, but for the present, it will work.
@@ -446,8 +460,8 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   unsigned d_simplifyAssertionsDepth;
 
-  /** TODO: whether certain preprocess steps are necessary */
-  //bool d_needsExpandDefs;
+  /** The options listener */
+  SmtEngineOptionsListener d_smtOptListen;
 
   //------------------------------- expression names
   /** mapping from expressions to name */
@@ -524,7 +538,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_abstractValueMap(&d_fakeContext),
         d_abstractValues(),
         d_simplifyAssertionsDepth(0),
-        // d_needsExpandDefs(true),  //TODO?
+        d_smtOptListen(smt),
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
         d_sygusConjectureStale(smt.getUserContext(), true)
@@ -542,6 +556,9 @@ class SmtEnginePrivate : public NodeManagerListener {
     try
     {
       Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+      
+      // set the listener of the options
+      nodeManagerOptions.setListener(&d_smtOptListen);
 
       // Multiple options reuse BeforeSearchListener so registration requires an
       // extra bit of care.
@@ -958,6 +975,12 @@ void SmtEngine::finalOptionsAreSet() {
 
   d_fullyInited = true;
   Assert(d_logic.isLocked());
+}
+
+
+void SmtEngine::notifySetOption(const std::string& key, const std::string& optarg)
+{
+  // FIXME
 }
 
 void SmtEngine::shutdown() {

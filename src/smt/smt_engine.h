@@ -97,6 +97,7 @@ namespace smt {
   class SmtEnginePrivate;
   class SmtScope;
   class BooleanTermConverter;
+  class SmtEngineOptionsListener;
 
   ProofManager* currentProofManager();
 
@@ -134,6 +135,7 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::Model;  // to access d_modelCommands
   friend class ::CVC4::theory::TheoryModel;
+  friend class ::CVC4::smt::SmtEngineOptionsListener;
 
   /* .......................................................................  */
  public:
@@ -939,6 +941,11 @@ class CVC4_PUBLIC SmtEngine
    * not permitted to change after assertions and queries are made).
    */
   void finalOptionsAreSet();
+  
+  /**
+   * Called when a set option call is made on the options object of this class.
+   */
+  void notifySetOption(const std::string& key, const std::string& optarg);
 
   /**
    * Sets that the problem has been extended. This sets the smt mode of the

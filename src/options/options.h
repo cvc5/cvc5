@@ -470,6 +470,9 @@ public:
    */
   ListenerCollection::Registration* registerSetDiagnosticOutputChannelListener(
       Listener* listener, bool notifyIfSet);
+  
+  /** set listener */
+  void setListener(OptionsListener* ol);
 
   /** Sends a std::flush to getErr(). */
   void flushErr();

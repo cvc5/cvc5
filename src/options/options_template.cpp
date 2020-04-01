@@ -378,6 +378,12 @@ Options::registerSetDiagnosticOutputChannelListener(
   return registerAndNotify(d_setDiagnosticChannelListeners, listener, notify);
 }
 
+
+void Options::setListener(OptionsListener* ol)
+{
+  d_olisten = ol;
+}
+
 ${custom_handlers}$
 
 

@@ -21,10 +21,11 @@
 
 namespace CVC4 {
 
-class OptionListener
+class OptionsListener
 {
-  OptionListener() {}
-  virtual ~OptionListener() {}
+public:
+  OptionsListener() {}
+  virtual ~OptionsListener() {}
   /**
    * Notify that option key has been set to optarg.
    */
