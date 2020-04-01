@@ -56,6 +56,7 @@ extern int optreset;
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/options_handler.h"
+#include "options/options_listener.h"
 
 ${headers_module}$
 
@@ -227,8 +228,7 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
   // that can throw exceptions.
 }
 
-
-Options::Options()
+Options(OptionsListener * ol)
     : d_holder(new options::OptionsHolder())
     , d_handler(new options::OptionsHandler(this))
     , d_beforeSearchListeners()
@@ -236,7 +236,10 @@ Options::Options()
     , d_tlimitPerListeners()
     , d_rlimitListeners()
     , d_rlimitPerListeners()
-{}
+    , d_olisten(ol)
+{
+  
+}
 
 Options::~Options() {
   delete d_handler;
@@ -777,10 +780,18 @@ void Options::setOption(const std::string& key, const std::string& optionarg)
   Options *options = Options::current();
   Trace("options") << "SMT setOption(" << key << ", " << optionarg << ")"
                    << std::endl;
-
+  // first update this object
+  setOptionInternal(key, optionarg);
+  // then, notify the provided listener
+  if (d_olisten!=nullptr)
+  {
+    d_olisten->setOption(ket, optionarg);
+  }
+}
+  
+void Options::setOptionInternal(const std::string& key, const std::string& optionarg)
+{
   ${setoption_handlers}$
-
-
   throw UnrecognizedOptionException(key);
 }
 
@@ -789,7 +800,6 @@ std::string Options::getOption(const std::string& key) const
   Trace("options") << "SMT getOption(" << key << ")" << std::endl;
 
   ${getoption_handlers}$
-
 
   throw UnrecognizedOptionException(key);
 }
