@@ -135,6 +135,7 @@ bool Options::getSemanticChecks() const{
 }
 
 bool Options::getStatistics() const{
+  // statsEveryQuery enables stats
   return (*this)[options::statistics] || (*this)[options::statsEveryQuery];
 }
 
