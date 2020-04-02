@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cvc4=./cvc4
+cvc4="${CVC4_HOME}/cvc4"
 
 # This is the set of command line arguments that is required to be strictly
 # complaint with the input and output requirements of the current SMT-LIB
