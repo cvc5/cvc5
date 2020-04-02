@@ -25,16 +25,58 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/**
+ * Statistics for the theory of strings.
+ *
+ * This is roughly broken up into the following parts:
+ * (1) Inferences,
+ * (2) Conflicts,
+ * (3) Lemmas.
+ *
+ * "Inferences" (1) are steps invoked during solving, which either trigger:
+ * (a) An internal update to the state of the solver (e.g. adding an inferred
+ * equality to the equality engine),
+ * (b) A call to OutputChannel::conflict,
+ * (c) A call to OutputChannel::lemma.
+ * For details, see InferenceManager. We track stats on each kind of
+ * inference that have been indicated by the solvers in TheoryStrings.
+ * Some kinds of inferences are further distinguished by the Kind of the node
+ * they operate on (see d_cdSimplifications, d_reductions, d_regexpUnfoldings).
+ *
+ * "Conflicts" (2) arise from various kinds of reasoning, listed below,
+ * where inferences are one of the possible methods for deriving conflicts.
+ *
+ * "Lemmas" (3) also arise from various kinds of reasoning, listed below,
+ * where inferences are one of the possible methods for deriving lemmas.
+ */
 class SequencesStatistics
 {
  public:
   SequencesStatistics();
   ~SequencesStatistics();
-
+  //--------------- inferences
   /** Counts the number of applications of each type of inference */
   HistogramStat<Inference> d_inferences;
-  /** Counts the number of applications of each type of reduction */
+  /**
+   * Counts the number of applications of each type of context-dependent
+   * simplification. The sum of this map is equal to the number of EXTF or
+   * EXTF_N inferences.
+   */
+  HistogramStat<Kind> d_cdSimplifications;
+  /**
+   * Counts the number of applications of each type of reduction. The sum of
+   * this map is equal to the number of REDUCTION inferences (when
+   * options::stringLazyPreproc is true).
+   */
   HistogramStat<Kind> d_reductions;
+  /**
+   * Counts the number of applications of each type of regular expression
+   * positive (resp. negative) unfoldings. The sum of this map is equal to the
+   * number of RE_UNFOLD_POS (resp. RE_UNFOLD_NEG) inferences.
+   */
+  HistogramStat<Kind> d_regexpUnfoldingsPos;
+  HistogramStat<Kind> d_regexpUnfoldingsNeg;
+  //--------------- end of inferences
   //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
   IntStat d_conflictsEqEngine;
