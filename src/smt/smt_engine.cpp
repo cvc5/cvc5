@@ -1295,6 +1295,7 @@ void SmtEngine::defineFunction(Expr func,
                                Expr formula)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   doPendingPops();
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
   debugCheckFormals(formals, func);

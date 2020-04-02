@@ -48,23 +48,28 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   // implied options
   if (options::checkModels() || options::dumpModels())
   {
+    Trace("smt") << "setting produce-models" << std::endl;
     options::produceModels.set(true);
   }
   if (options::checkModels())
   {
+    Trace("smt") << "setting produce-assignments" << std::endl;
     options::produceAssignments.set(true);
   }
   if (options::dumpUnsatCoresFull())
   {
+    Trace("smt") << "setting dump-unsat-cores" << std::endl;
     options::dumpUnsatCores.set(true);
   }
   if (options::checkUnsatCores() || options::dumpUnsatCores()
       || options::unsatAssumptions())
   {
+    Trace("smt") << "setting unsat cores" << std::endl;
     options::unsatCores.set(true);
   }
   if (options::checkProofs() || options::dumpProofs())
   {
+    Trace("smt") << "setting proof" << std::endl;
     options::proof.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
