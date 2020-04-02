@@ -78,7 +78,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "support the get-value and get-model commands"
 
 [[option]]
@@ -144,7 +143,6 @@ header = "options/smt_options.h"
   default    = "false"
   predicates = ["proofEnabledBuild"]
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "turn on proof generation"
 
 [[option]]
@@ -235,7 +233,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "output unsat cores after every UNSAT/VALID response"
 
 [[option]]
@@ -275,7 +272,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "support the get-assignment command"
 
 [[option]]

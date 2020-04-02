@@ -58,14 +58,26 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     options::dumpUnsatCores.set(true);
   }
-  if (options::unsatCores() || options::dumpUnsatCores()
+  if (options::checkUnsatCores() || options::dumpUnsatCores()
       || options::unsatAssumptions())
   {
-    options::produceUnsatCores.set(true);
+    options::unsatCores.set(true);
   }
   if (options::checkProofs() || options::dumpProofs())
   {
     options::proof.set(true);
+  }
+  if (options::bitvectorAigSimplifications.wasSetByUser())
+  {
+    options::bitvectorAig.set(true);
+  }
+  if (options::bitvectorEqualitySlicer.wasSetByUser())
+  {
+    options::bitvectorEqualitySolver.set(true);
+  }
+  if (options::bitvectorAlgebraicBudget.wasSetByUser())
+  {
+    options::bitvectorAlgebraicSolver.set(true);
   }
 
   // Language-based defaults
