@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 
 x : BITVECTOR(10);
 

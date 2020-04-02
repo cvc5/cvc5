@@ -114,22 +114,21 @@ class CVC4_PUBLIC Result
   bool isSatUnknown() const;
 
   /**
-   * Return true if corresponding query was a valid checkValid() or
-   * checkValidAssuming() query.
+   * Return true if corresponding query was an entailed checkEntailed() query.
    */
-  bool isValid() const;
+  bool isEntailed() const;
 
   /**
-   * Return true if corresponding query was an invalid checkValid() or
-   * checkValidAssuming() query.
+   * Return true if corresponding query was a checkEntailed() query that is
+   * not entailed.
    */
-  bool isInvalid() const;
+  bool isNotEntailed() const;
 
   /**
-   * Return true if query was a checkValid() or checkValidAssuming() query
-   * and CVC4 was not able to determine (in)validity.
+   * Return true if query was a checkEntailed() () query and CVC4 was not able
+   * to determine if it is entailed.
    */
-  bool isValidUnknown() const;
+  bool isEntailmentUnknown() const;
 
   /**
    * Operator overloading for equality of two results.
@@ -2304,6 +2303,20 @@ class CVC4_PUBLIC Solver
   Term mkString(const std::vector<unsigned>& s) const;
 
   /**
+   * Create a character constant from a given string.
+   * @param s the string denoting the code point of the character (in base 16)
+   * @return the character constant
+   */
+  Term mkChar(const std::string& s) const;
+
+  /**
+   * Create a character constant from a given string.
+   * @param s the string denoting the code point of the character (in base 16)
+   * @return the character constant
+   */
+  Term mkChar(const char* s) const;
+
+  /**
    * Create a universe set of the given sort.
    * @param sort the sort of the set elements
    * @return the universe set constant
@@ -2555,24 +2568,19 @@ class CVC4_PUBLIC Solver
   Result checkSatAssuming(const std::vector<Term>& assumptions) const;
 
   /**
-   * Check validity.
-   * @return the result of the validity check.
+   * Check entailment of the given formula w.r.t. the current set of assertions.
+   * @param term the formula to check entailment for
+   * @return the result of the entailment check.
    */
-  Result checkValid() const;
+  Result checkEntailed(Term term) const;
 
   /**
-   * Check validity assuming the given formula.
-   * @param assumption the formula to assume
-   * @return the result of the validity check.
+   * Check entailment of the given set of given formulas w.r.t. the current
+   * set of assertions.
+   * @param terms the terms to check entailment for
+   * @return the result of the entailmentcheck.
    */
-  Result checkValidAssuming(Term assumption) const;
-
-  /**
-   * Check validity assuming the given formulas.
-   * @param assumptions the formulas to assume
-   * @return the result of the validity check.
-   */
-  Result checkValidAssuming(const std::vector<Term>& assumptions) const;
+  Result checkEntailed(const std::vector<Term>& terms) const;
 
   /**
    * Create datatype sort.
@@ -2818,18 +2826,20 @@ class CVC4_PUBLIC Solver
   template <typename T>
   Term mkValHelper(T t) const;
   /* Helper for mkReal functions that take a string as argument. */
-  Term mkRealFromStrHelper(std::string s) const;
+  Term mkRealFromStrHelper(const std::string& s) const;
   /* Helper for mkBitVector functions that take a string as argument. */
-  Term mkBVFromStrHelper(std::string s, uint32_t base) const;
+  Term mkBVFromStrHelper(const std::string& s, uint32_t base) const;
   /* Helper for mkBitVector functions that take a string and a size as
    * arguments. */
-  Term mkBVFromStrHelper(uint32_t size, std::string s, uint32_t base) const;
+  Term mkBVFromStrHelper(uint32_t size, const std::string& s, uint32_t base) const;
   /* Helper for mkBitVector functions that take an integer as argument. */
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
   /* Helper for setLogic. */
   void setLogicHelper(const std::string& logic) const;
   /* Helper for mkTerm functions that create Term from a Kind */
   Term mkTermFromKind(Kind kind) const;
+  /* Helper for mkChar functions that take a string as argument. */
+  Term mkCharFromStrHelper(const std::string& s) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed
