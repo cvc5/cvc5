@@ -95,81 +95,13 @@ struct RewriteItem {
 class FakeTheoryRewriter : public TheoryRewriter
 {
  public:
-  /**
-   * Overrides TheoryRewriter::preRewrite().  This "fake theory" version
-   * ensures that this actual, observed pre-rewrite call matches the next
-   * "expected" call set up by the test.
-   */
-  RewriteResponse preRewrite(TNode n)
+  RewriteResponse preRewrite(TNode n) override
   {
-    //    if(false) { //s_expected.empty()) {
-    //      cout << std::endl
-    //           << "didn't expect anything more, but got" << std::endl
-    //           << "     PRE  " << topLevel << " " << identify() << " " << n
-    //           << std::endl;
-    //    }
-    //    TS_ASSERT(!s_expected.empty());
-    //
-    //    RewriteItem expected = s_expected.front();
-    //    s_expected.pop_front();
-    //
-    //    if(expected.d_type != PRE ||
-    ////       expected.d_theory != this ||
-    //       expected.d_node != n ||
-    //       expected.d_topLevel != topLevel) {
-    //      cout << std::endl
-    //           << "HAVE PRE  " << topLevel << " " << identify() << " " << n
-    //           << std::endl
-    //           << "WANT " << (expected.d_type == PRE ? "PRE  " : "POST ")
-    //  //         << expected.d_topLevel << " " <<
-    //  expected.d_theory->identify()
-    //           << " " << expected.d_node << std::endl << std::endl;
-    //    }
-    //
-    //    TS_ASSERT_EQUALS(expected.d_type, PRE);
-    ////    TS_ASSERT_EQUALS(expected.d_theory, this);
-    //    TS_ASSERT_EQUALS(expected.d_node, n);
-    //    TS_ASSERT_EQUALS(expected.d_topLevel, topLevel);
-
     return RewriteResponse(REWRITE_DONE, n);
   }
 
-  /**
-   * Overrides TheoryRewriter::postRewrite().  This "fake theory" version
-   * ensures that this actual, observed post-rewrite call matches the next
-   * "expected" call set up by the test.
-   */
-  RewriteResponse postRewrite(TNode n)
+  RewriteResponse postRewrite(TNode n) override
   {
-    //    if(s_expected.empty()) {
-    //      cout << std::endl
-    //           << "didn't expect anything more, but got" << std::endl
-    //           << "     POST " << topLevel << " " << identify() << " " << n
-    //           << std::endl;
-    //    }
-    //    TS_ASSERT(!s_expected.empty());
-    //
-    //    RewriteItem expected = s_expected.front();
-    //    s_expected.pop_front();
-    //
-    //    if(expected.d_type != POST ||
-    ////       expected.d_theory != this ||
-    //       expected.d_node != n ||
-    //       expected.d_topLevel != topLevel) {
-    //      cout << std::endl
-    //           << "HAVE POST " << topLevel << " " << identify() << " " << n
-    //           << std::endl
-    //           << "WANT " << (expected.d_type == PRE ? "PRE  " : "POST ")
-    ////           << expected.d_topLevel << " " <<
-    ///expected.d_theory->identify()
-    //           << " " << expected.d_node << std::endl << std::endl;
-    //    }
-    //
-    //    TS_ASSERT_EQUALS(expected.d_type, POST);
-    //    TS_ASSERT_EQUALS(expected.d_theory, this);
-    //    TS_ASSERT_EQUALS(expected.d_node, n);
-    //    TS_ASSERT_EQUALS(expected.d_topLevel, topLevel);
-
     return RewriteResponse(REWRITE_DONE, n);
   }
 };
