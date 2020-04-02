@@ -123,7 +123,7 @@ enum class Inference : uint32_t
   //-------------------------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
-  // where y is the normal form computed for y.
+  // where y is the normal form computed for x.
   RE_NF_CONFLICT,
   // regular expression unfolding
   // This is a general class of inferences of the form:
