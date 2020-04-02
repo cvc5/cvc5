@@ -99,7 +99,6 @@ header = "options/base_options.h"
   long       = "stats-every-query"
   type       = "bool"
   default    = "false"
-  links      = ["--stats"]
   read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
 

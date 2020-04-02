@@ -135,7 +135,7 @@ bool Options::getSemanticChecks() const{
 }
 
 bool Options::getStatistics() const{
-  return (*this)[options::statistics];
+  return (*this)[options::statistics] || (*this)[options::statsEveryQuery];
 }
 
 bool Options::getStatsEveryQuery() const{
