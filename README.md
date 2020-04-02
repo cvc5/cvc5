@@ -1,9 +1,10 @@
 [![License: BSD](
     https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](
         https://opensource.org/licenses/BSD-3-Clause)
-[![Build Status](
-    https://travis-ci.org/CVC4/CVC4.svg?branch=master)](
-        https://travis-ci.org/CVC4/CVC4)
+![CI](https://github.com/CVC4/CVC4/workflows/CI/badge.svg)
+[![Coverage](
+  https://img.shields.io/endpoint?url=https://cvc4.cs.stanford.edu/downloads/builds/coverage/nightly-coverage.json)](
+    https://cvc4.cs.stanford.edu/downloads/builds/coverage)
 
 CVC4
 ===============================================================================

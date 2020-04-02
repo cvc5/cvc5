@@ -3943,15 +3943,38 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   TNode var = d_partialModel.asNode(x);
   Integer floor_d = d.floor();
 
-  //Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d+1)));
-  //Node diseq = eq.notNode();
+  Node lem;
+  NodeManager* nm = NodeManager::currentNM();
+  if (options::brabTest())
+  {
+    Trace("integers") << "branch-round-and-bound enabled" << endl;
+    Integer ceil_d = d.ceiling();
+    Rational f = r - floor_d;
+    // Multiply by -1 to get abs value.
+    Rational c = (r - ceil_d) * (-1); 
+    Integer nearest = (c > f) ? floor_d : ceil_d;
 
-  Node ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
-  Node lb = ub.notNode();
+    // Prioritize trying a simple rounding of the real solution first,
+    // it that fails, fall back on original branch and bound strategy.
+    Node ub = Rewriter::rewrite(
+        nm->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
+    Node lb = Rewriter::rewrite(
+        nm->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
+    lem = nm->mkNode(kind::OR, ub, lb);
+    Node eq = Rewriter::rewrite(
+        nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
+    Node literal = d_containing.getValuation().ensureLiteral(eq);
+    d_containing.getOutputChannel().requirePhase(literal, true);
+    lem = nm->mkNode(kind::OR, literal, lem);
+  }
+  else
+  {
+    Node ub =
+        Rewriter::rewrite(nm->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
+    Node lb = ub.notNode();
+    lem = nm->mkNode(kind::OR, ub, lb);
+  }
 
-
-  //Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, diseq);
-  Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
   Trace("integers") << "integers: branch & bound: " << lem << endl;
   if(isSatLiteral(lem[0])) {
     Debug("integers") << "    " << lem[0] << " == " << getSatValue(lem[0]) << endl;

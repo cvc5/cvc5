@@ -19,7 +19,9 @@
 
 #include <map>
 #include <vector>
+
 #include "expr/node.h"
+#include "util/safe_print.h"
 
 namespace CVC4 {
 namespace theory {
@@ -36,6 +38,31 @@ namespace strings {
  */
 enum class Inference : uint32_t
 {
+  //-------------------------------------- base solver
+  // initial normalize singular
+  //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>
+  //   x1 ++ ... ++ xn = xi
+  I_NORM_S,
+  // initial constant merge
+  //   explain_constant(x, c) => x = c
+  // Above, explain_constant(x,c) is a basic explanation of why x must be equal
+  // to string constant c, which is computed by taking arguments of
+  // concatentation terms that are entailed to be constants. For example:
+  //  ( y = "AB" ^ z = "C" ) => y ++ z = "ABC"
+  I_CONST_MERGE,
+  // initial constant conflict
+  //    ( explain_constant(x, c1) ^ explain_constant(x, c2) ^ x = y) => false
+  // where c1 != c2.
+  I_CONST_CONFLICT,
+  // initial normalize
+  // Given two concatenation terms, this is applied when we find that they are
+  // equal after e.g. removing strings that are currently empty. For example:
+  //   y = "" ^ z = "" => x ++ y = z ++ x
+  I_NORM,
+  // The cardinality inference for strings, see Liang et al CAV 2014.
+  CARDINALITY,
+  //-------------------------------------- end base solver
+  //-------------------------------------- core solver
   // Given two normal forms, infers that the remainder one of them has to be
   // empty. For example:
   //    If x1 ++ x2 = y1 and x1 = y1, then x2 = ""
@@ -92,8 +119,94 @@ enum class Inference : uint32_t
   //        for fresh u, u1, u2.
   // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
   FLOOP,
+  //-------------------------------------- end core solver
+  //-------------------------------------- regexp solver
+  // regular expression normal form conflict
+  //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
+  // where y is the normal form computed for x.
+  RE_NF_CONFLICT,
+  // regular expression unfolding
+  // This is a general class of inferences of the form:
+  //   (x in R) => F
+  // where F is formula expressing the next step of checking whether x is in
+  // R.  For example:
+  //   (x in (R)*) =>
+  //   x = "" V x in R V ( x = x1 ++ x2 ++ x3 ^ x1 in R ^ x2 in (R)* ^ x3 in R)
+  RE_UNFOLD_POS,
+  // Same as above, for negative memberships
+  RE_UNFOLD_NEG,
+  // intersection inclusion conflict
+  //   (x in R1 ^ ~ x in R2) => false  where [[includes(R2,R1)]]
+  // Where includes(R2,R1) is a heuristic check for whether R2 includes R1.
+  RE_INTER_INCLUDE,
+  // intersection conflict, using regexp intersection computation
+  //   (x in R1 ^ x in R2) => false   where [[intersect(R1, R2) = empty]]
+  RE_INTER_CONF,
+  // intersection inference
+  //   (x in R1 ^ y in R2 ^ x = y) => (x in re.inter(R1,R2))
+  RE_INTER_INFER,
+  // regular expression delta
+  //   (x = "" ^ x in R) => C
+  // where "" in R holds if and only if C holds.
+  RE_DELTA,
+  // regular expression delta conflict
+  //   (x = "" ^ x in R) => false
+  // where R does not accept the empty string.
+  RE_DELTA_CONF,
+  // regular expression derive ???
+  RE_DERIVE,
+  //-------------------------------------- end regexp solver
+  //-------------------------------------- extended function solver
+  // All extended function inferences from context-dependent rewriting produced
+  // by constant substitutions. See Reynolds et al CAV 2017. These are
+  // inferences of the form:
+  //   X = Y => f(X) = t   when   rewrite( f(Y) ) = t
+  // where X = Y is a vector of equalities, where some of Y may be constants.
+  EXTF,
+  // Same as above, for normal form substitutions.
+  EXTF_N,
+  // contain transitive
+  //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
+  CTN_TRANS,
+  // contain decompose
+  //  str.contains( x, str.++( y1, ..., yn ) ) => str.contains( x, yi ) or
+  //  ~str.contains( str.++( x1, ..., xn ), y ) => ~str.contains( xi, y )
+  CTN_DECOMPOSE,
+  // contain neg equal
+  //   ( len( x ) = len( s ) ^ ~contains( x, s ) ) => x != s
+  CTN_NEG_EQUAL,
+  // contain positive
+  //   str.contains( x, y ) => x = w1 ++ y ++ w2
+  // where w1 and w2 are skolem variables.
+  CTN_POS,
+  // All reduction inferences of the form:
+  //   f(x1, .., xn) = y ^ P(x1, ..., xn, y)
+  // where f is an extended function, y is the purification variable for
+  // f(x1, .., xn) and P is the reduction predicate for f
+  // (see theory_strings_preprocess).
+  REDUCTION,
+  //-------------------------------------- end extended function solver
   NONE,
 };
+
+/**
+ * Converts an inference to a string. Note: This function is also used in
+ * `safe_print()`. Changing this functions name or signature will result in
+ * `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
+ *
+ * @param i The inference
+ * @return The name of the inference
+ */
+const char* toString(Inference i);
+
+/**
+ * Writes an inference name to a stream.
+ *
+ * @param out The stream to write to
+ * @param i The inference to write to the stream
+ * @return The stream
+ */
 std::ostream& operator<<(std::ostream& out, Inference i);
 
 /**
@@ -175,4 +288,4 @@ class InferInfo
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */
+#endif /* CVC4__THEORY__STRINGS__INFER_INFO_H */

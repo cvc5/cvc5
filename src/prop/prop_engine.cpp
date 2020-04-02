@@ -44,13 +44,6 @@
 using namespace std;
 using namespace CVC4::context;
 
-
-#ifdef CVC4_REPLAY
-#  define CVC4_USE_REPLAY true
-#else /* CVC4_REPLAY */
-#  define CVC4_USE_REPLAY false
-#endif /* CVC4_REPLAY */
-
 namespace CVC4 {
 namespace prop {
 
@@ -76,9 +69,7 @@ public:
 
 PropEngine::PropEngine(TheoryEngine* te,
                        Context* satContext,
-                       UserContext* userContext,
-                       std::ostream* replayLog,
-                       ExprStream* replayStream)
+                       UserContext* userContext)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_context(satContext),
@@ -101,13 +92,8 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_cnfStream = new CVC4::prop::TseitinCnfStream(
       d_satSolver, d_registrar, userContext, true);
 
-  d_theoryProxy = new TheoryProxy(this,
-                                  d_theoryEngine,
-                                  d_decisionEngine.get(),
-                                  d_context,
-                                  d_cnfStream,
-                                  replayLog,
-                                  replayStream);
+  d_theoryProxy = new TheoryProxy(
+      this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
   d_satSolver->initialize(d_context, d_theoryProxy);
 
   d_decisionEngine->setSatSolver(d_satSolver);
@@ -115,6 +101,11 @@ PropEngine::PropEngine(TheoryEngine* te,
   PROOF (
          ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
          );
+
+  NodeManager* nm = NodeManager::currentNM();
+  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
+  d_cnfStream->convertAndAssert(
+      nm->mkConst(false).notNode(), false, false, RULE_GIVEN);
 }
 
 PropEngine::~PropEngine() {

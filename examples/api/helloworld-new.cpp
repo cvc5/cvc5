@@ -24,7 +24,7 @@ int main()
 {
   Solver slv;
   Term helloworld = slv.mkVar(slv.getBooleanSort(), "Hello World!");
-  std::cout << helloworld << " is " << slv.checkValidAssuming(helloworld)
+  std::cout << helloworld << " is " << slv.checkEntailed(helloworld)
             << std::endl;
   return 0;
 }

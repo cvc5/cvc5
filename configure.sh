@@ -1,5 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 #--------------------------------------------------------------------------#
+
+set -e -o pipefail
 
 usage () {
 cat <<EOF
@@ -34,7 +36,6 @@ The following flags enable optional features (disable with --no-<option name>).
   --valgrind               Valgrind instrumentation
   --debug-context-mm       use the debug context memory manager
   --statistics             include statistics
-  --replay                 turn on the replay feature
   --assertions             turn on assertions
   --tracing                include tracing code
   --dumping                include dumping code
@@ -130,7 +131,6 @@ lfsc=default
 muzzle=default
 optimized=default
 proofs=default
-replay=default
 shared=default
 static_binary=default
 statistics=default
@@ -247,9 +247,6 @@ do
 
     --proofs) proofs=ON;;
     --no-proofs) proofs=OFF;;
-
-    --replay) replay=ON;;
-    --no-replay) replay=OFF;;
 
     --static) shared=OFF; static_binary=ON;;
     --no-static) shared=ON;;
@@ -387,8 +384,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized"
 [ $proofs != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs"
-[ $replay != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_REPLAY=$replay"
 [ $shared != default ] \
   && cmake_opts="$cmake_opts -DENABLE_SHARED=$shared"
 [ $static_binary != default ] \
@@ -465,7 +460,7 @@ root_dir=$(pwd)
 [ $win64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
 mkdir -p "$build_dir"
 
-cd "$build_dir" || exit 1
+cd "$build_dir"
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
 build_dir_escaped=$(echo "$build_dir" | sed 's/\//\\\//g')

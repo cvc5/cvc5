@@ -15,8 +15,10 @@
  **/
 
 #include "theory/sets/theory_sets.h"
+
 #include "options/sets_options.h"
 #include "theory/sets/theory_sets_private.h"
+#include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4::kind;
@@ -42,6 +44,11 @@ TheorySets::TheorySets(context::Context* c,
 TheorySets::~TheorySets()
 {
   // Do not move me to the header. See explanation in the constructor.
+}
+
+std::unique_ptr<TheoryRewriter> TheorySets::mkTheoryRewriter()
+{
+  return std::unique_ptr<TheoryRewriter>(new TheorySetsRewriter());
 }
 
 void TheorySets::finishInit()

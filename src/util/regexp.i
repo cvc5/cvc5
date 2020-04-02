@@ -2,24 +2,11 @@
 #include "util/regexp.h"
 %}
 
-%rename(CVC4String) String;
-%rename(CVC4StringHashFunction) CVC4::strings::StringHashFunction;
+%rename(equals) CVC4::RegExpRepeat::operator==(const RegExpRepeat&) const;
 
-%ignore CVC4::String::String(const std::string&);
+%rename(equals) CVC4::RegExpLoop::operator==(const RegExpLoop&) const;
 
-%rename(assign) CVC4::String::operator=(const String&);
-%rename(getChar) CVC4::String::operator[](const unsigned int) const;
-%rename(equals) CVC4::String::operator==(const String&) const;
-%ignore CVC4::String::operator!=(const String&) const;
-%rename(less) CVC4::String::operator<(const String&) const;
-%rename(lessEqual) CVC4::String::operator<=(const String&) const;
-%rename(greater) CVC4::String::operator>(const String&) const;
-%rename(greaterEqual) CVC4::String::operator>=(const String&) const;
+%ignore CVC4::operator<<(std::ostream&, const RegExpRepeat&);
+%ignore CVC4::operator<<(std::ostream&, const RegExpLoop&);
 
-%rename(apply) CVC4::strings::StringHashFunction::operator()(const ::CVC4::String&) const;
-
-%ignore CVC4::operator<<(std::ostream&, const String&);
-
-%apply int &OUTPUT { int &c };
 %include "util/regexp.h"
-%clear int &c;

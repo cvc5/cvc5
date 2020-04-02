@@ -236,6 +236,8 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/set_defaults.cpp
+  smt/set_defaults.h
   smt/smt_engine.cpp
   smt/smt_engine.h
   smt/smt_engine_scope.cpp
@@ -291,6 +293,7 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl_lemma_utils.cpp
   theory/arith/nl_lemma_utils.h
   theory/arith/nl_model.cpp
   theory/arith/nl_model.h
@@ -316,6 +319,8 @@ libcvc4_add_sources(
   theory/arith/theory_arith_private.h
   theory/arith/theory_arith_private_forward.h
   theory/arith/theory_arith_type_rules.h
+  theory/arith/transcendental_solver.cpp
+  theory/arith/transcendental_solver.h
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
@@ -422,14 +427,6 @@ libcvc4_add_sources(
   theory/fp/theory_fp_rewriter.h
   theory/fp/theory_fp_type_rules.h
   theory/fp/type_enumerator.h
-  theory/idl/idl_assertion.cpp
-  theory/idl/idl_assertion.h
-  theory/idl/idl_assertion_db.cpp
-  theory/idl/idl_assertion_db.h
-  theory/idl/idl_model.cpp
-  theory/idl/idl_model.h
-  theory/idl/theory_idl.cpp
-  theory/idl/theory_idl.h
   theory/interrupted.h
   theory/logic_info.cpp
   theory/logic_info.h
@@ -679,6 +676,8 @@ libcvc4_add_sources(
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp
   theory/strings/regexp_solver.h
+  theory/strings/rewrites.cpp
+  theory/strings/rewrites.h
   theory/strings/sequences_rewriter.cpp
   theory/strings/sequences_rewriter.h
   theory/strings/sequences_stats.cpp
@@ -762,8 +761,7 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/idl/kinds)
+  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories
@@ -898,7 +896,6 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
-          expr/expr_stream.h
           expr/record.h
           expr/symbol_table.h
           expr/type.h
@@ -964,6 +961,7 @@ install(FILES
           util/result.h
           util/sexpr.h
           util/statistics.h
+          util/string.h
           util/tuple.h
           util/unsafe_interrupt_exception.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h

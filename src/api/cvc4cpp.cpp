@@ -277,6 +277,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {REGEXP_PLUS, CVC4::Kind::REGEXP_PLUS},
     {REGEXP_OPT, CVC4::Kind::REGEXP_OPT},
     {REGEXP_RANGE, CVC4::Kind::REGEXP_RANGE},
+    {REGEXP_REPEAT, CVC4::Kind::REGEXP_REPEAT},
     {REGEXP_LOOP, CVC4::Kind::REGEXP_LOOP},
     {REGEXP_EMPTY, CVC4::Kind::REGEXP_EMPTY},
     {REGEXP_SIGMA, CVC4::Kind::REGEXP_SIGMA},
@@ -544,6 +545,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::REGEXP_PLUS, REGEXP_PLUS},
         {CVC4::Kind::REGEXP_OPT, REGEXP_OPT},
         {CVC4::Kind::REGEXP_RANGE, REGEXP_RANGE},
+        {CVC4::Kind::REGEXP_REPEAT, REGEXP_REPEAT},
         {CVC4::Kind::REGEXP_LOOP, REGEXP_LOOP},
         {CVC4::Kind::REGEXP_EMPTY, REGEXP_EMPTY},
         {CVC4::Kind::REGEXP_SIGMA, REGEXP_SIGMA},
@@ -766,22 +768,22 @@ bool Result::isSatUnknown(void) const
          && d_result->isSat() == CVC4::Result::SAT_UNKNOWN;
 }
 
-bool Result::isValid(void) const
+bool Result::isEntailed(void) const
 {
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::VALID;
+  return d_result->getType() == CVC4::Result::TYPE_ENTAILMENT
+         && d_result->isEntailed() == CVC4::Result::ENTAILED;
 }
 
-bool Result::isInvalid(void) const
+bool Result::isNotEntailed(void) const
 {
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::INVALID;
+  return d_result->getType() == CVC4::Result::TYPE_ENTAILMENT
+         && d_result->isEntailed() == CVC4::Result::NOT_ENTAILED;
 }
 
-bool Result::isValidUnknown(void) const
+bool Result::isEntailmentUnknown(void) const
 {
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::VALIDITY_UNKNOWN;
+  return d_result->getType() == CVC4::Result::TYPE_ENTAILMENT
+         && d_result->isEntailed() == CVC4::Result::ENTAILMENT_UNKNOWN;
 }
 
 bool Result::operator==(const Result& r) const
@@ -2292,7 +2294,7 @@ Term Solver::mkValHelper(T t) const
   return res;
 }
 
-Term Solver::mkRealFromStrHelper(std::string s) const
+Term Solver::mkRealFromStrHelper(const std::string& s) const
 {
   /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
    * throws an std::invalid_argument exception. For consistency, we treat it
@@ -2316,7 +2318,7 @@ Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkBVFromStrHelper(std::string s, uint32_t base) const
+Term Solver::mkBVFromStrHelper(const std::string& s, uint32_t base) const
 {
   CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
   CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, s)
@@ -2326,7 +2328,7 @@ Term Solver::mkBVFromStrHelper(std::string s, uint32_t base) const
 }
 
 Term Solver::mkBVFromStrHelper(uint32_t size,
-                               std::string s,
+                               const std::string& s,
                                uint32_t base) const
 {
   CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
@@ -2349,6 +2351,20 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
   }
 
   return mkValHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
+}
+
+Term Solver::mkCharFromStrHelper(const std::string& s) const
+{
+  CVC4_API_CHECK(s.find_first_not_of("0123456789abcdefABCDEF", 0)
+                     == std::string::npos
+                 && s.size() <= 5 && s.size() > 0)
+      << "Unexpected string for hexidecimal character " << s;
+  uint32_t val = static_cast<uint32_t>(std::stoul(s, 0, 16));
+  CVC4_API_CHECK(val < String::num_codes())
+      << "Not a valid code point for hexidecimal character " << s;
+  std::vector<unsigned> cpts;
+  cpts.push_back(val);
+  return mkValHelper<CVC4::String>(CVC4::String(cpts));
 }
 
 Term Solver::mkTermFromKind(Kind kind) const
@@ -2949,6 +2965,21 @@ Term Solver::mkString(const std::vector<unsigned>& s) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Term Solver::mkChar(const std::string& s) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  return mkCharFromStrHelper(s);
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkChar(const char* s) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
+  return mkCharFromStrHelper(std::string(s));
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Term Solver::mkUniverseSet(Sort sort) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -3490,6 +3521,11 @@ Op Solver::mkOp(Kind kind, uint32_t arg) const
           kind,
           *mkValHelper<CVC4::TupleUpdate>(CVC4::TupleUpdate(arg)).d_expr.get());
       break;
+    case REGEXP_REPEAT:
+      res = Op(kind,
+               *mkValHelper<CVC4::RegExpRepeat>(CVC4::RegExpRepeat(arg))
+                    .d_expr.get());
+      break;
     default:
       CVC4_API_KIND_CHECK_EXPECTED(false, kind)
           << "operator kind with uint32_t argument";
@@ -3550,6 +3586,11 @@ Op Solver::mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const
                     CVC4::FloatingPointToFPGeneric(arg1, arg2))
                     .d_expr.get());
       break;
+    case REGEXP_LOOP:
+      res = Op(kind,
+               *mkValHelper<CVC4::RegExpLoop>(CVC4::RegExpLoop(arg1, arg2))
+                    .d_expr.get());
+      break;
     default:
       CVC4_API_KIND_CHECK_EXPECTED(false, kind)
           << "operator kind with two uint32_t arguments";
@@ -3573,7 +3614,7 @@ Term Solver::simplify(const Term& t)
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Result Solver::checkValid(void) const
+Result Solver::checkEntailed(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
@@ -3581,14 +3622,15 @@ Result Solver::checkValid(void) const
                  || CVC4::options::incrementalSolving())
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
+  CVC4_API_ARG_CHECK_NOT_NULL(term);
 
-  CVC4::Result r = d_smtEngine->query();
+  CVC4::Result r = d_smtEngine->checkEntailed(*term.d_expr);
   return Result(r);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Result Solver::checkValidAssuming(Term assumption) const
+Result Solver::checkEntailed(const std::vector<Term>& terms) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
@@ -3596,29 +3638,13 @@ Result Solver::checkValidAssuming(Term assumption) const
                  || CVC4::options::incrementalSolving())
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
-  CVC4_API_ARG_CHECK_NOT_NULL(assumption);
-
-  CVC4::Result r = d_smtEngine->query(*assumption.d_expr);
-  return Result(r);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(!d_smtEngine->isQueryMade()
-                 || CVC4::options::incrementalSolving())
-      << "Cannot make multiple queries unless incremental solving is enabled "
-         "(try --incremental)";
-  for (const Term& assumption : assumptions)
+  for (const Term& term : terms)
   {
-    CVC4_API_ARG_CHECK_NOT_NULL(assumption);
+    CVC4_API_ARG_CHECK_NOT_NULL(term);
   }
 
-  std::vector<Expr> eassumptions = termVectorToExprs(assumptions);
-  CVC4::Result r = d_smtEngine->query(eassumptions);
+  std::vector<Expr> exprs = termVectorToExprs(terms);
+  CVC4::Result r = d_smtEngine->checkEntailed(exprs);
   return Result(r);
 
   CVC4_API_SOLVER_TRY_CATCH_END;

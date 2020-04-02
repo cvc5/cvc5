@@ -244,20 +244,6 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
   }
 }
 
-// theory/options_handlers.h
-std::string OptionsHandler::handleUseTheoryList(std::string option, std::string optarg) {
-  std::string currentList = options::useTheoryList();
-  if(currentList.empty()){
-    return optarg;
-  } else {
-    return currentList +','+ optarg;
-  }
-}
-
-void OptionsHandler::notifyUseTheoryList(std::string option) {
-  d_options->d_useTheoryListListeners.notify();
-}
-
 // printer/options_handlers.h
 const std::string OptionsHandler::s_instFormatHelp = "\
 Inst format modes currently supported by the --inst-format option:\n\
@@ -338,23 +324,6 @@ void OptionsHandler::notifySetRegularOutputChannel(std::string option) {
 
 void OptionsHandler::notifySetDiagnosticOutputChannel(std::string option) {
   d_options->d_setDiagnosticChannelListeners.notify();
-}
-
-
-std::string OptionsHandler::checkReplayFilename(std::string option, std::string optarg) {
-#ifdef CVC4_REPLAY
-  if(optarg == "") {
-    throw OptionException (std::string("Bad file name for --replay"));
-  } else {
-    return optarg;
-  }
-#else /* CVC4_REPLAY */
-  throw OptionException("The replay feature was disabled in this build of CVC4.");
-#endif /* CVC4_REPLAY */
-}
-
-void OptionsHandler::notifySetReplayLogFilename(std::string option) {
-  d_options->d_setReplayFilenameListeners.notify();
 }
 
 void OptionsHandler::statsEnabledBuild(std::string option, bool value)
@@ -453,7 +422,6 @@ void OptionsHandler::showConfiguration(std::string option) {
 
   print_config_cond("debug code", Configuration::isDebugBuild());
   print_config_cond("statistics", Configuration::isStatisticsBuild());
-  print_config_cond("replay", Configuration::isReplayBuild());
   print_config_cond("tracing", Configuration::isTracingBuild());
   print_config_cond("dumping", Configuration::isDumpingBuild());
   print_config_cond("muzzled", Configuration::isMuzzledBuild());

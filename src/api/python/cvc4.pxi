@@ -749,19 +749,11 @@ cdef class Solver:
             explanation = r.getUnknownExplanation().decode()
         return  Result(name, explanation)
 
-    def checkValid(self):
-        cdef c_Result r = self.csolver.checkValid()
-        name = r.toString().decode()
-        explanation = ""
-        if r.isValidUnknown():
-            explanation = r.getUnknownExplanation().decode()
-        return Result(name, explanation)
-
     @expand_list_arg(num_req_args=0)
-    def checkValidAssuming(self, *assumptions):
+    def checkEntailed(self, *assumptions):
         '''
             Supports the following arguments:
-                 Result checkValidAssuming(List[Term] assumptions)
+                 Result checkEntailed(List[Term] assumptions)
 
                  where assumptions can also be comma-separated arguments of
                  type (boolean) Term
@@ -771,10 +763,10 @@ cdef class Solver:
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
-        r = self.csolver.checkValidAssuming(<const vector[c_Term]&> v)
+        r = self.csolver.checkEntailed(<const vector[c_Term]&> v)
         name = r.toString().decode()
         explanation = ""
-        if r.isValidUnknown():
+        if r.isEntailmentUnknown():
             explanation = r.getUnknownExplanation().decode()
         return Result(name, explanation)
 

@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 OPTION "finite-model-find";
 OPTION "fmf-bound-int";
 

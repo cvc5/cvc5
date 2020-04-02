@@ -291,14 +291,15 @@ public:
         if (!t.isString()) {
           throw TypeCheckingExceptionPrivate(n, "expecting a string term in regexp range");
         }
-        if( (*it).getKind() != kind::CONST_STRING ) {
+        if (!(*it).isConst())
+        {
           throw TypeCheckingExceptionPrivate(n, "expecting a constant string term in regexp range");
         }
         if( (*it).getConst<String>().size() != 1 ) {
           throw TypeCheckingExceptionPrivate(n, "expecting a single constant string term in regexp range");
         }
         unsigned ci = (*it).getConst<String>().front();
-        ch[i] = String::convertUnsignedIntToCode(ci);
+        ch[i] = ci;
         ++it;
       }
       if(ch[0] > ch[1]) {

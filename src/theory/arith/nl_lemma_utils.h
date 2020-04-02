@@ -23,6 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
+class NlModel;
+
 /**
  * A side effect of adding a lemma in the non-linear solver. This is used
  * to specify how the state of the non-linear solver should update. This
@@ -44,6 +46,56 @@ struct NlLemmaSideEffect
    * Cimatti et al., CADE 2017.
    */
   std::vector<std::tuple<Node, unsigned, Node> > d_secantPoint;
+};
+
+struct SortNlModel
+{
+  SortNlModel()
+      : d_nlm(nullptr),
+        d_isConcrete(true),
+        d_isAbsolute(false),
+        d_reverse_order(false)
+  {
+  }
+  /** pointer to the model */
+  NlModel* d_nlm;
+  /** are we comparing concrete model values? */
+  bool d_isConcrete;
+  /** are we comparing absolute values? */
+  bool d_isAbsolute;
+  /** are we in reverse order? */
+  bool d_reverse_order;
+  /** the comparison */
+  bool operator()(Node i, Node j);
+};
+
+struct SortNonlinearDegree
+{
+  SortNonlinearDegree(std::map<Node, unsigned>& m) : d_mdegree(m) {}
+  /** pointer to the non-linear extension */
+  std::map<Node, unsigned>& d_mdegree;
+  /** Get the degree of n in d_mdegree */
+  unsigned getDegree(Node n) const;
+  /**
+   * Sorts by degree of the monomials, where lower degree monomials come
+   * first.
+   */
+  bool operator()(Node i, Node j);
+};
+
+/** An argument trie, for computing congruent terms */
+class ArgTrie
+{
+ public:
+  /** children of this node */
+  std::map<Node, ArgTrie> d_children;
+  /** the data of this node */
+  Node d_data;
+  /**
+   * Set d as the data on the node whose path is [args], return either d if
+   * that node has no data, or the data that already occurs there.
+   */
+  Node add(Node d, const std::vector<Node>& args);
 };
 
 }  // namespace arith

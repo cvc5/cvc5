@@ -55,8 +55,9 @@ public class SimpleVC {
       new Expr(em.mkExpr(Kind.AND, x_positive, y_positive)).
       impExpr(new Expr(twox_plus_y_geq_3));
 
-    System.out.println("Checking validity of formula " + formula + " with CVC4.");
-    System.out.println("CVC4 should report VALID.");
-    System.out.println("Result from CVC4 is: " + smt.query(formula));
+    System.out.println(
+        "Checking entailment of formula " + formula + " with CVC4.");
+    System.out.println("CVC4 should report ENTAILED.");
+    System.out.println("Result from CVC4 is: " + smt.checkEntailed(formula));
   }
 }

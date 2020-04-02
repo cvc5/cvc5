@@ -14,30 +14,54 @@
 
 #include "theory/strings/infer_info.h"
 
-using namespace CVC4::kind;
-
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-std::ostream& operator<<(std::ostream& out, Inference i)
+const char* toString(Inference i)
 {
   switch (i)
   {
-    case Inference::N_ENDPOINT_EMP: out << "N_EndpointEmp"; break;
-    case Inference::N_UNIFY: out << "N_Unify"; break;
-    case Inference::N_ENDPOINT_EQ: out << "N_EndpointEq"; break;
-    case Inference::N_CONST: out << "N_Const"; break;
-    case Inference::INFER_EMP: out << "Infer-Emp"; break;
-    case Inference::SSPLIT_CST_PROP: out << "S-Split(CST-P)-prop"; break;
-    case Inference::SSPLIT_VAR_PROP: out << "S-Split(VAR)-prop"; break;
-    case Inference::LEN_SPLIT: out << "Len-Split(Len)"; break;
-    case Inference::LEN_SPLIT_EMP: out << "Len-Split(Emp)"; break;
-    case Inference::SSPLIT_CST: out << "S-Split(CST-P)"; break;
-    case Inference::SSPLIT_VAR: out << "S-Split(VAR)"; break;
-    case Inference::FLOOP: out << "F-Loop"; break;
-    default: out << "?"; break;
+    case Inference::I_NORM_S: return "I_NORM_S";
+    case Inference::I_CONST_MERGE: return "I_CONST_MERGE";
+    case Inference::I_CONST_CONFLICT: return "I_CONST_CONFLICT";
+    case Inference::I_NORM: return "I_NORM";
+    case Inference::CARDINALITY: return "CARDINALITY";
+    case Inference::N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
+    case Inference::N_UNIFY: return "N_UNIFY";
+    case Inference::N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";
+    case Inference::N_CONST: return "N_CONST";
+    case Inference::INFER_EMP: return "INFER_EMP";
+    case Inference::SSPLIT_CST_PROP: return "SSPLIT_CST_PROP";
+    case Inference::SSPLIT_VAR_PROP: return "SSPLIT_VAR_PROP";
+    case Inference::LEN_SPLIT: return "LEN_SPLIT";
+    case Inference::LEN_SPLIT_EMP: return "LEN_SPLIT_EMP";
+    case Inference::SSPLIT_CST: return "SSPLIT_CST";
+    case Inference::SSPLIT_VAR: return "SSPLIT_VAR";
+    case Inference::FLOOP: return "FLOOP";
+    case Inference::RE_NF_CONFLICT: return "RE_NF_CONFLICT";
+    case Inference::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
+    case Inference::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
+    case Inference::RE_INTER_INCLUDE: return "RE_INTER_INCLUDE";
+    case Inference::RE_INTER_CONF: return "RE_INTER_CONF";
+    case Inference::RE_INTER_INFER: return "RE_INTER_INFER";
+    case Inference::RE_DELTA: return "RE_DELTA";
+    case Inference::RE_DELTA_CONF: return "RE_DELTA_CONF";
+    case Inference::RE_DERIVE: return "RE_DERIVE";
+    case Inference::EXTF: return "EXTF";
+    case Inference::EXTF_N: return "EXTF_N";
+    case Inference::CTN_TRANS: return "CTN_TRANS";
+    case Inference::CTN_DECOMPOSE: return "CTN_DECOMPOSE";
+    case Inference::CTN_NEG_EQUAL: return "CTN_NEG_EQUAL";
+    case Inference::CTN_POS: return "CTN_POS";
+    case Inference::REDUCTION: return "REDUCTION";
+    default: return "?";
   }
+}
+
+std::ostream& operator<<(std::ostream& out, Inference i)
+{
+  out << toString(i);
   return out;
 }
 

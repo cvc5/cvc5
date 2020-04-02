@@ -26,7 +26,6 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/expr.h"
-#include "expr/expr_stream.h"
 #include "expr/kind.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
@@ -272,6 +271,9 @@ public:
   inline Input* getInput() const {
     return d_input;
   }
+
+  /** Get unresolved sorts */
+  inline std::set<api::Sort>& getUnresolvedSorts() { return d_unresolved; }
 
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
@@ -803,63 +805,9 @@ public:
     d_globalDeclarations = flag;
   }
 
-  /**
-   * Set the current symbol table used by this parser.
-   * From now on, this parser will perform its definitions and
-   * lookups in the declaration scope of the "parser" argument
-   * (but doesn't re-delegate if the other parser's declaration scope
-   * changes later).  A NULL argument restores this parser's
-   * "primordial" declaration scope assigned at its creation.  Calling
-   * p->useDeclarationsFrom(p) is a no-op.
-   *
-   * This feature is useful when e.g. reading out-of-band expression data:
-   * 1. Parsing --replay log files produced with --replay-log.
-   * 2. Perhaps a multi-query benchmark file is being single-stepped
-   *    with intervening queries on stdin that must reference the same
-   *    declaration scope(s).
-   *
-   * However, the feature must be used carefully.  Pushes and pops
-   * should be performed with the correct current declaration scope.
-   * Care must be taken to match up declaration scopes, of course;
-   * If variables in the deferred-to parser go out of scope, the
-   * secondary parser will give errors that they are undeclared.
-   * Also, an outer-scope variable shadowed by an inner-scope one of
-   * the same name may be temporarily inaccessible.
-   *
-   * In short, caveat emptor.
-   */
-  inline void useDeclarationsFrom(Parser* parser) {
-    if(parser == NULL) {
-      d_symtab = &d_symtabAllocated;
-    } else {
-      d_symtab = parser->d_symtab;
-    }
-  }
-
-  inline void useDeclarationsFrom(SymbolTable* symtab) {
-    d_symtab = symtab;
-  }
-
   inline SymbolTable* getSymbolTable() const {
     return d_symtab;
   }
-
-  /**
-   * An expression stream interface for a parser.  This stream simply
-   * pulls expressions from the given Parser object.
-   *
-   * Here, the ExprStream base class allows a Parser (from the parser
-   * library) and core components of CVC4 (in the core library) to
-   * communicate without polluting the public interface or having them
-   * reach into private (undocumented) interfaces.
-   */
-  class ExprStream : public CVC4::ExprStream {
-    Parser* d_parser;
-  public:
-    ExprStream(Parser* parser) : d_parser(parser) {}
-    ~ExprStream() { delete d_parser; }
-    Expr nextExpr() override { return d_parser->nextExpression().getExpr(); }
-  };/* class Parser::ExprStream */
   
   //------------------------ operator overloading
   /** is this function overloaded? */
@@ -889,6 +837,28 @@ public:
         name, api::sortVectorToTypes(argTypes));
   }
   //------------------------ end operator overloading
+  /**
+   * Make string constant
+   *
+   * This makes the string constant based on the string s. This may involve
+   * processing ad-hoc escape sequences (if the language is not
+   * SMT-LIB 2.6.1 or higher), or otherwise calling the solver to construct
+   * the string.
+   */
+  Expr mkStringConstant(const std::string& s);
+
+ private:
+  /** ad-hoc string escaping
+   *
+   * Returns the (internal) vector of code points corresponding to processing
+   * the escape sequences in string s. This is to support string inputs that
+   * do no comply with the SMT-LIB standard.
+   *
+   * This method handles escape sequences, including \n, \t, \v, \b, \r, \f, \a,
+   * \\, \x[N] and octal escape sequences of the form \[c1]([c2]([c3])?)? where
+   * c1, c2, c3 are digits from 0 to 7.
+   */
+  std::vector<unsigned> processAdHocStringEsc(const std::string& s);
 };/* class Parser */
 
 }/* CVC4::parser namespace */

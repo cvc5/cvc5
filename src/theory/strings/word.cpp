@@ -14,7 +14,7 @@
 
 #include "theory/strings/word.h"
 
-#include "util/regexp.h"
+#include "util/string.h"
 
 using namespace CVC4::kind;
 
@@ -74,6 +74,29 @@ size_t Word::getLength(TNode x)
   }
   Unimplemented();
   return 0;
+}
+
+std::vector<Node> Word::getChars(TNode x)
+{
+  Kind k = x.getKind();
+  if (k == CONST_STRING)
+  {
+    std::vector<Node> ret;
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<unsigned> ccVec;
+    const std::vector<unsigned>& cvec = x.getConst<String>().getVec();
+    for (unsigned chVal : cvec)
+    {
+      ccVec.clear();
+      ccVec.push_back(chVal);
+      Node ch = nm->mkConst(String(ccVec));
+      ret.push_back(ch);
+    }
+    return ret;
+  }
+  Unimplemented();
+  std::vector<Node> ret;
+  return ret;
 }
 
 bool Word::isEmpty(TNode x) { return getLength(x) == 0; }

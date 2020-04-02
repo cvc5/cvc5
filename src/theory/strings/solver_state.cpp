@@ -108,7 +108,7 @@ void SolverState::eqNotifyNewClass(TNode t)
       ei->d_codeTerm = t[0];
     }
   }
-  else if (k == CONST_STRING)
+  else if (t.isConst())
   {
     EqcInfo* ei = getOrMakeEqcInfo(t);
     ei->d_prefixC = t;

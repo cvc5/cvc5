@@ -28,7 +28,6 @@
 #include "context/cdlist_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "expr/expr_stream.h"
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
@@ -153,7 +152,9 @@ class CVC4_PUBLIC SmtEngine
    */
   bool isFullyInited() { return d_fullyInited; }
 
-  /** Return true if a query() or checkSat() has already been made.  */
+  /**
+   * Return true if a checkEntailed() or checkSatisfiability() has been made.
+   */
   bool isQueryMade() { return d_queryMade; }
 
   /** Return the user context level.  */
@@ -203,6 +204,8 @@ class CVC4_PUBLIC SmtEngine
    * --sygus-abduct.
    */
   void setIsInternalSubsolver();
+  /** Is this an internal subsolver? */
+  bool isInternalSubsolver() const;
 
   /** set the input name */
   void setFilename(std::string filename);
@@ -210,8 +213,8 @@ class CVC4_PUBLIC SmtEngine
   std::string getFilename() const;
 
   /**
-   * Get the model (only if immediately preceded by a SAT
-   * or INVALID query).  Only permitted if produce-models is on.
+   * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
+   * query).  Only permitted if produce-models is on.
    */
   Model* getModel();
 
@@ -229,9 +232,9 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * Block the current model values of (at least) the values in exprs.
-   * Can be called only if immediately preceded by a SAT or INVALID query. Only
-   * permitted if produce-models is on, and the block-models option is set to a
-   * mode other than "none".
+   * Can be called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * Only permitted if produce-models is on, and the block-models option is set
+   * to a mode other than "none".
    *
    * This adds an assertion to the assertion stack of the form:
    *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
@@ -309,18 +312,21 @@ class CVC4_PUBLIC SmtEngine
   Result assertFormula(const Expr& e, bool inUnsatCore = true);
 
   /**
-   * Check validity of an expression with respect to the current set
-   * of assertions by asserting the query expression's negation and
-   * calling check().  Returns valid, invalid, or unknown result.
+   * Check if a given (set of) expression(s) is entailed with respect to the
+   * current set of assertions. We check this by asserting the negation of
+   * the (big AND over the) given (set of) expression(s).
+   * Returns ENTAILED, NOT_ENTAILED, or ENTAILMENT_UNKNOWN result.
    *
    * @throw Exception
    */
-  Result query(const Expr& assumption = Expr(), bool inUnsatCore = true);
-  Result query(const std::vector<Expr>& assumptions, bool inUnsatCore = true);
+  Result checkEntailed(const Expr& assumption = Expr(),
+                       bool inUnsatCore = true);
+  Result checkEntailed(const std::vector<Expr>& assumptions,
+                       bool inUnsatCore = true);
 
   /**
    * Assert a formula (if provided) to the current context and call
-   * check().  Returns sat, unsat, or unknown result.
+   * check().  Returns SAT, UNSAT, or SAT_UNKNOWN result.
    *
    * @throw Exception
    */
@@ -455,9 +461,9 @@ class CVC4_PUBLIC SmtEngine
   Expr expandDefinitions(const Expr& e);
 
   /**
-   * Get the assigned value of an expr (only if immediately preceded
-   * by a SAT or INVALID query).  Only permitted if the SmtEngine is
-   * set to operate interactively and produce-models is on.
+   * Get the assigned value of an expr (only if immediately preceded by a SAT
+   * or NOT_ENTAILED query).  Only permitted if the SmtEngine is set to operate
+   * interactively and produce-models is on.
    *
    * @throw ModalException, TypeCheckingException, LogicException,
    *        UnsafeInterruptException
@@ -482,15 +488,15 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * Get the assignment (only if immediately preceded by a SAT or
-   * INVALID query).  Only permitted if the SmtEngine is set to
+   * NOT_ENTAILED query).  Only permitted if the SmtEngine is set to
    * operate interactively and produce-assignments is on.
    */
   std::vector<std::pair<Expr, Expr> > getAssignment();
 
   /**
-   * Get the last proof (only if immediately preceded by an UNSAT
-   * or VALID query).  Only permitted if CVC4 was built with proof
-   * support and produce-proofs is on.
+   * Get the last proof (only if immediately preceded by an UNSAT or ENTAILED
+   * query).  Only permitted if CVC4 was built with proof support and
+   * produce-proofs is on.
    *
    * The Proof object is owned by this SmtEngine until the SmtEngine is
    * destroyed.
@@ -623,9 +629,9 @@ class CVC4_PUBLIC SmtEngine
                                    std::vector<std::vector<Expr> >& tvecs);
 
   /**
-   * Get an unsatisfiable core (only if immediately preceded by an
-   * UNSAT or VALID query).  Only permitted if CVC4 was built with
-   * unsat-core support and produce-unsat-cores is on.
+   * Get an unsatisfiable core (only if immediately preceded by an UNSAT or
+   * ENTAILED query).  Only permitted if CVC4 was built with unsat-core support
+   * and produce-unsat-cores is on.
    */
   UnsatCore getUnsatCore();
 
@@ -713,8 +719,8 @@ class CVC4_PUBLIC SmtEngine
    *
    * Note that the cumulative timer only ticks away when one of the
    * SmtEngine's workhorse functions (things like assertFormula(),
-   * query(), checkSat(), and simplify()) are running.  Between calls,
-   * the timer is still.
+   * checkEntailed(), checkSat(), and simplify()) are running.
+   * Between calls, the timer is still.
    *
    * When an SmtEngine is first created, it has no time or resource
    * limits.
@@ -773,7 +779,10 @@ class CVC4_PUBLIC SmtEngine
   /** Flush statistic from this SmtEngine. Safe to use in a signal handler. */
   void safeFlushStatistics(int fd) const;
 
-  /** Returns the most recent result of checkSat/query or (set-info :status). */
+  /**
+   * Returns the most recent result of checkSat/checkEntailed or
+   * (set-info :status).
+   */
   Result getStatusOfLastCommand() const { return d_status; }
 
   /**
@@ -796,13 +805,6 @@ class CVC4_PUBLIC SmtEngine
    * throw@ ModalException
    */
   void beforeSearch();
-
-  /**
-   * Expermintal feature: Sets the sequence of decisions.
-   * This currently requires very fine grained knowledge about literal
-   * translation.
-   */
-  void setReplayStream(ExprStream* exprStream);
 
   /**
    * Get expression name.
@@ -887,7 +889,7 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
-   * by an UNSAT or VALID query). Only permitted if CVC4 was built with
+   * by an UNSAT or ENTAILED query). Only permitted if CVC4 was built with
    * unsat-core support and produce-unsat-cores is on. Does not dump the
    * command.
    */
@@ -937,12 +939,6 @@ class CVC4_PUBLIC SmtEngine
    * not permitted to change after assertions and queries are made).
    */
   void finalOptionsAreSet();
-
-  /**
-   * Apply heuristics settings and other defaults.  Done once, at
-   * finishInit() time.
-   */
-  void setDefaults();
 
   /**
    * Sets that the problem has been extended. This sets the smt mode of the
@@ -1019,13 +1015,13 @@ class CVC4_PUBLIC SmtEngine
                                 bool userVisible = true,
                                 const char* dumpTag = "declarations");
 
-  /* Check satisfiability (used for query and check-sat). */
+  /* Check satisfiability (used to check satisfiability and entailment). */
   Result checkSatisfiability(const Expr& assumption,
                              bool inUnsatCore,
-                             bool isQuery);
+                             bool isEntailmentCheck);
   Result checkSatisfiability(const std::vector<Expr>& assumptions,
                              bool inUnsatCore,
-                             bool isQuery);
+                             bool isEntailmentCheck);
 
   /**
    * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
@@ -1135,9 +1131,9 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
-   * Note that if the last call to checkSatisfiability was a validity check,
-   * i.e., a call to query(a1, ..., an), then d_assumptions contains one single
-   * assumption ~(a1 AND ... AND an).
+   * Note that if the last call to checkSatisfiability was an entailment check,
+   * i.e., a call to checkEntailed(a1, ..., an), then d_assumptions contains
+   * one single assumption ~(a1 AND ... AND an).
    */
   std::vector<Expr> d_assumptions;
 
@@ -1201,10 +1197,10 @@ class CVC4_PUBLIC SmtEngine
   bool d_fullyInited;
 
   /**
-   * Whether or not a query() or checkSat() has already been made through
-   * this SmtEngine.  If true, and incrementalSolving is false, then
-   * attempting an additional query() or checkSat() will fail with a
-   * ModalException.
+   * Whether or not a checkEntailed() or checkSatisfiability() has already been
+   * made through this SmtEngine.  If true, and incrementalSolving is false,
+   * then attempting an additional checkEntailed() or checkSat() will fail with
+   * a ModalException.
    */
   bool d_queryMade;
 
@@ -1226,7 +1222,8 @@ class CVC4_PUBLIC SmtEngine
   bool d_globalNegation;
 
   /**
-   * Most recent result of last checkSat/query or (set-info :status).
+   * Most recent result of last checkSatisfiability/checkEntailed or
+   * (set-info :status).
    */
   Result d_status;
 
@@ -1246,9 +1243,6 @@ class CVC4_PUBLIC SmtEngine
    * Verbosity of various commands.
    */
   std::map<std::string, Integer> d_commandVerbosity;
-
-  /** ReplayStream for the solver. */
-  ExprStream* d_replayStream;
 
   /**
    * A private utility class to SmtEngine.

@@ -34,14 +34,16 @@ ExtfSolver::ExtfSolver(context::Context* c,
                        SkolemCache& skc,
                        BaseSolver& bs,
                        CoreSolver& cs,
-                       ExtTheory* et)
+                       ExtTheory* et,
+                       SequencesStatistics& stats)
     : d_state(s),
       d_im(im),
       d_skCache(skc),
       d_bsolver(bs),
       d_csolver(cs),
       d_extt(et),
-      d_preproc(&skc, u),
+      d_statistics(stats),
+      d_preproc(&skc, u, stats),
       d_hasExtf(c, false),
       d_extfInferCache(c)
 {
@@ -112,7 +114,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
             lexp.push_back(lenx.eqNode(lens));
             lexp.push_back(n.negate());
             Node xneqs = x.eqNode(s).negate();
-            d_im.sendInference(lexp, xneqs, "NEG-CTN-EQL", true);
+            d_im.sendInference(lexp, xneqs, Inference::CTN_NEG_EQUAL, true);
           }
           // this depends on the current assertions, so we set that this
           // inference is context-dependent.
@@ -157,7 +159,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
     std::vector<Node> exp_vec;
     exp_vec.push_back(n);
-    d_im.sendInference(d_emptyVec, exp_vec, eq, "POS-CTN", true);
+    d_im.sendInference(d_emptyVec, exp_vec, eq, Inference::CTN_POS, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;
@@ -183,7 +185,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     Trace("strings-red-lemma")
         << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
     Trace("strings-red-lemma") << "...from " << n << std::endl;
-    d_im.sendInference(d_emptyVec, nnlem, "Reduction", true);
+    d_im.sendInference(d_emptyVec, nnlem, Inference::REDUCTION, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on reduction." << std::endl;
     isCd = false;
@@ -362,8 +364,9 @@ void ExtfSolver::checkExtfEval(int effort)
           {
             Trace("strings-extf")
                 << "  resolve extf : " << sn << " -> " << nrc << std::endl;
-            d_im.sendInference(
-                einfo.d_exp, conc, effort == 0 ? "EXTF" : "EXTF-N", true);
+            Inference inf = effort == 0 ? Inference::EXTF : Inference::EXTF_N;
+            d_im.sendInference(einfo.d_exp, conc, inf, true);
+            d_statistics.d_cdSimplifications << n.getKind();
             if (d_state.isInConflict())
             {
               Trace("strings-extf-debug") << "  conflict, return." << std::endl;
@@ -513,7 +516,7 @@ void ExtfSolver::checkExtfInference(Node n,
             if (d_state.areEqual(conc, d_false))
             {
               // we are in conflict
-              d_im.sendInference(in.d_exp, conc, "CTN_Decompose");
+              d_im.sendInference(in.d_exp, conc, Inference::CTN_DECOMPOSE);
             }
             else if (d_extt->hasFunctionKind(conc.getKind()))
             {
@@ -590,7 +593,7 @@ void ExtfSolver::checkExtfInference(Node n,
               exp_c.insert(exp_c.end(),
                            d_extfInfoTmp[ofrom].d_exp.begin(),
                            d_extfInfoTmp[ofrom].d_exp.end());
-              d_im.sendInference(exp_c, conc, "CTN_Trans");
+              d_im.sendInference(exp_c, conc, Inference::CTN_TRANS);
             }
           }
         }
@@ -645,7 +648,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
   {
     return c;
   }
-  else if (effort >= 1 && n.getType().isString())
+  else if (effort >= 1 && n.getType().isStringLike())
   {
     Assert(effort < 3);
     // normal forms
