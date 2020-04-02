@@ -58,7 +58,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     options::dumpUnsatCores.set(true);
   }
-  if (options::unsatCores() || options::dumpUnsatCores() || options::unsatAssumptions())
+  if (options::unsatCores() || options::dumpUnsatCores()
+      || options::unsatAssumptions())
   {
     options::produceUnsatCores.set(true);
   }
@@ -66,7 +67,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     options::proof.set(true);
   }
-  
+
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
