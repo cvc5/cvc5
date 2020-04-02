@@ -17,6 +17,7 @@
 #include "theory/builtin/theory_builtin.h"
 
 #include "expr/kind.h"
+#include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
@@ -33,6 +34,11 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo)
 {
+}
+
+std::unique_ptr<TheoryRewriter> TheoryBuiltin::mkTheoryRewriter()
+{
+  return std::unique_ptr<TheoryRewriter>(new TheoryBuiltinRewriter());
 }
 
 std::string TheoryBuiltin::identify() const

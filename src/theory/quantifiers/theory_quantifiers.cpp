@@ -22,6 +22,7 @@
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -51,6 +52,11 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, Output
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {
+}
+
+std::unique_ptr<TheoryRewriter> TheoryQuantifiers::mkTheoryRewriter()
+{
+  return std::unique_ptr<TheoryRewriter>(new QuantifiersRewriter());
 }
 
 void TheoryQuantifiers::finishInit()

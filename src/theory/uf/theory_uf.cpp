@@ -66,6 +66,11 @@ TheoryUF::TheoryUF(context::Context* c,
 TheoryUF::~TheoryUF() {
 }
 
+std::unique_ptr<TheoryRewriter> TheoryUF::mkTheoryRewriter()
+{
+  return std::unique_ptr<TheoryRewriter>(new TheoryUfRewriter());
+}
+
 void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
