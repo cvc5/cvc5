@@ -34,6 +34,8 @@ class TheoryBuiltin : public Theory
                 Valuation valuation,
                 const LogicInfo& logicInfo);
 
+  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+
   std::string identify() const override;
 
   /** finish initialization */

@@ -109,6 +109,8 @@ class TheoryStrings : public Theory {
                 const LogicInfo& logicInfo);
   ~TheoryStrings();
 
+  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   std::string identify() const override { return std::string("TheoryStrings"); }

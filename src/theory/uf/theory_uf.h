@@ -188,6 +188,8 @@ private:
 
   ~TheoryUF();
 
+  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
   void finishInit() override;
 
