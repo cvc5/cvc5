@@ -29,6 +29,7 @@
 #include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -176,6 +177,11 @@ TheoryArrays::~TheoryArrays() {
   smtStatisticsRegistry()->unregisterStat(&d_numGetModelValConflicts);
   smtStatisticsRegistry()->unregisterStat(&d_numSetModelValSplits);
   smtStatisticsRegistry()->unregisterStat(&d_numSetModelValConflicts);
+}
+
+std::unique_ptr<TheoryRewriter> TheoryArrays::mkTheoryRewriter()
+{
+  return std::unique_ptr<TheoryRewriter>(new TheoryArraysRewriter());
 }
 
 void TheoryArrays::setMasterEqualityEngine(eq::EqualityEngine* eq) {

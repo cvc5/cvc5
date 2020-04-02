@@ -25,6 +25,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers_engine.h"
@@ -83,6 +84,11 @@ TheoryDatatypes::~TheoryDatatypes() {
     Assert(current != NULL);
     delete current;
   }
+}
+
+std::unique_ptr<TheoryRewriter> TheoryDatatypes::mkTheoryRewriter()
+{
+  return std::unique_ptr<TheoryRewriter>(new DatatypesRewriter());
 }
 
 void TheoryDatatypes::setMasterEqualityEngine(eq::EqualityEngine* eq) {

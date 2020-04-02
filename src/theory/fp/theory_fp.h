@@ -38,6 +38,8 @@ class TheoryFp : public Theory {
   TheoryFp(context::Context* c, context::UserContext* u, OutputChannel& out,
            Valuation valuation, const LogicInfo& logicInfo);
 
+  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+
   Node expandDefinition(LogicRequest& lr, Node node) override;
 
   void preRegisterTerm(TNode node) override;

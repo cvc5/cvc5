@@ -1,5 +1,5 @@
-% EXPECT: valid
-% EXPECT: Cannot get model unless immediately preceded by SAT/INVALID or UNKNOWN response.
+% EXPECT: entailed
+% EXPECT: Cannot get model unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN response.
 OPTION "logic" "ALL";
 OPTION "produce-models" true;
 x : INT;

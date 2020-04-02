@@ -271,6 +271,8 @@ private:
                   const LogicInfo& logicInfo);
   ~TheoryDatatypes();
 
+  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   /** propagate */
