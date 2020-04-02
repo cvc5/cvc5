@@ -48,43 +48,43 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   // implied options
   if (options::checkModels() || options::dumpModels())
   {
-    Trace("smt") << "SmtEngine: setting produceModels" << std::endl;
+    Notice() << "SmtEngine: setting produceModels" << std::endl;
     options::produceModels.set(true);
   }
   if (options::checkModels())
   {
-    Trace("smt") << "SmtEngine: setting produceAssignments" << std::endl;
+    Notice() << "SmtEngine: setting produceAssignments" << std::endl;
     options::produceAssignments.set(true);
   }
   if (options::dumpUnsatCoresFull())
   {
-    Trace("smt") << "SmtEngine: setting dumpUnsatCores" << std::endl;
+    Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
     options::dumpUnsatCores.set(true);
   }
   if (options::checkUnsatCores() || options::dumpUnsatCores()
       || options::unsatAssumptions())
   {
-    Trace("smt") << "SmtEngine: setting unsatCores" << std::endl;
+    Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
   }
   if (options::checkProofs() || options::dumpProofs())
   {
-    Trace("smt") << "SmtEngine: setting proof" << std::endl;
+    Notice() << "SmtEngine: setting proof" << std::endl;
     options::proof.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
-    Trace("smt") << "SmtEngine: setting bitvectorAig" << std::endl;
+    Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
     options::bitvectorAig.set(true);
   }
   if (options::bitvectorEqualitySlicer.wasSetByUser())
   {
-    Trace("smt") << "SmtEngine: setting bitvectorEqualitySolver" << std::endl;
+    Notice() << "SmtEngine: setting bitvectorEqualitySolver" << std::endl;
     options::bitvectorEqualitySolver.set(true);
   }
   if (options::bitvectorAlgebraicBudget.wasSetByUser())
   {
-    Trace("smt") << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
+    Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
     options::bitvectorAlgebraicSolver.set(true);
   }
 
