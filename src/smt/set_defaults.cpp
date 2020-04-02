@@ -45,6 +45,28 @@ namespace smt {
 
 void setDefaults(SmtEngine& smte, LogicInfo& logic)
 {
+  // implied options
+  if (options::checkModels() || options::dumpModels())
+  {
+    options::produceModels.set(true);
+  }
+  if (options::checkModels())
+  {
+    options::produceAssignments.set(true);
+  }
+  if (options::dumpUnsatCoresFull())
+  {
+    options::dumpUnsatCores.set(true);
+  }
+  if (options::unsatCores() || options::dumpUnsatCores() || options::unsatAssumptions())
+  {
+    options::produceUnsatCores.set(true);
+  }
+  if (options::checkProofs() || options::dumpProofs())
+  {
+    options::proof.set(true);
+  }
+  
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
