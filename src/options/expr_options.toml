@@ -13,11 +13,6 @@ header = "options/expr_options.h"
   read_only  = true
   help       = "print exprs to depth N (0 == default, -1 == no limit)"
 
-[[alias]]
-  category   = "undocumented"
-  long       = "expr-depth=N"
-  links      = ["--default-expr-depth=N"]
-
 [[option]]
   name       = "defaultDagThresh"
   smt_name   = "default-dag-thresh"
@@ -29,16 +24,6 @@ header = "options/expr_options.h"
   notifies   = ["notifySetDefaultDagThresh"]
   read_only  = true
   help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
-
-[[alias]]
-  category   = "undocumented"
-  long       = "dag-thresh=N"
-  links      = ["--default-dag-thresh=N"]
-
-[[alias]]
-  category   = "undocumented"
-  long       = "dag-threshold=N"
-  links      = ["--default-dag-thresh=N"]
 
 [[option]]
   name       = "printExprTypes"
@@ -67,8 +52,3 @@ header = "options/expr_options.h"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
   read_only  = true
   help       = "never type check expressions"
-
-[[alias]]
-  category   = "undocumented"
-  long       = "no-type-checking"
-  links      = ["--no-eager-type-checking"]
