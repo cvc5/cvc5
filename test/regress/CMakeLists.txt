@@ -2087,6 +2087,7 @@ set(regress_3_tests
   regress3/hole9.cvc
   regress3/incorrect1.smtv1.smt2
   regress3/issue2429.smt2
+  regress3/issue4170.smt2
   regress3/pp-regfile.smtv1.smt2
   regress3/qwh.35.405.shuffled-as.sat03-1651.smtv1.smt2
   regress3/sixfuncs.sy
