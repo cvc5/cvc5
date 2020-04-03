@@ -121,8 +121,6 @@ class RegExpOpr {
   bool checkConstRegExp( Node r );
   /** get the constant type for regular expression r */
   RegExpConstType getRegExpConstType(Node r);
-  /** is k a native operator whose return type is a regular expression? */
-  static bool isRegExpKind(Kind k);
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string

@@ -99,7 +99,7 @@ std::vector<Node> Word::getChars(TNode x)
   return ret;
 }
 
-bool Word::isEmpty(TNode x) { return getLength(x) == 0; }
+bool Word::isEmpty(TNode x) { return x.isConst() && getLength(x) == 0; }
 
 bool Word::strncmp(TNode x, TNode y, std::size_t n)
 {
@@ -281,6 +281,31 @@ std::size_t Word::roverlap(TNode x, TNode y)
   }
   Unimplemented();
   return 0;
+}
+
+Node Word::splitConstant(Node x, Node y, size_t& index, bool isRev)
+{
+  Assert(x.isConst() && y.isConst());
+  size_t lenA = getLength(x);
+  size_t lenB = getLength(y);
+  index = lenA <= lenB ? 1 : 0;
+  size_t lenShort = index == 1 ? lenA : lenB;
+  bool cmp = isRev ? rstrncmp(x, y, lenShort) : strncmp(x, y, lenShort);
+  if (cmp)
+  {
+    Node l = index == 0 ? x : y;
+    if (isRev)
+    {
+      size_t new_len = getLength(l) - lenShort;
+      return substr(l, 0, new_len);
+    }
+    else
+    {
+      return substr(l, lenShort);
+    }
+  }
+  // not the same prefix/suffix
+  return Node::null();
 }
 
 }  // namespace strings
