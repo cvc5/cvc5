@@ -40,7 +40,8 @@ d_quantEngine(qe) {
   
 void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values, std::string str_value ){
   Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
-  if( attr=="fun-def" ){
+  if (attr == "fun-def")
+  {
     Trace("quant-attr-debug") << "Set function definition " << n << std::endl;
     FunDefAttribute fda;
     n.setAttribute( fda, true );
