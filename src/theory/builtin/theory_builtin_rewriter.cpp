@@ -69,7 +69,8 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
     // in return values. For example, lambda x. ite( x=1, f(x), c ) would
     // be converted to (store (storeall ... c) 1 f(x)), and then converted
     // to lambda y. ite( y=1, f(x), c).
-    if( !anode.isNull() && anode.isConst() ){
+    if (!anode.isNull() && anode.isConst())
+    {
       Assert(anode.getType().isArray());
       //must get the standard bound variable list
       Node varList = NodeManager::currentNM()->getBoundVarListForFunctionType( node.getType() );
