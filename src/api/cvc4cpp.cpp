@@ -45,13 +45,13 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "printer/sygus_print_callback.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "theory/logic_info.h"
 #include "util/random.h"
 #include "util/result.h"
 #include "util/utility.h"
-#include "printer/sygus_print_callback.h"
 
 #include <cstring>
 #include <sstream>
@@ -684,9 +684,10 @@ class CVC4ApiExceptionStream
   CVC4_PREDICT_TRUE(cond)    \
   ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
 
-#define CVC4_API_CHECK_NOT_NULL                                           \
-  CVC4_API_CHECK(!isNullHelper()) << "Invalid call to '" << __PRETTY_FUNCTION__ \
-                                  << "', expected non-null object";
+#define CVC4_API_CHECK_NOT_NULL                     \
+  CVC4_API_CHECK(!isNullHelper())                   \
+      << "Invalid call to '" << __PRETTY_FUNCTION__ \
+      << "', expected non-null object";
 
 #define CVC4_API_ARG_CHECK_NOT_NULL(arg) \
   CVC4_API_CHECK(!arg.isNull()) << "Invalid null argument for '" << #arg << "'";
@@ -1116,7 +1117,10 @@ Op::~Op() {}
 /* Split out to avoid nested API calls (problematic with API tracing).        */
 /* .......................................................................... */
 
-bool Op::isNullHelper() const { return (d_expr->isNull() && (d_kind == NULL_EXPR)); }
+bool Op::isNullHelper() const
+{
+  return (d_expr->isNull() && (d_kind == NULL_EXPR));
+}
 
 bool Op::isIndexedHelper() const { return !d_expr->isNull(); }
 
@@ -1735,7 +1739,6 @@ size_t TermHashFunction::operator()(const Term& t) const
   return ExprHashFunction()(*t.d_expr);
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* Datatypes                                                                  */
 /* -------------------------------------------------------------------------- */
@@ -1999,8 +2002,9 @@ DatatypeConstructor::const_iterator::const_iterator(
 // Nullary constructor for Cython
 DatatypeConstructor::const_iterator::const_iterator() {}
 
-DatatypeConstructor::const_iterator& DatatypeConstructor::const_iterator::
-operator=(const DatatypeConstructor::const_iterator& it)
+DatatypeConstructor::const_iterator&
+DatatypeConstructor::const_iterator::operator=(
+    const DatatypeConstructor::const_iterator& it)
 {
   d_int_stors = it.d_int_stors;
   d_stors = it.d_stors;
@@ -2018,15 +2022,15 @@ const DatatypeSelector* DatatypeConstructor::const_iterator::operator->() const
   return &d_stors[d_idx];
 }
 
-DatatypeConstructor::const_iterator& DatatypeConstructor::const_iterator::
-operator++()
+DatatypeConstructor::const_iterator&
+DatatypeConstructor::const_iterator::operator++()
 {
   ++d_idx;
   return *this;
 }
 
-DatatypeConstructor::const_iterator DatatypeConstructor::const_iterator::
-operator++(int)
+DatatypeConstructor::const_iterator
+DatatypeConstructor::const_iterator::operator++(int)
 {
   DatatypeConstructor::const_iterator it(*this);
   ++d_idx;
@@ -2711,7 +2715,7 @@ std::vector<Expr> Solver::termVectorToExprs(
   return res;
 }
 
-/* Helpers for mkTerm checks.                                                  */
+/* Helpers for mkTerm checks. */
 /* .......................................................................... */
 
 void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
@@ -4432,8 +4436,7 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
   return res;
 }
 
-Term Solver::declareVar(Sort sort,
-                        const std::string& symbol) const
+Term Solver::declareVar(Sort sort, const std::string& symbol) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
@@ -4510,12 +4513,11 @@ Term Solver::synthFunInternal(const std::string& symbol,
   Expr fun = d_exprMgr->mkBoundVar(symbol, fun_type);
   (void)fun.getType(true); /* kick off type checking */
 
-  d_smtEngine->declareSynthFun(
-      symbol,
-      fun,
-      g == nullptr ? fun_type : *g->ret().d_type,
-      isInv,
-      termVectorToExprs(bound_vars));
+  d_smtEngine->declareSynthFun(symbol,
+                               fun,
+                               g == nullptr ? fun_type : *g->ret().d_type,
+                               isInv,
+                               termVectorToExprs(bound_vars));
 
   return fun;
 
@@ -4536,10 +4538,7 @@ void Solver::addInvariantConstraint(const Term& inv,
       *inv.d_expr, *pre.d_expr, *trans.d_expr, *post.d_expr);
 }
 
-Result Solver::checkSynth() const
-{
-  return d_smtEngine->checkSynth();
-}
+Result Solver::checkSynth() const { return d_smtEngine->checkSynth(); }
 
 void Solver::printSynthSolution(std::ostream& out) const
 {
@@ -4557,7 +4556,6 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  * the new API. !!!
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
-
 
 /* -------------------------------------------------------------------------- */
 /* Conversions                                                                */
