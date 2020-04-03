@@ -42,7 +42,7 @@ class TheorySets : public Theory
              const LogicInfo& logicInfo);
   ~TheorySets() override;
 
-  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+  TheoryRewriter* getTheoryRewriter() override;
 
   /** finish initialization */
   void finishInit() override;

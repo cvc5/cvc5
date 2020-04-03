@@ -98,9 +98,9 @@ Node Rewriter::rewrite(TNode node) {
 }
 
 void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
-                                      std::unique_ptr<TheoryRewriter> trew)
+                                      TheoryRewriter* trew)
 {
-  getInstance()->d_theoryRewriters[tid] = std::move(trew);
+  getInstance()->d_theoryRewriters[tid] = trew;
 }
 
 void Rewriter::registerPreRewrite(

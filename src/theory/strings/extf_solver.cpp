@@ -16,7 +16,6 @@
 
 #include "options/strings_options.h"
 #include "theory/strings/sequences_rewriter.h"
-#include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
 
@@ -33,6 +32,7 @@ ExtfSolver::ExtfSolver(context::Context* c,
                        SolverState& s,
                        InferenceManager& im,
                        SkolemCache& skc,
+                       StringsRewriter& rewriter,
                        BaseSolver& bs,
                        CoreSolver& cs,
                        ExtTheory* et,
@@ -40,6 +40,7 @@ ExtfSolver::ExtfSolver(context::Context* c,
     : d_state(s),
       d_im(im),
       d_skCache(skc),
+      d_rewriter(d_rewriter),
       d_bsolver(bs),
       d_csolver(cs),
       d_extt(et),
@@ -621,8 +622,7 @@ void ExtfSolver::checkExtfInference(Node n,
   if (inferEqr.getKind() == EQUAL)
   {
     // try to use the extended rewriter for equalities
-    inferEqrr =
-        StringsRewriter(&d_statistics.d_rewrites).rewriteEqualityExt(inferEqr);
+    inferEqrr = d_rewriter.rewriteEqualityExt(inferEqr);
   }
   if (inferEqrr != inferEqr)
   {
