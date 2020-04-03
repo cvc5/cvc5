@@ -21,8 +21,8 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "util/random.h"
 #include "theory/strings/word.h"
+#include "util/random.h"
 
 #include <math.h>
 
@@ -136,8 +136,9 @@ void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
         Node s = vals[i];
         size_t sSize = strings::Word::getLength(s);
         Assert(pos_value <= sSize);
-        ex_vals.push_back(isPrefix ? strings::Word::suffix(s, sSize - pos_value)
-                                   : strings::Word::prefix(s, sSize - pos_value));
+        ex_vals.push_back(isPrefix
+                              ? strings::Word::suffix(s, sSize - pos_value)
+                              : strings::Word::prefix(s, sSize - pos_value));
       }
       else
       {
@@ -1214,7 +1215,7 @@ Node SygusUnifIo::constructSol(
     // check if each return value is a prefix/suffix of all open examples
     if (!retValMod || x.getCurrentRole() == nrole)
     {
-      std::map<Node, std::vector<size_t> > incr;
+      std::map<Node, std::vector<size_t>> incr;
       bool isPrefix = nrole == role_string_prefix;
       std::map<Node, size_t> total_inc;
       std::vector<Node> inc_strs;
