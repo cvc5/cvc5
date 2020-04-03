@@ -283,7 +283,7 @@ std::size_t Word::roverlap(TNode x, TNode y)
   return 0;
 }
 
-Node Word::splitConstant(Node x, Node y, int& index, bool isRev)
+Node Word::splitConstant(Node x, Node y, size_t& index, bool isRev)
 {
   Assert(x.isConst() && y.isConst());
   size_t lenA = getLength(x);
