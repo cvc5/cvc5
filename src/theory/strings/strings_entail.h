@@ -158,11 +158,11 @@ class StringsEntail
    *   nb is updated to { y, "ab" }
    */
   int componentContains(std::vector<Node>& n1,
-                               std::vector<Node>& n2,
-                               std::vector<Node>& nb,
-                               std::vector<Node>& ne,
-                               bool computeRemainder = false,
-                               int remainderDir = 0);
+                        std::vector<Node>& n2,
+                        std::vector<Node>& nb,
+                        std::vector<Node>& ne,
+                        bool computeRemainder = false,
+                        int remainderDir = 0);
   /** strip constant endpoints
    * This function is used when rewriting str.contains( t1, t2 ), where
    * n1 is the vector form of t1
@@ -368,7 +368,7 @@ class StringsEntail
   static Node getMultisetApproximation(Node a);
 
  private:
-  /** 
+  /**
    * Reference to the sequences rewriter that owns this `StringsEntail`
    * instance.
    */

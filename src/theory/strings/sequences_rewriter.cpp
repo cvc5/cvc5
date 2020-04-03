@@ -814,7 +814,7 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
           // e.g. this ensures we rewrite (a)* ++ (_)* ---> (_)*
           while (!cvec.empty() && RegExpEntail::isConstRegExp(cvec.back())
                  && RegExpEntail::testConstStringInRegExp(
-                        emptyStr, 0, cvec.back()))
+                     emptyStr, 0, cvec.back()))
           {
             cvec.pop_back();
           }

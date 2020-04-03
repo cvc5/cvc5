@@ -27,9 +27,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-
-  StringsEntail::StringsEntail(SequencesRewriter& rewriter) : d_rewriter(rewriter) {
-  }
+StringsEntail::StringsEntail(SequencesRewriter& rewriter) : d_rewriter(rewriter)
+{
+}
 
 bool StringsEntail::canConstantContainConcat(Node c,
                                              Node n,
