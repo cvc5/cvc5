@@ -449,7 +449,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
   if ((arg == 1 && k == STRING_STRCTN) || (arg == 0 && k == STRING_SUBSTR))
   {
     // empty string
-    if (Word::getLength(n) == 0)
+    if (strings::Word::getLength(n) == 0)
     {
       return true;
     }

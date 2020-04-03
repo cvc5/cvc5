@@ -320,7 +320,7 @@ Node Word::reverse(TNode x)
     Node retNode = nm->mkConst(String(nvec));
   }
   Unimplemented();
-  return 0;
+  return Node::null();
 }
 
 }  // namespace strings
