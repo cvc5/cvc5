@@ -349,7 +349,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
             if (!curr_c.isNull() && !cc_c.isNull())
             {
               // check for constant conflict
-              int index;
+              size_t index;
               Node s = Word::splitConstant(cc_c, curr_c, index, isRev);
               if (s.isNull())
               {

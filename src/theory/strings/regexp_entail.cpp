@@ -62,7 +62,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
           else if (xc.isConst() && rc[0].isConst())
           {
             // split the constant
-            int index;
+            size_t index;
             Node s = Word::splitConstant(xc, rc[0], index, t == 0);
             Trace("regexp-ext-rewrite-debug")
                 << "CRE: Regexp const split : " << xc << " " << rc[0] << " -> "
