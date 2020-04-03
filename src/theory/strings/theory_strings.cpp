@@ -1129,11 +1129,14 @@ void TheoryStrings::registerType(TypeNode tn)
     return;
   }
   d_registeredTypesCache.insert(tn);
-  // preregister the empty word for the type
-  Node emp = Word::mkEmptyWord(tn);
-  if (!d_equalityEngine.hasTerm(emp))
+  if (tn.isStringLike())
   {
-    preRegisterTerm(emp);
+    // preregister the empty word for the type
+    Node emp = Word::mkEmptyWord(tn);
+    if (!d_equalityEngine.hasTerm(emp))
+    {
+      preRegisterTerm(emp);
+    }
   }
 }
 
