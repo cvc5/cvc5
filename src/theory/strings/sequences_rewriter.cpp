@@ -102,8 +102,8 @@ Node SequencesRewriter::rewriteEquality(Node node)
         size_t lenS = Word::getLength(s);
         size_t lenT = Word::getLength(t);
         size_t lenShort = lenS <= lenT ? lenS : lenT;
-        bool isSameFix =
-            r == 1 ? Word::rstrncmp(s, t, lenShort) : Word::strncmp(s, t, lenShort);
+        bool isSameFix = r == 1 ? Word::rstrncmp(s, t, lenShort)
+                                : Word::strncmp(s, t, lenShort);
         if (!isSameFix)
         {
           Node ret = NodeManager::currentNM()->mkConst(false);
@@ -2013,7 +2013,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         if (node[0][i].isConst())
         {
           // if no overlap, we can split into disjunction
-          if (Word::noOverlapWith(node[0][i],node[1]))
+          if (Word::noOverlapWith(node[0][i], node[1]))
           {
             std::vector<Node> nc0;
             utils::getConcat(node[0], nc0);

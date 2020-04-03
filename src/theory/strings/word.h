@@ -153,7 +153,7 @@ class Word
    */
   static Node splitConstant(TNode x, TNode y, size_t& index, bool isRev);
   /** reverse
-   * 
+   *
    * Return the result of reversing x.
    */
   static Node reverse(TNode x);
