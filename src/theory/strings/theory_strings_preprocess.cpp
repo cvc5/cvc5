@@ -368,7 +368,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node rpw = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpw");
 
     // y = ""
-    Node cond1 = y.eqNode(nm->mkConst(CVC4::String("")));
+    Node emp = Word::mkEmptyWord(tn);
+    Node cond1 = y.eqNode(emp);
     // rpw = str.++( z, x )
     Node c1 = rpw.eqNode(nm->mkNode(kind::STRING_CONCAT, z, x));
 

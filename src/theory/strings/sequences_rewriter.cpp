@@ -278,7 +278,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
   }
 
   // ------- rewrites for (= "" _)
-  Node empty = nm->mkConst(::CVC4::String(""));
+  Node empty = Word::mkEmptyWord(stype);
   for (size_t i = 0; i < 2; i++)
   {
     if (node[i] == empty)
@@ -1317,7 +1317,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       // above, we strip components to construct an equivalent membership:
       // (str.++ xi .. xj) in (re.++ rk ... rl).
       Node xn = utils::mkConcat(mchildren, stype);
-      Node emptyStr = nm->mkConst(String(""));
+      Node emptyStr = Word::mkEmptyWord(stype);
       if (children.empty())
       {
         // If we stripped all components on the right, then the left is
@@ -1944,7 +1944,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         Node ret;
         if (nc2.size() > 1)
         {
-          Node emp = nm->mkConst(CVC4::String(""));
+          Node emp = Word::mkEmptyWord(stype);
           NodeBuilder<> nb2(kind::AND);
           for (const Node& n2 : nc2)
           {
@@ -2097,7 +2097,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       Node ctn = StringsEntail::checkContains(node[1], node[0][2]);
       if (!ctn.isNull() && !ctn.getConst<bool>())
       {
-        Node empty = nm->mkConst(String(""));
+        Node empty = Word::mkEmptyWord(stype);
         Node ret = nm->mkNode(
             kind::STRING_STRCTN,
             nm->mkNode(kind::STRING_STRREPL, node[0][0], node[0][1], empty),
@@ -2123,7 +2123,7 @@ Node SequencesRewriter::rewriteContains(Node node)
     // Note: Length-based reasoning is not sufficient to get this rewrite. We
     // can neither show that str.len(str.replace("", x, y)) - str.len(x) >= 0
     // nor str.len(x) - str.len(str.replace("", x, y)) >= 0
-    Node emp = nm->mkConst(CVC4::String(""));
+    Node emp = Word::mkEmptyWord(stype);
     if (node[0] == node[1][1] && node[1][0] == emp)
     {
       Node ret = nm->mkNode(kind::EQUAL, emp, node[1]);
@@ -2199,7 +2199,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
       Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, Rewrite::IDOF_EQ_NSTART);
     }
-    Node emp = nm->mkConst(CVC4::String(""));
+    Node emp = Word::mkEmptyWord(stype);
     if (node[0] != emp)
     {
       // indexof( x, x, z ) ---> indexof( "", "", z )
@@ -2420,7 +2420,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
     // if 1 >= (str.len x) and (= y "") ---> (= y1 "") ... (= yn "")
     if (StringsEntail::checkLengthOne(node[0]))
     {
-      Node empty = nm->mkConst(String(""));
+      Node empty = Word::mkEmptyWord(stype);
       Node rn1 = Rewriter::rewrite(
           rewriteEqualityExt(nm->mkNode(EQUAL, node[1], empty)));
       if (rn1 != node[1])
@@ -2510,7 +2510,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
     // substitute y with "" in the third argument. Note that the third argument
     // does not matter when the str.replace does not apply.
     //
-    Node empty = nm->mkConst(::CVC4::String(""));
+    Node empty = Word::mkEmptyWord(stype);
 
     std::vector<Node> emptyNodes;
     bool allEmptyEqs;
