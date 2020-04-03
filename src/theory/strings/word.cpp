@@ -289,19 +289,19 @@ Node Word::splitConstant(Node x, Node y, size_t& index, bool isRev)
   size_t lenA = getLength(x);
   size_t lenB = getLength(y);
   index = lenA <= lenB ? 1 : 0;
-  size_t len_short = index == 1 ? lenA : lenB;
-  bool cmp = isRev ? rstrncmp(x, y, len_short) : strncmp(x, y, len_short);
+  size_t lenShort = index == 1 ? lenA : lenB;
+  bool cmp = isRev ? rstrncmp(x, y, lenShort) : strncmp(x, y, lenShort);
   if (cmp)
   {
     Node l = index == 0 ? x : y;
     if (isRev)
     {
-      size_t new_len = getLength(l) - len_short;
+      size_t new_len = getLength(l) - lenShort;
       return substr(l, 0, new_len);
     }
     else
     {
-      return substr(l, len_short);
+      return substr(l, lenShort);
     }
   }
   // not the same prefix/suffix
