@@ -649,7 +649,7 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
   if (node.getKind() == STRING_FROM_CODE)
   {
     // str.from_code(t) --->
-    //   choice k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
+    //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
     Node t = node[0];
     Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
@@ -657,7 +657,7 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
-    node = nm->mkNode(CHOICE,
+    node = nm->mkNode(WITNESS,
                       bvl,
                       nm->mkNode(ITE,
                                  cond,

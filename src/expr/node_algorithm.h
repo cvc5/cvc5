@@ -78,7 +78,7 @@ bool hasFreeVar(TNode n);
 
 /**
  * Returns true iff the node n contains a closure, that is, a node
- * whose kind is FORALL, EXISTS, CHOICE, LAMBDA, or any other closure currently
+ * whose kind is FORALL, EXISTS, WITNESS, LAMBDA, or any other closure currently
  * supported.
  * @param n The node under investigation
  * @return true iff this node contains a closure.

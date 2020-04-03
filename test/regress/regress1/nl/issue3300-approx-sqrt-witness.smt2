@@ -1,4 +1,4 @@
-; SCRUBBER: sed -e 's/BOUND_VARIABLE_[0-9]*/BOUND_VARIABLE/; s/((x (choice ((BOUND_VARIABLE Real)) (or (= BOUND_VARIABLE.*/SUCCESS/'
+; SCRUBBER: sed -e 's/BOUND_VARIABLE_[0-9]*/BOUND_VARIABLE/; s/((x (witness ((BOUND_VARIABLE Real)) (or (= BOUND_VARIABLE.*/SUCCESS/'
 ; COMMAND-LINE: --produce-models --model-witness-choice --no-check-models
 ; EXPECT: sat
 ; EXPECT: SUCCESS

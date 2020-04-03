@@ -264,10 +264,10 @@ Node TheoryModel::getModelValue(TNode n) const
   if (ita != d_approximations.end())
   {
     // If the value of n is approximate based on predicate P(n), we return
-    // choice z. P(z).
+    // witness z. P(z).
     Node v = nm->mkBoundVar(n.getType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-    Node answer = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
+    Node answer = nm->mkNode(WITNESS, bvl, ita->second.substitute(n, v));
     d_modelCache[n] = answer;
     return answer;
   }

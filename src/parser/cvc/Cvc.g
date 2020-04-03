@@ -114,7 +114,7 @@ tokens {
 
   FORALL_TOK = 'FORALL';
   EXISTS_TOK = 'EXISTS';
-  CHOICE_TOK = 'CHOICE';
+  WITNESS_TOK = 'WITNESS';
   PATTERN_TOK = 'PATTERN';
 
   LAMBDA_TOK = 'LAMBDA';
@@ -345,7 +345,7 @@ int getOperatorPrecedence(int type) {
   case IFF_TOK: return 31;
   case FORALL_TOK:
   case EXISTS_TOK:
-  case CHOICE_TOK: return 32;
+  case WITNESS_TOK: return 32;
   case ASSIGN_TOK:
   case IN_TOK: return 33;
 
@@ -1465,7 +1465,7 @@ prefixFormula[CVC4::api::Term& f]
   api::Term ipl;
 }
     /* quantifiers */
-  : ( FORALL_TOK { k = api::FORALL; } | EXISTS_TOK { k = api::EXISTS; } | CHOICE_TOK { k = api::CHOICE; } )
+  : ( FORALL_TOK { k = api::FORALL; } | EXISTS_TOK { k = api::EXISTS; } | WITNESS_TOK { k = api::WITNESS; } )
     { PARSER_STATE->pushScope(); } LPAREN
     boundVarDecl[ids,t]
     { for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {

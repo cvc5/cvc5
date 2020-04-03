@@ -51,7 +51,7 @@ void TheoryBuiltin::finishInit()
   // choice nodes are not evaluated in getModelValue
   TheoryModel* theoryModel = d_valuation.getModel();
   Assert(theoryModel != nullptr);
-  theoryModel->setUnevaluatedKind(kind::CHOICE);
+  theoryModel->setUnevaluatedKind(kind::WITNESS);
 }
 
 }  // namespace builtin

@@ -1314,7 +1314,7 @@ void NlModel::getModelValueRepair(
     }
   }
   // Also record the exact values we used. An exact value can be seen as a
-  // special kind approximation of the form (choice x. x = exact_value).
+  // special kind approximation of the form (witness x. x = exact_value).
   // Notice that the above term gets rewritten such that the choice function
   // is eliminated.
   for (size_t i = 0, num = d_check_model_vars.size(); i < num; i++)

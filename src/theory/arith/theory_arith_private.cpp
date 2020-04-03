@@ -5154,7 +5154,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
               kind::AND, nm->mkNode(kind::MULT, var, var).eqNode(node[0]), uf);
 
           // sqrt(x) reduces to:
-          // choice y. ite(x >= 0.0, y * y = x ^ Uf(x), Uf(x))
+          // witness y. ite(x >= 0.0, y * y = x ^ Uf(x), Uf(x))
           //
           // Uf(x) makes sure that the reduction still behaves like a function,
           // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
@@ -5205,7 +5205,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
           lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
         }
         Assert(!lem.isNull());
-        Node ret = nm->mkNode(CHOICE, nm->mkNode(BOUND_VAR_LIST, var), lem);
+        Node ret = nm->mkNode(WITNESS, nm->mkNode(BOUND_VAR_LIST, var), lem);
         d_nlin_inverse_skolem[node] = ret;
         return ret;
       }

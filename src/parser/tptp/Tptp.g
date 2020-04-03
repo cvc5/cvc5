@@ -926,7 +926,7 @@ thfQuantifier[CVC4::api::Kind& kind]
   : FORALL_TOK { kind = api::FORALL; }
   | EXISTS_TOK { kind = api::EXISTS; }
   | LAMBDA_TOK { kind = api::LAMBDA; }
-  | CHOICE_TOK { kind = api::CHOICE; }
+  | WITNESS_TOK { kind = api::WITNESS; }
   | DEF_DESC_TOK
     {
       UNSUPPORTED("Description quantifier");
@@ -1627,7 +1627,7 @@ NOT_TOK        : '~';
 FORALL_TOK     : '!';
 EXISTS_TOK     : '?';
 LAMBDA_TOK     : '^';
-CHOICE_TOK     : '@+';
+WITNESS_TOK     : '@+';
 DEF_DESC_TOK   : '@-';
 AND_TOK        : '&';
 IFF_TOK        : '<=>';

@@ -134,15 +134,15 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   LAMBDA,
   /**
-   * Hilbert choice (epsilon) expression.
+   * Hilbert witness (epsilon) expression.
    * Parameters: 2
    *   -[1]: BOUND_VAR_LIST
-   *   -[2]: Hilbert choice body
+   *   -[2]: Hilbert witness body
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  CHOICE,
+  WITNESS,
 
   /* Boolean --------------------------------------------------------------- */
 
