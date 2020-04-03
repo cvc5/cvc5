@@ -27,6 +27,10 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+StringsEntail::StringsEntail(SequencesRewriter& rewriter) : d_rewriter(rewriter)
+{
+}
+
 bool StringsEntail::canConstantContainConcat(Node c,
                                              Node n,
                                              int& firstc,
@@ -468,10 +472,10 @@ bool StringsEntail::componentContainsBase(
         {
           // (str.contains (str.replace x y z) w) ---> true
           // if (str.contains x w) --> true and (str.contains z w) ---> true
-          Node xCtnW = StringsEntail::checkContains(n1[0], n2);
+          Node xCtnW = checkContains(n1[0], n2);
           if (!xCtnW.isNull() && xCtnW.getConst<bool>())
           {
-            Node zCtnW = StringsEntail::checkContains(n1[2], n2);
+            Node zCtnW = checkContains(n1[2], n2);
             if (!zCtnW.isNull() && zCtnW.getConst<bool>())
             {
               return true;
@@ -680,7 +684,7 @@ Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
     do
     {
       prev = ctn;
-      ctn = SequencesRewriter::rewriteContains(ctn);
+      ctn = d_rewriter.rewriteContains(ctn);
     } while (prev != ctn && ctn.getKind() == STRING_STRCTN);
   }
 
