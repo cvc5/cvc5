@@ -686,7 +686,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
     {
       Trace("strings-error") << "Unsupported term: " << r
                              << " in normalization SymRegExp." << std::endl;
-      Assert(!RegExpOpr::isRegExpKind(r.getKind()));
+      Assert(!utils::isRegExpKind(r.getKind()));
     }
   }
   return ret;
