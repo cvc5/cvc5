@@ -310,7 +310,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
     // [5] Add the entry
     conds.push_back( curr_index );
     vals.push_back( curr_val );
-    
+
     if (expr::hasFreeVar(curr_val))
     {
       Trace("builtin-rewrite-debug2")
