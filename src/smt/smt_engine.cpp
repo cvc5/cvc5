@@ -852,6 +852,12 @@ SmtEngine::SmtEngine(ExprManager* em)
 
 void SmtEngine::finishInit()
 {
+  // set the random seed
+  Random::getRandom().setSeed(options::seed());
+
+  // ensure that our heuristics are properly set up
+  setDefaults(*this, d_logic);
+  
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -868,12 +874,6 @@ void SmtEngine::finishInit()
     ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id));
 #endif
   }
-
-  // set the random seed
-  Random::getRandom().setSeed(options::seed());
-
-  // ensure that our heuristics are properly set up
-  setDefaults(*this, d_logic);
 
   Trace("smt-debug") << "Making decision engine..." << std::endl;
 
