@@ -174,13 +174,7 @@ TheoryFp::TheoryFp(context::Context *c,
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_EXPONENT);
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
   d_equalityEngine.addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
-
 } /* TheoryFp::TheoryFp() */
-
-std::unique_ptr<TheoryRewriter> TheoryFp::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new TheoryFpRewriter());
-}
 
 Node TheoryFp::minUF(Node node) {
   Assert(node.getKind() == kind::FLOATINGPOINT_MIN);

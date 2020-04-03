@@ -84,8 +84,10 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
         Assert(retNode.getType() == node.getType());
         Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
         return RewriteResponse(REWRITE_DONE, retNode);
-      } 
-    }else{
+      }
+    }
+    else
+    {
       Trace("builtin-rewrite-debug") << "...failed to get array representation." << std::endl;
     }
     return RewriteResponse(REWRITE_DONE, node);

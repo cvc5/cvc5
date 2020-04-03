@@ -36,11 +36,6 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
 {
 }
 
-std::unique_ptr<TheoryRewriter> TheoryBuiltin::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new TheoryBuiltinRewriter());
-}
-
 std::string TheoryBuiltin::identify() const
 {
   return std::string("TheoryBuiltin");

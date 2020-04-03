@@ -51,7 +51,7 @@ public:
               Valuation valuation, const LogicInfo& logicInfo);
   virtual ~TheoryArith();
 
-  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+  TheoryRewriter* getTheoryRewriter() override;
 
   /**
    * Does non-context dependent setup for a node connected to a theory.

@@ -26,7 +26,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
-#include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/type_enumerator.h"
 #include "theory/strings/word.h"
@@ -70,6 +69,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       d_notify(*this),
+      d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, d_equalityEngine, d_valuation),
       d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
@@ -77,6 +77,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_registered_terms_cache(u),
       d_functionsTerms(c),
       d_has_str_code(false),
+      d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(c, u, d_state, d_im),
       d_csolver(c, u, d_state, d_im, d_sk_cache, d_bsolver),
       d_esolver(nullptr),
@@ -91,6 +92,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  d_state,
                                  d_im,
                                  d_sk_cache,
+                                 d_rewriter,
                                  d_bsolver,
                                  d_csolver,
                                  extt,
@@ -129,11 +131,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
 
 TheoryStrings::~TheoryStrings() {
 
-}
-
-std::unique_ptr<TheoryRewriter> TheoryStrings::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new SequencesRewriter());
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
