@@ -136,13 +136,18 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
 
   Trace("sygus-interpol-debug") << "Make conjecture body..." << std::endl;
   Node Fa = axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms);
+  Trace("sygus-interpol-debug") << "Fa before substitution: " << Fa << std::endl << std::endl; 
   Fa = Fa.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
+  Trace("sygus-interpol-debug") << "Fa after substitution: " << Fa << std::endl << std::endl;
+  Trace("sygus-interpol-debug") << "itpApp: " << itpApp << std::endl << std::endl;
   // Fa( x ) => A( x )
   Node firstImplication = nm->mkNode(IMPLIES, Fa, itpApp);
-  Trace("sygus-interpol-debug") << "first implication: " << firstImplication << std::endl;
+  Trace("sygus-interpol-debug") << "first implication: " << firstImplication << std::endl << std::endl;
   // A( x ) => Fc( x )
-  Node secondImplication = nm->mkNode(IMPLIES, itpApp, conj);
-  Trace("sygus-interpol-debug") << "second implication: " << secondImplication << std::endl;
+  Node Fc = conj;
+  Fc = Fc.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
+  Node secondImplication = nm->mkNode(IMPLIES, itpApp, Fc);
+  Trace("sygus-interpol-debug") << "second implication: " << secondImplication << std::endl << std::endl;
   // Fa( x ) => A( x ) ^ A( x ) => Fc( x )
   Node constraint = nm->mkNode(AND, firstImplication, secondImplication);
   Trace("sygus-interpol-debug") << constraint <<  "...finish" << std::endl;
