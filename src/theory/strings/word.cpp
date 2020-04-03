@@ -317,7 +317,7 @@ Node Word::reverse(TNode x)
     String sx = x.getConst<String>();
     std::vector<unsigned> nvec = sx.getVec();
     std::reverse(nvec.begin(), nvec.end());
-    Node retNode = nm->mkConst(String(nvec));
+    return nm->mkConst(String(nvec));
   }
   Unimplemented();
   return Node::null();
