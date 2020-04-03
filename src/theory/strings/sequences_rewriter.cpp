@@ -3496,8 +3496,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   }
   if (n[0].isConst())
   {
-    CVC4::String t = n[0].getConst<String>();
-    if (t.isEmptyString())
+    if (Word::isEmpty(n[0]))
     {
       Node ret = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(n, ret, Rewrite::SUF_PREFIX_EMPTY_CONST);
