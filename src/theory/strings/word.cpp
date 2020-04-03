@@ -283,7 +283,7 @@ std::size_t Word::roverlap(TNode x, TNode y)
   return 0;
 }
 
-Node Word::splitConstant(Node x, Node y, size_t& index, bool isRev)
+Node Word::splitConstant(TNode x, TNode y, size_t& index, bool isRev)
 {
   Assert(x.isConst() && y.isConst());
   size_t lenA = getLength(x);
@@ -306,6 +306,20 @@ Node Word::splitConstant(Node x, Node y, size_t& index, bool isRev)
   }
   // not the same prefix/suffix
   return Node::null();
+}
+
+Node Word::reverse(TNode x)
+{
+  Kind k = x.getKind();
+  if (k == CONST_STRING)
+  {
+    String sx = x.getConst<String>();
+    std::vector<unsigned> nvec = sx.getVec();
+    std::reverse(nvec.begin(), nvec.end());
+    Node retNode = nm->mkConst(String(nvec));
+  }
+  Unimplemented();
+  return 0;
 }
 
 }  // namespace strings

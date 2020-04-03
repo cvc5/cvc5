@@ -95,20 +95,22 @@ Node SequencesRewriter::rewriteEquality(Node node)
     {
       unsigned index1 = r == 0 ? i : (c[0].size() - 1) - i;
       unsigned index2 = r == 0 ? i : (c[1].size() - 1) - i;
-      if (c[0][index1].isConst() && c[1][index2].isConst())
+      Node s = c[0][index1];
+      Node t = c[1][index2];
+      if (s.isConst() && c[1][index2].isConst())
       {
-        CVC4::String s = c[0][index1].getConst<String>();
-        CVC4::String t = c[1][index2].getConst<String>();
-        unsigned len_short = s.size() <= t.size() ? s.size() : t.size();
+        size_t lenS = Word::getLength(s);
+        size_t lenT = Word::getLength(t);
+        size_t lenShort = lenS <= lenT ? lenS : lenT;
         bool isSameFix =
-            r == 1 ? s.rstrncmp(t, len_short) : s.strncmp(t, len_short);
+            r == 1 ? Word::rstrncmp(s, t, lenShort) : Word::strncmp(s, t, lenShort);
         if (!isSameFix)
         {
           Node ret = NodeManager::currentNM()->mkConst(false);
           return returnRewrite(node, ret, Rewrite::EQ_NFIX);
         }
       }
-      if (c[0][index1] != c[1][index2])
+      if (s != t)
       {
         break;
       }
@@ -594,8 +596,10 @@ Node SequencesRewriter::rewriteConcat(Node node)
       {
         if (tmpNode[0].isConst())
         {
-          preNode = nm->mkConst(
-              preNode.getConst<String>().concat(tmpNode[0].getConst<String>()));
+          std::vector<Node> wvec;
+          wvec.push_back(preNode);
+          wvec.push_back(tmpNode[0]);
+          preNode = Word::mkWord(wvec);
           node_vec.push_back(preNode);
         }
         else
@@ -1110,14 +1114,14 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   {
     if (x.isConst())
     {
-      String s = x.getConst<String>();
-      if (s.size() == 0)
+      size_t xlen = Word::getLength(x);
+      if (xlen == 0)
       {
         Node retNode = nm->mkConst(true);
         // e.g. (str.in.re "" (re.* (str.to.re x))) ----> true
         return returnRewrite(node, retNode, Rewrite::RE_EMPTY_IN_STR_STAR);
       }
-      else if (s.size() == 1)
+      else if (xlen == 1)
       {
         if (r[0].getKind() == STRING_TO_REGEXP)
         {
@@ -1996,7 +2000,7 @@ Node SequencesRewriter::rewriteContains(Node node)
   {
     if (node[1].isConst())
     {
-      CVC4::String t = node[1].getConst<String>();
+      Node t = node[1];
       // Below, we are looking for a constant component of node[0]
       // has no overlap with node[1], which means we can split.
       // Notice that if the first or last components had no
@@ -2008,9 +2012,8 @@ Node SequencesRewriter::rewriteContains(Node node)
         // constant contains
         if (node[0][i].isConst())
         {
-          CVC4::String s = node[0][i].getConst<String>();
           // if no overlap, we can split into disjunction
-          if (s.noOverlapWith(t))
+          if (Word::noOverlapWith(node[0][i],node[1]))
           {
             std::vector<Node> nc0;
             utils::getConcat(node[0], nc0);
@@ -2917,9 +2920,8 @@ Node SequencesRewriter::rewriteStrReverse(Node node)
   Node x = node[0];
   if (x.isConst())
   {
-    std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
-    std::reverse(nvec.begin(), nvec.end());
-    Node retNode = nm->mkConst(String(nvec));
+    // reverse the characters in the constant
+    Node retNode = Word::reverse(x);
     return returnRewrite(node, retNode, Rewrite::STR_CONV_CONST);
   }
   else if (x.getKind() == STRING_CONCAT)
