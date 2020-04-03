@@ -183,7 +183,7 @@ class ExtfSolver
   /** cache of all skolems */
   SkolemCache& d_skCache;
   /** The theory rewriter for this theory. */
-  StringsRewriter d_rewriter;
+  StringsRewriter& d_rewriter;
   /** reference to the base solver, used for certain queries */
   BaseSolver& d_bsolver;
   /** reference to the core solver, used for certain queries */
