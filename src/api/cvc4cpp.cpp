@@ -2715,7 +2715,7 @@ std::vector<Expr> Solver::termVectorToExprs(
   return res;
 }
 
-/* Helpers for mkTerm checks. */
+/* Helpers for mkTerm checks.                                                 */
 /* .......................................................................... */
 
 void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
