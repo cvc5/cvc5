@@ -66,11 +66,9 @@ bool ArithEntail::check(Node a, bool strict)
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
 
-  Node ar =
-      strict
-          ? NodeManager::currentNM()->mkNode(
+  Node ar = strict ? NodeManager::currentNM()->mkNode(
                 kind::MINUS, a, NodeManager::currentNM()->mkConst(Rational(1)))
-          : a;
+                   : a;
   ar = Rewriter::rewrite(ar);
 
   if (ar.getAttribute(StrCheckEntailArithComputedAttr()))

@@ -56,6 +56,7 @@ class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
 class ExtTheory;
+class TheoryRewriter;
 
 class EntailmentCheckParameters;
 class EntailmentCheckSideEffects;
@@ -79,9 +80,7 @@ namespace eq {
  * all calls to them.)
  */
 class Theory {
-
-private:
-
+ private:
   friend class ::CVC4::TheoryEngine;
 
   // Disallow default construction, copy, assignment.
@@ -139,7 +138,6 @@ private:
   ExtTheory* d_extTheory;
 
  protected:
-
 
   // === STATISTICS ===
   /** time spent in check calls */
@@ -318,9 +316,9 @@ public:
   virtual ~Theory();
 
   /**
-   * Creates a new theory rewriter for the theory.
+   * @return The theory rewriter associated with this theory.
    */
-  virtual std::unique_ptr<TheoryRewriter> mkTheoryRewriter() = 0;
+  virtual TheoryRewriter* getTheoryRewriter() = 0;
 
   /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK
