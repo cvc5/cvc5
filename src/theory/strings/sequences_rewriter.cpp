@@ -587,7 +587,6 @@ Node SequencesRewriter::rewriteConcat(Node node)
   Assert(node.getKind() == kind::STRING_CONCAT);
   Trace("strings-rewrite-debug")
       << "Strings::rewriteConcat start " << node << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> node_vec;
   Node preNode = Node::null();
   for (Node tmpNode : node)

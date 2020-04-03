@@ -857,7 +857,6 @@ Node StringsEntail::getMultisetApproximation(Node a)
 
 Node StringsEntail::getStringOrEmpty(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Node res;
   while (res.isNull())
   {
