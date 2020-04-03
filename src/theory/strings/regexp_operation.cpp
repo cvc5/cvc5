@@ -288,7 +288,9 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
   if( d_deriv_cache.find( dv ) != d_deriv_cache.end() ) {
     retNode = d_deriv_cache[dv].first;
     ret = d_deriv_cache[dv].second;
-  } else if( c.empty() ) {
+  }
+  else if (c.empty())
+  {
     Node expNode;
     ret = delta( r, expNode );
     if(ret == 0) {
@@ -536,7 +538,9 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
   NodeManager* nm = NodeManager::currentNM();
   if( d_dv_cache.find( dv ) != d_dv_cache.end() ) {
     retNode = d_dv_cache[dv];
-  } else if( c.empty() ){
+  }
+  else if (c.empty())
+  {
     Node exp;
     int tmp = delta( r, exp );
     if(tmp == 0) {
