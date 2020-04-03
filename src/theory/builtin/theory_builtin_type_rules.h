@@ -159,7 +159,7 @@ class LambdaTypeRule {
   }
 };/* class LambdaTypeRule */
 
-class ChoiceTypeRule
+class WitnessTypeRule
 {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager,
@@ -189,10 +189,10 @@ class ChoiceTypeRule
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
-    // The type of a choice function is the type of its bound variable.
+    // The type of a witness function is the type of its bound variable.
     return n[0][0].getType();
   }
-}; /* class ChoiceTypeRule */
+}; /* class WitnessTypeRule */
 
 class SortProperties {
  public:
