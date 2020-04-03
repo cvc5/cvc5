@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 %%%% down from 24, up from 6, up from 39
 x0, x1, x2, x3 : INT;
 ASSERT  (-30 * x0) + (18 * x1) + (17 * x2) + (3 * x3) = 0;

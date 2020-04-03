@@ -30,6 +30,6 @@ public class HelloWorld {
     Expr helloworld = em.mkVar("Hello World!", em.booleanType());
     SmtEngine smt = new SmtEngine(em);
 
-    System.out.println(helloworld + " is " + smt.query(helloworld));
+    System.out.println(helloworld + " is " + smt.checkEntailed(helloworld));
   }
 }

@@ -42,6 +42,7 @@
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
+#include "theory/theory_rewriter.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
@@ -315,6 +316,11 @@ public:
    * Destructs a Theory.
    */
   virtual ~Theory();
+
+  /**
+   * Creates a new theory rewriter for the theory.
+   */
+  virtual std::unique_ptr<TheoryRewriter> mkTheoryRewriter() = 0;
 
   /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK

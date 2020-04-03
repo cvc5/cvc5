@@ -86,8 +86,8 @@ int main() {
 
   cout << "Given the following assumptions:" << endl
        << assumptions << endl
-       << "Prove x /= y is valid. "
-       << "CVC4 says: " << smt.query(em.mkExpr(kind::DISTINCT, x, y))
+       << "Prove x /= y is entailed. "
+       << "CVC4 says: " << smt.checkEntailed(em.mkExpr(kind::DISTINCT, x, y))
        << "." << endl;
 
   cout << "Now we call checksat on a trivial query to show that" << endl

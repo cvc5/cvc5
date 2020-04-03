@@ -33,6 +33,8 @@ public:
       : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo)
   {}
 
+  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
   //void check(Effort);

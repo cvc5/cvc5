@@ -14,15 +14,17 @@
  ** The theory of booleans.
  **/
 
-#include "theory/theory.h"
 #include "theory/booleans/theory_bool.h"
-#include "theory/booleans/circuit_propagator.h"
-#include "theory/valuation.h"
-#include "smt_util/boolean_simplification.h"
-#include "theory/substitutions.h"
 
-#include <vector>
 #include <stack>
+#include <vector>
+
+#include "smt_util/boolean_simplification.h"
+#include "theory/booleans/circuit_propagator.h"
+#include "theory/booleans/theory_bool_rewriter.h"
+#include "theory/substitutions.h"
+#include "theory/theory.h"
+#include "theory/valuation.h"
 #include "util/hash.h"
 
 using namespace std;
@@ -30,6 +32,11 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 namespace booleans {
+
+std::unique_ptr<TheoryRewriter> TheoryBool::mkTheoryRewriter()
+{
+  return std::unique_ptr<TheoryRewriter>(new TheoryBoolRewriter());
+}
 
 Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
 

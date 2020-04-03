@@ -63,6 +63,16 @@ class Rewriter {
   static void clearCaches();
 
   /**
+   * Registers a theory rewriter with this rewriter. This transfers the
+   * ownership of the theory rewriter to the rewriter.
+   *
+   * @param tid The theory that the theory rewriter should be associated with.
+   * @param trew The theory rewriter to register.
+   */
+  static void registerTheoryRewriter(theory::TheoryId tid,
+                                     std::unique_ptr<TheoryRewriter> trew);
+
+  /**
    * Register a prerewrite for a given kind.
    *
    * @param k The kind to register a rewrite for.

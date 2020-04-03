@@ -127,7 +127,7 @@ void BaseSolver::checkInit()
                     }
                   }
                   // infer the equality
-                  d_im.sendInference(exp, n.eqNode(nc), "I_Norm");
+                  d_im.sendInference(exp, n.eqNode(nc), Inference::I_NORM);
                 }
                 else
                 {
@@ -172,7 +172,7 @@ void BaseSolver::checkInit()
                   }
                   AlwaysAssert(foundNEmpty);
                   // infer the equality
-                  d_im.sendInference(exp, n.eqNode(ns), "I_Norm_S");
+                  d_im.sendInference(exp, n.eqNode(ns), Inference::I_NORM_S);
                 }
                 d_congruent.insert(n);
                 congruent[k]++;
@@ -301,7 +301,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       Assert(countc == vecc.size());
       if (d_state.hasTerm(c))
       {
-        d_im.sendInference(exp, n.eqNode(c), "I_CONST_MERGE");
+        d_im.sendInference(exp, n.eqNode(c), Inference::I_CONST_MERGE);
         return;
       }
       else if (!d_im.hasProcessed())
@@ -333,7 +333,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             exp.push_back(d_eqcToConstExp[nr]);
             d_im.addToExplanation(n, d_eqcToConstBase[nr], exp);
           }
-          d_im.sendInference(exp, d_false, "I_CONST_CONFLICT");
+          d_im.sendInference(exp, d_false, Inference::I_CONST_CONFLICT);
           return;
         }
         else
@@ -483,7 +483,8 @@ void BaseSolver::checkCardinality()
       if (!cons.isConst() || !cons.getConst<bool>())
       {
         std::vector<Node> emptyVec;
-        d_im.sendInference(emptyVec, vec_node, cons, "CARDINALITY", true);
+        d_im.sendInference(
+            emptyVec, vec_node, cons, Inference::CARDINALITY, true);
         return;
       }
     }

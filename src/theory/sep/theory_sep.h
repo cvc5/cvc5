@@ -66,6 +66,8 @@ class TheorySep : public Theory {
   TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheorySep();
 
+  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   std::string identify() const override { return std::string("TheorySep"); }

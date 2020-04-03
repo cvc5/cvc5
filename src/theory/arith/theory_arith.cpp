@@ -19,6 +19,7 @@
 
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/ext_theory.h"
@@ -51,6 +52,11 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
 TheoryArith::~TheoryArith(){
   smtStatisticsRegistry()->unregisterStat(&d_ppRewriteTimer);
   delete d_internal;
+}
+
+std::unique_ptr<TheoryRewriter> TheoryArith::mkTheoryRewriter()
+{
+  return std::unique_ptr<TheoryRewriter>(new ArithRewriter());
 }
 
 void TheoryArith::preRegisterTerm(TNode n){

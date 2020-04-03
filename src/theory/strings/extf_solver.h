@@ -186,6 +186,8 @@ class ExtfSolver
   CoreSolver& d_csolver;
   /** the extended theory object for the theory of strings */
   ExtTheory* d_extt;
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
   /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
   /** Common constants */

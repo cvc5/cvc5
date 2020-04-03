@@ -918,6 +918,7 @@ set(regress_0_tests
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
   regress0/strings/bug613.smt2
+  regress0/strings/char-representations.smt2
   regress0/strings/code-eval.smt2
   regress0/strings/code-perf.smt2
   regress0/strings/code-sat-neg-one.smt2
@@ -2086,6 +2087,7 @@ set(regress_3_tests
   regress3/hole9.cvc
   regress3/incorrect1.smtv1.smt2
   regress3/issue2429.smt2
+  regress3/issue4170.smt2
   regress3/pp-regfile.smtv1.smt2
   regress3/qwh.35.405.shuffled-as.sat03-1651.smtv1.smt2
   regress3/sixfuncs.sy

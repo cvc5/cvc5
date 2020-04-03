@@ -42,6 +42,8 @@ class TheorySets : public Theory
              const LogicInfo& logicInfo);
   ~TheorySets() override;
 
+  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+
   /** finish initialization */
   void finishInit() override;
   void addSharedTerm(TNode) override;
