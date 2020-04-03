@@ -24,6 +24,7 @@
 
 #include "expr/attribute.h"
 #include "theory/strings/rewrites.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
@@ -33,6 +34,9 @@ namespace strings {
 
 class SequencesRewriter : public TheoryRewriter
 {
+ public:
+  SequencesRewriter(HistogramStat<Rewrite>* statistics);
+
  protected:
   /** simple regular expression consume
    *
@@ -102,62 +106,62 @@ class SequencesRewriter : public TheoryRewriter
    * This is the entry point for post-rewriting applications of re.++.
    * Returns the rewritten form of node.
    */
-  static Node rewriteConcatRegExp(TNode node);
+  Node rewriteConcatRegExp(TNode node);
   /** rewrite regular expression star
    *
    * This is the entry point for post-rewriting applications of re.*.
    * Returns the rewritten form of node.
    */
-  static Node rewriteStarRegExp(TNode node);
+  Node rewriteStarRegExp(TNode node);
   /** rewrite regular expression intersection/union
    *
    * This is the entry point for post-rewriting applications of re.inter and
    * re.union. Returns the rewritten form of node.
    */
-  static Node rewriteAndOrRegExp(TNode node);
+  Node rewriteAndOrRegExp(TNode node);
   /** rewrite regular expression loop
    *
    * This is the entry point for post-rewriting applications of re.loop.
    * Returns the rewritten form of node.
    */
-  static Node rewriteLoopRegExp(TNode node);
+  Node rewriteLoopRegExp(TNode node);
   /** rewrite regular expression repeat
    *
    * This is the entry point for post-rewriting applications of re.repeat.
    * Returns the rewritten form of node.
    */
-  static Node rewriteRepeatRegExp(TNode node);
+  Node rewriteRepeatRegExp(TNode node);
   /** rewrite regular expression option
    *
    * This is the entry point for post-rewriting applications of re.opt.
    * Returns the rewritten form of node.
    */
-  static Node rewriteOptionRegExp(TNode node);
+  Node rewriteOptionRegExp(TNode node);
   /** rewrite regular expression plus
    *
    * This is the entry point for post-rewriting applications of re.+.
    * Returns the rewritten form of node.
    */
-  static Node rewritePlusRegExp(TNode node);
+  Node rewritePlusRegExp(TNode node);
   /** rewrite regular expression difference
    *
    * This is the entry point for post-rewriting applications of re.diff.
    * Returns the rewritten form of node.
    */
-  static Node rewriteDifferenceRegExp(TNode node);
+  Node rewriteDifferenceRegExp(TNode node);
   /** rewrite regular expression range
    *
    * This is the entry point for post-rewriting applications of re.range.
    * Returns the rewritten form of node.
    */
-  static Node rewriteRangeRegExp(TNode node);
+  Node rewriteRangeRegExp(TNode node);
 
   /** rewrite regular expression membership
    *
    * This is the entry point for post-rewriting applications of str.in.re
    * Returns the rewritten form of node.
    */
-  static Node rewriteMembership(TNode node);
+  Node rewriteMembership(TNode node);
 
   static bool hasEpsilonNode(TNode node);
   /** check entail arithmetic internal
@@ -170,14 +174,14 @@ class SequencesRewriter : public TheoryRewriter
    * This method returns a formula that is equivalent to the equality between
    * two strings s = t, given by node. It is called by rewriteEqualityExt.
    */
-  static Node rewriteStrEqualityExt(Node node);
+  Node rewriteStrEqualityExt(Node node);
   /** rewrite arithmetic equality extended
    *
    * This method returns a formula that is equivalent to the equality between
    * two arithmetic string terms s = t, given by node. t is called by
    * rewriteEqualityExt.
    */
-  static Node rewriteArithEqualityExt(Node node);
+  Node rewriteArithEqualityExt(Node node);
   /**
    * Called when node rewrites to ret.
    *
@@ -189,7 +193,7 @@ class SequencesRewriter : public TheoryRewriter
    * additional rewrites on ret, after which we return the result of this call.
    * Otherwise, this method simply returns ret.
    */
-  static Node returnRewrite(Node node, Node ret, Rewrite r);
+  Node returnRewrite(Node node, Node ret, Rewrite r);
 
  public:
   RewriteResponse postRewrite(TNode node) override;
@@ -201,7 +205,7 @@ class SequencesRewriter : public TheoryRewriter
    * two strings s = t, given by node. The result of rewrite is one of
    * { s = t, t = s, true, false }.
    */
-  static Node rewriteEquality(Node node);
+  Node rewriteEquality(Node node);
   /** rewrite equality extended
    *
    * This method returns a formula that is equivalent to the equality between
@@ -212,31 +216,31 @@ class SequencesRewriter : public TheoryRewriter
    * Specifically, this function performs rewrites whose conclusion is not
    * necessarily one of { s = t, t = s, true, false }.
    */
-  static Node rewriteEqualityExt(Node node);
+  Node rewriteEqualityExt(Node node);
   /** rewrite string length
    * This is the entry point for post-rewriting terms node of the form
    *   str.len( t )
    * Returns the rewritten form of node.
    */
-  static Node rewriteLength(Node node);
+  Node rewriteLength(Node node);
   /** rewrite concat
    * This is the entry point for post-rewriting terms node of the form
    *   str.++( t1, .., tn )
    * Returns the rewritten form of node.
    */
-  static Node rewriteConcat(Node node);
+  Node rewriteConcat(Node node);
   /** rewrite character at
    * This is the entry point for post-rewriting terms node of the form
    *   str.charat( s, i1 )
    * Returns the rewritten form of node.
    */
-  static Node rewriteCharAt(Node node);
+  Node rewriteCharAt(Node node);
   /** rewrite substr
    * This is the entry point for post-rewriting terms node of the form
    *   str.substr( s, i1, i2 )
    * Returns the rewritten form of node.
    */
-  static Node rewriteSubstr(Node node);
+  Node rewriteSubstr(Node node);
   /** rewrite contains
    * This is the entry point for post-rewriting terms node of the form
    *   str.contains( t, s )
@@ -246,51 +250,51 @@ class SequencesRewriter : public TheoryRewriter
    * 7 of Reynolds et al "Scaling Up DPLL(T) String Solvers Using
    * Context-Dependent Rewriting", CAV 2017.
    */
-  static Node rewriteContains(Node node);
+  Node rewriteContains(Node node);
   /** rewrite indexof
    * This is the entry point for post-rewriting terms n of the form
    *   str.indexof( s, t, n )
    * Returns the rewritten form of node.
    */
-  static Node rewriteIndexof(Node node);
+  Node rewriteIndexof(Node node);
   /** rewrite replace
    * This is the entry point for post-rewriting terms n of the form
    *   str.replace( s, t, r )
    * Returns the rewritten form of node.
    */
-  static Node rewriteReplace(Node node);
+  Node rewriteReplace(Node node);
   /** rewrite replace all
    * This is the entry point for post-rewriting terms n of the form
    *   str.replaceall( s, t, r )
    * Returns the rewritten form of node.
    */
-  static Node rewriteReplaceAll(Node node);
+  Node rewriteReplaceAll(Node node);
   /** rewrite replace internal
    *
    * This method implements rewrite rules that apply to both str.replace and
    * str.replaceall. If it returns a non-null ret, then node rewrites to ret.
    */
-  static Node rewriteReplaceInternal(Node node);
+  Node rewriteReplaceInternal(Node node);
   /** rewrite string reverse
    *
    * This is the entry point for post-rewriting terms n of the form
    *   str.rev( s )
    * Returns the rewritten form of node.
    */
-  static Node rewriteStrReverse(Node node);
+  Node rewriteStrReverse(Node node);
   /** rewrite prefix/suffix
    * This is the entry point for post-rewriting terms n of the form
    *   str.prefixof( s, t ) / str.suffixof( s, t )
    * Returns the rewritten form of node.
    */
-  static Node rewritePrefixSuffix(Node node);
+  Node rewritePrefixSuffix(Node node);
 
   /** rewrite str.to_code
    * This is the entry point for post-rewriting terms n of the form
    *   str.to_code( t )
    * Returns the rewritten form of node.
    */
-  static Node rewriteStringToCode(Node node);
+  Node rewriteStringToCode(Node node);
 
   static Node splitConstant(Node a, Node b, int& index, bool isRev);
   /** can constant contain list
@@ -413,12 +417,12 @@ class SequencesRewriter : public TheoryRewriter
    *   n1 is updated to { "c", x, "def" },
    *   nb is updated to { y, "ab" }
    */
-  static int componentContains(std::vector<Node>& n1,
-                               std::vector<Node>& n2,
-                               std::vector<Node>& nb,
-                               std::vector<Node>& ne,
-                               bool computeRemainder = false,
-                               int remainderDir = 0);
+  int componentContains(std::vector<Node>& n1,
+                        std::vector<Node>& n2,
+                        std::vector<Node>& nb,
+                        std::vector<Node>& ne,
+                        bool computeRemainder = false,
+                        int remainderDir = 0);
   /** component contains base
    *
    * This function is a helper for the above function.
@@ -471,7 +475,7 @@ class SequencesRewriter : public TheoryRewriter
    * Since we do not wish to introduce ITE terms in the rewriter, we instead
    * return false, indicating that we cannot compute the remainder.
    */
-  static bool componentContainsBase(
+  bool componentContainsBase(
       Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
   /** strip constant endpoints
    * This function is used when rewriting str.contains( t1, t2 ), where
@@ -538,7 +542,7 @@ class SequencesRewriter : public TheoryRewriter
    * @return true node if it can be shown that `a` contains `b`, false node if
    * it can be shown that `a` does not contain `b`, null node otherwise
    */
-  static Node checkEntailContains(Node a, Node b, bool fullRewriter = true);
+  Node checkEntailContains(Node a, Node b, bool fullRewriter = true);
 
   /** entail non-empty
    *
@@ -811,6 +815,9 @@ class SequencesRewriter : public TheoryRewriter
    * and the list of nodes that are compared to the empty string
    */
   static std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
+
+  /** Reference to the rewriter statistics. */
+  HistogramStat<Rewrite>* d_statistics;
 }; /* class SequencesRewriter */
 
 }  // namespace strings

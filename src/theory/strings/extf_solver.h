@@ -90,7 +90,7 @@ class ExtfSolver
              BaseSolver& bs,
              CoreSolver& cs,
              ExtTheory* et,
-             SequencesStatistics& stats);
+             SequencesStatistics& statistics);
   ~ExtfSolver();
 
   /** check extended functions evaluation

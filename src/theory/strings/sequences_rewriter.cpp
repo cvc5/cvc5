@@ -37,6 +37,11 @@ using namespace CVC4::kind;
 using namespace CVC4::theory;
 using namespace CVC4::theory::strings;
 
+SequencesRewriter::SequencesRewriter(HistogramStat<Rewrite>* statistics)
+    : d_statistics(statistics)
+{
+}
+
 Node SequencesRewriter::simpleRegexpConsume(std::vector<Node>& mchildren,
                                             std::vector<Node>& children,
                                             int dir)
@@ -1871,8 +1876,8 @@ Node SequencesRewriter::rewriteMembership(TNode node)
 
 RewriteResponse SequencesRewriter::postRewrite(TNode node)
 {
-  Trace("strings-postrewrite")
-      << "Strings::postRewrite start " << node << std::endl;
+  Trace("sequences-postrewrite")
+      << "Strings::SequencesRewriter::postRewrite start " << node << std::endl;
   Node retNode = node;
   Kind nk = node.getKind();
   if (nk == kind::STRING_CONCAT)
@@ -1899,14 +1904,6 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteContains(node);
   }
-  else if (nk == kind::STRING_LT)
-  {
-    retNode = StringsRewriter::rewriteStringLt(node);
-  }
-  else if (nk == kind::STRING_LEQ)
-  {
-    retNode = StringsRewriter::rewriteStringLeq(node);
-  }
   else if (nk == kind::STRING_STRIDOF)
   {
     retNode = rewriteIndexof(node);
@@ -1919,10 +1916,6 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteReplaceAll(node);
   }
-  else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
-  {
-    retNode = StringsRewriter::rewriteStrConvert(node);
-  }
   else if (nk == STRING_REV)
   {
     retNode = rewriteStrReverse(node);
@@ -1931,29 +1924,9 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewritePrefixSuffix(node);
   }
-  else if (nk == STRING_IS_DIGIT)
-  {
-    retNode = StringsRewriter::rewriteStringIsDigit(node);
-  }
-  else if (nk == kind::STRING_ITOS)
-  {
-    retNode = StringsRewriter::rewriteIntToStr(node);
-  }
-  else if (nk == kind::STRING_STOI)
-  {
-    retNode = StringsRewriter::rewriteStrToInt(node);
-  }
   else if (nk == kind::STRING_IN_REGEXP)
   {
     retNode = rewriteMembership(node);
-  }
-  else if (nk == STRING_TO_CODE)
-  {
-    retNode = StringsRewriter::rewriteStringToCode(node);
-  }
-  else if (nk == STRING_FROM_CODE)
-  {
-    retNode = StringsRewriter::rewriteStringFromCode(node);
   }
   else if (nk == REGEXP_CONCAT)
   {
@@ -1992,12 +1965,13 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
     retNode = rewriteRepeatRegExp(node);
   }
 
-  Trace("strings-postrewrite")
-      << "Strings::postRewrite returning " << retNode << std::endl;
+  Trace("sequences-postrewrite")
+      << "Strings::SequencesRewriter::postRewrite returning " << retNode
+      << std::endl;
   if (node != retNode)
   {
-    Trace("strings-rewrite-debug")
-        << "Strings: post-rewrite " << node << " to " << retNode << std::endl;
+    Trace("strings-rewrite-debug") << "Strings::SequencesRewriter::postRewrite "
+                                   << node << " to " << retNode << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, retNode);
   }
   return RewriteResponse(REWRITE_DONE, retNode);
@@ -5605,6 +5579,11 @@ Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
                            << "." << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
+
+  if (d_statistics != nullptr)
+  {
+    (*d_statistics) << r;
+  }
 
   // standard post-processing
   // We rewrite (string) equalities immediately here. This allows us to forego

@@ -112,11 +112,12 @@ class Rewriter {
 
  private:
   /**
-   * Get the (singleton) instance of the rewriter.
+   * Get the rewriter associated with the SmtEngine in scope.
    *
-   * TODO(#3468): Get rid of this singleton
+   * TODO(#3468): Get rid of this function (it relies on there being an
+   * singleton with the current SmtEngine in scope)
    */
-  static Rewriter& getInstance();
+  static Rewriter* getInstance();
 
   /** Returns the appropriate cache for a node */
   Node getPreRewriteCache(theory::TheoryId theoryId, TNode node);

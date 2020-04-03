@@ -26,7 +26,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
-#include "theory/strings/sequences_rewriter.h"
+#include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/type_enumerator.h"
 #include "theory/strings/word.h"
@@ -133,7 +133,8 @@ TheoryStrings::~TheoryStrings() {
 
 std::unique_ptr<TheoryRewriter> TheoryStrings::mkTheoryRewriter()
 {
-  return std::unique_ptr<TheoryRewriter>(new SequencesRewriter());
+  return std::unique_ptr<TheoryRewriter>(
+      new StringsRewriter(&d_statistics.d_rewrites));
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
