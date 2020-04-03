@@ -36,12 +36,14 @@ RegExpSolver::RegExpSolver(TheoryStrings& p,
                            SolverState& s,
                            InferenceManager& im,
                            ExtfSolver& es,
+                           SequencesStatistics& stats,
                            context::Context* c,
                            context::UserContext* u)
     : d_parent(p),
       d_state(s),
       d_im(im),
       d_esolver(es),
+      d_statistics(stats),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
       d_processed_memberships(c)
@@ -160,6 +162,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             << "We have regular expression assertion : " << assertion
             << std::endl;
         Node atom = assertion.getKind() == NOT ? assertion[0] : assertion;
+        Assert(atom == Rewriter::rewrite(atom));
         bool polarity = assertion.getKind() != NOT;
         if (polarity != (e == 0))
         {
@@ -222,7 +225,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
               std::vector<Node> exp_n;
               exp_n.push_back(assertion);
               Node conc = Node::null();
-              d_im.sendInference(nfexp, exp_n, conc, "REGEXP NF Conflict");
+              d_im.sendInference(nfexp, exp_n, conc, Inference::RE_NF_CONFLICT);
               addedLemma = true;
               break;
             }
@@ -268,7 +271,18 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             std::vector<Node> exp_n;
             exp_n.push_back(assertion);
             Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
-            d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
+            Assert(atom.getKind() == STRING_IN_REGEXP);
+            if (polarity)
+            {
+              d_statistics.d_regexpUnfoldingsPos << atom[1].getKind();
+            }
+            else
+            {
+              d_statistics.d_regexpUnfoldingsNeg << atom[1].getKind();
+            }
+            Inference inf =
+                polarity ? Inference::RE_UNFOLD_POS : Inference::RE_UNFOLD_NEG;
+            d_im.sendInference(rnfexp, exp_n, conc, inf);
             addedLemma = true;
             if (changed)
             {
@@ -387,7 +401,8 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
           }
 
           Node conc;
-          d_im.sendInference(vec_nodes, conc, "Intersect inclusion", true);
+          d_im.sendInference(
+              vec_nodes, conc, Inference::RE_INTER_INCLUDE, true);
           return false;
         }
       }
@@ -470,7 +485,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
         vec_nodes.push_back(mi[0].eqNode(m[0]));
       }
       Node conc;
-      d_im.sendInference(vec_nodes, conc, "INTERSECT CONFLICT", true);
+      d_im.sendInference(vec_nodes, conc, Inference::RE_INTER_CONF, true);
       // conflict, return
       return false;
     }
@@ -490,7 +505,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     else
     {
       // new conclusion
-      // (x in R ^ y in R2 ^ x = y) => (x in intersect(R1,R2))
+      // (x in R1 ^ y in R2 ^ x = y) => (x in intersect(R1,R2))
       std::vector<Node> vec_nodes;
       vec_nodes.push_back(mi);
       vec_nodes.push_back(m);
@@ -498,7 +513,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       {
         vec_nodes.push_back(mi[0].eqNode(m[0]));
       }
-      d_im.sendInference(vec_nodes, mres, "INTERSECT INFER", true);
+      d_im.sendInference(vec_nodes, mres, Inference::RE_INTER_INFER, true);
       // both are reduced
       d_parent.getExtTheory()->markReduced(m);
       d_parent.getExtTheory()->markReduced(mi);
@@ -522,7 +537,7 @@ bool RegExpSolver::checkPDerivative(
         std::vector<Node> exp_n;
         exp_n.push_back(atom);
         exp_n.push_back(x.eqNode(d_emptyString));
-        d_im.sendInference(nf_exp, exp_n, exp, "RegExp Delta");
+        d_im.sendInference(nf_exp, exp_n, exp, Inference::RE_DELTA);
         addedLemma = true;
         d_regexp_ccached.insert(atom);
         return false;
@@ -538,7 +553,7 @@ bool RegExpSolver::checkPDerivative(
         exp_n.push_back(atom);
         exp_n.push_back(x.eqNode(d_emptyString));
         Node conc;
-        d_im.sendInference(nf_exp, exp_n, conc, "RegExp Delta CONFLICT");
+        d_im.sendInference(nf_exp, exp_n, conc, Inference::RE_DELTA_CONF);
         addedLemma = true;
         d_regexp_ccached.insert(atom);
         return false;
@@ -628,7 +643,7 @@ bool RegExpSolver::deriveRegExp(Node x,
     }
     std::vector<Node> exp_n;
     exp_n.push_back(atom);
-    d_im.sendInference(ant, exp_n, conc, "RegExp-Derive");
+    d_im.sendInference(ant, exp_n, conc, Inference::RE_DERIVE);
     return true;
   }
   return false;

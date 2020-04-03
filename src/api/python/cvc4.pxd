@@ -87,9 +87,9 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint isSat() except +
         bint isUnsat() except +
         bint isSatUnknown() except +
-        bint isValid() except +
-        bint isInvalid() except +
-        bint isValidUnknown() except +
+        bint isEntailed() except +
+        bint isNotEntailed() except +
+        bint isEntailmentUnknown() except +
         string getUnknownExplanation() except +
         string toString() except +
 
@@ -168,8 +168,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         void assertFormula(Term term) except +
         Result checkSat() except +
         Result checkSatAssuming(const vector[Term]& assumptions) except +
-        Result checkValid() except +
-        Result checkValidAssuming(const vector[Term]& assumptions) except +
+        Result checkEntailed(const vector[Term]& assumptions) except +
         Sort declareDatatype(const string& symbol, const vector[DatatypeConstructorDecl]& ctors)
         Term declareFun(const string& symbol, Sort sort) except +
         Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort) except +

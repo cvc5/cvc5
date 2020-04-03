@@ -7,15 +7,15 @@ b1, b2 : [##]; % empty records (a unit type)
 c1, c2 : [[]]; % 1-tuples of the empty tuple (a unit type)
 d1, d2 : [#x:[[##]],y:[#z:[]#]#]; % more complicated records (still a unit type)
 
-% EXPECT: valid
+% EXPECT: entailed
 QUERY a1 = a2;
 
-% EXPECT: valid
+% EXPECT: entailed
 QUERY b1 = b2;
 
-% EXPECT: valid
+% EXPECT: entailed
 QUERY c1 = c2;
 
-% EXPECT: valid
+% EXPECT: entailed
 QUERY d1 = d2;
 

@@ -144,6 +144,8 @@ class TheoryArrays : public Theory {
                std::string name = "");
   ~TheoryArrays();
 
+  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   std::string identify() const override { return std::string("TheoryArrays"); }

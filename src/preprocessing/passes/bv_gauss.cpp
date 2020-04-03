@@ -687,8 +687,9 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
   return ret;
 }
 
-BVGauss::BVGauss(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-gauss")
+BVGauss::BVGauss(PreprocessingPassContext* preprocContext,
+                 const std::string& name)
+    : PreprocessingPass(preprocContext, name)
 {
 }
 

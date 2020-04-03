@@ -12,11 +12,6 @@ header = "options/main_options.h"
   alternate  = false
   help       = "identify this CVC4 binary"
 
-[[alias]]
-  category   = "undocumented"
-  long       = "license"
-  links      = ["--version"]
-
 [[option]]
   name       = "help"
   category   = "common"
@@ -102,11 +97,6 @@ header = "options/main_options.h"
   default    = "false"
   read_only  = true
   help       = "spin on segfault/other crash waiting for gdb"
-
-[[alias]]
-  category   = "undocumented"
-  long       = "segv-nospin"
-  links      = ["--no-segv-spin"]
 
 [[option]]
   name       = "tearDownIncremental"

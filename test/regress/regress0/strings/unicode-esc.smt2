@@ -26,5 +26,7 @@
 (assert (= (str.len "\u{E}") 1))
 (assert (= (str.len "\u{44444}") 9))
 (assert (= (str.len "\u") 2))
+(assert (= (str.len "\u001") 5))
+(assert (= (str.len "\u0001") 1))
 
 (check-sat)

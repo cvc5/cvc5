@@ -39,6 +39,8 @@ class TheoryQuantifiers : public Theory {
                     const LogicInfo& logicInfo);
   ~TheoryQuantifiers();
 
+  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+
   /** finish initialization */
   void finishInit() override;
   void preRegisterTerm(TNode n) override;
