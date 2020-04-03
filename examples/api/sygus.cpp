@@ -12,14 +12,39 @@
  ** \brief A simple demonstration of the Sygus API.
  **
  ** A simple demonstration of how to use the Sygus API to synthesize max and min
- ** functions.
+ ** functions. Here is the same problem written in Sygus V2 format:
+ **
+ ** (set-logic LIA)
+ **
+ ** (synth-fun max ((x Int) (y Int)) Int
+ **   ((Start Int) (StartBool Bool))
+ **   ((Start Int (0 1 x y
+ **                (+ Start Start)
+ **                (- Start Start)
+ **                (ite StartBool Start Start)))
+ **    (StartBool Bool ((and StartBool StartBool)
+ **                     (not StartBool)
+ **                     (<= Start Start)))))
+ **
+ ** (synth-fun min ((x Int) (y Int)) Int)
+ **
+ ** (declare-var x Int)
+ ** (declare-var y Int)
+ **
+ ** (constraint (>= (max x y) x))
+ ** (constraint (>= (max x y) y))
+ ** (constraint (or (= x (max x y))
+ **                 (= y (max x y))))
+ ** (constraint (= (+ (max x y) (min x y))
+ **                (+ x y)))
+ **
+ ** (check-synth)
  **/
 
 #include <cvc4/api/cvc4cpp.h>
 
 #include <iostream>
 
-using namespace std;
 using namespace CVC4::api;
 
 int main()
@@ -76,15 +101,27 @@ int main()
   Term min_x_y = slv.mkTerm(APPLY_UF, min, varX, varY);
 
   // add logical constraints
+  // (constraint (>= (max x y) x))
   slv.addConstraint(slv.mkTerm(GEQ, max_x_y, varX));
+
+  // (constraint (>= (max x y) y))
   slv.addConstraint(slv.mkTerm(GEQ, max_x_y, varY));
+
+  // (constraint (or (= x (max x y))
+  //                 (= y (max x y))))
   slv.addConstraint(slv.mkTerm(
       OR, slv.mkTerm(EQUAL, max_x_y, varX), slv.mkTerm(EQUAL, max_x_y, varY)));
+
+  // (constraint (= (+ (max x y) (min x y))
+  //                (+ x y)))
   slv.addConstraint(slv.mkTerm(
       EQUAL, slv.mkTerm(PLUS, max_x_y, min_x_y), slv.mkTerm(PLUS, varX, varY)));
 
   // print solutions if available
-  if (slv.checkSynth().isUnsat()) slv.printSynthSolution(cout);
+  if (slv.checkSynth().isUnsat())
+  {
+    slv.printSynthSolution(std::cout);
+  }
 
   return 0;
 }

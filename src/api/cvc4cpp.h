@@ -1769,42 +1769,42 @@ class CVC4_PUBLIC Grammar
 
  public:
   /**
-   * Add <rule> to the set of rules corresponding to <non_terminal>.
-   * @param non_terminal the non-terminal to which the rule is added
+   * Add <rule> to the set of rules corresponding to <ntSymbol>.
+   * @param ntSymbol the non-terminal to which the rule is added
    * @param rule the rule to add
    */
-  void addRule(Term non_terminal, Term rule);
+  void addRule(Term ntSymbol, Term rule);
 
   /**
-   * Allow <non_terminal> to be an arbitrary constant.
-   * @param non_terminal the non-terminal allowed to be any constant
+   * Allow <ntSymbol> to be an arbitrary constant.
+   * @param ntSymbol the non-terminal allowed to be any constant
    */
-  void addAnyConstant(Term non_terminal);
+  void addAnyConstant(Term ntSymbol);
 
   /**
-   * Allow <non_terminal> to be any input variable to corresponding
-   * synth-fun/synth-inv with the same sort as <non_terminal>.
-   * @param non_terminal the non-terminal allowed to be any input constant
+   * Allow <ntSymbol> to be any input variable to corresponding
+   * synth-fun/synth-inv with the same sort as <ntSymbol>.
+   * @param ntSymbol the non-terminal allowed to be any input constant
    */
-  void addAnyVariable(Term non_terminal);
+  void addAnyVariable(Term ntSymbol);
 
   /**
-   * Add <rules> to the set of rules corresponding to <non_terminal>.
-   * @param non_terminal the non-terminal to which the rules are added
+   * Add <rules> to the set of rules corresponding to <ntSymbol>.
+   * @param ntSymbol the non-terminal to which the rules are added
    * @param rule the rules to add
    */
-  void addRules(Term non_terminal, std::vector<Term> rules);
+  void addRules(Term ntSymbol, std::vector<Term> rules);
 
  private:
   /**
    * Constructor.
    * @param s the solver that created this grammar
-   * @param sygus_vars the input variables to synth-fun/synth-var
-   * @param non_terminals the non-terminals of this grammar
+   * @param sygusVars the input variables to synth-fun/synth-var
+   * @param ntSymbols the non-terminals of this grammar
    */
   Grammar(const Solver* s,
-          const std::vector<Term>& sygus_vars,
-          const std::vector<Term>& non_terminals);
+          const std::vector<Term>& sygusVars,
+          const std::vector<Term>& ntSymbols);
 
   /**
    * Returns the resovled datatype of the Start symbol of the grammar.
@@ -1815,13 +1815,13 @@ class CVC4_PUBLIC Grammar
   /**
    * Adds a constructor to sygus datatype <dt> whose sygus operator is <term>.
    *
-   * <d_nts_to_unres> contains a mapping from non-terminal symbols to the
+   * <d_ntsToUnres> contains a mapping from non-terminal symbols to the
    * unresolved sorts they correspond to. This map indicates how the argument
    * <term> should be interpreted (instances of symbols from the domain of
-   * <d_nts_to_unres> correspond to constructor arguments).
+   * <d_ntsToUnres> correspond to constructor arguments).
    *
    * The sygus operator that is actually added to <dt> corresponds to replacing
-   * each occurrence of non-terminal symbols from the domain of <d_nts_to_unres>
+   * each occurrence of non-terminal symbols from the domain of <d_ntsToUnres>
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    *
@@ -1833,7 +1833,7 @@ class CVC4_PUBLIC Grammar
   /** Purify sygus grammar term
    *
    * This returns a term where all occurrences of non-terminal symbols (those
-   * in the domain of <d_nts_to_unres>) are replaced by fresh variables. For
+   * in the domain of <d_ntsToUnres>) are replaced by fresh variables. For
    * each variable replaced in this way, we add the fresh variable it is
    * replaced with to <args>, and the unresolved sorts corresponding to the
    * non-terminal symbol to <cargs> (constructor args). In other words, <args>
@@ -1851,7 +1851,7 @@ class CVC4_PUBLIC Grammar
                         std::vector<Sort>& cargs) const;
 
   /**
-   * This adds constructors to <dt> for sygus variables in <d_sygus_vars> whose
+   * This adds constructors to <dt> for sygus variables in <d_sygusVars> whose
    * sort is argument <sort>. This method should be called when the sygus
    * grammar term (Variable sort) is encountered.
    *
@@ -1860,13 +1860,24 @@ class CVC4_PUBLIC Grammar
    */
   void addSygusConstructorVariables(DatatypeDecl& dt, Sort sort) const;
 
+  /** The solver that created this grammar. */
   const Solver* d_s;
-  std::vector<Term> d_sygus_vars;
-  std::vector<Term> d_non_terminals;
-  std::set<Sort> d_unres_types;
-  std::map<Term, Sort> d_nts_to_unres;
-  std::map<Term, DatatypeDecl> d_datatype_decls;
-  std::unordered_set<Term, TermHashFunction> d_allow_const;
+  /** Input variables to the corresponding function/invariant to synthesize.*/
+  std::vector<Term> d_sygusVars;
+  /** The non-terminal symbols of this grammar. */
+  std::vector<Term> d_ntSyms;
+  /**
+   * The mapping from non-terminal symbols to the unresolved sorts they
+   * correspond to.
+   */
+  std::unordered_map<Term, Sort, TermHashFunction> d_ntsToUnres;
+  /**
+   * The mapping from non-terminal symbols to the datatype declarations they
+   * correspond to.
+   */
+  std::unordered_map<Term, DatatypeDecl, TermHashFunction> d_dtDecls;
+  /** The set of non-terminals that can be arbitrary constants. */
+  std::unordered_set<Term, TermHashFunction> d_allowConst;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -1902,8 +1913,6 @@ struct CVC4_PUBLIC RoundingModeHashFunction
  */
 class CVC4_PUBLIC Solver
 {
-  friend class Grammar;
-
  public:
   /* .................................................................... */
   /* Constructors/Destructors                                             */
@@ -2928,7 +2937,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Append <symbol> to the current list of universal variables.
-   * SMT-LIB: ( declare-var <symbol> <sort> )
+   * SyGuS v2: ( declare-var <symbol> <sort> )
    * @param sort the sort of the universal variable
    * @param symbol the name of the universal variable
    * @return the universal variable
@@ -2937,66 +2946,66 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create a Sygus grammar.
-   * @param bound_vars the parameters to corresponding synth-fun/synth-inv
-   * @param non_terminals the pre-declaration of the non-terminal symbols
+   * @param boundVars the parameters to corresponding synth-fun/synth-inv
+   * @param ntSymbols the pre-declaration of the non-terminal symbols
    * @return the grammar
    */
-  Grammar mkGrammar(const std::vector<Term>& bound_vars,
-                    const std::vector<Term>& non_terminals) const;
+  Grammar mkGrammar(const std::vector<Term>& boundVars,
+                    const std::vector<Term>& ntSymbols) const;
 
   /**
    * Synthesize n-ary function.
-   * SMT-LIB: ( synth-fun <symbol> ( <bound_var>* ) <sort> )
+   * SyGuS v2: ( synth-fun <symbol> ( <boundVars>* ) <sort> )
    * @param symbol the name of the function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
    * @return the function
    */
   Term synthFun(const std::string& symbol,
-                const std::vector<Term>& bound_vars,
+                const std::vector<Term>& boundVars,
                 Sort sort) const;
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
-   * SMT-LIB: ( synth-fun <symbol> ( <bound_var>* ) <sort> <g> )
+   * SyGuS v2: ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
    * @param symbol the name of the function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param g the syntactic constraints
    * @return the function
    */
   Term synthFun(const std::string& symbol,
-                const std::vector<Term>& bound_vars,
+                const std::vector<Term>& boundVars,
                 Sort sort,
                 Grammar g) const;
 
   /**
    * Synthesize invariant.
-   * SMT-LIB: ( synth-inv <symbol> ( <bound_var>* ) )
+   * SyGuS v2: ( synth-inv <symbol> ( <boundVars>* ) )
    * @param symbol the name of the invariant
-   * @param bound_vars the parameters to this invariant
+   * @param boundVars the parameters to this invariant
    * @param sort the sort of the return value of this invariant
    * @return the invariant
    */
   Term synthInv(const std::string& symbol,
-                const std::vector<Term>& bound_vars) const;
+                const std::vector<Term>& boundVars) const;
 
   /**
    * Synthesize invariant following specified syntactic constraints.
-   * SMT-LIB: ( synth-inv <symbol> ( <bound_var>* ) <g> )
+   * SyGuS v2: ( synth-inv <symbol> ( <boundVars>* ) <g> )
    * @param symbol the name of the invariant
-   * @param bound_vars the parameters to this invariant
+   * @param boundVars the parameters to this invariant
    * @param sort the sort of the return value of this invariant
    * @param g the syntactic constraints
    * @return the invariant
    */
   Term synthInv(const std::string& symbol,
-                const std::vector<Term>& bound_vars,
+                const std::vector<Term>& boundVars,
                 Grammar g) const;
 
   /**
    * Add a forumla to the set of Sygus constraints.
-   * SMT-LIB: ( constraint <term> )
+   * SyGuS v2: ( constraint <term> )
    * @param term the formula to add as a constraint
    */
   void addConstraint(const Term& term) const;
@@ -3004,7 +3013,7 @@ class CVC4_PUBLIC Solver
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
    * invariant synthesis problem.
-   * SMT-LIB: ( inv-constraint <inv> <pre> <trans> <post> )
+   * SyGuS v2: ( inv-constraint <inv> <pre> <trans> <post> )
    * @param inv the function-to-synthesize
    * @param pre the pre-condition
    * @param trans the transition relation
@@ -3019,7 +3028,7 @@ class CVC4_PUBLIC Solver
    * Try to find a solution for the synthesis conjecture corresponding to the
    * current list of functions-to-synthesize, universal variables and
    * constraints.
-   * SMT-LIB: ( check-synth )
+   * SyGuS v2: ( check-synth )
    * @return the result of the synthesis conjecture.
    */
   Result checkSynth() const;
@@ -3096,16 +3105,16 @@ class CVC4_PUBLIC Solver
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
-   * SMT-LIB: ( synth-fun <symbol> ( <bound_var>* ) <sort> <g>? )
+   * SMT-LIB: ( synth-fun <symbol> ( <boundVars>* ) <sort> <g>? )
    * @param symbol the name of the function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param isInv determines whether this is synth-fun or synth-inv
    * @param g the syntactic constraints
    * @return the function
    */
   Term synthFunInternal(const std::string& symbol,
-                        const std::vector<Term>& bound_vars,
+                        const std::vector<Term>& boundVars,
                         const Sort& sort,
                         bool isInv = false,
                         Grammar* g = nullptr) const;
