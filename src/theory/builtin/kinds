@@ -298,7 +298,7 @@ operator SEXPR 0: "a symbolic expression (any arity)"
 
 operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
 
-operator WITNESS 2 "a Hilbert witness (epsilon) expression; first parameter is a BOUND_VAR_LIST, second is the Hilbert witness body"
+operator WITNESS 2 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
 constant TYPE_CONSTANT \
     ::CVC4::TypeConstant \

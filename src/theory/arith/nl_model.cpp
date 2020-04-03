@@ -1296,7 +1296,7 @@ void NlModel::getModelValueRepair(
       pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
       Trace("nl-model") << v << " approximated as " << pred << std::endl;
       Node witness;
-      if (options::modelWitnessChoice())
+      if (options::modelWitnessValue())
       {
         // witness is the midpoint
         witness = nm->mkNode(
