@@ -50,7 +50,6 @@ InferenceManager::InferenceManager(TheoryStrings& p,
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
-  d_emptyString = nm->mkConst(::CVC4::String(""));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -470,7 +469,8 @@ Node InferenceManager::getRegisterTermAtomicLemma(
 
   if (s == LENGTH_GEQ_ONE)
   {
-    Node neq_empty = n.eqNode(d_emptyString).negate();
+    Node emp = Word::mkEmptyWord(n.getType());
+    Node neq_empty = n.eqNode(emp).negate();
     Node len_n_gt_z = nm->mkNode(GT, n_len, d_zero);
     Node len_geq_one = nm->mkNode(AND, neq_empty, len_n_gt_z);
     Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
@@ -492,8 +492,9 @@ Node InferenceManager::getRegisterTermAtomicLemma(
   std::vector<Node> lems;
   if (options::stringSplitEmp() || !options::stringLenGeqZ())
   {
+    Node emp = Word::mkEmptyWord(n.getType());
     Node n_len_eq_z = n_len.eqNode(d_zero);
-    Node n_len_eq_z_2 = n.eqNode(d_emptyString);
+    Node n_len_eq_z_2 = n.eqNode(emp);
     Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
     case_empty = Rewriter::rewrite(case_empty);
     Node case_nempty = nm->mkNode(GT, n_len, d_zero);

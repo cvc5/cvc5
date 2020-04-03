@@ -372,7 +372,6 @@ class InferenceManager
   SequencesStatistics& d_statistics;
 
   /** Common constants */
-  Node d_emptyString;
   Node d_true;
   Node d_false;
   Node d_zero;
