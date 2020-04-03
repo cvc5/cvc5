@@ -190,6 +190,7 @@ class CVC4_PUBLIC Sort
   friend class DatatypeDecl;
   friend class Op;
   friend class Solver;
+  friend class Grammar;
   friend struct SortHashFunction;
   friend class Term;
 
@@ -754,6 +755,7 @@ class CVC4_PUBLIC Term
   friend class Datatype;
   friend class DatatypeConstructor;
   friend class Solver;
+  friend class Grammar;
   friend struct TermHashFunction;
 
  public:
@@ -1189,6 +1191,8 @@ class CVC4_PUBLIC DatatypeDecl
 {
   friend class DatatypeConstructorArg;
   friend class Solver;
+  friend class Grammar;
+
  public:
   /**
    * Nullary constructor for Cython
@@ -1753,6 +1757,119 @@ std::ostream& operator<<(std::ostream& out,
                          const DatatypeSelector& stor) CVC4_PUBLIC;
 
 /* -------------------------------------------------------------------------- */
+/* Grammar                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A Sygus Grammar.
+ */
+class CVC4_PUBLIC Grammar
+{
+  friend class Solver;
+
+ public:
+  /**
+   * Add <rule> to the set of rules corresponding to <non_terminal>.
+   * @param non_terminal the non-terminal to which the rule is added
+   * @param rule the rule to add
+   */
+  void addRule(Term non_terminal, Term rule);
+
+  /**
+   * Allow <non_terminal> to be an arbitrary constant.
+   * @param non_terminal the non-terminal allowed to be any constant
+   */
+  void addAnyConstant(Term non_terminal);
+
+  /**
+   * Allow <non_terminal> to be any input variable to corresponding
+   * synth-fun/synth-inv with the same sort as <non_terminal>.
+   * @param non_terminal the non-terminal allowed to be any input constant
+   */
+  void addAnyVariable(Term non_terminal);
+
+  /**
+   * Add <rules> to the set of rules corresponding to <non_terminal>.
+   * @param non_terminal the non-terminal to which the rules are added
+   * @param rule the rules to add
+   */
+  void addRules(Term non_terminal, std::vector<Term> rules);
+
+ private:
+  /**
+   * Constructor.
+   * @param s the solver that created this grammar
+   * @param sygus_vars the input variables to synth-fun/synth-var
+   * @param non_terminals the non-terminals of this grammar
+   */
+  Grammar(const Solver* s,
+          const std::vector<Term>& sygus_vars,
+          const std::vector<Term>& non_terminals);
+
+  /**
+   * Returns the resovled datatype of the Start symbol of the grammar.
+   * @return the resovled datatype of the Start symbol of the grammar
+   */
+  Sort ret();
+
+  /**
+   * Adds a constructor to sygus datatype <dt> whose sygus operator is <term>.
+   *
+   * <d_nts_to_unres> contains a mapping from non-terminal symbols to the
+   * unresolved sorts they correspond to. This map indicates how the argument
+   * <term> should be interpreted (instances of symbols from the domain of
+   * <d_nts_to_unres> correspond to constructor arguments).
+   *
+   * The sygus operator that is actually added to <dt> corresponds to replacing
+   * each occurrence of non-terminal symbols from the domain of <d_nts_to_unres>
+   * with bound variables via purifySygusGTerm, and binding these variables
+   * via a lambda.
+   *
+   * @param dt the non-terminal's datatype to which a constructor is added
+   * @param term the sygus operator of the constructor
+   */
+  void addSygusConstructorTerm(DatatypeDecl& dt, Term term) const;
+
+  /** Purify sygus grammar term
+   *
+   * This returns a term where all occurrences of non-terminal symbols (those
+   * in the domain of <d_nts_to_unres>) are replaced by fresh variables. For
+   * each variable replaced in this way, we add the fresh variable it is
+   * replaced with to <args>, and the unresolved sorts corresponding to the
+   * non-terminal symbol to <cargs> (constructor args). In other words, <args>
+   * contains the free variables in the term returned by this method (which
+   * should be bound by a lambda), and <cargs> contains the sorts of the
+   * arguments of the sygus constructor.
+   *
+   * @param term the term to purify
+   * @param args the free variables in the term returned by this method
+   * @param cargs the sorts of the arguments of the sygus constructor
+   * @return the purfied term
+   */
+  Term purifySygusGTerm(Term term,
+                        std::vector<Term>& args,
+                        std::vector<Sort>& cargs) const;
+
+  /**
+   * This adds constructors to <dt> for sygus variables in <d_sygus_vars> whose
+   * sort is argument <sort>. This method should be called when the sygus
+   * grammar term (Variable sort) is encountered.
+   *
+   * @param dt the non-terminal's datatype to which the constructors are added
+   * @param sort the sort of the sygus variables to add
+   */
+  void addSygusConstructorVariables(DatatypeDecl& dt, Sort sort) const;
+
+  const Solver* d_s;
+  std::vector<Term> d_sygus_vars;
+  std::vector<Term> d_non_terminals;
+  std::set<Sort> d_unres_types;
+  std::map<Term, Sort> d_nts_to_unres;
+  std::map<Term, DatatypeDecl> d_datatype_decls;
+  std::unordered_set<Term, TermHashFunction> d_allow_const;
+};
+
+/* -------------------------------------------------------------------------- */
 /* Rounding Mode for Floating Points                                          */
 /* -------------------------------------------------------------------------- */
 
@@ -1785,6 +1902,8 @@ struct CVC4_PUBLIC RoundingModeHashFunction
  */
 class CVC4_PUBLIC Solver
 {
+  friend class Grammar;
+
  public:
   /* .................................................................... */
   /* Constructors/Destructors                                             */
@@ -2807,6 +2926,110 @@ class CVC4_PUBLIC Solver
    */
   Term ensureTermSort(const Term& t, const Sort& s) const;
 
+  /**
+   * Append <symbol> to the current list of universal variables.
+   * SMT-LIB: ( declare-var <symbol> <sort> )
+   * @param sort the sort of the universal variable
+   * @param symbol the name of the universal variable
+   * @return the universal variable
+   */
+  Term declareVar(Sort sort, const std::string& symbol = std::string()) const;
+
+  /**
+   * Create a Sygus grammar.
+   * @param bound_vars the parameters to corresponding synth-fun/synth-inv
+   * @param non_terminals the pre-declaration of the non-terminal symbols
+   * @return the grammar
+   */
+  Grammar mkGrammar(const std::vector<Term>& bound_vars,
+                    const std::vector<Term>& non_terminals) const;
+
+  /**
+   * Synthesize n-ary function.
+   * SMT-LIB: ( synth-fun <symbol> ( <bound_var>* ) <sort> )
+   * @param symbol the name of the function
+   * @param bound_vars the parameters to this function
+   * @param sort the sort of the return value of this function
+   * @return the function
+   */
+  Term synthFun(const std::string& symbol,
+                const std::vector<Term>& bound_vars,
+                Sort sort) const;
+
+  /**
+   * Synthesize n-ary function following specified syntactic constraints.
+   * SMT-LIB: ( synth-fun <symbol> ( <bound_var>* ) <sort> <g> )
+   * @param symbol the name of the function
+   * @param bound_vars the parameters to this function
+   * @param sort the sort of the return value of this function
+   * @param g the syntactic constraints
+   * @return the function
+   */
+  Term synthFun(const std::string& symbol,
+                const std::vector<Term>& bound_vars,
+                Sort sort,
+                Grammar g) const;
+
+  /**
+   * Synthesize invariant.
+   * SMT-LIB: ( synth-inv <symbol> ( <bound_var>* ) )
+   * @param symbol the name of the invariant
+   * @param bound_vars the parameters to this invariant
+   * @param sort the sort of the return value of this invariant
+   * @return the invariant
+   */
+  Term synthInv(const std::string& symbol,
+                const std::vector<Term>& bound_vars) const;
+
+  /**
+   * Synthesize invariant following specified syntactic constraints.
+   * SMT-LIB: ( synth-inv <symbol> ( <bound_var>* ) <g> )
+   * @param symbol the name of the invariant
+   * @param bound_vars the parameters to this invariant
+   * @param sort the sort of the return value of this invariant
+   * @param g the syntactic constraints
+   * @return the invariant
+   */
+  Term synthInv(const std::string& symbol,
+                const std::vector<Term>& bound_vars,
+                Grammar g) const;
+
+  /**
+   * Add a forumla to the set of Sygus constraints.
+   * SMT-LIB: ( constraint <term> )
+   * @param term the formula to add as a constraint
+   */
+  void addConstraint(const Term& term) const;
+
+  /**
+   * Add a set of Sygus constraints to the current state that correspond to an
+   * invariant synthesis problem.
+   * SMT-LIB: ( inv-constraint <inv> <pre> <trans> <post> )
+   * @param inv the function-to-synthesize
+   * @param pre the pre-condition
+   * @param trans the transition relation
+   * @param post the post-condition
+   */
+  void addInvariantConstraint(const Term& inv,
+                              const Term& pre,
+                              const Term& trans,
+                              const Term& post) const;
+
+  /**
+   * Try to find a solution for the synthesis conjecture corresponding to the
+   * current list of functions-to-synthesize, universal variables and
+   * constraints.
+   * SMT-LIB: ( check-synth )
+   * @return the result of the synthesis conjecture.
+   */
+  Result checkSynth() const;
+
+  /**
+   * Print solution for synthesis conjecture to the given output stream.
+   * @param out the output stream
+   */
+  void printSynthSolution(std::ostream& out) const;
+
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   ExprManager* getExprManager(void) const;
@@ -2831,7 +3054,9 @@ class CVC4_PUBLIC Solver
   Term mkBVFromStrHelper(const std::string& s, uint32_t base) const;
   /* Helper for mkBitVector functions that take a string and a size as
    * arguments. */
-  Term mkBVFromStrHelper(uint32_t size, const std::string& s, uint32_t base) const;
+  Term mkBVFromStrHelper(uint32_t size,
+                         const std::string& s,
+                         uint32_t base) const;
   /* Helper for mkBitVector functions that take an integer as argument. */
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
   /* Helper for setLogic. */
@@ -2868,6 +3093,22 @@ class CVC4_PUBLIC Solver
   std::vector<Sort> mkDatatypeSortsInternal(
       std::vector<DatatypeDecl>& dtypedecls,
       std::set<Sort>& unresolvedSorts) const;
+
+  /**
+   * Synthesize n-ary function following specified syntactic constraints.
+   * SMT-LIB: ( synth-fun <symbol> ( <bound_var>* ) <sort> <g>? )
+   * @param symbol the name of the function
+   * @param bound_vars the parameters to this function
+   * @param sort the sort of the return value of this function
+   * @param isInv determines whether this is synth-fun or synth-inv
+   * @param g the syntactic constraints
+   * @return the function
+   */
+  Term synthFunInternal(const std::string& symbol,
+                        const std::vector<Term>& bound_vars,
+                        const Sort& sort,
+                        bool isInv = false,
+                        Grammar* g = nullptr) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;
