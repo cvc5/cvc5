@@ -310,6 +310,7 @@ Node Word::splitConstant(TNode x, TNode y, size_t& index, bool isRev)
 
 Node Word::reverse(TNode x)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
   if (k == CONST_STRING)
   {
