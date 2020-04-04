@@ -1,5 +1,5 @@
 (set-logic ALL)
-;(set-info :status sat)
+(set-info :status sat)
 (set-option :produce-models true)
 (declare-fun A () (Set Int))
 (declare-fun a () Int)
