@@ -61,10 +61,10 @@ private:
   SmtEngineStatistics& d_stats;
   /** Reference to resource manager */
   ResourceManager& d_resourceManager;
-  /** True node */
-  Node d_true;
   /** The preprocess context */
   preprocessing::PreprocessingPassContext* d_preprocessingPassContext;
+  /** True node */
+  Node d_true;
   /**
    * Map of preprocessing pass instances, mapping from names to preprocessing
    * pass instance
@@ -80,7 +80,7 @@ private:
   std::map<Node, std::vector<Node> > d_fmfRecFunctionsConcrete;
   /** List of defined recursive functions processed by fmf-fun */
   NodeList* d_fmfRecFunctionsDefined;
-  /** Spend resource */
+  /** Spend resource r by the resource manager of this class. */
   void spendResource(ResourceManager::Resource r);
   /**
    * Perform non-clausal simplification of a Node.  This involves
@@ -90,9 +90,20 @@ private:
    * Returns false if the formula simplifies to "false"
    */
   bool simplifyAssertions(preprocessing::AssertionPipeline& assertions);
-  /** dump assertions */
+  /** 
+   * Dump assertions. Print the current assertion list to the dump
+   * assertions:`key` if it is enabled.
+   */
   void dumpAssertions(const char* key,
                            const preprocessing::AssertionPipeline& assertionList);
+  /** 
+   * Expand definitions in n. Return the expanded form of n.
+   * If expandOnly is true, then the expandDefinitions function of TheoryEngine
+   * is not called on subterms of n.
+   */
+  Node expandDefinitions(TNode n,
+                         NodeToNodeHashMap& cache,
+                         bool expandOnly = false);
   /**
    * Helper function to fix up assertion list to restore invariants needed after
    * ite removal.
@@ -103,11 +114,6 @@ private:
    * ite removal.
    */
   bool checkForBadSkolems(IteSkolemMap& iskMap, TNode n, TNode skolem, NodeToBoolHashMap& cache);
-
-  /** Expand definitions in n. */
-  Node expandDefinitions(TNode n,
-                         NodeToNodeHashMap& cache,
-                         bool expandOnly = false);
 };
 
 }

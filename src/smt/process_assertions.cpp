@@ -53,7 +53,8 @@ private:
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(SmtEngine& smt, SmtEngineStatistics& stats, ResourceManager& rm) : d_smt(smt), d_stats(stats), d_resourceManager(rm)
+ProcessAssertions::ProcessAssertions(SmtEngine& smt, SmtEngineStatistics& stats, ResourceManager& rm) : 
+d_smt(smt), d_stats(stats), d_resourceManager(rm), d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -64,6 +65,7 @@ ProcessAssertions::~ProcessAssertions()
 
 void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
 {
+  Assert (d_preprocessingPassContext==nullptr);
   d_preprocessingPassContext = pc;
 
   PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
@@ -518,67 +520,6 @@ void ProcessAssertions::dumpAssertions(const char* key,
   }
 }
 
-void ProcessAssertions::collectSkolems(IteSkolemMap& iskMap, TNode n, set<TNode>& skolemSet, unordered_map<Node, bool, NodeHashFunction>& cache)
-{
-  unordered_map<Node, bool, NodeHashFunction>::iterator it;
-  it = cache.find(n);
-  if (it != cache.end()) {
-    return;
-  }
-
-  size_t sz = n.getNumChildren();
-  if (sz == 0) {
-    if (iskMap.find(n) != iskMap.end())
-    {
-      skolemSet.insert(n);
-    }
-    cache[n] = true;
-    return;
-  }
-
-  size_t k = 0;
-  for (; k < sz; ++k) {
-    collectSkolems(iskMap, n[k], skolemSet, cache);
-  }
-  cache[n] = true;
-}
-
-bool ProcessAssertions::checkForBadSkolems(IteSkolemMap& iskMap, TNode n, TNode skolem, unordered_map<Node, bool, NodeHashFunction>& cache)
-{
-  unordered_map<Node, bool, NodeHashFunction>::iterator it;
-  it = cache.find(n);
-  if (it != cache.end()) {
-    return (*it).second;
-  }
-
-  size_t sz = n.getNumChildren();
-  if (sz == 0) {
-    IteSkolemMap::iterator iit = iskMap.find(n);
-    bool bad = false;
-    if (iit != iskMap.end())
-    {
-      if (!((*iit).first < n))
-      {
-        bad = true;
-      }
-    }
-    cache[n] = bad;
-    return bad;
-  }
-
-  size_t k = 0;
-  for (; k < sz; ++k) {
-    if (checkForBadSkolems(iskMap, n[k], skolem, cache)) {
-      cache[n] = true;
-      return true;
-    }
-  }
-
-  cache[n] = false;
-  return false;
-}
-
-
 Node ProcessAssertions::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
 {
   NodeManager * nm = d_smt.d_nodeManager;
@@ -765,6 +706,68 @@ Node ProcessAssertions::expandDefinitions(TNode n, unordered_map<Node, Node, Nod
 
   return result.top();
 }
+
+
+void ProcessAssertions::collectSkolems(IteSkolemMap& iskMap, TNode n, set<TNode>& skolemSet, unordered_map<Node, bool, NodeHashFunction>& cache)
+{
+  unordered_map<Node, bool, NodeHashFunction>::iterator it;
+  it = cache.find(n);
+  if (it != cache.end()) {
+    return;
+  }
+
+  size_t sz = n.getNumChildren();
+  if (sz == 0) {
+    if (iskMap.find(n) != iskMap.end())
+    {
+      skolemSet.insert(n);
+    }
+    cache[n] = true;
+    return;
+  }
+
+  size_t k = 0;
+  for (; k < sz; ++k) {
+    collectSkolems(iskMap, n[k], skolemSet, cache);
+  }
+  cache[n] = true;
+}
+
+bool ProcessAssertions::checkForBadSkolems(IteSkolemMap& iskMap, TNode n, TNode skolem, unordered_map<Node, bool, NodeHashFunction>& cache)
+{
+  unordered_map<Node, bool, NodeHashFunction>::iterator it;
+  it = cache.find(n);
+  if (it != cache.end()) {
+    return (*it).second;
+  }
+
+  size_t sz = n.getNumChildren();
+  if (sz == 0) {
+    IteSkolemMap::iterator iit = iskMap.find(n);
+    bool bad = false;
+    if (iit != iskMap.end())
+    {
+      if (!((*iit).first < n))
+      {
+        bad = true;
+      }
+    }
+    cache[n] = bad;
+    return bad;
+  }
+
+  size_t k = 0;
+  for (; k < sz; ++k) {
+    if (checkForBadSkolems(iskMap, n[k], skolem, cache)) {
+      cache[n] = true;
+      return true;
+    }
+  }
+
+  cache[n] = false;
+  return false;
+}
+
 
 }
 }
