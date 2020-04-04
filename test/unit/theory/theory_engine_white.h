@@ -113,18 +113,6 @@ class FakeTheoryRewriter : public TheoryRewriter
 template <TheoryId theoryId>
 class FakeTheory : public Theory
 {
-  /**
-   * This fake theory class is equally useful for bool, uf, arith, etc.  It
-   * keeps an identifier to identify itself.
-   */
-  std::string d_id;
-
-  /**
-   * The expected sequence of rewrite calls.  Filled by FakeTheory::expect() and
-   * consumed by FakeTheory::preRewrite() and FakeTheory::postRewrite().
-   */
-  // static std::deque<RewriteItem> s_expected;
-
  public:
   FakeTheory(context::Context* ctxt,
              context::UserContext* uctxt,
@@ -135,10 +123,7 @@ class FakeTheory : public Theory
   {
   }
 
-  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override
-  {
-    return std::unique_ptr<TheoryRewriter>(new FakeTheoryRewriter());
-  }
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   /** Register an expected rewrite call */
   static void expect(RewriteType type,
@@ -176,6 +161,16 @@ class FakeTheory : public Theory
     return Node::null();
   }
   Node getValue(TNode n) { return Node::null(); }
+
+ private:
+  /**
+   * This fake theory class is equally useful for bool, uf, arith, etc.  It
+   * keeps an identifier to identify itself.
+   */
+  std::string d_id;
+
+  /** The theory rewriter for this theory. */
+  FakeTheoryRewriter d_rewriter;
 }; /* class FakeTheory */
 
 /* definition of the s_expected static field in FakeTheory; see above */

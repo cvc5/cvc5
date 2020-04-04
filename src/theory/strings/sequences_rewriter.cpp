@@ -21,7 +21,6 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/regexp_entail.h"
-#include "theory/strings/strings_entail.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
@@ -32,6 +31,11 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
+
+SequencesRewriter::SequencesRewriter(HistogramStat<Rewrite>* statistics)
+    : d_statistics(statistics), d_stringsEntail(*this)
+{
+}
 
 Node SequencesRewriter::rewriteEquality(Node node)
 {
@@ -53,7 +57,7 @@ Node SequencesRewriter::rewriteEquality(Node node)
     // must call rewrite contains directly to avoid infinite loop
     // we do a fix point since we may rewrite contains terms to simpler
     // contains terms.
-    Node ctn = StringsEntail::checkContains(node[r], node[1 - r], false);
+    Node ctn = d_stringsEntail.checkContains(node[r], node[1 - r], false);
     if (!ctn.isNull())
     {
       if (!ctn.getConst<bool>())
@@ -810,7 +814,7 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
           // e.g. this ensures we rewrite (a)* ++ (_)* ---> (_)*
           while (!cvec.empty() && RegExpEntail::isConstRegExp(cvec.back())
                  && RegExpEntail::testConstStringInRegExp(
-                        emptyStr, 0, cvec.back()))
+                     emptyStr, 0, cvec.back()))
           {
             cvec.pop_back();
           }
@@ -1337,8 +1341,8 @@ Node SequencesRewriter::rewriteMembership(TNode node)
 
 RewriteResponse SequencesRewriter::postRewrite(TNode node)
 {
-  Trace("strings-postrewrite")
-      << "Strings::postRewrite start " << node << std::endl;
+  Trace("sequences-postrewrite")
+      << "Strings::SequencesRewriter::postRewrite start " << node << std::endl;
   Node retNode = node;
   Kind nk = node.getKind();
   if (nk == kind::STRING_CONCAT)
@@ -1365,14 +1369,6 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteContains(node);
   }
-  else if (nk == kind::STRING_LT)
-  {
-    retNode = StringsRewriter::rewriteStringLt(node);
-  }
-  else if (nk == kind::STRING_LEQ)
-  {
-    retNode = StringsRewriter::rewriteStringLeq(node);
-  }
   else if (nk == kind::STRING_STRIDOF)
   {
     retNode = rewriteIndexof(node);
@@ -1385,10 +1381,6 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteReplaceAll(node);
   }
-  else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
-  {
-    retNode = StringsRewriter::rewriteStrConvert(node);
-  }
   else if (nk == STRING_REV)
   {
     retNode = rewriteStrReverse(node);
@@ -1397,29 +1389,9 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewritePrefixSuffix(node);
   }
-  else if (nk == STRING_IS_DIGIT)
-  {
-    retNode = StringsRewriter::rewriteStringIsDigit(node);
-  }
-  else if (nk == kind::STRING_ITOS)
-  {
-    retNode = StringsRewriter::rewriteIntToStr(node);
-  }
-  else if (nk == kind::STRING_STOI)
-  {
-    retNode = StringsRewriter::rewriteStrToInt(node);
-  }
   else if (nk == kind::STRING_IN_REGEXP)
   {
     retNode = rewriteMembership(node);
-  }
-  else if (nk == STRING_TO_CODE)
-  {
-    retNode = StringsRewriter::rewriteStringToCode(node);
-  }
-  else if (nk == STRING_FROM_CODE)
-  {
-    retNode = StringsRewriter::rewriteStringFromCode(node);
   }
   else if (nk == REGEXP_CONCAT)
   {
@@ -1458,12 +1430,13 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
     retNode = rewriteRepeatRegExp(node);
   }
 
-  Trace("strings-postrewrite")
-      << "Strings::postRewrite returning " << retNode << std::endl;
+  Trace("sequences-postrewrite")
+      << "Strings::SequencesRewriter::postRewrite returning " << retNode
+      << std::endl;
   if (node != retNode)
   {
-    Trace("strings-rewrite-debug")
-        << "Strings: post-rewrite " << node << " to " << retNode << std::endl;
+    Trace("strings-rewrite-debug") << "Strings::SequencesRewriter::postRewrite "
+                                   << node << " to " << retNode << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, retNode);
   }
   return RewriteResponse(REWRITE_DONE, retNode);
@@ -1866,7 +1839,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       }
       else if (node[0].getKind() == STRING_STRREPL)
       {
-        Node rplDomain = StringsEntail::checkContains(node[0][1], node[1]);
+        Node rplDomain = d_stringsEntail.checkContains(node[0][1], node[1]);
         if (!rplDomain.isNull() && !rplDomain.getConst<bool>())
         {
           Node d1 = nm->mkNode(STRING_STRCTN, node[0][0], node[1]);
@@ -1892,7 +1865,7 @@ Node SequencesRewriter::rewriteContains(Node node)
   // component-wise containment
   std::vector<Node> nc1rb;
   std::vector<Node> nc1re;
-  if (StringsEntail::componentContains(nc1, nc2, nc1rb, nc1re) != -1)
+  if (d_stringsEntail.componentContains(nc1, nc2, nc1rb, nc1re) != -1)
   {
     Node ret = NodeManager::currentNM()->mkConst(true);
     return returnRewrite(node, ret, Rewrite::CTN_COMPONENT);
@@ -1920,10 +1893,10 @@ Node SequencesRewriter::rewriteContains(Node node)
       // replacement does not change y. (str.contains x w) checks that if the
       // replacement changes anything in y, the w makes it impossible for it to
       // occur in x.
-      Node ctnConst = StringsEntail::checkContains(node[0], n[0]);
+      Node ctnConst = d_stringsEntail.checkContains(node[0], n[0]);
       if (!ctnConst.isNull() && !ctnConst.getConst<bool>())
       {
-        Node ctnConst2 = StringsEntail::checkContains(node[0], n[2]);
+        Node ctnConst2 = d_stringsEntail.checkContains(node[0], n[2]);
         if (!ctnConst2.isNull() && !ctnConst2.getConst<bool>())
         {
           Node res = nm->mkConst(false);
@@ -2091,7 +2064,7 @@ Node SequencesRewriter::rewriteContains(Node node)
     // if (str.contains z w) ---> false and (str.len w) = 1
     if (StringsEntail::checkLengthOne(node[1]))
     {
-      Node ctn = StringsEntail::checkContains(node[1], node[0][2]);
+      Node ctn = d_stringsEntail.checkContains(node[1], node[0][2]);
       if (!ctn.isNull() && !ctn.getConst<bool>())
       {
         Node empty = nm->mkConst(String(""));
@@ -2235,7 +2208,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
     fstr = Rewriter::rewrite(fstr);
   }
 
-  Node cmp_conr = StringsEntail::checkContains(fstr, node[1]);
+  Node cmp_conr = d_stringsEntail.checkContains(fstr, node[1]);
   Trace("strings-rewrite-debug") << "For " << node << ", check contains("
                                  << fstr << ", " << node[1] << ")" << std::endl;
   Trace("strings-rewrite-debug") << "...got " << cmp_conr << std::endl;
@@ -2250,7 +2223,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         // past the first position in node[0] that contains node[1], we can drop
         std::vector<Node> nb;
         std::vector<Node> ne;
-        int cc = StringsEntail::componentContains(
+        int cc = d_stringsEntail.componentContains(
             children0, children1, nb, ne, true, 1);
         if (cc != -1 && !ne.empty())
         {
@@ -2445,14 +2418,14 @@ Node SequencesRewriter::rewriteReplace(Node node)
   // check if contains definitely does (or does not) hold
   Node cmp_con = nm->mkNode(kind::STRING_STRCTN, node[0], node[1]);
   Node cmp_conr = Rewriter::rewrite(cmp_con);
-  if (!StringsEntail::checkContains(node[0], node[1]).isNull())
+  if (!d_stringsEntail.checkContains(node[0], node[1]).isNull())
   {
     if (cmp_conr.getConst<bool>())
     {
       // component-wise containment
       std::vector<Node> cb;
       std::vector<Node> ce;
-      int cc = StringsEntail::componentContains(
+      int cc = d_stringsEntail.componentContains(
           children0, children1, cb, ce, true, 1);
       if (cc != -1)
       {
@@ -2673,7 +2646,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
         return returnRewrite(node, node[0], Rewrite::REPL_REPL2_INV_ID);
       }
       bool dualReplIteSuccess = false;
-      Node cmp_con2 = StringsEntail::checkContains(node[1][0], node[1][2]);
+      Node cmp_con2 = d_stringsEntail.checkContains(node[1][0], node[1][2]);
       if (!cmp_con2.isNull() && !cmp_con2.getConst<bool>())
       {
         // str.contains( x, z ) ---> false
@@ -2688,10 +2661,10 @@ Node SequencesRewriter::rewriteReplace(Node node)
         //   implies
         // str.replace( x, str.replace( x, y, z ), w ) --->
         // ite( str.contains( x, y ), x, w )
-        cmp_con2 = StringsEntail::checkContains(node[1][1], node[1][2]);
+        cmp_con2 = d_stringsEntail.checkContains(node[1][1], node[1][2]);
         if (!cmp_con2.isNull() && !cmp_con2.getConst<bool>())
         {
-          cmp_con2 = StringsEntail::checkContains(node[1][2], node[1][1]);
+          cmp_con2 = d_stringsEntail.checkContains(node[1][2], node[1][1]);
           if (!cmp_con2.isNull() && !cmp_con2.getConst<bool>())
           {
             dualReplIteSuccess = true;
@@ -2721,7 +2694,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
         // str.contains(y, z) ----> false and ( y == w or x == w ) implies
         //   implies
         // str.replace(x, str.replace(y, x, z), w) ---> str.replace(x, y, w)
-        Node cmp_con2 = StringsEntail::checkContains(node[1][0], node[1][2]);
+        Node cmp_con2 = d_stringsEntail.checkContains(node[1][0], node[1][2]);
         invSuccess = !cmp_con2.isNull() && !cmp_con2.getConst<bool>();
       }
     }
@@ -2730,10 +2703,10 @@ Node SequencesRewriter::rewriteReplace(Node node)
       // str.contains(x, z) ----> false and str.contains(x, w) ----> false
       //   implies
       // str.replace(x, str.replace(y, z, w), u) ---> str.replace(x, y, u)
-      Node cmp_con2 = StringsEntail::checkContains(node[0], node[1][1]);
+      Node cmp_con2 = d_stringsEntail.checkContains(node[0], node[1][1]);
       if (!cmp_con2.isNull() && !cmp_con2.getConst<bool>())
       {
-        cmp_con2 = StringsEntail::checkContains(node[0], node[1][2]);
+        cmp_con2 = d_stringsEntail.checkContains(node[0], node[1][2]);
         invSuccess = !cmp_con2.isNull() && !cmp_con2.getConst<bool>();
       }
     }
@@ -2749,7 +2722,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
     {
       // str.contains( z, w ) ----> false implies
       // str.replace( x, w, str.replace( z, x, y ) ) ---> str.replace( x, w, z )
-      Node cmp_con2 = StringsEntail::checkContains(node[1], node[2][0]);
+      Node cmp_con2 = d_stringsEntail.checkContains(node[1], node[2][0]);
       if (!cmp_con2.isNull() && !cmp_con2.getConst<bool>())
       {
         Node res =
@@ -2769,7 +2742,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
       {
         // str.contains( x, z ) ----> false implies
         // str.replace( x, y, str.replace( y, z, w ) ) ---> x
-        cmp_con = StringsEntail::checkContains(node[0], node[2][1]);
+        cmp_con = d_stringsEntail.checkContains(node[0], node[2][1]);
         success = !cmp_con.isNull() && !cmp_con.getConst<bool>();
       }
       if (success)
@@ -2795,7 +2768,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
           checkLhs.end(), children0.begin(), children0.begin() + checkIndex);
       Node lhs = utils::mkConcat(checkLhs, stype);
       Node rhs = children0[checkIndex];
-      Node ctn = StringsEntail::checkContains(lhs, rhs);
+      Node ctn = d_stringsEntail.checkContains(lhs, rhs);
       if (!ctn.isNull() && ctn.getConst<bool>())
       {
         lastLhs = lhs;
@@ -3101,6 +3074,11 @@ Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
                            << "." << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
+
+  if (d_statistics != nullptr)
+  {
+    (*d_statistics) << r;
+  }
 
   // standard post-processing
   // We rewrite (string) equalities immediately here. This allows us to forego

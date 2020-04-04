@@ -33,9 +33,13 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-std::unique_ptr<TheoryRewriter> TheoryBool::mkTheoryRewriter()
+TheoryBool::TheoryBool(context::Context* c,
+                       context::UserContext* u,
+                       OutputChannel& out,
+                       Valuation valuation,
+                       const LogicInfo& logicInfo)
+    : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo)
 {
-  return std::unique_ptr<TheoryRewriter>(new TheoryBoolRewriter());
 }
 
 Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {

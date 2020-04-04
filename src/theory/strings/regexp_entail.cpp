@@ -438,7 +438,9 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
         return true;
       }
     }
-    case REGEXP_EMPTY: { return false;
+    case REGEXP_EMPTY:
+    {
+      return false;
     }
     case REGEXP_SIGMA:
     {
