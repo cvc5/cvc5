@@ -82,6 +82,7 @@
 #include "prop/prop_engine.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
+#include "smt/defined_function.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
 #include "smt/model_blocker.h"
@@ -156,27 +157,6 @@ public:
     --d_depth;
   }
 };
-
-/**
- * Representation of a defined function.  We keep these around in
- * SmtEngine to permit expanding definitions late (and lazily), to
- * support getValue() over defined functions, to support user output
- * in terms of defined functions, etc.
- */
-class DefinedFunction {
-  Node d_func;
-  vector<Node> d_formals;
-  Node d_formula;
-public:
-  DefinedFunction() {}
-  DefinedFunction(Node func, vector<Node>& formals, Node formula)
-      : d_func(func), d_formals(formals), d_formula(formula)
-  {
-  }
-  Node getFunction() const { return d_func; }
-  vector<Node> getFormals() const { return d_formals; }
-  Node getFormula() const { return d_formula; }
-};/* class DefinedFunction */
 
 class SoftResourceOutListener : public Listener {
  public:
@@ -1820,6 +1800,22 @@ void SmtEnginePrivate::processAssertions() {
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
   
+  if (d_assertions.size() == 0) {
+    // nothing to do
+    return;
+  }
+  if (d_assertionsProcessed && options::incrementalSolving()) {
+    // TODO(b/1255): Substitutions in incremental mode should be managed with a
+    // proper data structure.
+
+    d_assertions.enableStoreSubstsInAsserts();
+  }
+  else
+  {
+    d_assertions.disableStoreSubstsInAsserts();
+  }
+  
+  
   //#################
   SubstitutionMap& top_level_substs =
       d_preprocessingPassContext->getTopLevelSubstitutions();
@@ -1833,26 +1829,12 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << "#Assertions : " << d_assertions.size() << endl;
   Debug("smt") << "#Assumptions: " << d_assertions.getNumAssumptions() << endl;
 
-  if (d_assertions.size() == 0) {
-    // nothing to do
-    return;
-  }
-
+  
   if (options::bvGaussElim())
   {
     d_passes["bv-gauss"]->apply(&d_assertions);
   }
 
-  if (d_assertionsProcessed && options::incrementalSolving()) {
-    // TODO(b/1255): Substitutions in incremental mode should be managed with a
-    // proper data structure.
-
-    d_assertions.enableStoreSubstsInAsserts();
-  }
-  else
-  {
-    d_assertions.disableStoreSubstsInAsserts();
-  }
 
   // Add dummy assertion in last position - to be used as a
   // placeholder for any new assertions to get added

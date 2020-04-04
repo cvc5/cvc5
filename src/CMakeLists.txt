@@ -223,6 +223,7 @@ libcvc4_add_sources(
   smt/command.h
   smt/command_list.cpp
   smt/command_list.h
+  smt/defined_function.h
   smt/dump.cpp
   smt/dump.h
   smt/logic_exception.h

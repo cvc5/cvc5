@@ -28,6 +28,7 @@
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
+#include "util/resource_manager.h"
 
 namespace CVC4 {
   
@@ -41,9 +42,10 @@ namespace smt {
 class ProcessAssertions {
   /** The types for the recursive function definitions */
   typedef context::CDList<Node> NodeList;
+  typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
  public:
-  ProcessAssertions(SmtEngine& smt);
+  ProcessAssertions(SmtEngine& smt, ResourceManager * rm);
 
   ~ProcessAssertions();
   /**
@@ -57,6 +59,10 @@ class ProcessAssertions {
 private:
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
+  /** Pointer to resource manager */
+  ResourceManager* d_resourceManager;
+  /** True node */
+  Node d_true;
   /** The preprocess context */
   preprocessing::PreprocessingPassContext* d_preprocessingPassContext;
 
@@ -75,6 +81,8 @@ private:
   std::map<Node, std::vector<Node> > d_fmfRecFunctionsConcrete;
   NodeList* d_fmfRecFunctionsDefined;
   
+  /** Spend resource */
+  void spendResource(ResourceManager::Resource r);
   /**
    * Perform non-clausal simplification of a Node.  This involves
    * Theory implementations, but does NOT involve the SAT solver in
@@ -90,7 +98,17 @@ private:
    * Helper function to fix up assertion list to restore invariants needed after
    * ite removal.
    */
+  void collectSkolems(IteSkolemMap& iskMap, TNode n, set<TNode>& skolemSet, NodeToBoolHashMap& cache);
+  /**
+   * Helper function to fix up assertion list to restore invariants needed after
+   * ite removal.
+   */
   bool checkForBadSkolems(IteSkolemMap& iskMap, TNode n, TNode skolem, NodeToBoolHashMap& cache);
+
+  /** Expand definitions in n. */
+  Node expandDefinitions(TNode n,
+                         NodeToNodeHashMap& cache,
+                         bool expandOnly = false);
 };
 
 }
