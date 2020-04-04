@@ -51,8 +51,6 @@ extern int optreset;
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
-#include "options/argument_extender.h"
-#include "options/argument_extender_implementation.h"
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/options_handler.h"
@@ -567,13 +565,9 @@ std::vector<std::string> Options::parseOptions(Options* options,
   }
   options->d_holder->binary_name = std::string(progName);
 
-  ArgumentExtender* argumentExtender = new ArgumentExtenderImplementation();
-  for(int position = 1; position < argc; position++) {
-    argumentExtender->pushBackArgument(argv[position]);
-  }
 
   std::vector<std::string> nonoptions;
-  parseOptionsRecursive(options, argumentExtender, &nonoptions);
+  parseOptionsRecursive(options, argc, argv, &nonoptions);
   if(Debug.isOn("options")){
     for(std::vector<std::string>::const_iterator i = nonoptions.begin(),
           iend = nonoptions.end(); i != iend; ++i){
@@ -581,20 +575,14 @@ std::vector<std::string> Options::parseOptions(Options* options,
     }
   }
 
-  delete argumentExtender;
   return nonoptions;
 }
 
 void Options::parseOptionsRecursive(Options* options,
-                                    ArgumentExtender* extender,
+                                    int argc,
+                                               char* argv[],
                                     std::vector<std::string>* nonoptions)
 {
-  int argc;
-  char** argv;
-
-  extender->movePreemptionsToArguments();
-  extender->pushFrontArgument("");
-  extender->getArguments(&argc, &argv);
 
   if(Debug.isOn("options")) {
     Debug("options") << "starting a new parseOptionsRecursive with "
@@ -615,27 +603,18 @@ void Options::parseOptionsRecursive(Options* options,
   optreset = 1; // on BSD getopt() (e.g. Mac OS), might need this
 #endif /* HAVE_DECL_OPTRESET */
 
-  
-  int main_optind = 0;
+  // start with position after the binary name
+  int main_optind = 1;
   int old_optind;
 
 
   while(true) { // Repeat Forever
-
-    if(extender->hasPreemptions()){
-      // Stop this round of parsing. We now parse recursively
-      // to start on a new character array for argv.
-      parseOptionsRecursive(options, extender, nonoptions);
-      break;
-    }
 
     optopt = 0;
     std::string option, optionarg;
 
     optind = main_optind;
     old_optind = main_optind;
-    //optind_ref = &main_optind;
-    //argv = main_argv;
 
     // If we encounter an element that is not at zero and does not start
     // with a "-", this is a non-option. We consume this element as a
@@ -646,7 +625,6 @@ void Options::parseOptionsRecursive(Options* options,
                        << " as a non-option." << std::endl;
       nonoptions->push_back(argv[main_optind]);
       ++main_optind;
-      extender->popFrontArgument();
       continue;
     }
 
@@ -659,11 +637,6 @@ void Options::parseOptionsRecursive(Options* options,
     int c = getopt_long(argc, argv,
                         "+:${options_short}$",
                         cmdlineOptions, NULL);
-
-    while(main_optind < optind) {
-      main_optind++;
-      extender->popFrontArgument();
-    }
 
     Debug("options") << "[ got " << int(c) << " (" << char(c) << ") ]"
                      << "[ next option will be at pos: " << optind << " ]"
