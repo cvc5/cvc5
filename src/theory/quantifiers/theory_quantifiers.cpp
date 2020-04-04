@@ -38,6 +38,7 @@ using namespace CVC4::theory::quantifiers;
 TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
     Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo)
 {
+  out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute( "sygus", this );
   out.handleUserAttribute("quant-name", this);
   out.handleUserAttribute("sygus-synth-grammar", this);
