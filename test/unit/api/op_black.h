@@ -25,7 +25,6 @@ class OpBlack : public CxxTest::TestSuite
   void tearDown() override {}
 
   void testGetKind();
-  void testGetSort();
   void testIsNull();
   void testOpFromKind();
   void testGetIndicesString();
@@ -39,17 +38,8 @@ class OpBlack : public CxxTest::TestSuite
 void OpBlack::testGetKind()
 {
   Op x;
-  TS_ASSERT_THROWS(x.getSort(), CVC4ApiException&);
   x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
   TS_ASSERT_THROWS_NOTHING(x.getKind());
-}
-
-void OpBlack::testGetSort()
-{
-  Op x;
-  TS_ASSERT_THROWS(x.getSort(), CVC4ApiException&);
-  x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
-  TS_ASSERT_THROWS_NOTHING(x.getSort());
 }
 
 void OpBlack::testIsNull()

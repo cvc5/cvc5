@@ -2138,70 +2138,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
   : KEYWORD ( simpleSymbolicExprNoKeyword[sexpr] { hasValue = true; } )?
   {
     attr = AntlrInput::tokenText($KEYWORD);
-    if(attr == ":rewrite-rule") {
-      if(hasValue) {
-        std::stringstream ss;
-        ss << "warning: Attribute " << attr
-           << " does not take a value (ignoring)";
-        PARSER_STATE->warning(ss.str());
-      }
-      // do nothing
-    }
-    else if (attr==":axiom" || attr==":conjecture" || attr==":fun-def")
-    {
-      if(hasValue) {
-        std::stringstream ss;
-        ss << "warning: Attribute " << attr
-           << " does not take a value (ignoring)";
-        PARSER_STATE->warning(ss.str());
-      }
-      api::Term avar;
-      bool success = true;
-      std::string attr_name = attr;
-      attr_name.erase( attr_name.begin() );
-      if( attr==":fun-def" ){
-        if( expr.getKind()!=api::EQUAL || expr[0].getKind()!=api::APPLY_UF ){
-          success = false;
-        }else{
-          api::Sort t = expr[0].getOp().getSort();
-          for( unsigned i=0; i<expr[0].getNumChildren(); i++ ){
-            if( expr[0][i].getKind() != api::VARIABLE ||
-                expr[0][i].getSort() != t.getFunctionDomainSorts()[i] ){
-              success = false;
-              break;
-            }else{
-              for( unsigned j=0; j<i; j++ ){
-                if( expr[0][j]==expr[0][i] ){
-                  success = false;
-                  break;
-                }
-              }
-            }
-          }
-        }
-        if( !success ){
-          std::stringstream ss;
-          ss << "warning: Function definition should be an equality whose LHS "
-             << "is an uninterpreted function applied to unique variables.";
-          PARSER_STATE->warning(ss.str());
-        }else{
-          avar = expr[0];
-        }
-      }else{
-        api::Sort boolType = SOLVER->getBooleanSort();
-        avar = PARSER_STATE->bindVar(attr_name, boolType);
-      }
-      if( success ){
-        //Will set the attribute on auxiliary var (preserves attribute on
-        //formula through rewriting).
-        retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-        Command* c = new SetUserAttributeCommand( attr_name, avar.getExpr() );
-        c->setMuted(true);
-        PARSER_STATE->preemptCommand(c);
-      }
-    } else {
-      PARSER_STATE->attributeNotSupported(attr);
-    }
+    PARSER_STATE->attributeNotSupported(attr);
   }
   | ATTRIBUTE_PATTERN_TOK LPAREN_TOK
     ( term[patexpr, e2]
