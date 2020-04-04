@@ -1852,6 +1852,14 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   COMPREHENSION,
+  /**
+   * Choose an element from a given set
+   * Parameters: 1
+   *   -[1]: Set
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  CHOOSE,
 
   /* Strings --------------------------------------------------------------- */
 
