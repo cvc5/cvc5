@@ -735,6 +735,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     options::ufssFairnessMonotone.set(false);
     options::quantEpr.set(false);
     options::globalNegate.set(false);
+    options::bvAbstraction.set(false);
+    options::arithMLTrick.set(false);
   }
   if (logic.hasCardinalityConstraints())
   {

@@ -90,8 +90,6 @@ void ProcessAssertions::spendResource(ResourceManager::Resource r)
 }
 
 void ProcessAssertions::apply(AssertionPipeline& assertions) {
-  SubstitutionMap& top_level_substs =
-      d_preprocessingPassContext->getTopLevelSubstitutions();
 
   // Dump the assertions
   dumpAssertions("pre-everything", assertions);
@@ -106,6 +104,9 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
     // nothing to do
     return;
   }
+  
+  SubstitutionMap& top_level_substs =
+      d_preprocessingPassContext->getTopLevelSubstitutions();
 
   if (options::bvGaussElim())
   {
@@ -170,7 +171,7 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
     d_passes["ackermann"]->apply(&assertions);
   }
 
-  if (options::bvAbstraction() && !options::incrementalSolving())
+  if (options::bvAbstraction())
   {
     d_passes["bv-abstraction"]->apply(&assertions);
   }
@@ -433,8 +434,6 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
       // do the miplib trick.
       if (  // check that option is on
           options::arithMLTrick() &&
-          // miplib rewrites aren't safe in incremental mode
-          !options::incrementalSolving() &&
           // only useful in arith
           d_smt.d_logic.isTheoryEnabled(THEORY_ARITH) &&
           // we add new assertions and need this (in practice, this
@@ -767,8 +766,6 @@ Node ProcessAssertions::expandDefinitions(TNode n, unordered_map<Node, Node, Nod
 
   return result.top();
 }
-
-
 
 }
 }
