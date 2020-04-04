@@ -2,16 +2,14 @@
 /*! \file process_assertions.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The main entry point into the CVC4 library's SMT interface
- **
- ** The main entry point into the CVC4 library's SMT interface.
+ ** \brief The module for processing assertions for an SMT engine.
  **/
 
 #include "cvc4_private.h"
@@ -27,8 +25,8 @@
 #include "context/cdhashmap.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "util/resource_manager.h"
+#include "smt/smt_engine_stats.h"
 
 namespace CVC4 {
   
@@ -45,7 +43,7 @@ class ProcessAssertions {
   typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
  public:
-  ProcessAssertions(SmtEngine& smt, ResourceManager * rm);
+  ProcessAssertions(SmtEngine& smt, SmtEngineStatistics& stats, ResourceManager& rm);
 
   ~ProcessAssertions();
   /**
@@ -59,8 +57,10 @@ class ProcessAssertions {
 private:
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
-  /** Pointer to resource manager */
-  ResourceManager* d_resourceManager;
+  /** Reference to the statistics of SMT engine */
+  SmtEngineStatistics& d_stats;
+  /** Reference to resource manager */
+  ResourceManager& d_resourceManager;
   /** True node */
   Node d_true;
   /** The preprocess context */

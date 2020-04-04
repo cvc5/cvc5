@@ -428,7 +428,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_abstractValueMap(&d_fakeContext),
         d_abstractValues(),
         d_simplifyAssertionsDepth(0),
-        d_processor(smt, d_resourceManager),
+        d_processor(smt, *smt.d_stats, *d_resourceManager),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),

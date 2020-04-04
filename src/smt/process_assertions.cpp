@@ -9,9 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The main entry point into the CVC4 library's SMT interface
- **
- ** The main entry point into the CVC4 library's SMT interface.
+ ** \brief Implementation of module for processing assertions for an SMT engine.
  **/
 
 #include "smt/process_assertions.h"
@@ -20,7 +18,6 @@
 #include <utility>
 
 #include "smt/smt_engine.h"
-#include "smt/smt_engine_stats.h"
 #include "theory/theory_engine.h"
 #include "options/bv_options.h"
 #include "options/quantifiers_options.h"
@@ -35,6 +32,7 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "expr/node_manager_attributes.h"
 #include "smt/defined_function.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 
 using namespace CVC4::preprocessing;
 using namespace CVC4::theory;
@@ -55,7 +53,7 @@ private:
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(SmtEngine& smt, ResourceManager * rm) : d_smt(smt), d_resourceManager(rm)
+ProcessAssertions::ProcessAssertions(SmtEngine& smt, SmtEngineStatistics& stats, ResourceManager& rm) : d_smt(smt), d_stats(stats), d_resourceManager(rm)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -86,7 +84,7 @@ void ProcessAssertions::cleanup()
 }
 void ProcessAssertions::spendResource(ResourceManager::Resource r)
 {
-  d_resourceManager->spendResource(r);
+  d_resourceManager.spendResource(r);
 }
 
 void ProcessAssertions::apply(AssertionPipeline& assertions) {
@@ -127,7 +125,7 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
   {
     Chat() << "expanding definitions..." << endl;
     Trace("simplify") << "ProcessAssertions::simplify(): expanding definitions" << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_definitionExpansionTime);
+    TimerStat::CodeTimer codeTimer(d_stats.d_definitionExpansionTime);
     unordered_map<Node, Node, NodeHashFunction> cache;
     for(unsigned i = 0; i < assertions.size(); ++ i) {
       assertions.replace(i, expandDefinitions(assertions[i], cache));
@@ -237,7 +235,7 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
     if( options::fmfFunWellDefined() ){
       quantifiers::FunDefFmf fdf;
       Assert(d_fmfRecFunctionsDefined != NULL);
-      //must carry over current definitions (for incremental)
+      //must carry over current definitions (in case of incremental)
       for( context::CDList<Node>::const_iterator fit = d_fmfRecFunctionsDefined->begin();
            fit != d_fmfRecFunctionsDefined->end(); ++fit ) {
         Node f = (*fit);
@@ -252,7 +250,7 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
         }
       }
       fdf.simplify( assertions.ref() );
-      //must store new definitions (for incremental)
+      //must store new definitions (in case of incremental)
       for( unsigned i=0; i<fdf.d_funcs.size(); i++ ){
         Node f = fdf.d_funcs[i];
         d_fmfRecFunctionsAbs[f] = fdf.d_sorts[f];
@@ -292,7 +290,7 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
   Chat() << "simplifying assertions..." << endl;
   noConflict = simplifyAssertions(assertions);
   if(!noConflict){
-    ++(d_smt.d_stats->d_simplifiedToFalse);
+    ++(d_stats.d_simplifiedToFalse);
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", assertions);
@@ -303,13 +301,13 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
   {
-    d_smt.d_stats->d_numAssertionsPre += assertions.size();
+    d_stats.d_numAssertionsPre += assertions.size();
     d_passes["ite-removal"]->apply(&assertions);
     // This is needed because when solving incrementally, removeITEs may introduce
     // skolems that were solved for earlier and thus appear in the substitution
     // map.
     d_passes["apply-substs"]->apply(&assertions);
-    d_smt.d_stats->d_numAssertionsPost += assertions.size();
+    d_stats.d_numAssertionsPost += assertions.size();
   }
 
   dumpAssertions("pre-repeat-simplify", assertions);
