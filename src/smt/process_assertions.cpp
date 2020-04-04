@@ -84,13 +84,14 @@ void ProcessAssertions::cleanup()
 {
   d_passes.clear();
 }
+
 void ProcessAssertions::spendResource(ResourceManager::Resource r)
 {
   d_resourceManager.spendResource(r);
 }
 
-void ProcessAssertions::apply(AssertionPipeline& assertions) {
-
+bool ProcessAssertions::apply(AssertionPipeline& assertions) {
+  Assert (d_preprocessingPassContext!=nullptr);
   // Dump the assertions
   dumpAssertions("pre-everything", assertions);
 
@@ -102,7 +103,7 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
 
   if (assertions.size() == 0) {
     // nothing to do
-    return;
+    return true;
   }
   
   SubstitutionMap& top_level_substs =
@@ -404,6 +405,11 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
   {
     d_passes["bv-eager-atoms"]->apply(&assertions);
   }
+  
+  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
+  dumpAssertions("post-everything", assertions);
+  
+  return noConflict;
 }
 
 

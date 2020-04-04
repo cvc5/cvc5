@@ -36,6 +36,10 @@ namespace smt {
 
 /** 
  * Module in charge of processing assertions for an SMT engine.
+ * 
+ * It is designed to be agnostic to whether we are in incremental mode. That is,
+ * it processes assertions in a way that assumes that apply(...) can be
+ * applied multiple times to assertions.
  */
 class ProcessAssertions {
   /** The types for the recursive function definitions */
@@ -47,13 +51,22 @@ class ProcessAssertions {
 
   ~ProcessAssertions();
   /**
-   * Process the assertions that have been asserted.
+   * Process the assertions that have been asserted. Returns true if there
+   * was no conflict when processing the assertions.
    */
-  void apply(preprocessing::AssertionPipeline& assertions);
+  bool apply(preprocessing::AssertionPipeline& assertions);
   /** Finish init */
   void finishInit(preprocessing::PreprocessingPassContext* pc);
   /** Cleanup */
   void cleanup();
+  /** 
+   * Expand definitions in n. Return the expanded form of n.
+   * If expandOnly is true, then the expandDefinitions function of TheoryEngine
+   * is not called on subterms of n.
+   */
+  Node expandDefinitions(TNode n,
+                         NodeToNodeHashMap& cache,
+                         bool expandOnly = false);
 private:
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
@@ -96,14 +109,6 @@ private:
    */
   void dumpAssertions(const char* key,
                            const preprocessing::AssertionPipeline& assertionList);
-  /** 
-   * Expand definitions in n. Return the expanded form of n.
-   * If expandOnly is true, then the expandDefinitions function of TheoryEngine
-   * is not called on subterms of n.
-   */
-  Node expandDefinitions(TNode n,
-                         NodeToNodeHashMap& cache,
-                         bool expandOnly = false);
   /**
    * Helper function to fix up assertion list to restore invariants needed after
    * ite removal.
