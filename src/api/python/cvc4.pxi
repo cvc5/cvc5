@@ -191,11 +191,6 @@ cdef class Op:
     def getKind(self):
         return kind(<int> self.cop.getKind())
 
-    def getSort(self):
-        cdef Sort sort = Sort()
-        sort.csort = self.cop.getSort()
-        return sort
-
     def isNull(self):
         return self.cop.isNull()
 
