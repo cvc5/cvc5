@@ -1900,6 +1900,8 @@ void SmtEnginePrivate::processAssertions() {
   spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
+  
+  //#################
   SubstitutionMap& top_level_substs =
       d_preprocessingPassContext->getTopLevelSubstitutions();
 
@@ -2261,6 +2263,8 @@ void SmtEnginePrivate::processAssertions() {
   {
     d_passes["bv-eager-atoms"]->apply(&d_assertions);
   }
+  
+  //#################
 
   //notify theory engine new preprocessed assertions
   d_smt.d_theoryEngine->notifyPreprocessedAssertions( d_assertions.ref() );
