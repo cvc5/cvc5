@@ -1141,12 +1141,6 @@ Kind Op::getKind() const
   return d_kind;
 }
 
-Sort Op::getSort() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  return Sort(d_expr->getType());
-}
-
 bool Op::isNull() const { return isNullHelper(); }
 
 bool Op::isIndexed() const { return isIndexedHelper(); }
