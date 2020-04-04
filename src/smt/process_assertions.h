@@ -37,15 +37,16 @@ namespace smt {
 /** 
  * Module in charge of processing assertions for an SMT engine.
  * 
- * Its main functionalities are:
+ * Its main features are:
  * (1) apply(AssertionsPipeline&), which updates the assertions based on our
  * preprocessing steps,
  * (2) expandDefinitions(TNode, ...), which returns the expanded formula of a
  * term.
+ * The method finishInit(...) must be called before these methods are called.
  * 
  * It is designed to be agnostic to whether we are in incremental mode. That is,
  * it processes assertions in a way that assumes that apply(...) could be
- * applied multiple times to assertions.
+ * applied multiple times to different sets of assertions.
  */
 class ProcessAssertions {
   /** The types for the recursive function definitions */
