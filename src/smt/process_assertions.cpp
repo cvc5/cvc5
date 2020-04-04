@@ -17,6 +17,21 @@
 #include "smt/process_assertions.h"
 
 #include "smt/smt_engine.h"
+#include "theory/theory_engine.h"
+#include "options/bv_options.h"
+#include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "options/base_options.h"
+#include "options/sep_options.h"
+#include "options/proof_options.h"
+#include "options/uf_options.h"
+#include "options/arith_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "theory/logic_info.h"
+#include "theory/quantifiers/fun_def_process.h"
+
+using namespace CVC4::preprocessing;
+using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace smt {
@@ -27,6 +42,27 @@ ProcessAssertions::ProcessAssertions(SmtEngine& smt) : d_smt(smt)
 
 ProcessAssertions::~ProcessAssertions()
 {
+}
+
+void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
+{
+  d_preprocessingPassContext = pc;
+
+  PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
+  // TODO: this will likely change when we add support for actually assembling
+  // preprocessing pipelines. For now, we just create an instance of each
+  // available preprocessing pass.
+  std::vector<std::string> passNames = ppReg.getAvailablePasses();
+  for (const std::string& passName : passNames)
+  {
+    d_passes[passName].reset(
+        ppReg.createPass(d_preprocessingPassContext.get(), passName));
+  }
+}
+
+void ProcessAssertions::cleanup()
+{
+  d_passes.clear();
 }
 
 void ProcessAssertions::apply(AssertionPipeline& assertions) {
@@ -219,17 +255,17 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
     //fmf-fun : assume admissible functions, applying preprocessing reduction to FMF
     if( options::fmfFunWellDefined() ){
       quantifiers::FunDefFmf fdf;
-      Assert(d_smt.d_fmfRecFunctionsDefined != NULL);
+      Assert(d_fmfRecFunctionsDefined != NULL);
       //must carry over current definitions (for incremental)
-      for( context::CDList<Node>::const_iterator fit = d_smt.d_fmfRecFunctionsDefined->begin();
-           fit != d_smt.d_fmfRecFunctionsDefined->end(); ++fit ) {
+      for( context::CDList<Node>::const_iterator fit = d_fmfRecFunctionsDefined->begin();
+           fit != d_fmfRecFunctionsDefined->end(); ++fit ) {
         Node f = (*fit);
-        Assert(d_smt.d_fmfRecFunctionsAbs.find(f)
-               != d_smt.d_fmfRecFunctionsAbs.end());
-        TypeNode ft = d_smt.d_fmfRecFunctionsAbs[f];
+        Assert(d_fmfRecFunctionsAbs.find(f)
+               != d_fmfRecFunctionsAbs.end());
+        TypeNode ft = d_fmfRecFunctionsAbs[f];
         fdf.d_sorts[f] = ft;
-        std::map< Node, std::vector< Node > >::iterator fcit = d_smt.d_fmfRecFunctionsConcrete.find( f );
-        Assert(fcit != d_smt.d_fmfRecFunctionsConcrete.end());
+        std::map< Node, std::vector< Node > >::iterator fcit = d_fmfRecFunctionsConcrete.find( f );
+        Assert(fcit != d_fmfRecFunctionsConcrete.end());
         for( unsigned j=0; j<fcit->second.size(); j++ ){
           fdf.d_input_arg_inj[f].push_back( fcit->second[j] );
         }
@@ -238,12 +274,12 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
       //must store new definitions (for incremental)
       for( unsigned i=0; i<fdf.d_funcs.size(); i++ ){
         Node f = fdf.d_funcs[i];
-        d_smt.d_fmfRecFunctionsAbs[f] = fdf.d_sorts[f];
-        d_smt.d_fmfRecFunctionsConcrete[f].clear();
+        d_fmfRecFunctionsAbs[f] = fdf.d_sorts[f];
+        d_fmfRecFunctionsConcrete[f].clear();
         for( unsigned j=0; j<fdf.d_input_arg_inj[f].size(); j++ ){
-          d_smt.d_fmfRecFunctionsConcrete[f].push_back( fdf.d_input_arg_inj[f][j] );
+          d_fmfRecFunctionsConcrete[f].push_back( fdf.d_input_arg_inj[f][j] );
         }
-        d_smt.d_fmfRecFunctionsDefined->push_back( f );
+        d_fmfRecFunctionsDefined->push_back( f );
       }
     }
   }
@@ -319,13 +355,13 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
         collectSkolems((*pos).first, skolemSet, cache);
         collectSkolems((*pos).second, skolemSet, cache);
       }
-
+      IteSkolemMap& iskMap = assertions.getIteSkolemMap();
       // We need to ensure:
       // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
       // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
       // If either of these is violated, we must add iteExpr as a proper assertion
-      IteSkolemMap::iterator it = getIteSkolemMap().begin();
-      IteSkolemMap::iterator iend = getIteSkolemMap().end();
+      IteSkolemMap::iterator it = iskMap.begin();
+      IteSkolemMap::iterator iend = iskMap.end();
       NodeBuilder<> builder(kind::AND);
       builder << assertions[assertions.getRealAssertionsEnd() - 1];
       vector<TNode> toErase;
@@ -338,9 +374,9 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
               iteExpr[2].getKind() == kind::EQUAL &&
               iteExpr[2][0] == (*it).first) {
             cache.clear();
-            bool bad = checkForBadSkolems(iteExpr[0], (*it).first, cache);
-            bad = bad || checkForBadSkolems(iteExpr[1][1], (*it).first, cache);
-            bad = bad || checkForBadSkolems(iteExpr[2][1], (*it).first, cache);
+            bool bad = checkForBadSkolems(iskMap, iteExpr[0], (*it).first, cache);
+            bad = bad || checkForBadSkolems(iskMap, iteExpr[1][1], (*it).first, cache);
+            bad = bad || checkForBadSkolems(iskMap, iteExpr[2][1], (*it).first, cache);
             if (!bad) {
               continue;
             }
@@ -353,7 +389,7 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
       }
       if(builder.getNumChildren() > 1) {
         while (!toErase.empty()) {
-          getIteSkolemMap().erase(toErase.back());
+          iskMap.erase(toErase.back());
           toErase.pop_back();
         }
         assertions[assertions.getRealAssertionsEnd() - 1] =
@@ -395,7 +431,7 @@ void ProcessAssertions::apply(AssertionPipeline& assertions) {
 
 
 // returns false if simplification led to "false"
-bool ProcessAssertions::simplifyAssertions()
+bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 {
   spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_smt.d_pendingPops == 0);
@@ -495,6 +531,54 @@ bool ProcessAssertions::simplifyAssertions()
         << tcep;
   }
   return true;
+}
+
+void ProcessAssertions::dumpAssertions(const char* key,
+                           const AssertionPipeline& assertionList) {
+  if( Dump.isOn("assertions") &&
+      Dump.isOn(string("assertions:") + key) ) {
+    // Push the simplified assertions to the dump output stream
+    for(unsigned i = 0; i < assertionList.size(); ++ i) {
+      TNode n = assertionList[i];
+      Dump("assertions") << AssertCommand(Expr(n.toExpr()));
+    }
+  }
+}
+
+
+bool ProcessAssertions::checkForBadSkolems(IteSkolemMap& iskMap, TNode n, TNode skolem, unordered_map<Node, bool, NodeHashFunction>& cache)
+{
+  unordered_map<Node, bool, NodeHashFunction>::iterator it;
+  it = cache.find(n);
+  if (it != cache.end()) {
+    return (*it).second;
+  }
+
+  size_t sz = n.getNumChildren();
+  if (sz == 0) {
+    IteSkolemMap::iterator iit = iskMap.find(n);
+    bool bad = false;
+    if (iit != iskMap.end())
+    {
+      if (!((*iit).first < n))
+      {
+        bad = true;
+      }
+    }
+    cache[n] = bad;
+    return bad;
+  }
+
+  size_t k = 0;
+  for (; k < sz; ++k) {
+    if (checkForBadSkolems(iskMap, n[k], skolem, cache)) {
+      cache[n] = true;
+      return true;
+    }
+  }
+
+  cache[n] = false;
+  return false;
 }
 
 }
