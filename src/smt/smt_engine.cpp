@@ -146,19 +146,6 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
   commands.clear();
 }
 
-/** Useful for counting the number of recursive calls. */
-class ScopeCounter {
-private:
-  unsigned& d_depth;
-public:
-  ScopeCounter(unsigned& d) : d_depth(d) {
-    ++d_depth;
-  }
-  ~ScopeCounter(){
-    --d_depth;
-  }
-};
-
 class SoftResourceOutListener : public Listener {
  public:
   SoftResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}

@@ -41,12 +41,12 @@ namespace CVC4 {
 namespace smt {
   
 /** Useful for counting the number of recursive calls. */
-class ScopeCounterTmp {
+class ScopeCounter {
 public:
-  ScopeCounterTmp(unsigned& d) : d_depth(d) {
+  ScopeCounter(unsigned& d) : d_depth(d) {
     ++d_depth;
   }
-  ~ScopeCounterTmp(){
+  ~ScopeCounter(){
     --d_depth;
   }
 private:
@@ -320,7 +320,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions) {
   if(options::repeatSimp()) {
     Trace("smt-proc") << "ProcessAssertions::processAssertions() : pre-repeat-simplify" << endl;
     Chat() << "re-simplifying assertions..." << endl;
-    ScopeCounterTmp depth(d_simplifyAssertionsDepth);
+    ScopeCounter depth(d_simplifyAssertionsDepth);
     noConflict &= simplifyAssertions(assertions);
     if (noConflict) {
       // Need to fix up assertion list to maintain invariants:
@@ -422,7 +422,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
   spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_smt.d_pendingPops == 0);
   try {
-    ScopeCounterTmp depth(d_simplifyAssertionsDepth);
+    ScopeCounter depth(d_simplifyAssertionsDepth);
 
     Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
 
