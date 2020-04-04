@@ -36,6 +36,7 @@
 
 using namespace CVC4::preprocessing;
 using namespace CVC4::theory;
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace smt {
@@ -133,7 +134,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions) {
     Trace("simplify") << "ProcessAssertions::simplify(): expanding definitions" << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_definitionExpansionTime);
     unordered_map<Node, Node, NodeHashFunction> cache;
-    for(unsigned i = 0; i < assertions.size(); ++ i) {
+    for(size_t i = 0, nasserts = assertions.size(); i < nasserts; ++ i) {
       assertions.replace(i, expandDefinitions(assertions[i], cache));
     }
   }
@@ -143,7 +144,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions) {
   // save the assertions now
   THEORY_PROOF
     (
-     for (unsigned i = 0; i < assertions.size(); ++i) {
+     for(size_t i = 0, nasserts = assertions.size(); i < nasserts; ++ i) {
        ProofManager::currentPM()->addAssertion(assertions[i].toExpr());
      }
      );
@@ -251,18 +252,17 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions) {
         fdf.d_sorts[f] = ft;
         std::map< Node, std::vector< Node > >::iterator fcit = d_fmfRecFunctionsConcrete.find( f );
         Assert(fcit != d_fmfRecFunctionsConcrete.end());
-        for( unsigned j=0; j<fcit->second.size(); j++ ){
-          fdf.d_input_arg_inj[f].push_back( fcit->second[j] );
+        for (const Node& fcc : fcit->second){
+          fdf.d_input_arg_inj[f].push_back( fcc );
         }
       }
       fdf.simplify( assertions.ref() );
       //must store new definitions (in case of incremental)
-      for( unsigned i=0; i<fdf.d_funcs.size(); i++ ){
-        Node f = fdf.d_funcs[i];
+      for (const Node& f : fdf.d_funcs){
         d_fmfRecFunctionsAbs[f] = fdf.d_sorts[f];
         d_fmfRecFunctionsConcrete[f].clear();
-        for( unsigned j=0; j<fdf.d_input_arg_inj[f].size(); j++ ){
-          d_fmfRecFunctionsConcrete[f].push_back( fdf.d_input_arg_inj[f][j] );
+        for (const Node& fcc : fdf.d_input_arg_inj[f]){
+          d_fmfRecFunctionsConcrete[f].push_back( fcc );
         }
         d_fmfRecFunctionsDefined->push_back( f );
       }
@@ -347,16 +347,16 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions) {
       // If either of these is violated, we must add iteExpr as a proper assertion
       IteSkolemMap::iterator it = iskMap.begin();
       IteSkolemMap::iterator iend = iskMap.end();
-      NodeBuilder<> builder(kind::AND);
+      NodeBuilder<> builder(AND);
       builder << assertions[assertions.getRealAssertionsEnd() - 1];
       vector<TNode> toErase;
       for (; it != iend; ++it) {
         if (skolemSet.find((*it).first) == skolemSet.end()) {
           TNode iteExpr = assertions[(*it).second];
-          if (iteExpr.getKind() == kind::ITE &&
-              iteExpr[1].getKind() == kind::EQUAL &&
+          if (iteExpr.getKind() == ITE &&
+              iteExpr[1].getKind() == EQUAL &&
               iteExpr[1][0] == (*it).first &&
-              iteExpr[2].getKind() == kind::EQUAL &&
+              iteExpr[2].getKind() == EQUAL &&
               iteExpr[2][0] == (*it).first) {
             cache.clear();
             bool bad = checkForBadSkolems(iskMap, iteExpr[0], (*it).first, cache);
@@ -563,8 +563,8 @@ Node ProcessAssertions::expandDefinitions(TNode n, unordered_map<Node, Node, Nod
           // replacement must be closed
           if((*i).second.getFormals().size() > 0) {
             result.push(nm->mkNode(
-                kind::LAMBDA,
-                nm->mkNode(kind::BOUND_VAR_LIST,
+                LAMBDA,
+                nm->mkNode(BOUND_VAR_LIST,
                                             (*i).second.getFormals()),
                 fe));
             continue;
@@ -588,7 +588,7 @@ Node ProcessAssertions::expandDefinitions(TNode n, unordered_map<Node, Node, Nod
 
       // otherwise expand it
       bool doExpand = false;
-      if (k == kind::APPLY_UF)
+      if (k == APPLY_UF)
       {
         // Always do beta-reduction here. The reason is that there may be
         // operators such as INTS_MODULUS in the body of the lambda that would
@@ -597,7 +597,7 @@ Node ProcessAssertions::expandDefinitions(TNode n, unordered_map<Node, Node, Nod
         // traverse the operators of nodes. Hence, we beta-reduce here to
         // ensure terms in the body of the lambda are expanded during this
         // call.
-        if (n.getOperator().getKind() == kind::LAMBDA)
+        if (n.getOperator().getKind() == LAMBDA)
         {
           doExpand = true;
         }
@@ -610,7 +610,7 @@ Node ProcessAssertions::expandDefinitions(TNode n, unordered_map<Node, Node, Nod
       if (doExpand) {
         vector<Node> formals;
         TNode fm;
-        if( n.getOperator().getKind() == kind::LAMBDA ){
+        if( n.getOperator().getKind() == LAMBDA ){
           TNode op = n.getOperator();
           // lambda
           for( unsigned i=0; i<op[0].getNumChildren(); i++ ){
@@ -690,12 +690,12 @@ Node ProcessAssertions::expandDefinitions(TNode n, unordered_map<Node, Node, Nod
       if(node.getNumChildren()>0) {
         //cout << "cons : " << node << endl;
         NodeBuilder<> nb(node.getKind());
-        if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        if(node.getMetaKind() == metakind::PARAMETERIZED) {
           Debug("expand") << "op   : " << node.getOperator() << endl;
           //cout << "op   : " << node.getOperator() << endl;
           nb << node.getOperator();
         }
-        for(size_t i = 0; i < node.getNumChildren(); ++i) {
+        for(size_t i = 0, nchild = node.getNumChildren(); i < nchild; ++i) {
           Assert(!result.empty());
           Node expanded = result.top();
           result.pop();
