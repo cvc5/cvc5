@@ -30,8 +30,9 @@ namespace smt {
  * support getValue() over defined functions, to support user output
  * in terms of defined functions, etc.
  */
-class DefinedFunction {
-public:
+class DefinedFunction
+{
+ public:
   DefinedFunction() {}
   DefinedFunction(Node func, std::vector<Node>& formals, Node formula)
       : d_func(func), d_formals(formals), d_formula(formula)
@@ -43,16 +44,17 @@ public:
   const std::vector<Node>& getFormals() const { return d_formals; }
   /** get the formula that defines it */
   Node getFormula() const { return d_formula; }
-private:
+
+ private:
   /** the function */
   Node d_func;
   /** the formal argument list */
   std::vector<Node> d_formals;
   /** the formula */
   Node d_formula;
-};/* class DefinedFunction */
+}; /* class DefinedFunction */
 
-}
-}
+}  // namespace smt
+}  // namespace CVC4
 
 #endif /* CVC4__SMT__DEFINED_FUNCTION_H */

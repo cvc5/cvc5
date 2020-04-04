@@ -22,7 +22,8 @@
 namespace CVC4 {
 namespace smt {
 
-struct SmtEngineStatistics {
+struct SmtEngineStatistics
+{
   SmtEngineStatistics();
   ~SmtEngineStatistics();
   /** time spent in definition-expansion */
@@ -54,9 +55,9 @@ struct SmtEngineStatistics {
   IntStat d_simplifiedToFalse;
   /** Number of resource units spent. */
   ReferenceStat<uint64_t> d_resourceUnitsUsed;
-};/* struct SmtEngineStatistics */
+}; /* struct SmtEngineStatistics */
 
-}
-}
+}  // namespace smt
+}  // namespace CVC4
 
 #endif /* CVC4__SMT__SMT_ENGINE_STATS_H */

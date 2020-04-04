@@ -87,8 +87,10 @@
 #include "smt/managed_ostreams.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
+#include "smt/process_assertions.h"
 #include "smt/set_defaults.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/smt_engine_stats.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
@@ -113,8 +115,6 @@
 #include "util/proof.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
-#include "smt/smt_engine_stats.h"
-#include "smt/process_assertions.h"
 
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 #include "lfscc.h"
@@ -331,7 +331,7 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** TODO: whether certain preprocess steps are necessary */
   //bool d_needsExpandDefs;
-  
+
   /** The preprocessing pass context */
   std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
 
@@ -473,7 +473,7 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_resourceManager->spendResource(r);
   }
 
-  ProcessAssertions * getProcessAssertions() { return &d_processor; }
+  ProcessAssertions* getProcessAssertions() { return &d_processor; }
 
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
   {
@@ -1289,7 +1289,7 @@ void SmtEnginePrivate::finishInit()
 {
   d_preprocessingPassContext.reset(new PreprocessingPassContext(
       &d_smt, d_resourceManager, &d_iteRemover, &d_propagator));
-  
+
   // initialize the preprocessing passes
   d_processor.finishInit(d_preprocessingPassContext.get());
 }
@@ -1382,7 +1382,7 @@ void SmtEnginePrivate::processAssertions() {
   spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
-  
+
   if (d_assertions.size() == 0) {
     // nothing to do
     return;
@@ -1397,7 +1397,7 @@ void SmtEnginePrivate::processAssertions() {
   {
     d_assertions.disableStoreSubstsInAsserts();
   }
-  
+
   // process the assertions
   bool noConflict = d_processor.apply(d_assertions);
 
@@ -2052,7 +2052,8 @@ Expr SmtEngine::expandDefinitions(const Expr& ex)
   }
 
   unordered_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_private->getProcessAssertions()->expandDefinitions(Node::fromExpr(e), cache, /* expandOnly = */ true);
+  Node n = d_private->getProcessAssertions()->expandDefinitions(
+      Node::fromExpr(e), cache, /* expandOnly = */ true);
   n = postprocess(n, TypeNode::fromType(e.getType()));
 
   return n.toExpr();
@@ -2770,7 +2771,8 @@ void SmtEngine::checkSynthSolution()
     Trace("check-synth-sol") << "Retrieving assertion " << *i << "\n";
     Node assertion = Node::fromExpr(*i);
     // Apply any define-funs from the problem.
-    assertion = d_private->getProcessAssertions()->expandDefinitions(assertion, cache);
+    assertion =
+        d_private->getProcessAssertions()->expandDefinitions(assertion, cache);
     Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << assertion
              << endl;
     Trace("check-synth-sol") << "Expanded assertion " << assertion << "\n";

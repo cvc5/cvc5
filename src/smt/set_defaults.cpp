@@ -103,7 +103,9 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       throw OptionException(
           "solving bitvectors as integers is currently not supported "
           "when solving incrementally.");
-    } else if (options::boolToBitvector() != options::BoolToBVMode::OFF) {
+    }
+    else if (options::boolToBitvector() != options::BoolToBVMode::OFF)
+    {
       throw OptionException(
           "solving bitvectors as integers is incompatible with --bool-to-bv.");
     }
@@ -1370,15 +1372,16 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       smte.setOption("check-models", SExpr("false"));
     }
   }
-  
+
   if (options::bitblastMode() == options::BitblastMode::EAGER
-      && !logic.isPure(THEORY_BV)
-      && logic.getLogicString() != "QF_UFBV"
+      && !logic.isPure(THEORY_BV) && logic.getLogicString() != "QF_UFBV"
       && logic.getLogicString() != "QF_ABV")
   {
-    throw OptionException("Eager bit-blasting does not currently support theory combination. "
-                         "Note that in a QF_BV problem UF symbols can be introduced for division. "
-                         "Try --bv-div-zero-const to interpret division by zero as a constant.");
+    throw OptionException(
+        "Eager bit-blasting does not currently support theory combination. "
+        "Note that in a QF_BV problem UF symbols can be introduced for "
+        "division. "
+        "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 }
 

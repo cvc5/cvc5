@@ -1130,7 +1130,7 @@ class CVC4_PUBLIC SmtEngine
    * valid while we are in mode SMT_MODE_ABDUCT.
    */
   Expr d_abdConj;
-  
+
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in interactive mode.
