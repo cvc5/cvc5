@@ -14,6 +14,12 @@
  ** Unit tests for the strings/sequences rewriter.
  **/
 
+#include <cxxtest/TestSuite.h>
+
+#include <iostream>
+#include <memory>
+#include <vector>
+
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "smt/smt_engine.h"
@@ -23,11 +29,7 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/strings_entail.h"
-
-#include <cxxtest/TestSuite.h>
-#include <iostream>
-#include <memory>
-#include <vector>
+#include "theory/strings/strings_rewriter.h"
 
 using namespace CVC4;
 using namespace CVC4::smt;
@@ -246,7 +248,7 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
 
     // (str.substr "A" x x) --> ""
     Node n = d_nm->mkNode(kind::STRING_SUBSTR, a, x, x);
-    Node res = SequencesRewriter::rewriteSubstr(n);
+    Node res = StringsRewriter(nullptr).rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, empty);
 
     // (str.substr "A" (+ x 1) x) -> ""
@@ -254,7 +256,7 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
                      a,
                      d_nm->mkNode(kind::PLUS, x, d_nm->mkConst(Rational(1))),
                      x);
-    res = SequencesRewriter::rewriteSubstr(n);
+    res = StringsRewriter(nullptr).rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, empty);
 
     // (str.substr "A" (+ x (str.len s2)) x) -> ""
@@ -263,24 +265,24 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
         a,
         d_nm->mkNode(kind::PLUS, x, d_nm->mkNode(kind::STRING_LENGTH, s)),
         x);
-    res = SequencesRewriter::rewriteSubstr(n);
+    res = StringsRewriter(nullptr).rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, empty);
 
     // (str.substr "A" x y) -> (str.substr "A" x y)
     n = d_nm->mkNode(kind::STRING_SUBSTR, a, x, y);
-    res = SequencesRewriter::rewriteSubstr(n);
+    res = StringsRewriter(nullptr).rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, n);
 
     // (str.substr "ABCD" (+ x 3) x) -> ""
     n = d_nm->mkNode(
         kind::STRING_SUBSTR, abcd, d_nm->mkNode(kind::PLUS, x, three), x);
-    res = SequencesRewriter::rewriteSubstr(n);
+    res = StringsRewriter(nullptr).rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, empty);
 
     // (str.substr "ABCD" (+ x 2) x) -> (str.substr "ABCD" (+ x 2) x)
     n = d_nm->mkNode(
         kind::STRING_SUBSTR, abcd, d_nm->mkNode(kind::PLUS, x, two), x);
-    res = SequencesRewriter::rewriteSubstr(n);
+    res = StringsRewriter(nullptr).rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, n);
 
     // (str.substr (str.substr s x x) x x) -> ""

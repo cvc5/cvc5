@@ -54,11 +54,6 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, Output
 TheoryQuantifiers::~TheoryQuantifiers() {
 }
 
-std::unique_ptr<TheoryRewriter> TheoryQuantifiers::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new QuantifiersRewriter());
-}
-
 void TheoryQuantifiers::finishInit()
 {
   // quantifiers are not evaluated in getModelValue

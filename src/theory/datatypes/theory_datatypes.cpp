@@ -86,11 +86,6 @@ TheoryDatatypes::~TheoryDatatypes() {
   }
 }
 
-std::unique_ptr<TheoryRewriter> TheoryDatatypes::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new DatatypesRewriter());
-}
-
 void TheoryDatatypes::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
