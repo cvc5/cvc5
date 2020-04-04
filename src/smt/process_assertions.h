@@ -38,7 +38,7 @@ namespace smt {
  * Module in charge of processing assertions for an SMT engine.
  * 
  * It is designed to be agnostic to whether we are in incremental mode. That is,
- * it processes assertions in a way that assumes that apply(...) can be
+ * it processes assertions in a way that assumes that apply(...) could be
  * applied multiple times to assertions.
  */
 class ProcessAssertions {
@@ -50,19 +50,20 @@ class ProcessAssertions {
   ProcessAssertions(SmtEngine& smt, SmtEngineStatistics& stats, ResourceManager& rm);
 
   ~ProcessAssertions();
-  /**
-   * Process the assertions that have been asserted. Returns true if there
-   * was no conflict when processing the assertions.
-   */
-  bool apply(preprocessing::AssertionPipeline& assertions);
   /** Finish init */
   void finishInit(preprocessing::PreprocessingPassContext* pc);
   /** Cleanup */
   void cleanup();
+  /**
+   * Process the formulas in assertions. Returns true if there
+   * was no conflict when processing the assertions.
+   */
+  bool apply(preprocessing::AssertionPipeline& assertions);
   /** 
-   * Expand definitions in n. Return the expanded form of n.
+   * Expand definitions in term n. Return the expanded form of n.
    * If expandOnly is true, then the expandDefinitions function of TheoryEngine
-   * is not called on subterms of n.
+   * of the SmtEngine this calls is associated with is not called on subterms of
+   * n.
    */
   Node expandDefinitions(TNode n,
                          NodeToNodeHashMap& cache,

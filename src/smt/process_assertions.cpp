@@ -54,13 +54,16 @@ private:
 };
 
 ProcessAssertions::ProcessAssertions(SmtEngine& smt, SmtEngineStatistics& stats, ResourceManager& rm) : 
-d_smt(smt), d_stats(stats), d_resourceManager(rm), d_preprocessingPassContext(nullptr)
+d_smt(smt), d_stats(stats), d_resourceManager(rm), d_preprocessingPassContext(nullptr),
+      d_fmfRecFunctionsDefined(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
+  d_fmfRecFunctionsDefined = new (true) NodeList(d_smt.getUserContext());
 }
 
 ProcessAssertions::~ProcessAssertions()
 {
+  d_fmfRecFunctionsDefined->deleteSelf();
 }
 
 void ProcessAssertions::finishInit(PreprocessingPassContext* pc)

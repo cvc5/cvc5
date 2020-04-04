@@ -670,7 +670,6 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_proofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
-      d_fmfRecFunctionsDefined(nullptr),
       d_assertionList(nullptr),
       d_assignments(nullptr),
       d_modelGlobalCommands(),
@@ -714,7 +713,6 @@ SmtEngine::SmtEngine(ExprManager* em)
 #endif
 
   d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
-  d_fmfRecFunctionsDefined = new (true) NodeList(getUserContext());
   d_modelCommands = new (true) smt::CommandList(getUserContext());
 }
 
@@ -878,7 +876,6 @@ SmtEngine::~SmtEngine()
     }
 
     d_definedFunctions->deleteSelf();
-    d_fmfRecFunctionsDefined->deleteSelf();
 
     //destroy all passes before destroying things that they refer to
     d_private->getProcessAssertions()->cleanup();

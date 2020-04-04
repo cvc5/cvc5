@@ -1130,12 +1130,7 @@ class CVC4_PUBLIC SmtEngine
    * valid while we are in mode SMT_MODE_ABDUCT.
    */
   Expr d_abdConj;
-
-  /** recursive function definition abstractions for --fmf-fun */
-  std::map<Node, TypeNode> d_fmfRecFunctionsAbs;
-  std::map<Node, std::vector<Node> > d_fmfRecFunctionsConcrete;
-  NodeList* d_fmfRecFunctionsDefined;
-
+  
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in interactive mode.
