@@ -65,7 +65,6 @@ private:
   Node d_true;
   /** The preprocess context */
   preprocessing::PreprocessingPassContext* d_preprocessingPassContext;
-
   /**
    * Map of preprocessing pass instances, mapping from names to preprocessing
    * pass instance
@@ -75,12 +74,12 @@ private:
    * Number of calls of simplify assertions active.
    */
   unsigned d_simplifyAssertionsDepth;
-  
-  /** recursive function definition abstractions for --fmf-fun */
+  /** recursive function definition abstractions for fmf-fun */
   std::map<Node, TypeNode> d_fmfRecFunctionsAbs;
+  /** map to concrete definitions for fmf-fun */
   std::map<Node, std::vector<Node> > d_fmfRecFunctionsConcrete;
+  /** List of defined recursive functions processed by fmf-fun */
   NodeList* d_fmfRecFunctionsDefined;
-  
   /** Spend resource */
   void spendResource(ResourceManager::Resource r);
   /**
