@@ -1853,9 +1853,13 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   COMPREHENSION,
   /**
-   * Choose an element from a given set
+   * Returns an element from a given set.
+   * If a set A = {x}, then the term (choose A) is equivalent to the term x.
+   * If the set is empty, then the atom that uses (choose A) is false.
+   * If the set has cardinality > 1, then (choose A) will deterministically
+   * return an element in A.
    * Parameters: 1
-   *   -[1]: Set
+   *   -[1]: Term of set sort
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
