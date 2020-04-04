@@ -114,6 +114,7 @@
 #include "util/random.h"
 #include "util/resource_manager.h"
 #include "smt/smt_engine_stats.h"
+#include "smt/process_assertions.h"
 
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 #include "lfscc.h"
@@ -347,6 +348,9 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** TODO: whether certain preprocess steps are necessary */
   //bool d_needsExpandDefs;
+  
+  /** Process assertions module */
+  ProcessAssertions d_processor;
 
   //------------------------------- expression names
   /** mapping from expressions to name */
@@ -412,6 +416,7 @@ class SmtEnginePrivate : public NodeManagerListener {
  public:
   SmtEnginePrivate(SmtEngine& smt)
       : d_smt(smt),
+        d_resourceManager(NodeManager::currentResourceManager()),
         d_managedRegularChannel(),
         d_managedDiagnosticChannel(),
         d_managedDumpChannel(),
@@ -423,6 +428,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_abstractValueMap(&d_fakeContext),
         d_abstractValues(),
         d_simplifyAssertionsDepth(0),
+        d_processor(smt, d_resourceManager),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
@@ -430,7 +436,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   {
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
-    d_resourceManager = NodeManager::currentResourceManager();
 
     d_listenerRegistrations->add(d_resourceManager->registerSoftListener(
         new SoftResourceOutListener(d_smt)));

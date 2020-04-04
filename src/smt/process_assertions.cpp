@@ -44,8 +44,6 @@ namespace smt {
   
 /** Useful for counting the number of recursive calls. */
 class ScopeCounterTmp {
-private:
-  unsigned& d_depth;
 public:
   ScopeCounterTmp(unsigned& d) : d_depth(d) {
     ++d_depth;
@@ -53,6 +51,8 @@ public:
   ~ScopeCounterTmp(){
     --d_depth;
   }
+private:
+  unsigned& d_depth;
 };
 
 ProcessAssertions::ProcessAssertions(SmtEngine& smt, ResourceManager * rm) : d_smt(smt), d_resourceManager(rm)
@@ -444,7 +444,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
         d_passes["miplib-trick"]->apply(&assertions);
       } else {
         Trace("simplify") << "SmtEnginePrivate::simplify(): "
-                          << "skipping miplib pseudobooleans pass (either incrementalSolving is on, or miplib pbs are turned off)..." << endl;
+                          << "skipping miplib pseudobooleans pass..." << endl;
       }
     }
 
@@ -757,7 +757,8 @@ Node ProcessAssertions::expandDefinitions(TNode n, unordered_map<Node, Node, Nod
         }
         node = nb;
       }
-      cache[n] = n == node ? Node::null() : node;           // Only cache once all subterms are expanded
+      // Only cache once all subterms are expanded
+      cache[n] = n == node ? Node::null() : node;           
       result.push(node);
     }
   } while(!worklist.empty());
