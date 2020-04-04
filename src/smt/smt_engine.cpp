@@ -396,7 +396,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_fakeContext(),
         d_abstractValueMap(&d_fakeContext),
         d_abstractValues(),
-        d_processor(smt, *smt.d_stats, *d_resourceManager),
+        d_processor(smt, *d_resourceManager),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
@@ -692,11 +692,11 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_stats(nullptr)
 {
   SmtScope smts(this);
+  // must initialize private after stats
+  d_private.reset(new smt::SmtEnginePrivate(*this));
   d_originalOptions.copyValues(em->getOptions());
   d_statisticsRegistry.reset(new StatisticsRegistry());
   d_stats.reset(new SmtEngineStatistics());
-  // must initialize private after stats
-  d_private.reset(new smt::SmtEnginePrivate(*this));
   d_stats->d_resourceUnitsUsed.setData(
       d_private->getResourceManager()->getResourceUsage());
 

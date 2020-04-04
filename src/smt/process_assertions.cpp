@@ -53,8 +53,8 @@ private:
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(SmtEngine& smt, SmtEngineStatistics& stats, ResourceManager& rm) : 
-d_smt(smt), d_stats(stats), d_resourceManager(rm), d_preprocessingPassContext(nullptr),
+ProcessAssertions::ProcessAssertions(SmtEngine& smt, ResourceManager& rm) : 
+d_smt(smt), d_resourceManager(rm), d_preprocessingPassContext(nullptr),
       d_fmfRecFunctionsDefined(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -131,7 +131,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions) {
   {
     Chat() << "expanding definitions..." << endl;
     Trace("simplify") << "ProcessAssertions::simplify(): expanding definitions" << endl;
-    TimerStat::CodeTimer codeTimer(d_stats.d_definitionExpansionTime);
+    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_definitionExpansionTime);
     unordered_map<Node, Node, NodeHashFunction> cache;
     for(unsigned i = 0; i < assertions.size(); ++ i) {
       assertions.replace(i, expandDefinitions(assertions[i], cache));
@@ -296,7 +296,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions) {
   Chat() << "simplifying assertions..." << endl;
   noConflict = simplifyAssertions(assertions);
   if(!noConflict){
-    ++(d_stats.d_simplifiedToFalse);
+    ++(d_smt.d_stats->d_simplifiedToFalse);
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", assertions);
@@ -307,13 +307,13 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions) {
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
   {
-    d_stats.d_numAssertionsPre += assertions.size();
+    d_smt.d_stats->d_numAssertionsPre += assertions.size();
     d_passes["ite-removal"]->apply(&assertions);
     // This is needed because when solving incrementally, removeITEs may introduce
     // skolems that were solved for earlier and thus appear in the substitution
     // map.
     d_passes["apply-substs"]->apply(&assertions);
-    d_stats.d_numAssertionsPost += assertions.size();
+    d_smt.d_stats->d_numAssertionsPost += assertions.size();
   }
 
   dumpAssertions("pre-repeat-simplify", assertions);
