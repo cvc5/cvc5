@@ -679,9 +679,8 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_stats(nullptr)
 {
   SmtScope smts(this);
-  // must initialize private after stats
-  d_private.reset(new smt::SmtEnginePrivate(*this));
   d_originalOptions.copyValues(em->getOptions());
+  d_private.reset(new smt::SmtEnginePrivate(*this));
   d_statisticsRegistry.reset(new StatisticsRegistry());
   d_stats.reset(new SmtEngineStatistics());
   d_stats->d_resourceUnitsUsed.setData(
