@@ -63,7 +63,7 @@ operator COMPREHENSION 3 "set comprehension specified by a bound variable list, 
 
 # The operator choose returns an element from a given set.
 # If set A = {x}, then the term (choose A) is equivalent to the term x.
-# If the set is empty, then the atom that uses (choose A) is false.
+# If the set is empty, then (choose A) is an arbitrary value.
 # If the set has cardinality > 1, then (choose A) will deterministically return an element in A.
 operator CHOOSE        1  "return an element in the set given as a parameter"
 

@@ -1492,9 +1492,11 @@ Node TheorySetsPrivate::expandDefinition(LogicRequest& logicRequest, Node node)
   if (node.getKind() == kind::CHOOSE)
   {
     // (choose A) is expanded as
-    // (witness ((x elementType)) (and (member x A) (= x chooseUf(A))))
-    // where chooseUf is an interpreted function from the type of A to the
-    // type of its elements.
+    // (witness ((x elementType))
+    //    (ite
+    //      (= A (as emptyset setType))
+    //      (= x chooseUf(A))
+    //      (and (member x A) (= x chooseUf(A)))
 
     NodeManager* nm = NodeManager::currentNM();
     Node set = node[0];
@@ -1505,10 +1507,13 @@ Node TheorySetsPrivate::expandDefinition(LogicRequest& logicRequest, Node node)
     Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
 
     Node equal = witnessVariable.eqNode(apply);
+    Node emptySet = nm->mkConst(EmptySet(setType.toType()));
+    Node isEmpty = set.eqNode(emptySet);
     Node member = nm->mkNode(MEMBER, witnessVariable, set);
     Node memberAndEqual = member.andNode(equal);
+    Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
     Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
-    Node witness = nm->mkNode(CHOICE, witnessVariables, memberAndEqual);
+    Node witness = nm->mkNode(CHOICE, witnessVariables, ite);
     return witness;
   }
 
