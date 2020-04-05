@@ -1322,51 +1322,6 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
   }
 }
 
-bool NonlinearExtension::getApproximateSqrt(Node c,
-                                            Node& l,
-                                            Node& u,
-                                            unsigned iter) const
-{
-  Assert(c.isConst());
-  if (c == d_one || c == d_zero)
-  {
-    l = c;
-    u = c;
-    return true;
-  }
-  Rational rc = c.getConst<Rational>();
-
-  Rational rl = rc < Rational(1) ? rc : Rational(1);
-  Rational ru = rc < Rational(1) ? Rational(1) : rc;
-  unsigned count = 0;
-  Rational half = Rational(1) / Rational(2);
-  while (count < iter)
-  {
-    Rational curr = half * (rl + ru);
-    Rational curr_sq = curr * curr;
-    if (curr_sq == rc)
-    {
-      rl = curr_sq;
-      ru = curr_sq;
-      break;
-    }
-    else if (curr_sq < rc)
-    {
-      rl = curr;
-    }
-    else
-    {
-      ru = curr;
-    }
-    count++;
-  }
-
-  NodeManager* nm = NodeManager::currentNM();
-  l = nm->mkConst(rl);
-  u = nm->mkConst(ru);
-  return true;
-}
-
 // show a <> 0 by inequalities between variables in monomial a w.r.t 0
 int NonlinearExtension::compareSign(Node oa, Node a, unsigned a_index,
                                     int status, std::vector<Node>& exp,
