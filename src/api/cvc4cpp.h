@@ -679,11 +679,6 @@ class CVC4_PUBLIC Op
   Kind getKind() const;
 
   /**
-   * @return the sort of this operator
-   */
-  Sort getSort() const;
-
-  /**
    * @return true if this operator is a null term
    */
   bool isNull() const;
