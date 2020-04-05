@@ -601,6 +601,7 @@ void InferenceManager::doPendingLemmas()
     for (const Node& lc : d_pendingLem)
     {
       Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
+      ++(d_statistics.d_lemmasInfer);
       d_out.lemma(lc);
     }
     for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
