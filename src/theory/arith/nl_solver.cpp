@@ -188,7 +188,8 @@ void NlSolver::registerMonomial(Node n) {
   }
   d_monomials.push_back(n);
   Trace("nl-ext-debug") << "Register monomial : " << n << std::endl;
-  if (n.getKind() == NONLINEAR_MULT)
+  Kind k = n.getKind();
+  if (k == NONLINEAR_MULT)
   {
     // get exponent count
     for (unsigned k = 0; k < n.getNumChildren(); k++) {
@@ -203,7 +204,7 @@ void NlSolver::registerMonomial(Node n) {
     d_m_vlist[n].clear();
     d_m_degree[n] = 0;
   } else {
-    Assert(!isArithKind(n.getKind()));
+    Assert(k!=PLUS && k!=MULT);
     d_m_exp[n][n] = 1;
     d_m_vlist[n].push_back(n);
     d_m_degree[n] = 1;
