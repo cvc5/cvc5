@@ -35,22 +35,6 @@ namespace arith {
 
 namespace {
 
-// Return true if a collection c contains an elem k. Compatible with map and set
-// containers.
-template <class Container, class Key>
-bool Contains(const Container& c, const Key& k)
-{
-  return c.find(k) != c.end();
-}
-
-// Inserts value into the set/map c if the value was not present there. Returns
-// true if the value was inserted.
-template <class Container, class Value>
-bool InsertIfNotPresent(Container* c, const Value& value)
-{
-  return (c->insert(value)).second;
-}
-
 // Returns the a[key] and assertion fails in debug mode.
 inline unsigned getCount(const NodeMultiset& a, Node key)
 {
@@ -65,24 +49,6 @@ unsigned getCountWithDefault(const NodeMultiset& a, Node key, unsigned value)
   NodeMultiset::const_iterator it = a.find(key);
   return (it == a.end()) ? value : it->second;
 }
-
-// Returns true if for any key then a[key] <= b[key] where the value for any key
-// not present is interpreted as 0.
-bool isSubset(const NodeMultiset& a, const NodeMultiset& b)
-{
-  for (NodeMultiset::const_iterator it_a = a.begin(); it_a != a.end(); ++it_a)
-  {
-    Node key = it_a->first;
-    const unsigned a_value = it_a->second;
-    const unsigned b_value = getCountWithDefault(b, key, 0);
-    if (a_value > b_value)
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
 // Given two multisets return the multiset difference a \ b.
 NodeMultiset diffMultiset(const NodeMultiset& a, const NodeMultiset& b)
 {
@@ -127,7 +93,7 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
   {
     Node current = worklist.back();
     worklist.pop_back();
-    if (!Contains(visited, current))
+    if (visited.find(current)==visited.end())
     {
       visited.insert(current);
       if (current.getKind() == NONLINEAR_MULT)
@@ -174,12 +140,21 @@ const NodeMultiset& NlSolver::getMonomialExponentMap(Node monomial) const
   return it->second;
 }
 
-bool NlSolver::isMonomialSubset(Node a, Node b) const
+bool NlSolver::isMonomialSubset(Node am, Node bm) const
 {
-  const NodeMultiset& a_exponent_map = getMonomialExponentMap(a);
-  const NodeMultiset& b_exponent_map = getMonomialExponentMap(b);
-
-  return isSubset(a_exponent_map, b_exponent_map);
+  const NodeMultiset& a = getMonomialExponentMap(am);
+  const NodeMultiset& b = getMonomialExponentMap(bm);
+  for (NodeMultiset::const_iterator it_a = a.begin(); it_a != a.end(); ++it_a)
+  {
+    Node key = it_a->first;
+    const unsigned a_value = it_a->second;
+    const unsigned b_value = getCountWithDefault(b, key, 0);
+    if (a_value > b_value)
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 void NlSolver::registerMonomialSubset(Node a, Node b)
@@ -249,7 +224,7 @@ void NlSolver::setMonomialFactor(Node a, Node b, const NodeMultiset& common)
 {
   // Could not tell if this was being inserted intentionally or not.
   std::map<Node, Node>& mono_diff_a = d_mono_diff[a];
-  if (!Contains(mono_diff_a, b))
+  if (mono_diff_a.find(b)==mono_diff_a.end())
   {
     Trace("nl-ext-mono-factor")
         << "Set monomial factor for " << a << "/" << b << std::endl;
