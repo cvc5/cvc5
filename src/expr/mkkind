@@ -341,7 +341,7 @@ function register_kind {
 
   kind_decls="${kind_decls}  $r, /**< $comment ($register_kind_counter) */
 "
-  kind_printers="${kind_printers}  case $r: out << \"$r\"; break;
+  kind_printers="${kind_printers}  case $r: return \"$r\";
 "
   kind_to_theory_id="${kind_to_theory_id}  case kind::$r: return $theory_id;
 "
