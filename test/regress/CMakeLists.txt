@@ -1641,6 +1641,7 @@ set(regress_1_tests
   regress1/sep/wand-simp-sat.smt2
   regress1/sep/wand-simp-sat2.smt2
   regress1/sep/wand-simp-unsat.smt2
+  regress1/sets/choose.cvc
   regress1/sets/choose1.smt2
   regress1/sets/choose2.smt2
   regress1/sets/choose3.smt2
