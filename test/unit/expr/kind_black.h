@@ -82,7 +82,7 @@ class KindBlack : public CxxTest::TestSuite {
 
     stringstream act, exp;
     act << undefined << null << last << unknown;
-    exp << "UNDEFINED_KIND" << "NULL" << "LAST_KIND" << "UNKNOWNKIND!"<< beyond;
+    exp << "UNDEFINED_KIND" << "NULL" << "LAST_KIND" << "?";
     
     string actCreated = act.str();
     string expCreated = exp.str();
