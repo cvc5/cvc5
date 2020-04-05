@@ -69,6 +69,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       d_notify(*this),
+      d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, d_equalityEngine, d_valuation),
       d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
@@ -77,6 +78,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_registeredTypesCache(u),
       d_functionsTerms(c),
       d_has_str_code(false),
+      d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(c, u, d_state, d_im),
       d_csolver(c, u, d_state, d_im, d_sk_cache, d_bsolver),
       d_esolver(nullptr),
@@ -91,11 +93,13 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  d_state,
                                  d_im,
                                  d_sk_cache,
+                                 d_rewriter,
                                  d_bsolver,
                                  d_csolver,
                                  extt,
                                  d_statistics));
-  d_rsolver.reset(new RegExpSolver(*this, d_state, d_im, *d_esolver, c, u));
+  d_rsolver.reset(
+      new RegExpSolver(*this, d_state, d_im, *d_esolver, d_statistics, c, u));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);

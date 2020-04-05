@@ -4,7 +4,7 @@
 #! \file linear_arith.py
 ## \verbatim
 ## Top contributors (to current version):
-##   Makai Mann
+##   Makai Mann, Aina Niemetz
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
 ## in the top-level source directory) and their institutional affiliations.
@@ -54,9 +54,9 @@ if __name__ == "__main__":
     slv.push()
     diff_leq_two_thirds = slv.mkTerm(kinds.Leq, diff, two_thirds)
     print("Prove that", diff_leq_two_thirds, "with CVC4")
-    print("CVC4 should report VALID")
+    print("CVC4 should report ENTAILED")
     print("Result from CVC4 is:",
-          slv.checkValidAssuming(diff_leq_two_thirds))
+          slv.checkEntailed(diff_leq_two_thirds))
     slv.pop()
 
     print()

@@ -18,6 +18,7 @@
 
 #include "options/strings_options.h"
 #include "theory/strings/sequences_rewriter.h"
+#include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -154,7 +155,7 @@ void CoreSolver::checkFlatForms()
         for (const Node& n : it->second)
         {
           int firstc, lastc;
-          if (!SequencesRewriter::canConstantContainList(
+          if (!StringsEntail::canConstantContainList(
                   c, d_flat_form[n], firstc, lastc))
           {
             Trace("strings-ff-debug") << "Flat form for " << n
@@ -348,9 +349,8 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
             if (!curr_c.isNull() && !cc_c.isNull())
             {
               // check for constant conflict
-              int index;
-              Node s =
-                  SequencesRewriter::splitConstant(cc_c, curr_c, index, isRev);
+              size_t index;
+              Node s = Word::splitConstant(cc_c, curr_c, index, isRev);
               if (s.isNull())
               {
                 d_bsolver.explainConstantEqc(ac,curr,exp);
@@ -915,8 +915,7 @@ void CoreSolver::getNormalForms(Node eqc,
       {
         NormalForm& nf = normal_forms[i];
         int firstc, lastc;
-        if (!SequencesRewriter::canConstantContainList(
-                c, nf.d_nf, firstc, lastc))
+        if (!StringsEntail::canConstantContainList(c, nf.d_nf, firstc, lastc))
         {
           Node n = nf.d_base;
           //conflict
@@ -1918,7 +1917,7 @@ int CoreSolver::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >&
       if (!c.isNull())
       {
         int findex, lindex;
-        if (!SequencesRewriter::canConstantContainList(
+        if (!StringsEntail::canConstantContainList(
                 c, i == 0 ? nfj : nfi, findex, lindex))
         {
           Trace("strings-solve-debug")

@@ -427,14 +427,6 @@ libcvc4_add_sources(
   theory/fp/theory_fp_rewriter.h
   theory/fp/theory_fp_type_rules.h
   theory/fp/type_enumerator.h
-  theory/idl/idl_assertion.cpp
-  theory/idl/idl_assertion.h
-  theory/idl/idl_assertion_db.cpp
-  theory/idl/idl_assertion_db.h
-  theory/idl/idl_model.cpp
-  theory/idl/idl_model.h
-  theory/idl/theory_idl.cpp
-  theory/idl/theory_idl.h
   theory/interrupted.h
   theory/logic_info.cpp
   theory/logic_info.h
@@ -664,6 +656,8 @@ libcvc4_add_sources(
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/strings/arith_entail.cpp
+  theory/strings/arith_entail.h
   theory/strings/base_solver.cpp
   theory/strings/base_solver.h
   theory/strings/core_solver.cpp
@@ -680,6 +674,8 @@ libcvc4_add_sources(
   theory/strings/normal_form.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
+  theory/strings/regexp_entail.cpp
+  theory/strings/regexp_entail.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp
@@ -694,6 +690,8 @@ libcvc4_add_sources(
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
   theory/strings/solver_state.h
+  theory/strings/strings_entail.cpp
+  theory/strings/strings_entail.h
   theory/strings/strings_fmf.cpp
   theory/strings/strings_fmf.h
   theory/strings/strings_rewriter.cpp
@@ -769,8 +767,7 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/idl/kinds)
+  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories
@@ -905,7 +902,6 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
-          expr/expr_stream.h
           expr/record.h
           expr/symbol_table.h
           expr/type.h

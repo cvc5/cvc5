@@ -51,6 +51,8 @@ public:
               Valuation valuation, const LogicInfo& logicInfo);
   virtual ~TheoryArith();
 
+  TheoryRewriter* getTheoryRewriter() override;
+
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */

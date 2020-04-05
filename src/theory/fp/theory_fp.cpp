@@ -15,17 +15,17 @@
  ** \todo document this file
  **/
 
-
-#include "options/fp_options.h"
-#include "theory/rewriter.h"
-#include "theory/theory_model.h"
 #include "theory/fp/theory_fp.h"
-
 
 #include <set>
 #include <stack>
 #include <unordered_set>
 #include <vector>
+
+#include "options/fp_options.h"
+#include "theory/fp/theory_fp_rewriter.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace std;
 
@@ -174,7 +174,6 @@ TheoryFp::TheoryFp(context::Context *c,
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_EXPONENT);
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
   d_equalityEngine.addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
-
 } /* TheoryFp::TheoryFp() */
 
 Node TheoryFp::minUF(Node node) {

@@ -317,13 +317,6 @@ ListenerCollection::Registration* Options::registerRlimitPerListener(
   return registerAndNotify(d_rlimitPerListeners, listener, notify);
 }
 
-ListenerCollection::Registration* Options::registerUseTheoryListListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::useTheoryList);
-  return registerAndNotify(d_useTheoryListListeners, listener, notify);
-}
-
 ListenerCollection::Registration* Options::registerSetDefaultExprDepthListener(
     Listener* listener, bool notifyIfSet)
 {
@@ -380,14 +373,6 @@ Options::registerSetDiagnosticOutputChannelListener(
 {
   bool notify = notifyIfSet && wasSetByUser(options::diagnosticChannelName);
   return registerAndNotify(d_setDiagnosticChannelListeners, listener, notify);
-}
-
-ListenerCollection::Registration*
-Options::registerSetReplayLogFilename(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::replayLogFilename);
-  return registerAndNotify(d_setReplayFilenameListeners, listener, notify);
 }
 
 ${custom_handlers}$

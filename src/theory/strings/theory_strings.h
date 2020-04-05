@@ -39,6 +39,7 @@
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strings_fmf.h"
+#include "theory/strings/strings_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -109,6 +110,8 @@ class TheoryStrings : public Theory {
                 OutputChannel& out, Valuation valuation,
                 const LogicInfo& logicInfo);
   ~TheoryStrings();
+
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
@@ -360,6 +363,9 @@ private:
 
   // Symbolic Regular Expression
  private:
+  /** The theory rewriter for this theory. */
+  StringsRewriter d_rewriter;
+
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.

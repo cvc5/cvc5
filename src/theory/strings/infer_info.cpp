@@ -22,6 +22,11 @@ const char* toString(Inference i)
 {
   switch (i)
   {
+    case Inference::I_NORM_S: return "I_NORM_S";
+    case Inference::I_CONST_MERGE: return "I_CONST_MERGE";
+    case Inference::I_CONST_CONFLICT: return "I_CONST_CONFLICT";
+    case Inference::I_NORM: return "I_NORM";
+    case Inference::CARDINALITY: return "CARDINALITY";
     case Inference::N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
     case Inference::N_UNIFY: return "N_UNIFY";
     case Inference::N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";
@@ -34,6 +39,22 @@ const char* toString(Inference i)
     case Inference::SSPLIT_CST: return "SSPLIT_CST";
     case Inference::SSPLIT_VAR: return "SSPLIT_VAR";
     case Inference::FLOOP: return "FLOOP";
+    case Inference::RE_NF_CONFLICT: return "RE_NF_CONFLICT";
+    case Inference::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
+    case Inference::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
+    case Inference::RE_INTER_INCLUDE: return "RE_INTER_INCLUDE";
+    case Inference::RE_INTER_CONF: return "RE_INTER_CONF";
+    case Inference::RE_INTER_INFER: return "RE_INTER_INFER";
+    case Inference::RE_DELTA: return "RE_DELTA";
+    case Inference::RE_DELTA_CONF: return "RE_DELTA_CONF";
+    case Inference::RE_DERIVE: return "RE_DERIVE";
+    case Inference::EXTF: return "EXTF";
+    case Inference::EXTF_N: return "EXTF_N";
+    case Inference::CTN_TRANS: return "CTN_TRANS";
+    case Inference::CTN_DECOMPOSE: return "CTN_DECOMPOSE";
+    case Inference::CTN_NEG_EQUAL: return "CTN_NEG_EQUAL";
+    case Inference::CTN_POS: return "CTN_POS";
+    case Inference::REDUCTION: return "REDUCTION";
     default: return "?";
   }
 }

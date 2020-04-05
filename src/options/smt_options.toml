@@ -46,12 +46,6 @@ header = "options/smt_options.h"
   name = "batch"
   help = "Save up all ASSERTions; run nonclausal simplification and clausal (MiniSat) propagation for all of them only after reaching a querying command (CHECKSAT or QUERY or predicate SUBTYPE declaration)."
 
-[[alias]]
-  category   = "regular"
-  long       = "no-simplification"
-  links      = ["--simplification=none"]
-  help       = "turn off all simplification (same as --simplification=none)"
-
 [[option]]
   name       = "doStaticLearning"
   category   = "regular"
@@ -625,27 +619,6 @@ header = "options/smt_options.h"
   default    = "1"
   read_only  = true
   help       = "amount of resources spent for each sat conflict (bitvectors)"
-
-# --replay is currently broken; don't document it for 1.0
-[[option]]
-  name       = "replayInputFilename"
-  category   = "undocumented"
-  long       = "replay=FILE"
-  type       = "std::string"
-  handler    = "checkReplayFilename"
-  read_only  = true
-  help       = "replay decisions from file"
-
-# --replay is currently broken; don't document it for 1.0
-[[option]]
-  name       = "replayLogFilename"
-  category   = "undocumented"
-  long       = "replay-log=FILE"
-  type       = "std::string"
-  handler    = "checkReplayFilename"
-  notifies   = ["notifySetReplayLogFilename", "notifyBeforeSearch"]
-  read_only  = true
-  help       = "replay decisions from file"
 
 [[option]]
   name       = "forceNoLimitCpuWhileDump"

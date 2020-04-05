@@ -42,6 +42,7 @@
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
+#include "theory/theory_rewriter.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
@@ -55,6 +56,7 @@ class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
 class ExtTheory;
+class TheoryRewriter;
 
 class EntailmentCheckParameters;
 class EntailmentCheckSideEffects;
@@ -78,9 +80,7 @@ namespace eq {
  * all calls to them.)
  */
 class Theory {
-
-private:
-
+ private:
   friend class ::CVC4::TheoryEngine;
 
   // Disallow default construction, copy, assignment.
@@ -138,7 +138,6 @@ private:
   ExtTheory* d_extTheory;
 
  protected:
-
 
   // === STATISTICS ===
   /** time spent in check calls */
@@ -315,6 +314,11 @@ public:
    * Destructs a Theory.
    */
   virtual ~Theory();
+
+  /**
+   * @return The theory rewriter associated with this theory.
+   */
+  virtual TheoryRewriter* getTheoryRewriter() = 0;
 
   /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK

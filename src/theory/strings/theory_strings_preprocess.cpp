@@ -22,6 +22,7 @@
 #include "options/strings_options.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
 
@@ -75,10 +76,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node sk1 = n == d_zero ? emp
                            : d_sc->mkSkolemCached(
                                  s, n, SkolemCache::SK_PREFIX, "sspre");
-    Node sk2 = SequencesRewriter::checkEntailArith(t12, lt0)
+    Node sk2 = ArithEntail::check(t12, lt0)
                    ? emp
                    : d_sc->mkSkolemCached(
-                         s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+                       s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
     //length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);

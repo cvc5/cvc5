@@ -294,40 +294,6 @@ class BeforeSearchListener : public Listener {
   SmtEngine* d_smt;
 }; /* class BeforeSearchListener */
 
-class UseTheoryListListener : public Listener {
- public:
-  UseTheoryListListener(TheoryEngine* theoryEngine)
-      : d_theoryEngine(theoryEngine)
-  {}
-
-  void notify() override
-  {
-    std::stringstream commaList(options::useTheoryList());
-    std::string token;
-
-    Debug("UseTheoryListListener") << "UseTheoryListListener::notify() "
-                                   << options::useTheoryList() << std::endl;
-
-    while(std::getline(commaList, token, ',')){
-      if(token == "help") {
-        puts(theory::useTheoryHelp);
-        exit(1);
-      }
-      if(theory::useTheoryValidate(token)) {
-        d_theoryEngine->enableTheoryAlternative(token);
-      } else {
-        throw OptionException(
-            std::string("unknown option for --use-theory : `") + token +
-            "'.  Try --use-theory=help.");
-      }
-    }
-  }
-
- private:
-  TheoryEngine* d_theoryEngine;
-}; /* class UseTheoryListListener */
-
-
 class SetDefaultExprDepthListener : public Listener {
  public:
   void notify() override
@@ -433,15 +399,11 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Manager for the memory of --dump-to. */
   ManagedDumpOStream d_managedDumpChannel;
 
-  /** Manager for --replay-log. */
-  ManagedReplayLogOstream d_managedReplayLog;
-
   /**
    * This list contains:
    *  softResourceOut
    *  hardResourceOut
    *  beforeSearchListener
-   *  UseTheoryListListener
    *
    * This needs to be deleted before both NodeManager's Options,
    * SmtEngine, d_resourceManager, and TheoryEngine.
@@ -554,7 +516,6 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_managedRegularChannel(),
         d_managedDiagnosticChannel(),
         d_managedDumpChannel(),
-        d_managedReplayLog(),
         d_listenerRegistrations(new ListenerRegistrationList()),
         d_propagator(true, true),
         d_assertions(),
@@ -618,9 +579,6 @@ class SmtEnginePrivate : public NodeManagerListener {
       d_listenerRegistrations->add(
           nodeManagerOptions.registerDumpToFileNameListener(
               new SetToDefaultSourceListener(&d_managedDumpChannel), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetReplayLogFilename(
-              new SetToDefaultSourceListener(&d_managedReplayLog), true));
     }
     catch (OptionException& e)
     {
@@ -814,17 +772,6 @@ class SmtEnginePrivate : public NodeManagerListener {
     return retval;
   }
 
-  void addUseTheoryListListener(TheoryEngine* theoryEngine){
-    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerUseTheoryListListener(
-            new UseTheoryListListener(theoryEngine), true));
-  }
-
-  std::ostream* getReplayLog() const {
-    return d_managedReplayLog.getReplayLog();
-  }
-
   //------------------------------- expression names
   // implements setExpressionName, as described in smt_engine.h
   void setExpressionName(Expr e, std::string name) {
@@ -855,6 +802,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
+      d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_fmfRecFunctionsDefined(nullptr),
       d_assertionList(nullptr),
@@ -874,7 +822,6 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_status(),
       d_expectedStatus(),
       d_smtMode(SMT_MODE_START),
-      d_replayStream(nullptr),
       d_private(nullptr),
       d_statisticsRegistry(nullptr),
       d_stats(nullptr)
@@ -923,8 +870,6 @@ void SmtEngine::finishInit()
 #endif
   }
 
-  d_private->addUseTheoryListListener(getTheoryEngine());
-
   // set the random seed
   Random::getRandom().setSeed(options::seed());
 
@@ -938,11 +883,8 @@ void SmtEngine::finishInit()
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(getTheoryEngine(),
-                                    getContext(),
-                                    getUserContext(),
-                                    d_private->getReplayLog(),
-                                    d_replayStream));
+  d_propEngine.reset(
+      new PropEngine(getTheoryEngine(), getContext(), getUserContext()));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -1825,7 +1767,7 @@ Result SmtEngine::check() {
       resourceManager->out()) {
     Result::UnknownExplanation why = resourceManager->outOfResources() ?
                              Result::RESOURCEOUT : Result::TIMEOUT;
-    return Result(Result::VALIDITY_UNKNOWN, why, d_filename);
+    return Result(Result::ENTAILMENT_UNKNOWN, why, d_filename);
   }
 
   // Make sure the prop layer has all of the assertions
@@ -1850,7 +1792,8 @@ Result SmtEngine::check() {
 Result SmtEngine::quickCheck() {
   Assert(d_fullyInited);
   Trace("smt") << "SMT quickCheck()" << endl;
-  return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
+  return Result(
+      Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
 }
 
 theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
@@ -1866,7 +1809,8 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   {
     std::stringstream ss;
     ss << "Cannot " << c
-       << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
+       << " unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN "
+          "response.";
     throw RecoverableModalException(ss.str().c_str());
   }
 
@@ -2439,35 +2383,34 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
   return checkSatisfiability(assumptions, inUnsatCore, false);
 }
 
-Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const Expr& expr, bool inUnsatCore)
 {
-  Dump("benchmark") << QueryCommand(assumption, inUnsatCore);
-  return checkSatisfiability(assumption.isNull()
-                                 ? std::vector<Expr>()
-                                 : std::vector<Expr>{assumption},
-                             inUnsatCore,
-                             true)
-      .asValidityResult();
+  Dump("benchmark") << QueryCommand(expr, inUnsatCore);
+  return checkSatisfiability(
+             expr.isNull() ? std::vector<Expr>() : std::vector<Expr>{expr},
+             inUnsatCore,
+             true)
+      .asEntailmentResult();
 }
 
-Result SmtEngine::query(const vector<Expr>& assumptions, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const vector<Expr>& exprs, bool inUnsatCore)
 {
-  return checkSatisfiability(assumptions, inUnsatCore, true).asValidityResult();
+  return checkSatisfiability(exprs, inUnsatCore, true).asEntailmentResult();
 }
 
 Result SmtEngine::checkSatisfiability(const Expr& expr,
                                       bool inUnsatCore,
-                                      bool isQuery)
+                                      bool isEntailmentCheck)
 {
   return checkSatisfiability(
       expr.isNull() ? std::vector<Expr>() : std::vector<Expr>{expr},
       inUnsatCore,
-      isQuery);
+      isEntailmentCheck);
 }
 
 Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                                       bool inUnsatCore,
-                                      bool isQuery)
+                                      bool isEntailmentCheck)
 {
   try
   {
@@ -2475,7 +2418,8 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     finalOptionsAreSet();
     doPendingPops();
 
-    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
+    Trace("smt") << "SmtEngine::"
+                 << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
 
     if(d_queryMade && !options::incrementalSolving()) {
@@ -2493,7 +2437,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     setProblemExtended();
 
-    if (isQuery)
+    if (isEntailmentCheck)
     {
       size_t size = assumptions.size();
       if (size > 1)
@@ -2599,8 +2543,8 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       d_smtMode = SMT_MODE_SAT_UNKNOWN;
     }
 
-    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
-                 << assumptions << ") => " << r << endl;
+    Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
+                 << "(" << assumptions << ") => " << r << endl;
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
@@ -2646,7 +2590,7 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
   {
     throw RecoverableModalException(
         "Cannot get unsat assumptions unless immediately preceded by "
-        "UNSAT/VALID response.");
+        "UNSAT/ENTAILED.");
   }
   finalOptionsAreSet();
   if (Dump.isOn("benchmark"))
@@ -2684,7 +2628,7 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
   }
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
   d_private->addFormula(e.getNode(), inUnsatCore, true, false, maybeHasFv);
-  return quickCheck().asValidityResult();
+  return quickCheck().asEntailmentResult();
 }/* SmtEngine::assertFormula() */
 
 /*
@@ -3277,13 +3221,13 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   Expr heap;
   Expr nil;
   Model* m = getAvailableModel("get separation logic heap and nil");
-  if (m->getHeapModel(heap, nil))
+  if (!m->getHeapModel(heap, nil))
   {
-    return std::make_pair(heap, nil);
+    InternalError()
+        << "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
+           "expressions from theory model.";
   }
-  InternalError()
-      << "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
-         "expressions from theory model.";
+  return std::make_pair(heap, nil);
 }
 
 std::vector<Expr> SmtEngine::getExpandedAssertions()
@@ -3353,8 +3297,8 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
-        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
-        "response.");
+        "Cannot get an unsat core unless immediately preceded by "
+        "UNSAT/ENTAILED response.");
   }
 
   d_proofManager->traceUnsatCore();  // just to trigger core creation
@@ -3859,7 +3803,7 @@ const Proof& SmtEngine::getProof()
   if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
-        "Cannot get a proof unless immediately preceded by UNSAT/VALID "
+        "Cannot get a proof unless immediately preceded by UNSAT/ENTAILED "
         "response.");
   }
 
@@ -4337,11 +4281,8 @@ void SmtEngine::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(getTheoryEngine(),
-                                    getContext(),
-                                    getUserContext(),
-                                    d_private->getReplayLog(),
-                                    d_replayStream));
+  d_propEngine.reset(
+      new PropEngine(getTheoryEngine(), getContext(), getUserContext()));
   d_theoryEngine->setPropEngine(getPropEngine());
 }
 
@@ -4532,12 +4473,6 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 
   Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
   return SExpr::parseAtom(nodeManagerOptions.getOption(key));
-}
-
-void SmtEngine::setReplayStream(ExprStream* replayStream) {
-  AlwaysAssert(!d_fullyInited)
-      << "Cannot set replay stream once fully initialized";
-  d_replayStream = replayStream;
 }
 
 bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
