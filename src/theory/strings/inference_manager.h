@@ -184,6 +184,14 @@ class InferenceManager
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
+
+  /**
+   * The same as `sendSplit()` above but with an `Inference` instead of a
+   * string.  This variant updates the statistics about the number of
+   * inferences made of each type.
+   */
+  bool sendSplit(Node a, Node b, Inference infer, bool preq = true);
+
   /** Send phase requirement
    *
    * This method is called to indicate this class should send a phase
