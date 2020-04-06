@@ -129,7 +129,7 @@ class InferenceManager
    * exp_n is empty. In particular, lemmas must be used whenever exp_n is
    * non-empty, conflicts are used when exp_n is empty and eq is false.
    *
-   * The argument c is a string identifying the reason for inference, used for
+   * The argument infer identifies the reason for inference, used for
    * debugging. This updates the statistics about the number of inferences made
    * of each type.
    *
