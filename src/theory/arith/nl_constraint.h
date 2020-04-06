@@ -48,13 +48,25 @@ class ConstraintDb
  public:
   ConstraintDb(MonomialDb& mdb);
   ~ConstraintDb() {}
-  /** register constraint */
+  /** register constraint 
+   * 
+   * This ensures that atom is in the domain of the constraints maintained by
+   * this database.
+   */
   void registerConstraint(Node atom);
-  /** get constraints */
+  /** get constraints 
+   * 
+   * Returns a map m such that whenever
+   * m[lit][x] = ( r, coeff, k ), then 
+   * ( lit <=>  (coeff * x) <k> r )
+   */
   std::map<Node, std::map<Node, ConstraintInfo> >& getConstraints();
-  /** Returns true if x is of maximal degree in monomial */
-  bool isMaximal(Node atom, Node x) const;
-
+  /** Returns true if m is of maximal degree in atom
+   * 
+   * For example, for atom x^2 + x*y + y >=0, the monomials x^2 and x*y
+   * are of maximal degree (2).
+   */
+  bool isMaximal(Node atom, Node m) const;
  private:
   /** Reference to a monomial database */
   MonomialDb& d_mdb;
@@ -62,10 +74,7 @@ class ConstraintDb
   std::vector<Node> d_constraints;
   /** Is maximal degree */
   std::map<Node, std::map<Node, bool> > d_c_info_maxm;
-  /** Constraint information
-   *
-   * If d_c_info[lit][x] = ( r, coeff, k ), then ( lit <=>  (coeff * x) <k> r )
-   */
+  /** Constraint information */
   std::map<Node, std::map<Node, ConstraintInfo> > d_c_info;
 };
 

@@ -53,7 +53,7 @@ class MonomialIndex
   std::vector<Node> d_monos;
 }; /* class MonomialIndex */
 
-/** Context-indenpent database for monomial information */
+/** Context-independent database for monomial information */
 class MonomialDb
 {
  public:
@@ -63,7 +63,7 @@ class MonomialDb
   void registerMonomial(Node n);
   /**
    * Register monomial subset. This method is called when we infer that b is
-   * a subset of monomial a.
+   * a subset of monomial a, e.g. x*y^2 is a subset of x^3*y^2*z.
    */
   void registerMonomialSubset(Node a, Node b);
   /**
@@ -72,21 +72,36 @@ class MonomialDb
    * containing the factors of monomial b.
    */
   bool isMonomialSubset(Node a, Node b) const;
-  /** Returns the NodeMultiset for an existing monomial. */
+  /** Returns the NodeMultiset for a registered monomial. */
   const NodeMultiset& getMonomialExponentMap(Node monomial) const;
   /** Returns the exponent of variable v in the given monomial */
   unsigned getExponent(Node monomial, Node v) const;
-  /** Get variable list */
+  /** Get the list of unique variables is the monomial */
   const std::vector<Node>& getVariableList(Node monomial) const;
-  /** Get degree */
+  /** Get degree of monomial, e.g. the degree of x^2*y^2 = 4 */
   unsigned getDegree(Node monomial) const;
-  /** Sort monomials in ms by their degree */
+  /** Sort monomials in ms by their degree
+   * 
+   * Updates ms so that degree(ms[i]) <= degree(ms[j]) for i <= j.
+   */
   void sortByDegree(std::vector<Node>& ms) const;
-  /** Sort the variable lists based on model values */
+  /** Sort the variable lists based on model values
+   * 
+   * This updates the variable lists of monomials in ms based on the absolute
+   * value of their current model values in m. 
+   * 
+   * In other words, for each i, getVariableList(ms[i]) returns
+   * v1, ..., vn where |m(v1)| <= ... <= |m(vn)| after this method is invoked.
+   */
   void sortVariablesByModel(std::vector<Node>& ms, NlModel& m);
-  /** Get monomial contains children map */
+  /** Get monomial contains children map 
+   * 
+   * This maps monomials to other monomials that are contained in them, e.g.
+   * x^2 * y may map to { x, x^2, y } if these three terms exist have been
+   * registered to this class.
+   */
   std::map<Node, std::vector<Node> >& getContainsChildrenMap();
-  /** Get monomial contains parent map */
+  /** Get monomial contains parent map, reverse of above */
   std::map<Node, std::vector<Node> >& getContainsParentMap();
   /**
    * Get contains difference. Return the difference of a and b or null if it
