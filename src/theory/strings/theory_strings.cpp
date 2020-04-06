@@ -158,7 +158,7 @@ void TheoryStrings::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 
 void TheoryStrings::addSharedTerm(TNode t) {
   Debug("strings") << "TheoryStrings::addSharedTerm(): "
-                   << t << " " << t.getType().isBoolean() << endl;
+                     << t << " " << t.getType().isBoolean() << endl;
   d_equalityEngine.addTriggerTerm(t, THEORY_STRINGS);
   if (options::stringExp())
   {
@@ -215,7 +215,7 @@ Node TheoryStrings::explain( TNode literal ){
   }
 }
 
-bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars,
+bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars, 
                                             std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
   Trace("strings-subs") << "getCurrentSubstitution, effort = " << effort << std::endl;
   for( unsigned i=0; i<vars.size(); i++ ){
@@ -283,8 +283,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     }
   }
   for (const std::pair<const TypeNode,
-        std::unordered_set<Node, NodeHashFunction> >& rst :
-      repSet)
+                       std::unordered_set<Node, NodeHashFunction> >& rst :
+       repSet)
   {
     if (!collectModelInfoType(rst.first, rst.second, m))
     {
@@ -422,7 +422,7 @@ bool TheoryStrings::collectModelInfoType(
 
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
-      << "Exceeded UINT32_MAX in string model";
+          << "Exceeded UINT32_MAX in string model";
       uint32_t currLen =
           lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
       std::unique_ptr<SEnumLen> sel;
@@ -646,7 +646,7 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
   if (node.getKind() == STRING_FROM_CODE)
   {
     // str.from_code(t) --->
-    //   choice k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
+    //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
     Node t = node[0];
     Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
@@ -1182,7 +1182,7 @@ Node TheoryStrings::ppRewrite(TNode atom) {
     StringsPreprocess* p = d_esolver->getPreprocess();
     Node ret = p->processAssertion(atom, new_nodes);
     if( ret!=atom ){
-      Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl;
+      Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
       for( unsigned i=0; i<new_nodes.size(); i++ ){
         Trace("strings-ppr") << "    lemma : " << new_nodes[i] << std::endl;
         ++(d_statistics.d_lemmasEagerPreproc);
@@ -1242,7 +1242,7 @@ void TheoryStrings::addStrategyStep(InferStep s, int effort, bool addBreak)
   // must use check cycles when using flat forms
   Assert(s != CHECK_FLAT_FORMS
          || std::find(d_infer_steps.begin(), d_infer_steps.end(), CHECK_CYCLES)
-            != d_infer_steps.end());
+                != d_infer_steps.end());
   d_infer_steps.push_back(s);
   d_infer_step_effort.push_back(effort);
   if (addBreak)
