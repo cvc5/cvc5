@@ -57,7 +57,7 @@ InferenceManager::InferenceManager(TheoryStrings& p,
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
-                                             const char* c)
+                                             Inference infer)
 {
   if (conc.getKind() == AND
       || (conc.getKind() == NOT && conc[0].getKind() == OR))
@@ -67,7 +67,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
     bool ret = true;
     for (const Node& cc : conj)
     {
-      bool retc = sendInternalInference(exp, pol ? cc : cc.negate(), c);
+      bool retc = sendInternalInference(exp, pol ? cc : cc.negate(), infer);
       ret = ret && retc;
     }
     return ret;
@@ -110,21 +110,21 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
     // already holds
     return true;
   }
-  sendInference(exp, conc, c);
+  sendInference(exp, conc, infer);
   return true;
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      const std::vector<Node>& exp_n,
                                      Node eq,
-                                     const char* c,
+                                     Inference infer,
                                      bool asLemma)
 {
   eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
   if (Trace.isOn("strings-infer-debug"))
   {
     Trace("strings-infer-debug")
-        << "By " << c << ", infer : " << eq << " from: " << std::endl;
+        << "By " << infer << ", infer : " << eq << " from: " << std::endl;
     for (unsigned i = 0; i < exp.size(); i++)
     {
       Trace("strings-infer-debug") << "  " << exp[i] << std::endl;
@@ -138,6 +138,8 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   {
     return;
   }
+  // only keep stats if not trivial conclusion
+  d_statistics.d_inferences << infer;
   Node atom = eq.getKind() == NOT ? eq[0] : eq;
   // check if we should send a lemma or an inference
   if (asLemma || atom == d_false || atom.getKind() == OR || !exp_n.empty()
@@ -172,58 +174,38 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       eq = eq_exp.negate();
       eq_exp = d_true;
     }
-    sendLemma(eq_exp, eq, c);
+    sendLemma(eq_exp, eq, infer);
   }
   else
   {
-    sendInfer(utils::mkAnd(exp), eq, c);
+    sendInfer(utils::mkAnd(exp), eq, infer);
   }
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
-                                     const char* c,
+                                     Inference infer,
                                      bool asLemma)
 {
   std::vector<Node> exp_n;
-  sendInference(exp, exp_n, eq, c, asLemma);
-}
-
-void InferenceManager::sendInference(const std::vector<Node>& exp,
-                                     const std::vector<Node>& exp_n,
-                                     Node eq,
-                                     Inference infer,
-                                     bool asLemma)
-{
-  d_statistics.d_inferences << infer;
-  std::stringstream ss;
-  ss << infer;
-  sendInference(exp, exp_n, eq, ss.str().c_str(), asLemma);
-}
-
-void InferenceManager::sendInference(const std::vector<Node>& exp,
-                                     Node eq,
-                                     Inference infer,
-                                     bool asLemma)
-{
-  d_statistics.d_inferences << infer;
-  sendInference(exp, eq, toString(infer), asLemma);
+  sendInference(exp, exp_n, eq, infer, asLemma);
 }
 
 void InferenceManager::sendInference(const InferInfo& i)
 {
   sendInference(i.d_ant, i.d_antn, i.d_conc, i.d_id, true);
 }
-void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
+
+void InferenceManager::sendLemma(Node ant, Node conc, Inference infer)
 {
   if (conc.isNull() || conc == d_false)
   {
     Trace("strings-conflict")
-        << "Strings::Conflict : " << c << " : " << ant << std::endl;
-    Trace("strings-lemma") << "Strings::Conflict : " << c << " : " << ant
+        << "Strings::Conflict : " << infer << " : " << ant << std::endl;
+    Trace("strings-lemma") << "Strings::Conflict : " << infer << " : " << ant
                            << std::endl;
     Trace("strings-assert")
-        << "(assert (not " << ant << ")) ; conflict " << c << std::endl;
+        << "(assert (not " << ant << ")) ; conflict " << infer << std::endl;
     ++(d_statistics.d_conflictsInfer);
     d_out.conflict(ant);
     d_state.setConflict();
@@ -238,13 +220,13 @@ void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
   {
     lem = NodeManager::currentNM()->mkNode(IMPLIES, ant, conc);
   }
-  Trace("strings-lemma") << "Strings::Lemma " << c << " : " << lem << std::endl;
-  Trace("strings-assert") << "(assert " << lem << ") ; lemma " << c
+  Trace("strings-lemma") << "Strings::Lemma " << infer << " : " << lem << std::endl;
+  Trace("strings-assert") << "(assert " << lem << ") ; lemma " << infer
                           << std::endl;
   d_pendingLem.push_back(lem);
 }
 
-void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
+void InferenceManager::sendInfer(Node eq_exp, Node eq, Inference infer)
 {
   if (options::stringInferSym())
   {
@@ -259,7 +241,7 @@ void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
       if (Trace.isOn("strings-lemma-debug"))
       {
         Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from "
-                                     << eq_exp << " by " << c << std::endl;
+                                     << eq_exp << " by " << infer << std::endl;
         Trace("strings-lemma-debug")
             << "Strings::Infer Alternate : " << eqs << std::endl;
         for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
@@ -268,7 +250,7 @@ void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
               << "  " << vars[i] << " -> " << subs[i] << std::endl;
         }
       }
-      sendLemma(d_true, eqs, c);
+      sendLemma(d_true, eqs, infer);
       return;
     }
     if (Trace.isOn("strings-lemma-debug"))
@@ -281,16 +263,16 @@ void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
     }
   }
   Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eq_exp
-                         << " by " << c << std::endl;
+                         << " by " << infer << std::endl;
   Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq
-                          << ")) ; infer " << c << std::endl;
+                          << ")) ; infer " << infer << std::endl;
   d_pending.push_back(eq);
   d_pendingExp[eq] = eq_exp;
   d_keep.insert(eq);
   d_keep.insert(eq_exp);
 }
 
-bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
+bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
 {
   Node eq = a.eqNode(b);
   eq = Rewriter::rewrite(eq);
@@ -298,19 +280,15 @@ bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
   {
     return false;
   }
+  // update statistics
+  d_statistics.d_inferences << infer;
   NodeManager* nm = NodeManager::currentNM();
   Node lemma_or = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or
+  Trace("strings-lemma") << "Strings::Lemma " << infer << " SPLIT : " << lemma_or
                          << std::endl;
   d_pendingLem.push_back(lemma_or);
   sendPhaseRequirement(eq, preq);
   return true;
-}
-
-bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
-{
-  d_statistics.d_inferences << infer;
-  return sendSplit(a, b, toString(infer), preq);
 }
 
 void InferenceManager::sendPhaseRequirement(Node lit, bool pol)

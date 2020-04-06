@@ -59,10 +59,22 @@ enum class Inference : uint32_t
   // equal after e.g. removing strings that are currently empty. For example:
   //   y = "" ^ z = "" => x ++ y = z ++ x
   I_NORM,
+  // A split due to cardinality
+  CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.
   CARDINALITY,
   //-------------------------------------- end base solver
   //-------------------------------------- core solver
+  I_CYCLE_E,
+  I_CYCLE,
+  FFORM_CONST,
+  FFORM_UNIFY,
+  FFORM_ENDPOINT_EMP,
+  FFORM_ENDPOINT_EQ,
+  FFORM_NCTN,
+  NORMAL_FORM,
+  N_NCTN,
+  LEN_NORM,
   // Given two normal forms, infers that the remainder one of them has to be
   // empty. For example:
   //    If x1 ++ x2 = y1 and x1 = y1, then x2 = ""
@@ -119,6 +131,8 @@ enum class Inference : uint32_t
   //        for fresh u, u1, u2.
   // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
   FLOOP,
+  // loop conflict
+  FLOOP_CONFLICT,
   // When x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != len(y), we apply the
   // inference:
   //   x = "" v x != ""
@@ -152,7 +166,18 @@ enum class Inference : uint32_t
   //   ni = px ++ x ++ ... ^ nj = py ^ len(ni) = len(nj) --->
   //     x = "" ^ ...
   DEQ_NORM_EMP,
+  // When two strings are disequal s != t and the comparison of their lengths
+  // is unknown, we apply the inference:
+  //   len(s) != len(t) V len(s) = len(t)
+  DEQ_LENGTH_SP,
   //-------------------------------------- end core solver
+  //-------------------------------------- codes solver
+  // str.to_code( v ) = rewrite( str.to_code(c) )
+  // where v is the proxy variable for c.
+  CODE_PROXY,
+  // str.code(x) = -1 V str.code(x) != str.code(y) V x = y
+  CODE_INJ,
+  //-------------------------------------- end codes solver
   //-------------------------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
@@ -190,14 +215,30 @@ enum class Inference : uint32_t
   RE_DERIVE,
   //-------------------------------------- end regexp solver
   //-------------------------------------- extended function solver
-  // All extended function inferences from context-dependent rewriting produced
-  // by constant substitutions. See Reynolds et al CAV 2017. These are
+  // Standard extended function inferences from context-dependent rewriting
+  // produced by constant substitutions. See Reynolds et al CAV 2017. These are
   // inferences of the form:
   //   X = Y => f(X) = t   when   rewrite( f(Y) ) = t
   // where X = Y is a vector of equalities, where some of Y may be constants.
   EXTF,
   // Same as above, for normal form substitutions.
   EXTF_N,
+  // Decompositions based on extended function inferences from context-dependent
+  // rewriting produced by constant substitutions. This is like the above, but
+  // handles cases where the inferred predicate is not necessarily an equality
+  // involving f(X). For example:
+  //   x = "A" ^ contains( y ++ x, "B" ) => contains( y, "B" )
+  // This is generally only inferred if contains( y, "B" ) is already a term in
+  // the current context.
+  EXTF_D,
+  // Same as above, for normal form substitutions.
+  EXTF_D_N,
+  // Extended function equality rewrite. This is an inference of the form:
+  //   t = s => rewrite( t = s )
+  // Typically, t is an application of an extended function and s is a constant.
+  // It is generally only inferred if rewrite( t = s ) is already a term in
+  // the current context.
+  EXTF_EQ_REW,
   // contain transitive
   //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
   CTN_TRANS,
