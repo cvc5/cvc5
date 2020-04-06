@@ -62,6 +62,26 @@ void SolverState::registerEqc(TypeNode tn, Node r)
   }
 }
 
+Node SolverState::getChooseFunction(const TypeNode& setType)
+{
+  std::map<TypeNode, Node>::iterator it = d_chooseFunctions.find(setType);
+  if (it != d_chooseFunctions.end())
+  {
+    return it->second;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
+  stringstream stream;
+  stream << "chooseUf" << setType.getId();
+  string name = stream.str();
+  Node chooseSkolem = nm->mkSkolem(
+      name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
+  d_chooseFunctions[setType] = chooseSkolem;
+  return chooseSkolem;
+}
+
+
 void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
 {
   Kind nk = n.getKind();
@@ -91,6 +111,10 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
         Assert(false);
       }
     }
+  }
+  else if (nk == CHOOSE)
+  {
+    Trace("sets-debug2") << "chooseUf: " << n << std::endl;
   }
   else if (nk == SINGLETON || nk == UNION || nk == INTERSECTION
            || nk == SETMINUS || nk == EMPTYSET || nk == UNIVERSE_SET)

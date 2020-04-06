@@ -205,6 +205,14 @@ class SolverState
    * skolem variables used for various inferences.
    */
   SkolemCache& getSkolemCache() { return d_skCache; }
+  /** get choose function
+   *
+   * Returns the existing choose uninterpreted function for the given set or
+   * creates a new one if it does not exist. If the function is created, the
+   * logic is widened to include UF.
+   */
+  Node getChooseFunction(const TypeNode& setType);
+
   // --------------------------------------- end commonly used terms
   /** debug print set */
   void debugPrintSet(Node s, const char* c) const;
@@ -294,6 +302,11 @@ class SolverState
    * members if i=1.
    */
   const std::map<Node, Node>& getMembersInternal(Node r, unsigned i) const;
+
+  /*
+   * a map that stores the choose functions for set types
+   */
+  std::map<TypeNode, Node> d_chooseFunctions;
 }; /* class TheorySetsPrivate */
 
 }  // namespace sets

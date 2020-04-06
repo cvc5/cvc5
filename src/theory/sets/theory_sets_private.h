@@ -108,6 +108,8 @@ class TheorySetsPrivate {
    */
   void checkReduceComprehensions();
 
+  void checkChooseOperator(const Node& node);
+
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
                     unsigned arity,
@@ -262,13 +264,6 @@ class TheorySetsPrivate {
   bool isMember(Node x, Node s);
 
  private:
-  /** get choose function
-   *
-   * Returns the existing choose uninterpreted function for the given set or
-   * creates a new one if it does not exist. If the function is created, the
-   * logic is widened to include UF.
-   */
-  Node getChooseFunction(LogicRequest& logicRequest, const TypeNode& setType);
   /** The state of the sets solver at full effort */
   SolverState d_state;
   /** The inference manager of the sets solver */
@@ -292,11 +287,6 @@ class TheorySetsPrivate {
 
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;
-
-  /*
-   * a map that stores the choose functions for set types
-   */
-  std::map<TypeNode, Node> d_chooseFunctions;
 };/* class TheorySetsPrivate */
 
 
