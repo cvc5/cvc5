@@ -100,7 +100,9 @@ class InferenceManager
    * (or one of its conjuncts if it is a conjunction) was not inferred due
    * to the criteria mentioned above.
    */
-  bool sendInternalInference(std::vector<Node>& exp, Node conc, Inference infer);
+  bool sendInternalInference(std::vector<Node>& exp,
+                             Node conc,
+                             Inference infer);
   /** send inference
    *
    * This function should be called when ( exp ^ exp_n ) => eq. The set exp

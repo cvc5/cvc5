@@ -34,7 +34,7 @@ const char* toString(Inference i)
     case Inference::FFORM_UNIFY: return "FFORM_UNIFY";
     case Inference::FFORM_ENDPOINT_EMP: return "FFORM_ENDPOINT_EMP";
     case Inference::FFORM_ENDPOINT_EQ: return "FFORM_ENDPOINT_EQ";
-    case Inference::FFORM_NCTN: return "FFORM_NCTN";    
+    case Inference::FFORM_NCTN: return "FFORM_NCTN";
     case Inference::N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
     case Inference::N_UNIFY: return "N_UNIFY";
     case Inference::N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";

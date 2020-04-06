@@ -220,7 +220,8 @@ void InferenceManager::sendLemma(Node ant, Node conc, Inference infer)
   {
     lem = NodeManager::currentNM()->mkNode(IMPLIES, ant, conc);
   }
-  Trace("strings-lemma") << "Strings::Lemma " << infer << " : " << lem << std::endl;
+  Trace("strings-lemma") << "Strings::Lemma " << infer << " : " << lem
+                         << std::endl;
   Trace("strings-assert") << "(assert " << lem << ") ; lemma " << infer
                           << std::endl;
   d_pendingLem.push_back(lem);
@@ -284,8 +285,8 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   d_statistics.d_inferences << infer;
   NodeManager* nm = NodeManager::currentNM();
   Node lemma_or = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  Trace("strings-lemma") << "Strings::Lemma " << infer << " SPLIT : " << lemma_or
-                         << std::endl;
+  Trace("strings-lemma") << "Strings::Lemma " << infer
+                         << " SPLIT : " << lemma_or << std::endl;
   d_pendingLem.push_back(lemma_or);
   sendPhaseRequirement(eq, preq);
   return true;

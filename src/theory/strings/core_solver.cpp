@@ -464,7 +464,8 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
               {
                 std::vector<Node> exps;
                 exps.push_back(n.eqNode(emp));
-                d_im.sendInference(exps, n[i].eqNode(emp), Inference::I_CYCLE_E);
+                d_im.sendInference(
+                    exps, n[i].eqNode(emp), Inference::I_CYCLE_E);
                 return Node::null();
               }
             }else{
@@ -485,7 +486,8 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
                     //take first non-empty
                     if (j != i && !d_state.areEqual(n[j], emp))
                     {
-                      d_im.sendInference(exp, n[j].eqNode(emp), Inference::I_CYCLE);
+                      d_im.sendInference(
+                          exp, n[j].eqNode(emp), Inference::I_CYCLE);
                       return Node::null();
                     }
                   }
