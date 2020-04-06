@@ -61,7 +61,7 @@ class NlSolver
   ~NlSolver();
 
   /** init last call
-   * 
+   *
    * This is called at the beginning of last call effort check, where
    * assertions are the set of assertions belonging to arithmetic,
    * false_asserts is the subset of assertions that are false in the current
