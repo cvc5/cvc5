@@ -926,7 +926,10 @@ thfQuantifier[CVC4::api::Kind& kind]
   : FORALL_TOK { kind = api::FORALL; }
   | EXISTS_TOK { kind = api::EXISTS; }
   | LAMBDA_TOK { kind = api::LAMBDA; }
-  | WITNESS_TOK { kind = api::WITNESS; }
+  | WITNESS_TOK
+    {
+        UNSUPPORTED("Choice operator");
+    }
   | DEF_DESC_TOK
     {
       UNSUPPORTED("Description quantifier");
