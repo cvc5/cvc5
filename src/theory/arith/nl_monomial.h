@@ -81,21 +81,21 @@ class MonomialDb
   /** Get degree of monomial, e.g. the degree of x^2*y^2 = 4 */
   unsigned getDegree(Node monomial) const;
   /** Sort monomials in ms by their degree
-   * 
+   *
    * Updates ms so that degree(ms[i]) <= degree(ms[j]) for i <= j.
    */
   void sortByDegree(std::vector<Node>& ms) const;
   /** Sort the variable lists based on model values
-   * 
+   *
    * This updates the variable lists of monomials in ms based on the absolute
-   * value of their current model values in m. 
-   * 
+   * value of their current model values in m.
+   *
    * In other words, for each i, getVariableList(ms[i]) returns
    * v1, ..., vn where |m(v1)| <= ... <= |m(vn)| after this method is invoked.
    */
   void sortVariablesByModel(std::vector<Node>& ms, NlModel& m);
-  /** Get monomial contains children map 
-   * 
+  /** Get monomial contains children map
+   *
    * This maps monomials to other monomials that are contained in them, e.g.
    * x^2 * y may map to { x, x^2, y } if these three terms exist have been
    * registered to this class.
