@@ -112,11 +112,6 @@ TheoryBV::TheoryBV(context::Context* c,
 
 TheoryBV::~TheoryBV() {}
 
-std::unique_ptr<TheoryRewriter> TheoryBV::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new TheoryBVRewriter());
-}
-
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {

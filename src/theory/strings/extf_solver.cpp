@@ -32,18 +32,20 @@ ExtfSolver::ExtfSolver(context::Context* c,
                        SolverState& s,
                        InferenceManager& im,
                        SkolemCache& skc,
+                       StringsRewriter& rewriter,
                        BaseSolver& bs,
                        CoreSolver& cs,
                        ExtTheory* et,
-                       SequencesStatistics& stats)
+                       SequencesStatistics& statistics)
     : d_state(s),
       d_im(im),
       d_skCache(skc),
+      d_rewriter(rewriter),
       d_bsolver(bs),
       d_csolver(cs),
       d_extt(et),
-      d_statistics(stats),
-      d_preproc(&skc, u, stats),
+      d_statistics(statistics),
+      d_preproc(&skc, u, statistics),
       d_hasExtf(c, false),
       d_extfInferCache(c)
 {
@@ -620,7 +622,7 @@ void ExtfSolver::checkExtfInference(Node n,
   if (inferEqr.getKind() == EQUAL)
   {
     // try to use the extended rewriter for equalities
-    inferEqrr = SequencesRewriter::rewriteEqualityExt(inferEqr);
+    inferEqrr = d_rewriter.rewriteEqualityExt(inferEqr);
   }
   if (inferEqrr != inferEqr)
   {

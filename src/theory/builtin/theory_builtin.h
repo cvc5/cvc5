@@ -19,6 +19,7 @@
 #ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H
 #define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H
 
+#include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
@@ -34,12 +35,16 @@ class TheoryBuiltin : public Theory
                 Valuation valuation,
                 const LogicInfo& logicInfo);
 
-  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   std::string identify() const override;
 
   /** finish initialization */
   void finishInit() override;
+
+ private:
+  /** The theory rewriter for this theory. */
+  TheoryBuiltinRewriter d_rewriter;
 }; /* class TheoryBuiltin */
 
 }  // namespace builtin

@@ -54,9 +54,23 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in) {
 
 RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
   if( node.getKind()==kind::LAMBDA ){
+    // The following code ensures that if node is equivalent to a constant
+    // lambda, then we return the canonical representation for the lambda, which
+    // in turn ensures that two constant lambdas are equivalent if and only
+    // if they are the same node.
+    // We canonicalize lambdas by turning them into array constants, applying
+    // normalization on array constants, and then converting the array constant
+    // back to a lambda.
     Trace("builtin-rewrite") << "Rewriting lambda " << node << "..." << std::endl;
     Node anode = getArrayRepresentationForLambda( node );
-    if( !anode.isNull() ){
+    // Only rewrite constant array nodes, since these are the only cases
+    // where we require canonicalization of lambdas. Moreover, applying the
+    // below code is not correct if the arguments to the lambda occur
+    // in return values. For example, lambda x. ite( x=1, f(x), c ) would
+    // be converted to (store (storeall ... c) 1 f(x)), and then converted
+    // to lambda y. ite( y=1, f(x), c), losing the relation between x and y.
+    if (!anode.isNull() && anode.isConst())
+    {
       Assert(anode.getType().isArray());
       //must get the standard bound variable list
       Node varList = NodeManager::currentNM()->getBoundVarListForFunctionType( node.getType() );
@@ -70,8 +84,10 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
         Assert(retNode.getType() == node.getType());
         Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
         return RewriteResponse(REWRITE_DONE, retNode);
-      } 
-    }else{
+      }
+    }
+    else
+    {
       Trace("builtin-rewrite-debug") << "...failed to get array representation." << std::endl;
     }
     return RewriteResponse(REWRITE_DONE, node);

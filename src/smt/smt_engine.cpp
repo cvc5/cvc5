@@ -802,6 +802,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
+      d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_fmfRecFunctionsDefined(nullptr),
       d_assertionList(nullptr),
