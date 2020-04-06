@@ -1807,10 +1807,10 @@ class CVC4_PUBLIC Grammar
           const std::vector<Term>& ntSymbols);
 
   /**
-   * Returns the resovled datatype of the Start symbol of the grammar.
-   * @return the resovled datatype of the Start symbol of the grammar
+   * Returns the resolved datatype of the Start symbol of the grammar.
+   * @return the resolved datatype of the Start symbol of the grammar
    */
-  Sort ret();
+  Sort resolve();
 
   /**
    * Adds a constructor to sygus datatype <dt> whose sygus operator is <term>.
@@ -2942,7 +2942,7 @@ class CVC4_PUBLIC Solver
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  Term declareVar(Sort sort, const std::string& symbol = std::string()) const;
+  Term mkSygusVar(Sort sort, const std::string& symbol = std::string()) const;
 
   /**
    * Create a Sygus grammar.
@@ -3019,7 +3019,7 @@ class CVC4_PUBLIC Solver
    * @param trans the transition relation
    * @param post the post-condition
    */
-  void addInvariantConstraint(const Term& inv,
+  void addInvConstraint(const Term& inv,
                               const Term& pre,
                               const Term& trans,
                               const Term& post) const;
@@ -3113,7 +3113,7 @@ class CVC4_PUBLIC Solver
    * @param g the syntactic constraints
    * @return the function
    */
-  Term synthFunInternal(const std::string& symbol,
+  Term synthFunHelper(const std::string& symbol,
                         const std::vector<Term>& boundVars,
                         const Sort& sort,
                         bool isInv = false,

@@ -2261,48 +2261,61 @@ Grammar::Grammar(const Solver* s,
 
 void Grammar::addRule(Term ntSymbol, Term rule)
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!ntSymbol.isNull(), ntSymbol) << "non-null term";
+  CVC4_API_ARG_CHECK_EXPECTED(!rule.isNull(), rule) << "non-null term";
   CVC4_API_ARG_CHECK_EXPECTED(d_dtDecls.find(ntSymbol) != d_dtDecls.end(),
                               ntSymbol)
-      << "one of the non terminals given in the predeclaration.";
-
+      << "ntSymbol to be one of the non-terminal symbols given in the predeclaration.";
   CVC4_API_ARG_CHECK_EXPECTED(ntSymbol.getSort() == rule.getSort(), rule)
-      << "the Sorts of rule and ntSymbol to be the same.";
+      << "rule's sort to be the same as ntSymbol's sort.";
 
   addSygusConstructorTerm(d_dtDecls[ntSymbol], rule);
 }
 
 void Grammar::addRules(Term ntSymbol, std::vector<Term> rules)
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!ntSymbol.isNull(), ntSymbol) << "non-null term";
   CVC4_API_ARG_CHECK_EXPECTED(d_dtDecls.find(ntSymbol) != d_dtDecls.end(),
                               ntSymbol)
-      << "one of the non terminals given in the predeclaration.";
+      << "ntSymbol to be one of the non-terminal symbols given in the "
+         "predeclaration.";
 
   for (size_t i = 0; i < rules.size(); ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !rules[i].isNull(), "parameter rule", rules[i], i)
+        << "non-null term";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         ntSymbol.getSort() == rules[i].getSort(), "rule sort", rules[i], i)
-        << "the Sorts of rule " << i << " and ntSymbol to be the same.";
+        << "rule" << i << "'s sort to be the same as ntSymbol's sort.";
+
     addSygusConstructorTerm(d_dtDecls[ntSymbol], rules[i]);
   }
 }
 
 void Grammar::addAnyConstant(Term ntSymbol)
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!ntSymbol.isNull(), ntSymbol) << "non-null term";
   CVC4_API_ARG_CHECK_EXPECTED(d_dtDecls.find(ntSymbol) != d_dtDecls.end(),
                               ntSymbol)
-      << "one of the non terminals given in the predeclaration.";
+      << "ntSymbol to be one of the non-terminal symbols given in the "
+         "predeclaration.";
+
   d_allowConst.insert(ntSymbol);
 }
 
 void Grammar::addAnyVariable(Term ntSymbol)
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!ntSymbol.isNull(), ntSymbol) << "non-null term";
   CVC4_API_ARG_CHECK_EXPECTED(d_dtDecls.find(ntSymbol) != d_dtDecls.end(),
                               ntSymbol)
-      << "one of the non terminals given in the predeclaration.";
+      << "ntSymbol to be one of the non-terminal symbols given in the "
+         "predeclaration.";
+
   addSygusConstructorVariables(d_dtDecls[ntSymbol], ntSymbol.d_expr->getType());
 }
 
-Sort Grammar::ret()
+Sort Grammar::resolve()
 {
   Term bvl;
 
@@ -4436,7 +4449,7 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
   return res;
 }
 
-Term Solver::declareVar(Sort sort, const std::string& symbol) const
+Term Solver::mkSygusVar(Sort sort, const std::string& symbol) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
@@ -4458,6 +4471,20 @@ Grammar Solver::mkGrammar(const std::vector<Term>& boundVars,
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)
       << "non-empty vector";
 
+  for (size_t i = 0; i < boundVars.size(); ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !boundVars[i].isNull(), "parameter term", boundVars[i], i)
+        << "non-null term";
+  }
+
+  for (size_t i = 0; i < ntSymbols.size(); ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !ntSymbols[i].isNull(), "parameter term", ntSymbols[i], i)
+        << "non-null term";
+  }
+
   return Grammar(this, boundVars, ntSymbols);
 }
 
@@ -4465,7 +4492,7 @@ Term Solver::synthFun(const std::string& symbol,
                       const std::vector<Term>& boundVars,
                       Sort sort) const
 {
-  return synthFunInternal(symbol, boundVars, sort);
+  return synthFunHelper(symbol, boundVars, sort);
 }
 
 Term Solver::synthFun(const std::string& symbol,
@@ -4473,24 +4500,24 @@ Term Solver::synthFun(const std::string& symbol,
                       Sort sort,
                       Grammar g) const
 {
-  return synthFunInternal(symbol, boundVars, sort, false, &g);
+  return synthFunHelper(symbol, boundVars, sort, false, &g);
 }
 
 Term Solver::synthInv(const std::string& symbol,
                       const std::vector<Term>& boundVars) const
 {
-  return synthFunInternal(symbol, boundVars, d_exprMgr->booleanType(), true);
+  return synthFunHelper(symbol, boundVars, d_exprMgr->booleanType(), true);
 }
 
 Term Solver::synthInv(const std::string& symbol,
                       const std::vector<Term>& boundVars,
                       Grammar g) const
 {
-  return synthFunInternal(
+  return synthFunHelper(
       symbol, boundVars, d_exprMgr->booleanType(), true, &g);
 }
 
-Term Solver::synthFunInternal(const std::string& symbol,
+Term Solver::synthFunHelper(const std::string& symbol,
                               const std::vector<Term>& boundVars,
                               const Sort& sort,
                               bool isInv,
@@ -4501,9 +4528,12 @@ Term Solver::synthFunInternal(const std::string& symbol,
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
 
   std::vector<Type> var_types;
-  for (const Term& p : boundVars)
+  for (size_t i = 0; i < boundVars.size(); ++i)
   {
-    var_types.push_back(p.d_expr->getType());
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !boundVars[i].isNull(), "parameter term", boundVars[i], i)
+        << "non-null term";
+    var_types.push_back(boundVars[i].d_expr->getType());
   }
 
   Type fun_type = var_types.empty()
@@ -4515,7 +4545,7 @@ Term Solver::synthFunInternal(const std::string& symbol,
 
   d_smtEngine->declareSynthFun(symbol,
                                fun,
-                               g == nullptr ? fun_type : *g->ret().d_type,
+                               g == nullptr ? fun_type : *g->resolve().d_type,
                                isInv,
                                termVectorToExprs(boundVars));
 
@@ -4526,14 +4556,21 @@ Term Solver::synthFunInternal(const std::string& symbol,
 
 void Solver::addConstraint(const Term& term) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!term.isNull(), term) << "non-null term";
+
   d_smtEngine->assertSygusConstraint(*term.d_expr);
 }
 
-void Solver::addInvariantConstraint(const Term& inv,
+void Solver::addInvConstraint(const Term& inv,
                                     const Term& pre,
                                     const Term& trans,
                                     const Term& post) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!inv.isNull(), inv) << "non-null term";
+  CVC4_API_ARG_CHECK_EXPECTED(!pre.isNull(), pre) << "non-null term";
+  CVC4_API_ARG_CHECK_EXPECTED(!trans.isNull(), trans) << "non-null term";
+  CVC4_API_ARG_CHECK_EXPECTED(!post.isNull(), post) << "non-null term";
+
   d_smtEngine->assertSygusInvConstraint(
       *inv.d_expr, *pre.d_expr, *trans.d_expr, *post.d_expr);
 }
