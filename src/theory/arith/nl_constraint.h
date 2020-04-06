@@ -1,0 +1,76 @@
+/*********************                                                        */
+/*! \file nl_constraint.h
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Tim King
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Utilities for non-linear constraints
+ **/
+
+#ifndef CVC4__THEORY__ARITH__NL_CONSTRAINT_H
+#define CVC4__THEORY__ARITH__NL_CONSTRAINT_H
+
+#include <map>
+#include <vector>
+
+#include "expr/kind.h"
+#include "expr/node.h"
+#include "theory/arith/nl_monomial.h"
+
+namespace CVC4 {
+namespace theory {
+namespace arith {
+
+/** constraint information
+ * 
+ * The struct ( d_rhs, d_coeff, d_type ) represents that a literal is of the
+ * form (d_coeff * x) <d_type> d_rhs.
+ */
+struct ConstraintInfo
+{
+public:
+  /** The term on the right hand side of the constraint */
+  Node d_rhs;
+  /** The coefficent */
+  Node d_coeff;
+  /** The type (relation) of the constraint */
+  Kind d_type;
+}; /* struct ConstraintInfo */
+
+/** A database for constraints */
+class ConstraintDb
+{
+public:
+  ConstraintDb(MonomialDb& mdb);
+  ~ConstraintDb(){}
+  /** register constraint */
+  void registerConstraint(Node atom);
+
+  /** Constraint information
+   * If d_c_info[lit][x] = ( r, coeff, k ), then ( lit <=>  (coeff * x) <k> r )
+   */
+  std::map<Node, std::map<Node, ConstraintInfo> > d_c_info;
+  std::map<Node, std::map<Node, bool> > d_c_info_maxm;
+  // term -> coeff -> rhs -> ( status, exp, b ),
+  //   where we have that : exp =>  ( coeff * term <status> rhs )
+  //   b is true if degree( term ) >= degree( rhs )
+  std::map<Node, std::map<Node, std::map<Node, Kind> > > d_ci;
+  std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
+  std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
+private:
+  /** Reference to a monomial database */
+  MonomialDb& d_mdb;
+  /** List of all constraints */
+  std::vector<Node> d_constraints;
+};
+
+}  // namespace arith
+}  // namespace theory
+}  // namespace CVC4
+
+#endif /* CVC4__THEORY__ARITH__NL_SOLVER_H */
