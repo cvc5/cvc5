@@ -30,6 +30,7 @@
 #include "theory/arith/nl_lemma_utils.h"
 #include "theory/arith/nl_model.h"
 #include "theory/arith/nl_monomial.h"
+#include "theory/arith/nl_constraint.h"
 #include "theory/arith/theory_arith.h"
 
 namespace CVC4 {
@@ -206,25 +207,14 @@ class NlSolver
   Node d_false;
   /** Context-independent database of monomial information */
   MonomialDb d_mdb;
-
-  // constraint information (context-independent)
-  struct ConstraintInfo
-  {
-   public:
-    Node d_rhs;
-    Node d_coeff;
-    Kind d_type;
-  }; /* struct ConstraintInfo */
+  /** Context-independent database of constraint information */
+  ConstraintDb d_cdb;
+  
   // ( x*y, x*z, y ) for each pair of monomials ( x*y, x*z ) with common factors
   std::map<Node, std::map<Node, Node> > d_mono_diff;
 
   /** cache of terms t for which we have added the lemma ( t = 0 V t != 0 ). */
   NodeSet d_zero_split;
-
-  // if d_c_info[lit][x] = ( r, coeff, k ), then ( lit <=>  (coeff * x) <k> r )
-  std::map<Node, std::map<Node, ConstraintInfo> > d_c_info;
-  std::map<Node, std::map<Node, bool> > d_c_info_maxm;
-  std::vector<Node> d_constraints;
 
   // ordering, stores variables and 0,1,-1
   std::map<Node, unsigned> d_order_vars;
@@ -256,7 +246,6 @@ class NlSolver
   static Node mkLit(Node a, Node b, int status, bool isAbsolute = false);
   /** register monomial */
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
-  void registerConstraint(Node atom);
   /** assign order ids */
   void assignOrderIds(std::vector<Node>& vars,
                       NodeMultiset& d_order,

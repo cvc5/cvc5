@@ -50,23 +50,22 @@ public:
   ~ConstraintDb(){}
   /** register constraint */
   void registerConstraint(Node atom);
-
-  /** Constraint information
-   * If d_c_info[lit][x] = ( r, coeff, k ), then ( lit <=>  (coeff * x) <k> r )
-   */
-  std::map<Node, std::map<Node, ConstraintInfo> > d_c_info;
-  std::map<Node, std::map<Node, bool> > d_c_info_maxm;
-  // term -> coeff -> rhs -> ( status, exp, b ),
-  //   where we have that : exp =>  ( coeff * term <status> rhs )
-  //   b is true if degree( term ) >= degree( rhs )
-  std::map<Node, std::map<Node, std::map<Node, Kind> > > d_ci;
-  std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
-  std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
+  /** get constraints */
+  std::map<Node, std::map<Node, ConstraintInfo> >& getConstraints();
+  /** Returns true if x is of maximal degree in monomial */
+  bool isMaximal(Node atom, Node x) const;
 private:
   /** Reference to a monomial database */
   MonomialDb& d_mdb;
   /** List of all constraints */
   std::vector<Node> d_constraints;
+  /** Is maximal degree */
+  std::map<Node, std::map<Node, bool> > d_c_info_maxm;
+  /** Constraint information
+   * 
+   * If d_c_info[lit][x] = ( r, coeff, k ), then ( lit <=>  (coeff * x) <k> r )
+   */
+  std::map<Node, std::map<Node, ConstraintInfo> > d_c_info;  
 };
 
 }  // namespace arith

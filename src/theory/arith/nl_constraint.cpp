@@ -88,9 +88,10 @@ void ConstraintDb::registerConstraint(Node atom)
         }
         Trace("nl-ext-constraint")
             << m << " " << type << " " << rhs << std::endl;
-        d_c_info[atom][m].d_rhs = rhs;
-        d_c_info[atom][m].d_coeff = coeff;
-        d_c_info[atom][m].d_type = type;
+        ConstraintInfo& ci = d_c_info[atom][m];
+        ci.d_rhs = rhs;
+        ci.d_coeff = coeff;
+        ci.d_type = type;
       }
     }
     for (unsigned i = 0; i < max_deg_m.size(); i++)
@@ -103,6 +104,19 @@ void ConstraintDb::registerConstraint(Node atom)
   {
     Trace("nl-ext-debug") << "...failed to get monomial sum." << std::endl;
   }
+}
+
+std::map<Node, std::map<Node, ConstraintInfo> >& ConstraintDb::getConstraints()
+{
+  return d_c_info;
+}
+
+bool ConstraintDb::isMaximal(Node atom, Node x) const
+{
+  std::map<Node, std::map<Node, bool> >::const_iterator itcm =
+      d_c_info_maxm.find(atom);
+  Assert(itcm != d_c_info_maxm.end());
+  return itcm->second.find(x)!=itcm->second.end();
 }
 
 }  // namespace arith

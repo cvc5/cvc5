@@ -64,6 +64,7 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
 NlSolver::NlSolver(TheoryArith& containing, NlModel& model)
     : d_containing(containing),
       d_model(model),
+      d_cdb(d_mdb),
       d_zero_split(containing.getUserContext())
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -159,84 +160,6 @@ void NlSolver::setMonomialFactor(Node a, Node b, const NodeMultiset& common)
     Trace("nl-ext-mono-factor")
         << "Set monomial factor for " << a << "/" << b << std::endl;
     mono_diff_a[b] = d_mdb.mkMonomialRemFactor(a, common);
-  }
-}
-
-void NlSolver::registerConstraint(Node atom)
-{
-  if (std::find(d_constraints.begin(), d_constraints.end(), atom)
-      != d_constraints.end())
-  {
-    return;
-  }
-  d_constraints.push_back(atom);
-  Trace("nl-ext-debug") << "Register constraint : " << atom << std::endl;
-  std::map<Node, Node> msum;
-  if (ArithMSum::getMonomialSumLit(atom, msum))
-  {
-    Trace("nl-ext-debug") << "got monomial sum: " << std::endl;
-    if (Trace.isOn("nl-ext-debug"))
-    {
-      ArithMSum::debugPrintMonomialSum(msum, "nl-ext-debug");
-    }
-    unsigned max_degree = 0;
-    std::vector<Node> all_m;
-    std::vector<Node> max_deg_m;
-    for (std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end();
-         ++itm)
-    {
-      if (!itm->first.isNull())
-      {
-        all_m.push_back(itm->first);
-        d_mdb.registerMonomial(itm->first);
-        Trace("nl-ext-debug2")
-            << "...process monomial " << itm->first << std::endl;
-        unsigned d = d_mdb.getDegree(itm->first);
-        if (d > max_degree)
-        {
-          max_degree = d;
-          max_deg_m.clear();
-        }
-        if (d >= max_degree)
-        {
-          max_deg_m.push_back(itm->first);
-        }
-      }
-    }
-    // isolate for each maximal degree monomial
-    for (unsigned i = 0; i < all_m.size(); i++)
-    {
-      Node m = all_m[i];
-      Node rhs, coeff;
-      int res = ArithMSum::isolate(m, msum, coeff, rhs, atom.getKind());
-      if (res != 0)
-      {
-        Kind type = atom.getKind();
-        if (res == -1)
-        {
-          type = reverseRelationKind(type);
-        }
-        Trace("nl-ext-constraint") << "Constraint : " << atom << " <=> ";
-        if (!coeff.isNull())
-        {
-          Trace("nl-ext-constraint") << coeff << " * ";
-        }
-        Trace("nl-ext-constraint")
-            << m << " " << type << " " << rhs << std::endl;
-        d_c_info[atom][m].d_rhs = rhs;
-        d_c_info[atom][m].d_coeff = coeff;
-        d_c_info[atom][m].d_type = type;
-      }
-    }
-    for (unsigned i = 0; i < max_deg_m.size(); i++)
-    {
-      Node m = max_deg_m[i];
-      d_c_info_maxm[atom][m] = true;
-    }
-  }
-  else
-  {
-    Trace("nl-ext-debug") << "...failed to get monomial sum." << std::endl;
   }
 }
 
@@ -789,7 +712,7 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
         const NodeMultiset& mea = d_mdb.getMonomialExponentMap(a);
         if (c == 1)
         {
-          // TODO : not just against containing variables?
+          // could compare not just against containing variables?
           // compare magnitude against variables
           for (unsigned k = 0; k < d_ms_vars.size(); k++)
           {
@@ -923,7 +846,7 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
       nr_lemmas.push_back(lemmas[i]);
     }
   }
-  // TODO: only take maximal lower/minimial lower bounds?
+  // could only take maximal lower/minimial lower bounds?
 
   Trace("nl-ext-comp") << nr_lemmas.size() << " / " << lemmas.size()
                        << " were non-redundant." << std::endl;
@@ -1099,6 +1022,8 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
   d_mterms.insert(d_mterms.end(), d_ms_vars.begin(), d_ms_vars.end());
   d_mterms.insert(d_mterms.end(), d_ms.begin(), d_ms.end());
 
+  std::map<Node, std::map<Node, ConstraintInfo> >& cim = d_cdb.getConstraints();
+  
   std::vector<Node> lemmas;
   NodeManager* nm = NodeManager::currentNM();
   // register constraints
@@ -1107,20 +1032,17 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
   {
     bool polarity = lit.getKind() != NOT;
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
-    registerConstraint(atom);
+    d_cdb.registerConstraint(atom);
     bool is_false_lit =
         std::find(false_asserts.begin(), false_asserts.end(), lit)
         != false_asserts.end();
     // add information about bounds to variables
     std::map<Node, std::map<Node, ConstraintInfo> >::iterator itc =
-        d_c_info.find(atom);
-    std::map<Node, std::map<Node, bool> >::iterator itcm =
-        d_c_info_maxm.find(atom);
-    if (itc == d_c_info.end())
+        cim.find(atom);
+    if (itc == cim.end())
     {
       continue;
     }
-    Assert(itcm != d_c_info_maxm.end());
     for (std::map<Node, ConstraintInfo>::iterator itcc = itc->second.begin();
          itcc != itc->second.end();
          ++itcc)
@@ -1158,7 +1080,7 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
         }
       }
       // add to status if maximal degree
-      d_ci_max[x][coeff][rhs] = itcm->second.find(x) != itcm->second.end();
+      d_ci_max[x][coeff][rhs] = d_cdb.isMaximal(atom,x);
       if (Trace.isOn("nl-ext-bound-debug2"))
       {
         Node t = ArithMSum::mkCoeffTerm(coeff, x);
