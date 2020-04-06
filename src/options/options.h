@@ -489,7 +489,7 @@ public:
    */
   static void parseOptionsRecursive(Options* options,
                                     int argc,
-                                               char* argv[],
+                                    char* argv[],
                                     std::vector<std::string>* nonoptions);
 };/* class Options */
 

@@ -580,7 +580,7 @@ std::vector<std::string> Options::parseOptions(Options* options,
 
 void Options::parseOptionsRecursive(Options* options,
                                     int argc,
-                                               char* argv[],
+                                    char* argv[],
                                     std::vector<std::string>* nonoptions)
 {
 
