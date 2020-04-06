@@ -65,7 +65,7 @@ enum class Inference : uint32_t
   CARDINALITY,
   //-------------------------------------- end base solver
   //-------------------------------------- core solver
-  // A cycle in the empty string equivalent class, e.g.:
+  // A cycle in the empty string equivalence class, e.g.:
   //   x ++ y = "" => x = ""
   // This is typically not applied due to length constraints implying emptiness.
   I_CYCLE_E,
