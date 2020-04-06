@@ -255,16 +255,16 @@ enum class Inference : uint32_t
   // handles cases where the inferred predicate is not necessarily an equality
   // involving f(X). For example:
   //   x = "A" ^ contains( y ++ x, "B" ) => contains( y, "B" )
-  // This is generally only inferred if contains( y, "B" ) is already a term in
+  // This is generally only inferred if contains( y, "B" ) is a known term in
   // the current context.
   EXTF_D,
   // Same as above, for normal form substitutions.
   EXTF_D_N,
   // Extended function equality rewrite. This is an inference of the form:
-  //   t = s => rewrite( t = s )
+  //   t = s => P
+  // where P is a predicate implied by rewrite( t = s ).
   // Typically, t is an application of an extended function and s is a constant.
-  // It is generally only inferred if rewrite( t = s ) is already a term in
-  // the current context.
+  // It is generally only inferred if P is a predicate over known terms.
   EXTF_EQ_REW,
   // contain transitive
   //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
