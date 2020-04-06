@@ -30,11 +30,11 @@ const char* toString(Inference i)
     case Inference::CARDINALITY: return "CARDINALITY";
     case Inference::I_CYCLE_E: return "I_CYCLE_E";
     case Inference::I_CYCLE: return "I_CYCLE";
-    case Inference::FFORM_CONST: return "FFORM_CONST";
-    case Inference::FFORM_UNIFY: return "FFORM_UNIFY";
-    case Inference::FFORM_ENDPOINT_EMP: return "FFORM_ENDPOINT_EMP";
-    case Inference::FFORM_ENDPOINT_EQ: return "FFORM_ENDPOINT_EQ";
-    case Inference::FFORM_NCTN: return "FFORM_NCTN";
+    case Inference::F_CONST: return "F_CONST";
+    case Inference::F_UNIFY: return "F_UNIFY";
+    case Inference::F_ENDPOINT_EMP: return "F_ENDPOINT_EMP";
+    case Inference::F_ENDPOINT_EQ: return "F_ENDPOINT_EQ";
+    case Inference::F_NCTN: return "F_NCTN";
     case Inference::N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
     case Inference::N_UNIFY: return "N_UNIFY";
     case Inference::N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";

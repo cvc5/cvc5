@@ -77,21 +77,21 @@ enum class Inference : uint32_t
   // Flat form constant
   //   x = y ^ x = z ++ c ... ^ y = z ++ d => false
   // where c and d are distinct constants.
-  FFORM_CONST,
+  F_CONST,
   // Flat form unify
   //   x = y ^ x = z ++ x' ... ^ y = z ++ y' ^ len(x') = len(y') => x' = y'
   // Notice flat form instances are similar to normal form inferences but do
   // not involve recurisve explanations.
-  FFORM_UNIFY,
+  F_UNIFY,
   // Flat form endpoint empty
   //   x = y ^ x = z ^ y = z ++ y' => y' = ""
-  FFORM_ENDPOINT_EMP,
+  F_ENDPOINT_EMP,
   // Flat form endpoint equal
   //   x = y ^ x = z ++ x' ^ y = z ++ y' => x' = y'
-  FFORM_ENDPOINT_EQ,
+  F_ENDPOINT_EQ,
   // Flat form not contained
   // x = c ^ x = y => false when rewrite( contains( y, c ) ) = false
-  FFORM_NCTN,
+  F_NCTN,
   // Given two normal forms, infers that the remainder one of them has to be
   // empty. For example:
   //    If x1 ++ x2 = y1 and x1 = y1, then x2 = ""

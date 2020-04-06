@@ -179,7 +179,7 @@ void CoreSolver::checkFlatForms()
               }
             }
             Node conc = d_false;
-            d_im.sendInference(exp, conc, Inference::FFORM_NCTN);
+            d_im.sendInference(exp, conc, Inference::F_NCTN);
             return;
           }
         }
@@ -266,7 +266,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
           }
           Assert(!conc_c.empty());
           conc = utils::mkAnd(conc_c);
-          infType = Inference::FFORM_ENDPOINT_EMP;
+          infType = Inference::F_ENDPOINT_EMP;
           Assert(count > 0);
           // swap, will enforce is empty past current
           a = eqc[i];
@@ -306,7 +306,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
           }
           Assert(!conc_c.empty());
           conc = utils::mkAnd(conc_c);
-          infType = Inference::FFORM_ENDPOINT_EMP;
+          infType = Inference::F_ENDPOINT_EMP;
           Assert(count > 0);
           break;
         }
@@ -329,7 +329,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
                 d_bsolver.explainConstantEqc(ac,curr,exp);
                 d_bsolver.explainConstantEqc(bc,cc,exp);
                 conc = d_false;
-                infType = Inference::FFORM_CONST;
+                infType = Inference::F_CONST;
                 break;
               }
             }
@@ -337,7 +337,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
                      && (d_flat_form[b].size() - 1) == count)
             {
               conc = ac.eqNode(bc);
-              infType = Inference::FFORM_ENDPOINT_EQ;
+              infType = Inference::F_ENDPOINT_EQ;
               break;
             }
             else
@@ -370,7 +370,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
                 exp.insert(exp.end(), lexp2.begin(), lexp2.end());
                 d_im.addToExplanation(lcurr, lcc, exp);
                 conc = ac.eqNode(bc);
-                infType = Inference::FFORM_UNIFY;
+                infType = Inference::F_UNIFY;
                 break;
               }
             }
@@ -397,8 +397,8 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
       {
         Node c = t == 0 ? a : b;
         ssize_t jj;
-        if (infType == Inference::FFORM_ENDPOINT_EQ
-            || (t == 1 && infType == Inference::FFORM_ENDPOINT_EMP))
+        if (infType == Inference::F_ENDPOINT_EQ
+            || (t == 1 && infType == Inference::F_ENDPOINT_EMP))
         {
           // explain all the empty components for F_EndpointEq, all for
           // the short end for F_EndpointEmp
