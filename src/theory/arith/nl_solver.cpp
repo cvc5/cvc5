@@ -133,6 +133,74 @@ NlSolver::NlSolver(TheoryArith& containing, NlModel& model)
 
 NlSolver::~NlSolver() {}
 
+
+void NlSolver::initLastCall(const std::vector<Node>& assertions,
+                    const std::vector<Node>& false_asserts,
+                    const std::vector<Node>& xts)
+{
+  d_ms_vars.clear();
+  d_ms_proc.clear();
+  d_ms.clear();
+  d_mterms.clear();
+  d_m_nconst_factor.clear();
+  d_tplane_refine.clear();
+  d_ci.clear();
+  d_ci_exp.clear();
+  d_ci_max.clear();
+
+  Trace("nl-ext-mv") << "Extended terms : " << std::endl;
+  // for computing congruence
+  std::map<Kind, ArgTrie> argTrie;
+  for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
+  {
+    Node a = xts[i];
+    d_model.computeConcreteModelValue(a);
+    d_model.computeAbstractModelValue(a);
+    d_model.printModelValue("nl-ext-mv", a);
+    Kind ak = a.getKind();
+    if (ak == NONLINEAR_MULT)
+    {
+      d_ms.push_back( a );
+      
+      //context-independent registration
+      registerMonomial(a);
+
+      std::map<Node, std::vector<Node> >::iterator itvl = d_m_vlist.find(a);
+      Assert(itvl != d_m_vlist.end());
+      for (unsigned k = 0; k < itvl->second.size(); k++) {
+        if (std::find(d_ms_vars.begin(), d_ms_vars.end(), itvl->second[k])==d_ms_vars.end()) {
+          d_ms_vars.push_back(itvl->second[k]);
+        }
+        Node mvk = d_model.computeAbstractModelValue(itvl->second[k]);
+        if( !mvk.isConst() ){
+          d_m_nconst_factor[a] = true;
+        }
+      }
+      // mark processed if has a "one" factor (will look at reduced monomial)?
+    }
+  }
+
+  // register constants
+  registerMonomial(d_one);
+  for (unsigned j = 0; j < d_order_points.size(); j++) {
+    Node c = d_order_points[j];
+    d_model.computeConcreteModelValue(c);
+    d_model.computeAbstractModelValue(c);
+  }
+
+  // register variables
+  Trace("nl-ext-mv") << "Variables in monomials : " << std::endl;
+  for (unsigned i = 0; i < d_ms_vars.size(); i++) {
+    Node v = d_ms_vars[i];
+    registerMonomial(v);
+    d_model.computeConcreteModelValue(v);
+    d_model.computeAbstractModelValue(v);
+    d_model.printModelValue("nl-ext-mv", v);
+  }
+  
+  Trace("nl-ext") << "We have " << d_ms.size() << " monomials." << std::endl;
+}
+
 const NodeMultiset& NlSolver::getMonomialExponentMap(Node monomial) const
 {
   MonomialExponentMap::const_iterator it = d_m_exp.find(monomial);
@@ -191,15 +259,16 @@ void NlSolver::registerMonomial(Node n)
   if (k == NONLINEAR_MULT)
   {
     // get exponent count
-    for (unsigned k = 0; k < n.getNumChildren(); k++)
+    unsigned nchild = n.getNumChildren();
+    for (unsigned i = 0; i < nchild; i++)
     {
-      d_m_exp[n][n[k]]++;
-      if (k == 0 || n[k] != n[k - 1])
+      d_m_exp[n][n[i]]++;
+      if (i == 0 || n[i] != n[i - 1])
       {
-        d_m_vlist[n].push_back(n[k]);
+        d_m_vlist[n].push_back(n[i]);
       }
     }
-    d_m_degree[n] = n.getNumChildren();
+    d_m_degree[n] = nchild;
   }
   else if (n == d_one)
   {
@@ -897,6 +966,24 @@ std::vector<Node> NlSolver::checkMonomialSign()
 
 std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
 {
+  // ensure information is setup
+  if (c==0)
+  {
+    // sort by absolute values of abstract model values
+    assignOrderIds(d_ms_vars, d_order_vars, false, true);
+
+    // sort individual variable lists
+    Trace("nl-ext-proc") << "Assign order var lists..." << std::endl;
+    SortNlModel smv;
+    smv.d_nlm = &d_model;
+    smv.d_isConcrete = false;
+    smv.d_isAbsolute = true;
+    smv.d_reverse_order = true;
+    for (unsigned j = 0; j < d_ms.size(); j++) {
+      std::sort(d_m_vlist[d_ms[j]].begin(), d_m_vlist[d_ms[j]].end(), smv);
+    }
+  }
+  
   unsigned r = 1;
   std::vector<Node> lemmas;
   // if (x,y,L) in cmp_infers, then x > y inferred as conclusion of L
@@ -1237,6 +1324,14 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
     const std::vector<Node>& asserts,
     const std::vector<Node>& false_asserts)
 {
+  // sort monomials by degree
+  Trace("nl-ext-proc") << "Sort monomials by degree..." << std::endl;
+  SortNonlinearDegree snlad(d_m_degree);
+  std::sort(d_ms.begin(), d_ms.end(), snlad);
+  // all monomials
+  d_mterms.insert(d_mterms.end(), d_ms_vars.begin(), d_ms_vars.end());
+  d_mterms.insert(d_mterms.end(), d_ms.begin(), d_ms.end());
+  
   std::vector<Node> lemmas;
   NodeManager* nm = NodeManager::currentNM();
   // register constraints

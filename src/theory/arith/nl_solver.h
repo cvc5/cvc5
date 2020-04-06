@@ -58,6 +58,12 @@ class NlSolver
  public:
   NlSolver(TheoryArith& containing, NlModel& model);
   ~NlSolver();
+
+  /** init last call
+   */
+  void initLastCall(const std::vector<Node>& assertions,
+                    const std::vector<Node>& false_asserts,
+                    const std::vector<Node>& xts);
   //-------------------------------------------- lemma schemas
   /** check split zero
    *
