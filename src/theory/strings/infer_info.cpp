@@ -39,6 +39,15 @@ const char* toString(Inference i)
     case Inference::SSPLIT_CST: return "SSPLIT_CST";
     case Inference::SSPLIT_VAR: return "SSPLIT_VAR";
     case Inference::FLOOP: return "FLOOP";
+    case Inference::DEQ_DISL_EMP_SPLIT: return "DEQ_DISL_EMP_SPLIT";
+    case Inference::DEQ_DISL_FIRST_CHAR_EQ_SPLIT:
+      return "DEQ_DISL_FIRST_CHAR_EQ_SPLIT";
+    case Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
+      return "DEQ_DISL_FIRST_CHAR_STRING_SPLIT";
+    case Inference::DEQ_STRINGS_EQ: return "DEQ_STRINGS_EQ";
+    case Inference::DEQ_DISL_STRINGS_SPLIT: return "DEQ_DISL_STRINGS_SPLIT";
+    case Inference::DEQ_LENS_EQ: return "DEQ_LENS_EQ";
+    case Inference::DEQ_NORM_EMP: return "DEQ_NORM_EMP";
     case Inference::RE_NF_CONFLICT: return "RE_NF_CONFLICT";
     case Inference::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
     case Inference::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";

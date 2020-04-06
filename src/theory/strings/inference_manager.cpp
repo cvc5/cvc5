@@ -207,9 +207,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      bool asLemma)
 {
   d_statistics.d_inferences << infer;
-  std::stringstream ss;
-  ss << infer;
-  sendInference(exp, eq, ss.str().c_str(), asLemma);
+  sendInference(exp, eq, toString(infer), asLemma);
 }
 
 void InferenceManager::sendInference(const InferInfo& i)
@@ -307,6 +305,12 @@ bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
   d_pendingLem.push_back(lemma_or);
   sendPhaseRequirement(eq, preq);
   return true;
+}
+
+bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
+{
+  d_statistics.d_inferences << infer;
+  return sendSplit(a, b, toString(infer), preq);
 }
 
 void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
@@ -601,6 +605,7 @@ void InferenceManager::doPendingLemmas()
     for (const Node& lc : d_pendingLem)
     {
       Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
+      ++(d_statistics.d_lemmasInfer);
       d_out.lemma(lc);
     }
     for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)

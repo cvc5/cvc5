@@ -1141,12 +1141,6 @@ Kind Op::getKind() const
   return d_kind;
 }
 
-Sort Op::getSort() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  return Sort(d_expr->getType());
-}
-
 bool Op::isNull() const { return isNullHelper(); }
 
 bool Op::isIndexed() const { return isIndexedHelper(); }
@@ -2392,7 +2386,7 @@ Term Solver::mkTermFromKind(Kind kind) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
+Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   for (size_t i = 0, size = children.size(); i < size; ++i)
@@ -3265,12 +3259,12 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 {
   // need to use internal term call to check e.g. associative construction
-  return mkTermInternal(kind, std::vector<Term>{child1, child2, child3});
+  return mkTermHelper(kind, std::vector<Term>{child1, child2, child3});
 }
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  return mkTermInternal(kind, children);
+  return mkTermHelper(kind, children);
 }
 
 Term Solver::mkTerm(Op op) const

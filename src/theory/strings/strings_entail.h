@@ -25,6 +25,8 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+class SequencesRewriter;
+
 /**
  * Entailment tests involving strings.
  * Some of these techniques are described in Reynolds et al, "High Level
@@ -33,6 +35,8 @@ namespace strings {
 class StringsEntail
 {
  public:
+  StringsEntail(SequencesRewriter& rewriter);
+
   /** can constant contain list
    * return true if constant c can contain the list l in order
    * firstc/lastc store which indices in l were used to determine the return
@@ -153,12 +157,12 @@ class StringsEntail
    *   n1 is updated to { "c", x, "def" },
    *   nb is updated to { y, "ab" }
    */
-  static int componentContains(std::vector<Node>& n1,
-                               std::vector<Node>& n2,
-                               std::vector<Node>& nb,
-                               std::vector<Node>& ne,
-                               bool computeRemainder = false,
-                               int remainderDir = 0);
+  int componentContains(std::vector<Node>& n1,
+                        std::vector<Node>& n2,
+                        std::vector<Node>& nb,
+                        std::vector<Node>& ne,
+                        bool computeRemainder = false,
+                        int remainderDir = 0);
   /** strip constant endpoints
    * This function is used when rewriting str.contains( t1, t2 ), where
    * n1 is the vector form of t1
@@ -208,7 +212,7 @@ class StringsEntail
    * @return true node if it can be shown that `a` contains `b`, false node if
    * it can be shown that `a` does not contain `b`, null node otherwise
    */
-  static Node checkContains(Node a, Node b, bool fullRewriter = true);
+  Node checkContains(Node a, Node b, bool fullRewriter = true);
 
   /** entail non-empty
    *
@@ -346,7 +350,7 @@ class StringsEntail
    * Since we do not wish to introduce ITE terms in the rewriter, we instead
    * return false, indicating that we cannot compute the remainder.
    */
-  static bool componentContainsBase(
+  bool componentContainsBase(
       Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
   /**
    * Simplifies a given node `a` s.t. the result is a concatenation of string
@@ -362,6 +366,13 @@ class StringsEntail
    * @return A concatenation that can be interpreted as a multiset
    */
   static Node getMultisetApproximation(Node a);
+
+ private:
+  /**
+   * Reference to the sequences rewriter that owns this `StringsEntail`
+   * instance.
+   */
+  SequencesRewriter& d_rewriter;
 };
 
 }  // namespace strings

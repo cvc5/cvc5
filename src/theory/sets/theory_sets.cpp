@@ -46,9 +46,9 @@ TheorySets::~TheorySets()
   // Do not move me to the header. See explanation in the constructor.
 }
 
-std::unique_ptr<TheoryRewriter> TheorySets::mkTheoryRewriter()
+TheoryRewriter* TheorySets::getTheoryRewriter()
 {
-  return std::unique_ptr<TheoryRewriter>(new TheorySetsRewriter());
+  return d_internal->getTheoryRewriter();
 }
 
 void TheorySets::finishInit()
