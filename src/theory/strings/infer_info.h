@@ -129,11 +129,14 @@ enum class Inference : uint32_t
   DEQ_DISL_FIRST_CHAR_EQ_SPLIT,
   // When x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != "", we apply the
   // inference:
-  //   x = k1 ++ k2 ^ len(k1) = 1 ^ (k1 != "a" v x = "a" ++  k2)
+  //   ni = x ++ x' ++ ... ^ nj = "abc" ++ y' ++ ... ^ x != "" --->
+  //     x = k1 ++ k2 ^ len(k1) = 1 ^ (k1 != "a" v x = "a" ++  k2)
   DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
   // When x ++ x' ++ ... != y ++ y' ++ ... ^ len(x) != len(y), we apply the
   // inference:
-  //   len(k1) = len(x) ^ len(k2) = len(y) ^ (y = k1 ++ k3 v x = k1 ++ k2)
+  //   ni = x ++ x' ++ ... ^ nj = y ++ y' ++ ... ^ ni != nj ^ len(x) != len(y)
+  //     --->
+  //       len(k1) = len(x) ^ len(k2) = len(y) ^ (y = k1 ++ k3 v x = k1 ++ k2)
   DEQ_DISL_STRINGS_SPLIT,
   // When x ++ x' ++ ... != y ++ y' ++ ... ^ len(x) = len(y), we apply the
   // inference:
@@ -146,7 +149,8 @@ enum class Inference : uint32_t
   // When px ++ x ++ ... != py ^ len(px ++ x ++ ...) = len(py), we apply the
   // following inference that infers that the remainder of the longer normal
   // form must be empty:
-  //   x = "" ^ ...
+  //   ni = px ++ x ++ ... ^ nj = py ^ len(ni) = len(nj) --->
+  //     x = "" ^ ...
   DEQ_NORM_EMP,
   //-------------------------------------- end core solver
   //-------------------------------------- regexp solver
