@@ -2435,6 +2435,7 @@ Term Grammar::purifySygusGTerm(Term term,
 
 void Grammar::addSygusConstructorVariables(DatatypeDecl& dt, Sort sort) const
 {
+  Assert(!sort.isNull());
   // each variable of appropriate type becomes a sygus constructor in dt.
   for (unsigned i = 0, size = d_sygusVars.size(); i < size; i++)
   {
