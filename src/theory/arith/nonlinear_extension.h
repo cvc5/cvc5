@@ -47,7 +47,6 @@ namespace arith {
 
 typedef std::map<Node, unsigned> NodeMultiset;
 
-// TODO : refactor/document this class (#1287)
 /** Non-linear extension class
  *
  * This class implements model-based refinement schemes

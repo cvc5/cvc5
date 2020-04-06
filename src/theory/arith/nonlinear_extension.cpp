@@ -84,8 +84,6 @@ bool NonlinearExtension::getCurrentSubstitution(
 
   // return true if the substitution is non-trivial
   return retVal;
-
-  // d_containing.getValuation().getModel()->getRepresentative( n );
 }
 
 std::pair<bool, Node> NonlinearExtension::isExtfReduced(

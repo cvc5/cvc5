@@ -1732,7 +1732,8 @@ std::vector<Node> NlSolver::checkMonomialInferResBounds()
   NodeManager* nm = NodeManager::currentNM();
   Trace("nl-ext") << "Get monomial resolution inferred bound lemmas..."
                   << std::endl;
-  for (unsigned j = 0; j < d_mterms.size(); j++)
+  size_t nmterms = d_mterms.size();
+  for (unsigned j = 0; j < nmterms; j++)
   {
     Node a = d_mterms[j];
     std::map<Node, std::map<Node, std::map<Node, Kind> > >::iterator itca =
@@ -1741,7 +1742,7 @@ std::vector<Node> NlSolver::checkMonomialInferResBounds()
     {
       continue;
     }
-    for (unsigned k = (j + 1); k < d_mterms.size(); k++)
+    for (unsigned k = (j + 1); k < nmterms; k++)
     {
       Node b = d_mterms[k];
       std::map<Node, std::map<Node, std::map<Node, Kind> > >::iterator itcb =
@@ -1798,90 +1799,92 @@ std::vector<Node> NlSolver::checkMonomialInferResBounds()
           Node rhs_a = itcar->first;
           Node rhs_a_res_base = nm->mkNode(MULT, itb->second, rhs_a);
           rhs_a_res_base = Rewriter::rewrite(rhs_a_res_base);
-          if (!hasNewMonomials(rhs_a_res_base, d_ms))
+          if (hasNewMonomials(rhs_a_res_base, d_ms))
           {
-            Kind type_a = itcar->second;
-            exp.push_back(d_ci_exp[a][coeff_a][rhs_a]);
+            continue;
+          }
+          Kind type_a = itcar->second;
+          exp.push_back(d_ci_exp[a][coeff_a][rhs_a]);
 
-            // bounds of b
-            for (std::map<Node, std::map<Node, Kind> >::iterator itcbc =
-                     itcb->second.begin();
-                 itcbc != itcb->second.end();
-                 ++itcbc)
+          // bounds of b
+          for (std::map<Node, std::map<Node, Kind> >::iterator itcbc =
+                    itcb->second.begin();
+                itcbc != itcb->second.end();
+                ++itcbc)
+          {
+            Node coeff_b = itcbc->first;
+            Node rhs_a_res = ArithMSum::mkCoeffTerm(coeff_b, rhs_a_res_base);
+            for (std::map<Node, Kind>::iterator itcbr = itcbc->second.begin();
+                  itcbr != itcbc->second.end();
+                  ++itcbr)
             {
-              Node coeff_b = itcbc->first;
-              Node rhs_a_res = ArithMSum::mkCoeffTerm(coeff_b, rhs_a_res_base);
-              for (std::map<Node, Kind>::iterator itcbr = itcbc->second.begin();
-                   itcbr != itcbc->second.end();
-                   ++itcbr)
+              Node rhs_b = itcbr->first;
+              Node rhs_b_res = nm->mkNode(MULT, ita->second, rhs_b);
+              rhs_b_res = ArithMSum::mkCoeffTerm(coeff_a, rhs_b_res);
+              rhs_b_res = Rewriter::rewrite(rhs_b_res);
+              if (hasNewMonomials(rhs_b_res, d_ms))
               {
-                Node rhs_b = itcbr->first;
-                Node rhs_b_res = nm->mkNode(MULT, ita->second, rhs_b);
-                rhs_b_res = ArithMSum::mkCoeffTerm(coeff_a, rhs_b_res);
-                rhs_b_res = Rewriter::rewrite(rhs_b_res);
-                if (!hasNewMonomials(rhs_b_res, d_ms))
+                continue;
+              }
+              Kind type_b = itcbr->second;
+              exp.push_back(d_ci_exp[b][coeff_b][rhs_b]);
+              if (Trace.isOn("nl-ext-rbound"))
+              {
+                Trace("nl-ext-rbound") << "* try bounds : ";
+                debugPrintBound("nl-ext-rbound", coeff_a, a, type_a, rhs_a);
+                Trace("nl-ext-rbound") << std::endl;
+                Trace("nl-ext-rbound") << "               ";
+                debugPrintBound("nl-ext-rbound", coeff_b, b, type_b, rhs_b);
+                Trace("nl-ext-rbound") << std::endl;
+              }
+              Kind types[2];
+              for (unsigned r = 0; r < 2; r++)
+              {
+                Node pivot_factor = r == 0 ? itb->second : ita->second;
+                int pivot_factor_sign = r == 0 ? mv_b_sgn : mv_a_sgn;
+                types[r] = r == 0 ? type_a : type_b;
+                if (pivot_factor_sign == (r == 0 ? 1 : -1))
                 {
-                  Kind type_b = itcbr->second;
-                  exp.push_back(d_ci_exp[b][coeff_b][rhs_b]);
-                  if (Trace.isOn("nl-ext-rbound"))
-                  {
-                    Trace("nl-ext-rbound") << "* try bounds : ";
-                    debugPrintBound("nl-ext-rbound", coeff_a, a, type_a, rhs_a);
-                    Trace("nl-ext-rbound") << std::endl;
-                    Trace("nl-ext-rbound") << "               ";
-                    debugPrintBound("nl-ext-rbound", coeff_b, b, type_b, rhs_b);
-                    Trace("nl-ext-rbound") << std::endl;
-                  }
-                  Kind types[2];
-                  for (unsigned r = 0; r < 2; r++)
-                  {
-                    Node pivot_factor = r == 0 ? itb->second : ita->second;
-                    int pivot_factor_sign = r == 0 ? mv_b_sgn : mv_a_sgn;
-                    types[r] = r == 0 ? type_a : type_b;
-                    if (pivot_factor_sign == (r == 0 ? 1 : -1))
-                    {
-                      types[r] = reverseRelationKind(types[r]);
-                    }
-                    if (pivot_factor_sign == 1)
-                    {
-                      exp.push_back(nm->mkNode(GT, pivot_factor, d_zero));
-                    }
-                    else
-                    {
-                      exp.push_back(nm->mkNode(LT, pivot_factor, d_zero));
-                    }
-                  }
-                  Kind jk = transKinds(types[0], types[1]);
-                  Trace("nl-ext-rbound-debug")
-                      << "trans kind : " << types[0] << " + " << types[1]
-                      << " = " << jk << std::endl;
-                  if (jk != UNDEFINED_KIND)
-                  {
-                    Node conc = nm->mkNode(jk, rhs_a_res, rhs_b_res);
-                    Node conc_mv = d_model.computeAbstractModelValue(conc);
-                    if (conc_mv == d_false)
-                    {
-                      Node rblem =
-                          nm->mkNode(IMPLIES, nm->mkNode(AND, exp), conc);
-                      Trace("nl-ext-rbound-lemma-debug")
-                          << "Resolution bound lemma "
-                             "(pre-rewrite) "
-                             ": "
-                          << rblem << std::endl;
-                      rblem = Rewriter::rewrite(rblem);
-                      Trace("nl-ext-rbound-lemma")
-                          << "Resolution bound lemma : " << rblem << std::endl;
-                      lemmas.push_back(rblem);
-                    }
-                  }
-                  exp.pop_back();
-                  exp.pop_back();
-                  exp.pop_back();
+                  types[r] = reverseRelationKind(types[r]);
+                }
+                if (pivot_factor_sign == 1)
+                {
+                  exp.push_back(nm->mkNode(GT, pivot_factor, d_zero));
+                }
+                else
+                {
+                  exp.push_back(nm->mkNode(LT, pivot_factor, d_zero));
                 }
               }
+              Kind jk = transKinds(types[0], types[1]);
+              Trace("nl-ext-rbound-debug")
+                  << "trans kind : " << types[0] << " + " << types[1]
+                  << " = " << jk << std::endl;
+              if (jk != UNDEFINED_KIND)
+              {
+                Node conc = nm->mkNode(jk, rhs_a_res, rhs_b_res);
+                Node conc_mv = d_model.computeAbstractModelValue(conc);
+                if (conc_mv == d_false)
+                {
+                  Node rblem =
+                      nm->mkNode(IMPLIES, nm->mkNode(AND, exp), conc);
+                  Trace("nl-ext-rbound-lemma-debug")
+                      << "Resolution bound lemma "
+                          "(pre-rewrite) "
+                          ": "
+                      << rblem << std::endl;
+                  rblem = Rewriter::rewrite(rblem);
+                  Trace("nl-ext-rbound-lemma")
+                      << "Resolution bound lemma : " << rblem << std::endl;
+                  lemmas.push_back(rblem);
+                }
+              }
+              exp.pop_back();
+              exp.pop_back();
+              exp.pop_back();
             }
-            exp.pop_back();
           }
+          exp.pop_back();
         }
       }
     }
