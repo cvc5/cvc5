@@ -61,6 +61,12 @@ class NlSolver
   ~NlSolver();
 
   /** init last call
+   * 
+   * This is called at the beginning of last call effort check, where
+   * assertions are the set of assertions belonging to arithmetic,
+   * false_asserts is the subset of assertions that are false in the current
+   * model, and xts is the set of extended function terms that are active in
+   * the current context.
    */
   void initLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
