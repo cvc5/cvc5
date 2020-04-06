@@ -15,11 +15,7 @@
 #ifndef CVC4__THEORY__ARITH__NL_SOLVER_H
 #define CVC4__THEORY__ARITH__NL_SOLVER_H
 
-#include <stdint.h>
-
 #include <map>
-#include <queue>
-#include <set>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -33,6 +29,7 @@
 #include "expr/node.h"
 #include "theory/arith/nl_lemma_utils.h"
 #include "theory/arith/nl_model.h"
+#include "theory/arith/nl_monomial.h"
 #include "theory/arith/theory_arith.h"
 
 namespace CVC4 {
@@ -55,6 +52,8 @@ typedef std::map<Node, unsigned> NodeMultiset;
  */
 class NlSolver
 {
+  typedef std::map<Node, NodeMultiset> MonomialExponentMap;
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
  public:
   NlSolver(TheoryArith& containing, NlModel& model);
   ~NlSolver();
@@ -204,35 +203,8 @@ class NlSolver
   Node d_two;
   Node d_true;
   Node d_false;
-
-  // Map from monomials to var^index.
-  typedef std::map<Node, NodeMultiset> MonomialExponentMap;
-  MonomialExponentMap d_m_exp;
-
-  /** returns true if the multiset containing the
-   * factors of monomial a is a subset of the multiset
-   * containing the factors of monomial b.
-   */
-  bool isMonomialSubset(Node a, Node b) const;
-  void registerMonomialSubset(Node a, Node b);
-
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-
-  // monomial information (context-independent)
-  class MonomialIndex
-  {
-   public:
-    // status 0 : n equal, -1 : n superset, 1 : n subset
-    void addTerm(Node n,
-                 const std::vector<Node>& reps,
-                 NlSolver* nla,
-                 int status = 0,
-                 unsigned argIndex = 0);
-
-   private:
-    std::map<Node, MonomialIndex> d_data;
-    std::vector<Node> d_monos;
-  }; /* class MonomialIndex */
+  /** Context-independent database of monomial information */
+  MonomialDb d_mdb;
 
   // constraint information (context-independent)
   struct ConstraintInfo
@@ -242,24 +214,6 @@ class NlSolver
     Node d_coeff;
     Kind d_type;
   }; /* struct ConstraintInfo */
-
-  // Returns the NodeMultiset for an existing monomial.
-  const NodeMultiset& getMonomialExponentMap(Node monomial) const;
-  /**
-   * Mapping from monomials to the list of variables that occur in it. For
-   * example, x*x*y*z -> { x, y, z }.
-   */
-  std::map<Node, std::vector<Node> > d_m_vlist;
-  NodeMultiset d_m_degree;
-  // monomial index, by sorted variables
-  MonomialIndex d_m_index;
-  // list of all monomials
-  std::vector<Node> d_monomials;
-  // containment ordering
-  std::map<Node, std::vector<Node> > d_m_contain_children;
-  std::map<Node, std::vector<Node> > d_m_contain_parent;
-  std::map<Node, std::map<Node, Node> > d_m_contain_mult;
-  std::map<Node, std::map<Node, Node> > d_m_contain_umult;
   // ( x*y, x*z, y ) for each pair of monomials ( x*y, x*z ) with common factors
   std::map<Node, std::map<Node, Node> > d_mono_diff;
 
@@ -297,10 +251,9 @@ class NlSolver
   std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
 
+  /** Make literal */
   static Node mkLit(Node a, Node b, int status, bool isAbsolute = false);
-  Node mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) const;
   /** register monomial */
-  void registerMonomial(Node n);
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
   void registerConstraint(Node atom);
   /** assign order ids */

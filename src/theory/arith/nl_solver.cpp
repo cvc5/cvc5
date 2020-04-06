@@ -14,17 +14,10 @@
 
 #include "theory/arith/nl_solver.h"
 
-#include <cmath>
-#include <set>
-
-#include "expr/node_algorithm.h"
-#include "expr/node_builder.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/ext_theory.h"
-#include "theory/quantifiers/quant_util.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4::kind;
@@ -32,51 +25,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
-
-namespace {
-
-// Returns the a[key] and assertion fails in debug mode.
-inline unsigned getCount(const NodeMultiset& a, Node key)
-{
-  NodeMultiset::const_iterator it = a.find(key);
-  Assert(it != a.end());
-  return it->second;
-}
-
-// Returns a[key] if key is in a or value otherwise.
-unsigned getCountWithDefault(const NodeMultiset& a, Node key, unsigned value)
-{
-  NodeMultiset::const_iterator it = a.find(key);
-  return (it == a.end()) ? value : it->second;
-}
-// Given two multisets return the multiset difference a \ b.
-NodeMultiset diffMultiset(const NodeMultiset& a, const NodeMultiset& b)
-{
-  NodeMultiset difference;
-  for (NodeMultiset::const_iterator it_a = a.begin(); it_a != a.end(); ++it_a)
-  {
-    Node key = it_a->first;
-    const unsigned a_value = it_a->second;
-    const unsigned b_value = getCountWithDefault(b, key, 0);
-    if (a_value > b_value)
-    {
-      difference[key] = a_value - b_value;
-    }
-  }
-  return difference;
-}
-
-// Return a vector containing a[key] repetitions of key in a multiset a.
-std::vector<Node> ExpandMultiset(const NodeMultiset& a)
-{
-  std::vector<Node> expansion;
-  for (NodeMultiset::const_iterator it_a = a.begin(); it_a != a.end(); ++it_a)
-  {
-    expansion.insert(expansion.end(), it_a->second, it_a->first);
-  }
-  return expansion;
-}
-
+  
 void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs)
 {
   Node t = ArithMSum::mkCoeffTerm(coeff, x);
@@ -112,9 +61,6 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
   }
   return false;
 }
-
-}  // namespace
-
 NlSolver::NlSolver(TheoryArith& containing, NlModel& model)
     : d_containing(containing),
       d_model(model),
@@ -163,15 +109,14 @@ void NlSolver::initLastCall(const std::vector<Node>& assertions,
       d_ms.push_back( a );
       
       //context-independent registration
-      registerMonomial(a);
+      d_mdb.registerMonomial(a);
 
-      std::map<Node, std::vector<Node> >::iterator itvl = d_m_vlist.find(a);
-      Assert(itvl != d_m_vlist.end());
-      for (unsigned k = 0; k < itvl->second.size(); k++) {
-        if (std::find(d_ms_vars.begin(), d_ms_vars.end(), itvl->second[k])==d_ms_vars.end()) {
-          d_ms_vars.push_back(itvl->second[k]);
+      const std::vector<Node>& varList = d_mdb.getVariableList(a);
+      for (const Node& v : varList){
+        if (std::find(d_ms_vars.begin(), d_ms_vars.end(), v)==d_ms_vars.end()) {
+          d_ms_vars.push_back(v);
         }
-        Node mvk = d_model.computeAbstractModelValue(itvl->second[k]);
+        Node mvk = d_model.computeAbstractModelValue(v);
         if( !mvk.isConst() ){
           d_m_nconst_factor[a] = true;
         }
@@ -181,7 +126,7 @@ void NlSolver::initLastCall(const std::vector<Node>& assertions,
   }
 
   // register constants
-  registerMonomial(d_one);
+  d_mdb.registerMonomial(d_one);
   for (unsigned j = 0; j < d_order_points.size(); j++) {
     Node c = d_order_points[j];
     d_model.computeConcreteModelValue(c);
@@ -192,101 +137,13 @@ void NlSolver::initLastCall(const std::vector<Node>& assertions,
   Trace("nl-ext-mv") << "Variables in monomials : " << std::endl;
   for (unsigned i = 0; i < d_ms_vars.size(); i++) {
     Node v = d_ms_vars[i];
-    registerMonomial(v);
+    d_mdb.registerMonomial(v);
     d_model.computeConcreteModelValue(v);
     d_model.computeAbstractModelValue(v);
     d_model.printModelValue("nl-ext-mv", v);
   }
   
   Trace("nl-ext") << "We have " << d_ms.size() << " monomials." << std::endl;
-}
-
-const NodeMultiset& NlSolver::getMonomialExponentMap(Node monomial) const
-{
-  MonomialExponentMap::const_iterator it = d_m_exp.find(monomial);
-  Assert(it != d_m_exp.end());
-  return it->second;
-}
-
-bool NlSolver::isMonomialSubset(Node am, Node bm) const
-{
-  const NodeMultiset& a = getMonomialExponentMap(am);
-  const NodeMultiset& b = getMonomialExponentMap(bm);
-  for (NodeMultiset::const_iterator it_a = a.begin(); it_a != a.end(); ++it_a)
-  {
-    Node key = it_a->first;
-    const unsigned a_value = it_a->second;
-    const unsigned b_value = getCountWithDefault(b, key, 0);
-    if (a_value > b_value)
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-void NlSolver::registerMonomialSubset(Node a, Node b)
-{
-  Assert(isMonomialSubset(a, b));
-
-  const NodeMultiset& a_exponent_map = getMonomialExponentMap(a);
-  const NodeMultiset& b_exponent_map = getMonomialExponentMap(b);
-
-  std::vector<Node> diff_children =
-      ExpandMultiset(diffMultiset(b_exponent_map, a_exponent_map));
-  Assert(!diff_children.empty());
-
-  d_m_contain_parent[a].push_back(b);
-  d_m_contain_children[b].push_back(a);
-
-  Node mult_term = safeConstructNary(MULT, diff_children);
-  Node nlmult_term = safeConstructNary(NONLINEAR_MULT, diff_children);
-  d_m_contain_mult[a][b] = mult_term;
-  d_m_contain_umult[a][b] = nlmult_term;
-  Trace("nl-ext-mindex") << "..." << a << " is a subset of " << b
-                         << ", difference is " << mult_term << std::endl;
-}
-
-void NlSolver::registerMonomial(Node n)
-{
-  if (std::find(d_monomials.begin(), d_monomials.end(), n) != d_monomials.end())
-  {
-    return;
-  }
-  d_monomials.push_back(n);
-  Trace("nl-ext-debug") << "Register monomial : " << n << std::endl;
-  Kind k = n.getKind();
-  if (k == NONLINEAR_MULT)
-  {
-    // get exponent count
-    unsigned nchild = n.getNumChildren();
-    for (unsigned i = 0; i < nchild; i++)
-    {
-      d_m_exp[n][n[i]]++;
-      if (i == 0 || n[i] != n[i - 1])
-      {
-        d_m_vlist[n].push_back(n[i]);
-      }
-    }
-    d_m_degree[n] = nchild;
-  }
-  else if (n == d_one)
-  {
-    d_m_exp[n].clear();
-    d_m_vlist[n].clear();
-    d_m_degree[n] = 0;
-  }
-  else
-  {
-    Assert(k != PLUS && k != MULT);
-    d_m_exp[n][n] = 1;
-    d_m_vlist[n].push_back(n);
-    d_m_degree[n] = 1;
-  }
-  // TODO: sort necessary here?
-  std::sort(d_m_vlist[n].begin(), d_m_vlist[n].end());
-  Trace("nl-ext-mindex") << "Add monomial to index : " << n << std::endl;
-  d_m_index.addTerm(n, d_m_vlist[n], this);
 }
 
 void NlSolver::setMonomialFactor(Node a, Node b, const NodeMultiset& common)
@@ -297,7 +154,7 @@ void NlSolver::setMonomialFactor(Node a, Node b, const NodeMultiset& common)
   {
     Trace("nl-ext-mono-factor")
         << "Set monomial factor for " << a << "/" << b << std::endl;
-    mono_diff_a[b] = mkMonomialRemFactor(a, common);
+    mono_diff_a[b] = d_mdb.mkMonomialRemFactor(a, common);
   }
 }
 
@@ -327,11 +184,10 @@ void NlSolver::registerConstraint(Node atom)
       if (!itm->first.isNull())
       {
         all_m.push_back(itm->first);
-        registerMonomial(itm->first);
+        d_mdb.registerMonomial(itm->first);
         Trace("nl-ext-debug2")
             << "...process monomial " << itm->first << std::endl;
-        Assert(d_m_degree.find(itm->first) != d_m_degree.end());
-        unsigned d = d_m_degree[itm->first];
+        unsigned d = d_mdb.getDegree(itm->first);
         if (d > max_degree)
         {
           max_degree = d;
@@ -378,31 +234,6 @@ void NlSolver::registerConstraint(Node atom)
   {
     Trace("nl-ext-debug") << "...failed to get monomial sum." << std::endl;
   }
-}
-
-Node NlSolver::mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) const
-{
-  std::vector<Node> children;
-  const NodeMultiset& exponent_map = getMonomialExponentMap(n);
-  for (NodeMultiset::const_iterator itme2 = exponent_map.begin();
-       itme2 != exponent_map.end();
-       ++itme2)
-  {
-    Node v = itme2->first;
-    unsigned inc = itme2->second;
-    Trace("nl-ext-mono-factor")
-        << "..." << inc << " factors of " << v << std::endl;
-    unsigned count_in_n_exp_rem = getCountWithDefault(n_exp_rem, v, 0);
-    Assert(count_in_n_exp_rem <= inc);
-    inc -= count_in_n_exp_rem;
-    Trace("nl-ext-mono-factor")
-        << "......rem, now " << inc << " factors of " << v << std::endl;
-    children.insert(children.end(), inc, v);
-  }
-  Node ret = safeConstructNary(MULT, children);
-  ret = Rewriter::rewrite(ret);
-  Trace("nl-ext-mono-factor") << "...return : " << ret << std::endl;
-  return ret;
 }
 
 std::vector<Node> NlSolver::checkSplitZero()
@@ -506,7 +337,8 @@ int NlSolver::compareSign(Node oa,
                         << ", status is " << status << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Node mvaoa = d_model.computeAbstractModelValue(oa);
-  if (a_index == d_m_vlist[a].size())
+  const std::vector<Node>& vla = d_mdb.getVariableList(a);
+  if (a_index == vla.size())
   {
     if (mvaoa.getConst<Rational>().sgn() != status)
     {
@@ -516,9 +348,9 @@ int NlSolver::compareSign(Node oa,
     }
     return status;
   }
-  Assert(a_index < d_m_vlist[a].size());
-  Node av = d_m_vlist[a][a_index];
-  unsigned aexp = d_m_exp[a][av];
+  Assert(a_index < vla.size());
+  Node av = vla[a_index];
+  unsigned aexp = d_mdb.getExponent(a,av);
   // take current sign in model
   Node mvaav = d_model.computeAbstractModelValue(av);
   int sgn = mvaav.getConst<Rational>().sgn();
@@ -661,7 +493,9 @@ bool NlSolver::compareMonomial(
       << "compareMonomial " << oa << " and " << ob << ", indices = " << a_index
       << " " << b_index << std::endl;
   Assert(status == 0 || status == 2);
-  if (a_index == d_m_vlist[a].size() && b_index == d_m_vlist[b].size())
+  const std::vector<Node>& vla = d_mdb.getVariableList(a);
+  const std::vector<Node>& vlb = d_mdb.getVariableList(b);
+  if (a_index == vla.size() && b_index == vlb.size())
   {
     // finished, compare absolute value of abstract model values
     int modelStatus = d_model.compare(oa, ob, false, true) * -2;
@@ -675,9 +509,9 @@ bool NlSolver::compareMonomial(
       if (status == 2)
       {
         // must state that all variables are non-zero
-        for (unsigned j = 0; j < d_m_vlist[a].size(); j++)
+        for (unsigned j = 0; j < vla.size(); j++)
         {
-          exp.push_back(d_m_vlist[a][j].eqNode(d_zero).negate());
+          exp.push_back(vla[j].eqNode(d_zero).negate());
         }
       }
       NodeManager* nm = NodeManager::currentNM();
@@ -693,11 +527,12 @@ bool NlSolver::compareMonomial(
   Node av;
   unsigned aexp = 0;
   unsigned avo = 0;
-  if (a_index < d_m_vlist[a].size())
+  if (a_index < vla.size())
   {
-    av = d_m_vlist[a][a_index];
-    Assert(a_exp_proc[av] <= d_m_exp[a][av]);
-    aexp = d_m_exp[a][av] - a_exp_proc[av];
+    av = vla[a_index];
+    unsigned aexpTotal = d_mdb.getExponent(a,av);
+    Assert(a_exp_proc[av] <= aexpTotal);
+    aexp = aexpTotal - a_exp_proc[av];
     if (aexp == 0)
     {
       return compareMonomial(oa,
@@ -719,11 +554,12 @@ bool NlSolver::compareMonomial(
   Node bv;
   unsigned bexp = 0;
   unsigned bvo = 0;
-  if (b_index < d_m_vlist[b].size())
+  if (b_index < vlb.size())
   {
-    bv = d_m_vlist[b][b_index];
-    Assert(b_exp_proc[bv] <= d_m_exp[b][bv]);
-    bexp = d_m_exp[b][bv] - b_exp_proc[bv];
+    bv = vlb[b_index];
+    unsigned bexpTotal = d_mdb.getExponent(b,bv);
+    Assert(b_exp_proc[bv] <= bexpTotal);
+    bexp = bexpTotal - b_exp_proc[bv];
     if (bexp == 0)
     {
       return compareMonomial(oa,
@@ -863,68 +699,6 @@ bool NlSolver::compareMonomial(
   return false;
 }
 
-// status 0 : n equal, -1 : n superset, 1 : n subset
-void NlSolver::MonomialIndex::addTerm(Node n,
-                                      const std::vector<Node>& reps,
-                                      NlSolver* nla,
-                                      int status,
-                                      unsigned argIndex)
-{
-  if (status == 0)
-  {
-    if (argIndex == reps.size())
-    {
-      d_monos.push_back(n);
-    }
-    else
-    {
-      d_data[reps[argIndex]].addTerm(n, reps, nla, status, argIndex + 1);
-    }
-  }
-  for (std::map<Node, MonomialIndex>::iterator it = d_data.begin();
-       it != d_data.end();
-       ++it)
-  {
-    if (status != 0 || argIndex == reps.size() || it->first != reps[argIndex])
-    {
-      // if we do not contain this variable, then if we were a superset,
-      // fail (-2), otherwise we are subset.  if we do contain this
-      // variable, then if we were equal, we are superset since variables
-      // are ordered, otherwise we remain the same.
-      int new_status =
-          std::find(reps.begin(), reps.end(), it->first) == reps.end()
-              ? (status >= 0 ? 1 : -2)
-              : (status == 0 ? -1 : status);
-      if (new_status != -2)
-      {
-        it->second.addTerm(n, reps, nla, new_status, argIndex);
-      }
-    }
-  }
-  // compare for subsets
-  for (unsigned i = 0; i < d_monos.size(); i++)
-  {
-    Node m = d_monos[i];
-    if (m != n)
-    {
-      // we are superset if we are equal and haven't traversed all variables
-      int cstatus = status == 0 ? (argIndex == reps.size() ? 0 : -1) : status;
-      Trace("nl-ext-mindex-debug") << "  compare " << n << " and " << m
-                                   << ", status = " << cstatus << std::endl;
-      if (cstatus <= 0 && nla->isMonomialSubset(m, n))
-      {
-        nla->registerMonomialSubset(m, n);
-        Trace("nl-ext-mindex-debug") << "...success" << std::endl;
-      }
-      else if (cstatus >= 0 && nla->isMonomialSubset(n, m))
-      {
-        nla->registerMonomialSubset(n, m);
-        Trace("nl-ext-mindex-debug") << "...success (rev)" << std::endl;
-      }
-    }
-  }
-}
-
 std::vector<Node> NlSolver::checkMonomialSign()
 {
   std::vector<Node> lemmas;
@@ -974,14 +748,7 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
 
     // sort individual variable lists
     Trace("nl-ext-proc") << "Assign order var lists..." << std::endl;
-    SortNlModel smv;
-    smv.d_nlm = &d_model;
-    smv.d_isConcrete = false;
-    smv.d_isAbsolute = true;
-    smv.d_reverse_order = true;
-    for (unsigned j = 0; j < d_ms.size(); j++) {
-      std::sort(d_m_vlist[d_ms[j]].begin(), d_m_vlist[d_ms[j]].end(), smv);
-    }
+    d_mdb.sortVariablesByModel(d_ms, d_model);
   }
   
   unsigned r = 1;
@@ -1015,8 +782,7 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
       }
       else
       {
-        std::map<Node, NodeMultiset>::iterator itmea = d_m_exp.find(a);
-        Assert(itmea != d_m_exp.end());
+        const NodeMultiset& mea = d_mdb.getMonomialExponentMap(a);
         if (c == 1)
         {
           // TODO : not just against containing variables?
@@ -1030,7 +796,7 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
               std::vector<Node> exp;
               NodeMultiset a_exp_proc;
               NodeMultiset b_exp_proc;
-              if (itmea->second.find(v) != itmea->second.end())
+              if (mea.find(v) != mea.end())
               {
                 a_exp_proc[v] = 1;
                 b_exp_proc[v] = 1;
@@ -1059,21 +825,20 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
             if (d_ms_proc.find(b) == d_ms_proc.end()
                 && d_m_nconst_factor.find(b) == d_m_nconst_factor.end())
             {
-              std::map<Node, NodeMultiset>::iterator itmeb = d_m_exp.find(b);
-              Assert(itmeb != d_m_exp.end());
+              const NodeMultiset& meb = d_mdb.getMonomialExponentMap(b);
 
               std::vector<Node> exp;
               // take common factors of monomials, set minimum of
               // common exponents as processed
               NodeMultiset a_exp_proc;
               NodeMultiset b_exp_proc;
-              for (NodeMultiset::iterator itmea2 = itmea->second.begin();
-                   itmea2 != itmea->second.end();
+              for (NodeMultiset::const_iterator itmea2 = mea.begin();
+                   itmea2 != mea.end();
                    ++itmea2)
               {
-                NodeMultiset::iterator itmeb2 =
-                    itmeb->second.find(itmea2->first);
-                if (itmeb2 != itmeb->second.end())
+                NodeMultiset::const_iterator itmeb2 =
+                    meb.find(itmea2->first);
+                if (itmeb2 != meb.end())
                 {
                   unsigned min_exp = itmea2->second > itmeb2->second
                                          ? itmeb2->second
@@ -1167,6 +932,7 @@ std::vector<Node> NlSolver::checkTangentPlanes()
   std::vector<Node> lemmas;
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  std::map<Node, std::vector<Node> >& ccMap = d_mdb.getContainsChildrenMap();
   unsigned kstart = d_ms_vars.size();
   for (unsigned k = kstart; k < d_mterms.size(); k++)
   {
@@ -1180,8 +946,8 @@ std::vector<Node> NlSolver::checkTangentPlanes()
         << "Look at monomial requiring refinement : " << t << std::endl;
     // get a decomposition
     std::map<Node, std::vector<Node> >::iterator it =
-        d_m_contain_children.find(t);
-    if (it == d_m_contain_children.end())
+        ccMap.find(t);
+    if (it == ccMap.end())
     {
       continue;
     }
@@ -1191,7 +957,7 @@ std::vector<Node> NlSolver::checkTangentPlanes()
       Node tc = it->second[j];
       if (tc != d_one)
       {
-        Node tc_diff = d_m_contain_umult[tc][t];
+        Node tc_diff = d_mdb.getContainsDiffNl(tc,t);
         Assert(!tc_diff.isNull());
         Node a = tc < tc_diff ? tc : tc_diff;
         Node b = tc < tc_diff ? tc_diff : tc;
@@ -1326,8 +1092,7 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
 {
   // sort monomials by degree
   Trace("nl-ext-proc") << "Sort monomials by degree..." << std::endl;
-  SortNonlinearDegree snlad(d_m_degree);
-  std::sort(d_ms.begin(), d_ms.end(), snlad);
+  d_mdb.sortByDegree(d_ms);
   // all monomials
   d_mterms.insert(d_mterms.end(), d_ms_vars.begin(), d_ms_vars.end());
   d_mterms.insert(d_mterms.end(), d_ms.begin(), d_ms.end());
@@ -1469,15 +1234,15 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
   }
 
   Trace("nl-ext") << "Get inferred bound lemmas..." << std::endl;
-
+  std::map<Node, std::vector<Node> >& cpMap = d_mdb.getContainsParentMap();
   for (unsigned k = 0; k < d_mterms.size(); k++)
   {
     Node x = d_mterms[k];
     Trace("nl-ext-bound-debug")
         << "Process bounds for " << x << " : " << std::endl;
     std::map<Node, std::vector<Node> >::iterator itm =
-        d_m_contain_parent.find(x);
-    if (itm == d_m_contain_parent.end())
+        cpMap.find(x);
+    if (itm == cpMap.end())
     {
       Trace("nl-ext-bound-debug") << "...has no parent monomials." << std::endl;
       continue;
@@ -1512,8 +1277,7 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
         for (unsigned j = 0; j < itm->second.size(); j++)
         {
           Node y = itm->second[j];
-          Assert(d_m_contain_mult[x].find(y) != d_m_contain_mult[x].end());
-          Node mult = d_m_contain_mult[x][y];
+          Node mult = d_mdb.getContainsDiff(x,y);
           // x <k> t => m*x <k'> t  where y = m*x
           // get the sign of mult
           Node mmv = d_model.computeConcreteModelValue(mult);

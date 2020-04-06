@@ -19,19 +19,10 @@
 #define CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H
 
 #include <stdint.h>
-
 #include <map>
-#include <queue>
-#include <set>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
-#include "context/cdhashset.h"
-#include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
-#include "context/cdqueue.h"
-#include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "theory/arith/nl_lemma_utils.h"
@@ -44,8 +35,6 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
-
-typedef std::map<Node, unsigned> NodeMultiset;
 
 /** Non-linear extension class
  *
