@@ -88,7 +88,6 @@ header = "options/bv_options.h"
   long       = "bv-aig-simp=COMMAND"
   type       = "std::string"
   predicates = ["abcEnabledBuild"]
-  links      = ["--bitblast-aig"]
   help       = "abc command to run AIG simplifications (implies --bitblast-aig, default is \"balance;drw\")"
 
 [[option]]
@@ -113,7 +112,6 @@ header = "options/bv_options.h"
   long       = "bv-eq-slicer=MODE"
   type       = "BvSlicerMode"
   default    = "OFF"
-  links      = ["--bv-eq-solver"]
   help       = "turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)"
   help_mode  = "Bit-vector equality slicer modes."
 [[option.mode.ON]]
@@ -148,7 +146,6 @@ header = "options/bv_options.h"
   long       = "bv-algebraic-budget=N"
   type       = "unsigned"
   default    = "1500"
-  links      = ["--bv-algebraic-solver"]
   help       = "the budget allowed for the algebraic solver in number of SAT conflicts"
 
 [[option]]
