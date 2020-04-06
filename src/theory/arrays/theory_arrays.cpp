@@ -179,11 +179,6 @@ TheoryArrays::~TheoryArrays() {
   smtStatisticsRegistry()->unregisterStat(&d_numSetModelValConflicts);
 }
 
-std::unique_ptr<TheoryRewriter> TheoryArrays::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new TheoryArraysRewriter());
-}
-
 void TheoryArrays::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }

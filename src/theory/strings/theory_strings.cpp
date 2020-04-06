@@ -26,7 +26,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
-#include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/type_enumerator.h"
 #include "theory/strings/word.h"
@@ -70,13 +69,16 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       d_notify(*this),
+      d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, d_equalityEngine, d_valuation),
       d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
+      d_registeredTypesCache(u),
       d_functionsTerms(c),
       d_has_str_code(false),
+      d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(c, u, d_state, d_im),
       d_csolver(c, u, d_state, d_im, d_sk_cache, d_bsolver),
       d_esolver(nullptr),
@@ -91,6 +93,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  d_state,
                                  d_im,
                                  d_sk_cache,
+                                 d_rewriter,
                                  d_bsolver,
                                  d_csolver,
                                  extt,
@@ -120,7 +123,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_emptyString = Word::mkEmptyWord(CONST_STRING);
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -129,11 +131,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
 
 TheoryStrings::~TheoryStrings() {
 
-}
-
-std::unique_ptr<TheoryRewriter> TheoryStrings::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new SequencesRewriter());
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
@@ -657,12 +654,12 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
-    node = nm->mkNode(CHOICE,
-                      bvl,
-                      nm->mkNode(ITE,
-                                 cond,
-                                 t.eqNode(nm->mkNode(STRING_TO_CODE, k)),
-                                 k.eqNode(d_emptyString)));
+    Node emp = Word::mkEmptyWord(node.getType());
+    node = nm->mkNode(
+        CHOICE,
+        bvl,
+        nm->mkNode(
+            ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
   }
 
   return node;
@@ -677,12 +674,6 @@ void TheoryStrings::check(Effort e) {
 
   bool polarity;
   TNode atom;
-
-  if (!done() && !d_equalityEngine.hasTerm(d_emptyString))
-  {
-    preRegisterTerm( d_emptyString );
-  }
-
   // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
   Trace("strings-check-debug")
       << "Theory of strings, check : " << e << std::endl;
@@ -1092,6 +1083,8 @@ void TheoryStrings::registerTerm(Node n, int effort)
     return;
   }
   d_registered_terms_cache.insert(n);
+  // ensure the type is registered
+  registerType(tn);
   NodeManager* nm = NodeManager::currentNM();
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
@@ -1130,6 +1123,24 @@ void TheoryStrings::registerTerm(Node n, int effort)
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
     d_out->lemma(regTermLem);
+  }
+}
+
+void TheoryStrings::registerType(TypeNode tn)
+{
+  if (d_registeredTypesCache.find(tn) != d_registeredTypesCache.end())
+  {
+    return;
+  }
+  d_registeredTypesCache.insert(tn);
+  if (tn.isStringLike())
+  {
+    // preregister the empty word for the type
+    Node emp = Word::mkEmptyWord(tn);
+    if (!d_equalityEngine.hasTerm(emp))
+    {
+      preRegisterTerm(emp);
+    }
   }
 }
 

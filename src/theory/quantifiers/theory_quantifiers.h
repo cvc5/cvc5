@@ -23,6 +23,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/output_channel.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "theory/valuation.h"
@@ -39,7 +40,7 @@ class TheoryQuantifiers : public Theory {
                     const LogicInfo& logicInfo);
   ~TheoryQuantifiers();
 
-  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   /** finish initialization */
   void finishInit() override;
@@ -58,6 +59,9 @@ class TheoryQuantifiers : public Theory {
                         std::vector<Node> node_values,
                         std::string str_value) override;
 
+ private:
+  /** The theory rewriter for this theory. */
+  QuantifiersRewriter d_rewriter;
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */

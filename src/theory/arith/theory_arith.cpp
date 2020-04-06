@@ -54,9 +54,9 @@ TheoryArith::~TheoryArith(){
   delete d_internal;
 }
 
-std::unique_ptr<TheoryRewriter> TheoryArith::mkTheoryRewriter()
+TheoryRewriter* TheoryArith::getTheoryRewriter()
 {
-  return std::unique_ptr<TheoryRewriter>(new ArithRewriter());
+  return d_internal->getTheoryRewriter();
 }
 
 void TheoryArith::preRegisterTerm(TNode n){

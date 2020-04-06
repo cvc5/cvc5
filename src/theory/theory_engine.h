@@ -495,7 +495,7 @@ class TheoryEngine {
                                               theory::Valuation(this),
                                               d_logicInfo);
     theory::Rewriter::registerTheoryRewriter(
-        theoryId, d_theoryTable[theoryId]->mkTheoryRewriter());
+        theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
 
   void setPropEngine(prop::PropEngine* propEngine)

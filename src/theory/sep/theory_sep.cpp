@@ -65,11 +65,6 @@ TheorySep::~TheorySep() {
   }
 }
 
-std::unique_ptr<TheoryRewriter> TheorySep::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new TheorySepRewriter());
-}
-
 void TheorySep::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }

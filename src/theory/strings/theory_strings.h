@@ -39,6 +39,7 @@
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strings_fmf.h"
+#include "theory/strings/strings_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -102,6 +103,7 @@ class TheoryStrings : public Theory {
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
 
  public:
   TheoryStrings(context::Context* c, context::UserContext* u,
@@ -109,7 +111,7 @@ class TheoryStrings : public Theory {
                 const LogicInfo& logicInfo);
   ~TheoryStrings();
 
-  std::unique_ptr<TheoryRewriter> mkTheoryRewriter() override;
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
@@ -241,6 +243,8 @@ class TheoryStrings : public Theory {
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
+  /** The types that we have preregistered */
+  TypeNodeSet d_registeredTypesCache;
   std::vector< Node > d_empty_vec;
 private:
 
@@ -349,9 +353,19 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
+  /** Register type
+   *
+   * Ensures the theory solver is setup to handle string-like type tn. In
+   * particular, this includes:
+   * - Calling preRegisterTerm on the empty word for tn
+   */
+  void registerType(TypeNode tn);
 
   // Symbolic Regular Expression
  private:
+  /** The theory rewriter for this theory. */
+  StringsRewriter d_rewriter;
+
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.
