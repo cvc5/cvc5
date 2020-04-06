@@ -28,18 +28,13 @@ const char* toString(Inference i)
     case Inference::I_NORM: return "I_NORM";
     case Inference::CARD_SP: return "CARD_SP";
     case Inference::CARDINALITY: return "CARDINALITY";
-    
     case Inference::I_CYCLE_E: return "I_CYCLE_E";
     case Inference::I_CYCLE: return "I_CYCLE";
     case Inference::FFORM_CONST: return "FFORM_CONST";
     case Inference::FFORM_UNIFY: return "FFORM_UNIFY";
     case Inference::FFORM_ENDPOINT_EMP: return "FFORM_ENDPOINT_EMP";
     case Inference::FFORM_ENDPOINT_EQ: return "FFORM_ENDPOINT_EQ";
-    case Inference::FFORM_NCTN: return "FFORM_NCTN";
-    case Inference::NORMAL_FORM: return "NORMAL_FORM";
-    case Inference::N_NCTN: return "N_NCTN";
-    case Inference::LEN_NORM: return "LEN_NORM";
-    
+    case Inference::FFORM_NCTN: return "FFORM_NCTN";    
     case Inference::N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
     case Inference::N_UNIFY: return "N_UNIFY";
     case Inference::N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";
@@ -53,6 +48,9 @@ const char* toString(Inference i)
     case Inference::SSPLIT_VAR: return "SSPLIT_VAR";
     case Inference::FLOOP: return "FLOOP";
     case Inference::FLOOP_CONFLICT: return "FLOOP_CONFLICT";
+    case Inference::NORMAL_FORM: return "NORMAL_FORM";
+    case Inference::N_NCTN: return "N_NCTN";
+    case Inference::LEN_NORM: return "LEN_NORM";
     case Inference::DEQ_DISL_EMP_SPLIT: return "DEQ_DISL_EMP_SPLIT";
     case Inference::DEQ_DISL_FIRST_CHAR_EQ_SPLIT:
       return "DEQ_DISL_FIRST_CHAR_EQ_SPLIT";

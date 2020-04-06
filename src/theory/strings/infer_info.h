@@ -65,16 +65,33 @@ enum class Inference : uint32_t
   CARDINALITY,
   //-------------------------------------- end base solver
   //-------------------------------------- core solver
+  // A cycle in the empty string equivalent class, e.g.:
+  //   x ++ y = "" => x = ""
+  // This is typically not applied due to length constraints implying emptiness.
   I_CYCLE_E,
+  // A cycle in the containment ordering.
+  //   x = y ++ x => y = "" or
+  //   x = y ++ z ^ y = x ++ w => z = "" ^ w = ""
+  // This is typically not applied due to length constraints implying emptiness.
   I_CYCLE,
+  // Flat form constant
+  //   x = y ^ x = z ++ c ... ^ y = z ++ d => false
+  // where c and d are distinct constants.
   FFORM_CONST,
+  // Flat form unify
+  //   x = y ^ x = z ++ x' ... ^ y = z ++ y' ^ len(x') = len(y') => x' = y'
+  // Notice flat form instances are similar to normal form inferences but do
+  // not involve recurisve explanations.
   FFORM_UNIFY,
+  // Flat form endpoint empty
+  //   x = y ^ x = z ^ y = z ++ y' => y' = ""
   FFORM_ENDPOINT_EMP,
+  // Flat form endpoint equal
+  //   x = y ^ x = z ++ x' ^ y = z ++ y' => x' = y'
   FFORM_ENDPOINT_EQ,
+  // Flat form not contained
+  // x = c ^ x = y => false when rewrite( contains( y, c ) ) = false
   FFORM_NCTN,
-  NORMAL_FORM,
-  N_NCTN,
-  LEN_NORM,
   // Given two normal forms, infers that the remainder one of them has to be
   // empty. For example:
   //    If x1 ++ x2 = y1 and x1 = y1, then x2 = ""
@@ -131,8 +148,18 @@ enum class Inference : uint32_t
   //        for fresh u, u1, u2.
   // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
   FLOOP,
-  // loop conflict
+  // loop conflict ???
   FLOOP_CONFLICT,
+  // Normal form inference
+  // x = y ^ z = y => x = z
+  // This is applied when y is the normal form of both x and z.
+  NORMAL_FORM,
+  // Normal form not contained, same as FFROM_NCTN but for normal forms
+  N_NCTN,
+  // Length normalization
+  //   x = y => len( x ) = len( y )
+  // Typically applied when y is the normal form of x.
+  LEN_NORM,
   // When x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != len(y), we apply the
   // inference:
   //   x = "" v x != ""
