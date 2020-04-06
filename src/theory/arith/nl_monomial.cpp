@@ -14,8 +14,8 @@
 
 #include "theory/arith/nl_monomial.h"
 
-#include "theory/arith/nl_lemma_utils.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl_lemma_utils.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;
@@ -60,10 +60,10 @@ std::vector<Node> ExpandMultiset(const NodeMultiset& a)
 
 // status 0 : n equal, -1 : n superset, 1 : n subset
 void MonomialIndex::addTerm(Node n,
-                                      const std::vector<Node>& reps,
-                                      MonomialDb* nla,
-                                      int status,
-                                      unsigned argIndex)
+                            const std::vector<Node>& reps,
+                            MonomialDb* nla,
+                            int status,
+                            unsigned argIndex)
 {
   if (status == 0)
   {
@@ -215,12 +215,12 @@ const NodeMultiset& MonomialDb::getMonomialExponentMap(Node monomial) const
 unsigned MonomialDb::getExponent(Node monomial, Node v) const
 {
   MonomialExponentMap::const_iterator it = d_m_exp.find(monomial);
-  if (it==d_m_exp.end())
+  if (it == d_m_exp.end())
   {
     return 0;
   }
   std::map<Node, unsigned>::const_iterator itv = it->second.find(v);
-  if (itv==it->second.end())
+  if (itv == it->second.end())
   {
     return 0;
   }
@@ -229,7 +229,8 @@ unsigned MonomialDb::getExponent(Node monomial, Node v) const
 
 const std::vector<Node>& MonomialDb::getVariableList(Node monomial) const
 {
-  std::map<Node, std::vector<Node> >::const_iterator itvl = d_m_vlist.find(monomial);
+  std::map<Node, std::vector<Node> >::const_iterator itvl =
+      d_m_vlist.find(monomial);
   Assert(itvl != d_m_vlist.end());
   return itvl->second;
 }
@@ -237,7 +238,7 @@ const std::vector<Node>& MonomialDb::getVariableList(Node monomial) const
 unsigned MonomialDb::getDegree(Node monomial) const
 {
   std::map<Node, unsigned>::const_iterator it = d_m_degree.find(monomial);
-  Assert( it != d_m_degree.end());
+  Assert(it != d_m_degree.end());
   return it->second;
 }
 
@@ -254,7 +255,8 @@ void MonomialDb::sortVariablesByModel(std::vector<Node>& ms, NlModel& m)
   smv.d_isConcrete = false;
   smv.d_isAbsolute = true;
   smv.d_reverse_order = true;
-  for (const Node& msc : ms){
+  for (const Node& msc : ms)
+  {
     std::sort(d_m_vlist[msc].begin(), d_m_vlist[msc].end(), smv);
   }
 }
@@ -271,13 +273,14 @@ std::map<Node, std::vector<Node> >& MonomialDb::getContainsParentMap()
 
 Node MonomialDb::getContainsDiff(Node a, Node b) const
 {
-  std::map<Node, std::map< Node, Node > >::const_iterator it = d_m_contain_mult.find(a);
-  if (it==d_m_contain_umult.end())
+  std::map<Node, std::map<Node, Node> >::const_iterator it =
+      d_m_contain_mult.find(a);
+  if (it == d_m_contain_umult.end())
   {
     return Node::null();
   }
-  std::map< Node, Node >::const_iterator it2 = it->second.find(b);
-  if (it2==it->second.end())
+  std::map<Node, Node>::const_iterator it2 = it->second.find(b);
+  if (it2 == it->second.end())
   {
     return Node::null();
   }
@@ -286,20 +289,22 @@ Node MonomialDb::getContainsDiff(Node a, Node b) const
 
 Node MonomialDb::getContainsDiffNl(Node a, Node b) const
 {
-  std::map<Node, std::map< Node, Node > >::const_iterator it = d_m_contain_umult.find(a);
-  if (it==d_m_contain_umult.end())
+  std::map<Node, std::map<Node, Node> >::const_iterator it =
+      d_m_contain_umult.find(a);
+  if (it == d_m_contain_umult.end())
   {
     return Node::null();
   }
-  std::map< Node, Node >::const_iterator it2 = it->second.find(b);
-  if (it2==it->second.end())
+  std::map<Node, Node>::const_iterator it2 = it->second.find(b);
+  if (it2 == it->second.end())
   {
     return Node::null();
   }
   return it2->second;
 }
 
-Node MonomialDb::mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) const
+Node MonomialDb::mkMonomialRemFactor(Node n,
+                                     const NodeMultiset& n_exp_rem) const
 {
   std::vector<Node> children;
   const NodeMultiset& exponent_map = getMonomialExponentMap(n);
@@ -323,7 +328,7 @@ Node MonomialDb::mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) cons
   Trace("nl-ext-mono-factor") << "...return : " << ret << std::endl;
   return ret;
 }
-  
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

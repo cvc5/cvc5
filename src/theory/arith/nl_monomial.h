@@ -23,7 +23,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
-  
+
 class MonomialDb;
 class NlModel;
 
@@ -33,41 +33,40 @@ typedef std::map<Node, NodeMultiset> MonomialExponentMap;
 /** An index data structure for node multisets (monomials) */
 class MonomialIndex
 {
-public:
-  /** 
+ public:
+  /**
    * Add term to this trie. The argument status indicates what the status
    * of n is with respect to the current node in the trie, where:
    *   0 : n is equal, -1 : n is superset, 1 : n is subset
    * of the node described by the current path in the trie.
    */
   void addTerm(Node n,
-                const std::vector<Node>& reps,
-                MonomialDb* nla,
-                int status = 0,
-                unsigned argIndex = 0);
+               const std::vector<Node>& reps,
+               MonomialDb* nla,
+               int status = 0,
+               unsigned argIndex = 0);
 
-private:
+ private:
   /** The children of this node */
   std::map<Node, MonomialIndex> d_data;
   /** The monomials at this node */
   std::vector<Node> d_monos;
 }; /* class MonomialIndex */
 
-
 /** Context-indenpent database for monomial information */
 class MonomialDb
 {
-public:
+ public:
   MonomialDb();
-  ~MonomialDb(){}
+  ~MonomialDb() {}
   /** register monomial */
   void registerMonomial(Node n);
-  /** 
+  /**
    * Register monomial subset. This method is called when we infer that b is
    * a subset of monomial a.
    */
   void registerMonomialSubset(Node a, Node b);
-  /** 
+  /**
    * returns true if the multiset containing the
    * factors of monomial a is a subset of the multiset
    * containing the factors of monomial b.
@@ -89,20 +88,21 @@ public:
   std::map<Node, std::vector<Node> >& getContainsChildrenMap();
   /** Get monomial contains parent map */
   std::map<Node, std::vector<Node> >& getContainsParentMap();
-  /** 
+  /**
    * Get contains difference. Return the difference of a and b or null if it
    * does not exist. In other words, this returns a term equivalent to a/b
    * that does not contain division.
    */
   Node getContainsDiff(Node a, Node b) const;
-  /** 
+  /**
    * Get contains difference non-linear. Same as above, but stores terms of kind
    * NONLINEAR_MULT instead of MULT.
    */
   Node getContainsDiffNl(Node a, Node b) const;
   /** Make monomial remainder factor */
   Node mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) const;
-private:
+
+ private:
   /** commonly used terms */
   Node d_one;
   /** list of all monomials */
@@ -124,7 +124,6 @@ private:
   std::map<Node, std::map<Node, Node> > d_m_contain_mult;
   std::map<Node, std::map<Node, Node> > d_m_contain_umult;
 };
-
 
 }  // namespace arith
 }  // namespace theory

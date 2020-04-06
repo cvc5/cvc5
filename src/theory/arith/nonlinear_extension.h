@@ -27,9 +27,9 @@
 #include "expr/node.h"
 #include "theory/arith/nl_lemma_utils.h"
 #include "theory/arith/nl_model.h"
+#include "theory/arith/nl_solver.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/transcendental_solver.h"
-#include "theory/arith/nl_solver.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -62,6 +62,7 @@ namespace arith {
  */
 class NonlinearExtension {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+
  public:
   NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
   ~NonlinearExtension();
@@ -256,7 +257,7 @@ class NonlinearExtension {
                   std::vector<Node>& lemmas,
                   std::vector<Node>& gs);
   //---------------------------end check model
-  
+
   /** Is n entailed with polarity pol in the current context? */
   bool isEntailed(Node n, bool pol);
 

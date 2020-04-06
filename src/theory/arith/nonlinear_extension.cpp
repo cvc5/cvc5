@@ -18,9 +18,9 @@
 #include "theory/arith/nonlinear_extension.h"
 
 #include "options/arith_options.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
-#include "theory/arith/arith_utilities.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4::kind;
@@ -28,7 +28,6 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
-
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
@@ -38,7 +37,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_needsLastCall(false),
       d_model(containing.getSatContext()),
       d_trSlv(d_model),
-      d_nlSlv(containing,d_model),
+      d_nlSlv(containing, d_model),
       d_builtModel(containing.getSatContext(), false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -449,7 +448,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   //-----------------------------------lemmas based on magnitude of non-zero monomials
   for (unsigned c = 0; c < 3; c++) {
     // c is effort level
-    lemmas = d_nlSlv.checkMonomialMagnitude( c );
+    lemmas = d_nlSlv.checkMonomialMagnitude(c);
     unsigned nlem = lemmas.size();
     filterLemmas(lemmas, lems);
     if (!lems.empty())
@@ -464,7 +463,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   //-----------------------------------inferred bounds lemmas
   //  e.g. x >= t => y*x >= y*t
   std::vector< Node > nt_lemmas;
-  lemmas = d_nlSlv.checkMonomialInferBounds(nt_lemmas, assertions, false_asserts);
+  lemmas =
+      d_nlSlv.checkMonomialInferBounds(nt_lemmas, assertions, false_asserts);
   // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
   // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
   // introduce new monomials

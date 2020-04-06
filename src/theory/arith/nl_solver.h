@@ -54,6 +54,7 @@ class NlSolver
 {
   typedef std::map<Node, NodeMultiset> MonomialExponentMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+
  public:
   NlSolver(TheoryArith& containing, NlModel& model);
   ~NlSolver();
