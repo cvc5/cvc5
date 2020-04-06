@@ -1023,7 +1023,7 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
   d_mterms.insert(d_mterms.end(), d_ms.begin(), d_ms.end());
 
   std::map<Node, std::map<Node, ConstraintInfo> >& cim = d_cdb.getConstraints();
-  
+
   std::vector<Node> lemmas;
   NodeManager* nm = NodeManager::currentNM();
   // register constraints
@@ -1080,7 +1080,7 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
         }
       }
       // add to status if maximal degree
-      d_ci_max[x][coeff][rhs] = d_cdb.isMaximal(atom,x);
+      d_ci_max[x][coeff][rhs] = d_cdb.isMaximal(atom, x);
       if (Trace.isOn("nl-ext-bound-debug2"))
       {
         Node t = ArithMSum::mkCoeffTerm(coeff, x);

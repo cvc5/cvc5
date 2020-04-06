@@ -23,9 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-ConstraintDb::ConstraintDb(MonomialDb& mdb) : d_mdb(mdb)
-{
-}
+ConstraintDb::ConstraintDb(MonomialDb& mdb) : d_mdb(mdb) {}
 
 void ConstraintDb::registerConstraint(Node atom)
 {
@@ -116,7 +114,7 @@ bool ConstraintDb::isMaximal(Node atom, Node x) const
   std::map<Node, std::map<Node, bool> >::const_iterator itcm =
       d_c_info_maxm.find(atom);
   Assert(itcm != d_c_info_maxm.end());
-  return itcm->second.find(x)!=itcm->second.end();
+  return itcm->second.find(x) != itcm->second.end();
 }
 
 }  // namespace arith

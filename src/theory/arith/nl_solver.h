@@ -27,10 +27,10 @@
 #include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl_constraint.h"
 #include "theory/arith/nl_lemma_utils.h"
 #include "theory/arith/nl_model.h"
 #include "theory/arith/nl_monomial.h"
-#include "theory/arith/nl_constraint.h"
 #include "theory/arith/theory_arith.h"
 
 namespace CVC4 {
@@ -209,7 +209,7 @@ class NlSolver
   MonomialDb d_mdb;
   /** Context-independent database of constraint information */
   ConstraintDb d_cdb;
-  
+
   // ( x*y, x*z, y ) for each pair of monomials ( x*y, x*z ) with common factors
   std::map<Node, std::map<Node, Node> > d_mono_diff;
 

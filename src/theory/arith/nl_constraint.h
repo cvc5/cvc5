@@ -27,13 +27,13 @@ namespace theory {
 namespace arith {
 
 /** constraint information
- * 
+ *
  * The struct ( d_rhs, d_coeff, d_type ) represents that a literal is of the
  * form (d_coeff * x) <d_type> d_rhs.
  */
 struct ConstraintInfo
 {
-public:
+ public:
   /** The term on the right hand side of the constraint */
   Node d_rhs;
   /** The coefficent */
@@ -45,16 +45,17 @@ public:
 /** A database for constraints */
 class ConstraintDb
 {
-public:
+ public:
   ConstraintDb(MonomialDb& mdb);
-  ~ConstraintDb(){}
+  ~ConstraintDb() {}
   /** register constraint */
   void registerConstraint(Node atom);
   /** get constraints */
   std::map<Node, std::map<Node, ConstraintInfo> >& getConstraints();
   /** Returns true if x is of maximal degree in monomial */
   bool isMaximal(Node atom, Node x) const;
-private:
+
+ private:
   /** Reference to a monomial database */
   MonomialDb& d_mdb;
   /** List of all constraints */
@@ -62,10 +63,10 @@ private:
   /** Is maximal degree */
   std::map<Node, std::map<Node, bool> > d_c_info_maxm;
   /** Constraint information
-   * 
+   *
    * If d_c_info[lit][x] = ( r, coeff, k ), then ( lit <=>  (coeff * x) <k> r )
    */
-  std::map<Node, std::map<Node, ConstraintInfo> > d_c_info;  
+  std::map<Node, std::map<Node, ConstraintInfo> > d_c_info;
 };
 
 }  // namespace arith
