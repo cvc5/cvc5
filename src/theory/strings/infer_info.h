@@ -81,7 +81,7 @@ enum class Inference : uint32_t
   // Flat form unify
   //   x = y ^ x = z ++ x' ... ^ y = z ++ y' ^ len(x') = len(y') => x' = y'
   // Notice flat form instances are similar to normal form inferences but do
-  // not involve recurisve explanations.
+  // not involve recursive explanations.
   F_UNIFY,
   // Flat form endpoint empty
   //   x = y ^ x = z ^ y = z ++ y' => y' = ""
