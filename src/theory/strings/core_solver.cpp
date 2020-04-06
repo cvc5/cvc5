@@ -372,7 +372,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
               // if lengths are the same, apply LengthEq
               std::vector<Node> lexp2;
               Node lcc = d_state.getLength(bc, lexp2);
-              if (d_state.areEqual(lcurr, lcc) && true)
+              if (d_state.areEqual(lcurr, lcc))
               {
                 if (Trace.isOn("strings-ff-debug"))
                 {
@@ -1739,9 +1739,9 @@ void CoreSolver::processDeq(Node ni, Node nj)
   std::vector<Node> nfj = nfnj.d_nf;
 
   // See if one side is constant, if so, the disequality ni != nj is satisfied
-  // since ni does not contain nj or vice versa.
-  // This is only valid when isRev is false, since when isRev=true, the contents
-  // of normal form vectors nfi and nfj are reversed.
+  // if it cannot contain the other side.
+  //
+  // E.g. "abc" != x ++ "d" ++ y
   for (uint32_t i = 0; i < 2; i++)
   {
     Node c = d_bsolver.getConstantEqc(i == 0 ? ni : nj);
