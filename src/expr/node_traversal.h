@@ -100,7 +100,7 @@ class NodeDfsIterator
   TNode d_current;
 
   // When to omit a node and its descendents from the traversal
-  std::function<bool(TNode)> d_skipIf = [](TNode) { return false; };
+  std::function<bool(TNode)> d_skipIf;
 };
 
 // Node wrapper that is iterable in DAG post-order
