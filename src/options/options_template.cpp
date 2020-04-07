@@ -608,7 +608,7 @@ void Options::parseOptionsRecursive(Options* options,
     int c = getopt_long(argc, argv,
                         "+:${options_short}$",
                         cmdlineOptions, NULL);
-    
+
     main_optind = optind;
 
     Debug("options") << "[ got " << int(c) << " (" << char(c) << ") ]"
