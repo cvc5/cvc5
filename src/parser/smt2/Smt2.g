@@ -1435,7 +1435,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sygusGrammar[t, terms, name]
     )?
     {
-      cmd->reset(new GetInterpolCommand(name, e.getExpr()));
+      cmd->reset(new GetInterpolCommand(name, e.getExpr(), t.getType()));
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]

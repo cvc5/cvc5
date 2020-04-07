@@ -5260,7 +5260,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
+bool SmtEngine::getInterpol(const Expr& conj, const Type& grammarType, Expr& interpol)
 {
   SmtScope smts(this);  // TODO what is this?
 
@@ -5381,6 +5381,12 @@ bool SmtEngine::getInterpolInternal(Expr& interpol)
         "Could not find solution for get-interpol.");
   }
   return false;
+}
+
+bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
+{
+  Type grammarType;
+  return getInterpol(conj, grammarType, interpol);
 }
 
 bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)

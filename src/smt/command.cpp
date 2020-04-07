@@ -2135,15 +2135,32 @@ GetInterpolCommand::GetInterpolCommand(const std::string& name, Expr conj)
     : d_name(name), d_conj(conj), d_resultStatus(false)
 {
 }
+GetInterpolCommand::GetInterpolCommand(const std::string& name,
+                                   Expr conj,
+                                   const Type& gtype)
+    : d_name(name),
+      d_conj(conj),
+      d_sygus_grammar_type(gtype),
+      d_resultStatus(false)
+{
+}
 
 Expr GetInterpolCommand::getConjecture() const { return d_conj; }
+Type GetInterpolCommand::getGrammarType() const { return d_sygus_grammar_type; }
 Expr GetInterpolCommand::getResult() const { return d_result; }
 
 void GetInterpolCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    d_resultStatus = smtEngine->getInterpol(d_conj, d_result);
+    if (d_sygus_grammar_type.isNull())
+    {
+      d_resultStatus = smtEngine->getInterpol(d_conj, d_result);
+    }
+    else
+    {
+	    d_resultStatus = smtEngine->getInterpol(d_conj, d_result, d_sygus_grammar_type);
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

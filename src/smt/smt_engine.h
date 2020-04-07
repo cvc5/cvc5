@@ -581,9 +581,15 @@ class CVC4_PUBLIC SmtEngine
    * this method returns true, then interpol is set to a formula B such that A ^
    * ~B and B ^ ~C are both unsatisfiable.
    *
+   * The argument grammarType is a sygus datatype type that encodes the syntax
+   * restrictions on the shape of possible solutions.
+   *
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
+  bool getInterpol(const Expr& conj, const Type& grammarType, Expr& interpol);
+
+  /** Same as above, but without user-provided grammar restrictions */
   bool getInterpol(const Expr& conj, Expr& interpol);
 
   /**

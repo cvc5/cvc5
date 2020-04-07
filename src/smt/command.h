@@ -1054,9 +1054,12 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
  public:
   GetInterpolCommand();
   GetInterpolCommand(const std::string& name, Expr conj);
+  GetInterpolCommand(const std::string& name, Expr conj, const Type& gtype);
 
   /** Get the conjecture of the interpolation query */
   Expr getConjecture() const;
+  /** Get the grammar type given for the interpolation query */
+  Type getGrammarType() const;
   /** Get the result of the query, which is the solution to the interpolation
    * query. */
   Expr getResult() const;
@@ -1073,6 +1076,11 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
   std::string d_name;
   /** The conjecture of the interpolation query */
   Expr d_conj;
+  /**
+   * The (optional) grammar of the interpolation query, expressed as a sygus
+   * datatype type.
+   */
+  Type d_sygus_grammar_type;
   /** the return status of the command */
   bool d_resultStatus;
   /** the return expression of the command */
