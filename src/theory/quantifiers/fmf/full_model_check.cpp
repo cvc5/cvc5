@@ -610,7 +610,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
     Trace("fmc") << std::endl;
 
     //consider all entries going to non-true
-    Instantiate* inst = d_qe->getInstantiate();
+    Instantiate* instq = d_qe->getInstantiate();
     for (unsigned i=0, msize = mcond.size(); i<msize; i++) {
       if( d_quant_models[f].d_value[i]==d_true ) {
         // already satisfied
@@ -669,7 +669,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       }
       //just add the instance
       d_triedLemmas++;
-      if (inst->addInstantiation(f, inst, true))
+      if (instq->addInstantiation(f, inst, true))
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
@@ -1285,9 +1285,11 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
   std::vector< TypeNode > types;
   for (const Node& v : q[0]){
     TypeNode tn = v.getType();
-    if (!tn.isSort())
+    if (tn.isFunction())
     {
-      // we will not use model-based quantifier instantiation for this
+      // we will not use model-based quantifier instantiation for q, since
+      // the model-based instantiation algorithm does not handle (universally
+      // quantified) functions
       d_unhandledQuant.insert(q);
     }
     types.push_back(tn);
