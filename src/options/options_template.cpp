@@ -637,6 +637,8 @@ void Options::parseOptionsRecursive(Options* options,
     int c = getopt_long(argc, argv,
                         "+:${options_short}$",
                         cmdlineOptions, NULL);
+    
+    main_optind = optind;
 
     Debug("options") << "[ got " << int(c) << " (" << char(c) << ") ]"
                      << "[ next option will be at pos: " << optind << " ]"
@@ -698,8 +700,6 @@ ${options_handler}$
 
   Debug("options") << "got " << nonoptions->size()
                    << " non-option arguments." << std::endl;
-
-  free(argv);
 }
 
 std::string Options::suggestCommandLineOptions(const std::string& optionName)
