@@ -878,14 +878,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     for (const Node& nc : n)
     {
-      if (nc.getKind() == kind::INST_ATTRIBUTE)
-      {
-        if (nc[0].getAttribute(theory::FunDefAttribute()))
-        {
-          out << ":fun-def";
-        }
-      }
-      else if (nc.getKind() == kind::INST_PATTERN)
+      if (nc.getKind() == kind::INST_PATTERN)
       {
         out << ":pattern " << nc;
       }

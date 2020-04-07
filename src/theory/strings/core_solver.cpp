@@ -179,7 +179,7 @@ void CoreSolver::checkFlatForms()
               }
             }
             Node conc = d_false;
-            d_im.sendInference(exp, conc, "F_NCTN");
+            d_im.sendInference(exp, conc, Inference::F_NCTN);
             return;
           }
         }
@@ -218,33 +218,6 @@ void CoreSolver::checkFlatForms()
   }
 }
 
-namespace {
-
-enum class FlatFormInfer
-{
-  NONE,
-  CONST,
-  UNIFY,
-  ENDPOINT_EMP,
-  ENDPOINT_EQ,
-};
-
-std::ostream& operator<<(std::ostream& os, FlatFormInfer inf)
-{
-  switch (inf)
-  {
-    case FlatFormInfer::NONE: os << "<None>"; break;
-    case FlatFormInfer::CONST: os << "F_Const"; break;
-    case FlatFormInfer::UNIFY: os << "F_Unify"; break;
-    case FlatFormInfer::ENDPOINT_EMP: os << "F_EndpointEmp"; break;
-    case FlatFormInfer::ENDPOINT_EQ: os << "F_EndpointEq"; break;
-    default: os << "<Unknown>"; break;
-  }
-  return os;
-}
-
-}  // namespace
-
 void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
                                   size_t start,
                                   bool isRev)
@@ -265,7 +238,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
   {
     std::vector<Node> exp;
     Node conc;
-    FlatFormInfer infType = FlatFormInfer::NONE;
+    Inference infType = Inference::NONE;
     size_t eqc_size = eqc.size();
     size_t asize = d_flat_form[a].size();
     if (count == asize)
@@ -293,7 +266,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
           }
           Assert(!conc_c.empty());
           conc = utils::mkAnd(conc_c);
-          infType = FlatFormInfer::ENDPOINT_EMP;
+          infType = Inference::F_ENDPOINT_EMP;
           Assert(count > 0);
           // swap, will enforce is empty past current
           a = eqc[i];
@@ -333,7 +306,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
           }
           Assert(!conc_c.empty());
           conc = utils::mkAnd(conc_c);
-          infType = FlatFormInfer::ENDPOINT_EMP;
+          infType = Inference::F_ENDPOINT_EMP;
           Assert(count > 0);
           break;
         }
@@ -356,7 +329,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
                 d_bsolver.explainConstantEqc(ac,curr,exp);
                 d_bsolver.explainConstantEqc(bc,cc,exp);
                 conc = d_false;
-                infType = FlatFormInfer::CONST;
+                infType = Inference::F_CONST;
                 break;
               }
             }
@@ -364,7 +337,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
                      && (d_flat_form[b].size() - 1) == count)
             {
               conc = ac.eqNode(bc);
-              infType = FlatFormInfer::ENDPOINT_EQ;
+              infType = Inference::F_ENDPOINT_EQ;
               break;
             }
             else
@@ -397,7 +370,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
                 exp.insert(exp.end(), lexp2.begin(), lexp2.end());
                 d_im.addToExplanation(lcurr, lcc, exp);
                 conc = ac.eqNode(bc);
-                infType = FlatFormInfer::UNIFY;
+                infType = Inference::F_UNIFY;
                 break;
               }
             }
@@ -424,8 +397,8 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
       {
         Node c = t == 0 ? a : b;
         ssize_t jj;
-        if (infType == FlatFormInfer::ENDPOINT_EQ
-            || (t == 1 && infType == FlatFormInfer::ENDPOINT_EMP))
+        if (infType == Inference::F_ENDPOINT_EQ
+            || (t == 1 && infType == Inference::F_ENDPOINT_EMP))
         {
           // explain all the empty components for F_EndpointEq, all for
           // the short end for F_EndpointEmp
@@ -452,9 +425,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
       // is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
       // when len(b)!=0. Although if we do not infer this conflict eagerly,
       // it may be applied (see #3272).
-      std::stringstream ss;
-      ss << infType;
-      d_im.sendInference(exp, conc, ss.str().c_str());
+      d_im.sendInference(exp, conc, infType);
       if (d_state.isInConflict())
       {
         return;
@@ -493,7 +464,8 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
               {
                 std::vector<Node> exps;
                 exps.push_back(n.eqNode(emp));
-                d_im.sendInference(exps, n[i].eqNode(emp), "I_CYCLE_E");
+                d_im.sendInference(
+                    exps, n[i].eqNode(emp), Inference::I_CYCLE_E);
                 return Node::null();
               }
             }else{
@@ -514,7 +486,8 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
                     //take first non-empty
                     if (j != i && !d_state.areEqual(n[j], emp))
                     {
-                      d_im.sendInference(exp, n[j].eqNode(emp), "I_CYCLE");
+                      d_im.sendInference(
+                          exp, n[j].eqNode(emp), Inference::I_CYCLE);
                       return Node::null();
                     }
                   }
@@ -575,7 +548,7 @@ void CoreSolver::checkNormalFormsEq()
       nf_exp.push_back(utils::mkAnd(nfe.d_exp));
       nf_exp.push_back(eqc_to_exp[itn->second]);
       Node eq = nfe.d_base.eqNode(nfe_eq.d_base);
-      d_im.sendInference(nf_exp, eq, "Normal_Form");
+      d_im.sendInference(nf_exp, eq, Inference::NORMAL_FORM);
       if (d_im.hasProcessed())
       {
         return;
@@ -927,7 +900,7 @@ void CoreSolver::getNormalForms(Node eqc,
           // firstc/lastc, normal_forms_exp_depend.
           exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
           Node conc = d_false;
-          d_im.sendInference(exp, conc, "N_NCTN");
+          d_im.sendInference(exp, conc, Inference::N_NCTN);
         }
       }
     }
@@ -1579,7 +1552,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     {
       Trace("strings-loop") << "Strings::Loop: tails are different."
                             << std::endl;
-      d_im.sendInference(info.d_ant, conc, "Loop Conflict", true);
+      d_im.sendInference(info.d_ant, conc, Inference::FLOOP_CONFLICT, true);
       return ProcessLoopResult::CONFLICT;
     }
   }
@@ -2195,7 +2168,7 @@ void CoreSolver::checkNormalFormsDeq()
       }
       if (!d_state.areEqual(lt[0], lt[1]) && !d_state.areDisequal(lt[0], lt[1]))
       {
-        d_im.sendSplit(lt[0], lt[1], "DEQ-LENGTH-SP");
+        d_im.sendSplit(lt[0], lt[1], Inference::DEQ_LENGTH_SP);
       }
     }
   }
@@ -2295,7 +2268,7 @@ void CoreSolver::checkLengthsEqc() {
       {
         Node eq = llt.eqNode(lcr);
         ei->d_normalizedLength.set(eq);
-        d_im.sendInference(ant, eq, "LEN-NORM", true);
+        d_im.sendInference(ant, eq, Inference::LEN_NORM, true);
       }
     }
   }
