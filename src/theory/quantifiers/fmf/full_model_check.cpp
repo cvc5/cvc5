@@ -591,105 +591,133 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
 
 int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   Trace("fmc") << "Full model check " << f << ", effort = " << effort << "..." << std::endl;
-  //register the quantifier
+  // register the quantifier
   registerQuantifiedFormula(f);
   Assert(!d_qe->inConflict());
   // we do not do model-based quantifier instantiation if the option
   // disables it, or if the quantified formula has an unhandled type.
-  if( !optUseModel() || !isHandled(f) ){
+  if (!optUseModel() || !isHandled(f))
+  {
     return 0;
   }
-  FirstOrderModelFmc * fmfmc = fm->asFirstOrderModelFmc();
-  if (effort==0) {
+  FirstOrderModelFmc* fmfmc = fm->asFirstOrderModelFmc();
+  if (effort == 0)
+  {
     if (options::mbqiMode() == options::MbqiMode::NONE)
     {
-      //just exhaustive instantiate
-      Node c = mkCondDefault( fmfmc, f );
-      d_quant_models[f].addEntry( fmfmc, c, d_false );
-      if (!exhaustiveInstantiate( fmfmc, f, c, -1))
+      // just exhaustive instantiate
+      Node c = mkCondDefault(fmfmc, f);
+      d_quant_models[f].addEntry(fmfmc, c, d_false);
+      if (!exhaustiveInstantiate(fmfmc, f, c, -1))
       {
         return 0;
       }
       return 1;
     }
-    //model check the quantifier
+    // model check the quantifier
     doCheck(fmfmc, f, d_quant_models[f], f[1]);
-    std::vector< Node >& mcond = d_quant_models[f].d_cond;
+    std::vector<Node>& mcond = d_quant_models[f].d_cond;
     Trace("fmc") << "Definition for quantifier " << f << " is : " << std::endl;
     Assert(!mcond.empty());
     d_quant_models[f].debugPrint("fmc", Node::null(), this);
     Trace("fmc") << std::endl;
 
-    //consider all entries going to non-true
+    // consider all entries going to non-true
     Instantiate* instq = d_qe->getInstantiate();
-    for (unsigned i=0, msize = mcond.size(); i<msize; i++) {
-      if( d_quant_models[f].d_value[i]==d_true ) {
+    for (unsigned i = 0, msize = mcond.size(); i < msize; i++)
+    {
+      if (d_quant_models[f].d_value[i] == d_true)
+      {
         // already satisfied
         continue;
       }
-      Trace("fmc-inst") << "Instantiate based on " << mcond[i] << "..." << std::endl;
+      Trace("fmc-inst") << "Instantiate based on " << mcond[i] << "..."
+                        << std::endl;
       bool hasStar = false;
-      std::vector< Node > inst;
-      for (unsigned j=0, nchild = mcond[i].getNumChildren(); j<nchild; j++) {
-        if (fmfmc->isStar(mcond[i][j])) {
+      std::vector<Node> inst;
+      for (unsigned j = 0, nchild = mcond[i].getNumChildren(); j < nchild; j++)
+      {
+        if (fmfmc->isStar(mcond[i][j]))
+        {
           hasStar = true;
           inst.push_back(fmfmc->getModelBasisTerm(mcond[i][j].getType()));
-        }else{
+        }
+        else
+        {
           inst.push_back(mcond[i][j]);
         }
       }
       bool addInst = true;
-      if( hasStar ){
-        //try obvious (specified by inst)
+      if (hasStar)
+      {
+        // try obvious (specified by inst)
         Node ev = d_quant_models[f].evaluate(fmfmc, inst);
-        if (ev==d_true) {
+        if (ev == d_true)
+        {
           addInst = false;
-          Trace("fmc-debug") << "...do not instantiate, evaluation was " << ev << std::endl;
+          Trace("fmc-debug")
+              << "...do not instantiate, evaluation was " << ev << std::endl;
         }
-      }else{
-        //for debugging
-        if (Trace.isOn("fmc-test-inst")) {
+      }
+      else
+      {
+        // for debugging
+        if (Trace.isOn("fmc-test-inst"))
+        {
           Node ev = d_quant_models[f].evaluate(fmfmc, inst);
-          if( ev==d_true ){
+          if (ev == d_true)
+          {
             Message() << "WARNING: instantiation was true! " << f << " "
                       << mcond[i] << std::endl;
             AlwaysAssert(false);
-          }else{
-            Trace("fmc-test-inst") << "...instantiation evaluated to false." << std::endl;
+          }
+          else
+          {
+            Trace("fmc-test-inst")
+                << "...instantiation evaluated to false." << std::endl;
           }
         }
       }
-      if( !addInst ){
-        Trace("fmc-debug-inst") << "** Instantiation was already true." << std::endl;
-        //might try it next effort level
+      if (!addInst)
+      {
+        Trace("fmc-debug-inst")
+            << "** Instantiation was already true." << std::endl;
+        // might try it next effort level
         d_star_insts[f].push_back(i);
         continue;
       }
-      if( options::fmfBound() ){
-        std::vector< Node > cond;
+      if (options::fmfBound())
+      {
+        std::vector<Node> cond;
         cond.push_back(d_quant_cond[f]);
-        cond.insert( cond.end(), inst.begin(), inst.end() );
-        //need to do exhaustive instantiate algorithm to set things properly (should only add one instance)
-        Node c = mkCond( cond );
+        cond.insert(cond.end(), inst.begin(), inst.end());
+        // need to do exhaustive instantiate algorithm to set things properly
+        // (should only add one instance)
+        Node c = mkCond(cond);
         unsigned prevInst = d_addedLemmas;
-        exhaustiveInstantiate( fmfmc, f, c, -1 );
-        if( d_addedLemmas==prevInst ){
+        exhaustiveInstantiate(fmfmc, f, c, -1);
+        if (d_addedLemmas == prevInst)
+        {
           d_star_insts[f].push_back(i);
         }
         continue;
       }
-      //just add the instance
+      // just add the instance
       d_triedLemmas++;
       if (instq->addInstantiation(f, inst, true))
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
-        if( d_qe->inConflict() || options::fmfOneInstPerRound() ){
+        if (d_qe->inConflict() || options::fmfOneInstPerRound())
+        {
           break;
         }
-      }else{
-        Trace("fmc-debug-inst") << "** Instantiation was duplicate." << std::endl;
-        //might try it next effort level
+      }
+      else
+      {
+        Trace("fmc-debug-inst")
+            << "** Instantiation was duplicate." << std::endl;
+        // might try it next effort level
         d_star_insts[f].push_back(i);
       }
     }
@@ -698,8 +726,9 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   // Get the list of instantiation regions (described by "star entries" in the
   // definition) that were not tried at the previous effort level. For each
   // of these, we add one instantiation.
-  std::vector< Node >& mcond = d_quant_models[f].d_cond;
-  if (!d_star_insts[f].empty()) {
+  std::vector<Node>& mcond = d_quant_models[f].d_cond;
+  if (!d_star_insts[f].empty())
+  {
     if (Trace.isOn("fmc-exh"))
     {
       Trace("fmc-exh") << "Exhaustive instantiate " << f << std::endl;
@@ -708,13 +737,16 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       Trace("fmc-exh") << std::endl;
     }
     Def temp;
-    //simplify the exceptions?
-    for( int i=(d_star_insts[f].size()-1); i>=0; i--) {
-      //get witness for d_star_insts[f][i]
+    // simplify the exceptions?
+    for (int i = (d_star_insts[f].size() - 1); i >= 0; i--)
+    {
+      // get witness for d_star_insts[f][i]
       int j = d_star_insts[f][i];
-      if( temp.addEntry(fmfmc, mcond[j], d_quant_models[f].d_value[j] ) ){
-        if( !exhaustiveInstantiate(fmfmc, f, mcond[j], j ) ){
-          //something went wrong, resort to exhaustive instantiation
+      if (temp.addEntry(fmfmc, mcond[j], d_quant_models[f].d_value[j]))
+      {
+        if (!exhaustiveInstantiate(fmfmc, f, mcond[j], j))
+        {
+          // something went wrong, resort to exhaustive instantiation
           return 0;
         }
       }
@@ -1289,12 +1321,14 @@ bool FullModelChecker::useSimpleModels() {
 
 void FullModelChecker::registerQuantifiedFormula(Node q)
 {
-  if (d_quant_cond.find(q)!=d_quant_cond.end()) {
+  if (d_quant_cond.find(q) != d_quant_cond.end())
+  {
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  std::vector< TypeNode > types;
-  for (const Node& v : q[0]){
+  std::vector<TypeNode> types;
+  for (const Node& v : q[0])
+  {
     TypeNode tn = v.getType();
     if (tn.isFunction())
     {
@@ -1312,5 +1346,5 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
 
 bool FullModelChecker::isHandled(Node q) const
 {
-  return d_unhandledQuant.find(q)==d_unhandledQuant.end();
+  return d_unhandledQuant.find(q) == d_unhandledQuant.end();
 }

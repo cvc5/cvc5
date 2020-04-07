@@ -164,7 +164,8 @@ public:
   bool processBuildModel(TheoryModel* m) override;
 
   bool useSimpleModels();
-private:
+
+ private:
   /**
    * Register quantified formula.
    * This checks whether q can be handled by model-based instantiation and
