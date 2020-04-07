@@ -163,11 +163,6 @@ void ModelEngine::assertNode( Node f ){
 
 }
 
-bool ModelEngine::optOneQuantPerRound(){
-  return options::fmfOneQuantPerRound();
-}
-
-
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
 
@@ -187,6 +182,11 @@ int ModelEngine::checkModel(){
       Trace("model-engine-debug") << "   Term reps : ";
       for( size_t i=0; i<it->second.size(); i++ ){
         Node r = d_quantEngine->getInternalRepresentative( it->second[i], Node::null(), 0 );
+        if (r.isNull())
+        {
+          // there was an invalid equivalence class
+          d_incomplete_check = true;
+        }
         Trace("model-engine-debug") << r << " ";
       }
       Trace("model-engine-debug") << std::endl;
@@ -230,7 +230,8 @@ int ModelEngine::checkModel(){
       //determine if we should check this quantifier
       if( d_quantEngine->getModel()->isQuantifierActive( q ) && d_quantEngine->hasOwnership( q, this ) ){
         exhaustiveInstantiate( q, e );
-        if( d_quantEngine->inConflict() || ( optOneQuantPerRound() && d_addedLemmas>0 ) ){
+        if (d_quantEngine->inConflict())
+        {
           break;
         }
       }else{

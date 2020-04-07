@@ -29,6 +29,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
+#include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 

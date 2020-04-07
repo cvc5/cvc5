@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
+#include "expr/node_visitor.h"
 #include "options/bv_options.h"
 #include "options/options.h"
 #include "options/proof_options.h"
@@ -37,7 +38,6 @@
 #include "proof/theory_proof.h"
 #include "smt/logic_exception.h"
 #include "smt/term_formula_removal.h"
-#include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/care_graph.h"
@@ -266,7 +266,6 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
 }
 
 void TheoryEngine::finishInit() {
-
   //initialize the quantifiers engine, master equality engine, model, model builder
   if( d_logicInfo.isQuantified() ) {
     // initialize the quantifiers engine
@@ -350,7 +349,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_factsAsserted(context, false),
       d_preRegistrationVisitor(this, context),
       d_sharedTermsVisitor(d_sharedTerms),
-      d_theoryAlternatives(),
       d_attr_handle(),
       d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
 {
@@ -2373,18 +2371,6 @@ void TheoryEngine::spendResource(ResourceManager::Resource r)
 {
   d_resourceManager->spendResource(r);
 }
-
-void TheoryEngine::enableTheoryAlternative(const std::string& name){
-  Debug("TheoryEngine::enableTheoryAlternative")
-      << "TheoryEngine::enableTheoryAlternative(" << name << ")" << std::endl;
-
-  d_theoryAlternatives.insert(name);
-}
-
-bool TheoryEngine::useTheoryAlternative(const std::string& name) {
-  return d_theoryAlternatives.find(name) != d_theoryAlternatives.end();
-}
-
 
 TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
     conflicts(getStatsPrefix(theory) + "::conflicts", 0),

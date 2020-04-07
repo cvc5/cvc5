@@ -231,6 +231,8 @@ class BVToInt : public PreprocessingPass
    */
   Node modpow2(Node n, uint64_t exponent);
 
+  bool childrenTypesChanged(Node n);
+
   /**
    * Add the range assertions collected in d_rangeAssertions
    * (using mkRangeConstraint) to the assertion pipeline.

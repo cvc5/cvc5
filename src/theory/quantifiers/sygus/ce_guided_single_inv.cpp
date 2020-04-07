@@ -556,24 +556,23 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   }else{
     Trace("csi-sol") << "Post-process solution..." << std::endl;
     Node prev = d_solution;
-    if (options::minSynthSol())
-    {
-      d_solution =
-          d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(
-              d_solution);
-    }
+    d_solution =
+        d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(
+            d_solution);
     if( prev!=d_solution ){
       Trace("csi-sol") << "Solution (after post process) : " << d_solution << std::endl;
     }
   }
 
-
-  if( Trace.isOn("csi-sol") ){
-    //debug solution
-    if (!d_sol->debugSolution(d_solution))
-    {
-      Trace("csi-sol") << "WARNING : solution " << d_solution << " contains free constants." << std::endl;
-    }
+  // debug solution
+  if (!d_sol->debugSolution(d_solution))
+  {
+    // This can happen if we encountered free variables in either the
+    // instantiation terms, or in the instantiation lemmas after postprocessing.
+    // In this case, we fail, since the solution is not valid.
+    Trace("csi-sol") << "FAIL : solution " << d_solution
+                     << " contains free constants." << std::endl;
+    reconstructed = -1;
   }
   if( Trace.isOn("cegqi-stats") ){
     int tsize, itesize;

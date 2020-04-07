@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__STRINGS__EXTF_SOLVER_H
 #define CVC4__THEORY__STRINGS__EXTF_SOLVER_H
 
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -26,8 +26,10 @@
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/inference_manager.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 
 namespace CVC4 {
@@ -86,9 +88,11 @@ class ExtfSolver
              SolverState& s,
              InferenceManager& im,
              SkolemCache& skc,
+             StringsRewriter& rewriter,
              BaseSolver& bs,
              CoreSolver& cs,
-             ExtTheory* et);
+             ExtTheory* et,
+             SequencesStatistics& statistics);
   ~ExtfSolver();
 
   /** check extended functions evaluation
@@ -178,12 +182,16 @@ class ExtfSolver
   InferenceManager& d_im;
   /** cache of all skolems */
   SkolemCache& d_skCache;
+  /** The theory rewriter for this theory. */
+  StringsRewriter& d_rewriter;
   /** reference to the base solver, used for certain queries */
   BaseSolver& d_bsolver;
   /** reference to the core solver, used for certain queries */
   CoreSolver& d_csolver;
   /** the extended theory object for the theory of strings */
   ExtTheory* d_extt;
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
   /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
   /** Common constants */

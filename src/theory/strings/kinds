@@ -8,7 +8,7 @@ theory THEORY_STRINGS ::CVC4::theory::strings::TheoryStrings "theory/strings/the
 
 properties check parametric propagate presolve
 
-rewriter ::CVC4::theory::strings::TheoryStringsRewriter "theory/strings/theory_strings_rewriter.h"
+rewriter ::CVC4::theory::strings::SequencesRewriter "theory/strings/sequences_rewriter.h"
 
 typechecker "theory/strings/theory_strings_type_rules.h"
 
@@ -37,15 +37,15 @@ operator STRING_REV 1 "string reverse"
 sort STRING_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(::CVC4::String())" \
-        "util/regexp.h" \
+    "NodeManager::currentNM()->mkConst(::CVC4::String())" \
+    "util/string.h" \
     "String type"
 
 sort REGEXP_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkNode(REGEXP_EMPTY, std::vector<Node>() )" \
-        "util/regexp.h" \
+    "NodeManager::currentNM()->mkNode(REGEXP_EMPTY, std::vector<Node>() )" \
+    "util/string.h" \
     "RegExp type"
 
 enumerator STRING_TYPE \
@@ -55,10 +55,8 @@ enumerator STRING_TYPE \
 constant CONST_STRING \
     ::CVC4::String \
     ::CVC4::strings::StringHashFunction \
-    "util/regexp.h" \
+    "util/string.h" \
     "a string of characters"
-
-typerule CONST_STRING "SimpleTypeRule<RString>"
 
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"
@@ -70,17 +68,31 @@ operator REGEXP_STAR 1 "regexp *"
 operator REGEXP_PLUS 1 "regexp +"
 operator REGEXP_OPT 1 "regexp ?"
 operator REGEXP_RANGE 2 "regexp range"
-operator REGEXP_LOOP 2:3 "regexp loop"
 operator REGEXP_COMPLEMENT 1 "regexp complement"
 
 operator REGEXP_EMPTY 0 "regexp empty"
 operator REGEXP_SIGMA 0 "regexp all characters"
 
+constant REGEXP_REPEAT_OP \
+	::CVC4::RegExpRepeat \
+	::CVC4::RegExpRepeatHashFunction \
+	"util/regexp.h" \
+	"operator for regular expression repeat; payload is an instance of the CVC4::RegExpRepeat class"
+parameterized REGEXP_REPEAT REGEXP_REPEAT_OP 1 "regular expression repeat; first parameter is a REGEXP_REPEAT_OP, second is a regular expression term"
+
+constant REGEXP_LOOP_OP \
+	::CVC4::RegExpLoop \
+	::CVC4::RegExpLoopHashFunction \
+	"util/regexp.h" \
+	"operator for regular expression loop; payload is an instance of the CVC4::RegExpLoop class"
+parameterized REGEXP_LOOP REGEXP_LOOP_OP 1 "regular expression loop; first parameter is a REGEXP_LOOP_OP, second is a regular expression term"
+
 #internal
 operator REGEXP_RV 1 "regexp rv (internal use only)"
 typerule REGEXP_RV "SimpleTypeRule<RRegExp, AInteger>"
 
-#typerules
+# regular expressions
+
 typerule REGEXP_CONCAT "SimpleTypeRuleVar<RRegExp, ARegExp>"
 typerule REGEXP_UNION "SimpleTypeRuleVar<RRegExp, ARegExp>"
 typerule REGEXP_INTER "SimpleTypeRuleVar<RRegExp, ARegExp>"
@@ -89,23 +101,35 @@ typerule REGEXP_STAR "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_PLUS "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_OPT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_RANGE ::CVC4::theory::strings::RegExpRangeTypeRule
-typerule REGEXP_LOOP "SimpleTypeRule<RRegExp, ARegExp, AInteger, AOptional<AInteger>>"
+typerule REGEXP_REPEAT_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule REGEXP_REPEAT "SimpleTypeRule<RRegExp, ARegExp>"
+typerule REGEXP_LOOP_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule REGEXP_LOOP "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_COMPLEMENT "SimpleTypeRule<RRegExp, ARegExp>"
-
 typerule STRING_TO_REGEXP "SimpleTypeRule<RRegExp, AString>"
+typerule STRING_IN_REGEXP "SimpleTypeRule<RBool, AString, ARegExp>"
+typerule REGEXP_EMPTY "SimpleTypeRule<RRegExp>"
+typerule REGEXP_SIGMA "SimpleTypeRule<RRegExp>"
 
-typerule STRING_CONCAT "SimpleTypeRuleVar<RString, AString>"
-typerule STRING_LENGTH "SimpleTypeRule<RInteger, AString>"
-typerule STRING_SUBSTR "SimpleTypeRule<RString, AString, AInteger, AInteger>"
-typerule STRING_CHARAT "SimpleTypeRule<RString, AString, AInteger>"
-typerule STRING_STRCTN "SimpleTypeRule<RBool, AString, AString>"
+### operators that apply to both strings and sequences
+
+typerule STRING_CONCAT ::CVC4::theory::strings::StringConcatTypeRule
+typerule STRING_LENGTH ::CVC4::theory::strings::StringStrToIntTypeRule
+typerule STRING_SUBSTR ::CVC4::theory::strings::StringSubstrTypeRule
+typerule STRING_CHARAT ::CVC4::theory::strings::StringAtTypeRule
+typerule STRING_STRCTN ::CVC4::theory::strings::StringRelationTypeRule
+typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
+typerule STRING_STRREPL ::CVC4::theory::strings::StringReplaceTypeRule
+typerule STRING_STRREPLALL ::CVC4::theory::strings::StringReplaceTypeRule
+typerule STRING_PREFIX ::CVC4::theory::strings::StringStrToBoolTypeRule
+typerule STRING_SUFFIX ::CVC4::theory::strings::StringStrToBoolTypeRule
+typerule STRING_REV ::CVC4::theory::strings::StringStrToStrTypeRule
+
+### string specific operators
+
+typerule CONST_STRING "SimpleTypeRule<RString>"
 typerule STRING_LT "SimpleTypeRule<RBool, AString, AString>"
 typerule STRING_LEQ "SimpleTypeRule<RBool, AString, AString>"
-typerule STRING_STRIDOF "SimpleTypeRule<RInteger, AString, AString, AInteger>"
-typerule STRING_STRREPL "SimpleTypeRule<RString, AString, AString, AString>"
-typerule STRING_STRREPLALL "SimpleTypeRule<RString, AString, AString, AString>"
-typerule STRING_PREFIX "SimpleTypeRule<RBool, AString, AString>"
-typerule STRING_SUFFIX "SimpleTypeRule<RBool, AString, AString>"
 typerule STRING_IS_DIGIT "SimpleTypeRule<RBool, AString>"
 typerule STRING_ITOS "SimpleTypeRule<RString, AInteger>"
 typerule STRING_STOI "SimpleTypeRule<RInteger, AString>"
@@ -113,11 +137,5 @@ typerule STRING_TO_CODE "SimpleTypeRule<RInteger, AString>"
 typerule STRING_FROM_CODE "SimpleTypeRule<RString, AInteger>"
 typerule STRING_TOUPPER "SimpleTypeRule<RString, AString>"
 typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
-typerule STRING_REV "SimpleTypeRule<RString, AString>"
-
-typerule STRING_IN_REGEXP "SimpleTypeRule<RBool, AString, ARegExp>"
-
-typerule REGEXP_EMPTY "SimpleTypeRule<RRegExp>"
-typerule REGEXP_SIGMA "SimpleTypeRule<RRegExp>"
 
 endtheory

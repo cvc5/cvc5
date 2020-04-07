@@ -426,6 +426,8 @@ public:
   TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryArithPrivate();
 
+  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
+
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
@@ -881,6 +883,8 @@ private:
   NodeMap d_int_div_skolem;
   NodeMap d_nlin_inverse_skolem;
 
+  /** The theory rewriter for this theory. */
+  ArithRewriter d_rewriter;
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

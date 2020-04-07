@@ -19,6 +19,9 @@
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 
+#include <climits>
+#include <deque>
+
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
@@ -32,14 +35,13 @@
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strings_fmf.h"
+#include "theory/strings/strings_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-
-#include <climits>
-#include <deque>
 
 namespace CVC4 {
 namespace theory {
@@ -101,12 +103,15 @@ class TheoryStrings : public Theory {
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
 
  public:
   TheoryStrings(context::Context* c, context::UserContext* u,
                 OutputChannel& out, Valuation valuation,
                 const LogicInfo& logicInfo);
   ~TheoryStrings();
+
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
@@ -222,6 +227,13 @@ class TheoryStrings : public Theory {
   uint32_t d_cardSize;
   /** The notify class */
   NotifyClass d_notify;
+
+  /**
+   * Statistics for the theory of strings/sequences. All statistics for these
+   * theories is collected in this object.
+   */
+  SequencesStatistics d_statistics;
+
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
   /** The solver state object */
@@ -231,6 +243,8 @@ class TheoryStrings : public Theory {
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
+  /** The types that we have preregistered */
+  TypeNodeSet d_registeredTypesCache;
   std::vector< Node > d_empty_vec;
 private:
 
@@ -339,9 +353,19 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
+  /** Register type
+   *
+   * Ensures the theory solver is setup to handle string-like type tn. In
+   * particular, this includes:
+   * - Calling preRegisterTerm on the empty word for tn
+   */
+  void registerType(TypeNode tn);
 
   // Symbolic Regular Expression
  private:
+  /** The theory rewriter for this theory. */
+  StringsRewriter d_rewriter;
+
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.
@@ -367,19 +391,6 @@ private:
  public:
   // ppRewrite
   Node ppRewrite(TNode atom) override;
-
- public:
-  /** statistics class */
-  class Statistics {
-  public:
-    IntStat d_splits;
-    IntStat d_eq_splits;
-    IntStat d_deq_splits;
-    IntStat d_loop_lemmas;
-    Statistics();
-    ~Statistics();
-  };/* class TheoryStrings::Statistics */
-  Statistics d_statistics;
 
  private:
   //-----------------------inference steps
@@ -443,7 +454,6 @@ private:
    */
   void runStrategy(unsigned sbegin, unsigned send);
   //-----------------------end representation of the strategy
-
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

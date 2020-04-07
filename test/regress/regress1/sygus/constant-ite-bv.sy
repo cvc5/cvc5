@@ -1,16 +1,17 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --no-sygus-pbe --sygus-repair-const
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --no-sygus-pbe --sygus-repair-const
 (set-logic BV)
-(synth-fun f ( (x (BitVec 64))) (BitVec 64)
+(synth-fun f ( (x (_ BitVec 64))) (_ BitVec 64)
+((Start (_ BitVec 64)) (StartBool Bool))
 (
-(Start (BitVec 64) (
+(Start (_ BitVec 64) (
         #x0000000000000000 
         #x0000000000000001 
         x 
         (bvnot Start)
 		    (bvadd Start Start)
 		    (ite StartBool Start Start)
-		    (Constant (BitVec 64))
+		    (Constant (_ BitVec 64))
  ))
 (StartBool Bool ((bvule Start Start)))
 )

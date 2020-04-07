@@ -69,6 +69,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkRoundingMode();
   void testMkSepNil();
   void testMkString();
+  void testMkChar();
   void testMkTerm();
   void testMkTermFromOp();
   void testMkTrue();
@@ -95,14 +96,15 @@ class SolverBlack : public CxxTest::TestSuite
   void testPop3();
 
   void testSimplify();
-  void testCheckValid1();
-  void testCheckValid2();
-  void testCheckValidAssuming1();
-  void testCheckValidAssuming2();
+  void testCheckEntailed();
+  void testCheckEntailed1();
+  void testCheckEntailed2();
 
   void testSetInfo();
   void testSetLogic();
   void testSetOption();
+
+  void testResetAssertions();
 
  private:
   std::unique_ptr<Solver> d_solver;
@@ -554,9 +556,20 @@ void SolverBlack::testMkString()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkString(""));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkString("asdfasdf"));
   TS_ASSERT_EQUALS(d_solver->mkString("asdf\\nasdf").toString(),
-                   "\"asdf\\\\nasdf\"");
-  TS_ASSERT_EQUALS(d_solver->mkString("asdf\\nasdf", true).toString(),
-                   "\"asdf\\nasdf\"");
+                   "\"asdf\\u{5c}nasdf\"");
+  TS_ASSERT_EQUALS(d_solver->mkString("asdf\\u{005c}nasdf", true).toString(),
+                    "\"asdf\\u{5c}nasdf\"");
+}
+
+void SolverBlack::testMkChar()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkChar(std::string("0123")));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkChar("aA"));
+  TS_ASSERT_THROWS(d_solver->mkChar(nullptr), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkChar(""), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkChar("0g0"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkChar("100000"), CVC4ApiException&);
+  TS_ASSERT_EQUALS(d_solver->mkChar("abc"), d_solver->mkChar("ABC"));
 }
 
 void SolverBlack::testMkTerm()
@@ -1102,51 +1115,28 @@ void SolverBlack::testSimplify()
   TS_ASSERT_THROWS_NOTHING(d_solver->simplify(f2));
 }
 
-void SolverBlack::testCheckValid1()
+void SolverBlack::testCheckEntailed()
 {
   d_solver->setOption("incremental", "false");
-  TS_ASSERT_THROWS_NOTHING(d_solver->checkValid());
-  TS_ASSERT_THROWS(d_solver->checkValid(), CVC4ApiException&);
-}
-
-void SolverBlack::testCheckValid2()
-{
-  d_solver->setOption("incremental", "true");
-
-  Sort realSort = d_solver->getRealSort();
-  Sort intSort = d_solver->getIntegerSort();
-
-  // Constants
-  Term x = d_solver->mkConst(intSort, "x");
-  Term y = d_solver->mkConst(realSort, "y");
-  // Values
-  Term three = d_solver->mkReal(3);
-  Term neg2 = d_solver->mkReal(-2);
-  Term two_thirds = d_solver->mkReal(2, 3);
-  // Terms
-  Term three_y = d_solver->mkTerm(MULT, three, y);
-  Term diff = d_solver->mkTerm(MINUS, y, x);
-  // Formulas
-  Term x_geq_3y = d_solver->mkTerm(GEQ, x, three_y);
-  Term x_leq_y = d_solver->mkTerm(LEQ, x, y);
-  Term neg2_lt_x = d_solver->mkTerm(LT, neg2, x);
-  // Assertions
-  Term assertions = d_solver->mkTerm(AND, x_geq_3y, x_leq_y, neg2_lt_x);
-
-  TS_ASSERT_THROWS_NOTHING(d_solver->checkValid());
-  d_solver->assertFormula(assertions);
-  TS_ASSERT_THROWS_NOTHING(d_solver->checkValid());
-}
-
-void SolverBlack::testCheckValidAssuming1()
-{
-  d_solver->setOption("incremental", "false");
-  TS_ASSERT_THROWS_NOTHING(d_solver->checkValidAssuming(d_solver->mkTrue()));
-  TS_ASSERT_THROWS(d_solver->checkValidAssuming(d_solver->mkTrue()),
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkEntailed(d_solver->mkTrue()));
+  TS_ASSERT_THROWS(d_solver->checkEntailed(d_solver->mkTrue()),
                    CVC4ApiException&);
 }
 
-void SolverBlack::testCheckValidAssuming2()
+void SolverBlack::testCheckEntailed1()
+{
+  Sort boolSort = d_solver->getBooleanSort();
+  Term x = d_solver->mkConst(boolSort, "x");
+  Term y = d_solver->mkConst(boolSort, "y");
+  Term z = d_solver->mkTerm(AND, x, y);
+  d_solver->setOption("incremental", "true");
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkEntailed(d_solver->mkTrue()));
+  TS_ASSERT_THROWS(d_solver->checkEntailed(Term()), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkEntailed(d_solver->mkTrue()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkEntailed(z));
+}
+
+void SolverBlack::testCheckEntailed2()
 {
   d_solver->setOption("incremental", "true");
 
@@ -1183,15 +1173,15 @@ void SolverBlack::testCheckValidAssuming2()
                            p_f_y                             // p(f(y))
                        });
 
-  TS_ASSERT_THROWS_NOTHING(d_solver->checkValidAssuming(d_solver->mkTrue()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkEntailed(d_solver->mkTrue()));
   d_solver->assertFormula(assertions);
   TS_ASSERT_THROWS_NOTHING(
-      d_solver->checkValidAssuming(d_solver->mkTerm(DISTINCT, x, y)));
-  TS_ASSERT_THROWS_NOTHING(d_solver->checkValidAssuming(
+      d_solver->checkEntailed(d_solver->mkTerm(DISTINCT, x, y)));
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkEntailed(
       {d_solver->mkFalse(), d_solver->mkTerm(DISTINCT, x, y)}));
-  TS_ASSERT_THROWS(d_solver->checkValidAssuming(n), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->checkEntailed(n), CVC4ApiException&);
   TS_ASSERT_THROWS(
-      d_solver->checkValidAssuming({n, d_solver->mkTerm(DISTINCT, x, y)}),
+      d_solver->checkEntailed({n, d_solver->mkTerm(DISTINCT, x, y)}),
       CVC4ApiException&);
 }
 
@@ -1211,4 +1201,19 @@ void SolverBlack::testSetOption()
   d_solver->assertFormula(d_solver->mkTrue());
   TS_ASSERT_THROWS(d_solver->setOption("bv-sat-solver", "minisat"),
                    CVC4ApiException&);
+}
+
+void SolverBlack::testResetAssertions()
+{
+  d_solver->setOption("incremental", "true");
+
+  Sort bvSort = d_solver->mkBitVectorSort(4);
+  Term one = d_solver->mkBitVector(4, 1);
+  Term x = d_solver->mkConst(bvSort, "x");
+  Term ule = d_solver->mkTerm(BITVECTOR_ULE, x, one);
+  Term srem = d_solver->mkTerm(BITVECTOR_SREM, one, x);
+  d_solver->push(4);
+  Term slt = d_solver->mkTerm(BITVECTOR_SLT, srem, one);
+  d_solver->resetAssertions();
+  d_solver->checkSatAssuming({slt, ule});
 }

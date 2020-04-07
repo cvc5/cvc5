@@ -560,8 +560,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       for (unsigned ch : alphas)
       {
         d_rstring_alphabet.push_back(ch);
-        Trace("sygus-sample-str-alpha")
-            << " \"" << String::convertUnsignedIntToChar(ch) << "\"";
+        Trace("sygus-sample-str-alpha") << " \\u" << ch;
       }
       Trace("sygus-sample-str-alpha") << std::endl;
     }
@@ -713,8 +712,12 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
       Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
       ret = Rewriter::rewrite(ret);
       Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
-      Assert(ret.isConst());
-      return ret;
+      // A rare case where we generate a non-constant value from constant
+      // leaves is (/ n 0).
+      if(ret.isConst())
+      {
+        return ret;
+      }
     }
   }
   Trace("sygus-sample-grammar") << "...resort to random value" << std::endl;
@@ -777,6 +780,7 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
 
   // see if they evaluate to same thing on all sample points
   bool ptDisequal = false;
+  bool ptDisequalConst = false;
   unsigned pt_index = 0;
   Node bve, bvre;
   for (unsigned i = 0, npoints = getNumSamplePoints(); i < npoints; i++)
@@ -787,30 +791,43 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
     {
       ptDisequal = true;
       pt_index = i;
-      break;
+      if (bve.isConst() && bvre.isConst())
+      {
+        ptDisequalConst = true;
+        break;
+      }
     }
   }
   // bv and bvr should be equivalent under examples
   if (ptDisequal)
   {
-    // we have detected unsoundness in the rewriter
-    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-    std::ostream* out = nodeManagerOptions.getOut();
-    (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
-    // debugging information
-    (*out) << "; unsound: are not equivalent for : " << std::endl;
     std::vector<Node> vars;
     getVariables(vars);
     std::vector<Node> pt;
     getSamplePoint(pt_index, pt);
     Assert(vars.size() == pt.size());
+    std::stringstream ptOut;
     for (unsigned i = 0, size = pt.size(); i < size; i++)
     {
-      (*out) << "; unsound:    " << vars[i] << " -> " << pt[i] << std::endl;
+      ptOut << "  " << vars[i] << " -> " << pt[i] << std::endl;
     }
+    if (!ptDisequalConst)
+    {
+      Notice() << "Warning: " << bv << " and " << bvr
+               << " evaluate to different (non-constant) values on point:"
+               << std::endl;
+      Notice() << ptOut.str();
+      return;
+    }
+    // we have detected unsoundness in the rewriter
+    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+    std::ostream* out = nodeManagerOptions.getOut();
+    (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
+    // debugging information
+    (*out) << "Terms are not equivalent for : " << std::endl;
+    (*out) << ptOut.str();
     Assert(bve != bvre);
-    (*out) << "; unsound: where they evaluate to " << bve << " and " << bvre
-           << std::endl;
+    (*out) << "where they evaluate to " << bve << " and " << bvre << std::endl;
 
     if (options::sygusRewVerifyAbort())
     {

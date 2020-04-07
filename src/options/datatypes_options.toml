@@ -32,15 +32,6 @@ header = "options/datatypes_options.h"
   help       = "do binary splits for datatype constructor types"
 
 [[option]]
-  name       = "dtRefIntro"
-  category   = "regular"
-  long       = "dt-ref-sk-intro"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "introduce reference skolems for shorter explanations"
-
-[[option]]
   name       = "cdtBisimilar"
   category   = "regular"
   long       = "cdt-bisimilar"
@@ -119,15 +110,6 @@ header = "options/datatypes_options.h"
   type       = "bool"
   default    = "true"
   help       = "sygus symmetry breaking lemmas based on pbe conjectures"
-  
-[[option]]
-  name       = "sygusOpt1"
-  category   = "regular"
-  long       = "sygus-opt1"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "sygus experimental option"
 
 [[option]]
   name       = "sygusSymBreakLazy"

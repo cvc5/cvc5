@@ -25,6 +25,7 @@
 
 #include "context/cdo.h"
 #include "theory/fp/fp_converter.h"
+#include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -37,6 +38,8 @@ class TheoryFp : public Theory {
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
   TheoryFp(context::Context* c, context::UserContext* u, OutputChannel& out,
            Valuation valuation, const LogicInfo& logicInfo);
+
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   Node expandDefinition(Node node) override;
 
@@ -139,6 +142,8 @@ class TheoryFp : public Theory {
 
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
+  /** The theory rewriter for this theory. */
+  TheoryFpRewriter d_rewriter;
 }; /* class TheoryFp */
 
 }  // namespace fp

@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --sygus-grammar-cons=any-term-concise --sygus-unif-pi=complete
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-grammar-cons=any-term-concise --sygus-unif-pi=complete
 
 (set-logic LIA)
 
@@ -189,11 +189,11 @@
   ) Bool
 
   (let
-   ((X1 Int top.res.abs_3_a_0))
+   ((X1 top.res.abs_3_a_0))
    (and
     (= top.res.abs_10_a_0 (and top.res.abs_9_a_0 (< X1 32767)))
     (let
-     ((X2 Bool top.res.abs_11_a_0))
+     ((X2 top.res.abs_11_a_0))
      (and
       (= top.usr.OK_a_0 (=> X2 (>= X1 0)))
       (__node_init_voiture_0
@@ -267,11 +267,11 @@
   ) Bool
 
   (let
-   ((X1 Int top.res.abs_3_a_1))
+   ((X1 top.res.abs_3_a_1))
    (and
     (= top.res.abs_10_a_1 (and top.res.abs_9_a_1 (< X1 32767)))
     (let
-     ((X2 Bool top.res.abs_11_a_1))
+     ((X2 top.res.abs_11_a_1))
      (and
       (= top.usr.OK_a_1 (=> X2 (>= X1 0)))
       (__node_trans_voiture_0
@@ -346,26 +346,6 @@
 ))
 
 
-(declare-primed-var top.usr.m Bool)
-(declare-primed-var top.usr.s Bool)
-(declare-primed-var top.usr.OK Bool)
-(declare-primed-var top.res.init_flag Bool)
-(declare-primed-var top.res.abs_0 Bool)
-(declare-primed-var top.res.abs_1 Bool)
-(declare-primed-var top.res.abs_2 Bool)
-(declare-primed-var top.res.abs_3 Int)
-(declare-primed-var top.res.abs_4 Int)
-(declare-primed-var top.res.abs_5 Int)
-(declare-primed-var top.res.abs_6 Bool)
-(declare-primed-var top.res.abs_7 Bool)
-(declare-primed-var top.res.abs_8 Bool)
-(declare-primed-var top.res.abs_9 Bool)
-(declare-primed-var top.res.abs_10 Bool)
-(declare-primed-var top.res.abs_11 Bool)
-(declare-primed-var top.res.inst_3 Bool)
-(declare-primed-var top.res.inst_2 Bool)
-(declare-primed-var top.res.inst_1 Bool)
-(declare-primed-var top.res.inst_0 Bool)
 
 (define-fun
   init (
@@ -392,11 +372,11 @@
   ) Bool
 
   (let
-   ((X1 Int top.res.abs_3))
+   ((X1 top.res.abs_3))
    (and
     (= top.res.abs_10 (and top.res.abs_9 (< X1 32767)))
     (let
-     ((X2 Bool top.res.abs_11))
+     ((X2 top.res.abs_11))
      (and
       (= top.usr.OK (=> X2 (>= X1 0)))
       (__node_init_voiture_0
@@ -472,11 +452,11 @@
   ) Bool
 
   (let
-   ((X1 Int top.res.abs_3!))
+   ((X1 top.res.abs_3!))
    (and
     (= top.res.abs_10! (and top.res.abs_9! (< X1 32767)))
     (let
-     ((X2 Bool top.res.abs_11!))
+     ((X2 top.res.abs_11!))
      (and
       (= top.usr.OK! (=> X2 (>= X1 0)))
       (__node_trans_voiture_0

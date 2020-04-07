@@ -136,8 +136,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   bool addedEvalLemmas = false;
   // Refinement evaluation should not be done for grammars with symbolic
   // constructors.
-  bool doRefEval = options::sygusRefEval() && !d_usingSymCons;
-  if (doRefEval)
+  if (!d_usingSymCons)
   {
     Trace("cegqi-engine") << "  *** Do refinement lemma evaluation"
                           << (doGen ? " with conjecture-specific refinement"
@@ -600,7 +599,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
       for (unsigned j = 0, psize = vsProc.size(); j < psize; j++)
       {
         evalVisited[vsProc[j]] = msProc[j];
-        Assert(vsProc[j].getType() == msProc[j].getType());
+        Assert(vsProc[j].getType().isComparableTo(msProc[j].getType()));
       }
     }
   }

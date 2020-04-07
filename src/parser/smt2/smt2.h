@@ -46,25 +46,6 @@ class Smt2 : public Parser
 {
   friend class ParserBuilder;
 
- public:
-  enum Theory
-  {
-    THEORY_ARRAYS,
-    THEORY_BITVECTORS,
-    THEORY_CORE,
-    THEORY_DATATYPES,
-    THEORY_INTS,
-    THEORY_REALS,
-    THEORY_TRANSCENDENTALS,
-    THEORY_REALS_INTS,
-    THEORY_QUANTIFIERS,
-    THEORY_SETS,
-    THEORY_STRINGS,
-    THEORY_UF,
-    THEORY_FP,
-    THEORY_SEP
-  };
-
  private:
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
@@ -91,11 +72,9 @@ class Smt2 : public Parser
 
  public:
   /**
-   * Add theory symbols to the parser state.
-   *
-   * @param theory the theory to open (e.g., Core, Ints)
+   * Add core theory symbols to the parser state.
    */
-  void addTheory(Theory theory);
+  void addCoreSymbols();
 
   void addOperator(api::Kind k, const std::string& name);
 
@@ -117,7 +96,7 @@ class Smt2 : public Parser
 
   bool isOperatorEnabled(const std::string& name) const;
 
-  bool isTheoryEnabled(Theory theory) const;
+  bool isTheoryEnabled(theory::TheoryId theory) const;
 
   bool logicIsSet() override;
 
@@ -298,6 +277,8 @@ class Smt2 : public Parser
   bool sygus() const;
   /** Are we using the sygus version 1.0 format? */
   bool sygus_v1() const;
+  /** Are we using the sygus version 2.0 format? */
+  bool sygus_v2() const;
 
   /**
    * Returns true if the language that we are parsing (SMT-LIB version >=2.5
@@ -311,6 +292,19 @@ class Smt2 : public Parser
   void setOption(const std::string& flag, const SExpr& sexpr);
 
   void checkThatLogicIsSet();
+
+  /**
+   * Checks whether the current logic allows free sorts. If the logic does not
+   * support free sorts, the function triggers a parse error.
+   */
+  void checkLogicAllowsFreeSorts();
+
+  /**
+   * Checks whether the current logic allows functions of non-zero arity. If
+   * the logic does not support such functions, the function triggers a parse
+   * error.
+   */
+  void checkLogicAllowsFunctions();
 
   void checkUserSymbol(const std::string& name) {
     if(name.length() > 0 && (name[0] == '.' || name[0] == '@')) {
@@ -355,7 +349,7 @@ class Smt2 : public Parser
   void processSygusGTerm(
       CVC4::SygusGTerm& sgt,
       int index,
-      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<api::DatatypeDecl>& datatypes,
       std::vector<api::Sort>& sorts,
       std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
@@ -371,7 +365,7 @@ class Smt2 : public Parser
   bool pushSygusDatatypeDef(
       api::Sort t,
       std::string& dname,
-      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<api::DatatypeDecl>& datatypes,
       std::vector<api::Sort>& sorts,
       std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
@@ -380,7 +374,7 @@ class Smt2 : public Parser
       std::vector<std::vector<std::string>>& unresolved_gterm_sym);
 
   bool popSygusDatatypeDef(
-      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<api::DatatypeDecl>& datatypes,
       std::vector<api::Sort>& sorts,
       std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
@@ -390,11 +384,11 @@ class Smt2 : public Parser
 
   void setSygusStartIndex(const std::string& fun,
                           int startIndex,
-                          std::vector<CVC4::Datatype>& datatypes,
+                          std::vector<api::DatatypeDecl>& datatypes,
                           std::vector<api::Sort>& sorts,
                           std::vector<std::vector<ParseOp>>& ops);
 
-  void mkSygusDatatype(CVC4::Datatype& dt,
+  void mkSygusDatatype(api::DatatypeDecl& dt,
                        std::vector<ParseOp>& ops,
                        std::vector<std::string>& cnames,
                        std::vector<std::vector<api::Sort>>& cargs,
@@ -415,7 +409,7 @@ class Smt2 : public Parser
    * via a lambda.
    */
   void addSygusConstructorTerm(
-      Datatype& dt,
+      api::DatatypeDecl& dt,
       api::Term term,
       std::map<api::Term, api::Sort>& ntsToUnres) const;
   /**
@@ -423,7 +417,7 @@ class Smt2 : public Parser
    * type is argument type. This method should be called when the sygus grammar
    * term (Variable type) is encountered.
    */
-  void addSygusConstructorVariables(Datatype& dt,
+  void addSygusConstructorVariables(api::DatatypeDecl& dt,
                                     const std::vector<api::Term>& sygusVars,
                                     api::Sort type) const;
 
@@ -541,7 +535,7 @@ class Smt2 : public Parser
   api::Sort processSygusNestedGTerm(
       int sub_dt_index,
       std::string& sub_dname,
-      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<api::DatatypeDecl>& datatypes,
       std::vector<api::Sort>& sorts,
       std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
@@ -560,7 +554,7 @@ class Smt2 : public Parser
    * It appends a bound variable to lvars for each type in ltypes, and returns
    * a bound variable list whose children are lvars.
    */
-  api::Term makeSygusBoundVarList(CVC4::Datatype& dt,
+  api::Term makeSygusBoundVarList(api::DatatypeDecl& dt,
                                   unsigned i,
                                   const std::vector<api::Sort>& ltypes,
                                   std::vector<api::Term>& lvars);

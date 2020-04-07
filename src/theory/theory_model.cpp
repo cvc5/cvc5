@@ -147,7 +147,7 @@ Node TheoryModel::getValue(TNode n) const
   Node nn = d_substitutions.apply(n);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
-  nn = getModelValue(nn, false);
+  nn = getModelValue(nn);
   if (nn.isNull()) return nn;
   if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
     //normalize
@@ -193,7 +193,7 @@ Cardinality TheoryModel::getCardinality( Type t ) const{
   }
 }
 
-Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
+Node TheoryModel::getModelValue(TNode n) const
 {
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_modelCache.find(n);
   if (it != d_modelCache.end()) {
@@ -220,7 +220,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     std::vector<Node> children;
     if (n.getKind() == APPLY_UF)
     {
-      Node op = getModelValue(n.getOperator(), hasBoundVars);
+      Node op = getModelValue(n.getOperator());
       Debug("model-getvalue-debug") << "  operator : " << op << std::endl;
       children.push_back(op);
     }
@@ -231,7 +231,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     // evaluate the children
     for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
-      ret = getModelValue(n[i], hasBoundVars);
+      ret = getModelValue(n[i]);
       Debug("model-getvalue-debug")
           << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
@@ -669,8 +669,8 @@ bool TheoryModel::areFunctionValuesEnabled() const
 }
 
 void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
-  Assert(d_uf_models.find(f) == d_uf_models.end());
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
+  Assert(d_uf_models.find(f) == d_uf_models.end());
 
   if( options::ufHo() ){
     //we must rewrite the function value since the definition needs to be a constant value
@@ -685,9 +685,9 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     d_uf_models[f] = f_def;
   }
 
-  if( options::ufHo() ){
+  if (options::ufHo() && d_equalityEngine->hasTerm(f))
+  {
     Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
-    Assert(d_equalityEngine->hasTerm(f));
     // assign to representative if higher-order
     Node r = d_equalityEngine->getRepresentative( f );
     //always replace the representative, since it is initially assigned to itself

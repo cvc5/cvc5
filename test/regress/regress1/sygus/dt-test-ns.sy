@@ -1,6 +1,6 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status
-(set-logic LIA)
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status
+(set-logic DTLIA)
 
 (declare-datatypes ((List 0)) (((cons (head Int) (tail List)) (nil))))
 
@@ -8,7 +8,6 @@
 
 (declare-var x Int)
 
-(constraint (is-cons (f x)))
+(constraint ((_ is cons) (f x)))
 (constraint (and (= (head (f x)) x) (= (head (f x)) (+ 5 (head (tail (f x)))))))
 (check-synth)
-

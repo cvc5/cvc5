@@ -25,6 +25,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/strings/word.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -464,11 +465,11 @@ Node TermUtil::mkTypeValue(TypeNode tn, int val)
       n = NodeManager::currentNM()->mkConst(false);
     }
   }
-  else if (tn.isString())
+  else if (tn.isStringLike())
   {
     if (val == 0)
     {
-      n = NodeManager::currentNM()->mkConst(::CVC4::String(""));
+      n = strings::Word::mkEmptyWord(tn);
     }
   }
   return n;

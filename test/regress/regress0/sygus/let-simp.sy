@@ -1,8 +1,9 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --cegqi-si=all --sygus-out=status
 (set-logic LIA)
 (define-fun letf ((z Int)) Int (+ z z))
 (synth-fun f ((x Int) (y Int)) Int
+    ((Start Int))
     ((Start Int (x
                  y
                  0
@@ -13,4 +14,3 @@
 (declare-var y Int)
 (constraint (= (f x y) (* 3 x)))
 (check-synth)
-

@@ -114,6 +114,7 @@ tokens {
 
   FORALL_TOK = 'FORALL';
   EXISTS_TOK = 'EXISTS';
+  CHOICE_TOK = 'CHOICE';
   PATTERN_TOK = 'PATTERN';
 
   LAMBDA_TOK = 'LAMBDA';
@@ -343,7 +344,8 @@ int getOperatorPrecedence(int type) {
   case IMPLIES_TOK: return 30;// right-to-left
   case IFF_TOK: return 31;
   case FORALL_TOK:
-  case EXISTS_TOK: return 32;
+  case EXISTS_TOK:
+  case CHOICE_TOK: return 32;
   case ASSIGN_TOK:
   case IN_TOK: return 33;
 
@@ -683,7 +685,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   SExpr sexpr;
   std::string id;
   api::Sort t;
-  std::vector<CVC4::Datatype> dts;
+  std::vector<CVC4::api::DatatypeDecl> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
   api::Term func;
@@ -757,7 +759,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     END_TOK
     { PARSER_STATE->popScope();
       cmd->reset(new DatatypeDeclarationCommand(
-          api::sortVectorToTypes(PARSER_STATE->mkMutualDatatypeTypes(dts))));
+          api::sortVectorToTypes(PARSER_STATE->bindMutualDatatypeTypes(dts))));
     }
 
   | CONTEXT_TOK
@@ -1204,7 +1206,7 @@ identifier[std::string& id,
  * forward-declaration in CVC language datatype definitions, we have
  * to create types for them on-the-fly).  Before passing CHECK_NONE
  * you really should have a clear idea of WHY you need to parse that
- * way; then you should trace through Parser::mkMutualDatatypeType()
+ * way; then you should trace through Parser::bindMutualDatatypeType()
  * to figure out just what you're in for.
  */
 type[CVC4::api::Sort& t,
@@ -1322,8 +1324,6 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
      * declared in the outer context.  What follows isn't quite right,
      * though, since type aliases and function definitions should be
      * retained in the set of current declarations. */
-    { /*symtab = PARSER_STATE->getSymbolTable();
-      PARSER_STATE->useDeclarationsFrom(new SymbolTable());*/ }
     formula[f] ( COMMA formula[f2] )? RPAREN
     {
       PARSER_STATE->unimplementedFeature("predicate subtyping not supported in this release");
@@ -1465,7 +1465,7 @@ prefixFormula[CVC4::api::Term& f]
   api::Term ipl;
 }
     /* quantifiers */
-  : ( FORALL_TOK { k = api::FORALL; } | EXISTS_TOK { k = api::EXISTS; } )
+  : ( FORALL_TOK { k = api::FORALL; } | EXISTS_TOK { k = api::EXISTS; } | CHOICE_TOK { k = api::CHOICE; } )
     { PARSER_STATE->pushScope(); } LPAREN
     boundVarDecl[ids,t]
     { for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
@@ -2072,8 +2072,11 @@ stringTerm[CVC4::api::Term& f]
     { f = MK_TERM(CVC4::api::REGEXP_OPT, f); }
   | REGEXP_RANGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_RANGE, f, f2); }
-  | REGEXP_LOOP_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_LOOP, f, f2, f3); }
+  | REGEXP_LOOP_TOK LPAREN formula[f] COMMA lo=numeral COMMA hi=numeral RPAREN
+    {
+      api::Op lop = SOLVER->mkOp(CVC4::api::REGEXP_LOOP, lo, hi);
+      f = MK_TERM(lop, f); 
+    }
   | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }
   | REGEXP_EMPTY_TOK
@@ -2083,7 +2086,7 @@ stringTerm[CVC4::api::Term& f]
 
     /* string literal */
   | str[s]
-    { f = SOLVER->mkString(s, true); }
+    { f = PARSER_STATE->mkStringConstant(s); }
 
   | setsTerm[f]
   ;
@@ -2310,7 +2313,7 @@ iteElseTerm[CVC4::api::Term& f]
 /**
  * Parses a datatype definition
  */
-datatypeDef[std::vector<CVC4::Datatype>& datatypes]
+datatypeDef[std::vector<CVC4::api::DatatypeDecl>& datatypes]
 @init {
   std::string id, id2;
   api::Sort t;
@@ -2331,10 +2334,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
       )* RBRACKET
     )?
     {
-      datatypes.push_back(Datatype(SOLVER->getExprManager(),
-                                   id,
-                                   api::sortVectorToTypes(params),
-                                   false));
+      datatypes.push_back(SOLVER->mkDatatypeDecl(id, params, false));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
@@ -2348,14 +2348,14 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 /**
  * Parses a constructor defintion for type
  */
-constructorDef[CVC4::Datatype& type]
+constructorDef[CVC4::api::DatatypeDecl& type]
 @init {
   std::string id;
-  std::unique_ptr<CVC4::DatatypeConstructor> ctor;
+  std::unique_ptr<CVC4::api::DatatypeConstructorDecl> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
-    {
-      ctor.reset(new CVC4::DatatypeConstructor(id));
+    { 
+      ctor.reset(new CVC4::api::DatatypeConstructorDecl(id));
     }
     ( LPAREN
       selector[&ctor]
@@ -2368,13 +2368,14 @@ constructorDef[CVC4::Datatype& type]
     }
   ;
 
-selector[std::unique_ptr<CVC4::DatatypeConstructor>* ctor]
+selector[std::unique_ptr<CVC4::api::DatatypeConstructorDecl>* ctor]
 @init {
   std::string id;
   api::Sort t, t2;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON type[t,CHECK_NONE]
-    { (*ctor)->addArg(id, t.getType());
+    {
+      (*ctor)->addSelector(id, t);
       Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
     }
   ;

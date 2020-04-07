@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
@@ -76,7 +77,8 @@ class InferenceManager
                    context::UserContext* u,
                    SolverState& s,
                    SkolemCache& skc,
-                   OutputChannel& out);
+                   OutputChannel& out,
+                   SequencesStatistics& statistics);
   ~InferenceManager() {}
 
   /** send internal inferences
@@ -90,15 +92,17 @@ class InferenceManager
    * sendInference below in that it does not introduce any new non-constant
    * terms to the state.
    *
-   * The argument c is a string identifying the reason for the inference.
-   * This string is used for debugging purposes.
+   * The argument infer identifies the reason for the inference.
+   * This is used for debugging and statistics purposes.
    *
    * Return true if the inference is complete, in the sense that we infer
    * inferences that are equivalent to conc. This returns false e.g. if conc
    * (or one of its conjuncts if it is a conjunction) was not inferred due
    * to the criteria mentioned above.
    */
-  bool sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
+  bool sendInternalInference(std::vector<Node>& exp,
+                             Node conc,
+                             Inference infer);
   /** send inference
    *
    * This function should be called when ( exp ^ exp_n ) => eq. The set exp
@@ -125,8 +129,9 @@ class InferenceManager
    * exp_n is empty. In particular, lemmas must be used whenever exp_n is
    * non-empty, conflicts are used when exp_n is empty and eq is false.
    *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
+   * The argument infer identifies the reason for inference, used for
+   * debugging. This updates the statistics about the number of inferences made
+   * of each type.
    *
    * If the flag asLemma is true, then this method will send a lemma instead
    * of an inference whenever applicable.
@@ -134,13 +139,14 @@ class InferenceManager
   void sendInference(const std::vector<Node>& exp,
                      const std::vector<Node>& exp_n,
                      Node eq,
-                     const char* c,
+                     Inference infer,
                      bool asLemma = false);
   /** same as above, but where exp_n is empty */
   void sendInference(const std::vector<Node>& exp,
                      Node eq,
-                     const char* c,
+                     Inference infer,
                      bool asLemma = false);
+
   /** Send inference
    *
    * Makes the appropriate call to send inference based on the infer info
@@ -153,13 +159,15 @@ class InferenceManager
    * lemma. We additionally request a phase requirement for the equality a=b
    * with polarity preq.
    *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
+   * The argument infer identifies the reason for inference, used for
+   * debugging. This updates the statistics about the number of
+   * inferences made of each type.
    *
    * This method returns true if the split was non-trivial, and false
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
-  bool sendSplit(Node a, Node b, const char* c, bool preq = true);
+  bool sendSplit(Node a, Node b, Inference infer, bool preq = true);
+
   /** Send phase requirement
    *
    * This method is called to indicate this class should send a phase
@@ -186,18 +194,23 @@ class InferenceManager
    * exists, otherwise it returns null.
    */
   Node getProxyVariableFor(Node n) const;
-  /** register length
+  /** register term
    *
-   * This method is called on non-constant string terms n. It sends a lemma
-   * on the output channel that ensures that the length n satisfies its assigned
-   * status (given by argument s).
+   * This method is called on non-constant string terms n. It returns a lemma
+   * that should be sent on the output channel of theory of strings upon
+   * registration of this term, or null if no lemma is necessary.
+   *
+   * If n is an atomic term, the method registerTermAtomic is called for n
+   * and s = LENGTH_SPLIT and no lemma is returned.
    */
-  void registerLength(Node n);
+  Node registerTerm(Node n);
   /** register length
    *
-   * This method is called on non-constant string terms n. It sends a lemma
-   * on the output channel that ensures that the length n satisfies its assigned
-   * status (given by argument s).
+   * This method is called on non-constant string terms n that are "atomic"
+   * with respect to length. That is, the rewritten form of len(n) is itself.
+   *
+   * It sends a lemma on the output channel that ensures that the length n
+   * satisfies its assigned status (given by argument s).
    *
    * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
    *
@@ -214,7 +227,7 @@ class InferenceManager
    * In contrast to the above functions, it makes immediate calls to the output
    * channel instead of adding them to pending lists.
    */
-  void registerLength(Node n, LengthStatus s);
+  void registerTermAtomic(Node n, LengthStatus s);
   //---------------------------- end proxy variables and length elaboration
 
   //----------------------------constructing antecedants
@@ -302,17 +315,28 @@ class InferenceManager
    * above lemma to the lemma cache d_pending_lem, which may be flushed
    * later within the current call to TheoryStrings::check.
    *
-   * The argument c is a string identifying the reason for inference, used for
+   * The argument infer identifies the reason for inference, used for
    * debugging.
    */
-  void sendLemma(Node ant, Node conc, const char* c);
+  void sendLemma(Node ant, Node conc, Inference infer);
   /**
    * Indicates that conc should be added to the equality engine of this class
    * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
    * of) literals that each are explainable, i.e. they already hold in the
    * equality engine of this class.
    */
-  void sendInfer(Node eq_exp, Node eq, const char* c);
+  void sendInfer(Node eq_exp, Node eq, Inference infer);
+  /**
+   * Get the lemma required for registering the length information for
+   * atomic term n given length status s. For details, see registerTermAtomic.
+   *
+   * Additionally, this method may map literals to a required polarity in the
+   * argument reqPhase, which should be processed by a call to requiredPhase by
+   * the caller of this method.
+   */
+  Node getRegisterTermAtomicLemma(Node n,
+                                  LengthStatus s,
+                                  std::map<Node, bool>& reqPhase);
 
   /** the parent theory of strings object */
   TheoryStrings& d_parent;
@@ -327,6 +351,10 @@ class InferenceManager
    * This is a reference to the output channel of the theory of strings.
    */
   OutputChannel& d_out;
+
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
+
   /** Common constants */
   Node d_emptyString;
   Node d_true;
@@ -366,6 +394,7 @@ class InferenceManager
   NodeNodeMap d_proxyVarToLength;
   /** List of terms that we have register length for */
   NodeSet d_lengthLemmaTermsCache;
+
   /** infer substitution proxy vars
    *
    * This method attempts to (partially) convert the formula n into a
