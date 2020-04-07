@@ -594,19 +594,27 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   Assert(!d_qe->inConflict());
   if( optUseModel() ){
     FirstOrderModelFmc * fmfmc = fm->asFirstOrderModelFmc();
+    NodeManager * nm = NodeManager::currentNM();
     if (effort==0) {
       //register the quantifier
       if (d_quant_cond.find(f)==d_quant_cond.end()) {
         std::vector< TypeNode > types;
         for(unsigned i=0; i<f[0].getNumChildren(); i++){
-          types.push_back(f[0][i].getType());
+          Type tn = f[0][i].getType();
+          if (!tn.isSort())
+          {
+            // we will not use model-based quantifier instantiation for this
+            d_unhandledQuant.insert(f);
+          }
+          types.push_back(tn);
         }
-        TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->booleanType() );
-        Node op = NodeManager::currentNM()->mkSkolem( "qfmc", typ, "op created for full-model checking" );
+        TypeNode typ = nm->mkFunctionType( types, nm->booleanType() );
+        Node op = nm->mkSkolem( "qfmc", typ, "op for full-model checking" );
         d_quant_cond[f] = op;
       }
-
-      if (options::mbqiMode() == options::MbqiMode::NONE)
+      // we do not do model-based quantifier instantiation if the option
+      // disables it, or if the quantified formula has an unhandled type.
+      if (options::mbqiMode() == options::MbqiMode::NONE || d_unhandledQuant.find(f)!=d_unhandledQuant.end())
       {
         //just exhaustive instantiate
         Node c = mkCondDefault( fmfmc, f );
@@ -1212,6 +1220,7 @@ Node FullModelChecker::mkCondDefault( FirstOrderModelFmc * fm, Node f) {
 void FullModelChecker::mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::vector< Node > & cond ) {
   Trace("fmc-debug") << "Make default vec" << std::endl;
   //get function symbol for f
+  Assert( 
   cond.push_back(d_quant_cond[f]);
   for (unsigned i=0; i<f[0].getNumChildren(); i++) {
     Node ts = fm->getStar(f[0][i].getType());
