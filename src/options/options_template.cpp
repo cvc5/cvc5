@@ -72,8 +72,6 @@ namespace CVC4 {
 
 thread_local Options* Options::s_current = NULL;
 
-
-
 /**
  * This is a default handler for options of built-in C++ type.  This
  * template is really just a helper for the handleOption() template,
@@ -485,33 +483,6 @@ static struct option cmdlineOptions[] = {
   ${cmdline_options}$
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
-
-
-// static void preemptGetopt(int& argc, char**& argv, const char* opt) {
-
-//   Debug("preemptGetopt") << "preempting getopt() with " << opt << std::endl;
-
-//   AlwaysAssert(opt != NULL && *opt != '\0');
-//   AlwaysAssert(strlen(opt) <= maxoptlen);
-
-//   ++argc;
-//   unsigned i = 1;
-//   while(argv[i] != NULL && argv[i][0] != '\0') {
-//     ++i;
-//   }
-
-//   if(argv[i] == NULL) {
-//     argv = (char**) realloc(argv, (i + 6) * sizeof(char*));
-//     for(unsigned j = i; j < i + 5; ++j) {
-//       argv[j] = (char*) malloc(sizeof(char) * maxoptlen);
-//       argv[j][0] = '\0';
-//     }
-//     argv[i + 5] = NULL;
-//   }
-
-//   strncpy(argv[i], opt, maxoptlen - 1);
-//   argv[i][maxoptlen - 1] = '\0'; // ensure NUL-termination even on overflow
-// }
 
 namespace options {
 
