@@ -594,7 +594,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   Assert(!d_qe->inConflict());
   if( optUseModel() ){
     FirstOrderModelFmc * fmfmc = fm->asFirstOrderModelFmc();
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     if (effort==0) {
       //register the quantifier
       if (d_quant_cond.find(f)==d_quant_cond.end()) {
@@ -608,13 +608,14 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
           }
           types.push_back(tn);
         }
-        TypeNode typ = nm->mkFunctionType( types, nm->booleanType() );
-        Node op = nm->mkSkolem( "qfmc", typ, "op for full-model checking" );
+        TypeNode typ = nm->mkFunctionType(types, nm->booleanType());
+        Node op = nm->mkSkolem("qfmc", typ, "op for full-model checking");
         d_quant_cond[f] = op;
       }
       // we do not do model-based quantifier instantiation if the option
       // disables it, or if the quantified formula has an unhandled type.
-      if (options::mbqiMode() == options::MbqiMode::NONE || d_unhandledQuant.find(f)!=d_unhandledQuant.end())
+      if (options::mbqiMode() == options::MbqiMode::NONE
+          || d_unhandledQuant.find(f) != d_unhandledQuant.end())
       {
         //just exhaustive instantiate
         Node c = mkCondDefault( fmfmc, f );
