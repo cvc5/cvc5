@@ -164,6 +164,15 @@ public:
   bool processBuildModel(TheoryModel* m) override;
 
   bool useSimpleModels();
+private:
+  /**
+   * Register quantified formula.
+   * This checks whether q can be handled by model-based instantiation and
+   * initializes the necessary information if so.
+   */
+  void registerQuantifiedFormula(Node q);
+  /** Is quantified formula q handled by model-based instantiation? */
+  bool isHandled(Node q) const;
 };/* class FullModelChecker */
 
 }/* CVC4::theory::quantifiers::fmcheck namespace */
