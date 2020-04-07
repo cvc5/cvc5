@@ -45,6 +45,49 @@ namespace smt {
 
 void setDefaults(SmtEngine& smte, LogicInfo& logic)
 {
+  // implied options
+  if (options::checkModels() || options::dumpModels())
+  {
+    Notice() << "SmtEngine: setting produceModels" << std::endl;
+    options::produceModels.set(true);
+  }
+  if (options::checkModels())
+  {
+    Notice() << "SmtEngine: setting produceAssignments" << std::endl;
+    options::produceAssignments.set(true);
+  }
+  if (options::dumpUnsatCoresFull())
+  {
+    Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
+    options::dumpUnsatCores.set(true);
+  }
+  if (options::checkUnsatCores() || options::dumpUnsatCores()
+      || options::unsatAssumptions())
+  {
+    Notice() << "SmtEngine: setting unsatCores" << std::endl;
+    options::unsatCores.set(true);
+  }
+  if (options::checkProofs() || options::dumpProofs())
+  {
+    Notice() << "SmtEngine: setting proof" << std::endl;
+    options::proof.set(true);
+  }
+  if (options::bitvectorAigSimplifications.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
+    options::bitvectorAig.set(true);
+  }
+  if (options::bitvectorEqualitySlicer.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorEqualitySolver" << std::endl;
+    options::bitvectorEqualitySolver.set(true);
+  }
+  if (options::bitvectorAlgebraicBudget.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
+    options::bitvectorAlgebraicSolver.set(true);
+  }
+
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
