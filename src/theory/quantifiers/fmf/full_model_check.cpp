@@ -601,6 +601,17 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   }
   FirstOrderModelFmc * fmfmc = fm->asFirstOrderModelFmc();
   if (effort==0) {
+    if (options::mbqiMode() == options::MbqiMode::NONE)
+    {
+      //just exhaustive instantiate
+      Node c = mkCondDefault( fmfmc, f );
+      d_quant_models[f].addEntry( fmfmc, c, d_false );
+      if (!exhaustiveInstantiate( fmfmc, f, c, -1))
+      {
+        return 0;
+      }
+      return 1;
+    }
     //model check the quantifier
     doCheck(fmfmc, f, d_quant_models[f], f[1]);
     std::vector< Node >& mcond = d_quant_models[f].d_cond;
