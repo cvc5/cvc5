@@ -1014,7 +1014,7 @@ void TheoryStrings::checkCodes()
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
         {
-          d_im.sendInference(d_empty_vec, cc.eqNode(vc), "Code_Proxy");
+          d_im.sendInference(d_empty_vec, cc.eqNode(vc), Inference::CODE_PROXY);
         }
         const_codes.push_back(vc);
       }
@@ -1052,7 +1052,7 @@ void TheoryStrings::checkCodes()
           // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
           Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
           d_im.sendPhaseRequirement(deq, false);
-          d_im.sendInference(d_empty_vec, inj_lem, "Code_Inj");
+          d_im.sendInference(d_empty_vec, inj_lem, Inference::CODE_INJ);
         }
       }
     }

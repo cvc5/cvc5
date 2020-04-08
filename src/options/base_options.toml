@@ -99,7 +99,6 @@ header = "options/base_options.h"
   long       = "stats-every-query"
   type       = "bool"
   default    = "false"
-  links      = ["--stats"]
   read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
 
@@ -155,9 +154,3 @@ header = "options/base_options.h"
   notifies   = ["notifyPrintSuccess"]
   read_only  = true
   help       = "print the \"success\" output required of SMT-LIBv2"
-
-[[alias]]
-  category   = "regular"
-  long       = "smtlib-strict"
-  links      = ["--lang=smt2", "--output-lang=smt2", "--strict-parsing", "--default-expr-depth=-1", "--print-success", "--incremental", "--abstract-values"]
-  help       = "SMT-LIBv2 compliance mode (implies other options)"
