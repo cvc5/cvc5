@@ -407,8 +407,9 @@ void ExtfSolver::checkExtfEval(int effort)
           // reduced since this argument may be circular: we may infer than n
           // can be reduced to something else, but that thing may argue that it
           // can be reduced to n, in theory.
-          d_im.sendInternalInference(
-              einfo.d_exp, nrcAssert, effort == 0 ? "EXTF_d" : "EXTF_d-N");
+          Inference infer =
+              effort == 0 ? Inference::EXTF_D : Inference::EXTF_D_N;
+          d_im.sendInternalInference(einfo.d_exp, nrcAssert, infer);
         }
         to_reduce = nrc;
       }
@@ -629,7 +630,7 @@ void ExtfSolver::checkExtfInference(Node n,
     inferEqrr = Rewriter::rewrite(inferEqrr);
     Trace("strings-extf-infer") << "checkExtfInference: " << inferEq
                                 << " ...reduces to " << inferEqrr << std::endl;
-    d_im.sendInternalInference(in.d_exp, inferEqrr, "EXTF_equality_rew");
+    d_im.sendInternalInference(in.d_exp, inferEqrr, Inference::EXTF_EQ_REW);
   }
 }
 
