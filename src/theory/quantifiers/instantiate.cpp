@@ -747,6 +747,19 @@ void Instantiate::debugPrintModel()
   }
 }
 
+Node Instantiate::ensureType( Node n, TypeNode tn ) {
+  Trace("inst-add-debug") << "Ensure " << n << " : " << tn << std::endl;
+  TypeNode ntn = n.getType();
+  Assert(ntn.isComparableTo(tn));
+  if( ntn.isSubtypeOf( tn ) ){
+    return n;
+  }
+  if( tn.isInteger() ){
+    return NodeManager::currentNM()->mkNode( TO_INTEGER, n );
+  }
+  return Node::null();
+}
+
 Instantiate::Statistics::Statistics()
     : d_instantiations("Instantiate::Instantiations_Total", 0),
       d_inst_duplicate("Instantiate::Duplicate_Inst", 0),
