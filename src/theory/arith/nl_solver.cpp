@@ -1046,14 +1046,12 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
     {
       continue;
     }
-    for (std::map<Node, ConstraintInfo>::iterator itcc = itc->second.begin();
-         itcc != itc->second.end();
-         ++itcc)
+    for (const std::pair<const Node, ConstraintInfo>& itcc : itc->second)
     {
-      Node x = itcc->first;
-      Node coeff = itcc->second.d_coeff;
-      Node rhs = itcc->second.d_rhs;
-      Kind type = itcc->second.d_type;
+      Node x = itcc.first;
+      Node coeff = itcc.second.d_coeff;
+      Node rhs = itcc.second.d_rhs;
+      Kind type = itcc.second.d_type;
       Node exp = lit;
       if (!polarity)
       {
