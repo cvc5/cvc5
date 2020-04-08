@@ -212,7 +212,7 @@ bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& var
 
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
-  initializeStrategy();
+  d_strat.initializeStrategy();
 
   // if strings fmf is enabled, register the strategy
   if (options::stringFMF())
@@ -711,15 +711,13 @@ void TheoryStrings::check(Effort e) {
         Trace("strings-eqc") << std::endl;
       }
       Trace("strings-eqc") << std::endl;
-    }
-    unsigned sbegin = itsr->second.first;
-    unsigned send = itsr->second.second;
+    }  
     bool addedLemma = false;
     bool addedFact;
     Trace("strings-check") << "Full effort check..." << std::endl;
     do{
       Trace("strings-check") << "  * Run strategy..." << std::endl;
-      d_strat.runStrategy(sbegin, send);
+      d_strat.runStrategy(e);
       // flush the facts
       addedFact = d_im.hasPendingFact();
       addedLemma = d_im.hasPendingLemma();

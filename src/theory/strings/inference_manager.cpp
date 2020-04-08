@@ -21,6 +21,7 @@
 #include "theory/strings/theory_strings.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "expr/attribute.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -29,6 +30,10 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
+
+/** Attribute for whether a variable is a proxy variable */
+struct StringsProxyVarAttributeId {};
+typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
 
 InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::Context* c,

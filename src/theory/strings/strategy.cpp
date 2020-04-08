@@ -153,8 +153,14 @@ void Strategy::initializeStrategy()
   }
 }
 
-void Strategy::runStrategy(unsigned sbegin, unsigned send)
+void Strategy::runStrategy(Theory::Effort e)
 {
+  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::iterator itsr =
+    d_strat_steps.find(e);
+  Assert( itsr != d_strat_steps.end() );
+  unsigned sbegin = itsr->second.first;
+  unsigned send = itsr->second.second;
+  
   Trace("strings-process") << "----check, next round---" << std::endl;
   for (unsigned i = sbegin; i <= send; i++)
   {

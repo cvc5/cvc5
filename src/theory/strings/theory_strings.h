@@ -48,8 +48,13 @@ namespace theory {
 namespace strings {
 
 /**
- * A theory solver for strings.
- *
+ * A theory solver for strings. At a high level, the solver implements
+ * techniques described in:
+ * - Liang et al, CAV 2014,
+ * - Reynolds et al, CAV 2017,
+ * - Reynolds et al, IJCAR 2020.
+ * Its rewriter is described in:
+ * - Reynolds et al, CAV 2019.
  */
 class TheoryStrings : public Theory {
   friend class InferenceManager;

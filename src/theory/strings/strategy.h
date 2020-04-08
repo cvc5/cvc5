@@ -89,13 +89,8 @@ class Strategy {
    * a series of calls to addStrategyStep above.
    */
   void initializeStrategy();
-  /** run strategy
-   *
-   * This executes the inference steps starting at index sbegin and ending at
-   * index send. We exit if any step in this sequence adds a lemma or infers a
-   * fact.
-   */
-  void runStrategy(unsigned sbegin, unsigned send);
+  /** run strategy for effort e */
+  void runStrategy(Theory::Effort e);
 private:
   /** Reference to the parent */
   TheoryStrings& d_parent;
