@@ -65,7 +65,7 @@ enum InferStep
   // check cardinality
   CHECK_CARDINALITY,
 };
-std::ostream& operator<<(std::ostream& out, Inference i);
+std::ostream& operator<<(std::ostream& out, InferStep i);
 
 class TheoryStrings;
 

@@ -40,6 +40,7 @@
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strings_fmf.h"
 #include "theory/strings/strings_rewriter.h"
+#include "theory/strings/strategy.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -48,60 +49,11 @@ namespace theory {
 namespace strings {
 
 /**
- * Decision procedure for strings.
+ * A theory solver for strings.
  *
  */
-
-/** inference steps
- *
- * Corresponds to a step in the overall strategy of the strings solver. For
- * details on the individual steps, see documentation on the inference schemas
- * within TheoryStrings.
- */
-enum InferStep
-{
-  // indicates that the strategy should break if lemmas or facts are added
-  BREAK,
-  // check initial
-  CHECK_INIT,
-  // check constant equivalence classes
-  CHECK_CONST_EQC,
-  // check extended function evaluation
-  CHECK_EXTF_EVAL,
-  // check cycles
-  CHECK_CYCLES,
-  // check flat forms
-  CHECK_FLAT_FORMS,
-  // check register terms pre-normal forms
-  CHECK_REGISTER_TERMS_PRE_NF,
-  // check normal forms equalities
-  CHECK_NORMAL_FORMS_EQ,
-  // check normal forms disequalities
-  CHECK_NORMAL_FORMS_DEQ,
-  // check codes
-  CHECK_CODES,
-  // check lengths for equivalence classes
-  CHECK_LENGTH_EQC,
-  // check register terms for normal forms
-  CHECK_REGISTER_TERMS_NF,
-  // check extended function reductions
-  CHECK_EXTF_REDUCTION,
-  // check regular expression memberships
-  CHECK_MEMBERSHIP,
-  // check cardinality
-  CHECK_CARDINALITY,
-};
-std::ostream& operator<<(std::ostream& out, Inference i);
-
-struct StringsProxyVarAttributeId {};
-typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
-
 class TheoryStrings : public Theory {
   friend class InferenceManager;
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
 
