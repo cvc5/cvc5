@@ -34,7 +34,7 @@ struct SmtEngineStatistics
   TimerStat d_cnfConversionTime;
   /** Number of assertions before ite removal */
   IntStat d_numAssertionsPre;
-  /** Num of assertions after ite removal */
+  /** Number of assertions after ite removal */
   IntStat d_numAssertionsPost;
   /** Size of all proofs generated */
   IntStat d_proofsSize;
