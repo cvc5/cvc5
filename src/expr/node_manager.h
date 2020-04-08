@@ -517,7 +517,7 @@ public:
   Node* mkBoundVarPtr(const TypeNode& type);
 
   /** get the canonical bound variable list for function type tn */
-  static Node getBoundVarListForFunctionType( TypeNode tn );
+  Node getBoundVarListForFunctionType( TypeNode tn );
 
   /**
    * Optional flags used to control behavior of NodeManager::mkSkolem().

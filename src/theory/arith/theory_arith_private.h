@@ -426,11 +426,13 @@ public:
   TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryArithPrivate();
 
+  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
+
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  Node expandDefinition(LogicRequest &logicRequest, Node node);
+  Node expandDefinition(Node node);
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
@@ -858,10 +860,9 @@ private:
   /** get arithmetic skolem
    *
    * Returns the Skolem in the above map for the given id, creating it if it
-   * does not already exist. If a Skolem function is created, the logic is
-   * widened to include UF.
+   * does not already exist.
    */
-  Node getArithSkolem(LogicRequest& logicRequest, ArithSkolemId asi);
+  Node getArithSkolem(ArithSkolemId asi);
   /** get arithmetic skolem application
    *
    * By default, this returns the term f( n ), where f is the Skolem function
@@ -870,7 +871,7 @@ private:
    * If the option arithNoPartialFun is enabled, this returns f, where f is
    * the Skolem constant for the identifier asi.
    */
-  Node getArithSkolemApp(LogicRequest& logicRequest, Node n, ArithSkolemId asi);
+  Node getArithSkolemApp(Node n, ArithSkolemId asi);
 
   /**
    *  Maps for Skolems for to-integer, real/integer div-by-k, and inverse
@@ -882,6 +883,8 @@ private:
   NodeMap d_int_div_skolem;
   NodeMap d_nlin_inverse_skolem;
 
+  /** The theory rewriter for this theory. */
+  ArithRewriter d_rewriter;
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

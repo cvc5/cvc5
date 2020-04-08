@@ -25,6 +25,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers_engine.h"
@@ -557,7 +558,8 @@ void TheoryDatatypes::finishInit() {
   }
 }
 
-Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
+Node TheoryDatatypes::expandDefinition(Node n)
+{
   NodeManager* nm = NodeManager::currentNM();
   switch (n.getKind())
   {

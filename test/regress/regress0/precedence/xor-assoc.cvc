@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 % Simple test for left associativity of XOR
 
 A, B, C: BOOLEAN;

@@ -50,10 +50,6 @@ bool Configuration::isStatisticsBuild() {
   return IS_STATISTICS_BUILD;
 }
 
-bool Configuration::isReplayBuild() {
-  return IS_REPLAY_BUILD;
-}
-
 bool Configuration::isTracingBuild() {
   return IS_TRACING_BUILD;
 }

@@ -26,6 +26,7 @@
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
 #include "theory/sets/theory_sets_rels.h"
+#include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -161,6 +162,8 @@ class TheorySetsPrivate {
 
   ~TheorySetsPrivate();
 
+  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
   void addSharedTerm(TNode);
@@ -206,7 +209,7 @@ class TheorySetsPrivate {
    * Another option to fix this is to make TheoryModel::getValue more general
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
-  Node expandDefinition(LogicRequest &logicRequest, Node n);
+  Node expandDefinition(Node n);
 
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   
@@ -279,6 +282,9 @@ class TheorySetsPrivate {
    * involving cardinality constraints is asserted to this theory.
    */
   bool d_card_enabled;
+
+  /** The theory rewriter for this theory. */
+  TheorySetsRewriter d_rewriter;
 };/* class TheorySetsPrivate */
 
 

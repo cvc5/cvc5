@@ -3,7 +3,7 @@ x, y : BITVECTOR(4);
 ASSERT x = 0hex5;
 ASSERT y = 0bin0101;
 
-% EXPECT: valid
+% EXPECT: entailed
 QUERY
  BVMULT(8,x,y)=BVMULT(8,y,x)
  AND

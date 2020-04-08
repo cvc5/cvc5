@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 c : BOOLEAN;
 a16 : [# _a : INT, _b : INT #] = (
         IF c THEN (# _a := 3, _b := 2 #)

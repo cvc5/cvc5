@@ -51,12 +51,14 @@ public:
               Valuation valuation, const LogicInfo& logicInfo);
   virtual ~TheoryArith();
 
+  TheoryRewriter* getTheoryRewriter() override;
+
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n) override;
 
-  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  Node expandDefinition(Node node) override;
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
