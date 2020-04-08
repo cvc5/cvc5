@@ -261,12 +261,12 @@ void MonomialDb::sortVariablesByModel(std::vector<Node>& ms, NlModel& m)
   }
 }
 
-std::map<Node, std::vector<Node> >& MonomialDb::getContainsChildrenMap()
+const std::map<Node, std::vector<Node> >& MonomialDb::getContainsChildrenMap()
 {
   return d_m_contain_children;
 }
 
-std::map<Node, std::vector<Node> >& MonomialDb::getContainsParentMap()
+const std::map<Node, std::vector<Node> >& MonomialDb::getContainsParentMap()
 {
   return d_m_contain_parent;
 }

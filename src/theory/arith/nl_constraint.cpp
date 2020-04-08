@@ -104,7 +104,7 @@ void ConstraintDb::registerConstraint(Node atom)
   }
 }
 
-std::map<Node, std::map<Node, ConstraintInfo> >& ConstraintDb::getConstraints()
+const std::map<Node, std::map<Node, ConstraintInfo> >& ConstraintDb::getConstraints()
 {
   return d_c_info;
 }
