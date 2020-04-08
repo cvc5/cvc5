@@ -69,13 +69,20 @@ std::ostream& operator<<(std::ostream& out, InferStep i);
 
 class TheoryStrings;
 
+/** 
+ * The strategy of theory of strings.
+ *
+ * This stores a sequence of the above enum that indicates the calls to
+ * runInferStep to make on the theory of strings, given by parent.
+ */
 class Strategy {
  public:
   Strategy(TheoryStrings& parent);
   ~Strategy();
-
+  /** is this strategy initialized? */
+  bool isStrategyInit() const;
   /** do we have a strategy for effort e? */
-  bool hasStrategyEffort(Effort e) const;
+  bool hasStrategyEffort(Theory::Effort e) const;
   /** initialize the strategy
    *
    * This initializes the above information based on the options. This makes
@@ -99,7 +106,7 @@ private:
   /** the effort levels */
   std::vector<int> d_infer_step_effort;
   /** the range (begin, end) of steps to run at given efforts */
-  std::map<Effort, std::pair<unsigned, unsigned> > d_strat_steps;
+  std::map<Theory::Effort, std::pair<unsigned, unsigned> > d_strat_steps;
   /** add strategy step
    *
    * This adds (s,effort) as a strategy step to the vectors d_infer_steps and

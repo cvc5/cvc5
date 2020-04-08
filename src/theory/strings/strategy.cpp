@@ -53,7 +53,12 @@ Strategy::~Strategy() {
 
 }
 
-bool Strategy::hasStrategyEffort(Effort e) const
+bool Strategy::isStrategyInit() const
+{
+    return d_strategy_init;
+}
+
+bool Strategy::hasStrategyEffort(Theory::Effort e) const
 {
   return d_strat_steps.find(e) != d_strat_steps.end();
 }
@@ -80,14 +85,14 @@ void Strategy::initializeStrategy()
   // initialize the strategy if not already done so
   if (!d_strategy_init)
   {
-    std::map<Effort, unsigned> step_begin;
-    std::map<Effort, unsigned> step_end;
+    std::map<Theory::Effort, unsigned> step_begin;
+    std::map<Theory::Effort, unsigned> step_end;
     d_strategy_init = true;
     // beginning indices
-    step_begin[EFFORT_FULL] = 0;
+    step_begin[Theory::EFFORT_FULL] = 0;
     if (options::stringEager())
     {
-      step_begin[EFFORT_STANDARD] = 0;
+      step_begin[Theory::EFFORT_STANDARD] = 0;
     }
     // add the inference steps
     addStrategyStep(CHECK_INIT);
@@ -102,7 +107,7 @@ void Strategy::initializeStrategy()
     if (options::stringEager())
     {
       // do only the above inferences at standard effort, if applicable
-      step_end[EFFORT_STANDARD] = d_infer_steps.size() - 1;
+      step_end[Theory::EFFORT_STANDARD] = d_infer_steps.size() - 1;
     }
     if (!options::stringEagerLen())
     {
@@ -127,20 +132,20 @@ void Strategy::initializeStrategy()
     }
     addStrategyStep(CHECK_MEMBERSHIP);
     addStrategyStep(CHECK_CARDINALITY);
-    step_end[EFFORT_FULL] = d_infer_steps.size() - 1;
+    step_end[Theory::EFFORT_FULL] = d_infer_steps.size() - 1;
     if (options::stringExp() && options::stringGuessModel())
     {
-      step_begin[EFFORT_LAST_CALL] = d_infer_steps.size();
+      step_begin[Theory::EFFORT_LAST_CALL] = d_infer_steps.size();
       // these two steps are run in parallel
       addStrategyStep(CHECK_EXTF_REDUCTION, 2, false);
       addStrategyStep(CHECK_EXTF_EVAL, 3);
-      step_end[EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
+      step_end[Theory::EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
     }
     // set the beginning/ending ranges
-    for (const std::pair<const Effort, unsigned>& it_begin : step_begin)
+    for (const std::pair<const Theory::Effort, unsigned>& it_begin : step_begin)
     {
-      Effort e = it_begin.first;
-      std::map<Effort, unsigned>::iterator it_end = step_end.find(e);
+      Theory::Effort e = it_begin.first;
+      std::map<Theory::Effort, unsigned>::iterator it_end = step_end.find(e);
       Assert(it_end != step_end.end());
       d_strat_steps[e] =
           std::pair<unsigned, unsigned>(it_begin.second, it_end->second);

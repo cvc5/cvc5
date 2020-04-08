@@ -84,7 +84,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_esolver(nullptr),
       d_rsolver(nullptr),
       d_stringsFmf(c, u, valuation, d_sk_cache),
-      d_strategy_init(false)
+      d_strat(*this)
 {
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
@@ -693,11 +693,8 @@ void TheoryStrings::check(Effort e) {
   }
   d_im.doPendingFacts();
 
-  Assert(d_strategy_init);
-  std::map<Effort, std::pair<unsigned, unsigned> >::iterator itsr =
-      d_strat_steps.find(e);
-  if (!d_state.isInConflict() && !d_valuation.needCheck()
-      && itsr != d_strat_steps.end())
+  Assert(d_strat.isStrategyInit());
+  if (!d_state.isInConflict() && !d_valuation.needCheck() && d_strat.hasStrategyEffort(e))
   {
     Trace("strings-check-debug")
         << "Theory of strings " << e << " effort check " << std::endl;
@@ -744,7 +741,7 @@ void TheoryStrings::check(Effort e) {
     Trace("strings-check") << "Full effort check..." << std::endl;
     do{
       Trace("strings-check") << "  * Run strategy..." << std::endl;
-      runStrategy(sbegin, send);
+      d_strat.runStrategy(sbegin, send);
       // flush the facts
       addedFact = d_im.hasPendingFact();
       addedLemma = d_im.hasPendingLemma();
@@ -1229,126 +1226,6 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
                            << ", addedLemma = " << d_im.hasPendingLemma()
                            << ", conflict = " << d_state.isInConflict()
                            << std::endl;
-}
-
-bool TheoryStrings::hasStrategyEffort(Effort e) const
-{
-  return d_strat_steps.find(e) != d_strat_steps.end();
-}
-
-void TheoryStrings::addStrategyStep(InferStep s, int effort, bool addBreak)
-{
-  // must run check init first
-  Assert((s == CHECK_INIT) == d_infer_steps.empty());
-  // must use check cycles when using flat forms
-  Assert(s != CHECK_FLAT_FORMS
-         || std::find(d_infer_steps.begin(), d_infer_steps.end(), CHECK_CYCLES)
-                != d_infer_steps.end());
-  d_infer_steps.push_back(s);
-  d_infer_step_effort.push_back(effort);
-  if (addBreak)
-  {
-    d_infer_steps.push_back(BREAK);
-    d_infer_step_effort.push_back(0);
-  }
-}
-
-void TheoryStrings::initializeStrategy()
-{
-  // initialize the strategy if not already done so
-  if (!d_strategy_init)
-  {
-    std::map<Effort, unsigned> step_begin;
-    std::map<Effort, unsigned> step_end;
-    d_strategy_init = true;
-    // beginning indices
-    step_begin[EFFORT_FULL] = 0;
-    if (options::stringEager())
-    {
-      step_begin[EFFORT_STANDARD] = 0;
-    }
-    // add the inference steps
-    addStrategyStep(CHECK_INIT);
-    addStrategyStep(CHECK_CONST_EQC);
-    addStrategyStep(CHECK_EXTF_EVAL, 0);
-    addStrategyStep(CHECK_CYCLES);
-    if (options::stringFlatForms())
-    {
-      addStrategyStep(CHECK_FLAT_FORMS);
-    }
-    addStrategyStep(CHECK_EXTF_REDUCTION, 1);
-    if (options::stringEager())
-    {
-      // do only the above inferences at standard effort, if applicable
-      step_end[EFFORT_STANDARD] = d_infer_steps.size() - 1;
-    }
-    if (!options::stringEagerLen())
-    {
-      addStrategyStep(CHECK_REGISTER_TERMS_PRE_NF);
-    }
-    addStrategyStep(CHECK_NORMAL_FORMS_EQ);
-    addStrategyStep(CHECK_EXTF_EVAL, 1);
-    if (!options::stringEagerLen() && options::stringLenNorm())
-    {
-      addStrategyStep(CHECK_LENGTH_EQC, 0, false);
-      addStrategyStep(CHECK_REGISTER_TERMS_NF);
-    }
-    addStrategyStep(CHECK_NORMAL_FORMS_DEQ);
-    addStrategyStep(CHECK_CODES);
-    if (options::stringEagerLen() && options::stringLenNorm())
-    {
-      addStrategyStep(CHECK_LENGTH_EQC);
-    }
-    if (options::stringExp() && !options::stringGuessModel())
-    {
-      addStrategyStep(CHECK_EXTF_REDUCTION, 2);
-    }
-    addStrategyStep(CHECK_MEMBERSHIP);
-    addStrategyStep(CHECK_CARDINALITY);
-    step_end[EFFORT_FULL] = d_infer_steps.size() - 1;
-    if (options::stringExp() && options::stringGuessModel())
-    {
-      step_begin[EFFORT_LAST_CALL] = d_infer_steps.size();
-      // these two steps are run in parallel
-      addStrategyStep(CHECK_EXTF_REDUCTION, 2, false);
-      addStrategyStep(CHECK_EXTF_EVAL, 3);
-      step_end[EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
-    }
-    // set the beginning/ending ranges
-    for (const std::pair<const Effort, unsigned>& it_begin : step_begin)
-    {
-      Effort e = it_begin.first;
-      std::map<Effort, unsigned>::iterator it_end = step_end.find(e);
-      Assert(it_end != step_end.end());
-      d_strat_steps[e] =
-          std::pair<unsigned, unsigned>(it_begin.second, it_end->second);
-    }
-  }
-}
-
-void TheoryStrings::runStrategy(unsigned sbegin, unsigned send)
-{
-  Trace("strings-process") << "----check, next round---" << std::endl;
-  for (unsigned i = sbegin; i <= send; i++)
-  {
-    InferStep curr = d_infer_steps[i];
-    if (curr == BREAK)
-    {
-      if (d_im.hasProcessed())
-      {
-        break;
-      }
-    }
-    else
-    {
-      runInferStep(curr, d_infer_step_effort[i]);
-      if (d_state.isInConflict())
-      {
-        break;
-      }
-    }
-  }
-  Trace("strings-process") << "----finished round---" << std::endl;
 }
 
 }/* CVC4::theory::strings namespace */

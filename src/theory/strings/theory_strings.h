@@ -24,7 +24,6 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
@@ -54,9 +53,9 @@ namespace strings {
  */
 class TheoryStrings : public Theory {
   friend class InferenceManager;
+  friend class Strategy;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
-
  public:
   TheoryStrings(context::Context* c, context::UserContext* u,
                 OutputChannel& out, Valuation valuation,
@@ -86,7 +85,7 @@ class TheoryStrings : public Theory {
   /** preregister term */
   void preRegisterTerm(TNode n) override;
   /** Expand definition */
-  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
+  Node expandDefinition(Node n) override;
   /** Check at effort e */
   void check(Effort e) override;
   /** needs check last effort */
@@ -186,8 +185,7 @@ class TheoryStrings : public Theory {
   };/* class TheoryStrings::NotifyClass */
 
  private:
-  // Constants
-  Node d_emptyString;
+  /** Commonly used constants */
   Node d_true;
   Node d_false;
   Node d_zero;
@@ -243,7 +241,8 @@ class TheoryStrings : public Theory {
   RegExpElimination d_regexp_elim;
   /** Strings finite model finding decision strategy */
   StringsFmf d_stringsFmf;
- protected:
+  /** The representation of the strategy */
+  Strategy d_strat;
   /** compute care graph */
   void computeCareGraph() override;
   /**
@@ -304,8 +303,6 @@ class TheoryStrings : public Theory {
    * - Calling preRegisterTerm on the empty word for tn
    */
   void registerType(TypeNode tn);
-
- private:
   //-----------------------inference steps
   /** check register terms pre-normal forms
    *
@@ -331,42 +328,6 @@ class TheoryStrings : public Theory {
    */
   void checkRegisterTermsNormalForms();
   //-----------------------end inference steps
-
-  //-----------------------representation of the strategy
-  /** is strategy initialized */
-  bool d_strategy_init;
-  /** run the given inference step */
-  void runInferStep(InferStep s, int effort);
-  /** the strategy */
-  std::vector<InferStep> d_infer_steps;
-  /** the effort levels */
-  std::vector<int> d_infer_step_effort;
-  /** the range (begin, end) of steps to run at given efforts */
-  std::map<Effort, std::pair<unsigned, unsigned> > d_strat_steps;
-  /** do we have a strategy for effort e? */
-  bool hasStrategyEffort(Effort e) const;
-  /** initialize the strategy
-   *
-   * This adds (s,effort) as a strategy step to the vectors d_infer_steps and
-   * d_infer_step_effort. This indicates that a call to runInferStep should
-   * be run as the next step in the strategy. If addBreak is true, we add
-   * a BREAK to the strategy following this step.
-   */
-  void addStrategyStep(InferStep s, int effort = 0, bool addBreak = true);
-  /** initialize the strategy
-   *
-   * This initializes the above information based on the options. This makes
-   * a series of calls to addStrategyStep above.
-   */
-  void initializeStrategy();
-  /** run strategy
-   *
-   * This executes the inference steps starting at index sbegin and ending at
-   * index send. We exit if any step in this sequence adds a lemma or infers a
-   * fact.
-   */
-  void runStrategy(unsigned sbegin, unsigned send);
-  //-----------------------end representation of the strategy
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */
