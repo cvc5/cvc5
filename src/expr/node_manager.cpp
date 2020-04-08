@@ -421,7 +421,14 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
   Debug("getType") << this << " getting type for " << &n << " " << n << ", check=" << check << ", needsCheck = " << needsCheck << ", hasType = " << hasType << endl;
   
-  if(needsCheck && !(*d_options)[options::earlyTypeChecking]) {
+#ifdef CVC4_DEBUG
+  // already did type check eagerly upon creation in node builder
+  bool doTypeCheck = false;
+#else
+  bool doTypeCheck = true;
+#endif
+  if (needsCheck && doTypeCheck)
+  {
     /* Iterate and compute the children bottom up. This avoids stack
        overflows in computeType() when the Node graph is really deep,
        which should only affect us when we're type checking lazily. */
