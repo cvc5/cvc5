@@ -420,7 +420,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
 
   Debug("getType") << this << " getting type for " << &n << " " << n << ", check=" << check << ", needsCheck = " << needsCheck << ", hasType = " << hasType << endl;
-  
+
 #ifdef CVC4_DEBUG
   // already did type check eagerly upon creation in node builder
   bool doTypeCheck = false;
