@@ -445,10 +445,6 @@ void TheorySetsPrivate::fullEffortCheck()
             // 4- Supporting cardinality for relations (hard)
           }
         }
-        else if(n.getKind() == kind::CHOOSE)
-        {
-          checkChooseOperator(n);
-        }
         else
         {
           if (d_rels->isRelationKind(n.getKind()))
@@ -567,28 +563,6 @@ void TheorySetsPrivate::fullEffortCheck()
   Trace("sets") << "----- End full effort check, conflict="
                 << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
                 << std::endl;
-}
-
-void TheorySetsPrivate::checkChooseOperator(const Node& node)
-{
-  // Add the following lemma for (choose A):
-  //(and
-  //  (= (choose A) (chooseUf A))
-  //    (or
-  //      (= A (as emptyset setType)
-  //      (member (choose A) A)))
-  NodeManager* nm = NodeManager::currentNM();
-  Node set = node[0];
-  TypeNode setType = set.getType();
-  Node function = d_state.getChooseFunction(setType);
-  Node apply = nm->mkNode(APPLY_UF, function, set);
-  Node equal = node.eqNode(apply);
-  Node emptySet = nm->mkConst(EmptySet(setType.toType()));
-  Node isEmpty = set.eqNode(emptySet);
-  Node member = nm->mkNode(MEMBER, node, set);
-  Node isEmptyOrMember = isEmpty.orNode(member);
-  Node lemma = equal.andNode(isEmptyOrMember);
-  d_im.assertInference(lemma, d_true, "choose ", 1);
 }
 
 void TheorySetsPrivate::checkSubtypes()
@@ -1507,11 +1481,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     case kind::EQUAL: d_equalityEngine.addTriggerEquality(node); break;
     case kind::MEMBER: d_equalityEngine.addTriggerPredicate(node); break;
     case kind::CARD: d_equalityEngine.addTriggerTerm(node, THEORY_SETS); break;
-    case kind::CHOOSE:
-    {
-      d_equalityEngine.addTriggerTerm(node, THEORY_SETS);
-      break;
-    }
     default: d_equalityEngine.addTerm(node); break;
   }
 }
@@ -1522,9 +1491,54 @@ Node TheorySetsPrivate::expandDefinition(LogicRequest& logicRequest, Node node)
 
   if (node.getKind() == kind::CHOOSE)
   {
-    logicRequest.widenLogic(THEORY_UF);
+    // (choose A) is expanded as
+    // (witness ((x elementType))
+    //    (ite
+    //      (= A (as emptyset setType))
+    //      (= x chooseUf(A))
+    //      (and (member x A) (= x chooseUf(A)))
+
+    NodeManager* nm = NodeManager::currentNM();
+    Node set = node[0];
+    TypeNode setType = set.getType();
+    Node chooseSkolem = getChooseFunction(logicRequest, setType);
+    Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
+
+    Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
+
+    Node equal = witnessVariable.eqNode(apply);
+    Node emptySet = nm->mkConst(EmptySet(setType.toType()));
+    Node isEmpty = set.eqNode(emptySet);
+    Node member = nm->mkNode(MEMBER, witnessVariable, set);
+    Node memberAndEqual = member.andNode(equal);
+    Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
+    Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
+    Node witness = nm->mkNode(CHOICE, witnessVariables, ite);
+    return witness;
   }
+
   return node;
+}
+
+Node TheorySetsPrivate::getChooseFunction(LogicRequest& logicRequest,
+                                          const TypeNode& setType)
+{
+  std::map<TypeNode, Node>::iterator it = d_chooseFunctions.find(setType);
+  if (it != d_chooseFunctions.end())
+  {
+    return it->second;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
+  logicRequest.widenLogic(THEORY_UF);
+  stringstream stream;
+  stream << "chooseUf" << setType.getId();
+  string name = stream.str();
+  Node chooseSkolem = nm->mkSkolem(
+      name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
+  d_chooseFunctions[setType] = chooseSkolem;
+  return chooseSkolem;
 }
 
 Theory::PPAssertStatus TheorySetsPrivate::ppAssert(
