@@ -89,11 +89,6 @@ jobs:
         path: deps/install
         key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
-    - name: List dependencies
-      run: |
-        find deps/install -type f
-        cat deps/install/bin/antlr3
-
     - name: Setup Dependencies
       if: steps.restore-deps.outputs.cache-hit != 'true'
       run: |
@@ -102,6 +97,11 @@ jobs:
         ./contrib/get-cadical
         ./contrib/get-cryptominisat
         ./contrib/get-lfsc-checker
+
+    - name: List dependencies
+      run: |
+        find deps/install -type f
+        cat deps/install/bin/antlr3
 
     # GitHub actions currently does not support modifying an already existing
     # cache. Hence, we create a new cache for each commit with key
