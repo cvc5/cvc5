@@ -47,6 +47,8 @@ namespace sygus_interpol {
  *
  * The argument name is the name for the interpol-to-synthesize.
  *
+ * The type itpGType (if non-null) is a sygus datatype type that encodes the grammar that should be used for solutions of the interpolation conjecture.
+ *
  * The relationship between the free variables of asserts and the formal
  * argument list of the interpol-to-synthesize are tracked by the attribute
  * SygusVarToTermAttribute.
@@ -58,7 +60,8 @@ namespace sygus_interpol {
  */
 Node mkInterpolationConjecture(const std::string& name,
                                const std::vector<Node>& axioms,
-                               const Node& conj);
+                               const Node& conj,
+							   TypeNode itpGType);
 }  // namespace sygus_interpol
 }  // namespace quantifiers
 }  // namespace theory

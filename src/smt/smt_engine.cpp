@@ -5287,7 +5287,7 @@ bool SmtEngine::getInterpol(const Expr& conj, const Type& grammarType, Expr& int
 
   Node sygusConj =
       theory::quantifiers::sygus_interpol::mkInterpolationConjecture(
-          name, axioms, conjn);
+          name, axioms, conjn, TypeNode::fromType(grammarType));
   // should be a quantified conjecture with one function-to-synthesize
   Assert(sygusConj.getKind() == kind::FORALL
          && sygusConj[0].getNumChildren() == 1);
