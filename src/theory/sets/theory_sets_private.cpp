@@ -1485,7 +1485,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-Node TheorySetsPrivate::expandDefinition(LogicRequest& logicRequest, Node n)
+Node TheorySetsPrivate::expandDefinition(Node n)
 {
   Debug("sets-proc") << "expandDefinition : " << n << std::endl;
   return n;

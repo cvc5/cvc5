@@ -445,7 +445,7 @@ void BaseSolver::checkCardinality()
         if (!d_state.areDisequal(*itr1, *itr2))
         {
           // add split lemma
-          if (d_im.sendSplit(*itr1, *itr2, "CARD-SP"))
+          if (d_im.sendSplit(*itr1, *itr2, Inference::CARD_SP))
           {
             return;
           }
