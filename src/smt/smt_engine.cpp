@@ -884,7 +884,7 @@ void SmtEngine::finishInit()
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
   d_propEngine.reset(
-      new PropEngine(getTheoryEngine(), getContext(), getUserContext()));
+      new PropEngine(getTheoryEngine(), getContext(), getUserContext(), d_private->getResourceManager()));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -4283,7 +4283,7 @@ void SmtEngine::resetAssertions()
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
   d_propEngine.reset(
-      new PropEngine(getTheoryEngine(), getContext(), getUserContext()));
+      new PropEngine(getTheoryEngine(), getContext(), getUserContext(), d_private->getResourceManager()));
   d_theoryEngine->setPropEngine(getPropEngine());
 }
 
