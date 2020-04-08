@@ -579,7 +579,7 @@ void TLazyBitblaster::clearSolver() {
   // recreate sat solver
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(d_ctx, smtStatisticsRegistry()));
-  ResourceManager* rm = smt::currentResourceManager();
+  ResourceManager* rm = NodeManager::currentResourceManager();
   d_cnfStream.reset(new prop::TseitinCnfStream(
       d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get(), rm));
   d_satSolverNotify.reset(
