@@ -40,28 +40,6 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-std::ostream& operator<<(std::ostream& out, InferStep s)
-{
-  switch (s)
-  {
-    case BREAK: out << "break"; break;
-    case CHECK_INIT: out << "check_init"; break;
-    case CHECK_CONST_EQC: out << "check_const_eqc"; break;
-    case CHECK_EXTF_EVAL: out << "check_extf_eval"; break;
-    case CHECK_CYCLES: out << "check_cycles"; break;
-    case CHECK_FLAT_FORMS: out << "check_flat_forms"; break;
-    case CHECK_NORMAL_FORMS_EQ: out << "check_normal_forms_eq"; break;
-    case CHECK_NORMAL_FORMS_DEQ: out << "check_normal_forms_deq"; break;
-    case CHECK_CODES: out << "check_codes"; break;
-    case CHECK_LENGTH_EQC: out << "check_length_eqc"; break;
-    case CHECK_EXTF_REDUCTION: out << "check_extf_reduction"; break;
-    case CHECK_MEMBERSHIP: out << "check_membership"; break;
-    case CHECK_CARDINALITY: out << "check_cardinality"; break;
-    default: out << "?"; break;
-  }
-  return out;
-}
-
 TheoryStrings::TheoryStrings(context::Context* c,
                              context::UserContext* u,
                              OutputChannel& out,
