@@ -640,7 +640,8 @@ void TheoryStrings::preRegisterTerm(TNode n) {
   }
 }
 
-Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
+Node TheoryStrings::expandDefinition(Node node)
+{
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
 
   if (node.getKind() == STRING_FROM_CODE)
