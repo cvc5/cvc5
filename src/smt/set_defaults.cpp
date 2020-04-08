@@ -527,7 +527,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       Notice()
           << "Enabling linear integer arithmetic because strings are enabled"
-          << endl;
+          << std::endl;
       log.enableTheory(THEORY_ARITH);
       log.enableIntegers();
       log.arithOnlyLinear();
@@ -542,15 +542,15 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       || logic.isTheoryEnabled(THEORY_SETS)
       // Non-linear arithmetic requires UF to deal with division/mod because
       // their expansion introduces UFs for the division/mod-by-zero case.
-      || (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear())
+      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
       // If division/mod-by-zero is not treated as a constant value in BV, we
       // need UF.
-      || (d_logic.isTheoryEnabled(THEORY_BV)
+      || (logic.isTheoryEnabled(THEORY_BV)
           && !options::bitvectorDivByZeroConst())
       // FP requires UF since there are multiple operators that are partially
       // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
       // details).
-      || d_logic.isTheoryEnabled(THEORY_FP))
+      || logic.isTheoryEnabled(THEORY_FP))
   {
     if (!logic.isTheoryEnabled(THEORY_UF))
     {
