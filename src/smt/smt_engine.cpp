@@ -1292,16 +1292,6 @@ void SmtEnginePrivate::finishInit()
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_preprocessingPassContext.get());
-
-  // TODO: this will likely change when we add support for actually assembling
-  // preprocessing pipelines. For now, we just create an instance of each
-  // available preprocessing pass.
-  std::vector<std::string> passNames = ppReg.getAvailablePasses();
-  for (const std::string& passName : passNames)
-  {
-    d_passes[passName].reset(
-        ppReg.createPass(d_preprocessingPassContext.get(), passName));
-  }
 }
 
 Result SmtEngine::check() {
