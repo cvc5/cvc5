@@ -100,9 +100,9 @@ class MonomialDb
    * x^2 * y may map to { x, x^2, y } if these three terms exist have been
    * registered to this class.
    */
-  std::map<Node, std::vector<Node> >& getContainsChildrenMap();
+  const std::map<Node, std::vector<Node> >& getContainsChildrenMap();
   /** Get monomial contains parent map, reverse of above */
-  std::map<Node, std::vector<Node> >& getContainsParentMap();
+  const std::map<Node, std::vector<Node> >& getContainsParentMap();
   /**
    * Get contains difference. Return the difference of a and b or null if it
    * does not exist. In other words, this returns a term equivalent to a/b

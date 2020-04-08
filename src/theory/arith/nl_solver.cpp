@@ -61,6 +61,7 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
   }
   return false;
 }
+
 NlSolver::NlSolver(TheoryArith& containing, NlModel& model)
     : d_containing(containing),
       d_model(model),
@@ -858,7 +859,7 @@ std::vector<Node> NlSolver::checkTangentPlanes()
   std::vector<Node> lemmas;
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  std::map<Node, std::vector<Node> >& ccMap = d_mdb.getContainsChildrenMap();
+  const std::map<Node, std::vector<Node> >& ccMap = d_mdb.getContainsChildrenMap();
   unsigned kstart = d_ms_vars.size();
   for (unsigned k = kstart; k < d_mterms.size(); k++)
   {
@@ -871,7 +872,7 @@ std::vector<Node> NlSolver::checkTangentPlanes()
     Trace("nl-ext-tplanes")
         << "Look at monomial requiring refinement : " << t << std::endl;
     // get a decomposition
-    std::map<Node, std::vector<Node> >::iterator it = ccMap.find(t);
+    std::map<Node, std::vector<Node> >::const_iterator it = ccMap.find(t);
     if (it == ccMap.end())
     {
       continue;
@@ -1022,7 +1023,7 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
   d_mterms.insert(d_mterms.end(), d_ms_vars.begin(), d_ms_vars.end());
   d_mterms.insert(d_mterms.end(), d_ms.begin(), d_ms.end());
 
-  std::map<Node, std::map<Node, ConstraintInfo> >& cim = d_cdb.getConstraints();
+  const std::map<Node, std::map<Node, ConstraintInfo> >& cim = d_cdb.getConstraints();
 
   std::vector<Node> lemmas;
   NodeManager* nm = NodeManager::currentNM();
@@ -1037,7 +1038,7 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
         std::find(false_asserts.begin(), false_asserts.end(), lit)
         != false_asserts.end();
     // add information about bounds to variables
-    std::map<Node, std::map<Node, ConstraintInfo> >::iterator itc =
+    std::map<Node, std::map<Node, ConstraintInfo> >::const_iterator itc =
         cim.find(atom);
     if (itc == cim.end())
     {
@@ -1158,13 +1159,13 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
   }
 
   Trace("nl-ext") << "Get inferred bound lemmas..." << std::endl;
-  std::map<Node, std::vector<Node> >& cpMap = d_mdb.getContainsParentMap();
+  const std::map<Node, std::vector<Node> >& cpMap = d_mdb.getContainsParentMap();
   for (unsigned k = 0; k < d_mterms.size(); k++)
   {
     Node x = d_mterms[k];
     Trace("nl-ext-bound-debug")
         << "Process bounds for " << x << " : " << std::endl;
-    std::map<Node, std::vector<Node> >::iterator itm = cpMap.find(x);
+    std::map<Node, std::vector<Node> >::const_iterator itm = cpMap.find(x);
     if (itm == cpMap.end())
     {
       Trace("nl-ext-bound-debug") << "...has no parent monomials." << std::endl;

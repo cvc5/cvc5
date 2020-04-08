@@ -60,7 +60,7 @@ class ConstraintDb
    * m[lit][x] = ( r, coeff, k ), then
    * ( lit <=>  (coeff * x) <k> r )
    */
-  std::map<Node, std::map<Node, ConstraintInfo> >& getConstraints();
+  const std::map<Node, std::map<Node, ConstraintInfo> >& getConstraints();
   /** Returns true if m is of maximal degree in atom
    *
    * For example, for atom x^2 + x*y + y >=0, the monomials x^2 and x*y
