@@ -1295,8 +1295,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     return;
   }
 
-  if (!d_logicInfo.isSharingEnabled())
-  {
+  // If sharing is disabled, things are easy
+  if (!d_logicInfo.isSharingEnabled()) {
     Assert(assertion == originalAssertion);
     if (fromTheoryId == THEORY_SAT_SOLVER) {
       // Send to the apropriate theory
