@@ -1947,7 +1947,6 @@ set(regress_1_tests
   regress1/sygus/uf-abduct.smt2
   regress1/sygus/unbdd_inv_gen_ex7.sy
   regress1/sygus/unbdd_inv_gen_winf1.sy
-  regress1/sygus/unifpi-solve-car_1.lus.sy
   regress1/sygus/univ_2-long-repeat.sy
   regress1/sym/q-constant.smt2
   regress1/sym/q-function.smt2
@@ -2398,6 +2397,8 @@ set(regression_disabled_tests
   regress1/sygus/Base16_1.sy
   regress1/sygus/enum-test.sy
   regress1/sygus/inv_gen_fig8.sy
+  # slow (179 seconds) in debug at 45e489e2
+  regress1/sygus/unifpi-solve-car_1.lus.sy
   # rely on heuristic solution reconstruction TODO #3146 revisit
   regress1/sygus/array_search_2.sy
   regress1/sygus/array_sum_2_5.sy
