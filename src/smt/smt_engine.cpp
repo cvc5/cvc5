@@ -1588,8 +1588,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
         theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
 
         Assert(t != NULL);
-        LogicRequest req(d_smt);
-        node = t->expandDefinition(req, n);
+        node = t->expandDefinition(n);
       }
 
       // the partial functions can fall through, in which case we still

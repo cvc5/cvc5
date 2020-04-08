@@ -582,6 +582,8 @@ set(regress_0_tests
   regress0/nl/issue3719.smt2
   regress0/nl/issue3729-cm-solved-tf.smt2
   regress0/nl/issue3959.smt2
+  regress0/nl/issue3971.smt2
+  regress0/nl/issue3991.smt2
   regress0/nl/issue4007-rint-uf.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
