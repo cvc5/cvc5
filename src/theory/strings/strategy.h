@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__STRINGS__STRATEGY_H
 #define CVC4__THEORY__STRINGS__STRATEGY_H
 
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "theory/theory.h"
 
@@ -69,13 +69,14 @@ std::ostream& operator<<(std::ostream& out, InferStep i);
 
 class TheoryStrings;
 
-/** 
+/**
  * The strategy of theory of strings.
  *
  * This stores a sequence of the above enum that indicates the calls to
  * runInferStep to make on the theory of strings, given by parent.
  */
-class Strategy {
+class Strategy
+{
  public:
   Strategy(TheoryStrings& parent);
   ~Strategy();
@@ -91,7 +92,8 @@ class Strategy {
   void initializeStrategy();
   /** run strategy for effort e */
   void runStrategy(Theory::Effort e);
-private:
+
+ private:
   /** Reference to the parent */
   TheoryStrings& d_parent;
   /** is strategy initialized */
@@ -110,10 +112,10 @@ private:
    * a BREAK to the strategy following this step.
    */
   void addStrategyStep(InferStep s, int effort = 0, bool addBreak = true);
-};/* class Strategy */
+}; /* class Strategy */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__STRINGS__STRATEGY_H */

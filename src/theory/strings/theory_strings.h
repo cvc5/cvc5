@@ -37,9 +37,9 @@
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/strategy.h"
 #include "theory/strings/strings_fmf.h"
 #include "theory/strings/strings_rewriter.h"
-#include "theory/strings/strategy.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -259,7 +259,7 @@ class TheoryStrings : public Theory {
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
                     unsigned arity,
-                    unsigned depth);  
+                    unsigned depth);
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type
@@ -333,6 +333,8 @@ class TheoryStrings : public Theory {
    */
   void checkRegisterTermsNormalForms();
   //-----------------------end inference steps
+  /** run the given inference step */
+  void runInferStep(InferStep s, int effort);
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

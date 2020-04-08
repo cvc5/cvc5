@@ -672,7 +672,8 @@ void TheoryStrings::check(Effort e) {
   d_im.doPendingFacts();
 
   Assert(d_strat.isStrategyInit());
-  if (!d_state.isInConflict() && !d_valuation.needCheck() && d_strat.hasStrategyEffort(e))
+  if (!d_state.isInConflict() && !d_valuation.needCheck()
+      && d_strat.hasStrategyEffort(e))
   {
     Trace("strings-check-debug")
         << "Theory of strings " << e << " effort check " << std::endl;
@@ -711,7 +712,7 @@ void TheoryStrings::check(Effort e) {
         Trace("strings-eqc") << std::endl;
       }
       Trace("strings-eqc") << std::endl;
-    }  
+    }
     bool addedLemma = false;
     bool addedFact;
     Trace("strings-check") << "Full effort check..." << std::endl;
