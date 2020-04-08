@@ -75,6 +75,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
+      d_registeredTypesCache(u),
       d_functionsTerms(c),
       d_has_str_code(false),
       d_rewriter(&d_statistics.d_rewrites),
@@ -122,7 +123,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_emptyString = Word::mkEmptyWord(CONST_STRING);
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -640,7 +640,8 @@ void TheoryStrings::preRegisterTerm(TNode n) {
   }
 }
 
-Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
+Node TheoryStrings::expandDefinition(Node node)
+{
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
 
   if (node.getKind() == STRING_FROM_CODE)
@@ -654,12 +655,12 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
-    node = nm->mkNode(CHOICE,
-                      bvl,
-                      nm->mkNode(ITE,
-                                 cond,
-                                 t.eqNode(nm->mkNode(STRING_TO_CODE, k)),
-                                 k.eqNode(d_emptyString)));
+    Node emp = Word::mkEmptyWord(node.getType());
+    node = nm->mkNode(
+        CHOICE,
+        bvl,
+        nm->mkNode(
+            ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
   }
 
   return node;
@@ -674,12 +675,6 @@ void TheoryStrings::check(Effort e) {
 
   bool polarity;
   TNode atom;
-
-  if (!done() && !d_equalityEngine.hasTerm(d_emptyString))
-  {
-    preRegisterTerm( d_emptyString );
-  }
-
   // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
   Trace("strings-check-debug")
       << "Theory of strings, check : " << e << std::endl;
@@ -1020,7 +1015,7 @@ void TheoryStrings::checkCodes()
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
         {
-          d_im.sendInference(d_empty_vec, cc.eqNode(vc), "Code_Proxy");
+          d_im.sendInference(d_empty_vec, cc.eqNode(vc), Inference::CODE_PROXY);
         }
         const_codes.push_back(vc);
       }
@@ -1058,7 +1053,7 @@ void TheoryStrings::checkCodes()
           // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
           Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
           d_im.sendPhaseRequirement(deq, false);
-          d_im.sendInference(d_empty_vec, inj_lem, "Code_Inj");
+          d_im.sendInference(d_empty_vec, inj_lem, Inference::CODE_INJ);
         }
       }
     }
@@ -1089,6 +1084,8 @@ void TheoryStrings::registerTerm(Node n, int effort)
     return;
   }
   d_registered_terms_cache.insert(n);
+  // ensure the type is registered
+  registerType(tn);
   NodeManager* nm = NodeManager::currentNM();
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
@@ -1127,6 +1124,24 @@ void TheoryStrings::registerTerm(Node n, int effort)
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
     d_out->lemma(regTermLem);
+  }
+}
+
+void TheoryStrings::registerType(TypeNode tn)
+{
+  if (d_registeredTypesCache.find(tn) != d_registeredTypesCache.end())
+  {
+    return;
+  }
+  d_registeredTypesCache.insert(tn);
+  if (tn.isStringLike())
+  {
+    // preregister the empty word for the type
+    Node emp = Word::mkEmptyWord(tn);
+    if (!d_equalityEngine.hasTerm(emp))
+    {
+      preRegisterTerm(emp);
+    }
   }
 }
 

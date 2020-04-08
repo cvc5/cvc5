@@ -45,6 +45,49 @@ namespace smt {
 
 void setDefaults(SmtEngine& smte, LogicInfo& logic)
 {
+  // implied options
+  if (options::checkModels() || options::dumpModels())
+  {
+    Notice() << "SmtEngine: setting produceModels" << std::endl;
+    options::produceModels.set(true);
+  }
+  if (options::checkModels())
+  {
+    Notice() << "SmtEngine: setting produceAssignments" << std::endl;
+    options::produceAssignments.set(true);
+  }
+  if (options::dumpUnsatCoresFull())
+  {
+    Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
+    options::dumpUnsatCores.set(true);
+  }
+  if (options::checkUnsatCores() || options::dumpUnsatCores()
+      || options::unsatAssumptions())
+  {
+    Notice() << "SmtEngine: setting unsatCores" << std::endl;
+    options::unsatCores.set(true);
+  }
+  if (options::checkProofs() || options::dumpProofs())
+  {
+    Notice() << "SmtEngine: setting proof" << std::endl;
+    options::proof.set(true);
+  }
+  if (options::bitvectorAigSimplifications.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
+    options::bitvectorAig.set(true);
+  }
+  if (options::bitvectorEqualitySlicer.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorEqualitySolver" << std::endl;
+    options::bitvectorEqualitySolver.set(true);
+  }
+  if (options::bitvectorAlgebraicBudget.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
+    options::bitvectorAlgebraicSolver.set(true);
+  }
+
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
@@ -489,23 +532,25 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  // Theory widening
+  //
+  // Some theories imply the use of other theories to handle certain operators,
+  // e.g. UF to handle partial functions.
+  /////////////////////////////////////////////////////////////////////////////
+  bool needsUf = false;
   // strings require LIA, UF; widen the logic
   if (logic.isTheoryEnabled(THEORY_STRINGS))
   {
     LogicInfo log(logic.getUnlockedCopy());
     // Strings requires arith for length constraints, and also UF
-    if (!logic.isTheoryEnabled(THEORY_UF))
-    {
-      Trace("smt") << "because strings are enabled, also enabling UF"
-                   << std::endl;
-      log.enableTheory(THEORY_UF);
-    }
+    needsUf = true;
     if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic()
         || !logic.areIntegersUsed())
     {
-      Trace("smt") << "because strings are enabled, also enabling linear "
-                      "integer arithmetic"
-                   << std::endl;
+      Notice()
+          << "Enabling linear integer arithmetic because strings are enabled"
+          << std::endl;
       log.enableTheory(THEORY_ARITH);
       log.enableIntegers();
       log.arithOnlyLinear();
@@ -513,21 +558,34 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     logic = log;
     logic.lock();
   }
-  if (logic.isTheoryEnabled(THEORY_ARRAYS)
+  if (needsUf
+      // Arrays, datatypes and sets permit Boolean terms and thus require UF
+      || logic.isTheoryEnabled(THEORY_ARRAYS)
       || logic.isTheoryEnabled(THEORY_DATATYPES)
-      || logic.isTheoryEnabled(THEORY_SETS))
+      || logic.isTheoryEnabled(THEORY_SETS)
+      // Non-linear arithmetic requires UF to deal with division/mod because
+      // their expansion introduces UFs for the division/mod-by-zero case.
+      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
+      // If division/mod-by-zero is not treated as a constant value in BV, we
+      // need UF.
+      || (logic.isTheoryEnabled(THEORY_BV)
+          && !options::bitvectorDivByZeroConst())
+      // FP requires UF since there are multiple operators that are partially
+      // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
+      // details).
+      || logic.isTheoryEnabled(THEORY_FP))
   {
     if (!logic.isTheoryEnabled(THEORY_UF))
     {
       LogicInfo log(logic.getUnlockedCopy());
-      Trace("smt") << "because a theory that permits Boolean terms is enabled, "
-                      "also enabling UF"
-                   << std::endl;
+      Notice() << "Enabling UF because " << logic << " requires it."
+               << std::endl;
       log.enableTheory(THEORY_UF);
       logic = log;
       logic.lock();
     }
   }
+  /////////////////////////////////////////////////////////////////////////////
 
   // by default, symmetry breaker is on only for non-incremental QF_UF
   if (!options::ufSymmetryBreaker.wasSetByUser())

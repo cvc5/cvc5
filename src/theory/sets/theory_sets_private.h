@@ -209,7 +209,7 @@ class TheorySetsPrivate {
    * Another option to fix this is to make TheoryModel::getValue more general
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
-  Node expandDefinition(LogicRequest &logicRequest, Node n);
+  Node expandDefinition(Node n);
 
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   
@@ -262,6 +262,12 @@ class TheorySetsPrivate {
   bool isMember(Node x, Node s);
 
  private:
+  /** get choose function
+   *
+   * Returns the existing uninterpreted function for the choose operator for the
+   * given set type, or creates a new one if it does not exist.
+   */
+  Node getChooseFunction(const TypeNode& setType);
   /** The state of the sets solver at full effort */
   SolverState d_state;
   /** The inference manager of the sets solver */
@@ -285,6 +291,11 @@ class TheorySetsPrivate {
 
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;
+
+  /*
+   * a map that stores the choose functions for set types
+   */
+  std::map<TypeNode, Node> d_chooseFunctions;
 };/* class TheorySetsPrivate */
 
 
