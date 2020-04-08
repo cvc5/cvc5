@@ -116,7 +116,7 @@ bool Instantiate::addInstantiation(
     // Ensure the type is correct, this for instance ensures that real terms
     // are cast to integers for { x -> t } where x has type Int and t has
     // type Real.
-    terms[i] = quantifiers::TermUtil::ensureType(terms[i], tn);
+    terms[i] = ensureType(terms[i], tn);
     if (mkRep)
     {
       // pick the best possible representative for instantiation, based on past
