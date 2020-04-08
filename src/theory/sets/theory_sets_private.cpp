@@ -1501,7 +1501,7 @@ Node TheorySetsPrivate::expandDefinition(LogicRequest& logicRequest, Node node)
     NodeManager* nm = NodeManager::currentNM();
     Node set = node[0];
     TypeNode setType = set.getType();
-    Node chooseSkolem = getChooseFunction(logicRequest, setType);
+    Node chooseSkolem = getChooseFunction(setType);
     Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
 
     Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
@@ -1520,8 +1520,7 @@ Node TheorySetsPrivate::expandDefinition(LogicRequest& logicRequest, Node node)
   return node;
 }
 
-Node TheorySetsPrivate::getChooseFunction(LogicRequest& logicRequest,
-                                          const TypeNode& setType)
+Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
 {
   std::map<TypeNode, Node>::iterator it = d_chooseFunctions.find(setType);
   if (it != d_chooseFunctions.end())
@@ -1531,7 +1530,6 @@ Node TheorySetsPrivate::getChooseFunction(LogicRequest& logicRequest,
 
   NodeManager* nm = NodeManager::currentNM();
   TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
-  logicRequest.widenLogic(THEORY_UF);
   stringstream stream;
   stream << "chooseUf" << setType.getId();
   string name = stream.str();

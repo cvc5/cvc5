@@ -540,6 +540,12 @@ void LogicInfo::setLogicString(std::string logicString)
     IllegalArgument(logicString, err.str().c_str());
   }
 
+  if (d_theories[THEORY_SETS])
+  {
+    // enable THEORY_UF for the choose operator
+    enableTheory(THEORY_UF);
+  }
+
   // ensure a getLogic() returns the same thing as was set
   d_logicString = logicString;
 }

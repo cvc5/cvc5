@@ -264,11 +264,10 @@ class TheorySetsPrivate {
  private:
   /** get choose function
    *
-   * Returns the existing choose uninterpreted function for the given set or
-   * creates a new one if it does not exist. If the function is created, the
-   * logic is widened to include UF.
+   * Returns the existing uninterpreted function for the choose operator for the
+   * given set type, or creates a new one if it does not exist.
    */
-  Node getChooseFunction(LogicRequest& logicRequest, const TypeNode& setType);
+  Node getChooseFunction(const TypeNode& setType);
   /** The state of the sets solver at full effort */
   SolverState d_state;
   /** The inference manager of the sets solver */
