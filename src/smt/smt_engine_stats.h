@@ -32,7 +32,7 @@ struct SmtEngineStatistics
   IntStat d_numConstantProps;
   /** time spent converting to CNF */
   TimerStat d_cnfConversionTime;
-  /** Num of assertions before ite removal */
+  /** Number of assertions before ite removal */
   IntStat d_numAssertionsPre;
   /** Num of assertions after ite removal */
   IntStat d_numAssertionsPost;
