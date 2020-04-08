@@ -859,7 +859,8 @@ std::vector<Node> NlSolver::checkTangentPlanes()
   std::vector<Node> lemmas;
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  const std::map<Node, std::vector<Node> >& ccMap = d_mdb.getContainsChildrenMap();
+  const std::map<Node, std::vector<Node> >& ccMap =
+      d_mdb.getContainsChildrenMap();
   unsigned kstart = d_ms_vars.size();
   for (unsigned k = kstart; k < d_mterms.size(); k++)
   {
@@ -1023,7 +1024,8 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
   d_mterms.insert(d_mterms.end(), d_ms_vars.begin(), d_ms_vars.end());
   d_mterms.insert(d_mterms.end(), d_ms.begin(), d_ms.end());
 
-  const std::map<Node, std::map<Node, ConstraintInfo> >& cim = d_cdb.getConstraints();
+  const std::map<Node, std::map<Node, ConstraintInfo> >& cim =
+      d_cdb.getConstraints();
 
   std::vector<Node> lemmas;
   NodeManager* nm = NodeManager::currentNM();
@@ -1159,7 +1161,8 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
   }
 
   Trace("nl-ext") << "Get inferred bound lemmas..." << std::endl;
-  const std::map<Node, std::vector<Node> >& cpMap = d_mdb.getContainsParentMap();
+  const std::map<Node, std::vector<Node> >& cpMap =
+      d_mdb.getContainsParentMap();
   for (unsigned k = 0; k < d_mterms.size(); k++)
   {
     Node x = d_mterms[k];
