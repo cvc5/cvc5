@@ -207,7 +207,7 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
     Node q = d_qe->getTermUtil()->getInstConstAttr( n );
     //merge the RDomains
     unsigned id = n.getAttribute(InstVarNumAttribute());
-    Assert(q[0][id].getType()==n.getType());
+    Assert(q[0][id].getType() == n.getType());
     Trace("rel-dom-debug") << n << " is variable # " << id << " for " << q;
     Trace("rel-dom-debug") << " with body : " << d_qe->getTermUtil()->getInstConstantBody( q ) << std::endl;
     RDomain * rq = getRDomain( q, id );
@@ -230,9 +230,9 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
       if( n[i].getKind()==INST_CONSTANT ){
         // must get the quantified formula this belongs to, which may be
         // different from q
-        Node qi = d_qe->getTermUtil()->getInstConstAttr( n[i] );
+        Node qi = d_qe->getTermUtil()->getInstConstAttr(n[i]);
         unsigned id = n[i].getAttribute(InstVarNumAttribute());
-        d_rel_dom_lit[hasPol][pol][n].d_rd[i] = getRDomain( qi, id, false );
+        d_rel_dom_lit[hasPol][pol][n].d_rd[i] = getRDomain(qi, id, false);
         varCount++;
         varCh = i;
       }else{
