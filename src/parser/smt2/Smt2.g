@@ -661,7 +661,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
   std::string name;
   unsigned startIndex = 0;
   std::vector<std::vector<CVC4::SygusGTerm>> sgts;
-  std::vector<api::DatatypeDecl> datatypes;
+  std::vector<CVC4::Datatype> datatypes;
   std::vector<api::Sort> sorts;
   std::vector<std::vector<ParseOp>> ops;
   std::vector<std::vector<std::string>> cnames;
@@ -764,7 +764,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
             "Internal error : could not infer "
             "builtin sort for nested gterm.");
       }
-      datatypes[i].getDatatype().setSygus(
+      datatypes[i].setSygus(
           sorts[i].getType(), bvl.getExpr(), allow_const[i], false);
       PARSER_STATE->mkSygusDatatype(datatypes[i],
                                     ops[i],
@@ -783,22 +783,12 @@ sygusGrammarV1[CVC4::api::Sort & ret,
                             << std::endl;
     }
 
-    std::vector<CVC4::Datatype> dtypes;
-    dtypes.reserve(ndatatypes);
-
-    for (api::DatatypeDecl i : datatypes)
-    {
-      dtypes.push_back(i.getDatatype());
-    }
-
     std::set<Type> tset =
         api::sortSetToTypes(PARSER_STATE->getUnresolvedSorts());
 
     std::vector<DatatypeType> datatypeTypes =
         SOLVER->getExprManager()->mkMutualDatatypeTypes(
-            dtypes, tset, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-
-    PARSER_STATE->getUnresolvedSorts().clear();
+            datatypes, tset, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
 
     ret = datatypeTypes[0];
   };
