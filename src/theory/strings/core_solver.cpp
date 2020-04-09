@@ -1415,13 +1415,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     for (unsigned xory = 0; xory < 2; xory++)
     {
       Node t = xory == 0 ? x : y;
-      Node tnz = x.eqNode(emp).negate();
-      if (ee->areDisequal(x, emp, true))
+      Node tnz = d_state.explainNonEmpty(x);
+      if (!tnz.isNull())
       {
         info.d_ant.push_back(tnz);
       }
       else
       {
+        tnz = x.eqNode(emp).negate();
         info.d_antn.push_back(tnz);
       }
     }
@@ -1567,7 +1568,8 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     // the equality could rewrite to false
     if (!split_eqr.isConst())
     {
-      if (!d_state.areDisequal(t, emp))
+      Node expNonEmpty = d_state.explainNonEmpty(t);
+      if (expNonEmpty.isNull())
       {
         // try to make t equal to empty to avoid loop
         info.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
@@ -1576,7 +1578,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
       }
       else
       {
-        info.d_ant.push_back(split_eq.negate());
+        info.d_ant.push_back(expNonEmpty);
       }
     }
     else
@@ -1783,8 +1785,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
         Node ck = x.isConst() ? x : y;
         Node nck = x.isConst() ? y : x;
         Node nckLenTerm = x.isConst() ? yLenTerm : xLenTerm;
-        Node emp = Word::mkEmptyWord(nck.getType());
-        if (!ee->areDisequal(nck, emp, true))
+        Node expNonEmpty = d_state.explainNonEmpty(nck);
+        if (expNonEmpty.isNull())
         {
           // Either `x` or `y` is a constant and the other may be equal to the
           // empty string in the current context. We split on whether it
@@ -1848,7 +1850,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
               nck.eqNode(nm->mkNode(kind::STRING_CONCAT, firstChar, skr));
           std::vector<Node> antec(nfni.d_exp.begin(), nfni.d_exp.end());
           antec.insert(antec.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
-          antec.push_back(nck.eqNode(emp).negate());
+          antec.push_back(expNonEmpty);
           d_im.sendInference(
               antec,
               nm->mkNode(
