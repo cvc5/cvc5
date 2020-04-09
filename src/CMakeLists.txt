@@ -223,6 +223,7 @@ libcvc4_add_sources(
   smt/command.h
   smt/command_list.cpp
   smt/command_list.h
+  smt/defined_function.h
   smt/dump.cpp
   smt/dump.h
   smt/logic_exception.h
@@ -236,12 +237,16 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/process_assertions.cpp
+  smt/process_assertions.h
   smt/set_defaults.cpp
   smt/set_defaults.h
   smt/smt_engine.cpp
   smt/smt_engine.h
   smt/smt_engine_scope.cpp
   smt/smt_engine_scope.h
+  smt/smt_engine_stats.cpp
+  smt/smt_engine_stats.h
   smt/smt_statistics_registry.cpp
   smt/smt_statistics_registry.h
   smt/term_formula_removal.cpp

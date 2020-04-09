@@ -61,6 +61,12 @@ nullaryoperator UNIVERSE_SET "(finite) universe set, all set variables must be i
 # finite sets with quantified formulas.
 operator COMPREHENSION 3 "set comprehension specified by a bound variable list, a predicate, and a term."
 
+# The operator choose returns an element from a given set.
+# If set A = {x}, then the term (choose A) is equivalent to the term x.
+# If the set is empty, then (choose A) is an arbitrary value.
+# If the set has cardinality > 1, then (choose A) will deterministically return an element in A.
+operator CHOOSE        1  "return an element in the set given as a parameter"
+
 operator JOIN 		   2  "set join"
 operator PRODUCT 	   2  "set cartesian product"
 operator TRANSPOSE 	   1  "set transpose"
@@ -80,6 +86,7 @@ typerule CARD           ::CVC4::theory::sets::CardTypeRule
 typerule COMPLEMENT     ::CVC4::theory::sets::ComplementTypeRule
 typerule UNIVERSE_SET   ::CVC4::theory::sets::UniverseSetTypeRule
 typerule COMPREHENSION  ::CVC4::theory::sets::ComprehensionTypeRule
+typerule CHOOSE         ::CVC4::theory::sets::ChooseTypeRule
 
 typerule JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule
@@ -95,6 +102,7 @@ construle SINGLETON     ::CVC4::theory::sets::SingletonTypeRule
 construle INSERT        ::CVC4::theory::sets::InsertTypeRule
 construle CARD          ::CVC4::theory::sets::CardTypeRule
 construle COMPLEMENT    ::CVC4::theory::sets::ComplementTypeRule
+construle CHOOSE        ::CVC4::theory::sets::ChooseTypeRule
 
 construle JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 construle PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule

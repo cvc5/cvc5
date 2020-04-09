@@ -205,6 +205,9 @@ tokens {
   BVSLE_TOK = 'BVSLE';
   BVSGE_TOK = 'BVSGE';
 
+  // Sets
+  SETS_CHOOSE_TOK = 'CHOOSE';
+
   // Relations
   JOIN_TOK = 'JOIN';
   TRANSPOSE_TOK = 'TRANSPOSE';
@@ -327,7 +330,8 @@ int getOperatorPrecedence(int type) {
   case PRODUCT_TOK:
   case IDEN_TOK:
   case JOIN_IMAGE_TOK:
-  case TRANSCLOSURE_TOK: return 24;
+  case TRANSCLOSURE_TOK:
+  case SETS_CHOOSE_TOK: return 24;
   case LEQ_TOK:
   case LT_TOK:
   case GEQ_TOK:
@@ -367,9 +371,11 @@ api::Kind getOperatorKind(int type, bool& negate) {
   case XOR_TOK: return api::XOR;
   case AND_TOK: return api::AND;
 
+  case SETS_CHOOSE_TOK: return api::CHOOSE;
   case PRODUCT_TOK: return api::PRODUCT;
   case JOIN_TOK: return api::JOIN;
   case JOIN_IMAGE_TOK: return api::JOIN_IMAGE;
+
 
     // comparisonBinop
   case EQUAL_TOK: return api::EQUAL;
@@ -2097,6 +2103,8 @@ setsTerm[CVC4::api::Term& f]
     /* Sets prefix operators */
   : SETS_CARD_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::CARD, f); }
+  | SETS_CHOOSE_TOK LPAREN formula[f] RPAREN
+        { f = MK_TERM(CVC4::api::CHOOSE, f); }
   | simpleTerm[f]
   ;
 
