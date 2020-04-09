@@ -201,7 +201,8 @@ unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
   return node.getKind()==kind::APPLY_UF ? 0 : 1;
 }
 
-Node TheoryUF::expandDefinition(LogicRequest &logicRequest, Node node) {
+Node TheoryUF::expandDefinition(Node node)
+{
   Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
                       << node << std::endl;
   if( node.getKind()==kind::HO_APPLY ){

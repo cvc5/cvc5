@@ -463,6 +463,7 @@ set(regress_0_tests
   regress0/declare-funs.smt2
   regress0/define-fun-model.smt2
   regress0/distinct.smtv1.smt2
+  regress0/simple-dump-model.smt2
   regress0/expect/scrub.01.smtv1.smt2
   regress0/expect/scrub.03.smt2
   regress0/expect/scrub.06.cvc
@@ -581,6 +582,8 @@ set(regress_0_tests
   regress0/nl/issue3719.smt2
   regress0/nl/issue3729-cm-solved-tf.smt2
   regress0/nl/issue3959.smt2
+  regress0/nl/issue3971.smt2
+  regress0/nl/issue3991.smt2
   regress0/nl/issue4007-rint-uf.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -1641,6 +1644,11 @@ set(regress_1_tests
   regress1/sep/wand-simp-sat.smt2
   regress1/sep/wand-simp-sat2.smt2
   regress1/sep/wand-simp-unsat.smt2
+  regress1/sets/choose.cvc
+  regress1/sets/choose1.smt2
+  regress1/sets/choose2.smt2
+  regress1/sets/choose3.smt2
+  regress1/sets/choose4.smt2
   regress1/sets/ListElem.hs.fqout.cvc4.38.smt2
   regress1/sets/ListElts.hs.fqout.cvc4.317.smt2
   regress1/sets/TalkingAboutSets.hs.fqout.cvc4.3577.smt2
@@ -2050,7 +2058,6 @@ set(regress_2_tests
   regress2/sygus/ex23.sy
   regress2/sygus/examples-deq.sy
   regress2/sygus/icfp_easy_mt_ite.sy
-  regress2/sygus/inv_gen_n_c11.sy
   regress2/sygus/issue4022-conjecture-gen.smt2
   regress2/sygus/lustre-real.sy
   regress2/sygus/max2-univ.sy
@@ -2410,6 +2417,8 @@ set(regression_disabled_tests
   regress2/nl/nt-lemmas-bad.smt2
   regress2/quantifiers/ForElimination-scala-9.smt2
   regress2/quantifiers/small-bug1-fixpoint-3.smt2
+  # currently slow at 24357fea
+  regress2/sygus/inv_gen_n_c11.sy
   regress2/xs-11-20-5-2-5-3.smtv1.smt2
   regress2/xs-11-20-5-2-5-3.smt2
 )
