@@ -96,7 +96,7 @@ namespace smt {
   struct SmtEngineStatistics;
   class SmtEnginePrivate;
   class SmtScope;
-  class BooleanTermConverter;
+  class ProcessAssertions;
 
   ProofManager* currentProofManager();
 
@@ -130,7 +130,7 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
-  friend class ::CVC4::smt::BooleanTermConverter;
+  friend class ::CVC4::smt::ProcessAssertions;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::Model;  // to access d_modelCommands
@@ -1130,11 +1130,6 @@ class CVC4_PUBLIC SmtEngine
    * valid while we are in mode SMT_MODE_ABDUCT.
    */
   Expr d_abdConj;
-
-  /** recursive function definition abstractions for --fmf-fun */
-  std::map<Node, TypeNode> d_fmfRecFunctionsAbs;
-  std::map<Node, std::vector<Node> > d_fmfRecFunctionsConcrete;
-  NodeList* d_fmfRecFunctionsDefined;
 
   /**
    * The assertion list (before any conversion) for supporting
