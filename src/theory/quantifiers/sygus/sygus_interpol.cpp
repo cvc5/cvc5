@@ -243,7 +243,7 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
 	  if (Trace.isOn("sygus-interpol-debug"))
 	  {
 		  Trace("sygus-interpol-debug") << "Made datatype types:" << std::endl;
-		  for (unsigned j = 0, ndts = datatypeType.size(); j < ndts; j++)
+		  for (unsigned j = 0, ndts = datatypeTypes.size(); j < ndts; j++)
 		  {
 			  const DType& dtj = TypeNode::fromType(datatypeTypes[j]).getDType();
 			  Trace("sygus-interpol-debug") << "#" << j << ": " << dtj << std::endl;
