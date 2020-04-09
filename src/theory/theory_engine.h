@@ -587,7 +587,7 @@ class TheoryEngine {
    * @param assertion the normalized assertion being sent
    * @param originalAssertion the actual assertion that was sent
    * @param toTheoryId the theory that is on the receiving end
-   * @param fromTheoryId the theory that sent the assertino
+   * @param fromTheoryId the theory that sent the assertion
    * @return true if a new assertion, false if theory already got it
    */
   bool markPropagation(TNode assertion, TNode originalAssertions, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId);

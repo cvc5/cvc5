@@ -148,13 +148,15 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
-    if (d_options.getProduceModels() && d_options.getDumpModels() &&
-        (res.asSatisfiabilityResult() == Result::SAT ||
-         (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) {
+    if (d_options.getDumpModels()
+        && (res.asSatisfiabilityResult() == Result::SAT
+            || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE)))
+    {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (d_options.getProof() && d_options.getDumpProofs() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (d_options.getDumpProofs()
+        && res.asSatisfiabilityResult() == Result::UNSAT)
+    {
       getterCommands.emplace_back(new GetProofCommand());
     }
 
