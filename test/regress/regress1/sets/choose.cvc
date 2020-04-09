@@ -1,0 +1,11 @@
+% COMMAND-LINE: --no-check-models
+% EXPECT: sat
+
+A : SET OF INT;
+a : INT;
+
+ASSERT NOT (A = {} :: SET OF INT);
+ASSERT CHOOSE (A) = 10;
+ASSERT CHOOSE (A) = a;
+
+CHECKSAT;
