@@ -2136,8 +2136,8 @@ GetInterpolCommand::GetInterpolCommand(const std::string& name, Expr conj)
 {
 }
 GetInterpolCommand::GetInterpolCommand(const std::string& name,
-                                   Expr conj,
-                                   const Type& gtype)
+                                       Expr conj,
+                                       const Type& gtype)
     : d_name(name),
       d_conj(conj),
       d_sygus_grammar_type(gtype),
@@ -2159,7 +2159,8 @@ void GetInterpolCommand::invoke(SmtEngine* smtEngine)
     }
     else
     {
-	    d_resultStatus = smtEngine->getInterpol(d_conj, d_sygus_grammar_type, d_result);
+      d_resultStatus =
+          smtEngine->getInterpol(d_conj, d_sygus_grammar_type, d_result);
     }
     d_commandStatus = CommandSuccess::instance();
   }

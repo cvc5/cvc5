@@ -2266,11 +2266,14 @@ void SmtEngine::setDefaults() {
           "--sygus-expr-miner-check-timeout=N requires "
           "--sygus-expr-miner-check-use-export");
     }
-    if (options::sygusRewSynthInput() || options::produceAbducts() || options::produceInterpols())
+    if (options::sygusRewSynthInput() || options::produceAbducts()
+        || options::produceInterpols())
     {
       std::stringstream ss;
-      ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
-                                           : (options::produceAbducts() ? "--produce-abducts" : "--produce-interpols"));
+      ss << (options::sygusRewSynthInput()
+                 ? "--sygus-rr-synth-input"
+                 : (options::produceAbducts() ? "--produce-abducts"
+                                              : "--produce-interpols"));
       ss << "requires --sygus-expr-miner-check-use-export";
       throw OptionException(ss.str());
     }
@@ -5260,7 +5263,9 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getInterpol(const Expr& conj, const Type& grammarType, Expr& interpol)
+bool SmtEngine::getInterpol(const Expr& conj,
+                            const Type& grammarType,
+                            Expr& interpol)
 {
   SmtScope smts(this);  // TODO what is this?
 

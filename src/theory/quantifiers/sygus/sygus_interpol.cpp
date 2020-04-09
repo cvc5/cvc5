@@ -37,7 +37,7 @@ namespace quantifiers {
 Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
                                                const std::vector<Node>& axioms,
                                                const Node& conj,
-											   TypeNode itpGType)
+                                               TypeNode itpGType)
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-interpol-debug") << "Collect symbols..." << std::endl;
@@ -112,165 +112,170 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
   // if provided, we will associate it with the function-to-synthesize
   if (!itpGType.isNull())
   {
-	  Assert(itpGType.isDatatype() && itpGType.getDType().isSygus());
-	  // must convert all constructors to version with bound variables in "vars"
-	  std::vector<SygusDatatype> sdts;
-	  std::set<Type> unres;
+    Assert(itpGType.isDatatype() && itpGType.getDType().isSygus());
+    // must convert all constructors to version with bound variables in "vars"
+    std::vector<SygusDatatype> sdts;
+    std::set<Type> unres;
 
-      Trace("sygus-interpol-debug") << "Process interpolation type:" << std::endl;
-	  Trace("sygus-interpol-debug") << itpGType.getDType().getName() << std::endl;
+    Trace("sygus-interpol-debug") << "Process interpolation type:" << std::endl;
+    Trace("sygus-interpol-debug") << itpGType.getDType().getName() << std::endl;
 
-	  // datatype types we need to process
-	  std::vector<TypeNode> dtToProcess;
-	  // datatype types we have processed
-	  std::map<TypeNode, TypeNode> dtProcessed;
-	  dtToProcess.push_back(itpGType);
-	  std::stringstream ssutn0; // TODO why this name??
-	  ssutn0 << itpGType.getDType().getName() << "_s"; // TODO ???
-	  TypeNode itpTNew =
-		  nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
-	  unres.insert(itpTNew.toType());
-	  dtProcessed[itpGType] = itpTNew;
+    // datatype types we need to process
+    std::vector<TypeNode> dtToProcess;
+    // datatype types we have processed
+    std::map<TypeNode, TypeNode> dtProcessed;
+    dtToProcess.push_back(itpGType);
+    std::stringstream ssutn0;                         // TODO why this name??
+    ssutn0 << itpGType.getDType().getName() << "_s";  // TODO ???
+    TypeNode itpTNew =
+        nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+    unres.insert(itpTNew.toType());
+    dtProcessed[itpGType] = itpTNew;
 
-      // We must convert all symbols in the sygus datatype type itpGType to
-	  // apply the substitution { syms -> varlist }, where syms is the free
-	  // variables of the input problem, and varlist is the formal argument list
-	  // of the interpol-to-synthesize. For example, given user-provided sygus grammar:
-	  //   G -> a | +( b, G ) TODO
-	  // we synthesize an interpol A with two arguments x_a and x_b corresponding to
-	  // a and b, and reconstruct the grammar:
-	  //   G' -> x_a | +( x_b, G' ) TODO
-	  // In this way, x_a and x_b are treated as bound variables and handled as
-	  // arguments of the interpol-to-synthesize instead of as free variables with
-	  // no relation to A. We additionally require that x_a, when printed, prints
-	  // "a", which we do with a custom sygus callback below.
-	  
-	  // We are traversing over the subfield types of the datatype to convert
-	  // them into the form described above.
-	  while (!dtToProcess.empty())
-	  {
-		  std::vector<TypeNode> dtNextToProcess;
-		  for (const TypeNode& curr : dtToProcess)
-		  {
-			  Assert(curr.isDatatype() && curr.getDType().isSygus());
-			  const DType& dtc = curr.getDType();
-			  std::stringstream ssdtn;
-			  ssdtn << dtc.getName() << "_s";
-			  sdts.push_back(SygusDatatype(ssdtn.str()));
-			  Trace("sygus-interpol-debug")
-				  << "Process datatype " << sdts.back().getName() << "..."
-				  << std::endl;
-			  for (unsigned j = 0, ncons = dtc.getNumConstructors(); j < ncons; j++)
-			  {
-				  Node op = dtc[j].getSygusOp();
-				  // apply the substitution to the argument
-				  Node ops = op.substitute(
-						  syms.begin(), syms.end(), varlist.begin(), varlist.end());
-				  Trace("sygus-interpol-debug") << "  Process constructor " << op << " / " << ops << "..." << std::endl;
-				  std::vector<TypeNode> cargs;
-				  for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
-				  {
-					  TypeNode argt = dtc[j].getArgType(k);
-					  std::map<TypeNode, TypeNode>::iterator itdp =
-						  dtProcessed.find(argt);
-					  TypeNode argtNew;
-					  if (itdp == dtProcessed.end())
-					  {
-						  std::stringstream ssutn;
-						  ssutn << argt.getDType().getName() << "_s";
-						  argtNew =
-							  nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
-						  Trace("sygus-abduct-debug")
-							  << "    ...unresolved type " << argtNew << " for " << argt
-							  << std::endl;
-						  unres.insert(argtNew.toType());
-						  dtProcessed[argt] = argtNew;
-						  dtNextToProcess.push_back(argt);
-					  }
-					  else
-					  {
-						  argtNew = itdp->second;
-					  }
-					  Trace("sygus-interpol-debug")
-						  << "    Arg #" << k << ": " << argtNew << std::endl;
-					  cargs.push_back(argtNew);
-				  }
-				  // callback prints as the expression
-				  std::shared_ptr<SygusPrintCallback> spc;
-				  std::vector<Expr> args;
-				  if (op.getKind() == LAMBDA)
-				  {
-					  Node opBody = op[1];
-					  for (const Node& v : op[0])
-					  {
-						  args.push_back(v.toExpr());
-					  }
-					  spc = std::make_shared<printer::SygusExprPrintCallback>(opBody.toExpr(), args);
-				  }
-				  else if (cargs.empty())
-				  {
-					  spc = std::make_shared<printer::SygusExprPrintCallback>(op.toExpr(), args);
-				  }
-				  std::stringstream ss;
-				  ss << ops.getKind();
-				  Trace("sygus-interpol-debug")
-					  << "Add constructor : " << ops << std::endl;
-				  sdts.back().addConstructor(ops, ss.str(), cargs, spc);
-			  }
-			  Trace("sygus-interpol-debug")
-				  << "Set sygus : " << dtc.getSygusType() << " " << abvlShared << std::endl;
-			  TypeNode stn = dtc.getSygusType();
-			  sdts.back().initializeDatatype(
-					  stn, abvlShared, dtc.getSygusAllowConst(), dtc.getSygusAllowAll());
-		  }
-		  dtToProcess.clear();
-		  dtToProcess.insert(
-				  dtToProcess.end(), dtNextToProcess.begin(), dtNextToProcess.end());
-	  }
-	  Trace("sygus-interpol-debug")
-		  << "Make " << sdts.size() << " datatype types..." << std::endl;
-	  // extract the datatypes
-	  std::vector<Datatype> datatypes;
-	  for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
-	  {
-		  datatypes.push_back(sdts[i].getDatatype());
-	  }
-	  // make the datatype types
-	  std::vector<DatatypeType> datatypeTypes =
-		  nm->toExprManager()->mkMutualDatatypeTypes(
-				  datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-	  TypeNode itpGTypeS = TypeNode::fromType(datatypeTypes[0]);
-	  if (Trace.isOn("sygus-interpol-debug"))
-	  {
-		  Trace("sygus-interpol-debug") << "Made datatype types:" << std::endl;
-		  for (unsigned j = 0, ndts = datatypeTypes.size(); j < ndts; j++)
-		  {
-			  const DType& dtj = TypeNode::fromType(datatypeTypes[j]).getDType();
-			  Trace("sygus-interpol-debug") << "#" << j << ": " << dtj << std::endl;
-			  for (unsigned k = 0, ncons = dtj.getNumConstructors(); k < ncons; k++)
-			  {
-				  for (unsigned l = 0, nargs = dtj[k].getNumArgs(); l < nargs; l++)
-				  {
-					  if (!dtj[k].getArgType(l).isDatatype())
-					  {
-						  Trace("sygus-interpol-debug")
-							  << "Argument " << l << " of " << dtj[k]
-							  << " is not datatype : " << dtj[k].getArgType(l) << std::endl;
-						  AlwaysAssert(false);
-					  }
-				  }
-			  }
-		  }
-	  }
+    // We must convert all symbols in the sygus datatype type itpGType to
+    // apply the substitution { syms -> varlist }, where syms is the free
+    // variables of the input problem, and varlist is the formal argument list
+    // of the interpol-to-synthesize. For example, given user-provided sygus
+    // grammar:
+    //   G -> a | +( b, G ) TODO
+    // we synthesize an interpol A with two arguments x_a and x_b corresponding
+    // to a and b, and reconstruct the grammar:
+    //   G' -> x_a | +( x_b, G' ) TODO
+    // In this way, x_a and x_b are treated as bound variables and handled as
+    // arguments of the interpol-to-synthesize instead of as free variables with
+    // no relation to A. We additionally require that x_a, when printed, prints
+    // "a", which we do with a custom sygus callback below.
 
-	  Trace("sygus-interpol-debug")
-		  << "Make sygus grammar attribute..." << std::endl;
-	  Node sym = nm->mkBoundVar("sfproxy_interpol", itpGTypeS);
-	  // Set the sygus grammar attribute to indicate that itpGTypeS encodes the
-	  // grammar for itp.
-	  theory::SygusSynthGrammarAttribute ssg;
-	  itp.setAttribute(ssg, sym);
-	  Trace("sygus-interpol-debug") << "Finished setting up grammar." << std::endl;
+    // We are traversing over the subfield types of the datatype to convert
+    // them into the form described above.
+    while (!dtToProcess.empty())
+    {
+      std::vector<TypeNode> dtNextToProcess;
+      for (const TypeNode& curr : dtToProcess)
+      {
+        Assert(curr.isDatatype() && curr.getDType().isSygus());
+        const DType& dtc = curr.getDType();
+        std::stringstream ssdtn;
+        ssdtn << dtc.getName() << "_s";
+        sdts.push_back(SygusDatatype(ssdtn.str()));
+        Trace("sygus-interpol-debug")
+            << "Process datatype " << sdts.back().getName() << "..."
+            << std::endl;
+        for (unsigned j = 0, ncons = dtc.getNumConstructors(); j < ncons; j++)
+        {
+          Node op = dtc[j].getSygusOp();
+          // apply the substitution to the argument
+          Node ops = op.substitute(
+              syms.begin(), syms.end(), varlist.begin(), varlist.end());
+          Trace("sygus-interpol-debug") << "  Process constructor " << op
+                                        << " / " << ops << "..." << std::endl;
+          std::vector<TypeNode> cargs;
+          for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
+          {
+            TypeNode argt = dtc[j].getArgType(k);
+            std::map<TypeNode, TypeNode>::iterator itdp =
+                dtProcessed.find(argt);
+            TypeNode argtNew;
+            if (itdp == dtProcessed.end())
+            {
+              std::stringstream ssutn;
+              ssutn << argt.getDType().getName() << "_s";
+              argtNew =
+                  nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+              Trace("sygus-abduct-debug")
+                  << "    ...unresolved type " << argtNew << " for " << argt
+                  << std::endl;
+              unres.insert(argtNew.toType());
+              dtProcessed[argt] = argtNew;
+              dtNextToProcess.push_back(argt);
+            }
+            else
+            {
+              argtNew = itdp->second;
+            }
+            Trace("sygus-interpol-debug")
+                << "    Arg #" << k << ": " << argtNew << std::endl;
+            cargs.push_back(argtNew);
+          }
+          // callback prints as the expression
+          std::shared_ptr<SygusPrintCallback> spc;
+          std::vector<Expr> args;
+          if (op.getKind() == LAMBDA)
+          {
+            Node opBody = op[1];
+            for (const Node& v : op[0])
+            {
+              args.push_back(v.toExpr());
+            }
+            spc = std::make_shared<printer::SygusExprPrintCallback>(
+                opBody.toExpr(), args);
+          }
+          else if (cargs.empty())
+          {
+            spc = std::make_shared<printer::SygusExprPrintCallback>(op.toExpr(),
+                                                                    args);
+          }
+          std::stringstream ss;
+          ss << ops.getKind();
+          Trace("sygus-interpol-debug")
+              << "Add constructor : " << ops << std::endl;
+          sdts.back().addConstructor(ops, ss.str(), cargs, spc);
+        }
+        Trace("sygus-interpol-debug") << "Set sygus : " << dtc.getSygusType()
+                                      << " " << abvlShared << std::endl;
+        TypeNode stn = dtc.getSygusType();
+        sdts.back().initializeDatatype(
+            stn, abvlShared, dtc.getSygusAllowConst(), dtc.getSygusAllowAll());
+      }
+      dtToProcess.clear();
+      dtToProcess.insert(
+          dtToProcess.end(), dtNextToProcess.begin(), dtNextToProcess.end());
+    }
+    Trace("sygus-interpol-debug")
+        << "Make " << sdts.size() << " datatype types..." << std::endl;
+    // extract the datatypes
+    std::vector<Datatype> datatypes;
+    for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
+    {
+      datatypes.push_back(sdts[i].getDatatype());
+    }
+    // make the datatype types
+    std::vector<DatatypeType> datatypeTypes =
+        nm->toExprManager()->mkMutualDatatypeTypes(
+            datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+    TypeNode itpGTypeS = TypeNode::fromType(datatypeTypes[0]);
+    if (Trace.isOn("sygus-interpol-debug"))
+    {
+      Trace("sygus-interpol-debug") << "Made datatype types:" << std::endl;
+      for (unsigned j = 0, ndts = datatypeTypes.size(); j < ndts; j++)
+      {
+        const DType& dtj = TypeNode::fromType(datatypeTypes[j]).getDType();
+        Trace("sygus-interpol-debug") << "#" << j << ": " << dtj << std::endl;
+        for (unsigned k = 0, ncons = dtj.getNumConstructors(); k < ncons; k++)
+        {
+          for (unsigned l = 0, nargs = dtj[k].getNumArgs(); l < nargs; l++)
+          {
+            if (!dtj[k].getArgType(l).isDatatype())
+            {
+              Trace("sygus-interpol-debug")
+                  << "Argument " << l << " of " << dtj[k]
+                  << " is not datatype : " << dtj[k].getArgType(l) << std::endl;
+              AlwaysAssert(false);
+            }
+          }
+        }
+      }
+    }
+
+    Trace("sygus-interpol-debug")
+        << "Make sygus grammar attribute..." << std::endl;
+    Node sym = nm->mkBoundVar("sfproxy_interpol", itpGTypeS);
+    // Set the sygus grammar attribute to indicate that itpGTypeS encodes the
+    // grammar for itp.
+    theory::SygusSynthGrammarAttribute ssg;
+    itp.setAttribute(ssg, sym);
+    Trace("sygus-interpol-debug")
+        << "Finished setting up grammar." << std::endl;
   }
 
   Trace("sygus-interpol-debug") << "Make interpolation predicate app..."
@@ -301,21 +306,28 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
 
   Trace("sygus-interpol-debug") << "Make conjecture body..." << std::endl;
   Node Fa = axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms);
-  Trace("sygus-interpol-debug") << "Fa before substitution: " << Fa << std::endl << std::endl; 
+  Trace("sygus-interpol-debug") << "Fa before substitution: " << Fa << std::endl
+                                << std::endl;
   Fa = Fa.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
-  Trace("sygus-interpol-debug") << "Fa after substitution: " << Fa << std::endl << std::endl;
-  Trace("sygus-interpol-debug") << "itpApp: " << itpApp << std::endl << std::endl;
+  Trace("sygus-interpol-debug") << "Fa after substitution: " << Fa << std::endl
+                                << std::endl;
+  Trace("sygus-interpol-debug") << "itpApp: " << itpApp << std::endl
+                                << std::endl;
   // Fa( x ) => A( x )
   Node firstImplication = nm->mkNode(IMPLIES, Fa, itpApp);
-  Trace("sygus-interpol-debug") << "first implication: " << firstImplication << std::endl << std::endl;
+  Trace("sygus-interpol-debug")
+      << "first implication: " << firstImplication << std::endl
+      << std::endl;
   // A( x ) => Fc( x )
   Node Fc = conj;
   Fc = Fc.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
   Node secondImplication = nm->mkNode(IMPLIES, itpApp, Fc);
-  Trace("sygus-interpol-debug") << "second implication: " << secondImplication << std::endl << std::endl;
+  Trace("sygus-interpol-debug")
+      << "second implication: " << secondImplication << std::endl
+      << std::endl;
   // Fa( x ) => A( x ) ^ A( x ) => Fc( x )
   Node constraint = nm->mkNode(AND, firstImplication, secondImplication);
-  Trace("sygus-interpol-debug") << constraint <<  "...finish" << std::endl;
+  Trace("sygus-interpol-debug") << constraint << "...finish" << std::endl;
   constraint = theory::Rewriter::rewrite(constraint);
 
   Trace("sygus-interpol-debug") << "Make conjecture..." << std::endl;
