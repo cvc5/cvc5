@@ -221,7 +221,7 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
 				  << "Set sygus : " << dtc.getSygusType() << " " << abvlShared << std::endl;
 			  TypeNode stn = dtc.getSygusType();
 			  sdts.back().initializeDatatype(
-					  stn, abvl, dtc.getSygusAllowConst(), dtc.getSygusAllowAll());
+					  stn, abvlShared, dtc.getSygusAllowConst(), dtc.getSygusAllowAll());
 		  }
 		  dtToProcess.clear();
 		  dtToProcess.insert(
