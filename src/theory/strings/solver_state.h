@@ -119,11 +119,11 @@ class SolverState
   /** shorthand for getLengthExp(t, exp, t) */
   Node getLength(Node t, std::vector<Node>& exp);
   /** explain non-empty
-   * 
+   *
    * This returns an explanation of why string-like term is non-empty in the
    * current context, if such an explanation exists. Otherwise, this returns
    * the null node.
-   * 
+   *
    * Note that an explanation is a (conjunction of) literals that currently hold
    * in the equality engine.
    */

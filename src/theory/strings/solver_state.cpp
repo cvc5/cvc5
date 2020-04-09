@@ -252,7 +252,7 @@ Node SolverState::explainNonEmpty(Node s)
     return s.eqNode(emp).negate();
   }
   Node sLen = utils::mkNLength(s);
-  if (d_ee.areDisequal(sLen,d_zero, true))
+  if (d_ee.areDisequal(sLen, d_zero, true))
   {
     return sLen.eqNode(d_zero).negate();
   }
