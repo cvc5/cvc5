@@ -987,7 +987,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
                                   TypeNode stype)
 {
   NodeManager* nm = NodeManager::currentNM();
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   Node emp = Word::mkEmptyWord(stype);
 
   const std::vector<Node>& nfiv = nfi.d_nf;
@@ -1704,7 +1703,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
   NodeManager* nm = NodeManager::currentNM();
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
 
   if (nfni.d_nf.size() <= 1 && nfnj.d_nf.size() <= 1)
   {
@@ -1794,6 +1792,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
           //
           // E.g. x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != len(y) --->
           //      x = "" v x != ""
+          Node emp = Word::mkEmptyWord(nck.getType());
           d_im.sendSplit(nck, emp, Inference::DEQ_DISL_EMP_SPLIT);
           return;
         }
