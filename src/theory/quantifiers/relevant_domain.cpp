@@ -226,11 +226,12 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     d_rel_dom_lit[hasPol][pol][n].d_merge = false;
     int varCount = 0;
     int varCh = -1;
+    TermUtil * tu = d_qe->getTermUtil();
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( n[i].getKind()==INST_CONSTANT ){
         // must get the quantified formula this belongs to, which may be
         // different from q
-        Node qi = d_qe->getTermUtil()->getInstConstAttr(n[i]);
+        Node qi = tu->getInstConstAttr(n[i]);
         unsigned id = n[i].getAttribute(InstVarNumAttribute());
         d_rel_dom_lit[hasPol][pol][n].d_rd[i] = getRDomain(qi, id, false);
         varCount++;
