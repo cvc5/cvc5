@@ -349,7 +349,7 @@ class Smt2 : public Parser
   void processSygusGTerm(
       CVC4::SygusGTerm& sgt,
       int index,
-      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<api::DatatypeDecl>& datatypes,
       std::vector<api::Sort>& sorts,
       std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
@@ -365,7 +365,7 @@ class Smt2 : public Parser
   bool pushSygusDatatypeDef(
       api::Sort t,
       std::string& dname,
-      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<api::DatatypeDecl>& datatypes,
       std::vector<api::Sort>& sorts,
       std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
@@ -374,7 +374,7 @@ class Smt2 : public Parser
       std::vector<std::vector<std::string>>& unresolved_gterm_sym);
 
   bool popSygusDatatypeDef(
-      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<api::DatatypeDecl>& datatypes,
       std::vector<api::Sort>& sorts,
       std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
@@ -384,11 +384,11 @@ class Smt2 : public Parser
 
   void setSygusStartIndex(const std::string& fun,
                           int startIndex,
-                          std::vector<CVC4::Datatype>& datatypes,
+                          std::vector<api::DatatypeDecl>& datatypes,
                           std::vector<api::Sort>& sorts,
                           std::vector<std::vector<ParseOp>>& ops);
 
-  void mkSygusDatatype(CVC4::Datatype& dt,
+  void mkSygusDatatype(api::DatatypeDecl& dt,
                        std::vector<ParseOp>& ops,
                        std::vector<std::string>& cnames,
                        std::vector<std::vector<api::Sort>>& cargs,
@@ -535,7 +535,7 @@ class Smt2 : public Parser
   api::Sort processSygusNestedGTerm(
       int sub_dt_index,
       std::string& sub_dname,
-      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<api::DatatypeDecl>& datatypes,
       std::vector<api::Sort>& sorts,
       std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
@@ -554,7 +554,7 @@ class Smt2 : public Parser
    * It appends a bound variable to lvars for each type in ltypes, and returns
    * a bound variable list whose children are lvars.
    */
-  api::Term makeSygusBoundVarList(CVC4::Datatype& dt,
+  api::Term makeSygusBoundVarList(api::DatatypeDecl& dt,
                                   unsigned i,
                                   const std::vector<api::Sort>& ltypes,
                                   std::vector<api::Term>& lvars);
