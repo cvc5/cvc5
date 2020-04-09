@@ -205,7 +205,7 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
 					  {
 						  args.push_back(v.toExpr());
 					  }
-					  spc = std::make_share<printer::SygusExprPrintCallback>(opBody.toExpr(), args);
+					  spc = std::make_shared<printer::SygusExprPrintCallback>(opBody.toExpr(), args);
 				  }
 				  else if (cargs.empty())
 				  {
@@ -218,7 +218,7 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
 				  sdts.back().addConstructor(ops, ss.str(), cargs, spc);
 			  }
 			  Trace("sygus-interpol-debug")
-				  << "Set sygus : " << dtc.getSygusType() << " " << abvl << std::endl;
+				  << "Set sygus : " << dtc.getSygusType() << " " << abvlShared << std::endl;
 			  TypeNode stn = dtc.getSygusType();
 			  sdts.back().initializeDatatype(
 					  stn, abvl, dtc.getSygusAllowConst(), dtc.getSygusAllowAll());

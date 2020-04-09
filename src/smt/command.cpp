@@ -2159,7 +2159,7 @@ void GetInterpolCommand::invoke(SmtEngine* smtEngine)
     }
     else
     {
-	    d_resultStatus = smtEngine->getInterpol(d_conj, d_result, d_sygus_grammar_type);
+	    d_resultStatus = smtEngine->getInterpol(d_conj, d_sygus_grammar_type, d_result);
     }
     d_commandStatus = CommandSuccess::instance();
   }
