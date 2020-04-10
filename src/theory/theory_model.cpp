@@ -17,6 +17,7 @@
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace CVC4::kind;

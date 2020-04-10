@@ -279,12 +279,10 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
+  // if there is a model object
   TheoryModel* tm = d_valuation.getModel();
-  if (tm)
-  {
-    // return tm->isLegalElimination(x, val);
-  }
-  return true;
+  Assert(tm != nullptr);
+  return tm->isLegalElimination(x, val);
 }
 
 std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{

@@ -1337,7 +1337,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
     if (m.getVarList().singleton()){
       VarList vl = m.getVarList();
       Node var = vl.getNode();
-      if (var.getKind() == kind::VARIABLE){
+      if (var.isVar()){
         // if vl.isIntegral then m.getConstant().isOne()
         if(!vl.isIntegral() || m.getConstant().isOne()){
           minVar = var;
@@ -1362,15 +1362,8 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
             << minVar << ":" << elim << endl;
         Debug("simplify") << right.size() << endl;
       }
-      else if (expr::hasSubterm(elim, minVar))
+      else if (d_containing.isLegalElimination(minVar, elim))
       {
-        Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute "
-                             "due to recursive pattern with sharing: "
-                          << minVar << ":" << elim << endl;
-      }
-      else if (!minVar.getType().isInteger() || right.isIntegral())
-      {
-        Assert(!expr::hasSubterm(elim, minVar));
         // cannot eliminate integers here unless we know the resulting
         // substitution is integral
         Debug("simplify") << "TheoryArithPrivate::solve(): substitution "
@@ -1382,7 +1375,6 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
       else
       {
         Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute "
-                             "b/c it's integer: "
                           << minVar << ":" << minVar.getType() << " |-> "
                           << elim << ":" << elim.getType() << endl;
       }
