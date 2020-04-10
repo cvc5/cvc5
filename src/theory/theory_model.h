@@ -266,7 +266,7 @@ public:
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
-  /** is legal substitution
+  /** is legal elimination
    *
    * Returns true if x -> val is a legal elimination of variable x.
    * In particular, this ensures that val does not have any subterms that

@@ -248,7 +248,7 @@ class Theory {
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-  /** is legal substitution
+  /** is legal elimination
    *
    * Returns true if x -> val is a legal elimination of variable x. This is
    * useful for ppAssert, when x = val is an entailed equality. This function
