@@ -734,8 +734,10 @@ void SmtEngine::finishInit()
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(
-      new PropEngine(getTheoryEngine(), getContext(), getUserContext()));
+  d_propEngine.reset(new PropEngine(getTheoryEngine(),
+                                    getContext(),
+                                    getUserContext(),
+                                    d_private->getResourceManager()));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -3418,8 +3420,10 @@ void SmtEngine::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(
-      new PropEngine(getTheoryEngine(), getContext(), getUserContext()));
+  d_propEngine.reset(new PropEngine(getTheoryEngine(),
+                                    getContext(),
+                                    getUserContext(),
+                                    d_private->getResourceManager()));
   d_theoryEngine->setPropEngine(getPropEngine());
 }
 
