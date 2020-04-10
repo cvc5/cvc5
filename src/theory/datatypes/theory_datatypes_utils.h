@@ -147,14 +147,14 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew);
  */
 Kind getOperatorKindForSygusBuiltin(Node op);
 /**
-  * Returns the total version of Kind k if it is a partial operator, or
-  * otherwise k itself.
-  */
+ * Returns the total version of Kind k if it is a partial operator, or
+ * otherwise k itself.
+ */
 Kind getEliminateKind(Kind k);
 /**
-  * Returns a version of n where all partial functions such as bvudiv
-  * have been replaced by their total versions like bvudiv_total.
-  */
+ * Returns a version of n where all partial functions such as bvudiv
+ * have been replaced by their total versions like bvudiv_total.
+ */
 Node eliminatePartialOperators(Node n);
 /** make sygus term
  *
