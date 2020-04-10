@@ -22,7 +22,9 @@ namespace theory {
 namespace strings {
 
 SequencesStatistics::SequencesStatistics()
-    : d_inferences("theory::strings::inferences"),
+    : d_checkRuns("theory::strings::checkRuns", 0),
+      d_strategyRuns("theory::strings::strategyRuns", 0),
+      d_inferences("theory::strings::inferences"),
       d_cdSimplifications("theory::strings::cdSimplifications"),
       d_reductions("theory::strings::reductions"),
       d_regexpUnfoldingsPos("theory::strings::regexpUnfoldingsPos"),
@@ -38,6 +40,8 @@ SequencesStatistics::SequencesStatistics()
                                  0),
       d_lemmasInfer("theory::strings::lemmasInfer", 0)
 {
+  smtStatisticsRegistry()->registerStat(&d_checkRuns);
+  smtStatisticsRegistry()->registerStat(&d_strategyRuns);
   smtStatisticsRegistry()->registerStat(&d_inferences);
   smtStatisticsRegistry()->registerStat(&d_cdSimplifications);
   smtStatisticsRegistry()->registerStat(&d_reductions);
@@ -56,6 +60,8 @@ SequencesStatistics::SequencesStatistics()
 
 SequencesStatistics::~SequencesStatistics()
 {
+  smtStatisticsRegistry()->unregisterStat(&d_checkRuns);
+  smtStatisticsRegistry()->unregisterStat(&d_strategyRuns);
   smtStatisticsRegistry()->unregisterStat(&d_inferences);
   smtStatisticsRegistry()->unregisterStat(&d_cdSimplifications);
   smtStatisticsRegistry()->unregisterStat(&d_reductions);
