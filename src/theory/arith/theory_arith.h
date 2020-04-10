@@ -59,7 +59,7 @@ public:
   void preRegisterTerm(TNode n) override;
 
   void finishInit() override;
-  
+
   Node expandDefinition(Node node) override;
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;

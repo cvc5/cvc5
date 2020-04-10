@@ -68,9 +68,9 @@ void TheoryArith::finishInit()
   // quantifiers are not evaluated in getModelValue
   TheoryModel* tm = d_valuation.getModel();
   Assert(tm != nullptr);
-  //tm->setUnevaluatedKind(kind::SINE);
-  //tm->setUnevaluatedKind(kind::EXPONENTIAL);
-  //tm->setUnevaluatedKind(kind::PI);
+  // tm->setUnevaluatedKind(kind::SINE);
+  // tm->setUnevaluatedKind(kind::EXPONENTIAL);
+  // tm->setUnevaluatedKind(kind::PI);
 }
 
 Node TheoryArith::expandDefinition(Node node)
