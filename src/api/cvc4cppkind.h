@@ -1852,6 +1852,18 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   COMPREHENSION,
+  /**
+   * Returns an element from a given set.
+   * If a set A = {x}, then the term (choose A) is equivalent to the term x.
+   * If the set is empty, then (choose A) is an arbitrary value.
+   * If the set has cardinality > 1, then (choose A) will deterministically
+   * return an element in A.
+   * Parameters: 1
+   *   -[1]: Term of set sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  CHOOSE,
 
   /* Strings --------------------------------------------------------------- */
 

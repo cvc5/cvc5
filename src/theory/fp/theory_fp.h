@@ -41,7 +41,7 @@ class TheoryFp : public Theory {
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
-  Node expandDefinition(LogicRequest& lr, Node node) override;
+  Node expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode node) override;
   void addSharedTerm(TNode node) override;
@@ -104,9 +104,6 @@ class TheoryFp : public Theory {
 
   context::CDO<bool> d_conflict;
   context::CDO<Node> d_conflictNode;
-
-  /** Uninterpretted functions for partially defined functions. **/
-  void enableUF(LogicRequest& lr);
 
   typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>
       ComparisonUFMap;

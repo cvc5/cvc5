@@ -20,6 +20,7 @@ std::ostream& operator<<(std::ostream& out, TheoryId theoryId)
     case THEORY_FP: out << "THEORY_FP"; break;
     case THEORY_ARRAYS: out << "THEORY_ARRAYS"; break;
     case THEORY_DATATYPES: out << "THEORY_DATATYPES"; break;
+    case THEORY_SAT_SOLVER: out << "THEORY_SAT_SOLVER"; break;
     case THEORY_SEP: out << "THEORY_SEP"; break;
     case THEORY_SETS: out << "THEORY_SETS"; break;
     case THEORY_STRINGS: out << "THEORY_STRINGS"; break;
