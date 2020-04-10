@@ -107,7 +107,7 @@ Node sygus_interpol::mkInterpolationConjecture(const std::string& name,
   Node itp = nm->mkBoundVar(name.c_str(), itpType);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
-  if provided, we will associate it with the function-to-synthesize
+  //if provided, we will associate it with the function-to-synthesize
   if (!itpGType.isNull())
   {
     Assert(itpGType.isDatatype() && itpGType.getDType().isSygus());
