@@ -2261,33 +2261,33 @@ Grammar::Grammar(const Solver* s,
 
 void Grammar::addRule(Term ntSymbol, Term rule)
 {
-  CVC4_API_ARG_CHECK_EXPECTED(!ntSymbol.isNull(), ntSymbol) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!rule.isNull(), rule) << "non-null term";
+  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
+  CVC4_API_ARG_CHECK_NOT_NULL(rule);
   CVC4_API_ARG_CHECK_EXPECTED(d_dtDecls.find(ntSymbol) != d_dtDecls.end(),
                               ntSymbol)
-      << "ntSymbol to be one of the non-terminal symbols given in the predeclaration.";
-  CVC4_API_ARG_CHECK_EXPECTED(ntSymbol.getSort() == rule.getSort(), rule)
-      << "rule's sort to be the same as ntSymbol's sort.";
+      << "ntSymbol to be one of the non-terminal symbols given in the "
+         "predeclaration";
+  CVC4_API_CHECK(ntSymbol.d_expr->getType() == rule.d_expr->getType())
+      << "Expected ntSymbol and rule to have the same sort";
 
   addSygusConstructorTerm(d_dtDecls[ntSymbol], rule);
 }
 
 void Grammar::addRules(Term ntSymbol, std::vector<Term> rules)
 {
-  CVC4_API_ARG_CHECK_EXPECTED(!ntSymbol.isNull(), ntSymbol) << "non-null term";
+  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(d_dtDecls.find(ntSymbol) != d_dtDecls.end(),
                               ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
-         "predeclaration.";
+         "predeclaration";
 
-  for (size_t i = 0; i < rules.size(); ++i)
+  for (size_t i = 0, n = rules.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !rules[i].isNull(), "parameter rule", rules[i], i)
         << "non-null term";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        ntSymbol.getSort() == rules[i].getSort(), "rule sort", rules[i], i)
-        << "rule" << i << "'s sort to be the same as ntSymbol's sort.";
+    CVC4_API_CHECK(ntSymbol.d_expr->getType() == rules[i].d_expr->getType())
+        << "Expected ntSymbol and rule " << i << " to have the same sort";
 
     addSygusConstructorTerm(d_dtDecls[ntSymbol], rules[i]);
   }
@@ -2295,22 +2295,22 @@ void Grammar::addRules(Term ntSymbol, std::vector<Term> rules)
 
 void Grammar::addAnyConstant(Term ntSymbol)
 {
-  CVC4_API_ARG_CHECK_EXPECTED(!ntSymbol.isNull(), ntSymbol) << "non-null term";
+  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(d_dtDecls.find(ntSymbol) != d_dtDecls.end(),
                               ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
-         "predeclaration.";
+         "predeclaration";
 
   d_allowConst.insert(ntSymbol);
 }
 
 void Grammar::addAnyVariable(Term ntSymbol)
 {
-  CVC4_API_ARG_CHECK_EXPECTED(!ntSymbol.isNull(), ntSymbol) << "non-null term";
+  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(d_dtDecls.find(ntSymbol) != d_dtDecls.end(),
                               ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
-         "predeclaration.";
+         "predeclaration";
 
   addSygusConstructorVariables(d_dtDecls[ntSymbol], ntSymbol.d_expr->getType());
 }
@@ -2335,7 +2335,7 @@ Sort Grammar::resolve()
     // grammar. This results in the error below.
     CVC4_API_CHECK(d_dtDecls[i].d_dtype->getNumConstructors() != 0)
         << "Grouped rule listing for " << d_dtDecls[i]
-        << " produced an empty rule list.";
+        << " produced an empty rule list";
   }
 
   // now, make the sygus datatype
@@ -2541,7 +2541,7 @@ Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
 Term Solver::mkBVFromStrHelper(const std::string& s, uint32_t base) const
 {
   CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-  CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, s)
+  CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, base)
       << "base 2, 10, or 16";
 
   return mkValHelper<CVC4::BitVector>(CVC4::BitVector(s, base));
@@ -2552,7 +2552,7 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
                                uint32_t base) const
 {
   CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-  CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, s)
+  CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, base)
       << "base 2, 10, or 16";
 
   Integer val(s, base);
@@ -4453,8 +4453,7 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
 Term Solver::mkSygusVar(Sort sort, const std::string& symbol) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-  CVC4_API_ARG_CHECK_EXPECTED(!symbol.empty(), sort) << "non-empty string";
+  CVC4_API_ARG_CHECK_NOT_NULL(sort);
 
   Expr res = d_exprMgr->mkBoundVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
@@ -4472,14 +4471,14 @@ Grammar Solver::mkGrammar(const std::vector<Term>& boundVars,
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)
       << "non-empty vector";
 
-  for (size_t i = 0; i < boundVars.size(); ++i)
+  for (size_t i = 0, n = boundVars.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !boundVars[i].isNull(), "parameter term", boundVars[i], i)
         << "non-null term";
   }
 
-  for (size_t i = 0; i < ntSymbols.size(); ++i)
+  for (size_t i = 0, n = ntSymbols.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !ntSymbols[i].isNull(), "parameter term", ntSymbols[i], i)
@@ -4514,39 +4513,47 @@ Term Solver::synthInv(const std::string& symbol,
                       const std::vector<Term>& boundVars,
                       Grammar g) const
 {
-  return synthFunHelper(
-      symbol, boundVars, d_exprMgr->booleanType(), true, &g);
+  return synthFunHelper(symbol, boundVars, d_exprMgr->booleanType(), true, &g);
 }
 
 Term Solver::synthFunHelper(const std::string& symbol,
-                              const std::vector<Term>& boundVars,
-                              const Sort& sort,
-                              bool isInv,
-                              Grammar* g) const
+                            const std::vector<Term>& boundVars,
+                            const Sort& sort,
+                            bool isInv,
+                            Grammar* g) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(!symbol.empty(), sort) << "non-empty string";
-  CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+  CVC4_API_ARG_CHECK_NOT_NULL(sort);
 
-  std::vector<Type> var_types;
-  for (size_t i = 0; i < boundVars.size(); ++i)
+  CVC4_API_ARG_CHECK_EXPECTED(sort.d_type->isFirstClass(), sort)
+      << "first-class sort as codomain sort for function sort";
+
+  std::vector<Type> varTypes;
+  for (size_t i = 0, n = boundVars.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !boundVars[i].isNull(), "parameter term", boundVars[i], i)
         << "non-null term";
-    var_types.push_back(boundVars[i].d_expr->getType());
+    varTypes.push_back(boundVars[i].d_expr->getType());
   }
 
-  Type fun_type = var_types.empty()
-                      ? *sort.d_type
-                      : d_exprMgr->mkFunctionType(var_types, *sort.d_type);
+  if (g != nullptr)
+  {
+    CVC4_API_CHECK(g->d_ntSyms[0].d_expr->getType() == *sort.d_type)
+        << "Invalid Start symbol for Grammar g, Expected Start's sort to be "
+        << *sort.d_type;
+  }
 
-  Expr fun = d_exprMgr->mkBoundVar(symbol, fun_type);
+  Type funType = varTypes.empty()
+                     ? *sort.d_type
+                     : d_exprMgr->mkFunctionType(varTypes, *sort.d_type);
+
+  Expr fun = d_exprMgr->mkBoundVar(symbol, funType);
   (void)fun.getType(true); /* kick off type checking */
 
   d_smtEngine->declareSynthFun(symbol,
                                fun,
-                               g == nullptr ? fun_type : *g->resolve().d_type,
+                               g == nullptr ? funType : *g->resolve().d_type,
                                isInv,
                                termVectorToExprs(boundVars));
 
@@ -4557,20 +4564,54 @@ Term Solver::synthFunHelper(const std::string& symbol,
 
 void Solver::addConstraint(const Term& term) const
 {
-  CVC4_API_ARG_CHECK_EXPECTED(!term.isNull(), term) << "non-null term";
+  CVC4_API_ARG_CHECK_NOT_NULL(term);
+  CVC4_API_ARG_CHECK_EXPECTED(
+      term.d_expr->getType() == d_exprMgr->booleanType(), term)
+      << "boolean term";
 
   d_smtEngine->assertSygusConstraint(*term.d_expr);
 }
 
 void Solver::addInvConstraint(const Term& inv,
-                                    const Term& pre,
-                                    const Term& trans,
-                                    const Term& post) const
+                              const Term& pre,
+                              const Term& trans,
+                              const Term& post) const
 {
-  CVC4_API_ARG_CHECK_EXPECTED(!inv.isNull(), inv) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!pre.isNull(), pre) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!trans.isNull(), trans) << "non-null term";
-  CVC4_API_ARG_CHECK_EXPECTED(!post.isNull(), post) << "non-null term";
+  CVC4_API_ARG_CHECK_NOT_NULL(inv);
+  CVC4_API_ARG_CHECK_NOT_NULL(pre);
+  CVC4_API_ARG_CHECK_NOT_NULL(trans);
+  CVC4_API_ARG_CHECK_NOT_NULL(post);
+
+  CVC4_API_ARG_CHECK_EXPECTED(inv.d_expr->getType().isFunction(), inv)
+      << "a function";
+
+  FunctionType invType = inv.d_expr->getType();
+
+  CVC4_API_ARG_CHECK_EXPECTED(invType.getRangeType().isBoolean(), inv)
+      << "boolean range";
+
+  CVC4_API_CHECK(pre.d_expr->getType() == invType)
+      << "Expected inv and pre to have the same sort";
+
+  CVC4_API_CHECK(post.d_expr->getType() == invType)
+      << "Expected inv and post to have the same sort";
+
+  const std::vector<Type>& invArgTypes = invType.getArgTypes();
+
+  std::vector<Type> expectedTypes;
+  expectedTypes.reserve(2 * invType.getArity() + 1);
+
+  for (size_t i = 0, n = invArgTypes.size(); i < 2 * n; i += 2)
+  {
+    expectedTypes.push_back(invArgTypes[i % n]);
+    expectedTypes.push_back(invArgTypes[(i + 1) % n]);
+  }
+
+  expectedTypes.push_back(invType.getRangeType());
+  FunctionType expectedTransType = d_exprMgr->mkFunctionType(expectedTypes);
+
+  CVC4_API_CHECK(trans.d_expr->getType() == expectedTransType)
+      << "Expected trans's sort to be " << invType;
 
   d_smtEngine->assertSygusInvConstraint(
       *inv.d_expr, *pre.d_expr, *trans.d_expr, *post.d_expr);
