@@ -56,6 +56,7 @@ void TheorySets::finishInit()
   TheoryModel* tm = d_valuation.getModel();
   Assert(tm != nullptr);
   tm->setUnevaluatedKind(COMPREHENSION);
+  // choice is used to eliminate choose
   tm->setUnevaluatedKind(CHOICE);
 }
 

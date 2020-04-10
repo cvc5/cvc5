@@ -58,6 +58,7 @@ void TheoryQuantifiers::finishInit()
   Assert(tm != nullptr);
   tm->setUnevaluatedKind(EXISTS);
   tm->setUnevaluatedKind(FORALL);
+  // choice is used in several instantiation strategies
   tm->setUnevaluatedKind(CHOICE);
 }
 
