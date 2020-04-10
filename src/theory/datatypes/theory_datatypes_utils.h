@@ -207,9 +207,11 @@ Node applySygusArgs(const DType& dt,
  * respectively.
  *
  * If isExternal is true, then the returned term respects the original grammar
- * that was provided. This includes the use of defined functions.
+ * that was provided. This includes the use of defined functions. This argument
+ * should typically be false, unless we are e.g. exporting the value of the
+ * term as a final solution.
  */
-Node sygusToBuiltin(Node c, bool isExternal);
+Node sygusToBuiltin(Node c, bool isExternal=false);
 /** Sygus to builtin eval
  *
  * This method returns the rewritten form of (DT_SYGUS_EVAL n args). Notice that
