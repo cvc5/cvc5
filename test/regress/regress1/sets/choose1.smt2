@@ -1,3 +1,4 @@
+; COMMAND-LINE: --quiet
 (set-logic ALL)
 (set-info :status sat)
 (set-option :produce-models true)
