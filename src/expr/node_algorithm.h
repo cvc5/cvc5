@@ -56,7 +56,8 @@ bool hasSubtermKind(Kind k, Node n);
  * @param n The node to search in.
  * @return true iff there is a term in n that has any kind ks
  */
-bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks, Node n);
+bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     Node n);
 
 /**
  * Check if the node n has a subterm that occurs in t.

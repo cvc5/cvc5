@@ -155,7 +155,8 @@ bool hasSubtermKind(Kind k, Node n)
   return false;
 }
 
-bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks, Node n)
+bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     Node n)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;
