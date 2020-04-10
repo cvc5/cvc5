@@ -190,7 +190,7 @@ void SygusGrammarNorm::TypeObject::addConsInfo(
       exp_sop_n = NodeManager::currentNM()->operatorOf(nk);
     }
   }
-  else
+  else if(false)
   {
     // Only expand definitions if the operator is not constant, since calling
     // expandDefinitions on them should be a no-op. This check ensures we don't
