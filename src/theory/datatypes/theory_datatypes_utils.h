@@ -152,11 +152,15 @@ Kind getOperatorKindForSygusBuiltin(Node op);
  * where f is the builtin op that the i^th constructor of sygus datatype dt
  * encodes. If doBetaReduction is true, then lambdas are eagerly eliminated
  * via beta reduction.
+ * 
+ * If isExternal is true, then the returned term respects the original grammar
+ * that was provided. This includes the use of defined functions.
  */
 Node mkSygusTerm(const DType& dt,
                  unsigned i,
                  const std::vector<Node>& children,
-                 bool doBetaReduction = true);
+                 bool doBetaReduction = true,
+                 bool isExternal = false);
 /**
  * Same as above, but we already have the sygus operator op. The above method
  * is syntax sugar for calling this method on dt[i].getSygusOp().
@@ -201,8 +205,11 @@ Node applySygusArgs(const DType& dt,
  * equivalent. For example, given input C_*( C_x(), C_y() ), this method returns
  * x*y, assuming C_+, C_x, and C_y have sygus operators *, x, and y
  * respectively.
+ *
+ * If isExternal is true, then the returned term respects the original grammar
+ * that was provided. This includes the use of defined functions.
  */
-Node sygusToBuiltin(Node c);
+Node sygusToBuiltin(Node c, bool isExternal);
 /** Sygus to builtin eval
  *
  * This method returns the rewritten form of (DT_SYGUS_EVAL n args). Notice that

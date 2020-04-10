@@ -1190,13 +1190,16 @@ bool SynthConjecture::getSynthSolutions(
   {
     Node sol = sols[i];
     int status = statuses[i];
-    Trace("cegqi-debug") << "...got " << i << ": " << sol << ", status=" << status << std::endl;
+    Trace("cegqi-debug") << "...got " << i << ": " << sol
+                         << ", status=" << status << std::endl;
     // get the builtin solution
     Node bsol = sol;
     if (status != 0)
     {
-      // convert sygus to builtin here
-      bsol = d_tds->sygusToBuiltin(sol, sol.getType());
+      // Convert sygus to builtin here.
+      // We must use the external representation to ensure bsol matches the
+      // grammar.
+      bsol = datatypes::utils::sygusToBuiltin(n, true);
     }
     // convert to lambda
     TypeNode tn = d_embed_quant[0][i].getType();

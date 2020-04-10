@@ -19,9 +19,9 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
-#include "theory/evaluator.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "theory/evaluator.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4;
@@ -207,11 +207,13 @@ Node eliminatePartialOperators(Node n)
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
 }
-    
+
 Node mkSygusTerm(const DType& dt,
                  unsigned i,
                  const std::vector<Node>& children,
-                 bool doBetaReduction)
+                 bool doBetaReduction,
+                 bool isExternal
+                )
 {
   Trace("dt-sygus-util") << "Make sygus term " << dt.getName() << "[" << i
                          << "] with children: " << children << std::endl;
@@ -219,20 +221,46 @@ Node mkSygusTerm(const DType& dt,
   Assert(dt.isSygus());
   Assert(!dt[i].getSygusOp().isNull());
   Node op = dt[i].getSygusOp();
-  // expand definitions, rewrite it, and eliminate partial operators
-  Node opn;
-  if (!op.hasAttribute(SygusOpRewrittenAttribute()))
+  Node opn = op;
+  if (!isExternal)
   {
-    opn = Node::fromExpr(
-        smt::currentSmtEngine()->expandDefinitions(op.toExpr()));
-    opn = Rewriter::rewrite(opn);
-    opn = eliminatePartialOperators(opn);
-    SygusOpRewrittenAttribute sora;
-    op.setAttribute(sora, opn);
-  }
-  else
-  {
-    opn = op.getAttribute(SygusOpRewrittenAttribute());
+    // Get the normalized version of the sygus operator. We do this by
+    // expanding definitions, rewriting it, and eliminating partial operators.
+    if (!op.hasAttribute(SygusOpRewrittenAttribute()))
+    {
+      if (op.isConst())
+      {
+        // If it is a builtin operator, convert to total version if necessary.
+        // First, get the kind for the operator.
+        Kind ok = NodeManager::operatorToKind(op);
+        Trace("sygus-grammar-normalize-debug")
+            << "...builtin kind is " << ok << std::endl;
+        Kind nk = getEliminateKind(ok);
+        if (nk != ok)
+        {
+          Trace("sygus-grammar-normalize-debug")
+              << "...replace by builtin operator " << nk << std::endl;
+          opn = NodeManager::currentNM()->operatorOf(nk);
+        }
+      }
+      else
+      {
+        // Only expand definitions if the operator is not constant, since calling
+        // expandDefinitions on them should be a no-op. This check ensures we don't
+        // try to expand e.g. bitvector extract operators, whose type is undefined,
+        // and thus should not be passed to expandDefinitions.
+        opn =
+            Node::fromExpr(smt::currentSmtEngine()->expandDefinitions(op.toExpr()));
+        opn = Rewriter::rewrite(opn);
+        opn = eliminatePartialOperators(opn);
+        SygusOpRewrittenAttribute sora;
+        op.setAttribute(sora, opn);
+      }
+    }
+    else
+    {
+      opn = op.getAttribute(SygusOpRewrittenAttribute());
+    }
   }
   return mkSygusTerm(opn, children, doBetaReduction);
 }
@@ -492,7 +520,7 @@ struct SygusToBuiltinTermAttributeId
 typedef expr::Attribute<SygusToBuiltinTermAttributeId, Node>
     SygusToBuiltinTermAttribute;
 
-Node sygusToBuiltin(Node n)
+Node sygusToBuiltin(Node n, bool isExternal)
 {
   Assert(n.isConst());
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
@@ -551,7 +579,7 @@ Node sygusToBuiltin(Node n)
           children.push_back(it->second);
         }
         index = indexOf(cur.getOperator());
-        ret = mkSygusTerm(dt, index, children);
+        ret = mkSygusTerm(dt, index, children, true, isExternal);
       }
       visited[cur] = ret;
       // cache

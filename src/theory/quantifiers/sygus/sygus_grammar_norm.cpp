@@ -174,41 +174,6 @@ void SygusGrammarNorm::TypeObject::addConsInfo(
   Node sygus_op = cons.getSygusOp();
   Trace("sygus-grammar-normalize-debug")
       << ".....operator is " << sygus_op << std::endl;
-  Node exp_sop_n = sygus_op;
-  if (exp_sop_n.isConst())
-  {
-    // If it is a builtin operator, convert to total version if necessary.
-    // First, get the kind for the operator.
-    Kind ok = NodeManager::operatorToKind(exp_sop_n);
-    Trace("sygus-grammar-normalize-debug")
-        << "...builtin kind is " << ok << std::endl;
-    Kind nk = getEliminateKind(ok);
-    if (nk != ok)
-    {
-      Trace("sygus-grammar-normalize-debug")
-          << "...replace by builtin operator " << nk << std::endl;
-      exp_sop_n = NodeManager::currentNM()->operatorOf(nk);
-    }
-  }
-  else if(false)
-  {
-    // Only expand definitions if the operator is not constant, since calling
-    // expandDefinitions on them should be a no-op. This check ensures we don't
-    // try to expand e.g. bitvector extract operators, whose type is undefined,
-    // and thus should not be passed to expandDefinitions.
-    exp_sop_n = Node::fromExpr(
-        smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
-    exp_sop_n = Rewriter::rewrite(exp_sop_n);
-    Trace("sygus-grammar-normalize-debug")
-        << ".....operator (post-rewrite) is " << exp_sop_n << std::endl;
-    // eliminate all partial operators from it
-    exp_sop_n = eliminatePartialOperators(exp_sop_n);
-    Trace("sygus-grammar-normalize-debug")
-        << ".....operator (eliminate partial operators) is " << exp_sop_n
-        << std::endl;
-    // rewrite again
-    exp_sop_n = Rewriter::rewrite(exp_sop_n);
-  }
 
   std::vector<TypeNode> consTypes;
   const std::vector<std::shared_ptr<DTypeSelector> >& args = cons.getArgs();
@@ -221,11 +186,9 @@ void SygusGrammarNorm::TypeObject::addConsInfo(
     atype = sygus_norm->normalizeSygusRec(atype);
     consTypes.push_back(atype);
   }
-
-  Trace("sygus-type-cons-defs") << "\tOriginal op: " << cons.getSygusOp()
-                                << "\n\tExpanded one: " << exp_sop_n << "\n\n";
+  
   d_sdt.addConstructor(
-      exp_sop_n, cons.getName(), consTypes, spc, cons.getWeight());
+      sygus_op, cons.getName(), consTypes, spc, cons.getWeight());
 }
 
 void SygusGrammarNorm::TypeObject::initializeDatatype(
