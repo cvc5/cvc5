@@ -864,7 +864,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       // by default, use store axioms only if --ho-elim is set
       options::hoElimStoreAx.set(options::hoElim());
     }
-    // Cannot use macros, since lambda lifting + macro elimination are inverse
+    // Cannot use macros, since lambda lifting and macro elimination are inverse
     // operations.
     if (options::macrosQuant())
     {
