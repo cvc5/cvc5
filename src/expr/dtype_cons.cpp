@@ -78,15 +78,14 @@ Node DTypeConstructor::getTester() const
 
 void DTypeConstructor::setSygus(Node op)
 {
-  Trace("sygus-grammar-normalize-debug") << "...set sygus " << op << std::endl;
   Assert(!isResolved());
   d_sygusOp = op;
 }
 
-Node DTypeConstructor::getSygusOp(bool isExternal) const
+Node DTypeConstructor::getSygusOp() const
 {
   Assert(isResolved());
-  return isExternal ? d_sygusOpExt : d_sygusOp;
+  return d_sygusOp;
 }
 
 bool DTypeConstructor::isSygusIdFunc() const
