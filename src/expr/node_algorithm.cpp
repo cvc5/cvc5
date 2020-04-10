@@ -155,7 +155,7 @@ bool hasSubtermKind(Kind k, Node n)
   return false;
 }
 
-bool hasSubtermKinds(const std::vector<Kind>& k, Node n)
+bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks, Node n)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;
@@ -168,7 +168,7 @@ bool hasSubtermKinds(const std::vector<Kind>& k, Node n)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      if (std::find(ks.begin(),ks.end(),cur.getKind()) != ks.end())
+      if (ks.find(cur.getKind()) != ks.end())
       {
         return true;
       }
