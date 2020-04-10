@@ -78,8 +78,7 @@ Node DTypeConstructor::getTester() const
 
 void DTypeConstructor::setSygus(Node op)
 {
-      Trace("sygus-grammar-normalize-debug")
-          << "...set sygus " << op << std::endl;
+  Trace("sygus-grammar-normalize-debug") << "...set sygus " << op << std::endl;
   Assert(!isResolved());
   d_sygusOpExt = op;
   d_sygusOp = op;
@@ -109,7 +108,7 @@ void DTypeConstructor::setSygus(Node op)
         Node::fromExpr(smt::currentSmtEngine()->expandDefinitions(op.toExpr()));
     d_sygusOp = Rewriter::rewrite(opn);
     d_sygusOp = eliminatePartialOperators(opn);
-    if (d_sygusOp!=op)
+    if (d_sygusOp != op)
     {
       Trace("sygus-grammar-normalize-debug")
           << "...replace by " << d_sygusOp << std::endl;

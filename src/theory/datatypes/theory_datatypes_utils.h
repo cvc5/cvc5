@@ -152,7 +152,7 @@ Kind getOperatorKindForSygusBuiltin(Node op);
  * where f is the builtin op that the i^th constructor of sygus datatype dt
  * encodes. If doBetaReduction is true, then lambdas are eagerly eliminated
  * via beta reduction.
- * 
+ *
  * If isExternal is true, then the returned term respects the original grammar
  * that was provided. This includes the use of defined functions.
  */
@@ -211,7 +211,7 @@ Node applySygusArgs(const DType& dt,
  * should typically be false, unless we are e.g. exporting the value of the
  * term as a final solution.
  */
-Node sygusToBuiltin(Node c, bool isExternal=false);
+Node sygusToBuiltin(Node c, bool isExternal = false);
 /** Sygus to builtin eval
  *
  * This method returns the rewritten form of (DT_SYGUS_EVAL n args). Notice that

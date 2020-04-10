@@ -212,8 +212,7 @@ Node mkSygusTerm(const DType& dt,
                  unsigned i,
                  const std::vector<Node>& children,
                  bool doBetaReduction,
-                 bool isExternal
-                )
+                 bool isExternal)
 {
   Trace("dt-sygus-util") << "Make sygus term " << dt.getName() << "[" << i
                          << "] with children: " << children << std::endl;
@@ -245,12 +244,13 @@ Node mkSygusTerm(const DType& dt,
       }
       else
       {
-        // Only expand definitions if the operator is not constant, since calling
-        // expandDefinitions on them should be a no-op. This check ensures we don't
-        // try to expand e.g. bitvector extract operators, whose type is undefined,
-        // and thus should not be passed to expandDefinitions.
-        opn =
-            Node::fromExpr(smt::currentSmtEngine()->expandDefinitions(op.toExpr()));
+        // Only expand definitions if the operator is not constant, since
+        // calling expandDefinitions on them should be a no-op. This check
+        // ensures we don't try to expand e.g. bitvector extract operators,
+        // whose type is undefined, and thus should not be passed to
+        // expandDefinitions.
+        opn = Node::fromExpr(
+            smt::currentSmtEngine()->expandDefinitions(op.toExpr()));
         opn = Rewriter::rewrite(opn);
         opn = eliminatePartialOperators(opn);
         SygusOpRewrittenAttribute sora;

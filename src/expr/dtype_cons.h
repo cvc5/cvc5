@@ -90,9 +90,9 @@ class DTypeConstructor
    * This method returns the operator or term that this constructor represents
    * in the sygus encoding. This may be a builtin operator, defined function,
    * variable, or constant that this constructor encodes in this deep embedding.
-   * 
+   *
    * If isExternal is true, then this operator strictly respects the original
-   * provided grammar. This is not the case for 
+   * provided grammar. This is not the case for
    */
   Node getSygusOp(bool isExternal = false) const;
   /** is this a sygus identity function?
@@ -274,14 +274,14 @@ class DTypeConstructor
                          bool isValue) const;
   //--------------------------- helper functions for sygus
   /**
-    * Returns the total version of Kind k if it is a partial operator, or
-    * otherwise k itself.
-    */
+   * Returns the total version of Kind k if it is a partial operator, or
+   * otherwise k itself.
+   */
   static Kind getEliminateKind(Kind k);
   /**
-    * Returns a version of n where all partial functions such as bvudiv
-    * have been replaced by their total versions like bvudiv_total.
-    */
+   * Returns a version of n where all partial functions such as bvudiv
+   * have been replaced by their total versions like bvudiv_total.
+   */
   static Node eliminatePartialOperators(Node n);
   //--------------------------- end helper functions for sygus
   /** compute shared selectors

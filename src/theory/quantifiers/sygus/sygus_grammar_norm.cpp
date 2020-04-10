@@ -105,7 +105,7 @@ void SygusGrammarNorm::TypeObject::addConsInfo(
     atype = sygus_norm->normalizeSygusRec(atype);
     consTypes.push_back(atype);
   }
-  
+
   d_sdt.addConstructor(
       sygus_op, cons.getName(), consTypes, spc, cons.getWeight());
 }
