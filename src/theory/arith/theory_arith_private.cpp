@@ -1337,7 +1337,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
     if (m.getVarList().singleton()){
       VarList vl = m.getVarList();
       Node var = vl.getNode();
-      if (var.isVar())
+      if (var.getKind()==kind::VARIABLE)
       {
         // if vl.isIntegral then m.getConstant().isOne()
         if(!vl.isIntegral() || m.getConstant().isOne()){
