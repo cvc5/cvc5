@@ -266,7 +266,6 @@ class Theory {
   bool isLegalElimination(TNode x, TNode val);
 
  public:
-
   /**
    * Return the ID of the theory responsible for the given type.
    */

@@ -13,11 +13,11 @@
  **/
 #include "theory/theory_model.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine.h"
-#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -613,10 +613,7 @@ void TheoryModel::recordModelCoreSymbol(Expr sym)
   d_model_core.insert(Node::fromExpr(sym));
 }
 
-void TheoryModel::setUnevaluatedKind(Kind k)
-{
-  d_unevaluated_kinds.insert(k);
-}
+void TheoryModel::setUnevaluatedKind(Kind k) { d_unevaluated_kinds.insert(k); }
 
 void TheoryModel::setSemiEvaluatedKind(Kind k)
 {
