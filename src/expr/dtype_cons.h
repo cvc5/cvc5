@@ -87,14 +87,14 @@ class DTypeConstructor
   void setSygus(Node op);
   /** get sygus op
    *
-   * This method returns the operator or
-   * term that this constructor represents
-   * in the sygus encoding. This may be a
-   * builtin operator, defined function, variable,
-   * or constant that this constructor encodes in this
-   * deep embedding.
+   * This method returns the operator or term that this constructor represents
+   * in the sygus encoding. This may be a builtin operator, defined function,
+   * variable, or constant that this constructor encodes in this deep embedding.
+   * 
+   * If isExternal is true, then this operator strictly respects the original
+   * provided grammar. This is not the case for 
    */
-  Node getSygusOp() const;
+  Node getSygusOp(bool isExternal = false) const;
   /** is this a sygus identity function?
    *
    * This returns true if the sygus operator of this datatype constructor is
@@ -272,6 +272,18 @@ class DTypeConstructor
                          std::vector<TypeNode>& processing,
                          std::map<TypeNode, Node>& gt,
                          bool isValue) const;
+  //--------------------------- helper functions for sygus
+  /**
+    * Returns the total version of Kind k if it is a partial operator, or
+    * otherwise k itself.
+    */
+  static Kind getEliminateKind(Kind k);
+  /**
+    * Returns a version of n where all partial functions such as bvudiv
+    * have been replaced by their total versions like bvudiv_total.
+    */
+  static Node eliminatePartialOperators(Node n);
+  //--------------------------- end helper functions for sygus
   /** compute shared selectors
    * This computes the maps d_sharedSelectors and d_sharedSelectorIndex.
    */
@@ -288,6 +300,8 @@ class DTypeConstructor
   std::vector<std::shared_ptr<DTypeSelector> > d_args;
   /** sygus operator */
   Node d_sygusOp;
+  /** sygus external operator, returned by getSygusOp(true). */
+  Node d_sygusOpExt;
   /** weight */
   unsigned d_weight;
   /** shared selectors for each type

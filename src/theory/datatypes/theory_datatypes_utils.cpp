@@ -538,7 +538,7 @@ Node sygusToBuiltin(Node n, bool isExternal)
     {
       if (cur.getKind() == APPLY_CONSTRUCTOR)
       {
-        if (cur.hasAttribute(SygusToBuiltinTermAttribute()))
+        if (!isExternal && cur.hasAttribute(SygusToBuiltinTermAttribute()))
         {
           visited[cur] = cur.getAttribute(SygusToBuiltinTermAttribute());
         }
@@ -583,8 +583,11 @@ Node sygusToBuiltin(Node n, bool isExternal)
       }
       visited[cur] = ret;
       // cache
-      SygusToBuiltinTermAttribute stbt;
-      cur.setAttribute(stbt, ret);
+      if (!isExternal)
+      {
+        SygusToBuiltinTermAttribute stbt;
+        cur.setAttribute(stbt, ret);
+      }
     }
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
