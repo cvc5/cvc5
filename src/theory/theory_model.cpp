@@ -202,7 +202,7 @@ Node TheoryModel::getModelValue(TNode n) const
   Debug("model-getvalue-debug") << "Get model value " << n << " ... ";
   Debug("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
   Kind nk = n.getKind();
-  if (n.isConst() || nk==BOUND_VARIABLE)
+  if (n.isConst() || nk == BOUND_VARIABLE)
   {
     d_modelCache[n] = n;
     return n;
