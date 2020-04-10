@@ -1,0 +1,6 @@
+(set-logic UFLIA)
+(set-info :status sat)
+(declare-fun b () Int)
+(declare-fun P (Int) Bool)
+(assert (= b (ite (forall ((x Int)) (P x)) 2 3)))
+(check-sat)
