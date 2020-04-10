@@ -58,6 +58,7 @@ void TheoryQuantifiers::finishInit()
   Assert(tm != nullptr);
   tm->setUnevaluatedKind(EXISTS);
   tm->setUnevaluatedKind(FORALL);
+  tm->setUnevaluatedKind(CHOICE);
 }
 
 void TheoryQuantifiers::preRegisterTerm(TNode n) {
