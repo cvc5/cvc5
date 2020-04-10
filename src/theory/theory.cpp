@@ -279,6 +279,11 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
+  if (!options::produceModels())
+  {
+    // don't care about the model, we are fine
+    return true;
+  }
   // if there is a model object
   TheoryModel* tm = d_valuation.getModel();
   Assert(tm != nullptr);
