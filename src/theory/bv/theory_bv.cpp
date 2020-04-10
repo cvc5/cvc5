@@ -652,7 +652,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
               && node[0].isConst()))
       {
         Node extract = node[0].isConst() ? node[1] : node[0];
-        if (extract[0].isVar())
+        if (extract[0].getKind() == kind::VARIABLE)
         {
           Node c = node[0].isConst() ? node[0] : node[1];
 
