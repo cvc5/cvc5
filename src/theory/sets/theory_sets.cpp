@@ -131,6 +131,9 @@ Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubsti
   {
     if (in[0].isVar() && isLegalElimination(in[0], in[1]))
     {
+      // We cannot solve for sets if setsExt is enabled, since universe set
+      // may appear. Solving for such a set impacts the semantics of universe
+      // set, see regress0/sets/pre-proc-univ.smt2
       if (!in[0].getType().isSet() || !options::setsExt())
       {
         outSubstitutions.addSubstitution(in[0], in[1]);
