@@ -213,7 +213,8 @@ Node TheoryModel::getModelValue(TNode n) const
 
   // if it is an evaluated kind, compute model values for children and evaluate
   if (n.getNumChildren() > 0
-      && d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end())
+      && d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
+      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end())
   {
     Debug("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
@@ -306,10 +307,8 @@ Node TheoryModel::getModelValue(TNode n) const
   }
 
   // if we are a evaluated or semi-evaluated kind, return an arbitrary value
-  // if we are not in the d_not_evaluated_kinds map, we are evaluated
-  // if we are in the d_semi_evaluated_kinds, we are semi-evaluated
-  if (d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end()
-      || d_semi_evaluated_kinds.find(nk) != d_semi_evaluated_kinds.end())
+  // if we are not in the d_unevaluated_kinds map, we are evaluated
+  if (d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end())
   {
     if (t.isFunction() || t.isPredicate())
     {
@@ -615,13 +614,17 @@ void TheoryModel::recordModelCoreSymbol(Expr sym)
 
 void TheoryModel::setUnevaluatedKind(Kind k)
 {
-  d_not_evaluated_kinds.insert(k);
+  d_unevaluated_kinds.insert(k);
 }
 
 void TheoryModel::setSemiEvaluatedKind(Kind k)
 {
-  d_not_evaluated_kinds.insert(k);
   d_semi_evaluated_kinds.insert(k);
+}
+
+bool TheoryModel::isLegalElimination(TNode x, TNode val)
+{
+  return !expr::hasSubtermKinds(d_unevaluated_kinds, val);
 }
 
 bool TheoryModel::hasTerm(TNode a)
