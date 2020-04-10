@@ -137,7 +137,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubsti
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
-    else if (in[1].isVar() && isLegalElimination(in[0], in[1]))
+    else if (in[1].isVar() && isLegalElimination(in[1], in[0]))
     {
       if (!in[0].getType().isSet() || !options::setsExt())
       {
