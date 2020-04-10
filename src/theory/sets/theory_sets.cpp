@@ -123,7 +123,31 @@ Node TheorySets::expandDefinition(Node n)
 }
 
 Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-  return d_internal->ppAssert( in, outSubstitutions );
+  Debug("sets-proc") << "ppAssert : " << in << std::endl;
+  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
+
+  // this is based off of Theory::ppAssert
+  if (in.getKind() == kind::EQUAL)
+  {
+    if (in[0].isVar() && isLegalElimination(in[0], in[1]))
+    {
+      outSubstitutions.addSubstitution(in[0], in[1]);
+      status = Theory::PP_ASSERT_STATUS_SOLVED;
+    }
+    else if (in[1].isVar() && isLegalElimination(in[0], in[1]))
+    {
+      outSubstitutions.addSubstitution(in[1], in[0]);
+      status = Theory::PP_ASSERT_STATUS_SOLVED;
+    }
+    else if (in[0].isConst() && in[1].isConst())
+    {
+      if (in[0] != in[1])
+      {
+        status = Theory::PP_ASSERT_STATUS_CONFLICT;
+      }
+    }
+  }
+  return status;
 }
 
 void TheorySets::presolve() {
