@@ -1199,7 +1199,7 @@ bool SynthConjecture::getSynthSolutions(
       // Convert sygus to builtin here.
       // We must use the external representation to ensure bsol matches the
       // grammar.
-      bsol = datatypes::utils::sygusToBuiltin(n, true);
+      bsol = datatypes::utils::sygusToBuiltin(sol, true);
     }
     // convert to lambda
     TypeNode tn = d_embed_quant[0][i].getType();
