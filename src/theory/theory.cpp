@@ -356,7 +356,7 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && isLegalElimination(in[1], in[0])
+    if (in[0].isVar() && isLegalElimination(in[0], in[1])
         && in[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
       outSubstitutions.addSubstitution(in[0], in[1]);
