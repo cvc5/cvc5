@@ -63,6 +63,16 @@ void TheoryArith::preRegisterTerm(TNode n){
   d_internal->preRegisterTerm(n);
 }
 
+void TheoryArith::finishInit()
+{
+  // quantifiers are not evaluated in getModelValue
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  //tm->setUnevaluatedKind(kind::SINE);
+  //tm->setUnevaluatedKind(kind::EXPONENTIAL);
+  //tm->setUnevaluatedKind(kind::PI);
+}
+
 Node TheoryArith::expandDefinition(Node node)
 {
   return d_internal->expandDefinition(node);
