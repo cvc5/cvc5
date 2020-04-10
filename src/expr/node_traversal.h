@@ -99,7 +99,7 @@ class NodeDfsIterator
   // Null after construction (but before first access) and at the end.
   TNode d_current;
 
-  // When to omit a node and its descendents from the traversal
+  // When to omit a node and its descendants from the traversal
   std::function<bool(TNode)> d_skipIf;
 };
 
@@ -115,7 +115,7 @@ class NodeDfsIterable
   // Modify this iterable to be in pre-order
   NodeDfsIterable& inPreorder();
 
-  // Skip a node (and its descendents) if true.
+  // Skip a node (and its descendants) if true.
   NodeDfsIterable& skipIf(std::function<bool(TNode)> skipCondition);
 
   // Move/copy construction and assignment. Destructor.
