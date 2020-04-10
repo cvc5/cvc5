@@ -1178,8 +1178,10 @@ bool SynthConjecture::getSynthSolutions(
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> sols;
   std::vector<int> statuses;
+  Trace("cegqi-debug") << "getSynthSolutions..." << std::endl;
   if (!getSynthSolutionsInternal(sols, statuses))
   {
+    Trace("cegqi-debug") << "...failed internal" << std::endl;
     return false;
   }
   // we add it to the solution map, indexed by this conjecture
@@ -1188,6 +1190,7 @@ bool SynthConjecture::getSynthSolutions(
   {
     Node sol = sols[i];
     int status = statuses[i];
+    Trace("cegqi-debug") << "...got " << i << ": " << sol << ", status=" << status << std::endl;
     // get the builtin solution
     Node bsol = sol;
     if (status != 0)
@@ -1214,6 +1217,7 @@ bool SynthConjecture::getSynthSolutions(
     }
     // store in map
     smc[fvar] = bsol;
+    Trace("cegqi-debug") << "...return " << bsol << std::endl;
   }
   return true;
 }
