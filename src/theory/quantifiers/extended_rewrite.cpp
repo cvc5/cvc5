@@ -96,10 +96,10 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   n = Rewriter::rewrite(n);
 
   // has it already been computed?
-  Node nc = getCache(n);
-  if (!nc.isNull())
+  Node ncache = getCache(n);
+  if (!ncache.isNull())
   {
-    return nc;
+    return ncache;
   }
 
   Node ret = n;
