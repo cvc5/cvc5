@@ -1194,9 +1194,6 @@ bool MatchGen::reset_round(QuantConflictFind* p)
       return false;
     }
   }
-  for( std::map< int, TNode >::iterator it = d_qni_gterm.begin(); it != d_qni_gterm.end(); ++it ){
-    d_qni_gterm_rep[it->first] = p->getRepresentative( it->second );
-  }
   if( d_type==typ_ground ){
     // int e = p->evaluate( d_n );
     // if( e==1 ){
@@ -1699,14 +1696,14 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
           }else{
             Debug("qcf-match-debug") << "       Match " << index << " is ground term" << std::endl;
             Assert(d_qni_gterm.find(index) != d_qni_gterm.end());
-            Assert(d_qni_gterm_rep.find(index) != d_qni_gterm_rep.end());
-            val = d_qni_gterm_rep[index];
+            val = d_qni_gterm[index];
             Assert(!val.isNull());
           }
           if( !val.isNull() ){
+            Node valr = p->getRepresentative(val);
             //constrained by val
             std::map<TNode, TNodeTrie>::iterator it =
-                d_qn[index]->d_data.find(val);
+                d_qn[index]->d_data.find(valr);
             if( it!=d_qn[index]->d_data.end() ){
               Debug("qcf-match-debug") << "       Match" << std::endl;
               d_qni.push_back( it );
