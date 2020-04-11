@@ -526,7 +526,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
       // ite( C, t, s ) ----> ite( C, t, s { C -> false } )
       TNode tv = n[0];
       TNode ts = d_false;
-      Node nn = tv==ts ? t2 : t2.substitute(tv, ts);
+      Node nn = tv == ts ? t2 : t2.substitute(tv, ts);
       if (nn != t2)
       {
         nn = Rewriter::rewrite(nn);
@@ -1265,13 +1265,15 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         bool newVal = (ck == andk ? !pol : pol);
         if (atoms[c].find(ca) != atoms[c].end())
         {
-          Trace("ext-rew-eqchain") << "  already set atom !!! : " << ca << ", set " << newVal << std::endl;
+          Trace("ext-rew-eqchain") << "  already set atom !!! : " << ca
+                                   << ", set " << newVal << std::endl;
           AlwaysAssert(false);
         }
         Assert(atoms[c].find(ca) == atoms[c].end());
         // polarity is flipped when we are AND
         atoms[c][ca] = newVal;
-        Trace("ext-rew-eqchain") << "  atoms(" << c << ", " << ca << ") = " << newVal << std::endl;
+        Trace("ext-rew-eqchain")
+            << "  atoms(" << c << ", " << ca << ") = " << newVal << std::endl;
         alist[c].push_back(ca);
 
         // if this already exists as a child of the equality chain, eliminate.
@@ -1320,7 +1322,8 @@ Node ExtendedRewriter::extendedRewriteEqChain(
       bool pol = ck != notk;
       Node ca = pol ? c : c[0];
       atoms[c][ca] = pol;
-      Trace("ext-rew-eqchain") << "  atoms(" << c << ", " << ca << ") = " << pol << std::endl;
+      Trace("ext-rew-eqchain")
+          << "  atoms(" << c << ", " << ca << ") = " << pol << std::endl;
       alist[c].push_back(ca);
     }
     atom_count.push_back(std::pair<Node, unsigned>(c, alist[c].size()));
