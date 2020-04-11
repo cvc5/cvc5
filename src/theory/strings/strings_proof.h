@@ -34,7 +34,7 @@ enum class ProofStep : uint32_t
   // Substitution
   // Children: (P:(x1=t1), ..., P:(xn=tn))
   // Arguments: (t)
-  // x1 = t1 ^ ... ^ x = tn 
+  // x1 = t1 ^ ... ^ x = tn
   // ------------------------------
   // t = ( t { x1 -> t1, ..., xn -> tn } )
   SUBSTITUTE,
@@ -103,14 +103,18 @@ class ProofManager;
 class ProofNode
 {
   friend class ProofManager;
-public:
-  ~ProofNode(){}
+
+ public:
+  ~ProofNode() {}
   /** compute what has been proven */
   Node computeResult();
   /** print debug */
   void printDebug(std::ostream& os) const;
-private:
-  ProofNode( ProofStep id, const std::vector<ProofNode*>& children, const std::vector<Node>& args);
+
+ private:
+  ProofNode(ProofStep id,
+            const std::vector<ProofNode*>& children,
+            const std::vector<Node>& args);
   /** The proof step */
   ProofStep d_id;
   /** The children of this node */
@@ -121,32 +125,36 @@ private:
   Node d_proven;
 };
 
-/** 
+/**
  * A proof manager for strings
  */
 class ProofManager
 {
-public:
-  ProofManager(){}
-  ~ProofManager(){}
+ public:
+  ProofManager() {}
+  ~ProofManager() {}
   /** Register step
-   * 
+   *
    * @param fact The intended conclusion of this proof step.
    * @param id The identifier for the proof step.
    * @param children The antecendant of the proof step. Each children[i] should
    * be a fact previously registered as conclusions of a registerStep call.
    * @param args The arguments of the proof step.
-   * 
+   *
    * This returns true if indeed the proof step proves fact. This can fail
    * if the proof has a different conclusion than fact, or if one of the
    * children does not have a proof.
    */
-  bool registerStep( Node fact, ProofStep id, const std::vector<Node>& children, const std::vector<Node>& args);
+  bool registerStep(Node fact,
+                    ProofStep id,
+                    const std::vector<Node>& children,
+                    const std::vector<Node>& args);
   /** Get proof for fact, or nullptr if it does not exist */
-  ProofNode * getProof(Node fact) const;
-private:
+  ProofNode* getProof(Node fact) const;
+
+ private:
   /** The nodes of the proof */
-  std::map< Node, std::unique_ptr<ProofNode> > d_nodes;
+  std::map<Node, std::unique_ptr<ProofNode> > d_nodes;
 };
 
 }  // namespace strings

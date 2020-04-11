@@ -39,8 +39,11 @@ std::ostream& operator<<(std::ostream& out, ProofStep i)
   return out;
 }
 
-ProofNode::ProofNode( ProofStep id, const std::vector<ProofNode*>& children, const std::vector<Node>& args)
-: d_id(id), d_children(children), d_args(args){
+ProofNode::ProofNode(ProofStep id,
+                     const std::vector<ProofNode*>& children,
+                     const std::vector<Node>& args)
+    : d_id(id), d_children(children), d_args(args)
+{
 }
 
 Node ProofNode::computeResult()
@@ -54,10 +57,13 @@ void ProofNode::printDebug(std::ostream& os) const
   // TODO
 }
 
-bool ProofManager::registerStep( Node fact, ProofStep id, const std::vector<Node>& children, const std::vector<Node>& args)
+bool ProofManager::registerStep(Node fact,
+                                ProofStep id,
+                                const std::vector<Node>& children,
+                                const std::vector<Node>& args)
 {
-  std::map< Node, std::unique_ptr<ProofNode> >::iterator it = d_nodes.find(fact);
-  if (it!=d_nodes.end())
+  std::map<Node, std::unique_ptr<ProofNode> >::iterator it = d_nodes.find(fact);
+  if (it != d_nodes.end())
   {
     // already proven
     return true;
@@ -65,8 +71,8 @@ bool ProofManager::registerStep( Node fact, ProofStep id, const std::vector<Node
   std::vector<ProofNode*> pchildren;
   for (const Node& c : children)
   {
-    ProofNode * pc = getProof(c);
-    if (pc==nullptr)
+    ProofNode* pc = getProof(c);
+    if (pc == nullptr)
     {
       return false;
     }
@@ -74,19 +80,20 @@ bool ProofManager::registerStep( Node fact, ProofStep id, const std::vector<Node
   }
   d_nodes[fact].reset(new ProofNode(id, pchildren, args));
   Node pfact = d_nodes[fact]->computeResult();
-  return fact==pfact;
+  return fact == pfact;
 }
 
-ProofNode * ProofManager::getProof(Node fact) const
+ProofNode* ProofManager::getProof(Node fact) const
 {
-  std::map< Node, std::unique_ptr<ProofNode> >::const_iterator it = d_nodes.find(fact);
-  if (it==d_nodes.end())
+  std::map<Node, std::unique_ptr<ProofNode> >::const_iterator it =
+      d_nodes.find(fact);
+  if (it == d_nodes.end())
   {
     return nullptr;
   }
   return it->second.get();
 }
-  
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4
