@@ -14,6 +14,8 @@
 
 #include "theory/strings/proof_manager.h"
 
+#include "theory/rewriter.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -79,35 +81,52 @@ ProofNode* ProofManager::getProof(Node fact) const
   return it->second.get();
 }
 
-Node ProofManager::pfRew(Node a)
+Node ProofManager::pfRefl(Node a)
 {
-  Node ar = Rewriter::rewrite(a);
-  Node fact = a.eqNode(ar);
-  ProofStep id = a == ar ? ProofStep::REFL : ProofStep::REWRITE;
+  Node fact = a.eqNode(a);
   std::vector<Node> children;
   std::vector<Node> args;
   args.push_back(a);
-  return registerStep(fact, id, children, args);
+  return registerStep(fact, ProofStep::REFL, children, args);
+}
+
+Node ProofManager::pfRewrite(Node a)
+{
+  Node ar = Rewriter::rewrite(a);
+  if (ar==a)
+  {
+    // no effect
+    return pfRefl(a);
+  }
+  Node fact = a.eqNode(ar);
+  std::vector<Node> children;
+  std::vector<Node> args;
+  args.push_back(a);
+  return registerStep(fact, ProofStep::REWRITE, children, args);
 }
 
 Node ProofManager::pfSubs(Node a,
                           const std::vector<Node>& exp,
                           bool ensureChildren)
 {
-  Node asubs = ProofNode::applySubstitution(a, exp);
-  Node fact = a.eqNode(asubs);
-  if (a == asubs)
+  Node as = ProofNode::applySubstitution(a, exp);
+  if (a == as)
   {
-    id = ProofStep::
+    // no effect
+    return pfRefl(a);
   }
+  Node fact = a.eqNode(as);
+  std::vector<Node> args;
+  args.push_back(a);
+  return registerStep(fact, ProofStep::SUBS, exp, args, ensureChildren);
 }
 
-Node ProofManager::pfSubsRew(Node a,
+Node ProofManager::pfSubsRewrite(Node a,
                              const std::vector<Node>& exp,
                              bool ensureChildren)
 {
   Node eqSubs = pfSubs(a, exp, ensureChildren);
-  Node eqRew = pfRew(eqSubs[0]);
+  Node eqRew = pfRewrite(eqSubs[0]);
   return pfTrans(eqSubs, eqRew, ensureChildren);
 }
 
@@ -117,16 +136,20 @@ Node ProofManager::pfTrans(Node eq1, Node eq2, bool ensureChildren)
   Assert(eq2.getKind() == EQUAL);
   if (eq1[1] != eq2[0])
   {
+    // failed to connect
     return Node::null();
   }
   if (eq1[0] == eq1[1])
   {
+    // one part is trivial
     return eq2;
   }
   else if (eq2[0] == eq2[1])
   {
+    // other part is trivial
     return eq2;
   }
+  // otherwise, we need to make the transitivity proof
   Node eqTrans = eq1[0].eqNode(eq2[1]);
   std::vector<Node> children;
   children.push_back(eq1);
@@ -141,6 +164,7 @@ Node ProofManager::pfSymm(Node eq, bool ensureChildren)
   Assert(eq.getKind() == EQUAL);
   if (eq[0] == eq[1])
   {
+    // not necessary
     return eq;
   }
   Node eqSymm = eq[1].eqNode(eq[0]);
@@ -150,13 +174,13 @@ Node ProofManager::pfSymm(Node eq, bool ensureChildren)
   return registerStep(eqSymm, ProofStep::SYMM, children, args, ensureChildren);
 }
 
-Node ProofManager::pfEqualBySubsRew(Node a,
+Node ProofManager::pfEqualBySubsRewrite(Node a,
                                     Node b,
                                     const std::vector<Node>& exp,
                                     bool ensureChildren)
 {
-  Node eqA = pfSubsRew(a, exp, ensureChildren);
-  Node eqB = pfSubsRew(b, exp, ensureChildren);
+  Node eqA = pfSubsRewrite(a, exp, ensureChildren);
+  Node eqB = pfSubsRewrite(b, exp, ensureChildren);
   Node eqBSymm = pfSymm(eqB, ensureChildren);
   return pfTrans(eqA, eqBSymm, ensureChildren);
 }

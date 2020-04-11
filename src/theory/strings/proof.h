@@ -42,7 +42,7 @@ enum class ProofStep : uint32_t
   // Arguments: (t)
   // ---------------------------------------------------------------
   // Conclusion: P:(= t t.substitute(x1,t1). ... .substitute(xn,tn))
-  SUBSTITUTE,
+  SUBS,
   // ======== Rewrite
   // Children: none
   // Arguments: (t)

@@ -40,9 +40,13 @@ class ProofManager
 
   // ----------------------- standard proofs
   /**
+   * Ensure a = a has been registed as a proof step.
+   */
+  Node pfRefl(Node a);
+  /**
    * Ensure a = rewite(a) has been registed as a proof step.
    */
-  Node pfRew(Node a);
+  Node pfRewrite(Node a);
   /**
    * Ensure a = a.substitute(exp) has been registered as a proof step.
    */
@@ -52,7 +56,7 @@ class ProofManager
   /**
    * Ensure a = rewrite(a.subsitute(exp)) has been registered as a proof step.
    */
-  Node pfSubsRew(Node a,
+  Node pfSubsRewrite(Node a,
                  const std::vector<Node>& exp,
                  bool ensureChildren = false);
   /**
@@ -60,7 +64,7 @@ class ProofManager
    *   a = rewrite(a.substitute(exp)) = rewrite(b.substitute(exp)) = b
    * has been registered as a proof step.
    */
-  Node pfEqualBySubsRew(Node a,
+  Node pfEqualBySubsRewrite(Node a,
                         Node b,
                         const std::vector<Node>& exp,
                         bool ensureChildren = false);

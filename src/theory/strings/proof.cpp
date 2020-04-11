@@ -27,7 +27,7 @@ const char* toString(ProofStep id)
   switch (id)
   {
     case ProofStep::ASSUME: return "ASSUME";
-    case ProofStep::SUBSTITUTE: return "SUBSTITUTE";
+    case ProofStep::SUBS: return "SUBS";
     case ProofStep::REWRITE: return "REWRITE";
     case ProofStep::REFL: return "REFL";
     case ProofStep::SYMM: return "SYMM";
@@ -87,12 +87,12 @@ bool ProofNode::initialize(ProofStep id,
     Assert(d_args.size() == 1);
     d_proven = d_args[0];
   }
-  else if (d_id == ProofStep::SUBSTITUTE)
+  else if (d_id == ProofStep::SUBS)
   {
     Assert(d_children.size() > 0);
     Assert(d_args.size() == 1);
     std::vector<Node> exp;
-    for (unsigned i = 0, nchild = d_children.size(); i < nchild; i++)
+    for (size_t i = 0, nchild = d_children.size(); i < nchild; i++)
     {
       exp.push_back(d_children[i]->getResult());
     }
@@ -129,7 +129,7 @@ bool ProofNode::initialize(ProofStep id,
     Assert(d_args.empty());
     Node first;
     Node curr;
-    for (unsigned i = 0, nchild = d_children.size(); i < nchild; i++)
+    for (size_t i = 0, nchild = d_children.size(); i < nchild; i++)
     {
       Node eqp = d_children[i]->getResult();
       if (eqp.isNull() || eqp.getKind() != EQUAL)
@@ -164,18 +164,21 @@ bool ProofNode::initialize(ProofStep id,
       return false;
     }
     bool isRev = d_id == ProofStep::N_UNIFY_REV;
-    unsigned index = 0;
-    while (s[isRev ? (s.size() - 1 - index) : index]
-           == t[isRev ? (t.size() - 1 - index) : index])
+    size_t index = 0;
+    size_t nchilds = s.getNumChildren();
+    size_t nchildt = t.getNumChildren();
+    Node si;
+    Node ti;
+    do
     {
-      index++;
       if (index >= s.getNumChildren() || index >= t.getNumChildren())
       {
         return false;
       }
-    }
-    Node si = s[isRev ? (s.size() - 1 - index) : index];
-    Node ti = t[isRev ? (s.size() - 1 - index) : index];
+      si = s[isRev ? (nchilds - 1 - index) : index];
+      ti = t[isRev ? (nchildt - 1 - index) : index];
+      index++;
+    }while (si!=ti);
     Node eql = d_children[1]->getResult();
     if (eql.isNull() || !eql.getKind() != EQUAL)
     {
