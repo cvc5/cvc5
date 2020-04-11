@@ -1348,7 +1348,7 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
                                     std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
   Assert(node != *this);
 
-  if (getNumChildren() == 0) {
+  if (getNumChildren() == 0 || node==replacement) {
     return *this;
   }
 
