@@ -58,7 +58,6 @@ namespace strings {
  */
 class TheoryStrings : public Theory {
   friend class InferenceManager;
-  friend class Strategy;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
  public:

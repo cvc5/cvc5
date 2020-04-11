@@ -12,7 +12,9 @@
  ** \brief Implementation of the strategy of the theory of strings.
  **/
 
-#include "theory/strings/strategy."
+#include "theory/strings/strategy.h"
+
+#include "options/strings_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -52,21 +54,21 @@ bool Strategy::hasStrategyEffort(Theory::Effort e) const
 }
 
 std::vector<std::pair<InferStep, int> >::iterator Strategy::stepBegin(
-    Theory::Effort e) const
+    Theory::Effort e)
 {
-  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::iterator it =
+  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::const_iterator it =
       d_strat_steps.find(e);
   Assert(it != d_strat_steps.end());
-  return d_infer_steps.begin() + it->first;
+  return d_infer_steps.begin() + it->second.first;
 }
 
 std::vector<std::pair<InferStep, int> >::iterator Strategy::stepEnd(
-    Theory::Effort e) const
+    Theory::Effort e)
 {
-  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::iterator it =
+  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::const_iterator it =
       d_strat_steps.find(e);
   Assert(it != d_strat_steps.end());
-  return d_infer_steps.begin() + it->second;
+  return d_infer_steps.begin() + it->second.second;
 }
 
 void Strategy::addStrategyStep(InferStep s, int effort, bool addBreak)

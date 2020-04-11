@@ -719,7 +719,7 @@ void TheoryStrings::check(Effort e) {
     do{
       ++(d_statistics.d_strategyRuns);
       Trace("strings-check") << "  * Run strategy..." << std::endl;
-      d_strat.runStrategy(e);
+      runStrategy(e);
       // flush the facts
       addedFact = d_im.hasPendingFact();
       addedLemma = d_im.hasPendingLemma();
@@ -1208,16 +1208,13 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
 
 void TheoryStrings::runStrategy(Theory::Effort e)
 {
-  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::iterator itsr =
-      d_strat_steps.find(e);
-  Assert(itsr != d_strat_steps.end());
-  unsigned sbegin = itsr->second.first;
-  unsigned send = itsr->second.second;
+  std::vector<std::pair<InferStep, int> >::iterator it = d_strat.stepBegin(e);
+  std::vector<std::pair<InferStep, int> >::iterator stepEnd = d_strat.stepEnd(e);
 
   Trace("strings-process") << "----check, next round---" << std::endl;
-  for (unsigned i = sbegin; i <= send; i++)
+  while (it != stepEnd)
   {
-    InferStep curr = d_infer_steps[i];
+    InferStep curr = it->first;
     if (curr == BREAK)
     {
       if (d_im.hasProcessed())
@@ -1227,12 +1224,13 @@ void TheoryStrings::runStrategy(Theory::Effort e)
     }
     else
     {
-      runInferStep(curr, d_infer_step_effort[i]);
+      runInferStep(curr, it->second);
       if (d_state.isInConflict())
       {
         break;
       }
     }
+    ++it;
   }
   Trace("strings-process") << "----finished round---" << std::endl;
 }
