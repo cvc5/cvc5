@@ -1,3 +1,4 @@
+; COMMAND-LINE: --incremental
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
