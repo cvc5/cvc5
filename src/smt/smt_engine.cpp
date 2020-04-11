@@ -5290,9 +5290,11 @@ bool SmtEngine::getInterpol(const Expr& conj,
   d_interpolConj = conjn.toExpr();
   std::string name("A");  // TODO why not pass the customized name?
 
-  Node sygusConj =
-      theory::quantifiers::sygus_interpol::mkInterpolationConjecture(
-          name, axioms, conjn, TypeNode::fromType(grammarType));
+  Node sygusConj;
+	std::vector<Expr> vars;
+	TypeNode itpGrammar;
+  theory::quantifiers::sygus_interpol::mkInterpolationConjecture(
+          name, axioms, conjn, TypeNode::fromType(grammarType), sygusConj, vars, itpGrammar);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(sygusConj.getKind() == kind::FORALL
          && sygusConj[0].getNumChildren() == 1);
@@ -5310,13 +5312,13 @@ bool SmtEngine::getInterpol(const Expr& conj,
   // enable everything needed for sygus
   l.enableSygus();
   d_subsolver->setLogic(l);
-  // assert the interpolation query
-  d_subsolver->assertFormula(sygusConj.toExpr());
+	d_subsolver->declareSynthFun("A", interpol, itpGrammar, false, vars);
+  d_subsolver->assertSygusConstraint(sygusConj.toExpr());
 
   if (getInterpolInternal(interpol))
   {
     // successfully generated an interpolation, update to interpol state
-    d_smtMode = SMT_MODE_INTERPOL;  // TODO: what is the role of d_smtMode?
+    d_smtMode = SMT_MODE_INTERPOL;
     return true;
   }
   // failed, we revert to the assert state
@@ -5330,7 +5332,7 @@ bool SmtEngine::getInterpolInternal(Expr& interpol)
   Assert(d_subsolver != nullptr);
   Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
                           << std::endl;
-  Result r = d_subsolver->checkSat();
+  Result r = d_subsolver->checkSynth();
   Trace("sygus-interpol") << "  SmtEngine::getInterpol result: " << r
                           << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
