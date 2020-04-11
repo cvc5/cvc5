@@ -131,6 +131,8 @@ class ProofNode
   /** print debug */
   void printDebug(std::ostream& os) const;
 
+  /** apply substitution */
+  static Node applySubstitution(Node n, const std::vector<Node>& exp);
  private:
   ProofNode(ProofStep id,
             const std::vector<ProofNode*>& children,
