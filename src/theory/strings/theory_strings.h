@@ -335,6 +335,8 @@ class TheoryStrings : public Theory {
   //-----------------------end inference steps
   /** run the given inference step */
   void runInferStep(InferStep s, int effort);
+  /** run strategy for effort e */
+  void runStrategy(Theory::Effort e);
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

@@ -67,8 +67,6 @@ enum InferStep
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);
 
-class TheoryStrings;
-
 /**
  * The strategy of theory of strings.
  *
@@ -78,7 +76,7 @@ class TheoryStrings;
 class Strategy
 {
  public:
-  Strategy(TheoryStrings& parent);
+  Strategy();
   ~Strategy();
   /** is this strategy initialized? */
   bool isStrategyInit() const;
@@ -90,12 +88,8 @@ class Strategy
    * a series of calls to addStrategyStep above.
    */
   void initializeStrategy();
-  /** run strategy for effort e */
-  void runStrategy(Theory::Effort e);
 
  private:
-  /** Reference to the parent */
-  TheoryStrings& d_parent;
   /** is strategy initialized */
   bool d_strategy_init;
   /** the strategy */

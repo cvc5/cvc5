@@ -14,8 +14,6 @@
 
 #include "theory/strings/strategy."
 
-#include "theory/strings/theory_strings.h"
-
 namespace CVC4 {
 namespace theory {
 namespace strings {
@@ -42,8 +40,8 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
   return out;
 }
 
-Strategy::Strategy(TheoryStrings& parent)
-    : d_parent(parent), d_strategy_init(false)
+Strategy::Strategy()
+    : d_strategy_init(false)
 {
 }
 
@@ -144,37 +142,6 @@ void Strategy::initializeStrategy()
           std::pair<unsigned, unsigned>(it_begin.second, it_end->second);
     }
   }
-}
-
-void Strategy::runStrategy(Theory::Effort e)
-{
-  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::iterator itsr =
-      d_strat_steps.find(e);
-  Assert(itsr != d_strat_steps.end());
-  unsigned sbegin = itsr->second.first;
-  unsigned send = itsr->second.second;
-
-  Trace("strings-process") << "----check, next round---" << std::endl;
-  for (unsigned i = sbegin; i <= send; i++)
-  {
-    InferStep curr = d_infer_steps[i];
-    if (curr == BREAK)
-    {
-      if (d_im.hasProcessed())
-      {
-        break;
-      }
-    }
-    else
-    {
-      d_parent.runInferStep(curr, d_infer_step_effort[i]);
-      if (d_state.isInConflict())
-      {
-        break;
-      }
-    }
-  }
-  Trace("strings-process") << "----finished round---" << std::endl;
 }
 
 }  // namespace strings

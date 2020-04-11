@@ -61,8 +61,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_csolver(c, u, d_state, d_im, d_sk_cache, d_bsolver),
       d_esolver(nullptr),
       d_rsolver(nullptr),
-      d_stringsFmf(c, u, valuation, d_sk_cache),
-      d_strat(*this)
+      d_stringsFmf(c, u, valuation, d_sk_cache)
 {
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
@@ -1203,6 +1202,38 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
                            << ", addedLemma = " << d_im.hasPendingLemma()
                            << ", conflict = " << d_state.isInConflict()
                            << std::endl;
+}
+
+
+void TheoryStrings::runStrategy(Theory::Effort e)
+{
+  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::iterator itsr =
+      d_strat_steps.find(e);
+  Assert(itsr != d_strat_steps.end());
+  unsigned sbegin = itsr->second.first;
+  unsigned send = itsr->second.second;
+
+  Trace("strings-process") << "----check, next round---" << std::endl;
+  for (unsigned i = sbegin; i <= send; i++)
+  {
+    InferStep curr = d_infer_steps[i];
+    if (curr == BREAK)
+    {
+      if (d_im.hasProcessed())
+      {
+        break;
+      }
+    }
+    else
+    {
+      runInferStep(curr, d_infer_step_effort[i]);
+      if (d_state.isInConflict())
+      {
+        break;
+      }
+    }
+  }
+  Trace("strings-process") << "----finished round---" << std::endl;
 }
 
 }/* CVC4::theory::strings namespace */
