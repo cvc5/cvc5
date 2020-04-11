@@ -299,7 +299,7 @@ bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
   if( n1.getKind()==INST_CONSTANT ){
     if( options::relationalTriggers() ){
       Node q1 = quantifiers::TermUtil::getInstConstAttr(n1);
-      Node q2 = quantifiers::TermUtil::getInstConstAttr(n2)
+      Node q2 = quantifiers::TermUtil::getInstConstAttr(n2);
       if (q1!=q)
       {
         // x is a variable from another quantified formula, fail
