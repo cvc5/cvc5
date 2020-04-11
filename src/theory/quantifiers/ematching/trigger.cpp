@@ -298,20 +298,32 @@ Node Trigger::getIsUsableEq( Node q, Node n ) {
 bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
   if( n1.getKind()==INST_CONSTANT ){
     if( options::relationalTriggers() ){
-      if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){
+      Node q1 = quantifiers::TermUtil::getInstConstAttr(n1);
+      Node q2 = quantifiers::TermUtil::getInstConstAttr(n2)
+      if (q1!=q)
+      {
+        // x is a variable from another quantified formula, fail
+        return false;
+      }
+      if( q2.isNull() ){
+        // x = c
         return true;
-      }else if( n2.getKind()==INST_CONSTANT ){
+      }
+      if( n2.getKind()==INST_CONSTANT && q2==q ){
+        // x = y
         return true;
       }
     }
   }else if( isUsableAtomicTrigger( n1, q ) ){
-    if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT
-        && !expr::hasSubterm(n1, n2))
+    if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT &&
+        quantifiers::TermUtil::getInstConstAttr(n2)==q && !expr::hasSubterm(n1, n2))
     {
+      // f(x) = y
       return true;
     }
     else if (!quantifiers::TermUtil::hasInstConstAttr(n2))
     {
+      // f(x) = c
       return true;
     }
   }

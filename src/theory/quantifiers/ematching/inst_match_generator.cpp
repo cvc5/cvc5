@@ -596,7 +596,15 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n)
     Node x;
     if (options::purifyTriggers())
     {
-      x = Trigger::getInversionVariable(n);
+      Node xi = Trigger::getInversionVariable(n);
+      if (!xi.isNull())
+      {
+        Node qa = quantifiers::TermUtil::getInstConstAttr(xi);
+        if (qa==q)
+        {
+          x = xi;
+        }
+      }
     }
     if (!x.isNull())
     {
