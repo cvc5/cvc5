@@ -18,10 +18,11 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-const char* toString(ProofStep i)
+const char* toString(ProofStep id)
 {
   switch (i)
   {
+    case ProofStep::ASSUME: return "ASSUME";
     case ProofStep::SUBSTITUTE: return "SUBSTITUTE";
     case ProofStep::REWRITE: return "REWRITE";
     case ProofStep::REFL: return "REFL";
@@ -33,9 +34,9 @@ const char* toString(ProofStep i)
   }
 }
 
-std::ostream& operator<<(std::ostream& out, ProofStep i)
+std::ostream& operator<<(std::ostream& out, ProofStep id)
 {
-  out << toString(i);
+  out << toString(id);
   return out;
 }
 
@@ -74,12 +75,14 @@ bool ProofManager::registerStep(Node fact,
     ProofNode* pc = getProof(c);
     if (pc == nullptr)
     {
+      // failed to get a proof for child, fail
       return false;
     }
     pchildren.push_back(pc);
   }
   d_nodes[fact].reset(new ProofNode(id, pchildren, args));
   Node pfact = d_nodes[fact]->computeResult();
+  // must be equal to given fact
   return fact == pfact;
 }
 

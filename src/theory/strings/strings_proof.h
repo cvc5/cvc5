@@ -31,6 +31,10 @@ namespace strings {
  */
 enum class ProofStep : uint32_t
 {
+  // Assumption (a leaf)
+  // Children: none
+  // Arguments: (P)
+  ASSUME,
   // Substitution
   // Children: (P:(x1=t1), ..., P:(xn=tn))
   // Arguments: (t)
@@ -83,19 +87,19 @@ enum class ProofStep : uint32_t
  * `safe_print()` printing "<unsupported>" instead of the proper strings for
  * the enum values.
  *
- * @param i The proof step
+ * @param id The proof step
  * @return The name of the proof step
  */
-const char* toString(ProofStep i);
+const char* toString(ProofStep id);
 
 /**
  * Writes an proof step name to a stream.
  *
  * @param out The stream to write to
- * @param i The proof step to write to the stream
+ * @param id The proof step to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, ProofStep ps);
+std::ostream& operator<<(std::ostream& out, ProofStep id);
 
 class ProofManager;
 
@@ -103,14 +107,12 @@ class ProofManager;
 class ProofNode
 {
   friend class ProofManager;
-
  public:
   ~ProofNode() {}
   /** compute what has been proven */
   Node computeResult();
   /** print debug */
   void printDebug(std::ostream& os) const;
-
  private:
   ProofNode(ProofStep id,
             const std::vector<ProofNode*>& children,
@@ -133,6 +135,8 @@ class ProofManager
  public:
   ProofManager() {}
   ~ProofManager() {}
+  /** Get proof for fact, or nullptr if it does not exist */
+  ProofNode* getProof(Node fact) const;
   /** Register step
    *
    * @param fact The intended conclusion of this proof step.
@@ -149,9 +153,6 @@ class ProofManager
                     ProofStep id,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args);
-  /** Get proof for fact, or nullptr if it does not exist */
-  ProofNode* getProof(Node fact) const;
-
  private:
   /** The nodes of the proof */
   std::map<Node, std::unique_ptr<ProofNode> > d_nodes;
