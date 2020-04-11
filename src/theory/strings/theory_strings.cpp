@@ -1206,7 +1206,6 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
                            << std::endl;
 }
 
-
 void TheoryStrings::runStrategy(Theory::Effort e)
 {
   std::map<Theory::Effort, std::pair<unsigned, unsigned> >::iterator itsr =

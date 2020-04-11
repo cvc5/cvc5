@@ -83,8 +83,10 @@ class Strategy
   /** do we have a strategy for effort e? */
   bool hasStrategyEffort(Theory::Effort e) const;
   /** begin and end iterators for effort e */
-  std::vector<std::pair<InferStep, int> >::iterator stepBegin(Theory::Effort e) const;
-  std::vector<std::pair<InferStep, int> >::iterator stepEnd(Theory::Effort e) const;
+  std::vector<std::pair<InferStep, int> >::iterator stepBegin(
+      Theory::Effort e) const;
+  std::vector<std::pair<InferStep, int> >::iterator stepEnd(
+      Theory::Effort e) const;
   /** initialize the strategy
    *
    * This initializes the above information based on the options. This makes
