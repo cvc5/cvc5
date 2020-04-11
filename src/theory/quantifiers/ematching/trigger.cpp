@@ -299,12 +299,12 @@ bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
   if( n1.getKind()==INST_CONSTANT ){
     if( options::relationalTriggers() ){
       Node q1 = quantifiers::TermUtil::getInstConstAttr(n1);
-      Node q2 = quantifiers::TermUtil::getInstConstAttr(n2);
       if (q1 != q)
       {
         // x is a variable from another quantified formula, fail
         return false;
       }
+      Node q2 = quantifiers::TermUtil::getInstConstAttr(n2);
       if (q2.isNull())
       {
         // x = c
@@ -315,6 +315,8 @@ bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
         // x = y
         return true;
       }
+      // we dont check x = f(y), which is handled symmetrically below
+      // when n1 and n2 are swapped
     }
   }else if( isUsableAtomicTrigger( n1, q ) ){
     if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT
