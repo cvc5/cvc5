@@ -107,12 +107,14 @@ class ProofManager;
 class ProofNode
 {
   friend class ProofManager;
+
  public:
   ~ProofNode() {}
   /** compute what has been proven */
   Node computeResult();
   /** print debug */
   void printDebug(std::ostream& os) const;
+
  private:
   ProofNode(ProofStep id,
             const std::vector<ProofNode*>& children,
@@ -153,6 +155,7 @@ class ProofManager
                     ProofStep id,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args);
+
  private:
   /** The nodes of the proof */
   std::map<Node, std::unique_ptr<ProofNode> > d_nodes;
