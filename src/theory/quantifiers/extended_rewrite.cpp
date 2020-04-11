@@ -526,7 +526,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
       // ite( C, t, s ) ----> ite( C, t, s { C -> false } )
       TNode tv = n[0];
       TNode ts = d_false;
-      Node nn = tv == ts ? t2 : t2.substitute(tv, ts);
+      Node nn = t2.substitute(tv, ts);
       if (nn != t2)
       {
         nn = Rewriter::rewrite(nn);
