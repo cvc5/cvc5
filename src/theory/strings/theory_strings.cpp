@@ -712,10 +712,12 @@ void TheoryStrings::check(Effort e) {
       }
       Trace("strings-eqc") << std::endl;
     }
+    ++(d_statistics.d_checkRuns);
     bool addedLemma = false;
     bool addedFact;
     Trace("strings-check") << "Full effort check..." << std::endl;
     do{
+      ++(d_statistics.d_strategyRuns);
       Trace("strings-check") << "  * Run strategy..." << std::endl;
       d_strat.runStrategy(e);
       // flush the facts

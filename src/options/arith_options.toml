@@ -149,7 +149,6 @@ header = "options/arith_options.h"
   long       = "miplib-trick"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "turns on the preprocessing step of attempting to infer bounds on miplib problems"
 
 [[option]]

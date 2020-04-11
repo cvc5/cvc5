@@ -140,6 +140,29 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   if (options::solveBVAsInt() > 0)
   {
+    // not compatible with incremental
+    if (options::incrementalSolving())
+    {
+      throw OptionException(
+          "solving bitvectors as integers is currently not supported "
+          "when solving incrementally.");
+    }
+    else if (options::boolToBitvector() != options::BoolToBVMode::OFF)
+    {
+      throw OptionException(
+          "solving bitvectors as integers is incompatible with --bool-to-bv.");
+    }
+    if (options::solveBVAsInt() > 8)
+    {
+      /**
+       * The granularity sets the size of the ITE in each element
+       * of the sum that is generated for bitwise operators.
+       * The size of the ITE is 2^{2*granularity}.
+       * Since we don't want to introduce ITEs with unbounded size,
+       * we bound the granularity.
+       */
+      throw OptionException("solve-bv-as-int accepts values from 0 to 8.");
+    }
     if (logic.isTheoryEnabled(THEORY_BV))
     {
       logic = logic.getUnlockedCopy();
@@ -772,6 +795,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     options::ufssFairnessMonotone.set(false);
     options::quantEpr.set(false);
     options::globalNegate.set(false);
+    options::bvAbstraction.set(false);
+    options::arithMLTrick.set(false);
   }
   if (logic.hasCardinalityConstraints())
   {
@@ -1404,6 +1429,17 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
                << sOptNoModel << std::endl;
       smte.setOption("check-models", SExpr("false"));
     }
+  }
+
+  if (options::bitblastMode() == options::BitblastMode::EAGER
+      && !logic.isPure(THEORY_BV) && logic.getLogicString() != "QF_UFBV"
+      && logic.getLogicString() != "QF_ABV")
+  {
+    throw OptionException(
+        "Eager bit-blasting does not currently support theory combination. "
+        "Note that in a QF_BV problem UF symbols can be introduced for "
+        "division. "
+        "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 }
 

@@ -55,6 +55,10 @@ class SequencesStatistics
  public:
   SequencesStatistics();
   ~SequencesStatistics();
+  /** Number of calls to run a check where strategy is present */
+  IntStat d_checkRuns;
+  /** Number of calls to run the strategy */
+  IntStat d_strategyRuns;
   //--------------- inferences
   /** Counts the number of applications of each type of inference */
   HistogramStat<Inference> d_inferences;
