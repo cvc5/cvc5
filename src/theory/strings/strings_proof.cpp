@@ -98,6 +98,12 @@ bool ProofNode::computeResult()
   {
     Assert(d_children.size()==1);
     Assert(d_args.empty());
+    Node eqp = d_children[0]->getResult();
+    if (eqp.isNull() || eqp.getKind()!=EQUAL)
+    {
+      return false;
+    }
+    d_proven = eqp[1].eqNode(eqp[0]);
   }
   else if (d_id==ProofStep::TRANS)
   {
@@ -124,6 +130,11 @@ bool ProofNode::computeResult()
     }
     d_proven = first.eqNode(curr);
   }
+  else
+  {
+    return false;
+  }
+  Assert(!d_proven.isNull());
   return true;
 }
 
