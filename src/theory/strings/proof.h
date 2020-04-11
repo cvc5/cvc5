@@ -68,20 +68,19 @@ enum class ProofStep : uint32_t
   // Conclusion: P:(= t1 tn)
   TRANS,
   // ======== Normal form unify
-  // Children: (P:(= (str.++ r t1 t2) (str.++ r s1 s2)), 
+  // Children: (P:(= (str.++ r t1 t2) (str.++ r s1 s2)),
   //            P:(= (str.len s1) (str.len s2)))
   // Arguments: none
   // ---------------------
   // Conclusion: (= t1 s1)
   N_UNIFY,
   // ======== Normal form unify reverse
-  // Children: (P:(= (str.++ t2 t1 r) (str.++ s2 s1 r)), 
+  // Children: (P:(= (str.++ t2 t1 r) (str.++ s2 s1 r)),
   //            P:(= (str.len s1) (str.len s2)))
   // Arguments: none
   // ---------------------
   // Conclusion: (= t1 s1)
   N_UNIFY_REV,
-  
 
   // ======== Congruence  (subsumed by Substitute?)
   // Children: (P:(= t1 s1), ..., P:(= tn sn))
@@ -89,8 +88,7 @@ enum class ProofStep : uint32_t
   // ---------------------------------------------
   // Conclusion: P:(= (f t1 ... tn) (f s1 ... sn))
   // CONG,
-  
-  
+
   // Unknown
   UNKNOWN,
 };
@@ -133,6 +131,7 @@ class ProofNode
 
   /** apply substitution */
   static Node applySubstitution(Node n, const std::vector<Node>& exp);
+
  private:
   ProofNode(ProofStep id,
             const std::vector<ProofNode*>& children,
@@ -147,8 +146,8 @@ class ProofNode
   Node d_proven;
   /** compute what has been proven, return true if proof is valid */
   bool initialize(ProofStep id,
-            const std::vector<ProofNode*>& children,
-            const std::vector<Node>& args);
+                  const std::vector<ProofNode*>& children,
+                  const std::vector<Node>& args);
 };
 
 }  // namespace strings

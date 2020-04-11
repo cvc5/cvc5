@@ -39,27 +39,33 @@ class ProofManager
   ProofNode* getProof(Node fact) const;
 
   // ----------------------- standard proofs
-  /** 
+  /**
    * Ensure a = rewite(a) has been registed as a proof step.
    */
   Node pfRew(Node a);
   /**
    * Ensure a = a.substitute(exp) has been registered as a proof step.
    */
-  Node pfSubs(Node a, const std::vector<Node>& exp, bool ensureChildren = false);
-  /** 
+  Node pfSubs(Node a,
+              const std::vector<Node>& exp,
+              bool ensureChildren = false);
+  /**
    * Ensure a = rewrite(a.subsitute(exp)) has been registered as a proof step.
    */
-  Node pfSubsRew(Node a, const std::vector<Node>& exp, bool ensureChildren = false);
-  /** 
-   * Ensure that: 
+  Node pfSubsRew(Node a,
+                 const std::vector<Node>& exp,
+                 bool ensureChildren = false);
+  /**
+   * Ensure that:
    *   a = rewrite(a.substitute(exp)) = rewrite(b.substitute(exp)) = b
    * has been registered as a proof step.
    */
-  Node pfEqualBySubsRew(Node a, Node b, const std::vector<Node>& exp,
-                    bool ensureChildren = false);
-  Node pfTrans(Node eq1, Node eq2, bool ensureChildren=false);
-  Node pfSymm(Node eq, bool ensureChildren=false);
+  Node pfEqualBySubsRew(Node a,
+                        Node b,
+                        const std::vector<Node>& exp,
+                        bool ensureChildren = false);
+  Node pfTrans(Node eq1, Node eq2, bool ensureChildren = false);
+  Node pfSymm(Node eq, bool ensureChildren = false);
   // ----------------------- end standard proofs
  private:
   /** Register step

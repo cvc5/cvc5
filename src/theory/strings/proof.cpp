@@ -57,7 +57,7 @@ Node ProofNode::applySubstitution(Node n, const std::vector<Node>& exp)
     }
     TNode var = eqp[0];
     TNode subs = eqp[1];
-    curr = curr.substitute(var,subs);
+    curr = curr.substitute(var, subs);
   }
   return curr;
 }
@@ -66,15 +66,15 @@ ProofNode::ProofNode(ProofStep id,
                      const std::vector<ProofNode*>& children,
                      const std::vector<Node>& args)
 {
-  initialize(id,children,args);
+  initialize(id, children, args);
 }
 
 ProofStep ProofNode::getId() const { return d_id; }
 Node ProofNode::getResult() const { return d_proven; }
 
 bool ProofNode::initialize(ProofStep id,
-                     const std::vector<ProofNode*>& children,
-                     const std::vector<Node>& args)
+                           const std::vector<ProofNode*>& children,
+                           const std::vector<Node>& args)
 {
   d_id = id;
   d_children = children;
@@ -94,7 +94,7 @@ bool ProofNode::initialize(ProofStep id,
     std::vector<Node> exp;
     for (unsigned i = 0, nchild = d_children.size(); i < nchild; i++)
     {
-      exp.push_back( d_children[i]->getResult());
+      exp.push_back(d_children[i]->getResult());
     }
     Node res = applySubstitution(d_args[0], exp);
     d_proven = d_args[0].eqNode(res);
@@ -150,7 +150,7 @@ bool ProofNode::initialize(ProofStep id,
   }
   else if (d_id == ProofStep::N_UNIFY || d_id == ProofStep::N_UNIFY_REV)
   {
-    Assert(d_children.size()==2);
+    Assert(d_children.size() == 2);
     Assert(d_args.empty());
     Node eqs = d_children[0]->getResult();
     if (eqs.isNull() || !eqs.getKind() != EQUAL)
@@ -159,22 +159,23 @@ bool ProofNode::initialize(ProofStep id,
     }
     Node s = eqs[0];
     Node t = eqs[1];
-    if (s.getKind()!=STRING_CONCAT || t.getKind()!=STRING_CONCAT)
+    if (s.getKind() != STRING_CONCAT || t.getKind() != STRING_CONCAT)
     {
       return false;
     }
     bool isRev = d_id == ProofStep::N_UNIFY_REV;
     unsigned index = 0;
-    while (s[isRev ? (s.size()-1-index) : index]==t[isRev ? (t.size()-1-index) : index])
+    while (s[isRev ? (s.size() - 1 - index) : index]
+           == t[isRev ? (t.size() - 1 - index) : index])
     {
       index++;
-      if (index>=s.getNumChildren() || index>=t.getNumChildren())
+      if (index >= s.getNumChildren() || index >= t.getNumChildren())
       {
         return false;
       }
     }
-    Node si = s[isRev ? (s.size()-1-index) : index];
-    Node ti = t[isRev ? (s.size()-1-index) : index];
+    Node si = s[isRev ? (s.size() - 1 - index) : index];
+    Node ti = t[isRev ? (s.size() - 1 - index) : index];
     Node eql = d_children[1]->getResult();
     if (eql.isNull() || !eql.getKind() != EQUAL)
     {
@@ -182,7 +183,8 @@ bool ProofNode::initialize(ProofStep id,
     }
     Node ls = eql[0];
     Node lt = eql[1];
-    if (ls.getKind()!=STRING_LENGTH || lt.getKind()!=STRING_LENGTH || ls[0]!=si || lt[0]!=ti)
+    if (ls.getKind() != STRING_LENGTH || lt.getKind() != STRING_LENGTH
+        || ls[0] != si || lt[0] != ti)
     {
       return false;
     }
