@@ -1382,7 +1382,6 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
 
   // put in cache
   Node n = nb;
-  Assert(node != n);
   cache[*this] = n;
   return n;
 }
