@@ -1263,17 +1263,11 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         bool pol = cl.getKind() != notk;
         Node ca = pol ? cl : cl[0];
         bool newVal = (ck == andk ? !pol : pol);
-        if (atoms[c].find(ca) != atoms[c].end())
-        {
-          Trace("ext-rew-eqchain") << "  already set atom !!! : " << ca
-                                   << ", set " << newVal << std::endl;
-          AlwaysAssert(false);
-        }
+        Trace("ext-rew-eqchain")
+            << "  atoms(" << c << ", " << ca << ") = " << newVal << std::endl;
         Assert(atoms[c].find(ca) == atoms[c].end());
         // polarity is flipped when we are AND
         atoms[c][ca] = newVal;
-        Trace("ext-rew-eqchain")
-            << "  atoms(" << c << ", " << ca << ") = " << newVal << std::endl;
         alist[c].push_back(ca);
 
         // if this already exists as a child of the equality chain, eliminate.
