@@ -35,7 +35,7 @@ TheoryModel::TheoryModel(context::Context* c,
       d_enableFuncModels(enableFuncModels)
 {
   // must use function models when ufHo is enabled
-  Assert( d_enableFuncModels || !options::ufHo());
+  Assert(d_enableFuncModels || !options::ufHo());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
