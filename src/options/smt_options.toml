@@ -686,11 +686,29 @@ header = "options/smt_options.h"
 [[option]]
   name       = "produceInterpols"
   category   = "undocumented"
-  long       = "produce-interpols"
-  type       = "bool"
-  default    = "false"
+  long       = "produce-interpols=MODE"
+  type       = "produceInterpols"
+  default    = "NONE"
   read_only  = true
   help       = "support the get-interpol command"
+[[option.mode.NONE]]
+	name = "none"
+	help = "don't compute interpolats"
+[[option.mode.DEFAULT]]
+	name = "default"
+	help = "use the default grammar for the theory or the user-defined grammar"
+[[option.mode.ASSUMPTIONS]]
+	name = "assumptions"
+	help = "use only operators that occur in the assumptions"
+[[option.mode.CONCLUSION]]
+	name = "conclusion"
+	help = "use only operators that occur in the conclusion"
+[[option.mode.SHARED]]
+	name = "shared"
+	help = "use only operators that occur both in the assumptions and the conclusion"
+[[option.mode.ALL]]
+	name = "all"
+	help = "use only operators that occur either in the assumptions or the conclusion"
 
 [[option]]
   name       = "produceAbducts"

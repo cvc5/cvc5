@@ -1156,12 +1156,11 @@ class CVC4_PUBLIC SmtEngine
    * If applicable, the function-to-synthesize that the subsolver is solving
    * for. This is used for the get-interpol command.
    */
-  Expr d_sssf2;  // TODO how does the name come from? why should we save the
-                 // conjectures in class?
+  Expr d_sssf2;
 
   /**
    * The conjecture of the current interpolation problem. This expression is
-   * only valid while we are in mode SMT_MODE_INTERPOL. // TODO not precise?
+   * only valid while we are in mode SMT_MODE_INTERPOL.
    */
   Expr d_interpolConj;
 

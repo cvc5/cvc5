@@ -1291,7 +1291,8 @@ void SmtEngine::setDefaults() {
   // sygus inference may require datatypes
   if (!d_isInternalSubsolver)
   {
-    if (options::produceInterpols() || options::produceAbducts()
+    if (options::produceInterpols() != options::produceInterpols::NONE ||
+				options::produceAbducts()
         || options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
@@ -1315,7 +1316,7 @@ void SmtEngine::setDefaults() {
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::produceInterpols() || options::produceAbducts()
+       || options::produceInterpols() != options::produceInterpols::NONE || options::produceAbducts()
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE)
       && !options::produceAssertions())
@@ -1956,7 +1957,7 @@ void SmtEngine::setDefaults() {
     // template inference for invariant synthesis, and single invocation
     // techniques.
     bool reqBasicSygus = false;
-    if (options::produceAbducts() || options::produceInterpols())
+    if (options::produceAbducts() || options::produceInterpols() != options::produceInterpols::NONE)
     {
       // if doing abduction or interpolation, we should filter strong solutions
       if (!options::sygusFilterSolMode.wasSetByUser())
@@ -2267,7 +2268,7 @@ void SmtEngine::setDefaults() {
           "--sygus-expr-miner-check-use-export");
     }
     if (options::sygusRewSynthInput() || options::produceAbducts()
-        || options::produceInterpols())
+        || options::produceInterpols() != options::produceInterpols::NONE)
     {
       std::stringstream ss;
       ss << (options::sygusRewSynthInput()
@@ -5267,9 +5268,9 @@ bool SmtEngine::getInterpol(const Expr& conj,
                             const Type& grammarType,
                             Expr& interpol)
 {
-  SmtScope smts(this);  // TODO what is this?
+  SmtScope smts(this);
 
-  if (!options::produceInterpols())
+  if (options::produceInterpols() == options::produceInterpols::NONE)
   {
     const char* msg =
         "Cannot get interpolation when produce-interpol options is off.";
@@ -5286,15 +5287,14 @@ bool SmtEngine::getInterpol(const Expr& conj,
   Node conjn = Node::fromExpr(conj);
   // must expand definitions
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  conjn = d_private->expandDefinitions(conjn, cache);  // TODO what is this??
+  conjn = d_private->expandDefinitions(conjn, cache);
   d_interpolConj = conjn.toExpr();
-  std::string name("A");  // TODO why not pass the customized name?
+  std::string name("A");
 
   Node sygusConj;
 	std::vector<Expr> vars;
-	TypeNode itpGrammar;
   theory::quantifiers::sygus_interpol::mkInterpolationConjecture(
-          name, axioms, conjn, TypeNode::fromType(grammarType), sygusConj, vars, itpGrammar);
+          name, axioms, conjn, TypeNode::fromType(grammarType), sygusConj, vars);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(sygusConj.getKind() == kind::FORALL
          && sygusConj[0].getNumChildren() == 1);
@@ -5312,7 +5312,10 @@ bool SmtEngine::getInterpol(const Expr& conj,
   // enable everything needed for sygus
   l.enableSygus();
   d_subsolver->setLogic(l);
-	d_subsolver->declareSynthFun("A", interpol, itpGrammar, false, vars);
+	if (options::produceInterpols() == options::produceInterpols::DEFAULT)
+	{	
+		d_subsolver->declareSynthFun("A", interpol, grammarType, false, vars);
+	}
   d_subsolver->assertSygusConstraint(sygusConj.toExpr());
 
   if (getInterpolInternal(interpol))
