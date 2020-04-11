@@ -691,6 +691,7 @@ header = "options/smt_options.h"
   default    = "NONE"
   read_only  = true
   help       = "support the get-interpol command"
+	help_mode  = "Interpolants grammar mode"
 [[option.mode.NONE]]
 	name = "none"
 	help = "don't compute interpolats"
