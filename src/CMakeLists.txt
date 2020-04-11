@@ -707,6 +707,8 @@ libcvc4_add_sources(
   theory/strings/strings_fmf.h
   theory/strings/strings_rewriter.cpp
   theory/strings/strings_rewriter.h
+  theory/strings/strings_proof.cpp
+  theory/strings/strings_proof.h
   theory/strings/theory_strings.cpp
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
