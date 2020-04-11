@@ -70,13 +70,13 @@ enum class ProofStep : uint32_t
   // ---------------------------
   // t1 = tn
   TRANS,
-  // Congruence
+  // Congruence  (subsumed by Substitute?)
   // Children: (P:(t1=t2), ..., P:(t{n-1}=tn))
   // Arguments: (f)
   // t1 = t2 ^ ... ^ t{n-1} = tn
   // ---------------------------
   // f(t1) = f(tn)
-  CONG,
+  //CONG,
   // Unknown
   UNKNOWN,
 };
@@ -110,11 +110,10 @@ class ProofNode
 
  public:
   ~ProofNode() {}
-  /** compute what has been proven */
-  Node computeResult();
+  /** get what this node proves, or the null node if this is an invalid proof */
+  Node getResult() const;
   /** print debug */
   void printDebug(std::ostream& os) const;
-
  private:
   ProofNode(ProofStep id,
             const std::vector<ProofNode*>& children,
@@ -127,6 +126,8 @@ class ProofNode
   std::vector<Node> d_args;
   /** The fact that has been proven */
   Node d_proven;
+  /** compute what has been proven, return true if proof is valid */
+  bool computeResult();
 };
 
 /**
@@ -156,6 +157,11 @@ class ProofManager
                     const std::vector<Node>& children,
                     const std::vector<Node>& args);
 
+  // ----------------------- standard proofs 
+  void equalBySubsRew(Node a, Node b, const std::vector<Node>& exp);
+  void conflictBySubsRew(Node pred, const std::vector<Node>& exp);
+  
+  // ----------------------- end standard proofs
  private:
   /** The nodes of the proof */
   std::map<Node, std::unique_ptr<ProofNode> > d_nodes;
