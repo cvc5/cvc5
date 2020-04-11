@@ -76,7 +76,7 @@ enum class ProofStep : uint32_t
   // t1 = t2 ^ ... ^ t{n-1} = tn
   // ---------------------------
   // f(t1) = f(tn)
-  //CONG,
+  // CONG,
   // Unknown
   UNKNOWN,
 };
@@ -114,6 +114,7 @@ class ProofNode
   Node getResult() const;
   /** print debug */
   void printDebug(std::ostream& os) const;
+
  private:
   ProofNode(ProofStep id,
             const std::vector<ProofNode*>& children,
@@ -157,10 +158,10 @@ class ProofManager
                     const std::vector<Node>& children,
                     const std::vector<Node>& args);
 
-  // ----------------------- standard proofs 
+  // ----------------------- standard proofs
   void equalBySubsRew(Node a, Node b, const std::vector<Node>& exp);
   void conflictBySubsRew(Node pred, const std::vector<Node>& exp);
-  
+
   // ----------------------- end standard proofs
  private:
   /** The nodes of the proof */

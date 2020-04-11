@@ -51,70 +51,68 @@ ProofNode::ProofNode(ProofStep id,
   computeResult();
 }
 
-Node ProofNode::getResult() const
-{
-  return d_proven;
-}
+Node ProofNode::getResult() const { return d_proven; }
 
 bool ProofNode::computeResult()
 {
-  if (d_id==ProofStep::ASSUME)
+  if (d_id == ProofStep::ASSUME)
   {
     Assert(d_children.empty());
-    Assert(d_args.size()==1);
+    Assert(d_args.size() == 1);
     d_proven = d_args[0];
   }
-  else if (d_id==ProofStep::SUBSTITUTE)
+  else if (d_id == ProofStep::SUBSTITUTE)
   {
-    Assert (d_children.size()>0);
+    Assert(d_children.size() > 0);
     std::vector<Node> vars;
     std::vector<Node> subs;
-    for (unsigned i=0, nchild = d_children.size(); i<nchild; i++)
+    for (unsigned i = 0, nchild = d_children.size(); i < nchild; i++)
     {
       Node eqp = d_children[i]->getResult();
-      if (eqp.isNull() || eqp.getKind()!=EQUAL)
+      if (eqp.isNull() || eqp.getKind() != EQUAL)
       {
         return false;
       }
       vars.push_back(eqp[0]);
       subs.push_back(eqp[1]);
     }
-    Assert(d_args.size()==1);
-    Node res = d_args[0].substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
+    Assert(d_args.size() == 1);
+    Node res = d_args[0].substitute(
+        vars.begin(), vars.end(), subs.begin(), subs.end());
     d_proven = d_args[0].eqNode(res);
   }
-  else if (d_id==ProofStep::REWRITE)
+  else if (d_id == ProofStep::REWRITE)
   {
     Node res = Rewriter::rewrite(d_args[0]);
     d_proven = d_args[0].eqNode(res);
   }
-  else if (d_id==ProofStep::REFL)
+  else if (d_id == ProofStep::REFL)
   {
     Assert(d_children.empty());
-    Assert(d_args.size()==1);
+    Assert(d_args.size() == 1);
     d_proven = d_args[0].eqNode(d_args[0]);
   }
-  else if (d_id==ProofStep::SYMM)
+  else if (d_id == ProofStep::SYMM)
   {
-    Assert(d_children.size()==1);
+    Assert(d_children.size() == 1);
     Assert(d_args.empty());
     Node eqp = d_children[0]->getResult();
-    if (eqp.isNull() || eqp.getKind()!=EQUAL)
+    if (eqp.isNull() || eqp.getKind() != EQUAL)
     {
       return false;
     }
     d_proven = eqp[1].eqNode(eqp[0]);
   }
-  else if (d_id==ProofStep::TRANS)
+  else if (d_id == ProofStep::TRANS)
   {
-    Assert(d_children.size()>0);
+    Assert(d_children.size() > 0);
     Assert(d_args.empty());
     Node first;
     Node curr;
-    for (unsigned i=0, nchild = d_children.size(); i<nchild; i++)
+    for (unsigned i = 0, nchild = d_children.size(); i < nchild; i++)
     {
       Node eqp = d_children[i]->getResult();
-      if (eqp.isNull() || eqp.getKind()!=EQUAL)
+      if (eqp.isNull() || eqp.getKind() != EQUAL)
       {
         return false;
       }
@@ -122,7 +120,7 @@ bool ProofNode::computeResult()
       {
         first = eqp[0];
       }
-      else if (eqp[0]!=curr)
+      else if (eqp[0] != curr)
       {
         return false;
       }
