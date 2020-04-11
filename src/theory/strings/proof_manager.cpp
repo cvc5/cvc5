@@ -130,6 +130,18 @@ Node ProofManager::pfSubsRewrite(Node a,
   return pfTrans(eqSubs, eqRew, ensureChildren);
 }
 
+Node ProofManager::pfEqualBySubsRewrite(Node a,
+                                    Node b,
+                                    const std::vector<Node>& exp,
+                                    bool ensureChildren)
+{
+  Node eqA = pfSubsRewrite(a, exp, ensureChildren);
+  Node eqB = pfSubsRewrite(b, exp, ensureChildren);
+  Node eqBSymm = pfSymm(eqB, ensureChildren);
+  return pfTrans(eqA, eqBSymm, ensureChildren);
+}
+
+
 Node ProofManager::pfTrans(Node eq1, Node eq2, bool ensureChildren)
 {
   Assert(eq1.getKind() == EQUAL);
@@ -172,17 +184,6 @@ Node ProofManager::pfSymm(Node eq, bool ensureChildren)
   children.push_back(eq);
   std::vector<Node> args;
   return registerStep(eqSymm, ProofStep::SYMM, children, args, ensureChildren);
-}
-
-Node ProofManager::pfEqualBySubsRewrite(Node a,
-                                    Node b,
-                                    const std::vector<Node>& exp,
-                                    bool ensureChildren)
-{
-  Node eqA = pfSubsRewrite(a, exp, ensureChildren);
-  Node eqB = pfSubsRewrite(b, exp, ensureChildren);
-  Node eqBSymm = pfSymm(eqB, ensureChildren);
-  return pfTrans(eqA, eqBSymm, ensureChildren);
 }
 
 }  // namespace strings

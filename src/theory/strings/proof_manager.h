@@ -40,35 +40,58 @@ class ProofManager
 
   // ----------------------- standard proofs
   /**
+   * The following functions ensure that a proof object is constructed for
+   * an equality of a given form.
+   * 
+   * They return the equality that is proven by the proof step, or Node::null()
+   * if the proof step was invalid.
+   * 
+   * Each of these functions may take:
+   * - Terms, denoted a,b, which in part determine the conclusion of the
+   * given proof step.
+   * - Assumptions, denoted exp, eq1, eq2, which are required to derive the
+   * conclusion.
+   * 
+   * If ensureChildren is true, then it must be the case that proofs have been
+   * registered for each equality in the assumption.
+   */
+  /**
    * Ensure a = a has been registed as a proof step.
    */
   Node pfRefl(Node a);
   /**
-   * Ensure a = rewite(a) has been registed as a proof step.
+   * Ensure a = rewrite(a) has been registed as a proof step.
    */
   Node pfRewrite(Node a);
   /**
-   * Ensure a = a.substitute(exp) has been registered as a proof step.
+   * Ensure a = a.substitute^*(exp) has been registered as a proof step.
    */
   Node pfSubs(Node a,
               const std::vector<Node>& exp,
               bool ensureChildren = false);
   /**
-   * Ensure a = rewrite(a.subsitute(exp)) has been registered as a proof step.
+   * Ensure a = rewrite(a.subsitute^*(exp)) has been registered as a proof step.
    */
   Node pfSubsRewrite(Node a,
                  const std::vector<Node>& exp,
                  bool ensureChildren = false);
   /**
    * Ensure that:
-   *   a = rewrite(a.substitute(exp)) = rewrite(b.substitute(exp)) = b
+   *   a = rewrite(a.substitute^*(exp)) = rewrite(b.substitute^*(exp)) = b
    * has been registered as a proof step.
    */
   Node pfEqualBySubsRewrite(Node a,
                         Node b,
                         const std::vector<Node>& exp,
                         bool ensureChildren = false);
+  /** 
+   * Ensure that eq1[0] = eq1[1] == eq2[0] = eq2[1] has been registered as a
+   * proof step.
+   */
   Node pfTrans(Node eq1, Node eq2, bool ensureChildren = false);
+  /**
+   * Ensure that eq[1] = eq[0] has been registered as a proof step.
+   */
   Node pfSymm(Node eq, bool ensureChildren = false);
   // ----------------------- end standard proofs
  private:
