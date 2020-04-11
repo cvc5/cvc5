@@ -121,6 +121,9 @@ class ProofNode
   friend class ProofManager;
 
  public:
+  ProofNode(ProofStep id,
+            const std::vector<std::shared_ptr<ProofNode>>& children,
+            const std::vector<Node>& args);
   ~ProofNode() {}
   /** get id */
   ProofStep getId() const;
@@ -133,21 +136,20 @@ class ProofNode
   static Node applySubstitution(Node n, const std::vector<Node>& exp);
 
  private:
-  ProofNode(ProofStep id,
-            const std::vector<ProofNode*>& children,
-            const std::vector<Node>& args);
   /** The proof step */
   ProofStep d_id;
   /** The children of this node */
-  std::vector<ProofNode*> d_children;
+  std::vector<std::shared_ptr<ProofNode>> d_children;
   /** arguments of this node */
   std::vector<Node> d_args;
   /** The fact that has been proven */
   Node d_proven;
   /** compute what has been proven, return true if proof is valid */
   bool initialize(ProofStep id,
-                  const std::vector<ProofNode*>& children,
+                  const std::vector<std::shared_ptr<ProofNode>>& children,
                   const std::vector<Node>& args);
+  /** invalidate */
+  void invalidate();
 };
 
 }  // namespace strings

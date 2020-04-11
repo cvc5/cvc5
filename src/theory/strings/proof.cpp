@@ -63,7 +63,7 @@ Node ProofNode::applySubstitution(Node n, const std::vector<Node>& exp)
 }
 
 ProofNode::ProofNode(ProofStep id,
-                     const std::vector<ProofNode*>& children,
+                     const std::vector<std::shared_ptr<ProofNode>>& children,
                      const std::vector<Node>& args)
 {
   initialize(id, children, args);
@@ -73,7 +73,7 @@ ProofStep ProofNode::getId() const { return d_id; }
 Node ProofNode::getResult() const { return d_proven; }
 
 bool ProofNode::initialize(ProofStep id,
-                           const std::vector<ProofNode*>& children,
+                           const std::vector<std::shared_ptr<ProofNode>>& children,
                            const std::vector<Node>& args)
 {
   d_id = id;
@@ -153,7 +153,7 @@ bool ProofNode::initialize(ProofStep id,
     Assert(d_children.size() == 2);
     Assert(d_args.empty());
     Node eqs = d_children[0]->getResult();
-    if (eqs.isNull() || !eqs.getKind() != EQUAL)
+    if (eqs.isNull() || eqs.getKind() != EQUAL)
     {
       return false;
     }
@@ -180,7 +180,7 @@ bool ProofNode::initialize(ProofStep id,
       index++;
     }while (si!=ti);
     Node eql = d_children[1]->getResult();
-    if (eql.isNull() || !eql.getKind() != EQUAL)
+    if (eql.isNull() || eql.getKind() != EQUAL)
     {
       return false;
     }
@@ -199,6 +199,13 @@ bool ProofNode::initialize(ProofStep id,
   }
   Assert(!d_proven.isNull());
   return true;
+}
+
+void ProofNode::invalidate()
+{
+  d_id = ProofStep::UNKNOWN;
+  d_children.clear();
+  d_args.clear();
 }
 
 void ProofNode::printDebug(std::ostream& os) const

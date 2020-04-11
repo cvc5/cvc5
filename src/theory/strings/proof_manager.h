@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "theory/strings/proof.h"
+#include "context/cdhashmap.h"
 
 namespace CVC4 {
 namespace theory {
@@ -32,11 +33,12 @@ namespace strings {
  */
 class ProofManager
 {
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction> NodeProofMap;
  public:
-  ProofManager() {}
+  ProofManager(context::Context* c);
   ~ProofManager() {}
   /** Get proof for fact, or nullptr if it does not exist */
-  ProofNode* getProof(Node fact) const;
+  std::shared_ptr<ProofNode> getProof(Node fact) const;
 
   // ----------------------- standard proofs
   /**
@@ -114,7 +116,7 @@ class ProofManager
                     const std::vector<Node>& args,
                     bool ensureChildren = false);
   /** The nodes of the proof */
-  std::map<Node, std::unique_ptr<ProofNode> > d_nodes;
+  NodeProofMap d_nodes;
 };
 
 }  // namespace strings

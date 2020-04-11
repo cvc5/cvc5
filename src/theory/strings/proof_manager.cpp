@@ -22,63 +22,77 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+ProofManager::ProofManager(context::Context* c) : d_nodes(c)
+{
+}
+
 Node ProofManager::registerStep(Node fact,
                                 ProofStep id,
                                 const std::vector<Node>& children,
                                 const std::vector<Node>& args,
                                 bool ensureChildren)
 {
-  std::map<Node, std::unique_ptr<ProofNode> >::iterator it = d_nodes.find(fact);
-  if (it != d_nodes.end() && it->second->getId() != ProofStep::ASSUME)
+
+  NodeProofMap::iterator it = d_nodes.find(fact);
+  if (it == d_nodes.end())
   {
-    // already proven
-    return fact;
+    if ((*it).second->getId()!=ProofStep::ASSUME || id==ProofStep::ASSUME)
+    {
+      // already proven
+      return fact;
+    }
   }
-  std::vector<ProofNode*> pchildren;
+  std::vector<std::shared_ptr<ProofNode>> pchildren;
   for (const Node& c : children)
   {
-    ProofNode* pc = getProof(c);
+    std::shared_ptr<ProofNode> pc = getProof(c);
     if (pc == nullptr)
     {
-      // failed to get a proof for child, fail
       if (ensureChildren)
       {
+        // failed to get a proof for a child, fail
         return Node::null();
       }
       // otherwise, we initialize it as an assumption
       std::vector<Node> pcargs = {c};
-      std::vector<ProofNode*> pcassume;
-      d_nodes[c].reset(new ProofNode(ProofStep::ASSUME, pcassume, pcargs));
+      std::vector<std::shared_ptr<ProofNode>> pcassume;
+      std::shared_ptr<ProofNode> pchild = std::make_shared<ProofNode>(ProofStep::ASSUME, pcassume, pcargs);
+      d_nodes.insert(c,pchild);
     }
     pchildren.push_back(pc);
   }
   // create or reinitialize it
+  std::shared_ptr<ProofNode> pthis;
   if (it == d_nodes.end())
   {
-    d_nodes[fact].reset(new ProofNode(id, pchildren, args));
+    pthis = std::make_shared<ProofNode>(id, pchildren, args);
+    d_nodes.insert(fact,pthis);
   }
   else
   {
-    d_nodes[fact]->initialize(id, pchildren, args);
+    pthis = (*it).second;
+    pthis->initialize(id, pchildren, args);
   }
-  Node pfact = d_nodes[fact]->getResult();
+  Node pfact = pthis->getResult();
   // must be equal to given fact
   if (fact == pfact)
   {
+    // valid in this context
     return fact;
   }
+  pthis->invalidate();
   return Node::null();
 }
 
-ProofNode* ProofManager::getProof(Node fact) const
+std::shared_ptr<ProofNode> ProofManager::getProof(Node fact) const
 {
-  std::map<Node, std::unique_ptr<ProofNode> >::const_iterator it =
-      d_nodes.find(fact);
+  NodeProofMap::const_iterator it = d_nodes.find(fact);
   if (it == d_nodes.end())
   {
+    // does not exist
     return nullptr;
   }
-  return it->second.get();
+  return (*it).second;
 }
 
 Node ProofManager::pfRefl(Node a)
@@ -159,7 +173,7 @@ Node ProofManager::pfTrans(Node eq1, Node eq2, bool ensureChildren)
   else if (eq2[0] == eq2[1])
   {
     // other part is trivial
-    return eq2;
+    return eq1;
   }
   // otherwise, we need to make the transitivity proof
   Node eqTrans = eq1[0].eqNode(eq2[1]);
