@@ -1291,9 +1291,9 @@ void SmtEngine::setDefaults() {
   // sygus inference may require datatypes
   if (!d_isInternalSubsolver)
   {
-    if (options::produceInterpols() != options::produceInterpols::NONE ||
-				options::produceAbducts()
-        || options::sygusInference() || options::sygusRewSynthInput())
+    if (options::produceInterpols() != options::produceInterpols::NONE
+        || options::produceAbducts() || options::sygusInference()
+        || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -1316,7 +1316,8 @@ void SmtEngine::setDefaults() {
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::produceInterpols() != options::produceInterpols::NONE || options::produceAbducts()
+       || options::produceInterpols() != options::produceInterpols::NONE
+       || options::produceAbducts()
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE)
       && !options::produceAssertions())
@@ -1957,7 +1958,8 @@ void SmtEngine::setDefaults() {
     // template inference for invariant synthesis, and single invocation
     // techniques.
     bool reqBasicSygus = false;
-    if (options::produceAbducts() || options::produceInterpols() != options::produceInterpols::NONE)
+    if (options::produceAbducts()
+        || options::produceInterpols() != options::produceInterpols::NONE)
     {
       // if doing abduction or interpolation, we should filter strong solutions
       if (!options::sygusFilterSolMode.wasSetByUser())
@@ -5292,9 +5294,9 @@ bool SmtEngine::getInterpol(const Expr& conj,
   std::string name("A");
 
   Node sygusConj;
-	std::vector<Expr> vars;
+  std::vector<Expr> vars;
   theory::quantifiers::sygus_interpol::mkInterpolationConjecture(
-          name, axioms, conjn, TypeNode::fromType(grammarType), sygusConj, vars);
+      name, axioms, conjn, TypeNode::fromType(grammarType), sygusConj, vars);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(sygusConj.getKind() == kind::FORALL
          && sygusConj[0].getNumChildren() == 1);
@@ -5312,10 +5314,10 @@ bool SmtEngine::getInterpol(const Expr& conj,
   // enable everything needed for sygus
   l.enableSygus();
   d_subsolver->setLogic(l);
-	if (options::produceInterpols() == options::produceInterpols::DEFAULT)
-	{	
-		d_subsolver->declareSynthFun("A", interpol, grammarType, false, vars);
-	}
+  if (options::produceInterpols() == options::produceInterpols::DEFAULT)
+  {
+    d_subsolver->declareSynthFun("A", interpol, grammarType, false, vars);
+  }
   d_subsolver->assertSygusConstraint(sygusConj.toExpr());
 
   if (getInterpolInternal(interpol))
