@@ -71,9 +71,9 @@ struct SortNlModel
 
 struct SortNonlinearDegree
 {
-  SortNonlinearDegree(std::map<Node, unsigned>& m) : d_mdegree(m) {}
+  SortNonlinearDegree(const std::map<Node, unsigned>& m) : d_mdegree(m) {}
   /** pointer to the non-linear extension */
-  std::map<Node, unsigned>& d_mdegree;
+  const std::map<Node, unsigned>& d_mdegree;
   /** Get the degree of n in d_mdegree */
   unsigned getDegree(Node n) const;
   /**
