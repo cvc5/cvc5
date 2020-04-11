@@ -82,6 +82,9 @@ class Strategy
   bool isStrategyInit() const;
   /** do we have a strategy for effort e? */
   bool hasStrategyEffort(Theory::Effort e) const;
+  /** begin and end iterators for effort e */
+  std::vector<std::pair<InferStep, int> >::iterator stepBegin(Theory::Effort e) const;
+  std::vector<std::pair<InferStep, int> >::iterator stepEnd(Theory::Effort e) const;
   /** initialize the strategy
    *
    * This initializes the above information based on the options. This makes
@@ -93,9 +96,7 @@ class Strategy
   /** is strategy initialized */
   bool d_strategy_init;
   /** the strategy */
-  std::vector<InferStep> d_infer_steps;
-  /** the effort levels */
-  std::vector<int> d_infer_step_effort;
+  std::vector<std::pair<InferStep, int> > d_infer_steps;
   /** the range (begin, end) of steps to run at given efforts */
   std::map<Theory::Effort, std::pair<unsigned, unsigned> > d_strat_steps;
   /** add strategy step

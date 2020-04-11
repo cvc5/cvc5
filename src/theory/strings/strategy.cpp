@@ -54,6 +54,20 @@ bool Strategy::hasStrategyEffort(Theory::Effort e) const
   return d_strat_steps.find(e) != d_strat_steps.end();
 }
 
+std::vector<std::pair<InferStep, int> >::iterator Strategy::stepBegin(Theory::Effort e) const
+{
+  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::iterator it = d_strat_steps.find(e);
+  Assert( it != d_strat_steps.end() );
+  return d_infer_steps.begin() + it->first;
+}
+
+std::vector<std::pair<InferStep, int> >::iterator Strategy::stepEnd(Theory::Effort e) const
+{
+  std::map<Theory::Effort, std::pair<unsigned, unsigned> >::iterator it = d_strat_steps.find(e);
+  Assert( it != d_strat_steps.end() );
+  return d_infer_steps.begin() + it->second;
+}
+
 void Strategy::addStrategyStep(InferStep s, int effort, bool addBreak)
 {
   // must run check init first
@@ -62,12 +76,10 @@ void Strategy::addStrategyStep(InferStep s, int effort, bool addBreak)
   Assert(s != CHECK_FLAT_FORMS
          || std::find(d_infer_steps.begin(), d_infer_steps.end(), CHECK_CYCLES)
                 != d_infer_steps.end());
-  d_infer_steps.push_back(s);
-  d_infer_step_effort.push_back(effort);
+  d_infer_steps.push_back(std::pair<InferStep,int>(s,effort));
   if (addBreak)
   {
-    d_infer_steps.push_back(BREAK);
-    d_infer_step_effort.push_back(0);
+    d_infer_steps.push_back(std::pair<InferStep,int>(BREAK,0));
   }
 }
 
