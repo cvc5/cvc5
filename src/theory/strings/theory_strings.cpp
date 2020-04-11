@@ -1198,7 +1198,8 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
 void TheoryStrings::runStrategy(Theory::Effort e)
 {
   std::vector<std::pair<InferStep, int> >::iterator it = d_strat.stepBegin(e);
-  std::vector<std::pair<InferStep, int> >::iterator stepEnd = d_strat.stepEnd(e);
+  std::vector<std::pair<InferStep, int> >::iterator stepEnd =
+      d_strat.stepEnd(e);
 
   Trace("strings-process") << "----check, next round---" << std::endl;
   while (it != stepEnd)
