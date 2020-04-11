@@ -32,9 +32,10 @@ TheoryModel::TheoryModel(context::Context* c,
       d_modelBuilt(false),
       d_modelBuiltSuccess(false),
       d_using_model_core(false),
-      // must use function models when ufHo is enabled
-      d_enableFuncModels(enableFuncModels || options::ufHo())
+      d_enableFuncModels(enableFuncModels)
 {
+  // must use function models when ufHo is enabled
+  Assert( d_enableFuncModels || !options::ufHo());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -51,7 +52,7 @@ TheoryModel::TheoryModel(context::Context* c,
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
   d_eeContext->push();
   // do not interpret APPLY_UF if we are not assigning function values
-  if (!d_enableFuncModels)
+  if (!enableFuncModels)
   {
     setSemiEvaluatedKind(kind::APPLY_UF);
   }
