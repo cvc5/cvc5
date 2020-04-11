@@ -32,6 +32,8 @@ const char* toString(ProofStep id)
     case ProofStep::REFL: return "REFL";
     case ProofStep::SYMM: return "SYMM";
     case ProofStep::TRANS: return "TRANS";
+    case ProofStep::N_UNIFY: return "N_UNIFY";
+    case ProofStep::N_UNIFY_REV: return "N_UNIFY_REV";
     case ProofStep::UNKNOWN: return "UNKNOWN";
     default: return "?";
   }
@@ -46,15 +48,22 @@ std::ostream& operator<<(std::ostream& out, ProofStep id)
 ProofNode::ProofNode(ProofStep id,
                      const std::vector<ProofNode*>& children,
                      const std::vector<Node>& args)
-    : d_id(id), d_children(children), d_args(args)
 {
-  computeResult();
+  initialize(id,children,args);
 }
 
+ProofStep ProofNode::getId() const { return d_id; }
 Node ProofNode::getResult() const { return d_proven; }
 
-bool ProofNode::computeResult()
+bool ProofNode::initialize(ProofStep id,
+                     const std::vector<ProofNode*>& children,
+                     const std::vector<Node>& args)
 {
+  d_id = id;
+  d_children = children;
+  d_args = args;
+  d_proven = Node::null();
+  // compute what was proven
   if (d_id == ProofStep::ASSUME)
   {
     Assert(d_children.empty());
@@ -64,8 +73,10 @@ bool ProofNode::computeResult()
   else if (d_id == ProofStep::SUBSTITUTE)
   {
     Assert(d_children.size() > 0);
+    Assert(d_args.size() == 1);
     std::vector<Node> vars;
     std::vector<Node> subs;
+    Node curr = d_args[0];
     for (unsigned i = 0, nchild = d_children.size(); i < nchild; i++)
     {
       Node eqp = d_children[i]->getResult();
@@ -73,16 +84,16 @@ bool ProofNode::computeResult()
       {
         return false;
       }
-      vars.push_back(eqp[0]);
-      subs.push_back(eqp[1]);
+      TNode var = eqp[0];
+      TNode subs = eqp[1];
+      curr = curr.substitute(var,subs);
     }
-    Assert(d_args.size() == 1);
-    Node res = d_args[0].substitute(
-        vars.begin(), vars.end(), subs.begin(), subs.end());
-    d_proven = d_args[0].eqNode(res);
+    d_proven = d_args[0].eqNode(curr);
   }
   else if (d_id == ProofStep::REWRITE)
   {
+    Assert(d_children.empty());
+    Assert(d_args.size() == 1);
     Node res = Rewriter::rewrite(d_args[0]);
     d_proven = d_args[0].eqNode(res);
   }
@@ -128,6 +139,10 @@ bool ProofNode::computeResult()
     }
     d_proven = first.eqNode(curr);
   }
+  else if (d_id == ProofStep::N_UNIFY || d_id == ProofStep::N_UNIFY_REV)
+  {
+    
+  }
   else
   {
     return false;
@@ -144,10 +159,12 @@ void ProofNode::printDebug(std::ostream& os) const
 bool ProofManager::registerStep(Node fact,
                                 ProofStep id,
                                 const std::vector<Node>& children,
-                                const std::vector<Node>& args)
+                                const std::vector<Node>& args,
+                                bool ensureChildren
+                               )
 {
   std::map<Node, std::unique_ptr<ProofNode> >::iterator it = d_nodes.find(fact);
-  if (it != d_nodes.end())
+  if (it != d_nodes.end() && it->second->getId()!=ProofStep::ASSUME)
   {
     // already proven
     return true;
@@ -159,11 +176,26 @@ bool ProofManager::registerStep(Node fact,
     if (pc == nullptr)
     {
       // failed to get a proof for child, fail
-      return false;
+      if (ensureChildren)
+      {
+        return false;
+      }
+      // otherwise, we initialize it as an assumption
+      std::vector<Node> pcargs = { c };
+      std::vector<ProofNode*> pcassume;
+      d_nodes[c].reset(new ProofNode(ProofStep::ASSUME, pcassume, pcargs));
     }
     pchildren.push_back(pc);
   }
-  d_nodes[fact].reset(new ProofNode(id, pchildren, args));
+  // create or reinitialize it
+  if (it==d_nodes.end())
+  {
+    d_nodes[fact].reset(new ProofNode(id, pchildren, args));
+  }
+  else
+  {
+    d_nodes[fact]->initialize(id, pchildren,args);
+  }
   Node pfact = d_nodes[fact]->getResult();
   // must be equal to given fact
   return fact == pfact;

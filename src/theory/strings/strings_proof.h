@@ -31,52 +31,66 @@ namespace strings {
  */
 enum class ProofStep : uint32_t
 {
-  // Assumption (a leaf)
+  // ======== Assumption (a leaf)
   // Children: none
-  // Arguments: (P)
+  // Arguments: (F)
+  // --------------
+  // Conclusion P:F
   ASSUME,
-  // Substitution
-  // Children: (P:(x1=t1), ..., P:(xn=tn))
+  // ======== Substitution
+  // Children: (P:(= x1 t1), ..., P:(= xn tn))
   // Arguments: (t)
-  // x1 = t1 ^ ... ^ x = tn
-  // ------------------------------
-  // t = ( t { x1 -> t1, ..., xn -> tn } )
+  // ---------------------------------------------------------------
+  // Conclusion: P:(= t t.substitute(x1,t1). ... .substitute(xn,tn))
   SUBSTITUTE,
-  // Rewrite
+  // ======== Rewrite
   // Children: none
   // Arguments: (t)
-  // t
-  // ---------------------
-  // t = Rewriter::rewrite( t )
+  // ----------------------------------------
+  // Conclusion: P:(= t Rewriter::rewrite(t))
   REWRITE,
-  // Reflexive
+  // ======== Reflexive
   // Children: none
   // Arguments: (t)
-  // .
-  // ----------
-  // t = t
+  // ---------------------
+  // Conclusion: P:(= t t)
   REFL,
-  // Symmetric
-  // Children: (P:(t1=t2))
+  // ======== Symmetric
+  // Children: (P:(= t1 t2))
   // Arguments: none
-  // t1 = t2
-  // ----------
-  // t2 = t1
+  // -----------------------
+  // Conclusion: P:(= t2 t1)
   SYMM,
-  // Transitivity
-  // Children: (P:(t1=t2), ..., P:(t{n-1}=tn))
+  // ======== Transitivity
+  // Children: (P:(= t1 t2), ..., P:(= t{n-1} tn))
   // Arguments: none
-  // t1 = t2 ^ ... ^ t{n-1} = tn
-  // ---------------------------
-  // t1 = tn
+  // -----------------------
+  // Conclusion: P:(= t1 tn)
   TRANS,
-  // Congruence  (subsumed by Substitute?)
-  // Children: (P:(t1=t2), ..., P:(t{n-1}=tn))
+  // ======== Normal form unify
+  // Children: (P:(= (str.++ r t1 t2) (str.++ r s1 s2)), 
+  //            P:(= (str.len s1) (str.len s2)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (= t1 s1)
+  N_UNIFY,
+  // ======== Normal form unify reverse
+  // Children: (P:(= (str.++ t2 t1 r) (str.++ s2 s1 r)), 
+  //            P:(= (str.len s1) (str.len s2)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (= t1 s1)
+  N_UNIFY_REV,
+  
+
+  // ======== Congruence  (subsumed by Substitute?)
+  // Children: (P:(= t1 s1), ..., P:(= tn sn))
   // Arguments: (f)
-  // t1 = t2 ^ ... ^ t{n-1} = tn
-  // ---------------------------
-  // f(t1) = f(tn)
+  // ---------------------------------------------
+  // Conclusion: P:(= (f t1 ... tn) (f s1 ... sn))
   // CONG,
+  
+  
   // Unknown
   UNKNOWN,
 };
@@ -110,6 +124,8 @@ class ProofNode
 
  public:
   ~ProofNode() {}
+  /** get id */
+  ProofStep getId() const;
   /** get what this node proves, or the null node if this is an invalid proof */
   Node getResult() const;
   /** print debug */
@@ -128,7 +144,9 @@ class ProofNode
   /** The fact that has been proven */
   Node d_proven;
   /** compute what has been proven, return true if proof is valid */
-  bool computeResult();
+  bool initialize(ProofStep id,
+            const std::vector<ProofNode*>& children,
+            const std::vector<Node>& args);
 };
 
 /**
@@ -146,7 +164,8 @@ class ProofManager
    * @param fact The intended conclusion of this proof step.
    * @param id The identifier for the proof step.
    * @param children The antecendant of the proof step. Each children[i] should
-   * be a fact previously registered as conclusions of a registerStep call.
+   * be a fact previously registered as conclusions of a registerStep call
+   * when ensureChildren is true.
    * @param args The arguments of the proof step.
    *
    * This returns true if indeed the proof step proves fact. This can fail
@@ -156,12 +175,17 @@ class ProofManager
   bool registerStep(Node fact,
                     ProofStep id,
                     const std::vector<Node>& children,
-                    const std::vector<Node>& args);
+                    const std::vector<Node>& args,
+                    bool ensureChildren = false);
 
   // ----------------------- standard proofs
-  void equalBySubsRew(Node a, Node b, const std::vector<Node>& exp);
-  void conflictBySubsRew(Node pred, const std::vector<Node>& exp);
-
+  void rew(Node a);
+  void subs(Node a, const std::vector<Node>& exp, bool ensureChildren = false);
+  void subsRew(Node a, const std::vector<Node>& exp, bool ensureChildren = false);
+  void equalBySubsRew(Node a, Node b, const std::vector<Node>& exp,
+                    bool ensureChildren = false);
+  void conflictBySubsRew(Node pred, const std::vector<Node>& exp,
+                    bool ensureChildren = false);
   // ----------------------- end standard proofs
  private:
   /** The nodes of the proof */
