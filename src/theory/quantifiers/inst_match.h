@@ -81,7 +81,7 @@ public:
   /** get the i^th term in the instantiation */
   Node get(size_t i) const;
   /** set/overwrites the i^th field in the instantiation with n */
-  void setValue( size_t i, TNode n );
+  void setValue(size_t i, TNode n);
   /** set the i^th term in the instantiation to n
    *
    * This method returns true if the i^th field was previously uninitialized,
