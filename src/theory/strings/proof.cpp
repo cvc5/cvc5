@@ -72,9 +72,10 @@ ProofNode::ProofNode(ProofStep id,
 ProofStep ProofNode::getId() const { return d_id; }
 Node ProofNode::getResult() const { return d_proven; }
 
-bool ProofNode::initialize(ProofStep id,
-                           const std::vector<std::shared_ptr<ProofNode>>& children,
-                           const std::vector<Node>& args)
+bool ProofNode::initialize(
+    ProofStep id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args)
 {
   d_id = id;
   d_children = children;
@@ -178,7 +179,7 @@ bool ProofNode::initialize(ProofStep id,
       si = s[isRev ? (nchilds - 1 - index) : index];
       ti = t[isRev ? (nchildt - 1 - index) : index];
       index++;
-    }while (si!=ti);
+    } while (si != ti);
     Node eql = d_children[1]->getResult();
     if (eql.isNull() || eql.getKind() != EQUAL)
     {

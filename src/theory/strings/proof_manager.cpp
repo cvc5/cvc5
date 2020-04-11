@@ -22,9 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-ProofManager::ProofManager(context::Context* c) : d_nodes(c)
-{
-}
+ProofManager::ProofManager(context::Context* c) : d_nodes(c) {}
 
 Node ProofManager::registerStep(Node fact,
                                 ProofStep id,
@@ -32,11 +30,10 @@ Node ProofManager::registerStep(Node fact,
                                 const std::vector<Node>& args,
                                 bool ensureChildren)
 {
-
   NodeProofMap::iterator it = d_nodes.find(fact);
   if (it == d_nodes.end())
   {
-    if ((*it).second->getId()!=ProofStep::ASSUME || id==ProofStep::ASSUME)
+    if ((*it).second->getId() != ProofStep::ASSUME || id == ProofStep::ASSUME)
     {
       // already proven
       return fact;
@@ -56,8 +53,9 @@ Node ProofManager::registerStep(Node fact,
       // otherwise, we initialize it as an assumption
       std::vector<Node> pcargs = {c};
       std::vector<std::shared_ptr<ProofNode>> pcassume;
-      std::shared_ptr<ProofNode> pchild = std::make_shared<ProofNode>(ProofStep::ASSUME, pcassume, pcargs);
-      d_nodes.insert(c,pchild);
+      std::shared_ptr<ProofNode> pchild =
+          std::make_shared<ProofNode>(ProofStep::ASSUME, pcassume, pcargs);
+      d_nodes.insert(c, pchild);
     }
     pchildren.push_back(pc);
   }
@@ -66,7 +64,7 @@ Node ProofManager::registerStep(Node fact,
   if (it == d_nodes.end())
   {
     pthis = std::make_shared<ProofNode>(id, pchildren, args);
-    d_nodes.insert(fact,pthis);
+    d_nodes.insert(fact, pthis);
   }
   else
   {
@@ -107,7 +105,7 @@ Node ProofManager::pfRefl(Node a)
 Node ProofManager::pfRewrite(Node a)
 {
   Node ar = Rewriter::rewrite(a);
-  if (ar==a)
+  if (ar == a)
   {
     // no effect
     return pfRefl(a);
@@ -136,8 +134,8 @@ Node ProofManager::pfSubs(Node a,
 }
 
 Node ProofManager::pfSubsRewrite(Node a,
-                             const std::vector<Node>& exp,
-                             bool ensureChildren)
+                                 const std::vector<Node>& exp,
+                                 bool ensureChildren)
 {
   Node eqSubs = pfSubs(a, exp, ensureChildren);
   Node eqRew = pfRewrite(eqSubs[0]);
@@ -145,16 +143,15 @@ Node ProofManager::pfSubsRewrite(Node a,
 }
 
 Node ProofManager::pfEqualBySubsRewrite(Node a,
-                                    Node b,
-                                    const std::vector<Node>& exp,
-                                    bool ensureChildren)
+                                        Node b,
+                                        const std::vector<Node>& exp,
+                                        bool ensureChildren)
 {
   Node eqA = pfSubsRewrite(a, exp, ensureChildren);
   Node eqB = pfSubsRewrite(b, exp, ensureChildren);
   Node eqBSymm = pfSymm(eqB, ensureChildren);
   return pfTrans(eqA, eqBSymm, ensureChildren);
 }
-
 
 Node ProofManager::pfTrans(Node eq1, Node eq2, bool ensureChildren)
 {
