@@ -10,20 +10,14 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of the theory of strings.
- **
- ** Implementation of the theory of strings.
  **/
 
 #include "theory/strings/theory_strings.h"
 
-#include <cmath>
-
 #include "expr/kind.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
-#include "smt/command.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -203,11 +197,6 @@ bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& var
   }
   return true;
 }
-
-/////////////////////////////////////////////////////////////////////////////
-// NOTIFICATIONS
-/////////////////////////////////////////////////////////////////////////////
-
 
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
