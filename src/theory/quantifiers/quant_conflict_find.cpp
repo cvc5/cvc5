@@ -1330,8 +1330,9 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     }else{
       for( unsigned i=0; i<2; i++ ){
         TNode nc;
-        std::map< int, TNode >::iterator it = d_qni_gterm.find( i );
-        if( it!=d_qni_gterm.end() ){
+        std::map<int, TNode>::iterator it = d_qni_gterm.find(i);
+        if (it != d_qni_gterm.end())
+        {
           nc = it->second;
         }else{
           nc = d_n[i];
