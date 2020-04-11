@@ -357,7 +357,6 @@ int QuantInfo::addConstraint( QuantConflictFind * p, int v, TNode n, int vn, boo
   //for handling equalities between variables, and disequalities involving variables
   Debug("qcf-match-debug") << "- " << (doRemove ? "un" : "" ) << "constrain : " << v << " -> " << n << " (cv=" << getCurrentValue( n ) << ")";
   Debug("qcf-match-debug") << ", (vn=" << vn << "), polarity = " << polarity << std::endl;
-  Assert(n.getKind() != INST_CONSTANT);
   Assert(doRemove || n == getCurrentValue(n));
   Assert(doRemove || v == getCurrentRepVar(v));
   Assert(doRemove || vn == getCurrentRepVar(getVarNum(n)));
@@ -1195,6 +1194,9 @@ bool MatchGen::reset_round(QuantConflictFind* p)
       return false;
     }
   }
+  for( std::map< int, TNode >::iterator it = d_qni_gterm.begin(); it != d_qni_gterm.end(); ++it ){
+    d_qni_gterm_rep[it->first] = p->getRepresentative( it->second );
+  }
   if( d_type==typ_ground ){
     // int e = p->evaluate( d_n );
     // if( e==1 ){
@@ -1328,14 +1330,13 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     }else{
       for( unsigned i=0; i<2; i++ ){
         TNode nc;
-        std::map<int, TNode>::iterator it = d_qni_gterm.find(i);
-        if (it != d_qni_gterm.end())
-        {
+        std::map< int, TNode >::iterator it = d_qni_gterm.find( i );
+        if( it!=d_qni_gterm.end() ){
           nc = it->second;
         }else{
           nc = d_n[i];
         }
-        nn[i] = qi->getCurrentValue(nc);
+        nn[i] = qi->getCurrentValue( nc );
         vn[i] = qi->getCurrentRepVar( qi->getVarNum( nn[i] ) );
       }
     }
@@ -1697,8 +1698,8 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
           }else{
             Debug("qcf-match-debug") << "       Match " << index << " is ground term" << std::endl;
             Assert(d_qni_gterm.find(index) != d_qni_gterm.end());
-            Assert(d_qni_gterm.find(index) != d_qni_gterm.end());
-            val = d_qni_gterm[index];
+            Assert(d_qni_gterm_rep.find(index) != d_qni_gterm_rep.end());
+            val = d_qni_gterm_rep[index];
             Assert(!val.isNull());
           }
           if( !val.isNull() ){
