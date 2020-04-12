@@ -31,6 +31,8 @@ namespace strings {
  */
 enum class ProofStep : uint32_t
 {
+  //======================== Basic, equality
+  
   // ======== Assumption (a leaf)
   // Children: none
   // Arguments: (F)
@@ -67,27 +69,86 @@ enum class ProofStep : uint32_t
   // -----------------------
   // Conclusion: P:(= t1 tn)
   TRANS,
-  // ======== Normal form unify
-  // Children: (P:(= (str.++ r t1 t2) (str.++ r s1 s2)),
-  //            P:(= (str.len s1) (str.len s2)))
-  // Arguments: none
+  // ======== Split
+  // Children: none
+  // Arguments: P:(F)
   // ---------------------
-  // Conclusion: (= t1 s1)
-  N_UNIFY,
-  // ======== Normal form unify reverse
-  // Children: (P:(= (str.++ t2 t1 r) (str.++ s2 s1 r)),
-  //            P:(= (str.len s1) (str.len s2)))
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (= t1 s1)
-  N_UNIFY_REV,
-
+  // Conclusion: (or F (not F))
+  SPLIT,
   // ======== Congruence  (subsumed by Substitute?)
   // Children: (P:(= t1 s1), ..., P:(= tn sn))
   // Arguments: (f)
   // ---------------------------------------------
   // Conclusion: P:(= (f t1 ... tn) (f s1 ... sn))
   // CONG,
+  
+  //======================== Core solver
+  
+  // ======== Concat endpoint unify
+  // Children: (P:(= (str.++ r t1) (str.++ r s1)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: (= t1 s1)
+  CONCAT_ENDP_UNIFY,
+  // ======== Normal form unify
+  // Children: (P:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P:(= (str.len t1) (str.len s1)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: (= t1 s1)
+  CONCAT_UNIFY,
+  // ======== Concat split
+  // Children: (P:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P:(not (= (str.len t1) (str.len s1))))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: (or ... )
+  CONCAT_SPLIT,
+  // ======== Concat split propagate
+  // Children: (P:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P:(> (str.len t1) (str.len s1)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: (= t1 (str.++ s1 ...))
+  CONCAT_LPROP,
+  // ======== Concat split propagate
+  // Children: (P:(= (str.++ t1 w1 t2) (str.++ w2 s1)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: (= t1 (str.++ w3 ...)) where w3 ++ w4 = w1 and w4 is the
+  // overlap of w1 and w2.
+  CONCAT_CPROP,
+  
+  //======================== Extended functions
+  
+  // ======== Contains not equal
+  // Children: (P:(not (str.contains s t)))
+  // Arguments: none
+  // -------------------
+  CTN_NOT_EQUAL,
+  // ======== Reduction
+  // Children: none
+  // Arguments: (t[x])
+  // ---------------------
+  // Conclusion: (and R[x,y] (= t[x] y)) where R is the reduction predicate for
+  // extended term t[x].
+  REDUCTION,
+  
+  //======================== Regular expressions
+  
+  // ======== Regular expression intersection
+  // Children: (P:(str.in.re t R1), P:(str.in.re t R2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (str.in.re t (re.inter R1 R2)).
+  RE_INTER,
+  // ======== Regular expression unfold
+  // Children: (P:(str.in.re t R)) or (P:(not (str.in.re t R)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: F, corresponding to the one-step unfolding of the premise.
+  RE_UNFOLD,
+  
 
   // Unknown
   UNKNOWN,

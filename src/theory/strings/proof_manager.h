@@ -68,6 +68,10 @@ class ProofManager
    */
   Node pfRewrite(Node a);
   /**
+   * Ensure false has been registed as a proof step, where rewrite(eq) = false.
+   */
+  Node pfRewriteFalse(Node eq, bool ensureChildren = false);
+  /**
    * Ensure a = a.substitute^*(exp) has been registered as a proof step.
    */
   Node pfSubs(Node a,
