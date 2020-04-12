@@ -1664,7 +1664,7 @@ Node QuantifiersRewriter::mkForall( std::vector< Node >& args, Node body, std::v
 
 //computes miniscoping, also eliminates variables that do not occur free in body
 Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa ){
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   if( body.getKind()==FORALL ){
     //combine prenex
     std::vector< Node > newArgs;
@@ -1680,15 +1680,17 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
     {
       // break apart
       NodeBuilder<> t(kind::AND);
-      for (const Node& b : body){
+      for (const Node& b : body)
+      {
         // must create fresh copy of args
         std::vector<Node> argsc;
         for (const Node& v : args)
         {
           argsc.push_back(nm->mkBoundVar(v.getType()));
         }
-        Node bodyc = b.substitute(args.begin(),args.end(),argsc.begin(), argsc.end());
-        t << computeMiniscoping( argsc, bodyc, qa );
+        Node bodyc =
+            b.substitute(args.begin(), args.end(), argsc.begin(), argsc.end());
+        t << computeMiniscoping(argsc, bodyc, qa);
       }
       Node retVal = t;
       return retVal;
