@@ -88,34 +88,34 @@ enum class ProofStep : uint32_t
   // Children: (P:(= (str.++ r t1) (str.++ r s1)))
   // Arguments: (b), indicating if reverse direction
   // ---------------------
-  // Conclusion: (= t1 s1)
+  // Conclusion: P:(= t1 s1)
   CONCAT_ENDP_UNIFY,
   // ======== Normal form unify
   // Children: (P:(= (str.++ t1 t2) (str.++ s1 s2)),
   //            P:(= (str.len t1) (str.len s1)))
   // Arguments: (b), indicating if reverse direction
   // ---------------------
-  // Conclusion: (= t1 s1)
+  // Conclusion: P:(= t1 s1)
   CONCAT_UNIFY,
   // ======== Concat split
   // Children: (P:(= (str.++ t1 t2) (str.++ s1 s2)),
   //            P:(not (= (str.len t1) (str.len s1))))
   // Arguments: (b), indicating if reverse direction
   // ---------------------
-  // Conclusion: (or ... )
+  // Conclusion: P:(or ... )
   CONCAT_SPLIT,
   // ======== Concat split propagate
   // Children: (P:(= (str.++ t1 t2) (str.++ s1 s2)),
   //            P:(> (str.len t1) (str.len s1)))
   // Arguments: (b), indicating if reverse direction
   // ---------------------
-  // Conclusion: (= t1 (str.++ s1 ...))
+  // Conclusion: P:(= t1 (str.++ s1 ...))
   CONCAT_LPROP,
   // ======== Concat split propagate
   // Children: (P:(= (str.++ t1 w1 t2) (str.++ w2 s1)))
   // Arguments: (b), indicating if reverse direction
   // ---------------------
-  // Conclusion: (= t1 (str.++ w3 ...)) where w3 ++ w4 = w1 and w4 is the
+  // Conclusion: P:(= t1 (str.++ w3 ...)) where w3 ++ w4 = w1 and w4 is the
   // overlap of w1 and w2.
   CONCAT_CPROP,
   
@@ -125,13 +125,14 @@ enum class ProofStep : uint32_t
   // Children: (P:(not (str.contains s t)))
   // Arguments: none
   // -------------------
+  // Conclusion: P:(not (= s t))
   CTN_NOT_EQUAL,
   // ======== Reduction
   // Children: none
   // Arguments: (t[x])
   // ---------------------
-  // Conclusion: (and R[x,y] (= t[x] y)) where R is the reduction predicate for
-  // extended term t[x].
+  // Conclusion: P:(and R[x,y] (= t[x] y)) where R is the reduction predicate
+  // for extended term t[x].
   REDUCTION,
   
   //======================== Regular expressions
@@ -140,13 +141,13 @@ enum class ProofStep : uint32_t
   // Children: (P:(str.in.re t R1), P:(str.in.re t R2))
   // Arguments: none
   // ---------------------
-  // Conclusion: (str.in.re t (re.inter R1 R2)).
+  // Conclusion: P:(str.in.re t (re.inter R1 R2)).
   RE_INTER,
   // ======== Regular expression unfold
   // Children: (P:(str.in.re t R)) or (P:(not (str.in.re t R)))
   // Arguments: none
   // ---------------------
-  // Conclusion: F, corresponding to the one-step unfolding of the premise.
+  // Conclusion: P:F, corresponding to the one-step unfolding of the premise.
   RE_UNFOLD,
   
 
