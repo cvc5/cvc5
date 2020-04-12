@@ -117,10 +117,7 @@ Node ProofManager::pfRewrite(Node a)
   return registerStep(fact, ProofStep::REWRITE, children, args);
 }
 
-Node pfRewriteFalse(Node eq, bool ensureChildren)
-{
-  return Node::null();
-}
+Node pfRewriteFalse(Node eq, bool ensureChildren) { return Node::null(); }
 
 Node ProofManager::pfSubs(Node a,
                           const std::vector<Node>& exp,

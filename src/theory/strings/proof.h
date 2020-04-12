@@ -32,7 +32,7 @@ namespace strings {
 enum class ProofStep : uint32_t
 {
   //======================== Basic, equality
-  
+
   // ======== Assumption (a leaf)
   // Children: none
   // Arguments: (F)
@@ -81,9 +81,9 @@ enum class ProofStep : uint32_t
   // ---------------------------------------------
   // Conclusion: P:(= (f t1 ... tn) (f s1 ... sn))
   // CONG,
-  
+
   //======================== Core solver
-  
+
   // ======== Concat endpoint unify
   // Children: (P:(= (str.++ r t1) (str.++ r s1)))
   // Arguments: (b), indicating if reverse direction
@@ -118,9 +118,9 @@ enum class ProofStep : uint32_t
   // Conclusion: P:(= t1 (str.++ w3 ...)) where w3 ++ w4 = w1 and w4 is the
   // overlap of w1 and w2.
   CONCAT_CPROP,
-  
+
   //======================== Extended functions
-  
+
   // ======== Contains not equal
   // Children: (P:(not (str.contains s t)))
   // Arguments: none
@@ -134,9 +134,9 @@ enum class ProofStep : uint32_t
   // Conclusion: P:(and R[x,y] (= t[x] y)) where R is the reduction predicate
   // for extended term t[x].
   REDUCTION,
-  
+
   //======================== Regular expressions
-  
+
   // ======== Regular expression intersection
   // Children: (P:(str.in.re t R1), P:(str.in.re t R2))
   // Arguments: none
@@ -149,7 +149,6 @@ enum class ProofStep : uint32_t
   // ---------------------
   // Conclusion: P:F, corresponding to the one-step unfolding of the premise.
   RE_UNFOLD,
-  
 
   // Unknown
   UNKNOWN,
@@ -197,6 +196,7 @@ class ProofNode
   void printDebug(std::ostream& os) const;
   /** apply substitution */
   static Node applySubstitution(Node n, const std::vector<Node>& exp);
+
  private:
   /** The proof step */
   ProofStep d_id;

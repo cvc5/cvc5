@@ -87,19 +87,21 @@ void ProofNode::getAssumptions(std::vector<Node>& assump)
   std::vector<ProofNode*> visit;
   ProofNode* cur;
   visit.push_back(this);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       visited.insert(cur);
-      if (cur->getId()==ProofStep::ASSUME)
+      if (cur->getId() == ProofStep::ASSUME)
       {
         assump.push_back(cur->d_proven);
       }
       else
       {
-        for( const std::shared_ptr<ProofNode>& cp : cur->d_children )
+        for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
         {
           visit.push_back(cp.get());
         }
@@ -113,7 +115,7 @@ bool ProofNode::initialize(
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   d_id = id;
   d_children = children;
   d_args = args;
@@ -186,16 +188,16 @@ bool ProofNode::initialize(
     }
     d_proven = first.eqNode(curr);
   }
-  else if (d_id==ProofStep::SPLIT)
+  else if (d_id == ProofStep::SPLIT)
   {
     Assert(d_children.empty());
-    Assert(d_args.size()==1);
+    Assert(d_args.size() == 1);
     d_proven = nm->mkNode(OR, d_args[0], d_args[0].notNode());
   }
   else if (d_id == ProofStep::CONCAT_ENDP_UNIFY)
   {
     Assert(d_children.size() == 1);
-    Assert(d_args.size()==1);
+    Assert(d_args.size() == 1);
     Node eqs = d_children[0]->getResult();
     if (eqs.isNull() || eqs.getKind() != EQUAL)
     {
@@ -211,7 +213,8 @@ bool ProofNode::initialize(
     size_t index = 0;
     size_t nchilds = s.getNumChildren();
     size_t nchildt = t.getNumChildren();
-    while (s[isRev ? (nchilds - 1 - index) : index]==t[isRev ? (nchildt - 1 - index) : index])
+    while (s[isRev ? (nchilds - 1 - index) : index]
+           == t[isRev ? (nchildt - 1 - index) : index])
     {
       index++;
       if (index >= s.getNumChildren() || index >= t.getNumChildren())
@@ -220,12 +223,11 @@ bool ProofNode::initialize(
       }
     }
     // TODO
-    
   }
   else if (d_id == ProofStep::CONCAT_UNIFY)
   {
     Assert(d_children.size() == 2);
-    Assert(d_args.size()==1);
+    Assert(d_args.size() == 1);
     bool isRev = d_args[0].getConst<bool>();
     Node eqs = d_children[0]->getResult();
     if (eqs.isNull() || eqs.getKind() != EQUAL)
@@ -238,8 +240,8 @@ bool ProofNode::initialize(
     {
       return false;
     }
-    Node s0 = s[isRev ? s.getNumChildren()-1 : 0];
-    Node t0 = t[isRev ? s.getNumChildren()-1 : 0];
+    Node s0 = s[isRev ? s.getNumChildren() - 1 : 0];
+    Node t0 = t[isRev ? s.getNumChildren() - 1 : 0];
     Node eql = d_children[1]->getResult();
     if (eql.isNull() || eql.getKind() != EQUAL)
     {
@@ -254,29 +256,26 @@ bool ProofNode::initialize(
     }
     d_proven = s0.eqNode(t0);
   }
-  else if (d_id==ProofStep::CONCAT_LPROP)
-  {
-    // TODO
-    
-  }
-  else if (d_id==ProofStep::CONCAT_CPROP)
-  {
-    // TODO
-    
-  }
-  else if (d_id==ProofStep::CTN_NOT_EQUAL)
+  else if (d_id == ProofStep::CONCAT_LPROP)
   {
     // TODO
   }
-  else if (d_id==ProofStep::REDUCTION)
+  else if (d_id == ProofStep::CONCAT_CPROP)
+  {
+    // TODO
+  }
+  else if (d_id == ProofStep::CTN_NOT_EQUAL)
+  {
+    // TODO
+  }
+  else if (d_id == ProofStep::REDUCTION)
   {
   }
-  else if (d_id==ProofStep::RE_INTER)
+  else if (d_id == ProofStep::RE_INTER)
   {
   }
-  else if (d_id==ProofStep::RE_UNFOLD)
+  else if (d_id == ProofStep::RE_UNFOLD)
   {
-    
   }
   else
   {
