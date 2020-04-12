@@ -1328,6 +1328,7 @@ set(regress_1_tests
   regress1/ite5.smt2
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
+  regress1/issue4273-ext-rew-cache.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
@@ -2021,7 +2022,6 @@ set(regress_2_tests
   regress2/instance_1444.smtv1.smt2
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
-  regress2/nl/siegel-nl-bases.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
   regress2/piVC_5581bd.smt2
@@ -2097,6 +2097,7 @@ set(regress_3_tests
   regress3/issue4170.smt2
   regress3/pp-regfile.smtv1.smt2
   regress3/qwh.35.405.shuffled-as.sat03-1651.smtv1.smt2
+  regress3/siegel-nl-bases.smt2
   regress3/sixfuncs.sy
   regress3/strings-any-term.sy
   regress3/strings/extf_d_perf.smt2

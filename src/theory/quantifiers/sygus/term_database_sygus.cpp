@@ -1018,7 +1018,10 @@ Node TermDbSygus::evaluateWithUnfolding(
       if( childChanged ){
         ret = NodeManager::currentNM()->mkNode( ret.getKind(), children );
       }
-      ret = getExtRewriter()->extendedRewrite(ret);
+      if (options::sygusExtRew())
+      {
+        ret = getExtRewriter()->extendedRewrite(ret);
+      }
       // use rewriting, possibly involving recursive functions
       ret = rewriteNode(ret);
     }
