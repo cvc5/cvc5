@@ -1693,6 +1693,7 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
             argsc.push_back(nm->mkBoundVar(v.getType()));
           }
         }
+        Node b = body[i];
         Node bodyc =
             b.substitute(args.begin(), args.end(), argsc.begin(), argsc.end());
         if (b==bodyc)
