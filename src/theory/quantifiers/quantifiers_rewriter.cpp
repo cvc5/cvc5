@@ -1682,7 +1682,7 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
       // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
       NodeBuilder<> t(kind::AND);
       std::vector<Node> argsc;
-      for (unsigned i=0, nchild = body.getNumChildren(); i<nchild; i++)
+      for (unsigned i = 0, nchild = body.getNumChildren(); i < nchild; i++)
       {
         if (argsc.empty())
         {
@@ -1696,7 +1696,7 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
         Node b = body[i];
         Node bodyc =
             b.substitute(args.begin(), args.end(), argsc.begin(), argsc.end());
-        if (b==bodyc)
+        if (b == bodyc)
         {
           // Did not contain variables in args, thus it is ground. Since we did
           // not use them, we keep the variables argsc for the next child.
