@@ -601,7 +601,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
           << "  Theory engine finished : " << !theoryEngineNeedsCheck()
           << std::endl;
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
-      Trace("quant-engine-debug") << "  In conflict : "<< d_conflict << std::endl;
+      Trace("quant-engine-debug")
+          << "  In conflict : " << d_conflict << std::endl;
     }
     if( Trace.isOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
