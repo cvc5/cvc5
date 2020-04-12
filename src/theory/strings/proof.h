@@ -191,12 +191,12 @@ class ProofNode
   ProofStep getId() const;
   /** get what this node proves, or the null node if this is an invalid proof */
   Node getResult() const;
+  /** get assumptions */
+  void getAssumptions(std::vector<Node>& assump);
   /** print debug */
   void printDebug(std::ostream& os) const;
-
   /** apply substitution */
   static Node applySubstitution(Node n, const std::vector<Node>& exp);
-
  private:
   /** The proof step */
   ProofStep d_id;

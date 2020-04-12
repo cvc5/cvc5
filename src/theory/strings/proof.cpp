@@ -53,6 +53,16 @@ std::ostream& operator<<(std::ostream& out, ProofStep id)
   return out;
 }
 
+ProofNode::ProofNode(ProofStep id,
+                     const std::vector<std::shared_ptr<ProofNode>>& children,
+                     const std::vector<Node>& args)
+{
+  initialize(id, children, args);
+}
+
+ProofStep ProofNode::getId() const { return d_id; }
+Node ProofNode::getResult() const { return d_proven; }
+
 Node ProofNode::applySubstitution(Node n, const std::vector<Node>& exp)
 {
   Node curr = n;
@@ -70,15 +80,33 @@ Node ProofNode::applySubstitution(Node n, const std::vector<Node>& exp)
   return curr;
 }
 
-ProofNode::ProofNode(ProofStep id,
-                     const std::vector<std::shared_ptr<ProofNode>>& children,
-                     const std::vector<Node>& args)
+void ProofNode::getAssumptions(std::vector<Node>& assump)
 {
-  initialize(id, children, args);
+  std::unordered_set<ProofNode*> visited;
+  std::unordered_set<ProofNode*>::iterator it;
+  std::vector<ProofNode*> visit;
+  ProofNode* cur;
+  visit.push_back(this);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end()) {
+      visited.insert(cur);
+      if (cur->getId()==ProofStep::ASSUME)
+      {
+        assump.push_back(cur->d_proven);
+      }
+      else
+      {
+        for( const std::shared_ptr<ProofNode>& cp : cur->d_children )
+        {
+          visit.push_back(cp.get());
+        }
+      }
+    }
+  } while (!visit.empty());
 }
-
-ProofStep ProofNode::getId() const { return d_id; }
-Node ProofNode::getResult() const { return d_proven; }
 
 bool ProofNode::initialize(
     ProofStep id,
