@@ -687,7 +687,7 @@ header = "options/smt_options.h"
   name       = "produceInterpols"
   category   = "undocumented"
   long       = "produce-interpols=MODE"
-  type       = "produceInterpols"
+  type       = "ProduceInterpols"
   default    = "NONE"
   read_only  = true
   help       = "support the get-interpol command"

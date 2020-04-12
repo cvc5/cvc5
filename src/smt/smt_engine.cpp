@@ -1291,7 +1291,7 @@ void SmtEngine::setDefaults() {
   // sygus inference may require datatypes
   if (!d_isInternalSubsolver)
   {
-    if (options::produceInterpols() != options::produceInterpols::NONE
+    if (options::ProduceInterpols() != options::ProduceInterpols::NONE
         || options::produceAbducts() || options::sygusInference()
         || options::sygusRewSynthInput())
     {
@@ -1316,7 +1316,7 @@ void SmtEngine::setDefaults() {
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::produceInterpols() != options::produceInterpols::NONE
+       || options::ProduceInterpols() != options::ProduceInterpols::NONE
        || options::produceAbducts()
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE)
@@ -1959,7 +1959,7 @@ void SmtEngine::setDefaults() {
     // techniques.
     bool reqBasicSygus = false;
     if (options::produceAbducts()
-        || options::produceInterpols() != options::produceInterpols::NONE)
+        || options::ProduceInterpols() != options::ProduceInterpols::NONE)
     {
       // if doing abduction or interpolation, we should filter strong solutions
       if (!options::sygusFilterSolMode.wasSetByUser())
@@ -2270,7 +2270,7 @@ void SmtEngine::setDefaults() {
           "--sygus-expr-miner-check-use-export");
     }
     if (options::sygusRewSynthInput() || options::produceAbducts()
-        || options::produceInterpols() != options::produceInterpols::NONE)
+        || options::ProduceInterpols() != options::ProduceInterpols::NONE)
     {
       std::stringstream ss;
       ss << (options::sygusRewSynthInput()
@@ -5272,7 +5272,7 @@ bool SmtEngine::getInterpol(const Expr& conj,
 {
   SmtScope smts(this);
 
-  if (options::produceInterpols() == options::produceInterpols::NONE)
+  if (options::ProduceInterpols() == options::ProduceInterpols::NONE)
   {
     const char* msg =
         "Cannot get interpolation when produce-interpol options is off.";
@@ -5314,7 +5314,7 @@ bool SmtEngine::getInterpol(const Expr& conj,
   // enable everything needed for sygus
   l.enableSygus();
   d_subsolver->setLogic(l);
-  if (options::produceInterpols() == options::produceInterpols::DEFAULT)
+  if (options::ProduceInterpols() == options::ProduceInterpols::DEFAULT)
   {
     d_subsolver->declareSynthFun("A", interpol, grammarType, false, vars);
   }
