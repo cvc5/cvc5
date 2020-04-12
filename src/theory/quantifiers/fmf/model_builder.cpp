@@ -47,7 +47,8 @@ bool QModelBuilder::preProcessBuildModel(TheoryModel* m) {
 bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
   d_addedLemmas = 0;
   d_triedLemmas = 0;
-  if( options::fmfFunWellDefinedRelevant() ){
+  if (options::fmfFunWellDefinedRelevant())
+  {
     FirstOrderModel * fm = (FirstOrderModel*)m;
     //traverse equality engine
     std::map< TypeNode, bool > eqc_usort;
@@ -63,12 +64,16 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
       Node q = fm->getAssertedQuantifier( i, true );
       if( fm->isQuantifierActive( q ) ){
         //check if any of these quantified formulas can be set inactive
-        if( q[0].getNumChildren()==1 ){
+        if (q[0].getNumChildren() == 1)
+        {
           TypeNode tn = q[0][0].getType();
-          if( tn.getAttribute(AbsTypeFunDefAttribute()) ){
-            //we are allowed to assume the introduced type is empty
-            if( eqc_usort.find( tn )==eqc_usort.end() ){
-              Trace("model-engine-debug") << "Irrelevant function definition : " << q << std::endl;
+          if (tn.getAttribute(AbsTypeFunDefAttribute()))
+          {
+            // we are allowed to assume the introduced type is empty
+            if (eqc_usort.find(tn) == eqc_usort.end())
+            {
+              Trace("model-engine-debug")
+                  << "Irrelevant function definition : " << q << std::endl;
               fm->setQuantifierActive( q, false );
             }
           }

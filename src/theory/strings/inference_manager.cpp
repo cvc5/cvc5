@@ -483,8 +483,8 @@ Node InferenceManager::getRegisterTermAtomicLemma(
   {
     Node lem = nm->mkNode(OR, case_empty, case_nempty);
     lems.push_back(lem);
-    Trace("strings-lemma")
-        << "Strings::Lemma LENGTH >= 0 : " << lem << std::endl;
+    Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << lem
+                           << std::endl;
     // prefer trying the empty case first
     // notice that requirePhase must only be called on rewritten literals that
     // occur in the CNF stream.
@@ -498,9 +498,8 @@ Node InferenceManager::getRegisterTermAtomicLemma(
   else if (!case_empty.getConst<bool>())
   {
     // the rewriter knows that n is non-empty
-    Trace("strings-lemma")
-        << "Strings::Lemma LENGTH > 0 (non-empty): " << case_nempty
-        << std::endl;
+    Trace("strings-lemma") << "Strings::Lemma LENGTH > 0 (non-empty): "
+                           << case_nempty << std::endl;
     lems.push_back(case_nempty);
   }
   else

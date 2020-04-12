@@ -321,11 +321,14 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   }
   Trace("fmc") << "Finish preInitialize types" << std::endl;
   //do not have to introduce terms for sorts of domains of quantified formulas if we are allowed to assume empty sorts
-  for( unsigned i=0, nquant = fm->getNumAssertedQuantifiers(); i<nquant; i++ ){
-    Node q = fm->getAssertedQuantifier( i );
-    //make sure all types are set
-    for (const Node& v : q[0]){
-      preInitializeType( fm, v.getType() );
+  for (unsigned i = 0, nquant = fm->getNumAssertedQuantifiers(); i < nquant;
+       i++)
+  {
+    Node q = fm->getAssertedQuantifier(i);
+    // make sure all types are set
+    for (const Node& v : q[0])
+    {
+      preInitializeType(fm, v.getType());
     }
   }
   return true;
