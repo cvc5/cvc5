@@ -63,8 +63,8 @@ void mkInterpolationConjecture(const std::string& name,
                                const std::vector<Node>& axioms,
                                const Node& conj,
                                TypeNode itpGType,
-															 Node& sygusConj,
-															 std::vector<Expr>& varsToSynth);
+                               Node& sygusConj,
+                               std::vector<Expr>& varsToSynth);
 }  // namespace sygus_interpol
 }  // namespace quantifiers
 }  // namespace theory
