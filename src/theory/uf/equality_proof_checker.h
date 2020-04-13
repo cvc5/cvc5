@@ -32,7 +32,9 @@ class EqProofChecker : public ProofStepChecker
   EqProofChecker(){}
   ~EqProofChecker(){}
   /** Return the conclusion of pn, or null if it is invalid */
-  Node check(ProofNode * pn) override;
+  Node check(ProofStep id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args) override;
   /** Apply substitution */
   static Node applySubstitution(Node n, const std::vector<Node>& exp);
 };

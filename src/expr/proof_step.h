@@ -20,8 +20,6 @@
 #include "util/safe_print.h"
 
 namespace CVC4 {
-namespace theory {
-namespace strings {
 
 /** Types of proof steps used in the procedure
  */

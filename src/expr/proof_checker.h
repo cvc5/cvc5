@@ -32,10 +32,12 @@ class ProofStepChecker
   ~ProofStepChecker(){}
   /** Check
    * 
-   * Return the formula that is proven by proof node pn, or null if pn is not
-   * well-formed.
+   * Return the formula that is proven by proof node with the given id, children
+   * and arguments, or null if such a node is not well-formed.
    */
-  virtual Node check(ProofNode * pn) = 0;
+  virtual Node check(ProofStep id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args) = 0;
 };
 
 /** A class for checking proofs */

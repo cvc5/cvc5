@@ -25,7 +25,10 @@ Node ProofChecker::check(ProofNode * pn)
     // no checker
     return Node::null();
   }
-  return it->second.check(pn);
+  // check it with the corresponding checker
+  Node res = it->second.check(pn->d_id, pn->d_children, pn->d_args);
+  pn->d_proven = res;
+  return res;
 }
 
 void ProofChecker::registerChecker( ProofStep id, ProofStepChecker * psc )

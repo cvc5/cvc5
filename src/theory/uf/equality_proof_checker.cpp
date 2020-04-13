@@ -106,7 +106,7 @@ Node EqProofChecker::check(
       }
       else if (eqp[0] != curr)
       {
-        return false;
+        return Node::null();
       }
       curr = eqp[1];
     }
@@ -116,97 +116,10 @@ Node EqProofChecker::check(
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    return nm->mkNode(OR, args[0], args[0].notNode());
+    return NodeManager::currentNM()->mkNode(OR, args[0], args[0].notNode());
   }
-  else if (id == ProofStep::CONCAT_ENDP_UNIFY)
-  {
-    Assert(children.size() == 1);
-    Assert(args.size() == 1);
-    Node eqs = children[0]->getResult();
-    if (eqs.isNull() || eqs.getKind() != EQUAL)
-    {
-      return Node::null();
-    }
-    Node s = eqs[0];
-    Node t = eqs[1];
-    if (s.getKind() != STRING_CONCAT || t.getKind() != STRING_CONCAT)
-    {
-      return Node::null();
-    }
-    bool isRev = args[0].getConst<bool>();
-    size_t index = 0;
-    size_t nchilds = s.getNumChildren();
-    size_t nchildt = t.getNumChildren();
-    while (s[isRev ? (nchilds - 1 - index) : index]
-           == t[isRev ? (nchildt - 1 - index) : index])
-    {
-      index++;
-      if (index >= s.getNumChildren() || index >= t.getNumChildren())
-      {
-        return Node::null();
-      }
-    }
-    // TODO
-  }
-  else if (id == ProofStep::CONCAT_UNIFY)
-  {
-    Assert(children.size() == 2);
-    Assert(args.size() == 1);
-    bool isRev = args[0].getConst<bool>();
-    Node eqs = children[0]->getResult();
-    if (eqs.isNull() || eqs.getKind() != EQUAL)
-    {
-      return Node::null();
-    }
-    Node s = eqs[0];
-    Node t = eqs[1];
-    if (s.getKind() != STRING_CONCAT || t.getKind() != STRING_CONCAT)
-    {
-      return Node::null();
-    }
-    Node s0 = s[isRev ? s.getNumChildren() - 1 : 0];
-    Node t0 = t[isRev ? s.getNumChildren() - 1 : 0];
-    Node eql = children[1]->getResult();
-    if (eql.isNull() || eql.getKind() != EQUAL)
-    {
-      return Node::null();
-    }
-    Node ls = eql[0];
-    Node lt = eql[1];
-    if (ls.getKind() != STRING_LENGTH || lt.getKind() != STRING_LENGTH
-        || ls[0] != s0 || lt[0] != t0)
-    {
-      return Node::null();
-    }
-    return s0.eqNode(t0);
-  }
-  else if (id == ProofStep::CONCAT_LPROP)
-  {
-    // TODO
-  }
-  else if (id == ProofStep::CONCAT_CPROP)
-  {
-    // TODO
-  }
-  else if (id == ProofStep::CTN_NOT_EQUAL)
-  {
-    // TODO
-  }
-  else if (id == ProofStep::REDUCTION)
-  {
-  }
-  else if (id == ProofStep::RE_INTER)
-  {
-  }
-  else if (id == ProofStep::RE_UNFOLD)
-  {
-  }
-  else
-  {
-    return Node::null();
-  }
-  Assert(!d_proven.isNull());
-  return d_proven;
+  // no rule
+  return Node::null();
 }
 
 }  // namespace strings

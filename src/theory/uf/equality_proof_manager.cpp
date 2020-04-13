@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file strings_proof.cpp
+/*! \file equality_proof_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,7 +12,7 @@
  ** \brief Implementation of equality proof manager
  **/
 
-#include "theory/uf/proof_manager.h"
+#include "theory/uf/equality_proof_manager.h"
 
 #include "theory/rewriter.h"
 
