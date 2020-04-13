@@ -31,8 +31,11 @@ EqProofManager::EqProofManager(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
-Node EqProofManager::assert(Node lit, ProofStep id, const std::vector<Node>& exp)
+Node EqProofManager::assertLit(Node lit, ProofStep id, const std::vector<Node>& exp)
 {
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+  
   // first, justify its proof
   std::vector<Node> args;
   Node ret = d_proof.registerStep(lit, id, exp, args);
@@ -40,10 +43,12 @@ Node EqProofManager::assert(Node lit, ProofStep id, const std::vector<Node>& exp
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(lit, polarity, reason);
+  
+  Assert(lit==ret);
   return ret;
 }
 
-Node EqProofManager::assertEqualityAssume(Node lit)
+Node EqProofManager::assertLitAssume(Node lit)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
@@ -54,6 +59,8 @@ Node EqProofManager::assertEqualityAssume(Node lit)
   // second, assert it to the equality engine
   // it is its own explanation
   assertInternal(atom, polarity, lit);
+  
+  Assert(lit==ret);
   return ret;
 }
 
@@ -82,6 +89,8 @@ Node EqProofManager::assertEqualitySubsRewrite(Node lit,
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(eq, polarity, reason);
+  
+  Assert(lit==ret);
   return ret;
 }
 
@@ -103,7 +112,7 @@ void EqProofManager::explain(Node lit, std::vector<TNode>& assertions)
       d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
   bool polarity = lit.getKind() != NOT;
   TNode atom = polarity ? lit : lit[0];
-  std::vector<TNode> tassumptions;
+  std::vector<TNode> tassertions;
   if (atom.getKind() == EQUAL)
   {
     if (atom[0] != atom[1])
@@ -114,27 +123,27 @@ void EqProofManager::explain(Node lit, std::vector<TNode>& assertions)
       {
         AlwaysAssert(d_ee.areDisequal(atom[0], atom[1], true));
       }
-      d_ee.explainEquality(atom[0], atom[1], polarity, tassumptions, pf.get());
+      d_ee.explainEquality(atom[0], atom[1], polarity, tassertions, pf.get());
     }
   }
   else
   {
-    d_ee.explainPredicate(atom, polarity, tassumptions, pf.get());
+    d_ee.explainPredicate(atom, polarity, tassertions, pf.get());
   }
   // avoid duplicates
-  for (const TNode a : tassumptions)
+  for (const TNode a : tassertions)
   {
-    if (std::find(assumptions.begin(), assumptions.end(), a)
-        == assumptions.end())
+    if (std::find(assertions.begin(), assertions.end(), a) == assertions.end())
     {
-      assumptions.push_back(a);
+      assertions.push_back(a);
     }
   }
   if (d_proofsEnabled)
   {
     // FIXME: convert pf to pfn
     std::shared_ptr<ProofNode> pfn;
-    d_proof.registerProof(lit,pfn.get());
+    // add the given proof to the proof object constructed by this class
+    d_proof.registerProof(lit,pfn);
   }
 }
 

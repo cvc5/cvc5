@@ -54,10 +54,10 @@ class EqProofManager
    */
   std::shared_ptr<ProofNode> getProof(Node lit) const;
 
-  /** Assert predicate by assumption */
-  Node assertAssume(Node lit);
   /** Assert the predicate by proof step id, given explanation exp */
-  Node assert(Node lit, ProofStep id, const std::vector<Node>& exp);
+  Node assertLit(Node lit, ProofStep id, const std::vector<Node>& exp);
+  /** Assert predicate by assumption */
+  Node assertLitAssume(Node lit);
   /** Assert (dis)equality by substitution + rewriting, given explanation exp */
   Node assertEqualitySubsRewrite(Node lit, const std::vector<Node>& exp);
   
