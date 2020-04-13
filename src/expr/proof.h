@@ -34,7 +34,7 @@ namespace CVC4 {
  * pointers. When a proof step is registered, it uses pointers to ProofNode
  * objects to link ProofNode objects together. These pointers can in turn be
  * modified as further steps are registered.
- * 
+ *
  * Based on this class, we can ask for the proof of a given fact, which returns
  * a ProofNode object that has linked together the proof steps registered to
  * this object.
@@ -65,10 +65,10 @@ class CDProof
    * This method does not overwrite proofs for facts that are already proven
    * and are not assumptions. However, it will overwrite the proof for fact if
    * it was previously proved by assumption.
-   * 
+   *
    * Additionally, it will create proofs by assumption of the facts in
    * children when ensureChildren is false.
-   * 
+   *
    * Notice that ensureChildren should be true if the proof is being
    * constructed is a strictly eager fashion; ensureChildren should be false
    * if the steps are registered lazily or out of order.
@@ -85,7 +85,7 @@ class CDProof
    *
    * This method returns fact if pn is a proof of fact, and null otherwise.
    * If it returns fact, it registers a copy of all of the subnodes of pn to
-   * this proof class. 
+   * this proof class.
    *
    * This method is implemented by calling registerStep above for the
    * appropriate subnodes of pn. Thus this method does *not* overwrite proofs
