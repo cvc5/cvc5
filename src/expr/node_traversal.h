@@ -58,9 +58,9 @@ class NodeDfsIterator
   // Dereference
   reference operator*();
   // Equals
-  bool operator==(const NodeDfsIterator&) const;
+  bool operator==(const NodeDfsIterator&);
   // Not equals
-  bool operator!=(const NodeDfsIterator&) const;
+  bool operator!=(const NodeDfsIterator&);
 
  private:
   // While we're not at an appropriate visit (see d_postorder), advance.
