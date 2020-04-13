@@ -22,17 +22,59 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace eq {
-
+  
 EqProofManager::EqProofManager(context::Context* c,
                                EqualityEngine& ee,
                                ProofChecker* pc)
     : d_ee(ee), d_checker(pc), d_proof(c, pc)
 {
+  d_true = NodeManager::currentNM()->mkConst(true);
 }
 
-Node EqProofManager::assertSubsRewrite(Node eq, bool polarity, const std::vector<Node>& exp)
+Node EqProofManager::assertEqualityAssume(Node lit)
 {
+  Node eq = lit.getKind()==NOT ? lit[0] : lit;
+  bool polarity = lit.getKind()!=NOT;
+  Assert (eq.getKind()==EQUAL);
   
+  // first, justify its proof
+  Node ret = pfAssume(lit);
+  // second, assert it to the equality engine
+  // it is its own explanation
+  d_ee.assertEquality(eq, polarity, lit);
+  return ret;
+}
+
+Node EqProofManager::assertEqualitySubsRewrite(Node lit, const std::vector<Node>& exp)
+{
+  Node eq = lit.getKind()==NOT ? lit[0] : lit;
+  bool polarity = lit.getKind()!=NOT;
+  Assert (eq.getKind()==EQUAL);
+  
+  // first, justify its proof
+  Node ret;
+  if (polarity)
+  {
+    // eq[0] = rewrite(eq[0].substitute(exp)) = rewrite(eq[1].substitute(exp)) = eq[1]
+    ret = pfEqualBySubsRewrite(eq[0], eq[1], exp);
+  }
+  else
+  {
+    // eq[0] = rewrite(eq[0].substitute(exp)) != rewrite(eq[1].substitute(exp)) = eq[1]
+    ret = pfDisequalBySubsRewrite(eq[0], eq[1], exp);
+  }
+  // second, assert it to the equality engine
+  Node reason = mkAnd(exp);
+  d_ee.assertEquality(eq,polarity,reason);
+  return ret;
+}
+
+Node EqProofManager::pfAssume(Node f)
+{
+  std::vector<Node> children;
+  std::vector<Node> args;
+  args.push_back(f);
+  return d_proof.registerStep(f, ProofStep::ASSUME, children, args);
 }
 
 Node EqProofManager::pfRefl(Node a)
@@ -65,7 +107,7 @@ Node EqProofManager::pfSubs(Node a,
                             const std::vector<Node>& exp,
                             bool ensureChildren)
 {
-  Node as = EqProofChecker::applySubstitution(a, exp);
+  Node as = EqProofStepChecker::applySubstitution(a, exp);
   if (a == as)
   {
     // no effect
@@ -97,6 +139,19 @@ Node EqProofManager::pfEqualBySubsRewrite(Node a,
   return pfTrans(eqA, eqBSymm, ensureChildren);
 }
 
+Node EqProofManager::pfDisequalBySubsRewrite(Node a,
+                          Node b,
+                          const std::vector<Node>& exp,
+                          bool ensureChildren)
+{
+  Node eqA = pfSubsRewrite(a, exp, ensureChildren);
+  Node eqB = pfSubsRewrite(b, exp, ensureChildren);
+  Node eqBSymm = pfSymm(eqB, ensureChildren);
+  
+  // TODO
+  return Node::null();
+}
+  
 Node EqProofManager::pfTrans(Node eq1, Node eq2, bool ensureChildren)
 {
   Assert(eq1.getKind() == EQUAL);
@@ -140,6 +195,20 @@ Node EqProofManager::pfSymm(Node eq, bool ensureChildren)
   std::vector<Node> args;
   return d_proof.registerStep(
       eqSymm, ProofStep::SYMM, children, args, ensureChildren);
+}
+
+
+Node EqProofManager::mkAnd(const std::vector<Node>& a)
+{
+  if (a.empty())
+  {
+    return d_true;
+  }
+  else if (a.size() == 1)
+  {
+    return a[0];
+  }
+  return NodeManager::currentNM()->mkNode(AND, a);
 }
 
 }  // namespace eq

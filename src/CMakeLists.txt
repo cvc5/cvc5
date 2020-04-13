@@ -683,8 +683,8 @@ libcvc4_add_sources(
   theory/strings/inference_manager.h
   theory/strings/normal_form.cpp
   theory/strings/normal_form.h
-  theory/strings/proof.cpp
-  theory/strings/proof.h
+  theory/strings/proof_checker.cpp
+  theory/strings/proof_checker.h
   theory/strings/proof_manager.cpp
   theory/strings/proof_manager.h
   theory/strings/regexp_elim.cpp

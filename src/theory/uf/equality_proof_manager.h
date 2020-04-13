@@ -34,9 +34,9 @@ namespace eq {
 /**
  * A proof manager for strings.
  *
- * This is intended to be run in parallel with an EqualityEngine. It tracks
+ * This is intended to be run as a layer on top of an EqualityEngine. It tracks
  * the reason for why all facts are added to an EqualityEngine in a SAT-context
- * depnendent manner.
+ * depnendent manner in a context-dependent (CDProof) object.
  */
 class EqProofManager
 {
@@ -49,8 +49,10 @@ class EqProofManager
   /** Get proof for fact, or nullptr if it does not exist */
   std::shared_ptr<ProofNode> getProof(Node fact) const;
 
-  /** Assert equal by substitution + rewriting */
-  Node assertSubsRewrite(Node eq, bool polarity, const std::vector<Node>& exp);
+  /** Assert equality by assumption */
+  Node assertEqualityAssume(Node lit);
+  /** Assert equality by substitution + rewriting */
+  Node assertEqualitySubsRewrite(Node lit, const std::vector<Node>& exp);
 
  protected:
   // ----------------------- standard proofs
@@ -70,6 +72,10 @@ class EqProofManager
    * If ensureChildren is true, then it must be the case that proofs have been
    * registered for each equality in the assumption.
    */
+  /**
+   * Ensure formula F has been registed as an assumption
+   */
+  Node pfAssume(Node f);
   /**
    * Ensure a = a has been registed as a proof step.
    */
@@ -104,6 +110,15 @@ class EqProofManager
                             const std::vector<Node>& exp,
                             bool ensureChildren = false);
   /**
+   * Ensure that:
+   *   a = rewrite(a.substitute^*(exp)) != rewrite(b.substitute^*(exp)) = b
+   * has been registered as a proof step.
+   */
+  Node pfDisequalBySubsRewrite(Node a,
+                            Node b,
+                            const std::vector<Node>& exp,
+                            bool ensureChildren = false);
+  /**
    * Ensure that eq1[0] = eq1[1] == eq2[0] = eq2[1] has been registered as a
    * proof step.
    */
@@ -113,11 +128,17 @@ class EqProofManager
    */
   Node pfSymm(Node eq, bool ensureChildren = false);
   // ----------------------- end standard proofs
+  /**
+  * Make the conjunction of nodes in a. Returns true if a is empty, and a single literal if a has size 1.
+  */
+  Node mkAnd(const std::vector<Node>& a);
  private:
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
   /** The proof checker */
   ProofChecker* d_checker;
+  /** common nodes */
+  Node d_true;
   /** The proof */
   CDProof d_proof;
 };
