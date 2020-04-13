@@ -19,14 +19,22 @@ namespace CVC4 {
 Node ProofChecker::check(ProofNode* pn, Node expected)
 {
   ProofStep id = pn->d_id;
+  Node res;
   std::map<ProofStep, ProofStepChecker*>::iterator it = d_checker.find(id);
-  if (it == d_checker.end())
+  if (it != d_checker.end())
+  {
+    // check it with the corresponding checker
+    res = it->second.check(id, pn->d_children, pn->d_args);
+    if (!expected.isNull() && res!=expected)
+    {
+      // did not match expected
+      res = Node::null();
+    }
+  }
+  else
   {
     // no checker
-    return Node::null();
   }
-  // check it with the corresponding checker
-  Node res = it->second.check(id, pn->d_children, pn->d_args);
   pn->d_proven = res;
   return res;
 }

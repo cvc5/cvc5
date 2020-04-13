@@ -55,6 +55,7 @@ Node CDProof::registerStep(Node fact,
       std::shared_ptr<ProofNode> pchild =
           std::make_shared<ProofNode>(ProofStep::ASSUME, pcassume, pcargs);
       d_nodes.insert(c, pchild);
+      pchild->d_proven = c;
     }
     pchildren.push_back(pc);
   }
@@ -68,18 +69,26 @@ Node CDProof::registerStep(Node fact,
   }
   else
   {
+    Assert (pthis->d_proven==fact);
     // overwrite its value
     pthis = (*it).second;
     pthis->setValue(id, pchildren, args);
   }
-  Node pfact = pthis->getResult();
+  // check it
+  if (d_checker)
+  {
+    d_checker->check(pthis.get(), fact);
+  }
+  else
+  {
+    pthis->d_proven = fact;
+  }
   // must be equal to given fact
-  if (fact == pfact)
+  if (fact == pthis->d_proven)
   {
     // valid in this context
     return fact;
   }
-  pthis->invalidate();
   return Node::null();
 }
 

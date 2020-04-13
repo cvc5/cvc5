@@ -39,7 +39,6 @@ class CDProof
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;
-
  public:
   CDProof(context::Context* c, ProofChecker* pc);
   ~CDProof() {}
