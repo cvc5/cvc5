@@ -70,7 +70,7 @@ Node CDProof::registerStep(Node fact,
   {
     // overwrite its value
     pthis = (*it).second;
-    pthis->initialize(id, pchildren, args);
+    pthis->setValue(id, pchildren, args);
   }
   Node pfact = pthis->getResult();
   // must be equal to given fact

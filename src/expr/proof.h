@@ -30,9 +30,10 @@ namespace CVC4 {
 /**
  * A (context-dependent) proof.
  *
- * This maintains a context-dependent map from formulas to proofs. When a step
- * is registered, it uses pointers to ProofNode objects to link ProofNode
- * objects together.
+ * This maintains a context-dependent map from formulas to ProofNode shared
+ * pointers. When a proof step is registered, it uses pointers to ProofNode
+ * objects to link ProofNode objects together. These pointers can in turn be
+ * modified as further steps are registered.
  */
 class CDProof
 {
@@ -56,6 +57,10 @@ class CDProof
    * This returns fact if indeed the proof step proves fact. This can fail
    * if the proof has a different conclusion than fact, or if one of the
    * children does not have a proof and ensureChildren is true.
+   * 
+   * In other words, ensureChildren should be true if the proof is being
+   * constructed is a strictly eager fashion; ensureChildren should be false
+   * if the steps are registered lazily or out of order. 
    */
   Node registerStep(Node fact,
                     ProofStep id,

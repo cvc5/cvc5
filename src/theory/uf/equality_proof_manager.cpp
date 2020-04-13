@@ -29,10 +29,7 @@ EqProofManager::EqProofManager(context::Context* c,
 {
 }
 
-std::shared_ptr<ProofNode> EqProofManager::getProof(Node fact) const
-{
-  return d_proof.getProof(fact);
-}
+Node assertSubsRewrite(Node eq, bool polarity, const std::vector<Node>& exp);
 
 Node EqProofManager::pfRefl(Node a)
 {

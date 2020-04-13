@@ -29,17 +29,20 @@ class ProofChecker;
 /** A node in a proof
  *
  * A ProofNode represents a single step in a proof. It contains:
- * - d_id, an identifier indicating the type of inference,
- * - d_children, the child ProofNode objects indicating its premises,
- * - d_args, additional arguments used to determine the conclusion,
- * - d_proven, cache of the formula that this ProofNode proves.
+ * (1) d_id, an identifier indicating the type of inference,
+ * (2) d_children, the child ProofNode objects indicating its premises,
+ * (3) d_args, additional arguments used to determine the conclusion,
+ * (4) d_proven, cache of the formula that this ProofNode proves.
  *
  * Overall, a ProofNode and its children form a directed acyclic graph.
+ * 
+ * A ProofNode is intended to be mutable in that (1), (2) and (3) can be
+ * modified. However, (4) is intended to be immutable. The method setValue
+ * is private and can be called by 
  */
 class ProofNode
 {
   friend class ProofChecker;
-
  public:
   ProofNode(ProofStep id,
             const std::vector<std::shared_ptr<ProofNode>>& children,
