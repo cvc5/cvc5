@@ -23,11 +23,11 @@ const char* toString(ProofStep id)
     case ProofStep::ASSUME: return "ASSUME";
     case ProofStep::SUBS: return "SUBS";
     case ProofStep::REWRITE: return "REWRITE";
+    case ProofStep::SPLIT: return "SPLIT";
     case ProofStep::REFL: return "REFL";
     case ProofStep::SYMM: return "SYMM";
     case ProofStep::TRANS: return "TRANS";
     case ProofStep::CONG: return "CONG";
-    case ProofStep::SPLIT: return "SPLIT";
     case ProofStep::CONCAT_ENDP_UNIFY: return "CONCAT_ENDP_UNIFY";
     case ProofStep::CONCAT_UNIFY: return "CONCAT_UNIFY";
     case ProofStep::CONCAT_SPLIT: return "CONCAT_SPLIT";

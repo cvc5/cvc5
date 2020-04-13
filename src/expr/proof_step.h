@@ -46,6 +46,12 @@ enum class ProofStep : uint32_t
   // ----------------------------------------
   // Conclusion: P:(= t Rewriter::rewrite(t))
   REWRITE,
+  // ======== Split
+  // Children: none
+  // Arguments: P:(F)
+  // ---------------------
+  // Conclusion: (or F (not F))
+  SPLIT,
   
   //================================================= EQUALITY
   // ======== Reflexive
@@ -72,12 +78,6 @@ enum class ProofStep : uint32_t
   // ---------------------------------------------
   // Conclusion: P:(= (f t1 ... tn) (f s1 ... sn))
   CONG,
-  // ======== Split
-  // Children: none
-  // Arguments: P:(F)
-  // ---------------------
-  // Conclusion: (or F (not F))
-  SPLIT,
 
   //================================================= THEORY_STRINGS
   //======================== Core solver

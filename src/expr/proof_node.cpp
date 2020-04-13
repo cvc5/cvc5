@@ -26,23 +26,6 @@ ProofStep ProofNode::getId() const { return d_id; }
 
 Node ProofNode::getResult() const { return d_proven; }
 
-Node ProofNode::applySubstitution(Node n, const std::vector<Node>& exp)
-{
-  Node curr = n;
-  // apply substitution one at a time
-  for (const Node& eqp : exp)
-  {
-    if (eqp.isNull() || eqp.getKind() != EQUAL)
-    {
-      return Node::null();
-    }
-    TNode var = eqp[0];
-    TNode subs = eqp[1];
-    curr = curr.substitute(var, subs);
-  }
-  return curr;
-}
-
 void ProofNode::getAssumptions(std::vector<Node>& assump)
 {
   std::unordered_set<ProofNode*> visited;
