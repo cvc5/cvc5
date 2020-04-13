@@ -1293,7 +1293,7 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
           // the given name.
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
         }
-        else if (!sop.isNull() && sop.getKind() == api::VARIABLE)
+        else if (!sop.isNull() && sop.getKind() == api::CONSTANT)
         {
           Debug("parser-sygus") << "--> Defined function " << ops[i]
                                 << std::endl;

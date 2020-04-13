@@ -1007,6 +1007,7 @@ set(regress_0_tests
   regress0/sygus/parse-bv-let.sy
   regress0/sygus/pbe-pred-contra.sy
   regress0/sygus/pLTL-sygus-syntax-err.sy
+  regress0/sygus/print-define-fun.sy
   regress0/sygus/real-si-all.sy
   regress0/sygus/sygus-no-wf.sy
   regress0/sygus/sygus-uf.sy
