@@ -76,7 +76,7 @@ class CDProof
    * If it returns fact, it registers a copy of all of the subnodes of pn to
    * this proof class. Notice that this method does *not* overwrite proofs for
    * facts that are already proven are not assumptions.
-   * 
+   *
    * This method is implemented by calling registerStep above for the
    * appropriate subnodes of pn.
    */

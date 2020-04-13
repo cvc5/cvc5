@@ -125,7 +125,7 @@ Node CDProof::registerProof(Node fact, std::shared_ptr<ProofNode> pn)
       itr = d_nodes.find(curFact);
       if (itr != d_nodes.end() && (*itr).second->getId() != ProofStep::ASSUME)
       {
-      // if we already have a proof for this fact, we are done
+        // if we already have a proof for this fact, we are done
         visited[cur] = curFact;
       }
       else

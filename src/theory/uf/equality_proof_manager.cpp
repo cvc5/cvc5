@@ -31,11 +31,13 @@ EqProofManager::EqProofManager(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
-Node EqProofManager::assertLit(Node lit, ProofStep id, const std::vector<Node>& exp)
+Node EqProofManager::assertLit(Node lit,
+                               ProofStep id,
+                               const std::vector<Node>& exp)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
-  
+
   // first, justify its proof
   std::vector<Node> args;
   Node ret = d_proof.registerStep(lit, id, exp, args);
@@ -43,8 +45,8 @@ Node EqProofManager::assertLit(Node lit, ProofStep id, const std::vector<Node>& 
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(lit, polarity, reason);
-  
-  Assert(lit==ret);
+
+  Assert(lit == ret);
   return ret;
 }
 
@@ -59,8 +61,8 @@ Node EqProofManager::assertLitAssume(Node lit)
   // second, assert it to the equality engine
   // it is its own explanation
   assertInternal(atom, polarity, lit);
-  
-  Assert(lit==ret);
+
+  Assert(lit == ret);
   return ret;
 }
 
@@ -89,8 +91,8 @@ Node EqProofManager::assertEqualitySubsRewrite(Node lit,
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(eq, polarity, reason);
-  
-  Assert(lit==ret);
+
+  Assert(lit == ret);
   return ret;
 }
 
@@ -143,7 +145,7 @@ void EqProofManager::explain(Node lit, std::vector<TNode>& assertions)
     // FIXME: convert pf to pfn
     std::shared_ptr<ProofNode> pfn;
     // add the given proof to the proof object constructed by this class
-    d_proof.registerProof(lit,pfn);
+    d_proof.registerProof(lit, pfn);
   }
 }
 
@@ -225,7 +227,7 @@ Node EqProofManager::pfDisequalBySubsRewrite(Node a,
   Node eqA = pfSubsRewrite(a, exp, ensureChildren);
   Node eqB = pfSubsRewrite(b, exp, ensureChildren);
   Node eqBSymm = pfSymm(eqB, ensureChildren);
-  
+
   // TODO
   return Node::null();
 }
