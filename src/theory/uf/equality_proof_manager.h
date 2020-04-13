@@ -47,7 +47,11 @@ class EqProofManager
   ~EqProofManager() {}
   /** Get proof for fact, or nullptr if it does not exist */
   std::shared_ptr<ProofNode> getProof(Node fact) const;
-
+  
+  
+  /** Assert equal by substitution + rewriting */
+  Node assertSubsRewrite(Node eq, bool polarity, const std::vector<Node>& exp);
+ protected:
   // ----------------------- standard proofs
   /**
    * The following functions ensure that a proof object is constructed for
