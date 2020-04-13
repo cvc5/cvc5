@@ -27,14 +27,17 @@ Node CDProof::registerStep(Node fact,
                            bool ensureChildren)
 {
   NodeProofNodeMap::iterator it = d_nodes.find(fact);
-  if (it == d_nodes.end())
+  if (it != d_nodes.end())
   {
     if ((*it).second->getId() != ProofStep::ASSUME || id == ProofStep::ASSUME)
     {
-      // already proven
+      // already proven or assumed, nothing to do
       return fact;
     }
+    // we will overwrite assumption
   }
+  
+  // collect the child proofs 
   std::vector<std::shared_ptr<ProofNode>> pchildren;
   for (const Node& c : children)
   {
@@ -65,6 +68,7 @@ Node CDProof::registerStep(Node fact,
   }
   else
   {
+    // overwrite its value
     pthis = (*it).second;
     pthis->initialize(id, pchildren, args);
   }
