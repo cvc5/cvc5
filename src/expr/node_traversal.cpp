@@ -16,11 +16,14 @@
 
 namespace CVC4 {
 
-NodeDfsIterator::NodeDfsIterator(TNode n, bool postorder)
+NodeDfsIterator::NodeDfsIterator(TNode n,
+                                 bool postorder,
+                                 std::function<bool(TNode)> skipIf)
     : d_stack{n},
       d_visited(),
       d_postorder(postorder),
-      d_current(TNode())
+      d_current(TNode()),
+      d_skipIf(skipIf)
 {
 }
 
@@ -28,7 +31,8 @@ NodeDfsIterator::NodeDfsIterator(bool postorder)
     : d_stack(),
       d_visited(),
       d_postorder(postorder),
-      d_current(TNode())
+      d_current(TNode()),
+      d_skipIf([](TNode) { return false; })
 {
 }
 
@@ -64,7 +68,8 @@ bool NodeDfsIterator::operator==(const NodeDfsIterator& other) const
   // The stack and current node uniquely represent traversal state. We need not
   // use the scheduled node set.
   //
-  // Users should not compare iterators for traversals of different nodes.
+  // Users should not compare iterators for traversals of different nodes, or
+  // traversals with different skipIfs.
   Assert(d_postorder == other.d_postorder);
   return d_stack == other.d_stack && d_current == other.d_current;
 }
@@ -84,6 +89,12 @@ void NodeDfsIterator::advanceToNextVisit()
     if (visitEntry == d_visited.end())
     {
       // if we haven't pre-visited this node, pre-visit it
+      if (d_skipIf(back))
+      {
+        // actually, skip it if the skip predicate says so...
+        d_stack.pop_back();
+        continue;
+      }
       d_visited[back] = false;
       d_current = back;
       // Use integer underflow to reverse-iterate
@@ -123,7 +134,10 @@ void NodeDfsIterator::initializeIfUninitialized()
   }
 }
 
-NodeDfsIterable::NodeDfsIterable(TNode n) : d_node(n), d_postorder(true) {}
+NodeDfsIterable::NodeDfsIterable(TNode n)
+    : d_node(n), d_postorder(true), d_skipIf([](TNode) { return false; })
+{
+}
 
 NodeDfsIterable& NodeDfsIterable::inPostorder()
 {
@@ -137,9 +151,16 @@ NodeDfsIterable& NodeDfsIterable::inPreorder()
   return *this;
 }
 
+NodeDfsIterable& NodeDfsIterable::skipIf(
+    std::function<bool(TNode)> skipCondition)
+{
+  d_skipIf = skipCondition;
+  return *this;
+}
+
 NodeDfsIterator NodeDfsIterable::begin() const
 {
-  return NodeDfsIterator(d_node, d_postorder);
+  return NodeDfsIterator(d_node, d_postorder, d_skipIf);
 }
 
 NodeDfsIterator NodeDfsIterable::end() const
