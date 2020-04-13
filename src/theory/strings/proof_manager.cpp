@@ -21,7 +21,7 @@ namespace theory {
 namespace strings {
 
 ProofManager::ProofManager(context::Context* c,
-                           EqualityEngine& ee,
+                           eq::EqualityEngine& ee,
                            ProofChecker* pc)
     : eq::EqProofManager(c, ee, pc)
 {

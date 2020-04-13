@@ -22,24 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-Node StringProofChecker::applySubstitution(Node n, const std::vector<Node>& exp)
-{
-  Node curr = n;
-  // apply substitution one at a time
-  for (const Node& eqp : exp)
-  {
-    if (eqp.isNull() || eqp.getKind() != EQUAL)
-    {
-      return Node::null();
-    }
-    TNode var = eqp[0];
-    TNode subs = eqp[1];
-    curr = curr.substitute(var, subs);
-  }
-  return curr;
-}
-
-Node StringProofChecker::check(
+Node StringProofStepChecker::check(
     ProofStep id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)

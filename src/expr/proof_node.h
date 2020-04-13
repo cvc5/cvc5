@@ -25,6 +25,7 @@
 namespace CVC4 {
 
 class ProofChecker;
+class CDProof;
 
 /** A node in a proof
  *
@@ -43,6 +44,7 @@ class ProofChecker;
 class ProofNode
 {
   friend class ProofChecker;
+  friend class CDProof;
  public:
   ProofNode(ProofStep id,
             const std::vector<std::shared_ptr<ProofNode>>& children,

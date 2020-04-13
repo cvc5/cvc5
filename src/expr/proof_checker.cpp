@@ -24,7 +24,7 @@ Node ProofChecker::check(ProofNode* pn, Node expected)
   if (it != d_checker.end())
   {
     // check it with the corresponding checker
-    res = it->second.check(id, pn->d_children, pn->d_args);
+    res = it->second->check(id, pn->d_children, pn->d_args);
     if (!expected.isNull() && res!=expected)
     {
       // did not match expected

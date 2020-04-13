@@ -26,11 +26,11 @@ namespace theory {
 namespace eq {
 
 /** A checker for builtin proofs */
-class EqProofChecker : public ProofStepChecker
+class EqProofStepChecker : public ProofStepChecker
 {
  public:
-  EqProofChecker() {}
-  ~EqProofChecker() {}
+  EqProofStepChecker() {}
+  ~EqProofStepChecker() {}
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node check(ProofStep id,
              const std::vector<std::shared_ptr<ProofNode>>& children,

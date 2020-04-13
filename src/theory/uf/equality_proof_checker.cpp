@@ -22,7 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace eq {
 
-Node EqProofChecker::applySubstitution(Node n, const std::vector<Node>& exp)
+Node EqProofStepChecker::applySubstitution(Node n, const std::vector<Node>& exp)
 {
   Node curr = n;
   // apply substitution one at a time
@@ -39,7 +39,7 @@ Node EqProofChecker::applySubstitution(Node n, const std::vector<Node>& exp)
   return curr;
 }
 
-Node EqProofChecker::check(
+Node EqProofStepChecker::check(
     ProofStep id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)

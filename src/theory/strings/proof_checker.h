@@ -26,11 +26,11 @@ namespace theory {
 namespace strings {
 
 /** A checker for strings proofs */
-class StringProofChecker : public ProofStepChecker
+class StringProofStepChecker : public ProofStepChecker
 {
  public:
-  StringProofChecker() {}
-  ~StringProofChecker() {}
+  StringProofStepChecker() {}
+  ~StringProofStepChecker() {}
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node check(ProofStep id,
              const std::vector<std::shared_ptr<ProofNode>>& children,

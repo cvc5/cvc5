@@ -38,7 +38,7 @@ namespace strings {
 class ProofManager : public eq::EqProofManager
 {
  public:
-  ProofManager(context::Context* c, EqualityEngine& ee, ProofChecker* pc);
+  ProofManager(context::Context* c, eq::EqualityEngine& ee, ProofChecker* pc);
   ~ProofManager() {}
 };
 

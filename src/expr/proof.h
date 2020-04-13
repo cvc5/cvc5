@@ -66,7 +66,16 @@ class CDProof
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     bool ensureChildren = false);
-
+  /** Register proof 
+   * 
+   * @param fact The intended conclusion of the proof.
+   * @param pn The proof of the given fact.
+   * 
+   * This method returns fact if pn is a proof of fact, and null otherwise.
+   * If it returns fact, it registers all of the subnodes of pn to this proof
+   * class.
+   */
+  Node registerProof(Node fact, std::shared_ptr<ProofNode> pn);
  protected:
   /** The proof checker */
   ProofChecker* d_checker;

@@ -15,6 +15,7 @@
 #include "theory/uf/equality_proof_manager.h"
 
 #include "theory/rewriter.h"
+#include "theory/uf/equality_proof_checker.h"
 
 using namespace CVC4::kind;
 
@@ -29,7 +30,10 @@ EqProofManager::EqProofManager(context::Context* c,
 {
 }
 
-Node assertSubsRewrite(Node eq, bool polarity, const std::vector<Node>& exp);
+Node EqProofManager::assertSubsRewrite(Node eq, bool polarity, const std::vector<Node>& exp)
+{
+  
+}
 
 Node EqProofManager::pfRefl(Node a)
 {
@@ -61,7 +65,7 @@ Node EqProofManager::pfSubs(Node a,
                             const std::vector<Node>& exp,
                             bool ensureChildren)
 {
-  Node as = ProofNode::applySubstitution(a, exp);
+  Node as = EqProofChecker::applySubstitution(a, exp);
   if (a == as)
   {
     // no effect

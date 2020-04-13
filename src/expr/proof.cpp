@@ -18,7 +18,17 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-CDProof(context::Context* c, ProofChecker* pc) : d_checker(pc), d_nodes(c) {}
+CDProof::CDProof(context::Context* c, ProofChecker* pc) : d_checker(pc), d_nodes(c) {}
+
+std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
+{
+  NodeProofNodeMap::iterator it = d_nodes.find(fact);
+  if (it != d_nodes.end())
+  {
+    return (*it).second;
+  }
+  return nullptr;
+}
 
 Node CDProof::registerStep(Node fact,
                            ProofStep id,
@@ -74,22 +84,70 @@ Node CDProof::registerStep(Node fact,
     pthis = (*it).second;
     pthis->setValue(id, pchildren, args);
   }
-  // check it
   if (d_checker)
   {
+    // if we have a checker, check it
     d_checker->check(pthis.get(), fact);
   }
   else
   {
+    // otherwise we trust it
     pthis->d_proven = fact;
   }
-  // must be equal to given fact
-  if (fact == pthis->d_proven)
+  return pthis->d_proven;
+}
+
+Node CDProof::registerProof(Node fact, std::shared_ptr<ProofNode> pn)
+{
+  if (pn->d_proven!=fact)
   {
-    // valid in this context
-    return fact;
+    // something went wrong
+    return Node::null();
   }
-  return Node::null();
+  std::unordered_map<std::shared_ptr<ProofNode>, Node> visited;
+  std::unordered_map<std::shared_ptr<ProofNode>, Node>::iterator it;
+  std::vector<std::shared_ptr<ProofNode>> visit;
+  NodeProofNodeMap::iterator itr;
+  std::shared_ptr<ProofNode> cur;
+  Node curFact;
+  visit.push_back(pn);
+  do {
+    cur = visit.back();
+    curFact = cur->d_proven;
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end()) {
+      // if we already have a proof for this fact, we are done
+      itr = d_nodes.find(curFact);
+      if (itr != d_nodes.end() && (*itr).second->getId() != ProofStep::ASSUME)
+      {
+        visited[cur] = curFact;
+      }
+      else
+      {
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        for (const std::shared_ptr<ProofNode>& c : cur->d_children)
+        {
+          visit.push_back(c);
+        }
+      }
+    }else if( it->second.isNull() ){
+      // now, register the step
+      std::vector<Node> pexp;
+      for (const std::shared_ptr<ProofNode>& c : cur->d_children)
+      {
+        Assert(!c->d_proven.isNull());
+        pexp.push_back(c->d_proven);
+      }
+      // can ensure children at this point
+      Node res = registerStep(curFact, cur->d_id, pexp, cur->d_args, true);
+      Assert( !res.isNull() );
+      visited[cur] = res;
+    }
+  } while (!visit.empty());
+  
+  return fact;
 }
 
 }  // namespace CVC4

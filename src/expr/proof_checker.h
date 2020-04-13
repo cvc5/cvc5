@@ -29,7 +29,7 @@ class ProofStepChecker
 {
  public:
   ProofStepChecker() {}
-  ~ProofStepChecker() {}
+  virtual ~ProofStepChecker() {}
   /** Check
    *
    * Return the formula that is proven by proof node with the given id, children
