@@ -16,11 +16,11 @@
 
 namespace CVC4 {
 
-Node ProofChecker::check(ProofNode * pn)
+Node ProofChecker::check(ProofNode* pn)
 {
   ProofStep id = pn->getId();
-  std::map< ProofStep, ProofStepChecker * >::iterator it = d_checker.find(id);
-  if (it==d_checker.end())
+  std::map<ProofStep, ProofStepChecker*>::iterator it = d_checker.find(id);
+  if (it == d_checker.end())
   {
     // no checker
     return Node::null();
@@ -31,10 +31,10 @@ Node ProofChecker::check(ProofNode * pn)
   return res;
 }
 
-void ProofChecker::registerChecker( ProofStep id, ProofStepChecker * psc )
+void ProofChecker::registerChecker(ProofStep id, ProofStepChecker* psc)
 {
-  std::map< ProofStep, ProofStepChecker * >::iterator it = d_checker.find(id);
-  if (it!=d_checker.end())
+  std::map<ProofStep, ProofStepChecker*>::iterator it = d_checker.find(id);
+  if (it != d_checker.end())
   {
     // warning?
   }

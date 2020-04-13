@@ -50,7 +50,7 @@ enum class ProofStep : uint32_t
   // ---------------------
   // Conclusion: (or F (not F))
   SPLIT,
-  
+
   //================================================= EQUALITY
   // ======== Reflexive
   // Children: none
@@ -141,7 +141,6 @@ enum class ProofStep : uint32_t
   // Conclusion: P:F, corresponding to the one-step unfolding of the premise.
   RE_UNFOLD,
 
-  
   //================================================= UNKNOWN
   UNKNOWN,
 };

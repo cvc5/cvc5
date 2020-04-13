@@ -22,13 +22,18 @@ namespace CVC4 {
 namespace theory {
 namespace eq {
 
-EqProofManager::EqProofManager(context::Context* c, EqualityEngine& ee, ProofChecker* pc) : d_ee(ee), d_checker(pc), d_nodes(c) {}
+EqProofManager::EqProofManager(context::Context* c,
+                               EqualityEngine& ee,
+                               ProofChecker* pc)
+    : d_ee(ee), d_checker(pc), d_nodes(c)
+{
+}
 
 Node EqProofManager::registerStep(Node fact,
-                                ProofStep id,
-                                const std::vector<Node>& children,
-                                const std::vector<Node>& args,
-                                bool ensureChildren)
+                                  ProofStep id,
+                                  const std::vector<Node>& children,
+                                  const std::vector<Node>& args,
+                                  bool ensureChildren)
 {
   NodeProofMap::iterator it = d_nodes.find(fact);
   if (it == d_nodes.end())
@@ -120,8 +125,8 @@ Node EqProofManager::pfRewrite(Node a)
 Node pfRewriteFalse(Node eq, bool ensureChildren) { return Node::null(); }
 
 Node EqProofManager::pfSubs(Node a,
-                          const std::vector<Node>& exp,
-                          bool ensureChildren)
+                            const std::vector<Node>& exp,
+                            bool ensureChildren)
 {
   Node as = ProofNode::applySubstitution(a, exp);
   if (a == as)
@@ -136,8 +141,8 @@ Node EqProofManager::pfSubs(Node a,
 }
 
 Node EqProofManager::pfSubsRewrite(Node a,
-                                 const std::vector<Node>& exp,
-                                 bool ensureChildren)
+                                   const std::vector<Node>& exp,
+                                   bool ensureChildren)
 {
   Node eqSubs = pfSubs(a, exp, ensureChildren);
   Node eqRew = pfRewrite(eqSubs[0]);
@@ -145,9 +150,9 @@ Node EqProofManager::pfSubsRewrite(Node a,
 }
 
 Node EqProofManager::pfEqualBySubsRewrite(Node a,
-                                        Node b,
-                                        const std::vector<Node>& exp,
-                                        bool ensureChildren)
+                                          Node b,
+                                          const std::vector<Node>& exp,
+                                          bool ensureChildren)
 {
   Node eqA = pfSubsRewrite(a, exp, ensureChildren);
   Node eqB = pfSubsRewrite(b, exp, ensureChildren);
@@ -199,6 +204,6 @@ Node EqProofManager::pfSymm(Node eq, bool ensureChildren)
   return registerStep(eqSymm, ProofStep::SYMM, children, args, ensureChildren);
 }
 
-}  // namespace strings
+}  // namespace eq
 }  // namespace theory
 }  // namespace CVC4

@@ -38,7 +38,7 @@ Node EqProofChecker::applySubstitution(Node n, const std::vector<Node>& exp)
   }
   return curr;
 }
-  
+
 Node EqProofChecker::check(
     ProofStep id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
@@ -122,6 +122,6 @@ Node EqProofChecker::check(
   return Node::null();
 }
 
-}  // namespace strings
+}  // namespace eq
 }  // namespace theory
 }  // namespace CVC4

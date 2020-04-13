@@ -20,11 +20,11 @@
 #include <map>
 #include <vector>
 
-#include "theory/uf/equality_engine.h"
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "expr/proof_node.h"
 #include "expr/proof_checker.h"
+#include "expr/proof_node.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -32,7 +32,7 @@ namespace eq {
 
 /**
  * A proof manager for strings.
- * 
+ *
  * This is intended to be run in parallel with an EqualityEngine. It tracks
  * the reason for why all facts are added to an EqualityEngine in a SAT-context
  * depnendent manner.
@@ -110,9 +110,9 @@ class EqProofManager
   // ----------------------- end standard proofs
  private:
   /** Reference to the equality engine */
-  eq::EqualityEngine& d_ee; 
+  eq::EqualityEngine& d_ee;
   /** The proof checker */
-  ProofChecker * d_checker;
+  ProofChecker* d_checker;
   /** Register step
    *
    * @param fact The intended conclusion of this proof step.
@@ -135,7 +135,7 @@ class EqProofManager
   NodeProofMap d_nodes;
 };
 
-}  // namespace strings
+}  // namespace eq
 }  // namespace theory
 }  // namespace CVC4
 

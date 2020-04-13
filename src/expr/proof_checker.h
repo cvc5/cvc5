@@ -23,40 +23,41 @@
 #include "expr/proof_node.h"
 
 namespace CVC4 {
-  
+
 /** A virtual base class for checking proofs */
 class ProofStepChecker
 {
  public:
-  ProofStepChecker(){}
-  ~ProofStepChecker(){}
+  ProofStepChecker() {}
+  ~ProofStepChecker() {}
   /** Check
-   * 
+   *
    * Return the formula that is proven by proof node with the given id, children
    * and arguments, or null if such a node is not well-formed.
    */
   virtual Node check(ProofStep id,
-    const std::vector<std::shared_ptr<ProofNode>>& children,
-    const std::vector<Node>& args) = 0;
+                     const std::vector<std::shared_ptr<ProofNode>>& children,
+                     const std::vector<Node>& args) = 0;
 };
 
 /** A class for checking proofs */
 class ProofChecker
 {
-public:
+ public:
   ProofChecker() {}
   ~ProofChecker() {}
   /** Check
-   * 
+   *
    * Return the formula that is proven by proof node pn, or null if pn is not
    * well-formed.
    */
-  Node check(ProofNode * pn);
+  Node check(ProofNode* pn);
   /** Indicate that psc is the checker for proof step id */
-  void registerChecker( ProofStep id, ProofStepChecker * psc );
-private:
+  void registerChecker(ProofStep id, ProofStepChecker* psc);
+
+ private:
   /** Maps proof steps to their checker */
-  std::map< ProofStep, ProofStepChecker * > d_checker;
+  std::map<ProofStep, ProofStepChecker*> d_checker;
 };
 
 }  // namespace CVC4

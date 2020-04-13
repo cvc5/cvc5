@@ -26,19 +26,20 @@ namespace CVC4 {
 
 class ProofChecker;
 
-/** A node in a proof 
- * 
+/** A node in a proof
+ *
  * A ProofNode represents a single step in a proof. It contains:
  * - d_id, an identifier indicating the type of inference,
  * - d_children, the child ProofNode objects indicating its premises,
  * - d_args, additional arguments used to determine the conclusion,
  * - d_proven, cache of the formula that this ProofNode proves.
- * 
+ *
  * Overall, a ProofNode and its children form a directed acyclic graph.
  */
 class ProofNode
 {
   friend class ProofChecker;
+
  public:
   ProofNode(ProofStep id,
             const std::vector<std::shared_ptr<ProofNode>>& children,
@@ -52,6 +53,7 @@ class ProofNode
   void getAssumptions(std::vector<Node>& assump);
   /** print debug */
   void printDebug(std::ostream& os) const;
+
  private:
   /** The proof step */
   ProofStep d_id;

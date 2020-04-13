@@ -18,7 +18,8 @@ namespace CVC4 {
 
 ProofNode::ProofNode(ProofStep id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
-                     const std::vector<Node>& args) : d_id(id), d_children(children), d_args(args)
+                     const std::vector<Node>& args)
+    : d_id(id), d_children(children), d_args(args)
 {
 }
 
