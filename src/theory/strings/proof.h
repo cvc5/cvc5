@@ -69,18 +69,18 @@ enum class ProofStep : uint32_t
   // -----------------------
   // Conclusion: P:(= t1 tn)
   TRANS,
+  // ======== Congruence  (subsumed by Substitute?)
+  // Children: (P:(= t1 s1), ..., P:(= tn sn))
+  // Arguments: (f)
+  // ---------------------------------------------
+  // Conclusion: P:(= (f t1 ... tn) (f s1 ... sn))
+  CONG,
   // ======== Split
   // Children: none
   // Arguments: P:(F)
   // ---------------------
   // Conclusion: (or F (not F))
   SPLIT,
-  // ======== Congruence  (subsumed by Substitute?)
-  // Children: (P:(= t1 s1), ..., P:(= tn sn))
-  // Arguments: (f)
-  // ---------------------------------------------
-  // Conclusion: P:(= (f t1 ... tn) (f s1 ... sn))
-  // CONG,
 
   //======================== Core solver
 
