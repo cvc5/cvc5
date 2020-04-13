@@ -92,7 +92,8 @@ Node BVToInt::modpow2(Node n, uint64_t exponent)
  */
 Node BVToInt::makeBinary(Node n)
 {
-  for (TNode current : NodeDfsIterable(n).inPostorder())
+  for (TNode current : NodeDfsIterable(n).inPostorder().skipIf(
+           [this](TNode nn) { return d_binarizeCache.count(nn) > 0; }))
   {
     uint64_t numChildren = current.getNumChildren();
     kind::Kind_t k = current.getKind();
@@ -243,7 +244,8 @@ Node BVToInt::bvToInt(Node n)
   n = makeBinary(n);
   uint64_t granularity = options::solveBVAsInt();
 
-  for (Node current : NodeDfsIterable(n).inPostorder())
+  for (TNode current : NodeDfsIterable(n).inPostorder().skipIf(
+           [this](TNode nn) { return d_bvToIntCache.count(nn) > 0; }))
   {
     uint64_t currentNumChildren = current.getNumChildren();
     if (d_bvToIntCache.find(current) != d_bvToIntCache.end())
