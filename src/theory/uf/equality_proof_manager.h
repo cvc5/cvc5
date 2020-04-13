@@ -49,9 +49,9 @@ class EqProofManager
   /** Get proof for fact, or nullptr if it does not exist */
   std::shared_ptr<ProofNode> getProof(Node fact) const;
 
-  /** Assert equality by assumption */
-  Node assertEqualityAssume(Node lit);
-  /** Assert equality by substitution + rewriting */
+  /** Assert predicate or (dis)equality by assumption */
+  Node assertAssume(Node lit);
+  /** Assert (dis)equality by substitution + rewriting */
   Node assertEqualitySubsRewrite(Node lit, const std::vector<Node>& exp);
 
  protected:

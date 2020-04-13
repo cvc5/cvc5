@@ -33,15 +33,22 @@ EqProofManager::EqProofManager(context::Context* c,
 
 Node EqProofManager::assertEqualityAssume(Node lit)
 {
-  Node eq = lit.getKind()==NOT ? lit[0] : lit;
+  Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool polarity = lit.getKind()!=NOT;
-  Assert (eq.getKind()==EQUAL);
   
   // first, justify its proof
   Node ret = pfAssume(lit);
+  
   // second, assert it to the equality engine
   // it is its own explanation
-  d_ee.assertEquality(eq, polarity, lit);
+  if (atom.getKind()==EQUAL)
+  {
+    d_ee.assertEquality(atom, polarity, lit);
+  }
+  else
+  {
+    d_ee.assertPredicate(atom, polarity, lit);
+  }
   return ret;
 }
 
@@ -63,6 +70,7 @@ Node EqProofManager::assertEqualitySubsRewrite(Node lit, const std::vector<Node>
     // eq[0] = rewrite(eq[0].substitute(exp)) != rewrite(eq[1].substitute(exp)) = eq[1]
     ret = pfDisequalBySubsRewrite(eq[0], eq[1], exp);
   }
+  
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   d_ee.assertEquality(eq,polarity,reason);
