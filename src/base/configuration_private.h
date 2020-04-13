@@ -36,12 +36,6 @@ namespace CVC4 {
 #  define IS_STATISTICS_BUILD false
 #endif /* CVC4_STATISTICS_ON */
 
-#ifdef CVC4_REPLAY
-#  define IS_REPLAY_BUILD true
-#else /* CVC4_REPLAY */
-#  define IS_REPLAY_BUILD false
-#endif /* CVC4_REPLAY */
-
 #ifdef CVC4_TRACING
 #  define IS_TRACING_BUILD true
 #else /* CVC4_TRACING */

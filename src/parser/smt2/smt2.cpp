@@ -193,8 +193,9 @@ void Smt2::addStringOperators() {
   addOperator(api::REGEXP_STAR, "re.*");
   addOperator(api::REGEXP_PLUS, "re.+");
   addOperator(api::REGEXP_OPT, "re.opt");
+  addIndexedOperator(api::REGEXP_REPEAT, api::REGEXP_REPEAT, "re.^");
+  addIndexedOperator(api::REGEXP_LOOP, api::REGEXP_LOOP, "re.loop");
   addOperator(api::REGEXP_RANGE, "re.range");
-  addOperator(api::REGEXP_LOOP, "re.loop");
   addOperator(api::REGEXP_COMPLEMENT, "re.comp");
   addOperator(api::REGEXP_DIFF, "re.diff");
   addOperator(api::STRING_LT, "str.<");
@@ -330,7 +331,7 @@ api::Term Smt2::getExpressionForNameAndType(const std::string& name,
 
 bool Smt2::getTesterName(api::Term cons, std::string& name)
 {
-  if (v2_6() && strictModeEnabled())
+  if ((v2_6() || sygus_v2()) && strictModeEnabled())
   {
     // 2.6 or above uses indexed tester symbols, if we are in strict mode,
     // we do not automatically define is-cons for constructor cons.
@@ -669,6 +670,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::INSERT, "insert");
     addOperator(api::CARD, "card");
     addOperator(api::COMPLEMENT, "complement");
+    addOperator(api::CHOOSE, "choose");
     addOperator(api::JOIN, "join");
     addOperator(api::PRODUCT, "product");
     addOperator(api::TRANSPOSE, "transpose");
@@ -744,9 +746,15 @@ bool Smt2::sygus() const
   return ilang == language::input::LANG_SYGUS
          || ilang == language::input::LANG_SYGUS_V2;
 }
+
 bool Smt2::sygus_v1() const
 {
   return getLanguage() == language::input::LANG_SYGUS;
+}
+
+bool Smt2::sygus_v2() const
+{
+  return getLanguage() == language::input::LANG_SYGUS_V2;
 }
 
 void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
@@ -1261,7 +1269,8 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
         api::Term lbvl = makeSygusBoundVarList(dt, i, ltypes, largs);
 
         // make the let_body
-        api::Term body = applyParseOp(ops[i], largs);
+        std::vector<api::Term> largsApply = largs;
+        api::Term body = applyParseOp(ops[i], largsApply);
         // replace by lambda
         ParseOp pLam;
         pLam.d_expr = d_solver->mkTerm(api::LAMBDA, lbvl, body);
@@ -1284,7 +1293,7 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
           // the given name.
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
         }
-        else if (!sop.isNull() && sop.getKind() == api::VARIABLE)
+        else if (!sop.isNull() && sop.getKind() == api::CONSTANT)
         {
           Debug("parser-sygus") << "--> Defined function " << ops[i]
                                 << std::endl;

@@ -18,6 +18,7 @@
 #define CVC4__EXPR__NODE_TRAVERSAL_H
 
 #include <cstddef>
+#include <functional>
 #include <iterator>
 #include <unordered_map>
 #include <vector>
@@ -39,7 +40,7 @@ class NodeDfsIterator
   using difference_type = std::ptrdiff_t;
 
   // Construct a traversal iterator beginning at `n`
-  NodeDfsIterator(TNode n, bool postorder);
+  NodeDfsIterator(TNode n, bool postorder, std::function<bool(TNode)> skipIf);
   // Construct an end-of-traversal iterator
   NodeDfsIterator(bool postorder);
 
@@ -97,6 +98,9 @@ class NodeDfsIterator
   // Current referent node. A valid node to visit if non-null.
   // Null after construction (but before first access) and at the end.
   TNode d_current;
+
+  // When to omit a node and its descendants from the traversal
+  std::function<bool(TNode)> d_skipIf;
 };
 
 // Node wrapper that is iterable in DAG post-order
@@ -111,6 +115,9 @@ class NodeDfsIterable
   // Modify this iterable to be in pre-order
   NodeDfsIterable& inPreorder();
 
+  // Skip a node (and its descendants) if true.
+  NodeDfsIterable& skipIf(std::function<bool(TNode)> skipCondition);
+
   // Move/copy construction and assignment. Destructor.
   NodeDfsIterable(NodeDfsIterable&&) = default;
   NodeDfsIterable& operator=(NodeDfsIterable&&) = default;
@@ -124,6 +131,7 @@ class NodeDfsIterable
  private:
   TNode d_node;
   bool d_postorder;
+  std::function<bool(TNode)> d_skipIf;
 };
 
 }  // namespace CVC4

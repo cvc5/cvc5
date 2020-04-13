@@ -14,7 +14,6 @@
 
 #include "theory/quantifiers/extended_rewrite.h"
 
-#include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
@@ -34,6 +33,11 @@ struct ExtRewriteAttributeId
 };
 typedef expr::Attribute<ExtRewriteAttributeId, Node> ExtRewriteAttribute;
 
+struct ExtRewriteAggAttributeId
+{
+};
+typedef expr::Attribute<ExtRewriteAggAttributeId, Node> ExtRewriteAggAttribute;
+
 ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -42,8 +46,35 @@ ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
 
 void ExtendedRewriter::setCache(Node n, Node ret)
 {
-  ExtRewriteAttribute era;
-  n.setAttribute(era, ret);
+  if (d_aggr)
+  {
+    ExtRewriteAggAttribute erga;
+    n.setAttribute(erga, ret);
+  }
+  else
+  {
+    ExtRewriteAttribute era;
+    n.setAttribute(era, ret);
+  }
+}
+
+Node ExtendedRewriter::getCache(Node n)
+{
+  if (d_aggr)
+  {
+    if (n.hasAttribute(ExtRewriteAggAttribute()))
+    {
+      return n.getAttribute(ExtRewriteAggAttribute());
+    }
+  }
+  else
+  {
+    if (n.hasAttribute(ExtRewriteAttribute()))
+    {
+      return n.getAttribute(ExtRewriteAttribute());
+    }
+  }
+  return Node::null();
 }
 
 bool ExtendedRewriter::addToChildren(Node nc,
@@ -63,15 +94,12 @@ bool ExtendedRewriter::addToChildren(Node nc,
 Node ExtendedRewriter::extendedRewrite(Node n)
 {
   n = Rewriter::rewrite(n);
-  if (!options::sygusExtRew())
-  {
-    return n;
-  }
 
   // has it already been computed?
-  if (n.hasAttribute(ExtRewriteAttribute()))
+  Node ncache = getCache(n);
+  if (!ncache.isNull())
   {
-    return n.getAttribute(ExtRewriteAttribute());
+    return ncache;
   }
 
   Node ret = n;
@@ -1226,6 +1254,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
     }
     Node c = cp.first;
     Kind ck = c.getKind();
+    Trace("ext-rew-eqchain") << "  process c = " << c << std::endl;
     if (ck == andk || ck == ork)
     {
       for (unsigned j = 0, nchild = c.getNumChildren(); j < nchild; j++)
@@ -1233,9 +1262,12 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         Node cl = c[j];
         bool pol = cl.getKind() != notk;
         Node ca = pol ? cl : cl[0];
+        bool newVal = (ck == andk ? !pol : pol);
+        Trace("ext-rew-eqchain")
+            << "  atoms(" << c << ", " << ca << ") = " << newVal << std::endl;
         Assert(atoms[c].find(ca) == atoms[c].end());
         // polarity is flipped when we are AND
-        atoms[c][ca] = (ck == andk ? !pol : pol);
+        atoms[c][ca] = newVal;
         alist[c].push_back(ca);
 
         // if this already exists as a child of the equality chain, eliminate.
@@ -1284,6 +1316,8 @@ Node ExtendedRewriter::extendedRewriteEqChain(
       bool pol = ck != notk;
       Node ca = pol ? c : c[0];
       atoms[c][ca] = pol;
+      Trace("ext-rew-eqchain")
+          << "  atoms(" << c << ", " << ca << ") = " << pol << std::endl;
       alist[c].push_back(ca);
     }
     atom_count.push_back(std::pair<Node, unsigned>(c, alist[c].size()));
@@ -1692,7 +1726,7 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
 
   if (ret.getKind() == EQUAL)
   {
-    new_ret = strings::SequencesRewriter::rewriteEqualityExt(ret);
+    new_ret = strings::SequencesRewriter(nullptr).rewriteEqualityExt(ret);
   }
 
   return new_ret;

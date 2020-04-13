@@ -28,9 +28,9 @@ int main() {
   Options opts;
   SmtEngine smt(&em);
   SmtEngine smt2(&em);
-  Result r = smt.query(em.mkConst(true));
-  Result r2 = smt2.query(em.mkConst(true));
+  Result r = smt.checkEntailed(em.mkConst(true));
+  Result r2 = smt2.checkEntailed(em.mkConst(true));
 
-  return r == Result::VALID && r2 == Result::VALID ? 0 : 1;
+  return r == Result::ENTAILED && r2 == Result::ENTAILED ? 0 : 1;
 }
 

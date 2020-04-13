@@ -18,7 +18,7 @@
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
-#include "theory/strings/sequences_rewriter.h"
+#include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -83,7 +83,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
       {
         d_constCache[cur] = RE_C_CONSTANT;
       }
-      else if (!isRegExpKind(ck))
+      else if (!utils::isRegExpKind(ck))
       {
         // non-regular expression applications, e.g. function applications
         // with regular expression return type are treated as variables.
@@ -93,15 +93,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
       {
         d_constCache[cur] = RE_C_UNKNOWN;
         visit.push_back(cur);
-        if (ck == REGEXP_LOOP)
-        {
-          // only add the first child of loop
-          visit.push_back(cur[0]);
-        }
-        else
-        {
-          visit.insert(visit.end(), cur.begin(), cur.end());
-        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
     else if (it->second == RE_C_UNKNOWN)
@@ -121,15 +113,6 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
   } while (!visit.empty());
   Assert(d_constCache.find(r) != d_constCache.end());
   return d_constCache[r];
-}
-
-bool RegExpOpr::isRegExpKind(Kind k)
-{
-  return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
-         || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
-         || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
-         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV
-         || k == REGEXP_COMPLEMENT;
 }
 
 // 0-unknown, 1-yes, 2-no
@@ -260,7 +243,9 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        if(r[1] == d_zero) {
+        uint32_t lo = utils::getLoopMinOccurrences(r);
+        if (lo == 0)
+        {
           ret = 1;
         } else {
           ret = delta(r[0], exp);
@@ -276,7 +261,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       default: {
-        Assert(!isRegExpKind(k));
+        Assert(!utils::isRegExpKind(k));
         break;
       }
     }
@@ -501,18 +486,18 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        if(r[1] == r[2] && r[1] == d_zero) {
+        uint32_t l = utils::getLoopMinOccurrences(r);
+        uint32_t u = utils::getLoopMaxOccurrences(r);
+        if (l == u && l == 0)
+        {
           ret = 2;
           //retNode = d_emptyRegexp;
         } else {
           Node dc;
           ret = derivativeS(r[0], c, dc);
           if(dc==d_emptyRegexp) {
-            unsigned l = r[1].getConst<Rational>().getNumerator().toUnsignedInt();
-            unsigned u = r[2].getConst<Rational>().getNumerator().toUnsignedInt();
-            Node r2 = NodeManager::currentNM()->mkNode(kind::REGEXP_LOOP, r[0], 
-              NodeManager::currentNM()->mkConst(CVC4::Rational(l==0? 0 : (l-1))),
-              NodeManager::currentNM()->mkConst(CVC4::Rational(u-1)));
+            Node lop = nm->mkConst(RegExpLoop(l == 0 ? 0 : (l - 1), u - 1));
+            Node r2 = nm->mkNode(REGEXP_LOOP, lop, r[0]);
             retNode = dc==d_emptySingleton? r2 : NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, dc, r2 );
           } else {
             retNode = d_emptyRegexp;
@@ -527,7 +512,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       default: {
-        Assert(!isRegExpKind(r.getKind()));
+        Assert(!utils::isRegExpKind(r.getKind()));
         return 0;
         break;
       }
@@ -686,16 +671,16 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        if(r[1] == r[2] && r[1] == d_zero) {
+        uint32_t l = utils::getLoopMinOccurrences(r);
+        uint32_t u = utils::getLoopMaxOccurrences(r);
+        if (l == u || l == 0)
+        {
           retNode = d_emptyRegexp;
         } else {
           Node dc = derivativeSingle(r[0], c);
           if(dc != d_emptyRegexp) {
-            unsigned l = r[1].getConst<Rational>().getNumerator().toUnsignedInt();
-            unsigned u = r[2].getConst<Rational>().getNumerator().toUnsignedInt();
-            Node r2 = NodeManager::currentNM()->mkNode(kind::REGEXP_LOOP, r[0], 
-              NodeManager::currentNM()->mkConst(CVC4::Rational(l==0? 0 : (l-1))),
-              NodeManager::currentNM()->mkConst(CVC4::Rational(u-1)));
+            Node lop = nm->mkConst(RegExpLoop(l == 0 ? 0 : (l - 1), u - 1));
+            Node r2 = nm->mkNode(REGEXP_LOOP, lop, r[0]);
             retNode = dc==d_emptySingleton? r2 : NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, dc, r2 );
           } else {
             retNode = d_emptyRegexp;
@@ -814,7 +799,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         // aren't a standard regular expression kind. However, if we do, then
         // the following code is conservative and says that the current
         // regular expression can begin with any character.
-        Assert(isRegExpKind(k));
+        Assert(utils::isRegExpKind(k));
         // can start with any character
         Assert(d_lastchar < std::numeric_limits<unsigned>::max());
         for (unsigned i = 0; i <= d_lastchar; i++)
@@ -850,8 +835,8 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
 void RegExpOpr::simplify(Node t, std::vector< Node > &new_nodes, bool polarity) {
   Trace("strings-regexp-simpl") << "RegExp-Simpl starts with " << t << ", polarity=" << polarity << std::endl;
   Assert(t.getKind() == kind::STRING_IN_REGEXP);
-  Node str = Rewriter::rewrite(t[0]);
-  Node re  = Rewriter::rewrite(t[1]);
+  Node str = t[0];
+  Node re = t[1];
   if(polarity) {
     simplifyPRegExp( str, re, new_nodes );
   } else {
@@ -914,12 +899,12 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         // all strings in the language of R1 have the same length, say n,
         // then the conclusion of the reduction is quantifier-free:
         //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
-        Node reLength = SequencesRewriter::getFixedLengthForRegexp(r[0]);
+        Node reLength = RegExpEntail::getFixedLengthForRegexp(r[0]);
         if (reLength.isNull())
         {
           // try from the opposite end
           unsigned indexE = r.getNumChildren() - 1;
-          reLength = SequencesRewriter::getFixedLengthForRegexp(r[indexE]);
+          reLength = RegExpEntail::getFixedLengthForRegexp(r[indexE]);
           if (!reLength.isNull())
           {
             indexRm = indexE;
@@ -1074,7 +1059,7 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        Assert(!isRegExpKind(k));
+        Assert(!utils::isRegExpKind(k));
         break;
       }
     }
@@ -1273,7 +1258,7 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        Assert(!isRegExpKind(k));
+        Assert(!utils::isRegExpKind(k));
         break;
       }
     }
@@ -1750,7 +1735,7 @@ std::string RegExpOpr::mkString( Node r ) {
         std::stringstream ss;
         ss << r;
         retStr = ss.str();
-        Assert(!isRegExpKind(r.getKind()));
+        Assert(!utils::isRegExpKind(r.getKind()));
         break;
       }
     }
