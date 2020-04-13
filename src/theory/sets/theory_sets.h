@@ -42,6 +42,8 @@ class TheorySets : public Theory
              const LogicInfo& logicInfo);
   ~TheorySets() override;
 
+  TheoryRewriter* getTheoryRewriter() override;
+
   /** finish initialization */
   void finishInit() override;
   void addSharedTerm(TNode) override;
@@ -53,7 +55,7 @@ class TheorySets : public Theory
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
-  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
+  Node expandDefinition(Node n) override;
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
   void presolve() override;
   void propagate(Effort) override;

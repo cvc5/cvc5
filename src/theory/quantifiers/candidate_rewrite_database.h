@@ -103,44 +103,6 @@ class CandidateRewriteDatabase : public ExprMiner
   bool d_silent;
 };
 
-/**
- * This class generates and stores candidate rewrite databases for multiple
- * types as needed.
- */
-class CandidateRewriteDatabaseGen
-{
- public:
-  /** constructor
-   *
-   * vars : the variables we are testing substitutions for, for all types,
-   * nsamples : number of sample points this class will test for all types.
-   */
-  CandidateRewriteDatabaseGen(std::vector<Node>& vars, unsigned nsamples);
-  /** add term
-   *
-   * This registers term n with this class. We generate the candidate rewrite
-   * database of the appropriate type (if not allocated already), and register
-   * n with this database. This may result in "candidate-rewrite" being
-   * printed on the output stream out. We return true if the term sol is
-   * distinct (up to equivalence) with all previous terms added to this class.
-   */
-  bool addTerm(Node n, std::ostream& out);
-
- private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
-  /** the variables */
-  std::vector<Node> d_vars;
-  /** sygus sampler object for each type */
-  std::map<TypeNode, SygusSampler> d_sampler;
-  /** the number of samples */
-  unsigned d_nsamples;
-  /** candidate rewrite databases for each type */
-  std::map<TypeNode, CandidateRewriteDatabase> d_cdbs;
-  /** an extended rewriter object */
-  ExtendedRewriter d_ext_rewrite;
-};
-
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

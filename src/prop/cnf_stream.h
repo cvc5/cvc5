@@ -253,11 +253,15 @@ class TseitinCnfStream : public CnfStream {
    * @param satSolver the sat solver to use
    * @param registrar the entity that takes care of pre-registration of Nodes
    * @param context the context that the CNF should respect.
+   * @param rm the resource manager of the CNF stream
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
-  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar,
-                   context::Context* context, bool fullLitToNodeMap = false,
+  TseitinCnfStream(SatSolver* satSolver,
+                   Registrar* registrar,
+                   context::Context* context,
+                   ResourceManager* rm,
+                   bool fullLitToNodeMap = false,
                    std::string name = "");
 
   /**
@@ -313,6 +317,8 @@ class TseitinCnfStream : public CnfStream {
 
   void ensureLiteral(TNode n, bool noPreregistration = false) override;
 
+  /** Pointer to resource manager for associated SmtEngine */
+  ResourceManager* d_resourceManager;
 }; /* class TseitinCnfStream */
 
 } /* CVC4::prop namespace */

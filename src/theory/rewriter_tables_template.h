@@ -63,8 +63,6 @@ ${post_rewrite_set_cache}
 
 Rewriter::Rewriter()
 {
-${rewrite_init}
-
 for (size_t i = 0; i < kind::LAST_KIND; ++i)
 {
   d_preRewriters[i] = nullptr;
@@ -75,7 +73,6 @@ for (size_t i = 0; i < theory::THEORY_LAST; ++i)
 {
   d_preRewritersEqual[i] = nullptr;
   d_postRewritersEqual[i] = nullptr;
-  d_theoryRewriters[i]->registerRewrites(this);
 }
 }
 

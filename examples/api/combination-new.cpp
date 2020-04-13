@@ -82,9 +82,10 @@ int main()
   cout << "Given the following assertions:" << endl
        << assertions << endl << endl;
 
-  cout << "Prove x /= y is valid. " << endl
-       << "CVC4: " << slv.checkValidAssuming(slv.mkTerm(DISTINCT, x, y))
-       << "." << endl << endl;
+  cout << "Prove x /= y is entailed. " << endl
+       << "CVC4: " << slv.checkEntailed(slv.mkTerm(DISTINCT, x, y)) << "."
+       << endl
+       << endl;
 
   cout << "Call checkSat to show that the assertions are satisfiable. "
        << endl

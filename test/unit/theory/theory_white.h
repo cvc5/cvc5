@@ -93,7 +93,7 @@ class TestOutputChannel : public OutputChannel {
 };
 
 class DummyTheory : public Theory {
-public:
+ public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
@@ -101,6 +101,8 @@ public:
               Valuation valuation, const LogicInfo& logicInfo)
       : Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo)
   {}
+
+  TheoryRewriter* getTheoryRewriter() { return nullptr; }
 
   void registerTerm(TNode n) {
     // check that we registerTerm() a term only once

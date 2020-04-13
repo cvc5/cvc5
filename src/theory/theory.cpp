@@ -28,6 +28,7 @@
 #include "theory/ext_theory.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/substitutions.h"
+#include "theory/theory_rewriter.h"
 
 using namespace std;
 

@@ -25,6 +25,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers_engine.h"
@@ -557,7 +558,8 @@ void TheoryDatatypes::finishInit() {
   }
 }
 
-Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
+Node TheoryDatatypes::expandDefinition(Node n)
+{
   NodeManager* nm = NodeManager::currentNM();
   switch (n.getKind())
   {
@@ -1306,15 +1308,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Trace("dt-collapse-sel") << "collapse selector : " << s << " " << c << std::endl;
   Node r;
   bool wrong = false;
-  Node use_s;
-  Node eq_exp;
-  if( options::dtRefIntro() ){
-    eq_exp = d_true;
-    use_s = getTermSkolemFor( c );
-  }else{
-    eq_exp = c.eqNode( s[0] );
-    use_s = s;
-  }
+  Node eq_exp = c.eqNode(s[0]);
   if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
     Node selector = s.getOperator();
     size_t constructorIndex = utils::indexOf(c.getOperator());
@@ -1322,14 +1316,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     const DTypeConstructor& dtc = dt[constructorIndex];
     int selectorIndex = dtc.getSelectorIndexInternal(selector);
     wrong = selectorIndex<0;
-    
-    //if( wrong ){
-    //  return;
-    //}
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
-    if( options::dtRefIntro() ){
-      use_s = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), use_s );
-    }
   }
   if( !r.isNull() ){
     Node rr = Rewriter::rewrite( r );
@@ -1341,14 +1328,10 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
       std::map< Node, Node > visited;
       rrs = removeUninterpretedConstants( rr, visited );
     }
-    if( use_s!=rrs ){
-      Node eq = use_s.eqNode( rrs );
-      Node peq;
-      if( options::dtRefIntro() ){
-        peq = d_true;
-      }else{
-        peq = c.eqNode(s[0]);
-      }
+    if (s != rrs)
+    {
+      Node eq = s.eqNode(rrs);
+      Node peq = c.eqNode(s[0]);
       Trace("datatypes-infer") << "DtInfer : collapse sel";
       //Trace("datatypes-infer") << ( wrong ? " wrong" : "");
       Trace("datatypes-infer") << " : " << eq << " by " << peq << std::endl;
