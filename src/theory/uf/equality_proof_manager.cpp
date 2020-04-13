@@ -225,7 +225,7 @@ Node EqProofManager::pfDisequalBySubsRewrite(Node a,
   Node eqA = pfSubsRewrite(a, exp, ensureChildren);
   Node eqB = pfSubsRewrite(b, exp, ensureChildren);
   Node eqBSymm = pfSymm(eqB, ensureChildren);
-
+  
   // TODO
   return Node::null();
 }

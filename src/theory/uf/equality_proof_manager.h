@@ -49,8 +49,8 @@ class EqProofManager
   
   /** 
    * Get proof for lit, or nullptr if it does not exist. It must be the case
-   * that one the following was called:
-   * (1) assertAssume/assert
+   * that lit was passed as the first argument to either a variant of assertLit
+   * or explain.
    */
   std::shared_ptr<ProofNode> getProof(Node lit) const;
 
