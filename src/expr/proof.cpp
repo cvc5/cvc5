@@ -18,7 +18,10 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-CDProof::CDProof(context::Context* c, ProofChecker* pc) : d_checker(pc), d_nodes(c) {}
+CDProof::CDProof(context::Context* c, ProofChecker* pc)
+    : d_checker(pc), d_nodes(c)
+{
+}
 
 std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
 {
@@ -46,8 +49,8 @@ Node CDProof::registerStep(Node fact,
     }
     // we will overwrite assumption
   }
-  
-  // collect the child proofs 
+
+  // collect the child proofs
   std::vector<std::shared_ptr<ProofNode>> pchildren;
   for (const Node& c : children)
   {
@@ -79,7 +82,7 @@ Node CDProof::registerStep(Node fact,
   }
   else
   {
-    Assert (pthis->d_proven==fact);
+    Assert(pthis->d_proven == fact);
     // overwrite its value
     pthis = (*it).second;
     pthis->setValue(id, pchildren, args);
@@ -99,7 +102,7 @@ Node CDProof::registerStep(Node fact,
 
 Node CDProof::registerProof(Node fact, std::shared_ptr<ProofNode> pn)
 {
-  if (pn->d_proven!=fact)
+  if (pn->d_proven != fact)
   {
     // something went wrong
     return Node::null();
@@ -111,12 +114,14 @@ Node CDProof::registerProof(Node fact, std::shared_ptr<ProofNode> pn)
   std::shared_ptr<ProofNode> cur;
   Node curFact;
   visit.push_back(pn);
-  do {
+  do
+  {
     cur = visit.back();
     curFact = cur->d_proven;
     visit.pop_back();
     it = visited.find(cur);
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       // if we already have a proof for this fact, we are done
       itr = d_nodes.find(curFact);
       if (itr != d_nodes.end() && (*itr).second->getId() != ProofStep::ASSUME)
@@ -132,7 +137,9 @@ Node CDProof::registerProof(Node fact, std::shared_ptr<ProofNode> pn)
           visit.push_back(c);
         }
       }
-    }else if( it->second.isNull() ){
+    }
+    else if (it->second.isNull())
+    {
       // now, register the step
       std::vector<Node> pexp;
       for (const std::shared_ptr<ProofNode>& c : cur->d_children)
@@ -142,11 +149,11 @@ Node CDProof::registerProof(Node fact, std::shared_ptr<ProofNode> pn)
       }
       // can ensure children at this point
       Node res = registerStep(curFact, cur->d_id, pexp, cur->d_args, true);
-      Assert( !res.isNull() );
+      Assert(!res.isNull());
       visited[cur] = res;
     }
   } while (!visit.empty());
-  
+
   return fact;
 }
 

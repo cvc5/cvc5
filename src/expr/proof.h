@@ -39,6 +39,7 @@ class CDProof
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;
+
  public:
   CDProof(context::Context* c, ProofChecker* pc);
   ~CDProof() {}
@@ -56,26 +57,27 @@ class CDProof
    * This returns fact if indeed the proof step proves fact. This can fail
    * if the proof has a different conclusion than fact, or if one of the
    * children does not have a proof and ensureChildren is true.
-   * 
+   *
    * In other words, ensureChildren should be true if the proof is being
    * constructed is a strictly eager fashion; ensureChildren should be false
-   * if the steps are registered lazily or out of order. 
+   * if the steps are registered lazily or out of order.
    */
   Node registerStep(Node fact,
                     ProofStep id,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     bool ensureChildren = false);
-  /** Register proof 
-   * 
+  /** Register proof
+   *
    * @param fact The intended conclusion of the proof.
    * @param pn The proof of the given fact.
-   * 
+   *
    * This method returns fact if pn is a proof of fact, and null otherwise.
    * If it returns fact, it registers all of the subnodes of pn to this proof
    * class.
    */
   Node registerProof(Node fact, std::shared_ptr<ProofNode> pn);
+
  protected:
   /** The proof checker */
   ProofChecker* d_checker;

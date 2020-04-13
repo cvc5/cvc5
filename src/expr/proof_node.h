@@ -36,15 +36,16 @@ class CDProof;
  * (4) d_proven, cache of the formula that this ProofNode proves.
  *
  * Overall, a ProofNode and its children form a directed acyclic graph.
- * 
+ *
  * A ProofNode is intended to be mutable in that (1), (2) and (3) can be
  * modified. However, (4) is intended to be immutable. The method setValue
- * is private and can be called by 
+ * is private and can be called by
  */
 class ProofNode
 {
   friend class ProofChecker;
   friend class CDProof;
+
  public:
   ProofNode(ProofStep id,
             const std::vector<std::shared_ptr<ProofNode>>& children,

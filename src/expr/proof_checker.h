@@ -50,12 +50,13 @@ class ProofChecker
    *
    * Return the formula that is proven by proof node pn, or null if pn is not
    * well-formed. The value of pn->d_proven is set to this value.
-   * 
+   *
    * If expected is non-null, then we return null if pn does not prove expected.
    */
   Node check(ProofNode* pn, Node expected);
   /** Indicate that psc is the checker for proof step id */
   void registerChecker(ProofStep id, ProofStepChecker* psc);
+
  private:
   /** Maps proof steps to their checker */
   std::map<ProofStep, ProofStepChecker*> d_checker;

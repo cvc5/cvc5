@@ -115,9 +115,9 @@ class EqProofManager
    * has been registered as a proof step.
    */
   Node pfDisequalBySubsRewrite(Node a,
-                            Node b,
-                            const std::vector<Node>& exp,
-                            bool ensureChildren = false);
+                               Node b,
+                               const std::vector<Node>& exp,
+                               bool ensureChildren = false);
   /**
    * Ensure that eq1[0] = eq1[1] == eq2[0] = eq2[1] has been registered as a
    * proof step.
@@ -129,9 +129,11 @@ class EqProofManager
   Node pfSymm(Node eq, bool ensureChildren = false);
   // ----------------------- end standard proofs
   /**
-  * Make the conjunction of nodes in a. Returns true if a is empty, and a single literal if a has size 1.
-  */
+   * Make the conjunction of nodes in a. Returns true if a is empty, and a
+   * single literal if a has size 1.
+   */
   Node mkAnd(const std::vector<Node>& a);
+
  private:
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;

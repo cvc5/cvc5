@@ -57,16 +57,17 @@ void ProofNode::getAssumptions(std::vector<Node>& assump)
   } while (!visit.empty());
 }
 
-void ProofNode::setValue(ProofStep id,
-              const std::vector<std::shared_ptr<ProofNode>>& children,
-              const std::vector<Node>& args)
+void ProofNode::setValue(
+    ProofStep id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args)
 {
   d_id = id;
   d_children = children;
   d_args = args;
   d_proven = Node::null();
 }
-  
+
 void ProofNode::printDebug(std::ostream& os) const
 {
   // TODO

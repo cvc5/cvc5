@@ -22,7 +22,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace eq {
-  
+
 EqProofManager::EqProofManager(context::Context* c,
                                EqualityEngine& ee,
                                ProofChecker* pc)
@@ -33,15 +33,15 @@ EqProofManager::EqProofManager(context::Context* c,
 
 Node EqProofManager::assertEqualityAssume(Node lit)
 {
-  Node atom = lit.getKind()==NOT ? lit[0] : lit;
-  bool polarity = lit.getKind()!=NOT;
-  
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+
   // first, justify its proof
   Node ret = pfAssume(lit);
-  
+
   // second, assert it to the equality engine
   // it is its own explanation
-  if (atom.getKind()==EQUAL)
+  if (atom.getKind() == EQUAL)
   {
     d_ee.assertEquality(atom, polarity, lit);
   }
@@ -52,28 +52,31 @@ Node EqProofManager::assertEqualityAssume(Node lit)
   return ret;
 }
 
-Node EqProofManager::assertEqualitySubsRewrite(Node lit, const std::vector<Node>& exp)
+Node EqProofManager::assertEqualitySubsRewrite(Node lit,
+                                               const std::vector<Node>& exp)
 {
-  Node eq = lit.getKind()==NOT ? lit[0] : lit;
-  bool polarity = lit.getKind()!=NOT;
-  Assert (eq.getKind()==EQUAL);
-  
+  Node eq = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+  Assert(eq.getKind() == EQUAL);
+
   // first, justify its proof
   Node ret;
   if (polarity)
   {
-    // eq[0] = rewrite(eq[0].substitute(exp)) = rewrite(eq[1].substitute(exp)) = eq[1]
+    // eq[0] = rewrite(eq[0].substitute(exp)) = rewrite(eq[1].substitute(exp)) =
+    // eq[1]
     ret = pfEqualBySubsRewrite(eq[0], eq[1], exp);
   }
   else
   {
-    // eq[0] = rewrite(eq[0].substitute(exp)) != rewrite(eq[1].substitute(exp)) = eq[1]
+    // eq[0] = rewrite(eq[0].substitute(exp)) != rewrite(eq[1].substitute(exp))
+    // = eq[1]
     ret = pfDisequalBySubsRewrite(eq[0], eq[1], exp);
   }
-  
+
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
-  d_ee.assertEquality(eq,polarity,reason);
+  d_ee.assertEquality(eq, polarity, reason);
   return ret;
 }
 
@@ -148,18 +151,18 @@ Node EqProofManager::pfEqualBySubsRewrite(Node a,
 }
 
 Node EqProofManager::pfDisequalBySubsRewrite(Node a,
-                          Node b,
-                          const std::vector<Node>& exp,
-                          bool ensureChildren)
+                                             Node b,
+                                             const std::vector<Node>& exp,
+                                             bool ensureChildren)
 {
   Node eqA = pfSubsRewrite(a, exp, ensureChildren);
   Node eqB = pfSubsRewrite(b, exp, ensureChildren);
   Node eqBSymm = pfSymm(eqB, ensureChildren);
-  
+
   // TODO
   return Node::null();
 }
-  
+
 Node EqProofManager::pfTrans(Node eq1, Node eq2, bool ensureChildren)
 {
   Assert(eq1.getKind() == EQUAL);
@@ -204,7 +207,6 @@ Node EqProofManager::pfSymm(Node eq, bool ensureChildren)
   return d_proof.registerStep(
       eqSymm, ProofStep::SYMM, children, args, ensureChildren);
 }
-
 
 Node EqProofManager::mkAnd(const std::vector<Node>& a)
 {
