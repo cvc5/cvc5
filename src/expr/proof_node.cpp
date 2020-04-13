@@ -78,6 +78,4 @@ void ProofNode::printDebug(std::ostream& os) const
   // TODO
 }
 
-}  // namespace strings
-}  // namespace theory
 }  // namespace CVC4

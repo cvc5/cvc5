@@ -17,6 +17,8 @@
 #ifndef CVC4__EXPR__PROOF_CHECKER_H
 #define CVC4__EXPR__PROOF_CHECKER_H
 
+#include <map>
+
 #include "expr/node.h"
 #include "expr/proof_node.h"
 

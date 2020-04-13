@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__PROOF_H
-#define CVC4__THEORY__STRINGS__PROOF_H
+#ifndef CVC4__EXPR__PROOF_NODE_H
+#define CVC4__EXPR__PROOF_NODE_H
 
 #include <vector>
 
@@ -26,7 +26,16 @@ namespace CVC4 {
 
 class ProofChecker;
 
-/** A node in a strings proof */
+/** A node in a proof 
+ * 
+ * A ProofNode represents a single step in a proof. It contains:
+ * - d_id, an identifier indicating the type of inference,
+ * - d_children, the child ProofNode objects indicating its premises,
+ * - d_args, additional arguments used to determine the conclusion,
+ * - d_proven, cache of the formula that this ProofNode proves.
+ * 
+ * Overall, a ProofNode and its children form a directed acyclic graph.
+ */
 class ProofNode
 {
   friend class ProofChecker;
@@ -50,12 +59,10 @@ class ProofNode
   std::vector<std::shared_ptr<ProofNode>> d_children;
   /** arguments of this node */
   std::vector<Node> d_args;
-  /** The fact that has been proven */
+  /** The cache of the fact that has been proven, modifiable by ProofChecker */
   Node d_proven;
 };
 
-}  // namespace strings
-}  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__STRINGS__PROOF_H */
+#endif /* CVC4__EXPR__PROOF_NODE_H */
