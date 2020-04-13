@@ -53,8 +53,11 @@ class ProofNode
   void getAssumptions(std::vector<Node>& assump);
   /** print debug */
   void printDebug(std::ostream& os) const;
-
  private:
+  /** set value, called to overwrite the value */
+  void setValue(ProofStep id,
+                const std::vector<std::shared_ptr<ProofNode>>& children,
+                const std::vector<Node>& args);
   /** The proof step */
   ProofStep d_id;
   /** The children of this node */

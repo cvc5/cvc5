@@ -25,77 +25,13 @@ namespace eq {
 EqProofManager::EqProofManager(context::Context* c,
                                EqualityEngine& ee,
                                ProofChecker* pc)
-    : d_ee(ee), d_checker(pc), d_nodes(c)
+    : d_ee(ee), d_checker(pc), d_proof(c, pc)
 {
-}
-
-Node EqProofManager::registerStep(Node fact,
-                                  ProofStep id,
-                                  const std::vector<Node>& children,
-                                  const std::vector<Node>& args,
-                                  bool ensureChildren)
-{
-  NodeProofMap::iterator it = d_nodes.find(fact);
-  if (it == d_nodes.end())
-  {
-    if ((*it).second->getId() != ProofStep::ASSUME || id == ProofStep::ASSUME)
-    {
-      // already proven
-      return fact;
-    }
-  }
-  std::vector<std::shared_ptr<ProofNode>> pchildren;
-  for (const Node& c : children)
-  {
-    std::shared_ptr<ProofNode> pc = getProof(c);
-    if (pc == nullptr)
-    {
-      if (ensureChildren)
-      {
-        // failed to get a proof for a child, fail
-        return Node::null();
-      }
-      // otherwise, we initialize it as an assumption
-      std::vector<Node> pcargs = {c};
-      std::vector<std::shared_ptr<ProofNode>> pcassume;
-      std::shared_ptr<ProofNode> pchild =
-          std::make_shared<ProofNode>(ProofStep::ASSUME, pcassume, pcargs);
-      d_nodes.insert(c, pchild);
-    }
-    pchildren.push_back(pc);
-  }
-  // create or reinitialize it
-  std::shared_ptr<ProofNode> pthis;
-  if (it == d_nodes.end())
-  {
-    pthis = std::make_shared<ProofNode>(id, pchildren, args);
-    d_nodes.insert(fact, pthis);
-  }
-  else
-  {
-    pthis = (*it).second;
-    pthis->initialize(id, pchildren, args);
-  }
-  Node pfact = pthis->getResult();
-  // must be equal to given fact
-  if (fact == pfact)
-  {
-    // valid in this context
-    return fact;
-  }
-  pthis->invalidate();
-  return Node::null();
 }
 
 std::shared_ptr<ProofNode> EqProofManager::getProof(Node fact) const
 {
-  NodeProofMap::const_iterator it = d_nodes.find(fact);
-  if (it == d_nodes.end())
-  {
-    // does not exist
-    return nullptr;
-  }
-  return (*it).second;
+  return d_proof.getProof(fact);
 }
 
 Node EqProofManager::pfRefl(Node a)
@@ -104,7 +40,7 @@ Node EqProofManager::pfRefl(Node a)
   std::vector<Node> children;
   std::vector<Node> args;
   args.push_back(a);
-  return registerStep(fact, ProofStep::REFL, children, args);
+  return d_proof.registerStep(fact, ProofStep::REFL, children, args);
 }
 
 Node EqProofManager::pfRewrite(Node a)
@@ -119,7 +55,7 @@ Node EqProofManager::pfRewrite(Node a)
   std::vector<Node> children;
   std::vector<Node> args;
   args.push_back(a);
-  return registerStep(fact, ProofStep::REWRITE, children, args);
+  return d_proof.registerStep(fact, ProofStep::REWRITE, children, args);
 }
 
 Node pfRewriteFalse(Node eq, bool ensureChildren) { return Node::null(); }
@@ -137,7 +73,7 @@ Node EqProofManager::pfSubs(Node a,
   Node fact = a.eqNode(as);
   std::vector<Node> args;
   args.push_back(a);
-  return registerStep(fact, ProofStep::SUBS, exp, args, ensureChildren);
+  return d_proof.registerStep(fact, ProofStep::SUBS, exp, args, ensureChildren);
 }
 
 Node EqProofManager::pfSubsRewrite(Node a,
@@ -185,7 +121,7 @@ Node EqProofManager::pfTrans(Node eq1, Node eq2, bool ensureChildren)
   children.push_back(eq1);
   children.push_back(eq2);
   std::vector<Node> args;
-  return registerStep(
+  return d_proof.registerStep(
       eqTrans, ProofStep::TRANS, children, args, ensureChildren);
 }
 
@@ -201,7 +137,7 @@ Node EqProofManager::pfSymm(Node eq, bool ensureChildren)
   std::vector<Node> children;
   children.push_back(eq);
   std::vector<Node> args;
-  return registerStep(eqSymm, ProofStep::SYMM, children, args, ensureChildren);
+  return d_proof.registerStep(eqSymm, ProofStep::SYMM, children, args, ensureChildren);
 }
 
 }  // namespace eq

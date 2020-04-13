@@ -25,6 +25,7 @@
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 #include "theory/uf/equality_engine.h"
+#include "expr/proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -117,26 +118,8 @@ class EqProofManager
   eq::EqualityEngine& d_ee;
   /** The proof checker */
   ProofChecker* d_checker;
-  /** Register step
-   *
-   * @param fact The intended conclusion of this proof step.
-   * @param id The identifier for the proof step.
-   * @param children The antecendant of the proof step. Each children[i] should
-   * be a fact previously registered as conclusions of a registerStep call
-   * when ensureChildren is true.
-   * @param args The arguments of the proof step.
-   *
-   * This returns fact if indeed the proof step proves fact. This can fail
-   * if the proof has a different conclusion than fact, or if one of the
-   * children does not have a proof.
-   */
-  Node registerStep(Node fact,
-                    ProofStep id,
-                    const std::vector<Node>& children,
-                    const std::vector<Node>& args,
-                    bool ensureChildren = false);
-  /** The nodes of the proof */
-  NodeProofMap d_nodes;
+  /** The proof */
+  CDProof d_proof;
 };
 
 }  // namespace eq

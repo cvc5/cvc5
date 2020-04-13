@@ -59,6 +59,8 @@ libcvc4_add_sources(
   sygus_datatype.h
   uninterpreted_constant.cpp
   uninterpreted_constant.h
+  proof.cpp
+  proof.h
   proof_checker.cpp
   proof_checker.h
   proof_node.cpp
