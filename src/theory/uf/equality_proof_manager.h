@@ -46,15 +46,34 @@ class EqProofManager
  public:
   EqProofManager(context::Context* c, EqualityEngine& ee, ProofChecker* pc);
   ~EqProofManager() {}
-  /** Get proof for fact, or nullptr if it does not exist */
-  std::shared_ptr<ProofNode> getProof(Node fact) const;
+  
+  /** 
+   * Get proof for lit, or nullptr if it does not exist. It must be the case
+   * that one the following was called:
+   * (1) assertAssume/assert
+   */
+  std::shared_ptr<ProofNode> getProof(Node lit) const;
 
-  /** Assert predicate or (dis)equality by assumption */
+  /** Assert predicate by assumption */
   Node assertAssume(Node lit);
-  /** Assert (dis)equality by substitution + rewriting */
+  /** Assert the predicate by proof step id, given explanation exp */
+  Node assert(Node lit, ProofStep id, const std::vector<Node>& exp);
+  /** Assert (dis)equality by substitution + rewriting, given explanation exp */
   Node assertEqualitySubsRewrite(Node lit, const std::vector<Node>& exp);
-
+  
+  /** Explain
+   * 
+   * This adds to assertions the set of assertions that were asserted to this
+   * class in the current SAT context by calls to assertAssume that are
+   * required for showing lit.
+   * 
+   * This additionally registers the equality proof steps required to
+   * regress the explanation of lit. 
+   */
+  void explain(Node lit, std::vector<TNode>& assertions);
  protected:
+  /** Assert internal */
+  void assertInternal(Node pred, bool polarity, TNode reason);
   // ----------------------- standard proofs
   /**
    * The following functions ensure that a proof object is constructed for
@@ -143,6 +162,8 @@ class EqProofManager
   Node d_true;
   /** The proof */
   CDProof d_proof;
+  /** Whether proofs are enabled */
+  bool d_proofsEnabled;
 };
 
 }  // namespace eq

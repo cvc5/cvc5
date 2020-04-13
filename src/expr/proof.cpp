@@ -122,14 +122,15 @@ Node CDProof::registerProof(Node fact, std::shared_ptr<ProofNode> pn)
     it = visited.find(cur);
     if (it == visited.end())
     {
-      // if we already have a proof for this fact, we are done
       itr = d_nodes.find(curFact);
       if (itr != d_nodes.end() && (*itr).second->getId() != ProofStep::ASSUME)
       {
+      // if we already have a proof for this fact, we are done
         visited[cur] = curFact;
       }
       else
       {
+        // otherwise, visit the children
         visited[cur] = Node::null();
         visit.push_back(cur);
         for (const std::shared_ptr<ProofNode>& c : cur->d_children)

@@ -73,8 +73,12 @@ class CDProof
    * @param pn The proof of the given fact.
    *
    * This method returns fact if pn is a proof of fact, and null otherwise.
-   * If it returns fact, it registers all of the subnodes of pn to this proof
-   * class.
+   * If it returns fact, it registers a copy of all of the subnodes of pn to
+   * this proof class. Notice that this method does *not* overwrite proofs for
+   * facts that are already proven are not assumptions.
+   * 
+   * This method is implemented by calling registerStep above for the
+   * appropriate subnodes of pn.
    */
   Node registerProof(Node fact, std::shared_ptr<ProofNode> pn);
 

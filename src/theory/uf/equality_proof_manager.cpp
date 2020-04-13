@@ -26,9 +26,21 @@ namespace eq {
 EqProofManager::EqProofManager(context::Context* c,
                                EqualityEngine& ee,
                                ProofChecker* pc)
-    : d_ee(ee), d_checker(pc), d_proof(c, pc)
+    : d_ee(ee), d_checker(pc), d_proof(c, pc), d_proofsEnabled(true)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
+}
+
+Node EqProofManager::assert(Node lit, ProofStep id, const std::vector<Node>& exp)
+{
+  // first, justify its proof
+  std::vector<Node> args;
+  Node ret = d_proof.registerStep(lit, id, exp, args);
+
+  // second, assert it to the equality engine
+  Node reason = mkAnd(exp);
+  assertInternal(lit, polarity, reason);
+  return ret;
 }
 
 Node EqProofManager::assertEqualityAssume(Node lit)
@@ -41,14 +53,7 @@ Node EqProofManager::assertEqualityAssume(Node lit)
 
   // second, assert it to the equality engine
   // it is its own explanation
-  if (atom.getKind() == EQUAL)
-  {
-    d_ee.assertEquality(atom, polarity, lit);
-  }
-  else
-  {
-    d_ee.assertPredicate(atom, polarity, lit);
-  }
+  assertInternal(atom, polarity, lit);
   return ret;
 }
 
@@ -76,8 +81,61 @@ Node EqProofManager::assertEqualitySubsRewrite(Node lit,
 
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
-  d_ee.assertEquality(eq, polarity, reason);
+  assertInternal(eq, polarity, reason);
   return ret;
+}
+
+void EqProofManager::assertInternal(Node atom, bool polarity, TNode reason)
+{
+  if (atom.getKind() == EQUAL)
+  {
+    d_ee.assertEquality(atom, polarity, reason);
+  }
+  else
+  {
+    d_ee.assertPredicate(atom, polarity, reason);
+  }
+}
+
+void EqProofManager::explain(Node lit, std::vector<TNode>& assertions)
+{
+  std::shared_ptr<eq::EqProof> pf =
+      d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
+  bool polarity = lit.getKind() != NOT;
+  TNode atom = polarity ? lit : lit[0];
+  std::vector<TNode> tassumptions;
+  if (atom.getKind() == EQUAL)
+  {
+    if (atom[0] != atom[1])
+    {
+      Assert(d_ee.hasTerm(atom[0]));
+      Assert(d_ee.hasTerm(atom[1]));
+      if (!polarity)
+      {
+        AlwaysAssert(d_ee.areDisequal(atom[0], atom[1], true));
+      }
+      d_ee.explainEquality(atom[0], atom[1], polarity, tassumptions, pf.get());
+    }
+  }
+  else
+  {
+    d_ee.explainPredicate(atom, polarity, tassumptions, pf.get());
+  }
+  // avoid duplicates
+  for (const TNode a : tassumptions)
+  {
+    if (std::find(assumptions.begin(), assumptions.end(), a)
+        == assumptions.end())
+    {
+      assumptions.push_back(a);
+    }
+  }
+  if (d_proofsEnabled)
+  {
+    // FIXME: convert pf to pfn
+    std::shared_ptr<ProofNode> pfn;
+    d_proof.registerProof(lit,pfn.get());
+  }
 }
 
 Node EqProofManager::pfAssume(Node f)
