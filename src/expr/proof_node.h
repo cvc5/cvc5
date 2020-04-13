@@ -53,6 +53,7 @@ class ProofNode
   void getAssumptions(std::vector<Node>& assump);
   /** print debug */
   void printDebug(std::ostream& os) const;
+
  private:
   /** set value, called to overwrite the value */
   void setValue(ProofStep id,

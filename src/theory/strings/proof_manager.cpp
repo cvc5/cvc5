@@ -20,7 +20,12 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-ProofManager::ProofManager(context::Context* c, EqualityEngine& ee, ProofChecker* pc) : eq::EqProofManager(c,ee,pc) {}
+ProofManager::ProofManager(context::Context* c,
+                           EqualityEngine& ee,
+                           ProofChecker* pc)
+    : eq::EqProofManager(c, ee, pc)
+{
+}
 
 }  // namespace strings
 }  // namespace theory

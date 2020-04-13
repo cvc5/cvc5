@@ -29,7 +29,7 @@ namespace CVC4 {
 
 /**
  * A (context-dependent) proof.
- * 
+ *
  * This maintains a context-dependent map from formulas to proofs. When a step
  * is registered, it uses pointers to ProofNode objects to link ProofNode
  * objects together.
@@ -38,6 +38,7 @@ class CDProof
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;
+
  public:
   CDProof(context::Context* c, ProofChecker* pc);
   ~CDProof() {}
@@ -61,6 +62,7 @@ class CDProof
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     bool ensureChildren = false);
+
  protected:
   /** The proof checker */
   ProofChecker* d_checker;

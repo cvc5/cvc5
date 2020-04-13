@@ -38,7 +38,7 @@ Node StringProofChecker::applySubstitution(Node n, const std::vector<Node>& exp)
   }
   return curr;
 }
-  
+
 Node StringProofChecker::check(
     ProofStep id,
     const std::vector<std::shared_ptr<ProofNode>>& children,

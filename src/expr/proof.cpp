@@ -18,15 +18,13 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-CDProof(context::Context* c, ProofChecker* pc) : d_checker(pc), d_nodes(c)
-{
-}
-  
+CDProof(context::Context* c, ProofChecker* pc) : d_checker(pc), d_nodes(c) {}
+
 Node CDProof::registerStep(Node fact,
-                                  ProofStep id,
-                                  const std::vector<Node>& children,
-                                  const std::vector<Node>& args,
-                                  bool ensureChildren)
+                           ProofStep id,
+                           const std::vector<Node>& children,
+                           const std::vector<Node>& args,
+                           bool ensureChildren)
 {
   NodeProofNodeMap::iterator it = d_nodes.find(fact);
   if (it == d_nodes.end())
@@ -57,8 +55,7 @@ Node CDProof::registerStep(Node fact,
     }
     pchildren.push_back(pc);
   }
-  
-  
+
   // create or reinitialize it
   std::shared_ptr<ProofNode> pthis;
   if (it == d_nodes.end())

@@ -137,7 +137,8 @@ Node EqProofManager::pfSymm(Node eq, bool ensureChildren)
   std::vector<Node> children;
   children.push_back(eq);
   std::vector<Node> args;
-  return d_proof.registerStep(eqSymm, ProofStep::SYMM, children, args, ensureChildren);
+  return d_proof.registerStep(
+      eqSymm, ProofStep::SYMM, children, args, ensureChildren);
 }
 
 }  // namespace eq

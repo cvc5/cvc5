@@ -29,8 +29,8 @@ namespace strings {
 class StringProofChecker : public ProofStepChecker
 {
  public:
-  StringProofChecker(){}
-  ~StringProofChecker(){}
+  StringProofChecker() {}
+  ~StringProofChecker() {}
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node check(ProofStep id,
              const std::vector<std::shared_ptr<ProofNode>>& children,

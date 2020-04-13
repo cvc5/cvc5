@@ -54,6 +54,7 @@ class ProofChecker
   Node check(ProofNode* pn, Node expected);
   /** Indicate that psc is the checker for proof step id */
   void registerChecker(ProofStep id, ProofStepChecker* psc);
+
  private:
   /** Maps proof steps to their checker */
   std::map<ProofStep, ProofStepChecker*> d_checker;

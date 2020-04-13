@@ -22,10 +22,10 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "expr/proof.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 #include "theory/uf/equality_engine.h"
-#include "expr/proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -48,10 +48,10 @@ class EqProofManager
   ~EqProofManager() {}
   /** Get proof for fact, or nullptr if it does not exist */
   std::shared_ptr<ProofNode> getProof(Node fact) const;
-  
-  
+
   /** Assert equal by substitution + rewriting */
   Node assertSubsRewrite(Node eq, bool polarity, const std::vector<Node>& exp);
+
  protected:
   // ----------------------- standard proofs
   /**
