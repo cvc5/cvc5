@@ -44,7 +44,7 @@ Node CDProof::registerStep(Node fact,
   {
     if ((*it).second->getId() != ProofStep::ASSUME || id == ProofStep::ASSUME)
     {
-      // already proven or assumed, nothing to do
+      // already proven or duplicate assumption, nothing to do
       return fact;
     }
     // we will overwrite assumption
