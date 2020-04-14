@@ -147,7 +147,7 @@ class EqProofManager
                                const std::vector<Node>& exp,
                                bool ensureChildren = false);
   /**
-   * Ensure that TRANS(P[eq1], P[eq2]), which proves: 
+   * Ensure that TRANS(P[eq1], P[eq2]), which proves:
    *    eq1[0] = eq1[1] == eq2[0] = eq2[1]
    * has been registered as a proof step. It must be the case that eq1[1] is
    * the same as eq2[0].

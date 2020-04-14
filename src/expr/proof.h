@@ -52,7 +52,7 @@ namespace CVC4 {
  * for instance will result in getProof( E ) returning:
  *   ID_E( ID_A( PB, ASSUME( C ) ), PB ), where PB is ID_B( ASSUME( D ) ).
  * The calls to registerProof and registerStep above can be made in any order.
- * 
+ *
  * This class overwrites assumptions wherever possible, and maintains a policy
  * on when the other proof steps are overwritten. Currently, no other
  * proof step is overwritten when provided a second time. This is the case
