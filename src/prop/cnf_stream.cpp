@@ -57,10 +57,14 @@ CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
       d_removable(false) {
 }
 
-TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar,
+TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
+                                   Registrar* registrar,
                                    context::Context* context,
-                                   bool fullLitToNodeMap, std::string name)
-  : CnfStream(satSolver, registrar, context, fullLitToNodeMap, name)
+                                   ResourceManager* rm,
+                                   bool fullLitToNodeMap,
+                                   std::string name)
+    : CnfStream(satSolver, registrar, context, fullLitToNodeMap, name),
+      d_resourceManager(rm)
 {}
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
@@ -722,8 +726,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
   if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
-    NodeManager::currentResourceManager()->spendResource(
-        ResourceManager::Resource::CnfStep);
+    d_resourceManager->spendResource(ResourceManager::Resource::CnfStep);
     d_convertAndAssertCounter = 0;
   }
   ++d_convertAndAssertCounter;

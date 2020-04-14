@@ -45,8 +45,7 @@ BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BVToBool::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager::currentResourceManager()->spendResource(
-      ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
   std::vector<Node> new_assertions;
   liftBvToBool(assertionsToPreprocess->ref(), new_assertions);
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
