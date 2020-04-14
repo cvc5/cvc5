@@ -119,7 +119,8 @@ Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
       // visit the children
       visited[cur] = Node::null();
       visit.push_back(cur);
-      for (const std::shared_ptr<ProofNode>& c : cur->d_children)
+      const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& c : cs)
       {
         visit.push_back(c);
       }
@@ -136,10 +137,11 @@ Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
       {
         // if we don't, we must register the step
         std::vector<Node> pexp;
-        for (const std::shared_ptr<ProofNode>& c : cur->d_children)
+        const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
+        for (const std::shared_ptr<ProofNode>& c : cs)
         {
           Assert(!c->getResult().isNull());
-          pexp.push_back(c->d_proven);
+          pexp.push_back(c->getResult());
         }
         // can ensure children at this point
         Node res = registerStep(

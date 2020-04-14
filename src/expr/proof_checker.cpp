@@ -18,7 +18,7 @@ namespace CVC4 {
 
 Node ProofChecker::check(ProofNode* pn, Node expected)
 {
-  return check(pn->d_id, pn->d_children, pn->d_args, expected);
+  return check(pn->getId(), pn->getChildren(), pn->getArguments(), expected);
 }
 
 Node ProofChecker::check(
