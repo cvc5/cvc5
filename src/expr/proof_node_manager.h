@@ -37,19 +37,20 @@ class ProofNodeManager
    * Make node
    *
    */
-  std::shared_ptr<ProofNode> mkNode(ProofStep id,
-                                         const std::vector<std::shared_ptr<ProofNode>>& children,
-                                         const std::vector<Node>& args,
-                                         Node expected = Node::null());
+  std::shared_ptr<ProofNode> mkNode(
+      ProofStep id,
+      const std::vector<std::shared_ptr<ProofNode>>& children,
+      const std::vector<Node>& args,
+      Node expected = Node::null());
   /**
    * Update node
    *
    */
   bool updateNode(ProofNode* pn,
-                       ProofStep id,
-                       const std::vector<std::shared_ptr<ProofNode>>& children,
-                       const std::vector<Node>& args,
-                       Node expected = Node::null());
+                  ProofStep id,
+                  const std::vector<std::shared_ptr<ProofNode>>& children,
+                  const std::vector<Node>& args,
+                  Node expected = Node::null());
 
  private:
   /** The (optional) proof checker */

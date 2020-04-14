@@ -37,21 +37,22 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   return pn;
 }
 
-bool ProofNodeManager::updateNode(ProofNode* pn,
-                                       ProofStep id,
-                                       const std::vector<std::shared_ptr<ProofNode>>& children,
-                                       const std::vector<Node>& args,
-                                       Node expected)
+bool ProofNodeManager::updateNode(
+    ProofNode* pn,
+    ProofStep id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args,
+    Node expected)
 {
   // should have already computed what is proven, and be valid
   Assert(!pn->d_proven.isNull())
       << "ProofNodeManager::updateProofNode: invalid proof provided";
   // either we didn't provide an expected value, or it must match
-  if(expected.isNull() || pn->d_proven == expected)
+  if (expected.isNull() || pn->d_proven == expected)
   {
     Assert(false)
-      << "ProofNodeManager::checkInternal: provided proof does not match "
-         "expected value";
+        << "ProofNodeManager::checkInternal: provided proof does not match "
+           "expected value";
     return false;
   }
   if (expected.isNull())

@@ -53,11 +53,12 @@ class ProofChecker
    *
    * If expected is non-null, then we return null if pn does not prove expected.
    */
-  Node check(ProofNode* pn, Node expected=Node::null());
+  Node check(ProofNode* pn, Node expected = Node::null());
   /** Same as above, with explicit arguments */
   Node check(ProofStep id,
-                     const std::vector<std::shared_ptr<ProofNode>>& children,
-                     const std::vector<Node>& args, Node expected=Node::null());
+             const std::vector<std::shared_ptr<ProofNode>>& children,
+             const std::vector<Node>& args,
+             Node expected = Node::null());
   /** Indicate that psc is the checker for proof step id */
   void registerChecker(ProofStep id, ProofStepChecker* psc);
 
