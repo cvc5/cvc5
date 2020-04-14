@@ -1751,7 +1751,7 @@ bool RegExpOpr::regExpIncludes(Node r1, Node r2)
   {
     return (*it).second;
   }
-  bool result = RegExpEntail::regExpIncludes(r1,r2);
+  bool result = RegExpEntail::regExpIncludes(r1, r2);
   d_inclusionCache[std::make_pair(r1, r2)] = result;
   return result;
 }

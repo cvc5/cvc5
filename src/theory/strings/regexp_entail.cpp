@@ -620,7 +620,6 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
   return Node::null();
 }
 
-
 bool RegExpEntail::regExpIncludes(Node r1, Node r2)
 {
   Assert(Rewriter::rewrite(r1) == r1);
