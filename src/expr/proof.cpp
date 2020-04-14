@@ -142,7 +142,8 @@ Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
           pexp.push_back(c->d_proven);
         }
         // can ensure children at this point
-        Node res = registerStep(curFact, cur->getId(), pexp, cur->getArguments(), true);
+        Node res = registerStep(
+            curFact, cur->getId(), pexp, cur->getArguments(), true);
         Assert(!res.isNull());
         visited[cur] = res;
       }

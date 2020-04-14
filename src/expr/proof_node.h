@@ -25,7 +25,7 @@
 namespace CVC4 {
 
 class ProofNodeManager;
-  
+
 /** A node in a proof
  *
  * A ProofNode represents a single step in a proof. It contains:
@@ -48,6 +48,7 @@ class ProofNodeManager;
 class ProofNode
 {
   friend class ProofNodeManager;
+
  public:
   ProofNode(ProofStep id,
             const std::vector<std::shared_ptr<ProofNode>>& children,
