@@ -26,6 +26,7 @@
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/proof_output_channel.h"
 
 namespace CVC4 {
 namespace theory {
@@ -39,7 +40,7 @@ namespace eq {
  * context-dependent (CDProof) object. The proof of certain facts can be asked
  * via the getProof interface.
  */
-class ProofEqEngine
+class ProofEqEngine : public ProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofMap;
@@ -48,12 +49,8 @@ class ProofEqEngine
   ProofEqEngine(context::Context* c, EqualityEngine& ee, ProofNodeManager* pnm);
   ~ProofEqEngine() {}
 
-  /**
-   * Get proof for lit, or nullptr if it does not exist. It must be the case
-   * that lit was passed as the first argument to either a variant of assertLit
-   * or explain.
-   */
-  std::shared_ptr<ProofNode> getProof(Node lit) const;
+  /** Get the proof for lemma lem */
+  std::shared_ptr<ProofNode> getProof(Node lem) override;
 
   /** Assert the predicate by proof step id, given explanation exp */
   Node assertLit(Node lit, ProofStep id, const std::vector<Node>& exp);
@@ -74,6 +71,12 @@ class ProofEqEngine
   void explain(Node lit, std::vector<TNode>& assertions);
 
  protected:
+  /** TODO: necessary?
+   * Get proof for fact lit, or nullptr if it does not exist. It must be the
+   * case that lit was passed as the first argument to either a variant of
+   * assertLit or explain.
+   */
+  std::shared_ptr<ProofNode> getProofForFact(Node lit) const;
   /** Assert internal */
   void assertInternal(Node pred, bool polarity, TNode reason);
   // ----------------------- common proof utilities

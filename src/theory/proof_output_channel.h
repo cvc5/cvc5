@@ -32,7 +32,7 @@ class ProofGenerator
   ProofGenerator() {}
   virtual ~ProofGenerator() {}
   /** Get the proof for lemma lem */
-  virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem);
+  virtual std::shared_ptr<ProofNode> getProof(Node lem) = 0;
 };
 
 /**

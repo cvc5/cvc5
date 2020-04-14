@@ -19,12 +19,6 @@
 namespace CVC4 {
 namespace theory {
 
-std::shared_ptr<ProofNode> ProofGenerator::getProof(Node lem)
-{
-  // no implementation
-  return nullptr;
-}
-
 ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
                                        context::UserContext* u)
     : d_out(out), d_lemPfGen(u)

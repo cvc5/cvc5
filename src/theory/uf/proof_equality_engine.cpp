@@ -31,6 +31,12 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
+std::shared_ptr<ProofNode> ProofEqEngine::getProof(Node lem)
+{
+  // TODO
+  return nullptr;
+}
+
 Node ProofEqEngine::assertLit(Node lit,
                               ProofStep id,
                               const std::vector<Node>& exp)
