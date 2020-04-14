@@ -623,7 +623,7 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
 bool RegExpEntail::regExpIncludes(Node r1, Node r2)
 {
   Assert(Rewriter::rewrite(r1) == r1);
-  Assert(Rewriter::rewrite(r2) == r2); 
+  Assert(Rewriter::rewrite(r2) == r2);
   if (r1 == r2)
   {
     return true;
@@ -634,8 +634,8 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
   {
     return false;
   }
-  NodeManager * nm = NodeManager::currentNM();
-  Node sigma = nm->mkNode(REGEXP_SIGMA,std::vector<Node>{});
+  NodeManager* nm = NodeManager::currentNM();
+  Node sigma = nm->mkNode(REGEXP_SIGMA, std::vector<Node>{});
   Node sigmaStar = nm->mkNode(REGEXP_STAR, sigma);
 
   std::vector<Node> v1, v2;
