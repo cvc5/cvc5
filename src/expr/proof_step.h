@@ -48,7 +48,7 @@ enum class ProofStep : uint32_t
   // Children: (P:F)
   // Arguments: none
   // ----------------------------------------
-  // Conclusion: P:Rewriter::rewrite(F)
+  // Conclusion: Rewriter::rewrite(F)
   REWRITE_PRED,
   // ======== Split
   // Children: none

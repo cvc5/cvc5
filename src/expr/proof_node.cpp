@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of proof node
+ ** \brief Implementation of proof node utility
  **/
 
 #include "expr/proof_node.h"
