@@ -18,8 +18,8 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-CDProof::CDProof(context::Context* c, ProofNodeManager* pm)
-    : d_manager(pm), d_nodes(c)
+CDProof::CDProof(context::Context* c, ProofNodeManager* pnm)
+    : d_manager(pnm), d_nodes(c)
 {
 }
 

@@ -24,8 +24,6 @@
 
 namespace CVC4 {
 
-class ProofChecker;
-class CDProof;
 class ProofNodeManager;
 
 /** A node in a proof
@@ -40,12 +38,10 @@ class ProofNodeManager;
  *
  * A ProofNode is intended to be mutable in that (1), (2) and (3) can be
  * modified. However, (4) is intended to be immutable. The method setValue
- * is private and can be called by objects that manage ProofNode objects.
+ * is private and can be called by ProofNodeManager.
  */
 class ProofNode
 {
-  friend class ProofChecker;
-  friend class CDProof;
   friend class ProofNodeManager;
 
  public:

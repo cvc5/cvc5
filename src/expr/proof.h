@@ -81,7 +81,7 @@ class CDProof
       NodeProofNodeMap;
 
  public:
-  CDProof(context::Context* c, ProofNodeManager* pm);
+  CDProof(context::Context* c, ProofNodeManager* pnm);
   ~CDProof() {}
   /** Get proof for fact, or nullptr if it does not exist */
   std::shared_ptr<ProofNode> getProof(Node fact) const;

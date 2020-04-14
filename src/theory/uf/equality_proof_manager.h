@@ -23,7 +23,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof.h"
-#include "expr/proof_checker.h"
+#include "expr/proof_node_manager.h"
 #include "expr/proof_node.h"
 #include "theory/uf/equality_engine.h"
 
@@ -38,14 +38,14 @@ namespace eq {
  * the reason for why all facts are added to an EqualityEngine in a SAT-context
  * depnendent manner in a context-dependent (CDProof) object.
  */
-class EqProofManager
+class EqProofEngine
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofMap;
 
  public:
-  EqProofManager(context::Context* c, EqualityEngine& ee, ProofChecker* pc);
-  ~EqProofManager() {}
+  EqProofEngine(context::Context* c, EqualityEngine& ee, ProofNodeManager* pnm);
+  ~EqProofEngine() {}
 
   /**
    * Get proof for lit, or nullptr if it does not exist. It must be the case
@@ -168,8 +168,6 @@ class EqProofManager
  private:
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
-  /** The proof checker */
-  ProofChecker* d_checker;
   /** common nodes */
   Node d_true;
   /** The proof */

@@ -77,7 +77,7 @@ Node ProofNodeManager::checkInternal(
   }
   else
   {
-    // otherwise we trust the expected value
+    // otherwise we trust the expected value, if it exists
     Assert(!expected.isNull()) << "ProofNodeManager::checkInternal: no checker "
                                   "or expected value provided";
     res = expected;
