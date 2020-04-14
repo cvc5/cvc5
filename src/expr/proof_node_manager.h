@@ -65,8 +65,9 @@ class ProofNodeManager
    * provided (non-null) and what pn proves does not match.
    */
   Node checkInternal(ProofStep id,
-             const std::vector<std::shared_ptr<ProofNode>>& children,
-             const std::vector<Node>& args, Node expected);
+                     const std::vector<std::shared_ptr<ProofNode>>& children,
+                     const std::vector<Node>& args,
+                     Node expected);
 };
 
 }  // namespace CVC4

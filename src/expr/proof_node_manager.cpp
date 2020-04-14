@@ -71,13 +71,15 @@ bool ProofNodeManager::updateNode(
   // we update its value
   pn->setValue(id, children, args);
   // proven field should be the same as the result
-  Assert (res==pn->d_proven);
+  Assert(res == pn->d_proven);
   return true;
 }
 
-Node ProofNodeManager::checkInternal(ProofStep id,
-             const std::vector<std::shared_ptr<ProofNode>>& children,
-             const std::vector<Node>& args, Node expected)
+Node ProofNodeManager::checkInternal(
+    ProofStep id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args,
+    Node expected)
 {
   Node res;
   if (d_checker)
