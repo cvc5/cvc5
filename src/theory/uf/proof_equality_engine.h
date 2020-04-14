@@ -25,8 +25,8 @@
 #include "expr/proof.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/proof_output_channel.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {

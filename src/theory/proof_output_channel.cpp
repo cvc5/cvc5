@@ -18,19 +18,20 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 EagerProofGenerator::EagerProofGenerator(context::UserContext* u) : d_proofs(u)
 {
-  
 }
 
-void EagerProofGenerator::setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf)
+void EagerProofGenerator::setProofForConflict(Node conf,
+                                              std::shared_ptr<ProofNode> pf)
 {
   Node ckey = ProofOutputChannel::getConflictKeyValue(conf);
   d_proofs[ckey] = pf;
 }
 
-void EagerProofGenerator::setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf)
+void EagerProofGenerator::setProofForLemma(Node lem,
+                                           std::shared_ptr<ProofNode> pf)
 {
   Node lkey = ProofOutputChannel::getLemmaKeyValue(conf);
   d_proofs[lkey] = pf;
@@ -73,7 +74,6 @@ LemmaStatus ProofOutputChannel::lemma(Node lem,
 
 std::shared_ptr<ProofNode> ProofOutputChannel::getProof(Node n) const
 {
-
   NodeProofGenMap::const_iterator it = d_lemPfGen.find(n);
   Assert(it != d_lemPfGen.end());
   std::shared_ptr<ProofNode> ret = (*it).second->getProof(n);
@@ -88,10 +88,7 @@ Node ProofOutputChannel::getConflictKeyValue(Node conf)
   return conf.negate();
 }
 
-Node ProofOutputChannel::getLemmaKeyValue(Node lem)
-{
-  return lem;
-}
+Node ProofOutputChannel::getLemmaKeyValue(Node lem) { return lem; }
 
 }  // namespace theory
 }  // namespace CVC4

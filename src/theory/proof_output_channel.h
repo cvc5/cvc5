@@ -40,19 +40,20 @@ class EagerProofGenerator : public ProofGenerator
 {
  public:
   EagerProofGenerator(context::UserContext* u);
-  ~EagerProofGenerator(){}
+  ~EagerProofGenerator() {}
   /** Set that pf is the proof for conflict conf */
   void setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf);
   /** Set that pf is the proof for lemma lem */
   void setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf);
   /** Get the proof for lemma lem */
   std::shared_ptr<ProofNode> getProof(Node lem) override;
+
  protected:
-  /** 
+  /**
    * A user-context-dependent map from lemmas and conflicts to proofs provided
    * by calls to setProofForConflict and setProofForLemma above.
    */
-  NodeProofNodeMap d_proofs; 
+  NodeProofNodeMap d_proofs;
 };
 
 /**
@@ -93,11 +94,12 @@ class ProofOutputChannel
   static Node getConflictKeyValue(Node conf);
   /** Get the node key for which lemma calls are cached */
   static Node getLemmaKeyValue(Node lem);
+
  private:
   /** Reference to an output channel */
   OutputChannel& d_out;
   /**
-   * A user-context-dependent map from lemmas and conflicts to proof generators 
+   * A user-context-dependent map from lemmas and conflicts to proof generators
    */
   NodeProofGenMap d_lemPfGen;
 };
