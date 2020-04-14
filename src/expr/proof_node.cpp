@@ -71,7 +71,7 @@ void ProofNode::setValue(
 void ProofNode::printDebug(std::ostream& os) const
 {
   os << "(" << d_id;
-  for (std::shared_ptr<ProofNode>& c : d_children)
+  for (const std::shared_ptr<ProofNode>& c : d_children)
   {
     os << " ";
     c->printDebug(os);
