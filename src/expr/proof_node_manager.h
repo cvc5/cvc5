@@ -43,14 +43,21 @@ class ProofNodeManager
       const std::vector<Node>& args,
       Node expected = Node::null());
   /**
-   * Update node
-   *
+   * This method updates pn to be a proof of the form <id>( children, args ),
+   * while maintaining its d_proven field. This method returns false if this
+   * proof manager is using a checker, and we compute that the above proof
+   * is not a proof of the fact that pn previously proved.
+   * 
+   * @param pn The proof node to update.
+   * @param id The new id of the proof node.
+   * @param children The new children of the proof node.
+   * @param args The new arguments of the proof node.
+   * @return true if the update was successful.
    */
   bool updateNode(ProofNode* pn,
                   ProofStep id,
                   const std::vector<std::shared_ptr<ProofNode>>& children,
-                  const std::vector<Node>& args,
-                  Node expected = Node::null());
+                  const std::vector<Node>& args);
 
  private:
   /** The (optional) proof checker */

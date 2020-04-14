@@ -43,26 +43,13 @@ bool ProofNodeManager::updateNode(
     ProofNode* pn,
     ProofStep id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
-    const std::vector<Node>& args,
-    Node expected)
+    const std::vector<Node>& args)
 {
-  // should have already computed what is proven, and be valid
+  // should have already computed what is proven
   Assert(!pn->d_proven.isNull())
       << "ProofNodeManager::updateProofNode: invalid proof provided";
-  // either we didn't provide an expected value, or it must match
-  if (expected.isNull() || pn->d_proven == expected)
-  {
-    Assert(false)
-        << "ProofNodeManager::checkInternal: provided proof does not match "
-           "expected value";
-    return false;
-  }
-  if (expected.isNull())
-  {
-    // if expected was not provided, we expect to prove the same thing
-    expected = pn->d_proven;
-  }
-  Node res = checkInternal(id, children, args, expected);
+  // We expect to prove the same thing as before
+  Node res = checkInternal(id, children, args, pn->d_proven);
   if (res.isNull())
   {
     // if it was invalid, then we do not update
