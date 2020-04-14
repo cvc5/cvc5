@@ -78,7 +78,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     // n is not active in the model, no need to reduce
     return false;
   }
-  if (d_reduced.find(n)!=d_reduced.end())
+  if (d_reduced.find(n) != d_reduced.end())
   {
     // already sent a reduction lemma
     return false;
