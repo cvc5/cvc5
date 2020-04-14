@@ -26,6 +26,8 @@ EagerProofGenerator::EagerProofGenerator(context::UserContext* u) : d_proofs(u)
 void EagerProofGenerator::setProofForConflict(Node conf,
                                               std::shared_ptr<ProofNode> pf)
 {
+  // Must normalize to how the call to the output channel's getProof method
+  // is intended to be called.
   Node ckey = ProofOutputChannel::getConflictKeyValue(conf);
   d_proofs[ckey] = pf;
 }
@@ -33,7 +35,9 @@ void EagerProofGenerator::setProofForConflict(Node conf,
 void EagerProofGenerator::setProofForLemma(Node lem,
                                            std::shared_ptr<ProofNode> pf)
 {
-  Node lkey = ProofOutputChannel::getLemmaKeyValue(conf);
+  // Must normalize to how the call to the output channel's getProof method
+  // is intended to be called.
+  Node lkey = ProofOutputChannel::getLemmaKeyValue(lem);
   d_proofs[lkey] = pf;
 }
 

@@ -38,6 +38,8 @@ class ProofGenerator
 /** An eager proof generator, with explicit lemma caching */
 class EagerProofGenerator : public ProofGenerator
 {
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
+      NodeProofNodeMap;
  public:
   EagerProofGenerator(context::UserContext* u);
   ~EagerProofGenerator() {}
