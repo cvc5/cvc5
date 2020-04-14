@@ -22,8 +22,9 @@
 namespace CVC4 {
 
 /**
- * An enumeration for proof steps.
- * This enumeration is analogous to Kind for Node objects.
+ * An enumeration for proof steps. This enumeration is analogous to Kind for
+ * Node objects. In the documentation below, P:F denotes a ProofNode that
+ * proves formula F.
  */
 enum class ProofStep : uint32_t
 {
@@ -32,7 +33,7 @@ enum class ProofStep : uint32_t
   // Children: none
   // Arguments: (F)
   // --------------
-  // Conclusion P:F
+  // Conclusion F
   ASSUME,
 
   //================================================= UNKNOWN
