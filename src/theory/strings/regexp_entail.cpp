@@ -623,8 +623,7 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
 bool RegExpEntail::regExpIncludes(Node r1, Node r2)
 {
   Assert(Rewriter::rewrite(r1) == r1);
-  Assert(Rewriter::rewrite(r2) == r2);
-
+  Assert(Rewriter::rewrite(r2) == r2); 
   if (r1 == r2)
   {
     return true;
@@ -635,6 +634,9 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
   {
     return false;
   }
+  NodeManager * nm = NodeManager::currentNM();
+  Node sigma = nm->mkNode(REGEXP_SIGMA,std::vector<Node>{});
+  Node sigmaStar = nm->mkNode(REGEXP_STAR, sigma);
 
   std::vector<Node> v1, v2;
   utils::getRegexpComponents(r1, v1);
@@ -656,22 +658,22 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
       if (idx < v1.size())
       {
         idxs.insert(idx);
-        if (idx + 1 < v1.size() && v1[idx] == d_sigma_star)
+        if (idx + 1 < v1.size() && v1[idx] == sigmaStar)
         {
-          Assert(idx + 1 == v1.size() || v1[idx + 1] != d_sigma_star);
+          Assert(idx + 1 == v1.size() || v1[idx + 1] != sigmaStar);
           idxs.insert(idx + 1);
         }
       }
     }
     newIdxs.clear();
 
-    if (n2.getKind() == STRING_TO_REGEXP || n2 == d_sigma)
+    if (n2.getKind() == STRING_TO_REGEXP || n2 == sigma)
     {
-      Assert(n2 == d_sigma
+      Assert(n2 == sigma
              || (n2[0].isConst() && n2[0].getConst<String>().size() == 1));
       for (size_t idx : idxs)
       {
-        if (v1[idx] == d_sigma || v1[idx] == n2)
+        if (v1[idx] == sigma || v1[idx] == n2)
         {
           // Given a character or an re.allchar in `r2`, we can either
           // match it with a corresponding character in `r1` or an
@@ -683,7 +685,7 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
 
     for (size_t idx : idxs)
     {
-      if (v1[idx] == d_sigma_star)
+      if (v1[idx] == sigmaStar)
       {
         // (re.* re.allchar) can match an arbitrary amount of `r2`
         newIdxs.insert(idx);
@@ -711,7 +713,7 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
   bool result = false;
   for (size_t idx : newIdxs)
   {
-    if (idx == v1.size() || (idx == v1.size() - 1 && v1[idx] == d_sigma_star))
+    if (idx == v1.size() || (idx == v1.size() - 1 && v1[idx] == sigmaStar))
     {
       result = true;
       break;
