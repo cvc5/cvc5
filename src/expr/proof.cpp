@@ -33,19 +33,19 @@ std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
   return nullptr;
 }
 
-Node CDProof::registerStep(Node fact,
+Node CDProof::registerStep(Node expected,
                            ProofStep id,
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            bool ensureChildren)
 {
-  NodeProofNodeMap::iterator it = d_nodes.find(fact);
+  NodeProofNodeMap::iterator it = d_nodes.find(expected);
   if (it != d_nodes.end())
   {
     if ((*it).second->getId() != ProofStep::ASSUME || id == ProofStep::ASSUME)
     {
       // already proven or duplicate assumption, nothing to do
-      return fact;
+      return expected;
     }
     // we will overwrite assumption
   }
@@ -66,6 +66,8 @@ Node CDProof::registerStep(Node fact,
       std::vector<Node> pcargs = {c};
       std::vector<std::shared_ptr<ProofNode>> pcassume;
       pc = d_manager->mkNode(ProofStep::ASSUME, pcassume, pcargs, c);
+      // assumptions never fail to check
+      Assert (pc!=nullptr);
       d_nodes.insert(c, pc);
     }
     pchildren.push_back(pc);
@@ -75,23 +77,26 @@ Node CDProof::registerStep(Node fact,
   std::shared_ptr<ProofNode> pthis;
   if (it == d_nodes.end())
   {
-    pthis = d_manager->mkNode(id, pchildren, args, fact);
-    d_nodes.insert(fact, pthis);
+    pthis = d_manager->mkNode(id, pchildren, args, expected);
+    if (pthis==nullptr)
+    {
+      // failed to construct the node, perhaps due to a proof checking failure
+      return Node::null();
+    }
+    d_nodes.insert(expected, pthis);
   }
   else
   {
-    // should not change what is proven
-    Assert(pthis->d_proven == fact);
     // overwrite its value
     pthis = (*it).second;
     d_manager->updateNode(pthis.get(), id, pchildren, args);
   }
-  return pthis->d_proven;
+  return pthis->getResult();
 }
 
-Node CDProof::registerProof(Node fact, std::shared_ptr<ProofNode> pn)
+Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
 {
-  if (pn->d_proven != fact)
+  if (pn->getResult() != expected)
   {
     // something went wrong
     return Node::null();

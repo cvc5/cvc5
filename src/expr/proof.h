@@ -87,15 +87,15 @@ class CDProof
   std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** Register step
    *
-   * @param fact The intended conclusion of this proof step.
+   * @param expected The intended conclusion of this proof step.
    * @param id The identifier for the proof step.
    * @param children The antecendant of the proof step. Each children[i] should
    * be a fact previously registered as a conclusion of a registerStep call
    * when ensureChildren is true.
    * @param args The arguments of the proof step.
    *
-   * This returns fact if indeed the proof step proves fact. This can fail
-   * if the proof has a different conclusion than fact, or if one of the
+   * This returns expected if indeed the proof step proves expected. This can
+   * fail if the proof has a different (or invalid) conclusion, or if one of the
    * children does not have a proof and ensureChildren is true.
    *
    * This method does not overwrite proofs for facts that are already proven
@@ -109,7 +109,7 @@ class CDProof
    * constructed is a strictly eager fashion; ensureChildren should be false
    * if the steps are registered lazily or out of order.
    */
-  Node registerStep(Node fact,
+  Node registerStep(Node expected,
                     ProofStep id,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,

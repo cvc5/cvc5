@@ -35,7 +35,7 @@ namespace strings {
  * the reason for why all facts are added to an EqualityEngine in a SAT-context
  * depnendent manner.
  */
-class StringsProofEqEngine : public eq::EqStringsProofEqEngine
+class StringsProofEqEngine : public eq::ProofEqEngine
 {
  public:
   StringsProofEqEngine(context::Context* c, eq::EqualityEngine& ee, ProofNodeManager* pnm);
