@@ -26,7 +26,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkProofNode(
     const std::vector<Node>& args,
     Node expected)
 {
-  std::shared_ptr<ProofNode> pn = std::make_shared<ProofNode>(id, children, args);
+  std::shared_ptr<ProofNode> pn =
+      std::make_shared<ProofNode>(id, children, args);
   // compute what pn proves and ensure it matches expected
   checkInternal(pn.get(), true, expected);
   return pn;
@@ -39,9 +40,12 @@ void ProofNodeManager::updateProofNode(ProofNode* pn,
                                        Node expected)
 {
   // should have already computed what is proven
-  Assert(!pn->d_proven.isNull())  << "ProofNodeManager::updateProofNode: invalid proof provided";
+  Assert(!pn->d_proven.isNull())
+      << "ProofNodeManager::updateProofNode: invalid proof provided";
   // either we didn't provide an expected value, or it matches
-  Assert(expected.isNull() || pn->d_proven==expected)  << "ProofNodeManager::checkInternal: provided proof does not match expected value";
+  Assert(expected.isNull() || pn->d_proven == expected)
+      << "ProofNodeManager::checkInternal: provided proof does not match "
+         "expected value";
   // ensure that what pn previously proves matches expected
   checkInternal(pn, false, expected);
   if (expected.isNull())
@@ -54,18 +58,19 @@ void ProofNodeManager::updateProofNode(ProofNode* pn,
   checkInternal(pn, true, expected);
 }
 
-void ProofNodeManager::checkInternal(ProofNode* pn,
-                                     Node expected)
+void ProofNodeManager::checkInternal(ProofNode* pn, Node expected)
 {
   if (d_checker)
   {
     pn->d_proven = d_checker->check(pn, expected);
-    Assert(!pn->d_proven.isNull())  << "ProofNodeManager::checkInternal: failed to check proof";
+    Assert(!pn->d_proven.isNull())
+        << "ProofNodeManager::checkInternal: failed to check proof";
   }
   else
   {
     // otherwise we trust the expected value
-    Assert(!expected.isNull()) << "ProofNodeManager::checkInternal: no checker or expected value provided";
+    Assert(!expected.isNull()) << "ProofNodeManager::checkInternal: no checker "
+                                  "or expected value provided";
     pn->d_proven = expected;
   }
 }
