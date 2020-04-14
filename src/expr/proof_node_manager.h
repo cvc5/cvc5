@@ -47,7 +47,7 @@ class ProofNodeManager
    * while maintaining its d_proven field. This method returns false if this
    * proof manager is using a checker, and we compute that the above proof
    * is not a proof of the fact that pn previously proved.
-   * 
+   *
    * @param pn The proof node to update.
    * @param id The new id of the proof node.
    * @param children The new children of the proof node.
