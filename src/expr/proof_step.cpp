@@ -24,6 +24,7 @@ const char* toString(ProofStep id)
     case ProofStep::ASSUME: return "ASSUME";
     case ProofStep::SUBS: return "SUBS";
     case ProofStep::REWRITE: return "REWRITE";
+    case ProofStep::REWRITE_PRED: return "REWRITE_PRED";
     case ProofStep::SPLIT: return "SPLIT";
     //================================================= EQUALITY
     case ProofStep::REFL: return "REFL";

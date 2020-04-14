@@ -70,7 +70,17 @@ void ProofNode::setValue(
 
 void ProofNode::printDebug(std::ostream& os) const
 {
-  // TODO
+  os << "(" << d_id;
+  for (std::shared_ptr<ProofNode>& c : d_children)
+  {
+    os << " ";
+    c->printDebug(os);
+  }
+  if (!d_args.empty())
+  {
+    os << " :args " << d_args;
+  }
+  os << ")";
 }
 
 }  // namespace CVC4
