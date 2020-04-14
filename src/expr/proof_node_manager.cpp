@@ -29,7 +29,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkProofNode(
   std::shared_ptr<ProofNode> pn =
       std::make_shared<ProofNode>(id, children, args);
   // compute what pn proves and ensure it matches expected
-  checkInternal(pn.get(), true, expected);
+  checkInternal(pn.get(), expected);
   return pn;
 }
 
@@ -55,7 +55,7 @@ void ProofNodeManager::updateProofNode(ProofNode* pn,
   Assert(!expected.isNull());
   pn->setValue(id, pchildren, args);
   // compute what pn proves and ensure it matches expected
-  checkInternal(pn, true, expected);
+  checkInternal(pn, expected);
 }
 
 void ProofNodeManager::checkInternal(ProofNode* pn, Node expected)
