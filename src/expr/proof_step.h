@@ -21,7 +21,9 @@
 
 namespace CVC4 {
 
-/** Types of proof steps used in the procedure
+/** 
+ * An enumeration for proof steps.
+ * This enumeration is analogous to Kind for Node objects.
  */
 enum class ProofStep : uint32_t
 {

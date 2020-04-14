@@ -35,8 +35,13 @@ namespace CVC4 {
  * Overall, a ProofNode and its children form a directed acyclic graph.
  *
  * A ProofNode is intended to be mutable in that (1), (2) and (3) can be
- * modified. However, (4) is intended to be immutable. The method setValue
- * is private and can be called by objects that manage ProofNode objects.
+ * modified. An example is when a ProofNode is established to be a "hole"
+ * for something to be proven later. However, (4) is intended to be immutable.
+ *
+ * The method setValue is private and can be called by objects that manage
+ * ProofNode objects in trusted ways that ensure that the proof maintains
+ * the invariant above. Furthermore, notice that this class is not responsible
+ * for setting d_proven; this is done externally by a ProofChecker class.
  */
 class ProofNode
 {
@@ -45,23 +50,30 @@ class ProofNode
             const std::vector<std::shared_ptr<ProofNode>>& children,
             const std::vector<Node>& args);
   ~ProofNode() {}
-  /** get id */
+  /** get the id of this proof node */
   ProofStep getId() const;
   /** get what this node proves, or the null node if this is an invalid proof */
   Node getResult() const;
-  /** get assumptions */
-  void getAssumptions(std::vector<Node>& assump);
-  /** print debug */
+  /** Get assumptions 
+   * 
+   * This adds to the vector assump all formulas that are "assumptions" of the
+   * given proof. An assumption is a formula that is the argument of a
+   * proof node whose kind is ASSUME.
+   */
+  void getAssumptions(std::vector<Node>& assump) const;
+  /** Print debug on output strem os */
   void printDebug(std::ostream& os) const;
-
  private:
-  /** set value, called to overwrite the value */
+  /** 
+   * Set value, called to overwrite the contents of this ProofNode with the
+   * given arguments.
+   */
   void setValue(ProofStep id,
                 const std::vector<std::shared_ptr<ProofNode>>& children,
                 const std::vector<Node>& args);
   /** The proof step */
   ProofStep d_id;
-  /** The children of this node */
+  /** The children of this proof node */
   std::vector<std::shared_ptr<ProofNode>> d_children;
   /** arguments of this node */
   std::vector<Node> d_args;
