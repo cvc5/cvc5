@@ -25,11 +25,13 @@ ProofNode::ProofNode(ProofStep id,
 
 ProofStep ProofNode::getId() const { return d_id; }
 
-const std::vector<std::shared_ptr<ProofNode>>& getChildren() const
+const std::vector<std::shared_ptr<ProofNode>>& ProofNode::getChildren() const
 {
   return d_children;
 }
-const std::vector<Node>& getArguments() const { return d_args; }
+
+const std::vector<Node>& ProofNode::getArguments() const { return d_args; }
+
 Node ProofNode::getResult() const { return d_proven; }
 
 void ProofNode::getAssumptions(std::vector<Node>& assump) const
