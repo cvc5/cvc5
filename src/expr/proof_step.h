@@ -28,10 +28,9 @@ namespace CVC4 {
  *
  * Conceptually, the following proof rules form a calculus whose target
  * user is the Node-level theory solvers. This means that the rules below
- * are designed to encode the behavior of the internal solvers. This includes
- * among other things, common operations on Node objects like Rewriter::rewrite
- * or Node::substitute. It is intended to be translated or printed in other
- * formats.
+ * are designed to reason about, among other things, common operations on Node
+ * objects like Rewriter::rewrite or Node::substitute. It is intended to be
+ * translated or printed in other formats.
  *
  * The following ProofStep values include core rules and those categorized by
  * theory, including the theory of equality.
