@@ -924,7 +924,6 @@ install(FILES
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/expr)
 install(FILES
-          options/argument_extender.h
           options/language.h
           options/option_exception.h
           options/options.h
