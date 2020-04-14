@@ -18,22 +18,24 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 std::shared_ptr<ProofNode> ProofGenerator::getProofForLemma(Node lem)
 {
   // no implementation
   return nullptr;
 }
 
-ProofOutputChannel::ProofOutputChannel(OutputChannel& out, context::UserContext* u) : d_out(out), d_lemmaProofGen(u)
+ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
+                                       context::UserContext* u)
+    : d_out(out), d_lemmaProofGen(u)
 {
-  
 }
 
-void ProofOutputChannel::lemma(Node lem, ProofGenerator * pfgen,
-            bool removable,
-            bool preprocess,
-            bool sendAtoms)
+void ProofOutputChannel::lemma(Node lem,
+                               ProofGenerator* pfgen,
+                               bool removable,
+                               bool preprocess,
+                               bool sendAtoms)
 {
   d_out->lemma(lem, removable, preprocess, sendAtoms);
   d_lemmaProofGen[lem] = pfGen;
@@ -42,9 +44,11 @@ void ProofOutputChannel::lemma(Node lem, ProofGenerator * pfgen,
 std::shared_ptr<ProofNode> ProofOutputChannel::getProofForLemma(Node lem) const
 {
   NodeProofGenMap::const_iterator it = d_lemmaProofGen.find(lem);
-  Assert( it != d_lemmaProofGen.end());
+  Assert(it != d_lemmaProofGen.end());
   std::shared_ptr<ProofNode> ret = (*it).getProofForLemma(lem);
-  Assert( ret != nullptr ) << "ProofOutputChannel::getProofForLemma: could not generate proof for " << lem << std::endl;
+  Assert(ret != nullptr)
+      << "ProofOutputChannel::getProofForLemma: could not generate proof for "
+      << lem << std::endl;
   return ret;
 }
 

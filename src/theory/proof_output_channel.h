@@ -20,8 +20,8 @@
 #include <utility>
 #include <vector>
 
-#include "expr/proof_node.h"
 #include "expr/node.h"
+#include "expr/proof_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -30,40 +30,42 @@ namespace theory {
 class ProofGenerator
 {
  public:
-  ProofGenerator(){}
-  virtual ~ProofGenerator(){}
+  ProofGenerator() {}
+  virtual ~ProofGenerator() {}
   /** Get the proof for lemma lem */
   virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem);
 };
-  
-/** 
+
+/**
  * A layer on top of an output channel to ensure proofs are constructed and
  * available.
  */
 class ProofOutputChannel
 {
-  typedef context::CDHashMap<Node, ProofGenerator *, NodeHashFunction>
+  typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>
       NodeProofGenMap;
+
  public:
   ProofOutputChannel(OutputChannel& out, context::UserContext* u);
-  ~ProofOutputChannel(){}
-  /** 
+  ~ProofOutputChannel() {}
+  /**
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg.
    */
-  void lemma(Node lem, ProofGenerator * pfg,
+  void lemma(Node lem,
+             ProofGenerator* pfg,
              bool removable = false,
              bool preprocess = false,
              bool sendAtoms = false);
   /** get proof for lemma lem */
   std::shared_ptr<ProofNode> getProofForLemma(Node lem) const;
+
  private:
   /** Reference to an output channel */
   OutputChannel& d_out;
   /** User-context-dependent map from lemmas to proof generators */
   NodeProofGenMap d_lemmaProofGen;
 };
-
 
 }  // namespace theory
 }  // namespace CVC4
