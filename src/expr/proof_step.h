@@ -32,10 +32,10 @@ namespace CVC4 {
  * among other things, common operations on Node objects like Rewriter::rewrite
  * or Node::substitute. It is intended to be translated or printed in other
  * formats.
- * 
+ *
  * The following ProofStep values include core rules and those categorized by
  * theory, including the theory of equality.
- * 
+ *
  * The "core rules" include ASSUME, which represents an open leaf in a proof.
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
