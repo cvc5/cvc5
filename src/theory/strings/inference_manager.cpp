@@ -473,44 +473,41 @@ Node InferenceManager::getRegisterTermAtomicLemma(
   Assert(s == LENGTH_SPLIT);
 
   std::vector<Node> lems;
-  if (options::stringSplitEmp() || !options::stringLenGeqZ())
+  // split whether the string is empty
+  Node n_len_eq_z = n_len.eqNode(d_zero);
+  Node n_len_eq_z_2 = n.eqNode(d_emptyString);
+  Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
+  case_empty = Rewriter::rewrite(case_empty);
+  Node case_nempty = nm->mkNode(GT, n_len, d_zero);
+  if (!case_empty.isConst())
   {
-    Node n_len_eq_z = n_len.eqNode(d_zero);
-    Node n_len_eq_z_2 = n.eqNode(d_emptyString);
-    Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
-    case_empty = Rewriter::rewrite(case_empty);
-    Node case_nempty = nm->mkNode(GT, n_len, d_zero);
-    if (!case_empty.isConst())
-    {
-      Node lem = nm->mkNode(OR, case_empty, case_nempty);
-      lems.push_back(lem);
-      Trace("strings-lemma")
-          << "Strings::Lemma LENGTH >= 0 : " << lem << std::endl;
-      // prefer trying the empty case first
-      // notice that requirePhase must only be called on rewritten literals that
-      // occur in the CNF stream.
-      n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
-      Assert(!n_len_eq_z.isConst());
-      reqPhase[n_len_eq_z] = true;
-      n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
-      Assert(!n_len_eq_z_2.isConst());
-      reqPhase[n_len_eq_z_2] = true;
-    }
-    else if (!case_empty.getConst<bool>())
-    {
-      // the rewriter knows that n is non-empty
-      Trace("strings-lemma")
-          << "Strings::Lemma LENGTH > 0 (non-empty): " << case_nempty
-          << std::endl;
-      lems.push_back(case_nempty);
-    }
-    else
-    {
-      // If n = "" ---> true or len( n ) = 0 ----> true, then we expect that
-      // n ---> "". Since this method is only called on non-constants n, it must
-      // be that n = "" ^ len( n ) = 0 does not rewrite to true.
-      Assert(false);
-    }
+    Node lem = nm->mkNode(OR, case_empty, case_nempty);
+    lems.push_back(lem);
+    Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << lem
+                           << std::endl;
+    // prefer trying the empty case first
+    // notice that requirePhase must only be called on rewritten literals that
+    // occur in the CNF stream.
+    n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
+    Assert(!n_len_eq_z.isConst());
+    reqPhase[n_len_eq_z] = true;
+    n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
+    Assert(!n_len_eq_z_2.isConst());
+    reqPhase[n_len_eq_z_2] = true;
+  }
+  else if (!case_empty.getConst<bool>())
+  {
+    // the rewriter knows that n is non-empty
+    Trace("strings-lemma") << "Strings::Lemma LENGTH > 0 (non-empty): "
+                           << case_nempty << std::endl;
+    lems.push_back(case_nempty);
+  }
+  else
+  {
+    // If n = "" ---> true or len( n ) = 0 ----> true, then we expect that
+    // n ---> "". Since this method is only called on non-constants n, it must
+    // be that n = "" ^ len( n ) = 0 does not rewrite to true.
+    Assert(false);
   }
 
   // additionally add len( x ) >= 0 ?

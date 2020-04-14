@@ -1,0 +1,7 @@
+(set-logic AUFLIA)
+(set-info :status unsat)
+(declare-fun _substvar_29_ () (Array Bool Int))
+(declare-fun _substvar_55_ () (Array Bool Int))
+(declare-const arr-8129271443090794560_6381925390096970410-0 (Array Bool Int))
+(assert (not (exists ((q1 Int) (q2 Bool) (q3 (Array Bool Int))) (xor (distinct q1 51) (xor true true true true true true true true (= _substvar_29_ arr-8129271443090794560_6381925390096970410-0 (store _substvar_55_ true 70)) true true) true))))
+(check-sat)

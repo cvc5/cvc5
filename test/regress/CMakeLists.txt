@@ -463,6 +463,7 @@ set(regress_0_tests
   regress0/declare-funs.smt2
   regress0/define-fun-model.smt2
   regress0/distinct.smtv1.smt2
+  regress0/dump-unsat-core-full.smt2
   regress0/simple-dump-model.smt2
   regress0/expect/scrub.01.smtv1.smt2
   regress0/expect/scrub.03.smt2
@@ -1518,6 +1519,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3765-quant-dd.smt2
   regress1/quantifiers/issue4021-ind-opts.smt2
   regress1/quantifiers/issue4062-cegqi-aux.smt2
+  regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
