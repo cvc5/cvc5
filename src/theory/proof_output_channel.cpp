@@ -18,6 +18,33 @@
 
 namespace CVC4 {
 namespace theory {
+  
+EagerProofGenerator::EagerProofGenerator(context::UserContext* u) : d_proofs(u)
+{
+  
+}
+
+void EagerProofGenerator::setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf)
+{
+  Node ckey = ProofOutputChannel::getConflictKeyValue(conf);
+  d_proofs[ckey] = pf;
+}
+
+void EagerProofGenerator::setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf)
+{
+  Node lkey = ProofOutputChannel::getLemmaKeyValue(conf);
+  d_proofs[lkey] = pf;
+}
+
+std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node lem)
+{
+  NodeProofNodeMap::iterator it = d_proofs.find(lem);
+  if (it == d_proofs.end())
+  {
+    return nullptr;
+  }
+  return (*it).second;
+}
 
 ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
                                        context::UserContext* u)
@@ -27,7 +54,8 @@ ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
 void ProofOutputChannel::conflict(Node conf, ProofGenerator* pfg)
 {
   Assert(pfg != nullptr);
-  d_lemPfGen[conf.negate()] = pfg;
+  Node ckey = getConflictKeyValue(conf);
+  d_lemPfGen[ckey] = pfg;
   d_out.conflict(conf);
 }
 
@@ -38,12 +66,14 @@ LemmaStatus ProofOutputChannel::lemma(Node lem,
                                       bool sendAtoms)
 {
   Assert(pfg != nullptr);
-  d_lemPfGen[lem] = pfg;
+  Node lkey = getLemmaKeyValue(lem);
+  d_lemPfGen[lkey] = pfg;
   return d_out.lemma(lem, removable, preprocess, sendAtoms);
 }
 
 std::shared_ptr<ProofNode> ProofOutputChannel::getProof(Node n) const
 {
+
   NodeProofGenMap::const_iterator it = d_lemPfGen.find(n);
   Assert(it != d_lemPfGen.end());
   std::shared_ptr<ProofNode> ret = (*it).second->getProof(n);
@@ -51,6 +81,16 @@ std::shared_ptr<ProofNode> ProofOutputChannel::getProof(Node n) const
       << "ProofOutputChannel::getProof: could not generate proof for " << n
       << std::endl;
   return ret;
+}
+
+Node ProofOutputChannel::getConflictKeyValue(Node conf)
+{
+  return conf.negate();
+}
+
+Node ProofOutputChannel::getLemmaKeyValue(Node lem)
+{
+  return lem;
 }
 
 }  // namespace theory

@@ -40,7 +40,7 @@ namespace eq {
  * context-dependent (CDProof) object. The proof of certain facts can be asked
  * via the getProof interface.
  */
-class ProofEqEngine : public ProofGenerator
+class ProofEqEngine : public EagerProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofMap;
