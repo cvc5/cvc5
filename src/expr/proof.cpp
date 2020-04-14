@@ -122,36 +122,36 @@ Node CDProof::registerProof(Node fact, std::shared_ptr<ProofNode> pn)
     it = visited.find(cur);
     if (it == visited.end())
     {
-      itr = d_nodes.find(curFact);
-      if (itr != d_nodes.end() && (*itr).second->getId() != ProofStep::ASSUME)
+      // visit the children
+      visited[cur] = Node::null();
+      visit.push_back(cur);
+      for (const std::shared_ptr<ProofNode>& c : cur->d_children)
       {
-        // if we already have a proof for this fact, we are done
-        visited[cur] = curFact;
-      }
-      else
-      {
-        // otherwise, visit the children
-        visited[cur] = Node::null();
-        visit.push_back(cur);
-        for (const std::shared_ptr<ProofNode>& c : cur->d_children)
-        {
-          visit.push_back(c);
-        }
+        visit.push_back(c);
       }
     }
     else if (it->second.isNull())
     {
-      // now, register the step
-      std::vector<Node> pexp;
-      for (const std::shared_ptr<ProofNode>& c : cur->d_children)
+      itr = d_nodes.find(curFact);
+      if (itr != d_nodes.end() && (*itr).second->getId() != ProofStep::ASSUME)
       {
-        Assert(!c->d_proven.isNull());
-        pexp.push_back(c->d_proven);
+        // if we already have a proof for this fact, we keep it
+        visited[cur] = curFact;
       }
-      // can ensure children at this point
-      Node res = registerStep(curFact, cur->d_id, pexp, cur->d_args, true);
-      Assert(!res.isNull());
-      visited[cur] = res;
+      else
+      {
+        // if we don't, we must register the step
+        std::vector<Node> pexp;
+        for (const std::shared_ptr<ProofNode>& c : cur->d_children)
+        {
+          Assert(!c->d_proven.isNull());
+          pexp.push_back(c->d_proven);
+        }
+        // can ensure children at this point
+        Node res = registerStep(curFact, cur->d_id, pexp, cur->d_args, true);
+        Assert(!res.isNull());
+        visited[cur] = res;
+      }
     }
   } while (!visit.empty());
 

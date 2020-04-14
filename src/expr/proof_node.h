@@ -39,7 +39,7 @@ class CDProof;
  *
  * A ProofNode is intended to be mutable in that (1), (2) and (3) can be
  * modified. However, (4) is intended to be immutable. The method setValue
- * is private and can be called by
+ * is private and can be called by objects that manage ProofNode objects.
  */
 class ProofNode
 {
