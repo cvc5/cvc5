@@ -70,7 +70,7 @@ namespace CVC4 {
  * Notice that the steps with ID_A1 and ID_B1 were not overwritten by this call,
  * whereas the assumption of C was overwritten by the proof ID_C(). Notice that
  * the proof of D was completely traversed, despite encountering formulas, A and
- * B, that were already proven.
+ * B, that were already given proof steps.
  *
  * Notice the map from Nodes to ProofNodes is context-dependent and is
  * backtracked when the context backtracks.
