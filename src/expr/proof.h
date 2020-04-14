@@ -22,7 +22,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "expr/proof_checker.h"
+#include "expr/proof_node_manager.h"
 #include "expr/proof_node.h"
 
 namespace CVC4 {
@@ -81,7 +81,7 @@ class CDProof
       NodeProofNodeMap;
 
  public:
-  CDProof(context::Context* c, ProofChecker* pc);
+  CDProof(context::Context* c, ProofNodeManager* pm);
   ~CDProof() {}
   /** Get proof for fact, or nullptr if it does not exist */
   std::shared_ptr<ProofNode> getProof(Node fact) const;
@@ -132,8 +132,8 @@ class CDProof
   Node registerProof(Node fact, std::shared_ptr<ProofNode> pn);
 
  protected:
-  /** The proof checker */
-  ProofChecker* d_checker;
+  /** The proof manager */
+  ProofManager* d_manager;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
 };

@@ -18,8 +18,8 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-CDProof::CDProof(context::Context* c, ProofChecker* pc)
-    : d_checker(pc), d_nodes(c)
+CDProof::CDProof(context::Context* c, ProofNodeManager* pm)
+    : d_manager(pm), d_nodes(c)
 {
 }
 
@@ -65,9 +65,8 @@ Node CDProof::registerStep(Node fact,
       // otherwise, we initialize it as an assumption
       std::vector<Node> pcargs = {c};
       std::vector<std::shared_ptr<ProofNode>> pcassume;
-      pc = std::make_shared<ProofNode>(ProofStep::ASSUME, pcassume, pcargs);
+      pc = d_manager->mkNode(ProofStep::ASSUME, pcassume, pcargs, c);
       d_nodes.insert(c, pc);
-      pc->d_proven = c;
     }
     pchildren.push_back(pc);
   }
@@ -76,7 +75,7 @@ Node CDProof::registerStep(Node fact,
   std::shared_ptr<ProofNode> pthis;
   if (it == d_nodes.end())
   {
-    pthis = std::make_shared<ProofNode>(id, pchildren, args);
+    pthis = d_manager->mkNode(id, pchildren, args, fact);
     d_nodes.insert(fact, pthis);
   }
   else
@@ -85,17 +84,7 @@ Node CDProof::registerStep(Node fact,
     Assert(pthis->d_proven == fact);
     // overwrite its value
     pthis = (*it).second;
-    pthis->setValue(id, pchildren, args);
-  }
-  if (d_checker)
-  {
-    // if we have a checker, check it
-    d_checker->check(pthis.get(), fact);
-  }
-  else
-  {
-    // otherwise we trust it
-    pthis->d_proven = fact;
+    d_manager->updateNode(pthis.get(), id, pchildren, args);
   }
   return pthis->d_proven;
 }
