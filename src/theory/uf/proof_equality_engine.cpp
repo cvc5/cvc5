@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file equality_proof_manager.cpp
+/*! \file proof_equality_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of equality proof manager
+ ** \brief Implementation of the proof-producing equality engine
  **/
 
-#include "theory/uf/equality_proof_manager.h"
+#include "theory/uf/proof_equality_engine.h"
 
 #include "theory/rewriter.h"
-#include "theory/uf/equality_proof_checker.h"
+#include "theory/uf/proof_checker.h"
 
 using namespace CVC4::kind;
 
@@ -23,14 +23,14 @@ namespace CVC4 {
 namespace theory {
 namespace eq {
 
-EqProofEngine::EqProofEngine(context::Context* c,
+ProofEqEngine::ProofEqEngine(context::Context* c,
                                EqualityEngine& ee, ProofNodeManager* pnm)
     : d_ee(ee), d_proof(c, pnm), d_proofsEnabled(true)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
-Node EqProofEngine::assertLit(Node lit,
+Node ProofEqEngine::assertLit(Node lit,
                                ProofStep id,
                                const std::vector<Node>& exp)
 {
@@ -49,7 +49,7 @@ Node EqProofEngine::assertLit(Node lit,
   return ret;
 }
 
-Node EqProofEngine::assertLitAssume(Node lit)
+Node ProofEqEngine::assertLitAssume(Node lit)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
@@ -65,7 +65,7 @@ Node EqProofEngine::assertLitAssume(Node lit)
   return ret;
 }
 
-Node EqProofEngine::assertEqSubsRewrite(Node lit, const std::vector<Node>& exp)
+Node ProofEqEngine::assertEqSubsRewrite(Node lit, const std::vector<Node>& exp)
 {
   Node eq = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
@@ -94,7 +94,7 @@ Node EqProofEngine::assertEqSubsRewrite(Node lit, const std::vector<Node>& exp)
   return ret;
 }
 
-void EqProofEngine::assertInternal(Node atom, bool polarity, TNode reason)
+void ProofEqEngine::assertInternal(Node atom, bool polarity, TNode reason)
 {
   if (atom.getKind() == EQUAL)
   {
@@ -106,7 +106,7 @@ void EqProofEngine::assertInternal(Node atom, bool polarity, TNode reason)
   }
 }
 
-void EqProofEngine::explain(Node lit, std::vector<TNode>& assertions)
+void ProofEqEngine::explain(Node lit, std::vector<TNode>& assertions)
 {
   std::shared_ptr<eq::EqProof> pf =
       d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
@@ -147,7 +147,7 @@ void EqProofEngine::explain(Node lit, std::vector<TNode>& assertions)
   }
 }
 
-Node EqProofEngine::pfAssume(Node f)
+Node ProofEqEngine::pfAssume(Node f)
 {
   std::vector<Node> children;
   std::vector<Node> args;
@@ -155,7 +155,7 @@ Node EqProofEngine::pfAssume(Node f)
   return d_proof.registerStep(f, ProofStep::ASSUME, children, args);
 }
 
-Node EqProofEngine::pfRefl(Node a)
+Node ProofEqEngine::pfRefl(Node a)
 {
   Node fact = a.eqNode(a);
   std::vector<Node> children;
@@ -164,7 +164,7 @@ Node EqProofEngine::pfRefl(Node a)
   return d_proof.registerStep(fact, ProofStep::REFL, children, args);
 }
 
-Node EqProofEngine::pfRewrite(Node a)
+Node ProofEqEngine::pfRewrite(Node a)
 {
   Node ar = Rewriter::rewrite(a);
   if (ar == a)
@@ -181,7 +181,7 @@ Node EqProofEngine::pfRewrite(Node a)
 
 Node pfRewriteFalse(Node eq, bool ensureChildren) { return Node::null(); }
 
-Node EqProofEngine::pfSubs(Node a,
+Node ProofEqEngine::pfSubs(Node a,
                             const std::vector<Node>& exp,
                             bool ensureChildren)
 {
@@ -197,7 +197,7 @@ Node EqProofEngine::pfSubs(Node a,
   return d_proof.registerStep(fact, ProofStep::SUBS, exp, args, ensureChildren);
 }
 
-Node EqProofEngine::pfSubsRewrite(Node a,
+Node ProofEqEngine::pfSubsRewrite(Node a,
                                    const std::vector<Node>& exp,
                                    bool ensureChildren)
 {
@@ -206,7 +206,7 @@ Node EqProofEngine::pfSubsRewrite(Node a,
   return pfTrans(eqSubs, eqRew, ensureChildren);
 }
 
-Node EqProofEngine::pfEqualBySubsRewrite(Node a,
+Node ProofEqEngine::pfEqualBySubsRewrite(Node a,
                                           Node b,
                                           const std::vector<Node>& exp,
                                           bool ensureChildren)
@@ -217,7 +217,7 @@ Node EqProofEngine::pfEqualBySubsRewrite(Node a,
   return pfTrans(eqA, eqBSymm, ensureChildren);
 }
 
-Node EqProofEngine::pfDisequalBySubsRewrite(Node a,
+Node ProofEqEngine::pfDisequalBySubsRewrite(Node a,
                                              Node b,
                                              const std::vector<Node>& exp,
                                              bool ensureChildren)
@@ -230,7 +230,7 @@ Node EqProofEngine::pfDisequalBySubsRewrite(Node a,
   return Node::null();
 }
 
-Node EqProofEngine::pfTrans(Node eq1, Node eq2, bool ensureChildren)
+Node ProofEqEngine::pfTrans(Node eq1, Node eq2, bool ensureChildren)
 {
   Assert(eq1.getKind() == EQUAL);
   Assert(eq2.getKind() == EQUAL);
@@ -259,7 +259,7 @@ Node EqProofEngine::pfTrans(Node eq1, Node eq2, bool ensureChildren)
       eqTrans, ProofStep::TRANS, children, args, ensureChildren);
 }
 
-Node EqProofEngine::pfSymm(Node eq, bool ensureChildren)
+Node ProofEqEngine::pfSymm(Node eq, bool ensureChildren)
 {
   Assert(eq.getKind() == EQUAL);
   if (eq[0] == eq[1])
@@ -275,7 +275,7 @@ Node EqProofEngine::pfSymm(Node eq, bool ensureChildren)
       eqSymm, ProofStep::SYMM, children, args, ensureChildren);
 }
 
-Node EqProofEngine::mkAnd(const std::vector<Node>& a)
+Node ProofEqEngine::mkAnd(const std::vector<Node>& a)
 {
   if (a.empty())
   {

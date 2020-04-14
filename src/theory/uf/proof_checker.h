@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file equality_proof_checker.h
+/*! \file proof_checker.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__EQUALITY_PROOF_CHECKER_H
-#define CVC4__THEORY__UF__EQUALITY_PROOF_CHECKER_H
+#ifndef CVC4__THEORY__UF__PROOF_CHECKER_H
+#define CVC4__THEORY__UF__PROOF_CHECKER_H
 
 #include "expr/node.h"
 #include "expr/proof_checker.h"
@@ -43,4 +43,4 @@ class EqProofStepChecker : public ProofStepChecker
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__UF__EQUALITY_PROOF_CHECKER_H */
+#endif /* CVC4__THEORY__UF__PROOF_CHECKER_H */

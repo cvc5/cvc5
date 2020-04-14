@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file equality_proof_checker.cpp
+/*! \file proof_checker.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,7 +12,7 @@
  ** \brief Implementation of equality proof checker
  **/
 
-#include "theory/uf/equality_proof_checker.h"
+#include "theory/uf/proof_checker.h"
 
 #include "theory/rewriter.h"
 

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file equality_proof_manager.h
+/*! \file proof_equality_engine.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Equality proof manager utility
+ ** \brief The proof-producing equality engine
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__EQUALITY_PROOF_MANAGER_H
-#define CVC4__THEORY__UF__EQUALITY_PROOF_MANAGER_H
+#ifndef CVC4__THEORY__UF__PROOF_EQUALITY_ENGINE_H
+#define CVC4__THEORY__UF__PROOF_EQUALITY_ENGINE_H
 
 #include <map>
 #include <vector>
@@ -32,20 +32,21 @@ namespace theory {
 namespace eq {
 
 /**
- * A proof manager for strings.
+ * A proof-producing equality engine.
  *
- * This is intended to be run as a layer on top of an EqualityEngine. It tracks
- * the reason for why all facts are added to an EqualityEngine in a SAT-context
- * depnendent manner in a context-dependent (CDProof) object.
+ * This is a layer on top of an EqualityEngine. It tracks the reason for why all
+ * facts are added to an EqualityEngine in a SAT-context dependent manner in a
+ * context-dependent (CDProof) object. The proof of certain facts can be asked
+ * via the getProof interface.
  */
-class EqProofEngine
+class ProofEqEngine
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofMap;
 
  public:
-  EqProofEngine(context::Context* c, EqualityEngine& ee, ProofNodeManager* pnm);
-  ~EqProofEngine() {}
+  ProofEqEngine(context::Context* c, EqualityEngine& ee, ProofNodeManager* pnm);
+  ~ProofEqEngine() {}
 
   /**
    * Get proof for lit, or nullptr if it does not exist. It must be the case

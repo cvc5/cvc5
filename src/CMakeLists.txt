@@ -685,8 +685,8 @@ libcvc4_add_sources(
   theory/strings/normal_form.h
   theory/strings/proof_checker.cpp
   theory/strings/proof_checker.h
-  theory/strings/proof_manager.cpp
-  theory/strings/proof_manager.h
+  theory/strings/proof_equality_engine.cpp
+  theory/strings/proof_equality_engine.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp
@@ -748,10 +748,10 @@ libcvc4_add_sources(
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
-  theory/uf/equality_proof_checker.cpp
-  theory/uf/equality_proof_checker.h
-  theory/uf/equality_proof_manager.cpp
-  theory/uf/equality_proof_manager.h
+  theory/uf/proof_checker.cpp
+  theory/uf/proof_checker.h
+  theory/uf/proof_equality_engine.cpp
+  theory/uf/proof_equality_engine.h
   theory/uf/ho_extension.cpp
   theory/uf/ho_extension.h
   theory/uf/symmetry_breaker.cpp

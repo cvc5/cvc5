@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof_manager.h
+/*! \file proof_equality_engine.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__PROOF_MANAGER_H
-#define CVC4__THEORY__STRINGS__PROOF_MANAGER_H
+#ifndef CVC4__THEORY__STRINGS__PROOF_EQUALITY_ENGINE_H
+#define CVC4__THEORY__STRINGS__PROOF_EQUALITY_ENGINE_H
 
 #include <map>
 #include <vector>
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "theory/uf/equality_proof_manager.h"
+#include "theory/uf/proof_equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -35,11 +35,11 @@ namespace strings {
  * the reason for why all facts are added to an EqualityEngine in a SAT-context
  * depnendent manner.
  */
-class ProofManager : public eq::EqProofManager
+class StringsProofEqEngine : public eq::EqStringsProofEqEngine
 {
  public:
-  ProofManager(context::Context* c, eq::EqualityEngine& ee, ProofChecker* pc);
-  ~ProofManager() {}
+  StringsProofEqEngine(context::Context* c, eq::EqualityEngine& ee, ProofNodeManager* pnm);
+  ~StringsProofEqEngine() {}
 };
 
 }  // namespace strings

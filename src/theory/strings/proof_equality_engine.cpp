@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof_manager.cpp
+/*! \file proof_equality_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,7 +12,7 @@
  ** \brief Implementation of strings proof manager
  **/
 
-#include "theory/strings/proof_manager.h"
+#include "theory/strings/proof_equality_engine.h"
 
 using namespace CVC4::kind;
 
@@ -20,10 +20,10 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-ProofManager::ProofManager(context::Context* c,
+StringsProofEqEngine::StringsProofEqEngine(context::Context* c,
                            eq::EqualityEngine& ee,
-                           ProofChecker* pc)
-    : eq::EqProofManager(c, ee, pc)
+                           ProofNodeManager* pnm)
+    : eq::ProofEqEngine(c, ee, pnm)
 {
 }
 
