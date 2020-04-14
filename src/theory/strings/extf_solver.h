@@ -205,6 +205,8 @@ class ExtfSolver
   context::CDO<bool> d_hasExtf;
   /** extended functions inferences cache */
   NodeSet d_extfInferCache;
+  /** The set of extended functions we have sent reduction lemmas for */
+  NodeSet d_reduced;
 };
 
 }  // namespace strings

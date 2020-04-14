@@ -47,7 +47,8 @@ ExtfSolver::ExtfSolver(context::Context* c,
       d_statistics(statistics),
       d_preproc(&skc, u, statistics),
       d_hasExtf(c, false),
-      d_extfInferCache(c)
+      d_extfInferCache(c),
+      d_reduced(u)
 {
   d_extt->addFunctionKind(kind::STRING_SUBSTR);
   d_extt->addFunctionKind(kind::STRING_STRIDOF);
@@ -77,6 +78,12 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     // n is not active in the model, no need to reduce
     return false;
   }
+  if (d_reduced.find(n)!=d_reduced.end())
+  {
+    // already sent a reduction lemma
+    return false;
+  }
+  d_reduced.insert(n);
   // determine the effort level to process the extf at
   // 0 - at assertion time, 1+ - after no other reduction is applicable
   int r_effort = -1;
@@ -214,7 +221,7 @@ void ExtfSolver::checkExtfReductions(int effort)
     bool ret = doReduction(effort, n, isCd);
     if (ret)
     {
-      d_extt->markReduced(n, isCd);
+      // we do not mark as reduced, since we may want to evaluate
       if (d_im.hasProcessed())
       {
         return;
