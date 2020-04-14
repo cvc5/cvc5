@@ -149,7 +149,7 @@ Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
     }
   } while (!visit.empty());
 
-  return fact;
+  return expected;
 }
 
 }  // namespace CVC4
