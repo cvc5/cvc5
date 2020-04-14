@@ -24,6 +24,8 @@
 
 namespace CVC4 {
 
+class ProofNodeManager;
+  
 /** A node in a proof
  *
  * A ProofNode represents a single step in a proof. It contains:
@@ -39,12 +41,13 @@ namespace CVC4 {
  * for something to be proven later. However, (4) is intended to be immutable.
  *
  * The method setValue is private and can be called by objects that manage
- * ProofNode objects in trusted ways that ensure that the proof maintains
+ * ProofNode objects in trusted ways that ensure that the node maintains
  * the invariant above. Furthermore, notice that this class is not responsible
- * for setting d_proven; this is done externally by a ProofChecker class.
+ * for setting d_proven; this is done externally by a ProofNodeManager class.
  */
 class ProofNode
 {
+  friend class ProofNodeManager;
  public:
   ProofNode(ProofStep id,
             const std::vector<std::shared_ptr<ProofNode>>& children,
