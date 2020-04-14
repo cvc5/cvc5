@@ -483,10 +483,10 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
             first = false;
           }
           else {
-            Node eq = *eqc_i.eqNode(rep);
+            Node eq = (*eqc_i).eqNode(rep);
             Trace("model-builder-assertions")
                 << "(assert " << eq << ");" << std::endl;
-            d_equalityEngine->assertEquality(e, true, Node::null());
+            d_equalityEngine->assertEquality(eq, true, Node::null());
             if (!d_equalityEngine->consistent())
             {
               return false;
