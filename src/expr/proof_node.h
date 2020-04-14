@@ -54,8 +54,8 @@ class ProofNode
   ProofStep getId() const;
   /** get what this node proves, or the null node if this is an invalid proof */
   Node getResult() const;
-  /** Get assumptions 
-   * 
+  /** Get assumptions
+   *
    * This adds to the vector assump all formulas that are "assumptions" of the
    * given proof. An assumption is a formula that is the argument of a
    * proof node whose kind is ASSUME.
@@ -63,8 +63,9 @@ class ProofNode
   void getAssumptions(std::vector<Node>& assump) const;
   /** Print debug on output strem os */
   void printDebug(std::ostream& os) const;
+
  private:
-  /** 
+  /**
    * Set value, called to overwrite the contents of this ProofNode with the
    * given arguments.
    */

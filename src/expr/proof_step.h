@@ -21,7 +21,7 @@
 
 namespace CVC4 {
 
-/** 
+/**
  * An enumeration for proof steps.
  * This enumeration is analogous to Kind for Node objects.
  */
