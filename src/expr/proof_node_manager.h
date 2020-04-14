@@ -34,20 +34,20 @@ class ProofNodeManager
   ProofNodeManager(ProofChecker* pc);
   ~ProofNodeManager() {}
   /**
-   * Make proof node
+   * Make node
    *
    */
-  std::shared_ptr<ProofNode> mkProofNode(ProofStep id,
-                                         const std::vector<Node>& children,
+  std::shared_ptr<ProofNode> mkNode(ProofStep id,
+                                         const std::vector<std::shared_ptr<ProofNode>>& children,
                                          const std::vector<Node>& args,
                                          Node expected = Node::null());
   /**
-   * Update proof node
+   * Update node
    *
    */
-  void updateProofNode(ProofNode* pn,
+  bool updateNode(ProofNode* pn,
                        ProofStep id,
-                       const std::vector<Node>& children,
+                       const std::vector<std::shared_ptr<ProofNode>>& children,
                        const std::vector<Node>& args,
                        Node expected = Node::null());
 
@@ -63,7 +63,7 @@ class ProofNodeManager
    * This throws an assertion error if we fail to check pn, or expected is
    * provided (non-null) and what pn proves does not match.
    */
-  bool checkInternal(ProofNode* pn, Node expected);
+  void checkInternal(ProofNode* pn, Node expected);
 };
 
 }  // namespace CVC4

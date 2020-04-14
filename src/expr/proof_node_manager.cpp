@@ -20,42 +20,53 @@ namespace CVC4 {
 
 ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc) {}
 
-std::shared_ptr<ProofNode> ProofNodeManager::mkProofNode(
+std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
     ProofStep id,
-    const std::vector<Node>& children,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     Node expected)
 {
   std::shared_ptr<ProofNode> pn =
       std::make_shared<ProofNode>(id, children, args);
   // compute what pn proves and ensure it matches expected
-  checkInternal(pn.get(), expected);
+  if (!checkInternal(pn.get(), expected))
+  {
+    // if it was invalid, then we return the null node
+    return nullptr;
+  }
   return pn;
 }
 
-void ProofNodeManager::updateProofNode(ProofNode* pn,
+bool ProofNodeManager::updateNode(ProofNode* pn,
                                        ProofStep id,
-                                       const std::vector<Node>& children,
+                                       const std::vector<std::shared_ptr<ProofNode>>& children,
                                        const std::vector<Node>& args,
                                        Node expected)
 {
-  // should have already computed what is proven
+  // should have already computed what is proven, and be valid
   Assert(!pn->d_proven.isNull())
       << "ProofNodeManager::updateProofNode: invalid proof provided";
-  // either we didn't provide an expected value, or it matches
-  Assert(expected.isNull() || pn->d_proven == expected)
+  // either we didn't provide an expected value, or it must match
+  if(expected.isNull() || pn->d_proven == expected)
+  {
+    Assert(false)
       << "ProofNodeManager::checkInternal: provided proof does not match "
          "expected value";
-  // ensure that what pn previously proves matches expected
-  checkInternal(pn, false, expected);
+    return false;
+  }
   if (expected.isNull())
   {
     expected = pn->d_proven;
   }
   Assert(!expected.isNull());
-  pn->setValue(id, pchildren, args);
+  pn->setValue(id, children, args);
   // compute what pn proves and ensure it matches expected
-  checkInternal(pn, expected);
+  if (!checkInternal(pn.get(), expected))
+  {
+    // if it was invalid, then we return false
+    return false;
+  }
+  return true;
 }
 
 void ProofNodeManager::checkInternal(ProofNode* pn, Node expected)
