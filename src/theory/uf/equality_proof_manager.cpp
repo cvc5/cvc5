@@ -66,8 +66,7 @@ Node EqProofManager::assertLitAssume(Node lit)
   return ret;
 }
 
-Node EqProofManager::assertEqualitySubsRewrite(Node lit,
-                                               const std::vector<Node>& exp)
+Node EqProofManager::assertEqSubsRewrite(Node lit, const std::vector<Node>& exp)
 {
   Node eq = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;

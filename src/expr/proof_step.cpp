@@ -20,14 +20,17 @@ const char* toString(ProofStep id)
 {
   switch (id)
   {
+    //================================================= CORE
     case ProofStep::ASSUME: return "ASSUME";
     case ProofStep::SUBS: return "SUBS";
     case ProofStep::REWRITE: return "REWRITE";
     case ProofStep::SPLIT: return "SPLIT";
+    //================================================= EQUALITY
     case ProofStep::REFL: return "REFL";
     case ProofStep::SYMM: return "SYMM";
     case ProofStep::TRANS: return "TRANS";
     case ProofStep::CONG: return "CONG";
+    //================================================= THEORY_STRINGS
     case ProofStep::CONCAT_ENDP_UNIFY: return "CONCAT_ENDP_UNIFY";
     case ProofStep::CONCAT_UNIFY: return "CONCAT_UNIFY";
     case ProofStep::CONCAT_SPLIT: return "CONCAT_SPLIT";
@@ -37,6 +40,7 @@ const char* toString(ProofStep id)
     case ProofStep::REDUCTION: return "REDUCTION";
     case ProofStep::RE_INTER: return "RE_INTER";
     case ProofStep::RE_UNFOLD: return "RE_UNFOLD";
+    //================================================= UNKNOWN
     case ProofStep::UNKNOWN: return "UNKNOWN";
     default: return "?";
   }

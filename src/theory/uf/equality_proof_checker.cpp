@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof.cpp
+/*! \file equality_proof_checker.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
