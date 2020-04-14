@@ -24,7 +24,7 @@
 
 namespace CVC4 {
 
-/** 
+/**
  * A manager for proof node objects. This is a trusted way of creating
  * and updating ProofNode objects.
  */
@@ -33,32 +33,29 @@ class ProofNodeManager
  public:
   ProofNodeManager(ProofChecker* pc);
   ~ProofNodeManager() {}
-  /** 
-   * Make proof node 
-   * 
+  /**
+   * Make proof node
+   *
    */
-  std::shared_ptr<ProofNode> mkProofNode(
-                    ProofStep id,
-                    const std::vector<Node>& children,
-                    const std::vector<Node>& args,
-                    Node expected=Node::null());
-  /** 
-   * Update proof node 
-   * 
+  std::shared_ptr<ProofNode> mkProofNode(ProofStep id,
+                                         const std::vector<Node>& children,
+                                         const std::vector<Node>& args,
+                                         Node expected = Node::null());
+  /**
+   * Update proof node
+   *
    */
-  void updateProofNode(ProofNode * pn,                     
+  void updateProofNode(ProofNode* pn,
                        ProofStep id,
-                    const std::vector<Node>& children,
-                    const std::vector<Node>& args,
-                    Node expected=Node::null());
+                       const std::vector<Node>& children,
+                       const std::vector<Node>& args,
+                       Node expected = Node::null());
+
  private:
   /** The (optional) proof checker */
   ProofChecker* d_checker;
   /** Check internal */
-  bool checkInternal(ProofNode * pn,
-                     bool doCheck,
-                     bool doUpdate,
-                     Node expected);
+  bool checkInternal(ProofNode* pn, bool doCheck, bool doUpdate, Node expected);
 };
 
 }  // namespace CVC4

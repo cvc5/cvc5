@@ -18,16 +18,13 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ProofNodeManager::ProofNodeManager(ProofChecker* pc)
-    : d_checker(pc)
-{
-}
+ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc) {}
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkProofNode(
-                  ProofStep id,
-                  const std::vector<Node>& children,
-                  const std::vector<Node>& args,
-                  Node expected)
+    ProofStep id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    Node expected)
 {
   std::vector<std::shared_ptr<ProofNode>> pn;
   pn = std::make_shared<ProofNode>(id, children, args);
@@ -35,11 +32,11 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkProofNode(
   return pc;
 }
 
-void ProofNodeManager::updateProofNode(ProofNode * pn,                     
-                      ProofStep id,
-                  const std::vector<Node>& children,
-                  const std::vector<Node>& args,
-                  Node expected)
+void ProofNodeManager::updateProofNode(ProofNode* pn,
+                                       ProofStep id,
+                                       const std::vector<Node>& children,
+                                       const std::vector<Node>& args,
+                                       Node expected)
 {
   // should not change what is proven
   checkInternal(pn, false, expected);
@@ -52,12 +49,11 @@ void ProofNodeManager::updateProofNode(ProofNode * pn,
   checkInternal(pn, true, expected);
 }
 
-void ProofNodeManager::checkInternal(ProofNode * pn,
-                    bool doCheck,
-                    bool doUpdate,
-                    Node expected)
+void ProofNodeManager::checkInternal(ProofNode* pn,
+                                     bool doCheck,
+                                     bool doUpdate,
+                                     Node expected)
 {
-  
 }
-  
+
 }  // namespace CVC4

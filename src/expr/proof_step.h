@@ -25,7 +25,7 @@ namespace CVC4 {
  * An enumeration for proof steps. This enumeration is analogous to Kind for
  * Node objects. In the documentation below, P:F denotes a ProofNode that
  * proves formula F.
- * 
+ *
  * Conceptually, ProofNode objects buitin from these proof rules follow
  * the kinds of operations that can be done on Node objects, e.g. Nodes
  * can be rewritten and so on.
