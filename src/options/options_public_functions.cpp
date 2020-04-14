@@ -75,7 +75,9 @@ bool Options::getDumpSynth() const{
 }
 
 bool Options::getDumpUnsatCores() const{
-  return (*this)[options::dumpUnsatCores];
+  // dump unsat cores full enables dumpUnsatCores
+  return (*this)[options::dumpUnsatCores]
+         || (*this)[options::dumpUnsatCoresFull];
 }
 
 bool Options::getEarlyExit() const{
