@@ -38,21 +38,21 @@ namespace CVC4 {
  * Based on this class, we can ask for the proof of a given fact, which returns
  * a ProofNode object that has linked together the proof steps registered to
  * this object.
- * 
+ *
  * As an example, if we call:
  * - registerStep( A, ID_A, { B, C }, {}, false )
  * - registerStep( B, ID_B, { D }, {}, false )
  * Then getProof( A ) returns the proof of the form:
  *   ID_A( ID_B( ASSUME( D ) ), ASSUME( C ) )
  * Notice that the above calls to registerStep can be made in either order.
- * 
+ *
  * The method registerProof makes multiple calls to registerStep. Continuing
  * the above example, if we call:
  * - registerProof( E, ID_E( ASSUME( A ), ASSUME( B ) )
  * for instance will result in getProof( E ) returning:
- *   ID_E( ID_A( PB, ASSUME( C ) ), PB ), where PB is ID_B( ASSUME( D ) ). 
+ *   ID_E( ID_A( PB, ASSUME( C ) ), PB ), where PB is ID_B( ASSUME( D ) ).
  * The calls to registerProof and registerStep above can be made in any order.
- * 
+ *
  * Notice the map from Nodes to ProofNodes is context-dependent and is
  * backtracked when the context backtracks.
  */
