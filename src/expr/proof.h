@@ -132,8 +132,8 @@ class CDProof
   Node registerProof(Node fact, std::shared_ptr<ProofNode> pn);
 
  protected:
-  /** The proof manager */
-  ProofManager* d_manager;
+  /** The proof manager, used for allocating new ProofNode objects */
+  ProofNodeManager* d_manager;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
 };
