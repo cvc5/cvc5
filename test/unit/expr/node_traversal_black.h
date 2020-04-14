@@ -161,6 +161,22 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
     TS_ASSERT_EQUALS(actual, expected);
   }
+
+  void testSkipIf()
+  {
+    Node tb = d_nodeManager->mkConst(true);
+    Node eb = d_nodeManager->mkConst(false);
+    Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+    Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+    std::vector<TNode> expected = {top};
+
+    auto traversal = NodeDfsIterable(top).inPostorder().skipIf(
+        [&cnd](TNode n) { return n == cnd; });
+
+    std::vector<TNode> actual;
+    std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
+    TS_ASSERT_EQUALS(actual, expected);
+  }
 };
 
 class NodePreorderTraversalBlack : public CxxTest::TestSuite
@@ -273,6 +289,22 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     std::vector<TNode> expected = {top, cnd, tb, eb};
 
     auto traversal = NodeDfsIterable(top).inPreorder();
+
+    std::vector<TNode> actual;
+    std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
+    TS_ASSERT_EQUALS(actual, expected);
+  }
+
+  void testSkipIf()
+  {
+    Node tb = d_nodeManager->mkConst(true);
+    Node eb = d_nodeManager->mkConst(false);
+    Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+    Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+    std::vector<TNode> expected = {top, cnd, eb};
+
+    auto traversal = NodeDfsIterable(top).inPreorder().skipIf(
+        [&tb](TNode n) { return n == tb; });
 
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
