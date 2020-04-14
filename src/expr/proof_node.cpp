@@ -27,12 +27,12 @@ ProofStep ProofNode::getId() const { return d_id; }
 
 Node ProofNode::getResult() const { return d_proven; }
 
-void ProofNode::getAssumptions(std::vector<Node>& assump)
+void ProofNode::getAssumptions(std::vector<Node>& assump) const
 {
-  std::unordered_set<ProofNode*> visited;
-  std::unordered_set<ProofNode*>::iterator it;
-  std::vector<ProofNode*> visit;
-  ProofNode* cur;
+  std::unordered_set<const ProofNode*> visited;
+  std::unordered_set<const ProofNode*>::iterator it;
+  std::vector<const ProofNode*> visit;
+  const ProofNode* cur;
   visit.push_back(this);
   do
   {
@@ -71,7 +71,7 @@ void ProofNode::setValue(
 void ProofNode::printDebug(std::ostream& os) const
 {
   os << "(" << d_id;
-  for (std::shared_ptr<ProofNode>& c : d_children)
+  for (const std::shared_ptr<ProofNode>& c : d_children)
   {
     os << " ";
     c->printDebug(os);

@@ -35,7 +35,6 @@ Node ProofChecker::check(ProofNode* pn, Node expected)
   {
     // no checker
   }
-  pn->d_proven = res;
   return res;
 }
 

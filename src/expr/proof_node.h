@@ -58,7 +58,7 @@ class ProofNode
   /** get what this node proves, or the null node if this is an invalid proof */
   Node getResult() const;
   /** get assumptions */
-  void getAssumptions(std::vector<Node>& assump);
+  void getAssumptions(std::vector<Node>& assump) const;
   /** print debug */
   void printDebug(std::ostream& os) const;
 

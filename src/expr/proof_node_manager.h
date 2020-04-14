@@ -54,8 +54,16 @@ class ProofNodeManager
  private:
   /** The (optional) proof checker */
   ProofChecker* d_checker;
-  /** Check internal */
-  bool checkInternal(ProofNode* pn, bool doCheck, bool doUpdate, Node expected);
+  /** Check internal 
+   * 
+   * This computes and sets the ProofNode::d_proven field of pn. This field
+   * is set to the computed value of checking the proof if this class owns
+   * a checker; otherwise its value is set to `expected`.
+   * 
+   * This throws an assertion error if we fail to check pn, or expected is
+   * provided (non-null) and what pn proves does not match.
+   */
+  bool checkInternal(ProofNode* pn, Node expected);
 };
 
 }  // namespace CVC4
