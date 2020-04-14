@@ -47,6 +47,15 @@ class TranscendentalSolver
   ~TranscendentalSolver();
 
   /** init last call
+   *
+   * This is called at the beginning of last call effort check, where
+   * assertions are the set of assertions belonging to arithmetic,
+   * false_asserts is the subset of assertions that are false in the current
+   * model, and xts is the set of extended function terms that are active in
+   * the current context.
+   *
+   * This call may add lemmas to lems/lemsPp based on registering term
+   * information (for example, purification of sine terms).
    */
   void initLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
