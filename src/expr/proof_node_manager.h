@@ -87,12 +87,12 @@ class ProofNodeManager
   ProofChecker* d_checker;
   /** Check internal
    *
-   * This computes and sets the ProofNode::d_proven field of pn. This field
-   * is set to the computed value of checking the proof if this class owns
-   * a checker; otherwise its value is set to `expected`.
+   * This returns the result of proof checking a ProofNode with the provided
+   * arguments with an (optional) expected conclusion.
    *
-   * This throws an assertion error if we fail to check pn, or expected is
-   * provided (non-null) and what pn proves does not match.
+   * This throws an assertion error if we fail to check such a proof node, or
+   * if expected is provided (non-null) is different what is proven by the
+   * other arguments.
    */
   Node checkInternal(ProofStep id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
