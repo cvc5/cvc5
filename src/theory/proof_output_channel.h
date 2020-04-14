@@ -51,19 +51,18 @@ class ProofOutputChannel
    * Send conf on the output channel of this class whose proof can be generated
    * by the generator pfg.
    */
-  void conflict(Node conf,
-             ProofGenerator* pfg);
+  void conflict(Node conf, ProofGenerator* pfg);
   /**
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg.
    */
   LemmaStatus lemma(Node lem,
-             ProofGenerator* pfg,
-             bool removable = false,
-             bool preprocess = false,
-             bool sendAtoms = false);
-  
-  /** 
+                    ProofGenerator* pfg,
+                    bool removable = false,
+                    bool preprocess = false,
+                    bool sendAtoms = false);
+
+  /**
    * Get proof for formula n. This returns the corresponding proof for formula
    * n, where n is either:
    * (1) some lem passed in a call to lemma(...), or

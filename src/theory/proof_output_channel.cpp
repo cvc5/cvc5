@@ -30,8 +30,7 @@ ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
     : d_out(out), d_lemPfGen(u)
 {
 }
-void ProofOutputChannel::conflict(Node conf,
-                               ProofGenerator* pfg)
+void ProofOutputChannel::conflict(Node conf, ProofGenerator* pfg)
 {
   Assert(pfg != nullptr);
   d_lemPfGen[conf.negate()] = pfg;
@@ -39,10 +38,10 @@ void ProofOutputChannel::conflict(Node conf,
 }
 
 LemmaStatus ProofOutputChannel::lemma(Node lem,
-                               ProofGenerator* pfg,
-                               bool removable,
-                               bool preprocess,
-                               bool sendAtoms)
+                                      ProofGenerator* pfg,
+                                      bool removable,
+                                      bool preprocess,
+                                      bool sendAtoms)
 {
   Assert(pfg != nullptr);
   d_lemPfGen[lem] = pfg;
@@ -55,8 +54,8 @@ std::shared_ptr<ProofNode> ProofOutputChannel::getProof(Node n) const
   Assert(it != d_lemPfGen.end());
   std::shared_ptr<ProofNode> ret = (*it).second->getProof(n);
   Assert(ret != nullptr)
-      << "ProofOutputChannel::getProof: could not generate proof for "
-      << n << std::endl;
+      << "ProofOutputChannel::getProof: could not generate proof for " << n
+      << std::endl;
   return ret;
 }
 
