@@ -20,9 +20,9 @@ const char* toString(ProofStep id)
 {
   switch (id)
   {
-    //================================================= CORE
+    //================================================= Core rules
     case ProofStep::ASSUME: return "ASSUME";
-    //================================================= UNKNOWN
+    //================================================= Unknown rule
     case ProofStep::UNKNOWN: return "UNKNOWN";
     default: return "?";
   }

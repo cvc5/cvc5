@@ -28,7 +28,7 @@ namespace CVC4 {
  */
 enum class ProofStep : uint32_t
 {
-  //================================================= CORE
+  //================================================= Core rules
   // ======== Assumption (a leaf)
   // Children: none
   // Arguments: (F)
@@ -36,13 +36,13 @@ enum class ProofStep : uint32_t
   // Conclusion F
   ASSUME,
 
-  //================================================= UNKNOWN
+  //================================================= Unknown rule
   UNKNOWN,
 };
 
 /**
- * Converts an proof step to a string. Note: This function is also used in
- * `safe_print()`. Changing this functions name or signature will result in
+ * Converts a proof step to a string. Note: This function is also used in
+ * `safe_print()`. Changing this function name or signature will result in
  * `safe_print()` printing "<unsupported>" instead of the proper strings for
  * the enum values.
  *
@@ -52,7 +52,7 @@ enum class ProofStep : uint32_t
 const char* toString(ProofStep id);
 
 /**
- * Writes an proof step name to a stream.
+ * Writes a proof step name to a stream.
  *
  * @param out The stream to write to
  * @param id The proof step to write to the stream

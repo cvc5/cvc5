@@ -34,9 +34,10 @@ namespace CVC4 {
  *
  * Overall, a ProofNode and its children form a directed acyclic graph.
  *
- * A ProofNode is intended to be mutable in that (1), (2) and (3) can be
- * modified. An example is when a ProofNode is established to be a "hole"
- * for something to be proven later. However, (4) is intended to be immutable.
+ * A ProofNode is partially mutable in that (1), (2) and (3) can be
+ * modified. A motivating example of when this is useful is when a ProofNode
+ * is established to be a "hole" for something to be proven later. On the other
+ * hand, (4) is intended to be immutable.
  *
  * The method setValue is private and can be called by objects that manage
  * ProofNode objects in trusted ways that ensure that the node maintains
@@ -61,8 +62,8 @@ class ProofNode
   /** Get assumptions
    *
    * This adds to the vector assump all formulas that are "assumptions" of the
-   * given proof. An assumption is a formula that is the argument of a
-   * proof node whose kind is ASSUME.
+   * proof whose root is this ProofNode. An assumption is a formula that is the
+   * argument of a ProofNode whose kind is ASSUME.
    */
   void getAssumptions(std::vector<Node>& assump) const;
   /** Print debug on output strem os */
