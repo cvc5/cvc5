@@ -50,7 +50,7 @@ Node CDProof::registerStep(Node fact,
     // we will overwrite assumption
   }
 
-  // collect the child proofs
+  // collect the child proofs, for each premise
   std::vector<std::shared_ptr<ProofNode>> pchildren;
   for (const Node& c : children)
   {
@@ -65,10 +65,9 @@ Node CDProof::registerStep(Node fact,
       // otherwise, we initialize it as an assumption
       std::vector<Node> pcargs = {c};
       std::vector<std::shared_ptr<ProofNode>> pcassume;
-      std::shared_ptr<ProofNode> pchild =
-          std::make_shared<ProofNode>(ProofStep::ASSUME, pcassume, pcargs);
-      d_nodes.insert(c, pchild);
-      pchild->d_proven = c;
+      pc = std::make_shared<ProofNode>(ProofStep::ASSUME, pcassume, pcargs);
+      d_nodes.insert(c, pc);
+      pc->d_proven = c;
     }
     pchildren.push_back(pc);
   }
@@ -82,6 +81,7 @@ Node CDProof::registerStep(Node fact,
   }
   else
   {
+    // should not change what is proven
     Assert(pthis->d_proven == fact);
     // overwrite its value
     pthis = (*it).second;
