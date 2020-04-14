@@ -223,6 +223,7 @@ libcvc4_add_sources(
   smt/command.h
   smt/command_list.cpp
   smt/command_list.h
+  smt/defined_function.h
   smt/dump.cpp
   smt/dump.h
   smt/logic_exception.h
@@ -236,12 +237,16 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/process_assertions.cpp
+  smt/process_assertions.h
   smt/set_defaults.cpp
   smt/set_defaults.h
   smt/smt_engine.cpp
   smt/smt_engine.h
   smt/smt_engine_scope.cpp
   smt/smt_engine_scope.h
+  smt/smt_engine_stats.cpp
+  smt/smt_engine_stats.h
   smt/smt_statistics_registry.cpp
   smt/smt_statistics_registry.h
   smt/term_formula_removal.cpp
@@ -293,10 +298,16 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl_constraint.cpp
+  theory/arith/nl_constraint.h
   theory/arith/nl_lemma_utils.cpp
   theory/arith/nl_lemma_utils.h
   theory/arith/nl_model.cpp
   theory/arith/nl_model.h
+  theory/arith/nl_monomial.cpp
+  theory/arith/nl_monomial.h
+  theory/arith/nl_solver.cpp
+  theory/arith/nl_solver.h
   theory/arith/nonlinear_extension.cpp
   theory/arith/nonlinear_extension.h
   theory/arith/normal_form.cpp
