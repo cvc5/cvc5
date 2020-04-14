@@ -67,6 +67,7 @@ class ProofNode
   void getAssumptions(std::vector<Node>& assump) const;
   /** Print debug on output strem os */
   void printDebug(std::ostream& os) const;
+
  private:
   /**
    * Set value, called to overwrite the contents of this ProofNode with the
