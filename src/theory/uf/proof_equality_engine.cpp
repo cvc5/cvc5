@@ -24,15 +24,16 @@ namespace theory {
 namespace eq {
 
 ProofEqEngine::ProofEqEngine(context::Context* c,
-                               EqualityEngine& ee, ProofNodeManager* pnm)
+                             EqualityEngine& ee,
+                             ProofNodeManager* pnm)
     : d_ee(ee), d_proof(c, pnm), d_proofsEnabled(true)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
 Node ProofEqEngine::assertLit(Node lit,
-                               ProofStep id,
-                               const std::vector<Node>& exp)
+                              ProofStep id,
+                              const std::vector<Node>& exp)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
@@ -182,8 +183,8 @@ Node ProofEqEngine::pfRewrite(Node a)
 Node pfRewriteFalse(Node eq, bool ensureChildren) { return Node::null(); }
 
 Node ProofEqEngine::pfSubs(Node a,
-                            const std::vector<Node>& exp,
-                            bool ensureChildren)
+                           const std::vector<Node>& exp,
+                           bool ensureChildren)
 {
   Node as = EqProofStepChecker::applySubstitution(a, exp);
   if (a == as)
@@ -198,8 +199,8 @@ Node ProofEqEngine::pfSubs(Node a,
 }
 
 Node ProofEqEngine::pfSubsRewrite(Node a,
-                                   const std::vector<Node>& exp,
-                                   bool ensureChildren)
+                                  const std::vector<Node>& exp,
+                                  bool ensureChildren)
 {
   Node eqSubs = pfSubs(a, exp, ensureChildren);
   Node eqRew = pfRewrite(eqSubs[0]);
@@ -207,9 +208,9 @@ Node ProofEqEngine::pfSubsRewrite(Node a,
 }
 
 Node ProofEqEngine::pfEqualBySubsRewrite(Node a,
-                                          Node b,
-                                          const std::vector<Node>& exp,
-                                          bool ensureChildren)
+                                         Node b,
+                                         const std::vector<Node>& exp,
+                                         bool ensureChildren)
 {
   Node eqA = pfSubsRewrite(a, exp, ensureChildren);
   Node eqB = pfSubsRewrite(b, exp, ensureChildren);
@@ -218,9 +219,9 @@ Node ProofEqEngine::pfEqualBySubsRewrite(Node a,
 }
 
 Node ProofEqEngine::pfDisequalBySubsRewrite(Node a,
-                                             Node b,
-                                             const std::vector<Node>& exp,
-                                             bool ensureChildren)
+                                            Node b,
+                                            const std::vector<Node>& exp,
+                                            bool ensureChildren)
 {
   Node eqA = pfSubsRewrite(a, exp, ensureChildren);
   Node eqB = pfSubsRewrite(b, exp, ensureChildren);

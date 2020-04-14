@@ -27,15 +27,15 @@ namespace CVC4 {
 /**
  * A manager for proof node objects. This is a trusted way of creating
  * and updating ProofNode objects.
- * 
+ *
  * In more detail, we say a ProofNode is "well-formed (with respect to checker
  * C)" if its d_proven field is non-null, and corresponds to the formula that
  * the ProofNode proves according to C. The ProofNodeManager class constructs
  * and update nodes that well-formed with respect to its underlying checker.
- * 
+ *
  * If no checker is provided, then the ProofNodeManager assigns the d_proven
  * field of ProofNode based on the provided "expected" argument in mkNode below.
- * 
+ *
  * Regardless of the checker, the ProofNodeManager is used as a trusted way
  * of updating ProofNode objects via updateNode below. In particular, this
  * method leaves the d_proven field unchanged and updates (if possible) the
@@ -51,7 +51,7 @@ class ProofNodeManager
    * argument, when provided, indicates the formula that the returned node
    * is expected to prove. If we find that it does not based on the underlying
    * checker, this method returns nullptr.
-   * 
+   *
    * @param id The id of the proof node.
    * @param children The children of the proof node.
    * @param args The arguments of the proof node.

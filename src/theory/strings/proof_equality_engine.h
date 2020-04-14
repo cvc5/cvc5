@@ -38,7 +38,9 @@ namespace strings {
 class StringsProofEqEngine : public eq::ProofEqEngine
 {
  public:
-  StringsProofEqEngine(context::Context* c, eq::EqualityEngine& ee, ProofNodeManager* pnm);
+  StringsProofEqEngine(context::Context* c,
+                       eq::EqualityEngine& ee,
+                       ProofNodeManager* pnm);
   ~StringsProofEqEngine() {}
 };
 

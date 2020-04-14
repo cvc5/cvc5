@@ -21,8 +21,8 @@ namespace theory {
 namespace strings {
 
 StringsProofEqEngine::StringsProofEqEngine(context::Context* c,
-                           eq::EqualityEngine& ee,
-                           ProofNodeManager* pnm)
+                                           eq::EqualityEngine& ee,
+                                           ProofNodeManager* pnm)
     : eq::ProofEqEngine(c, ee, pnm)
 {
 }

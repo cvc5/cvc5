@@ -23,8 +23,8 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof.h"
-#include "expr/proof_node_manager.h"
 #include "expr/proof_node.h"
+#include "expr/proof_node_manager.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {

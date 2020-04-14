@@ -67,7 +67,7 @@ Node CDProof::registerStep(Node expected,
       std::vector<std::shared_ptr<ProofNode>> pcassume;
       pc = d_manager->mkNode(ProofStep::ASSUME, pcassume, pcargs, c);
       // assumptions never fail to check
-      Assert (pc!=nullptr);
+      Assert(pc != nullptr);
       d_nodes.insert(c, pc);
     }
     pchildren.push_back(pc);
@@ -78,7 +78,7 @@ Node CDProof::registerStep(Node expected,
   if (it == d_nodes.end())
   {
     pthis = d_manager->mkNode(id, pchildren, args, expected);
-    if (pthis==nullptr)
+    if (pthis == nullptr)
     {
       // failed to construct the node, perhaps due to a proof checking failure
       return Node::null();
