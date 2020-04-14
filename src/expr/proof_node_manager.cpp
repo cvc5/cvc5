@@ -26,14 +26,16 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
     const std::vector<Node>& args,
     Node expected)
 {
-  std::shared_ptr<ProofNode> pn =
-      std::make_shared<ProofNode>(id, children, args);
-  // compute what pn proves and ensure it matches expected
-  if (!checkInternal(pn.get(), expected))
+  Node res = checkInternal(id, children, args, expected);
+  if (res.isNull())
   {
     // if it was invalid, then we return the null node
     return nullptr;
   }
+  // otherwise construct the proof node and set its proven field
+  std::shared_ptr<ProofNode> pn =
+      std::make_shared<ProofNode>(id, children, args);
+  pn->d_proven = res;
   return pn;
 }
 
@@ -57,25 +59,31 @@ bool ProofNodeManager::updateNode(
   }
   if (expected.isNull())
   {
+    // if expected was not provided, we expect to prove the same thing
     expected = pn->d_proven;
   }
-  Assert(!expected.isNull());
-  pn->setValue(id, children, args);
-  // compute what pn proves and ensure it matches expected
-  if (!checkInternal(pn.get(), expected))
+  Node res = checkInternal(id, children, args, expected);
+  if (res.isNull())
   {
-    // if it was invalid, then we return false
+    // if it was invalid, then we do not update
     return false;
   }
+  // we update its value
+  pn->setValue(id, children, args);
+  // proven field should be the same as the result
+  Assert (res==pn->d_proven);
   return true;
 }
 
-void ProofNodeManager::checkInternal(ProofNode* pn, Node expected)
+Node ProofNodeManager::checkInternal(ProofStep id,
+             const std::vector<std::shared_ptr<ProofNode>>& children,
+             const std::vector<Node>& args, Node expected)
 {
+  Node res;
   if (d_checker)
   {
-    pn->d_proven = d_checker->check(pn, expected);
-    Assert(!pn->d_proven.isNull())
+    res = d_checker->check(id, children, args, expected);
+    Assert(!res.isNull())
         << "ProofNodeManager::checkInternal: failed to check proof";
   }
   else
@@ -83,8 +91,9 @@ void ProofNodeManager::checkInternal(ProofNode* pn, Node expected)
     // otherwise we trust the expected value
     Assert(!expected.isNull()) << "ProofNodeManager::checkInternal: no checker "
                                   "or expected value provided";
-    pn->d_proven = expected;
+    res = expected;
   }
+  return res;
 }
 
 }  // namespace CVC4

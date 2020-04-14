@@ -64,7 +64,9 @@ class ProofNodeManager
    * This throws an assertion error if we fail to check pn, or expected is
    * provided (non-null) and what pn proves does not match.
    */
-  void checkInternal(ProofNode* pn, Node expected);
+  Node checkInternal(ProofStep id,
+             const std::vector<std::shared_ptr<ProofNode>>& children,
+             const std::vector<Node>& args, Node expected);
 };
 
 }  // namespace CVC4
