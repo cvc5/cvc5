@@ -61,7 +61,7 @@ namespace CVC4 {
  * - registerStep( B, ID_B1 {}, {}, false )
  * - registerStep( A, ID_A1, { B, C }, {}, false )
  * At this point, getProof( A ) returns:
- *   ID_A( ID_B1(), ASSUME(C) )
+ *   ID_A1( ID_B1(), ASSUME(C) )
  * Now, assume an additional call is made to:
  * - registerProof( D, ID_D( ID_A2( ID_B2(), ID_C() ) ) )
  * where ID_B2() and ID_C() prove B and C respectively. Then, getProof( D )
