@@ -48,22 +48,34 @@ class ProofOutputChannel
   ProofOutputChannel(OutputChannel& out, context::UserContext* u);
   ~ProofOutputChannel() {}
   /**
+   * Send conf on the output channel of this class whose proof can be generated
+   * by the generator pfg.
+   */
+  void conflict(Node conf,
+             ProofGenerator* pfg);
+  /**
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg.
    */
-  void lemma(Node lem,
+  LemmaStatus lemma(Node lem,
              ProofGenerator* pfg,
              bool removable = false,
              bool preprocess = false,
              bool sendAtoms = false);
-  /** get proof for lemma lem */
-  std::shared_ptr<ProofNode> getProofForLemma(Node lem) const;
+  
+  /** 
+   * Get proof for formula n. This returns the corresponding proof for formula
+   * n, where n is either:
+   * (1) some lem passed in a call to lemma(...), or
+   * (2) conf.negate() for some conf passed in a call to conflict(...).
+   */
+  std::shared_ptr<ProofNode> getProof(Node n) const;
 
  private:
   /** Reference to an output channel */
   OutputChannel& d_out;
-  /** User-context-dependent map from lemmas to proof generators */
-  NodeProofGenMap d_lemmaProofGen;
+  /** User-context-dependent map from lemmas, conflicts to proof generators */
+  NodeProofGenMap d_lemPfGen;
 };
 
 }  // namespace theory

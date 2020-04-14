@@ -19,7 +19,7 @@
 namespace CVC4 {
 namespace theory {
 
-std::shared_ptr<ProofNode> ProofGenerator::getProofForLemma(Node lem)
+std::shared_ptr<ProofNode> ProofGenerator::getProof(Node lem)
 {
   // no implementation
   return nullptr;
@@ -27,29 +27,36 @@ std::shared_ptr<ProofNode> ProofGenerator::getProofForLemma(Node lem)
 
 ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
                                        context::UserContext* u)
-    : d_out(out), d_lemmaProofGen(u)
+    : d_out(out), d_lemPfGen(u)
 {
 }
+void ProofOutputChannel::conflict(Node conf,
+                               ProofGenerator* pfg)
+{
+  Assert(pfg != nullptr);
+  d_lemPfGen[conf.negate()] = pfg;
+  d_out.conflict(conf);
+}
 
-void ProofOutputChannel::lemma(Node lem,
+LemmaStatus ProofOutputChannel::lemma(Node lem,
                                ProofGenerator* pfg,
                                bool removable,
                                bool preprocess,
                                bool sendAtoms)
 {
   Assert(pfg != nullptr);
-  d_out.lemma(lem, removable, preprocess, sendAtoms);
-  d_lemmaProofGen[lem] = pfg;
+  d_lemPfGen[lem] = pfg;
+  return d_out.lemma(lem, removable, preprocess, sendAtoms);
 }
 
-std::shared_ptr<ProofNode> ProofOutputChannel::getProofForLemma(Node lem) const
+std::shared_ptr<ProofNode> ProofOutputChannel::getProof(Node n) const
 {
-  NodeProofGenMap::const_iterator it = d_lemmaProofGen.find(lem);
-  Assert(it != d_lemmaProofGen.end());
-  std::shared_ptr<ProofNode> ret = (*it).second->getProofForLemma(lem);
+  NodeProofGenMap::const_iterator it = d_lemPfGen.find(n);
+  Assert(it != d_lemPfGen.end());
+  std::shared_ptr<ProofNode> ret = (*it).second->getProof(n);
   Assert(ret != nullptr)
-      << "ProofOutputChannel::getProofForLemma: could not generate proof for "
-      << lem << std::endl;
+      << "ProofOutputChannel::getProof: could not generate proof for "
+      << n << std::endl;
   return ret;
 }
 
