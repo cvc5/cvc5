@@ -17,10 +17,10 @@
 #ifndef CVC4__THEORY__PROOF_OUTPUT_CHANNEL_H
 #define CVC4__THEORY__PROOF_OUTPUT_CHANNEL_H
 
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_node.h"
 #include "theory/output_channel.h"
-#include "context/cdhashmap.h"
 
 namespace CVC4 {
 namespace theory {

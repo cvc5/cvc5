@@ -37,7 +37,7 @@ void ProofOutputChannel::lemma(Node lem,
                                bool preprocess,
                                bool sendAtoms)
 {
-  Assert( pfg != nullptr );
+  Assert(pfg != nullptr);
   d_out.lemma(lem, removable, preprocess, sendAtoms);
   d_lemmaProofGen[lem] = pfg;
 }
