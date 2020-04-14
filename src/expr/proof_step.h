@@ -25,6 +25,20 @@ namespace CVC4 {
  * An enumeration for proof steps. This enumeration is analogous to Kind for
  * Node objects. In the documentation below, P:F denotes a ProofNode that
  * proves formula F.
+ *
+ * Conceptually, the following proof rules form a calculus whose target
+ * user is the Node-level theory solvers. This means that the rules below
+ * are designed to encode the behavior of the internal solvers. This includes
+ * among other things, common operations on Node objects like Rewriter::rewrite
+ * or Node::substitute. It is intended to be translated or printed in other
+ * formats.
+ * 
+ * The following ProofStep values include core rules and those categorized by
+ * theory, including the theory of equality.
+ * 
+ * The "core rules" include ASSUME, which represents an open leaf in a proof.
+ * The core rules additionally correspond to generic operations that are done
+ * internally on nodes, e.g. calling Rewriter::rewrite.
  */
 enum class ProofStep : uint32_t
 {
