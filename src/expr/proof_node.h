@@ -26,6 +26,7 @@ namespace CVC4 {
 
 class ProofChecker;
 class CDProof;
+class ProofNodeManager;
 
 /** A node in a proof
  *
@@ -45,6 +46,7 @@ class ProofNode
 {
   friend class ProofChecker;
   friend class CDProof;
+  friend class ProofNodeManager;
 
  public:
   ProofNode(ProofStep id,
