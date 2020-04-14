@@ -151,7 +151,8 @@ class RegExpOpr {
    * Returns true if we can show that the regular expression `r1` includes
    * the regular expression `r2` (i.e. `r1` matches a superset of sequences
    * that `r2` matches). See documentation in RegExpEntail::regExpIncludes for
-   * more details. This call caches the result, for performances reasons.
+   * more details. This call caches the result (which is context-independent),
+   * for performance reasons.
    */
   bool regExpIncludes(Node r1, Node r2);
 };
