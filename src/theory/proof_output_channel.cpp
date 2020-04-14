@@ -32,20 +32,21 @@ ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
 }
 
 void ProofOutputChannel::lemma(Node lem,
-                               ProofGenerator* pfgen,
+                               ProofGenerator* pfg,
                                bool removable,
                                bool preprocess,
                                bool sendAtoms)
 {
-  d_out->lemma(lem, removable, preprocess, sendAtoms);
-  d_lemmaProofGen[lem] = pfGen;
+  Assert( pfg != nullptr );
+  d_out.lemma(lem, removable, preprocess, sendAtoms);
+  d_lemmaProofGen[lem] = pfg;
 }
 
 std::shared_ptr<ProofNode> ProofOutputChannel::getProofForLemma(Node lem) const
 {
   NodeProofGenMap::const_iterator it = d_lemmaProofGen.find(lem);
   Assert(it != d_lemmaProofGen.end());
-  std::shared_ptr<ProofNode> ret = (*it).getProofForLemma(lem);
+  std::shared_ptr<ProofNode> ret = (*it).second->getProofForLemma(lem);
   Assert(ret != nullptr)
       << "ProofOutputChannel::getProofForLemma: could not generate proof for "
       << lem << std::endl;
