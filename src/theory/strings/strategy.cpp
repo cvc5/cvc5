@@ -75,10 +75,6 @@ void Strategy::addStrategyStep(InferStep s, int effort, bool addBreak)
 {
   // must run check init first
   Assert((s == CHECK_INIT) == d_infer_steps.empty());
-  // must use check cycles when using flat forms
-  Assert(s != CHECK_FLAT_FORMS
-         || std::find(d_infer_steps.begin(), d_infer_steps.end(), CHECK_CYCLES)
-                != d_infer_steps.end());
   d_infer_steps.push_back(std::pair<InferStep, int>(s, effort));
   if (addBreak)
   {
@@ -104,6 +100,7 @@ void Strategy::initializeStrategy()
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_CONST_EQC);
     addStrategyStep(CHECK_EXTF_EVAL, 0);
+    // we must check cycles before using flat forms
     addStrategyStep(CHECK_CYCLES);
     if (options::stringFlatForms())
     {
