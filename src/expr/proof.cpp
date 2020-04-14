@@ -111,7 +111,7 @@ Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
   do
   {
     cur = visit.back();
-    curFact = cur->d_proven;
+    curFact = cur->getResult();
     visit.pop_back();
     it = visited.find(cur);
     if (it == visited.end())
@@ -138,11 +138,11 @@ Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
         std::vector<Node> pexp;
         for (const std::shared_ptr<ProofNode>& c : cur->d_children)
         {
-          Assert(!c->d_proven.isNull());
+          Assert(!c->getResult().isNull());
           pexp.push_back(c->d_proven);
         }
         // can ensure children at this point
-        Node res = registerStep(curFact, cur->d_id, pexp, cur->d_args, true);
+        Node res = registerStep(curFact, cur->getId(), pexp, cur->getArguments(), true);
         Assert(!res.isNull());
         visited[cur] = res;
       }
