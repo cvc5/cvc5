@@ -1,3 +1,4 @@
+; REQUIRES: proof
 ; COMMAND-LINE: --dump-unsat-cores-full
 ; EXPECT: unsat
 ; EXPECT: (
