@@ -52,6 +52,10 @@ class ProofNode
   ~ProofNode() {}
   /** get the id of this proof node */
   ProofStep getId() const;
+  /** Get children */
+  const std::vector<std::shared_ptr<ProofNode>>& getChildren() const;
+  /** Get arguments */
+  const std::vector<Node>& getArguments() const;
   /** get what this node proves, or the null node if this is an invalid proof */
   Node getResult() const;
   /** Get assumptions
@@ -63,7 +67,6 @@ class ProofNode
   void getAssumptions(std::vector<Node>& assump) const;
   /** Print debug on output strem os */
   void printDebug(std::ostream& os) const;
-
  private:
   /**
    * Set value, called to overwrite the contents of this ProofNode with the
