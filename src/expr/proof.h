@@ -33,7 +33,7 @@ namespace CVC4 {
  * This maintains a context-dependent map from formulas to ProofNode shared
  * pointers. When a proof step is registered, it internally uses ProofNode
  * pointer to link the steps in the proof together.
- * 
+ *
  * It is important to note that the premises of proof steps given to this class
  * may be *Node* not *ProofNode*. In other words, the user of this class does
  * not have to explicitly manage ProofNode objects while using this class.
@@ -47,7 +47,7 @@ namespace CVC4 {
  * Then getProof( A ) returns the proof of the form:
  *   ID_A( ID_B( ASSUME( D ) ), ASSUME( C ) )
  * Notice that the above calls to registerStep can be made in either order.
- * 
+ *
  * If the user wants to combine proofs, then a registerProof interface is
  * available. The method registerProof can be seen as syntax sugar for making
  * multiple calls to registerStep. Continuing the above example, if we call:
@@ -97,7 +97,7 @@ class CDProof
  public:
   CDProof(context::Context* c, ProofNodeManager* pnm);
   ~CDProof() {}
-  /** 
+  /**
    * Get proof for fact, or nullptr if it does not exist. Notice that this call
    * does *not* clone the ProofNode object. Hence, the returned proof may
    * be updated by further calls to this class. The caller should call
