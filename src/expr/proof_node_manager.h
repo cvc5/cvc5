@@ -78,7 +78,7 @@ class ProofNodeManager
    * @param children The updated children of the proof node.
    * @param args The updated arguments of the proof node.
    * @return true if the update was successful.
-   * 
+   *
    * Notice that updateNode always returns true if there is no underlying
    * checker.
    */

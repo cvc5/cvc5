@@ -48,7 +48,8 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
   if (it != d_checker.end())
   {
     // checker is already provided
-    Notice() << "ProofChecker::registerChecker: checker already exists for " << id << std::endl;
+    Notice() << "ProofChecker::registerChecker: checker already exists for "
+             << id << std::endl;
     return;
   }
   d_checker[id] = psc;
