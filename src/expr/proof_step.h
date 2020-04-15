@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_STEP_H
-#define CVC4__EXPR__PROOF_STEP_H
+#ifndef CVC4__EXPR__PROOF_RULE_H
+#define CVC4__EXPR__PROOF_RULE_H
 
-#include "util/safe_print.h"
+#include <iosfwd>
 
 namespace CVC4 {
 
 /**
- * An enumeration for proof steps. This enumeration is analogous to Kind for
+ * An enumeration for proof rules. This enumeration is analogous to Kind for
  * Node objects. In the documentation below, P:F denotes a ProofNode that
  * proves formula F.
  *
@@ -32,14 +32,14 @@ namespace CVC4 {
  * objects like Rewriter::rewrite or Node::substitute. It is intended to be
  * translated or printed in other formats.
  *
- * The following ProofStep values include core rules and those categorized by
+ * The following ProofRule values include core rules and those categorized by
  * theory, including the theory of equality.
  *
  * The "core rules" include ASSUME, which represents an open leaf in a proof.
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
  */
-enum class ProofStep : uint32_t
+enum class ProofRule : uint32_t
 {
   //================================================= Core rules
   // ======== Assumption (a leaf)
@@ -54,25 +54,25 @@ enum class ProofStep : uint32_t
 };
 
 /**
- * Converts a proof step to a string. Note: This function is also used in
+ * Converts a proof rule to a string. Note: This function is also used in
  * `safe_print()`. Changing this function name or signature will result in
  * `safe_print()` printing "<unsupported>" instead of the proper strings for
  * the enum values.
  *
- * @param id The proof step
- * @return The name of the proof step
+ * @param id The proof rule
+ * @return The name of the proof rule
  */
-const char* toString(ProofStep id);
+const char* toString(ProofRule id);
 
 /**
- * Writes a proof step name to a stream.
+ * Writes a proof rule name to a stream.
  *
  * @param out The stream to write to
- * @param id The proof step to write to the stream
+ * @param id The proof rule to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, ProofStep id);
+std::ostream& operator<<(std::ostream& out, ProofRule id);
 
 }  // namespace CVC4
 
-#endif /* CVC4__EXPR__PROOF_STEP_H */
+#endif /* CVC4__EXPR__PROOF_RULE_H */

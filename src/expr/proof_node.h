@@ -20,14 +20,14 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof_step.h"
+#include "expr/proof_rule.h"
 
 namespace CVC4 {
 
 /** A node in a proof
  *
  * A ProofNode represents a single step in a proof. It contains:
- * (1) d_id, an identifier indicating the type of inference,
+ * (1) d_id, an identifier indicating the kind of inference,
  * (2) d_children, the child ProofNode objects indicating its premises,
  * (3) d_args, additional arguments used to determine the conclusion,
  * (4) d_proven, cache of the formula that this ProofNode proves.
@@ -47,12 +47,12 @@ namespace CVC4 {
 class ProofNode
 {
  public:
-  ProofNode(ProofStep id,
+  ProofNode(ProofRule id,
             const std::vector<std::shared_ptr<ProofNode>>& children,
             const std::vector<Node>& args);
   ~ProofNode() {}
   /** get the id of this proof node */
-  ProofStep getId() const;
+  ProofRule getId() const;
   /** Get children */
   const std::vector<std::shared_ptr<ProofNode>>& getChildren() const;
   /** Get arguments */
@@ -74,11 +74,11 @@ class ProofNode
    * Set value, called to overwrite the contents of this ProofNode with the
    * given arguments.
    */
-  void setValue(ProofStep id,
+  void setValue(ProofRule id,
                 const std::vector<std::shared_ptr<ProofNode>>& children,
                 const std::vector<Node>& args);
   /** The proof step */
-  ProofStep d_id;
+  ProofRule d_id;
   /** The children of this proof node */
   std::vector<std::shared_ptr<ProofNode>> d_children;
   /** arguments of this node */

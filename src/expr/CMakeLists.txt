@@ -35,8 +35,8 @@ libcvc4_add_sources(
   node_visitor.h
   proof_node.cpp
   proof_node.h
-  proof_step.cpp
-  proof_step.h
+  proof_rule.cpp
+  proof_rule.h
   symbol_table.cpp
   symbol_table.h
   term_canonize.cpp
