@@ -92,15 +92,17 @@ class InferenceManager
    * sendInference below in that it does not introduce any new non-constant
    * terms to the state.
    *
-   * The argument c is a string identifying the reason for the inference.
-   * This string is used for debugging purposes.
+   * The argument infer identifies the reason for the inference.
+   * This is used for debugging and statistics purposes.
    *
    * Return true if the inference is complete, in the sense that we infer
    * inferences that are equivalent to conc. This returns false e.g. if conc
    * (or one of its conjuncts if it is a conjunction) was not inferred due
    * to the criteria mentioned above.
    */
-  bool sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
+  bool sendInternalInference(std::vector<Node>& exp,
+                             Node conc,
+                             Inference infer);
   /** send inference
    *
    * This function should be called when ( exp ^ exp_n ) => eq. The set exp
@@ -127,8 +129,9 @@ class InferenceManager
    * exp_n is empty. In particular, lemmas must be used whenever exp_n is
    * non-empty, conflicts are used when exp_n is empty and eq is false.
    *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
+   * The argument infer identifies the reason for inference, used for
+   * debugging. This updates the statistics about the number of inferences made
+   * of each type.
    *
    * If the flag asLemma is true, then this method will send a lemma instead
    * of an inference whenever applicable.
@@ -136,30 +139,9 @@ class InferenceManager
   void sendInference(const std::vector<Node>& exp,
                      const std::vector<Node>& exp_n,
                      Node eq,
-                     const char* c,
-                     bool asLemma = false);
-  /** same as above, but where exp_n is empty */
-  void sendInference(const std::vector<Node>& exp,
-                     Node eq,
-                     const char* c,
-                     bool asLemma = false);
-
-  /**
-   * The same as `sendInference()` above but with an `Inference` instead of a
-   * string. This variant updates the statistics about the number of inferences
-   * made of each type.
-   */
-  void sendInference(const std::vector<Node>& exp,
-                     const std::vector<Node>& exp_n,
-                     Node eq,
                      Inference infer,
                      bool asLemma = false);
-
-  /**
-   * The same as `sendInference()` above but with an `Inference` instead of a
-   * string. This variant updates the statistics about the number of inferences
-   * made of each type.
-   */
+  /** same as above, but where exp_n is empty */
   void sendInference(const std::vector<Node>& exp,
                      Node eq,
                      Inference infer,
@@ -177,13 +159,15 @@ class InferenceManager
    * lemma. We additionally request a phase requirement for the equality a=b
    * with polarity preq.
    *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
+   * The argument infer identifies the reason for inference, used for
+   * debugging. This updates the statistics about the number of
+   * inferences made of each type.
    *
    * This method returns true if the split was non-trivial, and false
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
-  bool sendSplit(Node a, Node b, const char* c, bool preq = true);
+  bool sendSplit(Node a, Node b, Inference infer, bool preq = true);
+
   /** Send phase requirement
    *
    * This method is called to indicate this class should send a phase
@@ -331,17 +315,17 @@ class InferenceManager
    * above lemma to the lemma cache d_pending_lem, which may be flushed
    * later within the current call to TheoryStrings::check.
    *
-   * The argument c is a string identifying the reason for inference, used for
+   * The argument infer identifies the reason for inference, used for
    * debugging.
    */
-  void sendLemma(Node ant, Node conc, const char* c);
+  void sendLemma(Node ant, Node conc, Inference infer);
   /**
    * Indicates that conc should be added to the equality engine of this class
    * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
    * of) literals that each are explainable, i.e. they already hold in the
    * equality engine of this class.
    */
-  void sendInfer(Node eq_exp, Node eq, const char* c);
+  void sendInfer(Node eq_exp, Node eq, Inference infer);
   /**
    * Get the lemma required for registering the length information for
    * atomic term n given length status s. For details, see registerTermAtomic.

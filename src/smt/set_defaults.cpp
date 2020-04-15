@@ -45,6 +45,49 @@ namespace smt {
 
 void setDefaults(SmtEngine& smte, LogicInfo& logic)
 {
+  // implied options
+  if (options::checkModels() || options::dumpModels())
+  {
+    Notice() << "SmtEngine: setting produceModels" << std::endl;
+    options::produceModels.set(true);
+  }
+  if (options::checkModels())
+  {
+    Notice() << "SmtEngine: setting produceAssignments" << std::endl;
+    options::produceAssignments.set(true);
+  }
+  if (options::dumpUnsatCoresFull())
+  {
+    Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
+    options::dumpUnsatCores.set(true);
+  }
+  if (options::checkUnsatCores() || options::dumpUnsatCores()
+      || options::unsatAssumptions())
+  {
+    Notice() << "SmtEngine: setting unsatCores" << std::endl;
+    options::unsatCores.set(true);
+  }
+  if (options::checkProofs() || options::dumpProofs())
+  {
+    Notice() << "SmtEngine: setting proof" << std::endl;
+    options::proof.set(true);
+  }
+  if (options::bitvectorAigSimplifications.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
+    options::bitvectorAig.set(true);
+  }
+  if (options::bitvectorEqualitySlicer.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorEqualitySolver" << std::endl;
+    options::bitvectorEqualitySolver.set(true);
+  }
+  if (options::bitvectorAlgebraicBudget.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
+    options::bitvectorAlgebraicSolver.set(true);
+  }
+
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
@@ -97,6 +140,29 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   if (options::solveBVAsInt() > 0)
   {
+    // not compatible with incremental
+    if (options::incrementalSolving())
+    {
+      throw OptionException(
+          "solving bitvectors as integers is currently not supported "
+          "when solving incrementally.");
+    }
+    else if (options::boolToBitvector() != options::BoolToBVMode::OFF)
+    {
+      throw OptionException(
+          "solving bitvectors as integers is incompatible with --bool-to-bv.");
+    }
+    if (options::solveBVAsInt() > 8)
+    {
+      /**
+       * The granularity sets the size of the ITE in each element
+       * of the sum that is generated for bitwise operators.
+       * The size of the ITE is 2^{2*granularity}.
+       * Since we don't want to introduce ITEs with unbounded size,
+       * we bound the granularity.
+       */
+      throw OptionException("solve-bv-as-int accepts values from 0 to 8.");
+    }
     if (logic.isTheoryEnabled(THEORY_BV))
     {
       logic = logic.getUnlockedCopy();
@@ -466,23 +532,25 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  // Theory widening
+  //
+  // Some theories imply the use of other theories to handle certain operators,
+  // e.g. UF to handle partial functions.
+  /////////////////////////////////////////////////////////////////////////////
+  bool needsUf = false;
   // strings require LIA, UF; widen the logic
   if (logic.isTheoryEnabled(THEORY_STRINGS))
   {
     LogicInfo log(logic.getUnlockedCopy());
     // Strings requires arith for length constraints, and also UF
-    if (!logic.isTheoryEnabled(THEORY_UF))
-    {
-      Trace("smt") << "because strings are enabled, also enabling UF"
-                   << std::endl;
-      log.enableTheory(THEORY_UF);
-    }
+    needsUf = true;
     if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic()
         || !logic.areIntegersUsed())
     {
-      Trace("smt") << "because strings are enabled, also enabling linear "
-                      "integer arithmetic"
-                   << std::endl;
+      Notice()
+          << "Enabling linear integer arithmetic because strings are enabled"
+          << std::endl;
       log.enableTheory(THEORY_ARITH);
       log.enableIntegers();
       log.arithOnlyLinear();
@@ -490,21 +558,34 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     logic = log;
     logic.lock();
   }
-  if (logic.isTheoryEnabled(THEORY_ARRAYS)
+  if (needsUf
+      // Arrays, datatypes and sets permit Boolean terms and thus require UF
+      || logic.isTheoryEnabled(THEORY_ARRAYS)
       || logic.isTheoryEnabled(THEORY_DATATYPES)
-      || logic.isTheoryEnabled(THEORY_SETS))
+      || logic.isTheoryEnabled(THEORY_SETS)
+      // Non-linear arithmetic requires UF to deal with division/mod because
+      // their expansion introduces UFs for the division/mod-by-zero case.
+      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
+      // If division/mod-by-zero is not treated as a constant value in BV, we
+      // need UF.
+      || (logic.isTheoryEnabled(THEORY_BV)
+          && !options::bitvectorDivByZeroConst())
+      // FP requires UF since there are multiple operators that are partially
+      // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
+      // details).
+      || logic.isTheoryEnabled(THEORY_FP))
   {
     if (!logic.isTheoryEnabled(THEORY_UF))
     {
       LogicInfo log(logic.getUnlockedCopy());
-      Trace("smt") << "because a theory that permits Boolean terms is enabled, "
-                      "also enabling UF"
-                   << std::endl;
+      Notice() << "Enabling UF because " << logic << " requires it."
+               << std::endl;
       log.enableTheory(THEORY_UF);
       logic = log;
       logic.lock();
     }
   }
+  /////////////////////////////////////////////////////////////////////////////
 
   // by default, symmetry breaker is on only for non-incremental QF_UF
   if (!options::ufSymmetryBreaker.wasSetByUser())
@@ -714,6 +795,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     options::ufssFairnessMonotone.set(false);
     options::quantEpr.set(false);
     options::globalNegate.set(false);
+    options::bvAbstraction.set(false);
+    options::arithMLTrick.set(false);
   }
   if (logic.hasCardinalityConstraints())
   {
@@ -780,6 +863,17 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       // by default, use store axioms only if --ho-elim is set
       options::hoElimStoreAx.set(options::hoElim());
+    }
+    if (!options::assignFunctionValues())
+    {
+      // must assign function values
+      options::assignFunctionValues.set(true);
+    }
+    // Cannot use macros, since lambda lifting and macro elimination are inverse
+    // operations.
+    if (options::macrosQuant())
+    {
+      options::macrosQuant.set(false);
     }
   }
   if (options::fmfFunWellDefinedRelevant())
@@ -1029,6 +1123,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       // cannot do nested quantifier elimination in incremental mode
       options::cbqiNestedQE.set(false);
+      options::cbqiPreRegInst.set(false);
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
@@ -1346,6 +1441,17 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
                << sOptNoModel << std::endl;
       smte.setOption("check-models", SExpr("false"));
     }
+  }
+
+  if (options::bitblastMode() == options::BitblastMode::EAGER
+      && !logic.isPure(THEORY_BV) && logic.getLogicString() != "QF_UFBV"
+      && logic.getLogicString() != "QF_ABV")
+  {
+    throw OptionException(
+        "Eager bit-blasting does not currently support theory combination. "
+        "Note that in a QF_BV problem UF symbols can be introduced for "
+        "division. "
+        "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 }
 

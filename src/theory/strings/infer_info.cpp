@@ -26,7 +26,15 @@ const char* toString(Inference i)
     case Inference::I_CONST_MERGE: return "I_CONST_MERGE";
     case Inference::I_CONST_CONFLICT: return "I_CONST_CONFLICT";
     case Inference::I_NORM: return "I_NORM";
+    case Inference::CARD_SP: return "CARD_SP";
     case Inference::CARDINALITY: return "CARDINALITY";
+    case Inference::I_CYCLE_E: return "I_CYCLE_E";
+    case Inference::I_CYCLE: return "I_CYCLE";
+    case Inference::F_CONST: return "F_CONST";
+    case Inference::F_UNIFY: return "F_UNIFY";
+    case Inference::F_ENDPOINT_EMP: return "F_ENDPOINT_EMP";
+    case Inference::F_ENDPOINT_EQ: return "F_ENDPOINT_EQ";
+    case Inference::F_NCTN: return "F_NCTN";
     case Inference::N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
     case Inference::N_UNIFY: return "N_UNIFY";
     case Inference::N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";
@@ -39,6 +47,22 @@ const char* toString(Inference i)
     case Inference::SSPLIT_CST: return "SSPLIT_CST";
     case Inference::SSPLIT_VAR: return "SSPLIT_VAR";
     case Inference::FLOOP: return "FLOOP";
+    case Inference::FLOOP_CONFLICT: return "FLOOP_CONFLICT";
+    case Inference::NORMAL_FORM: return "NORMAL_FORM";
+    case Inference::N_NCTN: return "N_NCTN";
+    case Inference::LEN_NORM: return "LEN_NORM";
+    case Inference::DEQ_DISL_EMP_SPLIT: return "DEQ_DISL_EMP_SPLIT";
+    case Inference::DEQ_DISL_FIRST_CHAR_EQ_SPLIT:
+      return "DEQ_DISL_FIRST_CHAR_EQ_SPLIT";
+    case Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
+      return "DEQ_DISL_FIRST_CHAR_STRING_SPLIT";
+    case Inference::DEQ_STRINGS_EQ: return "DEQ_STRINGS_EQ";
+    case Inference::DEQ_DISL_STRINGS_SPLIT: return "DEQ_DISL_STRINGS_SPLIT";
+    case Inference::DEQ_LENS_EQ: return "DEQ_LENS_EQ";
+    case Inference::DEQ_NORM_EMP: return "DEQ_NORM_EMP";
+    case Inference::DEQ_LENGTH_SP: return "DEQ_LENGTH_SP";
+    case Inference::CODE_PROXY: return "CODE_PROXY";
+    case Inference::CODE_INJ: return "CODE_INJ";
     case Inference::RE_NF_CONFLICT: return "RE_NF_CONFLICT";
     case Inference::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
     case Inference::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
@@ -50,6 +74,9 @@ const char* toString(Inference i)
     case Inference::RE_DERIVE: return "RE_DERIVE";
     case Inference::EXTF: return "EXTF";
     case Inference::EXTF_N: return "EXTF_N";
+    case Inference::EXTF_D: return "EXTF_D";
+    case Inference::EXTF_D_N: return "EXTF_D_N";
+    case Inference::EXTF_EQ_REW: return "EXTF_EQ_REW";
     case Inference::CTN_TRANS: return "CTN_TRANS";
     case Inference::CTN_DECOMPOSE: return "CTN_DECOMPOSE";
     case Inference::CTN_NEG_EQUAL: return "CTN_NEG_EQUAL";

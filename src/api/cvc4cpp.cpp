@@ -245,6 +245,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {JOIN_IMAGE, CVC4::Kind::JOIN_IMAGE},
     {IDEN, CVC4::Kind::IDEN},
     {COMPREHENSION, CVC4::Kind::COMPREHENSION},
+    {CHOOSE, CVC4::Kind::CHOOSE},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, CVC4::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, CVC4::Kind::STRING_IN_REGEXP},
@@ -513,6 +514,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::JOIN_IMAGE, JOIN_IMAGE},
         {CVC4::Kind::IDEN, IDEN},
         {CVC4::Kind::COMPREHENSION, COMPREHENSION},
+        {CVC4::Kind::CHOOSE, CHOOSE},
         /* Strings --------------------------------------------------------- */
         {CVC4::Kind::STRING_CONCAT, STRING_CONCAT},
         {CVC4::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -1139,12 +1141,6 @@ Kind Op::getKind() const
 {
   CVC4_API_CHECK(d_kind != NULL_EXPR) << "Expecting a non-null Kind";
   return d_kind;
-}
-
-Sort Op::getSort() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  return Sort(d_expr->getType());
 }
 
 bool Op::isNull() const { return isNullHelper(); }
@@ -2392,7 +2388,7 @@ Term Solver::mkTermFromKind(Kind kind) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTermInternal(Kind kind, const std::vector<Term>& children) const
+Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   for (size_t i = 0, size = children.size(); i < size; ++i)
@@ -3265,12 +3261,12 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 {
   // need to use internal term call to check e.g. associative construction
-  return mkTermInternal(kind, std::vector<Term>{child1, child2, child3});
+  return mkTermHelper(kind, std::vector<Term>{child1, child2, child3});
 }
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  return mkTermInternal(kind, children);
+  return mkTermHelper(kind, children);
 }
 
 Term Solver::mkTerm(Op op) const
