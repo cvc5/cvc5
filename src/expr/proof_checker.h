@@ -24,7 +24,7 @@
 
 namespace CVC4 {
 
-/** A virtual base class for checking proofs */
+/** A virtual base class for checking a proof rule */
 class ProofRuleChecker
 {
  public:

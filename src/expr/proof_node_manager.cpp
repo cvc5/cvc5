@@ -57,7 +57,7 @@ bool ProofNodeManager::updateNode(
   }
   // we update its value
   pn->setValue(id, children, args);
-  // proven field should be the same as the result
+  // proven field should already be the same as the result
   Assert(res == pn->d_proven);
   return true;
 }
