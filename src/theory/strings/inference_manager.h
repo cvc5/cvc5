@@ -346,12 +346,8 @@ class InferenceManager
   SolverState& d_state;
   /** cache of all skolems */
   SkolemCache& d_skCache;
-  /** the output channel
-   *
-   * This is a reference to the output channel of the theory of strings.
-   */
+  /** Reference to the output channel of the theory of strings. */
   OutputChannel& d_out;
-
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
 
