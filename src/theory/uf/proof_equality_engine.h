@@ -33,17 +33,19 @@ namespace theory {
 namespace eq {
 
 /**
- * A layer on top of an EqualityEngine. It tracks the reason for why all
- * facts are added to an EqualityEngine in a SAT-context dependent manner in a
- * context-dependent (CDProof) object. The proof of certain facts can be asked
- * via the getProof interface.
+ * A layer on top of an EqualityEngine. The goal of this class is manage the
+ * use of an EqualityEngine object in such a way that the proper proofs are
+ * internally constructed, and can be retrieved from this class when
+ * necessary.
+ * 
+ * It tracks the reason for why all facts are added to an EqualityEngine in a
+ * SAT-context dependent manner in a context-dependent (CDProof) object.
+ * 
+ * It is an eager proof generator (see theory/proof_generator.h), in that
+ * it stores (copies) of proofs for lemmas when it is required to do so.
  *
- * The goal of this class is manage the use of an EqualityEngine object.
  * A theory that is proof producing and uses the equality engine may use this
  * class to manage proofs that are justified by its underlying equality engine.
- *
- * It is an eager proof generator (see theory/proof_generator.h), in that
- * it stores
  */
 class ProofEqEngine : public EagerProofGenerator
 {
@@ -54,135 +56,70 @@ class ProofEqEngine : public EagerProofGenerator
   ProofEqEngine(context::Context* c,
                 context::UserContext* u,
                 EqualityEngine& ee,
-                ProofNodeManager* pnm);
+                ProofNodeManager* pnm,
+                bool pfEnabled = true
+               );
   ~ProofEqEngine() {}
-
-  /** Assert predicate by assumption */
-  Node assertLitAssume(Node lit);
-  /** Assert the predicate by proof step id, given explanation exp */
-  Node assertLit(Node lit, PfRule id, const std::vector<Node>& exp);
-  /** Assert (dis)equality by substitution + rewriting, given explanation exp */
-  Node assertEqSubsRewrite(Node lit, const std::vector<Node>& exp);
-
+  /** Assert predicate lit by assumption */
+  bool assertAssume(Node lit);
+  /** 
+   * Assert the predicate lit by proof step id, given explanation exp and
+   * (optionally) arguments args.
+   * 
+   */
+  bool assertFact(Node lit, PfRule id, const std::vector<Node>& exp);
+  bool assertFact(Node lit, PfRule id, const std::vector<Node>& exp, const std::vector<Node>& args);
+  /** 
+   * Get proven lemma from contradictory facts. This method is called when
+   * the proof rule with premises exp and arguments args implies a contradiction
+   * by proof rule id.
+   * 
+   * This method returns the corresponding conflict resulting from adding this
+   * step, and ensures that a proof has been stored internally so that this
+   * class may respond to a call to ProofGenerator::getProof(...).
+   */
+  Node assertConflict(PfRule id, const std::vector<Node>& exp);
+  Node assertConflict(PfRule id, const std::vector<Node>& exp, const std::vector<Node>& args);
+ protected:
+  /** 
+   * Make proof for fact lit, or nullptr if it does not exist. It must be the
+   * case that lit was either:
+   * (1) Passed as the first argument to either a variant of assertAssume or
+   * assertFact in the current SAT context,
+   * (2) lit is false and a call was made to assertConflict in the current SAT
+   * context. 
+   */
+  std::shared_ptr<ProofNode> mkProofForFact(Node lit) const;
+  /** Assert internal */
+  void assertInternal(Node pred, bool polarity, TNode reason);
+  /**
+   * Make the conjunction of nodes in a. Returns true if a is empty, and a
+   * single literal if a has size 1.
+   */
+  Node mkAnd(const std::vector<Node>& a);
+ private:
+  /** Reference to the equality engine */
+  eq::EqualityEngine& d_ee;
+  /** common nodes */
+  Node d_true;
+  Node d_false;
+  /** The SAT-context-dependent proof object */
+  CDProof d_proof;
+  /** 
+   * Whether proofs are enabled. If this flag is false, then this class acts
+   * as a simplified interface to the EqualityEngine, without proofs.
+   */
+  bool d_pfEnabled;
   /** Explain
    *
-   * This adds to assertions the set of assertions that were asserted to this
+   * This adds to assumps the set of facts that were asserted to this
    * class in the current SAT context by calls to assertAssume that are
    * required for showing lit.
    *
    * This additionally registers the equality proof steps required to
    * regress the explanation of lit.
    */
-  void explain(Node lit, std::vector<TNode>& assertions);
-
- protected:
-  /** TODO: necessary?
-   * Get proof for fact lit, or nullptr if it does not exist. It must be the
-   * case that lit was passed as the first argument to either a variant of
-   * assertLit or explain.
-   */
-  std::shared_ptr<ProofNode> getProofForFact(Node lit) const;
-  /** Assert internal */
-  void assertInternal(Node pred, bool polarity, TNode reason);
-  // ----------------------- common proof utilities
-  /**
-   * The following functions ensure that a proof step is registered for
-   * an equality of a common form.
-   *
-   * They return the equality that is proven by the proof step, or Node::null()
-   * if the proof step was invalid.
-   *
-   * Each of these functions may take:
-   * - Terms, denoted a,b, which in part determine the conclusion of the
-   * given proof step.
-   * - Assumptions, denoted exp, eq1, eq2, which are premisesrequired to derive
-   * the conclusion.
-   *
-   * If ensureChildren is true, then it must be the case that proofs have been
-   * registered for each equality in the assumption.
-   */
-  /**
-   * Ensure ASSUME(F), which proves F, has been registed as a proof step
-   */
-  Node pfAssume(Node f);
-  /**
-   * Ensure REFL(a), which proves a = a, has been registed as a proof step.
-   */
-  Node pfRefl(Node a);
-  /**
-   * Ensure REWRITE(a), which proves a = rewrite(a) has been registed as a proof
-   * step.
-   */
-  Node pfRewrite(Node a);
-  /**
-   * TODO
-   * Ensure false has been registed as a proof step, where rewrite(eq) = false.
-   */
-  Node pfRewriteFalse(Node eq, bool ensureChildren = false);
-  /**
-   * Ensure SUBS(P[exp], a), which proves a = a.substitute^*(exp), has been
-   * registered as a proof step.
-   */
-  Node pfSubs(Node a,
-              const std::vector<Node>& exp,
-              bool ensureChildren = false);
-  /**
-   * Ensure REWRITE(SUBS(P[exp], a)), which proves
-   *   a = rewrite(a.subsitute^*(exp))
-   * has been registered as a proof step.
-   */
-  Node pfSubsRewrite(Node a,
-                     const std::vector<Node>& exp,
-                     bool ensureChildren = false);
-  /**
-   * Ensure that:
-   *   TRANS(REWRITE(SUBS(P[exp], a)),SYMM(REWRITE(SUBS(P[exp], b))))
-   * which proves:
-   *   a = rewrite(a.substitute^*(exp)) = rewrite(b.substitute^*(exp)) = b
-   * has been registered as a proof step.
-   */
-  Node pfEqualBySubsRewrite(Node a,
-                            Node b,
-                            const std::vector<Node>& exp,
-                            bool ensureChildren = false);
-  /**
-   * TODO
-   * Ensure that:
-   *   a = rewrite(a.substitute^*(exp)) != rewrite(b.substitute^*(exp)) = b
-   * has been registered as a proof step.
-   */
-  Node pfDisequalBySubsRewrite(Node a,
-                               Node b,
-                               const std::vector<Node>& exp,
-                               bool ensureChildren = false);
-  /**
-   * Ensure that TRANS(P[eq1], P[eq2]), which proves:
-   *    eq1[0] = eq1[1] == eq2[0] = eq2[1]
-   * has been registered as a proof step. It must be the case that eq1[1] is
-   * the same as eq2[0].
-   */
-  Node pfTrans(Node eq1, Node eq2, bool ensureChildren = false);
-  /**
-   * Ensure that SYMM(P[eq]), which proves eq[1] = eq[0], has been registered as
-   * a proof step.
-   */
-  Node pfSymm(Node eq, bool ensureChildren = false);
-  // ----------------------- end standard proofs
-  /**
-   * Make the conjunction of nodes in a. Returns true if a is empty, and a
-   * single literal if a has size 1.
-   */
-  Node mkAnd(const std::vector<Node>& a);
-
- private:
-  /** Reference to the equality engine */
-  eq::EqualityEngine& d_ee;
-  /** common nodes */
-  Node d_true;
-  /** The proof */
-  CDProof d_proof;
-  /** Whether proofs are enabled */
-  bool d_proofsEnabled;
+  void explainWithProof(Node lit, std::vector<TNode>& assumps);
 };
 
 }  // namespace eq

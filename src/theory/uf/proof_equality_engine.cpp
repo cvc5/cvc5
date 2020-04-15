@@ -26,72 +26,97 @@ namespace eq {
 ProofEqEngine::ProofEqEngine(context::Context* c,
                              context::UserContext* u,
                              EqualityEngine& ee,
-                             ProofNodeManager* pnm)
-    : EagerProofGenerator(u), d_ee(ee), d_proof(c, pnm), d_proofsEnabled(true)
+                             ProofNodeManager* pnm,
+                             bool pfEnabled
+                            )
+    : EagerProofGenerator(u), d_ee(ee), d_proof(c, pnm), d_pfEnabled(pfEnabled)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  NodeManager * nm = NodeManager::currentNM();
+  d_true = nm->mkConst(true);
+  d_false = nm->mkConst(false);
 }
 
-Node ProofEqEngine::assertLitAssume(Node lit)
+bool ProofEqEngine::assertAssume(Node lit)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
 
-  // first, justify its proof
-  Node ret = pfAssume(lit);
+  // first, register the step in the proof
+  std::vector<Node> exp;
+  std::vector<Node> args;
+  args.push_back(lit);
+  Node ret = d_proof.registerStep(lit, PfRule::ASSUME, exp, args);
 
-  // second, assert it to the equality engine
-  // it is its own explanation
+  // second, assert it to the equality engine, where it is its own explanation
   assertInternal(atom, polarity, lit);
 
-  Assert(lit == ret);
-  return ret;
+  Assert(lit==ret);
+  return lit==ret;
 }
 
-Node ProofEqEngine::assertLit(Node lit, PfRule id, const std::vector<Node>& exp)
+bool ProofEqEngine::assertFact(Node lit, PfRule id, const std::vector<Node>& exp)
+{
+  std::vector<Node> args;
+  return assertFact(lit, id, exp, args);
+}
+
+bool ProofEqEngine::assertFact(Node lit, PfRule id, const std::vector<Node>& exp, const std::vector<Node>& args)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
 
-  // first, justify its proof
-  std::vector<Node> args;
+  // first, register the step in the proof
   Node ret = d_proof.registerStep(lit, id, exp, args);
 
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(lit, polarity, reason);
-
-  Assert(lit == ret);
-  return ret;
+  
+  // return true if the proof was accurate
+  Assert(lit==ret);
+  return lit==ret;
 }
 
-Node ProofEqEngine::assertEqSubsRewrite(Node lit, const std::vector<Node>& exp)
+bool ProofEqEngine::assertFact(Node lit, PfRule id, const std::vector<Node>& exp)
 {
-  Node eq = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
-  Assert(eq.getKind() == EQUAL);
+  std::vector<Node> args;
+  return assertFact(lit, id, exp, args);
+}
 
-  // first, justify its proof
-  Node ret;
-  if (polarity)
+Node ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
+{
+  std::vector<Node> args;
+}
+
+Node ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp, const std::vector<Node>& args)
+{
+  // register the (conflicting) proof step
+  Node ret = d_proof.registerStep(d_false, id, exp, args);
+  
+  if (ret!=d_false)
   {
-    // eq[0] = rewrite(eq[0].substitute(exp)) = rewrite(eq[1].substitute(exp)) =
-    // eq[1]
-    ret = pfEqualBySubsRewrite(eq[0], eq[1], exp);
+    // a step went wrong, e.g. during checking
+    Assert(false);
+    return Node::null();
   }
-  else
+  
+  std::vector<TNode> assumps;
+  for (const Node& e : exp)
   {
-    // eq[0] = rewrite(eq[0].substitute(exp)) != rewrite(eq[1].substitute(exp))
-    // = eq[1]
-    ret = pfDisequalBySubsRewrite(eq[0], eq[1], exp);
+    explainWithProof(e, assumps);
   }
+  std::shared_ptr<ProofNode> pf = mkProofForFact(d_false);
+  
+}
 
-  // second, assert it to the equality engine
-  Node reason = mkAnd(exp);
-  assertInternal(eq, polarity, reason);
-
-  Assert(lit == ret);
-  return ret;
+std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
+{
+  std::shared_ptr<ProofNode> p = d_proof.getProof(lit);
+  if (p==nullptr)
+  {
+    return nullptr;
+  }
+  return p->clone();
 }
 
 void ProofEqEngine::assertInternal(Node atom, bool polarity, TNode reason)
@@ -106,13 +131,13 @@ void ProofEqEngine::assertInternal(Node atom, bool polarity, TNode reason)
   }
 }
 
-void ProofEqEngine::explain(Node lit, std::vector<TNode>& assertions)
+void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
 {
   std::shared_ptr<eq::EqProof> pf =
       d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
   bool polarity = lit.getKind() != NOT;
   TNode atom = polarity ? lit : lit[0];
-  std::vector<TNode> tassertions;
+  std::vector<TNode> tassumps;
   if (atom.getKind() == EQUAL)
   {
     if (atom[0] != atom[1])
@@ -123,19 +148,19 @@ void ProofEqEngine::explain(Node lit, std::vector<TNode>& assertions)
       {
         AlwaysAssert(d_ee.areDisequal(atom[0], atom[1], true));
       }
-      d_ee.explainEquality(atom[0], atom[1], polarity, tassertions, pf.get());
+      d_ee.explainEquality(atom[0], atom[1], polarity, tassumps, pf.get());
     }
   }
   else
   {
-    d_ee.explainPredicate(atom, polarity, tassertions, pf.get());
+    d_ee.explainPredicate(atom, polarity, tassumps, pf.get());
   }
   // avoid duplicates
-  for (const TNode a : tassertions)
+  for (const TNode a : tassumps)
   {
-    if (std::find(assertions.begin(), assertions.end(), a) == assertions.end())
+    if (std::find(assumps.begin(), assumps.end(), a) == assumps.end())
     {
-      assertions.push_back(a);
+      assumps.push_back(a);
     }
   }
   if (d_proofsEnabled)
@@ -145,134 +170,6 @@ void ProofEqEngine::explain(Node lit, std::vector<TNode>& assertions)
     // add the given proof to the proof object constructed by this class
     d_proof.registerProof(lit, pfn);
   }
-}
-
-Node ProofEqEngine::pfAssume(Node f)
-{
-  std::vector<Node> children;
-  std::vector<Node> args;
-  args.push_back(f);
-  return d_proof.registerStep(f, PfRule::ASSUME, children, args);
-}
-
-Node ProofEqEngine::pfRefl(Node a)
-{
-  Node fact = a.eqNode(a);
-  std::vector<Node> children;
-  std::vector<Node> args;
-  args.push_back(a);
-  return d_proof.registerStep(fact, PfRule::REFL, children, args);
-}
-
-Node ProofEqEngine::pfRewrite(Node a)
-{
-  Node ar = Rewriter::rewrite(a);
-  if (ar == a)
-  {
-    // no effect
-    return pfRefl(a);
-  }
-  Node fact = a.eqNode(ar);
-  std::vector<Node> children;
-  std::vector<Node> args;
-  args.push_back(a);
-  return d_proof.registerStep(fact, PfRule::REWRITE, children, args);
-}
-
-Node pfRewriteFalse(Node eq, bool ensureChildren) { return Node::null(); }
-
-Node ProofEqEngine::pfSubs(Node a,
-                           const std::vector<Node>& exp,
-                           bool ensureChildren)
-{
-  Node as = EqProofRuleChecker::applySubstitution(a, exp);
-  if (a == as)
-  {
-    // no effect
-    return pfRefl(a);
-  }
-  Node fact = a.eqNode(as);
-  std::vector<Node> args;
-  args.push_back(a);
-  return d_proof.registerStep(fact, PfRule::SUBS, exp, args, ensureChildren);
-}
-
-Node ProofEqEngine::pfSubsRewrite(Node a,
-                                  const std::vector<Node>& exp,
-                                  bool ensureChildren)
-{
-  Node eqSubs = pfSubs(a, exp, ensureChildren);
-  Node eqRew = pfRewrite(eqSubs[0]);
-  return pfTrans(eqSubs, eqRew, ensureChildren);
-}
-
-Node ProofEqEngine::pfEqualBySubsRewrite(Node a,
-                                         Node b,
-                                         const std::vector<Node>& exp,
-                                         bool ensureChildren)
-{
-  Node eqA = pfSubsRewrite(a, exp, ensureChildren);
-  Node eqB = pfSubsRewrite(b, exp, ensureChildren);
-  Node eqBSymm = pfSymm(eqB, ensureChildren);
-  return pfTrans(eqA, eqBSymm, ensureChildren);
-}
-
-Node ProofEqEngine::pfDisequalBySubsRewrite(Node a,
-                                            Node b,
-                                            const std::vector<Node>& exp,
-                                            bool ensureChildren)
-{
-  Node eqA = pfSubsRewrite(a, exp, ensureChildren);
-  Node eqB = pfSubsRewrite(b, exp, ensureChildren);
-  Node eqBSymm = pfSymm(eqB, ensureChildren);
-
-  // TODO
-  return Node::null();
-}
-
-Node ProofEqEngine::pfTrans(Node eq1, Node eq2, bool ensureChildren)
-{
-  Assert(eq1.getKind() == EQUAL);
-  Assert(eq2.getKind() == EQUAL);
-  if (eq1[1] != eq2[0])
-  {
-    // failed to connect
-    return Node::null();
-  }
-  if (eq1[0] == eq1[1])
-  {
-    // one part is trivial
-    return eq2;
-  }
-  else if (eq2[0] == eq2[1])
-  {
-    // other part is trivial
-    return eq1;
-  }
-  // otherwise, we need to make the transitivity proof
-  Node eqTrans = eq1[0].eqNode(eq2[1]);
-  std::vector<Node> children;
-  children.push_back(eq1);
-  children.push_back(eq2);
-  std::vector<Node> args;
-  return d_proof.registerStep(
-      eqTrans, PfRule::TRANS, children, args, ensureChildren);
-}
-
-Node ProofEqEngine::pfSymm(Node eq, bool ensureChildren)
-{
-  Assert(eq.getKind() == EQUAL);
-  if (eq[0] == eq[1])
-  {
-    // not necessary
-    return eq;
-  }
-  Node eqSymm = eq[1].eqNode(eq[0]);
-  std::vector<Node> children;
-  children.push_back(eq);
-  std::vector<Node> args;
-  return d_proof.registerStep(
-      eqSymm, PfRule::SYMM, children, args, ensureChildren);
 }
 
 Node ProofEqEngine::mkAnd(const std::vector<Node>& a)

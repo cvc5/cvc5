@@ -64,12 +64,12 @@ Node ProofOutputChannel::getLemmaKeyValue(Node lem) { return lem; }
 
 void ProofOutputChannel::requirePhase(TNode n, bool phase)
 {
-  d_out->requirePhase(n, phase);
+  d_out.requirePhase(n, phase);
 }
 
 void ProofOutputChannel::setIncomplete()
 {
-  d_out->setIncomplete();
+  d_out.setIncomplete();
 }
 
 }  // namespace theory
