@@ -35,7 +35,7 @@ InferenceManager::InferenceManager(context::Context* c,
                                    ExtTheory* e,
                                    OutputChannel& out,
                                    SequencesStatistics& statistics)
-    : d_state(s), d_termReg(tr), d_out(out), d_statistics(statistics), d_keep(c)
+    : d_state(s), d_termReg(tr), d_extt(e), d_out(out), d_statistics(statistics), d_keep(c)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));

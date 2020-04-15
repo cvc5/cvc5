@@ -295,9 +295,7 @@ class InferenceManager
    * equality engine of this class.
    */
   void sendInfer(Node eq_exp, Node eq, Inference infer);
-  /**
-   * This is a reference to the solver state of the theory of strings.
-   */
+  /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
   TermRegistry& d_termReg;
