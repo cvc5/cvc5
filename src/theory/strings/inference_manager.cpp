@@ -382,12 +382,14 @@ void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
   {
     // we must ensure these terms are registered
     Trace("strings-pending-debug") << "  Register term" << std::endl;
-    for (unsigned j = 0; j < 2; j++)
+    for (const Node& t : atom)
     {
       // terms in the equality engine are already registered, hence skip
-      if (!ee->hasTerm(atom[j]))
+      // currently done for only string-like terms, but this could potentially
+      // be avoided.
+      if (!ee->hasTerm(t) && t.getType().isStringLike())
       {
-        d_termReg.registerTerm(atom[j], 0);
+        d_termReg.registerTerm(t, 0);
       }
     }
     Trace("strings-pending-debug") << "  Now assert equality" << std::endl;
