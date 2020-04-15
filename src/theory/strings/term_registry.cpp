@@ -45,6 +45,7 @@ TermRegistry::TermRegistry(context::Context* c,
       d_statistics(statistics),
       d_hasStrCode(false),
       d_functionsTerms(c),
+      d_inputVars(u),
       d_preregisteredTerms(u),
       d_registeredTerms(u),
       d_registeredTypes(u),
@@ -85,72 +86,75 @@ void TermRegistry::preRegisterTerm(TNode n)
       throw LogicException(ss.str());
     }
   }
-  switch (k)
+  if (k==EQUAL)
   {
-    case EQUAL:
+    d_ee.addTriggerEquality(n);
+  }
+  else if (k==STRING_IN_REGEXP)
+  {
+    d_out.requirePhase(n, true);
+    d_ee.addTriggerPredicate(n);
+    d_ee.addTerm(n[0]);
+    d_ee.addTerm(n[1]);
+  }
+  registerTerm(n, 0);
+  TypeNode tn = n.getType();
+  if (tn.isRegExp() && n.isVar())
+  {
+    std::stringstream ss;
+    ss << "Regular expression variables are not supported.";
+    throw LogicException(ss.str());
+  }
+  if (tn.isString())
+  {
+    // all characters of constants should fall in the alphabet
+    if (n.isConst())
     {
-      d_ee.addTriggerEquality(n);
-      break;
-    }
-    case STRING_IN_REGEXP:
-    {
-      d_out.requirePhase(n, true);
-      d_ee.addTriggerPredicate(n);
-      d_ee.addTerm(n[0]);
-      d_ee.addTerm(n[1]);
-      break;
-    }
-    default:
-    {
-      registerTerm(n, 0);
-      TypeNode tn = n.getType();
-      if (tn.isRegExp() && n.isVar())
+      std::vector<unsigned> vec = n.getConst<String>().getVec();
+      for (unsigned u : vec)
       {
-        std::stringstream ss;
-        ss << "Regular expression variables are not supported.";
-        throw LogicException(ss.str());
-      }
-      if (tn.isString())
-      {
-        // all characters of constants should fall in the alphabet
-        if (n.isConst())
+        if (u >= d_cardSize)
         {
-          std::vector<unsigned> vec = n.getConst<String>().getVec();
-          for (unsigned u : vec)
-          {
-            if (u >= d_cardSize)
-            {
-              std::stringstream ss;
-              ss << "Characters in string \"" << n
-                 << "\" are outside of the given alphabet.";
-              throw LogicException(ss.str());
-            }
-          }
+          std::stringstream ss;
+          ss << "Characters in string \"" << n
+              << "\" are outside of the given alphabet.";
+          throw LogicException(ss.str());
         }
-        d_ee.addTerm(n);
       }
-      else if (tn.isBoolean())
-      {
-        // Get triggered for both equal and dis-equal
-        d_ee.addTriggerPredicate(n);
-      }
-      else
-      {
-        // Function applications/predicates
-        d_ee.addTerm(n);
-      }
-      // Set d_functionsTerms stores all function applications that are
-      // relevant to theory combination. Notice that this is a subset of
-      // the applications whose kinds are function kinds in the equality
-      // engine. This means it does not include applications of operators
-      // like re.++, which is not a function kind in the equality engine.
-      // Concatenation terms do not need to be considered here because
-      // their arguments have string type and do not introduce any shared
-      // terms.
-      if (n.hasOperator() && d_ee.isFunctionKind(k) && k != STRING_CONCAT)
-      {
-        d_functionsTerms.push_back(n);
-      }
+    }
+    d_ee.addTerm(n);
+  }
+  else if (tn.isBoolean())
+  {
+    // Get triggered for both equal and dis-equal
+    d_ee.addTriggerPredicate(n);
+  }
+  else
+  {
+    // Function applications/predicates
+    d_ee.addTerm(n);
+  }
+  // Set d_functionsTerms stores all function applications that are
+  // relevant to theory combination. Notice that this is a subset of
+  // the applications whose kinds are function kinds in the equality
+  // engine. This means it does not include applications of operators
+  // like re.++, which is not a function kind in the equality engine.
+  // Concatenation terms do not need to be considered here because
+  // their arguments have string type and do not introduce any shared
+  // terms.
+  if (n.hasOperator() && d_ee.isFunctionKind(k) && k != STRING_CONCAT)
+  {
+    d_functionsTerms.push_back(n);
+  }
+  if (options::stringFMF())
+  {
+    // Our decision strategy will minimize the length of this term if it is a
+    // variable but not an internally generated Skolem, or a term that does
+    // not belong to this theory.
+    if (n.isVar() ? !d_skCache.isSkolem(n) : kindToTheoryId(k) != THEORY_STRINGS)
+    {
+      d_inputVars.insert(n);
+      Trace("strings-preregister") << "input variable: " << n << std::endl;
     }
   }
 }
@@ -190,7 +194,7 @@ void TermRegistry::registerTerm(Node n, int effort)
     // register length information:
     //  for variables, split on empty vs positive length
     //  for concat/const/replace, introduce proxy var and state length relation
-    regTermLem = registerTerm(n);
+    regTermLem = getRegisterTermLemma(n);
   }
   else if (n.getKind() == STRING_TO_CODE)
   {
@@ -240,7 +244,7 @@ void TermRegistry::registerType(TypeNode tn)
   }
 }
 
-Node TermRegistry::registerTerm(Node n)
+Node TermRegistry::getRegisterTermLemma(Node n)
 {
   Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
@@ -332,6 +336,21 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
   }
 }
 
+SkolemCache* TermRegistry::getSkolemCache()
+{
+  return &d_skCache;
+}
+
+const context::CDList<TNode>& TermRegistry::getFunctionTerms() const
+{
+  return d_functionsTerms;
+}
+
+const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars() const
+{
+  return d_inputVars;
+}
+  
 Node TermRegistry::getRegisterTermAtomicLemma(Node n,
                                               LengthStatus s,
                                               std::map<Node, bool>& reqPhase)
@@ -452,6 +471,16 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
     }
   }
   return NodeManager::currentNM()->mkNode(n.getKind(), children);
+}
+
+Node TermRegistry::getProxyVariableFor(Node n) const
+{
+  NodeNodeMap::const_iterator it = d_proxyVar.find(n);
+  if (it != d_proxyVar.end())
+  {
+    return (*it).second;
+  }
+  return Node::null();
 }
 
 void TermRegistry::inferSubstitutionProxyVars(Node n,

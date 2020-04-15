@@ -87,7 +87,7 @@ class ExtfSolver
              context::UserContext* u,
              SolverState& s,
              InferenceManager& im,
-             SkolemCache& skc,
+             TermRegistry& tr,
              StringsRewriter& rewriter,
              BaseSolver& bs,
              CoreSolver& cs,
@@ -180,8 +180,8 @@ class ExtfSolver
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
   InferenceManager& d_im;
-  /** cache of all skolems */
-  SkolemCache& d_skCache;
+  /** Reference to the term registry of theory of strings */
+  TermRegistry& d_termReg;
   /** The theory rewriter for this theory. */
   StringsRewriter& d_rewriter;
   /** reference to the base solver, used for certain queries */

@@ -32,9 +32,10 @@ namespace strings {
 /**
  * This class manages all the (pre)registration tasks for terms. These tasks
  * include:
- * (1) Constructing preregistration lemmas for terms,
+ * (1) Sending out preregistration lemmas for terms,
  * (2) Add terms to the equality engine,
- * (3) Maintaining a list of terms (for theory combination).
+ * (3) Maintaining a list of terms d_functionsTerms (for theory combination),
+ * (4) Maintaining a list of input variables d_inputVars (for fmf).
  */
 class TermRegistry
 {
@@ -51,6 +52,11 @@ class TermRegistry
   ~TermRegistry();
   /**
    * Preregister term, called when TheoryStrings::preRegisterTerm(n) is called.
+   * 
+   * If we are using strings finite model finding (options::stringsFmf),
+   * this determines if the term n should be added to d_inputVars, the set
+   * of terms of type string whose length we are minimizing with its decision
+   * strategy.
    */
   void preRegisterTerm(TNode n);
   /** Register term
@@ -72,16 +78,6 @@ class TermRegistry
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
-  /** register term
-   *
-   * This method is called on non-constant string terms n. It returns a lemma
-   * that should be sent on the output channel of theory of strings upon
-   * registration of this term, or null if no lemma is necessary.
-   *
-   * If n is an atomic term, the method registerTermAtomic is called for n
-   * and s = LENGTH_SPLIT and no lemma is returned.
-   */
-  Node registerTerm(Node n);
   /** register length
    *
    * This method is called on non-constant string terms n that are "atomic"
@@ -108,7 +104,11 @@ class TermRegistry
   void registerTermAtomic(Node n, LengthStatus s);
   /** Get the skolem cache of this object */
   SkolemCache* getSkolemCache();
-  //---------------------------- proxy variables and length elaboration
+  /** Get the function terms */
+  const context::CDList<TNode>& getFunctionTerms() const;
+  /** Get the input variables */
+  const context::CDHashSet<Node, NodeHashFunction>& getInputVars() const;
+  //---------------------------- proxy variables
   /** Get symbolic definition
    *
    * This method returns the "symbolic definition" of n, call it n', and
@@ -126,68 +126,6 @@ class TermRegistry
    * exists, otherwise it returns null.
    */
   Node getProxyVariableFor(Node n) const;
-  //---------------------------- end proxy variables and length elaboration
- private:
-  /** Common constants */
-  Node d_zero;
-  Node d_one;
-  Node d_negOne;
-  /** the cardinality of the alphabet */
-  uint32_t d_cardSize;
-  /** Reference to equality engine of the theory of strings. */
-  eq::EqualityEngine& d_ee;
-  /** Reference to the output channel of the theory of strings. */
-  OutputChannel& d_out;
-  /** Reference to the statistics for the theory of strings/sequences. */
-  SequencesStatistics& d_statistics;
-  /** have we asserted any str.code terms? */
-  bool d_hasStrCode;
-  /** The cache of all skolems, which is owned by this class. */
-  SkolemCache d_skCache;
-  /** All function terms that the theory has seen in the current SAT context */
-  context::CDList<TNode> d_functionsTerms;
-  /** The user-context dependent cache of terms that have been preregistered */
-  NodeSet d_preregisteredTerms;
-  /** The user-context dependent cache of terms that have been registered */
-  NodeSet d_registeredTerms;
-  /** The types that we have preregistered */
-  TypeNodeSet d_registeredTypes;
-  /**
-   * Map string terms to their "proxy variables". Proxy variables are used are
-   * intermediate variables so that length information can be communicated for
-   * constants. For example, to communicate that "ABC" has length 3, we
-   * introduce a proxy variable v_{"ABC"} for "ABC", and assert:
-   *   v_{"ABC"} = "ABC" ^ len( v_{"ABC"} ) = 3
-   * Notice this is required since we cannot directly write len( "ABC" ) = 3,
-   * which rewrites to 3 = 3.
-   * In the above example, we store "ABC" -> v_{"ABC"} in this map.
-   */
-  NodeNodeMap d_proxyVar;
-  /**
-   * Map from proxy variables to their normalized length. In the above example,
-   * we store "ABC" -> 3.
-   */
-  NodeNodeMap d_proxyVarToLength;
-  /** List of terms that we have register length for */
-  NodeSet d_lengthLemmaTermsCache;
-  /** Register type
-   *
-   * Ensures the theory solver is setup to handle string-like type tn. In
-   * particular, this includes:
-   * - Calling preRegisterTerm on the empty word for tn
-   */
-  void registerType(TypeNode tn);
-  /**
-   * Get the lemma required for registering the length information for
-   * atomic term n given length status s. For details, see registerTermAtomic.
-   *
-   * Additionally, this method may map literals to a required polarity in the
-   * argument reqPhase, which should be processed by a call to requiredPhase by
-   * the caller of this method.
-   */
-  Node getRegisterTermAtomicLemma(Node n,
-                                  LengthStatus s,
-                                  std::map<Node, bool>& reqPhase);
 
   /** infer substitution proxy vars
    *
@@ -222,6 +160,82 @@ class TermRegistry
                                   std::vector<Node>& vars,
                                   std::vector<Node>& subs,
                                   std::vector<Node>& unproc) const;
+  //---------------------------- end proxy variables
+ private:
+  /** Common constants */
+  Node d_zero;
+  Node d_one;
+  Node d_negOne;
+  /** the cardinality of the alphabet */
+  uint32_t d_cardSize;
+  /** Reference to equality engine of the theory of strings. */
+  eq::EqualityEngine& d_ee;
+  /** Reference to the output channel of the theory of strings. */
+  OutputChannel& d_out;
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
+  /** have we asserted any str.code terms? */
+  bool d_hasStrCode;
+  /** The cache of all skolems, which is owned by this class. */
+  SkolemCache d_skCache;
+  /** All function terms that the theory has seen in the current SAT context */
+  context::CDList<TNode> d_functionsTerms;
+  /**
+   * The set of terms of type string that are abstracted as leaf nodes.
+   */
+  NodeSet d_inputVars;
+  /** The user-context dependent cache of terms that have been preregistered */
+  NodeSet d_preregisteredTerms;
+  /** The user-context dependent cache of terms that have been registered */
+  NodeSet d_registeredTerms;
+  /** The types that we have preregistered */
+  TypeNodeSet d_registeredTypes;
+  /**
+   * Map string terms to their "proxy variables". Proxy variables are used are
+   * intermediate variables so that length information can be communicated for
+   * constants. For example, to communicate that "ABC" has length 3, we
+   * introduce a proxy variable v_{"ABC"} for "ABC", and assert:
+   *   v_{"ABC"} = "ABC" ^ len( v_{"ABC"} ) = 3
+   * Notice this is required since we cannot directly write len( "ABC" ) = 3,
+   * which rewrites to 3 = 3.
+   * In the above example, we store "ABC" -> v_{"ABC"} in this map.
+   */
+  NodeNodeMap d_proxyVar;
+  /**
+   * Map from proxy variables to their normalized length. In the above example,
+   * we store "ABC" -> 3.
+   */
+  NodeNodeMap d_proxyVarToLength;
+  /** List of terms that we have register length for */
+  NodeSet d_lengthLemmaTermsCache;
+  /** Register type
+   *
+   * Ensures the theory solver is setup to handle string-like type tn. In
+   * particular, this includes:
+   * - Calling preRegisterTerm on the empty word for tn
+   */
+  void registerType(TypeNode tn);
+  /** register term
+   *
+   * This method is called on non-constant string terms n. It returns a lemma
+   * that should be sent on the output channel of theory of strings upon
+   * registration of this term, or null if no lemma is necessary.
+   *
+   * If n is an atomic term, the method registerTermAtomic is called for n
+   * and s = LENGTH_SPLIT and no lemma is returned.
+   */
+  Node getRegisterTermLemma(Node n);
+  /**
+   * Get the lemma required for registering the length information for
+   * atomic term n given length status s. For details, see registerTermAtomic.
+   *
+   * Additionally, this method may map literals to a required polarity in the
+   * argument reqPhase, which should be processed by a call to requiredPhase by
+   * the caller of this method.
+   */
+  Node getRegisterTermAtomicLemma(Node n,
+                                  LengthStatus s,
+                                  std::map<Node, bool>& reqPhase);
 };
 
 }  // namespace strings

@@ -40,6 +40,7 @@
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strings_fmf.h"
 #include "theory/strings/strings_rewriter.h"
+#include "theory/strings/term_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -238,13 +239,10 @@ class TheoryStrings : public Theory {
   eq::EqualityEngine d_equalityEngine;
   /** The solver state object */
   SolverState d_state;
+  /** The term registry for this theory */
+  TermRegistry d_termReg;
   /** The (custom) output channel of the theory of strings */
   InferenceManager d_im;
-  // preReg cache
-  NodeSet d_pregistered_terms_cache;
-  NodeSet d_registered_terms_cache;
-  /** The types that we have preregistered */
-  TypeNodeSet d_registeredTypesCache;
   std::vector< Node > d_empty_vec;
 private:
 
@@ -265,9 +263,6 @@ private:
   void addSharedTerm(TNode n) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
- private:
-  /** All the function terms that the theory has seen */
-  context::CDList<TNode> d_functionsTerms;
 private:
   /** have we asserted any str.code terms? */
   bool d_has_str_code;
@@ -334,38 +329,10 @@ private:
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
 
-  /** Register term
-   *
-   * This performs SAT-context-independent registration for a term n, which
-   * may cause lemmas to be sent on the output channel that involve
-   * "initial refinement lemmas" for n. This includes introducing proxy
-   * variables for string terms and asserting that str.code terms are within
-   * proper bounds.
-   *
-   * Effort is one of the following (TODO make enum #1881):
-   * 0 : upon preregistration or internal assertion
-   * 1 : upon occurrence in length term
-   * 2 : before normal form computation
-   * 3 : called on normal form terms
-   *
-   * Based on the strategy, we may choose to add these initial refinement
-   * lemmas at one of the following efforts, where if it is not the given
-   * effort, the call to this method does nothing.
-   */
-  void registerTerm(Node n, int effort);
-  /** Register type
-   *
-   * Ensures the theory solver is setup to handle string-like type tn. In
-   * particular, this includes:
-   * - Calling preRegisterTerm on the empty word for tn
-   */
-  void registerType(TypeNode tn);
-
   // Symbolic Regular Expression
  private:
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
-
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.
