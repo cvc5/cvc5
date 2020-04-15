@@ -869,6 +869,12 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       // must assign function values
       options::assignFunctionValues.set(true);
     }
+    // Cannot use macros, since lambda lifting and macro elimination are inverse
+    // operations.
+    if (options::macrosQuant())
+    {
+      options::macrosQuant.set(false);
+    }
   }
   if (options::fmfFunWellDefinedRelevant())
   {
@@ -1117,6 +1123,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       // cannot do nested quantifier elimination in incremental mode
       options::cbqiNestedQE.set(false);
+      options::cbqiPreRegInst.set(false);
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {

@@ -804,11 +804,6 @@ public:
   void assertPredicate(TNode p, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
-   * Adds predicate p and q and makes them equal.
-   */
-  void mergePredicates(TNode p, TNode q, TNode reason);
-
-  /**
    * Adds an equality eq with the given polarity to the database.
    *
    * @param eq the (non-negated) equality

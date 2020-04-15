@@ -160,8 +160,6 @@ public:
                                                std::vector<Node>& vars);
 
 public:
-  /** ensure type */
-  static Node ensureType( Node n, TypeNode tn );
   
 //general utilities
   // TODO #1216 : promote these?
