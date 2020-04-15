@@ -41,6 +41,7 @@
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/term_registry.h"
 #include "theory/theory.h"
+#include "theory/proof_output_channel.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -231,6 +232,8 @@ class TheoryStrings : public Theory {
    */
   SequencesStatistics d_statistics;
 
+  /** The (proof-maintaining) output channel of theory of strings */
+  ProofOutputChannel d_poc;
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
   /** The solver state object */

@@ -19,7 +19,7 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "theory/output_channel.h"
+#include "theory/proof_output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
@@ -49,7 +49,7 @@ class TermRegistry
   TermRegistry(context::Context* c,
                context::UserContext* u,
                eq::EqualityEngine& ee,
-               OutputChannel& out,
+               ProofOutputChannel& poc,
                SequencesStatistics& statistics);
   ~TermRegistry();
   /**
@@ -187,7 +187,7 @@ class TermRegistry
   /** Reference to equality engine of the theory of strings. */
   eq::EqualityEngine& d_ee;
   /** Reference to the output channel of the theory of strings. */
-  OutputChannel& d_out;
+  ProofOutputChannel& d_poc;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** have we asserted any str.code terms? */

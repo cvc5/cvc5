@@ -35,13 +35,13 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::UserContext* u,
                                    SolverState& s,
                                    TermRegistry& tr,
-                                   OutputChannel& out,
+                                   ProofOutputChannel& poc,
                                    SequencesStatistics& statistics,
                                    bool pfEnabled)
     : d_parent(p),
       d_state(s),
       d_termReg(tr),
-      d_out(out),
+      d_poc(poc),
       d_statistics(statistics),
       d_keep(c),
       d_pfEnabled(pfEnabled)
@@ -205,7 +205,7 @@ void InferenceManager::sendLemma(Node ant, Node conc, Inference infer)
     Trace("strings-assert")
         << "(assert (not " << ant << ")) ; conflict " << infer << std::endl;
     ++(d_statistics.d_conflictsInfer);
-    d_out.conflict(ant);
+    d_poc.conflict(ant);
     d_state.setConflict();
     return;
   }
@@ -353,13 +353,13 @@ void InferenceManager::doPendingLemmas()
     {
       Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
       ++(d_statistics.d_lemmasInfer);
-      d_out.lemma(lc);
+      d_poc.lemma(lc);
     }
     for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
     {
       Trace("strings-pending") << "Require phase : " << prp.first
                                << ", polarity = " << prp.second << std::endl;
-      d_out.requirePhase(prp.first, prp.second);
+      d_poc.requirePhase(prp.first, prp.second);
     }
   }
   d_pendingLem.clear();
@@ -468,7 +468,7 @@ void InferenceManager::explain(TNode literal,
     }
   }
 }
-void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
+void InferenceManager::setIncomplete() { d_poc.setIncomplete(); }
 
 void InferenceManager::markCongruent(Node a, Node b)
 {

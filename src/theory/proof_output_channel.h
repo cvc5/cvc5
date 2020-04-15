@@ -60,21 +60,21 @@ class ProofOutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  void conflict(Node conf, ProofGenerator* pfg);
+  void conflict(Node conf, ProofGenerator* pfg = nullptr);
   /**
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
   LemmaStatus lemma(Node lem,
-                    ProofGenerator* pfg,
+                    ProofGenerator* pfg = nullptr,
                     bool removable = false,
                     bool preprocess = false,
                     bool sendAtoms = false);
 
   /**
-   * Get proof for formula n. This returns the corresponding proof for formula
-   * n, where n is either:
+   * Get proof for the given key. This returns the corresponding proof
+   * for the key. This key is either:
    * (1) getConflictKeyValue(conf) for some conf passed to conflict(conf,...)
    * (2) getLemmaKeyValue(lem) for some lem passed to lemma(lem, ...)
    *
@@ -82,12 +82,17 @@ class ProofOutputChannel
    * generate and return the corresponding proof. If not is found, the nullptr
    * is returned and an assertion is thrown.
    */
-  std::shared_ptr<ProofNode> getProof(Node n) const;
+  std::shared_ptr<ProofNode> getProof(Node key) const;
   /** Get the node key for which conflict calls are cached */
   static Node getConflictKeyValue(Node conf);
   /** Get the node key for which lemma calls are cached */
   static Node getLemmaKeyValue(Node lem);
-
+  //---------------- interface to output channel that doesnt require proofs
+  /** require phase */
+  void requirePhase(TNode n, bool phase);
+  /** set incomplete */
+  void setIncomplete();
+  //---------------- end interface to output channel that doesnt require proofs
  private:
   /** Reference to an output channel */
   OutputChannel& d_out;

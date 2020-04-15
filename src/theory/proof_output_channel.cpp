@@ -44,13 +44,13 @@ LemmaStatus ProofOutputChannel::lemma(Node lem,
   return d_out.lemma(lem, removable, preprocess, sendAtoms);
 }
 
-std::shared_ptr<ProofNode> ProofOutputChannel::getProof(Node n) const
+std::shared_ptr<ProofNode> ProofOutputChannel::getProof(Node key) const
 {
-  NodeProofGenMap::const_iterator it = d_lemPfGen.find(n);
+  NodeProofGenMap::const_iterator it = d_lemPfGen.find(key);
   Assert(it != d_lemPfGen.end());
-  std::shared_ptr<ProofNode> ret = (*it).second->getProof(n);
+  std::shared_ptr<ProofNode> ret = (*it).second->getProof(key);
   Assert(ret != nullptr)
-      << "ProofOutputChannel::getProof: could not generate proof for " << n
+      << "ProofOutputChannel::getProof: could not generate proof for " << key
       << std::endl;
   return ret;
 }
@@ -61,6 +61,16 @@ Node ProofOutputChannel::getConflictKeyValue(Node conf)
 }
 
 Node ProofOutputChannel::getLemmaKeyValue(Node lem) { return lem; }
+
+void ProofOutputChannel::requirePhase(TNode n, bool phase)
+{
+  d_out->requirePhase(n, phase);
+}
+
+void ProofOutputChannel::setIncomplete()
+{
+  d_out->setIncomplete();
+}
 
 }  // namespace theory
 }  // namespace CVC4

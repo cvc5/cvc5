@@ -38,10 +38,10 @@ typedef expr::Attribute<StringsProxyVarAttributeId, bool>
 TermRegistry::TermRegistry(context::Context* c,
                            context::UserContext* u,
                            eq::EqualityEngine& ee,
-                           OutputChannel& out,
+                           ProofOutputChannel& poc,
                            SequencesStatistics& statistics)
     : d_ee(ee),
-      d_out(out),
+      d_poc(poc),
       d_statistics(statistics),
       d_hasStrCode(false),
       d_functionsTerms(c),
@@ -93,7 +93,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   else if (k == STRING_IN_REGEXP)
   {
-    d_out.requirePhase(n, true);
+    d_poc.requirePhase(n, true);
     d_ee.addTriggerPredicate(n);
     d_ee.addTerm(n[0]);
     d_ee.addTerm(n[1]);
@@ -231,7 +231,7 @@ void TermRegistry::registerTerm(Node n, int effort)
                            << std::endl;
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
-    d_out.lemma(regTermLem);
+    d_poc.lemma(regTermLem);
   }
 }
 
@@ -337,11 +337,11 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
                            << std::endl;
     Trace("strings-assert") << "(assert " << lenLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTermAtomic);
-    d_out.lemma(lenLem);
+    d_poc.lemma(lenLem);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
   {
-    d_out.requirePhase(rp.first, rp.second);
+    d_poc.requirePhase(rp.first, rp.second);
   }
 }
 

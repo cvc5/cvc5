@@ -23,7 +23,7 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/output_channel.h"
+#include "theory/proof_output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
@@ -281,7 +281,7 @@ class InferenceManager
   /** Reference to the term registry of theory of strings */
   TermRegistry& d_termReg;
   /** Reference to the output channel of the theory of strings. */
-  OutputChannel& d_out;
+  ProofOutputChannel& d_poc;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
 
