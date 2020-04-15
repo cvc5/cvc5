@@ -31,7 +31,7 @@ namespace strings {
 InferenceManager::InferenceManager(context::Context* c,
                                    context::UserContext* u,
                                    SolverState& s,
-                                   TermRegistry& skc,
+                                   TermRegistry& tr,
                                    ExtTheory* e,
                                    OutputChannel& out,
                                    SequencesStatistics& statistics)
