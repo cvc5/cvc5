@@ -64,6 +64,16 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
   } while (!visit.empty());
 }
 
+std::shared_ptr<ProofNode> ProofNode::clone() const
+{
+  std::vector<std::shared_ptr<ProofNode>> cchildren;
+  for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
+  {
+    cchildren.push_back(cp->clone());
+  }
+  return std::make_shared<ProofNode>(d_id,cchildren,d_args,d_proven);
+}
+
 void ProofNode::setValue(
     PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,

@@ -28,14 +28,17 @@ namespace theory {
 
 /**
  * A layer on top of an output channel to ensure proofs are constructed and
- * available for conflicts and lemmas that may require proofs.
+ * available for conflicts and lemmas that may require proofs. It is intended
+ * to be used by Theory objects as a way of managing their use of their
+ * OutputChannel.
  *
  * When a call to
  *   OutputChannel::lemma(lem, .. )
  * is made by a Theory, it is required, in the remainder of the current user
  * context, to provide a proof for lem via the call:
  *   Theory::getProof(ProofOutputChannel::getLemmaKeyValue(lem))
- * Simliar contracts exist for the other calls on OutputChannel.
+ * Simliar contracts exist for the other calls on OutputChannel. This contract
+ * is required for generating proofs in TheoryEngine.
  *
  * The purpose of the ProofOutputChannel is to ensure that the above contracts
  * are met. In particular, for each conflict or lemma sent on the output

@@ -25,7 +25,7 @@
 #include "expr/proof.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
-#include "theory/proof_output_channel.h"
+#include "theory/proof_generator.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -33,12 +33,17 @@ namespace theory {
 namespace eq {
 
 /**
- * A proof-producing equality engine.
- *
- * This is a layer on top of an EqualityEngine. It tracks the reason for why all
+ * A layer on top of an EqualityEngine. It tracks the reason for why all
  * facts are added to an EqualityEngine in a SAT-context dependent manner in a
  * context-dependent (CDProof) object. The proof of certain facts can be asked
  * via the getProof interface.
+ * 
+ * The goal of this class is manage the use of an EqualityEngine object.
+ * A theory that is proof producing and uses the equality engine may use this
+ * class to manage proofs that are justified by its underlying equality engine.
+ * 
+ * It is an eager proof generator (see theory/proof_generator.h), in that
+ * it stores 
  */
 class ProofEqEngine : public EagerProofGenerator
 {
