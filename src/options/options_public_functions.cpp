@@ -75,7 +75,9 @@ bool Options::getDumpSynth() const{
 }
 
 bool Options::getDumpUnsatCores() const{
-  return (*this)[options::dumpUnsatCores];
+  // dump unsat cores full enables dumpUnsatCores
+  return (*this)[options::dumpUnsatCores]
+         || (*this)[options::dumpUnsatCoresFull];
 }
 
 bool Options::getEarlyExit() const{
@@ -135,7 +137,8 @@ bool Options::getSemanticChecks() const{
 }
 
 bool Options::getStatistics() const{
-  return (*this)[options::statistics];
+  // statsEveryQuery enables stats
+  return (*this)[options::statistics] || (*this)[options::statsEveryQuery];
 }
 
 bool Options::getStatsEveryQuery() const{
@@ -185,10 +188,6 @@ std::ostream* Options::getOutConst() const{
 
 std::string Options::getBinaryName() const{
   return (*this)[options::binary_name];
-}
-
-std::string Options::getReplayInputFilename() const{
-  return (*this)[options::replayInputFilename];
 }
 
 unsigned Options::getParseStep() const{

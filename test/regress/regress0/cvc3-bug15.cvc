@@ -1,5 +1,5 @@
 %% This test borrowed from CVC3 regressions, bug15.cvc
-% EXPECT: valid
+% EXPECT: entailed
 x : REAL;
 y : REAL;
 f : REAL -> REAL;

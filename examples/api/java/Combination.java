@@ -42,7 +42,7 @@ public class Combination {
     smt.setOption("tlimit", new SExpr(100));
     smt.setOption("produce-models", new SExpr(true)); // Produce Models
     smt.setOption("output-language", new SExpr("cvc4")); // output-language
-    smt.setOption("default-dag-thresh", new SExpr(0)); //Disable dagifying the output
+    smt.setOption("dag-thresh", new SExpr(0)); //Disable dagifying the output
     smt.setLogic("QF_UFLIRA");
 
     // Sorts
@@ -83,10 +83,9 @@ public class Combination {
 
     System.out.println("Given the following assumptions:");
     System.out.println(assumptions);
-    System.out.println("Prove x /= y is valid. " +
-                       "CVC4 says: " + smt.query(em.mkExpr(Kind.DISTINCT, x, y)) +
-                       ".");
-
+    System.out.println("Prove x /= y is entailed. "
+        + "CVC4 says: " + smt.checkEntailed(em.mkExpr(Kind.DISTINCT, x, y))
+        + ".");
 
     System.out.println("Now we call checksat on a trivial query to show that");
     System.out.println("the assumptions are satisfiable: " +

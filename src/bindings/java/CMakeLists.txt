@@ -65,7 +65,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/ExprHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/ExprManager.java
   ${CMAKE_CURRENT_BINARY_DIR}/ExprManagerMapCollection.java
-  ${CMAKE_CURRENT_BINARY_DIR}/ExprStream.java
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPoint.java
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointConvertSort.java
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointSize.java
@@ -112,6 +111,8 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/RecordUpdate.java
   ${CMAKE_CURRENT_BINARY_DIR}/RecordUpdateHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/RecoverableModalException.java
+  ${CMAKE_CURRENT_BINARY_DIR}/RegExpLoop.java
+  ${CMAKE_CURRENT_BINARY_DIR}/RegExpRepeat.java
   ${CMAKE_CURRENT_BINARY_DIR}/RegExpType.java
   ${CMAKE_CURRENT_BINARY_DIR}/Result.java
   ${CMAKE_CURRENT_BINARY_DIR}/RoundingMode.java

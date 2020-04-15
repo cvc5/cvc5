@@ -37,15 +37,15 @@ operator STRING_REV 1 "string reverse"
 sort STRING_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(::CVC4::String())" \
-        "util/regexp.h" \
+    "NodeManager::currentNM()->mkConst(::CVC4::String())" \
+    "util/string.h" \
     "String type"
 
 sort REGEXP_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkNode(REGEXP_EMPTY, std::vector<Node>() )" \
-        "util/regexp.h" \
+    "NodeManager::currentNM()->mkNode(REGEXP_EMPTY, std::vector<Node>() )" \
+    "util/string.h" \
     "RegExp type"
 
 enumerator STRING_TYPE \
@@ -55,7 +55,7 @@ enumerator STRING_TYPE \
 constant CONST_STRING \
     ::CVC4::String \
     ::CVC4::strings::StringHashFunction \
-    "util/regexp.h" \
+    "util/string.h" \
     "a string of characters"
 
 # equal equal / less than / output
@@ -68,11 +68,24 @@ operator REGEXP_STAR 1 "regexp *"
 operator REGEXP_PLUS 1 "regexp +"
 operator REGEXP_OPT 1 "regexp ?"
 operator REGEXP_RANGE 2 "regexp range"
-operator REGEXP_LOOP 2:3 "regexp loop"
 operator REGEXP_COMPLEMENT 1 "regexp complement"
 
 operator REGEXP_EMPTY 0 "regexp empty"
 operator REGEXP_SIGMA 0 "regexp all characters"
+
+constant REGEXP_REPEAT_OP \
+	::CVC4::RegExpRepeat \
+	::CVC4::RegExpRepeatHashFunction \
+	"util/regexp.h" \
+	"operator for regular expression repeat; payload is an instance of the CVC4::RegExpRepeat class"
+parameterized REGEXP_REPEAT REGEXP_REPEAT_OP 1 "regular expression repeat; first parameter is a REGEXP_REPEAT_OP, second is a regular expression term"
+
+constant REGEXP_LOOP_OP \
+	::CVC4::RegExpLoop \
+	::CVC4::RegExpLoopHashFunction \
+	"util/regexp.h" \
+	"operator for regular expression loop; payload is an instance of the CVC4::RegExpLoop class"
+parameterized REGEXP_LOOP REGEXP_LOOP_OP 1 "regular expression loop; first parameter is a REGEXP_LOOP_OP, second is a regular expression term"
 
 #internal
 operator REGEXP_RV 1 "regexp rv (internal use only)"
@@ -88,7 +101,10 @@ typerule REGEXP_STAR "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_PLUS "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_OPT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_RANGE ::CVC4::theory::strings::RegExpRangeTypeRule
-typerule REGEXP_LOOP "SimpleTypeRule<RRegExp, ARegExp, AInteger, AOptional<AInteger>>"
+typerule REGEXP_REPEAT_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule REGEXP_REPEAT "SimpleTypeRule<RRegExp, ARegExp>"
+typerule REGEXP_LOOP_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule REGEXP_LOOP "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_COMPLEMENT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule STRING_TO_REGEXP "SimpleTypeRule<RRegExp, AString>"
 typerule STRING_IN_REGEXP "SimpleTypeRule<RBool, AString, ARegExp>"

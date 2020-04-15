@@ -26,6 +26,7 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/hash.h"
@@ -72,11 +73,13 @@ public:
 
   ~TheoryBV();
 
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   void finishInit() override;
 
-  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  Node expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode n) override;
 
@@ -256,6 +259,9 @@ public:
   void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
 
   void checkForLemma(TNode node);
+
+  /** The theory rewriter for this theory. */
+  TheoryBVRewriter d_rewriter;
 
   friend class LazyBitblaster;
   friend class TLazyBitblaster;

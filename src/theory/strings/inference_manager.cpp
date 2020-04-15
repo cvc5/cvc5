@@ -34,30 +34,26 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::Context* c,
                                    context::UserContext* u,
                                    SolverState& s,
-                                   SkolemCache& skc,
+                                   TermRegistry& tr,
                                    OutputChannel& out,
                                    SequencesStatistics& statistics)
     : d_parent(p),
       d_state(s),
-      d_skCache(skc),
+      d_termReg(tr),
       d_out(out),
       d_statistics(statistics),
-      d_keep(c),
-      d_proxyVar(u),
-      d_proxyVarToLength(u),
-      d_lengthLemmaTermsCache(u)
+      d_keep(c)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
-  d_emptyString = nm->mkConst(::CVC4::String(""));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
-                                             const char* c)
+                                             Inference infer)
 {
   if (conc.getKind() == AND
       || (conc.getKind() == NOT && conc[0].getKind() == OR))
@@ -67,7 +63,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
     bool ret = true;
     for (const Node& cc : conj)
     {
-      bool retc = sendInternalInference(exp, pol ? cc : cc.negate(), c);
+      bool retc = sendInternalInference(exp, pol ? cc : cc.negate(), infer);
       ret = ret && retc;
     }
     return ret;
@@ -110,21 +106,21 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
     // already holds
     return true;
   }
-  sendInference(exp, conc, c);
+  sendInference(exp, conc, infer);
   return true;
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      const std::vector<Node>& exp_n,
                                      Node eq,
-                                     const char* c,
+                                     Inference infer,
                                      bool asLemma)
 {
   eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
   if (Trace.isOn("strings-infer-debug"))
   {
     Trace("strings-infer-debug")
-        << "By " << c << ", infer : " << eq << " from: " << std::endl;
+        << "By " << infer << ", infer : " << eq << " from: " << std::endl;
     for (unsigned i = 0; i < exp.size(); i++)
     {
       Trace("strings-infer-debug") << "  " << exp[i] << std::endl;
@@ -138,6 +134,8 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   {
     return;
   }
+  // only keep stats if not trivial conclusion
+  d_statistics.d_inferences << infer;
   Node atom = eq.getKind() == NOT ? eq[0] : eq;
   // check if we should send a lemma or an inference
   if (asLemma || atom == d_false || atom.getKind() == OR || !exp_n.empty()
@@ -172,60 +170,39 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       eq = eq_exp.negate();
       eq_exp = d_true;
     }
-    sendLemma(eq_exp, eq, c);
+    sendLemma(eq_exp, eq, infer);
   }
   else
   {
-    sendInfer(utils::mkAnd(exp), eq, c);
+    sendInfer(utils::mkAnd(exp), eq, infer);
   }
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
-                                     const char* c,
+                                     Inference infer,
                                      bool asLemma)
 {
   std::vector<Node> exp_n;
-  sendInference(exp, exp_n, eq, c, asLemma);
-}
-
-void InferenceManager::sendInference(const std::vector<Node>& exp,
-                                     const std::vector<Node>& exp_n,
-                                     Node eq,
-                                     Inference infer,
-                                     bool asLemma)
-{
-  d_statistics.d_inferences << infer;
-  std::stringstream ss;
-  ss << infer;
-  sendInference(exp, exp_n, eq, ss.str().c_str(), asLemma);
-}
-
-void InferenceManager::sendInference(const std::vector<Node>& exp,
-                                     Node eq,
-                                     Inference infer,
-                                     bool asLemma)
-{
-  d_statistics.d_inferences << infer;
-  std::stringstream ss;
-  ss << infer;
-  sendInference(exp, eq, ss.str().c_str(), asLemma);
+  sendInference(exp, exp_n, eq, infer, asLemma);
 }
 
 void InferenceManager::sendInference(const InferInfo& i)
 {
   sendInference(i.d_ant, i.d_antn, i.d_conc, i.d_id, true);
 }
-void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
+
+void InferenceManager::sendLemma(Node ant, Node conc, Inference infer)
 {
   if (conc.isNull() || conc == d_false)
   {
     Trace("strings-conflict")
-        << "Strings::Conflict : " << c << " : " << ant << std::endl;
-    Trace("strings-lemma") << "Strings::Conflict : " << c << " : " << ant
+        << "Strings::Conflict : " << infer << " : " << ant << std::endl;
+    Trace("strings-lemma") << "Strings::Conflict : " << infer << " : " << ant
                            << std::endl;
     Trace("strings-assert")
-        << "(assert (not " << ant << ")) ; conflict " << c << std::endl;
+        << "(assert (not " << ant << ")) ; conflict " << infer << std::endl;
+    ++(d_statistics.d_conflictsInfer);
     d_out.conflict(ant);
     d_state.setConflict();
     return;
@@ -239,20 +216,21 @@ void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
   {
     lem = NodeManager::currentNM()->mkNode(IMPLIES, ant, conc);
   }
-  Trace("strings-lemma") << "Strings::Lemma " << c << " : " << lem << std::endl;
-  Trace("strings-assert") << "(assert " << lem << ") ; lemma " << c
+  Trace("strings-lemma") << "Strings::Lemma " << infer << " : " << lem
+                         << std::endl;
+  Trace("strings-assert") << "(assert " << lem << ") ; lemma " << infer
                           << std::endl;
   d_pendingLem.push_back(lem);
 }
 
-void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
+void InferenceManager::sendInfer(Node eq_exp, Node eq, Inference infer)
 {
   if (options::stringInferSym())
   {
     std::vector<Node> vars;
     std::vector<Node> subs;
     std::vector<Node> unproc;
-    inferSubstitutionProxyVars(eq_exp, vars, subs, unproc);
+    d_termReg.inferSubstitutionProxyVars(eq_exp, vars, subs, unproc);
     if (unproc.empty())
     {
       Node eqs =
@@ -260,7 +238,7 @@ void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
       if (Trace.isOn("strings-lemma-debug"))
       {
         Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from "
-                                     << eq_exp << " by " << c << std::endl;
+                                     << eq_exp << " by " << infer << std::endl;
         Trace("strings-lemma-debug")
             << "Strings::Infer Alternate : " << eqs << std::endl;
         for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
@@ -269,7 +247,7 @@ void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
               << "  " << vars[i] << " -> " << subs[i] << std::endl;
         }
       }
-      sendLemma(d_true, eqs, c);
+      sendLemma(d_true, eqs, infer);
       return;
     }
     if (Trace.isOn("strings-lemma-debug"))
@@ -282,16 +260,16 @@ void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
     }
   }
   Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eq_exp
-                         << " by " << c << std::endl;
+                         << " by " << infer << std::endl;
   Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq
-                          << ")) ; infer " << c << std::endl;
+                          << ")) ; infer " << infer << std::endl;
   d_pending.push_back(eq);
   d_pendingExp[eq] = eq_exp;
   d_keep.insert(eq);
   d_keep.insert(eq_exp);
 }
 
-bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
+bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
 {
   Node eq = a.eqNode(b);
   eq = Rewriter::rewrite(eq);
@@ -299,10 +277,12 @@ bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
   {
     return false;
   }
+  // update statistics
+  d_statistics.d_inferences << infer;
   NodeManager* nm = NodeManager::currentNM();
   Node lemma_or = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or
-                         << std::endl;
+  Trace("strings-lemma") << "Strings::Lemma " << infer
+                         << " SPLIT : " << lemma_or << std::endl;
   d_pendingLem.push_back(lemma_or);
   sendPhaseRequirement(eq, preq);
   return true;
@@ -312,219 +292,6 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
 {
   lit = Rewriter::rewrite(lit);
   d_pendingReqPhase[lit] = pol;
-}
-
-Node InferenceManager::getProxyVariableFor(Node n) const
-{
-  NodeNodeMap::const_iterator it = d_proxyVar.find(n);
-  if (it != d_proxyVar.end())
-  {
-    return (*it).second;
-  }
-  return Node::null();
-}
-
-Node InferenceManager::getSymbolicDefinition(Node n,
-                                             std::vector<Node>& exp) const
-{
-  if (n.getNumChildren() == 0)
-  {
-    Node pn = getProxyVariableFor(n);
-    if (pn.isNull())
-    {
-      return Node::null();
-    }
-    Node eq = n.eqNode(pn);
-    eq = Rewriter::rewrite(eq);
-    if (std::find(exp.begin(), exp.end(), eq) == exp.end())
-    {
-      exp.push_back(eq);
-    }
-    return pn;
-  }
-  std::vector<Node> children;
-  if (n.getMetaKind() == metakind::PARAMETERIZED)
-  {
-    children.push_back(n.getOperator());
-  }
-  for (const Node& nc : n)
-  {
-    if (n.getType().isRegExp())
-    {
-      children.push_back(nc);
-    }
-    else
-    {
-      Node ns = getSymbolicDefinition(nc, exp);
-      if (ns.isNull())
-      {
-        return Node::null();
-      }
-      else
-      {
-        children.push_back(ns);
-      }
-    }
-  }
-  return NodeManager::currentNM()->mkNode(n.getKind(), children);
-}
-
-void InferenceManager::registerLength(Node n)
-{
-  Assert(n.getType().isStringLike());
-  NodeManager* nm = NodeManager::currentNM();
-  // register length information:
-  //  for variables, split on empty vs positive length
-  //  for concat/const/replace, introduce proxy var and state length relation
-  Node lsum;
-  if (n.getKind() != STRING_CONCAT && !n.isConst())
-  {
-    Node lsumb = nm->mkNode(STRING_LENGTH, n);
-    lsum = Rewriter::rewrite(lsumb);
-    // can register length term if it does not rewrite
-    if (lsum == lsumb)
-    {
-      registerLength(n, LENGTH_SPLIT);
-      return;
-    }
-  }
-  Node sk = d_skCache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
-  StringsProxyVarAttribute spva;
-  sk.setAttribute(spva, true);
-  Node eq = Rewriter::rewrite(sk.eqNode(n));
-  Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq << std::endl;
-  d_proxyVar[n] = sk;
-  // If we are introducing a proxy for a constant or concat term, we do not
-  // need to send lemmas about its length, since its length is already
-  // implied.
-  if (n.isConst() || n.getKind() == STRING_CONCAT)
-  {
-    // do not send length lemma for sk.
-    registerLength(sk, LENGTH_IGNORE);
-  }
-  Trace("strings-assert") << "(assert " << eq << ")" << std::endl;
-  d_out.lemma(eq);
-  Node skl = nm->mkNode(STRING_LENGTH, sk);
-  if (n.getKind() == STRING_CONCAT)
-  {
-    std::vector<Node> nodeVec;
-    for (const Node& nc : n)
-    {
-      if (nc.getAttribute(StringsProxyVarAttribute()))
-      {
-        Assert(d_proxyVarToLength.find(nc) != d_proxyVarToLength.end());
-        nodeVec.push_back(d_proxyVarToLength[nc]);
-      }
-      else
-      {
-        Node lni = nm->mkNode(STRING_LENGTH, nc);
-        nodeVec.push_back(lni);
-      }
-    }
-    lsum = nm->mkNode(PLUS, nodeVec);
-    lsum = Rewriter::rewrite(lsum);
-  }
-  else if (n.isConst())
-  {
-    lsum = nm->mkConst(Rational(Word::getLength(n)));
-  }
-  Assert(!lsum.isNull());
-  d_proxyVarToLength[sk] = lsum;
-  Node ceq = Rewriter::rewrite(skl.eqNode(lsum));
-  Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
-  Trace("strings-lemma-debug")
-      << "  prerewrite : " << skl.eqNode(lsum) << std::endl;
-  Trace("strings-assert") << "(assert " << ceq << ")" << std::endl;
-  d_out.lemma(ceq);
-}
-
-void InferenceManager::registerLength(Node n, LengthStatus s)
-{
-  if (d_lengthLemmaTermsCache.find(n) != d_lengthLemmaTermsCache.end())
-  {
-    return;
-  }
-  d_lengthLemmaTermsCache.insert(n);
-
-  if (s == LENGTH_IGNORE)
-  {
-    // ignore it
-    return;
-  }
-
-  NodeManager* nm = NodeManager::currentNM();
-  Node n_len = nm->mkNode(kind::STRING_LENGTH, n);
-
-  if (s == LENGTH_GEQ_ONE)
-  {
-    Node neq_empty = n.eqNode(d_emptyString).negate();
-    Node len_n_gt_z = nm->mkNode(GT, n_len, d_zero);
-    Node len_geq_one = nm->mkNode(AND, neq_empty, len_n_gt_z);
-    Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
-                           << std::endl;
-    Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
-    d_out.lemma(len_geq_one);
-    return;
-  }
-
-  if (s == LENGTH_ONE)
-  {
-    Node len_one = n_len.eqNode(d_one);
-    Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
-                           << std::endl;
-    Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
-    d_out.lemma(len_one);
-    return;
-  }
-  Assert(s == LENGTH_SPLIT);
-
-  if (options::stringSplitEmp() || !options::stringLenGeqZ())
-  {
-    Node n_len_eq_z = n_len.eqNode(d_zero);
-    Node n_len_eq_z_2 = n.eqNode(d_emptyString);
-    Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
-    case_empty = Rewriter::rewrite(case_empty);
-    Node case_nempty = nm->mkNode(GT, n_len, d_zero);
-    if (!case_empty.isConst())
-    {
-      Node lem = nm->mkNode(OR, case_empty, case_nempty);
-      d_out.lemma(lem);
-      Trace("strings-lemma")
-          << "Strings::Lemma LENGTH >= 0 : " << lem << std::endl;
-      // prefer trying the empty case first
-      // notice that requirePhase must only be called on rewritten literals that
-      // occur in the CNF stream.
-      n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
-      Assert(!n_len_eq_z.isConst());
-      d_out.requirePhase(n_len_eq_z, true);
-      n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
-      Assert(!n_len_eq_z_2.isConst());
-      d_out.requirePhase(n_len_eq_z_2, true);
-    }
-    else if (!case_empty.getConst<bool>())
-    {
-      // the rewriter knows that n is non-empty
-      Trace("strings-lemma")
-          << "Strings::Lemma LENGTH > 0 (non-empty): " << case_nempty
-          << std::endl;
-      d_out.lemma(case_nempty);
-    }
-    else
-    {
-      // If n = "" ---> true or len( n ) = 0 ----> true, then we expect that
-      // n ---> "". Since this method is only called on non-constants n, it must
-      // be that n = "" ^ len( n ) = 0 does not rewrite to true.
-      Assert(false);
-    }
-  }
-
-  // additionally add len( x ) >= 0 ?
-  if (options::stringLenGeqZ())
-  {
-    Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
-    n_len_geq = Rewriter::rewrite(n_len_geq);
-    d_out.lemma(n_len_geq);
-  }
 }
 
 void InferenceManager::addToExplanation(Node a,
@@ -583,6 +350,7 @@ void InferenceManager::doPendingLemmas()
     for (const Node& lc : d_pendingLem)
     {
       Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
+      ++(d_statistics.d_lemmasInfer);
       d_out.lemma(lc);
     }
     for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
@@ -599,88 +367,6 @@ void InferenceManager::doPendingLemmas()
 bool InferenceManager::hasProcessed() const
 {
   return d_state.isInConflict() || !d_pendingLem.empty() || !d_pending.empty();
-}
-
-void InferenceManager::inferSubstitutionProxyVars(
-    Node n,
-    std::vector<Node>& vars,
-    std::vector<Node>& subs,
-    std::vector<Node>& unproc) const
-{
-  if (n.getKind() == AND)
-  {
-    for (const Node& nc : n)
-    {
-      inferSubstitutionProxyVars(nc, vars, subs, unproc);
-    }
-    return;
-  }
-  if (n.getKind() == EQUAL)
-  {
-    Node ns = n.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-    ns = Rewriter::rewrite(ns);
-    if (ns.getKind() == EQUAL)
-    {
-      Node s;
-      Node v;
-      for (unsigned i = 0; i < 2; i++)
-      {
-        Node ss;
-        // determine whether this side has a proxy variable
-        if (ns[i].getAttribute(StringsProxyVarAttribute()))
-        {
-          // it is a proxy variable
-          ss = ns[i];
-        }
-        else if (ns[i].isConst())
-        {
-          ss = getProxyVariableFor(ns[i]);
-        }
-        if (!ss.isNull())
-        {
-          v = ns[1 - i];
-          // if the other side is a constant or variable
-          if (v.getNumChildren() == 0)
-          {
-            if (s.isNull())
-            {
-              s = ss;
-            }
-            else
-            {
-              // both sides of the equality correspond to a proxy variable
-              if (ss == s)
-              {
-                // it is a trivial equality, e.g. between a proxy variable
-                // and its definition
-                return;
-              }
-              else
-              {
-                // equality between proxy variables, non-trivial
-                s = Node::null();
-              }
-            }
-          }
-        }
-      }
-      if (!s.isNull())
-      {
-        // the equality can be turned into a substitution
-        subs.push_back(s);
-        vars.push_back(v);
-        return;
-      }
-    }
-    else
-    {
-      n = ns;
-    }
-  }
-  if (n != d_true)
-  {
-    unproc.push_back(n);
-  }
 }
 
 Node InferenceManager::mkExplain(const std::vector<Node>& a) const

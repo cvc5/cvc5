@@ -40,15 +40,8 @@ d_quantEngine(qe) {
   
 void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values, std::string str_value ){
   Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
-  if( attr=="axiom" ){
-    Trace("quant-attr-debug") << "Set axiom " << n << std::endl;
-    AxiomAttribute aa;
-    n.setAttribute( aa, true );
-  }else if( attr=="conjecture" ){
-    Trace("quant-attr-debug") << "Set conjecture " << n << std::endl;
-    ConjectureAttribute ca;
-    n.setAttribute( ca, true );
-  }else if( attr=="fun-def" ){
+  if (attr == "fun-def")
+  {
     Trace("quant-attr-debug") << "Set function definition " << n << std::endl;
     FunDefAttribute fda;
     n.setAttribute( fda, true );
@@ -215,14 +208,6 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         qa.d_hasPattern = true;
       }else if( q[2][i].getKind()==INST_ATTRIBUTE ){
         Node avar = q[2][i][0];
-        if( avar.getAttribute(AxiomAttribute()) ){
-          Trace("quant-attr") << "Attribute : axiom : " << q << std::endl;
-          qa.d_axiom = true;
-        }
-        if( avar.getAttribute(ConjectureAttribute()) ){
-          Trace("quant-attr") << "Attribute : conjecture : " << q << std::endl;
-          qa.d_conjecture = true;
-        }
         if( avar.getAttribute(FunDefAttribute()) ){
           Trace("quant-attr") << "Attribute : function definition : " << q << std::endl;
           //get operator directly from pattern
@@ -270,24 +255,6 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         }
       }
     }
-  }
-}
-
-bool QuantAttributes::isConjecture( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
-    return false;
-  }else{
-    return it->second.d_conjecture;
-  }
-}
-
-bool QuantAttributes::isAxiom( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
-    return false;
-  }else{
-    return it->second.d_axiom;
   }
 }
 

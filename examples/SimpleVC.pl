@@ -50,7 +50,7 @@ my $twox_plus_y_geq_3 = $em->mkExpr($CVC4::GEQ, $twox_plus_y, $three);
 
 my $formula = new CVC4::Expr($em->mkExpr($CVC4::AND, $x_positive, $y_positive))->impExpr(new CVC4::Expr($twox_plus_y_geq_3));
 
-print "Checking validity of formula " . $formula->toString() . " with CVC4.\n";
-print "CVC4 should report VALID.\n";
-print "Result from CVC4 is: " . $smt->query($formula)->toString() . "\n";
+print "Checking entailment of formula " . $formula->toString() . " with CVC4.\n";
+print "CVC4 should report ENTAILED.\n";
+print "Result from CVC4 is: " . $smt->checkEntailed($formula)->toString() . "\n";
 

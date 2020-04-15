@@ -52,6 +52,7 @@ class TheoryEvaluatorWhite : public CxxTest::TestSuite
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
+    d_smt->finalOptionsAreSet();
   }
 
   void tearDown() override
