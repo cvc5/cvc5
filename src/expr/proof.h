@@ -60,7 +60,7 @@ namespace CVC4 {
  * This class overwrites assumptions wherever possible, and maintains a policy
  * on when the other proof steps are overwritten. Currently, no other
  * proof step is overwritten when provided in another registerStep call.
- * 
+ *
  * For example, say that we call:
  * - registerStep( B, ID_B1 {}, {}, false )
  * - registerStep( A, ID_A1, {B, C}, {}, false )

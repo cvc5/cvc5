@@ -30,13 +30,13 @@ class ProofRuleChecker
  public:
   ProofRuleChecker() {}
   virtual ~ProofRuleChecker() {}
-  /** 
+  /**
    * Return the formula that is proven by a proof node with the given id,
    * children and arguments, or null if such a proof node is not well-formed.
-   * 
+   *
    * @param id The id of the proof node to check
    * @param children The children of the proof node to check
-   * @param args The arguments of the proof node to check   
+   * @param args The arguments of the proof node to check
    * @return The conclusion of the proof node if successful or null if such a
    * proof node is malformed.
    */
@@ -51,11 +51,11 @@ class ProofChecker
  public:
   ProofChecker() {}
   ~ProofChecker() {}
-  /** 
+  /**
    * Return the formula that is proven by proof node pn, or null if pn is not
    * well-formed. If expected is non-null, then we return null if pn does not
    * prove expected.
-   * 
+   *
    * @param pn The proof node to check
    * @param expected The (optional) formula that is the expected conclusion of
    * the proof node.
@@ -64,7 +64,7 @@ class ProofChecker
    */
   Node check(ProofNode* pn, Node expected = Node::null());
   /** Same as above, with explicit arguments
-   * 
+   *
    * @param id The id of the proof node to check
    * @param children The children of the proof node to check
    * @param args The arguments of the proof node to check
@@ -79,6 +79,7 @@ class ProofChecker
              Node expected = Node::null());
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
+
  private:
   /** Maps proof steps to their checker */
   std::map<PfRule, ProofRuleChecker*> d_checker;
