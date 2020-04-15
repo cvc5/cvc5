@@ -24,7 +24,6 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
