@@ -23,13 +23,13 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "theory/ext_theory.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/ext_theory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -306,7 +306,7 @@ class InferenceManager
    * theory.
    */
   void markCongruent(Node a, Node b);
-  /** 
+  /**
    * Mark that extended function is reduced. If contextDepend is true,
    * then this mark is SAT-context dependent, otherwise it is user-context
    * dependent (see ExtTheory::markReduced).

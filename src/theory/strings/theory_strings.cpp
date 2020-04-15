@@ -89,7 +89,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
   // initialize the inference manager, which requires the extended theory
-  d_im.reset(new InferenceManager(c, u, d_state, d_sk_cache, extt, out, d_statistics));
+  d_im.reset(
+      new InferenceManager(c, u, d_state, d_sk_cache, extt, out, d_statistics));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(c, u, d_state, *d_im));
   d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_sk_cache, d_bsolver));
@@ -103,8 +104,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  *d_csolver,
                                  extt,
                                  d_statistics));
-  d_rsolver.reset(
-      new RegExpSolver(d_state, *d_im, *d_csolver, *d_esolver, d_statistics, c, u));
+  d_rsolver.reset(new RegExpSolver(
+      d_state, *d_im, *d_csolver, *d_esolver, d_statistics, c, u));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);

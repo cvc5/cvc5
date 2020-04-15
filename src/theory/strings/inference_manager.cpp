@@ -296,10 +296,7 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
   d_pendingReqPhase[lit] = pol;
 }
 
-void InferenceManager::setIncomplete()
-{
-  d_out.setIncomplete();
-}
+void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
 
 Node InferenceManager::getProxyVariableFor(Node n) const
 {
