@@ -380,7 +380,7 @@ void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
     for (unsigned j = 0; j < 2; j++)
     {
       // terms in the equality engine are already registered, hence skip
-      if (!d_equalityEngine.hasTerm(atom[j]))
+      if (!ee->hasTerm(atom[j]))
       {
         d_termReg.registerTerm(atom[j], 0);
       }
