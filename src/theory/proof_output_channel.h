@@ -61,7 +61,7 @@ class ProofOutputChannel
    * the same as OutputChannel.
    */
   void conflict(Node conf, ProofGenerator* pfg = nullptr);
-  /** 
+  /**
    * Get the proof for conflict conf. This method can be called if
    * conflict(conf, pfg) has been called in this user context. This method
    * returns the proof of conf, according to pfg, or nullptr if we fail to
@@ -79,7 +79,7 @@ class ProofOutputChannel
                     bool removable = false,
                     bool preprocess = false,
                     bool sendAtoms = false);
-  /** 
+  /**
    * Get the proof for lemma lem. This method can be called if
    * conflict(lem, pfg, ...) has been called in this user context. This method
    * returns the proof of lem, according to pfg, or nullptr if we fail to

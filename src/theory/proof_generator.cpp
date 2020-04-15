@@ -54,7 +54,7 @@ std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node key)
 /*
 std::shared_ptr<ProofNode> LazyProofGenerator::getProof(Node key)
 {
-  
+
 }
 */
 

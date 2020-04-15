@@ -119,7 +119,7 @@ class EagerProofGenerator : public ProofGenerator
 };
 
 /** Lazy proof generator
- * 
+ *
  * A proof generator that does not make proofs for conflicts and lemmas
  * eagerly.
  */
@@ -136,7 +136,7 @@ class LazyProofGenerator : public ProofGenerator
 };
 
 */
-  
+
 }  // namespace theory
 }  // namespace CVC4
 
