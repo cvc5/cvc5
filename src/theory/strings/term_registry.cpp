@@ -14,12 +14,12 @@
 
 #include "theory/strings/term_registry.h"
 
-#include "theory/strings/word.h"
-#include "smt/logic_exception.h"
-#include "theory/strings/theory_strings_utils.h"
-#include "theory/rewriter.h"
 #include "expr/attribute.h"
 #include "options/strings_options.h"
+#include "smt/logic_exception.h"
+#include "theory/rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -29,12 +29,17 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-struct StringsProxyVarAttributeId {};
-typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
+struct StringsProxyVarAttributeId
+{
+};
+typedef expr::Attribute<StringsProxyVarAttributeId, bool>
+    StringsProxyVarAttribute;
 
-TermRegistry::TermRegistry(context::Context* c, context::UserContext* u, eq::EqualityEngine& ee,
-                   OutputChannel& out,
-                   SequencesStatistics& statistics)
+TermRegistry::TermRegistry(context::Context* c,
+                           context::UserContext* u,
+                           eq::EqualityEngine& ee,
+                           OutputChannel& out,
+                           SequencesStatistics& statistics)
     : d_ee(ee),
       d_out(out),
       d_statistics(statistics),
@@ -54,46 +59,49 @@ TermRegistry::TermRegistry(context::Context* c, context::UserContext* u, eq::Equ
   d_cardSize = utils::getAlphabetCardinality();
 }
 
-TermRegistry::~TermRegistry() {
+TermRegistry::~TermRegistry() {}
 
-}
-
-void TermRegistry::preRegisterTerm(TNode n) {
-  if( d_preregisteredTerms.find(n) != d_preregisteredTerms.end() ) {
+void TermRegistry::preRegisterTerm(TNode n)
+{
+  if (d_preregisteredTerms.find(n) != d_preregisteredTerms.end())
+  {
     return;
   }
   d_preregisteredTerms.insert(n);
   Trace("strings-preregister")
       << "TheoryString::preregister : " << n << std::endl;
-  //check for logic exceptions
+  // check for logic exceptions
   Kind k = n.getKind();
-  if( !options::stringExp() ){
-    if (k == STRING_STRIDOF || k == STRING_ITOS
-        || k == STRING_STOI || k == STRING_STRREPL
-        || k == STRING_STRREPLALL || k == STRING_STRCTN
+  if (!options::stringExp())
+  {
+    if (k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
+        || k == STRING_STRREPL || k == STRING_STRREPLALL || k == STRING_STRCTN
         || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER
         || k == STRING_REV)
     {
       std::stringstream ss;
       ss << "Term of kind " << k
-          << " not supported in default mode, try --strings-exp";
+         << " not supported in default mode, try --strings-exp";
       throw LogicException(ss.str());
     }
   }
   switch (k)
   {
-    case EQUAL: {
+    case EQUAL:
+    {
       d_ee.addTriggerEquality(n);
       break;
     }
-    case STRING_IN_REGEXP: {
+    case STRING_IN_REGEXP:
+    {
       d_out.requirePhase(n, true);
       d_ee.addTriggerPredicate(n);
       d_ee.addTerm(n[0]);
       d_ee.addTerm(n[1]);
       break;
     }
-    default: {
+    default:
+    {
       registerTerm(n, 0);
       TypeNode tn = n.getType();
       if (tn.isRegExp() && n.isVar())
@@ -102,7 +110,8 @@ void TermRegistry::preRegisterTerm(TNode n) {
         ss << "Regular expression variables are not supported.";
         throw LogicException(ss.str());
       }
-      if( tn.isString() ) {
+      if (tn.isString())
+      {
         // all characters of constants should fall in the alphabet
         if (n.isConst())
         {
@@ -113,16 +122,20 @@ void TermRegistry::preRegisterTerm(TNode n) {
             {
               std::stringstream ss;
               ss << "Characters in string \"" << n
-                  << "\" are outside of the given alphabet.";
+                 << "\" are outside of the given alphabet.";
               throw LogicException(ss.str());
             }
           }
         }
         d_ee.addTerm(n);
-      } else if (tn.isBoolean()) {
+      }
+      else if (tn.isBoolean())
+      {
         // Get triggered for both equal and dis-equal
         d_ee.addTriggerPredicate(n);
-      } else {
+      }
+      else
+      {
         // Function applications/predicates
         d_ee.addTerm(n);
       }
@@ -134,10 +147,9 @@ void TermRegistry::preRegisterTerm(TNode n) {
       // Concatenation terms do not need to be considered here because
       // their arguments have string type and do not introduce any shared
       // terms.
-      if (n.hasOperator() && d_ee.isFunctionKind(k)
-          && k != STRING_CONCAT)
+      if (n.hasOperator() && d_ee.isFunctionKind(k) && k != STRING_CONCAT)
       {
-        d_functionsTerms.push_back( n );
+        d_functionsTerms.push_back(n);
       }
     }
   }
@@ -227,7 +239,6 @@ void TermRegistry::registerType(TypeNode tn)
     }
   }
 }
-
 
 Node TermRegistry::registerTerm(Node n)
 {
@@ -321,8 +332,9 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
   }
 }
 
-Node TermRegistry::getRegisterTermAtomicLemma(
-    Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
+Node TermRegistry::getRegisterTermAtomicLemma(Node n,
+                                              LengthStatus s,
+                                              std::map<Node, bool>& reqPhase)
 {
   Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
@@ -398,8 +410,7 @@ Node TermRegistry::getRegisterTermAtomicLemma(
   return lems.size() == 1 ? lems[0] : nm->mkNode(AND, lems);
 }
 
-Node TermRegistry::getSymbolicDefinition(Node n,
-                                             std::vector<Node>& exp) const
+Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
 {
   if (n.getNumChildren() == 0)
   {
@@ -443,11 +454,10 @@ Node TermRegistry::getSymbolicDefinition(Node n,
   return NodeManager::currentNM()->mkNode(n.getKind(), children);
 }
 
-void TermRegistry::inferSubstitutionProxyVars(
-    Node n,
-    std::vector<Node>& vars,
-    std::vector<Node>& subs,
-    std::vector<Node>& unproc) const
+void TermRegistry::inferSubstitutionProxyVars(Node n,
+                                              std::vector<Node>& vars,
+                                              std::vector<Node>& subs,
+                                              std::vector<Node>& unproc) const
 {
   if (n.getKind() == AND)
   {
@@ -525,6 +535,6 @@ void TermRegistry::inferSubstitutionProxyVars(
   }
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
