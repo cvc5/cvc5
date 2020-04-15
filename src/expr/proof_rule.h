@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof_step.h
+/*! \file proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Proof step enumeration
+ ** \brief Proof rule enumeration
  **/
 
 #include "cvc4_private.h"
