@@ -41,7 +41,7 @@ namespace CVC4 {
  * via updateNode below. In particular, this method leaves the d_proven field
  * unchanged and updates (if possible) the remaining content of a given proof
  * node.
- * 
+ *
  * Notice that ProofNode objects are mutable, and hence this class does not
  * cache the results of mkNode. A version of this class that caches
  * immutable version of ProofNode objects could be built as an extension
