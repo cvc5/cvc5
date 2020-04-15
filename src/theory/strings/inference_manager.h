@@ -77,7 +77,7 @@ class InferenceManager
                    context::UserContext* u,
                    SolverState& s,
                    TermRegistry& tr,
-                   OutputChannel& out,
+                   ProofOutputChannel& poc,
                    SequencesStatistics& statistics,
                    bool pfEnabled = false);
   ~InferenceManager() {}

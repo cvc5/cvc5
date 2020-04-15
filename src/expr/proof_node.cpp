@@ -67,7 +67,7 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
 std::shared_ptr<ProofNode> ProofNode::clone() const
 {
   std::vector<std::shared_ptr<ProofNode>> cchildren;
-  for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
+  for (const std::shared_ptr<ProofNode>& cp : d_children)
   {
     cchildren.push_back(cp->clone());
   }

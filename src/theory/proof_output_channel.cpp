@@ -26,10 +26,19 @@ ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
 }
 void ProofOutputChannel::conflict(Node conf, ProofGenerator* pfg)
 {
-  Assert(pfg != nullptr);
   Node ckey = getConflictKeyValue(conf);
-  d_lemPfGen[ckey] = pfg;
+  // may or may not have supplied a generator
+  if (pfg!=nullptr)
+  {
+    d_lemPfGen[ckey] = pfg;
+  }
   d_out.conflict(conf);
+}
+
+std::shared_ptr<ProofNode> ProofOutputChannel::getProofForConflict(Node conf)
+{
+  Node ckey = getConflictKeyValue(conf);
+  return getProof(ckey);
 }
 
 LemmaStatus ProofOutputChannel::lemma(Node lem,
@@ -38,16 +47,31 @@ LemmaStatus ProofOutputChannel::lemma(Node lem,
                                       bool preprocess,
                                       bool sendAtoms)
 {
-  Assert(pfg != nullptr);
   Node lkey = getLemmaKeyValue(lem);
-  d_lemPfGen[lkey] = pfg;
+  // may or may not have supplied a generator
+  if (pfg!=nullptr)
+  {
+    d_lemPfGen[lkey] = pfg;
+  }
   return d_out.lemma(lem, removable, preprocess, sendAtoms);
+}
+
+std::shared_ptr<ProofNode> ProofOutputChannel::getProofForLemma(Node lem)
+{
+  Node lkey = getLemmaKeyValue(lem);
+  return getProof(lkey);
 }
 
 std::shared_ptr<ProofNode> ProofOutputChannel::getProof(Node key) const
 {
   NodeProofGenMap::const_iterator it = d_lemPfGen.find(key);
-  Assert(it != d_lemPfGen.end());
+  if(it == d_lemPfGen.end())
+  {
+    Assert(false)
+        << "ProofOutputChannel::getProof: no generator provided for " << key
+        << std::endl;
+    return nullptr;
+  }
   std::shared_ptr<ProofNode> ret = (*it).second->getProof(key);
   Assert(ret != nullptr)
       << "ProofOutputChannel::getProof: could not generate proof for " << key

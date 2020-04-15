@@ -60,6 +60,40 @@ class ProofGenerator
  * In detail, the method setProofForConflict(conf, pf) should be called prior to
  * calling ProofOutputChannel(conf, X), where X is this generator. Similarly for
  * setProofForLemma.
+ * 
+ * A clean usage of this class in combination with ProofOutputChannel is the
+ * following:
+ * //-----------------------------------------------------------
+ *   class MyEagerProofGenerator : public EagerProofGenerator
+ *   {
+ *     public: 
+ *      Node getProvenConflictByMethodX(...) 
+ *      {
+ *        Node conf = [construct conflict];
+ *        std::shared_ptr<ProofNode> pf = [construct its proof];
+ *        setProofForConflict(conf, pf);
+ *        return conf;
+ *      }
+ *   };
+ *   // [1] Make objects given user context u and output channel out
+ *   MyEagerProofGenerator epg(u);
+ *   ProofOutputChannel poc(out, u);
+ * 
+ *   // [2] Assume epg realizes there is a conflict. We have it store the proof
+ *   // internally and return the conflict node.
+ *   Node conf = epg.getProvenConflictByMethodX(...);
+ * 
+ *   // [3] Send the conflict on the proof output channel, referencing that epg
+ *   // is who can provide a proof for it.
+ *   poc.conflict(conf, &epg);
+ * 
+ *   // [4] Any time later in the user context, we may ask poc for the proof,
+ *   // where notice this calls the getProof method of epg.
+ *   std::shared_ptr<ProofNode> pf = poc.getProofForConflict(conf); 
+ * //-----------------------------------------------------------
+ * In other words, the proof generator epg is responsible for creating and
+ * storing the proof internally, and the proof output channel is responsible for
+ * maintaining the map that epg is who to ask for the proof of the conflict.
  */
 class EagerProofGenerator : public ProofGenerator
 {

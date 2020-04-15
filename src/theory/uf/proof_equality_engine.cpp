@@ -41,11 +41,19 @@ bool ProofEqEngine::assertAssume(Node lit)
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
 
-  // first, register the step in the proof
-  std::vector<Node> exp;
-  std::vector<Node> args;
-  args.push_back(lit);
-  Node ret = d_proof.registerStep(lit, PfRule::ASSUME, exp, args);
+  Node ret;
+  if (d_pfEnabled)
+  {
+    // first, register the step in the proof
+    std::vector<Node> exp;
+    std::vector<Node> args;
+    args.push_back(lit);
+    ret = d_proof.registerStep(lit, PfRule::ASSUME, exp, args);
+  }
+  else
+  {
+    ret = lit;
+  }
 
   // second, assert it to the equality engine, where it is its own explanation
   assertInternal(atom, polarity, lit);
@@ -66,7 +74,7 @@ bool ProofEqEngine::assertFact(Node lit, PfRule id, const std::vector<Node>& exp
   bool polarity = lit.getKind() != NOT;
 
   // first, register the step in the proof
-  Node ret = d_proof.registerStep(lit, id, exp, args);
+  Node ret = d_pfEnabled ? d_proof.registerStep(lit, id, exp, args) : lit;
 
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
@@ -77,36 +85,48 @@ bool ProofEqEngine::assertFact(Node lit, PfRule id, const std::vector<Node>& exp
   return lit==ret;
 }
 
-bool ProofEqEngine::assertFact(Node lit, PfRule id, const std::vector<Node>& exp)
-{
-  std::vector<Node> args;
-  return assertFact(lit, id, exp, args);
-}
-
 Node ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
 {
   std::vector<Node> args;
+  return assertConflict(id, exp, args);
 }
 
 Node ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp, const std::vector<Node>& args)
 {
-  // register the (conflicting) proof step
-  Node ret = d_proof.registerStep(d_false, id, exp, args);
-  
-  if (ret!=d_false)
+  if (d_pfEnabled)
   {
-    // a step went wrong, e.g. during checking
-    Assert(false);
-    return Node::null();
+    // register the (conflicting) proof step
+    Node ret = d_proof.registerStep(d_false, id, exp, args);
+    if (ret!=d_false)
+    {
+      // a step went wrong, e.g. during checking
+      Assert(false);
+      return Node::null();
+    }
   }
   
+  // get the explanation
   std::vector<TNode> assumps;
   for (const Node& e : exp)
   {
     explainWithProof(e, assumps);
   }
-  std::shared_ptr<ProofNode> pf = mkProofForFact(d_false);
   
+  // make the conflict
+  Node conf = mkAnd(assumps);
+  
+  if (d_pfEnabled)
+  {
+    // get the proof for false
+    std::shared_ptr<ProofNode> pf = mkProofForFact(d_false);
+    if (pf==nullptr)
+    {
+      return Node::null();
+    }
+    // set the proof for the conflict, which can be queried later
+    setProofForConflict(conf, pf);
+  }
+  return conf;
 }
 
 std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
@@ -134,7 +154,7 @@ void ProofEqEngine::assertInternal(Node atom, bool polarity, TNode reason)
 void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
 {
   std::shared_ptr<eq::EqProof> pf =
-      d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
+      d_pfEnabled ? std::make_shared<eq::EqProof>() : nullptr;
   bool polarity = lit.getKind() != NOT;
   TNode atom = polarity ? lit : lit[0];
   std::vector<TNode> tassumps;
@@ -163,7 +183,7 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
       assumps.push_back(a);
     }
   }
-  if (d_proofsEnabled)
+  if (d_pfEnabled)
   {
     // FIXME: convert pf to pfn
     std::shared_ptr<ProofNode> pfn;
@@ -173,6 +193,19 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
 }
 
 Node ProofEqEngine::mkAnd(const std::vector<Node>& a)
+{
+  if (a.empty())
+  {
+    return d_true;
+  }
+  else if (a.size() == 1)
+  {
+    return a[0];
+  }
+  return NodeManager::currentNM()->mkNode(AND, a);
+}
+
+Node ProofEqEngine::mkAnd(const std::vector<TNode>& a)
 {
   if (a.empty())
   {

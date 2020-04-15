@@ -97,6 +97,7 @@ class ProofEqEngine : public EagerProofGenerator
    * single literal if a has size 1.
    */
   Node mkAnd(const std::vector<Node>& a);
+  Node mkAnd(const std::vector<TNode>& a);
  private:
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
