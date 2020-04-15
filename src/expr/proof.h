@@ -31,13 +31,15 @@ namespace CVC4 {
  * A (context-dependent) proof.
  *
  * This maintains a context-dependent map from formulas to ProofNode shared
- * pointers. When a proof step is registered, it uses pointers to ProofNode
- * objects to link ProofNode objects together. These pointers can in turn be
- * modified as further steps are registered.
- *
- * Based on this class, we can ask for the proof of a given fact, which returns
- * a ProofNode object that has linked together the proof steps registered to
- * this object.
+ * pointers. When a proof step is registered, it internally uses ProofNode
+ * pointer to link the steps in the proof together.
+ * 
+ * It is important to note that the premises of proof steps given to this class
+ * may be *Node* not *ProofNode*. In other words, the user of this class does
+ * not have to explicitly manage ProofNode objects while using this class.
+ * Instead, ProofNode is the final product of this class, via the getProof
+ * interface, which returns a ProofNode object that has linked together the
+ * proof steps registered to this object.
  *
  * As an example, if we call:
  * - registerStep( A, ID_A, { B, C }, {}, false )
@@ -45,8 +47,10 @@ namespace CVC4 {
  * Then getProof( A ) returns the proof of the form:
  *   ID_A( ID_B( ASSUME( D ) ), ASSUME( C ) )
  * Notice that the above calls to registerStep can be made in either order.
- * The method registerProof makes multiple calls to registerStep. Continuing
- * the above example, if we call:
+ * 
+ * If the user wants to combine proofs, then a registerProof interface is
+ * available. The method registerProof can be seen as syntax sugar for making
+ * multiple calls to registerStep. Continuing the above example, if we call:
  * - registerProof( E, ID_E( ASSUME( A ), ASSUME( B ) )
  * is the same as calling:
  * --- registerStep( A, ASSUME, {}, {}, true )
@@ -57,9 +61,10 @@ namespace CVC4 {
  * Notice that the proof of A by ID_A was not overwritten by ASSUME.
  * The calls to registerProof and registerStep above can be made in any order.
  *
- * This class overwrites assumptions wherever possible, and maintains a policy
- * on when the other proof steps are overwritten. Currently, no other
- * proof step is overwritten when provided in another registerStep call.
+ * More generally, this class overwrites assumptions wherever possible, and
+ * maintains a policy on when the other proof steps are overwritten. Currently,
+ * no other proof step is overwritten when provided in another registerStep
+ * call.
  *
  * For example, say that we call:
  * - registerStep( B, ID_B1 {}, {}, false )
@@ -92,7 +97,12 @@ class CDProof
  public:
   CDProof(context::Context* c, ProofNodeManager* pnm);
   ~CDProof() {}
-  /** Get proof for fact, or nullptr if it does not exist */
+  /** 
+   * Get proof for fact, or nullptr if it does not exist. Notice that this call
+   * does *not* clone the ProofNode object. Hence, the returned proof may
+   * be updated by further calls to this class. The caller should call
+   * ProofNode::clone if they want to own it.
+   */
   std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** Register step
    *
@@ -102,21 +112,21 @@ class CDProof
    * be a fact previously registered as a conclusion of a registerStep call
    * when ensureChildren is true.
    * @param args The arguments of the proof step.
+   * @return The argument expected if indeed the proof step proves expected, or
+   * null otherwise. The latter can happen if the proof has a different (or
+   * invalid) conclusion, or if one of the children does not have a proof and
+   * ensureChildren is true.
    *
-   * This returns expected if indeed the proof step proves expected. This can
-   * fail if the proof has a different (or invalid) conclusion, or if one of the
-   * children does not have a proof and ensureChildren is true.
+   * This method only overwrite proofs for facts that were registered as
+   * steps with id ASSUME.
    *
-   * This method does not overwrite proofs for facts that are already proven
-   * and are not assumptions. However, it will overwrite the proof for fact if
-   * it was previously proved by assumption.
-   *
-   * Additionally, it will create proofs by assumption of the facts in
-   * children when ensureChildren is false.
+   * Additionally, it will create proofs justified by ASSUME of the facts in
+   * children that have not already been proven when ensureChildren is false.
    *
    * Notice that ensureChildren should be true if the proof is being
-   * constructed is a strictly eager fashion; ensureChildren should be false
-   * if the steps are registered lazily or out of order.
+   * constructed is a strictly eager fashion (bottom up from its leaves), while
+   * ensureChildren should be false if the steps are registered lazily or out
+   * of order.
    */
   Node registerStep(Node expected,
                     PfRule id,
@@ -127,10 +137,8 @@ class CDProof
    *
    * @param fact The intended conclusion of the proof.
    * @param pn The proof of the given fact.
-   *
-   * This method returns fact if pn is a proof of fact, and null otherwise.
-   * If it returns fact, it registers a copy of all of the subnodes of pn to
-   * this proof class.
+   * @return fact if pn is a proof of fact, and null otherwise. If it returns
+   * fact, it registers a copy of all of the subnodes of pn to this proof class.
    *
    * This method is implemented by calling registerStep above for the
    * appropriate subnodes of pn. Thus this method does *not* overwrite proofs
