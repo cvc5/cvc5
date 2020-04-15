@@ -49,6 +49,7 @@ class ProofNodeManager;
 class ProofNode
 {
   friend class ProofNodeManager;
+
  public:
   ProofNode(PfRule id,
             const std::vector<std::shared_ptr<ProofNode>>& children,

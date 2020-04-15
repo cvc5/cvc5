@@ -156,7 +156,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: P:F, corresponding to the one-step unfolding of the premise.
   RE_UNFOLD,
-  
+
   //================================================= Unknown rule
   UNKNOWN,
 };

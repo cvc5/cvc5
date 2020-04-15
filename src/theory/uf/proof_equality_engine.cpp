@@ -23,7 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace eq {
 
-ProofEqEngine::ProofEqEngine(context::Context* c, context::UserContext* u,
+ProofEqEngine::ProofEqEngine(context::Context* c,
+                             context::UserContext* u,
                              EqualityEngine& ee,
                              ProofNodeManager* pnm)
     : EagerProofGenerator(u), d_ee(ee), d_proof(c, pnm), d_proofsEnabled(true)
@@ -47,9 +48,7 @@ Node ProofEqEngine::assertLitAssume(Node lit)
   return ret;
 }
 
-Node ProofEqEngine::assertLit(Node lit,
-                              PfRule id,
-                              const std::vector<Node>& exp)
+Node ProofEqEngine::assertLit(Node lit, PfRule id, const std::vector<Node>& exp)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;

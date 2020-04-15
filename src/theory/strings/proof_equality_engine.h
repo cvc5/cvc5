@@ -34,13 +34,14 @@ namespace strings {
  * This is intended to be run in parallel with an EqualityEngine. It tracks
  * the reason for why all facts are added to an EqualityEngine in a SAT-context
  * depnendent manner.
- * 
+ *
  * May not be necessary???
  */
 class StringsProofEqEngine : public eq::ProofEqEngine
 {
  public:
-  StringsProofEqEngine(context::Context* c, context::UserContext* u,
+  StringsProofEqEngine(context::Context* c,
+                       context::UserContext* u,
                        eq::EqualityEngine& ee,
                        ProofNodeManager* pnm);
   ~StringsProofEqEngine() {}

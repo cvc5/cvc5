@@ -46,7 +46,10 @@ class ProofEqEngine : public EagerProofGenerator
       NodeProofMap;
 
  public:
-  ProofEqEngine(context::Context* c, context::UserContext* u, EqualityEngine& ee, ProofNodeManager* pnm);
+  ProofEqEngine(context::Context* c,
+                context::UserContext* u,
+                EqualityEngine& ee,
+                ProofNodeManager* pnm);
   ~ProofEqEngine() {}
 
   /** Assert predicate by assumption */
