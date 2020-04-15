@@ -99,7 +99,7 @@ void TermRegistry::preRegisterTerm(TNode n)
     d_ee.addTerm(n[1]);
     return;
   }
-  else if (k == STRING_CODE)
+  else if (k == STRING_TO_CODE)
   {
     d_hasStrCode = true;
   }

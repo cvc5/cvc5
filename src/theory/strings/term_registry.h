@@ -63,6 +63,9 @@ class TermRegistry
    * finding (options::stringsFmf), we determine if the term n should be
    * added to d_inputVars, the set of terms of type string whose length we are
    * minimizing with its decision strategy.
+   * - Setting phase requirements on n if it is a formula and we prefer
+   * decisions with a particular polarity (e.g. positive regular expression
+   * memberships).
    */
   void preRegisterTerm(TNode n);
   /** Register term
