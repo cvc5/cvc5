@@ -118,6 +118,25 @@ class EagerProofGenerator : public ProofGenerator
   NodeProofNodeMap d_proofs;
 };
 
+/** Lazy proof generator
+ * 
+ * A proof generator that does not make proofs for conflicts and lemmas
+ * eagerly.
+ */
+/*
+class LazyProofGenerator : public ProofGenerator
+{
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+ public:
+  LazyProofGenerator() {}
+  ~LazyProofGenerator() {}
+  virtual std::shared_ptr<ProofNode> getProofForConflict(Node conf) = 0;
+  virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) = 0;
+  // TODO
+};
+
+*/
+  
 }  // namespace theory
 }  // namespace CVC4
 

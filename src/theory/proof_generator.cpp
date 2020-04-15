@@ -51,5 +51,12 @@ std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node key)
   return (*it).second;
 }
 
+/*
+std::shared_ptr<ProofNode> LazyProofGenerator::getProof(Node key)
+{
+  
+}
+*/
+
 }  // namespace theory
 }  // namespace CVC4

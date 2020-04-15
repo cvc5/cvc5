@@ -61,7 +61,13 @@ class ProofOutputChannel
    * the same as OutputChannel.
    */
   void conflict(Node conf, ProofGenerator* pfg = nullptr);
-  /** get the proof for conflict conf */
+  /** 
+   * Get the proof for conflict conf. This method can be called if
+   * conflict(conf, pfg) has been called in this user context. This method
+   * returns the proof of conf, according to pfg, or nullptr if we fail to
+   * generate a proof. The latter can happen if pfg was nullptr, or if its
+   * getProof method failed, indicating a failure.
+   */
   std::shared_ptr<ProofNode> getProofForConflict(Node conf);
   /**
    * Send lem on the output channel of this class whose proof can be generated
@@ -73,7 +79,13 @@ class ProofOutputChannel
                     bool removable = false,
                     bool preprocess = false,
                     bool sendAtoms = false);
-  /** get the proof for lemma lem */
+  /** 
+   * Get the proof for lemma lem. This method can be called if
+   * conflict(lem, pfg, ...) has been called in this user context. This method
+   * returns the proof of lem, according to pfg, or nullptr if we fail to
+   * generate a proof. The latter can happen if pfg was nullptr, or if its
+   * getProof method failed, indicating a failure.
+   */
   std::shared_ptr<ProofNode> getProofForLemma(Node lem);
 
   /** Get the node key for which conflict calls are cached */
