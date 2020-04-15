@@ -689,8 +689,6 @@ libcvc4_add_sources(
   theory/strings/normal_form.h
   theory/strings/proof_checker.cpp
   theory/strings/proof_checker.h
-  theory/strings/proof_equality_engine.cpp
-  theory/strings/proof_equality_engine.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp
