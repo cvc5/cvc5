@@ -313,7 +313,8 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
                   << "  " << term_db_list[ftypes[i]][childIndex[i]]
                   << std::endl;
             }
-            Assert(terms[i].getType().isComparableTo(ftypes[i]));
+            Assert(terms[i].isNull()
+                   || terms[i].getType().isComparableTo(ftypes[i]));
           }
           if (ie->addInstantiation(f, terms))
           {
