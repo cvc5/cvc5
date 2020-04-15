@@ -73,15 +73,6 @@ header = "options/strings_options.h"
   help       = "strings length normalization lemma"
 
 [[option]]
-  name       = "stringSplitEmp"
-  category   = "regular"
-  long       = "strings-sp-emp"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "strings split on empty string"
-
-[[option]]
   name       = "stringInferSym"
   category   = "regular"
   long       = "strings-infer-sym"

@@ -302,7 +302,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
             {
               terms.push_back(d_rd->getRDomain(f, i)->d_terms[childIndex[i]]);
               Trace("inst-alg-rd")
-                  << "  " << d_rd->getRDomain(f, i)->d_terms[childIndex[i]]
+                  << "  (rd) " << d_rd->getRDomain(f, i)->d_terms[childIndex[i]]
                   << std::endl;
             }
             else
@@ -313,6 +313,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
                   << "  " << term_db_list[ftypes[i]][childIndex[i]]
                   << std::endl;
             }
+            Assert(terms[i].getType().isComparableTo(ftypes[i]));
           }
           if (ie->addInstantiation(f, terms))
           {
