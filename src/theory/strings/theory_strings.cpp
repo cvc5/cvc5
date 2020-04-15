@@ -93,7 +93,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       new InferenceManager(c, u, d_state, d_sk_cache, extt, out, d_statistics));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(c, u, d_state, *d_im));
-  d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_sk_cache, d_bsolver));
+  d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_sk_cache, *d_bsolver));
   d_esolver.reset(new ExtfSolver(c,
                                  u,
                                  d_state,
@@ -206,7 +206,7 @@ bool TheoryStrings::propagate(TNode literal) {
 Node TheoryStrings::explain( TNode literal ){
   Debug("strings-explain") << "explain called on " << literal << std::endl;
   std::vector< TNode > assumptions;
-  d_im.explain(literal, assumptions);
+  d_im->explain(literal, assumptions);
   if( assumptions.empty() ){
     return d_true;
   }else if( assumptions.size()==1 ){
@@ -692,7 +692,7 @@ void TheoryStrings::check(Effort e) {
     //assert pending fact
     assertPendingFact( atom, polarity, fact );
   }
-  d_im.doPendingFacts();
+  d_im->doPendingFacts();
 
   Assert(d_strategy_init);
   std::map<Effort, std::pair<unsigned, unsigned> >::iterator itsr =
@@ -749,10 +749,10 @@ void TheoryStrings::check(Effort e) {
       Trace("strings-check") << "  * Run strategy..." << std::endl;
       runStrategy(sbegin, send);
       // flush the facts
-      addedFact = d_im.hasPendingFact();
-      addedLemma = d_im.hasPendingLemma();
-      d_im.doPendingFacts();
-      d_im.doPendingLemmas();
+      addedFact = d_im->hasPendingFact();
+      addedLemma = d_im->hasPendingLemma();
+      d_im->doPendingFacts();
+      d_im->doPendingLemmas();
       if (Trace.isOn("strings-check"))
       {
         Trace("strings-check") << "  ...finish run strategy: ";
@@ -769,8 +769,8 @@ void TheoryStrings::check(Effort e) {
     } while (!d_state.isInConflict() && !addedLemma && addedFact);
   }
   Trace("strings-check") << "Theory of strings, done check : " << e << std::endl;
-  Assert(!d_im.hasPendingFact());
-  Assert(!d_im.hasPendingLemma());
+  Assert(!d_im->hasPendingFact());
+  Assert(!d_im->hasPendingLemma());
 }
 
 bool TheoryStrings::needsCheckLastEffort() {
@@ -954,7 +954,7 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
       a.push_back(pc);
       Trace("strings-pending")
           << "Process pending conflict " << pc << std::endl;
-      Node conflictNode = d_im.mkExplain(a);
+      Node conflictNode = d_im->mkExplain(a);
       d_state.setConflict();
       Trace("strings-conflict")
           << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
@@ -1013,12 +1013,12 @@ void TheoryStrings::checkCodes()
         Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
         cc = Rewriter::rewrite(cc);
         Assert(cc.isConst());
-        Node cp = d_im.getProxyVariableFor(c);
+        Node cp = d_im->getProxyVariableFor(c);
         AlwaysAssert(!cp.isNull());
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
         {
-          d_im.sendInference(d_empty_vec, cc.eqNode(vc), Inference::CODE_PROXY);
+          d_im->sendInference(d_empty_vec, cc.eqNode(vc), Inference::CODE_PROXY);
         }
         const_codes.push_back(vc);
       }
@@ -1032,7 +1032,7 @@ void TheoryStrings::checkCodes()
         }
       }
     }
-    if (d_im.hasProcessed())
+    if (d_im->hasProcessed())
     {
       return;
     }
@@ -1055,8 +1055,8 @@ void TheoryStrings::checkCodes()
           Node eqn = c1[0].eqNode(c2[0]);
           // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
           Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
-          d_im.sendPhaseRequirement(deq, false);
-          d_im.sendInference(d_empty_vec, inj_lem, Inference::CODE_INJ);
+          d_im->sendPhaseRequirement(deq, false);
+          d_im->sendInference(d_empty_vec, inj_lem, Inference::CODE_INJ);
         }
       }
     }
@@ -1098,7 +1098,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
     // register length information:
     //  for variables, split on empty vs positive length
     //  for concat/const/replace, introduce proxy var and state length relation
-    regTermLem = d_im.registerTerm(n);
+    regTermLem = d_im->registerTerm(n);
   }
   else if (n.getKind() == STRING_TO_CODE)
   {
@@ -1228,8 +1228,8 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     default: Unreachable(); break;
   }
   Trace("strings-process") << "Done " << s
-                           << ", addedFact = " << d_im.hasPendingFact()
-                           << ", addedLemma = " << d_im.hasPendingLemma()
+                           << ", addedFact = " << d_im->hasPendingFact()
+                           << ", addedLemma = " << d_im->hasPendingLemma()
                            << ", conflict = " << d_state.isInConflict()
                            << std::endl;
 }
@@ -1337,7 +1337,7 @@ void TheoryStrings::runStrategy(unsigned sbegin, unsigned send)
     InferStep curr = d_infer_steps[i];
     if (curr == BREAK)
     {
-      if (d_im.hasProcessed())
+      if (d_im->hasProcessed())
       {
         break;
       }

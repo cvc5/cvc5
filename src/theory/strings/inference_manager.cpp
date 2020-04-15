@@ -20,6 +20,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "expr/attribute.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -28,6 +29,9 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
+
+struct StringsProxyVarAttributeId {};
+typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
 
 InferenceManager::InferenceManager(context::Context* c,
                                    context::UserContext* u,
@@ -449,7 +453,7 @@ Node InferenceManager::getRegisterTermAtomicLemma(
     Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node n_len = nm->mkNode(kind::STRING_LENGTH, n);
+  Node n_len = nm->mkNode(STRING_LENGTH, n);
 
   if (s == LENGTH_GEQ_ONE)
   {
@@ -503,7 +507,7 @@ Node InferenceManager::getRegisterTermAtomicLemma(
   // additionally add len( x ) >= 0 ?
   if (options::stringLenGeqZ())
   {
-    Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
+    Node n_len_geq = nm->mkNode(GEQ, n_len, d_zero);
     n_len_geq = Rewriter::rewrite(n_len_geq);
     lems.push_back(n_len_geq);
   }
@@ -549,14 +553,14 @@ void InferenceManager::doPendingFacts()
       {
         bool polarity = lit.getKind() != NOT;
         TNode atom = polarity ? lit : lit[0];
-        d_parent.assertPendingFact(atom, polarity, exp);
+        assertPendingFact(atom, polarity, exp);
       }
     }
     else
     {
       bool polarity = fact.getKind() != NOT;
       TNode atom = polarity ? fact : fact[0];
-      d_parent.assertPendingFact(atom, polarity, exp);
+      assertPendingFact(atom, polarity, exp);
     }
     i++;
   }
@@ -583,6 +587,52 @@ void InferenceManager::doPendingLemmas()
   }
   d_pendingLem.clear();
   d_pendingReqPhase.clear();
+}
+
+
+void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp) {
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
+  Trace("strings-pending") << "Assert pending fact : " << atom << " " << polarity << " from " << exp << std::endl;
+  Assert(atom.getKind() != OR) << "Infer error: a split.";
+  if( atom.getKind()==EQUAL ){
+    Trace("strings-pending-debug") << "  Now assert equality" << std::endl;
+    ee->assertEquality( atom, polarity, exp );
+    Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
+  } else {
+    ee->assertPredicate( atom, polarity, exp );
+    if (atom.getKind() == STRING_IN_REGEXP)
+    {
+      if (polarity && atom[1].getKind() == REGEXP_CONCAT)
+      {
+        Node eqc = ee->getRepresentative(atom[0]);
+        d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
+      }
+    }
+  }
+  // process the conflict
+  if (!d_state.isInConflict())
+  {
+    Node pc = d_state.getPendingConflict();
+    if (!pc.isNull())
+    {
+      std::vector<Node> a;
+      a.push_back(pc);
+      Trace("strings-pending")
+          << "Process pending conflict " << pc << std::endl;
+      Node conflictNode = mkExplain(a);
+      d_state.setConflict();
+      Trace("strings-conflict")
+          << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
+      ++(d_statistics.d_conflictsEagerPrefix);
+      d_out.conflict(conflictNode);
+    }
+  }
+  Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
+  // Collect extended function terms in the atom. Notice that we must register
+  // all extended functions occurring in assertions and shared terms. We
+  // make a similar call to registerTermRec in TheoryStrings::addSharedTerm.
+  d_extt->registerTermRec( atom );
+  Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
 bool InferenceManager::hasProcessed() const
@@ -724,7 +774,7 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
   }
   else
   {
-    ant = NodeManager::currentNM()->mkNode(kind::AND, antec_exp);
+    ant = NodeManager::currentNM()->mkNode(AND, antec_exp);
   }
   return ant;
 }
@@ -769,7 +819,6 @@ void InferenceManager::explain(TNode literal,
     }
   }
 }
-void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
 
 void InferenceManager::markCongruent(Node a, Node b)
 {
@@ -780,7 +829,7 @@ void InferenceManager::markCongruent(Node a, Node b)
   }
 }
 
-void markReduced(Node n, bool contextDepend)
+void InferenceManager::markReduced(Node n, bool contextDepend)
 {
   d_extt->markReduced(n, contextDepend);
 }

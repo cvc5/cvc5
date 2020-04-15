@@ -93,9 +93,6 @@ enum InferStep
 };
 std::ostream& operator<<(std::ostream& out, Inference i);
 
-struct StringsProxyVarAttributeId {};
-typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
-
 class TheoryStrings : public Theory {
   friend class InferenceManager;
   typedef context::CDList<Node> NodeList;

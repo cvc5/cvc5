@@ -40,6 +40,7 @@ RegExpSolver::RegExpSolver(SolverState& s,
                            context::UserContext* u)
     : d_state(s),
       d_im(im),
+      d_csolver(cs),
       d_esolver(es),
       d_statistics(stats),
       d_regexp_ucached(u),
