@@ -36,15 +36,6 @@ header = "options/expr_options.h"
   help       = "print types with variables when printing exprs"
 
 [[option]]
-  name       = "earlyTypeChecking"
-  category   = "regular"
-  long       = "eager-type-checking"
-  type       = "bool"
-  default    = "USE_EARLY_TYPE_CHECKING_BY_DEFAULT"
-  read_only  = true
-  help       = "type check expressions immediately on creation (debug builds only)"
-
-[[option]]
   name       = "typeChecking"
   category   = "regular"
   long       = "type-checking"
