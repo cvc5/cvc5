@@ -24,8 +24,8 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
-#include "theory/strings/term_registry.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/term_registry.h"
 
 namespace CVC4 {
 namespace theory {

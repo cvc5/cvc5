@@ -52,7 +52,7 @@ class TermRegistry
   ~TermRegistry();
   /**
    * Preregister term, called when TheoryStrings::preRegisterTerm(n) is called.
-   * 
+   *
    * If we are using strings finite model finding (options::stringsFmf),
    * this determines if the term n should be added to d_inputVars, the set
    * of terms of type string whose length we are minimizing with its decision

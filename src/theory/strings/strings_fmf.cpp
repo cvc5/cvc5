@@ -26,7 +26,7 @@ namespace strings {
 StringsFmf::StringsFmf(context::Context* c,
                        context::UserContext* u,
                        Valuation valuation,
-             TermRegistry& tr)
+                       TermRegistry& tr)
     : d_sslds(nullptr),
       d_satContext(c),
       d_userContext(u),
@@ -45,9 +45,7 @@ void StringsFmf::presolve()
       << "presolve: register decision strategy." << std::endl;
   const NodeSet& ivars = d_termReg.getInputVars();
   std::vector<Node> inputVars;
-  for (NodeSet::const_iterator itr = ivars.begin();
-       itr != ivars.end();
-       ++itr)
+  for (NodeSet::const_iterator itr = ivars.begin(); itr != ivars.end(); ++itr)
   {
     inputVars.push_back(*itr);
   }

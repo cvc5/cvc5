@@ -27,8 +27,8 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/strings/term_registry.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {

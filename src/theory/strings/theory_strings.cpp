@@ -547,10 +547,7 @@ bool TheoryStrings::collectModelInfoType(
 // MAIN SOLVER
 /////////////////////////////////////////////////////////////////////////////
 
-
-void TheoryStrings::preRegisterTerm(TNode n) {
-  d_termReg.preRegisterTerm(n);
-}
+void TheoryStrings::preRegisterTerm(TNode n) { d_termReg.preRegisterTerm(n); }
 
 Node TheoryStrings::expandDefinition(Node node)
 {
@@ -711,7 +708,7 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
   {
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
     //we care about the length of this string
-    d_termReg.registerTerm( t[0], 1 );
+    d_termReg.registerTerm(t[0], 1);
   }
   d_state.eqNotifyNewClass(t);
 }
@@ -839,7 +836,7 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
       if (!d_equalityEngine.hasTerm(atom[j])
           && atom[j].getType().isStringLike())
       {
-        d_termReg.registerTerm( atom[j], 0 );
+        d_termReg.registerTerm(atom[j], 0);
       }
     }
     Trace("strings-pending-debug") << "  Now assert equality" << std::endl;

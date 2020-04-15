@@ -34,7 +34,7 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::Context* c,
                                    context::UserContext* u,
                                    SolverState& s,
-                   TermRegistry& tr,
+                                   TermRegistry& tr,
                                    OutputChannel& out,
                                    SequencesStatistics& statistics)
     : d_parent(p),

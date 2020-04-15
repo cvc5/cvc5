@@ -86,11 +86,11 @@ void TermRegistry::preRegisterTerm(TNode n)
       throw LogicException(ss.str());
     }
   }
-  if (k==EQUAL)
+  if (k == EQUAL)
   {
     d_ee.addTriggerEquality(n);
   }
-  else if (k==STRING_IN_REGEXP)
+  else if (k == STRING_IN_REGEXP)
   {
     d_out.requirePhase(n, true);
     d_ee.addTriggerPredicate(n);
@@ -117,7 +117,7 @@ void TermRegistry::preRegisterTerm(TNode n)
         {
           std::stringstream ss;
           ss << "Characters in string \"" << n
-              << "\" are outside of the given alphabet.";
+             << "\" are outside of the given alphabet.";
           throw LogicException(ss.str());
         }
       }
@@ -151,7 +151,8 @@ void TermRegistry::preRegisterTerm(TNode n)
     // Our decision strategy will minimize the length of this term if it is a
     // variable but not an internally generated Skolem, or a term that does
     // not belong to this theory.
-    if (n.isVar() ? !d_skCache.isSkolem(n) : kindToTheoryId(k) != THEORY_STRINGS)
+    if (n.isVar() ? !d_skCache.isSkolem(n)
+                  : kindToTheoryId(k) != THEORY_STRINGS)
     {
       d_inputVars.insert(n);
       Trace("strings-preregister") << "input variable: " << n << std::endl;
@@ -336,21 +337,19 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
   }
 }
 
-SkolemCache* TermRegistry::getSkolemCache()
-{
-  return &d_skCache;
-}
+SkolemCache* TermRegistry::getSkolemCache() { return &d_skCache; }
 
 const context::CDList<TNode>& TermRegistry::getFunctionTerms() const
 {
   return d_functionsTerms;
 }
 
-const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars() const
+const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars()
+    const
 {
   return d_inputVars;
 }
-  
+
 Node TermRegistry::getRegisterTermAtomicLemma(Node n,
                                               LengthStatus s,
                                               std::map<Node, bool>& reqPhase)

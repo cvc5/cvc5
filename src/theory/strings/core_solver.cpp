@@ -30,10 +30,13 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-CoreSolver::CoreSolver(context::Context* c, context::UserContext* u, SolverState& s, InferenceManager& im, TermRegistry& tr, BaseSolver& bs) :
-d_state(s), d_im(im), d_termReg(tr),
-d_bsolver(bs),
-d_nf_pairs(c)
+CoreSolver::CoreSolver(context::Context* c,
+                       context::UserContext* u,
+                       SolverState& s,
+                       InferenceManager& im,
+                       TermRegistry& tr,
+                       BaseSolver& bs)
+    : d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs), d_nf_pairs(c)
 {
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -1252,7 +1255,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           // If the equality rewrites to a constant, we must use the
           // purify variable for this string to communicate that
           // we have inferred whether it is empty.
-          SkolemCache * skc = d_termReg.getSkolemCache();
+          SkolemCache* skc = d_termReg.getSkolemCache();
           Node p = skc->mkSkolemCached(nc, SkolemCache::SK_PURIFY, "lsym");
           Node pEq = p.eqNode(emp);
           // should not be constant
@@ -1327,7 +1330,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           Node prea = p == straLen ? stra
                                    : (isRev ? Word::suffix(stra, p)
                                             : Word::prefix(stra, p));
-          SkolemCache * skc = d_termReg.getSkolemCache();
+          SkolemCache* skc = d_termReg.getSkolemCache();
           Node sk = skc->mkSkolemCached(
               nc,
               prea,
@@ -1354,7 +1357,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Node firstChar = straLen == 1 ? stra
                                     : (isRev ? Word::suffix(stra, 1)
                                              : Word::prefix(stra, 1));
-      SkolemCache * skc = d_termReg.getSkolemCache();
+      SkolemCache* skc = d_termReg.getSkolemCache();
       Node sk = skc->mkSkolemCached(
           nc,
           isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
@@ -1428,7 +1431,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         info.d_antn.push_back(tnz);
       }
     }
-    SkolemCache * skc = d_termReg.getSkolemCache();
+    SkolemCache* skc = d_termReg.getSkolemCache();
     Node sk = skc->mkSkolemCached(
         x,
         y,
@@ -1668,7 +1671,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     Trace("strings-loop") << "Strings::Loop: Normal Loop Breaking."
                           << std::endl;
     // right
-    SkolemCache * skc = d_termReg.getSkolemCache();
+    SkolemCache* skc = d_termReg.getSkolemCache();
     Node sk_w = skc->mkSkolem("w_loop");
     Node sk_y = skc->mkSkolem("y_loop");
     d_termReg.registerTermAtomic(sk_y, LENGTH_GEQ_ONE);
@@ -1843,9 +1846,9 @@ void CoreSolver::processDeq(Node ni, Node nj)
           //
           // E.g. x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != "" --->
           //      x = k1 ++ k2 ^ len(k1) = 1 ^ (k1 != "a" v x = "a" ++  k2)
-          SkolemCache * skc = d_termReg.getSkolemCache();
-          Node sk = skc->mkSkolemCached(
-              nck, SkolemCache::SK_ID_DC_SPT, "dc_spt");
+          SkolemCache* skc = d_termReg.getSkolemCache();
+          Node sk =
+              skc->mkSkolemCached(nck, SkolemCache::SK_ID_DC_SPT, "dc_spt");
           d_termReg.registerTermAtomic(sk, LENGTH_ONE);
           Node skr = skc->mkSkolemCached(
               nck, SkolemCache::SK_ID_DC_SPT_REM, "dc_spt_rem");
@@ -1890,13 +1893,13 @@ void CoreSolver::processDeq(Node ni, Node nj)
         antecNewLits.push_back(xLenTerm.eqNode(yLenTerm).negate());
 
         std::vector<Node> conc;
-        SkolemCache * skc = d_termReg.getSkolemCache();
-        Node sk1 = skc->mkSkolemCached(
-            x, y, SkolemCache::SK_ID_DEQ_X, "x_dsplit");
-        Node sk2 = skc->mkSkolemCached(
-            x, y, SkolemCache::SK_ID_DEQ_Y, "y_dsplit");
-        Node sk3 = skc->mkSkolemCached(
-            x, y, SkolemCache::SK_ID_DEQ_Z, "z_dsplit");
+        SkolemCache* skc = d_termReg.getSkolemCache();
+        Node sk1 =
+            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_DEQ_X, "x_dsplit");
+        Node sk2 =
+            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_DEQ_Y, "y_dsplit");
+        Node sk3 =
+            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_DEQ_Z, "z_dsplit");
         d_termReg.registerTermAtomic(sk3, LENGTH_GEQ_ONE);
         Node sk1Len = utils::mkNLength(sk1);
         conc.push_back(sk1Len.eqNode(xLenTerm));
