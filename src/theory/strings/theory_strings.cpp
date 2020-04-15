@@ -99,12 +99,12 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  *d_im,
                                  d_sk_cache,
                                  d_rewriter,
-                                 d_bsolver,
-                                 d_csolver,
+                                 *d_bsolver,
+                                 *d_csolver,
                                  extt,
                                  d_statistics));
   d_rsolver.reset(
-      new RegExpSolver(d_state, *d_im, d_csolver, *d_esolver, d_statistics, c, u));
+      new RegExpSolver(d_state, *d_im, *d_csolver, *d_esolver, d_statistics, c, u));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
@@ -150,11 +150,6 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
     }
   }
   return false;
-}
-
-Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
-{
-  return d_csolver.getNormalString(x, nf_exp);
 }
 
 void TheoryStrings::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -374,7 +369,7 @@ bool TheoryStrings::collectModelInfoType(
       //check if col[i][j] has only variables
       if (!eqc.isConst())
       {
-        NormalForm& nfe = d_csolver.getNormalForm(eqc);
+        NormalForm& nfe = d_csolver->getNormalForm(eqc);
         if (nfe.d_nf.size() == 1)
         {
           // does it have a code and the length of these equivalence classes are
@@ -508,7 +503,7 @@ bool TheoryStrings::collectModelInfoType(
   //step 4 : assign constants to all other equivalence classes
   for( unsigned i=0; i<nodes.size(); i++ ){
     if( processed.find( nodes[i] )==processed.end() ){
-      NormalForm& nf = d_csolver.getNormalForm(nodes[i]);
+      NormalForm& nf = d_csolver->getNormalForm(nodes[i]);
       if (Trace.isOn("strings-model"))
       {
         Trace("strings-model")
@@ -976,14 +971,14 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
 
 void TheoryStrings::checkRegisterTermsPreNormalForm()
 {
-  const std::vector<Node>& seqc = d_bsolver.getStringEqc();
+  const std::vector<Node>& seqc = d_bsolver->getStringEqc();
   for (const Node& eqc : seqc)
   {
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, &d_equalityEngine);
     while (!eqc_i.isFinished())
     {
       Node n = (*eqc_i);
-      if (!d_bsolver.isCongruent(n))
+      if (!d_bsolver->isCongruent(n))
       {
         registerTerm(n, 2);
       }
@@ -1005,10 +1000,10 @@ void TheoryStrings::checkCodes()
     // str.code applied to the proxy variables for each equivalence classes that
     // are constants of size one
     std::vector<Node> const_codes;
-    const std::vector<Node>& seqc = d_bsolver.getStringEqc();
+    const std::vector<Node>& seqc = d_bsolver->getStringEqc();
     for (const Node& eqc : seqc)
     {
-      NormalForm& nfe = d_csolver.getNormalForm(eqc);
+      NormalForm& nfe = d_csolver->getNormalForm(eqc);
       if (nfe.d_nf.size() == 1 && nfe.d_nf[0].isConst())
       {
         Node c = nfe.d_nf[0];
@@ -1154,10 +1149,10 @@ void TheoryStrings::registerType(TypeNode tn)
 
 void TheoryStrings::checkRegisterTermsNormalForms()
 {
-  const std::vector<Node>& seqc = d_bsolver.getStringEqc();
+  const std::vector<Node>& seqc = d_bsolver->getStringEqc();
   for (const Node& eqc : seqc)
   {
-    NormalForm& nfi = d_csolver.getNormalForm(eqc);
+    NormalForm& nfi = d_csolver->getNormalForm(eqc);
     // check if there is a length term for this equivalence class
     EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
     Node lt = ei ? ei->d_lengthTerm : Node::null();
@@ -1215,20 +1210,20 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
   Trace("strings-process") << "..." << std::endl;
   switch (s)
   {
-    case CHECK_INIT: d_bsolver.checkInit(); break;
-    case CHECK_CONST_EQC: d_bsolver.checkConstantEquivalenceClasses(); break;
+    case CHECK_INIT: d_bsolver->checkInit(); break;
+    case CHECK_CONST_EQC: d_bsolver->checkConstantEquivalenceClasses(); break;
     case CHECK_EXTF_EVAL: d_esolver->checkExtfEval(effort); break;
-    case CHECK_CYCLES: d_csolver.checkCycles(); break;
-    case CHECK_FLAT_FORMS: d_csolver.checkFlatForms(); break;
+    case CHECK_CYCLES: d_csolver->checkCycles(); break;
+    case CHECK_FLAT_FORMS: d_csolver->checkFlatForms(); break;
     case CHECK_REGISTER_TERMS_PRE_NF: checkRegisterTermsPreNormalForm(); break;
-    case CHECK_NORMAL_FORMS_EQ: d_csolver.checkNormalFormsEq(); break;
-    case CHECK_NORMAL_FORMS_DEQ: d_csolver.checkNormalFormsDeq(); break;
+    case CHECK_NORMAL_FORMS_EQ: d_csolver->checkNormalFormsEq(); break;
+    case CHECK_NORMAL_FORMS_DEQ: d_csolver->checkNormalFormsDeq(); break;
     case CHECK_CODES: checkCodes(); break;
-    case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
+    case CHECK_LENGTH_EQC: d_csolver->checkLengthsEqc(); break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: d_esolver->checkExtfReductions(effort); break;
     case CHECK_MEMBERSHIP: d_rsolver->checkMemberships(); break;
-    case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
+    case CHECK_CARDINALITY: d_bsolver->checkCardinality(); break;
     default: Unreachable(); break;
   }
   Trace("strings-process") << "Done " << s
