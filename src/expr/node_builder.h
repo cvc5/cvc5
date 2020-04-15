@@ -1311,13 +1311,11 @@ inline void NodeBuilder<nchild_thresh>::maybeCheckType(const TNode n) const
 {
   /* force an immediate type check, if early type checking is
      enabled and the current node isn't a variable or constant */
-  if( d_nm->getOptions()[options::earlyTypeChecking] ) {
-    kind::MetaKind mk = n.getMetaKind();
-    if( mk != kind::metakind::VARIABLE
-        && mk != kind::metakind::NULLARY_OPERATOR
-        && mk != kind::metakind::CONSTANT ) {
-      d_nm->getType(n, true);
-    }
+  kind::MetaKind mk = n.getMetaKind();
+  if (mk != kind::metakind::VARIABLE && mk != kind::metakind::NULLARY_OPERATOR
+      && mk != kind::metakind::CONSTANT)
+  {
+    d_nm->getType(n, true);
   }
 }
 #endif /* CVC4_DEBUG */

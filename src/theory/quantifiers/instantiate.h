@@ -318,6 +318,11 @@ class Instantiate : public QuantifiersUtil
                                    bool addedLem = true);
   /** remove instantiation from the cache */
   bool removeInstantiationInternal(Node q, std::vector<Node>& terms);
+  /**
+   * Ensure that n has type tn, return a term equivalent to it for that type
+   * if possible.
+   */
+  static Node ensureType(Node n, TypeNode tn);
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
