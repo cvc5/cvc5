@@ -101,7 +101,7 @@ Node SequencesRewriter::rewriteEquality(Node node)
       unsigned index2 = r == 0 ? i : (c[1].size() - 1) - i;
       Node s = c[0][index1];
       Node t = c[1][index2];
-      if (s.isConst() && c[1][index2].isConst())
+      if (s.isConst() && t.isConst())
       {
         size_t lenS = Word::getLength(s);
         size_t lenT = Word::getLength(t);
