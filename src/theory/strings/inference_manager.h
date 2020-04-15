@@ -78,7 +78,8 @@ class InferenceManager
                    SolverState& s,
                    TermRegistry& tr,
                    OutputChannel& out,
-                   SequencesStatistics& statistics);
+                   SequencesStatistics& statistics,
+                   bool pfEnabled = false);
   ~InferenceManager() {}
 
   /** send internal inferences
@@ -304,6 +305,8 @@ class InferenceManager
    * SAT-context-dependent.
    */
   NodeSet d_keep;
+  /** Whether proofs are enabled */
+  bool d_pfEnabled;
 };
 
 }  // namespace strings

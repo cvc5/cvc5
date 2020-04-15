@@ -36,13 +36,15 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    SolverState& s,
                                    TermRegistry& tr,
                                    OutputChannel& out,
-                                   SequencesStatistics& statistics)
+                                   SequencesStatistics& statistics,
+                                   bool pfEnabled)
     : d_parent(p),
       d_state(s),
       d_termReg(tr),
       d_out(out),
       d_statistics(statistics),
-      d_keep(c)
+      d_keep(c),
+      d_pfEnabled(pfEnabled)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
