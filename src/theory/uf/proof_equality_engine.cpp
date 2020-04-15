@@ -106,7 +106,7 @@ Node ProofEqEngine::assertConflict(PfRule id,
     if (ret != d_false)
     {
       // a step went wrong, e.g. during checking
-      Assert(false);
+      Assert(false) << "ProofEqEngine::assertConflict: register proof step";
       return Node::null();
     }
   }
@@ -127,6 +127,8 @@ Node ProofEqEngine::assertConflict(PfRule id,
     std::shared_ptr<ProofNode> pf = mkProofForFact(d_false);
     if (pf == nullptr)
     {
+      // should have existed
+      Assert(false) << "ProofEqEngine::assertConflict: failed to get proof";
       return Node::null();
     }
     // set the proof for the conflict, which can be queried later
@@ -142,6 +144,7 @@ std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
   {
     return nullptr;
   }
+  // clone it
   return p->clone();
 }
 
