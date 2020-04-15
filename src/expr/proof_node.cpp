@@ -71,7 +71,8 @@ std::shared_ptr<ProofNode> ProofNode::clone() const
   {
     cchildren.push_back(cp->clone());
   }
-  std::shared_ptr<ProofNode> thisc = std::make_shared<ProofNode>(d_id, cchildren, d_args);
+  std::shared_ptr<ProofNode> thisc =
+      std::make_shared<ProofNode>(d_id, cchildren, d_args);
   thisc->d_proven = d_proven;
   return thisc;
 }

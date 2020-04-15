@@ -64,7 +64,8 @@ enum class PfRule : uint32_t
   // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
   // Arguments: (t)
   // ---------------------------------------------------------------
-  // Conclusion: (= t Rewriter::rewrite(t.substitute(x1,t1). ... .substitute(xn,tn)))
+  // Conclusion: (= t Rewriter::rewrite(t.substitute(x1,t1). ...
+  // .substitute(xn,tn)))
   SUBS_REWRITE,
   // ======== Split
   // Children: none

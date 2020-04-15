@@ -37,10 +37,10 @@ namespace eq {
  * use of an EqualityEngine object in such a way that the proper proofs are
  * internally constructed, and can be retrieved from this class when
  * necessary.
- * 
+ *
  * It tracks the reason for why all facts are added to an EqualityEngine in a
  * SAT-context dependent manner in a context-dependent (CDProof) object.
- * 
+ *
  * It is an eager proof generator (see theory/proof_generator.h), in that
  * it stores (copies) of proofs for lemmas when it is required to do so.
  *
@@ -57,37 +57,42 @@ class ProofEqEngine : public EagerProofGenerator
                 context::UserContext* u,
                 EqualityEngine& ee,
                 ProofNodeManager* pnm,
-                bool pfEnabled = true
-               );
+                bool pfEnabled = true);
   ~ProofEqEngine() {}
   /** Assert predicate lit by assumption */
   bool assertAssume(Node lit);
-  /** 
+  /**
    * Assert the predicate lit by proof step id, given explanation exp and
    * (optionally) arguments args.
-   * 
+   *
    */
   bool assertFact(Node lit, PfRule id, const std::vector<Node>& exp);
-  bool assertFact(Node lit, PfRule id, const std::vector<Node>& exp, const std::vector<Node>& args);
-  /** 
+  bool assertFact(Node lit,
+                  PfRule id,
+                  const std::vector<Node>& exp,
+                  const std::vector<Node>& args);
+  /**
    * Get proven lemma from contradictory facts. This method is called when
    * the proof rule with premises exp and arguments args implies a contradiction
    * by proof rule id.
-   * 
+   *
    * This method returns the corresponding conflict resulting from adding this
    * step, and ensures that a proof has been stored internally so that this
    * class may respond to a call to ProofGenerator::getProof(...).
    */
   Node assertConflict(PfRule id, const std::vector<Node>& exp);
-  Node assertConflict(PfRule id, const std::vector<Node>& exp, const std::vector<Node>& args);
+  Node assertConflict(PfRule id,
+                      const std::vector<Node>& exp,
+                      const std::vector<Node>& args);
+
  protected:
-  /** 
+  /**
    * Make proof for fact lit, or nullptr if it does not exist. It must be the
    * case that lit was either:
    * (1) Passed as the first argument to either a variant of assertAssume or
    * assertFact in the current SAT context,
    * (2) lit is false and a call was made to assertConflict in the current SAT
-   * context. 
+   * context.
    */
   std::shared_ptr<ProofNode> mkProofForFact(Node lit) const;
   /** Assert internal */
@@ -98,6 +103,7 @@ class ProofEqEngine : public EagerProofGenerator
    */
   Node mkAnd(const std::vector<Node>& a);
   Node mkAnd(const std::vector<TNode>& a);
+
  private:
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
@@ -106,7 +112,7 @@ class ProofEqEngine : public EagerProofGenerator
   Node d_false;
   /** The SAT-context-dependent proof object */
   CDProof d_proof;
-  /** 
+  /**
    * Whether proofs are enabled. If this flag is false, then this class acts
    * as a simplified interface to the EqualityEngine, without proofs.
    */

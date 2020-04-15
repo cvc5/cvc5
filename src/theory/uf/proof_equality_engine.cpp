@@ -27,11 +27,10 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
                              context::UserContext* u,
                              EqualityEngine& ee,
                              ProofNodeManager* pnm,
-                             bool pfEnabled
-                            )
+                             bool pfEnabled)
     : EagerProofGenerator(u), d_ee(ee), d_proof(c, pnm), d_pfEnabled(pfEnabled)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -58,17 +57,22 @@ bool ProofEqEngine::assertAssume(Node lit)
   // second, assert it to the equality engine, where it is its own explanation
   assertInternal(atom, polarity, lit);
 
-  Assert(lit==ret);
-  return lit==ret;
+  Assert(lit == ret);
+  return lit == ret;
 }
 
-bool ProofEqEngine::assertFact(Node lit, PfRule id, const std::vector<Node>& exp)
+bool ProofEqEngine::assertFact(Node lit,
+                               PfRule id,
+                               const std::vector<Node>& exp)
 {
   std::vector<Node> args;
   return assertFact(lit, id, exp, args);
 }
 
-bool ProofEqEngine::assertFact(Node lit, PfRule id, const std::vector<Node>& exp, const std::vector<Node>& args)
+bool ProofEqEngine::assertFact(Node lit,
+                               PfRule id,
+                               const std::vector<Node>& exp,
+                               const std::vector<Node>& args)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
@@ -79,10 +83,10 @@ bool ProofEqEngine::assertFact(Node lit, PfRule id, const std::vector<Node>& exp
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(lit, polarity, reason);
-  
+
   // return true if the proof was accurate
-  Assert(lit==ret);
-  return lit==ret;
+  Assert(lit == ret);
+  return lit == ret;
 }
 
 Node ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
@@ -91,35 +95,37 @@ Node ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
   return assertConflict(id, exp, args);
 }
 
-Node ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp, const std::vector<Node>& args)
+Node ProofEqEngine::assertConflict(PfRule id,
+                                   const std::vector<Node>& exp,
+                                   const std::vector<Node>& args)
 {
   if (d_pfEnabled)
   {
     // register the (conflicting) proof step
     Node ret = d_proof.registerStep(d_false, id, exp, args);
-    if (ret!=d_false)
+    if (ret != d_false)
     {
       // a step went wrong, e.g. during checking
       Assert(false);
       return Node::null();
     }
   }
-  
+
   // get the explanation
   std::vector<TNode> assumps;
   for (const Node& e : exp)
   {
     explainWithProof(e, assumps);
   }
-  
+
   // make the conflict
   Node conf = mkAnd(assumps);
-  
+
   if (d_pfEnabled)
   {
     // get the proof for false
     std::shared_ptr<ProofNode> pf = mkProofForFact(d_false);
-    if (pf==nullptr)
+    if (pf == nullptr)
     {
       return Node::null();
     }
@@ -132,7 +138,7 @@ Node ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp, cons
 std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
 {
   std::shared_ptr<ProofNode> p = d_proof.getProof(lit);
-  if (p==nullptr)
+  if (p == nullptr)
   {
     return nullptr;
   }

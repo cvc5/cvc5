@@ -28,7 +28,7 @@ void ProofOutputChannel::conflict(Node conf, ProofGenerator* pfg)
 {
   Node ckey = getConflictKeyValue(conf);
   // may or may not have supplied a generator
-  if (pfg!=nullptr)
+  if (pfg != nullptr)
   {
     d_lemPfGen[ckey] = pfg;
   }
@@ -49,7 +49,7 @@ LemmaStatus ProofOutputChannel::lemma(Node lem,
 {
   Node lkey = getLemmaKeyValue(lem);
   // may or may not have supplied a generator
-  if (pfg!=nullptr)
+  if (pfg != nullptr)
   {
     d_lemPfGen[lkey] = pfg;
   }
@@ -65,11 +65,10 @@ std::shared_ptr<ProofNode> ProofOutputChannel::getProofForLemma(Node lem)
 std::shared_ptr<ProofNode> ProofOutputChannel::getProof(Node key) const
 {
   NodeProofGenMap::const_iterator it = d_lemPfGen.find(key);
-  if(it == d_lemPfGen.end())
+  if (it == d_lemPfGen.end())
   {
-    Assert(false)
-        << "ProofOutputChannel::getProof: no generator provided for " << key
-        << std::endl;
+    Assert(false) << "ProofOutputChannel::getProof: no generator provided for "
+                  << key << std::endl;
     return nullptr;
   }
   std::shared_ptr<ProofNode> ret = (*it).second->getProof(key);
@@ -91,10 +90,7 @@ void ProofOutputChannel::requirePhase(TNode n, bool phase)
   d_out.requirePhase(n, phase);
 }
 
-void ProofOutputChannel::setIncomplete()
-{
-  d_out.setIncomplete();
-}
+void ProofOutputChannel::setIncomplete() { d_out.setIncomplete(); }
 
 }  // namespace theory
 }  // namespace CVC4
