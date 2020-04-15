@@ -97,7 +97,7 @@ class TermRegistry
    *
    * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
    *
-   * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) > 0.
+   * If the status is LENGTH_GEQ_ONE, we send a lemma n != "" ^ len( n ) > 0.
    *
    * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
    *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
