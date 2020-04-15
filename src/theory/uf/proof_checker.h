@@ -26,13 +26,13 @@ namespace theory {
 namespace eq {
 
 /** A checker for builtin proofs */
-class EqProofStepChecker : public ProofStepChecker
+class EqProofRuleChecker : public ProofRuleChecker
 {
  public:
-  EqProofStepChecker() {}
-  ~EqProofStepChecker() {}
+  EqProofRuleChecker() {}
+  ~EqProofRuleChecker() {}
   /** Return the conclusion of the given proof step, or null if it is invalid */
-  Node check(ProofStep id,
+  Node check(PfRule id,
              const std::vector<std::shared_ptr<ProofNode>>& children,
              const std::vector<Node>& args) override;
   /** Apply substitution */

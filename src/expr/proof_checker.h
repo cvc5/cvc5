@@ -25,17 +25,17 @@
 namespace CVC4 {
 
 /** A virtual base class for checking proofs */
-class ProofStepChecker
+class ProofRuleChecker
 {
  public:
-  ProofStepChecker() {}
-  virtual ~ProofStepChecker() {}
+  ProofRuleChecker() {}
+  virtual ~ProofRuleChecker() {}
   /** Check
    *
    * Return the formula that is proven by proof node with the given id, children
    * and arguments, or null if such a node is not well-formed.
    */
-  virtual Node check(ProofStep id,
+  virtual Node check(PfRule id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
                      const std::vector<Node>& args) = 0;
 };
@@ -55,16 +55,16 @@ class ProofChecker
    */
   Node check(ProofNode* pn, Node expected = Node::null());
   /** Same as above, with explicit arguments */
-  Node check(ProofStep id,
+  Node check(PfRule id,
              const std::vector<std::shared_ptr<ProofNode>>& children,
              const std::vector<Node>& args,
              Node expected = Node::null());
   /** Indicate that psc is the checker for proof step id */
-  void registerChecker(ProofStep id, ProofStepChecker* psc);
+  void registerChecker(PfRule id, ProofRuleChecker* psc);
 
  private:
   /** Maps proof steps to their checker */
-  std::map<ProofStep, ProofStepChecker*> d_checker;
+  std::map<PfRule, ProofRuleChecker*> d_checker;
 };
 
 }  // namespace CVC4

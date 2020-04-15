@@ -46,13 +46,13 @@ class ProofEqEngine : public EagerProofGenerator
       NodeProofMap;
 
  public:
-  ProofEqEngine(context::Context* c, EqualityEngine& ee, ProofNodeManager* pnm);
+  ProofEqEngine(context::Context* c, context::UserContext* u, EqualityEngine& ee, ProofNodeManager* pnm);
   ~ProofEqEngine() {}
 
   /** Assert predicate by assumption */
   Node assertLitAssume(Node lit);
   /** Assert the predicate by proof step id, given explanation exp */
-  Node assertLit(Node lit, ProofStep id, const std::vector<Node>& exp);
+  Node assertLit(Node lit, PfRule id, const std::vector<Node>& exp);
   /** Assert (dis)equality by substitution + rewriting, given explanation exp */
   Node assertEqSubsRewrite(Node lit, const std::vector<Node>& exp);
 

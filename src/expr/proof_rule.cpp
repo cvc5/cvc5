@@ -18,37 +18,37 @@
 
 namespace CVC4 {
 
-const char* toString(ProofRule id)
+const char* toString(PfRule id)
 {
   switch (id)
   {
     //================================================= Core rules
-    case ProofRule::ASSUME: return "ASSUME";
-    case ProofRule::SUBS: return "SUBS";
-    case ProofRule::REWRITE: return "REWRITE";
-    case ProofRule::SPLIT: return "SPLIT";
+    case PfRule::ASSUME: return "ASSUME";
+    case PfRule::SUBS: return "SUBS";
+    case PfRule::REWRITE: return "REWRITE";
+    case PfRule::SPLIT: return "SPLIT";
     //================================================= Equality rules
-    case ProofRule::REFL: return "REFL";
-    case ProofRule::SYMM: return "SYMM";
-    case ProofRule::TRANS: return "TRANS";
-    case ProofRule::CONG: return "CONG";
+    case PfRule::REFL: return "REFL";
+    case PfRule::SYMM: return "SYMM";
+    case PfRule::TRANS: return "TRANS";
+    case PfRule::CONG: return "CONG";
     //================================================= String rules
-    case ProofRule::CONCAT_ENDP_UNIFY: return "CONCAT_ENDP_UNIFY";
-    case ProofRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
-    case ProofRule::CONCAT_SPLIT: return "CONCAT_SPLIT";
-    case ProofRule::CONCAT_LPROP: return "CONCAT_LPROP";
-    case ProofRule::CONCAT_CPROP: return "CONCAT_CPROP";
-    case ProofRule::CTN_NOT_EQUAL: return "CTN_NOT_EQUAL";
-    case ProofRule::REDUCTION: return "REDUCTION";
-    case ProofRule::RE_INTER: return "RE_INTER";
-    case ProofRule::RE_UNFOLD: return "RE_UNFOLD";
+    case PfRule::CONCAT_ENDP_UNIFY: return "CONCAT_ENDP_UNIFY";
+    case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
+    case PfRule::CONCAT_SPLIT: return "CONCAT_SPLIT";
+    case PfRule::CONCAT_LPROP: return "CONCAT_LPROP";
+    case PfRule::CONCAT_CPROP: return "CONCAT_CPROP";
+    case PfRule::CTN_NOT_EQUAL: return "CTN_NOT_EQUAL";
+    case PfRule::REDUCTION: return "REDUCTION";
+    case PfRule::RE_INTER: return "RE_INTER";
+    case PfRule::RE_UNFOLD: return "RE_UNFOLD";
     //================================================= Unknown rule
-    case ProofRule::UNKNOWN: return "UNKNOWN";
+    case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
   }
 }
 
-std::ostream& operator<<(std::ostream& out, ProofRule id)
+std::ostream& operator<<(std::ostream& out, PfRule id)
 {
   out << toString(id);
   return out;

@@ -110,7 +110,7 @@ class CDProof
    * if the steps are registered lazily or out of order.
    */
   Node registerStep(Node expected,
-                    ProofStep id,
+                    PfRule id,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     bool ensureChildren = false);

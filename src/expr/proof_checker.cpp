@@ -22,12 +22,12 @@ Node ProofChecker::check(ProofNode* pn, Node expected)
 }
 
 Node ProofChecker::check(
-    ProofStep id,
+    PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     Node expected)
 {
-  std::map<ProofStep, ProofStepChecker*>::iterator it = d_checker.find(id);
+  std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it == d_checker.end())
   {
     return Node::null();
@@ -41,9 +41,9 @@ Node ProofChecker::check(
   return res;
 }
 
-void ProofChecker::registerChecker(ProofStep id, ProofStepChecker* psc)
+void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
 {
-  std::map<ProofStep, ProofStepChecker*>::iterator it = d_checker.find(id);
+  std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it != d_checker.end())
   {
     // warning?

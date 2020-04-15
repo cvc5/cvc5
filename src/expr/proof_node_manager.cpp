@@ -21,7 +21,7 @@ namespace CVC4 {
 ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc) {}
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
-    ProofStep id,
+    PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     Node expected)
@@ -41,7 +41,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
 
 bool ProofNodeManager::updateNode(
     ProofNode* pn,
-    ProofStep id,
+    PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
@@ -63,7 +63,7 @@ bool ProofNodeManager::updateNode(
 }
 
 Node ProofNodeManager::checkInternal(
-    ProofStep id,
+    PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     Node expected)

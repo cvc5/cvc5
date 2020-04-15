@@ -22,12 +22,12 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-Node StringProofStepChecker::check(
-    ProofStep id,
+Node StringProofRuleChecker::check(
+    PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
-  if (id == ProofStep::CONCAT_ENDP_UNIFY)
+  if (id == PfRule::CONCAT_ENDP_UNIFY)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
@@ -57,7 +57,7 @@ Node StringProofStepChecker::check(
     }
     // TODO
   }
-  else if (id == ProofStep::CONCAT_UNIFY)
+  else if (id == PfRule::CONCAT_UNIFY)
   {
     Assert(children.size() == 2);
     Assert(args.size() == 1);
@@ -89,25 +89,25 @@ Node StringProofStepChecker::check(
     }
     return s0.eqNode(t0);
   }
-  else if (id == ProofStep::CONCAT_LPROP)
+  else if (id == PfRule::CONCAT_LPROP)
   {
     // TODO
   }
-  else if (id == ProofStep::CONCAT_CPROP)
+  else if (id == PfRule::CONCAT_CPROP)
   {
     // TODO
   }
-  else if (id == ProofStep::CTN_NOT_EQUAL)
+  else if (id == PfRule::CTN_NOT_EQUAL)
   {
     // TODO
   }
-  else if (id == ProofStep::REDUCTION)
+  else if (id == PfRule::REDUCTION)
   {
   }
-  else if (id == ProofStep::RE_INTER)
+  else if (id == PfRule::RE_INTER)
   {
   }
-  else if (id == ProofStep::RE_UNFOLD)
+  else if (id == PfRule::RE_UNFOLD)
   {
   }
   return Node::null();

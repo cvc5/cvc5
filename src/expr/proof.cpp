@@ -34,7 +34,7 @@ std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
 }
 
 Node CDProof::registerStep(Node expected,
-                           ProofStep id,
+                           PfRule id,
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            bool ensureChildren)
@@ -42,7 +42,7 @@ Node CDProof::registerStep(Node expected,
   NodeProofNodeMap::iterator it = d_nodes.find(expected);
   if (it != d_nodes.end())
   {
-    if ((*it).second->getId() != ProofStep::ASSUME || id == ProofStep::ASSUME)
+    if ((*it).second->getId() != PfRule::ASSUME || id == PfRule::ASSUME)
     {
       // already proven or duplicate assumption, nothing to do
       return expected;
@@ -65,7 +65,7 @@ Node CDProof::registerStep(Node expected,
       // otherwise, we initialize it as an assumption
       std::vector<Node> pcargs = {c};
       std::vector<std::shared_ptr<ProofNode>> pcassume;
-      pc = d_manager->mkNode(ProofStep::ASSUME, pcassume, pcargs, c);
+      pc = d_manager->mkNode(PfRule::ASSUME, pcassume, pcargs, c);
       // assumptions never fail to check
       Assert(pc != nullptr);
       d_nodes.insert(c, pc);
@@ -128,7 +128,7 @@ Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
     else if (it->second.isNull())
     {
       itr = d_nodes.find(curFact);
-      if (itr != d_nodes.end() && (*itr).second->getId() != ProofStep::ASSUME)
+      if (itr != d_nodes.end() && (*itr).second->getId() != PfRule::ASSUME)
       {
         // if we already have a proof for this fact, we keep it
         visited[cur] = curFact;

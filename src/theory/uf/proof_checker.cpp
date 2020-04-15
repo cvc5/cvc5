@@ -22,7 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace eq {
 
-Node EqProofStepChecker::applySubstitution(Node n, const std::vector<Node>& exp)
+Node EqProofRuleChecker::applySubstitution(Node n, const std::vector<Node>& exp)
 {
   Node curr = n;
   // apply substitution one at a time
@@ -39,19 +39,19 @@ Node EqProofStepChecker::applySubstitution(Node n, const std::vector<Node>& exp)
   return curr;
 }
 
-Node EqProofStepChecker::check(
-    ProofStep id,
+Node EqProofRuleChecker::check(
+    PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
   // compute what was proven
-  if (id == ProofStep::ASSUME)
+  if (id == PfRule::ASSUME)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     return args[0];
   }
-  else if (id == ProofStep::SUBS)
+  else if (id == PfRule::SUBS)
   {
     Assert(children.size() > 0);
     Assert(args.size() == 1);
@@ -63,20 +63,20 @@ Node EqProofStepChecker::check(
     Node res = applySubstitution(args[0], exp);
     return args[0].eqNode(res);
   }
-  else if (id == ProofStep::REWRITE)
+  else if (id == PfRule::REWRITE)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     Node res = Rewriter::rewrite(args[0]);
     return args[0].eqNode(res);
   }
-  else if (id == ProofStep::REFL)
+  else if (id == PfRule::REFL)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     return args[0].eqNode(args[0]);
   }
-  else if (id == ProofStep::SYMM)
+  else if (id == PfRule::SYMM)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
@@ -87,7 +87,7 @@ Node EqProofStepChecker::check(
     }
     return eqp[1].eqNode(eqp[0]);
   }
-  else if (id == ProofStep::TRANS)
+  else if (id == PfRule::TRANS)
   {
     Assert(children.size() > 0);
     Assert(args.empty());
@@ -112,7 +112,7 @@ Node EqProofStepChecker::check(
     }
     return first.eqNode(curr);
   }
-  else if (id == ProofStep::SPLIT)
+  else if (id == PfRule::SPLIT)
   {
     Assert(children.empty());
     Assert(args.size() == 1);

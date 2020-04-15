@@ -61,7 +61,7 @@ class ProofNodeManager
    * checker, if both are provided.
    */
   std::shared_ptr<ProofNode> mkNode(
-      ProofStep id,
+      PfRule id,
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args,
       Node expected = Node::null());
@@ -78,7 +78,7 @@ class ProofNodeManager
    * @return true if the update was successful.
    */
   bool updateNode(ProofNode* pn,
-                  ProofStep id,
+                  PfRule id,
                   const std::vector<std::shared_ptr<ProofNode>>& children,
                   const std::vector<Node>& args);
 
@@ -94,7 +94,7 @@ class ProofNodeManager
    * if expected is provided (non-null) is different what is proven by the
    * other arguments.
    */
-  Node checkInternal(ProofStep id,
+  Node checkInternal(PfRule id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
                      const std::vector<Node>& args,
                      Node expected);

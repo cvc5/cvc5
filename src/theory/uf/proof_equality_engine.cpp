@@ -23,10 +23,10 @@ namespace CVC4 {
 namespace theory {
 namespace eq {
 
-ProofEqEngine::ProofEqEngine(context::Context* c,
+ProofEqEngine::ProofEqEngine(context::Context* c, context::UserContext* u,
                              EqualityEngine& ee,
                              ProofNodeManager* pnm)
-    : d_ee(ee), d_proof(c, pnm), d_proofsEnabled(true)
+    : EagerProofGenerator(u), d_ee(ee), d_proof(c, pnm), d_proofsEnabled(true)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -48,7 +48,7 @@ Node ProofEqEngine::assertLitAssume(Node lit)
 }
 
 Node ProofEqEngine::assertLit(Node lit,
-                              ProofStep id,
+                              PfRule id,
                               const std::vector<Node>& exp)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
@@ -153,7 +153,7 @@ Node ProofEqEngine::pfAssume(Node f)
   std::vector<Node> children;
   std::vector<Node> args;
   args.push_back(f);
-  return d_proof.registerStep(f, ProofStep::ASSUME, children, args);
+  return d_proof.registerStep(f, PfRule::ASSUME, children, args);
 }
 
 Node ProofEqEngine::pfRefl(Node a)
@@ -162,7 +162,7 @@ Node ProofEqEngine::pfRefl(Node a)
   std::vector<Node> children;
   std::vector<Node> args;
   args.push_back(a);
-  return d_proof.registerStep(fact, ProofStep::REFL, children, args);
+  return d_proof.registerStep(fact, PfRule::REFL, children, args);
 }
 
 Node ProofEqEngine::pfRewrite(Node a)
@@ -177,7 +177,7 @@ Node ProofEqEngine::pfRewrite(Node a)
   std::vector<Node> children;
   std::vector<Node> args;
   args.push_back(a);
-  return d_proof.registerStep(fact, ProofStep::REWRITE, children, args);
+  return d_proof.registerStep(fact, PfRule::REWRITE, children, args);
 }
 
 Node pfRewriteFalse(Node eq, bool ensureChildren) { return Node::null(); }
@@ -186,7 +186,7 @@ Node ProofEqEngine::pfSubs(Node a,
                            const std::vector<Node>& exp,
                            bool ensureChildren)
 {
-  Node as = EqProofStepChecker::applySubstitution(a, exp);
+  Node as = EqProofRuleChecker::applySubstitution(a, exp);
   if (a == as)
   {
     // no effect
@@ -195,7 +195,7 @@ Node ProofEqEngine::pfSubs(Node a,
   Node fact = a.eqNode(as);
   std::vector<Node> args;
   args.push_back(a);
-  return d_proof.registerStep(fact, ProofStep::SUBS, exp, args, ensureChildren);
+  return d_proof.registerStep(fact, PfRule::SUBS, exp, args, ensureChildren);
 }
 
 Node ProofEqEngine::pfSubsRewrite(Node a,
@@ -257,7 +257,7 @@ Node ProofEqEngine::pfTrans(Node eq1, Node eq2, bool ensureChildren)
   children.push_back(eq2);
   std::vector<Node> args;
   return d_proof.registerStep(
-      eqTrans, ProofStep::TRANS, children, args, ensureChildren);
+      eqTrans, PfRule::TRANS, children, args, ensureChildren);
 }
 
 Node ProofEqEngine::pfSymm(Node eq, bool ensureChildren)
@@ -273,7 +273,7 @@ Node ProofEqEngine::pfSymm(Node eq, bool ensureChildren)
   children.push_back(eq);
   std::vector<Node> args;
   return d_proof.registerStep(
-      eqSymm, ProofStep::SYMM, children, args, ensureChildren);
+      eqSymm, PfRule::SYMM, children, args, ensureChildren);
 }
 
 Node ProofEqEngine::mkAnd(const std::vector<Node>& a)

@@ -20,10 +20,10 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsProofEqEngine::StringsProofEqEngine(context::Context* c,
+StringsProofEqEngine::StringsProofEqEngine(context::Context* c, context::UserContext* u,
                                            eq::EqualityEngine& ee,
                                            ProofNodeManager* pnm)
-    : eq::ProofEqEngine(c, ee, pnm)
+    : eq::ProofEqEngine(c, u, ee, pnm)
 {
 }
 
