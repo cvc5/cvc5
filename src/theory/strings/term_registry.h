@@ -58,7 +58,7 @@ class TermRegistry
    * - Checks for illegal terms and throws a LogicException if any term is
    * not handled.
    * - Adds the appropriate terms and triggers to the equality engine.
-   * - Updates information about which terms exist, including 
+   * - Updates information about which terms exist, including
    * d_functionsTerms and d_hasStrCode. If we are using strings finite model
    * finding (options::stringsFmf), we determine if the term n should be
    * added to d_inputVars, the set of terms of type string whose length we are
@@ -113,7 +113,7 @@ class TermRegistry
   SkolemCache* getSkolemCache();
   /** Get all function terms that have been preregistered to this object */
   const context::CDList<TNode>& getFunctionTerms() const;
-  /** 
+  /**
    * Get the "input variables", corresponding to the set of leaf nodes of
    * string-like type that have been preregistered as terms to this object.
    */

@@ -546,10 +546,11 @@ bool TheoryStrings::collectModelInfoType(
 // MAIN SOLVER
 /////////////////////////////////////////////////////////////////////////////
 
-void TheoryStrings::preRegisterTerm(TNode n) 
-{ 
-  Trace("strings-preregister") << "TheoryStrings::preRegisterTerm: " << n << std::endl;
-  d_termReg.preRegisterTerm(n); 
+void TheoryStrings::preRegisterTerm(TNode n)
+{
+  Trace("strings-preregister")
+      << "TheoryStrings::preRegisterTerm: " << n << std::endl;
+  d_termReg.preRegisterTerm(n);
 }
 
 Node TheoryStrings::expandDefinition(Node node)

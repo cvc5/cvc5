@@ -99,7 +99,7 @@ void TermRegistry::preRegisterTerm(TNode n)
     d_ee.addTerm(n[1]);
     return;
   }
-  else if (k== STRING_CODE)
+  else if (k == STRING_CODE)
   {
     d_hasStrCode = true;
   }
@@ -358,10 +358,7 @@ const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars()
   return d_inputVars;
 }
 
-bool TermRegistry::hasStringCode() const
-{
-  return d_hasStrCode;
-}
+bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
 
 Node TermRegistry::getRegisterTermAtomicLemma(Node n,
                                               LengthStatus s,
