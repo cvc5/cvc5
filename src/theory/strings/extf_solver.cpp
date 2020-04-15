@@ -31,7 +31,7 @@ ExtfSolver::ExtfSolver(context::Context* c,
                        context::UserContext* u,
                        SolverState& s,
                        InferenceManager& im,
-                       SkolemCache& skc,
+                       TermRegistry& tr,
                        StringsRewriter& rewriter,
                        BaseSolver& bs,
                        CoreSolver& cs,
@@ -39,13 +39,13 @@ ExtfSolver::ExtfSolver(context::Context* c,
                        SequencesStatistics& statistics)
     : d_state(s),
       d_im(im),
-      d_skCache(skc),
+      d_termReg(tr),
       d_rewriter(rewriter),
       d_bsolver(bs),
       d_csolver(cs),
       d_extt(et),
       d_statistics(statistics),
-      d_preproc(&skc, u, statistics),
+      d_preproc(d_termReg.getSkolemCache(), u, statistics),
       d_hasExtf(c, false),
       d_extfInferCache(c),
       d_reduced(u)
@@ -160,10 +160,9 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Node x = n[0];
     Node s = n[1];
     // positive contains reduces to a equality
-    Node sk1 =
-        d_skCache.mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
-    Node sk2 =
-        d_skCache.mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
+    SkolemCache* skc = d_termReg.getSkolemCache();
+    Node sk1 = skc->mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
+    Node sk2 = skc->mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
     Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
     std::vector<Node> exp_vec;
     exp_vec.push_back(n);
@@ -305,7 +304,7 @@ void ExtfSolver::checkExtfEval(int effort)
           // only use symbolic definitions if option is set
           if (options::stringInferSym())
           {
-            nrs = d_im.getSymbolicDefinition(sn, exps);
+            nrs = d_termReg.getSymbolicDefinition(sn, exps);
           }
           if (!nrs.isNull())
           {
