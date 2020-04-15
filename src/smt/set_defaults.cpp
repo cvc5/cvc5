@@ -1118,6 +1118,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       // cannot do nested quantifier elimination in incremental mode
       options::cbqiNestedQE.set(false);
+      options::cbqiPreRegInst.set(false);
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
