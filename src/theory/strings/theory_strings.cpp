@@ -51,7 +51,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_csolver(c, u, d_state, d_im, d_termReg, d_bsolver),
       d_esolver(nullptr),
       d_rsolver(nullptr),
-      d_stringsFmf(c, u, valuation, d_sk_cache)
+      d_stringsFmf(c, u, valuation, d_termReg)
 {
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
@@ -893,7 +893,8 @@ void TheoryStrings::checkCodes()
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
         {
-          d_im.sendInference(d_empty_vec, cc.eqNode(vc), Inference::CODE_PROXY);
+          std::vector<Node> emptyVec;
+          d_im.sendInference(emptyVec, cc.eqNode(vc), Inference::CODE_PROXY);
         }
         const_codes.push_back(vc);
       }
@@ -931,7 +932,8 @@ void TheoryStrings::checkCodes()
           // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
           Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
           d_im.sendPhaseRequirement(deq, false);
-          d_im.sendInference(d_empty_vec, inj_lem, Inference::CODE_INJ);
+          std::vector<Node> emptyVec;
+          d_im.sendInference(emptyVec, inj_lem, Inference::CODE_INJ);
         }
       }
     }
