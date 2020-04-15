@@ -35,18 +35,19 @@ void ProofOutputChannel::conflict(Node conf, ProofGenerator* pfg)
   d_out.conflict(conf);
 }
 
-std::shared_ptr<ProofNode> ProofOutputChannel::getProofForConflict(Node conf) const
-{ 
+std::shared_ptr<ProofNode> ProofOutputChannel::getProofForConflict(
+    Node conf) const
+{
   Node ckey = getConflictKeyValue(conf);
-  ProofGenerator * pgen = getProofGeneratorForKey(ckey);
-  if (pgen==nullptr)
+  ProofGenerator* pgen = getProofGeneratorForKey(ckey);
+  if (pgen == nullptr)
   {
     return nullptr;
   }
   std::shared_ptr<ProofNode> ret = pgen->getProofForConflict(conf);
-  Assert(ret != nullptr)
-      << "ProofOutputChannel::getProofForConflict: could not generate proof for " << conf
-      << std::endl;
+  Assert(ret != nullptr) << "ProofOutputChannel::getProofForConflict: could "
+                            "not generate proof for "
+                         << conf << std::endl;
   return ret;
 }
 
@@ -68,15 +69,15 @@ LemmaStatus ProofOutputChannel::lemma(Node lem,
 std::shared_ptr<ProofNode> ProofOutputChannel::getProofForLemma(Node lem) const
 {
   Node lkey = getLemmaKeyValue(lem);
-  ProofGenerator * pgen = getProofGeneratorForKey(lkey);
-  if (pgen==nullptr)
+  ProofGenerator* pgen = getProofGeneratorForKey(lkey);
+  if (pgen == nullptr)
   {
     return nullptr;
   }
   std::shared_ptr<ProofNode> ret = pgen->getProofForLemma(lem);
-  Assert(ret != nullptr)
-      << "ProofOutputChannel::getProofForLemma: could not generate proof for lemma " << lem
-      << std::endl;
+  Assert(ret != nullptr) << "ProofOutputChannel::getProofForLemma: could not "
+                            "generate proof for lemma "
+                         << lem << std::endl;
   return ret;
 }
 
@@ -92,7 +93,8 @@ ProofGenerator* ProofOutputChannel::getProofGeneratorForKey(Node key) const
   NodeProofGenMap::const_iterator it = d_outPfGen.find(key);
   if (it == d_outPfGen.end())
   {
-    Assert(false) << "ProofOutputChannel::getProofGeneratorForKey: no generator provided for "
+    Assert(false) << "ProofOutputChannel::getProofGeneratorForKey: no "
+                     "generator provided for "
                   << key << std::endl;
     return nullptr;
   }
