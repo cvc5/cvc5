@@ -30,32 +30,28 @@ namespace theory {
  * ProofOutputChannel (see theory/proof_output_channel.h).
  *
  * A proof generator is intended to be used as a utility in theory
- * solvers for managing proofs. A Theory may have multiple instances of
- * ProofGenerator objects, e.g. if it has more than one way of justifying
- * lemmas or conflicts.
+ * solvers for constructing and storing proofs internally. A Theory may have
+ * multiple instances of ProofGenerator objects, e.g. if it has more than one
+ * way of justifying lemmas or conflicts.
  */
 class ProofGenerator
 {
  public:
   ProofGenerator();
   virtual ~ProofGenerator() {}
-  /**
-   * Get the proof for the given key, which may be one of:
-   * (1) ProofOutputChannel::getConflictCacheValue(conf), where this generator,
-   * call it X, was passed to ProofOutputChannel::conflict(conf, X)
-   * (2) ProofOutputChannel::getLemmaCacheValue(lem), where this generator,
-   * call it X, was passed to ProofOutputChannel::lemma(lem, X)
-   */
-  virtual std::shared_ptr<ProofNode> getProof(Node key) = 0;
+  /** Get the proof for conflict conf */
+  virtual std::shared_ptr<ProofNode> getProofForConflict(Node conf) = 0;
+  /** Get the proof for lemma lem */
+  virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) = 0;
 };
 
 /**
- * An eager proof generator, with explicit lemma caching.
+ * An eager proof generator, with explicit proof caching.
  *
- * The intended use of this class is to store proofs for lemmas before they
- * are sent out on the ProofOutputChannel. This means that the getProof
- * method is a lookup in a (user-context depedent) map, the field d_proofs
- * below.
+ * The intended use of this class is to store proofs for lemmas and conflicts
+ * at the time they are sent out on the ProofOutputChannel. This means that the
+ * getProofForConflict and getProofForLemma methods are lookups in a
+ * (user-context depedent) map, the field d_proofs below.
  *
  * In detail, the method setProofForConflict(conf, pf) should be called prior to
  * calling ProofOutputChannel(conf, X), where X is this generator. Similarly for
@@ -107,35 +103,19 @@ class EagerProofGenerator : public ProofGenerator
   void setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf);
   /** Set that pf is the proof for lemma lem */
   void setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf);
-  /** Get the proof for the given key */
-  std::shared_ptr<ProofNode> getProof(Node key) override;
-
+  /** Get the proof for conflict conf. */
+  std::shared_ptr<ProofNode> getProofForConflict(Node conf) override;
+  /** Get the proof for lemma lem. */
+  std::shared_ptr<ProofNode> getProofForLemma(Node lem) override;
  protected:
+  /** Get the proof for the given key */
+  std::shared_ptr<ProofNode> getProof(Node key);
   /**
    * A user-context-dependent map from lemmas and conflicts to proofs provided
    * by calls to setProofForConflict and setProofForLemma above.
    */
   NodeProofNodeMap d_proofs;
 };
-
-/** Lazy proof generator
- *
- * A proof generator that does not make proofs for conflicts and lemmas
- * eagerly.
- */
-/*
-class LazyProofGenerator : public ProofGenerator
-{
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
- public:
-  LazyProofGenerator() {}
-  ~LazyProofGenerator() {}
-  virtual std::shared_ptr<ProofNode> getProofForConflict(Node conf) = 0;
-  virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) = 0;
-  // TODO
-};
-
-*/
 
 }  // namespace theory
 }  // namespace CVC4

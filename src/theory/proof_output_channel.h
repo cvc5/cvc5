@@ -68,7 +68,7 @@ class ProofOutputChannel
    * generate a proof. The latter can happen if pfg was nullptr, or if its
    * getProof method failed, indicating a failure.
    */
-  std::shared_ptr<ProofNode> getProofForConflict(Node conf);
+  std::shared_ptr<ProofNode> getProofForConflict(Node conf) const;
   /**
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
@@ -86,7 +86,7 @@ class ProofOutputChannel
    * generate a proof. The latter can happen if pfg was nullptr, or if its
    * getProof method failed, indicating a failure.
    */
-  std::shared_ptr<ProofNode> getProofForLemma(Node lem);
+  std::shared_ptr<ProofNode> getProofForLemma(Node lem) const;
 
   /** Get the node key for which conflict calls are cached */
   static Node getConflictKeyValue(Node conf);
@@ -99,23 +99,14 @@ class ProofOutputChannel
   void setIncomplete();
   //---------------- end interface to output channel that doesnt require proofs
  private:
-  /**
-   * Get proof for the given key. This returns the corresponding proof
-   * for the key. This key is either:
-   * (1) getConflictKeyValue(conf) for some conf passed to conflict(conf,...)
-   * (2) getLemmaKeyValue(lem) for some lem passed to lemma(lem, ...)
-   *
-   * This calls the appropriate proof generator that was provided to
-   * generate and return the corresponding proof. If not is found, the nullptr
-   * is returned and an assertion is thrown.
-   */
-  std::shared_ptr<ProofNode> getProof(Node key) const;
+  /** Get proof generator for key, or nullptr if it does not exist */
+  ProofGenerator* getProofGeneratorForKey(Node key) const;
   /** Reference to an output channel */
   OutputChannel& d_out;
   /**
    * A user-context-dependent map from lemmas and conflicts to proof generators
    */
-  NodeProofGenMap d_lemPfGen;
+  NodeProofGenMap d_outPfGen;
 };
 
 }  // namespace theory

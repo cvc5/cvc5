@@ -41,6 +41,18 @@ void EagerProofGenerator::setProofForLemma(Node lem,
   d_proofs[lkey] = pf;
 }
 
+std::shared_ptr<ProofNode> EagerProofGenerator::getProofForConflict(Node conf)
+{
+  Node ckey = ProofOutputChannel::getConflictKeyValue(conf);
+  return getProof(ckey);
+}
+
+std::shared_ptr<ProofNode> EagerProofGenerator::getProofForLemma(Node lem)
+{
+  Node lkey = ProofOutputChannel::getLemmaKeyValue(lem);
+  return getProof(lkey);
+}
+
 std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node key)
 {
   NodeProofNodeMap::iterator it = d_proofs.find(key);
@@ -50,13 +62,6 @@ std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node key)
   }
   return (*it).second;
 }
-
-/*
-std::shared_ptr<ProofNode> LazyProofGenerator::getProof(Node key)
-{
-
-}
-*/
 
 }  // namespace theory
 }  // namespace CVC4
