@@ -18,9 +18,12 @@
 
 #include <cxxtest/TestSuite.h>
 
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/sets/theory_sets_type_enumerator.h"
 
 using namespace CVC4;
+using namespace CVC4::smt;
 using namespace CVC4::theory;
 using namespace CVC4::kind;
 using namespace CVC4::theory::sets;
@@ -28,21 +31,20 @@ using namespace std;
 
 class SetEnumeratorWhite : public CxxTest::TestSuite
 {
-  ExprManager* d_em;
-  NodeManager* d_nm;
-  NodeManagerScope* d_scope;
-
  public:
   void setUp() override
   {
     d_em = new ExprManager();
+    d_smt = new SmtEngine(d_em);
     d_nm = NodeManager::fromExprManager(d_em);
-    d_scope = new NodeManagerScope(d_nm);
+    d_scope = new SmtScope(d_smt);
+    d_smt->finalOptionsAreSet();
   }
 
   void tearDown() override
   {
     delete d_scope;
+    delete d_smt;
     delete d_em;
   }
 
@@ -68,8 +70,9 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
     TS_ASSERT_EQUALS(expected2, actual2);
     TS_ASSERT(!setEnumerator.isFinished());
 
-    Node actual3 = *++setEnumerator;
-    Node expected3 = d_nm->mkNode(Kind::UNION, expected1, expected2);
+    Node actual3 = Rewriter::rewrite(*++setEnumerator);
+    Node expected3 =
+        Rewriter::rewrite(d_nm->mkNode(Kind::UNION, expected1, expected2));
     TS_ASSERT_EQUALS(expected3, actual3);
     TS_ASSERT(!setEnumerator.isFinished());
 
@@ -301,4 +304,9 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
     TS_ASSERT(setEnumerator.isFinished());
   }
 
+ private:
+  ExprManager* d_em;
+  SmtEngine* d_smt;
+  NodeManager* d_nm;
+  SmtScope* d_scope;
 }; /* class SetEnumeratorWhite */

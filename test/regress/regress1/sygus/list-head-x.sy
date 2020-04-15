@@ -8,6 +8,6 @@
 
 (declare-var x Int)
 
-(constraint (is-cons (f x)))
+(constraint ((_ is cons) (f x)))
 (constraint (= (head (f x)) (+ x 7)))
 (check-synth)

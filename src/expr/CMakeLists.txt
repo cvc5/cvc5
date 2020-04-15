@@ -14,7 +14,6 @@ libcvc4_add_sources(
   expr_manager_scope.h
   expr_sequence.cpp
   expr_sequence.h
-  expr_stream.h
   kind_map.h
   match_trie.cpp
   match_trie.h
@@ -31,6 +30,8 @@ libcvc4_add_sources(
   node_self_iterator.h
   node_trie.cpp
   node_trie.h
+  node_traversal.cpp
+  node_traversal.h
   node_value.cpp
   node_value.h
   sequence.cpp

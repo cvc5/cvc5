@@ -513,7 +513,7 @@ void QueryCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    d_result = smtEngine->query(d_expr);
+    d_result = smtEngine->checkEntailed(d_expr);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

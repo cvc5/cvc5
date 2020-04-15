@@ -69,13 +69,16 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       d_notify(*this),
+      d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, d_equalityEngine, d_valuation),
       d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
+      d_registeredTypesCache(u),
       d_functionsTerms(c),
       d_has_str_code(false),
+      d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(c, u, d_state, d_im),
       d_csolver(c, u, d_state, d_im, d_sk_cache, d_bsolver),
       d_esolver(nullptr),
@@ -90,11 +93,13 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  d_state,
                                  d_im,
                                  d_sk_cache,
+                                 d_rewriter,
                                  d_bsolver,
                                  d_csolver,
                                  extt,
                                  d_statistics));
-  d_rsolver.reset(new RegExpSolver(*this, d_state, d_im, *d_esolver, c, u));
+  d_rsolver.reset(
+      new RegExpSolver(*this, d_state, d_im, *d_esolver, d_statistics, c, u));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
@@ -119,7 +124,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_emptyString = Word::mkEmptyWord(CONST_STRING);
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -383,7 +387,7 @@ bool TheoryStrings::collectModelInfoType(
                   ctv.getConst<Rational>().getNumerator().toUnsignedInt();
               Trace("strings-model") << "(code: " << cvalue << ") ";
               std::vector<unsigned> vec;
-              vec.push_back(String::convertCodeToUnsignedInt(cvalue));
+              vec.push_back(cvalue);
               Node mv = nm->mkConst(String(vec));
               pure_eq_assign[eqc] = mv;
               m->getEqualityEngine()->addTerm(mv);
@@ -638,7 +642,8 @@ void TheoryStrings::preRegisterTerm(TNode n) {
   }
 }
 
-Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
+Node TheoryStrings::expandDefinition(Node node)
+{
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
 
   if (node.getKind() == STRING_FROM_CODE)
@@ -652,12 +657,12 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
-    node = nm->mkNode(CHOICE,
-                      bvl,
-                      nm->mkNode(ITE,
-                                 cond,
-                                 t.eqNode(nm->mkNode(STRING_TO_CODE, k)),
-                                 k.eqNode(d_emptyString)));
+    Node emp = Word::mkEmptyWord(node.getType());
+    node = nm->mkNode(
+        CHOICE,
+        bvl,
+        nm->mkNode(
+            ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
   }
 
   return node;
@@ -672,12 +677,6 @@ void TheoryStrings::check(Effort e) {
 
   bool polarity;
   TNode atom;
-
-  if (!done() && !d_equalityEngine.hasTerm(d_emptyString))
-  {
-    preRegisterTerm( d_emptyString );
-  }
-
   // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
   Trace("strings-check-debug")
       << "Theory of strings, check : " << e << std::endl;
@@ -740,12 +739,14 @@ void TheoryStrings::check(Effort e) {
       }
       Trace("strings-eqc") << std::endl;
     }
+    ++(d_statistics.d_checkRuns);
     unsigned sbegin = itsr->second.first;
     unsigned send = itsr->second.second;
     bool addedLemma = false;
     bool addedFact;
     Trace("strings-check") << "Full effort check..." << std::endl;
     do{
+      ++(d_statistics.d_strategyRuns);
       Trace("strings-check") << "  * Run strategy..." << std::endl;
       runStrategy(sbegin, send);
       // flush the facts
@@ -1018,7 +1019,7 @@ void TheoryStrings::checkCodes()
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
         {
-          d_im.sendInference(d_empty_vec, cc.eqNode(vc), "Code_Proxy");
+          d_im.sendInference(d_empty_vec, cc.eqNode(vc), Inference::CODE_PROXY);
         }
         const_codes.push_back(vc);
       }
@@ -1056,7 +1057,7 @@ void TheoryStrings::checkCodes()
           // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
           Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
           d_im.sendPhaseRequirement(deq, false);
-          d_im.sendInference(d_empty_vec, inj_lem, "Code_Inj");
+          d_im.sendInference(d_empty_vec, inj_lem, Inference::CODE_INJ);
         }
       }
     }
@@ -1087,6 +1088,8 @@ void TheoryStrings::registerTerm(Node n, int effort)
     return;
   }
   d_registered_terms_cache.insert(n);
+  // ensure the type is registered
+  registerType(tn);
   NodeManager* nm = NodeManager::currentNM();
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
@@ -1101,13 +1104,14 @@ void TheoryStrings::registerTerm(Node n, int effort)
   else if (n.getKind() == STRING_TO_CODE)
   {
     d_has_str_code = true;
-    // ite( str.len(s)==1, 0 <= str.code(s) < num_codes, str.code(s)=-1 )
+    // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
     Node code_len = utils::mkNLength(n[0]).eqNode(d_one);
     Node code_eq_neg1 = n.eqNode(d_neg_one);
     Node code_range = nm->mkNode(
         AND,
         nm->mkNode(GEQ, n, d_zero),
-        nm->mkNode(LT, n, nm->mkConst(Rational(CVC4::String::num_codes()))));
+        nm->mkNode(
+            LT, n, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
     regTermLem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
   else if (n.getKind() == STRING_STRIDOF)
@@ -1124,6 +1128,24 @@ void TheoryStrings::registerTerm(Node n, int effort)
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
     d_out->lemma(regTermLem);
+  }
+}
+
+void TheoryStrings::registerType(TypeNode tn)
+{
+  if (d_registeredTypesCache.find(tn) != d_registeredTypesCache.end())
+  {
+    return;
+  }
+  d_registeredTypesCache.insert(tn);
+  if (tn.isStringLike())
+  {
+    // preregister the empty word for the type
+    Node emp = Word::mkEmptyWord(tn);
+    if (!d_equalityEngine.hasTerm(emp))
+    {
+      preRegisterTerm(emp);
+    }
   }
 }
 

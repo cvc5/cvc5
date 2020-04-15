@@ -50,9 +50,9 @@ int main() {
     em.mkExpr(kind::AND, x_positive, y_positive).
     impExpr(twox_plus_y_geq_3);
 
-  cout << "Checking validity of formula " << formula << " with CVC4." << endl;
-  cout << "CVC4 should report VALID." << endl;
-  cout << "Result from CVC4 is: " << smt.query(formula) << endl;
+  cout << "Checking entailment of formula " << formula << " with CVC4." << endl;
+  cout << "CVC4 should report ENTAILED." << endl;
+  cout << "Result from CVC4 is: " << smt.checkEntailed(formula) << endl;
 
   return 0;
 }

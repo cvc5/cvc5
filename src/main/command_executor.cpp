@@ -53,8 +53,7 @@ CommandExecutor::CommandExecutor(Options& options)
       d_smtEngine(d_solver->getSmtEngine()),
       d_options(options),
       d_stats("driver"),
-      d_result(),
-      d_replayStream(nullptr)
+      d_result()
 {
 }
 
@@ -70,12 +69,6 @@ void CommandExecutor::safeFlushStatistics(int fd) const
   d_solver->getExprManager()->safeFlushStatistics(fd);
   d_smtEngine->safeFlushStatistics(fd);
   d_stats.safeFlushInformation(fd);
-}
-
-void CommandExecutor::setReplayStream(ExprStream* replayStream) {
-  assert(d_replayStream == NULL);
-  d_replayStream = replayStream;
-  d_smtEngine->setReplayStream(d_replayStream);
 }
 
 bool CommandExecutor::doCommand(Command* cmd)
@@ -155,13 +148,15 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
-    if (d_options.getProduceModels() && d_options.getDumpModels() &&
-        (res.asSatisfiabilityResult() == Result::SAT ||
-         (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) {
+    if (d_options.getDumpModels()
+        && (res.asSatisfiabilityResult() == Result::SAT
+            || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE)))
+    {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (d_options.getProof() && d_options.getDumpProofs() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (d_options.getDumpProofs()
+        && res.asSatisfiabilityResult() == Result::UNSAT)
+    {
       getterCommands.emplace_back(new GetProofCommand());
     }
 

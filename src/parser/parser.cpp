@@ -757,5 +757,153 @@ void Parser::attributeNotSupported(const std::string& attr) {
   }
 }
 
+std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
+{
+  std::vector<unsigned> str;
+  unsigned i = 0;
+  while (i < s.size())
+  {
+    // get the current character
+    if (s[i] != '\\')
+    {
+      // don't worry about printable here
+      str.push_back(static_cast<unsigned>(s[i]));
+      ++i;
+      continue;
+    }
+    // slash is always escaped
+    ++i;
+    if (i >= s.size())
+    {
+      // slash cannot be the last character if we are parsing escape sequences
+      std::stringstream serr;
+      serr << "Escape sequence at the end of string: \"" << s
+           << "\" should be handled by lexer";
+      parseError(serr.str());
+    }
+    switch (s[i])
+    {
+      case 'n':
+      {
+        str.push_back(static_cast<unsigned>('\n'));
+        i++;
+      }
+      break;
+      case 't':
+      {
+        str.push_back(static_cast<unsigned>('\t'));
+        i++;
+      }
+      break;
+      case 'v':
+      {
+        str.push_back(static_cast<unsigned>('\v'));
+        i++;
+      }
+      break;
+      case 'b':
+      {
+        str.push_back(static_cast<unsigned>('\b'));
+        i++;
+      }
+      break;
+      case 'r':
+      {
+        str.push_back(static_cast<unsigned>('\r'));
+        i++;
+      }
+      break;
+      case 'f':
+      {
+        str.push_back(static_cast<unsigned>('\f'));
+        i++;
+      }
+      break;
+      case 'a':
+      {
+        str.push_back(static_cast<unsigned>('\a'));
+        i++;
+      }
+      break;
+      case '\\':
+      {
+        str.push_back(static_cast<unsigned>('\\'));
+        i++;
+      }
+      break;
+      case 'x':
+      {
+        bool isValid = false;
+        if (i + 2 < s.size())
+        {
+          if (std::isxdigit(s[i + 1]) && std::isxdigit(s[i + 2]))
+          {
+            std::stringstream shex;
+            shex << s[i + 1] << s[i + 2];
+            unsigned val;
+            shex >> std::hex >> val;
+            str.push_back(val);
+            i += 3;
+            isValid = true;
+          }
+        }
+        if (!isValid)
+        {
+          std::stringstream serr;
+          serr << "Illegal String Literal: \"" << s
+               << "\", must have two digits after \\x";
+          parseError(serr.str());
+        }
+      }
+      break;
+      default:
+      {
+        if (std::isdigit(s[i]))
+        {
+          // octal escape sequences  TODO : revisit (issue #1251).
+          unsigned num = static_cast<unsigned>(s[i]) - 48;
+          bool flag = num < 4;
+          if (i + 1 < s.size() && num < 8 && std::isdigit(s[i + 1])
+              && s[i + 1] < '8')
+          {
+            num = num * 8 + static_cast<unsigned>(s[i + 1]) - 48;
+            if (flag && i + 2 < s.size() && std::isdigit(s[i + 2])
+                && s[i + 2] < '8')
+            {
+              num = num * 8 + static_cast<unsigned>(s[i + 2]) - 48;
+              str.push_back(num);
+              i += 3;
+            }
+            else
+            {
+              str.push_back(num);
+              i += 2;
+            }
+          }
+          else
+          {
+            str.push_back(num);
+            i++;
+          }
+        }
+      }
+    }
+  }
+  return str;
+}
+
+Expr Parser::mkStringConstant(const std::string& s)
+{
+  ExprManager* em = d_solver->getExprManager();
+  if (em->getOptions().getInputLanguage()
+      == language::input::LANG_SMTLIB_V2_6_1)
+  {
+    return d_solver->mkString(s, true).getExpr();
+  }
+  // otherwise, we must process ad-hoc escape sequences
+  std::vector<unsigned> str = processAdHocStringEsc(s);
+  return d_solver->mkString(str).getExpr();
+}
+
 } /* CVC4::parser namespace */
 } /* CVC4 namespace */

@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 % Simple test for right precedence of AND, <=>, NOT.
 
 A, B, C: BOOLEAN;

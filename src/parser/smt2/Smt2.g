@@ -782,8 +782,24 @@ sygusGrammarV1[CVC4::api::Sort & ret,
       Debug("parser-sygus") << "  " << i << " : " << datatypes[i].getName()
                             << std::endl;
     }
-    std::vector<api::Sort> datatypeTypes =
-        PARSER_STATE->bindMutualDatatypeTypes(datatypes, false);
+
+    std::vector<CVC4::Datatype> dtypes;
+    dtypes.reserve(ndatatypes);
+
+    for (api::DatatypeDecl i : datatypes)
+    {
+      dtypes.push_back(i.getDatatype());
+    }
+
+    std::set<Type> tset =
+        api::sortSetToTypes(PARSER_STATE->getUnresolvedSorts());
+
+    std::vector<DatatypeType> datatypeTypes =
+        SOLVER->getExprManager()->mkMutualDatatypeTypes(
+            dtypes, tset, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+
+    PARSER_STATE->getUnresolvedSorts().clear();
+
     ret = datatypeTypes[0];
   };
 
@@ -2067,6 +2083,11 @@ termAtomic[CVC4::api::Term& atomTerm]
         api::Term v2 = SOLVER->mkConst(api::Sort(type2), "_emp2");
         atomTerm = SOLVER->mkTerm(api::SEP_EMP, v1, v2);
       }
+    | CHAR_TOK HEX_LITERAL 
+      {
+        std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
+        atomTerm = SOLVER->mkChar(hexStr);
+      }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
         atomTerm =
@@ -2078,10 +2099,10 @@ termAtomic[CVC4::api::Term& atomTerm]
 
   // Bit-vector constants
   | HEX_LITERAL
-  {
-    assert(AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0);
-    std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-    atomTerm = SOLVER->mkBitVector(hexStr, 16);
+    {
+      assert(AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0);
+      std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
+      atomTerm = SOLVER->mkBitVector(hexStr, 16);
     }
   | BINARY_LITERAL
     {
@@ -2091,7 +2112,7 @@ termAtomic[CVC4::api::Term& atomTerm]
     }
 
   // String constant
-  | str[s,false] { atomTerm = SOLVER->mkString(s, true); }
+  | str[s,false] { atomTerm = PARSER_STATE->mkStringConstant(s); }
 
   // NOTE: Theory constants go here
 
@@ -2117,70 +2138,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
   : KEYWORD ( simpleSymbolicExprNoKeyword[sexpr] { hasValue = true; } )?
   {
     attr = AntlrInput::tokenText($KEYWORD);
-    if(attr == ":rewrite-rule") {
-      if(hasValue) {
-        std::stringstream ss;
-        ss << "warning: Attribute " << attr
-           << " does not take a value (ignoring)";
-        PARSER_STATE->warning(ss.str());
-      }
-      // do nothing
-    }
-    else if (attr==":axiom" || attr==":conjecture" || attr==":fun-def")
-    {
-      if(hasValue) {
-        std::stringstream ss;
-        ss << "warning: Attribute " << attr
-           << " does not take a value (ignoring)";
-        PARSER_STATE->warning(ss.str());
-      }
-      api::Term avar;
-      bool success = true;
-      std::string attr_name = attr;
-      attr_name.erase( attr_name.begin() );
-      if( attr==":fun-def" ){
-        if( expr.getKind()!=api::EQUAL || expr[0].getKind()!=api::APPLY_UF ){
-          success = false;
-        }else{
-          api::Sort t = expr[0].getOp().getSort();
-          for( unsigned i=0; i<expr[0].getNumChildren(); i++ ){
-            if( expr[0][i].getKind() != api::VARIABLE ||
-                expr[0][i].getSort() != t.getFunctionDomainSorts()[i] ){
-              success = false;
-              break;
-            }else{
-              for( unsigned j=0; j<i; j++ ){
-                if( expr[0][j]==expr[0][i] ){
-                  success = false;
-                  break;
-                }
-              }
-            }
-          }
-        }
-        if( !success ){
-          std::stringstream ss;
-          ss << "warning: Function definition should be an equality whose LHS "
-             << "is an uninterpreted function applied to unique variables.";
-          PARSER_STATE->warning(ss.str());
-        }else{
-          avar = expr[0];
-        }
-      }else{
-        api::Sort boolType = SOLVER->getBooleanSort();
-        avar = PARSER_STATE->bindVar(attr_name, boolType);
-      }
-      if( success ){
-        //Will set the attribute on auxiliary var (preserves attribute on
-        //formula through rewriting).
-        retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-        Command* c = new SetUserAttributeCommand( attr_name, avar.getExpr() );
-        c->setMuted(true);
-        PARSER_STATE->preemptCommand(c);
-      }
-    } else {
-      PARSER_STATE->attributeNotSupported(attr);
-    }
+    PARSER_STATE->attributeNotSupported(attr);
   }
   | ATTRIBUTE_PATTERN_TOK LPAREN_TOK
     ( term[patexpr, e2]
@@ -2296,6 +2254,7 @@ quantOp[CVC4::api::Kind& kind]
 }
   : EXISTS_TOK    { $kind = api::EXISTS; }
   | FORALL_TOK    { $kind = api::FORALL; }
+  | CHOICE_TOK    { $kind = api::CHOICE; }
   ;
 
 /**
@@ -2666,8 +2625,10 @@ ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 // operators (NOTE: theory symbols go here)
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
+CHOICE_TOK        : { !PARSER_STATE->strictModeEnabled() }? 'choice';
 
 EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
+CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
 TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
 

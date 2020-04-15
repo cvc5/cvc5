@@ -18,6 +18,7 @@
 #include "theory/rewriter.h"
 
 #include "options/theory_options.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter_tables.h"
@@ -93,7 +94,13 @@ Node Rewriter::rewrite(TNode node) {
     // eagerly for the sake of efficiency here.
     return node;
   }
-  return getInstance().rewriteTo(theoryOf(node), node);
+  return getInstance()->rewriteTo(theoryOf(node), node);
+}
+
+void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
+                                      TheoryRewriter* trew)
+{
+  getInstance()->d_theoryRewriters[tid] = trew;
 }
 
 void Rewriter::registerPreRewrite(
@@ -124,10 +131,9 @@ void Rewriter::registerPostRewriteEqual(
   d_postRewritersEqual[tid] = fn;
 }
 
-Rewriter& Rewriter::getInstance()
+Rewriter* Rewriter::getInstance()
 {
-  thread_local static Rewriter rewriter;
-  return rewriter;
+  return smt::currentSmtEngine()->getRewriter();
 }
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
@@ -345,13 +351,13 @@ RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId, TNode n)
 }
 
 void Rewriter::clearCaches() {
-  Rewriter& rewriter = getInstance();
+  Rewriter* rewriter = getInstance();
 
 #ifdef CVC4_ASSERTIONS
-  rewriter.d_rewriteStack.reset(nullptr);
+  rewriter->d_rewriteStack.reset(nullptr);
 #endif
 
-  rewriter.clearCachesInternal();
+  rewriter->clearCachesInternal();
 }
 
 }/* CVC4::theory namespace */

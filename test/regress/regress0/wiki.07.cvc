@@ -1,4 +1,4 @@
 a, b, c : BOOLEAN;
 
-% EXPECT: valid
+% EXPECT: entailed
 QUERY a OR (b AND c) <=> (a OR b) AND (a OR c);
