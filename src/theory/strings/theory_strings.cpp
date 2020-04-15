@@ -587,8 +587,6 @@ void TheoryStrings::check(Effort e) {
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
-  bool polarity;
-  TNode atom;
   // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
   Trace("strings-check-debug")
       << "Theory of strings, check : " << e << std::endl;
@@ -876,8 +874,9 @@ void TheoryStrings::checkCodes()
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
         {
+          std::vector<Node> emptyVec;
           d_im->sendInference(
-              d_empty_vec, cc.eqNode(vc), Inference::CODE_PROXY);
+              emptyVec, cc.eqNode(vc), Inference::CODE_PROXY);
         }
         const_codes.push_back(vc);
       }
@@ -915,7 +914,8 @@ void TheoryStrings::checkCodes()
           // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
           Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
           d_im->sendPhaseRequirement(deq, false);
-          d_im->sendInference(d_empty_vec, inj_lem, Inference::CODE_INJ);
+          std::vector<Node> emptyVec;
+          d_im->sendInference(emptyVec, inj_lem, Inference::CODE_INJ);
         }
       }
     }
