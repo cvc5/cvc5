@@ -79,9 +79,9 @@ class InferenceManager
                    OutputChannel& out,
                    SequencesStatistics& statistics);
   ~InferenceManager() {}
-  
-  /** send assumption 
-   * 
+
+  /** send assumption
+   *
    * This is called when a fact is asserted to TheoryStrings. It adds lit
    * to the equality engine maintained by this class immediately.
    */

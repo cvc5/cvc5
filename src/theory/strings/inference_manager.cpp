@@ -48,8 +48,8 @@ void InferenceManager::sendAssumption(TNode lit)
 {
   bool polarity = lit.getKind() != kind::NOT;
   TNode atom = polarity ? lit : lit[0];
-  //assert pending fact
-  assertPendingFact( atom, polarity, lit );
+  // assert pending fact
+  assertPendingFact(atom, polarity, lit);
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
@@ -377,11 +377,12 @@ void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
   {
     // we must ensure these terms are registered
     Trace("strings-pending-debug") << "  Register term" << std::endl;
-    for( unsigned j=0; j<2; j++ ) {
+    for (unsigned j = 0; j < 2; j++)
+    {
       // terms in the equality engine are already registered, hence skip
       if (!d_equalityEngine.hasTerm(atom[j]))
       {
-        d_termReg.registerTerm( atom[j], 0 );
+        d_termReg.registerTerm(atom[j], 0);
       }
     }
     Trace("strings-pending-debug") << "  Now assert equality" << std::endl;

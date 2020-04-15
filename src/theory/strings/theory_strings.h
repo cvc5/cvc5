@@ -229,7 +229,6 @@ class TheoryStrings : public Theory {
   std::unique_ptr<InferenceManager> d_im;
 
  private:
-
   std::map< Node, Node > d_eqc_to_len_term;
 
 
