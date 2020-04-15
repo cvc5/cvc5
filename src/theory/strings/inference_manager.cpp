@@ -367,6 +367,15 @@ void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
   Assert(atom.getKind() != OR) << "Infer error: a split.";
   if (atom.getKind() == EQUAL)
   {
+    // we must ensure these terms are registered
+    Trace("strings-pending-debug") << "  Register term" << std::endl;
+    for( unsigned j=0; j<2; j++ ) {
+      // terms in the equality engine are already registered, hence skip
+      if (!d_equalityEngine.hasTerm(atom[j]))
+      {
+        d_termReg.registerTerm( atom[j], 0 );
+      }
+    }
     Trace("strings-pending-debug") << "  Now assert equality" << std::endl;
     ee->assertEquality(atom, polarity, exp);
     Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
