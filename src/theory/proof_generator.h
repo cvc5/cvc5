@@ -28,7 +28,7 @@ namespace theory {
 /**
  * An abstract proof generator class, to be used in combination with
  * ProofOutputChannel (see theory/proof_output_channel.h).
- * 
+ *
  * A proof generator is intended to be used as a utility in theory
  * solvers for managing proofs. A Theory may have multiple instances of
  * ProofGenerator objects, e.g. if it has more than one way of justifying
@@ -56,7 +56,7 @@ class ProofGenerator
  * are sent out on the ProofOutputChannel. This means that the getProof
  * method is a lookup in a (user-context depedent) map, the field d_proofs
  * below.
- * 
+ *
  * In detail, the method setProofForConflict(conf, pf) should be called prior to
  * calling ProofOutputChannel(conf, X), where X is this generator. Similarly for
  * setProofForLemma.
@@ -75,6 +75,7 @@ class EagerProofGenerator : public ProofGenerator
   void setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf);
   /** Get the proof for the given key */
   std::shared_ptr<ProofNode> getProof(Node key) override;
+
  protected:
   /**
    * A user-context-dependent map from lemmas and conflicts to proofs provided

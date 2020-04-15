@@ -74,6 +74,7 @@ class ProofNode
   void printDebug(std::ostream& os) const;
   /** Clone, create a deep copy of this */
   std::shared_ptr<ProofNode> clone() const;
+
  private:
   /**
    * Set value, called to overwrite the contents of this ProofNode with the

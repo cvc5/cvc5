@@ -37,13 +37,13 @@ namespace eq {
  * facts are added to an EqualityEngine in a SAT-context dependent manner in a
  * context-dependent (CDProof) object. The proof of certain facts can be asked
  * via the getProof interface.
- * 
+ *
  * The goal of this class is manage the use of an EqualityEngine object.
  * A theory that is proof producing and uses the equality engine may use this
  * class to manage proofs that are justified by its underlying equality engine.
- * 
+ *
  * It is an eager proof generator (see theory/proof_generator.h), in that
- * it stores 
+ * it stores
  */
 class ProofEqEngine : public EagerProofGenerator
 {
