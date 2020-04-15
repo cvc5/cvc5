@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof_step.h
+/*! \file proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Proof step enumeration
+ ** \brief Proof rule enumeration
  **/
 
 #include "cvc4_private.h"
@@ -32,14 +32,14 @@ namespace CVC4 {
  * objects like Rewriter::rewrite or Node::substitute. It is intended to be
  * translated or printed in other formats.
  *
- * The following ProofRule values include core rules and those categorized by
+ * The following PfRule values include core rules and those categorized by
  * theory, including the theory of equality.
  *
  * The "core rules" include ASSUME, which represents an open leaf in a proof.
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
  */
-enum class ProofRule : uint32_t
+enum class PfRule : uint32_t
 {
   //================================================= Core rules
   // ======== Assumption (a leaf)
@@ -62,7 +62,7 @@ enum class ProofRule : uint32_t
  * @param id The proof rule
  * @return The name of the proof rule
  */
-const char* toString(ProofRule id);
+const char* toString(PfRule id);
 
 /**
  * Writes a proof rule name to a stream.
@@ -71,7 +71,7 @@ const char* toString(ProofRule id);
  * @param id The proof rule to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, ProofRule id);
+std::ostream& operator<<(std::ostream& out, PfRule id);
 
 }  // namespace CVC4
 

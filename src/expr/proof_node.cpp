@@ -16,14 +16,14 @@
 
 namespace CVC4 {
 
-ProofNode::ProofNode(ProofRule id,
+ProofNode::ProofNode(PfRule id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
                      const std::vector<Node>& args)
 {
   setValue(id, children, args);
 }
 
-ProofRule ProofNode::getId() const { return d_id; }
+PfRule ProofNode::getId() const { return d_id; }
 
 const std::vector<std::shared_ptr<ProofNode>>& ProofNode::getChildren() const
 {
@@ -49,7 +49,7 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
     if (it == visited.end())
     {
       visited.insert(cur);
-      if (cur->getId() == ProofRule::ASSUME)
+      if (cur->getId() == PfRule::ASSUME)
       {
         assump.push_back(cur->d_proven);
       }
@@ -65,7 +65,7 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
 }
 
 void ProofNode::setValue(
-    ProofRule id,
+    PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {

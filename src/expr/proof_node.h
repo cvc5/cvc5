@@ -47,12 +47,12 @@ namespace CVC4 {
 class ProofNode
 {
  public:
-  ProofNode(ProofRule id,
+  ProofNode(PfRule id,
             const std::vector<std::shared_ptr<ProofNode>>& children,
             const std::vector<Node>& args);
   ~ProofNode() {}
   /** get the id of this proof node */
-  ProofRule getId() const;
+  PfRule getId() const;
   /** Get children */
   const std::vector<std::shared_ptr<ProofNode>>& getChildren() const;
   /** Get arguments */
@@ -74,11 +74,11 @@ class ProofNode
    * Set value, called to overwrite the contents of this ProofNode with the
    * given arguments.
    */
-  void setValue(ProofRule id,
+  void setValue(PfRule id,
                 const std::vector<std::shared_ptr<ProofNode>>& children,
                 const std::vector<Node>& args);
   /** The proof step */
-  ProofRule d_id;
+  PfRule d_id;
   /** The children of this proof node */
   std::vector<std::shared_ptr<ProofNode>> d_children;
   /** arguments of this node */

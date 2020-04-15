@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof_step.cpp
+/*! \file proof_rule.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,26 +9,28 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of proof step
+ ** \brief Implementation of proof rule
  **/
 
-#include "expr/proof_step.h"
+#include "expr/proof_rule.h"
+
+#include <iostream>
 
 namespace CVC4 {
 
-const char* toString(ProofStep id)
+const char* toString(PfRule id)
 {
   switch (id)
   {
     //================================================= Core rules
-    case ProofStep::ASSUME: return "ASSUME";
+    case PfRule::ASSUME: return "ASSUME";
     //================================================= Unknown rule
-    case ProofStep::UNKNOWN: return "UNKNOWN";
+    case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
   }
 }
 
-std::ostream& operator<<(std::ostream& out, ProofStep id)
+std::ostream& operator<<(std::ostream& out, PfRule id)
 {
   out << toString(id);
   return out;
