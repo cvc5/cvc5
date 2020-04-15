@@ -35,11 +35,11 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/sequences_stats.h"
-#include "theory/strings/term_registry.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strategy.h"
 #include "theory/strings/strings_fmf.h"
 #include "theory/strings/strings_rewriter.h"
+#include "theory/strings/term_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
