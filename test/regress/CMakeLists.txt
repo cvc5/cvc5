@@ -501,6 +501,7 @@ set(regress_0_tests
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/issue3536.smt2
+  regress0/fp/issue4277-assign-func.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/rti_3_5_bug_report.smt2
   regress0/fp/simple.smt2
@@ -733,6 +734,7 @@ set(regress_0_tests
   regress0/quantifiers/issue2035.smt2
   regress0/quantifiers/issue3655.smt2
   regress0/quantifiers/issue4086-infs.smt2
+  regress0/quantifiers/issue4275-qcf-cegqi-rep.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
@@ -1519,6 +1521,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3765-quant-dd.smt2
   regress1/quantifiers/issue4021-ind-opts.smt2
   regress1/quantifiers/issue4062-cegqi-aux.smt2
+  regress1/quantifiers/issue4243-prereg-inc.smt2
   regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
