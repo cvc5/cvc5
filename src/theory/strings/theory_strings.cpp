@@ -72,33 +72,29 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, d_equalityEngine, d_valuation),
+      d_termReg(c, u, d_equalityEngine, out, d_statistics),
       d_im(nullptr),
-      d_pregistered_terms_cache(u),
-      d_registered_terms_cache(u),
-      d_registeredTypesCache(u),
-      d_functionsTerms(c),
-      d_has_str_code(false),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(nullptr),
       d_csolver(nullptr),
       d_esolver(nullptr),
       d_rsolver(nullptr),
-      d_stringsFmf(c, u, valuation, d_sk_cache),
+      d_stringsFmf(c, u, valuation, d_termReg),
       d_strategy_init(false)
 {
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
   // initialize the inference manager, which requires the extended theory
   d_im.reset(
-      new InferenceManager(c, u, d_state, d_sk_cache, extt, out, d_statistics));
+      new InferenceManager(c, u, d_state, d_termReg, extt, out, d_statistics));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(c, u, d_state, *d_im));
-  d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_sk_cache, *d_bsolver));
+  d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_termReg, *d_bsolver));
   d_esolver.reset(new ExtfSolver(c,
                                  u,
                                  d_state,
                                  *d_im,
-                                 d_sk_cache,
+                                 d_termReg,
                                  d_rewriter,
                                  *d_bsolver,
                                  *d_csolver,
@@ -375,7 +371,7 @@ bool TheoryStrings::collectModelInfoType(
         {
           // does it have a code and the length of these equivalence classes are
           // one?
-          if (d_has_str_code && lts_values[i] == d_one)
+          if (d_termReg.hasStringCode() && lts_values[i] == d_one)
           {
             EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
             if (eip && !eip->d_codeTerm.get().isNull())
@@ -551,94 +547,11 @@ bool TheoryStrings::collectModelInfoType(
 // MAIN SOLVER
 /////////////////////////////////////////////////////////////////////////////
 
-
-void TheoryStrings::preRegisterTerm(TNode n) {
-  if( d_pregistered_terms_cache.find(n) == d_pregistered_terms_cache.end() ) {
-    d_pregistered_terms_cache.insert(n);
-    Trace("strings-preregister")
-        << "TheoryString::preregister : " << n << std::endl;
-    //check for logic exceptions
-    Kind k = n.getKind();
-    if( !options::stringExp() ){
-      if (k == kind::STRING_STRIDOF || k == kind::STRING_ITOS
-          || k == kind::STRING_STOI || k == kind::STRING_STRREPL
-          || k == kind::STRING_STRREPLALL || k == kind::STRING_STRCTN
-          || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER
-          || k == STRING_REV)
-      {
-        std::stringstream ss;
-        ss << "Term of kind " << k
-           << " not supported in default mode, try --strings-exp";
-        throw LogicException(ss.str());
-      }
-    }
-    switch (k)
-    {
-      case kind::EQUAL: {
-        d_equalityEngine.addTriggerEquality(n);
-        break;
-      }
-      case kind::STRING_IN_REGEXP: {
-        d_out->requirePhase(n, true);
-        d_equalityEngine.addTriggerPredicate(n);
-        d_equalityEngine.addTerm(n[0]);
-        d_equalityEngine.addTerm(n[1]);
-        break;
-      }
-      default: {
-        registerTerm(n, 0);
-        TypeNode tn = n.getType();
-        if (tn.isRegExp() && n.isVar())
-        {
-          std::stringstream ss;
-          ss << "Regular expression variables are not supported.";
-          throw LogicException(ss.str());
-        }
-        if( tn.isString() ) {
-          // all characters of constants should fall in the alphabet
-          if (n.isConst())
-          {
-            std::vector<unsigned> vec = n.getConst<String>().getVec();
-            for (unsigned u : vec)
-            {
-              if (u >= d_cardSize)
-              {
-                std::stringstream ss;
-                ss << "Characters in string \"" << n
-                   << "\" are outside of the given alphabet.";
-                throw LogicException(ss.str());
-              }
-            }
-          }
-          d_equalityEngine.addTerm(n);
-        } else if (tn.isBoolean()) {
-          // Get triggered for both equal and dis-equal
-          d_equalityEngine.addTriggerPredicate(n);
-        } else {
-          // Function applications/predicates
-          d_equalityEngine.addTerm(n);
-        }
-        // Set d_functionsTerms stores all function applications that are
-        // relevant to theory combination. Notice that this is a subset of
-        // the applications whose kinds are function kinds in the equality
-        // engine. This means it does not include applications of operators
-        // like re.++, which is not a function kind in the equality engine.
-        // Concatenation terms do not need to be considered here because
-        // their arguments have string type and do not introduce any shared
-        // terms.
-        if (n.hasOperator() && d_equalityEngine.isFunctionKind(k)
-            && k != kind::STRING_CONCAT)
-        {
-          d_functionsTerms.push_back( n );
-        }
-      }
-    }
-    // register with finite model finding
-    if (options::stringFMF())
-    {
-      d_stringsFmf.preRegisterTerm(n);
-    }
-  }
+void TheoryStrings::preRegisterTerm(TNode n)
+{
+  Trace("strings-preregister")
+      << "TheoryStrings::preRegisterTerm: " << n << std::endl;
+  d_termReg.preRegisterTerm(n);
 }
 
 Node TheoryStrings::expandDefinition(Node node)
@@ -800,7 +713,7 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
   {
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
     //we care about the length of this string
-    registerTerm( t[0], 1 );
+    d_termReg.registerTerm(t[0], 1);
   }
   d_state.eqNotifyNewClass(t);
 }
@@ -888,9 +801,10 @@ void TheoryStrings::computeCareGraph(){
   // since operators are polymorphic, taking strings/sequences.
   std::map<std::pair<TypeNode, Node>, TNodeTrie> index;
   std::map< Node, unsigned > arity;
-  unsigned functionTerms = d_functionsTerms.size();
+  const context::CDList<TNode>& fterms = d_termReg.getFunctionTerms();
+  size_t functionTerms = fterms.size();
   for (unsigned i = 0; i < functionTerms; ++ i) {
-    TNode f1 = d_functionsTerms[i];
+    TNode f1 = fterms[i];
     Trace("strings-cg") << "...build for " << f1 << std::endl;
     Node op = f1.getOperator();
     std::vector< TNode > reps;
@@ -927,7 +841,7 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
       if (!d_equalityEngine.hasTerm(atom[j])
           && atom[j].getType().isStringLike())
       {
-        registerTerm( atom[j], 0 );
+        d_termReg.registerTerm(atom[j], 0);
       }
     }
     Trace("strings-pending-debug") << "  Now assert equality" << std::endl;
@@ -981,7 +895,7 @@ void TheoryStrings::checkRegisterTermsPreNormalForm()
       Node n = (*eqc_i);
       if (!d_bsolver->isCongruent(n))
       {
-        registerTerm(n, 2);
+        d_termReg.registerTerm(n, 2);
       }
       ++eqc_i;
     }
@@ -992,7 +906,7 @@ void TheoryStrings::checkCodes()
 {
   // ensure that lemmas regarding str.code been added for each constant string
   // of length one
-  if (d_has_str_code)
+  if (d_termReg.hasStringCode())
   {
     NodeManager* nm = NodeManager::currentNM();
     // str.code applied to the code term for each equivalence class that has a
@@ -1013,7 +927,7 @@ void TheoryStrings::checkCodes()
         Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
         cc = Rewriter::rewrite(cc);
         Assert(cc.isConst());
-        Node cp = d_im->getProxyVariableFor(c);
+        Node cp = d_termReg.getProxyVariableFor(c);
         AlwaysAssert(!cp.isNull());
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
@@ -1063,91 +977,6 @@ void TheoryStrings::checkCodes()
   }
 }
 
-void TheoryStrings::registerTerm(Node n, int effort)
-{
-  TypeNode tn = n.getType();
-  bool do_register = true;
-  if (!tn.isStringLike())
-  {
-    if (options::stringEagerLen())
-    {
-      do_register = effort == 0;
-    }
-    else
-    {
-      do_register = effort > 0 || n.getKind() != STRING_CONCAT;
-    }
-  }
-  if (!do_register)
-  {
-    return;
-  }
-  if (d_registered_terms_cache.find(n) != d_registered_terms_cache.end())
-  {
-    return;
-  }
-  d_registered_terms_cache.insert(n);
-  // ensure the type is registered
-  registerType(tn);
-  NodeManager* nm = NodeManager::currentNM();
-  Debug("strings-register") << "TheoryStrings::registerTerm() " << n
-                            << ", effort = " << effort << std::endl;
-  Node regTermLem;
-  if (tn.isStringLike())
-  {
-    // register length information:
-    //  for variables, split on empty vs positive length
-    //  for concat/const/replace, introduce proxy var and state length relation
-    regTermLem = d_im->registerTerm(n);
-  }
-  else if (n.getKind() == STRING_TO_CODE)
-  {
-    d_has_str_code = true;
-    // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
-    Node code_len = utils::mkNLength(n[0]).eqNode(d_one);
-    Node code_eq_neg1 = n.eqNode(d_neg_one);
-    Node code_range = nm->mkNode(
-        AND,
-        nm->mkNode(GEQ, n, d_zero),
-        nm->mkNode(
-            LT, n, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
-    regTermLem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
-  }
-  else if (n.getKind() == STRING_STRIDOF)
-  {
-    Node len = utils::mkNLength(n[0]);
-    regTermLem = nm->mkNode(AND,
-                            nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
-                            nm->mkNode(LEQ, n, len));
-  }
-  if (!regTermLem.isNull())
-  {
-    Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem
-                           << std::endl;
-    Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
-    ++(d_statistics.d_lemmasRegisterTerm);
-    d_out->lemma(regTermLem);
-  }
-}
-
-void TheoryStrings::registerType(TypeNode tn)
-{
-  if (d_registeredTypesCache.find(tn) != d_registeredTypesCache.end())
-  {
-    return;
-  }
-  d_registeredTypesCache.insert(tn);
-  if (tn.isStringLike())
-  {
-    // preregister the empty word for the type
-    Node emp = Word::mkEmptyWord(tn);
-    if (!d_equalityEngine.hasTerm(emp))
-    {
-      preRegisterTerm(emp);
-    }
-  }
-}
-
 void TheoryStrings::checkRegisterTermsNormalForms()
 {
   const std::vector<Node>& seqc = d_bsolver->getStringEqc();
@@ -1160,7 +989,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
     if (lt.isNull())
     {
       Node c = utils::mkNConcat(nfi.d_nf, eqc.getType());
-      registerTerm(c, 3);
+      d_termReg.registerTerm(c, 3);
     }
   }
 }

@@ -45,7 +45,7 @@ int main() {
   SmtEngine smt(&em);
   smt.setOption("produce-models", true); // Produce Models
   smt.setOption("output-language", "cvc4"); // Set the output-language to CVC's
-  smt.setOption("default-dag-thresh", 0); //Disable dagifying the output
+  smt.setOption("dag-thresh", 0); //Disable dagifying the output
   smt.setLogic(string("QF_UFLIRA"));
 
   // Sorts

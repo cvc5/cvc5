@@ -599,7 +599,7 @@ bool RegExpSolver::deriveRegExp(Node x,
   Trace("regexp-derive") << "RegExpSolver::deriveRegExp: x=" << x
                          << ", r= " << r << std::endl;
   CVC4::String s = getHeadConst(x);
-  if (!s.isEmptyString() && d_regexp_opr.checkConstRegExp(r))
+  if (!s.empty() && d_regexp_opr.checkConstRegExp(r))
   {
     Node conc = Node::null();
     Node dc = r;

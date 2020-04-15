@@ -87,7 +87,7 @@ class ExtfSolver
              context::UserContext* u,
              SolverState& s,
              InferenceManager& im,
-             SkolemCache& skc,
+             TermRegistry& tr,
              StringsRewriter& rewriter,
              BaseSolver& bs,
              CoreSolver& cs,
@@ -162,11 +162,12 @@ class ExtfSolver
    * This is called when an extended function application n is not able to be
    * simplified by context-depdendent simplification, and we are resorting to
    * expanding n to its full semantics via a reduction. This method returns
-   * true if it successfully reduced n by some reduction and sets isCd to
-   * true if the reduction was (SAT)-context-dependent, and false otherwise.
-   * The argument effort has the same meaning as in checkExtfReductions.
+   * true if it successfully reduced n by some reduction. If so, it either
+   * caches that the reduction lemma was sent, or marks n as reduced in this
+   * SAT-context. The argument effort has the same meaning as in
+   * checkExtfReductions.
    */
-  bool doReduction(int effort, Node n, bool& isCd);
+  bool doReduction(int effort, Node n);
   /** check extended function inferences
    *
    * This function makes additional inferences for n that do not contribute
@@ -181,8 +182,8 @@ class ExtfSolver
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
   InferenceManager& d_im;
-  /** cache of all skolems */
-  SkolemCache& d_skCache;
+  /** Reference to the term registry of theory of strings */
+  TermRegistry& d_termReg;
   /** The theory rewriter for this theory. */
   StringsRewriter& d_rewriter;
   /** reference to the base solver, used for certain queries */
@@ -206,6 +207,8 @@ class ExtfSolver
   context::CDO<bool> d_hasExtf;
   /** extended functions inferences cache */
   NodeSet d_extfInferCache;
+  /** The set of extended functions we have sent reduction lemmas for */
+  NodeSet d_reduced;
 };
 
 }  // namespace strings
