@@ -32,15 +32,14 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-RegExpSolver::RegExpSolver(TheoryStrings& p,
-                           SolverState& s,
+RegExpSolver::RegExpSolver(SolverState& s,
                            InferenceManager& im,
+                           CoreSolver& cs,
                            ExtfSolver& es,
                            SequencesStatistics& stats,
                            context::Context* c,
                            context::UserContext* u)
-    : d_parent(p),
-      d_state(s),
+    : d_state(s),
       d_im(im),
       d_esolver(es),
       d_statistics(stats),
@@ -194,7 +193,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         Node nx = x;
         if (!x.isConst())
         {
-          nx = d_parent.getNormalString(x, nfexp);
+          nx = d_csolver.getNormalString(x, nfexp);
         }
         // If r is not a constant regular expression, we update it based on
         // normal forms, which may concretize its variables.
@@ -303,7 +302,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
           else
           {
             // otherwise we are incomplete
-            d_parent.getOutputChannel().setIncomplete();
+            d_im.setIncomplete();
           }
         }
         if (d_state.isInConflict())
@@ -367,14 +366,14 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
           {
             // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
             //   mark ~str.in.re(x, R2) as reduced
-            d_parent.getExtTheory()->markReduced(m2Lit);
+            d_esolver->markReduced(m2Lit);
             remove.insert(m2);
           }
           else
           {
             // str.in.re(x, R1) includes str.in.re(x, R2) --->
             //   mark str.in.re(x, R1) as reduced
-            d_parent.getExtTheory()->markReduced(m1Lit);
+            d_esolver->markReduced(m1Lit);
             remove.insert(m1);
 
             // We don't need to process m1 anymore
@@ -495,12 +494,12 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     {
       // if R1 = intersect( R1, R2 ), then x in R1 ^ x in R2 is equivalent
       // to x in R1, hence x in R2 can be marked redundant.
-      d_parent.getExtTheory()->markReduced(m);
+      d_esolver->markReduced(m);
     }
     else if (mres == m)
     {
       // same as above, opposite direction
-      d_parent.getExtTheory()->markReduced(mi);
+      d_esolver->markReduced(mi);
     }
     else
     {
@@ -515,8 +514,8 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       }
       d_im.sendInference(vec_nodes, mres, Inference::RE_INTER_INFER, true);
       // both are reduced
-      d_parent.getExtTheory()->markReduced(m);
-      d_parent.getExtTheory()->markReduced(mi);
+      d_esolver->markReduced(m);
+      d_esolver->markReduced(mi);
       // do not send more than one lemma for this class
       return true;
     }
@@ -660,7 +659,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
     {
       if (!r[0].isConst())
       {
-        Node tmp = d_parent.getNormalString(r[0], nf_exp);
+        Node tmp = d_csolver.getNormalString(r[0], nf_exp);
         if (tmp != r[0])
         {
           ret = NodeManager::currentNM()->mkNode(STRING_TO_REGEXP, tmp);

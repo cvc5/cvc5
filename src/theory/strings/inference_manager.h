@@ -175,6 +175,9 @@ class InferenceManager
    * decided with polarity pol.
    */
   void sendPhaseRequirement(Node lit, bool pol);
+  
+  /** Set incomplete on the output channel of TheoryStrings */
+  void setIncomplete();
 
   //---------------------------- proxy variables and length elaboration
   /** Get symbolic definition

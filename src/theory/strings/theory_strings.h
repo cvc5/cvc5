@@ -203,18 +203,6 @@ class TheoryStrings : public Theory {
     SolverState& d_state;
   };/* class TheoryStrings::NotifyClass */
 
-  //--------------------------- helper functions
-  /** get normal string
-   *
-   * This method returns the node that is equivalent to the normal form of x,
-   * and adds the corresponding explanation to nf_exp.
-   *
-   * For example, if x = y ++ z is an assertion in the current context, then
-   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
-   */
-  Node getNormalString(Node x, std::vector<Node>& nf_exp);
-  //-------------------------- end helper functions
-
  private:
   // Constants
   Node d_emptyString;

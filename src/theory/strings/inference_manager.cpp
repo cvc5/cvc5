@@ -298,6 +298,11 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
   d_pendingReqPhase[lit] = pol;
 }
 
+void InferenceManager::setIncomplete()
+{
+  d_out.setIncomplete();
+}
+
 Node InferenceManager::getProxyVariableFor(Node n) const
 {
   NodeNodeMap::const_iterator it = d_proxyVar.find(n);
@@ -456,18 +461,12 @@ Node InferenceManager::getRegisterTermAtomicLemma(
     Node neq_empty = n.eqNode(d_emptyString).negate();
     Node len_n_gt_z = nm->mkNode(GT, n_len, d_zero);
     Node len_geq_one = nm->mkNode(AND, neq_empty, len_n_gt_z);
-    Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
-                           << std::endl;
-    Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
     return len_geq_one;
   }
 
   if (s == LENGTH_ONE)
   {
     Node len_one = n_len.eqNode(d_one);
-    Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
-                           << std::endl;
-    Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
     return len_one;
   }
   Assert(s == LENGTH_SPLIT);
@@ -483,8 +482,6 @@ Node InferenceManager::getRegisterTermAtomicLemma(
   {
     Node lem = nm->mkNode(OR, case_empty, case_nempty);
     lems.push_back(lem);
-    Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << lem
-                           << std::endl;
     // prefer trying the empty case first
     // notice that requirePhase must only be called on rewritten literals that
     // occur in the CNF stream.
@@ -498,8 +495,6 @@ Node InferenceManager::getRegisterTermAtomicLemma(
   else if (!case_empty.getConst<bool>())
   {
     // the rewriter knows that n is non-empty
-    Trace("strings-lemma") << "Strings::Lemma LENGTH > 0 (non-empty): "
-                           << case_nempty << std::endl;
     lems.push_back(case_nempty);
   }
   else

@@ -678,6 +678,10 @@ std::vector<Node> ExtfSolver::getActive(Kind k) const
 {
   return d_extt->getActive(k);
 }
+void markReduced(Node n, bool contextDepend)
+{
+  d_extt->markReduced(n, contextDepend);
+}
 
 }  // namespace strings
 }  // namespace theory

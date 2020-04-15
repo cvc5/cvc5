@@ -99,7 +99,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  extt,
                                  d_statistics));
   d_rsolver.reset(
-      new RegExpSolver(*this, d_state, d_im, *d_esolver, d_statistics, c, u));
+      new RegExpSolver(d_state, d_im, d_csolver, *d_esolver, d_statistics, c, u));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
