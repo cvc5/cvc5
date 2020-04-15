@@ -36,6 +36,7 @@ Node ProofChecker::check(
   Node res = it->second->check(id, children, args);
   if (!expected.isNull() && res != expected)
   {
+    // it did not match the given expectation, fail
     return Node::null();
   }
   return res;
@@ -46,7 +47,9 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
   std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it != d_checker.end())
   {
-    // warning?
+    // checker is already provided
+    Notice() << "ProofChecker::registerChecker: checker already exists for " << id << std::endl;
+    return;
   }
   d_checker[id] = psc;
 }

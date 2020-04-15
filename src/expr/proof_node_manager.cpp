@@ -71,6 +71,7 @@ Node ProofNodeManager::checkInternal(
   Node res;
   if (d_checker)
   {
+    // check with the checker, which takes expected as argument
     res = d_checker->check(id, children, args, expected);
     Assert(!res.isNull())
         << "ProofNodeManager::checkInternal: failed to check proof";

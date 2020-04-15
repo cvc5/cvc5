@@ -36,10 +36,10 @@ namespace CVC4 {
  * If no checker is provided, then the ProofNodeManager assigns the d_proven
  * field of ProofNode based on the provided "expected" argument in mkNode below.
  *
- * Regardless of the checker, the ProofNodeManager is used as a trusted way
- * of updating ProofNode objects via updateNode below. In particular, this
- * method leaves the d_proven field unchanged and updates (if possible) the
- * remaining content of a given proof node.
+ * The ProofNodeManager is used as a trusted way of updating ProofNode objects
+ * via updateNode below. In particular, this method leaves the d_proven field
+ * unchanged and updates (if possible) the remaining content of a given proof
+ * node.
  */
 class ProofNodeManager
 {
@@ -58,7 +58,9 @@ class ProofNodeManager
    * @param expected (Optional) the expected conclusion of the proof node.
    * @return the proof node, or nullptr if the given arguments do not
    * consistute a proof of the expected conclusion according to the underlying
-   * checker, if both are provided.
+   * checker, if both are provided. It also returns nullptr if neither the
+   * checker nor the expected field is provided, since in this case the
+   * conclusion is unknown.
    */
   std::shared_ptr<ProofNode> mkNode(
       PfRule id,
@@ -76,6 +78,9 @@ class ProofNodeManager
    * @param children The updated children of the proof node.
    * @param args The updated arguments of the proof node.
    * @return true if the update was successful.
+   * 
+   * Notice that updateNode always returns true if there is no underlying
+   * checker.
    */
   bool updateNode(ProofNode* pn,
                   PfRule id,
