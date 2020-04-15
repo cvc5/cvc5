@@ -31,10 +31,20 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
-std::shared_ptr<ProofNode> ProofEqEngine::getProof(Node lem)
+Node ProofEqEngine::assertLitAssume(Node lit)
 {
-  // TODO
-  return nullptr;
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+
+  // first, justify its proof
+  Node ret = pfAssume(lit);
+
+  // second, assert it to the equality engine
+  // it is its own explanation
+  assertInternal(atom, polarity, lit);
+
+  Assert(lit == ret);
+  return ret;
 }
 
 Node ProofEqEngine::assertLit(Node lit,
@@ -51,22 +61,6 @@ Node ProofEqEngine::assertLit(Node lit,
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(lit, polarity, reason);
-
-  Assert(lit == ret);
-  return ret;
-}
-
-Node ProofEqEngine::assertLitAssume(Node lit)
-{
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
-
-  // first, justify its proof
-  Node ret = pfAssume(lit);
-
-  // second, assert it to the equality engine
-  // it is its own explanation
-  assertInternal(atom, polarity, lit);
 
   Assert(lit == ret);
   return ret;

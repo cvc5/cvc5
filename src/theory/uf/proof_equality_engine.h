@@ -49,13 +49,10 @@ class ProofEqEngine : public EagerProofGenerator
   ProofEqEngine(context::Context* c, EqualityEngine& ee, ProofNodeManager* pnm);
   ~ProofEqEngine() {}
 
-  /** Get the proof for lemma lem */
-  std::shared_ptr<ProofNode> getProof(Node lem) override;
-
-  /** Assert the predicate by proof step id, given explanation exp */
-  Node assertLit(Node lit, ProofStep id, const std::vector<Node>& exp);
   /** Assert predicate by assumption */
   Node assertLitAssume(Node lit);
+  /** Assert the predicate by proof step id, given explanation exp */
+  Node assertLit(Node lit, ProofStep id, const std::vector<Node>& exp);
   /** Assert (dis)equality by substitution + rewriting, given explanation exp */
   Node assertEqSubsRewrite(Node lit, const std::vector<Node>& exp);
 

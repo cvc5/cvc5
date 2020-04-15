@@ -67,8 +67,8 @@ libcvc4_add_sources(
   proof_node.h
   proof_node_manager.cpp
   proof_node_manager.h
-  proof_step.cpp
-  proof_step.h
+  proof_rule.cpp
+  proof_rule.h
 )
 
 libcvc4_add_sources(GENERATED
