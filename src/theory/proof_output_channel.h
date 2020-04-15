@@ -29,14 +29,14 @@ namespace theory {
 /**
  * A layer on top of an output channel to ensure proofs are constructed and
  * available for conflicts and lemmas that may require proofs.
- * 
+ *
  * When a call to
- *   OutputChannel::lemma(lem, .. ) 
+ *   OutputChannel::lemma(lem, .. )
  * is made by a Theory, it is required, in the remainder of the current user
  * context, to provide a proof for lem via the call:
  *   Theory::getProof(ProofOutputChannel::getLemmaKeyValue(lem))
  * Simliar contracts exist for the other calls on OutputChannel.
- * 
+ *
  * The purpose of the ProofOutputChannel is to ensure that the above contracts
  * are met. In particular, for each conflict or lemma sent on the output
  * channel of this class, we must provide a ProofGenerator object (an instance
@@ -74,7 +74,7 @@ class ProofOutputChannel
    * n, where n is either:
    * (1) getConflictKeyValue(conf) for some conf passed to conflict(conf,...)
    * (2) getLemmaKeyValue(lem) for some lem passed to lemma(lem, ...)
-   * 
+   *
    * This calls the appropriate proof generator that was provided to
    * generate and return the corresponding proof. If not is found, the nullptr
    * is returned and an assertion is thrown.
@@ -84,6 +84,7 @@ class ProofOutputChannel
   static Node getConflictKeyValue(Node conf);
   /** Get the node key for which lemma calls are cached */
   static Node getLemmaKeyValue(Node lem);
+
  private:
   /** Reference to an output channel */
   OutputChannel& d_out;

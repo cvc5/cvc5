@@ -25,7 +25,7 @@
 namespace CVC4 {
 namespace theory {
 
-/** 
+/**
  * An abstract proof generator class, to be used in combination with
  * ProofOutputChannel (see theory/proof_output_channel.h).
  */
@@ -42,9 +42,9 @@ class ProofGenerator
   virtual std::shared_ptr<ProofNode> getProof(Node key) = 0;
 };
 
-/** 
+/**
  * An eager proof generator, with explicit lemma caching.
- * 
+ *
  * The intended use of this class is to store proofs for lemmas before they
  * are sent out on the ProofOutputChannel. This means that the getProof
  * method amounts to a lookup in a (user-context depedent) map, d_proofs.
