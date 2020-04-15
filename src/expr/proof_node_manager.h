@@ -25,26 +25,32 @@
 namespace CVC4 {
 
 /**
- * A manager for proof node objects. This is a trusted way of creating
+ * A manager for proof node objects. This is a trusted interface for creating
  * and updating ProofNode objects.
  *
  * In more detail, we say a ProofNode is "well-formed (with respect to checker
- * C)" if its d_proven field is non-null, and corresponds to the formula that
- * the ProofNode proves according to C. The ProofNodeManager class constructs
+ * X)" if its d_proven field is non-null, and corresponds to the formula that
+ * the ProofNode proves according to X. The ProofNodeManager class constructs
  * and update nodes that well-formed with respect to its underlying checker.
  *
  * If no checker is provided, then the ProofNodeManager assigns the d_proven
- * field of ProofNode based on the provided "expected" argument in mkNode below.
+ * field of ProofNode based on the provided "expected" argument in mkNode below,
+ * which must be provided in this case.
  *
  * The ProofNodeManager is used as a trusted way of updating ProofNode objects
  * via updateNode below. In particular, this method leaves the d_proven field
  * unchanged and updates (if possible) the remaining content of a given proof
  * node.
+ * 
+ * Notice that ProofNode objects are mutable, and hence this class does not
+ * cache the results of mkNode. A version of this class that caches
+ * immutable version of ProofNode objects could be built as an extension
+ * or layer on top of this class.
  */
 class ProofNodeManager
 {
  public:
-  ProofNodeManager(ProofChecker* pc);
+  ProofNodeManager(ProofChecker* pc = nullptr);
   ~ProofNodeManager() {}
   /**
    * This constructs a ProofNode with the given arguments. The expected
