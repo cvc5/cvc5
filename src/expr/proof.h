@@ -45,27 +45,36 @@ namespace CVC4 {
  * Then getProof( A ) returns the proof of the form:
  *   ID_A( ID_B( ASSUME( D ) ), ASSUME( C ) )
  * Notice that the above calls to registerStep can be made in either order.
- *
  * The method registerProof makes multiple calls to registerStep. Continuing
  * the above example, if we call:
  * - registerProof( E, ID_E( ASSUME( A ), ASSUME( B ) )
- * for instance will result in getProof( E ) returning:
+ * is the same as calling:
+ * --- registerStep( A, ASSUME, {}, {}, true )
+ * --- registerStep( B, ASSUME, {}, {}, true )
+ * --- registerStep( E, ID_E, { A, B }, {}, true )
+ * This will result in getProof( E ) returning:
  *   ID_E( ID_A( PB, ASSUME( C ) ), PB ), where PB is ID_B( ASSUME( D ) ).
+ * Notice that the proof of A by ID_A was not overwritten by ASSUME.
  * The calls to registerProof and registerStep above can be made in any order.
  *
  * This class overwrites assumptions wherever possible, and maintains a policy
  * on when the other proof steps are overwritten. Currently, no other
- * proof step is overwritten when provided a second time. This is the case
- * for registerProof calls as well.
- * As an example, say that we have these calls:
+ * proof step is overwritten when provided in another registerStep call.
+ * 
+ * For example, say that we call:
  * - registerStep( B, ID_B1 {}, {}, false )
- * - registerStep( A, ID_A1, { B, C }, {}, false )
+ * - registerStep( A, ID_A1, {B, C}, {}, false )
  * At this point, getProof( A ) returns:
  *   ID_A1( ID_B1(), ASSUME(C) )
  * Now, assume an additional call is made to:
  * - registerProof( D, ID_D( ID_A2( ID_B2(), ID_C() ) ) )
- * where ID_B2() and ID_C() prove B and C respectively. Then, getProof( D )
- * returns:
+ * where assume ID_B2() and ID_C() prove B and C respectively. This call is
+ * equivalent to calling:
+ * --- registerStep( B, ID_B2, {}, {}, true )
+ * --- registerStep( C, ID_C, {}, {}, true )
+ * --- registerStep( A, ID_A2, {B, C}, {}, true )
+ * --- registerStep( D, ID_D, {A}, {}, true )
+ * Afterwards, getProof( D ) returns:
  *   ID_D( ID_A1( ID_B1(), ID_C() ) )
  * Notice that the steps with ID_A1 and ID_B1 were not overwritten by this call,
  * whereas the assumption of C was overwritten by the proof ID_C(). Notice that
