@@ -20,7 +20,6 @@
 
 #include "options/strings_options.h"
 #include "theory/ext_theory.h"
-#include "theory/strings/theory_strings.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
 
@@ -366,14 +365,14 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
           {
             // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
             //   mark ~str.in.re(x, R2) as reduced
-            d_esolver->markReduced(m2Lit);
+            d_im.markReduced(m2Lit);
             remove.insert(m2);
           }
           else
           {
             // str.in.re(x, R1) includes str.in.re(x, R2) --->
             //   mark str.in.re(x, R1) as reduced
-            d_esolver->markReduced(m1Lit);
+            d_im.markReduced(m1Lit);
             remove.insert(m1);
 
             // We don't need to process m1 anymore
@@ -494,12 +493,12 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     {
       // if R1 = intersect( R1, R2 ), then x in R1 ^ x in R2 is equivalent
       // to x in R1, hence x in R2 can be marked redundant.
-      d_esolver->markReduced(m);
+      d_im.markReduced(m);
     }
     else if (mres == m)
     {
       // same as above, opposite direction
-      d_esolver->markReduced(mi);
+      d_im.markReduced(mi);
     }
     else
     {
@@ -514,8 +513,8 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       }
       d_im.sendInference(vec_nodes, mres, Inference::RE_INTER_INFER, true);
       // both are reduced
-      d_esolver->markReduced(m);
-      d_esolver->markReduced(mi);
+      d_im.markReduced(m);
+      d_im.markReduced(mi);
       // do not send more than one lemma for this class
       return true;
     }

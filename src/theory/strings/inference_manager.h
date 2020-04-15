@@ -29,12 +29,11 @@
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/ext_theory.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
-
-class TheoryStrings;
 
 /** Inference Manager
  *
@@ -72,11 +71,11 @@ class InferenceManager
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  InferenceManager(TheoryStrings& p,
-                   context::Context* c,
+  InferenceManager(context::Context* c,
                    context::UserContext* u,
                    SolverState& s,
                    SkolemCache& skc,
+                   ExtTheory* e,
                    OutputChannel& out,
                    SequencesStatistics& statistics);
   ~InferenceManager() {}
@@ -175,9 +174,6 @@ class InferenceManager
    * decided with polarity pol.
    */
   void sendPhaseRequirement(Node lit, bool pol);
-  
-  /** Set incomplete on the output channel of TheoryStrings */
-  void setIncomplete();
 
   //---------------------------- proxy variables and length elaboration
   /** Get symbolic definition
@@ -302,6 +298,7 @@ class InferenceManager
    * channel's setIncomplete method.
    */
   void setIncomplete();
+  // ------------------------------------------------- extended theory
   /**
    * Mark that terms a and b are congruent in the current context.
    * This makes a call to markCongruent in the extended theory object of
@@ -309,6 +306,13 @@ class InferenceManager
    * theory.
    */
   void markCongruent(Node a, Node b);
+  /** 
+   * Mark that extended function is reduced. If contextDepend is true,
+   * then this mark is SAT-context dependent, otherwise it is user-context
+   * dependent (see ExtTheory::markReduced).
+   */
+  void markReduced(Node n, bool contextDepend = true);
+  // ------------------------------------------------- end extended theory
 
  private:
   /**
@@ -340,19 +344,15 @@ class InferenceManager
   Node getRegisterTermAtomicLemma(Node n,
                                   LengthStatus s,
                                   std::map<Node, bool>& reqPhase);
-
-  /** the parent theory of strings object */
-  TheoryStrings& d_parent;
   /**
    * This is a reference to the solver state of the theory of strings.
    */
   SolverState& d_state;
   /** cache of all skolems */
   SkolemCache& d_skCache;
-  /** the output channel
-   *
-   * This is a reference to the output channel of the theory of strings.
-   */
+  /** the extended theory object for the theory of strings */
+  ExtTheory* d_extt;
+  /** A reference to the output channel of the theory of strings. */
   OutputChannel& d_out;
 
   /** Reference to the statistics for the theory of strings/sequences. */

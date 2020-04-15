@@ -155,12 +155,6 @@ class ExtfSolver
    * context (see ExtTheory::getActive).
    */
   std::vector<Node> getActive(Kind k) const;
-  /** 
-   * Mark that extended function is reduced. If contextDepend is true,
-   * then this mark is SAT-context dependent, otherwise it is user-context
-   * dependent (see ExtTheory::markReduced).
-   */
-  void markReduced(Node n, bool contextDepend = true);
   //---------------------------------- end information about ExtTheory
  private:
   /** do reduction

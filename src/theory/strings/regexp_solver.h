@@ -34,8 +34,6 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-class TheoryStrings;
-
 class RegExpSolver
 {
   typedef context::CDList<Node> NodeList;

@@ -227,7 +227,7 @@ class TheoryStrings : public Theory {
   /** The solver state object */
   SolverState d_state;
   /** The (custom) output channel of the theory of strings */
-  InferenceManager d_im;
+  std::unique_ptr<InferenceManager> d_im;
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
@@ -358,12 +358,12 @@ private:
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.
    */
-  BaseSolver d_bsolver;
+  std::unique_ptr<BaseSolver> d_bsolver;
   /**
    * The core solver, responsible for reasoning about string concatenation
    * with length constraints.
    */
-  CoreSolver d_csolver;
+  std::unique_ptr<CoreSolver> d_csolver;
   /**
    * Extended function solver, responsible for reductions and simplifications
    * involving extended string functions.

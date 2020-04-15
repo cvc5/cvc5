@@ -18,7 +18,6 @@
 #include "options/strings_options.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -30,15 +29,14 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferenceManager::InferenceManager(TheoryStrings& p,
-                                   context::Context* c,
+InferenceManager::InferenceManager(context::Context* c,
                                    context::UserContext* u,
                                    SolverState& s,
                                    SkolemCache& skc,
+                                   ExtTheory* e,
                                    OutputChannel& out,
                                    SequencesStatistics& statistics)
-    : d_parent(p),
-      d_state(s),
+    : d_state(s),
       d_skCache(skc),
       d_out(out),
       d_statistics(statistics),
@@ -779,11 +777,15 @@ void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
 void InferenceManager::markCongruent(Node a, Node b)
 {
   Assert(a.getKind() == b.getKind());
-  ExtTheory* eth = d_parent.getExtTheory();
-  if (eth->hasFunctionKind(a.getKind()))
+  if (d_extt->hasFunctionKind(a.getKind()))
   {
-    eth->markCongruent(a, b);
+    d_extt->markCongruent(a, b);
   }
+}
+
+void markReduced(Node n, bool contextDepend)
+{
+  d_extt->markReduced(n, contextDepend);
 }
 
 }  // namespace strings

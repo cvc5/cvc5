@@ -72,15 +72,15 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, d_equalityEngine, d_valuation),
-      d_im(*this, c, u, d_state, d_sk_cache, out, d_statistics),
+      d_im(nullptr),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
       d_registeredTypesCache(u),
       d_functionsTerms(c),
       d_has_str_code(false),
       d_rewriter(&d_statistics.d_rewrites),
-      d_bsolver(c, u, d_state, d_im),
-      d_csolver(c, u, d_state, d_im, d_sk_cache, d_bsolver),
+      d_bsolver(nullptr),
+      d_csolver(nullptr),
       d_esolver(nullptr),
       d_rsolver(nullptr),
       d_stringsFmf(c, u, valuation, d_sk_cache),
@@ -88,10 +88,15 @@ TheoryStrings::TheoryStrings(context::Context* c,
 {
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
+  // initialize the inference manager, which requires the extended theory
+  d_im.reset(new InferenceManager(c, u, d_state, d_sk_cache, extt, out, d_statistics));
+  // initialize the solvers
+  d_bsolver.reset(new BaseSolver(c, u, d_state, *d_im));
+  d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_sk_cache, d_bsolver));
   d_esolver.reset(new ExtfSolver(c,
                                  u,
                                  d_state,
-                                 d_im,
+                                 *d_im,
                                  d_sk_cache,
                                  d_rewriter,
                                  d_bsolver,
@@ -99,7 +104,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  extt,
                                  d_statistics));
   d_rsolver.reset(
-      new RegExpSolver(d_state, d_im, d_csolver, *d_esolver, d_statistics, c, u));
+      new RegExpSolver(d_state, *d_im, d_csolver, *d_esolver, d_statistics, c, u));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
