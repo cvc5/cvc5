@@ -14,13 +14,13 @@
 
 #include "theory/strings/inference_manager.h"
 
+#include "expr/attribute.h"
 #include "expr/kind.h"
 #include "options/strings_options.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "expr/attribute.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -30,8 +30,11 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-struct StringsProxyVarAttributeId {};
-typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
+struct StringsProxyVarAttributeId
+{
+};
+typedef expr::Attribute<StringsProxyVarAttributeId, bool>
+    StringsProxyVarAttribute;
 
 InferenceManager::InferenceManager(context::Context* c,
                                    context::UserContext* u,
@@ -40,11 +43,7 @@ InferenceManager::InferenceManager(context::Context* c,
                                    ExtTheory* e,
                                    OutputChannel& out,
                                    SequencesStatistics& statistics)
-    : d_state(s),
-      d_termReg(tr),
-      d_out(out),
-      d_statistics(statistics),
-      d_keep(c)
+    : d_state(s), d_termReg(tr), d_out(out), d_statistics(statistics), d_keep(c)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -368,17 +367,21 @@ void InferenceManager::doPendingLemmas()
   d_pendingReqPhase.clear();
 }
 
-
-void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp) {
+void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
+{
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  Trace("strings-pending") << "Assert pending fact : " << atom << " " << polarity << " from " << exp << std::endl;
+  Trace("strings-pending") << "Assert pending fact : " << atom << " "
+                           << polarity << " from " << exp << std::endl;
   Assert(atom.getKind() != OR) << "Infer error: a split.";
-  if( atom.getKind()==EQUAL ){
+  if (atom.getKind() == EQUAL)
+  {
     Trace("strings-pending-debug") << "  Now assert equality" << std::endl;
-    ee->assertEquality( atom, polarity, exp );
+    ee->assertEquality(atom, polarity, exp);
     Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
-  } else {
-    ee->assertPredicate( atom, polarity, exp );
+  }
+  else
+  {
+    ee->assertPredicate(atom, polarity, exp);
     if (atom.getKind() == STRING_IN_REGEXP)
     {
       if (polarity && atom[1].getKind() == REGEXP_CONCAT)
@@ -410,7 +413,7 @@ void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp) {
   // Collect extended function terms in the atom. Notice that we must register
   // all extended functions occurring in assertions and shared terms. We
   // make a similar call to registerTermRec in TheoryStrings::addSharedTerm.
-  d_extt->registerTermRec( atom );
+  d_extt->registerTermRec(atom);
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 

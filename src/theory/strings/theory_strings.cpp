@@ -932,7 +932,8 @@ void TheoryStrings::checkCodes()
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
         {
-          d_im->sendInference(d_empty_vec, cc.eqNode(vc), Inference::CODE_PROXY);
+          d_im->sendInference(
+              d_empty_vec, cc.eqNode(vc), Inference::CODE_PROXY);
         }
         const_codes.push_back(vc);
       }

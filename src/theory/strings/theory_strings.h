@@ -227,7 +227,8 @@ class TheoryStrings : public Theory {
   TermRegistry d_termReg;
   /** The (custom) output channel of the theory of strings */
   std::unique_ptr<InferenceManager> d_im;
-private:
+
+ private:
 
   std::map< Node, Node > d_eqc_to_len_term;
 
