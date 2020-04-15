@@ -305,19 +305,6 @@ void TermUtil::computeInstConstContainsForQuant(Node q,
   }
 }
 
-Node TermUtil::ensureType( Node n, TypeNode tn ) {
-  TypeNode ntn = n.getType();
-  Assert(ntn.isComparableTo(tn));
-  if( ntn.isSubtypeOf( tn ) ){
-    return n;
-  }else{
-    if( tn.isInteger() ){
-      return NodeManager::currentNM()->mkNode( TO_INTEGER, n );
-    }
-    return Node::null();
-  }
-}
-
 int TermUtil::getTermDepth( Node n ) {
   if (!n.hasAttribute(TermDepthAttribute()) ){
     int maxDepth = -1;

@@ -151,7 +151,12 @@ class Word
    * If a and b do not share a common prefix (resp. suffix), then this method
    * returns the null node.
    */
-  static Node splitConstant(Node a, Node b, size_t& index, bool isRev);
+  static Node splitConstant(TNode x, TNode y, size_t& index, bool isRev);
+  /** reverse
+   *
+   * Return the result of reversing x.
+   */
+  static Node reverse(TNode x);
 };
 
 // ------------------------------ end for words (string or sequence constants)
