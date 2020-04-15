@@ -79,6 +79,13 @@ class InferenceManager
                    OutputChannel& out,
                    SequencesStatistics& statistics);
   ~InferenceManager() {}
+  
+  /** send assumption 
+   * 
+   * This is called when a fact is asserted to TheoryStrings. It adds lit
+   * to the equality engine maintained by this class immediately.
+   */
+  void sendAssumption(TNode lit);
 
   /** send internal inferences
    *
@@ -194,7 +201,7 @@ class InferenceManager
    *
    * This method asserts pending facts (d_pending) with explanations
    * (d_pendingExp) to the equality engine of the theory of strings via calls
-   * to assertPendingFact in the theory of strings.
+   * to assertPendingFact.
    *
    * It terminates early if a conflict is encountered, for instance, by
    * equality reasoning within the equality engine.

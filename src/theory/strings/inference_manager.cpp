@@ -44,6 +44,14 @@ InferenceManager::InferenceManager(context::Context* c,
   d_false = nm->mkConst(false);
 }
 
+void InferenceManager::sendAssumption(TNode lit)
+{
+  bool polarity = lit.getKind() != kind::NOT;
+  TNode atom = polarity ? lit : lit[0];
+  //assert pending fact
+  assertPendingFact( atom, polarity, lit );
+}
+
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
                                              Inference infer)

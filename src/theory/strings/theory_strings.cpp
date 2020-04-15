@@ -599,11 +599,7 @@ void TheoryStrings::check(Effort e) {
     TNode fact = assertion.d_assertion;
 
     Trace("strings-assertion") << "get assertion: " << fact << endl;
-    polarity = fact.getKind() != kind::NOT;
-    atom = polarity ? fact : fact[0];
-
-    //assert pending fact
-    assertPendingFact( atom, polarity, fact );
+    d_im->sendAssumption(fact);
   }
   d_im->doPendingFacts();
 
@@ -830,58 +826,6 @@ void TheoryStrings::computeCareGraph(){
     Node op = ti.first.second;
     addCarePairs(&ti.second, nullptr, arity[op], 0);
   }
-}
-
-void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
-  Trace("strings-pending") << "Assert pending fact : " << atom << " " << polarity << " from " << exp << std::endl;
-  Assert(atom.getKind() != kind::OR) << "Infer error: a split.";
-  if( atom.getKind()==kind::EQUAL ){
-    Trace("strings-pending-debug") << "  Register term" << std::endl;
-    for( unsigned j=0; j<2; j++ ) {
-      if (!d_equalityEngine.hasTerm(atom[j])
-          && atom[j].getType().isStringLike())
-      {
-        d_termReg.registerTerm(atom[j], 0);
-      }
-    }
-    Trace("strings-pending-debug") << "  Now assert equality" << std::endl;
-    d_equalityEngine.assertEquality( atom, polarity, exp );
-    Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
-  } else {
-    d_equalityEngine.assertPredicate( atom, polarity, exp );
-    if (atom.getKind() == STRING_IN_REGEXP)
-    {
-      if (polarity && atom[1].getKind() == REGEXP_CONCAT)
-      {
-        Node eqc = d_equalityEngine.getRepresentative(atom[0]);
-        d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
-      }
-    }
-  }
-  // process the conflict
-  if (!d_state.isInConflict())
-  {
-    Node pc = d_state.getPendingConflict();
-    if (!pc.isNull())
-    {
-      std::vector<Node> a;
-      a.push_back(pc);
-      Trace("strings-pending")
-          << "Process pending conflict " << pc << std::endl;
-      Node conflictNode = d_im->mkExplain(a);
-      d_state.setConflict();
-      Trace("strings-conflict")
-          << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
-      ++(d_statistics.d_conflictsEagerPrefix);
-      d_out->conflict(conflictNode);
-    }
-  }
-  Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
-  // Collect extended function terms in the atom. Notice that we must register
-  // all extended functions occurring in assertions and shared terms. We
-  // make a similar call to registerTermRec in addSharedTerm.
-  getExtTheory()->registerTermRec( atom );
-  Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
 void TheoryStrings::checkRegisterTermsPreNormalForm()
