@@ -89,6 +89,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   if (k == EQUAL)
   {
     d_ee.addTriggerEquality(n);
+    return;
   }
   else if (k == STRING_IN_REGEXP)
   {
@@ -96,6 +97,7 @@ void TermRegistry::preRegisterTerm(TNode n)
     d_ee.addTriggerPredicate(n);
     d_ee.addTerm(n[0]);
     d_ee.addTerm(n[1]);
+    return;
   }
   registerTerm(n, 0);
   TypeNode tn = n.getType();
