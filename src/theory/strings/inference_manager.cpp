@@ -14,8 +14,6 @@
 
 #include "theory/strings/inference_manager.h"
 
-#include "expr/attribute.h"
-#include "expr/kind.h"
 #include "options/strings_options.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
@@ -29,12 +27,6 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
-
-struct StringsProxyVarAttributeId
-{
-};
-typedef expr::Attribute<StringsProxyVarAttributeId, bool>
-    StringsProxyVarAttribute;
 
 InferenceManager::InferenceManager(context::Context* c,
                                    context::UserContext* u,
