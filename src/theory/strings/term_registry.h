@@ -21,6 +21,9 @@
 #include "context/cdlist.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/output_channel.h"
+#include "theory/strings/sequences_stats.h"
+#include "theory/strings/infer_info.h"
 
 namespace CVC4 {
 namespace theory {
@@ -37,6 +40,7 @@ class TermRegistry
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
  public:
   TermRegistry(context::Context* c, context::UserContext* u, eq::EqualityEngine& ee,
                    OutputChannel& out,
@@ -121,22 +125,30 @@ class TermRegistry
   Node getProxyVariableFor(Node n) const;
   //---------------------------- end proxy variables and length elaboration
  private:
+  /** Common constants */
+  Node d_zero;
+  Node d_one;
+  Node d_negOne;
+  /** the cardinality of the alphabet */
+  uint32_t d_cardSize;
   /** Reference to equality engine of the theory of strings. */
   eq::EqualityEngine& d_ee;
   /** Reference to the output channel of the theory of strings. */
   OutputChannel& d_out;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
+  /** have we asserted any str.code terms? */
+  bool d_hasStrCode;
   /** The cache of all skolems, which is owned by this class. */
-  SkolemCache d_sk_cache;
+  SkolemCache d_skCache;
   /** All function terms that the theory has seen in the current SAT context */
   context::CDList<TNode> d_functionsTerms;
-  /** The types that we have preregistered */
-  TypeNodeSet d_registeredTypesCache;
   /** The user-context dependent cache of terms that have been preregistered */
-  NodeSet d_pregistered_terms_cache;
+  NodeSet d_preregisteredTerms;
   /** The user-context dependent cache of terms that have been registered */
-  NodeSet d_registered_terms_cache;
+  NodeSet d_registeredTerms;
+  /** The types that we have preregistered */
+  TypeNodeSet d_registeredTypes;
   /**
    * Map string terms to their "proxy variables". Proxy variables are used are
    * intermediate variables so that length information can be communicated for
@@ -162,6 +174,18 @@ class TermRegistry
    * - Calling preRegisterTerm on the empty word for tn
    */
   void registerType(TypeNode tn);
+  /**
+   * Get the lemma required for registering the length information for
+   * atomic term n given length status s. For details, see registerTermAtomic.
+   *
+   * Additionally, this method may map literals to a required polarity in the
+   * argument reqPhase, which should be processed by a call to requiredPhase by
+   * the caller of this method.
+   */
+  Node getRegisterTermAtomicLemma(Node n,
+                                  LengthStatus s,
+                                  std::map<Node, bool>& reqPhase);
+
   /** infer substitution proxy vars
    *
    * This method attempts to (partially) convert the formula n into a

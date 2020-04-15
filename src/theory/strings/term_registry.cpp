@@ -19,6 +19,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/rewriter.h"
 #include "expr/attribute.h"
+#include "options/strings_options.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -37,12 +38,20 @@ TermRegistry::TermRegistry(context::Context* c, context::UserContext* u, eq::Equ
     : d_ee(ee),
       d_out(out),
       d_statistics(statistics),
+      d_hasStrCode(false),
       d_functionsTerms(c),
-      d_pregistered_terms_cache(u),
-      d_registered_terms_cache(u),
-      d_registeredTypesCache(u)
+      d_preregisteredTerms(u),
+      d_registeredTerms(u),
+      d_registeredTypes(u),
+      d_proxyVar(u),
+      d_proxyVarToLength(u),
+      d_lengthLemmaTermsCache(u)
 {
-  
+  NodeManager* nm = NodeManager::currentNM();
+  d_zero = nm->mkConst(Rational(0));
+  d_one = nm->mkConst(Rational(1));
+  d_negOne = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_cardSize = utils::getAlphabetCardinality();
 }
 
 TermRegistry::~TermRegistry() {
@@ -50,10 +59,10 @@ TermRegistry::~TermRegistry() {
 }
 
 void TermRegistry::preRegisterTerm(TNode n) {
-  if( d_pregistered_terms_cache.find(n) != d_pregistered_terms_cache.end() ) {
+  if( d_preregisteredTerms.find(n) != d_preregisteredTerms.end() ) {
     return;
   }
-  d_pregistered_terms_cache.insert(n);
+  d_preregisteredTerms.insert(n);
   Trace("strings-preregister")
       << "TheoryString::preregister : " << n << std::endl;
   //check for logic exceptions
@@ -74,14 +83,14 @@ void TermRegistry::preRegisterTerm(TNode n) {
   switch (k)
   {
     case EQUAL: {
-      d_equalityEngine.addTriggerEquality(n);
+      d_ee.addTriggerEquality(n);
       break;
     }
     case STRING_IN_REGEXP: {
-      d_out->requirePhase(
-      d_equalityEngine.addTriggerPredicate(n);
-      d_equalityEngine.addTerm(n[0]);
-      d_equalityEngine.addTerm(n[1]);
+      d_out.requirePhase(n, true);
+      d_ee.addTriggerPredicate(n);
+      d_ee.addTerm(n[0]);
+      d_ee.addTerm(n[1]);
       break;
     }
     default: {
@@ -109,13 +118,13 @@ void TermRegistry::preRegisterTerm(TNode n) {
             }
           }
         }
-        d_equalityEngine.addTerm(n);
+        d_ee.addTerm(n);
       } else if (tn.isBoolean()) {
         // Get triggered for both equal and dis-equal
-        d_equalityEngine.addTriggerPredicate(n);
+        d_ee.addTriggerPredicate(n);
       } else {
         // Function applications/predicates
-        d_equalityEngine.addTerm(n);
+        d_ee.addTerm(n);
       }
       // Set d_functionsTerms stores all function applications that are
       // relevant to theory combination. Notice that this is a subset of
@@ -125,7 +134,7 @@ void TermRegistry::preRegisterTerm(TNode n) {
       // Concatenation terms do not need to be considered here because
       // their arguments have string type and do not introduce any shared
       // terms.
-      if (n.hasOperator() && d_equalityEngine.isFunctionKind(k)
+      if (n.hasOperator() && d_ee.isFunctionKind(k)
           && k != STRING_CONCAT)
       {
         d_functionsTerms.push_back( n );
@@ -153,11 +162,11 @@ void TermRegistry::registerTerm(Node n, int effort)
   {
     return;
   }
-  if (d_registered_terms_cache.find(n) != d_registered_terms_cache.end())
+  if (d_registeredTerms.find(n) != d_registeredTerms.end())
   {
     return;
   }
-  d_registered_terms_cache.insert(n);
+  d_registeredTerms.insert(n);
   // ensure the type is registered
   registerType(tn);
   NodeManager* nm = NodeManager::currentNM();
@@ -169,14 +178,14 @@ void TermRegistry::registerTerm(Node n, int effort)
     // register length information:
     //  for variables, split on empty vs positive length
     //  for concat/const/replace, introduce proxy var and state length relation
-    regTermLem = d_im.registerTerm(n);
+    regTermLem = registerTerm(n);
   }
   else if (n.getKind() == STRING_TO_CODE)
   {
-    d_has_str_code = true;
+    d_hasStrCode = true;
     // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
     Node code_len = utils::mkNLength(n[0]).eqNode(d_one);
-    Node code_eq_neg1 = n.eqNode(d_neg_one);
+    Node code_eq_neg1 = n.eqNode(d_negOne);
     Node code_range = nm->mkNode(
         AND,
         nm->mkNode(GEQ, n, d_zero),
@@ -197,22 +206,22 @@ void TermRegistry::registerTerm(Node n, int effort)
                            << std::endl;
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
-    d_out->lemma(regTermLem);
+    d_out.lemma(regTermLem);
   }
 }
 
 void TermRegistry::registerType(TypeNode tn)
 {
-  if (d_registeredTypesCache.find(tn) != d_registeredTypesCache.end())
+  if (d_registeredTypes.find(tn) != d_registeredTypes.end())
   {
     return;
   }
-  d_registeredTypesCache.insert(tn);
+  d_registeredTypes.insert(tn);
   if (tn.isStringLike())
   {
     // preregister the empty word for the type
     Node emp = Word::mkEmptyWord(tn);
-    if (!d_equalityEngine.hasTerm(emp))
+    if (!d_ee.hasTerm(emp))
     {
       preRegisterTerm(emp);
     }
@@ -315,12 +324,13 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
 Node TermRegistry::getRegisterTermAtomicLemma(
     Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
 {
+  Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
   Node n_len = nm->mkNode(kind::STRING_LENGTH, n);
-
+  Node emp = Word::mkEmptyWord(n.getType());
   if (s == LENGTH_GEQ_ONE)
   {
-    Node neq_empty = n.eqNode(d_emptyString).negate();
+    Node neq_empty = n.eqNode(emp).negate();
     Node len_n_gt_z = nm->mkNode(GT, n_len, d_zero);
     Node len_geq_one = nm->mkNode(AND, neq_empty, len_n_gt_z);
     Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
@@ -342,7 +352,7 @@ Node TermRegistry::getRegisterTermAtomicLemma(
   std::vector<Node> lems;
   // split whether the string is empty
   Node n_len_eq_z = n_len.eqNode(d_zero);
-  Node n_len_eq_z_2 = n.eqNode(d_emptyString);
+  Node n_len_eq_z_2 = n.eqNode(emp);
   Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
   case_empty = Rewriter::rewrite(case_empty);
   Node case_nempty = nm->mkNode(GT, n_len, d_zero);
@@ -350,8 +360,6 @@ Node TermRegistry::getRegisterTermAtomicLemma(
   {
     Node lem = nm->mkNode(OR, case_empty, case_nempty);
     lems.push_back(lem);
-    Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << lem
-                           << std::endl;
     // prefer trying the empty case first
     // notice that requirePhase must only be called on rewritten literals that
     // occur in the CNF stream.
@@ -365,8 +373,6 @@ Node TermRegistry::getRegisterTermAtomicLemma(
   else if (!case_empty.getConst<bool>())
   {
     // the rewriter knows that n is non-empty
-    Trace("strings-lemma") << "Strings::Lemma LENGTH > 0 (non-empty): "
-                           << case_nempty << std::endl;
     lems.push_back(case_nempty);
   }
   else
@@ -513,12 +519,11 @@ void TermRegistry::inferSubstitutionProxyVars(
       n = ns;
     }
   }
-  if (n != d_true)
+  if (!n.isConst() || !n.getConst<bool>())
   {
     unproc.push_back(n);
   }
 }
-
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
