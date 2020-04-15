@@ -47,7 +47,6 @@ InferenceManager::InferenceManager(TheoryStrings& p,
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
-  d_emptyString = nm->mkConst(::CVC4::String(""));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
