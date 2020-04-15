@@ -99,6 +99,10 @@ void TermRegistry::preRegisterTerm(TNode n)
     d_ee.addTerm(n[1]);
     return;
   }
+  else if (k== STRING_CODE)
+  {
+    d_hasStrCode = true;
+  }
   registerTerm(n, 0);
   TypeNode tn = n.getType();
   if (tn.isRegExp() && n.isVar())
@@ -204,7 +208,6 @@ void TermRegistry::registerTerm(Node n, int effort)
   }
   else if (n.getKind() == STRING_TO_CODE)
   {
-    d_hasStrCode = true;
     // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
     Node code_len = utils::mkNLength(n[0]).eqNode(d_one);
     Node code_eq_neg1 = n.eqNode(d_negOne);
@@ -353,6 +356,11 @@ const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars()
     const
 {
   return d_inputVars;
+}
+
+bool TermRegistry::hasStringCode() const
+{
+  return d_hasStrCode;
 }
 
 Node TermRegistry::getRegisterTermAtomicLemma(Node n,

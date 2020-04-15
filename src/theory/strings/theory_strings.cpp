@@ -74,7 +74,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_state(c, d_equalityEngine, d_valuation),
       d_termReg(c, u, d_equalityEngine, out, d_statistics),
       d_im(*this, c, u, d_state, d_termReg, out, d_statistics),
-      d_has_str_code(false),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(c, u, d_state, d_im),
       d_csolver(c, u, d_state, d_im, d_termReg, d_bsolver),
@@ -371,7 +370,7 @@ bool TheoryStrings::collectModelInfoType(
         {
           // does it have a code and the length of these equivalence classes are
           // one?
-          if (d_has_str_code && lts_values[i] == d_one)
+          if (d_termReg.hasStringCode() && lts_values[i] == d_one)
           {
             EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
             if (eip && !eip->d_codeTerm.get().isNull())
@@ -905,7 +904,7 @@ void TheoryStrings::checkCodes()
 {
   // ensure that lemmas regarding str.code been added for each constant string
   // of length one
-  if (d_has_str_code)
+  if (d_termReg.hasStringCode())
   {
     NodeManager* nm = NodeManager::currentNM();
     // str.code applied to the code term for each equivalence class that has a

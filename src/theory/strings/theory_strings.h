@@ -259,21 +259,6 @@ private:
   void addSharedTerm(TNode n) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-private:
-  /** have we asserted any str.code terms? */
-  bool d_has_str_code;
-  // static information about extf
-  class ExtfInfo {
-  public:
-    //all variables in this term
-    std::vector< Node > d_vars;
-  };
-
- private:
-
-  /** cache of all skolems */
-  SkolemCache d_sk_cache;
-
  private:
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,

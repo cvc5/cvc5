@@ -36,6 +36,8 @@ namespace strings {
  * (2) Add terms to the equality engine,
  * (3) Maintaining a list of terms d_functionsTerms (for theory combination),
  * (4) Maintaining a list of input variables d_inputVars (for fmf).
+ * (5) Maintaining a skolem cache. Notice that this skolem cache is the
+ * official skolem cache that should be used by all modules in TheoryStrings.
  */
 class TermRegistry
 {
@@ -52,11 +54,15 @@ class TermRegistry
   ~TermRegistry();
   /**
    * Preregister term, called when TheoryStrings::preRegisterTerm(n) is called.
-   *
-   * If we are using strings finite model finding (options::stringsFmf),
-   * this determines if the term n should be added to d_inputVars, the set
-   * of terms of type string whose length we are minimizing with its decision
-   * strategy.
+   * This does the following:
+   * - Checks for illegal terms and throws a LogicException if any term is
+   * not handled.
+   * - Adds the appropriate terms and triggers to the equality engine.
+   * - Updates information about which terms exist, including 
+   * d_functionsTerms and d_hasStrCode. If we are using strings finite model
+   * finding (options::stringsFmf), we determine if the term n should be
+   * added to d_inputVars, the set of terms of type string whose length we are
+   * minimizing with its decision strategy.
    */
   void preRegisterTerm(TNode n);
   /** Register term
@@ -102,12 +108,19 @@ class TermRegistry
    * channel instead of adding them to pending lists.
    */
   void registerTermAtomic(Node n, LengthStatus s);
+  //---------------------------- queries
   /** Get the skolem cache of this object */
   SkolemCache* getSkolemCache();
-  /** Get the function terms */
+  /** Get all function terms that have been preregistered to this object */
   const context::CDList<TNode>& getFunctionTerms() const;
-  /** Get the input variables */
+  /** 
+   * Get the "input variables", corresponding to the set of leaf nodes of
+   * string-like type that have been preregistered as terms to this object.
+   */
   const context::CDHashSet<Node, NodeHashFunction>& getInputVars() const;
+  /** Returns true if any str.code terms have been preregistered */
+  bool hasStringCode() const;
+  //---------------------------- end queries
   //---------------------------- proxy variables
   /** Get symbolic definition
    *
