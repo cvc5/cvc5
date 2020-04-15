@@ -19,38 +19,6 @@
 namespace CVC4 {
 namespace theory {
 
-EagerProofGenerator::EagerProofGenerator(context::UserContext* u) : d_proofs(u)
-{
-}
-
-void EagerProofGenerator::setProofForConflict(Node conf,
-                                              std::shared_ptr<ProofNode> pf)
-{
-  // Must normalize to how the call to the output channel's getProof method
-  // is intended to be called.
-  Node ckey = ProofOutputChannel::getConflictKeyValue(conf);
-  d_proofs[ckey] = pf;
-}
-
-void EagerProofGenerator::setProofForLemma(Node lem,
-                                           std::shared_ptr<ProofNode> pf)
-{
-  // Must normalize to how the call to the output channel's getProof method
-  // is intended to be called.
-  Node lkey = ProofOutputChannel::getLemmaKeyValue(lem);
-  d_proofs[lkey] = pf;
-}
-
-std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node lem)
-{
-  NodeProofNodeMap::iterator it = d_proofs.find(lem);
-  if (it == d_proofs.end())
-  {
-    return nullptr;
-  }
-  return (*it).second;
-}
-
 ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
                                        context::UserContext* u)
     : d_out(out), d_lemPfGen(u)
