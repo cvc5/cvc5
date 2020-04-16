@@ -139,7 +139,7 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
     setProofForConflict(conf, pf);
   }
   // we can provide a proof for conflict
-  return TrustNode::mkTrustNodeConflict(conf, this);
+  return TrustNode::mkTrustConflict(conf, this);
 }
 
 std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const

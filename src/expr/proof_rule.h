@@ -40,7 +40,7 @@ namespace CVC4 {
  * internally on nodes, e.g. calling Rewriter::rewrite.
  *
  * Rules with prefix MACRO_ are those that can be defined in terms of other
- * rules and exist for convienience. We provide their definition in the line
+ * rules. These exist for convienience. We provide their definition in the line
  * "Macro:".
  */
 enum class PfRule : uint32_t

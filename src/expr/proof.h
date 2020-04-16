@@ -87,15 +87,13 @@ namespace CVC4 {
  * the proof of D was completely traversed, despite encountering formulas, A and
  * B, that were already given proof steps.
  *
- * Notice the map from Nodes to ProofNodes is context-dependent and is
- * backtracked when the context backtracks.
- *
  * This class requires a ProofNodeManager object, which is a trusted way of
  * allocating ProofNode pointers. This manager may have an underlying checker,
  * although this is not required. It also (optionally) takes a context c.
  * If no context is provided, then this proof is context-independent. This
  * is implemented internally by using a dummy context that is never pushed
- * or popped.
+ * or popped. The map from Nodes to ProofNodes is context-dependent and is
+ * backtracked when its context backtracks.
  */
 class CDProof
 {
@@ -123,8 +121,8 @@ class CDProof
    * @param args The arguments of the proof step.
    * @param ensureChildren Whether we wish to ensure steps have been registered
    * for all nodes in children
-   * @param forceOverwrite Whether we wish to overwrite if a step that proved
-   * expected was called via a previous call to registerStep
+   * @param forceOverwrite Whether we wish to overwrite if a step for expected
+   * was already provided (via a previous call to registerStep)
    * @return The argument expected if indeed the proof step proves expected, or
    * null otherwise. The latter can happen if the proof has a different (or
    * invalid) conclusion, or if one of the children does not have a proof and

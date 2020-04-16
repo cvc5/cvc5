@@ -60,23 +60,22 @@ class ProofGenerator
 };
 
 /**
- * A proven node is a pair (F, G) where F is a formula and G is a proof
+ * A trust node is a pair (F, G) where F is a formula and G is a proof
  * generator that can construct a proof for F if asked.
  *
- * Notice that this is simply a convienence class for tracking what
- * lemmas are proven by which generators. The construction of TrustNode
- * objects is protected. The static functions for checking them rely on
- * (debug) assertions that ensure the generator, if provided, is capable of
- * proving the given conflict or lemma.
+ * Notice that this is a convienence class for tracking what
+ * lemmas are proven by which generators. The static functions for constructing
+ * them check that the generator, if provided, is capable of proving the given
+ * conflict or lemma, or an assertion failure occurs.
  */
 class TrustNode
 {
  public:
   /** Make a proven node for conflict */
-  static TrustNode mkTrustNodeConflict(Node conf,
+  static TrustNode mkTrustConflict(Node conf,
                                          ProofGenerator* g = nullptr);
   /** Make a proven node for lemma */
-  static TrustNode mkTrustNodeLemma(Node lem, ProofGenerator* g = nullptr);
+  static TrustNode mkTrustLemma(Node lem, ProofGenerator* g = nullptr);
   /** The null proven node */
   static TrustNode null();
   ~TrustNode() {}
@@ -156,7 +155,7 @@ class EagerProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofForLemma(Node lem) override;
   //--------------------------------------- common proofs
   /**
-   * This returns the proven node corresponding to the splitting lemma
+   * This returns the trust node corresponding to the splitting lemma
    * (or f (not f)) and this generator. The method registers its proof in the
    * map maintained by this class. The return value can safely be passed to
    * ProofOutputChannel::sendLemma.
