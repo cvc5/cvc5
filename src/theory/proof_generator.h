@@ -48,7 +48,7 @@ class ProofGenerator
 /**
  * A proven node is a pair (F, G) where F is a formula and G is a proof
  * generator that can construct a proof for F if asked.
- * 
+ *
  * Notice that this is simply a convienence typedef for tracking what
  * lemmas are proven by which generators. However, the construction of
  * ProvenNode object are not protected.
