@@ -2287,7 +2287,8 @@ void Grammar::addRules(Term ntSymbol, std::vector<Term> rules)
         !rules[i].isNull(), "parameter rule", rules[i], i)
         << "non-null term";
     CVC4_API_CHECK(ntSymbol.d_expr->getType() == rules[i].d_expr->getType())
-        << "Expected ntSymbol and rule " << i << " to have the same sort";
+        << "Expected ntSymbol and rule at index " << i
+        << " to have the same sort";
 
     addSygusConstructorTerm(d_dtDecls[ntSymbol], rules[i]);
   }
@@ -4562,7 +4563,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-void Solver::addConstraint(const Term& term) const
+void Solver::addSygusConstraint(Term term) const
 {
   CVC4_API_ARG_CHECK_NOT_NULL(term);
   CVC4_API_ARG_CHECK_EXPECTED(
@@ -4572,10 +4573,10 @@ void Solver::addConstraint(const Term& term) const
   d_smtEngine->assertSygusConstraint(*term.d_expr);
 }
 
-void Solver::addInvConstraint(const Term& inv,
-                              const Term& pre,
-                              const Term& trans,
-                              const Term& post) const
+void Solver::addSygusInvConstraint(Term inv,
+                                   Term pre,
+                                   Term trans,
+                                   Term post) const
 {
   CVC4_API_ARG_CHECK_NOT_NULL(inv);
   CVC4_API_ARG_CHECK_NOT_NULL(pre);
@@ -4618,6 +4619,55 @@ void Solver::addInvConstraint(const Term& inv,
 }
 
 Result Solver::checkSynth() const { return d_smtEngine->checkSynth(); }
+
+Term Solver::getSynthSolution(Term term) const
+{
+  CVC4_API_ARG_CHECK_NOT_NULL(term);
+
+  std::map<CVC4::Expr, CVC4::Expr> map;
+  CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
+      << "The solver is not in a state immediately preceeded by a "
+         "successful call to checkSynth";
+
+  std::map<CVC4::Expr, CVC4::Expr>::const_iterator it = map.find(*term.d_expr);
+
+  CVC4_API_CHECK(it != map.cend())
+      << "Synth solution not found for given term";
+
+  return it->second;
+}
+
+std::vector<Term> Solver::getSynthSolutions(
+    const std::vector<Term>& terms) const
+{
+  for (size_t i = 0, n = terms.size(); i < n; ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !terms[i].isNull(), "parameter term", terms[i], i)
+        << "non-null term";
+  }
+
+  std::map<CVC4::Expr, CVC4::Expr> map;
+  CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
+      << "The solver is not in a state immediately preceeded by a "
+         "successful call to checkSynth";
+
+  std::vector<Term> synthSolution;
+  synthSolution.reserve(terms.size());
+
+  for (size_t i = 0, n = terms.size(); i < n; ++i)
+  {
+    std::map<CVC4::Expr, CVC4::Expr>::const_iterator it =
+        map.find(*terms[i].d_expr);
+
+    CVC4_API_CHECK(it != map.cend())
+        << "Synth solution not found for term at index " << i;
+
+    synthSolution.push_back(it->second);
+  }
+
+  return synthSolution;
+}
 
 void Solver::printSynthSolution(std::ostream& out) const
 {

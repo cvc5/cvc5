@@ -110,8 +110,10 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkGrammar();
   void testSynthFun();
   void testSynthInv();
-  void testAddConstraint();
-  void testAddInvConstraint();
+  void testAddSygusConstraint();
+  void testAddSygusInvConstraint();
+  void testgetSynthSolution();
+  void testgetSynthSolutions();
 
  private:
   std::unique_ptr<Solver> d_solver;
@@ -1277,10 +1279,12 @@ void SolverBlack::testSynthFun()
   TS_ASSERT_THROWS_NOTHING(d_solver->synthFun("f1", {x}, boolean));
   TS_ASSERT_THROWS_NOTHING(d_solver->synthFun("f2", {x}, boolean, g1));
 
-  TS_ASSERT_THROWS(d_solver->synthFun("f3", {nullTerm}, boolean), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->synthFun("f3", {nullTerm}, boolean),
+                   CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->synthFun("f4", {}, null), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->synthFun("f5", {}, boolToBool), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->synthFun("f6", {x}, boolean, g2), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->synthFun("f6", {x}, boolean, g2),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testSynthInv()
@@ -1308,18 +1312,18 @@ void SolverBlack::testSynthInv()
   TS_ASSERT_THROWS(d_solver->synthInv("i4", {x}, g2), CVC4ApiException&);
 }
 
-void SolverBlack::testAddConstraint()
+void SolverBlack::testAddSygusConstraint()
 {
   Term nullTerm;
   Term boolTerm = d_solver->mkBoolean(true);
   Term intTerm = d_solver->mkReal(1);
 
-  TS_ASSERT_THROWS_NOTHING(d_solver->addConstraint(boolTerm));
-  TS_ASSERT_THROWS(d_solver->addConstraint(nullTerm), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->addConstraint(intTerm), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->addSygusConstraint(boolTerm));
+  TS_ASSERT_THROWS(d_solver->addSygusConstraint(nullTerm), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->addSygusConstraint(intTerm), CVC4ApiException&);
 }
 
-void SolverBlack::testAddInvConstraint()
+void SolverBlack::testAddSygusInvConstraint()
 {
   Sort boolean = d_solver->getBooleanSort();
   Sort real = d_solver->getRealSort();
@@ -1338,37 +1342,80 @@ void SolverBlack::testAddInvConstraint()
   Term trans2 = d_solver->declareFun("trans2", {real, boolean}, boolean);
   Term trans3 = d_solver->declareFun("trans3", {real, real}, real);
 
-  TS_ASSERT_THROWS_NOTHING(d_solver->addInvConstraint(inv, pre, trans, post));
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver->addSygusInvConstraint(inv, pre, trans, post));
 
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(nullTerm, pre, trans, post),
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(nullTerm, pre, trans, post),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv, nullTerm, trans, post),
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, nullTerm, trans, post),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv, pre, nullTerm, post),
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, pre, nullTerm, post),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv, pre, trans, nullTerm),
-                   CVC4ApiException&);
-
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(intTerm, pre, trans, post),
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, pre, trans, nullTerm),
                    CVC4ApiException&);
 
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv1, pre, trans, post),
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(intTerm, pre, trans, post),
                    CVC4ApiException&);
 
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv, trans, trans, post),
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv1, pre, trans, post),
                    CVC4ApiException&);
 
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv, pre, intTerm, post),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv, pre, pre, post),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv, pre, trans1, post),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv, pre, trans2, post),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv, pre, trans3, post),
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, trans, trans, post),
                    CVC4ApiException&);
 
-  TS_ASSERT_THROWS(d_solver->addInvConstraint(inv, pre, trans, trans),
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, pre, intTerm, post),
                    CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, pre, pre, post),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, pre, trans1, post),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, pre, trans2, post),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, pre, trans3, post),
+                   CVC4ApiException&);
+
+  TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, pre, trans, trans),
+                   CVC4ApiException&);
+}
+
+void SolverBlack::testgetSynthSolution()
+{
+  d_solver->setOption("lang", "sygus2");
+  d_solver->setOption("incremental", "false");
+
+  Term nullTerm;
+  Term x = d_solver->mkBoolean(false);
+  Term f = d_solver->synthFun("f", {}, d_solver->getBooleanSort());
+
+  TS_ASSERT_THROWS(d_solver->getSynthSolution(f), CVC4ApiException&);
+
+  d_solver->checkSynth();
+
+  TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolution(f));
+  TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolution(f));
+
+  TS_ASSERT_THROWS(d_solver->getSynthSolution(nullTerm), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->getSynthSolution(x), CVC4ApiException&);
+}
+
+void SolverBlack::testgetSynthSolutions()
+{
+  d_solver->setOption("lang", "sygus2");
+  d_solver->setOption("incremental", "false");
+
+  Term nullTerm;
+  Term x = d_solver->mkBoolean(false);
+  Term f = d_solver->synthFun("f", {}, d_solver->getBooleanSort());
+
+  // TS_ASSERT_THROWS(d_solver->getSynthSolutions({}), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->getSynthSolutions({f}), CVC4ApiException&);
+
+  d_solver->checkSynth();
+
+  TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolutions({}));
+  TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolutions({f}));
+  TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolutions({f, f}));
+
+  TS_ASSERT_THROWS(d_solver->getSynthSolutions({nullTerm}), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->getSynthSolutions({x}), CVC4ApiException&);
 }

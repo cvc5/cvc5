@@ -3008,7 +3008,7 @@ class CVC4_PUBLIC Solver
    * SyGuS v2: ( constraint <term> )
    * @param term the formula to add as a constraint
    */
-  void addConstraint(const Term& term) const;
+  void addSygusConstraint(Term term) const;
 
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
@@ -3019,10 +3019,7 @@ class CVC4_PUBLIC Solver
    * @param trans the transition relation
    * @param post the post-condition
    */
-  void addInvConstraint(const Term& inv,
-                              const Term& pre,
-                              const Term& trans,
-                              const Term& post) const;
+  void addSygusInvConstraint(Term inv, Term pre, Term trans, Term post) const;
 
   /**
    * Try to find a solution for the synthesis conjecture corresponding to the
@@ -3032,6 +3029,22 @@ class CVC4_PUBLIC Solver
    * @return the result of the synthesis conjecture.
    */
   Result checkSynth() const;
+
+  /**
+   * Get the synthesis solution of the given term. This method should be called
+   * immediately after the solver answers unsat for sygus input.
+   * @param term the term for which the synthesis solution is queried
+   * @return the synthesis solution of the given term
+   */
+  Term getSynthSolution(Term term) const;
+
+  /**
+   * Get the synthesis solutions of the given terms. This method should be
+   * called immediately after the solver answers unsat for sygus input.
+   * @param terms the terms for which the synthesis solutions is queried
+   * @return the synthesis solutions of the given terms
+   */
+  std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
   /**
    * Print solution for synthesis conjecture to the given output stream.
@@ -3114,10 +3127,10 @@ class CVC4_PUBLIC Solver
    * @return the function
    */
   Term synthFunHelper(const std::string& symbol,
-                        const std::vector<Term>& boundVars,
-                        const Sort& sort,
-                        bool isInv = false,
-                        Grammar* g = nullptr) const;
+                      const std::vector<Term>& boundVars,
+                      const Sort& sort,
+                      bool isInv = false,
+                      Grammar* g = nullptr) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;

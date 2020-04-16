@@ -102,19 +102,19 @@ int main()
 
   // add logical constraints
   // (constraint (>= (max x y) x))
-  slv.addConstraint(slv.mkTerm(GEQ, max_x_y, varX));
+  slv.addSygusConstraint(slv.mkTerm(GEQ, max_x_y, varX));
 
   // (constraint (>= (max x y) y))
-  slv.addConstraint(slv.mkTerm(GEQ, max_x_y, varY));
+  slv.addSygusConstraint(slv.mkTerm(GEQ, max_x_y, varY));
 
   // (constraint (or (= x (max x y))
   //                 (= y (max x y))))
-  slv.addConstraint(slv.mkTerm(
+  slv.addSygusConstraint(slv.mkTerm(
       OR, slv.mkTerm(EQUAL, max_x_y, varX), slv.mkTerm(EQUAL, max_x_y, varY)));
 
   // (constraint (= (+ (max x y) (min x y))
   //                (+ x y)))
-  slv.addConstraint(slv.mkTerm(
+  slv.addSygusConstraint(slv.mkTerm(
       EQUAL, slv.mkTerm(PLUS, max_x_y, min_x_y), slv.mkTerm(PLUS, varX, varY)));
 
   // print solutions if available

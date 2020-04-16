@@ -72,7 +72,7 @@ int main()
   // declare the invariant-to-synthesize.
   Term inv_f = slv.synthInv("inv-f", {x});
 
-  slv.addInvConstraint(inv_f, pre_f, trans_f, post_f);
+  slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
 
   // print solutions if available
   if (slv.checkSynth().isUnsat())
