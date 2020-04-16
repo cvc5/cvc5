@@ -80,8 +80,8 @@ class ProofEqEngine : public EagerProofGenerator
    * step, and ensures that a proof has been stored internally so that this
    * class may respond to a call to ProofGenerator::getProof(...).
    */
-  ProvenNode assertConflict(PfRule id, const std::vector<Node>& exp);
-  ProvenNode assertConflict(PfRule id,
+  TrustNode assertConflict(PfRule id, const std::vector<Node>& exp);
+  TrustNode assertConflict(PfRule id,
                             const std::vector<Node>& exp,
                             const std::vector<Node>& args);
 
@@ -112,6 +112,13 @@ class ProofEqEngine : public EagerProofGenerator
   Node d_false;
   /** The SAT-context-dependent proof object */
   CDProof d_proof;
+  /**
+   * The keep set of this class. This set is maintained to ensure that
+   * facts and their explanations are reference counted. Since facts and their
+   * explanations are SAT-context-dependent, this set is also
+   * SAT-context-dependent.
+   */
+  NodeSet d_keep;
   /**
    * Whether proofs are enabled. If this flag is false, then this class acts
    * as a simplified interface to the EqualityEngine, without proofs.

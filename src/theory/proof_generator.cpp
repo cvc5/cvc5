@@ -77,7 +77,7 @@ TrustNode EagerProofGenerator::registerSplit(Node f)
   // store the mapping
   setProofForLemma(lem, p);
   // return the lemma
-  return TrustNode::mkTrustNodeLemma(lem, this);
+  return TrustNode::mkTrustLemma(lem, this);
 }
 
 }  // namespace theory

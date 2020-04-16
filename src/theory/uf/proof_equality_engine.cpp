@@ -31,6 +31,7 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
     : EagerProofGenerator(u, pnm),
       d_ee(ee),
       d_proof(pnm, c),
+      d_keep(c),
       d_pfEnabled(pfEnabled)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -43,25 +44,23 @@ bool ProofEqEngine::assertAssume(Node lit)
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
 
-  Node ret;
   if (d_pfEnabled)
   {
     // first, register the step in the proof
     std::vector<Node> exp;
     std::vector<Node> args;
     args.push_back(lit);
-    ret = d_proof.registerStep(lit, PfRule::ASSUME, exp, args);
-  }
-  else
-  {
-    ret = lit;
+    if (!d_proof.registerStep(lit, PfRule::ASSUME, exp, args))
+    {
+      // failed to register step
+      return false;
+    }
   }
 
   // second, assert it to the equality engine, where it is its own explanation
   assertInternal(atom, polarity, lit);
 
-  Assert(lit == ret);
-  return lit == ret;
+  return true;
 }
 
 bool ProofEqEngine::assertFact(Node lit,
@@ -81,15 +80,20 @@ bool ProofEqEngine::assertFact(Node lit,
   bool polarity = lit.getKind() != NOT;
 
   // first, register the step in the proof
-  Node ret = d_pfEnabled ? d_proof.registerStep(lit, id, exp, args) : lit;
+  if (d_pfEnabled)
+  {
+    if (!d_proof.registerStep(lit, id, exp, args))
+    {
+      // failed to register step
+      return false;
+    }
+  }
 
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(lit, polarity, reason);
 
-  // return true if the proof was accurate
-  Assert(lit == ret);
-  return lit == ret;
+  return true;
 }
 
 TrustNode ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
@@ -105,8 +109,7 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
   if (d_pfEnabled)
   {
     // register the (conflicting) proof step
-    Node ret = d_proof.registerStep(d_false, id, exp, args);
-    if (ret != d_false)
+    if (!d_proof.registerStep(d_false, id, exp, args))
     {
       // a step went wrong, e.g. during checking
       Assert(false) << "ProofEqEngine::assertConflict: register proof step";

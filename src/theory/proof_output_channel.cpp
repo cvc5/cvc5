@@ -24,7 +24,7 @@ ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
     : d_out(out), d_outPfGen(u)
 {
 }
-void ProofOutputChannel::conflict(ProvenNode pconf)
+void ProofOutputChannel::conflict(TrustNode pconf)
 {
   Node conf = pconf.getNode();
   ProofGenerator* pfg = pconf.getGenerator();
@@ -54,7 +54,7 @@ std::shared_ptr<ProofNode> ProofOutputChannel::getProofForConflict(
   return ret;
 }
 
-LemmaStatus ProofOutputChannel::lemma(ProvenNode plem,
+LemmaStatus ProofOutputChannel::lemma(TrustNode plem,
                                       bool removable,
                                       bool preprocess,
                                       bool sendAtoms)
