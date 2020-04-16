@@ -86,7 +86,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   ExtTheory* extt = getExtTheory();
   // initialize the inference manager, which requires the extended theory
   d_im.reset(
-      new InferenceManager(c, u, d_state, d_termReg, extt, out, d_statistics));
+      new InferenceManager(c, u, d_state, d_termReg, *extt, out, d_statistics));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(c, u, d_state, *d_im));
   d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_termReg, *d_bsolver));
@@ -98,7 +98,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  d_rewriter,
                                  *d_bsolver,
                                  *d_csolver,
-                                 extt,
+                                 *extt,
                                  d_statistics));
   d_rsolver.reset(new RegExpSolver(
       d_state, *d_im, *d_csolver, *d_esolver, d_statistics, c, u));

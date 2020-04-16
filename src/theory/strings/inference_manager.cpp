@@ -32,7 +32,7 @@ InferenceManager::InferenceManager(context::Context* c,
                                    context::UserContext* u,
                                    SolverState& s,
                                    TermRegistry& tr,
-                                   ExtTheory* e,
+                                   ExtTheory& e,
                                    OutputChannel& out,
                                    SequencesStatistics& statistics)
     : d_state(s),
@@ -430,7 +430,7 @@ void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
   // Collect extended function terms in the atom. Notice that we must register
   // all extended functions occurring in assertions and shared terms. We
   // make a similar call to registerTermRec in TheoryStrings::addSharedTerm.
-  d_extt->registerTermRec(atom);
+  d_extt.registerTermRec(atom);
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
@@ -540,15 +540,15 @@ void InferenceManager::explain(TNode literal,
 void InferenceManager::markCongruent(Node a, Node b)
 {
   Assert(a.getKind() == b.getKind());
-  if (d_extt->hasFunctionKind(a.getKind()))
+  if (d_extt.hasFunctionKind(a.getKind()))
   {
-    d_extt->markCongruent(a, b);
+    d_extt.markCongruent(a, b);
   }
 }
 
 void InferenceManager::markReduced(Node n, bool contextDepend)
 {
-  d_extt->markReduced(n, contextDepend);
+  d_extt.markReduced(n, contextDepend);
 }
 
 }  // namespace strings

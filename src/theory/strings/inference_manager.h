@@ -75,7 +75,7 @@ class InferenceManager
                    context::UserContext* u,
                    SolverState& s,
                    TermRegistry& tr,
-                   ExtTheory* e,
+                   ExtTheory& e,
                    OutputChannel& out,
                    SequencesStatistics& statistics);
   ~InferenceManager() {}
@@ -300,7 +300,7 @@ class InferenceManager
   /** Reference to the term registry of theory of strings */
   TermRegistry& d_termReg;
   /** the extended theory object for the theory of strings */
-  ExtTheory* d_extt;
+  ExtTheory& d_extt;
   /** A reference to the output channel of the theory of strings. */
   OutputChannel& d_out;
   /** Reference to the statistics for the theory of strings/sequences. */
