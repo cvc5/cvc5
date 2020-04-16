@@ -33,6 +33,7 @@ void ProofOutputChannel::conflict(ProvenNode pconf)
   if (pfg != nullptr)
   {
     d_outPfGen[ckey] = pfg;
+    Assert(pfg->canProveConflict(conf));
   }
   d_out.conflict(conf);
 }
@@ -65,6 +66,7 @@ LemmaStatus ProofOutputChannel::lemma(ProvenNode plem,
   if (pfg != nullptr)
   {
     d_outPfGen[lkey] = pfg;
+    Assert(pfg->canProveLemma(lem));
   }
   return d_out.lemma(lem, removable, preprocess, sendAtoms);
 }

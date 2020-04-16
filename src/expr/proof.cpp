@@ -92,7 +92,7 @@ Node CDProof::registerStep(Node expected,
   }
   else
   {
-    // overwrite its value
+    // update its value
     pthis = (*it).second;
     d_manager->updateNode(pthis.get(), id, pchildren, args);
   }

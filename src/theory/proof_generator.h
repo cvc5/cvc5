@@ -43,15 +43,25 @@ class ProofGenerator
   virtual std::shared_ptr<ProofNode> getProofForConflict(Node conf) = 0;
   /** Get the proof for lemma lem */
   virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) = 0;
+  /** 
+   * Can we give the proof for conflict conf? This is used for debugging. This
+   * returns false if the generator cannot provide a proof of conflict conf.
+   */
+  virtual bool canProveConflict(Node conf) { return true; }
+  /** 
+   * Can we give the proof for lemma lem? This is used for debugging. This
+   * returns false if the generator cannot provide a proof of lemma lem.
+   */
+  virtual bool canProveLemma(Node lem) { return true; }
 };
 
 /**
  * A proven node is a pair (F, G) where F is a formula and G is a proof
  * generator that can construct a proof for F if asked.
  *
- * Notice that this is simply a convienence typedef for tracking what
+ * Notice that this is simply a convienence class for tracking what
  * lemmas are proven by which generators. However, the construction of
- * ProvenNode object are not protected.
+ * ProvenNode objects are not protected.
  */
 class ProvenNode
 {
@@ -66,7 +76,6 @@ class ProvenNode
   bool isNull() const;
   /** The null proven node */
   static ProvenNode null();
-
  private:
   /** The node of this proof */
   Node d_node;
