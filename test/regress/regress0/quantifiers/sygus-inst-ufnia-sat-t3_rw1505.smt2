@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-inst
+; COMMAND-LINE: --sygus-inst --no-check-model
 (set-info :smt-lib-version 2.6)
 (set-logic UFNIA)
 (set-info :source |
