@@ -33,6 +33,8 @@ libcvc4_add_sources(
   node_value.cpp
   node_value.h
   node_visitor.h
+  proof.cpp
+  proof.h
   proof_checker.cpp
   proof_checker.h
   proof_node.cpp
