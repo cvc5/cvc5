@@ -28,7 +28,7 @@ class ProofGenerator;
 /**
  * A trust node is a pair (F, G) where F is a formula and G is a proof
  * generator that can construct a proof for F if asked.
- * 
+ *
  * They are intended to be constructed by ProofGenerator objects and passed
  * to ProofOutputChannel by theory solvers.
  *
