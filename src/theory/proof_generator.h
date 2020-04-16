@@ -45,12 +45,11 @@ class ProofGenerator
   virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) = 0;
 };
 
-
-/** 
+/**
  * A proven node is a pair (F, G) where F is a formula and G is a proof
  * generator that can construct a proof for F if asked.
  */
-typedef std::pair<Node, ProofGenerator *> ProvenNode;
+typedef std::pair<Node, ProofGenerator*> ProvenNode;
 
 /**
  * An eager proof generator, with explicit proof caching.
@@ -112,10 +111,10 @@ class EagerProofGenerator : public ProofGenerator
   /** Get the proof for lemma lem. */
   std::shared_ptr<ProofNode> getProofForLemma(Node lem) override;
   //--------------------------------------- common proofs
-  /** 
+  /**
    * This returns the proven node corresponding to the splitting lemma
    * (or f (not f)) and this generator. The method registers its proof in the
-   * map maintained by this class. The return value can safely be passed to 
+   * map maintained by this class. The return value can safely be passed to
    * ProofOutputChannel::sendLemma.
    */
   ProvenNode registerSplit(Node f);

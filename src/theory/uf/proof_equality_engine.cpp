@@ -28,7 +28,10 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
                              EqualityEngine& ee,
                              ProofNodeManager* pnm,
                              bool pfEnabled)
-    : EagerProofGenerator(u, pnm), d_ee(ee), d_proof(c, pnm), d_pfEnabled(pfEnabled)
+    : EagerProofGenerator(u, pnm),
+      d_ee(ee),
+      d_proof(c, pnm),
+      d_pfEnabled(pfEnabled)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);

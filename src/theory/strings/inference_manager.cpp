@@ -205,7 +205,7 @@ void InferenceManager::sendLemma(Node ant, Node conc, Inference infer)
     Trace("strings-assert")
         << "(assert (not " << ant << ")) ; conflict " << infer << std::endl;
     ++(d_statistics.d_conflictsInfer);
-    ProvenNode conf(ant,nullptr);
+    ProvenNode conf(ant, nullptr);
     d_poc.conflict(conf);
     d_state.setConflict();
     return;
