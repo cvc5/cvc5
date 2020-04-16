@@ -1,9 +1,9 @@
-; COMMAND-LINE: --lang=smt2.5 --incremental
+; COMMAND-LINE: --incremental
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic ALL)
 
-(declare-datatypes () ((Unit (uu))))
+(declare-datatypes ((Unit 0)) (((uu))))
 
 (declare-fun y () Int)
 (declare-fun b () Bool)
