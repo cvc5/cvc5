@@ -45,6 +45,13 @@ class ProofGenerator
   virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) = 0;
 };
 
+
+/** 
+ * A proven node is a pair (F, G) where F is a formula and G is a proof
+ * generator that can construct a proof for G if asked.
+ */
+typedef std::pair<Node, ProofGenerator *> ProvenNode;
+
 /**
  * An eager proof generator, with explicit proof caching.
  *
@@ -63,12 +70,12 @@ class ProofGenerator
  *   class MyEagerProofGenerator : public EagerProofGenerator
  *   {
  *     public:
- *      Node getProvenConflictByMethodX(...)
+ *      ProvenNode getProvenConflictByMethodX(...)
  *      {
  *        Node conf = [construct conflict];
  *        std::shared_ptr<ProofNode> pf = [construct its proof];
  *        setProofForConflict(conf, pf);
- *        return conf;
+ *        return std::pair<Node, ProofGenerator * >( conf, this );
  *      }
  *   };
  *   // [1] Make objects given user context u and output channel out
@@ -76,15 +83,16 @@ class ProofGenerator
  *   ProofOutputChannel poc(out, u);
  *
  *   // [2] Assume epg realizes there is a conflict. We have it store the proof
- *   // internally and return the conflict node.
- *   Node conf = epg.getProvenConflictByMethodX(...);
+ *   // internally and return the conflict node paired with epg.
+ *   ProvenNode pconf = epg.getProvenConflictByMethodX(...);
  *
- *   // [3] Send the conflict on the proof output channel, referencing that epg
- *   // is who can provide a proof for it.
- *   poc.conflict(conf, &epg);
+ *   // [3] Send the conflict on the proof output channel, which itself
+ *   // references epg.
+ *   poc.conflict(pconf);
  *
  *   // [4] Any time later in the user context, we may ask poc for the proof,
  *   // where notice this calls the getProof method of epg.
+ *   Node conf = pconf.first;
  *   std::shared_ptr<ProofNode> pf = poc.getProofForConflict(conf);
  * //-----------------------------------------------------------
  * In other words, the proof generator epg is responsible for creating and
@@ -97,13 +105,19 @@ class EagerProofGenerator : public ProofGenerator
       NodeProofNodeMap;
 
  public:
-  EagerProofGenerator(context::UserContext* u);
+  EagerProofGenerator(context::UserContext* u, ProofNodeManager* pnm);
   ~EagerProofGenerator() {}
   /** Get the proof for conflict conf. */
   std::shared_ptr<ProofNode> getProofForConflict(Node conf) override;
   /** Get the proof for lemma lem. */
   std::shared_ptr<ProofNode> getProofForLemma(Node lem) override;
-
+  //--------------------------------------- common proofs
+  /** 
+   * This returns the splitting lemma (or f (not f)) and registers stores its
+   * proof in the map maintained by this class.
+   */
+  ProvenNode registerSplit(Node f);
+  //--------------------------------------- end common proofs
  protected:
   /** Set that pf is the proof for conflict conf */
   void setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf);
@@ -111,6 +125,8 @@ class EagerProofGenerator : public ProofGenerator
   void setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf);
   /** Get the proof for the given key */
   std::shared_ptr<ProofNode> getProof(Node key);
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
   /**
    * A user-context-dependent map from lemmas and conflicts to proofs provided
    * by calls to setProofForConflict and setProofForLemma above.

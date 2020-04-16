@@ -24,8 +24,10 @@ ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
     : d_out(out), d_outPfGen(u)
 {
 }
-void ProofOutputChannel::conflict(Node conf, ProofGenerator* pfg)
+void ProofOutputChannel::conflict(ProvenNode pconf)
 {
+  Node conf = pconf.first;
+  ProofGenerator * pfg = pconf.second;
   Node ckey = getConflictKeyValue(conf);
   // may or may not have supplied a generator
   if (pfg != nullptr)
@@ -51,12 +53,13 @@ std::shared_ptr<ProofNode> ProofOutputChannel::getProofForConflict(
   return ret;
 }
 
-LemmaStatus ProofOutputChannel::lemma(Node lem,
-                                      ProofGenerator* pfg,
+LemmaStatus ProofOutputChannel::lemma(ProvenNode plem,
                                       bool removable,
                                       bool preprocess,
                                       bool sendAtoms)
 {
+  Node lem = plem.first;
+  ProofGenerator * pfg = plem.second;
   Node lkey = getLemmaKeyValue(lem);
   // may or may not have supplied a generator
   if (pfg != nullptr)

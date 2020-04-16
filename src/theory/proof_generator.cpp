@@ -15,11 +15,12 @@
 #include "theory/proof_generator.h"
 
 #include "theory/proof_output_channel.h"
+#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 namespace theory {
 
-EagerProofGenerator::EagerProofGenerator(context::UserContext* u) : d_proofs(u)
+EagerProofGenerator::EagerProofGenerator(context::UserContext* u, ProofNodeManager* pnm) : d_pnm(pnm), d_proofs(u)
 {
 }
 
@@ -59,6 +60,21 @@ std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node key)
     return nullptr;
   }
   return (*it).second;
+}
+
+ProvenNode EagerProofGenerator::registerSplit(Node f)
+{
+  // make the lemma
+  Node lem = f.orNode(f.notNode());
+  // construct a proof for it
+  std::vector<std::shared_ptr<ProofNode>> children;
+  std::vector<Node> args;
+  args.push_back(f);
+  std::shared_ptr<ProofNode> p = d_pnm->mkNode(PfRule::SPLIT, children, args, lem);
+  // store the mapping
+  setProofForLemma(lem, p);
+  // return the lemma
+  return std::pair<Node, ProofGenerator * >(lem,this);
 }
 
 }  // namespace theory

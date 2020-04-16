@@ -60,7 +60,7 @@ class ProofOutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  void conflict(Node conf, ProofGenerator* pfg = nullptr);
+  void conflict(ProvenNode pconf);
   /**
    * Get the proof for conflict conf. This method can be called if
    * conflict(conf, pfg) has been called in this user context. This method
@@ -74,8 +74,7 @@ class ProofOutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  LemmaStatus lemma(Node lem,
-                    ProofGenerator* pfg = nullptr,
+  LemmaStatus lemma(ProvenNode lem,
                     bool removable = false,
                     bool preprocess = false,
                     bool sendAtoms = false);
