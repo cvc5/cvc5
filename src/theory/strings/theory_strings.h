@@ -211,19 +211,19 @@ class TheoryStrings : public Theory {
   /** The term registry for this theory */
   TermRegistry d_termReg;
   /** The (custom) output channel of the theory of strings */
-  InferenceManager d_im;
+  std::unique_ptr<InferenceManager> d_im;
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.
    */
-  BaseSolver d_bsolver;
+  std::unique_ptr<BaseSolver> d_bsolver;
   /**
    * The core solver, responsible for reasoning about string concatenation
    * with length constraints.
    */
-  CoreSolver d_csolver;
+  std::unique_ptr<CoreSolver> d_csolver;
   /**
    * Extended function solver, responsible for reductions and simplifications
    * involving extended string functions.
