@@ -35,7 +35,7 @@ ExtfSolver::ExtfSolver(context::Context* c,
                        StringsRewriter& rewriter,
                        BaseSolver& bs,
                        CoreSolver& cs,
-                       ExtTheory* et,
+                       ExtTheory& et,
                        SequencesStatistics& statistics)
     : d_state(s),
       d_im(im),
@@ -50,19 +50,19 @@ ExtfSolver::ExtfSolver(context::Context* c,
       d_extfInferCache(c),
       d_reduced(u)
 {
-  d_extt->addFunctionKind(kind::STRING_SUBSTR);
-  d_extt->addFunctionKind(kind::STRING_STRIDOF);
-  d_extt->addFunctionKind(kind::STRING_ITOS);
-  d_extt->addFunctionKind(kind::STRING_STOI);
-  d_extt->addFunctionKind(kind::STRING_STRREPL);
-  d_extt->addFunctionKind(kind::STRING_STRREPLALL);
-  d_extt->addFunctionKind(kind::STRING_STRCTN);
-  d_extt->addFunctionKind(kind::STRING_IN_REGEXP);
-  d_extt->addFunctionKind(kind::STRING_LEQ);
-  d_extt->addFunctionKind(kind::STRING_TO_CODE);
-  d_extt->addFunctionKind(kind::STRING_TOLOWER);
-  d_extt->addFunctionKind(kind::STRING_TOUPPER);
-  d_extt->addFunctionKind(kind::STRING_REV);
+  d_extt.addFunctionKind(kind::STRING_SUBSTR);
+  d_extt.addFunctionKind(kind::STRING_STRIDOF);
+  d_extt.addFunctionKind(kind::STRING_ITOS);
+  d_extt.addFunctionKind(kind::STRING_STOI);
+  d_extt.addFunctionKind(kind::STRING_STRREPL);
+  d_extt.addFunctionKind(kind::STRING_STRREPLALL);
+  d_extt.addFunctionKind(kind::STRING_STRCTN);
+  d_extt.addFunctionKind(kind::STRING_IN_REGEXP);
+  d_extt.addFunctionKind(kind::STRING_LEQ);
+  d_extt.addFunctionKind(kind::STRING_TO_CODE);
+  d_extt.addFunctionKind(kind::STRING_TOLOWER);
+  d_extt.addFunctionKind(kind::STRING_TOUPPER);
+  d_extt.addFunctionKind(kind::STRING_REV);
 
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -126,7 +126,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
           }
           // this depends on the current assertions, so this
           // inference is context-dependent
-          d_extt->markReduced(n, true);
+          d_extt.markReduced(n, true);
           return true;
         }
         else
@@ -173,7 +173,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Trace("strings-red-lemma") << "Reduction (positive contains) lemma : " << n
                                << " => " << eq << std::endl;
     // context-dependent because it depends on the polarity of n itself
-    d_extt->markReduced(n, true);
+    d_extt.markReduced(n, true);
   }
   else if (k != kind::STRING_TO_CODE)
   {
@@ -206,7 +206,7 @@ void ExtfSolver::checkExtfReductions(int effort)
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
   // stratifying effort levels are done in doReduction below.
-  std::vector<Node> extf = d_extt->getActive();
+  std::vector<Node> extf = d_extt.getActive();
   Trace("strings-process") << "  checking " << extf.size() << " active extf"
                            << std::endl;
   for (const Node& n : extf)
@@ -234,7 +234,7 @@ void ExtfSolver::checkExtfEval(int effort)
   d_extfInfoTmp.clear();
   NodeManager* nm = NodeManager::currentNM();
   bool has_nreduce = false;
-  std::vector<Node> terms = d_extt->getActive();
+  std::vector<Node> terms = d_extt.getActive();
   for (const Node& n : terms)
   {
     // Setup information about n, including if it is equal to a constant.
@@ -281,7 +281,7 @@ void ExtfSolver::checkExtfEval(int effort)
       {
         if (effort < 3)
         {
-          d_extt->markReduced(n);
+          d_extt.markReduced(n);
           Trace("strings-extf-debug")
               << "  resolvable by evaluation..." << std::endl;
           std::vector<Node> exps;
@@ -445,7 +445,7 @@ void ExtfSolver::checkExtfEval(int effort)
         }
         Trace("strings-extf-list") << std::endl;
       }
-      if (d_extt->isActive(n) && einfo.d_modelActive)
+      if (d_extt.isActive(n) && einfo.d_modelActive)
       {
         has_nreduce = true;
       }
@@ -525,10 +525,10 @@ void ExtfSolver::checkExtfInference(Node n,
               // we are in conflict
               d_im.sendInference(in.d_exp, conc, Inference::CTN_DECOMPOSE);
             }
-            else if (d_extt->hasFunctionKind(conc.getKind()))
+            else if (d_extt.hasFunctionKind(conc.getKind()))
             {
               // can mark as reduced, since model for n implies model for conc
-              d_extt->markReduced(conc);
+              d_extt.markReduced(conc);
             }
           }
         }
@@ -613,7 +613,7 @@ void ExtfSolver::checkExtfInference(Node n,
         // satisfied by all models of str.contains( x, y ) ^ x=z and thus can
         // be ignored.
         Trace("strings-extf-debug") << "  redundant." << std::endl;
-        d_extt->markReduced(n);
+        d_extt.markReduced(n);
       }
     }
     return;
@@ -680,7 +680,7 @@ bool ExtfSolver::hasExtendedFunctions() const { return d_hasExtf.get(); }
 
 std::vector<Node> ExtfSolver::getActive(Kind k) const
 {
-  return d_extt->getActive(k);
+  return d_extt.getActive(k);
 }
 
 }  // namespace strings
