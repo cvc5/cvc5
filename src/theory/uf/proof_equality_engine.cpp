@@ -50,7 +50,7 @@ bool ProofEqEngine::assertAssume(Node lit)
     std::vector<Node> exp;
     std::vector<Node> args;
     args.push_back(lit);
-    if (!d_proof.registerStep(lit, PfRule::ASSUME, exp, args))
+    if (!d_proof.addStep(lit, PfRule::ASSUME, exp, args))
     {
       // failed to register step
       return false;
@@ -82,7 +82,7 @@ bool ProofEqEngine::assertFact(Node lit,
   // first, register the step in the proof
   if (d_pfEnabled)
   {
-    if (!d_proof.registerStep(lit, id, exp, args))
+    if (!d_proof.addStep(lit, id, exp, args))
     {
       // failed to register step
       return false;
@@ -109,7 +109,7 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
   if (d_pfEnabled)
   {
     // register the (conflicting) proof step
-    if (!d_proof.registerStep(d_false, id, exp, args))
+    if (!d_proof.addStep(d_false, id, exp, args))
     {
       // a step went wrong, e.g. during checking
       Assert(false) << "ProofEqEngine::assertConflict: register proof step";
