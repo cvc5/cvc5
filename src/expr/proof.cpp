@@ -39,7 +39,9 @@ Node CDProof::registerStep(Node expected,
                            PfRule id,
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
-                           bool ensureChildren)
+                           bool ensureChildren,
+                           bool forceOverwrite
+                          )
 {
   // we must provide expected
   Assert(!expected.isNull());
@@ -47,12 +49,14 @@ Node CDProof::registerStep(Node expected,
   NodeProofNodeMap::iterator it = d_nodes.find(expected);
   if (it != d_nodes.end())
   {
-    if ((*it).second->getId() != PfRule::ASSUME || id == PfRule::ASSUME)
+    if (!forceOverwrite && ((*it).second->getId() != PfRule::ASSUME || id == PfRule::ASSUME))
     {
-      // already proven or duplicate assumption, nothing to do
+      // we do not overwrite if forceOverwrite is false and the previously
+      // provided step was not an assumption, or if the currently provided step
+      // is a (duplicate) assumption
       return expected;
     }
-    // we will overwrite assumption
+    // we will overwrite the existing proof node by updating its contents below
   }
 
   // collect the child proofs, for each premise
@@ -101,7 +105,7 @@ Node CDProof::registerStep(Node expected,
   return expected;
 }
 
-Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
+Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn, bool overwrite)
 {
   if (pn->getResult() != expected)
   {
@@ -152,7 +156,7 @@ Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
         }
         // can ensure children at this point
         Node res = registerStep(
-            curFact, cur->getId(), pexp, cur->getArguments(), true);
+            curFact, cur->getId(), pexp, cur->getArguments(), true, overwrite);
         Assert(!res.isNull());
         visited[cur] = res;
       }

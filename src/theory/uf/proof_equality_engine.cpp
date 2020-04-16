@@ -139,7 +139,7 @@ ProvenNode ProofEqEngine::assertConflict(PfRule id,
     setProofForConflict(conf, pf);
   }
   // we can provide a proof for conflict
-  return ProvenNode(conf, this);
+  return ProvenNode::mkProvenNodeConflict(conf, this);
 }
 
 std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const

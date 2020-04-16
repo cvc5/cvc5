@@ -211,7 +211,7 @@ void InferenceManager::sendLemma(Node ant, Node conc, Inference infer)
     Trace("strings-assert")
         << "(assert (not " << ant << ")) ; conflict " << infer << std::endl;
     ++(d_statistics.d_conflictsInfer);
-    ProvenNode conf(ant, nullptr);
+    ProvenNode conf = ProvenNode::mkProvenNodeConflict(ant, nullptr);
     d_poc.conflict(conf);
     d_state.setConflict();
     return;
@@ -362,7 +362,7 @@ void InferenceManager::doPendingLemmas()
     {
       Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
       ++(d_statistics.d_lemmasInfer);
-      ProvenNode plem(lc, nullptr);
+      ProvenNode plem = ProvenNode::mkProvenNodeLemma(lc, nullptr);
       d_poc.lemma(plem);
     }
     for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
@@ -422,12 +422,12 @@ void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
       a.push_back(pc);
       Trace("strings-pending")
           << "Process pending conflict " << pc << std::endl;
-      Node conflictNode = mkExplain(a);
+      Node cnode = mkExplain(a);
       d_state.setConflict();
       Trace("strings-conflict")
-          << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
+          << "CONFLICT: Eager prefix : " << cnode << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);
-      ProvenNode pconf(conflictNode, nullptr);
+      ProvenNode pconf = ProvenNode::mkProvenNodeConflict(cnode, nullptr);
       d_poc.conflict(pconf);
     }
   }

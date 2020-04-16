@@ -306,6 +306,8 @@ class InferenceManager
   ProofOutputChannel& d_poc;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
+  /** The proof equality engine */
+  
 
   /** Common constants */
   Node d_true;

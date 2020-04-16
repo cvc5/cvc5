@@ -37,7 +37,7 @@ namespace theory {
 class ProofGenerator
 {
  public:
-  ProofGenerator();
+  ProofGenerator(){}
   virtual ~ProofGenerator() {}
   /** Get the proof for conflict conf */
   virtual std::shared_ptr<ProofNode> getProofForConflict(Node conf) = 0;
@@ -46,6 +46,10 @@ class ProofGenerator
   /** 
    * Can we give the proof for conflict conf? This is used for debugging. This
    * returns false if the generator cannot provide a proof of conflict conf.
+   * 
+   * Notice the default return value is true. In other words, a proof generator
+   * may choose to override this function to verify the construction of
+   * ProvenNode objects below, although we do not insist this is the case.
    */
   virtual bool canProveConflict(Node conf) { return true; }
   /** 
@@ -60,13 +64,20 @@ class ProofGenerator
  * generator that can construct a proof for F if asked.
  *
  * Notice that this is simply a convienence class for tracking what
- * lemmas are proven by which generators. However, the construction of
- * ProvenNode objects are not protected.
+ * lemmas are proven by which generators. The construction of ProvenNode
+ * objects is protected. The static functions for checking them rely on
+ * (debug) assertions that ensure the generator, if provided, is capable of
+ * proving the given conflict or lemma.
  */
 class ProvenNode
 {
  public:
-  ProvenNode(Node n, ProofGenerator* g = nullptr);
+  /** Make a proven node for conflict */
+  static ProvenNode mkProvenNodeConflict(Node conf, ProofGenerator* g = nullptr);
+  /** Make a proven node for lemma */
+  static ProvenNode mkProvenNodeLemma(Node lem, ProofGenerator* g = nullptr);
+  /** The null proven node */
+  static ProvenNode null();
   ~ProvenNode() {}
   /** get node */
   Node getNode() const;
@@ -74,12 +85,11 @@ class ProvenNode
   ProofGenerator* getGenerator() const;
   /** is null? */
   bool isNull() const;
-  /** The null proven node */
-  static ProvenNode null();
  private:
-  /** The node of this proof */
+  ProvenNode(Node n, ProofGenerator* g = nullptr);
+  /** The node */
   Node d_node;
-  /** The generator for the node */
+  /** The generator */
   ProofGenerator* d_gen;
 };
 
