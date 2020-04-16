@@ -48,7 +48,7 @@ class ProofGenerator
 
 /** 
  * A proven node is a pair (F, G) where F is a formula and G is a proof
- * generator that can construct a proof for G if asked.
+ * generator that can construct a proof for F if asked.
  */
 typedef std::pair<Node, ProofGenerator *> ProvenNode;
 
@@ -61,8 +61,8 @@ typedef std::pair<Node, ProofGenerator *> ProvenNode;
  * (user-context depedent) map, the field d_proofs below.
  *
  * In detail, the method setProofForConflict(conf, pf) should be called prior to
- * calling ProofOutputChannel(conf, X), where X is this generator. Similarly for
- * setProofForLemma.
+ * calling ProofOutputChannel(ProvenNode(conf,X)), where X is this generator.
+ * Similarly for setProofForLemma.
  *
  * A clean usage of this class in combination with ProofOutputChannel is the
  * following:
@@ -113,8 +113,10 @@ class EagerProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofForLemma(Node lem) override;
   //--------------------------------------- common proofs
   /** 
-   * This returns the splitting lemma (or f (not f)) and registers stores its
-   * proof in the map maintained by this class.
+   * This returns the proven node corresponding to the splitting lemma
+   * (or f (not f)) and this generator. The method registers its proof in the
+   * map maintained by this class. The return value can safely be passed to 
+   * ProofOutputChannel::sendLemma.
    */
   ProvenNode registerSplit(Node f);
   //--------------------------------------- end common proofs

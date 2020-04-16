@@ -74,7 +74,7 @@ ProvenNode EagerProofGenerator::registerSplit(Node f)
   // store the mapping
   setProofForLemma(lem, p);
   // return the lemma
-  return std::pair<Node, ProofGenerator * >(lem,this);
+  return ProvenNode(lem,this);
 }
 
 }  // namespace theory

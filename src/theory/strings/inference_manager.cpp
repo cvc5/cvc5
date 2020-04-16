@@ -205,7 +205,8 @@ void InferenceManager::sendLemma(Node ant, Node conc, Inference infer)
     Trace("strings-assert")
         << "(assert (not " << ant << ")) ; conflict " << infer << std::endl;
     ++(d_statistics.d_conflictsInfer);
-    d_poc.conflict(ant);
+    ProvenNode conf(ant,nullptr);
+    d_poc.conflict(conf);
     d_state.setConflict();
     return;
   }
@@ -353,7 +354,8 @@ void InferenceManager::doPendingLemmas()
     {
       Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
       ++(d_statistics.d_lemmasInfer);
-      d_poc.lemma(lc);
+      ProvenNode plem(lc, nullptr);
+      d_poc.lemma(plem);
     }
     for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
     {
