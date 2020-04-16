@@ -32,16 +32,18 @@ class ProofRuleChecker
   virtual ~ProofRuleChecker() {}
   /**
    * Return the formula that is proven by a proof node with the given id,
-   * children and arguments, or null if such a proof node is not well-formed.
+   * premises and arguments, or null if such a proof node is not well-formed.
    *
    * @param id The id of the proof node to check
-   * @param children The children of the proof node to check
+   * @param children The premises of the proof node to check. These are nodes
+   * corresponding to the conclusion (ProofNode::getResult) of the children
+   * of the proof node we are checking.
    * @param args The arguments of the proof node to check
    * @return The conclusion of the proof node if successful or null if such a
    * proof node is malformed.
    */
   virtual Node check(PfRule id,
-                     const std::vector<std::shared_ptr<ProofNode>>& children,
+                     const std::vector<Node>& children,
                      const std::vector<Node>& args) = 0;
 };
 

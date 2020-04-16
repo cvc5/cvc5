@@ -33,7 +33,7 @@ class StringProofRuleChecker : public ProofRuleChecker
   ~StringProofRuleChecker() {}
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node check(PfRule id,
-             const std::vector<std::shared_ptr<ProofNode>>& children,
+             const std::vector<Node>& children,
              const std::vector<Node>& args) override;
 };
 

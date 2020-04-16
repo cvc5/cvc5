@@ -41,7 +41,7 @@ Node EqProofRuleChecker::applySubstitution(Node n, const std::vector<Node>& exp)
 
 Node EqProofRuleChecker::check(
     PfRule id,
-    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& children,
     const std::vector<Node>& args)
 {
   // compute what was proven
@@ -58,7 +58,7 @@ Node EqProofRuleChecker::check(
     std::vector<Node> exp;
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
-      exp.push_back(children[i]->getResult());
+      exp.push_back(children[i]);
     }
     Node res = applySubstitution(args[0], exp);
     return args[0].eqNode(res);
@@ -80,7 +80,7 @@ Node EqProofRuleChecker::check(
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    Node eqp = children[0]->getResult();
+    Node eqp = children[0];
     if (eqp.isNull() || eqp.getKind() != EQUAL)
     {
       return Node::null();
@@ -95,7 +95,7 @@ Node EqProofRuleChecker::check(
     Node curr;
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
-      Node eqp = children[i]->getResult();
+      Node eqp = children[i];
       if (eqp.isNull() || eqp.getKind() != EQUAL)
       {
         return Node::null();

@@ -99,16 +99,15 @@ class EagerProofGenerator : public ProofGenerator
  public:
   EagerProofGenerator(context::UserContext* u);
   ~EagerProofGenerator() {}
-  /** Set that pf is the proof for conflict conf */
-  void setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf);
-  /** Set that pf is the proof for lemma lem */
-  void setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf);
   /** Get the proof for conflict conf. */
   std::shared_ptr<ProofNode> getProofForConflict(Node conf) override;
   /** Get the proof for lemma lem. */
   std::shared_ptr<ProofNode> getProofForLemma(Node lem) override;
-
  protected:
+  /** Set that pf is the proof for conflict conf */
+  void setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf);
+  /** Set that pf is the proof for lemma lem */
+  void setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf);
   /** Get the proof for the given key */
   std::shared_ptr<ProofNode> getProof(Node key);
   /**

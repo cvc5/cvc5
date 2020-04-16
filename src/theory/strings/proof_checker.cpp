@@ -24,15 +24,15 @@ namespace strings {
 
 Node StringProofRuleChecker::check(
     PfRule id,
-    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& children,
     const std::vector<Node>& args)
 {
   if (id == PfRule::CONCAT_ENDP_UNIFY)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
-    Node eqs = children[0]->getResult();
-    if (eqs.isNull() || eqs.getKind() != EQUAL)
+    Node eqs = children[0];
+    if (eqs.getKind() != EQUAL)
     {
       return Node::null();
     }
@@ -62,8 +62,8 @@ Node StringProofRuleChecker::check(
     Assert(children.size() == 2);
     Assert(args.size() == 1);
     bool isRev = args[0].getConst<bool>();
-    Node eqs = children[0]->getResult();
-    if (eqs.isNull() || eqs.getKind() != EQUAL)
+    Node eqs = children[0];
+    if (eqs.getKind() != EQUAL)
     {
       return Node::null();
     }
@@ -75,8 +75,8 @@ Node StringProofRuleChecker::check(
     }
     Node s0 = s[isRev ? s.getNumChildren() - 1 : 0];
     Node t0 = t[isRev ? s.getNumChildren() - 1 : 0];
-    Node eql = children[1]->getResult();
-    if (eql.isNull() || eql.getKind() != EQUAL)
+    Node eql = children[1];
+    if (eql.getKind() != EQUAL)
     {
       return Node::null();
     }
