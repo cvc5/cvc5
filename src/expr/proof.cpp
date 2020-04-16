@@ -35,12 +35,12 @@ std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
   return nullptr;
 }
 
-bool CDProof::registerStep(Node expected,
-                           PfRule id,
-                           const std::vector<Node>& children,
-                           const std::vector<Node>& args,
-                           bool ensureChildren,
-                           bool forceOverwrite)
+bool CDProof::addStep(Node expected,
+                      PfRule id,
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      bool ensureChildren,
+                      bool forceOverwrite)
 {
   // we must provide expected
   Assert(!expected.isNull());
@@ -105,9 +105,9 @@ bool CDProof::registerStep(Node expected,
   return true;
 }
 
-bool CDProof::registerProof(Node expected,
-                            std::shared_ptr<ProofNode> pn,
-                            bool forceOverwrite)
+bool CDProof::addProof(Node expected,
+                       std::shared_ptr<ProofNode> pn,
+                       bool forceOverwrite)
 {
   if (pn->getResult() != expected)
   {
@@ -140,7 +140,7 @@ bool CDProof::registerProof(Node expected,
     }
     else if (!it->second)
     {
-      // we always call registerStep, which may or may not overwrite the
+      // we always call addStep, which may or may not overwrite the
       // current step
       std::vector<Node> pexp;
       const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
@@ -150,12 +150,12 @@ bool CDProof::registerProof(Node expected,
         pexp.push_back(c->getResult());
       }
       // can ensure children at this point
-      bool res = registerStep(curFact,
-                              cur->getId(),
-                              pexp,
-                              cur->getArguments(),
-                              true,
-                              forceOverwrite);
+      bool res = addStep(curFact,
+                         cur->getId(),
+                         pexp,
+                         cur->getArguments(),
+                         true,
+                         forceOverwrite);
       // should always succeed
       Assert(res);
       retValue = retValue && res;
