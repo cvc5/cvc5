@@ -49,7 +49,7 @@ class ProofGenerator
    *
    * Notice the default return value is true. In other words, a proof generator
    * may choose to override this function to verify the construction of
-   * ProvenNode objects below, although we do not insist this is the case.
+   * TrustNode objects below, although we do not insist this is the case.
    */
   virtual bool canProveConflict(Node conf) { return true; }
   /**
@@ -64,22 +64,22 @@ class ProofGenerator
  * generator that can construct a proof for F if asked.
  *
  * Notice that this is simply a convienence class for tracking what
- * lemmas are proven by which generators. The construction of ProvenNode
+ * lemmas are proven by which generators. The construction of TrustNode
  * objects is protected. The static functions for checking them rely on
  * (debug) assertions that ensure the generator, if provided, is capable of
  * proving the given conflict or lemma.
  */
-class ProvenNode
+class TrustNode
 {
  public:
   /** Make a proven node for conflict */
-  static ProvenNode mkProvenNodeConflict(Node conf,
+  static TrustNode mkTrustNodeConflict(Node conf,
                                          ProofGenerator* g = nullptr);
   /** Make a proven node for lemma */
-  static ProvenNode mkProvenNodeLemma(Node lem, ProofGenerator* g = nullptr);
+  static TrustNode mkTrustNodeLemma(Node lem, ProofGenerator* g = nullptr);
   /** The null proven node */
-  static ProvenNode null();
-  ~ProvenNode() {}
+  static TrustNode null();
+  ~TrustNode() {}
   /** get node */
   Node getNode() const;
   /** get generator */
@@ -88,7 +88,7 @@ class ProvenNode
   bool isNull() const;
 
  private:
-  ProvenNode(Node n, ProofGenerator* g = nullptr);
+  TrustNode(Node n, ProofGenerator* g = nullptr);
   /** The node */
   Node d_node;
   /** The generator */
@@ -104,7 +104,7 @@ class ProvenNode
  * (user-context depedent) map, the field d_proofs below.
  *
  * In detail, the method setProofForConflict(conf, pf) should be called prior to
- * calling ProofOutputChannel(ProvenNode(conf,X)), where X is this generator.
+ * calling ProofOutputChannel(TrustNode(conf,X)), where X is this generator.
  * Similarly for setProofForLemma.
  *
  * A clean usage of this class in combination with ProofOutputChannel is the
@@ -113,7 +113,7 @@ class ProvenNode
  *   class MyEagerProofGenerator : public EagerProofGenerator
  *   {
  *     public:
- *      ProvenNode getProvenConflictByMethodX(...)
+ *      TrustNode getProvenConflictByMethodX(...)
  *      {
  *        Node conf = [construct conflict];
  *        std::shared_ptr<ProofNode> pf = [construct its proof];
@@ -127,7 +127,7 @@ class ProvenNode
  *
  *   // [2] Assume epg realizes there is a conflict. We have it store the proof
  *   // internally and return the conflict node paired with epg.
- *   ProvenNode pconf = epg.getProvenConflictByMethodX(...);
+ *   TrustNode pconf = epg.getProvenConflictByMethodX(...);
  *
  *   // [3] Send the conflict on the proof output channel, which itself
  *   // references epg.
@@ -161,7 +161,7 @@ class EagerProofGenerator : public ProofGenerator
    * map maintained by this class. The return value can safely be passed to
    * ProofOutputChannel::sendLemma.
    */
-  ProvenNode registerSplit(Node f);
+  TrustNode registerSplit(Node f);
   //--------------------------------------- end common proofs
  protected:
   /** Set that pf is the proof for conflict conf */

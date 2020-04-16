@@ -20,33 +20,33 @@
 namespace CVC4 {
 namespace theory {
 
-ProvenNode ProvenNode::mkProvenNodeConflict(Node conf, ProofGenerator* g)
+TrustNode TrustNode::mkTrustNodeConflict(Node conf, ProofGenerator* g)
 {
   // if a generator is provided, should confirm that it can prove it
   Assert(d_gen == nullptr || d_gen->canProveConflict(conf));
-  return ProvenNode(conf, g);
+  return TrustNode(conf, g);
 }
 
-ProvenNode ProvenNode::mkProvenNodeLemma(Node lem, ProofGenerator* g)
+TrustNode TrustNode::mkTrustNodeLemma(Node lem, ProofGenerator* g)
 {
   // if a generator is provided, should confirm that it can prove it
   Assert(d_gen == nullptr || d_gen->canProveLemma(lem));
-  return ProvenNode(lem, g);
+  return TrustNode(lem, g);
 }
 
-ProvenNode ProvenNode::null() { return ProvenNode(Node::null()); }
+TrustNode TrustNode::null() { return TrustNode(Node::null()); }
 
-ProvenNode::ProvenNode(Node n, ProofGenerator* g) : d_node(n), d_gen(g)
+TrustNode::TrustNode(Node n, ProofGenerator* g) : d_node(n), d_gen(g)
 {
   // does not make sense to provide null node with generator
   Assert(d_node.isNull() || d_gen != nullptr);
 }
 
-Node ProvenNode::getNode() const { return d_node; }
+Node TrustNode::getNode() const { return d_node; }
 
-ProofGenerator* ProvenNode::getGenerator() const { return d_gen; }
+ProofGenerator* TrustNode::getGenerator() const { return d_gen; }
 
-bool ProvenNode::isNull() const { return d_node.isNull(); }
+bool TrustNode::isNull() const { return d_node.isNull(); }
 
 EagerProofGenerator::EagerProofGenerator(context::UserContext* u,
                                          ProofNodeManager* pnm)
@@ -92,7 +92,7 @@ std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node key)
   return (*it).second;
 }
 
-ProvenNode EagerProofGenerator::registerSplit(Node f)
+TrustNode EagerProofGenerator::registerSplit(Node f)
 {
   // make the lemma
   Node lem = f.orNode(f.notNode());
@@ -105,7 +105,7 @@ ProvenNode EagerProofGenerator::registerSplit(Node f)
   // store the mapping
   setProofForLemma(lem, p);
   // return the lemma
-  return ProvenNode::mkProvenNodeLemma(lem, this);
+  return TrustNode::mkTrustNodeLemma(lem, this);
 }
 
 }  // namespace theory

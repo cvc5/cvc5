@@ -40,10 +40,10 @@ namespace theory {
  * calls.
  *
  * It is implemented by requiring that calls to conflict(...) provide an
- * pointer to a proof generator object, as part of the ProvenNode pair.
+ * pointer to a proof generator object, as part of the TrustNode pair.
  *
  * In more detail, when a call to
- *   ProofOutputChannel::conflict(ProvenNode(conf, pfg))
+ *   ProofOutputChannel::conflict(TrustNode(conf, pfg))
  * is made, this class is required, in the remainder of the current user
  * context, to provide a proof for lem via the call:
  *   ProofOutputChannel::getProofForConflict(conf)
@@ -66,10 +66,10 @@ class ProofOutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  void conflict(ProvenNode pconf);
+  void conflict(TrustNode pconf);
   /**
    * Get the proof for conflict conf. This method can be called if
-   * conflict(ProvenNode(conf, pfg)) has been called in this user context. This
+   * conflict(TrustNode(conf, pfg)) has been called in this user context. This
    * method returns the proof of conf, according to pfg, or nullptr if we fail
    * to generate a proof. The latter can happen if pfg was nullptr, or if its
    * getProof method failed, indicating an internal failure.
@@ -81,13 +81,13 @@ class ProofOutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  LemmaStatus lemma(ProvenNode lem,
+  LemmaStatus lemma(TrustNode lem,
                     bool removable = false,
                     bool preprocess = false,
                     bool sendAtoms = false);
   /**
    * Get the proof for lemma lem. This method can be called if
-   * lemma(ProvenNode(lem, pfg), ...) has been called in this user context.
+   * lemma(TrustNode(lem, pfg), ...) has been called in this user context.
    * This method returns the proof of lem, according to pfg, or nullptr if we
    * fail to generate a proof. The latter can happen if pfg was nullptr, or if
    * its getProof method failed, indicating an internal failure.

@@ -92,14 +92,14 @@ bool ProofEqEngine::assertFact(Node lit,
   return lit == ret;
 }
 
-ProvenNode ProofEqEngine::assertConflict(PfRule id,
+TrustNode ProofEqEngine::assertConflict(PfRule id,
                                          const std::vector<Node>& exp)
 {
   std::vector<Node> args;
   return assertConflict(id, exp, args);
 }
 
-ProvenNode ProofEqEngine::assertConflict(PfRule id,
+TrustNode ProofEqEngine::assertConflict(PfRule id,
                                          const std::vector<Node>& exp,
                                          const std::vector<Node>& args)
 {
@@ -111,7 +111,7 @@ ProvenNode ProofEqEngine::assertConflict(PfRule id,
     {
       // a step went wrong, e.g. during checking
       Assert(false) << "ProofEqEngine::assertConflict: register proof step";
-      return ProvenNode::null();
+      return TrustNode::null();
     }
   }
 
@@ -133,13 +133,13 @@ ProvenNode ProofEqEngine::assertConflict(PfRule id,
     {
       // should have existed
       Assert(false) << "ProofEqEngine::assertConflict: failed to get proof";
-      return ProvenNode::null();
+      return TrustNode::null();
     }
     // set the proof for the conflict, which can be queried later
     setProofForConflict(conf, pf);
   }
   // we can provide a proof for conflict
-  return ProvenNode::mkProvenNodeConflict(conf, this);
+  return TrustNode::mkTrustNodeConflict(conf, this);
 }
 
 std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
