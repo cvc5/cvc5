@@ -769,6 +769,8 @@ set(regress_0_tests
   regress0/quantifiers/rew-to-scala.smt2
   regress0/quantifiers/simp-len.smt2
   regress0/quantifiers/simp-typ-test.smt2
+  regress0/quantifiers/sygus-inst-nia-psyco-060.smt2
+  regress0/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
   regress0/rec-fun-const-parse-bug.smt2
   regress0/rels/addr_book_0.cvc
   regress0/rels/atom_univ2.cvc
@@ -2041,6 +2043,7 @@ set(regress_2_tests
   regress2/quantifiers/net-policy-no-time.smt2
   regress2/quantifiers/nunchaku2309663.nun.min.smt2
   regress2/quantifiers/specsharp-WindowsCard.15.RTE.Terminate_System.Int32.smt2
+  regress2/quantifiers/sygus-inst-ufbv-sdlx-fixpoint-5.smt2
   regress2/quantifiers/syn874-1.smt2
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
   regress2/strings/cmu-dis-0707-3.smt2
