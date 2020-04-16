@@ -23,20 +23,19 @@ namespace theory {
 ProvenNode ProvenNode::mkProvenNodeConflict(Node conf, ProofGenerator* g)
 {
   // if a generator is provided, should confirm that it can prove it
-  Assert(d_gen==nullptr || d_gen->canProveConflict(conf));
-  return ProvenNode(conf,g);
+  Assert(d_gen == nullptr || d_gen->canProveConflict(conf));
+  return ProvenNode(conf, g);
 }
 
 ProvenNode ProvenNode::mkProvenNodeLemma(Node lem, ProofGenerator* g)
 {
   // if a generator is provided, should confirm that it can prove it
-  Assert(d_gen==nullptr || d_gen->canProveLemma(lem));
-  return ProvenNode(lem,g);
+  Assert(d_gen == nullptr || d_gen->canProveLemma(lem));
+  return ProvenNode(lem, g);
 }
 
 ProvenNode ProvenNode::null() { return ProvenNode(Node::null()); }
 
-  
 ProvenNode::ProvenNode(Node n, ProofGenerator* g) : d_node(n), d_gen(g)
 {
   // does not make sense to provide null node with generator

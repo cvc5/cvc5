@@ -37,22 +37,22 @@ namespace theory {
 class ProofGenerator
 {
  public:
-  ProofGenerator(){}
+  ProofGenerator() {}
   virtual ~ProofGenerator() {}
   /** Get the proof for conflict conf */
   virtual std::shared_ptr<ProofNode> getProofForConflict(Node conf) = 0;
   /** Get the proof for lemma lem */
   virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) = 0;
-  /** 
+  /**
    * Can we give the proof for conflict conf? This is used for debugging. This
    * returns false if the generator cannot provide a proof of conflict conf.
-   * 
+   *
    * Notice the default return value is true. In other words, a proof generator
    * may choose to override this function to verify the construction of
    * ProvenNode objects below, although we do not insist this is the case.
    */
   virtual bool canProveConflict(Node conf) { return true; }
-  /** 
+  /**
    * Can we give the proof for lemma lem? This is used for debugging. This
    * returns false if the generator cannot provide a proof of lemma lem.
    */
@@ -73,7 +73,8 @@ class ProvenNode
 {
  public:
   /** Make a proven node for conflict */
-  static ProvenNode mkProvenNodeConflict(Node conf, ProofGenerator* g = nullptr);
+  static ProvenNode mkProvenNodeConflict(Node conf,
+                                         ProofGenerator* g = nullptr);
   /** Make a proven node for lemma */
   static ProvenNode mkProvenNodeLemma(Node lem, ProofGenerator* g = nullptr);
   /** The null proven node */
@@ -85,6 +86,7 @@ class ProvenNode
   ProofGenerator* getGenerator() const;
   /** is null? */
   bool isNull() const;
+
  private:
   ProvenNode(Node n, ProofGenerator* g = nullptr);
   /** The node */

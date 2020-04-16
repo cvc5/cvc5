@@ -40,8 +40,7 @@ Node CDProof::registerStep(Node expected,
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            bool ensureChildren,
-                           bool forceOverwrite
-                          )
+                           bool forceOverwrite)
 {
   // we must provide expected
   Assert(!expected.isNull());
@@ -49,7 +48,8 @@ Node CDProof::registerStep(Node expected,
   NodeProofNodeMap::iterator it = d_nodes.find(expected);
   if (it != d_nodes.end())
   {
-    if (!forceOverwrite && ((*it).second->getId() != PfRule::ASSUME || id == PfRule::ASSUME))
+    if (!forceOverwrite
+        && ((*it).second->getId() != PfRule::ASSUME || id == PfRule::ASSUME))
     {
       // we do not overwrite if forceOverwrite is false and the previously
       // provided step was not an assumption, or if the currently provided step
@@ -105,7 +105,9 @@ Node CDProof::registerStep(Node expected,
   return expected;
 }
 
-Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn, bool overwrite)
+Node CDProof::registerProof(Node expected,
+                            std::shared_ptr<ProofNode> pn,
+                            bool overwrite)
 {
   if (pn->getResult() != expected)
   {

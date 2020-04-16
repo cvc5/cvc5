@@ -307,7 +307,6 @@ class InferenceManager
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** The proof equality engine */
-  
 
   /** Common constants */
   Node d_true;
