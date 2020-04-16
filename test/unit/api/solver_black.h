@@ -1407,12 +1407,12 @@ void SolverBlack::testgetSynthSolutions()
   Term x = d_solver->mkBoolean(false);
   Term f = d_solver->synthFun("f", {}, d_solver->getBooleanSort());
 
-  // TS_ASSERT_THROWS(d_solver->getSynthSolutions({}), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->getSynthSolutions({}), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->getSynthSolutions({f}), CVC4ApiException&);
 
   d_solver->checkSynth();
 
-  TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolutions({}));
+  // TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolutions({}));
   TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolutions({f}));
   TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolutions({f, f}));
 

@@ -33,6 +33,9 @@
 
 #include "api/cvc4cpp.h"
 
+#include <cstring>
+#include <sstream>
+
 #include "base/check.h"
 #include "base/configuration.h"
 #include "expr/expr.h"
@@ -52,9 +55,6 @@
 #include "util/random.h"
 #include "util/result.h"
 #include "util/utility.h"
-
-#include <cstring>
-#include <sstream>
 
 namespace CVC4 {
 namespace api {
@@ -4631,8 +4631,7 @@ Term Solver::getSynthSolution(Term term) const
 
   std::map<CVC4::Expr, CVC4::Expr>::const_iterator it = map.find(*term.d_expr);
 
-  CVC4_API_CHECK(it != map.cend())
-      << "Synth solution not found for given term";
+  CVC4_API_CHECK(it != map.cend()) << "Synth solution not found for given term";
 
   return it->second;
 }
@@ -4640,6 +4639,8 @@ Term Solver::getSynthSolution(Term term) const
 std::vector<Term> Solver::getSynthSolutions(
     const std::vector<Term>& terms) const
 {
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms) << "non-empty vector";
+
   for (size_t i = 0, n = terms.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
