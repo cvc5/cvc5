@@ -49,6 +49,7 @@ namespace eq {
  */
 class ProofEqEngine : public EagerProofGenerator
 {
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofMap;
 
@@ -72,13 +73,14 @@ class ProofEqEngine : public EagerProofGenerator
                   const std::vector<Node>& exp,
                   const std::vector<Node>& args);
   /**
-   * Get proven lemma from contradictory facts. This method is called when
+   * Get proven conflict from contradictory facts. This method is called when
    * the proof rule with premises exp and arguments args implies a contradiction
    * by proof rule id.
    *
-   * This method returns the corresponding conflict resulting from adding this
-   * step, and ensures that a proof has been stored internally so that this
-   * class may respond to a call to ProofGenerator::getProof(...).
+   * This method returns the TrustNode containing the corresponding conflict
+   * resulting from adding this step, and ensures that a proof has been stored
+   * internally so that this class may respond to a call to
+   * ProofGenerator::getProof(...).
    */
   TrustNode assertConflict(PfRule id, const std::vector<Node>& exp);
   TrustNode assertConflict(PfRule id,

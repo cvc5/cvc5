@@ -46,13 +46,13 @@ bool ProofEqEngine::assertAssume(Node lit)
 
   if (d_pfEnabled)
   {
-    // first, register the step in the proof
+    // first, add the step in the proof
     std::vector<Node> exp;
     std::vector<Node> args;
     args.push_back(lit);
     if (!d_proof.addStep(lit, PfRule::ASSUME, exp, args))
     {
-      // failed to register step
+      // failed to add step
       return false;
     }
   }
@@ -201,10 +201,8 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
   }
   if (d_pfEnabled)
   {
-    // FIXME: convert pf to pfn
-    std::shared_ptr<ProofNode> pfn;
-    // add the given proof to the proof object constructed by this class
-    d_proof.registerProof(lit, pfn);
+    // add the steps in the equality engine proof to the Proof
+    pf->addTo(d_proof.get());
   }
 }
 

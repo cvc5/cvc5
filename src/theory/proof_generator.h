@@ -118,6 +118,10 @@ class EagerProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofForConflict(Node conf) override;
   /** Get the proof for lemma lem. */
   std::shared_ptr<ProofNode> getProofForLemma(Node lem) override;
+  /** Can we give the proof for conflict conf? */
+  bool canProveConflict(Node conf) override;
+  /** Can we give the proof for lemma lem? */
+  bool canProveLemma(Node lem) override;
   //--------------------------------------- common proofs
   /**
    * This returns the trust node corresponding to the splitting lemma

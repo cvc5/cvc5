@@ -2457,6 +2457,11 @@ void EqProof::debug_print(std::ostream& os,
   os << ")" << std::endl;
 }
 
+void EqProof::addToProof(CDProof * pn) const
+{
+  // TODO
+}
+
 } // Namespace uf
 } // Namespace theory
 } // Namespace CVC4
