@@ -135,7 +135,7 @@ class CDProof
    * constructed is a strictly eager fashion (bottom up from its leaves), while
    * ensureChildren should be false if the steps are registered lazily or out
    * of order.
-   * 
+   *
    * This method only overwrites proofs for facts that were registered as
    * steps with id ASSUME when forceOverwrite is false, and otherwise always
    * overwrites an existing step if one was provided when forceOverwrite is

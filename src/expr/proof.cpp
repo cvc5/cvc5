@@ -157,8 +157,12 @@ Node CDProof::registerProof(Node expected,
           pexp.push_back(c->getResult());
         }
         // can ensure children at this point
-        Node res = registerStep(
-            curFact, cur->getId(), pexp, cur->getArguments(), true, forceOverwrite);
+        Node res = registerStep(curFact,
+                                cur->getId(),
+                                pexp,
+                                cur->getArguments(),
+                                true,
+                                forceOverwrite);
         Assert(!res.isNull());
         visited[cur] = res;
       }
