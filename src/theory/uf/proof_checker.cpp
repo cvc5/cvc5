@@ -39,10 +39,9 @@ Node EqProofRuleChecker::applySubstitution(Node n, const std::vector<Node>& exp)
   return curr;
 }
 
-Node EqProofRuleChecker::check(
-    PfRule id,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args)
+Node EqProofRuleChecker::check(PfRule id,
+                               const std::vector<Node>& children,
+                               const std::vector<Node>& args)
 {
   // compute what was proven
   if (id == PfRule::ASSUME)

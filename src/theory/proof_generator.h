@@ -103,6 +103,7 @@ class EagerProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofForConflict(Node conf) override;
   /** Get the proof for lemma lem. */
   std::shared_ptr<ProofNode> getProofForLemma(Node lem) override;
+
  protected:
   /** Set that pf is the proof for conflict conf */
   void setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf);

@@ -22,10 +22,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-Node StringProofRuleChecker::check(
-    PfRule id,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args)
+Node StringProofRuleChecker::check(PfRule id,
+                                   const std::vector<Node>& children,
+                                   const std::vector<Node>& args)
 {
   if (id == PfRule::CONCAT_ENDP_UNIFY)
   {

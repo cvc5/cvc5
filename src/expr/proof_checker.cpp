@@ -31,18 +31,20 @@ Node ProofChecker::check(
   if (it == d_checker.end())
   {
     // no checker for the rule
-    Trace("pfcheck") << "ProofChecker::check: no checker for rule " << id << std::endl;
+    Trace("pfcheck") << "ProofChecker::check: no checker for rule " << id
+                     << std::endl;
     return Node::null();
   }
   // check it with the corresponding checker
   std::vector<Node> cchildren;
   for (const std::shared_ptr<ProofNode>& pc : children)
   {
-    Assert (pc!=nullptr);
+    Assert(pc != nullptr);
     Node cres = pc->getResult();
     if (cres.isNull())
     {
-      Trace("pfcheck") << "ProofChecker::check: child proof was invalid" << std::endl;
+      Trace("pfcheck") << "ProofChecker::check: child proof was invalid"
+                       << std::endl;
       // a child proof was invalid
       return Node::null();
     }
@@ -51,7 +53,9 @@ Node ProofChecker::check(
   Node res = it->second->check(id, cchildren, args);
   if (!expected.isNull() && res != expected)
   {
-    Trace("pfcheck") << "ProofChecker::check: result does not match expected value." << std::endl;
+    Trace("pfcheck")
+        << "ProofChecker::check: result does not match expected value."
+        << std::endl;
     Trace("pfcheck") << "    result: " << res << std::endl;
     Trace("pfcheck") << "  expected: " << expected << std::endl;
     // it did not match the given expectation, fail
