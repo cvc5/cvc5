@@ -107,7 +107,7 @@ Node CDProof::registerStep(Node expected,
 
 Node CDProof::registerProof(Node expected,
                             std::shared_ptr<ProofNode> pn,
-                            bool overwrite)
+                            bool forceOverwrite)
 {
   if (pn->getResult() != expected)
   {
@@ -158,7 +158,7 @@ Node CDProof::registerProof(Node expected,
         }
         // can ensure children at this point
         Node res = registerStep(
-            curFact, cur->getId(), pexp, cur->getArguments(), true, overwrite);
+            curFact, cur->getId(), pexp, cur->getArguments(), true, forceOverwrite);
         Assert(!res.isNull());
         visited[cur] = res;
       }
