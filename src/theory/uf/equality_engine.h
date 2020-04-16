@@ -30,11 +30,11 @@
 #include "context/cdo.h"
 #include "expr/kind_map.h"
 #include "expr/node.h"
+#include "expr/proof.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_registry.h"
-#include "expr/proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -978,15 +978,15 @@ public:
   void debug_print(std::ostream& os,
                    unsigned tb = 0,
                    PrettyPrinter* prettyPrinter = nullptr) const;
-  /** Add to proof 
-   * 
+  /** Add to proof
+   *
    * This method adds all of its steps to p via calls to CDProof::addStep.
    *
    * This method can be seen as a translation from EqProof to ProofNode. It is
    * temporary until we update the EqualityEngine to the new proof
    * infrastructure.
    */
-  void addToProof(CDProof * p) const;
+  void addToProof(CDProof* p) const;
 };/* class EqProof */
 
 } // Namespace eq

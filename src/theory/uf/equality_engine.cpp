@@ -2457,7 +2457,7 @@ void EqProof::debug_print(std::ostream& os,
   os << ")" << std::endl;
 }
 
-void EqProof::addToProof(CDProof * pn) const
+void EqProof::addToProof(CDProof* pn) const
 {
   // TODO
 }

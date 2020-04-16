@@ -67,13 +67,13 @@ std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node key)
 bool EagerProofGenerator::canProveConflict(Node conf)
 {
   Node ckey = ProofOutputChannel::getConflictKeyValue(conf);
-  return d_proofs.find(ckey)!=d_proofs.end();
+  return d_proofs.find(ckey) != d_proofs.end();
 }
 
 bool EagerProofGenerator::canProveLemma(Node lem)
 {
   Node lkey = ProofOutputChannel::getConflictKeyValue(lem);
-  return d_proofs.find(lkey)!=d_proofs.end();
+  return d_proofs.find(lkey) != d_proofs.end();
 }
 
 TrustNode EagerProofGenerator::registerSplit(Node f)
