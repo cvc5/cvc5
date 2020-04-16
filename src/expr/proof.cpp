@@ -117,7 +117,6 @@ Node CDProof::registerProof(Node expected,
   std::unordered_map<std::shared_ptr<ProofNode>, Node> visited;
   std::unordered_map<std::shared_ptr<ProofNode>, Node>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
-  NodeProofNodeMap::iterator itr;
   std::shared_ptr<ProofNode> cur;
   Node curFact;
   visit.push_back(pn);
@@ -140,32 +139,23 @@ Node CDProof::registerProof(Node expected,
     }
     else if (it->second.isNull())
     {
-      itr = d_nodes.find(curFact);
-      if (itr != d_nodes.end() && (*itr).second->getId() != PfRule::ASSUME)
+      // we always call registerStep
+      std::vector<Node> pexp;
+      const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& c : cs)
       {
-        // if we already have a proof for this fact, we keep it
-        visited[cur] = curFact;
+        Assert(!c->getResult().isNull());
+        pexp.push_back(c->getResult());
       }
-      else
-      {
-        // if we don't, we must register the step
-        std::vector<Node> pexp;
-        const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
-        for (const std::shared_ptr<ProofNode>& c : cs)
-        {
-          Assert(!c->getResult().isNull());
-          pexp.push_back(c->getResult());
-        }
-        // can ensure children at this point
-        Node res = registerStep(curFact,
-                                cur->getId(),
-                                pexp,
-                                cur->getArguments(),
-                                true,
-                                forceOverwrite);
-        Assert(!res.isNull());
-        visited[cur] = res;
-      }
+      // can ensure children at this point
+      Node res = registerStep(curFact,
+                              cur->getId(),
+                              pexp,
+                              cur->getArguments(),
+                              true,
+                              forceOverwrite);
+      Assert(!res.isNull());
+      visited[cur] = res;
     }
   } while (!visit.empty());
 
