@@ -41,10 +41,11 @@ namespace CVC4 {
  * which returns a ProofNode object that has linked together the proof steps
  * registered to this object.
  *
- * As an example, if we call:
+ * As an example, let A, B, C, D be formulas represented by Node objects. If we
+ * call:
  * - registerStep( A, ID_A, { B, C }, {}, false )
  * - registerStep( B, ID_B, { D }, {}, false )
- * Then getProof( A ) returns the proof of the form:
+ * Then getProof( A ) returns the ProofNode of the form:
  *   ID_A( ID_B( ASSUME( D ) ), ASSUME( C ) )
  * Notice that the above calls to registerStep can be made in either order.
  *

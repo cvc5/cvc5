@@ -26,8 +26,8 @@ ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
 }
 void ProofOutputChannel::conflict(ProvenNode pconf)
 {
-  Node conf = pconf.first;
-  ProofGenerator* pfg = pconf.second;
+  Node conf = pconf.getNode();
+  ProofGenerator* pfg = pconf.getGenerator();
   Node ckey = getConflictKeyValue(conf);
   // may or may not have supplied a generator
   if (pfg != nullptr)
@@ -58,8 +58,8 @@ LemmaStatus ProofOutputChannel::lemma(ProvenNode plem,
                                       bool preprocess,
                                       bool sendAtoms)
 {
-  Node lem = plem.first;
-  ProofGenerator* pfg = plem.second;
+  Node lem = plem.getNode();
+  ProofGenerator* pfg = plem.getGenerator();
   Node lkey = getLemmaKeyValue(lem);
   // may or may not have supplied a generator
   if (pfg != nullptr)

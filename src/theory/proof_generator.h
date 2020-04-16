@@ -53,7 +53,25 @@ class ProofGenerator
  * lemmas are proven by which generators. However, the construction of
  * ProvenNode object are not protected.
  */
-typedef std::pair<Node, ProofGenerator*> ProvenNode;
+class ProvenNode
+{
+public:
+  ProvenNode(Node n, ProofGenerator * g = nullptr);
+  ~ProvenNode(){}
+  /** get node */
+  Node getNode() const;
+  /** get generator */
+  ProofGenerator * getGenerator() const;
+  /** is null? */
+  bool isNull() const;
+  /** The null proven node */
+  static ProvenNode null();
+private:
+  /** The node of this proof */
+  Node d_node;
+  /** The generator for the node */
+  ProofGenerator * d_gen;
+};
 
 /**
  * An eager proof generator, with explicit proof caching.

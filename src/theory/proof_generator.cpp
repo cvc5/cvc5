@@ -20,6 +20,34 @@
 namespace CVC4 {
 namespace theory {
 
+ProvenNode::ProvenNode(Node n, ProofGenerator * g) : d_node(n), d_gen(g)
+{
+  // does not make sense to provide null node with generator
+  Assert(d_node.isNull() || d_gen!=nullptr);
+  // if a generator is provided, should confirm that it can prove it
+  //Assert(d_gen==nullptr || d_gen->canProve(d_node));
+}
+
+Node ProvenNode::getNode() const
+{
+  return d_node;
+}
+
+ProofGenerator * ProvenNode::getGenerator() const
+{
+  return d_gen;
+}
+
+bool ProvenNode::isNull() const
+{
+  return d_node.isNull();
+}
+
+ProvenNode ProvenNode::null()
+{
+  return ProvenNode(Node::null());
+}
+
 EagerProofGenerator::EagerProofGenerator(context::UserContext* u,
                                          ProofNodeManager* pnm)
     : d_pnm(pnm), d_proofs(u)

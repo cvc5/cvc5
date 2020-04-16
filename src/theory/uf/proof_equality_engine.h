@@ -80,8 +80,8 @@ class ProofEqEngine : public EagerProofGenerator
    * step, and ensures that a proof has been stored internally so that this
    * class may respond to a call to ProofGenerator::getProof(...).
    */
-  Node assertConflict(PfRule id, const std::vector<Node>& exp);
-  Node assertConflict(PfRule id,
+  ProvenNode assertConflict(PfRule id, const std::vector<Node>& exp);
+  ProvenNode assertConflict(PfRule id,
                       const std::vector<Node>& exp,
                       const std::vector<Node>& args);
 
