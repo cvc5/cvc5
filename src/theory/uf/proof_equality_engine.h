@@ -82,8 +82,8 @@ class ProofEqEngine : public EagerProofGenerator
    */
   ProvenNode assertConflict(PfRule id, const std::vector<Node>& exp);
   ProvenNode assertConflict(PfRule id,
-                      const std::vector<Node>& exp,
-                      const std::vector<Node>& args);
+                            const std::vector<Node>& exp,
+                            const std::vector<Node>& args);
 
  protected:
   /**

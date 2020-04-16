@@ -55,22 +55,23 @@ class ProofGenerator
  */
 class ProvenNode
 {
-public:
-  ProvenNode(Node n, ProofGenerator * g = nullptr);
-  ~ProvenNode(){}
+ public:
+  ProvenNode(Node n, ProofGenerator* g = nullptr);
+  ~ProvenNode() {}
   /** get node */
   Node getNode() const;
   /** get generator */
-  ProofGenerator * getGenerator() const;
+  ProofGenerator* getGenerator() const;
   /** is null? */
   bool isNull() const;
   /** The null proven node */
   static ProvenNode null();
-private:
+
+ private:
   /** The node of this proof */
   Node d_node;
   /** The generator for the node */
-  ProofGenerator * d_gen;
+  ProofGenerator* d_gen;
 };
 
 /**

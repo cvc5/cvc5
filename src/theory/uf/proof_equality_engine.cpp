@@ -92,15 +92,16 @@ bool ProofEqEngine::assertFact(Node lit,
   return lit == ret;
 }
 
-ProvenNode ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
+ProvenNode ProofEqEngine::assertConflict(PfRule id,
+                                         const std::vector<Node>& exp)
 {
   std::vector<Node> args;
   return assertConflict(id, exp, args);
 }
 
 ProvenNode ProofEqEngine::assertConflict(PfRule id,
-                                   const std::vector<Node>& exp,
-                                   const std::vector<Node>& args)
+                                         const std::vector<Node>& exp,
+                                         const std::vector<Node>& args)
 {
   if (d_pfEnabled)
   {
@@ -138,7 +139,7 @@ ProvenNode ProofEqEngine::assertConflict(PfRule id,
     setProofForConflict(conf, pf);
   }
   // we can provide a proof for conflict
-  return ProvenNode(conf,this);
+  return ProvenNode(conf, this);
 }
 
 std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
