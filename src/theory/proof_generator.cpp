@@ -20,34 +20,6 @@
 namespace CVC4 {
 namespace theory {
 
-TrustNode TrustNode::mkTrustConflict(Node conf, ProofGenerator* g)
-{
-  // if a generator is provided, should confirm that it can prove it
-  Assert(d_gen == nullptr || d_gen->canProveConflict(conf));
-  return TrustNode(conf, g);
-}
-
-TrustNode TrustNode::mkTrustLemma(Node lem, ProofGenerator* g)
-{
-  // if a generator is provided, should confirm that it can prove it
-  Assert(d_gen == nullptr || d_gen->canProveLemma(lem));
-  return TrustNode(lem, g);
-}
-
-TrustNode TrustNode::null() { return TrustNode(Node::null()); }
-
-TrustNode::TrustNode(Node n, ProofGenerator* g) : d_node(n), d_gen(g)
-{
-  // does not make sense to provide null node with generator
-  Assert(d_node.isNull() || d_gen != nullptr);
-}
-
-Node TrustNode::getNode() const { return d_node; }
-
-ProofGenerator* TrustNode::getGenerator() const { return d_gen; }
-
-bool TrustNode::isNull() const { return d_node.isNull(); }
-
 EagerProofGenerator::EagerProofGenerator(context::UserContext* u,
                                          ProofNodeManager* pnm)
     : d_pnm(pnm), d_proofs(u)

@@ -20,7 +20,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_node.h"
-#include "theory/output_channel.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -59,40 +59,6 @@ class ProofGenerator
   virtual bool canProveLemma(Node lem) { return true; }
 };
 
-/**
- * A trust node is a pair (F, G) where F is a formula and G is a proof
- * generator that can construct a proof for F if asked.
- *
- * Notice that this is a convienence class for tracking what
- * lemmas are proven by which generators. The static functions for constructing
- * them check that the generator, if provided, is capable of proving the given
- * conflict or lemma, or an assertion failure occurs.
- */
-class TrustNode
-{
- public:
-  /** Make a proven node for conflict */
-  static TrustNode mkTrustConflict(Node conf,
-                                         ProofGenerator* g = nullptr);
-  /** Make a proven node for lemma */
-  static TrustNode mkTrustLemma(Node lem, ProofGenerator* g = nullptr);
-  /** The null proven node */
-  static TrustNode null();
-  ~TrustNode() {}
-  /** get node */
-  Node getNode() const;
-  /** get generator */
-  ProofGenerator* getGenerator() const;
-  /** is null? */
-  bool isNull() const;
-
- private:
-  TrustNode(Node n, ProofGenerator* g = nullptr);
-  /** The node */
-  Node d_node;
-  /** The generator */
-  ProofGenerator* d_gen;
-};
 
 /**
  * An eager proof generator, with explicit proof caching.

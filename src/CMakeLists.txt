@@ -640,6 +640,8 @@ libcvc4_add_sources(
   theory/rewriter_attributes.h
   theory/sep/theory_sep.cpp
   theory/theory_rewriter.h
+  theory/trust_node.cpp
+  theory/trust_node.h
   theory/sep/theory_sep.h
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
