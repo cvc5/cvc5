@@ -18,8 +18,8 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-CDProof::CDProof(context::Context* c, ProofNodeManager* pnm)
-    : d_manager(pnm), d_nodes(c)
+CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
+    : d_manager(pnm), d_context(c ? std::maked_shared<Context>(c) : nullptr) d_nodes(d_context.get())
 {
 }
 
@@ -39,6 +39,9 @@ Node CDProof::registerStep(Node expected,
                            const std::vector<Node>& args,
                            bool ensureChildren)
 {
+  // we must provide expected
+  Assert(!expected.isNull());
+  
   NodeProofNodeMap::iterator it = d_nodes.find(expected);
   if (it != d_nodes.end())
   {
@@ -91,7 +94,9 @@ Node CDProof::registerStep(Node expected,
     pthis = (*it).second;
     d_manager->updateNode(pthis.get(), id, pchildren, args);
   }
-  return pthis->getResult();
+  // the result of the proof node should be expected
+  Assert(pthis->getResult()==expected);
+  return expected;
 }
 
 Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)

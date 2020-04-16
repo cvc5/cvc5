@@ -14,11 +14,9 @@
 
 #include "theory/strings/inference_manager.h"
 
-#include "expr/kind.h"
 #include "options/strings_options.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -30,17 +28,17 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferenceManager::InferenceManager(TheoryStrings& p,
-                                   context::Context* c,
+InferenceManager::InferenceManager(context::Context* c,
                                    context::UserContext* u,
                                    SolverState& s,
                                    TermRegistry& tr,
+                                   ExtTheory& e,
                                    ProofOutputChannel& poc,
                                    SequencesStatistics& statistics,
                                    bool pfEnabled)
-    : d_parent(p),
-      d_state(s),
+    : d_state(s),
       d_termReg(tr),
+      d_extt(e),
       d_poc(poc),
       d_statistics(statistics),
       d_keep(c),
@@ -51,6 +49,14 @@ InferenceManager::InferenceManager(TheoryStrings& p,
   d_one = nm->mkConst(Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+}
+
+void InferenceManager::sendAssumption(TNode lit)
+{
+  bool polarity = lit.getKind() != kind::NOT;
+  TNode atom = polarity ? lit : lit[0];
+  // assert pending fact
+  assertPendingFact(atom, polarity, lit);
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
@@ -297,6 +303,8 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
   d_pendingReqPhase[lit] = pol;
 }
 
+void InferenceManager::setIncomplete() { d_poc.setIncomplete(); }
+
 void InferenceManager::addToExplanation(Node a,
                                         Node b,
                                         std::vector<Node>& exp) const
@@ -331,14 +339,14 @@ void InferenceManager::doPendingFacts()
       {
         bool polarity = lit.getKind() != NOT;
         TNode atom = polarity ? lit : lit[0];
-        d_parent.assertPendingFact(atom, polarity, exp);
+        assertPendingFact(atom, polarity, exp);
       }
     }
     else
     {
       bool polarity = fact.getKind() != NOT;
       TNode atom = polarity ? fact : fact[0];
-      d_parent.assertPendingFact(atom, polarity, exp);
+      assertPendingFact(atom, polarity, exp);
     }
     i++;
   }
@@ -366,6 +374,69 @@ void InferenceManager::doPendingLemmas()
   }
   d_pendingLem.clear();
   d_pendingReqPhase.clear();
+}
+
+void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
+{
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
+  Trace("strings-pending") << "Assert pending fact : " << atom << " "
+                           << polarity << " from " << exp << std::endl;
+  Assert(atom.getKind() != OR) << "Infer error: a split.";
+  if (atom.getKind() == EQUAL)
+  {
+    // we must ensure these terms are registered
+    Trace("strings-pending-debug") << "  Register term" << std::endl;
+    for (const Node& t : atom)
+    {
+      // terms in the equality engine are already registered, hence skip
+      // currently done for only string-like terms, but this could potentially
+      // be avoided.
+      if (!ee->hasTerm(t) && t.getType().isStringLike())
+      {
+        d_termReg.registerTerm(t, 0);
+      }
+    }
+    Trace("strings-pending-debug") << "  Now assert equality" << std::endl;
+    ee->assertEquality(atom, polarity, exp);
+    Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
+  }
+  else
+  {
+    ee->assertPredicate(atom, polarity, exp);
+    if (atom.getKind() == STRING_IN_REGEXP)
+    {
+      if (polarity && atom[1].getKind() == REGEXP_CONCAT)
+      {
+        Node eqc = ee->getRepresentative(atom[0]);
+        d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
+      }
+    }
+  }
+  // process the conflict
+  if (!d_state.isInConflict())
+  {
+    Node pc = d_state.getPendingConflict();
+    if (!pc.isNull())
+    {
+      std::vector<Node> a;
+      a.push_back(pc);
+      Trace("strings-pending")
+          << "Process pending conflict " << pc << std::endl;
+      Node conflictNode = mkExplain(a);
+      d_state.setConflict();
+      Trace("strings-conflict")
+          << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
+      ++(d_statistics.d_conflictsEagerPrefix);
+      ProvenNode pconf(conflictNode, nullptr);
+      d_poc.conflict(pconf);
+    }
+  }
+  Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
+  // Collect extended function terms in the atom. Notice that we must register
+  // all extended functions occurring in assertions and shared terms. We
+  // make a similar call to registerTermRec in TheoryStrings::addSharedTerm.
+  d_extt.registerTermRec(atom);
+  Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
 bool InferenceManager::hasProcessed() const
@@ -425,7 +496,7 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
   }
   else
   {
-    ant = NodeManager::currentNM()->mkNode(kind::AND, antec_exp);
+    ant = NodeManager::currentNM()->mkNode(AND, antec_exp);
   }
   return ant;
 }
@@ -470,16 +541,19 @@ void InferenceManager::explain(TNode literal,
     }
   }
 }
-void InferenceManager::setIncomplete() { d_poc.setIncomplete(); }
 
 void InferenceManager::markCongruent(Node a, Node b)
 {
   Assert(a.getKind() == b.getKind());
-  ExtTheory* eth = d_parent.getExtTheory();
-  if (eth->hasFunctionKind(a.getKind()))
+  if (d_extt.hasFunctionKind(a.getKind()))
   {
-    eth->markCongruent(a, b);
+    d_extt.markCongruent(a, b);
   }
+}
+
+void InferenceManager::markReduced(Node n, bool contextDepend)
+{
+  d_extt.markReduced(n, contextDepend);
 }
 
 }  // namespace strings

@@ -38,6 +38,10 @@ namespace CVC4 {
  * The "core rules" include ASSUME, which represents an open leaf in a proof.
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
+ * 
+ * Rules with prefix MACRO_ are those that can be defined in terms of other
+ * rules and exist for convienience. We provide their definition in the line
+ * "Macro:".
  */
 enum class PfRule : uint32_t
 {
@@ -49,10 +53,11 @@ enum class PfRule : uint32_t
   // Conclusion: F
   ASSUME,
   // ======== Substitution
-  // Children: (P:(= x1 t1), ..., P:(= xn tn))
+  // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
   // Arguments: (t)
   // ---------------------------------------------------------------
   // Conclusion: (= t t.substitute(x1,t1). ... .substitute(xn,tn))
+  // Notice that the orientation of the premises matters.
   SUBS,
   // ======== Rewrite
   // Children: none
@@ -64,12 +69,13 @@ enum class PfRule : uint32_t
   // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
   // Arguments: (t)
   // ---------------------------------------------------------------
-  // Conclusion: (= t Rewriter::rewrite(t.substitute(x1,t1). ...
-  // .substitute(xn,tn)))
+  // Conclusion: 
+  //  (= t Rewriter::rewrite(t.substitute(x1,t1). ... .substitute(xn,tn)))
+  // Notice that the orientation of the premises matters.
   SUBS_REWRITE,
   // ======== Split
   // Children: none
-  // Arguments: P:(F)
+  // Arguments: (F)
   // ---------------------
   // Conclusion: (or F (not F))
   SPLIT,
@@ -88,13 +94,13 @@ enum class PfRule : uint32_t
   // Conclusion: (= t2 t1)
   SYMM,
   // ======== Transitivity
-  // Children: (P:(= t1 t2), ..., P:(= t{n-1} tn))
+  // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
   // Arguments: none
   // -----------------------
   // Conclusion: (= t1 tn)
   TRANS,
   // ======== Congruence  (subsumed by Substitute?)
-  // Children: (P:(= t1 s1), ..., P:(= tn sn))
+  // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
   // Arguments: (f)
   // ---------------------------------------------Rewriter::rewrite(
   // Conclusion: (= (f t1 ... tn) (f s1 ... sn))
@@ -102,8 +108,11 @@ enum class PfRule : uint32_t
   // ======== Equality by substitution + rewriting
   // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
   // Arguments: (t,s)
+  // -------------------
+  // Conclusion: (= t s)
   // Macro: (TRANS (SUBS_REWRITE P1 ... Pn :args t)
   //               (SYMM (SUBS_REWRITE P1 ... Pn :args s)))
+  // In other words, t and s can be show equal by substitution + rewriting.
   MACRO_EQ_SUBS_REWRITE,
 
   //================================================= String rules
@@ -158,13 +167,13 @@ enum class PfRule : uint32_t
   REDUCTION,
   //======================== Regular expressions
   // ======== Regular expression intersection
-  // Children: (P1:(str.in.re t R1), P:(str.in.re t R2))
+  // Children: (P:(str.in.re t R1), P:(str.in.re t R2))
   // Arguments: none
   // ---------------------
   // Conclusion: (str.in.re t (re.inter R1 R2)).
   RE_INTER,
   // ======== Regular expression unfold
-  // Children: (P1:(str.in.re t R)) or (P:(not (str.in.re t R)))
+  // Children: (P:(str.in.re t R)) or (P:(not (str.in.re t R)))
   // Arguments: none
   // ---------------------
   // Conclusion:F, corresponding to the one-step unfolding of the premise.

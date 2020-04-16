@@ -23,6 +23,7 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "theory/ext_theory.h"
 #include "theory/proof_output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
@@ -33,8 +34,6 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-
-class TheoryStrings;
 
 /** Inference Manager
  *
@@ -72,15 +71,22 @@ class InferenceManager
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  InferenceManager(TheoryStrings& p,
-                   context::Context* c,
+  InferenceManager(context::Context* c,
                    context::UserContext* u,
                    SolverState& s,
                    TermRegistry& tr,
+                   ExtTheory& e,
                    ProofOutputChannel& poc,
                    SequencesStatistics& statistics,
                    bool pfEnabled = false);
   ~InferenceManager() {}
+
+  /** send assumption
+   *
+   * This is called when a fact is asserted to TheoryStrings. It adds lit
+   * to the equality engine maintained by this class immediately.
+   */
+  void sendAssumption(TNode lit);
 
   /** send internal inferences
    *
@@ -176,6 +182,12 @@ class InferenceManager
    * decided with polarity pol.
    */
   void sendPhaseRequirement(Node lit, bool pol);
+  /**
+   * Set that we are incomplete for the current set of assertions (in other
+   * words, we must answer "unknown" instead of "sat"); this calls the output
+   * channel's setIncomplete method.
+   */
+  void setIncomplete();
 
   //----------------------------constructing antecedants
   /**
@@ -190,7 +202,7 @@ class InferenceManager
    *
    * This method asserts pending facts (d_pending) with explanations
    * (d_pendingExp) to the equality engine of the theory of strings via calls
-   * to assertPendingFact in the theory of strings.
+   * to assertPendingFact.
    *
    * It terminates early if a conflict is encountered, for instance, by
    * equality reasoning within the equality engine.
@@ -240,12 +252,7 @@ class InferenceManager
    * the node corresponding to their conjunction.
    */
   void explain(TNode literal, std::vector<TNode>& assumptions) const;
-  /**
-   * Set that we are incomplete for the current set of assertions (in other
-   * words, we must answer "unknown" instead of "sat"); this calls the output
-   * channel's setIncomplete method.
-   */
-  void setIncomplete();
+  // ------------------------------------------------- extended theory
   /**
    * Mark that terms a and b are congruent in the current context.
    * This makes a call to markCongruent in the extended theory object of
@@ -253,8 +260,24 @@ class InferenceManager
    * theory.
    */
   void markCongruent(Node a, Node b);
+  /**
+   * Mark that extended function is reduced. If contextDepend is true,
+   * then this mark is SAT-context dependent, otherwise it is user-context
+   * dependent (see ExtTheory::markReduced).
+   */
+  void markReduced(Node n, bool contextDepend = true);
+  // ------------------------------------------------- end extended theory
 
  private:
+  /** assert pending fact
+   *
+   * This asserts atom with polarity to the equality engine of this class,
+   * where exp is the explanation of why (~) atom holds.
+   *
+   * This call may trigger further initialization steps involving the terms
+   * of atom, including calls to registerTerm.
+   */
+  void assertPendingFact(Node atom, bool polarity, Node exp);
   /**
    * Indicates that ant => conc should be sent on the output channel of this
    * class. This will either trigger an immediate call to the conflict
@@ -273,13 +296,12 @@ class InferenceManager
    * equality engine of this class.
    */
   void sendInfer(Node eq_exp, Node eq, Inference infer);
-
-  /** the parent theory of strings object */
-  TheoryStrings& d_parent;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
   TermRegistry& d_termReg;
+  /** the extended theory object for the theory of strings */
+  ExtTheory& d_extt;
   /** Reference to the output channel of the theory of strings. */
   ProofOutputChannel& d_poc;
   /** Reference to the statistics for the theory of strings/sequences. */

@@ -31,15 +31,15 @@ namespace CVC4 {
  * A (context-dependent) proof.
  *
  * This maintains a context-dependent map from formulas to ProofNode shared
- * pointers. When a proof step is registered, it internally uses ProofNode
- * pointer to link the steps in the proof together.
+ * pointers. When a step is registered, it internally uses ProofNode
+ * pointers to link the steps in the proof together.
  *
  * It is important to note that the premises of proof steps given to this class
- * may be *Node* not *ProofNode*. In other words, the user of this class does
- * not have to explicitly manage ProofNode objects while using this class.
- * Instead, ProofNode is the final product of this class, via the getProof
- * interface, which returns a ProofNode object that has linked together the
- * proof steps registered to this object.
+ * are *Node* not *ProofNode*. In other words, the user of this class does
+ * not have to manage ProofNode pointers while using this class. Instead,
+ * ProofNode is the final product of this class, via the getProof interface,
+ * which returns a ProofNode object that has linked together the proof steps
+ * registered to this object.
  *
  * As an example, if we call:
  * - registerStep( A, ID_A, { B, C }, {}, false )
@@ -52,21 +52,22 @@ namespace CVC4 {
  * available. The method registerProof can be seen as syntax sugar for making
  * multiple calls to registerStep. Continuing the above example, if we call:
  * - registerProof( E, ID_E( ASSUME( A ), ASSUME( B ) )
- * is the same as calling:
+ * is the same as calling steps corresponding the steps in the provided proof
+ * bottom-up, starting from the leaves:
  * --- registerStep( A, ASSUME, {}, {}, true )
  * --- registerStep( B, ASSUME, {}, {}, true )
  * --- registerStep( E, ID_E, { A, B }, {}, true )
  * This will result in getProof( E ) returning:
- *   ID_E( ID_A( PB, ASSUME( C ) ), PB ), where PB is ID_B( ASSUME( D ) ).
- * Notice that the proof of A by ID_A was not overwritten by ASSUME.
- * The calls to registerProof and registerStep above can be made in any order.
+ *   ID_E( ID_A( PB, ASSUME( C ) ), PB )
+ * where PB is ID_B( ASSUME( D ) ). Notice that the proof of A by ID_A was not
+ * overwritten by ASSUME.
  *
  * More generally, this class overwrites assumptions wherever possible, and
  * maintains a policy on when the other proof steps are overwritten. Currently,
- * no other proof step is overwritten when provided in another registerStep
- * call.
+ * no proof step (apart from ASSUME) is overwritten when provided in another
+ * registerStep call.
  *
- * For example, say that we call:
+ * As another example, say that we call:
  * - registerStep( B, ID_B1 {}, {}, false )
  * - registerStep( A, ID_A1, {B, C}, {}, false )
  * At this point, getProof( A ) returns:
@@ -88,6 +89,13 @@ namespace CVC4 {
  *
  * Notice the map from Nodes to ProofNodes is context-dependent and is
  * backtracked when the context backtracks.
+ * 
+ * This class requires a ProofNodeManager object, which is a trusted way of
+ * allocating ProofNode pointers. This manager may have an underlying checker,
+ * although this is not required. It also (optionally) takes a context c.
+ * If no context is provided, then this proof is context-independent. This
+ * is implemented internally by using a dummy context that is never pushed
+ * or popped.
  */
 class CDProof
 {
@@ -95,7 +103,7 @@ class CDProof
       NodeProofNodeMap;
 
  public:
-  CDProof(context::Context* c, ProofNodeManager* pnm);
+  CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
   ~CDProof() {}
   /**
    * Get proof for fact, or nullptr if it does not exist. Notice that this call
@@ -106,7 +114,8 @@ class CDProof
   std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** Register step
    *
-   * @param expected The intended conclusion of this proof step.
+   * @param expected The intended conclusion of this proof step. This must be
+   * non-null.
    * @param id The identifier for the proof step.
    * @param children The antecendant of the proof step. Each children[i] should
    * be a fact previously registered as a conclusion of a registerStep call
@@ -151,6 +160,8 @@ class CDProof
  protected:
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_manager;
+  /** The context used by this class */
+  std::shared_ptr<context::Context> d_context;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
 };

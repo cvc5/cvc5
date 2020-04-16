@@ -26,6 +26,7 @@ const char* toString(PfRule id)
     case PfRule::ASSUME: return "ASSUME";
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
+    case PfRule::SUBS_REWRITE: return "SUBS_REWRITE";
     case PfRule::SPLIT: return "SPLIT";
     //================================================= Equality rules
     case PfRule::REFL: return "REFL";

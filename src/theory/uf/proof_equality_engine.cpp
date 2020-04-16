@@ -30,7 +30,7 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
                              bool pfEnabled)
     : EagerProofGenerator(u, pnm),
       d_ee(ee),
-      d_proof(c, pnm),
+      d_proof(pnm, c),
       d_pfEnabled(pfEnabled)
 {
   NodeManager* nm = NodeManager::currentNM();
