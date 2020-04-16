@@ -89,7 +89,7 @@ namespace CVC4 {
  *
  * Notice the map from Nodes to ProofNodes is context-dependent and is
  * backtracked when the context backtracks.
- * 
+ *
  * This class requires a ProofNodeManager object, which is a trusted way of
  * allocating ProofNode pointers. This manager may have an underlying checker,
  * although this is not required. It also (optionally) takes a context c.

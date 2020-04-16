@@ -38,7 +38,7 @@ namespace CVC4 {
  * The "core rules" include ASSUME, which represents an open leaf in a proof.
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
- * 
+ *
  * Rules with prefix MACRO_ are those that can be defined in terms of other
  * rules and exist for convienience. We provide their definition in the line
  * "Macro:".
@@ -69,7 +69,7 @@ enum class PfRule : uint32_t
   // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
   // Arguments: (t)
   // ---------------------------------------------------------------
-  // Conclusion: 
+  // Conclusion:
   //  (= t Rewriter::rewrite(t.substitute(x1,t1). ... .substitute(xn,tn)))
   // Notice that the orientation of the premises matters.
   SUBS_REWRITE,

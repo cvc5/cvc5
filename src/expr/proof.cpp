@@ -23,10 +23,7 @@ CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
 {
 }
 
-CDProof::~CDProof()
-{
-
-}
+CDProof::~CDProof() {}
 
 std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
 {
@@ -46,7 +43,7 @@ Node CDProof::registerStep(Node expected,
 {
   // we must provide expected
   Assert(!expected.isNull());
-  
+
   NodeProofNodeMap::iterator it = d_nodes.find(expected);
   if (it != d_nodes.end())
   {
@@ -100,7 +97,7 @@ Node CDProof::registerStep(Node expected,
     d_manager->updateNode(pthis.get(), id, pchildren, args);
   }
   // the result of the proof node should be expected
-  Assert(pthis->getResult()==expected);
+  Assert(pthis->getResult() == expected);
   return expected;
 }
 

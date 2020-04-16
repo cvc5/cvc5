@@ -231,7 +231,7 @@ void TermRegistry::registerTerm(Node n, int effort)
                            << std::endl;
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
-    ProvenNode plem(regTermLem,nullptr);
+    ProvenNode plem(regTermLem, nullptr);
     d_poc.lemma(plem);
   }
 }
@@ -338,7 +338,7 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
                            << std::endl;
     Trace("strings-assert") << "(assert " << lenLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTermAtomic);
-    ProvenNode plem(lenLem,nullptr);
+    ProvenNode plem(lenLem, nullptr);
     d_poc.lemma(plem);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
