@@ -35,11 +35,12 @@ std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
   return nullptr;
 }
 
-Node CDProof::registerStep(Node expected,
+bool CDProof::registerStep(Node expected,
                            PfRule id,
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
-                           bool ensureChildren)
+                           bool ensureChildren,
+                           bool forceOverwrite)
 {
   // we must provide expected
   Assert(!expected.isNull());
@@ -47,12 +48,15 @@ Node CDProof::registerStep(Node expected,
   NodeProofNodeMap::iterator it = d_nodes.find(expected);
   if (it != d_nodes.end())
   {
-    if ((*it).second->getId() != PfRule::ASSUME || id == PfRule::ASSUME)
+    if (!forceOverwrite
+        && ((*it).second->getId() != PfRule::ASSUME || id == PfRule::ASSUME))
     {
-      // already proven or duplicate assumption, nothing to do
-      return expected;
+      // we do not overwrite if forceOverwrite is false and the previously
+      // provided step was not an assumption, or if the currently provided step
+      // is a (duplicate) assumption
+      return true;
     }
-    // we will overwrite assumption
+    // we will overwrite the existing proof node by updating its contents below
   }
 
   // collect the child proofs, for each premise
@@ -65,7 +69,7 @@ Node CDProof::registerStep(Node expected,
       if (ensureChildren)
       {
         // failed to get a proof for a child, fail
-        return Node::null();
+        return false;
       }
       // otherwise, we initialize it as an assumption
       std::vector<Node> pcargs = {c};
@@ -86,7 +90,7 @@ Node CDProof::registerStep(Node expected,
     if (pthis == nullptr)
     {
       // failed to construct the node, perhaps due to a proof checking failure
-      return Node::null();
+      return false;
     }
     d_nodes.insert(expected, pthis);
   }
@@ -98,23 +102,25 @@ Node CDProof::registerStep(Node expected,
   }
   // the result of the proof node should be expected
   Assert(pthis->getResult() == expected);
-  return expected;
+  return true;
 }
 
-Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
+bool CDProof::registerProof(Node expected,
+                            std::shared_ptr<ProofNode> pn,
+                            bool forceOverwrite)
 {
   if (pn->getResult() != expected)
   {
     // something went wrong
-    return Node::null();
+    return false;
   }
-  std::unordered_map<std::shared_ptr<ProofNode>, Node> visited;
-  std::unordered_map<std::shared_ptr<ProofNode>, Node>::iterator it;
+  std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
+  std::unordered_map<std::shared_ptr<ProofNode>, bool>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
-  NodeProofNodeMap::iterator itr;
   std::shared_ptr<ProofNode> cur;
   Node curFact;
   visit.push_back(pn);
+  bool retValue = true;
   do
   {
     cur = visit.back();
@@ -124,7 +130,7 @@ Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
     if (it == visited.end())
     {
       // visit the children
-      visited[cur] = Node::null();
+      visited[cur] = false;
       visit.push_back(cur);
       const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& c : cs)
@@ -132,34 +138,32 @@ Node CDProof::registerProof(Node expected, std::shared_ptr<ProofNode> pn)
         visit.push_back(c);
       }
     }
-    else if (it->second.isNull())
+    else if (!it->second)
     {
-      itr = d_nodes.find(curFact);
-      if (itr != d_nodes.end() && (*itr).second->getId() != PfRule::ASSUME)
+      // we always call registerStep, which may or may not overwrite the
+      // current step
+      std::vector<Node> pexp;
+      const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& c : cs)
       {
-        // if we already have a proof for this fact, we keep it
-        visited[cur] = curFact;
+        Assert(!c->getResult().isNull());
+        pexp.push_back(c->getResult());
       }
-      else
-      {
-        // if we don't, we must register the step
-        std::vector<Node> pexp;
-        const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
-        for (const std::shared_ptr<ProofNode>& c : cs)
-        {
-          Assert(!c->getResult().isNull());
-          pexp.push_back(c->getResult());
-        }
-        // can ensure children at this point
-        Node res = registerStep(
-            curFact, cur->getId(), pexp, cur->getArguments(), true);
-        Assert(!res.isNull());
-        visited[cur] = res;
-      }
+      // can ensure children at this point
+      bool res = registerStep(curFact,
+                              cur->getId(),
+                              pexp,
+                              cur->getArguments(),
+                              true,
+                              forceOverwrite);
+      // should always succeed
+      Assert(res);
+      retValue = retValue && res;
+      visited[cur] = true;
     }
   } while (!visit.empty());
 
-  return expected;
+  return retValue;
 }
 
 }  // namespace CVC4
