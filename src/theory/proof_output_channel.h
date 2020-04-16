@@ -28,24 +28,29 @@ namespace theory {
 
 /**
  * A layer on top of an output channel to ensure proofs are constructed and
- * available for conflicts and lemmas that may require proofs. It is intended
- * to be used by Theory objects as a way of managing their use of their
- * OutputChannel.
+ * available for conflicts and lemmas that may require proofs. It is
+ * intended to be owned by TheoryEngine and passed as reference to each of
+ * its Theory solvers. Its use can be summarized in two parts:
+ * 
+ * (1) Theory objects should use the output calls to methods in this class,
+ * e.g. conflict(...), lemma(...).
+ * 
+ * (2) TheoryEngine should use the methods to get proofs in this class, e.g
+ * getProofForConflict(...), getProofForLemma(...) corresponding to the above
+ * calls.
  *
- * When a call to
- *   OutputChannel::lemma(lem, .. )
- * is made by a Theory, it is required, in the remainder of the current user
+ * It is implemented by requiring that calls to conflict(...) provide an
+ * pointer to a proof generator object, as part of the ProvenNode pair.
+ * 
+ * In more detail, when a call to
+ *   ProofOutputChannel::conflict(ProvenNode(conf, pfg))
+ * is made, this class is required, in the remainder of the current user
  * context, to provide a proof for lem via the call:
- *   Theory::getProof(ProofOutputChannel::getLemmaKeyValue(lem))
- * Simliar contracts exist for the other calls on OutputChannel. This contract
- * is required for generating proofs in TheoryEngine.
- *
- * The purpose of the ProofOutputChannel is to ensure that the above contracts
- * are met. In particular, for each conflict or lemma sent on the output
- * channel of this class, we must provide a ProofGenerator object (an instance
- * of the abstract class), which can provide a proof for that lemma. Notice
- * that different proof generators can be provided for different lemmas for
- * the same Theory object.
+ *   ProofOutputChannel::getProofForConflict(conf)
+ * This is implemented by calling the getProofForConflict(conf) method of the
+ * provided proof generator pfg. Simliar contracts exist for the other calls.
+ * Thus, the user of this class needs to ensure that the provided pfg can
+ * produce a proof for conf in the remainder of the user context.
  */
 class ProofOutputChannel
 {
@@ -56,20 +61,22 @@ class ProofOutputChannel
   ProofOutputChannel(OutputChannel& out, context::UserContext* u);
   ~ProofOutputChannel() {}
   /**
-   * Send conf on the output channel of this class whose proof can be generated
+   * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
+   * sends conf on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
   void conflict(ProvenNode pconf);
   /**
    * Get the proof for conflict conf. This method can be called if
-   * conflict(conf, pfg) has been called in this user context. This method
-   * returns the proof of conf, according to pfg, or nullptr if we fail to
-   * generate a proof. The latter can happen if pfg was nullptr, or if its
-   * getProof method failed, indicating a failure.
+   * conflict(ProvenNode(conf, pfg)) has been called in this user context. This
+   * method returns the proof of conf, according to pfg, or nullptr if we fail
+   * to generate a proof. The latter can happen if pfg was nullptr, or if its
+   * getProof method failed, indicating an internal failure.
    */
   std::shared_ptr<ProofNode> getProofForConflict(Node conf) const;
   /**
+   * Let plem be the pair (Node lem, ProofGenerator * pfg).
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
@@ -80,10 +87,10 @@ class ProofOutputChannel
                     bool sendAtoms = false);
   /**
    * Get the proof for lemma lem. This method can be called if
-   * conflict(lem, pfg, ...) has been called in this user context. This method
-   * returns the proof of lem, according to pfg, or nullptr if we fail to
-   * generate a proof. The latter can happen if pfg was nullptr, or if its
-   * getProof method failed, indicating a failure.
+   * lemma(ProvenNode(lem, pfg), ...) has been called in this user context.
+   * This method returns the proof of lem, according to pfg, or nullptr if we
+   * fail to generate a proof. The latter can happen if pfg was nullptr, or if
+   * its getProof method failed, indicating an internal failure.
    */
   std::shared_ptr<ProofNode> getProofForLemma(Node lem) const;
 
