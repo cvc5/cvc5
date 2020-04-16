@@ -104,7 +104,7 @@ class CDProof
 
  public:
   CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
-  ~CDProof() {}
+  ~CDProof();
   /**
    * Get proof for fact, or nullptr if it does not exist. Notice that this call
    * does *not* clone the ProofNode object. Hence, the returned proof may
@@ -160,8 +160,8 @@ class CDProof
  protected:
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_manager;
-  /** The context used by this class */
-  std::shared_ptr<context::Context> d_context;
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
 };

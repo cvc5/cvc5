@@ -19,8 +19,13 @@ using namespace CVC4::kind;
 namespace CVC4 {
 
 CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
-    : d_manager(pnm), d_context(c ? std::maked_shared<Context>(c) : nullptr) d_nodes(d_context.get())
+    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context)
 {
+}
+
+CDProof::~CDProof()
+{
+
 }
 
 std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
