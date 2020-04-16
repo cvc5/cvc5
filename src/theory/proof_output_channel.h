@@ -31,17 +31,17 @@ namespace theory {
  * available for conflicts and lemmas that may require proofs. It is
  * intended to be owned by TheoryEngine and passed as reference to each of
  * its Theory solvers. Its use can be summarized in two parts:
- * 
+ *
  * (1) Theory objects should use the output calls to methods in this class,
  * e.g. conflict(...), lemma(...).
- * 
+ *
  * (2) TheoryEngine should use the methods to get proofs in this class, e.g
  * getProofForConflict(...), getProofForLemma(...) corresponding to the above
  * calls.
  *
  * It is implemented by requiring that calls to conflict(...) provide an
  * pointer to a proof generator object, as part of the ProvenNode pair.
- * 
+ *
  * In more detail, when a call to
  *   ProofOutputChannel::conflict(ProvenNode(conf, pfg))
  * is made, this class is required, in the remainder of the current user
