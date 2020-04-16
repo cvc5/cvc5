@@ -92,16 +92,15 @@ bool ProofEqEngine::assertFact(Node lit,
   return lit == ret;
 }
 
-TrustNode ProofEqEngine::assertConflict(PfRule id,
-                                         const std::vector<Node>& exp)
+TrustNode ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
 {
   std::vector<Node> args;
   return assertConflict(id, exp, args);
 }
 
 TrustNode ProofEqEngine::assertConflict(PfRule id,
-                                         const std::vector<Node>& exp,
-                                         const std::vector<Node>& args)
+                                        const std::vector<Node>& exp,
+                                        const std::vector<Node>& args)
 {
   if (d_pfEnabled)
   {

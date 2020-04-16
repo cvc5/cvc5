@@ -59,7 +59,6 @@ class ProofGenerator
   virtual bool canProveLemma(Node lem) { return true; }
 };
 
-
 /**
  * An eager proof generator, with explicit proof caching.
  *

@@ -38,8 +38,7 @@ class TrustNode
 {
  public:
   /** Make a proven node for conflict */
-  static TrustNode mkTrustConflict(Node conf,
-                                         ProofGenerator* g = nullptr);
+  static TrustNode mkTrustConflict(Node conf, ProofGenerator* g = nullptr);
   /** Make a proven node for lemma */
   static TrustNode mkTrustLemma(Node lem, ProofGenerator* g = nullptr);
   /** The null proven node */
@@ -59,7 +58,6 @@ class TrustNode
   /** The generator */
   ProofGenerator* d_gen;
 };
-
 
 }  // namespace theory
 }  // namespace CVC4
