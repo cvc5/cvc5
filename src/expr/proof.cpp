@@ -36,11 +36,11 @@ std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
 }
 
 bool CDProof::addStep(Node expected,
-                           PfRule id,
-                           const std::vector<Node>& children,
-                           const std::vector<Node>& args,
-                           bool ensureChildren,
-                           bool forceOverwrite)
+                      PfRule id,
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      bool ensureChildren,
+                      bool forceOverwrite)
 {
   // we must provide expected
   Assert(!expected.isNull());
@@ -106,8 +106,8 @@ bool CDProof::addStep(Node expected,
 }
 
 bool CDProof::addProof(Node expected,
-                            std::shared_ptr<ProofNode> pn,
-                            bool forceOverwrite)
+                       std::shared_ptr<ProofNode> pn,
+                       bool forceOverwrite)
 {
   if (pn->getResult() != expected)
   {
@@ -151,11 +151,11 @@ bool CDProof::addProof(Node expected,
       }
       // can ensure children at this point
       bool res = addStep(curFact,
-                              cur->getId(),
-                              pexp,
-                              cur->getArguments(),
-                              true,
-                              forceOverwrite);
+                         cur->getId(),
+                         pexp,
+                         cur->getArguments(),
+                         true,
+                         forceOverwrite);
       // should always succeed
       Assert(res);
       retValue = retValue && res;

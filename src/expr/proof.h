@@ -142,11 +142,11 @@ class CDProof
    * true.
    */
   bool addStep(Node expected,
-                    PfRule id,
-                    const std::vector<Node>& children,
-                    const std::vector<Node>& args,
-                    bool ensureChildren = false,
-                    bool forceOverwrite = false);
+               PfRule id,
+               const std::vector<Node>& children,
+               const std::vector<Node>& args,
+               bool ensureChildren = false,
+               bool forceOverwrite = false);
   /** Add proof
    *
    * @param fact The intended conclusion of the proof.
@@ -163,8 +163,8 @@ class CDProof
    * internal data of this class.
    */
   bool addProof(Node expected,
-                     std::shared_ptr<ProofNode> pn,
-                     bool forceOverwrite = false);
+                std::shared_ptr<ProofNode> pn,
+                bool forceOverwrite = false);
 
  protected:
   /** The proof manager, used for allocating new ProofNode objects */
