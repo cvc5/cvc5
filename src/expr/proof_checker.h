@@ -31,6 +31,8 @@ class ProofRuleChecker
   ProofRuleChecker() {}
   virtual ~ProofRuleChecker() {}
   /**
+   * This checks a single step in a proof.
+   * 
    * Return the formula that is proven by a proof node with the given id,
    * premises and arguments, or null if such a proof node is not well-formed.
    *
