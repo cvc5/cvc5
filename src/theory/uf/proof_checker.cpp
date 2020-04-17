@@ -50,6 +50,17 @@ Node EqProofRuleChecker::check(PfRule id,
     Assert(args.size() == 1);
     return args[0];
   }
+  else if (id == PfRule::SCOPE)
+  {
+    Assert(children.size()==1);
+    Assert(args.size()>0);
+    Node ant = mkAnd(children);
+    if (children[0]==d_false)
+    {
+      return ant;
+    }
+    return NodeManager::currentNM()->mkNode(IMPLIES,ant,children[0]);
+  }
   else if (id == PfRule::SUBS)
   {
     Assert(children.size() > 0);
