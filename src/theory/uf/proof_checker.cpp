@@ -73,7 +73,8 @@ Node EqProofRuleChecker::check(PfRule id,
   {
     Assert(children.size() > 0);
     Assert(args.size() == 1);
-    // we use builtin operator
+    // TODO: how to handle builtin operators? could use builtin node for Kind,
+    // operatorToKind.
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
     lchildren.push_back(args[0]);
@@ -88,9 +89,26 @@ Node EqProofRuleChecker::check(PfRule id,
       lchildren.push_back(eqp[0]);
       rchildren.push_back(eqp[1]);
     }
-    Node l = nm->mkNode(lchildren);
-    Node r = nm->mkNode(rchildren);
+    NodeManager * nm = NodeManager::currentNM();
+    Node l = nm->mkNode(APPLY_UF, lchildren);
+    Node r = nm->mkNode(APPLY_UF, rchildren);
     return l.eqNode(r);
+  }
+  else if (id == PfRule::TRUE_INTRO)
+  {
+    Assert(children.size()==1);
+    Assert(args.empty());
+    Node trueNode = NodeManager::currentNM()->mkConst(true);
+    return children[0].eqNode(trueNode);
+  }
+  else if (id == PfRule::TRUE_ELIM)
+  {
+    Assert(children.size()==1);
+    Assert(args.empty());
+    if (children[0].getKind()!=EQUAL || !children[0][1].isConst())
+    {
+      
+    }
   }
   // no rule
   return Node::null();

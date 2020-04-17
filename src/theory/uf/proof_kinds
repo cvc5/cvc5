@@ -7,28 +7,42 @@
 // Arguments: (t)
 // ---------------------
 // Conclusion: (= t t)
-prooffule REFL 0 1 ::CVC4::theory::uf::EqProofRuleChecker
+proofrule REFL 0 1 ::CVC4::theory::uf::EqProofRuleChecker
 
 // ======== Symmetric
 // Children: (P:(= t1 t2))
 // Arguments: none
 // -----------------------
 // Conclusion: (= t2 t1)
-prooffule SYMM 1 0 ::CVC4::theory::uf::EqProofRuleChecker
+proofrule SYMM 1 0 ::CVC4::theory::uf::EqProofRuleChecker
 
 // ======== Transitivity
 // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
 // Arguments: none
 // -----------------------
 // Conclusion: (= t1 tn)
-prooffule TRANS 2: 0 ::CVC4::theory::uf::EqProofRuleChecker
+proofrule TRANS 2: 0 ::CVC4::theory::uf::EqProofRuleChecker
 
 // ======== Congruence  (subsumed by Substitute?)
 // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
 // Arguments: (f)
 // ---------------------------------------------
 // Conclusion: (= (f t1 ... tn) (f s1 ... sn))
-prooffule CONG 0: 1 ::CVC4::theory::uf::EqProofRuleChecker
+proofrule CONG 0: 1 ::CVC4::theory::uf::EqProofRuleChecker
+
+// ======== True intro
+// Children: (P:F)
+// Arguments: ()
+// ----------------------------------------
+// Conclusion: (= F true)
+proofrule TRUE_INTRO 1 0 ::CVC4::theory::uf::EqProofRuleChecker
+
+// ======== True elim
+// Children: (P:(= F true)
+// Arguments: ()
+// ----------------------------------------
+// Conclusion: F
+proofrule TRUE_ELIM 1 0 ::CVC4::theory::uf::EqProofRuleChecker
 
 
 
