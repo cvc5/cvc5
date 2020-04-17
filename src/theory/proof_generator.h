@@ -80,7 +80,7 @@ class ProofGenerator
  *      TrustNode getProvenConflictByMethodX(...)
  *      {
  *        Node conf = [construct conflict];
- *        std::shared_ptr<ProofNode> pf = [construct its proof];
+ *        std::shared_ptr<ProofNode> pf = [construct the proof for conf];
  *        // remember that pf is the proof for conflict conf
  *        setProofForConflict(conf, pf);
  *        // trust that this generator can prove conflict

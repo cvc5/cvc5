@@ -27,6 +27,8 @@ namespace CVC4 {
 namespace theory {
 
 /**
+ * TODO: this class should inherit from OutputChannel, not contain it.
+ * 
  * A layer on top of an output channel to ensure proofs are constructed and
  * available for conflicts and lemmas that may require proofs. It is
  * intended to be owned by TheoryEngine and passed as reference to each of
@@ -66,7 +68,7 @@ class ProofOutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  void conflict(TrustNode pconf);
+  void trustedConflict(TrustNode pconf);
   /**
    * Get the proof for conflict conf. This method can be called if
    * conflict(TrustNode(conf, pfg)) has been called in this user context. This
@@ -81,7 +83,7 @@ class ProofOutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  LemmaStatus lemma(TrustNode lem,
+  LemmaStatus trustedLemma(TrustNode lem,
                     bool removable = false,
                     bool preprocess = false,
                     bool sendAtoms = false);

@@ -702,7 +702,7 @@ void TheoryStrings::conflict(TNode a, TNode b){
   Trace("strings-conflict")
       << "CONFLICT: Eq engine conflict : " << conf.getNode() << std::endl;
   ++(d_statistics.d_conflictsEqEngine);
-  d_poc.conflict(conf);
+  d_poc.trustedConflict(conf);
 }
 
 void TheoryStrings::eqNotifyNewClass(TNode t){

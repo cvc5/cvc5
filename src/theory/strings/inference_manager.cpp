@@ -202,7 +202,7 @@ void InferenceManager::sendLemma(TrustNode n, Inference infer)
     Trace("strings-assert")
         << "(assert (not " << f << ")) ; conflict " << infer << std::endl;
     ++(d_statistics.d_conflictsInfer);
-    d_poc.conflict(n);
+    d_poc.trustedConflict(n);
     d_state.setConflict();
     return;
   }
@@ -339,7 +339,7 @@ void InferenceManager::doPendingLemmas()
       Assert(pl.getKind() == TrustNodeKind::LEMMA);
       Trace("strings-pending") << "Process pending lemma : " << pl << std::endl;
       ++(d_statistics.d_lemmasInfer);
-      d_poc.lemma(pl);
+      d_poc.trustedLemma(pl);
     }
     for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
     {
