@@ -112,8 +112,8 @@ class SolverBlack : public CxxTest::TestSuite
   void testSynthInv();
   void testAddSygusConstraint();
   void testAddSygusInvConstraint();
-  void testgetSynthSolution();
-  void testgetSynthSolutions();
+  void testGetSynthSolution();
+  void testGetSynthSolutions();
 
  private:
   std::unique_ptr<Solver> d_solver;
@@ -1378,7 +1378,7 @@ void SolverBlack::testAddSygusInvConstraint()
                    CVC4ApiException&);
 }
 
-void SolverBlack::testgetSynthSolution()
+void SolverBlack::testGetSynthSolution()
 {
   d_solver->setOption("lang", "sygus2");
   d_solver->setOption("incremental", "false");
@@ -1398,7 +1398,7 @@ void SolverBlack::testgetSynthSolution()
   TS_ASSERT_THROWS(d_solver->getSynthSolution(x), CVC4ApiException&);
 }
 
-void SolverBlack::testgetSynthSolutions()
+void SolverBlack::testGetSynthSolutions()
 {
   d_solver->setOption("lang", "sygus2");
   d_solver->setOption("incremental", "false");
@@ -1412,10 +1412,10 @@ void SolverBlack::testgetSynthSolutions()
 
   d_solver->checkSynth();
 
-  // TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolutions({}));
   TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolutions({f}));
   TS_ASSERT_THROWS_NOTHING(d_solver->getSynthSolutions({f, f}));
 
+  TS_ASSERT_THROWS(d_solver->getSynthSolutions({}), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->getSynthSolutions({nullTerm}), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->getSynthSolutions({x}), CVC4ApiException&);
 }
