@@ -71,8 +71,8 @@ class ProofGenerator
  * calling ProofOutputChannel(TrustNode(conf,X)), where X is this generator.
  * Similarly for setProofForLemma.
  *
- * A clean usage of this class in combination with ProofOutputChannel is the
- * following:
+ * The intended usage of this class in combination with ProofOutputChannel is
+ * the following:
  * //-----------------------------------------------------------
  *   class MyEagerProofGenerator : public EagerProofGenerator
  *   {
@@ -81,8 +81,10 @@ class ProofGenerator
  *      {
  *        Node conf = [construct conflict];
  *        std::shared_ptr<ProofNode> pf = [construct its proof];
+ *        // remember that pf is the proof for conflict conf
  *        setProofForConflict(conf, pf);
- *        return std::pair<Node, ProofGenerator * >( conf, this );
+ *        // trust that this generator can prove conflict
+ *        return TrustNode( conf, this );
  *      }
  *   };
  *   // [1] Make objects given user context u and output channel out
