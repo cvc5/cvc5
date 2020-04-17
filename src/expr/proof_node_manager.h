@@ -31,7 +31,7 @@ namespace CVC4 {
  * In more detail, we say a ProofNode is "well-formed (with respect to checker
  * X)" if its d_proven field is non-null, and corresponds to the formula that
  * the ProofNode proves according to X. The ProofNodeManager class constructs
- * and update nodes that well-formed with respect to its underlying checker.
+ * and update nodes that are well-formed with respect to its underlying checker.
  *
  * If no checker is provided, then the ProofNodeManager assigns the d_proven
  * field of ProofNode based on the provided "expected" argument in mkNode below,
@@ -55,7 +55,7 @@ class ProofNodeManager
   /**
    * This constructs a ProofNode with the given arguments. The expected
    * argument, when provided, indicates the formula that the returned node
-   * is expected to prove. If we find that it does not based on the underlying
+   * is expected to prove. If we find that it does not, based on the underlying
    * checker, this method returns nullptr.
    *
    * @param id The id of the proof node.
@@ -99,10 +99,11 @@ class ProofNodeManager
   /** Check internal
    *
    * This returns the result of proof checking a ProofNode with the provided
-   * arguments with an (optional) expected conclusion.
+   * arguments with an expected conclusion, which may not null if there is
+   * no expected conclusion.
    *
    * This throws an assertion error if we fail to check such a proof node, or
-   * if expected is provided (non-null) is different what is proven by the
+   * if expected is provided (non-null) and is different what is proven by the
    * other arguments.
    */
   Node checkInternal(PfRule id,

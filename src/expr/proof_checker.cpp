@@ -43,9 +43,17 @@ Node ProofChecker::check(
     Node cres = pc->getResult();
     if (cres.isNull())
     {
+<<<<<<< HEAD
       Trace("pfcheck") << "ProofChecker::check: child proof was invalid"
                        << std::endl;
       // a child proof was invalid
+=======
+      Trace("pfcheck")
+          << "ProofChecker::check: child proof was invalid (null conclusion)"
+          << std::endl;
+      // should not have been able to create such a proof node
+      Assert(false);
+>>>>>>> cc1689c3e40d6faf8de1ed7cd4eaae687adae103
       return Node::null();
     }
     cchildren.push_back(cres);
