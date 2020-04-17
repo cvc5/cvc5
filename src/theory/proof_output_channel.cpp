@@ -56,9 +56,9 @@ std::shared_ptr<ProofNode> ProofOutputChannel::getProofForConflict(
 }
 
 LemmaStatus ProofOutputChannel::trustedLemma(TrustNode plem,
-                                      bool removable,
-                                      bool preprocess,
-                                      bool sendAtoms)
+                                             bool removable,
+                                             bool preprocess,
+                                             bool sendAtoms)
 {
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   Node lem = plem.getNode();
