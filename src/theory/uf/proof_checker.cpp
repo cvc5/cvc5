@@ -73,8 +73,8 @@ Node EqProofRuleChecker::check(PfRule id,
   {
     Assert(children.size() > 0);
     Assert(args.size() == 1);
-    // TODO: how to handle builtin operators? could use builtin node for Kind,
-    // operatorToKind.
+    // We could handle builtin operators here using
+    // kindToOperator/operatorToKind, for now, hard-coded to APPLY_UF
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
     lchildren.push_back(args[0]);
