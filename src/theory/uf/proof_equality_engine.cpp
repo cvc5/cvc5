@@ -121,6 +121,8 @@ bool ProofEqEngine::assertFact(Node lit,
   return assertFact(lit, id, expv, args);
 }
 
+// could combine proofs with this
+/*
 bool ProofEqEngine::assertFact(Node lit, ProofNode* p)
 {
   Assert(p != nullptr);
@@ -135,6 +137,7 @@ bool ProofEqEngine::assertFact(Node lit, ProofNode* p)
   }
   return assertFact(lit, p->getId(), exp, p->getArguments());
 }
+*/
 
 TrustNode ProofEqEngine::assertConflict(Node lit)
 {
