@@ -238,11 +238,12 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       return TrustNode::null();
     }
     // wrap the proof in a SCOPE
-    std::shared_ptr<ProofNode> pf = d_pnm->mkNode(PfRule::SCOPE, pfConc, assumps);
+    std::shared_ptr<ProofNode> pf =
+        d_pnm->mkNode(PfRule::SCOPE, pfConc, assumps);
     // should always succeed, since assumptions should be closed
-    Assert( pf!=nullptr);
+    Assert(pf != nullptr);
     // should be a closed proof now
-    Assert (pf->getAssumptions().empty());
+    Assert(pf->getAssumptions().empty());
     // set the proof for the conflict or lemma, which can be queried later
     if (isConflict)
     {
