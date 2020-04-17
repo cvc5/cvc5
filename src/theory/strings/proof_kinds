@@ -6,7 +6,7 @@
 // Arguments: (b), indicating if reverse direction
 // ---------------------
 // Conclusion: (= t1 s1)
-CONCAT_ENDP_UNIFY 1 1 ::CVC4::theory::strings::StringsProofRuleChecker
+proofrule CONCAT_ENDP_UNIFY 1 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Normal form unify
 // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
@@ -14,7 +14,7 @@ CONCAT_ENDP_UNIFY 1 1 ::CVC4::theory::strings::StringsProofRuleChecker
 // Arguments: (b), indicating if reverse direction
 // ---------------------
 // Conclusion: (= t1 s1)
-CONCAT_UNIFY 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
+proofrule CONCAT_UNIFY 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Concat split
 // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
@@ -27,22 +27,26 @@ CONCAT_UNIFY 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
 // where
 //   r1 = (witness ((z String)) (= z (suf t1 (str.len s1)))) and
 //   r2 = (witness ((z String)) (= z (suf s1 (str.len t1)))).
-// If b = true, then:
+//
+// If b = true, then P1 is a proof of (= (str.++ t2 t1) (str.++ s2 s1)), and
+// the conclusion is:
 //   (or (= t1 (str.++ r1 s1)) (= s1 (str.++ r2 t1)))
 // where
-//   r1 = (witness ((z String)) (= z (pre t1 (str.len s1)))) and
-//   r2 = (witness ((z String)) (= z (pre s1 (str.len t1)))).
+//   r1 = (witness ((z String)) (= z (pre t1 (- (str.len t) (str.len s1))))) and
+//   r2 = (witness ((z String)) (= z (pre s1 (- (str.len s) (str.len t1))))).
 // Above, (suf x n) is shorthand for (str.substr x n (- (str.len x) n)) and
 // (pre x n) is shorthand for (str.substr x 0 n).
-CONCAT_SPLIT 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
+proofrule CONCAT_SPLIT 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Concat split propagate
 // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
 //            P2:(> (str.len t1) (str.len s1)))
 // Arguments: (b), indicating if reverse direction
 // ---------------------
-// Conclusion: (= t1 (str.++ s1 ...))
-CONCAT_LPROP
+// Conclusion: (= t1 (str.++ s1 r1))
+// where
+// TODO
+proofrule CONCAT_LPROP 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Concat split propagate
 // Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s1)))
@@ -50,7 +54,7 @@ CONCAT_LPROP
 // ---------------------
 // Conclusion: (= t1 (str.++ w3 ...)) where w3 ++ w4 = w1 and w4 is the
 // overlap of w1 and w2.
-CONCAT_CPROP
+proofrule CONCAT_CPROP 1 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 
 //======================== Extended functions
@@ -60,28 +64,29 @@ CONCAT_CPROP
 // Arguments: none
 // -------------------
 // Conclusion: (not (= s t))
-CTN_NOT_EQUAL
+proofrule CTN_NOT_EQUAL 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Reduction
 // Children: none
 // Arguments: (t[x])
 // ---------------------
 // Conclusion: (and R[x,y] (= t[x] y)) where R is the reduction predicate
-// for extended term t[x].
-REDUCTION
+// for extended term t[x], and y is
+//   (witness ((z T)) (= z t[x]))
+proofrule REDUCTION 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 //======================== Regular expressions
 
 // ======== Regular expression intersection
-// Children: (P:(str.in.re t R1), P:(str.in.re t R2))
+// Children: (P1:(str.in.re t R1), ..., Pn:(str.in.re t Rn))
 // Arguments: none
 // ---------------------
-// Conclusion: (str.in.re t (re.inter R1 R2)).
-RE_INTER
+// Conclusion: (str.in.re t (re.inter R1 ... Rn))
+proofrule RE_INTER 2: 0 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Regular expression unfold
 // Children: (P:(str.in.re t R)) or (P:(not (str.in.re t R)))
 // Arguments: none
 // ---------------------
 // Conclusion:F, corresponding to the one-step unfolding of the premise.
-RE_UNFOLD
+proofrule RE_UNFOLD 1 0 ::CVC4::theory::strings::StringsProofRuleChecker

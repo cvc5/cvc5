@@ -11,7 +11,7 @@
 // analogous to a free variable in a term, where we say "F is a free
 // assumption in proof P" if it contains an application of F that is not
 // bound by SCOPE (see below).
-prooffule ASSUME 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
+proofrule ASSUME 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
 // ======== Assumption (a leaf)
 // Children: (P:F)
@@ -26,7 +26,7 @@ prooffule ASSUME 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 //   (SCOPE (ASSUME F) :args F)
 // has the conclusion (=> F F) and has no free assumptions. More generally, a
 // proof with no free assumptions always concludes a valid formula.
-prooffule SCOPE 1 1: ::CVC4::theory::builtin::BuiltinProofRuleChecker
+proofrule SCOPE 1 1: ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
 //======================== Node operations
 
@@ -36,14 +36,14 @@ prooffule SCOPE 1 1: ::CVC4::theory::builtin::BuiltinProofRuleChecker
 // ---------------------------------------------------------------
 // Conclusion: (= t t.substitute(x1,t1). ... .substitute(xn,tn))
 // Notice that the orientation of the premises matters.
-prooffule SUBS 1: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
+proofrule SUBS 1: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
 // ======== Rewrite
 // Children: none
 // Arguments: (t)
 // ----------------------------------------
 // Conclusion: (= t Rewriter::rewrite(t))
-prooffule REWRITE 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
+proofrule REWRITE 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
 // ======== Substitution
 // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
@@ -51,4 +51,4 @@ prooffule REWRITE 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 // ---------------------------------------------------------------
 // Conclusion:
 //  (= t Rewriter::rewrite(t.substitute(x1,t1). ... .substitute(xn,tn)))
-prooffule SUBS_REWRITE 1: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
+proofrule SUBS_REWRITE 1: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
