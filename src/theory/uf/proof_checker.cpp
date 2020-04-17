@@ -89,25 +89,24 @@ Node EqProofRuleChecker::check(PfRule id,
       lchildren.push_back(eqp[0]);
       rchildren.push_back(eqp[1]);
     }
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node l = nm->mkNode(APPLY_UF, lchildren);
     Node r = nm->mkNode(APPLY_UF, rchildren);
     return l.eqNode(r);
   }
   else if (id == PfRule::TRUE_INTRO)
   {
-    Assert(children.size()==1);
+    Assert(children.size() == 1);
     Assert(args.empty());
     Node trueNode = NodeManager::currentNM()->mkConst(true);
     return children[0].eqNode(trueNode);
   }
   else if (id == PfRule::TRUE_ELIM)
   {
-    Assert(children.size()==1);
+    Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind()!=EQUAL || !children[0][1].isConst())
+    if (children[0].getKind() != EQUAL || !children[0][1].isConst())
     {
-      
     }
   }
   // no rule

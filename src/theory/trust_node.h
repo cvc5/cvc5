@@ -55,13 +55,13 @@ std::ostream& operator<<(std::ostream& out, TrustNodeKind tnk);
 /**
  * A trust node is a pair (F, G) where F is a formula and G is a proof
  * generator that can construct a proof for F if asked.
- * 
+ *
  * More generally, a trust node is any node that can be used for a specific
  * purpose that requires justification, such as being passed to
  * OutputChannel::lemma. That justification is intended to be given by the
  * generator that is required to construct this object.
  *
- * They are intended to be constructed by ProofGenerator objects themselves (a 
+ * They are intended to be constructed by ProofGenerator objects themselves (a
  * proof generator wraps itself in TrustNode it returns) and passed
  * to ProofOutputChannel by theory solvers.
  *
