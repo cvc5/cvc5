@@ -51,7 +51,7 @@ namespace CVC4 {
  * existing steps.
  *
  * As an example, let A, B, C, D be formulas represented by Nodes. If we
- * call: 
+ * call:
  * - addStep( A, ID_A, { B, C }, {} )
  * - addStep( B, ID_B, { D }, {} )
  * - addStep( E, ID_E, {}, {} )
@@ -80,7 +80,7 @@ namespace CVC4 {
  * ASSUME step can be seen as a step whose justification has not yet been
  * provided. Thus, it is always overwritten. Other proof rules are never
  * overwritten, unless the argument forceOverwrite is true.
- * 
+ *
  * As an another example, say that we call:
  * - addStep( B, ID_B1 {}, {} )
  * - addStep( A, ID_A1, {B, C}, {} )
@@ -109,7 +109,7 @@ namespace CVC4 {
  * is implemented internally by using a dummy context that is never pushed
  * or popped. The map from Nodes to ProofNodes is context-dependent and is
  * backtracked when its context backtracks.
- * 
+ *
  * An important invariant of this object is that there exists (at most) one
  * proof step for each Node. Thus, the ProofNode objects returned by this
  * class share proofs for common subformulas, as guaranteed by the fact that

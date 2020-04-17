@@ -72,7 +72,7 @@ Node EqProofRuleChecker::check(PfRule id,
   else if (id == PfRule::CONG)
   {
     Assert(children.size() > 0);
-    Assert(args.size()==1);
+    Assert(args.size() == 1);
     // we use builtin operator
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
