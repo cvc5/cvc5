@@ -269,7 +269,7 @@ class InferenceManager
   // ------------------------------------------------- end extended theory
 
   /** Get the proof-producing equality engine of this class */
-  eq::ProofEqEngine* getProofEqEngine() const;
+  eq::ProofEqEngine* getProofEqEngine();
 
  private:
   /** assert pending fact

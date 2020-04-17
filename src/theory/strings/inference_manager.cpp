@@ -530,7 +530,7 @@ void InferenceManager::markReduced(Node n, bool contextDepend)
 {
   d_extt.markReduced(n, contextDepend);
 }
-eq::ProofEqEngine* InferenceManager::getProofEqEngine() const
+eq::ProofEqEngine* InferenceManager::getProofEqEngine()
 {
   return &d_pfee;
 }
