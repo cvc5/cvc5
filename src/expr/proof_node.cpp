@@ -54,7 +54,7 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
       if (id == PfRule::ASSUME)
       {
         Node f = cur->d_proven;
-        if (currentScope.find(f)==currentScope.end())
+        if (currentScope.find(f) == currentScope.end())
         {
           assump.push_back(f);
         }
@@ -67,7 +67,7 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
           for (const Node& a : cur->d_args)
           {
             // should not have assumption shadowing
-            Assert (currentScope.find(a)!=currentScope.end());
+            Assert(currentScope.find(a) != currentScope.end());
             currentScope.insert(a);
           }
           // will need to unbind the variables below
@@ -81,7 +81,7 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
     }
     else if (!it->second)
     {
-      Assert(cur->getId()==SCOPE);
+      Assert(cur->getId() == SCOPE);
       for (const Node& a : cur->d_args)
       {
         currentScope.erase(a);

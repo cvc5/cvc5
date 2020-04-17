@@ -109,7 +109,7 @@ bool ProofEqEngine::assertFact(Node lit,
     {
       for (const Node& e : expv)
       {
-        Assert (e.getKind()!=AND);
+        Assert(e.getKind() != AND);
         expv.push_back(e);
       }
     }
@@ -221,7 +221,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     if (pf == nullptr)
     {
       // should have existed
-      Assert(false) << "ProofEqEngine::assertConflict: failed to get proof for " << conc;
+      Assert(false) << "ProofEqEngine::assertConflict: failed to get proof for "
+                    << conc;
       return TrustNode::null();
     }
     // set the proof for the conflict or lemma, which can be queried later

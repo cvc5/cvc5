@@ -37,7 +37,7 @@ namespace CVC4 {
  *
  * The "core rules" include two distinguished rules which have special status:
  * (1) ASSUME, which represents an open leaf in a proof.
- * (2) SCOPE, which can be 
+ * (2) SCOPE, which can be
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
  *
@@ -97,7 +97,7 @@ enum class PfRule : uint32_t
   //  (= t Rewriter::rewrite(t.substitute(x1,t1). ... .substitute(xn,tn)))
   // Macro: (REWRITE (SUBS P1 ... Pn :args t))
   MACRO_SUBS_REWRITE,
-  
+
   //================================================= Boolean rules
   // ======== Split
   // Children: none
