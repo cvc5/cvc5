@@ -690,16 +690,19 @@ bool TheoryStrings::needsCheckLastEffort() {
 
 /** Conflict when merging two constants */
 void TheoryStrings::conflict(TNode a, TNode b){
-  if (!d_state.isInConflict())
+  if (d_state.isInConflict())
   {
-    Debug("strings-conflict") << "Making conflict..." << std::endl;
-    d_state.setConflict();
-    Node conflictNode;
-    conflictNode = explain( a.eqNode(b) );
-    Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode << std::endl;
-    ++(d_statistics.d_conflictsEqEngine);
-    d_out->conflict( conflictNode );
+    // already in conflict
+    return;
   }
+  Debug("strings-conflict") << "Making conflict..." << std::endl;
+  d_state.setConflict();
+  eq::ProofEqEngine* pfee = d_im->getProofEqEngine();
+  TrustNode conf = pfee.assertConflict( a.eqNode(b) ;
+  Node conflict = conf.getNode();
+  Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflict << std::endl;
+  ++(d_statistics.d_conflictsEqEngine);
+  d_poc.conflict( conf );
 }
 
 void TheoryStrings::eqNotifyNewClass(TNode t){

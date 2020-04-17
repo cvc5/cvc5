@@ -530,6 +530,10 @@ void InferenceManager::markReduced(Node n, bool contextDepend)
 {
   d_extt.markReduced(n, contextDepend);
 }
+eq::ProofEqEngine* InferenceManager::getProofEqEngine() const
+{
+  return &d_pfee;
+}
 
 }  // namespace strings
 }  // namespace theory
