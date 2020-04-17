@@ -136,16 +136,28 @@ enum class PfRule : uint32_t
   CONG,
   // ======== True intro
   // Children: (P:F)
-  // Arguments: ()
+  // Arguments: none
   // ----------------------------------------
   // Conclusion: (= F true)
   TRUE_INTRO,
   // ======== True elim
   // Children: (P:(= F true)
-  // Arguments: ()
+  // Arguments: none
   // ----------------------------------------
   // Conclusion: F
   TRUE_ELIM,
+  // ======== False intro
+  // Children: (P:(not F))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= F false)
+  FALSE_INTRO,
+  // ======== False elim
+  // Children: (P:(= F false)
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (not F)
+  FALSE_ELIM,
   // ======== Equality by substitution + rewriting
   // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
   // Arguments: (t,s)

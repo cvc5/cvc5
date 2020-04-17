@@ -30,25 +30,38 @@ proofrule TRANS 2: 0 ::CVC4::theory::uf::EqProofRuleChecker
 // Conclusion: (= (f t1 ... tn) (f s1 ... sn))
 proofrule CONG 0: 1 ::CVC4::theory::uf::EqProofRuleChecker
 
+//=============================== Boolean conversion
+
 // ======== True intro
 // Children: (P:F)
-// Arguments: ()
+// Arguments: none
 // ----------------------------------------
 // Conclusion: (= F true)
 proofrule TRUE_INTRO 1 0 ::CVC4::theory::uf::EqProofRuleChecker
 
 // ======== True elim
 // Children: (P:(= F true)
-// Arguments: ()
+// Arguments: none
 // ----------------------------------------
 // Conclusion: F
 proofrule TRUE_ELIM 1 0 ::CVC4::theory::uf::EqProofRuleChecker
 
+// ======== False intro
+// Children: (P:(not F))
+// Arguments: none
+// ----------------------------------------
+// Conclusion: (= F false)
+proofrule FALSE_INTRO 1 0 ::CVC4::theory::uf::EqProofRuleChecker
+
+// ======== False elim
+// Children: (P:(= F false)
+// Arguments: none
+// ----------------------------------------
+// Conclusion: (not F)
+proofrule FALSE_ELIM 1 0 ::CVC4::theory::uf::EqProofRuleChecker
 
 
 //=============================== Common macros
-
-
 
 // ======== Equality by substitution + rewriting
 // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
