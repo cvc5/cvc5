@@ -14,7 +14,6 @@
 
 #include "theory/booleans/proof_checker.h"
 
-
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -22,8 +21,8 @@ namespace theory {
 namespace eq {
 
 Node BoolProofRuleChecker::check(PfRule id,
-                               const std::vector<Node>& children,
-                               const std::vector<Node>& args)
+                                 const std::vector<Node>& children,
+                                 const std::vector<Node>& args)
 {
   if (id == PfRule::SPLIT)
   {
