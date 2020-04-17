@@ -42,10 +42,14 @@ namespace CVC4 {
  * added to this object.
  *
  * Its main interface is the function addStep, which registers a single
- * step in the proof. These steps can be provided in any order.
+ * step in the proof. Its interface is:
+ *   addStep( <conclusion>, <rule>, <premises>, <args>, ...<options>... )
+ * where conclusion is what to be proven, rule is an identifier, premises
+ * are the formulas that imply conclusion, and args are additional arguments to
+ * the proof rule application.
  *
  * As an example, let A, B, C, D be formulas represented by Nodes. If we
- * call:
+ * call: 
  * - addStep( A, ID_A, { B, C }, {} )
  * - addStep( B, ID_B, { D }, {} )
  * - addStep( E, ID_E, {}, {} )
@@ -59,16 +63,18 @@ namespace CVC4 {
  * multiple calls to addStep. Continuing the above example, if we call:
  * - addProof( F, ID_F( ASSUME( A ), ASSUME( E ) ) )
  * is the same as calling steps corresponding the steps in the provided proof
- * bottom-up, starting from the leaves:
+ * bottom-up, starting from the leaves.
  * --- addStep( A, ASSUME, {}, {}, true )
  * --- addStep( E, ASSUME, {}, {}, true )
  * --- addStep( F, ID_F, { A, E }, {}, true )
+ * The fifth argument provided indicates that we wish to ensure child proofs
+ * are already available for the step (see ensureChildren in addStep below).
  * This will result in getProof( F ) returning:
  *   ID_F( ID_A( ID_B( ASSUME( D ) ), ASSUME( C ) ), ID_E() )
  * Notice that the proof of A by ID_A was not overwritten by ASSUME in the
  * addStep call above.
  *
- * As another example, say that we call:
+ * As an another example of addProof, say that we call:
  * - addStep( B, ID_B1 {}, {} )
  * - addStep( A, ID_A1, {B, C}, {} )
  * At this point, getProof( A ) returns:
@@ -85,8 +91,8 @@ namespace CVC4 {
  *   ID_D( ID_A1( ID_B1(), ID_C() ) )
  * Notice that the steps with ID_A1 and ID_B1 were not overwritten by this call,
  * whereas the assumption of C was overwritten by the proof ID_C(). Notice that
- * the proof of D was completely traversed, despite encountering formulas, A and
- * B, that were already given proof steps.
+ * the proof of D was completely traversed in addProof, despite encountering
+ * formulas, A and B, that were already given proof steps.
  *
  * This class requires a ProofNodeManager object, which is a trusted way of
  * allocating ProofNode pointers. This manager may have an underlying checker,
@@ -95,6 +101,11 @@ namespace CVC4 {
  * is implemented internally by using a dummy context that is never pushed
  * or popped. The map from Nodes to ProofNodes is context-dependent and is
  * backtracked when its context backtracks.
+ * 
+ * An important invariant of this object is that there exists (at most) one
+ * proof step for each Node. Thus, the ProofNode objects returned by this
+ * class share proofs for common subformulas, as guaranteed by the fact that
+ * Node objects have perfect sharing.
  */
 class CDProof
 {
@@ -116,9 +127,9 @@ class CDProof
    * @param expected The intended conclusion of this proof step. This must be
    * non-null.
    * @param id The identifier for the proof step.
-   * @param children The antecendant of the proof step. Each children[i] should
-   * be a fact previously added as a conclusion of a addStep call
-   * when ensureChildren is true.
+   * @param children The antecendants of the proof step. Each children[i] should
+   * be a fact previously added as a conclusion of an addStep call when
+   * ensureChildren is true.
    * @param args The arguments of the proof step.
    * @param ensureChildren Whether we wish to ensure steps have been added
    * for all nodes in children
@@ -149,7 +160,7 @@ class CDProof
                bool forceOverwrite = false);
   /** Add proof
    *
-   * @param fact The intended conclusion of the proof.
+   * @param expected The intended conclusion of the proof.
    * @param pn The proof of the given fact.
    * @param forceOverwrite Whether we wish to force overwriting if a step was
    * already provided, for each node in the proof.

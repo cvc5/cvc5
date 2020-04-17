@@ -82,7 +82,7 @@ bool CDProof::addStep(Node expected,
     pchildren.push_back(pc);
   }
 
-  // create or reinitialize it
+  // create or update it
   std::shared_ptr<ProofNode> pthis;
   if (it == d_nodes.end())
   {
