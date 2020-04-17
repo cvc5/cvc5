@@ -105,9 +105,28 @@ Node EqProofRuleChecker::check(PfRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != EQUAL || !children[0][1].isConst())
+    if (children[0].getKind() != EQUAL || !children[0][1].isConst() || !children[0][1].getConst<bool>())
     {
+      return Node::null();
     }
+    return children[0];
+  }
+  else if (id == PfRule::FALSE_INTRO)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    Node trueNode = NodeManager::currentNM()->mkConst(false);
+    return children[0].eqNode(trueNode);
+  }
+  else if (id == PfRule::FALSE_ELIM)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    if (children[0].getKind() != EQUAL || !children[0][1].isConst() || children[0][1].getConst<bool>())
+    {
+      return Node::null();
+    }
+    return children[0];
   }
   // no rule
   return Node::null();
