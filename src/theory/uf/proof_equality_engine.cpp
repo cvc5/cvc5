@@ -65,14 +65,6 @@ bool ProofEqEngine::assertAssume(Node lit)
 
 bool ProofEqEngine::assertFact(Node lit,
                                PfRule id,
-                               const std::vector<Node>& exp)
-{
-  std::vector<Node> args;
-  return assertFact(lit, id, exp, args);
-}
-
-bool ProofEqEngine::assertFact(Node lit,
-                               PfRule id,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& args)
 {
@@ -91,11 +83,42 @@ bool ProofEqEngine::assertFact(Node lit,
 
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
-  assertInternal(lit, polarity, reason);
+  assertInternal(atom, polarity, reason);
 
   return true;
 }
 
+bool ProofEqEngine::assertFact(Node lit,
+                PfRule id,
+                Node exp,
+                const std::vector<Node>& args)
+{
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+  
+  if (!d_pfEnabled)
+  {
+    assertInternal(atom,polarity,exp);
+    return true;
+  }
+  std::vector<Node> expv;
+  if (exp!=d_true)
+  {
+    if (exp.getKind()==AND)
+    {
+      for (const Node& e : expv)
+      {
+        expv.push_back(e);
+      }
+    }
+    else
+    {
+      expv.push_back(e);
+    }
+  }
+  return assertFact(lit,id,expv,args);
+}
+  
 TrustNode ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
 {
   std::vector<Node> args;

@@ -19,7 +19,7 @@ namespace theory {
 
 const char* toString(TrustNodeKind tnk)
 {
-  switch (id)
+  switch (tnk)
   {
     case TrustNodeKind::CONFLICT: return "CONFLICT";
     case TrustNodeKind::LEMMA: return "LEMMA";
@@ -29,7 +29,7 @@ const char* toString(TrustNodeKind tnk)
 
 std::ostream& operator<<(std::ostream& out, TrustNodeKind tnk)
 {
-  out << toString(id);
+  out << toString(tnk);
   return out;
 }
 
@@ -47,7 +47,7 @@ TrustNode TrustNode::mkTrustLemma(Node lem, ProofGenerator* g)
   return TrustNode(TrustNodeKind::LEMMA, lem, g);
 }
 
-TrustNode TrustNode::null() { return TrustNode(Node::null()); }
+TrustNode TrustNode::null() { return TrustNode(TrustNodeKind::INVALID, Node::null()); }
 
 TrustNode::TrustNode(TrustNodeKind tnk, Node n, ProofGenerator* g) : d_tnk(tnk), d_node(n), d_gen(g)
 {

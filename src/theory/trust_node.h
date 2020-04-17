@@ -25,10 +25,12 @@ namespace theory {
 
 class ProofGenerator;
 
+/** A kind for trust nodes */
 enum class TrustNodeKind : uint32_t
 {
   CONFLICT,
-  LEMMA
+  LEMMA,
+  INVALID
 };
 /**
  * Converts a proof rule to a string. Note: This function is also used in

@@ -64,13 +64,16 @@ class ProofEqEngine : public EagerProofGenerator
   bool assertAssume(Node lit);
   /**
    * Assert the predicate lit by proof step id, given explanation exp and
-   * (optionally) arguments args.
+   * arguments args.
    *
    */
-  bool assertFact(Node lit, PfRule id, const std::vector<Node>& exp);
   bool assertFact(Node lit,
                   PfRule id,
                   const std::vector<Node>& exp,
+                  const std::vector<Node>& args);
+  bool assertFact(Node lit,
+                  PfRule id,
+                  Node exp,
                   const std::vector<Node>& args);
   /**
    * Get proven conflict from contradictory facts. This method is called when

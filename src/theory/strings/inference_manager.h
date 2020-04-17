@@ -288,7 +288,7 @@ class InferenceManager
    * The argument infer identifies the reason for inference, used for
    * debugging.
    */
-  void sendLemma(Node ant, Node conc, Inference infer);
+  void sendLemma(TrustNode n, Inference infer);
   /**
    * Indicates that conc should be added to the equality engine of this class
    * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
