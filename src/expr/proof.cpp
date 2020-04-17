@@ -106,7 +106,7 @@ bool CDProof::addStep(Node expected,
 }
 
 bool CDProof::addProof(Node expected,
-                       std::shared_ptr<ProofNode> pn,
+                       ProofNode* pn,
                        bool forceOverwrite)
 {
   if (pn->getResult() != expected)
@@ -114,10 +114,10 @@ bool CDProof::addProof(Node expected,
     // something went wrong
     return false;
   }
-  std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
-  std::unordered_map<std::shared_ptr<ProofNode>, bool>::iterator it;
-  std::vector<std::shared_ptr<ProofNode>> visit;
-  std::shared_ptr<ProofNode> cur;
+  std::unordered_map<ProofNode*, bool> visited;
+  std::unordered_map<ProofNode*, bool>::iterator it;
+  std::vector<ProofNode*> visit;
+  ProofNode* cur;
   Node curFact;
   visit.push_back(pn);
   bool retValue = true;
@@ -135,7 +135,7 @@ bool CDProof::addProof(Node expected,
       const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& c : cs)
       {
-        visit.push_back(c);
+        visit.push_back(c.get());
       }
     }
     else if (!it->second)

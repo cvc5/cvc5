@@ -163,7 +163,7 @@ class CDProof
    * internal data of this class.
    */
   bool addProof(Node expected,
-                std::shared_ptr<ProofNode> pn,
+                ProofNode* pn,
                 bool forceOverwrite = false);
 
  protected:

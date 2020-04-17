@@ -67,6 +67,7 @@ std::ostream& operator<<(std::ostream& out, TrustNodeKind tnk);
 class TrustNode
 {
  public:
+  TrustNode() : d_tnk(TrustNodeKind::INVALID), d_gen(nullptr) {}
   /** Make a proven node for conflict */
   static TrustNode mkTrustConflict(Node conf, ProofGenerator* g = nullptr);
   /** Make a proven node for lemma */

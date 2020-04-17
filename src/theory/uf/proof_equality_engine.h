@@ -72,6 +72,7 @@ class ProofEqEngine : public EagerProofGenerator
                   const std::vector<Node>& exp,
                   const std::vector<Node>& args);
   bool assertFact(Node lit, PfRule id, Node exp, const std::vector<Node>& args);
+  bool assertFact(Node lit, ProofNode* p);
   /**
    * This method is called when the equality engine of this class is
    * inconsistent (false has been proven). This returns the trust node
@@ -92,6 +93,7 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertConflict(PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args);
+  TrustNode assertConflict(ProofNode* p);
   /**
    * Called when we have concluded conc, which is either false or a
    * disjunction.

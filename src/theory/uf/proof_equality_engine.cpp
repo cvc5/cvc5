@@ -119,7 +119,25 @@ bool ProofEqEngine::assertFact(Node lit,
   return assertFact(lit, id, expv, args);
 }
 
-TrustNode getConflict() {}
+bool ProofEqEngine::assertFact(Node lit, ProofNode* p)
+{
+  Assert (p!=nullptr);
+  const std::vector<std::shared_ptr<ProofNode>>& children = p->getChildren();
+  std::vector<Node> exp;
+  for (const std::shared_ptr<ProofNode>& pc : p)
+  {
+    Node litc = pc->getResult();
+    exp.push_back(litc);
+    // must add the proof 
+    d_proof.addProof(litc, pc.get());
+  }
+  return assertFact(lit, p->getId(), exp, p->getArguments());
+}
+
+TrustNode ProofEqEngine::getConflict() 
+{
+  // TODO
+}
 
 TrustNode ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
 {

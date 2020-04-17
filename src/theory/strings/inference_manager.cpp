@@ -152,9 +152,10 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       || options::stringInferAsLemmas())
   {
     Node eq_exp;
+    TrustNode n;
     if (options::stringRExplainLemmas())
     {
-      // TrustNode tn = assertLemma(atom, exp, expn,
+      n = assertLemma(atom, exp, expn,
       eq_exp = mkExplain(exp, exp_n);
     }
     else
