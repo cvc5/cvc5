@@ -35,6 +35,7 @@ mkdir -p "$ANTLR_HOME_DIR/bin"
 tee "$ANTLR_HOME_DIR/bin/antlr3" <<EOF
 #!/usr/bin/env bash
 JAR_FILE="\$(find "\$(dirname "\$0")/../" -name antlr-3.4-complete.jar)"
+echo "JAR: \$JAR_FILE"
 exec java org.antlr.Tool "\$@" -cp "\$JAR_FILE"
 EOF
 chmod a+x "$ANTLR_HOME_DIR/bin/antlr3"
