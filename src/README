@@ -1,29 +1,45 @@
 To understand the new proof infrastructre:
 
 PfRule <=> Kind
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof_rule.h
 ProofNode <=> Node
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof_node.h
 ProofRuleChecker <=> custom theory type checker
 ProofChecker <=> TypeChecker
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof_checker.h
 ProofNodeManager <=> NodeManager
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof_node_manager.h
 CDProof
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof.h
 
 // OutputChannel
 
 TrustNode
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/trust_node.h
 ProofGenerator
 EagerProofGenerator
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/proof_generator.h
 
 // EqualityEngine
 
 ProofEqEngine <=> EqualityEngine
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/uf/proof_equality_engine.h
 
 ProofOutputChannel <=> OutputChannel
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/proof_output_channel.h
 
 
 
+// Specific checkers and proof_kinds
 
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/builtin/proof_checker.h
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/builtin/proof_kinds
 
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/booleans/proof_checker.h
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/booleans/proof_kinds
 
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/uf/proof_checker.h
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/uf/proof_kinds
 
 High level changes needed:
 
