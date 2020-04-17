@@ -29,7 +29,7 @@
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
-#include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -306,8 +306,10 @@ class InferenceManager
   ProofOutputChannel& d_poc;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
-  /** The proof equality engine */
-
+  /** A proof node manager */
+  ProofNodeManager d_pnm;
+  /** The proof-producing equality engine */
+  eq::ProofEqEngine d_pfee;
   /** Common constants */
   Node d_true;
   Node d_false;
@@ -320,7 +322,7 @@ class InferenceManager
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
   /** A list of pending lemmas to be sent on the output channel. */
-  std::vector<TrusNode> d_pendingLem;
+  std::vector<TrustNode> d_pendingLem;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are ref-counted. Since facts and their

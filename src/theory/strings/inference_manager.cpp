@@ -41,6 +41,8 @@ InferenceManager::InferenceManager(context::Context* c,
       d_extt(e),
       d_poc(poc),
       d_statistics(statistics),
+      d_pnm(),
+      d_pfee(c,u,*d_state.getEqualityEngine(),d_pnm),
       d_keep(c),
       d_pfEnabled(pfEnabled)
 {
@@ -200,9 +202,10 @@ void InferenceManager::sendInference(const InferInfo& i)
   sendInference(i.d_ant, i.d_antn, i.d_conc, i.d_id, true);
 }
 
-void InferenceManager::sendLemma(Node ant, Node conc, Inference infer)
+void InferenceManager::sendLemma(TrustNode n, Inference infer)
 {
-  if (conc.isNull() || conc == d_false)
+  Node f = n.getNode();
+  if (n.getKind()==TrustNode::CONFLICT)
   {
     Trace("strings-conflict")
         << "Strings::Conflict : " << infer << " : " << ant << std::endl;
@@ -211,25 +214,15 @@ void InferenceManager::sendLemma(Node ant, Node conc, Inference infer)
     Trace("strings-assert")
         << "(assert (not " << ant << ")) ; conflict " << infer << std::endl;
     ++(d_statistics.d_conflictsInfer);
-    TrustNode conf = TrustNode::mkTrustConflict(ant, nullptr);
-    d_poc.conflict(conf);
+    d_poc.conflict(n);
     d_state.setConflict();
     return;
   }
-  Node lem;
-  if (ant == d_true)
-  {
-    lem = conc;
-  }
-  else
-  {
-    lem = NodeManager::currentNM()->mkNode(IMPLIES, ant, conc);
-  }
-  Trace("strings-lemma") << "Strings::Lemma " << infer << " : " << lem
+  Trace("strings-lemma") << "Strings::Lemma " << infer << " : " << f
                          << std::endl;
-  Trace("strings-assert") << "(assert " << lem << ") ; lemma " << infer
+  Trace("strings-assert") << "(assert " << f << ") ; lemma " << infer
                           << std::endl;
-  d_pendingLem.push_back(lem);
+  d_pendingLem.push_back(n);
 }
 
 void InferenceManager::sendInfer(Node eq_exp, Node eq, Inference infer)
