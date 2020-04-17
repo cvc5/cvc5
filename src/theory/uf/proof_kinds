@@ -1,0 +1,47 @@
+
+//=============================== Core
+
+
+// ======== Reflexive
+// Children: none
+// Arguments: (t)
+// ---------------------
+// Conclusion: (= t t)
+prooffule REFL 0 1 ::CVC4::theory::uf::EqProofRuleChecker
+
+// ======== Symmetric
+// Children: (P:(= t1 t2))
+// Arguments: none
+// -----------------------
+// Conclusion: (= t2 t1)
+prooffule SYMM 1 0 ::CVC4::theory::uf::EqProofRuleChecker
+
+// ======== Transitivity
+// Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
+// Arguments: none
+// -----------------------
+// Conclusion: (= t1 tn)
+prooffule TRANS 2: 0 ::CVC4::theory::uf::EqProofRuleChecker
+
+// ======== Congruence  (subsumed by Substitute?)
+// Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
+// Arguments: (f)
+// ---------------------------------------------
+// Conclusion: (= (f t1 ... tn) (f s1 ... sn))
+prooffule CONG 0: 1 ::CVC4::theory::uf::EqProofRuleChecker
+
+
+
+//=============================== Common macros
+
+
+
+// ======== Equality by substitution + rewriting
+// Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
+// Arguments: (t,s)
+// -------------------
+// Conclusion: (= t s)
+// Macro: (TRANS (SUBS_REWRITE P1 ... Pn :args t)
+//               (SYMM (SUBS_REWRITE P1 ... Pn :args s)))
+// In other words, t and s can be show equal by substitution + rewriting.
+prooffule MACRO_EQ_SUBS_REWRITE 0: 2 ::CVC4::theory::uf::EqProofRuleChecker
