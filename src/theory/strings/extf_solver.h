@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__STRINGS__EXTF_SOLVER_H
 #define CVC4__THEORY__STRINGS__EXTF_SOLVER_H
 
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -26,8 +26,10 @@
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/inference_manager.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 
 namespace CVC4 {
@@ -85,10 +87,12 @@ class ExtfSolver
              context::UserContext* u,
              SolverState& s,
              InferenceManager& im,
-             SkolemCache& skc,
+             TermRegistry& tr,
+             StringsRewriter& rewriter,
              BaseSolver& bs,
              CoreSolver& cs,
-             ExtTheory* et);
+             ExtTheory& et,
+             SequencesStatistics& statistics);
   ~ExtfSolver();
 
   /** check extended functions evaluation
@@ -143,6 +147,7 @@ class ExtfSolver
    * checkExtfEval.
    */
   const std::map<Node, ExtfInfoTmp>& getInfo() const;
+  //---------------------------------- information about ExtTheory
   /** Are there any active extended functions? */
   bool hasExtendedFunctions() const;
   /**
@@ -150,18 +155,19 @@ class ExtfSolver
    * context (see ExtTheory::getActive).
    */
   std::vector<Node> getActive(Kind k) const;
-
+  //---------------------------------- end information about ExtTheory
  private:
   /** do reduction
    *
    * This is called when an extended function application n is not able to be
    * simplified by context-depdendent simplification, and we are resorting to
    * expanding n to its full semantics via a reduction. This method returns
-   * true if it successfully reduced n by some reduction and sets isCd to
-   * true if the reduction was (SAT)-context-dependent, and false otherwise.
-   * The argument effort has the same meaning as in checkExtfReductions.
+   * true if it successfully reduced n by some reduction. If so, it either
+   * caches that the reduction lemma was sent, or marks n as reduced in this
+   * SAT-context. The argument effort has the same meaning as in
+   * checkExtfReductions.
    */
-  bool doReduction(int effort, Node n, bool& isCd);
+  bool doReduction(int effort, Node n);
   /** check extended function inferences
    *
    * This function makes additional inferences for n that do not contribute
@@ -176,14 +182,18 @@ class ExtfSolver
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
   InferenceManager& d_im;
-  /** cache of all skolems */
-  SkolemCache& d_skCache;
+  /** Reference to the term registry of theory of strings */
+  TermRegistry& d_termReg;
+  /** The theory rewriter for this theory. */
+  StringsRewriter& d_rewriter;
   /** reference to the base solver, used for certain queries */
   BaseSolver& d_bsolver;
   /** reference to the core solver, used for certain queries */
   CoreSolver& d_csolver;
   /** the extended theory object for the theory of strings */
-  ExtTheory* d_extt;
+  ExtTheory& d_extt;
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
   /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
   /** Common constants */
@@ -197,6 +207,8 @@ class ExtfSolver
   context::CDO<bool> d_hasExtf;
   /** extended functions inferences cache */
   NodeSet d_extfInferCache;
+  /** The set of extended functions we have sent reduction lemmas for */
+  NodeSet d_reduced;
 };
 
 }  // namespace strings

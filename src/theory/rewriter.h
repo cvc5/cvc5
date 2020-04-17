@@ -63,6 +63,16 @@ class Rewriter {
   static void clearCaches();
 
   /**
+   * Registers a theory rewriter with this rewriter. The rewriter does not own
+   * the theory rewriters.
+   *
+   * @param tid The theory that the theory rewriter should be associated with.
+   * @param trew The theory rewriter to register.
+   */
+  static void registerTheoryRewriter(theory::TheoryId tid,
+                                     TheoryRewriter* trew);
+
+  /**
    * Register a prerewrite for a given kind.
    *
    * @param k The kind to register a rewrite for.
@@ -102,11 +112,12 @@ class Rewriter {
 
  private:
   /**
-   * Get the (singleton) instance of the rewriter.
+   * Get the rewriter associated with the SmtEngine in scope.
    *
-   * TODO(#3468): Get rid of this singleton
+   * TODO(#3468): Get rid of this function (it relies on there being an
+   * singleton with the current SmtEngine in scope)
    */
-  static Rewriter& getInstance();
+  static Rewriter* getInstance();
 
   /** Returns the appropriate cache for a node */
   Node getPreRewriteCache(theory::TheoryId theoryId, TNode node);
@@ -138,8 +149,8 @@ class Rewriter {
 
   void clearCachesInternal();
 
-  /** Theory rewriters managed by this rewriter instance */
-  std::unique_ptr<TheoryRewriter> d_theoryRewriters[theory::THEORY_LAST];
+  /** Theory rewriters used by this rewriter instance */
+  TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
 
   unsigned long d_iterationCount = 0;
 

@@ -60,11 +60,16 @@ class DecisionEngine {
 
   // init/shutdown state
   unsigned d_engineState;    // 0=pre-init; 1=init,pre-shutdown; 2=shutdown
-public:
+  /** Pointer to resource manager for associated SmtEngine */
+  ResourceManager* d_resourceManager;
+
+ public:
   // Necessary functions
 
   /** Constructor */
-  DecisionEngine(context::Context *sc, context::UserContext *uc);
+  DecisionEngine(context::Context* sc,
+                 context::UserContext* uc,
+                 ResourceManager* rm);
 
   /** Destructor, currently does nothing */
   ~DecisionEngine() {

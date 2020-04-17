@@ -26,14 +26,13 @@
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
-#include "util/regexp.h"
+#include "util/string.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
-
-class TheoryStrings;
 
 class RegExpSolver
 {
@@ -45,10 +44,11 @@ class RegExpSolver
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  RegExpSolver(TheoryStrings& p,
-               SolverState& s,
+  RegExpSolver(SolverState& s,
                InferenceManager& im,
+               CoreSolver& cs,
                ExtfSolver& es,
+               SequencesStatistics& stats,
                context::Context* c,
                context::UserContext* u);
   ~RegExpSolver() {}
@@ -111,14 +111,16 @@ class RegExpSolver
   Node d_emptyRegexp;
   Node d_true;
   Node d_false;
-  /** the parent of this object */
-  TheoryStrings& d_parent;
   /** The solver state of the parent of this object */
   SolverState& d_state;
   /** the output channel of the parent of this object */
   InferenceManager& d_im;
+  /** reference to the core solver, used for certain queries */
+  CoreSolver& d_csolver;
   /** reference to the extended function solver of the parent */
   ExtfSolver& d_esolver;
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
   /**

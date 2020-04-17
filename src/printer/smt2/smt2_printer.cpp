@@ -202,7 +202,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
 
     case kind::CONST_STRING: {
-      std::string s = n.getConst<String>().toString(true);
+      std::string s = n.getConst<String>().toString();
       out << '"';
       for(size_t i = 0; i < s.size(); ++i) {
         char c = s[i];
@@ -741,7 +741,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::INSERT:
   case kind::SET_TYPE:
   case kind::SINGLETON:
-  case kind::COMPLEMENT: out << smtKindString(k, d_variant) << " "; break;
+  case kind::COMPLEMENT:
+  case kind::CHOOSE: out << smtKindString(k, d_variant) << " "; break;
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
 
     // fp theory
@@ -878,14 +879,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     for (const Node& nc : n)
     {
-      if (nc.getKind() == kind::INST_ATTRIBUTE)
-      {
-        if (nc[0].getAttribute(theory::FunDefAttribute()))
-        {
-          out << ":fun-def";
-        }
-      }
-      else if (nc.getKind() == kind::INST_PATTERN)
+      if (nc.getKind() == kind::INST_PATTERN)
       {
         out << ":pattern " << nc;
       }
@@ -1141,6 +1135,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::COMPLEMENT: return "complement";
   case kind::CARD: return "card";
   case kind::COMPREHENSION: return "comprehension";
+  case kind::CHOOSE: return "choose";
   case kind::JOIN: return "join";
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";

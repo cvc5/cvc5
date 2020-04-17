@@ -15,6 +15,7 @@
 #include "theory/strings/solver_state.h"
 
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -34,7 +35,9 @@ SolverState::SolverState(context::Context* c,
       d_conflict(c, false),
       d_pendingConflict(c)
 {
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 }
+
 SolverState::~SolverState()
 {
   for (std::pair<const Node, EqcInfo*>& it : d_eqcInfo)
@@ -108,7 +111,7 @@ void SolverState::eqNotifyNewClass(TNode t)
       ei->d_codeTerm = t[0];
     }
   }
-  else if (k == CONST_STRING)
+  else if (t.isConst())
   {
     EqcInfo* ei = getOrMakeEqcInfo(t);
     ei->d_prefixC = t;
@@ -238,6 +241,22 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
 Node SolverState::getLength(Node t, std::vector<Node>& exp)
 {
   return getLengthExp(t, exp, t);
+}
+
+Node SolverState::explainNonEmpty(Node s)
+{
+  Assert(s.getType().isStringLike());
+  Node emp = Word::mkEmptyWord(s.getType());
+  if (areDisequal(s, emp))
+  {
+    return s.eqNode(emp).negate();
+  }
+  Node sLen = utils::mkNLength(s);
+  if (areDisequal(sLen, d_zero))
+  {
+    return sLen.eqNode(d_zero).negate();
+  }
+  return Node::null();
 }
 
 void SolverState::setConflict() { d_conflict = true; }

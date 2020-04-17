@@ -24,7 +24,6 @@
 #include <sys/time.h>
 
 #include "base/modal_exception.h"
-#include "expr/expr_stream.h"
 #include "expr/node.h"
 #include "options/options.h"
 #include "preprocessing/assertion_pipeline.h"
@@ -63,8 +62,7 @@ class PropEngine
   PropEngine(TheoryEngine*,
              context::Context* satContext,
              context::UserContext* userContext,
-             std::ostream* replayLog,
-             ExprStream* replayStream);
+             ResourceManager* rm);
 
   /**
    * Destructor.

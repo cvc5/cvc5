@@ -2,7 +2,6 @@
 (set-option :conjecture-filter-model true)
 (set-option :conjecture-gen true)
 (set-option :conjecture-no-filter true)
-(set-option :dt-ref-sk-intro true)
 (set-option :quant-ind true)
 (set-option :sygus-inference true)
 (set-info :status sat)

@@ -4,7 +4,7 @@
 #! \file combination.py
  ## \verbatim
  ## Top contributors (to current version):
- ##   Makai Mann
+ ##   Makai Mann, Aina Niemetz
  ## This file is part of the CVC4 project.
  ## Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ## in the top-level source directory) and their institutional affiliations.
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     slv = pycvc4.Solver()
     slv.setOption("produce-models", "true")  # Produce Models
     slv.setOption("output-language", "cvc4") # Set the output-language to CVC's
-    slv.setOption("default-dag-thresh", "0") # Disable dagifying the output
+    slv.setOption("dag-thresh", "0") # Disable dagifying the output
     slv.setOption("output-language", "smt2") # use smt-lib v2 as output language
     slv.setLogic("QF_UFLIRA")
 
@@ -69,8 +69,8 @@ if __name__ == "__main__":
     slv.assertFormula(assertions)
 
     print("Given the following assertions:", assertions, "\n")
-    print("Prove x /= y is valid.\nCVC4: ",
-          slv.checkValidAssuming(slv.mkTerm(kinds.Distinct, x, y)), "\n")
+    print("Prove x /= y is entailed.\nCVC4: ",
+          slv.checkEntailed(slv.mkTerm(kinds.Distinct, x, y)), "\n")
 
     print("Call checkSat to show that the assertions are satisfiable")
     print("CVC4:", slv.checkSat(), "\n")

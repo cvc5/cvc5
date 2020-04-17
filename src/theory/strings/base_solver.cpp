@@ -35,7 +35,6 @@ BaseSolver::BaseSolver(context::Context* c,
   d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = utils::getAlphabetCardinality();
-  d_type = NodeManager::currentNM()->stringType();
 }
 
 BaseSolver::~BaseSolver() {}
@@ -128,7 +127,7 @@ void BaseSolver::checkInit()
                     }
                   }
                   // infer the equality
-                  d_im.sendInference(exp, n.eqNode(nc), "I_Norm");
+                  d_im.sendInference(exp, n.eqNode(nc), Inference::I_NORM);
                 }
                 else
                 {
@@ -173,7 +172,7 @@ void BaseSolver::checkInit()
                   }
                   AlwaysAssert(foundNEmpty);
                   // infer the equality
-                  d_im.sendInference(exp, n.eqNode(ns), "I_Norm_S");
+                  d_im.sendInference(exp, n.eqNode(ns), Inference::I_NORM_S);
                 }
                 d_congruent.insert(n);
                 congruent[k]++;
@@ -254,7 +253,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
   if (!n.isNull())
   {
     // construct the constant
-    Node c = utils::mkNConcat(vecc, d_type);
+    Node c = utils::mkNConcat(vecc, n.getType());
     if (!d_state.areEqual(n, c))
     {
       if (Trace.isOn("strings-debug"))
@@ -302,7 +301,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       Assert(countc == vecc.size());
       if (d_state.hasTerm(c))
       {
-        d_im.sendInference(exp, n.eqNode(c), "I_CONST_MERGE");
+        d_im.sendInference(exp, n.eqNode(c), Inference::I_CONST_MERGE);
         return;
       }
       else if (!d_im.hasProcessed())
@@ -334,7 +333,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             exp.push_back(d_eqcToConstExp[nr]);
             d_im.addToExplanation(n, d_eqcToConstBase[nr], exp);
           }
-          d_im.sendInference(exp, d_false, "I_CONST_CONFLICT");
+          d_im.sendInference(exp, d_false, Inference::I_CONST_CONFLICT);
           return;
         }
         else
@@ -446,7 +445,7 @@ void BaseSolver::checkCardinality()
         if (!d_state.areDisequal(*itr1, *itr2))
         {
           // add split lemma
-          if (d_im.sendSplit(*itr1, *itr2, "CARD-SP"))
+          if (d_im.sendSplit(*itr1, *itr2, Inference::CARD_SP))
           {
             return;
           }
@@ -484,7 +483,8 @@ void BaseSolver::checkCardinality()
       if (!cons.isConst() || !cons.getConst<bool>())
       {
         std::vector<Node> emptyVec;
-        d_im.sendInference(emptyVec, vec_node, cons, "CARDINALITY", true);
+        d_im.sendInference(
+            emptyVec, vec_node, cons, Inference::CARDINALITY, true);
         return;
       }
     }

@@ -39,7 +39,7 @@ public class Combination {
     smt.setOption("tlimit", new SExpr(100));
     smt.setOption("produce-models", new SExpr(true)); // Produce Models
     smt.setOption("output-language", new SExpr("cvc4")); // output-language
-    smt.setOption("default-dag-thresh", new SExpr(0)); //Disable dagifying the output
+    smt.setOption("dag-thresh", new SExpr(0)); //Disable dagifying the output
     smt.setLogic("QF_UFLIRA");
 
     // Sorts

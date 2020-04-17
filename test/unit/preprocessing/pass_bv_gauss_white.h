@@ -176,6 +176,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
+    d_smt->finalOptionsAreSet();
 
     d_zero = bv::utils::mkZero(16);
 
@@ -2373,7 +2374,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     AssertionPipeline apipe;
     apipe.push_back(a);
-    passes::BVGauss bgauss(nullptr);
+    passes::BVGauss bgauss(nullptr, "bv-gauss-unit");
     std::unordered_map<Node, Node, NodeHashFunction> res;
     PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
     TS_ASSERT (pres == PreprocessingPassResult::NO_CONFLICT);
@@ -2457,7 +2458,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     apipe.push_back(a);
     apipe.push_back(eq4);
     apipe.push_back(eq5);
-    passes::BVGauss bgauss(nullptr);
+    passes::BVGauss bgauss(nullptr, "bv-gauss-unit");
     std::unordered_map<Node, Node, NodeHashFunction> res;
     PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
     TS_ASSERT (pres == PreprocessingPassResult::NO_CONFLICT);
@@ -2507,7 +2508,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     AssertionPipeline apipe;
     apipe.push_back(eq1);
     apipe.push_back(eq2);
-    passes::BVGauss bgauss(nullptr);
+    passes::BVGauss bgauss(nullptr, "bv-gauss-unit");
     std::unordered_map<Node, Node, NodeHashFunction> res;
     PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
     TS_ASSERT (pres == PreprocessingPassResult::NO_CONFLICT);

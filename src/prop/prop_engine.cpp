@@ -44,13 +44,6 @@
 using namespace std;
 using namespace CVC4::context;
 
-
-#ifdef CVC4_REPLAY
-#  define CVC4_USE_REPLAY true
-#else /* CVC4_REPLAY */
-#  define CVC4_USE_REPLAY false
-#endif /* CVC4_REPLAY */
-
 namespace CVC4 {
 namespace prop {
 
@@ -77,8 +70,7 @@ public:
 PropEngine::PropEngine(TheoryEngine* te,
                        Context* satContext,
                        UserContext* userContext,
-                       std::ostream* replayLog,
-                       ExprStream* replayStream)
+                       ResourceManager* rm)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_context(satContext),
@@ -87,27 +79,22 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_registrar(NULL),
       d_cnfStream(NULL),
       d_interrupted(false),
-      d_resourceManager(NodeManager::currentResourceManager())
+      d_resourceManager(rm)
 {
 
   Debug("prop") << "Constructing the PropEngine" << endl;
 
-  d_decisionEngine.reset(new DecisionEngine(satContext, userContext));
+  d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
   d_decisionEngine->init();  // enable appropriate strategies
 
   d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(
-      d_satSolver, d_registrar, userContext, true);
+      d_satSolver, d_registrar, userContext, rm, true);
 
-  d_theoryProxy = new TheoryProxy(this,
-                                  d_theoryEngine,
-                                  d_decisionEngine.get(),
-                                  d_context,
-                                  d_cnfStream,
-                                  replayLog,
-                                  replayStream);
+  d_theoryProxy = new TheoryProxy(
+      this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
   d_satSolver->initialize(d_context, d_theoryProxy);
 
   d_decisionEngine->setSatSolver(d_satSolver);
@@ -115,6 +102,11 @@ PropEngine::PropEngine(TheoryEngine* te,
   PROOF (
          ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
          );
+
+  NodeManager* nm = NodeManager::currentNM();
+  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
+  d_cnfStream->convertAndAssert(
+      nm->mkConst(false).notNode(), false, false, RULE_GIVEN);
 }
 
 PropEngine::~PropEngine() {

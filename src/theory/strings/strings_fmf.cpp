@@ -26,34 +26,16 @@ namespace strings {
 StringsFmf::StringsFmf(context::Context* c,
                        context::UserContext* u,
                        Valuation valuation,
-                       SkolemCache& skc)
+                       TermRegistry& tr)
     : d_sslds(nullptr),
       d_satContext(c),
       d_userContext(u),
       d_valuation(valuation),
-      d_skCache(skc),
-      d_inputVars(u)
+      d_termReg(tr)
 {
 }
 
 StringsFmf::~StringsFmf() {}
-
-void StringsFmf::preRegisterTerm(TNode n)
-{
-  if (!n.getType().isString())
-  {
-    return;
-  }
-  Kind k = n.getKind();
-  // Our decision strategy will minimize the length of this term if it is a
-  // variable but not an internally generated Skolem, or a term that does
-  // not belong to this theory.
-  if (n.isVar() ? !d_skCache.isSkolem(n) : kindToTheoryId(k) != THEORY_STRINGS)
-  {
-    d_inputVars.insert(n);
-    Trace("strings-dstrat-reg") << "input variable: " << n << std::endl;
-  }
-}
 
 void StringsFmf::presolve()
 {
@@ -61,10 +43,9 @@ void StringsFmf::presolve()
       d_satContext, d_userContext, d_valuation));
   Trace("strings-dstrat-reg")
       << "presolve: register decision strategy." << std::endl;
+  const NodeSet& ivars = d_termReg.getInputVars();
   std::vector<Node> inputVars;
-  for (NodeSet::const_iterator itr = d_inputVars.begin();
-       itr != d_inputVars.end();
-       ++itr)
+  for (NodeSet::const_iterator itr = ivars.begin(); itr != ivars.end(); ++itr)
   {
     inputVars.push_back(*itr);
   }

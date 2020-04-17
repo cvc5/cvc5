@@ -14,7 +14,7 @@
 
 #include "theory/strings/word.h"
 
-#include "util/regexp.h"
+#include "util/string.h"
 
 using namespace CVC4::kind;
 
@@ -76,7 +76,30 @@ size_t Word::getLength(TNode x)
   return 0;
 }
 
-bool Word::isEmpty(TNode x) { return getLength(x) == 0; }
+std::vector<Node> Word::getChars(TNode x)
+{
+  Kind k = x.getKind();
+  if (k == CONST_STRING)
+  {
+    std::vector<Node> ret;
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<unsigned> ccVec;
+    const std::vector<unsigned>& cvec = x.getConst<String>().getVec();
+    for (unsigned chVal : cvec)
+    {
+      ccVec.clear();
+      ccVec.push_back(chVal);
+      Node ch = nm->mkConst(String(ccVec));
+      ret.push_back(ch);
+    }
+    return ret;
+  }
+  Unimplemented();
+  std::vector<Node> ret;
+  return ret;
+}
+
+bool Word::isEmpty(TNode x) { return x.isConst() && getLength(x) == 0; }
 
 bool Word::strncmp(TNode x, TNode y, std::size_t n)
 {
@@ -258,6 +281,46 @@ std::size_t Word::roverlap(TNode x, TNode y)
   }
   Unimplemented();
   return 0;
+}
+
+Node Word::splitConstant(TNode x, TNode y, size_t& index, bool isRev)
+{
+  Assert(x.isConst() && y.isConst());
+  size_t lenA = getLength(x);
+  size_t lenB = getLength(y);
+  index = lenA <= lenB ? 1 : 0;
+  size_t lenShort = index == 1 ? lenA : lenB;
+  bool cmp = isRev ? rstrncmp(x, y, lenShort) : strncmp(x, y, lenShort);
+  if (cmp)
+  {
+    Node l = index == 0 ? x : y;
+    if (isRev)
+    {
+      size_t new_len = getLength(l) - lenShort;
+      return substr(l, 0, new_len);
+    }
+    else
+    {
+      return substr(l, lenShort);
+    }
+  }
+  // not the same prefix/suffix
+  return Node::null();
+}
+
+Node Word::reverse(TNode x)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = x.getKind();
+  if (k == CONST_STRING)
+  {
+    String sx = x.getConst<String>();
+    std::vector<unsigned> nvec = sx.getVec();
+    std::reverse(nvec.begin(), nvec.end());
+    return nm->mkConst(String(nvec));
+  }
+  Unimplemented();
+  return Node::null();
 }
 
 }  // namespace strings

@@ -26,6 +26,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
+#include "theory/uf/theory_uf_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -188,11 +189,13 @@ private:
 
   ~TheoryUF();
 
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
   void finishInit() override;
 
   void check(Effort) override;
-  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  Node expandDefinition(Node node) override;
   void preRegisterTerm(TNode term) override;
   Node explain(TNode n) override;
 
@@ -223,6 +226,8 @@ private:
                     TNodeTrie* t2,
                     unsigned arity,
                     unsigned depth);
+
+  TheoryUfRewriter d_rewriter;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

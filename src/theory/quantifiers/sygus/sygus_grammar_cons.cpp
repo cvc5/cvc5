@@ -27,6 +27,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/strings/word.h"
 
 using namespace CVC4::kind;
 
@@ -405,11 +406,15 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
     ops.push_back(nm->mkConst(true));
     ops.push_back(nm->mkConst(false));
   }
-  else if (type.isString())
+  else if (type.isStringLike())
   {
-    ops.push_back(nm->mkConst(String("")));
-    // dummy character "A"
-    ops.push_back(nm->mkConst(String("A")));
+    ops.push_back(strings::Word::mkEmptyWord(type));
+    if (type.isString())
+    {
+      // Dummy character "A". This is not necessary for sequences which
+      // have the generic constructor seq.unit.
+      ops.push_back(nm->mkConst(String("A")));
+    }
   }
   else if (type.isArray() || type.isSet())
   {
@@ -449,7 +454,7 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
       {
         collectSygusGrammarTypesFor(range.getSetElementType(), types);
       }
-      else if (range.isString() )
+      else if (range.isStringLike())
       {
         // theory of strings shares the integer type
         TypeNode intType = NodeManager::currentNM()->integerType();

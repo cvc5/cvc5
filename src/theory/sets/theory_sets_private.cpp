@@ -514,10 +514,7 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check downwards closure
     checkDownwardsClosure();
-    if (options::setsInferAsLemmas())
-    {
-      d_im.flushPendingLemmas();
-    }
+    d_im.flushPendingLemmas();
     if (d_im.hasProcessed())
     {
       continue;
@@ -1485,10 +1482,58 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-Node TheorySetsPrivate::expandDefinition(LogicRequest& logicRequest, Node n)
+Node TheorySetsPrivate::expandDefinition(Node node)
 {
-  Debug("sets-proc") << "expandDefinition : " << n << std::endl;
-  return n;
+  Debug("sets-proc") << "expandDefinition : " << node << std::endl;
+
+  if (node.getKind() == kind::CHOOSE)
+  {
+    // (choose A) is expanded as
+    // (witness ((x elementType))
+    //    (ite
+    //      (= A (as emptyset setType))
+    //      (= x chooseUf(A))
+    //      (and (member x A) (= x chooseUf(A)))
+
+    NodeManager* nm = NodeManager::currentNM();
+    Node set = node[0];
+    TypeNode setType = set.getType();
+    Node chooseSkolem = getChooseFunction(setType);
+    Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
+
+    Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
+
+    Node equal = witnessVariable.eqNode(apply);
+    Node emptySet = nm->mkConst(EmptySet(setType.toType()));
+    Node isEmpty = set.eqNode(emptySet);
+    Node member = nm->mkNode(MEMBER, witnessVariable, set);
+    Node memberAndEqual = member.andNode(equal);
+    Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
+    Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
+    Node witness = nm->mkNode(CHOICE, witnessVariables, ite);
+    return witness;
+  }
+
+  return node;
+}
+
+Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
+{
+  std::map<TypeNode, Node>::iterator it = d_chooseFunctions.find(setType);
+  if (it != d_chooseFunctions.end())
+  {
+    return it->second;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
+  stringstream stream;
+  stream << "chooseUf" << setType.getId();
+  string name = stream.str();
+  Node chooseSkolem = nm->mkSkolem(
+      name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
+  d_chooseFunctions[setType] = chooseSkolem;
+  return chooseSkolem;
 }
 
 Theory::PPAssertStatus TheorySetsPrivate::ppAssert(

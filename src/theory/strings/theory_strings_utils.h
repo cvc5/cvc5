@@ -102,6 +102,41 @@ Node getConstantComponent(Node t);
  */
 Node getConstantEndpoint(Node e, bool isSuf);
 
+/** decompose substr chain
+ *
+ * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
+ * function returns base, adds { x1 ... xn } to ss, and { y1 ... yn } to ls.
+ */
+Node decomposeSubstrChain(Node s, std::vector<Node>& ss, std::vector<Node>& ls);
+/** make substr chain
+ *
+ * If ss is { x1 ... xn } and ls is { y1 ... yn }, this returns the term
+ * substr( ... substr( base, x1, y1 ) ..., xn, yn ).
+ */
+Node mkSubstrChain(Node base,
+                   const std::vector<Node>& ss,
+                   const std::vector<Node>& ls);
+
+/**
+ * Collects equal-to-empty nodes from a conjunction or a single
+ * node. Returns a list of nodes that are compared to empty nodes
+ * and a boolean that indicates whether all nodes in the
+ * conjunction were a comparison with the empty node. The nodes in
+ * the list are sorted and duplicates removed.
+ *
+ * Examples:
+ *
+ * collectEmptyEqs( (= "" x) ) = { true, [x] }
+ * collectEmptyEqs( (and (= "" x) (= "" y)) ) = { true, [x, y] }
+ * collectEmptyEqs( (and (= "A" x) (= "" y) (= "" y)) ) = { false, [y] }
+ *
+ * @param x The conjunction of equalities or a single equality
+ * @return A pair of a boolean that indicates whether the
+ * conjunction consists only of comparisons to the empty string
+ * and the list of nodes that are compared to the empty string
+ */
+std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
+
 /**
  * Given a vector of regular expression nodes and a start index that points to
  * a wildcard, returns true if the wildcard is unbounded (i.e. it is followed
@@ -139,6 +174,29 @@ void getRegexpComponents(Node r, std::vector<Node>& result);
 void printConcat(std::ostream& out, std::vector<Node>& n);
 /** Print the vector n as a concatentation term on trace given by c */
 void printConcatTrace(std::vector<Node>& n, const char* c);
+
+/** Is k a string-specific kind? */
+bool isStringKind(Kind k);
+/** is k a native operator whose return type is a regular expression? */
+bool isRegExpKind(Kind k);
+
+/** Get owner string type
+ *
+ * This returns a string-like type for a term n that belongs to the theory of
+ * strings. This type conceptually represents the subtheory of strings
+ * (Sequence(T) or String) that owns n. This is typically the type of n,
+ * but for instance, operators like str.indexof( s, t, n ), this is the type
+ * of s.
+ */
+TypeNode getOwnerStringType(Node n);
+
+/* Get the number of repetitions for a regexp repeat node */
+unsigned getRepeatAmount(TNode node);
+
+/* Get the maximum occurrences of given regexp loop node. */
+unsigned getLoopMaxOccurrences(TNode node);
+/* Get the minimum occurrences of given regexp loop node. */
+unsigned getLoopMinOccurrences(TNode node);
 
 }  // namespace utils
 }  // namespace strings

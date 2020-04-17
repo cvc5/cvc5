@@ -53,9 +53,9 @@ def main():
 
   formula = Expr(em.mkExpr(CVC4.AND, x_positive, y_positive)).impExpr(Expr(twox_plus_y_geq_3))
 
-  print("Checking validity of formula " + formula.toString() + " with CVC4.")
-  print("CVC4 should report VALID.")
-  print("Result from CVC4 is: " + smt.query(formula).toString())
+  print("Checking entailment of formula " + formula.toString() + " with CVC4.")
+  print("CVC4 should report ENTAILED .")
+  print("Result from CVC4 is: " + smt.checkEntailed(formula).toString())
 
   return 0
 

@@ -42,6 +42,13 @@ class Word
   /** Return the length of word x */
   static size_t getLength(TNode x);
 
+  /** Get characters
+   *
+   * Given word x, this returns the vector of words of length one whose
+   * concatenation is equivalent to x.
+   */
+  static std::vector<Node> getChars(TNode x);
+
   /** Return true if x is empty */
   static bool isEmpty(TNode x);
 
@@ -132,6 +139,24 @@ class Word
    * Notice that x.overlap(y) = y.roverlap(x)
    */
   static std::size_t roverlap(TNode x, TNode y);
+  /** Split constant
+   *
+   * This returns the suffix remainder (resp. prefix remainder when isRev is
+   * true) of words a and b, call it r, such that:
+   * (1) a = b ++ r , or
+   * (2) a ++ r = b
+   * when isRev = false.  The argument index is set to 1 if we are in the second
+   * case, and 0 otherwise.
+   *
+   * If a and b do not share a common prefix (resp. suffix), then this method
+   * returns the null node.
+   */
+  static Node splitConstant(TNode x, TNode y, size_t& index, bool isRev);
+  /** reverse
+   *
+   * Return the result of reversing x.
+   */
+  static Node reverse(TNode x);
 };
 
 // ------------------------------ end for words (string or sequence constants)

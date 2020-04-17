@@ -22,7 +22,9 @@
 #include "options/strings_options.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
+#include "theory/strings/word.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -31,14 +33,15 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess(SkolemCache *sc, context::UserContext *u)
-    : d_sc(sc)
+StringsPreprocess::StringsPreprocess(SkolemCache* sc,
+                                     context::UserContext* u,
+                                     SequencesStatistics& stats)
+    : d_sc(sc), d_statistics(stats)
 {
   //Constants
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_empty_str = NodeManager::currentNM()->mkConst(String(""));
 }
 
 StringsPreprocess::~StringsPreprocess(){
@@ -68,13 +71,15 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node c3 = nm->mkNode(GT, m, d_zero);
     Node cond = nm->mkNode(AND, c1, c2, c3);
 
-    Node sk1 = n == d_zero ? d_empty_str
+    Node emp = Word::mkEmptyWord(t.getType());
+
+    Node sk1 = n == d_zero ? emp
                            : d_sc->mkSkolemCached(
                                  s, n, SkolemCache::SK_PREFIX, "sspre");
-    Node sk2 = SequencesRewriter::checkEntailArith(t12, lt0)
-                   ? d_empty_str
+    Node sk2 = ArithEntail::check(t12, lt0)
+                   ? emp
                    : d_sc->mkSkolemCached(
-                         s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+                       s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
     //length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
@@ -89,7 +94,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node b14 = nm->mkNode(LEQ, nm->mkNode(STRING_LENGTH, skt), m);
 
     Node b1 = nm->mkNode(AND, b11, b12, b13, b14);
-    Node b2 = skt.eqNode(d_empty_str);
+    Node b2 = skt.eqNode(emp);
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
     // assert:
@@ -149,7 +154,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node cc1 = skk.eqNode(negone);
 
     // y = ""
-    Node cond2 = y.eqNode(d_empty_str);
+    Node emp = Word::mkEmptyWord(x.getType());
+    Node cond2 = y.eqNode(emp);
     // skk = n
     Node cc2 = skk.eqNode(t[2]);
 
@@ -237,8 +243,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     Node nonneg = nm->mkNode(GEQ, n, d_zero);
 
-    lem = nm->mkNode(
-        ITE, nonneg, nm->mkNode(AND, conc), itost.eqNode(d_empty_str));
+    Node emp = Word::mkEmptyWord(t.getType());
+    lem = nm->mkNode(ITE, nonneg, nm->mkNode(AND, conc), itost.eqNode(emp));
     new_nodes.push_back(lem);
     // assert:
     // IF n>=0
@@ -275,7 +281,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node lem = stoit.eqNode(d_neg_one);
     conc1.push_back(lem);
 
-    Node sEmpty = s.eqNode(d_empty_str);
+    Node emp = Word::mkEmptyWord(s.getType());
+    Node sEmpty = s.eqNode(emp);
     Node k = nm->mkSkolem("k", nm->integerType());
     Node kc1 = nm->mkNode(GEQ, k, d_zero);
     Node kc2 = nm->mkNode(LT, k, lens);
@@ -361,7 +368,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node rpw = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpw");
 
     // y = ""
-    Node cond1 = y.eqNode(nm->mkConst(CVC4::String("")));
+    Node emp = Word::mkEmptyWord(tn);
+    Node cond1 = y.eqNode(emp);
     // rpw = str.++( z, x )
     Node c1 = rpw.eqNode(nm->mkNode(kind::STRING_CONCAT, z, x));
 
@@ -476,8 +484,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // the index to begin searching in x for y after the i^th occurrence of y in
     // x, and Us( i ) is the result of processing the remainder after processing
     // the i^th occurrence of y in x.
-    Node assert = nm->mkNode(
-        ITE, y.eqNode(d_empty_str), rpaw.eqNode(x), nm->mkNode(AND, lem));
+    Node emp = Word::mkEmptyWord(t.getType());
+    Node assert =
+        nm->mkNode(ITE, y.eqNode(emp), rpaw.eqNode(x), nm->mkNode(AND, lem));
     new_nodes.push_back(assert);
 
     // Thus, replaceall( x, y, z ) = rpaw
@@ -637,6 +646,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
         Trace("strings-preprocess") << "   " << new_nodes[i] << std::endl;
       }
     }
+    d_statistics.d_reductions << t.getKind();
   }
   else
   {
