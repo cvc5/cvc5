@@ -35,12 +35,12 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node check(PfRule id,
              const std::vector<Node>& children,
              const std::vector<Node>& args) override;
-  /** 
+  /**
    * Apply rewrite. This encapsulates the exact behavior of a REWRITE step
    * in a proof.
    */
   static Node applyRewrite(Node n);
-  /** 
+  /**
    * Apply substitution. This encapsulates the exact behavior of a SUBS step
    * in a proof.
    */

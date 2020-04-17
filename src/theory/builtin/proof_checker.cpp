@@ -21,13 +21,14 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace eq {
-  
+
 Node BuiltinProofRuleChecker::applyRewrite(Node n)
 {
   return Rewriter::rewrite(n);
 }
 
-Node BuiltinProofRuleChecker::applySubstitution(Node n, const std::vector<Node>& exp)
+Node BuiltinProofRuleChecker::applySubstitution(Node n,
+                                                const std::vector<Node>& exp)
 {
   Node curr = n;
   // apply substitution one at a time
@@ -58,8 +59,8 @@ Node BuiltinProofRuleChecker::mkAnd(const std::vector<Node>& a)
 }
 
 Node BuiltinProofRuleChecker::check(PfRule id,
-                               const std::vector<Node>& children,
-                               const std::vector<Node>& args)
+                                    const std::vector<Node>& children,
+                                    const std::vector<Node>& args)
 {
   // compute what was proven
   if (id == PfRule::ASSUME)
@@ -70,15 +71,15 @@ Node BuiltinProofRuleChecker::check(PfRule id,
   }
   else if (id == PfRule::SCOPE)
   {
-    Assert(children.size()==1);
-    Assert(args.size()>0);
+    Assert(children.size() == 1);
+    Assert(args.size() > 0);
     Node ant = mkAnd(children);
     // if the conclusion is false, its the negated antencedant only
     if (children[0].isConst() && !children[0].getConst<bool>())
     {
-      return NodeManager::currentNM()->mkNode(NOT,ant);
+      return NodeManager::currentNM()->mkNode(NOT, ant);
     }
-    return NodeManager::currentNM()->mkNode(IMPLIES,ant,children[0]);
+    return NodeManager::currentNM()->mkNode(IMPLIES, ant, children[0]);
   }
   else if (id == PfRule::SUBS)
   {
