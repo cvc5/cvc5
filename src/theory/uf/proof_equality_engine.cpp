@@ -135,9 +135,11 @@ bool ProofEqEngine::assertFact(Node lit, ProofNode* p)
   return assertFact(lit, p->getId(), exp, p->getArguments());
 }
 
-TrustNode ProofEqEngine::getConflict()
+TrustNode ProofEqEngine::assertConflict(Node lit)
 {
-  // TODO
+  std::vector<TNode> assumps;
+  explainWithProof(lit, assumps);
+  return ensureProofForFact(d_false, assumps, true);
 }
 
 TrustNode ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
@@ -191,7 +193,11 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
       isConflict = false;
     }
   }
+  return ensureProofForFact(conc, assumps, isConflict);
+}
 
+TrustNode ProofEqEngine::ensureProofForFact(Node conc, const std::vector<TNode>& assumps, bool isConflict)
+{
   // make the conflict or lemma
   Node formula = mkAnd(assumps);
   if (!isConflict)

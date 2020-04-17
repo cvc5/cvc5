@@ -72,13 +72,13 @@ class ProofEqEngine : public EagerProofGenerator
                   const std::vector<Node>& exp,
                   const std::vector<Node>& args);
   bool assertFact(Node lit, PfRule id, Node exp, const std::vector<Node>& args);
-  bool assertFact(Node lit, ProofNode* p);
+  //bool assertFact(Node lit, ProofNode* p);
   /**
    * This method is called when the equality engine of this class is
-   * inconsistent (false has been proven). This returns the trust node
-   * corresponding to this conflict.
+   * inconsistent (false has been proven) by a contradictory literal lit. This
+   * returns the trust node corresponding to the current conflict.
    */
-  TrustNode getConflict();
+  TrustNode assertConflict(Node lit);
   /**
    * Get proven conflict from contradictory facts. This method is called when
    * the proof rule with premises exp and arguments args implies a contradiction
@@ -93,7 +93,7 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertConflict(PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args);
-  TrustNode assertConflict(ProofNode* p);
+  //TrustNode assertConflict(ProofNode* p);
   /**
    * Called when we have concluded conc, which is either false or a
    * disjunction.
@@ -145,6 +145,8 @@ class ProofEqEngine : public EagerProofGenerator
   std::shared_ptr<ProofNode> mkProofForFact(Node lit) const;
   /** Assert internal */
   void assertInternal(Node pred, bool polarity, TNode reason);
+  /** ensure proof for fact */
+  TrustNode ensureProofForFact(Node conc, const std::vector<TNode>& assumps, bool isConflict);
   /**
    * Make the conjunction of nodes in a. Returns true if a is empty, and a
    * single literal if a has size 1.
