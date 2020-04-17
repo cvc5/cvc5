@@ -89,22 +89,22 @@ bool ProofEqEngine::assertFact(Node lit,
 }
 
 bool ProofEqEngine::assertFact(Node lit,
-                PfRule id,
-                Node exp,
-                const std::vector<Node>& args)
+                               PfRule id,
+                               Node exp,
+                               const std::vector<Node>& args)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
-  
+
   if (!d_pfEnabled)
   {
-    assertInternal(atom,polarity,exp);
+    assertInternal(atom, polarity, exp);
     return true;
   }
   std::vector<Node> expv;
-  if (exp!=d_true)
+  if (exp != d_true)
   {
-    if (exp.getKind()==AND)
+    if (exp.getKind() == AND)
     {
       for (const Node& e : expv)
       {
@@ -116,14 +116,11 @@ bool ProofEqEngine::assertFact(Node lit,
       expv.push_back(e);
     }
   }
-  return assertFact(lit,id,expv,args);
+  return assertFact(lit, id, expv, args);
 }
 
-TrustNode getConflict()
-{
-  
-}
-  
+TrustNode getConflict() {}
+
 TrustNode ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
 {
   std::vector<Node> args;
@@ -136,7 +133,7 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
 {
   // conflict is same as proof of false
   std::vector<Node> expn;
-  return assertLemma(d_false,id,exp,expn,args);
+  return assertLemma(d_false, id, exp, expn, args);
 }
 
 TrustNode assertLemma(Node conc,
@@ -145,10 +142,10 @@ TrustNode assertLemma(Node conc,
                       const std::vector<Node>& expn,
                       const std::vector<Node>& args)
 {
-  Assert (d_conc!=d_true);
+  Assert(d_conc != d_true);
   if (d_pfEnabled)
   {
-    // Register the proof step. 
+    // Register the proof step.
     std::vector<Node> expAll;
     expAll.insert(expAll.end(), exp.begin(), exp.end());
     expAll.insert(expAll.end(), expn.begin(), expn.end());
@@ -167,18 +164,18 @@ TrustNode assertLemma(Node conc,
     explainWithProof(e, assumps);
   }
   assumps.insert(assumps.end(), expn.begin(), expn.end());
-  
+
   // We are a conflict if the conclusion is false and all literals are
   // explained.
-  bool isConflict = conc==d_false && expn.empty();
+  bool isConflict = conc == d_false && expn.empty();
 
   // make the conflict or lemma
   Node formula = mkAnd(assumps);
   if (!isConflict)
   {
-    formula = formula==d_false ? conc : nm->mkNode(IMPLIES, formula, conc);
+    formula = formula == d_false ? conc : nm->mkNode(IMPLIES, formula, conc);
   }
-  
+
   if (d_pfEnabled)
   {
     // get the proof for false

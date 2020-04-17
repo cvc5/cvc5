@@ -47,9 +47,13 @@ TrustNode TrustNode::mkTrustLemma(Node lem, ProofGenerator* g)
   return TrustNode(TrustNodeKind::LEMMA, lem, g);
 }
 
-TrustNode TrustNode::null() { return TrustNode(TrustNodeKind::INVALID, Node::null()); }
+TrustNode TrustNode::null()
+{
+  return TrustNode(TrustNodeKind::INVALID, Node::null());
+}
 
-TrustNode::TrustNode(TrustNodeKind tnk, Node n, ProofGenerator* g) : d_tnk(tnk), d_node(n), d_gen(g)
+TrustNode::TrustNode(TrustNodeKind tnk, Node n, ProofGenerator* g)
+    : d_tnk(tnk), d_node(n), d_gen(g)
 {
   // does not make sense to provide null node with generator
   Assert(d_node.isNull() || d_gen != nullptr);

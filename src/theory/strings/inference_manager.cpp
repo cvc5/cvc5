@@ -42,7 +42,7 @@ InferenceManager::InferenceManager(context::Context* c,
       d_poc(poc),
       d_statistics(statistics),
       d_pnm(),
-      d_pfee(c,u,*d_state.getEqualityEngine(),&d_pnm),
+      d_pfee(c, u, *d_state.getEqualityEngine(), &d_pnm),
       d_keep(c),
       d_pfEnabled(pfEnabled)
 {
@@ -154,7 +154,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
     Node eq_exp;
     if (options::stringRExplainLemmas())
     {
-      //TrustNode tn = assertLemma(atom, exp, expn,
+      // TrustNode tn = assertLemma(atom, exp, expn,
       eq_exp = mkExplain(exp, exp_n);
     }
     else
@@ -206,7 +206,7 @@ void InferenceManager::sendInference(const InferInfo& i)
 void InferenceManager::sendLemma(TrustNode n, Inference infer)
 {
   Node f = n.getNode();
-  if (n.getKind()==TrustNodeKind::CONFLICT)
+  if (n.getKind() == TrustNodeKind::CONFLICT)
   {
     Trace("strings-conflict")
         << "Strings::Conflict : " << infer << " : " << f << std::endl;
@@ -283,10 +283,10 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   // update statistics
   d_statistics.d_inferences << infer;
   TrustNode tsplit = d_pfee.assertSplit(eq);
-  Assert( tsplit.getKind()==TrustNodeKind::LEMMA );
+  Assert(tsplit.getKind() == TrustNodeKind::LEMMA);
   Node lem = tsplit.getNode();
-  Trace("strings-lemma") << "Strings::Lemma " << infer
-                         << " SPLIT : " << lem << std::endl;
+  Trace("strings-lemma") << "Strings::Lemma " << infer << " SPLIT : " << lem
+                         << std::endl;
   d_pendingLem.push_back(tsplit);
   sendPhaseRequirement(eq, preq);
   return true;
@@ -355,7 +355,7 @@ void InferenceManager::doPendingLemmas()
   {
     for (const TrustNode& pl : d_pendingLem)
     {
-      Assert (pl.getKind()==TrustNodeKind::LEMMA);
+      Assert(pl.getKind() == TrustNodeKind::LEMMA);
       Trace("strings-pending") << "Process pending lemma : " << pl << std::endl;
       ++(d_statistics.d_lemmasInfer);
       d_poc.lemma(pl);

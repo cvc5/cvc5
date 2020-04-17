@@ -82,6 +82,7 @@ class TrustNode
   ProofGenerator* getGenerator() const;
   /** is null? */
   bool isNull() const;
+
  private:
   TrustNode(TrustNodeKind tnk, Node n, ProofGenerator* g = nullptr);
   /** The kind */
