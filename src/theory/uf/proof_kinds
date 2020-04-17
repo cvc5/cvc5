@@ -41,7 +41,7 @@ prooffule CONG 0: 1 ::CVC4::theory::uf::EqProofRuleChecker
 // Arguments: (t,s)
 // -------------------
 // Conclusion: (= t s)
-// Macro: (TRANS (SUBS_REWRITE P1 ... Pn :args t)
-//               (SYMM (SUBS_REWRITE P1 ... Pn :args s)))
 // In other words, t and s can be show equal by substitution + rewriting.
-prooffule MACRO_EQ_SUBS_REWRITE 0: 2 ::CVC4::theory::uf::EqProofRuleChecker
+macro MACRO_EQ_SUBS_REWRITE 0: 2 { 
+  (TRANS (SUBS_REWRITE <children> <args>[0]) (SYMM (SUBS_REWRITE <children> <args>[1]))) 
+}
