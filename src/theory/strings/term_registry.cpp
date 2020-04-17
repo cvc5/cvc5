@@ -232,7 +232,7 @@ void TermRegistry::registerTerm(Node n, int effort)
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
     TrustNode plem = TrustNode::mkTrustLemma(regTermLem, nullptr);
-    d_poc.lemma(plem);
+    d_poc.trustedLemma(plem);
   }
 }
 
@@ -339,7 +339,7 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
     Trace("strings-assert") << "(assert " << lenLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTermAtomic);
     TrustNode plem = TrustNode::mkTrustLemma(lenLem, nullptr);
-    d_poc.lemma(plem);
+    d_poc.trustedLemma(plem);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
   {

@@ -35,6 +35,15 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
+  
+struct PendingInfer
+{
+  PendingInfer(Inference i, Node fact, const std::vector<Node>& exp) : d_infer(i), d_fact(fact), d_exp(exp){}
+  ~PendingInfer(){}
+  Inference d_infer;
+  Node d_fact;
+  std::vector<Node> d_exp;
+};
 
 /** Inference Manager
  *
@@ -322,9 +331,7 @@ class InferenceManager
   Node d_zero;
   Node d_one;
   /** The list of pending literals to assert to the equality engine */
-  std::vector<Node> d_pending;
-  /** A map from the literals in the above vector to their explanation */
-  std::map<Node, Node> d_pendingExp;
+  std::vector<PendingInfer> d_pending;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
   /** A list of pending lemmas to be sent on the output channel. */

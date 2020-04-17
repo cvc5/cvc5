@@ -158,7 +158,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
     // ordered list of exp + expn.
     std::vector<Node> pfExp;
     std::vector<Node> args;
-    PfRule id = d_ipc.convert(exp, expn, eq, infer, pfExp, args);
+    PfRule id = d_ipc.convert(eq, infer, exp, expn, pfExp, args);
     if (options::stringRExplainLemmas())
     {
       n = d_pfee.assertLemma(eq, id, pfExp, exp, args);
@@ -169,11 +169,56 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       n = d_pfee.assertLemma(eq, id, pfExp, expEmpty, args);
     }
     sendLemma(n, infer);
+    return;
   }
-  else
+  // no free assumptions in the explanation
+  Assert(expn.empty());
+  Node eq_exp = utils::mkAnd(exp);
+  if (options::stringInferSym())
   {
-    sendInfer(utils::mkAnd(exp), eq, infer);
+    std::vector<Node> vars;
+    std::vector<Node> subs;
+    std::vector<Node> unproc;
+    d_termReg.inferSubstitutionProxyVars(eq_exp, vars, subs, unproc);
+    if (unproc.empty())
+    {
+      Node eqs =
+          eq.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      if (Trace.isOn("strings-lemma-debug"))
+      {
+        Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from "
+                                     << eq_exp << " by " << infer << std::endl;
+        Trace("strings-lemma-debug")
+            << "Strings::Infer Alternate : " << eqs << std::endl;
+        for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
+        {
+          Trace("strings-lemma-debug")
+              << "  " << vars[i] << " -> " << subs[i] << std::endl;
+        }
+      }
+      // the code above is likely a substitution + rewriting?
+      PfRule id;
+      std::vector<Node> pfExp;
+      pfExp.insert(pfExp.end(),exp.begin(),exp.end());
+      std::vector<Node> args;
+      TrustNode n = d_pfee.assertLemma(eqs, id, pfExp, exp, args);
+      sendLemma(n, infer);
+      return;
+    }
+    if (Trace.isOn("strings-lemma-debug"))
+    {
+      for (const Node& u : unproc)
+      {
+        Trace("strings-lemma-debug")
+            << "  non-trivial exp : " << u << std::endl;
+      }
+    }
   }
+  Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eq_exp
+                         << " by " << infer << std::endl;
+  Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq
+                          << ")) ; infer " << infer << std::endl;
+  d_pending.push_back(PendingInfer(infer,eq,exp));
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
@@ -211,57 +256,6 @@ void InferenceManager::sendLemma(TrustNode n, Inference infer)
   Trace("strings-assert") << "(assert " << f << ") ; lemma " << infer
                           << std::endl;
   d_pendingLem.push_back(n);
-}
-
-void InferenceManager::sendInfer(Node eq_exp, Node eq, Inference infer)
-{
-  if (options::stringInferSym())
-  {
-    std::vector<Node> vars;
-    std::vector<Node> subs;
-    std::vector<Node> unproc;
-    d_termReg.inferSubstitutionProxyVars(eq_exp, vars, subs, unproc);
-    if (unproc.empty())
-    {
-      Node eqs =
-          eq.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-      if (Trace.isOn("strings-lemma-debug"))
-      {
-        Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from "
-                                     << eq_exp << " by " << infer << std::endl;
-        Trace("strings-lemma-debug")
-            << "Strings::Infer Alternate : " << eqs << std::endl;
-        for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
-        {
-          Trace("strings-lemma-debug")
-              << "  " << vars[i] << " -> " << subs[i] << std::endl;
-        }
-      }
-      PfRule id;
-      std::vector<Node> exp;
-      std::vector<Node> expAll;
-      std::vector<Node> args;
-      TrustNode n = d_pfee.assertLemma(eqs, id, exp, expAll, args);
-      sendLemma(n, infer);
-      return;
-    }
-    if (Trace.isOn("strings-lemma-debug"))
-    {
-      for (const Node& u : unproc)
-      {
-        Trace("strings-lemma-debug")
-            << "  non-trivial exp : " << u << std::endl;
-      }
-    }
-  }
-  Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eq_exp
-                         << " by " << infer << std::endl;
-  Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq
-                          << ")) ; infer " << infer << std::endl;
-  d_pending.push_back(eq);
-  d_pendingExp[eq] = eq_exp;
-  d_keep.insert(eq);
-  d_keep.insert(eq_exp);
 }
 
 bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
@@ -318,16 +312,16 @@ void InferenceManager::doPendingFacts()
   size_t i = 0;
   while (!d_state.isInConflict() && i < d_pending.size())
   {
-    Node fact = d_pending[i];
-    Node exp = d_pendingExp[fact];
+    PendingInfer pi = d_pending[i];
+    Node fact = pi.d_fact;
     Assert(fact.getKind() != AND);
+    Node exp = utils::mkAnd(pi.d_exp);
     bool polarity = fact.getKind() != NOT;
     TNode atom = polarity ? fact : fact[0];
     assertPendingFact(atom, polarity, exp);
     i++;
   }
   d_pending.clear();
-  d_pendingExp.clear();
 }
 
 void InferenceManager::doPendingLemmas()
