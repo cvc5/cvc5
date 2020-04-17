@@ -35,7 +35,7 @@ namespace strings {
 class InferProofCons
 {
  public:
-  InferProofCons(ProofEqEngine& pfee);
+  InferProofCons(eq::ProofEqEngine& pfee);
   ~InferProofCons() {}
   /** convert
    *
@@ -56,7 +56,7 @@ class InferProofCons
 
  private:
   /** The proof-producing equality engine */
-  ProofEqEngine& d_pfee;
+  eq::ProofEqEngine& d_pfee;
 };
 
 }  // namespace strings

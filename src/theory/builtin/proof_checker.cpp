@@ -12,7 +12,7 @@
  ** \brief Implementation of equality proof checker
  **/
 
-#include "theory/uf/proof_checker.h"
+#include "theory/builtin/proof_checker.h"
 
 #include "theory/rewriter.h"
 
@@ -20,7 +20,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-namespace eq {
+namespace builtin {
 
 Node BuiltinProofRuleChecker::applyRewrite(Node n)
 {
@@ -49,7 +49,7 @@ Node BuiltinProofRuleChecker::mkAnd(const std::vector<Node>& a)
 {
   if (a.empty())
   {
-    return d_true;
+    return NodeManager::currentNM()->mkConst(true);
   }
   else if (a.size() == 1)
   {
@@ -104,6 +104,6 @@ Node BuiltinProofRuleChecker::check(PfRule id,
   return Node::null();
 }
 
-}  // namespace eq
+}  // namespace builtin
 }  // namespace theory
 }  // namespace CVC4

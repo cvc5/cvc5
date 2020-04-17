@@ -18,7 +18,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-namespace eq {
+namespace booleans {
 
 Node BoolProofRuleChecker::check(PfRule id,
                                  const std::vector<Node>& children,
@@ -34,6 +34,6 @@ Node BoolProofRuleChecker::check(PfRule id,
   return Node::null();
 }
 
-}  // namespace eq
+}  // namespace booleans
 }  // namespace theory
 }  // namespace CVC4
