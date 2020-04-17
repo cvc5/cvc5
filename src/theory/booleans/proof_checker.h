@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Equality proof checker utility
+ ** \brief Boolean proof checker utility
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BUILTIN__PROOF_CHECKER_H
-#define CVC4__THEORY__BUILTIN__PROOF_CHECKER_H
+#ifndef CVC4__THEORY__BOOLEANS__PROOF_CHECKER_H
+#define CVC4__THEORY__BOOLEANS__PROOF_CHECKER_H
 
 #include "expr/node.h"
 #include "expr/proof_checker.h"
@@ -23,34 +23,22 @@
 
 namespace CVC4 {
 namespace theory {
-namespace builtin {
+namespace booleans {
 
-/** A checker for builtin proofs */
-class BuiltinProofRuleChecker : public ProofRuleChecker
+/** A checker for boolean reasoning in proofs */
+class BoolProofRuleChecker : public ProofRuleChecker
 {
  public:
-  BuiltinProofRuleChecker() {}
-  ~BuiltinProofRuleChecker() {}
+  BoolProofRuleChecker() {}
+  ~BoolProofRuleChecker() {}
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node check(PfRule id,
              const std::vector<Node>& children,
              const std::vector<Node>& args) override;
-  /**
-   * Apply rewrite. This encapsulates the exact behavior of a REWRITE step
-   * in a proof.
-   */
-  static Node applyRewrite(Node n);
-  /**
-   * Apply substitution. This encapsulates the exact behavior of a SUBS step
-   * in a proof.
-   */
-  static Node applySubstitution(Node n, const std::vector<Node>& exp);
-  /** mk and node */
-  static Node mkAnd(const std::vector<Node>& a);
 };
 
-}  // namespace builtin
+}  // namespace booleans
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__BUILTIN__PROOF_CHECKER_H */
+#endif /* CVC4__THEORY__BOOLEANS__PROOF_CHECKER_H */
