@@ -18,15 +18,14 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferProofCons::InferProofCons(ProofEqualityEngine& pfee) : d_pfee(pfee) {}
+InferProofCons::InferProofCons(ProofEqEngine& pfee) : d_pfee(pfee) {}
 
 PfRule InferProofCons::convert(const std::vector<Node>& exp,
                                const std::vector<Node>& expn,
                                Node eq,
                                Inference infer,
                                std::vector<Node>& pfChildren,
-                               std::vector<Node>& pfArgs,
-                               ProofEqualityEngine& pfee)
+                               std::vector<Node>& pfArgs)
 {
   // TODO
   pfChildren.insert(pfChildren.end(), exp.begin(), exp.end());
