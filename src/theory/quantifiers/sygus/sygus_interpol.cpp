@@ -39,23 +39,23 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
     const std::vector<Node>& assumptions, const Node& conclusion)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(options::ProduceInterpols() != options::ProduceInterpols::NONE);
+  Assert(options::produceInterpols() != options::ProduceInterpols::NONE);
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > result =
       std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
 
   // ASSUMPTIONS
-  if (options::ProduceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
+  if (options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
   {
     Node tmpAssumptions = nm->mkNode(kind::AND, assumptions);
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONCLUSION
-  else if (options::ProduceInterpols() == options::ProduceInterpols::CONCLUSION)
+  else if (options::produceInterpols() == options::ProduceInterpols::CONCLUSION)
   {
     expr::getOperatorsMap(conclusion, result);
   }
   // SHARED
-  else if (options::ProduceInterpols() == options::ProduceInterpols::SHARED)
+  else if (options::produceInterpols() == options::ProduceInterpols::SHARED)
   {
     // Get operators from assumptions
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
@@ -103,7 +103,7 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
     }
   }
   // ALL
-  else if (options::ProduceInterpols() == options::ProduceInterpols::ALL)
+  else if (options::produceInterpols() == options::ProduceInterpols::ALL)
   {
     Node tmpAssumptions;
     Node tmpConclusions;
@@ -224,7 +224,7 @@ void sygus_interpol::mkInterpolationConjecture(const std::string& name,
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   Trace("sygus-interpol-debug") << "Setup grammar..." << std::endl;
-  if (options::ProduceInterpols() != options::ProduceInterpols::DEFAULT)
+  if (options::produceInterpols() != options::ProduceInterpols::DEFAULT)
   {
     setSynthGrammar(axioms, conj, abvlShared, itp);
   }

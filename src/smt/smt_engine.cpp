@@ -1291,7 +1291,7 @@ void SmtEngine::setDefaults() {
   // sygus inference may require datatypes
   if (!d_isInternalSubsolver)
   {
-    if (options::ProduceInterpols() != options::ProduceInterpols::NONE
+    if (options::produceInterpols() != options::ProduceInterpols::NONE
         || options::produceAbducts() || options::sygusInference()
         || options::sygusRewSynthInput())
     {
@@ -1316,7 +1316,7 @@ void SmtEngine::setDefaults() {
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::ProduceInterpols() != options::ProduceInterpols::NONE
+       || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::produceAbducts()
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE)
@@ -1959,7 +1959,7 @@ void SmtEngine::setDefaults() {
     // techniques.
     bool reqBasicSygus = false;
     if (options::produceAbducts()
-        || options::ProduceInterpols() != options::ProduceInterpols::NONE)
+        || options::produceInterpols() != options::ProduceInterpols::NONE)
     {
       // if doing abduction or interpolation, we should filter strong solutions
       if (!options::sygusFilterSolMode.wasSetByUser())
@@ -2270,7 +2270,7 @@ void SmtEngine::setDefaults() {
           "--sygus-expr-miner-check-use-export");
     }
     if (options::sygusRewSynthInput() || options::produceAbducts()
-        || options::ProduceInterpols() != options::ProduceInterpols::NONE)
+        || options::produceInterpols() != options::ProduceInterpols::NONE)
     {
       std::stringstream ss;
       ss << (options::sygusRewSynthInput()
@@ -4098,12 +4098,17 @@ Result SmtEngine::checkSynth()
       Trace("smt") << "...constructed exists " << body << std::endl;
     }
     if (!d_private->d_sygusFunSymbols.empty())
-    {
-      Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
-                                             d_private->d_sygusFunSymbols);
-      body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
-    }
-    Trace("smt") << "...constructed forall " << body << std::endl;
+		{
+			for (Node tmp : d_private->d_sygusFunSymbols) {
+				std::cout << tmp << " panda ";
+			}
+			std::cout << std::endl;
+
+			Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
+					d_private->d_sygusFunSymbols);
+			body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
+		}
+		Trace("smt") << "...constructed forall " << body << std::endl;
 
     // set attribute for synthesis conjecture
     setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
@@ -5272,7 +5277,7 @@ bool SmtEngine::getInterpol(const Expr& conj,
 {
   SmtScope smts(this);
 
-  if (options::ProduceInterpols() == options::ProduceInterpols::NONE)
+  if (options::produceInterpols() == options::ProduceInterpols::NONE)
   {
     const char* msg =
         "Cannot get interpolation when produce-interpol options is off.";
@@ -5314,11 +5319,16 @@ bool SmtEngine::getInterpol(const Expr& conj,
   // enable everything needed for sygus
   l.enableSygus();
   d_subsolver->setLogic(l);
-  if (options::ProduceInterpols() == options::ProduceInterpols::DEFAULT)
-  {
-    d_subsolver->declareSynthFun("A", interpol, grammarType, false, vars);
-  }
-  d_subsolver->assertSygusConstraint(sygusConj.toExpr());
+  //if (options::produceInterpols() == options::ProduceInterpols::DEFAULT)
+  //{
+	//	Trace("sygus-interpol-debug") << "Set default grammar" << std::endl;
+  //  d_subsolver->declareSynthFun("A", interpol, grammarType, false, vars);
+	//}
+	//else
+	{
+		//d_subsolver->assertSygusConstraint(sygusConj.toExpr());
+		d_subsolver->assertFormula(sygusConj.toExpr());
+	}
 
   if (getInterpolInternal(interpol))
   {
@@ -5337,7 +5347,7 @@ bool SmtEngine::getInterpolInternal(Expr& interpol)
   Assert(d_subsolver != nullptr);
   Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
                           << std::endl;
-  Result r = d_subsolver->checkSynth();
+  Result r = d_subsolver->checkSat();
   Trace("sygus-interpol") << "  SmtEngine::getInterpol result: " << r
                           << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
