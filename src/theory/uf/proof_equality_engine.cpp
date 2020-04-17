@@ -80,7 +80,7 @@ bool ProofEqEngine::assertFact(Node lit,
 
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
-  
+
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(atom, polarity, reason);
@@ -95,7 +95,6 @@ bool ProofEqEngine::assertFact(Node lit,
                                Node exp,
                                const std::vector<Node>& args)
 {
-
   // first, register the step in the proof
   if (d_pfEnabled)
   {
