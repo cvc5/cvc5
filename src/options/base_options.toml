@@ -56,16 +56,6 @@ header = "options/base_options.h"
   category   = "undocumented"
   type       = "bool"
 
-[[alias]]
-  category   = "undocumented"
-  long       = "language=L"
-  links      = ["--lang=L"]
-
-[[alias]]
-  category   = "undocumented"
-  long       = "output-language=L"
-  links      = ["--output-lang=L"]
-
 [[option]]
   name       = "verbosity"
   smt_name   = "verbosity"
@@ -103,35 +93,14 @@ header = "options/base_options.h"
   read_only  = true
   help       = "give statistics on exit"
 
-[[alias]]
-  category   = "undocumented"
-  long       = "statistics"
-  links      = ["--stats"]
-
-[[alias]]
-  category   = "undocumented"
-  long       = "no-statistics"
-  links      = ["--no-stats"]
-
 [[option]]
   name       = "statsEveryQuery"
   category   = "regular"
   long       = "stats-every-query"
   type       = "bool"
   default    = "false"
-  links      = ["--stats"]
   read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
-
-[[alias]]
-  category   = "undocumented"
-  long       = "statistics-every-query"
-  links      = ["--stats-every-query"]
-
-[[alias]]
-  category   = "undocumented"
-  long       = "no-statistics-every-query"
-  links      = ["--no-stats-every-query"]
 
 [[option]]
   name       = "statsHideZeros"
@@ -141,21 +110,6 @@ header = "options/base_options.h"
   default    = "false"
   read_only  = true
   help       = "hide statistics which are zero"
-
-[[alias]]
-  category   = "undocumented"
-  long       = "stats-show-zeros"
-  links      = ["--no-stats-hide-zeros"]
-
-[[alias]]
-  category   = "undocumented"
-  long       = "hide-zero-stats"
-  links      = ["--stats-hide-zeros"]
-
-[[alias]]
-  category   = "undocumented"
-  long       = "show-zero-stats"
-  links      = ["--stats-show-zeros"]
 
 [[option]]
   name       = "parseOnly"
@@ -200,9 +154,3 @@ header = "options/base_options.h"
   notifies   = ["notifyPrintSuccess"]
   read_only  = true
   help       = "print the \"success\" output required of SMT-LIBv2"
-
-[[alias]]
-  category   = "regular"
-  long       = "smtlib-strict"
-  links      = ["--lang=smt2", "--output-lang=smt2", "--strict-parsing", "--default-expr-depth=-1", "--print-success", "--incremental", "--abstract-values"]
-  help       = "SMT-LIBv2 compliance mode (implies other options)"

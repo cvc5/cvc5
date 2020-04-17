@@ -373,8 +373,7 @@ bool TermDbSygus::registerSygusType(TypeNode tn)
 void TermDbSygus::registerEnumerator(Node e,
                                      Node f,
                                      SynthConjecture* conj,
-                                     EnumeratorRole erole,
-                                     bool useSymbolicCons)
+                                     EnumeratorRole erole)
 {
   if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
   {
@@ -391,7 +390,6 @@ void TermDbSygus::registerEnumerator(Node e,
 
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
                     << std::endl;
-  d_enum_to_using_sym_cons[e] = useSymbolicCons;
   // depending on if we are using symbolic constructors, introduce symmetry
   // breaking lemma templates for each relevant subtype of the grammar
   SygusTypeInfo& eti = getTypeInfo(et);
@@ -406,23 +404,17 @@ void TermDbSygus::registerEnumerator(Node e,
     SygusTypeInfo& sti = getTypeInfo(stn);
     const DType& dt = stn.getDType();
     int anyC = sti.getAnyConstantConsNum();
-    for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+    for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
     {
-      bool isAnyC = static_cast<int>(i) == anyC;
-      if (isAnyC && !useSymbolicCons)
-      {
-        // if we are not using the any constant constructor
-        // do not use the symbolic constructor
-        rm_indices.push_back(i);
-      }
-      else if (anyC != -1 && !isAnyC && useSymbolicCons)
+      bool isAnyC = static_cast<int>(j) == anyC;
+      if (anyC != -1 && !isAnyC)
       {
         // if we are using the any constant constructor, do not use any
         // concrete constant
-        Node c_op = sti.getConsNumConst(i);
+        Node c_op = sti.getConsNumConst(j);
         if (!c_op.isNull())
         {
-          rm_indices.push_back(i);
+          rm_indices.push_back(j);
         }
       }
     }
@@ -453,7 +445,7 @@ void TermDbSygus::registerEnumerator(Node e,
 
   // determine if we are actively-generated
   bool isActiveGen = false;
-  if (options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE)
+  if (options::sygusActiveGenMode() != options::SygusActiveGenMode::NONE)
   {
     if (erole == ROLE_ENUM_MULTI_SOLUTION || erole == ROLE_ENUM_CONSTRAINED)
     {
@@ -481,7 +473,7 @@ void TermDbSygus::registerEnumerator(Node e,
     {
       // If the enumerator is the single function-to-synthesize, if auto is
       // enabled, we infer whether it is better to enable active generation.
-      if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_AUTO)
+      if (options::sygusActiveGenMode() == options::SygusActiveGenMode::AUTO)
       {
         // We use active generation if the grammar of the enumerator does not
         // have ITE and is not Boolean. Experimentally, it is better to
@@ -513,9 +505,9 @@ void TermDbSygus::registerEnumerator(Node e,
                     << " returned " << isActiveGen << std::endl;
   // Currently, actively-generated enumerators are either basic or variable
   // agnostic.
-  bool isVarAgnostic =
-      isActiveGen
-      && options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
+  bool isVarAgnostic = isActiveGen
+                       && options::sygusActiveGenMode()
+                              == options::SygusActiveGenMode::VAR_AGNOSTIC;
   d_enum_var_agnostic[e] = isVarAgnostic;
   if (isVarAgnostic)
   {
@@ -852,10 +844,10 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
       {
         bool success = true;
         std::vector<TypeNode> disj_types[2];
-        for (unsigned c = 0; c < 2; c++)
+        for (unsigned cc = 0; cc < 2; cc++)
         {
-          if (!canConstructKind(conj_types[c], OR, disj_types[c], true)
-              || disj_types[c].size() != 2)
+          if (!canConstructKind(conj_types[cc], OR, disj_types[cc], true)
+              || disj_types[cc].size() != 2)
           {
             success = false;
             break;
@@ -873,8 +865,8 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
               if (canConstructKind(dtn, NOT, ntypes) && ntypes.size() == 1)
               {
                 TypeNode ntn = ntypes[0];
-                for (unsigned dd = 0, size = disj_types[1 - r].size();
-                     dd < size;
+                for (unsigned dd = 0, inner_size = disj_types[1 - r].size();
+                     dd < inner_size;
                      dd++)
                 {
                   if (disj_types[1 - r][dd] == ntn)
@@ -960,7 +952,7 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 
 Node TermDbSygus::evaluateBuiltin(TypeNode tn,
                                   Node bn,
-                                  std::vector<Node>& args,
+                                  const std::vector<Node>& args,
                                   bool tryEval)
 {
   if (args.empty())
@@ -1026,7 +1018,10 @@ Node TermDbSygus::evaluateWithUnfolding(
       if( childChanged ){
         ret = NodeManager::currentNM()->mkNode( ret.getKind(), children );
       }
-      ret = getExtRewriter()->extendedRewrite(ret);
+      if (options::sygusExtRew())
+      {
+        ret = getExtRewriter()->extendedRewrite(ret);
+      }
       // use rewriting, possibly involving recursive functions
       ret = rewriteNode(ret);
     }

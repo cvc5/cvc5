@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --finite-model-find --lang=smt2.5
 ; EXPECT: sat
 ; Preamble  --------------
-(set-logic ALL_SUPPORTED)
+(set-logic AUFDTLIA)
 (set-info :status sat)
 (declare-datatypes () ((UNIT (Unit))))
 (declare-datatypes () ((BOOL (Truth) (Falsity))))

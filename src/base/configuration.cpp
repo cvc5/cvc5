@@ -50,10 +50,6 @@ bool Configuration::isStatisticsBuild() {
   return IS_STATISTICS_BUILD;
 }
 
-bool Configuration::isReplayBuild() {
-  return IS_REPLAY_BUILD;
-}
-
 bool Configuration::isTracingBuild() {
   return IS_TRACING_BUILD;
 }
@@ -126,7 +122,7 @@ std::string Configuration::copyright() {
        << "the GNU General Public License (GPL) version 3.  Versions of CVC4\n"
        << "are available that are covered by the (modified) BSD license. If\n"
        << "you want to license CVC4 under this license, please configure CVC4\n"
-       << "with the \"--bsd\" option before building from sources.\n\n";
+       << "with the \"--no-gpl\" option before building from sources.\n\n";
   } else {
     ss << "CVC4 is open-source and is covered by the BSD license (modified)."
        << "\n\n";

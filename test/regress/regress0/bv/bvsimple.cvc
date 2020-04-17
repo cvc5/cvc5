@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 
 % Some tests from the CVC3 user manual.
 % http://www.cs.nyu.edu/acsys/cvc3/doc/user_doc.html

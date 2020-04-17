@@ -25,6 +25,7 @@
 
 #include "context/cdo.h"
 #include "theory/fp/fp_converter.h"
+#include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -38,7 +39,9 @@ class TheoryFp : public Theory {
   TheoryFp(context::Context* c, context::UserContext* u, OutputChannel& out,
            Valuation valuation, const LogicInfo& logicInfo);
 
-  Node expandDefinition(LogicRequest& lr, Node node) override;
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+
+  Node expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode node) override;
   void addSharedTerm(TNode node) override;
@@ -102,9 +105,6 @@ class TheoryFp : public Theory {
   context::CDO<bool> d_conflict;
   context::CDO<Node> d_conflictNode;
 
-  /** Uninterpretted functions for partially defined functions. **/
-  void enableUF(LogicRequest& lr);
-
   typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>
       ComparisonUFMap;
 
@@ -142,6 +142,8 @@ class TheoryFp : public Theory {
 
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
+  /** The theory rewriter for this theory. */
+  TheoryFpRewriter d_rewriter;
 }; /* class TheoryFp */
 
 }  // namespace fp

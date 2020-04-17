@@ -62,7 +62,8 @@ Command* Smt2Input::parseCommand() {
   return d_pSmt2Parser->parseCommand(d_pSmt2Parser);
 }
 
-Expr Smt2Input::parseExpr() {
+api::Term Smt2Input::parseExpr()
+{
   return d_pSmt2Parser->parseExpr(d_pSmt2Parser);
 }
 

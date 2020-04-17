@@ -57,10 +57,14 @@ CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
       d_removable(false) {
 }
 
-TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar,
+TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
+                                   Registrar* registrar,
                                    context::Context* context,
-                                   bool fullLitToNodeMap, std::string name)
-  : CnfStream(satSolver, registrar, context, fullLitToNodeMap, name)
+                                   ResourceManager* rm,
+                                   bool fullLitToNodeMap,
+                                   std::string name)
+    : CnfStream(satSolver, registrar, context, fullLitToNodeMap, name),
+      d_resourceManager(rm)
 {}
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
@@ -160,7 +164,18 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
     // If we were called with something other than a theory atom (or
     // Boolean variable), we get a SatLiteral that is definitionally
     // equal to it.
+    //
+    // We are setting the current assertion to be null. This is because `toCNF`
+    // may add clauses to the SAT solver and we look up the current assertion
+    // in that case. Setting it to null ensures that the assertion stack is
+    // non-empty and that we are not associating a bogus assertion with the
+    // clause. This should be ok because we use the mapping back to assertions
+    // for clauses from input assertions only.
+    PROOF(if (d_cnfProof) { d_cnfProof->pushCurrentAssertion(Node::null()); });
+
     lit = toCNF(n, false);
+
+    PROOF(if (d_cnfProof) { d_cnfProof->popCurrentAssertion(); });
 
     // Store backward-mappings
     // These may already exist
@@ -711,7 +726,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
   if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
-    NodeManager::currentResourceManager()->spendResource(options::cnfStep());
+    d_resourceManager->spendResource(ResourceManager::Resource::CnfStep);
     d_convertAndAssertCounter = 0;
   }
   ++d_convertAndAssertCounter;

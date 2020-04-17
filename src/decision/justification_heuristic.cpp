@@ -29,27 +29,28 @@
 namespace CVC4 {
 
 JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
-                                               context::UserContext *uc,
-                                               context::Context *c):
-  ITEDecisionStrategy(de, c),
-  d_justified(c),
-  d_exploredThreshold(c),
-  d_prvsIndex(c, 0),
-  d_threshPrvsIndex(c, 0),
-  d_helfulness("decision::jh::helpfulness", 0),
-  d_giveup("decision::jh::giveup", 0),
-  d_timestat("decision::jh::time"),
-  d_assertions(uc),
-  d_iteAssertions(uc),
-  d_iteCache(uc),
-  d_visited(),
-  d_visitedComputeITE(),
-  d_curDecision(),
-  d_curThreshold(0),
-  d_childCache(uc),
-  d_weightCache(uc),
-  d_startIndexCache(c) {
-  smtStatisticsRegistry()->registerStat(&d_helfulness);
+                                               context::UserContext* uc,
+                                               context::Context* c)
+    : ITEDecisionStrategy(de, c),
+      d_justified(c),
+      d_exploredThreshold(c),
+      d_prvsIndex(c, 0),
+      d_threshPrvsIndex(c, 0),
+      d_helpfulness("decision::jh::helpfulness", 0),
+      d_giveup("decision::jh::giveup", 0),
+      d_timestat("decision::jh::time"),
+      d_assertions(uc),
+      d_iteAssertions(uc),
+      d_iteCache(uc),
+      d_visited(),
+      d_visitedComputeITE(),
+      d_curDecision(),
+      d_curThreshold(0),
+      d_childCache(uc),
+      d_weightCache(uc),
+      d_startIndexCache(c)
+{
+  smtStatisticsRegistry()->registerStat(&d_helpfulness);
   smtStatisticsRegistry()->registerStat(&d_giveup);
   smtStatisticsRegistry()->registerStat(&d_timestat);
   Trace("decision") << "Justification heuristic enabled" << std::endl;
@@ -57,7 +58,7 @@ JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
 
 JustificationHeuristic::~JustificationHeuristic()
 {
-  smtStatisticsRegistry()->unregisterStat(&d_helfulness);
+  smtStatisticsRegistry()->unregisterStat(&d_helpfulness);
   smtStatisticsRegistry()->unregisterStat(&d_giveup);
   smtStatisticsRegistry()->unregisterStat(&d_timestat);
 }
@@ -109,7 +110,7 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
     if(litDecision != undefSatLiteral) {
       setPrvsIndex(i);
       Trace("decision") << "jh: splitting on " << litDecision << std::endl;
-      ++d_helfulness;
+      ++d_helpfulness;
       return litDecision;
     }
   }
@@ -248,7 +249,9 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, SatValue satV
 
 DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity)
 {
-  if(options::decisionWeightInternal() != DECISION_WEIGHT_INTERNAL_USR1) {
+  if (options::decisionWeightInternal()
+      != options::DecisionWeightInternal::USR1)
+  {
     return getWeight(n);
   }
 
@@ -297,10 +300,11 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity
 
 DecisionWeight JustificationHeuristic::getWeight(TNode n) {
   if(!n.hasAttribute(DecisionWeightAttr()) ) {
+    options::DecisionWeightInternal combiningFn =
+        options::decisionWeightInternal();
 
-    DecisionWeightInternal combiningFn = options::decisionWeightInternal();
-
-    if (combiningFn == DECISION_WEIGHT_INTERNAL_OFF || n.getNumChildren() == 0)
+    if (combiningFn == options::DecisionWeightInternal::OFF
+        || n.getNumChildren() == 0)
     {
       if (options::decisionRandomWeight() != 0)
       {
@@ -308,15 +312,15 @@ DecisionWeight JustificationHeuristic::getWeight(TNode n) {
             Random::getRandom().pick(0, options::decisionRandomWeight()-1));
       }
     }
-    else if (combiningFn == DECISION_WEIGHT_INTERNAL_MAX)
+    else if (combiningFn == options::DecisionWeightInternal::MAX)
     {
       DecisionWeight dW = 0;
       for (TNode::iterator i = n.begin(); i != n.end(); ++i)
         dW = max(dW, getWeight(*i));
       n.setAttribute(DecisionWeightAttr(), dW);
     }
-    else if (combiningFn == DECISION_WEIGHT_INTERNAL_SUM
-             || combiningFn == DECISION_WEIGHT_INTERNAL_USR1)
+    else if (combiningFn == options::DecisionWeightInternal::SUM
+             || combiningFn == options::DecisionWeightInternal::USR1)
     {
       DecisionWeight dW = 0;
       for (TNode::iterator i = n.begin(); i != n.end(); ++i)

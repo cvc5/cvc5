@@ -55,7 +55,8 @@ int main() {
 
     Expr theorem = em.mkExpr(kind::EQUAL, lhs, rhs);
 
-    cout << "CVC4 reports: " << theorem << " is " << smt.query(theorem) << "." << endl;
+    cout << "CVC4 reports: " << theorem << " is " << smt.checkEntailed(theorem)
+         << "." << endl;
   }
 
   // Verify emptset is a subset of any set
@@ -65,7 +66,8 @@ int main() {
 
     Expr theorem = em.mkExpr(kind::SUBSET, emptyset, A);
 
-    cout << "CVC4 reports: " << theorem << " is " << smt.query(theorem) << "." << endl;
+    cout << "CVC4 reports: " << theorem << " is " << smt.checkEntailed(theorem)
+         << "." << endl;
   }
 
   // Find me an element in {1, 2} intersection {2, 3}, if there is one.

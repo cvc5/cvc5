@@ -45,7 +45,7 @@ namespace printer {
 class CVC4_PUBLIC SygusExprPrintCallback : public SygusPrintCallback
 {
  public:
-  SygusExprPrintCallback(Expr body, std::vector<Expr>& args);
+  SygusExprPrintCallback(Expr body, const std::vector<Expr>& args);
   ~SygusExprPrintCallback() {}
   /** print sygus term e on output out using printer p */
   virtual void toStreamSygus(const Printer* p,

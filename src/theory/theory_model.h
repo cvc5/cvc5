@@ -215,6 +215,13 @@ public:
    * construction process.
    */
   void recordApproximation(TNode n, TNode pred);
+  /**
+   * Same as above, but with a witness constant. This ensures that the
+   * approximation predicate is of the form (or (= n witness) pred). This
+   * is useful if the user wants to know a possible concrete value in
+   * the range of the predicate.
+   */
+  void recordApproximation(TNode n, TNode pred, Node witness);
   /** set unevaluate/semi-evaluated kind
    *
    * This informs this model how it should interpret applications of terms with
@@ -383,9 +390,8 @@ public:
   /** Get model value function.
    *
    * This function is a helper function for getValue.
-   *   hasBoundVars is whether n may contain bound variables
    */
-  Node getModelValue(TNode n, bool hasBoundVars = false) const;
+  Node getModelValue(TNode n) const;
   /** add term internal
    *
    * This will do any model-specific processing necessary for n,

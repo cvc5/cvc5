@@ -29,8 +29,8 @@ int main() {
   ExprManager em;
   Options opts;
   SmtEngine smt(&em);
-  Result r = smt.query(em.mkConst(true));
+  Result r = smt.checkEntailed(em.mkConst(true));
 
-  return (Result::VALID == r) ? 0 : 1;
+  return (Result::ENTAILED == r) ? 0 : 1;
 }
 

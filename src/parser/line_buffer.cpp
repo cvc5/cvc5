@@ -69,8 +69,10 @@ bool LineBuffer::isPtrBefore(uint8_t* ptr, size_t line, size_t pos_in_line) {
   return false;
 }
 
-bool LineBuffer::readToLine(size_t line) {
-  while (line >= d_lines.size()) {
+bool LineBuffer::readToLine(size_t line_size)
+{
+  while (line_size >= d_lines.size())
+  {
     if (!(*d_stream)) {
       return false;
     }

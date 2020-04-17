@@ -49,9 +49,9 @@ twox_plus_y_geq_3 = em.mkExpr(GEQ, twox_plus_y, three)
 
 formula = Expr.new(em.mkExpr(AND, x_positive, y_positive)).impExpr(Expr.new(twox_plus_y_geq_3))
 
-puts "Checking validity of formula " + formula.toString + " with CVC4."
-puts "CVC4 should report VALID."
-puts "Result from CVC4 is: " + smt.query(formula).toString
+puts "Checking entailment of formula " + formula.toString + " with CVC4."
+puts "CVC4 should report ENTAILED."
+puts "Result from CVC4 is: " + smt.checkEntailed(formula).toString
 
 exit
 

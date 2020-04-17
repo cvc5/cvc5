@@ -1,6 +1,6 @@
 % COMMAND-LINE: --finite-model-find -i
-% EXPECT: invalid
-% EXPECT: valid
+% EXPECT: not_entailed
+% EXPECT: entailed
 prin:TYPE;
 form:TYPE;
 

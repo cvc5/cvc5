@@ -15,7 +15,7 @@
  ** the push pop of CVC4. This also gives an example option.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class LinearArith {
   public static void main(String[] args) {
@@ -61,8 +61,9 @@ public class LinearArith {
     smt.push();
     Expr diff_leq_two_thirds = em.mkExpr(Kind.LEQ, diff, two_thirds);
     System.out.println("Prove that " + diff_leq_two_thirds + " with CVC4.");
-    System.out.println("CVC4 should report VALID.");
-    System.out.println("Result from CVC4 is: " + smt.query(diff_leq_two_thirds));
+    System.out.println("CVC4 should report ENTAILED.");
+    System.out.println(
+        "Result from CVC4 is: " + smt.checkEntailed(diff_leq_two_thirds));
     smt.pop();
 
     System.out.println();

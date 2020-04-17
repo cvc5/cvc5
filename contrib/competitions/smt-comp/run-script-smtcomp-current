@@ -32,18 +32,18 @@ QF_LRA)
   ;;
 QF_LIA)
   # same as QF_LRA but add --pb-rewrites
-  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
+  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites --ite-simp --simp-ite-compress
   ;;
 QF_NIA)
   trywith 600 --nl-ext-tplanes --decision=internal
   trywith 60 --nl-ext-tplanes --decision=justification
   trywith 60 --no-nl-ext-tplanes --decision=internal
   # this totals up to more than 40 minutes, although notice that smaller bit-widths may quickly fail
-  trywith 600 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 600 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 600 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 600 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
-  trywith 1200 --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 600 --solve-int-as-bv=2   --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 600 --solve-int-as-bv=4   --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 600 --solve-int-as-bv=8   --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 600 --solve-int-as-bv=16  --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 1200 --solve-int-as-bv=32 --bv-sat-solver=cadical --no-bv-abstraction
   finishwith --nl-ext-tplanes --decision=internal
   ;;
 QF_NRA)
@@ -110,8 +110,8 @@ LIA|LRA|NIA|NRA)
   finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
-  trywith 1200
-  finishwith --decision=justification-stoponly
+  trywith 1200 --ite-simp
+  finishwith --decision=justification-stoponly --ite-simp
   ;;
 QF_ABV)
   trywith 100 --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv

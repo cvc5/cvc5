@@ -34,6 +34,8 @@ TheoryModel::TheoryModel(context::Context* c,
       d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
 {
+  // must use function models when ufHo is enabled
+  Assert(d_enableFuncModels || !options::ufHo());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -147,7 +149,7 @@ Node TheoryModel::getValue(TNode n) const
   Node nn = d_substitutions.apply(n);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
-  nn = getModelValue(nn, false);
+  nn = getModelValue(nn);
   if (nn.isNull()) return nn;
   if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
     //normalize
@@ -193,7 +195,7 @@ Cardinality TheoryModel::getCardinality( Type t ) const{
   }
 }
 
-Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
+Node TheoryModel::getModelValue(TNode n) const
 {
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_modelCache.find(n);
   if (it != d_modelCache.end()) {
@@ -220,7 +222,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     std::vector<Node> children;
     if (n.getKind() == APPLY_UF)
     {
-      Node op = getModelValue(n.getOperator(), hasBoundVars);
+      Node op = getModelValue(n.getOperator());
       Debug("model-getvalue-debug") << "  operator : " << op << std::endl;
       children.push_back(op);
     }
@@ -231,7 +233,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     // evaluate the children
     for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
-      ret = getModelValue(n[i], hasBoundVars);
+      ret = getModelValue(n[i]);
       Debug("model-getvalue-debug")
           << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
@@ -267,9 +269,9 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     // choice z. P(z).
     Node v = nm->mkBoundVar(n.getType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-    Node ret = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
-    d_modelCache[n] = ret;
-    return ret;
+    Node answer = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
+    d_modelCache[n] = answer;
+    return answer;
   }
   // must rewrite the term at this point
   ret = Rewriter::rewrite(n);
@@ -315,11 +317,11 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     {
       if (d_enableFuncModels)
       {
-        std::map<Node, Node>::const_iterator it = d_uf_models.find(n);
-        if (it != d_uf_models.end())
+        std::map<Node, Node>::const_iterator entry = d_uf_models.find(n);
+        if (entry != d_uf_models.end())
         {
           // Existing function
-          ret = it->second;
+          ret = entry->second;
           d_modelCache[n] = ret;
           return ret;
         }
@@ -327,7 +329,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
         // constant in the enumeration of the range type
         vector<TypeNode> argTypes = t.getArgTypes();
         vector<Node> args;
-        NodeManager* nm = NodeManager::currentNM();
         for (unsigned i = 0, size = argTypes.size(); i < size; ++i)
         {
           args.push_back(nm->mkBoundVar(argTypes[i]));
@@ -484,8 +485,10 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
             first = false;
           }
           else {
-            Trace("model-builder-assertions") << "(assert (= " << *eqc_i << " " << rep << "));" << endl;
-            d_equalityEngine->mergePredicates(*eqc_i, rep, Node::null());
+            Node eq = (*eqc_i).eqNode(rep);
+            Trace("model-builder-assertions")
+                << "(assert " << eq << ");" << std::endl;
+            d_equalityEngine->assertEquality(eq, true, Node::null());
             if (!d_equalityEngine->consistent())
             {
               return false;
@@ -598,6 +601,11 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   // model cache is invalid
   d_modelCache.clear();
 }
+void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
+{
+  Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
+  recordApproximation(n, predDisj);
+}
 void TheoryModel::setUsingModelCore()
 {
   d_using_model_core = true;
@@ -665,8 +673,8 @@ bool TheoryModel::areFunctionValuesEnabled() const
 }
 
 void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
-  Assert(d_uf_models.find(f) == d_uf_models.end());
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
+  Assert(d_uf_models.find(f) == d_uf_models.end());
 
   if( options::ufHo() ){
     //we must rewrite the function value since the definition needs to be a constant value
@@ -681,9 +689,9 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     d_uf_models[f] = f_def;
   }
 
-  if( options::ufHo() ){
+  if (options::ufHo() && d_equalityEngine->hasTerm(f))
+  {
     Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
-    Assert(d_equalityEngine->hasTerm(f));
     // assign to representative if higher-order
     Node r = d_equalityEngine->getRepresentative( f );
     //always replace the representative, since it is initially assigned to itself

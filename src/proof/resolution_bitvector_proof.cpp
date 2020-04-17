@@ -129,7 +129,7 @@ void ResolutionBitVectorProof::endBVConflict(
 
 void ResolutionBitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts)
 {
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     Debug("pf::bv") << "Construct full proof." << std::endl;
     d_resolutionProof->constructProof();
@@ -366,10 +366,8 @@ void LfscResolutionBitVectorProof::printTheoryLemmaProof(
 
         if (possibleMatch.getKind() == kind::OR)
         {
-          for (unsigned i = 0; i < possibleMatch.getNumChildren(); ++i)
+          for (const Expr& lit : possibleMatch)
           {
-            Expr lit = possibleMatch[i];
-
             if (lit.getKind() == kind::NOT)
             {
               os << "(intro_assump_t _ _ _ ";
@@ -434,13 +432,13 @@ void LfscResolutionBitVectorProof::printTheoryLemmaProof(
     // conflict has a FALSE assertion in it; this can happen in some corner
     // cases, where the FALSE is the result of a rewrite.
 
-    for (unsigned i = 0; i < lemma.size(); ++i)
+    for (const Expr& lit : lemma)
     {
-      if (lemma[i].getKind() == kind::NOT && lemma[i][0] == utils::mkFalse())
+      if (lit.getKind() == kind::NOT && lit[0] == utils::mkFalse())
       {
         Debug("pf::bv") << "Lemma has a (not false) literal" << std::endl;
         os << "(clausify_false ";
-        os << ProofManager::getLitName(lemma[i]);
+        os << ProofManager::getLitName(lit);
         os << ")";
         return;
       }
@@ -513,7 +511,7 @@ void LfscResolutionBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
 void LfscResolutionBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                          std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  Assert(options::bitblastMode() == options::BitblastMode::EAGER)
       << "the BV theory should only be proving bottom directly in the eager "
          "bitblasting mode";
   proof::LFSCProofPrinter::printResolutionEmptyClause(

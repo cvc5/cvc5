@@ -32,8 +32,9 @@ namespace CVC4 {
 
 namespace options {
 
-${decls}$
+${modes}$
 
+${decls}$
 
 }  // namespace options
 
@@ -43,7 +44,6 @@ ${specs}$
 namespace options {
 
 ${inls}$
-
 
 }  // namespace options
 }  // namespace CVC4
