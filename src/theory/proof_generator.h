@@ -129,7 +129,7 @@ class EagerProofGenerator : public ProofGenerator
    * map maintained by this class. The return value can safely be passed to
    * ProofOutputChannel::sendLemma.
    */
-  TrustNode registerSplit(Node f);
+  TrustNode assertSplit(Node f);
   //--------------------------------------- end common proofs
  protected:
   /** Set that pf is the proof for conflict conf */

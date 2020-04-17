@@ -76,7 +76,7 @@ bool EagerProofGenerator::canProveLemma(Node lem)
   return d_proofs.find(lkey) != d_proofs.end();
 }
 
-TrustNode EagerProofGenerator::registerSplit(Node f)
+TrustNode EagerProofGenerator::assertSplit(Node f)
 {
   // make the lemma
   Node lem = f.orNode(f.notNode());

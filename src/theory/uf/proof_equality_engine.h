@@ -75,6 +75,12 @@ class ProofEqEngine : public EagerProofGenerator
                   PfRule id,
                   Node exp,
                   const std::vector<Node>& args);
+  /** 
+   * This method is called when the equality engine of this class is
+   * inconsistent (false has been proven). This returns the trust node
+   * corresponding to this conflict.
+   */
+  TrustNode getConflict();
   /**
    * Get proven conflict from contradictory facts. This method is called when
    * the proof rule with premises exp and arguments args implies a contradiction

@@ -42,7 +42,7 @@ InferenceManager::InferenceManager(context::Context* c,
       d_poc(poc),
       d_statistics(statistics),
       d_pnm(),
-      d_pfee(c,u,*d_state.getEqualityEngine(),d_pnm),
+      d_pfee(c,u,*d_state.getEqualityEngine(),&d_pnm),
       d_keep(c),
       d_pfEnabled(pfEnabled)
 {
@@ -121,7 +121,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
-                                     const std::vector<Node>& exp_n,
+                                     const std::vector<Node>& expn,
                                      Node eq,
                                      Inference infer,
                                      bool asLemma)
@@ -135,9 +135,9 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
     {
       Trace("strings-infer-debug") << "  " << exp[i] << std::endl;
     }
-    for (unsigned i = 0; i < exp_n.size(); i++)
+    for (unsigned i = 0; i < expn.size(); i++)
     {
-      Trace("strings-infer-debug") << "  N:" << exp_n[i] << std::endl;
+      Trace("strings-infer-debug") << "  N:" << expn[i] << std::endl;
     }
   }
   if (eq == d_true)
@@ -148,12 +148,13 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   d_statistics.d_inferences << infer;
   Node atom = eq.getKind() == NOT ? eq[0] : eq;
   // check if we should send a lemma or an inference
-  if (asLemma || atom == d_false || atom.getKind() == OR || !exp_n.empty()
+  if (asLemma || atom == d_false || atom.getKind() == OR || !expn.empty()
       || options::stringInferAsLemmas())
   {
     Node eq_exp;
     if (options::stringRExplainLemmas())
     {
+      //TrustNode tn = assertLemma(atom, exp, expn,
       eq_exp = mkExplain(exp, exp_n);
     }
     else
@@ -205,14 +206,14 @@ void InferenceManager::sendInference(const InferInfo& i)
 void InferenceManager::sendLemma(TrustNode n, Inference infer)
 {
   Node f = n.getNode();
-  if (n.getKind()==TrustNode::CONFLICT)
+  if (n.getKind()==TrustNodeKind::CONFLICT)
   {
     Trace("strings-conflict")
-        << "Strings::Conflict : " << infer << " : " << ant << std::endl;
-    Trace("strings-lemma") << "Strings::Conflict : " << infer << " : " << ant
+        << "Strings::Conflict : " << infer << " : " << f << std::endl;
+    Trace("strings-lemma") << "Strings::Conflict : " << infer << " : " << f
                            << std::endl;
     Trace("strings-assert")
-        << "(assert (not " << ant << ")) ; conflict " << infer << std::endl;
+        << "(assert (not " << f << ")) ; conflict " << infer << std::endl;
     ++(d_statistics.d_conflictsInfer);
     d_poc.conflict(n);
     d_state.setConflict();
@@ -281,11 +282,12 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   }
   // update statistics
   d_statistics.d_inferences << infer;
-  NodeManager* nm = NodeManager::currentNM();
-  Node lemma_or = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
+  TrustNode tsplit = d_pfee.assertSplit(eq);
+  Assert( tsplit.getKind()==TrustNodeKind::LEMMA );
+  Node lem = tsplit.getNode();
   Trace("strings-lemma") << "Strings::Lemma " << infer
-                         << " SPLIT : " << lemma_or << std::endl;
-  d_pendingLem.push_back(lemma_or);
+                         << " SPLIT : " << lem << std::endl;
+  d_pendingLem.push_back(tsplit);
   sendPhaseRequirement(eq, preq);
   return true;
 }
@@ -351,11 +353,12 @@ void InferenceManager::doPendingLemmas()
 {
   if (!d_state.isInConflict())
   {
-    for (const TrustNode& lc : d_pendingLem)
+    for (const TrustNode& pl : d_pendingLem)
     {
-      Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
+      Assert (pl.getKind()==TrustNodeKind::LEMMA);
+      Trace("strings-pending") << "Process pending lemma : " << pl << std::endl;
       ++(d_statistics.d_lemmasInfer);
-      d_poc.lemma(plem);
+      d_poc.lemma(pl);
     }
     for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
     {

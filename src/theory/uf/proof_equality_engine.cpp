@@ -118,6 +118,11 @@ bool ProofEqEngine::assertFact(Node lit,
   }
   return assertFact(lit,id,expv,args);
 }
+
+TrustNode getConflict()
+{
+  
+}
   
 TrustNode ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
 {
@@ -129,6 +134,7 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
                                         const std::vector<Node>& exp,
                                         const std::vector<Node>& args)
 {
+  // conflict is same as proof of false
   std::vector<Node> expn;
   return assertLemma(d_false,id,exp,expn,args);
 }

@@ -26,6 +26,7 @@ ProofOutputChannel::ProofOutputChannel(OutputChannel& out,
 }
 void ProofOutputChannel::conflict(TrustNode pconf)
 {
+  Assert (pconf.getKind()==TrustNodeKind::CONFLICT);
   Node conf = pconf.getNode();
   ProofGenerator* pfg = pconf.getGenerator();
   Node ckey = getConflictKeyValue(conf);
@@ -59,6 +60,7 @@ LemmaStatus ProofOutputChannel::lemma(TrustNode plem,
                                       bool preprocess,
                                       bool sendAtoms)
 {
+  Assert (plem.getKind()==TrustNodeKind::LEMMA);
   Node lem = plem.getNode();
   ProofGenerator* pfg = plem.getGenerator();
   Node lkey = getLemmaKeyValue(lem);
