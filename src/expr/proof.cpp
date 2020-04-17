@@ -82,7 +82,7 @@ bool CDProof::addStep(Node expected,
     pchildren.push_back(pc);
   }
 
-  // create or reinitialize it
+  // create or update it
   std::shared_ptr<ProofNode> pthis;
   if (it == d_nodes.end())
   {
@@ -105,13 +105,8 @@ bool CDProof::addStep(Node expected,
   return true;
 }
 
-bool CDProof::addProof(Node expected, ProofNode* pn, bool forceOverwrite)
+bool CDProof::addProof(ProofNode* pn, bool forceOverwrite)
 {
-  if (pn->getResult() != expected)
-  {
-    // something went wrong
-    return false;
-  }
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<ProofNode*> visit;
