@@ -43,6 +43,7 @@ InferenceManager::InferenceManager(context::Context* c,
       d_statistics(statistics),
       d_pnm(),
       d_pfee(c, u, *d_state.getEqualityEngine(), &d_pnm),
+      d_ipc(d_pfee),
       d_keep(c),
       d_pfEnabled(pfEnabled)
 {
@@ -152,20 +153,20 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       || options::stringInferAsLemmas())
   {
     TrustNode n;
-    // TODO: set up proof step based on inference
-    PfRule id;
-    std::vector<Node> expAll;
-    expAll.insert(expAll.end(), exp.begin(), exp.end());
-    expAll.insert(expAll.end(), expn.begin(), expn.end());
+    // set up proof step based on inference
+    // pfExp is the children of the proof step below. This should be an
+    // ordered list of exp + expn.
+    std::vector<Node> pfExp;
     std::vector<Node> args;
+    PfRule id = d_ipc.convert(exp, expn, eq, infer, pfExp, args);
     if (options::stringRExplainLemmas())
     {
-      n = d_pfee.assertLemma(eq, id, exp, expAll, args);
+      n = d_pfee.assertLemma(eq, id, pfExp, exp, args);
     }
     else
     {
       std::vector<Node> expEmpty;
-      n = d_pfee.assertLemma(eq, id, expEmpty, expAll, args);
+      n = d_pfee.assertLemma(eq, id, pfExp, expEmpty, args);
     }
     sendLemma(n, infer);
   }

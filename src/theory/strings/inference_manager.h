@@ -26,6 +26,7 @@
 #include "theory/ext_theory.h"
 #include "theory/proof_output_channel.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/infer_proof_cons.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
@@ -313,6 +314,8 @@ class InferenceManager
   ProofNodeManager d_pnm;
   /** The proof-producing equality engine */
   eq::ProofEqEngine d_pfee;
+  /** Conversion from inferences to proofs */
+  InferProofCons d_ipc;
   /** Common constants */
   Node d_true;
   Node d_false;

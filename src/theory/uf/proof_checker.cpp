@@ -14,7 +14,7 @@
 
 #include "theory/uf/proof_checker.h"
 
-#include "theory/rewriter.h"
+//#include "theory/builtin/proof_checker.h"
 
 using namespace CVC4::kind;
 
@@ -22,65 +22,12 @@ namespace CVC4 {
 namespace theory {
 namespace eq {
 
-Node EqProofRuleChecker::applySubstitution(Node n, const std::vector<Node>& exp)
-{
-  Node curr = n;
-  // apply substitution one at a time
-  for (const Node& eqp : exp)
-  {
-    if (eqp.isNull() || eqp.getKind() != EQUAL)
-    {
-      return Node::null();
-    }
-    TNode var = eqp[0];
-    TNode subs = eqp[1];
-    curr = curr.substitute(var, subs);
-  }
-  return curr;
-}
-
 Node EqProofRuleChecker::check(PfRule id,
                                const std::vector<Node>& children,
                                const std::vector<Node>& args)
 {
   // compute what was proven
-  if (id == PfRule::ASSUME)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    return args[0];
-  }
-  else if (id == PfRule::SCOPE)
-  {
-    Assert(children.size()==1);
-    Assert(args.size()>0);
-    Node ant = mkAnd(children);
-    if (children[0]==d_false)
-    {
-      return ant;
-    }
-    return NodeManager::currentNM()->mkNode(IMPLIES,ant,children[0]);
-  }
-  else if (id == PfRule::SUBS)
-  {
-    Assert(children.size() > 0);
-    Assert(args.size() == 1);
-    std::vector<Node> exp;
-    for (size_t i = 0, nchild = children.size(); i < nchild; i++)
-    {
-      exp.push_back(children[i]);
-    }
-    Node res = applySubstitution(args[0], exp);
-    return args[0].eqNode(res);
-  }
-  else if (id == PfRule::REWRITE)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    Node res = Rewriter::rewrite(args[0]);
-    return args[0].eqNode(res);
-  }
-  else if (id == PfRule::REFL)
+  if (id == PfRule::REFL)
   {
     Assert(children.empty());
     Assert(args.size() == 1);

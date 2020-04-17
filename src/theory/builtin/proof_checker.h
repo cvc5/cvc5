@@ -26,15 +26,27 @@ namespace theory {
 namespace eq {
 
 /** A checker for builtin proofs */
-class EqProofRuleChecker : public ProofRuleChecker
+class BuiltinProofRuleChecker : public ProofRuleChecker
 {
  public:
-  EqProofRuleChecker() {}
-  ~EqProofRuleChecker() {}
+  BuiltinProofRuleChecker() {}
+  ~BuiltinProofRuleChecker() {}
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node check(PfRule id,
              const std::vector<Node>& children,
              const std::vector<Node>& args) override;
+  /** 
+   * Apply rewrite. This encapsulates the exact behavior of a REWRITE step
+   * in a proof.
+   */
+  static Node applyRewrite(Node n);
+  /** 
+   * Apply substitution. This encapsulates the exact behavior of a SUBS step
+   * in a proof.
+   */
+  static Node applySubstitution(Node n, const std::vector<Node>& exp);
+  /** mk and node */
+  static Node mkAnd(const std::vector<Node>& a);
 };
 
 }  // namespace eq
