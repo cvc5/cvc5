@@ -102,7 +102,7 @@ Node intToBV(TNode n, NodeMap& cache)
   NodeMap binaryCache;
   Node n_binary = intToBVMakeBinary(n, binaryCache);
 
-  for (TNode current : NodeDfsIterable(n).inPostorder().skipIf(
+  for (TNode current : NodeDfsIterable(n_binary).inPostorder().skipIf(
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
     NodeManager* nm = NodeManager::currentNM();
