@@ -20,10 +20,10 @@ namespace strings {
 
 InferProofCons::InferProofCons(eq::ProofEqEngine& pfee) : d_pfee(pfee) {}
 
-PfRule InferProofCons::convert(Node eq, 
-                 Inference infer,
-                 const std::vector<Node>& exp,
-                 const std::vector<Node>& expn,
+PfRule InferProofCons::convert(Node eq,
+                               Inference infer,
+                               const std::vector<Node>& exp,
+                               const std::vector<Node>& expn,
                                std::vector<Node>& pfChildren,
                                std::vector<Node>& pfArgs)
 {

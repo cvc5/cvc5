@@ -35,11 +35,14 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
+
 struct PendingInfer
 {
-  PendingInfer(Inference i, Node fact, const std::vector<Node>& exp) : d_infer(i), d_fact(fact), d_exp(exp){}
-  ~PendingInfer(){}
+  PendingInfer(Inference i, Node fact, const std::vector<Node>& exp)
+      : d_infer(i), d_fact(fact), d_exp(exp)
+  {
+  }
+  ~PendingInfer() {}
   Inference d_infer;
   Node d_fact;
   std::vector<Node> d_exp;

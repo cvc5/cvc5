@@ -47,7 +47,7 @@ class InferProofCons
    * (2) The premises of the proof step (pfChildren).
    * (3) Arguments to the proof step (pfArgs).
    */
-  PfRule convert(Node eq, 
+  PfRule convert(Node eq,
                  Inference infer,
                  const std::vector<Node>& exp,
                  const std::vector<Node>& expn,

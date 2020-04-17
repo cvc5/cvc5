@@ -199,7 +199,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       // the code above is likely a substitution + rewriting?
       PfRule id;
       std::vector<Node> pfExp;
-      pfExp.insert(pfExp.end(),exp.begin(),exp.end());
+      pfExp.insert(pfExp.end(), exp.begin(), exp.end());
       std::vector<Node> args;
       TrustNode n = d_pfee.assertLemma(eqs, id, pfExp, exp, args);
       sendLemma(n, infer);
@@ -218,7 +218,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                          << " by " << infer << std::endl;
   Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq
                           << ")) ; infer " << infer << std::endl;
-  d_pending.push_back(PendingInfer(infer,eq,exp));
+  d_pending.push_back(PendingInfer(infer, eq, exp));
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
