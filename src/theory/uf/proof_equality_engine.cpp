@@ -106,10 +106,24 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
                                         const std::vector<Node>& exp,
                                         const std::vector<Node>& args)
 {
+  std::vector<Node> expn;
+  return assertLemma(d_false,id,exp,expn,args);
+}
+
+TrustNode assertLemma(Node conc,
+                      PfRule id,
+                      const std::vector<Node>& exp,
+                      const std::vector<Node>& expn,
+                      const std::vector<Node>& args)
+{
+  Assert (d_conc!=d_true);
   if (d_pfEnabled)
   {
-    // register the (conflicting) proof step
-    if (!d_proof.addStep(d_false, id, exp, args))
+    // Register the proof step. 
+    std::vector<Node> expAll;
+    expAll.insert(expAll.end(), exp.begin(), exp.end());
+    expAll.insert(expAll.end(), expn.begin(), expn.end());
+    if (!d_proof.addStep(conc, id, expAll, args))
     {
       // a step went wrong, e.g. during checking
       Assert(false) << "ProofEqEngine::assertConflict: register proof step";
@@ -123,25 +137,45 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
   {
     explainWithProof(e, assumps);
   }
+  assumps.insert(assumps.end(), expn.begin(), expn.end());
+  
+  // We are a conflict if the conclusion is false and all literals are
+  // explained.
+  bool isConflict = conc==d_false && expn.empty();
 
-  // make the conflict
-  Node conf = mkAnd(assumps);
-
+  // make the conflict or lemma
+  Node formula = mkAnd(assumps);
+  if (!isConflict)
+  {
+    formula = formula==d_false ? conc : nm->mkNode(IMPLIES, formula, conc);
+  }
+  
   if (d_pfEnabled)
   {
     // get the proof for false
-    std::shared_ptr<ProofNode> pf = mkProofForFact(d_false);
+    std::shared_ptr<ProofNode> pf = mkProofForFact(conc);
     if (pf == nullptr)
     {
       // should have existed
       Assert(false) << "ProofEqEngine::assertConflict: failed to get proof";
       return TrustNode::null();
     }
-    // set the proof for the conflict, which can be queried later
-    setProofForConflict(conf, pf);
+    // set the proof for the conflict or lemma, which can be queried later
+    if (isConflict)
+    {
+      setProofForConflict(formula, pf);
+    }
+    else
+    {
+      setProofForLemma(formula, pf);
+    }
   }
-  // we can provide a proof for conflict
-  return TrustNode::mkTrustConflict(conf, this);
+  // we can provide a proof for conflict or lemma
+  if (isConflict)
+  {
+    return TrustNode::mkTrustConflict(formula, this);
+  }
+  return TrustNode::mkTrustLemma(formula, this);
 }
 
 std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
@@ -151,7 +185,7 @@ std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
   {
     return nullptr;
   }
-  // clone it
+  // clone it so that we have a fresh copy
   return p->clone();
 }
 

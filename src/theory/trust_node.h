@@ -25,6 +25,31 @@ namespace theory {
 
 class ProofGenerator;
 
+enum class TrustNodeKind : uint32_t
+{
+  CONFLICT,
+  LEMMA
+};
+/**
+ * Converts a proof rule to a string. Note: This function is also used in
+ * `safe_print()`. Changing this function name or signature will result in
+ * `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
+ *
+ * @param tnk The trust node kind
+ * @return The name of the trust node kind
+ */
+const char* toString(TrustNodeKind tnk);
+
+/**
+ * Writes a trust node kind name to a stream.
+ *
+ * @param out The stream to write to
+ * @param tnk The trust node kind to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, TrustNodeKind tnk);
+
 /**
  * A trust node is a pair (F, G) where F is a formula and G is a proof
  * generator that can construct a proof for F if asked.
@@ -47,20 +72,32 @@ class TrustNode
   /** The null proven node */
   static TrustNode null();
   ~TrustNode() {}
+  /** get kind */
+  TrustNodeKind getKind() const;
   /** get node */
   Node getNode() const;
   /** get generator */
   ProofGenerator* getGenerator() const;
   /** is null? */
   bool isNull() const;
-
  private:
-  TrustNode(Node n, ProofGenerator* g = nullptr);
+  TrustNode(TrustNodeKind tnk, Node n, ProofGenerator* g = nullptr);
+  /** The kind */
+  TrustNodeKind d_tnk;
   /** The node */
   Node d_node;
   /** The generator */
   ProofGenerator* d_gen;
 };
+
+/**
+ * Writes a trust node to a stream.
+ *
+ * @param out The stream to write to
+ * @param n The trust node to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, TrustNode n);
 
 }  // namespace theory
 }  // namespace CVC4

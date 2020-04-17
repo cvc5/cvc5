@@ -86,7 +86,42 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertConflict(PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args);
-
+  /** 
+   * Called when we have concluded conc, which is either false or a
+   * disjunction.
+   * 
+   * We provide the explanation in two parts:
+   * (1) exp, which hold in the equality engine of this class,
+   * (2) expn, which do not necessarily hold in the equality engine of this
+   * class.
+   * 
+   * The proof for conc follows from exp ^ expn by proof rule with the given
+   * id and arguments.
+   * 
+   * This call corresponds to a lemma if conc is false and expn is empty.
+   * 
+   * This returns the TrustNode corresponding to the formula corresonding to
+   * the call to this method [*], for which a proof can be provided by this
+   * generator in the remainder of the user context.
+   * 
+   * [*] If this call does not correspond to a conflict, then this formula is:
+   *   ( ^_{e in exp} <explain>(e) ^ expn ) => conc
+   * where <explain>(e) is a conjunction of literals L1 ^ ... ^ Ln such that
+   * L1 ^ ... ^ Ln entail e, and each Li was passed as an argument to
+   * assertAssume(...) in the current SAT context. This explanation method
+   * always succeeds, provided that e is a literal that currently holds in
+   * the equality engine of this class. Notice that if the antecedant is empty,
+   * the formula above is assumed to be conc itself. The above formula is
+   * intended to be valid in Theory that owns this class.
+   * If this call is a conflict, then this formula is:
+   *   ^_{e in exp} <explain>(e)
+   * The above formula is intended to be 
+   */
+  TrustNode assertLemma(Node conc,
+                        PfRule id,
+                        const std::vector<Node>& exp,
+                        const std::vector<Node>& expn,
+                        const std::vector<Node>& args);
  protected:
   /**
    * Make proof for fact lit, or nullptr if it does not exist. It must be the

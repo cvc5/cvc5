@@ -358,11 +358,10 @@ void InferenceManager::doPendingLemmas()
 {
   if (!d_state.isInConflict())
   {
-    for (const Node& lc : d_pendingLem)
+    for (const TrustNode& lc : d_pendingLem)
     {
       Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
       ++(d_statistics.d_lemmasInfer);
-      TrustNode plem = TrustNode::mkTrustLemma(lc, nullptr);
       d_poc.lemma(plem);
     }
     for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)

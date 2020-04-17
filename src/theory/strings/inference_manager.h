@@ -320,7 +320,7 @@ class InferenceManager
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
   /** A list of pending lemmas to be sent on the output channel. */
-  std::vector<Node> d_pendingLem;
+  std::vector<TrusNode> d_pendingLem;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are ref-counted. Since facts and their
