@@ -319,21 +319,10 @@ void InferenceManager::doPendingFacts()
   {
     Node fact = d_pending[i];
     Node exp = d_pendingExp[fact];
-    if (fact.getKind() == AND)
-    {
-      for (const Node& lit : fact)
-      {
-        bool polarity = lit.getKind() != NOT;
-        TNode atom = polarity ? lit : lit[0];
-        assertPendingFact(atom, polarity, exp);
-      }
-    }
-    else
-    {
-      bool polarity = fact.getKind() != NOT;
-      TNode atom = polarity ? fact : fact[0];
-      assertPendingFact(atom, polarity, exp);
-    }
+    Assert(fact.getKind() != AND);
+    bool polarity = fact.getKind() != NOT;
+    TNode atom = polarity ? fact : fact[0];
+    assertPendingFact(atom, polarity, exp);
     i++;
   }
   d_pending.clear();
