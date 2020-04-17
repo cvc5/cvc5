@@ -196,7 +196,9 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   return ensureProofForFact(conc, assumps, isConflict);
 }
 
-TrustNode ProofEqEngine::ensureProofForFact(Node conc, const std::vector<TNode>& assumps, bool isConflict)
+TrustNode ProofEqEngine::ensureProofForFact(Node conc,
+                                            const std::vector<TNode>& assumps,
+                                            bool isConflict)
 {
   // make the conflict or lemma
   Node formula = mkAnd(assumps);

@@ -267,9 +267,10 @@ class InferenceManager
    */
   void markReduced(Node n, bool contextDepend = true);
   // ------------------------------------------------- end extended theory
-  
+
   /** Get the proof-producing equality engine of this class */
   eq::ProofEqEngine* getProofEqEngine() const;
+
  private:
   /** assert pending fact
    *
