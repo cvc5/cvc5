@@ -105,13 +105,8 @@ bool CDProof::addStep(Node expected,
   return true;
 }
 
-bool CDProof::addProof(Node expected, ProofNode* pn, bool forceOverwrite)
+bool CDProof::addProof(ProofNode* pn, bool forceOverwrite)
 {
-  if (pn->getResult() != expected)
-  {
-    // something went wrong
-    return false;
-  }
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<ProofNode*> visit;

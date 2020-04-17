@@ -18,7 +18,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferProofCons::InferProofCons(ProofEqEngine& pfee) : d_pfee(pfee) {}
+InferProofCons::InferProofCons(eq::ProofEqEngine& pfee) : d_pfee(pfee) {}
 
 PfRule InferProofCons::convert(const std::vector<Node>& exp,
                                const std::vector<Node>& expn,
