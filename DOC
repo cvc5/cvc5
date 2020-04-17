@@ -30,12 +30,12 @@ High level changes needed:
 - TheoryEngine passes a ProofOutputChannel to each Theory instead of an OutputChannel when in proof producing mode. It uses this object to extract proofs for theory lemmas when needed.
 - TheoryEngine owns a ProofChecker that can check any kind of proof in proof_kinds files.
 - Based on proof_kinds, we auto-generate:
-(1) The PfRule enum,
-(2) Printing for PfRule enum,
+(1) The PfRule enumeration,
+(2) Printing for PfRule,
 (3) Initialization of the ProofChecker owned by TheoryEngine.
 
 Notes:
 - Theory does not need to be concerned what a ProofNode is. It uses TrustNodes but doesnt care about their contents.
-- Similar to above, the user of a ProofEqEngine does not care about what a ProofNode is. Its input interface is similar to EqualityEngine (Node), its output interface is in terms of TrustNode.
+- Similar to above, the user of a ProofEqEngine does not care about what a ProofNode is. Its input interface is similar to EqualityEngine, i.e. Node, its output interface is in terms of TrustNode.
 - Theory can have as many ProofGenerator objects as it wants.
 - ProofNodeManager does not need to be global.
