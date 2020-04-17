@@ -167,6 +167,13 @@ enum class PfRule : uint32_t
   //               (SYMM (SUBS_REWRITE P1 ... Pn :args s)))
   // In other words, t and s can be show equal by substitution + rewriting.
   MACRO_EQ_SUBS_REWRITE,
+  // ======== Rewrite predicate
+  // Children: (P:F)
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: Rewriter::rewrite(F)
+  // Macro: (TRUE_ELIM (TRANS (SYMM (REWRITE P)) (TRUE_INTRO P)))
+  MACRO_REWRITE_PRED,
 
   //================================================= String rules
   //======================== Core solver

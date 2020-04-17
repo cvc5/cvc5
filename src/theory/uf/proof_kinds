@@ -72,3 +72,12 @@ proofrule FALSE_ELIM 1 0 ::CVC4::theory::uf::EqProofRuleChecker
 macro MACRO_EQ_SUBS_REWRITE 0: 2 {
   (TRANS (SUBS_REWRITE <children> <args>[0]) (SYMM (SUBS_REWRITE <children> <args>[1])))
 }
+
+// ======== Rewrite predicate
+// Children: (P:F)
+// Arguments: none
+// ----------------------------------------
+// Conclusion: Rewriter::rewrite(F)
+macro MACRO_REWRITE_PRED 1 0 {
+  (TRUE_ELIM (TRANS (SYMM (REWRITE <children>)) (TRUE_INTRO <children>)))
+}

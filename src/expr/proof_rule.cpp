@@ -40,6 +40,7 @@ const char* toString(PfRule id)
     case PfRule::TRUE_INTRO: return "TRUE_INTRO";
     case PfRule::TRUE_ELIM: return "TRUE_ELIM";
     case PfRule::MACRO_EQ_SUBS_REWRITE: return "MACRO_EQ_SUBS_REWRITE";
+    case PfRule::MACRO_REWRITE_PRED: return "MACRO_REWRITE_PRED";
     //================================================= String rules
     case PfRule::CONCAT_ENDP_UNIFY: return "CONCAT_ENDP_UNIFY";
     case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
