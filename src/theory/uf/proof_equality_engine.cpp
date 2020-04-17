@@ -68,9 +68,6 @@ bool ProofEqEngine::assertFact(Node lit,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& args)
 {
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
-
   // first, register the step in the proof
   if (d_pfEnabled)
   {
@@ -81,9 +78,14 @@ bool ProofEqEngine::assertFact(Node lit,
     }
   }
 
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+  
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(atom, polarity, reason);
+  d_keep.insert(atom);
+  d_keep.insert(reason);
 
   return true;
 }
@@ -93,32 +95,42 @@ bool ProofEqEngine::assertFact(Node lit,
                                Node exp,
                                const std::vector<Node>& args)
 {
-  if (!d_pfEnabled)
+
+  // first, register the step in the proof
+  if (d_pfEnabled)
   {
-    Node atom = lit.getKind() == NOT ? lit[0] : lit;
-    bool polarity = lit.getKind() != NOT;
-    // can just assert immediately
-    assertInternal(atom, polarity, exp);
-    return true;
-  }
-  // must extract the explanation as a vector
-  std::vector<Node> expv;
-  if (exp != d_true)
-  {
-    if (exp.getKind() == AND)
+    // must extract the explanation as a vector
+    std::vector<Node> expv;
+    if (exp != d_true)
     {
-      for (const Node& e : expv)
+      if (exp.getKind() == AND)
       {
-        Assert(e.getKind() != AND);
-        expv.push_back(e);
+        for (const Node& e : expv)
+        {
+          Assert(e.getKind() != AND);
+          expv.push_back(e);
+        }
+      }
+      else
+      {
+        expv.push_back(exp);
       }
     }
-    else
+    if (!d_proof.addStep(lit, id, expv, args))
     {
-      expv.push_back(exp);
+      // failed to register step
+      return false;
     }
   }
-  return assertFact(lit, id, expv, args);
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+
+  // second, assert it to the equality engine
+  assertInternal(atom, polarity, exp);
+  d_keep.insert(atom);
+  d_keep.insert(exp);
+
+  return true;
 }
 
 // could combine proofs with this

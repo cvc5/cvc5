@@ -36,6 +36,6 @@ High level changes needed:
 
 Notes:
 - Theory does not need to be concerned what a ProofNode is. It uses TrustNodes but doesnt care about their contents.
-- Similar to above, the user of a ProofEqEngine does not care about what a ProofNode is. Its input interface is Node, its output interface is in terms of TrustNode.
+- Similar to above, the user of a ProofEqEngine does not care about what a ProofNode is. Its input interface is similar to EqualityEngine (Node), its output interface is in terms of TrustNode.
 - Theory can have as many ProofGenerator objects as it wants.
 - ProofNodeManager does not need to be global.

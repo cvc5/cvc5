@@ -404,7 +404,7 @@ void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
           << "CONFLICT: Eager prefix : " << cnode << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);
       TrustNode pconf = TrustNode::mkTrustConflict(cnode, nullptr);
-      d_poc.conflict(pconf);
+      d_poc.trustedConflict(pconf);
     }
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
