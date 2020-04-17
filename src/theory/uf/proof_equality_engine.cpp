@@ -101,6 +101,7 @@ bool ProofEqEngine::assertFact(Node lit,
     assertInternal(atom, polarity, exp);
     return true;
   }
+  // must unravel the explanation
   std::vector<Node> expv;
   if (exp != d_true)
   {
@@ -113,7 +114,7 @@ bool ProofEqEngine::assertFact(Node lit,
     }
     else
     {
-      expv.push_back(e);
+      expv.push_back(exp);
     }
   }
   return assertFact(lit, id, expv, args);
@@ -124,7 +125,7 @@ bool ProofEqEngine::assertFact(Node lit, ProofNode* p)
   Assert(p != nullptr);
   const std::vector<std::shared_ptr<ProofNode>>& children = p->getChildren();
   std::vector<Node> exp;
-  for (const std::shared_ptr<ProofNode>& pc : p)
+  for (const std::shared_ptr<ProofNode>& pc : children)
   {
     Node litc = pc->getResult();
     exp.push_back(litc);
@@ -154,19 +155,16 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
   return assertLemma(d_false, id, exp, expn, args);
 }
 
-TrustNode assertLemma(Node conc,
+TrustNode ProofEqEngine::assertLemma(Node conc,
                       PfRule id,
                       const std::vector<Node>& exp,
-                      const std::vector<Node>& expn,
+                      const std::vector<Node>& expAll,
                       const std::vector<Node>& args)
 {
   Assert(d_conc != d_true);
   if (d_pfEnabled)
   {
     // Register the proof step.
-    std::vector<Node> expAll;
-    expAll.insert(expAll.end(), exp.begin(), exp.end());
-    expAll.insert(expAll.end(), expn.begin(), expn.end());
     if (!d_proof.addStep(conc, id, expAll, args))
     {
       // a step went wrong, e.g. during checking
@@ -174,26 +172,35 @@ TrustNode assertLemma(Node conc,
       return TrustNode::null();
     }
   }
-
-  // get the explanation, with proofs
-  std::vector<TNode> assumps;
-  for (const Node& e : exp)
-  {
-    explainWithProof(e, assumps);
-  }
-  assumps.insert(assumps.end(), expn.begin(), expn.end());
-
   // We are a conflict if the conclusion is false and all literals are
   // explained.
-  bool isConflict = conc == d_false && expn.empty();
+  bool isConflict = conc == d_false;
+  
+  // get the explanation, with proofs
+  std::vector<TNode> assumps;
+  std::vector<Node> expn;
+  for (const Node& e : expAll)
+  {
+    if (std::find(exp.begin(),exp.end(),e)!=exp.end())
+    {
+      explainWithProof(e, assumps);
+    }
+    else
+    {
+      assumps.push_back(e);
+      isConflict = false;
+    }
+  }
 
   // make the conflict or lemma
   Node formula = mkAnd(assumps);
   if (!isConflict)
   {
+    NodeManager * nm = NodeManager::currentNM();
     formula = formula == d_false ? conc : nm->mkNode(IMPLIES, formula, conc);
   }
 
+  ProofGenerator * pfg = nullptr;
   if (d_pfEnabled)
   {
     // get the proof for false
@@ -213,13 +220,14 @@ TrustNode assertLemma(Node conc,
     {
       setProofForLemma(formula, pf);
     }
+    pfg = this;
   }
   // we can provide a proof for conflict or lemma
   if (isConflict)
   {
-    return TrustNode::mkTrustConflict(formula, this);
+    return TrustNode::mkTrustConflict(formula, pfg);
   }
-  return TrustNode::mkTrustLemma(formula, this);
+  return TrustNode::mkTrustLemma(formula, pfg);
 }
 
 std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
@@ -280,7 +288,7 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
   if (d_pfEnabled)
   {
     // add the steps in the equality engine proof to the Proof
-    pf->addTo(d_proof.get());
+    pf->addToProof(&d_proof);
   }
 }
 

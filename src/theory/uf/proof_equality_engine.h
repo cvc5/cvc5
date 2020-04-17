@@ -100,8 +100,8 @@ class ProofEqEngine : public EagerProofGenerator
    *
    * We provide the explanation in two parts:
    * (1) exp, which hold in the equality engine of this class,
-   * (2) expn, which do not necessarily hold in the equality engine of this
-   * class.
+   * (2) expn = expAll \ exp, which do not necessarily hold in the equality
+   * engine of this class.
    *
    * The proof for conc follows from exp ^ expn by proof rule with the given
    * id and arguments.
@@ -130,7 +130,7 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertLemma(Node conc,
                         PfRule id,
                         const std::vector<Node>& exp,
-                        const std::vector<Node>& expn,
+                        const std::vector<Node>& expAll,
                         const std::vector<Node>& args);
 
  protected:

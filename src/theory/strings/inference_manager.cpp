@@ -151,38 +151,23 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   if (asLemma || atom == d_false || atom.getKind() == OR || !expn.empty()
       || options::stringInferAsLemmas())
   {
-    Node eq_exp;
     TrustNode n;
+    // TODO: set up proof step based on inference
+    PfRule id;
+    std::vector<Node> expAll;
+    expAll.insert(expAll.end(),exp.begin(),exp.end());
+    expAll.insert(expAll.end(),expn.begin(),expn.end());
+    std::vector<Node> args;
     if (options::stringRExplainLemmas())
     {
-      n = assertLemma(atom, exp, expn,
-      eq_exp = mkExplain(exp, exp_n);
+      n = d_pfee.assertLemma(eq, id, exp, expAll, args);
     }
     else
     {
-      if (exp.empty())
-      {
-        eq_exp = utils::mkAnd(exp_n);
-      }
-      else if (exp_n.empty())
-      {
-        eq_exp = utils::mkAnd(exp);
-      }
-      else
-      {
-        std::vector<Node> ev;
-        ev.insert(ev.end(), exp.begin(), exp.end());
-        ev.insert(ev.end(), exp_n.begin(), exp_n.end());
-        eq_exp = NodeManager::currentNM()->mkNode(AND, ev);
-      }
+      std::vector<Node> expEmpty;
+      n = d_pfee.assertLemma(eq, id, expEmpty, expAll, args);
     }
-    // if we have unexplained literals, this lemma is not a conflict
-    if (eq == d_false && !exp_n.empty())
-    {
-      eq = eq_exp.negate();
-      eq_exp = d_true;
-    }
-    sendLemma(eq_exp, eq, infer);
+    sendLemma(n, infer);
   }
   else
   {
@@ -251,7 +236,12 @@ void InferenceManager::sendInfer(Node eq_exp, Node eq, Inference infer)
               << "  " << vars[i] << " -> " << subs[i] << std::endl;
         }
       }
-      sendLemma(d_true, eqs, infer);
+      PfRule id;
+      std::vector<Node> exp;
+      std::vector<Node> expAll;
+      std::vector<Node> args;
+      TrustNode n = d_pfee.assertLemma(eqs, id, exp, expAll, args);
+      sendLemma(n, infer);
       return;
     }
     if (Trace.isOn("strings-lemma-debug"))
