@@ -137,8 +137,8 @@ class ProofEqEngine : public EagerProofGenerator
   /**
    * Make proof for fact lit, or nullptr if it does not exist. It must be the
    * case that lit was either:
-   * (1) Passed as the first argument to either a variant of assertAssume or
-   * assertFact in the current SAT context,
+   * (1) Passed as the first argument to either a variant of assertAssume,
+   * assertFact or assertLemma in the current SAT context,
    * (2) lit is false and a call was made to assertConflict in the current SAT
    * context.
    */
