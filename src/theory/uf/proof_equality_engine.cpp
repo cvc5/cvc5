@@ -93,15 +93,15 @@ bool ProofEqEngine::assertFact(Node lit,
                                Node exp,
                                const std::vector<Node>& args)
 {
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
-
   if (!d_pfEnabled)
   {
+    Node atom = lit.getKind() == NOT ? lit[0] : lit;
+    bool polarity = lit.getKind() != NOT;
+    // can just assert immediately
     assertInternal(atom, polarity, exp);
     return true;
   }
-  // must unravel the explanation
+  // must extract the explanation as a vector
   std::vector<Node> expv;
   if (exp != d_true)
   {
@@ -109,6 +109,7 @@ bool ProofEqEngine::assertFact(Node lit,
     {
       for (const Node& e : expv)
       {
+        Assert (e.getKind()!=AND);
         expv.push_back(e);
       }
     }
@@ -153,8 +154,7 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
                                         const std::vector<Node>& args)
 {
   // conflict is same as proof of false
-  std::vector<Node> expn;
-  return assertLemma(d_false, id, exp, expn, args);
+  return assertLemma(d_false, id, exp, exp, args);
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
@@ -211,12 +211,12 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   ProofGenerator* pfg = nullptr;
   if (d_pfEnabled)
   {
-    // get the proof for false
+    // get the proof for conc
     std::shared_ptr<ProofNode> pf = mkProofForFact(conc);
     if (pf == nullptr)
     {
       // should have existed
-      Assert(false) << "ProofEqEngine::assertConflict: failed to get proof";
+      Assert(false) << "ProofEqEngine::assertConflict: failed to get proof for " << conc;
       return TrustNode::null();
     }
     // set the proof for the conflict or lemma, which can be queried later

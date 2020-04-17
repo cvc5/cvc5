@@ -42,7 +42,7 @@ namespace eq {
  * SAT-context dependent manner in a context-dependent (CDProof) object.
  *
  * It is an eager proof generator (see theory/proof_generator.h), in that
- * it stores (copies) of proofs for lemmas when it is required to do so.
+ * it stores (copies) of proofs for lemmas at the moment they are sent out.
  *
  * A theory that is proof producing and uses the equality engine may use this
  * class to manage proofs that are justified by its underlying equality engine.
