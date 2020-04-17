@@ -30,6 +30,7 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
                              bool pfEnabled)
     : EagerProofGenerator(u, pnm),
       d_ee(ee),
+      d_pnm(pnm),
       d_proof(pnm, c),
       d_keep(c),
       d_pfEnabled(pfEnabled)
@@ -228,14 +229,20 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   if (d_pfEnabled)
   {
     // get the proof for conc
-    std::shared_ptr<ProofNode> pf = mkProofForFact(conc);
-    if (pf == nullptr)
+    std::shared_ptr<ProofNode> pfConc = mkProofForFact(conc);
+    if (pfConc == nullptr)
     {
       // should have existed
       Assert(false) << "ProofEqEngine::assertConflict: failed to get proof for "
                     << conc;
       return TrustNode::null();
     }
+    // wrap the proof in a SCOPE
+    std::shared_ptr<ProofNode> pf = d_pnm->mkNode(PfRule::SCOPE, pfConc, assumps);
+    // should always succeed, since assumptions should be closed
+    Assert( pf!=nullptr);
+    // should be a closed proof now
+    Assert (pf->getAssumptions().empty());
     // set the proof for the conflict or lemma, which can be queried later
     if (isConflict)
     {
