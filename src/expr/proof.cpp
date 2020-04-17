@@ -105,9 +105,7 @@ bool CDProof::addStep(Node expected,
   return true;
 }
 
-bool CDProof::addProof(Node expected,
-                       ProofNode* pn,
-                       bool forceOverwrite)
+bool CDProof::addProof(Node expected, ProofNode* pn, bool forceOverwrite)
 {
   if (pn->getResult() != expected)
   {
