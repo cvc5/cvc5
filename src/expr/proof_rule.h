@@ -75,6 +75,9 @@ enum class PfRule : uint32_t
   // has the conclusion (=> F F) and has no free assumptions. More generally, a
   // proof with no free assumptions always concludes a valid formula.
   SCOPE,
+  
+  //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
+  
   //======================== Node operations
   // ======== Substitution
   // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
@@ -216,6 +219,9 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion:F, corresponding to the one-step unfolding of the premise.
   RE_UNFOLD,
+  
+  
+  //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
   //================================================= Unknown rule
   UNKNOWN,

@@ -25,6 +25,8 @@ const char* toString(PfRule id)
     //================================================= Core rules
     case PfRule::ASSUME: return "ASSUME";
     case PfRule::SCOPE: return "SCOPE";
+    
+    //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
     case PfRule::SUBS_REWRITE: return "SUBS_REWRITE";
@@ -48,6 +50,8 @@ const char* toString(PfRule id)
     case PfRule::REDUCTION: return "REDUCTION";
     case PfRule::RE_INTER: return "RE_INTER";
     case PfRule::RE_UNFOLD: return "RE_UNFOLD";
+    //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
+    
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
