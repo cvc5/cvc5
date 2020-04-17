@@ -110,7 +110,8 @@ class ProofEqEngine : public EagerProofGenerator
    * the call to this method [*], for which a proof can be provided by this
    * generator in the remainder of the user context.
    *
-   * [*] If this call does not correspond to a conflict, then this formula is:
+   * [*] 
+   * a. If this call does not correspond to a conflict, then this formula is:
    *   ( ^_{e in exp} <explain>(e) ^ expn ) => conc
    * where <explain>(e) is a conjunction of literals L1 ^ ... ^ Ln such that
    * L1 ^ ... ^ Ln entail e, and each Li was passed as an argument to
@@ -119,9 +120,10 @@ class ProofEqEngine : public EagerProofGenerator
    * the equality engine of this class. Notice that if the antecedant is empty,
    * the formula above is assumed to be conc itself. The above formula is
    * intended to be valid in Theory that owns this class.
-   * If this call is a conflict, then this formula is:
+   * b. If this call is a conflict, then this formula is:
    *   ^_{e in exp} <explain>(e)
-   * The above formula is intended to be
+   * The above formula is intended to be equivalent to false according to the
+   * Theory that owns this class.
    */
   TrustNode assertLemma(Node conc,
                         PfRule id,
