@@ -89,14 +89,14 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: (= t Rewriter::rewrite(t))
   REWRITE,
-  // ======== Substitution
+  // ======== Substitution + rewriting
   // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
   // Arguments: (t)
   // ---------------------------------------------------------------
   // Conclusion:
   //  (= t Rewriter::rewrite(t.substitute(x1,t1). ... .substitute(xn,tn)))
   // Macro: (REWRITE (SUBS P1 ... Pn :args t))
-  MACRO_SUBS_REWRITE,
+  SUBS_REWRITE,
 
   //================================================= Boolean rules
   // ======== Split

@@ -45,7 +45,7 @@ proofrule SUBS 1: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 // Conclusion: (= t Rewriter::rewrite(t))
 proofrule REWRITE 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
-// ======== Substitution
+// ======== Substitution + Rewriting
 // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
 // Arguments: (t)
 // ---------------------------------------------------------------
