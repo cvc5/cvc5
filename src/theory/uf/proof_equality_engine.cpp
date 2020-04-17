@@ -163,14 +163,14 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
 TrustNode ProofEqEngine::assertLemma(Node conc,
                                      PfRule id,
                                      const std::vector<Node>& exp,
-                                     const std::vector<Node>& expAll,
+                                     const std::vector<Node>& toExplain,
                                      const std::vector<Node>& args)
 {
   Assert(d_conc != d_true);
   if (d_pfEnabled)
   {
     // Register the proof step.
-    if (!d_proof.addStep(conc, id, expAll, args))
+    if (!d_proof.addStep(conc, id, exp, args))
     {
       // a step went wrong, e.g. during checking
       Assert(false) << "ProofEqEngine::assertConflict: register proof step";
@@ -184,15 +184,17 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   // get the explanation, with proofs
   std::vector<TNode> assumps;
   std::vector<Node> expn;
-  for (const Node& e : expAll)
+  for (const Node& e : exp)
   {
-    if (std::find(exp.begin(), exp.end(), e) != exp.end())
+    if (std::find(toExplain.begin(), toExplain.end(), e) != toExplain.end())
     {
       explainWithProof(e, assumps);
     }
     else
     {
+      // it did not have a proof; it was an assumption of the previous rule
       assumps.push_back(e);
+      // it is not a conflict, since it may involve new literals
       isConflict = false;
     }
   }

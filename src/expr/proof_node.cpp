@@ -36,9 +36,10 @@ Node ProofNode::getResult() const { return d_proven; }
 
 void ProofNode::getAssumptions(std::vector<Node>& assump) const
 {
-  std::unordered_set<const ProofNode*> visited;
-  std::unordered_set<const ProofNode*>::iterator it;
+  std::unordered_map<const ProofNode*, bool> visited;
+  std::unordered_map<const ProofNode*, bool>::iterator it;
   std::vector<const ProofNode*> visit;
+  std::unordered_set<Node, NodeHashFunction> currentScope;
   const ProofNode* cur;
   visit.push_back(this);
   do
@@ -48,17 +49,42 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
     it = visited.find(cur);
     if (it == visited.end())
     {
-      visited.insert(cur);
-      if (cur->getId() == PfRule::ASSUME)
+      visited[cur] = true;
+      PfRule id = cur->getId();
+      if (id == PfRule::ASSUME)
       {
-        assump.push_back(cur->d_proven);
+        Node f = cur->d_proven;
+        if (currentScope.find(f)==currentScope.end())
+        {
+          assump.push_back(f);
+        }
       }
       else
       {
+        if (id == PfRule::SCOPE)
+        {
+          // mark that its arguments are bound in the current scope
+          for (const Node& a : cur->d_args)
+          {
+            // should not have assumption shadowing
+            Assert (currentScope.find(a)!=currentScope.end());
+            currentScope.insert(a);
+          }
+          // will need to unbind the variables below
+          visited[cur] = false;
+        }
         for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
         {
           visit.push_back(cp.get());
         }
+      }
+    }
+    else if (!it->second)
+    {
+      Assert(cur->getId()==SCOPE);
+      for (const Node& a : cur->d_args)
+      {
+        currentScope.erase(a);
       }
     }
   } while (!visit.empty());

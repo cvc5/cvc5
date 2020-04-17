@@ -99,9 +99,11 @@ class ProofEqEngine : public EagerProofGenerator
    * disjunction.
    *
    * We provide the explanation in two parts:
-   * (1) exp, which hold in the equality engine of this class,
-   * (2) expn = expAll \ exp, which do not necessarily hold in the equality
-   * engine of this class.
+   * (1) toExplain, which are literals that hold in the equality engine of this
+   * class,
+   * (2) toAssume = exp \ toExplain, which do not necessarily hold in the
+   * equality engine of this class.
+   * Notice that toExplain is a subset of exp.
    *
    * The proof for conc follows from exp ^ expn by proof rule with the given
    * id and arguments.
@@ -130,7 +132,7 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertLemma(Node conc,
                         PfRule id,
                         const std::vector<Node>& exp,
-                        const std::vector<Node>& expAll,
+                        const std::vector<Node>& toExplain,
                         const std::vector<Node>& args);
 
  protected:
