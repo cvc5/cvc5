@@ -28,6 +28,9 @@
  ** (inv-constraint inv-f pre-f trans-f post-f)
  **
  ** (check-synth)
+ **
+ ** The printed output to this example should be equivalent to:
+ ** (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
  **/
 
 #include <cvc4/api/cvc4cpp.h>
@@ -77,6 +80,8 @@ int main()
   // print solutions if available
   if (slv.checkSynth().isUnsat())
   {
+    // Output should be equivalent to:
+    // (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
     slv.printSynthSolution(std::cout);
   }
 

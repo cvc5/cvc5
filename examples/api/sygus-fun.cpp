@@ -39,6 +39,10 @@
  **                (+ x y)))
  **
  ** (check-synth)
+ **
+ ** The printed output to this example should be equivalent to:
+ ** (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
+ ** (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
  **/
 
 #include <cvc4/api/cvc4cpp.h>
@@ -120,6 +124,9 @@ int main()
   // print solutions if available
   if (slv.checkSynth().isUnsat())
   {
+    // Output should be equivalent to:
+    // (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
+    // (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
     slv.printSynthSolution(std::cout);
   }
 
