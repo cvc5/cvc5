@@ -100,6 +100,19 @@ Node BuiltinProofRuleChecker::check(PfRule id,
     Node res = applyRewrite(args[0]);
     return args[0].eqNode(res);
   }
+  else if (id == PfRule::SUBS_REWRITE)
+  {
+    Assert(children.size() > 0);
+    Assert(args.size() == 1);
+    std::vector<Node> exp;
+    for (size_t i = 0, nchild = children.size(); i < nchild; i++)
+    {
+      exp.push_back(children[i]);
+    }
+    Node res = applySubstitution(args[0], exp);
+    res = applyRewrite(res);
+    return args[0].eqNode(res);
+  }
   // no rule
   return Node::null();
 }
