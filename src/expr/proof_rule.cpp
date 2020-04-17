@@ -24,15 +24,20 @@ const char* toString(PfRule id)
   {
     //================================================= Core rules
     case PfRule::ASSUME: return "ASSUME";
+    case PfRule::SCOPE: return "SCOPE";
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
     case PfRule::SUBS_REWRITE: return "SUBS_REWRITE";
+    //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
     //================================================= Equality rules
     case PfRule::REFL: return "REFL";
     case PfRule::SYMM: return "SYMM";
     case PfRule::TRANS: return "TRANS";
     case PfRule::CONG: return "CONG";
+    case PfRule::TRUE_INTRO: return "TRUE_INTRO";
+    case PfRule::TRUE_ELIM: return "TRUE_ELIM";
+    case PfRule::MACRO_EQ_SUBS_REWRITE: return "MACRO_EQ_SUBS_REWRITE";
     //================================================= String rules
     case PfRule::CONCAT_ENDP_UNIFY: return "CONCAT_ENDP_UNIFY";
     case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
