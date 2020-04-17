@@ -38,7 +38,7 @@ Node EqProofRuleChecker::check(PfRule id,
     Assert(children.size() == 1);
     Assert(args.empty());
     Node eqp = children[0];
-    if (eqp.isNull() || eqp.getKind() != EQUAL)
+    if (eqp.getKind() != EQUAL)
     {
       return Node::null();
     }
@@ -53,7 +53,7 @@ Node EqProofRuleChecker::check(PfRule id,
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
       Node eqp = children[i];
-      if (eqp.isNull() || eqp.getKind() != EQUAL)
+      if (eqp.getKind() != EQUAL)
       {
         return Node::null();
       }
@@ -69,11 +69,28 @@ Node EqProofRuleChecker::check(PfRule id,
     }
     return first.eqNode(curr);
   }
-  else if (id == PfRule::SPLIT)
+  else if (id == PfRule::CONG)
   {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    return NodeManager::currentNM()->mkNode(OR, args[0], args[0].notNode());
+    Assert(children.size() > 0);
+    Assert(args.size()==1);
+    // we use builtin operator
+    std::vector<Node> lchildren;
+    std::vector<Node> rchildren;
+    lchildren.push_back(args[0]);
+    rchildren.push_back(args[0]);
+    for (size_t i = 0, nchild = children.size(); i < nchild; i++)
+    {
+      Node eqp = children[i];
+      if (eqp.getKind() != EQUAL)
+      {
+        return Node::null();
+      }
+      lchildren.push_back(eqp[0]);
+      rchildren.push_back(eqp[1]);
+    }
+    Node l = nm->mkNode(lchildren);
+    Node r = nm->mkNode(rchildren);
+    return l.eqNode(r);
   }
   // no rule
   return Node::null();
