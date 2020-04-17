@@ -155,8 +155,8 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
     // TODO: set up proof step based on inference
     PfRule id;
     std::vector<Node> expAll;
-    expAll.insert(expAll.end(),exp.begin(),exp.end());
-    expAll.insert(expAll.end(),expn.begin(),expn.end());
+    expAll.insert(expAll.end(), exp.begin(), exp.end());
+    expAll.insert(expAll.end(), expn.begin(), expn.end());
     std::vector<Node> args;
     if (options::stringRExplainLemmas())
     {

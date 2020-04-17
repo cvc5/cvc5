@@ -156,10 +156,10 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
-                      PfRule id,
-                      const std::vector<Node>& exp,
-                      const std::vector<Node>& expAll,
-                      const std::vector<Node>& args)
+                                     PfRule id,
+                                     const std::vector<Node>& exp,
+                                     const std::vector<Node>& expAll,
+                                     const std::vector<Node>& args)
 {
   Assert(d_conc != d_true);
   if (d_pfEnabled)
@@ -175,13 +175,13 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   // We are a conflict if the conclusion is false and all literals are
   // explained.
   bool isConflict = conc == d_false;
-  
+
   // get the explanation, with proofs
   std::vector<TNode> assumps;
   std::vector<Node> expn;
   for (const Node& e : expAll)
   {
-    if (std::find(exp.begin(),exp.end(),e)!=exp.end())
+    if (std::find(exp.begin(), exp.end(), e) != exp.end())
     {
       explainWithProof(e, assumps);
     }
@@ -196,11 +196,11 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   Node formula = mkAnd(assumps);
   if (!isConflict)
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     formula = formula == d_false ? conc : nm->mkNode(IMPLIES, formula, conc);
   }
 
-  ProofGenerator * pfg = nullptr;
+  ProofGenerator* pfg = nullptr;
   if (d_pfEnabled)
   {
     // get the proof for false
