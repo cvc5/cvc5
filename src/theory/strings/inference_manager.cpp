@@ -177,11 +177,48 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       eq_exp = d_true;
     }
     sendLemma(eq_exp, eq, infer);
+    return;
   }
-  else
+  Node eqExp = utils::mkAnd(exp);
+  if (options::stringInferSym())
   {
-    sendInfer(utils::mkAnd(exp), eq, infer);
+    std::vector<Node> vars;
+    std::vector<Node> subs;
+    std::vector<Node> unproc;
+    d_termReg.inferSubstitutionProxyVars(eqExp, vars, subs, unproc);
+    if (unproc.empty())
+    {
+      Node eqs =
+          eq.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      if (Trace.isOn("strings-lemma-debug"))
+      {
+        Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from "
+                                     << eqExp << " by " << infer << std::endl;
+        Trace("strings-lemma-debug")
+            << "Strings::Infer Alternate : " << eqs << std::endl;
+        for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
+        {
+          Trace("strings-lemma-debug")
+              << "  " << vars[i] << " -> " << subs[i] << std::endl;
+        }
+      }
+      sendLemma(d_true, eqs, infer);
+      return;
+    }
+    if (Trace.isOn("strings-lemma-debug"))
+    {
+      for (const Node& u : unproc)
+      {
+        Trace("strings-lemma-debug")
+            << "  non-trivial exp : " << u << std::endl;
+      }
+    }
   }
+  Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eqExp
+                         << " by " << infer << std::endl;
+  Trace("strings-assert") << "(assert (=> " << eqExp << " " << eq
+                          << ")) ; infer " << infer << std::endl;
+  d_pending.push_back(PendingInfer(infer, eq, eqExp));
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
@@ -229,51 +266,6 @@ void InferenceManager::sendLemma(Node ant, Node conc, Inference infer)
   d_pendingLem.push_back(lem);
 }
 
-void InferenceManager::sendInfer(Node eq_exp, Node eq, Inference infer)
-{
-  if (options::stringInferSym())
-  {
-    std::vector<Node> vars;
-    std::vector<Node> subs;
-    std::vector<Node> unproc;
-    d_termReg.inferSubstitutionProxyVars(eq_exp, vars, subs, unproc);
-    if (unproc.empty())
-    {
-      Node eqs =
-          eq.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-      if (Trace.isOn("strings-lemma-debug"))
-      {
-        Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from "
-                                     << eq_exp << " by " << infer << std::endl;
-        Trace("strings-lemma-debug")
-            << "Strings::Infer Alternate : " << eqs << std::endl;
-        for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
-        {
-          Trace("strings-lemma-debug")
-              << "  " << vars[i] << " -> " << subs[i] << std::endl;
-        }
-      }
-      sendLemma(d_true, eqs, infer);
-      return;
-    }
-    if (Trace.isOn("strings-lemma-debug"))
-    {
-      for (const Node& u : unproc)
-      {
-        Trace("strings-lemma-debug")
-            << "  non-trivial exp : " << u << std::endl;
-      }
-    }
-  }
-  Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eq_exp
-                         << " by " << infer << std::endl;
-  Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq
-                          << ")) ; infer " << infer << std::endl;
-  d_pending.push_back(eq);
-  d_pendingExp[eq] = eq_exp;
-  d_keep.insert(eq);
-  d_keep.insert(eq_exp);
-}
 
 bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
 {
@@ -328,8 +320,8 @@ void InferenceManager::doPendingFacts()
   size_t i = 0;
   while (!d_state.isInConflict() && i < d_pending.size())
   {
-    Node fact = d_pending[i];
-    Node exp = d_pendingExp[fact];
+    Node fact = d_pending[i].d_fact;
+    Node exp = d_pending[i].d_exp;
     if (fact.getKind() == AND)
     {
       for (const Node& lit : fact)
@@ -345,10 +337,14 @@ void InferenceManager::doPendingFacts()
       TNode atom = polarity ? fact : fact[0];
       assertPendingFact(atom, polarity, exp);
     }
+    // Must reference count the equality and its explanation, which is not done
+    // by the equality engine. Notice that we do not need to do this for
+    // external assertions, which enter as facts through sendAssumption.
+    d_keep.insert(fact);
+    d_keep.insert(exp);
     i++;
   }
   d_pending.clear();
-  d_pendingExp.clear();
 }
 
 void InferenceManager::doPendingLemmas()
