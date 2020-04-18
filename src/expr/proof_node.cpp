@@ -91,6 +91,13 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
   } while (!visit.empty());
 }
 
+bool ProofNode::isClosed() const
+{
+  std::vector<Node> assumps;
+  getAssumptions(assumps);
+  return assumps.empty();
+}
+
 std::shared_ptr<ProofNode> ProofNode::clone() const
 {
   std::vector<std::shared_ptr<ProofNode>> cchildren;

@@ -71,6 +71,8 @@ class ProofNode
    * the structure of the dag represented by this ProofNode.
    */
   void getAssumptions(std::vector<Node>& assump) const;
+  /** Returns true if this is a closed proof */
+  bool isClosed() const;
   /** Print debug on output strem os */
   void printDebug(std::ostream& os) const;
   /** Clone, create a deep copy of this */

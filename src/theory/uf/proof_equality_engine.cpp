@@ -246,7 +246,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     // should always succeed, since assumptions should be closed
     Assert(pf != nullptr);
     // should be a closed proof now
-    Assert(pf->getAssumptions().empty());
+    Assert(pf->isClosed());
     // set the proof for the conflict or lemma, which can be queried later
     if (isConflict)
     {
