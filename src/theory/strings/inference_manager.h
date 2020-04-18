@@ -42,15 +42,18 @@ namespace strings {
  */
 struct PendingInfer
 {
-  PendingInfer(Inference i, Node fact, Node exp) : d_infer(i), d_fact(fact), d_exp(exp){}
+  PendingInfer(Inference i, Node fact, Node exp)
+      : d_infer(i), d_fact(fact), d_exp(exp)
+  {
+  }
   ~PendingInfer() {}
   /** The inference identifier */
   Inference d_infer;
   /** The conclusion */
   Node d_fact;
-  /** 
+  /**
    * Its explanation. This is a conjunction of literals that hold in the
-   * equality engine in the current context. 
+   * equality engine in the current context.
    */
   Node d_exp;
 };
