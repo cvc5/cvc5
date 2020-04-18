@@ -197,7 +197,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
         }
       }
       // the code above is likely a substitution + rewriting?
-      PfRule id;
+      PfRule id = PfRule::UNKNOWN;
       std::vector<Node> pfExp;
       pfExp.insert(pfExp.end(), exp.begin(), exp.end());
       std::vector<Node> args;

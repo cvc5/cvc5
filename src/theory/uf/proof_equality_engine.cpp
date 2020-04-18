@@ -242,7 +242,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     // (formula) which we pass to mkNode, which can check it if it wants.
     std::vector<Node> args;
     std::shared_ptr<ProofNode> pf =
-        d_pnm->mkNode(PfRule::SCOPE, pfConc, assumps, args, formula);
+        d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
     // should always succeed, since assumptions should be closed
     Assert(pf != nullptr);
     // should be a closed proof now

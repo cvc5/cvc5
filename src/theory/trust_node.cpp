@@ -14,6 +14,8 @@
 
 #include "theory/trust_node.h"
 
+#include "theory/proof_generator.h"
+
 namespace CVC4 {
 namespace theory {
 
@@ -36,14 +38,14 @@ std::ostream& operator<<(std::ostream& out, TrustNodeKind tnk)
 TrustNode TrustNode::mkTrustConflict(Node conf, ProofGenerator* g)
 {
   // if a generator is provided, should confirm that it can prove it
-  Assert(d_gen == nullptr || d_gen->canProveConflict(conf));
+  Assert(g == nullptr || g->canProveConflict(conf));
   return TrustNode(TrustNodeKind::CONFLICT, conf, g);
 }
 
 TrustNode TrustNode::mkTrustLemma(Node lem, ProofGenerator* g)
 {
   // if a generator is provided, should confirm that it can prove it
-  Assert(d_gen == nullptr || d_gen->canProveLemma(lem));
+  Assert(g == nullptr || g->canProveLemma(lem));
   return TrustNode(TrustNodeKind::LEMMA, lem, g);
 }
 
