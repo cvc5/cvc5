@@ -542,7 +542,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
   // initialize the term cache
   // see if we use an example evaluation cache for symmetry breaking
   ExampleEvalCache* eec = nullptr;
-  if (options::sygusSymBreakPbe())
+  if (d_parent != nullptr && options::sygusSymBreakPbe())
   {
     eec = d_parent->getExampleEvalCache(d_enum);
   }
