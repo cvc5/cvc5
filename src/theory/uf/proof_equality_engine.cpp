@@ -179,6 +179,10 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                                      const std::vector<Node>& toExplain,
                                      const std::vector<Node>& args)
 {
+  Trace("pfee") << "pfee::assertLemma " << conc << " " << id << std::endl;
+  Trace("pfee") << "        exp = " << exp << std::endl;
+  Trace("pfee") << "  toExplain = " << toExplain << std::endl;
+  Trace("pfee") << "       args = " << args << std::endl;
   Assert(conc != d_true);
   if (d_pfEnabled)
   {
@@ -218,6 +222,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                                             const std::vector<TNode>& assumps,
                                             bool isConflict)
 {
+  Trace("pfee-debug") << "ProofEqEngine::ensureProofForFact " << conc << " via " << assumps << ", isConflict=" << isConflict << std::endl;
   // make the conflict or lemma
   Node formula = mkAnd(assumps);
   if (!isConflict)
@@ -279,6 +284,7 @@ std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
 
 void ProofEqEngine::assertInternal(Node atom, bool polarity, TNode reason)
 {
+  Trace("pfee-debug") << "ProofEqEngine::assertInternal: " << atom << " " << polarity << " " << reason << std::endl;
   if (atom.getKind() == EQUAL)
   {
     d_ee.assertEquality(atom, polarity, reason);
@@ -293,8 +299,10 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
 {
   std::shared_ptr<eq::EqProof> pf =
       d_pfEnabled ? std::make_shared<eq::EqProof>() : nullptr;
+  Trace("pfee-debug") << "ProofEqEngine::explainWithProof: " << lit << " via " << assumps << std::endl;
   bool polarity = lit.getKind() != NOT;
   TNode atom = polarity ? lit : lit[0];
+  Assert (atom.getKind()!=AND);
   std::vector<TNode> tassumps;
   if (atom.getKind() == EQUAL)
   {
@@ -304,13 +312,19 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
       Assert(d_ee.hasTerm(atom[1]));
       if (!polarity)
       {
+        // ensure the explanation exists
         AlwaysAssert(d_ee.areDisequal(atom[0], atom[1], true));
+      }
+      else
+      {
+        Assert(d_ee.areEqual(atom[0], atom[1]));
       }
       d_ee.explainEquality(atom[0], atom[1], polarity, tassumps, pf.get());
     }
   }
   else
   {
+    Assert (d_ee.hasTerm(atom));
     d_ee.explainPredicate(atom, polarity, tassumps, pf.get());
   }
   // avoid duplicates

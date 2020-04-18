@@ -145,6 +145,12 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   {
     return;
   }
+  // must flatten the explanation
+  std::vector<Node> expConj;
+  for (const Node& ec : exp)
+  {
+    utils::flattenOp(AND, ec, expConj);
+  }
   // only keep stats if not trivial conclusion
   d_statistics.d_inferences << infer;
   Node atom = eq.getKind() == NOT ? eq[0] : eq;
@@ -155,13 +161,13 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
     TrustNode n;
     // set up proof step based on inference
     // pfExp is the children of the proof step below. This should be an
-    // ordered list of exp + expn.
+    // ordered list of expConj + expn.
     std::vector<Node> pfExp;
     std::vector<Node> args;
-    PfRule id = d_ipc.convert(eq, infer, exp, expn, pfExp, args);
+    PfRule id = d_ipc.convert(eq, infer, expConj, expn, pfExp, args);
     if (options::stringRExplainLemmas())
     {
-      n = d_pfee.assertLemma(eq, id, pfExp, exp, args);
+      n = d_pfee.assertLemma(eq, id, pfExp, expConj, args);
     }
     else
     {
@@ -173,7 +179,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   }
   // no free assumptions in the explanation
   Assert(expn.empty());
-  Node eqExp = utils::mkAnd(exp);
+  Node eqExp = utils::mkAnd(expConj);
   if (options::stringInferSym())
   {
     std::vector<Node> vars;
@@ -198,9 +204,10 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       }
       // the code above is likely a substitution + rewriting?
       PfRule id = PfRule::UNKNOWN;
+      // empty explanation
       std::vector<Node> pfExp;
       std::vector<Node> args;
-      TrustNode n = d_pfee.assertLemma(eqs, id, pfExp, exp, args);
+      TrustNode n = d_pfee.assertLemma(eqs, id, pfExp, pfExp, args);
       sendLemma(n, infer);
       return;
     }
@@ -209,7 +216,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       for (const Node& u : unproc)
       {
         Trace("strings-lemma-debug")
-            << "  non-trivial exp : " << u << std::endl;
+            << "  non-trivial explanation : " << u << std::endl;
       }
     }
   }

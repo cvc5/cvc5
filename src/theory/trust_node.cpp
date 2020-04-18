@@ -58,7 +58,7 @@ TrustNode::TrustNode(TrustNodeKind tnk, Node n, ProofGenerator* g)
     : d_tnk(tnk), d_node(n), d_gen(g)
 {
   // does not make sense to provide null node with generator
-  Assert(d_node.isNull() || d_gen != nullptr);
+  Assert(!d_node.isNull() || d_gen == nullptr);
 }
 
 TrustNodeKind TrustNode::getKind() const { return d_tnk; }

@@ -14,6 +14,8 @@
 
 #include "theory/strings/infer_proof_cons.h"
 
+#include "theory/strings/theory_strings_utils.h"
+
 namespace CVC4 {
 namespace theory {
 namespace strings {
