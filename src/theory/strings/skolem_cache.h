@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "expr/node.h"
+#include "expr/proof_skolem_cache.h"
 
 namespace CVC4 {
 namespace theory {
@@ -158,6 +159,8 @@ class SkolemCache
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
   std::unordered_set<Node, NodeHashFunction> d_allSkolems;
+  /** A proof skolem cache */
+  ProofSkolemCache d_pskc;
 };
 
 }  // namespace strings
