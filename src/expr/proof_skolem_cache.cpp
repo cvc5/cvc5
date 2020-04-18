@@ -18,17 +18,19 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-Node ProofSkolemCache::mkSkolem(Node v, Node pred,
-              const std::string& prefix,
-              const std::string& comment, int flags)
+Node ProofSkolemCache::mkSkolem(Node v,
+                                Node pred,
+                                const std::string& prefix,
+                                const std::string& comment,
+                                int flags)
 {
-  Assert(v.getKind()==BOUND_VARIABLE);
+  Assert(v.getKind() == BOUND_VARIABLE);
   // make the witness term
-  NodeManager * nm = NodeManager::currentNM();
-  Node bvl = nm->mkNode(BOUND_VARIABLE_LIST,v);
-  Node w = nm->mkNode(CHOICE,bvl,pred);
+  NodeManager* nm = NodeManager::currentNM();
+  Node bvl = nm->mkNode(BOUND_VARIABLE_LIST, v);
+  Node w = nm->mkNode(CHOICE, bvl, pred);
   // make the skolem
-  Node k = nm->mkSkolem(prefix,v.getType(),comment,flags);
+  Node k = nm->mkSkolem(prefix, v.getType(), comment, flags);
   d_witness[k] = w;
   d_witnessVar.push_back(k);
   d_witnessTerm.push_back(w);
@@ -41,8 +43,10 @@ Node ProofSkolemCache::convertToWitnessForm(Node n) const
   {
     return n;
   }
-  return n.substitute(d_witnessVar.begin(),d_witnessVar.end(),d_witnessTerm.begin(),d_witnessTerm.end());
-  
+  return n.substitute(d_witnessVar.begin(),
+                      d_witnessVar.end(),
+                      d_witnessTerm.begin(),
+                      d_witnessTerm.end());
 }
 
 }  // namespace CVC4
