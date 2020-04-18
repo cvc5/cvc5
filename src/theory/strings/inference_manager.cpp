@@ -185,7 +185,6 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
     std::vector<Node> vars;
     std::vector<Node> subs;
     std::vector<Node> unproc;
-    Node eqExp = utils::mkAnd(exp);
     d_termReg.inferSubstitutionProxyVars(eqExp, vars, subs, unproc);
     if (unproc.empty())
     {
@@ -221,7 +220,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                           << ")) ; infer " << infer << std::endl;
   d_pending.push_back(PendingInfer(infer, eq, eqExp));
   d_keep.insert(eq);
-  d_keep.insert(eq_exp);
+  d_keep.insert(eqExp);
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
