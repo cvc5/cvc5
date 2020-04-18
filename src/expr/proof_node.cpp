@@ -81,7 +81,7 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
     }
     else if (!it->second)
     {
-      Assert(cur->getId() == SCOPE);
+      Assert(cur->getId() == PfRule::SCOPE);
       // unbind its assumptions
       for (const Node& a : cur->d_args)
       {

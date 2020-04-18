@@ -179,7 +179,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                                      const std::vector<Node>& toExplain,
                                      const std::vector<Node>& args)
 {
-  Assert(d_conc != d_true);
+  Assert(conc != d_true);
   if (d_pfEnabled)
   {
     // Register the proof step.

@@ -27,7 +27,7 @@ Node ProofSkolemCache::mkSkolem(Node v,
   Assert(v.getKind() == BOUND_VARIABLE);
   // make the witness term
   NodeManager* nm = NodeManager::currentNM();
-  Node bvl = nm->mkNode(BOUND_VARIABLE_LIST, v);
+  Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
   Node w = nm->mkNode(CHOICE, bvl, pred); // will change to WITNESS
   // make the skolem
   Node k = nm->mkSkolem(prefix, v.getType(), comment, flags);
