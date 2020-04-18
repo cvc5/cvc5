@@ -92,6 +92,13 @@ void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
   } while (!visit.empty());
 }
 
+bool ProofNode::isClosed() const
+{
+  std::vector<Node> assumps;
+  getFreeAssumptions(assumps);
+  return assumps.empty();
+}
+
 void ProofNode::setValue(
     PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
