@@ -36,7 +36,7 @@ namespace theory {
 namespace strings {
 
 /**
- * A pending inference. This is a helper class to track a unprocessed call to
+ * A pending inference. This is a helper class to track an unprocessed call to
  * InferenceManager::sendInference that is waiting to be asserted as a fact to
  * the equality engine.
  */
