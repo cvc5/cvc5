@@ -57,7 +57,7 @@ enum class PfRule : uint32_t
   // assumption in proof P" if it contains an application of F that is not
   // bound by SCOPE (see below).
   ASSUME,
-  // ======== Assumption (a leaf)
+  // ======== Scope (a binder for assumptions)
   // Children: (P:F)
   // Arguments: (F1, ..., Fn)
   // --------------
