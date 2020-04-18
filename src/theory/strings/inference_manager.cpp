@@ -341,7 +341,7 @@ void InferenceManager::doPendingFacts()
     // by the equality engine. Notice that we do not need to do this for
     // external assertions, which enter as facts through sendAssumption.
     d_keep.insert(fact);
-    d_keep.insert(exp);    
+    d_keep.insert(exp);
     i++;
   }
   d_pending.clear();
