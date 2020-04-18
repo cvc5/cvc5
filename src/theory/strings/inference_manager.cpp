@@ -219,8 +219,6 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   Trace("strings-assert") << "(assert (=> " << eqExp << " " << eq
                           << ")) ; infer " << infer << std::endl;
   d_pending.push_back(PendingInfer(infer, eq, eqExp));
-  d_keep.insert(eq);
-  d_keep.insert(eqExp);
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
@@ -339,6 +337,11 @@ void InferenceManager::doPendingFacts()
       TNode atom = polarity ? fact : fact[0];
       assertPendingFact(atom, polarity, exp);
     }
+    // Must reference count the equality and its explanation, which is not done
+    // by the equality engine. Notice that we do not need to do this for
+    // external assertions, which enter as facts through sendAssumption.
+    d_keep.insert(fact);
+    d_keep.insert(exp);    
     i++;
   }
   d_pending.clear();
