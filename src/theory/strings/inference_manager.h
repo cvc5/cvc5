@@ -141,12 +141,13 @@ class InferenceManager
    *
    * [2] (Infer) Indicate that eq should be added to the equality engine of this
    * class with explanation exp, where exp is a set of literals that currently
-   * hold in the equality engine.
+   * hold in the equality engine. We add this to the pending vector d_pending.
    *
    * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
    * be sent on the output channel of the theory of strings, where EXPLAIN
    * returns the explanation of the node in exp in terms of the literals
-   * asserted to the theory of strings, as computed by the equality engine, or
+   * asserted to the theory of strings, as computed by the equality engine.
+   * This is also added to a pending vector, d_pendingLem.
    *
    * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
    * channel of the theory of strings.
@@ -324,7 +325,10 @@ class InferenceManager
   Node d_false;
   Node d_zero;
   Node d_one;
-  /** The list of pending literals to assert to the equality engine */
+  /** 
+   * The list of pending literals to assert to the equality engine along with
+   * their explanation.
+   */
   std::vector<PendingInfer> d_pending;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
