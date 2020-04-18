@@ -23,7 +23,7 @@ ProofNode::ProofNode(PfRule id,
   setValue(id, children, args);
 }
 
-PfRule ProofNode::getId() const { return d_id; }
+PfRule ProofNode::getRule() const { return d_rule; }
 
 const std::vector<std::shared_ptr<ProofNode>>& ProofNode::getChildren() const
 {
@@ -50,7 +50,7 @@ void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
     if (it == visited.end())
     {
       visited[cur] = true;
-      PfRule id = cur->getId();
+      PfRule id = cur->getRule();
       if (id == PfRule::ASSUME)
       {
         Assert(cur->d_args.size() == 1);
@@ -82,7 +82,7 @@ void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
     }
     else if (!it->second)
     {
-      Assert(cur->getId() == PfRule::SCOPE);
+      Assert(cur->getRule() == PfRule::SCOPE);
       // unbind its assumptions
       for (const Node& a : cur->d_args)
       {
@@ -97,14 +97,14 @@ void ProofNode::setValue(
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
-  d_id = id;
+  d_rule = id;
   d_children = children;
   d_args = args;
 }
 
 void ProofNode::printDebug(std::ostream& os) const
 {
-  os << "(" << d_id;
+  os << "(" << d_rule;
   for (const std::shared_ptr<ProofNode>& c : d_children)
   {
     os << " ";

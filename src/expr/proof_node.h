@@ -55,8 +55,8 @@ class ProofNode
             const std::vector<std::shared_ptr<ProofNode>>& children,
             const std::vector<Node>& args);
   ~ProofNode() {}
-  /** get the id of this proof node */
-  PfRule getId() const;
+  /** get the rule of this proof node */
+  PfRule getRule() const;
   /** Get children */
   const std::vector<std::shared_ptr<ProofNode>>& getChildren() const;
   /** Get arguments */
@@ -85,8 +85,8 @@ class ProofNode
   void setValue(PfRule id,
                 const std::vector<std::shared_ptr<ProofNode>>& children,
                 const std::vector<Node>& args);
-  /** The proof step */
-  PfRule d_id;
+  /** The proof rule */
+  PfRule d_rule;
   /** The children of this proof node */
   std::vector<std::shared_ptr<ProofNode>> d_children;
   /** arguments of this node */
