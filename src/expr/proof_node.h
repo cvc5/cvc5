@@ -74,8 +74,8 @@ class ProofNode
    * Its implementation is analogous to expr::getFreeVariables.
    */
   void getFreeAssumptions(std::vector<Node>& assump) const;
-  /** 
-   * Returns true if this is a closed proof (i.e. it has no free assumptions). 
+  /**
+   * Returns true if this is a closed proof (i.e. it has no free assumptions).
    */
   bool isClosed() const;
   /** Print debug on output strem os */
