@@ -312,13 +312,17 @@ void InferenceManager::doPendingFacts()
   size_t i = 0;
   while (!d_state.isInConflict() && i < d_pending.size())
   {
-    PendingInfer pi = d_pending[i];
-    Node fact = pi.d_fact;
+    Node fact = d_pending[i].d_fact;
+    Node exp = d_pending[i].d_exp;
     Assert(fact.getKind() != AND);
-    Node exp = utils::mkAnd(pi.d_exp);
     bool polarity = fact.getKind() != NOT;
     TNode atom = polarity ? fact : fact[0];
     assertPendingFact(atom, polarity, exp);
+    // Must reference count the equality and its explanation, which is not done
+    // by the equality engine. Notice that we do not need to do this for
+    // external assertions, which enter as facts through sendAssumption.
+    d_keep.insert(fact);
+    d_keep.insert(exp);
     i++;
   }
   d_pending.clear();

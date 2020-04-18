@@ -2432,26 +2432,42 @@ void EqProof::debug_print(std::ostream& os,
   }
   else
   {
-    os << d_id;
+    os << static_cast<MergeReasonType>(d_id);
   }
-
   os << "(";
-  if( !d_children.empty() || !d_node.isNull() ){
-    if( !d_node.isNull() ){
-      os << std::endl;
-      for (unsigned i = 0; i < tb + 1; i++)
+  if (d_children.empty() && d_node.isNull())
+  {
+    os << ")";
+    return;
+  }
+  if (!d_node.isNull())
+  {
+    os << std::endl;
+    for (unsigned i = 0; i < tb + 1; ++i)
+    {
+      os << "  ";
+    }
+    os << d_node << (!d_children.empty() ? "," : "");
+  }
+  unsigned size = d_children.size();
+  for (unsigned i = 0; i < size; ++i)
+  {
+    os << std::endl;
+    d_children[i]->debug_print(os, tb + 1, prettyPrinter);
+    if (i < size - 1)
+    {
+      for (unsigned j = 0; j < tb + 1; ++j)
       {
         os << "  ";
       }
-      os << d_node;
+      os << ",";
     }
-    for( unsigned i=0; i<d_children.size(); i++ ){
-      if (i > 0 || !d_node.isNull())
-      {
-        os << ",";
-      }
-      os << std::endl;
-      d_children[i]->debug_print(os, tb + 1, prettyPrinter);
+  }
+  if (size > 0)
+  {
+    for (unsigned i = 0; i < tb; ++i)
+    {
+      os << "  ";
     }
   }
   os << ")" << std::endl;

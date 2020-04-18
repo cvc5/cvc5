@@ -36,16 +36,27 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/**
+ * A pending inference. This is a helper class to track an unprocessed call to
+ * InferenceManager::sendInference that is waiting to be asserted as a fact to
+ * the equality engine.
+ */
 struct PendingInfer
 {
-  PendingInfer(Inference i, Node fact, const std::vector<Node>& exp)
+  PendingInfer(Inference i, Node fact, Node exp)
       : d_infer(i), d_fact(fact), d_exp(exp)
   {
   }
   ~PendingInfer() {}
+  /** The inference identifier */
   Inference d_infer;
+  /** The conclusion */
   Node d_fact;
-  std::vector<Node> d_exp;
+  /**
+   * Its explanation. This is a conjunction of literals that hold in the
+   * equality engine in the current context.
+   */
+  Node d_exp;
 };
 
 /** Inference Manager
@@ -129,18 +140,22 @@ class InferenceManager
    * contains literals that are explainable, i.e. those that hold in the
    * equality engine of the theory of strings. On the other hand, the set
    * exp_n ("explanations new") contain nodes that are not explainable by the
-   * theory of strings. This method may call sendInfer or sendLemma. Overall,
-   * the result of this method is one of the following:
+   * theory of strings. This method may call sendLemma or otherwise add a
+   * PendingInfer to d_pending, indicating a fact should be asserted to the
+   * equality engine. Overall, the result of this method is one of the
+   * following:
    *
    * [1] (No-op) Do nothing if eq is true,
    *
    * [2] (Infer) Indicate that eq should be added to the equality engine of this
-   * class with explanation EXPLAIN(exp), where EXPLAIN returns the
-   * explanation of the node in exp in terms of the literals asserted to the
-   * theory of strings,
+   * class with explanation exp, where exp is a set of literals that currently
+   * hold in the equality engine. We add this to the pending vector d_pending.
    *
    * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
-   * be sent on the output channel of the theory of strings, or
+   * be sent on the output channel of the theory of strings, where EXPLAIN
+   * returns the explanation of the node in exp in terms of the literals
+   * asserted to the theory of strings, as computed by the equality engine.
+   * This is also added to a pending vector, d_pendingLem.
    *
    * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
    * channel of the theory of strings.
@@ -305,13 +320,6 @@ class InferenceManager
    * debugging.
    */
   void sendLemma(TrustNode n, Inference infer);
-  /**
-   * Indicates that conc should be added to the equality engine of this class
-   * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
-   * of) literals that each are explainable, i.e. they already hold in the
-   * equality engine of this class.
-   */
-  void sendInfer(Node eq_exp, Node eq, Inference infer);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
@@ -333,7 +341,10 @@ class InferenceManager
   Node d_false;
   Node d_zero;
   Node d_one;
-  /** The list of pending literals to assert to the equality engine */
+  /**
+   * The list of pending literals to assert to the equality engine along with
+   * their explanation.
+   */
   std::vector<PendingInfer> d_pending;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
