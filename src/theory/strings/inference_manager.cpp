@@ -173,13 +173,13 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   }
   // no free assumptions in the explanation
   Assert(expn.empty());
-  Node eq_exp = utils::mkAnd(exp);
+  Node eqExp = utils::mkAnd(exp);
   if (options::stringInferSym())
   {
     std::vector<Node> vars;
     std::vector<Node> subs;
     std::vector<Node> unproc;
-    d_termReg.inferSubstitutionProxyVars(eq_exp, vars, subs, unproc);
+    d_termReg.inferSubstitutionProxyVars(eqExp, vars, subs, unproc);
     if (unproc.empty())
     {
       Node eqs =
@@ -187,7 +187,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       if (Trace.isOn("strings-lemma-debug"))
       {
         Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from "
-                                     << eq_exp << " by " << infer << std::endl;
+                                     << eqExp << " by " << infer << std::endl;
         Trace("strings-lemma-debug")
             << "Strings::Infer Alternate : " << eqs << std::endl;
         for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
@@ -199,7 +199,6 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       // the code above is likely a substitution + rewriting?
       PfRule id = PfRule::UNKNOWN;
       std::vector<Node> pfExp;
-      pfExp.insert(pfExp.end(), exp.begin(), exp.end());
       std::vector<Node> args;
       TrustNode n = d_pfee.assertLemma(eqs, id, pfExp, exp, args);
       sendLemma(n, infer);
@@ -214,11 +213,11 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       }
     }
   }
-  Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eq_exp
+  Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eqExp
                          << " by " << infer << std::endl;
-  Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq
+  Trace("strings-assert") << "(assert (=> " << eqExp << " " << eq
                           << ")) ; infer " << infer << std::endl;
-  d_pending.push_back(PendingInfer(infer, eq, exp));
+  d_pending.push_back(PendingInfer(infer, eq, eqExp));
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
