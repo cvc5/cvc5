@@ -49,7 +49,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   children.push_back(child1);
   return mkNode(id, children, args, expected);
 }
-  
+
 bool ProofNodeManager::updateNode(
     ProofNode* pn,
     PfRule id,

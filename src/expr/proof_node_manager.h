@@ -74,11 +74,10 @@ class ProofNodeManager
       const std::vector<Node>& args,
       Node expected = Node::null());
   /** Construct proof node, single child version */
-  std::shared_ptr<ProofNode> mkNode(
-      PfRule id,
-      std::shared_ptr<ProofNode> child1,
-      const std::vector<Node>& args,
-      Node expected = Node::null());
+  std::shared_ptr<ProofNode> mkNode(PfRule id,
+                                    std::shared_ptr<ProofNode> child1,
+                                    const std::vector<Node>& args,
+                                    Node expected = Node::null());
   /**
    * This method updates pn to be a proof of the form <id>( children, args ),
    * while maintaining its d_proven field. This method returns false if this
