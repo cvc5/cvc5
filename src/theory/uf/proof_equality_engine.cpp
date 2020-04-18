@@ -85,6 +85,7 @@ bool ProofEqEngine::assertFact(Node lit,
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertInternal(atom, polarity, reason);
+  // must reference count the new atom and explanation
   d_keep.insert(atom);
   d_keep.insert(reason);
 
@@ -237,9 +238,11 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                     << conc;
       return TrustNode::null();
     }
-    // wrap the proof in a SCOPE
+    // Wrap the proof in a SCOPE. Notice that we have an expected conclusion
+    // (formula) which we pass to mkNode, which can check it if it wants.
+    std::vector<Node> args;
     std::shared_ptr<ProofNode> pf =
-        d_pnm->mkNode(PfRule::SCOPE, pfConc, assumps);
+        d_pnm->mkNode(PfRule::SCOPE, pfConc, assumps, args, formula);
     // should always succeed, since assumptions should be closed
     Assert(pf != nullptr);
     // should be a closed proof now
