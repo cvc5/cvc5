@@ -53,7 +53,8 @@ void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
       PfRule id = cur->getId();
       if (id == PfRule::ASSUME)
       {
-        Node f = cur->d_proven;
+        Assert (cur->d_args.size()==1);
+        Node f = cur->d_args[0];
         if (currentScope.find(f) == currentScope.end())
         {
           assump.push_back(f);
