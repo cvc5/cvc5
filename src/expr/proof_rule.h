@@ -40,10 +40,6 @@ namespace CVC4 {
  * (2) SCOPE, which closes the scope of assumptions.
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
- *
- * Rules with prefix MACRO_ are those that can be defined in terms of other
- * rules. These exist for convienience. We provide their definition in the line
- * "Macro:".
  */
 enum class PfRule : uint32_t
 {
