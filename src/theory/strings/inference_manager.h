@@ -35,6 +35,16 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/** A pending inference */
+struct PendingInfer
+{
+  PendingInfer(Inference i, Node fact, const std::vector<Node>& exp);
+  ~PendingInfer() {}
+  Inference d_infer;
+  Node d_fact;
+  std::vector<Node> d_exp;
+};
+  
 /** Inference Manager
  *
  * The purpose of this class is to process inference steps for strategies
