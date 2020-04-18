@@ -35,7 +35,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** 
+/**
  * A pending inference. This is a helper class to track a unprocessed call to
  * InferenceManager::sendInference that is waiting to be asserted as a fact to
  * the equality engine.
@@ -48,10 +48,13 @@ struct PendingInfer
   Inference d_infer;
   /** The conclusion */
   Node d_fact;
-  /** The explanation (a conjunction of literals that hold in the equality engine). */
+  /** 
+   * Its explanation. This is a conjunction of literals that hold in the
+   * equality engine in the current context. 
+   */
   Node d_exp;
 };
-  
+
 /** Inference Manager
  *
  * The purpose of this class is to process inference steps for strategies
@@ -325,7 +328,7 @@ class InferenceManager
   Node d_false;
   Node d_zero;
   Node d_one;
-  /** 
+  /**
    * The list of pending literals to assert to the equality engine along with
    * their explanation.
    */

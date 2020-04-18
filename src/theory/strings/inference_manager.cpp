@@ -219,11 +219,10 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                          << " by " << infer << std::endl;
   Trace("strings-assert") << "(assert (=> " << eqExp << " " << eq
                           << ")) ; infer " << infer << std::endl;
-  d_pending.push_back(PendingInfer(infer,eq,eqExp));
+  d_pending.push_back(PendingInfer(infer, eq, eqExp));
   d_keep.insert(eq);
   d_keep.insert(eq_exp);
 }
-
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
@@ -344,7 +343,6 @@ void InferenceManager::doPendingFacts()
     i++;
   }
   d_pending.clear();
-  d_pendingExp.clear();
 }
 
 void InferenceManager::doPendingLemmas()
