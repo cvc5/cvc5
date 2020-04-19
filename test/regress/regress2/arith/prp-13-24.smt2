@@ -1,3 +1,5 @@
+; COMMAND-LINE: --no-check-unsat-cores
+; EXPECT: unsat
 (set-logic QF_LIA)
 (set-option :ite-simp true)
 (set-option :simp-ite-compress true)
