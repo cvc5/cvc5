@@ -32,9 +32,10 @@ namespace theory {
 namespace strings {
 
 /**
- * This data structure encapsulates an inference for strings. This includes
- * the form of the inference, as well as the side effects it generates for the
- * core solver.
+ * This data structure encapsulates an inference for the core solver of the
+ * theory of strings. This includes the form of the inference to be processed
+ * by the inference manager, the side effects it generates for the core solver,
+ * and information used for heuristics and debugging.
  */
 class CoreInferInfo : public InferInfo
 {
