@@ -979,7 +979,10 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
     }
   }
   Trace("strings-solve") << "...choose #" << use_index << std::endl;
-  processInferInfo(pinfer[use_index]);
+  if (!processInferInfo(pinfer[use_index]))
+  {
+    Assert(false) << "Failed to process infer info " << pinfer[use_index] << std::endl;
+  }
 }
 
 void CoreSolver::processSimpleNEq(NormalForm& nfi,

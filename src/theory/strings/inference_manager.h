@@ -281,17 +281,6 @@ class InferenceManager
    * of atom, including calls to registerTerm.
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
-  /**
-   * Indicates that ant => conc should be sent on the output channel of this
-   * class. This will either trigger an immediate call to the conflict
-   * method of the output channel of this class of conc is false, or adds the
-   * above lemma to the lemma cache d_pending_lem, which may be flushed
-   * later within the current call to TheoryStrings::check.
-   *
-   * The argument infer identifies the reason for inference, used for
-   * debugging.
-   */
-  void sendLemma(const InferInfo& lem);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */

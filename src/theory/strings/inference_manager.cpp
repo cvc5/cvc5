@@ -152,8 +152,25 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
   // check if we should send a lemma or an inference
   if (!ii.isFact() || asLemma || options::stringInferAsLemmas())
   {
+    if (ii.isConflict())
+    {
+      Trace("strings-infer-debug") << "...as conflict" << std::endl;
+      Node conf = mkExplain(ii.d_ant);
+      Trace("strings-conflict")
+          << "Strings::Conflict : " << ii.d_id << " : " << conf << std::endl;
+      Trace("strings-lemma") << "Strings::Conflict : " << ii.d_id << " : " << conf
+                            << std::endl;
+      Trace("strings-assert")
+          << "(assert (not " << conf << ")) ; conflict " << ii.d_id << std::endl;
+      ++(d_statistics.d_conflictsInfer);
+      // only keep stats if we process it here
+      d_statistics.d_inferences << ii.d_id;
+      d_out.conflict(conf);
+      d_state.setConflict();
+      return;
+    }
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
-    sendLemma(ii);
+    d_pendingLem.push_back(ii);
     return;
   }
   if (options::stringInferSym())
@@ -203,29 +220,6 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
   // add to pending, to be processed as a fact
   d_pending.push_back(ii);
 }
-
-void InferenceManager::sendLemma(const InferInfo& ii)
-{
-  if (ii.isConflict())
-  {
-    Node conf = utils::mkAnd(ii.d_ant);
-    Trace("strings-conflict")
-        << "Strings::Conflict : " << ii.d_id << " : " << conf << std::endl;
-    Trace("strings-lemma") << "Strings::Conflict : " << ii.d_id << " : " << conf
-                           << std::endl;
-    Trace("strings-assert")
-        << "(assert (not " << conf << ")) ; conflict " << ii.d_id << std::endl;
-    ++(d_statistics.d_conflictsInfer);
-    // only keep stats if we process it here
-    d_statistics.d_inferences << ii.d_id;
-    d_out.conflict(conf);
-    d_state.setConflict();
-    return;
-  }
-  Trace("strings-lemma") << "Strings::Lemma " << ii << std::endl;
-  d_pendingLem.push_back(ii);
-}
-
 
 bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
 {
