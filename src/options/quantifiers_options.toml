@@ -642,15 +642,6 @@ header = "options/quantifiers_options.h"
   help       = "find models for recursively defined functions, assumes functions are admissible, allows empty type when function is irrelevant"
 
 [[option]]
-  name       = "fmfEmptySorts"
-  category   = "regular"
-  long       = "fmf-empty-sorts"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "allow finite model finding to assume sorts that do not occur in ground assertions are empty"
-
-[[option]]
   name       = "mbqiMode"
   category   = "regular"
   long       = "mbqi=MODE"
@@ -1982,3 +1973,14 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)"
+
+
+### SyGuS instantiation options
+
+[[option]]
+  name       = "sygusInst"
+  category   = "regular"
+  long       = "sygus-inst"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable SyGuS instantiation quantifiers module"

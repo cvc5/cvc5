@@ -1151,8 +1151,8 @@ bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& no
 
 Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
                                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff ) {
+  n = Rewriter::rewrite(n);
   computeProgVars( n );
-  Assert(n == Rewriter::rewrite(n));
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
   if( Trace.isOn("cegqi-si-apply-subs-debug") ){
     Trace("cegqi-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;

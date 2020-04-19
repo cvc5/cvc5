@@ -34,6 +34,8 @@ TheoryModel::TheoryModel(context::Context* c,
       d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
 {
+  // must use function models when ufHo is enabled
+  Assert(d_enableFuncModels || !options::ufHo());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -483,8 +485,10 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
             first = false;
           }
           else {
-            Trace("model-builder-assertions") << "(assert (= " << *eqc_i << " " << rep << "));" << endl;
-            d_equalityEngine->mergePredicates(*eqc_i, rep, Node::null());
+            Node eq = (*eqc_i).eqNode(rep);
+            Trace("model-builder-assertions")
+                << "(assert " << eq << ");" << std::endl;
+            d_equalityEngine->assertEquality(eq, true, Node::null());
             if (!d_equalityEngine->consistent())
             {
               return false;

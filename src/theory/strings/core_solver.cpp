@@ -30,10 +30,13 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-CoreSolver::CoreSolver(context::Context* c, context::UserContext* u, SolverState& s, InferenceManager& im, SkolemCache& skc, BaseSolver& bs) :
-d_state(s), d_im(im), d_skCache(skc),
-d_bsolver(bs),
-d_nf_pairs(c)
+CoreSolver::CoreSolver(context::Context* c,
+                       context::UserContext* u,
+                       SolverState& s,
+                       InferenceManager& im,
+                       TermRegistry& tr,
+                       BaseSolver& bs)
+    : d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs), d_nf_pairs(c)
 {
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -987,7 +990,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
                                   TypeNode stype)
 {
   NodeManager* nm = NodeManager::currentNM();
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   Node emp = Word::mkEmptyWord(stype);
 
   const std::vector<Node>& nfiv = nfi.d_nf;
@@ -1238,7 +1240,9 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Node nc = nfncv[index];
       Assert(!nc.isConst()) << "Other string is not constant.";
       Assert(nc.getKind() != STRING_CONCAT) << "Other string is not CONCAT.";
-      if (!ee->areDisequal(nc, emp, true))
+      // explanation for why nc is non-empty
+      Node expNonEmpty = d_state.explainNonEmpty(nc);
+      if (expNonEmpty.isNull())
       {
         // The non-constant side may be equal to the empty string. Split on
         // whether it is.
@@ -1251,7 +1255,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           // If the equality rewrites to a constant, we must use the
           // purify variable for this string to communicate that
           // we have inferred whether it is empty.
-          Node p = d_skCache.mkSkolemCached(nc, SkolemCache::SK_PURIFY, "lsym");
+          SkolemCache* skc = d_termReg.getSkolemCache();
+          Node p = skc->mkSkolemCached(nc, SkolemCache::SK_PURIFY, "lsym");
           Node pEq = p.eqNode(emp);
           // should not be constant
           Assert(!Rewriter::rewrite(pEq).isConst());
@@ -1273,8 +1278,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
       // At this point, we know that `nc` is non-empty, so we add that to our
       // explanation.
-      Node ncnz = nc.eqNode(emp).negate();
-      info.d_ant.push_back(ncnz);
+      info.d_ant.push_back(expNonEmpty);
 
       size_t ncIndex = index + 1;
       Node nextConstStr = nfnc.collectConstantStringAt(ncIndex);
@@ -1326,7 +1330,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           Node prea = p == straLen ? stra
                                    : (isRev ? Word::suffix(stra, p)
                                             : Word::prefix(stra, p));
-          Node sk = d_skCache.mkSkolemCached(
+          SkolemCache* skc = d_termReg.getSkolemCache();
+          Node sk = skc->mkSkolemCached(
               nc,
               prea,
               isRev ? SkolemCache::SK_ID_C_SPT_REV : SkolemCache::SK_ID_C_SPT,
@@ -1352,7 +1357,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Node firstChar = straLen == 1 ? stra
                                     : (isRev ? Word::suffix(stra, 1)
                                              : Word::prefix(stra, 1));
-      Node sk = d_skCache.mkSkolemCached(
+      SkolemCache* skc = d_termReg.getSkolemCache();
+      Node sk = skc->mkSkolemCached(
           nc,
           isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
           "c_spt");
@@ -1414,17 +1420,19 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     for (unsigned xory = 0; xory < 2; xory++)
     {
       Node t = xory == 0 ? x : y;
-      Node tnz = x.eqNode(emp).negate();
-      if (ee->areDisequal(x, emp, true))
+      Node tnz = d_state.explainNonEmpty(x);
+      if (!tnz.isNull())
       {
         info.d_ant.push_back(tnz);
       }
       else
       {
+        tnz = x.eqNode(emp).negate();
         info.d_antn.push_back(tnz);
       }
     }
-    Node sk = d_skCache.mkSkolemCached(
+    SkolemCache* skc = d_termReg.getSkolemCache();
+    Node sk = skc->mkSkolemCached(
         x,
         y,
         isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
@@ -1566,7 +1574,8 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     // the equality could rewrite to false
     if (!split_eqr.isConst())
     {
-      if (!d_state.areDisequal(t, emp))
+      Node expNonEmpty = d_state.explainNonEmpty(t);
+      if (expNonEmpty.isNull())
       {
         // try to make t equal to empty to avoid loop
         info.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
@@ -1575,7 +1584,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
       }
       else
       {
-        info.d_ant.push_back(split_eq.negate());
+        info.d_ant.push_back(expNonEmpty);
       }
     }
     else
@@ -1662,10 +1671,11 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     Trace("strings-loop") << "Strings::Loop: Normal Loop Breaking."
                           << std::endl;
     // right
-    Node sk_w = d_skCache.mkSkolem("w_loop");
-    Node sk_y = d_skCache.mkSkolem("y_loop");
-    d_im.registerTermAtomic(sk_y, LENGTH_GEQ_ONE);
-    Node sk_z = d_skCache.mkSkolem("z_loop");
+    SkolemCache* skc = d_termReg.getSkolemCache();
+    Node sk_w = skc->mkSkolem("w_loop");
+    Node sk_y = skc->mkSkolem("y_loop");
+    d_termReg.registerTermAtomic(sk_y, LENGTH_GEQ_ONE);
+    Node sk_z = skc->mkSkolem("z_loop");
     // t1 * ... * tn = y * z
     Node conc1 = t_yz.eqNode(utils::mkNConcat(sk_y, sk_z));
     // s1 * ... * sk = z * y * r
@@ -1701,7 +1711,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
   NodeManager* nm = NodeManager::currentNM();
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
 
   if (nfni.d_nf.size() <= 1 && nfnj.d_nf.size() <= 1)
   {
@@ -1782,8 +1791,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
         Node ck = x.isConst() ? x : y;
         Node nck = x.isConst() ? y : x;
         Node nckLenTerm = x.isConst() ? yLenTerm : xLenTerm;
-        Node emp = Word::mkEmptyWord(nck.getType());
-        if (!ee->areDisequal(nck, emp, true))
+        Node expNonEmpty = d_state.explainNonEmpty(nck);
+        if (expNonEmpty.isNull())
         {
           // Either `x` or `y` is a constant and the other may be equal to the
           // empty string in the current context. We split on whether it
@@ -1791,6 +1800,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
           //
           // E.g. x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != len(y) --->
           //      x = "" v x != ""
+          Node emp = Word::mkEmptyWord(nck.getType());
           d_im.sendSplit(nck, emp, Inference::DEQ_DISL_EMP_SPLIT);
           return;
         }
@@ -1836,10 +1846,11 @@ void CoreSolver::processDeq(Node ni, Node nj)
           //
           // E.g. x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != "" --->
           //      x = k1 ++ k2 ^ len(k1) = 1 ^ (k1 != "a" v x = "a" ++  k2)
-          Node sk = d_skCache.mkSkolemCached(
-              nck, SkolemCache::SK_ID_DC_SPT, "dc_spt");
-          d_im.registerTermAtomic(sk, LENGTH_ONE);
-          Node skr = d_skCache.mkSkolemCached(
+          SkolemCache* skc = d_termReg.getSkolemCache();
+          Node sk =
+              skc->mkSkolemCached(nck, SkolemCache::SK_ID_DC_SPT, "dc_spt");
+          d_termReg.registerTermAtomic(sk, LENGTH_ONE);
+          Node skr = skc->mkSkolemCached(
               nck, SkolemCache::SK_ID_DC_SPT_REM, "dc_spt_rem");
           Node eq1 = nck.eqNode(nm->mkNode(kind::STRING_CONCAT, sk, skr));
           eq1 = Rewriter::rewrite(eq1);
@@ -1847,7 +1858,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
               nck.eqNode(nm->mkNode(kind::STRING_CONCAT, firstChar, skr));
           std::vector<Node> antec(nfni.d_exp.begin(), nfni.d_exp.end());
           antec.insert(antec.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
-          antec.push_back(nck.eqNode(emp).negate());
+          antec.push_back(expNonEmpty);
           d_im.sendInference(
               antec,
               nm->mkNode(
@@ -1882,13 +1893,14 @@ void CoreSolver::processDeq(Node ni, Node nj)
         antecNewLits.push_back(xLenTerm.eqNode(yLenTerm).negate());
 
         std::vector<Node> conc;
-        Node sk1 = d_skCache.mkSkolemCached(
-            x, y, SkolemCache::SK_ID_DEQ_X, "x_dsplit");
-        Node sk2 = d_skCache.mkSkolemCached(
-            x, y, SkolemCache::SK_ID_DEQ_Y, "y_dsplit");
-        Node sk3 = d_skCache.mkSkolemCached(
-            x, y, SkolemCache::SK_ID_DEQ_Z, "z_dsplit");
-        d_im.registerTermAtomic(sk3, LENGTH_GEQ_ONE);
+        SkolemCache* skc = d_termReg.getSkolemCache();
+        Node sk1 =
+            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_DEQ_X, "x_dsplit");
+        Node sk2 =
+            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_DEQ_Y, "y_dsplit");
+        Node sk3 =
+            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_DEQ_Z, "z_dsplit");
+        d_termReg.registerTermAtomic(sk3, LENGTH_GEQ_ONE);
         Node sk1Len = utils::mkNLength(sk1);
         conc.push_back(sk1Len.eqNode(xLenTerm));
         Node sk2Len = utils::mkNLength(sk2);
@@ -2292,7 +2304,7 @@ void CoreSolver::doInferInfo(const InferInfo& ii)
   {
     for (const Node& n : sks.second)
     {
-      d_im.registerTermAtomic(n, sks.first);
+      d_termReg.registerTermAtomic(n, sks.first);
     }
   }
 }

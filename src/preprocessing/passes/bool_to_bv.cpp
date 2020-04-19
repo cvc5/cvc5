@@ -37,8 +37,7 @@ BoolToBV::BoolToBV(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BoolToBV::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager::currentResourceManager()->spendResource(
-      ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   size_t size = assertionsToPreprocess->size();
 
