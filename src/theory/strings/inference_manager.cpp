@@ -56,10 +56,10 @@ InferenceManager::InferenceManager(context::Context* c,
 
 void InferenceManager::sendAssumption(TNode lit)
 {
-  bool polarity = lit.getKind() != kind::NOT;
-  TNode atom = polarity ? lit : lit[0];
-  // assert pending fact
-  assertPendingFact(atom, polarity, lit);
+  // assert it to the equality engine as an assumption
+  d_pfee.assertAssume(lit);
+  // process the fact
+  processFact(lit);
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
@@ -318,18 +318,27 @@ void InferenceManager::doPendingFacts()
   size_t i = 0;
   while (!d_state.isInConflict() && i < d_pending.size())
   {
-    Node fact = d_pending[i].d_fact;
-    Node exp = d_pending[i].d_exp;
+    PendingInfer& pi = d_pending[i];
+    Inference inf = pi.d_infer;
+    Node fact = pi.d_fact;
+    Node exp = pi.d_exp;
     Assert(fact.getKind() != AND);
-    bool polarity = fact.getKind() != NOT;
-    TNode atom = polarity ? fact : fact[0];
-    assertPendingFact(atom, polarity, exp);
-    // Must reference count the equality and its explanation, which is not done
-    // by the equality engine. Notice that we do not need to do this for
-    // external assertions, which enter as facts through sendAssumption.
-    d_keep.insert(fact);
-    d_keep.insert(exp);
-    i++;
+    // convert to proof rule 
+    std::vector<Node> pfChildren;
+    std::vector<Node> pfArgs;
+    PfRule id = d_ipc.convert(fact, inf, exp, pfChildren, pfArgs);
+    // assert to equality engine
+    d_pfee.assertFact(fact, id, pfChildren, pfArgs);
+    if (!d_state.isInConflict())
+    {
+      processFact(fact);
+      // Must reference count the equality and its explanation, which is not done
+      // by the equality engine. Notice that we do not need to do this for
+      // external assertions, which enter as facts through sendAssumption.
+      d_keep.insert(fact);
+      d_keep.insert(exp);
+      i++;
+    }
   }
   d_pending.clear();
 }
@@ -356,16 +365,15 @@ void InferenceManager::doPendingLemmas()
   d_pendingReqPhase.clear();
 }
 
-void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
+void InferenceManager::processFact(Node fact)
 {
+  bool polarity = fact.getKind() != NOT;
+  TNode atom = polarity ? fact : fact[0];
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  Trace("strings-pending") << "Assert pending fact : " << atom << " "
-                           << polarity << " from " << exp << std::endl;
   Assert(atom.getKind() != OR) << "Infer error: a split.";
   if (atom.getKind() == EQUAL)
   {
     // we must ensure these terms are registered
-    Trace("strings-pending-debug") << "  Register term" << std::endl;
     for (const Node& t : atom)
     {
       // terms in the equality engine are already registered, hence skip
@@ -376,20 +384,13 @@ void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
         d_termReg.registerTerm(t, 0);
       }
     }
-    Trace("strings-pending-debug") << "  Now assert equality" << std::endl;
-    ee->assertEquality(atom, polarity, exp);
-    Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
   }
-  else
+  else if (atom.getKind() == STRING_IN_REGEXP)
   {
-    ee->assertPredicate(atom, polarity, exp);
-    if (atom.getKind() == STRING_IN_REGEXP)
+    if (polarity && atom[1].getKind() == REGEXP_CONCAT)
     {
-      if (polarity && atom[1].getKind() == REGEXP_CONCAT)
-      {
-        Node eqc = ee->getRepresentative(atom[0]);
-        d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
-      }
+      Node eqc = ee->getRepresentative(atom[0]);
+      d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
     }
   }
   // process the conflict

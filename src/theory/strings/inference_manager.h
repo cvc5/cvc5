@@ -302,13 +302,10 @@ class InferenceManager
  private:
   /** assert pending fact
    *
-   * This asserts atom with polarity to the equality engine of this class,
-   * where exp is the explanation of why (~) atom holds.
-   *
-   * This call may trigger further initialization steps involving the terms
-   * of atom, including calls to registerTerm.
+   * This is called immediately after the given fact is asserted to the
+   * equality engine.
    */
-  void assertPendingFact(Node atom, bool polarity, Node exp);
+  void processFact(Node fact);
   /**
    * Indicates that ant => conc should be sent on the output channel of this
    * class. This will either trigger an immediate call to the conflict

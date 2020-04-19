@@ -16,6 +16,8 @@
 
 #include "theory/strings/theory_strings_utils.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 namespace theory {
 namespace strings {
@@ -35,6 +37,19 @@ PfRule InferProofCons::convert(Node eq,
   return PfRule::UNKNOWN;
 }
 
+PfRule InferProofCons::convert(Node eq,
+                Inference infer,
+                Node expConj,
+                std::vector<Node>& pfChildren,
+                std::vector<Node>& pfArgs)
+{
+  std::vector<Node> exp;
+  utils::flattenOp(AND, expConj, exp);
+  // no new literals
+  std::vector<Node> expn;
+  return convert(eq, infer, exp, expn, pfChildren, pfArgs);
+}
+  
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4
