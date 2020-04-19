@@ -217,9 +217,10 @@ class CoreSolver
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
    * the inference manager to process the inference, and updates the set of
-   * normal form pairs.
+   * normal form pairs. Returns true if the conclusion of ii was not true
+   * after rewriting, in which case this method does nothing.
    */
-  void processInferInfo(const CoreInferInfo& ii);
+  bool processInferInfo(const CoreInferInfo& ii);
   /** Add that (n1,n2) is a normal form pair in the current context. */
   void addNormalFormPair(Node n1, Node n2);
   /** Is (n1,n2) a normal form pair in the current context? */

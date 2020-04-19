@@ -2289,8 +2289,15 @@ void CoreSolver::checkLengthsEqc() {
   }
 }
 
-void CoreSolver::processInferInfo(const CoreInferInfo& ii)
+bool CoreSolver::processInferInfo(const CoreInferInfo& ii)
 {
+  // rewrite the conclusion, ensure non-trivial
+  ii.d_conc = Rewriter::rewrite(ii.d_conc);
+  if (ii.isTrivial())
+  {
+    // rewrote to true
+    return false;
+  }
   // process the state change to this solver
   if (!ii.d_nf_pair[0].isNull())
   {
@@ -2299,8 +2306,8 @@ void CoreSolver::processInferInfo(const CoreInferInfo& ii)
   }
   // send the inference, which is a lemma
   d_im.sendInference(ii, true);
+  return true;
 }
-
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
