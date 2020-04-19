@@ -2296,14 +2296,11 @@ bool CoreSolver::processInferInfo(CoreInferInfo& ii)
   // rewrite the conclusion, ensure non-trivial
   ii.d_conc = Rewriter::rewrite(ii.d_conc);
   
-  //FIXME
-  /*
   if (ii.isTrivial())
   {
     // rewrote to true
     return false;
   }
-  */
   // process the state change to this solver
   if (!ii.d_nf_pair[0].isNull())
   {
@@ -2312,16 +2309,6 @@ bool CoreSolver::processInferInfo(CoreInferInfo& ii)
   }
   // send the inference, which is a lemma
   d_im.sendInference(ii, true);
-  
-  // FIXME
-  for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
-        ii.d_new_skolem)
-  {
-    for (const Node& n : sks.second)
-    {
-      d_termReg.registerTermAtomic(n, sks.first);
-    }
-  }
   
   return true;
 }

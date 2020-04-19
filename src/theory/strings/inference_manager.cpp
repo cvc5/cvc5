@@ -234,12 +234,10 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   InferInfo iiSplit;
   iiSplit.d_id = infer;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  // FIXME
-  //iiSplit.d_pending_phase[eq] = preq;
+  iiSplit.d_pending_phase[eq] = preq;
   Trace("strings-lemma") << "Strings::Lemma " << infer
                          << " SPLIT : " << iiSplit.d_conc << std::endl;
   d_pendingLem.push_back(iiSplit);
-  sendPhaseRequirement(eq,preq);
   return true;
 }
 
@@ -314,29 +312,6 @@ void InferenceManager::doPendingLemmas()
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  /*  FIXME
-  for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
-  {
-    InferInfo& ii = d_pendingLem[i];
-    // Process the side effects of the inference info.
-    // [1] Register the new skolems from this inference. We register them here
-    // (lazily), since this is the moment when we have decided to use the
-    // inference at use_index that involves them.
-    for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
-         ii.d_new_skolem)
-    {
-      for (const Node& n : sks.second)
-      {
-        d_termReg.registerTermAtomic(n, sks.first);
-      }
-    }
-    // [2] process the associated pending phase, add to map to process below
-    for (const std::pair<const Node, bool> pp : ii.d_pending_phase)
-    {
-      sendPhaseRequirement(pp.first, pp.second);
-    }
-  }
-  */
   for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
   {
     InferInfo& ii = d_pendingLem[i];
@@ -368,6 +343,24 @@ void InferenceManager::doPendingLemmas()
     d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
     d_out.lemma(lem);
+
+    // Process the side effects of the inference info.
+    // [1] Register the new skolems from this inference. We register them here
+    // (lazily), since this is the moment when we have decided to use the
+    // inference at use_index that involves them.
+    for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
+         ii.d_new_skolem)
+    {
+      for (const Node& n : sks.second)
+      {
+        d_termReg.registerTermAtomic(n, sks.first);
+      }
+    }
+    // [2] process the associated pending phase, add to map to process below
+    for (const std::pair<const Node, bool> pp : ii.d_pending_phase)
+    {
+      sendPhaseRequirement(pp.first, pp.second);
+    }
   }
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
