@@ -2289,7 +2289,7 @@ void CoreSolver::checkLengthsEqc() {
   }
 }
 
-bool CoreSolver::processInferInfo(const CoreInferInfo& ii)
+bool CoreSolver::processInferInfo(CoreInferInfo& ii)
 {
   // rewrite the conclusion, ensure non-trivial
   ii.d_conc = Rewriter::rewrite(ii.d_conc);

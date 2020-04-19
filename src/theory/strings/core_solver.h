@@ -220,7 +220,7 @@ class CoreSolver
    * normal form pairs. Returns true if the conclusion of ii was not true
    * after rewriting, in which case this method does nothing.
    */
-  bool processInferInfo(const CoreInferInfo& ii);
+  bool processInferInfo(CoreInferInfo& ii);
   /** Add that (n1,n2) is a normal form pair in the current context. */
   void addNormalFormPair(Node n1, Node n2);
   /** Is (n1,n2) a normal form pair in the current context? */

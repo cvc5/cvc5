@@ -285,7 +285,7 @@ void InferenceManager::doPendingFacts()
     // with no new external assumptions (ii.d_antn).
     Assert(ii.isFact());
     Node fact = ii.d_conc;
-    Node exp = utils::mkAnd(d_pending[i].d_ant);
+    Node exp = utils::mkAnd(ii.d_ant);
     bool polarity = fact.getKind() != NOT;
     TNode atom = polarity ? fact : fact[0];
     Trace("strings-assert") << "(assert (=> " << exp << " " << fact << ")) ; fact " << ii.d_id
