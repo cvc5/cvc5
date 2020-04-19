@@ -162,8 +162,7 @@ class InferenceManager
    * This implements the above methods for the InferInfo object. It is called
    * by the methods above.
    */
-  void sendInference(const InferInfo& i,
-                     bool asLemma = false);
+  void sendInference(const InferInfo& i, bool asLemma = false);
   /** Send split
    *
    * This requests that ( a = b V a != b ) is sent on the output channel as a

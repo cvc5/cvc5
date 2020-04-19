@@ -123,7 +123,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      bool asLemma)
 {
   eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
-  if (eq==d_true)
+  if (eq == d_true)
   {
     return;
   }
@@ -133,7 +133,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   ii.d_conc = eq;
   ii.d_ant = exp;
   ii.d_antn = expn;
-  sendInference(ii,asLemma);
+  sendInference(ii, asLemma);
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
@@ -145,10 +145,9 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   sendInference(exp, expn, eq, infer, asLemma);
 }
 
-void InferenceManager::sendInference(const InferInfo& ii,
-                     bool asLemma)
+void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
 {
-  Assert (!ii.isTrivial());
+  Assert(!ii.isTrivial());
   Trace("strings-infer-debug") << "Strings::Infer: " << ii << std::endl;
   // check if we should send a lemma or an inference
   if (!ii.isFact() || asLemma || options::stringInferAsLemmas())
@@ -168,8 +167,8 @@ void InferenceManager::sendInference(const InferInfo& ii,
     }
     if (unproc.empty())
     {
-      Node eqs =
-          ii.d_conc.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      Node eqs = ii.d_conc.substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
       InferInfo iiSubsLem;
       // keep the same id for now, since we are transforming the form of the
       // inference, not the root reason.
@@ -177,7 +176,8 @@ void InferenceManager::sendInference(const InferInfo& ii,
       iiSubsLem.d_conc = eqs;
       if (Trace.isOn("strings-lemma-debug"))
       {
-        Trace("strings-lemma-debug") << "Strings::Infer " << iiSubsLem << std::endl;
+        Trace("strings-lemma-debug")
+            << "Strings::Infer " << iiSubsLem << std::endl;
         Trace("strings-lemma-debug")
             << "Strings::Infer Alternate : " << eqs << std::endl;
         for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
@@ -289,8 +289,8 @@ void InferenceManager::doPendingFacts()
     Node exp = utils::mkAnd(ii.d_ant);
     bool polarity = fact.getKind() != NOT;
     TNode atom = polarity ? fact : fact[0];
-    Trace("strings-assert") << "(assert (=> " << exp << " " << fact << ")) ; fact " << ii.d_id
-                            << std::endl;
+    Trace("strings-assert") << "(assert (=> " << exp << " " << fact
+                            << ")) ; fact " << ii.d_id << std::endl;
     // only keep stats if we process it here
     d_statistics.d_inferences << ii.d_id;
     assertPendingFact(atom, polarity, exp);
@@ -310,12 +310,12 @@ void InferenceManager::doPendingLemmas()
   {
     return;
   }
-  NodeManager * nm = NodeManager::currentNM();
-  for (unsigned i=0, psize = d_pendingLem.size(); i<psize; i++)
+  NodeManager* nm = NodeManager::currentNM();
+  for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
   {
     InferInfo& ii = d_pendingLem[i];
-    Assert (!ii.isTrivial());
-    Assert (!ii.isConflict());
+    Assert(!ii.isTrivial());
+    Assert(!ii.isConflict());
     // get the explanation
     Node eqExp;
     if (options::stringRExplainLemmas())
@@ -336,8 +336,8 @@ void InferenceManager::doPendingLemmas()
       lem = nm->mkNode(IMPLIES, eqExp, lem);
     }
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
-    Trace("strings-assert") << "(assert " << lem << ") ; lemma " << ii.d_id
-                            << std::endl;
+    Trace("strings-assert")
+        << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
     // only keep stats if we process it here
     d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
@@ -347,7 +347,7 @@ void InferenceManager::doPendingLemmas()
     // (lazily), since this is the moment when we have decided to use the
     // inference at use_index that involves them.
     for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
-        ii.d_new_skolem)
+         ii.d_new_skolem)
     {
       for (const Node& n : sks.second)
       {
@@ -364,7 +364,7 @@ void InferenceManager::doPendingLemmas()
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
   {
     Trace("strings-pending") << "Require phase : " << prp.first
-                              << ", polarity = " << prp.second << std::endl;
+                             << ", polarity = " << prp.second << std::endl;
     d_out.requirePhase(prp.first, prp.second);
   }
   d_pendingLem.clear();

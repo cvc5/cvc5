@@ -41,7 +41,7 @@ class CoreInferInfo : public InferInfo
 {
  public:
   CoreInferInfo();
-  ~CoreInferInfo(){}
+  ~CoreInferInfo() {}
   /**
    * The index in the normal forms under which this inference is addressing.
    * For example, if the inference is inferring x = y from |x|=|y| and

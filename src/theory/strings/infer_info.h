@@ -334,7 +334,7 @@ enum LengthStatus
  */
 class InferInfo
 {
-public:
+ public:
   InferInfo();
   ~InferInfo() {}
   /** The inference identifier */
@@ -364,12 +364,12 @@ public:
   std::map<Node, bool> d_pending_phase;
   /**  Is this infer info trivial? True if d_conc is true. */
   bool isTrivial() const;
-  /** 
+  /**
    * Does this infer info correspond to a conflict? True if d_conc is false
    * and it has no new antecedants (d_antn).
    */
   bool isConflict() const;
-  /** 
+  /**
    * Does this infer info correspond to a "fact". A fact is an inference whose
    * conclusion should be added as an equality or predicate to the equality
    * engine with no new external antecedants (d_antn).

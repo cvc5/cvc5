@@ -967,10 +967,8 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
   {
     CoreInferInfo& ipii = pinfer[i];
     Trace("strings-solve") << "#" << i << ": From " << ipii.d_i << " / "
-                           << ipii.d_j << " (rev=" << ipii.d_rev
-                           << ") : ";
-    Trace("strings-solve") << ipii.d_conc << " by " << ipii.d_id
-                           << std::endl;
+                           << ipii.d_j << " (rev=" << ipii.d_rev << ") : ";
+    Trace("strings-solve") << ipii.d_conc << " by " << ipii.d_id << std::endl;
     if (!set_use_index || ipii.d_id < min_id
         || (ipii.d_id == min_id && ipii.d_index > max_index))
     {
@@ -1343,7 +1341,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
               << "Const Split: " << prea << " is removed from " << stra
               << " due to " << strb << ", p=" << p << std::endl;
           info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, prea)
-                                         : utils::mkNConcat(prea, sk));
+                                        : utils::mkNConcat(prea, sk));
           info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
           info.d_id = Inference::SSPLIT_CST_PROP;
           pinfer.push_back(info);
