@@ -56,7 +56,7 @@ class InferProofCons
   /** Same as above with conjunction for exp */
   PfRule convert(Node eq,
                  Inference infer,
-                 Node exp,
+                 Node expConj,
                  std::vector<Node>& pfChildren,
                  std::vector<Node>& pfArgs);
 

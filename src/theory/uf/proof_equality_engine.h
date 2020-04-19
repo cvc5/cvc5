@@ -61,7 +61,7 @@ class ProofEqEngine : public EagerProofGenerator
                 bool pfEnabled = true);
   ~ProofEqEngine() {}
   /** Assert predicate lit by assumption */
-  bool assertAssume(Node lit);
+  bool assertAssume(TNode lit);
   /**
    * Assert the predicate lit by proof step id, given explanation exp and
    * arguments args.
@@ -146,7 +146,7 @@ class ProofEqEngine : public EagerProofGenerator
    */
   std::shared_ptr<ProofNode> mkProofForFact(Node lit) const;
   /** Assert internal */
-  void assertInternal(Node pred, bool polarity, TNode reason);
+  void assertInternal(TNode pred, bool polarity, TNode reason);
   /** ensure proof for fact */
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,

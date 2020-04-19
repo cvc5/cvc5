@@ -20,8 +20,6 @@
 #include <string>
 
 #include "expr/node.h"
-#include "expr/node_manager.h"
-#include "expr/type_node.h"
 
 namespace CVC4 {
 
@@ -30,6 +28,11 @@ namespace CVC4 {
  * trusted interface to NodeManager::mkSkolem, where one
  * must provide a definition for the skolem they create in terms of a
  * predicate that the introduced variable is intended to witness.
+ * 
+ * It is implemented by mapping terms to an attribute corresponding to their
+ * "witness form" as described below. Hence, this class does not impact the
+ * reference counting of skolem variables which may be deleted if they are not
+ * used.
  */
 class ProofSkolemCache
 {
@@ -69,7 +72,7 @@ class ProofSkolemCache
    *                                   (not (= (select a x) (select b x)))))))
    *     (=> (not (= a b)) (not (= (select a w) (select b w)))))
    * This version of the lemma, which requires no explicit tracking of free
-   * Skolem variables, can be obtained by a call to convertToWitnessForm(...)
+   * Skolem variables, can be obtained by a call to getWitnessForm(...)
    * below. We call this the "witness form" of the lemma above.
    *
    * @param v The bound variable of the same type of the Skolem to create.
@@ -90,14 +93,7 @@ class ProofSkolemCache
    * @param n The term or formula to convert to witness form described above
    * @return n in witness form.
    */
-  Node convertToWitnessForm(Node n) const;
-
- private:
-  /** Map from skolem witness terms */
-  std::map<Node, Node> d_witness;
-  /** The substitution to convert to witness term form */
-  std::vector<Node> d_witnessVar;
-  std::vector<Node> d_witnessTerm;
+  Node getWitnessForm(Node n) const;
 };
 
 }  // namespace CVC4

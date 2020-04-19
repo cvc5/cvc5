@@ -305,7 +305,8 @@ class InferenceManager
    * This is called immediately after the given fact is asserted to the
    * equality engine.
    */
-  void processFact(Node fact);
+  void preProcessFact(TNode fact);
+  void postProcessFact(TNode fact);
   /**
    * Indicates that ant => conc should be sent on the output channel of this
    * class. This will either trigger an immediate call to the conflict

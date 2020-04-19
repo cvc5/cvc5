@@ -72,7 +72,7 @@ bool EagerProofGenerator::canProveConflict(Node conf)
 
 bool EagerProofGenerator::canProveLemma(Node lem)
 {
-  Node lkey = ProofOutputChannel::getConflictKeyValue(lem);
+  Node lkey = ProofOutputChannel::getLemmaKeyValue(lem);
   return d_proofs.find(lkey) != d_proofs.end();
 }
 

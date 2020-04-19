@@ -56,10 +56,11 @@ InferenceManager::InferenceManager(context::Context* c,
 
 void InferenceManager::sendAssumption(TNode lit)
 {
+  preProcessFact(lit);
   // assert it to the equality engine as an assumption
   d_pfee.assertAssume(lit);
   // process the fact
-  processFact(lit);
+  postProcessFact(lit);
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
@@ -327,11 +328,12 @@ void InferenceManager::doPendingFacts()
     std::vector<Node> pfChildren;
     std::vector<Node> pfArgs;
     PfRule id = d_ipc.convert(fact, inf, exp, pfChildren, pfArgs);
+    preProcessFact(fact);
     // assert to equality engine
     d_pfee.assertFact(fact, id, pfChildren, pfArgs);
     if (!d_state.isInConflict())
     {
-      processFact(fact);
+      postProcessFact(fact);
       // Must reference count the equality and its explanation, which is not
       // done by the equality engine. Notice that we do not need to do this for
       // external assertions, which enter as facts through sendAssumption.
@@ -365,7 +367,7 @@ void InferenceManager::doPendingLemmas()
   d_pendingReqPhase.clear();
 }
 
-void InferenceManager::processFact(Node fact)
+void InferenceManager::preProcessFact(TNode fact)
 {
   bool polarity = fact.getKind() != NOT;
   TNode atom = polarity ? fact : fact[0];
@@ -385,13 +387,16 @@ void InferenceManager::processFact(Node fact)
       }
     }
   }
-  else if (atom.getKind() == STRING_IN_REGEXP)
+}
+void InferenceManager::postProcessFact(TNode fact)
+{  
+  bool polarity = fact.getKind() != NOT;
+  TNode atom = polarity ? fact : fact[0];
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
+  if (atom.getKind() == STRING_IN_REGEXP && polarity && atom[1].getKind() == REGEXP_CONCAT)
   {
-    if (polarity && atom[1].getKind() == REGEXP_CONCAT)
-    {
-      Node eqc = ee->getRepresentative(atom[0]);
-      d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
-    }
+    Node eqc = ee->getRepresentative(atom[0]);
+    d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
   }
   // process the conflict
   if (!d_state.isInConflict())

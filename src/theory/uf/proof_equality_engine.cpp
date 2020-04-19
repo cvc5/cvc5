@@ -40,9 +40,9 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
   d_false = nm->mkConst(false);
 }
 
-bool ProofEqEngine::assertAssume(Node lit)
+bool ProofEqEngine::assertAssume(TNode lit)
 {
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  TNode atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
 
   if (d_pfEnabled)
@@ -285,7 +285,7 @@ std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
   return p->clone();
 }
 
-void ProofEqEngine::assertInternal(Node atom, bool polarity, TNode reason)
+void ProofEqEngine::assertInternal(TNode atom, bool polarity, TNode reason)
 {
   Trace("pfee-debug") << "ProofEqEngine::assertInternal: " << atom << " "
                       << polarity << " " << reason << std::endl;
