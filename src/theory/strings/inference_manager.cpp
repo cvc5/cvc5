@@ -150,7 +150,7 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
   Assert(!ii.isTrivial());
   Trace("strings-infer-debug") << "Strings::Infer: " << ii << std::endl;
   // check if we should send a lemma or an inference
-  if (!ii.isFact() || asLemma || options::stringInferAsLemmas())
+  if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
   {
     if (ii.isConflict())
     {
