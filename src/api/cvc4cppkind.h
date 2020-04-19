@@ -137,7 +137,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * The syntax of a witness term is similar to a quantified formula except that
    * only one bound variable is allowed.
    * The term (witness ((x T)) (F x)) returns an element x of type T
-   * and asserts (F x).  
+   * and asserts (F x).
    *
    * The witness operator behaves like the description operator
    * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is no x
