@@ -148,19 +148,18 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
 void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
 {
   Assert(!ii.isTrivial());
-  Trace("strings-infer-debug") << "Strings::Infer: " << ii << ", asLemma = " << asLemma << std::endl;
+  Trace("strings-infer-debug") << "sendInference: " << ii << ", asLemma = " << asLemma << std::endl;
   // check if we should send a conflict, lemma or a fact
   if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
   {
     if (ii.isConflict())
     {
       Trace("strings-infer-debug") << "...as conflict" << std::endl;
+      Trace("strings-lemma")
+          << "Strings::Conflict: " << ii.d_ant << " by " << ii.d_id << std::endl;
+    Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant << " by " << ii.d_id << std::endl;
       // we must fully explain it
       Node conf = mkExplain(ii.d_ant);
-      Trace("strings-conflict")
-          << "Strings::Conflict : " << ii.d_id << " : " << conf << std::endl;
-      Trace("strings-lemma")
-          << "Strings::Conflict : " << ii.d_id << " : " << conf << std::endl;
       Trace("strings-assert") << "(assert (not " << conf << ")) ; conflict "
                               << ii.d_id << std::endl;
       ++(d_statistics.d_conflictsInfer);
@@ -235,8 +234,6 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   iiSplit.d_id = infer;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
   iiSplit.d_pending_phase[eq] = preq;
-  Trace("strings-lemma") << "Strings::Lemma " << infer
-                         << " SPLIT : " << iiSplit.d_conc << std::endl;
   d_pendingLem.push_back(iiSplit);
   return true;
 }
@@ -285,6 +282,7 @@ void InferenceManager::doPendingFacts()
     Trace("strings-assert") << "(assert (=> " << exp << " " << fact
                             << ")) ; fact " << ii.d_id << std::endl;
     // only keep stats if we process it here
+    Trace("strings-lemma") << "Strings::Fact: " << fact << " from " << exp << " by " << ii.d_id << std::endl;
     d_statistics.d_inferences << ii.d_id;
     // assert it as a pending fact
     bool polarity = fact.getKind() != NOT;
@@ -339,6 +337,7 @@ void InferenceManager::doPendingLemmas()
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
     Trace("strings-assert")
         << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
+    Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id << std::endl;
     // only keep stats if we process it here
     d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
