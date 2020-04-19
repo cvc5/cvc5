@@ -122,11 +122,6 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Inference infer,
                                      bool asLemma)
 {
-  eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
-  if (eq==d_true)
-  {
-    return;
-  }
   // wrap in infer info and send below
   InferInfo ii;
   ii.d_id = infer;
@@ -148,7 +143,13 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
 void InferenceManager::sendInference(const InferInfo& ii,
                      bool asLemma)
 {
-  Assert (!ii.isTrivial());
+  // must rewrite the conclusion at this point
+  ii.d_conc = Rewriter::rewrite(ii.d_conc);
+  if (ii.isTrivial())
+  {
+    // rewrote to true, there is nothing to do
+    return true;
+  }
   Trace("strings-infer-debug") << "Strings::Infer: " << ii << std::endl;
   // check if we should send a lemma or an inference
   if (!ii.isFact() || asLemma || options::stringInferAsLemmas())
