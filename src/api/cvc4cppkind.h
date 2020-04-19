@@ -134,6 +134,22 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   LAMBDA,
   /**
+   * The syntax of a witness term is similar to a quantified formula except that
+   * only one bound variable is allowed.
+   * The term (witness ((x T)) (F x)) returns an element x of type T
+   * and asserts (F x).
+   *
+   * The witness operator behaves like the description operator
+   * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is no x
+   * that satisfies F, but it does not respect the uniqueness formula:
+   * forall x. F \equiv G => witness x. F =  witness x. G
+   *
+   * For example if there are 2 elements of type T that satisfy F, then the
+   * following expression is true:
+   * (distinct
+   *    (witness ((x Int)) (F x))
+   *    (witness ((x Int)) (F x)))
+   *
    * Witness expression.
    * Parameters: 2
    *   -[1]: BOUND_VAR_LIST
