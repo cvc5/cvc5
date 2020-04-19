@@ -127,12 +127,13 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   {
     return;
   }
+  // wrap in infer info and send below
   InferInfo ii;
   ii.d_id = infer;
   ii.d_conc = eq;
   ii.d_ant = exp;
   ii.d_antn = expn;
-  sendInference(
+  sendInference(ii,asLemma);
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
@@ -147,29 +148,27 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
 void InferenceManager::sendInference(const InferInfo& ii,
                      bool asLemma)
 {
-  Inference infer = ii.d_id;
-  Node eq = ii.d_conc;
+  Assert (!ii.isTrivial());
   Trace("strings-infer-debug") << "Strings::Infer: " << ii << std::endl;
-  // only keep stats if not trivial conclusion
-  d_statistics.d_inferences << infer;
-  Node atom = eq.getKind() == NOT ? eq[0] : eq;
   // check if we should send a lemma or an inference
   if (!ii.isFact() || asLemma || options::stringInferAsLemmas())
   {
     sendLemma(ii);
     return;
   }
-  Node eqExp = utils::mkAnd(exp);
   if (options::stringInferSym())
   {
     std::vector<Node> vars;
     std::vector<Node> subs;
     std::vector<Node> unproc;
-    d_termReg.inferSubstitutionProxyVars(eqExp, vars, subs, unproc);
+    for (const Node& ac : ii.d_ant)
+    {
+      d_termReg.inferSubstitutionProxyVars(ac, vars, subs, unproc);
+    }
     if (unproc.empty())
     {
       Node eqs =
-          eq.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+          ii.d_conc.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       InferInfo iiSubsLem;
       // keep the same id for now, since we are transforming the form of the
       // inference, not the root reason.
@@ -200,38 +199,30 @@ void InferenceManager::sendInference(const InferInfo& ii,
     }
   }
   Trace("strings-infer-debug") << "...as fact" << std::endl;
-
-  // copy to processing vector
-  InferInfo iiPending;
-  iiPending.d_id = infer;
-  iiPending.d_conc = eq;
-  // flatten explanation at this point
-  for (const Node& ec : exp)
-  {
-    utils::flattenOp(AND, ec, iiPending.d_ant);
-  }
-  d_pending.push_back(iiPending);
+  // add to pending
+  d_pending.push_back(ii);
 }
 
-void InferenceManager::sendLemma(InferInfo& lem)
+void InferenceManager::sendLemma(const InferInfo& ii)
 {
-  if (conc.isNull() || conc == d_false)
+  if (ii.isConflict())
   {
-    Node conf = utils::mkAnd(lem.d_ant);
+    Node conf = utils::mkAnd(ii.d_ant);
     Trace("strings-conflict")
-        << "Strings::Conflict : " << lem.d_id << " : " << conf << std::endl;
-    Trace("strings-lemma") << "Strings::Conflict : " << lem.d_id << " : " << conf
+        << "Strings::Conflict : " << ii.d_id << " : " << conf << std::endl;
+    Trace("strings-lemma") << "Strings::Conflict : " << ii.d_id << " : " << conf
                            << std::endl;
     Trace("strings-assert")
-        << "(assert (not " << conf << ")) ; conflict " << lem.d_id << std::endl;
+        << "(assert (not " << conf << ")) ; conflict " << ii.d_id << std::endl;
     ++(d_statistics.d_conflictsInfer);
+    // only keep stats if we process it here
+    d_statistics.d_inferences << ii.d_id;
     d_out.conflict(conf);
     d_state.setConflict();
     return;
   }
-  Trace("strings-lemma") << "Strings::Lemma " << lem.d_id << " : " << lem
-                         << std::endl;
-  d_pendingLem.push_back(lem);
+  Trace("strings-lemma") << "Strings::Lemma " << ii << std::endl;
+  d_pendingLem.push_back(ii);
 }
 
 
@@ -243,13 +234,11 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   {
     return false;
   }
-  // update statistics
-  d_statistics.d_inferences << infer;
   NodeManager* nm = NodeManager::currentNM();
   InferInfo iiSplit;
   iiSplit.d_id = infer;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  iiSplit.d_pendingReqPhase[eq] = preq;
+  iiSplit.d_pending_phase[eq] = preq;
   Trace("strings-lemma") << "Strings::Lemma " << infer
                          << " SPLIT : " << iiSplit.d_conc << std::endl;
   d_pendingLem.push_back(iiSplit);
@@ -301,6 +290,8 @@ void InferenceManager::doPendingFacts()
     TNode atom = polarity ? fact : fact[0];
     Trace("strings-assert") << "(assert (=> " << exp << " " << fact << ")) ; fact " << ii.d_id
                             << std::endl;
+    // only keep stats if we process it here
+    d_statistics.d_inferences << ii.d_id;
     assertPendingFact(atom, polarity, exp);
     // Must reference count the equality and its explanation, which is not done
     // by the equality engine. Notice that we do not need to do this for
@@ -341,17 +332,19 @@ void InferenceManager::doPendingLemmas()
     Node lem = ii.d_conc;
     if (eqExp != d_true)
     {
-      lc = nm->mkNode(IMPLIES, eqExp, lem);
+      lem = nm->mkNode(IMPLIES, eqExp, lem);
     }
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
     Trace("strings-assert") << "(assert " << lem << ") ; lemma " << ii.d_id
                             << std::endl;
+    // only keep stats if we process it here
+    d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
     d_out.lemma(lem);
-    // now, process the inference info
-    // Register the new skolems from this inference. We register them here
-    // (lazily), since the code above has now decided to use the inference
-    // at use_index that involves them.
+    // Now, process the side effects of the inference info.
+    // [1] Register the new skolems from this inference. We register them here
+    // (lazily), since this is the moment when we have decided to use the
+    // inference at use_index that involves them.
     for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
         ii.d_new_skolem)
     {
@@ -359,6 +352,11 @@ void InferenceManager::doPendingLemmas()
       {
         d_termReg.registerTermAtomic(n, sks.first);
       }
+    }
+    // [2] process the associated pending phase, add to map to process below
+    for (const std::pair<const Node, bool> pp : ii.d_pending_phase)
+    {
+      d_pendingReqPhase[pp.first] = pp.second;
     }
   }
   // process the pending require phase calls

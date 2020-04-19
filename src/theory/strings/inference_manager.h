@@ -292,7 +292,7 @@ class InferenceManager
    * The argument infer identifies the reason for inference, used for
    * debugging.
    */
-  void sendLemma(InferInfo& lem);
+  void sendLemma(const InferInfo& lem);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */

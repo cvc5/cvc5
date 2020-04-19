@@ -109,19 +109,19 @@ bool InferInfo::isFact() const
   TNode atom = d_conc.getKind()==kind::NOT ? d_conc[0] : d_conc;
   // no double negation or double (conjunctive) conclusions
   Assert (atom.getKind()!=kind::NOT && atom.getKind()!=kind::AND);
-  return !atom.isConst() && atom.getKind()!=OR && d_antn.empty();
+  return !atom.isConst() && atom.getKind()!=kind::OR && d_antn.empty();
 }
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer " << d_id << " " << d_conc;
-  if (!d_ant.empty())
+  out << "(infer " << ii.d_id << " " << ii.d_conc;
+  if (!ii.d_ant.empty())
   {
-    out << ":ant " << d_ant;
+    out << ":ant (" << ii.d_ant << ")";
   }
-  if (!d_antn.empty())
+  if (!ii.d_antn.empty())
   {
-    out << ":antn " << d_antn;
+    out << ":antn (" << ii.d_antn << ")";
   }
   out << ")";
   return out;
