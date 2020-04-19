@@ -218,7 +218,17 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                          << " by " << infer << std::endl;
   Trace("strings-assert") << "(assert (=> " << eqExp << " " << eq
                           << ")) ; infer " << infer << std::endl;
-  d_pending.push_back(PendingInfer(infer, eq, eqExp));
+
+  // copy to processing vector
+  InferInfo iiPending;
+  iiPending.d_id = infer;
+  iiPending.d_conc = eq;
+  // must flatten explanation at this point
+  for (const Node& ec : exp)
+  {
+    utils::flattenOp(AND, ec, iiPending.d_ant);
+  }
+  d_pending.push_back(iiPending);
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
@@ -320,23 +330,14 @@ void InferenceManager::doPendingFacts()
   size_t i = 0;
   while (!d_state.isInConflict() && i < d_pending.size())
   {
-    Node fact = d_pending[i].d_fact;
+    InferInfo& ii = d_pending[i];
+    Assert (ii.d_conc.getKind()!=AND);
+    Assert (ii.d_antn.empty());
+    Node fact = ii.d_conc;
     Node exp = d_pending[i].d_exp;
-    if (fact.getKind() == AND)
-    {
-      for (const Node& lit : fact)
-      {
-        bool polarity = lit.getKind() != NOT;
-        TNode atom = polarity ? lit : lit[0];
-        assertPendingFact(atom, polarity, exp);
-      }
-    }
-    else
-    {
-      bool polarity = fact.getKind() != NOT;
-      TNode atom = polarity ? fact : fact[0];
-      assertPendingFact(atom, polarity, exp);
-    }
+    bool polarity = fact.getKind() != NOT;
+    TNode atom = polarity ? fact : fact[0];
+    assertPendingFact(atom, polarity, exp);
     // Must reference count the equality and its explanation, which is not done
     // by the equality engine. Notice that we do not need to do this for
     // external assertions, which enter as facts through sendAssumption.

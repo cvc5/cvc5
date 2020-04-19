@@ -35,29 +35,6 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/**
- * A pending inference. This is a helper class to track an unprocessed call to
- * InferenceManager::sendInference that is waiting to be asserted as a fact to
- * the equality engine.
- */
-struct PendingInfer
-{
-  PendingInfer(Inference i, Node fact, Node exp)
-      : d_infer(i), d_fact(fact), d_exp(exp)
-  {
-  }
-  ~PendingInfer() {}
-  /** The inference identifier */
-  Inference d_infer;
-  /** The conclusion */
-  Node d_fact;
-  /**
-   * Its explanation. This is a conjunction of literals that hold in the
-   * equality engine in the current context.
-   */
-  Node d_exp;
-};
-
 /** Inference Manager
  *
  * The purpose of this class is to process inference steps for strategies
@@ -139,7 +116,7 @@ class InferenceManager
    * equality engine of the theory of strings. On the other hand, the set
    * exp_n ("explanations new") contain nodes that are not explainable by the
    * theory of strings. This method may call sendLemma or otherwise add a
-   * PendingInfer to d_pending, indicating a fact should be asserted to the
+   * InferInfo to d_pending, indicating a fact should be asserted to the
    * equality engine. Overall, the result of this method is one of the
    * following:
    *
@@ -335,7 +312,7 @@ class InferenceManager
    * The list of pending literals to assert to the equality engine along with
    * their explanation.
    */
-  std::vector<PendingInfer> d_pending;
+  std::vector<InferInfo> d_pending;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
   /** A list of pending lemmas to be sent on the output channel. */

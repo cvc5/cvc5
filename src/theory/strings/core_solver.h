@@ -31,6 +31,39 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/**
+ * This data structure encapsulates an inference for strings. This includes
+ * the form of the inference, as well as the side effects it generates for the
+ * core solver.
+ */
+class CoreInferInfo
+{
+ public:
+  CoreInferInfo();
+  /** The pending inference */
+  InferInfo d_infer;
+  /**
+   * The index in the normal forms under which this inference is addressing.
+   * For example, if the inference is inferring x = y from |x|=|y| and
+   *   w ++ x ++ ... = w ++ y ++ ...
+   * then d_index is 1, since x and y are at index 1 in these concat terms.
+   */
+  unsigned d_index;
+  /**
+   * The normal form pair that is cached as a result of this inference.
+   */
+  Node d_nf_pair[2];
+  /** for debugging
+   *
+   * The base pair of strings d_i/d_j that led to the inference, and whether
+   * (d_rev) we were processing the normal forms of these strings in reverse
+   * direction.
+   */
+  Node d_i;
+  Node d_j;
+  bool d_rev;
+};
+  
 /** The core solver for the theory of strings
  *
  * This implements techniques for handling (dis)equalities involving
@@ -183,10 +216,10 @@ class CoreSolver
  private:
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
-   * the inference manager to process the inference, it introduces Skolems, and
-   * updates the set of normal form pairs.
+   * the inference manager to process the inference, and updates the set of
+   * normal form pairs.
    */
-  void doInferInfo(const InferInfo& ii);
+  void processInferInfo(const CoreInferInfo& ii);
   /** Add that (n1,n2) is a normal form pair in the current context. */
   void addNormalFormPair(Node n1, Node n2);
   /** Is (n1,n2) a normal form pair in the current context? */
@@ -253,7 +286,7 @@ class CoreSolver
    *
    * This method is called when two equal terms have normal forms nfi and nfj.
    * It adds (typically at most one) possible inference to the vector pinfer.
-   * This inference is in the form of an InferInfo object, which stores the
+   * This inference is in the form of an CoreInferInfo object, which stores the
    * necessary information regarding how to process the inference.
    *
    * index: The index in the normal form vectors (nfi.d_nf and nfj.d_nf) that
@@ -280,7 +313,7 @@ class CoreSolver
                         unsigned& index,
                         bool isRev,
                         unsigned rproc,
-                        std::vector<InferInfo>& pinfer,
+                        std::vector<CoreInferInfo>& pinfer,
                         TypeNode stype);
   //--------------------------end for checkNormalFormsEq
 
@@ -309,7 +342,7 @@ class CoreSolver
                                 NormalForm& nfj,
                                 int loop_index,
                                 int index,
-                                InferInfo& info);
+                                CoreInferInfo& info);
   //--------------------------end for checkNormalFormsEq with loops
 
   //--------------------------for checkNormalFormsDeq

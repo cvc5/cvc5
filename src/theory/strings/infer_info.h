@@ -328,19 +328,17 @@ enum LengthStatus
 };
 
 /**
- * This data structure encapsulates an inference for strings. This includes
- * the form of the inference, as well as the side effects it generates.
+ * A pending inference. This is a helper class to track an unprocessed call to
+ * InferenceManager::sendInference that is waiting to be asserted as a fact to
+ * the equality engine.
  */
-class InferInfo
+struct InferInfo
 {
- public:
-  InferInfo();
-  /**
-   * The identifier for the inference, indicating the kind of reasoning used
-   * for this conclusion.
-   */
+  InferInfo(){}
+  ~InferInfo() {}
+  /** The inference identifier */
   Inference d_id;
-  /** The conclusion of the inference */
+  /** The conclusion */
   Node d_conc;
   /**
    * The antecedant(s) of the inference, interpreted conjunctively. These are
@@ -354,35 +352,15 @@ class InferInfo
    */
   std::vector<Node> d_antn;
   /**
+   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
+   */
+  std::map<Node, bool> d_pending_phase;
+  /**
    * A list of new skolems introduced as a result of this inference. They
    * are mapped to by a length status, indicating the length constraint that
    * can be assumed for them.
    */
   std::map<LengthStatus, std::vector<Node> > d_new_skolem;
-  /**
-   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
-   */
-  std::map<Node, bool> d_pending_phase;
-  /**
-   * The index in the normal forms under which this inference is addressing.
-   * For example, if the inference is inferring x = y from |x|=|y| and
-   *   w ++ x ++ ... = w ++ y ++ ...
-   * then d_index is 1, since x and y are at index 1 in these concat terms.
-   */
-  unsigned d_index;
-  /**
-   * The normal form pair that is cached as a result of this inference.
-   */
-  Node d_nf_pair[2];
-  /** for debugging
-   *
-   * The base pair of strings d_i/d_j that led to the inference, and whether
-   * (d_rev) we were processing the normal forms of these strings in reverse
-   * direction.
-   */
-  Node d_i;
-  Node d_j;
-  bool d_rev;
 };
 
 }  // namespace strings
