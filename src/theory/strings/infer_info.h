@@ -332,9 +332,10 @@ enum LengthStatus
  * InferenceManager::sendInference that is waiting to be asserted as a fact to
  * the equality engine.
  */
-struct InferInfo
+class InferInfo
 {
-  InferInfo() {}
+public:
+  InferInfo();
   ~InferInfo() {}
   /** The inference identifier */
   Inference d_id;
@@ -361,7 +362,29 @@ struct InferInfo
    * can be assumed for them.
    */
   std::map<LengthStatus, std::vector<Node> > d_new_skolem;
+  /**  Is this infer info trivial? True if d_conc is true. */
+  bool isTrivial() const;
+  /** 
+   * Does this infer info correspond to a conflict? True if d_conc is false
+   * and it has no new antecedants (d_antn).
+   */
+  bool isConflict() const;
+  /** 
+   * Does this infer info correspond to a "fact". A fact is an inference whose
+   * conclusion should be added as an equality or predicate to the equality
+   * engine with no new external antecedants (d_antn).
+   */
+  bool isFact() const;
 };
+
+/**
+ * Writes an inference info name to a stream.
+ *
+ * @param out The stream to write to
+ * @param ii The inference info to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, const InferInfo& ii);
 
 }  // namespace strings
 }  // namespace theory

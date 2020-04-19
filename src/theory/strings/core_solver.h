@@ -36,12 +36,11 @@ namespace strings {
  * the form of the inference, as well as the side effects it generates for the
  * core solver.
  */
-class CoreInferInfo
+class CoreInferInfo : public InferInfo
 {
  public:
   CoreInferInfo();
-  /** The pending inference */
-  InferInfo d_infer;
+  ~CoreInferInfo(){}
   /**
    * The index in the normal forms under which this inference is addressing.
    * For example, if the inference is inferring x = y from |x|=|y| and

@@ -162,7 +162,8 @@ class InferenceManager
    * Makes the appropriate call to send inference based on the infer info
    * data structure (see sendInference documentation above).
    */
-  void sendInference(const InferInfo& i);
+  void sendInference(const InferInfo& i,
+                     bool asLemma = false);
   /** Send split
    *
    * This requests that ( a = b V a != b ) is sent on the output channel as a
@@ -291,7 +292,7 @@ class InferenceManager
    * The argument infer identifies the reason for inference, used for
    * debugging.
    */
-  void sendLemma(Node ant, Node conc, Inference infer);
+  void sendLemma(InferInfo& lem);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
@@ -316,7 +317,7 @@ class InferenceManager
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
   /** A list of pending lemmas to be sent on the output channel. */
-  std::vector<Node> d_pendingLem;
+  std::vector<InferInfo> d_pendingLem;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are ref-counted. Since facts and their
