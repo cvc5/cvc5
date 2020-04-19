@@ -2254,7 +2254,6 @@ quantOp[CVC4::api::Kind& kind]
 }
   : EXISTS_TOK    { $kind = api::EXISTS; }
   | FORALL_TOK    { $kind = api::FORALL; }
-  | WITNESS_TOK    { $kind = api::WITNESS; }
   ;
 
 /**
@@ -2625,7 +2624,6 @@ ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 // operators (NOTE: theory symbols go here)
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
-WITNESS_TOK        : { !PARSER_STATE->strictModeEnabled() }? 'witness';
 
 EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';

@@ -624,8 +624,6 @@ set(regress_0_tests
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
   regress0/parser/to_fp.smt2
-  regress0/parser/witness.cvc
-  regress0/parser/witness.smt2
   regress0/precedence/and-not.cvc
   regress0/precedence/and-xor.cvc
   regress0/precedence/bool-cmp.cvc
@@ -2259,6 +2257,8 @@ set(regression_disabled_tests
   regress0/ite_arith.smt2
   regress0/lemmas/fischer3-mutex-16.smtv1.smt2
   regress0/nl/all-logic.smt2
+  regress0/parser/witness.cvc
+  regress0/parser/witness.smt2
   regress0/quantifiers/qbv-multi-lit-uge.smt2
   regress0/quantifiers/qbv-test-invert-bvshl-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-0-neq.smt2
