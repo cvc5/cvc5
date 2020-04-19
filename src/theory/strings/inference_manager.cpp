@@ -148,8 +148,8 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
 void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
 {
   Assert(!ii.isTrivial());
-  Trace("strings-infer-debug") << "Strings::Infer: " << ii << std::endl;
-  // check if we should send a lemma or an inference
+  Trace("strings-infer-debug") << "Strings::Infer: " << ii << ", asLemma = " << asLemma << std::endl;
+  // check if we should send a conflict, lemma or a fact
   if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
   {
     if (ii.isConflict())
@@ -308,6 +308,9 @@ void InferenceManager::doPendingLemmas()
 {
   if (d_state.isInConflict())
   {
+    // just clear the pending vectors, nothing else to do
+    d_pendingLem.clear();
+    d_pendingReqPhase.clear();
     return;
   }
   NodeManager* nm = NodeManager::currentNM();

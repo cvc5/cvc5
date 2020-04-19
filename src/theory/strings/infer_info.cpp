@@ -118,11 +118,11 @@ std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
   out << "(infer " << ii.d_id << " " << ii.d_conc;
   if (!ii.d_ant.empty())
   {
-    out << ":ant (" << ii.d_ant << ")";
+    out << " :ant (" << ii.d_ant << ")";
   }
   if (!ii.d_antn.empty())
   {
-    out << ":antn (" << ii.d_antn << ")";
+    out << " :antn (" << ii.d_antn << ")";
   }
   out << ")";
   return out;

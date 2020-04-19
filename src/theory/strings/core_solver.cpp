@@ -2295,11 +2295,15 @@ bool CoreSolver::processInferInfo(CoreInferInfo& ii)
 {
   // rewrite the conclusion, ensure non-trivial
   ii.d_conc = Rewriter::rewrite(ii.d_conc);
+  
+  //FIXME
+  /*
   if (ii.isTrivial())
   {
     // rewrote to true
     return false;
   }
+  */
   // process the state change to this solver
   if (!ii.d_nf_pair[0].isNull())
   {
