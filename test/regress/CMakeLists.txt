@@ -501,6 +501,7 @@ set(regress_0_tests
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/issue3536.smt2
+  regress0/fp/issue4277-assign-func.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/rti_3_5_bug_report.smt2
   regress0/fp/simple.smt2
@@ -733,6 +734,7 @@ set(regress_0_tests
   regress0/quantifiers/issue2035.smt2
   regress0/quantifiers/issue3655.smt2
   regress0/quantifiers/issue4086-infs.smt2
+  regress0/quantifiers/issue4275-qcf-cegqi-rep.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
@@ -768,6 +770,8 @@ set(regress_0_tests
   regress0/quantifiers/rew-to-scala.smt2
   regress0/quantifiers/simp-len.smt2
   regress0/quantifiers/simp-typ-test.smt2
+  regress0/quantifiers/sygus-inst-nia-psyco-060.smt2
+  regress0/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
   regress0/rec-fun-const-parse-bug.smt2
   regress0/rels/addr_book_0.cvc
   regress0/rels/atom_univ2.cvc
@@ -1519,6 +1523,8 @@ set(regress_1_tests
   regress1/quantifiers/issue3765-quant-dd.smt2
   regress1/quantifiers/issue4021-ind-opts.smt2
   regress1/quantifiers/issue4062-cegqi-aux.smt2
+  regress1/quantifiers/issue4243-prereg-inc.smt2
+  regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -2038,6 +2044,7 @@ set(regress_2_tests
   regress2/quantifiers/net-policy-no-time.smt2
   regress2/quantifiers/nunchaku2309663.nun.min.smt2
   regress2/quantifiers/specsharp-WindowsCard.15.RTE.Terminate_System.Int32.smt2
+  regress2/quantifiers/sygus-inst-ufbv-sdlx-fixpoint-5.smt2
   regress2/quantifiers/syn874-1.smt2
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
   regress2/strings/cmu-dis-0707-3.smt2

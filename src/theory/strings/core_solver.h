@@ -24,8 +24,8 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
-#include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/term_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -46,7 +46,7 @@ class CoreSolver
              context::UserContext* u,
              SolverState& s,
              InferenceManager& im,
-             SkolemCache& skc,
+             TermRegistry& tr,
              BaseSolver& bs);
   ~CoreSolver();
 
@@ -370,8 +370,8 @@ class CoreSolver
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
   InferenceManager& d_im;
-  /** cache of all skolems */
-  SkolemCache& d_skCache;
+  /** Reference to the term registry of theory of strings */
+  TermRegistry& d_termReg;
   /** reference to the base solver, used for certain queries */
   BaseSolver& d_bsolver;
   /** Commonly used constants */

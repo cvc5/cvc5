@@ -255,7 +255,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   if (!smte.isInternalSubsolver())
   {
     if (options::produceAbducts() || options::sygusInference()
-        || options::sygusRewSynthInput())
+        || options::sygusRewSynthInput() || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -864,6 +864,17 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       // by default, use store axioms only if --ho-elim is set
       options::hoElimStoreAx.set(options::hoElim());
     }
+    if (!options::assignFunctionValues())
+    {
+      // must assign function values
+      options::assignFunctionValues.set(true);
+    }
+    // Cannot use macros, since lambda lifting and macro elimination are inverse
+    // operations.
+    if (options::macrosQuant())
+    {
+      options::macrosQuant.set(false);
+    }
   }
   if (options::fmfFunWellDefinedRelevant())
   {
@@ -1112,6 +1123,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       // cannot do nested quantifier elimination in incremental mode
       options::cbqiNestedQE.set(false);
+      options::cbqiPreRegInst.set(false);
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {

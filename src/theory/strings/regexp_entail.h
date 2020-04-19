@@ -108,6 +108,21 @@ class RegExpEntail
    * x in n entails len( x ) = c.
    */
   static Node getFixedLengthForRegexp(Node n);
+
+  /**
+   * Returns true if we can show that the regular expression `r1` includes
+   * the regular expression `r2` (i.e. `r1` matches a superset of sequences
+   * that `r2` matches). This method only works on a fragment of regular
+   * expressions, specifically regular expressions that pass the
+   * `isSimpleRegExp` check.
+   *
+   * @param r1 The regular expression that may include `r2` (must be in
+   *           rewritten form)
+   * @param r2 The regular expression that may be included by `r1` (must be
+   *           in rewritten form)
+   * @return True if the inclusion can be shown, false otherwise
+   */
+  static bool regExpIncludes(Node r1, Node r2);
 };
 
 }  // namespace strings

@@ -516,6 +516,8 @@ libcvc4_add_sources(
   theory/quantifiers/inst_match_trie.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
+  theory/quantifiers/sygus_inst.cpp
+  theory/quantifiers/sygus_inst.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
   theory/quantifiers/lazy_trie.cpp
@@ -714,6 +716,8 @@ libcvc4_add_sources(
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
+  theory/strings/term_registry.cpp
+  theory/strings/term_registry.h
   theory/strings/type_enumerator.cpp
   theory/strings/type_enumerator.h
   theory/strings/word.cpp
@@ -924,7 +928,6 @@ install(FILES
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/expr)
 install(FILES
-          options/argument_extender.h
           options/language.h
           options/option_exception.h
           options/options.h
