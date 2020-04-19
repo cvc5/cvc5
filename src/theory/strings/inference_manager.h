@@ -159,8 +159,8 @@ class InferenceManager
 
   /** Send inference
    *
-   * Makes the appropriate call to send inference based on the infer info
-   * data structure (see sendInference documentation above).
+   * This implements the above methods for the InferInfo object. It is called
+   * by the methods above.
    */
   void sendInference(const InferInfo& i,
                      bool asLemma = false);

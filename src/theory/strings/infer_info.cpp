@@ -96,16 +96,19 @@ InferInfo::InferInfo() : d_id(Inference::NONE) {}
 
 bool InferInfo::isTrivial() const
 {
+  Assert (!d_conc.isNull());
   return d_conc.isConst() && d_conc.getConst<bool>();
 }
 
 bool InferInfo::isConflict() const
 {
+  Assert (!d_conc.isNull());
   return d_conc.isConst() && !d_conc.getConst<bool>() && d_antn.empty();
 }
 
 bool InferInfo::isFact() const
 {
+  Assert (!d_conc.isNull());
   TNode atom = d_conc.getKind()==kind::NOT ? d_conc[0] : d_conc;
   // no double negation or double (conjunctive) conclusions
   Assert (atom.getKind()!=kind::NOT && atom.getKind()!=kind::AND);

@@ -153,6 +153,7 @@ void InferenceManager::sendInference(const InferInfo& ii,
   // check if we should send a lemma or an inference
   if (!ii.isFact() || asLemma || options::stringInferAsLemmas())
   {
+    Trace("strings-infer-debug") << "...as lemma" << std::endl;
     sendLemma(ii);
     return;
   }
@@ -185,8 +186,8 @@ void InferenceManager::sendInference(const InferInfo& ii,
               << "  " << vars[i] << " -> " << subs[i] << std::endl;
         }
       }
-      Trace("strings-infer-debug") << "...as lemma" << std::endl;
-      sendLemma(iiSubsLem);
+      Trace("strings-infer-debug") << "...as symbolic lemma" << std::endl;
+      d_pendingLem.push_back(iiSubsLem);
       return;
     }
     if (Trace.isOn("strings-lemma-debug"))
@@ -199,7 +200,7 @@ void InferenceManager::sendInference(const InferInfo& ii,
     }
   }
   Trace("strings-infer-debug") << "...as fact" << std::endl;
-  // add to pending
+  // add to pending, to be processed as a fact
   d_pending.push_back(ii);
 }
 
