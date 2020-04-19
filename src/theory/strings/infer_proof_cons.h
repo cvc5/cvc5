@@ -59,7 +59,6 @@ class InferProofCons
                  Node exp,
                  std::vector<Node>& pfChildren,
                  std::vector<Node>& pfArgs);
-  
 
  private:
   /** The proof-producing equality engine */

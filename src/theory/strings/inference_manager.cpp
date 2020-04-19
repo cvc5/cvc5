@@ -323,7 +323,7 @@ void InferenceManager::doPendingFacts()
     Node fact = pi.d_fact;
     Node exp = pi.d_exp;
     Assert(fact.getKind() != AND);
-    // convert to proof rule 
+    // convert to proof rule
     std::vector<Node> pfChildren;
     std::vector<Node> pfArgs;
     PfRule id = d_ipc.convert(fact, inf, exp, pfChildren, pfArgs);
@@ -332,8 +332,8 @@ void InferenceManager::doPendingFacts()
     if (!d_state.isInConflict())
     {
       processFact(fact);
-      // Must reference count the equality and its explanation, which is not done
-      // by the equality engine. Notice that we do not need to do this for
+      // Must reference count the equality and its explanation, which is not
+      // done by the equality engine. Notice that we do not need to do this for
       // external assertions, which enter as facts through sendAssumption.
       d_keep.insert(fact);
       d_keep.insert(exp);

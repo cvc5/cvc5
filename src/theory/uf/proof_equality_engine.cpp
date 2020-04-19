@@ -322,7 +322,7 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
       }
       else
       {
-        //Assert(d_ee.areEqual(atom[0], atom[1]));
+        // Assert(d_ee.areEqual(atom[0], atom[1]));
       }
       d_ee.explainEquality(atom[0], atom[1], polarity, tassumps, pf.get());
     }

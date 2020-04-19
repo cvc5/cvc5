@@ -38,10 +38,10 @@ PfRule InferProofCons::convert(Node eq,
 }
 
 PfRule InferProofCons::convert(Node eq,
-                Inference infer,
-                Node expConj,
-                std::vector<Node>& pfChildren,
-                std::vector<Node>& pfArgs)
+                               Inference infer,
+                               Node expConj,
+                               std::vector<Node>& pfChildren,
+                               std::vector<Node>& pfArgs)
 {
   std::vector<Node> exp;
   utils::flattenOp(AND, expConj, exp);
@@ -49,7 +49,7 @@ PfRule InferProofCons::convert(Node eq,
   std::vector<Node> expn;
   return convert(eq, infer, exp, expn, pfChildren, pfArgs);
 }
-  
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4
