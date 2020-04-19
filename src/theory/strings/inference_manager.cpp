@@ -155,6 +155,7 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
     if (ii.isConflict())
     {
       Trace("strings-infer-debug") << "...as conflict" << std::endl;
+      // we must fully explain it
       Node conf = mkExplain(ii.d_ant);
       Trace("strings-conflict")
           << "Strings::Conflict : " << ii.d_id << " : " << conf << std::endl;
@@ -281,12 +282,15 @@ void InferenceManager::doPendingFacts()
     Assert(ii.isFact());
     Node fact = ii.d_conc;
     Node exp = utils::mkAnd(ii.d_ant);
-    bool polarity = fact.getKind() != NOT;
-    TNode atom = polarity ? fact : fact[0];
     Trace("strings-assert") << "(assert (=> " << exp << " " << fact
                             << ")) ; fact " << ii.d_id << std::endl;
     // only keep stats if we process it here
     d_statistics.d_inferences << ii.d_id;
+    // assert it as a pending fact
+    bool polarity = fact.getKind() != NOT;
+    TNode atom = polarity ? fact : fact[0];
+    // no double negation or double (conjunctive) conclusions
+    Assert(atom.getKind() != NOT && atom.getKind() != AND);
     assertPendingFact(atom, polarity, exp);
     // Must reference count the equality and its explanation, which is not done
     // by the equality engine. Notice that we do not need to do this for
@@ -305,6 +309,27 @@ void InferenceManager::doPendingLemmas()
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
+  for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
+  {
+    InferInfo& ii = d_pendingLem[i];
+    // Process the side effects of the inference info.
+    // [1] Register the new skolems from this inference. We register them here
+    // (lazily), since this is the moment when we have decided to use the
+    // inference at use_index that involves them.
+    for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
+         ii.d_new_skolem)
+    {
+      for (const Node& n : sks.second)
+      {
+        d_termReg.registerTermAtomic(n, sks.first);
+      }
+    }
+    // [2] process the associated pending phase, add to map to process below
+    for (const std::pair<const Node, bool> pp : ii.d_pending_phase)
+    {
+      sendPhaseRequirement(pp.first, pp.second);
+    }
+  }
   for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
   {
     InferInfo& ii = d_pendingLem[i];
@@ -336,23 +361,6 @@ void InferenceManager::doPendingLemmas()
     d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
     d_out.lemma(lem);
-    // Now, process the side effects of the inference info.
-    // [1] Register the new skolems from this inference. We register them here
-    // (lazily), since this is the moment when we have decided to use the
-    // inference at use_index that involves them.
-    for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
-         ii.d_new_skolem)
-    {
-      for (const Node& n : sks.second)
-      {
-        d_termReg.registerTermAtomic(n, sks.first);
-      }
-    }
-    // [2] process the associated pending phase, add to map to process below
-    for (const std::pair<const Node, bool> pp : ii.d_pending_phase)
-    {
-      d_pendingReqPhase[pp.first] = pp.second;
-    }
   }
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
