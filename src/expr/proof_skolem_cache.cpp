@@ -28,7 +28,7 @@ Node ProofSkolemCache::mkSkolem(Node v,
   // make the witness term
   NodeManager* nm = NodeManager::currentNM();
   Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-  Node w = nm->mkNode(CHOICE, bvl, pred); // will change to WITNESS
+  Node w = nm->mkNode(CHOICE, bvl, pred);  // will change to WITNESS
   // make the skolem
   Node k = nm->mkSkolem(prefix, v.getType(), comment, flags);
   // remember its mapping

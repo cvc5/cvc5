@@ -222,7 +222,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                                             const std::vector<TNode>& assumps,
                                             bool isConflict)
 {
-  Trace("pfee-debug") << "ProofEqEngine::ensureProofForFact " << conc << " via " << assumps << ", isConflict=" << isConflict << std::endl;
+  Trace("pfee-debug") << "ProofEqEngine::ensureProofForFact " << conc << " via "
+                      << assumps << ", isConflict=" << isConflict << std::endl;
   // make the conflict or lemma
   Node formula = mkAnd(assumps);
   if (!isConflict)
@@ -249,7 +250,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     std::vector<Node> args;
     std::shared_ptr<ProofNode> pf =
         d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
-      Trace("pfee-debug") << "  proof " << std::endl;
+    Trace("pfee-debug") << "  proof " << std::endl;
     // should always succeed, since assumptions should be closed
     Assert(pf != nullptr);
     // should be a closed proof now
@@ -286,7 +287,8 @@ std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
 
 void ProofEqEngine::assertInternal(Node atom, bool polarity, TNode reason)
 {
-  Trace("pfee-debug") << "ProofEqEngine::assertInternal: " << atom << " " << polarity << " " << reason << std::endl;
+  Trace("pfee-debug") << "ProofEqEngine::assertInternal: " << atom << " "
+                      << polarity << " " << reason << std::endl;
   if (atom.getKind() == EQUAL)
   {
     d_ee.assertEquality(atom, polarity, reason);
@@ -301,10 +303,11 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
 {
   std::shared_ptr<eq::EqProof> pf =
       d_pfEnabled ? std::make_shared<eq::EqProof>() : nullptr;
-  Trace("pfee-debug") << "ProofEqEngine::explainWithProof: " << lit << " via " << assumps << std::endl;
+  Trace("pfee-debug") << "ProofEqEngine::explainWithProof: " << lit << " via "
+                      << assumps << std::endl;
   bool polarity = lit.getKind() != NOT;
   TNode atom = polarity ? lit : lit[0];
-  Assert (atom.getKind()!=AND);
+  Assert(atom.getKind() != AND);
   std::vector<TNode> tassumps;
   if (atom.getKind() == EQUAL)
   {
@@ -326,7 +329,7 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
   }
   else
   {
-    Assert (d_ee.hasTerm(atom));
+    Assert(d_ee.hasTerm(atom));
     d_ee.explainPredicate(atom, polarity, tassumps, pf.get());
   }
   // avoid duplicates
