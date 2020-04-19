@@ -230,7 +230,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     NodeManager* nm = NodeManager::currentNM();
     formula = formula == d_false ? conc : nm->mkNode(IMPLIES, formula, conc);
   }
-
+  Trace("pfee-debug") << "  formula is " << formula << std::endl;
   ProofGenerator* pfg = nullptr;
   if (d_pfEnabled)
   {
@@ -238,6 +238,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     std::shared_ptr<ProofNode> pfConc = mkProofForFact(conc);
     if (pfConc == nullptr)
     {
+      Trace("pfee-debug") << "  ...failed to make proof for fact" << std::endl;
       // should have existed
       Assert(false) << "ProofEqEngine::assertConflict: failed to get proof for "
                     << conc;
@@ -248,6 +249,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     std::vector<Node> args;
     std::shared_ptr<ProofNode> pf =
         d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
+      Trace("pfee-debug") << "  proof " << std::endl;
     // should always succeed, since assumptions should be closed
     Assert(pf != nullptr);
     // should be a closed proof now

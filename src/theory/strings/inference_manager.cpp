@@ -42,7 +42,7 @@ InferenceManager::InferenceManager(context::Context* c,
       d_poc(poc),
       d_statistics(statistics),
       d_pnm(),
-      d_pfee(c, u, *d_state.getEqualityEngine(), &d_pnm),
+      d_pfee(c, u, *d_state.getEqualityEngine(), &d_pnm, pfEnabled),
       d_ipc(d_pfee),
       d_keep(c),
       d_pfEnabled(pfEnabled)
