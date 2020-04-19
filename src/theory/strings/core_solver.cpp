@@ -2295,7 +2295,7 @@ bool CoreSolver::processInferInfo(CoreInferInfo& ii)
 {
   // rewrite the conclusion, ensure non-trivial
   ii.d_conc = Rewriter::rewrite(ii.d_conc);
-  
+
   if (ii.isTrivial())
   {
     // rewrote to true
@@ -2309,7 +2309,7 @@ bool CoreSolver::processInferInfo(CoreInferInfo& ii)
   }
   // send the inference, which is a lemma
   d_im.sendInference(ii, true);
-  
+
   return true;
 }
 

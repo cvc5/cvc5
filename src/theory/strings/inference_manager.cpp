@@ -148,16 +148,18 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
 void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
 {
   Assert(!ii.isTrivial());
-  Trace("strings-infer-debug") << "sendInference: " << ii << ", asLemma = " << asLemma << std::endl;
+  Trace("strings-infer-debug")
+      << "sendInference: " << ii << ", asLemma = " << asLemma << std::endl;
   // check if we should send a conflict, lemma or a fact
   if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
   {
     if (ii.isConflict())
     {
       Trace("strings-infer-debug") << "...as conflict" << std::endl;
-      Trace("strings-lemma")
-          << "Strings::Conflict: " << ii.d_ant << " by " << ii.d_id << std::endl;
-    Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant << " by " << ii.d_id << std::endl;
+      Trace("strings-lemma") << "Strings::Conflict: " << ii.d_ant << " by "
+                             << ii.d_id << std::endl;
+      Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
+                                << " by " << ii.d_id << std::endl;
       // we must fully explain it
       Node conf = mkExplain(ii.d_ant);
       Trace("strings-assert") << "(assert (not " << conf << ")) ; conflict "
@@ -282,7 +284,8 @@ void InferenceManager::doPendingFacts()
     Trace("strings-assert") << "(assert (=> " << exp << " " << fact
                             << ")) ; fact " << ii.d_id << std::endl;
     // only keep stats if we process it here
-    Trace("strings-lemma") << "Strings::Fact: " << fact << " from " << exp << " by " << ii.d_id << std::endl;
+    Trace("strings-lemma") << "Strings::Fact: " << fact << " from " << exp
+                           << " by " << ii.d_id << std::endl;
     d_statistics.d_inferences << ii.d_id;
     // assert it as a pending fact
     bool polarity = fact.getKind() != NOT;
@@ -337,7 +340,8 @@ void InferenceManager::doPendingLemmas()
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
     Trace("strings-assert")
         << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
-    Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id << std::endl;
+    Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id
+                           << std::endl;
     // only keep stats if we process it here
     d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
