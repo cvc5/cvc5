@@ -328,9 +328,9 @@ enum LengthStatus
 };
 
 /**
- * A pending inference. This is a helper class to track an unprocessed call to
- * InferenceManager::sendInference that is waiting to be asserted as a fact to
- * the equality engine.
+ * An inference. This is a class to track an unprocessed call to either 
+ * sending a fact, lemma, or conflict that is waiting to be asserted to the
+ * equality engine or sent on the output channel.
  */
 class InferInfo
 {
