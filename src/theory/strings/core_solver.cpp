@@ -2308,6 +2308,17 @@ bool CoreSolver::processInferInfo(CoreInferInfo& ii)
   }
   // send the inference, which is a lemma
   d_im.sendInference(ii, true);
+  
+  // FIXME
+  for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
+        ii.d_new_skolem)
+  {
+    for (const Node& n : sks.second)
+    {
+      d_termReg.registerTermAtomic(n, sks.first);
+    }
+  }
+  
   return true;
 }
 

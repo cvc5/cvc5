@@ -234,10 +234,12 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   InferInfo iiSplit;
   iiSplit.d_id = infer;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  iiSplit.d_pending_phase[eq] = preq;
+  // FIXME
+  //iiSplit.d_pending_phase[eq] = preq;
   Trace("strings-lemma") << "Strings::Lemma " << infer
                          << " SPLIT : " << iiSplit.d_conc << std::endl;
   d_pendingLem.push_back(iiSplit);
+  sendPhaseRequirement(eq,preq);
   return true;
 }
 
@@ -309,6 +311,7 @@ void InferenceManager::doPendingLemmas()
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
+  /*  FIXME
   for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
   {
     InferInfo& ii = d_pendingLem[i];
@@ -330,6 +333,7 @@ void InferenceManager::doPendingLemmas()
       sendPhaseRequirement(pp.first, pp.second);
     }
   }
+  */
   for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
   {
     InferInfo& ii = d_pendingLem[i];
