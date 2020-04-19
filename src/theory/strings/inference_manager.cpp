@@ -158,10 +158,10 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       Node conf = mkExplain(ii.d_ant);
       Trace("strings-conflict")
           << "Strings::Conflict : " << ii.d_id << " : " << conf << std::endl;
-      Trace("strings-lemma") << "Strings::Conflict : " << ii.d_id << " : " << conf
-                            << std::endl;
-      Trace("strings-assert")
-          << "(assert (not " << conf << ")) ; conflict " << ii.d_id << std::endl;
+      Trace("strings-lemma")
+          << "Strings::Conflict : " << ii.d_id << " : " << conf << std::endl;
+      Trace("strings-assert") << "(assert (not " << conf << ")) ; conflict "
+                              << ii.d_id << std::endl;
       ++(d_statistics.d_conflictsInfer);
       // only keep stats if we process it here
       d_statistics.d_inferences << ii.d_id;
