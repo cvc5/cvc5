@@ -331,8 +331,8 @@ void InferenceManager::doPendingFacts()
   while (!d_state.isInConflict() && i < d_pending.size())
   {
     InferInfo& ii = d_pending[i];
-    Assert (ii.d_conc.getKind()!=AND);
-    Assert (ii.d_antn.empty());
+    Assert(ii.d_conc.getKind() != AND);
+    Assert(ii.d_antn.empty());
     Node fact = ii.d_conc;
     Node exp = d_pending[i].d_exp;
     bool polarity = fact.getKind() != NOT;

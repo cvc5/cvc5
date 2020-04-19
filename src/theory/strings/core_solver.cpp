@@ -914,7 +914,7 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
                              TypeNode stype)
 {
   //the possible inferences
-  std::vector< CoreInferInfo > pinfer;
+  std::vector<CoreInferInfo> pinfer;
   // loop over all pairs 
   for(unsigned i=0; i<normal_forms.size()-1; i++) {
     //unify each normalform[j] with normal_forms[i]
@@ -1341,7 +1341,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
               << "Const Split: " << prea << " is removed from " << stra
               << " due to " << strb << ", p=" << p << std::endl;
           iinfo.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, prea)
-                                        : utils::mkNConcat(prea, sk));
+                                         : utils::mkNConcat(prea, sk));
           iinfo.d_new_skolem[LENGTH_SPLIT].push_back(sk);
           iinfo.d_id = Inference::SSPLIT_CST_PROP;
           pinfer.push_back(info);
@@ -1501,10 +1501,10 @@ bool CoreSolver::detectLoop(NormalForm& nfi,
 
 //xs(zy)=t(yz)xr
 CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
-                                                            NormalForm& nfj,
-                                                            int loop_index,
-                                                            int index,
-                                                            CoreInferInfo& info)
+                                                      NormalForm& nfj,
+                                                      int loop_index,
+                                                      int index,
+                                                      CoreInferInfo& info)
 {
   if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
   {

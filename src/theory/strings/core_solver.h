@@ -63,7 +63,7 @@ class CoreInferInfo
   Node d_j;
   bool d_rev;
 };
-  
+
 /** The core solver for the theory of strings
  *
  * This implements techniques for handling (dis)equalities involving

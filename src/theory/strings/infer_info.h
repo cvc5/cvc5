@@ -334,7 +334,7 @@ enum LengthStatus
  */
 struct InferInfo
 {
-  InferInfo(){}
+  InferInfo() {}
   ~InferInfo() {}
   /** The inference identifier */
   Inference d_id;
