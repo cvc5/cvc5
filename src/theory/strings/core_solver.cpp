@@ -981,7 +981,7 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
   Trace("strings-solve") << "...choose #" << use_index << std::endl;
   if (!processInferInfo(pinfer[use_index]))
   {
-    Assert(false) << "Failed to process infer info " << pinfer[use_index]
+    Unhandled() << "Failed to process infer info " << pinfer[use_index]
                   << std::endl;
   }
 }
