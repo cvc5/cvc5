@@ -329,7 +329,7 @@ enum LengthStatus
 
 /**
  * An inference. This is a class to track an unprocessed call to either
- * sending a fact, lemma, or conflict that is waiting to be asserted to the
+ * send a fact, lemma, or conflict that is waiting to be asserted to the
  * equality engine or sent on the output channel.
  */
 class InferInfo
