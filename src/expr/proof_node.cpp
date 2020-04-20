@@ -36,9 +36,11 @@ Node ProofNode::getResult() const { return d_proven; }
 
 void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
 {
+  // visited set false after preorder traversal, true after postorder traversal
   std::unordered_map<const ProofNode*, bool> visited;
   std::unordered_map<const ProofNode*, bool>::iterator it;
   std::vector<const ProofNode*> visit;
+  // the current set of formulas bound by SCOPE
   std::unordered_set<Node, NodeHashFunction> currentScope;
   const ProofNode* cur;
   visit.push_back(this);
