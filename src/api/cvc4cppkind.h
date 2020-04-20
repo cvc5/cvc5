@@ -148,7 +148,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * For example if there are 2 elements of type T that satisfy F, then the
    * following expression is true:
    * (distinct
-   *    (witness ((x Int)) (F x))
+   *    (witness ((x Int)) F)
    *    (witness ((x Int)) (F x)))
    *
    * Parameters: 2
