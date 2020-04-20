@@ -146,7 +146,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * forall x. F \equiv G => witness x. F =  witness x. G
    *
    * For example if there are 2 elements of type T that satisfy F, then the
-   * following expression is true:
+   * following formula is satisfiable:
    * (distinct
    *    (witness ((x Int)) F)
    *    (witness ((x Int)) (F x)))
