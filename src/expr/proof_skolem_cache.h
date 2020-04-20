@@ -40,9 +40,9 @@ class ProofSkolemCache
   ProofSkolemCache() {}
   ~ProofSkolemCache() {}
   /**
-   * This makes a skolem of same type as bound variable v, call it T, whose
-   * definition is (witness ((v T)) pred). This definition is maintained by
-   * this class.
+   * This makes a skolem of same type as bound variable v, (say its type is T),
+   * whose definition is (witness ((v T)) pred). This definition is maintained
+   * by this class.
    *
    * Notice that (exists ((v T)) pred) should be a valid formula. This fact
    * captures the reason for why the returned Skolem was introduced.
