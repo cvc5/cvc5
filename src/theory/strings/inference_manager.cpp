@@ -129,72 +129,92 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      bool asLemma)
 {
   eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
-  if (Trace.isOn("strings-infer-debug"))
-  {
-    Trace("strings-infer-debug")
-        << "By " << infer << ", infer : " << eq << " from: " << std::endl;
-    for (unsigned i = 0; i < exp.size(); i++)
-    {
-      Trace("strings-infer-debug") << "  " << exp[i] << std::endl;
-    }
-    for (unsigned i = 0; i < expn.size(); i++)
-    {
-      Trace("strings-infer-debug") << "  N:" << expn[i] << std::endl;
-    }
-  }
   if (eq == d_true)
   {
     return;
   }
-  // must flatten the explanation
-  std::vector<Node> expConj;
-  for (const Node& ec : exp)
+  // wrap in infer info and send below
+  InferInfo ii;
+  ii.d_id = infer;
+  ii.d_conc = eq;
+  ii.d_ant = exp;
+  ii.d_antn = expn;
+  sendInference(ii, asLemma);
+}
+
+void InferenceManager::sendInference(const std::vector<Node>& exp,
+                                     Node eq,
+                                     Inference infer,
+                                     bool asLemma)
+{
+  std::vector<Node> expn;
+  sendInference(exp, expn, eq, infer, asLemma);
+}
+
+void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
+{
+  Assert(!ii.isTrivial());
+  // must flatten the explanation with respect to AND here
+  std::vector<Node> expOrig = ii.d_exp;
+  ii.d_exp.clear();
+  for (const Node& ec : expOrig)
   {
-    utils::flattenOp(AND, ec, expConj);
+    utils::flattenOp(AND, ec, ii.d_exp);
   }
-  // only keep stats if not trivial conclusion
-  d_statistics.d_inferences << infer;
-  Node atom = eq.getKind() == NOT ? eq[0] : eq;
-  // check if we should send a lemma or an inference
-  if (asLemma || atom == d_false || atom.getKind() == OR || !expn.empty()
-      || options::stringInferAsLemmas())
+  Trace("strings-infer-debug")
+      << "sendInference: " << ii << ", asLemma = " << asLemma << std::endl;
+  // check if we should send a conflict, lemma or a fact
+  if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
   {
-    TrustNode n;
-    // set up proof step based on inference
-    // pfExp is the children of the proof step below. This should be an
-    // ordered list of expConj + expn.
-    std::vector<Node> pfExp;
-    std::vector<Node> args;
-    PfRule id = d_ipc.convert(eq, infer, expConj, expn, pfExp, args);
-    if (options::stringRExplainLemmas())
+    if (ii.isConflict())
     {
-      n = d_pfee.assertLemma(eq, id, pfExp, expConj, args);
+      Trace("strings-infer-debug") << "...as conflict" << std::endl;
+      Trace("strings-lemma") << "Strings::Conflict: " << ii.d_ant << " by "
+                             << ii.d_id << std::endl;
+      Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
+                                << " by " << ii.d_id << std::endl;
+      // we must fully explain it
+      std::vector<Node> pfChildren;
+      std::vector<Node> pfExp;
+      std::vector<Node> pfArgs;
+      PfRule rule = d_ipc.convert(ii, pfChildren, pfArgs);
+      TrustNode conf = d_pfee.assertConflict(ii.d_rule, pfChildren, pfArgs);
+      Assert (conf.getKind()==TrustNodeKind::CONFLICT);
+      Trace("strings-assert") << "(assert (not " << conf << ")) ; conflict "
+                              << ii.d_id << std::endl;
+      ++(d_statistics.d_conflictsInfer);
+      // only keep stats if we process it here
+      d_statistics.d_inferences << ii.d_id;
+      d_poc.trustedConflict(conf);
+      d_state.setConflict();
+      return;
     }
-    else
-    {
-      std::vector<Node> expEmpty;
-      n = d_pfee.assertLemma(eq, id, pfExp, expEmpty, args);
-    }
-    sendLemma(n, infer);
+    Trace("strings-infer-debug") << "...as lemma" << std::endl;
+    d_pendingLem.push_back(ii);
     return;
   }
-  // no free assumptions in the explanation
-  Assert(expn.empty());
-  Node eqExp = utils::mkAnd(expConj);
   if (options::stringInferSym())
   {
     std::vector<Node> vars;
     std::vector<Node> subs;
     std::vector<Node> unproc;
-    d_termReg.inferSubstitutionProxyVars(eqExp, vars, subs, unproc);
+    for (const Node& ac : ii.d_ant)
+    {
+      d_termReg.inferSubstitutionProxyVars(ac, vars, subs, unproc);
+    }
     if (unproc.empty())
     {
-      Node eqs =
-          eq.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      Node eqs = ii.d_conc.substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
+      InferInfo iiSubsLem;
+      // keep the same id for now, since we are transforming the form of the
+      // inference, not the root reason.
+      iiSubsLem.d_id = ii.d_id;
+      iiSubsLem.d_conc = eqs;
       if (Trace.isOn("strings-lemma-debug"))
       {
-        Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from "
-                                     << eqExp << " by " << infer << std::endl;
+        Trace("strings-lemma-debug")
+            << "Strings::Infer " << iiSubsLem << std::endl;
         Trace("strings-lemma-debug")
             << "Strings::Infer Alternate : " << eqs << std::endl;
         for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
@@ -203,13 +223,8 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
               << "  " << vars[i] << " -> " << subs[i] << std::endl;
         }
       }
-      // the code above is likely a substitution + rewriting?
-      PfRule id = PfRule::UNKNOWN;
-      // empty explanation
-      std::vector<Node> pfExp;
-      std::vector<Node> args;
-      TrustNode n = d_pfee.assertLemma(eqs, id, pfExp, pfExp, args);
-      sendLemma(n, infer);
+      Trace("strings-infer-debug") << "...as symbolic lemma" << std::endl;
+      d_pendingLem.push_back(iiSubsLem);
       return;
     }
     if (Trace.isOn("strings-lemma-debug"))
@@ -225,7 +240,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                          << " by " << infer << std::endl;
   Trace("strings-assert") << "(assert (=> " << eqExp << " " << eq
                           << ")) ; infer " << infer << std::endl;
-  d_pending.push_back(PendingInfer(infer, eq, eqExp));
+  d_pending.push_back(ii);
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
@@ -237,34 +252,6 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   sendInference(exp, exp_n, eq, infer, asLemma);
 }
 
-void InferenceManager::sendInference(const InferInfo& i)
-{
-  sendInference(i.d_ant, i.d_antn, i.d_conc, i.d_id, true);
-}
-
-void InferenceManager::sendLemma(TrustNode n, Inference infer)
-{
-  Node f = n.getNode();
-  if (n.getKind() == TrustNodeKind::CONFLICT)
-  {
-    Trace("strings-conflict")
-        << "Strings::Conflict : " << infer << " : " << f << std::endl;
-    Trace("strings-lemma") << "Strings::Conflict : " << infer << " : " << f
-                           << std::endl;
-    Trace("strings-assert")
-        << "(assert (not " << f << ")) ; conflict " << infer << std::endl;
-    ++(d_statistics.d_conflictsInfer);
-    d_poc.trustedConflict(n);
-    d_state.setConflict();
-    return;
-  }
-  Trace("strings-lemma") << "Strings::Lemma " << infer << " : " << f
-                         << std::endl;
-  Trace("strings-assert") << "(assert " << f << ") ; lemma " << infer
-                          << std::endl;
-  d_pendingLem.push_back(n);
-}
-
 bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
 {
   Node eq = a.eqNode(b);
@@ -273,15 +260,12 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   {
     return false;
   }
-  // update statistics
-  d_statistics.d_inferences << infer;
-  TrustNode tsplit = d_pfee.assertSplit(eq);
-  Assert(tsplit.getKind() == TrustNodeKind::LEMMA);
-  Node lem = tsplit.getNode();
-  Trace("strings-lemma") << "Strings::Lemma " << infer << " SPLIT : " << lem
-                         << std::endl;
-  d_pendingLem.push_back(tsplit);
+  NodeManager* nm = NodeManager::currentNM();
+  InferInfo iiSplit;
+  iiSplit.d_id = infer;
+  iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
   sendPhaseRequirement(eq, preq);
+  d_pendingLem.push_back(iiSplit);
   return true;
 }
 
@@ -319,26 +303,22 @@ void InferenceManager::doPendingFacts()
   size_t i = 0;
   while (!d_state.isInConflict() && i < d_pending.size())
   {
-    PendingInfer& pi = d_pending[i];
-    Inference inf = pi.d_infer;
-    Node fact = pi.d_fact;
-    Node exp = pi.d_exp;
+    InferInfo& ii = d_pending[i];
+    Inference inf = ii.d_infer;
+    Node fact = ii.d_fact;
+    Node exp = ii.d_exp;
     Assert(fact.getKind() != AND);
     // convert to proof rule
     std::vector<Node> pfChildren;
+    std::vector<Node> pfExp;
     std::vector<Node> pfArgs;
-    PfRule id = d_ipc.convert(fact, inf, exp, pfChildren, pfArgs);
+    PfRule rule = d_ipc.convert(ii, pfChildren, pfExp, pfArgs);
     preProcessFact(fact);
     // assert to equality engine
-    d_pfee.assertFact(fact, id, pfChildren, pfArgs);
+    d_pfee.assertFact(fact, rule, pfChildren, pfExp, pfArgs);
     if (!d_state.isInConflict())
     {
       postProcessFact(fact);
-      // Must reference count the equality and its explanation, which is not
-      // done by the equality engine. Notice that we do not need to do this for
-      // external assertions, which enter as facts through sendAssumption.
-      d_keep.insert(fact);
-      d_keep.insert(exp);
       i++;
     }
   }
@@ -347,21 +327,62 @@ void InferenceManager::doPendingFacts()
 
 void InferenceManager::doPendingLemmas()
 {
-  if (!d_state.isInConflict())
+  if (d_state.isInConflict())
   {
-    for (const TrustNode& pl : d_pendingLem)
+    // just clear the pending vectors, nothing else to do
+    d_pendingLem.clear();
+    d_pendingReqPhase.clear();
+    return;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
+  {
+    InferInfo& ii = d_pendingLem[i];
+    Assert(!ii.isTrivial());
+    Assert(!ii.isConflict());
+    // set up proof step based on inference
+    // pfExp is the children of the proof step below. This should be an
+    // ordered list of expConj + expn.
+    std::vector<Node> pfChildren;
+    std::vector<Node> pfExp;
+    std::vector<Node> pfArgs;
+    PfRule rule = d_ipc.convert(ii, pfChildren, pfExp, pfArgs);
+    if (!options::stringRExplainLemmas())
     {
-      Assert(pl.getKind() == TrustNodeKind::LEMMA);
-      Trace("strings-pending") << "Process pending lemma : " << pl << std::endl;
-      ++(d_statistics.d_lemmasInfer);
-      d_poc.trustedLemma(pl);
+      pfExp.clear();
     }
-    for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
+    // make the trusted lemma object
+    TrustNode n = d_pfee.assertLemma(ii.d_conc, rule, pfChildren, pfExp, pfArgs);
+    Node lem = n.getNode();
+    Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
+    Trace("strings-assert")
+        << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
+    Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id
+                           << std::endl;
+    // only keep stats if we process it here
+    d_statistics.d_inferences << ii.d_id;
+    ++(d_statistics.d_lemmasInfer);
+    d_out.trustedLemma(n);
+
+    // Process the side effects of the inference info.
+    // Register the new skolems from this inference. We register them here
+    // (lazily), since this is the moment when we have decided to process the
+    // inference.
+    for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
+         ii.d_new_skolem)
     {
-      Trace("strings-pending") << "Require phase : " << prp.first
-                               << ", polarity = " << prp.second << std::endl;
-      d_poc.requirePhase(prp.first, prp.second);
+      for (const Node& n : sks.second)
+      {
+        d_termReg.registerTermAtomic(n, sks.first);
+      }
     }
+  }
+  // process the pending require phase calls
+  for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
+  {
+    Trace("strings-pending") << "Require phase : " << prp.first
+                             << ", polarity = " << prp.second << std::endl;
+    d_poc.requirePhase(prp.first, prp.second);
   }
   d_pendingLem.clear();
   d_pendingReqPhase.clear();

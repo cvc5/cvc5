@@ -49,7 +49,7 @@ bool CDProof::addStep(Node expected,
   if (it != d_nodes.end())
   {
     if (!forceOverwrite
-        && ((*it).second->getId() != PfRule::ASSUME || id == PfRule::ASSUME))
+        && ((*it).second->getRule() != PfRule::ASSUME || id == PfRule::ASSUME))
     {
       // we do not overwrite if forceOverwrite is false and the previously
       // provided step was not an assumption, or if the currently provided step
@@ -144,7 +144,7 @@ bool CDProof::addProof(ProofNode* pn, bool forceOverwrite)
       }
       // can ensure children at this point
       bool res = addStep(curFact,
-                         cur->getId(),
+                         cur->getRule(),
                          pexp,
                          cur->getArguments(),
                          true,

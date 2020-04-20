@@ -47,17 +47,16 @@ class InferProofCons
    * (2) The premises of the proof step (pfChildren).
    * (3) Arguments to the proof step (pfArgs).
    */
-  PfRule convert(Node eq,
+  PfRule convert(const InferInfo& ii,
+                 std::vector<Node>& pfChildren,
+                 std::vector<Node>& pfExp,
+                 std::vector<Node>& pfArgs);
+  PfRule convert(Node conc,
                  Inference infer,
                  const std::vector<Node>& exp,
                  const std::vector<Node>& expn,
                  std::vector<Node>& pfChildren,
-                 std::vector<Node>& pfArgs);
-  /** Same as above with conjunction for exp */
-  PfRule convert(Node eq,
-                 Inference infer,
-                 Node expConj,
-                 std::vector<Node>& pfChildren,
+                 std::vector<Node>& pfExp,
                  std::vector<Node>& pfArgs);
 
  private:

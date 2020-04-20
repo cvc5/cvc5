@@ -24,30 +24,32 @@ namespace strings {
 
 InferProofCons::InferProofCons(eq::ProofEqEngine& pfee) : d_pfee(pfee) {}
 
-PfRule InferProofCons::convert(Node eq,
-                               Inference infer,
+PfRule InferProofCons::convert(const InferInfo& ii,
+                std::vector<Node>& pfChildren,
+                std::vector<Node>& pfArgs)
+{
+  return convert(ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pfChildren, pfArgs);
+}
+
+PfRule InferProofCons::convert(Inference infer,
+                               Node conc,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& expn,
                                std::vector<Node>& pfChildren,
+                               std::vector<Node>& pfExp,
                                std::vector<Node>& pfArgs)
 {
-  // TODO
-  pfChildren.insert(pfChildren.end(), exp.begin(), exp.end());
-  pfChildren.insert(pfChildren.end(), expn.begin(), expn.end());
+  // must flatten children with respect to AND to be ready to explain
+  for (const Node& ec : exp)
+  {
+    utils::flattenOp(AND, ec, pfChildren);
+  }
+  pfExp.insert(pfExp.end(),pfChildren.begin(),pfChildren.end());
+  for (const Node& ecn : expn)
+  {
+    utils::flattenOp(AND, ecn, pfChildren);
+  }
   return PfRule::UNKNOWN;
-}
-
-PfRule InferProofCons::convert(Node eq,
-                               Inference infer,
-                               Node expConj,
-                               std::vector<Node>& pfChildren,
-                               std::vector<Node>& pfArgs)
-{
-  std::vector<Node> exp;
-  utils::flattenOp(AND, expConj, exp);
-  // no new literals
-  std::vector<Node> expn;
-  return convert(eq, infer, exp, expn, pfChildren, pfArgs);
 }
 
 }  // namespace strings

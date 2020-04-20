@@ -23,7 +23,7 @@ ProofNode::ProofNode(PfRule id,
   setValue(id, children, args);
 }
 
-PfRule ProofNode::getId() const { return d_id; }
+PfRule ProofNode::getRule() const { return d_rule; }
 
 const std::vector<std::shared_ptr<ProofNode>>& ProofNode::getChildren() const
 {
@@ -34,11 +34,13 @@ const std::vector<Node>& ProofNode::getArguments() const { return d_args; }
 
 Node ProofNode::getResult() const { return d_proven; }
 
-void ProofNode::getAssumptions(std::vector<Node>& assump) const
+void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
 {
+  // visited set false after preorder traversal, true after postorder traversal
   std::unordered_map<const ProofNode*, bool> visited;
   std::unordered_map<const ProofNode*, bool>::iterator it;
   std::vector<const ProofNode*> visit;
+  // the current set of formulas bound by SCOPE
   std::unordered_set<Node, NodeHashFunction> currentScope;
   const ProofNode* cur;
   visit.push_back(this);
@@ -50,10 +52,11 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
     if (it == visited.end())
     {
       visited[cur] = true;
-      PfRule id = cur->getId();
+      PfRule id = cur->getRule();
       if (id == PfRule::ASSUME)
       {
-        Node f = cur->d_proven;
+        Assert(cur->d_args.size() == 1);
+        Node f = cur->d_args[0];
         if (currentScope.find(f) == currentScope.end())
         {
           assump.push_back(f);
@@ -81,7 +84,7 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
     }
     else if (!it->second)
     {
-      Assert(cur->getId() == PfRule::SCOPE);
+      Assert(cur->getRule() == PfRule::SCOPE);
       // unbind its assumptions
       for (const Node& a : cur->d_args)
       {
@@ -116,14 +119,14 @@ void ProofNode::setValue(
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
-  d_id = id;
+  d_rule = id;
   d_children = children;
   d_args = args;
 }
 
 void ProofNode::printDebug(std::ostream& os) const
 {
-  os << "(" << d_id;
+  os << "(" << d_rule;
   for (const std::shared_ptr<ProofNode>& c : d_children)
   {
     os << " ";

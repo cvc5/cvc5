@@ -37,7 +37,7 @@ namespace CVC4 {
  *
  * The "core rules" include two distinguished rules which have special status:
  * (1) ASSUME, which represents an open leaf in a proof.
- * (2) SCOPE, which can be
+ * (2) SCOPE, which closes the scope of assumptions.
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
  *
@@ -61,7 +61,7 @@ enum class PfRule : uint32_t
   // assumption in proof P" if it contains an application of F that is not
   // bound by SCOPE (see below).
   ASSUME,
-  // ======== Assumption (a leaf)
+  // ======== Scope (a binder for assumptions)
   // Children: (P:F)
   // Arguments: (F1, ..., Fn)
   // --------------
