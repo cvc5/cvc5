@@ -55,22 +55,29 @@ class ProofNode
             const std::vector<std::shared_ptr<ProofNode>>& children,
             const std::vector<Node>& args);
   ~ProofNode() {}
-  /** get the id of this proof node */
-  PfRule getId() const;
+  /** get the rule of this proof node */
+  PfRule getRule() const;
   /** Get children */
   const std::vector<std::shared_ptr<ProofNode>>& getChildren() const;
   /** Get arguments */
   const std::vector<Node>& getArguments() const;
   /** get what this node proves, or the null node if this is an invalid proof */
   Node getResult() const;
-  /** Get assumptions
+  /**
+   * This adds to the vector assump all formulas that are "free assumptions" of
+   * the proof whose root is this ProofNode. A free assumption is a formula F
+   * that is an argument (in d_args) of a ProofNode whose kind is ASSUME, and
+   * that proof node is not beneath an application of SCOPE containing F as an
+   * argument.
    *
-   * This adds to the vector assump all formulas that are "assumptions" of the
-   * proof whose root is this ProofNode. An assumption is a formula that is an
-   * argument (in d_args) of a ProofNode whose kind is ASSUME. This traverses
-   * the structure of the dag represented by this ProofNode.
+   * This traverses the structure of the dag represented by this ProofNode.
+   * Its implementation is analogous to expr::getFreeVariables.
    */
-  void getAssumptions(std::vector<Node>& assump) const;
+  void getFreeAssumptions(std::vector<Node>& assump) const;
+  /**
+   * Returns true if this is a closed proof (i.e. it has no free assumptions).
+   */
+  bool isClosed() const;
   /** Print debug on output strem os */
   void printDebug(std::ostream& os) const;
 
@@ -82,8 +89,8 @@ class ProofNode
   void setValue(PfRule id,
                 const std::vector<std::shared_ptr<ProofNode>>& children,
                 const std::vector<Node>& args);
-  /** The proof step */
-  PfRule d_id;
+  /** The proof rule */
+  PfRule d_rule;
   /** The children of this proof node */
   std::vector<std::shared_ptr<ProofNode>> d_children;
   /** arguments of this node */
