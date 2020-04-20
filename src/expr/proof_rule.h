@@ -35,19 +35,42 @@ namespace CVC4 {
  * The following PfRule values include core rules and those categorized by
  * theory, including the theory of equality.
  *
- * The "core rules" include ASSUME, which represents an open leaf in a proof.
+ * The "core rules" include two distinguished rules which have special status:
+ * (1) ASSUME, which represents an open leaf in a proof.
+ * (2) SCOPE, which closes the scope of assumptions.
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
  */
 enum class PfRule : uint32_t
 {
   //================================================= Core rules
+  //======================== Assume and Scope
   // ======== Assumption (a leaf)
   // Children: none
   // Arguments: (F)
   // --------------
-  // Conclusion F
+  // Conclusion: F
+  //
+  // This rule has special status, in that an application of assume is an
+  // open leaf in a proof that is not (yet) justified. An assume leaf is
+  // analogous to a free variable in a term, where we say "F is a free
+  // assumption in proof P" if it contains an application of F that is not
+  // bound by SCOPE (see below).
   ASSUME,
+  // ======== Scope (a binder for assumptions)
+  // Children: (P:F)
+  // Arguments: (F1, ..., Fn)
+  // --------------
+  // Conclusion: (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) if F is false
+  //
+  // This rule has a dual purpose with ASSUME. It is a way to close
+  // assumptions in a proof. We require that F1 ... Fn are free assumptions in
+  // P and say that F1, ..., Fn are not free in (SCOPE P). In other words, they
+  // are bound by this application. For example, the proof node:
+  //   (SCOPE (ASSUME F) :args F)
+  // has the conclusion (=> F F) and has no free assumptions. More generally, a
+  // proof with no free assumptions always concludes a valid formula.
+  SCOPE,
 
   //================================================= Unknown rule
   UNKNOWN,

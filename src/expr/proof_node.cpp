@@ -23,7 +23,7 @@ ProofNode::ProofNode(PfRule id,
   setValue(id, children, args);
 }
 
-PfRule ProofNode::getId() const { return d_id; }
+PfRule ProofNode::getRule() const { return d_rule; }
 
 const std::vector<std::shared_ptr<ProofNode>>& ProofNode::getChildren() const
 {
@@ -34,11 +34,14 @@ const std::vector<Node>& ProofNode::getArguments() const { return d_args; }
 
 Node ProofNode::getResult() const { return d_proven; }
 
-void ProofNode::getAssumptions(std::vector<Node>& assump) const
+void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
 {
-  std::unordered_set<const ProofNode*> visited;
-  std::unordered_set<const ProofNode*>::iterator it;
+  // visited set false after preorder traversal, true after postorder traversal
+  std::unordered_map<const ProofNode*, bool> visited;
+  std::unordered_map<const ProofNode*, bool>::iterator it;
   std::vector<const ProofNode*> visit;
+  // the current set of formulas bound by SCOPE
+  std::unordered_set<Node, NodeHashFunction> currentScope;
   const ProofNode* cur;
   visit.push_back(this);
   do
@@ -48,20 +51,54 @@ void ProofNode::getAssumptions(std::vector<Node>& assump) const
     it = visited.find(cur);
     if (it == visited.end())
     {
-      visited.insert(cur);
-      if (cur->getId() == PfRule::ASSUME)
+      visited[cur] = true;
+      PfRule id = cur->getRule();
+      if (id == PfRule::ASSUME)
       {
-        assump.push_back(cur->d_proven);
+        Assert(cur->d_args.size() == 1);
+        Node f = cur->d_args[0];
+        if (currentScope.find(f) == currentScope.end())
+        {
+          assump.push_back(f);
+        }
       }
       else
       {
+        if (id == PfRule::SCOPE)
+        {
+          // mark that its arguments are bound in the current scope
+          for (const Node& a : cur->d_args)
+          {
+            // should not have assumption shadowing
+            Assert(currentScope.find(a) != currentScope.end());
+            currentScope.insert(a);
+          }
+          // will need to unbind the variables below
+          visited[cur] = false;
+        }
         for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
         {
           visit.push_back(cp.get());
         }
       }
     }
+    else if (!it->second)
+    {
+      Assert(cur->getRule() == PfRule::SCOPE);
+      // unbind its assumptions
+      for (const Node& a : cur->d_args)
+      {
+        currentScope.erase(a);
+      }
+    }
   } while (!visit.empty());
+}
+
+bool ProofNode::isClosed() const
+{
+  std::vector<Node> assumps;
+  getFreeAssumptions(assumps);
+  return assumps.empty();
 }
 
 void ProofNode::setValue(
@@ -69,14 +106,14 @@ void ProofNode::setValue(
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
-  d_id = id;
+  d_rule = id;
   d_children = children;
   d_args = args;
 }
 
 void ProofNode::printDebug(std::ostream& os) const
 {
-  os << "(" << d_id;
+  os << "(" << d_rule;
   for (const std::shared_ptr<ProofNode>& c : d_children)
   {
     os << " ";
