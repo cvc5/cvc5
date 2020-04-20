@@ -178,14 +178,14 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       std::vector<Node> pfExp;
       std::vector<Node> pfArgs;
       PfRule rule = d_ipc.convert(ii, pfChildren, pfArgs);
-      TrustNode conf = d_pfee.assertConflict(ii.d_rule, pfChildren, pfArgs);
-      Assert(conf.getKind() == TrustNodeKind::CONFLICT);
-      Trace("strings-assert") << "(assert (not " << conf << ")) ; conflict "
+      TrustNode tconf = d_pfee.assertConflict(ii.d_rule, pfChildren, pfArgs);
+      Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
+      Trace("strings-assert") << "(assert (not " << tconf.getNode() << ")) ; conflict "
                               << ii.d_id << std::endl;
       ++(d_statistics.d_conflictsInfer);
       // only keep stats if we process it here
       d_statistics.d_inferences << ii.d_id;
-      d_poc.trustedConflict(conf);
+      d_poc.trustedConflict(tconf);
       d_state.setConflict();
       return;
     }
@@ -352,9 +352,9 @@ void InferenceManager::doPendingLemmas()
       pfExp.clear();
     }
     // make the trusted lemma object
-    TrustNode n =
+    TrustNode tlem =
         d_pfee.assertLemma(ii.d_conc, rule, pfChildren, pfExp, pfArgs);
-    Node lem = n.getNode();
+    Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
     Trace("strings-assert")
         << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
@@ -363,7 +363,7 @@ void InferenceManager::doPendingLemmas()
     // only keep stats if we process it here
     d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
-    d_out.trustedLemma(n);
+    d_out.trustedLemma(tlem);
 
     // Process the side effects of the inference info.
     // Register the new skolems from this inference. We register them here
