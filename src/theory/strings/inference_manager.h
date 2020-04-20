@@ -144,7 +144,7 @@ class InferenceManager
    * of each type.
    *
    * If the flag asLemma is true, then this method will send a lemma instead
-   * of an inference whenever applicable.
+   * of a fact whenever applicable.
    */
   void sendInference(const std::vector<Node>& exp,
                      const std::vector<Node>& exp_n,
@@ -165,6 +165,9 @@ class InferenceManager
    * The inference info ii should have a rewritten conclusion and should not be
    * trivial (InferInfo::isTrivial). It is the responsibility of the caller to
    * ensure this.
+   * 
+   * If the flag asLemma is true, then this method will send a lemma instead
+   * of a fact whenever applicable.
    */
   void sendInference(const InferInfo& ii, bool asLemma = false);
   /** Send split
@@ -186,7 +189,10 @@ class InferenceManager
    *
    * This method is called to indicate this class should send a phase
    * requirement request to the output channel for literal lit to be
-   * decided with polarity pol.
+   * decided with polarity pol. This requirement is processed at the same time
+   * lemmas are sent on the output channel of this class during this call to
+   * check. This means if the current lemmas of this class are abandoned (due
+   * to a conflict), the phase requirement is not processed.
    */
   void sendPhaseRequirement(Node lit, bool pol);
   /**

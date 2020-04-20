@@ -358,10 +358,6 @@ class InferInfo
    * can be assumed for them.
    */
   std::map<LengthStatus, std::vector<Node> > d_new_skolem;
-  /**
-   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
-   */
-  std::map<Node, bool> d_pending_phase;
   /**  Is this infer info trivial? True if d_conc is true. */
   bool isTrivial() const;
   /**

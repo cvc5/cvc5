@@ -235,7 +235,7 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   InferInfo iiSplit;
   iiSplit.d_id = infer;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  iiSplit.d_pending_phase[eq] = preq;
+  sendPhaseRequirement(eq, preq);
   d_pendingLem.push_back(iiSplit);
   return true;
 }
@@ -348,9 +348,9 @@ void InferenceManager::doPendingLemmas()
     d_out.lemma(lem);
 
     // Process the side effects of the inference info.
-    // [1] Register the new skolems from this inference. We register them here
-    // (lazily), since this is the moment when we have decided to use the
-    // inference at use_index that involves them.
+    // Register the new skolems from this inference. We register them here
+    // (lazily), since this is the moment when we have decided to process the
+    // inference.
     for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
          ii.d_new_skolem)
     {
@@ -358,11 +358,6 @@ void InferenceManager::doPendingLemmas()
       {
         d_termReg.registerTermAtomic(n, sks.first);
       }
-    }
-    // [2] process the associated pending phase, add to map to process below
-    for (const std::pair<const Node, bool> pp : ii.d_pending_phase)
-    {
-      sendPhaseRequirement(pp.first, pp.second);
     }
   }
   // process the pending require phase calls

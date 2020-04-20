@@ -37,11 +37,17 @@ namespace strings {
  * by the inference manager, the side effects it generates for the core solver,
  * and information used for heuristics and debugging.
  */
-class CoreInferInfo : public InferInfo
+class CoreInferInfo
 {
  public:
   CoreInferInfo();
   ~CoreInferInfo() {}
+  /** The infer info of this class */
+  InferInfo d_infer;
+  /**
+   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
+   */
+  std::map<Node, bool> d_pendingPhase;
   /**
    * The index in the normal forms under which this inference is addressing.
    * For example, if the inference is inferring x = y from |x|=|y| and
@@ -52,7 +58,7 @@ class CoreInferInfo : public InferInfo
   /**
    * The normal form pair that is cached as a result of this inference.
    */
-  Node d_nf_pair[2];
+  Node d_nfPair[2];
   /** for debugging
    *
    * The base pair of strings d_i/d_j that led to the inference, and whether
@@ -436,7 +442,7 @@ class CoreSolver
    * indepedent map from nodes to lists of nodes to model this, given by
    * the two data members below.
    */
-  NodeIntMap d_nf_pairs;
+  NodeIntMap d_nfPairs;
   std::map<Node, std::vector<Node> > d_nf_pairs_data;
   /** list of non-congruent concat terms in each equivalence class */
   std::map<Node, std::vector<Node> > d_eqc;
