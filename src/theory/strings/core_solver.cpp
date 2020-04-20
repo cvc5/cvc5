@@ -963,7 +963,7 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
                          << ") : " << std::endl;
   Inference min_id = Inference::NONE;
   unsigned max_index = 0;
-  for (unsigned i=0, psize = pinfer.size(); i<psize; i++)
+  for (unsigned i = 0, psize = pinfer.size(); i < psize; i++)
   {
     CoreInferInfo& ipii = pinfer[i];
     InferInfo& ii = ipii.d_infer;
@@ -983,7 +983,7 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
   if (!processInferInfo(pinfer[use_index]))
   {
     Unhandled() << "Failed to process infer info " << pinfer[use_index].d_infer
-                  << std::endl;
+                << std::endl;
   }
 }
 
@@ -1347,7 +1347,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
               << "Const Split: " << prea << " is removed from " << stra
               << " due to " << strb << ", p=" << p << std::endl;
           iinfo.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, prea)
-                                        : utils::mkNConcat(prea, sk));
+                                         : utils::mkNConcat(prea, sk));
           iinfo.d_new_skolem[LENGTH_SPLIT].push_back(sk);
           iinfo.d_id = Inference::SSPLIT_CST_PROP;
           pinfer.push_back(info);
@@ -1372,9 +1372,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Trace("strings-csp") << "Const Split: " << firstChar
                            << " is removed from " << stra << " (serial) "
                            << std::endl;
-      NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);
+      NormalForm::getExplanationForPrefixEq(
+          nfi, nfj, index, index, iinfo.d_ant);
       iinfo.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
-                                    : utils::mkNConcat(firstChar, sk));
+                                     : utils::mkNConcat(firstChar, sk));
       iinfo.d_new_skolem[LENGTH_SPLIT].push_back(sk);
       iinfo.d_id = Inference::SSPLIT_CST;
       pinfer.push_back(info);
@@ -1546,7 +1547,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   Trace("strings-loop") << r << std::endl;
 
   Node emp = Word::mkEmptyWord(stype);
-  
+
   InferInfo& iinfo = info.d_infer;
   if (s_zy.isConst() && r.isConst() && r != emp)
   {
@@ -2124,8 +2125,9 @@ void CoreSolver::addNormalFormPair( Node n1, Node n2 ){
   }
   if( !isNormalFormPair( n1, n2 ) ){
     int index = 0;
-    NodeIntMap::const_iterator it = d_nfPairs.find( n1 );
-    if( it!=d_nfPairs.end() ){
+    NodeIntMap::const_iterator it = d_nfPairs.find(n1);
+    if (it != d_nfPairs.end())
+    {
       index = (*it).second;
     }
     d_nfPairs[n1] = index + 1;
@@ -2146,8 +2148,9 @@ bool CoreSolver::isNormalFormPair( Node n1, Node n2 ) {
     return isNormalFormPair(n2,n1);
   }
   //Trace("strings-debug") << "is normal form pair. " << n1 << " " << n2 << std::endl;
-  NodeIntMap::const_iterator it = d_nfPairs.find( n1 );
-  if( it!=d_nfPairs.end() ){
+  NodeIntMap::const_iterator it = d_nfPairs.find(n1);
+  if (it != d_nfPairs.end())
+  {
     Assert(d_nf_pairs_data.find(n1) != d_nf_pairs_data.end());
     for( int i=0; i<(*it).second; i++ ){
       Assert(i < (int)d_nf_pairs_data[n1].size());
@@ -2316,10 +2319,10 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
   {
     d_im.sendPhaseRequirement(pp.first, pp.second);
   }
-    
+
   // send the inference, which is a lemma
   d_im.sendInference(ii, true);
-    
+
   return true;
 }
 

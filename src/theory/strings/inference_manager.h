@@ -165,7 +165,7 @@ class InferenceManager
    * The inference info ii should have a rewritten conclusion and should not be
    * trivial (InferInfo::isTrivial). It is the responsibility of the caller to
    * ensure this.
-   * 
+   *
    * If the flag asLemma is true, then this method will send a lemma instead
    * of a fact whenever applicable.
    */
