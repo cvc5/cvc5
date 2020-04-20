@@ -374,7 +374,7 @@ class InferInfo
 };
 
 /**
- * Writes an inference info name to a stream.
+ * Writes an inference info to a stream.
  *
  * @param out The stream to write to
  * @param ii The inference info to write to the stream
