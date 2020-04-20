@@ -224,7 +224,7 @@ class CoreSolver
    * This processes the infer info ii as an inference. In more detail, it calls
    * the inference manager to process the inference, and updates the set of
    * normal form pairs. Returns true if the conclusion of ii was not true
-   * after rewriting, in which case this method does nothing.
+   * after rewriting. If the conclusion is true, this method does nothing.
    */
   bool processInferInfo(CoreInferInfo& ii);
   /** Add that (n1,n2) is a normal form pair in the current context. */
