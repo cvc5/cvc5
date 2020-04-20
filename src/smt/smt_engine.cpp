@@ -3187,14 +3187,14 @@ bool SmtEngine::getInterpol(const Expr& conj,
   // enable everything needed for sygus
   l.enableSygus();
   d_subsolver->setLogic(l);
-  //if (options::produceInterpols() == options::ProduceInterpols::DEFAULT)
-  //{
-	//	Trace("sygus-interpol-debug") << "Set default grammar" << std::endl;
-  //  d_subsolver->declareSynthFun("A", interpol, grammarType, false, vars);
-	//}
-	//else
+  if (options::produceInterpols() == options::ProduceInterpols::DEFAULT)
+  {
+		Trace("sygus-interpol-debug") << "Set default grammar" << std::endl;
+    d_subsolver->declareSynthFun("A", interpol, grammarType, false, vars);
+		d_subsolver->assertSygusConstraint(sygusConj.toExpr());
+	}
+	else
 	{
-		//d_subsolver->assertSygusConstraint(sygusConj.toExpr());
 		d_subsolver->assertFormula(sygusConj.toExpr());
 	}
 
@@ -3215,7 +3215,12 @@ bool SmtEngine::getInterpolInternal(Expr& interpol)
   Assert(d_subsolver != nullptr);
   Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
                           << std::endl;
-  Result r = d_subsolver->checkSat();
+	Result r;
+	if (options::produceInterpols() == options::ProduceInterpols::DEFAULT) {
+		r = d_subsolver->checkSynth();
+	} else {
+		r = d_subsolver->checkSat();
+	}
   Trace("sygus-interpol") << "  SmtEngine::getInterpol result: " << r
                           << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
