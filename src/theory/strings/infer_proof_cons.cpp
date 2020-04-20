@@ -25,8 +25,8 @@ namespace strings {
 InferProofCons::InferProofCons(eq::ProofEqEngine& pfee) : d_pfee(pfee) {}
 
 PfRule InferProofCons::convert(const InferInfo& ii,
-                std::vector<Node>& pfChildren,
-                std::vector<Node>& pfArgs)
+                               std::vector<Node>& pfChildren,
+                               std::vector<Node>& pfArgs)
 {
   return convert(ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pfChildren, pfArgs);
 }
@@ -44,7 +44,7 @@ PfRule InferProofCons::convert(Inference infer,
   {
     utils::flattenOp(AND, ec, pfChildren);
   }
-  pfExp.insert(pfExp.end(),pfChildren.begin(),pfChildren.end());
+  pfExp.insert(pfExp.end(), pfChildren.begin(), pfChildren.end());
   for (const Node& ecn : expn)
   {
     utils::flattenOp(AND, ecn, pfChildren);

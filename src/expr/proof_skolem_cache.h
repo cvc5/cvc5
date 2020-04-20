@@ -28,7 +28,7 @@ namespace CVC4 {
  * trusted interface to NodeManager::mkSkolem, where one
  * must provide a definition for the skolem they create in terms of a
  * predicate that the introduced variable is intended to witness.
- * 
+ *
  * It is implemented by mapping terms to an attribute corresponding to their
  * "witness form" as described below. Hence, this class does not impact the
  * reference counting of skolem variables which may be deleted if they are not

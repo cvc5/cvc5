@@ -1126,7 +1126,8 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
             emptyflag = true;
             break;
           } else {
-            Node sk = nm->mkSkolem( "rc", s.getType(), "created for regular expression concat" );
+            Node sk = nm->mkSkolem(
+                "rc", s.getType(), "created for regular expression concat");
             Node lem = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, sk, r[i]);
             nvec.push_back(lem);
             cc.push_back(sk);

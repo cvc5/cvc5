@@ -179,7 +179,7 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       std::vector<Node> pfArgs;
       PfRule rule = d_ipc.convert(ii, pfChildren, pfArgs);
       TrustNode conf = d_pfee.assertConflict(ii.d_rule, pfChildren, pfArgs);
-      Assert (conf.getKind()==TrustNodeKind::CONFLICT);
+      Assert(conf.getKind() == TrustNodeKind::CONFLICT);
       Trace("strings-assert") << "(assert (not " << conf << ")) ; conflict "
                               << ii.d_id << std::endl;
       ++(d_statistics.d_conflictsInfer);
@@ -352,7 +352,8 @@ void InferenceManager::doPendingLemmas()
       pfExp.clear();
     }
     // make the trusted lemma object
-    TrustNode n = d_pfee.assertLemma(ii.d_conc, rule, pfChildren, pfExp, pfArgs);
+    TrustNode n =
+        d_pfee.assertLemma(ii.d_conc, rule, pfChildren, pfExp, pfArgs);
     Node lem = n.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
     Trace("strings-assert")
@@ -410,11 +411,12 @@ void InferenceManager::preProcessFact(TNode fact)
   }
 }
 void InferenceManager::postProcessFact(TNode fact)
-{  
+{
   bool polarity = fact.getKind() != NOT;
   TNode atom = polarity ? fact : fact[0];
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  if (atom.getKind() == STRING_IN_REGEXP && polarity && atom[1].getKind() == REGEXP_CONCAT)
+  if (atom.getKind() == STRING_IN_REGEXP && polarity
+      && atom[1].getKind() == REGEXP_CONCAT)
   {
     Node eqc = ee->getRepresentative(atom[0]);
     d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
