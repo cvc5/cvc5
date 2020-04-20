@@ -142,7 +142,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * The witness operator behaves like the description operator
    * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is no x
    * that satisfies F. But if such x exists, the witness operator does not
-   * respect the uniqueness formula:
+   * enforce the axiom that ensures uniqueness up to logical equivalence:
    * forall x. F \equiv G => witness x. F =  witness x. G
    *
    * For example if there are 2 elements of type T that satisfy F, then the
