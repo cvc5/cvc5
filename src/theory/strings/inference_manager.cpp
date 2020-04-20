@@ -180,8 +180,8 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       PfRule rule = d_ipc.convert(ii, pfChildren, pfArgs);
       TrustNode tconf = d_pfee.assertConflict(ii.d_rule, pfChildren, pfArgs);
       Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
-      Trace("strings-assert") << "(assert (not " << tconf.getNode() << ")) ; conflict "
-                              << ii.d_id << std::endl;
+      Trace("strings-assert") << "(assert (not " << tconf.getNode()
+                              << ")) ; conflict " << ii.d_id << std::endl;
       ++(d_statistics.d_conflictsInfer);
       // only keep stats if we process it here
       d_statistics.d_inferences << ii.d_id;
