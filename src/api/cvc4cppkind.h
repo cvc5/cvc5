@@ -149,7 +149,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * following formula is satisfiable:
    * (distinct
    *    (witness ((x Int)) F)
-   *    (witness ((x Int)) (F x)))
+   *    (witness ((x Int)) F))
    *
    * Parameters: 2
    *   -[1]: BOUND_VAR_LIST
