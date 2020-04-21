@@ -20,5 +20,5 @@
 (assert (str.in_re var_1 (re.* (re.range "a" "u"))))
 (assert (str.in_re var_1 (re.++ (re.* (str.to_re "a")) (str.to_re "b"))))
 (assert (str.in_re var_1 (re.++ (re.++ (re.++ (re.* (re.union (str.to_re "a") (str.to_re "b"))) (str.to_re "b")) (str.to_re "a")) (re.* (re.union (str.to_re "a") (str.to_re "b"))))))
-(assert (not (str.in_re "" re.nostr)))
+(assert (not (str.in_re "" re.none)))
 (check-sat)

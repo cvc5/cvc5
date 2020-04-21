@@ -21,7 +21,7 @@
   )
 )
  
-(assert (= (<= (str.to.int Y) 31) false))
+(assert (= (<= (str.to_int Y) 31) false))
  
 (check-sat)
  

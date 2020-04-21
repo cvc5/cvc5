@@ -15,8 +15,8 @@
 (assert (= y (int.to.str (- 9))))
 
 ;big num
-(assert (= i (str.to.int "783914785582390527685649")))
+(assert (= i (str.to_int "783914785582390527685649")))
 ;should be -1
-(assert (= j (str.to.int "-783914785582390527685649")))
+(assert (= j (str.to_int "-783914785582390527685649")))
 
 (check-sat)

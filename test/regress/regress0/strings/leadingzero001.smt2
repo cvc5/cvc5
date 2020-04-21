@@ -6,7 +6,7 @@
 (declare-fun Y () String)
 
 (assert (= Y "0001"))
-;(assert (= (str.to.int Y) (- 1)))
-(assert (= (str.to.int Y) 1))
+;(assert (= (str.to_int Y) (- 1)))
+(assert (= (str.to_int Y) 1))
 
 (check-sat)

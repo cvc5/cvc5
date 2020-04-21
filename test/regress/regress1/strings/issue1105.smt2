@@ -7,5 +7,5 @@
     (Num (num Int)))))
 
 (declare-const var0 Val)
-(assert (=> (is-Str var0) (distinct (str.to.int (str var0)) (- 1))))
+(assert (=> (is-Str var0) (distinct (str.to_int (str var0)) (- 1))))
 (check-sat)
