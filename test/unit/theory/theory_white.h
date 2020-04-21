@@ -102,10 +102,7 @@ class DummyTheory : public Theory {
       : Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo)
   {}
 
-  std::unique_ptr<TheoryRewriter> mkTheoryRewriter()
-  {
-    return std::unique_ptr<TheoryRewriter>();
-  }
+  TheoryRewriter* getTheoryRewriter() { return nullptr; }
 
   void registerTerm(TNode n) {
     // check that we registerTerm() a term only once

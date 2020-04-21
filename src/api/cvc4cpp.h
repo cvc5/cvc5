@@ -680,11 +680,6 @@ class CVC4_PUBLIC Op
   Kind getKind() const;
 
   /**
-   * @return the sort of this operator
-   */
-  Sort getSort() const;
-
-  /**
    * @return true if this operator is a null term
    */
   bool isNull() const;
@@ -3104,7 +3099,7 @@ class CVC4_PUBLIC Solver
    * @param children the children of the term
    * @return the Term
    */
-  Term mkTermInternal(Kind kind, const std::vector<Term>& children) const;
+  Term mkTermHelper(Kind kind, const std::vector<Term>& children) const;
 
   /**
    * Create a vector of datatype sorts, using unresolved sorts.

@@ -54,17 +54,18 @@ TheoryArith::~TheoryArith(){
   delete d_internal;
 }
 
-std::unique_ptr<TheoryRewriter> TheoryArith::mkTheoryRewriter()
+TheoryRewriter* TheoryArith::getTheoryRewriter()
 {
-  return std::unique_ptr<TheoryRewriter>(new ArithRewriter());
+  return d_internal->getTheoryRewriter();
 }
 
 void TheoryArith::preRegisterTerm(TNode n){
   d_internal->preRegisterTerm(n);
 }
 
-Node TheoryArith::expandDefinition(LogicRequest &logicRequest, Node node) {
-  return d_internal->expandDefinition(logicRequest, node);
+Node TheoryArith::expandDefinition(Node node)
+{
+  return d_internal->expandDefinition(node);
 }
 
 void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {

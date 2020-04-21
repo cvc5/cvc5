@@ -189,15 +189,22 @@ void InferenceManager::split(Node n, int reqPol)
 }
 void InferenceManager::flushLemmas(std::vector<Node>& lemmas, bool preprocess)
 {
-  for (const Node& l : lemmas)
+  if (!d_state.isInConflict())
   {
-    flushLemma(l, preprocess);
+    for (const Node& l : lemmas)
+    {
+      flushLemma(l, preprocess);
+    }
   }
   lemmas.clear();
 }
 
 void InferenceManager::flushLemma(Node lem, bool preprocess)
 {
+  if (d_state.isInConflict())
+  {
+    return;
+  }
   if (d_lemmas_produced.find(lem) != d_lemmas_produced.end())
   {
     Trace("sets-lemma-debug") << "Already sent lemma : " << lem << std::endl;
@@ -211,11 +218,7 @@ void InferenceManager::flushLemma(Node lem, bool preprocess)
 
 void InferenceManager::flushPendingLemmas(bool preprocess)
 {
-  for (const Node& l : d_pendingLemmas)
-  {
-    flushLemma(l, preprocess);
-  }
-  d_pendingLemmas.clear();
+  flushLemmas(d_pendingLemmas, preprocess);
 }
 
 bool InferenceManager::hasLemmaCached(Node lem) const

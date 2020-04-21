@@ -112,11 +112,6 @@ TheoryBV::TheoryBV(context::Context* c,
 
 TheoryBV::~TheoryBV() {}
 
-std::unique_ptr<TheoryRewriter> TheoryBV::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new TheoryBVRewriter());
-}
-
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
@@ -199,7 +194,8 @@ void TheoryBV::finishInit()
   tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 }
 
-Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
+Node TheoryBV::expandDefinition(Node node)
+{
   Debug("bitvector-expandDefinition") << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
 
   switch (node.getKind()) {
@@ -226,7 +222,6 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
     Node divByZero = getBVDivByZero(node.getKind(), width);
     Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
     node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-    logicRequest.widenLogic(THEORY_UF);
     return node;
   }
     break;
@@ -238,7 +233,6 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
 
   Unreachable();
 }
-
 
 void TheoryBV::preRegisterTerm(TNode node) {
   d_calledPreregister = true;

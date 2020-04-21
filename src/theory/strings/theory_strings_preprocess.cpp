@@ -79,7 +79,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node sk2 = ArithEntail::check(t12, lt0)
                    ? emp
                    : d_sc->mkSkolemCached(
-                         s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+                       s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
     //length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
@@ -368,7 +368,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node rpw = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpw");
 
     // y = ""
-    Node cond1 = y.eqNode(nm->mkConst(CVC4::String("")));
+    Node emp = Word::mkEmptyWord(tn);
+    Node cond1 = y.eqNode(emp);
     // rpw = str.++( z, x )
     Node c1 = rpw.eqNode(nm->mkNode(kind::STRING_CONCAT, z, x));
 

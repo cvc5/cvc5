@@ -420,8 +420,15 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
 
   Debug("getType") << this << " getting type for " << &n << " " << n << ", check=" << check << ", needsCheck = " << needsCheck << ", hasType = " << hasType << endl;
-  
-  if(needsCheck && !(*d_options)[options::earlyTypeChecking]) {
+
+#ifdef CVC4_DEBUG
+  // already did type check eagerly upon creation in node builder
+  bool doTypeCheck = false;
+#else
+  bool doTypeCheck = true;
+#endif
+  if (needsCheck && doTypeCheck)
+  {
     /* Iterate and compute the children bottom up. This avoids stack
        overflows in computeType() when the Node graph is really deep,
        which should only affect us when we're type checking lazily. */
@@ -754,9 +761,9 @@ Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
   if( bvl.isNull() ){
     std::vector< Node > vars;
     for( unsigned i=0; i<tn.getNumChildren()-1; i++ ){
-      vars.push_back( NodeManager::currentNM()->mkBoundVar( tn[i] ) );
+      vars.push_back(mkBoundVar(tn[i]));
     }
-    bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, vars );
+    bvl = mkNode(kind::BOUND_VAR_LIST, vars);
     Trace("functions") << "Make standard bound var list " << bvl << " for " << tn << std::endl;
     tn.setAttribute(LambdaBoundVarListAttr(),bvl);
   }

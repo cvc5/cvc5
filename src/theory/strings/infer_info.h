@@ -59,10 +59,39 @@ enum class Inference : uint32_t
   // equal after e.g. removing strings that are currently empty. For example:
   //   y = "" ^ z = "" => x ++ y = z ++ x
   I_NORM,
+  // A split due to cardinality
+  CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.
   CARDINALITY,
   //-------------------------------------- end base solver
   //-------------------------------------- core solver
+  // A cycle in the empty string equivalence class, e.g.:
+  //   x ++ y = "" => x = ""
+  // This is typically not applied due to length constraints implying emptiness.
+  I_CYCLE_E,
+  // A cycle in the containment ordering.
+  //   x = y ++ x => y = "" or
+  //   x = y ++ z ^ y = x ++ w => z = "" ^ w = ""
+  // This is typically not applied due to length constraints implying emptiness.
+  I_CYCLE,
+  // Flat form constant
+  //   x = y ^ x = z ++ c ... ^ y = z ++ d => false
+  // where c and d are distinct constants.
+  F_CONST,
+  // Flat form unify
+  //   x = y ^ x = z ++ x' ... ^ y = z ++ y' ^ len(x') = len(y') => x' = y'
+  // Notice flat form instances are similar to normal form inferences but do
+  // not involve recursive explanations.
+  F_UNIFY,
+  // Flat form endpoint empty
+  //   x = y ^ x = z ^ y = z ++ y' => y' = ""
+  F_ENDPOINT_EMP,
+  // Flat form endpoint equal
+  //   x = y ^ x = z ++ x' ^ y = z ++ y' => x' = y'
+  F_ENDPOINT_EQ,
+  // Flat form not contained
+  // x = c ^ x = y => false when rewrite( contains( y, c ) ) = false
+  F_NCTN,
   // Given two normal forms, infers that the remainder one of them has to be
   // empty. For example:
   //    If x1 ++ x2 = y1 and x1 = y1, then x2 = ""
@@ -119,7 +148,63 @@ enum class Inference : uint32_t
   //        for fresh u, u1, u2.
   // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
   FLOOP,
+  // loop conflict ???
+  FLOOP_CONFLICT,
+  // Normal form inference
+  // x = y ^ z = y => x = z
+  // This is applied when y is the normal form of both x and z.
+  NORMAL_FORM,
+  // Normal form not contained, same as FFROM_NCTN but for normal forms
+  N_NCTN,
+  // Length normalization
+  //   x = y => len( x ) = len( y )
+  // Typically applied when y is the normal form of x.
+  LEN_NORM,
+  // When x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != len(y), we apply the
+  // inference:
+  //   x = "" v x != ""
+  DEQ_DISL_EMP_SPLIT,
+  // When x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) = 1, we apply the
+  // inference:
+  //   x = "a" v x != "a"
+  DEQ_DISL_FIRST_CHAR_EQ_SPLIT,
+  // When x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != "", we apply the
+  // inference:
+  //   ni = x ++ x' ++ ... ^ nj = "abc" ++ y' ++ ... ^ x != "" --->
+  //     x = k1 ++ k2 ^ len(k1) = 1 ^ (k1 != "a" v x = "a" ++  k2)
+  DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
+  // When x ++ x' ++ ... != y ++ y' ++ ... ^ len(x) != len(y), we apply the
+  // inference:
+  //   ni = x ++ x' ++ ... ^ nj = y ++ y' ++ ... ^ ni != nj ^ len(x) != len(y)
+  //     --->
+  //       len(k1) = len(x) ^ len(k2) = len(y) ^ (y = k1 ++ k3 v x = k1 ++ k2)
+  DEQ_DISL_STRINGS_SPLIT,
+  // When x ++ x' ++ ... != y ++ y' ++ ... ^ len(x) = len(y), we apply the
+  // inference:
+  //   x = y v x != y
+  DEQ_STRINGS_EQ,
+  // When x ++ x' ++ ... != y ++ y' ++ ... and we do not know how the lengths
+  // of x and y compare, we apply the inference:
+  //   len(x) = len(y) v len(x) != len(y)
+  DEQ_LENS_EQ,
+  // When px ++ x ++ ... != py ^ len(px ++ x ++ ...) = len(py), we apply the
+  // following inference that infers that the remainder of the longer normal
+  // form must be empty:
+  //   ni = px ++ x ++ ... ^ nj = py ^ len(ni) = len(nj) --->
+  //     x = "" ^ ...
+  DEQ_NORM_EMP,
+  // When two strings are disequal s != t and the comparison of their lengths
+  // is unknown, we apply the inference:
+  //   len(s) != len(t) V len(s) = len(t)
+  DEQ_LENGTH_SP,
   //-------------------------------------- end core solver
+  //-------------------------------------- codes solver
+  // str.to_code( v ) = rewrite( str.to_code(c) )
+  // where v is the proxy variable for c.
+  CODE_PROXY,
+  // str.code(x) = -1 V str.code(x) != str.code(y) V x = y
+  CODE_INJ,
+  //-------------------------------------- end codes solver
   //-------------------------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
@@ -157,14 +242,30 @@ enum class Inference : uint32_t
   RE_DERIVE,
   //-------------------------------------- end regexp solver
   //-------------------------------------- extended function solver
-  // All extended function inferences from context-dependent rewriting produced
-  // by constant substitutions. See Reynolds et al CAV 2017. These are
+  // Standard extended function inferences from context-dependent rewriting
+  // produced by constant substitutions. See Reynolds et al CAV 2017. These are
   // inferences of the form:
   //   X = Y => f(X) = t   when   rewrite( f(Y) ) = t
   // where X = Y is a vector of equalities, where some of Y may be constants.
   EXTF,
   // Same as above, for normal form substitutions.
   EXTF_N,
+  // Decompositions based on extended function inferences from context-dependent
+  // rewriting produced by constant substitutions. This is like the above, but
+  // handles cases where the inferred predicate is not necessarily an equality
+  // involving f(X). For example:
+  //   x = "A" ^ contains( y ++ x, "B" ) => contains( y, "B" )
+  // This is generally only inferred if contains( y, "B" ) is a known term in
+  // the current context.
+  EXTF_D,
+  // Same as above, for normal form substitutions.
+  EXTF_D_N,
+  // Extended function equality rewrite. This is an inference of the form:
+  //   t = s => P
+  // where P is a predicate implied by rewrite( t = s ).
+  // Typically, t is an application of an extended function and s is a constant.
+  // It is generally only inferred if P is a predicate over known terms.
+  EXTF_EQ_REW,
   // contain transitive
   //   ( str.contains( s, t ) ^ ~contains( s, r ) ) => ~contains( t, r ).
   CTN_TRANS,
@@ -227,19 +328,18 @@ enum LengthStatus
 };
 
 /**
- * This data structure encapsulates an inference for strings. This includes
- * the form of the inference, as well as the side effects it generates.
+ * An inference. This is a class to track an unprocessed call to either
+ * send a fact, lemma, or conflict that is waiting to be asserted to the
+ * equality engine or sent on the output channel.
  */
 class InferInfo
 {
  public:
   InferInfo();
-  /**
-   * The identifier for the inference, indicating the kind of reasoning used
-   * for this conclusion.
-   */
+  ~InferInfo() {}
+  /** The inference identifier */
   Inference d_id;
-  /** The conclusion of the inference */
+  /** The conclusion */
   Node d_conc;
   /**
    * The antecedant(s) of the inference, interpreted conjunctively. These are
@@ -258,31 +358,29 @@ class InferInfo
    * can be assumed for them.
    */
   std::map<LengthStatus, std::vector<Node> > d_new_skolem;
+  /**  Is this infer info trivial? True if d_conc is true. */
+  bool isTrivial() const;
   /**
-   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
+   * Does this infer info correspond to a conflict? True if d_conc is false
+   * and it has no new antecedants (d_antn).
    */
-  std::map<Node, bool> d_pending_phase;
+  bool isConflict() const;
   /**
-   * The index in the normal forms under which this inference is addressing.
-   * For example, if the inference is inferring x = y from |x|=|y| and
-   *   w ++ x ++ ... = w ++ y ++ ...
-   * then d_index is 1, since x and y are at index 1 in these concat terms.
+   * Does this infer info correspond to a "fact". A fact is an inference whose
+   * conclusion should be added as an equality or predicate to the equality
+   * engine with no new external antecedants (d_antn).
    */
-  unsigned d_index;
-  /**
-   * The normal form pair that is cached as a result of this inference.
-   */
-  Node d_nf_pair[2];
-  /** for debugging
-   *
-   * The base pair of strings d_i/d_j that led to the inference, and whether
-   * (d_rev) we were processing the normal forms of these strings in reverse
-   * direction.
-   */
-  Node d_i;
-  Node d_j;
-  bool d_rev;
+  bool isFact() const;
 };
+
+/**
+ * Writes an inference info to a stream.
+ *
+ * @param out The stream to write to
+ * @param ii The inference info to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, const InferInfo& ii);
 
 }  // namespace strings
 }  // namespace theory

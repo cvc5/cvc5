@@ -116,7 +116,7 @@ bool Instantiate::addInstantiation(
     // Ensure the type is correct, this for instance ensures that real terms
     // are cast to integers for { x -> t } where x has type Int and t has
     // type Real.
-    terms[i] = quantifiers::TermUtil::ensureType(terms[i], tn);
+    terms[i] = ensureType(terms[i], tn);
     if (mkRep)
     {
       // pick the best possible representative for instantiation, based on past
@@ -146,7 +146,7 @@ bool Instantiate::addInstantiation(
                     << std::endl;
       bad_inst = true;
     }
-    else if (options::cbqi())
+    else if (options::cegqi())
     {
       Node icf = quantifiers::TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
@@ -745,6 +745,22 @@ void Instantiate::debugPrintModel()
                               << std::endl;
     }
   }
+}
+
+Node Instantiate::ensureType(Node n, TypeNode tn)
+{
+  Trace("inst-add-debug2") << "Ensure " << n << " : " << tn << std::endl;
+  TypeNode ntn = n.getType();
+  Assert(ntn.isComparableTo(tn));
+  if (ntn.isSubtypeOf(tn))
+  {
+    return n;
+  }
+  if (tn.isInteger())
+  {
+    return NodeManager::currentNM()->mkNode(TO_INTEGER, n);
+  }
+  return Node::null();
 }
 
 Instantiate::Statistics::Statistics()

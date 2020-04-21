@@ -63,12 +63,13 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
     default: Unreachable() << "Unknown SAT solver type";
   }
   d_satSolver.reset(solver);
-  d_cnfStream.reset(
-      new prop::TseitinCnfStream(d_satSolver.get(),
-                                 d_bitblastingRegistrar.get(),
-                                 d_nullContext.get(),
-                                 options::proof(),
-                                 "EagerBitblaster"));
+  ResourceManager* rm = NodeManager::currentResourceManager();
+  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
+                                               d_bitblastingRegistrar.get(),
+                                               d_nullContext.get(),
+                                               rm,
+                                               options::proof(),
+                                               "EagerBitblaster"));
 }
 
 EagerBitblaster::~EagerBitblaster() {}

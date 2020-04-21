@@ -17,6 +17,7 @@
 #include "expr/node_algorithm.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -448,7 +449,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
   if ((arg == 1 && k == STRING_STRCTN) || (arg == 0 && k == STRING_SUBSTR))
   {
     // empty string
-    if (n.getConst<String>().size() == 0)
+    if (strings::Word::getLength(n) == 0)
     {
       return true;
     }

@@ -45,6 +45,49 @@ namespace smt {
 
 void setDefaults(SmtEngine& smte, LogicInfo& logic)
 {
+  // implied options
+  if (options::checkModels() || options::dumpModels())
+  {
+    Notice() << "SmtEngine: setting produceModels" << std::endl;
+    options::produceModels.set(true);
+  }
+  if (options::checkModels())
+  {
+    Notice() << "SmtEngine: setting produceAssignments" << std::endl;
+    options::produceAssignments.set(true);
+  }
+  if (options::dumpUnsatCoresFull())
+  {
+    Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
+    options::dumpUnsatCores.set(true);
+  }
+  if (options::checkUnsatCores() || options::dumpUnsatCores()
+      || options::unsatAssumptions())
+  {
+    Notice() << "SmtEngine: setting unsatCores" << std::endl;
+    options::unsatCores.set(true);
+  }
+  if (options::checkProofs() || options::dumpProofs())
+  {
+    Notice() << "SmtEngine: setting proof" << std::endl;
+    options::proof.set(true);
+  }
+  if (options::bitvectorAigSimplifications.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
+    options::bitvectorAig.set(true);
+  }
+  if (options::bitvectorEqualitySlicer.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorEqualitySolver" << std::endl;
+    options::bitvectorEqualitySolver.set(true);
+  }
+  if (options::bitvectorAlgebraicBudget.wasSetByUser())
+  {
+    Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
+    options::bitvectorAlgebraicSolver.set(true);
+  }
+
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
@@ -97,6 +140,29 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   if (options::solveBVAsInt() > 0)
   {
+    // not compatible with incremental
+    if (options::incrementalSolving())
+    {
+      throw OptionException(
+          "solving bitvectors as integers is currently not supported "
+          "when solving incrementally.");
+    }
+    else if (options::boolToBitvector() != options::BoolToBVMode::OFF)
+    {
+      throw OptionException(
+          "solving bitvectors as integers is incompatible with --bool-to-bv.");
+    }
+    if (options::solveBVAsInt() > 8)
+    {
+      /**
+       * The granularity sets the size of the ITE in each element
+       * of the sum that is generated for bitwise operators.
+       * The size of the ITE is 2^{2*granularity}.
+       * Since we don't want to introduce ITEs with unbounded size,
+       * we bound the granularity.
+       */
+      throw OptionException("solve-bv-as-int accepts values from 0 to 8.");
+    }
     if (logic.isTheoryEnabled(THEORY_BV))
     {
       logic = logic.getUnlockedCopy();
@@ -189,7 +255,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   if (!smte.isInternalSubsolver())
   {
     if (options::produceAbducts() || options::sygusInference()
-        || options::sygusRewSynthInput())
+        || options::sygusRewSynthInput() || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -429,7 +495,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
-  if (options::cbqiBv() && logic.isQuantified())
+  if (options::cegqiBv() && logic.isQuantified())
   {
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
@@ -466,23 +532,25 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  // Theory widening
+  //
+  // Some theories imply the use of other theories to handle certain operators,
+  // e.g. UF to handle partial functions.
+  /////////////////////////////////////////////////////////////////////////////
+  bool needsUf = false;
   // strings require LIA, UF; widen the logic
   if (logic.isTheoryEnabled(THEORY_STRINGS))
   {
     LogicInfo log(logic.getUnlockedCopy());
     // Strings requires arith for length constraints, and also UF
-    if (!logic.isTheoryEnabled(THEORY_UF))
-    {
-      Trace("smt") << "because strings are enabled, also enabling UF"
-                   << std::endl;
-      log.enableTheory(THEORY_UF);
-    }
+    needsUf = true;
     if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic()
         || !logic.areIntegersUsed())
     {
-      Trace("smt") << "because strings are enabled, also enabling linear "
-                      "integer arithmetic"
-                   << std::endl;
+      Notice()
+          << "Enabling linear integer arithmetic because strings are enabled"
+          << std::endl;
       log.enableTheory(THEORY_ARITH);
       log.enableIntegers();
       log.arithOnlyLinear();
@@ -490,21 +558,34 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     logic = log;
     logic.lock();
   }
-  if (logic.isTheoryEnabled(THEORY_ARRAYS)
+  if (needsUf
+      // Arrays, datatypes and sets permit Boolean terms and thus require UF
+      || logic.isTheoryEnabled(THEORY_ARRAYS)
       || logic.isTheoryEnabled(THEORY_DATATYPES)
-      || logic.isTheoryEnabled(THEORY_SETS))
+      || logic.isTheoryEnabled(THEORY_SETS)
+      // Non-linear arithmetic requires UF to deal with division/mod because
+      // their expansion introduces UFs for the division/mod-by-zero case.
+      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
+      // If division/mod-by-zero is not treated as a constant value in BV, we
+      // need UF.
+      || (logic.isTheoryEnabled(THEORY_BV)
+          && !options::bitvectorDivByZeroConst())
+      // FP requires UF since there are multiple operators that are partially
+      // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
+      // details).
+      || logic.isTheoryEnabled(THEORY_FP))
   {
     if (!logic.isTheoryEnabled(THEORY_UF))
     {
       LogicInfo log(logic.getUnlockedCopy());
-      Trace("smt") << "because a theory that permits Boolean terms is enabled, "
-                      "also enabling UF"
-                   << std::endl;
+      Notice() << "Enabling UF because " << logic << " requires it."
+               << std::endl;
       log.enableTheory(THEORY_UF);
       logic = log;
       logic.lock();
     }
   }
+  /////////////////////////////////////////////////////////////////////////////
 
   // by default, symmetry breaker is on only for non-incremental QF_UF
   if (!options::ufSymmetryBreaker.wasSetByUser())
@@ -714,6 +795,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     options::ufssFairnessMonotone.set(false);
     options::quantEpr.set(false);
     options::globalNegate.set(false);
+    options::bvAbstraction.set(false);
+    options::arithMLTrick.set(false);
   }
   if (logic.hasCardinalityConstraints())
   {
@@ -736,11 +819,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel"
              << std::endl;
-    options::cbqi.set(false);
+    options::cegqi.set(false);
   }
   // Do we need to track instantiations?
   // Needed for sygus due to single invocation techniques.
-  if (options::cbqiNestedQE()
+  if (options::cegqiNestedQE()
       || (options::proof() && !options::trackInstLemmas.wasSetByUser())
       || is_sygus)
   {
@@ -780,6 +863,17 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       // by default, use store axioms only if --ho-elim is set
       options::hoElimStoreAx.set(options::hoElim());
+    }
+    if (!options::assignFunctionValues())
+    {
+      // must assign function values
+      options::assignFunctionValues.set(true);
+    }
+    // Cannot use macros, since lambda lifting and macro elimination are inverse
+    // operations.
+    if (options::macrosQuant())
+    {
+      options::macrosQuant.set(false);
     }
   }
   if (options::fmfFunWellDefinedRelevant())
@@ -843,15 +937,15 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
     options::sygus.set(true);
     // must use Ferrante/Rackoff for real arithmetic
-    if (!options::cbqiMidpoint.wasSetByUser())
+    if (!options::cegqiMidpoint.wasSetByUser())
     {
-      options::cbqiMidpoint.set(true);
+      options::cegqiMidpoint.set(true);
     }
     if (options::sygusRepairConst())
     {
-      if (!options::cbqi.wasSetByUser())
+      if (!options::cegqi.wasSetByUser())
       {
-        options::cbqi.set(true);
+        options::cegqi.set(true);
       }
     }
     if (options::sygusInference())
@@ -879,10 +973,10 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       options::instNoEntail.set(false);
     }
-    if (!options::cbqiFullEffort.wasSetByUser())
+    if (!options::cegqiFullEffort.wasSetByUser())
     {
       // should use full effort cbqi for single invocation and repair const
-      options::cbqiFullEffort.set(true);
+      options::cegqiFullEffort.set(true);
     }
     if (options::sygusRew())
     {
@@ -991,9 +1085,9 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       options::macrosQuant.set(false);
     }
-    if (!options::cbqiPreRegInst.wasSetByUser())
+    if (!options::cegqiPreRegInst.wasSetByUser())
     {
-      options::cbqiPreRegInst.set(true);
+      options::cegqiPreRegInst.set(true);
     }
   }
   // counterexample-guided instantiation for non-sygus
@@ -1003,22 +1097,22 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
            || logic.isTheoryEnabled(THEORY_DATATYPES)
            || logic.isTheoryEnabled(THEORY_BV)
            || logic.isTheoryEnabled(THEORY_FP)))
-      || options::cbqiAll())
+      || options::cegqiAll())
   {
-    if (!options::cbqi.wasSetByUser())
+    if (!options::cegqi.wasSetByUser())
     {
-      options::cbqi.set(true);
+      options::cegqi.set(true);
     }
     // check whether we should apply full cbqi
     if (logic.isPure(THEORY_BV))
     {
-      if (!options::cbqiFullEffort.wasSetByUser())
+      if (!options::cegqiFullEffort.wasSetByUser())
       {
-        options::cbqiFullEffort.set(true);
+        options::cegqiFullEffort.set(true);
       }
     }
   }
-  if (options::cbqi())
+  if (options::cegqi())
   {
     // must rewrite divk
     if (!options::rewriteDivk.wasSetByUser())
@@ -1028,7 +1122,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     if (options::incrementalSolving())
     {
       // cannot do nested quantifier elimination in incremental mode
-      options::cbqiNestedQE.set(false);
+      options::cegqiNestedQE.set(false);
+      options::cegqiPreRegInst.set(false);
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
@@ -1040,7 +1135,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       {
         options::instNoEntail.set(false);
       }
-      if (!options::instWhenMode.wasSetByUser() && options::cbqiModel())
+      if (!options::instWhenMode.wasSetByUser() && options::cegqiModel())
       {
         // only instantiation should happen at last call when model is avaiable
         options::instWhenMode.set(options::InstWhenMode::LAST_CALL);
@@ -1049,10 +1144,10 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     else
     {
       // only supported in pure arithmetic or pure BV
-      options::cbqiNestedQE.set(false);
+      options::cegqiNestedQE.set(false);
     }
     // prenexing
-    if (options::cbqiNestedQE())
+    if (options::cegqiNestedQE())
     {
       // only complete with prenex = disj_normal or normal
       if (options::prenexQuant() <= options::PrenexQuantMode::DISJ_NORMAL)
@@ -1080,7 +1175,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     options::quantConflictFind.set(true);
   }
-  if (options::cbqiNestedQE())
+  if (options::cegqiNestedQE())
   {
     options::prenexQuantUser.set(true);
     if (!options::preSkolemQuant.wasSetByUser())
@@ -1346,6 +1441,17 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
                << sOptNoModel << std::endl;
       smte.setOption("check-models", SExpr("false"));
     }
+  }
+
+  if (options::bitblastMode() == options::BitblastMode::EAGER
+      && !logic.isPure(THEORY_BV) && logic.getLogicString() != "QF_UFBV"
+      && logic.getLogicString() != "QF_ABV")
+  {
+    throw OptionException(
+        "Eager bit-blasting does not currently support theory combination. "
+        "Note that in a QF_BV problem UF symbols can be introduced for "
+        "division. "
+        "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 }
 

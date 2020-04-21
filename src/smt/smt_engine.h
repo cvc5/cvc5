@@ -96,7 +96,7 @@ namespace smt {
   struct SmtEngineStatistics;
   class SmtEnginePrivate;
   class SmtScope;
-  class BooleanTermConverter;
+  class ProcessAssertions;
 
   ProofManager* currentProofManager();
 
@@ -108,6 +108,7 @@ namespace smt {
 
 namespace theory {
   class TheoryModel;
+  class Rewriter;
 }/* CVC4::theory namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
@@ -129,11 +130,12 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
-  friend class ::CVC4::smt::BooleanTermConverter;
+  friend class ::CVC4::smt::ProcessAssertions;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::Model;  // to access d_modelCommands
   friend class ::CVC4::theory::TheoryModel;
+  friend class ::CVC4::theory::Rewriter;
 
   /* .......................................................................  */
  public:
@@ -876,6 +878,9 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the ProofManager owned by this SmtEngine. */
   ProofManager* getProofManager() { return d_proofManager.get(); };
 
+  /** Get a pointer to the Rewriter owned by this SmtEngine. */
+  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
+
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
   {
@@ -1085,6 +1090,14 @@ class CVC4_PUBLIC SmtEngine
   /** The proof manager */
   std::unique_ptr<ProofManager> d_proofManager;
 
+  /**
+   * The rewriter associated with this SmtEngine. We have a different instance
+   * of the rewriter for each SmtEngine instance. This is because rewriters may
+   * hold references to objects that belong to theory solvers, which are
+   * specific to an SmtEngine/TheoryEngine instance.
+   */
+  std::unique_ptr<theory::Rewriter> d_rewriter;
+
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
 
@@ -1117,11 +1130,6 @@ class CVC4_PUBLIC SmtEngine
    * valid while we are in mode SMT_MODE_ABDUCT.
    */
   Expr d_abdConj;
-
-  /** recursive function definition abstractions for --fmf-fun */
-  std::map<Node, TypeNode> d_fmfRecFunctionsAbs;
-  std::map<Node, std::vector<Node> > d_fmfRecFunctionsConcrete;
-  NodeList* d_fmfRecFunctionsDefined;
 
   /**
    * The assertion list (before any conversion) for supporting

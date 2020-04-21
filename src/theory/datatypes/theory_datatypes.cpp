@@ -86,11 +86,6 @@ TheoryDatatypes::~TheoryDatatypes() {
   }
 }
 
-std::unique_ptr<TheoryRewriter> TheoryDatatypes::mkTheoryRewriter()
-{
-  return std::unique_ptr<TheoryRewriter>(new DatatypesRewriter());
-}
-
 void TheoryDatatypes::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
@@ -563,7 +558,8 @@ void TheoryDatatypes::finishInit() {
   }
 }
 
-Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
+Node TheoryDatatypes::expandDefinition(Node n)
+{
   NodeManager* nm = NodeManager::currentNM();
   switch (n.getKind())
   {

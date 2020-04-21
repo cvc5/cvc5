@@ -19,6 +19,7 @@
 
 #include "expr/kind.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/rewrites.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -54,6 +55,10 @@ class SequencesStatistics
  public:
   SequencesStatistics();
   ~SequencesStatistics();
+  /** Number of calls to run a check where strategy is present */
+  IntStat d_checkRuns;
+  /** Number of calls to run the strategy */
+  IntStat d_strategyRuns;
   //--------------- inferences
   /** Counts the number of applications of each type of inference */
   HistogramStat<Inference> d_inferences;
@@ -77,6 +82,8 @@ class SequencesStatistics
   HistogramStat<Kind> d_regexpUnfoldingsPos;
   HistogramStat<Kind> d_regexpUnfoldingsNeg;
   //--------------- end of inferences
+  /** Counts the number of applications of each type of rewrite rule */
+  HistogramStat<Rewrite> d_rewrites;
   //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
   IntStat d_conflictsEqEngine;

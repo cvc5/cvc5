@@ -61,7 +61,8 @@ class PropEngine
    */
   PropEngine(TheoryEngine*,
              context::Context* satContext,
-             context::UserContext* userContext);
+             context::UserContext* userContext,
+             ResourceManager* rm);
 
   /**
    * Destructor.
