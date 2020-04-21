@@ -142,6 +142,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
     logic = logic.getUnlockedCopy();
     logic.enableTheory(THEORY_BV);
+    logic.disableTheory(THEORY_ARITH);
     logic.lock();
   }
 
