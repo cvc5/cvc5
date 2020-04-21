@@ -190,7 +190,6 @@ InputLanguage toInputLanguage(std::string language) {
             language == "smtlib2.6" || language == "smt2.6" ||
             language == "LANG_SMTLIB_V2_6" || language == "LANG_SMTLIB_V2") {
     return input::LANG_SMTLIB_V2_6;
-  }
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return input::LANG_TPTP;
   } else if(language == "z3str" || language == "z3-str" ||
