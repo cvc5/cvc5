@@ -290,6 +290,10 @@ void InferenceManager::doPendingFacts()
     std::vector<Node> pfArgs;
     PfRule rule = d_ipc.convert(ii, pfChildren, pfExp, pfArgs);
     Node fact = ii.d_conc;
+    Trace("strings-assert") << "(assert (=> " << ii.getAntecedant() << " " << fact
+                            << ")) ; fact " << ii.d_id << std::endl;
+    Trace("strings-lemma") << "Strings::Fact: " << fact << " from " << ii.getAntecedant()
+                           << " by " << ii.d_id << std::endl;
     preProcessFact(fact);
     // assert to equality engine
     d_pfee.assertFact(fact, rule, pfChildren, pfArgs);

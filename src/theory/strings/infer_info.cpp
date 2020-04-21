@@ -14,6 +14,8 @@
 
 #include "theory/strings/infer_info.h"
 
+#include "theory/strings/theory_strings_utils.h"
+
 namespace CVC4 {
 namespace theory {
 namespace strings {
@@ -111,6 +113,17 @@ bool InferInfo::isFact() const
   Assert(!d_conc.isNull());
   TNode atom = d_conc.getKind() == kind::NOT ? d_conc[0] : d_conc;
   return !atom.isConst() && atom.getKind() != kind::OR && d_antn.empty();
+}
+
+Node InferInfo::getAntecedant() const
+{
+  if (d_antn.empty())
+  {
+    return utils::mkAnd(d_ant);
+  }
+  std::vector<Node> antc = d_ant;
+  antc.insert(antc.end(),d_antn.begin(),d_antn.end());
+  return utils::mkAnd(antc);
 }
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)

@@ -432,6 +432,8 @@ class InferInfo
    * engine with no new external antecedants (d_antn).
    */
   bool isFact() const;
+  /** Get antecedant */
+  Node getAntecedant() const; 
 };
 
 /**
