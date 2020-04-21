@@ -150,7 +150,9 @@ enum CVC4_PUBLIC Kind : int32_t
    * (distinct
    *    (witness ((x Int)) F)
    *    (witness ((x Int)) F))
-   *
+   * This kind is primarily used internally, but may be returned in models (e.g. for arithmetic terms in non-linear queries). However, it is not supported by the parser. Moreover, the user of the API should be cautious when using this operator. In general, all witness terms (witness ((x Int)) F) should be such that (exists ((x Int)) F) is a valid formula. If this is not the case, then the semantics in formulas that use witness terms may be intuitive.  For example, the following formula is unsatisfiable:
+      (or (= (witness ((x Int)) false) 0) (not (= (witness ((x Int)) false) 0))
+whereas notice that (or (= z 0) (not (= z 0))) is true for any z.
    * Parameters: 2
    *   -[1]: BOUND_VAR_LIST
    *   -[2]: Witness body
