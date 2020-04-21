@@ -31,8 +31,7 @@ enum Variant
 {
   no_variant,
   smt2_0_variant,    // old-style 2.0 syntax, when it makes a difference
-  smt2_6_variant,    // new-style 2.6 syntax, when it makes a difference
-  smt2_6_1_variant,  // new-style 2.6 syntax, when it makes a difference, with
+  smt2_6_variant,    // new-style 2.6 syntax, when it makes a difference, with
                      // support for the string standard
   z3str_variant,     // old-style 2.0 and also z3str syntax
   sygus_variant      // variant for sygus

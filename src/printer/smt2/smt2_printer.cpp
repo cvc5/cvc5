@@ -50,7 +50,7 @@ static string smtKindString(Kind k, Variant v);
 /** returns whether the variant is smt-lib 2.6 or greater */
 bool isVariant_2_6(Variant v)
 {
-  return v == smt2_6_variant || v == smt2_6_1_variant;
+  return v == smt2_6_variant;
 }
 
 static void toStreamRational(std::ostream& out,
@@ -1204,7 +1204,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_STRIDOF: return "str.indexof" ;
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_STRREPLALL:
-    return v == smt2_6_1_variant ? "str.replace_all" : "str.replaceall";
+    return "str.replace_all" ;
   case kind::STRING_TOLOWER: return "str.tolower";
   case kind::STRING_TOUPPER: return "str.toupper";
   case kind::STRING_REV: return "str.rev";
@@ -1214,15 +1214,15 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_LT: return "str.<";
   case kind::STRING_FROM_CODE: return "str.from_code";
   case kind::STRING_TO_CODE:
-    return v == smt2_6_1_variant ? "str.to_code" : "str.code";
+    return "str.to_code";
   case kind::STRING_ITOS:
-    return v == smt2_6_1_variant ? "str.from_int" : "int.to.str";
+    return "str.from_int";
   case kind::STRING_STOI:
-    return v == smt2_6_1_variant ? "str.to_int" : "str.to.int";
+    return "str.to_int";
   case kind::STRING_IN_REGEXP:
-    return v == smt2_6_1_variant ? "str.in_re" : "str.in.re";
+    return "str.in_re";
   case kind::STRING_TO_REGEXP:
-    return v == smt2_6_1_variant ? "str.to_re" : "str.to.re";
+    return "str.to_re";
   case kind::REGEXP_EMPTY: return "re.nostr";
   case kind::REGEXP_SIGMA: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
