@@ -161,7 +161,6 @@ void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
         d_term_to_anchor[n] = n;
         d_anchor_to_conj[n] = d_tds->getConjectureForEnumerator(n);
         // this assertion fails if we have a sygus term in the search that is unmeasured
-        Assert(d_anchor_to_conj[n] != NULL);
         d = 0;
         is_top_level = true;
         success = true;
@@ -306,11 +305,14 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
       if (itc != d_anchor_to_conj.end())
       {
         quantifiers::SynthConjecture* conj = itc->second;
-        Assert(conj != NULL);
-        Node dpred = conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
-        if (!dpred.isNull())
+        if (conj)
         {
-          sb_lemmas.push_back(dpred);
+          Node dpred =
+              conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
+          if (!dpred.isNull())
+          {
+            sb_lemmas.push_back(dpred);
+          }
         }
       }
     }
@@ -1013,7 +1015,6 @@ Node SygusExtension::registerSearchValue(Node a,
     // get the root (for PBE symmetry breaking)
     Assert(d_anchor_to_conj.find(a) != d_anchor_to_conj.end());
     quantifiers::SynthConjecture* aconj = d_anchor_to_conj[a];
-    Assert(aconj != NULL);
     Trace("sygus-sb-debug") << "  ...register search value " << cnv
                             << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
@@ -1042,7 +1043,7 @@ Node SygusExtension::registerSearchValue(Node a,
       {
         // Is it equivalent under examples?
         Node bvr_equiv;
-        if (options::sygusSymBreakPbe())
+        if (aconj != nullptr && options::sygusSymBreakPbe())
         {
           // If the enumerator has examples, see if it is equivalent up to its
           // examples with a previous term.

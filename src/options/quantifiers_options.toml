@@ -1973,3 +1973,14 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)"
+
+
+### SyGuS instantiation options
+
+[[option]]
+  name       = "sygusInst"
+  category   = "regular"
+  long       = "sygus-inst"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable SyGuS instantiation quantifiers module"

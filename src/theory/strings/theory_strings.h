@@ -200,18 +200,6 @@ class TheoryStrings : public Theory {
     SolverState& d_state;
   };/* class TheoryStrings::NotifyClass */
 
-  //--------------------------- helper functions
-  /** get normal string
-   *
-   * This method returns the node that is equivalent to the normal form of x,
-   * and adds the corresponding explanation to nf_exp.
-   *
-   * For example, if x = y ++ z is an assertion in the current context, then
-   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
-   */
-  Node getNormalString(Node x, std::vector<Node>& nf_exp);
-  //-------------------------- end helper functions
-
  private:
   // Constants
   Node d_emptyString;
@@ -238,10 +226,9 @@ class TheoryStrings : public Theory {
   /** The term registry for this theory */
   TermRegistry d_termReg;
   /** The (custom) output channel of the theory of strings */
-  InferenceManager d_im;
-  std::vector< Node > d_empty_vec;
-private:
+  std::unique_ptr<InferenceManager> d_im;
 
+ private:
   std::map< Node, Node > d_eqc_to_len_term;
 
 
@@ -318,12 +305,12 @@ private:
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.
    */
-  BaseSolver d_bsolver;
+  std::unique_ptr<BaseSolver> d_bsolver;
   /**
    * The core solver, responsible for reasoning about string concatenation
    * with length constraints.
    */
-  CoreSolver d_csolver;
+  std::unique_ptr<CoreSolver> d_csolver;
   /**
    * Extended function solver, responsible for reductions and simplifications
    * involving extended string functions.
