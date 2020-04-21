@@ -59,6 +59,13 @@ class NodeBlack : public CxxTest::TestSuite {
  public:
   void setUp() override
   {
+    char* argv[2];
+    argv[0] = strdup("");
+    argv[1] = strdup("--output-lang=ast");
+    Options::parseOptions(&opts, 2, argv);
+    free(argv[0]);
+    free(argv[1]);
+
     d_nodeManager = new NodeManager(NULL, opts);
     d_scope = new NodeManagerScope(d_nodeManager);
     d_booleanType = new TypeNode(d_nodeManager->booleanType());

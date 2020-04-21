@@ -55,6 +55,13 @@ private:
   {
     try
     {
+      char* argv[2];
+      argv[0] = strdup("");
+      argv[1] = strdup("--output-lang=ast");
+      Options::parseOptions(&opts, 2, argv);
+      free(argv[0]);
+      free(argv[1]);
+
       d_em = new ExprManager(opts);
 
       a_bool = new Expr(d_em->mkVar("a", d_em->booleanType()));

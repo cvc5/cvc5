@@ -574,8 +574,7 @@ void Options::parseOptionsRecursive(Options* options,
   optreset = 1; // on BSD getopt() (e.g. Mac OS), might need this
 #endif /* HAVE_DECL_OPTRESET */
 
-  // start with position after the binary name
-  int main_optind = 1;
+  int main_optind = 0;
   int old_optind;
 
 
@@ -615,6 +614,7 @@ void Options::parseOptionsRecursive(Options* options,
                      << "[ next option will be at pos: " << optind << " ]"
                      << std::endl;
 
+    Assert (old_optind>0);
     // The initial getopt_long call should always determine that argv[0]
     // is not an option and returns -1. We always manually advance beyond
     // this element.
