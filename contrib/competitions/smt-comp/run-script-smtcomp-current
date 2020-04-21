@@ -90,24 +90,24 @@ ABVFP|BVFP|FP)
 UFBV)
   # most problems in UFBV are essentially BV
   trywith 600 --full-saturate-quant --decision=internal
-  trywith 600 --full-saturate-quant --cbqi-nested-qe --decision=internal
-  trywith 60 --full-saturate-quant --no-cbqi-innermost --global-negate
+  trywith 600 --full-saturate-quant --cegqi-nested-qe --decision=internal
+  trywith 60 --full-saturate-quant --no-cegqi-innermost --global-negate
   finishwith --finite-model-find
   ;;
 BV)
   trywith 240 --full-saturate-quant
-  trywith 240 --full-saturate-quant --no-cbqi-innermost
-  trywith 600 --full-saturate-quant --cbqi-nested-qe --decision=internal
-  trywith 60 --full-saturate-quant --no-cbqi-bv
-  trywith 60 --full-saturate-quant --cbqi-bv-ineq=eq-slack
+  trywith 240 --full-saturate-quant --no-cegqi-innermost
+  trywith 600 --full-saturate-quant --cegqi-nested-qe --decision=internal
+  trywith 60 --full-saturate-quant --no-cegqi-bv
+  trywith 60 --full-saturate-quant --cegqi-bv-ineq=eq-slack
   # finish 10min
-  finishwith --full-saturate-quant --no-cbqi-innermost --global-negate
+  finishwith --full-saturate-quant --no-cegqi-innermost --global-negate
   ;;
 LIA|LRA|NIA|NRA)
   trywith 60 --full-saturate-quant --nl-ext-tplanes
-  trywith 600 --full-saturate-quant --no-cbqi-innermost
-  trywith 600 --full-saturate-quant --cbqi-nested-qe
-  finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
+  trywith 600 --full-saturate-quant --no-cegqi-innermost
+  trywith 600 --full-saturate-quant --cegqi-nested-qe
+  finishwith --full-saturate-quant --cegqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
   trywith 1200 --ite-simp

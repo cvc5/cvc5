@@ -138,7 +138,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   // constructors.
   if (!d_usingSymCons)
   {
-    Trace("cegqi-engine") << "  *** Do refinement lemma evaluation"
+    Trace("sygus-engine") << "  *** Do refinement lemma evaluation"
                           << (doGen ? " with conjecture-specific refinement"
                                     : "")
                           << "..." << std::endl;
@@ -168,7 +168,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
       // just check whether the refinement lemmas are satisfied, fail if not
       if (checkRefinementEvalLemmas(candidates, candidate_values))
       {
-        Trace("cegqi-engine") << "...(actively enumerated) candidate failed "
+        Trace("sygus-engine") << "...(actively enumerated) candidate failed "
                                  "refinement lemma evaluation."
                               << std::endl;
         return true;
@@ -179,7 +179,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   bool doEvalUnfold = (doGen && options::sygusEvalUnfold()) || d_usingSymCons;
   if (doEvalUnfold)
   {
-    Trace("cegqi-engine") << "  *** Do evaluation unfolding..." << std::endl;
+    Trace("sygus-engine") << "  *** Do evaluation unfolding..." << std::endl;
     std::vector<Node> eager_terms, eager_vals, eager_exps;
     for (unsigned i = 0, size = candidates.size(); i < size; ++i)
     {
@@ -627,7 +627,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                                      const std::vector<Node>& vals,
                                      std::vector<Node>& lems)
 {
-  Trace("cegqi-engine") << "  *** Do sample add refinement..." << std::endl;
+  Trace("sygus-engine") << "  *** Do sample add refinement..." << std::endl;
   if (Trace.isOn("cegis-sample"))
   {
     Trace("cegis-sample") << "Check sampling for candidate solution"
@@ -681,7 +681,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
             }
             Trace("cegis-sample") << std::endl;
           }
-          Trace("cegqi-engine") << "  *** Refine by sampling" << std::endl;
+          Trace("sygus-engine") << "  *** Refine by sampling" << std::endl;
           addRefinementLemma(rlem);
           // if trust, we are not interested in sending out refinement lemmas
           if (options::cegisSample() != options::CegisSampleMode::TRUST)
