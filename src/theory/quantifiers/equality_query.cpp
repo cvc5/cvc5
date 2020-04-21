@@ -230,7 +230,7 @@ int EqualityQueryQuantifiersEngine::getRepScore(Node n,
                                                 int index,
                                                 TypeNode v_tn)
 {
-  if( options::cbqi() && quantifiers::TermUtil::hasInstConstAttr(n) ){  //reject
+  if( options::cegqi() && quantifiers::TermUtil::hasInstConstAttr(n) ){  //reject
     return -2;
   }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
     return -2;

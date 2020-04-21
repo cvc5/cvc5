@@ -91,7 +91,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
   Node pvs = ci->getModelValue(pv);
   Trace("cegqi-bv") << "Get path to " << pv << " : " << lit << std::endl;
   Node slit =
-      d_inverter->getPathToPv(lit, pv, sv, pvs, path, options::cbqiBvSolveNl());
+      d_inverter->getPathToPv(lit, pv, sv, pvs, path, options::cegqiBvSolveNl());
   if (!slit.isNull())
   {
     CegInstantiatorBvInverterQuery m(ci);
@@ -153,7 +153,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   {
     return Node::null();
   }
-  else if (options::cbqiBvIneqMode() == options::CbqiBvIneqMode::KEEP
+  else if (options::cegqiBvIneqMode() == options::CbqiBvIneqMode::KEEP
            || (pol && k == EQUAL))
   {
     return lit;
@@ -172,7 +172,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
 
   Node ret;
-  if (options::cbqiBvIneqMode() == options::CbqiBvIneqMode::EQ_SLACK)
+  if (options::cegqiBvIneqMode() == options::CbqiBvIneqMode::EQ_SLACK)
   {
     // if using slack, we convert constraints to a positive equality based on
     // the current model M, e.g.:
@@ -233,7 +233,7 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci,
 {
   // if option enabled, use approach for word-level inversion for BV
   // instantiation
-  if (options::cbqiBv())
+  if (options::cegqiBv())
   {
     // get the best rewritten form of lit for solving for pv
     //   this should remove instances of non-invertible operators, and
@@ -261,7 +261,7 @@ bool BvInstantiator::useModelValue(CegInstantiator* ci,
                                    Node pv,
                                    CegInstEffort effort)
 {
-  return effort < CEG_INST_EFFORT_FULL || options::cbqiFullEffort();
+  return effort < CEG_INST_EFFORT_FULL || options::cegqiFullEffort();
 }
 
 bool BvInstantiator::processAssertions(CegInstantiator* ci,
@@ -279,7 +279,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv
                     << std::endl;
   // if interleaving, do not do inversion half the time
-  if (options::cbqiBvInterleaveValue() && Random::getRandom().pickWithProb(0.5))
+  if (options::cegqiBvInterleaveValue() && Random::getRandom().pickWithProb(0.5))
   {
     Trace("cegqi-bv") << "...do not do instantiation for " << pv
                       << " (skip, based on heuristic)" << std::endl;
@@ -341,7 +341,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   // for constructing instantiations is exponential on the number of
   // variables in this quantifier prefix.
   bool ret = false;
-  bool tryMultipleInst = firstVar && options::cbqiMultiInst();
+  bool tryMultipleInst = firstVar && options::cegqiMultiInst();
   bool revertOnSuccess = tryMultipleInst;
   for (unsigned j = 0, size = iti->second.size(); j < size; j++)
   {
@@ -557,7 +557,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
           bv::utils::mkConst(BitVector(bv::utils::getSize(pv), Integer(2))));
     }
 
-    if (options::cbqiBvLinearize() && contains_pv[lhs] && contains_pv[rhs])
+    if (options::cegqiBvLinearize() && contains_pv[lhs] && contains_pv[rhs])
     {
       Node result = utils::normalizePvEqual(pv, children, contains_pv);
       if (!result.isNull())
@@ -575,7 +575,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
   }
   else if (n.getKind() == BITVECTOR_MULT || n.getKind() == BITVECTOR_PLUS)
   {
-    if (options::cbqiBvLinearize() && contains_pv[n])
+    if (options::cegqiBvLinearize() && contains_pv[n])
     {
       Node result;
       if (n.getKind() == BITVECTOR_MULT)
@@ -640,7 +640,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   // new lemmas
   std::vector<Node> new_lems;
 
-  if (options::cbqiBvRmExtract())
+  if (options::cegqiBvRmExtract())
   {
     NodeManager* nm = NodeManager::currentNM();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
