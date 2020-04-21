@@ -33,9 +33,6 @@
 
 #include "api/cvc4cpp.h"
 
-#include <cstring>
-#include <sstream>
-
 #include "base/check.h"
 #include "base/configuration.h"
 #include "expr/expr.h"
@@ -55,6 +52,9 @@
 #include "util/random.h"
 #include "util/result.h"
 #include "util/utility.h"
+
+#include <cstring>
+#include <sstream>
 
 namespace CVC4 {
 namespace api {
