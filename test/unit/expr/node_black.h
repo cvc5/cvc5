@@ -59,8 +59,6 @@ class NodeBlack : public CxxTest::TestSuite {
  public:
   void setUp() override
   {
-    opts.setOption("output-lang", "ast");
-
     d_nodeManager = new NodeManager(NULL, opts);
     d_scope = new NodeManagerScope(d_nodeManager);
     d_booleanType = new TypeNode(d_nodeManager->booleanType());

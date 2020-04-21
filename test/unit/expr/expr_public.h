@@ -55,8 +55,6 @@ private:
   {
     try
     {
-      opts.setOption("output-lang", "ast");
-
       d_em = new ExprManager(opts);
 
       a_bool = new Expr(d_em->mkVar("a", d_em->booleanType()));
