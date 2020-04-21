@@ -84,10 +84,10 @@ class ProofSkolemCache
    * @return The skolem whose witness form is registered by this class.
    */
   static Node mkSkolem(Node v,
-                Node pred,
-                const std::string& prefix,
-                const std::string& comment = "",
-                int flags = NodeManager::SKOLEM_DEFAULT);
+                       Node pred,
+                       const std::string& prefix,
+                       const std::string& comment = "",
+                       int flags = NodeManager::SKOLEM_DEFAULT);
   /** convert to witness form
    *
    * @param n The term or formula to convert to witness form described above

@@ -122,7 +122,7 @@ Node InferInfo::getAntecedant() const
     return utils::mkAnd(d_ant);
   }
   std::vector<Node> antc = d_ant;
-  antc.insert(antc.end(),d_antn.begin(),d_antn.end());
+  antc.insert(antc.end(), d_antn.begin(), d_antn.end());
   return utils::mkAnd(antc);
 }
 

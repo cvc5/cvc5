@@ -433,7 +433,7 @@ class InferInfo
    */
   bool isFact() const;
   /** Get antecedant */
-  Node getAntecedant() const; 
+  Node getAntecedant() const;
 };
 
 /**

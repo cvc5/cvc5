@@ -14,8 +14,8 @@
 
 #include "theory/strings/infer_proof_cons.h"
 
-#include "theory/strings/theory_strings_utils.h"
 #include "options/strings_options.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace CVC4::kind;
 
@@ -24,7 +24,11 @@ namespace theory {
 namespace strings {
 
 InferProofCons::InferProofCons(eq::ProofEqEngine& pfee,
-                 SequencesStatistics& statistics, bool pfEnabled) : d_pfee(pfee), d_statistics(statistics), d_pfEnabled(pfEnabled) {}
+                               SequencesStatistics& statistics,
+                               bool pfEnabled)
+    : d_pfee(pfee), d_statistics(statistics), d_pfEnabled(pfEnabled)
+{
+}
 
 PfRule InferProofCons::convert(const InferInfo& ii,
                                std::vector<Node>& pfChildren,
@@ -69,7 +73,8 @@ PfRule InferProofCons::convert(Inference infer,
   // debug print
   if (Trace.isOn("strings-ipc"))
   {
-    Trace("strings-ipc") << "InferProofCons::convert: " << infer << " " << conc << std::endl;
+    Trace("strings-ipc") << "InferProofCons::convert: " << infer << " " << conc
+                         << std::endl;
     for (const Node& ec : exp)
     {
       Trace("strings-ipc") << "    e: " << ec << std::endl;
@@ -79,9 +84,7 @@ PfRule InferProofCons::convert(Inference infer,
       Trace("strings-ipc") << "  e-n: " << ecn << std::endl;
     }
   }
-  
-  
-  
+
   return PfRule::UNKNOWN;
 }
 
