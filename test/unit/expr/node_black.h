@@ -59,7 +59,7 @@ class NodeBlack : public CxxTest::TestSuite {
  public:
   void setUp() override
   {
-    opts.setOption("output-lang","ast");
+    opts.setOption("output-lang", "ast");
 
     d_nodeManager = new NodeManager(NULL, opts);
     d_scope = new NodeManagerScope(d_nodeManager);

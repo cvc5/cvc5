@@ -55,7 +55,7 @@ private:
   {
     try
     {
-      opts.setOption("output-lang","ast");
+      opts.setOption("output-lang", "ast");
 
       d_em = new ExprManager(opts);
 
