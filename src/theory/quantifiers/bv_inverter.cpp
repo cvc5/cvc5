@@ -336,7 +336,7 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (k == BITVECTOR_CONCAT)
     {
-      if (litk == EQUAL && options::cbqiBvConcInv())
+      if (litk == EQUAL && options::cegqiBvConcInv())
       {
         /* Compute inverse for s1 o x, x o s2, s1 o x o s2
          * (while disregarding that invertibility depends on si)
