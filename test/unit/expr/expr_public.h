@@ -55,12 +55,7 @@ private:
   {
     try
     {
-      char* argv[2];
-      argv[0] = strdup("");
-      argv[1] = strdup("--output-lang=ast");
-      Options::parseOptions(&opts, 2, argv);
-      free(argv[0]);
-      free(argv[1]);
+      opts.setOption("output-lang","ast");
 
       d_em = new ExprManager(opts);
 
