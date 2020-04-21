@@ -29,7 +29,8 @@ PfRule InferProofCons::convert(const InferInfo& ii,
                                std::vector<Node>& pfExp,
                                std::vector<Node>& pfArgs)
 {
-  return convert(ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pfChildren, pfExp, pfArgs);
+  return convert(
+      ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pfChildren, pfExp, pfArgs);
 }
 
 PfRule InferProofCons::convert(Inference infer,
