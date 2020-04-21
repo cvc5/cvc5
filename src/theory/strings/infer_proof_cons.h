@@ -51,8 +51,8 @@ class InferProofCons
                  std::vector<Node>& pfChildren,
                  std::vector<Node>& pfExp,
                  std::vector<Node>& pfArgs);
-  PfRule convert(Node conc,
-                 Inference infer,
+  PfRule convert(Inference infer,
+                 Node conc,
                  const std::vector<Node>& exp,
                  const std::vector<Node>& expn,
                  std::vector<Node>& pfChildren,

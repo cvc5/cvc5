@@ -154,13 +154,6 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
 void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
 {
   Assert(!ii.isTrivial());
-  // must flatten the explanation with respect to AND here
-  std::vector<Node> expOrig = ii.d_exp;
-  ii.d_exp.clear();
-  for (const Node& ec : expOrig)
-  {
-    utils::flattenOp(AND, ec, ii.d_exp);
-  }
   Trace("strings-infer-debug")
       << "sendInference: " << ii << ", asLemma = " << asLemma << std::endl;
   // check if we should send a conflict, lemma or a fact
@@ -177,8 +170,8 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       std::vector<Node> pfChildren;
       std::vector<Node> pfExp;
       std::vector<Node> pfArgs;
-      PfRule rule = d_ipc.convert(ii, pfChildren, pfArgs);
-      TrustNode tconf = d_pfee.assertConflict(ii.d_rule, pfChildren, pfArgs);
+      PfRule rule = d_ipc.convert(ii, pfChildren, pfExp, pfArgs);
+      TrustNode tconf = d_pfee.assertConflict(rule, pfChildren, pfArgs);
       Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
       Trace("strings-assert") << "(assert (not " << tconf.getNode()
                               << ")) ; conflict " << ii.d_id << std::endl;
@@ -236,20 +229,9 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       }
     }
   }
-  Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eqExp
-                         << " by " << infer << std::endl;
-  Trace("strings-assert") << "(assert (=> " << eqExp << " " << eq
-                          << ")) ; infer " << infer << std::endl;
+  Trace("strings-infer-debug") << "...as fact" << std::endl;
+  // add to pending to be processed as a fact
   d_pending.push_back(ii);
-}
-
-void InferenceManager::sendInference(const std::vector<Node>& exp,
-                                     Node eq,
-                                     Inference infer,
-                                     bool asLemma)
-{
-  std::vector<Node> exp_n;
-  sendInference(exp, exp_n, eq, infer, asLemma);
 }
 
 bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
@@ -304,18 +286,15 @@ void InferenceManager::doPendingFacts()
   while (!d_state.isInConflict() && i < d_pending.size())
   {
     InferInfo& ii = d_pending[i];
-    Inference inf = ii.d_infer;
-    Node fact = ii.d_fact;
-    Node exp = ii.d_exp;
-    Assert(fact.getKind() != AND);
     // convert to proof rule
     std::vector<Node> pfChildren;
     std::vector<Node> pfExp;
     std::vector<Node> pfArgs;
     PfRule rule = d_ipc.convert(ii, pfChildren, pfExp, pfArgs);
+    Node fact = ii.d_conc;
     preProcessFact(fact);
     // assert to equality engine
-    d_pfee.assertFact(fact, rule, pfChildren, pfExp, pfArgs);
+    d_pfee.assertFact(fact, rule, pfChildren, pfArgs);
     if (!d_state.isInConflict())
     {
       postProcessFact(fact);
@@ -334,7 +313,6 @@ void InferenceManager::doPendingLemmas()
     d_pendingReqPhase.clear();
     return;
   }
-  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
   {
     InferInfo& ii = d_pendingLem[i];
@@ -363,7 +341,7 @@ void InferenceManager::doPendingLemmas()
     // only keep stats if we process it here
     d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
-    d_out.trustedLemma(tlem);
+    d_poc.trustedLemma(tlem);
 
     // Process the side effects of the inference info.
     // Register the new skolems from this inference. We register them here
