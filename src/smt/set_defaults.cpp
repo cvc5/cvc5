@@ -140,7 +140,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
           "solving integers as bitvectors is currently not supported "
           "when solving incrementally.");
     }
-    // Int to BV current always eliminates arithmetic completely (or otherwise
+    // Int to BV currently always eliminates arithmetic completely (or otherwise
     // fails). Thus, it is safe to eliminate arithmetic. Also, bit-vectors
     // are required.
     logic = logic.getUnlockedCopy();
