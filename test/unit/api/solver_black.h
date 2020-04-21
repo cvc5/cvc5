@@ -107,7 +107,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testResetAssertions();
 
   void testMkSygusVar();
-  void testMkGrammar();
+  void testMkSygusGrammar();
   void testSynthFun();
   void testSynthInv();
   void testAddSygusConstraint();
@@ -1242,17 +1242,17 @@ void SolverBlack::testMkSygusVar()
                    CVC4ApiException&);
 }
 
-void SolverBlack::testMkGrammar()
+void SolverBlack::testMkSygusGrammar()
 {
   Term nullTerm;
   Term boolTerm = d_solver->mkBoolean(true);
   Term intTerm = d_solver->mkReal(1);
 
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkGrammar({}, {intTerm}));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkGrammar({boolTerm}, {intTerm}));
-  TS_ASSERT_THROWS(d_solver->mkGrammar({}, {}), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkGrammar({}, {nullTerm}), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkGrammar({nullTerm}, {intTerm}),
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkSygusGrammar({}, {intTerm}));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkSygusGrammar({boolTerm}, {intTerm}));
+  TS_ASSERT_THROWS(d_solver->mkSygusGrammar({}, {}), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkSygusGrammar({}, {nullTerm}), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkSygusGrammar({nullTerm}, {intTerm}),
                    CVC4ApiException&);
 }
 
@@ -1269,10 +1269,10 @@ void SolverBlack::testSynthFun()
   Term start1 = d_solver->mkVar(boolean);
   Term start2 = d_solver->mkVar(integer);
 
-  Grammar g1 = d_solver->mkGrammar({x}, {start1});
+  Grammar g1 = d_solver->mkSygusGrammar({x}, {start1});
   g1.addRule(start1, d_solver->mkBoolean(false));
 
-  Grammar g2 = d_solver->mkGrammar({x}, {start2});
+  Grammar g2 = d_solver->mkSygusGrammar({x}, {start2});
   g2.addRule(start2, d_solver->mkReal(0));
 
   TS_ASSERT_THROWS_NOTHING(d_solver->synthFun("", {}, boolean));
@@ -1298,10 +1298,10 @@ void SolverBlack::testSynthInv()
   Term start1 = d_solver->mkVar(boolean);
   Term start2 = d_solver->mkVar(integer);
 
-  Grammar g1 = d_solver->mkGrammar({x}, {start1});
+  Grammar g1 = d_solver->mkSygusGrammar({x}, {start1});
   g1.addRule(start1, d_solver->mkBoolean(false));
 
-  Grammar g2 = d_solver->mkGrammar({x}, {start2});
+  Grammar g2 = d_solver->mkSygusGrammar({x}, {start2});
   g2.addRule(start2, d_solver->mkReal(0));
 
   TS_ASSERT_THROWS_NOTHING(d_solver->synthInv("", {}));

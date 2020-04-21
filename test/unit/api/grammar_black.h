@@ -48,7 +48,7 @@ void GrammarBlack::testAddRule()
   Term start = d_solver->mkVar(boolean);
   Term nts = d_solver->mkVar(boolean);
 
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_solver->mkSygusGrammar({}, {start});
 
   TS_ASSERT_THROWS_NOTHING(g.addRule(start, d_solver->mkBoolean(false)));
 
@@ -69,7 +69,7 @@ void GrammarBlack::testAddRules()
   Term start = d_solver->mkVar(boolean);
   Term nts = d_solver->mkVar(boolean);
 
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_solver->mkSygusGrammar({}, {start});
 
   TS_ASSERT_THROWS_NOTHING(g.addRules(start, {d_solver->mkBoolean(false)}));
 
@@ -89,7 +89,7 @@ void GrammarBlack::testAddAnyConstant()
   Term start = d_solver->mkVar(boolean);
   Term nts = d_solver->mkVar(boolean);
 
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_solver->mkSygusGrammar({}, {start});
 
   TS_ASSERT_THROWS_NOTHING(g.addAnyConstant(start));
   TS_ASSERT_THROWS_NOTHING(g.addAnyConstant(start));
@@ -107,8 +107,8 @@ void GrammarBlack::testAddAnyVariable()
   Term start = d_solver->mkVar(boolean);
   Term nts = d_solver->mkVar(boolean);
 
-  Grammar g1 = d_solver->mkGrammar({x}, {start});
-  Grammar g2 = d_solver->mkGrammar({}, {start});
+  Grammar g1 = d_solver->mkSygusGrammar({x}, {start});
+  Grammar g2 = d_solver->mkSygusGrammar({}, {start});
 
   TS_ASSERT_THROWS_NOTHING(g1.addAnyVariable(start));
   TS_ASSERT_THROWS_NOTHING(g1.addAnyVariable(start));

@@ -2950,8 +2950,8 @@ class CVC4_PUBLIC Solver
    * @param ntSymbols the pre-declaration of the non-terminal symbols
    * @return the grammar
    */
-  Grammar mkGrammar(const std::vector<Term>& boundVars,
-                    const std::vector<Term>& ntSymbols) const;
+  Grammar mkSygusGrammar(const std::vector<Term>& boundVars,
+                         const std::vector<Term>& ntSymbols) const;
 
   /**
    * Synthesize n-ary function.

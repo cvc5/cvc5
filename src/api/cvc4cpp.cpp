@@ -4466,8 +4466,8 @@ Term Solver::mkSygusVar(Sort sort, const std::string& symbol) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Grammar Solver::mkGrammar(const std::vector<Term>& boundVars,
-                          const std::vector<Term>& ntSymbols) const
+Grammar Solver::mkSygusGrammar(const std::vector<Term>& boundVars,
+                               const std::vector<Term>& ntSymbols) const
 {
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)
       << "non-empty vector";
