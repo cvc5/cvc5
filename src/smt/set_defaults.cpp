@@ -255,7 +255,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   if (!smte.isInternalSubsolver())
   {
     if (options::produceAbducts() || options::sygusInference()
-        || options::sygusRewSynthInput())
+        || options::sygusRewSynthInput() || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -495,7 +495,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
-  if (options::cbqiBv() && logic.isQuantified())
+  if (options::cegqiBv() && logic.isQuantified())
   {
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
@@ -819,11 +819,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel"
              << std::endl;
-    options::cbqi.set(false);
+    options::cegqi.set(false);
   }
   // Do we need to track instantiations?
   // Needed for sygus due to single invocation techniques.
-  if (options::cbqiNestedQE()
+  if (options::cegqiNestedQE()
       || (options::proof() && !options::trackInstLemmas.wasSetByUser())
       || is_sygus)
   {
@@ -937,15 +937,15 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
     options::sygus.set(true);
     // must use Ferrante/Rackoff for real arithmetic
-    if (!options::cbqiMidpoint.wasSetByUser())
+    if (!options::cegqiMidpoint.wasSetByUser())
     {
-      options::cbqiMidpoint.set(true);
+      options::cegqiMidpoint.set(true);
     }
     if (options::sygusRepairConst())
     {
-      if (!options::cbqi.wasSetByUser())
+      if (!options::cegqi.wasSetByUser())
       {
-        options::cbqi.set(true);
+        options::cegqi.set(true);
       }
     }
     if (options::sygusInference())
@@ -973,10 +973,10 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       options::instNoEntail.set(false);
     }
-    if (!options::cbqiFullEffort.wasSetByUser())
+    if (!options::cegqiFullEffort.wasSetByUser())
     {
       // should use full effort cbqi for single invocation and repair const
-      options::cbqiFullEffort.set(true);
+      options::cegqiFullEffort.set(true);
     }
     if (options::sygusRew())
     {
@@ -1085,9 +1085,9 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       options::macrosQuant.set(false);
     }
-    if (!options::cbqiPreRegInst.wasSetByUser())
+    if (!options::cegqiPreRegInst.wasSetByUser())
     {
-      options::cbqiPreRegInst.set(true);
+      options::cegqiPreRegInst.set(true);
     }
   }
   // counterexample-guided instantiation for non-sygus
@@ -1097,22 +1097,22 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
            || logic.isTheoryEnabled(THEORY_DATATYPES)
            || logic.isTheoryEnabled(THEORY_BV)
            || logic.isTheoryEnabled(THEORY_FP)))
-      || options::cbqiAll())
+      || options::cegqiAll())
   {
-    if (!options::cbqi.wasSetByUser())
+    if (!options::cegqi.wasSetByUser())
     {
-      options::cbqi.set(true);
+      options::cegqi.set(true);
     }
     // check whether we should apply full cbqi
     if (logic.isPure(THEORY_BV))
     {
-      if (!options::cbqiFullEffort.wasSetByUser())
+      if (!options::cegqiFullEffort.wasSetByUser())
       {
-        options::cbqiFullEffort.set(true);
+        options::cegqiFullEffort.set(true);
       }
     }
   }
-  if (options::cbqi())
+  if (options::cegqi())
   {
     // must rewrite divk
     if (!options::rewriteDivk.wasSetByUser())
@@ -1122,8 +1122,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     if (options::incrementalSolving())
     {
       // cannot do nested quantifier elimination in incremental mode
-      options::cbqiNestedQE.set(false);
-      options::cbqiPreRegInst.set(false);
+      options::cegqiNestedQE.set(false);
+      options::cegqiPreRegInst.set(false);
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
@@ -1135,7 +1135,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       {
         options::instNoEntail.set(false);
       }
-      if (!options::instWhenMode.wasSetByUser() && options::cbqiModel())
+      if (!options::instWhenMode.wasSetByUser() && options::cegqiModel())
       {
         // only instantiation should happen at last call when model is avaiable
         options::instWhenMode.set(options::InstWhenMode::LAST_CALL);
@@ -1144,10 +1144,10 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     else
     {
       // only supported in pure arithmetic or pure BV
-      options::cbqiNestedQE.set(false);
+      options::cegqiNestedQE.set(false);
     }
     // prenexing
-    if (options::cbqiNestedQE())
+    if (options::cegqiNestedQE())
     {
       // only complete with prenex = disj_normal or normal
       if (options::prenexQuant() <= options::PrenexQuantMode::DISJ_NORMAL)
@@ -1175,7 +1175,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     options::quantConflictFind.set(true);
   }
-  if (options::cbqiNestedQE())
+  if (options::cegqiNestedQE())
   {
     options::prenexQuantUser.set(true);
     if (!options::preSkolemQuant.wasSetByUser())

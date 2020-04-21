@@ -31,6 +31,45 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/**
+ * This data structure encapsulates an inference for the core solver of the
+ * theory of strings. This includes the form of the inference to be processed
+ * by the inference manager, the side effects it generates for the core solver,
+ * and information used for heuristics and debugging.
+ */
+class CoreInferInfo
+{
+ public:
+  CoreInferInfo();
+  ~CoreInferInfo() {}
+  /** The infer info of this class */
+  InferInfo d_infer;
+  /**
+   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
+   */
+  std::map<Node, bool> d_pendingPhase;
+  /**
+   * The index in the normal forms under which this inference is addressing.
+   * For example, if the inference is inferring x = y from |x|=|y| and
+   *   w ++ x ++ ... = w ++ y ++ ...
+   * then d_index is 1, since x and y are at index 1 in these concat terms.
+   */
+  unsigned d_index;
+  /**
+   * The normal form pair that is cached as a result of this inference.
+   */
+  Node d_nfPair[2];
+  /** for debugging
+   *
+   * The base pair of strings d_i/d_j that led to the inference, and whether
+   * (d_rev) we were processing the normal forms of these strings in reverse
+   * direction.
+   */
+  Node d_i;
+  Node d_j;
+  bool d_rev;
+};
+
 /** The core solver for the theory of strings
  *
  * This implements techniques for handling (dis)equalities involving
@@ -183,10 +222,11 @@ class CoreSolver
  private:
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
-   * the inference manager to process the inference, it introduces Skolems, and
-   * updates the set of normal form pairs.
+   * the inference manager to process the inference, and updates the set of
+   * normal form pairs. Returns true if the conclusion of ii was not true
+   * after rewriting. If the conclusion is true, this method does nothing.
    */
-  void doInferInfo(const InferInfo& ii);
+  bool processInferInfo(CoreInferInfo& ii);
   /** Add that (n1,n2) is a normal form pair in the current context. */
   void addNormalFormPair(Node n1, Node n2);
   /** Is (n1,n2) a normal form pair in the current context? */
@@ -253,7 +293,7 @@ class CoreSolver
    *
    * This method is called when two equal terms have normal forms nfi and nfj.
    * It adds (typically at most one) possible inference to the vector pinfer.
-   * This inference is in the form of an InferInfo object, which stores the
+   * This inference is in the form of an CoreInferInfo object, which stores the
    * necessary information regarding how to process the inference.
    *
    * index: The index in the normal form vectors (nfi.d_nf and nfj.d_nf) that
@@ -280,7 +320,7 @@ class CoreSolver
                         unsigned& index,
                         bool isRev,
                         unsigned rproc,
-                        std::vector<InferInfo>& pinfer,
+                        std::vector<CoreInferInfo>& pinfer,
                         TypeNode stype);
   //--------------------------end for checkNormalFormsEq
 
@@ -309,7 +349,7 @@ class CoreSolver
                                 NormalForm& nfj,
                                 int loop_index,
                                 int index,
-                                InferInfo& info);
+                                CoreInferInfo& info);
   //--------------------------end for checkNormalFormsEq with loops
 
   //--------------------------for checkNormalFormsDeq
@@ -402,7 +442,7 @@ class CoreSolver
    * indepedent map from nodes to lists of nodes to model this, given by
    * the two data members below.
    */
-  NodeIntMap d_nf_pairs;
+  NodeIntMap d_nfPairs;
   std::map<Node, std::vector<Node> > d_nf_pairs_data;
   /** list of non-congruent concat terms in each equivalence class */
   std::map<Node, std::vector<Node> > d_eqc;

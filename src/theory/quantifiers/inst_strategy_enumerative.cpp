@@ -207,7 +207,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
         for (unsigned j = 0; j < ts; j++)
         {
           Node gt = tdb->getTypeGroundTerm(ftypes[i], j);
-          if (!options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
+          if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
           {
             Node rep = qy->getRepresentative(gt);
             if (reps_found.find(rep) == reps_found.end())

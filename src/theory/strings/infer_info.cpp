@@ -92,7 +92,41 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-InferInfo::InferInfo() : d_id(Inference::NONE), d_index(0), d_rev(false) {}
+InferInfo::InferInfo() : d_id(Inference::NONE) {}
+
+bool InferInfo::isTrivial() const
+{
+  Assert(!d_conc.isNull());
+  return d_conc.isConst() && d_conc.getConst<bool>();
+}
+
+bool InferInfo::isConflict() const
+{
+  Assert(!d_conc.isNull());
+  return d_conc.isConst() && !d_conc.getConst<bool>() && d_antn.empty();
+}
+
+bool InferInfo::isFact() const
+{
+  Assert(!d_conc.isNull());
+  TNode atom = d_conc.getKind() == kind::NOT ? d_conc[0] : d_conc;
+  return !atom.isConst() && atom.getKind() != kind::OR && d_antn.empty();
+}
+
+std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
+{
+  out << "(infer " << ii.d_id << " " << ii.d_conc;
+  if (!ii.d_ant.empty())
+  {
+    out << " :ant (" << ii.d_ant << ")";
+  }
+  if (!ii.d_antn.empty())
+  {
+    out << " :antn (" << ii.d_antn << ")";
+  }
+  out << ")";
+  return out;
+}
 
 }  // namespace strings
 }  // namespace theory

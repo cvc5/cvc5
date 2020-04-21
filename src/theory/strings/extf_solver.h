@@ -91,7 +91,7 @@ class ExtfSolver
              StringsRewriter& rewriter,
              BaseSolver& bs,
              CoreSolver& cs,
-             ExtTheory* et,
+             ExtTheory& et,
              SequencesStatistics& statistics);
   ~ExtfSolver();
 
@@ -147,6 +147,7 @@ class ExtfSolver
    * checkExtfEval.
    */
   const std::map<Node, ExtfInfoTmp>& getInfo() const;
+  //---------------------------------- information about ExtTheory
   /** Are there any active extended functions? */
   bool hasExtendedFunctions() const;
   /**
@@ -154,7 +155,7 @@ class ExtfSolver
    * context (see ExtTheory::getActive).
    */
   std::vector<Node> getActive(Kind k) const;
-
+  //---------------------------------- end information about ExtTheory
  private:
   /** do reduction
    *
@@ -190,7 +191,7 @@ class ExtfSolver
   /** reference to the core solver, used for certain queries */
   CoreSolver& d_csolver;
   /** the extended theory object for the theory of strings */
-  ExtTheory* d_extt;
+  ExtTheory& d_extt;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** preprocessing utility, for performing strings reductions */
