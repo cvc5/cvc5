@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun x () String)

@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --strings-exp --re-elim
 ; EXPECT: sat
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-logic ALL)
 (set-info :status sat)
 (declare-const resource_resource String)

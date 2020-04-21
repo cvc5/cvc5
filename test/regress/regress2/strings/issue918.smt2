@@ -2,7 +2,7 @@
 ; EXPECT: sat
 (set-option :produce-models true)
 (set-logic UFDTSLIA)
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (declare-datatypes () (
     (StringRotation (StringRotation$C_StringRotation (StringRotation$C_StringRotation$sr String)))
     (StringRotation2 (StringRotation2$C_StringRotation2 (StringRotation2$C_StringRotation2$sr1 StringRotation) (StringRotation2$C_StringRotation2$sr2 StringRotation)))

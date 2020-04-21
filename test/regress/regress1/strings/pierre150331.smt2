@@ -1,7 +1,7 @@
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-logic SLIA)
 (set-info :status sat)
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-option :strings-exp true)
 (define-fun stringEval ((?s String)) Bool (str.in_re ?s 
 (re.union 
