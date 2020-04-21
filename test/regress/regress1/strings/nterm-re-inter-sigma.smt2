@@ -5,7 +5,7 @@
 (declare-fun x () String)
 
 (assert
-(not (= (str.in.re x (re.++ (re.++ re.allchar  re.allchar ) (re.* re.allchar ))) (not (str.in.re x (re.* (str.to.re "A")))))
+(not (= (str.in_re x (re.++ (re.++ re.allchar  re.allchar ) (re.* re.allchar ))) (not (str.in_re x (re.* (str.to_re "A")))))
 ))
 
 (check-sat)

@@ -11,16 +11,16 @@
 (assert (str.contains joined "<script>alert(1);</script>"))
 
 ; (<script>[^<]*</script>)+
-(assert (str.in.re joined
+(assert (str.in_re joined
             (re.+ (re.++
-                    (str.to.re "<script>")
+                    (str.to_re "<script>")
                     (re.*
                         (re.union
                             (re.range " " ";")
                             (re.range "=" "~")
                         )
                     )
-                    (str.to.re "</script>")
+                    (str.to_re "</script>")
             ))
   ))
 

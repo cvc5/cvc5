@@ -8,7 +8,7 @@
 (declare-fun y () String)
 (declare-fun z () String)
 
-(assert (str.in.re x
+(assert (str.in_re x
                 (re.+ (re.range "a" "c"))
 				                ))
 

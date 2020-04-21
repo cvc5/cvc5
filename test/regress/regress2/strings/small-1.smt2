@@ -4,5 +4,5 @@
 (set-option :strings-exp true)
 (set-option :re-elim true)
 (declare-const x String)
-(assert (str.in.re x (re.++ (str.to.re "example-bucket/") (re.* re.allchar) (str.to.re "/") re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar (str.to.re "-") re.allchar re.allchar re.allchar re.allchar (str.to.re "-") re.allchar re.allchar re.allchar re.allchar (str.to.re "-") re.allchar re.allchar re.allchar re.allchar (str.to.re "-") re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar (str.to.re "/foo"))))
+(assert (str.in_re x (re.++ (str.to_re "example-bucket/") (re.* re.allchar) (str.to_re "/") re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar (str.to_re "-") re.allchar re.allchar re.allchar re.allchar (str.to_re "-") re.allchar re.allchar re.allchar re.allchar (str.to_re "-") re.allchar re.allchar re.allchar re.allchar (str.to_re "-") re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar (str.to_re "/foo"))))
 (check-sat)

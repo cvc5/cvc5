@@ -14,6 +14,6 @@
 (assert (= (str.at u 8) "6"))
 
 (push 1)
-(assert (str.in.re s (re.range "0" "3")))
+(assert (str.in_re s (re.range "0" "3")))
 
 (check-sat)

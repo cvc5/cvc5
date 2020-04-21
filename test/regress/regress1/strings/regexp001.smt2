@@ -5,8 +5,8 @@
 
 (declare-fun x () String)
 
-(assert (str.in.re x
-		(re.* (re.++ (re.* (str.to.re "a") ) (str.to.re "b") ))
+(assert (str.in_re x
+		(re.* (re.++ (re.* (str.to_re "a") ) (str.to_re "b") ))
 	))
 
 (assert (= (str.len x) 3))

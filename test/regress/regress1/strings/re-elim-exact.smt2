@@ -5,6 +5,6 @@
 (set-option :re-elim true)
 (declare-fun x () String)
 
-(assert (str.in.re x (re.++ re.allchar (str.to.re "A") re.allchar (str.to.re "B") re.allchar)))
+(assert (str.in_re x (re.++ re.allchar (str.to_re "A") re.allchar (str.to_re "B") re.allchar)))
 
 (check-sat)
