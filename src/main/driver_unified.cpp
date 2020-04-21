@@ -157,9 +157,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         opts.setInputLanguage(language::input::LANG_CVC4);
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
-        opts.setInputLanguage(language::input::LANG_SYGUS);
-        //since there is no sygus output language, set this to SMT lib 2
-        //opts.setOutputLanguage(language::output::LANG_SMTLIB_V2_0);
+        // version 2 sygus is the default
+        opts.setInputLanguage(language::input::LANG_SYGUS_V2);
       }
     }
   }
