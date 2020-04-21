@@ -1,4 +1,4 @@
-; COMMAND-LINE: --lang=smt2.6.1 --produce-models
+; COMMAND-LINE: --lang=smt2.6 --produce-models
 ; EXPECT: sat
 ; EXPECT: ((x "\u{a}"))
 ; EXPECT: ((y "\u{7f}"))
