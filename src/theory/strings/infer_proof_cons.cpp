@@ -22,7 +22,8 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferProofCons::InferProofCons(eq::ProofEqEngine& pfee) : d_pfee(pfee) {}
+InferProofCons::InferProofCons(eq::ProofEqEngine& pfee,
+                 SequencesStatistics& statistics, bool pfEnabled) : d_pfee(pfee), d_statistics(statistics), d_pfEnabled(pfEnabled) {}
 
 PfRule InferProofCons::convert(const InferInfo& ii,
                                std::vector<Node>& pfChildren,
@@ -46,11 +47,40 @@ PfRule InferProofCons::convert(Inference infer,
   {
     utils::flattenOp(AND, ec, pfChildren);
   }
-  pfExp.insert(pfExp.end(), pfChildren.begin(), pfChildren.end());
+  if (options::stringRExplainLemmas())
+  {
+    // these are the explained ones
+    pfExp.insert(pfExp.end(), pfChildren.begin(), pfChildren.end());
+  }
   for (const Node& ecn : expn)
   {
     utils::flattenOp(AND, ecn, pfChildren);
   }
+  // only keep stats if we process it here
+  d_statistics.d_inferences << infer;
+  /*
+  if (!d_pfEnabled)
+  {
+    // don't care about proofs, return now
+    return PfRule::UNKNOWN;
+  }
+  */
+  // debug print
+  if (Trace.isOn("strings-ipc"))
+  {
+    Trace("strings-ipc") << "InferProofCons::convert: " << infer << " " << conc << std::endl;
+    for (const Node& ec : exp)
+    {
+      Trace("strings-ipc") << "    e: " << ec << std::endl;
+    }
+    for (const Node& ecn : expn)
+    {
+      Trace("strings-ipc") << "  e-n: " << ecn << std::endl;
+    }
+  }
+  
+  
+  
   return PfRule::UNKNOWN;
 }
 

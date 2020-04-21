@@ -47,7 +47,7 @@ Node ProofSkolemCache::mkSkolem(Node v,
   return k;
 }
 
-Node ProofSkolemCache::getWitnessForm(Node n) const
+Node ProofSkolemCache::getWitnessForm(Node n)
 {
   WitnessFormAttribute wfa;
   NodeManager* nm = NodeManager::currentNM();

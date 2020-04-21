@@ -43,7 +43,7 @@ InferenceManager::InferenceManager(context::Context* c,
       d_statistics(statistics),
       d_pnm(),
       d_pfee(c, u, *d_state.getEqualityEngine(), &d_pnm, pfEnabled),
-      d_ipc(d_pfee),
+      d_ipc(d_pfee, statistics, pfEnabled),
       d_keep(c),
       d_pfEnabled(pfEnabled)
 {
@@ -176,8 +176,6 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       Trace("strings-assert") << "(assert (not " << tconf.getNode()
                               << ")) ; conflict " << ii.d_id << std::endl;
       ++(d_statistics.d_conflictsInfer);
-      // only keep stats if we process it here
-      d_statistics.d_inferences << ii.d_id;
       d_poc.trustedConflict(tconf);
       d_state.setConflict();
       return;
@@ -325,10 +323,6 @@ void InferenceManager::doPendingLemmas()
     std::vector<Node> pfExp;
     std::vector<Node> pfArgs;
     PfRule rule = d_ipc.convert(ii, pfChildren, pfExp, pfArgs);
-    if (!options::stringRExplainLemmas())
-    {
-      pfExp.clear();
-    }
     // make the trusted lemma object
     TrustNode tlem =
         d_pfee.assertLemma(ii.d_conc, rule, pfChildren, pfExp, pfArgs);
@@ -338,8 +332,6 @@ void InferenceManager::doPendingLemmas()
         << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
     Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id
                            << std::endl;
-    // only keep stats if we process it here
-    d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
     d_poc.trustedLemma(tlem);
 

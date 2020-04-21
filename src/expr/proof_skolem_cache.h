@@ -83,7 +83,7 @@ class ProofSkolemCache
    * @param flags The flags for the Skolem (see NodeManager::mkSkolem)
    * @return The skolem whose witness form is registered by this class.
    */
-  Node mkSkolem(Node v,
+  static Node mkSkolem(Node v,
                 Node pred,
                 const std::string& prefix,
                 const std::string& comment = "",
@@ -93,7 +93,7 @@ class ProofSkolemCache
    * @param n The term or formula to convert to witness form described above
    * @return n in witness form.
    */
-  Node getWitnessForm(Node n) const;
+  static Node getWitnessForm(Node n);
 };
 
 }  // namespace CVC4
