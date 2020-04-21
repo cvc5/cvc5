@@ -150,7 +150,6 @@ OutputLanguage toOutputLanguage(std::string language) {
            || language == "LANG_SMTLIB_V2")
   {
     return output::LANG_SMTLIB_V2_6;
-  }
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return output::LANG_TPTP;
   } else if(language == "z3str" || language == "z3-str" ||
