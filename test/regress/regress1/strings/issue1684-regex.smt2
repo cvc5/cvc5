@@ -1,4 +1,4 @@
-(set-info :smt-lib-version 2.6)
+(set-info :smt-lib-version 2.5)
 (set-logic QF_S)
 (set-info :status sat)
 (set-option :strings-exp true)
