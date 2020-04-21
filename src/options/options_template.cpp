@@ -614,7 +614,6 @@ void Options::parseOptionsRecursive(Options* options,
                      << "[ next option will be at pos: " << optind << " ]"
                      << std::endl;
 
-    Assert (old_optind>0);
     // The initial getopt_long call should always determine that argv[0]
     // is not an option and returns -1. We always manually advance beyond
     // this element.
