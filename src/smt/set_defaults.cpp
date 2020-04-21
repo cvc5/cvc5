@@ -575,7 +575,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       // If we are eliminating non-linear arithmetic via solve-int-as-bv,
       // then this is not required, since non-linear arithmetic will be
       // eliminated altogether (or otherwise fail at preprocessing).
-      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear() && options::solveIntAsBV()==0)
+      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
+          && options::solveIntAsBV() == 0)
       // If division/mod-by-zero is not treated as a constant value in BV, we
       // need UF.
       || (logic.isTheoryEnabled(THEORY_BV)
