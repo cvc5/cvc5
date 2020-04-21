@@ -97,7 +97,7 @@ void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
 bool ProofNode::isClosed() const
 {
   std::vector<Node> assumps;
-  getAssumptions(assumps);
+  getFreeAssumptions(assumps);
   return assumps.empty();
 }
 
@@ -109,7 +109,7 @@ std::shared_ptr<ProofNode> ProofNode::clone() const
     cchildren.push_back(cp->clone());
   }
   std::shared_ptr<ProofNode> thisc =
-      std::make_shared<ProofNode>(d_id, cchildren, d_args);
+      std::make_shared<ProofNode>(d_rule, cchildren, d_args);
   thisc->d_proven = d_proven;
   return thisc;
 }
