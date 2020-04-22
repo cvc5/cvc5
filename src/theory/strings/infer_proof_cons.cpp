@@ -35,8 +35,10 @@ void InferProofCons::convert(const InferInfo& ii,
 {
   if (ii.d_conc.getKind()==AND)
   {
-    for (const Node& cc : ii.d_conc)
+    Node conj = ii.d_conc;
+    for (const Node& cc : conj)
     {
+      ii.d_conc = cc;
       convert(ii,piis);
     }
     return;
