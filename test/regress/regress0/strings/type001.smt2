@@ -10,9 +10,9 @@
 (declare-fun z () String)
 
 ;big num test
-(assert (= x (int.to.str 4785582390527685649)))
+(assert (= x (str.from_int 4785582390527685649)))
 ;should be ""
-(assert (= y (int.to.str (- 9))))
+(assert (= y (str.from_int (- 9))))
 
 ;big num
 (assert (= i (str.to_int "783914785582390527685649")))

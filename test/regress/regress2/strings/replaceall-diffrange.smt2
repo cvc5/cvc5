@@ -7,5 +7,5 @@
 (declare-fun y () String)
 (declare-fun z () String)
 (declare-fun w () String)
-(assert (= (str.len (str.replaceall x y z)) (+ (str.len (str.replaceall x y w)) 3)))
+(assert (= (str.len (str.replace_all x y z)) (+ (str.len (str.replace_all x y w)) 3)))
 (check-sat)

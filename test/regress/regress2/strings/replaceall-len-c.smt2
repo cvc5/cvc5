@@ -4,5 +4,5 @@
 (set-option :strings-exp true)
 (set-option :strings-fmf true)
 (declare-fun x () String)
-(assert (= (str.len (str.replaceall "ABBABAAB" x "C")) 5))
+(assert (= (str.len (str.replace_all "ABBABAAB" x "C")) 5))
 (check-sat)

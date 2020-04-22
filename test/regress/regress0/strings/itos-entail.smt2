@@ -6,6 +6,6 @@
 (declare-fun y () String)
 (declare-fun z () String)
 
-(assert (str.contains "ABCD" (str.++ y (int.to.str x) z)))
+(assert (str.contains "ABCD" (str.++ y (str.from_int x) z)))
 
 (check-sat)

@@ -9,5 +9,5 @@
 (declare-fun z () String)
 (assert (not (= x "")))
 (assert (not (= y "")))
-(assert (not (= (str.replace x y z) (str.replaceall x y z))))
+(assert (not (= (str.replace x y z) (str.replace_all x y z))))
 (check-sat)
