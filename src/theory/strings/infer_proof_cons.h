@@ -70,7 +70,7 @@ class InferProofCons
    * only relevant if ii corresponds to a lemma.
    * (4) Arguments to the proof step (pfArgs).
    */
-  void convert(const InferInfo& ii,
+  void convert(InferInfo& ii,
                  std::vector<ProofInferInfo>& piis);
   /** singleton version */
   PfRule convert(const InferInfo& ii,

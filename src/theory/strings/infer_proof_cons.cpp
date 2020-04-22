@@ -30,7 +30,7 @@ InferProofCons::InferProofCons(eq::ProofEqEngine& pfee,
 {
 }
 
-void InferProofCons::convert(const InferInfo& ii,
+void InferProofCons::convert(InferInfo& ii,
                                std::vector<ProofInferInfo>& piis)
 {
   if (ii.d_conc.getKind()==AND)
@@ -41,6 +41,7 @@ void InferProofCons::convert(const InferInfo& ii,
       ii.d_conc = cc;
       convert(ii,piis);
     }
+    ii.d_conc = conj;
     return;
   }
   ProofInferInfo pii;
