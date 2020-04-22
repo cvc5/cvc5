@@ -1752,6 +1752,7 @@ set(regress_1_tests
   regress1/strings/issue3272.smt2
   regress1/strings/issue3357.smt2
   regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
+  regress1/strings/issue4379.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
