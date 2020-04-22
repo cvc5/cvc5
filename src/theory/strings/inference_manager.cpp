@@ -279,24 +279,38 @@ void InferenceManager::doPendingFacts()
     // should be added as a normal equality or predicate to the equality engine
     // with no new external assumptions (ii.d_antn).
     Assert(ii.isFact());
-    Node fact = ii.d_conc;
+    Node facts = ii.d_conc;
     Node exp = utils::mkAnd(ii.d_ant);
-    Trace("strings-assert") << "(assert (=> " << exp << " " << fact
+    Trace("strings-assert") << "(assert (=> " << exp << " " << facts
                             << ")) ; fact " << ii.d_id << std::endl;
     // only keep stats if we process it here
-    Trace("strings-lemma") << "Strings::Fact: " << fact << " from " << exp
+    Trace("strings-lemma") << "Strings::Fact: " << facts << " from " << exp
                            << " by " << ii.d_id << std::endl;
     d_statistics.d_inferences << ii.d_id;
     // assert it as a pending fact
-    bool polarity = fact.getKind() != NOT;
-    TNode atom = polarity ? fact : fact[0];
-    // no double negation or double (conjunctive) conclusions
-    Assert(atom.getKind() != NOT && atom.getKind() != AND);
-    assertPendingFact(atom, polarity, exp);
+    if (facts.getKind() == AND)
+    {
+      for (const Node& fact : facts)
+      {
+        bool polarity = fact.getKind() != NOT;
+        TNode atom = polarity ? fact : fact[0];
+        // no double negation or double (conjunctive) conclusions
+        Assert(atom.getKind() != NOT && atom.getKind() != AND);
+        assertPendingFact(atom, polarity, exp);
+      }
+    }
+    else
+    {
+      bool polarity = facts.getKind() != NOT;
+      TNode atom = polarity ? facts : facts[0];
+      // no double negation or double (conjunctive) conclusions
+      Assert(atom.getKind() != NOT && atom.getKind() != AND);
+      assertPendingFact(atom, polarity, exp);
+    }
     // Must reference count the equality and its explanation, which is not done
     // by the equality engine. Notice that we do not need to do this for
     // external assertions, which enter as facts through sendAssumption.
-    d_keep.insert(fact);
+    d_keep.insert(facts);
     d_keep.insert(exp);
     i++;
   }
