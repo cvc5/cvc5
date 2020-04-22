@@ -61,7 +61,7 @@ PfRule InferProofCons::convert(Inference infer,
                ProofInferInfo& pii)
 {
   Assert( !conc.isNull() && conc.getKind()!=AND );
-  pii.d_conc = ii.d_conc;
+  pii.d_conc = conc;
   // must flatten children with respect to AND to be ready to explain
   for (const Node& ec : exp)
   {
