@@ -133,8 +133,19 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   if (options::solveIntAsBV() > 0)
   {
+    // not compatible with incremental
+    if (options::incrementalSolving())
+    {
+      throw OptionException(
+          "solving integers as bitvectors is currently not supported "
+          "when solving incrementally.");
+    }
+    // Int to BV currently always eliminates arithmetic completely (or otherwise
+    // fails). Thus, it is safe to eliminate arithmetic. Also, bit-vectors
+    // are required.
     logic = logic.getUnlockedCopy();
     logic.enableTheory(THEORY_BV);
+    logic.disableTheory(THEORY_ARITH);
     logic.lock();
   }
 
@@ -495,7 +506,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
-  if (options::cbqiBv() && logic.isQuantified())
+  if (options::cegqiBv() && logic.isQuantified())
   {
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
@@ -565,7 +576,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       || logic.isTheoryEnabled(THEORY_SETS)
       // Non-linear arithmetic requires UF to deal with division/mod because
       // their expansion introduces UFs for the division/mod-by-zero case.
-      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
+      // If we are eliminating non-linear arithmetic via solve-int-as-bv,
+      // then this is not required, since non-linear arithmetic will be
+      // eliminated altogether (or otherwise fail at preprocessing).
+      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
+          && options::solveIntAsBV() == 0)
       // If division/mod-by-zero is not treated as a constant value in BV, we
       // need UF.
       || (logic.isTheoryEnabled(THEORY_BV)
@@ -819,11 +834,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel"
              << std::endl;
-    options::cbqi.set(false);
+    options::cegqi.set(false);
   }
   // Do we need to track instantiations?
   // Needed for sygus due to single invocation techniques.
-  if (options::cbqiNestedQE()
+  if (options::cegqiNestedQE()
       || (options::proof() && !options::trackInstLemmas.wasSetByUser())
       || is_sygus)
   {
@@ -937,15 +952,15 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
     options::sygus.set(true);
     // must use Ferrante/Rackoff for real arithmetic
-    if (!options::cbqiMidpoint.wasSetByUser())
+    if (!options::cegqiMidpoint.wasSetByUser())
     {
-      options::cbqiMidpoint.set(true);
+      options::cegqiMidpoint.set(true);
     }
     if (options::sygusRepairConst())
     {
-      if (!options::cbqi.wasSetByUser())
+      if (!options::cegqi.wasSetByUser())
       {
-        options::cbqi.set(true);
+        options::cegqi.set(true);
       }
     }
     if (options::sygusInference())
@@ -973,10 +988,10 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       options::instNoEntail.set(false);
     }
-    if (!options::cbqiFullEffort.wasSetByUser())
+    if (!options::cegqiFullEffort.wasSetByUser())
     {
       // should use full effort cbqi for single invocation and repair const
-      options::cbqiFullEffort.set(true);
+      options::cegqiFullEffort.set(true);
     }
     if (options::sygusRew())
     {
@@ -1085,9 +1100,9 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       options::macrosQuant.set(false);
     }
-    if (!options::cbqiPreRegInst.wasSetByUser())
+    if (!options::cegqiPreRegInst.wasSetByUser())
     {
-      options::cbqiPreRegInst.set(true);
+      options::cegqiPreRegInst.set(true);
     }
   }
   // counterexample-guided instantiation for non-sygus
@@ -1097,22 +1112,22 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
            || logic.isTheoryEnabled(THEORY_DATATYPES)
            || logic.isTheoryEnabled(THEORY_BV)
            || logic.isTheoryEnabled(THEORY_FP)))
-      || options::cbqiAll())
+      || options::cegqiAll())
   {
-    if (!options::cbqi.wasSetByUser())
+    if (!options::cegqi.wasSetByUser())
     {
-      options::cbqi.set(true);
+      options::cegqi.set(true);
     }
     // check whether we should apply full cbqi
     if (logic.isPure(THEORY_BV))
     {
-      if (!options::cbqiFullEffort.wasSetByUser())
+      if (!options::cegqiFullEffort.wasSetByUser())
       {
-        options::cbqiFullEffort.set(true);
+        options::cegqiFullEffort.set(true);
       }
     }
   }
-  if (options::cbqi())
+  if (options::cegqi())
   {
     // must rewrite divk
     if (!options::rewriteDivk.wasSetByUser())
@@ -1122,8 +1137,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     if (options::incrementalSolving())
     {
       // cannot do nested quantifier elimination in incremental mode
-      options::cbqiNestedQE.set(false);
-      options::cbqiPreRegInst.set(false);
+      options::cegqiNestedQE.set(false);
+      options::cegqiPreRegInst.set(false);
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
@@ -1135,7 +1150,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       {
         options::instNoEntail.set(false);
       }
-      if (!options::instWhenMode.wasSetByUser() && options::cbqiModel())
+      if (!options::instWhenMode.wasSetByUser() && options::cegqiModel())
       {
         // only instantiation should happen at last call when model is avaiable
         options::instWhenMode.set(options::InstWhenMode::LAST_CALL);
@@ -1144,10 +1159,10 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     else
     {
       // only supported in pure arithmetic or pure BV
-      options::cbqiNestedQE.set(false);
+      options::cegqiNestedQE.set(false);
     }
     // prenexing
-    if (options::cbqiNestedQE())
+    if (options::cegqiNestedQE())
     {
       // only complete with prenex = disj_normal or normal
       if (options::prenexQuant() <= options::PrenexQuantMode::DISJ_NORMAL)
@@ -1175,7 +1190,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     options::quantConflictFind.set(true);
   }
-  if (options::cbqiNestedQE())
+  if (options::cegqiNestedQE())
   {
     options::prenexQuantUser.set(true);
     if (!options::preSkolemQuant.wasSetByUser())

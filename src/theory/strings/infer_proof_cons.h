@@ -29,6 +29,23 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/** This could be a very generic utility if needed */
+class ProofInferInfo
+{
+public:
+  ProofInferInfo() : d_rule(PfRule::UNKNOWN) {}
+  /** The proof rule */
+  PfRule d_rule;
+  /** The conclusion */
+  Node d_conc;
+  /** The proof children */
+  std::vector<Node> d_children;
+  /** The proof arguments */
+  std::vector<Node> d_args;
+  /** The children to explain */
+  std::vector<Node> d_childrenExp;
+};
+  
 /**
  * Converts between Inference and information needed to provide a proof step
  * (PfRule, children, args).
@@ -53,17 +70,17 @@ class InferProofCons
    * only relevant if ii corresponds to a lemma.
    * (4) Arguments to the proof step (pfArgs).
    */
+  void convert(const InferInfo& ii,
+                 std::vector<ProofInferInfo>& piis);
+  /** singleton version */
   PfRule convert(const InferInfo& ii,
-                 std::vector<Node>& pfChildren,
-                 std::vector<Node>& pfExp,
-                 std::vector<Node>& pfArgs);
+               ProofInferInfo& pfi);
+  /** internal version */
   PfRule convert(Inference infer,
                  Node conc,
                  const std::vector<Node>& exp,
                  const std::vector<Node>& expn,
-                 std::vector<Node>& pfChildren,
-                 std::vector<Node>& pfExp,
-                 std::vector<Node>& pfArgs);
+                 ProofInferInfo& pii);
 
  private:
   /** The proof-producing equality engine, used for intermediate assertions */

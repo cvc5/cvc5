@@ -1,5 +1,5 @@
 (set-logic UFBV)
-(set-option :cbqi-all true)
+(set-option :cegqi-all true)
 (set-info :status unsat)
 (declare-sort S0 0)
 (declare-const S0-0 S0)

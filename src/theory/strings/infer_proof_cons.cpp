@@ -30,36 +30,47 @@ InferProofCons::InferProofCons(eq::ProofEqEngine& pfee,
 {
 }
 
-PfRule InferProofCons::convert(const InferInfo& ii,
-                               std::vector<Node>& pfChildren,
-                               std::vector<Node>& pfExp,
-                               std::vector<Node>& pfArgs)
+void InferProofCons::convert(const InferInfo& ii,
+                               std::vector<ProofInferInfo>& piis)
 {
-  return convert(
-      ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pfChildren, pfExp, pfArgs);
+  if (ii.d_conc.getKind()==AND)
+  {
+    for (const Node& cc : ii.d_conc)
+    {
+      convert(ii,piis);
+    }
+    return;
+  }
+  ProofInferInfo pii;
+  convert(ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pii);
+  piis.push_back(pii);
+}
+
+PfRule InferProofCons::convert(const InferInfo& ii, ProofInferInfo& pii)
+{
+  return convert(ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pii);
 }
 
 PfRule InferProofCons::convert(Inference infer,
                                Node conc,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& expn,
-                               std::vector<Node>& pfChildren,
-                               std::vector<Node>& pfExp,
-                               std::vector<Node>& pfArgs)
+               ProofInferInfo& pii)
 {
+  Assert( !conc.isNull() && conc.getKind()!=AND );
   // must flatten children with respect to AND to be ready to explain
   for (const Node& ec : exp)
   {
-    utils::flattenOp(AND, ec, pfChildren);
+    utils::flattenOp(AND, ec, pii.d_children);
   }
   if (options::stringRExplainLemmas())
   {
     // these are the explained ones
-    pfExp.insert(pfExp.end(), pfChildren.begin(), pfChildren.end());
+    pii.d_childrenExp.insert(pii.d_childrenExp.end(), pii.d_children.begin(), pii.d_children.end());
   }
   for (const Node& ecn : expn)
   {
-    utils::flattenOp(AND, ecn, pfChildren);
+    utils::flattenOp(AND, ecn, pii.d_children);
   }
   // only keep stats if we process it here
   d_statistics.d_inferences << infer;
@@ -67,7 +78,7 @@ PfRule InferProofCons::convert(Inference infer,
   if (!d_pfEnabled)
   {
     // don't care about proofs, return now
-    return PfRule::UNKNOWN;
+    return;
   }
   */
   // debug print
@@ -85,7 +96,8 @@ PfRule InferProofCons::convert(Inference infer,
     }
   }
 
-  return PfRule::UNKNOWN;
+  // TODO
+  return pii.d_rule;
 }
 
 }  // namespace strings

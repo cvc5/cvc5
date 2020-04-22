@@ -574,8 +574,9 @@ void Options::parseOptionsRecursive(Options* options,
   optreset = 1; // on BSD getopt() (e.g. Mac OS), might need this
 #endif /* HAVE_DECL_OPTRESET */
 
-  // start with position after the binary name
-  int main_optind = 1;
+  // We must parse the binary name, which is manually ignored below. Setting
+  // this to 1 leads to incorrect behavior on some platforms.
+  int main_optind = 0;
   int old_optind;
 
 
@@ -618,19 +619,6 @@ void Options::parseOptionsRecursive(Options* options,
     // The initial getopt_long call should always determine that argv[0]
     // is not an option and returns -1. We always manually advance beyond
     // this element.
-    //
-    // We have to reinitialize optind to 0 instead of 1 as we need to support
-    // changing the argv array passed to getopt.
-    // This is needed as are using GNU extensions.
-    // From: http://man7.org/linux/man-pages/man3/getopt.3.html
-    // A program that scans multiple argument vectors, or rescans the same
-    // vector more than once, and wants to make use of GNU extensions such
-    // as '+' and '-' at the start of optstring, or changes the value of
-    //  POSIXLY_CORRECT between scans, must reinitialize getopt() by
-    //  resetting optind to 0, rather than the traditional value of 1.
-    //  (Resetting to 0 forces the invocation of an internal initialization
-    //  routine that rechecks POSIXLY_CORRECT and checks for GNU extensions
-    //  in optstring.)
     if ( old_optind == 0  && c == -1 ) {
       Assert(main_optind > 0);
       continue;
