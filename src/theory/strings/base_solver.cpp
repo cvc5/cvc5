@@ -400,8 +400,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
   }
   for (std::pair<const TNode, TermIndex>& p : ti->d_children)
   {
-    const std::map<const Node, BaseEqcInfo>::iterator it =
-        d_eqcInfo.find(p.first);
+    std::map<Node, BaseEqcInfo>::const_iterator it = d_eqcInfo.find(p.first);
     if (it != d_eqcInfo.end() && it->second.d_bestContent.isConst())
     {
       vecc.push_back(it->second.d_bestContent);
@@ -562,7 +561,7 @@ bool BaseSolver::isCongruent(Node n)
 
 Node BaseSolver::getConstantEqc(Node eqc)
 {
-  const std::map<const Node, BaseEqcInfo>::iterator it = d_eqcInfo.find(eqc);
+  std::map<Node, BaseEqcInfo>::const_iterator it = d_eqcInfo.find(eqc);
   if (it != d_eqcInfo.end() && it->second.d_bestContent.isConst())
   {
     return it->second.d_bestContent;
@@ -572,7 +571,7 @@ Node BaseSolver::getConstantEqc(Node eqc)
 
 Node BaseSolver::explainConstantEqc(Node n, Node eqc, std::vector<Node>& exp)
 {
-  const std::map<const Node, BaseEqcInfo>::iterator it = d_eqcInfo.find(eqc);
+  std::map<Node, BaseEqcInfo>::const_iterator it = d_eqcInfo.find(eqc);
   if (it != d_eqcInfo.end())
   {
     BaseEqcInfo& bei = d_eqcInfo[eqc];
@@ -595,7 +594,7 @@ Node BaseSolver::explainConstantEqc(Node n, Node eqc, std::vector<Node>& exp)
 
 Node BaseSolver::explainBestContentEqc(Node n, Node eqc, std::vector<Node>& exp)
 {
-  const std::map<const Node, BaseEqcInfo>::iterator it = d_eqcInfo.find(eqc);
+  std::map<Node, BaseEqcInfo>::const_iterator it = d_eqcInfo.find(eqc);
   if (it != d_eqcInfo.end())
   {
     BaseEqcInfo& bei = d_eqcInfo[eqc];
