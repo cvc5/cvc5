@@ -130,8 +130,7 @@ void setSynthGrammar(const std::vector<Node>& axioms,
   NodeManager* nm = NodeManager::currentNM();
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > extra_cons;
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > exclude_cons;
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > include_cons =
-      getIncludeCons(axioms, conj);
+  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > include_cons;
 
   std::unordered_set<Node, NodeHashFunction> terms_irrelevant;
   TypeNode itpGTypeS =
@@ -148,7 +147,7 @@ void setSynthGrammar(const std::vector<Node>& axioms,
   itp.setAttribute(ssg, sym);
 }
 
-void sygus_interpol::mkInterpolationConjecture(const std::string& name,
+TypeNode sygus_interpol::mkInterpolationGrmmarTypeAndStoreSygusConj(const std::string& name,
                                                const std::vector<Node>& axioms,
                                                const Node& conj,
                                                TypeNode itpGType,
@@ -175,6 +174,17 @@ void sygus_interpol::mkInterpolationConjecture(const std::string& name,
       symsetShared.insert(elem);
     }
   }
+  if (!itpGType.isNull()) {
+    return itpGType;
+  }
+  extra_cons = symsetShared;
+  return mkSygusDefaultType(Bool,....,extra_cons,.... )
+}
+
+
+
+
+
   Trace("sygus-interpol-debug")
       << "...finish, got " << symsetAll.size() << " symbols in total. And "
       << symsetShared.size() << " shared symbols." << std::endl;
@@ -235,7 +245,7 @@ void sygus_interpol::mkInterpolationConjecture(const std::string& name,
   std::vector<Node> achildren;
   achildren.push_back(itp);
   achildren.insert(achildren.end(), varsShared.begin(), varsShared.end());
-  Node itpApp = varsShared.empty() ? itp : nm->mkNode(APPLY_UF, achildren);
+  Node itpApp = itp;
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;

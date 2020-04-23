@@ -3168,8 +3168,7 @@ bool SmtEngine::getInterpol(const Expr& conj,
 
   Node sygusConj;
   std::vector<Expr> vars;
-  theory::quantifiers::sygus_interpol::mkInterpolationConjecture(
-      name, axioms, conjn, TypeNode::fromType(grammarType), sygusConj, vars);
+  grammarType = ...::mkInterpolationGrammarType(...);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(sygusConj.getKind() == kind::FORALL
          && sygusConj[0].getNumChildren() == 1);
@@ -3190,13 +3189,12 @@ bool SmtEngine::getInterpol(const Expr& conj,
   if (options::produceInterpols() == options::ProduceInterpols::DEFAULT)
   {
 		Trace("sygus-interpol-debug") << "Set default grammar" << std::endl;
+    vars = [];
     d_subsolver->declareSynthFun("A", interpol, grammarType, false, vars);
 		d_subsolver->assertSygusConstraint(sygusConj.toExpr());
-	}
-	else
-	{
-		d_subsolver->assertFormula(sygusConj.toExpr());
-	}
+	} else {
+    Assert(false);
+  }
 
   if (getInterpolInternal(interpol))
   {

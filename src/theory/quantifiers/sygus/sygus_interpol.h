@@ -59,12 +59,12 @@ namespace sygus_interpol {
  * term whose free variables are a subset of asserts, is the term
  * t * { varlist -> SygusVarToTermAttribute(varlist) }.
  */
-void mkInterpolationConjecture(const std::string& name,
+TypeNode mkInterpolationConjecture(const std::string& name,
                                const std::vector<Node>& axioms,
                                const Node& conj,
                                TypeNode itpGType,
-                               Node& sygusConj,
-                               std::vector<Expr>& varsToSynth);
+                               Node& sygusConj);
+                               
 }  // namespace sygus_interpol
 }  // namespace quantifiers
 }  // namespace theory
