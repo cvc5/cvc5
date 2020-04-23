@@ -650,7 +650,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     return mv;
   }
   Node nr = d_state.getRepresentative(n);
-  Node c = d_bsolver.explainConstantEqc(n, nr, exp);
+  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
   if (!c.isNull())
   {
     return c;
