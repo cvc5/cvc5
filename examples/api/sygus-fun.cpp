@@ -78,7 +78,7 @@ int main()
   Term one = slv.mkReal(1);
 
   Term plus = slv.mkTerm(PLUS, start, start);
-  Term minus = slv.mkTerm(PLUS, start, start);
+  Term minus = slv.mkTerm(MINUS, start, start);
   Term ite = slv.mkTerm(ITE, start_bool, start, start);
 
   Term And = slv.mkTerm(AND, start_bool, start_bool);
@@ -95,7 +95,7 @@ int main()
   // declare the function-to-synthesize. Optionally, provide the grammar
   // constraints
   Term max = slv.synthFun("max", {x, y}, integer, g);
-  Term min = slv.synthFun("min", {x, y}, integer);
+  Term min = slv.synthFun("min", {x, y}, integer, g);
 
   // declare universal variables.
   Term varX = slv.mkSygusVar(integer, "x");
