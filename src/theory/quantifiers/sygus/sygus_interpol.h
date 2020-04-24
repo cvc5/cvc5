@@ -39,7 +39,7 @@ namespace quantifiers {
  * axioms Fa and imply Fc( x ). We encode this conjecture using
  * SygusSideConditionAttribute.
  */
-namespace sygus_interpol {
+class InterpolationProblem
 /**
  * Returns the sygus conjecture corresponding to the interpolation problem for
  * input problem (F above) given by axioms (Fa above), and conj (Fc above).
@@ -59,11 +59,40 @@ namespace sygus_interpol {
  * term whose free variables are a subset of asserts, is the term
  * t * { varlist -> SygusVarToTermAttribute(varlist) }.
  */
-TypeNode mkInterpolationConjecture(const std::string& name,
+Node SolveInterpolationProblem(string name,
                                const std::vector<Node>& axioms,
                                const Node& conj,
-                               TypeNode itpGType,
-                               Node& sygusConj);
+                               TypeNode itpGType);
+                               
+{
+
+  SmtEngine subsolver = ...
+  1. collect symbols (symbolic constants)
+  2. create corresponding variables
+  2.5. compute the shared symbols
+  3. initialize grammar (either by substitution in itpGType or completly create default grammar + symbols)
+  4. on user-defined grammar, call andy's method. Otherwise in step 3, just use the variables and not the symbols.
+  4. make inteprolant symbol with a given name (the type is: TxT...xT -> Bool)
+  5. create subsolvea
+  5.5 declare synth variables (using the subsolver.declareSygusVar) (declare the ones created in 2)
+  6. subsolver.declaresynthfun
+  6.5. create conjecture body
+  6.6. subsolver.assertSygusConstraint -- use the application of the function on the *variables*
+  7. subsolver.checkSynth()a
+  8. if UNSAT then subsolver.getsynthsolution and store in `I`
+  9. I' = I.substitute variables by symbols.
+  10. return I'
+
+
+
+
+}
+
+d_symbols
+d_variables
+bool d_initialized
+d_conjecture
+
                                
 }  // namespace sygus_interpol
 }  // namespace quantifiers

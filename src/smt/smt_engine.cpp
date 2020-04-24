@@ -3168,7 +3168,7 @@ bool SmtEngine::getInterpol(const Expr& conj,
 
   Node sygusConj;
   std::vector<Expr> vars;
-  grammarType = ...::mkInterpolationGrammarType(...);
+  Node sol = sygus_inteprol.solveInterpolationProblem(...)
   // should be a quantified conjecture with one function-to-synthesize
   Assert(sygusConj.getKind() == kind::FORALL
          && sygusConj[0].getNumChildren() == 1);
