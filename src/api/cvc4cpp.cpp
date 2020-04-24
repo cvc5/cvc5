@@ -2324,7 +2324,7 @@ Sort Grammar::resolve()
   for (Term ntsymbol : d_ntSyms)
   {
     // make the unresolved type, used for referencing the final version of
-    // the datatype
+    // the ntsymbol's datatype
     ntsToUnres[ntsymbol] = d_s->getExprManager()->mkSort(ntsymbol.toString());
   }
 
