@@ -97,7 +97,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     TypeNode abdGTypeS = datatypes::utils::substituteAndGeneralizeSygusType(
         abdGType, syms, varlist);
 
-    Assert(abdGTypeS.isDatatype && abdGTypeS.getDType().isSygus());
+    Assert(abdGTypeS.isDatatype() && abdGTypeS.getDType().isSygus());
 
     Trace("sygus-abduct-debug")
         << "Make sygus grammar attribute..." << std::endl;
