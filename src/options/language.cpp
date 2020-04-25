@@ -70,12 +70,12 @@ bool isOutputLang_smt2_6(OutputLanguage lang, bool exact)
 
 bool isInputLangSygus(InputLanguage lang)
 {
-  return lang == input::LANG_SYGUS || lang == input::LANG_SYGUS_V2;
+  return lang == input::LANG_SYGUS_V1 || lang == input::LANG_SYGUS_V2;
 }
 
 bool isOutputLangSygus(OutputLanguage lang)
 {
-  return lang == output::LANG_SYGUS || lang == output::LANG_SYGUS_V2;
+  return lang == output::LANG_SYGUS_V1 || lang == output::LANG_SYGUS_V2;
 }
 
 InputLanguage toInputLanguage(OutputLanguage language) {
@@ -87,7 +87,7 @@ InputLanguage toInputLanguage(OutputLanguage language) {
   case output::LANG_TPTP:
   case output::LANG_CVC4:
   case output::LANG_Z3STR:
-  case output::LANG_SYGUS:
+  case output::LANG_SYGUS_V1:
   case output::LANG_SYGUS_V2:
     // these entries directly correspond (by design)
     return InputLanguage(int(language));
@@ -110,7 +110,7 @@ OutputLanguage toOutputLanguage(InputLanguage language) {
   case input::LANG_TPTP:
   case input::LANG_CVC4:
   case input::LANG_Z3STR:
-  case input::LANG_SYGUS:
+  case input::LANG_SYGUS_V1:
   case input::LANG_SYGUS_V2:
     // these entries directly correspond (by design)
     return OutputLanguage(int(language));
@@ -162,10 +162,10 @@ OutputLanguage toOutputLanguage(std::string language) {
   } else if(language == "z3str" || language == "z3-str" ||
             language == "LANG_Z3STR") {
     return output::LANG_Z3STR;
-  } else if(language == "sygus" || language == "LANG_SYGUS") {
-    return output::LANG_SYGUS;
+  } else if(language == "sygus1" || language == "LANG_SYGUS_V1") {
+    return output::LANG_SYGUS_V1;
   }
-  else if (language == "sygus2" || language == "LANG_SYGUS_V2")
+  else if (language == "sygus" || language == "LANG_SYGUS" || language == "sygus2" || language == "LANG_SYGUS_V2")
   {
     return output::LANG_SYGUS_V2;
   }
@@ -207,8 +207,8 @@ InputLanguage toInputLanguage(std::string language) {
   } else if(language == "z3str" || language == "z3-str" ||
             language == "LANG_Z3STR") {
     return input::LANG_Z3STR;
-  } else if(language == "sygus" || language == "LANG_SYGUS") {
-    return input::LANG_SYGUS;
+  } else if(language == "sygus" || language == "LANG_SYGUS_V1") {
+    return input::LANG_SYGUS_V1;
   }
   else if (language == "sygus2" || language == "LANG_SYGUS_V2")
   {
