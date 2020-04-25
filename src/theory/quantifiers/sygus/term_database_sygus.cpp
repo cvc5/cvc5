@@ -74,7 +74,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
       } 
     }
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   while( i>=(int)d_fv[sindex][tn].size() ){
     std::stringstream ss;
     if( tn.isDatatype() ){
@@ -84,7 +84,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
       ss << "fv_" << tn << "_" << i;
     }
     Assert(!vtn.isNull());
-    Node v = nm->mkSkolem( ss.str(), vtn, "for sygus invariance testing" );
+    Node v = nm->mkSkolem(ss.str(), vtn, "for sygus invariance testing");
     d_fv_stype[v] = tn;
     // store its id, which is unique per type, regardless of how it is otherwise
     // cached.
