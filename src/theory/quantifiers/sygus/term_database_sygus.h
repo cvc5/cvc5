@@ -205,7 +205,7 @@ class TermDbSygus {
   /** returns the identifier for a cached free variable. */
   size_t getFreeVarId(Node n) const;
   /** returns the sygus type associated with the free variable */
-  TypeNode getSygusTypeForVar( Node v ) const;
+  TypeNode getSygusTypeForVar(Node v) const;
   /** returns true if n has a cached free variable (in d_fv). */
   bool hasFreeVar(Node n);
   /** get sygus proxy variable
