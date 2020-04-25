@@ -203,9 +203,7 @@ class TermDbSygus {
   /** returns true if n is a cached free variable (in d_fv). */
   bool isFreeVar(Node n) const;
   /** returns the identifier for a cached free variable. */
-  size_t getFreeVarId(Node n) const;
-  /** returns the sygus type associated with the free variable */
-  TypeNode getSygusTypeForVar(Node v) const;
+  size_t getFreeVarId(Node n) const;;
   /** returns true if n has a cached free variable (in d_fv). */
   bool hasFreeVar(Node n);
   /** get sygus proxy variable
@@ -377,7 +375,13 @@ class TermDbSygus {
   std::map<Node, TypeNode> d_fv_stype;
   /** Id count for free variables terms */
   std::map<TypeNode, size_t> d_fvTypeIdCounter;
-  /** Maps free variables to a unique identifier for that type. */
+  /** 
+   * Maps free variables to a unique identifier for their builtin type. Notice
+   * that, e.g. free variables of type Int and those that are of a sygus
+   * datatype type that encodes Int must have unique identifiers. This is
+   * to ensure that sygusToBuiltin for non-ground terms maps variables to
+   * unique variabales.
+   */
   std::map<Node, size_t> d_fvId;
   /** recursive helper for hasFreeVar, visited stores nodes we have visited. */
   bool hasFreeVar(Node n, std::map<Node, bool>& visited);

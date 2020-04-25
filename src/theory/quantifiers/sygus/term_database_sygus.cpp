@@ -90,7 +90,6 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
     }
     Assert(!vtn.isNull());
     Node v = nm->mkSkolem(ss.str(), vtn, "for sygus invariance testing");
-    d_fv_stype[v] = tn;
     // store its id, which is unique per builtin type, regardless of how it is
     // otherwise cached.
     d_fvId[v] = d_fvTypeIdCounter[builtinType];
@@ -116,7 +115,7 @@ TNode TermDbSygus::getFreeVarInc( TypeNode tn, std::map< TypeNode, int >& var_co
 
 bool TermDbSygus::isFreeVar(Node n) const
 {
-  return d_fv_stype.find(n) != d_fv_stype.end();
+  return d_fvId.find(n) != d_fvId.end();
 }
 size_t TermDbSygus::getFreeVarId(Node n) const
 {
@@ -176,17 +175,6 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
     }
     d_proxy_vars[tn][c] = k;
     return k;
-  }
-  return it->second;
-}
-
-TypeNode TermDbSygus::getSygusTypeForVar(Node v) const
-{
-  std::map<Node, TypeNode>::const_iterator it = d_fv_stype.find(v);
-  if (it == d_fv_stype.end())
-  {
-    Assert(false);
-    return TypeNode::null();
   }
   return it->second;
 }
