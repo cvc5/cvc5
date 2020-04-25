@@ -262,7 +262,7 @@ void getFreeSymbolsSygusType(TypeNode sdt,
  *
  * The variables in vars of type BOUND_VARIABLE are added to the
  * formal argument list of t.
- * 
+ *
  * For example, given sdt encodes the grammar:
 *    G -> a | +( b, G )
   * Let syms = { a, b } and vars = { x_a, x_b }.

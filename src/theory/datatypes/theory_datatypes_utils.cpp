@@ -807,7 +807,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   // We must convert all symbols in the sygus datatype type sdt to
   // apply the substitution { syms -> vars }, where syms is the free
   // variables of the input problem, and vars is the formal argument list
-  // of the function-to-synthesize. 
+  // of the function-to-synthesize.
 
   // We are traversing over the subfield types of the datatype to convert
   // them into the form described above.
