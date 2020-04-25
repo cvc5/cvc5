@@ -334,7 +334,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         {
           foundLoopStart = true;
         }
-        if (foundLoopStart && eqc != cc)
+        else if (foundLoopStart && eqc != cc)
         {
           conc.push_back(eqc.eqNode(cc));
         }
