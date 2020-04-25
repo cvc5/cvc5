@@ -66,16 +66,18 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
   unsigned sindex = 0;
   TypeNode vtn = tn;
   TypeNode builtinType = tn;
-  if( tn.isDatatype() ){
+  if (tn.isDatatype())
+  {
     const DType& dt = tn.getDType();
-    if( !dt.getSygusType().isNull() ){
+    if (!dt.getSygusType().isNull())
+    {
       builtinType = dt.getSygusType();
-      if( useSygusType )
+      if (useSygusType)
       {
         vtn = builtinType;
         sindex = 1;
       }
-    } 
+    }
   }
   NodeManager* nm = NodeManager::currentNM();
   while( i>=(int)d_fv[sindex][tn].size() ){
