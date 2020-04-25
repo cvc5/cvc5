@@ -105,17 +105,22 @@ TNode TermDbSygus::getFreeVarInc( TypeNode tn, std::map< TypeNode, int >& var_co
   }
 }
 
-bool TermDbSygus::isFreeVar(Node n) const { return d_fv_stype.find(n) != d_fv_stype.end(); }
-int TermDbSygus::getFreeVarId(Node n) const {
+bool TermDbSygus::isFreeVar(Node n) const
+{
+  return d_fv_stype.find(n) != d_fv_stype.end();
+}
+int TermDbSygus::getFreeVarId(Node n) const
+{
   std::map<Node, size_t>::const_iterator it = d_fvId.find(n);
-  if (it==d_fvId.end())
+  if (it == d_fvId.end())
   {
-    Assert(false) << "TermDbSygus::isFreeVar: " << n << " is not a cached free variable.";
+    Assert(false) << "TermDbSygus::isFreeVar: " << n
+                  << " is not a cached free variable.";
     return 0;
   }
   return it->second;
 }
-  
+
 bool TermDbSygus::hasFreeVar( Node n, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;

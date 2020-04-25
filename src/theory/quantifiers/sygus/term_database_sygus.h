@@ -374,7 +374,7 @@ class TermDbSygus {
   /** Maps free variables to the domain type they are associated with in d_fv */
   std::map<Node, TypeNode> d_fv_stype;
   /** Id count for free variables terms */
-  std::map<TypeNode, size_t > d_fvTypeIdCounter;
+  std::map<TypeNode, size_t> d_fvTypeIdCounter;
   /** Maps free variables to a unique identifier for that type. */
   std::map<Node, size_t> d_fvId;
   /** recursive helper for hasFreeVar, visited stores nodes we have visited. */
