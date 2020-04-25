@@ -277,7 +277,7 @@ void getFreeSymbolsSygusType(TypeNode sdt,
  *   G' -> x_a | +( x_b, G' ) | d | e
  * Additionally, x_a and x_b are treated as formal arguments of a function
  * to synthesize whose syntax restrictions are specified by G'.
- * 
+ *
  * This method traverses the type definition of the datatype corresponding to
  * the argument sdt.
  */
