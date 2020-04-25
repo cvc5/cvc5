@@ -2285,11 +2285,9 @@ static OutputLanguage variantToLanguage(Variant variant)
     return language::output::LANG_SMTLIB_V2_0;
   case z3str_variant:
     return language::output::LANG_Z3STR;
-  case sygus_variant:
-    return language::output::LANG_SYGUS_V1;
+  case sygus_variant: return language::output::LANG_SYGUS_V1;
   case no_variant:
-  default:
-    return language::output::LANG_SMTLIB_V2_6;
+  default: return language::output::LANG_SMTLIB_V2_6;
   }
 }
 
