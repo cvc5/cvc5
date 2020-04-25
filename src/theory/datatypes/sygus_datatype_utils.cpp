@@ -535,7 +535,7 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
   return visited[n];
 }
 
-void getFreeSymbols(TypeNode sdt, std::unordered_set<Node, NodeHashFunction>& syms)
+void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node, NodeHashFunction>& syms)
 {
   // datatype types we need to process
   std::vector<TypeNode> typeToProcess;
@@ -576,7 +576,7 @@ void getFreeSymbols(TypeNode sdt, std::unordered_set<Node, NodeHashFunction>& sy
   }
 }
 
-TypeNode substituteAndGeneralize(TypeNode sdt, 
+TypeNode substituteAndGeneralizeSygusType(TypeNode sdt, 
                     const std::vector<Node>& syms,
                     const std::vector<Node>& vars)
 {
