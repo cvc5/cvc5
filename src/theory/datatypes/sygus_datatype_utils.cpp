@@ -17,7 +17,6 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 
 #include "expr/dtype.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "smt/smt_engine.h"
@@ -534,6 +533,47 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+void getFreeSymbols(TypeNode sdt, std::unordered_set<Node, NodeHashFunction>& syms)
+{
+  // datatype types we need to process
+  std::vector<TypeNode> typeToProcess;
+  // datatype types we have processed
+  std::map<TypeNode, TypeNode> typesProcessed;
+  typeToProcess.push_back(sdt);
+  while (!typeToProcess.empty())
+  {
+    std::vector<TypeNode> typeNextToProcess;
+    for (const TypeNode& curr : typeToProcess)
+    {
+      Assert(curr.isDatatype() && curr.getDType().isSygus());
+      const DType& dtc = curr.getDType();
+      for (unsigned j = 0, ncons = dtc.getNumConstructors(); j < ncons; j++)
+      {
+        // collect the symbols from the operator
+        Node op = dtc[j].getSygusOp();
+        expr::getSymbols(op, syms);
+        // traverse the argument types
+        for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
+        {
+          TypeNode argt = dtc[j].getArgType(k);
+          if(!curr.isDatatype() || !curr.getDType().isSygus())
+          {
+            // not a sygus datatype
+            continue;
+          }
+          if (typesProcessed.find(argt) == typesProcessed.end())
+          {
+            typeNextToProcess.push_back(argt);
+          }
+        }
+      }
+    }
+    typeToProcess.clear();
+    typeToProcess.insert(
+        typeToProcess.end(), typeNextToProcess.begin(), typeNextToProcess.end());
+  }
 }
 
 TypeNode substituteAndGeneralize(TypeNode sdt, 

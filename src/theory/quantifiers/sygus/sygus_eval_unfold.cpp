@@ -16,7 +16,7 @@
 
 #include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace std;
