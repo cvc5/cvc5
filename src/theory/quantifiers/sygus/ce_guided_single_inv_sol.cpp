@@ -873,7 +873,7 @@ bool CegSingleInvSol::getMatch(Node p,
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   if (tds->isFreeVar(p))
   {
-    unsigned vnum = tds->getVarNum(p);
+    size_t vnum = tds->getFreeVarId(p);
     Node prev = s[vnum];
     s[vnum] = n;
     if (prev.isNull())
