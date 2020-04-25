@@ -736,7 +736,7 @@ void getFreeSymbolsSygusType(TypeNode sdt,
         for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
         {
           TypeNode argt = dtc[j].getArgType(k);
-          if (!curr.isDatatype() || !curr.getDType().isSygus())
+          if (!argt.isDatatype() || !argt.getDType().isSygus())
           {
             // not a sygus datatype
             continue;
