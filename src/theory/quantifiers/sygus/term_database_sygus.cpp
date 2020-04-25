@@ -111,7 +111,7 @@ bool TermDbSygus::isFreeVar(Node n) const
 {
   return d_fv_stype.find(n) != d_fv_stype.end();
 }
-int TermDbSygus::getFreeVarId(Node n) const
+size_t TermDbSygus::getFreeVarId(Node n) const
 {
   std::map<Node, size_t>::const_iterator it = d_fvId.find(n);
   if (it == d_fvId.end())
