@@ -24,6 +24,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
+#include "printer/sygus_print_callback.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -539,9 +540,11 @@ TypeNode substituteAndGeneralize(TypeNode sdt,
                     const std::vector<Node>& syms,
                     const std::vector<Node>& vars)
 {
+  NodeManager * nm = NodeManager::currentNM();
+  const DType& sdtd = sdt.getDType();
   // compute the new formal argument list
   std::vector<Node> formalVars;
-  Node prevVarList = sdt.getSygusVarList();
+  Node prevVarList = sdtd.getSygusVarList();
   if (!prevVarList.isNull())
   {
     for (const Node& v : prevVarList)
@@ -569,7 +572,7 @@ TypeNode substituteAndGeneralize(TypeNode sdt,
   std::set<Type> unres;
 
   Trace("dtsygus-gen-debug") << "Process sygus type:" << std::endl;
-  Trace("dtsygus-gen-debug") << sdt.getDType().getName() << std::endl;
+  Trace("dtsygus-gen-debug") << sdtd.getName() << std::endl;
 
   // datatype types we need to process
   std::vector<TypeNode> dtToProcess;
@@ -577,7 +580,7 @@ TypeNode substituteAndGeneralize(TypeNode sdt,
   std::map<TypeNode, TypeNode> dtProcessed;
   dtToProcess.push_back(sdt);
   std::stringstream ssutn0;
-  ssutn0 << sdt.getDType().getName() << "_s";
+  ssutn0 << sdtd.getName() << "_s";
   TypeNode abdTNew =
       nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
   unres.insert(abdTNew.toType());
