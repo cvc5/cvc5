@@ -65,14 +65,17 @@ bool TermDbSygus::reset( Theory::Effort e ) {
 TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
   unsigned sindex = 0;
   TypeNode vtn = tn;
-  if( useSygusType ){
-    if( tn.isDatatype() ){
-      const DType& dt = tn.getDType();
-      if( !dt.getSygusType().isNull() ){
-        vtn = dt.getSygusType();
+  TypeNode builtinType = tn;
+  if( tn.isDatatype() ){
+    const DType& dt = tn.getDType();
+    if( !dt.getSygusType().isNull() ){
+      builtinType = dt.getSygusType();
+      if( useSygusType )
+      {
+        vtn = builtinType;
         sindex = 1;
-      } 
-    }
+      }
+    } 
   }
   NodeManager* nm = NodeManager::currentNM();
   while( i>=(int)d_fv[sindex][tn].size() ){
@@ -86,12 +89,12 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
     Assert(!vtn.isNull());
     Node v = nm->mkSkolem(ss.str(), vtn, "for sygus invariance testing");
     d_fv_stype[v] = tn;
-    // store its id, which is unique per type, regardless of how it is otherwise
-    // cached.
-    d_fvId[v] = d_fvTypeIdCounter[vtn];
-    d_fvTypeIdCounter[vtn]++;
+    // store its id, which is unique per builtin type, regardless of how it is
+    // otherwise cached.
+    d_fvId[v] = d_fvTypeIdCounter[builtinType];
+    d_fvTypeIdCounter[builtinType]++;
     Trace("sygus-db-debug") << "Free variable id " << v << " = " << d_fvId[v]
-                            << ", " << vtn << std::endl;
+                            << ", " << builtinType << std::endl;
     d_fv[sindex][tn].push_back( v );
   }
   return d_fv[sindex][tn][i];
