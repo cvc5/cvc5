@@ -330,17 +330,18 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       bool foundLoopStart = false;
       for (const Node& cc : curr)
       {
-        if (cc==eqc)
+        if (cc == eqc)
         {
           foundLoopStart = true;
         }
-        if (foundLoopStart && eqc!=cc)
+        if (foundLoopStart && eqc != cc)
         {
           conc.push_back(eqc.eqNode(cc));
         }
       }
       Node fact = conc.size() == 1 ? conc[0] : nm->mkNode(AND, conc);
-      Trace("sets-cycle-debug") << "CYCLE: " << fact << " from " << exp << std::endl;
+      Trace("sets-cycle-debug")
+          << "CYCLE: " << fact << " from " << exp << std::endl;
       d_im.assertInference(fact, exp, "card_cycle");
       d_im.flushPendingLemmas();
     }
@@ -621,7 +622,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     exp.push_back(eqc.eqNode(n));
     for (const Node& cpnc : d_card_parent[n])
     {
-      Trace("sets-cycle-debug") << "Traverse card parent " << eqc << " -> " << cpnc << std::endl;
+      Trace("sets-cycle-debug")
+          << "Traverse card parent " << eqc << " -> " << cpnc << std::endl;
       checkCardCyclesRec(cpnc, curr, exp);
       if (d_im.hasProcessed())
       {
