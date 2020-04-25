@@ -92,13 +92,14 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     Assert(abdGType.isDatatype() && abdGType.getDType().isSygus());
     Trace("sygus-abduct-debug") << "Process abduction type:" << std::endl;
     Trace("sygus-abduct-debug") << abdGType.getDType().getName() << std::endl;
-    
+
     // substitute the free symbols of the grammar with variables corresponding
     // to the formal argument list of the new sygus datatype type.
-    TypeNode abdGTypeS = datatypes::utils::substituteAndGeneralizeSygusType(abdGType, syms, varlist);
+    TypeNode abdGTypeS = datatypes::utils::substituteAndGeneralizeSygusType(
+        abdGType, syms, varlist);
 
     Assert(abdGTypeS.isDatatype && abdGTypeS.getDType().isSygus());
-    
+
     Trace("sygus-abduct-debug")
         << "Make sygus grammar attribute..." << std::endl;
     Node sym = nm->mkBoundVar("sfproxy_abduct", abdGTypeS);
@@ -107,11 +108,11 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     theory::SygusSynthGrammarAttribute ssg;
     abd.setAttribute(ssg, sym);
     Trace("sygus-abduct-debug") << "Finished setting up grammar." << std::endl;
-    
+
     // use the bound variable list from the new substituted grammar type
     const DType& agtsd = abdGTypeS.getDType();
     abvl = agtsd.getSygusVarList();
-    Assert (!abvl.isNull() && abvl.getKind()==BOUND_VAR_LIST);
+    Assert(!abvl.isNull() && abvl.getKind() == BOUND_VAR_LIST);
   }
   else
   {

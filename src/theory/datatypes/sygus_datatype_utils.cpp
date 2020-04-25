@@ -19,11 +19,11 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
+#include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
-#include "printer/sygus_print_callback.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -535,7 +535,8 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
   return visited[n];
 }
 
-void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node, NodeHashFunction>& syms)
+void getFreeSymbolsSygusType(TypeNode sdt,
+                             std::unordered_set<Node, NodeHashFunction>& syms)
 {
   // datatype types we need to process
   std::vector<TypeNode> typeToProcess;
@@ -558,7 +559,7 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node, NodeHashFunc
         for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
         {
           TypeNode argt = dtc[j].getArgType(k);
-          if(!curr.isDatatype() || !curr.getDType().isSygus())
+          if (!curr.isDatatype() || !curr.getDType().isSygus())
           {
             // not a sygus datatype
             continue;
@@ -571,16 +572,17 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node, NodeHashFunc
       }
     }
     typeToProcess.clear();
-    typeToProcess.insert(
-        typeToProcess.end(), typeNextToProcess.begin(), typeNextToProcess.end());
+    typeToProcess.insert(typeToProcess.end(),
+                         typeNextToProcess.begin(),
+                         typeNextToProcess.end());
   }
 }
 
-TypeNode substituteAndGeneralizeSygusType(TypeNode sdt, 
-                    const std::vector<Node>& syms,
-                    const std::vector<Node>& vars)
+TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
+                                          const std::vector<Node>& syms,
+                                          const std::vector<Node>& vars)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   const DType& sdtd = sdt.getDType();
   // compute the new formal argument list
   std::vector<Node> formalVars;
@@ -590,7 +592,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
     for (const Node& v : prevVarList)
     {
       // if it is not being replaced
-      if (std::find(syms.begin(),syms.end(),v)!=syms.end())
+      if (std::find(syms.begin(), syms.end(), v) != syms.end())
       {
         formalVars.push_back(v);
       }
@@ -598,7 +600,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   }
   for (const Node& v : vars)
   {
-    if (v.getKind()==BOUND_VARIABLE)
+    if (v.getKind() == BOUND_VARIABLE)
     {
       formalVars.push_back(v);
     }
@@ -606,7 +608,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   // make the sygus variable list for the formal argument list
   Node abvl = nm->mkNode(BOUND_VAR_LIST, formalVars);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
-  
+
   // must convert all constructors to version with variables in "vars"
   std::vector<SygusDatatype> sdts;
   std::set<Type> unres;
@@ -653,22 +655,20 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
       ssdtn << dtc.getName() << "_s";
       sdts.push_back(SygusDatatype(ssdtn.str()));
       Trace("dtsygus-gen-debug")
-          << "Process datatype " << sdts.back().getName() << "..."
-          << std::endl;
+          << "Process datatype " << sdts.back().getName() << "..." << std::endl;
       for (unsigned j = 0, ncons = dtc.getNumConstructors(); j < ncons; j++)
       {
         Node op = dtc[j].getSygusOp();
         // apply the substitution to the argument
-        Node ops = op.substitute(
-            syms.begin(), syms.end(), vars.begin(), vars.end());
+        Node ops =
+            op.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
         Trace("dtsygus-gen-debug") << "  Process constructor " << op << " / "
-                                    << ops << "..." << std::endl;
+                                   << ops << "..." << std::endl;
         std::vector<TypeNode> cargs;
         for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
         {
           TypeNode argt = dtc[j].getArgType(k);
-          std::map<TypeNode, TypeNode>::iterator itdp =
-              dtProcessed.find(argt);
+          std::map<TypeNode, TypeNode>::iterator itdp = dtProcessed.find(argt);
           TypeNode argtNew;
           if (itdp == dtProcessed.end())
           {
@@ -676,9 +676,8 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
             ssutn << argt.getDType().getName() << "_s";
             argtNew =
                 nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
-            Trace("dtsygus-gen-debug")
-                << "    ...unresolved type " << argtNew << " for " << argt
-                << std::endl;
+            Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
+                                       << " for " << argt << std::endl;
             unres.insert(argtNew.toType());
             dtProcessed[argt] = argtNew;
             dtNextToProcess.push_back(argt);
@@ -711,8 +710,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
         }
         std::stringstream ss;
         ss << ops.getKind();
-        Trace("dtsygus-gen-debug")
-            << "Add constructor : " << ops << std::endl;
+        Trace("dtsygus-gen-debug") << "Add constructor : " << ops << std::endl;
         sdts.back().addConstructor(ops, ss.str(), cargs, spc);
       }
       Trace("dtsygus-gen-debug")
