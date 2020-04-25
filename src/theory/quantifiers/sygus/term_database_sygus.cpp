@@ -85,7 +85,9 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
     Assert(!vtn.isNull());
     Node v = NodeManager::currentNM()->mkSkolem( ss.str(), vtn, "for sygus normal form testing" );
     d_fv_stype[v] = tn;
-    d_fv_num[v] = i;
+    // store its id, which is shared
+    d_fvId[v] = d_fvTypeIdCounter[vtn];
+    d_fvTypeIdCounter[vtn]++;
     d_fv[sindex][tn].push_back( v );
   }
   return d_fv[sindex][tn][i];
@@ -103,6 +105,17 @@ TNode TermDbSygus::getFreeVarInc( TypeNode tn, std::map< TypeNode, int >& var_co
   }
 }
 
+bool TermDbSygus::isFreeVar(Node n) const { return d_fv_stype.find(n) != d_fv_stype.end(); }
+int TermDbSygus::getFreeVarId(Node n) const {
+  std::map<Node, size_t>::const_iterator it = d_fvId.find(n);
+  if (it==d_fvId.end())
+  {
+    Assert(false) << "TermDbSygus::isFreeVar: " << n << " is not a cached free variable.";
+    return 0;
+  }
+  return it->second;
+}
+  
 bool TermDbSygus::hasFreeVar( Node n, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
@@ -321,7 +334,7 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   }
   Assert(isFreeVar(n));
   // map to builtin variable type
-  int fv_num = getVarNum(n);
+  size_t fv_num = getFreeVarId(n);
   Assert(!dt.getSygusType().isNull());
   TypeNode vtn = dt.getSygusType();
   Node ret = getFreeVar(vtn, fv_num);
