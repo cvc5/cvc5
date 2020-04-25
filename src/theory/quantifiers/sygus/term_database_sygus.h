@@ -204,6 +204,8 @@ class TermDbSygus {
   bool isFreeVar(Node n) const;
   /** returns the identifier for a cached free variable. */
   size_t getFreeVarId(Node n) const;
+  /** returns the sygus type associated with the free variable */
+  TypeNode getSygusTypeForVar( Node v ) const;
   /** returns true if n has a cached free variable (in d_fv). */
   bool hasFreeVar(Node n);
   /** get sygus proxy variable
@@ -442,7 +444,6 @@ class TermDbSygus {
                         std::vector<TypeNode>& argts,
                         bool aggr = false);
 
-  TypeNode getSygusTypeForVar( Node v );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );

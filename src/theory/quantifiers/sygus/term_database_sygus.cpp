@@ -90,6 +90,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
     // cached.
     d_fvId[v] = d_fvTypeIdCounter[vtn];
     d_fvTypeIdCounter[vtn]++;
+    Trace("sygus-db-debug") << "Free variable id " << v << " = " << d_fvId[v] << ", " << vtn << std::endl;
     d_fv[sindex][tn].push_back( v );
   }
   return d_fv[sindex][tn][i];
@@ -173,9 +174,14 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
   return it->second;
 }
 
-TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
-  Assert(d_fv_stype.find(v) != d_fv_stype.end());
-  return d_fv_stype[v];
+TypeNode TermDbSygus::getSygusTypeForVar( Node v ) const {
+  std::map<Node,TypeNode>::const_iterator it = d_fv_stype.find(v);
+  if (it==d_fv_stype.end())
+  {
+    Assert(false);
+    return TypeNode::null();
+  }
+  return it->second;
 }
 
 Node TermDbSygus::mkGeneric(const DType& dt,
@@ -345,6 +351,7 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   Assert(!dt.getSygusType().isNull());
   TypeNode vtn = dt.getSygusType();
   Node ret = getFreeVar(vtn, fv_num);
+  Trace("sygus-db-debug") << "SygusToBuiltin: variable for " << n << " is " << ret << ", fv_num=" << fv_num << std::endl;
   return ret;
 }
 
