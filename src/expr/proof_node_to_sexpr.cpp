@@ -16,17 +16,21 @@
 
 #include <iostream>
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 
 ProofToSExpr::ProofToSExpr()
 {
-  d_argsMarker = NodeManager::currentNM()->mkBoundVar(":args");
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector<TypeNode> types;
+  d_argsMarker = nm->mkBoundVar(":args", nm->mkSExprType(types));
 }
 
 Node ProofToSExpr::convertToSExpr(std::shared_ptr<ProofNode> pn)
 {
   NodeManager * nm = NodeManager::currentNM();
-  std::unordered_map<std::shared_ptr<ProofNode>, Node, TNodeHashFunction>::iterator it;
+  std::map<std::shared_ptr<ProofNode>, Node>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pn);
@@ -51,7 +55,7 @@ Node ProofToSExpr::convertToSExpr(std::shared_ptr<ProofNode> pn)
       bool childChanged = false;
       std::vector<Node> children;
       // add proof rule
-      children.push_back(getOrMkPfRuleVariable(cur->d_rule));
+      children.push_back(getOrMkPfRuleVariable(cur->getRule()));
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc )
       {
@@ -85,7 +89,9 @@ Node ProofToSExpr::getOrMkPfRuleVariable(PfRule r)
   }
   std::stringstream ss;
   ss << r;
-  Node var =  NodeManager::currentNM()->mkBoundVar(ss.str());
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector<TypeNode> types;
+  Node var =  nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
   d_pfrMap[r] = var;
   return var;
 }
