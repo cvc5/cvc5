@@ -192,6 +192,32 @@ class ProofEqEngine : public EagerProofGenerator
   void explainWithProof(Node lit, std::vector<TNode>& assumps);
 };
 
+
+class ProofInferInfo
+{
+public:
+  ProofInferInfo() : d_rule(PfRule::UNKNOWN) {}
+  /** The proof rule */
+  PfRule d_rule;
+  /** The conclusion */
+  Node d_conc;
+  /** The proof children */
+  std::vector<Node> d_children;
+  /** The proof arguments */
+  std::vector<Node> d_args;
+  /** The children to explain */
+  std::vector<Node> d_childrenExp;
+};
+
+/**
+ * Writes a proof inference info to a stream.
+ *
+ * @param out The stream to write to
+ * @param pii The proof inference info to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, const ProofInferInfo& pii);
+
 }  // namespace eq
 }  // namespace theory
 }  // namespace CVC4

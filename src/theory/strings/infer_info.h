@@ -38,6 +38,7 @@ namespace strings {
  */
 enum class Inference : uint32_t
 {
+  BEGIN,
   //-------------------------------------- base solver
   // initial normalize singular
   //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>

@@ -373,6 +373,25 @@ Node ProofEqEngine::mkAnd(const std::vector<TNode>& a)
   return NodeManager::currentNM()->mkNode(AND, a);
 }
 
+std::ostream& operator<<(std::ostream& out, const ProofInferInfo& pii)
+{
+  out << "(proof-infer " << pii.d_rule << " " << pii.d_conc;
+  if (!pii.d_children.empty())
+  {
+    out << " :children (" << pii.d_children << ")";
+  }
+  if (!pii.d_args.empty())
+  {
+    out << " :args (" << pii.d_args << ")";
+  }
+  if (!pii.d_childrenExp.empty())
+  {
+    out << " :childrenExp (" << pii.d_childrenExp << ")";
+  }
+  out << ")";
+  return out;
+}
+
 }  // namespace eq
 }  // namespace theory
 }  // namespace CVC4

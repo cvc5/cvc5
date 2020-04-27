@@ -214,3 +214,13 @@ header = "options/strings_options.h"
 [[option.mode.NONE]]
   name = "none"
   help = "Do not compute intersections for regular expressions."
+
+[[option]]
+  name       = "stringsPf"
+  category   = "regular"
+  long       = "strings-proof"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "do proof production"
+

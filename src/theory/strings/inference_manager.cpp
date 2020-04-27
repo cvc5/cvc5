@@ -167,7 +167,7 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
                                 << " by " << ii.d_id << std::endl;
       // we must fully explain it
-      ProofInferInfo pii;
+      eq::ProofInferInfo pii;
       PfRule rule = d_ipc.convert(ii, pii);
       TrustNode tconf = d_pfee.assertConflict(rule, pii.d_children, pii.d_args);
       Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
@@ -303,9 +303,9 @@ void InferenceManager::doPendingFacts()
                            << std::endl;
     d_statistics.d_inferences << ii.d_id;
     // convert to proof rule(s)
-    std::vector<ProofInferInfo> piis;
+    std::vector<eq::ProofInferInfo> piis;
     d_ipc.convert(ii, piis);
-    for (const ProofInferInfo& pii : piis)
+    for (const eq::ProofInferInfo& pii : piis)
     {
       Node fact = pii.d_conc;
       preProcessFact(fact);
@@ -338,7 +338,7 @@ void InferenceManager::doPendingLemmas()
     // set up proof step based on inference
     // pfExp is the children of the proof step below. This should be an
     // ordered list of expConj + expn.
-    ProofInferInfo pii;
+    eq::ProofInferInfo pii;
     PfRule rule = d_ipc.convert(ii, pii);
     // make the trusted lemma object
     TrustNode tlem =

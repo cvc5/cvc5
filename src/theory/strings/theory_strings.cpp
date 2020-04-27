@@ -87,7 +87,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   ExtTheory* extt = getExtTheory();
   // initialize the inference manager, which requires the extended theory
   d_im.reset(new InferenceManager(
-      c, u, d_state, d_termReg, *extt, d_poc, d_statistics));
+      c, u, d_state, d_termReg, *extt, d_poc, d_statistics, options::stringsPf()));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(c, u, d_state, *d_im));
   d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_termReg, *d_bsolver));

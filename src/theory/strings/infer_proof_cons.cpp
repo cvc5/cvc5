@@ -31,7 +31,7 @@ InferProofCons::InferProofCons(eq::ProofEqEngine& pfee,
 }
 
 void InferProofCons::convert(InferInfo& ii,
-                               std::vector<ProofInferInfo>& piis)
+                               std::vector<eq::ProofInferInfo>& piis)
 {
   if (ii.d_conc.getKind()==AND)
   {
@@ -44,12 +44,12 @@ void InferProofCons::convert(InferInfo& ii,
     ii.d_conc = conj;
     return;
   }
-  ProofInferInfo pii;
+  eq::ProofInferInfo pii;
   convert(ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pii);
   piis.push_back(pii);
 }
 
-PfRule InferProofCons::convert(const InferInfo& ii, ProofInferInfo& pii)
+PfRule InferProofCons::convert(const InferInfo& ii, eq::ProofInferInfo& pii)
 {
   return convert(ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pii);
 }
@@ -58,9 +58,9 @@ PfRule InferProofCons::convert(Inference infer,
                                Node conc,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& expn,
-               ProofInferInfo& pii)
+               eq::ProofInferInfo& pii)
 {
-  Assert( !conc.isNull() && conc.getKind()!=AND );
+  // the conclusion is the same
   pii.d_conc = conc;
   // must flatten children with respect to AND to be ready to explain
   for (const Node& ec : exp)
@@ -99,8 +99,26 @@ PfRule InferProofCons::convert(Inference infer,
       Trace("strings-ipc") << "  e-n: " << ecn << std::endl;
     }
   }
-
-  // TODO
+  // try to find a proof rule to incorporate
+  bool success = false;
+  
+  
+  
+  
+  
+  if (!success)
+  {
+    // untrustworthy conversion
+    pii.d_rule = PfRule::SIU_BEGIN + ( infer - InferInfo::BEGIN );
+    // add to stats
+    d_statistics.d_inferencesNoPf << infer;
+  }
+  if (Trace.isOn("strings-ipc"))
+  {
+  
+    Trace("strings-ipc") << "InferProofCons::convert returned " << pii
+                         << std::endl;
+  }
   return pii.d_rule;
 }
 
