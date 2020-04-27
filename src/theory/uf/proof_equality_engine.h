@@ -192,10 +192,9 @@ class ProofEqEngine : public EagerProofGenerator
   void explainWithProof(Node lit, std::vector<TNode>& assumps);
 };
 
-
 class ProofInferInfo
 {
-public:
+ public:
   ProofInferInfo() : d_rule(PfRule::UNKNOWN) {}
   /** The proof rule */
   PfRule d_rule;

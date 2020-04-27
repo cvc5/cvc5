@@ -28,7 +28,7 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
+
 /**
  * Converts between Inference and information needed to provide a proof step
  * (PfRule, children, args).
@@ -53,11 +53,9 @@ class InferProofCons
    * only relevant if ii corresponds to a lemma.
    * (4) Arguments to the proof step (pfArgs).
    */
-  void convert(InferInfo& ii,
-                 std::vector<eq::ProofInferInfo>& piis);
+  void convert(InferInfo& ii, std::vector<eq::ProofInferInfo>& piis);
   /** singleton version */
-  PfRule convert(const InferInfo& ii,
-               eq::ProofInferInfo& pfi);
+  PfRule convert(const InferInfo& ii, eq::ProofInferInfo& pfi);
   /** internal version */
   PfRule convert(Inference infer,
                  Node conc,

@@ -285,7 +285,7 @@ void InferenceManager::doPendingFacts()
     InferInfo& ii = d_pending[i];
     // get the facts
     std::vector<Node> facts;
-    if (ii.d_conc.getKind()==AND)
+    if (ii.d_conc.getKind() == AND)
     {
       for (const Node& cc : ii.d_conc)
       {
@@ -296,8 +296,9 @@ void InferenceManager::doPendingFacts()
     {
       facts.push_back(ii.d_conc);
     }
-    Trace("strings-assert") << "(assert (=> " << ii.getAntecedant() << " "
-                            << ii.d_conc << ")) ; fact " << ii.d_id << std::endl;
+    Trace("strings-assert")
+        << "(assert (=> " << ii.getAntecedant() << " " << ii.d_conc
+        << ")) ; fact " << ii.d_id << std::endl;
     Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
                            << ii.getAntecedant() << " by " << ii.d_id
                            << std::endl;
@@ -341,8 +342,8 @@ void InferenceManager::doPendingLemmas()
     eq::ProofInferInfo pii;
     PfRule rule = d_ipc.convert(ii, pii);
     // make the trusted lemma object
-    TrustNode tlem =
-        d_pfee.assertLemma(ii.d_conc, rule, pii.d_children, pii.d_childrenExp, pii.d_args);
+    TrustNode tlem = d_pfee.assertLemma(
+        ii.d_conc, rule, pii.d_children, pii.d_childrenExp, pii.d_args);
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
     Trace("strings-assert")

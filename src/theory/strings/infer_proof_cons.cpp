@@ -31,15 +31,15 @@ InferProofCons::InferProofCons(eq::ProofEqEngine& pfee,
 }
 
 void InferProofCons::convert(InferInfo& ii,
-                               std::vector<eq::ProofInferInfo>& piis)
+                             std::vector<eq::ProofInferInfo>& piis)
 {
-  if (ii.d_conc.getKind()==AND)
+  if (ii.d_conc.getKind() == AND)
   {
     Node conj = ii.d_conc;
     for (const Node& cc : conj)
     {
       ii.d_conc = cc;
-      convert(ii,piis);
+      convert(ii, piis);
     }
     ii.d_conc = conj;
     return;
@@ -58,7 +58,7 @@ PfRule InferProofCons::convert(Inference infer,
                                Node conc,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& expn,
-               eq::ProofInferInfo& pii)
+                               eq::ProofInferInfo& pii)
 {
   // the conclusion is the same
   pii.d_conc = conc;
@@ -70,7 +70,8 @@ PfRule InferProofCons::convert(Inference infer,
   if (options::stringRExplainLemmas())
   {
     // these are the explained ones
-    pii.d_childrenExp.insert(pii.d_childrenExp.end(), pii.d_children.begin(), pii.d_children.end());
+    pii.d_childrenExp.insert(
+        pii.d_childrenExp.end(), pii.d_children.begin(), pii.d_children.end());
   }
   for (const Node& ecn : expn)
   {
@@ -101,21 +102,19 @@ PfRule InferProofCons::convert(Inference infer,
   }
   // try to find a proof rule to incorporate
   bool success = false;
-  
-  
-  
-  
-  
+
   if (!success)
   {
     // untrustworthy conversion
-    pii.d_rule = static_cast<PfRule>( static_cast<uint32_t>(PfRule::SIU_BEGIN) + ( static_cast<uint32_t>(infer) - static_cast<uint32_t>(Inference::BEGIN) ));
+    pii.d_rule =
+        static_cast<PfRule>(static_cast<uint32_t>(PfRule::SIU_BEGIN)
+                            + (static_cast<uint32_t>(infer)
+                               - static_cast<uint32_t>(Inference::BEGIN)));
     // add to stats
     d_statistics.d_inferencesNoPf << infer;
   }
   if (Trace.isOn("strings-ipc"))
   {
-  
     Trace("strings-ipc") << "InferProofCons::convert returned " << pii
                          << std::endl;
   }

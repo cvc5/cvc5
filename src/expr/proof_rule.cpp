@@ -51,7 +51,7 @@ const char* toString(PfRule id)
     case PfRule::REDUCTION: return "REDUCTION";
     case PfRule::RE_INTER: return "RE_INTER";
     case PfRule::RE_UNFOLD: return "RE_UNFOLD";
-        
+
     case PfRule::SIU_I_NORM_S: return "SIU_I_NORM_S";
     case PfRule::SIU_I_CONST_MERGE: return "SIU_I_CONST_MERGE";
     case PfRule::SIU_I_CONST_CONFLICT: return "SIU_I_CONST_CONFLICT";
@@ -82,9 +82,12 @@ const char* toString(PfRule id)
     case PfRule::SIU_N_NCTN: return "SIU_N_NCTN";
     case PfRule::SIU_LEN_NORM: return "SIU_LEN_NORM";
     case PfRule::SIU_DEQ_DISL_EMP_SPLIT: return "SIU_DEQ_DISL_EMP_SPLIT";
-    case PfRule::SIU_DEQ_DISL_FIRST_CHAR_EQ_SPLIT: return "SIU_DEQ_DISL_FIRST_CHAR_EQ_SPLIT";
-    case PfRule::SIU_DEQ_DISL_FIRST_CHAR_STRING_SPLIT: return "SIU_DEQ_DISL_FIRST_CHAR_STRING_SPLIT";
-    case PfRule::SIU_DEQ_DISL_STRINGS_SPLIT: return "SIU_DEQ_DISL_STRINGS_SPLIT";
+    case PfRule::SIU_DEQ_DISL_FIRST_CHAR_EQ_SPLIT:
+      return "SIU_DEQ_DISL_FIRST_CHAR_EQ_SPLIT";
+    case PfRule::SIU_DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
+      return "SIU_DEQ_DISL_FIRST_CHAR_STRING_SPLIT";
+    case PfRule::SIU_DEQ_DISL_STRINGS_SPLIT:
+      return "SIU_DEQ_DISL_STRINGS_SPLIT";
     case PfRule::SIU_DEQ_STRINGS_EQ: return "SIU_DEQ_STRINGS_EQ";
     case PfRule::SIU_DEQ_LENS_EQ: return "SIU_DEQ_LENS_EQ";
     case PfRule::SIU_DEQ_NORM_EMP: return "SIU_DEQ_NORM_EMP";

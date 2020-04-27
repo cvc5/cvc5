@@ -238,12 +238,11 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion:F, corresponding to the one-step unfolding of the premise.
   RE_UNFOLD,
-  
-  
+
   //%%%%%%%%%%%%%  BEGIN UNTRUSTWORTHY
   // These allow an untrustworthy conversion from strings::Inference to PfRule
   SIU_BEGIN,
-  
+
   SIU_I_NORM_S,
   SIU_I_CONST_MERGE,
   SIU_I_CONST_CONFLICT,
@@ -303,10 +302,6 @@ enum class PfRule : uint32_t
   SIU_CTN_POS,
   SIU_REDUCTION,
   //%%%%%%%%%%%%%  END UNTRUSTWORTHY
-  
-  
-  
-  
 
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 

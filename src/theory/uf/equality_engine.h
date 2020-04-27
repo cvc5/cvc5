@@ -33,9 +33,9 @@
 #include "expr/proof.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/uf/eq_proof.h"
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_registry.h"
-#include "theory/uf/eq_proof.h"
 
 namespace CVC4 {
 namespace theory {
