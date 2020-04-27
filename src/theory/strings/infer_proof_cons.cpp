@@ -109,7 +109,7 @@ PfRule InferProofCons::convert(Inference infer,
   if (!success)
   {
     // untrustworthy conversion
-    pii.d_rule = PfRule::SIU_BEGIN + ( infer - InferInfo::BEGIN );
+    pii.d_rule = static_cast<PfRule>( static_cast<uint32_t>(PfRule::SIU_BEGIN) + ( static_cast<uint32_t>(infer) - static_cast<uint32_t>(Inference::BEGIN) ));
     // add to stats
     d_statistics.d_inferencesNoPf << infer;
   }
