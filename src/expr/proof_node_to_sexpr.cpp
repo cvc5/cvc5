@@ -27,12 +27,12 @@ ProofNodeToSExpr::ProofNodeToSExpr()
   d_argsMarker = nm->mkBoundVar(":args", nm->mkSExprType(types));
 }
 
-Node ProofNodeToSExpr::convertToSExpr(std::shared_ptr<ProofNode> pn)
+Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::map<std::shared_ptr<ProofNode>, Node>::iterator it;
-  std::vector<std::shared_ptr<ProofNode>> visit;
-  std::shared_ptr<ProofNode> cur;
+  std::map<const ProofNode*, Node>::iterator it;
+  std::vector<const ProofNode*> visit;
+  const ProofNode* cur;
   visit.push_back(pn);
   do
   {
@@ -47,19 +47,18 @@ Node ProofNodeToSExpr::convertToSExpr(std::shared_ptr<ProofNode> pn)
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
-        visit.push_back(cp);
+        visit.push_back(cp.get());
       }
     }
     else if (it->second.isNull())
     {
-      bool childChanged = false;
       std::vector<Node> children;
       // add proof rule
       children.push_back(getOrMkPfRuleVariable(cur->getRule()));
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
-        it = d_pnMap.find(cp);
+        it = d_pnMap.find(cp.get());
         Assert(it != d_pnMap.end());
         Assert(!it->second.isNull());
         children.push_back(it->second);

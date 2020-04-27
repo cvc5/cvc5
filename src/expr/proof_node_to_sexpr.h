@@ -40,7 +40,7 @@ class ProofNodeToSExpr
    *   (SEXPR (VAR "<d_rule>") S1 ... Sn (VAR ":args") (SEXPR <d_args>))
    * where S1, ..., Sn are the s-expressions for its <d_children>.
    */
-  Node convertToSExpr(std::shared_ptr<ProofNode> pn);
+  Node convertToSExpr(const ProofNode* pn);
 
  private:
   /** map proof rules to a variable */
@@ -48,7 +48,7 @@ class ProofNodeToSExpr
   /** Dummy ":args" marker */
   Node d_argsMarker;
   /** map proof nodes to their s-expression */
-  std::map<std::shared_ptr<ProofNode>, Node> d_pnMap;
+  std::map<const ProofNode*, Node> d_pnMap;
   /** get or make pf rule variable */
   Node getOrMkPfRuleVariable(PfRule r);
 };

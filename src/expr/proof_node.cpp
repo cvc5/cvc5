@@ -14,6 +14,8 @@
 
 #include "expr/proof_node.h"
 
+#include "expr/proof_node_to_sexpr.h"
+
 namespace CVC4 {
 
 ProofNode::ProofNode(PfRule id,
@@ -126,6 +128,11 @@ void ProofNode::setValue(
 
 void ProofNode::printDebug(std::ostream& os) const
 {
+  // convert to sexpr and print
+  ProofNodeToSExpr pnts;
+  Node ps = pnts.convertToSExpr(this);
+  os << ps;
+/*  
   os << "(" << d_rule;
   for (const std::shared_ptr<ProofNode>& c : d_children)
   {
@@ -137,6 +144,7 @@ void ProofNode::printDebug(std::ostream& os) const
     os << " :args (" << d_args << ")";
   }
   os << ")";
+  */
 }
 
 }  // namespace CVC4
