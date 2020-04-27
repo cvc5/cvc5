@@ -20,14 +20,14 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ProofToSExpr::ProofToSExpr()
+ProofNodeToSExpr::ProofNodeToSExpr()
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<TypeNode> types;
   d_argsMarker = nm->mkBoundVar(":args", nm->mkSExprType(types));
 }
 
-Node ProofToSExpr::convertToSExpr(std::shared_ptr<ProofNode> pn)
+Node ProofNodeToSExpr::convertToSExpr(std::shared_ptr<ProofNode> pn)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::map<std::shared_ptr<ProofNode>, Node>::iterator it;
@@ -80,7 +80,7 @@ Node ProofToSExpr::convertToSExpr(std::shared_ptr<ProofNode> pn)
   return d_pnMap[pn];
 }
 
-Node ProofToSExpr::getOrMkPfRuleVariable(PfRule r)
+Node ProofNodeToSExpr::getOrMkPfRuleVariable(PfRule r)
 {
   std::map<PfRule, Node>::iterator it = d_pfrMap.find(r);
   if (it != d_pfrMap.end())
