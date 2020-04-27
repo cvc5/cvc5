@@ -22,42 +22,42 @@ namespace CVC4 {
 
 ProofToSExpr::ProofToSExpr()
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<TypeNode> types;
   d_argsMarker = nm->mkBoundVar(":args", nm->mkSExprType(types));
 }
 
 Node ProofToSExpr::convertToSExpr(std::shared_ptr<ProofNode> pn)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::map<std::shared_ptr<ProofNode>, Node>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pn);
-  do 
+  do
   {
     cur = visit.back();
     visit.pop_back();
     it = d_pnMap.find(cur);
 
-    if (it == d_pnMap.end()) 
+    if (it == d_pnMap.end())
     {
       d_pnMap[cur] = Node::null();
       visit.push_back(cur);
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
-      for (const std::shared_ptr<ProofNode>& cp : pc )
+      for (const std::shared_ptr<ProofNode>& cp : pc)
       {
         visit.push_back(cp);
       }
-    } 
-    else if (it->second.isNull()) 
+    }
+    else if (it->second.isNull())
     {
       bool childChanged = false;
       std::vector<Node> children;
       // add proof rule
       children.push_back(getOrMkPfRuleVariable(cur->getRule()));
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
-      for (const std::shared_ptr<ProofNode>& cp : pc )
+      for (const std::shared_ptr<ProofNode>& cp : pc)
       {
         it = d_pnMap.find(cp);
         Assert(it != d_pnMap.end());
@@ -69,10 +69,10 @@ Node ProofToSExpr::convertToSExpr(std::shared_ptr<ProofNode> pn)
       if (!args.empty())
       {
         children.push_back(d_argsMarker);
-        Node argsC = nm->mkNode(SEXPR,args);
+        Node argsC = nm->mkNode(SEXPR, args);
         children.push_back(argsC);
       }
-      d_pnMap[cur] = nm->mkNode(SEXPR,children);
+      d_pnMap[cur] = nm->mkNode(SEXPR, children);
     }
   } while (!visit.empty());
   Assert(d_pnMap.find(pn) != d_pnMap.end());
@@ -82,16 +82,16 @@ Node ProofToSExpr::convertToSExpr(std::shared_ptr<ProofNode> pn)
 
 Node ProofToSExpr::getOrMkPfRuleVariable(PfRule r)
 {
-  std::map<PfRule, Node >::iterator it = d_pfrMap.find(r);
-  if (it!=d_pfrMap.end())
+  std::map<PfRule, Node>::iterator it = d_pfrMap.find(r);
+  if (it != d_pfrMap.end())
   {
     return it->second;
   }
   std::stringstream ss;
   ss << r;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<TypeNode> types;
-  Node var =  nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
+  Node var = nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
   d_pfrMap[r] = var;
   return var;
 }

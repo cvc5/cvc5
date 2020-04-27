@@ -26,18 +26,19 @@ namespace CVC4 {
 
 class ProofToSExpr
 {
-public:
+ public:
   ProofToSExpr();
-  ~ProofToSExpr(){}
+  ~ProofToSExpr() {}
   /** Convert the given proof node to an s-expression */
-  Node convertToSExpr(std::shared_ptr<ProofNode> pn);  
-private:
+  Node convertToSExpr(std::shared_ptr<ProofNode> pn);
+
+ private:
   /** map proof rules to a variable */
-  std::map<PfRule, Node > d_pfrMap;
+  std::map<PfRule, Node> d_pfrMap;
   /** Dummy ":args" marker */
   Node d_argsMarker;
   /** map proof nodes to their s-expression */
-  std::map< std::shared_ptr<ProofNode>, Node > d_pnMap;
+  std::map<std::shared_ptr<ProofNode>, Node> d_pnMap;
   /** get or make pf rule variable */
   Node getOrMkPfRuleVariable(PfRule r);
 };
