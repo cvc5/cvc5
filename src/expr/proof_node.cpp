@@ -132,19 +132,19 @@ void ProofNode::printDebug(std::ostream& os) const
   ProofNodeToSExpr pnts;
   Node ps = pnts.convertToSExpr(this);
   os << ps;
-/*  
-  os << "(" << d_rule;
-  for (const std::shared_ptr<ProofNode>& c : d_children)
-  {
-    os << " ";
-    c->printDebug(os);
-  }
-  if (!d_args.empty())
-  {
-    os << " :args (" << d_args << ")";
-  }
-  os << ")";
-  */
+  /*
+    os << "(" << d_rule;
+    for (const std::shared_ptr<ProofNode>& c : d_children)
+    {
+      os << " ";
+      c->printDebug(os);
+    }
+    if (!d_args.empty())
+    {
+      os << " :args (" << d_args << ")";
+    }
+    os << ")";
+    */
 }
 
 }  // namespace CVC4

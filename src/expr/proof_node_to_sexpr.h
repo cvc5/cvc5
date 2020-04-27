@@ -30,12 +30,12 @@ class ProofNodeToSExpr
  public:
   ProofNodeToSExpr();
   ~ProofNodeToSExpr() {}
-  /** Convert the given proof node to an s-expression 
-   * 
+  /** Convert the given proof node to an s-expression
+   *
    * This is useful for operations where it is useful to view a ProofNode as
    * a Node. Printing is one such example, where a ProofNode can be printed
    * as a dag after this conversion.
-   * 
+   *
    * The s-expression for a ProofNode has the form:
    *   (SEXPR (VAR "<d_rule>") S1 ... Sn (VAR ":args") (SEXPR <d_args>))
    * where S1, ..., Sn are the s-expressions for its <d_children>.
