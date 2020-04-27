@@ -134,7 +134,7 @@ void ProofNode::printDebug(std::ostream& os) const
   }
   if (!d_args.empty())
   {
-    os << " :args " << d_args;
+    os << " :args (" << d_args << ")";
   }
   os << ")";
 }
