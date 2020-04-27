@@ -35,6 +35,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_registry.h"
+#include "theory/uf/eq_proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -951,43 +952,6 @@ public:
   EqClassIterator operator++(int);
   bool isFinished() const;
 };/* class EqClassIterator */
-
-class EqProof
-{
-public:
-  class PrettyPrinter {
-  public:
-    virtual ~PrettyPrinter() {}
-    virtual std::string printTag(unsigned tag) = 0;
-  };
-
-  EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY){}
-  unsigned d_id;
-  Node d_node;
-  std::vector<std::shared_ptr<EqProof>> d_children;
-  /**
-   * Debug print this proof on debug trace c with tabulation tb and pretty
-   * printer prettyPrinter.
-   */
-  void debug_print(const char* c, unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
-  /**
-   * Debug print this proof on output stream os with tabulation tb and pretty
-   * printer prettyPrinter.
-   */
-  void debug_print(std::ostream& os,
-                   unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
-  /** Add to proof
-   *
-   * This method adds all of its steps to p via calls to CDProof::addStep.
-   *
-   * This method can be seen as a translation from EqProof to ProofNode. It is
-   * temporary until we update the EqualityEngine to the new proof
-   * infrastructure.
-   */
-  void addToProof(CDProof* p) const;
-};/* class EqProof */
 
 } // Namespace eq
 } // Namespace theory
