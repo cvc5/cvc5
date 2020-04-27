@@ -211,7 +211,7 @@ InputLanguage toInputLanguage(std::string language) {
             language == "LANG_Z3STR") {
     return input::LANG_Z3STR;
   }
-  else if (language == "sygus" || language == "LANG_SYGUS_V1")
+  else if (language == "sygus1" || language == "LANG_SYGUS_V1")
   {
     return input::LANG_SYGUS_V1;
   }
