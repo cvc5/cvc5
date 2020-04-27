@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --lang=smt2.5
+; COMMAND-LINE: --incremental
 ; EXPECT: unsat
 ; EXPECT: sat
 ; EXPECT: sat
@@ -23,19 +23,19 @@
 
 (declare-fun b!20 () Bool)
 
-(declare-datatypes () ( (Option!3 (None!1) (Some!1 (v!71 tuple2!0)))  (tuple2!0 (tuple2!1 (_1!0 Unit!0) (_2!0 Bool)))  (Unit!0 (Unit!1)) ))
+(declare-datatypes ((Option!3 0) (tuple2!0 0) (Unit!0 0)) (((None!1) (Some!1 (v!71 tuple2!0))) ((tuple2!1 (_1!0 Unit!0) (_2!0 Bool))) ((Unit!1))))
 
 (declare-fun lt!7 () Option!3)
 
 (declare-fun Unit!2 () Unit!0)
 
-(assert (=> b!16 (= b!20 (ite (is-Some!1 lt!7) (= (_1!0 (v!71 lt!7)) Unit!2) false))))
+(assert (=> b!16 (= b!20 (ite ((_ is Some!1) lt!7) (= (_1!0 (v!71 lt!7)) Unit!2) false))))
 
 (assert (=> b!16 (or (not b!20) (not b!15))))
 
 (assert (=> b!16 (or b!20 b!15)))
 
-(declare-datatypes () ( (tuple3!0 (tuple3!1 (_1!1 (_ BitVec 32)) (_2!1 Bool) (_3!0 Unit!0))) ))
+(declare-datatypes ((tuple3!0 0)) (((tuple3!1 (_1!1 (_ BitVec 32)) (_2!1 Bool) (_3!0 Unit!0)))))
 
 (declare-fun unapply!2 (tuple3!0) Option!3)
 
@@ -73,7 +73,7 @@
 
 (declare-fun lt!8 () Option!3)
 
-(assert (=> start!1 (= b!19 (ite (is-Some!1 lt!8) true false))))
+(assert (=> start!1 (= b!19 (ite ((_ is Some!1) lt!8) true false))))
 
 (declare-fun Unit!5 () Unit!0)
 

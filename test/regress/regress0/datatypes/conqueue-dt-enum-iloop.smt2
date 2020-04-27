@@ -1,4 +1,3 @@
-; COMMAND-LINE: --lang=smt2.5
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
@@ -10,22 +9,22 @@
 
 (declare-sort T!14 0)
 
-(declare-datatypes () ( 
-(LazyConQ!5 
-  (Lazyarg1!5 (carry!37 Conc!6) (srear!9 LazyConQ!5)) 
-  (Lazyarg2!5 (t!270 ConQ!6)) 
-  (Lazyarg3!5 (carry!38 Conc!6) (t!271 ConQ!6)) 
-  (Lazyarg4!5 (tree!19 Conc!6) (carry!39 Conc!6)) 
-  (Lazyarg5!5 (tree!20 Conc!6) (carry!40 Conc!6)) 
-  (PushLeft!5 (ys!22 Conc!6) (xs!60 LazyConQ!5)) 
-  (PushLeftLazy!5 (ys!23 Conc!6) (xs!61 LazyConQ!5)))  
-(Conc!6 
-  (CC!5 (left!9 Conc!6) (right!9 Conc!6)) 
-  (Empty!5) 
-  (Single!5 (x!106 T!14)))  
-(ConQ!6 
-  (Spine!5 (head!10 Conc!6) (rear!5 LazyConQ!5)) 
-  (Tip!5 (t!272 Conc!6))) 
+(declare-datatypes ((LazyConQ!5 0) (Conc!6 0) (ConQ!6 0)) (
+(
+  (Lazyarg1!5 (carry!37 Conc!6) (srear!9 LazyConQ!5))
+  (Lazyarg2!5 (t!270 ConQ!6))
+  (Lazyarg3!5 (carry!38 Conc!6) (t!271 ConQ!6))
+  (Lazyarg4!5 (tree!19 Conc!6) (carry!39 Conc!6))
+  (Lazyarg5!5 (tree!20 Conc!6) (carry!40 Conc!6))
+  (PushLeft!5 (ys!22 Conc!6) (xs!60 LazyConQ!5))
+  (PushLeftLazy!5 (ys!23 Conc!6) (xs!61 LazyConQ!5)))
+(
+  (CC!5 (left!9 Conc!6) (right!9 Conc!6))
+  (Empty!5)
+  (Single!5 (x!106 T!14)))
+(
+  (Spine!5 (head!10 Conc!6) (rear!5 LazyConQ!5))
+  (Tip!5 (t!272 Conc!6)))
 ))
 
 (declare-fun e!41 () LazyConQ!5)
@@ -46,7 +45,7 @@
 
 (assert (=> b!40 (= e!42 e!41)))
 
-(assert (=> b!40 (= b!39 (is-Spine!5 (evalLazyConQ2!7 l!2)))))
+(assert (=> b!40 (= b!39 ((_ is Spine!5) (evalLazyConQ2!7 l!2)))))
 
 (declare-fun b!41 () Bool)
 
