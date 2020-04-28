@@ -474,6 +474,7 @@ bool TheoryStrings::collectModelInfoType(
                 Node spl = nm->mkNode(OR, sl, sl.negate());
                 ++(d_statistics.d_lemmasCmiSplit);
                 d_out->lemma(spl);
+                Trace("strings-lemma") << "Strings::CollectModelInfoSplit: " << spl << std::endl;
               }
               return false;
             }
@@ -491,6 +492,8 @@ bool TheoryStrings::collectModelInfoType(
         processed[eqc] = c;
         if (!m->assertEquality(eqc, c, true))
         {
+          Assert(false);
+          Trace("strings-model") << "...failed assert equality" << std::endl;
           return false;
         }
       }
@@ -534,6 +537,8 @@ bool TheoryStrings::collectModelInfoType(
       processed[nodes[i]] = cc;
       if (!m->assertEquality(nodes[i], cc, true))
       {
+        Assert(false);
+        Trace("strings-model") << "...failed assert equality" << std::endl;
         return false;
       }
     }
