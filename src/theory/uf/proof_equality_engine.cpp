@@ -190,7 +190,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
     if (!d_proof.addStep(conc, id, exp, args))
     {
       // a step went wrong, e.g. during checking
-      Assert(false) << "ProofEqEngine::assertConflict: register proof step";
+      Assert(false) << "pfee::assertConflict: register proof step";
       return TrustNode::null();
     }
   }
@@ -222,7 +222,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                                             const std::vector<TNode>& assumps,
                                             bool isConflict)
 {
-  Trace("pfee-debug") << "ProofEqEngine::ensureProofForFact " << conc << " via "
+  Trace("pfee-debug") << "pfee::ensureProofForFact: input " << conc << " via "
                       << assumps << ", isConflict=" << isConflict << std::endl;
   // make the conflict or lemma
   Node formula = mkAnd(assumps);
@@ -235,22 +235,30 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   ProofGenerator* pfg = nullptr;
   if (d_pfEnabled)
   {
+    Trace("pfee-debug") << "pfee::ensureProofForFact: make proof for fact" << std::endl;
     // get the proof for conc
     std::shared_ptr<ProofNode> pfConc = mkProofForFact(conc);
     if (pfConc == nullptr)
     {
-      Trace("pfee-debug") << "  ...failed to make proof for fact" << std::endl;
+      Trace("pfee-debug") << "pfee::ensureProofForFact: failed to make proof for fact" << std::endl;
       // should have existed
-      Assert(false) << "ProofEqEngine::assertConflict: failed to get proof for "
+      Assert(false) << "pfee::assertConflict: failed to get proof for "
                     << conc;
       return TrustNode::null();
     }
+    Trace("pfee-debug") << "pfee::ensureProofForFact: add scope" << std::endl;
     // Wrap the proof in a SCOPE. Notice that we have an expected conclusion
     // (formula) which we pass to mkNode, which can check it if it wants.
     std::vector<Node> args;
     std::shared_ptr<ProofNode> pf =
         d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
-    Trace("pfee-debug") << "  proof " << std::endl;
+    if (Trace.isOn("pfee-debug"))
+    {
+      Trace("pfee-debug") << "pfee::ensureProofForFact: printing proof" << std::endl;
+      std::stringstream ss;
+      pf->debugPrint(ss);
+      Trace("pfee-debug") << "pfee::ensureProofForFact: Proof is " << ss.str() std::endl;
+    }
     // should always succeed, since assumptions should be closed
     Assert(pf != nullptr);
     // should be a closed proof now
@@ -266,6 +274,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     }
     pfg = this;
   }
+  Trace("pfee-debug") << "pfee::ensureProofForFact: finish" << std::endl;
   // we can provide a proof for conflict or lemma
   if (isConflict)
   {
@@ -287,7 +296,7 @@ std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
 
 void ProofEqEngine::assertInternal(TNode atom, bool polarity, TNode reason)
 {
-  Trace("pfee-debug") << "ProofEqEngine::assertInternal: " << atom << " "
+  Trace("pfee-debug") << "pfee::assertInternal: " << atom << " "
                       << polarity << " " << reason << std::endl;
   if (atom.getKind() == EQUAL)
   {
@@ -303,7 +312,7 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
 {
   std::shared_ptr<eq::EqProof> pf =
       d_pfEnabled ? std::make_shared<eq::EqProof>() : nullptr;
-  Trace("pfee-debug") << "ProofEqEngine::explainWithProof: " << lit << " via "
+  Trace("pfee-debug") << "pfee::explainWithProof: " << lit << " via "
                       << assumps << std::endl;
   bool polarity = lit.getKind() != NOT;
   TNode atom = polarity ? lit : lit[0];
@@ -342,9 +351,11 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
   }
   if (d_pfEnabled)
   {
+    Trace("pfee-debug") << "pfee::explainWithProof: add to proof" << std::endl;
     // add the steps in the equality engine proof to the Proof
     pf->addToProof(&d_proof);
   }
+  Trace("pfee-debug") << "pfee::explainWithProof: finished" << std::endl;
 }
 
 Node ProofEqEngine::mkAnd(const std::vector<Node>& a)
