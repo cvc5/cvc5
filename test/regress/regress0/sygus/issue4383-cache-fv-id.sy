@@ -1,3 +1,5 @@
+; EXPECT: unsat
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic ALL)
 (synth-fun args_0_refinement_0 
 	((r Int)) Bool 
