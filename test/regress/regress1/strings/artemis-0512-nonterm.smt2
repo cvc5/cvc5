@@ -1,4 +1,4 @@
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-logic QF_SLIA)
 (set-option :strings-exp true)
 (set-info :status unsat)
@@ -21,7 +21,7 @@
   )
 )
  
-(assert (= (<= (str.to.int Y) 31) false))
+(assert (= (<= (str.to_int Y) 31) false))
  
 (check-sat)
  

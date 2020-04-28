@@ -1,4 +1,4 @@
-; COMMAND-LINE: --lang=smt2.6.1
+; COMMAND-LINE: --lang=smt2.6
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: sat

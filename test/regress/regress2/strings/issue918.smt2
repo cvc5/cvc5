@@ -1,8 +1,8 @@
 ; COMMAND-LINE: --strings-exp --re-elim
 ; EXPECT: sat
+(set-info :smt-lib-version 2.5)
 (set-option :produce-models true)
 (set-logic UFDTSLIA)
-(set-info :smt-lib-version 2.5)
 (declare-datatypes () (
     (StringRotation (StringRotation$C_StringRotation (StringRotation$C_StringRotation$sr String)))
     (StringRotation2 (StringRotation2$C_StringRotation2 (StringRotation2$C_StringRotation2$sr1 StringRotation) (StringRotation2$C_StringRotation2$sr2 StringRotation)))
