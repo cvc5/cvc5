@@ -203,17 +203,7 @@ binding, please contact one of the project leaders.
 
 ## Building the Examples
 
-The examples provided in directory `examples` are not built by default.
-
-    make examples                      # build all examples
-    make runexamples                   # build and run all examples
-    make <example>                     # build examples/<subdir>/<example>.<ext>
-    ctest example/<subdir>/<example>   # run test example/<subdir>/<example>
-
-All examples binaries are built into `<build_dir>/bin/examples`.
-
-See `examples/README` for more detailed information on what to find in the
-`examples` directory.
+See `examples/README.md` for instructions on how to build and run the examples.
 
 ## Testing CVC4
 
@@ -237,24 +227,6 @@ We have 4 categories of tests:
   (label: **system**)
 - **unit tests** in directory `test/unit`
   (label: **unit**)
-
-### Testing Examples
-
-For building instructions, see [Building the Examples](building-the-examples).
-
-We use prefix `example/` + `<subdir>/` + `<example>` (for `<example>` in
-`example/<subdir>/`) as test target name.  
-
-    make bitvectors                       # build example/api/bitvectors.cpp
-    ctest -R bitvectors                   # run all tests that match '*bitvectors*'
-                                          # > runs example/api/bitvectors
-                                          # >      example/api/bitvectors_and_arrays
-                                          # >      ...
-    ctest -R bitvectors$                  # run all tests that match '*bitvectors'
-                                          # > runs example/api/bitvectors
-    ctest -R example/api/bitvectors$      # run all tests that match '*example/api/bitvectors'
-                                          # > runs example/api/bitvectors
-
 
 ### Testing System Tests
 
