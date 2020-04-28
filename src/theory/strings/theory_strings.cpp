@@ -474,7 +474,8 @@ bool TheoryStrings::collectModelInfoType(
                 Node spl = nm->mkNode(OR, sl, sl.negate());
                 ++(d_statistics.d_lemmasCmiSplit);
                 d_out->lemma(spl);
-                Trace("strings-lemma") << "Strings::CollectModelInfoSplit: " << spl << std::endl;
+                Trace("strings-lemma")
+                    << "Strings::CollectModelInfoSplit: " << spl << std::endl;
               }
               return false;
             }
