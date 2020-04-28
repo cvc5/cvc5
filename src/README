@@ -62,3 +62,26 @@ Notes:
 - Similar to above, the user of a ProofEqEngine does not care about what a ProofNode is. Its input interface is similar to EqualityEngine, i.e. Node, its output interface is in terms of TrustNode.
 - Theory can have as many ProofGenerator objects as it wants. It should have one for each kind of reasoning it does.
 - ProofNodeManager does not need to be global.
+
+
+
+PRs:
+
+- SEXPR simply typed
+(1) ProofChecker improve tracing
+- Add ProofNode printing as dag (SEXPR)
+- Proof kinds infrastructure
+(2) Builtin rules, builtin checker.
+(3) Boolean rules, boolean checker.
+(4) UF rules, UF checker.
+- EqProof conversion (Haniel)
+(5) String rules, string checker
+(6) Split EngineOutputChannel from TheoryEngine
+(7) Add ProofEngineOutputChannel
+(8) Add TrustNode
+(9) Add ProofGenerator
+(10) ProofEqEngine 
+(11) TheoryEngine proof checker initialize
+(12) ProofSkolemCache
+(13) strings InferProofCons
+(14) update strings inference manager to use ProofEqEngine

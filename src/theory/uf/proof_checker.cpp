@@ -71,12 +71,26 @@ Node EqProofRuleChecker::check(PfRule id,
   {
     Assert(children.size() > 0);
     Assert(args.size() == 1);
-    // We could handle builtin operators here using
-    // kindToOperator/operatorToKind, for now, hard-coded to APPLY_UF
+    // We do congruence over builtin kinds using operatorToKind
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
-    lchildren.push_back(args[0]);
-    rchildren.push_back(args[0]);
+    Kind k;
+    if (args[0].isVar())
+    {
+      k = APPLY_UF;
+    }
+    else
+    {
+      // get the expected kind for args[0]
+      k = NodeManager::operatorToKind(args[0]);
+    }
+    Trace("uf-pfcheck") << "congruence for " << args[0] << " uses kind " << k << ", metakind=" << kind::metaKindOf(k) << std::endl;
+    if (kind::metaKindOf(k)==kind::metakind::PARAMETERIZED)
+    {
+      // parameterized kinds require the operator
+      lchildren.push_back(args[0]);
+      rchildren.push_back(args[0]);
+    }
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
       Node eqp = children[i];
@@ -88,8 +102,8 @@ Node EqProofRuleChecker::check(PfRule id,
       rchildren.push_back(eqp[1]);
     }
     NodeManager* nm = NodeManager::currentNM();
-    Node l = nm->mkNode(APPLY_UF, lchildren);
-    Node r = nm->mkNode(APPLY_UF, rchildren);
+    Node l = nm->mkNode(k, lchildren);
+    Node r = nm->mkNode(k, rchildren);
     return l.eqNode(r);
   }
   else if (id == PfRule::TRUE_INTRO)
