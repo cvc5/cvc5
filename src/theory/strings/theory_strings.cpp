@@ -500,7 +500,9 @@ bool TheoryStrings::collectModelInfoType(
         {
           // this should never happen due to the model soundness argument
           // for strings
-          AlwaysAssert(false) << "TheoryStrings::collectModelInfoType: Inconsistent equality" << std::endl;
+          AlwaysAssert(false)
+              << "TheoryStrings::collectModelInfoType: Inconsistent equality"
+              << std::endl;
           return false;
         }
       }
@@ -544,9 +546,11 @@ bool TheoryStrings::collectModelInfoType(
       processed[nodes[i]] = cc;
       if (!m->assertEquality(nodes[i], cc, true))
       {
-          // this should never happen due to the model soundness argument
-          // for strings
-        AlwaysAssert(false) << "TheoryStrings::collectModelInfoType: Inconsistent equality (unprocessed eqc)" << std::endl;
+        // this should never happen due to the model soundness argument
+        // for strings
+        AlwaysAssert(false) << "TheoryStrings::collectModelInfoType: "
+                               "Inconsistent equality (unprocessed eqc)"
+                            << std::endl;
         return false;
       }
     }
