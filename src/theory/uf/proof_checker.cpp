@@ -127,9 +127,10 @@ Node EqProofRuleChecker::check(PfRule id,
   else if (id == PfRule::FALSE_INTRO)
   {
     Assert(children.size() == 1);
+    Assert(children[0].getKind() == kind::NOT);
     Assert(args.empty());
     Node trueNode = NodeManager::currentNM()->mkConst(false);
-    return children[0].eqNode(trueNode);
+    return children[0][0].eqNode(trueNode);
   }
   else if (id == PfRule::FALSE_ELIM)
   {

@@ -315,14 +315,14 @@ Node EqProof::addToProof(CDProof* p) const
   {
     Debug("eqproof::conv") << "EqProof::addToProof: adding refl step for "
                            << d_node << "\n";
+    Assert(d_node.getKind() == kind::EQUAL);
     std::vector<Node> children;
-    std::vector<Node> args{d_node};
-    Node conclusion = d_node.eqNode(d_node);
-    if (!p->addStep(conclusion, PfRule::REFL, children, args))
+    std::vector<Node> args{d_node[0]};
+    if (!p->addStep(d_node, PfRule::REFL, children, args))
     {
       Assert(false) << "EqProof::addToProof: couldn't add refl step\n";
     }
-    return conclusion;
+    return d_node;
   }
   // can support case of negative merged throgh constants, but not positive one
   // yet
@@ -457,15 +457,8 @@ Node EqProof::addToProof(CDProof* p) const
   // conclusion must be reconstructed (since only one of the terms is
   // represented)
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> args;
-  Assert(d_node.getKind() == kind::APPLY_UF
-         || d_node.getKind() == kind::PARTIAL_APPLY_UF);
-  args.push_back(d_node.getOperator());
-  // The given conclusion, d_node, is either the LHS or the RHS or the intended
-  // equality. We reconstruct both below and later do a sanity check that d_node
-  // corresponds to one of them
-  std::vector<Node> conclusionLhsArgs;
-  std::vector<Node> conclusionRhsArgs;
+  Assert(d_node.getKind() == kind::EQUAL)
+      << "EqProof::addToProof: conclusion " << d_node << " is not equality\n";
   std::vector<Node> children;
   const EqProof* childProof = this;
   // iterate over children proofs. first child proof is always bogus
@@ -478,8 +471,14 @@ Node EqProof::addToProof(CDProof* p) const
     children.insert(children.begin(),
                     childProof->d_children[1].get()->addToProof(p));
     Assert(children[0].getKind() == kind::EQUAL);
-    conclusionLhsArgs.insert(conclusionLhsArgs.begin(), children[0][0]);
-    conclusionRhsArgs.insert(conclusionRhsArgs.begin(), children[0][1]);
+    Assert(children[0][0] == d_node[0][arity - 1 - i])
+        << "EqProof::addToProof: child conclusion " << children
+        << " does not match " << (arity - 1 - i)
+        << "-th arg of fst application of " << d_node << "\n";
+    Assert(children[0][1] == d_node[1][arity - 1 - i])
+        << "EqProof::addToProof: child conclusion " << children
+        << " does not match " << (arity - 1 - i)
+        << "-th arg of snd application of " << d_node << "\n";
     Debug("eqproof::conv") << pop;
     if (i < arity - 1)
     {
@@ -494,39 +493,33 @@ Node EqProof::addToProof(CDProof* p) const
              == MERGED_THROUGH_REFLEXIVITY);
     }
   }
-  // add operator
-  conclusionLhsArgs.insert(conclusionLhsArgs.begin(), args[0]);
-  conclusionRhsArgs.insert(conclusionRhsArgs.begin(), args[0]);
-  // build conclusion
-  Node conclusion = nm->mkNode(kind::EQUAL,
-                               nm->mkNode(kind::APPLY_UF, conclusionLhsArgs),
-                               nm->mkNode(kind::APPLY_UF, conclusionRhsArgs));
-#ifdef CVC4_ASSERTIONS
-  // d_node, if non-null, modulo PARTIAL_APPLY_UF for unary cases, must be the
-  // same as either the LHS or the RHS of the new conclusion
-  Node originalConclusion = d_node;
-  if (d_node.getKind() == kind::PARTIAL_APPLY_UF)
+  // build args
+  std::vector<Node> args;
+  Kind k = d_node[0].getKind();
+  if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
   {
-    Assert(d_node.getNumChildren() == 1);
-    std::vector<Node> appArgs{args[0], d_node[0]};
-    originalConclusion = nm->mkNode(kind::APPLY_UF, appArgs);
+    args.push_back(d_node[0].getOperator());
   }
-  Assert(originalConclusion == conclusion[0]
-         || originalConclusion == conclusion[1]);
-#endif
-  if (!p->addStep(conclusion, PfRule::CONG, children, args, true))
+  else
+  {
+    args.push_back(nm->operatorOf(k));
+  }
+  Debug("eqproof::conv") << "EqProof::addToProof: build cong step of " << d_node
+                         << " with op " << args[0] << " anch children "
+                         << children << "\n";
+  if (!p->addStep(d_node, PfRule::CONG, children, args, true))
   {
     Assert(false) << "EqProof::addToProof: couldn't add cong step\n";
   }
   if (Debug.isOn("eqproof::conv"))
   {
     Debug("eqproof::conv") << "EqProof::addToProof: proof node of "
-                           << conclusion << " is:\n";
+                           << d_node << " is:\n";
     std::stringstream out;
-    p->getProof(conclusion).get()->printDebug(out);
+    p->getProof(d_node).get()->printDebug(out);
     Debug("eqproof::conv") << out.str() << "\n";
   }
-  return conclusion;
+  return d_node;
 }
 
 }  // namespace eq
