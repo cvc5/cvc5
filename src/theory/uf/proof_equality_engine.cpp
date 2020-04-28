@@ -256,8 +256,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     {
       Trace("pfee-debug") << "pfee::ensureProofForFact: printing proof" << std::endl;
       std::stringstream ss;
-      pf->debugPrint(ss);
-      Trace("pfee-debug") << "pfee::ensureProofForFact: Proof is " << ss.str() std::endl;
+      pf->printDebug(ss);
+      Trace("pfee-debug") << "pfee::ensureProofForFact: Proof is " << ss.str() << std::endl;
     }
     // should always succeed, since assumptions should be closed
     Assert(pf != nullptr);
