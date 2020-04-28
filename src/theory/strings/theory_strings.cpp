@@ -425,7 +425,8 @@ bool TheoryStrings::collectModelInfoType(
       uint32_t currLen =
           lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
       std::unique_ptr<SEnumLen> sel;
-      Trace("strings-model") << "Cardinality of alphabet is " << utils::getAlphabetCardinality() << std::endl;
+      Trace("strings-model") << "Cardinality of alphabet is "
+                             << utils::getAlphabetCardinality() << std::endl;
       if (tn.isString())
       {
         sel.reset(new StringEnumLen(
