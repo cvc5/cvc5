@@ -36,14 +36,16 @@ InferenceManager::InferenceManager(context::Context* c,
                                    OutputChannel& out,
                                    SequencesStatistics& statistics,
                                    bool pfEnabled)
-    : d_state(s),
+    : d_ccontext(c),
+      d_ucontext(u),
+      d_state(s),
       d_termReg(tr),
       d_extt(e),
       d_out(out),
       d_statistics(statistics),
-      d_pnm(),
-      d_pfee(c, u, *d_state.getEqualityEngine(), &d_pnm, pfEnabled),
-      d_ipc(d_pfee, statistics, pfEnabled),
+      d_pnm(nullptr),
+      d_pfee(nullptr),
+      d_ipc(nullptr),
       d_keep(c),
       d_pfEnabled(pfEnabled)
 {
@@ -56,14 +58,26 @@ InferenceManager::InferenceManager(context::Context* c,
 
 void InferenceManager::setProofChecker(ProofChecker* pc)
 {
-  // TODO: connect to d_pfee
+  d_pnm.reset(new ProofNodeManager(pc));
+}
+
+void InferenceManager::finishInit()
+{
+  if (d_pnm==nullptr)
+  {
+    // don't use checker
+    d_pnm.reset(new ProofNodeManager);
+  }
+  // now that proof node manager is setup, we initialize proof equality engine
+  d_pfee.reset(new eq::ProofEqEngine(d_ccontext, d_ucontext, *d_state.getEqualityEngine(), d_pnm.get(), d_pfEnabled));
+  d_ipc.reset(new InferProofCons(*d_pfee, d_statistics, d_pfEnabled));
 }
 
 void InferenceManager::sendAssumption(TNode lit)
 {
   preProcessFact(lit);
   // assert it to the equality engine as an assumption
-  d_pfee.assertAssume(lit);
+  d_pfee->assertAssume(lit);
   // process the fact
   postProcessFact(lit);
 }
@@ -173,8 +187,8 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
                                 << " by " << ii.d_id << std::endl;
       // we must fully explain it
       eq::ProofInferInfo pii;
-      PfRule rule = d_ipc.convert(ii, pii);
-      TrustNode tconf = d_pfee.assertConflict(rule, pii.d_children, pii.d_args);
+      PfRule rule = d_ipc->convert(ii, pii);
+      TrustNode tconf = d_pfee->assertConflict(rule, pii.d_children, pii.d_args);
       Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
       Trace("strings-assert") << "(assert (not " << tconf.getNode()
                               << ")) ; conflict " << ii.d_id << std::endl;
@@ -308,13 +322,13 @@ void InferenceManager::doPendingFacts()
                            << std::endl;
     // convert to proof rule(s)
     std::vector<eq::ProofInferInfo> piis;
-    d_ipc.convert(ii, piis);
+    d_ipc->convert(ii, piis);
     for (const eq::ProofInferInfo& pii : piis)
     {
       Node fact = pii.d_conc;
       preProcessFact(fact);
       // assert to equality engine
-      d_pfee.assertFact(fact, pii.d_rule, pii.d_children, pii.d_args);
+      d_pfee->assertFact(fact, pii.d_rule, pii.d_children, pii.d_args);
       if (!d_state.isInConflict())
       {
         postProcessFact(fact);
@@ -343,9 +357,9 @@ void InferenceManager::doPendingLemmas()
     // pfExp is the children of the proof step below. This should be an
     // ordered list of expConj + expn.
     eq::ProofInferInfo pii;
-    PfRule rule = d_ipc.convert(ii, pii);
+    PfRule rule = d_ipc->convert(ii, pii);
     // make the trusted lemma object
-    TrustNode tlem = d_pfee.assertLemma(
+    TrustNode tlem = d_pfee->assertLemma(
         ii.d_conc, rule, pii.d_children, pii.d_childrenExp, pii.d_args);
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
@@ -556,7 +570,7 @@ void InferenceManager::markReduced(Node n, bool contextDepend)
 {
   d_extt.markReduced(n, contextDepend);
 }
-eq::ProofEqEngine* InferenceManager::getProofEqEngine() { return &d_pfee; }
+eq::ProofEqEngine* InferenceManager::getProofEqEngine() { return d_pfee.get(); }
 
 }  // namespace strings
 }  // namespace theory

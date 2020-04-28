@@ -115,7 +115,7 @@ class TheoryStrings : public Theory {
   /** Called to set the proof checker */
   void setProofChecker(ProofChecker* pc) override;
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-
+  void finishInit() override;
   std::string identify() const override { return std::string("TheoryStrings"); }
 
  public:

@@ -33,9 +33,16 @@ Node ProofChecker::check(
   {
     // no checker for the rule
     Trace("pfcheck") << "ProofChecker::check: no checker for rule" << std::endl;
-    Trace("pfcheck-error") << "ProofChecker::check: no checker for rule " << id
+    Unreachable() << "ProofChecker::check: no checker for rule " << id
                            << std::endl;
     return Node::null();
+  }
+  else if (it->second==nullptr)
+  {
+    Trace("pfcheck") << "ProofChecker::check: trusted checker!" << std::endl;
+    Notice() << "ProofChecker::check: trusting PfRule for " << id << std::endl;
+    // trusted checker
+    return expected;
   }
   // check it with the corresponding checker
   std::vector<Node> cchildren;
@@ -46,28 +53,32 @@ Node ProofChecker::check(
     if (cres.isNull())
     {
       Trace("pfcheck") << "ProofChecker::check: failed child" << std::endl;
-      Trace("pfcheck-error")
+      Unreachable() 
           << "ProofChecker::check: child proof was invalid (null conclusion)"
           << std::endl;
       // should not have been able to create such a proof node
-      Assert(false);
       return Node::null();
     }
     cchildren.push_back(cres);
+    if (Trace.isOn("pfcheck"))
+    {
+      std::stringstream ssc;
+      pc->printDebug(ssc);
+      Trace("pfcheck") << "     child: " << ssc.str() << " : " << cres << std::endl;
+    }
   }
-  Trace("pfcheck") << "  children: " << cchildren << std::endl;
   Trace("pfcheck") << "      args: " << args << std::endl;
   Trace("pfcheck") << "  expected: " << expected << std::endl;
   Node res = it->second->check(id, cchildren, args);
   if (!expected.isNull() && res != expected)
   {
-    Trace("pfcheck") << "ProofChecker::check: failed (see -t pfcheck-error)"
+    Trace("pfcheck") << "ProofChecker::check: failed"
                      << std::endl;
-    Trace("pfcheck-error")
+    Unreachable() 
         << "ProofChecker::check: result does not match expected value."
-        << std::endl;
-    Trace("pfcheck-error") << "    result: " << res << std::endl;
-    Trace("pfcheck-error") << "  expected: " << expected << std::endl;
+        << std::endl
+     << "    result: " << res << std::endl
+     << "  expected: " << expected << std::endl;
     // it did not match the given expectation, fail
     return Node::null();
   }

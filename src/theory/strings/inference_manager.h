@@ -83,6 +83,8 @@ class InferenceManager
   ~InferenceManager() {}
   /** set proof checker */
   void setProofChecker(ProofChecker* pc);
+  /** finish init */
+  void finishInit();
 
   /** send assumption
    *
@@ -296,6 +298,10 @@ class InferenceManager
    */
   void preProcessFact(TNode fact);
   void postProcessFact(TNode fact);
+  /** The SAT context */
+  context::Context* d_ccontext;
+  /** The User context */
+  context::UserContext* d_ucontext;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
@@ -307,11 +313,11 @@ class InferenceManager
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** A proof node manager */
-  ProofNodeManager d_pnm;
+  std::unique_ptr<ProofNodeManager> d_pnm;
   /** The proof-producing equality engine */
-  eq::ProofEqEngine d_pfee;
+  std::unique_ptr<eq::ProofEqEngine> d_pfee;
   /** Conversion from inferences to proofs */
-  InferProofCons d_ipc;
+  std::unique_ptr<InferProofCons> d_ipc;
   /** Common constants */
   Node d_true;
   Node d_false;

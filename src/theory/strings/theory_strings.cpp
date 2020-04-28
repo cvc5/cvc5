@@ -152,8 +152,34 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
 
 void TheoryStrings::setProofChecker(ProofChecker* pc)
 {
+  // add checkers
+  pc->registerChecker(PfRule::CONCAT_ENDP_UNIFY, &d_sProofChecker);
+  pc->registerChecker(PfRule::CONCAT_UNIFY, &d_sProofChecker);
+  pc->registerChecker(PfRule::CONCAT_SPLIT, &d_sProofChecker);
+  pc->registerChecker(PfRule::CONCAT_LPROP, &d_sProofChecker);
+  pc->registerChecker(PfRule::CONCAT_CPROP, &d_sProofChecker);
+  pc->registerChecker(PfRule::CTN_NOT_EQUAL, &d_sProofChecker);
+  pc->registerChecker(PfRule::REDUCTION, &d_sProofChecker);
+  pc->registerChecker(PfRule::RE_INTER, &d_sProofChecker);
+  pc->registerChecker(PfRule::RE_UNFOLD, &d_sProofChecker);
+  
+  // everything else is untrustworthy, assume trusted
+  uint32_t siuBegin = static_cast<uint32_t>(PfRule::SIU_BEGIN);
+  uint32_t siuEnd = static_cast<uint32_t>(PfRule::SIU_END);
+  for (uint32_t r=siuBegin+1; r<siuEnd; r++)
+  {
+    // trust the checker
+    pc->registerChecker(static_cast<PfRule>(r), nullptr);
+  }
+  
   // also must inform the inference manager
   d_im->setProofChecker(pc);
+}
+
+void TheoryStrings::finishInit()
+{
+  // inference manager must finish init
+  d_im->finishInit();
 }
 
 void TheoryStrings::setMasterEqualityEngine(eq::EqualityEngine* eq) {

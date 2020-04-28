@@ -42,6 +42,7 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
 
 bool ProofEqEngine::assertAssume(TNode lit)
 {
+  Trace("pfee") << "pfee::assertAssume " << lit << std::endl;
   TNode atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
 
@@ -69,6 +70,9 @@ bool ProofEqEngine::assertFact(Node lit,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& args)
 {
+  Trace("pfee") << "pfee::assertFact " << lit << " " << id << std::endl;
+  Trace("pfee") << "        exp = " << exp << std::endl;
+  Trace("pfee") << "       args = " << args << std::endl;
   // first, register the step in the proof
   if (d_pfEnabled)
   {
@@ -97,6 +101,9 @@ bool ProofEqEngine::assertFact(Node lit,
                                Node exp,
                                const std::vector<Node>& args)
 {
+  Trace("pfee") << "pfee::assertFact " << lit << " " << id << std::endl;
+  Trace("pfee") << "        exp = " << exp << std::endl;
+  Trace("pfee") << "       args = " << args << std::endl;
   // first, register the step in the proof
   if (d_pfEnabled)
   {
@@ -154,6 +161,7 @@ bool ProofEqEngine::assertFact(Node lit, ProofNode* p)
 
 TrustNode ProofEqEngine::assertConflict(Node lit)
 {
+  Trace("pfee") << "pfee::assertConflict " << lit << std::endl;
   std::vector<TNode> assumps;
   explainWithProof(lit, assumps);
   return ensureProofForFact(d_false, assumps, true);
@@ -252,13 +260,13 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       return TrustNode::null();
     }
     Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
-    // Wrap the proof in a SCOPE. Notice that we have an expected conclusion
-    // (formula) which we pass to mkNode, which can check it if it wants. Its
-    // arguments are the free assumptions of pfConc.
+    // Wrap the proof in a SCOPE if necessary. Notice that we have an expected
+    // conclusion (formula) which we pass to mkNode, which can check it if it
+    // wants. Its arguments are the free assumptions of pfConc.
     std::vector<Node> args;
     pfConc->getFreeAssumptions(args);
     std::shared_ptr<ProofNode> pf =
-        d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
+        args.empty() ? pfConc : d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
     if (Trace.isOn("pfee-proof"))
     {
       Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"
