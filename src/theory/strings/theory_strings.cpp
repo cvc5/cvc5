@@ -481,6 +481,7 @@ bool TheoryStrings::collectModelInfoType(
                 Trace("strings-lemma")
                     << "Strings::CollectModelInfoSplit: " << spl << std::endl;
               }
+              // we added a lemma, so can return here
               return false;
             }
             c = sel->getCurrent();
@@ -497,8 +498,9 @@ bool TheoryStrings::collectModelInfoType(
         processed[eqc] = c;
         if (!m->assertEquality(eqc, c, true))
         {
-          Assert(false);
-          Trace("strings-model") << "...failed assert equality" << std::endl;
+          // this should never happen due to the model soundness argument
+          // for strings
+          AlwaysAssert(false) << "TheoryStrings::collectModelInfoType: Inconsistent equality" << std::endl;
           return false;
         }
       }
@@ -542,8 +544,9 @@ bool TheoryStrings::collectModelInfoType(
       processed[nodes[i]] = cc;
       if (!m->assertEquality(nodes[i], cc, true))
       {
-        Assert(false);
-        Trace("strings-model") << "...failed assert equality" << std::endl;
+          // this should never happen due to the model soundness argument
+          // for strings
+        AlwaysAssert(false) << "TheoryStrings::collectModelInfoType: Inconsistent equality (unprocessed eqc)" << std::endl;
         return false;
       }
     }
