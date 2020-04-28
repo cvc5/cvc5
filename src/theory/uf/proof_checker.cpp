@@ -132,6 +132,6 @@ Node EqProofRuleChecker::check(PfRule id,
   return Node::null();
 }
 
-}  // namespace eq
+}  // namespace uf
 }  // namespace theory
 }  // namespace CVC4

@@ -19,8 +19,8 @@
 #include <cmath>
 
 #include "expr/kind.h"
-#include "options/strings_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
 #include "smt/logic_exception.h"
@@ -86,14 +86,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
   // initialize the inference manager, which requires the extended theory
-  d_im.reset(new InferenceManager(c,
-                                  u,
-                                  d_state,
-                                  d_termReg,
-                                  *extt,
-                                  out,
-                                  d_statistics,
-                                  options::proofNew()));
+  d_im.reset(new InferenceManager(
+      c, u, d_state, d_termReg, *extt, out, d_statistics, options::proofNew()));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(c, u, d_state, *d_im));
   d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_termReg, *d_bsolver));
@@ -156,9 +150,8 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
   return false;
 }
 
-void TheoryStrings::setProofChecker(ProofChecker * pc)
+void TheoryStrings::setProofChecker(ProofChecker* pc)
 {
-  
   // also must inform the inference manager
   d_im->setProofChecker(pc);
 }

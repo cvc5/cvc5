@@ -21,13 +21,13 @@
 
 #include <memory>
 
+#include "expr/proof_node.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/interrupted.h"
+#include "theory/trust_node.h"
 #include "util/proof.h"
 #include "util/resource_manager.h"
-#include "expr/proof_node.h"
-#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -197,8 +197,10 @@ class OutputChannel {
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  virtual void trustedConflict(TrustNode pconf) {
-    Unreachable() << "OutputChannel::trustedConflict: no implementation" << std::endl;
+  virtual void trustedConflict(TrustNode pconf)
+  {
+    Unreachable() << "OutputChannel::trustedConflict: no implementation"
+                  << std::endl;
   }
   /**
    * Get the proof for conflict conf. This method can be called if
@@ -207,7 +209,10 @@ class OutputChannel {
    * to generate a proof. The latter can happen if pfg was nullptr, or if its
    * getProof method failed, indicating an internal failure.
    */
-  virtual std::shared_ptr<ProofNode> getProofForConflict(Node conf) const { return nullptr; }
+  virtual std::shared_ptr<ProofNode> getProofForConflict(Node conf) const
+  {
+    return nullptr;
+  }
   /**
    * Let plem be the pair (Node lem, ProofGenerator * pfg).
    * Send lem on the output channel of this class whose proof can be generated
@@ -215,10 +220,12 @@ class OutputChannel {
    * the same as OutputChannel.
    */
   virtual LemmaStatus trustedLemma(TrustNode lem,
-                           bool removable = false,
-                           bool preprocess = false,
-                           bool sendAtoms = false) {
-    Unreachable() << "OutputChannel::trustedLemma: no implementation" << std::endl;
+                                   bool removable = false,
+                                   bool preprocess = false,
+                                   bool sendAtoms = false)
+  {
+    Unreachable() << "OutputChannel::trustedLemma: no implementation"
+                  << std::endl;
     return lemma(lem.getNode(), removable, preprocess, sendAtoms);
   }
   /**
@@ -228,7 +235,10 @@ class OutputChannel {
    * fail to generate a proof. The latter can happen if pfg was nullptr, or if
    * its getProof method failed, indicating an internal failure.
    */
-  virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) const { return nullptr; }
+  virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) const
+  {
+    return nullptr;
+  }
   //---------------------------- end new proof
 }; /* class OutputChannel */
 

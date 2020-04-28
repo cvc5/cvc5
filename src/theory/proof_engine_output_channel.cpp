@@ -19,7 +19,9 @@
 namespace CVC4 {
 namespace theory {
 
-ProofEngineOutputChannel::ProofEngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory, context::UserContext* u)
+ProofEngineOutputChannel::ProofEngineOutputChannel(TheoryEngine* engine,
+                                                   theory::TheoryId theory,
+                                                   context::UserContext* u)
     : EngineOutputChannel(engine, theory), d_outPfGen(u)
 {
 }
@@ -49,16 +51,17 @@ std::shared_ptr<ProofNode> ProofEngineOutputChannel::getProofForConflict(
     return nullptr;
   }
   std::shared_ptr<ProofNode> ret = pgen->getProofForConflict(conf);
-  Assert(ret != nullptr) << "ProofEngineOutputChannel::getProofForConflict: could "
-                            "not generate proof for "
-                         << conf << std::endl;
+  Assert(ret != nullptr)
+      << "ProofEngineOutputChannel::getProofForConflict: could "
+         "not generate proof for "
+      << conf << std::endl;
   return ret;
 }
 
 LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
-                                             bool removable,
-                                             bool preprocess,
-                                             bool sendAtoms)
+                                                   bool removable,
+                                                   bool preprocess,
+                                                   bool sendAtoms)
 {
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   TNode lem = plem.getNode();
@@ -74,7 +77,8 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
   return OutputChannel::lemma(lem, removable, preprocess, sendAtoms);
 }
 
-std::shared_ptr<ProofNode> ProofEngineOutputChannel::getProofForLemma(Node lem) const
+std::shared_ptr<ProofNode> ProofEngineOutputChannel::getProofForLemma(
+    Node lem) const
 {
   Node lkey = getLemmaKeyValue(lem);
   ProofGenerator* pgen = getProofGeneratorForKey(lkey);
@@ -83,9 +87,10 @@ std::shared_ptr<ProofNode> ProofEngineOutputChannel::getProofForLemma(Node lem) 
     return nullptr;
   }
   std::shared_ptr<ProofNode> ret = pgen->getProofForLemma(lem);
-  Assert(ret != nullptr) << "ProofEngineOutputChannel::getProofForLemma: could not "
-                            "generate proof for lemma "
-                         << lem << std::endl;
+  Assert(ret != nullptr)
+      << "ProofEngineOutputChannel::getProofForLemma: could not "
+         "generate proof for lemma "
+      << lem << std::endl;
   return ret;
 }
 
@@ -96,7 +101,8 @@ Node ProofEngineOutputChannel::getConflictKeyValue(Node conf)
 
 Node ProofEngineOutputChannel::getLemmaKeyValue(Node lem) { return lem; }
 
-ProofGenerator* ProofEngineOutputChannel::getProofGeneratorForKey(Node key) const
+ProofGenerator* ProofEngineOutputChannel::getProofGeneratorForKey(
+    Node key) const
 {
   NodeProofGenMap::const_iterator it = d_outPfGen.find(key);
   if (it == d_outPfGen.end())

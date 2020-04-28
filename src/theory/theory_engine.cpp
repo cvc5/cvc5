@@ -127,13 +127,18 @@ std::string getTheoryString(theory::TheoryId id)
   }
 }
 
-void TheoryEngine::finishInit() {
+void TheoryEngine::finishInit()
+{
   // if we are using the new proofs module
   if (options::proofNew())
   {
     d_checker.reset(new ProofChecker);
-    for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
-      if (d_theoryTable[theoryId]) {
+    for (TheoryId theoryId = theory::THEORY_FIRST;
+         theoryId != theory::THEORY_LAST;
+         ++theoryId)
+    {
+      if (d_theoryTable[theoryId])
+      {
         d_theoryTable[theoryId]->setProofChecker(d_checker.get());
       }
     }

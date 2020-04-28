@@ -66,8 +66,9 @@ TheoryUF::TheoryUF(context::Context* c,
 TheoryUF::~TheoryUF() {
 }
 
-void TheoryUF::setProofChecker(ProofChecker * pc ){
-  Assert (pc!=nullptr);
+void TheoryUF::setProofChecker(ProofChecker* pc)
+{
+  Assert(pc != nullptr);
   // add checkers
   pc->registerChecker(PfRule::REFL, &d_eqProofChecker);
   pc->registerChecker(PfRule::SYMM, &d_eqProofChecker);

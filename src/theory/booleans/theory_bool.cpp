@@ -67,9 +67,9 @@ Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubsti
   return Theory::ppAssert(in, outSubstitutions);
 }
 
-
-void TheoryBool::setProofChecker(ProofChecker * pc ){
-  Assert (pc!=nullptr);
+void TheoryBool::setProofChecker(ProofChecker* pc)
+{
+  Assert(pc != nullptr);
   // add checkers
   pc->registerChecker(PfRule::SPLIT, &d_bProofChecker);
 }

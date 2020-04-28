@@ -60,7 +60,9 @@ class ProofEngineOutputChannel : public EngineOutputChannel
       NodeProofGenMap;
 
  public:
-  ProofEngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory, context::UserContext* u);
+  ProofEngineOutputChannel(TheoryEngine* engine,
+                           theory::TheoryId theory,
+                           context::UserContext* u);
   ~ProofEngineOutputChannel() {}
   /**
    * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
@@ -100,6 +102,7 @@ class ProofEngineOutputChannel : public EngineOutputChannel
   static Node getConflictKeyValue(Node conf);
   /** Get the node key for which lemma calls are cached */
   static Node getLemmaKeyValue(Node lem);
+
  private:
   /** Get proof generator for key, or nullptr if it does not exist */
   ProofGenerator* getProofGeneratorForKey(Node key) const;

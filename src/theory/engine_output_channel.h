@@ -18,8 +18,8 @@
 #define CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H
 
 #include "expr/node.h"
-#include "theory/theory.h"
 #include "theory/output_channel.h"
+#include "theory/theory.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -27,14 +27,16 @@ namespace CVC4 {
 class TheoryEngine;
 
 namespace theory {
-  
+
 /**
-  * An output channel for Theory that passes messages back to a TheoryEngine
-  * for a given Theory.
-  */
-class EngineOutputChannel : public theory::OutputChannel {
-friend class TheoryEngine;
-public:
+ * An output channel for Theory that passes messages back to a TheoryEngine
+ * for a given Theory.
+ */
+class EngineOutputChannel : public theory::OutputChannel
+{
+  friend class TheoryEngine;
+
+ public:
   EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory);
 
   void safePoint(ResourceManager::Resource r) override;
@@ -43,12 +45,13 @@ public:
                 std::unique_ptr<Proof> pf = nullptr) override;
   bool propagate(TNode literal) override;
 
-  theory::LemmaStatus lemma(TNode lemma, ProofRule rule,
-                            bool removable = false, bool preprocess = false,
+  theory::LemmaStatus lemma(TNode lemma,
+                            ProofRule rule,
+                            bool removable = false,
+                            bool preprocess = false,
                             bool sendAtoms = false) override;
 
-  theory::LemmaStatus splitLemma(TNode lemma,
-                                  bool removable = false) override;
+  theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) override;
 
   void demandRestart() override;
 
@@ -60,17 +63,18 @@ public:
 
   void handleUserAttribute(const char* attr, theory::Theory* t) override;
 
-private:  
+ private:
   /**
-    * Statistics for a particular theory.
-    */
-  class Statistics {
+   * Statistics for a particular theory.
+   */
+  class Statistics
+  {
    public:
     Statistics(theory::TheoryId theory);
     ~Statistics();
-    /** Number of calls to conflict, propagate, lemma, requirePhase, restartDemands */
+    /** Number of calls to conflict, propagate, lemma, requirePhase,
+     * restartDemands */
     IntStat conflicts, propagations, lemmas, requirePhase, restartDemands;
-
   };
   /** The theory engine we're communicating with. */
   TheoryEngine* d_engine;
@@ -79,11 +83,13 @@ private:
   /** The theory owning this channel. */
   theory::TheoryId d_theory;
   /** A helper function for registering lemma recipes with the proof engine */
-  void registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess,
-                            theory::TheoryId theoryId);
+  void registerLemmaRecipe(Node lemma,
+                           Node originalLemma,
+                           bool preprocess,
+                           theory::TheoryId theoryId);
 };
 
-}
-}
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H */

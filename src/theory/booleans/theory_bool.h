@@ -20,9 +20,9 @@
 #define CVC4__THEORY__BOOLEANS__THEORY_BOOL_H
 
 #include "context/context.h"
+#include "theory/booleans/proof_checker.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/theory.h"
-#include "theory/booleans/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,7 +41,7 @@ class TheoryBool : public Theory {
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
   /** Called to set the proof checker */
-  void setProofChecker(ProofChecker * pc ) override;
+  void setProofChecker(ProofChecker* pc) override;
 
   std::string identify() const override { return std::string("TheoryBool"); }
 

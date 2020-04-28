@@ -32,6 +32,7 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
+#include "theory/strings/proof_checker.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
@@ -42,7 +43,6 @@
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/term_registry.h"
 #include "theory/theory.h"
-#include "theory/strings/proof_checker.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -113,7 +113,7 @@ class TheoryStrings : public Theory {
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   /** Called to set the proof checker */
-  void setProofChecker(ProofChecker * pc ) override;
+  void setProofChecker(ProofChecker* pc) override;
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   std::string identify() const override { return std::string("TheoryStrings"); }

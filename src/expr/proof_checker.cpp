@@ -34,7 +34,7 @@ Node ProofChecker::check(
     // no checker for the rule
     Trace("pfcheck") << "ProofChecker::check: no checker for rule" << std::endl;
     Trace("pfcheck-error") << "ProofChecker::check: no checker for rule " << id
-                     << std::endl;
+                           << std::endl;
     return Node::null();
   }
   // check it with the corresponding checker
@@ -62,7 +62,7 @@ Node ProofChecker::check(
   if (!expected.isNull() && res != expected)
   {
     Trace("pfcheck") << "ProofChecker::check: failed (see -t pfcheck-error)"
-          << std::endl;
+                     << std::endl;
     Trace("pfcheck-error")
         << "ProofChecker::check: result does not match expected value."
         << std::endl;

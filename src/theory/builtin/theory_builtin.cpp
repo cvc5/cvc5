@@ -49,8 +49,9 @@ void TheoryBuiltin::finishInit()
   theoryModel->setUnevaluatedKind(kind::CHOICE);
 }
 
-void TheoryBuiltin::setProofChecker(ProofChecker * pc ){
-  Assert (pc!=nullptr);
+void TheoryBuiltin::setProofChecker(ProofChecker* pc)
+{
+  Assert(pc != nullptr);
   // add checkers
   pc->registerChecker(PfRule::ASSUME, &d_bProofChecker);
   pc->registerChecker(PfRule::SCOPE, &d_bProofChecker);

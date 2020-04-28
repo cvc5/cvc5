@@ -54,7 +54,7 @@ InferenceManager::InferenceManager(context::Context* c,
   d_false = nm->mkConst(false);
 }
 
-void InferenceManager::setProofChecker(ProofChecker * pc)
+void InferenceManager::setProofChecker(ProofChecker* pc)
 {
   // TODO: connect to d_pfee
 }

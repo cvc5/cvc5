@@ -25,9 +25,9 @@
 #include "expr/node_trie.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_checker.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/uf/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -194,7 +194,7 @@ private:
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
   /** Called to set the proof checker */
-  void setProofChecker(ProofChecker * pc ) override;
+  void setProofChecker(ProofChecker* pc) override;
   void finishInit() override;
 
   void check(Effort) override;

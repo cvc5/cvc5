@@ -471,7 +471,7 @@ public:
   virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
 
   /** Called to set the proof checker */
-  virtual void setProofChecker(ProofChecker * pc ){}
+  virtual void setProofChecker(ProofChecker* pc) {}
   /** Called to set the quantifiers engine. */
   void setQuantifiersEngine(QuantifiersEngine* qe);
   /** Called to set the decision manager. */

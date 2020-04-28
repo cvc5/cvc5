@@ -14,25 +14,25 @@
 
 #include "theory/engine_output_channel.h"
 
-#include "theory/theory_engine.h"
-#include "prop/prop_engine.h"
-#include "smt/smt_statistics_registry.h"
 #include "proof/cnf_proof.h"
 #include "proof/lemma_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
+#include "prop/prop_engine.h"
+#include "smt/smt_statistics_registry.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-  
-EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory):
-    conflicts(getStatsPrefix(theory) + "::conflicts", 0),
-    propagations(getStatsPrefix(theory) + "::propagations", 0),
-    lemmas(getStatsPrefix(theory) + "::lemmas", 0),
-    requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
-    restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
+
+EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
+    : conflicts(getStatsPrefix(theory) + "::conflicts", 0),
+      propagations(getStatsPrefix(theory) + "::propagations", 0),
+      lemmas(getStatsPrefix(theory) + "::lemmas", 0),
+      requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
+      restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
 {
   smtStatisticsRegistry()->registerStat(&conflicts);
   smtStatisticsRegistry()->registerStat(&propagations);
@@ -41,30 +41,36 @@ EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory):
   smtStatisticsRegistry()->registerStat(&restartDemands);
 }
 
-EngineOutputChannel::Statistics::~Statistics() {
+EngineOutputChannel::Statistics::~Statistics()
+{
   smtStatisticsRegistry()->unregisterStat(&conflicts);
   smtStatisticsRegistry()->unregisterStat(&propagations);
   smtStatisticsRegistry()->unregisterStat(&lemmas);
   smtStatisticsRegistry()->unregisterStat(&requirePhase);
   smtStatisticsRegistry()->unregisterStat(&restartDemands);
 }
-    
-EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory)
-    : d_engine(engine), d_statistics(theory), d_theory(theory) {}
 
-void EngineOutputChannel::safePoint(ResourceManager::Resource r) 
+EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine,
+                                         theory::TheoryId theory)
+    : d_engine(engine), d_statistics(theory), d_theory(theory)
+{
+}
+
+void EngineOutputChannel::safePoint(ResourceManager::Resource r)
 {
   spendResource(r);
-  if (d_engine->d_interrupted) {
+  if (d_engine->d_interrupted)
+  {
     throw theory::Interrupted();
   }
 }
 
 theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma,
-                                                             ProofRule rule,
-                                                             bool removable,
-                                                             bool preprocess,
-                                                             bool sendAtoms) {
+                                               ProofRule rule,
+                                               bool removable,
+                                               bool preprocess,
+                                               bool sendAtoms)
+{
   Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
                          << lemma << ")"
                          << ", preprocess = " << preprocess << std::endl;
@@ -74,63 +80,106 @@ theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma,
   PROOF({ registerLemmaRecipe(lemma, lemma, preprocess, d_theory); });
 
   theory::LemmaStatus result =
-      d_engine->lemma(lemma, rule, false, removable, preprocess,
+      d_engine->lemma(lemma,
+                      rule,
+                      false,
+                      removable,
+                      preprocess,
                       sendAtoms ? d_theory : theory::THEORY_LAST);
   return result;
 }
 
-void EngineOutputChannel::registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess, theory::TheoryId theoryId) {
+void EngineOutputChannel::registerLemmaRecipe(Node lemma,
+                                              Node originalLemma,
+                                              bool preprocess,
+                                              theory::TheoryId theoryId)
+{
   // During CNF conversion, conjunctions will be broken down into
   // multiple lemmas. In order for the recipes to match, we have to do
   // the same here.
   NodeManager* nm = NodeManager::currentNM();
 
-  if (preprocess)
-    lemma = d_engine->preprocess(lemma);
+  if (preprocess) lemma = d_engine->preprocess(lemma);
 
   bool negated = (lemma.getKind() == NOT);
   Node nnLemma = negated ? lemma[0] : lemma;
 
-  switch (nnLemma.getKind()) {
-
-  case AND:
-    if (!negated) {
-      for (unsigned i = 0; i < nnLemma.getNumChildren(); ++i)
-        registerLemmaRecipe(nnLemma[i], originalLemma, false, theoryId);
-    } else {
-      NodeBuilder<> builder(OR);
-      for (unsigned i = 0; i < nnLemma.getNumChildren(); ++i)
-        builder << nnLemma[i].negate();
-
-      Node disjunction = (builder.getNumChildren() == 1) ? builder[0] : builder;
-      registerLemmaRecipe(disjunction, originalLemma, false, theoryId);
-    }
-    break;
-
-  case EQUAL:
-    if( nnLemma[0].getType().isBoolean() ){
-      if (!negated) {
-        registerLemmaRecipe(nm->mkNode(OR, nnLemma[0], nnLemma[1].negate()), originalLemma, false, theoryId);
-        registerLemmaRecipe(nm->mkNode(OR, nnLemma[0].negate(), nnLemma[1]), originalLemma, false, theoryId);
-      } else {
-        registerLemmaRecipe(nm->mkNode(OR, nnLemma[0], nnLemma[1]), originalLemma, false, theoryId);
-        registerLemmaRecipe(nm->mkNode(OR, nnLemma[0].negate(), nnLemma[1].negate()), originalLemma, false, theoryId);
+  switch (nnLemma.getKind())
+  {
+    case AND:
+      if (!negated)
+      {
+        for (unsigned i = 0; i < nnLemma.getNumChildren(); ++i)
+          registerLemmaRecipe(nnLemma[i], originalLemma, false, theoryId);
       }
-    }
-    break;
+      else
+      {
+        NodeBuilder<> builder(OR);
+        for (unsigned i = 0; i < nnLemma.getNumChildren(); ++i)
+          builder << nnLemma[i].negate();
 
-  case ITE:
-    if (!negated) {
-      registerLemmaRecipe(nm->mkNode(OR, nnLemma[0].negate(), nnLemma[1]), originalLemma, false, theoryId);
-      registerLemmaRecipe(nm->mkNode(OR, nnLemma[0], nnLemma[2]), originalLemma, false, theoryId);
-    } else {
-      registerLemmaRecipe(nm->mkNode(OR, nnLemma[0].negate(), nnLemma[1].negate()), originalLemma, false, theoryId);
-      registerLemmaRecipe(nm->mkNode(OR, nnLemma[0], nnLemma[2].negate()), originalLemma, false, theoryId);
-    }
-    break;
+        Node disjunction =
+            (builder.getNumChildren() == 1) ? builder[0] : builder;
+        registerLemmaRecipe(disjunction, originalLemma, false, theoryId);
+      }
+      break;
 
-  default:
-    break;
+    case EQUAL:
+      if (nnLemma[0].getType().isBoolean())
+      {
+        if (!negated)
+        {
+          registerLemmaRecipe(nm->mkNode(OR, nnLemma[0], nnLemma[1].negate()),
+                              originalLemma,
+                              false,
+                              theoryId);
+          registerLemmaRecipe(nm->mkNode(OR, nnLemma[0].negate(), nnLemma[1]),
+                              originalLemma,
+                              false,
+                              theoryId);
+        }
+        else
+        {
+          registerLemmaRecipe(nm->mkNode(OR, nnLemma[0], nnLemma[1]),
+                              originalLemma,
+                              false,
+                              theoryId);
+          registerLemmaRecipe(
+              nm->mkNode(OR, nnLemma[0].negate(), nnLemma[1].negate()),
+              originalLemma,
+              false,
+              theoryId);
+        }
+      }
+      break;
+
+    case ITE:
+      if (!negated)
+      {
+        registerLemmaRecipe(nm->mkNode(OR, nnLemma[0].negate(), nnLemma[1]),
+                            originalLemma,
+                            false,
+                            theoryId);
+        registerLemmaRecipe(nm->mkNode(OR, nnLemma[0], nnLemma[2]),
+                            originalLemma,
+                            false,
+                            theoryId);
+      }
+      else
+      {
+        registerLemmaRecipe(
+            nm->mkNode(OR, nnLemma[0].negate(), nnLemma[1].negate()),
+            originalLemma,
+            false,
+            theoryId);
+        registerLemmaRecipe(nm->mkNode(OR, nnLemma[0], nnLemma[2].negate()),
+                            originalLemma,
+                            false,
+                            theoryId);
+      }
+      break;
+
+    default: break;
   }
 
   // Theory lemmas have one step that proves the empty clause
@@ -143,18 +192,24 @@ void EngineOutputChannel::registerLemmaRecipe(Node lemma, Node originalLemma, bo
 
   // Record the assertions and rewrites
   Node rewritten;
-  if (lemma.getKind() == OR) {
-    for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
+  if (lemma.getKind() == OR)
+  {
+    for (unsigned i = 0; i < lemma.getNumChildren(); ++i)
+    {
       rewritten = theory::Rewriter::rewrite(lemma[i]);
-      if (rewritten != lemma[i]) {
+      if (rewritten != lemma[i])
+      {
         proofRecipe.addRewriteRule(lemma[i].negate(), rewritten.negate());
       }
       proofStep.addAssertion(lemma[i]);
       proofRecipe.addBaseAssertion(rewritten);
     }
-  } else {
+  }
+  else
+  {
     rewritten = theory::Rewriter::rewrite(lemma);
-    if (rewritten != lemma) {
+    if (rewritten != lemma)
+    {
       proofRecipe.addRewriteRule(lemma.negate(), rewritten.negate());
     }
     proofStep.addAssertion(lemma);
@@ -164,21 +219,22 @@ void EngineOutputChannel::registerLemmaRecipe(Node lemma, Node originalLemma, bo
   ProofManager::getCnfProof()->setProofRecipe(&proofRecipe);
 }
 
-theory::LemmaStatus EngineOutputChannel::splitLemma(
-    TNode lemma, bool removable) {
+theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
+{
   Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
                          << lemma << ")" << std::endl;
   ++d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
 
-  Debug("pf::explain") << "EngineOutputChannel::splitLemma( "
-                       << lemma << " )" << std::endl;
+  Debug("pf::explain") << "EngineOutputChannel::splitLemma( " << lemma << " )"
+                       << std::endl;
   theory::LemmaStatus result =
       d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
   return result;
 }
 
-bool EngineOutputChannel::propagate(TNode literal) {
+bool EngineOutputChannel::propagate(TNode literal)
+{
   Debug("theory::propagate") << "EngineOutputChannel<" << d_theory
                              << ">::propagate(" << literal << ")" << std::endl;
   ++d_statistics.propagations;
@@ -187,7 +243,7 @@ bool EngineOutputChannel::propagate(TNode literal) {
 }
 
 void EngineOutputChannel::conflict(TNode conflictNode,
-                                                 std::unique_ptr<Proof> proof)
+                                   std::unique_ptr<Proof> proof)
 {
   Trace("theory::conflict")
       << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
@@ -198,38 +254,43 @@ void EngineOutputChannel::conflict(TNode conflictNode,
   d_engine->conflict(conflictNode, d_theory);
 }
 
-void EngineOutputChannel::demandRestart()  {
+void EngineOutputChannel::demandRestart()
+{
   NodeManager* curr = NodeManager::currentNM();
   Node restartVar = curr->mkSkolem(
-      "restartVar", curr->booleanType(),
+      "restartVar",
+      curr->booleanType(),
       "A boolean variable asserted to be true to force a restart");
-  Trace("theory::restart")
-      << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar
-      << ")" << std::endl;
+  Trace("theory::restart") << "EngineOutputChannel<" << d_theory
+                           << ">::restart(" << restartVar << ")" << std::endl;
   ++d_statistics.restartDemands;
   lemma(restartVar, RULE_INVALID, true);
 }
 
-void EngineOutputChannel::requirePhase(TNode n, bool phase)  {
-  Debug("theory") << "EngineOutputChannel::requirePhase(" << n << ", "
-                  << phase << ")" << std::endl;
+void EngineOutputChannel::requirePhase(TNode n, bool phase)
+{
+  Debug("theory") << "EngineOutputChannel::requirePhase(" << n << ", " << phase
+                  << ")" << std::endl;
   ++d_statistics.requirePhase;
   d_engine->getPropEngine()->requirePhase(n, phase);
 }
 
-void EngineOutputChannel::setIncomplete()  {
+void EngineOutputChannel::setIncomplete()
+{
   Trace("theory") << "setIncomplete()" << std::endl;
   d_engine->setIncomplete(d_theory);
 }
 
-void EngineOutputChannel::spendResource(ResourceManager::Resource r) 
+void EngineOutputChannel::spendResource(ResourceManager::Resource r)
 {
   d_engine->spendResource(r);
 }
 
-void  EngineOutputChannel::handleUserAttribute(const char* attr, theory::Theory* t)  {
+void EngineOutputChannel::handleUserAttribute(const char* attr,
+                                              theory::Theory* t)
+{
   d_engine->handleUserAttribute(attr, t);
 }
 
-}
-}
+}  // namespace theory
+}  // namespace CVC4

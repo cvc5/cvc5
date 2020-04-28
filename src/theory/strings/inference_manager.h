@@ -82,7 +82,7 @@ class InferenceManager
                    bool pfEnabled = false);
   ~InferenceManager() {}
   /** set proof checker */
-  void setProofChecker(ProofChecker * pc);
+  void setProofChecker(ProofChecker* pc);
 
   /** send assumption
    *
