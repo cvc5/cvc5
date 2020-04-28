@@ -359,7 +359,6 @@ void InferenceManager::doPendingLemmas()
     // only keep stats if we process it here
     d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
-    d_out.lemma(lem);
 
     // Process the side effects of the inference info.
     // Register the new skolems from this inference. We register them here
@@ -373,6 +372,8 @@ void InferenceManager::doPendingLemmas()
         d_termReg.registerTermAtomic(n, sks.first);
       }
     }
+
+    d_out.lemma(lem);
   }
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)

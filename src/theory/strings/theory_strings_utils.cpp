@@ -36,8 +36,9 @@ uint32_t getAlphabetCardinality()
     Assert(128 <= String::num_codes());
     return 128;
   }
-  Assert(256 <= String::num_codes());
-  return 256;
+  // 3*16^4 = 196608 values in the SMT-LIB standard for Unicode strings
+  Assert(196608 <= String::num_codes());
+  return 196608;
 }
 
 Node mkAnd(const std::vector<Node>& a)
