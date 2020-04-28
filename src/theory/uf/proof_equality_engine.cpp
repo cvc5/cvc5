@@ -230,7 +230,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   if (!isConflict)
   {
     NodeManager* nm = NodeManager::currentNM();
-    formula = formula == d_false ? conc : nm->mkNode(IMPLIES, formula, conc);
+    formula = formula == d_true ? conc : nm->mkNode(IMPLIES, formula, conc);
   }
   Trace("pfee-proof") << "pfee::ensureProofForFact: formula is " << formula
                       << std::endl;
