@@ -366,6 +366,8 @@ void InferenceManager::doPendingLemmas()
         d_termReg.registerTermAtomic(n, sks.first);
       }
     }
+
+    d_out.lemma(lem);
   }
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)

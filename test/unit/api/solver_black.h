@@ -1261,7 +1261,7 @@ void SolverBlack::testSynthFun()
   Sort null = d_solver->getNullSort();
   Sort boolean = d_solver->getBooleanSort();
   Sort integer = d_solver->getIntegerSort();
-  Sort boolToBool = d_solver->mkFunctionSort({boolean}, boolean);
+  Sort boolToBool = d_solver->mkFunctionSort(boolean, boolean);
 
   Term nullTerm;
   Term x = d_solver->mkVar(boolean);

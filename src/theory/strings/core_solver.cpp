@@ -1872,7 +1872,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
               antec,
               nm->mkNode(
                   OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2),
-              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT);
+              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
+              true);
           d_im.sendPhaseRequirement(eq1, true);
           return;
         }
@@ -1920,7 +1921,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
         d_im.sendInference(antec,
                            antecNewLits,
                            nm->mkNode(AND, conc),
-                           Inference::DEQ_DISL_STRINGS_SPLIT);
+                           Inference::DEQ_DISL_STRINGS_SPLIT,
+                           true);
         return;
       }
     }
