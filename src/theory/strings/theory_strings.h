@@ -25,7 +25,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
-#include "theory/proof_output_channel.h"
+#include "theory/output_channel.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
@@ -42,6 +42,7 @@
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/term_registry.h"
 #include "theory/theory.h"
+#include "theory/strings/proof_checker.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -111,6 +112,8 @@ class TheoryStrings : public Theory {
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
+  /** Called to set the proof checker */
+  void setProofChecker(ProofChecker * pc ) override;
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   std::string identify() const override { return std::string("TheoryStrings"); }
@@ -220,8 +223,6 @@ class TheoryStrings : public Theory {
    */
   SequencesStatistics d_statistics;
 
-  /** The (proof-maintaining) output channel of theory of strings */
-  ProofOutputChannel d_poc;
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
   /** The solver state object */
@@ -304,6 +305,8 @@ class TheoryStrings : public Theory {
  private:
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
+  /** The proof rule checker */
+  StringProofRuleChecker d_sProofChecker;
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.

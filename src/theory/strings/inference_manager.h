@@ -24,7 +24,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/ext_theory.h"
-#include "theory/proof_output_channel.h"
+#include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/infer_proof_cons.h"
 #include "theory/strings/sequences_stats.h"
@@ -77,10 +77,12 @@ class InferenceManager
                    SolverState& s,
                    TermRegistry& tr,
                    ExtTheory& e,
-                   ProofOutputChannel& poc,
+                   OutputChannel& out,
                    SequencesStatistics& statistics,
                    bool pfEnabled = false);
   ~InferenceManager() {}
+  /** set proof checker */
+  void setProofChecker(ProofChecker * pc);
 
   /** send assumption
    *
@@ -301,7 +303,7 @@ class InferenceManager
   /** the extended theory object for the theory of strings */
   ExtTheory& d_extt;
   /** Reference to the output channel of the theory of strings. */
-  ProofOutputChannel& d_poc;
+  OutputChannel& d_out;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** A proof node manager */

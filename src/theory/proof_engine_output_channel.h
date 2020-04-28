@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof_output_channel.h
+/*! \file proof_engine_output_channel.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__PROOF_OUTPUT_CHANNEL_H
-#define CVC4__THEORY__PROOF_OUTPUT_CHANNEL_H
+#ifndef CVC4__THEORY__PROOF_ENGINE_OUTPUT_CHANNEL_H
+#define CVC4__THEORY__PROOF_ENGINE_OUTPUT_CHANNEL_H
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_node.h"
-#include "theory/output_channel.h"
+#include "theory/engine_output_channel.h"
 #include "theory/proof_generator.h"
 
 namespace CVC4 {
@@ -54,21 +54,21 @@ namespace theory {
  * Thus, the user of this class needs to ensure that the provided pfg can
  * produce a proof for conf in the remainder of the user context.
  */
-class ProofOutputChannel
+class ProofEngineOutputChannel : public EngineOutputChannel
 {
   typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>
       NodeProofGenMap;
 
  public:
-  ProofOutputChannel(OutputChannel& out, context::UserContext* u);
-  ~ProofOutputChannel() {}
+  ProofEngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory, context::UserContext* u);
+  ~ProofEngineOutputChannel() {}
   /**
    * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
    * sends conf on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  void trustedConflict(TrustNode pconf);
+  void trustedConflict(TrustNode pconf) override;
   /**
    * Get the proof for conflict conf. This method can be called if
    * conflict(TrustNode(conf, pfg)) has been called in this user context. This
@@ -76,17 +76,17 @@ class ProofOutputChannel
    * to generate a proof. The latter can happen if pfg was nullptr, or if its
    * getProof method failed, indicating an internal failure.
    */
-  std::shared_ptr<ProofNode> getProofForConflict(Node conf) const;
+  std::shared_ptr<ProofNode> getProofForConflict(Node conf) const override;
   /**
    * Let plem be the pair (Node lem, ProofGenerator * pfg).
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  LemmaStatus trustedLemma(TrustNode lem,
+  LemmaStatus trustedLemma(TrustNode plem,
                            bool removable = false,
                            bool preprocess = false,
-                           bool sendAtoms = false);
+                           bool sendAtoms = false) override;
   /**
    * Get the proof for lemma lem. This method can be called if
    * lemma(TrustNode(lem, pfg), ...) has been called in this user context.
@@ -94,23 +94,15 @@ class ProofOutputChannel
    * fail to generate a proof. The latter can happen if pfg was nullptr, or if
    * its getProof method failed, indicating an internal failure.
    */
-  std::shared_ptr<ProofNode> getProofForLemma(Node lem) const;
+  std::shared_ptr<ProofNode> getProofForLemma(Node lem) const override;
 
   /** Get the node key for which conflict calls are cached */
   static Node getConflictKeyValue(Node conf);
   /** Get the node key for which lemma calls are cached */
   static Node getLemmaKeyValue(Node lem);
-  //---------------- interface to output channel that doesnt require proofs
-  /** require phase */
-  void requirePhase(TNode n, bool phase);
-  /** set incomplete */
-  void setIncomplete();
-  //---------------- end interface to output channel that doesnt require proofs
  private:
   /** Get proof generator for key, or nullptr if it does not exist */
   ProofGenerator* getProofGeneratorForKey(Node key) const;
-  /** Reference to an output channel */
-  OutputChannel& d_out;
   /**
    * A user-context-dependent map from lemmas and conflicts to proof generators
    */

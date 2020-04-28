@@ -23,7 +23,7 @@
 
 namespace CVC4 {
 namespace theory {
-namespace eq {
+namespace uf {
 
 /** A checker for builtin proofs */
 class EqProofRuleChecker : public ProofRuleChecker
@@ -37,7 +37,7 @@ class EqProofRuleChecker : public ProofRuleChecker
              const std::vector<Node>& args) override;
 };
 
-}  // namespace eq
+}  // namespace uf
 }  // namespace theory
 }  // namespace CVC4
 

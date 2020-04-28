@@ -430,6 +430,8 @@ libcvc4_add_sources(
   theory/decision_manager.h
   theory/decision_strategy.cpp
   theory/decision_strategy.h
+  theory/engine_output_channel.cpp
+  theory/engine_output_channel.h
   theory/evaluator.cpp
   theory/evaluator.h
   theory/ext_theory.cpp
@@ -446,10 +448,10 @@ libcvc4_add_sources(
   theory/logic_info.cpp
   theory/logic_info.h
   theory/output_channel.h
+  theory/proof_engine_output_channel.cpp
+  theory/proof_engine_output_channel.h
   theory/proof_generator.cpp
   theory/proof_generator.h
-  theory/proof_output_channel.cpp
-  theory/proof_output_channel.h
   theory/quantifiers/alpha_equivalence.cpp
   theory/quantifiers/alpha_equivalence.h
   theory/quantifiers/anti_skolem.cpp

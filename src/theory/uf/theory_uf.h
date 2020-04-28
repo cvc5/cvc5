@@ -27,6 +27,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/uf/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -192,6 +193,8 @@ private:
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  /** Called to set the proof checker */
+  void setProofChecker(ProofChecker * pc ) override;
   void finishInit() override;
 
   void check(Effort) override;
@@ -228,6 +231,8 @@ private:
                     unsigned depth);
 
   TheoryUfRewriter d_rewriter;
+  /** Proof rule checker */
+  EqProofRuleChecker d_eqProofChecker;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

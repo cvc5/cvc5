@@ -67,21 +67,12 @@ Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubsti
   return Theory::ppAssert(in, outSubstitutions);
 }
 
-/*
-void TheoryBool::check(Effort level) {
-  if (done() && !fullEffort(level)) {
-    return;
-  }
-  while (!done())
-  {
-    // Get all the assertions
-    Assertion assertion = get();
-    TNode fact = assertion.assertion;
-  }
-  if( Theory::fullEffort(level) ){
-  }
-}  
-*/
+
+void TheoryBool::setProofChecker(ProofChecker * pc ){
+  Assert (pc!=nullptr);
+  // add checkers
+  pc->registerChecker(PfRule::SPLIT, &d_bProofChecker);
+}
 
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */

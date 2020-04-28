@@ -38,10 +38,10 @@ typedef expr::Attribute<StringsProxyVarAttributeId, bool>
 TermRegistry::TermRegistry(context::Context* c,
                            context::UserContext* u,
                            eq::EqualityEngine& ee,
-                           ProofOutputChannel& poc,
+                           OutputChannel& out,
                            SequencesStatistics& statistics)
     : d_ee(ee),
-      d_poc(poc),
+      d_out(out),
       d_statistics(statistics),
       d_hasStrCode(false),
       d_functionsTerms(c),
@@ -93,7 +93,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   else if (k == STRING_IN_REGEXP)
   {
-    d_poc.requirePhase(n, true);
+    d_out.requirePhase(n, true);
     d_ee.addTriggerPredicate(n);
     d_ee.addTerm(n[0]);
     d_ee.addTerm(n[1]);
@@ -232,7 +232,7 @@ void TermRegistry::registerTerm(Node n, int effort)
     Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
     TrustNode plem = TrustNode::mkTrustLemma(regTermLem, nullptr);
-    d_poc.trustedLemma(plem);
+    d_out.trustedLemma(plem);
   }
 }
 
@@ -339,11 +339,11 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
     Trace("strings-assert") << "(assert " << lenLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTermAtomic);
     TrustNode plem = TrustNode::mkTrustLemma(lenLem, nullptr);
-    d_poc.trustedLemma(plem);
+    d_out.trustedLemma(plem);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
   {
-    d_poc.requirePhase(rp.first, rp.second);
+    d_out.requirePhase(rp.first, rp.second);
   }
 }
 

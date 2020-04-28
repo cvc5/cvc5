@@ -33,13 +33,13 @@ InferenceManager::InferenceManager(context::Context* c,
                                    SolverState& s,
                                    TermRegistry& tr,
                                    ExtTheory& e,
-                                   ProofOutputChannel& poc,
+                                   OutputChannel& out,
                                    SequencesStatistics& statistics,
                                    bool pfEnabled)
     : d_state(s),
       d_termReg(tr),
       d_extt(e),
-      d_poc(poc),
+      d_out(out),
       d_statistics(statistics),
       d_pnm(),
       d_pfee(c, u, *d_state.getEqualityEngine(), &d_pnm, pfEnabled),
@@ -52,6 +52,11 @@ InferenceManager::InferenceManager(context::Context* c,
   d_one = nm->mkConst(Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+}
+
+void InferenceManager::setProofChecker(ProofChecker * pc)
+{
+  // TODO: connect to d_pfee
 }
 
 void InferenceManager::sendAssumption(TNode lit)
@@ -174,7 +179,7 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       Trace("strings-assert") << "(assert (not " << tconf.getNode()
                               << ")) ; conflict " << ii.d_id << std::endl;
       ++(d_statistics.d_conflictsInfer);
-      d_poc.trustedConflict(tconf);
+      d_out.trustedConflict(tconf);
       d_state.setConflict();
       return;
     }
@@ -253,7 +258,7 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
   d_pendingReqPhase[lit] = pol;
 }
 
-void InferenceManager::setIncomplete() { d_poc.setIncomplete(); }
+void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
 
 void InferenceManager::addToExplanation(Node a,
                                         Node b,
@@ -363,14 +368,14 @@ void InferenceManager::doPendingLemmas()
     Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id
                            << std::endl;
     ++(d_statistics.d_lemmasInfer);
-    d_poc.trustedLemma(tlem);
+    d_out.trustedLemma(tlem);
   }
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
   {
     Trace("strings-pending") << "Require phase : " << prp.first
                              << ", polarity = " << prp.second << std::endl;
-    d_poc.requirePhase(prp.first, prp.second);
+    d_out.requirePhase(prp.first, prp.second);
   }
   d_pendingLem.clear();
   d_pendingReqPhase.clear();
@@ -424,7 +429,7 @@ void InferenceManager::postProcessFact(TNode fact)
           << "CONFLICT: Eager prefix : " << cnode << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);
       TrustNode pconf = TrustNode::mkTrustConflict(cnode, nullptr);
-      d_poc.trustedConflict(pconf);
+      d_out.trustedConflict(pconf);
     }
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;

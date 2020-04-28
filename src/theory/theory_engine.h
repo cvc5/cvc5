@@ -42,6 +42,7 @@
 #include "theory/sort_inference.h"
 #include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
+#include "theory/proof_engine_output_channel.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
@@ -49,6 +50,7 @@
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
+#include "expr/proof_checker.h"
 
 namespace CVC4 {
 
@@ -113,6 +115,7 @@ class TheoryEngine {
 
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
+  friend class theory::EngineOutputChannel;
   friend class theory::quantifiers::TermDb;
 
   /** Associated PropEngine engine */
@@ -234,115 +237,10 @@ class TheoryEngine {
    */
   context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
 
-
-  /**
-   * Statistics for a particular theory.
-   */
-  class Statistics {
-
-    static std::string mkName(std::string prefix,
-                              theory::TheoryId theory,
-                              std::string suffix) {
-      std::stringstream ss;
-      ss << prefix << theory << suffix;
-      return ss.str();
-    }
-
-   public:
-    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands;
-
-    Statistics(theory::TheoryId theory);
-    ~Statistics();
-  };/* class TheoryEngine::Statistics */
-
-  /**
-   * An output channel for Theory that passes messages
-   * back to a TheoryEngine.
-   */
-  class EngineOutputChannel : public theory::OutputChannel {
-    friend class TheoryEngine;
-
-    /**
-     * The theory engine we're communicating with.
-     */
-    TheoryEngine* d_engine;
-
-    /**
-     * The statistics of the theory interractions.
-     */
-    Statistics d_statistics;
-
-    /** The theory owning this channel. */
-    theory::TheoryId d_theory;
-
-   public:
-    EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory)
-        : d_engine(engine), d_statistics(theory), d_theory(theory) {}
-
-    void safePoint(ResourceManager::Resource r) override
-    {
-      spendResource(r);
-      if (d_engine->d_interrupted) {
-        throw theory::Interrupted();
-      }
-    }
-
-    void conflict(TNode conflictNode,
-                  std::unique_ptr<Proof> pf = nullptr) override;
-    bool propagate(TNode literal) override;
-
-    theory::LemmaStatus lemma(TNode lemma, ProofRule rule,
-                              bool removable = false, bool preprocess = false,
-                              bool sendAtoms = false) override;
-
-    theory::LemmaStatus splitLemma(TNode lemma,
-                                   bool removable = false) override;
-
-    void demandRestart() override {
-      NodeManager* curr = NodeManager::currentNM();
-      Node restartVar = curr->mkSkolem(
-          "restartVar", curr->booleanType(),
-          "A boolean variable asserted to be true to force a restart");
-      Trace("theory::restart")
-          << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar
-          << ")" << std::endl;
-      ++d_statistics.restartDemands;
-      lemma(restartVar, RULE_INVALID, true);
-    }
-
-    void requirePhase(TNode n, bool phase) override {
-      Debug("theory") << "EngineOutputChannel::requirePhase(" << n << ", "
-                      << phase << ")" << std::endl;
-      ++d_statistics.requirePhase;
-      d_engine->d_propEngine->requirePhase(n, phase);
-    }
-
-    void setIncomplete() override {
-      Trace("theory") << "TheoryEngine::setIncomplete()" << std::endl;
-      d_engine->setIncomplete(d_theory);
-    }
-
-    void spendResource(ResourceManager::Resource r) override
-    {
-      d_engine->spendResource(r);
-    }
-
-    void handleUserAttribute(const char* attr, theory::Theory* t) override {
-      d_engine->handleUserAttribute(attr, t);
-    }
-
-   private:
-    /**
-     * A helper function for registering lemma recipes with the proof engine
-     */
-    void registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess,
-                             theory::TheoryId theoryId);
-  }; /* class TheoryEngine::EngineOutputChannel */
-
   /**
    * Output channels for individual theories.
    */
-  EngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
+  theory::ProofEngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
 
   /**
    * Are we in conflict.
@@ -488,7 +386,7 @@ class TheoryEngine {
   inline void addTheory(theory::TheoryId theoryId)
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
-    d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
+    d_theoryOut[theoryId] = new theory::ProofEngineOutputChannel(this, theoryId, d_userContext);
     d_theoryTable[theoryId] = new TheoryClass(d_context,
                                               d_userContext,
                                               *d_theoryOut[theoryId],
@@ -928,6 +826,8 @@ private:
  private:
   IntStat d_arithSubstitutionsAdded;
 
+  /** For the new proofs module */
+  std::unique_ptr<ProofChecker> d_checker;
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */

@@ -127,145 +127,17 @@ std::string getTheoryString(theory::TheoryId id)
   }
 }
 
-theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
-                                                             ProofRule rule,
-                                                             bool removable,
-                                                             bool preprocess,
-                                                             bool sendAtoms) {
-  Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
-                         << lemma << ")"
-                         << ", preprocess = " << preprocess << std::endl;
-  ++d_statistics.lemmas;
-  d_engine->d_outputChannelUsed = true;
-
-  PROOF({ registerLemmaRecipe(lemma, lemma, preprocess, d_theory); });
-
-  theory::LemmaStatus result =
-      d_engine->lemma(lemma, rule, false, removable, preprocess,
-                      sendAtoms ? d_theory : theory::THEORY_LAST);
-  return result;
-}
-
-void TheoryEngine::EngineOutputChannel::registerLemmaRecipe(Node lemma, Node originalLemma, bool preprocess, theory::TheoryId theoryId) {
-  // During CNF conversion, conjunctions will be broken down into
-  // multiple lemmas. In order for the recipes to match, we have to do
-  // the same here.
-  NodeManager* nm = NodeManager::currentNM();
-
-  if (preprocess)
-    lemma = d_engine->preprocess(lemma);
-
-  bool negated = (lemma.getKind() == kind::NOT);
-  Node nnLemma = negated ? lemma[0] : lemma;
-
-  switch (nnLemma.getKind()) {
-
-  case kind::AND:
-    if (!negated) {
-      for (unsigned i = 0; i < nnLemma.getNumChildren(); ++i)
-        registerLemmaRecipe(nnLemma[i], originalLemma, false, theoryId);
-    } else {
-      NodeBuilder<> builder(kind::OR);
-      for (unsigned i = 0; i < nnLemma.getNumChildren(); ++i)
-        builder << nnLemma[i].negate();
-
-      Node disjunction = (builder.getNumChildren() == 1) ? builder[0] : builder;
-      registerLemmaRecipe(disjunction, originalLemma, false, theoryId);
-    }
-    break;
-
-  case kind::EQUAL:
-    if( nnLemma[0].getType().isBoolean() ){
-      if (!negated) {
-        registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[1].negate()), originalLemma, false, theoryId);
-        registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1]), originalLemma, false, theoryId);
-      } else {
-        registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[1]), originalLemma, false, theoryId);
-        registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1].negate()), originalLemma, false, theoryId);
-      }
-    }
-    break;
-
-  case kind::ITE:
-    if (!negated) {
-      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1]), originalLemma, false, theoryId);
-      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[2]), originalLemma, false, theoryId);
-    } else {
-      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0].negate(), nnLemma[1].negate()), originalLemma, false, theoryId);
-      registerLemmaRecipe(nm->mkNode(kind::OR, nnLemma[0], nnLemma[2].negate()), originalLemma, false, theoryId);
-    }
-    break;
-
-  default:
-    break;
-  }
-
-  // Theory lemmas have one step that proves the empty clause
-  LemmaProofRecipe proofRecipe;
-  Node emptyNode;
-  LemmaProofRecipe::ProofStep proofStep(theoryId, emptyNode);
-
-  // Remember the original lemma, so we can report this later when asked to
-  proofRecipe.setOriginalLemma(originalLemma);
-
-  // Record the assertions and rewrites
-  Node rewritten;
-  if (lemma.getKind() == kind::OR) {
-    for (unsigned i = 0; i < lemma.getNumChildren(); ++i) {
-      rewritten = theory::Rewriter::rewrite(lemma[i]);
-      if (rewritten != lemma[i]) {
-        proofRecipe.addRewriteRule(lemma[i].negate(), rewritten.negate());
-      }
-      proofStep.addAssertion(lemma[i]);
-      proofRecipe.addBaseAssertion(rewritten);
-    }
-  } else {
-    rewritten = theory::Rewriter::rewrite(lemma);
-    if (rewritten != lemma) {
-      proofRecipe.addRewriteRule(lemma.negate(), rewritten.negate());
-    }
-    proofStep.addAssertion(lemma);
-    proofRecipe.addBaseAssertion(rewritten);
-  }
-  proofRecipe.addStep(proofStep);
-  ProofManager::getCnfProof()->setProofRecipe(&proofRecipe);
-}
-
-theory::LemmaStatus TheoryEngine::EngineOutputChannel::splitLemma(
-    TNode lemma, bool removable) {
-  Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
-                         << lemma << ")" << std::endl;
-  ++d_statistics.lemmas;
-  d_engine->d_outputChannelUsed = true;
-
-  Debug("pf::explain") << "TheoryEngine::EngineOutputChannel::splitLemma( "
-                       << lemma << " )" << std::endl;
-  theory::LemmaStatus result =
-      d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
-  return result;
-}
-
-bool TheoryEngine::EngineOutputChannel::propagate(TNode literal) {
-  Debug("theory::propagate") << "EngineOutputChannel<" << d_theory
-                             << ">::propagate(" << literal << ")" << std::endl;
-  ++d_statistics.propagations;
-  d_engine->d_outputChannelUsed = true;
-  return d_engine->propagate(literal, d_theory);
-}
-
-void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
-                                                 std::unique_ptr<Proof> proof)
-{
-  Trace("theory::conflict")
-      << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
-      << ")" << std::endl;
-  Assert(!proof);  // Theory shouldn't be producing proofs yet
-  ++d_statistics.conflicts;
-  d_engine->d_outputChannelUsed = true;
-  d_engine->conflict(conflictNode, d_theory);
-}
-
 void TheoryEngine::finishInit() {
+  // if we are using the new proofs module
+  if (options::proofNew())
+  {
+    d_checker.reset(new ProofChecker);
+    for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
+      if (d_theoryTable[theoryId]) {
+        d_theoryTable[theoryId]->setProofChecker(d_checker.get());
+      }
+    }
+  }
   //initialize the quantifiers engine, master equality engine, model, model builder
   if( d_logicInfo.isQuantified() ) {
     // initialize the quantifiers engine
@@ -2370,28 +2242,6 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
 void TheoryEngine::spendResource(ResourceManager::Resource r)
 {
   d_resourceManager->spendResource(r);
-}
-
-TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
-    conflicts(getStatsPrefix(theory) + "::conflicts", 0),
-    propagations(getStatsPrefix(theory) + "::propagations", 0),
-    lemmas(getStatsPrefix(theory) + "::lemmas", 0),
-    requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
-    restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
-{
-  smtStatisticsRegistry()->registerStat(&conflicts);
-  smtStatisticsRegistry()->registerStat(&propagations);
-  smtStatisticsRegistry()->registerStat(&lemmas);
-  smtStatisticsRegistry()->registerStat(&requirePhase);
-  smtStatisticsRegistry()->registerStat(&restartDemands);
-}
-
-TheoryEngine::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&conflicts);
-  smtStatisticsRegistry()->unregisterStat(&propagations);
-  smtStatisticsRegistry()->unregisterStat(&lemmas);
-  smtStatisticsRegistry()->unregisterStat(&requirePhase);
-  smtStatisticsRegistry()->unregisterStat(&restartDemands);
 }
 
 }/* CVC4 namespace */

@@ -27,11 +27,13 @@ Node ProofChecker::check(
     const std::vector<Node>& args,
     Node expected)
 {
+  Trace("pfcheck") << "ProofChecker::check: " << id << std::endl;
   std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it == d_checker.end())
   {
     // no checker for the rule
-    Trace("pfcheck") << "ProofChecker::check: no checker for rule " << id
+    Trace("pfcheck") << "ProofChecker::check: no checker for rule" << std::endl;
+    Trace("pfcheck-error") << "ProofChecker::check: no checker for rule " << id
                      << std::endl;
     return Node::null();
   }
@@ -43,7 +45,8 @@ Node ProofChecker::check(
     Node cres = pc->getResult();
     if (cres.isNull())
     {
-      Trace("pfcheck")
+      Trace("pfcheck") << "ProofChecker::check: failed child" << std::endl;
+      Trace("pfcheck-error")
           << "ProofChecker::check: child proof was invalid (null conclusion)"
           << std::endl;
       // should not have been able to create such a proof node
@@ -52,17 +55,23 @@ Node ProofChecker::check(
     }
     cchildren.push_back(cres);
   }
+  Trace("pfcheck") << "  children: " << cchildren << std::endl;
+  Trace("pfcheck") << "      args: " << args << std::endl;
+  Trace("pfcheck") << "  expected: " << expected << std::endl;
   Node res = it->second->check(id, cchildren, args);
   if (!expected.isNull() && res != expected)
   {
-    Trace("pfcheck")
+    Trace("pfcheck") << "ProofChecker::check: failed (see -t pfcheck-error)"
+          << std::endl;
+    Trace("pfcheck-error")
         << "ProofChecker::check: result does not match expected value."
         << std::endl;
-    Trace("pfcheck") << "    result: " << res << std::endl;
-    Trace("pfcheck") << "  expected: " << expected << std::endl;
+    Trace("pfcheck-error") << "    result: " << res << std::endl;
+    Trace("pfcheck-error") << "  expected: " << expected << std::endl;
     // it did not match the given expectation, fail
     return Node::null();
   }
+  Trace("pfcheck") << "ProofChecker::check: success!" << std::endl;
   return res;
 }
 

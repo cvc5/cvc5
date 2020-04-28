@@ -21,6 +21,7 @@
 
 #include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -39,12 +40,17 @@ class TheoryBuiltin : public Theory
 
   std::string identify() const override;
 
+  /** Called to set the proof checker */
+  void setProofChecker(ProofChecker * pc ) override;
+  
   /** finish initialization */
   void finishInit() override;
 
  private:
   /** The theory rewriter for this theory. */
   TheoryBuiltinRewriter d_rewriter;
+  /** Proof rule checker */
+  BuiltinProofRuleChecker d_bProofChecker;
 }; /* class TheoryBuiltin */
 
 }  // namespace builtin

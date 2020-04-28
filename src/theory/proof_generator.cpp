@@ -15,7 +15,7 @@
 #include "theory/proof_generator.h"
 
 #include "expr/proof_node_manager.h"
-#include "theory/proof_output_channel.h"
+#include "theory/proof_engine_output_channel.h"
 
 namespace CVC4 {
 namespace theory {
@@ -30,7 +30,7 @@ void EagerProofGenerator::setProofForConflict(Node conf,
                                               std::shared_ptr<ProofNode> pf)
 {
   // Normalize based on key
-  Node ckey = ProofOutputChannel::getConflictKeyValue(conf);
+  Node ckey = ProofEngineOutputChannel::getConflictKeyValue(conf);
   d_proofs[ckey] = pf;
 }
 
@@ -38,19 +38,19 @@ void EagerProofGenerator::setProofForLemma(Node lem,
                                            std::shared_ptr<ProofNode> pf)
 {
   // Normalize based on key
-  Node lkey = ProofOutputChannel::getLemmaKeyValue(lem);
+  Node lkey = ProofEngineOutputChannel::getLemmaKeyValue(lem);
   d_proofs[lkey] = pf;
 }
 
 std::shared_ptr<ProofNode> EagerProofGenerator::getProofForConflict(Node conf)
 {
-  Node ckey = ProofOutputChannel::getConflictKeyValue(conf);
+  Node ckey = ProofEngineOutputChannel::getConflictKeyValue(conf);
   return getProof(ckey);
 }
 
 std::shared_ptr<ProofNode> EagerProofGenerator::getProofForLemma(Node lem)
 {
-  Node lkey = ProofOutputChannel::getLemmaKeyValue(lem);
+  Node lkey = ProofEngineOutputChannel::getLemmaKeyValue(lem);
   return getProof(lkey);
 }
 
@@ -66,13 +66,13 @@ std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node key)
 
 bool EagerProofGenerator::canProveConflict(Node conf)
 {
-  Node ckey = ProofOutputChannel::getConflictKeyValue(conf);
+  Node ckey = ProofEngineOutputChannel::getConflictKeyValue(conf);
   return d_proofs.find(ckey) != d_proofs.end();
 }
 
 bool EagerProofGenerator::canProveLemma(Node lem)
 {
-  Node lkey = ProofOutputChannel::getLemmaKeyValue(lem);
+  Node lkey = ProofEngineOutputChannel::getLemmaKeyValue(lem);
   return d_proofs.find(lkey) != d_proofs.end();
 }
 

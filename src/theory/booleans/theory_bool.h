@@ -22,6 +22,7 @@
 #include "context/context.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/theory.h"
+#include "theory/booleans/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -39,13 +40,16 @@ class TheoryBool : public Theory {
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
-  //void check(Effort);
+  /** Called to set the proof checker */
+  void setProofChecker(ProofChecker * pc ) override;
 
   std::string identify() const override { return std::string("TheoryBool"); }
 
  private:
   /** The theory rewriter for this theory. */
   TheoryBoolRewriter d_rewriter;
+  /** Proof rule checker */
+  BoolProofRuleChecker d_bProofChecker;
 };/* class TheoryBool */
 
 }/* CVC4::theory::booleans namespace */

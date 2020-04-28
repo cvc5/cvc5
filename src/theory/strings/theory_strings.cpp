@@ -71,10 +71,9 @@ TheoryStrings::TheoryStrings(context::Context* c,
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       d_notify(*this),
       d_statistics(),
-      d_poc(out, u),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, d_equalityEngine, d_valuation),
-      d_termReg(c, u, d_equalityEngine, d_poc, d_statistics),
+      d_termReg(c, u, d_equalityEngine, out, d_statistics),
       d_im(nullptr),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(nullptr),
@@ -92,7 +91,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                   d_state,
                                   d_termReg,
                                   *extt,
-                                  d_poc,
+                                  out,
                                   d_statistics,
                                   options::proofNew()));
   // initialize the solvers
@@ -155,6 +154,13 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
     }
   }
   return false;
+}
+
+void TheoryStrings::setProofChecker(ProofChecker * pc)
+{
+  
+  // also must inform the inference manager
+  d_im->setProofChecker(pc);
 }
 
 void TheoryStrings::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -709,7 +715,7 @@ void TheoryStrings::conflict(TNode a, TNode b){
   Trace("strings-conflict")
       << "CONFLICT: Eq engine conflict : " << conf.getNode() << std::endl;
   ++(d_statistics.d_conflictsEqEngine);
-  d_poc.trustedConflict(conf);
+  d_out->trustedConflict(conf);
 }
 
 void TheoryStrings::eqNotifyNewClass(TNode t){

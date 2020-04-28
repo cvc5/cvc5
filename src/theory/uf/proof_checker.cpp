@@ -14,13 +14,11 @@
 
 #include "theory/uf/proof_checker.h"
 
-//#include "theory/builtin/proof_checker.h"
-
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-namespace eq {
+namespace uf {
 
 Node EqProofRuleChecker::check(PfRule id,
                                const std::vector<Node>& children,

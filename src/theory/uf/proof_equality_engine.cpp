@@ -249,8 +249,10 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     }
     Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
     // Wrap the proof in a SCOPE. Notice that we have an expected conclusion
-    // (formula) which we pass to mkNode, which can check it if it wants.
+    // (formula) which we pass to mkNode, which can check it if it wants. Its
+    // arguments are the free assumptions of pfConc.
     std::vector<Node> args;
+    pfConc->getFreeAssumptions(args);
     std::shared_ptr<ProofNode> pf =
         d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
     if (Trace.isOn("pfee-proof"))
