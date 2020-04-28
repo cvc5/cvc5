@@ -20,6 +20,7 @@
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
+#include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
 #include "smt/logic_exception.h"
@@ -93,7 +94,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                   *extt,
                                   d_poc,
                                   d_statistics,
-                                  options::stringsPf()));
+                                  options::proofNew()));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(c, u, d_state, *d_im));
   d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_termReg, *d_bsolver));

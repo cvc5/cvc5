@@ -222,7 +222,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                                             const std::vector<TNode>& assumps,
                                             bool isConflict)
 {
-  Trace("pfee-debug") << "pfee::ensureProofForFact: input " << conc << " via "
+  Trace("pfee-proof") << std::endl;
+  Trace("pfee-proof") << "pfee::ensureProofForFact: input " << conc << " via "
                       << assumps << ", isConflict=" << isConflict << std::endl;
   // make the conflict or lemma
   Node formula = mkAnd(assumps);
@@ -231,33 +232,33 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     NodeManager* nm = NodeManager::currentNM();
     formula = formula == d_false ? conc : nm->mkNode(IMPLIES, formula, conc);
   }
-  Trace("pfee-debug") << "  formula is " << formula << std::endl;
+  Trace("pfee-proof") << "pfee::ensureProofForFact: formula is " << formula << std::endl;
   ProofGenerator* pfg = nullptr;
   if (d_pfEnabled)
   {
-    Trace("pfee-debug") << "pfee::ensureProofForFact: make proof for fact" << std::endl;
+    Trace("pfee-proof") << "pfee::ensureProofForFact: make proof for fact" << std::endl;
     // get the proof for conc
     std::shared_ptr<ProofNode> pfConc = mkProofForFact(conc);
     if (pfConc == nullptr)
     {
-      Trace("pfee-debug") << "pfee::ensureProofForFact: failed to make proof for fact" << std::endl;
+      Trace("pfee-proof") << "pfee::ensureProofForFact: failed to make proof for fact" << std::endl << std::endl;
       // should have existed
       Assert(false) << "pfee::assertConflict: failed to get proof for "
                     << conc;
       return TrustNode::null();
     }
-    Trace("pfee-debug") << "pfee::ensureProofForFact: add scope" << std::endl;
+    Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
     // Wrap the proof in a SCOPE. Notice that we have an expected conclusion
     // (formula) which we pass to mkNode, which can check it if it wants.
     std::vector<Node> args;
     std::shared_ptr<ProofNode> pf =
         d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
-    if (Trace.isOn("pfee-debug"))
+    if (Trace.isOn("pfee-proof"))
     {
-      Trace("pfee-debug") << "pfee::ensureProofForFact: printing proof" << std::endl;
+      Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof" << std::endl;
       std::stringstream ss;
       pf->printDebug(ss);
-      Trace("pfee-debug") << "pfee::ensureProofForFact: Proof is " << ss.str() << std::endl;
+      Trace("pfee-proof") << "pfee::ensureProofForFact: Proof is " << ss.str() << std::endl;
     }
     // should always succeed, since assumptions should be closed
     Assert(pf != nullptr);
@@ -274,7 +275,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     }
     pfg = this;
   }
-  Trace("pfee-debug") << "pfee::ensureProofForFact: finish" << std::endl;
+  Trace("pfee-proof") << "pfee::ensureProofForFact: finish" << std::endl << std::endl;
   // we can provide a proof for conflict or lemma
   if (isConflict)
   {
@@ -312,7 +313,7 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
 {
   std::shared_ptr<eq::EqProof> pf =
       d_pfEnabled ? std::make_shared<eq::EqProof>() : nullptr;
-  Trace("pfee-debug") << "pfee::explainWithProof: " << lit << " via "
+  Trace("pfee-proof") << "pfee::explainWithProof: " << lit << " via "
                       << assumps << std::endl;
   bool polarity = lit.getKind() != NOT;
   TNode atom = polarity ? lit : lit[0];
@@ -351,11 +352,11 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
   }
   if (d_pfEnabled)
   {
-    Trace("pfee-debug") << "pfee::explainWithProof: add to proof" << std::endl;
+    Trace("pfee-proof") << "pfee::explainWithProof: add to proof" << std::endl;
     // add the steps in the equality engine proof to the Proof
     pf->addToProof(&d_proof);
   }
-  Trace("pfee-debug") << "pfee::explainWithProof: finished" << std::endl;
+  Trace("pfee-proof") << "pfee::explainWithProof: finished" << std::endl;
 }
 
 Node ProofEqEngine::mkAnd(const std::vector<Node>& a)
