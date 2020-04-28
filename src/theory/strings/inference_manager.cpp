@@ -344,12 +344,6 @@ void InferenceManager::doPendingLemmas()
         ii.d_conc, rule, pii.d_children, pii.d_childrenExp, pii.d_args);
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
-    Trace("strings-assert")
-        << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
-    Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id
-                           << std::endl;
-    ++(d_statistics.d_lemmasInfer);
-    d_poc.trustedLemma(tlem);
 
     // Process the side effects of the inference info.
     // Register the new skolems from this inference. We register them here
@@ -364,7 +358,12 @@ void InferenceManager::doPendingLemmas()
       }
     }
 
-    d_out.lemma(lem);
+    Trace("strings-assert")
+        << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
+    Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id
+                           << std::endl;
+    ++(d_statistics.d_lemmasInfer);
+    d_poc.trustedLemma(tlem);
   }
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
