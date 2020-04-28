@@ -301,7 +301,7 @@ enum class PfRule : uint32_t
   SIU_CTN_NEG_EQUAL,
   SIU_CTN_POS,
   SIU_REDUCTION,
-  
+
   SIU_END,
   //%%%%%%%%%%%%%  END UNTRUSTWORTHY
 

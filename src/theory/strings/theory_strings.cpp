@@ -162,16 +162,16 @@ void TheoryStrings::setProofChecker(ProofChecker* pc)
   pc->registerChecker(PfRule::REDUCTION, &d_sProofChecker);
   pc->registerChecker(PfRule::RE_INTER, &d_sProofChecker);
   pc->registerChecker(PfRule::RE_UNFOLD, &d_sProofChecker);
-  
+
   // everything else is untrustworthy, assume trusted
   uint32_t siuBegin = static_cast<uint32_t>(PfRule::SIU_BEGIN);
   uint32_t siuEnd = static_cast<uint32_t>(PfRule::SIU_END);
-  for (uint32_t r=siuBegin+1; r<siuEnd; r++)
+  for (uint32_t r = siuBegin + 1; r < siuEnd; r++)
   {
     // trust the checker
     pc->registerChecker(static_cast<PfRule>(r), nullptr);
   }
-  
+
   // also must inform the inference manager
   d_im->setProofChecker(pc);
 }

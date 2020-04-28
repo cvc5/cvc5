@@ -266,7 +266,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     std::vector<Node> args;
     pfConc->getFreeAssumptions(args);
     std::shared_ptr<ProofNode> pf =
-        args.empty() ? pfConc : d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
+        args.empty() ? pfConc
+                     : d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
     if (Trace.isOn("pfee-proof"))
     {
       Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"

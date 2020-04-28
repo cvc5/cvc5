@@ -63,13 +63,17 @@ void InferenceManager::setProofChecker(ProofChecker* pc)
 
 void InferenceManager::finishInit()
 {
-  if (d_pnm==nullptr)
+  if (d_pnm == nullptr)
   {
     // don't use checker
     d_pnm.reset(new ProofNodeManager);
   }
   // now that proof node manager is setup, we initialize proof equality engine
-  d_pfee.reset(new eq::ProofEqEngine(d_ccontext, d_ucontext, *d_state.getEqualityEngine(), d_pnm.get(), d_pfEnabled));
+  d_pfee.reset(new eq::ProofEqEngine(d_ccontext,
+                                     d_ucontext,
+                                     *d_state.getEqualityEngine(),
+                                     d_pnm.get(),
+                                     d_pfEnabled));
   d_ipc.reset(new InferProofCons(*d_pfee, d_statistics, d_pfEnabled));
 }
 
@@ -188,7 +192,8 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       // we must fully explain it
       eq::ProofInferInfo pii;
       PfRule rule = d_ipc->convert(ii, pii);
-      TrustNode tconf = d_pfee->assertConflict(rule, pii.d_children, pii.d_args);
+      TrustNode tconf =
+          d_pfee->assertConflict(rule, pii.d_children, pii.d_args);
       Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
       Trace("strings-assert") << "(assert (not " << tconf.getNode()
                               << ")) ; conflict " << ii.d_id << std::endl;

@@ -34,10 +34,10 @@ Node ProofChecker::check(
     // no checker for the rule
     Trace("pfcheck") << "ProofChecker::check: no checker for rule" << std::endl;
     Unreachable() << "ProofChecker::check: no checker for rule " << id
-                           << std::endl;
+                  << std::endl;
     return Node::null();
   }
-  else if (it->second==nullptr)
+  else if (it->second == nullptr)
   {
     Trace("pfcheck") << "ProofChecker::check: trusted checker!" << std::endl;
     Notice() << "ProofChecker::check: trusting PfRule for " << id << std::endl;
@@ -53,7 +53,7 @@ Node ProofChecker::check(
     if (cres.isNull())
     {
       Trace("pfcheck") << "ProofChecker::check: failed child" << std::endl;
-      Unreachable() 
+      Unreachable()
           << "ProofChecker::check: child proof was invalid (null conclusion)"
           << std::endl;
       // should not have been able to create such a proof node
@@ -64,7 +64,8 @@ Node ProofChecker::check(
     {
       std::stringstream ssc;
       pc->printDebug(ssc);
-      Trace("pfcheck") << "     child: " << ssc.str() << " : " << cres << std::endl;
+      Trace("pfcheck") << "     child: " << ssc.str() << " : " << cres
+                       << std::endl;
     }
   }
   Trace("pfcheck") << "      args: " << args << std::endl;
@@ -72,13 +73,12 @@ Node ProofChecker::check(
   Node res = it->second->check(id, cchildren, args);
   if (!expected.isNull() && res != expected)
   {
-    Trace("pfcheck") << "ProofChecker::check: failed"
-                     << std::endl;
-    Unreachable() 
+    Trace("pfcheck") << "ProofChecker::check: failed" << std::endl;
+    Unreachable()
         << "ProofChecker::check: result does not match expected value."
         << std::endl
-     << "    result: " << res << std::endl
-     << "  expected: " << expected << std::endl;
+        << "    result: " << res << std::endl
+        << "  expected: " << expected << std::endl;
     // it did not match the given expectation, fail
     return Node::null();
   }
