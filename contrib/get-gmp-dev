@@ -21,6 +21,17 @@ check_dep_dir "$GMP_DIR"
 
 echo =============================================================================
 echo
+echo "This script should only be used if your distribution does not ship with the"
+echo "GMP configuration you need. For example, contrib/get-win-dependencies cross-"
+echo "compiles GMP for Windows. You can also use the script if your distribution"
+echo "does not ship with static GMP libraries (e.g., Arch Linux) and you want to"
+echo "build CVC4 statically."
+echo
+echo "In most of the cases the GMP version installed on your system is the one you"
+echo "want and should use."
+echo
+echo =============================================================================
+echo
 echo "Setting up GMP $GMPVERSION..."
 echo
 setup_dep "https://gmplib.org/download/gmp/gmp-$GMPVERSION.tar.bz2" "$GMP_DIR"

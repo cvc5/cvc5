@@ -73,6 +73,19 @@ incorrect behavior (and wrong results) in many builds. This is a known problem
 for MiniSat, and since MiniSat is at the core of CVC4, a problem for CVC4.
 We recommend using a GCC version > 4.5.1.
 
+### Warning: Installing GMP via `contrib/get-gmp-dev`
+
+Do **not** install GMP via the provided script `contrib/get-gmp-dev` unless
+your distribution
+* does not ship with the GMP configuration you need, e.g.,
+  script `contrib/get-win-dependencies` uses `contrib/get-gmp-dev` when
+  cross-compiling GMP for Windows.
+* does not ship with static GMP libraries (e.g., Arch Linux)
+  and you want to build CVC4 statically.
+
+In most of the cases the GMP version installed on your system is the one you
+want and should use.
+
 ## Optional Dependencies
 
 ### SymFPU (Support for the Theory of Floating Point Numbers)

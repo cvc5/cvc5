@@ -1041,7 +1041,6 @@ void SolverBlack::testSetInfo()
   TS_ASSERT_THROWS_NOTHING(d_solver->setInfo("smt-lib-version", "2.0"));
   TS_ASSERT_THROWS_NOTHING(d_solver->setInfo("smt-lib-version", "2.5"));
   TS_ASSERT_THROWS_NOTHING(d_solver->setInfo("smt-lib-version", "2.6"));
-  TS_ASSERT_THROWS_NOTHING(d_solver->setInfo("smt-lib-version", "2.6.1"));
   TS_ASSERT_THROWS(d_solver->setInfo("smt-lib-version", ".0"),
                    CVC4ApiException&);
 

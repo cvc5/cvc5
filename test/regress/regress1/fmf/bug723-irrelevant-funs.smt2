@@ -5,7 +5,7 @@
 (define-fun $$isFalse$$ ((b Bool)) Bool (not b))
 (define-fun $$toString$$ ((b Bool)) String (ite b "true" "false"))
 (define-fun $$fromString$$ ((s String)) Bool (= s "true"))
-(define-fun $$inttostr$$ ((i Int)) String (ite (< i 0) (str.++ "-" (int.to.str (- i))) (int.to.str i)))
+(define-fun $$inttostr$$ ((i Int)) String (ite (< i 0) (str.++ "-" (str.from_int (- i))) (str.from_int i)))
 (declare-fun $$takeWhile$$ (String String) String)
 (declare-fun $$takeWhileNot$$ (String String) String)
 (declare-fun $$dropWhile$$ (String String) String)
