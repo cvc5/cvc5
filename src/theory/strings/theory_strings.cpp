@@ -264,7 +264,9 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   // assert the (relevant) portion of the equality engine to the model
   if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
   {
-    Unreachable() << "TheoryStrings::collectModelInfo: failed to assert equality engine" << std::endl;
+    Unreachable()
+        << "TheoryStrings::collectModelInfo: failed to assert equality engine"
+        << std::endl;
     return false;
   }
 
@@ -547,10 +549,10 @@ bool TheoryStrings::collectModelInfoType(
       {
         // this should never happen due to the model soundness argument
         // for strings
-        
-          Unreachable() << "TheoryStrings::collectModelInfoType: "
-                               "Inconsistent equality (unprocessed eqc)"
-                            << std::endl;
+
+        Unreachable() << "TheoryStrings::collectModelInfoType: "
+                         "Inconsistent equality (unprocessed eqc)"
+                      << std::endl;
         return false;
       }
     }
