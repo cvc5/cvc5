@@ -173,7 +173,6 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
       Trace("strings-assert") << "(assert (not " << tconf.getNode()
                               << ")) ; conflict " << ii.d_id << std::endl;
-      d_statistics.d_inferences << ii.d_id;
       ++(d_statistics.d_conflictsInfer);
       d_poc.trustedConflict(tconf);
       d_state.setConflict();
@@ -302,7 +301,6 @@ void InferenceManager::doPendingFacts()
     Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
                            << ii.getAntecedant() << " by " << ii.d_id
                            << std::endl;
-    d_statistics.d_inferences << ii.d_id;
     // convert to proof rule(s)
     std::vector<eq::ProofInferInfo> piis;
     d_ipc.convert(ii, piis);
@@ -350,7 +348,6 @@ void InferenceManager::doPendingLemmas()
         << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
     Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id
                            << std::endl;
-    d_statistics.d_inferences << ii.d_id;
     ++(d_statistics.d_lemmasInfer);
     d_poc.trustedLemma(tlem);
 
