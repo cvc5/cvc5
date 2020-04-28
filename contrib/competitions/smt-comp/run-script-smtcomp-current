@@ -51,7 +51,7 @@ QF_NIA)
 QF_NRA)
   trywith 300 --nl-ext-tplanes --decision=internal
   trywith 300 --nl-ext-tplanes --decision=justification --no-nl-ext-factor
-  trywith 60 --nl-ext-tplanes --decision=internal --solve-real-as-int
+  trywith 30 --nl-ext-tplanes --decision=internal --solve-real-as-int
   finishwith --nl-ext-tplanes --decision=justification
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
