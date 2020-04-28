@@ -72,7 +72,11 @@ Node BuiltinProofRuleChecker::check(PfRule id,
   else if (id == PfRule::SCOPE)
   {
     Assert(children.size() == 1);
-    Assert(args.size() > 0);
+    if (args.empty())
+    {
+      // no antecedant
+      return children[0];
+    }
     Node ant = mkAnd(args);
     // if the conclusion is false, its the negated antencedant only
     if (children[0].isConst() && !children[0].getConst<bool>())

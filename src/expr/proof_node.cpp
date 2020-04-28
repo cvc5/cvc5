@@ -72,7 +72,7 @@ void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
           for (const Node& a : cur->d_args)
           {
             // should not have assumption shadowing
-            Assert(currentScope.find(a) != currentScope.end());
+            Assert(currentScope.find(a) == currentScope.end());
             currentScope.insert(a);
           }
           // will need to unbind the variables below

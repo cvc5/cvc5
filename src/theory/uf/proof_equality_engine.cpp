@@ -262,12 +262,12 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
     // Wrap the proof in a SCOPE if necessary. Notice that we have an expected
     // conclusion (formula) which we pass to mkNode, which can check it if it
-    // wants. Its arguments are the free assumptions of pfConc.
-    std::vector<Node> args;
-    pfConc->getFreeAssumptions(args);
+    // wants. Its arguments are assumptions, which should be the free
+    // assumptions of pfConc.
+    std::vector<Node> assumpsN;
+    assumpsN.insert(assumpsN.end(), assumps.begin(), assumps.end());
     std::shared_ptr<ProofNode> pf =
-        args.empty() ? pfConc
-                     : d_pnm->mkNode(PfRule::SCOPE, pfConc, args, formula);
+                     d_pnm->mkNode(PfRule::SCOPE, pfConc, assumpsN, formula);
     if (Trace.isOn("pfee-proof"))
     {
       Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"
@@ -370,7 +370,14 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
   }
   if (d_pfEnabled)
   {
-    Trace("pfee-proof") << "pfee::explainWithProof: add to proof" << std::endl;
+    if (Trace.isOn("pfee-proof"))
+    {
+      Trace("pfee-proof") << "pfee::explainWithProof: add to proof ---" << std::endl;
+      std::stringstream sse;
+      pf->debug_print(sse);
+      Trace("pfee-proof") << sse.str() << std::endl;
+      Trace("pfee-proof") << "---" << std::endl;
+    }
     // add the steps in the equality engine proof to the Proof
     pf->addToProof(&d_proof);
   }
