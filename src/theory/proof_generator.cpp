@@ -42,21 +42,9 @@ void EagerProofGenerator::setProofForLemma(Node lem,
   d_proofs[lkey] = pf;
 }
 
-std::shared_ptr<ProofNode> EagerProofGenerator::getProofForConflict(Node conf)
+std::shared_ptr<ProofNode> EagerProofGenerator::getProofFor(Node f)
 {
-  Node ckey = ProofEngineOutputChannel::getConflictKeyValue(conf);
-  return getProof(ckey);
-}
-
-std::shared_ptr<ProofNode> EagerProofGenerator::getProofForLemma(Node lem)
-{
-  Node lkey = ProofEngineOutputChannel::getLemmaKeyValue(lem);
-  return getProof(lkey);
-}
-
-std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node key)
-{
-  NodeProofNodeMap::iterator it = d_proofs.find(key);
+  NodeProofNodeMap::iterator it = d_proofs.find(f);
   if (it == d_proofs.end())
   {
     return nullptr;
@@ -64,16 +52,9 @@ std::shared_ptr<ProofNode> EagerProofGenerator::getProof(Node key)
   return (*it).second;
 }
 
-bool EagerProofGenerator::canProveConflict(Node conf)
+bool EagerProofGenerator::hasProofFor(Node f)
 {
-  Node ckey = ProofEngineOutputChannel::getConflictKeyValue(conf);
-  return d_proofs.find(ckey) != d_proofs.end();
-}
-
-bool EagerProofGenerator::canProveLemma(Node lem)
-{
-  Node lkey = ProofEngineOutputChannel::getLemmaKeyValue(lem);
-  return d_proofs.find(lkey) != d_proofs.end();
+  return d_proofs.find(f) != d_proofs.end();
 }
 
 TrustNode EagerProofGenerator::assertSplit(Node f)

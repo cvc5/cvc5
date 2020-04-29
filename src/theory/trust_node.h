@@ -21,9 +21,10 @@
 #include "expr/proof_node.h"
 
 namespace CVC4 {
-namespace theory {
 
 class ProofGenerator;
+
+namespace theory {
 
 /** A kind for trust nodes */
 enum class TrustNodeKind : uint32_t

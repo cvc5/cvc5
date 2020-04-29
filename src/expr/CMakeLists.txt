@@ -13,6 +13,8 @@ libcvc4_add_sources(
   expr_iomanip.h
   expr_manager_scope.h
   kind_map.h
+  lazy_proof.cpp
+  lazy_proof.h
   match_trie.cpp
   match_trie.h
   node.cpp
@@ -37,6 +39,7 @@ libcvc4_add_sources(
   proof.h
   proof_checker.cpp
   proof_checker.h
+  proof_generator.h
   proof_node.cpp
   proof_node.h
   proof_node_to_sexpr.cpp

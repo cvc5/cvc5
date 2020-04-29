@@ -50,7 +50,7 @@ std::shared_ptr<ProofNode> ProofEngineOutputChannel::getProofForConflict(
   {
     return nullptr;
   }
-  std::shared_ptr<ProofNode> ret = pgen->getProofForConflict(conf);
+  std::shared_ptr<ProofNode> ret = pgen->getProofFor(ckey);
   Assert(ret != nullptr)
       << "ProofEngineOutputChannel::getProofForConflict: could "
          "not generate proof for "
@@ -86,7 +86,7 @@ std::shared_ptr<ProofNode> ProofEngineOutputChannel::getProofForLemma(
   {
     return nullptr;
   }
-  std::shared_ptr<ProofNode> ret = pgen->getProofForLemma(lem);
+  std::shared_ptr<ProofNode> ret = pgen->getProofFor(lem);
   Assert(ret != nullptr)
       << "ProofEngineOutputChannel::getProofForLemma: could not "
          "generate proof for lemma "

@@ -27,8 +27,6 @@ namespace CVC4 {
 namespace theory {
 
 /**
- * TODO: this class should inherit from OutputChannel, not contain it.
- *
  * A layer on top of an output channel to ensure proofs are constructed and
  * available for conflicts and lemmas that may require proofs. It is
  * intended to be owned by TheoryEngine and passed as reference to each of

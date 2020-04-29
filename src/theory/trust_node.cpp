@@ -38,14 +38,14 @@ std::ostream& operator<<(std::ostream& out, TrustNodeKind tnk)
 TrustNode TrustNode::mkTrustConflict(Node conf, ProofGenerator* g)
 {
   // if a generator is provided, should confirm that it can prove it
-  Assert(g == nullptr || g->canProveConflict(conf));
+  Assert(g == nullptr || g->hasProofFor(conf));
   return TrustNode(TrustNodeKind::CONFLICT, conf, g);
 }
 
 TrustNode TrustNode::mkTrustLemma(Node lem, ProofGenerator* g)
 {
   // if a generator is provided, should confirm that it can prove it
-  Assert(g == nullptr || g->canProveLemma(lem));
+  Assert(g == nullptr || g->hasProofFor(lem));
   return TrustNode(TrustNodeKind::LEMMA, lem, g);
 }
 

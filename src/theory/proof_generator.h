@@ -21,43 +21,10 @@
 #include "expr/node.h"
 #include "expr/proof_node.h"
 #include "theory/trust_node.h"
+#include "expr/proof_generator.h"
 
 namespace CVC4 {
 namespace theory {
-
-/**
- * An abstract proof generator class, to be used in combination with
- * ProofOutputChannel (see theory/proof_output_channel.h).
- *
- * A proof generator is intended to be used as a utility in theory
- * solvers for constructing and storing proofs internally. A Theory may have
- * multiple instances of ProofGenerator objects, e.g. if it has more than one
- * way of justifying lemmas or conflicts.
- */
-class ProofGenerator
-{
- public:
-  ProofGenerator() {}
-  virtual ~ProofGenerator() {}
-  /** Get the proof for conflict conf */
-  virtual std::shared_ptr<ProofNode> getProofForConflict(Node conf) = 0;
-  /** Get the proof for lemma lem */
-  virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) = 0;
-  /**
-   * Can we give the proof for conflict conf? This is used for debugging. This
-   * returns false if the generator cannot provide a proof of conflict conf.
-   *
-   * Notice the default return value is true. In other words, a proof generator
-   * may choose to override this function to verify the construction of
-   * TrustNode objects below, although we do not insist this is the case.
-   */
-  virtual bool canProveConflict(Node conf) { return true; }
-  /**
-   * Can we give the proof for lemma lem? This is used for debugging. This
-   * returns false if the generator cannot provide a proof of lemma lem.
-   */
-  virtual bool canProveLemma(Node lem) { return true; }
-};
 
 /**
  * An eager proof generator, with explicit proof caching.
@@ -116,14 +83,10 @@ class EagerProofGenerator : public ProofGenerator
  public:
   EagerProofGenerator(context::UserContext* u, ProofNodeManager* pnm);
   ~EagerProofGenerator() {}
-  /** Get the proof for conflict conf. */
-  std::shared_ptr<ProofNode> getProofForConflict(Node conf) override;
-  /** Get the proof for lemma lem. */
-  std::shared_ptr<ProofNode> getProofForLemma(Node lem) override;
-  /** Can we give the proof for conflict conf? */
-  bool canProveConflict(Node conf) override;
-  /** Can we give the proof for lemma lem? */
-  bool canProveLemma(Node lem) override;
+  /** Get the proof for formula f. */
+  std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Can we give the proof for formula f? */
+  bool hasProofFor(Node f) override;
   //--------------------------------------- common proofs
   /**
    * This returns the trust node corresponding to the splitting lemma
