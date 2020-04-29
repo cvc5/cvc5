@@ -68,7 +68,20 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
       if (!args.empty())
       {
         children.push_back(d_argsMarker);
-        Node argsC = nm->mkNode(SEXPR, args);
+        // needed to ensure builtin operators are not treated as operators
+        // this can be the case for CONG where d_args may contain a builtin
+        // operator
+        std::vector<Node> argsSafe;
+        for (const Node& a : args)
+        {
+          Node av = a;
+          if (a.getNumChildren()==0 && a.getType().isBuiltin())
+          {
+            av = getOrMkNodeVariable(a);
+          }
+          argsSafe.push_back(av);
+        }
+        Node argsC = nm->mkNode(SEXPR, argsSafe);
         children.push_back(argsC);
       }
       d_pnMap[cur] = nm->mkNode(SEXPR, children);
@@ -92,6 +105,22 @@ Node ProofNodeToSExpr::getOrMkPfRuleVariable(PfRule r)
   std::vector<TypeNode> types;
   Node var = nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
   d_pfrMap[r] = var;
+  return var;
+}
+
+Node ProofNodeToSExpr::getOrMkNodeVariable(Node n)
+{
+  std::map<Node, Node>::iterator it = d_nodeMap.find(r);
+  if (it != d_nodeMap.end())
+  {
+    return it->second;
+  }
+  std::stringstream ss;
+  ss << n;
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<TypeNode> types;
+  Node var = nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
+  d_nodeMap[n] = var;
   return var;
 }
 
