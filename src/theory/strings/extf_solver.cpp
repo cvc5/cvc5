@@ -429,7 +429,8 @@ void ExtfSolver::checkExtfEval(int effort)
       to_reduce = n;
     }
     // if not reduced and not processed
-    if (!to_reduce.isNull() && inferProcessed.find(to_reduce)==inferProcessed.end())
+    if (!to_reduce.isNull()
+        && inferProcessed.find(to_reduce) == inferProcessed.end())
     {
       inferProcessed.insert(to_reduce);
       Assert(effort < 3);
