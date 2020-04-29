@@ -35,7 +35,7 @@ void ProofEngineOutputChannel::trustedConflict(TrustNode pconf)
   if (pfg != nullptr)
   {
     d_outPfGen[ckey] = pfg;
-    Assert(pfg->canProveConflict(conf));
+    Assert(pfg->hasProofFor(ckey));
   }
   // now, call conflict
   conflict(conf);
@@ -71,7 +71,7 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
   if (pfg != nullptr)
   {
     d_outPfGen[lkey] = pfg;
-    Assert(pfg->canProveLemma(lem));
+    Assert(pfg->hasProofFor(lkey));
   }
   // now, call lemma
   return OutputChannel::lemma(lem, removable, preprocess, sendAtoms);

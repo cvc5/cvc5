@@ -75,7 +75,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
         for (const Node& a : args)
         {
           Node av = a;
-          if (a.getNumChildren()==0 && a.getType().isBuiltin())
+          if (a.getNumChildren()==0 && NodeManager::operatorToKind(a)!=UNDEFINED_KIND)
           {
             av = getOrMkNodeVariable(a);
           }
@@ -110,7 +110,7 @@ Node ProofNodeToSExpr::getOrMkPfRuleVariable(PfRule r)
 
 Node ProofNodeToSExpr::getOrMkNodeVariable(Node n)
 {
-  std::map<Node, Node>::iterator it = d_nodeMap.find(r);
+  std::map<Node, Node>::iterator it = d_nodeMap.find(n);
   if (it != d_nodeMap.end())
   {
     return it->second;
