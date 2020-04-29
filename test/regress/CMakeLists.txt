@@ -2114,6 +2114,7 @@ set(regress_3_tests
   regress3/sixfuncs.sy
   regress3/strings-any-term.sy
   regress3/strings/extf_d_perf.smt2
+  regress3/strings/unsat-circ-reduce.smt2
 )
 
 #-----------------------------------------------------------------------------#
