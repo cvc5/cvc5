@@ -1159,7 +1159,27 @@ void EqualityEngine::getExplanation(
   // If the nodes are the same, we're done
   if (t1Id == t2Id){
     if( eqp ) {
-      if ((d_nodes[t1Id].getKind() == kind::BUILTIN) && (d_nodes[t1Id].getConst<Kind>() == kind::SELECT)) {
+      if (options::proofNew())
+      {
+        // ignore equalities between function symbols, i.e. internal nullary
+        // non-constant nodes.
+        //
+        // This is robust for HOL because in that case function symbols  are not
+        // internal nodes
+        if (d_isInternal[t1Id] && d_nodes[t1Id].getNumChildren() == 0
+            && !d_isConstant[t1Id])
+        {
+          eqp->d_node = Node::null();
+        }
+        else
+        {
+          Assert(d_nodes[t1Id].getKind() != kind::BUILTIN);
+          eqp->d_node = d_nodes[t1Id].eqNode(d_nodes[t1Id]);
+        }
+      }
+      else if ((d_nodes[t1Id].getKind() == kind::BUILTIN)
+               && (d_nodes[t1Id].getConst<Kind>() == kind::SELECT))
+      {
         std::vector<Node> no_children;
         eqp->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_0, no_children);
       } else {
@@ -1253,9 +1273,30 @@ void EqualityEngine::getExplanation(
                   eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(f1.d_b, f2.d_b, equalities, cache, eqpc2.get());
               if( eqpc ){
-                eqpc->d_children.push_back( eqpc1 );
-                eqpc->d_children.push_back( eqpc2 );
-                if( d_nodes[currentNode].getKind()==kind::EQUAL ){
+                eqpc->d_children.push_back(eqpc1);
+                eqpc->d_children.push_back(eqpc2);
+                if (options::proofNew())
+                {
+                  // if full application of a congruence kind, create the result
+                  // of the congruence
+                  if (!d_isInternal[currentNode])
+                  {
+                    Kind k = d_nodes[currentNode].getKind();
+                    if (d_congruenceKinds[k])
+                    {
+                      eqpc->d_node =
+                          d_nodes[currentNode].eqNode(d_nodes[edgeNode]);
+                    }
+                    else
+                    {
+                      Assert(k == kind::EQUAL)
+                          << "not an internal node " << d_nodes[currentNode]
+                          << " with non-congruence with " << k << "\n";
+                    }
+                  }
+                }
+                else if (d_nodes[currentNode].getKind() == kind::EQUAL)
+                {
                   //leave node null for now
                   eqpc->d_node = Node::null();
                 } else {
