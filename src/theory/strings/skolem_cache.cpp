@@ -56,59 +56,52 @@ Node SkolemCache::mkTypedSkolemCached(
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     // the condition
     Node v = nm->mkBoundVar(tn);
     Node cond = nm->mkConst(true);
     switch (id)
     {
-    // exists k. k = a
-    case SK_PURIFY:
-      cond = v.eqNode(a);
-      break;
-    // a != ""  ^ b != "" ^ len( a ) != len( b ) ^ a ++ a' != b ++ b' =>
-    //    exists k_x k_y k_z.
-    //         ( len( k_y ) = len( a ) ^ len( k_x ) = len( b ) ^ len( k_z) > 0
-    //           ( a = k_x ++ k_z OR b = k_y ++ k_z ) )
-    case SK_ID_DEQ_Z:
-      break;
-    // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
-    //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
-    case SK_ID_V_SPT:
-      break;
-    case SK_ID_V_SPT_REV:
-      break;
-    // --------------- integer skolems
-    // exists k. ( b occurs k times in a )
-    case SK_NUM_OCCUR:
-      break;
-    // --------------- function skolems
-    // For function k: Int -> Int
-    //   exists k.
-    //     forall 0 <= x <= n,
-    //       k(x) is the end index of the x^th occurrence of b in a
-    //   where n is the number of occurrences of b in a, and k(0)=0.
-    case SK_OCCUR_INDEX:
-      break;
-    case SK_ID_VC_SPT:
-    case SK_ID_VC_SPT_REV:
-    case SK_FIRST_CTN_POST:
-    case SK_ID_C_SPT:
-    case SK_ID_C_SPT_REV:
-    case SK_ID_DC_SPT:
-    case SK_ID_DC_SPT_REM:
-    case SK_ID_DEQ_X:
-    case SK_ID_DEQ_Y:    
-    case SK_FIRST_CTN_PRE:
-    case SK_PREFIX:
-    case SK_SUFFIX_REM:
-      Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
-      break;
-    default:
-      Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
-      break;
+      // exists k. k = a
+      case SK_PURIFY: cond = v.eqNode(a); break;
+      // a != ""  ^ b != "" ^ len( a ) != len( b ) ^ a ++ a' != b ++ b' =>
+      //    exists k_x k_y k_z.
+      //         ( len( k_y ) = len( a ) ^ len( k_x ) = len( b ) ^ len( k_z) > 0
+      //           ( a = k_x ++ k_z OR b = k_y ++ k_z ) )
+      case SK_ID_DEQ_Z: break;
+      // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
+      //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
+      case SK_ID_V_SPT: break;
+      case SK_ID_V_SPT_REV: break;
+      // --------------- integer skolems
+      // exists k. ( b occurs k times in a )
+      case SK_NUM_OCCUR: break;
+      // --------------- function skolems
+      // For function k: Int -> Int
+      //   exists k.
+      //     forall 0 <= x <= n,
+      //       k(x) is the end index of the x^th occurrence of b in a
+      //   where n is the number of occurrences of b in a, and k(0)=0.
+      case SK_OCCUR_INDEX: break;
+      case SK_ID_VC_SPT:
+      case SK_ID_VC_SPT_REV:
+      case SK_FIRST_CTN_POST:
+      case SK_ID_C_SPT:
+      case SK_ID_C_SPT_REV:
+      case SK_ID_DC_SPT:
+      case SK_ID_DC_SPT_REM:
+      case SK_ID_DEQ_X:
+      case SK_ID_DEQ_Y:
+      case SK_FIRST_CTN_PRE:
+      case SK_PREFIX:
+      case SK_SUFFIX_REM:
+        Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
+        break;
+      default:
+        Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
+        break;
     }
-    Node sk = d_pskc.mkSkolem(v,cond,c,"string skolem");
+    Node sk = d_pskc.mkSkolem(v, cond, c, "string skolem");
     d_allSkolems.insert(sk);
     d_skolemCache[a][b][id] = sk;
     return sk;
@@ -164,7 +157,8 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
   {
     // SK_ID_C_SPT_REV(x, y) ---> SK_PREFIX(x, (- (str.len x) (str.len y)))
     id = SK_PREFIX;
-    b = nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH, a),nm->mkNode(STRING_LENGTH, b));
+    b = nm->mkNode(
+        MINUS, nm->mkNode(STRING_LENGTH, a), nm->mkNode(STRING_LENGTH, b));
   }
   else if (id == SK_ID_VC_SPT)
   {
@@ -205,29 +199,32 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     id = SK_PREFIX;
     b = nm->mkNode(STRING_LENGTH, b);
   }
-  
+
   if (id == SK_FIRST_CTN_PRE)
   {
     // SK_FIRST_CTN_PRE(x,y) ---> SK_PREFIX(x, indexof(x,y,0))
     id = SK_PREFIX;
-    b = nm->mkNode(STRING_STRIDOF,a,b,d_zero);
+    b = nm->mkNode(STRING_STRIDOF, a, b, d_zero);
   }
-  
+
   if (id == SK_PREFIX)
   {
     // SK_PREFIX(x,y) ---> SK_PURIFY(substr(x,0,y))
     id = SK_PURIFY;
-    a = nm->mkNode(STRING_SUBSTR,a,d_zero,b);
+    a = nm->mkNode(STRING_SUBSTR, a, d_zero, b);
     b = Node::null();
   }
-  else if (id==SK_SUFFIX_REM)
+  else if (id == SK_SUFFIX_REM)
   {
     // SK_SUFFIX_REM(x,y) ---> SK_PURIFY(substr(x,y,str.len(x)-y))
     id = SK_PURIFY;
-    a = nm->mkNode(STRING_SUBSTR,a,b,nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH, a),b));
+    a = nm->mkNode(STRING_SUBSTR,
+                   a,
+                   b,
+                   nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, a), b));
     b = Node::null();
   }
-  
+
   // FIXME: delay rewriting
   a = a.isNull() ? a : Rewriter::rewrite(a);
   b = b.isNull() ? b : Rewriter::rewrite(b);

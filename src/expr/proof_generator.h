@@ -36,21 +36,21 @@ class ProofGenerator
  public:
   ProofGenerator() {}
   virtual ~ProofGenerator() {}
-  /** Get the proof for formula f 
-   * 
+  /** Get the proof for formula f
+   *
    * This forces the proof generator to construct a proof for formula f and
    * return it. If this is an "eager" proof generator, this function is expected
    * to be implemented as a map lookup. If this is a "lazy" proof generator,
    * this function is expected to invoke a proof producing procedure of the
    * generator.
-   * 
+   *
    * It should be the case that hasProofFor(f) is true.
    */
   virtual std::shared_ptr<ProofNode> getProofFor(Node f) = 0;
   /**
    * Can we give the proof for formula f? This is used for debugging. This
-   * returns false if the generator cannot provide a proof of formula f. 
-   * 
+   * returns false if the generator cannot provide a proof of formula f.
+   *
    * Also notice that this function does not require the proof for f to be
    * constructed at the time of this call. Thus, if this is a "lazy" proof
    * generator, it is expected that this call is implemented as a map lookup
