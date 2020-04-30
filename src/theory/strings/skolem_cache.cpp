@@ -66,39 +66,17 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_PURIFY:
       cond = v.eqNode(a);
       break;
-    // a != "" ^ b = "ccccd" ^ a ++ "d" ++ a' = b ++ b' =>
-    //    exists k. a = "cccc" + k
-    case SK_ID_C_SPT_REV:
-      break;
     // a != ""  ^ b != "" ^ len( a ) != len( b ) ^ a ++ a' != b ++ b' =>
     //    exists k_x k_y k_z.
     //         ( len( k_y ) = len( a ) ^ len( k_x ) = len( b ) ^ len( k_z) > 0
     //           ( a = k_x ++ k_z OR b = k_y ++ k_z ) )
     case SK_ID_DEQ_Z:
       break;
-    // contains( a, b ) =>
-    //    exists k_pre, k_post. a = k_pre ++ b ++ k_post ^
-    //                          ~contains(k_pre ++ substr( b, 0, len(b)-1 ), b)
-    //
-    // As an optimization, these skolems are reused for positive occurrences of
-    // contains, where they have the semantics:
-    //
-    //   contains( a, b ) =>
-    //      exists k_pre, k_post. a = k_pre ++ b ++ k_post
-    //
-    // We reuse them since it is sound to consider w.l.o.g. the first occurrence
-    // of b in a as the witness for contains( a, b ).
-    case SK_FIRST_CTN_PRE:
+    // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
+    //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
+    case SK_ID_V_SPT:
       break;
-    // For integer b,
-    // len( a ) > b =>
-    //    exists k. a = k ++ a' ^ len( k ) = b
-    case SK_PREFIX:
-      break;
-    // For integer b,
-    // b > 0 =>
-    //    exists k. a = a' ++ k ^ len( k ) = ite( len(a)>b, len(a)-b, 0 )
-    case SK_SUFFIX_REM:
+    case SK_ID_V_SPT_REV:
       break;
     // --------------- integer skolems
     // exists k. ( b occurs k times in a )
@@ -112,12 +90,6 @@ Node SkolemCache::mkTypedSkolemCached(
     //   where n is the number of occurrences of b in a, and k(0)=0.
     case SK_OCCUR_INDEX:
       break;
-    // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
-    //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
-    case SK_ID_V_SPT:
-      break;
-    case SK_ID_V_SPT_REV:
-      break;
     case SK_ID_VC_SPT:
     case SK_ID_VC_SPT_REV:
     case SK_FIRST_CTN_POST:
@@ -126,7 +98,10 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_ID_DC_SPT:
     case SK_ID_DC_SPT_REM:
     case SK_ID_DEQ_X:
-    case SK_ID_DEQ_Y:
+    case SK_ID_DEQ_Y:    
+    case SK_FIRST_CTN_PRE:
+    case SK_PREFIX:
+    case SK_SUFFIX_REM:
       Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
       break;
     default:
@@ -230,47 +205,29 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     id = SK_PREFIX;
     b = nm->mkNode(STRING_LENGTH, b);
   }
-
-  if (id == SK_PURIFY && a.getKind() == kind::STRING_SUBSTR)
-  {
-    Node s = a[0];
-    Node n = a[1];
-    Node m = a[2];
-
-    if (n == d_zero)
-    {
-      // SK_PURIFY((str.substr x 0 m)) ---> SK_PREFIX(x, m)
-      id = SK_PREFIX;
-      a = s;
-      b = m;
-    }
-    else if (ArithEntail::check(nm->mkNode(PLUS, n, m),
-                                nm->mkNode(STRING_LENGTH, s)))
-    {
-      // SK_PURIFY((str.substr x n m)) ---> SK_SUFFIX_REM(x, n)
-      // if n + m >= (str.len x)
-      id = SK_SUFFIX_REM;
-      a = s;
-      b = n;
-    }
-  }
-
-  if (id == SK_PREFIX && b.getKind() == kind::STRING_STRIDOF && a == b[0]
-      && b[2] == d_zero)
-  {
-    // SK_PREFIX(x, (str.indexof x y 0)) ---> SK_FIRST_CTN_PRE(x, y)
-    id = SK_FIRST_CTN_PRE;
-    b = b[1];
-  }
-
+  
   if (id == SK_FIRST_CTN_PRE)
   {
-    // SK_FIRST_CTN_PRE((str.substr x 0 n), y) ---> SK_FIRST_CTN_PRE(x, y)
-    while (a.getKind() == kind::STRING_SUBSTR && a[1] == d_zero)
-    {
-      a = a[0];
-    }
+    // SK_FIRST_CTN_PRE(x,y) ---> SK_PREFIX(x, indexof(x,y,0))
+    id = SK_PREFIX;
+    b = nm->mkNode(STRING_STRIDOF,a,b,d_zero);
   }
+  
+  if (id == SK_PREFIX)
+  {
+    // SK_PREFIX(x,y) ---> SK_PURIFY(substr(x,0,y))
+    id = SK_PURIFY;
+    a = nm->mkNode(STRING_SUBSTR,a,d_zero,b);
+    b = Node::null();
+  }
+  else if (id==SK_SUFFIX_REM)
+  {
+    // SK_SUFFIX_REM(x,y) ---> SK_PURIFY(substr(x,y,str.len(x)-y))
+    id = SK_PURIFY;
+    a = nm->mkNode(STRING_SUBSTR,a,b,nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH, a),b));
+    b = Node::null();
+  }
+  
   // FIXME: delay rewriting
   a = a.isNull() ? a : Rewriter::rewrite(a);
   b = b.isNull() ? b : Rewriter::rewrite(b);
