@@ -117,9 +117,6 @@ namespace CVC4 {
  */
 class CDProof
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
-      NodeProofNodeMap;
-
  public:
   CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
   ~CDProof();
@@ -183,6 +180,8 @@ class CDProof
   bool addProof(ProofNode* pn, bool forceOverwrite = false);
 
  protected:
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
+      NodeProofNodeMap;
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_manager;
   /** A dummy context used by this class if none is provided */

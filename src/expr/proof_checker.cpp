@@ -54,7 +54,9 @@ Node ProofChecker::check(
   Trace("pfcheck") << "      args: " << args << std::endl;
   Trace("pfcheck") << "  expected: " << expected << std::endl;
   std::stringstream out;
-  Node res = it->second->check(id, cchildren, args, expected, out);
+  // we use trusted (null) checkers here, since we want the proof generation to
+  // proceed without failing here.
+  Node res = it->second->check(id, cchildren, args, expected, out, true);
   if (res.isNull())
   {
     Trace("pfcheck") << "ProofChecker::check: failed" << std::endl;
@@ -73,7 +75,9 @@ Node ProofChecker::checkDebug(PfRule id,
              const char * traceTag)
 {
   std::stringstream out;
-  Node res = checkInternal(id,cchildren, args, expected, out);
+  // since we are debugging, we want to treat trusted (null) checkers as
+  // a failure.
+  Node res = checkInternal(id,cchildren, args, expected, out, false);
   Trace(traceTag) << "ProofChecker::checkDebug: " << id;
   if (res.isNull())
   {
@@ -90,7 +94,9 @@ Node ProofChecker::checkInternal(PfRule id,
             const std::vector<Node>& cchildren,
             const std::vector<Node>& args,
             Node expected,
-             std::stringstream& out)
+             std::stringstream& out,
+             bool useTrustedCheckers
+                                )
 {
   std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it == d_checker.end())
@@ -102,9 +108,18 @@ Node ProofChecker::checkInternal(PfRule id,
   }
   else if (it->second == nullptr)
   {
-    Notice() << "ProofChecker::check: trusting PfRule for " << id << std::endl;
-    // trusted checker
-    return expected;
+    if (useTrustedChecker)
+    {
+      Notice() << "ProofChecker::check: trusting PfRule " << id << std::endl;
+      // trusted checker
+      return expected;
+    }
+    else
+    {
+      out << "trusted checker for rule " << id
+                    << std::endl;
+      return Node::null();
+    }
   }
   // check it with the corresponding checker
   Node res = it->second->check(id, cchildren, args);

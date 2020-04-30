@@ -72,7 +72,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
             // update this node will ensure that the proof apf is a proof of the
             // assumption. If it does not, then the generator was wrong.
             if (!d_manager->updateNode(
-                cur, apf->getRule(), apf->getChildren(), apf->getArgs()))
+                cur, apf->getRule(), apf->getChildren(), apf->getArguments()))
             {
               // print warning?
               Assert(false) << "Proof generator provided an unexpected proof for fact " << afact << std::endl;
