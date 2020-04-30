@@ -48,12 +48,10 @@ enum CVC4_PUBLIC Language
   LANG_SMTLIB_V2_0 = 0,
   /** The SMTLIB v2.5 input language */
   LANG_SMTLIB_V2_5,
-  /** The SMTLIB v2.6 input language */
+  /** The SMTLIB v2.6 input language, with support for the strings standard */
   LANG_SMTLIB_V2_6,
   /** Backward-compatibility for enumeration naming */
   LANG_SMTLIB_V2 = LANG_SMTLIB_V2_6,
-  /** The SMTLIB v2.6 input language, with support for the strings standard */
-  LANG_SMTLIB_V2_6_1,
   /** The TPTP input language */
   LANG_TPTP,
   /** The CVC4 input language */
@@ -87,7 +85,6 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SMTLIB_V2_6:
     out << "LANG_SMTLIB_V2_6";
     break;
-  case LANG_SMTLIB_V2_6_1: out << "LANG_SMTLIB_V2_6_1"; break;
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
@@ -129,12 +126,10 @@ enum CVC4_PUBLIC Language
   LANG_SMTLIB_V2_0 = input::LANG_SMTLIB_V2_0,
   /** The SMTLIB v2.5 output language */
   LANG_SMTLIB_V2_5 = input::LANG_SMTLIB_V2_5,
-  /** The SMTLIB v2.6 output language */
+  /** The SMTLIB v2.6 output language, with support for the strings standard */
   LANG_SMTLIB_V2_6 = input::LANG_SMTLIB_V2_6,
   /** Backward-compatibility for enumeration naming */
   LANG_SMTLIB_V2 = input::LANG_SMTLIB_V2,
-  /** The SMTLIB v2.6 output language */
-  LANG_SMTLIB_V2_6_1 = input::LANG_SMTLIB_V2_6_1,
   /** The TPTP output language */
   LANG_TPTP = input::LANG_TPTP,
   /** The CVC4 output language */
@@ -168,7 +163,6 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
     out << "LANG_SMTLIB_V2_5";
     break;
   case LANG_SMTLIB_V2_6: out << "LANG_SMTLIB_V2_6"; break;
-  case LANG_SMTLIB_V2_6_1: out << "LANG_SMTLIB_V2_6_1"; break;
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;

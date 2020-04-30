@@ -225,6 +225,10 @@ void TermRegistry::registerTerm(Node n, int effort)
                             nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
                             nm->mkNode(LEQ, n, len));
   }
+  else if (n.getKind() == STRING_STOI)
+  {
+    regTermLem = nm->mkNode(GEQ, n, nm->mkConst(Rational(-1)));
+  }
   if (!regTermLem.isNull())
   {
     Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem

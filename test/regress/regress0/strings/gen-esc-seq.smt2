@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-models --lang=smt2.6.1
+; COMMAND-LINE: --produce-models --lang=smt2.6
 ; EXPECT: sat
 ; EXPECT: ((x "\u{5c}u1000"))
 (set-logic ALL)
