@@ -17,12 +17,11 @@
 namespace CVC4 {
 
 LazyCDProof::LazyCDProof(ProofNodeManager* pnm, context::Context* c)
-: CDProof(pnm, c)
+    : CDProof(pnm, c)
 {
-  
 }
 
-LazyCDProof::~LazyCDProof(){}
+LazyCDProof::~LazyCDProof() {}
 
 std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
 {
@@ -35,8 +34,8 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
   else
   {
     // we may have a generator
-    ProofGenerator * pg = getGeneratorFor(fact);
-    if (pg!=nullptr)
+    ProofGenerator* pg = getGeneratorFor(fact);
+    if (pg != nullptr)
     {
       std::shared_ptr<ProofNode> pf = pg->getProofFor(fact);
       return pf;
@@ -49,27 +48,30 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
   std::unordered_set<ProofNode*>::iterator it;
   std::vector<ProofNode*> visit;
   visit.push_back(opf.get());
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       visited.insert(cur);
-      if (cur->getRule()==PfRule::ASSUME)
+      if (cur->getRule() == PfRule::ASSUME)
       {
         Node afact = cur->getResult();
-        ProofGenerator * pg = getGeneratorFor(afact);
-        if (pg!=nullptr)
+        ProofGenerator* pg = getGeneratorFor(afact);
+        if (pg != nullptr)
         {
           // plug in the proof if it exists
           std::shared_ptr<ProofNode> apf = pg->getProofFor(afact);
-          if (apf!=nullptr)
+          if (apf != nullptr)
           {
             // We update cur to have the structure of the top node of the
-            // given proof. Notice that the interface to update this node 
+            // given proof. Notice that the interface to update this node
             // will ensure that the proof apf is a proof of the assumption.
-            d_manager->updateNode(cur,apf->getRule(),apf->getChildren(),apf->getArgs());
+            d_manager->updateNode(
+                cur, apf->getRule(), apf->getChildren(), apf->getArgs());
           }
         }
         // Notice that we do not traverse the proofs that have been generated
@@ -91,10 +93,12 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
   return opf;
 }
 
-void LazyCDProof::addStep(Node expected, ProofGenerator * pg, bool forceOverwrite)
+void LazyCDProof::addStep(Node expected,
+                          ProofGenerator* pg,
+                          bool forceOverwrite)
 {
-  std::map< Node, ProofGenerator * >::const_iterator it = d_gens.find(expected);
-  if (it!=d_gens.end() && !forceOverwrite)
+  std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(expected);
+  if (it != d_gens.end() && !forceOverwrite)
   {
     // don't overwrite something that is already there
     return;
@@ -103,10 +107,11 @@ void LazyCDProof::addStep(Node expected, ProofGenerator * pg, bool forceOverwrit
   d_gens[expected] = pg;
 }
 
-ProofGenerator * LazyCDProof::getGeneratorFor(Node fact) const
+ProofGenerator* LazyCDProof::getGeneratorFor(Node fact) const
 {
-  std::unordered_map< Node, ProofGenerator *, NodeHashFunction >::const_iterator it = d_gens.find(fact);
-  if (it!=d_gens.end())
+  std::unordered_map<Node, ProofGenerator*, NodeHashFunction>::const_iterator
+      it = d_gens.find(fact);
+  if (it != d_gens.end())
   {
     return it->second;
   }

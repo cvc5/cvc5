@@ -268,11 +268,11 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     for (const TNode& a : assumps)
     {
       // must rewrite to get proper orientation?
-      //assumpsN.push_back(Rewriter::rewrite(a));
+      // assumpsN.push_back(Rewriter::rewrite(a));
       assumpsN.push_back(a);
     }
     std::shared_ptr<ProofNode> pf =
-                     d_pnm->mkNode(PfRule::SCOPE, pfConc, assumpsN, formula);
+        d_pnm->mkNode(PfRule::SCOPE, pfConc, assumpsN, formula);
     if (Trace.isOn("pfee-proof"))
     {
       Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"
@@ -286,7 +286,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     Assert(pf != nullptr);
     // should be a closed proof now
     // FIXME: broken due to modulo symm assertions (x=y does not close y=x)
-    //Assert(pf->isClosed());
+    // Assert(pf->isClosed());
     // set the proof for the conflict or lemma, which can be queried later
     if (isConflict)
     {
@@ -378,7 +378,8 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
   {
     if (Trace.isOn("pfee-proof"))
     {
-      Trace("pfee-proof") << "pfee::explainWithProof: add to proof ---" << std::endl;
+      Trace("pfee-proof") << "pfee::explainWithProof: add to proof ---"
+                          << std::endl;
       std::stringstream sse;
       pf->debug_print(sse);
       Trace("pfee-proof") << sse.str() << std::endl;

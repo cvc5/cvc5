@@ -49,7 +49,7 @@ class ProofNodeToSExpr
   Node d_argsMarker;
   /** map proof nodes to their s-expression */
   std::map<const ProofNode*, Node> d_pnMap;
-  /** 
+  /**
    * map nodes to a bound variable, used for nodes that have special AST status
    * like builtin operators
    */

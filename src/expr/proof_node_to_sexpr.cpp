@@ -75,7 +75,8 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
         for (const Node& a : args)
         {
           Node av = a;
-          if (a.getNumChildren()==0 && NodeManager::operatorToKind(a)!=UNDEFINED_KIND)
+          if (a.getNumChildren() == 0
+              && NodeManager::operatorToKind(a) != UNDEFINED_KIND)
           {
             av = getOrMkNodeVariable(a);
           }

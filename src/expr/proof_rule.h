@@ -107,7 +107,6 @@ enum class PfRule : uint32_t
   // Conclusion: (= t (witness ((z T)) (= z t)))
   // where T is the type of t.
   PURIFY,
-  
 
   //================================================= Boolean rules
   // ======== Split

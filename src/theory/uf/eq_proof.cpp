@@ -513,8 +513,8 @@ Node EqProof::addToProof(CDProof* p) const
   }
   if (Debug.isOn("eqproof::conv"))
   {
-    Debug("eqproof::conv") << "EqProof::addToProof: proof node of "
-                           << d_node << " is:\n";
+    Debug("eqproof::conv") << "EqProof::addToProof: proof node of " << d_node
+                           << " is:\n";
     std::stringstream out;
     p->getProof(d_node).get()->printDebug(out);
     Debug("eqproof::conv") << out.str() << "\n";

@@ -84,8 +84,9 @@ Node EqProofRuleChecker::check(PfRule id,
       // get the expected kind for args[0]
       k = NodeManager::operatorToKind(args[0]);
     }
-    Trace("uf-pfcheck") << "congruence for " << args[0] << " uses kind " << k << ", metakind=" << kind::metaKindOf(k) << std::endl;
-    if (kind::metaKindOf(k)==kind::metakind::PARAMETERIZED)
+    Trace("uf-pfcheck") << "congruence for " << args[0] << " uses kind " << k
+                        << ", metakind=" << kind::metaKindOf(k) << std::endl;
+    if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
     {
       // parameterized kinds require the operator
       lchildren.push_back(args[0]);

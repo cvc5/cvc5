@@ -19,9 +19,9 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "expr/proof_generator.h"
 #include "expr/proof_node.h"
 #include "theory/trust_node.h"
-#include "expr/proof_generator.h"
 
 namespace CVC4 {
 namespace theory {
