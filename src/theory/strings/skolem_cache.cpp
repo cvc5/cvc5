@@ -55,10 +55,11 @@ Node SkolemCache::mkTypedSkolemCached(
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {
+    NodeManager * nm = NodeManager::currentNM();
     // the condition
     Node v = nm->mkBoundVar(tn);
     Node cond = nm->mkConst(true);
-    case (id)
+    switch (id)
     {
     // exists k. k = a
     case SK_PURIFY:
@@ -101,7 +102,7 @@ Node SkolemCache::mkTypedSkolemCached(
       break;
     // --------------- integer skolems
     // exists k. ( b occurs k times in a )
-    case SK_NUM_OCCUR,
+    case SK_NUM_OCCUR:
       break;
     // --------------- function skolems
     // For function k: Int -> Int
