@@ -47,9 +47,10 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 #ifdef SWIGPYTHON
 %pythonappend CVC4::SmtEngine::SmtEngine %{
-  # Hold a reference to the ExprManager to make sure that Python keeps the
-  # ExprManager alive as long as the SmtEngine exists
-  self.em = em
+  self.thisown = 0
+%}
+%pythonappend CVC4::ExprManager::ExprManager %{
+  self.thisown = 0
 %}
 #endif /* SWIGPYTHON */
 
