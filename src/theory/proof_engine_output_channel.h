@@ -22,6 +22,7 @@
 #include "expr/proof_node.h"
 #include "theory/engine_output_channel.h"
 #include "theory/proof_generator.h"
+#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -33,24 +34,17 @@ namespace theory {
  * its Theory solvers. Its use can be summarized in two parts:
  *
  * (1) Theory objects should use the output calls to methods in this class,
- * e.g. conflict(...), lemma(...).
+ * e.g. trustedConflict(...), trustedLemma(...).
  *
- * (2) TheoryEngine should use the methods to get proofs in this class, e.g
- * getProofForConflict(...), getProofForLemma(...) corresponding to the above
- * calls.
+ * (2) This class is responsible for adding proof steps to the provide proof
+ * object that correspond to steps.
  *
  * It is implemented by requiring that calls to conflict(...) provide an
  * pointer to a proof generator object, as part of the TrustNode pair.
  *
  * In more detail, when a call to
- *   ProofOutputChannel::conflict(TrustNode(conf, pfg))
- * is made, this class is required, in the remainder of the current user
- * context, to provide a proof for lem via the call:
- *   ProofOutputChannel::getProofForConflict(conf)
- * This is implemented by calling the getProofForConflict(conf) method of the
- * provided proof generator pfg. Simliar contracts exist for the other calls.
- * Thus, the user of this class needs to ensure that the provided pfg can
- * produce a proof for conf in the remainder of the user context.
+ *   ProofOutputChannel::trustedConflict(TrustNode(conf, pfg))
+ * is made
  */
 class ProofEngineOutputChannel : public EngineOutputChannel
 {
@@ -60,54 +54,42 @@ class ProofEngineOutputChannel : public EngineOutputChannel
  public:
   ProofEngineOutputChannel(TheoryEngine* engine,
                            theory::TheoryId theory,
-                           context::UserContext* u);
+                           LazyCDProof * lpf);
   ~ProofEngineOutputChannel() {}
   /**
    * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
    * sends conf on the output channel of this class whose proof can be generated
-   * by the generator pfg. Apart from pfg, the interface for this method is
-   * the same as OutputChannel.
+   * by the generator pfg. It stores the mapping
+   *   getConflictKeyValue(conf) |-> pfg
+   * as a (lazy) step in the lazy proof object owned by this class.
    */
   void trustedConflict(TrustNode pconf) override;
-  /**
-   * Get the proof for conflict conf. This method can be called if
-   * conflict(TrustNode(conf, pfg)) has been called in this user context. This
-   * method returns the proof of conf, according to pfg, or nullptr if we fail
-   * to generate a proof. The latter can happen if pfg was nullptr, or if its
-   * getProof method failed, indicating an internal failure.
-   */
-  std::shared_ptr<ProofNode> getProofForConflict(Node conf) const override;
   /**
    * Let plem be the pair (Node lem, ProofGenerator * pfg).
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
-   * the same as OutputChannel.
+   * the same as OutputChannel. It stores the mapping
+   *   getLemmaKeyValue(lem) |-> pfg
+   * as a (lazy) step in the lazy proof object owned by this class.
    */
   LemmaStatus trustedLemma(TrustNode plem,
                            bool removable = false,
                            bool preprocess = false,
                            bool sendAtoms = false) override;
-  /**
-   * Get the proof for lemma lem. This method can be called if
-   * lemma(TrustNode(lem, pfg), ...) has been called in this user context.
-   * This method returns the proof of lem, according to pfg, or nullptr if we
-   * fail to generate a proof. The latter can happen if pfg was nullptr, or if
-   * its getProof method failed, indicating an internal failure.
-   */
-  std::shared_ptr<ProofNode> getProofForLemma(Node lem) const override;
 
   /** Get the node key for which conflict calls are cached */
   static Node getConflictKeyValue(Node conf);
   /** Get the node key for which lemma calls are cached */
   static Node getLemmaKeyValue(Node lem);
-
- private:
   /** Get proof generator for key, or nullptr if it does not exist */
   ProofGenerator* getProofGeneratorForKey(Node key) const;
-  /**
-   * A user-context-dependent map from lemmas and conflicts to proof generators
+ private:
+  /** Pointer to the lazy proof 
+   * 
+   * This object stores the mapping between formulas (conflicts or lemmas)
+   * and the proof generator provided for them.
    */
-  NodeProofGenMap d_outPfGen;
+  LazyCDProof * d_lazyPf;
 };
 
 }  // namespace theory

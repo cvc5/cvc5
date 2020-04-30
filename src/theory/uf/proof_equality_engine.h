@@ -134,7 +134,8 @@ class ProofEqEngine : public EagerProofGenerator
                         const std::vector<Node>& exp,
                         const std::vector<Node>& toExplain,
                         const std::vector<Node>& args);
-
+  /** identify */ 
+  std::string identify() const override { return "ProofEqEngine"; }
  protected:
   /**
    * Make proof for fact lit, or nullptr if it does not exist. It must be the

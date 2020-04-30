@@ -67,7 +67,7 @@ Notes:
 
 PRs:
 
-- SEXPR simply typed
+- SEXPR simply typed?
 (1) ProofChecker improve tracing
 - Add ProofNode printing as dag (SEXPR)
 - Proof kinds infrastructure
@@ -76,10 +76,11 @@ PRs:
 (4) UF rules, UF checker.
 - EqProof conversion (Haniel)
 (5) String rules, string checker
-(6) Split EngineOutputChannel from TheoryEngine
+(6) Split EngineOutputChannel from TheoryEngine to its own file
 (7) Add ProofEngineOutputChannel
 (8) Add TrustNode
-(9) Add ProofGenerator
+(9) Add LazyCDProof and ProofGenerator
+- Add EagerProofGenerator
 (10) ProofEqEngine 
 (11) TheoryEngine proof checker initialize
 (12) ProofSkolemCache

@@ -51,6 +51,7 @@
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
+#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 
@@ -241,7 +242,7 @@ class TheoryEngine {
    * Output channels for individual theories.
    */
   theory::ProofEngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
-
+  
   /**
    * Are we in conflict.
    */
@@ -387,7 +388,7 @@ class TheoryEngine {
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] =
-        new theory::ProofEngineOutputChannel(this, theoryId, d_userContext);
+        new theory::ProofEngineOutputChannel(this, theoryId, d_lazyProof.get());
     d_theoryTable[theoryId] = new TheoryClass(d_context,
                                               d_userContext,
                                               *d_theoryOut[theoryId],
@@ -828,7 +829,16 @@ private:
   IntStat d_arithSubstitutionsAdded;
 
   /** For the new proofs module */
-  std::unique_ptr<ProofChecker> d_checker;
+  std::unique_ptr<ProofChecker> d_pchecker;
+  
+  /** A proof node manager based on the above checker */
+  std::unique_ptr<ProofNodeManager> d_pNodeManager;
+  
+  /** The lazy proof object 
+   * 
+   * This stores instructions for how to construct proofs for all theory lemmas.
+   */
+  std::shared_ptr<LazyCDProof> d_lazyProof;
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */

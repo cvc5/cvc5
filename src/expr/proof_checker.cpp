@@ -28,23 +28,6 @@ Node ProofChecker::check(
     Node expected)
 {
   Trace("pfcheck") << "ProofChecker::check: " << id << std::endl;
-  std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
-  if (it == d_checker.end())
-  {
-    // no checker for the rule
-    Trace("pfcheck") << "ProofChecker::check: no checker for rule" << std::endl;
-    Unreachable() << "ProofChecker::check: no checker for rule " << id
-                  << std::endl;
-    return Node::null();
-  }
-  else if (it->second == nullptr)
-  {
-    Trace("pfcheck") << "ProofChecker::check: trusted checker!" << std::endl;
-    Notice() << "ProofChecker::check: trusting PfRule for " << id << std::endl;
-    // trusted checker
-    return expected;
-  }
-  // check it with the corresponding checker
   std::vector<Node> cchildren;
   for (const std::shared_ptr<ProofNode>& pc : children)
   {
@@ -70,19 +53,71 @@ Node ProofChecker::check(
   }
   Trace("pfcheck") << "      args: " << args << std::endl;
   Trace("pfcheck") << "  expected: " << expected << std::endl;
+  std::stringstream out;
+  Node res = it->second->check(id, cchildren, args, expected, out);
+  if (res.isNull())
+  {
+    Trace("pfcheck") << "ProofChecker::check: failed" << std::endl;
+    Unreachable() << "ProofChecker::check: failed, " << out.str() << std::endl;
+    // it did not match the given expectation, fail
+    return Node::null();
+  }
+  Trace("pfcheck") << "ProofChecker::check: success!" << std::endl;
+  return res;
+}
+
+Node ProofChecker::checkDebug(PfRule id,
+            const std::vector<Node>& cchildren,
+            const std::vector<Node>& args,
+            Node expected,
+             const char * traceTag)
+{
+  std::stringstream out;
+  Node res = checkInternal(id,cchildren, args, expected, out);
+  Trace(traceTag) << "ProofChecker::checkDebug: " << id;
+  if (res.isNull())
+  {
+    Trace(traceTag) << " failed, " << out.str() << std::endl;
+  }
+  else
+  {
+    Trace(traceTag) << " success" << std::endl;
+  }
+  return res;
+}
+
+Node ProofChecker::checkInternal(PfRule id,
+            const std::vector<Node>& cchildren,
+            const std::vector<Node>& args,
+            Node expected,
+             std::stringstream& out)
+{
+  std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
+  if (it == d_checker.end())
+  {
+    // no checker for the rule
+    out << "no checker for rule " << id
+                  << std::endl;
+    return Node::null();
+  }
+  else if (it->second == nullptr)
+  {
+    Notice() << "ProofChecker::check: trusting PfRule for " << id << std::endl;
+    // trusted checker
+    return expected;
+  }
+  // check it with the corresponding checker
   Node res = it->second->check(id, cchildren, args);
   if (!expected.isNull() && res != expected)
   {
-    Trace("pfcheck") << "ProofChecker::check: failed" << std::endl;
-    Unreachable()
-        << "ProofChecker::check: result does not match expected value."
+    out
+        << "result does not match expected value."
         << std::endl
         << "    result: " << res << std::endl
         << "  expected: " << expected << std::endl;
     // it did not match the given expectation, fail
     return Node::null();
   }
-  Trace("pfcheck") << "ProofChecker::check: success!" << std::endl;
   return res;
 }
 

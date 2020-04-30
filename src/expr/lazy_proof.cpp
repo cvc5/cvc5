@@ -63,15 +63,24 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
         ProofGenerator* pg = getGeneratorFor(afact);
         if (pg != nullptr)
         {
-          // plug in the proof if it exists
+          // plug in the proof provided by the generator, if it exists
           std::shared_ptr<ProofNode> apf = pg->getProofFor(afact);
           if (apf != nullptr)
           {
             // We update cur to have the structure of the top node of the
-            // given proof. Notice that the interface to update this node
-            // will ensure that the proof apf is a proof of the assumption.
-            d_manager->updateNode(
-                cur, apf->getRule(), apf->getChildren(), apf->getArgs());
+            // proof provided by the generator. Notice that the interface to
+            // update this node will ensure that the proof apf is a proof of the
+            // assumption. If it does not, then the generator was wrong.
+            if (!d_manager->updateNode(
+                cur, apf->getRule(), apf->getChildren(), apf->getArgs()))
+            {
+              // print warning?
+              Assert(false) << "Proof generator provided an unexpected proof for fact " << afact << std::endl;
+            }
+          }
+          else
+          {
+            Assert(false) << "Failed to get proof from generator for fact " << afact << std::endl;
           }
         }
         // Notice that we do not traverse the proofs that have been generated
@@ -97,6 +106,7 @@ void LazyCDProof::addStep(Node expected,
                           ProofGenerator* pg,
                           bool forceOverwrite)
 {
+  Assert (pg!=nullptr);
   std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(expected);
   if (it != d_gens.end() && !forceOverwrite)
   {
@@ -105,6 +115,12 @@ void LazyCDProof::addStep(Node expected,
   }
   // just store now
   d_gens[expected] = pg;
+  
+  if (forceOverwrite)
+  {
+    // TODO: if we stored expected via a normal call to CDProof::addStep, then
+    // we should overwrite the step in d_nodes with an ASSUME?
+  }
 }
 
 ProofGenerator* LazyCDProof::getGeneratorFor(Node fact) const

@@ -21,8 +21,8 @@ namespace theory {
 
 ProofEngineOutputChannel::ProofEngineOutputChannel(TheoryEngine* engine,
                                                    theory::TheoryId theory,
-                                                   context::UserContext* u)
-    : EngineOutputChannel(engine, theory), d_outPfGen(u)
+                           LazyCDProof * lpf)
+    : EngineOutputChannel(engine, theory), d_lazyPf(lpf)
 {
 }
 void ProofEngineOutputChannel::trustedConflict(TrustNode pconf)
@@ -30,32 +30,16 @@ void ProofEngineOutputChannel::trustedConflict(TrustNode pconf)
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
   Node conf = pconf.getNode();
   ProofGenerator* pfg = pconf.getGenerator();
-  Node ckey = getConflictKeyValue(conf);
   // may or may not have supplied a generator
   if (pfg != nullptr)
   {
-    d_outPfGen[ckey] = pfg;
+    Node ckey = getConflictKeyValue(conf);
+    // if we have, add it to the lazy proof object
+    d_lazyPf->addStep(ckey, pfg);
     Assert(pfg->hasProofFor(ckey));
   }
-  // now, call conflict
+  // now, call the normal interface to conflict
   conflict(conf);
-}
-
-std::shared_ptr<ProofNode> ProofEngineOutputChannel::getProofForConflict(
-    Node conf) const
-{
-  Node ckey = getConflictKeyValue(conf);
-  ProofGenerator* pgen = getProofGeneratorForKey(ckey);
-  if (pgen == nullptr)
-  {
-    return nullptr;
-  }
-  std::shared_ptr<ProofNode> ret = pgen->getProofFor(ckey);
-  Assert(ret != nullptr)
-      << "ProofEngineOutputChannel::getProofForConflict: could "
-         "not generate proof for "
-      << conf << std::endl;
-  return ret;
 }
 
 LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
@@ -66,32 +50,16 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   TNode lem = plem.getNode();
   ProofGenerator* pfg = plem.getGenerator();
-  Node lkey = getLemmaKeyValue(lem);
   // may or may not have supplied a generator
   if (pfg != nullptr)
   {
-    d_outPfGen[lkey] = pfg;
+    Node lkey = getLemmaKeyValue(lem);
+    // if we have, add it to the lazy proof object
+    d_lazyPf->addStep(lkey, pfg);
     Assert(pfg->hasProofFor(lkey));
   }
-  // now, call lemma
+  // now, call the normal interface for lemma
   return OutputChannel::lemma(lem, removable, preprocess, sendAtoms);
-}
-
-std::shared_ptr<ProofNode> ProofEngineOutputChannel::getProofForLemma(
-    Node lem) const
-{
-  Node lkey = getLemmaKeyValue(lem);
-  ProofGenerator* pgen = getProofGeneratorForKey(lkey);
-  if (pgen == nullptr)
-  {
-    return nullptr;
-  }
-  std::shared_ptr<ProofNode> ret = pgen->getProofFor(lem);
-  Assert(ret != nullptr)
-      << "ProofEngineOutputChannel::getProofForLemma: could not "
-         "generate proof for lemma "
-      << lem << std::endl;
-  return ret;
 }
 
 Node ProofEngineOutputChannel::getConflictKeyValue(Node conf)
@@ -100,20 +68,6 @@ Node ProofEngineOutputChannel::getConflictKeyValue(Node conf)
 }
 
 Node ProofEngineOutputChannel::getLemmaKeyValue(Node lem) { return lem; }
-
-ProofGenerator* ProofEngineOutputChannel::getProofGeneratorForKey(
-    Node key) const
-{
-  NodeProofGenMap::const_iterator it = d_outPfGen.find(key);
-  if (it == d_outPfGen.end())
-  {
-    Assert(false) << "ProofEngineOutputChannel::getProofGeneratorForKey: no "
-                     "generator provided for "
-                  << key << std::endl;
-    return nullptr;
-  }
-  return (*it).second;
-}
 
 }  // namespace theory
 }  // namespace CVC4

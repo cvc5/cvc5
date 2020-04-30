@@ -132,14 +132,19 @@ void TheoryEngine::finishInit()
   // if we are using the new proofs module
   if (options::proofNew())
   {
-    d_checker.reset(new ProofChecker);
+    d_pchecker.reset(new ProofChecker);
+    d_pNodeManager.reset(new ProofNodeManager(d_pchecker.get()));
+    // TODO: d_lazyProof could be owned by the owner of TheoryEngine
+    // The lazy proof is user-context-dependent
+    d_lazyProof.reset(new LazyCDProof(d_pNodeManager.get(), d_userContext));
+    // ask the theories to populate the proof checking rules in the checker
     for (TheoryId theoryId = theory::THEORY_FIRST;
          theoryId != theory::THEORY_LAST;
          ++theoryId)
     {
       if (d_theoryTable[theoryId])
       {
-        d_theoryTable[theoryId]->setProofChecker(d_checker.get());
+        d_theoryTable[theoryId]->setProofChecker(d_pchecker.get());
       }
     }
   }

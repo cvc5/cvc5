@@ -81,12 +81,28 @@ class ProofChecker
              const std::vector<std::shared_ptr<ProofNode>>& children,
              const std::vector<Node>& args,
              Node expected = Node::null());
+  /** 
+   * Same as above, without conclusions instead of proof node children. This
+   * is used for debugging.
+   */
+  Node checkDebug(PfRule id,
+             const std::vector<Node>& cchildren,
+             const std::vector<Node>& args,
+             Node expected,
+             const char * traceMsg);
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
 
  private:
   /** Maps proof steps to their checker */
   std::map<PfRule, ProofRuleChecker*> d_checker;
+  /** Check internal, identical to checkDebug */
+  Node checkInternal(PfRule id,
+             const std::vector<Node>& cchildren,
+             const std::vector<Node>& args,
+             Node expected,
+             std::stringstream& out
+                    );
 };
 
 }  // namespace CVC4

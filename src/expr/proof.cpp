@@ -82,6 +82,7 @@ bool CDProof::addStep(Node expected,
     pchildren.push_back(pc);
   }
 
+  bool ret = true;
   // create or update it
   std::shared_ptr<ProofNode> pthis;
   if (it == d_nodes.end())
@@ -98,11 +99,14 @@ bool CDProof::addStep(Node expected,
   {
     // update its value
     pthis = (*it).second;
-    d_manager->updateNode(pthis.get(), id, pchildren, args);
+    // We return the value of updateNode here. This means this method may return
+    // false if this call failed, regardless of whether we already have a proof
+    // step for expected.
+    ret = d_manager->updateNode(pthis.get(), id, pchildren, args);
   }
   // the result of the proof node should be expected
   Assert(pthis->getResult() == expected);
-  return true;
+  return ret;
 }
 
 bool CDProof::addProof(ProofNode* pn, bool forceOverwrite)
