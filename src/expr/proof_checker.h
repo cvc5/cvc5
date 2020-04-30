@@ -108,14 +108,14 @@ class ProofChecker
   /**
    * Check internal. This is used by check and checkDebug above. It writes
    * checking errors on out. We treat trusted checkers (nullptr in the range
-   * of the map d_checker) as failures if useTrustedCheckers = false.
+   * of the map d_checker) as failures if useTrustedChecker = false.
    */
   Node checkInternal(PfRule id,
                      const std::vector<Node>& cchildren,
                      const std::vector<Node>& args,
                      Node expected,
                      std::stringstream& out,
-                     bool useTrustedCheckers);
+                     bool useTrustedChecker);
 };
 
 }  // namespace CVC4

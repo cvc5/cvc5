@@ -26,10 +26,10 @@ LazyCDProof::~LazyCDProof() {}
 std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
 {
   std::shared_ptr<ProofNode> opf;
-  NodeProofNodeMap::iterator it = d_nodes.find(fact);
-  if (it != d_nodes.end())
+  NodeProofNodeMap::iterator itn = d_nodes.find(fact);
+  if (itn != d_nodes.end())
   {
-    opf = it->second;
+    opf = (*itn).second;
   }
   else
   {
@@ -47,6 +47,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
   std::unordered_set<ProofNode*> visited;
   std::unordered_set<ProofNode*>::iterator it;
   std::vector<ProofNode*> visit;
+  ProofNode* cur;
   visit.push_back(opf.get());
   do
   {
@@ -112,7 +113,7 @@ void LazyCDProof::addStep(Node expected,
                           bool forceOverwrite)
 {
   Assert(pg != nullptr);
-  std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(expected);
+  std::unordered_map<Node, ProofGenerator*, NodeHashFunction>::const_iterator it = d_gens.find(expected);
   if (it != d_gens.end() && !forceOverwrite)
   {
     // don't overwrite something that is already there

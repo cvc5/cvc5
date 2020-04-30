@@ -55,7 +55,11 @@ Node SkolemCache::mkTypedSkolemCached(
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {
-    Node sk = mkTypedSkolem(tn, c);
+    // TODO
+    
+    
+    Node sk = NodeManager::currentNM()->mkSkolem(c, tn, "string skolem");
+    d_allSkolems.insert(sk);
     d_skolemCache[a][b][id] = sk;
     return sk;
   }
@@ -71,12 +75,8 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 
 Node SkolemCache::mkSkolem(const char* c)
 {
-  return mkTypedSkolem(d_strType, c);
-}
-
-Node SkolemCache::mkTypedSkolem(TypeNode tn, const char* c)
-{
-  Node n = NodeManager::currentNM()->mkSkolem(c, tn, "string skolem");
+  // TODO: eliminate this
+  Node n = NodeManager::currentNM()->mkSkolem(c, d_strType, "string skolem");
   d_allSkolems.insert(n);
   return n;
 }

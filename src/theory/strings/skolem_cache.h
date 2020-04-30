@@ -127,8 +127,6 @@ class SkolemCache
   Node mkTypedSkolemCached(TypeNode tn, Node a, SkolemId id, const char* c);
   /** Returns a (uncached) skolem of type string with name c */
   Node mkSkolem(const char* c);
-  /** Same as above, but for custom type tn */
-  Node mkTypedSkolem(TypeNode tn, const char* c);
   /** Returns true if n is a skolem allocated by this class */
   bool isSkolem(Node n) const;
 

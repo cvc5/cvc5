@@ -56,7 +56,7 @@ Node ProofChecker::check(
   std::stringstream out;
   // we use trusted (null) checkers here, since we want the proof generation to
   // proceed without failing here.
-  Node res = it->second->check(id, cchildren, args, expected, out, true);
+  Node res = checkInternal(id, cchildren, args, expected, out, true);
   if (res.isNull())
   {
     Trace("pfcheck") << "ProofChecker::check: failed" << std::endl;
@@ -95,7 +95,7 @@ Node ProofChecker::checkInternal(PfRule id,
                                  const std::vector<Node>& args,
                                  Node expected,
                                  std::stringstream& out,
-                                 bool useTrustedCheckers)
+                                 bool useTrustedChecker)
 {
   std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it == d_checker.end())
