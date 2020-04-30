@@ -27,6 +27,13 @@ Node ProofChecker::check(
     const std::vector<Node>& args,
     Node expected)
 {
+  /*
+  // optimization?
+  if (id==PfRule::ASSUME)
+  {
+    return expected;
+  }
+  */
   Trace("pfcheck") << "ProofChecker::check: " << id << std::endl;
   std::vector<Node> cchildren;
   for (const std::shared_ptr<ProofNode>& pc : children)

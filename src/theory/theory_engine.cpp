@@ -132,11 +132,6 @@ void TheoryEngine::finishInit()
   // if we are using the new proofs module
   if (options::proofNew())
   {
-    d_pchecker.reset(new ProofChecker);
-    d_pNodeManager.reset(new ProofNodeManager(d_pchecker.get()));
-    // TODO: d_lazyProof could be owned by the owner of TheoryEngine
-    // The lazy proof is user-context-dependent
-    d_lazyProof.reset(new LazyCDProof(d_pNodeManager.get(), d_userContext));
     // ask the theories to populate the proof checking rules in the checker
     for (TheoryId theoryId = theory::THEORY_FIRST;
          theoryId != theory::THEORY_LAST;
@@ -247,8 +242,15 @@ TheoryEngine::TheoryEngine(context::Context* context,
 
 #ifdef CVC4_PROOF
   ProofManager::currentPM()->initTheoryProofEngine();
+  
+  // new proofs
+  d_pchecker.reset(new ProofChecker);
+  d_pNodeManager.reset(new ProofNodeManager(d_pchecker.get()));
+  // TODO: d_lazyProof could be owned by the owner of TheoryEngine
+  // The lazy proof is user-context-dependent
+  d_lazyProof.reset(new LazyCDProof(d_pNodeManager.get(), d_userContext));
 #endif
-
+  
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
 
