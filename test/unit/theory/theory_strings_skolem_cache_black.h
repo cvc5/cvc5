@@ -75,17 +75,6 @@ class TheoryStringsSkolemCacheBlack : public CxxTest::TestSuite
 
     // Check that skolems are shared between:
     //
-    // SK_FIRST_CTN(c, b)
-    //
-    // SK_FIRST_CTN((str.substr c), b)
-    {
-      Node s1 = sk.mkSkolemCached(c, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
-      Node s2 = sk.mkSkolemCached(sc, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
-      TS_ASSERT_EQUALS(s1, s2);
-    }
-
-    // Check that skolems are shared between:
-    //
     // SK_PURIFY((str.substr a 0 (str.indexof a b 0)))
     //
     // SK_FIRST_CTN(a, b)
