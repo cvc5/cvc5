@@ -55,9 +55,80 @@ Node SkolemCache::mkTypedSkolemCached(
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {
-    // TODO
-
-    Node sk = NodeManager::currentNM()->mkSkolem(c, tn, "string skolem");
+    // the condition
+    Node v = nm->mkBoundVar(tn);
+    Node cond = nm->mkConst(true);
+    case (id)
+    {
+    // exists k. k = a
+    case SK_PURIFY:
+      break;
+    // a != "" ^ b = "ccccd" ^ a ++ "d" ++ a' = b ++ b' =>
+    //    exists k. a = "cccc" + k
+    case SK_ID_C_SPT_REV:
+      break;
+    // a != "" ^ b = "c" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
+    //    exists k. a = "c" ++ k
+    // a != ""  ^ b != "" ^ len( a ) != len( b ) ^ a ++ a' != b ++ b' =>
+    //    exists k_x k_y k_z.
+    //         ( len( k_y ) = len( a ) ^ len( k_x ) = len( b ) ^ len( k_z) > 0
+    //           ( a = k_x ++ k_z OR b = k_y ++ k_z ) )
+    case SK_ID_DEQ_Z:
+      break;
+    // contains( a, b ) =>
+    //    exists k_pre, k_post. a = k_pre ++ b ++ k_post ^
+    //                          ~contains(k_pre ++ substr( b, 0, len(b)-1 ), b)
+    //
+    // As an optimization, these skolems are reused for positive occurrences of
+    // contains, where they have the semantics:
+    //
+    //   contains( a, b ) =>
+    //      exists k_pre, k_post. a = k_pre ++ b ++ k_post
+    //
+    // We reuse them since it is sound to consider w.l.o.g. the first occurrence
+    // of b in a as the witness for contains( a, b ).
+    case SK_FIRST_CTN_PRE:
+      break;
+    // For integer b,
+    // len( a ) > b =>
+    //    exists k. a = k ++ a' ^ len( k ) = b
+    case SK_PREFIX:
+      break;
+    // For integer b,
+    // b > 0 =>
+    //    exists k. a = a' ++ k ^ len( k ) = ite( len(a)>b, len(a)-b, 0 )
+    case SK_SUFFIX_REM:
+      break;
+    // --------------- integer skolems
+    // exists k. ( b occurs k times in a )
+    case SK_NUM_OCCUR,
+      break;
+    // --------------- function skolems
+    // For function k: Int -> Int
+    //   exists k.
+    //     forall 0 <= x <= n,
+    //       k(x) is the end index of the x^th occurrence of b in a
+    //   where n is the number of occurrences of b in a, and k(0)=0.
+    case SK_OCCUR_INDEX:
+      break;
+    
+    case SK_ID_VC_SPT:
+    case SK_ID_VC_SPT_REV:
+    case SK_FIRST_CTN_POST:
+    case SK_ID_C_SPT:
+    case SK_ID_V_SPT:
+    case SK_ID_V_SPT_REV:
+    case SK_ID_DC_SPT:
+    case SK_ID_DC_SPT_REM:
+    case SK_ID_DEQ_X:
+    case SK_ID_DEQ_Y:
+      Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
+      break;
+    default:
+      Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
+      break;
+    }
+    Node sk = d_pskc.mkSkolem(v,cond,c,"string skolem");
     d_allSkolems.insert(sk);
     d_skolemCache[a][b][id] = sk;
     return sk;
