@@ -84,5 +84,6 @@ PRs:
 (10) ProofEqEngine 
 (11) TheoryEngine proof checker initialize
 (12) ProofSkolemCache
+- strings SkolemCache uses ProofSkolemCache
 (13) strings InferProofCons
 (14) update strings inference manager to use ProofEqEngine

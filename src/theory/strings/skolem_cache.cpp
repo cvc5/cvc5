@@ -112,13 +112,14 @@ Node SkolemCache::mkTypedSkolemCached(
     //   where n is the number of occurrences of b in a, and k(0)=0.
     case SK_OCCUR_INDEX:
       break;
-    
+    case SK_ID_V_SPT:
+      break;
+    case SK_ID_V_SPT_REV:
+      break;
     case SK_ID_VC_SPT:
     case SK_ID_VC_SPT_REV:
     case SK_FIRST_CTN_POST:
     case SK_ID_C_SPT:
-    case SK_ID_V_SPT:
-    case SK_ID_V_SPT_REV:
     case SK_ID_DC_SPT:
     case SK_ID_DC_SPT_REM:
     case SK_ID_DEQ_X:
