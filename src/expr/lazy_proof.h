@@ -17,7 +17,7 @@
 #ifndef CVC4__EXPR__LAZY_PROOF_H
 #define CVC4__EXPR__LAZY_PROOF_H
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include "expr/proof.h"
@@ -48,7 +48,9 @@ class LazyCDProof : public CDProof
   void addStep(Node expected, ProofGenerator * pg, bool forceOverwrite=false);
  protected:
   /** Maps facts that can be proven to generators */
-  std::map< Node, ProofGenerator * > d_gens;
+  std::unordered_map< Node, ProofGenerator *, NodeHashFunction > d_gens;
+  /** Get generator for fact, or nullptr if it doesnt exist */
+  ProofGenerator * getGeneratorFor(Node fact) const;
 };
 
 }  // namespace CVC4
