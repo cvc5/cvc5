@@ -56,8 +56,7 @@ Node SkolemCache::mkTypedSkolemCached(
   if (it == d_skolemCache[a][b].end())
   {
     // TODO
-    
-    
+
     Node sk = NodeManager::currentNM()->mkSkolem(c, tn, "string skolem");
     d_allSkolems.insert(sk);
     d_skolemCache[a][b][id] = sk;

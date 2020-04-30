@@ -113,7 +113,8 @@ void LazyCDProof::addStep(Node expected,
                           bool forceOverwrite)
 {
   Assert(pg != nullptr);
-  std::unordered_map<Node, ProofGenerator*, NodeHashFunction>::const_iterator it = d_gens.find(expected);
+  std::unordered_map<Node, ProofGenerator*, NodeHashFunction>::const_iterator
+      it = d_gens.find(expected);
   if (it != d_gens.end() && !forceOverwrite)
   {
     // don't overwrite something that is already there

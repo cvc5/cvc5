@@ -242,7 +242,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
 
 #ifdef CVC4_PROOF
   ProofManager::currentPM()->initTheoryProofEngine();
-  
+
   // new proofs
   d_pchecker.reset(new ProofChecker);
   d_pNodeManager.reset(new ProofNodeManager(d_pchecker.get()));
@@ -250,7 +250,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   // The lazy proof is user-context-dependent
   d_lazyProof.reset(new LazyCDProof(d_pNodeManager.get(), d_userContext));
 #endif
-  
+
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
 
