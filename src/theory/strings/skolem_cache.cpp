@@ -44,6 +44,7 @@ Node SkolemCache::mkSkolemCached(Node a, SkolemId id, const char* c)
 Node SkolemCache::mkTypedSkolemCached(
     TypeNode tn, Node a, Node b, SkolemId id, const char* c)
 {
+  // FIXME: delay rewriting
   a = a.isNull() ? a : Rewriter::rewrite(a);
   b = b.isNull() ? b : Rewriter::rewrite(b);
 
@@ -63,13 +64,12 @@ Node SkolemCache::mkTypedSkolemCached(
     {
     // exists k. k = a
     case SK_PURIFY:
+      cond = v.eqNode(a);
       break;
     // a != "" ^ b = "ccccd" ^ a ++ "d" ++ a' = b ++ b' =>
     //    exists k. a = "cccc" + k
     case SK_ID_C_SPT_REV:
       break;
-    // a != "" ^ b = "c" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
-    //    exists k. a = "c" ++ k
     // a != ""  ^ b != "" ^ len( a ) != len( b ) ^ a ++ a' != b ++ b' =>
     //    exists k_x k_y k_z.
     //         ( len( k_y ) = len( a ) ^ len( k_x ) = len( b ) ^ len( k_z) > 0
@@ -112,6 +112,8 @@ Node SkolemCache::mkTypedSkolemCached(
     //   where n is the number of occurrences of b in a, and k(0)=0.
     case SK_OCCUR_INDEX:
       break;
+    // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
+    //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
     case SK_ID_V_SPT:
       break;
     case SK_ID_V_SPT_REV:
@@ -120,6 +122,7 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_ID_VC_SPT_REV:
     case SK_FIRST_CTN_POST:
     case SK_ID_C_SPT:
+    case SK_ID_C_SPT_REV:
     case SK_ID_DC_SPT:
     case SK_ID_DC_SPT_REM:
     case SK_ID_DEQ_X:
@@ -172,15 +175,21 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     //   SK_SUFFIX_REM(x, (+ (str.len SK_FIRST_CTN_PRE(x, y)) (str.len y)))
     id = SK_SUFFIX_REM;
     Node pre = mkSkolemCached(a, b, SK_FIRST_CTN_PRE, "pre");
-    b = Rewriter::rewrite(nm->mkNode(
-        PLUS, nm->mkNode(STRING_LENGTH, pre), nm->mkNode(STRING_LENGTH, b)));
+    b = nm->mkNode(
+        PLUS, nm->mkNode(STRING_LENGTH, pre), nm->mkNode(STRING_LENGTH, b));
   }
 
   if (id == SK_ID_C_SPT)
   {
     // SK_ID_C_SPT(x, y) ---> SK_SUFFIX_REM(x, (str.len y))
     id = SK_SUFFIX_REM;
-    b = Rewriter::rewrite(nm->mkNode(STRING_LENGTH, b));
+    b = nm->mkNode(STRING_LENGTH, b);
+  }
+  else if (id == SK_ID_C_SPT_REV)
+  {
+    // SK_ID_C_SPT_REV(x, y) ---> SK_PREFIX(x, (- (str.len x) (str.len y)))
+    id = SK_PREFIX;
+    b = nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH, a),nm->mkNode(STRING_LENGTH, b));
   }
   else if (id == SK_ID_VC_SPT)
   {
@@ -192,8 +201,8 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
   {
     // SK_ID_VC_SPT_REV(x, y) ---> SK_PREFIX(x, (- (str.len x) 1))
     id = SK_PREFIX;
-    b = Rewriter::rewrite(nm->mkNode(
-        MINUS, nm->mkNode(STRING_LENGTH, a), nm->mkConst(Rational(1))));
+    b = nm->mkNode(
+        MINUS, nm->mkNode(STRING_LENGTH, a), nm->mkConst(Rational(1)));
   }
   else if (id == SK_ID_DC_SPT)
   {
@@ -213,13 +222,13 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     id = SK_PREFIX;
     Node aOld = a;
     a = b;
-    b = Rewriter::rewrite(nm->mkNode(STRING_LENGTH, aOld));
+    b = nm->mkNode(STRING_LENGTH, aOld);
   }
   else if (id == SK_ID_DEQ_Y)
   {
     // SK_ID_DEQ_Y(x, y) ---> SK_PREFIX(x, (str.len y))
     id = SK_PREFIX;
-    b = Rewriter::rewrite(nm->mkNode(STRING_LENGTH, b));
+    b = nm->mkNode(STRING_LENGTH, b);
   }
 
   if (id == SK_PURIFY && a.getKind() == kind::STRING_SUBSTR)
@@ -262,6 +271,9 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
       a = a[0];
     }
   }
+  // FIXME: delay rewriting
+  a = a.isNull() ? a : Rewriter::rewrite(a);
+  b = b.isNull() ? b : Rewriter::rewrite(b);
 
   Trace("skolem-cache") << "normalizeStringSkolem end: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;

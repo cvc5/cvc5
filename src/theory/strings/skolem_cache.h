@@ -53,7 +53,7 @@ class SkolemCache
     // exists k. k = a
     SK_PURIFY,
     // a != "" ^ b = "ccccd" ^ a ++ "d" ++ a' = b ++ b' =>
-    //    exists k. a = "cccc" + k
+    //    exists k. a = "cccc" ++ k
     SK_ID_C_SPT,
     SK_ID_C_SPT_REV,
     // a != "" ^ b = "c" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
