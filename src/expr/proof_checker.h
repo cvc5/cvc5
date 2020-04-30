@@ -81,10 +81,10 @@ class ProofChecker
              const std::vector<std::shared_ptr<ProofNode>>& children,
              const std::vector<Node>& args,
              Node expected = Node::null());
-  /** 
+  /**
    * Same as above, without conclusions instead of proof node children. This
    * is used for debugging.
-   * 
+   *
    * @param id The id of the proof node to check
    * @param children The conclusions of the children of the proof node to check
    * @param args The arguments of the proof node to check
@@ -95,28 +95,27 @@ class ProofChecker
    * proof is malformed, or if no checker is available for id.
    */
   Node checkDebug(PfRule id,
-             const std::vector<Node>& cchildren,
-             const std::vector<Node>& args,
-             Node expected,
-             const char * traceTag);
+                  const std::vector<Node>& cchildren,
+                  const std::vector<Node>& args,
+                  Node expected,
+                  const char* traceTag);
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
 
  private:
   /** Maps proof steps to their checker */
   std::map<PfRule, ProofRuleChecker*> d_checker;
-  /** 
+  /**
    * Check internal. This is used by check and checkDebug above. It writes
    * checking errors on out. We treat trusted checkers (nullptr in the range
    * of the map d_checker) as failures if useTrustedCheckers = false.
    */
   Node checkInternal(PfRule id,
-             const std::vector<Node>& cchildren,
-             const std::vector<Node>& args,
-             Node expected,
-             std::stringstream& out,
-             bool useTrustedCheckers
-                    );
+                     const std::vector<Node>& cchildren,
+                     const std::vector<Node>& args,
+                     Node expected,
+                     std::stringstream& out,
+                     bool useTrustedCheckers);
 };
 
 }  // namespace CVC4

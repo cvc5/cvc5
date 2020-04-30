@@ -28,6 +28,7 @@
 
 #include "base/check.h"
 #include "context/cdhashset.h"
+#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "options/options.h"
@@ -51,7 +52,6 @@
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
-#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 
@@ -242,7 +242,7 @@ class TheoryEngine {
    * Output channels for individual theories.
    */
   theory::ProofEngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
-  
+
   /**
    * Are we in conflict.
    */
@@ -830,12 +830,12 @@ private:
 
   /** For the new proofs module */
   std::unique_ptr<ProofChecker> d_pchecker;
-  
+
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pNodeManager;
-  
-  /** The lazy proof object 
-   * 
+
+  /** The lazy proof object
+   *
    * This stores instructions for how to construct proofs for all theory lemmas.
    */
   std::shared_ptr<LazyCDProof> d_lazyProof;

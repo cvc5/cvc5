@@ -18,11 +18,11 @@
 #define CVC4__THEORY__PROOF_ENGINE_OUTPUT_CHANNEL_H
 
 #include "context/cdhashmap.h"
+#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/proof_node.h"
 #include "theory/engine_output_channel.h"
 #include "theory/proof_generator.h"
-#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -54,7 +54,7 @@ class ProofEngineOutputChannel : public EngineOutputChannel
  public:
   ProofEngineOutputChannel(TheoryEngine* engine,
                            theory::TheoryId theory,
-                           LazyCDProof * lpf);
+                           LazyCDProof* lpf);
   ~ProofEngineOutputChannel() {}
   /**
    * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
@@ -83,13 +83,14 @@ class ProofEngineOutputChannel : public EngineOutputChannel
   static Node getLemmaKeyValue(Node lem);
   /** Get proof generator for key, or nullptr if it does not exist */
   ProofGenerator* getProofGeneratorForKey(Node key) const;
+
  private:
-  /** Pointer to the lazy proof 
-   * 
+  /** Pointer to the lazy proof
+   *
    * This object stores the mapping between formulas (conflicts or lemmas)
    * and the proof generator provided for them.
    */
-  LazyCDProof * d_lazyPf;
+  LazyCDProof* d_lazyPf;
 };
 
 }  // namespace theory

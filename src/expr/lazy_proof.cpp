@@ -71,16 +71,21 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
             // proof provided by the generator. Notice that the interface to
             // update this node will ensure that the proof apf is a proof of the
             // assumption. If it does not, then the generator was wrong.
-            if (!d_manager->updateNode(
-                cur, apf->getRule(), apf->getChildren(), apf->getArguments()))
+            if (!d_manager->updateNode(cur,
+                                       apf->getRule(),
+                                       apf->getChildren(),
+                                       apf->getArguments()))
             {
               // print warning?
-              Assert(false) << "Proof generator provided an unexpected proof for fact " << afact << std::endl;
+              Assert(false)
+                  << "Proof generator provided an unexpected proof for fact "
+                  << afact << std::endl;
             }
           }
           else
           {
-            Assert(false) << "Failed to get proof from generator for fact " << afact << std::endl;
+            Assert(false) << "Failed to get proof from generator for fact "
+                          << afact << std::endl;
           }
         }
         // Notice that we do not traverse the proofs that have been generated
@@ -106,7 +111,7 @@ void LazyCDProof::addStep(Node expected,
                           ProofGenerator* pg,
                           bool forceOverwrite)
 {
-  Assert (pg!=nullptr);
+  Assert(pg != nullptr);
   std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(expected);
   if (it != d_gens.end() && !forceOverwrite)
   {
@@ -115,7 +120,7 @@ void LazyCDProof::addStep(Node expected,
   }
   // just store now
   d_gens[expected] = pg;
-  
+
   if (forceOverwrite)
   {
     // TODO: if we stored expected via a normal call to CDProof::addStep, then

@@ -21,7 +21,7 @@ namespace theory {
 
 ProofEngineOutputChannel::ProofEngineOutputChannel(TheoryEngine* engine,
                                                    theory::TheoryId theory,
-                           LazyCDProof * lpf)
+                                                   LazyCDProof* lpf)
     : EngineOutputChannel(engine, theory), d_lazyPf(lpf)
 {
 }
