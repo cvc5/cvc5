@@ -153,7 +153,7 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
 void TheoryStrings::setProofChecker(ProofChecker* pc)
 {
   // add checkers
-  pc->registerChecker(PfRule::CONCAT_ENDP_UNIFY, &d_sProofChecker);
+  pc->registerChecker(PfRule::CONCAT_EQ, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_UNIFY, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_SPLIT, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_LPROP, &d_sProofChecker);

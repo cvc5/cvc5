@@ -184,12 +184,17 @@ enum class PfRule : uint32_t
 
   //================================================= String rules
   //======================== Core solver
-  // ======== Concat endpoint unify
-  // Children: (P1:(= (str.++ r t1) (str.++ r s1)))
+  // ======== Concat eq
+  // Children: (P1:(= (str.++ t1 ... tn t) (str.++ s1 ... sn s)),
+  //            P2:(= t1 s1), ..., P{n+1}:(= tn sn))
   // Arguments: (b), indicating if reverse direction
   // ---------------------
-  // Conclusion: (= t1 s1)
-  CONCAT_ENDP_UNIFY,
+  // Conclusion: (= t s)
+  // Notice that t or s may be empty, in which case they are implicit in the
+  // concatenation above. For example, if
+  // P1 concludes (= x (str.++ y z), P2 concludes (= x y), then
+  // (CONCAT_EQ P1 P2 :args false) concludes (= "" z)
+  CONCAT_EQ,
   // ======== Normal form unify
   // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
   //            P2:(= (str.len t1) (str.len s1)))
