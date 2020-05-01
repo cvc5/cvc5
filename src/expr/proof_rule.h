@@ -115,6 +115,108 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or F (not F))
   SPLIT,
+  // ======== And elimination
+  // Children: (P:(and F1 ... Fn))
+  // Arguments: (i)
+  // ---------------------
+  // Conclusion: (Fi)
+  AND_ELIM,
+  // ======== Not Or elimination
+  // Children: (P:(not (or F1 ... Fn)))
+  // Arguments: (i)
+  // ---------------------
+  // Conclusion: (not Fi)
+  NOT_OR_ELIM,
+  // ======== Implication elimination
+  // Children: (P:(=> F1 F2))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) F2)
+  IMPLIES_ELIM,
+  // ======== Not Implication elimination version 1
+  // Children: (P:(not (=> F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (F1)
+  NOT_IMPLIES_ELIM1,
+  // ======== Not Implication elimination version 2
+  // Children: (P:(not (=> F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (not F2)
+  NOT_IMPLIES_ELIM2,
+  // ======== Equivalence elimination version 1
+  // Children: (P:(= F1 F2))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) F2)
+  EQUIV_ELIM1,
+  // ======== Equivalence elimination version 2
+  // Children: (P:(= F1 F2))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or F1 (not F2))
+  EQUIV_ELIM2,
+  // ======== Not Equivalence elimination version 1
+  // Children: (P:(not (= F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or F1 F2)
+  NOT_EQUIV_ELIM1,
+  // ======== Not Equivalence elimination version 2
+  // Children: (P:(not (= F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) (not F2))
+  NOT_EQUIV_ELIM2,
+  // ======== XOR elimination version 1
+  // Children: (P:(xor F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or F1 F2)
+  XOR_ELIM1,
+  // ======== XOR elimination version 2
+  // Children: (P:(xor F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) (not F2))
+  XOR_ELIM2,
+  // ======== Not XOR elimination version 1
+  // Children: (P:(not (xor F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or F1 (not F2))
+  NOT_XOR_ELIM1,
+  // ======== Not XOR elimination version 2
+  // Children: (P:(not (xor F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) F2)
+  NOT_XOR_ELIM2,
+  // ======== ITE elimination version 1
+  // Children: (P:(ite C F1 F2))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not C) F1)
+  ITE_ELIM1,
+  // ======== ITE elimination version 2
+  // Children: (P:(ite C F1 F2))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or C F2)
+  ITE_ELIM2,
+  // ======== Not ITE elimination version 1
+  // Children: (P:(not (ite C F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not C) (not F1))
+  NOT_ITE_ELIM1,
+  // ======== Not ITE elimination version 1
+  // Children: (P:(not (ite C F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or C (not F2))
+  NOT_ITE_ELIM2,
 
   //================================================= Equality rules
   // ======== Reflexive

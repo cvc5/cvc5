@@ -32,6 +32,23 @@ const char* toString(PfRule id)
     case PfRule::SUBS_REWRITE: return "SUBS_REWRITE";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
+    case PfRule::AND_ELIM: return "AND_ELIM";
+    case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";
+    case PfRule::IMPLIES_ELIM: return "IMPLIES_ELIM";
+    case PfRule::NOT_IMPLIES_ELIM1: return "NOT_IMPLIES_ELIM1";
+    case PfRule::NOT_IMPLIES_ELIM2: return "NOT_IMPLIES_ELIM2";
+    case PfRule::EQUIV_ELIM1: return "EQUIV_ELIM1";
+    case PfRule::EQUIV_ELIM2: return "EQUIV_ELIM2";
+    case PfRule::NOT_EQUIV_ELIM1: return "NOT_EQUIV_ELIM1";
+    case PfRule::NOT_EQUIV_ELIM2: return "NOT_EQUIV_ELIM2";
+    case PfRule::XOR_ELIM1: return "XOR_ELIM1";
+    case PfRule::XOR_ELIM2: return "XOR_ELIM2";
+    case PfRule::NOT_XOR_ELIM1: return "NOT_XOR_ELIM1";
+    case PfRule::NOT_XOR_ELIM2: return "NOT_XOR_ELIM2";
+    case PfRule::ITE_ELIM1: return "ITE_ELIM1";
+    case PfRule::ITE_ELIM2: return "ITE_ELIM2";
+    case PfRule::NOT_ITE_ELIM1: return "NOT_ITE_ELIM1";
+    case PfRule::NOT_ITE_ELIM2: return "NOT_ITE_ELIM2";
     //================================================= Equality rules
     case PfRule::REFL: return "REFL";
     case PfRule::SYMM: return "SYMM";
