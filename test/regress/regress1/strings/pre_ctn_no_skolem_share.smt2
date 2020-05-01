@@ -1,6 +1,7 @@
 (set-info :smt-lib-version 2.6)
 (set-logic ALL)
 (set-option :strings-exp true)
+(set-option :strings-fmf true)
 (set-info :status sat)
 (declare-fun z () String)
 (declare-fun n () Int)
@@ -16,4 +17,3 @@
 )))
 
 (check-sat)
-(get-model)
