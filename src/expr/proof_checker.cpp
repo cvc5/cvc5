@@ -40,15 +40,16 @@ Node ProofChecker::check(
     const std::vector<Node>& args,
     Node expected)
 {
-  // record stat
-  d_stats.d_ruleChecks << id;
-  /*
-  // optimization?
+  // optimization: immediately return for ASSUME
   if (id==PfRule::ASSUME)
   {
+    Assert(children.empty());
+    Assert(args.size()==1 && args.getType().isBoolean());
+    Assert(expected.isNull() || expected==args[0]);
     return expected;
   }
-  */
+  // record stat
+  d_stats.d_ruleChecks << id;
   Trace("pfcheck") << "ProofChecker::check: " << id << std::endl;
   std::vector<Node> cchildren;
   for (const std::shared_ptr<ProofNode>& pc : children)

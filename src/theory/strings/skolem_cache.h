@@ -76,7 +76,6 @@ class SkolemCache
     //           ( a = k_x ++ k_z OR b = k_y ++ k_z ) )
     SK_ID_DEQ_X,
     SK_ID_DEQ_Y,
-    SK_ID_DEQ_Z,
     // contains( a, b ) =>
     //    exists k_pre, k_post. a = k_pre ++ b ++ k_post ^
     //                          ~contains(k_pre ++ substr( b, 0, len(b)-1 ), b)
