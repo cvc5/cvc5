@@ -85,7 +85,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUF
   trywith 240 --finite-model-find --decision=internal
   finishwith --full-saturate-quant
   ;;
-ABVFP|BVFP|FP)
+ABVFP|BVFP|FP|UFFPDTLIRA|UFFPDTNIRA)
   finishwith --full-saturate-quant --fp-exp
   ;;
 UFBV)
@@ -104,11 +104,11 @@ BV)
   # finish 10min
   finishwith --full-saturate-quant --no-cegqi-innermost --global-negate
   ;;
-LIA|LRA|NIA|NRA|UFFPDTLIRA|UFFPDTNIRA)
+LIA|LRA|NIA|NRA)
   trywith 30 --full-saturate-quant --nl-ext-tplanes
   trywith 300 --full-saturate-quant --no-cegqi-innermost
   trywith 300 --full-saturate-quant --cegqi-nested-qe
-  finishwith --full-saturate-quant --cegqi-nested-qe --decision=internal --fp-exp
+  finishwith --full-saturate-quant --cegqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
   trywith 600 --ite-simp
