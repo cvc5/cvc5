@@ -19,13 +19,13 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "expr/proof_node_manager.h"
 #include "theory/output_channel.h"
+#include "theory/proof_generator.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/proof_generator.h"
-#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -53,10 +53,10 @@ class TermRegistry
                eq::EqualityEngine& ee,
                OutputChannel& out,
                SequencesStatistics& statistics,
-                   bool pfEnabled = false);
+               bool pfEnabled = false);
   ~TermRegistry();
   /** finish init */
-  void finishInit(ProofNodeManager * pnm);
+  void finishInit(ProofNodeManager* pnm);
   /**
    * Preregister term, called when TheoryStrings::preRegisterTerm(n) is called.
    * This does the following:
@@ -259,8 +259,8 @@ class TermRegistry
    * the caller of this method.
    */
   TrustNode getRegisterTermAtomicLemma(Node n,
-                                  LengthStatus s,
-                                  std::map<Node, bool>& reqPhase);
+                                       LengthStatus s,
+                                       std::map<Node, bool>& reqPhase);
 };
 
 }  // namespace strings

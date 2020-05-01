@@ -23,6 +23,7 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "theory/ext_theory.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
@@ -31,7 +32,6 @@
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -83,7 +83,7 @@ class InferenceManager
                    bool pfEnabled = false);
   ~InferenceManager() {}
   /** finish init */
-  void finishInit(ProofNodeManager * pnm);
+  void finishInit(ProofNodeManager* pnm);
 
   /** send assumption
    *

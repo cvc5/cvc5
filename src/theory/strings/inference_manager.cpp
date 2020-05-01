@@ -54,14 +54,11 @@ InferenceManager::InferenceManager(context::Context* c,
   d_false = nm->mkConst(false);
 }
 
-void InferenceManager::finishInit(ProofNodeManager * pnm)
+void InferenceManager::finishInit(ProofNodeManager* pnm)
 {
   // now that proof node manager is setup, we initialize proof equality engine
-  d_pfee.reset(new eq::ProofEqEngine(d_ccontext,
-                                     d_ucontext,
-                                     *d_state.getEqualityEngine(),
-                                     pnm,
-                                     d_pfEnabled));
+  d_pfee.reset(new eq::ProofEqEngine(
+      d_ccontext, d_ucontext, *d_state.getEqualityEngine(), pnm, d_pfEnabled));
   d_ipc.reset(new InferProofCons(
       *d_pfee, d_statistics, d_pfEnabled, pnm->getChecker()));
 }

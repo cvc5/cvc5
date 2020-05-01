@@ -67,10 +67,7 @@ Node TrustNode::getNode() const { return d_node; }
 
 ProofGenerator* TrustNode::getGenerator() const { return d_gen; }
 
-bool TrustNode::isNull() const
-{
-  return d_node.isNull();
-}
+bool TrustNode::isNull() const { return d_node.isNull(); }
 
 std::ostream& operator<<(std::ostream& out, TrustNode n)
 {

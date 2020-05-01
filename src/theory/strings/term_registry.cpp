@@ -40,7 +40,7 @@ TermRegistry::TermRegistry(context::Context* c,
                            eq::EqualityEngine& ee,
                            OutputChannel& out,
                            SequencesStatistics& statistics,
-                   bool pfEnabled)
+                           bool pfEnabled)
     : d_ee(ee),
       d_out(out),
       d_statistics(statistics),
@@ -64,9 +64,9 @@ TermRegistry::TermRegistry(context::Context* c,
 
 TermRegistry::~TermRegistry() {}
 
-void TermRegistry::finishInit(ProofNodeManager * pnm)
+void TermRegistry::finishInit(ProofNodeManager* pnm)
 {
-  //d_epg.reset(new EagerProofGenerator(pnm));
+  // d_epg.reset(new EagerProofGenerator(pnm));
 }
 
 void TermRegistry::preRegisterTerm(TNode n)
@@ -230,8 +230,8 @@ void TermRegistry::registerTerm(Node n, int effort)
   {
     Node l = utils::mkNLength(n[0]);
     Node lem = nm->mkNode(AND,
-                            nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
-                            nm->mkNode(LEQ, n, l));
+                          nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
+                          nm->mkNode(LEQ, n, l));
     regTermLem = TrustNode::mkTrustLemma(lem, nullptr);
   }
   else if (n.getKind() == STRING_STOI)
@@ -243,7 +243,8 @@ void TermRegistry::registerTerm(Node n, int effort)
   {
     Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem
                            << std::endl;
-    Trace("strings-assert") << "(assert " << regTermLem.getNode() << ")" << std::endl;
+    Trace("strings-assert")
+        << "(assert " << regTermLem.getNode() << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
     d_out.trustedLemma(regTermLem);
   }
@@ -328,7 +329,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   Node ceq = Rewriter::rewrite(skl.eqNode(lsum));
 
   Node ret = nm->mkNode(AND, eq, ceq);
-  
+
   return TrustNode::mkTrustLemma(ret, nullptr);
 }
 
@@ -351,7 +352,8 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
   {
     Trace("strings-lemma") << "Strings::Lemma REGISTER-TERM-ATOMIC : " << lenLem
                            << std::endl;
-    Trace("strings-assert") << "(assert " << lenLem.getNode() << ")" << std::endl;
+    Trace("strings-assert")
+        << "(assert " << lenLem.getNode() << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTermAtomic);
     d_out.trustedLemma(lenLem);
   }
@@ -376,9 +378,8 @@ const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars()
 
 bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
 
-TrustNode TermRegistry::getRegisterTermAtomicLemma(Node n,
-                                              LengthStatus s,
-                                              std::map<Node, bool>& reqPhase)
+TrustNode TermRegistry::getRegisterTermAtomicLemma(
+    Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
 {
   Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
@@ -452,7 +453,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(Node n,
     return TrustNode::null();
   }
   Node ret = lems.size() == 1 ? lems[0] : nm->mkNode(AND, lems);
-  
+
   return TrustNode::mkTrustLemma(ret, nullptr);
 }
 
