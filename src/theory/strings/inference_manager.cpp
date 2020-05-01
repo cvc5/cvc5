@@ -74,7 +74,7 @@ void InferenceManager::finishInit()
                                      *d_state.getEqualityEngine(),
                                      d_pnm.get(),
                                      d_pfEnabled));
-  d_ipc.reset(new InferProofCons(*d_pfee, d_statistics, d_pfEnabled));
+  d_ipc.reset(new InferProofCons(*d_pfee, d_statistics, d_pfEnabled, d_pnm->getChecker()));
 }
 
 void InferenceManager::sendAssumption(TNode lit)

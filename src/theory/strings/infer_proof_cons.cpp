@@ -25,8 +25,9 @@ namespace strings {
 
 InferProofCons::InferProofCons(eq::ProofEqEngine& pfee,
                                SequencesStatistics& statistics,
-                               bool pfEnabled)
-    : d_pfee(pfee), d_statistics(statistics), d_pfEnabled(pfEnabled)
+                               bool pfEnabled,
+                 ProofChecker * pc)
+    : d_checker(pc), d_pfee(pfee), d_statistics(statistics), d_pfEnabled(pfEnabled)
 {
 }
 

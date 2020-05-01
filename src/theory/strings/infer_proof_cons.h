@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "expr/proof_rule.h"
+#include "expr/proof_checker.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/uf/proof_equality_engine.h"
@@ -38,7 +39,8 @@ class InferProofCons
  public:
   InferProofCons(eq::ProofEqEngine& pfee,
                  SequencesStatistics& statistics,
-                 bool pfEnabled = false);
+                 bool pfEnabled,
+                 ProofChecker * pc);
   ~InferProofCons() {}
   /** convert
    *
@@ -64,6 +66,8 @@ class InferProofCons
                  eq::ProofInferInfo& pii);
 
  private:
+  /** The proof checker, if one exists */
+  ProofChecker * d_checker;
   /** The proof-producing equality engine, used for intermediate assertions */
   eq::ProofEqEngine& d_pfee;
   /** Reference to the statistics for the theory of strings/sequences. */

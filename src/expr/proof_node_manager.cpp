@@ -97,4 +97,9 @@ Node ProofNodeManager::checkInternal(
   return res;
 }
 
+ProofChecker * ProofNodeManager::getChecker() const
+{
+  return d_checker;
+}
+
 }  // namespace CVC4

@@ -97,7 +97,8 @@ class ProofNodeManager
                   PfRule id,
                   const std::vector<std::shared_ptr<ProofNode>>& children,
                   const std::vector<Node>& args);
-
+  /** Get the underlying proof checker */
+  ProofChecker * getChecker() const;
  private:
   /** The (optional) proof checker */
   ProofChecker* d_checker;

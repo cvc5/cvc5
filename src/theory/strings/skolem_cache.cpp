@@ -70,6 +70,7 @@ Node SkolemCache::mkTypedSkolemCached(
       //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
       case SK_ID_V_SPT: break;
       case SK_ID_V_SPT_REV: break;
+      // these are eliminated by normalizeStringSkolem
       case SK_ID_VC_SPT:
       case SK_ID_VC_SPT_REV:
       case SK_FIRST_CTN_POST:
@@ -84,6 +85,7 @@ Node SkolemCache::mkTypedSkolemCached(
       case SK_SUFFIX_REM:
         Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
         break;
+      // these are not easily formalized as witness terms
       // --------------- integer skolems
       // exists k. ( b occurs k times in a )
       case SK_NUM_OCCUR:
