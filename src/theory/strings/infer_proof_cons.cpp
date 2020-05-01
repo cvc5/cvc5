@@ -218,7 +218,21 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::RE_UNFOLD_NEG: break;
     // ========================== Reduction
     case Inference::CTN_POS: break;
-    case Inference::REDUCTION: break;
+    case Inference::REDUCTION:
+    {
+      size_t nchild = conc.getNumChildren();
+      if (conc.getKind()!=AND || conc[nchild-1].getKind()!=EQUAL)
+      {
+        Assert(false);
+      }
+      else
+      {
+        // the last conjunction says what we are reducing
+        pii.d_args.push_back(conc[nchild-1][0]);
+        tryChecker = &d_strChecker;
+      }
+    }
+      break;
     // ========================== Cardinality
     case Inference::CARDINALITY: break;
     // ========================== code injectivity

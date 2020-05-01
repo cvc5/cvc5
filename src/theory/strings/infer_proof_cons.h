@@ -84,6 +84,8 @@ class InferProofCons
   booleans::BoolProofRuleChecker d_boolChecker;
   /** UF proof checker */
   uf::UfProofRuleChecker d_ufChecker;
+  /** Strings proof checker */
+  StringProofRuleChecker d_strChecker;
 };
 
 }  // namespace strings

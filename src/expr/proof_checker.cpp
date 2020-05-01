@@ -55,6 +55,20 @@ Node ProofRuleChecker::checkArg(PfRule id, Node arg)
   std::vector<Node> args = {arg};
   return check(id, children, args);
 }
+
+Node ProofRuleChecker::mkAnd(const std::vector<Node>& a)
+{
+  if (a.empty())
+  {
+    return NodeManager::currentNM()->mkConst(true);
+  }
+  else if (a.size() == 1)
+  {
+    return a[0];
+  }
+  return NodeManager::currentNM()->mkNode(AND, a);
+}
+
 ProofCheckerStatistics::ProofCheckerStatistics()
     : d_ruleChecks("ProofCheckerStatistics::ruleChecks")
 {

@@ -16,6 +16,7 @@
 
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/theory_strings_preprocess.h"
 
 using namespace CVC4::kind;
 
@@ -125,6 +126,14 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::REDUCTION)
   {
+    Assert(children.empty());
+    Assert(args.size()==1);
+    StringsPreprocess spp;
+    std::vector<Node> conj;
+    // TODO: verify no optimizations
+    Node ret = spp.simplify(args[0], conj);
+    conj.push_back(args[0].eqNode(ret));
+    return mkAnd(conj);
   }
   else if (id == PfRule::RE_INTER)
   {

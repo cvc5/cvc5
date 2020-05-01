@@ -56,6 +56,9 @@ class ProofRuleChecker
   Node checkChild(PfRule id, Node child);
   /** Single argument only version */
   Node checkArg(PfRule id, Node arg);
+  
+  /** mk and node */
+  static Node mkAnd(const std::vector<Node>& a);
 
  protected:
   /**

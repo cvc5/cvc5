@@ -54,19 +54,6 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
   return curr;
 }
 
-Node BuiltinProofRuleChecker::mkAnd(const std::vector<Node>& a)
-{
-  if (a.empty())
-  {
-    return NodeManager::currentNM()->mkConst(true);
-  }
-  else if (a.size() == 1)
-  {
-    return a[0];
-  }
-  return NodeManager::currentNM()->mkNode(AND, a);
-}
-
 Node BuiltinProofRuleChecker::checkInternal(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args)
