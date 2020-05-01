@@ -61,11 +61,6 @@ Node SkolemCache::mkTypedSkolemCached(
     {
       // exists k. k = a
       case SK_PURIFY: cond = v.eqNode(a); break;
-      // a != ""  ^ b != "" ^ len( a ) != len( b ) ^ a ++ a' != b ++ b' =>
-      //    exists k_x k_y k_z.
-      //         ( len( k_y ) = len( a ) ^ len( k_x ) = len( b ) ^ len( k_z) > 0
-      //           ( a = k_x ++ k_z OR b = k_y ++ k_z ) )
-      case SK_ID_DEQ_Z: break;
       // these are eliminated by normalizeStringSkolem
       case SK_ID_V_SPT: 
       case SK_ID_V_SPT_REV:
@@ -135,6 +130,7 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
 
   NodeManager* nm = NodeManager::currentNM();
 
+  // eliminate in terms of prefix/suffix_rem
   if (id == SK_FIRST_CTN_POST)
   {
     // SK_FIRST_CTN_POST(x, y) --->
@@ -144,8 +140,7 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     b = nm->mkNode(
         PLUS, nm->mkNode(STRING_LENGTH, pre), nm->mkNode(STRING_LENGTH, b));
   }
-
-  if (id==SK_ID_V_SPT || id == SK_ID_C_SPT)
+  else if (id==SK_ID_V_SPT || id == SK_ID_C_SPT)
   {
     // SK_ID_*_SPT(x, y) ---> SK_SUFFIX_REM(x, (str.len y))
     id = SK_SUFFIX_REM;
@@ -197,13 +192,14 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     id = SK_PREFIX;
     b = nm->mkNode(STRING_LENGTH, b);
   }
-
-  if (id == SK_FIRST_CTN_PRE)
+  else if (id == SK_FIRST_CTN_PRE)
   {
     // SK_FIRST_CTN_PRE(x,y) ---> SK_PREFIX(x, indexof(x,y,0))
     id = SK_PREFIX;
     b = nm->mkNode(STRING_STRIDOF, a, b, d_zero);
   }
+  
+  // now, eliminate prefix/suffix_rem in terms of purify
   if (id == SK_PREFIX)
   {
     // SK_PREFIX(x,y) ---> SK_PURIFY(substr(x,0,y))

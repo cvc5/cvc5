@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "expr/proof_node.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -49,6 +50,16 @@ class ProofRuleChecker
                      const std::vector<Node>& args) = 0;
 };
 
+/** Statistics class */
+class ProofCheckerStatistics
+{
+public:
+  ProofCheckerStatistics();
+  ~ProofCheckerStatistics();
+  /** Counts the number of checks for each kind of proof rule */
+  HistogramStat<PfRule> d_ruleChecks;
+};
+  
 /** A class for checking proofs */
 class ProofChecker
 {
@@ -103,6 +114,8 @@ class ProofChecker
   void registerChecker(PfRule id, ProofRuleChecker* psc);
 
  private:
+  /** statistics class */
+  ProofCheckerStatistics d_stats;
   /** Maps proof steps to their checker */
   std::map<PfRule, ProofRuleChecker*> d_checker;
   /**

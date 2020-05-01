@@ -14,8 +14,21 @@
 
 #include "expr/proof_checker.h"
 
+#include "smt/smt_statistics_registry.h"
+
 namespace CVC4 {
 
+ProofCheckerStatistics::ProofCheckerStatistics()
+    : d_ruleChecks("ProofCheckerStatistics::ruleChecks")
+{
+  smtStatisticsRegistry()->registerStat(&d_ruleChecks);
+}
+
+ProofCheckerStatistics::~ProofCheckerStatistics()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_ruleChecks);
+}
+  
 Node ProofChecker::check(ProofNode* pn, Node expected)
 {
   return check(pn->getRule(), pn->getChildren(), pn->getArguments(), expected);
@@ -27,6 +40,8 @@ Node ProofChecker::check(
     const std::vector<Node>& args,
     Node expected)
 {
+  // record stat
+  d_stats.d_ruleChecks << id;
   /*
   // optimization?
   if (id==PfRule::ASSUME)
