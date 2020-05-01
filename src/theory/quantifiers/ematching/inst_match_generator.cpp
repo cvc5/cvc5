@@ -1053,7 +1053,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
   Assert(Trigger::isSimpleTrigger(d_match_pattern));
   for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
     if( d_match_pattern[i].getKind()==INST_CONSTANT ){
-      if( !options::cbqi() || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i])==q ){
+      if( !options::cegqi() || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i])==q ){
         d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());
       }else{
         d_var_num[i] = -1;

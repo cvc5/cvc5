@@ -1623,26 +1623,26 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
     return check(lemmas);
   }
 
-  if (Trace.isOn("cegqi-engine") && !d_szinfo.empty())
+  if (Trace.isOn("sygus-engine") && !d_szinfo.empty())
   {
     if (lemmas.empty())
     {
-      Trace("cegqi-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
+      Trace("sygus-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
       for (std::pair<const Node, std::unique_ptr<SygusSizeDecisionStrategy>>&
                p : d_szinfo)
       {
         SygusSizeDecisionStrategy* s = p.second.get();
-        Trace("cegqi-engine") << s->d_curr_search_size << " ";
+        Trace("sygus-engine") << s->d_curr_search_size << " ";
       }
-      Trace("cegqi-engine") << std::endl;
+      Trace("sygus-engine") << std::endl;
     }
     else
     {
-      Trace("cegqi-engine")
+      Trace("sygus-engine")
           << "*** Sygus : produced symmetry breaking lemmas" << std::endl;
       for (const Node& lem : lemmas)
       {
-        Trace("cegqi-engine-debug") << "  " << lem << std::endl;
+        Trace("sygus-engine-debug") << "  " << lem << std::endl;
       }
     }
   }
@@ -1783,7 +1783,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   }
   Assert(!d_this.isNull());
   NodeManager* nm = NodeManager::currentNM();
-  Trace("cegqi-engine") << "******* Sygus : allocate size literal " << s
+  Trace("sygus-engine") << "******* Sygus : allocate size literal " << s
                         << " for " << d_this << std::endl;
   return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConst(Rational(s)));
 }

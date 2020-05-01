@@ -23,6 +23,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
+#include "printer/sygus_print_callback.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -709,6 +710,223 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+void getFreeSymbolsSygusType(TypeNode sdt,
+                             std::unordered_set<Node, NodeHashFunction>& syms)
+{
+  // datatype types we need to process
+  std::vector<TypeNode> typeToProcess;
+  // datatype types we have processed
+  std::map<TypeNode, TypeNode> typesProcessed;
+  typeToProcess.push_back(sdt);
+  while (!typeToProcess.empty())
+  {
+    std::vector<TypeNode> typeNextToProcess;
+    for (const TypeNode& curr : typeToProcess)
+    {
+      Assert(curr.isDatatype() && curr.getDType().isSygus());
+      const DType& dtc = curr.getDType();
+      for (unsigned j = 0, ncons = dtc.getNumConstructors(); j < ncons; j++)
+      {
+        // collect the symbols from the operator
+        Node op = dtc[j].getSygusOp();
+        expr::getSymbols(op, syms);
+        // traverse the argument types
+        for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
+        {
+          TypeNode argt = dtc[j].getArgType(k);
+          if (!argt.isDatatype() || !argt.getDType().isSygus())
+          {
+            // not a sygus datatype
+            continue;
+          }
+          if (typesProcessed.find(argt) == typesProcessed.end())
+          {
+            typeNextToProcess.push_back(argt);
+          }
+        }
+      }
+    }
+    typeToProcess.clear();
+    typeToProcess.insert(typeToProcess.end(),
+                         typeNextToProcess.begin(),
+                         typeNextToProcess.end());
+  }
+}
+
+TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
+                                          const std::vector<Node>& syms,
+                                          const std::vector<Node>& vars)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  const DType& sdtd = sdt.getDType();
+  // compute the new formal argument list
+  std::vector<Node> formalVars;
+  Node prevVarList = sdtd.getSygusVarList();
+  if (!prevVarList.isNull())
+  {
+    for (const Node& v : prevVarList)
+    {
+      // if it is not being replaced
+      if (std::find(syms.begin(), syms.end(), v) != syms.end())
+      {
+        formalVars.push_back(v);
+      }
+    }
+  }
+  for (const Node& v : vars)
+  {
+    if (v.getKind() == BOUND_VARIABLE)
+    {
+      formalVars.push_back(v);
+    }
+  }
+  // make the sygus variable list for the formal argument list
+  Node abvl = nm->mkNode(BOUND_VAR_LIST, formalVars);
+  Trace("sygus-abduct-debug") << "...finish" << std::endl;
+
+  // must convert all constructors to version with variables in "vars"
+  std::vector<SygusDatatype> sdts;
+  std::set<Type> unres;
+
+  Trace("dtsygus-gen-debug") << "Process sygus type:" << std::endl;
+  Trace("dtsygus-gen-debug") << sdtd.getName() << std::endl;
+
+  // datatype types we need to process
+  std::vector<TypeNode> dtToProcess;
+  // datatype types we have processed
+  std::map<TypeNode, TypeNode> dtProcessed;
+  dtToProcess.push_back(sdt);
+  std::stringstream ssutn0;
+  ssutn0 << sdtd.getName() << "_s";
+  TypeNode abdTNew =
+      nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+  unres.insert(abdTNew.toType());
+  dtProcessed[sdt] = abdTNew;
+
+  // We must convert all symbols in the sygus datatype type sdt to
+  // apply the substitution { syms -> vars }, where syms is the free
+  // variables of the input problem, and vars is the formal argument list
+  // of the function-to-synthesize.
+
+  // We are traversing over the subfield types of the datatype to convert
+  // them into the form described above.
+  while (!dtToProcess.empty())
+  {
+    std::vector<TypeNode> dtNextToProcess;
+    for (const TypeNode& curr : dtToProcess)
+    {
+      Assert(curr.isDatatype() && curr.getDType().isSygus());
+      const DType& dtc = curr.getDType();
+      std::stringstream ssdtn;
+      ssdtn << dtc.getName() << "_s";
+      sdts.push_back(SygusDatatype(ssdtn.str()));
+      Trace("dtsygus-gen-debug")
+          << "Process datatype " << sdts.back().getName() << "..." << std::endl;
+      for (unsigned j = 0, ncons = dtc.getNumConstructors(); j < ncons; j++)
+      {
+        Node op = dtc[j].getSygusOp();
+        // apply the substitution to the argument
+        Node ops =
+            op.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
+        Trace("dtsygus-gen-debug") << "  Process constructor " << op << " / "
+                                   << ops << "..." << std::endl;
+        std::vector<TypeNode> cargs;
+        for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
+        {
+          TypeNode argt = dtc[j].getArgType(k);
+          std::map<TypeNode, TypeNode>::iterator itdp = dtProcessed.find(argt);
+          TypeNode argtNew;
+          if (itdp == dtProcessed.end())
+          {
+            std::stringstream ssutn;
+            ssutn << argt.getDType().getName() << "_s";
+            argtNew =
+                nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+            Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
+                                       << " for " << argt << std::endl;
+            unres.insert(argtNew.toType());
+            dtProcessed[argt] = argtNew;
+            dtNextToProcess.push_back(argt);
+          }
+          else
+          {
+            argtNew = itdp->second;
+          }
+          Trace("dtsygus-gen-debug")
+              << "    Arg #" << k << ": " << argtNew << std::endl;
+          cargs.push_back(argtNew);
+        }
+        // callback prints as the expression
+        std::shared_ptr<SygusPrintCallback> spc;
+        std::vector<Expr> args;
+        if (op.getKind() == LAMBDA)
+        {
+          Node opBody = op[1];
+          for (const Node& v : op[0])
+          {
+            args.push_back(v.toExpr());
+          }
+          spc = std::make_shared<printer::SygusExprPrintCallback>(
+              opBody.toExpr(), args);
+        }
+        else if (cargs.empty())
+        {
+          spc = std::make_shared<printer::SygusExprPrintCallback>(op.toExpr(),
+                                                                  args);
+        }
+        std::stringstream ss;
+        ss << ops.getKind();
+        Trace("dtsygus-gen-debug") << "Add constructor : " << ops << std::endl;
+        sdts.back().addConstructor(ops, ss.str(), cargs, spc);
+      }
+      Trace("dtsygus-gen-debug")
+          << "Set sygus : " << dtc.getSygusType() << " " << abvl << std::endl;
+      TypeNode stn = dtc.getSygusType();
+      sdts.back().initializeDatatype(
+          stn, abvl, dtc.getSygusAllowConst(), dtc.getSygusAllowAll());
+    }
+    dtToProcess.clear();
+    dtToProcess.insert(
+        dtToProcess.end(), dtNextToProcess.begin(), dtNextToProcess.end());
+  }
+  Trace("dtsygus-gen-debug")
+      << "Make " << sdts.size() << " datatype types..." << std::endl;
+  // extract the datatypes
+  std::vector<Datatype> datatypes;
+  for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
+  {
+    datatypes.push_back(sdts[i].getDatatype());
+  }
+  // make the datatype types
+  std::vector<DatatypeType> datatypeTypes =
+      nm->toExprManager()->mkMutualDatatypeTypes(
+          datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+  TypeNode sdtS = TypeNode::fromType(datatypeTypes[0]);
+  if (Trace.isOn("dtsygus-gen-debug"))
+  {
+    Trace("dtsygus-gen-debug") << "Made datatype types:" << std::endl;
+    for (unsigned j = 0, ndts = datatypeTypes.size(); j < ndts; j++)
+    {
+      const DType& dtj = TypeNode::fromType(datatypeTypes[j]).getDType();
+      Trace("dtsygus-gen-debug") << "#" << j << ": " << dtj << std::endl;
+      for (unsigned k = 0, ncons = dtj.getNumConstructors(); k < ncons; k++)
+      {
+        for (unsigned l = 0, nargs = dtj[k].getNumArgs(); l < nargs; l++)
+        {
+          if (!dtj[k].getArgType(l).isDatatype())
+          {
+            Trace("dtsygus-gen-debug")
+                << "Argument " << l << " of " << dtj[k]
+                << " is not datatype : " << dtj[k].getArgType(l) << std::endl;
+            AlwaysAssert(false);
+          }
+        }
+      }
+    }
+  }
+  return sdtS;
 }
 
 }  // namespace utils

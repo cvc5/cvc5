@@ -30,13 +30,15 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+CoreInferInfo::CoreInferInfo() : d_index(0), d_rev(false) {}
+
 CoreSolver::CoreSolver(context::Context* c,
                        context::UserContext* u,
                        SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr,
                        BaseSolver& bs)
-    : d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs), d_nf_pairs(c)
+    : d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs), d_nfPairs(c)
 {
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -914,7 +916,7 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
                              TypeNode stype)
 {
   //the possible inferences
-  std::vector< InferInfo > pinfer;
+  std::vector<CoreInferInfo> pinfer;
   // loop over all pairs 
   for(unsigned i=0; i<normal_forms.size()-1; i++) {
     //unify each normalform[j] with normal_forms[i]
@@ -961,24 +963,28 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
                          << ") : " << std::endl;
   Inference min_id = Inference::NONE;
   unsigned max_index = 0;
-  for (unsigned i = 0, size = pinfer.size(); i < size; i++)
+  for (unsigned i = 0, psize = pinfer.size(); i < psize; i++)
   {
-    Trace("strings-solve") << "#" << i << ": From " << pinfer[i].d_i << " / "
-                           << pinfer[i].d_j << " (rev=" << pinfer[i].d_rev
-                           << ") : ";
-    Trace("strings-solve") << pinfer[i].d_conc << " by " << pinfer[i].d_id
-                           << std::endl;
-    if (!set_use_index || pinfer[i].d_id < min_id
-        || (pinfer[i].d_id == min_id && pinfer[i].d_index > max_index))
+    CoreInferInfo& ipii = pinfer[i];
+    InferInfo& ii = ipii.d_infer;
+    Trace("strings-solve") << "#" << i << ": From " << ipii.d_i << " / "
+                           << ipii.d_j << " (rev=" << ipii.d_rev << ") : ";
+    Trace("strings-solve") << ii.d_conc << " by " << ii.d_id << std::endl;
+    if (!set_use_index || ii.d_id < min_id
+        || (ii.d_id == min_id && ipii.d_index > max_index))
     {
-      min_id = pinfer[i].d_id;
-      max_index = pinfer[i].d_index;
+      min_id = ii.d_id;
+      max_index = ipii.d_index;
       use_index = i;
       set_use_index = true;
     }
   }
   Trace("strings-solve") << "...choose #" << use_index << std::endl;
-  doInferInfo(pinfer[use_index]);
+  if (!processInferInfo(pinfer[use_index]))
+  {
+    Unhandled() << "Failed to process infer info " << pinfer[use_index].d_infer
+                << std::endl;
+  }
 }
 
 void CoreSolver::processSimpleNEq(NormalForm& nfi,
@@ -986,7 +992,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
                                   unsigned& index,
                                   bool isRev,
                                   unsigned rproc,
-                                  std::vector<InferInfo>& pinfer,
+                                  std::vector<CoreInferInfo>& pinfer,
                                   TypeNode stype)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -1168,7 +1174,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     }
 
     // The candidate inference "info"
-    InferInfo info;
+    CoreInferInfo info;
+    InferInfo& iinfo = info.d_infer;
     info.d_index = index;
     // for debugging
     info.d_i = nfi.d_base;
@@ -1189,9 +1196,9 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           << std::endl;
       Node lenEq = nm->mkNode(EQUAL, xLenTerm, yLenTerm);
       lenEq = Rewriter::rewrite(lenEq);
-      info.d_conc = nm->mkNode(OR, lenEq, lenEq.negate());
-      info.d_pending_phase[lenEq] = true;
-      info.d_id = Inference::LEN_SPLIT;
+      iinfo.d_conc = nm->mkNode(OR, lenEq, lenEq.negate());
+      iinfo.d_id = Inference::LEN_SPLIT;
+      info.d_pendingPhase[lenEq] = true;
       pinfer.push_back(info);
       break;
     }
@@ -1205,7 +1212,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       // We are dealing with a looping word equation.
       if (!isRev)
       {  // FIXME
-        NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, info.d_ant);
+        NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, iinfo.d_ant);
         ProcessLoopResult plr =
             processLoop(lhsLoopIdx != -1 ? nfi : nfj,
                         lhsLoopIdx != -1 ? nfj : nfi,
@@ -1263,14 +1270,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           // infer the purification equality, and the (dis)equality
           // with the empty string in the direction that the rewriter
           // inferred
-          info.d_conc = nm->mkNode(
+          iinfo.d_conc = nm->mkNode(
               AND, p.eqNode(nc), !eq.getConst<bool>() ? pEq.negate() : pEq);
-          info.d_id = Inference::INFER_EMP;
+          iinfo.d_id = Inference::INFER_EMP;
         }
         else
         {
-          info.d_conc = nm->mkNode(OR, eq, eq.negate());
-          info.d_id = Inference::LEN_SPLIT_EMP;
+          iinfo.d_conc = nm->mkNode(OR, eq, eq.negate());
+          iinfo.d_id = Inference::LEN_SPLIT_EMP;
         }
         pinfer.push_back(info);
         break;
@@ -1278,7 +1285,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
       // At this point, we know that `nc` is non-empty, so we add that to our
       // explanation.
-      info.d_ant.push_back(expNonEmpty);
+      iinfo.d_ant.push_back(expNonEmpty);
 
       size_t ncIndex = index + 1;
       Node nextConstStr = nfnc.collectConstantStringAt(ncIndex);
@@ -1326,7 +1333,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         if (p > 1)
         {
           NormalForm::getExplanationForPrefixEq(
-              nfc, nfnc, cIndex, ncIndex, info.d_ant);
+              nfc, nfnc, cIndex, ncIndex, iinfo.d_ant);
           Node prea = p == straLen ? stra
                                    : (isRev ? Word::suffix(stra, p)
                                             : Word::prefix(stra, p));
@@ -1339,10 +1346,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           Trace("strings-csp")
               << "Const Split: " << prea << " is removed from " << stra
               << " due to " << strb << ", p=" << p << std::endl;
-          info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, prea)
-                                        : utils::mkNConcat(prea, sk));
-          info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
-          info.d_id = Inference::SSPLIT_CST_PROP;
+          iinfo.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, prea)
+                                         : utils::mkNConcat(prea, sk));
+          iinfo.d_new_skolem[LENGTH_SPLIT].push_back(sk);
+          iinfo.d_id = Inference::SSPLIT_CST_PROP;
           pinfer.push_back(info);
           break;
         }
@@ -1365,11 +1372,12 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Trace("strings-csp") << "Const Split: " << firstChar
                            << " is removed from " << stra << " (serial) "
                            << std::endl;
-      NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, info.d_ant);
-      info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
-                                    : utils::mkNConcat(firstChar, sk));
-      info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
-      info.d_id = Inference::SSPLIT_CST;
+      NormalForm::getExplanationForPrefixEq(
+          nfi, nfj, index, index, iinfo.d_ant);
+      iinfo.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
+                                     : utils::mkNConcat(firstChar, sk));
+      iinfo.d_new_skolem[LENGTH_SPLIT].push_back(sk);
+      iinfo.d_id = Inference::SSPLIT_CST;
       pinfer.push_back(info);
       break;
     }
@@ -1415,7 +1423,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       }
     }
 
-    NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, info.d_ant);
+    NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);
     // Add premises for x != "" ^ y != ""
     for (unsigned xory = 0; xory < 2; xory++)
     {
@@ -1423,12 +1431,12 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Node tnz = d_state.explainNonEmpty(x);
       if (!tnz.isNull())
       {
-        info.d_ant.push_back(tnz);
+        iinfo.d_ant.push_back(tnz);
       }
       else
       {
         tnz = x.eqNode(emp).negate();
-        info.d_antn.push_back(tnz);
+        iinfo.d_antn.push_back(tnz);
       }
     }
     SkolemCache* skc = d_termReg.getSkolemCache();
@@ -1437,7 +1445,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         y,
         isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
         "v_spt");
-    info.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
+    iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
     Node eq1 =
         x.eqNode(isRev ? utils::mkNConcat(sk, y) : utils::mkNConcat(y, sk));
     Node eq2 =
@@ -1445,16 +1453,16 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
     if (lentTestSuccess != -1)
     {
-      info.d_antn.push_back(lentTestExp);
-      info.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
-      info.d_id = Inference::SSPLIT_VAR_PROP;
+      iinfo.d_antn.push_back(lentTestExp);
+      iinfo.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
+      iinfo.d_id = Inference::SSPLIT_VAR_PROP;
     }
     else
     {
       Node ldeq = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
-      info.d_ant.push_back(ldeq);
-      info.d_conc = nm->mkNode(OR, eq1, eq2);
-      info.d_id = Inference::SSPLIT_VAR;
+      iinfo.d_ant.push_back(ldeq);
+      iinfo.d_conc = nm->mkNode(OR, eq1, eq2);
+      iinfo.d_id = Inference::SSPLIT_VAR;
     }
     pinfer.push_back(info);
     break;
@@ -1500,10 +1508,10 @@ bool CoreSolver::detectLoop(NormalForm& nfi,
 
 //xs(zy)=t(yz)xr
 CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
-                                                            NormalForm& nfj,
-                                                            int loop_index,
-                                                            int index,
-                                                            InferInfo& info)
+                                                      NormalForm& nfj,
+                                                      int loop_index,
+                                                      int index,
+                                                      CoreInferInfo& info)
 {
   if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
   {
@@ -1540,6 +1548,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
   Node emp = Word::mkEmptyWord(stype);
 
+  InferInfo& iinfo = info.d_infer;
   if (s_zy.isConst() && r.isConst() && r != emp)
   {
     int c;
@@ -1560,7 +1569,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     {
       Trace("strings-loop") << "Strings::Loop: tails are different."
                             << std::endl;
-      d_im.sendInference(info.d_ant, conc, Inference::FLOOP_CONFLICT, true);
+      d_im.sendInference(iinfo.d_ant, conc, Inference::FLOOP_CONFLICT, true);
       return ProcessLoopResult::CONFLICT;
     }
   }
@@ -1578,13 +1587,13 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
       if (expNonEmpty.isNull())
       {
         // try to make t equal to empty to avoid loop
-        info.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
-        info.d_id = Inference::LEN_SPLIT_EMP;
+        iinfo.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
+        iinfo.d_id = Inference::LEN_SPLIT_EMP;
         return ProcessLoopResult::INFERENCE;
       }
       else
       {
-        info.d_ant.push_back(expNonEmpty);
+        iinfo.d_ant.push_back(expNonEmpty);
       }
     }
     else
@@ -1593,9 +1602,9 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     }
   }
 
-  Node ant = d_im.mkExplain(info.d_ant);
-  info.d_ant.clear();
-  info.d_antn.push_back(ant);
+  Node ant = d_im.mkExplain(iinfo.d_ant);
+  iinfo.d_ant.clear();
+  iinfo.d_antn.push_back(ant);
 
   Node str_in_re;
   if (s_zy == t_yz && r == emp && s_zy.isConst()
@@ -1699,10 +1708,10 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   }  // normal case
 
   // we will be done
-  info.d_conc = conc;
-  info.d_id = Inference::FLOOP;
-  info.d_nf_pair[0] = nfi.d_base;
-  info.d_nf_pair[1] = nfj.d_base;
+  iinfo.d_conc = conc;
+  iinfo.d_id = Inference::FLOOP;
+  info.d_nfPair[0] = nfi.d_base;
+  info.d_nfPair[1] = nfj.d_base;
   return ProcessLoopResult::INFERENCE;
 }
 
@@ -1863,7 +1872,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
               antec,
               nm->mkNode(
                   OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2),
-              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT);
+              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
+              true);
           d_im.sendPhaseRequirement(eq1, true);
           return;
         }
@@ -1911,7 +1921,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
         d_im.sendInference(antec,
                            antecNewLits,
                            nm->mkNode(AND, conc),
-                           Inference::DEQ_DISL_STRINGS_SPLIT);
+                           Inference::DEQ_DISL_STRINGS_SPLIT,
+                           true);
         return;
       }
     }
@@ -2116,11 +2127,12 @@ void CoreSolver::addNormalFormPair( Node n1, Node n2 ){
   }
   if( !isNormalFormPair( n1, n2 ) ){
     int index = 0;
-    NodeIntMap::const_iterator it = d_nf_pairs.find( n1 );
-    if( it!=d_nf_pairs.end() ){
+    NodeIntMap::const_iterator it = d_nfPairs.find(n1);
+    if (it != d_nfPairs.end())
+    {
       index = (*it).second;
     }
-    d_nf_pairs[n1] = index + 1;
+    d_nfPairs[n1] = index + 1;
     if( index<(int)d_nf_pairs_data[n1].size() ){
       d_nf_pairs_data[n1][index] = n2;
     }else{
@@ -2138,8 +2150,9 @@ bool CoreSolver::isNormalFormPair( Node n1, Node n2 ) {
     return isNormalFormPair(n2,n1);
   }
   //Trace("strings-debug") << "is normal form pair. " << n1 << " " << n2 << std::endl;
-  NodeIntMap::const_iterator it = d_nf_pairs.find( n1 );
-  if( it!=d_nf_pairs.end() ){
+  NodeIntMap::const_iterator it = d_nfPairs.find(n1);
+  if (it != d_nfPairs.end())
+  {
     Assert(d_nf_pairs_data.find(n1) != d_nf_pairs_data.end());
     for( int i=0; i<(*it).second; i++ ){
       Assert(i < (int)d_nf_pairs_data[n1].size());
@@ -2286,29 +2299,34 @@ void CoreSolver::checkLengthsEqc() {
   }
 }
 
-void CoreSolver::doInferInfo(const InferInfo& ii)
+bool CoreSolver::processInferInfo(CoreInferInfo& cii)
 {
-  // send the inference
-  if (!ii.d_nf_pair[0].isNull())
-  {
-    Assert(!ii.d_nf_pair[1].isNull());
-    addNormalFormPair(ii.d_nf_pair[0], ii.d_nf_pair[1]);
-  }
-  // send the inference
-  d_im.sendInference(ii);
-  // Register the new skolems from this inference. We register them here
-  // (lazily), since the code above has now decided to use the inference
-  // at use_index that involves them.
-  for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
-       ii.d_new_skolem)
-  {
-    for (const Node& n : sks.second)
-    {
-      d_termReg.registerTermAtomic(n, sks.first);
-    }
-  }
-}
+  InferInfo& ii = cii.d_infer;
+  // rewrite the conclusion, ensure non-trivial
+  ii.d_conc = Rewriter::rewrite(ii.d_conc);
 
+  if (ii.isTrivial())
+  {
+    // conclusion rewrote to true
+    return false;
+  }
+  // process the state change to this solver
+  if (!cii.d_nfPair[0].isNull())
+  {
+    Assert(!cii.d_nfPair[1].isNull());
+    addNormalFormPair(cii.d_nfPair[0], cii.d_nfPair[1]);
+  }
+  // send phase requirements
+  for (const std::pair<const Node, bool> pp : cii.d_pendingPhase)
+  {
+    d_im.sendPhaseRequirement(pp.first, pp.second);
+  }
+
+  // send the inference, which is a lemma
+  d_im.sendInference(ii, true);
+
+  return true;
+}
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

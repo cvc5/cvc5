@@ -36,10 +36,10 @@ BV)
   finishwith --full-saturate-quant --decision=internal
   ;;
 LIA|LRA)
-  finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
+  finishwith --full-saturate-quant --cegqi-nested-qe --decision=internal
   ;;
 NIA|NRA)
-  finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
+  finishwith --full-saturate-quant --cegqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
   finishwith --decision=justification-stoponly --ite-simp

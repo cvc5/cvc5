@@ -146,7 +146,7 @@ bool Instantiate::addInstantiation(
                     << std::endl;
       bad_inst = true;
     }
-    else if (options::cbqi())
+    else if (options::cegqi())
     {
       Node icf = quantifiers::TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
