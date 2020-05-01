@@ -221,7 +221,7 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::REDUCTION:
     {
       size_t nchild = conc.getNumChildren();
-      if (conc.getKind()!=AND || conc[nchild-1].getKind()!=EQUAL)
+      if (conc.getKind() != AND || conc[nchild - 1].getKind() != EQUAL)
       {
         Assert(false);
       }
@@ -229,11 +229,11 @@ PfRule InferProofCons::convert(Inference infer,
       {
         pii.d_rule = PfRule::REDUCTION;
         // the left hand side of the last conjunct is the term we are reducing
-        pii.d_args.push_back(conc[nchild-1][0]);
+        pii.d_args.push_back(conc[nchild - 1][0]);
         tryChecker = &d_strChecker;
       }
     }
-      break;
+    break;
     // ========================== Cardinality
     case Inference::CARDINALITY: break;
     // ========================== code injectivity

@@ -44,11 +44,14 @@ StringsPreprocess::~StringsPreprocess(){
 
 }
 
-Node StringsPreprocess::reduce( Node t, std::vector< Node > &new_nodes, SkolemCache * sc ) 
+Node StringsPreprocess::reduce(Node t,
+                               std::vector<Node>& new_nodes,
+                               SkolemCache* sc)
 {
-  Trace("strings-preprocess-debug") << "StringsPreprocess::reduce: " << t << std::endl;
+  Trace("strings-preprocess-debug")
+      << "StringsPreprocess::reduce: " << t << std::endl;
   Node retNode = t;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(Rational(0));
   Node one = nm->mkConst(Rational(1));
   Node negOne = nm->mkConst(Rational(-1));
@@ -72,13 +75,13 @@ Node StringsPreprocess::reduce( Node t, std::vector< Node > &new_nodes, SkolemCa
 
     Node emp = Word::mkEmptyWord(t.getType());
 
-    Node sk1 = n == zero ? emp
-                           : sc->mkSkolemCached(
-                                 s, n, SkolemCache::SK_PREFIX, "sspre");
-    Node sk2 = ArithEntail::check(t12, lt0)
+    Node sk1 = n == zero
                    ? emp
-                   : sc->mkSkolemCached(
-                       s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+                   : sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 =
+        ArithEntail::check(t12, lt0)
+            ? emp
+            : sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
     //length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
@@ -217,8 +220,7 @@ Node StringsPreprocess::reduce( Node t, std::vector< Node > &new_nodes, SkolemCa
     Node x = nm->mkBoundVar(nm->integerType());
     Node xPlusOne = nm->mkNode(PLUS, x, one);
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
-    Node g =
-        nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, leni));
+    Node g = nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, leni));
     Node sx = nm->mkNode(STRING_SUBSTR, itost, x, one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, xPlusOne);
@@ -311,16 +313,14 @@ Node StringsPreprocess::reduce( Node t, std::vector< Node > &new_nodes, SkolemCa
 
     Node x = nm->mkBoundVar(nm->integerType());
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
-    Node g =
-        nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, lens));
+    Node g = nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, lens));
     Node sx = nm->mkNode(STRING_SUBSTR, s, x, one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS, x, one));
     Node c = nm->mkNode(MINUS, nm->mkNode(STRING_TO_CODE, sx), c0);
 
     Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
-    Node cb =
-        nm->mkNode(AND, nm->mkNode(GEQ, c, zero), nm->mkNode(LT, c, ten));
+    Node cb = nm->mkNode(AND, nm->mkNode(GEQ, c, zero), nm->mkNode(LT, c, ten));
 
     Node ux1lem = nm->mkNode(GEQ, stoit, ux1);
 
@@ -503,10 +503,8 @@ Node StringsPreprocess::reduce( Node t, std::vector< Node > &new_nodes, SkolemCa
     Node i = nm->mkBoundVar(nm->integerType());
     Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
 
-    Node ci =
-        nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, one));
-    Node ri =
-        nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, r, i, one));
+    Node ci = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, one));
+    Node ri = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, r, i, one));
 
     Node lb = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 97 : 65));
     Node ub = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 122 : 90));
@@ -577,11 +575,17 @@ Node StringsPreprocess::reduce( Node t, std::vector< Node > &new_nodes, SkolemCa
     Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
     Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
     Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
-    Node body = NodeManager::currentNM()->mkNode( kind::AND, 
-                  NodeManager::currentNM()->mkNode( kind::LEQ, zero, b1 ),
-                  NodeManager::currentNM()->mkNode( kind::LEQ, b1, NodeManager::currentNM()->mkNode( kind::MINUS, lenx, lens ) ),
-                  NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, x, b1, lens), s )                
-                );
+    Node body = NodeManager::currentNM()->mkNode(
+        kind::AND,
+        NodeManager::currentNM()->mkNode(kind::LEQ, zero, b1),
+        NodeManager::currentNM()->mkNode(
+            kind::LEQ,
+            b1,
+            NodeManager::currentNM()->mkNode(kind::MINUS, lenx, lens)),
+        NodeManager::currentNM()->mkNode(
+            kind::EQUAL,
+            NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, x, b1, lens),
+            s));
     retNode = NodeManager::currentNM()->mkNode( kind::EXISTS, b1v, body );
   }
   else if (t.getKind() == kind::STRING_LEQ)
@@ -639,16 +643,17 @@ Node StringsPreprocess::reduce( Node t, std::vector< Node > &new_nodes, SkolemCa
   return retNode;
 }
 
-Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) 
+Node StringsPreprocess::simplify(Node t, std::vector<Node>& new_nodes)
 {
   size_t prev_new_nodes = new_nodes.size();
   // call the static reduce routine
-  Node retNode = reduce(t,new_nodes, d_sc);
+  Node retNode = reduce(t, new_nodes, d_sc);
   if( t!=retNode ){
     Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << " -> " << retNode << std::endl;
     if(!new_nodes.empty()) {
       Trace("strings-preprocess") << " ... new nodes (" << (new_nodes.size()-prev_new_nodes) << "):" << std::endl;
-      for(size_t i=prev_new_nodes; i<new_nodes.size(); ++i) {
+      for (size_t i = prev_new_nodes; i < new_nodes.size(); ++i)
+      {
         Trace("strings-preprocess") << "   " << new_nodes[i] << std::endl;
       }
     }

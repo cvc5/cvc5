@@ -45,7 +45,7 @@ class StringsPreprocess {
                     SequencesStatistics& stats);
   ~StringsPreprocess();
   /** The reduce routine */
-  static Node reduce(Node t, std::vector<Node>& new_nodes, SkolemCache * sc);
+  static Node reduce(Node t, std::vector<Node>& new_nodes, SkolemCache* sc);
   /**
    * Returns a node t' such that
    *   (exists k) new_nodes => t = t'

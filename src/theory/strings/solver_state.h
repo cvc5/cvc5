@@ -44,8 +44,10 @@ class SolverState
   typedef context::CDList<Node> NodeList;
 
  public:
-  SolverState(context::Context* c, 
-                           context::UserContext* u, eq::EqualityEngine& ee, Valuation& v);
+  SolverState(context::Context* c,
+              context::UserContext* u,
+              eq::EqualityEngine& ee,
+              Valuation& v);
   ~SolverState();
   /** Get the SAT context */
   context::Context* getSatContext() const;

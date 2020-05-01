@@ -15,9 +15,9 @@
 #include "theory/strings/proof_checker.h"
 
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings_utils.h"
-#include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/theory_strings_preprocess.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace CVC4::kind;
 
@@ -128,7 +128,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::REDUCTION)
   {
     Assert(children.empty());
-    Assert(args.size()==1);
+    Assert(args.size() == 1);
     std::vector<Node> conj;
     // TODO: eliminate optimizations
     SkolemCache sc;
