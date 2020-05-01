@@ -48,6 +48,16 @@ class ProofRuleChecker
   virtual Node check(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) = 0;
+  /** Single arg version */
+  Node checkChildrenArg(PfRule id,
+                     const std::vector<Node>& children, Node arg);
+  /** No arg version */
+  Node checkChildren(PfRule id,
+                     const std::vector<Node>& children);
+  /** Single child only version */
+  Node checkChild(PfRule id,Node child);
+  /** Single argument only version */
+  Node checkArg(PfRule id,Node arg);
 };
 
 /** Statistics class */

@@ -39,6 +39,8 @@ const char* toString(PfRule id)
     case PfRule::CONG: return "CONG";
     case PfRule::TRUE_INTRO: return "TRUE_INTRO";
     case PfRule::TRUE_ELIM: return "TRUE_ELIM";
+    case PfRule::FALSE_INTRO: return "FALSE_INTRO";
+    case PfRule::FALSE_ELIM: return "FALSE_ELIM";
     case PfRule::MACRO_EQ_SUBS_REWRITE: return "MACRO_EQ_SUBS_REWRITE";
     case PfRule::MACRO_REWRITE_PRED: return "MACRO_REWRITE_PRED";
     //================================================= String rules

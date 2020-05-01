@@ -232,7 +232,7 @@ private:
 
   TheoryUfRewriter d_rewriter;
   /** Proof rule checker */
-  EqProofRuleChecker d_eqProofChecker;
+  UfProofRuleChecker d_ufProofChecker;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

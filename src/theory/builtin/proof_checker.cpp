@@ -27,20 +27,29 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n)
   return Rewriter::rewrite(n);
 }
 
+Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp)
+{
+  if (exp.isNull() || exp.getKind() != EQUAL)
+  {
+    return Node::null();
+  }
+  TNode var = exp[0];
+  TNode subs = exp[1];
+  return n.substitute(var, subs);
+}
+
 Node BuiltinProofRuleChecker::applySubstitution(Node n,
                                                 const std::vector<Node>& exp)
 {
   Node curr = n;
   // apply substitution one at a time
-  for (const Node& eqp : exp)
+  for (const Node& e : exp)
   {
-    if (eqp.isNull() || eqp.getKind() != EQUAL)
+    curr = applySubstitution(curr, e);
+    if (curr.isNull())
     {
       return Node::null();
     }
-    TNode var = eqp[0];
-    TNode subs = eqp[1];
-    curr = curr.substitute(var, subs);
   }
   return curr;
 }
@@ -67,6 +76,7 @@ Node BuiltinProofRuleChecker::check(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
+    Assert(args[0].getType().isBoolean());
     return args[0];
   }
   else if (id == PfRule::SCOPE)
@@ -106,6 +116,8 @@ Node BuiltinProofRuleChecker::check(PfRule id,
   }
   else if (id == PfRule::SUBS_REWRITE)
   {
+    // (TRANS (SUBS P1 ... Pn t) 
+    //        (REWRITE <t.substitute(x1,t1). ... .substitute(xn,tn)>))
     Assert(children.size() > 0);
     Assert(args.size() == 1);
     std::vector<Node> exp;

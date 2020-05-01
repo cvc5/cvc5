@@ -20,21 +20,25 @@
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
 namespace uf {
 
 /** A checker for builtin proofs */
-class EqProofRuleChecker : public ProofRuleChecker
+class UfProofRuleChecker : public ProofRuleChecker
 {
  public:
-  EqProofRuleChecker() {}
-  ~EqProofRuleChecker() {}
+  UfProofRuleChecker() {}
+  ~UfProofRuleChecker() {}
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node check(PfRule id,
              const std::vector<Node>& children,
              const std::vector<Node>& args) override;
+ private:
+  /** Builtin proof checker */
+  builtin::BuiltinProofRuleChecker d_builtinChecker;
 };
 
 }  // namespace uf

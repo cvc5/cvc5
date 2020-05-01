@@ -428,9 +428,9 @@ std::ostream& operator<<(std::ostream& out, const ProofInferInfo& pii)
   {
     out << " :args (" << pii.d_args << ")";
   }
-  if (!pii.d_childrenExp.empty())
+  if (!pii.d_childrenToExplain.empty())
   {
-    out << " :childrenExp (" << pii.d_childrenExp << ")";
+    out << " :childrenExp (" << pii.d_childrenToExplain << ")";
   }
   out << ")";
   return out;

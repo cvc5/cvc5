@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
-Node EqProofRuleChecker::check(PfRule id,
+Node UfProofRuleChecker::check(PfRule id,
                                const std::vector<Node>& children,
                                const std::vector<Node>& args)
 {
@@ -143,6 +143,33 @@ Node EqProofRuleChecker::check(PfRule id,
       return Node::null();
     }
     return children[0];
+  }
+  else if (id==PfRule::MACRO_EQ_SUBS_REWRITE)
+  {
+    Assert(args.size()==2);
+    // (TRANS (SUBS_REWRITE <children> <args>[0]) 
+    //        (SYMM (SUBS_REWRITE <children> <args>[1])))
+    Node conc1 = d_builtinChecker.checkChildrenArg(PfRule::SUBS_REWRITE,children,args[0]);
+    if (conc1.isNull())
+    {
+      return Node::null();
+    }
+    Node conc2 = d_builtinChecker.checkChildrenArg(PfRule::SUBS_REWRITE,children,args[1]);
+    if (conc2.isNull())
+    {
+      return Node::null();
+    }
+    Node symConc2 = checkChild(PfRule::SYMM, conc2);
+    if (symConc2.isNull())
+    {
+      return Node::null();
+    }
+    std::vector<Node> tchildren = {conc1,symConc2};
+    return checkChildren(PfRule::TRANS,tchildren);
+  }
+  else if (id==PfRule::MACRO_REWRITE_PRED)
+  {
+    
   }
   // no rule
   return Node::null();

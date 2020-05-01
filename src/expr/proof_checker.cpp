@@ -18,6 +18,30 @@
 
 namespace CVC4 {
 
+Node ProofRuleChecker::checkChildrenArg(PfRule id,
+                    const std::vector<Node>& children, Node arg)
+{
+  std::vector<Node> args = {arg};
+  return check(id,children,args);
+}
+Node ProofRuleChecker::checkChildren(PfRule id,
+                    const std::vector<Node>& children)
+{
+  std::vector<Node> args;
+  return check(id,children,args);
+}
+Node ProofRuleChecker::checkChild(PfRule id,Node child)
+{
+  std::vector<Node> children = {child}; 
+  std::vector<Node> args;
+  return check(id,children,args);
+}
+Node ProofRuleChecker::checkArg(PfRule id,Node arg)
+{
+  std::vector<Node> children; 
+  std::vector<Node> args = {arg};
+  return check(id,children,args);
+}
 ProofCheckerStatistics::ProofCheckerStatistics()
     : d_ruleChecks("ProofCheckerStatistics::ruleChecks")
 {
@@ -44,7 +68,7 @@ Node ProofChecker::check(
   if (id==PfRule::ASSUME)
   {
     Assert(children.empty());
-    Assert(args.size()==1 && args.getType().isBoolean());
+    Assert(args.size()==1 && args[0].getType().isBoolean());
     Assert(expected.isNull() || expected==args[0]);
     return expected;
   }

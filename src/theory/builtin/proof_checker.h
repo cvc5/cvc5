@@ -44,6 +44,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * Apply substitution. This encapsulates the exact behavior of a SUBS step
    * in a proof.
    */
+  static Node applySubstitution(Node n, Node exp);
   static Node applySubstitution(Node n, const std::vector<Node>& exp);
   /** mk and node */
   static Node mkAnd(const std::vector<Node>& a);

@@ -207,7 +207,7 @@ class ProofInferInfo
   /** The proof arguments */
   std::vector<Node> d_args;
   /** The children to explain */
-  std::vector<Node> d_childrenExp;
+  std::vector<Node> d_childrenToExplain;
 };
 
 /**

@@ -26,6 +26,10 @@
 #include "theory/strings/sequences_stats.h"
 #include "theory/uf/proof_equality_engine.h"
 
+#include "theory/builtin/proof_checker.h"
+#include "theory/uf/proof_checker.h"
+#include "theory/booleans/proof_checker.h"
+
 namespace CVC4 {
 namespace theory {
 namespace strings {
@@ -74,6 +78,12 @@ class InferProofCons
   SequencesStatistics& d_statistics;
   /** Whether proofs are enabled */
   bool d_pfEnabled;
+  /** Builtin proof checker */
+  builtin::BuiltinProofRuleChecker d_builtinChecker;
+  /** Boolean proof checker */
+  booleans::BoolProofRuleChecker d_boolChecker;
+  /** UF proof checker */
+  uf::UfProofRuleChecker d_ufChecker;
 };
 
 }  // namespace strings

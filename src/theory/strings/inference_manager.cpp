@@ -365,7 +365,7 @@ void InferenceManager::doPendingLemmas()
     PfRule rule = d_ipc->convert(ii, pii);
     // make the trusted lemma object
     TrustNode tlem = d_pfee->assertLemma(
-        ii.d_conc, rule, pii.d_children, pii.d_childrenExp, pii.d_args);
+        ii.d_conc, rule, pii.d_children, pii.d_childrenToExplain, pii.d_args);
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
 

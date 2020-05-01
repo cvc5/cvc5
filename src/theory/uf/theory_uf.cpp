@@ -70,14 +70,14 @@ void TheoryUF::setProofChecker(ProofChecker* pc)
 {
   Assert(pc != nullptr);
   // add checkers
-  pc->registerChecker(PfRule::REFL, &d_eqProofChecker);
-  pc->registerChecker(PfRule::SYMM, &d_eqProofChecker);
-  pc->registerChecker(PfRule::TRANS, &d_eqProofChecker);
-  pc->registerChecker(PfRule::CONG, &d_eqProofChecker);
-  pc->registerChecker(PfRule::TRUE_INTRO, &d_eqProofChecker);
-  pc->registerChecker(PfRule::TRUE_ELIM, &d_eqProofChecker);
-  pc->registerChecker(PfRule::FALSE_INTRO, &d_eqProofChecker);
-  pc->registerChecker(PfRule::FALSE_ELIM, &d_eqProofChecker);
+  pc->registerChecker(PfRule::REFL, &d_ufProofChecker);
+  pc->registerChecker(PfRule::SYMM, &d_ufProofChecker);
+  pc->registerChecker(PfRule::TRANS, &d_ufProofChecker);
+  pc->registerChecker(PfRule::CONG, &d_ufProofChecker);
+  pc->registerChecker(PfRule::TRUE_INTRO, &d_ufProofChecker);
+  pc->registerChecker(PfRule::TRUE_ELIM, &d_ufProofChecker);
+  pc->registerChecker(PfRule::FALSE_INTRO, &d_ufProofChecker);
+  pc->registerChecker(PfRule::FALSE_ELIM, &d_ufProofChecker);
 }
 
 void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
