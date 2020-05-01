@@ -231,6 +231,8 @@ class TheoryStrings : public Theory {
   TermRegistry d_termReg;
   /** The (custom) output channel of the theory of strings */
   std::unique_ptr<InferenceManager> d_im;
+  /** A proof node manager */
+  std::unique_ptr<ProofNodeManager> d_pnm;
 
  private:
   std::map< Node, Node > d_eqc_to_len_term;

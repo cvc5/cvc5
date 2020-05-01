@@ -73,8 +73,9 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, d_equalityEngine, d_valuation),
-      d_termReg(c, u, d_equalityEngine, out, d_statistics),
+      d_termReg(c, u, d_equalityEngine, out, d_statistics, options::proofNew()),
       d_im(nullptr),
+      d_pnm(nullptr),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(nullptr),
       d_csolver(nullptr),
@@ -171,15 +172,20 @@ void TheoryStrings::setProofChecker(ProofChecker* pc)
     // trust the checker
     pc->registerChecker(static_cast<PfRule>(r), nullptr);
   }
-
-  // also must inform the inference manager
-  d_im->setProofChecker(pc);
+  // use the checker in the proof node manager
+  d_pnm.reset(new ProofNodeManager(pc));
 }
 
 void TheoryStrings::finishInit()
 {
+  if (d_pnm == nullptr)
+  {
+    // don't use checker
+    d_pnm.reset(new ProofNodeManager);
+  }
   // inference manager must finish init
-  d_im->finishInit();
+  d_termReg.finishInit(d_pnm.get());
+  d_im->finishInit(d_pnm.get());
 }
 
 void TheoryStrings::setMasterEqualityEngine(eq::EqualityEngine* eq) {

@@ -43,10 +43,8 @@ InferenceManager::InferenceManager(context::Context* c,
       d_extt(e),
       d_out(out),
       d_statistics(statistics),
-      d_pnm(nullptr),
       d_pfee(nullptr),
       d_ipc(nullptr),
-      d_keep(c),
       d_pfEnabled(pfEnabled)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -56,26 +54,16 @@ InferenceManager::InferenceManager(context::Context* c,
   d_false = nm->mkConst(false);
 }
 
-void InferenceManager::setProofChecker(ProofChecker* pc)
+void InferenceManager::finishInit(ProofNodeManager * pnm)
 {
-  d_pnm.reset(new ProofNodeManager(pc));
-}
-
-void InferenceManager::finishInit()
-{
-  if (d_pnm == nullptr)
-  {
-    // don't use checker
-    d_pnm.reset(new ProofNodeManager);
-  }
   // now that proof node manager is setup, we initialize proof equality engine
   d_pfee.reset(new eq::ProofEqEngine(d_ccontext,
                                      d_ucontext,
                                      *d_state.getEqualityEngine(),
-                                     d_pnm.get(),
+                                     pnm,
                                      d_pfEnabled));
   d_ipc.reset(new InferProofCons(
-      *d_pfee, d_statistics, d_pfEnabled, d_pnm->getChecker()));
+      *d_pfee, d_statistics, d_pfEnabled, pnm->getChecker()));
 }
 
 void InferenceManager::sendAssumption(TNode lit)

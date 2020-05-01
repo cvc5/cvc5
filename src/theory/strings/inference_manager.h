@@ -31,6 +31,7 @@
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
 #include "theory/uf/proof_equality_engine.h"
+#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -81,10 +82,8 @@ class InferenceManager
                    SequencesStatistics& statistics,
                    bool pfEnabled = false);
   ~InferenceManager() {}
-  /** set proof checker */
-  void setProofChecker(ProofChecker* pc);
   /** finish init */
-  void finishInit();
+  void finishInit(ProofNodeManager * pnm);
 
   /** send assumption
    *
@@ -312,8 +311,6 @@ class InferenceManager
   OutputChannel& d_out;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
-  /** A proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
   /** The proof-producing equality engine */
   std::unique_ptr<eq::ProofEqEngine> d_pfee;
   /** Conversion from inferences to proofs */
@@ -332,13 +329,6 @@ class InferenceManager
   std::map<Node, bool> d_pendingReqPhase;
   /** A list of pending lemmas to be sent on the output channel. */
   std::vector<InferInfo> d_pendingLem;
-  /**
-   * The keep set of this class. This set is maintained to ensure that
-   * facts and their explanations are ref-counted. Since facts and their
-   * explanations are SAT-context-dependent, this set is also
-   * SAT-context-dependent.
-   */
-  NodeSet d_keep;
   /** Whether proofs are enabled */
   bool d_pfEnabled;
 };
