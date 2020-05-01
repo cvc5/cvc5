@@ -21,8 +21,8 @@ namespace theory {
 namespace uf {
 
 Node UfProofRuleChecker::checkInternal(PfRule id,
-                               const std::vector<Node>& children,
-                               const std::vector<Node>& args)
+                                       const std::vector<Node>& children,
+                                       const std::vector<Node>& args)
 {
   // compute what was proven
   if (id == PfRule::REFL)
@@ -171,7 +171,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::MACRO_REWRITE_PRED)
   {
-    Assert(children.size()==1);
+    Assert(children.size() == 1);
     Assert(args.empty());
     // NOTE: technically a macro:
     // (TRUE_ELIM (TRANS (SYMM (REWRITE <children>)) (TRUE_INTRO <children>)))

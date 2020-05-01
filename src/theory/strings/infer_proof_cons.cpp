@@ -14,10 +14,10 @@
 
 #include "theory/strings/infer_proof_cons.h"
 
+#include "expr/proof_skolem_cache.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
-#include "expr/proof_skolem_cache.h"
 
 using namespace CVC4::kind;
 
@@ -117,7 +117,7 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::I_NORM:
     case Inference::LEN_NORM:
     case Inference::NORMAL_FORM:
-    case Inference::CODE_PROXY: 
+    case Inference::CODE_PROXY:
     {
       if (conc.getKind() != EQUAL)
       {
@@ -167,13 +167,13 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::I_CONST_CONFLICT: break;
     // ========================== rewrite pred
     case Inference::EXTF_EQ_REW:
-    case Inference::INFER_EMP: 
+    case Inference::INFER_EMP:
     {
       // may need the "extended equality rewrite"
       pii.d_rule = PfRule::MACRO_REWRITE_PRED;
       tryChecker = &d_ufChecker;
     }
-      break;
+    break;
     // ========================== equal by substitution+rewriting+CTN_NOT_EQUAL
     case Inference::F_NCTN:
     case Inference::N_NCTN: break;

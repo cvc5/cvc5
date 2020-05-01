@@ -21,8 +21,8 @@ namespace theory {
 namespace booleans {
 
 Node BoolProofRuleChecker::checkInternal(PfRule id,
-                                 const std::vector<Node>& children,
-                                 const std::vector<Node>& args)
+                                         const std::vector<Node>& children,
+                                         const std::vector<Node>& args)
 {
   if (id == PfRule::SPLIT)
   {

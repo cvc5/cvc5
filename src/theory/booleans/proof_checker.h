@@ -31,11 +31,12 @@ class BoolProofRuleChecker : public ProofRuleChecker
  public:
   BoolProofRuleChecker() {}
   ~BoolProofRuleChecker() {}
-protected:
+
+ protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node checkInternal(PfRule id,
-             const std::vector<Node>& children,
-             const std::vector<Node>& args) override;
+                     const std::vector<Node>& children,
+                     const std::vector<Node>& args) override;
 };
 
 }  // namespace booleans

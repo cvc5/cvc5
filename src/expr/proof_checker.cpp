@@ -14,20 +14,20 @@
 
 #include "expr/proof_checker.h"
 
-#include "smt/smt_statistics_registry.h"
 #include "expr/proof_skolem_cache.h"
+#include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {
 
 Node ProofRuleChecker::check(PfRule id,
-                    const std::vector<Node>& children,
-                    const std::vector<Node>& args)
+                             const std::vector<Node>& children,
+                             const std::vector<Node>& args)
 {
   std::vector<Node> childrenw = children;
   std::vector<Node> argsw = args;
   ProofSkolemCache::convertToWitnessFormVec(childrenw);
   ProofSkolemCache::convertToWitnessFormVec(argsw);
-  return checkInternal(id,childrenw,argsw);
+  return checkInternal(id, childrenw, argsw);
 }
 
 Node ProofRuleChecker::checkChildrenArg(PfRule id,
@@ -183,7 +183,7 @@ Node ProofChecker::checkInternal(PfRule id,
   if (!expected.isNull())
   {
     Node expectedw = ProofSkolemCache::getWitnessForm(expected);
-    if (res!=expectedw)
+    if (res != expectedw)
     {
       out << "result does not match expected value." << std::endl
           << "    result: " << res << std::endl

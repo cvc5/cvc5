@@ -68,8 +68,8 @@ Node BuiltinProofRuleChecker::mkAnd(const std::vector<Node>& a)
 }
 
 Node BuiltinProofRuleChecker::checkInternal(PfRule id,
-                                    const std::vector<Node>& children,
-                                    const std::vector<Node>& args)
+                                            const std::vector<Node>& children,
+                                            const std::vector<Node>& args)
 {
   // compute what was proven
   if (id == PfRule::ASSUME)
