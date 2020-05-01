@@ -106,12 +106,18 @@ PfRule InferProofCons::convert(Inference infer,
   ProofRuleChecker * tryChecker = nullptr;
   switch(infer)
   {
+  // ========================== equal by substitution+rewriting
   case Inference::I_NORM_S :
   case Inference::I_CONST_MERGE :
-  case Inference::I_CONST_CONFLICT :
   case Inference::I_NORM :
+  case Inference::LEN_NORM :
+  case Inference::NORMAL_FORM :
   {
-    if (conc.getKind()!=EQUAL)
+    if (pii.d_children.empty())
+    {
+      // should have at least one child
+    }
+    else if (conc.getKind()!=EQUAL)
     {
       Assert(false);
     }
@@ -127,95 +133,144 @@ PfRule InferProofCons::convert(Inference infer,
     }
   }
     break;
+  // ========================== substitution + rewriting
   case Inference::RE_NF_CONFLICT :
   case Inference::EXTF :
   case Inference::EXTF_N :
   {
-    if (conc.getKind()!=EQUAL)
+    if (pii.d_children.empty())
     {
-      Assert(false);
+      // should have at least one child
+    }
+    else if (conc.getKind()!=EQUAL)
+    {
+      //Assert(false);
+      // predicate case, convert = true|false
     }
     else
     {
       // substitutions applied in reverse order?
       std::reverse(pii.d_children.begin(), pii.d_children.end());
-      pii.d_args.push_back(conc[0]);
-      pii.d_args.push_back(conc[1]);
+      pii.d_args.push_back(conc);
       // will attempt this rule
       pii.d_rule = PfRule::SUBS_REWRITE;
       tryChecker = &d_builtinChecker;
     }
   }
     break;
+  // ========================== substitution+rewriting+Boolean entailment
   case Inference::EXTF_D :
   case Inference::EXTF_D_N :
     break;
-  case Inference::EXTF_EQ_REW :
+  // ========================== equal by substitution+rewriting+rewrite pred
+  case Inference::I_CONST_CONFLICT :
     break;
-    
-  case Inference::CARD_SP :
-  case Inference::CARDINALITY :
-  case Inference::I_CYCLE_E :
-  case Inference::I_CYCLE :
+  // ========================== rewrite pred
+  case Inference::EXTF_EQ_REW :
+  case Inference::INFER_EMP :
+    break;
+  // ========================== equal by substitution+rewriting+CTN_NOT_EQUAL
+  case Inference::F_NCTN :
+  case Inference::N_NCTN :
+    break;
+  // ========================== substitution+rewriting, CONCAT_EQ, ...
   case Inference::F_CONST :
   case Inference::F_UNIFY :
   case Inference::F_ENDPOINT_EMP :
   case Inference::F_ENDPOINT_EQ :
-  case Inference::F_NCTN :
   case Inference::N_ENDPOINT_EMP :
   case Inference::N_UNIFY :
   case Inference::N_ENDPOINT_EQ :
   case Inference::N_CONST :
-  case Inference::INFER_EMP :
   case Inference::SSPLIT_CST_PROP :
   case Inference::SSPLIT_VAR_PROP :
-  case Inference::LEN_SPLIT :
-  case Inference::LEN_SPLIT_EMP :
   case Inference::SSPLIT_CST :
   case Inference::SSPLIT_VAR :
-  case Inference::FLOOP :
-  case Inference::FLOOP_CONFLICT :
-  case Inference::NORMAL_FORM :
-  case Inference::N_NCTN :
-  case Inference::LEN_NORM :
-  case Inference::DEQ_DISL_EMP_SPLIT :
-  case Inference::DEQ_DISL_FIRST_CHAR_EQ_SPLIT :
   case Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT :
   case Inference::DEQ_DISL_STRINGS_SPLIT :
+    break;
+  // ========================== Boolean split
+  case Inference::CARD_SP :
+  case Inference::LEN_SPLIT :
+  case Inference::LEN_SPLIT_EMP :
+  case Inference::DEQ_DISL_EMP_SPLIT :
+  case Inference::DEQ_DISL_FIRST_CHAR_EQ_SPLIT :
   case Inference::DEQ_STRINGS_EQ :
   case Inference::DEQ_LENS_EQ :
-  case Inference::DEQ_NORM_EMP :
   case Inference::DEQ_LENGTH_SP :
-  case Inference::CODE_PROXY :
-  case Inference::CODE_INJ :
+  {
+    if (conc.getKind()!=OR)
+    {
+      Assert(false);
+    }
+    else
+    {
+      pii.d_args.push_back(conc[0]);
+      tryChecker = &d_boolChecker;
+    }
+  }
+    break;
+  // ========================== Regular expression unfolding
   case Inference::RE_UNFOLD_POS :
+    break;
   case Inference::RE_UNFOLD_NEG :
-  case Inference::RE_INTER_INCLUDE :
-  case Inference::RE_INTER_CONF :
-  case Inference::RE_INTER_INFER :
+    break;
+  // ========================== Reduction
+  case Inference::CTN_POS :
+    break;
+  case Inference::REDUCTION :
+    break;
+  // ========================== Cardinality
+  case Inference::CARDINALITY :
+    break;
+  // ========================== purification
+  case Inference::CODE_PROXY :    
+    break;
+  // ========================== code injectivity
+  case Inference::CODE_INJ :
+    break;
+    
+  // ========================== unknown
+  case Inference::I_CYCLE_E :
+  case Inference::I_CYCLE :
   case Inference::RE_DELTA :
   case Inference::RE_DELTA_CONF :
   case Inference::RE_DERIVE :
+  case Inference::FLOOP :
+  case Inference::FLOOP_CONFLICT :
+    break;
+    
+  // FIXME
+  case Inference::DEQ_NORM_EMP :
+  case Inference::RE_INTER_INCLUDE :
+  case Inference::RE_INTER_CONF :
+  case Inference::RE_INTER_INFER :
   case Inference::CTN_TRANS :
   case Inference::CTN_DECOMPOSE :
   case Inference::CTN_NEG_EQUAL :
-  case Inference::CTN_POS :
-  case Inference::REDUCTION :
-    break;
   default:
     
     break;
   }
   
+  /*
+  // now see if we would succeed with the checker-to-try
   if (tryChecker!=nullptr)
   {
+    Trace("strings-ipc") << "Try proof rule "<< pii.d_rule << "..." << std::endl;
     Assert (pii.d_rule!=PfRule::UNKNOWN);
     Node pconc = tryChecker->check(pii.d_rule,pii.d_children,pii.d_args);
     if (pconc.isNull() || pconc!=conc)
     {
+      Trace("strings-ipc") << "...failed, pconc is " << pconc << std::endl;
       pii.d_rule = PfRule::UNKNOWN;
     }
+    else
+    {
+      Trace("strings-ipc") << "...success!" << std::endl;
+    }
   }
+  */
 
   if (pii.d_rule==PfRule::UNKNOWN)
   {

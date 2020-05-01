@@ -86,22 +86,22 @@ enum class Inference : uint32_t
   // Flat form constant
   //   x = y ^ x = z ++ c ... ^ y = z ++ d => false
   // where c and d are distinct constants.
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY, CONCAT_UNIFY, rewrite
+  // Proof: substitution+rewriting, CONCAT_EQ, CONCAT_UNIFY, rewrite
   // constant equality to false
   F_CONST,
   // Flat form unify
   //   x = y ^ x = z ++ x' ... ^ y = z ++ y' ^ len(x') = len(y') => x' = y'
   // Notice flat form instances are similar to normal form inferences but do
   // not involve recursive explanations.
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY, CONCAT_UNIFY
+  // Proof: substitution+rewriting, CONCAT_EQ, CONCAT_UNIFY
   F_UNIFY,
   // Flat form endpoint empty
   //   x = y ^ x = z ^ y = z ++ y' => y' = ""
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY
+  // Proof: substitution+rewriting, CONCAT_EQ
   F_ENDPOINT_EMP,
   // Flat form endpoint equal
   //   x = y ^ x = z ++ x' ^ y = z ++ y' => x' = y'
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY
+  // Proof: substitution+rewriting, CONCAT_EQ
   F_ENDPOINT_EQ,
   // Flat form not contained
   // x = c ^ x = y => false when rewrite( contains( y, c ) ) = false
@@ -110,22 +110,22 @@ enum class Inference : uint32_t
   // Given two normal forms, infers that the remainder one of them has to be
   // empty. For example:
   //    If x1 ++ x2 = y1 and x1 = y1, then x2 = ""
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY
+  // Proof: substitution+rewriting, CONCAT_EQ
   N_ENDPOINT_EMP,
   // Given two normal forms, infers that two components have to be the same if
   // they have the same length. For example:
   //   If x1 ++ x2 = x3 ++ x4 and len(x1) = len(x3) then x1 = x3
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY, CONCAT_UNIFY
+  // Proof: substitution+rewriting, CONCAT_EQ, CONCAT_UNIFY
   N_UNIFY,
   // Given two normal forms, infers that the endpoints have to be the same. For
   // example:
   //   If x1 ++ x2 = x3 ++ x4 ++ x5 and x1 = x3 then x2 = x4 ++ x5
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY
+  // Proof: substitution+rewriting, CONCAT_EQ
   N_ENDPOINT_EQ,
   // Given two normal forms with constant endpoints, infers a conflict if the
   // endpoints do not agree. For example:
   //   If "abc" ++ ... = "bc" ++ ... then conflict
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY, CONCAT_UNIFY, rewrite
+  // Proof: substitution+rewriting, CONCAT_EQ, CONCAT_UNIFY, rewrite
   // constant equality to false
   N_CONST,
   // infer empty, for example:
@@ -139,13 +139,13 @@ enum class Inference : uint32_t
   // string split constant propagation, for example:
   //     x = y, x = "abc", y = y1 ++ "b" ++ y2
   //       implies y1 = "a" ++ y1'
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY, CONCAT_CPROP
+  // Proof: substitution+rewriting, CONCAT_EQ, CONCAT_CPROP
   SSPLIT_CST_PROP,
   // string split variable propagation, for example:
   //     x = y, x = x1 ++ x2, y = y1 ++ y2, len( x1 ) >= len( y1 )
   //       implies x1 = y1 ++ x1'
   // This is inspired by Zheng et al CAV 2015.
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY, CONCAT_LPROP
+  // Proof: substitution+rewriting, CONCAT_EQ, CONCAT_LPROP
   SSPLIT_VAR_PROP,
   // length split, for example:
   //     len( x1 ) = len( y1 ) V len( x1 ) != len( y1 )
@@ -161,13 +161,13 @@ enum class Inference : uint32_t
   //    x = y, x = "c" ++ x2, y = y1 ++ y2, y1 != ""
   //      implies y1 = "c" ++ y1'
   // This is a special case of F-Split in Figure 5 of Liang et al CAV 2014.
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY, CONCAT_LPROP
+  // Proof: substitution+rewriting, CONCAT_EQ, CONCAT_LPROP
   SSPLIT_CST,
   // string split variable, for example:
   //    x = y, x = x1 ++ x2, y = y1 ++ y2
   //      implies x1 = y1 ++ x1' V y1 = x1 ++ y1'
   // This is rule F-Split in Figure 5 of Liang et al CAV 2014.
-  // Proof: substitution+rewriting, CONCAT_ENDP_UNIFY, CONCAT_SPLIT
+  // Proof: substitution+rewriting, CONCAT_EQ, CONCAT_SPLIT
   SSPLIT_VAR,
   // flat form loop, for example:
   //    x = y, x = x1 ++ z, y = z ++ y2

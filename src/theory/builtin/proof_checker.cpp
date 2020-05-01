@@ -116,6 +116,7 @@ Node BuiltinProofRuleChecker::check(PfRule id,
   }
   else if (id == PfRule::SUBS_REWRITE)
   {
+    // FIXME: could be macro
     // (TRANS (SUBS P1 ... Pn t) 
     //        (REWRITE <t.substitute(x1,t1). ... .substitute(xn,tn)>))
     Assert(children.size() > 0);
