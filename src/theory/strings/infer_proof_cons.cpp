@@ -124,7 +124,7 @@ PfRule InferProofCons::convert(Inference infer,
     else
     {
       // substitutions applied in reverse order?
-      std::reverse(pii.d_children.begin(), pii.d_children.end());
+      //std::reverse(pii.d_children.begin(), pii.d_children.end());
       pii.d_args.push_back(conc[0]);
       pii.d_args.push_back(conc[1]);
       // will attempt this rule
@@ -150,8 +150,8 @@ PfRule InferProofCons::convert(Inference infer,
     else
     {
       // substitutions applied in reverse order?
-      std::reverse(pii.d_children.begin(), pii.d_children.end());
-      pii.d_args.push_back(conc);
+      //std::reverse(pii.d_children.begin(), pii.d_children.end());
+      pii.d_args.push_back(conc[0]);
       // will attempt this rule
       pii.d_rule = PfRule::SUBS_REWRITE;
       tryChecker = &d_builtinChecker;
@@ -253,24 +253,26 @@ PfRule InferProofCons::convert(Inference infer,
     break;
   }
   
-  /*
   // now see if we would succeed with the checker-to-try
   if (tryChecker!=nullptr)
   {
-    Trace("strings-ipc") << "Try proof rule "<< pii.d_rule << "..." << std::endl;
+    Trace("strings-ipc") << "For " << infer << ", try proof rule "<< pii.d_rule << "...";
     Assert (pii.d_rule!=PfRule::UNKNOWN);
     Node pconc = tryChecker->check(pii.d_rule,pii.d_children,pii.d_args);
     if (pconc.isNull() || pconc!=conc)
     {
-      Trace("strings-ipc") << "...failed, pconc is " << pconc << std::endl;
+      Trace("strings-ipc") << "failed, pconc is " << pconc << " (expected " << conc << ")" << std::endl;
       pii.d_rule = PfRule::UNKNOWN;
     }
     else
     {
-      Trace("strings-ipc") << "...success!" << std::endl;
+      Trace("strings-ipc") << "success!" << std::endl;
     }
   }
-  */
+  else
+  {
+    Assert(pii.d_rule==PfRule::UNKNOWN);
+  }
 
   if (pii.d_rule==PfRule::UNKNOWN)
   {
