@@ -48,10 +48,7 @@ Node SkolemCache::mkTypedSkolemCached(
   a = a.isNull() ? a : Rewriter::rewrite(a);
   b = b.isNull() ? b : Rewriter::rewrite(b);
 
-  if (tn == d_strType)
-  {
-    std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
-  }
+  std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
 
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
@@ -73,16 +70,6 @@ Node SkolemCache::mkTypedSkolemCached(
       //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
       case SK_ID_V_SPT: break;
       case SK_ID_V_SPT_REV: break;
-      // --------------- integer skolems
-      // exists k. ( b occurs k times in a )
-      case SK_NUM_OCCUR: break;
-      // --------------- function skolems
-      // For function k: Int -> Int
-      //   exists k.
-      //     forall 0 <= x <= n,
-      //       k(x) is the end index of the x^th occurrence of b in a
-      //   where n is the number of occurrences of b in a, and k(0)=0.
-      case SK_OCCUR_INDEX: break;
       case SK_ID_VC_SPT:
       case SK_ID_VC_SPT_REV:
       case SK_FIRST_CTN_POST:
@@ -97,10 +84,21 @@ Node SkolemCache::mkTypedSkolemCached(
       case SK_SUFFIX_REM:
         Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
         break;
+      // --------------- integer skolems
+      // exists k. ( b occurs k times in a )
+      case SK_NUM_OCCUR:
+      // --------------- function skolems
+      // For function k: Int -> Int
+      //   exists k.
+      //     forall 0 <= x <= n,
+      //       k(x) is the end index of the x^th occurrence of b in a
+      //   where n is the number of occurrences of b in a, and k(0)=0.
+      case SK_OCCUR_INDEX:
       default:
         Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
         break;
     }
+    // use the proper way to make skolems while recording witness terms
     Node sk = d_pskc.mkSkolem(v, cond, c, "string skolem");
     d_allSkolems.insert(sk);
     d_skolemCache[a][b][id] = sk;
@@ -206,7 +204,6 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     id = SK_PREFIX;
     b = nm->mkNode(STRING_STRIDOF, a, b, d_zero);
   }
-
   if (id == SK_PREFIX)
   {
     // SK_PREFIX(x,y) ---> SK_PURIFY(substr(x,0,y))
