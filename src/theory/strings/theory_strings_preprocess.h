@@ -44,6 +44,8 @@ class StringsPreprocess {
                     context::UserContext* u,
                     SequencesStatistics& stats);
   ~StringsPreprocess();
+  /** The reduce routine */
+  static Node reduce(Node t, std::vector<Node>& new_nodes, SkolemCache * sc);
   /**
    * Returns a node t' such that
    *   (exists k) new_nodes => t = t'
@@ -68,10 +70,6 @@ class StringsPreprocess {
   void processAssertions(std::vector<Node>& vec_node);
 
  private:
-  /** commonly used constants */
-  Node d_zero;
-  Node d_one;
-  Node d_neg_one;
   /** pointer to the skolem cache used by this class */
   SkolemCache* d_sc;
   /** Reference to the statistics for the theory of strings/sequences. */

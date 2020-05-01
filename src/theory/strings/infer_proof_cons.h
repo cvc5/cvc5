@@ -29,6 +29,7 @@
 #include "theory/booleans/proof_checker.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/uf/proof_checker.h"
+#include "theory/strings/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {

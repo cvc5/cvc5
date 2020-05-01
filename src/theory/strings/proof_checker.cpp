@@ -17,6 +17,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/theory_strings_preprocess.h"
+#include "theory/strings/regexp_operation.h"
 
 using namespace CVC4::kind;
 
@@ -128,11 +129,12 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size()==1);
-    StringsPreprocess spp;
     std::vector<Node> conj;
-    // TODO: verify no optimizations
-    Node ret = spp.simplify(args[0], conj);
+    // TODO: eliminate optimizations
+    SkolemCache sc;
+    Node ret = StringsPreprocess::reduce(args[0], conj, &sc);
     conj.push_back(args[0].eqNode(ret));
+    ProofSkolemCache::convertToWitnessFormVec(conj);
     return mkAnd(conj);
   }
   else if (id == PfRule::RE_INTER)
@@ -140,6 +142,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::RE_UNFOLD)
   {
+    RegExpOpr reo;
   }
   return Node::null();
 }

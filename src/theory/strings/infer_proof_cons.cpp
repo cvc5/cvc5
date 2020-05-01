@@ -227,7 +227,8 @@ PfRule InferProofCons::convert(Inference infer,
       }
       else
       {
-        // the last conjunction says what we are reducing
+        pii.d_rule = PfRule::REDUCTION;
+        // the left hand side of the last conjunct is the term we are reducing
         pii.d_args.push_back(conc[nchild-1][0]);
         tryChecker = &d_strChecker;
       }

@@ -17,6 +17,8 @@
 #include "expr/proof_skolem_cache.h"
 #include "smt/smt_statistics_registry.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 
 Node ProofRuleChecker::check(PfRule id,
