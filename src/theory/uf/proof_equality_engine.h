@@ -137,7 +137,8 @@ class ProofEqEngine : public EagerProofGenerator
   /** identify */
   std::string identify() const override { return "ProofEqEngine"; }
   /** get proof */
-  CDProof * getProof();
+  CDProof* getProof();
+
  protected:
   /**
    * Make proof for fact lit, or nullptr if it does not exist. It must be the

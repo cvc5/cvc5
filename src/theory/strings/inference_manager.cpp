@@ -74,7 +74,8 @@ void InferenceManager::finishInit()
                                      *d_state.getEqualityEngine(),
                                      d_pnm.get(),
                                      d_pfEnabled));
-  d_ipc.reset(new InferProofCons(*d_pfee, d_statistics, d_pfEnabled, d_pnm->getChecker()));
+  d_ipc.reset(new InferProofCons(
+      *d_pfee, d_statistics, d_pfEnabled, d_pnm->getChecker()));
 }
 
 void InferenceManager::sendAssumption(TNode lit)
@@ -155,7 +156,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   {
     eq = d_false;
   }
-  else if (Rewriter::rewrite(eq)==d_true)
+  else if (Rewriter::rewrite(eq) == d_true)
   {
     // if trivial, return
     return;

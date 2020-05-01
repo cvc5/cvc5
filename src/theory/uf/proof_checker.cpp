@@ -144,17 +144,19 @@ Node UfProofRuleChecker::check(PfRule id,
     }
     return children[0];
   }
-  else if (id==PfRule::MACRO_EQ_SUBS_REWRITE)
+  else if (id == PfRule::MACRO_EQ_SUBS_REWRITE)
   {
-    Assert(args.size()==2);
-    // (TRANS (SUBS_REWRITE <children> <args>[0]) 
+    Assert(args.size() == 2);
+    // (TRANS (SUBS_REWRITE <children> <args>[0])
     //        (SYMM (SUBS_REWRITE <children> <args>[1])))
-    Node conc1 = d_builtinChecker.checkChildrenArg(PfRule::SUBS_REWRITE,children,args[0]);
+    Node conc1 = d_builtinChecker.checkChildrenArg(
+        PfRule::SUBS_REWRITE, children, args[0]);
     if (conc1.isNull())
     {
       return Node::null();
     }
-    Node conc2 = d_builtinChecker.checkChildrenArg(PfRule::SUBS_REWRITE,children,args[1]);
+    Node conc2 = d_builtinChecker.checkChildrenArg(
+        PfRule::SUBS_REWRITE, children, args[1]);
     if (conc2.isNull())
     {
       return Node::null();
@@ -164,12 +166,11 @@ Node UfProofRuleChecker::check(PfRule id,
     {
       return Node::null();
     }
-    std::vector<Node> tchildren = {conc1,symConc2};
-    return checkChildren(PfRule::TRANS,tchildren);
+    std::vector<Node> tchildren = {conc1, symConc2};
+    return checkChildren(PfRule::TRANS, tchildren);
   }
-  else if (id==PfRule::MACRO_REWRITE_PRED)
+  else if (id == PfRule::MACRO_REWRITE_PRED)
   {
-    
   }
   // no rule
   return Node::null();

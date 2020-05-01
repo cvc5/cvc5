@@ -417,10 +417,7 @@ Node ProofEqEngine::mkAnd(const std::vector<TNode>& a)
   return NodeManager::currentNM()->mkNode(AND, a);
 }
 
-CDProof * ProofEqEngine::getProof()
-{
-  return &d_proof;
-}
+CDProof* ProofEqEngine::getProof() { return &d_proof; }
 
 std::ostream& operator<<(std::ostream& out, const ProofInferInfo& pii)
 {

@@ -39,16 +39,16 @@ Node StringProofRuleChecker::check(PfRule id,
     // convert to concatenation form
     std::vector<Node> svec;
     std::vector<Node> tvec;
-    utils::getConcat(eqs[0],svec);
-    utils::getConcat(eqs[1],tvec);
+    utils::getConcat(eqs[0], svec);
+    utils::getConcat(eqs[1], tvec);
     bool isRev = args[0].getConst<bool>();
     size_t index = 0;
     size_t nchilds = svec.size();
     size_t nchildt = tvec.size();
     // scan the concatenation until we exhaust child proofs
-    while (index+1<children.size())
+    while (index + 1 < children.size())
     {
-      if (index>=nchilds || index>=nchildt)
+      if (index >= nchilds || index >= nchildt)
       {
         // too many child proofs
         return Node::null();
@@ -56,22 +56,26 @@ Node StringProofRuleChecker::check(PfRule id,
       // the current proof must prove the current components are equal
       Node currS = svec[isRev ? (nchilds - 1 - index) : index];
       Node currT = tvec[isRev ? (nchildt - 1 - index) : index];
-      Node ceq = children[index+1];
-      if (ceq.getKind()!=EQUAL || ceq[0]!=currS || ceq[1]!=currT)
+      Node ceq = children[index + 1];
+      if (ceq.getKind() != EQUAL || ceq[0] != currS || ceq[1] != currT)
       {
         // bad child proof
         return Node::null();
       }
       index++;
     }
-    Assert (index>0);
-    Assert (index<=nchilds);
-    Assert (index<=nchildt);
+    Assert(index > 0);
+    Assert(index <= nchilds);
+    Assert(index <= nchildt);
     // the remainders are equal
     std::vector<Node> sremVec;
-    sremVec.insert(sremVec.end(), svec.begin()+(isRev ? 0 : index), svec.begin() + nchilds-(isRev ? index : 0));
+    sremVec.insert(sremVec.end(),
+                   svec.begin() + (isRev ? 0 : index),
+                   svec.begin() + nchilds - (isRev ? index : 0));
     std::vector<Node> tremVec;
-    tremVec.insert(tremVec.end(), tvec.begin()+(isRev ? 0 : index), tvec.begin() + nchildt-(isRev ? index : 0));
+    tremVec.insert(tremVec.end(),
+                   tvec.begin() + (isRev ? 0 : index),
+                   tvec.begin() + nchildt - (isRev ? index : 0));
     // convert back to node
     Node srem = utils::mkConcat(sremVec, eqs[0].getType());
     Node trem = utils::mkConcat(tremVec, eqs[1].getType());
@@ -89,8 +93,8 @@ Node StringProofRuleChecker::check(PfRule id,
     }
     std::vector<Node> svec;
     std::vector<Node> tvec;
-    utils::getConcat(eqs[0],svec);
-    utils::getConcat(eqs[1],tvec);
+    utils::getConcat(eqs[0], svec);
+    utils::getConcat(eqs[1], tvec);
     Node s0 = svec[isRev ? svec.size() - 1 : 0];
     Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
     Node eql = children[1];

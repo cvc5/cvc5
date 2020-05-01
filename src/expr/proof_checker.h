@@ -49,27 +49,25 @@ class ProofRuleChecker
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) = 0;
   /** Single arg version */
-  Node checkChildrenArg(PfRule id,
-                     const std::vector<Node>& children, Node arg);
+  Node checkChildrenArg(PfRule id, const std::vector<Node>& children, Node arg);
   /** No arg version */
-  Node checkChildren(PfRule id,
-                     const std::vector<Node>& children);
+  Node checkChildren(PfRule id, const std::vector<Node>& children);
   /** Single child only version */
-  Node checkChild(PfRule id,Node child);
+  Node checkChild(PfRule id, Node child);
   /** Single argument only version */
-  Node checkArg(PfRule id,Node arg);
+  Node checkArg(PfRule id, Node arg);
 };
 
 /** Statistics class */
 class ProofCheckerStatistics
 {
-public:
+ public:
   ProofCheckerStatistics();
   ~ProofCheckerStatistics();
   /** Counts the number of checks for each kind of proof rule */
   HistogramStat<PfRule> d_ruleChecks;
 };
-  
+
 /** A class for checking proofs */
 class ProofChecker
 {

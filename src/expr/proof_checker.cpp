@@ -19,28 +19,29 @@
 namespace CVC4 {
 
 Node ProofRuleChecker::checkChildrenArg(PfRule id,
-                    const std::vector<Node>& children, Node arg)
+                                        const std::vector<Node>& children,
+                                        Node arg)
 {
   std::vector<Node> args = {arg};
-  return check(id,children,args);
+  return check(id, children, args);
 }
 Node ProofRuleChecker::checkChildren(PfRule id,
-                    const std::vector<Node>& children)
+                                     const std::vector<Node>& children)
 {
   std::vector<Node> args;
-  return check(id,children,args);
+  return check(id, children, args);
 }
-Node ProofRuleChecker::checkChild(PfRule id,Node child)
+Node ProofRuleChecker::checkChild(PfRule id, Node child)
 {
-  std::vector<Node> children = {child}; 
+  std::vector<Node> children = {child};
   std::vector<Node> args;
-  return check(id,children,args);
+  return check(id, children, args);
 }
-Node ProofRuleChecker::checkArg(PfRule id,Node arg)
+Node ProofRuleChecker::checkArg(PfRule id, Node arg)
 {
-  std::vector<Node> children; 
+  std::vector<Node> children;
   std::vector<Node> args = {arg};
-  return check(id,children,args);
+  return check(id, children, args);
 }
 ProofCheckerStatistics::ProofCheckerStatistics()
     : d_ruleChecks("ProofCheckerStatistics::ruleChecks")
@@ -52,7 +53,7 @@ ProofCheckerStatistics::~ProofCheckerStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_ruleChecks);
 }
-  
+
 Node ProofChecker::check(ProofNode* pn, Node expected)
 {
   return check(pn->getRule(), pn->getChildren(), pn->getArguments(), expected);
@@ -65,11 +66,11 @@ Node ProofChecker::check(
     Node expected)
 {
   // optimization: immediately return for ASSUME
-  if (id==PfRule::ASSUME)
+  if (id == PfRule::ASSUME)
   {
     Assert(children.empty());
-    Assert(args.size()==1 && args[0].getType().isBoolean());
-    Assert(expected.isNull() || expected==args[0]);
+    Assert(args.size() == 1 && args[0].getType().isBoolean());
+    Assert(expected.isNull() || expected == args[0]);
     return expected;
   }
   // record stat

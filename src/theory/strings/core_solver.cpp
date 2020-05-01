@@ -1457,13 +1457,13 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         x,
         isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
         "v_spt2");
-    //iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
+    // iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
     Node eq1 =
         x.eqNode(isRev ? utils::mkNConcat(sk1, y) : utils::mkNConcat(y, sk1));
-    //eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
+    // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
     Node eq2 =
         y.eqNode(isRev ? utils::mkNConcat(sk2, x) : utils::mkNConcat(x, sk2));
-    //eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
+    // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
 
     if (lentTestSuccess != -1)
     {
