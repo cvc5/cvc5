@@ -151,9 +151,13 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Inference infer,
                                      bool asLemma)
 {
-  eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
-  if (eq == d_true)
+  if (eq.isNull())
   {
+    eq = d_false;
+  }
+  else if (Rewriter::rewrite(eq)==d_true)
+  {
+    // if trivial, return
     return;
   }
   // wrap in infer info and send below

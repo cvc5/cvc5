@@ -118,14 +118,11 @@ Node BuiltinProofRuleChecker::check(PfRule id,
   {
     // FIXME: could be macro
     // (TRANS (SUBS P1 ... Pn t) 
-    //        (REWRITE <t.substitute(x1,t1). ... .substitute(xn,tn)>))
+    //        (REWRITE <t.substitute(xn,tn). ... .substitute(x1,t1)>))
     Assert(children.size() > 0);
     Assert(args.size() == 1);
-    std::vector<Node> exp;
-    for (size_t i = 0, nchild = children.size(); i < nchild; i++)
-    {
-      exp.push_back(children[i]);
-    }
+    std::vector<Node> exp = children;
+    std::reverse(exp.begin(),exp.end());
     Node res = applySubstitution(args[0], exp);
     res = applyRewrite(res);
     return args[0].eqNode(res);
