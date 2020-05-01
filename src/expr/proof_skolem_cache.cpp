@@ -44,6 +44,7 @@ Node ProofSkolemCache::mkSkolem(Node v,
   // remember its mapping
   WitnessFormAttribute wfa;
   k.setAttribute(wfa, w);
+  Trace("pf-skolem") << "ProofSkolemCache::mkSkolem: " << k << " : " << w << std::endl;
   return k;
 }
 
@@ -106,6 +107,14 @@ Node ProofSkolemCache::getWitnessForm(Node n)
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+void ProofSkolemCache::convertToWitnessFormVec(std::vector<Node>& vec)
+{
+  for (unsigned i=0, nvec = vec.size(); i<nvec; i++)
+  {
+    vec[i] = getWitnessForm(vec[i]);
+  }
 }
 
 }  // namespace CVC4

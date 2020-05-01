@@ -94,6 +94,8 @@ class ProofSkolemCache
    * @return n in witness form.
    */
   static Node getWitnessForm(Node n);
+  /** convert to witness form vector */
+  static void convertToWitnessFormVec(std::vector<Node>& vec);
 };
 
 }  // namespace CVC4

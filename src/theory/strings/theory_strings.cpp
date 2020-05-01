@@ -930,7 +930,7 @@ void TheoryStrings::checkCodes()
         if (!d_state.areEqual(cc, vc))
         {
           std::vector<Node> emptyVec;
-          d_im->sendInference(emptyVec, cc.eqNode(vc), Inference::CODE_PROXY);
+          d_im->sendInference(emptyVec, vc.eqNode(cc), Inference::CODE_PROXY);
         }
         const_codes.push_back(vc);
       }

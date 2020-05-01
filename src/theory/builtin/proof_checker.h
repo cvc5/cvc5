@@ -31,10 +31,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
  public:
   BuiltinProofRuleChecker() {}
   ~BuiltinProofRuleChecker() {}
-  /** Return the conclusion of the given proof step, or null if it is invalid */
-  Node check(PfRule id,
-             const std::vector<Node>& children,
-             const std::vector<Node>& args) override;
   /**
    * Apply rewrite. This encapsulates the exact behavior of a REWRITE step
    * in a proof.
@@ -48,6 +44,11 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   static Node applySubstitution(Node n, const std::vector<Node>& exp);
   /** mk and node */
   static Node mkAnd(const std::vector<Node>& a);
+protected:
+  /** Return the conclusion of the given proof step, or null if it is invalid */
+  Node checkInternal(PfRule id,
+             const std::vector<Node>& children,
+             const std::vector<Node>& args) override;
 };
 
 }  // namespace builtin

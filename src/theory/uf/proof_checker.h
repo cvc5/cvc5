@@ -32,12 +32,11 @@ class UfProofRuleChecker : public ProofRuleChecker
  public:
   UfProofRuleChecker() {}
   ~UfProofRuleChecker() {}
+protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
-  Node check(PfRule id,
+  Node checkInternal(PfRule id,
              const std::vector<Node>& children,
              const std::vector<Node>& args) override;
-
- private:
   /** Builtin proof checker */
   builtin::BuiltinProofRuleChecker d_builtinChecker;
 };

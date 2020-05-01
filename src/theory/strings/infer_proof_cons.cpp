@@ -17,6 +17,7 @@
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "expr/proof_skolem_cache.h"
 
 using namespace CVC4::kind;
 
@@ -116,12 +117,9 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::I_NORM:
     case Inference::LEN_NORM:
     case Inference::NORMAL_FORM:
+    case Inference::CODE_PROXY: 
     {
-      if (pii.d_children.empty())
-      {
-        // should have at least one child
-      }
-      else if (conc.getKind() != EQUAL)
+      if (conc.getKind() != EQUAL)
       {
         Assert(false);
       }
@@ -169,7 +167,13 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::I_CONST_CONFLICT: break;
     // ========================== rewrite pred
     case Inference::EXTF_EQ_REW:
-    case Inference::INFER_EMP: break;
+    case Inference::INFER_EMP: 
+    {
+      // may need the "extended equality rewrite"
+      pii.d_rule = PfRule::MACRO_REWRITE_PRED;
+      tryChecker = &d_ufChecker;
+    }
+      break;
     // ========================== equal by substitution+rewriting+CTN_NOT_EQUAL
     case Inference::F_NCTN:
     case Inference::N_NCTN: break;
@@ -217,8 +221,6 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::REDUCTION: break;
     // ========================== Cardinality
     case Inference::CARDINALITY: break;
-    // ========================== purification
-    case Inference::CODE_PROXY: break;
     // ========================== code injectivity
     case Inference::CODE_INJ: break;
 
@@ -249,7 +251,8 @@ PfRule InferProofCons::convert(Inference infer,
                          << "...";
     Assert(pii.d_rule != PfRule::UNKNOWN);
     Node pconc = tryChecker->check(pii.d_rule, pii.d_children, pii.d_args);
-    if (pconc.isNull() || pconc != conc)
+    Node concw = ProofSkolemCache::getWitnessForm(conc);
+    if (pconc.isNull() || pconc != concw)
     {
       Trace("strings-ipc") << "failed, pconc is " << pconc << " (expected "
                            << conc << ")" << std::endl;

@@ -67,7 +67,7 @@ Node BuiltinProofRuleChecker::mkAnd(const std::vector<Node>& a)
   return NodeManager::currentNM()->mkNode(AND, a);
 }
 
-Node BuiltinProofRuleChecker::check(PfRule id,
+Node BuiltinProofRuleChecker::checkInternal(PfRule id,
                                     const std::vector<Node>& children,
                                     const std::vector<Node>& args)
 {
@@ -119,7 +119,6 @@ Node BuiltinProofRuleChecker::check(PfRule id,
     // FIXME: could be macro
     // (TRANS (SUBS P1 ... Pn t)
     //        (REWRITE <t.substitute(xn,tn). ... .substitute(x1,t1)>))
-    Assert(children.size() > 0);
     Assert(args.size() == 1);
     std::vector<Node> exp = children;
     std::reverse(exp.begin(), exp.end());

@@ -78,6 +78,8 @@ void TheoryUF::setProofChecker(ProofChecker* pc)
   pc->registerChecker(PfRule::TRUE_ELIM, &d_ufProofChecker);
   pc->registerChecker(PfRule::FALSE_INTRO, &d_ufProofChecker);
   pc->registerChecker(PfRule::FALSE_ELIM, &d_ufProofChecker);
+  pc->registerChecker(PfRule::MACRO_EQ_SUBS_REWRITE, &d_ufProofChecker);
+  pc->registerChecker(PfRule::MACRO_REWRITE_PRED, &d_ufProofChecker);
 }
 
 void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {

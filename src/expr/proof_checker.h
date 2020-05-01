@@ -45,9 +45,9 @@ class ProofRuleChecker
    * @return The conclusion of the proof node if successful or null if such a
    * proof node is malformed.
    */
-  virtual Node check(PfRule id,
+  Node check(PfRule id,
                      const std::vector<Node>& children,
-                     const std::vector<Node>& args) = 0;
+                     const std::vector<Node>& args);
   /** Single arg version */
   Node checkChildrenArg(PfRule id, const std::vector<Node>& children, Node arg);
   /** No arg version */
@@ -56,6 +56,15 @@ class ProofRuleChecker
   Node checkChild(PfRule id, Node child);
   /** Single argument only version */
   Node checkArg(PfRule id, Node arg);
+protected:
+  /**
+   * This checks a single step in a proof. It is identical to check above
+   * except that children and args have been converted to "witness form"
+   * (see ProofSkolemCache).
+   */
+  virtual Node checkInternal(PfRule id,
+                     const std::vector<Node>& children,
+                     const std::vector<Node>& args) = 0;
 };
 
 /** Statistics class */

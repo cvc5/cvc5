@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-Node BoolProofRuleChecker::check(PfRule id,
+Node BoolProofRuleChecker::checkInternal(PfRule id,
                                  const std::vector<Node>& children,
                                  const std::vector<Node>& args)
 {

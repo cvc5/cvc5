@@ -15,8 +15,20 @@
 #include "expr/proof_checker.h"
 
 #include "smt/smt_statistics_registry.h"
+#include "expr/proof_skolem_cache.h"
 
 namespace CVC4 {
+
+Node ProofRuleChecker::check(PfRule id,
+                    const std::vector<Node>& children,
+                    const std::vector<Node>& args)
+{
+  std::vector<Node> childrenw = children;
+  std::vector<Node> argsw = args;
+  ProofSkolemCache::convertToWitnessFormVec(childrenw);
+  ProofSkolemCache::convertToWitnessFormVec(argsw);
+  return checkInternal(id,childrenw,argsw);
+}
 
 Node ProofRuleChecker::checkChildrenArg(PfRule id,
                                         const std::vector<Node>& children,
@@ -168,13 +180,17 @@ Node ProofChecker::checkInternal(PfRule id,
   }
   // check it with the corresponding checker
   Node res = it->second->check(id, cchildren, args);
-  if (!expected.isNull() && res != expected)
+  if (!expected.isNull())
   {
-    out << "result does not match expected value." << std::endl
-        << "    result: " << res << std::endl
-        << "  expected: " << expected << std::endl;
-    // it did not match the given expectation, fail
-    return Node::null();
+    Node expectedw = ProofSkolemCache::getWitnessForm(expected);
+    if (res!=expectedw)
+    {
+      out << "result does not match expected value." << std::endl
+          << "    result: " << res << std::endl
+          << "  expected: " << expected << std::endl;
+      // it did not match the given expectation, fail
+      return Node::null();
+    }
   }
   return res;
 }

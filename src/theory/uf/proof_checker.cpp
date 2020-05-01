@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
-Node UfProofRuleChecker::check(PfRule id,
+Node UfProofRuleChecker::checkInternal(PfRule id,
                                const std::vector<Node>& children,
                                const std::vector<Node>& args)
 {
@@ -171,6 +171,11 @@ Node UfProofRuleChecker::check(PfRule id,
   }
   else if (id == PfRule::MACRO_REWRITE_PRED)
   {
+    Assert(children.size()==1);
+    Assert(args.empty());
+    // NOTE: technically a macro:
+    // (TRUE_ELIM (TRANS (SYMM (REWRITE <children>)) (TRUE_INTRO <children>)))
+    return d_builtinChecker.applyRewrite(children[0]);
   }
   // no rule
   return Node::null();
