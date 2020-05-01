@@ -145,13 +145,13 @@ QF_S|QF_SLIA)
   trywith 300 --strings-exp --rewrite-divk --strings-fmf
   finishwith --strings-exp --rewrite-divk
   ;;
-QF_ABVFP)
+QF_ABVFP|QF_ABVFPLRA)
   finishwith --fp-exp
   ;;
-QF_BVFP)
+QF_BVFP|QF_BVFPLRA)
   finishwith --fp-exp
   ;;
-QF_FP)
+QF_FP|QF_FPLRA)
   finishwith --fp-exp
   ;;
 *)
