@@ -51,16 +51,17 @@ void InferProofCons::convert(InferInfo& ii,
     return;
   }
   eq::ProofInferInfo pii;
-  convert(ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pii);
+  convert(ii, pii);
   piis.push_back(pii);
 }
 
 PfRule InferProofCons::convert(const InferInfo& ii, eq::ProofInferInfo& pii)
 {
-  return convert(ii.d_id, ii.d_conc, ii.d_ant, ii.d_antn, pii);
+  return convert(ii.d_id, ii.d_idRev, ii.d_conc, ii.d_ant, ii.d_antn, pii);
 }
 
 PfRule InferProofCons::convert(Inference infer,
+                               bool isRev,
                                Node conc,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& expn,
@@ -75,8 +76,8 @@ PfRule InferProofCons::convert(Inference infer,
   }
   if (options::stringRExplainLemmas())
   {
-    // these are the explained ones, notice that the order of this vector does
-    // not matter
+    // these are the explained subset of exp, notice that the order of this
+    // vector does not matter for proofs
     pii.d_childrenToExplain.insert(pii.d_childrenToExplain.end(),
                                    pii.d_children.begin(),
                                    pii.d_children.end());
@@ -97,7 +98,7 @@ PfRule InferProofCons::convert(Inference infer,
   if (Trace.isOn("strings-ipc-debug"))
   {
     Trace("strings-ipc-debug")
-        << "InferProofCons::convert: " << infer << " " << conc << std::endl;
+        << "InferProofCons::convert: " << infer << (isRev ? " :rev " : " ") << conc << std::endl;
     for (const Node& ec : exp)
     {
       Trace("strings-ipc-debug") << "    e: " << ec << std::endl;
@@ -187,7 +188,43 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::SSPLIT_CST:
     case Inference::SSPLIT_VAR:
     case Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
-    case Inference::DEQ_DISL_STRINGS_SPLIT: break;
+    case Inference::DEQ_DISL_STRINGS_SPLIT: 
+    {
+      Trace("strings-ipc-core") << "Generate core rule for " << infer << " (rev=" << isRev << ")" << std::endl;
+      // EXP ^ t = s ^ ...
+      size_t nchild = pii.d_children.size();
+      size_t mainEqIndex = 0;
+      bool mainEqIndexSet = false;
+      if (infer==Inference::N_UNIFY)
+      {
+        if (nchild>=2)
+        {
+          mainEqIndex = nchild-2;
+          mainEqIndexSet = true;
+        }
+      }
+      Node mainEq;
+      if (mainEqIndexSet)
+      {
+        Trace("strings-ipc-core") << "Main equality " << mainEq << " at index " << mainEqIndex << std::endl;
+        mainEq = pii.d_children[mainEqIndex];
+      }
+      if (mainEq.isNull() || mainEq.getKind()!=EQUAL)
+      {
+        Trace("strings-ipc-core") << "...failed to find main equality" << std::endl;
+        //Assert(false);
+      }
+      else
+      {
+        // apply substitution+rewriting using equalities up to the main eq
+        std::vector<Node> subsExp;
+        subsExp.insert(subsExp.end(),pii.d_children.begin(),pii.d_children.begin()+mainEqIndex);
+        Node mainEqRew = builtin::BuiltinProofRuleChecker::applySubstitutionRewrite(mainEq, subsExp);
+        Trace("strings-ipc-core") << "Main equality after subs+rewrite " << mainEqRew << std::endl; 
+        
+      }
+    }
+      break;
     // ========================== Boolean split
     case Inference::CARD_SP:
     case Inference::LEN_SPLIT:

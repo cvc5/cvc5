@@ -33,25 +33,31 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
-    if (children[0].getKind() != kind::AND
-        || !ProofChecker::unsignedIntBelowBound(args[0],
-                                                children[0].getNumChildren()))
+    uint32_t i;
+    if (children[0].getKind() != kind::AND || !getIndex(args[0],i))
     {
       return Node::null();
     }
-    unsigned i = args[0].getConst<Rational>().getNumerator().toUnsignedInt();
+    if (i>=children[0].getNumChildren())
+    {
+      return Node::null();
+    }
     return children[0][i];
   }
   if (id == PfRule::NOT_OR_ELIM)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
+    uint32_t i;
     if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::AND)
+        || children[0][0].getKind() != kind::OR  || !getIndex(args[0],i))
     {
       return Node::null();
     }
-    unsigned i = args[0].getConst<Rational>().getNumerator().toUnsignedInt();
+    if (i>=children[0][0].getNumChildren())
+    {
+      return Node::null();
+    }
     return children[0][0][i].notNode();
   }
   if (id == PfRule::IMPLIES_ELIM)

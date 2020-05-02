@@ -42,7 +42,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   static Node applySubstitution(Node n, Node exp);
   static Node applySubstitution(Node n, const std::vector<Node>& exp);
-
+  /** Apply substitution + rewriting */
+  static Node applySubstitutionRewrite(Node n, const std::vector<Node>& exp);
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node checkInternal(PfRule id,

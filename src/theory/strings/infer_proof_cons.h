@@ -65,6 +65,7 @@ class InferProofCons
   PfRule convert(const InferInfo& ii, eq::ProofInferInfo& pfi);
   /** internal version */
   PfRule convert(Inference infer,
+                 bool isRev,
                  Node conc,
                  const std::vector<Node>& exp,
                  const std::vector<Node>& expn,

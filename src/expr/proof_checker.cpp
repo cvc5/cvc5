@@ -74,6 +74,29 @@ Node ProofRuleChecker::mkAnd(const std::vector<Node>& a)
   return NodeManager::currentNM()->mkNode(AND, a);
 }
 
+bool ProofRuleChecker::getIndex(TNode n, uint32_t& i)
+{
+  // must be a non-negative integer constant that fits an unsigned int
+  if( n.isConst() && n.getType().isInteger() 
+          && n.getConst<Rational>().sgn()>=0
+          && n.getConst<Rational>().getNumerator().fitsUnsignedInt())
+  {
+    i = n.getConst<Rational>().getNumerator().toUnsignedInt();
+    return true;
+  }
+  return false;
+}
+
+bool ProofRuleChecker::getBool(TNode n, bool& b)
+{
+  if (n.isConst() && n.getType().isBoolean())
+  {
+    b = n.getConst<bool>();
+    return true;
+  }
+  return false;
+}
+
 ProofCheckerStatistics::ProofCheckerStatistics()
     : d_ruleChecks("ProofCheckerStatistics::ruleChecks")
 {
