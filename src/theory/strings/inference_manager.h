@@ -155,11 +155,13 @@ class InferenceManager
                      const std::vector<Node>& exp_n,
                      Node eq,
                      Inference infer,
+                     bool isRev = false,
                      bool asLemma = false);
   /** same as above, but where exp_n is empty */
   void sendInference(const std::vector<Node>& exp,
                      Node eq,
                      Inference infer,
+                     bool isRev = false,
                      bool asLemma = false);
 
   /** Send inference

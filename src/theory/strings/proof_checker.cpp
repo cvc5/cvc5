@@ -129,11 +129,13 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
+    // must convert to skolem form
+    Node t = ProofSkolemCache::getSkolemForm(args[0]);
     std::vector<Node> conj;
     // TODO: eliminate optimizations
     SkolemCache sc;
-    Node ret = StringsPreprocess::reduce(args[0], conj, &sc);
-    conj.push_back(args[0].eqNode(ret));
+    Node ret = StringsPreprocess::reduce(t, conj, &sc);
+    conj.push_back(t.eqNode(ret));
     ProofSkolemCache::convertToWitnessFormVec(conj);
     return mkAnd(conj);
   }
@@ -157,6 +159,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
+    // must convert to skolem form
+    atom = ProofSkolemCache::getSkolemForm(atom);
     Node conc;
     SkolemCache sc;
     if (id == PfRule::RE_UNFOLD_POS)

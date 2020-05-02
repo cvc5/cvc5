@@ -135,6 +135,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      const std::vector<Node>& expn,
                                      Node eq,
                                      Inference infer,
+                                     bool isRev,
                                      bool asLemma)
 {
   if (eq.isNull())
@@ -149,6 +150,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   // wrap in infer info and send below
   InferInfo ii;
   ii.d_id = infer;
+  ii.d_idRev = isRev;
   ii.d_conc = eq;
   ii.d_ant = exp;
   ii.d_antn = expn;
@@ -158,10 +160,11 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
 void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
                                      Inference infer,
+                                     bool isRev,
                                      bool asLemma)
 {
   std::vector<Node> expn;
-  sendInference(exp, expn, eq, infer, asLemma);
+  sendInference(exp, expn, eq, infer, isRev, asLemma);
 }
 
 void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)

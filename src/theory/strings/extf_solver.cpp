@@ -122,7 +122,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
             lexp.push_back(lenx.eqNode(lens));
             lexp.push_back(n.negate());
             Node xneqs = x.eqNode(s).negate();
-            d_im.sendInference(lexp, xneqs, Inference::CTN_NEG_EQUAL, true);
+            d_im.sendInference(lexp, xneqs, Inference::CTN_NEG_EQUAL, false, true);
           }
           // this depends on the current assertions, so this
           // inference is context-dependent
@@ -166,7 +166,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
     std::vector<Node> exp_vec;
     exp_vec.push_back(n);
-    d_im.sendInference(d_emptyVec, exp_vec, eq, Inference::CTN_POS, true);
+    d_im.sendInference(d_emptyVec, exp_vec, eq, Inference::CTN_POS, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;
@@ -191,7 +191,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Trace("strings-red-lemma")
         << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
     Trace("strings-red-lemma") << "...from " << n << std::endl;
-    d_im.sendInference(d_emptyVec, nnlem, Inference::REDUCTION, true);
+    d_im.sendInference(d_emptyVec, nnlem, Inference::REDUCTION, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on reduction." << std::endl;
     // add as reduction lemma
@@ -372,7 +372,7 @@ void ExtfSolver::checkExtfEval(int effort)
             Trace("strings-extf")
                 << "  resolve extf : " << sn << " -> " << nrc << std::endl;
             Inference inf = effort == 0 ? Inference::EXTF : Inference::EXTF_N;
-            d_im.sendInference(einfo.d_exp, conc, inf, true);
+            d_im.sendInference(einfo.d_exp, conc, inf, false, true);
             d_statistics.d_cdSimplifications << n.getKind();
             if (d_state.isInConflict())
             {
