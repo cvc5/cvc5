@@ -35,7 +35,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * Apply rewrite on n (in witness form). This encapsulates the exact behavior
    * of a REWRITE step in a proof. Rewriting is performed on the Skolem form of
    * n.
-   * 
+   *
    * @param n The node (in witness form) to rewrite,
    * @param id The identifier of the rewriter.
    * @return The rewritten form of n.
@@ -45,7 +45,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * Apply substitution on n (in witness form). This encapsulates the exact
    * behavior of a SUBS step in a proof. Substitution is on the Skolem form of
    * n.
-   * 
+   *
    * @param n The node (in witness form) to substitute,
    * @param exp The (set of) equalities (in witness form) corresponding to the
    * substitution
@@ -53,17 +53,20 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   static Node applySubstitution(Node n, Node exp);
   static Node applySubstitution(Node n, const std::vector<Node>& exp);
-  /** Apply substitution + rewriting 
-   * 
+  /** Apply substitution + rewriting
+   *
    * Combines the above two steps.
-   * 
+   *
    * @param n The node (in witness form) to substitute and rewrite,
    * @param exp The (set of) equalities (in witness form) corresponding to the
    * substitution
    * @param id The identifier of the rewriter.
    * @return The substituted, rewritten form of n.
    */
-  static Node applySubstitutionRewrite(Node n, const std::vector<Node>& exp, uint32_t id = 0);
+  static Node applySubstitutionRewrite(Node n,
+                                       const std::vector<Node>& exp,
+                                       uint32_t id = 0);
+
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node checkInternal(PfRule id,

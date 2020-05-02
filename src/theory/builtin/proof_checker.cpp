@@ -14,8 +14,8 @@
 
 #include "theory/builtin/proof_checker.h"
 
-#include "theory/rewriter.h"
 #include "expr/proof_skolem_cache.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -61,39 +61,42 @@ Node BuiltinProofRuleChecker::applySubstitutionRewrite(
 Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, uint32_t id)
 {
   // index determines the kind of rewriter
-  if (id==0)
+  if (id == 0)
   {
     return Rewriter::rewrite(n);
   }
-  else if (id==1)
+  else if (id == 1)
   {
     return Rewriter::rewriteEqualityExt(n);
   }
   // unknown rewriter
-  Assert(false) << "BuiltinProofRuleChecker::applyRewriteExternal: no rewriter for " << id << std::endl;
+  Assert(false)
+      << "BuiltinProofRuleChecker::applyRewriteExternal: no rewriter for " << id
+      << std::endl;
   return n;
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n, Node exp)
 {
-  Assert (!exp.isNull() && exp.getKind()==EQUAL);
+  Assert(!exp.isNull() && exp.getKind() == EQUAL);
   Node expk = ProofSkolemCache::getSkolemForm(exp);
   TNode var = expk[0];
   TNode subs = expk[1];
   return n.substitute(var, subs);
 }
 
-Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n, const std::vector<Node>& exp)
+Node BuiltinProofRuleChecker::applySubstitutionExternal(
+    Node n, const std::vector<Node>& exp)
 {
   Node curr = n;
   // apply substitution one at a time, in reverse order
-  for (size_t i=0, nexp = exp.size(); i<nexp; i++)
+  for (size_t i = 0, nexp = exp.size(); i < nexp; i++)
   {
-    if (exp[nexp-1-i].isNull() || exp[nexp-1-i].getKind()!=EQUAL)
+    if (exp[nexp - 1 - i].isNull() || exp[nexp - 1 - i].getKind() != EQUAL)
     {
       return Node::null();
     }
-    curr = applySubstitutionExternal(curr, exp[nexp-1-i]);
+    curr = applySubstitutionExternal(curr, exp[nexp - 1 - i]);
   }
   return curr;
 }
@@ -148,12 +151,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
   {
     // NOTE: technically a macro:
-    // (TRANS 
+    // (TRANS
     //   (SUBS P1 ... Pn t)
     //   (REWRITE <t.substitute(xn,tn). ... .substitute(x1,t1)>))
-    Assert(1 <= args.size() && args.size()<=2);
+    Assert(1 <= args.size() && args.size() <= 2);
     uint32_t idRewriter = 0;
-    if (args.size()>=2)
+    if (args.size() >= 2)
     {
       if (!getIndex(args[1], idRewriter))
       {
@@ -166,11 +169,11 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::MACRO_SR_PRED_INTRO)
   {
     // NOTE: technically a macro:
-    // (TRUE_ELIM 
+    // (TRUE_ELIM
     //   (MACRO_SR_EQ_INTRO <children> <args>[0]))
-    Assert(1 <= args.size() && args.size()<=2);
+    Assert(1 <= args.size() && args.size() <= 2);
     uint32_t idRewriter = 0;
-    if (args.size()>=2)
+    if (args.size() >= 2)
     {
       if (!getIndex(args[1], idRewriter))
       {
@@ -187,16 +190,16 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::MACRO_SR_PRED_ELIM)
   {
     Assert(children.size() >= 1);
-    Assert(args.size()<=1);
+    Assert(args.size() <= 1);
     // NOTE: technically a macro:
-    // (TRUE_ELIM 
-    //   (TRANS 
-    //     (SYMM (MACRO_SR_EQ_INTRO <children>[1:] F)) 
+    // (TRUE_ELIM
+    //   (TRANS
+    //     (SYMM (MACRO_SR_EQ_INTRO <children>[1:] F))
     //     (TRUE_INTRO <children>[0])))
     std::vector<Node> exp;
-    exp.insert(exp.end(),children.begin()+1,children.end());
+    exp.insert(exp.end(), children.begin() + 1, children.end());
     uint32_t idRewriter = 0;
-    if (args.size()>=1)
+    if (args.size() >= 1)
     {
       if (!getIndex(args[0], idRewriter))
       {

@@ -59,8 +59,8 @@ class Rewriter {
 
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to
-   * use on the node corresponding to an equality s = t. 
-   * 
+   * use on the node corresponding to an equality s = t.
+   *
    * Specifically, this method performs rewrites whose conclusion is not
    * necessarily one of { s = t, t = s, true, false }, which is an invariant
    * guaranted by the above method. This invariant is motivated by theory

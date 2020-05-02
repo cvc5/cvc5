@@ -99,9 +99,10 @@ Node Rewriter::rewrite(TNode node) {
 
 Node Rewriter::rewriteEqualityExt(TNode node)
 {
-  Assert (node.getKind() == kind::EQUAL);
+  Assert(node.getKind() == kind::EQUAL);
   // TODO cache
-  return getInstance()->d_theoryRewriters[theoryOf(node)]->rewriteEqualityExt(node);
+  return getInstance()->d_theoryRewriters[theoryOf(node)]->rewriteEqualityExt(
+      node);
 }
 
 void Rewriter::registerTheoryRewriter(theory::TheoryId tid,

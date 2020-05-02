@@ -56,11 +56,11 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> sremVec;
     std::vector<Node> tremVec;
     // scan the concatenation until we exhaust child proofs
-    while (index < nchilds && index<nchildt)
+    while (index < nchilds && index < nchildt)
     {
       Node currS = svec[isRev ? (nchilds - 1 - index) : index];
       Node currT = tvec[isRev ? (nchildt - 1 - index) : index];
-      if (currS!=currT)
+      if (currS != currT)
       {
         if (currS.isConst() && currT.isConst())
         {
@@ -70,7 +70,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
           if (!currR.isNull())
           {
             // add the constant to remainder vec
-            std::vector<Node>& rem = sindex==1 ? sremVec : tremVec;
+            std::vector<Node>& rem = sindex == 1 ? sremVec : tremVec;
             rem.push_back(currR);
             // ignore the current component
             index++;

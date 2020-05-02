@@ -110,7 +110,7 @@ PfRule InferProofCons::convert(Inference infer,
   }
   // try to find a proof rule to incorporate
   ProofRuleChecker* tryChecker = nullptr;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   switch (infer)
   {
     // ========================== equal by substitution+rewriting
@@ -223,11 +223,12 @@ PfRule InferProofCons::convert(Inference infer,
         std::vector<Node> childrenSRew;
         childrenSRew.push_back(mainEq);
         childrenSRew.insert(childrenSRew.end(),
-                       pii.d_children.begin(),
-                       pii.d_children.begin() + mainEqIndex);
+                            pii.d_children.begin(),
+                            pii.d_children.begin() + mainEqIndex);
         std::reverse(childrenSRew.begin(), childrenSRew.end());
         std::vector<Node> argsSRew;
-        Node mainEqSRew = d_ufChecker.check(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
+        Node mainEqSRew = d_ufChecker.check(
+            PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
         Trace("strings-ipc-core")
             << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
         // now, apply CONCAT_EQ to get the remainder
@@ -235,10 +236,10 @@ PfRule InferProofCons::convert(Inference infer,
         childrenCeq.push_back(mainEqSRew);
         std::vector<Node> argsCeq;
         argsCeq.push_back(nm->mkConst(isRev));
-        Node mainEqCeq = d_strChecker.check(PfRule::CONCAT_EQ, childrenCeq, argsCeq);
+        Node mainEqCeq =
+            d_strChecker.check(PfRule::CONCAT_EQ, childrenCeq, argsCeq);
         Trace("strings-ipc-core")
             << "Main equality after CONCAT_EQ " << mainEqCeq << std::endl;
-        
       }
     }
     break;

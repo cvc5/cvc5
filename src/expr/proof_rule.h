@@ -106,7 +106,8 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion:
   //   F
-  // where Rewriter::rewrite(F.substitute(xn,tn). ... .substitute(x1,t1)) == true
+  // where Rewriter::rewrite(F.substitute(xn,tn). ... .substitute(x1,t1)) ==
+  // true
   MACRO_SR_PRED_INTRO,
   // ======== Substitution + Rewriting predicate elimination
   // Children: (P1:F, P2:(= x1 t1), ..., P_{n+1}:(= xn tn))

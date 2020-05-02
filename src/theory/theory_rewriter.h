@@ -94,7 +94,7 @@ class TheoryRewriter
    * necessarily one of { s = t, t = s, true, false }. This is in constrast
    * to postRewrite and preRewrite above, where the rewritten form of an
    * equality must be one of these.
-   * 
+   *
    * @param node The node to rewrite
    */
   virtual Node rewriteEqualityExt(Node node) { return node; }
