@@ -87,3 +87,5 @@ PRs:
 - strings SkolemCache uses ProofSkolemCache
 (13) strings InferProofCons
 (14) update strings inference manager to use ProofEqEngine
+- static strings preprocess reduce
+- static regular expression operation reduce

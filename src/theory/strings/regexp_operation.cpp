@@ -851,7 +851,7 @@ void RegExpOpr::simplify(Node t, std::vector< Node > &new_nodes, bool polarity) 
     }
     else
     {
-      Node conc = simplifyPRegExp(str, re);
+      Node conc = reduceRegExpPos(str, re);
       if (!conc.isNull())
       {
         new_nodes.push_back(conc);
@@ -866,7 +866,7 @@ void RegExpOpr::simplify(Node t, std::vector< Node > &new_nodes, bool polarity) 
     }
     else
     {
-      Node conc = simplifyNRegExp(str, re);
+      Node conc = reduceRegExpNeg(str, re);
       if (!conc.isNull())
       {
         new_nodes.push_back(conc);
@@ -885,10 +885,11 @@ void RegExpOpr::simplify(Node t, std::vector< Node > &new_nodes, bool polarity) 
   }
 }
 
-Node RegExpOpr::simplifyNRegExp(Node s, Node r)
+Node RegExpOpr::reduceRegExpNeg(Node s, Node r)
 {
   NodeManager *nm = NodeManager::currentNM();
   Kind k = r.getKind();
+  Node zero = nm->mkConst(Rational(0));
   Node conc;
   if (k==REGEXP_CONCAT)
   {
@@ -924,7 +925,7 @@ Node RegExpOpr::simplifyNRegExp(Node s, Node r)
       b1 = nm->mkBoundVar(nm->integerType());
       b1v = nm->mkNode(BOUND_VAR_LIST, b1);
       guard = nm->mkNode(AND,
-                          nm->mkNode(GEQ, b1, d_zero),
+                          nm->mkNode(GEQ, b1, zero),
                           nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, s), b1));
     }
     else
@@ -935,13 +936,13 @@ Node RegExpOpr::simplifyNRegExp(Node s, Node r)
     Node s2;
     if (indexRm == 0)
     {
-      s1 = nm->mkNode(STRING_SUBSTR, s, d_zero, b1);
+      s1 = nm->mkNode(STRING_SUBSTR, s, zero, b1);
       s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
     }
     else
     {
       s1 = nm->mkNode(STRING_SUBSTR, s, nm->mkNode(MINUS, lens, b1), b1);
-      s2 = nm->mkNode(STRING_SUBSTR, s, d_zero, nm->mkNode(MINUS, lens, b1));
+      s2 = nm->mkNode(STRING_SUBSTR, s, zero, nm->mkNode(MINUS, lens, b1));
     }
     Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[indexRm]).negate();
     std::vector<Node> nvec;
@@ -964,14 +965,15 @@ Node RegExpOpr::simplifyNRegExp(Node s, Node r)
   }
   else if (k==REGEXP_STAR)
   {
+    Node emp = Word::mkEmptyWord(s.getType());
     Node lens = nm->mkNode(STRING_LENGTH, s);
-    Node sne = s.eqNode(d_emptyString).negate();
+    Node sne = s.eqNode(emp).negate();
     Node b1 = nm->mkBoundVar(nm->integerType());
     Node b1v = nm->mkNode(BOUND_VAR_LIST, b1);
     Node g1 = nm->mkNode(
-        AND, nm->mkNode(GEQ, b1, d_one), nm->mkNode(GEQ, lens, b1));
+        AND, nm->mkNode(GT, b1, zero), nm->mkNode(GEQ, lens, b1));
     // internal
-    Node s1 = nm->mkNode(STRING_SUBSTR, s, d_zero, b1);
+    Node s1 = nm->mkNode(STRING_SUBSTR, s, zero, b1);
     Node s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
     Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[0]).negate();
     Node s2r2 = nm->mkNode(STRING_IN_REGEXP, s2, r).negate();
@@ -983,7 +985,8 @@ Node RegExpOpr::simplifyNRegExp(Node s, Node r)
   }
   return conc;
 }
-Node RegExpOpr::simplifyPRegExp(Node s, Node r)
+
+Node RegExpOpr::reduceRegExpPos(Node s, Node r)
 {
   NodeManager *nm = NodeManager::currentNM();
   Kind k = r.getKind();
@@ -1012,7 +1015,8 @@ Node RegExpOpr::simplifyPRegExp(Node s, Node r)
   }
   else if (k==REGEXP_STAR)
   {
-    Node se = s.eqNode(d_emptyString);
+    Node emp = Word::mkEmptyWord(s.getType());
+    Node se = s.eqNode(emp);
     Node sinr = nm->mkNode(STRING_IN_REGEXP, s, r[0]);
     Node sk1 = nm->mkSkolem(
         "rs", s.getType(), "created for regular expression star");
@@ -1022,8 +1026,8 @@ Node RegExpOpr::simplifyPRegExp(Node s, Node r)
         "rs", s.getType(), "created for regular expression star");
 
     NodeBuilder<> nb(AND);
-    nb << sk1.eqNode(d_emptyString).negate();
-    nb << sk3.eqNode(d_emptyString).negate();
+    nb << sk1.eqNode(emp).negate();
+    nb << sk3.eqNode(emp).negate();
     nb << nm->mkNode(STRING_IN_REGEXP, sk1, r[0]);
     nb << nm->mkNode(STRING_IN_REGEXP, sk2, r);
     nb << nm->mkNode(STRING_IN_REGEXP, sk3, r[0]);

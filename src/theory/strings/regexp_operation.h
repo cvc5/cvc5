@@ -122,8 +122,8 @@ class RegExpOpr {
   /** Simplify */
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
 
-  Node simplifyPRegExp(Node s, Node r);
-  Node simplifyNRegExp(Node s, Node r);
+  static Node reduceRegExpPos(Node s, Node r);
+  static Node reduceRegExpNeg(Node s, Node r);
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string
    * is not in r, or 0 if it is unknown whether the empty string is in r.
