@@ -19,14 +19,14 @@
 #ifndef CVC4__THEORY__STRINGS__REGEXP__OPERATION_H
 #define CVC4__THEORY__STRINGS__REGEXP__OPERATION_H
 
-#include <vector>
 #include <map>
-#include <unordered_map>
 #include <set>
+#include <unordered_map>
+#include <vector>
 
 #include "expr/node.h"
-#include "util/string.h"
 #include "theory/strings/skolem_cache.h"
+#include "util/string.h"
 
 namespace CVC4 {
 namespace theory {
@@ -119,22 +119,22 @@ class RegExpOpr {
   bool checkConstRegExp( Node r );
   /** get the constant type for regular expression r */
   RegExpConstType getRegExpConstType(Node r);
-  /** Simplify 
-   * 
+  /** Simplify
+   *
    * This is the main method to simplify (unfold) a regular expression
    * membership. It is called where t is of the form (str.in_re s r),
    * and t (or (not t), when polarity=false) holds in the current context.
    * It returns the unfolded form of t.
    */
   Node simplify(Node t, bool polarity);
-  /** 
+  /**
    * Return the unfolded form of (str.in_re s r).
    */
-  static Node reduceRegExpPos(Node s, Node r, SkolemCache * sc);
-  /** 
+  static Node reduceRegExpPos(Node s, Node r, SkolemCache* sc);
+  /**
    * Return the unfolded form of (not (str.in_re s r)).
    */
-  static Node reduceRegExpNeg(Node s, Node r, SkolemCache * sc);
+  static Node reduceRegExpNeg(Node s, Node r, SkolemCache* sc);
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string
    * is not in r, or 0 if it is unknown whether the empty string is in r.
@@ -168,7 +168,8 @@ class RegExpOpr {
    * for performance reasons.
    */
   bool regExpIncludes(Node r1, Node r2);
-private:
+
+ private:
   /** pointer to the skolem cache used by this class */
   SkolemCache* d_sc;
 };

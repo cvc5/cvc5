@@ -96,8 +96,8 @@ PfRule InferProofCons::convert(Inference infer,
   // debug print
   if (Trace.isOn("strings-ipc-debug"))
   {
-    Trace("strings-ipc-debug") << "InferProofCons::convert: " << infer << " " << conc
-                         << std::endl;
+    Trace("strings-ipc-debug")
+        << "InferProofCons::convert: " << infer << " " << conc << std::endl;
     for (const Node& ec : exp)
     {
       Trace("strings-ipc-debug") << "    e: " << ec << std::endl;
@@ -277,7 +277,8 @@ PfRule InferProofCons::convert(Inference infer,
   }
   else
   {
-    Trace("strings-ipc") << "For " << infer << " " << conc << ", no proof rule, failed" << std::endl;
+    Trace("strings-ipc") << "For " << infer << " " << conc
+                         << ", no proof rule, failed" << std::endl;
     Assert(pii.d_rule == PfRule::UNKNOWN);
   }
 
@@ -296,8 +297,8 @@ PfRule InferProofCons::convert(Inference infer,
   }
   if (Trace.isOn("strings-ipc-debug"))
   {
-    Trace("strings-ipc-debug") << "InferProofCons::convert returned " << pii
-                         << std::endl;
+    Trace("strings-ipc-debug")
+        << "InferProofCons::convert returned " << pii << std::endl;
   }
   return pii.d_rule;
 }

@@ -54,11 +54,11 @@ class StringsPreprocess {
    * where t' is the term returned by this method.
    * The argument sc defines the methods for generating new Skolem variables.
    * The return value is t itself if it is not reduced by this class.
-   * 
+   *
    * The reduction lemma for t is a way of specifying the complete semantics
    * of t. In other words, any model satisfying the reduction lemma of t
    * correctly interprets t.
-   * 
+   *
    * @param t The node to reduce,
    * @param asserts The vector for storing the assertions that correspond to
    * the reduction of t,

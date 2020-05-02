@@ -142,20 +142,20 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::RE_INTER)
   {
   }
-  else if (id == PfRule::RE_UNFOLD_POS || id==PfRule::RE_UNFOLD_NEG)
+  else if (id == PfRule::RE_UNFOLD_POS || id == PfRule::RE_UNFOLD_NEG)
   {
-    Assert(children.size()==1);
+    Assert(children.size() == 1);
     Assert(args.empty());
     Node atom = children[0];
-    if (id==PfRule::RE_UNFOLD_NEG)
+    if (id == PfRule::RE_UNFOLD_NEG)
     {
-      if (atom.getKind()!=NOT)
+      if (atom.getKind() != NOT)
       {
         return Node::null();
       }
       atom = atom[0];
     }
-    if (atom.getKind()!=STRING_IN_REGEXP)
+    if (atom.getKind() != STRING_IN_REGEXP)
     {
       return Node::null();
     }
@@ -165,11 +165,11 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     SkolemCache sc;
     if (id == PfRule::RE_UNFOLD_POS)
     {
-      conc = RegExpOpr::reduceRegExpPos(atom[0],atom[1],&sc);
+      conc = RegExpOpr::reduceRegExpPos(atom[0], atom[1], &sc);
     }
     else
     {
-      conc = RegExpOpr::reduceRegExpNeg(atom[0],atom[1],&sc);
+      conc = RegExpOpr::reduceRegExpNeg(atom[0], atom[1], &sc);
     }
     return ProofSkolemCache::getWitnessForm(conc);
   }

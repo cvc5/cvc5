@@ -59,7 +59,7 @@ Node SkolemCache::mkTypedSkolemCached(
     switch (id)
     {
       // exists k. k = a
-      case SK_PURIFY: 
+      case SK_PURIFY:
         sk = d_pskc.mkPurifySkolem(a, c, "string purify skolem");
         break;
       // these are eliminated by normalizeStringSkolem
@@ -97,7 +97,7 @@ Node SkolemCache::mkTypedSkolemCached(
         Node cond = nm->mkConst(true);
         sk = d_pskc.mkSkolem(v, cond, c, "string skolem");
       }
-        break;
+      break;
     }
     d_allSkolems.insert(sk);
     d_skolemCache[a][b][id] = sk;

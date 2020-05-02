@@ -76,7 +76,7 @@ bool ProofEqEngine::assertFact(Node lit,
   // first, register the step in the proof
   if (d_pfEnabled)
   {
-    if (!addProofStep(lit,id,exp,args))
+    if (!addProofStep(lit, id, exp, args))
     {
       return false;
     }
@@ -335,14 +335,14 @@ void ProofEqEngine::assertInternal(TNode atom, bool polarity, TNode reason)
 }
 
 bool ProofEqEngine::addProofStep(Node lit,
-                PfRule id,
-                const std::vector<Node>& exp,
-                const std::vector<Node>& args)
+                                 PfRule id,
+                                 const std::vector<Node>& exp,
+                                 const std::vector<Node>& args)
 {
-  if (id==PfRule::UNKNOWN)
+  if (id == PfRule::UNKNOWN)
   {
     // should only provide unknown step if already set up the proof step
-    Assert (d_proof.hasStep(lit));
+    Assert(d_proof.hasStep(lit));
   }
   else if (!d_proof.addStep(lit, id, exp, args))
   {

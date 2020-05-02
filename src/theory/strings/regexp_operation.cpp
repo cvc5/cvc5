@@ -17,10 +17,10 @@
 #include "theory/strings/regexp_operation.h"
 
 #include "options/strings_options.h"
+#include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -37,7 +37,8 @@ RegExpOpr::RegExpOpr(SkolemCache* sc)
       d_one(NodeManager::currentNM()->mkConst(::CVC4::Rational(1))),
       d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA,
                                                std::vector<Node>{})),
-      d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma)),
+      d_sigma_star(
+          NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma)),
       d_sc(sc)
 {
   d_emptyString = Word::mkEmptyWord(CONST_STRING);
@@ -836,8 +837,10 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
 }
 
 //simplify
-Node RegExpOpr::simplify(Node t, bool polarity) {
-  Trace("strings-regexp-simpl") << "RegExpOpr::simplify: " << t << ", polarity=" << polarity << std::endl;
+Node RegExpOpr::simplify(Node t, bool polarity)
+{
+  Trace("strings-regexp-simpl")
+      << "RegExpOpr::simplify: " << t << ", polarity=" << polarity << std::endl;
   Assert(t.getKind() == kind::STRING_IN_REGEXP);
   Node str = t[0];
   Node re = t[1];
@@ -867,11 +870,12 @@ Node RegExpOpr::simplify(Node t, bool polarity) {
       d_simpl_neg_cache[p] = conc;
     }
   }
-  Trace("strings-regexp-simpl") << "RegExpOpr::simplify: returns " << conc << std::endl;
+  Trace("strings-regexp-simpl")
+      << "RegExpOpr::simplify: returns " << conc << std::endl;
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpNeg(Node s, Node r, SkolemCache * sc)
+Node RegExpOpr::reduceRegExpNeg(Node s, Node r, SkolemCache* sc)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = r.getKind();
@@ -972,7 +976,7 @@ Node RegExpOpr::reduceRegExpNeg(Node s, Node r, SkolemCache * sc)
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpPos(Node s, Node r, SkolemCache * sc)
+Node RegExpOpr::reduceRegExpPos(Node s, Node r, SkolemCache* sc)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = r.getKind();

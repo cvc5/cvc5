@@ -93,9 +93,9 @@ class ProofSkolemCache
    * where T is the type of t. This skolem is unique for each t.
    */
   static Node mkPurifySkolem(Node t,
-                       const std::string& prefix,
-                       const std::string& comment = "",
-                       int flags = NodeManager::SKOLEM_DEFAULT);
+                             const std::string& prefix,
+                             const std::string& comment = "",
+                             int flags = NodeManager::SKOLEM_DEFAULT);
   /** convert to witness form
    *
    * @param n The term or formula to convert to witness form described above
@@ -112,7 +112,8 @@ class ProofSkolemCache
   static void convertToWitnessFormVec(std::vector<Node>& vec);
   /** convert to Skolem form vector */
   static void convertToSkolemFormVec(std::vector<Node>& vec);
-private:
+
+ private:
   /** Convert to witness or skolem form */
   static Node convertInternal(Node n, bool toWitness);
 };

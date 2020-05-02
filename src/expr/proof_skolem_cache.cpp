@@ -55,15 +55,15 @@ Node ProofSkolemCache::mkSkolem(Node v,
   WitnessFormAttribute wfa;
   k.setAttribute(wfa, w);
   SkolemFormAttribute sfa;
-  w.setAttribute(sfa,k);
+  w.setAttribute(sfa, k);
   Trace("pf-skolem") << "ProofSkolemCache::mkSkolem: " << k << " : " << w
                      << std::endl;
   return k;
 }
 Node ProofSkolemCache::mkPurifySkolem(Node t,
-                      const std::string& prefix,
-                      const std::string& comment,
-                      int flags)
+                                      const std::string& prefix,
+                                      const std::string& comment,
+                                      int flags)
 {
   PurifySkolemAttribute psa;
   if (t.hasAttribute(psa))
@@ -72,18 +72,18 @@ Node ProofSkolemCache::mkPurifySkolem(Node t,
   }
   Node v = NodeManager::currentNM()->mkBoundVar(t.getType());
   Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);
-  t.setAttribute(psa,k);
+  t.setAttribute(psa, k);
   return k;
 }
 
 Node ProofSkolemCache::getWitnessForm(Node n)
 {
-  return convertInternal(n,true);
+  return convertInternal(n, true);
 }
 
 Node ProofSkolemCache::getSkolemForm(Node n)
 {
-  return convertInternal(n,false);
+  return convertInternal(n, false);
 }
 
 Node ProofSkolemCache::convertInternal(Node n, bool toWitness)

@@ -36,7 +36,7 @@ class ProofRuleChecker
    *
    * Return the formula that is proven by a proof node with the given id,
    * premises and arguments, or null if such a proof node is not well-formed.
-   * 
+   *
    * Note that the input/output of this method expects to be terms in *Skolem
    * form*. To facilitate checking, this method converts to/from witness
    * form, calling the subprocedure checkInternal below.
@@ -69,7 +69,7 @@ class ProofRuleChecker
    * This checks a single step in a proof. It is identical to check above
    * except that children and args have been converted to "witness form"
    * (see ProofSkolemCache). Likewise, its output should be in witness form.
-   * 
+   *
    * @param id The id of the proof node to check
    * @param children The premises of the proof node to check. These are nodes
    * corresponding to the conclusion (ProofNode::getResult) of the children

@@ -1107,8 +1107,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       {
         std::vector<Node> antec;
         NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, antec);
-        d_im.sendInference(
-            antec, eqn[0].eqNode(eqn[1]), Inference::N_ENDPOINT_EQ, isRev, true);
+        d_im.sendInference(antec,
+                           eqn[0].eqNode(eqn[1]),
+                           Inference::N_ENDPOINT_EQ,
+                           isRev,
+                           true);
       }
       else
       {
@@ -1587,7 +1590,8 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     {
       Trace("strings-loop") << "Strings::Loop: tails are different."
                             << std::endl;
-      d_im.sendInference(iinfo.d_ant, conc, Inference::FLOOP_CONFLICT, false, true);
+      d_im.sendInference(
+          iinfo.d_ant, conc, Inference::FLOOP_CONFLICT, false, true);
       return ProcessLoopResult::CONFLICT;
     }
   }
@@ -1890,7 +1894,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
               antec,
               nm->mkNode(
                   OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2),
-              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT, false,
+              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
+              false,
               true);
           d_im.sendPhaseRequirement(eq1, true);
           return;
@@ -1941,7 +1946,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
         d_im.sendInference(antec,
                            antecNewLits,
                            nm->mkNode(AND, conc),
-                           Inference::DEQ_DISL_STRINGS_SPLIT, false,
+                           Inference::DEQ_DISL_STRINGS_SPLIT,
+                           false,
                            true);
         return;
       }

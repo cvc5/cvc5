@@ -484,7 +484,8 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
         vec_nodes.push_back(mi[0].eqNode(m[0]));
       }
       Node conc;
-      d_im.sendInference(vec_nodes, conc, Inference::RE_INTER_CONF, false, true);
+      d_im.sendInference(
+          vec_nodes, conc, Inference::RE_INTER_CONF, false, true);
       // conflict, return
       return false;
     }
@@ -512,7 +513,8 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       {
         vec_nodes.push_back(mi[0].eqNode(m[0]));
       }
-      d_im.sendInference(vec_nodes, mres, Inference::RE_INTER_INFER, false, true);
+      d_im.sendInference(
+          vec_nodes, mres, Inference::RE_INTER_INFER, false, true);
       // both are reduced
       d_im.markReduced(m);
       d_im.markReduced(mi);

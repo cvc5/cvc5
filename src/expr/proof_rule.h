@@ -347,7 +347,7 @@ enum class PfRule : uint32_t
   // Conclusion: (str.in.re t (re.inter R1 R2)).
   RE_INTER,
   // ======== Regular expression unfold positive
-  // Children: (P:(str.in.re t R)) 
+  // Children: (P:(str.in.re t R))
   // Arguments: none
   // ---------------------
   // Conclusion:(RegExpOpr::reduceRegExpPos(t,R)),
@@ -357,7 +357,7 @@ enum class PfRule : uint32_t
   // Children: (P:(not (str.in.re t R)))
   // Arguments: none
   // ---------------------
-  // Conclusion:(RegExpOpr::reduceRegExpNeg(t,R)), 
+  // Conclusion:(RegExpOpr::reduceRegExpNeg(t,R)),
   // corresponding to the one-step unfolding of the premise.
   RE_UNFOLD_NEG,
 
