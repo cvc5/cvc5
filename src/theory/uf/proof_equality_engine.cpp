@@ -76,9 +76,8 @@ bool ProofEqEngine::assertFact(Node lit,
   // first, register the step in the proof
   if (d_pfEnabled)
   {
-    if (!d_proof.addStep(lit, id, exp, args))
+    if (!addProofStep(lit,id,exp,args))
     {
-      // failed to register step
       return false;
     }
   }
@@ -124,7 +123,7 @@ bool ProofEqEngine::assertFact(Node lit,
         expv.push_back(exp);
       }
     }
-    if (!d_proof.addStep(lit, id, expv, args))
+    if (!addProofStep(lit, id, expv, args))
     {
       // failed to register step
       return false;
@@ -335,6 +334,24 @@ void ProofEqEngine::assertInternal(TNode atom, bool polarity, TNode reason)
   }
 }
 
+bool ProofEqEngine::addProofStep(Node lit,
+                PfRule id,
+                const std::vector<Node>& exp,
+                const std::vector<Node>& args)
+{
+  if (id==PfRule::UNKNOWN)
+  {
+    // should only provide unknown step if already set up the proof step
+    Assert (d_proof.hasStep(lit));
+  }
+  else if (!d_proof.addStep(lit, id, exp, args))
+  {
+    // failed to register step
+    return false;
+  }
+  return true;
+}
+
 void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
 {
   std::shared_ptr<eq::EqProof> pf =
@@ -418,8 +435,6 @@ Node ProofEqEngine::mkAnd(const std::vector<TNode>& a)
   }
   return NodeManager::currentNM()->mkNode(AND, a);
 }
-
-CDProof* ProofEqEngine::getProof() { return &d_proof; }
 
 std::ostream& operator<<(std::ostream& out, const ProofInferInfo& pii)
 {

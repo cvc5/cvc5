@@ -134,10 +134,13 @@ class ProofEqEngine : public EagerProofGenerator
                         const std::vector<Node>& exp,
                         const std::vector<Node>& toExplain,
                         const std::vector<Node>& args);
+  /** Add proof step */
+  bool addProofStep(Node lit,
+                  PfRule id,
+                  const std::vector<Node>& exp,
+                  const std::vector<Node>& args);
   /** identify */
   std::string identify() const override { return "ProofEqEngine"; }
-  /** get proof */
-  CDProof* getProof();
 
  protected:
   /**

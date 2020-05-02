@@ -178,7 +178,8 @@ class CDProof
    * internal data of this class.
    */
   bool addProof(ProofNode* pn, bool forceOverwrite = false);
-
+  /** Return true if fact already has a proof step */
+  bool hasStep(Node fact) const;
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;

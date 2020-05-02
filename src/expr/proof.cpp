@@ -163,4 +163,9 @@ bool CDProof::addProof(ProofNode* pn, bool forceOverwrite)
   return retValue;
 }
 
+bool CDProof::hasStep(Node fact) const
+{
+  return d_nodes.find(fact)!=d_nodes.end();
+}
+
 }  // namespace CVC4
