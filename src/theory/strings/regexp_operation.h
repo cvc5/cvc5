@@ -121,7 +121,7 @@ class RegExpOpr {
   RegExpConstType getRegExpConstType(Node r);
   /** Simplify */
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
-  
+
   Node simplifyPRegExp(Node s, Node r);
   Node simplifyNRegExp(Node s, Node r);
   /**
