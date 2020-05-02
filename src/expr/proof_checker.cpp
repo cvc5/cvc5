@@ -202,7 +202,16 @@ Node ProofChecker::checkInternal(PfRule id,
     if (res != expectedw)
     {
       out << "result does not match expected value." << std::endl
-          << "    result: " << res << std::endl
+          << "    PfRule: " << id << std::endl;
+      for (const Node& c : cchildren)
+      {
+        out << "     child: " << c << std::endl;
+      }
+      for (const Node& a : args)
+      {
+        out << "       arg: " << a << std::endl;
+      }
+      out << "    result: " << res << std::endl
           << "  expected: " << expected << std::endl;
       // it did not match the given expectation, fail
       return Node::null();

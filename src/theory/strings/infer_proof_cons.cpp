@@ -94,17 +94,17 @@ PfRule InferProofCons::convert(Inference infer,
     return PfRule::UNKNOWN;
   }
   // debug print
-  if (Trace.isOn("strings-ipc"))
+  if (Trace.isOn("strings-ipc-debug"))
   {
-    Trace("strings-ipc") << "InferProofCons::convert: " << infer << " " << conc
+    Trace("strings-ipc-debug") << "InferProofCons::convert: " << infer << " " << conc
                          << std::endl;
     for (const Node& ec : exp)
     {
-      Trace("strings-ipc") << "    e: " << ec << std::endl;
+      Trace("strings-ipc-debug") << "    e: " << ec << std::endl;
     }
     for (const Node& ecn : expn)
     {
-      Trace("strings-ipc") << "  e-n: " << ecn << std::endl;
+      Trace("strings-ipc-debug") << "  e-n: " << ecn << std::endl;
     }
   }
   // try to find a proof rule to incorporate
@@ -140,11 +140,7 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::EXTF:
     case Inference::EXTF_N:
     {
-      if (pii.d_children.empty())
-      {
-        // should have at least one child
-      }
-      else if (conc.getKind() != EQUAL)
+      if (conc.getKind() != EQUAL)
       {
         // Assert(false);
         // predicate case, convert = true|false
@@ -282,6 +278,7 @@ PfRule InferProofCons::convert(Inference infer,
   }
   else
   {
+    Trace("strings-ipc") << "For " << infer << " " << conc << ", no proof rule, failed" << std::endl;
     Assert(pii.d_rule == PfRule::UNKNOWN);
   }
 
@@ -298,9 +295,9 @@ PfRule InferProofCons::convert(Inference infer,
     // add to stats
     d_statistics.d_inferencesNoPf << infer;
   }
-  if (Trace.isOn("strings-ipc"))
+  if (Trace.isOn("strings-ipc-debug"))
   {
-    Trace("strings-ipc") << "InferProofCons::convert returned " << pii
+    Trace("strings-ipc-debug") << "InferProofCons::convert returned " << pii
                          << std::endl;
   }
   return pii.d_rule;
