@@ -70,7 +70,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
           if (!currR.isNull())
           {
             // add the constant to remainder vec
-            std::vector<Node>& rem = sindex == 1 ? sremVec : tremVec;
+            std::vector<Node>& rem = sindex == 0 ? sremVec : tremVec;
             rem.push_back(currR);
             // ignore the current component
             index++;

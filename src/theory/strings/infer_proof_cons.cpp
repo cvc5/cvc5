@@ -221,7 +221,6 @@ PfRule InferProofCons::convert(Inference infer,
         childrenSRew.insert(childrenSRew.end(),
                             pii.d_children.begin(),
                             pii.d_children.begin() + mainEqIndex);
-        std::reverse(childrenSRew.begin(), childrenSRew.end());
         std::vector<Node> argsSRew;
         Node mainEqSRew = d_builtinChecker.check(
             PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
@@ -248,8 +247,25 @@ PfRule InferProofCons::convert(Inference infer,
           std::vector<Node> argsCu;
           argsCu.push_back(nodeIsRev);
           Node mainEqCu =
-              d_strChecker.check(PfRule::CONCAT_EQ, childrenCu, argsCu);
-          
+              d_strChecker.check(PfRule::CONCAT_UNIFY, childrenCu, argsCu);
+          Trace("strings-ipc-core")
+              << "Main equality after CONCAT_UNIFY " << mainEqCu << std::endl;
+          if (mainEqCu==conc)
+          {
+            // success
+            Trace("strings-ipc-core")
+                << "...success!" << std::endl;
+          }
+        }
+        else if (infer==Inference::N_ENDPOINT_EQ)
+        {
+          // should be equal to conclusion already
+          if (mainEqCeq==conc)
+          {
+            // success
+            Trace("strings-ipc-core")
+                << "...success!" << std::endl;
+          }
         }
       }
     }

@@ -215,7 +215,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
         return Node::null();
       }
     }
-    return applySubstitutionRewrite(children[0], exp, idRewriter);
+    Node res = applySubstitutionRewrite(children[0], exp, idRewriter);
+    
+    Trace("builtin-pfcheck") << "Returned " << res << " from " << children[0] << std::endl;
+    return res;
   }
   // no rule
   return Node::null();
