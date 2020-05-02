@@ -1999,7 +1999,6 @@ set(regress_2_tests
   regress2/GEO123+1.minimized.smt2
   regress2/arith/abz5_1400.smtv1.smt2
   regress2/arith/lpsat-goal-9.smt2
-  regress2/arith/prp-13-24.smt2
   regress2/arith/pursuit-safety-11.smtv1.smt2
   regress2/arith/pursuit-safety-12.smtv1.smt2
   regress2/arith/sc-7.base.cvc.smtv1.smt2
@@ -2098,6 +2097,7 @@ set(regress_2_tests
 # Regression level 3 tests
 
 set(regress_3_tests
+  regress3/arith_prp-13-24.smt2
   regress3/bmc-ibm-1.smtv1.smt2
   regress3/bmc-ibm-2.smtv1.smt2
   regress3/bmc-ibm-5.smtv1.smt2
