@@ -111,6 +111,7 @@ PfRule InferProofCons::convert(Inference infer,
   // try to find a proof rule to incorporate
   ProofRuleChecker* tryChecker = nullptr;
   NodeManager* nm = NodeManager::currentNM();
+  Node nodeIsRev = nm->mkConst(isRev);
   switch (infer)
   {
     // ========================== equal by substitution+rewriting
@@ -132,21 +133,15 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::EXTF:
     case Inference::EXTF_N:
     {
-      if (conc.getKind() != EQUAL)
-      {
-        // use the predicate version
-        pii.d_args.push_back(conc);
-        pii.d_rule = PfRule::MACRO_SR_PRED_INTRO;
-        tryChecker = &d_builtinChecker;
-      }
-      else
-      {
-        // minor optimization: apply to LHS of equality (RHS is already reduced)
-        // although notice the case above is also a valid proof.
-        pii.d_args.push_back(conc[0]);
-        pii.d_rule = PfRule::MACRO_SR_EQ_INTRO;
-        tryChecker = &d_builtinChecker;
-      }
+      // use the predicate version
+      pii.d_args.push_back(conc);
+      pii.d_rule = PfRule::MACRO_SR_PRED_INTRO;
+      tryChecker = &d_builtinChecker;
+      // minor optimization: apply to LHS of equality (RHS is already reduced)
+      // although notice the case above is also a valid proof.
+      //pii.d_args.push_back(conc[0]);
+      //pii.d_rule = PfRule::MACRO_SR_EQ_INTRO;
+      //tryChecker = &d_builtinChecker;
     }
     break;
     // ========================== substitution+rewriting+Boolean entailment
@@ -158,9 +153,10 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::EXTF_EQ_REW:
     case Inference::INFER_EMP:
     {
-      // may need the "extended equality rewrite"
+      // need the "extended equality rewrite"
+      pii.d_args.push_back(nm->mkConst(Rational(1)));
       pii.d_rule = PfRule::MACRO_SR_PRED_ELIM;
-      tryChecker = &d_ufChecker;
+      tryChecker = &d_builtinChecker;
     }
     break;
     // ========================== equal by substitution+rewriting+CTN_NOT_EQUAL
@@ -227,7 +223,7 @@ PfRule InferProofCons::convert(Inference infer,
                             pii.d_children.begin() + mainEqIndex);
         std::reverse(childrenSRew.begin(), childrenSRew.end());
         std::vector<Node> argsSRew;
-        Node mainEqSRew = d_ufChecker.check(
+        Node mainEqSRew = d_builtinChecker.check(
             PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
         Trace("strings-ipc-core")
             << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
@@ -235,11 +231,26 @@ PfRule InferProofCons::convert(Inference infer,
         std::vector<Node> childrenCeq;
         childrenCeq.push_back(mainEqSRew);
         std::vector<Node> argsCeq;
-        argsCeq.push_back(nm->mkConst(isRev));
+        argsCeq.push_back(nodeIsRev);
         Node mainEqCeq =
             d_strChecker.check(PfRule::CONCAT_EQ, childrenCeq, argsCeq);
         Trace("strings-ipc-core")
             << "Main equality after CONCAT_EQ " << mainEqCeq << std::endl;
+        if (mainEqCeq.isNull())
+        {
+          break;
+        }
+        if (infer==Inference::N_UNIFY || infer==Inference::F_UNIFY)
+        {
+          std::vector<Node> childrenCu;
+          childrenCu.push_back(mainEqCeq);
+          childrenCu.push_back(pii.d_children[nchild-1]);
+          std::vector<Node> argsCu;
+          argsCu.push_back(nodeIsRev);
+          Node mainEqCu =
+              d_strChecker.check(PfRule::CONCAT_EQ, childrenCu, argsCu);
+          
+        }
       }
     }
     break;

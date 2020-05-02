@@ -23,10 +23,10 @@ namespace CVC4 {
 namespace theory {
 namespace builtin {
 
-Node BuiltinProofRuleChecker::applyRewrite(Node n, uint32_t index)
+Node BuiltinProofRuleChecker::applyRewrite(Node n, uint32_t id)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
-  Node nkr = Rewriter::rewrite(n);
+  Node nkr = applyRewriteExternal(n, id);
   return ProofSkolemCache::getWitnessForm(nkr);
 }
 
@@ -50,16 +50,17 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
-    Node n, const std::vector<Node>& exp, uint32_t index)
+    Node n, const std::vector<Node>& exp, uint32_t id)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
   Node nks = applySubstitutionExternal(nk, exp);
-  Node nksr = applyRewrite(nks, index);
+  Node nksr = applyRewriteExternal(nks, id);
   return ProofSkolemCache::getWitnessForm(nksr);
 }
 
 Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, uint32_t id)
 {
+  Trace("builtin-pfcheck-debug") << "applyRewriteExternal (" << id << "): " << n  << std::endl;
   // index determines the kind of rewriter
   if (id == 0)
   {
@@ -160,6 +161,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       if (!getIndex(args[1], idRewriter))
       {
+        Trace("builtin-pfcheck") << "Failed to get id from " << args[1] << std::endl;
         return Node::null();
       }
     }
@@ -168,6 +170,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::MACRO_SR_PRED_INTRO)
   {
+    Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " " << args.size() << std::endl;
     // NOTE: technically a macro:
     // (TRUE_ELIM
     //   (MACRO_SR_EQ_INTRO <children> <args>[0]))
@@ -177,18 +180,23 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       if (!getIndex(args[1], idRewriter))
       {
+        Trace("builtin-pfcheck") << "Failed to get id from " << args[1] << std::endl;
         return Node::null();
       }
     }
     Node res = applySubstitutionRewrite(args[0], children, idRewriter);
+    // can only rewrite the witness form
+    res = Rewriter::rewrite(res);
     if (!res.isConst() || !res.getConst<bool>())
     {
+      Trace("builtin-pfcheck") << "Failed to rewrite to true, res=" << res << std::endl;
       return Node::null();
     }
     return args[0];
   }
   else if (id == PfRule::MACRO_SR_PRED_ELIM)
   {
+    Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " " << args.size() << std::endl;
     Assert(children.size() >= 1);
     Assert(args.size() <= 1);
     // NOTE: technically a macro:
@@ -203,6 +211,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       if (!getIndex(args[0], idRewriter))
       {
+        Trace("builtin-pfcheck") << "Failed to get id from " << args[0] << std::endl;
         return Node::null();
       }
     }
