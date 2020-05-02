@@ -88,8 +88,6 @@ class RegExpOpr {
   std::map<Node, bool> d_norv_cache;
   std::map<Node, std::vector<PairNodes> > d_split_cache;
   std::map<PairNodes, bool> d_inclusionCache;
-  void simplifyPRegExp(Node s, Node r, std::vector<Node> &new_nodes);
-  void simplifyNRegExp(Node s, Node r, std::vector<Node> &new_nodes);
   /**
    * Helper function for mkString, pretty prints constant or variable regular
    * expression r.
@@ -121,7 +119,11 @@ class RegExpOpr {
   bool checkConstRegExp( Node r );
   /** get the constant type for regular expression r */
   RegExpConstType getRegExpConstType(Node r);
+  /** Simplify */
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
+  
+  Node simplifyPRegExp(Node s, Node r);
+  Node simplifyNRegExp(Node s, Node r);
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string
    * is not in r, or 0 if it is unknown whether the empty string is in r.

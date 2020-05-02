@@ -214,8 +214,12 @@ PfRule InferProofCons::convert(Inference infer,
     }
     break;
     // ========================== Regular expression unfolding
-    case Inference::RE_UNFOLD_POS: break;
-    case Inference::RE_UNFOLD_NEG: break;
+    case Inference::RE_UNFOLD_POS:
+    case Inference::RE_UNFOLD_NEG:
+    {
+      
+    }
+      break;
     // ========================== Reduction
     case Inference::CTN_POS: break;
     case Inference::REDUCTION:
