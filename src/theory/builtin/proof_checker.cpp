@@ -15,6 +15,7 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "theory/rewriter.h"
+#include "expr/proof_skolem_cache.h"
 
 using namespace CVC4::kind;
 
@@ -24,8 +25,9 @@ namespace builtin {
 
 Node BuiltinProofRuleChecker::applyRewrite(Node n, uint32_t index)
 {
-  // index determines the kind of rewriter
-  return Rewriter::rewrite(n);
+  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nkr = Rewriter::rewrite(n);
+  return ProofSkolemCache::getWitnessForm(nkr);
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp)
@@ -34,33 +36,65 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp)
   {
     return Node::null();
   }
-  TNode var = exp[0];
-  TNode subs = exp[1];
-  return n.substitute(var, subs);
+  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nks = applySubstitutionExternal(nk, exp);
+  return ProofSkolemCache::getWitnessForm(nks);
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n,
                                                 const std::vector<Node>& exp)
 {
-  Node curr = n;
-  // apply substitution one at a time, in reverse order
-  for (size_t i=0, nexp = exp.size(); i<nexp; i++)
-  {
-    curr = applySubstitution(curr, exp[nexp-1-i]);
-    if (curr.isNull())
-    {
-      return Node::null();
-    }
-  }
-  return curr;
+  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nks = applySubstitutionExternal(nk, exp);
+  return ProofSkolemCache::getWitnessForm(nks);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     Node n, const std::vector<Node>& exp, uint32_t index)
 {
-  Node ret = applySubstitution(n, exp);
-  ret = applyRewrite(ret, index);
-  return ret;
+  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nks = applySubstitutionExternal(nk, exp);
+  Node nksr = applyRewrite(nks, index);
+  return ProofSkolemCache::getWitnessForm(nksr);
+}
+
+Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, uint32_t id)
+{
+  // index determines the kind of rewriter
+  if (id==0)
+  {
+    return Rewriter::rewrite(n);
+  }
+  else if (id==1)
+  {
+    return Rewriter::rewriteEqualityExt(n);
+  }
+  // unknown rewriter
+  Assert(false) << "BuiltinProofRuleChecker::applyRewriteExternal: no rewriter for " << id << std::endl;
+  return n;
+}
+
+Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n, Node exp)
+{
+  Assert (!exp.isNull() && exp.getKind()==EQUAL);
+  Node expk = ProofSkolemCache::getSkolemForm(exp);
+  TNode var = expk[0];
+  TNode subs = expk[1];
+  return n.substitute(var, subs);
+}
+Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n, const std::vector<Node>& exp)
+{
+  Node curr = n;
+  // apply substitution one at a time, in reverse order
+  for (size_t i=0, nexp = exp.size(); i<nexp; i++)
+  {
+    if (exp[nexp-1-i].isNull() || exp[nexp-1-i].getKind()!=EQUAL)
+    {
+      return Node::null();
+    }
+    curr = applySubstitutionExternal(curr, exp[nexp-1-i]);
+  }
+  return curr;
 }
 
 Node BuiltinProofRuleChecker::checkInternal(PfRule id,

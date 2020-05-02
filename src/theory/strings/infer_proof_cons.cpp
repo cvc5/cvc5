@@ -227,15 +227,15 @@ PfRule InferProofCons::convert(Inference infer,
       }
       else
       {
-        // apply SUBS_REWRITE using equalities up to the main eq
+        // apply MACRO_SUBS_REWRITE_PRED using equalities up to the main eq
         std::vector<Node> childrenSRew;
+        childrenSRew.push_back(mainEq);
         childrenSRew.insert(childrenSRew.end(),
                        pii.d_children.begin(),
                        pii.d_children.begin() + mainEqIndex);
         std::reverse(childrenSRew.begin(), childrenSRew.end());
         std::vector<Node> argsSRew;
-        argsSRew.push_back(mainEq);
-        Node mainEqSRew = d_builtinChecker.check(PfRule::SUBS_REWRITE, childrenSRew, argsSRew);
+        Node mainEqSRew = d_ufChecker.check(PfRule::MACRO_SUBS_REWRITE_PRED, childrenSRew, argsSRew);
         Trace("strings-ipc-core")
             << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
         // now, apply CONCAT_EQ to get the remainder
