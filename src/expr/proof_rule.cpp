@@ -30,6 +30,7 @@ const char* toString(PfRule id)
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
     case PfRule::SUBS_REWRITE: return "SUBS_REWRITE";
+    case PfRule::SUBS_REWRITE_PRED: return "SUBS_REWRITE_PRED";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::AND_ELIM: return "AND_ELIM";

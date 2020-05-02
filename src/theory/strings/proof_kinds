@@ -75,9 +75,9 @@ proofrule CTN_NOT_EQUAL 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 // Children: none
 // Arguments: (t[x])
 // ---------------------
-// Conclusion: (and R[x,y] (= t[x] y)) 
-// where y = StringsPreprocess::reduce(t[x], R[x,y]).
-// In other words, R is the reduction predicate for extended term t[x], and y is
+// Conclusion: (and R[x,w] (= t[x] w)) 
+// where w = StringsPreprocess::reduce(t[x], R[x,w]).
+// In other words, R is the reduction predicate for extended term t[x], and w is
 //   (witness ((z T)) (= z t[x]))
 proofrule REDUCTION 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
 

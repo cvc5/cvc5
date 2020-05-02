@@ -116,9 +116,20 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() == 1);
     std::vector<Node> exp = children;
     std::reverse(exp.begin(), exp.end());
-    Node res = applySubstitution(args[0], exp);
-    res = applyRewrite(res);
+    Node res = applySubstitutionRewrite(args[0], exp);
     return args[0].eqNode(res);
+  }
+  else if (id == PfRule::SUBS_REWRITE_PRED)
+  {
+    Assert(args.size() == 1);
+    std::vector<Node> exp = children;
+    std::reverse(exp.begin(), exp.end());
+    Node res = applySubstitutionRewrite(args[0], exp);
+    if (!res.isConst() || !res.getConst<bool>())
+    {
+      return Node::null();
+    }
+    return args[0];
   }
   // no rule
   return Node::null();

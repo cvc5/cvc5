@@ -100,13 +100,14 @@ enum class PfRule : uint32_t
   //  (= t Rewriter::rewrite(t.substitute(x1,t1). ... .substitute(xn,tn)))
   // Macro: (REWRITE (SUBS P1 ... Pn :args t))
   SUBS_REWRITE,
-  // ========= Purify
-  // Children: none
-  // Arguments: (t)
+  // ======== Substitution + Rewriting Predicate
+  // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
+  // Arguments: (F)
   // ---------------------------------------------------------------
-  // Conclusion: (= t (witness ((z T)) (= z t)))
-  // where T is the type of t.
-  PURIFY,
+  // Conclusion:
+  //   F
+  // where Rewriter::rewrite(F.substitute(x1,t1). ... .substitute(xn,tn))==true
+  SUBS_REWRITE_PRED,
 
   //================================================= Boolean rules
   // ======== Split

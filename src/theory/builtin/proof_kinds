@@ -45,12 +45,25 @@ proofrule SUBS 1: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 // Conclusion: (= t Rewriter::rewrite(t))
 proofrule REWRITE 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
+// NOTE: these technically rely on TRANS/TRUE_ELIM, which are UF, perhaps move?
+
 // ======== Substitution + Rewriting
 // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
 // Arguments: (t)
 // ---------------------------------------------------------------
 // Conclusion:
 //  (= t Rewriter::rewrite(t.substitute(x1,t1). ... .substitute(xn,tn)))
-macro SUBS_REWRITE 1: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker {
+macro SUBS_REWRITE 0: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker {
   (TRANS (SUBS P1 ... Pn t) (REWRITE <t.substitute(x1,t1). ... .substitute(xn,tn)>))
+}
+
+// ======== Substitution + Rewriting Predicate
+// Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
+// Arguments: (F)
+// ---------------------------------------------------------------
+// Conclusion:
+//   F
+// where Rewriter::rewrite(F.substitute(x1,t1). ... .substitute(xn,tn)) == true
+macro SUBS_REWRITE_PRED 0: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker {
+  (TRUE_ELIM (TRANS (SUBS P1 ... Pn F) (REWRITE <F.substitute(x1,t1). ... .substitute(xn,tn)>)))
 }

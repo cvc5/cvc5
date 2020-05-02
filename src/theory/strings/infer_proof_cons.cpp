@@ -143,15 +143,14 @@ PfRule InferProofCons::convert(Inference infer,
     {
       if (conc.getKind() != EQUAL)
       {
-        // Assert(false);
-        // predicate case, convert = true|false
+        // use the predicate version
+        pii.d_args.push_back(conc);
+        pii.d_rule = PfRule::SUBS_REWRITE_PRED;
+        tryChecker = &d_builtinChecker;
       }
       else
       {
-        // substitutions applied in reverse order?
-        // std::reverse(pii.d_children.begin(), pii.d_children.end());
         pii.d_args.push_back(conc[0]);
-        // will attempt this rule
         pii.d_rule = PfRule::SUBS_REWRITE;
         tryChecker = &d_builtinChecker;
       }
@@ -330,6 +329,20 @@ PfRule InferProofCons::convert(Inference infer,
 
   if (pii.d_rule == PfRule::UNKNOWN)
   {
+    // debug print
+    if (Trace.isOn("strings-ipc-fail"))
+    {
+      Trace("strings-ipc-fail")
+          << "InferProofCons::convert: Failed " << infer << (isRev ? " :rev " : " ") << conc << std::endl;
+      for (const Node& ec : exp)
+      {
+        Trace("strings-ipc-fail") << "    e: " << ec << std::endl;
+      }
+      for (const Node& ecn : expn)
+      {
+        Trace("strings-ipc-fail") << "  e-n: " << ecn << std::endl;
+      }
+    }
     // untrustworthy conversion
     // doesn't expect arguments
     pii.d_args.clear();
