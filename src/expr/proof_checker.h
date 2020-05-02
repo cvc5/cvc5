@@ -134,6 +134,15 @@ class ProofChecker
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
 
+  /** Whther node is an unsigned integer below the given upper bound. */
+  static inline bool unsignedIntBelowBound(TNode n, unsigned upperBound)
+  {
+    return n.getType().isInteger()
+           && !n.getConst<Rational>().getNumerator().strictlyNegative()
+           && n.getConst<Rational>().getNumerator().toUnsignedInt()
+                  < upperBound;
+  }
+
  private:
   /** statistics class */
   ProofCheckerStatistics d_stats;

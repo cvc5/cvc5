@@ -128,8 +128,11 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::FALSE_INTRO)
   {
     Assert(children.size() == 1);
-    Assert(children[0].getKind() == kind::NOT);
     Assert(args.empty());
+    if (children[0].getKind() != kind::NOT)
+    {
+      return Node::null();
+    }
     Node trueNode = NodeManager::currentNM()->mkConst(false);
     return children[0][0].eqNode(trueNode);
   }
