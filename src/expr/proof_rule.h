@@ -283,7 +283,7 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: Rewriter::rewrite(F)
   // Macro: (TRUE_ELIM (TRANS (SYMM (REWRITE P)) (TRUE_INTRO P)))
-  MACRO_REWRITE_PRED,
+  MACRO_SUBS_REWRITE_PRED,
 
   //================================================= String rules
   //======================== Core solver

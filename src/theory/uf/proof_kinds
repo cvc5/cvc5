@@ -74,10 +74,13 @@ macro MACRO_EQ_SUBS_REWRITE 0: 2 {
 }
 
 // ======== Rewrite predicate
-// Children: (P:F)
+// Children: (P1:F, P2:(= x1 t1), ..., P_{n+1}:(= xn tn))
 // Arguments: none
 // ----------------------------------------
-// Conclusion: Rewriter::rewrite(F)
-macro MACRO_REWRITE_PRED 1 0 {
-  (TRUE_ELIM (TRANS (SYMM (REWRITE <children>)) (TRUE_INTRO <children>)))
+// Conclusion: Rewriter::rewrite(F.substitute(xn,tn). ... . substitute(x1,t1))
+macro MACRO_SUBS_REWRITE_PRED 1 0 {
+  (TRUE_ELIM 
+    (TRANS 
+      (SYMM (SUBS_REWRITE <children>[1:] F)) 
+      (TRUE_INTRO <children>[0])))
 }

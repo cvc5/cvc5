@@ -18,6 +18,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace CVC4::kind;
 
@@ -56,23 +57,37 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       Node currT = tvec[isRev ? (nchildt - 1 - index) : index];
       if (currS!=currT)
       {
-        // TODO
         if (currS.isConst() && currT.isConst())
         {
+          size_t sindex;
           // get the equal prefix/suffix, strip and add the remainders
+          Node currR = Word::splitConstant(currS, currT, sindex, isRev);
+          if (!currR.isNull())
+          {
+            // add the constant to remainder vec
+            std::vector<Node>& rem = sindex==1 ? sremVec : tremVec;
+            rem.push_back(currR);
+            // ignore the current component
+            index++;
+            // In other words, if we have (currS,currT) = ("ab","abc"), then we
+            // proceed to the next component and add currR = "c" to tremVec.
+          }
+          // otherwise if we are not the same prefix, then both will be added
+          // Notice that we do not add maximal prefixes, in other words,
+          // ("abc", "abd") may be added to the remainder vectors, and not
+          // ("c", "d").
         }
         break;
       }
       index++;
     }
-    Assert(index > 0);
     Assert(index <= nchilds);
     Assert(index <= nchildt);
     // the remainders are equal
-    sremVec.insert(sremVec.end(),
+    sremVec.insert(isRev ? sremVec.begin() : sremVec.end(),
                    svec.begin() + (isRev ? 0 : index),
                    svec.begin() + nchilds - (isRev ? index : 0));
-    tremVec.insert(tremVec.end(),
+    tremVec.insert(isRev ? tremVec.begin() : tremVec.end(),
                    tvec.begin() + (isRev ? 0 : index),
                    tvec.begin() + nchildt - (isRev ? index : 0));
     // convert back to node

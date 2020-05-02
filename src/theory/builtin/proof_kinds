@@ -54,7 +54,9 @@ proofrule REWRITE 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 // Conclusion:
 //  (= t Rewriter::rewrite(t.substitute(x1,t1). ... .substitute(xn,tn)))
 macro SUBS_REWRITE 0: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker {
-  (TRANS (SUBS P1 ... Pn t) (REWRITE <t.substitute(x1,t1). ... .substitute(xn,tn)>))
+  (TRANS 
+    (SUBS P1 ... Pn t) 
+    (REWRITE <t.substitute(x1,t1). ... .substitute(xn,tn)>))
 }
 
 // ======== Substitution + Rewriting Predicate
@@ -65,5 +67,7 @@ macro SUBS_REWRITE 0: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker {
 //   F
 // where Rewriter::rewrite(F.substitute(x1,t1). ... .substitute(xn,tn)) == true
 macro SUBS_REWRITE_PRED 0: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker {
-  (TRUE_ELIM (TRANS (SUBS P1 ... Pn F) (REWRITE <F.substitute(x1,t1). ... .substitute(xn,tn)>)))
+  (TRUE_ELIM 
+    (TRANS (SUBS P1 ... Pn F) 
+    (REWRITE <F.substitute(x1,t1). ... .substitute(xn,tn)>)))
 }

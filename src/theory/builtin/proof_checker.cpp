@@ -22,14 +22,10 @@ namespace CVC4 {
 namespace theory {
 namespace builtin {
 
-Node BuiltinProofRuleChecker::applyRewrite(Node n)
+Node BuiltinProofRuleChecker::applyRewrite(Node n, uint32_t index)
 {
+  // index determines the kind of rewriter
   return Rewriter::rewrite(n);
-}
-
-Node BuiltinProofRuleChecker::applyRewriteEqualityExt(Node n)
-{
-  return Rewriter::rewriteEqualityExt(n);
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp)
@@ -47,10 +43,10 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
                                                 const std::vector<Node>& exp)
 {
   Node curr = n;
-  // apply substitution one at a time
-  for (const Node& e : exp)
+  // apply substitution one at a time, in reverse order
+  for (size_t i=0, nexp = exp.size(); i<nexp; i++)
   {
-    curr = applySubstitution(curr, e);
+    curr = applySubstitution(curr, exp[nexp-1-i]);
     if (curr.isNull())
     {
       return Node::null();
@@ -60,10 +56,10 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
-    Node n, const std::vector<Node>& exp)
+    Node n, const std::vector<Node>& exp, uint32_t index)
 {
   Node ret = applySubstitution(n, exp);
-  ret = applyRewrite(ret);
+  ret = applyRewrite(ret, index);
   return ret;
 }
 
@@ -125,12 +121,11 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   */
   else if (id == PfRule::SUBS_REWRITE)
   {
-    // FIXME: could be macro
+    // NODE: could be macro
     // (TRANS (SUBS P1 ... Pn t)
     //        (REWRITE <t.substitute(xn,tn). ... .substitute(x1,t1)>))
     Assert(args.size() == 1);
     std::vector<Node> exp = children;
-    std::reverse(exp.begin(), exp.end());
     Node res = applySubstitutionRewrite(args[0], exp);
     return args[0].eqNode(res);
   }
@@ -138,7 +133,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(args.size() == 1);
     std::vector<Node> exp = children;
-    std::reverse(exp.begin(), exp.end());
     Node res = applySubstitutionRewrite(args[0], exp);
     if (!res.isConst() || !res.getConst<bool>())
     {

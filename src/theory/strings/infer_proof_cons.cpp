@@ -110,6 +110,7 @@ PfRule InferProofCons::convert(Inference infer,
   }
   // try to find a proof rule to incorporate
   ProofRuleChecker* tryChecker = nullptr;
+  NodeManager * nm = NodeManager::currentNM();
   switch (infer)
   {
     // ========================== equal by substitution+rewriting
@@ -166,7 +167,7 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::INFER_EMP:
     {
       // may need the "extended equality rewrite"
-      pii.d_rule = PfRule::MACRO_REWRITE_PRED;
+      pii.d_rule = PfRule::MACRO_SUBS_REWRITE_PRED;
       tryChecker = &d_ufChecker;
     }
     break;
@@ -226,17 +227,26 @@ PfRule InferProofCons::convert(Inference infer,
       }
       else
       {
-        // apply substitution+rewriting using equalities up to the main eq
-        std::vector<Node> subsExp;
-        subsExp.insert(subsExp.end(),
+        // apply SUBS_REWRITE using equalities up to the main eq
+        std::vector<Node> childrenSRew;
+        childrenSRew.insert(childrenSRew.end(),
                        pii.d_children.begin(),
                        pii.d_children.begin() + mainEqIndex);
-        std::reverse(subsExp.begin(), subsExp.end());
-        Node mainEqRew =
-            builtin::BuiltinProofRuleChecker::applySubstitutionRewrite(mainEq,
-                                                                       subsExp);
+        std::reverse(childrenSRew.begin(), childrenSRew.end());
+        std::vector<Node> argsSRew;
+        argsSRew.push_back(mainEq);
+        Node mainEqSRew = d_builtinChecker.check(PfRule::SUBS_REWRITE, childrenSRew, argsSRew);
         Trace("strings-ipc-core")
-            << "Main equality after subs+rewrite " << mainEqRew << std::endl;
+            << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
+        // now, apply CONCAT_EQ to get the remainder
+        std::vector<Node> childrenCeq;
+        childrenCeq.push_back(mainEqSRew);
+        std::vector<Node> argsCeq;
+        argsCeq.push_back(nm->mkConst(isRev));
+        Node mainEqCeq = d_strChecker.check(PfRule::CONCAT_EQ, childrenCeq, argsCeq);
+        Trace("strings-ipc-core")
+            << "Main equality after CONCAT_EQ " << mainEqCeq << std::endl;
+        
       }
     }
     break;

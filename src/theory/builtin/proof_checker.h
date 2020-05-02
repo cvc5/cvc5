@@ -35,12 +35,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * Apply rewrite. This encapsulates the exact behavior of a REWRITE step
    * in a proof.
    */
-  static Node applyRewrite(Node n);
-  /**
-   * Apply rewrite. This encapsulates the exact behavior of a REWRITE_EQ_EXT
-   * step in a proof.
-   */
-  static Node applyRewriteEqualityExt(Node n);
+  static Node applyRewrite(Node n, uint32_t index = 0);
   /**
    * Apply substitution. This encapsulates the exact behavior of a SUBS step
    * in a proof.
@@ -48,7 +43,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   static Node applySubstitution(Node n, Node exp);
   static Node applySubstitution(Node n, const std::vector<Node>& exp);
   /** Apply substitution + rewriting */
-  static Node applySubstitutionRewrite(Node n, const std::vector<Node>& exp);
+  static Node applySubstitutionRewrite(Node n, const std::vector<Node>& exp, uint32_t index = 0);
 
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
