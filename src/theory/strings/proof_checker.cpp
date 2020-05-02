@@ -167,7 +167,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       conc = RegExpOpr::reduceRegExpNeg(atom[0],atom[1],&sc);
     }
-    return conc;
+    return ProofSkolemCache::getWitnessForm(conc);
   }
   return Node::null();
 }

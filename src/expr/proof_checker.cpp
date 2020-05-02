@@ -25,11 +25,14 @@ Node ProofRuleChecker::check(PfRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args)
 {
+  // convert to witness form
   std::vector<Node> childrenw = children;
   std::vector<Node> argsw = args;
   ProofSkolemCache::convertToWitnessFormVec(childrenw);
   ProofSkolemCache::convertToWitnessFormVec(argsw);
-  return checkInternal(id, childrenw, argsw);
+  Node res = checkInternal(id, childrenw, argsw);
+  // res is in terms of witness form, convert back to Skolem form
+  return ProofSkolemCache::getSkolemForm(res);
 }
 
 Node ProofRuleChecker::checkChildrenArg(PfRule id,
@@ -198,7 +201,7 @@ Node ProofChecker::checkInternal(PfRule id,
   Node res = it->second->check(id, cchildren, args);
   if (!expected.isNull())
   {
-    Node expectedw = ProofSkolemCache::getWitnessForm(expected);
+    Node expectedw = expected;
     if (res != expectedw)
     {
       out << "result does not match expected value." << std::endl

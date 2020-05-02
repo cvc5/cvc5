@@ -25,6 +25,11 @@ struct WitnessFormAttributeId
 };
 typedef expr::Attribute<WitnessFormAttributeId, Node> WitnessFormAttribute;
 
+struct SkolemFormAttributeId
+{
+};
+typedef expr::Attribute<SkolemFormAttributeId, Node> SkolemFormAttribute;
+
 struct PurifySkolemAttributeId
 {
 };
@@ -49,6 +54,8 @@ Node ProofSkolemCache::mkSkolem(Node v,
   // remember its mapping
   WitnessFormAttribute wfa;
   k.setAttribute(wfa, w);
+  SkolemFormAttribute sfa;
+  w.setAttribute(sfa,k);
   Trace("pf-skolem") << "ProofSkolemCache::mkSkolem: " << k << " : " << w
                      << std::endl;
   return k;
@@ -71,7 +78,18 @@ Node ProofSkolemCache::mkPurifySkolem(Node t,
 
 Node ProofSkolemCache::getWitnessForm(Node n)
 {
+  return convertInternal(n,true);
+}
+
+Node ProofSkolemCache::getSkolemForm(Node n)
+{
+  return convertInternal(n,false);
+}
+
+Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
+{
   WitnessFormAttribute wfa;
+  SkolemFormAttribute sfa;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -86,9 +104,13 @@ Node ProofSkolemCache::getWitnessForm(Node n)
 
     if (it == visited.end())
     {
-      if (cur.hasAttribute(wfa))
+      if (toWitness && cur.hasAttribute(wfa))
       {
         visited[cur] = cur.getAttribute(wfa);
+      }
+      else if (!toWitness && cur.hasAttribute(sfa))
+      {
+        visited[cur] = cur.getAttribute(sfa);
       }
       else
       {
@@ -121,7 +143,14 @@ Node ProofSkolemCache::getWitnessForm(Node n)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
-      cur.setAttribute(wfa, ret);
+      if (toWitness)
+      {
+        cur.setAttribute(wfa, ret);
+      }
+      else
+      {
+        cur.setAttribute(sfa, ret);
+      }
       visited[cur] = ret;
     }
   } while (!visit.empty());
@@ -135,6 +164,13 @@ void ProofSkolemCache::convertToWitnessFormVec(std::vector<Node>& vec)
   for (unsigned i = 0, nvec = vec.size(); i < nvec; i++)
   {
     vec[i] = getWitnessForm(vec[i]);
+  }
+}
+void ProofSkolemCache::convertToSkolemFormVec(std::vector<Node>& vec)
+{
+  for (unsigned i = 0, nvec = vec.size(); i < nvec; i++)
+  {
+    vec[i] = getSkolemForm(vec[i]);
   }
 }
 

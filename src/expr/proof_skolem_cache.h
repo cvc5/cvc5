@@ -102,8 +102,19 @@ class ProofSkolemCache
    * @return n in witness form.
    */
   static Node getWitnessForm(Node n);
+  /** convert to Skolem form
+   *
+   * @param n The term or formula to convert to Skolem form described above
+   * @return n in Skolem form.
+   */
+  static Node getSkolemForm(Node n);
   /** convert to witness form vector */
   static void convertToWitnessFormVec(std::vector<Node>& vec);
+  /** convert to Skolem form vector */
+  static void convertToSkolemFormVec(std::vector<Node>& vec);
+private:
+  /** Convert to witness or skolem form */
+  static Node convertInternal(Node n, bool toWitness);
 };
 
 }  // namespace CVC4

@@ -264,8 +264,7 @@ PfRule InferProofCons::convert(Inference infer,
                          << "...";
     Assert(pii.d_rule != PfRule::UNKNOWN);
     Node pconc = tryChecker->check(pii.d_rule, pii.d_children, pii.d_args);
-    Node concw = ProofSkolemCache::getWitnessForm(conc);
-    if (pconc.isNull() || pconc != concw)
+    if (pconc.isNull() || pconc != conc)
     {
       Trace("strings-ipc") << "failed, pconc is " << pconc << " (expected "
                            << conc << ")" << std::endl;
