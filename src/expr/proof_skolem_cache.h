@@ -88,6 +88,14 @@ class ProofSkolemCache
                        const std::string& prefix,
                        const std::string& comment = "",
                        int flags = NodeManager::SKOLEM_DEFAULT);
+  /**
+   * Same as above, but for special case for (witness ((x T)) (= x t))
+   * where T is the type of t. This skolem is unique for each t.
+   */
+  static Node mkPurifySkolem(Node t,
+                       const std::string& prefix,
+                       const std::string& comment = "",
+                       int flags = NodeManager::SKOLEM_DEFAULT);
   /** convert to witness form
    *
    * @param n The term or formula to convert to witness form described above

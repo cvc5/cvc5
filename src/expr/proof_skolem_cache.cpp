@@ -25,6 +25,11 @@ struct WitnessFormAttributeId
 };
 typedef expr::Attribute<WitnessFormAttributeId, Node> WitnessFormAttribute;
 
+struct PurifySkolemAttributeId
+{
+};
+typedef expr::Attribute<PurifySkolemAttributeId, Node> PurifySkolemAttribute;
+
 Node ProofSkolemCache::mkSkolem(Node v,
                                 Node pred,
                                 const std::string& prefix,
@@ -46,6 +51,21 @@ Node ProofSkolemCache::mkSkolem(Node v,
   k.setAttribute(wfa, w);
   Trace("pf-skolem") << "ProofSkolemCache::mkSkolem: " << k << " : " << w
                      << std::endl;
+  return k;
+}
+Node ProofSkolemCache::mkPurifySkolem(Node t,
+                      const std::string& prefix,
+                      const std::string& comment,
+                      int flags)
+{
+  PurifySkolemAttribute psa;
+  if (t.hasAttribute(psa))
+  {
+    return t.getAttribute(psa);
+  }
+  Node v = NodeManager::currentNM()->mkBoundVar(t.getType());
+  Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);
+  t.setAttribute(psa,k);
   return k;
 }
 

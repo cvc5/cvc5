@@ -55,12 +55,13 @@ Node SkolemCache::mkTypedSkolemCached(
   {
     NodeManager* nm = NodeManager::currentNM();
     // the condition
-    Node v = nm->mkBoundVar(tn);
-    Node cond = nm->mkConst(true);
+    Node sk;
     switch (id)
     {
       // exists k. k = a
-      case SK_PURIFY: cond = v.eqNode(a); break;
+      case SK_PURIFY: 
+        sk = d_pskc.mkPurifySkolem(a, c, "string purify skolem");
+        break;
       // these are eliminated by normalizeStringSkolem
       case SK_ID_V_SPT:
       case SK_ID_V_SPT_REV:
@@ -90,11 +91,14 @@ Node SkolemCache::mkTypedSkolemCached(
       //   where n is the number of occurrences of b in a, and k(0)=0.
       case SK_OCCUR_INDEX:
       default:
+      {
         Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
+        Node v = nm->mkBoundVar(tn);
+        Node cond = nm->mkConst(true);
+        sk = d_pskc.mkSkolem(v, cond, c, "string skolem");
+      }
         break;
     }
-    // use the proper way to make skolems while recording witness terms
-    Node sk = d_pskc.mkSkolem(v, cond, c, "string skolem");
     d_allSkolems.insert(sk);
     d_skolemCache[a][b][id] = sk;
     return sk;
