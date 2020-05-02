@@ -2310,14 +2310,14 @@ void CoreSolver::checkLengthsEqc() {
       // if not, add the lemma
       std::vector<Node> ant;
       ant.insert(ant.end(), nfi.d_exp.begin(), nfi.d_exp.end());
-      ant.push_back(nfi.d_base.eqNode(lt));
+      ant.push_back(lt.eqNode(nfi.d_base));
       Node lc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, nf);
       Node lcr = Rewriter::rewrite(lc);
       Trace("strings-process-debug")
           << "Rewrote length " << lc << " to " << lcr << std::endl;
       if (!d_state.areEqual(llt, lcr))
       {
-        Node eq = llt.eqNode(lcr);
+        Node eq = llt.eqNode(lc);
         ei->d_normalizedLength.set(eq);
         d_im.sendInference(ant, eq, Inference::LEN_NORM, false, true);
       }

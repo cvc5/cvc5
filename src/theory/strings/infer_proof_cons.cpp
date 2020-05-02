@@ -203,11 +203,19 @@ PfRule InferProofCons::convert(Inference infer,
           mainEqIndexSet = true;
         }
       }
+      else if (infer==Inference::N_ENDPOINT_EQ)
+      {
+        if (nchild>=1)
+        {
+          mainEqIndex = nchild-1;
+          mainEqIndexSet = true;
+        }
+      }
       Node mainEq;
       if (mainEqIndexSet)
       {
-        Trace("strings-ipc-core") << "Main equality " << mainEq << " at index " << mainEqIndex << std::endl;
         mainEq = pii.d_children[mainEqIndex];
+        Trace("strings-ipc-core") << "Main equality " << mainEq << " at index " << mainEqIndex << std::endl;
       }
       if (mainEq.isNull() || mainEq.getKind()!=EQUAL)
       {
@@ -219,6 +227,7 @@ PfRule InferProofCons::convert(Inference infer,
         // apply substitution+rewriting using equalities up to the main eq
         std::vector<Node> subsExp;
         subsExp.insert(subsExp.end(),pii.d_children.begin(),pii.d_children.begin()+mainEqIndex);
+        std::reverse(subsExp.begin(),subsExp.end());
         Node mainEqRew = builtin::BuiltinProofRuleChecker::applySubstitutionRewrite(mainEq, subsExp);
         Trace("strings-ipc-core") << "Main equality after subs+rewrite " << mainEqRew << std::endl; 
         
