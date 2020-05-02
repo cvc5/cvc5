@@ -69,7 +69,8 @@ const char* toString(PfRule id)
     case PfRule::CTN_NOT_EQUAL: return "CTN_NOT_EQUAL";
     case PfRule::REDUCTION: return "REDUCTION";
     case PfRule::RE_INTER: return "RE_INTER";
-    case PfRule::RE_UNFOLD: return "RE_UNFOLD";
+    case PfRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
+    case PfRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
 
     case PfRule::SIU_I_NORM_S: return "SIU_I_NORM_S";
     case PfRule::SIU_I_CONST_MERGE: return "SIU_I_CONST_MERGE";

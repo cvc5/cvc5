@@ -236,13 +236,9 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   // make the conflict or lemma
   Node formula = mkAnd(assumps);
   NodeManager* nm = NodeManager::currentNM();
-  if (conc!=d_false)
+  if (!isConflict)
   {
     formula = formula == d_true ? conc : nm->mkNode(IMPLIES, formula, conc);
-  }
-  else
-  {
-    formula = nm->mkNode(NOT, formula);
   }
   Trace("pfee-proof") << "pfee::ensureProofForFact: formula is " << formula
                       << std::endl;
@@ -275,8 +271,10 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       // assumpsN.push_back(Rewriter::rewrite(a));
       assumpsN.push_back(a);
     }
+    // FIXME: should be cleaner
+    Node concFormula = isConflict ? nm->mkNode(NOT, formula) : formula;
     std::shared_ptr<ProofNode> pf =
-        d_pnm->mkNode(PfRule::SCOPE, pfConc, assumpsN, formula);
+        d_pnm->mkNode(PfRule::SCOPE, pfConc, assumpsN, concFormula);
     if (Trace.isOn("pfee-proof"))
     {
       Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"

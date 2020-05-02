@@ -103,7 +103,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  *extt,
                                  d_statistics));
   d_rsolver.reset(new RegExpSolver(
-      d_state, *d_im, *d_csolver, *d_esolver, d_statistics, c, u));
+      d_state, *d_im, d_termReg, *d_csolver, *d_esolver, d_statistics, c, u));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
@@ -162,7 +162,8 @@ void TheoryStrings::setProofChecker(ProofChecker* pc)
   pc->registerChecker(PfRule::CTN_NOT_EQUAL, &d_sProofChecker);
   pc->registerChecker(PfRule::REDUCTION, &d_sProofChecker);
   pc->registerChecker(PfRule::RE_INTER, &d_sProofChecker);
-  pc->registerChecker(PfRule::RE_UNFOLD, &d_sProofChecker);
+  pc->registerChecker(PfRule::RE_UNFOLD_POS, &d_sProofChecker);
+  pc->registerChecker(PfRule::RE_UNFOLD_NEG, &d_sProofChecker);
 
   // everything else is untrustworthy, assume trusted
   uint32_t siuBegin = static_cast<uint32_t>(PfRule::SIU_BEGIN);

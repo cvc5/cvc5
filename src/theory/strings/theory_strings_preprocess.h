@@ -44,23 +44,41 @@ class StringsPreprocess {
                     context::UserContext* u,
                     SequencesStatistics& stats);
   ~StringsPreprocess();
-  /** The reduce routine */
-  static Node reduce(Node t, std::vector<Node>& new_nodes, SkolemCache* sc);
-  /**
-   * Returns a node t' such that
-   *   (exists k) new_nodes => t = t'
-   * is valid, where k are the free skolems introduced when constructing
-   * new_nodes.
+  /** The reduce routine
+   *
+   * This is the main routine for constructing the reduction lemma for
+   * an extended function t. It returns the simplified form of t, as well
+   * as assertions for t, interpeted conjunctively.  The reduction lemma
+   * for t is:
+   *   asserts[0] ^ ... ^ asserts[n] ^ t = t'
+   * where t' is the term returned by this method.
+   * The argument sc defines the methods for generating new Skolem variables.
+   * The return value is t itself if it is not reduced by this class.
+   * 
+   * The reduction lemma for t is a way of specifying the complete semantics
+   * of t. In other words, any model satisfying the reduction lemma of t
+   * correctly interprets t.
+   * 
+   * @param t The node to reduce,
+   * @param asserts The vector for storing the assertions that correspond to
+   * the reduction of t,
+   * @param sc The skolem cache for generating new variables,
+   * @return The reduced form of t.
    */
-  Node simplify(Node t, std::vector<Node>& new_nodes);
+  static Node reduce(Node t, std::vector<Node>& asserts, SkolemCache* sc);
+  /**
+   * Calls the above method for the skolem cache owned by this class, and
+   * records statistics.
+   */
+  Node simplify(Node t, std::vector<Node>& asserts);
   /**
    * Applies simplifyRec on t until a fixed point is reached, and returns
    * the resulting term t', which is such that
-   *   (exists k) new_nodes => t = t'
+   *   (exists k) asserts => t = t'
    * is valid, where k are the free skolems introduced when constructing
-   * new_nodes.
+   * asserts.
    */
-  Node processAssertion(Node t, std::vector<Node>& new_nodes);
+  Node processAssertion(Node t, std::vector<Node>& asserts);
   /**
    * Replaces all formulas t in vec_node with an equivalent formula t' that
    * contains no free instances of extended functions (that is, extended
@@ -76,11 +94,11 @@ class StringsPreprocess {
   SequencesStatistics& d_statistics;
   /**
    * Applies simplify to all top-level extended function subterms of t. New
-   * assertions created in this reduction are added to new_nodes. The argument
+   * assertions created in this reduction are added to asserts. The argument
    * visited stores a cache of previous results.
    */
   Node simplifyRec(Node t,
-                   std::vector<Node>& new_nodes,
+                   std::vector<Node>& asserts,
                    std::map<Node, Node>& visited);
 };
 

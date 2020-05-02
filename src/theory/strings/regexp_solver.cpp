@@ -33,6 +33,7 @@ namespace strings {
 
 RegExpSolver::RegExpSolver(SolverState& s,
                            InferenceManager& im,
+                           TermRegistry& tr,
                            CoreSolver& cs,
                            ExtfSolver& es,
                            SequencesStatistics& stats,
@@ -45,7 +46,8 @@ RegExpSolver::RegExpSolver(SolverState& s,
       d_statistics(stats),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
-      d_processed_memberships(c)
+      d_processed_memberships(c),
+      d_regexp_opr(tr.getSkolemCache())
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
   std::vector<Node> nvec;
@@ -260,16 +262,14 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
               << "Unroll/simplify membership of atomic term " << rep
               << std::endl;
           // if so, do simple unrolling
-          std::vector<Node> nvec;
           Trace("strings-regexp") << "Simplify on " << atom << std::endl;
-          d_regexp_opr.simplify(atom, nvec, polarity);
+          Node conc = d_regexp_opr.simplify(atom, polarity);
           Trace("strings-regexp") << "...finished" << std::endl;
           // if simplifying successfully generated a lemma
-          if (!nvec.empty())
+          if (!conc.isNull())
           {
             std::vector<Node> exp_n;
             exp_n.push_back(assertion);
-            Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
             Assert(atom.getKind() == STRING_IN_REGEXP);
             if (polarity)
             {

@@ -346,12 +346,20 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (str.in.re t (re.inter R1 R2)).
   RE_INTER,
-  // ======== Regular expression unfold
-  // Children: (P:(str.in.re t R)) or (P:(not (str.in.re t R)))
+  // ======== Regular expression unfold positive
+  // Children: (P:(str.in.re t R)) 
   // Arguments: none
   // ---------------------
-  // Conclusion:F, corresponding to the one-step unfolding of the premise.
-  RE_UNFOLD,
+  // Conclusion:(RegExpOpr::reduceRegExpPos(t,R)),
+  // corresponding to the one-step unfolding of the premise.
+  RE_UNFOLD_POS,
+  // ======== Regular expression unfold negative
+  // Children: (P:(not (str.in.re t R)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(RegExpOpr::reduceRegExpNeg(t,R)), 
+  // corresponding to the one-step unfolding of the premise.
+  RE_UNFOLD_NEG,
 
   //%%%%%%%%%%%%%  BEGIN UNTRUSTWORTHY
   // These allow an untrustworthy conversion from strings::Inference to PfRule

@@ -140,9 +140,34 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::RE_INTER)
   {
   }
-  else if (id == PfRule::RE_UNFOLD)
+  else if (id == PfRule::RE_UNFOLD_POS || id==PfRule::RE_UNFOLD_NEG)
   {
-    RegExpOpr reo;
+    Assert(children.size()==1);
+    Assert(args.empty());
+    Node atom = children[0];
+    if (id==PfRule::RE_UNFOLD_NEG)
+    {
+      if (atom.getKind()!=NOT)
+      {
+        return Node::null();
+      }
+      atom = atom[0];
+    }
+    if (atom.getKind()!=STRING_IN_REGEXP)
+    {
+      return Node::null();
+    }
+    Node conc;
+    SkolemCache sc;
+    if (id == PfRule::RE_UNFOLD_POS)
+    {
+      conc = RegExpOpr::reduceRegExpPos(atom[0],atom[1],&sc);
+    }
+    else
+    {
+      conc = RegExpOpr::reduceRegExpNeg(atom[0],atom[1],&sc);
+    }
+    return conc;
   }
   return Node::null();
 }

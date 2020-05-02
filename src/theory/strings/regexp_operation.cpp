@@ -16,20 +16,19 @@
 
 #include "theory/strings/regexp_operation.h"
 
-#include "expr/kind.h"
 #include "options/strings_options.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4;
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-RegExpOpr::RegExpOpr()
+RegExpOpr::RegExpOpr(SkolemCache* sc)
     : d_true(NodeManager::currentNM()->mkConst(true)),
       d_false(NodeManager::currentNM()->mkConst(false)),
       d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_EMPTY,
@@ -38,7 +37,8 @@ RegExpOpr::RegExpOpr()
       d_one(NodeManager::currentNM()->mkConst(::CVC4::Rational(1))),
       d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA,
                                                std::vector<Node>{})),
-      d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
+      d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma)),
+      d_sc(sc)
 {
   d_emptyString = Word::mkEmptyWord(CONST_STRING);
 
@@ -836,56 +836,42 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
 }
 
 //simplify
-void RegExpOpr::simplify(Node t, std::vector< Node > &new_nodes, bool polarity) {
-  Trace("strings-regexp-simpl") << "RegExp-Simpl starts with " << t << ", polarity=" << polarity << std::endl;
+Node RegExpOpr::simplify(Node t, bool polarity) {
+  Trace("strings-regexp-simpl") << "RegExpOpr::simplify: " << t << ", polarity=" << polarity << std::endl;
   Assert(t.getKind() == kind::STRING_IN_REGEXP);
   Node str = t[0];
   Node re = t[1];
+  Node conc;
   std::pair<Node, Node> p(str, re);
   std::map<std::pair<Node, Node>, Node>::const_iterator itr;
   if(polarity) {
     itr = d_simpl_cache.find(p);
     if (itr != d_simpl_cache.end())
     {
-      new_nodes.push_back(itr->second);
+      conc = itr->second;
     }
     else
     {
-      Node conc = reduceRegExpPos(str, re);
-      if (!conc.isNull())
-      {
-        new_nodes.push_back(conc);
-        d_simpl_cache[p] = conc;
-      }
+      conc = reduceRegExpPos(str, re, d_sc);
+      d_simpl_cache[p] = conc;
     }
   } else {
     itr = d_simpl_neg_cache.find(p);
     if (itr != d_simpl_neg_cache.end())
     {
-      new_nodes.push_back(itr->second);
+      conc = itr->second;
     }
     else
     {
-      Node conc = reduceRegExpNeg(str, re);
-      if (!conc.isNull())
-      {
-        new_nodes.push_back(conc);
-        d_simpl_neg_cache[p] = conc;
-      }
+      conc = reduceRegExpNeg(str, re, d_sc);
+      d_simpl_neg_cache[p] = conc;
     }
   }
-  if (Trace.isOn("strings-regexp-simpl"))
-  {
-    Trace("strings-regexp-simpl")
-        << "RegExp-Simpl  returns (" << new_nodes.size() << "):\n";
-    for (unsigned i = 0; i < new_nodes.size(); i++)
-    {
-      Trace("strings-regexp-simpl") << "\t" << new_nodes[i] << std::endl;
-    }
-  }
+  Trace("strings-regexp-simpl") << "RegExpOpr::simplify: returns " << conc << std::endl;
+  return conc;
 }
 
-Node RegExpOpr::reduceRegExpNeg(Node s, Node r)
+Node RegExpOpr::reduceRegExpNeg(Node s, Node r, SkolemCache * sc)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = r.getKind();
@@ -986,7 +972,7 @@ Node RegExpOpr::reduceRegExpNeg(Node s, Node r)
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpPos(Node s, Node r)
+Node RegExpOpr::reduceRegExpPos(Node s, Node r, SkolemCache * sc)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = r.getKind();

@@ -89,9 +89,18 @@ proofrule REDUCTION 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
 // Conclusion: (str.in.re t (re.inter R1 ... Rn))
 proofrule RE_INTER 2: 0 ::CVC4::theory::strings::StringsProofRuleChecker
 
-// ======== Regular expression unfold
-// Children: (P:(str.in.re t R)) or (P:(not (str.in.re t R)))
+// ======== Regular expression unfold positive
+// Children: (P:(str.in.re t R)) 
 // Arguments: none
 // ---------------------
-// Conclusion:F, corresponding to the one-step unfolding of the premise.
-proofrule RE_UNFOLD 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
+// Conclusion:(RegExpOpr::reduceRegExpPos(t,R)),
+// corresponding to the one-step unfolding of the premise.
+proofrule RE_UNFOLD_POS 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
+
+// ======== Regular expression unfold negative
+// Children: (P:(not (str.in.re t R)))
+// Arguments: none
+// ---------------------
+// Conclusion:(RegExpOpr::reduceRegExpNeg(t,R)), 
+// corresponding to the one-step unfolding of the premise.
+proofrule RE_UNFOLD_NEG 1 0 ::CVC4::theory::strings::StringsProofRuleChecker

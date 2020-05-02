@@ -45,7 +45,7 @@ StringsPreprocess::~StringsPreprocess(){
 }
 
 Node StringsPreprocess::reduce(Node t,
-                               std::vector<Node>& new_nodes,
+                               std::vector<Node>& asserts,
                                SkolemCache* sc)
 {
   Trace("strings-preprocess-debug")
@@ -114,7 +114,7 @@ Node StringsPreprocess::reduce(Node t,
     // satisfied. If n + m is less than the length of s, then len(sk2) = 0
     // cannot be satisfied because we have the constraint that len(skt) <= m,
     // so sk2 must be greater than 0.
-    new_nodes.push_back( lemma );
+    asserts.push_back( lemma );
 
     // Thus, substr( s, n, m ) = skt
     retNode = skt;
@@ -130,10 +130,10 @@ Node StringsPreprocess::reduce(Node t,
     Node negone = nm->mkConst(Rational(-1));
     Node krange = nm->mkNode(GEQ, skk, negone);
     // assert:   indexof( x, y, n ) >= -1
-    new_nodes.push_back( krange );
+    asserts.push_back( krange );
     krange = nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, x), skk);
     // assert:   len( x ) >= indexof( x, y, z )
-    new_nodes.push_back( krange );
+    asserts.push_back( krange );
 
     // substr( x, n, len( x ) - n )
     Node st = nm->mkNode(STRING_SUBSTR,
@@ -191,7 +191,7 @@ Node StringsPreprocess::reduce(Node t,
     //       skk = n + len( io2 )
     // for fresh io2, io4.
     Node rr = nm->mkNode(ITE, cond1, cc1, nm->mkNode(ITE, cond2, cc2, cc3));
-    new_nodes.push_back( rr );
+    asserts.push_back( rr );
 
     // Thus, indexof( x, y, n ) = skk.
     retNode = skk;
@@ -246,7 +246,7 @@ Node StringsPreprocess::reduce(Node t,
 
     Node emp = Word::mkEmptyWord(t.getType());
     lem = nm->mkNode(ITE, nonneg, nm->mkNode(AND, conc), itost.eqNode(emp));
-    new_nodes.push_back(lem);
+    asserts.push_back(lem);
     // assert:
     // IF n>=0
     // THEN:
@@ -330,7 +330,7 @@ Node StringsPreprocess::reduce(Node t,
 
     Node sneg = nm->mkNode(LT, stoit, zero);
     lem = nm->mkNode(ITE, sneg, nm->mkNode(AND, conc1), nm->mkNode(AND, conc2));
-    new_nodes.push_back(lem);
+    asserts.push_back(lem);
 
     // assert:
     // IF stoit < 0
@@ -409,7 +409,7 @@ Node StringsPreprocess::reduce(Node t,
                                     cond2,
                                     nm->mkNode(kind::AND, c21, c22, c23),
                                     rpw.eqNode(x)));
-    new_nodes.push_back( rr );
+    asserts.push_back( rr );
 
     // Thus, replace( x, y, z ) = rpw.
     retNode = rpw;
@@ -486,7 +486,7 @@ Node StringsPreprocess::reduce(Node t,
     Node emp = Word::mkEmptyWord(t.getType());
     Node assert =
         nm->mkNode(ITE, y.eqNode(emp), rpaw.eqNode(x), nm->mkNode(AND, lem));
-    new_nodes.push_back(assert);
+    asserts.push_back(assert);
 
     // Thus, replaceall( x, y, z ) = rpaw
     retNode = rpaw;
@@ -530,7 +530,7 @@ Node StringsPreprocess::reduce(Node t,
     //     str.code( str.substr(r,i,1) ) = ite( 97 <= ci <= 122, ci-32, ci)
     // where ci = str.code( str.substr(x,i,1) )
     Node assert = nm->mkNode(AND, eqLenA, rangeA);
-    new_nodes.push_back(assert);
+    asserts.push_back(assert);
 
     // Thus, toLower( x ) = r
     retNode = r;
@@ -561,7 +561,7 @@ Node StringsPreprocess::reduce(Node t,
     //   forall i. 0 <= i < len(r) =>
     //     substr(r,i,1) = substr(x,len(x)-(i+1),1)
     Node assert = nm->mkNode(AND, eqLenA, rangeA);
-    new_nodes.push_back(assert);
+    asserts.push_back(assert);
 
     // Thus, (str.rev x) = r
     retNode = r;
@@ -635,7 +635,7 @@ Node StringsPreprocess::reduce(Node t,
     //        ELSE: str.code(substr( x, k, 1 )) > str.code(substr( y, k, 1 ))
     Node assert =
         nm->mkNode(ITE, t[0].eqNode(t[1]), ltp, nm->mkNode(AND, conj));
-    new_nodes.push_back(assert);
+    asserts.push_back(assert);
 
     // Thus, str.<=( x, y ) = ltp
     retNode = ltp;
@@ -643,18 +643,18 @@ Node StringsPreprocess::reduce(Node t,
   return retNode;
 }
 
-Node StringsPreprocess::simplify(Node t, std::vector<Node>& new_nodes)
+Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
 {
-  size_t prev_new_nodes = new_nodes.size();
+  size_t prev_asserts = asserts.size();
   // call the static reduce routine
-  Node retNode = reduce(t, new_nodes, d_sc);
+  Node retNode = reduce(t, asserts, d_sc);
   if( t!=retNode ){
     Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << " -> " << retNode << std::endl;
-    if(!new_nodes.empty()) {
-      Trace("strings-preprocess") << " ... new nodes (" << (new_nodes.size()-prev_new_nodes) << "):" << std::endl;
-      for (size_t i = prev_new_nodes; i < new_nodes.size(); ++i)
+    if(!asserts.empty()) {
+      Trace("strings-preprocess") << " ... new nodes (" << (asserts.size()-prev_asserts) << "):" << std::endl;
+      for (size_t i = prev_asserts; i < asserts.size(); ++i)
       {
-        Trace("strings-preprocess") << "   " << new_nodes[i] << std::endl;
+        Trace("strings-preprocess") << "   " << asserts[i] << std::endl;
       }
     }
     d_statistics.d_reductions << t.getKind();
@@ -667,14 +667,14 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& new_nodes)
   return retNode;
 }
 
-Node StringsPreprocess::simplifyRec( Node t, std::vector< Node > & new_nodes, std::map< Node, Node >& visited ){
+Node StringsPreprocess::simplifyRec( Node t, std::vector< Node > & asserts, std::map< Node, Node >& visited ){
   std::map< Node, Node >::iterator it = visited.find(t);
   if( it!=visited.end() ){
     return it->second;
   }else{
     Node retNode = t;
     if( t.getNumChildren()==0 ){
-      retNode = simplify( t, new_nodes );
+      retNode = simplify( t, asserts );
     }else if( t.getKind()!=kind::FORALL ){
       bool changed = false;
       std::vector< Node > cc;
@@ -682,7 +682,7 @@ Node StringsPreprocess::simplifyRec( Node t, std::vector< Node > & new_nodes, st
         cc.push_back( t.getOperator() );
       }
       for(unsigned i=0; i<t.getNumChildren(); i++) {
-        Node s = simplifyRec( t[i], new_nodes, visited );
+        Node s = simplifyRec( t[i], asserts, visited );
         cc.push_back( s );
         if( s!=t[i] ) {
           changed = true;
@@ -692,24 +692,24 @@ Node StringsPreprocess::simplifyRec( Node t, std::vector< Node > & new_nodes, st
       if( changed ){
         tmp = NodeManager::currentNM()->mkNode( t.getKind(), cc );
       }
-      retNode = simplify( tmp, new_nodes ); 
+      retNode = simplify( tmp, asserts ); 
     }
     visited[t] = retNode;
     return retNode;
   }
 }
 
-Node StringsPreprocess::processAssertion( Node n, std::vector< Node > &new_nodes ) {
+Node StringsPreprocess::processAssertion( Node n, std::vector< Node > &asserts ) {
   std::map< Node, Node > visited;
-  std::vector< Node > new_nodes_curr;
-  Node ret = simplifyRec( n, new_nodes_curr, visited );
-  while( !new_nodes_curr.empty() ){
-    Node curr = new_nodes_curr.back();
-    new_nodes_curr.pop_back();
-    std::vector< Node > new_nodes_tmp;
-    curr = simplifyRec( curr, new_nodes_tmp, visited );
-    new_nodes_curr.insert( new_nodes_curr.end(), new_nodes_tmp.begin(), new_nodes_tmp.end() );
-    new_nodes.push_back( curr );
+  std::vector< Node > asserts_curr;
+  Node ret = simplifyRec( n, asserts_curr, visited );
+  while( !asserts_curr.empty() ){
+    Node curr = asserts_curr.back();
+    asserts_curr.pop_back();
+    std::vector< Node > asserts_tmp;
+    curr = simplifyRec( curr, asserts_tmp, visited );
+    asserts_curr.insert( asserts_curr.end(), asserts_tmp.begin(), asserts_tmp.end() );
+    asserts.push_back( curr );
   }
   return ret;
 }
@@ -719,18 +719,18 @@ void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){
   for( unsigned i=0; i<vec_node.size(); i++ ){
     Trace("strings-preprocess-debug") << "Preprocessing assertion " << vec_node[i] << std::endl;
     //preprocess until fixed point
-    std::vector< Node > new_nodes;
-    std::vector< Node > new_nodes_curr;
-    new_nodes_curr.push_back( vec_node[i] );
-    while( !new_nodes_curr.empty() ){
-      Node curr = new_nodes_curr.back();
-      new_nodes_curr.pop_back();
-      std::vector< Node > new_nodes_tmp;
-      curr = simplifyRec( curr, new_nodes_tmp, visited );
-      new_nodes_curr.insert( new_nodes_curr.end(), new_nodes_tmp.begin(), new_nodes_tmp.end() );
-      new_nodes.push_back( curr );
+    std::vector< Node > asserts;
+    std::vector< Node > asserts_curr;
+    asserts_curr.push_back( vec_node[i] );
+    while( !asserts_curr.empty() ){
+      Node curr = asserts_curr.back();
+      asserts_curr.pop_back();
+      std::vector< Node > asserts_tmp;
+      curr = simplifyRec( curr, asserts_tmp, visited );
+      asserts_curr.insert( asserts_curr.end(), asserts_tmp.begin(), asserts_tmp.end() );
+      asserts.push_back( curr );
     }
-    Node res = new_nodes.size()==1 ? new_nodes[0] : NodeManager::currentNM()->mkNode( kind::AND, new_nodes );
+    Node res = asserts.size()==1 ? asserts[0] : NodeManager::currentNM()->mkNode( kind::AND, asserts );
     if( res!=vec_node[i] ){
       res = Rewriter::rewrite( res );
       PROOF( ProofManager::currentPM()->addDependence( res, vec_node[i] ); );
