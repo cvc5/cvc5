@@ -69,7 +69,7 @@ public:
   /** Counts the number of checks for each kind of proof rule */
   HistogramStat<PfRule> d_ruleChecks;
 };
-  
+
 /** A class for checking proofs */
 class ProofChecker
 {
@@ -122,6 +122,15 @@ class ProofChecker
                   const char* traceTag);
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
+
+  /** Whther node is an unsigned integer below the given upper bound. */
+  static inline bool unsignedIntBelowBound(TNode n, unsigned upperBound)
+  {
+    return n.getType().isInteger()
+           && !n.getConst<Rational>().getNumerator().strictlyNegative()
+           && n.getConst<Rational>().getNumerator().toUnsignedInt()
+                  < upperBound;
+  }
 
  private:
   /** statistics class */
