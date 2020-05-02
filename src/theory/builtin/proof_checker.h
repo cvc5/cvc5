@@ -37,6 +37,11 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   static Node applyRewrite(Node n);
   /**
+   * Apply rewrite. This encapsulates the exact behavior of a REWRITE_EQ_EXT
+   * step in a proof.
+   */
+  static Node applyRewriteEqualityExt(Node n);
+  /**
    * Apply substitution. This encapsulates the exact behavior of a SUBS step
    * in a proof.
    */

@@ -31,7 +31,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
 {
   if (id == PfRule::CONCAT_EQ)
   {
-    Assert(children.size() >= 2);
+    Assert(children.size() == 1);
     Assert(args.size() == 1);
     Node eqs = children[0];
     if (eqs.getKind() != EQUAL)
@@ -47,22 +47,21 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     size_t index = 0;
     size_t nchilds = svec.size();
     size_t nchildt = tvec.size();
+    std::vector<Node> sremVec;
+    std::vector<Node> tremVec;
     // scan the concatenation until we exhaust child proofs
-    while (index + 1 < children.size())
+    while (index < nchilds && index<nchildt)
     {
-      if (index >= nchilds || index >= nchildt)
-      {
-        // too many child proofs
-        return Node::null();
-      }
-      // the current proof must prove the current components are equal
       Node currS = svec[isRev ? (nchilds - 1 - index) : index];
       Node currT = tvec[isRev ? (nchildt - 1 - index) : index];
-      Node ceq = children[index + 1];
-      if (ceq.getKind() != EQUAL || ceq[0] != currS || ceq[1] != currT)
+      if (currS!=currT)
       {
-        // bad child proof
-        return Node::null();
+        // TODO
+        if (currS.isConst() && currT.isConst())
+        {
+          // get the equal prefix/suffix, strip and add the remainders
+        }
+        break;
       }
       index++;
     }
@@ -70,11 +69,9 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Assert(index <= nchilds);
     Assert(index <= nchildt);
     // the remainders are equal
-    std::vector<Node> sremVec;
     sremVec.insert(sremVec.end(),
                    svec.begin() + (isRev ? 0 : index),
                    svec.begin() + nchilds - (isRev ? index : 0));
-    std::vector<Node> tremVec;
     tremVec.insert(tremVec.end(),
                    tvec.begin() + (isRev ? 0 : index),
                    tvec.begin() + nchildt - (isRev ? index : 0));

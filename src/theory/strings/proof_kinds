@@ -2,16 +2,19 @@
 //======================== Core solver
 
 // ======== Concat eq
-// Children: (P1:(= (str.++ t1 ... tn t) (str.++ s1 ... sn s)),
-//            P2:(= t1 s1), ..., P{n+1}:(= tn sn))
+// Children: (P1:(= (str.++ t1 ... tn t) (str.++ t1 ... tn s)))
 // Arguments: (b), indicating if reverse direction
 // ---------------------
 // Conclusion: (= t s)
+//
 // Notice that t or s may be empty, in which case they are implicit in the
 // concatenation above. For example, if
-// P1 concludes (= x (str.++ y z), P2 concludes (= x y), then
-// (CONCAT_EQ P1 P2 :args false) concludes (= "" z)
-proofrule CONCAT_EQ 2: 1 ::CVC4::theory::strings::StringsProofRuleChecker
+// P1 concludes (= x (str.++ x z)), then
+// (CONCAT_EQ P1 :args false) concludes (= "" z)
+// Also note that constants are split, such that if
+// P1 concludes (= (str.++ "abc" x) (str.++ "a" y)), then 
+// (CONCAT_EQ P1 :args false) concludes (= (str.++ "bc" x) y)
+proofrule CONCAT_EQ 1 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Concat unify
 // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),

@@ -27,6 +27,11 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n)
   return Rewriter::rewrite(n);
 }
 
+Node BuiltinProofRuleChecker::applyRewriteEqualityExt(Node n)
+{
+  return Rewriter::rewriteEqualityExt(n);
+}
+
 Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp)
 {
   if (exp.isNull() || exp.getKind() != EQUAL)
@@ -109,6 +114,15 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Node res = applyRewrite(args[0]);
     return args[0].eqNode(res);
   }
+  /*
+  else if (id == PfRule::REWRITE_EQ_EXT)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node res = applyRewriteEqualityExt(args[0]);
+    return args[0].eqNode(res);
+  }
+  */
   else if (id == PfRule::SUBS_REWRITE)
   {
     // FIXME: could be macro

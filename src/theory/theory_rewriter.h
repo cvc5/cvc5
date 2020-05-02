@@ -85,6 +85,19 @@ class TheoryRewriter
    * @param node The node to rewrite
    */
   virtual RewriteResponse preRewrite(TNode node) = 0;
+  /** rewrite equality extended
+   *
+   * This method returns a formula that is equivalent to the equality between
+   * two terms s = t, given by node.
+   *
+   * Specifically, this method performs rewrites whose conclusion is not
+   * necessarily one of { s = t, t = s, true, false }. This is in constrast
+   * to postRewrite and preRewrite above, where the rewritten form of an
+   * equality must be one of these.
+   * 
+   * @param node The node to rewrite
+   */
+  virtual Node rewriteEqualityExt(Node node) { return node; }
 };
 
 }  // namespace theory

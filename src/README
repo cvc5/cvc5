@@ -71,6 +71,7 @@ PRs:
 (1) ProofChecker improve tracing
 - Add ProofNode printing as dag (SEXPR)
 - Proof kinds infrastructure
+- Rewriter new infrastructure (rewriteEqualityExt)
 (2) Builtin rules, builtin checker.
 (3) Boolean rules, boolean checker.
 (4) UF rules, UF checker.
