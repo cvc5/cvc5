@@ -19,6 +19,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/skolem_cache.h"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>
@@ -43,7 +44,8 @@ class RegexpOperationBlack : public CxxTest::TestSuite
     d_em = new ExprManager(opts);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
-    d_regExpOpr = new RegExpOpr();
+    d_skc = new SkolemCache();
+    d_regExpOpr = new RegExpOpr(d_skc);
 
     // Ensure that the SMT engine is fully initialized (required for the
     // rewriter)
@@ -150,6 +152,7 @@ class RegexpOperationBlack : public CxxTest::TestSuite
   ExprManager* d_em;
   SmtEngine* d_smt;
   SmtScope* d_scope;
+  SkolemCache * d_skc;
   RegExpOpr* d_regExpOpr;
 
   NodeManager* d_nm;
