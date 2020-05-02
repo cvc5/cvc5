@@ -34,11 +34,11 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Assert(children.size() == 1);
     Assert(args.size() == 1);
     uint32_t i;
-    if (children[0].getKind() != kind::AND || !getIndex(args[0],i))
+    if (children[0].getKind() != kind::AND || !getIndex(args[0], i))
     {
       return Node::null();
     }
-    if (i>=children[0].getNumChildren())
+    if (i >= children[0].getNumChildren())
     {
       return Node::null();
     }
@@ -50,11 +50,11 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() == 1);
     uint32_t i;
     if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::OR  || !getIndex(args[0],i))
+        || children[0][0].getKind() != kind::OR || !getIndex(args[0], i))
     {
       return Node::null();
     }
-    if (i>=children[0][0].getNumChildren())
+    if (i >= children[0][0].getNumChildren())
     {
       return Node::null();
     }

@@ -67,6 +67,7 @@ class ProofRuleChecker
   static bool getIndex(TNode n, uint32_t& i);
   /** get a Boolean from a node, return false if we fail */
   static bool getBool(TNode n, bool& b);
+
  protected:
   /**
    * This checks a single step in a proof. It is identical to check above

@@ -97,8 +97,8 @@ PfRule InferProofCons::convert(Inference infer,
   // debug print
   if (Trace.isOn("strings-ipc-debug"))
   {
-    Trace("strings-ipc-debug")
-        << "InferProofCons::convert: " << infer << (isRev ? " :rev " : " ") << conc << std::endl;
+    Trace("strings-ipc-debug") << "InferProofCons::convert: " << infer
+                               << (isRev ? " :rev " : " ") << conc << std::endl;
     for (const Node& ec : exp)
     {
       Trace("strings-ipc-debug") << "    e: " << ec << std::endl;
@@ -187,26 +187,27 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::SSPLIT_CST:
     case Inference::SSPLIT_VAR:
     case Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
-    case Inference::DEQ_DISL_STRINGS_SPLIT: 
+    case Inference::DEQ_DISL_STRINGS_SPLIT:
     {
-      Trace("strings-ipc-core") << "Generate core rule for " << infer << " (rev=" << isRev << ")" << std::endl;
+      Trace("strings-ipc-core") << "Generate core rule for " << infer
+                                << " (rev=" << isRev << ")" << std::endl;
       // EXP ^ t = s ^ ...
       size_t nchild = pii.d_children.size();
       size_t mainEqIndex = 0;
       bool mainEqIndexSet = false;
-      if (infer==Inference::N_UNIFY)
+      if (infer == Inference::N_UNIFY)
       {
-        if (nchild>=2)
+        if (nchild >= 2)
         {
-          mainEqIndex = nchild-2;
+          mainEqIndex = nchild - 2;
           mainEqIndexSet = true;
         }
       }
-      else if (infer==Inference::N_ENDPOINT_EQ)
+      else if (infer == Inference::N_ENDPOINT_EQ)
       {
-        if (nchild>=1)
+        if (nchild >= 1)
         {
-          mainEqIndex = nchild-1;
+          mainEqIndex = nchild - 1;
           mainEqIndexSet = true;
         }
       }
@@ -214,25 +215,31 @@ PfRule InferProofCons::convert(Inference infer,
       if (mainEqIndexSet)
       {
         mainEq = pii.d_children[mainEqIndex];
-        Trace("strings-ipc-core") << "Main equality " << mainEq << " at index " << mainEqIndex << std::endl;
+        Trace("strings-ipc-core") << "Main equality " << mainEq << " at index "
+                                  << mainEqIndex << std::endl;
       }
-      if (mainEq.isNull() || mainEq.getKind()!=EQUAL)
+      if (mainEq.isNull() || mainEq.getKind() != EQUAL)
       {
-        Trace("strings-ipc-core") << "...failed to find main equality" << std::endl;
-        //Assert(false);
+        Trace("strings-ipc-core")
+            << "...failed to find main equality" << std::endl;
+        // Assert(false);
       }
       else
       {
         // apply substitution+rewriting using equalities up to the main eq
         std::vector<Node> subsExp;
-        subsExp.insert(subsExp.end(),pii.d_children.begin(),pii.d_children.begin()+mainEqIndex);
-        std::reverse(subsExp.begin(),subsExp.end());
-        Node mainEqRew = builtin::BuiltinProofRuleChecker::applySubstitutionRewrite(mainEq, subsExp);
-        Trace("strings-ipc-core") << "Main equality after subs+rewrite " << mainEqRew << std::endl; 
-        
+        subsExp.insert(subsExp.end(),
+                       pii.d_children.begin(),
+                       pii.d_children.begin() + mainEqIndex);
+        std::reverse(subsExp.begin(), subsExp.end());
+        Node mainEqRew =
+            builtin::BuiltinProofRuleChecker::applySubstitutionRewrite(mainEq,
+                                                                       subsExp);
+        Trace("strings-ipc-core")
+            << "Main equality after subs+rewrite " << mainEqRew << std::endl;
       }
     }
-      break;
+    break;
     // ========================== Boolean split
     case Inference::CARD_SP:
     case Inference::LEN_SPLIT:
@@ -333,7 +340,8 @@ PfRule InferProofCons::convert(Inference infer,
     if (Trace.isOn("strings-ipc-fail"))
     {
       Trace("strings-ipc-fail")
-          << "InferProofCons::convert: Failed " << infer << (isRev ? " :rev " : " ") << conc << std::endl;
+          << "InferProofCons::convert: Failed " << infer
+          << (isRev ? " :rev " : " ") << conc << std::endl;
       for (const Node& ec : exp)
       {
         Trace("strings-ipc-fail") << "    e: " << ec << std::endl;

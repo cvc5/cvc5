@@ -54,9 +54,10 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
   return curr;
 }
 
-Node BuiltinProofRuleChecker::applySubstitutionRewrite(Node n, const std::vector<Node>& exp)
+Node BuiltinProofRuleChecker::applySubstitutionRewrite(
+    Node n, const std::vector<Node>& exp)
 {
-  Node ret = applySubstitution(n,exp);
+  Node ret = applySubstitution(n, exp);
   ret = applyRewrite(ret);
   return ret;
 }
