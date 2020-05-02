@@ -44,7 +44,12 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> tvec;
     utils::getConcat(eqs[0], svec);
     utils::getConcat(eqs[1], tvec);
-    bool isRev = args[0].getConst<bool>();
+    // extract the Boolean corresponding to whether the rule is reversed
+    bool isRev;
+    if (!getBool(args[0], isRev))
+    {
+      return Node::null();
+    }
     size_t index = 0;
     size_t nchilds = svec.size();
     size_t nchildt = tvec.size();

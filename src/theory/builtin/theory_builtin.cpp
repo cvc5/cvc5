@@ -57,8 +57,9 @@ void TheoryBuiltin::setProofChecker(ProofChecker* pc)
   pc->registerChecker(PfRule::SCOPE, &d_bProofChecker);
   pc->registerChecker(PfRule::SUBS, &d_bProofChecker);
   pc->registerChecker(PfRule::REWRITE, &d_bProofChecker);
-  pc->registerChecker(PfRule::SUBS_REWRITE, &d_bProofChecker);
-  pc->registerChecker(PfRule::SUBS_REWRITE_PRED, &d_bProofChecker);
+  pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, &d_bProofChecker);
+  pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, &d_bProofChecker);
+  pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, &d_bProofChecker);
 }
 
 }  // namespace builtin

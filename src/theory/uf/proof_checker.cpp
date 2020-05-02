@@ -147,55 +147,6 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     }
     return children[0];
   }
-  else if (id == PfRule::MACRO_EQ_SUBS_REWRITE)
-  {
-    Assert(args.size() == 2);
-    // (TRANS (SUBS_REWRITE <children> <args>[0])
-    //        (SYMM (SUBS_REWRITE <children> <args>[1])))
-    // macro code:
-    /*
-    Node conc1 = d_builtinChecker.checkChildrenArg(
-        PfRule::SUBS_REWRITE, children, args[0]);
-    if (conc1.isNull())
-    {
-      return Node::null();
-    }
-    Node conc2 = d_builtinChecker.checkChildrenArg(
-        PfRule::SUBS_REWRITE, children, args[1]);
-    if (conc2.isNull())
-    {
-      return Node::null();
-    }
-    Node symConc2 = checkChild(PfRule::SYMM, conc2);
-    if (symConc2.isNull())
-    {
-      return Node::null();
-    }
-    std::vector<Node> tchildren = {conc1, symConc2};
-    return checkChildren(PfRule::TRANS, tchildren);
-    */
-    // use optimized version:
-    Node t1 = d_builtinChecker.applySubstitutionRewrite(args[0],children);
-    Node t2 = d_builtinChecker.applySubstitutionRewrite(args[1],children);
-    if (t1!=t2)
-    {
-      return Node::null();
-    }
-    return args[0].eqNode(args[1]);
-  }
-  else if (id == PfRule::MACRO_SUBS_REWRITE_PRED)
-  {
-    Assert(children.size() >= 1);
-    Assert(args.empty());
-    // NOTE: technically a macro:
-    // (TRUE_ELIM 
-    //   (TRANS 
-    //     (SYMM (SUBS_REWRITE <children>[1:] <children>[0])) 
-    //     (TRUE_INTRO <children>[0])))
-    std::vector<Node> exp;
-    exp.insert(exp.end(),children.begin()+1,children.end());
-    return d_builtinChecker.applySubstitutionRewrite(children[0],exp);
-  }
   // no rule
   return Node::null();
 }

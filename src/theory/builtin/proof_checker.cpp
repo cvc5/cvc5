@@ -82,6 +82,7 @@ Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n, Node exp)
   TNode subs = expk[1];
   return n.substitute(var, subs);
 }
+
 Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n, const std::vector<Node>& exp)
 {
   Node curr = n;
@@ -144,35 +145,65 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Node res = applyRewrite(args[0]);
     return args[0].eqNode(res);
   }
-  /*
-  else if (id == PfRule::REWRITE_EQ_EXT)
+  else if (id == PfRule::MACRO_SR_EQ_INTRO)
   {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    Node res = applyRewriteEqualityExt(args[0]);
+    // NOTE: technically a macro:
+    // (TRANS 
+    //   (SUBS P1 ... Pn t)
+    //   (REWRITE <t.substitute(xn,tn). ... .substitute(x1,t1)>))
+    Assert(1 <= args.size() && args.size()<=2);
+    uint32_t idRewriter = 0;
+    if (args.size()>=2)
+    {
+      if (!getIndex(args[1], idRewriter))
+      {
+        return Node::null();
+      }
+    }
+    Node res = applySubstitutionRewrite(args[0], children, idRewriter);
     return args[0].eqNode(res);
   }
-  */
-  else if (id == PfRule::SUBS_REWRITE)
+  else if (id == PfRule::MACRO_SR_PRED_INTRO)
   {
-    // NODE: could be macro
-    // (TRANS (SUBS P1 ... Pn t)
-    //        (REWRITE <t.substitute(xn,tn). ... .substitute(x1,t1)>))
-    Assert(args.size() == 1);
-    std::vector<Node> exp = children;
-    Node res = applySubstitutionRewrite(args[0], exp);
-    return args[0].eqNode(res);
-  }
-  else if (id == PfRule::SUBS_REWRITE_PRED)
-  {
-    Assert(args.size() == 1);
-    std::vector<Node> exp = children;
-    Node res = applySubstitutionRewrite(args[0], exp);
+    // NOTE: technically a macro:
+    // (TRUE_ELIM 
+    //   (MACRO_SR_EQ_INTRO <children> <args>[0]))
+    Assert(1 <= args.size() && args.size()<=2);
+    uint32_t idRewriter = 0;
+    if (args.size()>=2)
+    {
+      if (!getIndex(args[1], idRewriter))
+      {
+        return Node::null();
+      }
+    }
+    Node res = applySubstitutionRewrite(args[0], children, idRewriter);
     if (!res.isConst() || !res.getConst<bool>())
     {
       return Node::null();
     }
     return args[0];
+  }
+  else if (id == PfRule::MACRO_SR_PRED_ELIM)
+  {
+    Assert(children.size() >= 1);
+    Assert(args.size()<=1);
+    // NOTE: technically a macro:
+    // (TRUE_ELIM 
+    //   (TRANS 
+    //     (SYMM (MACRO_SR_EQ_INTRO <children>[1:] F)) 
+    //     (TRUE_INTRO <children>[0])))
+    std::vector<Node> exp;
+    exp.insert(exp.end(),children.begin()+1,children.end());
+    uint32_t idRewriter = 0;
+    if (args.size()>=1)
+    {
+      if (!getIndex(args[0], idRewriter))
+      {
+        return Node::null();
+      }
+    }
+    return applySubstitutionRewrite(children[0], exp, idRewriter);
   }
   // no rule
   return Node::null();

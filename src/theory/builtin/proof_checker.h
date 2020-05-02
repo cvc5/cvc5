@@ -60,6 +60,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * @param n The node (in witness form) to substitute and rewrite,
    * @param exp The (set of) equalities (in witness form) corresponding to the
    * substitution
+   * @param id The identifier of the rewriter.
    * @return The substituted, rewritten form of n.
    */
   static Node applySubstitutionRewrite(Node n, const std::vector<Node>& exp, uint32_t id = 0);

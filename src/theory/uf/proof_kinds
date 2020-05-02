@@ -59,28 +59,3 @@ proofrule FALSE_INTRO 1 0 ::CVC4::theory::uf::EqProofRuleChecker
 // ----------------------------------------
 // Conclusion: (not F)
 proofrule FALSE_ELIM 1 0 ::CVC4::theory::uf::EqProofRuleChecker
-
-
-//=============================== Common macros
-
-// ======== Equality by substitution + rewriting
-// Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
-// Arguments: (t,s)
-// -------------------
-// Conclusion: (= t s)
-// In other words, t and s can be show equal by substitution + rewriting.
-macro MACRO_EQ_SUBS_REWRITE 0: 2 {
-  (TRANS (SUBS_REWRITE <children> <args>[0]) (SYMM (SUBS_REWRITE <children> <args>[1])))
-}
-
-// ======== Rewrite predicate
-// Children: (P1:F, P2:(= x1 t1), ..., P_{n+1}:(= xn tn))
-// Arguments: none
-// ----------------------------------------
-// Conclusion: Rewriter::rewrite(F.substitute(xn,tn). ... . substitute(x1,t1))
-macro MACRO_SUBS_REWRITE_PRED 1 0 {
-  (TRUE_ELIM 
-    (TRANS 
-      (SYMM (SUBS_REWRITE <children>[1:] F)) 
-      (TRUE_INTRO <children>[0])))
-}

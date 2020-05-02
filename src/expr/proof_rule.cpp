@@ -29,8 +29,9 @@ const char* toString(PfRule id)
     //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
-    case PfRule::SUBS_REWRITE: return "SUBS_REWRITE";
-    case PfRule::SUBS_REWRITE_PRED: return "SUBS_REWRITE_PRED";
+    case PfRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
+    case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
+    case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::AND_ELIM: return "AND_ELIM";
@@ -59,8 +60,6 @@ const char* toString(PfRule id)
     case PfRule::TRUE_ELIM: return "TRUE_ELIM";
     case PfRule::FALSE_INTRO: return "FALSE_INTRO";
     case PfRule::FALSE_ELIM: return "FALSE_ELIM";
-    case PfRule::MACRO_EQ_SUBS_REWRITE: return "MACRO_EQ_SUBS_REWRITE";
-    case PfRule::MACRO_SUBS_REWRITE_PRED: return "MACRO_SUBS_REWRITE_PRED";
     //================================================= String rules
     case PfRule::CONCAT_EQ: return "CONCAT_EQ";
     case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";

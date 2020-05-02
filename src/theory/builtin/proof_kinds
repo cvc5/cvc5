@@ -34,7 +34,7 @@ proofrule SCOPE 1 1: ::CVC4::theory::builtin::BuiltinProofRuleChecker
 // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
 // Arguments: (t)
 // ---------------------------------------------------------------
-// Conclusion: (= t t.substitute(x1,t1). ... .substitute(xn,tn))
+// Conclusion: (= t t.substitute(xn,tn). ... .substitute(x1,t1))
 // Notice that the orientation of the premises matters.
 proofrule SUBS 1: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
@@ -47,27 +47,38 @@ proofrule REWRITE 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
 // NOTE: these technically rely on TRANS/TRUE_ELIM, which are UF, perhaps move?
 
-// ======== Substitution + Rewriting
+// ======== Substitution + Rewriting equality introduction
 // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
-// Arguments: (t)
+// Arguments: (t, id)
 // ---------------------------------------------------------------
 // Conclusion:
-//  (= t Rewriter::rewrite(t.substitute(x1,t1). ... .substitute(xn,tn)))
-macro SUBS_REWRITE 0: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker {
+//  (= t Rewriter{id}(t.substitute(x1,t1). ... .substitute(xn,tn)))
+macro MACRO_SR_EQ_INTRO 0: 1:2 ::CVC4::theory::builtin::BuiltinProofRuleChecker {
   (TRANS 
     (SUBS P1 ... Pn t) 
     (REWRITE <t.substitute(x1,t1). ... .substitute(xn,tn)>))
 }
 
-// ======== Substitution + Rewriting Predicate
+// ======== Substitution + Rewriting predicate introduction
 // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
-// Arguments: (F)
+// Arguments: (F, id)
 // ---------------------------------------------------------------
 // Conclusion:
 //   F
-// where Rewriter::rewrite(F.substitute(x1,t1). ... .substitute(xn,tn)) == true
-macro SUBS_REWRITE_PRED 0: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker {
+// where Rewriter{id}(F.substitute(xn,tn). ... .substitute(x1,t1)) == true
+macro MACRO_SR_PRED_INTRO 0: 1:2 ::CVC4::theory::builtin::BuiltinProofRuleChecker {
   (TRUE_ELIM 
-    (TRANS (SUBS P1 ... Pn F) 
-    (REWRITE <F.substitute(x1,t1). ... .substitute(xn,tn)>)))
+    (MACRO_SR_EQ_INTRO <children> <args>[0]))
+}
+
+// ======== Substitution + Rewriting predicate elimination
+// Children: (P1:F, P2:(= x1 t1), ..., P_{n+1}:(= xn tn))
+// Arguments: (id)
+// ----------------------------------------
+// Conclusion: Rewriter{id}(F.substitute(xn,tn). ... . substitute(x1,t1))
+macro MACRO_SR_PRED_ELIM 1: 0:1 {
+  (TRUE_ELIM 
+    (TRANS 
+      (SYMM (MACRO_SR_EQ_INTRO <children>[1:] F)) 
+      (TRUE_INTRO <children>[0])))
 }
