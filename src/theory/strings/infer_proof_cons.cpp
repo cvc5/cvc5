@@ -148,12 +148,10 @@ PfRule InferProofCons::convert(Inference infer,
       // use the predicate version
       pii.d_args.push_back(conc);
       pii.d_rule = PfRule::MACRO_SR_PRED_INTRO;
-      tryChecker = &d_builtinChecker;
       // minor optimization: apply to LHS of equality (RHS is already reduced)
       // although notice the case above is also a valid proof.
       // pii.d_args.push_back(conc[0]);
       // pii.d_rule = PfRule::MACRO_SR_EQ_INTRO;
-      // tryChecker = &d_builtinChecker;
       // This doesn't quite work due for symbolic lemmas.
     }
     break;
