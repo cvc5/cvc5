@@ -23,7 +23,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ProofStepBuffer::ProofStepBuffer(CDProof * pf) : d_proof(pf), d_checker(pf->getManager()->getChecker())
+ProofStepBuffer::ProofStepBuffer(ProofChecker * pc) : d_checker(pc)
 {
   Assert(d_checker!=nullptr) << "ProofStepBuffer::ProofStepBuffer: no proof checker in the underlying CDProof object.";
 }
@@ -40,13 +40,22 @@ Node ProofStepBuffer::tryStep(PfRule id, const std::vector<Node>& children, cons
   return res;
 }
 
-void ProofStepBuffer::finalize()
+bool ProofStepBuffer::addTo(CDProof * pf)
 {
   // add each of the steps
   for (const std::pair<Node,ProofStep>& ps : d_steps)
   {
-    d_proof->addStep(ps.first,ps.second);
+    if (!pf->addStep(ps.first,ps.second))
+    {
+      return false;
+    }
   }
+  return true;
+}
+
+void ProofStepBuffer::clear()
+{
+  d_steps.clear();
 }
 
 }  // namespace CVC4

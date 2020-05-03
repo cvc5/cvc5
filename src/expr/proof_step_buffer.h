@@ -48,10 +48,10 @@ class ProofStepBuffer
   /**
    * Add all buffered proof steps into the underlying proof object.
    */
-  void finalize();
+  bool addTo(CDProof * pf);
+  /** Clear */
+  void clear();
  private:
-  /** The proof */
-  CDProof * d_proof;
   /** The proof checker*/
   ProofChecker* d_checker;
   /** the queued proof steps */

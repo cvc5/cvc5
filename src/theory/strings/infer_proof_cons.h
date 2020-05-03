@@ -42,10 +42,9 @@ namespace strings {
 class InferProofCons
 {
  public:
-  InferProofCons(eq::ProofEqEngine& pfee,
-                 SequencesStatistics& statistics,
-                 bool pfEnabled,
-                 ProofChecker* pc);
+  InferProofCons(
+                 ProofChecker* pc,SequencesStatistics& statistics,
+                 bool pfEnabled);
   ~InferProofCons() {}
   /** convert
    *
@@ -72,22 +71,14 @@ class InferProofCons
                  eq::ProofInferInfo& pii);
 
  private:
-  /** The proof checker, if one exists */
-  ProofChecker* d_checker;
+  /** The proof step buffer */
+  ProofStepBuffer d_psb;
   /** The proof-producing equality engine, used for intermediate assertions */
   eq::ProofEqEngine& d_pfee;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** Whether proofs are enabled */
   bool d_pfEnabled;
-  /** Builtin proof checker */
-  builtin::BuiltinProofRuleChecker d_builtinChecker;
-  /** Boolean proof checker */
-  booleans::BoolProofRuleChecker d_boolChecker;
-  /** UF proof checker */
-  uf::UfProofRuleChecker d_ufChecker;
-  /** Strings proof checker */
-  StringProofRuleChecker d_strChecker;
 };
 
 }  // namespace strings

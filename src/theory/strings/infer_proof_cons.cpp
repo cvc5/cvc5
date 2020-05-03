@@ -25,12 +25,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferProofCons::InferProofCons(eq::ProofEqEngine& pfee,
-                               SequencesStatistics& statistics,
-                               bool pfEnabled,
-                               ProofChecker* pc)
-    : d_checker(pc),
-      d_pfee(pfee),
+InferProofCons::InferProofCons(ProofChecker* pc,SequencesStatistics& statistics,
+                 bool pfEnabled)
+    : d_psb(pc),
       d_statistics(statistics),
       d_pfEnabled(pfEnabled)
 {
@@ -124,8 +121,8 @@ PfRule InferProofCons::convert(Inference infer,
       Trace("strings-ipc-debug") << "  e-n: " << ecn << std::endl;
     }
   }
-  // try to find a proof rule to incorporate
-  ProofRuleChecker* tryChecker = nullptr;
+  // try to find a set of proof steps to incorporate into the buffer
+  d_psb.clear();
   NodeManager* nm = NodeManager::currentNM();
   Node nodeIsRev = nm->mkConst(isRev);
   switch (infer)
@@ -141,7 +138,6 @@ PfRule InferProofCons::convert(Inference infer,
       pii.d_args.push_back(conc);
       // will attempt this rule
       pii.d_rule = PfRule::MACRO_SR_PRED_INTRO;
-      tryChecker = &d_builtinChecker;
     }
     break;
     // ========================== substitution + rewriting
@@ -173,7 +169,6 @@ PfRule InferProofCons::convert(Inference infer,
       // need the "extended equality rewrite"
       pii.d_args.push_back(nm->mkConst(Rational(1)));
       pii.d_rule = PfRule::MACRO_SR_PRED_ELIM;
-      tryChecker = &d_builtinChecker;
     }
     break;
     // ========================== equal by substitution+rewriting+CTN_NOT_EQUAL
@@ -259,7 +254,7 @@ PfRule InferProofCons::convert(Inference infer,
                             pii.d_children.begin(),
                             pii.d_children.begin() + mainEqIndex);
         std::vector<Node> argsSRew;
-        Node mainEqSRew = d_builtinChecker.check(
+        Node mainEqSRew = d_psb.tryStep(
             PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
         Trace("strings-ipc-core")
             << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
@@ -268,8 +263,7 @@ PfRule InferProofCons::convert(Inference infer,
         childrenCeq.push_back(mainEqSRew);
         std::vector<Node> argsCeq;
         argsCeq.push_back(nodeIsRev);
-        Node mainEqCeq =
-            d_strChecker.check(PfRule::CONCAT_EQ, childrenCeq, argsCeq);
+        Node mainEqCeq = d_psb.tryStep(PfRule::CONCAT_EQ, childrenCeq, argsCeq);
         Trace("strings-ipc-core")
             << "Main equality after CONCAT_EQ " << mainEqCeq << std::endl;
         if (mainEqCeq.isNull() || mainEqCeq.getKind()!=EQUAL)
@@ -312,8 +306,7 @@ PfRule InferProofCons::convert(Inference infer,
           childrenCu.push_back(lenReq);
           std::vector<Node> argsCu;
           argsCu.push_back(nodeIsRev);
-          Node mainEqCu =
-              d_strChecker.check(PfRule::CONCAT_UNIFY, childrenCu, argsCu);
+          Node mainEqCu = d_psb.tryStep(PfRule::CONCAT_UNIFY, childrenCu, argsCu);
           Trace("strings-ipc-core")
               << "Main equality after CONCAT_UNIFY " << mainEqCu << std::endl;
           if (mainEqCu == conc)
@@ -329,8 +322,7 @@ PfRule InferProofCons::convert(Inference infer,
           childrenC.push_back(mainEqCeq);
           std::vector<Node> argsC;
           argsC.push_back(nodeIsRev);
-          Node mainEqC =
-              d_strChecker.check(PfRule::CONCAT_CONFLICT, childrenC, argsC);
+          Node mainEqC = d_psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
           if (mainEqC == conc)
           {
             Trace("strings-ipc-core") << "...success!" << std::endl;
@@ -369,8 +361,8 @@ PfRule InferProofCons::convert(Inference infer,
       }
       else
       {
+        pii.d_rule = PfRule::SPLIT;
         pii.d_args.push_back(conc[0]);
-        tryChecker = &d_boolChecker;
       }
     }
     break;
@@ -393,7 +385,6 @@ PfRule InferProofCons::convert(Inference infer,
         pii.d_rule = PfRule::STRINGS_REDUCTION;
         // the left hand side of the last conjunct is the term we are reducing
         pii.d_args.push_back(conc[nchild - 1][0]);
-        tryChecker = &d_strChecker;
       }
     }
     break;
@@ -423,12 +414,12 @@ PfRule InferProofCons::convert(Inference infer,
   }
 
   // now see if we would succeed with the checker-to-try
-  if (tryChecker != nullptr)
+  if (pii.d_rule != PfRule::UNKNOWN)
   {
     Trace("strings-ipc") << "For " << infer << ", try proof rule " << pii.d_rule
                          << "...";
     Assert(pii.d_rule != PfRule::UNKNOWN);
-    Node pconc = tryChecker->check(pii.d_rule, pii.d_children, pii.d_args);
+    Node pconc = d_psb.tryStep(pii.d_rule, pii.d_children, pii.d_args);
     if (pconc.isNull() || pconc != conc)
     {
       Trace("strings-ipc") << "failed, pconc is " << pconc << " (expected "
@@ -444,7 +435,6 @@ PfRule InferProofCons::convert(Inference infer,
   {
     Trace("strings-ipc") << "For " << infer << " " << conc
                          << ", no proof rule, failed" << std::endl;
-    Assert(pii.d_rule == PfRule::UNKNOWN);
   }
 
   if (pii.d_rule == PfRule::UNKNOWN)
