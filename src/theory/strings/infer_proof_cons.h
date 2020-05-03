@@ -22,14 +22,9 @@
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_rule.h"
+#include "expr/proof_step_buffer.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
-#include "theory/uf/proof_equality_engine.h"
-
-#include "theory/booleans/proof_checker.h"
-#include "theory/builtin/proof_checker.h"
-#include "theory/strings/proof_checker.h"
-#include "theory/uf/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
