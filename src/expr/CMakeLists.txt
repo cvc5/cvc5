@@ -48,6 +48,8 @@ libcvc4_add_sources(
   proof_node_manager.h
   proof_skolem_cache.cpp
   proof_skolem_cache.h
+  proof_step_buffer.cpp
+  proof_step_buffer.h
   proof_rule.cpp
   proof_rule.h
   symbol_table.cpp

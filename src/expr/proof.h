@@ -27,6 +27,19 @@
 
 namespace CVC4 {
 
+/** Information for constructing a step in the data structure below */
+class ProofStep
+{
+ public:
+  ProofStep(PfRule r, const std::vector<Node>& children, const std::vector<Node>& args ) : d_rule(r), d_children(children), d_args(args) {}
+  /** The proof rule */
+  PfRule d_rule;
+  /** The proof children */
+  std::vector<Node> d_children;
+  /** The proof arguments */
+  std::vector<Node> d_args;
+};
+
 /**
  * A (context-dependent) proof.
  *
@@ -163,6 +176,11 @@ class CDProof
                const std::vector<Node>& args,
                bool ensureChildren = false,
                bool forceOverwrite = false);
+  /** Version with ProofStep */
+  bool addStep(Node expected,
+               ProofStep step,
+               bool ensureChildren = false,
+               bool forceOverwrite = false);
   /** Add proof
    *
    * @param pn The proof of the given fact.
@@ -180,7 +198,8 @@ class CDProof
   bool addProof(ProofNode* pn, bool forceOverwrite = false);
   /** Return true if fact already has a proof step */
   bool hasStep(Node fact) const;
-
+  /** Get the proof manager for this proof */
+  ProofNodeManager* getManager() const;
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;

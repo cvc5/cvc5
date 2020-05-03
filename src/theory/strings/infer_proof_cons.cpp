@@ -69,9 +69,19 @@ PfRule InferProofCons::convert(Inference infer,
 {
   // the conclusion is the same
   pii.d_conc = conc;
-  // must flatten children with respect to AND to be ready to explain
+  // Must flatten children with respect to AND to be ready to explain.
+  // We store the index where each flattened vector begins, since some
+  // explanations are "grouped".
+  size_t expIndex = 0;
+  std::map<size_t, size_t> startExpIndex;
   for (const Node& ec : exp)
   {
+    if (d_pfEnabled)
+    {
+      // store the index in the flattened vector
+      startExpIndex[expIndex] = pii.d_children.size();
+      expIndex++;
+    }
     utils::flattenOp(AND, ec, pii.d_children);
   }
   if (options::stringRExplainLemmas())
@@ -85,6 +95,12 @@ PfRule InferProofCons::convert(Inference infer,
   // now, go back and add the unexplained ones
   for (const Node& ecn : expn)
   {
+    if (d_pfEnabled)
+    {
+      // store the index in the flattened vector
+      startExpIndex[expIndex] = pii.d_children.size();
+      expIndex++;
+    }
     utils::flattenOp(AND, ecn, pii.d_children);
   }
   // only keep stats if we process it here
@@ -181,22 +197,42 @@ PfRule InferProofCons::convert(Inference infer,
     {
       Trace("strings-ipc-core") << "Generate core rule for " << infer
                                 << " (rev=" << isRev << ")" << std::endl;
-      // EXP ^ t = s ^ ...
+      // All of the above inferences have the form:
+      //   <explanation for why t and s have the same prefix/suffix> ^
+      //   t = s ^
+      //  <length constraint>?
+      // We call t=s the "main equality" below. The length constraint is
+      // optional, which we split on below.
       size_t nchild = pii.d_children.size();
       size_t mainEqIndex = 0;
       bool mainEqIndexSet = false;
-      if (infer == Inference::N_UNIFY)
+      // the length constraint
+      std::vector<Node> lenConstraint;
+      // these inferences have a length constraint as the last explain
+      if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY || 
+        infer == Inference::SSPLIT_CST
+                 || infer == Inference::SSPLIT_VAR || infer == Inference::SSPLIT_VAR_PROP
+      )
       {
-        if (nchild >= 2)
+        if (exp.size()>=2)
         {
-          mainEqIndex = nchild - 2;
-          mainEqIndexSet = true;
+          std::map<size_t,size_t>::iterator itsei = startExpIndex.find(exp.size()-1);
+          if (itsei != startExpIndex.end())
+          {
+            // The index of the "main" equality is the last equality before
+            // the length explanation.
+            mainEqIndex = itsei->second - 1;
+            mainEqIndexSet = true;
+            // the remainder is the length constraint
+            lenConstraint.insert(lenConstraint.end(),pii.d_children.begin()+mainEqIndex+1, pii.d_children.end());
+          }
         }
       }
-      else if (infer == Inference::N_ENDPOINT_EQ)
+      else
       {
         if (nchild >= 1)
         {
+          // The index of the main equality is the last child.
           mainEqIndex = nchild - 1;
           mainEqIndexSet = true;
         }
@@ -236,7 +272,7 @@ PfRule InferProofCons::convert(Inference infer,
             d_strChecker.check(PfRule::CONCAT_EQ, childrenCeq, argsCeq);
         Trace("strings-ipc-core")
             << "Main equality after CONCAT_EQ " << mainEqCeq << std::endl;
-        if (mainEqCeq.isNull())
+        if (mainEqCeq.isNull() || mainEqCeq.getKind()!=EQUAL)
         {
           break;
         }
@@ -262,9 +298,18 @@ PfRule InferProofCons::convert(Inference infer,
         }
         else if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY)
         {
+          // the required premise for unify is always len(x) = len(y),
+          // however the explanation may not be literally this. Thus, we
+          // need to reconstruct a proof from the given explanation.
+          Node lenReq = nm->mkNode(STRING_LENGTH, mainEqCeq[0]).eqNode(nm->mkNode(STRING_LENGTH,mainEqCeq[1]));
+          // it should be the case that lenConstraint => lenReq
+          
+          
+          
+          // apply concat unify
           std::vector<Node> childrenCu;
           childrenCu.push_back(mainEqCeq);
-          childrenCu.push_back(pii.d_children[nchild - 1]);
+          childrenCu.push_back(lenReq);
           std::vector<Node> argsCu;
           argsCu.push_back(nodeIsRev);
           Node mainEqCu =
@@ -294,6 +339,10 @@ PfRule InferProofCons::convert(Inference infer,
         else if (infer == Inference::SSPLIT_CST
                  || infer == Inference::SSPLIT_VAR)
         {
+          // it should be the case that lenConstraint => lenReq
+          
+          
+          
         }
         else if (infer == Inference::SSPLIT_CST_PROP)
         {

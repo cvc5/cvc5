@@ -109,6 +109,14 @@ bool CDProof::addStep(Node expected,
   return ret;
 }
 
+bool CDProof::addStep(Node expected,
+              ProofStep step,
+              bool ensureChildren,
+              bool forceOverwrite)
+{
+  return addStep(step.d_rule, step.d_children, step.d_args);
+}
+
 bool CDProof::addProof(ProofNode* pn, bool forceOverwrite)
 {
   std::unordered_map<ProofNode*, bool> visited;
@@ -172,6 +180,11 @@ bool CDProof::hasStep(Node fact) const
   }
   // cannot be an ASSUME
   return true && (*it).second->getRule() != PfRule::ASSUME;
+}
+
+ProofNodeManager* CDProof::getManager() const
+{
+  return d_manager;
 }
 
 }  // namespace CVC4
