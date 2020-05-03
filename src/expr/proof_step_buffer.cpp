@@ -31,19 +31,11 @@ ProofStepBuffer::ProofStepBuffer(CDProof * pf) : d_proof(pf), d_checker(pf->getM
 Node ProofStepBuffer::tryStep(PfRule id, const std::vector<Node>& children, const std::vector<Node>& args,
              Node expected)
 {
-  Node res = d_checker->check(id, children, args);
+  Node res = d_checker->checkDebug(id, children, args,expected,"pf-step-buffer");
   if (!res.isNull())
   {
-    if (expected.isNull() || expected==res)
-    {
-      // add proof step
-      d_steps.push_back(std::pair<Node,ProofStep>(res,ProofStep(id, children, args)));
-    }
-    else
-    {
-      // did not match provided expected value
-      res = Node::null();
-    }
+    // add proof step
+    d_steps.push_back(std::pair<Node,ProofStep>(res,ProofStep(id, children, args)));
   }
   return res;
 }
