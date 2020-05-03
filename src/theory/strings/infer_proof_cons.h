@@ -66,7 +66,7 @@ class InferProofCons
                  const std::vector<Node>& expn,
                  eq::ProofInferInfo& pii);
   /** Get the proof step buffer */
-  ProofStepBuffer * getBuffer() const;
+  ProofStepBuffer * getBuffer();
  private:
   /** The proof step buffer */
   ProofStepBuffer d_psb;

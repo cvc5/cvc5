@@ -471,7 +471,7 @@ PfRule InferProofCons::convert(Inference infer,
   return pii.d_rule;
 }
 
-ProofStepBuffer * InferProofCons::getBuffer() const
+ProofStepBuffer * InferProofCons::getBuffer()
 {
   return &d_psb;
 }
