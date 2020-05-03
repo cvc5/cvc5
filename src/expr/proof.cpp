@@ -114,7 +114,7 @@ bool CDProof::addStep(Node expected,
               bool ensureChildren,
               bool forceOverwrite)
 {
-  return addStep(step.d_rule, step.d_children, step.d_args);
+  return addStep(expected, step.d_rule, step.d_children, step.d_args);
 }
 
 bool CDProof::addProof(ProofNode* pn, bool forceOverwrite)
