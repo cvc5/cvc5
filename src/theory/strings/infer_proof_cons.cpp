@@ -142,6 +142,7 @@ PfRule InferProofCons::convert(Inference infer,
       // pii.d_args.push_back(conc[0]);
       // pii.d_rule = PfRule::MACRO_SR_EQ_INTRO;
       // tryChecker = &d_builtinChecker;
+      // This doesn't quite work due for symbolic lemmas.
     }
     break;
     // ========================== substitution+rewriting+Boolean entailment

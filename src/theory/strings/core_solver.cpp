@@ -1071,9 +1071,13 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           << "Simple Case 2 : string lengths are equal" << std::endl;
       Node eq = x.eqNode(y);
       Node leneq = xLenTerm.eqNode(yLenTerm);
-      NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, lenExp);
+      std::vector<Node> ant;
+      NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, ant);
       lenExp.push_back(leneq);
-      d_im.sendInference(lenExp, eq, Inference::N_UNIFY, isRev);
+      // add explanation for length
+      Node lant = utils::mkAnd(lenExp);
+      ant.push_back(lant);
+      d_im.sendInference(ant, eq, Inference::N_UNIFY, isRev);
       break;
     }
     else if ((!x.isConst() && index == nfiv.size() - rproc - 1)
