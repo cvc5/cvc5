@@ -241,6 +241,8 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
       << "Check flat form for a = " << a << ", whose flat form is "
       << d_flat_form[a] << ")" << std::endl;
   Node b;
+  // the length explanation
+  Node lant;
   do
   {
     std::vector<Node> exp;
@@ -372,10 +374,11 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
                     Trace("strings-ff-debug") << lexp2[j] << std::endl;
                   }
                 }
-
-                exp.insert(exp.end(), lexp.begin(), lexp.end());
-                exp.insert(exp.end(), lexp2.begin(), lexp2.end());
-                d_im.addToExplanation(lcurr, lcc, exp);
+                std::vector<Node> lexp;
+                lexp.insert(lexp.end(), lexp.begin(), lexp.end());
+                lexp.insert(lexp.end(), lexp2.begin(), lexp2.end());
+                d_im.addToExplanation(lcurr, lcc, lexp);
+                lant = utils::mkAnd(lexp);
                 conc = ac.eqNode(bc);
                 infType = Inference::F_UNIFY;
                 break;
@@ -390,7 +393,6 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
       Trace("strings-ff-debug") << "Found inference (" << infType
                                 << "): " << conc << " based on equality " << a
                                 << " == " << b << ", " << isRev << std::endl;
-      d_im.addToExplanation(a, b, exp);
       // explain why prefixes up to now were the same
       for (size_t j = 0; j < count; j++)
       {
@@ -426,6 +428,12 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
             d_im.addToExplanation(c[j], emp, exp);
           }
         }
+      }
+      d_im.addToExplanation(a, b, exp);
+      if (!lant.isNull())
+      {
+        // add the length explanation
+        exp.push_back(lant);
       }
       // Notice that F_EndpointEmp is not typically applied, since
       // strict prefix equality ( a.b = a ) where a,b non-empty
@@ -1074,7 +1082,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       std::vector<Node> ant;
       NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, ant);
       lenExp.push_back(leneq);
-      // add explanation for length
+      // set the explanation for length
       Node lant = utils::mkAnd(lenExp);
       ant.push_back(lant);
       d_im.sendInference(ant, eq, Inference::N_UNIFY, isRev);

@@ -240,16 +240,24 @@ PfRule InferProofCons::convert(Inference infer,
         {
           break;
         }
+        // Now, mainEqCeq is an equality t ++ ... == s ++ ... where the
+        // inference involved t and s.
         if (infer == Inference::N_ENDPOINT_EQ
             || infer == Inference::N_ENDPOINT_EMP
             || infer == Inference::F_ENDPOINT_EQ
             || infer == Inference::F_ENDPOINT_EMP)
         {
-          // should be equal to conclusion already
+          // could be equal to conclusion already
           if (mainEqCeq == conc)
           {
             // success
             Trace("strings-ipc-core") << "...success!" << std::endl;
+          }
+          else
+          {
+            // TODO: EMP variants are ti = "" where t1 ++ ... ++ tn == "",
+            // however, these are very rare applied, let alone for
+            // 2+ children.
           }
         }
         else if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY)
@@ -277,7 +285,7 @@ PfRule InferProofCons::convert(Inference infer,
           std::vector<Node> argsC;
           argsC.push_back(nodeIsRev);
           Node mainEqC =
-              d_strChecker.check(PfRule::CONCAT_UNIFY, childrenC, argsC);
+              d_strChecker.check(PfRule::CONCAT_CONFLICT, childrenC, argsC);
           if (mainEqC == conc)
           {
             Trace("strings-ipc-core") << "...success!" << std::endl;

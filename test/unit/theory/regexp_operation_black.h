@@ -20,6 +20,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/skolem_cache.h"
+#include "theory/rewriter.h"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>
