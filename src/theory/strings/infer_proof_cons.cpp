@@ -471,6 +471,11 @@ PfRule InferProofCons::convert(Inference infer,
   return pii.d_rule;
 }
 
+ProofStepBuffer * InferProofCons::getBuffer() const
+{
+  return &d_psb;
+}
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4

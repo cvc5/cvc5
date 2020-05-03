@@ -65,12 +65,11 @@ class InferProofCons
                  const std::vector<Node>& exp,
                  const std::vector<Node>& expn,
                  eq::ProofInferInfo& pii);
-
+  /** Get the proof step buffer */
+  ProofStepBuffer * getBuffer() const;
  private:
   /** The proof step buffer */
   ProofStepBuffer d_psb;
-  /** The proof-producing equality engine, used for intermediate assertions */
-  eq::ProofEqEngine& d_pfee;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** Whether proofs are enabled */
