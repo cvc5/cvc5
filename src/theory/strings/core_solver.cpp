@@ -374,11 +374,11 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
                     Trace("strings-ff-debug") << lexp2[j] << std::endl;
                   }
                 }
-                std::vector<Node> lexp;
-                lexp.insert(lexp.end(), lexp.begin(), lexp.end());
-                lexp.insert(lexp.end(), lexp2.begin(), lexp2.end());
-                d_im.addToExplanation(lcurr, lcc, lexp);
-                lant = utils::mkAnd(lexp);
+                std::vector<Node> lexpc;
+                lexpc.insert(lexpc.end(), lexp.begin(), lexp.end());
+                lexpc.insert(lexpc.end(), lexp2.begin(), lexp2.end());
+                d_im.addToExplanation(lcurr, lcc, lexpc);
+                lant = utils::mkAnd(lexpc);
                 conc = ac.eqNode(bc);
                 infType = Inference::F_UNIFY;
                 break;
