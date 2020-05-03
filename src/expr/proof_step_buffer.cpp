@@ -25,7 +25,7 @@ namespace CVC4 {
 
 ProofStepBuffer::ProofStepBuffer(ProofChecker * pc) : d_checker(pc)
 {
-  Assert(d_checker!=nullptr) << "ProofStepBuffer::ProofStepBuffer: no proof checker in the underlying CDProof object.";
+  Assert(d_checker!=nullptr) << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
 }
 
 Node ProofStepBuffer::tryStep(PfRule id, const std::vector<Node>& children, const std::vector<Node>& args,

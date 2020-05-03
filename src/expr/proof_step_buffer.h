@@ -33,7 +33,7 @@ namespace CVC4 {
 class ProofStepBuffer
 {
  public:
-  ProofStepBuffer(CDProof * pf);
+  ProofStepBuffer(ProofChecker * pc);
   ~ProofStepBuffer() {}
   /**
    * Returns the conclusion of the proof step, as determined by the proof
