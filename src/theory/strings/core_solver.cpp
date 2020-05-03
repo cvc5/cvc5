@@ -36,7 +36,11 @@ CoreSolver::CoreSolver(SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr,
                        BaseSolver& bs)
-    : d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs), d_nfPairs(s.getSatContext())
+    : d_state(s),
+      d_im(im),
+      d_termReg(tr),
+      d_bsolver(bs),
+      d_nfPairs(s.getSatContext())
 {
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );

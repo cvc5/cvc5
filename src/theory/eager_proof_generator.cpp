@@ -57,9 +57,10 @@ bool EagerProofGenerator::hasProofFor(Node f)
   return d_proofs.find(f) != d_proofs.end();
 }
 
-TrustNode EagerProofGenerator::mkTrustNode( Node n, std::shared_ptr<ProofNode> pf)
+TrustNode EagerProofGenerator::mkTrustNode(Node n,
+                                           std::shared_ptr<ProofNode> pf)
 {
-  if (pf==nullptr)
+  if (pf == nullptr)
   {
     return TrustNode::null();
   }
@@ -69,7 +70,9 @@ TrustNode EagerProofGenerator::mkTrustNode( Node n, std::shared_ptr<ProofNode> p
   return TrustNode::mkTrustLemma(n, this);
 }
 
-TrustNode EagerProofGenerator::mkTrustNode(Node n, PfRule id, const std::vector<Node>& args)
+TrustNode EagerProofGenerator::mkTrustNode(Node n,
+                                           PfRule id,
+                                           const std::vector<Node>& args)
 {
   std::vector<std::shared_ptr<ProofNode>> children;
   std::shared_ptr<ProofNode> pf = d_pnm->mkNode(id, children, args, n);

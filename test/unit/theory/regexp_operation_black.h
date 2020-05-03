@@ -152,7 +152,7 @@ class RegexpOperationBlack : public CxxTest::TestSuite
   ExprManager* d_em;
   SmtEngine* d_smt;
   SmtScope* d_scope;
-  SkolemCache * d_skc;
+  SkolemCache* d_skc;
   RegExpOpr* d_regExpOpr;
 
   NodeManager* d_nm;

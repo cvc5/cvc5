@@ -87,10 +87,10 @@ class EagerProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Can we give the proof for formula f? */
   bool hasProofFor(Node f) override;
-  /** 
+  /**
    * Make trust node: wrap n in a trust node with this generator, and have it
-   * store the proof pf to 
-   * 
+   * store the proof pf to
+   *
    * @param n The proven node,
    * @param pf The proof of n
    * @return The trust node corresponding to the fact that this generator has
@@ -112,6 +112,7 @@ class EagerProofGenerator : public ProofGenerator
   //--------------------------------------- end common proofs
   /** identify */
   std::string identify() const override { return "EagerProofGenerator"; }
+
  protected:
   /** Set that pf is the proof for conflict conf */
   void setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf);

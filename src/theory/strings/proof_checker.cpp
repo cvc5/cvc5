@@ -16,8 +16,8 @@
 
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_operation.h"
-#include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/term_registry.h"
+#include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -184,14 +184,15 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   {
     // TODO
   }
-  else if (id == PfRule::STRINGS_REDUCTION || id==PfRule::STRINGS_EAGER_REDUCTION)
+  else if (id == PfRule::STRINGS_REDUCTION
+           || id == PfRule::STRINGS_EAGER_REDUCTION)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     // must convert to skolem form
     Node t = ProofSkolemCache::getSkolemForm(args[0]);
     Node ret;
-    if (id==PfRule::STRINGS_REDUCTION)
+    if (id == PfRule::STRINGS_REDUCTION)
     {
       // TODO: eliminate optimizations
       SkolemCache sc;
@@ -200,7 +201,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       conj.push_back(t.eqNode(ret));
       ret = mkAnd(conj);
     }
-    else if (id==PfRule::STRINGS_EAGER_REDUCTION)
+    else if (id == PfRule::STRINGS_EAGER_REDUCTION)
     {
       ret = TermRegistry::eagerReduce(t);
     }
@@ -213,7 +214,6 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::RE_INTER)
   {
-    
   }
   else if (id == PfRule::RE_UNFOLD_POS || id == PfRule::RE_UNFOLD_NEG)
   {

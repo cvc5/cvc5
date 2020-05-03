@@ -139,9 +139,9 @@ PfRule InferProofCons::convert(Inference infer,
       tryChecker = &d_builtinChecker;
       // minor optimization: apply to LHS of equality (RHS is already reduced)
       // although notice the case above is also a valid proof.
-      //pii.d_args.push_back(conc[0]);
-      //pii.d_rule = PfRule::MACRO_SR_EQ_INTRO;
-      //tryChecker = &d_builtinChecker;
+      // pii.d_args.push_back(conc[0]);
+      // pii.d_rule = PfRule::MACRO_SR_EQ_INTRO;
+      // tryChecker = &d_builtinChecker;
     }
     break;
     // ========================== substitution+rewriting+Boolean entailment
@@ -239,35 +239,36 @@ PfRule InferProofCons::convert(Inference infer,
         {
           break;
         }
-        if (infer==Inference::N_ENDPOINT_EQ || infer==Inference::N_ENDPOINT_EMP || infer==Inference::F_ENDPOINT_EQ || infer==Inference::F_ENDPOINT_EMP)
+        if (infer == Inference::N_ENDPOINT_EQ
+            || infer == Inference::N_ENDPOINT_EMP
+            || infer == Inference::F_ENDPOINT_EQ
+            || infer == Inference::F_ENDPOINT_EMP)
         {
           // should be equal to conclusion already
-          if (mainEqCeq==conc)
+          if (mainEqCeq == conc)
           {
             // success
-            Trace("strings-ipc-core")
-                << "...success!" << std::endl;
+            Trace("strings-ipc-core") << "...success!" << std::endl;
           }
         }
-        else if (infer==Inference::N_UNIFY || infer==Inference::F_UNIFY)
+        else if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY)
         {
           std::vector<Node> childrenCu;
           childrenCu.push_back(mainEqCeq);
-          childrenCu.push_back(pii.d_children[nchild-1]);
+          childrenCu.push_back(pii.d_children[nchild - 1]);
           std::vector<Node> argsCu;
           argsCu.push_back(nodeIsRev);
           Node mainEqCu =
               d_strChecker.check(PfRule::CONCAT_UNIFY, childrenCu, argsCu);
           Trace("strings-ipc-core")
               << "Main equality after CONCAT_UNIFY " << mainEqCu << std::endl;
-          if (mainEqCu==conc)
+          if (mainEqCu == conc)
           {
             // success
-            Trace("strings-ipc-core")
-                << "...success!" << std::endl;
+            Trace("strings-ipc-core") << "...success!" << std::endl;
           }
         }
-        else if (infer==Inference::N_CONST || infer==Inference::F_CONST)
+        else if (infer == Inference::N_CONST || infer == Inference::F_CONST)
         {
           // should be a constant conflict
           std::vector<Node> childrenC;
@@ -276,22 +277,20 @@ PfRule InferProofCons::convert(Inference infer,
           argsC.push_back(nodeIsRev);
           Node mainEqC =
               d_strChecker.check(PfRule::CONCAT_UNIFY, childrenC, argsC);
-          if (mainEqC==conc)
+          if (mainEqC == conc)
           {
-            Trace("strings-ipc-core")
-                << "...success!" << std::endl;
+            Trace("strings-ipc-core") << "...success!" << std::endl;
           }
         }
-        else if (infer==Inference::SSPLIT_CST || infer==Inference::SSPLIT_VAR)
+        else if (infer == Inference::SSPLIT_CST
+                 || infer == Inference::SSPLIT_VAR)
         {
         }
-        else if (infer==Inference::SSPLIT_CST_PROP)
+        else if (infer == Inference::SSPLIT_CST_PROP)
         {
-          
         }
-        else if (infer==Inference::SSPLIT_VAR_PROP)
+        else if (infer == Inference::SSPLIT_VAR_PROP)
         {
-          
         }
       }
     }

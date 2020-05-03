@@ -18,8 +18,8 @@
 #define CVC4__THEORY__TRUST_NODE_H
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
 #include "expr/proof_generator.h"
+#include "expr/proof_node.h"
 
 namespace CVC4 {
 

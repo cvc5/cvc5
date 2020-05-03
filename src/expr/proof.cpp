@@ -171,7 +171,7 @@ bool CDProof::hasStep(Node fact) const
     return false;
   }
   // cannot be an ASSUME
-  return true && (*it).second->getRule()!=PfRule::ASSUME;
+  return true && (*it).second->getRule() != PfRule::ASSUME;
 }
 
 }  // namespace CVC4

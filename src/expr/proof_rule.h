@@ -301,7 +301,7 @@ enum class PfRule : uint32_t
   // Arguments: (b), indicating if reverse direction
   // ---------------------
   // Conclusion: false
-  // Where c1, c2 are constants such that Word::splitConstant(c1,c2,...,b) 
+  // Where c1, c2 are constants such that Word::splitConstant(c1,c2,...,b)
   // is null.
   CONCAT_CONFLICT,
   // ======== Concat split
@@ -336,7 +336,7 @@ enum class PfRule : uint32_t
   // Children: none
   // Arguments: (t)
   // ---------------------
-  // Conclusion: (and R (= t w)) 
+  // Conclusion: (and R (= t w))
   // where w = StringsPreprocess::reduce(t, R, ...).
   // In other words, R is the reduction predicate for extended term t, and w is
   //   (witness ((z T)) (= z t))
@@ -348,7 +348,8 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: R
   // where R = StringsPreprocess::eagerReduce(t).
-  // In other words, R is the reduction predicate for extended term t[x], and w is
+  // In other words, R is the reduction predicate for extended term t[x], and w
+  // is
   //   (witness ((z T)) (= z t[x]))
   STRINGS_EAGER_REDUCTION,
   //======================== Regular expressions

@@ -60,7 +60,8 @@ Node BuiltinProofRuleChecker::applySubstitutionRewrite(
 
 Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, uint32_t id)
 {
-  Trace("builtin-pfcheck-debug") << "applyRewriteExternal (" << id << "): " << n  << std::endl;
+  Trace("builtin-pfcheck-debug")
+      << "applyRewriteExternal (" << id << "): " << n << std::endl;
   // index determines the kind of rewriter
   if (id == 0)
   {
@@ -161,7 +162,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       if (!getIndex(args[1], idRewriter))
       {
-        Trace("builtin-pfcheck") << "Failed to get id from " << args[1] << std::endl;
+        Trace("builtin-pfcheck")
+            << "Failed to get id from " << args[1] << std::endl;
         return Node::null();
       }
     }
@@ -170,7 +172,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::MACRO_SR_PRED_INTRO)
   {
-    Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " " << args.size() << std::endl;
+    Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
+                             << args.size() << std::endl;
     // NOTE: technically a macro:
     // (TRUE_ELIM
     //   (MACRO_SR_EQ_INTRO <children> <args>[0]))
@@ -180,7 +183,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       if (!getIndex(args[1], idRewriter))
       {
-        Trace("builtin-pfcheck") << "Failed to get id from " << args[1] << std::endl;
+        Trace("builtin-pfcheck")
+            << "Failed to get id from " << args[1] << std::endl;
         return Node::null();
       }
     }
@@ -190,14 +194,16 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     res = Rewriter::rewrite(res);
     if (!res.isConst() || !res.getConst<bool>())
     {
-      Trace("builtin-pfcheck") << "Failed to rewrite to true, res=" << res << std::endl;
+      Trace("builtin-pfcheck")
+          << "Failed to rewrite to true, res=" << res << std::endl;
       return Node::null();
     }
     return args[0];
   }
   else if (id == PfRule::MACRO_SR_PRED_ELIM)
   {
-    Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " " << args.size() << std::endl;
+    Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
+                             << args.size() << std::endl;
     Assert(children.size() >= 1);
     Assert(args.size() <= 1);
     // NOTE: technically a macro:
@@ -212,13 +218,15 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       if (!getIndex(args[0], idRewriter))
       {
-        Trace("builtin-pfcheck") << "Failed to get id from " << args[0] << std::endl;
+        Trace("builtin-pfcheck")
+            << "Failed to get id from " << args[0] << std::endl;
         return Node::null();
       }
     }
     Node res = applySubstitutionRewrite(children[0], exp, idRewriter);
-    
-    Trace("builtin-pfcheck") << "Returned " << res << " from " << children[0] << std::endl;
+
+    Trace("builtin-pfcheck")
+        << "Returned " << res << " from " << children[0] << std::endl;
     return res;
   }
   // no rule

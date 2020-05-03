@@ -66,7 +66,7 @@ TermRegistry::~TermRegistry() {}
 
 Node TermRegistry::eagerReduce(Node t)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node lemma;
   Kind tk = t.getKind();
   if (tk == STRING_TO_CODE)
@@ -86,8 +86,8 @@ Node TermRegistry::eagerReduce(Node t)
     // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len x)))
     Node l = utils::mkNLength(t[0]);
     lemma = nm->mkNode(AND,
-                          nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
-                          nm->mkNode(LEQ, t, l));
+                       nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
+                       nm->mkNode(LEQ, t, l));
   }
   else if (tk == STRING_STOI)
   {

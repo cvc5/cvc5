@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "expr/proof.h"
-#include "expr/proof_node_manager.h"
 #include "expr/proof_generator.h"
+#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 

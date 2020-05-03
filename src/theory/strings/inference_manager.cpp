@@ -53,8 +53,11 @@ InferenceManager::InferenceManager(SolverState& s,
 void InferenceManager::finishInit(ProofNodeManager* pnm)
 {
   // now that proof node manager is setup, we initialize proof equality engine
-  d_pfee.reset(new eq::ProofEqEngine(
-      d_state.getSatContext(), d_state.getUserContext(), *d_state.getEqualityEngine(), pnm, d_pfEnabled));
+  d_pfee.reset(new eq::ProofEqEngine(d_state.getSatContext(),
+                                     d_state.getUserContext(),
+                                     *d_state.getEqualityEngine(),
+                                     pnm,
+                                     d_pfEnabled));
   d_ipc.reset(new InferProofCons(
       *d_pfee, d_statistics, d_pfEnabled, pnm->getChecker()));
 }

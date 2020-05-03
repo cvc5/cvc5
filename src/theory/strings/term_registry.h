@@ -20,12 +20,12 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/proof_node_manager.h"
-#include "theory/output_channel.h"
 #include "theory/eager_proof_generator.h"
-#include "theory/strings/solver_state.h"
+#include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
+#include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -58,12 +58,12 @@ class TermRegistry
   /** finish init */
   void finishInit(ProofNodeManager* pnm);
   /** The eager reduce routine
-   * 
+   *
    * Constructs a lemma for t that is incomplete, but communicates pertinent
    * information about t. This is analogous to StringsPreprocess::reduce.
-   * 
+   *
    * In practice, we send this lemma eagerly, as soon as t is registered.
-   * 
+   *
    * @param t The node to reduce,
    * @return The eager reduction for t.
    */
