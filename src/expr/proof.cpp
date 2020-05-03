@@ -110,9 +110,9 @@ bool CDProof::addStep(Node expected,
 }
 
 bool CDProof::addStep(Node expected,
-              ProofStep step,
-              bool ensureChildren,
-              bool forceOverwrite)
+                      ProofStep step,
+                      bool ensureChildren,
+                      bool forceOverwrite)
 {
   return addStep(expected, step.d_rule, step.d_children, step.d_args);
 }
@@ -182,9 +182,6 @@ bool CDProof::hasStep(Node fact) const
   return true && (*it).second->getRule() != PfRule::ASSUME;
 }
 
-ProofNodeManager* CDProof::getManager() const
-{
-  return d_manager;
-}
+ProofNodeManager* CDProof::getManager() const { return d_manager; }
 
 }  // namespace CVC4

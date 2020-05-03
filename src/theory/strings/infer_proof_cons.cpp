@@ -25,11 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferProofCons::InferProofCons(ProofChecker* pc,SequencesStatistics& statistics,
-                 bool pfEnabled)
-    : d_psb(pc),
-      d_statistics(statistics),
-      d_pfEnabled(pfEnabled)
+InferProofCons::InferProofCons(ProofChecker* pc,
+                               SequencesStatistics& statistics,
+                               bool pfEnabled)
+    : d_psb(pc), d_statistics(statistics), d_pfEnabled(pfEnabled)
 {
 }
 
@@ -202,14 +201,14 @@ PfRule InferProofCons::convert(Inference infer,
       // the length constraint
       std::vector<Node> lenConstraint;
       // these inferences have a length constraint as the last explain
-      if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY || 
-        infer == Inference::SSPLIT_CST
-                 || infer == Inference::SSPLIT_VAR || infer == Inference::SSPLIT_VAR_PROP
-      )
+      if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY
+          || infer == Inference::SSPLIT_CST || infer == Inference::SSPLIT_VAR
+          || infer == Inference::SSPLIT_VAR_PROP)
       {
-        if (exp.size()>=2)
+        if (exp.size() >= 2)
         {
-          std::map<size_t,size_t>::iterator itsei = startExpIndex.find(exp.size()-1);
+          std::map<size_t, size_t>::iterator itsei =
+              startExpIndex.find(exp.size() - 1);
           if (itsei != startExpIndex.end())
           {
             // The index of the "main" equality is the last equality before
@@ -217,7 +216,9 @@ PfRule InferProofCons::convert(Inference infer,
             mainEqIndex = itsei->second - 1;
             mainEqIndexSet = true;
             // the remainder is the length constraint
-            lenConstraint.insert(lenConstraint.end(),pii.d_children.begin()+mainEqIndex+1, pii.d_children.end());
+            lenConstraint.insert(lenConstraint.end(),
+                                 pii.d_children.begin() + mainEqIndex + 1,
+                                 pii.d_children.end());
           }
         }
       }
@@ -252,8 +253,8 @@ PfRule InferProofCons::convert(Inference infer,
                             pii.d_children.begin(),
                             pii.d_children.begin() + mainEqIndex);
         std::vector<Node> argsSRew;
-        Node mainEqSRew = d_psb.tryStep(
-            PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
+        Node mainEqSRew =
+            d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
         Trace("strings-ipc-core")
             << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
         // now, apply CONCAT_EQ to get the remainder
@@ -264,7 +265,7 @@ PfRule InferProofCons::convert(Inference infer,
         Node mainEqCeq = d_psb.tryStep(PfRule::CONCAT_EQ, childrenCeq, argsCeq);
         Trace("strings-ipc-core")
             << "Main equality after CONCAT_EQ " << mainEqCeq << std::endl;
-        if (mainEqCeq.isNull() || mainEqCeq.getKind()!=EQUAL)
+        if (mainEqCeq.isNull() || mainEqCeq.getKind() != EQUAL)
         {
           break;
         }
@@ -293,18 +294,18 @@ PfRule InferProofCons::convert(Inference infer,
           // the required premise for unify is always len(x) = len(y),
           // however the explanation may not be literally this. Thus, we
           // need to reconstruct a proof from the given explanation.
-          Node lenReq = nm->mkNode(STRING_LENGTH, mainEqCeq[0]).eqNode(nm->mkNode(STRING_LENGTH,mainEqCeq[1]));
+          Node lenReq = nm->mkNode(STRING_LENGTH, mainEqCeq[0])
+                            .eqNode(nm->mkNode(STRING_LENGTH, mainEqCeq[1]));
           // it should be the case that lenConstraint => lenReq
-          
-          
-          
+
           // apply concat unify
           std::vector<Node> childrenCu;
           childrenCu.push_back(mainEqCeq);
           childrenCu.push_back(lenReq);
           std::vector<Node> argsCu;
           argsCu.push_back(nodeIsRev);
-          Node mainEqCu = d_psb.tryStep(PfRule::CONCAT_UNIFY, childrenCu, argsCu);
+          Node mainEqCu =
+              d_psb.tryStep(PfRule::CONCAT_UNIFY, childrenCu, argsCu);
           Trace("strings-ipc-core")
               << "Main equality after CONCAT_UNIFY " << mainEqCu << std::endl;
           if (mainEqCu == conc)
@@ -320,7 +321,8 @@ PfRule InferProofCons::convert(Inference infer,
           childrenC.push_back(mainEqCeq);
           std::vector<Node> argsC;
           argsC.push_back(nodeIsRev);
-          Node mainEqC = d_psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
+          Node mainEqC =
+              d_psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
           if (mainEqC == conc)
           {
             Trace("strings-ipc-core") << "...success!" << std::endl;
@@ -330,9 +332,6 @@ PfRule InferProofCons::convert(Inference infer,
                  || infer == Inference::SSPLIT_VAR)
         {
           // it should be the case that lenConstraint => lenReq
-          
-          
-          
         }
         else if (infer == Inference::SSPLIT_CST_PROP)
         {
@@ -471,10 +470,7 @@ PfRule InferProofCons::convert(Inference infer,
   return pii.d_rule;
 }
 
-ProofStepBuffer * InferProofCons::getBuffer()
-{
-  return &d_psb;
-}
+ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }
 
 }  // namespace strings
 }  // namespace theory

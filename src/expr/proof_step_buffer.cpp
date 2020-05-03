@@ -23,29 +23,34 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ProofStepBuffer::ProofStepBuffer(ProofChecker * pc) : d_checker(pc)
+ProofStepBuffer::ProofStepBuffer(ProofChecker* pc) : d_checker(pc)
 {
-  Assert(d_checker!=nullptr) << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
+  Assert(d_checker != nullptr)
+      << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
 }
 
-Node ProofStepBuffer::tryStep(PfRule id, const std::vector<Node>& children, const std::vector<Node>& args,
-             Node expected)
+Node ProofStepBuffer::tryStep(PfRule id,
+                              const std::vector<Node>& children,
+                              const std::vector<Node>& args,
+                              Node expected)
 {
-  Node res = d_checker->checkDebug(id, children, args,expected,"pf-step-buffer");
+  Node res =
+      d_checker->checkDebug(id, children, args, expected, "pf-step-buffer");
   if (!res.isNull())
   {
     // add proof step
-    d_steps.push_back(std::pair<Node,ProofStep>(res,ProofStep(id, children, args)));
+    d_steps.push_back(
+        std::pair<Node, ProofStep>(res, ProofStep(id, children, args)));
   }
   return res;
 }
 
-bool ProofStepBuffer::addTo(CDProof * pf)
+bool ProofStepBuffer::addTo(CDProof* pf)
 {
   // add each of the steps
-  for (const std::pair<Node,ProofStep>& ps : d_steps)
+  for (const std::pair<Node, ProofStep>& ps : d_steps)
   {
-    if (!pf->addStep(ps.first,ps.second))
+    if (!pf->addStep(ps.first, ps.second))
     {
       return false;
     }
@@ -53,9 +58,6 @@ bool ProofStepBuffer::addTo(CDProof * pf)
   return true;
 }
 
-void ProofStepBuffer::clear()
-{
-  d_steps.clear();
-}
+void ProofStepBuffer::clear() { d_steps.clear(); }
 
 }  // namespace CVC4

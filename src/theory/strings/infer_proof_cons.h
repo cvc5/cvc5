@@ -38,8 +38,8 @@ namespace strings {
 class InferProofCons
 {
  public:
-  InferProofCons(
-                 ProofChecker* pc,SequencesStatistics& statistics,
+  InferProofCons(ProofChecker* pc,
+                 SequencesStatistics& statistics,
                  bool pfEnabled);
   ~InferProofCons() {}
   /** convert
@@ -66,7 +66,8 @@ class InferProofCons
                  const std::vector<Node>& expn,
                  eq::ProofInferInfo& pii);
   /** Get the proof step buffer */
-  ProofStepBuffer * getBuffer();
+  ProofStepBuffer* getBuffer();
+
  private:
   /** The proof step buffer */
   ProofStepBuffer d_psb;

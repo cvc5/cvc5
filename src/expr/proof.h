@@ -31,7 +31,12 @@ namespace CVC4 {
 class ProofStep
 {
  public:
-  ProofStep(PfRule r, const std::vector<Node>& children, const std::vector<Node>& args ) : d_rule(r), d_children(children), d_args(args) {}
+  ProofStep(PfRule r,
+            const std::vector<Node>& children,
+            const std::vector<Node>& args)
+      : d_rule(r), d_children(children), d_args(args)
+  {
+  }
   /** The proof rule */
   PfRule d_rule;
   /** The proof children */
@@ -200,6 +205,7 @@ class CDProof
   bool hasStep(Node fact) const;
   /** Get the proof manager for this proof */
   ProofNodeManager* getManager() const;
+
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;
