@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof_generator.cpp
+/*! \file eager_proof_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,7 +12,7 @@
  ** \brief Implementation of the abstract proof generator class
  **/
 
-#include "theory/proof_generator.h"
+#include "theory/eager_proof_generator.h"
 
 #include "expr/proof_node_manager.h"
 #include "theory/proof_engine_output_channel.h"
@@ -55,6 +55,25 @@ std::shared_ptr<ProofNode> EagerProofGenerator::getProofFor(Node f)
 bool EagerProofGenerator::hasProofFor(Node f)
 {
   return d_proofs.find(f) != d_proofs.end();
+}
+
+TrustNode EagerProofGenerator::mkTrustNode( Node n, std::shared_ptr<ProofNode> pf)
+{
+  if (pf==nullptr)
+  {
+    return TrustNode::null();
+  }
+  // this shouldnt modify the key
+  setProofForLemma(n, pf);
+  // we can now return the trust node
+  return TrustNode::mkTrustLemma(n, this);
+}
+
+TrustNode EagerProofGenerator::mkTrustNode(Node n, PfRule id, const std::vector<Node>& args)
+{
+  std::vector<std::shared_ptr<ProofNode>> children;
+  std::shared_ptr<ProofNode> pf = d_pnm->mkNode(id, children, args, n);
+  return mkTrustNode(n, pf);
 }
 
 TrustNode EagerProofGenerator::assertSplit(Node f)

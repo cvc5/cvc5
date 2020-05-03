@@ -27,9 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-ExtfSolver::ExtfSolver(context::Context* c,
-                       context::UserContext* u,
-                       SolverState& s,
+ExtfSolver::ExtfSolver(SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr,
                        StringsRewriter& rewriter,
@@ -45,10 +43,10 @@ ExtfSolver::ExtfSolver(context::Context* c,
       d_csolver(cs),
       d_extt(et),
       d_statistics(statistics),
-      d_preproc(d_termReg.getSkolemCache(), u, statistics),
-      d_hasExtf(c, false),
-      d_extfInferCache(c),
-      d_reduced(u)
+      d_preproc(d_termReg.getSkolemCache(), s.getUserContext(), statistics),
+      d_hasExtf(s.getSatContext(), false),
+      d_extfInferCache(s.getSatContext()),
+      d_reduced(s.getUserContext())
 {
   d_extt.addFunctionKind(kind::STRING_SUBSTR);
   d_extt.addFunctionKind(kind::STRING_STRIDOF);

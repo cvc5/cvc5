@@ -35,24 +35,24 @@ struct StringsProxyVarAttributeId
 typedef expr::Attribute<StringsProxyVarAttributeId, bool>
     StringsProxyVarAttribute;
 
-TermRegistry::TermRegistry(context::Context* c,
-                           context::UserContext* u,
+TermRegistry::TermRegistry(SolverState& s,
                            eq::EqualityEngine& ee,
                            OutputChannel& out,
                            SequencesStatistics& statistics,
                            bool pfEnabled)
-    : d_ee(ee),
+    : d_state(s),
+      d_ee(ee),
       d_out(out),
       d_statistics(statistics),
       d_hasStrCode(false),
-      d_functionsTerms(c),
-      d_inputVars(u),
-      d_preregisteredTerms(u),
-      d_registeredTerms(u),
-      d_registeredTypes(u),
-      d_proxyVar(u),
-      d_proxyVarToLength(u),
-      d_lengthLemmaTermsCache(u),
+      d_functionsTerms(s.getSatContext()),
+      d_inputVars(s.getUserContext()),
+      d_preregisteredTerms(s.getUserContext()),
+      d_registeredTerms(s.getUserContext()),
+      d_registeredTypes(s.getUserContext()),
+      d_proxyVar(s.getUserContext()),
+      d_proxyVarToLength(s.getUserContext()),
+      d_lengthLemmaTermsCache(s.getUserContext()),
       d_pfEnabled(pfEnabled)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -64,9 +64,42 @@ TermRegistry::TermRegistry(context::Context* c,
 
 TermRegistry::~TermRegistry() {}
 
+Node TermRegistry::eagerReduce(Node t)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  Node lemma;
+  Kind tk = t.getKind();
+  if (tk == STRING_TO_CODE)
+  {
+    // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
+    Node code_len = utils::mkNLength(t[0]).eqNode(nm->mkConst(Rational(1)));
+    Node code_eq_neg1 = t.eqNode(nm->mkConst(Rational(-1)));
+    Node code_range = nm->mkNode(
+        AND,
+        nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
+        nm->mkNode(
+            LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
+    lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
+  }
+  else if (tk == STRING_STRIDOF)
+  {
+    // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len x)))
+    Node l = utils::mkNLength(t[0]);
+    lemma = nm->mkNode(AND,
+                          nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
+                          nm->mkNode(LEQ, t, l));
+  }
+  else if (tk == STRING_STOI)
+  {
+    // (>= (str.to_int x) (- 1))
+    lemma = nm->mkNode(GEQ, t, nm->mkConst(Rational(-1)));
+  }
+  return lemma;
+}
+
 void TermRegistry::finishInit(ProofNodeManager* pnm)
 {
-  // d_epg.reset(new EagerProofGenerator(pnm));
+  d_epg.reset(new EagerProofGenerator(d_state.getUserContext(), pnm));
 }
 
 void TermRegistry::preRegisterTerm(TNode n)

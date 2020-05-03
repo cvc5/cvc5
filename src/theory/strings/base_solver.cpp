@@ -27,11 +27,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-BaseSolver::BaseSolver(context::Context* c,
-                       context::UserContext* u,
-                       SolverState& s,
+BaseSolver::BaseSolver(SolverState& s,
                        InferenceManager& im)
-    : d_state(s), d_im(im), d_congruent(c)
+    : d_state(s), d_im(im), d_congruent(s.getSatContext())
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
   d_false = NodeManager::currentNM()->mkConst(false);

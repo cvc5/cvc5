@@ -185,7 +185,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       }
     }
     Node res = applySubstitutionRewrite(args[0], children, idRewriter);
-    // can only rewrite the witness form
+    // **** NOTE: can rewrite the witness form here. This enables "symbolic"
+    // predicates to check, e.g. (= k t) where k is a purification Skolem for t.
     res = Rewriter::rewrite(res);
     if (!res.isConst() || !res.getConst<bool>())
     {

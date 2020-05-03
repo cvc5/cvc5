@@ -63,11 +63,13 @@ const char* toString(PfRule id)
     //================================================= String rules
     case PfRule::CONCAT_EQ: return "CONCAT_EQ";
     case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
+    case PfRule::CONCAT_CONFLICT: return "CONCAT_CONFLICT";
     case PfRule::CONCAT_SPLIT: return "CONCAT_SPLIT";
     case PfRule::CONCAT_LPROP: return "CONCAT_LPROP";
     case PfRule::CONCAT_CPROP: return "CONCAT_CPROP";
     case PfRule::CTN_NOT_EQUAL: return "CTN_NOT_EQUAL";
-    case PfRule::REDUCTION: return "REDUCTION";
+    case PfRule::STRINGS_REDUCTION: return "STRINGS_REDUCTION";
+    case PfRule::STRINGS_EAGER_REDUCTION: return "STRINGS_EAGER_REDUCTION";
     case PfRule::RE_INTER: return "RE_INTER";
     case PfRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
     case PfRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";

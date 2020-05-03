@@ -73,9 +73,7 @@ class InferenceManager
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  InferenceManager(context::Context* c,
-                   context::UserContext* u,
-                   SolverState& s,
+  InferenceManager(SolverState& s,
                    TermRegistry& tr,
                    ExtTheory& e,
                    OutputChannel& out,
@@ -299,10 +297,6 @@ class InferenceManager
    */
   void preProcessFact(TNode fact);
   void postProcessFact(TNode fact);
-  /** The SAT context */
-  context::Context* d_ccontext;
-  /** The User context */
-  context::UserContext* d_ucontext;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */

@@ -165,7 +165,13 @@ bool CDProof::addProof(ProofNode* pn, bool forceOverwrite)
 
 bool CDProof::hasStep(Node fact) const
 {
-  return d_nodes.find(fact) != d_nodes.end();
+  NodeProofNodeMap::iterator it = d_nodes.find(fact);
+  if (it == d_nodes.end())
+  {
+    return false;
+  }
+  // cannot be an ASSUME
+  return true && (*it).second->getRule()!=PfRule::ASSUME;
 }
 
 }  // namespace CVC4

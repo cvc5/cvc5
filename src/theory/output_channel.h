@@ -203,17 +203,6 @@ class OutputChannel {
                   << std::endl;
   }
   /**
-   * Get the proof for conflict conf. This method can be called if
-   * conflict(TrustNode(conf, pfg)) has been called in this user context. This
-   * method returns the proof of conf, according to pfg, or nullptr if we fail
-   * to generate a proof. The latter can happen if pfg was nullptr, or if its
-   * getProof method failed, indicating an internal failure.
-   */
-  virtual std::shared_ptr<ProofNode> getProofForConflict(Node conf) const
-  {
-    return nullptr;
-  }
-  /**
    * Let plem be the pair (Node lem, ProofGenerator * pfg).
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
@@ -227,17 +216,6 @@ class OutputChannel {
     Unreachable() << "OutputChannel::trustedLemma: no implementation"
                   << std::endl;
     return lemma(lem.getNode(), removable, preprocess, sendAtoms);
-  }
-  /**
-   * Get the proof for lemma lem. This method can be called if
-   * lemma(TrustNode(lem, pfg), ...) has been called in this user context.
-   * This method returns the proof of lem, according to pfg, or nullptr if we
-   * fail to generate a proof. The latter can happen if pfg was nullptr, or if
-   * its getProof method failed, indicating an internal failure.
-   */
-  virtual std::shared_ptr<ProofNode> getProofForLemma(Node lem) const
-  {
-    return nullptr;
   }
   //---------------------------- end new proof
 }; /* class OutputChannel */

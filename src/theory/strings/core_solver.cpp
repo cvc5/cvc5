@@ -32,13 +32,11 @@ namespace strings {
 
 CoreInferInfo::CoreInferInfo() : d_index(0), d_rev(false) {}
 
-CoreSolver::CoreSolver(context::Context* c,
-                       context::UserContext* u,
-                       SolverState& s,
+CoreSolver::CoreSolver(SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr,
                        BaseSolver& bs)
-    : d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs), d_nfPairs(c)
+    : d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs), d_nfPairs(s.getSatContext())
 {
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -1286,9 +1284,9 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         break;
       }
 
-      // At this point, we know that `nc` is non-empty, so we add that to our
-      // explanation.
-      iinfo.d_ant.push_back(expNonEmpty);
+      // At this point, we know that `nc` is non-empty, so we add expNonEmpty
+      // to our explanation below. We do this after adding other parts of the
+      // explanation for consistency with other inferences.
 
       size_t ncIndex = index + 1;
       Node nextConstStr = nfnc.collectConstantStringAt(ncIndex);
@@ -1349,6 +1347,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           Trace("strings-csp")
               << "Const Split: " << prea << " is removed from " << stra
               << " due to " << strb << ", p=" << p << std::endl;
+          iinfo.d_ant.push_back(expNonEmpty);
           iinfo.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, prea)
                                          : utils::mkNConcat(prea, sk));
           iinfo.d_new_skolem[LENGTH_SPLIT].push_back(sk);
@@ -1378,6 +1377,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
                            << std::endl;
       NormalForm::getExplanationForPrefixEq(
           nfi, nfj, index, index, iinfo.d_ant);
+      iinfo.d_ant.push_back(expNonEmpty);
       iinfo.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
                                      : utils::mkNConcat(firstChar, sk));
       iinfo.d_new_skolem[LENGTH_SPLIT].push_back(sk);

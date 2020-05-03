@@ -28,17 +28,13 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferenceManager::InferenceManager(context::Context* c,
-                                   context::UserContext* u,
-                                   SolverState& s,
+InferenceManager::InferenceManager(SolverState& s,
                                    TermRegistry& tr,
                                    ExtTheory& e,
                                    OutputChannel& out,
                                    SequencesStatistics& statistics,
                                    bool pfEnabled)
-    : d_ccontext(c),
-      d_ucontext(u),
-      d_state(s),
+    : d_state(s),
       d_termReg(tr),
       d_extt(e),
       d_out(out),
@@ -58,7 +54,7 @@ void InferenceManager::finishInit(ProofNodeManager* pnm)
 {
   // now that proof node manager is setup, we initialize proof equality engine
   d_pfee.reset(new eq::ProofEqEngine(
-      d_ccontext, d_ucontext, *d_state.getEqualityEngine(), pnm, d_pfEnabled));
+      d_state.getSatContext(), d_state.getUserContext(), *d_state.getEqualityEngine(), pnm, d_pfEnabled));
   d_ipc.reset(new InferProofCons(
       *d_pfee, d_statistics, d_pfEnabled, pnm->getChecker()));
 }

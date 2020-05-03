@@ -22,7 +22,7 @@
 
 #include "expr/proof.h"
 #include "expr/proof_node_manager.h"
-#include "theory/proof_generator.h"
+#include "expr/proof_generator.h"
 
 namespace CVC4 {
 

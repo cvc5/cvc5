@@ -25,7 +25,7 @@
 #include "expr/proof.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
-#include "theory/proof_generator.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {

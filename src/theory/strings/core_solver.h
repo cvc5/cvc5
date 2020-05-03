@@ -81,9 +81,7 @@ class CoreSolver
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
 
  public:
-  CoreSolver(context::Context* c,
-             context::UserContext* u,
-             SolverState& s,
+  CoreSolver(SolverState& s,
              InferenceManager& im,
              TermRegistry& tr,
              BaseSolver& bs);

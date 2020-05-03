@@ -11,9 +11,12 @@
 // concatenation above. For example, if
 // P1 concludes (= x (str.++ x z)), then
 // (CONCAT_EQ P1 :args false) concludes (= "" z)
+//
 // Also note that constants are split, such that if
 // P1 concludes (= (str.++ "abc" x) (str.++ "a" y)), then 
 // (CONCAT_EQ P1 :args false) concludes (= (str.++ "bc" x) y)
+// This splitting is done only for constants such that Word::splitConstant
+// returns non-null.
 proofrule CONCAT_EQ 1 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Concat unify
@@ -23,6 +26,16 @@ proofrule CONCAT_EQ 1 1 ::CVC4::theory::strings::StringsProofRuleChecker
 // ---------------------
 // Conclusion: (= t1 s1)
 proofrule CONCAT_UNIFY 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
+
+// ======== Concat conflict
+// Children: (P1:(= (str.++ c1 t) (str.++ c2 s)))
+// Arguments: (b), indicating if reverse direction
+// ---------------------
+// Conclusion: false
+// Where c1, c2 are constants such that Word::splitConstant(c1,c2,...,b) 
+// is null.
+proofrule CONCAT_CONFLICT 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
+
 
 // ======== Concat split
 // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
@@ -76,13 +89,24 @@ proofrule CTN_NOT_EQUAL 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Reduction
 // Children: none
-// Arguments: (t[x])
+// Arguments: (t)
 // ---------------------
-// Conclusion: (and R[x,w] (= t[x] w)) 
-// where w = StringsPreprocess::reduce(t[x], R[x,w]).
+// Conclusion: (and R (= t w)) 
+// where w = StringsPreprocess::reduce(t, R, ...).
+// In other words, R is the reduction predicate for extended term t, and w is
+//   (witness ((z T)) (= z t))
+// Notice that the free variables of R are w and the free variables of t.
+proofrule STRINGS_REDUCTION 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
+
+// ======== Eager Reduction
+// Children: none
+// Arguments: (t)
+// ---------------------
+// Conclusion: R
+// where R = StringsPreprocess::eagerReduce(t).
 // In other words, R is the reduction predicate for extended term t[x], and w is
 //   (witness ((z T)) (= z t[x]))
-proofrule REDUCTION 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
+proofrule STRINGS_EAGER_REDUCTION 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 //======================== Regular expressions
 

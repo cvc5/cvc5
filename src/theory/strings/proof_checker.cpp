@@ -17,6 +17,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_preprocess.h"
+#include "theory/strings/term_registry.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -104,7 +105,12 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() == 2);
     Assert(args.size() == 1);
-    bool isRev = args[0].getConst<bool>();
+    // extract the Boolean corresponding to whether the rule is reversed
+    bool isRev;
+    if (!getBool(args[0], isRev))
+    {
+      return Node::null();
+    }
     Node eqs = children[0];
     if (eqs.getKind() != EQUAL)
     {
@@ -130,6 +136,42 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     return s0.eqNode(t0);
   }
+  else if (id == PfRule::CONCAT_CONFLICT)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size() == 1);
+    // extract the Boolean corresponding to whether the rule is reversed
+    bool isRev;
+    if (!getBool(args[0], isRev))
+    {
+      return Node::null();
+    }
+    Node eqs = children[0];
+    if (eqs.getKind() != EQUAL)
+    {
+      return Node::null();
+    }
+    std::vector<Node> svec;
+    std::vector<Node> tvec;
+    utils::getConcat(eqs[0], svec);
+    utils::getConcat(eqs[1], tvec);
+    Node s0 = svec[isRev ? svec.size() - 1 : 0];
+    Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
+    if (!s0.isConst() || !t0.isConst())
+    {
+      // not constants
+      return Node::null();
+    }
+    size_t sindex;
+    Node r0 = Word::splitConstant(s0, t0, sindex, isRev);
+    if (!r0.isNull())
+    {
+      // Not a conflict due to constants, i.e. s0 is a prefix of t0 or vice
+      // versa.
+      return Node::null();
+    }
+    return NodeManager::currentNM()->mkConst(false);
+  }
   else if (id == PfRule::CONCAT_LPROP)
   {
     // TODO
@@ -142,22 +184,36 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   {
     // TODO
   }
-  else if (id == PfRule::REDUCTION)
+  else if (id == PfRule::STRINGS_REDUCTION || id==PfRule::STRINGS_EAGER_REDUCTION)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     // must convert to skolem form
     Node t = ProofSkolemCache::getSkolemForm(args[0]);
-    std::vector<Node> conj;
-    // TODO: eliminate optimizations
-    SkolemCache sc;
-    Node ret = StringsPreprocess::reduce(t, conj, &sc);
-    conj.push_back(t.eqNode(ret));
-    ProofSkolemCache::convertToWitnessFormVec(conj);
-    return mkAnd(conj);
+    Node ret;
+    if (id==PfRule::STRINGS_REDUCTION)
+    {
+      // TODO: eliminate optimizations
+      SkolemCache sc;
+      std::vector<Node> conj;
+      ret = StringsPreprocess::reduce(t, conj, &sc);
+      conj.push_back(t.eqNode(ret));
+      ret = mkAnd(conj);
+    }
+    else if (id==PfRule::STRINGS_EAGER_REDUCTION)
+    {
+      ret = TermRegistry::eagerReduce(t);
+    }
+    if (ret.isNull())
+    {
+      return Node::null();
+    }
+    Node retw = ProofSkolemCache::getWitnessForm(ret);
+    return retw;
   }
   else if (id == PfRule::RE_INTER)
   {
+    
   }
   else if (id == PfRule::RE_UNFOLD_POS || id == PfRule::RE_UNFOLD_NEG)
   {

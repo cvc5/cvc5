@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof_generator.h
+/*! \file eager_proof_generator.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The abstract proof generator class
+ ** \brief The eager proof generator class
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__PROOF_GENERATOR_H
-#define CVC4__THEORY__PROOF_GENERATOR_H
+#ifndef CVC4__THEORY__EAGER_PROOF_GENERATOR_H
+#define CVC4__THEORY__EAGER_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
@@ -87,6 +87,20 @@ class EagerProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Can we give the proof for formula f? */
   bool hasProofFor(Node f) override;
+  /** 
+   * Make trust node: wrap n in a trust node with this generator, and have it
+   * store the proof pf to 
+   * 
+   * @param n The proven node,
+   * @param pf The proof of n
+   * @return The trust node corresponding to the fact that this generator has
+   * a proof of n.
+   */
+  TrustNode mkTrustNode(Node n, std::shared_ptr<ProofNode> pf);
+  /**
+   * Make trust node from a single step proof.
+   */
+  TrustNode mkTrustNode(Node n, PfRule id, const std::vector<Node>& args);
   //--------------------------------------- common proofs
   /**
    * This returns the trust node corresponding to the splitting lemma
@@ -96,6 +110,8 @@ class EagerProofGenerator : public ProofGenerator
    */
   TrustNode assertSplit(Node f);
   //--------------------------------------- end common proofs
+  /** identify */
+  std::string identify() const override { return "EagerProofGenerator"; }
  protected:
   /** Set that pf is the proof for conflict conf */
   void setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf);

@@ -21,7 +21,8 @@
 #include "context/cdlist.h"
 #include "expr/proof_node_manager.h"
 #include "theory/output_channel.h"
-#include "theory/proof_generator.h"
+#include "theory/eager_proof_generator.h"
+#include "theory/strings/solver_state.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
@@ -48,8 +49,7 @@ class TermRegistry
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  TermRegistry(context::Context* c,
-               context::UserContext* u,
+  TermRegistry(SolverState& s,
                eq::EqualityEngine& ee,
                OutputChannel& out,
                SequencesStatistics& statistics,
@@ -57,6 +57,17 @@ class TermRegistry
   ~TermRegistry();
   /** finish init */
   void finishInit(ProofNodeManager* pnm);
+  /** The eager reduce routine
+   * 
+   * Constructs a lemma for t that is incomplete, but communicates pertinent
+   * information about t. This is analogous to StringsPreprocess::reduce.
+   * 
+   * In practice, we send this lemma eagerly, as soon as t is registered.
+   * 
+   * @param t The node to reduce,
+   * @return The eager reduction for t.
+   */
+  static Node eagerReduce(Node t);
   /**
    * Preregister term, called when TheoryStrings::preRegisterTerm(n) is called.
    * This does the following:
@@ -189,6 +200,8 @@ class TermRegistry
   Node d_negOne;
   /** the cardinality of the alphabet */
   uint32_t d_cardSize;
+  /** Reference to the solver state of the theory of strings. */
+  SolverState& d_state;
   /** Reference to equality engine of the theory of strings. */
   eq::EqualityEngine& d_ee;
   /** Reference to the output channel of the theory of strings. */

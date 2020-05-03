@@ -50,9 +50,7 @@ class RegExpSolver
                TermRegistry& tr,
                CoreSolver& cs,
                ExtfSolver& es,
-               SequencesStatistics& stats,
-               context::Context* c,
-               context::UserContext* u);
+               SequencesStatistics& stats);
   ~RegExpSolver() {}
 
   /** check regular expression memberships

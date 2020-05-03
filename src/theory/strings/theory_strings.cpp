@@ -73,7 +73,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_state(c, u, d_equalityEngine, d_valuation),
-      d_termReg(c, u, d_equalityEngine, out, d_statistics, options::proofNew()),
+      d_termReg(d_state, d_equalityEngine, out, d_statistics, options::proofNew()),
       d_im(nullptr),
       d_pnm(nullptr),
       d_rewriter(&d_statistics.d_rewrites),
@@ -88,13 +88,11 @@ TheoryStrings::TheoryStrings(context::Context* c,
   ExtTheory* extt = getExtTheory();
   // initialize the inference manager, which requires the extended theory
   d_im.reset(new InferenceManager(
-      c, u, d_state, d_termReg, *extt, out, d_statistics, options::proofNew()));
+      d_state, d_termReg, *extt, out, d_statistics, options::proofNew()));
   // initialize the solvers
-  d_bsolver.reset(new BaseSolver(c, u, d_state, *d_im));
-  d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_termReg, *d_bsolver));
-  d_esolver.reset(new ExtfSolver(c,
-                                 u,
-                                 d_state,
+  d_bsolver.reset(new BaseSolver(d_state, *d_im));
+  d_csolver.reset(new CoreSolver(d_state, *d_im, d_termReg, *d_bsolver));
+  d_esolver.reset(new ExtfSolver(d_state,
                                  *d_im,
                                  d_termReg,
                                  d_rewriter,
@@ -103,7 +101,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  *extt,
                                  d_statistics));
   d_rsolver.reset(new RegExpSolver(
-      d_state, *d_im, d_termReg, *d_csolver, *d_esolver, d_statistics, c, u));
+      d_state, *d_im, d_termReg, *d_csolver, *d_esolver, d_statistics));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
@@ -156,11 +154,13 @@ void TheoryStrings::setProofChecker(ProofChecker* pc)
   // add checkers
   pc->registerChecker(PfRule::CONCAT_EQ, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_UNIFY, &d_sProofChecker);
+  pc->registerChecker(PfRule::CONCAT_CONFLICT, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_SPLIT, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_LPROP, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_CPROP, &d_sProofChecker);
   pc->registerChecker(PfRule::CTN_NOT_EQUAL, &d_sProofChecker);
-  pc->registerChecker(PfRule::REDUCTION, &d_sProofChecker);
+  pc->registerChecker(PfRule::STRINGS_REDUCTION, &d_sProofChecker);
+  pc->registerChecker(PfRule::STRINGS_EAGER_REDUCTION, &d_sProofChecker);
   pc->registerChecker(PfRule::RE_INTER, &d_sProofChecker);
   pc->registerChecker(PfRule::RE_UNFOLD_POS, &d_sProofChecker);
   pc->registerChecker(PfRule::RE_UNFOLD_NEG, &d_sProofChecker);

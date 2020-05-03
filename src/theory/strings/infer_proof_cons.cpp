@@ -167,10 +167,10 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::F_UNIFY:
     case Inference::F_ENDPOINT_EMP:
     case Inference::F_ENDPOINT_EQ:
-    case Inference::N_ENDPOINT_EMP:
-    case Inference::N_UNIFY:
-    case Inference::N_ENDPOINT_EQ:
     case Inference::N_CONST:
+    case Inference::N_UNIFY:
+    case Inference::N_ENDPOINT_EMP:
+    case Inference::N_ENDPOINT_EQ:
     case Inference::SSPLIT_CST_PROP:
     case Inference::SSPLIT_VAR_PROP:
     case Inference::SSPLIT_CST:
@@ -239,7 +239,17 @@ PfRule InferProofCons::convert(Inference infer,
         {
           break;
         }
-        if (infer==Inference::N_UNIFY || infer==Inference::F_UNIFY)
+        if (infer==Inference::N_ENDPOINT_EQ || infer==Inference::N_ENDPOINT_EMP || infer==Inference::F_ENDPOINT_EQ || infer==Inference::F_ENDPOINT_EMP)
+        {
+          // should be equal to conclusion already
+          if (mainEqCeq==conc)
+          {
+            // success
+            Trace("strings-ipc-core")
+                << "...success!" << std::endl;
+          }
+        }
+        else if (infer==Inference::N_UNIFY || infer==Inference::F_UNIFY)
         {
           std::vector<Node> childrenCu;
           childrenCu.push_back(mainEqCeq);
@@ -257,15 +267,31 @@ PfRule InferProofCons::convert(Inference infer,
                 << "...success!" << std::endl;
           }
         }
-        else if (infer==Inference::N_ENDPOINT_EQ)
+        else if (infer==Inference::N_CONST || infer==Inference::F_CONST)
         {
-          // should be equal to conclusion already
-          if (mainEqCeq==conc)
+          // should be a constant conflict
+          std::vector<Node> childrenC;
+          childrenC.push_back(mainEqCeq);
+          std::vector<Node> argsC;
+          argsC.push_back(nodeIsRev);
+          Node mainEqC =
+              d_strChecker.check(PfRule::CONCAT_UNIFY, childrenC, argsC);
+          if (mainEqC==conc)
           {
-            // success
             Trace("strings-ipc-core")
                 << "...success!" << std::endl;
           }
+        }
+        else if (infer==Inference::SSPLIT_CST || infer==Inference::SSPLIT_VAR)
+        {
+        }
+        else if (infer==Inference::SSPLIT_CST_PROP)
+        {
+          
+        }
+        else if (infer==Inference::SSPLIT_VAR_PROP)
+        {
+          
         }
       }
     }
@@ -307,7 +333,7 @@ PfRule InferProofCons::convert(Inference infer,
       }
       else
       {
-        pii.d_rule = PfRule::REDUCTION;
+        pii.d_rule = PfRule::STRINGS_REDUCTION;
         // the left hand side of the last conjunct is the term we are reducing
         pii.d_args.push_back(conc[nchild - 1][0]);
         tryChecker = &d_strChecker;

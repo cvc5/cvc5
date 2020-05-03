@@ -22,12 +22,14 @@
 #include "expr/node.h"
 #include "expr/proof_node.h"
 #include "theory/engine_output_channel.h"
-#include "theory/proof_generator.h"
+#include "theory/eager_proof_generator.h"
 
 namespace CVC4 {
 namespace theory {
 
 /**
+ * TODO: merge with engine output channel
+ * 
  * A layer on top of an output channel to ensure proofs are constructed and
  * available for conflicts and lemmas that may require proofs. It is
  * intended to be owned by TheoryEngine and passed as reference to each of
@@ -81,9 +83,7 @@ class ProofEngineOutputChannel : public EngineOutputChannel
   static Node getConflictKeyValue(Node conf);
   /** Get the node key for which lemma calls are cached */
   static Node getLemmaKeyValue(Node lem);
-  /** Get proof generator for key, or nullptr if it does not exist */
-  ProofGenerator* getProofGeneratorForKey(Node key) const;
-
+  
  private:
   /** Pointer to the lazy proof
    *

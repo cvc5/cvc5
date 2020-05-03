@@ -296,6 +296,14 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= t1 s1)
   CONCAT_UNIFY,
+  // ======== Concat conflict
+  // Children: (P1:(= (str.++ c1 t) (str.++ c2 s)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: false
+  // Where c1, c2 are constants such that Word::splitConstant(c1,c2,...,b) 
+  // is null.
+  CONCAT_CONFLICT,
   // ======== Concat split
   // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
   //            P2:(not (= (str.len t1) (str.len s1))))
@@ -326,11 +334,23 @@ enum class PfRule : uint32_t
   CTN_NOT_EQUAL,
   // ======== Reduction
   // Children: none
-  // Arguments: (t[x])
+  // Arguments: (t)
   // ---------------------
-  // Conclusion: (and R[x,y] (= t[x] y)) where R is the reduction predicate
-  // for extended term t[x].
-  REDUCTION,
+  // Conclusion: (and R (= t w)) 
+  // where w = StringsPreprocess::reduce(t, R, ...).
+  // In other words, R is the reduction predicate for extended term t, and w is
+  //   (witness ((z T)) (= z t))
+  // Notice that the free variables of R are w and the free variables of t.
+  STRINGS_REDUCTION,
+  // ======== Eager Reduction
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: R
+  // where R = StringsPreprocess::eagerReduce(t).
+  // In other words, R is the reduction predicate for extended term t[x], and w is
+  //   (witness ((z T)) (= z t[x]))
+  STRINGS_EAGER_REDUCTION,
   //======================== Regular expressions
   // ======== Regular expression intersection
   // Children: (P:(str.in.re t R1), P:(str.in.re t R2))
