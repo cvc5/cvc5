@@ -48,6 +48,14 @@ Node ProofStepBuffer::tryStep(PfRule id,
   return res;
 }
 
+void ProofStepBuffer::addStep(PfRule id,
+              const std::vector<Node>& children,
+              const std::vector<Node>& args,
+              Node expected)
+{
+  d_steps.push_back(std::pair<Node, ProofStep>(expected,ProofStep(id,children,args)));
+}
+
 bool ProofStepBuffer::addTo(CDProof* pf)
 {
   // add each of the steps

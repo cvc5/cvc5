@@ -47,6 +47,11 @@ class ProofStepBuffer
                const std::vector<Node>& children,
                const std::vector<Node>& args,
                Node expected = Node::null());
+  /** Same as above, without checking */
+  void addStep(PfRule id,
+               const std::vector<Node>& children,
+               const std::vector<Node>& args,
+               Node expected);             
   /**
    * Add all buffered proof steps into the underlying proof object.
    */
