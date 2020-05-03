@@ -25,8 +25,6 @@ namespace CVC4 {
 
 ProofStepBuffer::ProofStepBuffer(ProofChecker* pc) : d_checker(pc)
 {
-  Assert(d_checker != nullptr)
-      << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
 }
 
 Node ProofStepBuffer::tryStep(PfRule id,
@@ -34,6 +32,11 @@ Node ProofStepBuffer::tryStep(PfRule id,
                               const std::vector<Node>& args,
                               Node expected)
 {
+  if(d_checker == nullptr)
+  {
+    Assert(false) << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
+    return Node::null();
+  }
   Node res =
       d_checker->checkDebug(id, children, args, expected, "pf-step-buffer");
   if (!res.isNull())
