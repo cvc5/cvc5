@@ -259,8 +259,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      if (tvec.size() <= 1 || !tvec[1].isConst()
-          || Word::isEmpty(tvec[1]))
+      if (tvec.size() <= 1 || !tvec[1].isConst() || Word::isEmpty(tvec[1]))
       {
         return Node::null();
       }

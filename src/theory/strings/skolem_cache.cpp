@@ -51,12 +51,12 @@ Node SkolemCache::mkTypedSkolemCached(
   b = b.isNull() ? b : Rewriter::rewrite(b);
 
   std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
-  
+
   // optimization: if we aren't asking for the purification skolem for constant
   // c, and the skolem is equivalent to c, then we just return c.
-  if (idOrig!=SK_PURIFY && id==SK_PURIFY && a.isConst())
+  if (idOrig != SK_PURIFY && id == SK_PURIFY && a.isConst())
   {
-    //AlwaysAssert(false);
+    // AlwaysAssert(false);
     return a;
   }
 
@@ -209,14 +209,14 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
   {
     // SK_PREFIX(x,y) ---> SK_PURIFY(substr(x,0,y))
     id = SK_PURIFY;
-    a = utils::mkPrefix(a,b);
+    a = utils::mkPrefix(a, b);
     b = Node::null();
   }
   else if (id == SK_SUFFIX_REM)
   {
     // SK_SUFFIX_REM(x,y) ---> SK_PURIFY(substr(x,y,str.len(x)-y))
     id = SK_PURIFY;
-    a = utils::mkSuffix(a,b);
+    a = utils::mkSuffix(a, b);
     b = Node::null();
   }
 
