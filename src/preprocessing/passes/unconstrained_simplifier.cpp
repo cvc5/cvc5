@@ -91,8 +91,9 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
         d_unconstrained.insert(current);
       }
     }
-    else
+    else if (!current.isClosure())
     {
+      // if not a quantifier, traverse
       for (TNode childNode : current)
       {
         toVisit.push_back(unc_preprocess_stack_element(childNode, current));
