@@ -17,6 +17,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "util/rational.h"
 
 using namespace CVC4::kind;
@@ -25,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-SkolemCache::SkolemCache()
+SkolemCache::SkolemCache(bool useOpts) : d_useOpts(useOpts)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_strType = nm->stringType();
@@ -50,6 +51,14 @@ Node SkolemCache::mkTypedSkolemCached(
   b = b.isNull() ? b : Rewriter::rewrite(b);
 
   std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
+  
+  // optimization: if we aren't asking for the purification skolem for constant
+  // c, and the skolem is equivalent to c, then we just return c.
+  if (idOrig!=SK_PURIFY && id==SK_PURIFY && a.isConst())
+  {
+    //AlwaysAssert(false);
+    return a;
+  }
 
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
