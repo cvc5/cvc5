@@ -46,6 +46,8 @@ Node SkolemCache::mkSkolemCached(Node a, SkolemId id, const char* c)
 Node SkolemCache::mkTypedSkolemCached(
     TypeNode tn, Node a, Node b, SkolemId id, const char* c)
 {
+  Trace("skolem-cache") << "mkTypedSkolemCached start: (" << id << ", " << a
+                        << ", " << b << ")" << std::endl;
   SkolemId idOrig = id;
   a = a.isNull() ? a : Rewriter::rewrite(a);
   b = b.isNull() ? b : Rewriter::rewrite(b);
@@ -53,7 +55,7 @@ Node SkolemCache::mkTypedSkolemCached(
   std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
 
   // optimization: if we aren't asking for the purification skolem for constant
-  // c, and the skolem is equivalent to c, then we just return c.
+  // a, and the skolem is equivalent to a, then we just return a.
   if (d_useOpts && idOrig != SK_PURIFY && id == SK_PURIFY && a.isConst())
   {
     Trace("skolem-cache") << "...optimization: return constant " << a << std::endl;
@@ -64,7 +66,6 @@ Node SkolemCache::mkTypedSkolemCached(
   if (it == d_skolemCache[a][b].end())
   {
     NodeManager* nm = NodeManager::currentNM();
-    // the condition
     Node sk;
     switch (id)
     {
@@ -130,8 +131,6 @@ bool SkolemCache::isSkolem(Node n) const
 std::tuple<SkolemCache::SkolemId, Node, Node>
 SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
 {
-  Trace("skolem-cache") << "normalizeStringSkolem start: (" << id << ", " << a
-                        << ", " << b << ")" << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
 
