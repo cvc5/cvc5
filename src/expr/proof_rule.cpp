@@ -65,6 +65,7 @@ const char* toString(PfRule id)
     case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
     case PfRule::CONCAT_CONFLICT: return "CONCAT_CONFLICT";
     case PfRule::CONCAT_SPLIT: return "CONCAT_SPLIT";
+    case PfRule::CONCAT_CSPLIT: return "CONCAT_CSPLIT";
     case PfRule::CONCAT_LPROP: return "CONCAT_LPROP";
     case PfRule::CONCAT_CPROP: return "CONCAT_CPROP";
     case PfRule::CTN_NOT_EQUAL: return "CTN_NOT_EQUAL";

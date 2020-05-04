@@ -157,6 +157,7 @@ void TheoryStrings::setProofChecker(ProofChecker* pc)
   pc->registerChecker(PfRule::CONCAT_UNIFY, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_CONFLICT, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_SPLIT, &d_sProofChecker);
+  pc->registerChecker(PfRule::CONCAT_CSPLIT, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_LPROP, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_CPROP, &d_sProofChecker);
   pc->registerChecker(PfRule::CTN_NOT_EQUAL, &d_sProofChecker);

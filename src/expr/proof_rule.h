@@ -279,17 +279,23 @@ enum class PfRule : uint32_t
   //================================================= String rules
   //======================== Core solver
   // ======== Concat eq
-  // Children: (P1:(= (str.++ t1 ... tn t) (str.++ s1 ... sn s)),
-  //            P2:(= t1 s1), ..., P{n+1}:(= tn sn))
+  // Children: (P1:(= (str.++ t1 ... tn t) (str.++ t1 ... tn s)))
   // Arguments: (b), indicating if reverse direction
   // ---------------------
   // Conclusion: (= t s)
+  //
   // Notice that t or s may be empty, in which case they are implicit in the
   // concatenation above. For example, if
-  // P1 concludes (= x (str.++ y z), P2 concludes (= x y), then
-  // (CONCAT_EQ P1 P2 :args false) concludes (= "" z)
+  // P1 concludes (= x (str.++ x z)), then
+  // (CONCAT_EQ P1 :args false) concludes (= "" z)
+  //
+  // Also note that constants are split, such that if
+  // P1 concludes (= (str.++ "abc" x) (str.++ "a" y)), then 
+  // (CONCAT_EQ P1 :args false) concludes (= (str.++ "bc" x) y)
+  // This splitting is done only for constants such that Word::splitConstant
+  // returns non-null.
   CONCAT_EQ,
-  // ======== Normal form unify
+  // ======== Concat unify
   // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
   //            P2:(= (str.len t1) (str.len s1)))
   // Arguments: (b), indicating if reverse direction
@@ -301,29 +307,102 @@ enum class PfRule : uint32_t
   // Arguments: (b), indicating if reverse direction
   // ---------------------
   // Conclusion: false
-  // Where c1, c2 are constants such that Word::splitConstant(c1,c2,...,b)
-  // is null.
+  // Where c1, c2 are constants such that Word::splitConstant(c1,c2,index,b) 
+  // is null, in other words, neither is a prefix of the other.
   CONCAT_CONFLICT,
   // ======== Concat split
   // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
   //            P2:(not (= (str.len t1) (str.len s1))))
-  // Arguments: (b), indicating if reverse direction
+  // Arguments: (false)
   // ---------------------
-  // Conclusion: (or ... )
+  // Conclusion: (or (= t1 (str.++ s1 r_t)) (= s1 (str.++ t1 r_s)))
+  // where
+  //   r_t = (witness ((z String)) (= z (suf t1 (str.len s1)))),
+  //   r_s = (witness ((z String)) (= z (suf s1 (str.len t1)))).
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(not (= (str.len t2) (str.len s2))))
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (or (= t2 (str.++ r_t s2)) (= s2 (str.++ r_s t2)))
+  // where
+  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len s2))))),
+  //   r_s = (witness ((z String)) (= z (pre s2 (- (str.len s2) (str.len t2))))).
+  //
+  // Above, (suf x n) is shorthand for (str.substr x n (- (str.len x) n)) and
+  // (pre x n) is shorthand for (str.substr x 0 n).
   CONCAT_SPLIT,
-  // ======== Concat split propagate
+  // ======== Concat constant split
+  // Children: (P1:(= (str.++ t1 t2) (str.++ c s2)),
+  //            P2:(not (= (str.len t1) 0)))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (= t1 (str.++ c r))
+  // where
+  //   r = (witness ((z String)) (= z (suf t1 1))).
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 c)),
+  //            P2:(not (= (str.len t2) 0)))
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (= t2 (str.++ r c))
+  // where
+  //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) 1)))).
+  CONCAT_CSPLIT,
+  // ======== Concat length propagate
   // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
   //            P2:(> (str.len t1) (str.len s1)))
-  // Arguments: (b), indicating if reverse direction
+  // Arguments: (false)
   // ---------------------
-  // Conclusion: (= t1 (str.++ s1 ...))
+  // Conclusion: (= t1 (str.++ s1 r_t))
+  // where
+  //   r_t = (witness ((z String)) (= z (suf t1 (str.len s1))))
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(> (str.len t2) (str.len s2)))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (= t2 (str.++ r_t s2))
+  // where
+  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len s2))))).
   CONCAT_LPROP,
-  // ======== Concat split propagate
-  // Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s1)))
-  // Arguments: (b), indicating if reverse direction
+  // ======== Concat constant propagate
+  // Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s)),
+  //            P2:(not (= (str.len t1) 0)))
+  // Arguments: (false)
   // ---------------------
-  // Conclusion: (= t1 (str.++ w3 ...)) where w3 ++ w4 = w1 and w4 is the
-  // overlap of w1 and w2.
+  // Conclusion: (= t1 (str.++ w3 r)) 
+  // where
+  //   w1, w2, w3, w4 are words,
+  //   w3 is (pre w2 p),
+  //   w4 is (suf w2 p),
+  //   p = Word::overlap((suf w2 1), w1),
+  //   r = (witness ((z String)) (= z (suf t1 (str.len w3)))).
+  // In other words, w4 is the largest suffix of (suf w2 1) that can contain a
+  // prefix of w1; since t1 is non-empty, w3 must therefore be contained in t1.
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 w1 t2) (str.++ s w2)),
+  //            P2:(not (= (str.len t2) 0)))
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (= t2 (str.++ r w3)) 
+  // where
+  //   w1, w2, w3, w4 are words,
+  //   w3 is (suf w2 (- (str.len w2) p)),
+  //   w4 is (pre w2 (- (str.len w2) p)),
+  //   p = Word::roverlap((pre w2 (- (str.len w2) 1)), w1),
+  //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len w3))))).
+  // In other words, w4 is the largest prefix of (pre w2 (- (str.len w2) 1)) that
+  // can contain a suffix of w1; since t2 is non-empty, w3 must therefore be
+  // contained in t2.
   CONCAT_CPROP,
   //======================== Extended functions
   // ======== Contains not equal

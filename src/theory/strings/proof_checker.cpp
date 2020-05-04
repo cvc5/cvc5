@@ -31,154 +31,236 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
-  if (id == PfRule::CONCAT_EQ)
+  if (id == PfRule::CONCAT_EQ || id == PfRule::CONCAT_UNIFY || id == PfRule::CONCAT_CONFLICT
+    || id == PfRule::CONCAT_SPLIT || id == PfRule::CONCAT_CSPLIT || 
+    id == PfRule::CONCAT_LPROP || id == PfRule::CONCAT_CPROP
+  )
   {
-    Assert(children.size() == 1);
+    Assert(children.size() >= 1);
     Assert(args.size() == 1);
-    Node eqs = children[0];
-    if (eqs.getKind() != EQUAL)
+    // all rules have an equality
+    if (children[0].getKind() != EQUAL)
     {
       return Node::null();
     }
     // convert to concatenation form
-    std::vector<Node> svec;
     std::vector<Node> tvec;
-    utils::getConcat(eqs[0], svec);
-    utils::getConcat(eqs[1], tvec);
+    std::vector<Node> svec;
+    utils::getConcat(children[0][0], tvec);
+    utils::getConcat(children[0][1], svec);
+    size_t nchildt = svec.size();
+    size_t nchilds = tvec.size();
+    TypeNode stringType = children[0][0].getType();
+    NodeManager * nm = NodeManager::currentNM();
     // extract the Boolean corresponding to whether the rule is reversed
     bool isRev;
     if (!getBool(args[0], isRev))
     {
       return Node::null();
     }
-    size_t index = 0;
-    size_t nchilds = svec.size();
-    size_t nchildt = tvec.size();
-    std::vector<Node> sremVec;
-    std::vector<Node> tremVec;
-    // scan the concatenation until we exhaust child proofs
-    while (index < nchilds && index < nchildt)
+    if (id == PfRule::CONCAT_EQ)
     {
-      Node currS = svec[isRev ? (nchilds - 1 - index) : index];
-      Node currT = tvec[isRev ? (nchildt - 1 - index) : index];
-      if (currS != currT)
+      Assert(children.size() == 1);
+      size_t index = 0;
+      std::vector<Node> tremVec;
+      std::vector<Node> sremVec;
+      // scan the concatenation until we exhaust child proofs
+      while (index < nchilds && index < nchildt)
       {
-        if (currS.isConst() && currT.isConst())
+        Node currT = tvec[isRev ? (nchildt - 1 - index) : index];
+        Node currS = svec[isRev ? (nchilds - 1 - index) : index];
+        if (currT != currS)
         {
-          size_t sindex;
-          // get the equal prefix/suffix, strip and add the remainders
-          Node currR = Word::splitConstant(currS, currT, sindex, isRev);
-          if (!currR.isNull())
+          if (currT.isConst() && currS.isConst())
           {
-            // add the constant to remainder vec
-            std::vector<Node>& rem = sindex == 0 ? sremVec : tremVec;
-            rem.push_back(currR);
-            // ignore the current component
-            index++;
-            // In other words, if we have (currS,currT) = ("ab","abc"), then we
-            // proceed to the next component and add currR = "c" to tremVec.
+            size_t sindex;
+            // get the equal prefix/suffix, strip and add the remainders
+            Node currR = Word::splitConstant(currT, currS, sindex, isRev);
+            if (!currR.isNull())
+            {
+              // add the constant to remainder vec
+              std::vector<Node>& rem = sindex == 0 ? tremVec : sremVec;
+              rem.push_back(currR);
+              // ignore the current component
+              index++;
+              // In other words, if we have (currS,currT) = ("ab","abc"), then we
+              // proceed to the next component and add currR = "c" to tremVec.
+            }
+            // otherwise if we are not the same prefix, then both will be added
+            // Notice that we do not add maximal prefixes, in other words,
+            // ("abc", "abd") may be added to the remainder vectors, and not
+            // ("c", "d").
           }
-          // otherwise if we are not the same prefix, then both will be added
-          // Notice that we do not add maximal prefixes, in other words,
-          // ("abc", "abd") may be added to the remainder vectors, and not
-          // ("c", "d").
+          break;
         }
-        break;
+        index++;
       }
-      index++;
+      Assert(index <= nchildt);
+      Assert(index <= nchilds);
+      // the remainders are equal
+      tremVec.insert(isRev ? tremVec.begin() : tremVec.end(),
+                    tvec.begin() + (isRev ? 0 : index),
+                    tvec.begin() + nchildt - (isRev ? index : 0));
+      sremVec.insert(isRev ? sremVec.begin() : sremVec.end(),
+                    svec.begin() + (isRev ? 0 : index),
+                    svec.begin() + nchilds - (isRev ? index : 0));
+      // convert back to node
+      Node trem = utils::mkConcat(tremVec, stringType);
+      Node srem = utils::mkConcat(sremVec, stringType);
+      return trem.eqNode(srem);
     }
-    Assert(index <= nchilds);
-    Assert(index <= nchildt);
-    // the remainders are equal
-    sremVec.insert(isRev ? sremVec.begin() : sremVec.end(),
-                   svec.begin() + (isRev ? 0 : index),
-                   svec.begin() + nchilds - (isRev ? index : 0));
-    tremVec.insert(isRev ? tremVec.begin() : tremVec.end(),
-                   tvec.begin() + (isRev ? 0 : index),
-                   tvec.begin() + nchildt - (isRev ? index : 0));
-    // convert back to node
-    Node srem = utils::mkConcat(sremVec, eqs[0].getType());
-    Node trem = utils::mkConcat(tremVec, eqs[1].getType());
-    return srem.eqNode(trem);
-  }
-  else if (id == PfRule::CONCAT_UNIFY)
-  {
-    Assert(children.size() == 2);
-    Assert(args.size() == 1);
-    // extract the Boolean corresponding to whether the rule is reversed
-    bool isRev;
-    if (!getBool(args[0], isRev))
+    // all remaining rules do something with the first side of each side
+    Node t0 = tvec[isRev ? nchildt - 1 : 0];
+    Node s0 = svec[isRev ? nchilds - 1 : 0];
+    if (id == PfRule::CONCAT_UNIFY)
     {
-      return Node::null();
+      Assert(children.size() == 2);
+      if (children[1].getKind() != EQUAL)
+      {
+        return Node::null();
+      }
+      Node lt = children[1][0];
+      Node ls = children[1][1];
+      if (lt.getKind() != STRING_LENGTH || ls.getKind() != STRING_LENGTH
+          || lt[0] != t0 || ls[0] != s0)
+      {
+        return Node::null();
+      }
+      return t0.eqNode(s0);
     }
-    Node eqs = children[0];
-    if (eqs.getKind() != EQUAL)
+    else if (id == PfRule::CONCAT_CONFLICT)
     {
-      return Node::null();
+      Assert(children.size() == 1);
+      if (!t0.isConst() || !s0.isConst())
+      {
+        // not constants
+        return Node::null();
+      }
+      size_t sindex;
+      Node r0 = Word::splitConstant(t0, s0, sindex, isRev);
+      if (!r0.isNull())
+      {
+        // Not a conflict due to constants, i.e. s0 is a prefix of t0 or vice
+        // versa.
+        return Node::null();
+      }
+      return nm->mkConst(false);
     }
-    std::vector<Node> svec;
-    std::vector<Node> tvec;
-    utils::getConcat(eqs[0], svec);
-    utils::getConcat(eqs[1], tvec);
-    Node s0 = svec[isRev ? svec.size() - 1 : 0];
-    Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
-    Node eql = children[1];
-    if (eql.getKind() != EQUAL)
+    else if (id == PfRule::CONCAT_SPLIT)
     {
-      return Node::null();
+      Assert(children.size() == 2);
+      if (children[1].getKind()!=NOT || children[1][0].getKind()!=EQUAL 
+        || children[1][0][0].getKind()!=STRING_LENGTH ||
+        children[1][0][0][0]!=t0 ||
+        children[1][0][1].getKind()!=STRING_LENGTH ||
+        children[1][0][1][0]!=s0)
+      {
+        return Node::null();
+      }
+      Node rt;
+      Node rs;
+      if (isRev)
+      {
+        rt = utils::mkSuffix(t0,nm->mkNode(STRING_LENGTH, s0));
+        rs = utils::mkSuffix(s0,nm->mkNode(STRING_LENGTH, t0));
+      }
+      else
+      {
+        rt = utils::mkPrefix(t0,nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH,t0),nm->mkNode(STRING_LENGTH, s0)));
+        rs = utils::mkPrefix(s0,nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH,s0),nm->mkNode(STRING_LENGTH, t0)));
+      }
+      Node wt = ProofSkolemCache::mkPurifySkolem(rt,"rt");
+      Node ws = ProofSkolemCache::mkPurifySkolem(rs,"rs");
+      Node conc;
+      if (isRev)
+      {
+        conc = nm->mkNode(OR, t0.eqNode(nm->mkNode(STRING_CONCAT,s0,rt)), s0.eqNode(nm->mkNode(STRING_CONCAT,t0,rs)));
+      }
+      else
+      {
+        conc = nm->mkNode(OR, t0.eqNode(nm->mkNode(STRING_CONCAT,rt,s0)), s0.eqNode(nm->mkNode(STRING_CONCAT,rs,t0)));
+      }
+      return conc;
     }
-    Node ls = eql[0];
-    Node lt = eql[1];
-    if (ls.getKind() != STRING_LENGTH || lt.getKind() != STRING_LENGTH
-        || ls[0] != s0 || lt[0] != t0)
+    else if (id == PfRule::CONCAT_CSPLIT)
     {
-      return Node::null();
+      Assert(children.size() == 2);
+      // TODO
+// Children: (P1:(= (str.++ t1 t2) (str.++ c s2)),
+//            P2:(not (= (str.len t1) 0)))
+// Arguments: (false)
+// ---------------------
+// Conclusion: (= t1 (str.++ c r))
+// where
+//   r = (witness ((z String)) (= z (suf t1 1))).
+//
+// or the reverse form of the above:
+//
+// Children: (P1:(= (str.++ t1 t2) (str.++ s1 c)),
+//            P2:(not (= (str.len t2) 0)))
+// Arguments: (true)
+// ---------------------
+// Conclusion: (= t2 (str.++ r c))
+// where
+//   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) 1)))).
     }
-    return s0.eqNode(t0);
-  }
-  else if (id == PfRule::CONCAT_CONFLICT)
-  {
-    Assert(children.size() == 1);
-    Assert(args.size() == 1);
-    // extract the Boolean corresponding to whether the rule is reversed
-    bool isRev;
-    if (!getBool(args[0], isRev))
+    else if (id == PfRule::CONCAT_LPROP)
     {
-      return Node::null();
+      Assert(children.size() == 2);
+      // TODO
+// Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+//            P2:(> (str.len t1) (str.len s1)))
+// Arguments: (false)
+// ---------------------
+// Conclusion: (= t1 (str.++ s1 r_t))
+// where
+//   r_t = (witness ((z String)) (= z (suf t1 (str.len s1))))
+//
+// or the reverse form of the above:
+//
+// Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+//            P2:(> (str.len t2) (str.len s2)))
+// Arguments: (false)
+// ---------------------
+// Conclusion: (= t2 (str.++ r_t s2))
+// where
+//   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len s2))))).
     }
-    Node eqs = children[0];
-    if (eqs.getKind() != EQUAL)
+    else if (id == PfRule::CONCAT_CPROP)
     {
-      return Node::null();
+      Assert(children.size() == 2);
+      // TODO
+// Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s)),
+//            P2:(not (= (str.len t1) 0)))
+// Arguments: (false)
+// ---------------------
+// Conclusion: (= t1 (str.++ w3 r)) 
+// where
+//   w1, w2, w3, w4 are words,
+//   w3 is (pre w2 p),
+//   w4 is (suf w2 p),
+//   p = Word::overlap((suf w2 1), w1),
+//   r = (witness ((z String)) (= z (suf t1 (str.len w3)))).
+// In other words, w4 is the largest suffix of (suf w2 1) that can contain a
+// prefix of w1; since t1 is non-empty, w3 must therefore be contained in t1.
+//
+// or the reverse form of the above:
+//
+// Children: (P1:(= (str.++ t1 w1 t2) (str.++ s w2)),
+//            P2:(not (= (str.len t2) 0)))
+// Arguments: (true)
+// ---------------------
+// Conclusion: (= t2 (str.++ r w3)) 
+// where
+//   w1, w2, w3, w4 are words,
+//   w3 is (suf w2 (- (str.len w2) p)),
+//   w4 is (pre w2 (- (str.len w2) p)),
+//   p = Word::roverlap((pre w2 (- (str.len w2) 1)), w1),
+//   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len w3))))).
+// In other words, w4 is the largest prefix of (pre w2 (- (str.len w2) 1)) that
+// can contain a suffix of w1; since t2 is non-empty, w3 must therefore be
+// contained in t2.
     }
-    std::vector<Node> svec;
-    std::vector<Node> tvec;
-    utils::getConcat(eqs[0], svec);
-    utils::getConcat(eqs[1], tvec);
-    Node s0 = svec[isRev ? svec.size() - 1 : 0];
-    Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
-    if (!s0.isConst() || !t0.isConst())
-    {
-      // not constants
-      return Node::null();
-    }
-    size_t sindex;
-    Node r0 = Word::splitConstant(s0, t0, sindex, isRev);
-    if (!r0.isNull())
-    {
-      // Not a conflict due to constants, i.e. s0 is a prefix of t0 or vice
-      // versa.
-      return Node::null();
-    }
-    return NodeManager::currentNM()->mkConst(false);
-  }
-  else if (id == PfRule::CONCAT_LPROP)
-  {
-    // TODO
-  }
-  else if (id == PfRule::CONCAT_CPROP)
-  {
-    // TODO
   }
   else if (id == PfRule::CTN_NOT_EQUAL)
   {
@@ -214,6 +296,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::RE_INTER)
   {
+    // TODO
   }
   else if (id == PfRule::RE_UNFOLD_POS || id == PfRule::RE_UNFOLD_NEG)
   {

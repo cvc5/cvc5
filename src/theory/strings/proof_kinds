@@ -36,7 +36,6 @@ proofrule CONCAT_UNIFY 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
 // is null, in other words, neither is a prefix of the other.
 proofrule CONCAT_CONFLICT 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
-
 // ======== Concat split
 // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
 //            P2:(not (= (str.len t1) (str.len s1))))
@@ -81,7 +80,6 @@ proofrule CONCAT_SPLIT 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
 // where
 //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) 1)))).
 proofrule CONCAT_CSPLIT 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
-
 
 // ======== Concat length propagate
 // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
