@@ -58,11 +58,20 @@ bool EagerProofGenerator::hasProofFor(Node f)
 }
 
 TrustNode EagerProofGenerator::mkTrustNode(Node n,
-                                           std::shared_ptr<ProofNode> pf)
+                                           std::shared_ptr<ProofNode> pf,
+                                           bool isConflict
+                                          )
 {
   if (pf == nullptr)
   {
     return TrustNode::null();
+  }
+  if (isConflict)
+  {
+    // this shouldnt modify the key
+    setProofForConflict(n, pf);
+    // we can now return the trust node
+    return TrustNode::mkTrustConflict(n, this);
   }
   // this shouldnt modify the key
   setProofForLemma(n, pf);
@@ -72,11 +81,12 @@ TrustNode EagerProofGenerator::mkTrustNode(Node n,
 
 TrustNode EagerProofGenerator::mkTrustNode(Node n,
                                            PfRule id,
-                                           const std::vector<Node>& args)
+                                           const std::vector<Node>& args,
+                                           bool isConflict)
 {
   std::vector<std::shared_ptr<ProofNode>> children;
   std::shared_ptr<ProofNode> pf = d_pnm->mkNode(id, children, args, n);
-  return mkTrustNode(n, pf);
+  return mkTrustNode(n, pf, isConflict);
 }
 
 TrustNode EagerProofGenerator::assertSplit(Node f)
