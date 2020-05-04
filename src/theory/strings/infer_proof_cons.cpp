@@ -369,7 +369,7 @@ PfRule InferProofCons::convert(Inference infer,
           {
             Trace("strings-ipc-core")
                 << "Core rule length requirement is " << lenReq << std::endl;
-            // apply concat unify
+            // apply the given rule
             std::vector<Node> childrenMain;
             childrenMain.push_back(mainEqCeq);
             childrenMain.push_back(lenReq);

@@ -235,7 +235,6 @@ void TermRegistry::registerTerm(Node n, int effort)
   d_registeredTerms.insert(n);
   // ensure the type is registered
   registerType(tn);
-  NodeManager* nm = NodeManager::currentNM();
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
   TrustNode regTermLem;
@@ -246,31 +245,16 @@ void TermRegistry::registerTerm(Node n, int effort)
     //  for concat/const/replace, introduce proxy var and state length relation
     regTermLem = getRegisterTermLemma(n);
   }
-  else if (n.getKind() == STRING_TO_CODE)
+  else
   {
-    // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
-    Node code_len = utils::mkNLength(n[0]).eqNode(d_one);
-    Node code_eq_neg1 = n.eqNode(d_negOne);
-    Node code_range = nm->mkNode(
-        AND,
-        nm->mkNode(GEQ, n, d_zero),
-        nm->mkNode(
-            LT, n, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
-    Node lem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
-    regTermLem = TrustNode::mkTrustLemma(lem, nullptr);
-  }
-  else if (n.getKind() == STRING_STRIDOF)
-  {
-    Node l = utils::mkNLength(n[0]);
-    Node lem = nm->mkNode(AND,
-                          nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
-                          nm->mkNode(LEQ, n, l));
-    regTermLem = TrustNode::mkTrustLemma(lem, nullptr);
-  }
-  else if (n.getKind() == STRING_STOI)
-  {
-    Node lem = nm->mkNode(GEQ, n, nm->mkConst(Rational(-1)));
-    regTermLem = TrustNode::mkTrustLemma(lem, nullptr);
+    Node eagerRedLemma = eagerReduce(n);
+    if (!eagerRedLemma.isNull())
+    {
+      // if there was an eager reduction, we make the trust node for it
+      std::vector<Node> argsRed;
+      argsRed.push_back(n);
+      regTermLem = d_epg->mkTrustNode(eagerRedLemma,PfRule::STRINGS_EAGER_REDUCTION,argsRed);
+    }
   }
   if (!regTermLem.isNull())
   {
@@ -363,7 +347,10 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
 
   Node ret = nm->mkNode(AND, eq, ceq);
 
-  return TrustNode::mkTrustLemma(ret, nullptr);
+  // it is a simple rewrite to justify this
+  std::vector<Node> argsPred;
+  argsPred.push_back(ret);
+  return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, argsPred);
 }
 
 void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
