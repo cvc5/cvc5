@@ -164,7 +164,7 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::INFER_EMP:
     {
       // need the "extended equality rewrite"
-      pii.d_args.push_back(nm->mkConst(Rational(1)));
+      pii.d_args.push_back(nm->mkConst(Rational(static_cast<uint32_t>(RewriterId::REWRITE_EQ_EXT))));
       pii.d_rule = PfRule::MACRO_SR_PRED_ELIM;
     }
     break;

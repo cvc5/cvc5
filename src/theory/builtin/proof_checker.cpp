@@ -22,8 +22,27 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace builtin {
+  
+const char* toString(RewriterId id)
+{
+  switch (id)
+  {
+    case RewriterId::REWRITE: return "REWRITE";
+    case RewriterId::REWRITE_EQ_EXT: return "REWRITE_EQ_EXT";
+    case RewriterId::IDENTITY: return "IDENTITY";
+    default:
+      return "RewriterId::Unknown";
+  };
+  
+}
 
-Node BuiltinProofRuleChecker::applyRewrite(Node n, uint32_t id)
+std::ostream& operator<<(std::ostream& out, RewriterId id)
+{
+  out << toString(id);
+  return out;
+}
+
+Node BuiltinProofRuleChecker::applyRewrite(Node n, RewriterId id)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
   Node nkr = applyRewriteExternal(n, id);
@@ -50,7 +69,7 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
-    Node n, const std::vector<Node>& exp, uint32_t id)
+    Node n, const std::vector<Node>& exp, RewriterId id)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
   Node nks = applySubstitutionExternal(nk, exp);
@@ -58,18 +77,23 @@ Node BuiltinProofRuleChecker::applySubstitutionRewrite(
   return ProofSkolemCache::getWitnessForm(nksr);
 }
 
-Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, uint32_t id)
+Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, RewriterId id)
 {
   Trace("builtin-pfcheck-debug")
       << "applyRewriteExternal (" << id << "): " << n << std::endl;
   // index determines the kind of rewriter
-  if (id == 0)
+  if (id == RewriterId::REWRITE)
   {
     return Rewriter::rewrite(n);
   }
-  else if (id == 1)
+  else if (id == RewriterId::REWRITE_EQ_EXT)
   {
     return Rewriter::rewriteEqualityExt(n);
+  }
+  else if (id == RewriterId::IDENTITY)
+  {
+    // does nothing
+    return n;
   }
   // unknown rewriter
   Assert(false)
@@ -101,6 +125,17 @@ Node BuiltinProofRuleChecker::applySubstitutionExternal(
     curr = applySubstitutionExternal(curr, exp[nexp - 1 - i]);
   }
   return curr;
+}
+
+bool BuiltinProofRuleChecker::getRewriterId(TNode n, RewriterId& i)
+{
+  uint32_t index;
+  if (!getIndex(n, index))
+  {
+    return false;
+  }
+  i = static_cast<RewriterId>(index);
+  return true;
 }
 
 Node BuiltinProofRuleChecker::checkInternal(PfRule id,
@@ -157,10 +192,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     //   (SUBS P1 ... Pn t)
     //   (REWRITE <t.substitute(xn,tn). ... .substitute(x1,t1)>))
     Assert(1 <= args.size() && args.size() <= 2);
-    uint32_t idRewriter = 0;
+    RewriterId idRewriter = RewriterId::REWRITE;
     if (args.size() >= 2)
     {
-      if (!getIndex(args[1], idRewriter))
+      if (!getRewriterId(args[1], idRewriter))
       {
         Trace("builtin-pfcheck")
             << "Failed to get id from " << args[1] << std::endl;
@@ -178,10 +213,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     // (TRUE_ELIM
     //   (MACRO_SR_EQ_INTRO <children> <args>[0]))
     Assert(1 <= args.size() && args.size() <= 2);
-    uint32_t idRewriter = 0;
+    RewriterId idRewriter = RewriterId::REWRITE;
     if (args.size() >= 2)
     {
-      if (!getIndex(args[1], idRewriter))
+      if (!getRewriterId(args[1], idRewriter))
       {
         Trace("builtin-pfcheck")
             << "Failed to get id from " << args[1] << std::endl;
@@ -200,7 +235,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return args[0];
   }
-  else if (id == PfRule::MACRO_SR_PRED_ELIM || id == PfRule::MACRO_SR_PRED_TRANSFORM)
+  else if (id == PfRule::MACRO_SR_PRED_ELIM)
   {
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args.size() << std::endl;
@@ -213,38 +248,53 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     //     (TRUE_INTRO <children>[0])))
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
-    uint32_t argIndex = 0;
-    Node g;
-    if (id== PfRule::MACRO_SR_PRED_TRANSFORM)
+    RewriterId idRewriter = RewriterId::REWRITE;
+    if (0<args.size())
     {
-      g = args[argIndex];
-      argIndex++;
-    }
-    uint32_t idRewriter = 0;
-    if (argIndex<args.size())
-    {
-      if (!getIndex(args[argIndex], idRewriter))
+      if (!getRewriterId(args[0], idRewriter))
       {
         Trace("builtin-pfcheck")
-            << "Failed to get id from " << args[argIndex] << std::endl;
+            << "Failed to get id from " << args[0] << std::endl;
         return Node::null();
       }
     }
     Node res1 = applySubstitutionRewrite(children[0], exp, idRewriter);
     Trace("builtin-pfcheck")
         << "Returned " << res1 << " from " << children[0] << std::endl;
-    if (id== PfRule::MACRO_SR_PRED_TRANSFORM)
+    return res1;
+  }
+  else if (id == PfRule::MACRO_SR_PRED_TRANSFORM)
+  {
+    Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
+                             << args.size() << std::endl;
+    Assert(children.size() >= 1);
+    Assert(args.size() <= 2);
+    std::vector<Node> exp;
+    exp.insert(exp.end(), children.begin() + 1, children.end());
+    RewriterId idRewriter = RewriterId::REWRITE;
+    if (1<args.size())
     {
-      Node res2 = applySubstitutionRewrite(g, exp, idRewriter);
-      Trace("builtin-pfcheck")
-          << "Returned " << res2 << " from " << g << std::endl;
-      if (res1!=res2)
+      if (!getRewriterId(args[1], idRewriter))
       {
+        Trace("builtin-pfcheck")
+            << "Failed to get id from " << args[1] << std::endl;
         return Node::null();
       }
-      return res2;
     }
-    return res1;
+    Node res1 = applySubstitutionRewrite(children[0], exp, idRewriter);
+    Trace("builtin-pfcheck")
+        << "Returned " << res1 << " from " << children[0] << std::endl;
+    Node res2 = applySubstitutionRewrite(args[0], exp, idRewriter);
+    Trace("builtin-pfcheck")
+        << "Returned " << res2 << " from " << args[0] << std::endl;
+    // can rewrite the witness forms
+    res1 = Rewriter::rewrite(res1);
+    res2 = Rewriter::rewrite(res2);
+    if (res1!=res2)
+    {
+      return Node::null();
+    }
+    return res2;
   }
   // no rule
   return Node::null();
