@@ -402,6 +402,10 @@ bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
 TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
 {
+  if (n.isConst())
+  {
+    return TrustNode::null();
+  }
   Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
   Node n_len = nm->mkNode(kind::STRING_LENGTH, n);

@@ -199,7 +199,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      if (!s0.isConst() || Word::getLength(s0) == 0)
+      if (!s0.isConst() || Word::isEmpty(s0))
       {
         return Node::null();
       }
@@ -259,14 +259,13 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      if (tvec.size() <= 1 || !tvec[1].isConst()
-          || Word::getLength(tvec[1]) == 0)
+      if (tvec.size() <= 1 || !tvec[1].isConst() || Word::isEmpty(tvec[1]))
       {
         return Node::null();
       }
       Node w1 = tvec[1];
       Node w2 = s0;
-      if (!w2.isConst() || Word::getLength(w2) == 0)
+      if (!w2.isConst() || Word::isEmpty(w2))
       {
         return Node::null();
       }
@@ -340,8 +339,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node ret;
     if (id == PfRule::STRINGS_REDUCTION)
     {
-      // TODO: eliminate optimizations
-      SkolemCache sc;
+      // we do not use optimizations
+      SkolemCache sc(false);
       std::vector<Node> conj;
       ret = StringsPreprocess::reduce(t, conj, &sc);
       conj.push_back(t.eqNode(ret));

@@ -75,13 +75,8 @@ Node StringsPreprocess::reduce(Node t,
 
     Node emp = Word::mkEmptyWord(t.getType());
 
-    Node sk1 = n == zero
-                   ? emp
-                   : sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
-    Node sk2 =
-        ArithEntail::check(t12, lt0)
-            ? emp
-            : sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 = sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
     //length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);

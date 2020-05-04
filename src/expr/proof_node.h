@@ -45,7 +45,7 @@ class ProofNodeManager;
  * ProofNode objects in trusted ways that ensure that the node maintains
  * the invariant above. Furthermore, notice that this class is not responsible
  * for setting d_proven; this is done externally by a ProofNodeManager class.
- * 
+ *
  * Notice that all fields of ProofNode are stored in ***Skolem form***. Their
  * correctness is checked in ***witness form*** (for details on this
  * terminology, see expr/proof_skolem_cache.h). As a simple example, say a
@@ -65,11 +65,11 @@ class ProofNodeManager;
  *   Rewriter::rewrite((= (witness ((z T)) (= z t)) t)) = true.
  * Notice that the correctness of the rule is justified here by rewriting
  * the witness form of (= k t). The conversion to/from witness form is
- * managed by ProofRuleChecker::check. 
- * 
+ * managed by ProofRuleChecker::check.
+ *
  * An external proof checker is expected to formalize the ProofNode only in
- * terms of *witness* forms. 
- * 
+ * terms of *witness* forms.
+ *
  * However, the rest of CVC4 sees only the *Skolem* form of arguments and
  * conclusions in ProofNode, since this is what is used throughout CVC4.
  */

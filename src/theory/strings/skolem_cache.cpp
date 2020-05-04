@@ -16,6 +16,8 @@
 
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
+#include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "util/rational.h"
 
 using namespace CVC4::kind;
@@ -24,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-SkolemCache::SkolemCache()
+SkolemCache::SkolemCache(bool useOpts) : d_useOpts(useOpts)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_strType = nm->stringType();
@@ -44,17 +46,26 @@ Node SkolemCache::mkSkolemCached(Node a, SkolemId id, const char* c)
 Node SkolemCache::mkTypedSkolemCached(
     TypeNode tn, Node a, Node b, SkolemId id, const char* c)
 {
-  // FIXME: delay rewriting
+  Trace("skolem-cache") << "mkTypedSkolemCached start: (" << id << ", " << a
+                        << ", " << b << ")" << std::endl;
+  SkolemId idOrig = id;
   a = a.isNull() ? a : Rewriter::rewrite(a);
   b = b.isNull() ? b : Rewriter::rewrite(b);
 
   std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
 
+  // optimization: if we aren't asking for the purification skolem for constant
+  // a, and the skolem is equivalent to a, then we just return a.
+  if (d_useOpts && idOrig != SK_PURIFY && id == SK_PURIFY && a.isConst())
+  {
+    Trace("skolem-cache") << "...optimization: return constant " << a << std::endl;
+    return a;
+  }
+
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {
     NodeManager* nm = NodeManager::currentNM();
-    // the condition
     Node sk;
     switch (id)
     {
@@ -79,16 +90,7 @@ Node SkolemCache::mkTypedSkolemCached(
       case SK_SUFFIX_REM:
         Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
         break;
-      // these are not easily formalized as witness terms
-      // --------------- integer skolems
-      // exists k. ( b occurs k times in a )
       case SK_NUM_OCCUR:
-      // --------------- function skolems
-      // For function k: Int -> Int
-      //   exists k.
-      //     forall 0 <= x <= n,
-      //       k(x) is the end index of the x^th occurrence of b in a
-      //   where n is the number of occurrences of b in a, and k(0)=0.
       case SK_OCCUR_INDEX:
       default:
       {
@@ -129,8 +131,6 @@ bool SkolemCache::isSkolem(Node n) const
 std::tuple<SkolemCache::SkolemId, Node, Node>
 SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
 {
-  Trace("skolem-cache") << "normalizeStringSkolem start: (" << id << ", " << a
-                        << ", " << b << ")" << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -208,21 +208,17 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
   {
     // SK_PREFIX(x,y) ---> SK_PURIFY(substr(x,0,y))
     id = SK_PURIFY;
-    a = nm->mkNode(STRING_SUBSTR, a, d_zero, b);
+    a = utils::mkPrefix(a, b);
     b = Node::null();
   }
   else if (id == SK_SUFFIX_REM)
   {
     // SK_SUFFIX_REM(x,y) ---> SK_PURIFY(substr(x,y,str.len(x)-y))
     id = SK_PURIFY;
-    a = nm->mkNode(STRING_SUBSTR,
-                   a,
-                   b,
-                   nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, a), b));
+    a = utils::mkSuffix(a, b);
     b = Node::null();
   }
 
-  // FIXME: delay rewriting
   a = a.isNull() ? a : Rewriter::rewrite(a);
   b = b.isNull() ? b : Rewriter::rewrite(b);
 
