@@ -39,7 +39,10 @@ namespace quantifiers {
  * axioms Fa and imply Fc( x ). We encode this conjecture using
  * SygusSideConditionAttribute.
  */
-class InterpolationProblem
+class SygusInterpol
+{
+	public:
+		SygusInterpol();
 /**
  * Returns the sygus conjecture corresponding to the interpolation problem for
  * input problem (F above) given by axioms (Fa above), and conj (Fc above).
@@ -59,13 +62,13 @@ class InterpolationProblem
  * term whose free variables are a subset of asserts, is the term
  * t * { varlist -> SygusVarToTermAttribute(varlist) }.
  */
-Node SolveInterpolationProblem(string name,
+bool SolveInterpolation(const std::string& name,
                                const std::vector<Node>& axioms,
                                const Node& conj,
-                               TypeNode itpGType);
+                               const TypeNode& itpGType,
+															 Expr& interpol);
                                
 {
-
   SmtEngine subsolver = ...
   1. collect symbols (symbolic constants)
   2. create corresponding variables
@@ -73,7 +76,7 @@ Node SolveInterpolationProblem(string name,
   3. initialize grammar (either by substitution in itpGType or completly create default grammar + symbols)
   4. on user-defined grammar, call andy's method. Otherwise in step 3, just use the variables and not the symbols.
   4. make inteprolant symbol with a given name (the type is: TxT...xT -> Bool)
-  5. create subsolvea
+  5. create subsolver
   5.5 declare synth variables (using the subsolver.declareSygusVar) (declare the ones created in 2)
   6. subsolver.declaresynthfun
   6.5. create conjecture body
@@ -82,16 +85,44 @@ Node SolveInterpolationProblem(string name,
   8. if UNSAT then subsolver.getsynthsolution and store in `I`
   9. I' = I.substitute variables by symbols.
   10. return I'
-
-
-
-
 }
 
-d_symbols
-d_variables
-bool d_initialized
-d_conjecture
+private:
+  /** The SMT engine subsolver
+   *
+   * This is a separate copy of the SMT engine which is used for making
+   * calls that cannot be answered by this copy of the SMT engine. An example
+   * of invoking this subsolver is the get-abduct command, where we wish to
+   * solve a sygus conjecture based on the current assertions. In particular,
+   * consider the input:
+   *   (assert A)
+   *   (get-abduct B)
+   * In the copy of the SMT engine where these commands are issued, we maintain
+   * A in the assertion stack. To solve the abduction problem, instead of
+   * modifying the assertion stack to remove A and add the sygus conjecture
+   * (exists I. ...), we invoke a fresh copy of the SMT engine and leave the
+   * assertion stack unchaged. This copy of the SMT engine can be further
+   * queried for information regarding further solutions.
+   */
+  std::unique_ptr<SmtEngine> d_subsolver;
+
+	std::unordered_set<Node, NodeHashFunction> d_symsetAll;
+	std::unordered_set<Node, NodeHashFunction> d_symsetShared;
+
+	std::vector<Node> d_syms;
+	std::vector<Node> d_vars;
+	std::vector<Node> d_varsShared;
+	std::vector<Node> d_vlvsShared;
+	std::vector<TypeNode> d_varTypesShared;
+	Node d_abvlShared;
+
+	Node d_sygusConj;
+};
+
+//d_symbols
+//d_variables
+//bool d_initialized
+//d_conjecture
 
                                
 }  // namespace sygus_interpol

@@ -1159,7 +1159,6 @@ class CVC4_PUBLIC SmtEngine
    * queried for information regarding further solutions.
    */
   std::unique_ptr<SmtEngine> d_subsolver;
-  // TODO can also be used for interpolation?
 
   /**
    * If applicable, the function-to-synthesize that the subsolver is solving
