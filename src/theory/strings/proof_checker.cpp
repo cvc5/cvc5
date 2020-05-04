@@ -158,20 +158,10 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      Node rt;
-      Node rs;
-      if (isRev)
-      {
-        rt = utils::mkSuffix(t0,nm->mkNode(STRING_LENGTH, s0));
-        rs = utils::mkSuffix(s0,nm->mkNode(STRING_LENGTH, t0));
-      }
-      else
-      {
-        rt = utils::mkPrefix(t0,nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH,t0),nm->mkNode(STRING_LENGTH, s0)));
-        rs = utils::mkPrefix(s0,nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH,s0),nm->mkNode(STRING_LENGTH, t0)));
-      }
-      Node wt = ProofSkolemCache::mkPurifySkolem(rt,"rt");
-      Node ws = ProofSkolemCache::mkPurifySkolem(rs,"rs");
+      Node rbodyt = isRev ? utils::mkPrefix(t0,nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH,t0),nm->mkNode(STRING_LENGTH, s0))) : utils::mkSuffix(t0,nm->mkNode(STRING_LENGTH, s0));
+      Node rbodys = isRev ? utils::mkPrefix(s0,nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH,s0),nm->mkNode(STRING_LENGTH, t0))) : utils::mkSuffix(s0,nm->mkNode(STRING_LENGTH, t0));
+      Node rt = ProofSkolemCache::mkPurifySkolem(rbodyt,"rt");
+      Node rs = ProofSkolemCache::mkPurifySkolem(rbodys,"rs");
       Node conc;
       if (isRev)
       {
@@ -186,51 +176,94 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     else if (id == PfRule::CONCAT_CSPLIT)
     {
       Assert(children.size() == 2);
-      // TODO
-// Children: (P1:(= (str.++ t1 t2) (str.++ c s2)),
-//            P2:(not (= (str.len t1) 0)))
-// Arguments: (false)
-// ---------------------
-// Conclusion: (= t1 (str.++ c r))
-// where
-//   r = (witness ((z String)) (= z (suf t1 1))).
-//
-// or the reverse form of the above:
-//
-// Children: (P1:(= (str.++ t1 t2) (str.++ s1 c)),
-//            P2:(not (= (str.len t2) 0)))
-// Arguments: (true)
-// ---------------------
-// Conclusion: (= t2 (str.++ r c))
-// where
-//   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) 1)))).
+      Node zero = nm->mkConst(Rational(0));
+      Node one = nm->mkConst(Rational(1));
+      if (children[1].getKind()!=NOT || children[1][0].getKind()!=EQUAL 
+        || children[1][0][0].getKind()!=STRING_LENGTH ||
+        children[1][0][0][0]!=t0 ||
+        children[1][0][1]!=zero)
+      {
+        return Node::null();
+      }
+      if (!s0.isConst() || Word::getLength(s0)==0)
+      {
+        return Node::null();
+      }
+      Node c = isRev ? Word::suffix(s0,1) : Word::prefix(s0,1);
+      Node rbody = isRev ? utils::mkPrefix(t0,nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH,t0),one)) : utils::mkSuffix(t0,one);
+      Node r = ProofSkolemCache::mkPurifySkolem(rbody,"r");
+      Node conc;
+      if (isRev)
+      {
+        conc = t0.eqNode(nm->mkNode(STRING_CONCAT,r,c));
+      }
+      else
+      {
+        conc = t0.eqNode(nm->mkNode(STRING_CONCAT,c,r));
+      }
+      return conc;
     }
     else if (id == PfRule::CONCAT_LPROP)
     {
       Assert(children.size() == 2);
-      // TODO
-// Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
-//            P2:(> (str.len t1) (str.len s1)))
-// Arguments: (false)
-// ---------------------
-// Conclusion: (= t1 (str.++ s1 r_t))
-// where
-//   r_t = (witness ((z String)) (= z (suf t1 (str.len s1))))
-//
-// or the reverse form of the above:
-//
-// Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
-//            P2:(> (str.len t2) (str.len s2)))
-// Arguments: (false)
-// ---------------------
-// Conclusion: (= t2 (str.++ r_t s2))
-// where
-//   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len s2))))).
+      if (children[1].getKind()!=GT 
+        || children[1][0].getKind()!=STRING_LENGTH ||
+        children[1][0][0]!=t0 ||
+        children[1][1].getKind()!=STRING_LENGTH ||
+        children[1][1][0]!=s0)
+      {
+        return Node::null();
+      }
+      Node rbody = isRev ? utils::mkPrefix(t0,nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH,t0),nm->mkNode(STRING_LENGTH, s0))) : utils::mkSuffix(t0,nm->mkNode(STRING_LENGTH, s0));
+      Node r = ProofSkolemCache::mkPurifySkolem(rbody,"r");
+      Node conc;
+      if (isRev)
+      {
+        conc = t0.eqNode(nm->mkNode(STRING_CONCAT,s0,r));
+      }
+      else
+      {
+        conc = t0.eqNode(nm->mkNode(STRING_CONCAT,r,s0));
+      }
+      return conc;
     }
     else if (id == PfRule::CONCAT_CPROP)
     {
       Assert(children.size() == 2);
-      // TODO
+      Node zero = nm->mkConst(Rational(0));
+      if (children[1].getKind()!=NOT || children[1][0].getKind()!=EQUAL 
+        || children[1][0][0].getKind()!=STRING_LENGTH ||
+        children[1][0][0][0]!=t0 ||
+        children[1][0][1]!=zero)
+      {
+        return Node::null();
+      }
+      if (tvec.size()<=1 || !tvec[1].isConst() || Word::getLength(tvec[1])==0)
+      {
+        return Node::null();
+      }
+      Node w1 = tvec[1];
+      Node w2 = s0;
+      if (!w2.isConst() || Word::getLength(w2)==0)
+      {
+        return Node::null();
+      }
+      size_t lenW2 = Word::getLength(w2);
+      Node w2mc1 = isRev ? Word::prefix(w2,lenW2-1) :  Word::suffix(w2,lenW2-1);
+      size_t p = isRev ? Word::roverlap(w2mc1,w1) : Word::overlap(w2mc1, w1);
+      Node w3 = isRev ? Word::suffix(w2,lenW2-p) : Word::prefix(w2,p);
+      Node rbody = isRev ? utils::mkPrefix(t0, nm->mkNode(MINUS,nm->mkNode(STRING_LENGTH,t0), nm->mkNode(STRING_LENGTH,w3))) : utils::mkSuffix(t0, nm->mkNode(STRING_LENGTH,w3));
+      Node r = ProofSkolemCache::mkPurifySkolem(rbody,"r");
+      Node conc;
+      if (isRev)
+      {
+        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, r, w3));
+      }
+      else
+      {
+        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, w3, r));
+      }
+      return conc;
 // Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s)),
 //            P2:(not (= (str.len t1) 0)))
 // Arguments: (false)

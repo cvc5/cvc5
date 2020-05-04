@@ -289,31 +289,6 @@ PfRule InferProofCons::convert(Inference infer,
             // 2+ children.
           }
         }
-        else if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY)
-        {
-          // the required premise for unify is always len(x) = len(y),
-          // however the explanation may not be literally this. Thus, we
-          // need to reconstruct a proof from the given explanation.
-          Node lenReq = nm->mkNode(STRING_LENGTH, mainEqCeq[0])
-                            .eqNode(nm->mkNode(STRING_LENGTH, mainEqCeq[1]));
-          // it should be the case that lenConstraint => lenReq
-
-          // apply concat unify
-          std::vector<Node> childrenCu;
-          childrenCu.push_back(mainEqCeq);
-          childrenCu.push_back(lenReq);
-          std::vector<Node> argsCu;
-          argsCu.push_back(nodeIsRev);
-          Node mainEqCu =
-              d_psb.tryStep(PfRule::CONCAT_UNIFY, childrenCu, argsCu);
-          Trace("strings-ipc-core")
-              << "Main equality after CONCAT_UNIFY " << mainEqCu << std::endl;
-          if (mainEqCu == conc)
-          {
-            // success
-            Trace("strings-ipc-core") << "...success!" << std::endl;
-          }
-        }
         else if (infer == Inference::N_CONST || infer == Inference::F_CONST)
         {
           // should be a constant conflict
@@ -328,16 +303,92 @@ PfRule InferProofCons::convert(Inference infer,
             Trace("strings-ipc-core") << "...success!" << std::endl;
           }
         }
-        else if (infer == Inference::SSPLIT_CST
-                 || infer == Inference::SSPLIT_VAR)
+        else
         {
-          // it should be the case that lenConstraint => lenReq
-        }
-        else if (infer == Inference::SSPLIT_CST_PROP)
-        {
-        }
-        else if (infer == Inference::SSPLIT_VAR_PROP)
-        {
+          std::vector<Node> tvec;
+          std::vector<Node> svec;
+          utils::getConcat(mainEqCeq[0], tvec);
+          utils::getConcat(mainEqCeq[1], svec);
+          Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
+          Node s0 = svec[isRev ? svec.size() - 1 : 0];
+          // may need to apply symmetry
+          if ((infer == Inference::SSPLIT_CST || infer == Inference::SSPLIT_CST_PROP) && t0.isConst())
+          {
+            Assert (!s0.isConst());
+            std::vector<Node> childrenSymm;
+            childrenSymm.push_back(mainEqCeq);
+            std::vector<Node> argsSymm;
+            mainEqCeq = 
+                d_psb.tryStep(PfRule::SYMM, childrenSymm, argsSymm);
+            Trace("strings-ipc-core")
+                << "Main equality after SYMM " << mainEqCeq << std::endl;
+            std::swap(t0, s0);
+          }
+          PfRule rule = PfRule::UNKNOWN;
+          // the form of the required length constraint expected by the proof
+          Node lenReq;
+          if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY)
+          {
+            // the required premise for unify is always len(x) = len(y),
+            // however the explanation may not be literally this. Thus, we
+            // need to reconstruct a proof from the given explanation.
+            // it should be the case that lenConstraint => lenReq
+            lenReq = nm->mkNode(STRING_LENGTH, t0)
+                              .eqNode(nm->mkNode(STRING_LENGTH, s0));
+            rule = PfRule::CONCAT_UNIFY;
+          }
+          else if (infer == Inference::SSPLIT_VAR)
+          {
+            // it should be the case that lenConstraint => lenReq
+            lenReq = nm->mkNode(STRING_LENGTH, t0)
+                              .eqNode(nm->mkNode(STRING_LENGTH, s0));
+            rule = PfRule::CONCAT_SPLIT;
+          }
+          else if (infer == Inference::SSPLIT_CST)
+          {
+            // it should be the case that lenConstraint => lenReq
+            lenReq = nm->mkNode(STRING_LENGTH, t0)
+                              .eqNode(nm->mkConst(Rational(0))).notNode();
+            rule = PfRule::CONCAT_CSPLIT;
+          }
+          else if (infer == Inference::SSPLIT_VAR_PROP)
+          {
+            // it should be the case that lenConstraint => lenReq
+            lenReq = nm->mkNode(GT,nm->mkNode(STRING_LENGTH, t0),
+                              nm->mkNode(STRING_LENGTH, s0));
+            rule = PfRule::CONCAT_LPROP;
+          }
+          else if (infer == Inference::SSPLIT_CST_PROP)
+          {
+            // it should be the case that lenConstraint => lenReq
+            lenReq = nm->mkNode(STRING_LENGTH, t0)
+                              .eqNode(nm->mkConst(Rational(0))).notNode();
+            rule = PfRule::CONCAT_CPROP;
+          }
+          if (rule!=PfRule::UNKNOWN)
+          {
+            Trace("strings-ipc-core")
+                << "Core rule length requirement is " << lenReq << std::endl;
+            // apply concat unify
+            std::vector<Node> childrenMain;
+            childrenMain.push_back(mainEqCeq);
+            childrenMain.push_back(lenReq);
+            std::vector<Node> argsMain;
+            argsMain.push_back(nodeIsRev);
+            Node mainEqMain =
+                d_psb.tryStep(rule, childrenMain, argsMain);
+            Trace("strings-ipc-core")
+                << "Main equality after " << rule << " " << mainEqMain << std::endl;
+            if (mainEqMain == conc)
+            {
+              // success
+              Trace("strings-ipc-core") << "...success!" << std::endl;
+            }
+          }
+          else
+          {
+            Assert(false);
+          }
         }
       }
     }
