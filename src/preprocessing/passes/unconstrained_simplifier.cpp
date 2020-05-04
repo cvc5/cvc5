@@ -53,7 +53,7 @@ struct unc_preprocess_stack_element
   }
   /** The term to process */
   TNode d_node;
-  /** 
+  /**
    * The parent of the term to process, or null if one does not exist,
    * or if the term is beneath a quantifier.
    */
