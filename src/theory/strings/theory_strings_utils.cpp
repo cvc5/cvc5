@@ -159,14 +159,15 @@ Node mkNLength(Node t)
 
 Node mkPrefix(Node t, Node n)
 {
-  NodeManager * nm = NodeManager::currentNM();
-  return nm->mkNode(STRING_SUBSTR,t,nm->mkConst(Rational(0)),n);
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(STRING_SUBSTR, t, nm->mkConst(Rational(0)), n);
 }
 
 Node mkSuffix(Node t, Node n)
 {
-  NodeManager * nm = NodeManager::currentNM();
-  return nm->mkNode(STRING_SUBSTR,t,n,nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH,t),n));
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(
+      STRING_SUBSTR, t, n, nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, t), n));
 }
 
 Node getConstantComponent(Node t)

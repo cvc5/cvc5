@@ -29,8 +29,7 @@ const char* toString(RewriterId id)
     case RewriterId::REWRITE: return "REWRITE";
     case RewriterId::REWRITE_EQ_EXT: return "REWRITE_EQ_EXT";
     case RewriterId::IDENTITY: return "IDENTITY";
-    default:
-      return "RewriterId::Unknown";
+    default: return "RewriterId::Unknown";
   };
 }
 
@@ -249,7 +248,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
     RewriterId idRewriter = RewriterId::REWRITE;
-    if (0<args.size())
+    if (0 < args.size())
     {
       if (!getRewriterId(args[0], idRewriter))
       {
@@ -259,8 +258,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       }
     }
     Node res1 = applySubstitutionRewrite(children[0], exp, idRewriter);
-    Trace("builtin-pfcheck")
-        << "Returned " << res1 << std::endl;
+    Trace("builtin-pfcheck") << "Returned " << res1 << std::endl;
     return res1;
   }
   else if (id == PfRule::MACRO_SR_PRED_TRANSFORM)
@@ -272,7 +270,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
     RewriterId idRewriter = RewriterId::REWRITE;
-    if (1<args.size())
+    if (1 < args.size())
     {
       if (!getRewriterId(args[1], idRewriter))
       {
@@ -282,18 +280,17 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       }
     }
     Node res1 = applySubstitutionRewrite(children[0], exp, idRewriter);
-    //Trace("builtin-pfcheck")
+    // Trace("builtin-pfcheck")
     //    << "Returned " << res1 << std::endl;
     Node res2 = applySubstitutionRewrite(args[0], exp, idRewriter);
-    //Trace("builtin-pfcheck")
+    // Trace("builtin-pfcheck")
     //    << "Returned " << res2 << " from " << args[0] << std::endl;
     // can rewrite the witness forms
     res1 = Rewriter::rewrite(res1);
     res2 = Rewriter::rewrite(res2);
-    if (res1!=res2)
+    if (res1 != res2)
     {
-        Trace("builtin-pfcheck")
-            << "Failed to match results" << std::endl;
+      Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
       return Node::null();
     }
     return args[0];

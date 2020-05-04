@@ -16,9 +16,9 @@
 
 #include "expr/proof_skolem_cache.h"
 #include "options/strings_options.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
-#include "theory/builtin/proof_checker.h"
 
 using namespace CVC4::kind;
 
@@ -165,7 +165,8 @@ PfRule InferProofCons::convert(Inference infer,
     case Inference::INFER_EMP:
     {
       // need the "extended equality rewrite"
-      pii.d_args.push_back(nm->mkConst(Rational(static_cast<uint32_t>(RewriterId::REWRITE_EQ_EXT))));
+      pii.d_args.push_back(nm->mkConst(
+          Rational(static_cast<uint32_t>(RewriterId::REWRITE_EQ_EXT))));
       pii.d_rule = PfRule::MACRO_SR_PRED_ELIM;
     }
     break;
@@ -313,14 +314,15 @@ PfRule InferProofCons::convert(Inference infer,
           Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
           Node s0 = svec[isRev ? svec.size() - 1 : 0];
           // may need to apply symmetry
-          if ((infer == Inference::SSPLIT_CST || infer == Inference::SSPLIT_CST_PROP) && t0.isConst())
+          if ((infer == Inference::SSPLIT_CST
+               || infer == Inference::SSPLIT_CST_PROP)
+              && t0.isConst())
           {
-            Assert (!s0.isConst());
+            Assert(!s0.isConst());
             std::vector<Node> childrenSymm;
             childrenSymm.push_back(mainEqCeq);
             std::vector<Node> argsSymm;
-            mainEqCeq = 
-                d_psb.tryStep(PfRule::SYMM, childrenSymm, argsSymm);
+            mainEqCeq = d_psb.tryStep(PfRule::SYMM, childrenSymm, argsSymm);
             Trace("strings-ipc-core")
                 << "Main equality after SYMM " << mainEqCeq << std::endl;
             std::swap(t0, s0);
@@ -335,38 +337,41 @@ PfRule InferProofCons::convert(Inference infer,
             // need to reconstruct a proof from the given explanation.
             // it should be the case that lenConstraint => lenReq
             lenReq = nm->mkNode(STRING_LENGTH, t0)
-                              .eqNode(nm->mkNode(STRING_LENGTH, s0));
+                         .eqNode(nm->mkNode(STRING_LENGTH, s0));
             rule = PfRule::CONCAT_UNIFY;
           }
           else if (infer == Inference::SSPLIT_VAR)
           {
             // it should be the case that lenConstraint => lenReq
             lenReq = nm->mkNode(STRING_LENGTH, t0)
-                              .eqNode(nm->mkNode(STRING_LENGTH, s0));
+                         .eqNode(nm->mkNode(STRING_LENGTH, s0));
             rule = PfRule::CONCAT_SPLIT;
           }
           else if (infer == Inference::SSPLIT_CST)
           {
             // it should be the case that lenConstraint => lenReq
             lenReq = nm->mkNode(STRING_LENGTH, t0)
-                              .eqNode(nm->mkConst(Rational(0))).notNode();
+                         .eqNode(nm->mkConst(Rational(0)))
+                         .notNode();
             rule = PfRule::CONCAT_CSPLIT;
           }
           else if (infer == Inference::SSPLIT_VAR_PROP)
           {
             // it should be the case that lenConstraint => lenReq
-            lenReq = nm->mkNode(GT,nm->mkNode(STRING_LENGTH, t0),
-                              nm->mkNode(STRING_LENGTH, s0));
+            lenReq = nm->mkNode(GT,
+                                nm->mkNode(STRING_LENGTH, t0),
+                                nm->mkNode(STRING_LENGTH, s0));
             rule = PfRule::CONCAT_LPROP;
           }
           else if (infer == Inference::SSPLIT_CST_PROP)
           {
             // it should be the case that lenConstraint => lenReq
             lenReq = nm->mkNode(STRING_LENGTH, t0)
-                              .eqNode(nm->mkConst(Rational(0))).notNode();
+                         .eqNode(nm->mkConst(Rational(0)))
+                         .notNode();
             rule = PfRule::CONCAT_CPROP;
           }
-          if (rule!=PfRule::UNKNOWN)
+          if (rule != PfRule::UNKNOWN)
           {
             Trace("strings-ipc-core")
                 << "Core rule length requirement is " << lenReq << std::endl;
@@ -378,10 +383,9 @@ PfRule InferProofCons::convert(Inference infer,
             childrenMain.push_back(lenReq);
             std::vector<Node> argsMain;
             argsMain.push_back(nodeIsRev);
-            Node mainEqMain =
-                d_psb.tryStep(rule, childrenMain, argsMain);
-            Trace("strings-ipc-core")
-                << "Main equality after " << rule << " " << mainEqMain << std::endl;
+            Node mainEqMain = d_psb.tryStep(rule, childrenMain, argsMain);
+            Trace("strings-ipc-core") << "Main equality after " << rule << " "
+                                      << mainEqMain << std::endl;
             if (mainEqMain == conc)
             {
               Trace("strings-ipc-core") << "...success";
@@ -390,7 +394,8 @@ PfRule InferProofCons::convert(Inference infer,
             {
               Trace("strings-ipc-core") << "...fail";
             }
-            Trace("strings-ipc-core") << ", length success = " << lenSuccess << std::endl;
+            Trace("strings-ipc-core")
+                << ", length success = " << lenSuccess << std::endl;
           }
           else
           {
@@ -528,31 +533,36 @@ PfRule InferProofCons::convert(Inference infer,
   return pii.d_rule;
 }
 
-bool InferProofCons::convertLengthPf( Node lenReq, const std::vector<Node>& lenExp)
+bool InferProofCons::convertLengthPf(Node lenReq,
+                                     const std::vector<Node>& lenExp)
 {
   for (const Node& le : lenExp)
   {
-    if (lenReq==le)
+    if (lenReq == le)
     {
       return true;
     }
   }
-  Trace("strings-ipc-len") << "Must explain " << lenReq << " by " << lenExp << std::endl;
-  if (lenExp.size()==1)
+  Trace("strings-ipc-len") << "Must explain " << lenReq << " by " << lenExp
+                           << std::endl;
+  if (lenExp.size() == 1)
   {
     // probably rewrites to it
     Node lrr = Rewriter::rewrite(lenReq);
     Node ler = Rewriter::rewrite(lenExp[0]);
     Trace("strings-ipc-len") << "Rewrite? " << lrr << " " << ler << std::endl;
-    if (lrr==ler)
+    if (lrr == ler)
     {
       std::vector<Node> children;
       children.push_back(lenExp[0]);
       std::vector<Node> args;
       args.push_back(lenReq);
-      Node lconc = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
-      Trace("strings-ipc-len") << "Length constraint after MACRO_SR_PRED_TRANSFORM " << lconc << std::endl;
-      if (lconc==lenReq)
+      Node lconc =
+          d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+      Trace("strings-ipc-len")
+          << "Length constraint after MACRO_SR_PRED_TRANSFORM " << lconc
+          << std::endl;
+      if (lconc == lenReq)
       {
         return true;
       }

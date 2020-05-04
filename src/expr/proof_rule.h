@@ -120,11 +120,11 @@ enum class PfRule : uint32_t
   // Arguments: (G, id)
   // ----------------------------------------
   // Conclusion: G
-  // where 
+  // where
   //   Rewriter{id}(F.substitute(xn,tn). ... . substitute(x1,t1)) ==
   //   Rewriter{id}(G.substitute(xn,tn). ... . substitute(x1,t1))
   MACRO_SR_PRED_TRANSFORM,
-  
+
   //================================================= Boolean rules
   // ======== Split
   // Children: none
@@ -299,7 +299,7 @@ enum class PfRule : uint32_t
   // (CONCAT_EQ P1 :args false) concludes (= "" z)
   //
   // Also note that constants are split, such that if
-  // P1 concludes (= (str.++ "abc" x) (str.++ "a" y)), then 
+  // P1 concludes (= (str.++ "abc" x) (str.++ "a" y)), then
   // (CONCAT_EQ P1 :args false) concludes (= (str.++ "bc" x) y)
   // This splitting is done only for constants such that Word::splitConstant
   // returns non-null.
@@ -316,7 +316,7 @@ enum class PfRule : uint32_t
   // Arguments: (b), indicating if reverse direction
   // ---------------------
   // Conclusion: false
-  // Where c1, c2 are constants such that Word::splitConstant(c1,c2,index,b) 
+  // Where c1, c2 are constants such that Word::splitConstant(c1,c2,index,b)
   // is null, in other words, neither is a prefix of the other.
   CONCAT_CONFLICT,
   // ======== Concat split
@@ -337,8 +337,9 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or (= t2 (str.++ r_t s2)) (= s2 (str.++ r_s t2)))
   // where
-  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len s2))))),
-  //   r_s = (witness ((z String)) (= z (pre s2 (- (str.len s2) (str.len t2))))).
+  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len
+  //   s2))))), r_s = (witness ((z String)) (= z (pre s2 (- (str.len s2)
+  //   (str.len t2))))).
   //
   // Above, (suf x n) is shorthand for (str.substr x n (- (str.len x) n)) and
   // (pre x n) is shorthand for (str.substr x 0 n).
@@ -379,14 +380,15 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= t2 (str.++ r_t s2))
   // where
-  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len s2))))).
+  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len
+  //   s2))))).
   CONCAT_LPROP,
   // ======== Concat constant propagate
   // Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s)),
   //            P2:(not (= (str.len t1) 0)))
   // Arguments: (false)
   // ---------------------
-  // Conclusion: (= t1 (str.++ w3 r)) 
+  // Conclusion: (= t1 (str.++ w3 r))
   // where
   //   w1, w2, w3, w4 are words,
   //   w3 is (pre w2 p),
@@ -402,16 +404,16 @@ enum class PfRule : uint32_t
   //            P2:(not (= (str.len t2) 0)))
   // Arguments: (true)
   // ---------------------
-  // Conclusion: (= t2 (str.++ r w3)) 
+  // Conclusion: (= t2 (str.++ r w3))
   // where
   //   w1, w2, w3, w4 are words,
   //   w3 is (suf w2 (- (str.len w2) p)),
   //   w4 is (pre w2 (- (str.len w2) p)),
   //   p = Word::roverlap((pre w2 (- (str.len w2) 1)), w1),
   //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len w3))))).
-  // In other words, w4 is the largest prefix of (pre w2 (- (str.len w2) 1)) that
-  // can contain a suffix of w1; since t2 is non-empty, w3 must therefore be
-  // contained in t2.
+  // In other words, w4 is the largest prefix of (pre w2 (- (str.len w2) 1))
+  // that can contain a suffix of w1; since t2 is non-empty, w3 must therefore
+  // be contained in t2.
   CONCAT_CPROP,
   //======================== Extended functions
   // ======== Contains not equal

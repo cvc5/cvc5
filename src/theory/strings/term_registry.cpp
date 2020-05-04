@@ -253,7 +253,8 @@ void TermRegistry::registerTerm(Node n, int effort)
       // if there was an eager reduction, we make the trust node for it
       std::vector<Node> argsRed;
       argsRed.push_back(n);
-      regTermLem = d_epg->mkTrustNode(eagerRedLemma,PfRule::STRINGS_EAGER_REDUCTION,argsRed);
+      regTermLem = d_epg->mkTrustNode(
+          eagerRedLemma, PfRule::STRINGS_EAGER_REDUCTION, argsRed);
     }
   }
   if (!regTermLem.isNull())

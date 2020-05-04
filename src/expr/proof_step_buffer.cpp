@@ -23,16 +23,14 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ProofStepBuffer::ProofStepBuffer(ProofChecker* pc) : d_checker(pc)
-{
-}
+ProofStepBuffer::ProofStepBuffer(ProofChecker* pc) : d_checker(pc) {}
 
 Node ProofStepBuffer::tryStep(PfRule id,
                               const std::vector<Node>& children,
                               const std::vector<Node>& args,
                               Node expected)
 {
-  if(d_checker == nullptr)
+  if (d_checker == nullptr)
   {
     Assert(false) << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
     return Node::null();
@@ -49,11 +47,12 @@ Node ProofStepBuffer::tryStep(PfRule id,
 }
 
 void ProofStepBuffer::addStep(PfRule id,
-              const std::vector<Node>& children,
-              const std::vector<Node>& args,
-              Node expected)
+                              const std::vector<Node>& children,
+                              const std::vector<Node>& args,
+                              Node expected)
 {
-  d_steps.push_back(std::pair<Node, ProofStep>(expected,ProofStep(id,children,args)));
+  d_steps.push_back(
+      std::pair<Node, ProofStep>(expected, ProofStep(id, children, args)));
 }
 
 bool ProofStepBuffer::addTo(CDProof* pf)

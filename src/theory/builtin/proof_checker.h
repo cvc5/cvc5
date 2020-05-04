@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 
 /** Identifiers for rewriters.
- * 
+ *
  * A "rewriter" is abstractly a method from Node to Node, where the output
  * is semantically equivalent to the input. The identifiers below list
  * various methods that have this contract. This identifier is used
@@ -90,6 +90,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                                        RewriterId id = RewriterId::REWRITE);
   /** get a rewriter Id from a node, return false if we fail */
   static bool getRewriterId(TNode n, RewriterId& i);
+
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node checkInternal(PfRule id,
