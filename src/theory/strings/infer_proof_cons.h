@@ -69,6 +69,8 @@ class InferProofCons
  private:
   /** Convert length proof */
   bool convertLengthPf(Node lenReq, const std::vector<Node>& lenExp);
+  /** Apply macro transform */
+  bool convertPredTransform(Node src, Node tgt, const std::vector<Node>& exp);
   /** The proof step buffer */
   ProofStepBuffer d_psb;
   /** Reference to the statistics for the theory of strings/sequences. */

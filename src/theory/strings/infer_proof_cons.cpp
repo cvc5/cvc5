@@ -370,7 +370,9 @@ void InferProofCons::convert(Inference infer,
             Node mainEqMain = d_psb.tryStep(rule, childrenMain, argsMain);
             Trace("strings-ipc-core") << "Main equality after " << rule << " "
                                       << mainEqMain << std::endl;
-            if (mainEqMain == conc)
+            // either equal or rewrites to it
+            std::vector<Node> cexp;
+            if (convertPredTransform(mainEqMain,conc,cexp))
             {
               // requires that length success is also true
               useBuffer = lenSuccess;
@@ -435,16 +437,9 @@ void InferProofCons::convert(Inference infer,
         Node red = d_psb.tryStep(PfRule::STRINGS_REDUCTION, childrenRed, argsRed);
         if (!red.isNull())
         {
-          if (red!=conc)
-          {
-            std::vector<Node> childrenT;
-            childrenT.push_back(red);
-            std::vector<Node> argsT;
-            argsT.push_back(conc);
-            // should rewrite to the same thing
-            red = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, childrenT, argsT);
-          }
-          if (conc==red)
+          // either equal or rewrites to it
+          std::vector<Node> cexp;
+          if (convertPredTransform(red,conc,cexp))
           {
             useBuffer = true;
           }
@@ -557,29 +552,32 @@ bool InferProofCons::convertLengthPf(Node lenReq,
                            << std::endl;
   if (lenExp.size() == 1)
   {
-    // probably rewrites to it
-    Node lrr = Rewriter::rewrite(lenReq);
-    Node ler = Rewriter::rewrite(lenExp[0]);
-    Trace("strings-ipc-len") << "Rewrite? " << lrr << " " << ler << std::endl;
-    if (lrr == ler)
+    // probably rewrites to it?
+    std::vector<Node> exp;
+    if (convertPredTransform(lenExp[0],lenReq,exp))
     {
-      std::vector<Node> children;
-      children.push_back(lenExp[0]);
-      std::vector<Node> args;
-      args.push_back(lenReq);
-      Node lconc =
-          d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
-      Trace("strings-ipc-len")
-          << "Length constraint after MACRO_SR_PRED_TRANSFORM " << lconc
-          << std::endl;
-      if (lconc == lenReq)
-      {
-        return true;
-      }
-      Assert(lconc.isNull());
+      return true;
     }
   }
   return false;
+}
+
+bool InferProofCons::convertPredTransform(Node src, Node tgt, const std::vector<Node>& exp)
+{
+  if (src==tgt)
+  {
+    // already equal
+    return true;
+  }
+  // try to prove that tgt rewrites to 
+  std::vector<Node> children;
+  children.push_back(src);
+  children.insert(children.end(),exp.begin(),exp.end());
+  std::vector<Node> args;
+  args.push_back(tgt);
+  Node res =
+      d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+  return res==tgt;
 }
 
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }
