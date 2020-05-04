@@ -46,10 +46,11 @@ UnconstrainedSimplifier::~UnconstrainedSimplifier()
 
 struct unc_preprocess_stack_element
 {
-  TNode node;
-  TNode parent;
-  unc_preprocess_stack_element(TNode n) : node(n) {}
-  unc_preprocess_stack_element(TNode n, TNode p) : node(n), parent(p) {}
+  unc_preprocess_stack_element(TNode n) : d_node(n), d_beneathQuant(false) {}
+  unc_preprocess_stack_element(TNode n, TNode p, bool bq) : d_node(n), d_parent(p), d_beneathQuant(bq) {}
+  TNode d_node;
+  TNode d_parent;
+  bool d_beneathQuant;
 }; /* struct unc_preprocess_stack_element */
 
 void UnconstrainedSimplifier::visitAll(TNode assertion)
@@ -61,8 +62,9 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
   while (!toVisit.empty())
   {
     // The current node we are processing
-    TNode current = toVisit.back().node;
-    TNode parent = toVisit.back().parent;
+    TNode current = toVisit.back().d_node;
+    TNode parent = toVisit.back().d_parent;
+    bool beneathQuant = toVisit.back().d_beneathQuant;
     toVisit.pop_back();
 
     TNodeCountMap::iterator find = d_visited.find(current);
@@ -81,7 +83,8 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
     }
 
     d_visited[current] = 1;
-    d_visitedOnce[current] = parent;
+    // do not assign parents for terms beneath quantifiers
+    d_visitedOnce[current] = beneathQuant ? TNode::null() : parent;
 
     if (current.getNumChildren() == 0)
     {
@@ -91,12 +94,13 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
         d_unconstrained.insert(current);
       }
     }
-    else if (!current.isClosure())
+    else
     {
+      bool beneathQuantChild = beneathQuant || current.isClosure();
       // if not a quantifier, traverse
       for (TNode childNode : current)
       {
-        toVisit.push_back(unc_preprocess_stack_element(childNode, current));
+        toVisit.push_back(unc_preprocess_stack_element(childNode, current, beneathQuantChild));
       }
     }
   }
