@@ -38,6 +38,10 @@ void ProofEngineOutputChannel::trustedConflict(TrustNode pconf)
     d_lazyPf->addStep(ckey, pfg);
     Assert(pfg->hasProofFor(ckey));
   }
+  else
+  {
+    // TODO: if none provided, do a very coarse-grained step
+  }
   // now, call the normal interface to conflict
   conflict(conf);
 }
@@ -57,6 +61,10 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
     // if we have, add it to the lazy proof object
     d_lazyPf->addStep(lkey, pfg);
     Assert(pfg->hasProofFor(lkey));
+  }
+  else
+  {
+    // TODO: if none provided, do a very coarse-grained step
   }
   // now, call the normal interface for lemma
   return OutputChannel::lemma(lem, removable, preprocess, sendAtoms);
