@@ -47,7 +47,10 @@ UnconstrainedSimplifier::~UnconstrainedSimplifier()
 struct unc_preprocess_stack_element
 {
   unc_preprocess_stack_element(TNode n) : d_node(n), d_beneathQuant(false) {}
-  unc_preprocess_stack_element(TNode n, TNode p, bool bq) : d_node(n), d_parent(p), d_beneathQuant(bq) {}
+  unc_preprocess_stack_element(TNode n, TNode p, bool bq)
+      : d_node(n), d_parent(p), d_beneathQuant(bq)
+  {
+  }
   TNode d_node;
   TNode d_parent;
   bool d_beneathQuant;
@@ -100,7 +103,8 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
       // if not a quantifier, traverse
       for (TNode childNode : current)
       {
-        toVisit.push_back(unc_preprocess_stack_element(childNode, current, beneathQuantChild));
+        toVisit.push_back(unc_preprocess_stack_element(
+            childNode, current, beneathQuantChild));
       }
     }
   }
