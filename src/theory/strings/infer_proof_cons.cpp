@@ -428,11 +428,27 @@ void InferProofCons::convert(Inference infer,
       }
       else
       {
-        std::vector<Node> args;
+        std::vector<Node> childrenRed;
+        std::vector<Node> argsRed;
         // the left hand side of the last conjunct is the term we are reducing
-        args.push_back(conc[nchild - 1][0]);
-        // FIXME
-        //pii.d_rule = PfRule::STRINGS_REDUCTION;
+        argsRed.push_back(conc[nchild - 1][0]);
+        Node red = d_psb.tryStep(PfRule::STRINGS_REDUCTION, childrenRed, argsRed);
+        if (!red.isNull())
+        {
+          if (red!=conc)
+          {
+            std::vector<Node> childrenT;
+            childrenT.push_back(red);
+            std::vector<Node> argsT;
+            argsT.push_back(conc);
+            // should rewrite to the same thing
+            red = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, childrenT, argsT);
+          }
+          if (conc==red)
+          {
+            useBuffer = true;
+          }
+        }
       }
     }
     break;
