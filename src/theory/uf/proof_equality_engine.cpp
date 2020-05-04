@@ -163,6 +163,22 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
   Trace("pfee") << "pfee::assertConflict " << lit << std::endl;
   std::vector<TNode> assumps;
   explainWithProof(lit, assumps);
+  if (d_pfEnabled)
+  {
+    // lit may not be equivalent to false, but should rewrite to false
+    if (lit!=d_false)
+    {
+      Assert(Rewriter::rewrite(lit)==d_false) << "pfee::assertConflict: conflict literal is not rewritable to false";
+      std::vector<Node> exp;
+      exp.push_back(lit);
+      std::vector<Node> args;
+      if (!d_proof.addStep(d_false, PfRule::MACRO_SR_PRED_ELIM, exp, args))
+      {
+        Assert(false) << "pfee::assertConflict: failed conflict step";
+        return TrustNode::null();
+      }
+    }
+  }
   return ensureProofForFact(d_false, assumps, true);
 }
 
