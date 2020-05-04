@@ -168,8 +168,8 @@ void EqualityEngine::setMasterEqualityEngine(EqualityEngine* master) {
 void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
   Debug("equality") << d_name << "::eq::enqueue(" << d_nodes[candidate.d_t1Id]
                     << ", " << d_nodes[candidate.d_t2Id] << ", "
-                    << candidate.d_type << "). reason: " << candidate.d_reason
-                    << std::endl;
+                    << static_cast<MergeReasonType>(candidate.d_type)
+                    << "). reason: " << candidate.d_reason << std::endl;
   if (back) {
     d_propagationQueue.push_back(candidate);
   } else {
@@ -1244,7 +1244,9 @@ void EqualityEngine::getExplanation(
             Debug("equality") << d_name << "::eq::getExplanation(): currentEdge = " << currentEdge << ", currentNode = " << currentNode << std::endl;
             Debug("equality") << d_name << "                     targetNode = " << d_nodes[edgeNode] << std::endl;
             Debug("equality") << d_name << "                     in currentEdge = (" << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()] << ")" << std::endl;
-            Debug("equality") << d_name << "                     reason type = " << reasonType << std::endl;
+            Debug("equality")
+                << d_name << "                     reason type = "
+                << static_cast<MergeReasonType>(reasonType) << std::endl;
 
             std::shared_ptr<EqProof> eqpc;;
             // Make child proof if a proof is being constructed
@@ -1399,7 +1401,9 @@ void EqualityEngine::getExplanation(
               // Construct the equality
               Debug("equality") << d_name << "::eq::getExplanation(): adding: "
                                 << reason << std::endl;
-              Debug("equality") << d_name << "::eq::getExplanation(): reason type = " << reasonType << std::endl;
+              Debug("equality")
+                  << d_name << "::eq::getExplanation(): reason type = "
+                  << static_cast<MergeReasonType>(reasonType) << std::endl;
               Node a = d_nodes[currentNode];
               Node b = d_nodes[d_equalityEdges[currentEdge].getNodeId()];
 
@@ -1411,7 +1415,11 @@ void EqualityEngine::getExplanation(
                                        eqpc.get());
                 }
                 if (reasonType == MERGED_THROUGH_EQUALITY) {
-                  eqpc->d_node = reason;
+                  // in the new proof infrastructure we can assume that "theory
+                  // assumptions", which are a consequence of theory reasoning
+                  // on other assumptions, are externally justified. In this
+                  // case we can use (= a b) directly as the conclusion here.
+                  eqpc->d_node = !options::proofNew()? reason : b.eqNode(a);
                 } else {
                   // The LFSC translator prefers (not (= a b)) over (= (= a b) false)
 
