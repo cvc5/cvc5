@@ -36,6 +36,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     id == PfRule::CONCAT_LPROP || id == PfRule::CONCAT_CPROP
   )
   {
+    Trace("strings-pfcheck") << "Checking id " << id << std::endl;
     Assert(children.size() >= 1);
     Assert(args.size() == 1);
     // all rules have an equality
@@ -48,8 +49,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> svec;
     utils::getConcat(children[0][0], tvec);
     utils::getConcat(children[0][1], svec);
-    size_t nchildt = svec.size();
-    size_t nchilds = tvec.size();
+    size_t nchildt = tvec.size();
+    size_t nchilds = svec.size();
     TypeNode stringType = children[0][0].getType();
     NodeManager * nm = NodeManager::currentNM();
     // extract the Boolean corresponding to whether the rule is reversed
