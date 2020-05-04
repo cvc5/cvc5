@@ -21,8 +21,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-namespace builtin {
-  
+
 const char* toString(RewriterId id)
 {
   switch (id)
@@ -33,7 +32,6 @@ const char* toString(RewriterId id)
     default:
       return "RewriterId::Unknown";
   };
-  
 }
 
 std::ostream& operator<<(std::ostream& out, RewriterId id)
@@ -41,6 +39,8 @@ std::ostream& operator<<(std::ostream& out, RewriterId id)
   out << toString(id);
   return out;
 }
+
+namespace builtin {
 
 Node BuiltinProofRuleChecker::applyRewrite(Node n, RewriterId id)
 {
@@ -260,7 +260,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     Node res1 = applySubstitutionRewrite(children[0], exp, idRewriter);
     Trace("builtin-pfcheck")
-        << "Returned " << res1 << " from " << children[0] << std::endl;
+        << "Returned " << res1 << std::endl;
     return res1;
   }
   else if (id == PfRule::MACRO_SR_PRED_TRANSFORM)
@@ -282,19 +282,21 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       }
     }
     Node res1 = applySubstitutionRewrite(children[0], exp, idRewriter);
-    Trace("builtin-pfcheck")
-        << "Returned " << res1 << " from " << children[0] << std::endl;
+    //Trace("builtin-pfcheck")
+    //    << "Returned " << res1 << std::endl;
     Node res2 = applySubstitutionRewrite(args[0], exp, idRewriter);
-    Trace("builtin-pfcheck")
-        << "Returned " << res2 << " from " << args[0] << std::endl;
+    //Trace("builtin-pfcheck")
+    //    << "Returned " << res2 << " from " << args[0] << std::endl;
     // can rewrite the witness forms
     res1 = Rewriter::rewrite(res1);
     res2 = Rewriter::rewrite(res2);
     if (res1!=res2)
     {
+        Trace("builtin-pfcheck")
+            << "Failed to match results" << std::endl;
       return Node::null();
     }
-    return res2;
+    return args[0];
   }
   // no rule
   return Node::null();

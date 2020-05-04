@@ -23,8 +23,7 @@
 
 namespace CVC4 {
 namespace theory {
-namespace builtin {
-  
+
 /** Identifiers for rewriters.
  * 
  * A "rewriter" is abstractly a method from Node to Node, where the output
@@ -45,6 +44,8 @@ enum class RewriterId : uint32_t
 const char* toString(RewriterId id);
 /** Write a rewriter id to out */
 std::ostream& operator<<(std::ostream& out, RewriterId id);
+
+namespace builtin {
 
 /** A checker for builtin proofs */
 class BuiltinProofRuleChecker : public ProofRuleChecker

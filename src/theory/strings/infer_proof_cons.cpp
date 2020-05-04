@@ -18,6 +18,7 @@
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/builtin/proof_checker.h"
 
 using namespace CVC4::kind;
 
@@ -540,10 +541,22 @@ bool InferProofCons::convertLengthPf( Node lenReq, const std::vector<Node>& lenE
   if (lenExp.size()==1)
   {
     // probably rewrites to it
+    Node lrr = Rewriter::rewrite(lenReq);
     Node ler = Rewriter::rewrite(lenExp[0]);
-    if (ler==lenReq)
+    Trace("strings-ipc-len") << "Rewrite? " << lrr << " " << ler << std::endl;
+    if (lrr==ler)
     {
-      
+      std::vector<Node> children;
+      children.push_back(lenExp[0]);
+      std::vector<Node> args;
+      args.push_back(lenReq);
+      Node lconc = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+      Trace("strings-ipc-len") << "Length constraint after MACRO_SR_PRED_TRANSFORM " << lconc << std::endl;
+      if (lconc==lenReq)
+      {
+        return true;
+      }
+      Assert(lconc.isNull());
     }
   }
   return false;
