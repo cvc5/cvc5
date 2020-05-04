@@ -55,16 +55,14 @@ class InferProofCons
    * only relevant if ii corresponds to a lemma.
    * (4) Arguments to the proof step (pfArgs).
    */
-  void convert(InferInfo& ii, std::vector<eq::ProofInferInfo>& piis);
-  /** singleton version */
-  PfRule convert(const InferInfo& ii, eq::ProofInferInfo& pfi);
+  void convert(const InferInfo& ii, eq::ProofInferInfo& pfi, bool& useBuffer);
   /** internal version */
-  PfRule convert(Inference infer,
+  void convert(Inference infer,
                  bool isRev,
                  Node conc,
                  const std::vector<Node>& exp,
                  const std::vector<Node>& expn,
-                 eq::ProofInferInfo& pii);
+                 eq::ProofInferInfo& pii, bool& useBuffer);
   /** Get the proof step buffer */
   ProofStepBuffer* getBuffer();
 

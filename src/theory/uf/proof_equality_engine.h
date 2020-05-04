@@ -25,6 +25,7 @@
 #include "expr/proof.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
+#include "expr/proof_step_buffer.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/uf/equality_engine.h"
 
@@ -60,19 +61,23 @@ class ProofEqEngine : public EagerProofGenerator
                 ProofNodeManager* pnm,
                 bool pfEnabled = true);
   ~ProofEqEngine() {}
+  //-------------------------- assert assumption
   /** Assert predicate lit by assumption */
   bool assertAssume(TNode lit);
+  //-------------------------- assert fact
   /**
    * Assert the predicate lit by proof step id, given explanation exp and
    * arguments args.
-   *
    */
   bool assertFact(Node lit,
                   PfRule id,
                   const std::vector<Node>& exp,
                   const std::vector<Node>& args);
   bool assertFact(Node lit, PfRule id, Node exp, const std::vector<Node>& args);
-  // bool assertFact(Node lit, ProofNode* p);
+  /** Multi-step versions */
+  bool assertFact(Node lit, const std::vector<Node>& exp, ProofStepBuffer& psb);
+  bool assertFact(Node lit, Node exp, ProofStepBuffer& psb);
+  //-------------------------- assert conflicts
   /**
    * This method is called when the equality engine of this class is
    * inconsistent (false has been proven) by a contradictory literal lit. This
@@ -93,7 +98,10 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertConflict(PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args);
+  /** Multi-step version */
+  TrustNode assertConflict(const std::vector<Node>& exp, ProofStepBuffer& psb);
   // TrustNode assertConflict(ProofNode* p);
+  //-------------------------- assert lemma
   /**
    * Called when we have concluded conc, which is either false or a
    * disjunction.
@@ -134,15 +142,19 @@ class ProofEqEngine : public EagerProofGenerator
                         const std::vector<Node>& exp,
                         const std::vector<Node>& toExplain,
                         const std::vector<Node>& args);
+  /** Multi-step version */
+  TrustNode assertLemma(Node conc,
+                        const std::vector<Node>& exp,
+                        const std::vector<Node>& toExplain, ProofStepBuffer& psb);
+  /** identify */
+  std::string identify() const override { return "ProofEqEngine"; }
+
+ protected:
   /** Add proof step */
   bool addProofStep(Node lit,
                     PfRule id,
                     const std::vector<Node>& exp,
                     const std::vector<Node>& args);
-  /** identify */
-  std::string identify() const override { return "ProofEqEngine"; }
-
- protected:
   /**
    * Make proof for fact lit, or nullptr if it does not exist. It must be the
    * case that lit was either:
@@ -153,7 +165,11 @@ class ProofEqEngine : public EagerProofGenerator
    */
   std::shared_ptr<ProofNode> mkProofForFact(Node lit) const;
   /** Assert internal */
-  void assertInternal(TNode pred, bool polarity, TNode reason);
+  void assertFactInternal(TNode pred, bool polarity, TNode reason);
+  /** assert lemma internal */
+  TrustNode assertLemmaInternal(Node conc,
+                                     const std::vector<Node>& exp,
+                                     const std::vector<Node>& toExplain);
   /** ensure proof for fact */
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,
@@ -164,7 +180,8 @@ class ProofEqEngine : public EagerProofGenerator
    */
   Node mkAnd(const std::vector<Node>& a);
   Node mkAnd(const std::vector<TNode>& a);
-
+  /** flatten and, returns the conjuncts to a */
+  void flattenAnd(TNode an, std::vector<Node>& a);
  private:
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;

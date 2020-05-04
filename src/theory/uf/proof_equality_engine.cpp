@@ -60,7 +60,7 @@ bool ProofEqEngine::assertAssume(TNode lit)
   }
 
   // second, assert it to the equality engine, where it is its own explanation
-  assertInternal(atom, polarity, lit);
+  assertFactInternal(atom, polarity, lit);
 
   return true;
 }
@@ -87,11 +87,10 @@ bool ProofEqEngine::assertFact(Node lit,
 
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
-  assertInternal(atom, polarity, reason);
+  assertFactInternal(atom, polarity, reason);
   // must reference count the new atom and explanation
   d_keep.insert(atom);
   d_keep.insert(reason);
-
   return true;
 }
 
@@ -108,21 +107,7 @@ bool ProofEqEngine::assertFact(Node lit,
   {
     // must extract the explanation as a vector
     std::vector<Node> expv;
-    if (exp != d_true)
-    {
-      if (exp.getKind() == AND)
-      {
-        for (const Node& e : expv)
-        {
-          Assert(e.getKind() != AND);
-          expv.push_back(e);
-        }
-      }
-      else
-      {
-        expv.push_back(exp);
-      }
-    }
+    flattenAnd(exp,expv);
     if (!addProofStep(lit, id, expv, args))
     {
       // failed to register step
@@ -133,10 +118,34 @@ bool ProofEqEngine::assertFact(Node lit,
   bool polarity = lit.getKind() != NOT;
 
   // second, assert it to the equality engine
-  assertInternal(atom, polarity, exp);
+  assertFactInternal(atom, polarity, exp);
   d_keep.insert(atom);
   d_keep.insert(exp);
+  return true;
+}
 
+bool ProofEqEngine::assertFact(Node lit, const std::vector<Node>& exp, ProofStepBuffer& psb)
+{
+  Node expn = mkAnd(exp);
+  return assertFact(lit,expn,psb);
+}
+
+bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
+{
+  if (d_pfEnabled)
+  {
+    if (!psb.addTo(&d_proof))
+    {
+      return false;
+    }
+  }
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+
+  // second, assert it to the equality engine
+  assertFactInternal(atom, polarity, exp);
+  d_keep.insert(atom);
+  d_keep.insert(exp);
   return true;
 }
 
@@ -198,6 +207,19 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
   return assertLemma(d_false, id, exp, exp, args);
 }
 
+TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp, ProofStepBuffer& psb)
+{
+  if (d_pfEnabled)
+  {
+    // add all steps to the proof
+    if (!psb.addTo(&d_proof))
+    {
+      return TrustNode::null();
+    }
+  }
+  return assertLemmaInternal(d_false,exp,exp);
+}
+
 TrustNode ProofEqEngine::assertLemma(Node conc,
                                      PfRule id,
                                      const std::vector<Node>& exp,
@@ -219,6 +241,28 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
       return TrustNode::null();
     }
   }
+  return assertLemmaInternal(conc,exp,toExplain);
+}
+
+TrustNode ProofEqEngine::assertLemma(Node conc,
+                      const std::vector<Node>& exp,
+                      const std::vector<Node>& toExplain, ProofStepBuffer& psb)
+{
+  if (d_pfEnabled)
+  {
+    // add all steps to the proof
+    if (!psb.addTo(&d_proof))
+    {
+      return TrustNode::null();
+    }
+  }
+  return assertLemmaInternal(conc,exp,toExplain);
+}
+
+TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
+                                     const std::vector<Node>& exp,
+                                     const std::vector<Node>& toExplain)
+{
   // We are a conflict if the conclusion is false and all literals are
   // explained.
   bool isConflict = conc == d_false;
@@ -338,9 +382,9 @@ std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
   return p->clone();
 }
 
-void ProofEqEngine::assertInternal(TNode atom, bool polarity, TNode reason)
+void ProofEqEngine::assertFactInternal(TNode atom, bool polarity, TNode reason)
 {
-  Trace("pfee-debug") << "pfee::assertInternal: " << atom << " " << polarity
+  Trace("pfee-debug") << "pfee::assertFactInternal: " << atom << " " << polarity
                       << " " << reason << std::endl;
   if (atom.getKind() == EQUAL)
   {
@@ -452,6 +496,25 @@ Node ProofEqEngine::mkAnd(const std::vector<TNode>& a)
     return a[0];
   }
   return NodeManager::currentNM()->mkNode(AND, a);
+}
+
+void ProofEqEngine::flattenAnd(TNode an, std::vector<Node>& a)
+{
+  if (an == d_true)
+  {
+    return;
+  }
+  if (an.getKind() != AND)
+  {
+    a.push_back(an);
+    return;
+  }
+  for (const Node& anc : an)
+  {
+    // should not have doubly nested AND
+    Assert(anc.getKind() != AND);
+    a.push_back(anc);
+  }
 }
 
 std::ostream& operator<<(std::ostream& out, const ProofInferInfo& pii)

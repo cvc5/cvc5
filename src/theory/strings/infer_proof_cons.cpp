@@ -33,39 +33,21 @@ InferProofCons::InferProofCons(ProofChecker* pc,
 {
 }
 
-void InferProofCons::convert(InferInfo& ii,
-                             std::vector<eq::ProofInferInfo>& piis)
+void InferProofCons::convert(const InferInfo& ii, eq::ProofInferInfo& pii, bool& useBuffer)
 {
-  if (ii.d_conc.getKind() == AND)
-  {
-    Node conj = ii.d_conc;
-    for (const Node& cc : conj)
-    {
-      ii.d_conc = cc;
-      convert(ii, piis);
-    }
-    ii.d_conc = conj;
-    return;
-  }
-  eq::ProofInferInfo pii;
-  convert(ii, pii);
-  piis.push_back(pii);
+  convert(ii.d_id, ii.d_idRev, ii.d_conc, ii.d_ant, ii.d_antn, pii, useBuffer);
 }
 
-PfRule InferProofCons::convert(const InferInfo& ii, eq::ProofInferInfo& pii)
-{
-  return convert(ii.d_id, ii.d_idRev, ii.d_conc, ii.d_ant, ii.d_antn, pii);
-}
-
-PfRule InferProofCons::convert(Inference infer,
+void InferProofCons::convert(Inference infer,
                                bool isRev,
                                Node conc,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& expn,
-                               eq::ProofInferInfo& pii)
+                               eq::ProofInferInfo& pii, bool& useBuffer)
 {
   // the conclusion is the same
   pii.d_conc = conc;
+  useBuffer = false;
   // Must flatten children with respect to AND to be ready to explain.
   // We store the index where each flattened vector begins, since some
   // explanations are "grouped".
@@ -105,7 +87,7 @@ PfRule InferProofCons::convert(Inference infer,
   if (!d_pfEnabled)
   {
     // don't care about proofs, return now
-    return PfRule::UNKNOWN;
+    return;
   }
   // debug print
   if (Trace.isOn("strings-ipc-debug"))
@@ -282,6 +264,7 @@ PfRule InferProofCons::convert(Inference infer,
           if (mainEqCeq == conc)
           {
             // success
+            useBuffer = true;
             Trace("strings-ipc-core") << "...success!" << std::endl;
           }
           else
@@ -302,6 +285,7 @@ PfRule InferProofCons::convert(Inference infer,
               d_psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
           if (mainEqC == conc)
           {
+            useBuffer = true;
             Trace("strings-ipc-core") << "...success!" << std::endl;
           }
         }
@@ -388,6 +372,8 @@ PfRule InferProofCons::convert(Inference infer,
                                       << mainEqMain << std::endl;
             if (mainEqMain == conc)
             {
+              // requires that length success is also true
+              useBuffer = lenSuccess;
               Trace("strings-ipc-core") << "...success";
             }
             else
@@ -442,9 +428,11 @@ PfRule InferProofCons::convert(Inference infer,
       }
       else
       {
-        pii.d_rule = PfRule::STRINGS_REDUCTION;
+        std::vector<Node> args;
         // the left hand side of the last conjunct is the term we are reducing
-        pii.d_args.push_back(conc[nchild - 1][0]);
+        args.push_back(conc[nchild - 1][0]);
+        // FIXME
+        //pii.d_rule = PfRule::STRINGS_REDUCTION;
       }
     }
     break;
@@ -474,6 +462,7 @@ PfRule InferProofCons::convert(Inference infer,
   }
 
   // now see if we would succeed with the checker-to-try
+  bool success = false;
   if (pii.d_rule != PfRule::UNKNOWN)
   {
     Trace("strings-ipc") << "For " << infer << ", try proof rule " << pii.d_rule
@@ -488,16 +477,22 @@ PfRule InferProofCons::convert(Inference infer,
     }
     else
     {
+      // successfully set up a single step proof in pii
+      success = true;
       Trace("strings-ipc") << "success!" << std::endl;
     }
+  }
+  else if (useBuffer)
+  {
+    // successfully set up a multi step proof in d_psb
+    success = true;
   }
   else
   {
     Trace("strings-ipc") << "For " << infer << " " << conc
                          << ", no proof rule, failed" << std::endl;
   }
-
-  if (pii.d_rule == PfRule::UNKNOWN)
+  if (!success)
   {
     // debug print
     if (Trace.isOn("strings-ipc-fail"))
@@ -528,9 +523,8 @@ PfRule InferProofCons::convert(Inference infer,
   if (Trace.isOn("strings-ipc-debug"))
   {
     Trace("strings-ipc-debug")
-        << "InferProofCons::convert returned " << pii << std::endl;
+        << "InferProofCons::convert returned " << pii << ", useBuffer = " << useBuffer << std::endl;
   }
-  return pii.d_rule;
 }
 
 bool InferProofCons::convertLengthPf(Node lenReq,

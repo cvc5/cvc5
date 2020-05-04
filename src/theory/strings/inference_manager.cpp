@@ -181,10 +181,20 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
                                 << " by " << ii.d_id << std::endl;
       // we must fully explain it
+                                bool useBuffer = false;
       eq::ProofInferInfo pii;
-      PfRule rule = d_ipc->convert(ii, pii);
-      TrustNode tconf =
-          d_pfee->assertConflict(rule, pii.d_children, pii.d_args);
+      d_ipc->convert(ii, pii, useBuffer);
+      TrustNode tconf;
+      if (useBuffer)
+      {
+        tconf =
+          d_pfee->assertConflict(pii.d_children, *d_ipc->getBuffer());
+      }
+      else
+      {
+        tconf =
+          d_pfee->assertConflict(pii.d_rule, pii.d_children, pii.d_args);
+      }
       Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
       Trace("strings-assert") << "(assert (not " << tconf.getNode()
                               << ")) ; conflict " << ii.d_id << std::endl;
@@ -316,21 +326,31 @@ void InferenceManager::doPendingFacts()
     Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
                            << ii.getAntecedant() << " by " << ii.d_id
                            << std::endl;
-    // convert to proof rule(s)
-    std::vector<eq::ProofInferInfo> piis;
-    d_ipc->convert(ii, piis);
-    for (const eq::ProofInferInfo& pii : piis)
+    // convert for each fact
+    for (const Node& fact : facts)
     {
-      Node fact = pii.d_conc;
+      ii.d_conc = fact;
+      bool useBuffer = false;
+      eq::ProofInferInfo pii;
+      // convert to proof rule(s)
+      d_ipc->convert(ii,pii,useBuffer);
       preProcessFact(fact);
       // assert to equality engine
-      d_pfee->assertFact(fact, pii.d_rule, pii.d_children, pii.d_args);
-      if (!d_state.isInConflict())
+      if (useBuffer)
       {
-        postProcessFact(fact);
-        i++;
+        d_pfee->assertFact(fact, pii.d_children, *d_ipc->getBuffer());
       }
+      else
+      {
+        d_pfee->assertFact(fact, pii.d_rule, pii.d_children, pii.d_args);
+      }
+      if (d_state.isInConflict())
+      {
+        break;
+      }
+      postProcessFact(fact);
     }
+    i++;
   }
   d_pending.clear();
 }
@@ -352,11 +372,21 @@ void InferenceManager::doPendingLemmas()
     // set up proof step based on inference
     // pfExp is the children of the proof step below. This should be an
     // ordered list of expConj + expn.
+    bool useBuffer = false;
     eq::ProofInferInfo pii;
-    PfRule rule = d_ipc->convert(ii, pii);
+    d_ipc->convert(ii, pii, useBuffer);
+    TrustNode tlem;
     // make the trusted lemma object
-    TrustNode tlem = d_pfee->assertLemma(
-        ii.d_conc, rule, pii.d_children, pii.d_childrenToExplain, pii.d_args);
+    if (useBuffer)
+    {
+      tlem = d_pfee->assertLemma(
+          ii.d_conc, pii.d_children, pii.d_childrenToExplain, *d_ipc->getBuffer());
+    }
+    else
+    {
+      tlem = d_pfee->assertLemma(
+          ii.d_conc, pii.d_rule, pii.d_children, pii.d_childrenToExplain, pii.d_args);
+    }
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
 
