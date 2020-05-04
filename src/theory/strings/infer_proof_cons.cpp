@@ -369,6 +369,8 @@ PfRule InferProofCons::convert(Inference infer,
           {
             Trace("strings-ipc-core")
                 << "Core rule length requirement is " << lenReq << std::endl;
+            // must verify it
+            bool lenSuccess = convertLengthPf(lenReq, lenConstraint);
             // apply the given rule
             std::vector<Node> childrenMain;
             childrenMain.push_back(mainEqCeq);
@@ -381,9 +383,13 @@ PfRule InferProofCons::convert(Inference infer,
                 << "Main equality after " << rule << " " << mainEqMain << std::endl;
             if (mainEqMain == conc)
             {
-              // success
-              Trace("strings-ipc-core") << "...success!" << std::endl;
+              Trace("strings-ipc-core") << "...success";
             }
+            else
+            {
+              Trace("strings-ipc-core") << "...fail";
+            }
+            Trace("strings-ipc-core") << ", length success = " << lenSuccess << std::endl;
           }
           else
           {
@@ -519,6 +525,28 @@ PfRule InferProofCons::convert(Inference infer,
         << "InferProofCons::convert returned " << pii << std::endl;
   }
   return pii.d_rule;
+}
+
+bool InferProofCons::convertLengthPf( Node lenReq, const std::vector<Node>& lenExp)
+{
+  for (const Node& le : lenExp)
+  {
+    if (lenReq==le)
+    {
+      return true;
+    }
+  }
+  Trace("strings-ipc-len") << "Must explain " << lenReq << " by " << lenExp << std::endl;
+  if (lenExp.size()==1)
+  {
+    // probably rewrites to it
+    Node ler = Rewriter::rewrite(lenExp[0]);
+    if (ler==lenReq)
+    {
+      
+    }
+  }
+  return false;
 }
 
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }

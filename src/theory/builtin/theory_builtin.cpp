@@ -60,6 +60,7 @@ void TheoryBuiltin::setProofChecker(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, &d_bProofChecker);
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, &d_bProofChecker);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, &d_bProofChecker);
+  pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, &d_bProofChecker);
 }
 
 }  // namespace builtin

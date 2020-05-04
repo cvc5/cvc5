@@ -115,7 +115,16 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: Rewriter::rewrite(F.substitute(xn,tn). ... . substitute(x1,t1))
   MACRO_SR_PRED_ELIM,
-
+  // ======== Substitution + Rewriting predicate transform
+  // Children: (P1:F, P2:(= x1 t1), ..., P_{n+1}:(= xn tn))
+  // Arguments: (G, id)
+  // ----------------------------------------
+  // Conclusion: G
+  // where 
+  //   Rewriter{id}(F.substitute(xn,tn). ... . substitute(x1,t1)) ==
+  //   Rewriter{id}(G.substitute(xn,tn). ... . substitute(x1,t1))
+  MACRO_SR_PRED_TRANSFORM,
+  
   //================================================= Boolean rules
   // ======== Split
   // Children: none

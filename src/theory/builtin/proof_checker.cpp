@@ -200,7 +200,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return args[0];
   }
-  else if (id == PfRule::MACRO_SR_PRED_ELIM)
+  else if (id == PfRule::MACRO_SR_PRED_ELIM || id == PfRule::MACRO_SR_PRED_TRANSFORM)
   {
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args.size() << std::endl;
@@ -213,21 +213,38 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     //     (TRUE_INTRO <children>[0])))
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
-    uint32_t idRewriter = 0;
-    if (args.size() >= 1)
+    uint32_t argIndex = 0;
+    Node g;
+    if (id== PfRule::MACRO_SR_PRED_TRANSFORM)
     {
-      if (!getIndex(args[0], idRewriter))
+      g = args[argIndex];
+      argIndex++;
+    }
+    uint32_t idRewriter = 0;
+    if (argIndex<args.size())
+    {
+      if (!getIndex(args[argIndex], idRewriter))
       {
         Trace("builtin-pfcheck")
-            << "Failed to get id from " << args[0] << std::endl;
+            << "Failed to get id from " << args[argIndex] << std::endl;
         return Node::null();
       }
     }
-    Node res = applySubstitutionRewrite(children[0], exp, idRewriter);
-
+    Node res1 = applySubstitutionRewrite(children[0], exp, idRewriter);
     Trace("builtin-pfcheck")
-        << "Returned " << res << " from " << children[0] << std::endl;
-    return res;
+        << "Returned " << res1 << " from " << children[0] << std::endl;
+    if (id== PfRule::MACRO_SR_PRED_TRANSFORM)
+    {
+      Node res2 = applySubstitutionRewrite(g, exp, idRewriter);
+      Trace("builtin-pfcheck")
+          << "Returned " << res2 << " from " << g << std::endl;
+      if (res1!=res2)
+      {
+        return Node::null();
+      }
+      return res2;
+    }
+    return res1;
   }
   // no rule
   return Node::null();

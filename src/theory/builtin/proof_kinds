@@ -82,3 +82,19 @@ macro MACRO_SR_PRED_ELIM 1: 0:1 {
       (SYMM (MACRO_SR_EQ_INTRO <children>[1:] F)) 
       (TRUE_INTRO <children>[0])))
 }
+
+// ======== Substitution + Rewriting predicate transform
+// Children: (P1:F, P2:(= x1 t1), ..., P_{n+1}:(= xn tn))
+// Arguments: (G, id)
+// ----------------------------------------
+// Conclusion: G
+// where 
+//   Rewriter{id}(F.substitute(xn,tn). ... . substitute(x1,t1)) ==
+//   Rewriter{id}(G.substitute(xn,tn). ... . substitute(x1,t1))
+macro MACRO_SR_PRED_TRANSFORM 1: 1:2 {
+  (TRUE_ELIM 
+    (TRANS 
+      (MACRO_SR_EQ_INTRO <children>[1:] G)
+      (SYMM (MACRO_SR_EQ_INTRO <children>[1:] F)) 
+      (TRUE_INTRO <children>[0])))
+}

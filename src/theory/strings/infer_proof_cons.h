@@ -69,6 +69,8 @@ class InferProofCons
   ProofStepBuffer* getBuffer();
 
  private:
+   /** Convert length proof */
+   bool convertLengthPf( Node lenReq, const std::vector<Node>& lenExp);
   /** The proof step buffer */
   ProofStepBuffer d_psb;
   /** Reference to the statistics for the theory of strings/sequences. */
