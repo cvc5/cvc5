@@ -59,8 +59,7 @@ bool EagerProofGenerator::hasProofFor(Node f)
 
 TrustNode EagerProofGenerator::mkTrustNode(Node n,
                                            std::shared_ptr<ProofNode> pf,
-                                           bool isConflict
-                                          )
+                                           bool isConflict)
 {
   if (pf == nullptr)
   {

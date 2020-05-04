@@ -1419,7 +1419,7 @@ void EqualityEngine::getExplanation(
                   // assumptions", which are a consequence of theory reasoning
                   // on other assumptions, are externally justified. In this
                   // case we can use (= a b) directly as the conclusion here.
-                  eqpc->d_node = !options::proofNew()? reason : b.eqNode(a);
+                  eqpc->d_node = !options::proofNew() ? reason : b.eqNode(a);
                 } else {
                   // The LFSC translator prefers (not (= a b)) over (= (= a b) false)
 

@@ -49,7 +49,7 @@ namespace theory {
  *        Node conf = [construct conflict];
  *        std::shared_ptr<ProofNode> pf = [construct the proof for conf];
  *        // call mkTrustNode, which calls setProofForLemma, and constructs
- *        // the trust node 
+ *        // the trust node
  *        return mkTrustNode(conf,pf);
  *      }
  *   };
@@ -96,13 +96,16 @@ class EagerProofGenerator : public ProofGenerator
    * @return The trust node corresponding to the fact that this generator has
    * a proof of n.
    */
-  TrustNode mkTrustNode(Node n, std::shared_ptr<ProofNode> pf,
-                                           bool isConflict=false);
+  TrustNode mkTrustNode(Node n,
+                        std::shared_ptr<ProofNode> pf,
+                        bool isConflict = false);
   /**
    * Make trust node from a single step proof.
    */
-  TrustNode mkTrustNode(Node n, PfRule id, const std::vector<Node>& args,
-                                           bool isConflict=false);
+  TrustNode mkTrustNode(Node n,
+                        PfRule id,
+                        const std::vector<Node>& args,
+                        bool isConflict = false);
   //--------------------------------------- common proofs
   /**
    * This returns the trust node corresponding to the splitting lemma
