@@ -73,6 +73,21 @@ class EqProof
   Node addToProof(CDProof* p) const;
 
  private:
+  /** as above, but with a cache of previously processed nodes and their results
+   * (for DAG traversal). The caching is in terms of the original conclusions of
+   * EqProof
+   */
+  Node addToProof(
+      CDProof* p,
+      std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
+  /** Removes all reflexivity steps, i.e. premises (= t t), from premises
+   *
+   * Such premisis are spurious for a trastivity steps. The reordering of
+   * premises in a transtivity step assumes no such steps are part of the
+   * premises.
+   */
+  void cleanReflPremisesInTranstivity(std::vector<Node>& premises) const;
+
   void maybeFoldTransitivityChildren(std::vector<Node>& premises,
                                      CDProof* p) const;
 
