@@ -51,8 +51,14 @@ struct unc_preprocess_stack_element
       : d_node(n), d_parent(p), d_beneathQuant(bq)
   {
   }
+  /** The term to process */
   TNode d_node;
+  /** 
+   * The parent of the term to process, or null if one does not exist,
+   * or if the term is beneath a quantifier.
+   */
   TNode d_parent;
+  /** Whether the term is beneath a quantifier */
   bool d_beneathQuant;
 }; /* struct unc_preprocess_stack_element */
 
@@ -86,7 +92,8 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
     }
 
     d_visited[current] = 1;
-    // do not assign parents for terms beneath quantifiers
+    // Do not assign parents for terms beneath quantifiers, which are
+    // stored in d_visitedOnce.
     d_visitedOnce[current] = beneathQuant ? TNode::null() : parent;
 
     if (current.getNumChildren() == 0)
@@ -99,8 +106,8 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
     }
     else
     {
+      // compute whether we are beneath a quantifier
       bool beneathQuantChild = beneathQuant || current.isClosure();
-      // if not a quantifier, traverse
       for (TNode childNode : current)
       {
         toVisit.push_back(unc_preprocess_stack_element(
