@@ -54,9 +54,9 @@ Node SkolemCache::mkTypedSkolemCached(
 
   // optimization: if we aren't asking for the purification skolem for constant
   // c, and the skolem is equivalent to c, then we just return c.
-  if (idOrig != SK_PURIFY && id == SK_PURIFY && a.isConst())
+  if (d_useOpts && idOrig != SK_PURIFY && id == SK_PURIFY && a.isConst())
   {
-    // AlwaysAssert(false);
+    Trace("skolem-cache") << "...optimization: return constant " << a << std::endl;
     return a;
   }
 
