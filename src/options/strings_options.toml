@@ -55,15 +55,6 @@ header = "options/strings_options.h"
   help       = "perform string preprocessing lazily"
 
 [[option]]
-  name       = "stringLenGeqZ"
-  category   = "regular"
-  long       = "strings-len-geqz"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "strings length greater than zero lemmas"
-
-[[option]]
   name       = "stringLenNorm"
   category   = "regular"
   long       = "strings-len-norm"

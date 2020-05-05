@@ -47,6 +47,11 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
+        if (std::find(visit.begin(),visit.end(),cp.get())!=visit.end())
+        {
+          AlwaysAssert(false) << "ProofNodeToSExpr::convertToSExpr: cyclic proof!" << std::endl;
+          return Node::null();
+        }
         visit.push_back(cp.get());
       }
     }

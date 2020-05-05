@@ -22,7 +22,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "expr/proof.h"
+#include "expr/lazy_proof.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 #include "expr/proof_step_buffer.h"
@@ -75,8 +75,8 @@ class ProofEqEngine : public EagerProofGenerator
                   const std::vector<Node>& args);
   bool assertFact(Node lit, PfRule id, Node exp, const std::vector<Node>& args);
   /** Multi-step versions */
-  bool assertFact(Node lit, const std::vector<Node>& exp, ProofStepBuffer& psb);
   bool assertFact(Node lit, Node exp, ProofStepBuffer& psb);
+  bool assertFact(Node lit, Node exp, ProofGenerator * pg);
   //-------------------------- assert conflicts
   /**
    * This method is called when the equality engine of this class is
@@ -163,7 +163,7 @@ class ProofEqEngine : public EagerProofGenerator
    * (2) lit is false and a call was made to assertConflict in the current SAT
    * context.
    */
-  std::shared_ptr<ProofNode> mkProofForFact(Node lit) const;
+  std::shared_ptr<ProofNode> mkProofForFact(Node lit);
   /** Assert internal */
   void assertFactInternal(TNode pred, bool polarity, TNode reason);
   /** assert lemma internal */
@@ -191,7 +191,7 @@ class ProofEqEngine : public EagerProofGenerator
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The SAT-context-dependent proof object */
-  CDProof d_proof;
+  LazyCDProof d_proof;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are reference counted. Since facts and their

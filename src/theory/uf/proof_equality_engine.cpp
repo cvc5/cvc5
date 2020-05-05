@@ -43,8 +43,6 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
 bool ProofEqEngine::assertAssume(TNode lit)
 {
   Trace("pfee") << "pfee::assertAssume " << lit << std::endl;
-  TNode atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
 
   if (d_pfEnabled)
   {
@@ -58,10 +56,20 @@ bool ProofEqEngine::assertAssume(TNode lit)
       return false;
     }
   }
-
-  // second, assert it to the equality engine, where it is its own explanation
-  assertFactInternal(atom, polarity, lit);
-
+  
+  TNode atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+  
+  // Second, assert it directly to the equality engine, where it is its own
+  // explanation. Notice we do not reference count atom/lit.
+  if (atom.getKind() == EQUAL)
+  {
+    d_ee.assertEquality(atom, polarity, lit);
+  }
+  else
+  {
+    d_ee.assertPredicate(atom, polarity, lit);
+  }
   return true;
 }
 
@@ -88,9 +96,6 @@ bool ProofEqEngine::assertFact(Node lit,
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   assertFactInternal(atom, polarity, reason);
-  // must reference count the new atom and explanation
-  d_keep.insert(atom);
-  d_keep.insert(reason);
   return true;
 }
 
@@ -119,15 +124,7 @@ bool ProofEqEngine::assertFact(Node lit,
 
   // second, assert it to the equality engine
   assertFactInternal(atom, polarity, exp);
-  d_keep.insert(atom);
-  d_keep.insert(exp);
   return true;
-}
-
-bool ProofEqEngine::assertFact(Node lit, const std::vector<Node>& exp, ProofStepBuffer& psb)
-{
-  Node expn = mkAnd(exp);
-  return assertFact(lit,expn,psb);
 }
 
 bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
@@ -144,8 +141,20 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
 
   // second, assert it to the equality engine
   assertFactInternal(atom, polarity, exp);
-  d_keep.insert(atom);
-  d_keep.insert(exp);
+  return true;
+}
+
+bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator * pg)
+{
+  if (d_pfEnabled)
+  {
+    // note the proof generator is responsible for remembering the explanation
+    d_proof.addLazyStep(lit,pg);
+  }
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+  // second, assert it to the equality engine
+  assertFactInternal(atom, polarity, exp);
   return true;
 }
 
@@ -336,13 +345,15 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     Node concFormula = isConflict ? nm->mkNode(NOT, formula) : formula;
     std::shared_ptr<ProofNode> pf =
         d_pnm->mkNode(PfRule::SCOPE, pfConc, assumpsN, concFormula);
-    if (Trace.isOn("pfee-proof"))
+    if (Trace.isOn("pfee-proof") || Trace.isOn("pfee-proof-final"))
     {
       Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"
                           << std::endl;
       std::stringstream ss;
       pf->printDebug(ss);
       Trace("pfee-proof") << "pfee::ensureProofForFact: Proof is " << ss.str()
+                          << std::endl;
+      Trace("pfee-proof-final") << "pfee::ensureProofForFact: Proof is " << ss.str()
                           << std::endl;
     }
     // should always succeed, since assumptions should be closed
@@ -371,9 +382,10 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   return TrustNode::mkTrustLemma(formula, pfg);
 }
 
-std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit) const
+std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit)
 {
-  std::shared_ptr<ProofNode> p = d_proof.getProof(lit);
+  // use the lazy proof version
+  std::shared_ptr<ProofNode> p = d_proof.getLazyProof(lit);
   if (p == nullptr)
   {
     return nullptr;
@@ -394,6 +406,9 @@ void ProofEqEngine::assertFactInternal(TNode atom, bool polarity, TNode reason)
   {
     d_ee.assertPredicate(atom, polarity, reason);
   }
+  // must reference count the new atom and explanation
+  d_keep.insert(atom);
+  d_keep.insert(reason);
 }
 
 bool ProofEqEngine::addProofStep(Node lit,

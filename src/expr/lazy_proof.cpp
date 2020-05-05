@@ -108,7 +108,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
   return opf;
 }
 
-void LazyCDProof::addStep(Node expected,
+void LazyCDProof::addLazyStep(Node expected,
                           ProofGenerator* pg,
                           bool forceOverwrite)
 {

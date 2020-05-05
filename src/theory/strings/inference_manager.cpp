@@ -338,7 +338,8 @@ void InferenceManager::doPendingFacts()
       // assert to equality engine
       if (useBuffer)
       {
-        d_pfee->assertFact(fact, pii.d_children, *d_ipc->getBuffer());
+        Node cexp = utils::mkAnd(pii.d_children);
+        d_pfee->assertFact(fact, cexp, *d_ipc->getBuffer());
       }
       else
       {

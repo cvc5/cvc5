@@ -438,6 +438,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
   Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
   Node case_emptyr = Rewriter::rewrite(case_empty);
   Node case_nempty = nm->mkNode(GT, n_len, d_zero);
+  //CDProof cdp;  // TODO
   if (!case_emptyr.isConst())
   {
     Node lem = nm->mkNode(OR, case_empty, case_nempty);
@@ -464,15 +465,6 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     // be that n = "" ^ len( n ) = 0 does not rewrite to true.
     Assert(false);
   }
-
-  // additionally add len( x ) >= 0 ?
-  if (options::stringLenGeqZ())
-  {
-    Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
-    n_len_geq = Rewriter::rewrite(n_len_geq);
-    lems.push_back(n_len_geq);
-  }
-
   if (lems.empty())
   {
     return TrustNode::null();
