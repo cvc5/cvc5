@@ -410,7 +410,6 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   if (isConflict)
   {
     Assert(conc == d_false);
-    formula = formula.negate();
   }
   else
   {
@@ -426,9 +425,10 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   if (d_pfEnabled)
   {
     // Notice that we have an expected conclusion (formula) which we pass to
-    // mkNode, which can check it if it wants.
+    // mkNode, which can check it if it wants. This is negated for conflicts.
+    Node concFormula = isConflict ? formula.negate() : formula;
     std::shared_ptr<ProofNode> pf =
-        d_pnm->mkNode(PfRule::SCOPE, pfConc, scopeAssumps, formula);
+        d_pnm->mkNode(PfRule::SCOPE, pfConc, scopeAssumps, concFormula);
     if (Trace.isOn("pfee-proof") || Trace.isOn("pfee-proof-final"))
     {
       Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"
