@@ -45,9 +45,3 @@ CVC4 contains MiniSAT code by Niklas Een and Niklas Sorensson.
 
 The CVC4 parser incorporates some code from ANTLR3, by Jim Idle, Temporal
 Wave LLC.
-
-CVC4 contains various autoconf modules in the config directory. Please refer to
-the individual files for more information on the authors.
-
-CVC4 maintainer versions contain the script autogen.sh by Christopher Sean
-Morrison, and copyright U.S. Army Research Laboratory.

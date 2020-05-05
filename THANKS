@@ -25,6 +25,8 @@ Thanks to:
 
 - Andrew V. Jones for several fixes in 2019 and 2020.
 
+- Mark Laws for fixes in the test suite for Windows in 2017.
+
 - Makai Mann of Stanford University for updating the build scripts to support
   computing coverage in 2017.
 
