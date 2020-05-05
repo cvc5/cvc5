@@ -27,9 +27,6 @@ Thanks to:
 
 - Mark Laws for fixes in the test suite for Windows in 2017.
 
-- Makai Mann of Stanford University for updating the build scripts to support
-  computing coverage in 2017.
-
 - Ken Matsui for fixing compiler warnings in 2019.
 
 - Cristian Mattarei of Stanford University for fixing an issue with parsing
