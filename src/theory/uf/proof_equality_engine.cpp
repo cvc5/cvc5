@@ -46,7 +46,8 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
 bool ProofEqEngine::assertAssume(TNode lit)
 {
   Trace("pfee") << "pfee::assertAssume " << lit << std::endl;
-
+  // don't need to explicitly assume
+/*
   if (d_pfEnabled)
   {
     // first, add the step in the proof
@@ -59,7 +60,7 @@ bool ProofEqEngine::assertAssume(TNode lit)
       return false;
     }
   }
-
+*/
   TNode atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
 
@@ -84,7 +85,7 @@ bool ProofEqEngine::assertFact(Node lit,
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
   // first, register the step in the proof
-  if (d_pfEnabled)
+  if (d_pfEnabled && d_recExplain)
   {
     if (!addProofStep(lit, id, exp, args))
     {
@@ -109,7 +110,7 @@ bool ProofEqEngine::assertFact(Node lit,
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
   // first, register the step in the proof
-  if (d_pfEnabled)
+  if (d_pfEnabled && d_recExplain)
   {
     // must extract the explanation as a vector
     std::vector<Node> expv;
@@ -133,16 +134,11 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via buffer with " << psb.getNumSteps() << " steps"
                 << std::endl;
-  if (d_pfEnabled)
+  if (d_pfEnabled && d_recExplain)
   {
-    const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
-    for (const std::pair<Node, ProofStep>& ps : steps)
+    if (!d_proof.addSteps(psb))
     {
-      Trace("pfee") << "- add step " << ps.first << " <- " << std::endl;
-      if (!d_proof.addStep(ps.first, ps.second))
-      {
-        return false;
-      }
+      return false;
     }
   }
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
@@ -157,7 +153,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
 {
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via generator" << std::endl;
-  if (d_pfEnabled)
+  if (d_pfEnabled && d_recExplain)
   {
     // note the proof generator is responsible for remembering the explanation
     d_proof.addLazyStep(lit, pg);
@@ -220,13 +216,9 @@ TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
                 << psb.getNumSteps() << " steps" << std::endl;
   if (d_pfEnabled)
   {
-    const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
-    for (const std::pair<Node, ProofStep>& ps : steps)
+    if (!d_proof.addSteps(psb))
     {
-      if (!d_proof.addStep(ps.first, ps.second))
-      {
-        return TrustNode::null();
-      }
+      return TrustNode::null();
     }
   }
   return assertLemmaInternal(d_false, exp, exp);
@@ -433,8 +425,10 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     {
       std::stringstream ss;
       pf->printDebug(ss);
-      //AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()
-      //                    << std::endl;
+      Trace("pfee-proof-final")
+          << "pfee::ensureProofForFact: Proof is " << ss.str() << std::endl;
+      AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()
+                          << std::endl;
     }
     // set the proof for the conflict or lemma, which can be queried later
     if (isConflict)

@@ -54,6 +54,10 @@ proofrule REWRITE 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 // NOTE: these technically rely on TRANS/TRUE_ELIM, which are UF
 
 // ======== Substitution + Rewriting equality introduction
+//
+// In this rule, we provide a term t and conclude that it is equal to its
+// rewritten form under a (proven) substitution.
+//
 // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
 // Arguments: (t, id?)
 // ---------------------------------------------------------------
@@ -77,6 +81,10 @@ macro MACRO_SR_EQ_INTRO 0: 1:2 ::CVC4::theory::builtin::BuiltinProofRuleChecker 
 }
 
 // ======== Substitution + Rewriting predicate introduction
+//
+// In this rule, we provide a formula F and conclude it, under the condition
+// that it rewrites to true under a proven substitution.
+//
 // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
 // Arguments: (F, id?)
 // ---------------------------------------------------------------
@@ -95,6 +103,10 @@ macro MACRO_SR_PRED_INTRO 0: 1:2 ::CVC4::theory::builtin::BuiltinProofRuleChecke
 }
 
 // ======== Substitution + Rewriting predicate elimination
+//
+// In this rule, if we have proven a formula F, then we may conclude its
+// rewritten form under a proven substitution.
+//
 // Children: (P1:F, P2:(= x1 t1), ..., P_{n+1}:(= xn tn))
 // Arguments: (id?)
 // ----------------------------------------
@@ -111,6 +123,11 @@ macro MACRO_SR_PRED_ELIM 1: 0:1 {
 }
 
 // ======== Substitution + Rewriting predicate transform
+//
+// In this rule, if we have proven a formula F, then we may provide a formula
+// G and conclude it if F and G are equivalent after rewriting under a proven
+// substitution.
+//
 // Children: (P1:F, P2:(= x1 t1), ..., P_{n+1}:(= xn tn))
 // Arguments: (G, id?)
 // ----------------------------------------
