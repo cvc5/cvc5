@@ -36,8 +36,8 @@ class CDProof;
 class ProofGenerator
 {
  public:
-  ProofGenerator() {}
-  virtual ~ProofGenerator() {}
+  ProofGenerator();
+  virtual ~ProofGenerator();
   /** Get the proof for formula f
    *
    * This forces the proof generator to construct a proof for formula f and

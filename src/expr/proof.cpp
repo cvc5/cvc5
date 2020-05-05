@@ -169,7 +169,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
   std::vector<ProofNode*> visit;
   ProofNode* cur;
   Node curFact;
-  visit.push_back(pn);
+  visit.push_back(pn.get());
   bool retValue = true;
   do
   {
