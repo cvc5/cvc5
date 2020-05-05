@@ -577,6 +577,8 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               currentSub = current;
             }
+            // always introduce a new variable; it is unsound to try to reuse
+            // currentSub as the variable, see issue #4469.
             currentSub = newUnconstrainedVar(parent.getType(), currentSub);
             current = parent;
           }
