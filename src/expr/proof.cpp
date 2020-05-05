@@ -147,7 +147,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
       // checked here, so that this class maintains the invariant that all of
       // its nodes in d_nodes have been checked by the underlying checker.
       Assert(d_manager->getChecker() == nullptr
-             || d_manager->getChecker()->check(pn, curFact) == curFact);
+             || d_manager->getChecker()->check(pn.get(), curFact) == curFact);
       // just store the proof for fact
       d_nodes.insert(curFact, pn);
     }
