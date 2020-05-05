@@ -778,7 +778,8 @@ void UnconstrainedSimplifier::processUnconstrained()
     }
     if (!currentSub.isNull())
     {
-              Trace("ajr-temp") << "Unc var " << currentSub << " for " << current << " parent " << parent << std::endl;
+      Trace("unc-simp") << "UnconstrainedSimplifier::processUnconstrained: introduce " << currentSub << " for " << current
+                        << ", parent " << parent << std::endl;
       Assert(currentSub.isVar());
       d_substitutions.addSubstitution(current, currentSub, false);
     }
@@ -830,11 +831,7 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     //    d_substitutions.print(Message.getStream());
     for (Node& assertion : assertions)
     {
-      Trace("ajr-temp") << "Assertion " << assertion << std::endl;
-      assertion = d_substitutions.apply(assertion);
-      Trace("ajr-temp") << "Subs " << assertion << std::endl;
-      assertion = Rewriter::rewrite(assertion);
-      Trace("ajr-temp") << "Rewrite " << assertion << std::endl;
+      assertion = Rewriter::rewrite(d_substitutions.apply(assertion));
     }
   }
 
