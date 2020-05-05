@@ -35,7 +35,7 @@ void ProofEngineOutputChannel::trustedConflict(TrustNode pconf)
   {
     Node ckey = getConflictKeyValue(conf);
     // if we have, add it to the lazy proof object
-    d_lazyPf->addStep(ckey, pfg);
+    d_lazyPf->addLazyStep(ckey, pfg);
     Assert(pfg->hasProofFor(ckey));
   }
   else
@@ -59,7 +59,7 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
   {
     Node lkey = getLemmaKeyValue(lem);
     // if we have, add it to the lazy proof object
-    d_lazyPf->addStep(lkey, pfg);
+    d_lazyPf->addLazyStep(lkey, pfg);
     Assert(pfg->hasProofFor(lkey));
   }
   else
