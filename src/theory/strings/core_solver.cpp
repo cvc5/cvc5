@@ -1413,7 +1413,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     Assert(!y.isConst());
 
     int32_t lentTestSuccess = -1;
-    Node lentTestExp;
+    Node lenConstraint;
     if (options::stringCheckEntailLen())
     {
       // If length entailment checks are enabled, we can save the case split by
@@ -1437,11 +1437,16 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
             Trace("strings-entail")
                 << "  explanation was : " << et.second << std::endl;
             lentTestSuccess = e;
-            lentTestExp = et.second;
+            lenConstraint = et.second;
             break;
           }
         }
       }
+    }
+    if (lenConstraint.isNull())
+    {
+      // will do split on length
+      lenConstraint = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
     }
 
     NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);
@@ -1461,24 +1466,32 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       }
     }
     SkolemCache* skc = d_termReg.getSkolemCache();
-    /*
-    Node sk = skc->mkSkolemCached(
-        x,
-        y,
-        isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-        "v_spt");
-        */
-    Node sk1 = skc->mkSkolemCached(
+    Node sk1;
+    Node sk2;
+    if (options::stringUnifiedVSpt())
+    {
+      Node sk = skc->mkSkolemCached(
+          x,
+          y,
+          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
+          "v_spt");
+      iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
+      sk1 = sk;
+      sk2 = sk;
+    }
+    else
+    {
+      sk1 = skc->mkSkolemCached(
         x,
         y,
         isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
         "v_spt1");
-    Node sk2 = skc->mkSkolemCached(
-        y,
-        x,
-        isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-        "v_spt2");
-    // iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
+      sk2 = skc->mkSkolemCached(
+          y,
+          x,
+          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
+          "v_spt2");
+    }
     Node eq1 =
         x.eqNode(isRev ? utils::mkNConcat(sk1, y) : utils::mkNConcat(y, sk1));
     // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
@@ -1488,15 +1501,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
     if (lentTestSuccess != -1)
     {
-      iinfo.d_antn.push_back(lentTestExp);
+      iinfo.d_antn.push_back(lenConstraint);
       iinfo.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
       iinfo.d_idRev = isRev;
     }
     else
     {
-      Node ldeq = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
-      iinfo.d_ant.push_back(ldeq);
+      iinfo.d_ant.push_back(lenConstraint);
       iinfo.d_conc = nm->mkNode(OR, eq1, eq2);
       iinfo.d_id = Inference::SSPLIT_VAR;
       iinfo.d_idRev = isRev;

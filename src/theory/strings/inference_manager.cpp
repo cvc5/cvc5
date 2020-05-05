@@ -57,7 +57,7 @@ void InferenceManager::finishInit(ProofNodeManager* pnm)
                                      d_state.getUserContext(),
                                      *d_state.getEqualityEngine(),
                                      pnm,
-                                     d_pfEnabled));
+                                     d_pfEnabled, true));
   d_ipc.reset(new InferProofCons(pnm->getChecker(), d_statistics, d_pfEnabled));
 }
 

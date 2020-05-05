@@ -59,7 +59,9 @@ class ProofEqEngine : public EagerProofGenerator
                 context::UserContext* u,
                 EqualityEngine& ee,
                 ProofNodeManager* pnm,
-                bool pfEnabled = true);
+                bool pfEnabled = true,
+                bool recExplain = false
+               );
   ~ProofEqEngine() {}
   //-------------------------- assert assumption
   /** Assert predicate lit by assumption */
@@ -206,6 +208,10 @@ class ProofEqEngine : public EagerProofGenerator
    * as a simplified interface to the EqualityEngine, without proofs.
    */
   bool d_pfEnabled;
+  /** 
+   * Recurse explanations
+   */
+  bool d_recExplain;
   /** Explain
    *
    * This adds to assumps the set of facts that were asserted to this

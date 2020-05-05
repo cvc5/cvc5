@@ -27,13 +27,16 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
                              context::UserContext* u,
                              EqualityEngine& ee,
                              ProofNodeManager* pnm,
-                             bool pfEnabled)
+                             bool pfEnabled,
+                             bool recExplain
+                            )
     : EagerProofGenerator(u, pnm),
       d_ee(ee),
       d_pnm(pnm),
       d_proof(pnm, c),
       d_keep(c),
-      d_pfEnabled(pfEnabled)
+      d_pfEnabled(pfEnabled),
+      d_recExplain(recExplain)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -165,24 +168,6 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
   assertFactInternal(atom, polarity, exp);
   return true;
 }
-
-// could combine proofs with this
-/*
-bool ProofEqEngine::assertFact(Node lit, ProofNode* p)
-{
-  Assert(p != nullptr);
-  const std::vector<std::shared_ptr<ProofNode>>& children = p->getChildren();
-  std::vector<Node> exp;
-  for (const std::shared_ptr<ProofNode>& pc : children)
-  {
-    Node litc = pc->getResult();
-    exp.push_back(litc);
-    // must add the proof
-    d_proof.addProof(litc, pc.get());
-  }
-  return assertFact(lit, p->getId(), exp, p->getArguments());
-}
-*/
 
 TrustNode ProofEqEngine::assertConflict(Node lit)
 {
@@ -448,8 +433,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     {
       std::stringstream ss;
       pf->printDebug(ss);
-      AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()
-                          << std::endl;
+      //AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()
+      //                    << std::endl;
     }
     // set the proof for the conflict or lemma, which can be queried later
     if (isConflict)
@@ -521,6 +506,11 @@ bool ProofEqEngine::addProofStep(Node lit,
 
 void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
 {
+  if (std::find(assumps.begin(), assumps.end(), lit)
+      != assumps.end())
+  {
+    return;
+  }
   std::shared_ptr<eq::EqProof> pf =
       d_pfEnabled ? std::make_shared<eq::EqProof>() : nullptr;
   Trace("pfee-proof") << "pfee::explainWithProof: " << lit << std::endl;
@@ -530,32 +520,79 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
   std::vector<TNode> tassumps;
   if (atom.getKind() == EQUAL)
   {
-    if (atom[0] != atom[1])
+    if (atom[0] == atom[1])
     {
-      Assert(d_ee.hasTerm(atom[0]));
-      Assert(d_ee.hasTerm(atom[1]));
-      if (!polarity)
+      return;
+    }
+    Assert(d_ee.hasTerm(atom[0]));
+    Assert(d_ee.hasTerm(atom[1]));
+    if (!polarity)
+    {
+      if (d_recExplain)
+      {
+        if(!d_ee.areDisequal(atom[0],atom[1],true))
+        {
+          // TODO: it appears that this is necessary for assumptions that caused
+          // a conflict
+          assumps.push_back(lit);
+          return;
+        }
+      }
+      else
       {
         // ensure the explanation exists
         AlwaysAssert(d_ee.areDisequal(atom[0], atom[1], true));
       }
-      else
-      {
-        // Assert(d_ee.areEqual(atom[0], atom[1]));
-      }
-      d_ee.explainEquality(atom[0], atom[1], polarity, tassumps, pf.get());
     }
+    else
+    {
+      // Assert(d_ee.areEqual(atom[0], atom[1]));
+    }
+    d_ee.explainEquality(atom[0], atom[1], polarity, tassumps, pf.get());
   }
   else
   {
-    Assert(d_ee.hasTerm(atom));
+    if (d_recExplain)
+    {
+      if (!d_ee.hasTerm(atom))
+      {
+        // TODO: it appears that this is necessary for assumptions that caused
+        // a conflict
+        assumps.push_back(lit);
+        return;
+      }
+    }
+    else
+    {
+      Assert(d_ee.hasTerm(atom));
+    }
     d_ee.explainPredicate(atom, polarity, tassumps, pf.get());
   }
   Trace("pfee-proof") << "...got " << tassumps << std::endl;
   // avoid duplicates
   for (const TNode a : tassumps)
   {
-    if (std::find(assumps.begin(), assumps.end(), a) == assumps.end())
+    if (a==lit)
+    {
+      assumps.push_back(a);
+    }
+    else if (d_recExplain)
+    {
+      if (a.getKind()==AND)
+      {
+        for (const Node& ac : a)
+        {
+          // recurse
+          explainWithProof(ac, assumps);
+        }
+      }
+      else
+      {
+        // recurse
+        explainWithProof(a, assumps);
+      }
+    }
+    else if (std::find(assumps.begin(), assumps.end(), a) == assumps.end())
     {
       assumps.push_back(a);
     }
