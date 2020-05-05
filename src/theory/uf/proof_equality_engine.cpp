@@ -409,7 +409,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   Node formula = mkAnd(scopeAssumps);
   if (isConflict)
   {
-    Assert(cond == d_false);
+    Assert(conc == d_false);
     formula = formula.negate();
   }
   else
