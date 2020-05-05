@@ -778,8 +778,10 @@ void UnconstrainedSimplifier::processUnconstrained()
     }
     if (!currentSub.isNull())
     {
-      Trace("unc-simp") << "UnconstrainedSimplifier::processUnconstrained: introduce " << currentSub << " for " << current
-                        << ", parent " << parent << std::endl;
+      Trace("unc-simp")
+          << "UnconstrainedSimplifier::processUnconstrained: introduce "
+          << currentSub << " for " << current << ", parent " << parent
+          << std::endl;
       Assert(currentSub.isVar());
       d_substitutions.addSubstitution(current, currentSub, false);
     }
