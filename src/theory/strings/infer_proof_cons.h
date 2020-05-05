@@ -34,8 +34,10 @@ namespace strings {
 /**
  * Converts between Inference and information needed to provide a proof step
  * (PfRule, children, args).
+ * 
+ * It also acts as a (lazy) proof generator.
  */
-class InferProofCons
+class InferProofCons : public ProofGenerator
 {
  public:
   InferProofCons(ProofChecker* pc,
@@ -66,6 +68,10 @@ class InferProofCons
   /** Get the proof step buffer */
   ProofStepBuffer* getBuffer();
 
+  /** Add to proof */
+  bool addProofTo(Node f, CDProof * pf, bool forceOverwrite = false) override;  
+  /** Identify this generator (for debugging, etc..) */
+  virtual std::string identify() const override;
  private:
   /** Convert length proof */
   bool convertLengthPf(Node lenReq, const std::vector<Node>& lenExp);

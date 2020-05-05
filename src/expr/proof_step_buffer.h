@@ -20,11 +20,29 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_rule.h"
 
 namespace CVC4 {
+  
+/** Information for constructing a step in a CDProof */
+class ProofStep
+{
+ public:
+  ProofStep(PfRule r,
+            const std::vector<Node>& children,
+            const std::vector<Node>& args)
+      : d_rule(r), d_children(children), d_args(args)
+  {
+  }
+  /** The proof rule */
+  PfRule d_rule;
+  /** The proof children */
+  std::vector<Node> d_children;
+  /** The proof arguments */
+  std::vector<Node> d_args;
+};
+std::ostream& operator<<(std::ostream& out, ProofStep step);
 
 /**
  * Class used to speculatively try and buffer a set of proof steps before
@@ -33,7 +51,7 @@ namespace CVC4 {
 class ProofStepBuffer
 {
  public:
-  ProofStepBuffer(ProofChecker* pc);
+  ProofStepBuffer(ProofChecker* pc = nullptr);
   ~ProofStepBuffer() {}
   /**
    * Returns the conclusion of the proof step, as determined by the proof
@@ -52,10 +70,10 @@ class ProofStepBuffer
                const std::vector<Node>& children,
                const std::vector<Node>& args,
                Node expected);
-  /**
-   * Add all buffered proof steps into the underlying proof object.
-   */
-  bool addTo(CDProof* pf);
+  /** Get num steps */
+  size_t getNumSteps() const;
+  /** Get steps */
+  const std::vector<std::pair<Node, ProofStep>>& getSteps() const;
   /** Clear */
   void clear();
 

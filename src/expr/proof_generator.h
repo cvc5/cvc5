@@ -21,6 +21,8 @@
 #include "expr/proof_node.h"
 
 namespace CVC4 {
+  
+class CDProof;
 
 /**
  * An abstract proof generator class, to be used in combination with
@@ -46,7 +48,9 @@ class ProofGenerator
    *
    * It should be the case that hasProofFor(f) is true.
    */
-  virtual std::shared_ptr<ProofNode> getProofFor(Node f) = 0;
+  virtual std::shared_ptr<ProofNode> getProofFor(Node f);
+  /** Add to proof */
+  virtual bool addProofTo(Node f, CDProof * pf, bool forceOverwrite = false);
   /**
    * Can we give the proof for formula f? This is used for debugging. This
    * returns false if the generator cannot provide a proof of formula f.
@@ -61,9 +65,7 @@ class ProofGenerator
    * we do not insist this is the case.
    */
   virtual bool hasProofFor(Node f) { return true; }
-  /**
-   * Identify this generator (for debugging, etc..)
-   */
+  /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const = 0;
 };
 

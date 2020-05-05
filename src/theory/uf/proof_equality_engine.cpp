@@ -78,9 +78,7 @@ bool ProofEqEngine::assertFact(Node lit,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& args)
 {
-  Trace("pfee") << "pfee::assertFact " << lit << " " << id << std::endl;
-  Trace("pfee") << "        exp = " << exp << std::endl;
-  Trace("pfee") << "       args = " << args << std::endl;
+  Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp << ", args = " << args << std::endl;
   // first, register the step in the proof
   if (d_pfEnabled)
   {
@@ -104,9 +102,7 @@ bool ProofEqEngine::assertFact(Node lit,
                                Node exp,
                                const std::vector<Node>& args)
 {
-  Trace("pfee") << "pfee::assertFact " << lit << " " << id << std::endl;
-  Trace("pfee") << "        exp = " << exp << std::endl;
-  Trace("pfee") << "       args = " << args << std::endl;
+  Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp << ", args = " << args << std::endl;
   // first, register the step in the proof
   if (d_pfEnabled)
   {
@@ -129,11 +125,17 @@ bool ProofEqEngine::assertFact(Node lit,
 
 bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
 {
+  Trace("pfee") << "pfee::assertFact " << lit  << ", exp = " << exp << " via buffer with " << psb.getNumSteps() << " steps" << std::endl;
   if (d_pfEnabled)
   {
-    if (!psb.addTo(&d_proof))
+    const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
+    for (const std::pair<Node, ProofStep>& ps : steps)
     {
-      return false;
+      Trace("pfee") << "- add step " << ps.first << " <- " << std::endl;
+      if (!d_proof.addStep(ps.first, ps.second))
+      {
+        return false;
+      }
     }
   }
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
@@ -146,6 +148,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
 
 bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator * pg)
 {
+  Trace("pfee") << "pfee::assertFact " << lit  << ", exp = " << exp << " via generator" << std::endl;
   if (d_pfEnabled)
   {
     // note the proof generator is responsible for remembering the explanation
@@ -204,6 +207,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
 
 TrustNode ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
 {
+  Trace("pfee") << "pfee::assertConflict " << id << ", exp = " << exp << std::endl;
   std::vector<Node> args;
   return assertConflict(id, exp, args);
 }
@@ -212,18 +216,23 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
                                         const std::vector<Node>& exp,
                                         const std::vector<Node>& args)
 {
+  Trace("pfee") << "pfee::assertConflict " << id << ", exp = " << exp << ", args = " << args << std::endl;
   // conflict is same as proof of false
   return assertLemma(d_false, id, exp, exp, args);
 }
 
 TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp, ProofStepBuffer& psb)
 {
+  Trace("pfee") << "pfee::assertConflict " << exp << " via buffer with " << psb.getNumSteps() << " steps" << std::endl;
   if (d_pfEnabled)
   {
-    // add all steps to the proof
-    if (!psb.addTo(&d_proof))
+    const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
+    for (const std::pair<Node, ProofStep>& ps : steps)
     {
-      return TrustNode::null();
+      if (!d_proof.addStep(ps.first, ps.second))
+      {
+        return TrustNode::null();
+      }
     }
   }
   return assertLemmaInternal(d_false,exp,exp);
@@ -235,10 +244,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                                      const std::vector<Node>& toExplain,
                                      const std::vector<Node>& args)
 {
-  Trace("pfee") << "pfee::assertLemma " << conc << " " << id << std::endl;
-  Trace("pfee") << "        exp = " << exp << std::endl;
-  Trace("pfee") << "  toExplain = " << toExplain << std::endl;
-  Trace("pfee") << "       args = " << args << std::endl;
+  Trace("pfee") << "pfee::assertLemma " << conc << " " << id << ", exp = " << exp << ", toExplain = " << toExplain << ", args = " << args << std::endl;
   Assert(conc != d_true);
   if (d_pfEnabled)
   {
@@ -257,12 +263,17 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                       const std::vector<Node>& exp,
                       const std::vector<Node>& toExplain, ProofStepBuffer& psb)
 {
+  Trace("pfee") << "pfee::assertLemma " << conc << ", exp = " << exp << ", toExplain = " << toExplain << " via buffer with " << psb.getNumSteps() << " steps" << std::endl;
   if (d_pfEnabled)
   {
     // add all steps to the proof
-    if (!psb.addTo(&d_proof))
+    const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
+    for (const std::pair<Node, ProofStep>& ps : steps)
     {
-      return TrustNode::null();
+      if (!d_proof.addStep(ps.first, ps.second))
+      {
+        return TrustNode::null();
+      }
     }
   }
   return assertLemmaInternal(conc,exp,toExplain);
@@ -304,21 +315,20 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   Trace("pfee-proof") << "pfee::ensureProofForFact: input " << conc << " via "
                       << assumps << ", isConflict=" << isConflict << std::endl;
   // make the conflict or lemma
-  Node formula = mkAnd(assumps);
   NodeManager* nm = NodeManager::currentNM();
-  if (!isConflict)
-  {
-    formula = formula == d_true ? conc : nm->mkNode(IMPLIES, formula, conc);
-  }
-  Trace("pfee-proof") << "pfee::ensureProofForFact: formula is " << formula
-                      << std::endl;
+
+  // The arguments to pass to SCOPE
+  std::vector<Node> scopeAssumps;
+  // The proof 
+  std::shared_ptr<ProofNode> pfConc;
   ProofGenerator* pfg = nullptr;
+  // if proofs are enabled, generate the proof and clean the assumptions
   if (d_pfEnabled)
   {
     Trace("pfee-proof") << "pfee::ensureProofForFact: make proof for fact"
                         << std::endl;
     // get the proof for conc
-    std::shared_ptr<ProofNode> pfConc = mkProofForFact(conc);
+    pfConc = mkProofForFact(conc);
     if (pfConc == nullptr)
     {
       Trace("pfee-proof")
@@ -330,21 +340,73 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       return TrustNode::null();
     }
     Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
-    // Wrap the proof in a SCOPE if necessary. Notice that we have an expected
-    // conclusion (formula) which we pass to mkNode, which can check it if it
-    // wants. Its arguments are assumptions, which should be the free
-    // assumptions of pfConc.
-    std::vector<Node> assumpsN;
+    // The free assumptions must be closed by assumps, which should be passed
+    // as arguments of SCOPE. However, some of the free assumptions may not
+    // literally be equal to assumps, for instance, due to symmetry. In other
+    // words, the SCOPE could be closing (= x y) in a proof with free
+    // assumption (= y x). Instead of modifying the proof, we modify the
+    // assumption vector to pass to SCOPE so that all assumptions are matched.
+
+    // The free assumptions of the proof
+    std::vector<Node> freeAssumps;
+    pfConc->getFreeAssumptions(freeAssumps);
+    // Whether we have ensured freeAssumps is a subset of scopeAssumps
     for (const TNode& a : assumps)
     {
-      // must rewrite to get proper orientation?
-      // assumpsN.push_back(Rewriter::rewrite(a));
-      assumpsN.push_back(a);
+      if (std::find(freeAssumps.begin(),freeAssumps.end(),a)!=freeAssumps.end())
+      {
+        scopeAssumps.push_back(a);
+        continue;
+      }
+      // otherwise it may be due to symmetry?
+      bool polarity = a.getKind()!=NOT;
+      Node aeq = polarity ? a : a[0];
+      if (aeq.getKind()==EQUAL)
+      {
+        Node aeqSym = aeq[1].eqNode(aeq[0]);
+        aeqSym = polarity ? aeqSym : aeqSym.notNode();
+        if (std::find(freeAssumps.begin(),freeAssumps.end(),aeqSym)!=freeAssumps.end())
+        {
+          scopeAssumps.push_back(aeqSym);
+          continue;
+        }
+      }
+      scopeAssumps.push_back(a);
+      // The assumption should match a free assumption; if it does not, then
+      // the explanation could have been smaller. This assertion should be
+      // ensured by the fact that the core mechanism for generating proofs
+      // from the equality engine is syncronized with its getExplanation
+      // method.
+      Trace("pfee-proof") << "Could not find free assumption for " << a << " in " << freeAssumps << std::endl;
+      Assert (false) << "pfee::ensureProofForFact: explained assumption " << a << " does not match a free assumption from " << freeAssumps << " in the corresponding proof";
     }
-    // FIXME: should be cleaner
-    Node concFormula = isConflict ? nm->mkNode(NOT, formula) : formula;
+  }
+  else
+  {
+    scopeAssumps.insert(scopeAssumps.end(),assumps.begin(),assumps.end());
+  }
+  // Make the lemma or conflict node. This must exactly match the conclusion
+  // of SCOPE below.
+  Node formula = mkAnd(scopeAssumps);
+  if (isConflict)
+  {
+    Assert (cond==d_false);
+    formula = formula.negate();
+  }
+  else
+  {
+    formula = formula == d_true ? conc : ( conc==d_false ? formula.negate() : nm->mkNode(IMPLIES, formula, conc) );
+  }
+  Trace("pfee-proof") << "pfee::ensureProofForFact: formula is " << formula
+                      << std::endl;
+  // if proofs are enabled, scope the proof constructed above, and connect the
+  // formula with the proof
+  if (d_pfEnabled)
+  {
+    // Notice that we have an expected conclusion (formula) which we pass to
+    // mkNode, which can check it if it wants.
     std::shared_ptr<ProofNode> pf =
-        d_pnm->mkNode(PfRule::SCOPE, pfConc, assumpsN, concFormula);
+        d_pnm->mkNode(PfRule::SCOPE, pfConc, scopeAssumps, formula);
     if (Trace.isOn("pfee-proof") || Trace.isOn("pfee-proof-final"))
     {
       Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"
@@ -358,9 +420,14 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     }
     // should always succeed, since assumptions should be closed
     Assert(pf != nullptr);
-    // should be a closed proof now
-    // FIXME: broken due to modulo symm assertions (x=y does not close y=x)
-    // Assert(pf->isClosed());
+    // Should be a closed proof now. If it is not, then the overall proof
+    // is malformed.
+    if (!pf->isClosed())
+    {
+      std::stringstream ss;
+      pf->printDebug(ss);
+      AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str() << std::endl;
+    }
     // set the proof for the conflict or lemma, which can be queried later
     if (isConflict)
     {
@@ -433,8 +500,7 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
 {
   std::shared_ptr<eq::EqProof> pf =
       d_pfEnabled ? std::make_shared<eq::EqProof>() : nullptr;
-  Trace("pfee-proof") << "pfee::explainWithProof: " << lit << " via " << assumps
-                      << std::endl;
+  Trace("pfee-proof") << "pfee::explainWithProof: " << lit << std::endl;
   bool polarity = lit.getKind() != NOT;
   TNode atom = polarity ? lit : lit[0];
   Assert(atom.getKind() != AND);
@@ -462,6 +528,7 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
     Assert(d_ee.hasTerm(atom));
     d_ee.explainPredicate(atom, polarity, tassumps, pf.get());
   }
+  Trace("pfee-proof") << "...got " << tassumps << std::endl;
   // avoid duplicates
   for (const TNode a : tassumps)
   {

@@ -23,6 +23,25 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
+std::ostream& operator<<(std::ostream& out, ProofStep step)
+{
+  out << "(step " << step.d_rule;
+  for (const Node& c : step.d_children)
+  {
+    out << " " << c;
+  }
+  if (!step.d_args.empty())
+  {
+    out << " :args";
+    for (const Node& a : step.d_args)
+    {
+      out << " " << a;
+    }
+  }
+  out << ")";
+  return out;
+}
+
 ProofStepBuffer::ProofStepBuffer(ProofChecker* pc) : d_checker(pc) {}
 
 Node ProofStepBuffer::tryStep(PfRule id,
@@ -55,19 +74,13 @@ void ProofStepBuffer::addStep(PfRule id,
       std::pair<Node, ProofStep>(expected, ProofStep(id, children, args)));
 }
 
-bool ProofStepBuffer::addTo(CDProof* pf)
-{
-  // add each of the steps
-  for (const std::pair<Node, ProofStep>& ps : d_steps)
-  {
-    if (!pf->addStep(ps.first, ps.second))
-    {
-      return false;
-    }
-  }
-  return true;
-}
+size_t ProofStepBuffer::getNumSteps() const { return d_steps.size(); }
 
+const std::vector<std::pair<Node, ProofStep>>& ProofStepBuffer::getSteps() const
+{
+  return d_steps;
+}
+  
 void ProofStepBuffer::clear() { d_steps.clear(); }
 
 }  // namespace CVC4

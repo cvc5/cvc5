@@ -64,29 +64,12 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
         ProofGenerator* pg = getGeneratorFor(afact);
         if (pg != nullptr)
         {
-          // plug in the proof provided by the generator, if it exists
-          std::shared_ptr<ProofNode> apf = pg->getProofFor(afact);
-          if (apf != nullptr)
+          // use the addProofTo interface
+          if (!pg->addProofTo(afact, this))
           {
-            // We update cur to have the structure of the top node of the
-            // proof provided by the generator. Notice that the interface to
-            // update this node will ensure that the proof apf is a proof of the
-            // assumption. If it does not, then the generator was wrong.
-            if (!d_manager->updateNode(cur,
-                                       apf->getRule(),
-                                       apf->getChildren(),
-                                       apf->getArguments()))
-            {
-              // print warning?
-              Assert(false)
-                  << "Proof generator provided an unexpected proof for fact "
-                  << afact << std::endl;
-            }
-          }
-          else
-          {
-            Assert(false) << "Failed to get proof from generator for fact "
-                          << afact << std::endl;
+            Assert(false)
+                << "Proof generator could not add proof for fact "
+                << afact << std::endl;
           }
         }
         // Notice that we do not traverse the proofs that have been generated

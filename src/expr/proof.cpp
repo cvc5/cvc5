@@ -48,12 +48,9 @@ bool CDProof::addStep(Node expected,
   NodeProofNodeMap::iterator it = d_nodes.find(expected);
   if (it != d_nodes.end())
   {
-    if (!forceOverwrite
-        && ((*it).second->getRule() != PfRule::ASSUME || id == PfRule::ASSUME))
+    if (!shouldOverwrite((*it).second.get(),id,forceOverwrite))
     {
-      // we do not overwrite if forceOverwrite is false and the previously
-      // provided step was not an assumption, or if the currently provided step
-      // is a (duplicate) assumption
+      // we should not overwrite the current step
       return true;
     }
     // we will overwrite the existing proof node by updating its contents below
@@ -110,15 +107,63 @@ bool CDProof::addStep(Node expected,
 }
 
 bool CDProof::addStep(Node expected,
-                      ProofStep step,
+                      const ProofStep& step,
                       bool ensureChildren,
                       bool forceOverwrite)
 {
   return addStep(expected, step.d_rule, step.d_children, step.d_args);
 }
 
-bool CDProof::addProof(ProofNode* pn, bool forceOverwrite)
+bool CDProof::addSteps(const ProofStepBuffer& psb,
+              bool ensureChildren,
+              bool forceOverwrite)
 {
+  const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
+  for (const std::pair<Node, ProofStep>& ps : steps)
+  {
+    if (!addStep(ps.first, ps.second, ensureChildren, forceOverwrite))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool CDProof::addProof(std::shared_ptr<ProofNode> pn, bool forceOverwrite, bool doCopy)
+{
+  if (!doCopy)
+  {
+    // If we aren't doing a deep copy, we either store pn or link its top
+    // node into the existing pointer
+    Node curFact = pn->getResult();
+    std::shared_ptr<ProofNode> cur = getProof(curFact);
+    if (cur==nullptr)
+    {
+      // Assert that the checker of this class agrees with (the externally
+      // provided) pn. This ensures that if pn was checked by a different
+      // checker than the one of the manager in this class, then it is double
+      // checked here, so that this class maintains the invariant that all of
+      // its nodes in d_nodes have been checked by the underlying checker.
+      Assert (d_manager->getChecker()==nullptr || 
+      d_manager->getChecker()->check(pn,curFact)==curFact);
+      // just store the proof for fact
+      d_nodes.insert(curFact,pn);
+    }
+    else if (shouldOverwrite(cur.get(),pn->getRule(),forceOverwrite))
+    {
+      // We update cur to have the structure of the top node of pn. Notice that
+      // the interface to update this node will ensure that the proof apf is a
+      // proof of the assumption. If it does not, then pn was wrong.
+      if (!d_manager->updateNode(cur.get(),
+                                  pn->getRule(),
+                                  pn->getChildren(),
+                                  pn->getArguments()))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<ProofNode*> visit;
@@ -183,5 +228,13 @@ bool CDProof::hasStep(Node fact) const
 }
 
 ProofNodeManager* CDProof::getManager() const { return d_manager; }
+
+bool CDProof::shouldOverwrite(ProofNode * pn, PfRule newId, bool forceOverwrite)
+{
+  Assert (pn!=nullptr);
+  // we overwrite only if forceOverwrite is true, or if the previously
+  // provided proof pn was an assumption and the currently provided step is not
+  return forceOverwrite || (pn->getRule() == PfRule::ASSUME && newId != PfRule::ASSUME);
+}
 
 }  // namespace CVC4

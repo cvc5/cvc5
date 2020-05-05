@@ -260,8 +260,9 @@ void InferProofCons::convert(Inference infer,
             || infer == Inference::F_ENDPOINT_EQ
             || infer == Inference::F_ENDPOINT_EMP)
         {
-          // could be equal to conclusion already
-          if (mainEqCeq == conc)
+          // should be equal to conclusion already, or rewrite to it
+          std::vector<Node> cexp;
+          if (convertPredTransform(mainEqCeq,conc,cexp))
           {
             // success
             useBuffer = true;
@@ -417,6 +418,7 @@ void InferProofCons::convert(Inference infer,
     // ========================== Regular expression unfolding
     case Inference::RE_UNFOLD_POS:
     case Inference::RE_UNFOLD_NEG: {
+      pii.d_rule = infer==Inference::RE_UNFOLD_POS ? PfRule::RE_UNFOLD_POS : PfRule::RE_UNFOLD_NEG;
     }
     break;
     // ========================== Reduction
@@ -569,6 +571,7 @@ bool InferProofCons::convertPredTransform(Node src, Node tgt, const std::vector<
     // already equal
     return true;
   }
+  // SYMM?
   // try to prove that tgt rewrites to 
   std::vector<Node> children;
   children.push_back(src);
@@ -581,6 +584,32 @@ bool InferProofCons::convertPredTransform(Node src, Node tgt, const std::vector<
 }
 
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }
+
+bool InferProofCons::addProofTo(Node f, CDProof * pf, bool forceOverwrite)
+{
+  Inference infer = Inference::NONE;
+  bool isRev = false;
+  std::vector<Node> exp;
+  std::vector<Node> expn;
+  // TODO: reconstruct the inference
+  bool useBuffer = false;
+  eq::ProofInferInfo pii;
+  convert(infer,isRev,f,exp, expn, pii, useBuffer);
+  if (useBuffer)
+  {
+    //pf->addSteps(d_psb, forceOverwrite);
+  }
+  else
+  {
+    //pf->addStep(f,pii.d_step);
+  }
+  return false;
+}
+
+std::string InferProofCons::identify() const
+{
+  return "strings::InferProofCons";
+}
 
 }  // namespace strings
 }  // namespace theory
