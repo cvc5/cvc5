@@ -88,8 +88,9 @@ class EqProof
    */
   void cleanReflPremisesInTranstivity(std::vector<Node>& premises) const;
 
-  void maybeFoldTransitivityChildren(std::vector<Node>& premises,
-                                     CDProof* p) const;
+  bool foldTransitivityChildren(Node conclusion,
+                                std::vector<Node>& premises,
+                                CDProof* p) const;
 
   void maybeAddSymmOrTrueIntroToProof(unsigned i,
                                       std::vector<Node>& premises,
