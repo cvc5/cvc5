@@ -1182,7 +1182,9 @@ void EqualityEngine::getExplanation(
       {
         std::vector<Node> no_children;
         eqp->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_0, no_children);
-      } else {
+      }
+      else
+      {
         eqp->d_node = ProofManager::currentPM()->mkOp(d_nodes[t1Id]);
       }
     }
@@ -1301,7 +1303,9 @@ void EqualityEngine::getExplanation(
                 {
                   //leave node null for now
                   eqpc->d_node = Node::null();
-                } else {
+                }
+                else
+                {
                   if (d_nodes[f1.d_a].getKind() == kind::APPLY_UF
                       || d_nodes[f1.d_a].getKind() == kind::SELECT
                       || d_nodes[f1.d_a].getKind() == kind::STORE)

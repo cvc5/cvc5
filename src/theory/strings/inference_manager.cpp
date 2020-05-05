@@ -181,19 +181,17 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
                                 << " by " << ii.d_id << std::endl;
       // we must fully explain it
-                                bool useBuffer = false;
+      bool useBuffer = false;
       eq::ProofInferInfo pii;
       d_ipc->convert(ii, pii, useBuffer);
       TrustNode tconf;
       if (useBuffer)
       {
-        tconf =
-          d_pfee->assertConflict(pii.d_children, *d_ipc->getBuffer());
+        tconf = d_pfee->assertConflict(pii.d_children, *d_ipc->getBuffer());
       }
       else
       {
-        tconf =
-          d_pfee->assertConflict(pii.d_rule, pii.d_children, pii.d_args);
+        tconf = d_pfee->assertConflict(pii.d_rule, pii.d_children, pii.d_args);
       }
       Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
       Trace("strings-assert") << "(assert (not " << tconf.getNode()
@@ -333,7 +331,7 @@ void InferenceManager::doPendingFacts()
       bool useBuffer = false;
       eq::ProofInferInfo pii;
       // convert to proof rule(s)
-      d_ipc->convert(ii,pii,useBuffer);
+      d_ipc->convert(ii, pii, useBuffer);
       preProcessFact(fact);
       // assert to equality engine
       if (useBuffer)
@@ -380,13 +378,18 @@ void InferenceManager::doPendingLemmas()
     // make the trusted lemma object
     if (useBuffer)
     {
-      tlem = d_pfee->assertLemma(
-          ii.d_conc, pii.d_children, pii.d_childrenToExplain, *d_ipc->getBuffer());
+      tlem = d_pfee->assertLemma(ii.d_conc,
+                                 pii.d_children,
+                                 pii.d_childrenToExplain,
+                                 *d_ipc->getBuffer());
     }
     else
     {
-      tlem = d_pfee->assertLemma(
-          ii.d_conc, pii.d_rule, pii.d_children, pii.d_childrenToExplain, pii.d_args);
+      tlem = d_pfee->assertLemma(ii.d_conc,
+                                 pii.d_rule,
+                                 pii.d_children,
+                                 pii.d_childrenToExplain,
+                                 pii.d_args);
     }
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;

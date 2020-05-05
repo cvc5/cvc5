@@ -206,7 +206,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       Node c = isRev ? Word::suffix(s0, 1) : Word::prefix(s0, 1);
       Node rbody =
           isRev ? utils::mkPrefix(
-                      t0, nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, t0), one))
+              t0, nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, t0), one))
                 : utils::mkSuffix(t0, one);
       Node r = ProofSkolemCache::mkPurifySkolem(rbody, "r");
       Node conc;

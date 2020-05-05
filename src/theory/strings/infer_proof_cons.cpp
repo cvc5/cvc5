@@ -33,17 +33,20 @@ InferProofCons::InferProofCons(ProofChecker* pc,
 {
 }
 
-void InferProofCons::convert(const InferInfo& ii, eq::ProofInferInfo& pii, bool& useBuffer)
+void InferProofCons::convert(const InferInfo& ii,
+                             eq::ProofInferInfo& pii,
+                             bool& useBuffer)
 {
   convert(ii.d_id, ii.d_idRev, ii.d_conc, ii.d_ant, ii.d_antn, pii, useBuffer);
 }
 
 void InferProofCons::convert(Inference infer,
-                               bool isRev,
-                               Node conc,
-                               const std::vector<Node>& exp,
-                               const std::vector<Node>& expn,
-                               eq::ProofInferInfo& pii, bool& useBuffer)
+                             bool isRev,
+                             Node conc,
+                             const std::vector<Node>& exp,
+                             const std::vector<Node>& expn,
+                             eq::ProofInferInfo& pii,
+                             bool& useBuffer)
 {
   // the conclusion is the same
   pii.d_conc = conc;
@@ -262,7 +265,7 @@ void InferProofCons::convert(Inference infer,
         {
           // should be equal to conclusion already, or rewrite to it
           std::vector<Node> cexp;
-          if (convertPredTransform(mainEqCeq,conc,cexp))
+          if (convertPredTransform(mainEqCeq, conc, cexp))
           {
             // success
             useBuffer = true;
@@ -373,7 +376,7 @@ void InferProofCons::convert(Inference infer,
                                       << mainEqMain << std::endl;
             // either equal or rewrites to it
             std::vector<Node> cexp;
-            if (convertPredTransform(mainEqMain,conc,cexp))
+            if (convertPredTransform(mainEqMain, conc, cexp))
             {
               // requires that length success is also true
               useBuffer = lenSuccess;
@@ -417,8 +420,10 @@ void InferProofCons::convert(Inference infer,
     break;
     // ========================== Regular expression unfolding
     case Inference::RE_UNFOLD_POS:
-    case Inference::RE_UNFOLD_NEG: {
-      pii.d_rule = infer==Inference::RE_UNFOLD_POS ? PfRule::RE_UNFOLD_POS : PfRule::RE_UNFOLD_NEG;
+    case Inference::RE_UNFOLD_NEG:
+    {
+      pii.d_rule = infer == Inference::RE_UNFOLD_POS ? PfRule::RE_UNFOLD_POS
+                                                     : PfRule::RE_UNFOLD_NEG;
     }
     break;
     // ========================== Reduction
@@ -436,12 +441,13 @@ void InferProofCons::convert(Inference infer,
         std::vector<Node> argsRed;
         // the left hand side of the last conjunct is the term we are reducing
         argsRed.push_back(conc[nchild - 1][0]);
-        Node red = d_psb.tryStep(PfRule::STRINGS_REDUCTION, childrenRed, argsRed);
+        Node red =
+            d_psb.tryStep(PfRule::STRINGS_REDUCTION, childrenRed, argsRed);
         if (!red.isNull())
         {
           // either equal or rewrites to it
           std::vector<Node> cexp;
-          if (convertPredTransform(red,conc,cexp))
+          if (convertPredTransform(red, conc, cexp))
           {
             useBuffer = true;
           }
@@ -535,8 +541,8 @@ void InferProofCons::convert(Inference infer,
   }
   if (Trace.isOn("strings-ipc-debug"))
   {
-    Trace("strings-ipc-debug")
-        << "InferProofCons::convert returned " << pii << ", useBuffer = " << useBuffer << std::endl;
+    Trace("strings-ipc-debug") << "InferProofCons::convert returned " << pii
+                               << ", useBuffer = " << useBuffer << std::endl;
   }
 }
 
@@ -556,7 +562,7 @@ bool InferProofCons::convertLengthPf(Node lenReq,
   {
     // probably rewrites to it?
     std::vector<Node> exp;
-    if (convertPredTransform(lenExp[0],lenReq,exp))
+    if (convertPredTransform(lenExp[0], lenReq, exp))
     {
       return true;
     }
@@ -564,28 +570,29 @@ bool InferProofCons::convertLengthPf(Node lenReq,
   return false;
 }
 
-bool InferProofCons::convertPredTransform(Node src, Node tgt, const std::vector<Node>& exp)
+bool InferProofCons::convertPredTransform(Node src,
+                                          Node tgt,
+                                          const std::vector<Node>& exp)
 {
-  if (src==tgt)
+  if (src == tgt)
   {
     // already equal
     return true;
   }
   // SYMM?
-  // try to prove that tgt rewrites to 
+  // try to prove that tgt rewrites to
   std::vector<Node> children;
   children.push_back(src);
-  children.insert(children.end(),exp.begin(),exp.end());
+  children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
   args.push_back(tgt);
-  Node res =
-      d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
-  return res==tgt;
+  Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+  return res == tgt;
 }
 
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }
 
-bool InferProofCons::addProofTo(Node f, CDProof * pf, bool forceOverwrite)
+bool InferProofCons::addProofTo(Node f, CDProof* pf, bool forceOverwrite)
 {
   Inference infer = Inference::NONE;
   bool isRev = false;
@@ -594,14 +601,14 @@ bool InferProofCons::addProofTo(Node f, CDProof * pf, bool forceOverwrite)
   // TODO: reconstruct the inference
   bool useBuffer = false;
   eq::ProofInferInfo pii;
-  convert(infer,isRev,f,exp, expn, pii, useBuffer);
+  convert(infer, isRev, f, exp, expn, pii, useBuffer);
   if (useBuffer)
   {
-    //pf->addSteps(d_psb, forceOverwrite);
+    // pf->addSteps(d_psb, forceOverwrite);
   }
   else
   {
-    //pf->addStep(f,pii.d_step);
+    // pf->addStep(f,pii.d_step);
   }
   return false;
 }

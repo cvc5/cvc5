@@ -24,7 +24,7 @@
 #include "expr/proof_rule.h"
 
 namespace CVC4 {
-  
+
 /** Information for constructing a step in a CDProof */
 class ProofStep
 {

@@ -18,23 +18,21 @@
 
 namespace CVC4 {
 
-ProofGenerator::ProofGenerator()
-{
-}
+ProofGenerator::ProofGenerator() {}
 
 ProofGenerator::~ProofGenerator() {}
 
 std::shared_ptr<ProofNode> ProofGenerator::getProofFor(Node f)
 {
-  Unreachable() << "ProofGenerator::getProofFor: " << identify() << " has no implementation"
-                << std::endl;
+  Unreachable() << "ProofGenerator::getProofFor: " << identify()
+                << " has no implementation" << std::endl;
   return nullptr;
 }
 
-bool ProofGenerator::addProofTo(Node f, CDProof * pf, bool forceOverwrite)
+bool ProofGenerator::addProofTo(Node f, CDProof* pf, bool forceOverwrite)
 {
   Trace("pfgen") << "ProofGenerator::addProofTo: " << f << "..." << std::endl;
-  Assert (pf!=nullptr);
+  Assert(pf != nullptr);
   // plug in the proof provided by the generator, if it exists
   std::shared_ptr<ProofNode> apf = getProofFor(f);
   if (apf != nullptr)
@@ -50,11 +48,9 @@ bool ProofGenerator::addProofTo(Node f, CDProof * pf, bool forceOverwrite)
   else
   {
     Trace("pfgen") << "...failed, no proof" << std::endl;
-    Assert(false) << "Failed to get proof from generator for fact "
-                  << f;
+    Assert(false) << "Failed to get proof from generator for fact " << f;
   }
   return false;
 }
-
 
 }  // namespace CVC4

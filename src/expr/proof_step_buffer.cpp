@@ -80,7 +80,7 @@ const std::vector<std::pair<Node, ProofStep>>& ProofStepBuffer::getSteps() const
 {
   return d_steps;
 }
-  
+
 void ProofStepBuffer::clear() { d_steps.clear(); }
 
 }  // namespace CVC4

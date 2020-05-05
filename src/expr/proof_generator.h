@@ -21,7 +21,7 @@
 #include "expr/proof_node.h"
 
 namespace CVC4 {
-  
+
 class CDProof;
 
 /**
@@ -50,7 +50,7 @@ class ProofGenerator
    */
   virtual std::shared_ptr<ProofNode> getProofFor(Node f);
   /** Add to proof */
-  virtual bool addProofTo(Node f, CDProof * pf, bool forceOverwrite = false);
+  virtual bool addProofTo(Node f, CDProof* pf, bool forceOverwrite = false);
   /**
    * Can we give the proof for formula f? This is used for debugging. This
    * returns false if the generator cannot provide a proof of formula f.

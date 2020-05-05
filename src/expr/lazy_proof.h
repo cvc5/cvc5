@@ -45,7 +45,9 @@ class LazyCDProof : public CDProof
    * This asserts that expected can be proven by proof generator pg if
    * it is required to do so.
    */
-  void addLazyStep(Node expected, ProofGenerator* pg, bool forceOverwrite = false);
+  void addLazyStep(Node expected,
+                   ProofGenerator* pg,
+                   bool forceOverwrite = false);
 
  protected:
   /** Maps facts that can be proven to generators */

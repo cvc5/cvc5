@@ -67,9 +67,8 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
           // use the addProofTo interface
           if (!pg->addProofTo(afact, this))
           {
-            Assert(false)
-                << "Proof generator could not add proof for fact "
-                << afact << std::endl;
+            Assert(false) << "Proof generator could not add proof for fact "
+                          << afact << std::endl;
           }
         }
         // Notice that we do not traverse the proofs that have been generated
@@ -92,8 +91,8 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
 }
 
 void LazyCDProof::addLazyStep(Node expected,
-                          ProofGenerator* pg,
-                          bool forceOverwrite)
+                              ProofGenerator* pg,
+                              bool forceOverwrite)
 {
   Assert(pg != nullptr);
   std::unordered_map<Node, ProofGenerator*, NodeHashFunction>::const_iterator

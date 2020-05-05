@@ -438,7 +438,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
   Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
   Node case_emptyr = Rewriter::rewrite(case_empty);
   Node case_nempty = nm->mkNode(GT, n_len, d_zero);
-  //CDProof cdp;  // TODO
+  // CDProof cdp;  // TODO
   if (!case_emptyr.isConst())
   {
     Node lem = nm->mkNode(OR, case_empty, case_nempty);

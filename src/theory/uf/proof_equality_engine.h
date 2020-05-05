@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
-#include "expr/node.h"
 #include "expr/lazy_proof.h"
+#include "expr/node.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 #include "expr/proof_step_buffer.h"
@@ -76,7 +76,7 @@ class ProofEqEngine : public EagerProofGenerator
   bool assertFact(Node lit, PfRule id, Node exp, const std::vector<Node>& args);
   /** Multi-step versions */
   bool assertFact(Node lit, Node exp, ProofStepBuffer& psb);
-  bool assertFact(Node lit, Node exp, ProofGenerator * pg);
+  bool assertFact(Node lit, Node exp, ProofGenerator* pg);
   //-------------------------- assert conflicts
   /**
    * This method is called when the equality engine of this class is
@@ -145,7 +145,8 @@ class ProofEqEngine : public EagerProofGenerator
   /** Multi-step version */
   TrustNode assertLemma(Node conc,
                         const std::vector<Node>& exp,
-                        const std::vector<Node>& toExplain, ProofStepBuffer& psb);
+                        const std::vector<Node>& toExplain,
+                        ProofStepBuffer& psb);
   /** identify */
   std::string identify() const override { return "ProofEqEngine"; }
 
@@ -168,8 +169,8 @@ class ProofEqEngine : public EagerProofGenerator
   void assertFactInternal(TNode pred, bool polarity, TNode reason);
   /** assert lemma internal */
   TrustNode assertLemmaInternal(Node conc,
-                                     const std::vector<Node>& exp,
-                                     const std::vector<Node>& toExplain);
+                                const std::vector<Node>& exp,
+                                const std::vector<Node>& toExplain);
   /** ensure proof for fact */
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,
@@ -182,6 +183,7 @@ class ProofEqEngine : public EagerProofGenerator
   Node mkAnd(const std::vector<TNode>& a);
   /** flatten and, returns the conjuncts to a */
   void flattenAnd(TNode an, std::vector<Node>& a);
+
  private:
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
