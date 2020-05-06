@@ -426,14 +426,10 @@ Node EqProof::addToProof(
       // used in the proof p
       Node introConclusion =
           constIndex == 1 ? d_node : d_node[1].eqNode(d_node[0]);
-      if (!p->addStep(introConclusion,
-                      introRule,
-                      introChildren,
-                      {}))
+      if (!p->addStep(introConclusion, introRule, introChildren, {}))
       {
-        Assert(false) << "EqProof::addToProof: couldn't add "
-                      << introRule << " from "
-                      << d_node[1 - constIndex].notNode() << " to "
+        Assert(false) << "EqProof::addToProof: couldn't add " << introRule
+                      << " from " << d_node[1 - constIndex].notNode() << " to "
                       << introConclusion << "\n";
       }
     }
