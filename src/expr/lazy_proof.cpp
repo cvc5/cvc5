@@ -14,6 +14,8 @@
 
 #include "expr/lazy_proof.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 
 LazyCDProof::LazyCDProof(ProofNodeManager* pnm, context::Context* c)
@@ -34,10 +36,16 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
   else
   {
     // we may have a generator
-    ProofGenerator* pg = getGeneratorFor(fact);
+    bool isSym = false;
+    ProofGenerator* pg = getGeneratorFor(fact, isSym);
     if (pg != nullptr)
     {
-      std::shared_ptr<ProofNode> pf = pg->getProofFor(fact);
+      Node factGen = isSym ? fact[1].eqNode(fact[0]) : fact;
+      std::shared_ptr<ProofNode> pf = pg->getProofFor(factGen);
+      if (isSym)
+      {
+        pf = mkSymmProof(pf,fact);
+      }
       return pf;
     }
     return nullptr;
@@ -61,9 +69,12 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
       if (cur->getRule() == PfRule::ASSUME)
       {
         Node afact = cur->getResult();
-        ProofGenerator* pg = getGeneratorFor(afact);
+        bool isSym = false;
+        ProofGenerator* pg = getGeneratorFor(afact, isSym);
         if (pg != nullptr)
         {
+          Assert (!isSym || afact.getKind()==EQUAL);
+          Node afactGen = isSym ? afact[1].eqNode(afact[0]) : fact;
           // use the addProofTo interface
           if (!pg->addProofTo(afact, this))
           {
@@ -112,12 +123,25 @@ void LazyCDProof::addLazyStep(Node expected,
   }
 }
 
-ProofGenerator* LazyCDProof::getGeneratorFor(Node fact) const
+ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
 {
+  isSym = false;
   std::unordered_map<Node, ProofGenerator*, NodeHashFunction>::const_iterator
       it = d_gens.find(fact);
   if (it != d_gens.end())
   {
+    return it->second;
+  }
+  // could be symmetry
+  if (fact.getKind()!=EQUAL || fact[0]==fact[1])
+  {
+    return nullptr;
+  }
+  Node factSym = fact[1].eqNode(fact[0]);
+  it = d_gens.find(factSym);
+  if (it != d_gens.end())
+  {
+    isSym = true;
     return it->second;
   }
   return nullptr;

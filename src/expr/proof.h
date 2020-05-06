@@ -192,7 +192,7 @@ class CDProof
                 bool forceOverwrite = false,
                 bool doCopy = false);
   /** Return true if fact already has a proof step */
-  bool hasStep(Node fact) const;
+  bool hasStep(Node fact);
   /** Get the proof manager for this proof */
   ProofNodeManager* getManager() const;
 
@@ -205,11 +205,15 @@ class CDProof
   context::Context d_context;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
+  /** Ensure fact sym */
+  std::shared_ptr<ProofNode> getProofSymm(Node fact);
   /**
    * Returns true if we should overwrite proof node pn with a step having id
    * newId, based on policy forceOverwrite.
    */
   static bool shouldOverwrite(ProofNode* pn, PfRule newId, bool forceOverwrite);
+  /** get symm proof */
+  std::shared_ptr<ProofNode> mkSymmProof(std::shared_ptr<ProofNode> pn, Node fact);
 };
 
 }  // namespace CVC4

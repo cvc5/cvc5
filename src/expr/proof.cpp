@@ -35,6 +35,48 @@ std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
   return nullptr;
 }
 
+std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
+{
+  std::shared_ptr<ProofNode> pf = getProof(fact);
+  if (pf!=nullptr && pf->getRule()!=PfRule::ASSUME)
+  {
+    return pf;
+  }
+  if (fact.getKind()!=EQUAL || fact[0]==fact[1])
+  {
+    // no symmetry possible, return original proof (possibly assumption)
+    return pf;
+  }
+  // see if a proof exists for the opposite direction, if so, add the step
+  Node symFact = fact[1].eqNode(fact[0]);
+  std::shared_ptr<ProofNode> pfs = getProof(symFact);
+  if (pfs!=nullptr && pfs->getRule()!=PfRule::ASSUME)
+  {
+    if (pf==nullptr)
+    {
+      std::shared_ptr<ProofNode> psym = mkSymmProof(pfs,fact);
+      d_nodes.insert(fact, psym);
+      return psym;
+    }
+    else
+    {
+      Assert(false); // ?
+    }
+  }
+  // return original proof (possibly assumption)
+  return pf;
+}
+
+std::shared_ptr<ProofNode> CDProof::mkSymmProof(std::shared_ptr<ProofNode> pn, Node fact)
+{
+  std::vector<std::shared_ptr<ProofNode>> pschild;
+  pschild.push_back(pn);
+  std::vector<Node> args;
+  std::shared_ptr<ProofNode> psym = d_manager->mkNode(PfRule::SYMM, pschild, args, fact);
+  Assert (psym!=nullptr);
+  return psym;
+}
+
 bool CDProof::addStep(Node expected,
                       PfRule id,
                       const std::vector<Node>& children,
@@ -42,25 +84,25 @@ bool CDProof::addStep(Node expected,
                       bool ensureChildren,
                       bool forceOverwrite)
 {
+  // TODO: can we assume id != ASSUME? It is pointless to explictly add ASSUME to proofs.
   // we must provide expected
   Assert(!expected.isNull());
 
-  NodeProofNodeMap::iterator it = d_nodes.find(expected);
-  if (it != d_nodes.end())
+  std::shared_ptr<ProofNode> pprev = getProofSymm(expected);
+  if (pprev!=nullptr)
   {
-    if (!shouldOverwrite((*it).second.get(), id, forceOverwrite))
+    if (!shouldOverwrite(pprev.get(), id, forceOverwrite))
     {
       // we should not overwrite the current step
       return true;
     }
     // we will overwrite the existing proof node by updating its contents below
   }
-
   // collect the child proofs, for each premise
   std::vector<std::shared_ptr<ProofNode>> pchildren;
   for (const Node& c : children)
   {
-    std::shared_ptr<ProofNode> pc = getProof(c);
+    std::shared_ptr<ProofNode> pc = getProofSymm(c);
     if (pc == nullptr)
     {
       if (ensureChildren)
@@ -82,7 +124,7 @@ bool CDProof::addStep(Node expected,
   bool ret = true;
   // create or update it
   std::shared_ptr<ProofNode> pthis;
-  if (it == d_nodes.end())
+  if (pprev==nullptr)
   {
     pthis = d_manager->mkNode(id, pchildren, args, expected);
     if (pthis == nullptr)
@@ -95,7 +137,7 @@ bool CDProof::addStep(Node expected,
   else
   {
     // update its value
-    pthis = (*it).second;
+    pthis = pprev;
     // We return the value of updateNode here. This means this method may return
     // false if this call failed, regardless of whether we already have a proof
     // step for expected.
@@ -103,6 +145,25 @@ bool CDProof::addStep(Node expected,
   }
   // the result of the proof node should be expected
   Assert(pthis->getResult() == expected);
+  
+  // if we are not an ASSUME, then ensure SYMM proof is also linked
+  /*
+  if (id != PfRule::ASSUME && expected.getKind()==EQUAL && expected[0]!=expected[1])
+  {
+    Node expectedSym = expected[1].eqNode(expected[0]);
+    std::shared_ptr<ProofNode> pfs = getProof(expectedSym);
+    if (pfs!=nullptr)
+    {
+      // Update it
+      std::vector<std::shared_ptr<ProofNode>> pschild;
+      pschild.push_back(pthis);
+      std::vector<Node> sargs;
+      bool sret = d_manager->updateNode(pfs.get(), PfRule::SYMM, pschild, sargs);
+      AlwaysAssert(sret);
+    }
+  }
+  */
+  
   return ret;
 }
 
@@ -138,7 +199,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
     // If we aren't doing a deep copy, we either store pn or link its top
     // node into the existing pointer
     Node curFact = pn->getResult();
-    std::shared_ptr<ProofNode> cur = getProof(curFact);
+    std::shared_ptr<ProofNode> cur = getProofSymm(curFact);
     if (cur == nullptr)
     {
       // Assert that the checker of this class agrees with (the externally
@@ -216,15 +277,14 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
   return retValue;
 }
 
-bool CDProof::hasStep(Node fact) const
+bool CDProof::hasStep(Node fact)
 {
-  NodeProofNodeMap::iterator it = d_nodes.find(fact);
-  if (it == d_nodes.end())
+  std::shared_ptr<ProofNode> pf = getProofSymm(fact);
+  if (pf!=nullptr && pf->getRule()!=PfRule::ASSUME)
   {
-    return false;
+    return true;
   }
-  // cannot be an ASSUME
-  return true && (*it).second->getRule() != PfRule::ASSUME;
+  return false;
 }
 
 ProofNodeManager* CDProof::getManager() const { return d_manager; }

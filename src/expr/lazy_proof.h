@@ -53,7 +53,7 @@ class LazyCDProof : public CDProof
   /** Maps facts that can be proven to generators */
   std::unordered_map<Node, ProofGenerator*, NodeHashFunction> d_gens;
   /** Get generator for fact, or nullptr if it doesnt exist */
-  ProofGenerator* getGeneratorFor(Node fact) const;
+  ProofGenerator* getGeneratorFor(Node fact, bool& isSym);
 };
 
 }  // namespace CVC4
