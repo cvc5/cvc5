@@ -213,7 +213,8 @@ class CDProof
    */
   static bool shouldOverwrite(ProofNode* pn, PfRule newId, bool forceOverwrite);
   /** get symm proof */
-  std::shared_ptr<ProofNode> mkSymmProof(std::shared_ptr<ProofNode> pn, Node fact);
+  std::shared_ptr<ProofNode> mkSymmProof(std::shared_ptr<ProofNode> pn,
+                                         Node fact);
 };
 
 }  // namespace CVC4

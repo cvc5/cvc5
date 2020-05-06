@@ -1482,10 +1482,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     else
     {
       sk1 = skc->mkSkolemCached(
-        x,
-        y,
-        isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-        "v_spt1");
+          x,
+          y,
+          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
+          "v_spt1");
       sk2 = skc->mkSkolemCached(
           y,
           x,

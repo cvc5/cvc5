@@ -73,10 +73,11 @@ bool ProofNodeManager::updateNode(
     if (it == visited.end())
     {
       visited[cur] = true;
-      if (cur==pn)
+      if (cur == pn)
       {
         std::stringstream ss;
-        ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! " << id << " " << pn->getResult() << ", children = " << std::endl;
+        ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! "
+           << id << " " << pn->getResult() << ", children = " << std::endl;
         for (const std::shared_ptr<ProofNode>& cp : children)
         {
           ss << "  " << cp->getRule() << " " << cp->getResult() << std::endl;
@@ -90,8 +91,7 @@ bool ProofNodeManager::updateNode(
     }
   } while (!visit.empty());
   // ---------------- end check for cyclic
-  
-  
+
   // should have already computed what is proven
   Assert(!pn->d_proven.isNull())
       << "ProofNodeManager::updateProofNode: invalid proof provided";

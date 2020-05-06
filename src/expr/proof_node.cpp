@@ -80,7 +80,8 @@ void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
         }
         for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
         {
-          Assert (std::find(visit.begin(),visit.end(),cp.get())==visit.end()) << "ProofNode::getFreeAssumptions: cyclic proof!";
+          Assert(std::find(visit.begin(), visit.end(), cp.get()) == visit.end())
+              << "ProofNode::getFreeAssumptions: cyclic proof!";
           visit.push_back(cp.get());
         }
       }

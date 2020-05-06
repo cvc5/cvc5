@@ -60,8 +60,7 @@ class ProofEqEngine : public EagerProofGenerator
                 EqualityEngine& ee,
                 ProofNodeManager* pnm,
                 bool pfEnabled = true,
-                bool recExplain = false
-               );
+                bool recExplain = false);
   ~ProofEqEngine() {}
   //-------------------------- assert assumption
   /** Assert predicate lit by assumption */
@@ -208,7 +207,7 @@ class ProofEqEngine : public EagerProofGenerator
    * as a simplified interface to the EqualityEngine, without proofs.
    */
   bool d_pfEnabled;
-  /** 
+  /**
    * Recurse explanations
    */
   bool d_recExplain;

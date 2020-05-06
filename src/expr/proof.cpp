@@ -38,12 +38,13 @@ std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
 std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
 {
   std::shared_ptr<ProofNode> pf = getProof(fact);
-  if (pf!=nullptr && pf->getRule()!=PfRule::ASSUME)
+  if (pf != nullptr && pf->getRule() != PfRule::ASSUME)
   {
-    Trace("cdproof") << "CDProof::getProofSymm: existing non-assume" << std::endl;
+    Trace("cdproof") << "CDProof::getProofSymm: existing non-assume"
+                     << std::endl;
     return pf;
   }
-  if (fact.getKind()!=EQUAL || fact[0]==fact[1])
+  if (fact.getKind() != EQUAL || fact[0] == fact[1])
   {
     Trace("cdproof") << "CDProof::getProofSymm: no possible symm" << std::endl;
     // no symmetry possible, return original proof (possibly assumption)
@@ -53,25 +54,27 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
   // Notice that SYMM is also disallowed.
   Node symFact = fact[1].eqNode(fact[0]);
   std::shared_ptr<ProofNode> pfs = getProof(symFact);
-  if (pfs!=nullptr && pfs->getRule()!=PfRule::ASSUME && pfs->getRule()!=PfRule::SYMM)
+  if (pfs != nullptr && pfs->getRule() != PfRule::ASSUME
+      && pfs->getRule() != PfRule::SYMM)
   {
     // The symmetric fact exists, and the current one either does not, or is
     // an assumption. We make a new proof that applies SYMM to pfs.
     std::vector<std::shared_ptr<ProofNode>> pschild;
     pschild.push_back(pfs);
     std::vector<Node> args;
-    if (pf==nullptr)
+    if (pf == nullptr)
     {
       Trace("cdproof") << "CDProof::getProofSymm: fresh make symm" << std::endl;
-      std::shared_ptr<ProofNode> psym = d_manager->mkNode(PfRule::SYMM, pschild, args, fact);
-      Assert (psym!=nullptr);
+      std::shared_ptr<ProofNode> psym =
+          d_manager->mkNode(PfRule::SYMM, pschild, args, fact);
+      Assert(psym != nullptr);
       d_nodes.insert(fact, psym);
       return psym;
     }
     else
     {
       Trace("cdproof") << "CDProof::getProofSymm: update symm" << std::endl;
-      Assert (pf->getRule()==PfRule::ASSUME);
+      Assert(pf->getRule() == PfRule::ASSUME);
       // update pf
       bool sret = d_manager->updateNode(pf.get(), PfRule::SYMM, pschild, args);
       AlwaysAssert(sret);
@@ -85,13 +88,15 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
   return pf;
 }
 
-std::shared_ptr<ProofNode> CDProof::mkSymmProof(std::shared_ptr<ProofNode> pn, Node fact)
+std::shared_ptr<ProofNode> CDProof::mkSymmProof(std::shared_ptr<ProofNode> pn,
+                                                Node fact)
 {
   std::vector<std::shared_ptr<ProofNode>> pschild;
   pschild.push_back(pn);
   std::vector<Node> args;
-  std::shared_ptr<ProofNode> psym = d_manager->mkNode(PfRule::SYMM, pschild, args, fact);
-  Assert (psym!=nullptr);
+  std::shared_ptr<ProofNode> psym =
+      d_manager->mkNode(PfRule::SYMM, pschild, args, fact);
+  Assert(psym != nullptr);
   return psym;
 }
 
@@ -102,13 +107,14 @@ bool CDProof::addStep(Node expected,
                       bool ensureChildren,
                       bool forceOverwrite)
 {
-  Trace("cdproof") << "CDProof::addStep: " << id << " " << expected << std::endl;
-  // TODO: can we assume id != ASSUME? It is pointless to explictly add ASSUME to proofs.
-  // we must provide expected
+  Trace("cdproof") << "CDProof::addStep: " << id << " " << expected
+                   << std::endl;
+  // TODO: can we assume id != ASSUME? It is pointless to explictly add ASSUME
+  // to proofs. we must provide expected
   Assert(!expected.isNull());
 
   std::shared_ptr<ProofNode> pprev = getProofSymm(expected);
-  if (pprev!=nullptr)
+  if (pprev != nullptr)
   {
     if (!shouldOverwrite(pprev.get(), id, forceOverwrite))
     {
@@ -143,7 +149,7 @@ bool CDProof::addStep(Node expected,
   bool ret = true;
   // create or update it
   std::shared_ptr<ProofNode> pthis;
-  if (pprev==nullptr)
+  if (pprev == nullptr)
   {
     pthis = d_manager->mkNode(id, pchildren, args, expected);
     if (pthis == nullptr)
@@ -164,21 +170,22 @@ bool CDProof::addStep(Node expected,
   }
   // the result of the proof node should be expected
   Assert(pthis->getResult() == expected);
-  
+
   // if we are not an ASSUME or SYMM, then ensure SYMM proof is also linked
   // to an existing proof, if it is ASSUME.
-  if (id != PfRule::ASSUME && id != PfRule::SYMM && expected.getKind()==EQUAL && expected[0]!=expected[1])
+  if (id != PfRule::ASSUME && id != PfRule::SYMM && expected.getKind() == EQUAL
+      && expected[0] != expected[1])
   {
     Node expectedSym = expected[1].eqNode(expected[0]);
     // if it exists, we may need to update it
     std::shared_ptr<ProofNode> pfs = getProof(expectedSym);
-    if (pfs!=nullptr)
+    if (pfs != nullptr)
     {
       // call the get function with symmetry
       std::shared_ptr<ProofNode> pfss = getProofSymm(expectedSym);
     }
   }
-  
+
   return ret;
 }
 
@@ -295,7 +302,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
 bool CDProof::hasStep(Node fact)
 {
   std::shared_ptr<ProofNode> pf = getProofSymm(fact);
-  if (pf!=nullptr && pf->getRule()!=PfRule::ASSUME)
+  if (pf != nullptr && pf->getRule() != PfRule::ASSUME)
   {
     return true;
   }
