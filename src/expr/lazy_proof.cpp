@@ -19,7 +19,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 
 LazyCDProof::LazyCDProof(ProofNodeManager* pnm, context::Context* c)
-    : CDProof(pnm, c)
+    : CDProof(pnm, c), d_gens( c ? c : &d_context)
 {
 }
 
@@ -27,12 +27,14 @@ LazyCDProof::~LazyCDProof() {}
 
 std::shared_ptr<ProofNode> LazyCDProof::mkLazyProof(Node fact)
 {
+  Trace("lazy-cdproof") << "LazyCDProof::mkLazyProof " << fact << std::endl;
   // make the proof, which should always be non-null, since we construct an
   // assumption in the worst case.
   std::shared_ptr<ProofNode> opf = mkProof(fact);
   Assert(opf != nullptr);
   if (d_gens.empty())
   {
+    Trace("lazy-cdproof") << "...no generators, finished" << std::endl;
     // optimization: no generators, we are done
     return opf;
   }
@@ -59,6 +61,7 @@ std::shared_ptr<ProofNode> LazyCDProof::mkLazyProof(Node fact)
         ProofGenerator* pg = getGeneratorFor(afact, isSym);
         if (pg != nullptr)
         {
+          Trace("lazy-cdproof") << "Call generator for assumption " << afact << std::endl;
           Assert(!isSym || afact.getKind() == EQUAL);
           Node afactGen = isSym ? afact[1].eqNode(afact[0]) : afact;
           // use the addProofTo interface
@@ -67,6 +70,10 @@ std::shared_ptr<ProofNode> LazyCDProof::mkLazyProof(Node fact)
             Assert(false) << "Proof generator could not add proof for fact "
                           << afactGen << std::endl;
           }
+        }
+        else
+        {
+          Trace("lazy-cdproof") << "No generator for " << afact << std::endl;
         }
         // Notice that we do not traverse the proofs that have been generated
         // lazily by the proof generators here.  In other words, we assume that
@@ -84,6 +91,7 @@ std::shared_ptr<ProofNode> LazyCDProof::mkLazyProof(Node fact)
     }
   } while (!visit.empty());
   // we have now updated the ASSUME leafs of opf, return it
+  Trace("lazy-cdproof") << "...finished" << std::endl;
   return opf;
 }
 
@@ -92,7 +100,7 @@ void LazyCDProof::addLazyStep(Node expected,
                               bool forceOverwrite)
 {
   Assert(pg != nullptr);
-  std::unordered_map<Node, ProofGenerator*, NodeHashFunction>::const_iterator
+  NodeProofGeneratorMap::const_iterator
       it = d_gens.find(expected);
   if (it != d_gens.end() && !forceOverwrite)
   {
@@ -100,7 +108,7 @@ void LazyCDProof::addLazyStep(Node expected,
     return;
   }
   // just store now
-  d_gens[expected] = pg;
+  d_gens.insert(expected, pg);
 
   if (forceOverwrite)
   {
@@ -112,14 +120,12 @@ void LazyCDProof::addLazyStep(Node expected,
 ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
 {
   isSym = false;
-  std::unordered_map<Node, ProofGenerator*, NodeHashFunction>::const_iterator
+  NodeProofGeneratorMap::const_iterator
       it = d_gens.find(fact);
   if (it != d_gens.end())
   {
-    return it->second;
+    return (*it).second;
   }
-  // FIXME
-  return nullptr;
   // could be symmetry
   if (fact.getKind() != EQUAL || fact[0] == fact[1])
   {
@@ -130,7 +136,7 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
   if (it != d_gens.end())
   {
     isSym = true;
-    return it->second;
+    return (*it).second;
   }
   return nullptr;
 }

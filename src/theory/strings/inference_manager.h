@@ -327,6 +327,8 @@ class InferenceManager
   std::vector<InferInfo> d_pendingLem;
   /** Whether proofs are enabled */
   bool d_pfEnabled;
+  /** recursive explain */
+  bool d_recExplain;
 };
 
 }  // namespace strings

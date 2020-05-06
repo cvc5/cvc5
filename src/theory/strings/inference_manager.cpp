@@ -48,6 +48,8 @@ InferenceManager::InferenceManager(SolverState& s,
   d_one = nm->mkConst(Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+  // whether to recursively explain
+  d_recExplain = false;
 }
 
 void InferenceManager::finishInit(ProofNodeManager* pnm)
@@ -57,8 +59,10 @@ void InferenceManager::finishInit(ProofNodeManager* pnm)
                                      d_state.getUserContext(),
                                      *d_state.getEqualityEngine(),
                                      pnm,
-                                     d_pfEnabled));
-  d_ipc.reset(new InferProofCons(pnm->getChecker(), d_statistics, d_pfEnabled));
+                                     d_pfEnabled,
+                                     d_recExplain
+                                    ));
+  d_ipc.reset(new InferProofCons(d_state.getSatContext(), pnm->getChecker(), d_statistics, d_pfEnabled));
 }
 
 void InferenceManager::sendAssumption(TNode lit)
@@ -324,30 +328,50 @@ void InferenceManager::doPendingFacts()
     Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
                            << ii.getAntecedant() << " by " << ii.d_id
                            << std::endl;
+    std::vector<Node> exp;
+    for (const Node& ec : ii.d_ant)
+    {
+      utils::flattenOp(AND, ec, exp);
+    }
+    Node cexp = utils::mkAnd(exp);
     // convert for each fact
     for (const Node& fact : facts)
     {
       ii.d_conc = fact;
-      bool useBuffer = false;
-      ProofStep ps;
-      // convert to proof rule(s)
-      Node conc = d_ipc->convert(ii, ps, useBuffer);
-      preProcessFact(conc);
-      // assert to equality engine
-      if (useBuffer)
+      preProcessFact(fact);
+      if (!d_recExplain)
       {
-        Node cexp = utils::mkAnd(ps.d_children);
-        d_pfee->assertFact(conc, cexp, *d_ipc->getBuffer());
+        // notify fact
+        d_ipc->notifyFact(ii);
+        // assert to equality engine using proof generator interface for
+        // assertFact.
+        d_pfee->assertFact(fact, cexp, d_ipc.get());
       }
       else
       {
-        d_pfee->assertFact(conc, ps.d_rule, ps.d_children, ps.d_args);
+        bool useBuffer = false;
+        ProofStep ps;
+        // convert to proof rule(s)
+        Node conc = d_ipc->convert(ii, ps, useBuffer);
+        Assert( conc==fact);
+        preProcessFact(conc);
+        // assert to equality engine
+        if (useBuffer)
+        {
+          d_pfee->assertFact(fact, cexp, *d_ipc->getBuffer());
+        }
+        else
+        {
+          d_pfee->assertFact(fact, ps.d_rule, ps.d_children, ps.d_args);
+        }
       }
+      // may be in conflict
       if (d_state.isInConflict())
       {
         break;
       }
-      postProcessFact(conc);
+      // otherwise, post-process
+      postProcessFact(fact);
     }
     i++;
   }

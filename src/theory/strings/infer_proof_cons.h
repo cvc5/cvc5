@@ -40,11 +40,16 @@ namespace strings {
  */
 class InferProofCons : public ProofGenerator
 {
+  typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>, NodeHashFunction>
+      NodeInferInfoMap;
  public:
-  InferProofCons(ProofChecker* pc,
+  InferProofCons(context::Context* c,
+                 ProofChecker* pc,
                  SequencesStatistics& statistics,
                  bool pfEnabled);
   ~InferProofCons() {}
+  /** notify fact */
+  void notifyFact(const InferInfo& ii);
   /** convert
    *
    * This method is called when the theory of strings makes an inference
@@ -104,6 +109,8 @@ class InferProofCons : public ProofGenerator
    * applied when src and tgt are equivalent formulas assuming exp. 
    */
   bool convertPredTransform(Node src, Node tgt, const std::vector<Node>& exp);
+  /** The lazy fact map */
+  NodeInferInfoMap d_lazyFactMap;
   /** The proof step buffer */
   ProofStepBuffer d_psb;
   /** Reference to the statistics for the theory of strings/sequences. */

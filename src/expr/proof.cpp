@@ -162,6 +162,7 @@ bool CDProof::addStep(Node expected,
     pchildren.push_back(pc);
   }
 
+  // TODO: this isnt necessary if we forbid SYMM from user
   if (id == PfRule::SYMM)
   {
     Assert(pchildren.size() == 1);

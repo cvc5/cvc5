@@ -26,11 +26,19 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferProofCons::InferProofCons(ProofChecker* pc,
+InferProofCons::InferProofCons(context::Context* c,
+                                ProofChecker* pc,
                                SequencesStatistics& statistics,
                                bool pfEnabled)
-    : d_psb(pc), d_statistics(statistics), d_pfEnabled(pfEnabled)
+    : d_lazyFactMap(c), d_psb(pc), d_statistics(statistics), d_pfEnabled(pfEnabled)
 {
+}
+
+void InferProofCons::notifyFact(const InferInfo& ii)
+{
+  std::shared_ptr<InferInfo> iic = 
+      std::make_shared<InferInfo>(ii);
+  d_lazyFactMap.insert(ii.d_conc, iic);
 }
 
 Node InferProofCons::convert(const InferInfo& ii,
@@ -565,22 +573,22 @@ bool InferProofCons::convertPredTransform(Node src,
 
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }
 
-bool InferProofCons::addProofTo(Node f, CDProof* pf, bool forceOverwrite)
+bool InferProofCons::addProofTo(Node fact, CDProof* pf, bool forceOverwrite)
 {
-  Inference infer = Inference::NONE;
-  bool isRev = false;
-  std::vector<Node> exp;
-  // TODO: reconstruct the inference
+  // get the inference
+  NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
+  AlwaysAssert(it != d_lazyFactMap.end());
+  // now go back and convert it to proof steps and add to proof
   bool useBuffer = false;
   ProofStep ps;
-  convert(infer, isRev, f, exp, ps, useBuffer);
+  convert(*(*it).second, ps, useBuffer);
   if (useBuffer)
   {
-    // pf->addSteps(d_psb, forceOverwrite);
+    pf->addSteps(d_psb, forceOverwrite);
   }
   else
   {
-    // pf->addStep(f,ps);
+    pf->addStep(fact, ps);
   }
   return false;
 }
