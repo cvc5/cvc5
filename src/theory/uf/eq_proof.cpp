@@ -178,7 +178,7 @@ bool EqProof::foldTransitivityChildren(Node conclusion,
   }
   else
   {
-    // conclusion must be false = true
+    // conclusion must be, modulo symmetry, false = true
     Assert(conclusion[0].getKind() == kind::CONST_BOOLEAN
            && conclusion[1].getKind() == kind::CONST_BOOLEAN);
     inSubstCase = false;
@@ -194,9 +194,9 @@ bool EqProof::foldTransitivityChildren(Node conclusion,
   }
   cleanReflPremisesInTranstivity(foldPremises);
   Assert(!foldPremises.empty());
-  Trace("eqproof-conv")
-      << "EqProof::foldTransitivityChildren: need to derive "
-      << foldConclusion << " with premises " << foldPremises << "\n";
+  Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: need to derive "
+                        << foldConclusion << " with premises " << foldPremises
+                        << "\n";
   Assert(foldPremises.size() > 1 || foldConclusion == foldPremises.back()
          || (foldConclusion[0] == foldPremises.back()[1]
              && foldConclusion[1] == foldPremises.back()[0]))
@@ -226,14 +226,14 @@ bool EqProof::foldTransitivityChildren(Node conclusion,
   // now build the proof step for the original conclusion
   premises.clear();
   premises.push_back(premises[offending]);
-  premises.push_back(foldConclusion);
   Trace("eqproof-conv")
       << "EqProof::foldTransitivityChildren: now derive conclusion "
-      << conclusion << " via "
-      << (inSubstCase ? PfRule::MACRO_SR_PRED_TRANSFORM : PfRule::TRANS)
-      << " from " << premises << "\n";
+      << conclusion << " via ";
   if (inSubstCase)
   {
+    premises.push_back(foldConclusion);
+    Trace("eqproof-conv") << PfRule::MACRO_SR_PRED_TRANSFORM << " from "
+                          << premises << "\n";
     if (!p->addStep(conclusion,
                     PfRule::MACRO_SR_PRED_TRANSFORM,
                     premises,
@@ -246,6 +246,21 @@ bool EqProof::foldTransitivityChildren(Node conclusion,
   }
   else
   {
+    // create TRUE_INTRO step for foldConclusion
+    Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: adding "
+                          << PfRule::TRUE_INTRO << " step for "
+                          << foldConclusion[0] << "\n";
+    Node newFoldConclusion =
+        foldConclusion.eqNode(NodeManager::currentNM()->mkConst<bool>(true));
+    if (!p->addStep(
+            newFoldConclusion, PfRule::TRUE_INTRO, {foldConclusion}, {}))
+    {
+      Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
+                    << PfRule::TRUE_INTRO << " rule\n";
+    }
+    premises.push_back(newFoldConclusion);
+    Trace("eqproof-conv") << PfRule::MACRO_SR_PRED_TRANSFORM << " from "
+                          << premises << "\n";
     unsigned newSize = premises.size();
     maybeAddSymmOrTrueIntroToProof(0, premises, true, conclusion[0], p);
     for (unsigned i = 1; i < newSize - 1; ++i)
