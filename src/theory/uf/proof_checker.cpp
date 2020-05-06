@@ -123,7 +123,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    return children[0];
+    return children[0][0];
   }
   else if (id == PfRule::FALSE_INTRO)
   {
@@ -133,8 +133,8 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node trueNode = NodeManager::currentNM()->mkConst(false);
-    return children[0][0].eqNode(trueNode);
+    Node falseNode = NodeManager::currentNM()->mkConst(false);
+    return children[0][0].eqNode(falseNode);
   }
   else if (id == PfRule::FALSE_ELIM)
   {
@@ -145,7 +145,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    return children[0];
+    return children[0][0].notNode();
   }
   // no rule
   return Node::null();
