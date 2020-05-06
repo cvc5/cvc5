@@ -165,7 +165,8 @@ bool CDProof::addStep(Node expected,
   // the result of the proof node should be expected
   Assert(pthis->getResult() == expected);
   
-  // if we are not an ASSUME, then ensure SYMM proof is also linked
+  // if we are not an ASSUME or SYMM, then ensure SYMM proof is also linked
+  // to an existing proof, if it is ASSUME.
   if (id != PfRule::ASSUME && id != PfRule::SYMM && expected.getKind()==EQUAL && expected[0]!=expected[1])
   {
     Node expectedSym = expected[1].eqNode(expected[0]);

@@ -85,7 +85,7 @@ bool ProofEqEngine::assertFact(Node lit,
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
   // first, register the step in the proof
-  if (d_pfEnabled && d_recExplain)
+  if (d_pfEnabled)// && d_recExplain)
   {
     if (!addProofStep(lit, id, exp, args))
     {
@@ -110,7 +110,7 @@ bool ProofEqEngine::assertFact(Node lit,
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
   // first, register the step in the proof
-  if (d_pfEnabled && d_recExplain)
+  if (d_pfEnabled)// && d_recExplain)
   {
     // must extract the explanation as a vector
     std::vector<Node> expv;
@@ -134,7 +134,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via buffer with " << psb.getNumSteps() << " steps"
                 << std::endl;
-  if (d_pfEnabled && d_recExplain)
+  if (d_pfEnabled)// && d_recExplain)
   {
     if (!d_proof.addSteps(psb))
     {
@@ -153,7 +153,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
 {
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via generator" << std::endl;
-  if (d_pfEnabled && d_recExplain)
+  if (d_pfEnabled)// && d_recExplain)
   {
     // note the proof generator is responsible for remembering the explanation
     d_proof.addLazyStep(lit, pg);
