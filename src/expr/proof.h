@@ -122,14 +122,14 @@ class CDProof
   CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
   ~CDProof();
   /**
-   * Make proof for fact. 
-   * 
+   * Make proof for fact.
+   *
    * This method always returns a non-null ProofNode. It may generate new
    * steps so that a ProofNode can be constructed for fact. In particular,
    * if no step exists for fact, then we may construct and return ASSUME(fact).
    * If fact is of the form (= t s), no step exists for fact, but a proof
    * P for (= s t) exists, then this method returns SYMM(P).
-   * 
+   *
    * Notice that this call does *not* clone the ProofNode object. Hence, the
    * returned proof may be updated by further calls to this class. The caller
    * should call ProofNode::clone if they want to own it.

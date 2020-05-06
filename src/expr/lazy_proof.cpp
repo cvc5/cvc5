@@ -30,7 +30,7 @@ std::shared_ptr<ProofNode> LazyCDProof::mkLazyProof(Node fact)
   // make the proof, which should always be non-null, since we construct an
   // assumption in the worst case.
   std::shared_ptr<ProofNode> opf = mkProof(fact);
-  Assert (opf!=nullptr);
+  Assert(opf != nullptr);
   if (d_gens.empty())
   {
     // optimization: no generators, we are done
