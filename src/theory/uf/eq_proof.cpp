@@ -197,24 +197,13 @@ bool EqProof::foldTransitivityChildren(Node conclusion,
   Trace("eqproof-conv")
       << "EqProof::foldTransitivityChildren: need to derive "
       << foldConclusion << " with premises " << foldPremises << "\n";
-  if (foldPremises.size() == 1)
-  {
-    // create symmetry step if not the expected premise already
-    if (foldConclusion != foldPremises.back())
-    {
-      Assert(foldConclusion[0] == foldPremises.back()[1]
-             && foldConclusion[1] == foldPremises.back()[0]);
-      if (!p->addStep(
-              foldConclusion, PfRule::SYMM, {foldPremises.back()}, {}, true))
-      {
-        Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                         "symm step from "
-                      << foldPremises.back() << " to " << foldConclusion
-                      << "\n";
-      }
-    }
-  }
-  else
+  Assert(foldPremises.size() > 1 || foldConclusion == foldPremises.back()
+         || (foldConclusion[0] == foldPremises.back()[1]
+             && foldConclusion[1] == foldPremises.back()[0]))
+      << "EqProof::foldTransitivityChildren: single fold premise "
+      << foldPremises.back() << " is not the same as foldConclusion "
+      << foldConclusion << " and not its symmetric\n";
+  if (foldPremises.size() > 1)
   {
     // create transitivity step to derive expected premise
     unsigned newSize = foldPremises.size();
@@ -351,16 +340,9 @@ void EqProof::maybeAddSymmOrTrueIntroToProof(unsigned i,
   {
     return;
   }
-  // reorder
-  std::vector<Node> symmChildren{premises[i]};
-  Trace("eqproof-conv") << "EqProof::maybeAddSymmOrTrueIntroToProof: adding "
-                        << PfRule::SYMM << " step for " << premises[i] << "\n";
+  // reorder. Don't need to add symm step because it'll be added silently when
+  // the reordered premise is used.
   Node symmChild = nm->mkNode(kind::EQUAL, premises[i][1], premises[i][0]);
-  if (!p->addStep(symmChild, PfRule::SYMM, symmChildren, {}))
-  {
-    Assert(false) << "EqProof::maybeAddSymmOrTrueIntroToProof: couldn't add "
-                  << PfRule::SYMM << " rule\n";
-  }
   premises[i] = symmChild;
 }
 
