@@ -52,16 +52,17 @@ std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
 
 std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
 {
+  Trace("cdproof") << "CDProof::getProofSymm: " << fact << std::endl;
   std::shared_ptr<ProofNode> pf = getProof(fact);
   if (pf != nullptr && !isAssumption(pf.get()))
   {
-    Trace("cdproof") << "CDProof::getProofSymm: existing non-assume "
+    Trace("cdproof") << "...existing non-assume "
                      << pf->getRule() << std::endl;
     return pf;
   }
   if (fact.getKind() != EQUAL || fact[0] == fact[1])
   {
-    Trace("cdproof") << "CDProof::getProofSymm: no possible symm" << std::endl;
+    Trace("cdproof") << "...no possible symm" << std::endl;
     // no symmetry possible, return original proof (possibly assumption)
     return pf;
   }
@@ -78,7 +79,7 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
     std::vector<Node> args;
     if (pf == nullptr)
     {
-      Trace("cdproof") << "CDProof::getProofSymm: fresh make symm" << std::endl;
+      Trace("cdproof") << "...fresh make symm" << std::endl;
       std::shared_ptr<ProofNode> psym =
           d_manager->mkNode(PfRule::SYMM, pschild, args, fact);
       Assert(psym != nullptr);
@@ -87,7 +88,7 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
     }
     else
     {
-      Trace("cdproof") << "CDProof::getProofSymm: update symm" << std::endl;
+      Trace("cdproof") << "...update symm" << std::endl;
       // update pf
       bool sret = d_manager->updateNode(pf.get(), PfRule::SYMM, pschild, args);
       AlwaysAssert(sret);
@@ -95,7 +96,7 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
   }
   else
   {
-    Trace("cdproof") << "CDProof::getProofSymm: no symm" << std::endl;
+    Trace("cdproof") << "...no symm, return " << (pf==nullptr ? "null" : "non-null") << std::endl;
   }
   // return original proof (possibly assumption)
   return pf;
