@@ -74,12 +74,12 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
         if (pg != nullptr)
         {
           Assert (!isSym || afact.getKind()==EQUAL);
-          Node afactGen = isSym ? afact[1].eqNode(afact[0]) : fact;
+          Node afactGen = isSym ? afact[1].eqNode(afact[0]) : afact;
           // use the addProofTo interface
-          if (!pg->addProofTo(afact, this))
+          if (!pg->addProofTo(afactGen, this))
           {
             Assert(false) << "Proof generator could not add proof for fact "
-                          << afact << std::endl;
+                          << afactGen << std::endl;
           }
         }
         // Notice that we do not traverse the proofs that have been generated
