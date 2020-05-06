@@ -383,14 +383,14 @@ Node EqProof::addToProof(
                           << d_node << "\n";
 #ifdef CVC4_ASSERTIONS
     // make sure there are no (= true/false true/false) assumptions
-    if (d_node.getKind() != kind::EQUAL)
+    if (d_node.getKind() == kind::EQUAL)
     {
       for (unsigned i = 0; i < 2; ++i)
       {
         Assert(d_node[i].getKind() != kind::CONST_BOOLEAN
-               || d_node[1 - 1].getKind() != kind::CONST_BOOLEAN)
-            << "EqProof::addToProof: fully boolean constant assumption is "
-               "disallowed\n";
+               || d_node[1 - i].getKind() != kind::CONST_BOOLEAN)
+            << "EqProof::addToProof: fully boolean constant assumption "
+            << d_node << " is disallowed\n";
       }
     }
 #endif
