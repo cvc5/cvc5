@@ -37,6 +37,8 @@ std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
 
 std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
 {
+  // FIXME
+  return getProof(fact);
   std::shared_ptr<ProofNode> pf = getProof(fact);
   if (pf!=nullptr && pf->getRule()!=PfRule::ASSUME)
   {

@@ -27,13 +27,8 @@ LazyCDProof::~LazyCDProof() {}
 
 std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
 {
-  std::shared_ptr<ProofNode> opf;
-  NodeProofNodeMap::iterator itn = d_nodes.find(fact);
-  if (itn != d_nodes.end())
-  {
-    opf = (*itn).second;
-  }
-  else
+  std::shared_ptr<ProofNode> opf = getProofSymm(fact);
+  if (opf==nullptr)
   {
     // we may have a generator
     bool isSym = false;
@@ -42,8 +37,11 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
     {
       Node factGen = isSym ? fact[1].eqNode(fact[0]) : fact;
       std::shared_ptr<ProofNode> pf = pg->getProofFor(factGen);
+      // store
+      d_nodes.insert(factGen, pf);
       if (isSym)
       {
+        // then get the symmetric version if needed
         pf = getProofSymm(fact);
       }
       return pf;
@@ -132,6 +130,8 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
   {
     return it->second;
   }
+  //FIXME
+  return nullptr;
   // could be symmetry
   if (fact.getKind()!=EQUAL || fact[0]==fact[1])
   {
