@@ -56,6 +56,42 @@ bool ProofNodeManager::updateNode(
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
+  // ---------------- check for cyclic
+  std::unordered_map<const ProofNode*, bool> visited;
+  std::unordered_map<const ProofNode*, bool>::iterator it;
+  std::vector<const ProofNode*> visit;
+  for (const std::shared_ptr<ProofNode>& cp : children)
+  {
+    visit.push_back(cp.get());
+  }
+  const ProofNode* cur;
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited[cur] = true;
+      if (cur==pn)
+      {
+        std::stringstream ss;
+        ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! " << id << " " << pn->getResult() << ", children = " << std::endl;
+        for (const std::shared_ptr<ProofNode>& cp : children)
+        {
+          ss << "  " << cp->getRule() << " " << cp->getResult() << std::endl;
+        }
+        AlwaysAssert(false) << ss.str();
+      }
+      for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
+      {
+        visit.push_back(cp.get());
+      }
+    }
+  } while (!visit.empty());
+  // ---------------- end check for cyclic
+  
+  
   // should have already computed what is proven
   Assert(!pn->d_proven.isNull())
       << "ProofNodeManager::updateProofNode: invalid proof provided";
