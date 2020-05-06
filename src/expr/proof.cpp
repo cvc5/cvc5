@@ -53,10 +53,10 @@ std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
 std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
 {
   std::shared_ptr<ProofNode> pf = getProof(fact);
-  if (pf != nullptr && pf->getRule() != PfRule::ASSUME)
+  if (pf != nullptr && !isAssumption(pf.get()))
   {
-    Trace("cdproof") << "CDProof::getProofSymm: existing non-assume"
-                     << std::endl;
+    Trace("cdproof") << "CDProof::getProofSymm: existing non-assume "
+                     << pf->getRule() << std::endl;
     return pf;
   }
   if (fact.getKind() != EQUAL || fact[0] == fact[1])
@@ -69,8 +69,7 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
   // Notice that SYMM is also disallowed.
   Node symFact = fact[1].eqNode(fact[0]);
   std::shared_ptr<ProofNode> pfs = getProof(symFact);
-  if (pfs != nullptr && pfs->getRule() != PfRule::ASSUME
-      && pfs->getRule() != PfRule::SYMM)
+  if (pfs != nullptr && !isAssumption(pfs.get()))
   {
     // The symmetric fact exists, and the current one either does not, or is
     // an assumption. We make a new proof that applies SYMM to pfs.
@@ -89,7 +88,6 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
     else
     {
       Trace("cdproof") << "CDProof::getProofSymm: update symm" << std::endl;
-      Assert(pf->getRule() == PfRule::ASSUME);
       // update pf
       bool sret = d_manager->updateNode(pf.get(), PfRule::SYMM, pschild, args);
       AlwaysAssert(sret);
@@ -111,7 +109,7 @@ bool CDProof::addStep(Node expected,
                       bool forceOverwrite)
 {
   Trace("cdproof") << "CDProof::addStep: " << id << " " << expected
-                   << std::endl;
+                   << ", ensureChildren = " << ensureChildren << ", forceOverwrite = " << forceOverwrite << std::endl;
   if (id==PfRule::ASSUME || id==PfRule::SYMM)
   {
     // These rules are implicitly managed by this class. The user of this
@@ -126,8 +124,10 @@ bool CDProof::addStep(Node expected,
     if (!shouldOverwrite(pprev.get(), id, forceOverwrite))
     {
       // we should not overwrite the current step
+      Trace("cdproof") << "...success, no overwrite" << std::endl;
       return true;
     }
+    Trace("cdproof") << "existing proof " << pprev->getRule() << ", overwrite..." << std::endl;
     // we will overwrite the existing proof node by updating its contents below
   }
   // collect the child proofs, for each premise
@@ -140,6 +140,7 @@ bool CDProof::addStep(Node expected,
       if (ensureChildren)
       {
         // failed to get a proof for a child, fail
+        Trace("cdproof") << "...fail, no child" << std::endl;
         return false;
       }
       // otherwise, we initialize it as an assumption
@@ -158,16 +159,19 @@ bool CDProof::addStep(Node expected,
   std::shared_ptr<ProofNode> pthis;
   if (pprev == nullptr)
   {
+    Trace("cdproof") << "CDProof::addStep: new node..." << std::endl;
     pthis = d_manager->mkNode(id, pchildren, args, expected);
     if (pthis == nullptr)
     {
       // failed to construct the node, perhaps due to a proof checking failure
+      Trace("cdproof") << "...fail, proof checking" << std::endl;
       return false;
     }
     d_nodes.insert(expected, pthis);
   }
   else
   {
+    Trace("cdproof") << "CDProof::addStep: update node..." << std::endl;
     // update its value
     pthis = pprev;
     // We return the value of updateNode here. This means this method may return
@@ -178,12 +182,11 @@ bool CDProof::addStep(Node expected,
   // the result of the proof node should be expected
   Assert(pthis->getResult() == expected);
 
-  // if we are not an ASSUME or SYMM, then ensure SYMM proof is also linked
-  // to an existing proof, if it is ASSUME.
-  if (id != PfRule::ASSUME && id != PfRule::SYMM && expected.getKind() == EQUAL
-      && expected[0] != expected[1])
+  // ensure SYMM proof is also linked to an existing proof, if it is an assumption.
+  if (expected.getKind() == EQUAL && expected[0] != expected[1])
   {
     Node expectedSym = expected[1].eqNode(expected[0]);
+    Trace("cdproof") << "CDProof::addStep: check update symmetry " << expectedSym << std::endl;
     // if it exists, we may need to update it
     std::shared_ptr<ProofNode> pfs = getProof(expectedSym);
     if (pfs != nullptr)
@@ -192,7 +195,7 @@ bool CDProof::addStep(Node expected,
       std::shared_ptr<ProofNode> pfss = getProofSymm(expectedSym);
     }
   }
-
+  Trace("cdproof") << "...return " << ret << std::endl;
   return ret;
 }
 
@@ -309,7 +312,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
 bool CDProof::hasStep(Node fact)
 {
   std::shared_ptr<ProofNode> pf = getProofSymm(fact);
-  if (pf != nullptr && pf->getRule() != PfRule::ASSUME)
+  if (pf != nullptr && !isAssumption(pf.get()))
   {
     return true;
   }
@@ -324,7 +327,23 @@ bool CDProof::shouldOverwrite(ProofNode* pn, PfRule newId, bool forceOverwrite)
   // we overwrite only if forceOverwrite is true, or if the previously
   // provided proof pn was an assumption and the currently provided step is not
   return forceOverwrite
-         || (pn->getRule() == PfRule::ASSUME && newId != PfRule::ASSUME);
+         || (isAssumption(pn) && newId != PfRule::ASSUME);
+}
+
+bool CDProof::isAssumption(ProofNode* pn)
+{
+  PfRule rule = pn->getRule();
+  if (rule==PfRule::ASSUME)
+  {
+    return true;
+  }
+  else if (rule==PfRule::SYMM)
+  {
+    const std::vector<std::shared_ptr<ProofNode>>& pc = pn->getChildren();
+    Assert (pc.size()==1);
+    return pc[0]->getRule()==PfRule::ASSUME;
+  }
+  return false;
 }
 
 }  // namespace CVC4

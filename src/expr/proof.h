@@ -221,6 +221,10 @@ class CDProof
    * newId, based on policy forceOverwrite.
    */
   static bool shouldOverwrite(ProofNode* pn, PfRule newId, bool forceOverwrite);
+  /**
+   * Returns true if pn is an assumption.
+   */
+  static bool isAssumption(ProofNode* pn);
 };
 
 }  // namespace CVC4
