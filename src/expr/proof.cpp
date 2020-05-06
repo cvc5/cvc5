@@ -52,15 +52,23 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
   std::shared_ptr<ProofNode> pfs = getProof(symFact);
   if (pfs!=nullptr && pfs->getRule()!=PfRule::ASSUME)
   {
+    // The symmetric fact exists, and the current one either does not, or is
+    // an assumption. We make a new proof that applies SYMM to pfs.
+    std::vector<std::shared_ptr<ProofNode>> pschild;
+    pschild.push_back(pfs);
+    std::vector<Node> args;
     if (pf==nullptr)
     {
-      std::shared_ptr<ProofNode> psym = mkSymmProof(pfs,fact);
+      std::shared_ptr<ProofNode> psym = d_manager->mkNode(PfRule::SYMM, pschild, args, fact);
+      Assert (psym!=nullptr);
       d_nodes.insert(fact, psym);
       return psym;
     }
     else
     {
-      Assert(false); // ?
+      // update pf
+      //bool sret = d_manager->updateNode(pf.get(), PfRule::SYMM, pschild, args);
+      //AlwaysAssert(sret);
     }
   }
   // return original proof (possibly assumption)
@@ -147,19 +155,15 @@ bool CDProof::addStep(Node expected,
   Assert(pthis->getResult() == expected);
   
   // if we are not an ASSUME, then ensure SYMM proof is also linked
-  /*
+/*
   if (id != PfRule::ASSUME && expected.getKind()==EQUAL && expected[0]!=expected[1])
   {
     Node expectedSym = expected[1].eqNode(expected[0]);
     std::shared_ptr<ProofNode> pfs = getProof(expectedSym);
     if (pfs!=nullptr)
     {
-      // Update it
-      std::vector<std::shared_ptr<ProofNode>> pschild;
-      pschild.push_back(pthis);
-      std::vector<Node> sargs;
-      bool sret = d_manager->updateNode(pfs.get(), PfRule::SYMM, pschild, sargs);
-      AlwaysAssert(sret);
+      // just get it
+      std::shared_ptr<ProofNode> pfs = getProofSymm(expectedSym);
     }
   }
   */

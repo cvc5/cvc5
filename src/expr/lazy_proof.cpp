@@ -44,7 +44,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
       std::shared_ptr<ProofNode> pf = pg->getProofFor(factGen);
       if (isSym)
       {
-        pf = mkSymmProof(pf,fact);
+        pf = getProofSymm(fact);
       }
       return pf;
     }
