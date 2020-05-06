@@ -354,7 +354,7 @@ void EqProof::maybeAddSymmOrTrueIntroToProof(unsigned i,
   // the reordered premise is used.
   if (!correctlyOrdered)
   {
-    Node symmChild = nm->mkNode(kind::EQUAL, premises[i][1], premises[i][0]);
+    Node symmChild = premises[i][1].eqNode(premises[i][0]);
     premises[i] = symmChild;
   }
 }
@@ -381,18 +381,66 @@ Node EqProof::addToProof(
   {
     Trace("eqproof-conv") << "EqProof::addToProof: adding assumption step for "
                           << d_node << "\n";
-    std::vector<Node> children;
-    std::vector<Node> args{d_node};
-    if (!p->addStep(d_node, PfRule::ASSUME, children, args))
+#ifdef CVC4_ASSERTIONS
+    // make sure there are no (= true/false true/false) assumptions
+    if (d_node.getKind() != kind::EQUAL)
     {
-      Assert(false) << "EqProof::addToProof: couldn't add assupmtion\n";
+      for (unsigned i = 0; i < 2; ++i)
+      {
+        Assert(d_node[i].getKind() != kind::CONST_BOOLEAN
+               || d_node[1 - 1].getKind() != kind::CONST_BOOLEAN)
+            << "EqProof::addToProof: fully boolean constant assumption is "
+               "disallowed\n";
+      }
+    }
+#endif
+    if (d_node.getKind() == kind::EQUAL
+        && ((d_node[0].getKind() == kind::CONST_BOOLEAN
+             && d_node[1].getKind() != kind::CONST_BOOLEAN)
+            || (d_node[1].getKind() == kind::CONST_BOOLEAN
+                && d_node[0].getKind() != kind::CONST_BOOLEAN)))
+    {
+      unsigned constIndex = d_node[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
+      std::vector<Node> introChildren;
+      PfRule introRule;
+      if (d_node[constIndex].getConst<bool>())
+      {
+        introRule = PfRule::TRUE_INTRO;
+        introChildren.push_back(d_node[1 - constIndex]);
+      }
+      else
+      {
+        introRule = PfRule::FALSE_INTRO;
+        introChildren.push_back(d_node[1 - constIndex].notNode());
+      }
+      // the assumption can be e.g. (= false (= t1 t2)) in which case the
+      // necessary proof to be built is
+      //     --------------- ASSUME
+      //     (not (= t1 t2))
+      //  -------------------- FALSE_INTRO
+      //  (= (= t1 t2) false)
+      //  -------------------- SYMM
+      //  (= false (= t1 t2))
+      //
+      // with the SYMM step happening automatically whenever the assumption is
+      // used in the proof p
+      Node introConclusion =
+          constIndex == 1 ? d_node : d_node[1].eqNode(d_node[0]);
+      if (!p->addStep(introConclusion, introRule, introChildren, {}))
+      {
+        Assert(false) << "EqProof::addToProof: couldn't add " << introRule
+                      << " from " << d_node[1 - constIndex].notNode() << " to "
+                      << introConclusion << "\n";
+      }
+    }
+    if (!p->addStep(d_node, PfRule::ASSUME, {}, {d_node}))
+    {
+      Assert(false) << "EqProof::addToProof: couldn't add assumption\n";
     }
     // if non-equality predicate, turn into one via TRUE/FALSE intro
     Node conclusion = d_node;
     if (d_node.getKind() != kind::EQUAL)
     {
-      Assert(children.empty());
-      children.push_back(d_node);
       PfRule intro;
       if (d_node.getKind() == kind::NOT)
       {
@@ -408,10 +456,10 @@ Node EqProof::addToProof(
       }
       Trace("eqproof-conv") << "EqProof::addToProof: adding " << intro
                             << " step for " << d_node << "\n";
-      if (!p->addStep(conclusion, intro, children, {}))
+      if (!p->addStep(conclusion, intro, {d_node}, {}))
       {
         Assert(false) << "EqProof::addToProof: couldn't add " << intro
-                      << " rule\n";
+                      << " rule from " << d_node << "\n";
       }
     }
     visited[d_node] = conclusion;
@@ -583,22 +631,22 @@ Node EqProof::addToProof(
       std::vector<Node> elimChildren{conclusion};
       unsigned constIndex =
           conclusion[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
-      PfRule elim;
+      PfRule elimRule;
       if (conclusion[constIndex].getConst<bool>())
       {
-        elim = PfRule::TRUE_ELIM;
+        elimRule = PfRule::TRUE_ELIM;
         conclusion = conclusion[1 - constIndex];
       }
       else
       {
-        elim = PfRule::FALSE_ELIM;
+        elimRule = PfRule::FALSE_ELIM;
         conclusion = conclusion[1 - constIndex].notNode();
       }
-      Trace("eqproof-conv") << "EqProof::addToProof: adding " << elim
+      Trace("eqproof-conv") << "EqProof::addToProof: adding " << elimRule
                             << " step for " << elimChildren.back() << "\n";
-      if (!p->addStep(conclusion, elim, elimChildren, {}))
+      if (!p->addStep(conclusion, elimRule, elimChildren, {}))
       {
-        Assert(false) << "EqProof::addToProof: couldn't add " << elim
+        Assert(false) << "EqProof::addToProof: couldn't add " << elimRule
                       << " rule\n";
       }
     }
@@ -611,7 +659,6 @@ Node EqProof::addToProof(
   // congruence steps must be flattened (since it assumes currying) and the
   // conclusion must be reconstructed (since only one of the terms is
   // represented)
-  NodeManager* nm = NodeManager::currentNM();
   Assert(d_node.getKind() == kind::EQUAL)
       << "EqProof::addToProof: conclusion " << d_node << " is not equality\n";
   // The given conclusion is taken as ground truth. If the premises do not
@@ -631,15 +678,15 @@ Node EqProof::addToProof(
     Trace("eqproof-conv") << "EqProof::addToProof: recurse on second child of "
                           << i << "-th cong\n"
                           << push;
-    Node childConclusion = childProof->d_children[1].get()->addToProof(p, visited);
+    Node childConclusion =
+        childProof->d_children[1].get()->addToProof(p, visited);
     Assert(childConclusion.getKind() == kind::EQUAL);
     if (childConclusion[0] != d_node[0][arity - 1 - i])
     {
-      Assert(childConclusion[0] == d_node[1][arity - 1 -i]);
-      // reorder. Don't need to add symm step because it'll be added silently when
-      // the reordered premise is used.
-      childConclusion =
-          nm->mkNode(kind::EQUAL, childConclusion[1], childConclusion[0]);
+      Assert(childConclusion[0] == d_node[1][arity - 1 - i]);
+      // reorder. Don't need to add symm step because it'll be added silently
+      // when the reordered premise is used.
+      childConclusion = childConclusion[1].eqNode(childConclusion[0]);
     }
     children.insert(children.begin(), childConclusion);
     Trace("eqproof-conv") << pop;
@@ -794,7 +841,7 @@ Node EqProof::addToProof(
   }
   else
   {
-    args.push_back(nm->operatorOf(k));
+    args.push_back(NodeManager::currentNM()->operatorOf(k));
   }
   // build conclusion
   Trace("eqproof-conv") << "EqProof::addToProof: build cong step of " << d_node
