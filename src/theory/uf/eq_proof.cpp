@@ -335,15 +335,13 @@ void EqProof::maybeAddSymmOrTrueIntroToProof(unsigned i,
     // not correctly ordered unless I'm looking for TRUE as the second argument
     correctlyOrdered = !first;
   }
-  // no need to reorder
-  if (correctlyOrdered)
-  {
-    return;
-  }
   // reorder. Don't need to add symm step because it'll be added silently when
   // the reordered premise is used.
-  Node symmChild = nm->mkNode(kind::EQUAL, premises[i][1], premises[i][0]);
-  premises[i] = symmChild;
+  if (!correctlyOrdered)
+  {
+    Node symmChild = nm->mkNode(kind::EQUAL, premises[i][1], premises[i][0]);
+    premises[i] = symmChild;
+  }
 }
 
 Node EqProof::addToProof(CDProof* p) const
@@ -601,14 +599,12 @@ Node EqProof::addToProof(
   NodeManager* nm = NodeManager::currentNM();
   Assert(d_node.getKind() == kind::EQUAL)
       << "EqProof::addToProof: conclusion " << d_node << " is not equality\n";
+  // The given conclusion is taken as ground truth. If the premises do not
+  // align, for example with (= (f t1) (f t2)) but a premise being t2 = t1, we
+  // reorder it via a symmetry step
   Assert(d_node[0].getNumChildren() == d_node[1].getNumChildren())
       << "EqProof::addToProof: apps in conclusion " << d_node
       << " have different arity\n";
-  // The given conclusion may not align with the premises, with (= (f t2) (f
-  // t1)) rather than (= (f t1) (f t2)). Therefore we explicitly reconstruct the
-  // conclusion justified by the promises.
-  std::vector<Node> conclusionLhsArgs;
-  std::vector<Node> conclusionRhsArgs;
   // premises to be retrieved
   std::vector<Node> children;
   const EqProof* childProof = this;
@@ -620,11 +616,17 @@ Node EqProof::addToProof(
     Trace("eqproof-conv") << "EqProof::addToProof: recurse on second child of "
                           << i << "-th cong\n"
                           << push;
-    children.insert(children.begin(),
-                    childProof->d_children[1].get()->addToProof(p, visited));
-    Assert(children[0].getKind() == kind::EQUAL);
-    conclusionLhsArgs.insert(conclusionLhsArgs.begin(), children[0][0]);
-    conclusionRhsArgs.insert(conclusionRhsArgs.begin(), children[0][1]);
+    Node childConclusion = childProof->d_children[1].get()->addToProof(p, visited);
+    Assert(childConclusion.getKind() == kind::EQUAL);
+    if (childConclusion[0] != d_node[0][arity - 1 - i])
+    {
+      Assert(childConclusion[0] == d_node[1][arity - 1 -i]);
+      // reorder. Don't need to add symm step because it'll be added silently when
+      // the reordered premise is used.
+      childConclusion =
+          nm->mkNode(kind::EQUAL, childConclusion[1], childConclusion[0]);
+    }
+    children.insert(children.begin(), childConclusion);
     Trace("eqproof-conv") << pop;
     if (i < arity - 1)
     {
@@ -758,8 +760,6 @@ Node EqProof::addToProof(
           }
         }
         children.insert(children.begin(), neededConclusion);
-        conclusionLhsArgs.insert(conclusionLhsArgs.begin(), children[0][0]);
-        conclusionRhsArgs.insert(conclusionRhsArgs.begin(), children[0][1]);
         break;
       }
     }
@@ -770,57 +770,35 @@ Node EqProof::addToProof(
              == MERGED_THROUGH_REFLEXIVITY);
     }
   }
-#ifdef CVC4_ASSERTIONS
-  Assert(conclusionLhsArgs.size() == arity);
-  for (unsigned i = 0; i < arity; ++i)
-  {
-    Assert(conclusionLhsArgs[i] == d_node[0][i]
-           || conclusionLhsArgs[i] == d_node[1][i])
-        << "EqProof::addToProof: lhs arg " << conclusionLhsArgs[i]
-        << " does not match " << i
-        << "-th arg of fst or snd application of conclusion " << d_node << "\n";
-    Assert(conclusionRhsArgs[i] == d_node[1][i]
-           || conclusionRhsArgs[i] == d_node[0][i])
-        << "EqProof::addToProof: rhs arg " << conclusionRhsArgs
-        << " does not match " << (arity - 1 - i)
-        << "-th arg of fst or snd application of conclusion " << d_node << "\n";
-  }
-#endif
   // build args
   std::vector<Node> args;
   Kind k = d_node[0].getKind();
   if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
   {
     args.push_back(d_node[0].getOperator());
-    conclusionLhsArgs.insert(conclusionLhsArgs.begin(), args[0]);
-    conclusionRhsArgs.insert(conclusionRhsArgs.begin(), args[0]);
   }
   else
   {
     args.push_back(nm->operatorOf(k));
   }
   // build conclusion
-  Node conclusion = nm->mkNode(kind::EQUAL,
-                               nm->mkNode(k, conclusionLhsArgs),
-                               nm->mkNode(k, conclusionRhsArgs));
-  Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "
-                        << (conclusion == d_node ? "" : "[rebuilt] ")
-                        << conclusion << " with op " << args[0]
-                        << " and children " << children << "\n";
-  if (!p->addStep(conclusion, PfRule::CONG, children, args, true, true))
+  Trace("eqproof-conv") << "EqProof::addToProof: build cong step of " << d_node
+                        << " with op " << args[0] << " and children "
+                        << children << "\n";
+  if (!p->addStep(d_node, PfRule::CONG, children, args, true, true))
   {
     Assert(false) << "EqProof::addToProof: couldn't add cong step\n";
   }
   if (Trace.isOn("eqproof-conv"))
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: proof node of " << conclusion
+    Trace("eqproof-conv") << "EqProof::addToProof: proof node of " << d_node
                           << " is:\n";
     std::stringstream out;
-    p->mkProof(conclusion).get()->printDebug(out);
+    p->mkProof(d_node).get()->printDebug(out);
     Trace("eqproof-conv") << out.str() << "\n";
   }
-  visited[d_node] = conclusion;
-  return conclusion;
+  visited[d_node] = d_node;
+  return d_node;
 }
 
 }  // namespace eq
