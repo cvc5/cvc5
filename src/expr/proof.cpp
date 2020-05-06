@@ -116,6 +116,7 @@ bool CDProof::addStep(Node expected,
   {
     // These rules are implicitly managed by this class. The user of this
     // class should not have to bother with them.
+    // FIXME: return or assert here; this currently breaks slow-2020-04-17
   }
   // We must always provide expected to this method
   Assert(!expected.isNull());
