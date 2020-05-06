@@ -90,6 +90,7 @@ void InferProofCons::convert(Inference infer,
   if (!d_pfEnabled)
   {
     // don't care about proofs, return now
+    d_statistics.d_inferencesNoPf << infer;
     return;
   }
   // debug print
