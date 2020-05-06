@@ -383,7 +383,7 @@ Node EqProof::addToProof(
                           << d_node << "\n";
 #ifdef CVC4_ASSERTIONS
     // make sure there are no (= true/false true/false) assumptions
-    if (d_node.getKind() != kind::EQUAL)
+    if (d_node.getKind() == kind::EQUAL)
     {
       for (unsigned i = 0; i < 2; ++i)
       {
