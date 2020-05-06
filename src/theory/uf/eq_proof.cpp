@@ -555,7 +555,8 @@ Node EqProof::addToProof(
       // different explanations at different points of the solving.
       if (!p->addStep(conclusion, PfRule::TRANS, children, {}, true, true))
       {
-        Assert(false) << "EqProof::addToProof: couldn't add trans step\n";
+        Assert(false) << "EqProof::addToProof: couldn't add TRANS "
+                      << conclusion << " " << children << "\n";
       }
     }
     // If t1 = tn is of the form (= t true/false), in which t is not true/false,
