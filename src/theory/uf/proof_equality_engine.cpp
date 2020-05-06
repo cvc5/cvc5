@@ -453,11 +453,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
 std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit)
 {
   // use the lazy proof version
-  std::shared_ptr<ProofNode> p = d_proof.getLazyProof(lit);
-  if (p == nullptr)
-  {
-    return nullptr;
-  }
+  std::shared_ptr<ProofNode> p = d_proof.mkLazyProof(lit);
+  Assert (p!=nullptr);
   // clone it so that we have a fresh copy
   return p->clone();
 }

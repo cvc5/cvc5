@@ -39,7 +39,7 @@ class LazyCDProof : public CDProof
    * additionally proof generators to generate proofs for ASSUME nodes that
    * don't yet have a concrete proof.
    */
-  std::shared_ptr<ProofNode> getLazyProof(Node fact);
+  std::shared_ptr<ProofNode> mkLazyProof(Node fact);
   /** Add step by generator
    *
    * This asserts that expected can be proven by proof generator pg if

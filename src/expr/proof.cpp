@@ -25,6 +25,21 @@ CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
 
 CDProof::~CDProof() {}
 
+std::shared_ptr<ProofNode> CDProof::mkProof(Node fact)
+{
+  std::shared_ptr<ProofNode> pf = getProofSymm(fact);
+  if (pf!=nullptr)
+  {
+    return pf;
+  }
+  // add as assumption
+  std::vector<Node> pargs = {fact};
+  std::vector<std::shared_ptr<ProofNode>> passume;
+  std::shared_ptr<ProofNode> pfa = d_manager->mkNode(PfRule::ASSUME, passume, pargs, fact);
+  d_nodes.insert(fact, pfa);
+  return pfa;
+}
+
 std::shared_ptr<ProofNode> CDProof::getProof(Node fact) const
 {
   NodeProofNodeMap::iterator it = d_nodes.find(fact);
@@ -88,18 +103,6 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
   return pf;
 }
 
-std::shared_ptr<ProofNode> CDProof::mkSymmProof(std::shared_ptr<ProofNode> pn,
-                                                Node fact)
-{
-  std::vector<std::shared_ptr<ProofNode>> pschild;
-  pschild.push_back(pn);
-  std::vector<Node> args;
-  std::shared_ptr<ProofNode> psym =
-      d_manager->mkNode(PfRule::SYMM, pschild, args, fact);
-  Assert(psym != nullptr);
-  return psym;
-}
-
 bool CDProof::addStep(Node expected,
                       PfRule id,
                       const std::vector<Node>& children,
@@ -109,8 +112,12 @@ bool CDProof::addStep(Node expected,
 {
   Trace("cdproof") << "CDProof::addStep: " << id << " " << expected
                    << std::endl;
-  // TODO: can we assume id != ASSUME? It is pointless to explictly add ASSUME
-  // to proofs. we must provide expected
+  if (id==PfRule::ASSUME || id==PfRule::SYMM)
+  {
+    // These rules are implicitly managed by this class. The user of this
+    // class should not have to bother with them.
+  }
+  // We must always provide expected to this method
   Assert(!expected.isNull());
 
   std::shared_ptr<ProofNode> pprev = getProofSymm(expected);

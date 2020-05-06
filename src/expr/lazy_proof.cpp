@@ -25,28 +25,16 @@ LazyCDProof::LazyCDProof(ProofNodeManager* pnm, context::Context* c)
 
 LazyCDProof::~LazyCDProof() {}
 
-std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
+std::shared_ptr<ProofNode> LazyCDProof::mkLazyProof(Node fact)
 {
-  std::shared_ptr<ProofNode> opf = getProofSymm(fact);
-  if (opf == nullptr)
+  // make the proof, which should always be non-null, since we construct an
+  // assumption in the worst case.
+  std::shared_ptr<ProofNode> opf = mkProof(fact);
+  Assert (opf!=nullptr);
+  if (d_gens.empty())
   {
-    // we may have a generator
-    bool isSym = false;
-    ProofGenerator* pg = getGeneratorFor(fact, isSym);
-    if (pg != nullptr)
-    {
-      Node factGen = isSym ? fact[1].eqNode(fact[0]) : fact;
-      std::shared_ptr<ProofNode> pf = pg->getProofFor(factGen);
-      // store
-      d_nodes.insert(factGen, pf);
-      if (isSym)
-      {
-        // then get the symmetric version if needed
-        pf = getProofSymm(fact);
-      }
-      return pf;
-    }
-    return nullptr;
+    // optimization: no generators, we are done
+    return opf;
   }
   // otherwise, we traverse the proof opf and fill in the ASSUME leafs that
   // have generators

@@ -724,7 +724,7 @@ Node EqProof::addToProof(
     Debug("eqproof::conv2")
         << "EqProof::addToProof: proof node of " << conclusion << " is:\n";
     std::stringstream out;
-    p->getProof(conclusion).get()->printDebug(out);
+    p->mkProof(conclusion).get()->printDebug(out);
     Debug("eqproof::conv2") << out.str() << "\n";
   }
   visited[d_node] = conclusion;

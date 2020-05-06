@@ -122,12 +122,19 @@ class CDProof
   CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
   ~CDProof();
   /**
-   * Get proof for fact, or nullptr if it does not exist. Notice that this call
-   * does *not* clone the ProofNode object. Hence, the returned proof may
-   * be updated by further calls to this class. The caller should call
-   * ProofNode::clone if they want to own it.
+   * Make proof for fact. 
+   * 
+   * This method always returns a non-null ProofNode. It may generate new
+   * steps so that a ProofNode can be constructed for fact. In particular,
+   * if no step exists for fact, then we may construct and return ASSUME(fact).
+   * If fact is of the form (= t s), no step exists for fact, but a proof
+   * P for (= s t) exists, then this method returns SYMM(P).
+   * 
+   * Notice that this call does *not* clone the ProofNode object. Hence, the
+   * returned proof may be updated by further calls to this class. The caller
+   * should call ProofNode::clone if they want to own it.
    */
-  std::shared_ptr<ProofNode> getProof(Node fact) const;
+  std::shared_ptr<ProofNode> mkProof(Node fact);
   /** Add step
    *
    * @param expected The intended conclusion of this proof step. This must be
@@ -205,6 +212,8 @@ class CDProof
   context::Context d_context;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
+  /** Get proof for fact, or nullptr if it does not exist. */
+  std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** Ensure fact sym */
   std::shared_ptr<ProofNode> getProofSymm(Node fact);
   /**
@@ -212,9 +221,6 @@ class CDProof
    * newId, based on policy forceOverwrite.
    */
   static bool shouldOverwrite(ProofNode* pn, PfRule newId, bool forceOverwrite);
-  /** get symm proof */
-  std::shared_ptr<ProofNode> mkSymmProof(std::shared_ptr<ProofNode> pn,
-                                         Node fact);
 };
 
 }  // namespace CVC4
