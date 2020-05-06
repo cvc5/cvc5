@@ -70,7 +70,7 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
   // Notice that SYMM is also disallowed.
   Node symFact = fact[1].eqNode(fact[0]);
   std::shared_ptr<ProofNode> pfs = getProof(symFact);
-  if (pfs != nullptr && !isAssumption(pfs.get()))
+  if (pfs != nullptr)
   {
     // The symmetric fact exists, and the current one either does not, or is
     // an assumption. We make a new proof that applies SYMM to pfs.
@@ -86,8 +86,9 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
       d_nodes.insert(fact, psym);
       return psym;
     }
-    else
+    else if (!isAssumption(pfs.get()))
     {
+      // if its not an assumption, make the connection
       Trace("cdproof") << "...update symm" << std::endl;
       // update pf
       bool sret = d_manager->updateNode(pf.get(), PfRule::SYMM, pschild, args);
@@ -135,6 +136,7 @@ bool CDProof::addStep(Node expected,
   std::vector<std::shared_ptr<ProofNode>> pchildren;
   for (const Node& c : children)
   {
+    Trace("cdproof") << "- get child " << c << std::endl;
     std::shared_ptr<ProofNode> pc = getProofSymm(c);
     if (pc == nullptr)
     {
@@ -144,6 +146,7 @@ bool CDProof::addStep(Node expected,
         Trace("cdproof") << "...fail, no child" << std::endl;
         return false;
       }
+      Trace("cdproof") << "--- add assume" << std::endl;
       // otherwise, we initialize it as an assumption
       std::vector<Node> pcargs = {c};
       std::vector<std::shared_ptr<ProofNode>> pcassume;
@@ -153,6 +156,16 @@ bool CDProof::addStep(Node expected,
       d_nodes.insert(c, pc);
     }
     pchildren.push_back(pc);
+  }
+  
+  if (id==PfRule::SYMM)
+  {
+    Assert (pchildren.size()==1);
+    if (isAssumption(pchildren[0].get()))
+    {
+      // the step we are constructing is an assumption, no use
+      return true;
+    }
   }
 
   bool ret = true;
