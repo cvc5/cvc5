@@ -163,10 +163,10 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Node sk1 = skc->mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
     Node sk2 = skc->mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
     Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
-    std::vector<Node> exp_vec;
-    exp_vec.push_back(n);
+    std::vector<Node> expn;
+    expn.push_back(n);
     d_im.sendInference(
-        d_emptyVec, exp_vec, eq, Inference::CTN_POS, false, true);
+        expn, expn, eq, Inference::CTN_POS, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;

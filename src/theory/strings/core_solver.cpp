@@ -1462,7 +1462,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       else
       {
         tnz = x.eqNode(emp).negate();
-        iinfo.d_antn.push_back(tnz);
+        iinfo.d_ant.push_back(tnz);
+        iinfo.d_noExplain.push_back(tnz);
       }
     }
     SkolemCache* skc = d_termReg.getSkolemCache();
@@ -1499,16 +1500,16 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         y.eqNode(isRev ? utils::mkNConcat(sk2, x) : utils::mkNConcat(x, sk2));
     // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
 
+    iinfo.d_ant.push_back(lenConstraint);
     if (lentTestSuccess != -1)
     {
-      iinfo.d_antn.push_back(lenConstraint);
+      iinfo.d_noExplain.push_back(lenConstraint);
       iinfo.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
       iinfo.d_idRev = isRev;
     }
     else
     {
-      iinfo.d_ant.push_back(lenConstraint);
       iinfo.d_conc = nm->mkNode(OR, eq1, eq2);
       iinfo.d_id = Inference::SSPLIT_VAR;
       iinfo.d_idRev = isRev;
@@ -1654,7 +1655,8 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
   Node ant = d_im.mkExplain(iinfo.d_ant);
   iinfo.d_ant.clear();
-  iinfo.d_antn.push_back(ant);
+  iinfo.d_ant.push_back(ant);
+  iinfo.d_noExplain.push_back(ant);
 
   Node str_in_re;
   if (s_zy == t_yz && r == emp && s_zy.isConst()
@@ -1943,15 +1945,15 @@ void CoreSolver::processDeq(Node ni, Node nj)
         antec.insert(antec.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
         std::vector<Node> antecNewLits;
 
-        if (d_state.areDisequal(ni, nj))
+        Node deqStr = ni.eqNode(nj).negate();
+        antec.push_back(deqStr);
+        if (!d_state.areDisequal(ni, nj))
         {
-          antec.push_back(ni.eqNode(nj).negate());
+          antecNewLits.push_back(deqStr);
         }
-        else
-        {
-          antecNewLits.push_back(ni.eqNode(nj).negate());
-        }
-        antecNewLits.push_back(xLenTerm.eqNode(yLenTerm).negate());
+        Node deqLen = xLenTerm.eqNode(yLenTerm).negate();
+        antec.push_back(deqLen);
+        antecNewLits.push_back(deqLen);
 
         std::vector<Node> conc;
         SkolemCache* skc = d_termReg.getSkolemCache();

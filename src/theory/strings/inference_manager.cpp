@@ -130,7 +130,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
-                                     const std::vector<Node>& expn,
+                                     const std::vector<Node>& noExplain,
                                      Node eq,
                                      Inference infer,
                                      bool isRev,
@@ -151,7 +151,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   ii.d_idRev = isRev;
   ii.d_conc = eq;
   ii.d_ant = exp;
-  ii.d_antn = expn;
+  ii.d_noExplain = noExplain;
   sendInference(ii, asLemma);
 }
 
@@ -161,8 +161,8 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      bool isRev,
                                      bool asLemma)
 {
-  std::vector<Node> expn;
-  sendInference(exp, expn, eq, infer, isRev, asLemma);
+  std::vector<Node> noExplain;
+  sendInference(exp, noExplain, eq, infer, isRev, asLemma);
 }
 
 void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
@@ -182,16 +182,16 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
                                 << " by " << ii.d_id << std::endl;
       // we must fully explain it
       bool useBuffer = false;
-      eq::ProofInferInfo pii;
-      d_ipc->convert(ii, pii, useBuffer);
+      ProofStep ps;
+      d_ipc->convert(ii, ps, useBuffer);
       TrustNode tconf;
       if (useBuffer)
       {
-        tconf = d_pfee->assertConflict(pii.d_children, *d_ipc->getBuffer());
+        tconf = d_pfee->assertConflict(ps.d_children, *d_ipc->getBuffer());
       }
       else
       {
-        tconf = d_pfee->assertConflict(pii.d_rule, pii.d_children, pii.d_args);
+        tconf = d_pfee->assertConflict(ps.d_rule, ps.d_children, ps.d_args);
       }
       Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
       Trace("strings-assert") << "(assert (not " << tconf.getNode()
@@ -329,25 +329,25 @@ void InferenceManager::doPendingFacts()
     {
       ii.d_conc = fact;
       bool useBuffer = false;
-      eq::ProofInferInfo pii;
+      ProofStep ps;
       // convert to proof rule(s)
-      d_ipc->convert(ii, pii, useBuffer);
-      preProcessFact(fact);
+      Node conc = d_ipc->convert(ii, ps, useBuffer);
+      preProcessFact(conc);
       // assert to equality engine
       if (useBuffer)
       {
-        Node cexp = utils::mkAnd(pii.d_children);
-        d_pfee->assertFact(fact, cexp, *d_ipc->getBuffer());
+        Node cexp = utils::mkAnd(ps.d_children);
+        d_pfee->assertFact(conc, cexp, *d_ipc->getBuffer());
       }
       else
       {
-        d_pfee->assertFact(fact, pii.d_rule, pii.d_children, pii.d_args);
+        d_pfee->assertFact(conc, ps.d_rule, ps.d_children, ps.d_args);
       }
       if (d_state.isInConflict())
       {
         break;
       }
-      postProcessFact(fact);
+      postProcessFact(conc);
     }
     i++;
   }
@@ -372,24 +372,41 @@ void InferenceManager::doPendingLemmas()
     // pfExp is the children of the proof step below. This should be an
     // ordered list of expConj + expn.
     bool useBuffer = false;
-    eq::ProofInferInfo pii;
-    d_ipc->convert(ii, pii, useBuffer);
+    ProofStep ps;
+    Node conc = d_ipc->convert(ii, ps, useBuffer);
     TrustNode tlem;
+    std::vector<Node> noExplain;
+    if (options::stringRExplainLemmas())
+    {
+      // if we aren't regressing the explanation, we add all literals to
+      // noExplain and ignore ii.d_antn.
+      noExplain.insert(noExplain.end(),
+                                    ps.d_children.begin(),
+                                    ps.d_children.end());
+    }
+    else
+    {
+      // otherwise, the no-explain literals are those provided
+      for (const Node& ecn : ii.d_noExplain)
+      {
+        utils::flattenOp(AND, ecn, noExplain);
+      }    
+    }
     // make the trusted lemma object
     if (useBuffer)
     {
-      tlem = d_pfee->assertLemma(ii.d_conc,
-                                 pii.d_children,
-                                 pii.d_childrenToExplain,
+      tlem = d_pfee->assertLemma(conc,
+                                 ps.d_children,
+                                 noExplain,
                                  *d_ipc->getBuffer());
     }
     else
     {
-      tlem = d_pfee->assertLemma(ii.d_conc,
-                                 pii.d_rule,
-                                 pii.d_children,
-                                 pii.d_childrenToExplain,
-                                 pii.d_args);
+      tlem = d_pfee->assertLemma(conc,
+                                 ps.d_rule,
+                                 ps.d_children,
+                                 noExplain,
+                                 ps.d_args);
     }
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;

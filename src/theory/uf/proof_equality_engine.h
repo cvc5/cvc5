@@ -108,11 +108,11 @@ class ProofEqEngine : public EagerProofGenerator
    * disjunction.
    *
    * We provide the explanation in two parts:
-   * (1) toExplain, which are literals that hold in the equality engine of this
-   * class,
-   * (2) toAssume = exp \ toExplain, which do not necessarily hold in the
-   * equality engine of this class.
-   * Notice that toExplain is a subset of exp.
+   * (1) exp \ noExplain, which are literals that hold in the equality engine of
+   * this class,
+   * (2) noExplain, which do not necessarily hold in the equality engine of this
+   * class.
+   * Notice that noExplain is a subset of exp.
    *
    * The proof for conc follows from exp ^ expn by proof rule with the given
    * id and arguments.
@@ -141,12 +141,12 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertLemma(Node conc,
                         PfRule id,
                         const std::vector<Node>& exp,
-                        const std::vector<Node>& toExplain,
+                        const std::vector<Node>& noExplain,
                         const std::vector<Node>& args);
   /** Multi-step version */
   TrustNode assertLemma(Node conc,
                         const std::vector<Node>& exp,
-                        const std::vector<Node>& toExplain,
+                        const std::vector<Node>& noExplain,
                         ProofStepBuffer& psb);
   /** identify */
   std::string identify() const override { return "ProofEqEngine"; }
@@ -171,7 +171,7 @@ class ProofEqEngine : public EagerProofGenerator
   /** assert lemma internal */
   TrustNode assertLemmaInternal(Node conc,
                                 const std::vector<Node>& exp,
-                                const std::vector<Node>& toExplain);
+                                const std::vector<Node>& noExplain);
   /** ensure proof for fact */
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,
@@ -222,31 +222,6 @@ class ProofEqEngine : public EagerProofGenerator
    */
   void explainWithProof(Node lit, std::vector<TNode>& assumps);
 };
-
-class ProofInferInfo
-{
- public:
-  ProofInferInfo() : d_rule(PfRule::UNKNOWN) {}
-  /** The proof rule */
-  PfRule d_rule;
-  /** The conclusion */
-  Node d_conc;
-  /** The proof children */
-  std::vector<Node> d_children;
-  /** The proof arguments */
-  std::vector<Node> d_args;
-  /** The children to explain */
-  std::vector<Node> d_childrenToExplain;
-};
-
-/**
- * Writes a proof inference info to a stream.
- *
- * @param out The stream to write to
- * @param pii The proof inference info to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, const ProofInferInfo& pii);
 
 }  // namespace eq
 }  // namespace theory

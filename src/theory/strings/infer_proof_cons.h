@@ -32,10 +32,11 @@ namespace theory {
 namespace strings {
 
 /**
- * Converts between Inference and information needed to provide a proof step
+ * Converts between the strings-specific (untrustworthy) InferInfo class and
+ * information about how to construct a trustworthy proof step, e.g.
  * (PfRule, children, args).
  *
- * It also acts as a (lazy) proof generator.
+ * It also may act as a (lazy) proof generator.
  */
 class InferProofCons : public ProofGenerator
 {
@@ -48,36 +49,60 @@ class InferProofCons : public ProofGenerator
    *
    * This method is called when the theory of strings makes an inference
    * described by an inference info ii, which is of the form:
-   * (<conclusion>, <Inference_id>, <antecendant> <new-antecedant>).
+   * (<conclusion>, <Inference_id>, <antecendant>).
    *
-   * This method converts this call to a proof step consisting of
-   * (1) A returned proof rule identifier.
-   * (2) The premises of the proof step (pfChildren).
-   * (3) The subset of pfChildren which should be "explained". Notice this is
-   * only relevant if ii corresponds to a lemma.
-   * (4) Arguments to the proof step (pfArgs).
+   * This method converts this call to instructions on what the proof rule
+   * step(s) are for concluding the conclusion of the inference. This
+   * information is stored in the argument ps, which consists of: 
+   * (1) A proof rule identifier (d_rule).
+   * (2) The premises of the proof step (d_children).
+   * (3) Arguments to the proof step (d_args).
+   * 
+   * NOTE: if the proof for the inference cannot be captured by a single
+   * step, then the d_rule field of ps is not set, and useBuffer is set to
+   * true. In this case, the ProofStepBuffer of this class contains (multiple)
+   * steps for how to construct a proof for the inference. This buffer can be
+   * obtained by getBuffer() below.
+   * 
+   * This method returns the conclusion of ii.
    */
-  void convert(const InferInfo& ii, eq::ProofInferInfo& pfi, bool& useBuffer);
-  /** internal version */
-  void convert(Inference infer,
+  Node convert(const InferInfo& ii, ProofStep& ps, bool& useBuffer);
+  /** 
+   * Internal version of above, where the fields of ii have been expanded
+   * into separate arguments.
+   */
+  Node convert(Inference infer,
                bool isRev,
                Node conc,
                const std::vector<Node>& exp,
-               const std::vector<Node>& expn,
-               eq::ProofInferInfo& pii,
+               ProofStep& ps,
                bool& useBuffer);
   /** Get the proof step buffer */
   ProofStepBuffer* getBuffer();
 
-  /** Add to proof */
-  bool addProofTo(Node f, CDProof* pf, bool forceOverwrite = false) override;
+  /** 
+   * This adds the proof steps for fact to proof pf with the given overwrite
+   * policy. This is required for using this class as a lazy proof generator.
+   * 
+   * It should be the case that a call was made to convert(...), where conc
+   * was fact, in the current SAT context.
+   */
+  bool addProofTo(Node fact, CDProof* pf, bool forceOverwrite = false) override;
   /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const override;
 
  private:
-  /** Convert length proof */
+  /** 
+   * Convert length proof. If this method returns true, it adds proof step(s)
+   * to the buffer that conclude lenReq from premises lenExp.
+   */
   bool convertLengthPf(Node lenReq, const std::vector<Node>& lenExp);
-  /** Apply macro transform */
+  /** 
+   * Apply macro transform. If this method returns true, it adds proof step(s)
+   * to the buffer that conclude tgt from premises tgt, exp. In particular,
+   * it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method should be
+   * applied when src and tgt are equivalent formulas assuming exp. 
+   */
   bool convertPredTransform(Node src, Node tgt, const std::vector<Node>& exp);
   /** The proof step buffer */
   ProofStepBuffer d_psb;

@@ -205,7 +205,8 @@ TrustNode ProofEqEngine::assertConflict(PfRule id,
   Trace("pfee") << "pfee::assertConflict " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
   // conflict is same as proof of false
-  return assertLemma(d_false, id, exp, exp, args);
+  std::vector<Node> empVec;
+  return assertLemma(d_false, id, exp, empVec, args);
 }
 
 TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
@@ -220,17 +221,18 @@ TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
       return TrustNode::null();
     }
   }
-  return assertLemmaInternal(d_false, exp, exp);
+  std::vector<Node> empVec;
+  return assertLemmaInternal(d_false, exp, empVec);
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
                                      PfRule id,
                                      const std::vector<Node>& exp,
-                                     const std::vector<Node>& toExplain,
+                                     const std::vector<Node>& noExplain,
                                      const std::vector<Node>& args)
 {
   Trace("pfee") << "pfee::assertLemma " << conc << " " << id
-                << ", exp = " << exp << ", toExplain = " << toExplain
+                << ", exp = " << exp << ", noExplain = " << noExplain
                 << ", args = " << args << std::endl;
   Assert(conc != d_true);
   if (d_pfEnabled)
@@ -243,16 +245,16 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
       return TrustNode::null();
     }
   }
-  return assertLemmaInternal(conc, exp, toExplain);
+  return assertLemmaInternal(conc, exp, noExplain);
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
                                      const std::vector<Node>& exp,
-                                     const std::vector<Node>& toExplain,
+                                     const std::vector<Node>& noExplain,
                                      ProofStepBuffer& psb)
 {
   Trace("pfee") << "pfee::assertLemma " << conc << ", exp = " << exp
-                << ", toExplain = " << toExplain << " via buffer with "
+                << ", noExplain = " << noExplain << " via buffer with "
                 << psb.getNumSteps() << " steps" << std::endl;
   if (d_pfEnabled)
   {
@@ -266,12 +268,12 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
       }
     }
   }
-  return assertLemmaInternal(conc, exp, toExplain);
+  return assertLemmaInternal(conc, exp, noExplain);
 }
 
 TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
                                              const std::vector<Node>& exp,
-                                             const std::vector<Node>& toExplain)
+                                             const std::vector<Node>& noExplain)
 {
   // We are a conflict if the conclusion is false and all literals are
   // explained.
@@ -282,7 +284,7 @@ TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
   std::vector<Node> expn;
   for (const Node& e : exp)
   {
-    if (std::find(toExplain.begin(), toExplain.end(), e) != toExplain.end())
+    if (std::find(noExplain.begin(), noExplain.end(), e) == noExplain.end())
     {
       explainWithProof(e, assumps);
     }
@@ -646,25 +648,6 @@ void ProofEqEngine::flattenAnd(TNode an, std::vector<Node>& a)
     Assert(anc.getKind() != AND);
     a.push_back(anc);
   }
-}
-
-std::ostream& operator<<(std::ostream& out, const ProofInferInfo& pii)
-{
-  out << "(proof-infer " << pii.d_rule << " " << pii.d_conc;
-  if (!pii.d_children.empty())
-  {
-    out << " :children (" << pii.d_children << ")";
-  }
-  if (!pii.d_args.empty())
-  {
-    out << " :args (" << pii.d_args << ")";
-  }
-  if (!pii.d_childrenToExplain.empty())
-  {
-    out << " :childrenExp (" << pii.d_childrenToExplain << ")";
-  }
-  out << ")";
-  return out;
 }
 
 }  // namespace eq

@@ -29,12 +29,10 @@ namespace CVC4 {
 class ProofStep
 {
  public:
+  ProofStep();
   ProofStep(PfRule r,
             const std::vector<Node>& children,
-            const std::vector<Node>& args)
-      : d_rule(r), d_children(children), d_args(args)
-  {
-  }
+            const std::vector<Node>& args);
   /** The proof rule */
   PfRule d_rule;
   /** The proof children */

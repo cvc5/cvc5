@@ -33,23 +33,21 @@ InferProofCons::InferProofCons(ProofChecker* pc,
 {
 }
 
-void InferProofCons::convert(const InferInfo& ii,
-                             eq::ProofInferInfo& pii,
+Node InferProofCons::convert(const InferInfo& ii,
+                             ProofStep& ps,
                              bool& useBuffer)
 {
-  convert(ii.d_id, ii.d_idRev, ii.d_conc, ii.d_ant, ii.d_antn, pii, useBuffer);
+  return convert(ii.d_id, ii.d_idRev, ii.d_conc, ii.d_ant, ps, useBuffer);
 }
 
-void InferProofCons::convert(Inference infer,
+Node InferProofCons::convert(Inference infer,
                              bool isRev,
                              Node conc,
                              const std::vector<Node>& exp,
-                             const std::vector<Node>& expn,
-                             eq::ProofInferInfo& pii,
+                             ProofStep& ps,
                              bool& useBuffer)
 {
   // the conclusion is the same
-  pii.d_conc = conc;
   useBuffer = false;
   // Must flatten children with respect to AND to be ready to explain.
   // We store the index where each flattened vector begins, since some
@@ -61,29 +59,10 @@ void InferProofCons::convert(Inference infer,
     if (d_pfEnabled)
     {
       // store the index in the flattened vector
-      startExpIndex[expIndex] = pii.d_children.size();
+      startExpIndex[expIndex] = ps.d_children.size();
       expIndex++;
     }
-    utils::flattenOp(AND, ec, pii.d_children);
-  }
-  if (options::stringRExplainLemmas())
-  {
-    // these are the explained subset of exp, notice that the order of this
-    // vector does not matter for proofs
-    pii.d_childrenToExplain.insert(pii.d_childrenToExplain.end(),
-                                   pii.d_children.begin(),
-                                   pii.d_children.end());
-  }
-  // now, go back and add the unexplained ones
-  for (const Node& ecn : expn)
-  {
-    if (d_pfEnabled)
-    {
-      // store the index in the flattened vector
-      startExpIndex[expIndex] = pii.d_children.size();
-      expIndex++;
-    }
-    utils::flattenOp(AND, ecn, pii.d_children);
+    utils::flattenOp(AND, ec, ps.d_children);
   }
   // only keep stats if we process it here
   d_statistics.d_inferences << infer;
@@ -91,7 +70,7 @@ void InferProofCons::convert(Inference infer,
   {
     // don't care about proofs, return now
     d_statistics.d_inferencesNoPf << infer;
-    return;
+    return conc;
   }
   // debug print
   if (Trace.isOn("strings-ipc-debug"))
@@ -101,10 +80,6 @@ void InferProofCons::convert(Inference infer,
     for (const Node& ec : exp)
     {
       Trace("strings-ipc-debug") << "    e: " << ec << std::endl;
-    }
-    for (const Node& ecn : expn)
-    {
-      Trace("strings-ipc-debug") << "  e-n: " << ecn << std::endl;
     }
   }
   // try to find a set of proof steps to incorporate into the buffer
@@ -121,9 +96,9 @@ void InferProofCons::convert(Inference infer,
     case Inference::NORMAL_FORM:
     case Inference::CODE_PROXY:
     {
-      pii.d_args.push_back(conc);
+      ps.d_args.push_back(conc);
       // will attempt this rule
-      pii.d_rule = PfRule::MACRO_SR_PRED_INTRO;
+      ps.d_rule = PfRule::MACRO_SR_PRED_INTRO;
     }
     break;
     // ========================== substitution + rewriting
@@ -132,12 +107,12 @@ void InferProofCons::convert(Inference infer,
     case Inference::EXTF_N:
     {
       // use the predicate version
-      pii.d_args.push_back(conc);
-      pii.d_rule = PfRule::MACRO_SR_PRED_INTRO;
+      ps.d_args.push_back(conc);
+      ps.d_rule = PfRule::MACRO_SR_PRED_INTRO;
       // minor optimization: apply to LHS of equality (RHS is already reduced)
       // although notice the case above is also a valid proof.
-      // pii.d_args.push_back(conc[0]);
-      // pii.d_rule = PfRule::MACRO_SR_EQ_INTRO;
+      // ps.d_args.push_back(conc[0]);
+      // ps.d_rule = PfRule::MACRO_SR_EQ_INTRO;
       // This doesn't quite work due for symbolic lemmas.
     }
     break;
@@ -151,9 +126,9 @@ void InferProofCons::convert(Inference infer,
     case Inference::INFER_EMP:
     {
       // need the "extended equality rewrite"
-      pii.d_args.push_back(nm->mkConst(
+      ps.d_args.push_back(nm->mkConst(
           Rational(static_cast<uint32_t>(RewriterId::REWRITE_EQ_EXT))));
-      pii.d_rule = PfRule::MACRO_SR_PRED_ELIM;
+      ps.d_rule = PfRule::MACRO_SR_PRED_ELIM;
     }
     break;
     // ========================== equal by substitution+rewriting+CTN_NOT_EQUAL
@@ -183,7 +158,7 @@ void InferProofCons::convert(Inference infer,
       //  <length constraint>?
       // We call t=s the "main equality" below. The length constraint is
       // optional, which we split on below.
-      size_t nchild = pii.d_children.size();
+      size_t nchild = ps.d_children.size();
       size_t mainEqIndex = 0;
       bool mainEqIndexSet = false;
       // the length constraint
@@ -205,8 +180,8 @@ void InferProofCons::convert(Inference infer,
             mainEqIndexSet = true;
             // the remainder is the length constraint
             lenConstraint.insert(lenConstraint.end(),
-                                 pii.d_children.begin() + mainEqIndex + 1,
-                                 pii.d_children.end());
+                                 ps.d_children.begin() + mainEqIndex + 1,
+                                 ps.d_children.end());
           }
         }
       }
@@ -222,7 +197,7 @@ void InferProofCons::convert(Inference infer,
       Node mainEq;
       if (mainEqIndexSet)
       {
-        mainEq = pii.d_children[mainEqIndex];
+        mainEq = ps.d_children[mainEqIndex];
         Trace("strings-ipc-core") << "Main equality " << mainEq << " at index "
                                   << mainEqIndex << std::endl;
       }
@@ -238,8 +213,8 @@ void InferProofCons::convert(Inference infer,
         std::vector<Node> childrenSRew;
         childrenSRew.push_back(mainEq);
         childrenSRew.insert(childrenSRew.end(),
-                            pii.d_children.begin(),
-                            pii.d_children.begin() + mainEqIndex);
+                            ps.d_children.begin(),
+                            ps.d_children.begin() + mainEqIndex);
         std::vector<Node> argsSRew;
         Node mainEqSRew =
             d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
@@ -414,8 +389,8 @@ void InferProofCons::convert(Inference infer,
       }
       else
       {
-        pii.d_rule = PfRule::SPLIT;
-        pii.d_args.push_back(conc[0]);
+        ps.d_rule = PfRule::SPLIT;
+        ps.d_args.push_back(conc[0]);
       }
     }
     break;
@@ -423,7 +398,7 @@ void InferProofCons::convert(Inference infer,
     case Inference::RE_UNFOLD_POS:
     case Inference::RE_UNFOLD_NEG:
     {
-      pii.d_rule = infer == Inference::RE_UNFOLD_POS ? PfRule::RE_UNFOLD_POS
+      ps.d_rule = infer == Inference::RE_UNFOLD_POS ? PfRule::RE_UNFOLD_POS
                                                      : PfRule::RE_UNFOLD_NEG;
     }
     break;
@@ -483,21 +458,21 @@ void InferProofCons::convert(Inference infer,
 
   // now see if we would succeed with the checker-to-try
   bool success = false;
-  if (pii.d_rule != PfRule::UNKNOWN)
+  if (ps.d_rule != PfRule::UNKNOWN)
   {
-    Trace("strings-ipc") << "For " << infer << ", try proof rule " << pii.d_rule
+    Trace("strings-ipc") << "For " << infer << ", try proof rule " << ps.d_rule
                          << "...";
-    Assert(pii.d_rule != PfRule::UNKNOWN);
-    Node pconc = d_psb.tryStep(pii.d_rule, pii.d_children, pii.d_args);
+    Assert(ps.d_rule != PfRule::UNKNOWN);
+    Node pconc = d_psb.tryStep(ps.d_rule, ps.d_children, ps.d_args);
     if (pconc.isNull() || pconc != conc)
     {
       Trace("strings-ipc") << "failed, pconc is " << pconc << " (expected "
                            << conc << ")" << std::endl;
-      pii.d_rule = PfRule::UNKNOWN;
+      ps.d_rule = PfRule::UNKNOWN;
     }
     else
     {
-      // successfully set up a single step proof in pii
+      // successfully set up a single step proof in ps
       success = true;
       Trace("strings-ipc") << "success!" << std::endl;
     }
@@ -524,16 +499,12 @@ void InferProofCons::convert(Inference infer,
       {
         Trace("strings-ipc-fail") << "    e: " << ec << std::endl;
       }
-      for (const Node& ecn : expn)
-      {
-        Trace("strings-ipc-fail") << "  e-n: " << ecn << std::endl;
-      }
     }
     // untrustworthy conversion
     // doesn't expect arguments
-    pii.d_args.clear();
+    ps.d_args.clear();
     // rule is determined automatically
-    pii.d_rule =
+    ps.d_rule =
         static_cast<PfRule>(static_cast<uint32_t>(PfRule::SIU_BEGIN)
                             + (static_cast<uint32_t>(infer)
                                - static_cast<uint32_t>(Inference::BEGIN)));
@@ -542,9 +513,10 @@ void InferProofCons::convert(Inference infer,
   }
   if (Trace.isOn("strings-ipc-debug"))
   {
-    Trace("strings-ipc-debug") << "InferProofCons::convert returned " << pii
+    Trace("strings-ipc-debug") << "InferProofCons::convert returned " << ps
                                << ", useBuffer = " << useBuffer << std::endl;
   }
+  return conc;
 }
 
 bool InferProofCons::convertLengthPf(Node lenReq,
@@ -598,18 +570,17 @@ bool InferProofCons::addProofTo(Node f, CDProof* pf, bool forceOverwrite)
   Inference infer = Inference::NONE;
   bool isRev = false;
   std::vector<Node> exp;
-  std::vector<Node> expn;
   // TODO: reconstruct the inference
   bool useBuffer = false;
-  eq::ProofInferInfo pii;
-  convert(infer, isRev, f, exp, expn, pii, useBuffer);
+  ProofStep ps;
+  convert(infer, isRev, f, exp, ps, useBuffer);
   if (useBuffer)
   {
     // pf->addSteps(d_psb, forceOverwrite);
   }
   else
   {
-    // pf->addStep(f,pii.d_step);
+    // pf->addStep(f,ps);
   }
   return false;
 }

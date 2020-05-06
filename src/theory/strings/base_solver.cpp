@@ -527,8 +527,8 @@ void BaseSolver::checkCardinality()
       Node k_node = nm->mkConst(Rational(int_k));
       // add cardinality lemma
       Node dist = nm->mkNode(DISTINCT, cols[i]);
-      std::vector<Node> vec_node;
-      vec_node.push_back(dist);
+      std::vector<Node> expn;
+      expn.push_back(dist);
       for (std::vector<Node>::iterator itr1 = cols[i].begin();
            itr1 != cols[i].end();
            ++itr1)
@@ -537,7 +537,7 @@ void BaseSolver::checkCardinality()
         if (len != lr)
         {
           Node len_eq_lr = len.eqNode(lr);
-          vec_node.push_back(len_eq_lr);
+          expn.push_back(len_eq_lr);
         }
       }
       Node len = nm->mkNode(STRING_LENGTH, cols[i][0]);
@@ -546,9 +546,8 @@ void BaseSolver::checkCardinality()
       ei->d_cardinalityLemK.set(int_k + 1);
       if (!cons.isConst() || !cons.getConst<bool>())
       {
-        std::vector<Node> emptyVec;
         d_im.sendInference(
-            emptyVec, vec_node, cons, Inference::CARDINALITY, false, true);
+            expn, expn, cons, Inference::CARDINALITY, false, true);
         return;
       }
     }

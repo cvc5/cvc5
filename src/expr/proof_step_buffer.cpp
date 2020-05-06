@@ -23,6 +23,13 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
+ProofStep::ProofStep() : d_rule(PfRule::UNKNOWN){}
+ProofStep::ProofStep(PfRule r,
+          const std::vector<Node>& children,
+          const std::vector<Node>& args)
+    : d_rule(r), d_children(children), d_args(args)
+{
+}
 std::ostream& operator<<(std::ostream& out, ProofStep step)
 {
   out << "(step " << step.d_rule;
