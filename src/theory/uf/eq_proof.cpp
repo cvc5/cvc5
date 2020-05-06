@@ -377,6 +377,8 @@ Node EqProof::addToProof(
       visited.find(d_node);
   if (it != visited.end())
   {
+    Trace("eqproof-conv") << "EqProof::addToProof: already processed " << d_node
+                          << ", returning " << it->second << "\n";
     return it->second;
   }
   // assumption
@@ -551,7 +553,7 @@ Node EqProof::addToProof(
       cleanReflPremisesInTranstivity(children);
       Trace("eqproof-conv")
           << "EqProof::addToProof: maybe reorder trans premises " << children
-          << "\n";
+          << " to conclude " << conclusion << "\n";
       // conclusion is t1 = tn. Children MUST BE (= t1 t2), ..., (= t{n-1} tn).
       // If t1 or tn are true or false, then premises may have to be amended
       // with TRUE/FALSE intro rules. Process children to ensure this
