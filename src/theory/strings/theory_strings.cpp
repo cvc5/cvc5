@@ -160,6 +160,7 @@ void TheoryStrings::setProofChecker(ProofChecker* pc)
   pc->registerChecker(PfRule::CONCAT_CSPLIT, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_LPROP, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_CPROP, &d_sProofChecker);
+  pc->registerChecker(PfRule::LENGTH_POS, &d_sProofChecker);
   pc->registerChecker(PfRule::CTN_NOT_EQUAL, &d_sProofChecker);
   pc->registerChecker(PfRule::STRINGS_REDUCTION, &d_sProofChecker);
   pc->registerChecker(PfRule::STRINGS_EAGER_REDUCTION, &d_sProofChecker);
@@ -243,15 +244,8 @@ bool TheoryStrings::propagate(TNode literal) {
 
 Node TheoryStrings::explain( TNode literal ){
   Debug("strings-explain") << "explain called on " << literal << std::endl;
-  std::vector< TNode > assumptions;
-  d_im->explain(literal, assumptions);
-  if( assumptions.empty() ){
-    return d_true;
-  }else if( assumptions.size()==1 ){
-    return assumptions[0];
-  }else{
-    return NodeManager::currentNM()->mkNode( kind::AND, assumptions );
-  }
+  TrustNode trn = d_im->explain(literal);
+  return trn.getNode();
 }
 
 bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars, 

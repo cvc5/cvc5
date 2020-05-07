@@ -291,38 +291,6 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         conc = t0.eqNode(nm->mkNode(STRING_CONCAT, w3, r));
       }
       return conc;
-      // Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s)),
-      //            P2:(not (= (str.len t1) 0)))
-      // Arguments: (false)
-      // ---------------------
-      // Conclusion: (= t1 (str.++ w3 r))
-      // where
-      //   w1, w2, w3, w4 are words,
-      //   w3 is (pre w2 p),
-      //   w4 is (suf w2 p),
-      //   p = Word::overlap((suf w2 1), w1),
-      //   r = (witness ((z String)) (= z (suf t1 (str.len w3)))).
-      // In other words, w4 is the largest suffix of (suf w2 1) that can contain
-      // a prefix of w1; since t1 is non-empty, w3 must therefore be contained
-      // in t1.
-      //
-      // or the reverse form of the above:
-      //
-      // Children: (P1:(= (str.++ t1 w1 t2) (str.++ s w2)),
-      //            P2:(not (= (str.len t2) 0)))
-      // Arguments: (true)
-      // ---------------------
-      // Conclusion: (= t2 (str.++ r w3))
-      // where
-      //   w1, w2, w3, w4 are words,
-      //   w3 is (suf w2 (- (str.len w2) p)),
-      //   w4 is (pre w2 (- (str.len w2) p)),
-      //   p = Word::roverlap((pre w2 (- (str.len w2) 1)), w1),
-      //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len
-      //   w3))))).
-      // In other words, w4 is the largest prefix of (pre w2 (- (str.len w2) 1))
-      // that can contain a suffix of w1; since t2 is non-empty, w3 must
-      // therefore be contained in t2.
     }
   }
   else if (id == PfRule::CTN_NOT_EQUAL)
@@ -330,11 +298,14 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     // TODO
   }
   else if (id == PfRule::STRINGS_REDUCTION
-           || id == PfRule::STRINGS_EAGER_REDUCTION)
+           || id == PfRule::STRINGS_EAGER_REDUCTION
+          || id == PfRule::LENGTH_POS)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    // must convert to skolem form
+    // These rules are based on called a C++ method for returning a valid
+    // lemma involving a single argument term.
+    // Must convert to skolem form.
     Node t = ProofSkolemCache::getSkolemForm(args[0]);
     Node ret;
     if (id == PfRule::STRINGS_REDUCTION)
@@ -349,6 +320,10 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     else if (id == PfRule::STRINGS_EAGER_REDUCTION)
     {
       ret = TermRegistry::eagerReduce(t);
+    }
+    else if (id==PfRule::LENGTH_POS)
+    {
+      ret = TermRegistry::lengthPositive(t);
     }
     if (ret.isNull())
     {

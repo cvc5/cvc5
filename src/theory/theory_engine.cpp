@@ -248,7 +248,10 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_pNodeManager.reset(new ProofNodeManager(d_pchecker.get()));
   // TODO: d_lazyProof could be owned by the owner of TheoryEngine
   // The lazy proof is user-context-dependent
-  d_lazyProof.reset(new LazyCDProof(d_pNodeManager.get(), d_userContext));
+  if (options::proofNew())
+  {
+    d_lazyProof.reset(new LazyCDProof(d_pNodeManager.get(), d_userContext));
+  }
 #endif
 
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);

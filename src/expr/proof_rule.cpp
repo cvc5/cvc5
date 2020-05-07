@@ -33,6 +33,7 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
+    case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::AND_ELIM: return "AND_ELIM";
@@ -69,6 +70,7 @@ const char* toString(PfRule id)
     case PfRule::CONCAT_CSPLIT: return "CONCAT_CSPLIT";
     case PfRule::CONCAT_LPROP: return "CONCAT_LPROP";
     case PfRule::CONCAT_CPROP: return "CONCAT_CPROP";
+    case PfRule::LENGTH_POS: return "LENGTH_POS";
     case PfRule::CTN_NOT_EQUAL: return "CTN_NOT_EQUAL";
     case PfRule::STRINGS_REDUCTION: return "STRINGS_REDUCTION";
     case PfRule::STRINGS_EAGER_REDUCTION: return "STRINGS_EAGER_REDUCTION";

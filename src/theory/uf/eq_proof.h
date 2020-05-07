@@ -24,10 +24,12 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof.h"
 #include "theory/uf/equality_engine_types.h"
 
 namespace CVC4 {
+
+class CDProof;
+  
 namespace theory {
 namespace eq {
 

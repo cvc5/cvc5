@@ -269,6 +269,7 @@ class InferenceManager
    * Explain literal l, add conjuncts to assumptions vector instead of making
    * the node corresponding to their conjunction.
    */
+  TrustNode explain(TNode literal) const;
   void explain(TNode literal, std::vector<TNode>& assumptions) const;
   // ------------------------------------------------- extended theory
   /**

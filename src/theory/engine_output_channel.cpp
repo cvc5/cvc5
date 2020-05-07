@@ -32,13 +32,17 @@ EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
       propagations(getStatsPrefix(theory) + "::propagations", 0),
       lemmas(getStatsPrefix(theory) + "::lemmas", 0),
       requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
-      restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
+      restartDemands(getStatsPrefix(theory) + "::restartDemands", 0),
+      trustedConflicts(getStatsPrefix(theory) + "::trustedConflicts", 0),
+      trustedLemmas(getStatsPrefix(theory) + "::trustedLemmas", 0)
 {
   smtStatisticsRegistry()->registerStat(&conflicts);
   smtStatisticsRegistry()->registerStat(&propagations);
   smtStatisticsRegistry()->registerStat(&lemmas);
   smtStatisticsRegistry()->registerStat(&requirePhase);
   smtStatisticsRegistry()->registerStat(&restartDemands);
+  smtStatisticsRegistry()->registerStat(&trustedConflicts);
+  smtStatisticsRegistry()->registerStat(&trustedLemmas);
 }
 
 EngineOutputChannel::Statistics::~Statistics()
@@ -48,6 +52,8 @@ EngineOutputChannel::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&lemmas);
   smtStatisticsRegistry()->unregisterStat(&requirePhase);
   smtStatisticsRegistry()->unregisterStat(&restartDemands);
+  smtStatisticsRegistry()->unregisterStat(&trustedConflicts);
+  smtStatisticsRegistry()->unregisterStat(&trustedLemmas);
 }
 
 EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine,

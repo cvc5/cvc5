@@ -69,6 +69,16 @@ class TermRegistry
    */
   static Node eagerReduce(Node t);
   /**
+   * Returns a lemma indicating that the length of a term t whose type is
+   * string-like has positive length. The exact form of this lemma depends
+   * on what works best in practice, currently:
+   *   (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
+   * 
+   * @param t The node to reduce,
+   * @return The positive length lemma for t.
+   */
+  static Node lengthPositive(Node t);
+  /**
    * Preregister term, called when TheoryStrings::preRegisterTerm(n) is called.
    * This does the following:
    * - Checks for illegal terms and throws a LogicException if any term is

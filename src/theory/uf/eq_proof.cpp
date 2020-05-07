@@ -15,6 +15,8 @@
 
 #include "theory/uf/eq_proof.h"
 
+#include "expr/proof.h"
+
 namespace CVC4 {
 namespace theory {
 namespace eq {

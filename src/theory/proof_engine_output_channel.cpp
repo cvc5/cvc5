@@ -29,18 +29,23 @@ void ProofEngineOutputChannel::trustedConflict(TrustNode pconf)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
   Node conf = pconf.getNode();
-  ProofGenerator* pfg = pconf.getGenerator();
-  // may or may not have supplied a generator
-  if (pfg != nullptr)
+  if (d_lazyPf!=nullptr)
   {
     Node ckey = getConflictKeyValue(conf);
-    // if we have, add it to the lazy proof object
-    d_lazyPf->addLazyStep(ckey, pfg);
-    Assert(pfg->hasProofFor(ckey));
-  }
-  else
-  {
-    // TODO: if none provided, do a very coarse-grained step
+    ProofGenerator* pfg = pconf.getGenerator();
+    // may or may not have supplied a generator
+    if (pfg != nullptr)
+    {
+      ++d_statistics.trustedConflicts;
+      // if we have, add it to the lazy proof object
+      d_lazyPf->addLazyStep(ckey, pfg);
+      Assert(pfg->hasProofFor(ckey));
+    }
+    else
+    {
+      // if none provided, do a very coarse-grained step
+      addTheoryLemmaStep(ckey);
+    }
   }
   // now, call the normal interface to conflict
   conflict(conf);
@@ -54,17 +59,22 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   TNode lem = plem.getNode();
   ProofGenerator* pfg = plem.getGenerator();
-  // may or may not have supplied a generator
-  if (pfg != nullptr)
+  if (d_lazyPf!=nullptr)
   {
     Node lkey = getLemmaKeyValue(lem);
-    // if we have, add it to the lazy proof object
-    d_lazyPf->addLazyStep(lkey, pfg);
-    Assert(pfg->hasProofFor(lkey));
-  }
-  else
-  {
-    // TODO: if none provided, do a very coarse-grained step
+    // may or may not have supplied a generator
+    if (pfg != nullptr)
+    {
+      ++d_statistics.trustedLemmas;
+      // if we have, add it to the lazy proof object
+      d_lazyPf->addLazyStep(lkey, pfg);
+      Assert(pfg->hasProofFor(lkey));
+    }
+    else
+    {
+      // if none provided, do a very coarse-grained step
+      addTheoryLemmaStep(lkey);
+    }
   }
   // now, call the normal interface for lemma
   return OutputChannel::lemma(lem, removable, preprocess, sendAtoms);
@@ -76,6 +86,19 @@ Node ProofEngineOutputChannel::getConflictKeyValue(Node conf)
 }
 
 Node ProofEngineOutputChannel::getLemmaKeyValue(Node lem) { return lem; }
+
+bool ProofEngineOutputChannel::addTheoryLemmaStep(Node f)
+{
+  Assert (d_lazyPf!=nullptr);
+  Assert (!f.isNull());
+  std::vector<Node> children;
+  std::vector<Node> args;
+  unsigned tid = static_cast<unsigned>(d_theory);
+  Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
+  args.push_back(tidn);
+  // add the step, should always succeed;
+  return d_lazyPf->addStep(f, PfRule::THEORY_LEMMA, children, args);
+}
 
 }  // namespace theory
 }  // namespace CVC4

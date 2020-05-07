@@ -97,6 +97,20 @@ Node TermRegistry::eagerReduce(Node t)
   return lemma;
 }
 
+Node TermRegistry::lengthPositive(Node t)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  Node zero = nm->mkConst(Rational(0));
+  Node emp = Word::mkEmptyWord(t.getType());
+  Node tlen = nm->mkNode(STRING_LENGTH, t);
+  Node tlenEqZero = tlen.eqNode(zero);
+  Node tEqEmp = t.eqNode(emp);
+  Node caseEmpty = nm->mkNode(AND, tlenEqZero, tEqEmp);
+  Node caseNEmpty = nm->mkNode(GT, tlen, zero);
+  // (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
+  return nm->mkNode(OR, caseEmpty, caseNEmpty);
+}
+
 void TermRegistry::finishInit(ProofNodeManager* pnm)
 {
   d_epg.reset(new EagerProofGenerator(d_state.getUserContext(), pnm));
@@ -431,18 +445,15 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
   }
   Assert(s == LENGTH_SPLIT);
 
-  std::vector<Node> lems;
+  // get the positive length lemma
+  Node lenLemma = lengthPositive(n);
   // split whether the string is empty
   Node n_len_eq_z = n_len.eqNode(d_zero);
   Node n_len_eq_z_2 = n.eqNode(emp);
   Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
   Node case_emptyr = Rewriter::rewrite(case_empty);
-  Node case_nempty = nm->mkNode(GT, n_len, d_zero);
-  // CDProof cdp;  // TODO
   if (!case_emptyr.isConst())
   {
-    Node lem = nm->mkNode(OR, case_empty, case_nempty);
-    lems.push_back(lem);
     // prefer trying the empty case first
     // notice that requirePhase must only be called on rewritten literals that
     // occur in the CNF stream.
@@ -453,25 +464,17 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Assert(!n_len_eq_z_2.isConst());
     reqPhase[n_len_eq_z_2] = true;
   }
-  else if (!case_emptyr.getConst<bool>())
-  {
-    // the rewriter knows that n is non-empty
-    lems.push_back(case_nempty);
-  }
   else
   {
     // If n = "" ---> true or len( n ) = 0 ----> true, then we expect that
     // n ---> "". Since this method is only called on non-constants n, it must
     // be that n = "" ^ len( n ) = 0 does not rewrite to true.
-    Assert(false);
+    Assert(!case_emptyr.getConst<bool>());
   }
-  if (lems.empty())
-  {
-    return TrustNode::null();
-  }
-  Node ret = lems.size() == 1 ? lems[0] : nm->mkNode(AND, lems);
-
-  return TrustNode::mkTrustLemma(ret, nullptr);
+  
+  std::vector<Node> targs;
+  targs.push_back(n);
+  return d_epg->mkTrustNode(lenLemma,PfRule::LENGTH_POS,targs);
 }
 
 Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const

@@ -134,6 +134,12 @@ proofrule CONCAT_LPROP 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
 // contained in t2.
 proofrule CONCAT_CPROP 1 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
+// ======== Length positive
+// Children: none
+// Arguments: (t)
+// ---------------------
+// Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t 0)))
+proofrule LENGTH_POS 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 //======================== Extended functions
 

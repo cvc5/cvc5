@@ -30,7 +30,6 @@
 #include "context/cdo.h"
 #include "expr/kind_map.h"
 #include "expr/node.h"
-#include "expr/proof.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/eq_proof.h"

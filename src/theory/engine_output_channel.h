@@ -63,7 +63,7 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void handleUserAttribute(const char* attr, theory::Theory* t) override;
 
- private:
+ protected:
   /**
    * Statistics for a particular theory.
    */
@@ -74,7 +74,7 @@ class EngineOutputChannel : public theory::OutputChannel
     ~Statistics();
     /** Number of calls to conflict, propagate, lemma, requirePhase,
      * restartDemands */
-    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands;
+    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands, trustedConflicts, trustedLemmas;
   };
   /** The theory engine we're communicating with. */
   TheoryEngine* d_engine;

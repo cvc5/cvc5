@@ -587,6 +587,22 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
   return ant;
 }
 
+TrustNode InferenceManager::explain(TNode literal) const
+{
+  std::vector<TNode> assumptions;
+  explain(literal,assumptions);
+  Node exp;
+  if( assumptions.empty() ){
+    exp = d_true;
+  }else if( assumptions.size()==1 ){
+    exp = assumptions[0];
+  }else{
+    exp = NodeManager::currentNM()->mkNode( AND, assumptions );
+  }
+  // FIXME
+  return TrustNode::mkTrustLemma(exp,nullptr);
+}
+
 void InferenceManager::explain(TNode literal,
                                std::vector<TNode>& assumptions) const
 {

@@ -91,6 +91,11 @@ class ProofEngineOutputChannel : public EngineOutputChannel
    * and the proof generator provided for them.
    */
   LazyCDProof* d_lazyPf;
+  /** 
+   * Add coarse grained THEORY_LEMMA step for formula f that is the key of
+   * a lemma or conflict being sent out on the output channel of this class.
+   */
+  bool addTheoryLemmaStep(Node f);
 };
 
 }  // namespace theory

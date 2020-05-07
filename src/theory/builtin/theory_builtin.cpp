@@ -61,6 +61,8 @@ void TheoryBuiltin::setProofChecker(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, &d_bProofChecker);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, &d_bProofChecker);
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, &d_bProofChecker);
+  // trust coarse-grained theory lemmas
+  pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
 }
 
 }  // namespace builtin

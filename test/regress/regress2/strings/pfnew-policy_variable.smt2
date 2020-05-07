@@ -1,3 +1,5 @@
+; COMMAND-LINE: --strings-exp --re-elim --proof-new
+; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic ALL)
 (set-info :status unsat)
