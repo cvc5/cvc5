@@ -39,6 +39,7 @@ InferProofCons::InferProofCons(context::Context* c,
 
 void InferProofCons::notifyFact(const InferInfo& ii)
 {
+  Trace("strings-ipc-debug") << "InferProofCons::notifyFact: " << ii << std::endl;
   std::shared_ptr<InferInfo> iic = std::make_shared<InferInfo>(ii);
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
@@ -607,13 +608,9 @@ bool InferProofCons::addProofTo(Node fact, CDProof* pf, bool forceOverwrite)
   convert(*(*it).second, ps, useBuffer);
   if (useBuffer)
   {
-    pf->addSteps(d_psb, forceOverwrite);
+    return pf->addSteps(d_psb, false, forceOverwrite);
   }
-  else
-  {
-    pf->addStep(fact, ps);
-  }
-  return false;
+  return pf->addStep(fact, ps, false, forceOverwrite);
 }
 
 std::string InferProofCons::identify() const

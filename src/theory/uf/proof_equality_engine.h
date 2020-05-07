@@ -149,7 +149,7 @@ class ProofEqEngine : public EagerProofGenerator
                         const std::vector<Node>& noExplain,
                         ProofStepBuffer& psb);
   /** identify */
-  std::string identify() const override { return "ProofEqEngine"; }
+  std::string identify() const override;
 
  protected:
   /** Add proof step */

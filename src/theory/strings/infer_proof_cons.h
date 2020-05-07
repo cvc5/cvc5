@@ -49,7 +49,18 @@ class InferProofCons : public ProofGenerator
                  SequencesStatistics& statistics,
                  bool pfEnabled);
   ~InferProofCons() {}
-  /** notify fact */
+  /** 
+   * This is called to notify that ii is an inference that may need a proof
+   * in the future. 
+   * 
+   * In detail, this class should be prepared to respond to a call to:
+   *   addProofTo(ii.d_conc, ...)
+   * in the remainder of the SAT context. This method copies ii and stores it
+   * in the context-dependent map d_lazyFactMap below.
+   * 
+   * This is used for lazy proof construction, where proofs are constructed
+   * only for facts that are explained.
+   */
   void notifyFact(const InferInfo& ii);
   /** convert
    *

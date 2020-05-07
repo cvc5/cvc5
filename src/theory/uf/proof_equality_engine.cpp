@@ -271,6 +271,12 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   return assertLemmaInternal(conc, exp, noExplain);
 }
 
+std::string ProofEqEngine::identify() const
+{
+  std::stringstream ss;
+  ss << "pf::" << d_ee.identify();
+  return ss.str();
+}
 TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
                                              const std::vector<Node>& exp,
                                              const std::vector<Node>& noExplain)

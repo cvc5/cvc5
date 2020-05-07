@@ -913,6 +913,9 @@ public:
    * Returns a fresh merge reason type tag for the client to use.
    */
   unsigned getFreshMergeReasonType();
+
+  /** Identify this equality engine (for debugging, etc..) */
+  std::string identify() const;
 };
 
 /**

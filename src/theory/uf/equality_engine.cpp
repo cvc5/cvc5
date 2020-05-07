@@ -1958,6 +1958,11 @@ unsigned EqualityEngine::getFreshMergeReasonType() {
   return d_freshMergeReasonType++;
 }
 
+std::string EqualityEngine::identify() const
+{
+  return d_name;
+}
+  
 void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
 {
   Debug("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << ")" << std::endl;
