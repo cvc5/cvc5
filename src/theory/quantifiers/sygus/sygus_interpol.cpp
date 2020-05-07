@@ -35,6 +35,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+SygusInterpol() {}
+
 void collectSymbols(const std::vector<Node>& axioms, const Node& conj)
 {
 	Trace("sygus-interpol-debug") << "Collect symbols..." << std::endl;
@@ -72,6 +74,7 @@ void createVariables()
     d_syms.push_back(s);
     d_vars.push_back(var);
     Node vlv = nm->mkBoundVar(ss.str(), tn);
+		d_vlvs.push_back(vlv);
     if (d_symsetShared.find(s) != d_symsetShared.end())
     {
       d_varsShared.push_back(var);
@@ -84,36 +87,47 @@ void createVariables()
 		// TODO: why this is after vlvsShared.push_back()
 	}
 	// make the sygus variable list
-	d_abvlShared = nm->mkNode(BOUND_VAR_LIST, varlistShared);
+	d_abvlShared = nm->mkNode(BOUND_VAR_LIST, d_vlvShared);
 	Trace("sygus-interpol-debug") << "...finish" << std::endl;
 }
 
 void setSynthGrammar()
 {
   Trace("sygus-interpol-debug") << "Setup grammar..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > extra_cons;
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > exclude_cons;
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > include_cons;
-
-  std::unordered_set<Node, NodeHashFunction> terms_irrelevant;
-  TypeNode itpGTypeS =
-      CVC4::theory::quantifiers::CegGrammarConstructor::mkSygusDefaultType(
-          nm->booleanType(),
-          abvlShared,
-          "interpolation_grammar",
-          extra_cons,
-          exclude_cons,
-          include_cons,
-          terms_irrelevant);
-  Node sym = nm->mkBoundVar("sfproxy_interpol", itpGTypeS);
-  theory::SygusSynthGrammarAttribute ssg;
-  itp.setAttribute(ssg, sym);
-
-  Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
+	TypeNode itpGTypeS;
+	if (!itpGType.isNull)
+	{
+		// set user-defined grammar
+		Assert(itpGType.isDatatype() && itpGType.getDType().isSygus());
+		itpGTypeS = datatypes::utils::substituteAndGeneralizeSygusType(itpGType, d_syms, d_vlvs);
+		Assert(itpGTypeS.isDatatype() && itpGTypeS.getDType().isSygus());
+		// TODO check if the vars in user-defined grammar, are consistent with the shared vars
+	} else
+	{
+		// set default grammar
+		NodeManager* nm = NodeManager::currentNM();
+		std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > extra_cons;
+		std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > exclude_cons;
+		std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > include_cons;
+		std::unordered_set<Node, NodeHashFunction> terms_irrelevant;
+		itpGTypeS =
+			CVC4::theory::quantifiers::CegGrammarConstructor::mkSygusDefaultType(
+					nm->booleanType(),
+					d_abvlShared,
+					"interpolation_grammar",
+					extra_cons,
+					exclude_cons,
+					include_cons,
+					terms_irrelevant);
+		//Node sym = nm->mkBoundVar("sfproxy_interpol", itpGTypeS);
+		//theory::SygusSynthGrammarAttribute ssg;
+		//itp.setAttribute(ssg, sym);
+	}
+	Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
+	return itpGTypeS;
 }
 
-void mkSygusConjecture()
+Node mkPredicate()
 {
 	// make the interpolation predicate to synthesize
 	Trace("sygus-interpol-debug")
@@ -121,9 +135,13 @@ void mkSygusConjecture()
 	TypeNode itpType = d_varTypesShared.empty()
 		? nm->booleanType()
 		: nm->mkPredicateType(d_varTypesShared);
-  Node itp = nm->mkBoundVar(name.c_str(), itpType);
-  Trace("sygus-interpol-debug") << "...finish" << std::endl;
+	Node itp = nm->mkBoundVar(name.c_str(), itpType);
+	Trace("sygus-interpol-debug") << "...finish" << std::endl;
+	return itp;
+}
 
+void mkSygusConjecture(Node itp)
+{
 	// make the interpolation application to synthesize
 	Trace("sygus-interpol-debug")
 		<< "Make interpolation predicate app..." << std::endl;
@@ -176,12 +194,11 @@ void mkSygusConjecture()
 	// forall A. exists x. ~( Fa( x ) => A( x ) ^ A( x ) => Fc( x ) )
 	Trace("sygus-interpol-debug") << "Make conjecture..." << std::endl;
 	d_sygusConj = constraint.negate();
-	//TODO return here
-	Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
-  d_sygusConj = nm->mkNode(EXISTS, bvl, d_sygusConj);
-  Trace("sygus-interpol-debug") << "exists body: " << d_sygusConj << std::endl;
-  Node fbvl = nm->mkNode(BOUND_VAR_LIST, itp);
-  d_sygusConj = nm->mkNode(FORALL, fbvl, d_sygusConj, instAttrList);
+	//Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
+  //d_sygusConj = nm->mkNode(EXISTS, bvl, d_sygusConj);
+  //Trace("sygus-interpol-debug") << "exists body: " << d_sygusConj << std::endl;
+  //Node fbvl = nm->mkNode(BOUND_VAR_LIST, itp);
+  //d_sygusConj = nm->mkNode(FORALL, fbvl, d_sygusConj, instAttrList);
   d_sygusConj = theory::Rewriter::rewrite(d_sygusConj);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
@@ -209,10 +226,6 @@ void findInterpol(Expr& interpol)
 		// convert to expression
 		interpol = interpoln.toExpr();
 		// if check abducts option is set, we check the correctness
-		if (options::checkInterpols())
-		{
-			checkInterpol(interpol);
-		}
 		return;
 	}
 	Trace("sygus-interpol")
@@ -221,22 +234,19 @@ void findInterpol(Expr& interpol)
 			"Could not find solution for get-interpol.");
 }
 
-// TODO change this function
-void SmtEngine::checkInterpol(Expr a)
+void SmtEngine::checkInterpol(Expr interpol, vector<Node>& axioms, Node& conj)
 {
-  Assert(a.getType().isBoolean());
+  Assert(interpol.getType().isBoolean());
   Trace("check-interpol") << "SmtEngine::checkInterpol: get expanded assertions"
                           << std::endl;
 
-  std::vector<Expr> asserts = getExpandedAssertions();
-
-  // two checks: first, assertions imply a, second, a implies goal.
+  // two checks: first, axioms imply interpol, second, interpol implies conj.
   for (unsigned j = 0; j < 2; j++)
   {
     if (j == 1)
     {
-      Trace("check-interpol") << "SmtEngine::checkInterpol: goal is "
-                              << d_interpolConj << std::endl;
+      Trace("check-interpol") << "SmtEngine::checkInterpol: conjecture is "
+                              << conj.toExpr() << std::endl;
     }
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
                             << ": make new SMT engine" << std::endl;
@@ -247,18 +257,18 @@ void SmtEngine::checkInterpol(Expr a)
                             << ": asserting formulas" << std::endl;
     if (j == 0)
     {
-      for (const Expr& e : asserts)
+      for (const Node& e : axioms)
       {
-        itpChecker.assertFormula(e);
+        itpChecker.assertFormula(e.toExpr());
       }
-      Expr nega = a.notExpr();
-      itpChecker.assertFormula(nega);
+      Expr negitp = interpol.notExpr();
+      itpChecker.assertFormula(negitp);
     }
     else
     {
-      itpChecker.assertFormula(a);
-      Assert(!d_interpolConj.isNull());
-      itpChecker.assertFormula(d_interpolConj);
+      itpChecker.assertFormula(interpol);
+      Assert(!conj.isNull());
+      itpChecker.assertFormula(conj.toExpr().notExpr());
     }
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
                             << ": check the assertions" << std::endl;
@@ -277,7 +287,7 @@ void SmtEngine::checkInterpol(Expr a)
       }
       else
       {
-        serr << "SmtEngine::checkInterpol(): negated goal cannot be shown "
+        serr << "SmtEngine::checkInterpol(): negated conjecture cannot be shown "
                 "unsatisfiable with produced solution, result was "
              << r;
       }
@@ -287,15 +297,15 @@ void SmtEngine::checkInterpol(Expr a)
 }
 
 bool SolveInterpolation(const std::string& name,
-                                               const std::vector<Node>& axioms,
-                                               const Node& conj,
-                                               const TypeNode& itpGType,
-																							 Expr& interpol)
+		const std::vector<Node>& axioms,
+		const Node& conj,
+		const TypeNode& itpGType,
+		Expr& interpol)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  // we generate a new smt engine to do the interpolation query
-  d_subsolver.reset(new SmtEngine(nm->toExprManager()));
-  d_subsolver->setIsInternalSubsolver();
+	NodeManager* nm = NodeManager::currentNM();
+	// we generate a new smt engine to do the interpolation query
+	d_subsolver.reset(new SmtEngine(nm->toExprManager()));
+	d_subsolver->setIsInternalSubsolver();
   // get the logic
   LogicInfo l = d_logic.getUnlockedCopy();
   // enable everything needed for sygus
@@ -303,16 +313,17 @@ bool SolveInterpolation(const std::string& name,
   d_subsolver->setLogic(l);
 
 	collectSymbols(axioms, conj);
-  createVariables();
-	Type grammarType = setSynthGrammar();
+	createVariables();
+	Type grammarType = setSynthGrammar(itpGType);
 
-	// TODO declare vars one by one
-	d_subsolver->declareSygusVar(name, abvlShared.toExpr(), BOUND_VAR_LIST);
+	// TODO not sure if it should be var or vlv
+	for (Node var : d_vars) {
+		d_subsolver->declareSygusVar(name, var.toExpr(), var.getType());
+	}
 	std::vector<Expr> vars_empty;
-	Expr func;
-	// TODO func should be itp
-  d_subsolver->declareSynthFun(name, func, grammarType, false, vars_empty);
-	mkSygusConjecture();
+	Node itp = mkPredicate();
+  d_subsolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
+	mkSygusConjecture(itp);
 	d_subsolver->assertSygusConstraints(d_sygusConj.toExpr());
 
 	Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
@@ -323,6 +334,10 @@ bool SolveInterpolation(const std::string& name,
 	if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
 	{
 		findInterpol(interpol);
+		if (options::checkInterpols())
+		{
+			checkInterpol(interpol, axioms, conj);
+		}
 		return true;
 	}
 	return false;
