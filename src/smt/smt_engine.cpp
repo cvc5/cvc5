@@ -75,6 +75,7 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
+#include "proof/new_proof_manager.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
@@ -655,6 +656,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
+      d_newProofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_assertionList(nullptr),
@@ -709,7 +711,7 @@ void SmtEngine::finishInit()
 
   // ensure that our heuristics are properly set up
   setDefaults(*this, d_logic);
-  
+
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -790,6 +792,10 @@ void SmtEngine::finishInit()
           finishRegisterTheory(d_theoryEngine->theoryOf(id));
       }
     });
+  if (CVC4::options::proofNew())
+  {
+    d_newProofManager.reset(new NewProofManager(d_theoryEngine));
+  }
   d_private->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
@@ -877,6 +883,7 @@ SmtEngine::~SmtEngine()
     // theory solvers.
 #ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
+    d_newProofManager.reset(nullptr);
 #endif
 
     d_theoryEngine.reset(nullptr);

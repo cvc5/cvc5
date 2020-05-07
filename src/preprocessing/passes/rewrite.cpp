@@ -28,17 +28,25 @@ using namespace CVC4::theory;
 Rewrite::Rewrite(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "rewrite"){};
 
-
 PreprocessingPassResult Rewrite::applyInternal(
-  AssertionPipeline* assertionsToPreprocess)
-{	
-  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i) {
-    assertionsToPreprocess->replace(i, Rewriter::rewrite((*assertionsToPreprocess)[i]));
+    AssertionPipeline* assertionsToPreprocess)
+{
+  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
+  {
+    TNode a = (*assertionsToPreprocess)[i];
+    assertionsToPreprocess->replace(
+        i, Rewriter::rewrite((*assertionsToPreprocess)[i]));
+    if (CVC4::options::proofNew())
+    {
+      if (a != (*assertionsToPreprocess)[i])
+      {
+        NewProofManager::currentPM()->addStep(
+            a, PfRule::REWRITE_PREPROCESS, {(*assertionsToPreprocess)[i]}, {});
+      }
+    }
   }
-
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

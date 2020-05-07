@@ -58,6 +58,7 @@ class DecisionEngine;
 class TheoryEngine;
 
 class ProofManager;
+class NewProofManager;
 
 class Model;
 class LogicRequest;
@@ -99,6 +100,7 @@ namespace smt {
   class ProcessAssertions;
 
   ProofManager* currentProofManager();
+  NewProofManager* currentNewProofManager();
 
   struct CommandCleanup;
   typedef context::CDList<Command*, CommandCleanup> CommandList;
@@ -132,6 +134,7 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::ProcessAssertions;
   friend ProofManager* ::CVC4::smt::currentProofManager();
+  friend NewProofManager* ::CVC4::smt::currentNewProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::Model;  // to access d_modelCommands
   friend class ::CVC4::theory::TheoryModel;
@@ -878,6 +881,9 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the ProofManager owned by this SmtEngine. */
   ProofManager* getProofManager() { return d_proofManager.get(); };
 
+  /** Get a pointer to the new ProofManager owned by this SmtEngine. */
+  NewProofManager* getNewProofManager() { return d_newProofManager.get(); };
+
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
@@ -1089,6 +1095,8 @@ class CVC4_PUBLIC SmtEngine
 
   /** The proof manager */
   std::unique_ptr<ProofManager> d_proofManager;
+  /** The new proof manager */
+  std::unique_ptr<NewProofManager> d_newProofManager;
 
   /**
    * The rewriter associated with this SmtEngine. We have a different instance

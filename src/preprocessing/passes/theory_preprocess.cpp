@@ -40,6 +40,15 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
     assertionsToPreprocess->replace(i, te->preprocess(a));
     a = (*assertionsToPreprocess)[i];
     Assert(Rewriter::rewrite(a) == a);
+    if (CVC4::options::proofNew())
+    {
+      if (a != (*assertionsToPreprocess)[i])
+      {
+        NewProofManager::currentPM()->addStep(
+            a, PfRul::THEORY_PREPROCESS, {(*assertionsToPreprocess)[i]}, {});
+      }
+    }
+
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
