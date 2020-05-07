@@ -848,8 +848,8 @@ void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
   d_subtheoryMap[sub]->explain(literal, assumptions);
 }
 
-
-TrustNode TheoryBV::explain(TNode node) {
+TrustNode TheoryBV::explain(TNode node)
+{
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ")" << std::endl;
   std::vector<TNode> assumptions;
 
@@ -867,7 +867,7 @@ TrustNode TheoryBV::explain(TNode node) {
   }
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ") => " << explanation << std::endl;
   Debug("bitvector::explain") << "TheoryBV::explain done. \n";
-  return TrustNode::mkTrustPropExp(node,explanation,nullptr);
+  return TrustNode::mkTrustPropExp(node, explanation, nullptr);
 }
 
 

@@ -79,9 +79,10 @@ void TheorySets::computeCareGraph() {
   d_internal->computeCareGraph();
 }
 
-TrustNode TheorySets::explain(TNode node) {
+TrustNode TheorySets::explain(TNode node)
+{
   Node exp = d_internal->explain(node);
-  return TrustNode::mkTrustPropExp(node,exp,nullptr);
+  return TrustNode::mkTrustPropExp(node, exp, nullptr);
 }
 
 EqualityStatus TheorySets::getEqualityStatus(TNode a, TNode b) {

@@ -19,7 +19,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 
 LazyCDProof::LazyCDProof(ProofNodeManager* pnm, context::Context* c)
-    : CDProof(pnm, c), d_gens( c ? c : &d_context)
+    : CDProof(pnm, c), d_gens(c ? c : &d_context)
 {
 }
 
@@ -61,14 +61,16 @@ std::shared_ptr<ProofNode> LazyCDProof::mkLazyProof(Node fact)
         ProofGenerator* pg = getGeneratorFor(afact, isSym);
         if (pg != nullptr)
         {
-          Trace("lazy-cdproof") << "Call generator for assumption " << afact << std::endl;
+          Trace("lazy-cdproof")
+              << "Call generator for assumption " << afact << std::endl;
           Assert(!isSym || afact.getKind() == EQUAL);
           Node afactGen = isSym ? afact[1].eqNode(afact[0]) : afact;
           // use the addProofTo interface
           if (!pg->addProofTo(afactGen, this))
           {
-            Assert(false) << "Proof generator " << pg->identify() << " could not add proof for fact "
-                          << afactGen << std::endl;
+            Assert(false) << "Proof generator " << pg->identify()
+                          << " could not add proof for fact " << afactGen
+                          << std::endl;
           }
         }
         else
@@ -100,8 +102,7 @@ void LazyCDProof::addLazyStep(Node expected,
                               bool forceOverwrite)
 {
   Assert(pg != nullptr);
-  NodeProofGeneratorMap::const_iterator
-      it = d_gens.find(expected);
+  NodeProofGeneratorMap::const_iterator it = d_gens.find(expected);
   if (it != d_gens.end() && !forceOverwrite)
   {
     // don't overwrite something that is already there
@@ -120,8 +121,7 @@ void LazyCDProof::addLazyStep(Node expected,
 ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
 {
   isSym = false;
-  NodeProofGeneratorMap::const_iterator
-      it = d_gens.find(fact);
+  NodeProofGeneratorMap::const_iterator it = d_gens.find(fact);
   if (it != d_gens.end())
   {
     return (*it).second;

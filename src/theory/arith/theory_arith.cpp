@@ -98,9 +98,10 @@ bool TheoryArith::needsCheckLastEffort() {
   return d_internal->needsCheckLastEffort();
 }
 
-TrustNode TheoryArith::explain(TNode n) {
+TrustNode TheoryArith::explain(TNode n)
+{
   Node exp = d_internal->explain(n);
-  return TrustNode::mkTrustPropExp(n,exp,nullptr);
+  return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
 bool TheoryArith::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {

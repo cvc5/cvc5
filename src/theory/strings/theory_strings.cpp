@@ -241,8 +241,8 @@ bool TheoryStrings::propagate(TNode literal) {
   return ok;
 }
 
-
-TrustNode TheoryStrings::explain( TNode literal ){
+TrustNode TheoryStrings::explain(TNode literal)
+{
   Debug("strings-explain") << "explain called on " << literal << std::endl;
   TrustNode trn = d_im->explain(literal);
   return trn;

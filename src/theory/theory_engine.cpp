@@ -2053,7 +2053,8 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     }
     else
     {
-      TrustNode texplanation = theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
+      TrustNode texplanation =
+          theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
       explanation = texplanation.getNode();
       Debug("theory::explain") << "\tTerm was propagated by owner theory: "
                                << theoryOf(toExplain.d_theory)->getId()

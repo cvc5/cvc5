@@ -298,8 +298,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     // TODO
   }
   else if (id == PfRule::STRINGS_REDUCTION
-           || id == PfRule::STRINGS_EAGER_REDUCTION
-          || id == PfRule::LENGTH_POS)
+           || id == PfRule::STRINGS_EAGER_REDUCTION || id == PfRule::LENGTH_POS)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -321,7 +320,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       ret = TermRegistry::eagerReduce(t);
     }
-    else if (id==PfRule::LENGTH_POS)
+    else if (id == PfRule::LENGTH_POS)
     {
       ret = TermRegistry::lengthPositive(t);
     }

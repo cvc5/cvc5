@@ -99,7 +99,7 @@ Node TermRegistry::eagerReduce(Node t)
 
 Node TermRegistry::lengthPositive(Node t)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(Rational(0));
   Node emp = Word::mkEmptyWord(t.getType());
   Node tlen = nm->mkNode(STRING_LENGTH, t);
@@ -471,10 +471,10 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     // be that n = "" ^ len( n ) = 0 does not rewrite to true.
     Assert(!case_emptyr.getConst<bool>());
   }
-  
+
   std::vector<Node> targs;
   targs.push_back(n);
-  return d_epg->mkTrustNode(lenLemma,PfRule::LENGTH_POS,targs);
+  return d_epg->mkTrustNode(lenLemma, PfRule::LENGTH_POS, targs);
 }
 
 Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const

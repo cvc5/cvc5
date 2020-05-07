@@ -165,8 +165,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
     std::vector<Node> expn;
     expn.push_back(n);
-    d_im.sendInference(
-        expn, expn, eq, Inference::CTN_POS, false, true);
+    d_im.sendInference(expn, expn, eq, Inference::CTN_POS, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;

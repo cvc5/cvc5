@@ -29,7 +29,7 @@
 namespace CVC4 {
 
 class CDProof;
-  
+
 namespace theory {
 namespace eq {
 

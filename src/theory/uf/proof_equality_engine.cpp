@@ -376,7 +376,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       Trace("pfee-proof") << "Could not find free assumption for " << a
                           << " in " << freeAssumps << std::endl;
       Notice() << "pfee::ensureProofForFact: explained assumption " << a
-                    << " does not match a free assumption from " << freeAssumps << std::endl;
+               << " does not match a free assumption from " << freeAssumps
+               << std::endl;
       // Assert(false);
     }
   }

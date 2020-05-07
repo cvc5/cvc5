@@ -128,7 +128,7 @@ class InferenceManager
    * class with explanation exp, where exp is a set of literals that currently
    * hold in the equality engine. We add this to the pending vector d_pending.
    *
-   * [3] (Lemma) Indicate that the lemma 
+   * [3] (Lemma) Indicate that the lemma
    *   ( EXPLAIN(exp \ noExplain) ^ noExplain ) => eq
    * should be sent on the output channel of the theory of strings, where
    * EXPLAIN returns the explanation of the node in exp in terms of the literals

@@ -23,10 +23,10 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ProofStep::ProofStep() : d_rule(PfRule::UNKNOWN){}
+ProofStep::ProofStep() : d_rule(PfRule::UNKNOWN) {}
 ProofStep::ProofStep(PfRule r,
-          const std::vector<Node>& children,
-          const std::vector<Node>& args)
+                     const std::vector<Node>& children,
+                     const std::vector<Node>& args)
     : d_rule(r), d_children(children), d_args(args)
 {
 }
@@ -83,7 +83,7 @@ void ProofStepBuffer::addStep(PfRule id,
 
 void ProofStepBuffer::popStep()
 {
-  Assert (!d_steps.empty());
+  Assert(!d_steps.empty());
   if (!d_steps.empty())
   {
     d_steps.pop_back();

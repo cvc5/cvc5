@@ -781,9 +781,10 @@ void TheoryDatatypes::explain(TNode literal, std::vector<TNode>& assumptions){
   }
 }
 
-TrustNode TheoryDatatypes::explain( TNode literal ){
+TrustNode TheoryDatatypes::explain(TNode literal)
+{
   Node exp = explainLit(literal);
-  return TrustNode::mkTrustPropExp(literal,exp,nullptr);
+  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
 Node TheoryDatatypes::explainLit(TNode literal)
@@ -804,7 +805,7 @@ Node TheoryDatatypes::explain( std::vector< Node >& lits ) {
 /** Conflict when merging two constants */
 void TheoryDatatypes::conflict(TNode a, TNode b){
   Node eq = a.eqNode(b);
-  d_conflictNode = explainLit( eq );
+  d_conflictNode = explainLit(eq);
   Trace("dt-conflict") << "CONFLICT: Eq engine conflict : " << d_conflictNode << std::endl;
   d_out->conflict( d_conflictNode );
   d_conflict = true;
@@ -857,7 +858,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
           std::vector< Node > rew;
           if (utils::checkClash(cons1, cons2, rew))
           {
-            d_conflictNode = explainLit( unifEq );
+            d_conflictNode = explainLit(unifEq);
             Trace("dt-conflict") << "CONFLICT: Clash conflict : " << d_conflictNode << std::endl;
             d_out->conflict( d_conflictNode );
             d_conflict = true;

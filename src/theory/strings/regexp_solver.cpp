@@ -226,7 +226,8 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
               iexp.push_back(assertion);
               noExplain.push_back(assertion);
               Node conc = Node::null();
-              d_im.sendInference(iexp, noExplain, conc, Inference::RE_NF_CONFLICT);
+              d_im.sendInference(
+                  iexp, noExplain, conc, Inference::RE_NF_CONFLICT);
               addedLemma = true;
               break;
             }
@@ -541,7 +542,7 @@ bool RegExpSolver::checkPDerivative(
         noExplain.push_back(atom);
         noExplain.push_back(x.eqNode(d_emptyString));
         std::vector<Node> iexp = nf_exp;
-        iexp.insert(iexp.end(),noExplain.begin(),noExplain.end());
+        iexp.insert(iexp.end(), noExplain.begin(), noExplain.end());
         d_im.sendInference(iexp, noExplain, exp, Inference::RE_DELTA);
         addedLemma = true;
         d_regexp_ccached.insert(atom);
@@ -558,7 +559,7 @@ bool RegExpSolver::checkPDerivative(
         noExplain.push_back(atom);
         noExplain.push_back(x.eqNode(d_emptyString));
         std::vector<Node> iexp = nf_exp;
-        iexp.insert(iexp.end(),noExplain.begin(),noExplain.end());
+        iexp.insert(iexp.end(), noExplain.begin(), noExplain.end());
         d_im.sendInference(iexp, noExplain, d_false, Inference::RE_DELTA_CONF);
         addedLemma = true;
         d_regexp_ccached.insert(atom);

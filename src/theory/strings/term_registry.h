@@ -73,7 +73,7 @@ class TermRegistry
    * string-like has positive length. The exact form of this lemma depends
    * on what works best in practice, currently:
    *   (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
-   * 
+   *
    * @param t The node to reduce,
    * @return The positive length lemma for t.
    */

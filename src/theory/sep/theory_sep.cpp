@@ -139,14 +139,13 @@ void TheorySep::propagate(Effort e){
 
 }
 
-
 TrustNode TheorySep::explain(TNode literal)
 {
   Debug("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
   explain(literal, assumptions);
   Node exp = mkAnd(assumptions);
-  return TrustNode::mkTrustPropExp(literal,exp,nullptr);
+  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
 

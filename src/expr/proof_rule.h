@@ -109,8 +109,8 @@ enum class PfRule : uint32_t
   //
   // Notice that:
   //   toSkolem(t') = Rewriter{id}(toSkolem(t).substitute(x1...xn,t1...tn))
-  // In other words, from the point of view of Skolem forms, this rule transforms
-  // t to t' by standard substitution + rewriting.
+  // In other words, from the point of view of Skolem forms, this rule
+  // transforms t to t' by standard substitution + rewriting.
   //
   // The argument id is optional and specifies the identifier of the rewriter to
   // be used (see theory/builtin/proof_checker.h).
@@ -124,14 +124,14 @@ enum class PfRule : uint32_t
   // Arguments: (F, id?)
   // ---------------------------------------------------------------
   // Conclusion: F
-  // where 
+  // where
   //   Rewriter{id}(F.substitute(x1...xn,t1...tn)) == true
   //
   // Notice that we apply rewriting on the witness form of F, meaning that this
   // rule may conclude an F whose Skolem form is justified by the definition of
   // its (fresh) Skolem variables. Furthermore, notice that the rewriting and
-  // substitution is applied only within the side condition, meaning the rewritten
-  // form of the witness form of F does not escape this rule.
+  // substitution is applied only within the side condition, meaning the
+  // rewritten form of the witness form of F does not escape this rule.
   MACRO_SR_PRED_INTRO,
   // ======== Substitution + Rewriting predicate elimination
   //
@@ -157,7 +157,7 @@ enum class PfRule : uint32_t
   // Arguments: (G, id?)
   // ----------------------------------------
   // Conclusion: G
-  // where 
+  // where
   //   Rewriter{id}(F.substitute(x1...xn,t1...tn)) ==
   //   Rewriter{id}(G.substitute(x1...xn,t1...tn))
   //
@@ -173,7 +173,7 @@ enum class PfRule : uint32_t
   // This is a "coarse-grained" rule that is used as a placeholder if a theory
   // did not provide a proof for a lemma or conflict.
   THEORY_LEMMA,
-  
+
   //================================================= Boolean rules
   // ======== Split
   // Children: none

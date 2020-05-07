@@ -42,6 +42,7 @@ class InferProofCons : public ProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>, NodeHashFunction>
       NodeInferInfoMap;
+
  public:
   InferProofCons(context::Context* c,
                  ProofChecker* pc,
@@ -58,21 +59,21 @@ class InferProofCons : public ProofGenerator
    *
    * This method converts this call to instructions on what the proof rule
    * step(s) are for concluding the conclusion of the inference. This
-   * information is stored in the argument ps, which consists of: 
+   * information is stored in the argument ps, which consists of:
    * (1) A proof rule identifier (d_rule).
    * (2) The premises of the proof step (d_children).
    * (3) Arguments to the proof step (d_args).
-   * 
+   *
    * NOTE: if the proof for the inference cannot be captured by a single
    * step, then the d_rule field of ps is not set, and useBuffer is set to
    * true. In this case, the ProofStepBuffer of this class contains (multiple)
    * steps for how to construct a proof for the inference. This buffer can be
    * obtained by getBuffer() below.
-   * 
+   *
    * This method returns the conclusion of ii.
    */
   Node convert(const InferInfo& ii, ProofStep& ps, bool& useBuffer);
-  /** 
+  /**
    * Internal version of above, where the fields of ii have been expanded
    * into separate arguments.
    */
@@ -85,10 +86,10 @@ class InferProofCons : public ProofGenerator
   /** Get the proof step buffer */
   ProofStepBuffer* getBuffer();
 
-  /** 
+  /**
    * This adds the proof steps for fact to proof pf with the given overwrite
    * policy. This is required for using this class as a lazy proof generator.
-   * 
+   *
    * It should be the case that a call was made to convert(...), where conc
    * was fact, in the current SAT context.
    */
@@ -97,16 +98,16 @@ class InferProofCons : public ProofGenerator
   virtual std::string identify() const override;
 
  private:
-  /** 
+  /**
    * Convert length proof. If this method returns true, it adds proof step(s)
    * to the buffer that conclude lenReq from premises lenExp.
    */
   bool convertLengthPf(Node lenReq, const std::vector<Node>& lenExp);
-  /** 
+  /**
    * Apply macro transform. If this method returns true, it adds proof step(s)
    * to the buffer that conclude tgt from premises src, exp. In particular,
    * it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method should be
-   * applied when src and tgt are equivalent formulas assuming exp. 
+   * applied when src and tgt are equivalent formulas assuming exp.
    */
   bool convertPredTransform(Node src, Node tgt, const std::vector<Node>& exp);
   /** The lazy fact map */

@@ -27,17 +27,19 @@ namespace theory {
 namespace strings {
 
 InferProofCons::InferProofCons(context::Context* c,
-                                ProofChecker* pc,
+                               ProofChecker* pc,
                                SequencesStatistics& statistics,
                                bool pfEnabled)
-    : d_lazyFactMap(c), d_psb(pc), d_statistics(statistics), d_pfEnabled(pfEnabled)
+    : d_lazyFactMap(c),
+      d_psb(pc),
+      d_statistics(statistics),
+      d_pfEnabled(pfEnabled)
 {
 }
 
 void InferProofCons::notifyFact(const InferInfo& ii)
 {
-  std::shared_ptr<InferInfo> iic = 
-      std::make_shared<InferInfo>(ii);
+  std::shared_ptr<InferInfo> iic = std::make_shared<InferInfo>(ii);
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
 
@@ -224,9 +226,9 @@ Node InferProofCons::convert(Inference infer,
                             ps.d_children.begin(),
                             ps.d_children.begin() + mainEqIndex);
         std::vector<Node> argsSRew;
-        Node mainEqSRew = 
-              d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
-        if (mainEqSRew==mainEq)
+        Node mainEqSRew =
+            d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
+        if (mainEqSRew == mainEq)
         {
           Trace("strings-ipc-core") << "...undo step" << std::endl;
           // not necessary
@@ -247,7 +249,7 @@ Node InferProofCons::convert(Inference infer,
           // fail
           break;
         }
-        else if (mainEqCeq==mainEqSRew)
+        else if (mainEqCeq == mainEqSRew)
         {
           Trace("strings-ipc-core") << "...undo step" << std::endl;
           // not necessary, probably first component of equality
@@ -371,7 +373,7 @@ Node InferProofCons::convert(Inference infer,
             Node mainEqMain = d_psb.tryStep(rule, childrenMain, argsMain);
             Trace("strings-ipc-core") << "Main equality after " << rule << " "
                                       << mainEqMain << std::endl;
-            Assert (mainEqMain!=mainEqCeq);
+            Assert(mainEqMain != mainEqCeq);
             // either equal or rewrites to it
             std::vector<Node> cexp;
             if (convertPredTransform(mainEqMain, conc, cexp))
@@ -421,7 +423,7 @@ Node InferProofCons::convert(Inference infer,
     case Inference::RE_UNFOLD_NEG:
     {
       ps.d_rule = infer == Inference::RE_UNFOLD_POS ? PfRule::RE_UNFOLD_POS
-                                                     : PfRule::RE_UNFOLD_NEG;
+                                                    : PfRule::RE_UNFOLD_NEG;
     }
     break;
     // ========================== Reduction
@@ -588,7 +590,7 @@ bool InferProofCons::convertPredTransform(Node src,
     return false;
   }
   // should definitely have concluded tgt
-  Assert (res==tgt);
+  Assert(res == tgt);
   return true;
 }
 

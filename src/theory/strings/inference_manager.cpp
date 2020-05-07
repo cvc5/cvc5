@@ -60,9 +60,9 @@ void InferenceManager::finishInit(ProofNodeManager* pnm)
                                      *d_state.getEqualityEngine(),
                                      pnm,
                                      d_pfEnabled,
-                                     d_recExplain
-                                    ));
-  d_ipc.reset(new InferProofCons(d_state.getSatContext(), pnm->getChecker(), d_statistics, d_pfEnabled));
+                                     d_recExplain));
+  d_ipc.reset(new InferProofCons(
+      d_state.getSatContext(), pnm->getChecker(), d_statistics, d_pfEnabled));
 }
 
 void InferenceManager::sendAssumption(TNode lit)
@@ -353,7 +353,7 @@ void InferenceManager::doPendingFacts()
         ProofStep ps;
         // convert to proof rule(s)
         Node conc = d_ipc->convert(ii, ps, useBuffer);
-        Assert( conc==fact);
+        Assert(conc == fact);
         preProcessFact(conc);
         // assert to equality engine
         if (useBuffer)
@@ -404,9 +404,8 @@ void InferenceManager::doPendingLemmas()
     {
       // if we aren't regressing the explanation, we add all literals to
       // noExplain and ignore ii.d_antn.
-      noExplain.insert(noExplain.end(),
-                                    ps.d_children.begin(),
-                                    ps.d_children.end());
+      noExplain.insert(
+          noExplain.end(), ps.d_children.begin(), ps.d_children.end());
     }
     else
     {
@@ -414,23 +413,18 @@ void InferenceManager::doPendingLemmas()
       for (const Node& ecn : ii.d_noExplain)
       {
         utils::flattenOp(AND, ecn, noExplain);
-      }    
+      }
     }
     // make the trusted lemma object
     if (useBuffer)
     {
-      tlem = d_pfee->assertLemma(conc,
-                                 ps.d_children,
-                                 noExplain,
-                                 *d_ipc->getBuffer());
+      tlem = d_pfee->assertLemma(
+          conc, ps.d_children, noExplain, *d_ipc->getBuffer());
     }
     else
     {
-      tlem = d_pfee->assertLemma(conc,
-                                 ps.d_rule,
-                                 ps.d_children,
-                                 noExplain,
-                                 ps.d_args);
+      tlem = d_pfee->assertLemma(
+          conc, ps.d_rule, ps.d_children, noExplain, ps.d_args);
     }
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
@@ -590,17 +584,22 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
 TrustNode InferenceManager::explain(TNode literal) const
 {
   std::vector<TNode> assumptions;
-  explain(literal,assumptions);
+  explain(literal, assumptions);
   Node exp;
-  if( assumptions.empty() ){
+  if (assumptions.empty())
+  {
     exp = d_true;
-  }else if( assumptions.size()==1 ){
+  }
+  else if (assumptions.size() == 1)
+  {
     exp = assumptions[0];
-  }else{
-    exp = NodeManager::currentNM()->mkNode( AND, assumptions );
+  }
+  else
+  {
+    exp = NodeManager::currentNM()->mkNode(AND, assumptions);
   }
   // FIXME
-  return TrustNode::mkTrustPropExp(literal,exp,nullptr);
+  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
 void InferenceManager::explain(TNode literal,

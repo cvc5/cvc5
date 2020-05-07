@@ -31,7 +31,7 @@ void ProofEngineOutputChannel::trustedConflict(TrustNode pconf)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
   Node conf = pconf.getNode();
-  if (d_lazyPf!=nullptr)
+  if (d_lazyPf != nullptr)
   {
     Node ckey = TrustNode::getConflictKeyValue(conf);
     ProofGenerator* pfg = pconf.getGenerator();
@@ -61,7 +61,7 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   TNode lem = plem.getNode();
   ProofGenerator* pfg = plem.getGenerator();
-  if (d_lazyPf!=nullptr)
+  if (d_lazyPf != nullptr)
   {
     Node lkey = TrustNode::getLemmaKeyValue(lem);
     // may or may not have supplied a generator
@@ -84,8 +84,8 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
 
 bool ProofEngineOutputChannel::addTheoryLemmaStep(Node f)
 {
-  Assert (d_lazyPf!=nullptr);
-  Assert (!f.isNull());
+  Assert(d_lazyPf != nullptr);
+  Assert(!f.isNull());
   std::vector<Node> children;
   std::vector<Node> args;
   unsigned tid = static_cast<unsigned>(d_theory);

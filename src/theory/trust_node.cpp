@@ -51,7 +51,7 @@ TrustNode TrustNode::mkTrustLemma(Node lem, ProofGenerator* g)
 
 TrustNode TrustNode::mkTrustPropExp(Node lit, Node exp, ProofGenerator* g)
 {
-  Assert(g == nullptr || g->hasProofFor(getPropExpKeyValue(lit,exp)));
+  Assert(g == nullptr || g->hasProofFor(getPropExpKeyValue(lit, exp)));
   return TrustNode(TrustNodeKind::PROP_EXP, exp, g);
 }
 
@@ -75,10 +75,7 @@ ProofGenerator* TrustNode::getGenerator() const { return d_gen; }
 
 bool TrustNode::isNull() const { return d_node.isNull(); }
 
-Node TrustNode::getConflictKeyValue(Node conf)
-{
-  return conf.negate();
-}
+Node TrustNode::getConflictKeyValue(Node conf) { return conf.negate(); }
 
 Node TrustNode::getLemmaKeyValue(Node lem) { return lem; }
 
@@ -86,10 +83,10 @@ Node TrustNode::getPropExpKeyValue(TNode lit, Node exp)
 {
   if (exp.isConst())
   {
-    Assert (exp.getConst<bool>());
+    Assert(exp.getConst<bool>());
     return lit;
   }
-  return NodeManager::currentNM()->mkNode(kind::IMPLIES,exp,lit);
+  return NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, lit);
 }
 
 std::ostream& operator<<(std::ostream& out, TrustNode n)
