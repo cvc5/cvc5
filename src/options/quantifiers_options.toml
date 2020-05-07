@@ -642,15 +642,6 @@ header = "options/quantifiers_options.h"
   help       = "find models for recursively defined functions, assumes functions are admissible, allows empty type when function is irrelevant"
 
 [[option]]
-  name       = "fmfEmptySorts"
-  category   = "regular"
-  long       = "fmf-empty-sorts"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "allow finite model finding to assume sorts that do not occur in ground assertions are empty"
-
-[[option]]
   name       = "mbqiMode"
   category   = "regular"
   long       = "mbqi=MODE"
@@ -996,7 +987,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "cegqiSingleInvMode"
   category   = "regular"
-  long       = "cegqi-si=MODE"
+  long       = "sygus-si=MODE"
   type       = "CegqiSingleInvMode"
   default    = "NONE"
   help       = "mode for processing single invocation synthesis conjectures"
@@ -1014,7 +1005,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "cegqiSingleInvPartial"
   category   = "regular"
-  long       = "cegqi-si-partial"
+  long       = "sygus-si-partial"
   type       = "bool"
   default    = "false"
   read_only  = true
@@ -1029,7 +1020,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "cegqiSingleInvReconstruct"
   category   = "regular"
-  long       = "cegqi-si-rcons=MODE"
+  long       = "sygus-si-rcons=MODE"
   type       = "CegqiSingleInvRconsMode"
   default    = "ALL_LIMIT"
   help       = "policy for reconstructing solutions for single invocation conjectures"
@@ -1050,7 +1041,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "cegqiSingleInvReconstructLimit"
   category   = "regular"
-  long       = "cegqi-si-rcons-limit=N"
+  long       = "sygus-si-rcons-limit=N"
   type       = "int"
   default    = "10000"
   read_only  = true
@@ -1059,7 +1050,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "cegqiSingleInvReconstructConst"
   category   = "regular"
-  long       = "cegqi-si-reconstruct-const"
+  long       = "sygus-si-reconstruct-const"
   type       = "bool"
   default    = "true"
   read_only  = true
@@ -1068,7 +1059,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "cegqiSingleInvAbort"
   category   = "regular"
-  long       = "cegqi-si-abort"
+  long       = "sygus-si-abort"
   type       = "bool"
   default    = "false"
   read_only  = true
@@ -1632,73 +1623,73 @@ header = "options/quantifiers_options.h"
 # CEGQI applied to general quantified formulas
 
 [[option]]
-  name       = "cbqi"
+  name       = "cegqi"
   category   = "regular"
-  long       = "cbqi"
+  long       = "cegqi"
   type       = "bool"
   default    = "false"
   help       = "turns on counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiFullEffort"
+  name       = "cegqiFullEffort"
   category   = "regular"
-  long       = "cbqi-full"
+  long       = "cegqi-full"
   type       = "bool"
   default    = "false"
   help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
 
 [[option]]
-  name       = "cbqiSat"
+  name       = "cegqiSat"
   category   = "regular"
-  long       = "cbqi-sat"
+  long       = "cegqi-sat"
   type       = "bool"
   default    = "true"
   help       = "answer sat when quantifiers are asserted with counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiModel"
+  name       = "cegqiModel"
   category   = "regular"
-  long       = "cbqi-model"
+  long       = "cegqi-model"
   type       = "bool"
   default    = "true"
   help       = "guide instantiations by model values for counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiAll"
+  name       = "cegqiAll"
   category   = "regular"
-  long       = "cbqi-all"
+  long       = "cegqi-all"
   type       = "bool"
   default    = "false"
   help       = "apply counterexample-based instantiation to all quantified formulas"
 
 [[option]]
-  name       = "cbqiMultiInst"
+  name       = "cegqiMultiInst"
   category   = "regular"
-  long       = "cbqi-multi-inst"
+  long       = "cegqi-multi-inst"
   type       = "bool"
   default    = "false"
   help       = "when applicable, do multi instantiations per quantifier per round in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiRepeatLit"
+  name       = "cegqiRepeatLit"
   category   = "regular"
-  long       = "cbqi-repeat-lit"
+  long       = "cegqi-repeat-lit"
   type       = "bool"
   default    = "false"
   help       = "solve literals more than once in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiInnermost"
+  name       = "cegqiInnermost"
   category   = "regular"
-  long       = "cbqi-innermost"
+  long       = "cegqi-innermost"
   type       = "bool"
   default    = "true"
   help       = "only process innermost quantified formulas in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiNestedQE"
+  name       = "cegqiNestedQE"
   category   = "regular"
-  long       = "cbqi-nested-qe"
+  long       = "cegqi-nested-qe"
   type       = "bool"
   default    = "false"
   help       = "process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation"
@@ -1706,59 +1697,59 @@ header = "options/quantifiers_options.h"
 # CEGQI for arithmetic
 
 [[option]]
-  name       = "cbqiUseInfInt"
+  name       = "cegqiUseInfInt"
   category   = "regular"
-  long       = "cbqi-use-inf-int"
+  long       = "cegqi-use-inf-int"
   type       = "bool"
   default    = "false"
   help       = "use integer infinity for vts in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiUseInfReal"
+  name       = "cegqiUseInfReal"
   category   = "regular"
-  long       = "cbqi-use-inf-real"
+  long       = "cegqi-use-inf-real"
   type       = "bool"
   default    = "false"
   help       = "use real infinity for vts in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiPreRegInst"
+  name       = "cegqiPreRegInst"
   category   = "regular"
-  long       = "cbqi-prereg-inst"
+  long       = "cegqi-prereg-inst"
   type       = "bool"
   default    = "false"
   help       = "preregister ground instantiations in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiMinBounds"
+  name       = "cegqiMinBounds"
   category   = "regular"
-  long       = "cbqi-min-bounds"
+  long       = "cegqi-min-bounds"
   type       = "bool"
   default    = "false"
   read_only  = true
   help       = "use minimally constrained lower/upper bound for counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiRoundUpLowerLia"
+  name       = "cegqiRoundUpLowerLia"
   category   = "regular"
-  long       = "cbqi-round-up-lia"
+  long       = "cegqi-round-up-lia"
   type       = "bool"
   default    = "false"
   read_only  = true
   help       = "round up integer lower bounds in substitutions for counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiMidpoint"
+  name       = "cegqiMidpoint"
   category   = "regular"
-  long       = "cbqi-midpoint"
+  long       = "cegqi-midpoint"
   type       = "bool"
   default    = "false"
   help       = "choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cbqiNopt"
+  name       = "cegqiNopt"
   category   = "regular"
-  long       = "cbqi-nopt"
+  long       = "cegqi-nopt"
   type       = "bool"
   default    = "true"
   read_only  = true
@@ -1786,25 +1777,25 @@ header = "options/quantifiers_options.h"
 # CEGQI for BV
 
 [[option]]
-  name       = "cbqiBv"
+  name       = "cegqiBv"
   category   = "regular"
-  long       = "cbqi-bv"
+  long       = "cegqi-bv"
   type       = "bool"
   default    = "true"
   help       = "use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors"
 
 [[option]]
-  name       = "cbqiBvInterleaveValue"
+  name       = "cegqiBvInterleaveValue"
   category   = "regular"
-  long       = "cbqi-bv-interleave-value"
+  long       = "cegqi-bv-interleave-value"
   type       = "bool"
   default    = "false"
   help       = "interleave model value instantiation with word-level inversion approach"
 
 [[option]]
-  name       = "cbqiBvIneqMode"
+  name       = "cegqiBvIneqMode"
   category   = "regular"
-  long       = "cbqi-bv-ineq=MODE"
+  long       = "cegqi-bv-ineq=MODE"
   type       = "CbqiBvIneqMode"
   default    = "EQ_BOUNDARY"
   help       = "choose mode for handling bit-vector inequalities with counterexample-guided instantiation"
@@ -1820,33 +1811,33 @@ header = "options/quantifiers_options.h"
   help = "Solve for the inequality directly using side conditions for invertibility."
 
 [[option]]
-  name       = "cbqiBvRmExtract"
+  name       = "cegqiBvRmExtract"
   category   = "regular"
-  long       = "cbqi-bv-rm-extract"
+  long       = "cegqi-bv-rm-extract"
   type       = "bool"
   default    = "true"
   help       = "replaces extract terms with variables for counterexample-guided instantiation for bit-vectors"
 
 [[option]]
-  name       = "cbqiBvLinearize"
+  name       = "cegqiBvLinearize"
   category   = "regular"
-  long       = "cbqi-bv-linear"
+  long       = "cegqi-bv-linear"
   type       = "bool"
   default    = "true"
   help       = "linearize adder chains for variables"
 
 [[option]]
-  name       = "cbqiBvSolveNl"
+  name       = "cegqiBvSolveNl"
   category   = "regular"
-  long       = "cbqi-bv-solve-nl"
+  long       = "cegqi-bv-solve-nl"
   type       = "bool"
   default    = "false"
   help       = "try to solve non-linear bv literals using model value projections"
 
 [[option]]
-  name       = "cbqiBvConcInv"
+  name       = "cegqiBvConcInv"
   category   = "regular"
-  long       = "cbqi-bv-concat-inv"
+  long       = "cegqi-bv-concat-inv"
   type       = "bool"
   default    = "true"
   help       = "compute inverse for concat over equalities rather than producing an invertibility condition"
@@ -1982,3 +1973,14 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)"
+
+
+### SyGuS instantiation options
+
+[[option]]
+  name       = "sygusInst"
+  category   = "regular"
+  long       = "sygus-inst"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable SyGuS instantiation quantifiers module"

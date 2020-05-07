@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi --decision=internal
+; COMMAND-LINE: --cegqi --decision=internal
 ; EXPECT: unsat
 (set-logic LIA)
 (set-info :status unsat)

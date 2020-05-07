@@ -118,6 +118,16 @@ class SolverState
   Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
   /** shorthand for getLengthExp(t, exp, t) */
   Node getLength(Node t, std::vector<Node>& exp);
+  /** explain non-empty
+   *
+   * This returns an explanation of why string-like term is non-empty in the
+   * current context, if such an explanation exists. Otherwise, this returns
+   * the null node.
+   *
+   * Note that an explanation is a (conjunction of) literals that currently hold
+   * in the equality engine.
+   */
+  Node explainNonEmpty(Node s);
   /**
    * Get the above information for equivalence class eqc. If doMake is true,
    * we construct a new information class if one does not exist. The term eqc
@@ -153,6 +163,8 @@ class SolverState
                         std::vector<std::vector<Node> >& cols,
                         std::vector<Node>& lts);
  private:
+  /** Common constants */
+  Node d_zero;
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;
   /** Reference to equality engine of the theory of strings. */

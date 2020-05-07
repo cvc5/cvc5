@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --lang=smt2.6.1
+; COMMAND-LINE: --strings-exp --lang=smt2.6
 ; EXPECT: sat
 (set-logic ALL)
 

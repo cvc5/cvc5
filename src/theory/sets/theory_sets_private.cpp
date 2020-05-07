@@ -514,10 +514,7 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check downwards closure
     checkDownwardsClosure();
-    if (options::setsInferAsLemmas())
-    {
-      d_im.flushPendingLemmas();
-    }
+    d_im.flushPendingLemmas();
     if (d_im.hasProcessed())
     {
       continue;

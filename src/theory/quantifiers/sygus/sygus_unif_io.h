@@ -83,7 +83,7 @@ class UnifContextIo : public UnifContext
   * role to nrole.
   */
   bool updateStringPosition(SygusUnifIo* sui,
-                            std::vector<unsigned>& pos,
+                            std::vector<size_t>& pos,
                             NodeRole nrole);
   /** get current strings
   *
@@ -94,7 +94,7 @@ class UnifContextIo : public UnifContext
   */
   void getCurrentStrings(SygusUnifIo* sui,
                          const std::vector<Node>& vals,
-                         std::vector<String>& ex_vals);
+                         std::vector<Node>& ex_vals);
   /** get string increment
   *
   * If this method returns true, then inc and tot are updated such that
@@ -107,13 +107,13 @@ class UnifContextIo : public UnifContext
   */
   bool getStringIncrement(SygusUnifIo* sui,
                           bool isPrefix,
-                          const std::vector<String>& ex_vals,
+                          const std::vector<Node>& ex_vals,
                           const std::vector<Node>& vals,
-                          std::vector<unsigned>& inc,
-                          unsigned& tot);
+                          std::vector<size_t>& inc,
+                          size_t& tot);
   /** returns true if ex_vals[i] = vals[i] for all active indices i. */
   bool isStringSolved(SygusUnifIo* sui,
-                      const std::vector<String>& ex_vals,
+                      const std::vector<Node>& ex_vals,
                       const std::vector<Node>& vals);
   //----------end for CONCAT strategies
 
