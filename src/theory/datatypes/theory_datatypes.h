@@ -285,7 +285,8 @@ private:
   void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
   void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
   void explain( TNode literal, std::vector<TNode>& assumptions );
-  Node explain(TNode literal) override;
+  TrustNode explain(TNode literal) override;
+  Node explainLit(TNode literal);
   Node explain( std::vector< Node >& lits );
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);

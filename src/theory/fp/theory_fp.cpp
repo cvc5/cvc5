@@ -1010,7 +1010,7 @@ void TheoryFp::setMasterEqualityEngine(eq::EqualityEngine *eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
 
-Node TheoryFp::explain(TNode n) {
+TrustNode TheoryFp::explain(TNode n) {
   Trace("fp") << "TheoryFp::explain(): explain " << n << std::endl;
 
   // All things we assert directly (and not via bit-vector) should
@@ -1025,7 +1025,8 @@ Node TheoryFp::explain(TNode n) {
     d_equalityEngine.explainPredicate(atom, polarity, assumptions);
   }
 
-  return helper::buildConjunct(assumptions);
+  Node exp = helper::buildConjunct(assumptions);
+  return TrustNode::mkTrustPropExp(n,exp,nullptr);
 }
 
 Node TheoryFp::getModelValue(TNode var) {

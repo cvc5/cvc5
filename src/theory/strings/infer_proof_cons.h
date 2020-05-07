@@ -104,7 +104,7 @@ class InferProofCons : public ProofGenerator
   bool convertLengthPf(Node lenReq, const std::vector<Node>& lenExp);
   /** 
    * Apply macro transform. If this method returns true, it adds proof step(s)
-   * to the buffer that conclude tgt from premises tgt, exp. In particular,
+   * to the buffer that conclude tgt from premises src, exp. In particular,
    * it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method should be
    * applied when src and tgt are equivalent formulas assuming exp. 
    */

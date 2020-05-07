@@ -31,6 +31,7 @@ enum class TrustNodeKind : uint32_t
 {
   CONFLICT,
   LEMMA,
+  PROP_EXP,
   INVALID
 };
 /**
@@ -78,6 +79,8 @@ class TrustNode
   static TrustNode mkTrustConflict(Node conf, ProofGenerator* g = nullptr);
   /** Make a proven node for lemma */
   static TrustNode mkTrustLemma(Node lem, ProofGenerator* g = nullptr);
+  /** Make a proven node for explanation of propagated literal */
+  static TrustNode mkTrustPropExp(Node lit, Node exp, ProofGenerator* g = nullptr);
   /** The null proven node */
   static TrustNode null();
   ~TrustNode() {}
@@ -89,6 +92,13 @@ class TrustNode
   ProofGenerator* getGenerator() const;
   /** is null? */
   bool isNull() const;
+
+  /** Get the node key for which conflict calls are cached */
+  static Node getConflictKeyValue(Node conf);
+  /** Get the node key for which lemma calls are cached */
+  static Node getLemmaKeyValue(Node lem);
+  /** Get the node key for which explanations for propagations are cached */
+  static Node getPropExpKeyValue(TNode lit, Node exp);
 
  private:
   TrustNode(TrustNodeKind tnk, Node n, ProofGenerator* g = nullptr);

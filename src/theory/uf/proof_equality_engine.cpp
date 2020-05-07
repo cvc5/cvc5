@@ -428,6 +428,10 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     {
       std::stringstream ss;
       pf->printDebug(ss);
+      ss << std::endl;
+      std::vector<Node> freeAssumpsPf;
+      pf->getFreeAssumptions(freeAssumpsPf);
+      ss << "Free assumptions: " << freeAssumpsPf << std::endl;
       Trace("pfee-proof-final")
           << "pfee::ensureProofForFact: Proof is " << ss.str() << std::endl;
       AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()

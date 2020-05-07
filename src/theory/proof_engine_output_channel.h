@@ -79,11 +79,6 @@ class ProofEngineOutputChannel : public EngineOutputChannel
                            bool preprocess = false,
                            bool sendAtoms = false) override;
 
-  /** Get the node key for which conflict calls are cached */
-  static Node getConflictKeyValue(Node conf);
-  /** Get the node key for which lemma calls are cached */
-  static Node getLemmaKeyValue(Node lem);
-
  private:
   /** Pointer to the lazy proof
    *

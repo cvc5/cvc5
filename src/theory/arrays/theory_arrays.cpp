@@ -851,9 +851,9 @@ void TheoryArrays::propagate(Effort e)
 }
 
 
-Node TheoryArrays::explain(TNode literal) {
+TrustNode TheoryArrays::explain(TNode literal) {
   Node explanation = explain(literal, NULL);
-  return explanation;
+  return TrustNode::mkTrustPropExp(literal,explanation,nullptr);
 }
 
 Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {

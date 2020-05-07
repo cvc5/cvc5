@@ -200,7 +200,7 @@ private:
   void check(Effort) override;
   Node expandDefinition(Node node) override;
   void preRegisterTerm(TNode term) override;
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 

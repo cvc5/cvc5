@@ -45,6 +45,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 
@@ -521,7 +522,7 @@ public:
    * Return an explanation for the literal represented by parameter n
    * (which was previously propagated by this theory).
    */
-  virtual Node explain(TNode n) {
+  virtual TrustNode explain(TNode n) {
     Unimplemented() << "Theory " << identify()
                     << " propagated a node but doesn't implement the "
                        "Theory::explain() interface!";

@@ -600,7 +600,7 @@ TrustNode InferenceManager::explain(TNode literal) const
     exp = NodeManager::currentNM()->mkNode( AND, assumptions );
   }
   // FIXME
-  return TrustNode::mkTrustLemma(exp,nullptr);
+  return TrustNode::mkTrustPropExp(literal,exp,nullptr);
 }
 
 void InferenceManager::explain(TNode literal,

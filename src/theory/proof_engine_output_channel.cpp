@@ -33,7 +33,7 @@ void ProofEngineOutputChannel::trustedConflict(TrustNode pconf)
   Node conf = pconf.getNode();
   if (d_lazyPf!=nullptr)
   {
-    Node ckey = getConflictKeyValue(conf);
+    Node ckey = TrustNode::getConflictKeyValue(conf);
     ProofGenerator* pfg = pconf.getGenerator();
     // may or may not have supplied a generator
     if (pfg != nullptr)
@@ -63,7 +63,7 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
   ProofGenerator* pfg = plem.getGenerator();
   if (d_lazyPf!=nullptr)
   {
-    Node lkey = getLemmaKeyValue(lem);
+    Node lkey = TrustNode::getLemmaKeyValue(lem);
     // may or may not have supplied a generator
     if (pfg != nullptr)
     {
@@ -81,13 +81,6 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
   // now, call the normal interface for lemma
   return OutputChannel::lemma(lem, removable, preprocess, sendAtoms);
 }
-
-Node ProofEngineOutputChannel::getConflictKeyValue(Node conf)
-{
-  return conf.negate();
-}
-
-Node ProofEngineOutputChannel::getLemmaKeyValue(Node lem) { return lem; }
 
 bool ProofEngineOutputChannel::addTheoryLemmaStep(Node f)
 {

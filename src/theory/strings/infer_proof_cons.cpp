@@ -228,6 +228,7 @@ Node InferProofCons::convert(Inference infer,
               d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
         if (mainEqSRew==mainEq)
         {
+          Trace("strings-ipc-core") << "...undo step" << std::endl;
           // not necessary
           d_psb.popStep();
         }
@@ -248,7 +249,8 @@ Node InferProofCons::convert(Inference infer,
         }
         else if (mainEqCeq==mainEqSRew)
         {
-          // not necessary
+          Trace("strings-ipc-core") << "...undo step" << std::endl;
+          // not necessary, probably first component of equality
           d_psb.popStep();
         }
         // Now, mainEqCeq is an equality t ++ ... == s ++ ... where the
@@ -369,6 +371,7 @@ Node InferProofCons::convert(Inference infer,
             Node mainEqMain = d_psb.tryStep(rule, childrenMain, argsMain);
             Trace("strings-ipc-core") << "Main equality after " << rule << " "
                                       << mainEqMain << std::endl;
+            Assert (mainEqMain!=mainEqCeq);
             // either equal or rewrites to it
             std::vector<Node> cexp;
             if (convertPredTransform(mainEqMain, conc, cexp))
@@ -579,7 +582,14 @@ bool InferProofCons::convertPredTransform(Node src,
   std::vector<Node> args;
   args.push_back(tgt);
   Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
-  return res == tgt;
+  if (res.isNull())
+  {
+    // failed to apply
+    return false;
+  }
+  // should definitely have concluded tgt
+  Assert (res==tgt);
+  return true;
 }
 
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }

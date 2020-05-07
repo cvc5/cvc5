@@ -242,10 +242,10 @@ bool TheoryStrings::propagate(TNode literal) {
 }
 
 
-Node TheoryStrings::explain( TNode literal ){
+TrustNode TheoryStrings::explain( TNode literal ){
   Debug("strings-explain") << "explain called on " << literal << std::endl;
   TrustNode trn = d_im->explain(literal);
-  return trn.getNode();
+  return trn;
 }
 
 bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars, 

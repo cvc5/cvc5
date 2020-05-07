@@ -67,7 +67,7 @@ std::shared_ptr<ProofNode> LazyCDProof::mkLazyProof(Node fact)
           // use the addProofTo interface
           if (!pg->addProofTo(afactGen, this))
           {
-            Assert(false) << "Proof generator could not add proof for fact "
+            Assert(false) << "Proof generator " << pg->identify() << " could not add proof for fact "
                           << afactGen << std::endl;
           }
         }

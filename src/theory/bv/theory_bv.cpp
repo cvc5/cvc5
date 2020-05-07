@@ -849,21 +849,25 @@ void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
 }
 
 
-Node TheoryBV::explain(TNode node) {
+TrustNode TheoryBV::explain(TNode node) {
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ")" << std::endl;
   std::vector<TNode> assumptions;
 
   // Ask for the explanation
   explain(node, assumptions);
   // this means that it is something true at level 0
+  Node explanation;
   if (assumptions.size() == 0) {
-    return utils::mkTrue();
+    explanation = utils::mkTrue();
   }
-  // return the explanation
-  Node explanation = utils::mkAnd(assumptions);
+  else
+  {
+    // return the explanation
+    explanation = utils::mkAnd(assumptions);
+  }
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ") => " << explanation << std::endl;
   Debug("bitvector::explain") << "TheoryBV::explain done. \n";
-  return explanation;
+  return TrustNode::mkTrustPropExp(node,explanation,nullptr);
 }
 
 

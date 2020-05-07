@@ -121,7 +121,7 @@ class TheoryStrings : public Theory {
  public:
   void propagate(Effort e) override;
   bool propagate(TNode literal);
-  Node explain(TNode literal) override;
+  TrustNode explain(TNode literal) override;
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,

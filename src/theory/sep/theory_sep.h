@@ -97,7 +97,7 @@ class TheorySep : public Theory {
 
  public:
   void propagate(Effort e) override;
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
  public:
   void addSharedTerm(TNode t) override;
