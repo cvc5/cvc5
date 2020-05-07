@@ -81,6 +81,15 @@ void ProofStepBuffer::addStep(PfRule id,
       std::pair<Node, ProofStep>(expected, ProofStep(id, children, args)));
 }
 
+void ProofStepBuffer::popStep()
+{
+  Assert (!d_steps.empty());
+  if (!d_steps.empty())
+  {
+    d_steps.pop_back();
+  }
+}
+
 size_t ProofStepBuffer::getNumSteps() const { return d_steps.size(); }
 
 const std::vector<std::pair<Node, ProofStep>>& ProofStepBuffer::getSteps() const

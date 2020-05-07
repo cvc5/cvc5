@@ -16,6 +16,8 @@
 
 #include "theory/proof_engine_output_channel.h"
 
+#include "expr/lazy_proof.h"
+
 namespace CVC4 {
 namespace theory {
 

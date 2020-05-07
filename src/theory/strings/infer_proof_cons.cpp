@@ -224,8 +224,13 @@ Node InferProofCons::convert(Inference infer,
                             ps.d_children.begin(),
                             ps.d_children.begin() + mainEqIndex);
         std::vector<Node> argsSRew;
-        Node mainEqSRew =
-            d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
+        Node mainEqSRew = 
+              d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
+        if (mainEqSRew==mainEq)
+        {
+          // not necessary
+          d_psb.popStep();
+        }
         Trace("strings-ipc-core")
             << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
         // now, apply CONCAT_EQ to get the remainder
@@ -238,7 +243,13 @@ Node InferProofCons::convert(Inference infer,
             << "Main equality after CONCAT_EQ " << mainEqCeq << std::endl;
         if (mainEqCeq.isNull() || mainEqCeq.getKind() != EQUAL)
         {
+          // fail
           break;
+        }
+        else if (mainEqCeq==mainEqSRew)
+        {
+          // not necessary
+          d_psb.popStep();
         }
         // Now, mainEqCeq is an equality t ++ ... == s ++ ... where the
         // inference involved t and s.

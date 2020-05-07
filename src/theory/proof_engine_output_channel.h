@@ -18,13 +18,13 @@
 #define CVC4__THEORY__PROOF_ENGINE_OUTPUT_CHANNEL_H
 
 #include "context/cdhashmap.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/proof_node.h"
-#include "theory/eager_proof_generator.h"
 #include "theory/engine_output_channel.h"
 
 namespace CVC4 {
+  
+class LazyCDProof;
+
 namespace theory {
 
 /**

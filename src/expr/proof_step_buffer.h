@@ -68,6 +68,8 @@ class ProofStepBuffer
                const std::vector<Node>& children,
                const std::vector<Node>& args,
                Node expected);
+  /** pop step */
+  void popStep();
   /** Get num steps */
   size_t getNumSteps() const;
   /** Get steps */
