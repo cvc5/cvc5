@@ -371,11 +371,13 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       // ensured by the fact that the core mechanism for generating proofs
       // from the equality engine is syncronized with its getExplanation
       // method.
+      std::stringstream ss;
+      pfConc->printDebug(ss);
       Trace("pfee-proof") << "Could not find free assumption for " << a
                           << " in " << freeAssumps << std::endl;
-      Assert(false) << "pfee::ensureProofForFact: explained assumption " << a
-                    << " does not match a free assumption from " << freeAssumps
-                    << " in the corresponding proof";
+      Notice() << "pfee::ensureProofForFact: explained assumption " << a
+                    << " does not match a free assumption from " << freeAssumps << std::endl;
+      // Assert(false);
     }
   }
   else
@@ -398,13 +400,13 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   }
   Trace("pfee-proof") << "pfee::ensureProofForFact: formula is " << formula
                       << std::endl;
+  Node concFormula = isConflict ? formula.negate() : formula;
   // if proofs are enabled, scope the proof constructed above, and connect the
   // formula with the proof
   if (d_pfEnabled)
   {
     // Notice that we have an expected conclusion (formula) which we pass to
     // mkNode, which can check it if it wants. This is negated for conflicts.
-    Node concFormula = isConflict ? formula.negate() : formula;
     std::shared_ptr<ProofNode> pf =
         d_pnm->mkNode(PfRule::SCOPE, pfConc, scopeAssumps, concFormula);
     if (Trace.isOn("pfee-proof") || Trace.isOn("pfee-proof-final"))

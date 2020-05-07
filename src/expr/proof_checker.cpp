@@ -31,6 +31,11 @@ Node ProofRuleChecker::check(PfRule id,
   ProofSkolemCache::convertToWitnessFormVec(childrenw);
   ProofSkolemCache::convertToWitnessFormVec(argsw);
   Node res = checkInternal(id, childrenw, argsw);
+  if (res.isNull())
+  {
+    // failed, don't convert back
+    return res;
+  }
   // res is in terms of witness form, convert back to Skolem form
   return ProofSkolemCache::getSkolemForm(res);
 }
