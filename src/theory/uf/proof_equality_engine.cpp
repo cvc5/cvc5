@@ -32,7 +32,7 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
     : EagerProofGenerator(u, pnm),
       d_ee(ee),
       d_pnm(pnm),
-      d_proof(pnm, c),
+      d_proof(pnm, nullptr, c),
       d_keep(c),
       d_pfEnabled(pfEnabled),
       d_recExplain(recExplain)
@@ -108,8 +108,10 @@ bool ProofEqEngine::assertFact(Node lit,
 {
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
+  // shouldnt use this interface if not doing recursive explanations?
+  Assert (d_recExplain);
   // first, register the step in the proof
-  if (d_pfEnabled)  // && d_recExplain)
+  if (d_pfEnabled)
   {
     // must extract the explanation as a vector
     std::vector<Node> expv;
@@ -133,7 +135,9 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via buffer with " << psb.getNumSteps() << " steps"
                 << std::endl;
-  if (d_pfEnabled)  // && d_recExplain)
+  // shouldnt use this interface if not doing recursive explanations?
+  Assert (d_recExplain);
+  if (d_pfEnabled)
   {
     if (!d_proof.addSteps(psb))
     {
@@ -152,7 +156,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
 {
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via generator" << std::endl;
-  if (d_pfEnabled)  // && d_recExplain)
+  if (d_pfEnabled)
   {
     // note the proof generator is responsible for remembering the explanation
     d_proof.addLazyStep(lit, pg);
@@ -168,7 +172,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
 {
   Trace("pfee") << "pfee::assertConflict " << lit << std::endl;
   std::vector<TNode> assumps;
-  explainWithProof(lit, assumps);
+  explainWithProof(lit, assumps, &d_proof);
   if (d_pfEnabled)
   {
     // lit may not be equivalent to false, but should rewrite to false
@@ -187,15 +191,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
       }
     }
   }
-  return ensureProofForFact(d_false, assumps, true);
-}
-
-TrustNode ProofEqEngine::assertConflict(PfRule id, const std::vector<Node>& exp)
-{
-  Trace("pfee") << "pfee::assertConflict " << id << ", exp = " << exp
-                << std::endl;
-  std::vector<Node> args;
-  return assertConflict(id, exp, args);
+  return ensureProofForFact(d_false, assumps, true, &d_proof);
 }
 
 TrustNode ProofEqEngine::assertConflict(PfRule id,
@@ -222,7 +218,7 @@ TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
     }
   }
   std::vector<Node> empVec;
-  return assertLemmaInternal(d_false, exp, empVec);
+  return assertLemmaInternal(d_false, exp, empVec, &d_proof);
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
@@ -237,15 +233,26 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   Assert(conc != d_true);
   if (d_pfEnabled)
   {
+    LazyCDProof tmpProof(d_pnm);
+    CDProof * curr;
+    if (conc==d_false || true)
+    {
+      curr = &d_proof;
+    }
+    else
+    {
+      curr = &tmpProof;
+    }
     // Register the proof step.
-    if (!d_proof.addStep(conc, id, exp, args))
+    if (!curr->addStep(conc, id, exp, args))
     {
       // a step went wrong, e.g. during checking
       Assert(false) << "pfee::assertConflict: register proof step";
       return TrustNode::null();
     }
+    return assertLemmaInternal(conc, exp, noExplain, curr);
   }
-  return assertLemmaInternal(conc, exp, noExplain);
+  return assertLemmaInternal(conc, exp, noExplain, nullptr);
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
@@ -258,17 +265,60 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                 << psb.getNumSteps() << " steps" << std::endl;
   if (d_pfEnabled)
   {
+    LazyCDProof tmpProof(d_pnm);
+    CDProof * curr;
+    if (conc==d_false || true)
+    {
+      curr = &d_proof;
+    }
+    else
+    {
+      curr = &tmpProof;
+    }
     // add all steps to the proof
     const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
     for (const std::pair<Node, ProofStep>& ps : steps)
     {
-      if (!d_proof.addStep(ps.first, ps.second))
+      if (!curr->addStep(ps.first, ps.second))
       {
         return TrustNode::null();
       }
     }
+    return assertLemmaInternal(conc, exp, noExplain, curr);
   }
-  return assertLemmaInternal(conc, exp, noExplain);
+  return assertLemmaInternal(conc, exp, noExplain, nullptr);
+}
+
+TrustNode ProofEqEngine::assertLemma(Node conc,
+                      const std::vector<Node>& exp,
+                      const std::vector<Node>& noExplain,
+                      ProofGenerator* pg)
+{
+
+  Trace("pfee") << "pfee::assertLemma " << conc << ", exp = " << exp
+                << ", noExplain = " << noExplain << " via buffer with generator" << std::endl;
+  if (d_pfEnabled)
+  {
+    LazyCDProof tmpProof(d_pnm);
+    CDProof * curr;
+    if (conc==d_false || true)
+    {
+      curr = &d_proof;
+    }
+    else
+    {
+      curr = &tmpProof;
+    }
+    // Register the proof step.
+    if (!pg->addProofTo(conc, curr))
+    {
+      // a step went wrong, e.g. during checking
+      Assert(false) << "pfee::assertConflict: register proof step";
+      return TrustNode::null();
+    }
+    return assertLemmaInternal(conc, exp, noExplain, curr);
+  }
+  return assertLemmaInternal(conc, exp, noExplain, nullptr);
 }
 
 std::string ProofEqEngine::identify() const
@@ -279,7 +329,8 @@ std::string ProofEqEngine::identify() const
 }
 TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
                                              const std::vector<Node>& exp,
-                                             const std::vector<Node>& noExplain)
+                                             const std::vector<Node>& noExplain,
+                                CDProof * curr)
 {
   // We are a conflict if the conclusion is false and all literals are
   // explained.
@@ -292,7 +343,7 @@ TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
   {
     if (std::find(noExplain.begin(), noExplain.end(), e) == noExplain.end())
     {
-      explainWithProof(e, assumps);
+      explainWithProof(e, assumps, curr);
     }
     else
     {
@@ -302,12 +353,13 @@ TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
       isConflict = false;
     }
   }
-  return ensureProofForFact(conc, assumps, isConflict);
+  return ensureProofForFact(conc, assumps, isConflict, curr);
 }
 
 TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                                             const std::vector<TNode>& assumps,
-                                            bool isConflict)
+                                            bool isConflict,
+                                CDProof * curr)
 {
   Trace("pfee-proof") << std::endl;
   Trace("pfee-proof") << "pfee::ensureProofForFact: input " << conc << " via "
@@ -323,10 +375,11 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   // if proofs are enabled, generate the proof and clean the assumptions
   if (d_pfEnabled)
   {
+    Assert (curr!=nullptr);
     Trace("pfee-proof") << "pfee::ensureProofForFact: make proof for fact"
                         << std::endl;
     // get the proof for conc
-    pfConc = mkProofForFact(conc);
+    pfConc = curr->mkProof(conc);
     if (pfConc == nullptr)
     {
       Trace("pfee-proof")
@@ -337,6 +390,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       Assert(false) << "pfee::assertConflict: failed to get proof for " << conc;
       return TrustNode::null();
     }
+    // clone it so that we have a fresh copy
+    pfConc = pfConc->clone();
     Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
     // The free assumptions must be closed by assumps, which should be passed
     // as arguments of SCOPE. However, some of the free assumptions may not
@@ -465,15 +520,6 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   return TrustNode::mkTrustLemma(formula, pfg);
 }
 
-std::shared_ptr<ProofNode> ProofEqEngine::mkProofForFact(Node lit)
-{
-  // use the lazy proof version
-  std::shared_ptr<ProofNode> p = d_proof.mkLazyProof(lit);
-  Assert(p != nullptr);
-  // clone it so that we have a fresh copy
-  return p->clone();
-}
-
 void ProofEqEngine::assertFactInternal(TNode atom, bool polarity, TNode reason)
 {
   Trace("pfee-debug") << "pfee::assertFactInternal: " << atom << " " << polarity
@@ -509,7 +555,8 @@ bool ProofEqEngine::addProofStep(Node lit,
   return true;
 }
 
-void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
+void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps,
+                                CDProof * curr)
 {
   if (std::find(assumps.begin(), assumps.end(), lit) != assumps.end())
   {
@@ -587,13 +634,13 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
         for (const Node& ac : a)
         {
           // recurse
-          explainWithProof(ac, assumps);
+          explainWithProof(ac, assumps, curr);
         }
       }
       else
       {
         // recurse
-        explainWithProof(a, assumps);
+        explainWithProof(a, assumps, curr);
       }
     }
     else if (std::find(assumps.begin(), assumps.end(), a) == assumps.end())
@@ -613,7 +660,7 @@ void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps)
       Trace("pfee-proof") << "---" << std::endl;
     }
     // add the steps in the equality engine proof to the Proof
-    pf->addToProof(&d_proof);
+    pf->addToProof(curr);
   }
   Trace("pfee-proof") << "pfee::explainWithProof: finished" << std::endl;
 }

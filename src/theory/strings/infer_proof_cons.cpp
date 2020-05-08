@@ -610,6 +610,7 @@ ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
+  // temporary proof
   CDProof pf(d_pnm);
   // get the inference
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
@@ -637,7 +638,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 
 bool InferProofCons::addProofTo(Node fact, CDProof* pf, bool forceOverwrite)
 {
-  // TODO: use this?
+  // we copy fresh proofs
   return ProofGenerator::addProofTo(fact,pf,forceOverwrite);
   // get the inference
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);

@@ -250,7 +250,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
   // The lazy proof is user-context-dependent
   if (options::proofNew())
   {
-    d_lazyProof.reset(new LazyCDProof(d_pNodeManager.get(), d_userContext));
+    // no default generator
+    d_lazyProof.reset(new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext));
   }
 #endif
 

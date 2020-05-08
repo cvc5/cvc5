@@ -387,6 +387,7 @@ void InferenceManager::doPendingLemmas()
     d_pendingReqPhase.clear();
     return;
   }
+  bool lazyAdd = false;
   for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
   {
     InferInfo& ii = d_pendingLem[i];
@@ -395,17 +396,21 @@ void InferenceManager::doPendingLemmas()
     // set up proof step based on inference
     // pfExp is the children of the proof step below. This should be an
     // ordered list of expConj + expn.
-    bool useBuffer = false;
-    ProofStep ps;
-    Node conc = d_ipc->convert(ii, ps, useBuffer);
+    
+    // set up the explanation and no-explanation
     TrustNode tlem;
+    std::vector<Node> exp;
+    for (const Node& ec : ii.d_ant)
+    {
+      utils::flattenOp(AND, ec, exp);
+    }
     std::vector<Node> noExplain;
     if (options::stringRExplainLemmas())
     {
       // if we aren't regressing the explanation, we add all literals to
       // noExplain and ignore ii.d_antn.
       noExplain.insert(
-          noExplain.end(), ps.d_children.begin(), ps.d_children.end());
+          noExplain.end(), exp.begin(), exp.end());
     }
     else
     {
@@ -415,16 +420,28 @@ void InferenceManager::doPendingLemmas()
         utils::flattenOp(AND, ecn, noExplain);
       }
     }
-    // make the trusted lemma object
-    if (useBuffer)
+    if (lazyAdd)
     {
-      tlem = d_pfee->assertLemma(
-          conc, ps.d_children, noExplain, *d_ipc->getBuffer());
+      // notify fact and assert lemma via generator
+      d_ipc->notifyFact(ii);
+      tlem = d_pfee->assertLemma(ii.d_conc, exp, noExplain, d_ipc.get());
     }
     else
     {
-      tlem = d_pfee->assertLemma(
-          conc, ps.d_rule, ps.d_children, noExplain, ps.d_args);
+      // make the trusted lemma object
+      bool useBuffer = false;
+      ProofStep ps;
+      Node conc = d_ipc->convert(ii, ps, useBuffer);
+      if (useBuffer)
+      {
+        tlem = d_pfee->assertLemma(
+            conc, exp, noExplain, *d_ipc->getBuffer());
+      }
+      else
+      {
+        tlem = d_pfee->assertLemma(
+            conc, ps.d_rule, exp, noExplain, ps.d_args);
+      }
     }
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;

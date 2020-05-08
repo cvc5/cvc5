@@ -120,7 +120,7 @@ class CDProof
 {
  public:
   CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
-  ~CDProof();
+  virtual ~CDProof();
   /**
    * Make proof for fact.
    *
@@ -134,7 +134,7 @@ class CDProof
    * returned proof may be updated by further calls to this class. The caller
    * should call ProofNode::clone if they want to own it.
    */
-  std::shared_ptr<ProofNode> mkProof(Node fact);
+  virtual std::shared_ptr<ProofNode> mkProof(Node fact);
   /** Add step
    *
    * @param expected The intended conclusion of this proof step. This must be

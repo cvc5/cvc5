@@ -32,14 +32,14 @@ namespace CVC4 {
 class LazyCDProof : public CDProof
 {
  public:
-  LazyCDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
+  LazyCDProof(ProofNodeManager* pnm, ProofGenerator * dpg = nullptr, context::Context* c = nullptr);
   ~LazyCDProof();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist. This may
    * additionally proof generators to generate proofs for ASSUME nodes that
    * don't yet have a concrete proof.
    */
-  std::shared_ptr<ProofNode> mkLazyProof(Node fact);
+  std::shared_ptr<ProofNode> mkProof(Node fact) override;
   /** Add step by generator
    *
    * This asserts that expected can be proven by proof generator pg if
@@ -48,12 +48,15 @@ class LazyCDProof : public CDProof
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
                    bool forceOverwrite = false);
-
+  /** Does this have any proof generators? */
+  bool hasGenerators() const;
  protected:
   typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>
       NodeProofGeneratorMap;
   /** Maps facts that can be proven to generators */
   NodeProofGeneratorMap d_gens;
+  /** The default proof generator */
+  ProofGenerator* d_defaultGen;
   /** Get generator for fact, or nullptr if it doesnt exist */
   ProofGenerator* getGeneratorFor(Node fact, bool& isSym);
 };

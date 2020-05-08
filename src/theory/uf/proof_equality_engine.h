@@ -95,7 +95,6 @@ class ProofEqEngine : public EagerProofGenerator
    * internally so that this class may respond to a call to
    * ProofGenerator::getProof(...).
    */
-  TrustNode assertConflict(PfRule id, const std::vector<Node>& exp);
   TrustNode assertConflict(PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args);
@@ -148,6 +147,11 @@ class ProofEqEngine : public EagerProofGenerator
                         const std::vector<Node>& exp,
                         const std::vector<Node>& noExplain,
                         ProofStepBuffer& psb);
+  /** Generator version */
+  TrustNode assertLemma(Node conc,
+                        const std::vector<Node>& exp,
+                        const std::vector<Node>& noExplain,
+                        ProofGenerator* pg);
   /** identify */
   std::string identify() const override;
 
@@ -157,25 +161,19 @@ class ProofEqEngine : public EagerProofGenerator
                     PfRule id,
                     const std::vector<Node>& exp,
                     const std::vector<Node>& args);
-  /**
-   * Make proof for fact lit, or nullptr if it does not exist. It must be the
-   * case that lit was either:
-   * (1) Passed as the first argument to either a variant of assertAssume,
-   * assertFact or assertLemma in the current SAT context,
-   * (2) lit is false and a call was made to assertConflict in the current SAT
-   * context.
-   */
-  std::shared_ptr<ProofNode> mkProofForFact(Node lit);
   /** Assert internal */
   void assertFactInternal(TNode pred, bool polarity, TNode reason);
   /** assert lemma internal */
   TrustNode assertLemmaInternal(Node conc,
                                 const std::vector<Node>& exp,
-                                const std::vector<Node>& noExplain);
+                                const std::vector<Node>& noExplain,
+                                CDProof * curr
+                               );
   /** ensure proof for fact */
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,
-                               bool isConflict);
+                               bool isConflict,
+                                CDProof * curr);
   /**
    * Make the conjunction of nodes in a. Returns true if a is empty, and a
    * single literal if a has size 1.
@@ -220,7 +218,8 @@ class ProofEqEngine : public EagerProofGenerator
    * This additionally registers the equality proof steps required to
    * regress the explanation of lit.
    */
-  void explainWithProof(Node lit, std::vector<TNode>& assumps);
+  void explainWithProof(Node lit, std::vector<TNode>& assumps,
+                                CDProof * curr);
 };
 
 }  // namespace eq

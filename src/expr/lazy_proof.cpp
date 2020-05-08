@@ -18,21 +18,21 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-LazyCDProof::LazyCDProof(ProofNodeManager* pnm, context::Context* c)
-    : CDProof(pnm, c), d_gens(c ? c : &d_context)
+LazyCDProof::LazyCDProof(ProofNodeManager* pnm, ProofGenerator * dpg, context::Context* c)
+    : CDProof(pnm, c), d_gens(c ? c : &d_context), d_defaultGen(dpg)
 {
 }
 
 LazyCDProof::~LazyCDProof() {}
 
-std::shared_ptr<ProofNode> LazyCDProof::mkLazyProof(Node fact)
+std::shared_ptr<ProofNode> LazyCDProof::mkProof(Node fact)
 {
   Trace("lazy-cdproof") << "LazyCDProof::mkLazyProof " << fact << std::endl;
   // make the proof, which should always be non-null, since we construct an
   // assumption in the worst case.
-  std::shared_ptr<ProofNode> opf = mkProof(fact);
+  std::shared_ptr<ProofNode> opf = CDProof::mkProof(fact);
   Assert(opf != nullptr);
-  if (d_gens.empty())
+  if (!hasGenerators())
   {
     Trace("lazy-cdproof") << "...no generators, finished" << std::endl;
     // optimization: no generators, we are done
@@ -129,7 +129,8 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
   // could be symmetry
   if (fact.getKind() != EQUAL || fact[0] == fact[1])
   {
-    return nullptr;
+    // can't be symmetry, return the default generator
+    return d_defaultGen;
   }
   Node factSym = fact[1].eqNode(fact[0]);
   it = d_gens.find(factSym);
@@ -138,7 +139,13 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
     isSym = true;
     return (*it).second;
   }
-  return nullptr;
+  // return the default generator
+  return d_defaultGen;
+}
+
+bool LazyCDProof::hasGenerators() const
+{
+  return d_gens.empty() && d_defaultGen==nullptr;
 }
 
 }  // namespace CVC4
