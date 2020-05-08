@@ -80,7 +80,6 @@ header = "options/smt_options.h"
   long       = "check-models"
   type       = "bool"
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions"
 
 [[option]]
@@ -89,7 +88,6 @@ header = "options/smt_options.h"
   long       = "debug-check-models"
   type       = "bool"
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
 
 [[option]]
