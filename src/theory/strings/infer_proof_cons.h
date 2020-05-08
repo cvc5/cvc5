@@ -26,6 +26,7 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/uf/proof_equality_engine.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,7 +46,7 @@ class InferProofCons : public ProofGenerator
 
  public:
   InferProofCons(context::Context* c,
-                 ProofChecker* pc,
+                 ProofNodeManager* pnm,
                  SequencesStatistics& statistics,
                  bool pfEnabled);
   ~InferProofCons() {}
@@ -97,6 +98,8 @@ class InferProofCons : public ProofGenerator
   /** Get the proof step buffer */
   ProofStepBuffer* getBuffer();
 
+  /** Get the proof for formula f */
+  std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /**
    * This adds the proof steps for fact to proof pf with the given overwrite
    * policy. This is required for using this class as a lazy proof generator.
@@ -120,7 +123,9 @@ class InferProofCons : public ProofGenerator
    * it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method should be
    * applied when src and tgt are equivalent formulas assuming exp.
    */
-  bool convertPredTransform(Node src, Node tgt, const std::vector<Node>& exp);
+  bool convertPredTransform(Node src, Node tgt, const std::vector<Node>& exp, RewriterId id = RewriterId::REWRITE);
+  /** the proof node manager */
+  ProofNodeManager* d_pnm;
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
   /** The proof step buffer */

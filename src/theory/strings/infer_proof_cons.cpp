@@ -27,11 +27,12 @@ namespace theory {
 namespace strings {
 
 InferProofCons::InferProofCons(context::Context* c,
-                               ProofChecker* pc,
+                               ProofNodeManager* pnm,
                                SequencesStatistics& statistics,
                                bool pfEnabled)
-    : d_lazyFactMap(c),
-      d_psb(pc),
+    : d_pnm(pnm),
+      d_lazyFactMap(c),
+      d_psb(pnm->getChecker()),
       d_statistics(statistics),
       d_pfEnabled(pfEnabled)
 {
@@ -137,8 +138,7 @@ Node InferProofCons::convert(Inference infer,
     case Inference::INFER_EMP:
     {
       // need the "extended equality rewrite"
-      ps.d_args.push_back(nm->mkConst(
-          Rational(static_cast<uint32_t>(RewriterId::REWRITE_EQ_EXT))));
+      ps.d_args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(RewriterId::REWRITE_EQ_EXT));
       ps.d_rule = PfRule::MACRO_SR_PRED_ELIM;
     }
     break;
@@ -263,9 +263,12 @@ Node InferProofCons::convert(Inference infer,
             || infer == Inference::F_ENDPOINT_EQ
             || infer == Inference::F_ENDPOINT_EMP)
         {
-          // should be equal to conclusion already, or rewrite to it
+          // should be equal to conclusion already, or rewrite to it.
+          // Notice that this step is necessary to handle the "rproc"
+          // optimization in processSimpleNEq. Alternatively, this could
+          // possibly be done by CONCAT_EQ with !isRev.
           std::vector<Node> cexp;
-          if (convertPredTransform(mainEqCeq, conc, cexp))
+          if (convertPredTransform(mainEqCeq, conc, cexp, RewriterId::REWRITE_EQ_EXT))
           {
             // success
             useBuffer = true;
@@ -564,13 +567,17 @@ bool InferProofCons::convertLengthPf(Node lenReq,
     {
       return true;
     }
+    // x != "" => len(x) != 0
+    // FIXME
+    // MODUS_PONENS( P, SCOPE( MACRO_SR_PRED_INTRO( ASSUME(x="") :args len(x)=0) :args x = "") )
   }
   return false;
 }
 
 bool InferProofCons::convertPredTransform(Node src,
                                           Node tgt,
-                                          const std::vector<Node>& exp)
+                                          const std::vector<Node>& exp, 
+                                          RewriterId id)
 {
   if (src == tgt)
   {
@@ -584,6 +591,10 @@ bool InferProofCons::convertPredTransform(Node src,
   children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
   args.push_back(tgt);
+  if (id!=RewriterId::REWRITE)
+  {
+    args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(id));
+  }
   Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
   if (res.isNull())
   {
@@ -597,8 +608,37 @@ bool InferProofCons::convertPredTransform(Node src,
 
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }
 
+std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
+{
+  CDProof pf(d_pnm);
+  // get the inference
+  NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
+  AlwaysAssert(it != d_lazyFactMap.end());
+  // now go back and convert it to proof steps and add to proof
+  bool useBuffer = false;
+  ProofStep ps;
+  convert(*(*it).second, ps, useBuffer);
+  if (useBuffer)
+  {
+    if (!pf.addSteps(d_psb))
+    {
+      return nullptr;
+    }
+  }
+  else
+  {
+    if (!pf.addStep(fact, ps))
+    {
+      return nullptr;
+    }
+  }
+  return pf.mkProof(fact);
+}
+
 bool InferProofCons::addProofTo(Node fact, CDProof* pf, bool forceOverwrite)
 {
+  // TODO: use this?
+  return ProofGenerator::addProofTo(fact,pf,forceOverwrite);
   // get the inference
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
   AlwaysAssert(it != d_lazyFactMap.end());

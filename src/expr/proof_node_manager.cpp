@@ -65,7 +65,7 @@ bool ProofNodeManager::updateNode(
     visit.push_back(cp.get());
   }
   const ProofNode* cur;
-  do
+  while (!visit.empty())
   {
     cur = visit.back();
     visit.pop_back();
@@ -82,6 +82,13 @@ bool ProofNodeManager::updateNode(
         {
           ss << "  " << cp->getRule() << " " << cp->getResult() << std::endl;
         }
+        ss << "Full children:" << std::endl;
+        for (const std::shared_ptr<ProofNode>& cp : children)
+        {
+          ss << "  - ";
+          cp->printDebug(ss);
+          ss << std::endl;
+        }
         AlwaysAssert(false) << ss.str();
       }
       for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
@@ -89,7 +96,7 @@ bool ProofNodeManager::updateNode(
         visit.push_back(cp.get());
       }
     }
-  } while (!visit.empty());
+  }
   // ---------------- end check for cyclic
 
   // should have already computed what is proven
@@ -102,6 +109,11 @@ bool ProofNodeManager::updateNode(
     // if it was invalid, then we do not update
     return false;
   }
+  // paranoia about ref counting
+  //const std::vector<std::shared_ptr<ProofNode>>& prevc = pn->getChildren();
+  //std::vector<std::shared_ptr<ProofNode>> copy;
+  //copy.insert(copy.end(),prevc.begin(),prevc.end());
+
   // we update its value
   pn->setValue(id, children, args);
   // proven field should already be the same as the result

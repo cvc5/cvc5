@@ -32,6 +32,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
   NodeManager* nm = NodeManager::currentNM();
   std::map<const ProofNode*, Node>::iterator it;
   std::vector<const ProofNode*> visit;
+  std::vector<const ProofNode*> constructing;
   const ProofNode* cur;
   visit.push_back(pn);
   do
@@ -43,11 +44,12 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
     if (it == d_pnMap.end())
     {
       d_pnMap[cur] = Node::null();
+      constructing.push_back(cur);
       visit.push_back(cur);
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
-        if (std::find(visit.begin(), visit.end(), cp.get()) != visit.end())
+        if (std::find(constructing.begin(), constructing.end(), cp.get()) != constructing.end())
         {
           AlwaysAssert(false)
               << "ProofNodeToSExpr::convertToSExpr: cyclic proof!" << std::endl;
@@ -58,6 +60,8 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
     }
     else if (it->second.isNull())
     {
+      Assert (!constructing.empty());
+      constructing.pop_back();
       std::vector<Node> children;
       // add proof rule
       children.push_back(getOrMkPfRuleVariable(cur->getRule()));

@@ -119,6 +119,7 @@ bool CDProof::addStep(Node expected,
     // These rules are implicitly managed by this class. The user of this
     // class should not have to bother with them.
     // FIXME: return or assert here; this currently breaks slow-2020-04-17
+    //return true;
   }
   // We must always provide expected to this method
   Assert(!expected.isNull());
@@ -147,7 +148,8 @@ bool CDProof::addStep(Node expected,
       if (ensureChildren)
       {
         // failed to get a proof for a child, fail
-        Trace("cdproof") << "...fail, no child" << std::endl;
+        //Trace("cdproof") << "...fail, no child" << std::endl;
+        //FIXME: probably remove this 
         return false;
       }
       Trace("cdproof") << "--- add assume" << std::endl;
@@ -178,7 +180,7 @@ bool CDProof::addStep(Node expected,
   std::shared_ptr<ProofNode> pthis;
   if (pprev == nullptr)
   {
-    Trace("cdproof") << "CDProof::addStep: new node..." << std::endl;
+    Trace("cdproof") << "  new node " << expected << "..." << std::endl;
     pthis = d_manager->mkNode(id, pchildren, args, expected);
     if (pthis == nullptr)
     {
@@ -190,7 +192,7 @@ bool CDProof::addStep(Node expected,
   }
   else
   {
-    Trace("cdproof") << "CDProof::addStep: update node..." << std::endl;
+    Trace("cdproof") << "  update node " << expected << "..." << std::endl;
     // update its value
     pthis = pprev;
     // We return the value of updateNode here. This means this method may return
@@ -206,7 +208,7 @@ bool CDProof::addStep(Node expected,
   if (expected.getKind() == EQUAL && expected[0] != expected[1])
   {
     Node expectedSym = expected[1].eqNode(expected[0]);
-    Trace("cdproof") << "CDProof::addStep: check update symmetry "
+    Trace("cdproof") << "  check update symmetry "
                      << expectedSym << std::endl;
     // if it exists, we may need to update it
     std::shared_ptr<ProofNode> pfs = getProof(expectedSym);

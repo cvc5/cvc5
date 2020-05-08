@@ -62,7 +62,7 @@ void InferenceManager::finishInit(ProofNodeManager* pnm)
                                      d_pfEnabled,
                                      d_recExplain));
   d_ipc.reset(new InferProofCons(
-      d_state.getSatContext(), pnm->getChecker(), d_statistics, d_pfEnabled));
+      d_state.getSatContext(), pnm, d_statistics, d_pfEnabled));
 }
 
 void InferenceManager::sendAssumption(TNode lit)
