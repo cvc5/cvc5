@@ -15,6 +15,7 @@
 #include "theory/trust_node.h"
 
 #include "theory/proof_engine_output_channel.h"
+#include "expr/proof_generator.h"
 
 namespace CVC4 {
 namespace theory {

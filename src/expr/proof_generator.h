@@ -75,11 +75,12 @@ class CDProof;
 class PRefProofGenerator : public ProofGenerator
 {
  public:
-  PRefProofGenerator(CDProof* cd);
+  PRefProofGenerator(std::string name, CDProof* cd);
   ~PRefProofGenerator();
   /** Get proof for */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
-
+  /** Identify this generator (for debugging, etc..) */
+  std::string identify() const override;
  protected:
   /** The reference proof */
   CDProof* d_proof;

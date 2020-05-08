@@ -62,4 +62,9 @@ std::shared_ptr<ProofNode> PRefProofGenerator::getProofFor(Node f)
   return d_proof->mkProof(f);
 }
 
+std::string PRefProofGenerator::identify() const
+{
+  return "PRefProofGenerator";
+}
+
 }  // namespace CVC4
