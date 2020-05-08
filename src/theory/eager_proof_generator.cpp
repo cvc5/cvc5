@@ -92,16 +92,8 @@ TrustNode EagerProofGenerator::assertSplit(Node f)
 {
   // make the lemma
   Node lem = f.orNode(f.notNode());
-  // construct a proof for it
-  std::vector<std::shared_ptr<ProofNode>> children;
   std::vector<Node> args;
-  args.push_back(f);
-  std::shared_ptr<ProofNode> p =
-      d_pnm->mkNode(PfRule::SPLIT, children, args, lem);
-  // store the mapping
-  setProofForLemma(lem, p);
-  // return the lemma
-  return TrustNode::mkTrustLemma(lem, this);
+  return mkTrustNode(lem, PfRule::SPLIT,args,false);
 }
 
 }  // namespace theory

@@ -233,7 +233,8 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   Assert(conc != d_true);
   if (d_pfEnabled)
   {
-    LazyCDProof tmpProof(d_pnm);
+    PRefProofGenerator prg(&d_proof);
+    LazyCDProof tmpProof(d_pnm, &prg);
     CDProof * curr;
     if (conc==d_false || true)
     {
@@ -265,7 +266,8 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                 << psb.getNumSteps() << " steps" << std::endl;
   if (d_pfEnabled)
   {
-    LazyCDProof tmpProof(d_pnm);
+    PRefProofGenerator prg(&d_proof);
+    LazyCDProof tmpProof(d_pnm, &prg);
     CDProof * curr;
     if (conc==d_false || true)
     {
@@ -299,7 +301,8 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                 << ", noExplain = " << noExplain << " via buffer with generator" << std::endl;
   if (d_pfEnabled)
   {
-    LazyCDProof tmpProof(d_pnm);
+    PRefProofGenerator prg(&d_proof);
+    LazyCDProof tmpProof(d_pnm, &prg);
     CDProof * curr;
     if (conc==d_false || true)
     {

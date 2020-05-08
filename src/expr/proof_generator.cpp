@@ -53,4 +53,14 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, bool forceOverwrite)
   return false;
 }
 
+
+PRefProofGenerator::PRefProofGenerator(CDProof * cd) : d_proof(cd){}
+
+PRefProofGenerator::~PRefProofGenerator(){}
+
+std::shared_ptr<ProofNode> PRefProofGenerator::getProofFor(Node f)
+{
+  return d_proof->mkProof(f);
+}
+
 }  // namespace CVC4
