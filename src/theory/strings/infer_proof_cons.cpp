@@ -40,7 +40,8 @@ InferProofCons::InferProofCons(context::Context* c,
 
 void InferProofCons::notifyFact(const InferInfo& ii)
 {
-  Trace("strings-ipc-debug") << "InferProofCons::notifyFact: " << ii << std::endl;
+  Trace("strings-ipc-debug")
+      << "InferProofCons::notifyFact: " << ii << std::endl;
   std::shared_ptr<InferInfo> iic = std::make_shared<InferInfo>(ii);
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
@@ -138,7 +139,8 @@ Node InferProofCons::convert(Inference infer,
     case Inference::INFER_EMP:
     {
       // need the "extended equality rewrite"
-      ps.d_args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(RewriterId::REWRITE_EQ_EXT));
+      ps.d_args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(
+          RewriterId::REWRITE_EQ_EXT));
       ps.d_rule = PfRule::MACRO_SR_PRED_ELIM;
     }
     break;
@@ -268,7 +270,8 @@ Node InferProofCons::convert(Inference infer,
           // optimization in processSimpleNEq. Alternatively, this could
           // possibly be done by CONCAT_EQ with !isRev.
           std::vector<Node> cexp;
-          if (convertPredTransform(mainEqCeq, conc, cexp, RewriterId::REWRITE_EQ_EXT))
+          if (convertPredTransform(
+                  mainEqCeq, conc, cexp, RewriterId::REWRITE_EQ_EXT))
           {
             // success
             useBuffer = true;
@@ -569,14 +572,15 @@ bool InferProofCons::convertLengthPf(Node lenReq,
     }
     // x != "" => len(x) != 0
     // FIXME
-    // MODUS_PONENS( P, SCOPE( MACRO_SR_PRED_INTRO( ASSUME(x="") :args len(x)=0) :args x = "") )
+    // MODUS_PONENS( P, SCOPE( MACRO_SR_PRED_INTRO( ASSUME(x="") :args len(x)=0)
+    // :args x = "") )
   }
   return false;
 }
 
 bool InferProofCons::convertPredTransform(Node src,
                                           Node tgt,
-                                          const std::vector<Node>& exp, 
+                                          const std::vector<Node>& exp,
                                           RewriterId id)
 {
   if (src == tgt)
@@ -591,7 +595,7 @@ bool InferProofCons::convertPredTransform(Node src,
   children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
   args.push_back(tgt);
-  if (id!=RewriterId::REWRITE)
+  if (id != RewriterId::REWRITE)
   {
     args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(id));
   }
@@ -639,7 +643,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 bool InferProofCons::addProofTo(Node fact, CDProof* pf, bool forceOverwrite)
 {
   // we copy fresh proofs
-  return ProofGenerator::addProofTo(fact,pf,forceOverwrite);
+  return ProofGenerator::addProofTo(fact, pf, forceOverwrite);
   // get the inference
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
   AlwaysAssert(it != d_lazyFactMap.end());

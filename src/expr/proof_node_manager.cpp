@@ -110,9 +110,9 @@ bool ProofNodeManager::updateNode(
     return false;
   }
   // paranoia about ref counting
-  //const std::vector<std::shared_ptr<ProofNode>>& prevc = pn->getChildren();
-  //std::vector<std::shared_ptr<ProofNode>> copy;
-  //copy.insert(copy.end(),prevc.begin(),prevc.end());
+  // const std::vector<std::shared_ptr<ProofNode>>& prevc = pn->getChildren();
+  // std::vector<std::shared_ptr<ProofNode>> copy;
+  // copy.insert(copy.end(),prevc.begin(),prevc.end());
 
   // we update its value
   pn->setValue(id, children, args);

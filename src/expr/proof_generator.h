@@ -69,20 +69,20 @@ class ProofGenerator
   virtual std::string identify() const = 0;
 };
 
-
 class CDProof;
 
 /** A "copy on demand" proof generator */
 class PRefProofGenerator : public ProofGenerator
 {
-public:
-  PRefProofGenerator(CDProof * cd);
+ public:
+  PRefProofGenerator(CDProof* cd);
   ~PRefProofGenerator();
   /** Get proof for */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
-protected:
+
+ protected:
   /** The reference proof */
-  CDProof * d_proof;
+  CDProof* d_proof;
 };
 
 }  // namespace CVC4

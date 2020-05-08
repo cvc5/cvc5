@@ -18,7 +18,9 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-LazyCDProof::LazyCDProof(ProofNodeManager* pnm, ProofGenerator * dpg, context::Context* c)
+LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
+                         ProofGenerator* dpg,
+                         context::Context* c)
     : CDProof(pnm, c), d_gens(c ? c : &d_context), d_defaultGen(dpg)
 {
 }
@@ -145,7 +147,7 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
 
 bool LazyCDProof::hasGenerators() const
 {
-  return d_gens.empty() && d_defaultGen==nullptr;
+  return d_gens.empty() && d_defaultGen == nullptr;
 }
 
 }  // namespace CVC4

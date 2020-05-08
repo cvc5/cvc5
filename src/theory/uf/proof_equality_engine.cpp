@@ -109,7 +109,7 @@ bool ProofEqEngine::assertFact(Node lit,
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
   // shouldnt use this interface if not doing recursive explanations?
-  Assert (d_recExplain);
+  Assert(d_recExplain);
   // first, register the step in the proof
   if (d_pfEnabled)
   {
@@ -136,7 +136,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
                 << " via buffer with " << psb.getNumSteps() << " steps"
                 << std::endl;
   // shouldnt use this interface if not doing recursive explanations?
-  Assert (d_recExplain);
+  Assert(d_recExplain);
   if (d_pfEnabled)
   {
     if (!d_proof.addSteps(psb))
@@ -235,8 +235,8 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   {
     PRefProofGenerator prg(&d_proof);
     LazyCDProof tmpProof(d_pnm, &prg);
-    CDProof * curr;
-    if (conc==d_false || true)
+    CDProof* curr;
+    if (conc == d_false || true)
     {
       curr = &d_proof;
     }
@@ -268,8 +268,8 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   {
     PRefProofGenerator prg(&d_proof);
     LazyCDProof tmpProof(d_pnm, &prg);
-    CDProof * curr;
-    if (conc==d_false || true)
+    CDProof* curr;
+    if (conc == d_false || true)
     {
       curr = &d_proof;
     }
@@ -292,19 +292,19 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
-                      const std::vector<Node>& exp,
-                      const std::vector<Node>& noExplain,
-                      ProofGenerator* pg)
+                                     const std::vector<Node>& exp,
+                                     const std::vector<Node>& noExplain,
+                                     ProofGenerator* pg)
 {
-
   Trace("pfee") << "pfee::assertLemma " << conc << ", exp = " << exp
-                << ", noExplain = " << noExplain << " via buffer with generator" << std::endl;
+                << ", noExplain = " << noExplain << " via buffer with generator"
+                << std::endl;
   if (d_pfEnabled)
   {
     PRefProofGenerator prg(&d_proof);
     LazyCDProof tmpProof(d_pnm, &prg);
-    CDProof * curr;
-    if (conc==d_false || true)
+    CDProof* curr;
+    if (conc == d_false || true)
     {
       curr = &d_proof;
     }
@@ -333,7 +333,7 @@ std::string ProofEqEngine::identify() const
 TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
                                              const std::vector<Node>& exp,
                                              const std::vector<Node>& noExplain,
-                                CDProof * curr)
+                                             CDProof* curr)
 {
   // We are a conflict if the conclusion is false and all literals are
   // explained.
@@ -362,7 +362,7 @@ TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
 TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                                             const std::vector<TNode>& assumps,
                                             bool isConflict,
-                                CDProof * curr)
+                                            CDProof* curr)
 {
   Trace("pfee-proof") << std::endl;
   Trace("pfee-proof") << "pfee::ensureProofForFact: input " << conc << " via "
@@ -378,7 +378,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   // if proofs are enabled, generate the proof and clean the assumptions
   if (d_pfEnabled)
   {
-    Assert (curr!=nullptr);
+    Assert(curr != nullptr);
     Trace("pfee-proof") << "pfee::ensureProofForFact: make proof for fact"
                         << std::endl;
     // get the proof for conc
@@ -558,8 +558,9 @@ bool ProofEqEngine::addProofStep(Node lit,
   return true;
 }
 
-void ProofEqEngine::explainWithProof(Node lit, std::vector<TNode>& assumps,
-                                CDProof * curr)
+void ProofEqEngine::explainWithProof(Node lit,
+                                     std::vector<TNode>& assumps,
+                                     CDProof* curr)
 {
   if (std::find(assumps.begin(), assumps.end(), lit) != assumps.end())
   {

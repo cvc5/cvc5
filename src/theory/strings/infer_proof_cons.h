@@ -23,10 +23,10 @@
 #include "expr/proof_checker.h"
 #include "expr/proof_rule.h"
 #include "expr/proof_step_buffer.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "theory/builtin/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -50,15 +50,15 @@ class InferProofCons : public ProofGenerator
                  SequencesStatistics& statistics,
                  bool pfEnabled);
   ~InferProofCons() {}
-  /** 
+  /**
    * This is called to notify that ii is an inference that may need a proof
-   * in the future. 
-   * 
+   * in the future.
+   *
    * In detail, this class should be prepared to respond to a call to:
    *   addProofTo(ii.d_conc, ...)
    * in the remainder of the SAT context. This method copies ii and stores it
    * in the context-dependent map d_lazyFactMap below.
-   * 
+   *
    * This is used for lazy proof construction, where proofs are constructed
    * only for facts that are explained.
    */
@@ -123,7 +123,10 @@ class InferProofCons : public ProofGenerator
    * it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method should be
    * applied when src and tgt are equivalent formulas assuming exp.
    */
-  bool convertPredTransform(Node src, Node tgt, const std::vector<Node>& exp, RewriterId id = RewriterId::REWRITE);
+  bool convertPredTransform(Node src,
+                            Node tgt,
+                            const std::vector<Node>& exp,
+                            RewriterId id = RewriterId::REWRITE);
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

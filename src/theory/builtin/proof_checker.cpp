@@ -139,8 +139,7 @@ bool BuiltinProofRuleChecker::getRewriterId(TNode n, RewriterId& i)
 
 Node BuiltinProofRuleChecker::mkRewriterId(RewriterId i)
 {
-  return NodeManager::currentNM()->mkConst(
-          Rational(static_cast<uint32_t>(i)));
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
 }
 
 Node BuiltinProofRuleChecker::checkInternal(PfRule id,

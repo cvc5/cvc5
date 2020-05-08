@@ -32,7 +32,9 @@ namespace CVC4 {
 class LazyCDProof : public CDProof
 {
  public:
-  LazyCDProof(ProofNodeManager* pnm, ProofGenerator * dpg = nullptr, context::Context* c = nullptr);
+  LazyCDProof(ProofNodeManager* pnm,
+              ProofGenerator* dpg = nullptr,
+              context::Context* c = nullptr);
   ~LazyCDProof();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist. This may
@@ -50,6 +52,7 @@ class LazyCDProof : public CDProof
                    bool forceOverwrite = false);
   /** Does this have any proof generators? */
   bool hasGenerators() const;
+
  protected:
   typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>
       NodeProofGeneratorMap;

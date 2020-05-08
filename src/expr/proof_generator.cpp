@@ -53,10 +53,9 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, bool forceOverwrite)
   return false;
 }
 
+PRefProofGenerator::PRefProofGenerator(CDProof* cd) : d_proof(cd) {}
 
-PRefProofGenerator::PRefProofGenerator(CDProof * cd) : d_proof(cd){}
-
-PRefProofGenerator::~PRefProofGenerator(){}
+PRefProofGenerator::~PRefProofGenerator() {}
 
 std::shared_ptr<ProofNode> PRefProofGenerator::getProofFor(Node f)
 {

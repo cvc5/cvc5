@@ -93,7 +93,7 @@ TrustNode EagerProofGenerator::assertSplit(Node f)
   // make the lemma
   Node lem = f.orNode(f.notNode());
   std::vector<Node> args;
-  return mkTrustNode(lem, PfRule::SPLIT,args,false);
+  return mkTrustNode(lem, PfRule::SPLIT, args, false);
 }
 
 }  // namespace theory

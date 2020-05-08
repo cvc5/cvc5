@@ -49,7 +49,8 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
-        if (std::find(constructing.begin(), constructing.end(), cp.get()) != constructing.end())
+        if (std::find(constructing.begin(), constructing.end(), cp.get())
+            != constructing.end())
         {
           AlwaysAssert(false)
               << "ProofNodeToSExpr::convertToSExpr: cyclic proof!" << std::endl;
@@ -60,7 +61,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
     }
     else if (it->second.isNull())
     {
-      Assert (!constructing.empty());
+      Assert(!constructing.empty());
       constructing.pop_back();
       std::vector<Node> children;
       // add proof rule

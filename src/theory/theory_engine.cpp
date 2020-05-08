@@ -251,7 +251,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
   if (options::proofNew())
   {
     // no default generator
-    d_lazyProof.reset(new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext));
+    d_lazyProof.reset(
+        new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext));
   }
 #endif
 

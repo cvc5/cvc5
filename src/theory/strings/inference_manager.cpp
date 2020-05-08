@@ -396,7 +396,7 @@ void InferenceManager::doPendingLemmas()
     // set up proof step based on inference
     // pfExp is the children of the proof step below. This should be an
     // ordered list of expConj + expn.
-    
+
     // set up the explanation and no-explanation
     TrustNode tlem;
     std::vector<Node> exp;
@@ -409,8 +409,7 @@ void InferenceManager::doPendingLemmas()
     {
       // if we aren't regressing the explanation, we add all literals to
       // noExplain and ignore ii.d_antn.
-      noExplain.insert(
-          noExplain.end(), exp.begin(), exp.end());
+      noExplain.insert(noExplain.end(), exp.begin(), exp.end());
     }
     else
     {
@@ -434,13 +433,11 @@ void InferenceManager::doPendingLemmas()
       Node conc = d_ipc->convert(ii, ps, useBuffer);
       if (useBuffer)
       {
-        tlem = d_pfee->assertLemma(
-            conc, exp, noExplain, *d_ipc->getBuffer());
+        tlem = d_pfee->assertLemma(conc, exp, noExplain, *d_ipc->getBuffer());
       }
       else
       {
-        tlem = d_pfee->assertLemma(
-            conc, ps.d_rule, exp, noExplain, ps.d_args);
+        tlem = d_pfee->assertLemma(conc, ps.d_rule, exp, noExplain, ps.d_args);
       }
     }
     Node lem = tlem.getNode();

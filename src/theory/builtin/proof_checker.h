@@ -92,6 +92,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   static bool getRewriterId(TNode n, RewriterId& i);
   /** Make a rewriter id node */
   static Node mkRewriterId(RewriterId i);
+
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node checkInternal(PfRule id,

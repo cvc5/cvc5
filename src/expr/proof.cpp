@@ -119,7 +119,7 @@ bool CDProof::addStep(Node expected,
     // These rules are implicitly managed by this class. The user of this
     // class should not have to bother with them.
     // FIXME: return or assert here; this currently breaks slow-2020-04-17
-    //return true;
+    // return true;
   }
   // We must always provide expected to this method
   Assert(!expected.isNull());
@@ -148,8 +148,8 @@ bool CDProof::addStep(Node expected,
       if (ensureChildren)
       {
         // failed to get a proof for a child, fail
-        //Trace("cdproof") << "...fail, no child" << std::endl;
-        //FIXME: probably remove this 
+        // Trace("cdproof") << "...fail, no child" << std::endl;
+        // FIXME: probably remove this
         return false;
       }
       Trace("cdproof") << "--- add assume" << std::endl;
@@ -208,8 +208,7 @@ bool CDProof::addStep(Node expected,
   if (expected.getKind() == EQUAL && expected[0] != expected[1])
   {
     Node expectedSym = expected[1].eqNode(expected[0]);
-    Trace("cdproof") << "  check update symmetry "
-                     << expectedSym << std::endl;
+    Trace("cdproof") << "  check update symmetry " << expectedSym << std::endl;
     // if it exists, we may need to update it
     std::shared_ptr<ProofNode> pfs = getProof(expectedSym);
     if (pfs != nullptr)
