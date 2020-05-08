@@ -46,6 +46,11 @@ namespace smt {
 void setDefaults(SmtEngine& smte, LogicInfo& logic)
 {
   // implied options
+  if (options::debugCheckModels())
+  {
+    Notice() << "SmtEngine: setting checkModel" << std::endl;
+    options::checkModels.set(true);
+  }
   if (options::checkModels() || options::dumpModels())
   {
     Notice() << "SmtEngine: setting produceModels" << std::endl;
