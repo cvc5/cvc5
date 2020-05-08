@@ -88,6 +88,10 @@ Node ProofSkolemCache::getSkolemForm(Node n)
 
 Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
 {
+  if (n.isNull())
+  {
+    return n;
+  }
   Trace("pf-skolem") << "ProofSkolemCache::convertInternal: " << toWitness
                      << " " << n << std::endl;
   WitnessFormAttribute wfa;
