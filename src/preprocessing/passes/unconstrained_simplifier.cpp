@@ -236,6 +236,10 @@ void UnconstrainedSimplifier::processUnconstrained()
               break;
             }
           }
+          if (parent[0].getType().getCardinality().isOne())
+          {
+            break;
+          }
           if (parent[0].getType().isDatatype())
           {
             TypeNode tn = parent[0].getType();
