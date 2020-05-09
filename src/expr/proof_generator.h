@@ -81,6 +81,7 @@ class PRefProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
+
  protected:
   /** The reference proof */
   CDProof* d_proof;

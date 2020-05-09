@@ -130,8 +130,8 @@ class InferProofCons : public ProofGenerator
   /**
    */
   void convertPredElim(Node src,
-                            const std::vector<Node>& exp,
-                            RewriterId id = RewriterId::REWRITE);
+                       const std::vector<Node>& exp,
+                       RewriterId id = RewriterId::REWRITE);
   /** Is symm */
   static bool isSymm(Node src, Node tgt);
   /** the proof node manager */

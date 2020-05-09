@@ -122,9 +122,9 @@ Node InferProofCons::convert(Inference infer,
       if (conc.isConst())
       {
         std::vector<Node> exps;
-        exps.insert(exps.end(),ps.d_children.begin(),ps.d_children.end()-1);
-        Node src = ps.d_children[ps.d_children.size()-1];
-        if (convertPredTransform(src,conc,exps))
+        exps.insert(exps.end(), ps.d_children.begin(), ps.d_children.end() - 1);
+        Node src = ps.d_children[ps.d_children.size() - 1];
+        if (convertPredTransform(src, conc, exps))
         {
           useBuffer = true;
         }
@@ -244,7 +244,7 @@ Node InferProofCons::convert(Inference infer,
         std::vector<Node> argsSRew;
         Node mainEqSRew =
             d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
-        if (isSymm(mainEqSRew,mainEq))
+        if (isSymm(mainEqSRew, mainEq))
         {
           Trace("strings-ipc-core") << "...undo step" << std::endl;
           // not necessary
@@ -597,7 +597,7 @@ bool InferProofCons::convertPredTransform(Node src,
                                           RewriterId id)
 {
   // symmetric equalities
-  if (isSymm(src,tgt))
+  if (isSymm(src, tgt))
   {
     return true;
   }
@@ -622,20 +622,17 @@ bool InferProofCons::convertPredTransform(Node src,
   return true;
 }
 
-
 void InferProofCons::convertPredElim(Node src,
-                          const std::vector<Node>& exp,
-                          RewriterId id)
+                                     const std::vector<Node>& exp,
+                                     RewriterId id)
 {
   std::vector<Node> childrenSRew;
   childrenSRew.push_back(src);
-  childrenSRew.insert(childrenSRew.end(),
-                      exp.begin(),
-                      exp.end());
+  childrenSRew.insert(childrenSRew.end(), exp.begin(), exp.end());
   std::vector<Node> argsSRew;
   Node srcRew =
       d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
-  if (isSymm(src,srcRew))
+  if (isSymm(src, srcRew))
   {
     d_psb.popStep();
   }
@@ -643,8 +640,9 @@ void InferProofCons::convertPredElim(Node src,
 
 bool InferProofCons::isSymm(Node src, Node tgt)
 {
-  return src==tgt || (src.getKind()==EQUAL && tgt.getKind()==EQUAL &&
-      src[0]==tgt[1] && src[1]==tgt[0]);
+  return src == tgt
+         || (src.getKind() == EQUAL && tgt.getKind() == EQUAL
+             && src[0] == tgt[1] && src[1] == tgt[0]);
 }
 
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }
