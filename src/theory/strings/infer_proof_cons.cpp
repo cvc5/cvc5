@@ -556,6 +556,18 @@ Node InferProofCons::convert(Inference infer,
                                - static_cast<uint32_t>(Inference::BEGIN)));
     // add to stats
     d_statistics.d_inferencesNoPf << infer;
+    if (options::stringPedanticCheck())
+    {
+      std::stringstream serr;
+      serr
+          << "InferProofCons::convert: Failed " << infer
+          << (isRev ? " :rev " : " ") << conc << std::endl;
+      for (const Node& ec : exp)
+      {
+        serr << "    e: " << ec << std::endl;
+      }
+      AlwaysAssert(false) << serr.str();
+    }
   }
   if (Trace.isOn("strings-ipc-debug"))
   {

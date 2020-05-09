@@ -214,3 +214,12 @@ header = "options/strings_options.h"
   default    = "true"
   read_only  = true
   help       = "use a single skolem for the variable splitting rule"
+
+[[option]]
+  name       = "stringPedanticCheck"
+  category   = "regular"
+  long       = "strings-pcheck"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "assertion failure for any incorrect rule application or untrusted lemma"

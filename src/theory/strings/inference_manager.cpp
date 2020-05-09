@@ -523,6 +523,10 @@ void InferenceManager::postProcessFact(TNode fact)
       Trace("strings-conflict")
           << "CONFLICT: Eager prefix : " << cnode << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);
+      if (options::stringPedanticCheck())
+      {
+        AlwaysAssert(false) << "Unhandled conflict CONFLICT: Eager prefix : " << cnode << std::endl;
+      }
       TrustNode pconf = TrustNode::mkTrustConflict(cnode, nullptr);
       d_out.trustedConflict(pconf);
     }
@@ -615,6 +619,10 @@ TrustNode InferenceManager::explain(TNode literal) const
     exp = NodeManager::currentNM()->mkNode(AND, assumptions);
   }
   // FIXME
+  if (options::stringPedanticCheck())
+  {
+    AlwaysAssert(false) << "InferenceManager::explain";
+  }
   return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
