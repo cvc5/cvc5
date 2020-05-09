@@ -203,6 +203,15 @@ bool CDProof::addStep(Node expected,
   // the result of the proof node should be expected
   Assert(pthis->getResult() == expected);
 
+  // notify new proof
+  notifyNewProof(expected);
+  
+  Trace("cdproof") << "...return " << ret << std::endl;
+  return ret;
+}
+
+void CDProof::notifyNewProof(Node expected)
+{
   // ensure SYMM proof is also linked to an existing proof, if it is an
   // assumption.
   if (expected.getKind() == EQUAL && expected[0] != expected[1])
@@ -222,8 +231,6 @@ bool CDProof::addStep(Node expected,
       Trace("cdproof") << "  no connect" << std::endl;
     }
   }
-  Trace("cdproof") << "...return " << ret << std::endl;
-  return ret;
 }
 
 bool CDProof::addStep(Node expected,
@@ -282,6 +289,8 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
         return false;
       }
     }
+    // also need to connect via SYMM if necessary
+    notifyNewProof(curFact);
     return true;
   }
   std::unordered_map<ProofNode*, bool> visited;

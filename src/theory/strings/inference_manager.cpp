@@ -603,6 +603,8 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
 
 TrustNode InferenceManager::explain(TNode literal) const
 {
+  // use the explain method
+  TrustNode trn = d_pfee->explain(literal);
   std::vector<TNode> assumptions;
   explain(literal, assumptions);
   Node exp;
@@ -618,12 +620,8 @@ TrustNode InferenceManager::explain(TNode literal) const
   {
     exp = NodeManager::currentNM()->mkNode(AND, assumptions);
   }
-  // FIXME
-  if (options::stringPedanticCheck())
-  {
-    AlwaysAssert(false) << "InferenceManager::explain";
-  }
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
+  AlwaysAssert (exp==trn.getNode()) << "InferenceManager::explain: mismatch " << exp << " vs " << trn.getNode() << " for " << literal;
+  return trn;
 }
 
 void InferenceManager::explain(TNode literal,
