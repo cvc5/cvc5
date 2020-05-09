@@ -119,9 +119,22 @@ Node InferProofCons::convert(Inference infer,
     case Inference::EXTF:
     case Inference::EXTF_N:
     {
-      // use the predicate version
-      ps.d_args.push_back(conc);
-      ps.d_rule = PfRule::MACRO_SR_PRED_INTRO;
+      if (conc.isConst())
+      {
+        std::vector<Node> exps;
+        exps.insert(exps.end(),ps.d_children.begin(),ps.d_children.end()-1);
+        Node src = ps.d_children[ps.d_children.size()-1];
+        if (convertPredTransform(src,conc,exps))
+        {
+          useBuffer = true;
+        }
+      }
+      else
+      {
+        // use the predicate version
+        ps.d_args.push_back(conc);
+        ps.d_rule = PfRule::MACRO_SR_PRED_INTRO;
+      }
       // minor optimization: apply to LHS of equality (RHS is already reduced)
       // although notice the case above is also a valid proof.
       // ps.d_args.push_back(conc[0]);
