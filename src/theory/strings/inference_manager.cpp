@@ -388,6 +388,7 @@ void InferenceManager::doPendingLemmas()
     d_pendingReqPhase.clear();
     return;
   }
+  // we probably don't need to add lazily since temporary proofs are setup
   bool lazyAdd = false;
   for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
   {

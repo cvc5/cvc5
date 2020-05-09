@@ -30,14 +30,14 @@ std::shared_ptr<ProofNode> CDProof::mkProof(Node fact)
   std::shared_ptr<ProofNode> pf = getProofSymm(fact);
   if (pf != nullptr)
   {
-    return pf;
+    return pf->clone();
   }
   // add as assumption
   std::vector<Node> pargs = {fact};
   std::vector<std::shared_ptr<ProofNode>> passume;
   std::shared_ptr<ProofNode> pfa =
       d_manager->mkNode(PfRule::ASSUME, passume, pargs, fact);
-  d_nodes.insert(fact, pfa);
+  //d_nodes.insert(fact, pfa);
   return pfa;
 }
 

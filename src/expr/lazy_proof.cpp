@@ -147,7 +147,7 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
 
 bool LazyCDProof::hasGenerators() const
 {
-  return d_gens.empty() && d_defaultGen == nullptr;
+  return !d_gens.empty() || d_defaultGen != nullptr;
 }
 
 }  // namespace CVC4

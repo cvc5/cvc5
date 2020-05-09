@@ -59,6 +59,7 @@ PRefProofGenerator::~PRefProofGenerator() {}
 
 std::shared_ptr<ProofNode> PRefProofGenerator::getProofFor(Node f)
 {
+  Trace("pfgen") << "PRefProofGenerator::getProofFor: " << f << std::endl;
   return d_proof->mkProof(f);
 }
 
