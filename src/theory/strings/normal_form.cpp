@@ -83,6 +83,7 @@ void NormalForm::addToExplanation(Node exp,
                                   unsigned new_val,
                                   unsigned new_rev_val)
 {
+  Assert(!exp.isConst());
   if (std::find(d_exp.begin(), d_exp.end(), exp) == d_exp.end())
   {
     d_exp.push_back(exp);

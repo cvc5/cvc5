@@ -299,6 +299,7 @@ void InferenceManager::addToExplanation(Node lit, std::vector<Node>& exp) const
 {
   if (!lit.isNull())
   {
+    Assert(!lit.isConst());
     exp.push_back(lit);
   }
 }

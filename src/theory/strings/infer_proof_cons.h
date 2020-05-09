@@ -127,6 +127,13 @@ class InferProofCons : public ProofGenerator
                             Node tgt,
                             const std::vector<Node>& exp,
                             RewriterId id = RewriterId::REWRITE);
+  /**
+   */
+  void convertPredElim(Node src,
+                            const std::vector<Node>& exp,
+                            RewriterId id = RewriterId::REWRITE);
+  /** Is symm */
+  static bool isSymm(Node src, Node tgt);
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

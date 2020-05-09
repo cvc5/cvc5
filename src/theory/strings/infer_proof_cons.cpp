@@ -244,7 +244,7 @@ Node InferProofCons::convert(Inference infer,
         std::vector<Node> argsSRew;
         Node mainEqSRew =
             d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
-        if (mainEqSRew == mainEq)
+        if (isSymm(mainEqSRew,mainEq))
         {
           Trace("strings-ipc-core") << "...undo step" << std::endl;
           // not necessary
@@ -596,17 +596,16 @@ bool InferProofCons::convertPredTransform(Node src,
                                           const std::vector<Node>& exp,
                                           RewriterId id)
 {
-  if (src == tgt)
+  // symmetric equalities
+  if (isSymm(src,tgt))
   {
-    // already equal
     return true;
   }
-  // SYMM?
-  // try to prove that tgt rewrites to
   std::vector<Node> children;
   children.push_back(src);
-  children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
+  // try to prove that tgt rewrites to src
+  children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
   if (id != RewriterId::REWRITE)
   {
@@ -621,6 +620,31 @@ bool InferProofCons::convertPredTransform(Node src,
   // should definitely have concluded tgt
   Assert(res == tgt);
   return true;
+}
+
+
+void InferProofCons::convertPredElim(Node src,
+                          const std::vector<Node>& exp,
+                          RewriterId id)
+{
+  std::vector<Node> childrenSRew;
+  childrenSRew.push_back(src);
+  childrenSRew.insert(childrenSRew.end(),
+                      exp.begin(),
+                      exp.end());
+  std::vector<Node> argsSRew;
+  Node srcRew =
+      d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, argsSRew);
+  if (isSymm(src,srcRew))
+  {
+    d_psb.popStep();
+  }
+}
+
+bool InferProofCons::isSymm(Node src, Node tgt)
+{
+  return src==tgt || (src.getKind()==EQUAL && tgt.getKind()==EQUAL &&
+      src[0]==tgt[1] && src[1]==tgt[0]);
 }
 
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }

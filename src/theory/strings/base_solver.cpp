@@ -350,7 +350,10 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             Assert(!nct.isConst());
             bei.d_bestContent = nct;
             bei.d_base = n;
-            bei.d_exp = utils::mkAnd(exp);
+            if (!exp.empty())
+            {
+              bei.d_exp = utils::mkAnd(exp);
+            }
             Trace("strings-debug")
                 << "Set eqc best content " << n << " to " << nct << std::endl;
           }
