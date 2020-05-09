@@ -1226,66 +1226,66 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     if( it==d_int_div_skolem.end() ){
       Node v = nm->mkBoundVar(nm->integerType());
       Node lem;
-      Node leqNum = nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, v), num);
+      Node leqNum = nm->mkNode(LEQ, nm->mkNode(MULT, den, v), num);
       if (den.isConst()) {
         const Rational& rat = den.getConst<Rational>();
         Assert(!num.isConst());
         if(rat != 0) {
           if(rat > 0) {
             lem = nm->mkNode(
-                kind::AND,
+                AND,
                 leqNum,
                 nm->mkNode(
-                    kind::LT,
+                    LT,
                     num,
                     nm->mkNode(
-                        kind::MULT,
+                        MULT,
                         den,
-                        nm->mkNode(kind::PLUS, v, nm->mkConst(Rational(1))))));
+                        nm->mkNode(PLUS, v, nm->mkConst(Rational(1))))));
           } else {
             lem = nm->mkNode(
-                kind::AND,
+                AND,
                 leqNum,
                 nm->mkNode(
-                    kind::LT,
+                    LT,
                     num,
                     nm->mkNode(
-                        kind::MULT,
+                        MULT,
                         den,
-                        nm->mkNode(kind::PLUS, v, nm->mkConst(Rational(-1))))));
+                        nm->mkNode(PLUS, v, nm->mkConst(Rational(-1))))));
           }
         }
       }else{
         lem = nm->mkNode(
-            kind::AND,
+            AND,
             nm->mkNode(
-                kind::IMPLIES,
-                nm->mkNode(kind::GT, den, nm->mkConst(Rational(0))),
+                IMPLIES,
+                nm->mkNode(GT, den, nm->mkConst(Rational(0))),
                 nm->mkNode(
-                    kind::AND,
+                    AND,
                     leqNum,
                     nm->mkNode(
-                        kind::LT,
+                        LT,
                         num,
                         nm->mkNode(
-                            kind::MULT,
+                            MULT,
                             den,
                             nm->mkNode(
-                                kind::PLUS, v, nm->mkConst(Rational(1))))))),
+                                PLUS, v, nm->mkConst(Rational(1))))))),
             nm->mkNode(
-                kind::IMPLIES,
-                nm->mkNode(kind::LT, den, nm->mkConst(Rational(0))),
+                IMPLIES,
+                nm->mkNode(LT, den, nm->mkConst(Rational(0))),
                 nm->mkNode(
-                    kind::AND,
+                    AND,
                     leqNum,
                     nm->mkNode(
-                        kind::LT,
+                        LT,
                         num,
                         nm->mkNode(
-                            kind::MULT,
+                            MULT,
                             den,
                             nm->mkNode(
-                                kind::PLUS, v, nm->mkConst(Rational(-1))))))));
+                                PLUS, v, nm->mkConst(Rational(-1))))))));
       }
       intVar = ProofSkolemCache::mkSkolem(
           v, lem, "linearIntDiv", "the result of an intdiv-by-k term");
@@ -1311,9 +1311,9 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     NodeMap::const_iterator it = d_div_skolem.find( rw );
     if( it==d_div_skolem.end() ){
       Node v = nm->mkBoundVar(nm->realType());
-      Node lem = nm->mkNode(kind::IMPLIES,
+      Node lem = nm->mkNode(IMPLIES,
                             den.eqNode(nm->mkConst(Rational(0))).negate(),
-                            nm->mkNode(kind::MULT, den, v).eqNode(num));
+                            nm->mkNode(MULT, den, v).eqNode(num));
       var = ProofSkolemCache::mkSkolem(
           v, lem, "nonlinearDiv", "the result of a non-linear div term");
       var = ProofSkolemCache::getWitnessForm(var);
