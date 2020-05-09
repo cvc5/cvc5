@@ -205,7 +205,7 @@ bool CDProof::addStep(Node expected,
 
   // notify new proof
   notifyNewProof(expected);
-  
+
   Trace("cdproof") << "...return " << ret << std::endl;
   return ret;
 }

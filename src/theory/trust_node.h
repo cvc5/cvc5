@@ -102,7 +102,7 @@ class TrustNode
   static Node getPropExpKeyValue(TNode lit, Node exp);
   /** Get the node key for the exp => conc */
   static Node getKeyValue(TrustNodeKind tnk, Node exp, Node conc);
-  
+
  private:
   TrustNode(TrustNodeKind tnk, Node n, ProofGenerator* g = nullptr);
   /** The kind */

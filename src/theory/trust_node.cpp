@@ -95,15 +95,15 @@ Node TrustNode::getKeyValue(TrustNodeKind tnk, Node exp, Node conc)
 {
   if (conc.isConst())
   {
-    Assert (!conc.getConst<bool>());
+    Assert(!conc.getConst<bool>());
     return exp.negate();
   }
   if (exp.isConst())
   {
-    Assert (exp.getConst<bool>());
+    Assert(exp.getConst<bool>());
     return conc;
   }
-  return NodeManager::currentNM()->mkNode(kind::IMPLIES,exp,conc);
+  return NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, conc);
 }
 
 std::ostream& operator<<(std::ostream& out, TrustNode n)

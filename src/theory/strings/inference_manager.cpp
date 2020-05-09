@@ -525,7 +525,9 @@ void InferenceManager::postProcessFact(TNode fact)
       ++(d_statistics.d_conflictsEagerPrefix);
       if (options::stringPedanticCheck())
       {
-        AlwaysAssert(false) << "Unhandled conflict CONFLICT: Eager prefix : " << cnode << std::endl;
+        AlwaysAssert(false)
+            << "Unhandled conflict CONFLICT: Eager prefix : " << cnode
+            << std::endl;
       }
       TrustNode pconf = TrustNode::mkTrustConflict(cnode, nullptr);
       d_out.trustedConflict(pconf);
@@ -620,7 +622,9 @@ TrustNode InferenceManager::explain(TNode literal) const
   {
     exp = NodeManager::currentNM()->mkNode(AND, assumptions);
   }
-  AlwaysAssert (exp==trn.getNode()) << "InferenceManager::explain: mismatch " << exp << " vs " << trn.getNode() << " for " << literal;
+  AlwaysAssert(exp == trn.getNode())
+      << "InferenceManager::explain: mismatch " << exp << " vs "
+      << trn.getNode() << " for " << literal;
   return trn;
 }
 

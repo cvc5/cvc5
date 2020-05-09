@@ -102,7 +102,7 @@ class ProofNode
    */
   void getFreeAssumptions(std::vector<Node>& assump);
   /** Same as above, but maps assumptions to the proof pointer */
-  void getFreeAssumptionsMap(std::map<Node, std::vector< ProofNode* >>& amap);
+  void getFreeAssumptionsMap(std::map<Node, std::vector<ProofNode*>>& amap);
   /**
    * Returns true if this is a closed proof (i.e. it has no free assumptions).
    */

@@ -559,9 +559,8 @@ Node InferProofCons::convert(Inference infer,
     if (options::stringPedanticCheck())
     {
       std::stringstream serr;
-      serr
-          << "InferProofCons::convert: Failed " << infer
-          << (isRev ? " :rev " : " ") << conc << std::endl;
+      serr << "InferProofCons::convert: Failed " << infer
+           << (isRev ? " :rev " : " ") << conc << std::endl;
       for (const Node& ec : exp)
       {
         serr << "    e: " << ec << std::endl;

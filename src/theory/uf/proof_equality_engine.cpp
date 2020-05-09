@@ -99,7 +99,7 @@ bool ProofEqEngine::assertFact(Node lit,
     // must extract the explanation as a vector
     std::vector<Node> expv;
     flattenAnd(exp, expv);
-    
+
     AlwaysAssert(false);
     // FIXME this should buffer the Step
   }
@@ -168,7 +168,8 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
       }
     }
   }
-  return ensureProofForFact(d_false, assumps, TrustNodeKind::CONFLICT, &d_proof);
+  return ensureProofForFact(
+      d_false, assumps, TrustNodeKind::CONFLICT, &d_proof);
 }
 
 TrustNode ProofEqEngine::assertConflict(PfRule id,
@@ -309,7 +310,8 @@ TrustNode ProofEqEngine::explain(Node conc)
     LazyCDProof tmpProof(d_pnm, &prg);
     std::vector<TNode> assumps;
     explainWithProof(conc, assumps, &tmpProof);
-    return ensureProofForFact(conc, assumps, TrustNodeKind::PROP_EXP, &tmpProof);
+    return ensureProofForFact(
+        conc, assumps, TrustNodeKind::PROP_EXP, &tmpProof);
   }
   std::vector<TNode> assumps;
   explainWithProof(conc, assumps, nullptr);
@@ -329,7 +331,8 @@ TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
 {
   // We are a conflict if the conclusion is false and all literals are
   // explained.
-  TrustNodeKind tnk = conc == d_false ? TrustNodeKind::CONFLICT : TrustNodeKind::LEMMA;
+  TrustNodeKind tnk =
+      conc == d_false ? TrustNodeKind::CONFLICT : TrustNodeKind::LEMMA;
 
   // get the explanation, with proofs
   std::vector<TNode> assumps;
@@ -368,7 +371,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   std::shared_ptr<ProofNode> pfConc;
   ProofGenerator* pfg = nullptr;
   // the explanation is the conjunction of assumptions
-  Node exp;;
+  Node exp;
+  ;
   // If proofs are enabled, generate the proof and possibly modify the
   // assumptions to match SCOPE.
   if (d_pfEnabled)
@@ -399,7 +403,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     // assumption vector to pass to SCOPE so that all assumptions are matched.
 
     // The free assumptions of the proof
-    std::map<Node, std::vector< ProofNode* >> famap;
+    std::map<Node, std::vector<ProofNode*>> famap;
     pfConc->getFreeAssumptionsMap(famap);
     // we first ensure the assumptions are flattened
     std::vector<Node> ac;
@@ -414,7 +418,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
         ac.push_back(a);
       }
     }
-    std::map<Node, std::vector<ProofNode * > >::iterator itf;
+    std::map<Node, std::vector<ProofNode*>>::iterator itf;
     for (const Node& a : ac)
     {
       if (famap.find(a) != famap.end())
@@ -432,18 +436,20 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
         itf = famap.find(aeqSym);
         if (itf != famap.end())
         {
-          Trace("pfee-proof") << "- reorient assumption " << aeqSym << " via " << a << std::endl;
+          Trace("pfee-proof") << "- reorient assumption " << aeqSym << " via "
+                              << a << std::endl;
           std::shared_ptr<ProofNode> pfaa = d_pnm->mkAssume(a);
-          for (ProofNode * pfs : itf->second)
+          for (ProofNode* pfs : itf->second)
           {
-            Assert (pfs->getResult()==aeqSym);
+            Assert(pfs->getResult() == aeqSym);
             // must correct the orientation on this leaf
             std::vector<std::shared_ptr<ProofNode>> children;
             children.push_back(pfaa);
             Trace("pfee-proof") << "...finished make assume" << std::endl;
             std::vector<Node> args;
             args.push_back(aeqSym);
-            d_pnm->updateNode(pfs, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+            d_pnm->updateNode(
+                pfs, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
           }
           scopeAssumps.push_back(a);
           Trace("pfee-proof") << "...finished" << std::endl;
@@ -459,7 +465,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       std::stringstream ss;
       pfConc->printDebug(ss);
       std::vector<Node> freeAssumps;
-      for (const std::pair<const Node, std::vector<ProofNode *>>& ap : famap)
+      for (const std::pair<const Node, std::vector<ProofNode*>>& ap : famap)
       {
         freeAssumps.push_back(ap.first);
       }
@@ -480,7 +486,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   // of SCOPE below.
   Node formula;
   Node concFormula;
-  if (tnk==TrustNodeKind::CONFLICT)
+  if (tnk == TrustNodeKind::CONFLICT)
   {
     // conflict is negated
     Assert(conc == d_false);
@@ -489,10 +495,10 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   }
   else
   {
-    formula = exp == d_true
-                  ? conc
-                  : (conc == d_false ? exp.negate()
-                                     : nm->mkNode(IMPLIES, exp, conc));
+    formula =
+        exp == d_true
+            ? conc
+            : (conc == d_false ? exp.negate() : nm->mkNode(IMPLIES, exp, conc));
     concFormula = formula;
   }
   Trace("pfee-proof") << "pfee::ensureProofForFact: formula is " << formula
@@ -535,17 +541,11 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     }
     pfg = this;
     // set the proof for the conflict or lemma, which can be queried later
-    switch(tnk)
+    switch (tnk)
     {
-      case TrustNodeKind::CONFLICT:
-        setProofForConflict(formula, pf);
-        break;
-      case TrustNodeKind::LEMMA:
-      setProofForLemma(formula, pf);
-        break;
-      case TrustNodeKind::PROP_EXP:
-      setProofForPropExp(conc, exp, pf);
-        break;
+      case TrustNodeKind::CONFLICT: setProofForConflict(formula, pf); break;
+      case TrustNodeKind::LEMMA: setProofForLemma(formula, pf); break;
+      case TrustNodeKind::PROP_EXP: setProofForPropExp(conc, exp, pf); break;
       default:
         pfg = nullptr;
         Unhandled() << "Unhandled trust node kind " << tnk;
@@ -555,17 +555,14 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   Trace("pfee-proof") << "pfee::ensureProofForFact: finish" << std::endl
                       << std::endl;
   // we can provide a proof for conflict, lemma or explained propagation
-  switch(tnk)
+  switch (tnk)
   {
     case TrustNodeKind::CONFLICT:
       return TrustNode::mkTrustConflict(formula, pfg);
-    case TrustNodeKind::LEMMA:
-      return TrustNode::mkTrustLemma(formula, pfg);
+    case TrustNodeKind::LEMMA: return TrustNode::mkTrustLemma(formula, pfg);
     case TrustNodeKind::PROP_EXP:
       return TrustNode::mkTrustPropExp(conc, exp, pfg);
-    default:
-      Unhandled() << "Unhandled trust node kind " << tnk;
-      break;
+    default: Unhandled() << "Unhandled trust node kind " << tnk; break;
   }
   return TrustNode::null();
 }

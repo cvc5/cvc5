@@ -38,15 +38,16 @@ Node ProofNode::getResult() const { return d_proven; }
 
 void ProofNode::getFreeAssumptions(std::vector<Node>& assump)
 {
-  std::map<Node, std::vector< ProofNode* >> amap;
+  std::map<Node, std::vector<ProofNode*>> amap;
   getFreeAssumptionsMap(amap);
-  for (const std::pair< const Node, std::vector< ProofNode* > >& p : amap)
+  for (const std::pair<const Node, std::vector<ProofNode*>>& p : amap)
   {
     assump.push_back(p.first);
   }
 }
 
-void ProofNode::getFreeAssumptionsMap(std::map<Node, std::vector< ProofNode* >>& amap)
+void ProofNode::getFreeAssumptionsMap(
+    std::map<Node, std::vector<ProofNode*>>& amap)
 {
   // visited set false after preorder traversal, true after postorder traversal
   std::unordered_map<ProofNode*, bool> visited;

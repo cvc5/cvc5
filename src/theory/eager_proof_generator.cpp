@@ -42,7 +42,9 @@ void EagerProofGenerator::setProofForLemma(Node lem,
   d_proofs[lkey] = pf;
 }
 
-void EagerProofGenerator::setProofForPropExp(TNode lit, Node exp, std::shared_ptr<ProofNode> pf)
+void EagerProofGenerator::setProofForPropExp(TNode lit,
+                                             Node exp,
+                                             std::shared_ptr<ProofNode> pf)
 {
   // Normalize based on key
   Node pekey = TrustNode::getPropExpKeyValue(lit, exp);
