@@ -680,6 +680,7 @@ bool InferProofCons::addProofTo(Node fact, CDProof* pf, bool forceOverwrite)
 {
   // we copy fresh proofs
   return ProofGenerator::addProofTo(fact, pf, forceOverwrite);
+  // TODO: is the alternatve version below necessary?
   // get the inference
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
   AlwaysAssert(it != d_lazyFactMap.end());

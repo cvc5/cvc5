@@ -394,7 +394,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       return TrustNode::null();
     }
     // clone it so that we have a fresh copy
-    //pfConc = pfConc->clone();
+    pfConc = pfConc->clone();
     Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
     // The free assumptions must be closed by assumps, which should be passed
     // as arguments of SCOPE. However, some of the free assumptions may not
@@ -406,8 +406,20 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     // The free assumptions of the proof
     std::vector<Node> freeAssumps;
     pfConc->getFreeAssumptions(freeAssumps);
-    // Whether we have ensured freeAssumps is a subset of scopeAssumps
+    // we first ensure the assumptions are flattened
+    std::vector<Node> ac;
     for (const TNode& a : assumps)
+    {
+      if (a.getKind()==AND)
+      {
+        ac.insert(ac.end(),a.begin(),a.end());
+      }
+      else
+      {
+        ac.push_back(a);
+      }
+    }
+    for (const Node& a : ac)
     {
       if (std::find(freeAssumps.begin(), freeAssumps.end(), a)
           != freeAssumps.end())
