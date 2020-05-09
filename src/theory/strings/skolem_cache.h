@@ -66,12 +66,12 @@ class SkolemCache
     //    exists k. a = "c" ++ k
     SK_ID_VC_SPT,
     SK_ID_VC_SPT_REV,
-    SK_ID_VC_UNIFIED_SPT,
-    SK_ID_VC_UNIFIED_SPT_REV,
     // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
     //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
     SK_ID_V_SPT,
     SK_ID_V_SPT_REV,
+    SK_ID_V_UNIFIED_SPT,
+    SK_ID_V_UNIFIED_SPT_REV,
     // a != ""  ^ b = "c" ^ a ++ a' != b ++ b' =>
     //    exists k, k_rem.
     //         len( k ) = 1 ^

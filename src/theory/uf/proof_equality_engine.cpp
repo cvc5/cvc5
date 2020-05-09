@@ -236,7 +236,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
     PRefProofGenerator prg(&d_proof);
     LazyCDProof tmpProof(d_pnm, &prg);
     CDProof* curr;
-    if (conc == d_false || true)
+    if (conc == d_false)
     {
       curr = &d_proof;
     }
@@ -269,7 +269,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
     PRefProofGenerator prg(&d_proof);
     LazyCDProof tmpProof(d_pnm, &prg);
     CDProof* curr;
-    if (conc == d_false || true)
+    if (conc == d_false)
     {
       curr = &d_proof;
     }
@@ -304,7 +304,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
     PRefProofGenerator prg(&d_proof);
     LazyCDProof tmpProof(d_pnm, &prg);
     CDProof* curr;
-    if (conc == d_false || true)
+    if (conc == d_false)
     {
       curr = &d_proof;
     }
