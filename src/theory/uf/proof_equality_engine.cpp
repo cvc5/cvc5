@@ -410,9 +410,9 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     std::vector<Node> ac;
     for (const TNode& a : assumps)
     {
-      if (a.getKind()==AND)
+      if (a.getKind() == AND)
       {
-        ac.insert(ac.end(),a.begin(),a.end());
+        ac.insert(ac.end(), a.begin(), a.end());
       }
       else
       {

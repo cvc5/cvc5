@@ -286,7 +286,8 @@ Node InferProofCons::convert(Inference infer,
           if (convertPredTransform(
                   mainEqCeq, conc, cexp, RewriterId::REWRITE_EQ_EXT))
           {
-            Trace("strings-ipc-core") << "Transformed to " << conc << " via pred transform" << std::endl;
+            Trace("strings-ipc-core") << "Transformed to " << conc
+                                      << " via pred transform" << std::endl;
             // success
             useBuffer = true;
             Trace("strings-ipc-core") << "...success!" << std::endl;
