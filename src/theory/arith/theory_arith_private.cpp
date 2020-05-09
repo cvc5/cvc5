@@ -1238,10 +1238,9 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
                 nm->mkNode(
                     LT,
                     num,
-                    nm->mkNode(
-                        MULT,
-                        den,
-                        nm->mkNode(PLUS, v, nm->mkConst(Rational(1))))));
+                    nm->mkNode(MULT,
+                               den,
+                               nm->mkNode(PLUS, v, nm->mkConst(Rational(1))))));
           } else {
             lem = nm->mkNode(
                 AND,
@@ -1270,8 +1269,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
                         nm->mkNode(
                             MULT,
                             den,
-                            nm->mkNode(
-                                PLUS, v, nm->mkConst(Rational(1))))))),
+                            nm->mkNode(PLUS, v, nm->mkConst(Rational(1))))))),
             nm->mkNode(
                 IMPLIES,
                 nm->mkNode(LT, den, nm->mkConst(Rational(0))),
@@ -1284,8 +1282,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
                         nm->mkNode(
                             MULT,
                             den,
-                            nm->mkNode(
-                                PLUS, v, nm->mkConst(Rational(-1))))))));
+                            nm->mkNode(PLUS, v, nm->mkConst(Rational(-1))))))));
       }
       intVar = ProofSkolemCache::mkSkolem(
           v, lem, "linearIntDiv", "the result of an intdiv-by-k term");
