@@ -574,7 +574,7 @@ Node InferProofCons::convert(Inference infer,
       }
       // connect via transitivity?
       Node curr = eqs[0];
-      for (size_t i = 1, esize = eqs.size(); i<esize; i++)
+      for (size_t i = 1, esize = eqs.size(); i < esize; i++)
       {
         Node prev = curr;
         curr = convertTrans(curr, eqs[1]);
@@ -588,11 +588,13 @@ Node InferProofCons::convert(Inference infer,
       {
         break;
       }
-      Trace("strings-ipc-prefix") << "- Possible conflicting equality : " << curr << std::endl;
+      Trace("strings-ipc-prefix")
+          << "- Possible conflicting equality : " << curr << std::endl;
       std::vector<Node> emp;
-      Node concE = convertPredElim(curr,emp,RewriterId::REWRITE_EQ_EXT);
-      Trace("strings-ipc-prefix") << "- After pred elim: " << concE << std::endl;
-      if (concE==conc)
+      Node concE = convertPredElim(curr, emp, RewriterId::REWRITE_EQ_EXT);
+      Trace("strings-ipc-prefix")
+          << "- After pred elim: " << concE << std::endl;
+      if (concE == conc)
       {
         Trace("strings-ipc-prefix") << "...success!" << std::endl;
         useBuffer = true;
@@ -777,17 +779,17 @@ Node InferProofCons::convertPredElim(Node src,
 
 Node InferProofCons::convertTrans(Node eqa, Node eqb)
 {
-  if (eqa.getKind()!=EQUAL || eqb.getKind()!=EQUAL)
+  if (eqa.getKind() != EQUAL || eqb.getKind() != EQUAL)
   {
     return Node::null();
   }
-  for (unsigned i=0; i<2; i++)
+  for (unsigned i = 0; i < 2; i++)
   {
-    Node eqaSym = i==0 ? eqa[1].eqNode(eqa[0]) : eqa; 
-    for (unsigned j=0; j<2; j++)
+    Node eqaSym = i == 0 ? eqa[1].eqNode(eqa[0]) : eqa;
+    for (unsigned j = 0; j < 2; j++)
     {
-      Node eqbSym = j==0 ? eqb : eqb[1].eqNode(eqb[1]);
-      if (eqa[i]==eqb[j])
+      Node eqbSym = j == 0 ? eqb : eqb[1].eqNode(eqb[1]);
+      if (eqa[i] == eqb[j])
       {
         std::vector<Node> children;
         children.push_back(eqaSym);
