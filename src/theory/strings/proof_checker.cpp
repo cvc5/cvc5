@@ -318,7 +318,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     else if (id == PfRule::STRINGS_EAGER_REDUCTION)
     {
-      uint32_t i;
+      uint32_t i = 0;
       if (args.size()>=2)
       {
         getIndex(args[1], i);
