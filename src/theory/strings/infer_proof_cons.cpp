@@ -515,12 +515,14 @@ Node InferProofCons::convert(Inference infer,
     // ========================== prefix conflict
     case Inference::PREFIX_CONFLICT:
     {
+      Trace("strings-ipc-prefix") << "Prefix conflict..." << std::endl;
       std::vector<Node> eqs;
       for (const Node e : ps.d_children)
       {
         Kind ek = e.getKind();
         if (ek==EQUAL)
         {
+          Trace("strings-ipc-prefix") << "- equality : " << e << std::endl;
           eqs.push_back(e);
         }
         else if (ek==STRING_IN_REGEXP)
@@ -529,27 +531,32 @@ Node InferProofCons::convert(Inference infer,
           children.push_back(e);
           std::vector<Node> args;
           Node eunf = d_psb.tryStep(PfRule::RE_UNFOLD_POS,children,args);
-          if (!eunf.isNull())
+          Trace("strings-ipc-prefix") << "--- " << e << " unfolds to " << eunf << std::endl;
+          if (eunf.isNull())
           {
-            if (eunf.getKind()==AND)
+            continue;
+          }
+          else if (eunf.getKind()==AND)
+          {
+            // equality is the last conjunct
+            std::vector<Node> childrenAE;
+            childrenAE.push_back(eunf);
+            std::vector<Node> argsAE;
+            argsAE.push_back(nm->mkConst(Rational(eunf.getNumChildren()-1)));
+            Node eunfAE = d_psb.tryStep(PfRule::AND_ELIM,childrenAE,argsAE);
+            Trace("strings-ipc-prefix") << "--- and elim to " << eunfAE << std::endl;
+            if (eunfAE.isNull() || eunfAE.getKind()!=EQUAL)
             {
-              // equality is the last conjunct
-              std::vector<Node> childrenAE;
-              childrenAE.push_back(eunf);
-              std::vector<Node> argsAE;
-              argsAE.push_back(nm->mkConst(Rational(eunf.getNumChildren()-1)));
-              Node eunfAE = d_psb.tryStep(PfRule::AND_ELIM,childrenAE,argsAE);
-              if (eunfAE.isNull() || eunfAE.getKind()!=EQUAL)
-              {
-                Assert(false);
-                continue;
-              }
-              eqs.push_back(eunfAE);
-            }            
-            else if (eunf.getKind()==EQUAL)
-            {
-              eqs.push_back(eunf);
+              Assert(false);
+              continue;
             }
+            Trace("strings-ipc-prefix") << "- equality : " << eunfAE << std::endl;
+            eqs.push_back(eunfAE);
+          }            
+          else if (eunf.getKind()==EQUAL)
+          {
+            Trace("strings-ipc-prefix") << "- equality : " << eunf << std::endl;
+            eqs.push_back(eunf);
           }
         }
         else

@@ -1653,11 +1653,6 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     }
   }
 
-  Node ant = d_im.mkExplain(iinfo.d_ant);
-  iinfo.d_ant.clear();
-  iinfo.d_ant.push_back(ant);
-  iinfo.d_noExplain.push_back(ant);
-
   Node str_in_re;
   if (s_zy == t_yz && r == emp && s_zy.isConst()
       && s_zy.getConst<String>().isRepeated())
