@@ -136,7 +136,7 @@ class DummyTheory : public Theory {
   void presolve() override { Unimplemented(); }
   void preRegisterTerm(TNode n) override {}
   void propagate(Effort level) override {}
-  Node explain(TNode n) override { return Node::null(); }
+  TrustNode explain(TNode n) override { return TrustNode::null(); }
   Node getValue(TNode n) { return Node::null(); }
   string identify() const override { return "DummyTheory"; }
 };/* class DummyTheory */

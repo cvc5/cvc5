@@ -106,6 +106,7 @@ Node TermRegistry::eagerReduce(Node t,
       Node sk1 = sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_PRE, "sc1");
       Node sk2 = sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_POST, "sc2");
       lemma = t[0].eqNode(utils::mkNConcat(sk1, t[1], sk2));
+      lemma = nm->mkNode(IMPLIES, t, lemma);
     }
   }
   return lemma;
