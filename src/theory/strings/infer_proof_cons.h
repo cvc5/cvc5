@@ -129,9 +129,12 @@ class InferProofCons : public ProofGenerator
                             RewriterId id = RewriterId::REWRITE);
   /**
    */
-  void convertPredElim(Node src,
+  Node convertPredElim(Node src,
                        const std::vector<Node>& exp,
                        RewriterId id = RewriterId::REWRITE);
+  /**
+   */
+  Node convertTrans(Node eqa, Node eqb);
   /** Is symm */
   static bool isSymm(Node src, Node tgt);
   /** the proof node manager */

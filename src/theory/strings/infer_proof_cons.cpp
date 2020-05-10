@@ -526,6 +526,7 @@ Node InferProofCons::convert(Inference infer,
         }
         else if (ek == STRING_IN_REGEXP)
         {
+          // unfold it and extract the equality
           std::vector<Node> children;
           children.push_back(e);
           std::vector<Node> args;
@@ -563,8 +564,38 @@ Node InferProofCons::convert(Inference infer,
         }
         else
         {
+          // not sure how to use this assumption
           Assert(false);
         }
+      }
+      if (eqs.empty())
+      {
+        break;
+      }
+      // connect via transitivity?
+      Node curr = eqs[0];
+      for (size_t i = 1, esize = eqs.size(); i<esize; i++)
+      {
+        Node prev = curr;
+        curr = convertTrans(curr, eqs[1]);
+        if (curr.isNull())
+        {
+          break;
+        }
+        Trace("strings-ipc-prefix") << "- Via trans: " << curr << std::endl;
+      }
+      if (curr.isNull())
+      {
+        break;
+      }
+      Trace("strings-ipc-prefix") << "- Possible conflicting equality : " << curr << std::endl;
+      std::vector<Node> emp;
+      Node concE = convertPredElim(curr,emp,RewriterId::REWRITE_EQ_EXT);
+      Trace("strings-ipc-prefix") << "- After pred elim: " << concE << std::endl;
+      if (concE==conc)
+      {
+        Trace("strings-ipc-prefix") << "...success!" << std::endl;
+        useBuffer = true;
       }
     }
     break;
@@ -726,7 +757,7 @@ bool InferProofCons::convertPredTransform(Node src,
   return true;
 }
 
-void InferProofCons::convertPredElim(Node src,
+Node InferProofCons::convertPredElim(Node src,
                                      const std::vector<Node>& exp,
                                      RewriterId id)
 {
@@ -739,7 +770,34 @@ void InferProofCons::convertPredElim(Node src,
   if (isSymm(src, srcRew))
   {
     d_psb.popStep();
+    return src;
   }
+  return srcRew;
+}
+
+Node InferProofCons::convertTrans(Node eqa, Node eqb)
+{
+  if (eqa.getKind()!=EQUAL || eqb.getKind()!=EQUAL)
+  {
+    return Node::null();
+  }
+  for (unsigned i=0; i<2; i++)
+  {
+    Node eqaSym = i==0 ? eqa[1].eqNode(eqa[0]) : eqa; 
+    for (unsigned j=0; j<2; j++)
+    {
+      Node eqbSym = j==0 ? eqb : eqb[1].eqNode(eqb[1]);
+      if (eqa[i]==eqb[j])
+      {
+        std::vector<Node> children;
+        children.push_back(eqaSym);
+        children.push_back(eqbSym);
+        std::vector<Node> args;
+        return d_psb.tryStep(PfRule::TRANS, children, args);
+      }
+    }
+  }
+  return Node::null();
 }
 
 bool InferProofCons::isSymm(Node src, Node tgt)
