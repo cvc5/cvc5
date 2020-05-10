@@ -525,7 +525,7 @@ void InferenceManager::postProcessFact(TNode fact)
       InferInfo iiPrefixConf;
       iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
       iiPrefixConf.d_conc = d_false;
-      utils::flattenOp(AND,pc,iiPrefixConf.d_ant);
+      utils::flattenOp(AND, pc, iiPrefixConf.d_ant);
       Trace("strings-conflict")
           << "CONFLICT: Eager prefix : " << pc << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);

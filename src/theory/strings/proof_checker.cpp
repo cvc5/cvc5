@@ -321,12 +321,12 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       Assert(args.size() <= 2);
       uint32_t i = 0;
-      if (args.size()>=2)
+      if (args.size() >= 2)
       {
         getIndex(args[1], i);
       }
       SkolemCache skc(false);
-      ret = TermRegistry::eagerReduce(t, &skc,  i);
+      ret = TermRegistry::eagerReduce(t, &skc, i);
     }
     else if (id == PfRule::LENGTH_POS)
     {
@@ -340,7 +340,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node retw = ProofSkolemCache::getWitnessForm(ret);
     return retw;
   }
-  else if (id==PfRule::LENGTH_NON_EMPTY)
+  else if (id == PfRule::LENGTH_NON_EMPTY)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
@@ -350,9 +350,9 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node zero = nm->mkConst(Rational(0));
-    Node clen = nm->mkNode(STRING_LENGTH,nemp[0][0]);
+    Node clen = nm->mkNode(STRING_LENGTH, nemp[0][0]);
     return clen.eqNode(zero).notNode();
   }
   else if (id == PfRule::RE_INTER)

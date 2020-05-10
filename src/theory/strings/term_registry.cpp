@@ -64,13 +64,12 @@ TermRegistry::TermRegistry(SolverState& s,
 
 TermRegistry::~TermRegistry() {}
 
-Node TermRegistry::eagerReduce(Node t,
-                          SkolemCache* sc, uint32_t i)
+Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t i)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node lemma;
   Kind tk = t.getKind();
-  if (i==0)
+  if (i == 0)
   {
     if (tk == STRING_TO_CODE)
     {
@@ -86,11 +85,12 @@ Node TermRegistry::eagerReduce(Node t,
     }
     else if (tk == STRING_STRIDOF)
     {
-      // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len x)))
+      // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len
+      // x)))
       Node l = utils::mkNLength(t[0]);
       lemma = nm->mkNode(AND,
-                        nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
-                        nm->mkNode(LEQ, t, l));
+                         nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
+                         nm->mkNode(LEQ, t, l));
     }
     else if (tk == STRING_STOI)
     {
@@ -98,13 +98,15 @@ Node TermRegistry::eagerReduce(Node t,
       lemma = nm->mkNode(GEQ, t, nm->mkConst(Rational(-1)));
     }
   }
-  else if (i==1)
+  else if (i == 1)
   {
-    if (tk==STRING_STRCTN)
+    if (tk == STRING_STRCTN)
     {
       // (str.contains s r) => (= s (str.++ sk1 r sk2))
-      Node sk1 = sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_PRE, "sc1");
-      Node sk2 = sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_POST, "sc2");
+      Node sk1 =
+          sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_PRE, "sc1");
+      Node sk2 =
+          sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_POST, "sc2");
       lemma = t[0].eqNode(utils::mkNConcat(sk1, t[1], sk2));
       lemma = nm->mkNode(IMPLIES, t, lemma);
     }

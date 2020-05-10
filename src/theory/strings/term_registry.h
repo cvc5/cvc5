@@ -69,9 +69,7 @@ class TermRegistry
    * @param i An identifier for the variant of the reduction,
    * @return The eager reduction for t.
    */
-  static Node eagerReduce(Node t,
-                          SkolemCache* sc, 
-                          uint32_t i=0);
+  static Node eagerReduce(Node t, SkolemCache* sc, uint32_t i = 0);
   /**
    * Returns a lemma indicating that the length of a term t whose type is
    * string-like has positive length. The exact form of this lemma depends

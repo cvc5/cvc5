@@ -192,7 +192,8 @@ Node InferProofCons::convert(Inference infer,
       // these inferences have a length constraint as the last explain
       if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY
           || infer == Inference::SSPLIT_CST || infer == Inference::SSPLIT_VAR
-          || infer == Inference::SSPLIT_VAR_PROP || infer == Inference::SSPLIT_CST_PROP)
+          || infer == Inference::SSPLIT_VAR_PROP
+          || infer == Inference::SSPLIT_CST_PROP)
       {
         if (exp.size() >= 2)
         {
@@ -305,8 +306,7 @@ Node InferProofCons::convert(Inference infer,
         childrenC.push_back(mainEqCeq);
         std::vector<Node> argsC;
         argsC.push_back(nodeIsRev);
-        Node mainEqC =
-            d_psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
+        Node mainEqC = d_psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
         if (mainEqC == conc)
         {
           useBuffer = true;
@@ -323,7 +323,7 @@ Node InferProofCons::convert(Inference infer,
         Node s0 = svec[isRev ? svec.size() - 1 : 0];
         // may need to apply symmetry
         if ((infer == Inference::SSPLIT_CST
-              || infer == Inference::SSPLIT_CST_PROP)
+             || infer == Inference::SSPLIT_CST_PROP)
             && t0.isConst())
         {
           Assert(!s0.isConst());
@@ -345,38 +345,37 @@ Node InferProofCons::convert(Inference infer,
           // need to reconstruct a proof from the given explanation.
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(STRING_LENGTH, t0)
-                        .eqNode(nm->mkNode(STRING_LENGTH, s0));
+                       .eqNode(nm->mkNode(STRING_LENGTH, s0));
           rule = PfRule::CONCAT_UNIFY;
         }
         else if (infer == Inference::SSPLIT_VAR)
         {
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(STRING_LENGTH, t0)
-                        .eqNode(nm->mkNode(STRING_LENGTH, s0));
+                       .eqNode(nm->mkNode(STRING_LENGTH, s0));
           rule = PfRule::CONCAT_SPLIT;
         }
         else if (infer == Inference::SSPLIT_CST)
         {
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(STRING_LENGTH, t0)
-                        .eqNode(nm->mkConst(Rational(0)))
-                        .notNode();
+                       .eqNode(nm->mkConst(Rational(0)))
+                       .notNode();
           rule = PfRule::CONCAT_CSPLIT;
         }
         else if (infer == Inference::SSPLIT_VAR_PROP)
         {
           // it should be the case that lenConstraint => lenReq
-          lenReq = nm->mkNode(GT,
-                              nm->mkNode(STRING_LENGTH, t0),
-                              nm->mkNode(STRING_LENGTH, s0));
+          lenReq = nm->mkNode(
+              GT, nm->mkNode(STRING_LENGTH, t0), nm->mkNode(STRING_LENGTH, s0));
           rule = PfRule::CONCAT_LPROP;
         }
         else if (infer == Inference::SSPLIT_CST_PROP)
         {
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(STRING_LENGTH, t0)
-                        .eqNode(nm->mkConst(Rational(0)))
-                        .notNode();
+                       .eqNode(nm->mkConst(Rational(0)))
+                       .notNode();
           rule = PfRule::CONCAT_CPROP;
         }
         if (rule != PfRule::UNKNOWN)
@@ -447,9 +446,9 @@ Node InferProofCons::convert(Inference infer,
     }
     break;
     // ========================== Reduction
-    case Inference::CTN_POS: 
+    case Inference::CTN_POS:
     {
-      if (ps.d_children.size()!=1)
+      if (ps.d_children.size() != 1)
       {
         break;
       }
@@ -458,7 +457,7 @@ Node InferProofCons::convert(Inference infer,
       args.push_back(ps.d_children[0]);
       // variant 1 for eager reduction
       args.push_back(nm->mkConst(Rational(1)));
-      Node res = d_psb.tryStep(PfRule::STRINGS_EAGER_REDUCTION,children,args);
+      Node res = d_psb.tryStep(PfRule::STRINGS_EAGER_REDUCTION, children, args);
       if (res.isNull())
       {
         break;
@@ -467,20 +466,20 @@ Node InferProofCons::convert(Inference infer,
       std::vector<Node> tiChildren;
       tiChildren.push_back(ps.d_children[0]);
       std::vector<Node> tiArgs;
-      Node ctnt = d_psb.tryStep(PfRule::TRUE_INTRO,tiChildren,tiArgs);
-      if (ctnt.isNull() || ctnt.getKind()!=EQUAL)
+      Node ctnt = d_psb.tryStep(PfRule::TRUE_INTRO, tiChildren, tiArgs);
+      if (ctnt.isNull() || ctnt.getKind() != EQUAL)
       {
         break;
       }
       std::vector<Node> tchildren;
       tchildren.push_back(ctnt);
       // apply substitution { contains(x,t) -> true } and rewrite
-      if (convertPredTransform(res,conc,tchildren))
+      if (convertPredTransform(res, conc, tchildren))
       {
         useBuffer = true;
       }
     }
-      break;
+    break;
     case Inference::REDUCTION:
     {
       size_t nchild = conc.getNumChildren();
@@ -520,40 +519,43 @@ Node InferProofCons::convert(Inference infer,
       for (const Node e : ps.d_children)
       {
         Kind ek = e.getKind();
-        if (ek==EQUAL)
+        if (ek == EQUAL)
         {
           Trace("strings-ipc-prefix") << "- equality : " << e << std::endl;
           eqs.push_back(e);
         }
-        else if (ek==STRING_IN_REGEXP)
+        else if (ek == STRING_IN_REGEXP)
         {
           std::vector<Node> children;
           children.push_back(e);
           std::vector<Node> args;
-          Node eunf = d_psb.tryStep(PfRule::RE_UNFOLD_POS,children,args);
-          Trace("strings-ipc-prefix") << "--- " << e << " unfolds to " << eunf << std::endl;
+          Node eunf = d_psb.tryStep(PfRule::RE_UNFOLD_POS, children, args);
+          Trace("strings-ipc-prefix")
+              << "--- " << e << " unfolds to " << eunf << std::endl;
           if (eunf.isNull())
           {
             continue;
           }
-          else if (eunf.getKind()==AND)
+          else if (eunf.getKind() == AND)
           {
             // equality is the last conjunct
             std::vector<Node> childrenAE;
             childrenAE.push_back(eunf);
             std::vector<Node> argsAE;
-            argsAE.push_back(nm->mkConst(Rational(eunf.getNumChildren()-1)));
-            Node eunfAE = d_psb.tryStep(PfRule::AND_ELIM,childrenAE,argsAE);
-            Trace("strings-ipc-prefix") << "--- and elim to " << eunfAE << std::endl;
-            if (eunfAE.isNull() || eunfAE.getKind()!=EQUAL)
+            argsAE.push_back(nm->mkConst(Rational(eunf.getNumChildren() - 1)));
+            Node eunfAE = d_psb.tryStep(PfRule::AND_ELIM, childrenAE, argsAE);
+            Trace("strings-ipc-prefix")
+                << "--- and elim to " << eunfAE << std::endl;
+            if (eunfAE.isNull() || eunfAE.getKind() != EQUAL)
             {
               Assert(false);
               continue;
             }
-            Trace("strings-ipc-prefix") << "- equality : " << eunfAE << std::endl;
+            Trace("strings-ipc-prefix")
+                << "- equality : " << eunfAE << std::endl;
             eqs.push_back(eunfAE);
-          }            
-          else if (eunf.getKind()==EQUAL)
+          }
+          else if (eunf.getKind() == EQUAL)
           {
             Trace("strings-ipc-prefix") << "- equality : " << eunf << std::endl;
             eqs.push_back(eunf);
@@ -564,10 +566,8 @@ Node InferProofCons::convert(Inference infer,
           Assert(false);
         }
       }
-      
-      
     }
-      break;
+    break;
     // ========================== unknown
     case Inference::I_CYCLE_E:
     case Inference::I_CYCLE:
@@ -686,8 +686,8 @@ bool InferProofCons::convertLengthPf(Node lenReq,
     std::vector<Node> children;
     children.push_back(lenExp[0]);
     std::vector<Node> args;
-    Node res = d_psb.tryStep(PfRule::LENGTH_NON_EMPTY,children,args);
-    if (res==lenReq)
+    Node res = d_psb.tryStep(PfRule::LENGTH_NON_EMPTY, children, args);
+    if (res == lenReq)
     {
       return true;
     }
