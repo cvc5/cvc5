@@ -116,7 +116,7 @@ class SkolemCache
     //       k(x) is the end index of the x^th occurrence of b in a
     //   where n is the number of occurrences of b in a, and k(0)=0.
     SK_OCCUR_INDEX,
-    // 
+    //
     SK_RE_CONCAT_COMPONENT,
   };
   /**

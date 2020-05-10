@@ -95,9 +95,9 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
   else if (node.getKind() == kind::CHOICE)
   {
     std::vector<Node> conj;
-    if (node[1].getKind()==kind::AND)
+    if (node[1].getKind() == kind::AND)
     {
-      conj.insert(conj.end(),node[1].begin(),node[1].end());
+      conj.insert(conj.end(), node[1].begin(), node[1].end());
     }
     else
     {

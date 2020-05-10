@@ -68,17 +68,17 @@ Node ProofSkolemCache::mkSkolem(Node v,
 }
 
 Node ProofSkolemCache::mkSkolemExists(Node v,
-                       Node q,
-                       const std::string& prefix,
-                       const std::string& comment,
-                       int flags)
+                                      Node q,
+                                      const std::string& prefix,
+                                      const std::string& comment,
+                                      int flags)
 {
-  Assert (q.getKind()==EXISTS);
+  Assert(q.getKind() == EXISTS);
   bool foundVar = false;
   std::vector<Node> ovars;
   for (const Node& av : q[0])
   {
-    if (av==v)
+    if (av == v)
     {
       foundVar = true;
       continue;

@@ -857,9 +857,9 @@ Node RegExpOpr::simplify(Node t, bool polarity)
     {
       conc = reduceRegExpPos(str, re, d_sc);
       // we also immediately unfold the last disjunct for re.*
-      if (re.getKind()==REGEXP_STAR)
+      if (re.getKind() == REGEXP_STAR)
       {
-        Assert (conc.getKind()==OR && conc.getNumChildren()==3);
+        Assert(conc.getKind() == OR && conc.getNumChildren() == 3);
         std::vector<Node> newChildren;
         newChildren.push_back(conc[0]);
         newChildren.push_back(conc[1]);

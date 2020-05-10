@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** 
+/**
  * Associating formulas with their "exists form", or an existentially
  * quantified formula that is equivalent to it.
  */
@@ -35,7 +35,7 @@ struct ExistsFormAttributeId
 {
 };
 typedef expr::Attribute<ExistsFormAttributeId, Node> ExistsFormAttribute;
-  
+
 SkolemCache::SkolemCache(bool useOpts) : d_useOpts(useOpts)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -79,7 +79,7 @@ Node SkolemCache::mkTypedSkolemCached(
     // already cached
     return it->second;
   }
-  
+
   NodeManager* nm = NodeManager::currentNM();
   Node sk;
   switch (id)
@@ -107,17 +107,17 @@ Node SkolemCache::mkTypedSkolemCached(
       break;
     case SK_RE_CONCAT_COMPONENT:
     {
-      Assert (a.getKind()==STRING_IN_REGEXP);
+      Assert(a.getKind() == STRING_IN_REGEXP);
       Node x = a[0];
       Node r = a[1];
-      Assert (r.getKind()==REGEXP_CONCAT);
+      Assert(r.getKind() == REGEXP_CONCAT);
       // get the index
-      Assert (b.isConst() && b.getType().isInteger()
-        && b.getConst<Rational>().sgn() >= 0
-        && b.getConst<Rational>().getNumerator().fitsUnsignedInt());
+      Assert(b.isConst() && b.getType().isInteger()
+             && b.getConst<Rational>().sgn() >= 0
+             && b.getConst<Rational>().getNumerator().fitsUnsignedInt());
       uint32_t index = b.getConst<Rational>().getNumerator().toUnsignedInt();
-      Assert (index<r.getNumChildren());
-      if (d_useOpts && r[index].getKind()==STRING_TO_REGEXP)
+      Assert(index < r.getNumChildren());
+      if (d_useOpts && r[index].getKind() == STRING_TO_REGEXP)
       {
         // just return the body of the str.to_re
         sk = r[index][0];
@@ -140,21 +140,22 @@ Node SkolemCache::mkTypedSkolemCached(
           {
             Node v = nm->mkBoundVar(xtn);
             vars.push_back(v);
-            mems.push_back(nm->mkNode(STRING_IN_REGEXP,v,rc));
+            mems.push_back(nm->mkNode(STRING_IN_REGEXP, v, rc));
           }
-          Node sconcat = nm->mkNode(STRING_CONCAT,vars);
+          Node sconcat = nm->mkNode(STRING_CONCAT, vars);
           Node eq = x.eqNode(sconcat);
-          mems.insert(mems.begin(),eq);
-          Node bvl = nm->mkNode(BOUND_VAR_LIST,vars);
+          mems.insert(mems.begin(), eq);
+          Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
           eform = nm->mkNode(EXISTS, bvl, nm->mkNode(AND, mems));
-          a.setAttribute(efa,eform);
+          a.setAttribute(efa, eform);
         }
-        Assert (eform.getKind()==EXISTS);
-        Assert (eform[0].getNumChildren()==r.getNumChildren());
-        sk = d_pskc.mkSkolemExists(eform[0][index], eform, c, "regexp concat skolem");
+        Assert(eform.getKind() == EXISTS);
+        Assert(eform[0].getNumChildren() == r.getNumChildren());
+        sk = d_pskc.mkSkolemExists(
+            eform[0][index], eform, c, "regexp concat skolem");
       }
     }
-      break;
+    break;
     case SK_NUM_OCCUR:
     case SK_OCCUR_INDEX:
     default:
