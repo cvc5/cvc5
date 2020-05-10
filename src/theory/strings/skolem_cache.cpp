@@ -14,6 +14,7 @@
 
 #include "theory/strings/skolem_cache.h"
 
+#include "expr/attribute.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -26,6 +27,15 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/** 
+ * Associating formulas with their "exists form", or an existentially
+ * quantified formula that is equivalent to it.
+ */
+struct ExistsFormAttributeId
+{
+};
+typedef expr::Attribute<ExistsFormAttributeId, Node> ExistsFormAttribute;
+  
 SkolemCache::SkolemCache(bool useOpts) : d_useOpts(useOpts)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -64,49 +74,101 @@ Node SkolemCache::mkTypedSkolemCached(
   }
 
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
-  if (it == d_skolemCache[a][b].end())
+  if (it != d_skolemCache[a][b].end())
   {
-    NodeManager* nm = NodeManager::currentNM();
-    Node sk;
-    switch (id)
-    {
-      // exists k. k = a
-      case SK_PURIFY:
-        sk = d_pskc.mkPurifySkolem(a, c, "string purify skolem");
-        break;
-      // these are eliminated by normalizeStringSkolem
-      case SK_ID_V_SPT:
-      case SK_ID_V_SPT_REV:
-      case SK_ID_VC_SPT:
-      case SK_ID_VC_SPT_REV:
-      case SK_FIRST_CTN_POST:
-      case SK_ID_C_SPT:
-      case SK_ID_C_SPT_REV:
-      case SK_ID_DC_SPT:
-      case SK_ID_DC_SPT_REM:
-      case SK_ID_DEQ_X:
-      case SK_ID_DEQ_Y:
-      case SK_FIRST_CTN_PRE:
-      case SK_PREFIX:
-      case SK_SUFFIX_REM:
-        Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
-        break;
-      case SK_NUM_OCCUR:
-      case SK_OCCUR_INDEX:
-      default:
-      {
-        Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
-        Node v = nm->mkBoundVar(tn);
-        Node cond = nm->mkConst(true);
-        sk = d_pskc.mkSkolem(v, cond, c, "string skolem");
-      }
-      break;
-    }
-    d_allSkolems.insert(sk);
-    d_skolemCache[a][b][id] = sk;
-    return sk;
+    // already cached
+    return it->second;
   }
-  return it->second;
+  
+  NodeManager* nm = NodeManager::currentNM();
+  Node sk;
+  switch (id)
+  {
+    // exists k. k = a
+    case SK_PURIFY:
+      sk = d_pskc.mkPurifySkolem(a, c, "string purify skolem");
+      break;
+    // these are eliminated by normalizeStringSkolem
+    case SK_ID_V_SPT:
+    case SK_ID_V_SPT_REV:
+    case SK_ID_VC_SPT:
+    case SK_ID_VC_SPT_REV:
+    case SK_FIRST_CTN_POST:
+    case SK_ID_C_SPT:
+    case SK_ID_C_SPT_REV:
+    case SK_ID_DC_SPT:
+    case SK_ID_DC_SPT_REM:
+    case SK_ID_DEQ_X:
+    case SK_ID_DEQ_Y:
+    case SK_FIRST_CTN_PRE:
+    case SK_PREFIX:
+    case SK_SUFFIX_REM:
+      Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
+      break;
+    case SK_RE_CONCAT_COMPONENT:
+    {
+      Assert (a.getKind()==STRING_IN_REGEXP);
+      Node x = a[0];
+      Node r = a[1];
+      Assert (r.getKind()==REGEXP_CONCAT);
+      // get the index
+      Assert (b.isConst() && b.getType().isInteger()
+        && b.getConst<Rational>().sgn() >= 0
+        && b.getConst<Rational>().getNumerator().fitsUnsignedInt());
+      uint32_t index = b.getConst<Rational>().getNumerator().toUnsignedInt();
+      Assert (index<r.getNumChildren());
+      if (d_useOpts && r[index].getKind()==STRING_TO_REGEXP)
+      {
+        // just return the body of the str.to_re
+        sk = r[index][0];
+      }
+      else
+      {
+        Node eform;
+        // get or make the exists form of the membership
+        ExistsFormAttribute efa;
+        if (a.hasAttribute(efa))
+        {
+          eform = a.getAttribute(efa);
+        }
+        else
+        {
+          TypeNode xtn = x.getType();
+          std::vector<Node> vars;
+          std::vector<Node> mems;
+          for (const Node& rc : r)
+          {
+            Node v = nm->mkBoundVar(xtn);
+            vars.push_back(v);
+            mems.push_back(nm->mkNode(STRING_IN_REGEXP,v,rc));
+          }
+          Node sconcat = nm->mkNode(STRING_CONCAT,vars);
+          Node eq = x.eqNode(sconcat);
+          mems.insert(mems.begin(),eq);
+          Node bvl = nm->mkNode(BOUND_VAR_LIST,vars);
+          eform = nm->mkNode(EXISTS, bvl, nm->mkNode(AND, mems));
+          a.setAttribute(efa,eform);
+        }
+        Assert (eform.getKind()==EXISTS);
+        Assert (eform[0].getNumChildren()==r.getNumChildren());
+        sk = d_pskc.mkSkolemExists(eform[0][index], eform, c, "regexp concat skolem");
+      }
+    }
+      break;
+    case SK_NUM_OCCUR:
+    case SK_OCCUR_INDEX:
+    default:
+    {
+      Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
+      Node v = nm->mkBoundVar(tn);
+      Node cond = nm->mkConst(true);
+      sk = d_pskc.mkSkolem(v, cond, c, "string skolem");
+    }
+    break;
+  }
+  d_allSkolems.insert(sk);
+  d_skolemCache[a][b][id] = sk;
+  return sk;
 }
 Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
                                       Node a,

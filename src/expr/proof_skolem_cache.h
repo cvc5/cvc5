@@ -88,6 +88,20 @@ class ProofSkolemCache
                        const std::string& prefix,
                        const std::string& comment = "",
                        int flags = NodeManager::SKOLEM_DEFAULT);
+  /** 
+   * Same as above, but where pred is an existential quantified formula
+   * whose bound variable list contains v. For example, calling this method on:
+   *   x, (exists ((x Int) (y Int)) (P x y))
+   * will return:
+   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
+   * If the variable v is not in the bound variable list of q, then null is
+   * returned and an assertion failure is thrown.
+   */
+  static Node mkSkolemExists(Node v,
+                       Node q,
+                       const std::string& prefix,
+                       const std::string& comment = "",
+                       int flags = NodeManager::SKOLEM_DEFAULT);
   /**
    * Same as above, but for special case for (witness ((x T)) (= x t))
    * where T is the type of t. This skolem is unique for each t.
