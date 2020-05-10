@@ -301,7 +301,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
            || id == PfRule::STRINGS_EAGER_REDUCTION || id == PfRule::LENGTH_POS)
   {
     Assert(children.empty());
-    Assert(args.size() == 1);
+    Assert(args.size() >= 1);
     // These rules are based on called a C++ method for returning a valid
     // lemma involving a single argument term.
     // Must convert to skolem form.
@@ -309,6 +309,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node ret;
     if (id == PfRule::STRINGS_REDUCTION)
     {
+      Assert(args.size() == 1);
       // we do not use optimizations
       SkolemCache skc(false);
       std::vector<Node> conj;
@@ -318,6 +319,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     else if (id == PfRule::STRINGS_EAGER_REDUCTION)
     {
+      Assert(args.size() <= 2);
       uint32_t i = 0;
       if (args.size()>=2)
       {
@@ -328,6 +330,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     else if (id == PfRule::LENGTH_POS)
     {
+      Assert(args.size() == 1);
       ret = TermRegistry::lengthPositive(t);
     }
     if (ret.isNull())

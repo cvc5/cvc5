@@ -538,9 +538,17 @@ Node InferProofCons::convert(Inference infer,
               childrenAE.push_back(eunf);
               std::vector<Node> argsAE;
               argsAE.push_back(nm->mkConst(Rational(eunf.getNumChildren()-1)));
+              Node eunfAE = d_psb.tryStep(PfRule::AND_ELIM,childrenAE,argsAE);
+              if (eunfAE.isNull() || eunfAE.getKind()!=EQUAL)
+              {
+                Assert(false);
+                continue;
+              }
+              eqs.push_back(eunfAE);
             }            
-            if (eunf.getKind()==EQUAL)
+            else if (eunf.getKind()==EQUAL)
             {
+              eqs.push_back(eunf);
             }
           }
         }
@@ -549,6 +557,8 @@ Node InferProofCons::convert(Inference infer,
           Assert(false);
         }
       }
+      
+      
     }
       break;
     // ========================== unknown
