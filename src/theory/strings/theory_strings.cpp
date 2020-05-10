@@ -161,6 +161,7 @@ void TheoryStrings::setProofChecker(ProofChecker* pc)
   pc->registerChecker(PfRule::CONCAT_LPROP, &d_sProofChecker);
   pc->registerChecker(PfRule::CONCAT_CPROP, &d_sProofChecker);
   pc->registerChecker(PfRule::LENGTH_POS, &d_sProofChecker);
+  pc->registerChecker(PfRule::LENGTH_NON_EMPTY, &d_sProofChecker);
   pc->registerChecker(PfRule::CTN_NOT_EQUAL, &d_sProofChecker);
   pc->registerChecker(PfRule::STRINGS_REDUCTION, &d_sProofChecker);
   pc->registerChecker(PfRule::STRINGS_EAGER_REDUCTION, &d_sProofChecker);

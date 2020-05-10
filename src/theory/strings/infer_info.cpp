@@ -84,6 +84,7 @@ const char* toString(Inference i)
     case Inference::CTN_NEG_EQUAL: return "CTN_NEG_EQUAL";
     case Inference::CTN_POS: return "CTN_POS";
     case Inference::REDUCTION: return "REDUCTION";
+    case Inference::PREFIX_CONFLICT: return "PREFIX_CONFLICT";
     default: return "?";
   }
 }

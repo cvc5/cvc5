@@ -192,7 +192,7 @@ Node InferProofCons::convert(Inference infer,
       // these inferences have a length constraint as the last explain
       if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY
           || infer == Inference::SSPLIT_CST || infer == Inference::SSPLIT_VAR
-          || infer == Inference::SSPLIT_VAR_PROP)
+          || infer == Inference::SSPLIT_VAR_PROP || infer == Inference::SSPLIT_CST_PROP)
       {
         if (exp.size() >= 2)
         {
@@ -449,7 +449,17 @@ Node InferProofCons::convert(Inference infer,
     }
     break;
     // ========================== Reduction
-    case Inference::CTN_POS: break;
+    case Inference::CTN_POS: 
+    {
+      if (ps.d_children.size()==1)
+      {
+        ps.d_rule = PfRule::STRINGS_EAGER_REDUCTION;
+        ps.d_args.push_back(ps.d_children[0]);
+        // variant 1 for eager reduction
+        ps.d_args.push_back(nm->mkConst(Rational(1)));
+      }
+    }
+      break;
     case Inference::REDUCTION:
     {
       size_t nchild = conc.getNumChildren();
@@ -596,10 +606,15 @@ bool InferProofCons::convertLengthPf(Node lenReq,
     {
       return true;
     }
-    // x != "" => len(x) != 0
-    // FIXME
-    // MODUS_PONENS( P, SCOPE( MACRO_SR_PRED_INTRO( ASSUME(x="") :args len(x)=0)
-    // :args x = "") )
+    // maybe x != "" => len(x) != 0
+    std::vector<Node> children;
+    children.push_back(lenExp[0]);
+    std::vector<Node> args;
+    Node res = d_psb.tryStep(PfRule::LENGTH_NON_EMPTY,children,args);
+    if (res==lenReq)
+    {
+      return true;
+    }
   }
   return false;
 }

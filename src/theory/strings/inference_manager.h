@@ -298,6 +298,8 @@ class InferenceManager
    */
   void preProcessFact(TNode fact);
   void postProcessFact(TNode fact);
+  /** Process conflict */
+  void processConflict(const InferInfo& ii);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */

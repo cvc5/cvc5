@@ -310,15 +310,21 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     if (id == PfRule::STRINGS_REDUCTION)
     {
       // we do not use optimizations
-      SkolemCache sc(false);
+      SkolemCache skc(false);
       std::vector<Node> conj;
-      ret = StringsPreprocess::reduce(t, conj, &sc);
+      ret = StringsPreprocess::reduce(t, conj, &skc);
       conj.push_back(t.eqNode(ret));
       ret = mkAnd(conj);
     }
     else if (id == PfRule::STRINGS_EAGER_REDUCTION)
     {
-      ret = TermRegistry::eagerReduce(t);
+      uint32_t i;
+      if (args.size()>=2)
+      {
+        getIndex(args[1], i);
+      }
+      SkolemCache skc(false);
+      ret = TermRegistry::eagerReduce(t, &skc,  i);
     }
     else if (id == PfRule::LENGTH_POS)
     {
@@ -330,6 +336,21 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     Node retw = ProofSkolemCache::getWitnessForm(ret);
     return retw;
+  }
+  else if (id==PfRule::LENGTH_NON_EMPTY)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    Node nemp = children[0];
+    if (nemp.getKind() != NOT || nemp[0].getKind() != EQUAL
+        || !Word::isEmpty(nemp[0][1]))
+    {
+      return Node::null();
+    }
+    NodeManager * nm = NodeManager::currentNM();
+    Node zero = nm->mkConst(Rational(0));
+    Node clen = nm->mkNode(STRING_LENGTH,nemp[0][0]);
+    return clen.eqNode(zero).notNode();
   }
   else if (id == PfRule::RE_INTER)
   {

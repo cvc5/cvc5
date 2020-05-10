@@ -470,6 +470,12 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t 0)))
   LENGTH_POS,
+  // ======== Length non-empty
+  // Children: (P1:(not (= t "")))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (not (= (str.len t) 0))
+  LENGTH_NON_EMPTY,
   //======================== Extended functions
   // ======== Contains not equal
   // Children: (P1:(not (str.contains s t)))
@@ -489,13 +495,10 @@ enum class PfRule : uint32_t
   STRINGS_REDUCTION,
   // ======== Eager Reduction
   // Children: none
-  // Arguments: (t)
+  // Arguments: (t, id?)
   // ---------------------
   // Conclusion: R
-  // where R = StringsPreprocess::eagerReduce(t).
-  // In other words, R is the reduction predicate for extended term t[x], and w
-  // is
-  //   (witness ((z T)) (= z t[x]))
+  // where R = StringsPreprocess::eagerReduce(t, id).
   STRINGS_EAGER_REDUCTION,
   //======================== Regular expressions
   // ======== Regular expression intersection
@@ -581,6 +584,7 @@ enum class PfRule : uint32_t
   SIU_CTN_NEG_EQUAL,
   SIU_CTN_POS,
   SIU_REDUCTION,
+  SIU_PREFIX_CONFLICT,
 
   SIU_END,
   //%%%%%%%%%%%%%  END UNTRUSTWORTHY

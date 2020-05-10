@@ -139,6 +139,7 @@ const char* toString(PfRule id)
     case PfRule::SIU_CTN_NEG_EQUAL: return "SIU_CTN_NEG_EQUAL";
     case PfRule::SIU_CTN_POS: return "SIU_CTN_POS";
     case PfRule::SIU_REDUCTION: return "SIU_REDUCTION";
+    case PfRule::SIU_PREFIX_CONFLICT: return "SIU_PREFIX_CONFLICT";
 
     //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
