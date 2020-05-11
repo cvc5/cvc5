@@ -938,23 +938,15 @@ class CVC4_PUBLIC SmtEngine
    * synthesized solutions, which is a quantifier-free formula, is
    * unsatisfiable. If not, then the found solutions are wrong.
    */
-  void checkSynthSolution();
-  /**
-   * Check that a solution to an interpolation conjecture is indeed a solution.
-   *
-   * The check is made by determining that the assertions conjoined with the
-   * negation of the solution to the interpolation problem (a) is UNSAT, and the
-   * solution conjoined with the negation of the goal is also UNSAT. If these
-   * criteria are not met, an internal error is thrown.
-   */
-  void checkInterpol(Expr a);
-  /**
-   * Check that a solution to an abduction conjecture is indeed a solution.
-   *
-   * The check is made by determining that the assertions conjoined with the
-   * solution to the abduction problem (a) is SAT, and the assertions conjoined
-   * with the abduct and the goal is UNSAT. If these criteria are not met, an
-   * internal error is thrown.
+	void checkSynthSolution();
+
+	/**
+	 * Check that a solution to an abduction conjecture is indeed a solution.
+	 *
+	 * The check is made by determining that the assertions conjoined with the
+	 * solution to the abduction problem (a) is SAT, and the assertions conjoined
+	 * with the abduct and the goal is UNSAT. If these criteria are not met, an
+	 * internal error is thrown.
    */
   void checkAbduct(Expr a);
 
@@ -1072,23 +1064,11 @@ class CVC4_PUBLIC SmtEngine
                               const std::vector<Expr>& formals,
                               Expr func);
 
-  /**
-   * Get interpolation internal.
-   *
-   * Get the next interpolation from the internal subsolver d_subsolver. If
-   * successful, this method returns true and sets interpol to that
-   * interpolation.
-   *
-   * This method assumes d_subsolver has been initialized to do interpolation
-   * problems.
-   */
-  bool getInterpolInternal(Expr& interpol);
-
-  /**
-   * Get abduct internal.
-   *
-   * Get the next abduct from the internal subsolver d_subsolver. If
-   * successful, this method returns true and sets abd to that abduct.
+	/**
+	 * Get abduct internal.
+	 *
+	 * Get the next abduct from the internal subsolver d_subsolver. If
+	 * successful, this method returns true and sets abd to that abduct.
    *
    * This method assumes d_subsolver has been initialized to do abduction
    * problems.
@@ -1159,19 +1139,7 @@ class CVC4_PUBLIC SmtEngine
    * queried for information regarding further solutions.
    */
   std::unique_ptr<SmtEngine> d_subsolver;
-
-  /**
-   * If applicable, the function-to-synthesize that the subsolver is solving
-   * for. This is used for the get-interpol command.
-   */
-  Expr d_sssf2;
-
-  /**
-   * The conjecture of the current interpolation problem. This expression is
-   * only valid while we are in mode SMT_MODE_INTERPOL.
-   */
-  Expr d_interpolConj;
-
+ 
   /**
    * If applicable, the function-to-synthesize that the subsolver is solving
    * for. This is used for the get-abduct command.

@@ -35,7 +35,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusInterpol() {}
+void SygusInterpol() {}
+
+void SygusInterpol(ExprManager* exprManager): d_exprManager(exprManager) {}
 
 void collectSymbols(const std::vector<Node>& axioms, const Node& conj)
 {
@@ -203,6 +205,8 @@ void mkSygusConjecture(Node itp)
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;
+	Assert(d_sygusConj.getKind() == kind::FORALL
+			&& d_sygusConj[0].getNumChildren() == 1);
 }
 
 void findInterpol(Expr& interpol)
@@ -234,7 +238,7 @@ void findInterpol(Expr& interpol)
 			"Could not find solution for get-interpol.");
 }
 
-void SmtEngine::checkInterpol(Expr interpol, vector<Node>& axioms, Node& conj)
+void checkInterpol(Expr interpol, std::vector<Node>& axioms, Node& conj)
 {
   Assert(interpol.getType().isBoolean());
   Trace("check-interpol") << "SmtEngine::checkInterpol: get expanded assertions"
@@ -322,7 +326,10 @@ bool SolveInterpolation(const std::string& name,
 	}
 	std::vector<Expr> vars_empty;
 	Node itp = mkPredicate();
-  d_subsolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
+	Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
+		<< d_sygusConj << ", solving for " << d_sygusConj[0][0].toExpr()
+		<< std::endl;
+	d_subsolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
 	mkSygusConjecture(itp);
 	d_subsolver->assertSygusConstraints(d_sygusConj.toExpr());
 

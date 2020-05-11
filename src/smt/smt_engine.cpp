@@ -2857,70 +2857,6 @@ void SmtEngine::checkSynthSolution()
   }
 }
 
-void SmtEngine::checkInterpol(Expr a)
-{
-  Assert(a.getType().isBoolean());
-  Trace("check-interpol") << "SmtEngine::checkInterpol: get expanded assertions"
-                          << std::endl;
-
-  std::vector<Expr> asserts = getExpandedAssertions();
-
-  // two checks: first, assertions imply a, second, a implies goal.
-  for (unsigned j = 0; j < 2; j++)
-  {
-    if (j == 1)
-    {
-      Trace("check-interpol") << "SmtEngine::checkInterpol: goal is "
-                              << d_interpolConj << std::endl;
-    }
-    Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
-                            << ": make new SMT engine" << std::endl;
-    // Start new SMT engine to check solution
-    SmtEngine itpChecker(d_exprManager);
-    itpChecker.setLogic(getLogicInfo());
-    Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
-                            << ": asserting formulas" << std::endl;
-    if (j == 0)
-    {
-      for (const Expr& e : asserts)
-      {
-        itpChecker.assertFormula(e);
-      }
-      Expr nega = a.notExpr();
-      itpChecker.assertFormula(nega);
-    }
-    else
-    {
-      itpChecker.assertFormula(a);
-      Assert(!d_interpolConj.isNull());
-      itpChecker.assertFormula(d_interpolConj);
-    }
-    Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
-                            << ": check the assertions" << std::endl;
-    Result r = itpChecker.checkSat();
-    Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
-                            << ": result is " << r << endl;
-    std::stringstream serr;
-    if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
-    {
-      if (j == 0)
-      {
-        serr << "SmtEngine::checkInterpol(): negated produced solution cannot "
-                "be shown "
-                "unsatisfiable with assertions, result was "
-             << r;
-      }
-      else
-      {
-        serr << "SmtEngine::checkInterpol(): negated goal cannot be shown "
-                "unsatisfiable with produced solution, result was "
-             << r;
-      }
-      InternalError() << serr.str();
-    }
-  }
-}
-
 void SmtEngine::checkAbduct(Expr a)
 {
   Assert(a.getType().isBoolean());
@@ -3163,40 +3099,10 @@ bool SmtEngine::getInterpol(const Expr& conj,
   // must expand definitions
 	std::unordered_map<Node, Node, NodeHashFunction> cache;
 	conjn = d_private->getProcessAssertions()->expandDefinitions(conjn, cache);
-	d_interpolConj = conjn.toExpr();
   std::string name("A");
 
-  Node sygusConj;
-  std::vector<Expr> vars;
-  Node sol = sygus_inteprol.solveInterpolationProblem(...)
-  // should be a quantified conjecture with one function-to-synthesize
-  Assert(sygusConj.getKind() == kind::FORALL
-         && sygusConj[0].getNumChildren() == 1);
-  // remember the interpol-to-synthesize
-  d_sssf2 = sygusConj[0][0].toExpr();
-  Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
-                          << sygusConj << ", solving for " << d_sssf2
-                          << std::endl;
-
-  // we generate a new smt engine to do the interpolation query
-  d_subsolver.reset(new SmtEngine(NodeManager::currentNM()->toExprManager()));
-  d_subsolver->setIsInternalSubsolver();
-  // get the logic
-  LogicInfo l = d_logic.getUnlockedCopy();
-  // enable everything needed for sygus
-  l.enableSygus();
-  d_subsolver->setLogic(l);
-  if (options::produceInterpols() == options::ProduceInterpols::DEFAULT)
-  {
-		Trace("sygus-interpol-debug") << "Set default grammar" << std::endl;
-    vars = [];
-    d_subsolver->declareSynthFun("A", interpol, grammarType, false, vars);
-		d_subsolver->assertSygusConstraint(sygusConj.toExpr());
-	} else {
-    Assert(false);
-  }
-
-  if (getInterpolInternal(interpol))
+	theory::quantifiers::SygusInterpol interpolSolver(d_exprManager);
+  if (interpolSolver.SolveInterpolation(name, axioms, conjn, TypeNode::fromType(grammarType), interpol))
   {
     // successfully generated an interpolation, update to interpol state
     d_smtMode = SMT_MODE_INTERPOL;
@@ -3204,75 +3110,6 @@ bool SmtEngine::getInterpol(const Expr& conj,
   }
   // failed, we revert to the assert state
   d_smtMode = SMT_MODE_ASSERT;
-  return false;
-}
-
-bool SmtEngine::getInterpolInternal(Expr& interpol)
-{
-  // should have initialized the subsolver by now
-  Assert(d_subsolver != nullptr);
-  Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
-                          << std::endl;
-	Result r;
-	if (options::produceInterpols() == options::ProduceInterpols::DEFAULT) {
-		r = d_subsolver->checkSynth();
-	} else {
-		r = d_subsolver->checkSat();
-	}
-  Trace("sygus-interpol") << "  SmtEngine::getInterpol result: " << r
-                          << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-  {
-    // get the synthesis solution
-    std::map<Expr, Expr> sols;
-    d_subsolver->getSynthSolutions(sols);
-    Assert(sols.size() == 1);
-    std::map<Expr, Expr>::iterator its = sols.find(d_sssf2);
-    if (its != sols.end())
-    {
-      Trace("sygus-interpol")
-          << "SmtEngine::getInterpol: solution is " << its->second << std::endl;
-      Node interpoln = Node::fromExpr(its->second);
-      if (interpoln.getKind() == kind::LAMBDA)
-      {
-        interpoln = interpoln[1];
-      }
-      // get the grammar type for the interpol
-      Node itpf = Node::fromExpr(d_sssf2);
-      Node agdtbv = itpf.getAttribute(
-          theory::SygusSynthFunVarListAttribute());  // TODO name??
-      Assert(!agdtbv.isNull());
-      Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
-      // convert back to original
-      // must replace formal arguments of interpol with the free variables in
-      // the input problem that they correspond to.
-      std::vector<Node> vars;
-      std::vector<Node> syms;
-      SygusVarToTermAttribute sta;
-      for (const Node& bv : agdtbv)
-      {
-        vars.push_back(bv);
-        syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta)
-                                            : bv);  // TODO what is it?
-      }
-      interpoln = interpoln.substitute(
-          vars.begin(), vars.end(), syms.begin(), syms.end());
-
-      // convert to expression
-      interpol = interpoln.toExpr();
-
-      // if check abducts option is set, we check the correctness
-      if (options::checkInterpols())
-      {
-        checkInterpol(interpol);
-      }
-      return true;
-    }
-    Trace("sygus-interpol")
-        << "SmtEngine::getInterpol: could not find solution!" << std::endl;
-    throw RecoverableModalException(
-        "Could not find solution for get-interpol.");
-  }
   return false;
 }
 

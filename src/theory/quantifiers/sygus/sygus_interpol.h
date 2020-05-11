@@ -43,6 +43,9 @@ class SygusInterpol
 {
 	public:
 		SygusInterpol();
+
+		SygusInterpol(ExprManager* exprManager);
+
 		/**
 		 * Returns the sygus conjecture corresponding to the interpolation problem for
 		 * input problem (F above) given by axioms (Fa above), and conj (Fc above).
@@ -104,7 +107,23 @@ private:
    * assertion stack unchaged. This copy of the SMT engine can be further
    * queried for information regarding further solutions.
    */
-  
+
+	void collectSymbols(const std::vector<Node>& axioms, const Node& conj);
+
+	void createVariables();
+
+	void setSynthGrammar();
+
+	Node mkPredicate();
+
+  void mkSygusConjecture(Node itp);
+
+	void findInterpol(Expr& interpol);
+
+	void checkInterpol(Expr interpol, std::vector<Node>& axioms, Node& conj);
+
+  ExprManager* d_exprManager;
+
   std::unique_ptr<SmtEngine> d_subsolver;
 
 	std::unordered_set<Node, NodeHashFunction> d_symsetAll;
@@ -127,7 +146,6 @@ private:
 //d_conjecture
 
                                
-}  // namespace sygus_interpol
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
