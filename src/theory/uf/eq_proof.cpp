@@ -512,28 +512,22 @@ Node EqProof::addToProof(
         Trace("eqproof-conv") << "EqProof::addToProof: child proof " << i
                               << " is fake cong step. Fold it.\n";
         Assert(childProof->d_children.size() == 2);
-        Trace("eqproof-conv")
-            << push << "EqProof::addToProof: recurse on child 0\n"
-            << push;
-        Node child = childProof->d_children[0].get()->addToProof(p, visited);
-        // ignore reflexivity
-        if (child[0] != child[1])
+        Trace("eqproof-conv") << push;
+        for (unsigned j = 0, sizeJ = childProof->d_children.size(); j < sizeJ; ++j)
         {
-          children.push_back(child);
-          addedChild = true;
+          Trace("eqproof-conv")
+              << "EqProof::addToProof: recurse on child " << j << "\n"
+              << push;
+          Node child = childProof->d_children[j].get()->addToProof(p, visited);
+          // ignore reflexivity
+          if (child[0] != child[1])
+          {
+            children.push_back(child);
+            addedChild = true;
+          }
+          Trace("eqproof-conv") << pop;
         }
-        Trace("eqproof-conv")
-            << pop << "EqProof::addToProof: recurse on child 1\n"
-            << push;
-        child = childProof->d_children[1].get()->addToProof(p, visited);
-        // ignore reflexivity
-        // ignore reflexivity
-        if (child[0] != child[1])
-        {
-          children.push_back(child);
-          addedChild = true;
-        }
-        Trace("eqproof-conv") << pop << pop;
+        Trace("eqproof-conv") << pop;
         Assert(addedChild);
         continue;
       }
@@ -666,6 +660,21 @@ Node EqProof::addToProof(
   // The given conclusion is taken as ground truth. If the premises do not
   // align, for example with (= (f t1) (f t2)) but a premise being t2 = t1, we
   // reorder it via a symmetry step
+  //
+  // Check if already has a proof for conclusion
+  if (Trace.isOn("eqproof-conv"))
+  {
+    std::shared_ptr<ProofNode> pf = p->getProof(d_node);
+    if (pf)
+    {
+      std::stringstream out;
+      pf.get()->printDebug(out);
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: conclusion of cong already has CDProof: "
+          << out.str() << "\n";
+      AlwaysAssert(false);
+    }
+  }
   Assert(d_node[0].getNumChildren() == d_node[1].getNumChildren())
       << "EqProof::addToProof: apps in conclusion " << d_node
       << " have different arity\n";
@@ -858,7 +867,7 @@ Node EqProof::addToProof(
     Trace("eqproof-conv") << "EqProof::addToProof: proof node of " << d_node
                           << " is:\n";
     std::stringstream out;
-    p->mkProof(d_node).get()->printDebug(out);
+    p->getProof(d_node).get()->printDebug(out);
     Trace("eqproof-conv") << out.str() << "\n";
   }
   visited[d_node] = d_node;

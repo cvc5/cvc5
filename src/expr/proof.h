@@ -25,6 +25,8 @@
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 #include "expr/proof_step_buffer.h"
+#include "theory/uf/eq_proof.h"
+
 
 namespace CVC4 {
 
@@ -118,6 +120,8 @@ namespace CVC4 {
  */
 class CDProof
 {
+  friend theory::eq::EqProof;
+
  public:
   CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
   virtual ~CDProof();
