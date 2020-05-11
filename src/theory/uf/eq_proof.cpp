@@ -378,11 +378,12 @@ Node EqProof::addToProof(
                           << ", returning " << it->second << "\n";
     return it->second;
   }
+  Trace("eqproof-conv") << "EqProof::addToProof: adding step for "
+                        << static_cast<MergeReasonType>(d_id)
+                        << " with conclusion " << d_node << "\n";
   // assumption
   if (d_id == MERGED_THROUGH_EQUALITY)
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: adding assumption step for "
-                          << d_node << "\n";
 #ifdef CVC4_ASSERTIONS
     // make sure there are no (= true/false true/false) assumptions
     if (d_node.getKind() == kind::EQUAL)
@@ -470,8 +471,6 @@ Node EqProof::addToProof(
   // refl
   if (d_id == MERGED_THROUGH_REFLEXIVITY)
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: adding refl step for "
-                          << d_node << "\n";
     Assert(d_node.getKind() == kind::EQUAL);
     std::vector<Node> children;
     std::vector<Node> args{d_node[0]};
@@ -486,9 +485,82 @@ Node EqProof::addToProof(
   // yet
   if (d_id == MERGED_THROUGH_CONSTANTS)
   {
-    Assert(false) << "Unsupported rule: " << d_id << "\n";
-    visited[d_node] = d_node;
-    return d_node;
+    Assert(!d_node.isNull() && d_node.getKind() == kind::EQUAL
+           && d_node[0].getKind() == kind::EQUAL
+           && d_node[1].getKind() == kind::CONST_BOOLEAN
+           && !d_node[1].getConst<bool>())
+        << "EqProof::addToProof: Unsupported case of "
+        << static_cast<MergeReasonType>(d_id) << ". Conclusion " << d_node
+        << " was expected to be (= (= t1 t2) false)\n";
+    Assert(d_children.size() == 2)
+        << "EqProof::addToProof: wrong number of assumptions for "
+           "MACRO_SR_PRED_INTRO concluding "
+        << d_node << "\n";
+    // Build
+    //
+    // (= t1 c1)  (= t2 c2)
+    // -------------------- MACRO_SR_PRED_INTRO
+    //  ((= t1 t2) false)
+    // ------------------ FALSE_ELIM
+    //  (not (= t1 t2))
+    //
+    // First process the children proofs
+    std::vector<Node> premises;
+    for (unsigned i = 0; i < 2; ++i)
+    {
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: recurse on child " << i << "\n"
+          << push;
+      premises.push_back(d_children[i].get()->addToProof(p, visited));
+      Trace("eqproof-conv") << pop;
+    }
+    // Now get the constants in the premises
+    std::vector<Node> constants(2);
+    for (unsigned i = 0; i < 2; ++i)
+    {
+      Node term = d_node[0][i];
+      // look in children
+      for (unsigned j = 0; j < 2; ++j)
+      {
+        Assert(premises[j].getKind() == kind::EQUAL);
+        if (premises[j][0] == term)
+        {
+          Assert(premises[j][1].isConst());
+          constants[i] = premises[j][1];
+        }
+        else if (premises[j][1] == term)
+        {
+          Assert(premises[j][0].isConst());
+          constants[i] = premises[j][0];
+        }
+      }
+    }
+    Assert(!constants[0].isNull() && !constants[1].isNull())
+        << "EqProof::addToProof: premises w/o all constants from conclusion "
+        << d_node << "\n";
+    // build rule premises in right order
+    std::vector<Node> children;
+    children.push_back(d_node[0][0].eqNode(constants[0]));
+    children.push_back(d_node[0][1].eqNode(constants[1]));
+    Trace("eqproof-conv") << "EqProof::addToProof: adding "
+                          << PfRule::MACRO_SR_PRED_INTRO << " step from "
+                          << children << "\n";
+    if (!p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, children, {d_node}))
+    {
+      Assert(false) << "EqProof::addToProof: couldn't add "
+                    << PfRule::MACRO_SR_PRED_INTRO << " rule\n";
+    }
+    Node conclusion = d_node[0].notNode();
+    Trace("eqproof-conv") << "EqProof::addToProof: adding "
+                          << PfRule::FALSE_ELIM << " step from " << d_node
+                          << "\n";
+    if (!p->addStep(conclusion, PfRule::FALSE_ELIM, {d_node}, {}))
+    {
+      Assert(false) << "EqProof::addToProof: couldn't add "
+                    << PfRule::FALSE_ELIM << " rule\n";
+    }
+    visited[d_node] = conclusion;
+    return conclusion;
   }
   if (d_id == MERGED_THROUGH_TRANS)
   {
@@ -497,8 +569,6 @@ Node EqProof::addToProof(
                      && d_node[0].getKind() == kind::EQUAL))
         << "EqProof::addToProof: transitivity step conclusion " << d_node
         << " is not equality or negated equality\n";
-    Trace("eqproof-conv") << "EqProof::addToProof: adding trans step for "
-                          << d_node << "\n";
     std::vector<Node> children;
     for (unsigned i = 0, size = d_children.size(); i < size; ++i)
     {
@@ -512,28 +582,22 @@ Node EqProof::addToProof(
         Trace("eqproof-conv") << "EqProof::addToProof: child proof " << i
                               << " is fake cong step. Fold it.\n";
         Assert(childProof->d_children.size() == 2);
-        Trace("eqproof-conv")
-            << push << "EqProof::addToProof: recurse on child 0\n"
-            << push;
-        Node child = childProof->d_children[0].get()->addToProof(p, visited);
-        // ignore reflexivity
-        if (child[0] != child[1])
+        Trace("eqproof-conv") << push;
+        for (unsigned j = 0, sizeJ = childProof->d_children.size(); j < sizeJ; ++j)
         {
-          children.push_back(child);
-          addedChild = true;
+          Trace("eqproof-conv")
+              << "EqProof::addToProof: recurse on child " << j << "\n"
+              << push;
+          Node child = childProof->d_children[j].get()->addToProof(p, visited);
+          // ignore reflexivity
+          if (child[0] != child[1])
+          {
+            children.push_back(child);
+            addedChild = true;
+          }
+          Trace("eqproof-conv") << pop;
         }
-        Trace("eqproof-conv")
-            << pop << "EqProof::addToProof: recurse on child 1\n"
-            << push;
-        child = childProof->d_children[1].get()->addToProof(p, visited);
-        // ignore reflexivity
-        // ignore reflexivity
-        if (child[0] != child[1])
-        {
-          children.push_back(child);
-          addedChild = true;
-        }
-        Trace("eqproof-conv") << pop << pop;
+        Trace("eqproof-conv") << pop;
         Assert(addedChild);
         continue;
       }
@@ -656,8 +720,6 @@ Node EqProof::addToProof(
     return conclusion;
   }
   Assert(d_id == MERGED_THROUGH_CONGRUENCE);
-  Trace("eqproof-conv") << "EqProof::addToProof: adding cong step for "
-                        << d_node << "\n";
   // congruence steps must be flattened (since it assumes currying) and the
   // conclusion must be reconstructed (since only one of the terms is
   // represented)
@@ -666,6 +728,21 @@ Node EqProof::addToProof(
   // The given conclusion is taken as ground truth. If the premises do not
   // align, for example with (= (f t1) (f t2)) but a premise being t2 = t1, we
   // reorder it via a symmetry step
+  //
+  // Check if already has a proof for conclusion
+  if (Trace.isOn("eqproof-conv"))
+  {
+    std::shared_ptr<ProofNode> pf = p->getProof(d_node);
+    if (pf)
+    {
+      std::stringstream out;
+      pf.get()->printDebug(out);
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: conclusion of cong already has CDProof: "
+          << out.str() << "\n";
+      AlwaysAssert(false);
+    }
+  }
   Assert(d_node[0].getNumChildren() == d_node[1].getNumChildren())
       << "EqProof::addToProof: apps in conclusion " << d_node
       << " have different arity\n";
@@ -858,7 +935,7 @@ Node EqProof::addToProof(
     Trace("eqproof-conv") << "EqProof::addToProof: proof node of " << d_node
                           << " is:\n";
     std::stringstream out;
-    p->mkProof(d_node).get()->printDebug(out);
+    p->getProof(d_node).get()->printDebug(out);
     Trace("eqproof-conv") << out.str() << "\n";
   }
   visited[d_node] = d_node;

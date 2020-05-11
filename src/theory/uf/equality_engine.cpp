@@ -178,7 +178,9 @@ void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
 }
 
 EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId t1, EqualityNodeId t2, FunctionApplicationType type) {
-  Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << ")" << std::endl;
+  Debug("equality") << d_name << "::eq::newApplicationNode(" << original
+                    << ", {" << t1 << "} " << d_nodes[t1] << ", {" << t2 << "} "
+                    << d_nodes[t2] << ")" << std::endl;
 
   ++d_stats.d_functionTermsCount;
 
@@ -190,13 +192,22 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
   EqualityNodeId t2ClassId = getEqualityNode(t2).getFind();
   FunctionApplication funNormalized(type, t1ClassId, t2ClassId);
 
+  Debug("equality") << d_name << "::eq::newApplicationNode: funOriginal: ("
+                    << type << " " << d_nodes[t1] << " " << d_nodes[t2]
+                    << "), funNorm: (" << type << " " << d_nodes[t1ClassId]
+                    << " " << d_nodes[t2ClassId] << ")\n";
+
   // We add the original version
   d_applications[funId] = FunctionApplicationPair(funOriginal, funNormalized);
 
   // Add the lookup data, if it's not already there
   ApplicationIdsMap::iterator find = d_applicationLookup.find(funNormalized);
   if (find == d_applicationLookup.end()) {
-    Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): no lookup, setting up" << std::endl;
+    Debug("equality") << d_name << "::eq::newApplicationNode(" << original
+                      << ", " << t1 << ", " << t2
+                      << "): no lookup, setting up funNorm: (" << type << " "
+                      << d_nodes[t1ClassId] << " " << d_nodes[t2ClassId]
+                      << ") => " << funId << std::endl;
     // Mark the normalization to the lookup
     storeApplicationLookup(funNormalized, funId);
   } else {
@@ -204,7 +215,7 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
     Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): lookup exists, adding to queue" << std::endl;
     Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): lookup = " << d_nodes[find->second] << std::endl;
     enqueue(MergeCandidate(funId, find->second, MERGED_THROUGH_CONGRUENCE, TNode::null()));
-  }
+    }
 
   // Add to the use lists
   Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): adding " << original << " to the uselist of " << d_nodes[t1] << std::endl;
@@ -425,8 +436,10 @@ const EqualityNode& EqualityEngine::getEqualityNode(EqualityNodeId nodeId) const
 }
 
 void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason, unsigned pid) {
-
-  Debug("equality") << d_name << "::eq::addEqualityInternal(" << t1 << "," << t2 << "), reason = " << reason << ", pid = " << pid << std::endl;
+  Debug("equality") << d_name << "::eq::addEqualityInternal(" << t1 << "," << t2
+                    << "), reason = " << reason
+                    << ", pid = " << static_cast<MergeReasonType>(pid)
+                    << std::endl;
 
   if (d_done) {
     return;
@@ -1164,7 +1177,7 @@ void EqualityEngine::getExplanation(
         // ignore equalities between function symbols, i.e. internal nullary
         // non-constant nodes.
         //
-        // This is robust for HOL because in that case function symbols  are not
+        // This is robust for HOL because in that case function symbols are not
         // internal nodes
         if (d_isInternal[t1Id] && d_nodes[t1Id].getNumChildren() == 0
             && !d_isConstant[t1Id])
@@ -1243,11 +1256,20 @@ void EqualityEngine::getExplanation(
             unsigned reasonType = d_equalityEdges[currentEdge].getReasonType();
             Node reason = d_equalityEdges[currentEdge].getReason();
 
-            Debug("equality") << d_name << "::eq::getExplanation(): currentEdge = " << currentEdge << ", currentNode = " << currentNode << std::endl;
-            Debug("equality") << d_name << "                     targetNode = " << d_nodes[edgeNode] << std::endl;
-            Debug("equality") << d_name << "                     in currentEdge = (" << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()] << ")" << std::endl;
             Debug("equality")
-                << d_name << "                     reason type = "
+                << d_name
+                << "::eq::getExplanation(): currentEdge = " << currentEdge
+                << ", currentNode = " << currentNode << std::endl;
+            Debug("equality")
+                << d_name
+                << "                       targetNode = " << d_nodes[edgeNode]
+                << std::endl;
+            Debug("equality")
+                << d_name << "                       in currentEdge = ("
+                << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()]
+                << ")" << std::endl;
+            Debug("equality")
+                << d_name << "                       reason type = "
                 << static_cast<MergeReasonType>(reasonType) << std::endl;
 
             std::shared_ptr<EqProof> eqpc;;
@@ -1369,9 +1391,26 @@ void EqualityEngine::getExplanation(
               Debug("equality") << push;
 
               // Get the node we interpreted
-              TNode interpreted = d_nodes[currentNode];
-              if (interpreted.isConst()) {
-                interpreted = d_nodes[edgeNode];
+              TNode interpreted;
+              if (eqpc && options::proofNew())
+              {
+                // build the conclusion f(c1, ..., cn) = c
+                if (d_nodes[currentNode].isConst())
+                {
+                  interpreted = d_nodes[edgeNode];
+                  eqpc->d_node = d_nodes[edgeNode].eqNode(d_nodes[currentNode]);
+                }
+                else
+                {
+                  interpreted = d_nodes[currentNode];
+                  eqpc->d_node = d_nodes[currentNode].eqNode(d_nodes[edgeNode]);
+                }
+              }
+              else
+              {
+                interpreted = d_nodes[currentNode].isConst()
+                                  ? d_nodes[edgeNode]
+                                  : d_nodes[currentNode];
               }
 
               // Explain why a is a constant by explaining each argument
