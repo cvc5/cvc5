@@ -87,7 +87,9 @@ Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, RewriterId id)
   }
   else if (id == RewriterId::REWRITE_EQ_EXT)
   {
-    return Rewriter::rewriteEqualityExt(n);
+    Node ret = Rewriter::rewriteEqualityExt(n);
+    // also rewrite
+    return Rewriter::rewrite(ret);
   }
   else if (id == RewriterId::IDENTITY)
   {
