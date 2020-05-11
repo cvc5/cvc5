@@ -1256,9 +1256,18 @@ void EqualityEngine::getExplanation(
             unsigned reasonType = d_equalityEdges[currentEdge].getReasonType();
             Node reason = d_equalityEdges[currentEdge].getReason();
 
-            Debug("equality") << d_name << "::eq::getExplanation(): currentEdge = " << currentEdge << ", currentNode = " << currentNode << std::endl;
-            Debug("equality") << d_name << "                       targetNode = " << d_nodes[edgeNode] << std::endl;
-            Debug("equality") << d_name << "                       in currentEdge = (" << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()] << ")" << std::endl;
+            Debug("equality")
+                << d_name
+                << "::eq::getExplanation(): currentEdge = " << currentEdge
+                << ", currentNode = " << currentNode << std::endl;
+            Debug("equality")
+                << d_name
+                << "                       targetNode = " << d_nodes[edgeNode]
+                << std::endl;
+            Debug("equality")
+                << d_name << "                       in currentEdge = ("
+                << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()]
+                << ")" << std::endl;
             Debug("equality")
                 << d_name << "                       reason type = "
                 << static_cast<MergeReasonType>(reasonType) << std::endl;
@@ -1382,9 +1391,26 @@ void EqualityEngine::getExplanation(
               Debug("equality") << push;
 
               // Get the node we interpreted
-              TNode interpreted = d_nodes[currentNode];
-              if (interpreted.isConst()) {
-                interpreted = d_nodes[edgeNode];
+              TNode interpreted;
+              if (eqpc && options::proofNew())
+              {
+                // build the conclusion f(c1, ..., cn) = c
+                if (d_nodes[currentNode].isConst())
+                {
+                  interpreted = d_nodes[edgeNode];
+                  eqpc->d_node = d_nodes[edgeNode].eqNode(d_nodes[currentNode]);
+                }
+                else
+                {
+                  interpreted = d_nodes[currentNode];
+                  eqpc->d_node = d_nodes[currentNode].eqNode(d_nodes[edgeNode]);
+                }
+              }
+              else
+              {
+                interpreted = d_nodes[currentNode].isConst()
+                                  ? d_nodes[edgeNode]
+                                  : d_nodes[currentNode];
               }
 
               // Explain why a is a constant by explaining each argument
