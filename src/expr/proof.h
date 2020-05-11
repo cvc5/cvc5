@@ -27,7 +27,6 @@
 #include "expr/proof_step_buffer.h"
 #include "theory/uf/eq_proof.h"
 
-
 namespace CVC4 {
 
 /**

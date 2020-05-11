@@ -869,7 +869,9 @@ Node RegExpOpr::simplify(Node t, bool polarity)
       }
       d_simpl_cache[p] = conc;
     }
-  } else {
+  }
+  else
+  {
     itr = d_simpl_neg_cache.find(p);
     if (itr != d_simpl_neg_cache.end())
     {
@@ -998,12 +1000,13 @@ Node RegExpOpr::reduceRegExpPos(Node s, Node r, SkolemCache* sc)
     std::vector<Node> cc;
     // Look up skolems for each of the components. If sc has optimizations
     // enabled, this will return arguments of str.to_re.
-    Node mem = nm->mkNode(STRING_IN_REGEXP,s,r);
+    Node mem = nm->mkNode(STRING_IN_REGEXP, s, r);
     for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
     {
       Node index = nm->mkConst(Rational(i));
       // make the skolem
-      Node sk = sc->mkSkolemCached(mem,index,SkolemCache::SK_RE_CONCAT_COMPONENT,"rc");
+      Node sk = sc->mkSkolemCached(
+          mem, index, SkolemCache::SK_RE_CONCAT_COMPONENT, "rc");
       cc.push_back(sk);
       nvec.push_back(nm->mkNode(STRING_IN_REGEXP, sk, r[i]));
     }

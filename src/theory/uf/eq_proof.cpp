@@ -583,7 +583,8 @@ Node EqProof::addToProof(
                               << " is fake cong step. Fold it.\n";
         Assert(childProof->d_children.size() == 2);
         Trace("eqproof-conv") << push;
-        for (unsigned j = 0, sizeJ = childProof->d_children.size(); j < sizeJ; ++j)
+        for (unsigned j = 0, sizeJ = childProof->d_children.size(); j < sizeJ;
+             ++j)
         {
           Trace("eqproof-conv")
               << "EqProof::addToProof: recurse on child " << j << "\n"

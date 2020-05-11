@@ -952,8 +952,8 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     else if (std::find(node_vec.begin(), node_vec.end(), ni) == node_vec.end())
     {
       node_vec.push_back(ni);
-      unsigned pindex = ni.getKind()==REGEXP_COMPLEMENT ? 1 : 0;
-      Node nia = pindex==1 ? ni[0] : ni;
+      unsigned pindex = ni.getKind() == REGEXP_COMPLEMENT ? 1 : 0;
+      Node nia = pindex == 1 ? ni[0] : ni;
       polRegExp[pindex].push_back(nia);
     }
   }

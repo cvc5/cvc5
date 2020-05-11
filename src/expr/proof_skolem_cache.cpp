@@ -133,7 +133,7 @@ Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
     return n;
   }
   Trace("pf-skolem-debug") << "ProofSkolemCache::convertInternal: " << toWitness
-                     << " " << n << std::endl;
+                           << " " << n << std::endl;
   WitnessFormAttribute wfa;
   SkolemFormAttribute sfa;
   NodeManager* nm = NodeManager::currentNM();

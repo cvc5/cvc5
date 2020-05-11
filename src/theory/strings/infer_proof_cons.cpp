@@ -250,7 +250,7 @@ Node InferProofCons::convert(Inference infer,
         // not necessary
         d_psb.popStep();
       }
-      else if (mainEqSRew==conc)
+      else if (mainEqSRew == conc)
       {
         Trace("strings-ipc-core") << "...success after rewrite!" << std::endl;
         useBuffer = true;
@@ -621,15 +621,16 @@ Node InferProofCons::convert(Inference infer,
       std::vector<Node> expRe;
       std::vector<Node> reis;
       Node x;
-      // make the regular expression intersection that summarizes all memberships in the explanation
+      // make the regular expression intersection that summarizes all
+      // memberships in the explanation
       for (const Node& c : ps.d_children)
       {
-        bool polarity = c.getKind()!=NOT;
+        bool polarity = c.getKind() != NOT;
         Node catom = polarity ? c : c[0];
-        if (catom.getKind()!=STRING_IN_REGEXP)
+        if (catom.getKind() != STRING_IN_REGEXP)
         {
-          Assert (c.getKind()==EQUAL);
-          if (c.getKind()==EQUAL)
+          Assert(c.getKind() == EQUAL);
+          if (c.getKind() == EQUAL)
           {
             expRe.push_back(c);
           }
@@ -641,33 +642,37 @@ Node InferProofCons::convert(Inference infer,
           x = catom[0];
         }
         Node xcurr = catom[0];
-        Node rcurr = polarity ? catom[1] : nm->mkNode(REGEXP_COMPLEMENT,catom[1]);
+        Node rcurr =
+            polarity ? catom[1] : nm->mkNode(REGEXP_COMPLEMENT, catom[1]);
         reis.push_back(rcurr);
         std::vector<Node> achildren;
         achildren.push_back(c);
         std::vector<Node> aargs;
         // also add to explanation
-        Node eq = d_psb.tryStep(polarity ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO, achildren, aargs);
-        if (!eq.isNull() && eq.getKind()==EQUAL)
+        Node eq =
+            d_psb.tryStep(polarity ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
+                          achildren,
+                          aargs);
+        if (!eq.isNull() && eq.getKind() == EQUAL)
         {
           expRe.push_back(eq);
         }
       }
-      Node rei = reis.size()==1 ? reis[0] : nm->mkNode(REGEXP_INTER,reis);
+      Node rei = reis.size() == 1 ? reis[0] : nm->mkNode(REGEXP_INTER, reis);
       Node mem = nm->mkNode(STRING_IN_REGEXP, x, rei);
-      Trace("strings-ipc-re")
-          << "Regular expression summary: " << mem << ", explanation: " << expRe << std::endl;
+      Trace("strings-ipc-re") << "Regular expression summary: " << mem
+                              << ", explanation: " << expRe << std::endl;
       Node memr = Rewriter::rewrite(mem);
       // the summary is the same as rewritten
       std::vector<Node> emptyVec;
-      if (!convertPredTransform(memr,mem,emptyVec))
+      if (!convertPredTransform(memr, mem, emptyVec))
       {
         Trace("strings-ipc-re") << "...failed to rewrite" << std::endl;
         break;
       }
       Trace("strings-ipc-re") << "after rewriting: " << memr << std::endl;
       // must justify the rewritten form
-      if (!convertPredIntro(memr,expRe))
+      if (!convertPredIntro(memr, expRe))
       {
         Trace("strings-ipc-re") << "...failed to justify" << std::endl;
         break;
@@ -684,7 +689,7 @@ Node InferProofCons::convert(Inference infer,
             << "...failed to rewrite to conclusion" << std::endl;
       }
     }
-      break;
+    break;
     // ========================== unknown
     case Inference::I_CYCLE_E:
     case Inference::I_CYCLE:
@@ -835,7 +840,9 @@ bool InferProofCons::convertPredTransform(Node src,
     // failed to apply
     return false;
   }
-  Trace("strings-ipc-debug") << "InferProofCons::convertPredTransform: success " << src << " == " << tgt << " under " << exp << " via " << id << std::endl;
+  Trace("strings-ipc-debug")
+      << "InferProofCons::convertPredTransform: success " << src
+      << " == " << tgt << " under " << exp << " via " << id << std::endl;
   // should definitely have concluded tgt
   Assert(res == tgt);
   return true;
@@ -856,10 +863,10 @@ bool InferProofCons::convertPredIntro(Node tgt,
   {
     return false;
   }
-  Assert (res==tgt);
+  Assert(res == tgt);
   return true;
 }
-  
+
 Node InferProofCons::convertPredElim(Node src,
                                      const std::vector<Node>& exp,
                                      RewriterId id)
@@ -872,8 +879,7 @@ Node InferProofCons::convertPredElim(Node src,
   {
     args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(id));
   }
-  Node srcRew =
-      d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, children, args);
+  Node srcRew = d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, children, args);
   if (isSymm(src, srcRew))
   {
     d_psb.popStep();

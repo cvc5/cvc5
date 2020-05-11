@@ -59,7 +59,7 @@ Node SkolemCache::mkTypedSkolemCached(
   Trace("skolem-cache") << "mkTypedSkolemCached start: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
   SkolemId idOrig = id;
-  if (id!=SK_RE_CONCAT_COMPONENT)
+  if (id != SK_RE_CONCAT_COMPONENT)
   {
     a = a.isNull() ? a : Rewriter::rewrite(a);
     b = b.isNull() ? b : Rewriter::rewrite(b);

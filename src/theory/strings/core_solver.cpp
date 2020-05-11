@@ -1339,8 +1339,9 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         }
         p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
         Trace("strings-csp-debug")
-            << (isRev ? "r" : "") << "overlap : " << stra1 << " " << strb << " returned " << p
-            << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
+            << (isRev ? "r" : "") << "overlap : " << stra1 << " " << strb
+            << " returned " << p << " " << p2 << " "
+            << (p2 == std::string::npos) << std::endl;
 
         // If we can't split off more than a single character from the
         // constant, we might as well do regular constant/non-constant
