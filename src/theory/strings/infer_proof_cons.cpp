@@ -250,6 +250,12 @@ Node InferProofCons::convert(Inference infer,
         // not necessary
         d_psb.popStep();
       }
+      else if (mainEqSRew==conc)
+      {
+        Trace("strings-ipc-core") << "...success after rewrite!" << std::endl;
+        useBuffer = true;
+        break;
+      }
       Trace("strings-ipc-core")
           << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
       // now, apply CONCAT_EQ to get the remainder
@@ -495,13 +501,19 @@ Node InferProofCons::convert(Inference infer,
         argsRed.push_back(conc[nchild - 1][0]);
         Node red =
             d_psb.tryStep(PfRule::STRINGS_REDUCTION, childrenRed, argsRed);
+        Trace("strings-ipc-red") << "Reduction : " << red << std::endl;
         if (!red.isNull())
         {
           // either equal or rewrites to it
           std::vector<Node> cexp;
           if (convertPredTransform(red, conc, cexp))
           {
+            Trace("strings-ipc-red") << "...success!" << std::endl;
             useBuffer = true;
+          }
+          else
+          {
+            Trace("strings-ipc-red") << "...failed to rewrite" << std::endl;
           }
         }
       }

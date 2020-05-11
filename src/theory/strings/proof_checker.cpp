@@ -253,27 +253,52 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       Assert(children.size() == 2);
       Node zero = nm->mkConst(Rational(0));
+      
+      Trace("pfcheck-strings-cprop") << "CONCAT_PROP, isRev=" << isRev << std::endl;
       if (children[1].getKind() != NOT || children[1][0].getKind() != EQUAL
           || children[1][0][0].getKind() != STRING_LENGTH
           || children[1][0][0][0] != t0 || children[1][0][1] != zero)
       {
+        Trace("pfcheck-strings-cprop") << "...failed pattern match" << std::endl;
         return Node::null();
       }
-      if (tvec.size() <= 1 || !tvec[1].isConst() || Word::isEmpty(tvec[1]))
+      if (tvec.size() <= 1)
       {
+        Trace("pfcheck-strings-cprop") << "...failed adjacent constant" << std::endl;
         return Node::null();
       }
-      Node w1 = tvec[1];
+      Node w1 = tvec[isRev ? nchildt-2 : 1];
+      if (!w1.isConst() || Word::isEmpty(w1))
+      {
+        Trace("pfcheck-strings-cprop") << "...failed adjacent constant content" << std::endl;
+        return Node::null();
+      }
       Node w2 = s0;
       if (!w2.isConst() || Word::isEmpty(w2))
       {
+        Trace("pfcheck-strings-cprop") << "...failed constant" << std::endl;
         return Node::null();
       }
+      Trace("pfcheck-strings-cprop") << "w1,w2 = " << w1 << " " << w2 << std::endl;
       size_t lenW2 = Word::getLength(w2);
       Node w2mc1 =
           isRev ? Word::prefix(w2, lenW2 - 1) : Word::suffix(w2, lenW2 - 1);
-      size_t p = isRev ? Word::roverlap(w2mc1, w1) : Word::overlap(w2mc1, w1);
-      Node w3 = isRev ? Word::suffix(w2, lenW2 - p) : Word::prefix(w2, p);
+      Trace("pfcheck-strings-cprop") << "w2mc1 = " << w2mc1 << std::endl;
+      size_t p = lenW2 - ( isRev ? Word::roverlap(w2mc1, w1) : Word::overlap(w2mc1, w1) );
+      Trace("pfcheck-strings-cprop") << "p = " << p << std::endl;
+      size_t p2 = isRev ? Word::rfind(w2mc1, w1) : Word::find(w2mc1, w1);
+      if (p2 == std::string::npos)
+      {
+        Trace("pfcheck-strings-cprop") << "p2 = std::string::npos" << std::endl;
+      }
+      else
+      {
+        Trace("pfcheck-strings-cprop") << "p2 = " << p2 << std::endl;
+      }
+      size_t p3 = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+      Trace("pfcheck-strings-cprop") << "p3 = " << p3 << std::endl;
+      Node w3 = isRev ? Word::suffix(w2, p3) : Word::prefix(w2, p3);
+      Trace("pfcheck-strings-cprop") << "w3 = " << w3 << std::endl;
       Node rbody =
           isRev ? utils::mkPrefix(t0,
                                   nm->mkNode(MINUS,

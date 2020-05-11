@@ -1319,30 +1319,28 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         Node strb = nextConstStr;
         // Since `nc` is non-empty, we start with character 1
         size_t p;
+        size_t p2;
+        Node stra1;
         if (isRev)
         {
-          Node stra1 = Word::prefix(stra, straLen - 1);
+          stra1 = Word::prefix(stra, straLen - 1);
           p = straLen - Word::roverlap(stra1, strb);
           Trace("strings-csp-debug")
               << "Compute roverlap : " << stra1 << " " << strb << std::endl;
-          size_t p2 = Word::rfind(stra1, strb);
-          p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-          Trace("strings-csp-debug")
-              << "roverlap : " << stra1 << " " << strb << " returned " << p
-              << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
+          p2 = Word::rfind(stra1, strb);
         }
         else
         {
-          Node stra1 = Word::substr(stra, 1);
+          stra1 = Word::substr(stra, 1);
           p = straLen - Word::overlap(stra1, strb);
           Trace("strings-csp-debug")
               << "Compute overlap : " << stra1 << " " << strb << std::endl;
-          size_t p2 = Word::find(stra1, strb);
-          p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-          Trace("strings-csp-debug")
-              << "overlap : " << stra1 << " " << strb << " returned " << p
-              << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
+          p2 = Word::find(stra1, strb);
         }
+        p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+        Trace("strings-csp-debug")
+            << (isRev ? "r" : "") << "overlap : " << stra1 << " " << strb << " returned " << p
+            << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
 
         // If we can't split off more than a single character from the
         // constant, we might as well do regular constant/non-constant
