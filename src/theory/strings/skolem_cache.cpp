@@ -59,10 +59,13 @@ Node SkolemCache::mkTypedSkolemCached(
   Trace("skolem-cache") << "mkTypedSkolemCached start: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
   SkolemId idOrig = id;
-  a = a.isNull() ? a : Rewriter::rewrite(a);
-  b = b.isNull() ? b : Rewriter::rewrite(b);
+  if (id!=SK_RE_CONCAT_COMPONENT)
+  {
+    a = a.isNull() ? a : Rewriter::rewrite(a);
+    b = b.isNull() ? b : Rewriter::rewrite(b);
 
-  std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
+    std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
+  }
 
   // optimization: if we aren't asking for the purification skolem for constant
   // a, and the skolem is equivalent to a, then we just return a.

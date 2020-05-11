@@ -996,22 +996,19 @@ Node RegExpOpr::reduceRegExpPos(Node s, Node r, SkolemCache* sc)
   {
     std::vector<Node> nvec;
     std::vector<Node> cc;
+    // Look up skolems for each of the components. If sc has optimizations
+    // enabled, this will return arguments of str.to_re.
+    Node mem = nm->mkNode(STRING_IN_REGEXP,s,r);
     for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
     {
-      Assert(r[i].getKind() != REGEXP_EMPTY);
-      if (r[i].getKind() == STRING_TO_REGEXP)
-      {
-        cc.push_back(r[i][0]);
-      }
-      else
-      {
-        Node sk = nm->mkSkolem(
-            "rc", s.getType(), "created for regular expression concat");
-        Node lem = nm->mkNode(STRING_IN_REGEXP, sk, r[i]);
-        nvec.push_back(lem);
-        cc.push_back(sk);
-      }
+      Node index = nm->mkConst(Rational(i));
+      // make the skolem
+      Node sk = sc->mkSkolemCached(mem,index,SkolemCache::SK_RE_CONCAT_COMPONENT,"rc");
+      cc.push_back(sk);
+      nvec.push_back(nm->mkNode(STRING_IN_REGEXP, sk, r[i]));
     }
+    // (str.in_re x (re.++ R1 .... Rn)) =>
+    // (and (str.in_re k1 R1) ... (str.in_re kn Rn) (= x (str.++ k1 ... kn)))
     Node lem = s.eqNode(nm->mkNode(STRING_CONCAT, cc));
     nvec.push_back(lem);
     conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
