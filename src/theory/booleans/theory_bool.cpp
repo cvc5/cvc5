@@ -72,6 +72,23 @@ void TheoryBool::setProofChecker(ProofChecker* pc)
   Assert(pc != nullptr);
   // add checkers
   pc->registerChecker(PfRule::SPLIT, &d_bProofChecker);
+  pc->registerChecker(PfRule::AND_ELIM, &d_bProofChecker);
+  pc->registerChecker(PfRule::NOT_OR_ELIM, &d_bProofChecker);
+  pc->registerChecker(PfRule::IMPLIES_ELIM, &d_bProofChecker);
+  pc->registerChecker(PfRule::NOT_IMPLIES_ELIM1, &d_bProofChecker);
+  pc->registerChecker(PfRule::NOT_IMPLIES_ELIM2, &d_bProofChecker);
+  pc->registerChecker(PfRule::EQUIV_ELIM1, &d_bProofChecker);
+  pc->registerChecker(PfRule::EQUIV_ELIM2, &d_bProofChecker);
+  pc->registerChecker(PfRule::NOT_EQUIV_ELIM1, &d_bProofChecker);
+  pc->registerChecker(PfRule::NOT_EQUIV_ELIM2, &d_bProofChecker);
+  pc->registerChecker(PfRule::XOR_ELIM1, &d_bProofChecker);
+  pc->registerChecker(PfRule::XOR_ELIM2, &d_bProofChecker);
+  pc->registerChecker(PfRule::NOT_XOR_ELIM1, &d_bProofChecker);
+  pc->registerChecker(PfRule::NOT_XOR_ELIM2, &d_bProofChecker);
+  pc->registerChecker(PfRule::ITE_ELIM1, &d_bProofChecker);
+  pc->registerChecker(PfRule::ITE_ELIM2, &d_bProofChecker);
+  pc->registerChecker(PfRule::NOT_ITE_ELIM1, &d_bProofChecker);
+  pc->registerChecker(PfRule::NOT_ITE_ELIM2, &d_bProofChecker);
 }
 
 }/* CVC4::theory::booleans namespace */

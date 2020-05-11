@@ -30,14 +30,14 @@ std::shared_ptr<ProofNode> CDProof::mkProof(Node fact)
   std::shared_ptr<ProofNode> pf = getProofSymm(fact);
   if (pf != nullptr)
   {
-    return pf->clone();
+    return pf;
   }
   // add as assumption
   std::vector<Node> pargs = {fact};
   std::vector<std::shared_ptr<ProofNode>> passume;
   std::shared_ptr<ProofNode> pfa =
       d_manager->mkNode(PfRule::ASSUME, passume, pargs, fact);
-  //d_nodes.insert(fact, pfa);
+  d_nodes.insert(fact, pfa);
   return pfa;
 }
 
@@ -203,22 +203,34 @@ bool CDProof::addStep(Node expected,
   // the result of the proof node should be expected
   Assert(pthis->getResult() == expected);
 
+  // notify new proof
+  notifyNewProof(expected);
+
+  Trace("cdproof") << "...return " << ret << std::endl;
+  return ret;
+}
+
+void CDProof::notifyNewProof(Node expected)
+{
   // ensure SYMM proof is also linked to an existing proof, if it is an
   // assumption.
   if (expected.getKind() == EQUAL && expected[0] != expected[1])
   {
     Node expectedSym = expected[1].eqNode(expected[0]);
-    Trace("cdproof") << "  check update symmetry " << expectedSym << std::endl;
+    Trace("cdproof") << "  check connect symmetry " << expectedSym << std::endl;
     // if it exists, we may need to update it
     std::shared_ptr<ProofNode> pfs = getProof(expectedSym);
     if (pfs != nullptr)
     {
+      Trace("cdproof") << "  connect via getProofSymm method..." << std::endl;
       // call the get function with symmetry
       std::shared_ptr<ProofNode> pfss = getProofSymm(expectedSym);
     }
+    else
+    {
+      Trace("cdproof") << "  no connect" << std::endl;
+    }
   }
-  Trace("cdproof") << "...return " << ret << std::endl;
-  return ret;
 }
 
 bool CDProof::addStep(Node expected,
@@ -277,6 +289,8 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
         return false;
       }
     }
+    // also need to connect via SYMM if necessary
+    notifyNewProof(curFact);
     return true;
   }
   std::unordered_map<ProofNode*, bool> visited;

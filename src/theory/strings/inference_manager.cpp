@@ -184,25 +184,9 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
                              << ii.d_id << std::endl;
       Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
                                 << " by " << ii.d_id << std::endl;
-      // we must fully explain it
-      bool useBuffer = false;
-      ProofStep ps;
-      d_ipc->convert(ii, ps, useBuffer);
-      TrustNode tconf;
-      if (useBuffer)
-      {
-        tconf = d_pfee->assertConflict(ps.d_children, *d_ipc->getBuffer());
-      }
-      else
-      {
-        tconf = d_pfee->assertConflict(ps.d_rule, ps.d_children, ps.d_args);
-      }
-      Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
-      Trace("strings-assert") << "(assert (not " << tconf.getNode()
-                              << ")) ; conflict " << ii.d_id << std::endl;
       ++(d_statistics.d_conflictsInfer);
-      d_out.trustedConflict(tconf);
-      d_state.setConflict();
+      // process the conflict
+      processConflict(ii);
       return;
     }
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
@@ -255,6 +239,28 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
   Trace("strings-infer-debug") << "...as fact" << std::endl;
   // add to pending to be processed as a fact
   d_pending.push_back(ii);
+}
+
+void InferenceManager::processConflict(const InferInfo& ii)
+{
+  // we must fully explain it
+  bool useBuffer = false;
+  ProofStep ps;
+  d_ipc->convert(ii, ps, useBuffer);
+  TrustNode tconf;
+  if (useBuffer)
+  {
+    tconf = d_pfee->assertConflict(ps.d_children, *d_ipc->getBuffer());
+  }
+  else
+  {
+    tconf = d_pfee->assertConflict(ps.d_rule, ps.d_children, ps.d_args);
+  }
+  Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
+  Trace("strings-assert") << "(assert (not " << tconf.getNode()
+                          << ")) ; conflict " << ii.d_id << std::endl;
+  d_out.trustedConflict(tconf);
+  d_state.setConflict();
 }
 
 bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
@@ -514,17 +520,16 @@ void InferenceManager::postProcessFact(TNode fact)
     Node pc = d_state.getPendingConflict();
     if (!pc.isNull())
     {
-      std::vector<Node> a;
-      a.push_back(pc);
       Trace("strings-pending")
           << "Process pending conflict " << pc << std::endl;
-      Node cnode = mkExplain(a);
-      d_state.setConflict();
+      InferInfo iiPrefixConf;
+      iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
+      iiPrefixConf.d_conc = d_false;
+      utils::flattenOp(AND, pc, iiPrefixConf.d_ant);
       Trace("strings-conflict")
-          << "CONFLICT: Eager prefix : " << cnode << std::endl;
+          << "CONFLICT: Eager prefix : " << pc << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);
-      TrustNode pconf = TrustNode::mkTrustConflict(cnode, nullptr);
-      d_out.trustedConflict(pconf);
+      processConflict(iiPrefixConf);
     }
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
@@ -540,123 +545,11 @@ bool InferenceManager::hasProcessed() const
   return d_state.isInConflict() || !d_pendingLem.empty() || !d_pending.empty();
 }
 
-Node InferenceManager::mkExplain(const std::vector<Node>& a) const
-{
-  std::vector<Node> an;
-  return mkExplain(a, an);
-}
-
-Node InferenceManager::mkExplain(const std::vector<Node>& a,
-                                 const std::vector<Node>& an) const
-{
-  std::vector<TNode> antec_exp;
-  // copy to processing vector
-  std::vector<Node> aconj;
-  for (const Node& ac : a)
-  {
-    utils::flattenOp(AND, ac, aconj);
-  }
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  for (const Node& apc : aconj)
-  {
-    Assert(apc.getKind() != AND);
-    Debug("strings-explain") << "Add to explanation " << apc << std::endl;
-    if (apc.getKind() == NOT && apc[0].getKind() == EQUAL)
-    {
-      Assert(ee->hasTerm(apc[0][0]));
-      Assert(ee->hasTerm(apc[0][1]));
-      // ensure that we are ready to explain the disequality
-      AlwaysAssert(ee->areDisequal(apc[0][0], apc[0][1], true));
-    }
-    Assert(apc.getKind() != EQUAL || ee->areEqual(apc[0], apc[1]));
-    // now, explain
-    explain(apc, antec_exp);
-  }
-  for (const Node& anc : an)
-  {
-    if (std::find(antec_exp.begin(), antec_exp.end(), anc) == antec_exp.end())
-    {
-      Debug("strings-explain")
-          << "Add to explanation (new literal) " << anc << std::endl;
-      antec_exp.push_back(anc);
-    }
-  }
-  Node ant;
-  if (antec_exp.empty())
-  {
-    ant = d_true;
-  }
-  else if (antec_exp.size() == 1)
-  {
-    ant = antec_exp[0];
-  }
-  else
-  {
-    ant = NodeManager::currentNM()->mkNode(AND, antec_exp);
-  }
-  return ant;
-}
-
 TrustNode InferenceManager::explain(TNode literal) const
 {
-  std::vector<TNode> assumptions;
-  explain(literal, assumptions);
-  Node exp;
-  if (assumptions.empty())
-  {
-    exp = d_true;
-  }
-  else if (assumptions.size() == 1)
-  {
-    exp = assumptions[0];
-  }
-  else
-  {
-    exp = NodeManager::currentNM()->mkNode(AND, assumptions);
-  }
-  // FIXME
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
-}
-
-void InferenceManager::explain(TNode literal,
-                               std::vector<TNode>& assumptions) const
-{
-  Debug("strings-explain") << "Explain " << literal << " "
-                           << d_state.isInConflict() << std::endl;
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  bool polarity = literal.getKind() != NOT;
-  TNode atom = polarity ? literal : literal[0];
-  std::vector<TNode> tassumptions;
-  if (atom.getKind() == EQUAL)
-  {
-    if (atom[0] != atom[1])
-    {
-      Assert(ee->hasTerm(atom[0]));
-      Assert(ee->hasTerm(atom[1]));
-      ee->explainEquality(atom[0], atom[1], polarity, tassumptions);
-    }
-  }
-  else
-  {
-    ee->explainPredicate(atom, polarity, tassumptions);
-  }
-  for (const TNode a : tassumptions)
-  {
-    if (std::find(assumptions.begin(), assumptions.end(), a)
-        == assumptions.end())
-    {
-      assumptions.push_back(a);
-    }
-  }
-  if (Debug.isOn("strings-explain-debug"))
-  {
-    Debug("strings-explain-debug")
-        << "Explanation for " << literal << " was " << std::endl;
-    for (const TNode a : tassumptions)
-    {
-      Debug("strings-explain-debug") << "   " << a << std::endl;
-    }
-  }
+  // use the explain method of proof equality engine
+  TrustNode trn = d_pfee->explain(literal);
+  return trn;
 }
 
 void InferenceManager::markCongruent(Node a, Node b)

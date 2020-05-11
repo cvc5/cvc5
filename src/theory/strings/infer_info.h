@@ -349,6 +349,10 @@ enum class Inference : uint32_t
   // Proof: REDUCTION
   REDUCTION,
   //-------------------------------------- end extended function solver
+  //-------------------------------------- prefix conflict
+  // prefix conflict (coarse-grained)
+  PREFIX_CONFLICT,
+  //-------------------------------------- end prefix conflict
   NONE,
 };
 

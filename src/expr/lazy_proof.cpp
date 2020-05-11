@@ -63,21 +63,29 @@ std::shared_ptr<ProofNode> LazyCDProof::mkProof(Node fact)
         ProofGenerator* pg = getGeneratorFor(afact, isSym);
         if (pg != nullptr)
         {
-          Trace("lazy-cdproof")
-              << "Call generator for assumption " << afact << std::endl;
+          Trace("lazy-cdproof") << "LazyCDProof: Call generator for assumption "
+                                << afact << std::endl;
           Assert(!isSym || afact.getKind() == EQUAL);
           Node afactGen = isSym ? afact[1].eqNode(afact[0]) : afact;
           // use the addProofTo interface
           if (!pg->addProofTo(afactGen, this))
           {
+            Trace("lazy-cdproof") << "LazyCDProof: Failed added fact for "
+                                  << afactGen << std::endl;
             Assert(false) << "Proof generator " << pg->identify()
                           << " could not add proof for fact " << afactGen
                           << std::endl;
           }
+          else
+          {
+            Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
+                                  << afactGen << std::endl;
+          }
         }
         else
         {
-          Trace("lazy-cdproof") << "No generator for " << afact << std::endl;
+          Trace("lazy-cdproof")
+              << "LazyCDProof: No generator for " << afact << std::endl;
         }
         // Notice that we do not traverse the proofs that have been generated
         // lazily by the proof generators here.  In other words, we assume that

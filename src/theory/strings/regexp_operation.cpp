@@ -856,6 +856,17 @@ Node RegExpOpr::simplify(Node t, bool polarity)
     else
     {
       conc = reduceRegExpPos(str, re, d_sc);
+      // we also immediately unfold the last disjunct for re.*
+      if (re.getKind() == REGEXP_STAR)
+      {
+        Assert(conc.getKind() == OR && conc.getNumChildren() == 3);
+        std::vector<Node> newChildren;
+        newChildren.push_back(conc[0]);
+        newChildren.push_back(conc[1]);
+        Node starExpUnf = simplify(conc[2], true);
+        newChildren.push_back(starExpUnf);
+        conc = NodeManager::currentNM()->mkNode(OR, newChildren);
+      }
       d_simpl_cache[p] = conc;
     }
   } else {
@@ -985,7 +996,7 @@ Node RegExpOpr::reduceRegExpPos(Node s, Node r, SkolemCache* sc)
   {
     std::vector<Node> nvec;
     std::vector<Node> cc;
-    for (unsigned i = 0; i < r.getNumChildren(); ++i)
+    for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
     {
       Assert(r[i].getKind() != REGEXP_EMPTY);
       if (r[i].getKind() == STRING_TO_REGEXP)
@@ -1010,33 +1021,17 @@ Node RegExpOpr::reduceRegExpPos(Node s, Node r, SkolemCache* sc)
     Node emp = Word::mkEmptyWord(s.getType());
     Node se = s.eqNode(emp);
     Node sinr = nm->mkNode(STRING_IN_REGEXP, s, r[0]);
-    Node sk1 =
-        nm->mkSkolem("rs", s.getType(), "created for regular expression star");
-    Node sk2 =
-        nm->mkSkolem("rs", s.getType(), "created for regular expression star");
-    Node sk3 =
-        nm->mkSkolem("rs", s.getType(), "created for regular expression star");
-
-    NodeBuilder<> nb(AND);
-    nb << sk1.eqNode(emp).negate();
-    nb << sk3.eqNode(emp).negate();
-    nb << nm->mkNode(STRING_IN_REGEXP, sk1, r[0]);
-    nb << nm->mkNode(STRING_IN_REGEXP, sk2, r);
-    nb << nm->mkNode(STRING_IN_REGEXP, sk3, r[0]);
-    nb << s.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk2, sk3));
-    conc = nb;
-
+    Node reExpand = nm->mkNode(REGEXP_CONCAT, r[0], r, r[0]);
+    Node sinRExp = nm->mkNode(STRING_IN_REGEXP, s, reExpand);
     // We unfold `x in R*` by considering three cases: `x` is empty, `x`
     // is matched by `R`, or `x` is matched by two or more `R`s. For the
-    // last case, we break `x` into three pieces, making the beginning
+    // last case, `x` will break into three pieces, making the beginning
     // and the end each match `R` and the middle match `R*`. Matching the
     // beginning and the end with `R` allows us to reason about the
     // beginning and the end of `x` simultaneously.
     //
-    // x in R* ---> (x = "") v (x in R) v
-    //              (x = x1 ++ x2 ++ x3 ^ x1 != "" ^ x3 != "" ^
-    //               x1 in R ^ x2 in R* ^ x3 in R)
-    conc = nm->mkNode(OR, se, sinr, conc);
+    // x in R* ---> (x = "") v (x in R) v (x in (re.++ R (re.* R) R))
+    conc = nm->mkNode(OR, se, sinr, sinRExp);
   }
   else
   {

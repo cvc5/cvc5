@@ -36,15 +36,26 @@ const std::vector<Node>& ProofNode::getArguments() const { return d_args; }
 
 Node ProofNode::getResult() const { return d_proven; }
 
-void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
+void ProofNode::getFreeAssumptions(std::vector<Node>& assump)
+{
+  std::map<Node, std::vector<ProofNode*>> amap;
+  getFreeAssumptionsMap(amap);
+  for (const std::pair<const Node, std::vector<ProofNode*>>& p : amap)
+  {
+    assump.push_back(p.first);
+  }
+}
+
+void ProofNode::getFreeAssumptionsMap(
+    std::map<Node, std::vector<ProofNode*>>& amap)
 {
   // visited set false after preorder traversal, true after postorder traversal
-  std::unordered_map<const ProofNode*, bool> visited;
-  std::unordered_map<const ProofNode*, bool>::iterator it;
-  std::vector<const ProofNode*> visit;
+  std::unordered_map<ProofNode*, bool> visited;
+  std::unordered_map<ProofNode*, bool>::iterator it;
+  std::vector<ProofNode*> visit;
   // the current set of formulas bound by SCOPE
   std::unordered_set<Node, NodeHashFunction> currentScope;
-  const ProofNode* cur;
+  ProofNode* cur;
   visit.push_back(this);
   do
   {
@@ -61,7 +72,7 @@ void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
         Node f = cur->d_args[0];
         if (currentScope.find(f) == currentScope.end())
         {
-          assump.push_back(f);
+          amap[f].push_back(cur);
         }
       }
       else
@@ -98,7 +109,7 @@ void ProofNode::getFreeAssumptions(std::vector<Node>& assump) const
   } while (!visit.empty());
 }
 
-bool ProofNode::isClosed() const
+bool ProofNode::isClosed()
 {
   std::vector<Node> assumps;
   getFreeAssumptions(assumps);

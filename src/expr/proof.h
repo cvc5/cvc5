@@ -229,6 +229,8 @@ class CDProof
    * Returns true if pn is an assumption.
    */
   static bool isAssumption(ProofNode* pn);
+  /** Notify new proof */
+  void notifyNewProof(Node expected);
 };
 
 }  // namespace CVC4

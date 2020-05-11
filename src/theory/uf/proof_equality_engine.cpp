@@ -45,21 +45,8 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
 bool ProofEqEngine::assertAssume(TNode lit)
 {
   Trace("pfee") << "pfee::assertAssume " << lit << std::endl;
-  // don't need to explicitly assume
-  /*
-    if (d_pfEnabled)
-    {
-      // first, add the step in the proof
-      std::vector<Node> exp;
-      std::vector<Node> args;
-      args.push_back(lit);
-      if (!d_proof.addStep(lit, PfRule::ASSUME, exp, args))
-      {
-        // failed to add step
-        return false;
-      }
-    }
-  */
+  // don't need to explicitly add anything to the proof here, since ASSUME
+  // nodes are constructed lazily
   TNode atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
 
@@ -84,12 +71,10 @@ bool ProofEqEngine::assertFact(Node lit,
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
   // first, register the step in the proof
-  if (d_pfEnabled)  // && d_recExplain)
+  if (d_pfEnabled)
   {
-    if (!addProofStep(lit, id, exp, args))
-    {
-      return false;
-    }
+    AlwaysAssert(false);
+    // FIXME this should buffer the Step
   }
 
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
@@ -108,19 +93,15 @@ bool ProofEqEngine::assertFact(Node lit,
 {
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
-  // shouldnt use this interface if not doing recursive explanations?
-  Assert(d_recExplain);
   // first, register the step in the proof
   if (d_pfEnabled)
   {
     // must extract the explanation as a vector
     std::vector<Node> expv;
     flattenAnd(exp, expv);
-    if (!addProofStep(lit, id, expv, args))
-    {
-      // failed to register step
-      return false;
-    }
+
+    AlwaysAssert(false);
+    // FIXME this should buffer the Step
   }
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
@@ -135,14 +116,10 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via buffer with " << psb.getNumSteps() << " steps"
                 << std::endl;
-  // shouldnt use this interface if not doing recursive explanations?
-  Assert(d_recExplain);
   if (d_pfEnabled)
   {
-    if (!d_proof.addSteps(psb))
-    {
-      return false;
-    }
+    AlwaysAssert(false);
+    // FIXME this should buffer the Steps
   }
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
@@ -191,7 +168,8 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
       }
     }
   }
-  return ensureProofForFact(d_false, assumps, true, &d_proof);
+  return ensureProofForFact(
+      d_false, assumps, TrustNodeKind::CONFLICT, &d_proof);
 }
 
 TrustNode ProofEqEngine::assertConflict(PfRule id,
@@ -324,6 +302,22 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   return assertLemmaInternal(conc, exp, noExplain, nullptr);
 }
 
+TrustNode ProofEqEngine::explain(Node conc)
+{
+  if (d_pfEnabled)
+  {
+    PRefProofGenerator prg(&d_proof);
+    LazyCDProof tmpProof(d_pnm, &prg);
+    std::vector<TNode> assumps;
+    explainWithProof(conc, assumps, &tmpProof);
+    return ensureProofForFact(
+        conc, assumps, TrustNodeKind::PROP_EXP, &tmpProof);
+  }
+  std::vector<TNode> assumps;
+  explainWithProof(conc, assumps, nullptr);
+  return ensureProofForFact(conc, assumps, TrustNodeKind::PROP_EXP, nullptr);
+}
+
 std::string ProofEqEngine::identify() const
 {
   std::stringstream ss;
@@ -337,7 +331,8 @@ TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
 {
   // We are a conflict if the conclusion is false and all literals are
   // explained.
-  bool isConflict = conc == d_false;
+  TrustNodeKind tnk =
+      conc == d_false ? TrustNodeKind::CONFLICT : TrustNodeKind::LEMMA;
 
   // get the explanation, with proofs
   std::vector<TNode> assumps;
@@ -353,20 +348,20 @@ TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
       // it did not have a proof; it was an assumption of the previous rule
       assumps.push_back(e);
       // it is not a conflict, since it may involve new literals
-      isConflict = false;
+      tnk = TrustNodeKind::LEMMA;
     }
   }
-  return ensureProofForFact(conc, assumps, isConflict, curr);
+  return ensureProofForFact(conc, assumps, tnk, curr);
 }
 
 TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                                             const std::vector<TNode>& assumps,
-                                            bool isConflict,
+                                            TrustNodeKind tnk,
                                             CDProof* curr)
 {
   Trace("pfee-proof") << std::endl;
   Trace("pfee-proof") << "pfee::ensureProofForFact: input " << conc << " via "
-                      << assumps << ", isConflict=" << isConflict << std::endl;
+                      << assumps << ", TrustNodeKind=" << tnk << std::endl;
   // make the conflict or lemma
   NodeManager* nm = NodeManager::currentNM();
 
@@ -375,7 +370,11 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   // The proof
   std::shared_ptr<ProofNode> pfConc;
   ProofGenerator* pfg = nullptr;
-  // if proofs are enabled, generate the proof and clean the assumptions
+  // the explanation is the conjunction of assumptions
+  Node exp;
+  ;
+  // If proofs are enabled, generate the proof and possibly modify the
+  // assumptions to match SCOPE.
   if (d_pfEnabled)
   {
     Assert(curr != nullptr);
@@ -394,7 +393,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       return TrustNode::null();
     }
     // clone it so that we have a fresh copy
-    //pfConc = pfConc->clone();
+    pfConc = pfConc->clone();
     Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
     // The free assumptions must be closed by assumps, which should be passed
     // as arguments of SCOPE. However, some of the free assumptions may not
@@ -404,13 +403,25 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     // assumption vector to pass to SCOPE so that all assumptions are matched.
 
     // The free assumptions of the proof
-    std::vector<Node> freeAssumps;
-    pfConc->getFreeAssumptions(freeAssumps);
-    // Whether we have ensured freeAssumps is a subset of scopeAssumps
+    std::map<Node, std::vector<ProofNode*>> famap;
+    pfConc->getFreeAssumptionsMap(famap);
+    // we first ensure the assumptions are flattened
+    std::vector<Node> ac;
     for (const TNode& a : assumps)
     {
-      if (std::find(freeAssumps.begin(), freeAssumps.end(), a)
-          != freeAssumps.end())
+      if (a.getKind() == AND)
+      {
+        ac.insert(ac.end(), a.begin(), a.end());
+      }
+      else
+      {
+        ac.push_back(a);
+      }
+    }
+    std::map<Node, std::vector<ProofNode*>>::iterator itf;
+    for (const Node& a : ac)
+    {
+      if (famap.find(a) != famap.end())
       {
         scopeAssumps.push_back(a);
         continue;
@@ -422,10 +433,26 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       {
         Node aeqSym = aeq[1].eqNode(aeq[0]);
         aeqSym = polarity ? aeqSym : aeqSym.notNode();
-        if (std::find(freeAssumps.begin(), freeAssumps.end(), aeqSym)
-            != freeAssumps.end())
+        itf = famap.find(aeqSym);
+        if (itf != famap.end())
         {
-          scopeAssumps.push_back(aeqSym);
+          Trace("pfee-proof") << "- reorient assumption " << aeqSym << " via "
+                              << a << std::endl;
+          std::shared_ptr<ProofNode> pfaa = d_pnm->mkAssume(a);
+          for (ProofNode* pfs : itf->second)
+          {
+            Assert(pfs->getResult() == aeqSym);
+            // must correct the orientation on this leaf
+            std::vector<std::shared_ptr<ProofNode>> children;
+            children.push_back(pfaa);
+            Trace("pfee-proof") << "...finished make assume" << std::endl;
+            std::vector<Node> args;
+            args.push_back(aeqSym);
+            d_pnm->updateNode(
+                pfs, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+          }
+          scopeAssumps.push_back(a);
+          Trace("pfee-proof") << "...finished" << std::endl;
           continue;
         }
       }
@@ -437,6 +464,11 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       // method.
       std::stringstream ss;
       pfConc->printDebug(ss);
+      std::vector<Node> freeAssumps;
+      for (const std::pair<const Node, std::vector<ProofNode*>>& ap : famap)
+      {
+        freeAssumps.push_back(ap.first);
+      }
       Trace("pfee-proof") << "Could not find free assumption for " << a
                           << " in " << freeAssumps << std::endl;
       Notice() << "pfee::ensureProofForFact: explained assumption " << a
@@ -444,28 +476,33 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                << std::endl;
       // Assert(false);
     }
+    exp = mkAnd(scopeAssumps);
   }
   else
   {
-    scopeAssumps.insert(scopeAssumps.end(), assumps.begin(), assumps.end());
+    exp = mkAnd(assumps);
   }
   // Make the lemma or conflict node. This must exactly match the conclusion
   // of SCOPE below.
-  Node formula = mkAnd(scopeAssumps);
-  if (isConflict)
+  Node formula;
+  Node concFormula;
+  if (tnk == TrustNodeKind::CONFLICT)
   {
+    // conflict is negated
     Assert(conc == d_false);
+    formula = exp;
+    concFormula = formula.negate();
   }
   else
   {
-    formula = formula == d_true
-                  ? conc
-                  : (conc == d_false ? formula.negate()
-                                     : nm->mkNode(IMPLIES, formula, conc));
+    formula =
+        exp == d_true
+            ? conc
+            : (conc == d_false ? exp.negate() : nm->mkNode(IMPLIES, exp, conc));
+    concFormula = formula;
   }
   Trace("pfee-proof") << "pfee::ensureProofForFact: formula is " << formula
                       << std::endl;
-  Node concFormula = isConflict ? formula.negate() : formula;
   // if proofs are enabled, scope the proof constructed above, and connect the
   // formula with the proof
   if (d_pfEnabled)
@@ -502,25 +539,32 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()
                           << std::endl;
     }
-    // set the proof for the conflict or lemma, which can be queried later
-    if (isConflict)
-    {
-      setProofForConflict(formula, pf);
-    }
-    else
-    {
-      setProofForLemma(formula, pf);
-    }
     pfg = this;
+    // set the proof for the conflict or lemma, which can be queried later
+    switch (tnk)
+    {
+      case TrustNodeKind::CONFLICT: setProofForConflict(formula, pf); break;
+      case TrustNodeKind::LEMMA: setProofForLemma(formula, pf); break;
+      case TrustNodeKind::PROP_EXP: setProofForPropExp(conc, exp, pf); break;
+      default:
+        pfg = nullptr;
+        Unhandled() << "Unhandled trust node kind " << tnk;
+        break;
+    }
   }
   Trace("pfee-proof") << "pfee::ensureProofForFact: finish" << std::endl
                       << std::endl;
-  // we can provide a proof for conflict or lemma
-  if (isConflict)
+  // we can provide a proof for conflict, lemma or explained propagation
+  switch (tnk)
   {
-    return TrustNode::mkTrustConflict(formula, pfg);
+    case TrustNodeKind::CONFLICT:
+      return TrustNode::mkTrustConflict(formula, pfg);
+    case TrustNodeKind::LEMMA: return TrustNode::mkTrustLemma(formula, pfg);
+    case TrustNodeKind::PROP_EXP:
+      return TrustNode::mkTrustPropExp(conc, exp, pfg);
+    default: Unhandled() << "Unhandled trust node kind " << tnk; break;
   }
-  return TrustNode::mkTrustLemma(formula, pfg);
+  return TrustNode::null();
 }
 
 void ProofEqEngine::assertFactInternal(TNode atom, bool polarity, TNode reason)

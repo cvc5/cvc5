@@ -155,10 +155,10 @@ class FakeTheory : public Theory
   void registerTerm(TNode) { Unimplemented(); }
   void check(Theory::Effort) override { Unimplemented(); }
   void propagate(Theory::Effort) override { Unimplemented(); }
-  Node explain(TNode) override
+  TrustNode explain(TNode) override
   {
     Unimplemented();
-    return Node::null();
+    return TrustNode::null();
   }
   Node getValue(TNode n) { return Node::null(); }
 

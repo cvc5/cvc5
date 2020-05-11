@@ -50,6 +50,16 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   return mkNode(id, children, args, expected);
 }
 
+std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
+{
+  Assert(!fact.isNull());
+  Assert(fact.getType().isBoolean());
+  std::vector<std::shared_ptr<ProofNode>> children;
+  std::vector<Node> args;
+  args.push_back(fact);
+  return mkNode(PfRule::ASSUME, children, args, fact);
+}
+
 bool ProofNodeManager::updateNode(
     ProofNode* pn,
     PfRule id,

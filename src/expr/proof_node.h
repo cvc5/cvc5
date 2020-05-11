@@ -100,11 +100,13 @@ class ProofNode
    * This traverses the structure of the dag represented by this ProofNode.
    * Its implementation is analogous to expr::getFreeVariables.
    */
-  void getFreeAssumptions(std::vector<Node>& assump) const;
+  void getFreeAssumptions(std::vector<Node>& assump);
+  /** Same as above, but maps assumptions to the proof pointer */
+  void getFreeAssumptionsMap(std::map<Node, std::vector<ProofNode*>>& amap);
   /**
    * Returns true if this is a closed proof (i.e. it has no free assumptions).
    */
-  bool isClosed() const;
+  bool isClosed();
   /** Print debug on output strem os */
   void printDebug(std::ostream& os) const;
   /** Clone, create a deep copy of this */

@@ -123,6 +123,8 @@ class EagerProofGenerator : public ProofGenerator
   void setProofForConflict(Node conf, std::shared_ptr<ProofNode> pf);
   /** Set that pf is the proof for lemma lem */
   void setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf);
+  /** Set that pf is the proof for explained propagation */
+  void setProofForPropExp(TNode lit, Node exp, std::shared_ptr<ProofNode> pf);
   /** Get the proof for the given key */
   std::shared_ptr<ProofNode> getProof(Node key);
   /** The proof node manager */

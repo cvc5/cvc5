@@ -42,6 +42,15 @@ void EagerProofGenerator::setProofForLemma(Node lem,
   d_proofs[lkey] = pf;
 }
 
+void EagerProofGenerator::setProofForPropExp(TNode lit,
+                                             Node exp,
+                                             std::shared_ptr<ProofNode> pf)
+{
+  // Normalize based on key
+  Node pekey = TrustNode::getPropExpKeyValue(lit, exp);
+  d_proofs[pekey] = pf;
+}
+
 std::shared_ptr<ProofNode> EagerProofGenerator::getProofFor(Node f)
 {
   NodeProofNodeMap::iterator it = d_proofs.find(f);

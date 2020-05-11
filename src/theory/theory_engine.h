@@ -28,7 +28,6 @@
 
 #include "base/check.h"
 #include "context/cdhashset.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "options/options.h"
@@ -57,6 +56,7 @@ namespace CVC4 {
 
 class ResourceManager;
 class LemmaProofRecipe;
+class LazyCDProof;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of

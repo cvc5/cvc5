@@ -152,6 +152,8 @@ class ProofEqEngine : public EagerProofGenerator
                         const std::vector<Node>& exp,
                         const std::vector<Node>& noExplain,
                         ProofGenerator* pg);
+  //-------------------------- explain
+  TrustNode explain(Node conc);
   /** identify */
   std::string identify() const override;
 
@@ -171,7 +173,7 @@ class ProofEqEngine : public EagerProofGenerator
   /** ensure proof for fact */
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,
-                               bool isConflict,
+                               TrustNodeKind tnk,
                                CDProof* curr);
   /**
    * Make the conjunction of nodes in a. Returns true if a is empty, and a

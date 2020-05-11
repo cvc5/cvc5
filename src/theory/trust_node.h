@@ -79,7 +79,7 @@ class TrustNode
   /** Make a proven node for lemma */
   static TrustNode mkTrustLemma(Node lem, ProofGenerator* g = nullptr);
   /** Make a proven node for explanation of propagated literal */
-  static TrustNode mkTrustPropExp(Node lit,
+  static TrustNode mkTrustPropExp(TNode lit,
                                   Node exp,
                                   ProofGenerator* g = nullptr);
   /** The null proven node */
@@ -100,6 +100,8 @@ class TrustNode
   static Node getLemmaKeyValue(Node lem);
   /** Get the node key for which explanations for propagations are cached */
   static Node getPropExpKeyValue(TNode lit, Node exp);
+  /** Get the node key for the exp => conc */
+  static Node getKeyValue(TrustNodeKind tnk, Node exp, Node conc);
 
  private:
   TrustNode(TrustNodeKind tnk, Node n, ProofGenerator* g = nullptr);

@@ -256,21 +256,11 @@ class InferenceManager
   /** Do we have a pending lemma to send on the output channel? */
   bool hasPendingLemma() const { return !d_pendingLem.empty(); }
 
-  /** make explanation
-   *
-   * This returns a node corresponding to the explanation of formulas in a,
-   * interpreted conjunctively. The returned node is a conjunction of literals
-   * that have been asserted to the equality engine.
-   */
-  Node mkExplain(const std::vector<Node>& a) const;
-  /** Same as above, but the new literals an are append to the result */
-  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an) const;
   /**
    * Explain literal l, add conjuncts to assumptions vector instead of making
    * the node corresponding to their conjunction.
    */
   TrustNode explain(TNode literal) const;
-  void explain(TNode literal, std::vector<TNode>& assumptions) const;
   // ------------------------------------------------- extended theory
   /**
    * Mark that terms a and b are congruent in the current context.
@@ -298,6 +288,8 @@ class InferenceManager
    */
   void preProcessFact(TNode fact);
   void postProcessFact(TNode fact);
+  /** Process conflict */
+  void processConflict(const InferInfo& ii);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */

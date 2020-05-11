@@ -141,6 +141,13 @@ proofrule CONCAT_CPROP 1 1 ::CVC4::theory::strings::StringsProofRuleChecker
 // Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t 0)))
 proofrule LENGTH_POS 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
+// ======== Length non-empty
+// Children: (P1:(not (= t "")))
+// Arguments: none
+// ---------------------
+// Conclusion: (not (= (str.len t) 0))
+proofrule LENGTH_NON_EMPTY 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
+
 //======================== Extended functions
 
 // ======== Contains not equal
@@ -163,12 +170,10 @@ proofrule STRINGS_REDUCTION 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Eager Reduction
 // Children: none
-// Arguments: (t)
+// Arguments: (t, id?)
 // ---------------------
 // Conclusion: R
-// where R = StringsPreprocess::eagerReduce(t).
-// In other words, R is the reduction predicate for extended term t[x], and w is
-//   (witness ((z T)) (= z t[x]))
+// where R = StringsPreprocess::eagerReduce(t, id).
 proofrule STRINGS_EAGER_REDUCTION 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 //======================== Regular expressions
@@ -195,3 +200,6 @@ proofrule RE_UNFOLD_POS 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 // Conclusion:(RegExpOpr::reduceRegExpNeg(t,R)), 
 // corresponding to the one-step unfolding of the premise.
 proofrule RE_UNFOLD_NEG 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
+
+
+

@@ -160,9 +160,10 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Node s = n[1];
     // positive contains reduces to a equality
     SkolemCache* skc = d_termReg.getSkolemCache();
-    Node sk1 = skc->mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
-    Node sk2 = skc->mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
-    Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
+    Node eq = d_termReg.eagerReduce(n, skc, 1);
+    Assert(!eq.isNull());
+    Assert(eq.getKind() == IMPLIES && eq[0] == n);
+    eq = eq[1];
     std::vector<Node> expn;
     expn.push_back(n);
     d_im.sendInference(expn, expn, eq, Inference::CTN_POS, false, true);

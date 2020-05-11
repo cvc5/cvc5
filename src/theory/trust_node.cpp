@@ -26,6 +26,7 @@ const char* toString(TrustNodeKind tnk)
   {
     case TrustNodeKind::CONFLICT: return "CONFLICT";
     case TrustNodeKind::LEMMA: return "LEMMA";
+    case TrustNodeKind::PROP_EXP: return "PROP_EXP";
     default: return "?";
   }
 }
@@ -50,7 +51,7 @@ TrustNode TrustNode::mkTrustLemma(Node lem, ProofGenerator* g)
   return TrustNode(TrustNodeKind::LEMMA, lem, g);
 }
 
-TrustNode TrustNode::mkTrustPropExp(Node lit, Node exp, ProofGenerator* g)
+TrustNode TrustNode::mkTrustPropExp(TNode lit, Node exp, ProofGenerator* g)
 {
   Assert(g == nullptr || g->hasProofFor(getPropExpKeyValue(lit, exp)));
   return TrustNode(TrustNodeKind::PROP_EXP, exp, g);
@@ -88,6 +89,21 @@ Node TrustNode::getPropExpKeyValue(TNode lit, Node exp)
     return lit;
   }
   return NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, lit);
+}
+
+Node TrustNode::getKeyValue(TrustNodeKind tnk, Node exp, Node conc)
+{
+  if (conc.isConst())
+  {
+    Assert(!conc.getConst<bool>());
+    return exp.negate();
+  }
+  if (exp.isConst())
+  {
+    Assert(exp.getConst<bool>());
+    return conc;
+  }
+  return NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, conc);
 }
 
 std::ostream& operator<<(std::ostream& out, TrustNode n)
