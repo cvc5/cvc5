@@ -382,7 +382,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::RE_INTER)
   {
-    // TODO
+    // TODO: necessary?
   }
   else if (id == PfRule::RE_UNFOLD_POS || id == PfRule::RE_UNFOLD_NEG)
   {

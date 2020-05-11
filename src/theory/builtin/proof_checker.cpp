@@ -228,6 +228,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       }
     }
     Node res = applySubstitutionRewrite(args[0], children, idRewriter);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     // **** NOTE: can rewrite the witness form here. This enables "symbolic"
     // predicates to check, e.g. (= k t) where k is a purification Skolem for t.
     res = Rewriter::rewrite(res);
@@ -293,7 +297,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     // can rewrite the witness forms
     res1 = Rewriter::rewrite(res1);
     res2 = Rewriter::rewrite(res2);
-    if (res1 != res2)
+    if (res1.isNull() || res1 != res2)
     {
       Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
       return Node::null();
