@@ -120,7 +120,7 @@ Node StringsPreprocess::reduce(Node t,
     Node x = t[0];
     Node y = t[1];
     Node n = t[2];
-    Node skk = nm->mkSkolem("iok", nm->integerType(), "created for indexof");
+    Node skk = sc->mkTypedSkolemCached(nm->integerType(),t,SkolemCache::SK_PURIFY,"iok");
 
     Node negone = nm->mkConst(Rational(-1));
     Node krange = nm->mkNode(GEQ, skk, negone);
@@ -270,7 +270,7 @@ Node StringsPreprocess::reduce(Node t,
     retNode = itost;
   } else if( t.getKind() == kind::STRING_STOI ) {
     Node s = t[0];
-    Node stoit = nm->mkSkolem("stoit", nm->integerType(), "created for stoi");
+    Node stoit = sc->mkTypedSkolemCached(nm->integerType(),t,SkolemCache::SK_PURIFY,"stoit");
     Node lens = nm->mkNode(STRING_LENGTH, s);
 
     std::vector<Node> conc1;
@@ -585,7 +585,7 @@ Node StringsPreprocess::reduce(Node t,
   }
   else if (t.getKind() == kind::STRING_LEQ)
   {
-    Node ltp = nm->mkSkolem("ltp", nm->booleanType());
+    Node ltp = sc->mkTypedSkolemCached(nm->booleanType(),t,SkolemCache::SK_PURIFY,"ltp");
     Node k = nm->mkSkolem("k", nm->integerType());
 
     std::vector<Node> conj;
