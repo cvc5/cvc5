@@ -413,7 +413,7 @@ void InferenceManager::doPendingLemmas()
       utils::flattenOp(AND, ec, exp);
     }
     std::vector<Node> noExplain;
-    if (options::stringRExplainLemmas())
+    if (!options::stringRExplainLemmas())
     {
       // if we aren't regressing the explanation, we add all literals to
       // noExplain and ignore ii.d_antn.
