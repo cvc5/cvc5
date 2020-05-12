@@ -444,11 +444,11 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     SkolemCache sc;
     if (id == PfRule::RE_UNFOLD_POS)
     {
-      conc = RegExpOpr::reduceRegExpPos(atom[0], atom[1], &sc);
+      conc = RegExpOpr::reduceRegExpPos(children[0], &sc);
     }
     else
     {
-      conc = RegExpOpr::reduceRegExpNeg(atom[0], atom[1], &sc);
+      conc = RegExpOpr::reduceRegExpNeg(children[0], &sc);
     }
     return ProofSkolemCache::getWitnessForm(conc);
   }

@@ -116,7 +116,8 @@ bool EqProof::foldTransitivityChildren(Node conclusion,
   unsigned termPos = 2, offending = size;
   for (unsigned i = 0; i < size; ++i)
   {
-    Assert(premises[i].getKind() == kind::EQUAL);
+    Trace("ajr-temp") << "Premise trans : "<< premises[i] << std::endl;
+    AlwaysAssert(premises[i].getKind() == kind::EQUAL);
     for (unsigned j = 0; j < 2; ++j)
     {
       if (premises[i][j].getKind() == kind::CONST_BOOLEAN
@@ -471,7 +472,8 @@ Node EqProof::addToProof(
   // refl
   if (d_id == MERGED_THROUGH_REFLEXIVITY)
   {
-    Assert(d_node.getKind() == kind::EQUAL);
+    Trace("ajr-temp") << "Refl node: " << d_node << std::endl;
+    AlwaysAssert(d_node.getKind() == kind::EQUAL);
     std::vector<Node> children;
     std::vector<Node> args{d_node[0]};
     if (!p->addStep(d_node, PfRule::REFL, children, args))
@@ -496,6 +498,10 @@ Node EqProof::addToProof(
     //
     // (= t1 c1)  (= t2 c2)
     // -------------------- MACRO_SR_PRED_INTRO
+    //  (= (= t1 t2) false)
+        
+    // The additional step is commented out below:
+    // -------------------- FALSE_ELIM
     //  (not (= t1 t2))
     //
     // First process the children proofs
@@ -522,7 +528,8 @@ Node EqProof::addToProof(
       // look in children
       for (unsigned j = 0; j < premises.size(); ++j)
       {
-        Assert(premises[j].getKind() == kind::EQUAL);
+        Trace("ajr-temp") << "Premise : "<< premises[j] << std::endl;
+        AlwaysAssert(premises[j].getKind() == kind::EQUAL);
         if (premises[j][0] == term)
         {
           Assert(premises[j][1].isConst());
@@ -539,14 +546,24 @@ Node EqProof::addToProof(
     Trace("eqproof-conv") << "EqProof::addToProof: adding "
                           << PfRule::MACRO_SR_PRED_INTRO << " step from "
                           << children << "\n";
-    Node conclusion = d_node[0].notNode();
-    if (!p->addStep(conclusion, PfRule::MACRO_SR_PRED_INTRO, children, {conclusion}))
+    if (!p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, children, {d_node}))
     {
       Assert(false) << "EqProof::addToProof: couldn't add "
                     << PfRule::MACRO_SR_PRED_INTRO << " rule\n";
     }
-    visited[d_node] = conclusion;
-    return conclusion;
+    /*
+    Node conclusion = d_node[0].notNode();
+    Trace("eqproof-conv") << "EqProof::addToProof: adding "
+                          << PfRule::FALSE_ELIM << " step from " << d_node
+                          << "\n";
+    if (!p->addStep(conclusion, PfRule::FALSE_ELIM, {d_node}, {}))
+    {
+      Assert(false) << "EqProof::addToProof: couldn't add "
+                    << PfRule::FALSE_ELIM << " rule\n";
+    }
+    */
+    visited[d_node] = d_node;
+    return d_node;
   }
   if (d_id == MERGED_THROUGH_TRANS)
   {
