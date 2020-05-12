@@ -1449,6 +1449,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     {
       // will do split on length
       lenConstraint = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
+      lcVec.push_back(lenConstraint);
     }
     else
     {
@@ -1506,7 +1507,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         y.eqNode(isRev ? utils::mkNConcat(sk2, x) : utils::mkNConcat(x, sk2));
     // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
 
-    iinfo.d_ant.push_back(lenConstraint);
+    Node lc = utils::mkAnd(lcVec);
+    iinfo.d_ant.push_back(lc);
     if (lentTestSuccess != -1)
     {
       iinfo.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
