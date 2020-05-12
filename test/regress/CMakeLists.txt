@@ -2264,8 +2264,6 @@ set(regression_disabled_tests
   regress0/ite_arith.smt2
   regress0/lemmas/fischer3-mutex-16.smtv1.smt2
   regress0/nl/all-logic.smt2
-  regress0/parser/witness.cvc
-  regress0/parser/witness.smt2
   regress0/quantifiers/qbv-multi-lit-uge.smt2
   regress0/quantifiers/qbv-test-invert-bvshl-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-0-neq.smt2
