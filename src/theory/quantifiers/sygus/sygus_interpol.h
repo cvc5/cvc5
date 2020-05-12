@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/type.h"
+#include "smt/smt_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -43,8 +44,6 @@ class SygusInterpol
 {
 	public:
 		SygusInterpol();
-
-		SygusInterpol(ExprManager* exprManager);
 
 		/**
 		 * Returns the sygus conjecture corresponding to the interpolation problem for
@@ -106,25 +105,21 @@ private:
    * (exists I. ...), we invoke a fresh copy of the SMT engine and leave the
    * assertion stack unchaged. This copy of the SMT engine can be further
    * queried for information regarding further solutions.
-   */
+	 */
 
 	void collectSymbols(const std::vector<Node>& axioms, const Node& conj);
 
 	void createVariables();
 
-	void setSynthGrammar();
+	TypeNode setSynthGrammar(TypeNode& itpGType);
 
-	Node mkPredicate();
+	Node mkPredicate(std::string& name);
 
-  void mkSygusConjecture(Node itp);
+  void mkSygusConjecture(Node itp, const std::vector<Node>& axioms, const Node& conj);
 
 	void findInterpol(Expr& interpol);
 
-	void checkInterpol(Expr interpol, std::vector<Node>& axioms, Node& conj);
-
-  ExprManager* d_exprManager;
-
-  std::unique_ptr<SmtEngine> d_subsolver;
+	std::unique_ptr<SmtEngine> d_subsolver;
 
 	std::unordered_set<Node, NodeHashFunction> d_symsetAll;
 	std::unordered_set<Node, NodeHashFunction> d_symsetShared;
