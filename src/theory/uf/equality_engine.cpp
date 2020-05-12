@@ -1079,6 +1079,36 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         Node cnode = eqp->d_children[0]->d_node;
         Trace("ajr-temp") << "Simplifying " << cnode << " from " << eqp->d_node << std::endl;
         bool simpTrans = true;
+        if (cnode.getKind()==kind::EQUAL)
+        {
+          // It may be the case that we have a proof of x = c2 and we want to
+          // conclude x != c1. If this is the case, below we construct:
+          //          -------- MERGED_THROUGH_EQUALITY
+          // x = c2   c1 != c2
+          // ----------------- TRANS
+          //     x != c1
+          TNode c1 = t1.isConst() ? t1 : ( t2.isConst() ? t2 : TNode::null());
+          TNode nc = t1.isConst() ? t2 : ( t2.isConst() ? t1 : TNode::null());
+          Node c2;
+          // merge constants transitivity
+          for (unsigned i=0; i<2; i++)
+          {
+            if (cnode[i].isConst() && cnode[1-i]==nc)
+            {
+              c2 = cnode[i];
+              break;
+            }
+          }
+          if (!c1.isNull() && !c2.isNull())
+          {
+            simpTrans = false;
+            Assert (c1.getType().isComparableTo(c2.getType()));
+            std::shared_ptr<EqProof> eqpmc = std::make_shared<EqProof>();
+            eqpmc->d_id = MERGED_THROUGH_CONSTANTS;
+            eqpmc->d_node = c1.eqNode(c2).eqNode(d_false);
+            eqp->d_children.push_back(eqpmc);
+          }
+        }
         if (simpTrans)
         {
           // The transitivity proof has just one child. Simplify.
