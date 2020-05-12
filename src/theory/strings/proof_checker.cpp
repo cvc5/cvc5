@@ -389,7 +389,37 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::RE_INTER)
   {
-    // TODO: necessary?
+    Assert(children.size()>=1);
+    Assert(args.empty());
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> reis;
+    Node x;
+    // make the regular expression intersection that summarizes all
+    // memberships in the explanation
+    for (const Node& c : children)
+    {
+      bool polarity = c.getKind() != NOT;
+      Node catom = polarity ? c : c[0];
+      if (catom.getKind() != STRING_IN_REGEXP)
+      {
+        return Node::null();
+      }
+      if (x.isNull())
+      {
+        x = catom[0];
+      }
+      else if (x!=catom[0])
+      {
+        // different LHS
+        return Node::null();
+      }
+      Node xcurr = catom[0];
+      Node rcurr =
+          polarity ? catom[1] : nm->mkNode(REGEXP_COMPLEMENT, catom[1]);
+      reis.push_back(rcurr);
+    }
+    Node rei = reis.size() == 1 ? reis[0] : nm->mkNode(REGEXP_INTER, reis);
+    return nm->mkNode(STRING_IN_REGEXP, x, rei);
   }
   else if (id == PfRule::RE_UNFOLD_POS || id == PfRule::RE_UNFOLD_NEG)
   {
