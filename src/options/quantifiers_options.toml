@@ -1763,7 +1763,7 @@ header = "options/quantifiers_options.h"
   long       = "quant-epr"
   type       = "bool"
   default    = "false"
-  help       = "infer whether in effectively propositional fragment, use for cegqiBv"
+  help       = "infer whether in effectively propositional fragment, use for cegqi"
 
 [[option]]
   name       = "quantEprMatching"
