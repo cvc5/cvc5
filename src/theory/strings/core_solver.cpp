@@ -440,7 +440,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
       // is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
       // when len(b)!=0. Although if we do not infer this conflict eagerly,
       // it may be applied (see #3272).
-      d_im.sendInference(exp, conc, infType);
+      d_im.sendInference(exp, conc, infType, isRev);
       if (d_state.isInConflict())
       {
         return;
