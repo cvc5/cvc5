@@ -321,7 +321,8 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
               Assert(!d_eqcInfo[nrr].d_bestContent.isNull()
                      && d_eqcInfo[nrr].d_bestContent.isConst());
               d_im.addToExplanation(n[count], d_eqcInfo[nrr].d_base, exp);
-              exp.push_back(d_eqcInfo[nrr].d_exp);
+              // must flatten to avoid nested AND in explanations
+              utils::flattenOp(AND,d_eqcInfo[nrr].d_exp,exp);
             }
             else
             {
