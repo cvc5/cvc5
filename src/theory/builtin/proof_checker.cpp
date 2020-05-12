@@ -278,6 +278,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
                              << args.size() << std::endl;
     Assert(children.size() >= 1);
     Assert(args.size() <= 2);
+    Assert (args[0].getType().isBoolean());
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
     RewriterId idRewriter = RewriterId::REWRITE;
@@ -304,6 +305,13 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
       return Node::null();
     }
+    return args[0];
+  }
+  else if (id==PfRule::THEORY_LEMMA)
+  {
+    Assert (children.empty());
+    Assert (args.size()==2);
+    Assert (args[0].getType().isBoolean());
     return args[0];
   }
   // no rule

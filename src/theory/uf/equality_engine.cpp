@@ -1076,12 +1076,16 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         Assert(eqp->d_node[0][1].isConst());
         eqp->d_id = MERGED_THROUGH_CONSTANTS;
       } else if (eqp->d_children.size() == 1) {
-        Trace("ajr-temp") << "Simplifying " << eqp->d_children[0]->d_node << " from " << eqp->d_node << std::endl;
-        // FIXME
-        // The transitivity proof has just one child. Simplify.
-        std::shared_ptr<EqProof> temp = eqp->d_children[0];
-        eqp->d_children.clear();
-        *eqp = *temp;
+        Node cnode = eqp->d_children[0]->d_node;
+        Trace("ajr-temp") << "Simplifying " << cnode << " from " << eqp->d_node << std::endl;
+        bool simpTrans = true;
+        if (simpTrans)
+        {
+          // The transitivity proof has just one child. Simplify.
+          std::shared_ptr<EqProof> temp = eqp->d_children[0];
+          eqp->d_children.clear();
+          *eqp = *temp;
+        }
       }
 
       if (Debug.isOn("pf::ee"))
