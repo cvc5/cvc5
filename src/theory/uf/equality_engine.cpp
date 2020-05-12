@@ -986,7 +986,6 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
 
   // The terms must be there already
   Assert(hasTerm(t1) && hasTerm(t2));
-  ;
 
   // Get the ids
   EqualityNodeId t1Id = getNodeId(t1);
@@ -1007,7 +1006,9 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
     Assert(d_disequalityReasonsMap.find(pair) != d_disequalityReasonsMap.end())
         << "Don't ask for stuff I didn't notify you about";
     DisequalityReasonRef reasonRef = d_disequalityReasonsMap.find(pair)->second;
-
+    if (eqp) {
+      Debug("pf::ee") << "Deq reason for "<< eqp->d_node << " " << reasonRef.d_mergesStart << "..." << reasonRef.d_mergesEnd << std::endl;
+    }
     for (unsigned i = reasonRef.d_mergesStart; i < reasonRef.d_mergesEnd; ++i)
     {
       EqualityPair toExplain = d_deducedDisequalityReasons[i];
@@ -1016,6 +1017,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
       // If we're constructing a (transitivity) proof, we don't need to include an explanation for x=x.
       if (eqp && toExplain.first != toExplain.second) {
         eqpc = std::make_shared<EqProof>();
+        Debug("pf::ee") << "Deq getExplanation #" << i << " for " << eqp->d_node << " : " << toExplain.first << " " << toExplain.second << std::endl;
       }
 
       getExplanation(
@@ -1074,6 +1076,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         Assert(eqp->d_node[0][1].isConst());
         eqp->d_id = MERGED_THROUGH_CONSTANTS;
       } else if (eqp->d_children.size() == 1) {
+        Trace("ajr-temp") << "Simplifying " << eqp->d_children[0]->d_node << " from " << eqp->d_node << std::endl;
+        // FIXME
         // The transitivity proof has just one child. Simplify.
         std::shared_ptr<EqProof> temp = eqp->d_children[0];
         eqp->d_children.clear();

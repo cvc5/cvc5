@@ -52,6 +52,8 @@ class LazyCDProof : public CDProof
                    bool forceOverwrite = false);
   /** Does this have any proof generators? */
   bool hasGenerators() const;
+  /** Does the given fact have a generator? */
+  bool hasGenerator(Node fact) const;
 
  protected:
   typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>

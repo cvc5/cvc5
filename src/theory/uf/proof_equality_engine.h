@@ -169,12 +169,12 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertLemmaInternal(Node conc,
                                 const std::vector<Node>& exp,
                                 const std::vector<Node>& noExplain,
-                                CDProof* curr);
+                                LazyCDProof* curr);
   /** ensure proof for fact */
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,
                                TrustNodeKind tnk,
-                               CDProof* curr);
+                               LazyCDProof* curr);
   /**
    * Make the conjunction of nodes in a. Returns true if a is empty, and a
    * single literal if a has size 1.
@@ -219,7 +219,7 @@ class ProofEqEngine : public EagerProofGenerator
    * This additionally registers the equality proof steps required to
    * regress the explanation of lit.
    */
-  void explainWithProof(Node lit, std::vector<TNode>& assumps, CDProof* curr);
+  void explainWithProof(Node lit, std::vector<TNode>& assumps, LazyCDProof* curr);
 };
 
 }  // namespace eq
