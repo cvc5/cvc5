@@ -1437,15 +1437,22 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
                 << "  explanation was : " << et.second << std::endl;
             lentTestSuccess = e;
             lenConstraint = et.second;
+            // its not explained by the equality engine of this class
+            iinfo.d_noExplain.push_back(lenConstraint);
             break;
           }
         }
       }
     }
+    std::vector<Node> lcVec;
     if (lenConstraint.isNull())
     {
       // will do split on length
       lenConstraint = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
+    }
+    else
+    {
+      utils::flattenOp(AND,lenConstraint,lcVec);
     }
 
     NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);
@@ -1453,15 +1460,15 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     for (unsigned xory = 0; xory < 2; xory++)
     {
       Node t = xory == 0 ? x : y;
-      Node tnz = d_state.explainNonEmpty(x);
+      Node tnz = d_state.explainNonEmpty(t);
       if (!tnz.isNull())
       {
-        iinfo.d_ant.push_back(tnz);
+        lcVec.push_back(tnz);
       }
       else
       {
         tnz = x.eqNode(emp).negate();
-        iinfo.d_ant.push_back(tnz);
+        lcVec.push_back(tnz);
         iinfo.d_noExplain.push_back(tnz);
       }
     }
@@ -1502,7 +1509,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     iinfo.d_ant.push_back(lenConstraint);
     if (lentTestSuccess != -1)
     {
-      iinfo.d_noExplain.push_back(lenConstraint);
       iinfo.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
       iinfo.d_idRev = isRev;
