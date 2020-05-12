@@ -552,6 +552,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-sel.smt2
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
+  regress0/issue4469-unc-no-reuse-var.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -945,6 +946,7 @@ set(regress_0_tests
   regress0/strings/issue3497.smt2
   regress0/strings/issue3657-evalLeq.smt2
   regress0/strings/issue4070.smt2
+  regress0/strings/issue4376.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1703,6 +1705,7 @@ set(regress_1_tests
   regress1/sets/insert_invariant_37_2.smt2
   regress1/sets/issue2568.smt2
   regress1/sets/issue2904.smt2
+  regress1/sets/issue4391-card-lasso.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
@@ -1749,6 +1752,7 @@ set(regress_1_tests
   regress1/strings/issue3272.smt2
   regress1/strings/issue3357.smt2
   regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
+  regress1/strings/issue4379.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1770,6 +1774,7 @@ set(regress_1_tests
   regress1/strings/nterm-re-inter-sigma.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
+  regress1/strings/pre_ctn_no_skolem_share.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
   regress1/strings/re-all-char-hard.smt2
@@ -1993,7 +1998,6 @@ set(regress_2_tests
   regress2/GEO123+1.minimized.smt2
   regress2/arith/abz5_1400.smtv1.smt2
   regress2/arith/lpsat-goal-9.smt2
-  regress2/arith/prp-13-24.smt2
   regress2/arith/pursuit-safety-11.smtv1.smt2
   regress2/arith/pursuit-safety-12.smtv1.smt2
   regress2/arith/sc-7.base.cvc.smtv1.smt2
@@ -2045,6 +2049,7 @@ set(regress_2_tests
   regress2/quantifiers/sygus-inst-ufbv-sdlx-fixpoint-5.smt2
   regress2/quantifiers/syn874-1.smt2
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
+  regress2/strings/cmi-split-cm-fail.smt2
   regress2/strings/cmu-dis-0707-3.smt2
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
@@ -2091,6 +2096,7 @@ set(regress_2_tests
 # Regression level 3 tests
 
 set(regress_3_tests
+  regress3/arith_prp-13-24.smt2
   regress3/bmc-ibm-1.smtv1.smt2
   regress3/bmc-ibm-2.smtv1.smt2
   regress3/bmc-ibm-5.smtv1.smt2
@@ -2108,6 +2114,7 @@ set(regress_3_tests
   regress3/sixfuncs.sy
   regress3/strings-any-term.sy
   regress3/strings/extf_d_perf.smt2
+  regress3/strings/unsat-circ-reduce.smt2
 )
 
 #-----------------------------------------------------------------------------#

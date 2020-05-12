@@ -1,9 +1,9 @@
-; COMMAND-LINE: --finite-model-find --lang=smt2.5
+; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
-(declare-datatypes () ((array!896 (array!896!897 (size!898 (_ BitVec 32)) (content!899 (Array (_ BitVec 32) (_ BitVec 32)))))))
-(declare-datatypes () ((tuple2!900 (tuple2!900!901 (_1!902 array!896) (_2!903 (_ BitVec 32))))))
+(declare-datatypes ((array!896 0)) (((array!896!897 (size!898 (_ BitVec 32)) (content!899 (Array (_ BitVec 32) (_ BitVec 32)))))))
+(declare-datatypes ((tuple2!900 0)) (((tuple2!900!901 (_1!902 array!896) (_2!903 (_ BitVec 32))))))
 (declare-fun error_value!904 () (_ BitVec 32))
 (declare-fun error_value!905 () (_ BitVec 32))
 (declare-fun error_value!906 () array!896)
@@ -30,4 +30,3 @@
 (assert (forall ((?i I_rec!210)) (and (= (rec!210 (rec!210_arg_0_6 ?i) (rec!210_arg_1_7 ?i) (rec!210_arg_2_8 ?i)) (ite (not (bvslt (rec!210_arg_0_6 ?i) (rec!210_arg_2_8 ?i))) true (ite (bvslt (ite (and (bvslt (rec!210_arg_0_6 ?i) (size!898 (rec!210_arg_1_7 ?i))) (not (bvslt (rec!210_arg_0_6 ?i) (_ bv0 32)))) (select (content!899 (rec!210_arg_1_7 ?i)) (rec!210_arg_0_6 ?i)) error_value!909) (_ bv0 32)) false (rec!210 (bvadd (rec!210_arg_0_6 ?i) (_ bv1 32)) (rec!210_arg_1_7 ?i) (rec!210_arg_2_8 ?i))))) (ite (not (bvslt (rec!210_arg_0_6 ?i) (rec!210_arg_2_8 ?i))) true (ite (bvslt (ite (and (bvslt (rec!210_arg_0_6 ?i) (size!898 (rec!210_arg_1_7 ?i))) (not (bvslt (rec!210_arg_0_6 ?i) (_ bv0 32)))) (select (content!899 (rec!210_arg_1_7 ?i)) (rec!210_arg_0_6 ?i)) error_value!909) (_ bv0 32)) true (not (forall ((?z I_rec!210)) (not (and (= (rec!210_arg_0_6 ?z) (bvadd (rec!210_arg_0_6 ?i) (_ bv1 32))) (= (rec!210_arg_1_7 ?z) (rec!210_arg_1_7 ?i)) (= (rec!210_arg_2_8 ?z) (rec!210_arg_2_8 ?i)))) ))))) ))
 (assert (not (forall ((tab!211 array!896)) (or (or (bvslt (size!898 (_1!902 (while0!216 (array!896!897 (size!898 tab!211) arrayconst!910) (_ bv0 32) tab!211))) (_ bv0 32)) (forall ((?z I_while0!216)) (not (and (= (while0!216_arg_0_1 ?z) (array!896!897 (size!898 tab!211) arrayconst!910)) (= (while0!216_arg_1_2 ?z) (_ bv0 32)) (= (while0!216_arg_2_3 ?z) tab!211))) )) (or (isPositive!206 (_1!902 (while0!216 (array!896!897 (size!898 tab!211) arrayconst!910) (_ bv0 32) tab!211)) (size!898 tab!211)) (forall ((?z I_isPositive!206)) (not (and (= (isPositive!206_arg_0_4 ?z) (_1!902 (while0!216 (array!896!897 (size!898 tab!211) arrayconst!910) (_ bv0 32) tab!211))) (= (isPositive!206_arg_1_5 ?z) (size!898 tab!211)))) ) (forall ((?z I_while0!216)) (not (and (= (while0!216_arg_0_1 ?z) (array!896!897 (size!898 tab!211) arrayconst!910)) (= (while0!216_arg_1_2 ?z) (_ bv0 32)) (= (while0!216_arg_2_3 ?z) tab!211))) ))) )))
 (check-sat)
-

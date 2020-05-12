@@ -1,4 +1,4 @@
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-logic ALL)
 (set-info :status sat)
 (set-option :strings-exp true)
@@ -7,5 +7,5 @@
 (declare-fun y () String)
 (declare-fun z () String)
 (declare-fun w () String)
-(assert (= (str.len (str.replaceall x y z)) (+ (str.len (str.replaceall x y w)) 3)))
+(assert (= (str.len (str.replace_all x y z)) (+ (str.len (str.replace_all x y w)) 3)))
 (check-sat)

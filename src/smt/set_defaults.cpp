@@ -133,8 +133,19 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   if (options::solveIntAsBV() > 0)
   {
+    // not compatible with incremental
+    if (options::incrementalSolving())
+    {
+      throw OptionException(
+          "solving integers as bitvectors is currently not supported "
+          "when solving incrementally.");
+    }
+    // Int to BV currently always eliminates arithmetic completely (or otherwise
+    // fails). Thus, it is safe to eliminate arithmetic. Also, bit-vectors
+    // are required.
     logic = logic.getUnlockedCopy();
     logic.enableTheory(THEORY_BV);
+    logic.disableTheory(THEORY_ARITH);
     logic.lock();
   }
 
@@ -289,7 +300,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
 
   // Disable options incompatible with incremental solving, unsat cores, and
-  // proofs or output an error if enabled explicitly
+  // proofs or output an error if enabled explicitly. It is also currently
+  // incompatible with arithmetic, force the option off.
   if (options::incrementalSolving() || options::unsatCores()
       || options::proof())
   {
@@ -315,8 +327,9 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       bool uncSimp = !logic.isQuantified() && !options::produceModels()
                      && !options::produceAssignments()
                      && !options::checkModels()
-                     && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                         && logic.isTheoryEnabled(THEORY_BV));
+                     && logic.isTheoryEnabled(THEORY_ARRAYS)
+                     && logic.isTheoryEnabled(THEORY_BV)
+                     && !logic.isTheoryEnabled(THEORY_ARITH);
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
                    << std::endl;
       options::unconstrainedSimp.set(uncSimp);
@@ -565,7 +578,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       || logic.isTheoryEnabled(THEORY_SETS)
       // Non-linear arithmetic requires UF to deal with division/mod because
       // their expansion introduces UFs for the division/mod-by-zero case.
-      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
+      // If we are eliminating non-linear arithmetic via solve-int-as-bv,
+      // then this is not required, since non-linear arithmetic will be
+      // eliminated altogether (or otherwise fail at preprocessing).
+      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
+          && options::solveIntAsBV() == 0)
       // If division/mod-by-zero is not treated as a constant value in BV, we
       // need UF.
       || (logic.isTheoryEnabled(THEORY_BV)

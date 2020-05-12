@@ -4384,9 +4384,9 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
          "'notes', 'smt-lib-version' or 'status'";
   CVC4_API_ARG_CHECK_EXPECTED(keyword != "smt-lib-version" || value == "2"
                                   || value == "2.0" || value == "2.5"
-                                  || value == "2.6" || value == "2.6.1",
+                                  || value == "2.6",
                               value)
-      << "'2.0', '2.5', '2.6' or '2.6.1'";
+      << "'2.0', '2.5', '2.6'";
   CVC4_API_ARG_CHECK_EXPECTED(keyword != "status" || value == "sat"
                                   || value == "unsat" || value == "unknown",
                               value)
