@@ -389,7 +389,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::RE_INTER)
   {
-    Assert(children.size()>=1);
+    Assert(children.size() >= 1);
     Assert(args.empty());
     NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> reis;
@@ -408,7 +408,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         x = catom[0];
       }
-      else if (x!=catom[0])
+      else if (x != catom[0])
       {
         // different LHS
         return Node::null();

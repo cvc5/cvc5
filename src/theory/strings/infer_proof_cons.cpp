@@ -494,8 +494,7 @@ Node InferProofCons::convert(Inference infer,
       std::vector<Node> argsRed;
       // the left hand side of the last conjunct is the term we are reducing
       argsRed.push_back(conc[nchild - 1][0]);
-      Node red =
-          d_psb.tryStep(PfRule::STRINGS_REDUCTION, emptyVec, argsRed);
+      Node red = d_psb.tryStep(PfRule::STRINGS_REDUCTION, emptyVec, argsRed);
       Trace("strings-ipc-red") << "Reduction : " << red << std::endl;
       if (!red.isNull())
       {
@@ -640,17 +639,19 @@ Node InferProofCons::convert(Inference infer,
         Node rcurr =
             polarity ? catom[1] : nm->mkNode(REGEXP_COMPLEMENT, catom[1]);
         reis.push_back(rcurr);
-        Node mem = nm->mkNode(STRING_IN_REGEXP,catom[0],rcurr);
+        Node mem = nm->mkNode(STRING_IN_REGEXP, catom[0], rcurr);
         reiChildren.push_back(mem);
         reiChildrenOrig.push_back(c);
       }
       // go back and justify each premise
       bool successChildren = true;
-      for (unsigned i=0, nchild = reiChildren.size(); i<nchild; i++)
+      for (unsigned i = 0, nchild = reiChildren.size(); i < nchild; i++)
       {
         if (!convertPredTransform(reiChildrenOrig[i], reiChildren[i], reiExp))
         {
-          Trace("strings-ipc-re") << "... failed to justify child " << reiChildren[i] << " from " << reiChildrenOrig[i] << std::endl;
+          Trace("strings-ipc-re")
+              << "... failed to justify child " << reiChildren[i] << " from "
+              << reiChildrenOrig[i] << std::endl;
           successChildren = false;
           break;
         }
@@ -659,10 +660,11 @@ Node InferProofCons::convert(Inference infer,
       {
         break;
       }
-      Node mem = d_psb.tryStep(PfRule::RE_INTER,reiChildren, emptyVec);
-      //Node rei = reis.size() == 1 ? reis[0] : nm->mkNode(REGEXP_INTER, reis);
-      //Node mem = nm->mkNode(STRING_IN_REGEXP, x, rei);
-      Trace("strings-ipc-re") << "Regular expression summary: " << mem << std::endl;
+      Node mem = d_psb.tryStep(PfRule::RE_INTER, reiChildren, emptyVec);
+      // Node rei = reis.size() == 1 ? reis[0] : nm->mkNode(REGEXP_INTER, reis);
+      // Node mem = nm->mkNode(STRING_IN_REGEXP, x, rei);
+      Trace("strings-ipc-re")
+          << "Regular expression summary: " << mem << std::endl;
       // the conclusion is rewritable to the premises via rewriting?
       if (convertPredTransform(mem, conc, emptyVec))
       {
@@ -763,16 +765,20 @@ Node InferProofCons::convert(Inference infer,
   {
     if (useBuffer)
     {
-      Trace("strings-ipc-debug") << "InferProofCons::convert returned buffer with " << d_psb.getNumSteps() << " steps:" << std::endl;
+      Trace("strings-ipc-debug")
+          << "InferProofCons::convert returned buffer with "
+          << d_psb.getNumSteps() << " steps:" << std::endl;
       const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
       for (const std::pair<Node, ProofStep>& step : steps)
       {
-        Trace("strings-ipc-debug") << "- " << step.first << " via " << step.second << std::endl;
+        Trace("strings-ipc-debug")
+            << "- " << step.first << " via " << step.second << std::endl;
       }
     }
     else
     {
-      Trace("strings-ipc-debug") << "InferProofCons::convert returned " << ps << std::endl;
+      Trace("strings-ipc-debug")
+          << "InferProofCons::convert returned " << ps << std::endl;
     }
   }
   return conc;
