@@ -492,21 +492,15 @@ Node EqProof::addToProof(
         << "EqProof::addToProof: Unsupported case of "
         << static_cast<MergeReasonType>(d_id) << ". Conclusion " << d_node
         << " was expected to be (= (= t1 t2) false)\n";
-    Assert(d_children.size() == 2)
-        << "EqProof::addToProof: wrong number of assumptions for "
-           "MACRO_SR_PRED_INTRO concluding "
-        << d_node << "\n";
     // Build
     //
     // (= t1 c1)  (= t2 c2)
     // -------------------- MACRO_SR_PRED_INTRO
-    //  ((= t1 t2) false)
-    // ------------------ FALSE_ELIM
     //  (not (= t1 t2))
     //
     // First process the children proofs
     std::vector<Node> premises;
-    for (unsigned i = 0; i < 2; ++i)
+    for (unsigned i = 0; i < d_children.size(); ++i)
     {
       Trace("eqproof-conv")
           << "EqProof::addToProof: recurse on child " << i << "\n"
@@ -514,50 +508,42 @@ Node EqProof::addToProof(
       premises.push_back(d_children[i].get()->addToProof(p, visited));
       Trace("eqproof-conv") << pop;
     }
+    // build rule premises in right order
+    std::vector<Node> children;
     // Now get the constants in the premises
-    std::vector<Node> constants(2);
     for (unsigned i = 0; i < 2; ++i)
     {
       Node term = d_node[0][i];
+      if (term.isConst())
+      {
+        continue;
+      }
+      Node constant;
       // look in children
-      for (unsigned j = 0; j < 2; ++j)
+      for (unsigned j = 0; j < premises.size(); ++j)
       {
         Assert(premises[j].getKind() == kind::EQUAL);
         if (premises[j][0] == term)
         {
           Assert(premises[j][1].isConst());
-          constants[i] = premises[j][1];
+          constant = premises[j][1];
         }
         else if (premises[j][1] == term)
         {
           Assert(premises[j][0].isConst());
-          constants[i] = premises[j][0];
+          constant = premises[j][0];
         }
       }
+      children.push_back(term.eqNode(constant));
     }
-    Assert(!constants[0].isNull() && !constants[1].isNull())
-        << "EqProof::addToProof: premises w/o all constants from conclusion "
-        << d_node << "\n";
-    // build rule premises in right order
-    std::vector<Node> children;
-    children.push_back(d_node[0][0].eqNode(constants[0]));
-    children.push_back(d_node[0][1].eqNode(constants[1]));
     Trace("eqproof-conv") << "EqProof::addToProof: adding "
                           << PfRule::MACRO_SR_PRED_INTRO << " step from "
                           << children << "\n";
-    if (!p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, children, {d_node}))
+    Node conclusion = d_node[0].notNode();
+    if (!p->addStep(conclusion, PfRule::MACRO_SR_PRED_INTRO, children, {conclusion}))
     {
       Assert(false) << "EqProof::addToProof: couldn't add "
                     << PfRule::MACRO_SR_PRED_INTRO << " rule\n";
-    }
-    Node conclusion = d_node[0].notNode();
-    Trace("eqproof-conv") << "EqProof::addToProof: adding "
-                          << PfRule::FALSE_ELIM << " step from " << d_node
-                          << "\n";
-    if (!p->addStep(conclusion, PfRule::FALSE_ELIM, {d_node}, {}))
-    {
-      Assert(false) << "EqProof::addToProof: couldn't add "
-                    << PfRule::FALSE_ELIM << " rule\n";
     }
     visited[d_node] = conclusion;
     return conclusion;
