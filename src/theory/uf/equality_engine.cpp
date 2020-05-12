@@ -1298,20 +1298,60 @@ void EqualityEngine::getExplanation(
               std::shared_ptr<EqProof> eqpc2 =
                   eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(f1.d_b, f2.d_b, equalities, cache, eqpc2.get());
-              if( eqpc ){
+              if (eqpc)
+              {
                 eqpc->d_children.push_back(eqpc1);
                 eqpc->d_children.push_back(eqpc2);
                 if (options::proofNew())
                 {
                   // if full application of a congruence kind, create the result
-                  // of the congruence
-                  if (!d_isInternal[currentNode])
+                  // of the congruence. Note that for nary kinds partial
+                  // applications still correspond to proper nodes, so in these
+                  // cases we also build congruence steps.
+                  Kind k = d_nodes[currentNode].getKind();
+                  if (!d_isInternal[currentNode] || isNAryKind(k))
                   {
-                    Kind k = d_nodes[currentNode].getKind();
                     if (d_congruenceKinds[k])
                     {
-                      eqpc->d_node =
-                          d_nodes[currentNode].eqNode(d_nodes[edgeNode]);
+                      Node eq[2];
+                      for (unsigned i = 0; i < 2; ++i)
+                      {
+                        EqualityNodeId equalityNodeId =
+                            i == 0 ? currentNode : edgeNode;
+                        Node equalityNode = d_nodes[equalityNodeId];
+                        if (!d_isInternal[equalityNodeId])
+                        {
+                          eq[i] = equalityNode;
+                          continue;
+                        }
+                        // build node relative to partial application of this
+                        // n-ary kind. We get the full application, then we get
+                        // the arguments relative to how partial the internal
+                        // node is, and build the application
+
+                        // get number of children of partial app:
+                        // #children of full app - (id of full app - id of
+                        // partial app)
+                        EqualityNodeId fullAppId = getNodeId(equalityNode);
+                        unsigned numChildren = equalityNode.getNumChildren()
+                                               - (fullAppId - equalityNodeId);
+                        Assert(numChildren < equalityNode.getNumChildren());
+                        // if has at least as many children as the minimal
+                        // number of children of the n-ary kind, build the node
+                        if (numChildren >= ExprManager::minArity(k))
+                        {
+                          std::vector<Node> children;
+                          for (unsigned j = 0; j < numChildren; ++j)
+                          {
+                            children.push_back(equalityNode[j]);
+                          }
+                          eq[i] = NodeManager::currentNM()->mkNode(k, children);
+                        }
+                      }
+                      if (!eq[0].isNull() && !eq[1].isNull())
+                      {
+                        eqpc->d_node = eq[0].eqNode(eq[1]);
+                      }
                     }
                     else
                     {
