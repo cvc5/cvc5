@@ -100,6 +100,13 @@ class EqProof
                                       Node termInEq,
                                       CDProof* p) const;
 
+  void reduceNestedCongruence(
+      unsigned i,
+      Node conclusion,
+      std::vector<std::vector<Node>>& children,
+      CDProof* p,
+      std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
+
 }; /* class EqProof */
 
 }  // Namespace eq

@@ -104,6 +104,9 @@ void EqProof::cleanReflPremisesInTranstivity(std::vector<Node>& premises) const
                           << premises << "\n";
     premises.clear();
     premises.insert(premises.begin(), newPremises.begin(), newPremises.end());
+    Trace("eqproof-conv")
+        << "EqProof::cleanReflPremisesInTranstivity: new premises " << premises
+        << "\n";
   }
 }
 
@@ -361,6 +364,92 @@ void EqProof::maybeAddSymmOrTrueIntroToProof(unsigned i,
   }
 }
 
+void EqProof::reduceNestedCongruence(
+    unsigned i,
+    Node conclusion,
+    std::vector<std::vector<Node>>& children,
+    CDProof* p,
+    std::unordered_map<Node, Node, NodeHashFunction>& visited) const
+{
+  Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: building for " << i
+                        << "-th arg\n";
+  if (d_id == MERGED_THROUGH_CONGRUENCE)
+  {
+    Assert(d_children.size() == 2);
+    Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: it's a "
+                             "congruence step. Reduce second child\n"
+                          << push;
+    children[i].push_back(d_children[1].get()->addToProof(p, visited));
+    Trace("eqproof-conv")
+        << pop << "EqProof::reduceNestedCongruence: child conclusion "
+        << children[i].back() << "\n";
+    // recurse
+    if (i > 0)
+    {
+      Trace("eqproof-conv")
+          << "EqProof::reduceNestedCongruence: Reduce first child\n"
+          << push;
+      d_children[0].get()->reduceNestedCongruence(
+          i - 1, conclusion, children, p, visited);
+      Trace("eqproof-conv") << pop;
+    }
+    else
+    {
+      // case of f = f
+      Assert(d_children[0].get()->d_id == MERGED_THROUGH_REFLEXIVITY);
+    }
+    return;
+  }
+  Assert(d_id == MERGED_THROUGH_TRANS);
+  // TODO update this doc
+  //
+  // if the left step is a fake transitivity one, which is standing in for
+  // the actual congruence step being produced. In the simplest case the
+  // premises are repetitions of the congruence step it should have been
+  // considered. An example of a valid EqProof currently:
+  //
+  //  -- R  --R        -- R   --R
+  //   f    t1          f     t1
+  //  --------- CONG   --------- CONG
+  //    f t1             f t1
+  // ----------------------------- TRANS
+  //       (= (f t1 t2) (f t1 t3))          (= t2 t3)
+  //  ------------------------------------------------ CONG
+  //             f t1 t2
+  //
+  // However this can be arbitraliry complicated, therefore it is necessary
+  // to recursively process the transitivity proof according to the
+  // following methodology:
+  //
+  // When a transitivity step is found in the first child of internal cong,
+  // it'll have an equality as a conclusion. That equality is not the
+  // conclusion of the (post-processed) transtivitiy step. That will be the
+  // equality between the first child of each application (in a
+  // curried view):
+  //
+  //     (= (f t1 t2) (f t3 t4)) is actually to be post processed into
+  //     goal: (= (f t1) (f t3))
+  //
+  // For each child proof of the transitivity step, ignore its conclusion,
+  // then process RHS. (If this the LHS is not (= f f), it's also necessary
+  // to recursively process it). If the processing of the RHS is not a proof
+  // of (= t1 t3), save it for a premise of the transitivity proof. Do this
+  // for all subproofs.
+  //
+  Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: it's a "
+                           "transitivity step.\n";
+  for (unsigned j = 0, sizeTrans = d_children.size(); j < sizeTrans; ++j)
+  {
+    Assert(d_children[j].get()->d_id == MERGED_THROUGH_CONGRUENCE);
+    Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: Reduce " << j
+                          << "-th transitivity child\n"
+                          << push;
+    d_children[j].get()->reduceNestedCongruence(
+        i, conclusion, children, p, visited);
+    Trace("eqproof-conv") << pop;
+  }
+}
+
 Node EqProof::addToProof(CDProof* p) const
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
@@ -583,7 +672,8 @@ Node EqProof::addToProof(
                               << " is fake cong step. Fold it.\n";
         Assert(childProof->d_children.size() == 2);
         Trace("eqproof-conv") << push;
-        for (unsigned j = 0, sizeJ = childProof->d_children.size(); j < sizeJ; ++j)
+        for (unsigned j = 0, sizeJ = childProof->d_children.size(); j < sizeJ;
+             ++j)
         {
           Trace("eqproof-conv")
               << "EqProof::addToProof: recurse on child " << j << "\n"
@@ -728,171 +818,86 @@ Node EqProof::addToProof(
   // The given conclusion is taken as ground truth. If the premises do not
   // align, for example with (= (f t1) (f t2)) but a premise being t2 = t1, we
   // reorder it via a symmetry step
-  //
-  // Check if already has a proof for conclusion
-  if (Trace.isOn("eqproof-conv"))
-  {
-    std::shared_ptr<ProofNode> pf = p->getProof(d_node);
-    if (pf)
-    {
-      std::stringstream out;
-      pf.get()->printDebug(out);
-      Trace("eqproof-conv")
-          << "EqProof::addToProof: conclusion of cong already has CDProof: "
-          << out.str() << "\n";
-      AlwaysAssert(false);
-    }
-  }
   Assert(d_node[0].getNumChildren() == d_node[1].getNumChildren())
       << "EqProof::addToProof: apps in conclusion " << d_node
       << " have different arity\n";
   // premises to be retrieved
-  std::vector<Node> children;
-  const EqProof* childProof = this;
+  std::vector<std::vector<Node>> transtivityChildren;
   unsigned arity = d_node[0].getNumChildren();
-  // iterate over children proofs. first child proof is always bogus
+  // intialize children matrix
   for (unsigned i = 0; i < arity; ++i)
   {
-    Assert(childProof->d_children.size() == 2);
-    Trace("eqproof-conv") << "EqProof::addToProof: recurse on second child of "
-                          << i << "-th cong\n"
-                          << push;
-    Node childConclusion =
-        childProof->d_children[1].get()->addToProof(p, visited);
-    Assert(childConclusion.getKind() == kind::EQUAL);
-    if (childConclusion[0] != d_node[0][arity - 1 - i])
+    transtivityChildren.push_back(std::vector<Node>());
+  }
+  reduceNestedCongruence(arity - 1, d_node, transtivityChildren, p, visited);
+  if (Trace.isOn("eqproof-conv"))
     {
-      Assert(childConclusion[0] == d_node[1][arity - 1 - i]);
-      // reorder. Don't need to add symm step because it'll be added silently
-      // when the reordered premise is used.
-      childConclusion = childConclusion[1].eqNode(childConclusion[0]);
+    Trace("eqproof-conv")
+        << "EqProof::addToProof: premises from reduced cong:\n";
+    for (unsigned i = 0; i < arity; ++i)
+    {
+      Trace("eqproof-conv") << "EqProof::addToProof:\t" << i
+                            << "-th arg:" << transtivityChildren[i] << "\n";
     }
-    children.insert(children.begin(), childConclusion);
-    Trace("eqproof-conv") << pop;
-    if (i < arity - 1)
+  }
+  // bulid transitivity steps for the arguments with transitivity proofs
+  std::vector<Node> children(arity);
+  for (unsigned i = 0; i < arity; ++i)
     {
-      // lhs proof should be a congruence step
-      Assert(!childProof->d_children.empty());
-      childProof = childProof->d_children[0].get();
-      // if the left step is a fake transitivity one, which is standing in for
-      // the actual congruence step being produced. In the simplest case the
-      // premises are repetitions of the congruence step it should have been
-      // considered. An example of a valid EqProof currently:
-      //
-      //  -- R  --R        -- R   --R
-      //   f    t1          f     t1
-      //  --------- CONG   --------- CONG
-      //    f t1             f t1
-      // ----------------------------- TRANS
-      //       (= (f t1 t2) (f t1 t3))          (= t2 t3)
-      //  ------------------------------------------------ CONG
-      //             f t1 t2
-      //
-      // However this can be arbitraliry complicated, therefore it is necessary
-      // to recursively process the transitivity proof according to the
-      // following methodology:
-      //
-      // When a transitivity step is found in the first child of internal cong,
-      // it'll have an equality as a conclusion. That equality is not the
-      // conclusion of the (post-processed) transtivitiy step. That will be the
-      // equality between the first child of each application (in a
-      // curried view):
-      //
-      //     (= (f t1 t2) (f t3 t4)) is actually to be post processed into
-      //     goal: (= (f t1) (f t3))
-      //
-      // For each child proof of the transitivity step, ignore its conclusion,
-      // then process RHS. (If this the LHS is not (= f f), it's also necessary
-      // to recursively process it). If the processing of the RHS is not a proof
-      // of (= t1 t3), save it for a premise of the transitivity proof. Do this
-      // for all subproofs.
-      //
-      if (childProof->d_id != MERGED_THROUGH_CONGRUENCE)
+    Assert(!transtivityChildren[i].empty())
+        << "EqProof::addToProof: did not add any justification for " << i
+        << "-th arg of congruence " << d_node << "\n";
+    // nothing to do
+    if (transtivityChildren[i].size() == 1)
       {
-#ifdef CVC4_ASSERTIONS
-        Debug("eqproof::conv")
-            << "EqProof::addToProof: Non-conforming first child of internal "
-               "congruence step:\n";
-        childProof->debug_print("eqproof::conv");
-        Debug("eqproof::conv") << "\n";
-        Assert(childProof->d_id == MERGED_THROUGH_TRANS);
-        Assert(i == arity - 2)
-            << "EqProof::addToProof: Can't process 'fake transitivity' steps "
-               "that with non-trivial LHS\n";
-        Assert(childProof->d_node.getKind() == kind::EQUAL);
-        Assert(childProof->d_children.size() >= 2);
-#endif
-        Node neededConclusion =
-            childProof->d_node[0][0].eqNode(childProof->d_node[1][0]);
-        Trace("eqproof-conv") << "EqProof::addToProof: First child is "
-                                 "transitivity. Turn into cong concluding "
-                              << neededConclusion << ". Processing children:\n";
-        bool foundConclusion = false;
-        // bool foundConclusionNeedSym = false;
-        std::vector<Node> transitivityPremises;
-        for (unsigned j = 0, sizeTrans = childProof->d_children.size();
-             j < sizeTrans;
-             ++j)
+      children[i] = transtivityChildren[i][0];
+      continue;
+    }
+    cleanReflPremisesInTranstivity(transtivityChildren[i]);
+    // if after refl elimination it has only one child, take that
+    if (transtivityChildren[i].size() == 1)
         {
-          Assert(childProof->d_children[j].get()->d_id
-                 == MERGED_THROUGH_CONGRUENCE);
-          Assert(childProof->d_children[j].get()->d_children[0].get()->d_id
-                 == MERGED_THROUGH_REFLEXIVITY);
-          Trace("eqproof-conv")
-              << "EqProof::addToProof: recurse on second child of " << j
-              << "-th cong premise\n"
-              << push;
-          transitivityPremises.push_back(
-              childProof->d_children[j].get()->d_children[1].get()->addToProof(
-                  p, visited));
-          Trace("eqproof-conv") << pop;
-          if (transitivityPremises.back() == neededConclusion)
+      children[i] = transtivityChildren[i][0];
+      continue;
+    }
+    Node transConclusion = d_node[0][i].eqNode(d_node[1][i]);
+    // if conclusion, or its symmetric, occurs in the premises, nothing to do
+    bool occurs = false;
+    unsigned sizeTrans = transtivityChildren[i].size();
+    for (unsigned j = 0; j < sizeTrans; ++j)
           {
-            Trace("eqproof-conv")
-                << "EqProof::addToProof: found required conclusion\n";
-            foundConclusion = true;
+      if (transtivityChildren[i][j] == transConclusion
+          || (transtivityChildren[i][j][0] == transConclusion[1]
+              && transtivityChildren[i][j][1] == transConclusion[0]))
+      {
+        occurs = true;
             break;
           }
-          // TODO do I need this and use the flag to generate a sym step below?
-          // else if (transitivityPremises.back()[0] == neededConclusion[1]
-          //          && transitivityPremises.back()[1] == neededConclusion[0])
-          // {
-          //   foundConclusion = true;
-          //   foundConclusionNeedSym = true;
-          //   break;
-          // }
-        }
-        // build transtivity step with premises if did not straight found the
-        // needed conclusion. Since those might not be properly ordered, process
-        // it as the transitivity premises
-        //
-        // TODO: do a method for this processing. It's happenning here, in the
-        // regular TRANS case and in the transitivity folding
-        if (!foundConclusion)
-        {
-          cleanReflPremisesInTranstivity(transitivityPremises);
-          // be sure to recompute this since the above method may change the
-          // size
-          unsigned sizeTrans = transitivityPremises.size();
+    }
+    if (!occurs && sizeTrans > 0)
+    {
+      // Build transitivity step. Since premises might not be properly ordered,
+      // process it as the transitivity premises
           maybeAddSymmOrTrueIntroToProof(
-              0, transitivityPremises, true, neededConclusion[0], p);
+          0, transtivityChildren[i], true, transConclusion[0], p);
           for (unsigned j = 1; j < sizeTrans - 1; ++j)
           {
-            Assert(transitivityPremises[j - 1].getKind() == kind::EQUAL);
+        Assert(transtivityChildren[i][j - 1].getKind() == kind::EQUAL);
             maybeAddSymmOrTrueIntroToProof(j,
-                                           transitivityPremises,
+                                       transtivityChildren[i],
                                            true,
-                                           transitivityPremises[j - 1][1],
+                                       transtivityChildren[i][j - 1][1],
                                            p);
           }
-          maybeAddSymmOrTrueIntroToProof(sizeTrans - 1,
-                                         transitivityPremises,
-                                         false,
-                                         neededConclusion[1],
-                                         p);
-          if (!p->addStep(neededConclusion,
+      maybeAddSymmOrTrueIntroToProof(
+          sizeTrans - 1, transtivityChildren[i], false, transConclusion[1], p);
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: adding trans step for cong premise "
+          << transConclusion << " with children " << transtivityChildren[i]
+          << "\n";
+      if (!p->addStep(transConclusion,
                           PfRule::TRANS,
-                          transitivityPremises,
+                      transtivityChildren[i],
                           {},
                           true,
                           true))
@@ -900,17 +905,27 @@ Node EqProof::addToProof(
             Assert(false) << "EqProof::addToProof: couldn't add trans step\n";
           }
         }
-        children.insert(children.begin(), neededConclusion);
-        break;
-      }
+    children[i] = transConclusion;
     }
-    else
+  Trace("eqproof-conv")
+      << "EqProof::addToProof: premises after adding trans steps:" << children
+      << "\n";
+  // reorder children potentially
+  for (unsigned i = 0; i < arity; ++i)
     {
-      // case of f = f
-      Assert(childProof->d_children[0].get()->d_id
-             == MERGED_THROUGH_REFLEXIVITY);
+    if (children[i][0] != d_node[0][i])
+    {
+      Assert(children[i][0] == d_node[1][i])
+          << "EqProof::reduceNestedCongruence: child conclusion " << children[i]
+          << " disconnectod from expected conclusion (" << d_node[0][i] << ", "
+          << d_node[1][i] << "\n";
+      // reorder. Don't need to add symm step because it'll be added silently
+      // when the reordered premise is used.
+      children[i] = children[i][1].eqNode(children[i][0]);
     }
   }
+  Trace("eqproof-conv") << "EqProof::addToProof: premises after reordering:"
+                        << children << "\n";
   // build args
   std::vector<Node> args;
   Kind k = d_node[0].getKind();
