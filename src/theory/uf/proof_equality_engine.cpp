@@ -213,7 +213,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   {
     PRefProofGenerator prg(&d_proof);
     LazyCDProof tmpProof(d_pnm, &prg);
-    CDProof* curr;
+    LazyCDProof* curr;
     if (conc == d_false)
     {
       curr = &d_proof;
@@ -246,7 +246,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   {
     PRefProofGenerator prg(&d_proof);
     LazyCDProof tmpProof(d_pnm, &prg);
-    CDProof* curr;
+    LazyCDProof* curr;
     if (conc == d_false)
     {
       curr = &d_proof;
@@ -281,7 +281,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   {
     PRefProofGenerator prg(&d_proof);
     LazyCDProof tmpProof(d_pnm, &prg);
-    CDProof* curr;
+    LazyCDProof* curr;
     if (conc == d_false)
     {
       curr = &d_proof;
@@ -327,7 +327,7 @@ std::string ProofEqEngine::identify() const
 TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
                                              const std::vector<Node>& exp,
                                              const std::vector<Node>& noExplain,
-                                             CDProof* curr)
+                                             LazyCDProof* curr)
 {
   // We are a conflict if the conclusion is false and all literals are
   // explained.
@@ -357,7 +357,7 @@ TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
 TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                                             const std::vector<TNode>& assumps,
                                             TrustNodeKind tnk,
-                                            CDProof* curr)
+                                            LazyCDProof* curr)
 {
   Trace("pfee-proof") << std::endl;
   Trace("pfee-proof") << "pfee::ensureProofForFact: input " << conc << " via "
@@ -604,7 +604,7 @@ bool ProofEqEngine::addProofStep(Node lit,
 
 void ProofEqEngine::explainWithProof(Node lit,
                                      std::vector<TNode>& assumps,
-                                     CDProof* curr)
+                                     LazyCDProof* curr)
 {
   if (std::find(assumps.begin(), assumps.end(), lit) != assumps.end())
   {

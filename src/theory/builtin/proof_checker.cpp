@@ -41,6 +41,21 @@ std::ostream& operator<<(std::ostream& out, RewriterId id)
 
 namespace builtin {
 
+void BuiltinProofRuleChecker::registerTo(ProofChecker * pc)
+{
+
+  pc->registerChecker(PfRule::ASSUME, this);
+  pc->registerChecker(PfRule::SCOPE, this);
+  pc->registerChecker(PfRule::SUBS, this);
+  pc->registerChecker(PfRule::REWRITE, this);
+  pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
+  pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
+  pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
+  pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
+  // trust coarse-grained theory lemmas for now: register null checker
+  pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
+}
+  
 Node BuiltinProofRuleChecker::applyRewrite(Node n, RewriterId id)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
@@ -87,7 +102,9 @@ Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, RewriterId id)
   }
   else if (id == RewriterId::REWRITE_EQ_EXT)
   {
-    return Rewriter::rewriteEqualityExt(n);
+    Node ret = Rewriter::rewriteEqualityExt(n);
+    // also rewrite
+    return Rewriter::rewrite(ret);
   }
   else if (id == RewriterId::IDENTITY)
   {
@@ -228,6 +245,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       }
     }
     Node res = applySubstitutionRewrite(args[0], children, idRewriter);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     // **** NOTE: can rewrite the witness form here. This enables "symbolic"
     // predicates to check, e.g. (= k t) where k is a purification Skolem for t.
     res = Rewriter::rewrite(res);
@@ -272,6 +293,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
                              << args.size() << std::endl;
     Assert(children.size() >= 1);
     Assert(args.size() <= 2);
+    Assert (args[0].getType().isBoolean());
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
     RewriterId idRewriter = RewriterId::REWRITE;
@@ -293,11 +315,19 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     // can rewrite the witness forms
     res1 = Rewriter::rewrite(res1);
     res2 = Rewriter::rewrite(res2);
-    if (res1 != res2)
+    if (res1.isNull() || res1 != res2)
     {
       Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
       return Node::null();
     }
+    return args[0];
+  }
+  else if (id==PfRule::THEORY_LEMMA)
+  {
+    Assert (children.empty());
+    Assert (args.size()==2);
+    Assert (args[0].getType().isBoolean());
+    // TODO
     return args[0];
   }
   // no rule

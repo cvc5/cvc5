@@ -158,4 +158,24 @@ bool LazyCDProof::hasGenerators() const
   return !d_gens.empty() || d_defaultGen != nullptr;
 }
 
+bool LazyCDProof::hasGenerator(Node fact) const
+{
+  if (d_defaultGen!=nullptr)
+  {
+    return true;
+  }
+  NodeProofGeneratorMap::const_iterator it = d_gens.find(fact);
+  if (it != d_gens.end())
+  {
+    return true;
+  }
+  if (fact.getKind() != EQUAL || fact[0] == fact[1])
+  {
+    return false;
+  }
+  Node factSym = fact[1].eqNode(fact[0]);
+  it = d_gens.find(factSym);
+  return it != d_gens.end();
+}
+
 }  // namespace CVC4

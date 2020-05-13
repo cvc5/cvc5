@@ -129,6 +129,11 @@ class InferProofCons : public ProofGenerator
                             RewriterId id = RewriterId::REWRITE);
   /**
    */
+  bool convertPredIntro(Node tgt,
+                        const std::vector<Node>& exp,
+                        RewriterId id = RewriterId::REWRITE);
+  /**
+   */
   Node convertPredElim(Node src,
                        const std::vector<Node>& exp,
                        RewriterId id = RewriterId::REWRITE);

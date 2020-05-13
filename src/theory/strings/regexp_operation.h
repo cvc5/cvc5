@@ -73,8 +73,6 @@ class RegExpOpr {
   Node d_sigma;
   Node d_sigma_star;
 
-  std::map<PairNodes, Node> d_simpl_cache;
-  std::map<PairNodes, Node> d_simpl_neg_cache;
   std::map<Node, std::pair<int, Node> > d_delta_cache;
   std::map<PairNodeStr, Node> d_dv_cache;
   std::map<PairNodeStr, std::pair<Node, int> > d_deriv_cache;
@@ -128,13 +126,13 @@ class RegExpOpr {
    */
   Node simplify(Node t, bool polarity);
   /**
-   * Return the unfolded form of (str.in_re s r).
+   * Return the unfolded form of mem of the form (str.in_re s r).
    */
-  static Node reduceRegExpPos(Node s, Node r, SkolemCache* sc);
+  static Node reduceRegExpPos(Node mem, SkolemCache* sc);
   /**
-   * Return the unfolded form of (not (str.in_re s r)).
+   * Return the unfolded form of mem of the form (not (str.in_re s r)).
    */
-  static Node reduceRegExpNeg(Node s, Node r, SkolemCache* sc);
+  static Node reduceRegExpNeg(Node mem, SkolemCache* sc);
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string
    * is not in r, or 0 if it is unknown whether the empty string is in r.

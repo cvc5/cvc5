@@ -440,7 +440,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
       // is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
       // when len(b)!=0. Although if we do not infer this conflict eagerly,
       // it may be applied (see #3272).
-      d_im.sendInference(exp, conc, infType);
+      d_im.sendInference(exp, conc, infType, isRev);
       if (d_state.isInConflict())
       {
         return;
@@ -1319,30 +1319,29 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         Node strb = nextConstStr;
         // Since `nc` is non-empty, we start with character 1
         size_t p;
+        size_t p2;
+        Node stra1;
         if (isRev)
         {
-          Node stra1 = Word::prefix(stra, straLen - 1);
+          stra1 = Word::prefix(stra, straLen - 1);
           p = straLen - Word::roverlap(stra1, strb);
           Trace("strings-csp-debug")
               << "Compute roverlap : " << stra1 << " " << strb << std::endl;
-          size_t p2 = Word::rfind(stra1, strb);
-          p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-          Trace("strings-csp-debug")
-              << "roverlap : " << stra1 << " " << strb << " returned " << p
-              << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
+          p2 = Word::rfind(stra1, strb);
         }
         else
         {
-          Node stra1 = Word::substr(stra, 1);
+          stra1 = Word::substr(stra, 1);
           p = straLen - Word::overlap(stra1, strb);
           Trace("strings-csp-debug")
               << "Compute overlap : " << stra1 << " " << strb << std::endl;
-          size_t p2 = Word::find(stra1, strb);
-          p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-          Trace("strings-csp-debug")
-              << "overlap : " << stra1 << " " << strb << " returned " << p
-              << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
+          p2 = Word::find(stra1, strb);
         }
+        p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+        Trace("strings-csp-debug")
+            << (isRev ? "r" : "") << "overlap : " << stra1 << " " << strb
+            << " returned " << p << " " << p2 << " "
+            << (p2 == std::string::npos) << std::endl;
 
         // If we can't split off more than a single character from the
         // constant, we might as well do regular constant/non-constant
@@ -1438,15 +1437,23 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
                 << "  explanation was : " << et.second << std::endl;
             lentTestSuccess = e;
             lenConstraint = et.second;
+            // its not explained by the equality engine of this class
+            iinfo.d_noExplain.push_back(lenConstraint);
             break;
           }
         }
       }
     }
+    std::vector<Node> lcVec;
     if (lenConstraint.isNull())
     {
       // will do split on length
       lenConstraint = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
+      lcVec.push_back(lenConstraint);
+    }
+    else
+    {
+      utils::flattenOp(AND,lenConstraint,lcVec);
     }
 
     NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);
@@ -1454,15 +1461,15 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     for (unsigned xory = 0; xory < 2; xory++)
     {
       Node t = xory == 0 ? x : y;
-      Node tnz = d_state.explainNonEmpty(x);
+      Node tnz = d_state.explainNonEmpty(t);
       if (!tnz.isNull())
       {
-        iinfo.d_ant.push_back(tnz);
+        lcVec.push_back(tnz);
       }
       else
       {
         tnz = x.eqNode(emp).negate();
-        iinfo.d_ant.push_back(tnz);
+        lcVec.push_back(tnz);
         iinfo.d_noExplain.push_back(tnz);
       }
     }
@@ -1500,10 +1507,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         y.eqNode(isRev ? utils::mkNConcat(sk2, x) : utils::mkNConcat(x, sk2));
     // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
 
-    iinfo.d_ant.push_back(lenConstraint);
+    Node lc = utils::mkAnd(lcVec);
+    iinfo.d_ant.push_back(lc);
     if (lentTestSuccess != -1)
     {
-      iinfo.d_noExplain.push_back(lenConstraint);
       iinfo.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
       iinfo.d_idRev = isRev;

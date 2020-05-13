@@ -20,6 +20,19 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
+void UfProofRuleChecker::registerTo(ProofChecker * pc)
+{
+  // add checkers
+  pc->registerChecker(PfRule::REFL, this);
+  pc->registerChecker(PfRule::SYMM, this);
+  pc->registerChecker(PfRule::TRANS, this);
+  pc->registerChecker(PfRule::CONG, this);
+  pc->registerChecker(PfRule::TRUE_INTRO, this);
+  pc->registerChecker(PfRule::TRUE_ELIM, this);
+  pc->registerChecker(PfRule::FALSE_INTRO, this);
+  pc->registerChecker(PfRule::FALSE_ELIM, this);
+}
+
 Node UfProofRuleChecker::checkInternal(PfRule id,
                                        const std::vector<Node>& children,
                                        const std::vector<Node>& args)

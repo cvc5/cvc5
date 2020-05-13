@@ -266,7 +266,8 @@ void ExtfSolver::checkExtfEval(int effort)
     }
     // If there is information involving the children, attempt to do an
     // inference and/or mark n as reduced.
-    Node to_reduce;
+    bool reduced = false;
+    Node to_reduce = n;
     if (schanged)
     {
       Node sn = nm->mkNode(n.getKind(), schildren);
@@ -393,6 +394,7 @@ void ExtfSolver::checkExtfEval(int effort)
             einfo.d_modelActive = false;
           }
         }
+        reduced = true;
       }
       else
       {
@@ -416,28 +418,26 @@ void ExtfSolver::checkExtfEval(int effort)
               effort == 0 ? Inference::EXTF_D : Inference::EXTF_D_N;
           d_im.sendInternalInference(einfo.d_exp, nrcAssert, infer);
         }
-        // We must use the original n here to avoid circular justifications for
-        // why extended functions are reduced below. In particular, to_reduce
-        // should never be a duplicate of another term considered in the block
-        // of code for checkExtfInference below.
-        to_reduce = n;
+        to_reduce = nrc;
       }
     }
-    else
-    {
-      to_reduce = n;
-    }
+    // We must use the original n here to avoid circular justifications for
+    // why extended functions are reduced. In particular, n should never be a
+    // duplicate of another term considered in the block of code for
+    // checkExtfInference below.
     // if not reduced and not processed
-    if (!to_reduce.isNull()
-        && inferProcessed.find(to_reduce) == inferProcessed.end())
+    if (!reduced && !n.isNull()
+        && inferProcessed.find(n) == inferProcessed.end())
     {
-      inferProcessed.insert(to_reduce);
+      inferProcessed.insert(n);
       Assert(effort < 3);
       if (effort == 1)
       {
         Trace("strings-extf")
             << "  cannot rewrite extf : " << to_reduce << std::endl;
       }
+      // we take to_reduce to be the (partially) reduced version of n, which
+      // is justified by the explanation in einfo.
       checkExtfInference(n, to_reduce, einfo, effort);
       if (Trace.isOn("strings-extf-list"))
       {

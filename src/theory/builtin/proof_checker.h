@@ -93,6 +93,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   /** Make a rewriter id node */
   static Node mkRewriterId(RewriterId i);
 
+  /** Register all rules owned by this rule checker into pc. */
+  void registerTo(ProofChecker * pc) override;
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node checkInternal(PfRule id,

@@ -69,15 +69,7 @@ TheoryUF::~TheoryUF() {
 void TheoryUF::setProofChecker(ProofChecker* pc)
 {
   Assert(pc != nullptr);
-  // add checkers
-  pc->registerChecker(PfRule::REFL, &d_ufProofChecker);
-  pc->registerChecker(PfRule::SYMM, &d_ufProofChecker);
-  pc->registerChecker(PfRule::TRANS, &d_ufProofChecker);
-  pc->registerChecker(PfRule::CONG, &d_ufProofChecker);
-  pc->registerChecker(PfRule::TRUE_INTRO, &d_ufProofChecker);
-  pc->registerChecker(PfRule::TRUE_ELIM, &d_ufProofChecker);
-  pc->registerChecker(PfRule::FALSE_INTRO, &d_ufProofChecker);
-  pc->registerChecker(PfRule::FALSE_ELIM, &d_ufProofChecker);
+  d_ufProofChecker.registerTo(pc);
 }
 
 void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {

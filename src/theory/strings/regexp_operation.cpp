@@ -845,49 +845,48 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   Node str = t[0];
   Node re = t[1];
   Node conc;
-  std::pair<Node, Node> p(str, re);
-  std::map<std::pair<Node, Node>, Node>::const_iterator itr;
   if(polarity) {
-    itr = d_simpl_cache.find(p);
-    if (itr != d_simpl_cache.end())
+    conc = reduceRegExpPos(t, d_sc);
+    // we also immediately unfold the last disjunct for re.*
+    if (re.getKind() == REGEXP_STAR)
     {
-      conc = itr->second;
+      Assert(conc.getKind() == OR && conc.getNumChildren() == 3);
+      std::vector<Node> newChildren;
+      newChildren.push_back(conc[0]);
+      newChildren.push_back(conc[1]);
+      Node starExpUnf = simplify(conc[2], true);
+      newChildren.push_back(starExpUnf);
+      conc = NodeManager::currentNM()->mkNode(OR, newChildren);
     }
-    else
-    {
-      conc = reduceRegExpPos(str, re, d_sc);
-      // we also immediately unfold the last disjunct for re.*
-      if (re.getKind() == REGEXP_STAR)
-      {
-        Assert(conc.getKind() == OR && conc.getNumChildren() == 3);
-        std::vector<Node> newChildren;
-        newChildren.push_back(conc[0]);
-        newChildren.push_back(conc[1]);
-        Node starExpUnf = simplify(conc[2], true);
-        newChildren.push_back(starExpUnf);
-        conc = NodeManager::currentNM()->mkNode(OR, newChildren);
-      }
-      d_simpl_cache[p] = conc;
-    }
-  } else {
-    itr = d_simpl_neg_cache.find(p);
-    if (itr != d_simpl_neg_cache.end())
-    {
-      conc = itr->second;
-    }
-    else
-    {
-      conc = reduceRegExpNeg(str, re, d_sc);
-      d_simpl_neg_cache[p] = conc;
-    }
+  }
+  else
+  {
+    Node tnot = t.notNode();
+    conc = reduceRegExpNeg(tnot, d_sc);
   }
   Trace("strings-regexp-simpl")
       << "RegExpOpr::simplify: returns " << conc << std::endl;
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpNeg(Node s, Node r, SkolemCache* sc)
+/**
+ * Associating formulas with their "unfolded form".
+ */
+struct ReUnfoldAttributeId
 {
+};
+typedef expr::Attribute<ReUnfoldAttributeId, Node> ReUnfoldAttribute;
+
+Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
+{
+  Assert (mem.getKind()==NOT && mem[0].getKind()==STRING_IN_REGEXP);
+  ReUnfoldAttribute rua;
+  if (mem.hasAttribute(rua))
+  {
+    return mem.getAttribute(rua);
+  }
+  Node s = mem[0][0];
+  Node r = mem[0][1];
   NodeManager* nm = NodeManager::currentNM();
   Kind k = r.getKind();
   Node zero = nm->mkConst(Rational(0));
@@ -984,11 +983,24 @@ Node RegExpOpr::reduceRegExpNeg(Node s, Node r, SkolemCache* sc)
     conc = nm->mkNode(FORALL, b1v, conc);
     conc = nm->mkNode(AND, sne, conc);
   }
+  else
+  {
+    Assert(!utils::isRegExpKind(k));
+  }
+  mem.setAttribute(rua,conc);
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpPos(Node s, Node r, SkolemCache* sc)
-{
+Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
+{  
+  Assert ( mem.getKind()==STRING_IN_REGEXP);
+  ReUnfoldAttribute rua;
+  if (mem.hasAttribute(rua))
+  {
+    return mem.getAttribute(rua);
+  }
+  Node s = mem[0];
+  Node r = mem[1];
   NodeManager* nm = NodeManager::currentNM();
   Kind k = r.getKind();
   Node conc;
@@ -998,12 +1010,12 @@ Node RegExpOpr::reduceRegExpPos(Node s, Node r, SkolemCache* sc)
     std::vector<Node> cc;
     // Look up skolems for each of the components. If sc has optimizations
     // enabled, this will return arguments of str.to_re.
-    Node mem = nm->mkNode(STRING_IN_REGEXP,s,r);
     for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
     {
       Node index = nm->mkConst(Rational(i));
       // make the skolem
-      Node sk = sc->mkSkolemCached(mem,index,SkolemCache::SK_RE_CONCAT_COMPONENT,"rc");
+      Node sk = sc->mkSkolemCached(
+          mem, index, SkolemCache::SK_RE_CONCAT_COMPONENT, "rc");
       cc.push_back(sk);
       nvec.push_back(nm->mkNode(STRING_IN_REGEXP, sk, r[i]));
     }
@@ -1034,6 +1046,7 @@ Node RegExpOpr::reduceRegExpPos(Node s, Node r, SkolemCache* sc)
   {
     Assert(!utils::isRegExpKind(k));
   }
+  mem.setAttribute(rua,conc);
   return conc;
 }
 

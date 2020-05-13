@@ -132,8 +132,8 @@ Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
   {
     return n;
   }
-  Trace("pf-skolem") << "ProofSkolemCache::convertInternal: " << toWitness
-                     << " " << n << std::endl;
+  Trace("pf-skolem-debug") << "ProofSkolemCache::convertInternal: " << toWitness
+                           << " " << n << std::endl;
   WitnessFormAttribute wfa;
   SkolemFormAttribute sfa;
   NodeManager* nm = NodeManager::currentNM();
@@ -202,6 +202,7 @@ Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
+  Trace("pf-skolem-debug") << "..return " << visited[n] << std::endl;
   return visited[n];
 }
 

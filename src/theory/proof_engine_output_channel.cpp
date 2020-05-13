@@ -88,6 +88,7 @@ bool ProofEngineOutputChannel::addTheoryLemmaStep(Node f)
   Assert(!f.isNull());
   std::vector<Node> children;
   std::vector<Node> args;
+  args.push_back(f);
   unsigned tid = static_cast<unsigned>(d_theory);
   Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
   args.push_back(tidn);
