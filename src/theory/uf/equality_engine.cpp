@@ -1205,7 +1205,7 @@ void EqualityEngine::getExplanation(
         // We may have cached null in its place, create the trivial proof now.
         Assert(d_nodes[t1Id] == d_nodes[t2Id]);
         Assert(eqp->d_id == MERGED_THROUGH_REFLEXIVITY);
-        eqp->d_node = d_nodes[t1Id];
+        eqp->d_node = d_nodes[t1Id].eqNode(d_nodes[t1Id]);
       }
       return;
     }
