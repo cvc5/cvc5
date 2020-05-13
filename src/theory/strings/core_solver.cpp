@@ -703,6 +703,66 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
   return x;
 }
 
+Node CoreSolver::getConclusion(Node x, Node y, PfRule rule, bool isRev, SkolemCache * skc, std::vector<Node>& newSkolems)
+{
+  Trace("strings-csolver") << "CoreSolver::getConclusion: " << x << " " << y << " " << rule << " " << isRev << std::endl;
+  NodeManager * nm = NodeManager::currentNM();
+  if (rule==PfRule::CONCAT_SPLIT || rule==PfRule::CONCAT_LPROP)
+  {
+    Node sk1;
+    Node sk2;
+    if (options::stringUnifiedVSpt() && rule==PfRule::CONCAT_SPLIT)
+    {
+      // must order so that we cache in a deterministic way
+      Node ux = x<y ? x : y;
+      Node uy = x<y ? y : x;
+      Node sk = skc->mkSkolemCached(ux,
+                                    uy,
+                                    isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
+                                          : SkolemCache::SK_ID_V_UNIFIED_SPT,
+                                    "v_spt");
+      Trace("strings-csolver") << "... unified skolem: " << sk << std::endl;
+      newSkolems.push_back(sk);
+      sk1 = sk;
+      sk2 = sk;
+    }
+    else
+    {
+      sk1 = skc->mkSkolemCached(
+          x,
+          y,
+          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
+          "v_spt1");
+      Trace("strings-csolver") << "... skolem 1: " << sk1 << std::endl;
+      sk2 = skc->mkSkolemCached(
+          y,
+          x,
+          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
+          "v_spt2");
+      Trace("strings-csolver") << "... skolem 2: " << sk2 << std::endl;
+      newSkolems.push_back(sk1);
+      newSkolems.push_back(sk2);
+    }
+    Node eq1 =
+        x.eqNode(isRev ? utils::mkNConcat(sk1, y) : utils::mkNConcat(y, sk1));
+    // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
+
+    if (rule==PfRule::CONCAT_LPROP)
+    {
+      return eq1;
+    }
+    else
+    {
+      Node eq2 =
+          y.eqNode(isRev ? utils::mkNConcat(sk2, x) : utils::mkNConcat(x, sk2));
+      // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
+      return nm->mkNode(OR, eq1, eq2);
+    }
+  }
+  
+  return Node::null();
+}
+
 void CoreSolver::getNormalForms(Node eqc,
                                 std::vector<NormalForm>& normal_forms,
                                 std::map<Node, unsigned>& term_to_nf_index,
@@ -1519,14 +1579,13 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     {
       iinfo.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
-      iinfo.d_idRev = isRev;
     }
     else
     {
       iinfo.d_conc = nm->mkNode(OR, eq1, eq2);
       iinfo.d_id = Inference::SSPLIT_VAR;
-      iinfo.d_idRev = isRev;
     }
+    iinfo.d_idRev = isRev;
     pinfer.push_back(info);
     break;
   }

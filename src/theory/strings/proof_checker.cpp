@@ -18,6 +18,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/term_registry.h"
 #include "theory/strings/theory_strings_preprocess.h"
+#include "theory/strings/core_solver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "options/strings_options.h"
@@ -194,7 +195,6 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
                                     isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
                                           : SkolemCache::SK_ID_V_UNIFIED_SPT,
                                     "r");
-        r = ProofSkolemCache::getWitnessForm(r);
         rt = r;
         rs = r;
       }
@@ -203,6 +203,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         // FIXME?
         return Node::null();
       }
+      rt = ProofSkolemCache::getWitnessForm(rt);
+      rs = ProofSkolemCache::getWitnessForm(rs);
       
       Node conc;
       if (isRev)
@@ -264,21 +266,11 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       }
       // use skolem cache
       SkolemCache skc(false);
-      Node r = skc.mkSkolemCached(t0,
-                                  s0,
-                                  isRev ? SkolemCache::SK_ID_V_SPT_REV
-                                        : SkolemCache::SK_ID_V_SPT,
-                                  "r");
-      r = ProofSkolemCache::getWitnessForm(r);
-      Node conc;
-      if (isRev)
-      {
-        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, r, s0));
-      }
-      else
-      {
-        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, s0, r));
-      }
+      std::vector<Node> newSkolems;
+      Node kt0 = ProofSkolemCache::getSkolemForm(t0);
+      Node ks0 = ProofSkolemCache::getSkolemForm(s0);
+      Node conc = CoreSolver::getConclusion(kt0,ks0,PfRule::CONCAT_LPROP,isRev,&skc, newSkolems);
+      conc = ProofSkolemCache::getWitnessForm(conc);
       return conc;
     }
     else if (id == PfRule::CONCAT_CPROP)
