@@ -356,7 +356,7 @@ Node InferProofCons::convert(Inference infer,
         {
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(STRING_LENGTH, t0)
-                       .eqNode(nm->mkNode(STRING_LENGTH, s0));
+                       .eqNode(nm->mkNode(STRING_LENGTH, s0)).notNode();
           lenSuccess = convertLengthPf(lenReq, lenConstraint);
           rule = PfRule::CONCAT_SPLIT;
         }

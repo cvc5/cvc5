@@ -560,8 +560,12 @@ void CoreSolver::checkNormalFormsEq()
       NormalForm& nfe_eq = getNormalForm(itn->second);
       // two equivalence classes have same normal form, merge
       std::vector<Node> nf_exp;
-      nf_exp.push_back(utils::mkAnd(nfe.d_exp));
-      nf_exp.push_back(eqc_to_exp[itn->second]);
+      nf_exp.insert(nf_exp.end(),nfe.d_exp.begin(),nfe.d_exp.end());
+      Node eexp = eqc_to_exp[itn->second];
+      if (eexp!=d_true)
+      {
+        nf_exp.push_back(eexp);
+      }
       Node eq = nfe.d_base.eqNode(nfe_eq.d_base);
       d_im.sendInference(nf_exp, eq, Inference::NORMAL_FORM);
       if (d_im.hasProcessed())
@@ -995,6 +999,16 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
       NormalForm& nfj = normal_forms[j];
       //ensure that normal_forms[i] and normal_forms[j] are the same modulo equality, add to pinfer if not
       Trace("strings-solve") << "Strings: Process normal form #" << i << " against #" << j << "..." << std::endl;
+      /*
+      Node nti = utils::mkConcat(nfi.d_nf,stype);
+      Node ntj = utils::mkConcat(nfi.d_nf,stype);
+      Node eq = nti.eqNode(ntj);
+      Node eqr = Rewriter::rewrite(eq);
+      if (eqr==d_false)
+      {
+        AlwaysAssert(false);
+      }
+      */
       if (isNormalFormPair(nfi.d_base, nfj.d_base))
       {
         Trace("strings-solve") << "Strings: Already cached." << std::endl;
