@@ -153,21 +153,7 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
 void TheoryStrings::setProofChecker(ProofChecker* pc)
 {
   // add checkers
-  pc->registerChecker(PfRule::CONCAT_EQ, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_UNIFY, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_CONFLICT, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_SPLIT, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_CSPLIT, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_LPROP, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_CPROP, &d_sProofChecker);
-  pc->registerChecker(PfRule::LENGTH_POS, &d_sProofChecker);
-  pc->registerChecker(PfRule::LENGTH_NON_EMPTY, &d_sProofChecker);
-  pc->registerChecker(PfRule::CTN_NOT_EQUAL, &d_sProofChecker);
-  pc->registerChecker(PfRule::STRINGS_REDUCTION, &d_sProofChecker);
-  pc->registerChecker(PfRule::STRINGS_EAGER_REDUCTION, &d_sProofChecker);
-  pc->registerChecker(PfRule::RE_INTER, &d_sProofChecker);
-  pc->registerChecker(PfRule::RE_UNFOLD_POS, &d_sProofChecker);
-  pc->registerChecker(PfRule::RE_UNFOLD_NEG, &d_sProofChecker);
+  d_sProofChecker.registerTo(pc);
 
   // everything else is untrustworthy, assume trusted
   uint32_t siuBegin = static_cast<uint32_t>(PfRule::SIU_BEGIN);

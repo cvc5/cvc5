@@ -17,6 +17,28 @@
 namespace CVC4 {
 namespace theory {
 namespace booleans {
+  
+void BoolProofRuleChecker::registerTo(ProofChecker * pc)
+{
+  pc->registerChecker(PfRule::SPLIT, this);
+  pc->registerChecker(PfRule::AND_ELIM, this);
+  pc->registerChecker(PfRule::NOT_OR_ELIM, this);
+  pc->registerChecker(PfRule::IMPLIES_ELIM, this);
+  pc->registerChecker(PfRule::NOT_IMPLIES_ELIM1, this);
+  pc->registerChecker(PfRule::NOT_IMPLIES_ELIM2, this);
+  pc->registerChecker(PfRule::EQUIV_ELIM1, this);
+  pc->registerChecker(PfRule::EQUIV_ELIM2, this);
+  pc->registerChecker(PfRule::NOT_EQUIV_ELIM1, this);
+  pc->registerChecker(PfRule::NOT_EQUIV_ELIM2, this);
+  pc->registerChecker(PfRule::XOR_ELIM1, this);
+  pc->registerChecker(PfRule::XOR_ELIM2, this);
+  pc->registerChecker(PfRule::NOT_XOR_ELIM1, this);
+  pc->registerChecker(PfRule::NOT_XOR_ELIM2, this);
+  pc->registerChecker(PfRule::ITE_ELIM1, this);
+  pc->registerChecker(PfRule::ITE_ELIM2, this);
+  pc->registerChecker(PfRule::NOT_ITE_ELIM1, this);
+  pc->registerChecker(PfRule::NOT_ITE_ELIM2, this);
+}
 
 Node BoolProofRuleChecker::checkInternal(PfRule id,
                                          const std::vector<Node>& children,

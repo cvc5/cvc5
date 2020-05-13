@@ -41,6 +41,21 @@ std::ostream& operator<<(std::ostream& out, RewriterId id)
 
 namespace builtin {
 
+void BuiltinProofRuleChecker::registerTo(ProofChecker * pc)
+{
+
+  pc->registerChecker(PfRule::ASSUME, this);
+  pc->registerChecker(PfRule::SCOPE, this);
+  pc->registerChecker(PfRule::SUBS, this);
+  pc->registerChecker(PfRule::REWRITE, this);
+  pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
+  pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
+  pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
+  pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
+  // trust coarse-grained theory lemmas for now: register null checker
+  pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
+}
+  
 Node BuiltinProofRuleChecker::applyRewrite(Node n, RewriterId id)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
@@ -312,6 +327,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert (children.empty());
     Assert (args.size()==2);
     Assert (args[0].getType().isBoolean());
+    // TODO
     return args[0];
   }
   // no rule

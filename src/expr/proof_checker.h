@@ -24,6 +24,8 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+  
+class ProofChecker;
 
 /** A virtual base class for checking a proof rule */
 class ProofRuleChecker
@@ -68,6 +70,8 @@ class ProofRuleChecker
   /** get a Boolean from a node, return false if we fail */
   static bool getBool(TNode n, bool& b);
 
+  /** Register all rules owned by this rule checker into pc. */
+  virtual void registerTo(ProofChecker * pc){}
  protected:
   /**
    * This checks a single step in a proof. It is identical to check above
