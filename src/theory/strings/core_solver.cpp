@@ -1436,7 +1436,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
             Trace("strings-entail")
                 << "  explanation was : " << et.second << std::endl;
             lentTestSuccess = e;
-            lenConstraint = et.second;
+            lenConstraint = entLit;//et.second;
             // its not explained by the equality engine of this class
             iinfo.d_noExplain.push_back(lenConstraint);
             break;
@@ -1458,6 +1458,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
     NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);
     // Add premises for x != "" ^ y != ""
+    // TODO: necessary?
+    /*
     for (unsigned xory = 0; xory < 2; xory++)
     {
       Node t = xory == 0 ? x : y;
@@ -1473,13 +1475,17 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         iinfo.d_noExplain.push_back(tnz);
       }
     }
+    */
     SkolemCache* skc = d_termReg.getSkolemCache();
     Node sk1;
     Node sk2;
-    if (options::stringUnifiedVSpt())
+    if (options::stringUnifiedVSpt() && lentTestSuccess == -1)
     {
-      Node sk = skc->mkSkolemCached(x,
-                                    y,
+      // must order so that we cache in a deterministic way
+      Node ux = x<y ? x : y;
+      Node uy = x<y ? y : x;
+      Node sk = skc->mkSkolemCached(ux,
+                                    uy,
                                     isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
                                           : SkolemCache::SK_ID_V_UNIFIED_SPT,
                                     "v_spt");

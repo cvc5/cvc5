@@ -317,6 +317,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     if (res1.isNull() || res1 != res2)
     {
       Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
+      Trace("builtin-pfcheck-debug") <<  res1 << " vs " << res2 << std::endl;
       return Node::null();
     }
     return args[0];

@@ -20,6 +20,7 @@
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "options/strings_options.h"
 
 using namespace CVC4::kind;
 
@@ -178,20 +179,31 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      Node rbodyt =
-          isRev ? utils::mkPrefix(t0,
-                                  nm->mkNode(MINUS,
-                                             nm->mkNode(STRING_LENGTH, t0),
-                                             nm->mkNode(STRING_LENGTH, s0)))
-                : utils::mkSuffix(t0, nm->mkNode(STRING_LENGTH, s0));
-      Node rbodys =
-          isRev ? utils::mkPrefix(s0,
-                                  nm->mkNode(MINUS,
-                                             nm->mkNode(STRING_LENGTH, s0),
-                                             nm->mkNode(STRING_LENGTH, t0)))
-                : utils::mkSuffix(s0, nm->mkNode(STRING_LENGTH, t0));
-      Node rt = ProofSkolemCache::mkPurifySkolem(rbodyt, "rt");
-      Node rs = ProofSkolemCache::mkPurifySkolem(rbodys, "rs");
+      SkolemCache skc(false);
+      Node rt;
+      Node rs;
+      if (options::stringUnifiedVSpt())
+      {
+        Node kt0 = ProofSkolemCache::getSkolemForm(t0);
+        Node ks0 = ProofSkolemCache::getSkolemForm(s0);
+        Node ut = kt0<ks0 ? kt0 : ks0;
+        Node us = kt0<ks0 ? ks0 : kt0;
+        // use unified version?
+        Node r = skc.mkSkolemCached(t0,
+                                    s0,
+                                    isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
+                                          : SkolemCache::SK_ID_V_UNIFIED_SPT,
+                                    "r");
+        r = ProofSkolemCache::getWitnessForm(r);
+        rt = r;
+        rs = r;
+      }
+      else
+      {
+        // FIXME?
+        return Node::null();
+      }
+      
       Node conc;
       if (isRev)
       {
@@ -250,21 +262,22 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      Node rbody =
-          isRev ? utils::mkPrefix(t0,
-                                  nm->mkNode(MINUS,
-                                             nm->mkNode(STRING_LENGTH, t0),
-                                             nm->mkNode(STRING_LENGTH, s0)))
-                : utils::mkSuffix(t0, nm->mkNode(STRING_LENGTH, s0));
-      Node r = ProofSkolemCache::mkPurifySkolem(rbody, "r");
+      // use skolem cache
+      SkolemCache skc(false);
+      Node r = skc.mkSkolemCached(t0,
+                                  s0,
+                                  isRev ? SkolemCache::SK_ID_V_SPT_REV
+                                        : SkolemCache::SK_ID_V_SPT,
+                                  "r");
+      r = ProofSkolemCache::getWitnessForm(r);
       Node conc;
       if (isRev)
       {
-        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, s0, r));
+        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, r, s0));
       }
       else
       {
-        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, r, s0));
+        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, s0, r));
       }
       return conc;
     }
@@ -396,8 +409,12 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Assert(children.size() == 1);
     Assert(args.empty());
     Node nemp = children[0];
-    if (nemp.getKind() != NOT || nemp[0].getKind() != EQUAL
-        || !Word::isEmpty(nemp[0][1]))
+    if (nemp.getKind() != NOT || nemp[0].getKind() != EQUAL || 
+      !nemp[0][1].isConst())
+    {
+      return Node::null();
+    }
+    if (!Word::isEmpty(nemp[0][1]))
     {
       return Node::null();
     }
