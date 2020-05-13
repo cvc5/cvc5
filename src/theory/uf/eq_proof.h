@@ -81,7 +81,8 @@ class EqProof
    */
   Node addToProof(
       CDProof* p,
-      std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
+      std::unordered_map<Node, Node, NodeHashFunction>& visited,
+      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
   /** Removes all reflexivity steps, i.e. premises (= t t), from premises
    *
    * Such premisis are spurious for a trastivity steps. The reordering of
@@ -90,9 +91,11 @@ class EqProof
    */
   void cleanReflPremisesInTranstivity(std::vector<Node>& premises) const;
 
-  bool foldTransitivityChildren(Node conclusion,
-                                std::vector<Node>& premises,
-                                CDProof* p) const;
+  bool foldTransitivityChildren(
+      Node conclusion,
+      std::vector<Node>& premises,
+      CDProof* p,
+      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
 
   void maybeAddSymmOrTrueIntroToProof(unsigned i,
                                       std::vector<Node>& premises,
@@ -105,7 +108,8 @@ class EqProof
       Node conclusion,
       std::vector<std::vector<Node>>& children,
       CDProof* p,
-      std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
+      std::unordered_map<Node, Node, NodeHashFunction>& visited,
+      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
 
 }; /* class EqProof */
 

@@ -110,9 +110,11 @@ void EqProof::cleanReflPremisesInTranstivity(std::vector<Node>& premises) const
   }
 }
 
-bool EqProof::foldTransitivityChildren(Node conclusion,
-                                       std::vector<Node>& premises,
-                                       CDProof* p) const
+bool EqProof::foldTransitivityChildren(
+    Node conclusion,
+    std::vector<Node>& premises,
+    CDProof* p,
+    std::unordered_set<Node, NodeHashFunction>& assumptions) const
 {
   // traverse premises to see if any of the form (= (= t1 t2) false)
   unsigned size = premises.size();
@@ -209,7 +211,9 @@ bool EqProof::foldTransitivityChildren(Node conclusion,
       << "EqProof::foldTransitivityChildren: single fold premise "
       << foldPremises.back() << " is not the same as foldConclusion "
       << foldConclusion << " and not its symmetric\n";
-  if (foldPremises.size() > 1)
+  // if the fold conclusion is an assumption, we'd be generating a cyclic proof
+  // below, so no need
+  if (foldPremises.size() > 1 && !assumptions.count(foldConclusion))
   {
     // create transitivity step to derive expected premise
     unsigned newSize = foldPremises.size();
@@ -221,6 +225,9 @@ bool EqProof::foldTransitivityChildren(Node conclusion,
     }
     maybeAddSymmOrTrueIntroToProof(
         newSize - 1, foldPremises, false, foldConclusion[1], p);
+    Trace("eqproof-conv")
+        << "EqProof::foldTransitivityChildren: add transitivity step for "
+        << foldConclusion << " with premises " << foldPremises << "\n";
     // create folding step
     if (!p->addStep(foldConclusion, PfRule::TRANS, foldPremises, {}, true))
     {
@@ -370,7 +377,8 @@ void EqProof::reduceNestedCongruence(
     Node conclusion,
     std::vector<std::vector<Node>>& children,
     CDProof* p,
-    std::unordered_map<Node, Node, NodeHashFunction>& visited) const
+    std::unordered_map<Node, Node, NodeHashFunction>& visited,
+    std::unordered_set<Node, NodeHashFunction>& assumptions) const
 {
   Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: building for " << i
                         << "-th arg\n";
@@ -380,7 +388,8 @@ void EqProof::reduceNestedCongruence(
     Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: it's a "
                              "congruence step. Reduce second child\n"
                           << push;
-    children[i].push_back(d_children[1].get()->addToProof(p, visited));
+    children[i].push_back(
+        d_children[1].get()->addToProof(p, visited, assumptions));
     Trace("eqproof-conv")
         << pop << "EqProof::reduceNestedCongruence: child conclusion "
         << children[i].back() << "\n";
@@ -391,7 +400,7 @@ void EqProof::reduceNestedCongruence(
           << "EqProof::reduceNestedCongruence: Reduce first child\n"
           << push;
       d_children[0].get()->reduceNestedCongruence(
-          i - 1, conclusion, children, p, visited);
+          i - 1, conclusion, children, p, visited, assumptions);
       Trace("eqproof-conv") << pop;
     }
     else
@@ -446,7 +455,7 @@ void EqProof::reduceNestedCongruence(
                           << "-th transitivity child\n"
                           << push;
     d_children[j].get()->reduceNestedCongruence(
-        i, conclusion, children, p, visited);
+        i, conclusion, children, p, visited, assumptions);
     Trace("eqproof-conv") << pop;
   }
 }
@@ -454,11 +463,84 @@ void EqProof::reduceNestedCongruence(
 Node EqProof::addToProof(CDProof* p) const
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return addToProof(p, cache);
+  std::unordered_set<Node, NodeHashFunction> assumptions;
+  Node conclusion = addToProof(p, cache, assumptions);
+  Trace("eqproof-conv") << "EqProof::addToProof: root of proof: " << conclusion
+                        << "\n";
+  Node newConclusion = conclusion;
+  // If t1 = tn is of the form (= t true/false), in which t is not true/false,
+  // it must be turned into t or (not t) with TRUE/FALSE_ELIM.
+  Assert(conclusion.getKind() == kind::EQUAL);
+  if ((conclusion[0].getKind() == kind::CONST_BOOLEAN
+       && conclusion[1].getKind() != kind::CONST_BOOLEAN)
+      || (conclusion[1].getKind() == kind::CONST_BOOLEAN
+          && conclusion[0].getKind() != kind::CONST_BOOLEAN))
+  {
+    Trace("eqproof-conv")
+        << "EqProof::addToProof: process root for TRUE/FALSE_ELIM\n";
+    std::vector<Node> elimChildren{conclusion};
+    unsigned constIndex =
+        conclusion[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
+    PfRule elimRule, introRule;
+    if (conclusion[constIndex].getConst<bool>())
+    {
+      elimRule = PfRule::TRUE_ELIM;
+      newConclusion = conclusion[1 - constIndex];
+      introRule = PfRule::TRUE_INTRO;
+    }
+    else
+    {
+      elimRule = PfRule::FALSE_ELIM;
+      newConclusion = conclusion[1 - constIndex].notNode();
+      introRule = PfRule::FALSE_INTRO;
+    }
+    // guard for the case where the conclusion is, itself or its symmetric, the
+    // result of TRUE/FALSE_INTRO, which would lead to a cycle. In that case
+    // just return t or (not t), which will have already been registered in the
+    // proof
+    bool cyclic = false;
+    std::shared_ptr<ProofNode> pc = p->getProof(conclusion);
+    if (pc.get()->getRule() == introRule)
+    {
+      Trace("eqproof-conv") << "EqProof::addToProof: root came from "
+                            << introRule << ", avoid " << elimRule << " step\n";
+      cyclic = true;
+    }
+    else if (pc.get()->getRule() == PfRule::SYMM)
+    {
+      const std::vector<std::shared_ptr<ProofNode>>& pcc = pc->getChildren();
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: root came from " << PfRule::SYMM
+          << ", check its child " << pcc[0].get()->getResult()
+          << " derived via " << pcc[0].get()->getRule() << "\n";
+      if (pcc[0].get()->getRule() == introRule)
+      {
+        Trace("eqproof-conv")
+            << "EqProof::addToProof: root child came from " << introRule
+            << ", avoid " << elimRule << " step\n";
+        cyclic = true;
+      }
+    }
+    if (!cyclic)
+    {
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: adding " << elimRule << " step for "
+          << elimChildren.back() << ", introduced via "
+          << p->getProof(conclusion).get()->getRule() << "\n";
+      if (!p->addStep(newConclusion, elimRule, elimChildren, {}))
+      {
+        Assert(false) << "EqProof::addToProof: couldn't add " << elimRule
+                      << " rule\n";
+      }
+    }
+  }
+  return newConclusion;
 }
 
 Node EqProof::addToProof(
-    CDProof* p, std::unordered_map<Node, Node, NodeHashFunction>& visited) const
+    CDProof* p,
+    std::unordered_map<Node, Node, NodeHashFunction>& visited,
+    std::unordered_set<Node, NodeHashFunction>& assumptions) const
 {
   std::unordered_map<Node, Node, NodeHashFunction>::const_iterator it =
       visited.find(d_node);
@@ -555,6 +637,13 @@ Node EqProof::addToProof(
                       << " rule from " << d_node << "\n";
       }
     }
+    // keep track of assumptions to avoid cyclic proofs. Both the assumption and
+    // its symmetric are added
+    assumptions.insert(conclusion);
+    assumptions.insert(conclusion[1].eqNode(conclusion[0]));
+    Trace("eqproof-conv") << "EqProof::addToProof: tracking assumptions "
+                          << conclusion << ", (= " << conclusion[1] << " "
+                          << conclusion[0] << ")\n";
     visited[d_node] = conclusion;
     return conclusion;
   }
@@ -581,18 +670,17 @@ Node EqProof::addToProof(
            && d_node[0].getKind() == kind::EQUAL
            && d_node[1].getKind() == kind::CONST_BOOLEAN
            && !d_node[1].getConst<bool>())
-        << "EqProof::addToProof: Unsupported case of "
-        << static_cast<MergeReasonType>(d_id) << ". Conclusion " << d_node
+        << ". Conclusion " << d_node << " from "
+        << static_cast<MergeReasonType>(d_id)
         << " was expected to be (= (= t1 t2) false)\n";
+    Assert(!assumptions.count(d_node))
+        << "Conclusion " << d_node << " from "
+        << static_cast<MergeReasonType>(d_id) << " is an assumption\n";
     // Build
     //
     // (= t1 c1)  (= t2 c2)
     // -------------------- MACRO_SR_PRED_INTRO
     //  (= (= t1 t2) false)
-
-    // The additional step is commented out below:
-    // -------------------- FALSE_ELIM
-    //  (not (= t1 t2))
     //
     // First process the children proofs
     std::vector<Node> premises;
@@ -601,7 +689,8 @@ Node EqProof::addToProof(
       Trace("eqproof-conv")
           << "EqProof::addToProof: recurse on child " << i << "\n"
           << push;
-      premises.push_back(d_children[i].get()->addToProof(p, visited));
+      premises.push_back(
+          d_children[i].get()->addToProof(p, visited, assumptions));
       Trace("eqproof-conv") << pop;
     }
     // build rule premises in right order
@@ -641,17 +730,6 @@ Node EqProof::addToProof(
       Assert(false) << "EqProof::addToProof: couldn't add "
                     << PfRule::MACRO_SR_PRED_INTRO << " rule\n";
     }
-    /*
-    Node conclusion = d_node[0].notNode();
-    Trace("eqproof-conv") << "EqProof::addToProof: adding "
-                          << PfRule::FALSE_ELIM << " step from " << d_node
-                          << "\n";
-    if (!p->addStep(conclusion, PfRule::FALSE_ELIM, {d_node}, {}))
-    {
-      Assert(false) << "EqProof::addToProof: couldn't add "
-                    << PfRule::FALSE_ELIM << " rule\n";
-    }
-    */
     visited[d_node] = d_node;
     return d_node;
   }
@@ -662,6 +740,22 @@ Node EqProof::addToProof(
                      && d_node[0].getKind() == kind::EQUAL))
         << "EqProof::addToProof: transitivity step conclusion " << d_node
         << " is not equality or negated equality\n";
+    // if conclusion is (not (= t1 t2)) change it to (= (= t1 t2) false) so that
+    // the reasoning below is uniform. A FALSE_ELIM to revert this is only
+    // necessary when this is the root. That step is done in the non-recursive
+    // caller of this function
+    Node conclusion =
+        d_node.getKind() != kind::NOT
+            ? d_node
+            : d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+    // if the conclusion is an assumption, the proof processing below may
+    // potentially be generate cyclic proofs, which will be useless anyway since
+    // this is an assumption
+    if (assumptions.count(conclusion))
+    {
+      visited[d_node] = conclusion;
+      return conclusion;
+    }
     std::vector<Node> children;
     for (unsigned i = 0, size = d_children.size(); i < size; ++i)
     {
@@ -682,7 +776,8 @@ Node EqProof::addToProof(
           Trace("eqproof-conv")
               << "EqProof::addToProof: recurse on child " << j << "\n"
               << push;
-          Node child = childProof->d_children[j].get()->addToProof(p, visited);
+          Node child = childProof->d_children[j].get()->addToProof(
+              p, visited, assumptions);
           // ignore reflexivity
           if (child[0] != child[1])
           {
@@ -698,16 +793,9 @@ Node EqProof::addToProof(
       Trace("eqproof-conv")
           << "EqProof::addToProof: recurse on child " << i << "\n"
           << push;
-      children.push_back(childProof->addToProof(p, visited));
+      children.push_back(childProof->addToProof(p, visited, assumptions));
       Trace("eqproof-conv") << pop;
     }
-    // if conclusion is (not (= t1 t2)) change it to (= (= t1 t2) false) so that
-    // the reasoning below is uniform. After the transitivity proof is processed
-    // the conclusion will be turned again into (not (= t1 t2)) via FALSE_ELIM
-    Node conclusion =
-        d_node.getKind() != kind::NOT
-            ? d_node
-            : d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
     // if premises contain one equality between false and an equality then maybe
     // it'll be necessary to fix the transitivity premises before reaching the
     // original conclusion. For example
@@ -749,11 +837,13 @@ Node EqProof::addToProof(
     // If in either of the above cases then the conclusion is directly derived
     // in the call, so only in the other cases we try to build a transitivity
     // step below
-    bool folded = foldTransitivityChildren(conclusion, children, p);
+    bool folded =
+        foldTransitivityChildren(conclusion, children, p, assumptions);
     Assert(!folded || p->hasStep(conclusion));
     if (!folded)
     {
       cleanReflPremisesInTranstivity(children);
+      Assert(!children.empty());
       Trace("eqproof-conv")
           << "EqProof::addToProof: maybe reorder trans premises " << children
           << " to conclude " << conclusion << "\n";
@@ -780,36 +870,6 @@ Node EqProof::addToProof(
                       << conclusion << " " << children << "\n";
       }
     }
-    // If t1 = tn is of the form (= t true/false), in which t is not true/false,
-    // it must be turned into t or (not t) with TRUE/FALSE_ELIM.
-    Assert(conclusion.getKind() == kind::EQUAL);
-    if ((conclusion[0].getKind() == kind::CONST_BOOLEAN
-         && conclusion[1].getKind() != kind::CONST_BOOLEAN)
-        || (conclusion[1].getKind() == kind::CONST_BOOLEAN
-            && conclusion[0].getKind() != kind::CONST_BOOLEAN))
-    {
-      std::vector<Node> elimChildren{conclusion};
-      unsigned constIndex =
-          conclusion[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
-      PfRule elimRule;
-      if (conclusion[constIndex].getConst<bool>())
-      {
-        elimRule = PfRule::TRUE_ELIM;
-        conclusion = conclusion[1 - constIndex];
-      }
-      else
-      {
-        elimRule = PfRule::FALSE_ELIM;
-        conclusion = conclusion[1 - constIndex].notNode();
-      }
-      Trace("eqproof-conv") << "EqProof::addToProof: adding " << elimRule
-                            << " step for " << elimChildren.back() << "\n";
-      if (!p->addStep(conclusion, elimRule, elimChildren, {}))
-      {
-        Assert(false) << "EqProof::addToProof: couldn't add " << elimRule
-                      << " rule\n";
-      }
-    }
     visited[d_node] = conclusion;
     return conclusion;
   }
@@ -833,7 +893,8 @@ Node EqProof::addToProof(
   {
     transtivityChildren.push_back(std::vector<Node>());
   }
-  reduceNestedCongruence(arity - 1, d_node, transtivityChildren, p, visited);
+  reduceNestedCongruence(
+      arity - 1, d_node, transtivityChildren, p, visited, assumptions);
   if (Trace.isOn("eqproof-conv"))
   {
     Trace("eqproof-conv")
