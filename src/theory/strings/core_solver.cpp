@@ -1537,54 +1537,31 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     }
     */
     SkolemCache* skc = d_termReg.getSkolemCache();
-    Node sk1;
-    Node sk2;
-    if (options::stringUnifiedVSpt() && lentTestSuccess == -1)
+    std::vector<Node> newSkolems;
+    // make the conclusion
+    if (lentTestSuccess == -1)
     {
-      // must order so that we cache in a deterministic way
-      Node ux = x<y ? x : y;
-      Node uy = x<y ? y : x;
-      Node sk = skc->mkSkolemCached(ux,
-                                    uy,
-                                    isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
-                                          : SkolemCache::SK_ID_V_UNIFIED_SPT,
-                                    "v_spt");
-      iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
-      sk1 = sk;
-      sk2 = sk;
+      iinfo.d_id = Inference::SSPLIT_VAR;
+      iinfo.d_conc = getConclusion(x,y,PfRule::CONCAT_SPLIT,isRev,skc,newSkolems);
+      if (options::stringUnifiedVSpt())
+      {
+        Assert(newSkolems.size()==1);
+        iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
+      }
+    }
+    else if (lentTestSuccess==0)
+    {
+      iinfo.d_id = Inference::SSPLIT_VAR_PROP;
+      iinfo.d_conc = getConclusion(x,y,PfRule::CONCAT_LPROP,isRev,skc,newSkolems);
     }
     else
     {
-      sk1 = skc->mkSkolemCached(
-          x,
-          y,
-          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-          "v_spt1");
-      sk2 = skc->mkSkolemCached(
-          y,
-          x,
-          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-          "v_spt2");
+      Assert (lentTestSuccess==1);
+      iinfo.d_id = Inference::SSPLIT_VAR_PROP;
+      iinfo.d_conc = getConclusion(y,x,PfRule::CONCAT_LPROP,isRev,skc,newSkolems);
     }
-    Node eq1 =
-        x.eqNode(isRev ? utils::mkNConcat(sk1, y) : utils::mkNConcat(y, sk1));
-    // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
-    Node eq2 =
-        y.eqNode(isRev ? utils::mkNConcat(sk2, x) : utils::mkNConcat(x, sk2));
-    // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
-
     Node lc = utils::mkAnd(lcVec);
     iinfo.d_ant.push_back(lc);
-    if (lentTestSuccess != -1)
-    {
-      iinfo.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
-      iinfo.d_id = Inference::SSPLIT_VAR_PROP;
-    }
-    else
-    {
-      iinfo.d_conc = nm->mkNode(OR, eq1, eq2);
-      iinfo.d_id = Inference::SSPLIT_VAR;
-    }
     iinfo.d_idRev = isRev;
     pinfer.push_back(info);
     break;

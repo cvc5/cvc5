@@ -180,45 +180,13 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
+      // use skolem cache
       SkolemCache skc(false);
-      Node rt;
-      Node rs;
-      if (options::stringUnifiedVSpt())
-      {
-        Node kt0 = ProofSkolemCache::getSkolemForm(t0);
-        Node ks0 = ProofSkolemCache::getSkolemForm(s0);
-        Node ut = kt0<ks0 ? kt0 : ks0;
-        Node us = kt0<ks0 ? ks0 : kt0;
-        // use unified version?
-        Node r = skc.mkSkolemCached(t0,
-                                    s0,
-                                    isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
-                                          : SkolemCache::SK_ID_V_UNIFIED_SPT,
-                                    "r");
-        rt = r;
-        rs = r;
-      }
-      else
-      {
-        // FIXME?
-        return Node::null();
-      }
-      rt = ProofSkolemCache::getWitnessForm(rt);
-      rs = ProofSkolemCache::getWitnessForm(rs);
-      
-      Node conc;
-      if (isRev)
-      {
-        conc = nm->mkNode(OR,
-                          t0.eqNode(nm->mkNode(STRING_CONCAT, s0, rt)),
-                          s0.eqNode(nm->mkNode(STRING_CONCAT, t0, rs)));
-      }
-      else
-      {
-        conc = nm->mkNode(OR,
-                          t0.eqNode(nm->mkNode(STRING_CONCAT, rt, s0)),
-                          s0.eqNode(nm->mkNode(STRING_CONCAT, rs, t0)));
-      }
+      std::vector<Node> newSkolems;
+      Node kt0 = ProofSkolemCache::getSkolemForm(t0);
+      Node ks0 = ProofSkolemCache::getSkolemForm(s0);
+      Node conc = CoreSolver::getConclusion(kt0,ks0,PfRule::CONCAT_SPLIT,isRev,&skc, newSkolems);
+      conc = ProofSkolemCache::getWitnessForm(conc);
       return conc;
     }
     else if (id == PfRule::CONCAT_CSPLIT)
