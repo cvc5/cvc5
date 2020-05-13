@@ -831,7 +831,7 @@ Node EqProof::addToProof(
   }
   reduceNestedCongruence(arity - 1, d_node, transtivityChildren, p, visited);
   if (Trace.isOn("eqproof-conv"))
-    {
+  {
     Trace("eqproof-conv")
         << "EqProof::addToProof: premises from reduced cong:\n";
     for (unsigned i = 0; i < arity; ++i)
@@ -843,20 +843,20 @@ Node EqProof::addToProof(
   // bulid transitivity steps for the arguments with transitivity proofs
   std::vector<Node> children(arity);
   for (unsigned i = 0; i < arity; ++i)
-    {
+  {
     Assert(!transtivityChildren[i].empty())
         << "EqProof::addToProof: did not add any justification for " << i
         << "-th arg of congruence " << d_node << "\n";
     // nothing to do
     if (transtivityChildren[i].size() == 1)
-      {
+    {
       children[i] = transtivityChildren[i][0];
       continue;
     }
     cleanReflPremisesInTranstivity(transtivityChildren[i]);
     // if after refl elimination it has only one child, take that
     if (transtivityChildren[i].size() == 1)
-        {
+    {
       children[i] = transtivityChildren[i][0];
       continue;
     }
@@ -865,30 +865,30 @@ Node EqProof::addToProof(
     bool occurs = false;
     unsigned sizeTrans = transtivityChildren[i].size();
     for (unsigned j = 0; j < sizeTrans; ++j)
-          {
+    {
       if (transtivityChildren[i][j] == transConclusion
           || (transtivityChildren[i][j][0] == transConclusion[1]
               && transtivityChildren[i][j][1] == transConclusion[0]))
       {
         occurs = true;
-            break;
-          }
+        break;
+      }
     }
     if (!occurs && sizeTrans > 0)
     {
       // Build transitivity step. Since premises might not be properly ordered,
       // process it as the transitivity premises
-          maybeAddSymmOrTrueIntroToProof(
+      maybeAddSymmOrTrueIntroToProof(
           0, transtivityChildren[i], true, transConclusion[0], p);
-          for (unsigned j = 1; j < sizeTrans - 1; ++j)
-          {
+      for (unsigned j = 1; j < sizeTrans - 1; ++j)
+      {
         Assert(transtivityChildren[i][j - 1].getKind() == kind::EQUAL);
-            maybeAddSymmOrTrueIntroToProof(j,
+        maybeAddSymmOrTrueIntroToProof(j,
                                        transtivityChildren[i],
-                                           true,
+                                       true,
                                        transtivityChildren[i][j - 1][1],
-                                           p);
-          }
+                                       p);
+      }
       maybeAddSymmOrTrueIntroToProof(
           sizeTrans - 1, transtivityChildren[i], false, transConclusion[1], p);
       Trace("eqproof-conv")
@@ -896,23 +896,23 @@ Node EqProof::addToProof(
           << transConclusion << " with children " << transtivityChildren[i]
           << "\n";
       if (!p->addStep(transConclusion,
-                          PfRule::TRANS,
+                      PfRule::TRANS,
                       transtivityChildren[i],
-                          {},
-                          true,
-                          true))
-          {
-            Assert(false) << "EqProof::addToProof: couldn't add trans step\n";
-          }
-        }
-    children[i] = transConclusion;
+                      {},
+                      true,
+                      true))
+      {
+        Assert(false) << "EqProof::addToProof: couldn't add trans step\n";
+      }
     }
+    children[i] = transConclusion;
+  }
   Trace("eqproof-conv")
       << "EqProof::addToProof: premises after adding trans steps:" << children
       << "\n";
   // reorder children potentially
   for (unsigned i = 0; i < arity; ++i)
-    {
+  {
     if (children[i][0] != d_node[0][i])
     {
       Assert(children[i][0] == d_node[1][i])
