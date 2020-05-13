@@ -319,7 +319,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::CTN_NOT_EQUAL)
   {
-    // TODO
+    // TODO: probably unnecessary (build into eager reduction?)
   }
   else if (id == PfRule::STRINGS_REDUCTION
            || id == PfRule::STRINGS_EAGER_REDUCTION || id == PfRule::LENGTH_POS)

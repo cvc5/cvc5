@@ -760,7 +760,13 @@ Node CoreSolver::getConclusion(Node x, Node y, PfRule rule, bool isRev, SkolemCa
       Node eq2 =
           y.eqNode(isRev ? utils::mkNConcat(sk2, x) : utils::mkNConcat(x, sk2));
       // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
-      return nm->mkNode(OR, eq1, eq2);
+      Node conc = nm->mkNode(OR, eq1, eq2);
+      if (options::stringUnifiedVSpt())
+      {
+        // we can assume its length is greater than zero
+        conc = nm->mkNode(AND, conc, nm->mkNode(GT,nm->mkNode(STRING_LENGTH,sk1), nm->mkConst(Rational(0))));
+      }
+      return conc;
     }
   }
   
@@ -1557,7 +1563,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       if (options::stringUnifiedVSpt())
       {
         Assert(newSkolems.size()==1);
-        iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
+        //iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
       }
     }
     else if (lentTestSuccess==0)
