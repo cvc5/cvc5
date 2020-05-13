@@ -562,15 +562,16 @@ Node EqProof::addToProof(
   if (d_id == MERGED_THROUGH_REFLEXIVITY)
   {
     Trace("ajr-temp") << "Refl node: " << d_node << std::endl;
-    AlwaysAssert(d_node.getKind() == kind::EQUAL);
+    Node conclusion =
+        d_node.getKind() == kind::EQUAL ? d_node : d_node.eqNode(d_node);
     std::vector<Node> children;
-    std::vector<Node> args{d_node[0]};
-    if (!p->addStep(d_node, PfRule::REFL, children, args))
+    std::vector<Node> args{conclusion[0]};
+    if (!p->addStep(conclusion, PfRule::REFL, children, args))
     {
       Assert(false) << "EqProof::addToProof: couldn't add refl step\n";
     }
-    visited[d_node] = d_node;
-    return d_node;
+    visited[d_node] = conclusion;
+    return conclusion;
   }
   // can support case of negative merged throgh constants, but not positive one
   // yet
@@ -588,7 +589,7 @@ Node EqProof::addToProof(
     // (= t1 c1)  (= t2 c2)
     // -------------------- MACRO_SR_PRED_INTRO
     //  (= (= t1 t2) false)
-        
+
     // The additional step is commented out below:
     // -------------------- FALSE_ELIM
     //  (not (= t1 t2))
