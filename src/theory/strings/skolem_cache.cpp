@@ -36,6 +36,13 @@ struct ExistsFormAttributeId
 };
 typedef expr::Attribute<ExistsFormAttributeId, Node> ExistsFormAttribute;
 
+/** A bound variable for each */
+
+struct IndexVarAttributeId
+{
+};
+typedef expr::Attribute<IndexVarAttributeId, Node> IndexVarAttribute;
+
 SkolemCache::SkolemCache(bool useOpts) : d_useOpts(useOpts)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -306,6 +313,19 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
   Trace("skolem-cache") << "normalizeStringSkolem end: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
   return std::make_tuple(id, a, b);
+}
+
+Node SkolemCache::mkIndexVar(Node t)
+{
+  IndexVarAttribute iva;
+  if (t.hasAttribute(iva))
+  {
+    return t.getAttribute(iva);
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  Node v = nm->mkBoundVar(nm->integerType());
+  t.setAttribute(iva,v);
+  return v;
 }
 
 }  // namespace strings

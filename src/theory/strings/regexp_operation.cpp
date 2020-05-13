@@ -836,6 +836,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
   }
 }
 
+#if 0
 //simplify
 Node RegExpOpr::simplify(Node t, bool polarity)
 {
@@ -868,6 +869,44 @@ Node RegExpOpr::simplify(Node t, bool polarity)
       << "RegExpOpr::simplify: returns " << conc << std::endl;
   return conc;
 }
+#else
+Node RegExpOpr::simplify(Node t, bool polarity)
+{
+  Trace("strings-regexp-simpl")
+      << "RegExpOpr::simplify: " << t << ", polarity=" << polarity << std::endl;
+  Assert(t.getKind() == kind::STRING_IN_REGEXP);
+  Node tlit = polarity ? t : t.notNode();
+  Node conc;
+  std::map<Node, Node>::const_iterator itr = d_simpCache.find(tlit);
+  if (itr != d_simpCache.end())
+  {
+    return itr->second;
+  }
+  if(polarity) 
+  {
+    conc = reduceRegExpPos(tlit, d_sc);
+    // we also immediately unfold the last disjunct for re.*
+    if (t[1].getKind() == REGEXP_STAR)
+    {
+      Assert(conc.getKind() == OR && conc.getNumChildren() == 3);
+      std::vector<Node> newChildren;
+      newChildren.push_back(conc[0]);
+      newChildren.push_back(conc[1]);
+      Node starExpUnf = simplify(conc[2], true);
+      newChildren.push_back(starExpUnf);
+      conc = NodeManager::currentNM()->mkNode(OR, newChildren);
+    }
+  }
+  else
+  {
+    conc = reduceRegExpNeg(tlit, d_sc);
+  }
+  d_simpCache[tlit] = conc;
+  Trace("strings-regexp-simpl")
+      << "RegExpOpr::simplify: returns " << conc << std::endl;
+  return conc;
+}
+#endif
 
 /**
  * Associating formulas with their "unfolded form".
@@ -922,7 +961,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
     Node guard;
     if (reLength.isNull())
     {
-      b1 = nm->mkBoundVar(nm->integerType());
+      b1 = SkolemCache::mkIndexVar(mem);
       b1v = nm->mkNode(BOUND_VAR_LIST, b1);
       guard = nm->mkNode(AND,
                          nm->mkNode(GEQ, b1, zero),
@@ -997,6 +1036,7 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
   ReUnfoldAttribute rua;
   if (mem.hasAttribute(rua))
   {
+    // FIXME: shouldnt cache this since it depends on the skolem cache opts
     return mem.getAttribute(rua);
   }
   Node s = mem[0];

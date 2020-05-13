@@ -138,7 +138,15 @@ class SkolemCache
   Node mkSkolem(const char* c);
   /** Returns true if n is a skolem allocated by this class */
   bool isSkolem(Node n) const;
-
+  /** Make index variable 
+   * 
+   * This returns an integer variable of kind BOUND_VARIABLE that is used
+   * for axiomatizing the behavior of a term or predicate t. Notice that this
+   * index variable does *not* necessarily refer to indices in the term t
+   * itself. Instead, it refers to indices in the relevant string in the
+   * reduction of t.
+   */
+  static Node mkIndexVar(Node t);
  private:
   /**
    * Simplifies the arguments for a string skolem used for indexing into the
