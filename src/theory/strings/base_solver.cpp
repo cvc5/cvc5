@@ -321,7 +321,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
               Assert(!d_eqcInfo[nrr].d_bestContent.isNull()
                      && d_eqcInfo[nrr].d_bestContent.isConst());
               // must flatten to avoid nested AND in explanations
-              utils::flattenOp(AND,d_eqcInfo[nrr].d_exp,exp);
+              utils::flattenOp(AND, d_eqcInfo[nrr].d_exp, exp);
               // now explain equality to base
               d_im.addToExplanation(n[count], d_eqcInfo[nrr].d_base, exp);
             }
@@ -357,7 +357,8 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
               bei.d_exp = utils::mkAnd(exp);
             }
             Trace("strings-debug")
-                << "Set eqc best content " << n << " to " << nct << ", explanation = " << bei.d_exp << std::endl;
+                << "Set eqc best content " << n << " to " << nct
+                << ", explanation = " << bei.d_exp << std::endl;
           }
         }
       }
@@ -376,7 +377,8 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
           bei.d_base = n;
           bei.d_exp = utils::mkAnd(exp);
           Trace("strings-debug")
-              << "Set eqc const " << n << " to " << c << ", explanation = " << bei.d_exp << std::endl;
+              << "Set eqc const " << n << " to " << c
+              << ", explanation = " << bei.d_exp << std::endl;
         }
         else if (c != bei.d_bestContent)
         {

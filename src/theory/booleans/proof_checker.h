@@ -31,9 +31,10 @@ class BoolProofRuleChecker : public ProofRuleChecker
  public:
   BoolProofRuleChecker() {}
   ~BoolProofRuleChecker() {}
-  
+
   /** Register all rules owned by this rule checker into pc. */
-  void registerTo(ProofChecker * pc) override;
+  void registerTo(ProofChecker* pc) override;
+
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node checkInternal(PfRule id,

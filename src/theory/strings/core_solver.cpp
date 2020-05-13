@@ -1453,7 +1453,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     }
     else
     {
-      utils::flattenOp(AND,lenConstraint,lcVec);
+      utils::flattenOp(AND, lenConstraint, lcVec);
     }
 
     NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);

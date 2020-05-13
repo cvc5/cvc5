@@ -17,8 +17,8 @@
 namespace CVC4 {
 namespace theory {
 namespace booleans {
-  
-void BoolProofRuleChecker::registerTo(ProofChecker * pc)
+
+void BoolProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::SPLIT, this);
   pc->registerChecker(PfRule::AND_ELIM, this);

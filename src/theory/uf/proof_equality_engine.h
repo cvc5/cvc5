@@ -219,7 +219,9 @@ class ProofEqEngine : public EagerProofGenerator
    * This additionally registers the equality proof steps required to
    * regress the explanation of lit.
    */
-  void explainWithProof(Node lit, std::vector<TNode>& assumps, LazyCDProof* curr);
+  void explainWithProof(Node lit,
+                        std::vector<TNode>& assumps,
+                        LazyCDProof* curr);
 };
 
 }  // namespace eq
