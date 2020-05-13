@@ -836,40 +836,6 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
   }
 }
 
-#if 0
-//simplify
-Node RegExpOpr::simplify(Node t, bool polarity)
-{
-  Trace("strings-regexp-simpl")
-      << "RegExpOpr::simplify: " << t << ", polarity=" << polarity << std::endl;
-  Assert(t.getKind() == kind::STRING_IN_REGEXP);
-  Node str = t[0];
-  Node re = t[1];
-  Node conc;
-  if(polarity) {
-    conc = reduceRegExpPos(t, d_sc);
-    // we also immediately unfold the last disjunct for re.*
-    if (re.getKind() == REGEXP_STAR)
-    {
-      Assert(conc.getKind() == OR && conc.getNumChildren() == 3);
-      std::vector<Node> newChildren;
-      newChildren.push_back(conc[0]);
-      newChildren.push_back(conc[1]);
-      Node starExpUnf = simplify(conc[2], true);
-      newChildren.push_back(starExpUnf);
-      conc = NodeManager::currentNM()->mkNode(OR, newChildren);
-    }
-  }
-  else
-  {
-    Node tnot = t.notNode();
-    conc = reduceRegExpNeg(tnot, d_sc);
-  }
-  Trace("strings-regexp-simpl")
-      << "RegExpOpr::simplify: returns " << conc << std::endl;
-  return conc;
-}
-#else
 Node RegExpOpr::simplify(Node t, bool polarity)
 {
   Trace("strings-regexp-simpl")
@@ -906,7 +872,6 @@ Node RegExpOpr::simplify(Node t, bool polarity)
       << "RegExpOpr::simplify: returns " << conc << std::endl;
   return conc;
 }
-#endif
 
 Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
 {
@@ -934,6 +899,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
     // all strings in the language of R1 have the same length, say n,
     // then the conclusion of the reduction is quantifier-free:
     //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
+    // FIXME: this should be moved outside of this code
     Node reLength = RegExpEntail::getFixedLengthForRegexp(r[0]);
     if (reLength.isNull())
     {
