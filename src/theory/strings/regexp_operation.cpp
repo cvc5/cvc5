@@ -908,22 +908,9 @@ Node RegExpOpr::simplify(Node t, bool polarity)
 }
 #endif
 
-/**
- * Associating formulas with their "unfolded form".
- */
-struct ReUnfoldAttributeId
-{
-};
-typedef expr::Attribute<ReUnfoldAttributeId, Node> ReUnfoldAttribute;
-
 Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
 {
   Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
-  ReUnfoldAttribute rua;
-  if (mem.hasAttribute(rua))
-  {
-    return mem.getAttribute(rua);
-  }
   Node s = mem[0][0];
   Node r = mem[0][1];
   NodeManager* nm = NodeManager::currentNM();
@@ -1026,19 +1013,12 @@ Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
   {
     Assert(!utils::isRegExpKind(k));
   }
-  mem.setAttribute(rua, conc);
   return conc;
 }
 
 Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
 {
   Assert(mem.getKind() == STRING_IN_REGEXP);
-  ReUnfoldAttribute rua;
-  if (mem.hasAttribute(rua))
-  {
-    // FIXME: shouldnt cache this since it depends on the skolem cache opts
-    return mem.getAttribute(rua);
-  }
   Node s = mem[0];
   Node r = mem[1];
   NodeManager* nm = NodeManager::currentNM();
@@ -1086,7 +1066,6 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
   {
     Assert(!utils::isRegExpKind(k));
   }
-  mem.setAttribute(rua, conc);
   return conc;
 }
 
