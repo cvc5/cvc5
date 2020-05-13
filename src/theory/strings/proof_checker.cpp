@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-void StringProofRuleChecker::registerTo(ProofChecker * pc)
+void StringProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::CONCAT_EQ, this);
   pc->registerChecker(PfRule::CONCAT_UNIFY, this);
@@ -45,7 +45,7 @@ void StringProofRuleChecker::registerTo(ProofChecker * pc)
   pc->registerChecker(PfRule::RE_UNFOLD_POS, this);
   pc->registerChecker(PfRule::RE_UNFOLD_NEG, this);
 }
-  
+
 Node StringProofRuleChecker::checkInternal(PfRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args)

@@ -41,9 +41,8 @@ std::ostream& operator<<(std::ostream& out, RewriterId id)
 
 namespace builtin {
 
-void BuiltinProofRuleChecker::registerTo(ProofChecker * pc)
+void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 {
-
   pc->registerChecker(PfRule::ASSUME, this);
   pc->registerChecker(PfRule::SCOPE, this);
   pc->registerChecker(PfRule::SUBS, this);
@@ -55,7 +54,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker * pc)
   // trust coarse-grained theory lemmas for now: register null checker
   pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
 }
-  
+
 Node BuiltinProofRuleChecker::applyRewrite(Node n, RewriterId id)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
@@ -293,7 +292,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
                              << args.size() << std::endl;
     Assert(children.size() >= 1);
     Assert(args.size() <= 2);
-    Assert (args[0].getType().isBoolean());
+    Assert(args[0].getType().isBoolean());
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
     RewriterId idRewriter = RewriterId::REWRITE;
@@ -322,11 +321,11 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return args[0];
   }
-  else if (id==PfRule::THEORY_LEMMA)
+  else if (id == PfRule::THEORY_LEMMA)
   {
-    Assert (children.empty());
-    Assert (args.size()==2);
-    Assert (args[0].getType().isBoolean());
+    Assert(children.empty());
+    Assert(args.size() == 2);
+    Assert(args[0].getType().isBoolean());
     // TODO
     return args[0];
   }

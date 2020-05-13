@@ -879,7 +879,7 @@ typedef expr::Attribute<ReUnfoldAttributeId, Node> ReUnfoldAttribute;
 
 Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
 {
-  Assert (mem.getKind()==NOT && mem[0].getKind()==STRING_IN_REGEXP);
+  Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
   ReUnfoldAttribute rua;
   if (mem.hasAttribute(rua))
   {
@@ -987,13 +987,13 @@ Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
   {
     Assert(!utils::isRegExpKind(k));
   }
-  mem.setAttribute(rua,conc);
+  mem.setAttribute(rua, conc);
   return conc;
 }
 
 Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
-{  
-  Assert ( mem.getKind()==STRING_IN_REGEXP);
+{
+  Assert(mem.getKind() == STRING_IN_REGEXP);
   ReUnfoldAttribute rua;
   if (mem.hasAttribute(rua))
   {
@@ -1046,7 +1046,7 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
   {
     Assert(!utils::isRegExpKind(k));
   }
-  mem.setAttribute(rua,conc);
+  mem.setAttribute(rua, conc);
   return conc;
 }
 

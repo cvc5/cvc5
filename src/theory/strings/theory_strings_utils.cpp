@@ -94,8 +94,8 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj)
         // This is important so that explantaions aren't reversed when they
         // are flattened, which is important for proofs involving substitutions.
         std::vector<Node> newChildren;
-        newChildren.insert(newChildren.end(),cur.begin(),cur.end());
-        visit.insert(visit.end(),newChildren.rbegin(),newChildren.rend());
+        newChildren.insert(newChildren.end(), cur.begin(), cur.end());
+        visit.insert(visit.end(), newChildren.rbegin(), newChildren.rend());
       }
       else if (std::find(conj.begin(), conj.end(), cur) == conj.end())
       {

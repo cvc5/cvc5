@@ -119,7 +119,7 @@ bool EqProof::foldTransitivityChildren(Node conclusion,
   unsigned termPos = 2, offending = size;
   for (unsigned i = 0; i < size; ++i)
   {
-    Trace("ajr-temp") << "Premise trans : "<< premises[i] << std::endl;
+    Trace("ajr-temp") << "Premise trans : " << premises[i] << std::endl;
     AlwaysAssert(premises[i].getKind() == kind::EQUAL);
     for (unsigned j = 0; j < 2; ++j)
     {
@@ -618,7 +618,7 @@ Node EqProof::addToProof(
       // look in children
       for (unsigned j = 0; j < premises.size(); ++j)
       {
-        Trace("ajr-temp") << "Premise : "<< premises[j] << std::endl;
+        Trace("ajr-temp") << "Premise : " << premises[j] << std::endl;
         AlwaysAssert(premises[j].getKind() == kind::EQUAL);
         if (premises[j][0] == term)
         {

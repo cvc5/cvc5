@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
-void UfProofRuleChecker::registerTo(ProofChecker * pc)
+void UfProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers
   pc->registerChecker(PfRule::REFL, this);

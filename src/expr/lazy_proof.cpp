@@ -160,7 +160,7 @@ bool LazyCDProof::hasGenerators() const
 
 bool LazyCDProof::hasGenerator(Node fact) const
 {
-  if (d_defaultGen!=nullptr)
+  if (d_defaultGen != nullptr)
   {
     return true;
   }
