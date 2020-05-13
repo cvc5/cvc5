@@ -406,16 +406,16 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     std::map<Node, std::vector<ProofNode*>> famap;
     pfConc->getFreeAssumptionsMap(famap);
     // we first ensure the assumptions are flattened
-    std::vector<Node> ac;
+    std::unordered_set<Node, NodeHashFunction> ac;
     for (const TNode& a : assumps)
     {
       if (a.getKind() == AND)
       {
-        ac.insert(ac.end(), a.begin(), a.end());
+        ac.insert(a.begin(), a.end());
       }
       else
       {
-        ac.push_back(a);
+        ac.insert(a);
       }
     }
     std::map<Node, std::vector<ProofNode*>>::iterator itf;

@@ -1518,8 +1518,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
     NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);
     // Add premises for x != "" ^ y != ""
-    // TODO: necessary?
-    /*
     for (unsigned xory = 0; xory < 2; xory++)
     {
       Node t = xory == 0 ? x : y;
@@ -1535,7 +1533,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         iinfo.d_noExplain.push_back(tnz);
       }
     }
-    */
     SkolemCache* skc = d_termReg.getSkolemCache();
     std::vector<Node> newSkolems;
     // make the conclusion

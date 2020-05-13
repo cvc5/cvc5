@@ -514,14 +514,24 @@ Node InferProofCons::convert(Inference infer,
     case Inference::REDUCTION:
     {
       size_t nchild = conc.getNumChildren();
-      if (conc.getKind() != AND || conc[nchild - 1].getKind() != EQUAL)
+      Node mainEq;
+      if (conc.getKind()==EQUAL)
       {
+        mainEq = conc;
+      }
+      else if (conc.getKind()== AND && conc[nchild - 1].getKind() == EQUAL)
+      {
+        mainEq = conc[nchild - 1];
+      }
+      if (mainEq.isNull())
+      {
+        Trace("strings-ipc-red") << "Bad Reduction: " << conc << std::endl;
         Assert(false);
         break;
       }
       std::vector<Node> argsRed;
       // the left hand side of the last conjunct is the term we are reducing
-      argsRed.push_back(conc[nchild - 1][0]);
+      argsRed.push_back(mainEq[0]);
       Node red = d_psb.tryStep(PfRule::STRINGS_REDUCTION, emptyVec, argsRed);
       Trace("strings-ipc-red") << "Reduction : " << red << std::endl;
       if (!red.isNull())

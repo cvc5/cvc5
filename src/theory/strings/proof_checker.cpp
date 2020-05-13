@@ -200,7 +200,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      if (!s0.isConst() || Word::isEmpty(s0))
+      if (!s0.isConst() || !s0.getType().isStringLike() || Word::isEmpty(s0))
       {
         return Node::null();
       }
@@ -263,14 +263,14 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         return Node::null();
       }
       Node w1 = tvec[isRev ? nchildt - 2 : 1];
-      if (!w1.isConst() || Word::isEmpty(w1))
+      if (!w1.isConst() || !w1.getType().isStringLike() || Word::isEmpty(w1))
       {
         Trace("pfcheck-strings-cprop")
             << "...failed adjacent constant content" << std::endl;
         return Node::null();
       }
       Node w2 = s0;
-      if (!w2.isConst() || Word::isEmpty(w2))
+      if (!w2.isConst() || !w2.getType().isStringLike() || Word::isEmpty(w2))
       {
         Trace("pfcheck-strings-cprop") << "...failed constant" << std::endl;
         return Node::null();
@@ -370,7 +370,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Assert(args.empty());
     Node nemp = children[0];
     if (nemp.getKind() != NOT || nemp[0].getKind() != EQUAL || 
-      !nemp[0][1].isConst())
+      !nemp[0][1].isConst() || !nemp[0][1].getType().isStringLike())
     {
       return Node::null();
     }
