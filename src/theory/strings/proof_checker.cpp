@@ -14,14 +14,14 @@
 
 #include "theory/strings/proof_checker.h"
 
+#include "options/strings_options.h"
 #include "theory/rewriter.h"
+#include "theory/strings/core_solver.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/term_registry.h"
 #include "theory/strings/theory_strings_preprocess.h"
-#include "theory/strings/core_solver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "options/strings_options.h"
 
 using namespace CVC4::kind;
 
@@ -142,15 +142,15 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      for (unsigned i=0; i<2; i++)
+      for (unsigned i = 0; i < 2; i++)
       {
         Node l = children[1][i];
-        if (l.getKind()!=STRING_LENGTH)
+        if (l.getKind() != STRING_LENGTH)
         {
           return Node::null();
         }
-        Node term = i==0 ? t0 : s0;
-        if (l[0]==term)
+        Node term = i == 0 ? t0 : s0;
+        if (l[0] == term)
         {
           continue;
         }
@@ -159,7 +159,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         if (term.isConst() && l[0].isConst())
         {
           size_t lenL = Word::getLength(l[0]);
-          success = ( isRev && l[0] == Word::suffix(term, lenL) ) || ( !isRev && l[0] == Word::prefix(term, lenL));
+          success = (isRev && l[0] == Word::suffix(term, lenL))
+                    || (!isRev && l[0] == Word::prefix(term, lenL));
         }
         if (!success)
         {
@@ -202,7 +203,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       std::vector<Node> newSkolems;
       Node kt0 = ProofSkolemCache::getSkolemForm(t0);
       Node ks0 = ProofSkolemCache::getSkolemForm(s0);
-      Node conc = CoreSolver::getConclusion(kt0,ks0,PfRule::CONCAT_SPLIT,isRev,&skc, newSkolems);
+      Node conc = CoreSolver::getConclusion(
+          kt0, ks0, PfRule::CONCAT_SPLIT, isRev, &skc, newSkolems);
       conc = ProofSkolemCache::getWitnessForm(conc);
       return conc;
     }
@@ -254,7 +256,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       std::vector<Node> newSkolems;
       Node kt0 = ProofSkolemCache::getSkolemForm(t0);
       Node ks0 = ProofSkolemCache::getSkolemForm(s0);
-      Node conc = CoreSolver::getConclusion(kt0,ks0,PfRule::CONCAT_LPROP,isRev,&skc, newSkolems);
+      Node conc = CoreSolver::getConclusion(
+          kt0, ks0, PfRule::CONCAT_LPROP, isRev, &skc, newSkolems);
       conc = ProofSkolemCache::getWitnessForm(conc);
       return conc;
     }
@@ -386,8 +389,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Assert(children.size() == 1);
     Assert(args.empty());
     Node nemp = children[0];
-    if (nemp.getKind() != NOT || nemp[0].getKind() != EQUAL || 
-      !nemp[0][1].isConst() || !nemp[0][1].getType().isStringLike())
+    if (nemp.getKind() != NOT || nemp[0].getKind() != EQUAL
+        || !nemp[0][1].isConst() || !nemp[0][1].getType().isStringLike())
     {
       return Node::null();
     }

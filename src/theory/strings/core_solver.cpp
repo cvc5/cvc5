@@ -560,9 +560,9 @@ void CoreSolver::checkNormalFormsEq()
       NormalForm& nfe_eq = getNormalForm(itn->second);
       // two equivalence classes have same normal form, merge
       std::vector<Node> nf_exp;
-      nf_exp.insert(nf_exp.end(),nfe.d_exp.begin(),nfe.d_exp.end());
+      nf_exp.insert(nf_exp.end(), nfe.d_exp.begin(), nfe.d_exp.end());
       Node eexp = eqc_to_exp[itn->second];
-      if (eexp!=d_true)
+      if (eexp != d_true)
       {
         nf_exp.push_back(eexp);
       }
@@ -707,19 +707,25 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
   return x;
 }
 
-Node CoreSolver::getConclusion(Node x, Node y, PfRule rule, bool isRev, SkolemCache * skc, std::vector<Node>& newSkolems)
+Node CoreSolver::getConclusion(Node x,
+                               Node y,
+                               PfRule rule,
+                               bool isRev,
+                               SkolemCache* skc,
+                               std::vector<Node>& newSkolems)
 {
-  Trace("strings-csolver") << "CoreSolver::getConclusion: " << x << " " << y << " " << rule << " " << isRev << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
-  if (rule==PfRule::CONCAT_SPLIT || rule==PfRule::CONCAT_LPROP)
+  Trace("strings-csolver") << "CoreSolver::getConclusion: " << x << " " << y
+                           << " " << rule << " " << isRev << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  if (rule == PfRule::CONCAT_SPLIT || rule == PfRule::CONCAT_LPROP)
   {
     Node sk1;
     Node sk2;
     if (options::stringUnifiedVSpt())
     {
       // must order so that we cache in a deterministic way
-      Node ux = x<y ? x : y;
-      Node uy = x<y ? y : x;
+      Node ux = x < y ? x : y;
+      Node uy = x < y ? y : x;
       Node sk = skc->mkSkolemCached(ux,
                                     uy,
                                     isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
@@ -752,7 +758,7 @@ Node CoreSolver::getConclusion(Node x, Node y, PfRule rule, bool isRev, SkolemCa
     // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
 
     Node conc;
-    if (rule==PfRule::CONCAT_LPROP)
+    if (rule == PfRule::CONCAT_LPROP)
     {
       conc = eq1;
     }
@@ -768,12 +774,13 @@ Node CoreSolver::getConclusion(Node x, Node y, PfRule rule, bool isRev, SkolemCa
     {
       // we can assume its length is greater than zero
       Node emp = Word::mkEmptyWord(sk1.getType());
-      conc = nm->mkNode(AND, conc, sk1.eqNode(emp).negate(), nm->mkNode(GT,nm->mkNode(STRING_LENGTH,sk1), nm->mkConst(Rational(0))));
+      conc = nm->mkNode(AND, conc, sk1.eqNode(emp).negate(),
+    nm->mkNode(GT,nm->mkNode(STRING_LENGTH,sk1), nm->mkConst(Rational(0))));
     }
     */
     return conc;
   }
-  
+
   return Node::null();
 }
 
@@ -1520,7 +1527,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
             Trace("strings-entail")
                 << "  explanation was : " << et.second << std::endl;
             lentTestSuccess = e;
-            lenConstraint = entLit;//et.second;
+            lenConstraint = entLit;  // et.second;
             // its not explained by the equality engine of this class
             iinfo.d_noExplain.push_back(lenConstraint);
             break;
@@ -1563,25 +1570,28 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     if (lentTestSuccess == -1)
     {
       iinfo.d_id = Inference::SSPLIT_VAR;
-      iinfo.d_conc = getConclusion(x,y,PfRule::CONCAT_SPLIT,isRev,skc,newSkolems);
+      iinfo.d_conc =
+          getConclusion(x, y, PfRule::CONCAT_SPLIT, isRev, skc, newSkolems);
       if (options::stringUnifiedVSpt())
       {
-        Assert(newSkolems.size()==1);
+        Assert(newSkolems.size() == 1);
         iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
       }
     }
-    else if (lentTestSuccess==0)
+    else if (lentTestSuccess == 0)
     {
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
-      iinfo.d_conc = getConclusion(x,y,PfRule::CONCAT_LPROP,isRev,skc,newSkolems);
-      //iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
+      iinfo.d_conc =
+          getConclusion(x, y, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
+      // iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
     }
     else
     {
-      Assert (lentTestSuccess==1);
+      Assert(lentTestSuccess == 1);
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
-      iinfo.d_conc = getConclusion(y,x,PfRule::CONCAT_LPROP,isRev,skc,newSkolems);
-      //iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
+      iinfo.d_conc =
+          getConclusion(y, x, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
+      // iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
     }
     Node lc = utils::mkAnd(lcVec);
     iinfo.d_ant.push_back(lc);

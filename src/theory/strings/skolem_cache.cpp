@@ -322,9 +322,9 @@ Node SkolemCache::mkIndexVar(Node t)
   {
     return t.getAttribute(iva);
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node v = nm->mkBoundVar(nm->integerType());
-  t.setAttribute(iva,v);
+  t.setAttribute(iva, v);
   return v;
 }
 

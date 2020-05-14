@@ -848,7 +848,7 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   {
     return itr->second;
   }
-  if(polarity) 
+  if (polarity)
   {
     conc = reduceRegExpPos(tlit, d_sc);
     // we also immediately unfold the last disjunct for re.*

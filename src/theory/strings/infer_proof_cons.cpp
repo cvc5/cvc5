@@ -339,18 +339,18 @@ Node InferProofCons::convert(Inference infer,
         }
         if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY)
         {
-          if (conc.getKind()!=EQUAL)
+          if (conc.getKind() != EQUAL)
           {
             break;
           }
           // one side should match, the other side could be a split constant
-          if (conc[0]!=t0 && conc[1]!=s0)
+          if (conc[0] != t0 && conc[1] != s0)
           {
             applySym = true;
             std::swap(t0, s0);
           }
-          Assert (conc[0].isConst()==t0.isConst());
-          Assert (conc[1].isConst()==s0.isConst());
+          Assert(conc[0].isConst() == t0.isConst());
+          Assert(conc[1].isConst() == s0.isConst());
         }
         PfRule rule = PfRule::UNKNOWN;
         // the form of the required length constraint expected by the proof
@@ -372,7 +372,8 @@ Node InferProofCons::convert(Inference infer,
         {
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(STRING_LENGTH, t0)
-                       .eqNode(nm->mkNode(STRING_LENGTH, s0)).notNode();
+                       .eqNode(nm->mkNode(STRING_LENGTH, s0))
+                       .notNode();
           lenSuccess = convertLengthPf(lenReq, lenConstraint);
           rule = PfRule::CONCAT_SPLIT;
         }
@@ -388,16 +389,17 @@ Node InferProofCons::convert(Inference infer,
         else if (infer == Inference::SSPLIT_VAR_PROP)
         {
           // it should be the case that lenConstraint => lenReq
-          for (unsigned r=0; r<2; r++)
+          for (unsigned r = 0; r < 2; r++)
           {
-            lenReq = nm->mkNode(
-                GT, nm->mkNode(STRING_LENGTH, t0), nm->mkNode(STRING_LENGTH, s0));
+            lenReq = nm->mkNode(GT,
+                                nm->mkNode(STRING_LENGTH, t0),
+                                nm->mkNode(STRING_LENGTH, s0));
             if (convertLengthPf(lenReq, lenConstraint))
             {
               lenSuccess = true;
               break;
             }
-            if (r==0)
+            if (r == 0)
             {
               // may be the other direction
               applySym = true;
@@ -531,11 +533,11 @@ Node InferProofCons::convert(Inference infer,
     {
       size_t nchild = conc.getNumChildren();
       Node mainEq;
-      if (conc.getKind()==EQUAL)
+      if (conc.getKind() == EQUAL)
       {
         mainEq = conc;
       }
-      else if (conc.getKind()== AND && conc[nchild - 1].getKind() == EQUAL)
+      else if (conc.getKind() == AND && conc[nchild - 1].getKind() == EQUAL)
       {
         mainEq = conc[nchild - 1];
       }
