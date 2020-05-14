@@ -14,7 +14,9 @@
 
 #include "theory/strings/proof_checker.h"
 
+#include "options/strings_options.h"
 #include "theory/rewriter.h"
+#include "theory/strings/core_solver.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/term_registry.h"
 #include "theory/strings/theory_strings_preprocess.h"
@@ -140,14 +142,32 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      Node lt = children[1][0];
-      Node ls = children[1][1];
-      if (lt.getKind() != STRING_LENGTH || ls.getKind() != STRING_LENGTH
-          || lt[0] != t0 || ls[0] != s0)
+      for (unsigned i = 0; i < 2; i++)
       {
-        return Node::null();
+        Node l = children[1][i];
+        if (l.getKind() != STRING_LENGTH)
+        {
+          return Node::null();
+        }
+        Node term = i == 0 ? t0 : s0;
+        if (l[0] == term)
+        {
+          continue;
+        }
+        // could be a spliced constant
+        bool success = false;
+        if (term.isConst() && l[0].isConst())
+        {
+          size_t lenL = Word::getLength(l[0]);
+          success = (isRev && l[0] == Word::suffix(term, lenL))
+                    || (!isRev && l[0] == Word::prefix(term, lenL));
+        }
+        if (!success)
+        {
+          return Node::null();
+        }
       }
-      return t0.eqNode(s0);
+      return children[1][0][0].eqNode(children[1][1][0]);
     }
     else if (id == PfRule::CONCAT_CONFLICT)
     {
@@ -178,33 +198,14 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      Node rbodyt =
-          isRev ? utils::mkPrefix(t0,
-                                  nm->mkNode(MINUS,
-                                             nm->mkNode(STRING_LENGTH, t0),
-                                             nm->mkNode(STRING_LENGTH, s0)))
-                : utils::mkSuffix(t0, nm->mkNode(STRING_LENGTH, s0));
-      Node rbodys =
-          isRev ? utils::mkPrefix(s0,
-                                  nm->mkNode(MINUS,
-                                             nm->mkNode(STRING_LENGTH, s0),
-                                             nm->mkNode(STRING_LENGTH, t0)))
-                : utils::mkSuffix(s0, nm->mkNode(STRING_LENGTH, t0));
-      Node rt = ProofSkolemCache::mkPurifySkolem(rbodyt, "rt");
-      Node rs = ProofSkolemCache::mkPurifySkolem(rbodys, "rs");
-      Node conc;
-      if (isRev)
-      {
-        conc = nm->mkNode(OR,
-                          t0.eqNode(nm->mkNode(STRING_CONCAT, s0, rt)),
-                          s0.eqNode(nm->mkNode(STRING_CONCAT, t0, rs)));
-      }
-      else
-      {
-        conc = nm->mkNode(OR,
-                          t0.eqNode(nm->mkNode(STRING_CONCAT, rt, s0)),
-                          s0.eqNode(nm->mkNode(STRING_CONCAT, rs, t0)));
-      }
+      // use skolem cache
+      SkolemCache skc(false);
+      std::vector<Node> newSkolems;
+      Node kt0 = ProofSkolemCache::getSkolemForm(t0);
+      Node ks0 = ProofSkolemCache::getSkolemForm(s0);
+      Node conc = CoreSolver::getConclusion(
+          kt0, ks0, PfRule::CONCAT_SPLIT, isRev, &skc, newSkolems);
+      conc = ProofSkolemCache::getWitnessForm(conc);
       return conc;
     }
     else if (id == PfRule::CONCAT_CSPLIT)
@@ -218,7 +219,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      if (!s0.isConst() || Word::isEmpty(s0))
+      if (!s0.isConst() || !s0.getType().isStringLike() || Word::isEmpty(s0))
       {
         return Node::null();
       }
@@ -250,22 +251,14 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      Node rbody =
-          isRev ? utils::mkPrefix(t0,
-                                  nm->mkNode(MINUS,
-                                             nm->mkNode(STRING_LENGTH, t0),
-                                             nm->mkNode(STRING_LENGTH, s0)))
-                : utils::mkSuffix(t0, nm->mkNode(STRING_LENGTH, s0));
-      Node r = ProofSkolemCache::mkPurifySkolem(rbody, "r");
-      Node conc;
-      if (isRev)
-      {
-        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, s0, r));
-      }
-      else
-      {
-        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, r, s0));
-      }
+      // use skolem cache
+      SkolemCache skc(false);
+      std::vector<Node> newSkolems;
+      Node kt0 = ProofSkolemCache::getSkolemForm(t0);
+      Node ks0 = ProofSkolemCache::getSkolemForm(s0);
+      Node conc = CoreSolver::getConclusion(
+          kt0, ks0, PfRule::CONCAT_LPROP, isRev, &skc, newSkolems);
+      conc = ProofSkolemCache::getWitnessForm(conc);
       return conc;
     }
     else if (id == PfRule::CONCAT_CPROP)
@@ -290,14 +283,14 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         return Node::null();
       }
       Node w1 = tvec[isRev ? nchildt - 2 : 1];
-      if (!w1.isConst() || Word::isEmpty(w1))
+      if (!w1.isConst() || !w1.getType().isStringLike() || Word::isEmpty(w1))
       {
         Trace("pfcheck-strings-cprop")
             << "...failed adjacent constant content" << std::endl;
         return Node::null();
       }
       Node w2 = s0;
-      if (!w2.isConst() || Word::isEmpty(w2))
+      if (!w2.isConst() || !w2.getType().isStringLike() || Word::isEmpty(w2))
       {
         Trace("pfcheck-strings-cprop") << "...failed constant" << std::endl;
         return Node::null();
@@ -346,7 +339,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::CTN_NOT_EQUAL)
   {
-    // TODO
+    // TODO: probably unnecessary (build into eager reduction?)
   }
   else if (id == PfRule::STRINGS_REDUCTION
            || id == PfRule::STRINGS_EAGER_REDUCTION || id == PfRule::LENGTH_POS)
@@ -397,7 +390,11 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Assert(args.empty());
     Node nemp = children[0];
     if (nemp.getKind() != NOT || nemp[0].getKind() != EQUAL
-        || !Word::isEmpty(nemp[0][1]))
+        || !nemp[0][1].isConst() || !nemp[0][1].getType().isStringLike())
+    {
+      return Node::null();
+    }
+    if (!Word::isEmpty(nemp[0][1]))
     {
       return Node::null();
     }

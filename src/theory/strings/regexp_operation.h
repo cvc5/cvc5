@@ -73,6 +73,8 @@ class RegExpOpr {
   Node d_sigma;
   Node d_sigma_star;
 
+  /** A cache for simplify */
+  std::map<Node, Node> d_simpCache;
   std::map<Node, std::pair<int, Node> > d_delta_cache;
   std::map<PairNodeStr, Node> d_dv_cache;
   std::map<PairNodeStr, std::pair<Node, int> > d_deriv_cache;

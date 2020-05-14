@@ -217,6 +217,15 @@ class CoreSolver
    */
   Node getNormalString(Node x, std::vector<Node>& nf_exp);
   //-------------------------- end query functions
+
+  /** get conclusion */
+  static Node getConclusion(Node t,
+                            Node s,
+                            PfRule rule,
+                            bool isRev,
+                            SkolemCache* skc,
+                            std::vector<Node>& newSkolems);
+
  private:
   /**
    * This processes the infer info ii as an inference. In more detail, it calls

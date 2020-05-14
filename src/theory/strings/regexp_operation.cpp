@@ -836,19 +836,23 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
   }
 }
 
-//simplify
 Node RegExpOpr::simplify(Node t, bool polarity)
 {
   Trace("strings-regexp-simpl")
       << "RegExpOpr::simplify: " << t << ", polarity=" << polarity << std::endl;
   Assert(t.getKind() == kind::STRING_IN_REGEXP);
-  Node str = t[0];
-  Node re = t[1];
+  Node tlit = polarity ? t : t.notNode();
   Node conc;
-  if(polarity) {
-    conc = reduceRegExpPos(t, d_sc);
+  std::map<Node, Node>::const_iterator itr = d_simpCache.find(tlit);
+  if (itr != d_simpCache.end())
+  {
+    return itr->second;
+  }
+  if (polarity)
+  {
+    conc = reduceRegExpPos(tlit, d_sc);
     // we also immediately unfold the last disjunct for re.*
-    if (re.getKind() == REGEXP_STAR)
+    if (t[1].getKind() == REGEXP_STAR)
     {
       Assert(conc.getKind() == OR && conc.getNumChildren() == 3);
       std::vector<Node> newChildren;
@@ -861,30 +865,17 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   }
   else
   {
-    Node tnot = t.notNode();
-    conc = reduceRegExpNeg(tnot, d_sc);
+    conc = reduceRegExpNeg(tlit, d_sc);
   }
+  d_simpCache[tlit] = conc;
   Trace("strings-regexp-simpl")
       << "RegExpOpr::simplify: returns " << conc << std::endl;
   return conc;
 }
 
-/**
- * Associating formulas with their "unfolded form".
- */
-struct ReUnfoldAttributeId
-{
-};
-typedef expr::Attribute<ReUnfoldAttributeId, Node> ReUnfoldAttribute;
-
 Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
 {
   Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
-  ReUnfoldAttribute rua;
-  if (mem.hasAttribute(rua))
-  {
-    return mem.getAttribute(rua);
-  }
   Node s = mem[0][0];
   Node r = mem[0][1];
   NodeManager* nm = NodeManager::currentNM();
@@ -908,6 +899,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
     // all strings in the language of R1 have the same length, say n,
     // then the conclusion of the reduction is quantifier-free:
     //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
+    // FIXME: this should be moved outside of this code
     Node reLength = RegExpEntail::getFixedLengthForRegexp(r[0]);
     if (reLength.isNull())
     {
@@ -922,7 +914,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
     Node guard;
     if (reLength.isNull())
     {
-      b1 = nm->mkBoundVar(nm->integerType());
+      b1 = SkolemCache::mkIndexVar(mem);
       b1v = nm->mkNode(BOUND_VAR_LIST, b1);
       guard = nm->mkNode(AND,
                          nm->mkNode(GEQ, b1, zero),
@@ -987,18 +979,12 @@ Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
   {
     Assert(!utils::isRegExpKind(k));
   }
-  mem.setAttribute(rua, conc);
   return conc;
 }
 
 Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
 {
   Assert(mem.getKind() == STRING_IN_REGEXP);
-  ReUnfoldAttribute rua;
-  if (mem.hasAttribute(rua))
-  {
-    return mem.getAttribute(rua);
-  }
   Node s = mem[0];
   Node r = mem[1];
   NodeManager* nm = NodeManager::currentNM();
@@ -1046,7 +1032,6 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
   {
     Assert(!utils::isRegExpKind(k));
   }
-  mem.setAttribute(rua, conc);
   return conc;
 }
 

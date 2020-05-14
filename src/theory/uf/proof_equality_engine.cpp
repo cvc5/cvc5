@@ -399,31 +399,34 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     // as arguments of SCOPE. However, some of the free assumptions may not
     // literally be equal to assumps, for instance, due to symmetry. In other
     // words, the SCOPE could be closing (= x y) in a proof with free
-    // assumption (= y x). Instead of modifying the proof, we modify the
-    // assumption vector to pass to SCOPE so that all assumptions are matched.
+    // assumption (= y x). We modify the proof leaves to account for this
+    // below.
 
     // The free assumptions of the proof
     std::map<Node, std::vector<ProofNode*>> famap;
     pfConc->getFreeAssumptionsMap(famap);
     // we first ensure the assumptions are flattened
-    std::vector<Node> ac;
+    std::unordered_set<Node, NodeHashFunction> ac;
     for (const TNode& a : assumps)
     {
       if (a.getKind() == AND)
       {
-        ac.insert(ac.end(), a.begin(), a.end());
+        ac.insert(a.begin(), a.end());
       }
       else
       {
-        ac.push_back(a);
+        ac.insert(a);
       }
     }
-    std::map<Node, std::vector<ProofNode*>>::iterator itf;
-    for (const Node& a : ac)
+    std::unordered_set<Node, NodeHashFunction> acu;
+    std::unordered_set<Node, NodeHashFunction>::iterator itf;
+    for (const std::pair<const Node, std::vector<ProofNode*>>& fa : famap)
     {
-      if (famap.find(a) != famap.end())
+      Node a = fa.first;
+      if (ac.find(a) != ac.end())
       {
-        scopeAssumps.push_back(a);
+        // already covered by an assumption
+        acu.insert(a);
         continue;
       }
       // otherwise it may be due to symmetry?
@@ -433,49 +436,54 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       {
         Node aeqSym = aeq[1].eqNode(aeq[0]);
         aeqSym = polarity ? aeqSym : aeqSym.notNode();
-        itf = famap.find(aeqSym);
-        if (itf != famap.end())
+        itf = ac.find(aeqSym);
+        if (itf != ac.end())
         {
           Trace("pfee-proof") << "- reorient assumption " << aeqSym << " via "
-                              << a << std::endl;
-          std::shared_ptr<ProofNode> pfaa = d_pnm->mkAssume(a);
-          for (ProofNode* pfs : itf->second)
+                              << a << " for " << fa.second.size() << " proof nodes" << std::endl;
+          std::shared_ptr<ProofNode> pfaa = d_pnm->mkAssume(aeqSym);
+          for (ProofNode* pfs : fa.second)
           {
-            Assert(pfs->getResult() == aeqSym);
+            Assert(pfs->getResult() == a);
             // must correct the orientation on this leaf
             std::vector<std::shared_ptr<ProofNode>> children;
             children.push_back(pfaa);
-            Trace("pfee-proof") << "...finished make assume" << std::endl;
             std::vector<Node> args;
-            args.push_back(aeqSym);
+            args.push_back(a);
             d_pnm->updateNode(
                 pfs, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
           }
-          scopeAssumps.push_back(a);
           Trace("pfee-proof") << "...finished" << std::endl;
+          acu.insert(aeqSym);
           continue;
         }
       }
-      scopeAssumps.push_back(a);
-      // The assumption should match a free assumption; if it does not, then
+      // All free assumptions should be arguments to SCOPE. If not, then this is
+      // not a proof of the lemma/conflict/exp-prop we are sending out.
+      std::stringstream ss;
+      pfConc->printDebug(ss);
+      ss << std::endl << "Free assumption: " << a << std::endl;
+      AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()
+                          << std::endl;
+    }
+    if (acu.size()<ac.size())
+    {
+      // All assumptions should match a free assumption; if one does not, then
       // the explanation could have been smaller. This assertion should be
       // ensured by the fact that the core mechanism for generating proofs
       // from the equality engine is syncronized with its getExplanation
       // method.
-      std::stringstream ss;
-      pfConc->printDebug(ss);
-      std::vector<Node> freeAssumps;
-      for (const std::pair<const Node, std::vector<ProofNode*>>& ap : famap)
+      for (const Node& a : ac)
       {
-        freeAssumps.push_back(ap.first);
+        if (acu.find(a)==acu.end())
+        {
+          Notice() << "pfee::ensureProofForFact: assumption " << a
+                  << " does not match a free assumption in proof" 
+                  << std::endl;
+        }
       }
-      Trace("pfee-proof") << "Could not find free assumption for " << a
-                          << " in " << freeAssumps << std::endl;
-      Notice() << "pfee::ensureProofForFact: explained assumption " << a
-               << " does not match a free assumption from " << freeAssumps
-               << std::endl;
-      // Assert(false);
     }
+    scopeAssumps.insert(scopeAssumps.end(),acu.begin(),acu.end());
     exp = mkAnd(scopeAssumps);
   }
   else
@@ -526,19 +534,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     Assert(pf != nullptr);
     // Should be a closed proof now. If it is not, then the overall proof
     // is malformed.
-    if (!pf->isClosed())
-    {
-      std::stringstream ss;
-      pf->printDebug(ss);
-      ss << std::endl;
-      std::vector<Node> freeAssumpsPf;
-      pf->getFreeAssumptions(freeAssumpsPf);
-      ss << "Free assumptions: " << freeAssumpsPf << std::endl;
-      Trace("pfee-proof-final")
-          << "pfee::ensureProofForFact: Proof is " << ss.str() << std::endl;
-      AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()
-                          << std::endl;
-    }
+    Assert (pf->isClosed());
     pfg = this;
     // set the proof for the conflict or lemma, which can be queried later
     switch (tnk)
