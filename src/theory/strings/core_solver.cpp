@@ -715,7 +715,7 @@ Node CoreSolver::getConclusion(Node x, Node y, PfRule rule, bool isRev, SkolemCa
   {
     Node sk1;
     Node sk2;
-    if (options::stringUnifiedVSpt() && rule==PfRule::CONCAT_SPLIT)
+    if (options::stringUnifiedVSpt())
     {
       // must order so that we cache in a deterministic way
       Node ux = x<y ? x : y;
@@ -763,12 +763,14 @@ Node CoreSolver::getConclusion(Node x, Node y, PfRule rule, bool isRev, SkolemCa
       // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
       conc = nm->mkNode(OR, eq1, eq2);
     }
+    /*
     if (options::stringUnifiedVSpt())
     {
       // we can assume its length is greater than zero
       Node emp = Word::mkEmptyWord(sk1.getType());
       conc = nm->mkNode(AND, conc, sk1.eqNode(emp).negate(), nm->mkNode(GT,nm->mkNode(STRING_LENGTH,sk1), nm->mkConst(Rational(0))));
     }
+    */
     return conc;
   }
   
@@ -1565,21 +1567,21 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       if (options::stringUnifiedVSpt())
       {
         Assert(newSkolems.size()==1);
-        iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
+        iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
       }
     }
     else if (lentTestSuccess==0)
     {
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
       iinfo.d_conc = getConclusion(x,y,PfRule::CONCAT_LPROP,isRev,skc,newSkolems);
-      iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
+      //iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
     }
     else
     {
       Assert (lentTestSuccess==1);
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
       iinfo.d_conc = getConclusion(y,x,PfRule::CONCAT_LPROP,isRev,skc,newSkolems);
-      iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
+      //iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
     }
     Node lc = utils::mkAnd(lcVec);
     iinfo.d_ant.push_back(lc);
