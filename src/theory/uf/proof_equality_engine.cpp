@@ -440,7 +440,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
         if (itf != ac.end())
         {
           Trace("pfee-proof") << "- reorient assumption " << aeqSym << " via "
-                              << a << std::endl;
+                              << a << " for " << fa.second.size() << " proof nodes" << std::endl;
           std::shared_ptr<ProofNode> pfaa = d_pnm->mkAssume(aeqSym);
           for (ProofNode* pfs : fa.second)
           {
@@ -448,7 +448,6 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
             // must correct the orientation on this leaf
             std::vector<std::shared_ptr<ProofNode>> children;
             children.push_back(pfaa);
-            Trace("pfee-proof") << "...finished make assume" << std::endl;
             std::vector<Node> args;
             args.push_back(a);
             d_pnm->updateNode(
@@ -463,7 +462,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       // not a proof of the lemma/conflict/exp-prop we are sending out.
       std::stringstream ss;
       pfConc->printDebug(ss);
-      ss << "Free assumption: " << a << std::endl;
+      ss << std::endl << "Free assumption: " << a << std::endl;
       AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()
                           << std::endl;
     }
