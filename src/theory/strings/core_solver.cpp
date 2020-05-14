@@ -914,27 +914,53 @@ void CoreSolver::getNormalForms(Node eqc,
 void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
                              TypeNode stype)
 {
+  if (normal_forms.size()<=1)
+  {
+    return;
+  }
   //the possible inferences
   std::vector<CoreInferInfo> pinfer;
   // compute normal forms that are effectively unique
-  std::unordered_set<Node,NodeHashFunction> nfCache;
+  std::unordered_map<Node,size_t,NodeHashFunction> nfCache;
   std::vector<size_t> nfIndices;
-  for (size_t i=0, nnforms=normal_forms.size(); i++)
+  bool foundConflict = false;
+  size_t nfConfJ = 0;
+  size_t nfConfI = 0;
+  for (size_t i=0, nnforms=normal_forms.size(); i<nnforms; i++)
   {
     NormalForm& nfi = normal_forms[i];
-    Node ni = utils::mkConcat(nfi.d_nf,stype);
+    Node ni = utils::mkNConcat(nfi.d_nf,stype);
     if (nfCache.find(ni)==nfCache.end())
     {
-      nfCache.insert(ni);
+      // compare against previous to see if already conflicting
+      if (options::stringNfEqConflict() && !foundConflict)
+      {
+        for (const std::pair<const Node, size_t >& nj : nfCache)
+        {
+          Node eq = ni.eqNode(nj.first);
+          eq = Rewriter::rewrite(eq);
+          if (eq==d_false)
+          {
+            nfConfJ = nj.second;
+            nfConfI = i;
+            foundConflict = true;
+            break;
+          }
+        }
+      }
+      nfCache[ni] = i;
       nfIndices.push_back(i);
     }
   }
   size_t nnfs = nfIndices.size();
+  Trace("strings-solve") << "CoreSolver::processNEqc: " << nnfs << "/" << normal_forms.size() << " normal forms are unique." << std::endl;
   
   // loop over all pairs 
-  for(unsigned i=0; i<nnfs-1; i++) {
+  for(unsigned i=0; i<nnfs-1; i++) 
+  {
     //unify each normalform[j] with normal_forms[i]
-    for(unsigned j=i+1; j<nnfs; j++ ) {
+    for(unsigned j=i+1; j<nnfs; j++ ) 
+    {
       NormalForm& nfi = normal_forms[nfIndices[i]];
       NormalForm& nfj = normal_forms[nfIndices[j]];
       //ensure that normal_forms[i] and normal_forms[j] are the same modulo equality, add to pinfer if not
@@ -942,32 +968,54 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
       if (isNormalFormPair(nfi.d_base, nfj.d_base))
       {
         Trace("strings-solve") << "Strings: Already cached." << std::endl;
-      }else{
-        //process the reverse direction first (check for easy conflicts and inferences)
-        unsigned rindex = 0;
-        nfi.reverse();
-        nfj.reverse();
-        processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
-        nfi.reverse();
-        nfj.reverse();
-        if (d_im.hasProcessed())
-        {
-          return;
-        }
-        //AJR: for less aggressive endpoint inference
-        //rindex = 0;
+        continue;
+      }
+      //process the reverse direction first (check for easy conflicts and inferences)
+      unsigned rindex = 0;
+      nfi.reverse();
+      nfj.reverse();
+      processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
+      nfi.reverse();
+      nfj.reverse();
+      if (d_im.hasProcessed())
+      {
+        break;
+      }
+      //AJR: for less aggressive endpoint inference
+      //rindex = 0;
 
-        unsigned index = 0;
-        processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype);
-        if (d_im.hasProcessed())
-        {
-          return;
-        }
+      unsigned index = 0;
+      processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype);
+      if (d_im.hasProcessed())
+      {
+        break;
       }
     }
+    if (d_im.hasProcessed())
+    {
+      break;
+    }
   }
-  if (pinfer.empty())
+  if (d_state.isInConflict())
   {
+    // conflict, we are done
+    return;
+  }
+  else if (foundConflict)
+  {
+    // normal form equality conflict
+    std::vector<Node> exp;
+    NormalForm& nfj = normal_forms[nfConfJ];
+    NormalForm& nfi = normal_forms[nfConfI];
+    exp.insert(exp.end(),nfj.d_exp.begin(),nfj.d_exp.end());
+    exp.insert(exp.end(),nfi.d_exp.begin(),nfi.d_exp.end());
+    exp.push_back(nfi.d_base.eqNode(nfj.d_base));
+    d_im.sendInference(exp, d_false, Inference::N_EQ_CONF);
+    return;
+  }
+  else if (d_im.hasProcessed() || pinfer.empty())
+  {
+    // either already sent a lemma or fact, or there are no possible inferences
     return;
   }
   // now, determine which of the possible inferences we want to add

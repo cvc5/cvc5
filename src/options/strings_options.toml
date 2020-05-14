@@ -91,6 +91,15 @@ header = "options/strings_options.h"
   help       = "strings eager length lemmas"
 
 [[option]]
+  name       = "stringNfEqConflict"
+  category   = "regular"
+  long       = "strings-nf-eq-conf"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "strings normal form equality conflict"
+
+[[option]]
   name       = "stringCheckEntailLen"
   category   = "regular"
   long       = "strings-check-entail-len"
