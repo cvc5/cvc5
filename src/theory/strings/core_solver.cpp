@@ -1162,6 +1162,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
     if (d_state.areEqual(xLenTerm, yLenTerm))
     {
+      std::vector<Node> ant;
+      NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, ant);
+      if (x.isConst() && y.isConst())
+      {
+        // if both are constant, its just a constant conflict
+        d_im.sendInference(ant, d_false, Inference::N_CONST, isRev, true);
+        return;
+      }
       // `x` and `y` have the same length. We infer that the two components
       // have to be the same.
       //
@@ -1170,8 +1178,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           << "Simple Case 2 : string lengths are equal" << std::endl;
       Node eq = x.eqNode(y);
       Node leneq = xLenTerm.eqNode(yLenTerm);
-      std::vector<Node> ant;
-      NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, ant);
       lenExp.push_back(leneq);
       // set the explanation for length
       Node lant = utils::mkAnd(lenExp);
