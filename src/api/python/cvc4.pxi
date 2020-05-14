@@ -1073,6 +1073,11 @@ cdef class Term:
     def isNull(self):
         return self.cterm.isNull()
 
+    def getStoreAllBase(self):
+        cdef Term term = Term()
+        term.cterm = self.cterm.getStoreAllBase()
+        return term
+
     def notTerm(self):
         cdef Term term = Term()
         term.cterm = self.cterm.notTerm()
