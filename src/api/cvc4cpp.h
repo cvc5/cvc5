@@ -884,6 +884,13 @@ class CVC4_PUBLIC Term
   bool isConst() const;
 
   /**
+   *  Return the base (element stored at all indices) of a constant array
+   *  throws an exception if the kind is not STORE_ALL
+   *  @return the base value
+   */
+  Term getStoreAllBase() const;
+
+  /**
    * Boolean negation.
    * @return the Boolean negation of this term
    */

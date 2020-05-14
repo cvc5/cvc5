@@ -1470,6 +1470,14 @@ bool Term::isConst() const
   return d_expr->isConst();
 }
 
+Term Term::getStoreAllBase() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::STORE_ALL)
+      << "Expecting a STORE_ALL Term when calling getStoreAllBase()";
+  return d_expr->getConst<ArrayStoreAll>().getExpr();
+}
+
 Term Term::notTerm() const
 {
   CVC4_API_CHECK_NOT_NULL;
