@@ -446,7 +446,12 @@ Node InferProofCons::convert(Inference infer,
           Node mainEqMain = d_psb.tryStep(rule, childrenMain, argsMain);
           Trace("strings-ipc-core") << "Main equality after " << rule << " "
                                     << mainEqMain << std::endl;
-          Assert(mainEqMain != mainEqCeq);
+          if (mainEqMain == mainEqCeq)
+          {
+            Trace("strings-ipc-core") << "...undo step" << std::endl;
+            // not necessary, probably first component of equality
+            d_psb.popStep();
+          }
           // either equal or rewrites to it
           std::vector<Node> cexp;
           if (convertPredTransform(mainEqMain, conc, cexp))
