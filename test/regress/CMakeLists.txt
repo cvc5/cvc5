@@ -416,6 +416,7 @@ set(regress_0_tests
   regress0/datatypes/mutually-recursive.cvc
   regress0/datatypes/pair-bool-bool.cvc
   regress0/datatypes/pair-real-bool.smt2
+  regress0/datatypes/parametric-alt-list.cvc
   regress0/datatypes/rec1.cvc
   regress0/datatypes/rec2.cvc
   regress0/datatypes/rec4.cvc
