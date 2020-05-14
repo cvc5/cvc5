@@ -142,14 +142,31 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      Node lt = children[1][0];
-      Node ls = children[1][1];
-      if (lt.getKind() != STRING_LENGTH || ls.getKind() != STRING_LENGTH
-          || lt[0] != t0 || ls[0] != s0)
+      for (unsigned i=0; i<2; i++)
       {
-        return Node::null();
+        Node l = children[1][i];
+        if (l.getKind()!=STRING_LENGTH)
+        {
+          return Node::null();
+        }
+        Node term = i==0 ? t0 : s0;
+        if (l[0]==term)
+        {
+          continue;
+        }
+        // could be a spliced constant
+        bool success = false;
+        if (term.isConst() && l[0].isConst())
+        {
+          size_t lenL = Word::getLength(l[0]);
+          success = ( isRev && l[0] == Word::suffix(term, lenL) ) || ( !isRev && l[0] == Word::prefix(term, lenL));
+        }
+        if (!success)
+        {
+          return Node::null();
+        }
       }
-      return t0.eqNode(s0);
+      return children[1][0][0].eqNode(children[1][1][0]);
     }
     else if (id == PfRule::CONCAT_CONFLICT)
     {

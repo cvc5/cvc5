@@ -337,6 +337,21 @@ Node InferProofCons::convert(Inference infer,
           applySym = true;
           std::swap(t0, s0);
         }
+        if (infer == Inference::N_UNIFY || infer == Inference::F_UNIFY)
+        {
+          if (conc.getKind()!=EQUAL)
+          {
+            break;
+          }
+          // one side should match, the other side could be a split constant
+          if (conc[0]!=t0 && conc[1]!=s0)
+          {
+            applySym = true;
+            std::swap(t0, s0);
+          }
+          Assert (conc[0].isConst()==t0.isConst());
+          Assert (conc[1].isConst()==s0.isConst());
+        }
         PfRule rule = PfRule::UNKNOWN;
         // the form of the required length constraint expected by the proof
         Node lenReq;
@@ -346,9 +361,10 @@ Node InferProofCons::convert(Inference infer,
           // the required premise for unify is always len(x) = len(y),
           // however the explanation may not be literally this. Thus, we
           // need to reconstruct a proof from the given explanation.
-          // it should be the case that lenConstraint => lenReq
-          lenReq = nm->mkNode(STRING_LENGTH, t0)
-                       .eqNode(nm->mkNode(STRING_LENGTH, s0));
+          // it should be the case that lenConstraint => lenReq.
+          // We use terms in the conclusion equality, not t0, s0 here.
+          lenReq = nm->mkNode(STRING_LENGTH, conc[0])
+                       .eqNode(nm->mkNode(STRING_LENGTH, conc[1]));
           lenSuccess = convertLengthPf(lenReq, lenConstraint);
           rule = PfRule::CONCAT_UNIFY;
         }
