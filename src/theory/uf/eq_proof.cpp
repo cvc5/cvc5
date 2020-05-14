@@ -116,12 +116,14 @@ bool EqProof::foldTransitivityChildren(
     CDProof* p,
     std::unordered_set<Node, NodeHashFunction>& assumptions) const
 {
+  Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: check if need "
+                           "to fold transitivity to conclude "
+                        << conclusion << " from premises " << premises << "\n";
   // traverse premises to see if any of the form (= (= t1 t2) false)
   unsigned size = premises.size();
   unsigned termPos = 2, offending = size;
   for (unsigned i = 0; i < size; ++i)
   {
-    Trace("ajr-temp") << "Premise trans : " << premises[i] << std::endl;
     AlwaysAssert(premises[i].getKind() == kind::EQUAL);
     for (unsigned j = 0; j < 2; ++j)
     {
@@ -146,52 +148,6 @@ bool EqProof::foldTransitivityChildren(
   Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: found "
                            "offending equality at index "
                         << offending << " : " << premises[offending] << "\n";
-  // an offending premise (= (= t1 t2) false) indicates we are concluding,
-  // modulo symmetry, (= false true) or the disequality (= (t3 t4) false). The
-  // former can be fixed by having the remaining premises derive, with
-  // TRANSITIVITY, (= t1 t2), but the latter requires a MACRO_SR_PRED_TRANSFORM
-  // step which will turn (= (= t1 t2) false) into (= (= t3 t4) false). The
-  // assumption is that one of t1,t2 is synctatically equal to one of t3,t4 and
-  // that the remaining premises allow deriving the equality of the other case.
-  Node foldConclusion;
-  bool inSubstCase;
-  if ((conclusion[0].getKind() == kind::CONST_BOOLEAN
-       && conclusion[1].getKind() != kind::CONST_BOOLEAN)
-      || (conclusion[1].getKind() == kind::CONST_BOOLEAN
-          && conclusion[0].getKind() != kind::CONST_BOOLEAN))
-  {
-    inSubstCase = true;
-    Node premiseTerm = premises[offending][termPos];
-    Node conclusionTerm = conclusion[0].getKind() == kind::CONST_BOOLEAN
-                              ? conclusion[1]
-                              : conclusion[0];
-    // at least of the arguments of premiseTerm and conclusionTerm must be the
-    // same. The other args will compose the conclusion of folding of the
-    // remaining premises
-    std::vector<Node> sub;
-    for (unsigned i = 0; i < 2 && sub.empty(); ++i)
-    {
-      for (unsigned j = 0; j < 2; ++j)
-      {
-        if (premiseTerm[i] == conclusionTerm[j])
-        {
-          sub.push_back(premiseTerm[1 - i]);
-          sub.push_back(conclusionTerm[1 - j]);
-          break;
-        }
-      }
-    }
-    Assert(sub.size() == 2);
-    foldConclusion = sub[0].eqNode(sub[1]);
-  }
-  else
-  {
-    // conclusion must be, modulo symmetry, false = true
-    Assert(conclusion[0].getKind() == kind::CONST_BOOLEAN
-           && conclusion[1].getKind() == kind::CONST_BOOLEAN);
-    inSubstCase = false;
-    foldConclusion = premises[offending][termPos];
-  }
   std::vector<Node> foldPremises;
   for (unsigned i = 0; i < size; ++i)
   {
@@ -202,38 +158,177 @@ bool EqProof::foldTransitivityChildren(
   }
   cleanReflPremisesInTranstivity(foldPremises);
   Assert(!foldPremises.empty());
-  Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: need to derive "
-                        << foldConclusion << " with premises " << foldPremises
-                        << "\n";
-  Assert(foldPremises.size() > 1 || foldConclusion == foldPremises.back()
-         || (foldConclusion[0] == foldPremises.back()[1]
-             && foldConclusion[1] == foldPremises.back()[0]))
-      << "EqProof::foldTransitivityChildren: single fold premise "
-      << foldPremises.back() << " is not the same as foldConclusion "
-      << foldConclusion << " and not its symmetric\n";
-  // if the fold conclusion is an assumption, we'd be generating a cyclic proof
-  // below, so no need
-  if (foldPremises.size() > 1 && !assumptions.count(foldConclusion))
+  // an offending premise (= (= t1 t2) false) indicates we are concluding,
+  // modulo symmetry, (= false true) or the disequality (= (t3 t4) false). The
+  // former can be fixed by having the remaining premises derive, with
+  // TRANSITIVITY, (= t1 t2), but the latter requires a MACRO_SR_PRED_TRANSFORM
+  // step which will turn (= (= t1 t2) false) into (= (= t3 t4) false). The
+  // remaining premises allow deriving the equality of the other case.
+  Node foldConclusion;
+  std::vector<Node> substPremises;
+  bool inSubstCase;
+  if ((conclusion[0].getKind() == kind::CONST_BOOLEAN
+       && conclusion[1].getKind() != kind::CONST_BOOLEAN)
+      || (conclusion[1].getKind() == kind::CONST_BOOLEAN
+          && conclusion[0].getKind() != kind::CONST_BOOLEAN))
   {
-    // create transitivity step to derive expected premise
-    unsigned newSize = foldPremises.size();
-    maybeAddSymmOrTrueIntroToProof(0, foldPremises, true, foldConclusion[0], p);
-    for (unsigned i = 1; i < newSize - 1; ++i)
+    // Either
+    //
+    //      (= (= x y) false) (= x y1) ... (= yn z)
+    // (1) ----------------------------------------- TR
+    //             (= (= x z) false)
+    //
+    // or
+    //
+    //       (= (= x y) false) (= x z1) (= y z2)
+    // (2)  ------------------------------------- TR
+    //             (= (= z1 z2) false)
+    //
+    // are supported. If both terms in the equality are replaced but there are
+    // more than two conclusions we do not support it.
+    //
+    // The above cases will lead to, respectively:
+    //
+    //                         (= x y1) ... (= yn z)
+    //                        ----------------------- TR
+    //      (= (= x y) false)        (= x z)
+    // (1) ----------------------------------------- MACRO_SR_PRED_TRANSFORM
+    //             (= (= x z) false)
+    //
+    //
+    //      (= (= x y) false) (= x z1) (= y z2)
+    // (2) ------------------------------------ MACRO_SR_PRED_TRANSFORM
+    //             (= (= z1 z2) false)
+    //
+    // TODO if necessary we could support the general case of needing
+    // transitivity for both substitutions if we did a transitivity
+    // reconstruction that from a set of equalities collects those necessary for
+    // building a transitivity step for the given conclusion
+    inSubstCase = true;
+    Node premiseTermEq = premises[offending][termPos];
+    Node conclusionTermEq = conclusion[0].getKind() == kind::CONST_BOOLEAN
+                              ? conclusion[1]
+                              : conclusion[0];
+    Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: Substitition "
+                             "case. Need to build subst from "
+                          << premiseTermEq << " to " << conclusionTermEq
+                          << "\n";
+    // If only one argument in the premise is substituted, premiseTermEq and
+    // conclusionTermEq will share one argument and how the other change
+    // characterizes the substitution. If no substitution can be substituted in
+    // this way, then both arguments are replaced.
+    std::vector<Node> sub;
+    for (unsigned i = 0; i < 2 && sub.empty(); ++i)
     {
-      maybeAddSymmOrTrueIntroToProof(
-          i, foldPremises, true, foldPremises[i - 1][1], p);
+      for (unsigned j = 0; j < 2; ++j)
+      {
+        if (premiseTermEq[i] == conclusionTermEq[j])
+        {
+          sub.push_back(premiseTermEq[1 - i]);
+          sub.push_back(conclusionTermEq[1 - j]);
+          break;
+        }
+      }
     }
-    maybeAddSymmOrTrueIntroToProof(
-        newSize - 1, foldPremises, false, foldConclusion[1], p);
-    Trace("eqproof-conv")
-        << "EqProof::foldTransitivityChildren: add transitivity step for "
-        << foldConclusion << " with premises " << foldPremises << "\n";
-    // create folding step
-    if (!p->addStep(foldConclusion, PfRule::TRANS, foldPremises, {}, true))
+    if (!sub.empty())
     {
-      Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                       "folding trans step from "
-                    << foldPremises << " to " << foldConclusion << "\n";
+      foldConclusion = sub[0].eqNode(sub[1]);
+      substPremises.push_back(foldConclusion);
+      Trace("eqproof-conv")
+          << "EqProof::foldTransitivityChildren: Need to fold premises into "
+          << foldConclusion << "\n";
+    }
+    else
+    {
+      Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: Need two "
+                               "substitutions, so no fold can happen\n";
+      std::vector<Node> subs[2];
+      subs[0].push_back(premiseTermEq[0]);
+      subs[1].push_back(premiseTermEq[1]);
+      // The substitutions t1 -> t3/t4 and t2 -> t3/t4 are built based on the
+      // available premises. We must guarantee that the subsitution equality is
+      // a premise or its symmetric
+      Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: Look for "
+                            << premiseTermEq[0] << " and " << premiseTermEq[1]
+                            << " in premises " << foldPremises << "\n";
+      Assert(foldPremises.size() == 2);
+      for (unsigned i = 0; i < 2; ++i)
+      {
+        for (unsigned j = 0; j < 2; ++j)
+        {
+          for (unsigned k = 0; k < 2; ++k)
+          {
+            if (premiseTermEq[i] == foldPremises[j][k])
+            {
+              subs[i].push_back(foldPremises[j][1 - k]);
+              break;
+            }
+          }
+        }
+        Assert(subs[i].size() == 2)
+            << " did not find term " << subs[i][0] << "\n";
+      }
+      substPremises.push_back(subs[0][0].eqNode(subs[0][1]));
+      substPremises.push_back(subs[1][0].eqNode(subs[1][1]));
+    }
+  }
+  else
+  {
+    // conclusion must be, modulo symmetry, false = true
+    Assert(conclusion[0].getKind() == kind::CONST_BOOLEAN
+           && conclusion[1].getKind() == kind::CONST_BOOLEAN);
+    inSubstCase = false;
+    foldConclusion = premises[offending][termPos];
+  }
+  // potentially need to fold non-offending premises into a transitivity step
+  if (!foldConclusion.isNull())
+  {
+    Trace("eqproof-conv")
+        << "EqProof::foldTransitivityChildren: need to derive "
+        << foldConclusion << " with premises " << foldPremises << "\n";
+    Assert(foldPremises.size() > 1 || foldConclusion == foldPremises.back()
+           || (foldConclusion[0] == foldPremises.back()[1]
+               && foldConclusion[1] == foldPremises.back()[0]))
+        << "EqProof::foldTransitivityChildren: single fold premise "
+        << foldPremises.back() << " is not the same as foldConclusion "
+        << foldConclusion << " and not its symmetric\n";
+    // if the fold conclusion is an assumption, we'd be generating a cyclic
+    // proof below, so no need
+    //
+    //                -------- A  ------- A
+    //                 l1 = ""     "" = t
+    // ------- A     ----------------------- TR
+    // l1 = ""              l1 = t
+    // ------------------------------------- TR
+    //            "" = t
+    // ------------------------------------- TRUE_I
+    //        ("" = t) = True                            ("" = t) = False
+    // -------------------------------------------------------------------TR
+    //                        False = True
+    //
+    if (foldPremises.size() > 1 && !assumptions.count(foldConclusion))
+    {
+      // create transitivity step to derive expected premise
+      unsigned newSize = foldPremises.size();
+      maybeAddSymmOrTrueIntroToProof(
+          0, foldPremises, true, foldConclusion[0], p);
+      for (unsigned i = 1; i < newSize - 1; ++i)
+      {
+        maybeAddSymmOrTrueIntroToProof(
+            i, foldPremises, true, foldPremises[i - 1][1], p);
+      }
+      maybeAddSymmOrTrueIntroToProof(
+          newSize - 1, foldPremises, false, foldConclusion[1], p);
+      Trace("eqproof-conv")
+          << "EqProof::foldTransitivityChildren: add transitivity step for "
+          << foldConclusion << " with premises " << foldPremises << "\n";
+      // create folding step
+      if (!p->addStep(foldConclusion, PfRule::TRANS, foldPremises, {}, true))
+      {
+        Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
+                         "folding trans step from "
+                      << foldPremises << " to " << foldConclusion << "\n";
+      }
     }
   }
   // now build the proof step for the original conclusion
@@ -244,7 +339,7 @@ bool EqProof::foldTransitivityChildren(
       << conclusion << " via ";
   if (inSubstCase)
   {
-    premises.push_back(foldConclusion);
+    premises.insert(premises.end(), substPremises.begin(), substPremises.end());
     Trace("eqproof-conv") << PfRule::MACRO_SR_PRED_TRANSFORM << " from "
                           << premises << "\n";
     if (!p->addStep(conclusion,
