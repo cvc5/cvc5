@@ -594,15 +594,15 @@ TypeNode DTypeConstructor::doParametricSubstitution(
   {
     return range;
   }
-  std::vector<Type> origChildren;
-  std::vector<Type> children;
+  std::vector<TypeNode> origChildren;
+  std::vector<TypeNode> children;
   for (TypeNode::const_iterator i = range.begin(), iend = range.end();
        i != iend;
        ++i)
   {
-    origChildren.push_back((*i).toType());
+    origChildren.push_back((*i));
     children.push_back(
-        doParametricSubstitution((*i), paramTypes, paramReplacements).toType());
+        doParametricSubstitution((*i), paramTypes, paramReplacements));
   }
   /*
   for (size_t i = 0, psize = paramTypes.size(); i < psize; ++i)
@@ -619,22 +619,22 @@ TypeNode DTypeConstructor::doParametricSubstitution(
     }
   }
   */
-  Type rt = range.toType();
   for( unsigned i = 0; i < paramTypes.size(); ++i ) {
     TypeNode tnn = paramTypes[i];
     SortConstructorType pt = SortConstructorType(tnn.toType());
     if( pt.getArity() == origChildren.size() ) {
-      Type tn = pt.instantiate( origChildren );
-      if( rt == tn ) {
-        TypeNode prtn = paramReplacements[i];
-        return TypeNode::fromType(DatatypeType(prtn.toType()).instantiate( children ));
+      TypeNode tn = paramTypes[i].instantiateSortConstructor(origChildren);
+      if( range == tn ) {
+        TypeNode tret =
+            paramReplacements[i].instantiateParametricDatatype(children);
+        return tret;
       }
     }
   }
   NodeBuilder<> nb(range.getKind());
   for (size_t i = 0, csize = children.size(); i < csize; ++i)
   {
-    nb << TypeNode::fromType(children[i]);
+    nb << children[i];
   }
   TypeNode tn = nb.constructTypeNode();
   return tn;

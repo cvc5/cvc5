@@ -11,4 +11,3 @@ ASSERT NOT( x = y );
 ASSERT NOT ( x = tail(tail(x)) );
 
 CHECKSAT;
-COUNTERMODEL;
