@@ -489,7 +489,8 @@ bool DTypeConstructor::resolve(
     {
       // the unresolved type wasn't created here; do name resolution
       std::string typeName = argName.substr(argName.find('\0') + 1);
-      Trace("datatypes-init") << "  - selector, typeName is " << typeName << std::endl;
+      Trace("datatypes-init")
+          << "  - selector, typeName is " << typeName << std::endl;
       argName.resize(argName.find('\0'));
       if (typeName == "")
       {
@@ -507,7 +508,8 @@ bool DTypeConstructor::resolve(
             resolutions.find(typeName);
         if (j == resolutions.end())
         {
-          Trace("datatypes-init") << "  ...failed to resolve selector" << std::endl;
+          Trace("datatypes-init")
+              << "  ...failed to resolve selector" << std::endl;
           // failed to resolve selector
           return false;
         }
@@ -528,7 +530,8 @@ bool DTypeConstructor::resolve(
       // the type for the selector already exists; may need
       // complex-type substitution
       range = arg->d_selector.getType();
-      Trace("datatypes-init") << "  - null selector, range = " << range << std::endl;
+      Trace("datatypes-init")
+          << "  - null selector, range = " << range << std::endl;
       if (!placeholders.empty())
       {
         range = range.substitute(placeholders.begin(),
@@ -536,12 +539,14 @@ bool DTypeConstructor::resolve(
                                  replacements.begin(),
                                  replacements.end());
       }
-      Trace("datatypes-init") << "  ...range after placeholder replacement " << range << std::endl;
+      Trace("datatypes-init")
+          << "  ...range after placeholder replacement " << range << std::endl;
       if (!paramTypes.empty())
       {
         range = doParametricSubstitution(range, paramTypes, paramReplacements);
       }
-      Trace("datatypes-init") << "  ...range after parametric substitution " << range << std::endl;
+      Trace("datatypes-init")
+          << "  ...range after parametric substitution " << range << std::endl;
       arg->d_selector = nm->mkSkolem(
           argName,
           nm->mkSelectorType(self, range),
@@ -603,10 +608,13 @@ TypeNode DTypeConstructor::doParametricSubstitution(
     children.push_back(
         doParametricSubstitution((*i), paramTypes, paramReplacements));
   }
-  for( unsigned i = 0; i < paramTypes.size(); ++i ) {
-    if( paramTypes[i].getSortConstructorArity() == origChildren.size() ) {
+  for (unsigned i = 0; i < paramTypes.size(); ++i)
+  {
+    if (paramTypes[i].getSortConstructorArity() == origChildren.size())
+    {
       TypeNode tn = paramTypes[i].instantiateSortConstructor(origChildren);
-      if( range == tn ) {
+      if (range == tn)
+      {
         TypeNode tret =
             paramReplacements[i].instantiateParametricDatatype(children);
         return tret;

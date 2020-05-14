@@ -676,7 +676,7 @@ public:
 
   /** Get sort constructor arity */
   unsigned getSortConstructorArity() const;
-  
+
   /**
    * Instantiate a sort constructor type. The type on which this method is
    * called should be a sort constructor type whose parameter list is the
