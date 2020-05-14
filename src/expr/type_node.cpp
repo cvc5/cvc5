@@ -461,7 +461,7 @@ TypeNode TypeNode::instantiateParametricDatatype(
 
 unsigned TypeNode::getSortConstructorArity() const
 {
-  Assert(isSortConstructor() && hasAttribute(SortArityAttr()));
+  Assert(isSortConstructor() && hasAttribute(expr::SortArityAttr()));
   return getAttribute(expr::SortArityAttr());
 }
 
