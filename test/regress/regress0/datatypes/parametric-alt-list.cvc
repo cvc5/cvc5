@@ -8,7 +8,7 @@ y : List[INT,STRING];
 
 ASSERT NOT( x = y );
 
-ASSERT NOT ( x = tail(x) );
+ASSERT NOT ( x = tail(tail(x)) );
 
 CHECKSAT;
 COUNTERMODEL;
