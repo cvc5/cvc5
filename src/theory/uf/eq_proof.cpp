@@ -213,6 +213,18 @@ bool EqProof::foldTransitivityChildren(
       << foldConclusion << " and not its symmetric\n";
   // if the fold conclusion is an assumption, we'd be generating a cyclic proof
   // below, so no need
+  //
+  //                -------- A  ------- A
+  //                 l1 = ""     "" = t
+  // ------- A     ----------------------- TR
+  // l1 = ""              l1 = t
+  // ------------------------------------- TR
+  //            "" = t
+  // ------------------------------------- TRUE_I
+  //        ("" = t) = True                            ("" = t) = False
+  // -------------------------------------------------------------------TR
+  //                        False = True
+
   if (foldPremises.size() > 1 && !assumptions.count(foldConclusion))
   {
     // create transitivity step to derive expected premise
