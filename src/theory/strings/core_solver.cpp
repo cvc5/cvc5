@@ -879,7 +879,6 @@ void CoreSolver::getNormalForms(Node eqc,
           }
         }
         Trace("strings-solve") << std::endl;
-        
       }
     } else {
       Trace("strings-solve") << "--- Single normal form for equivalence class " << eqc << std::endl;
@@ -917,12 +916,27 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
 {
   //the possible inferences
   std::vector<CoreInferInfo> pinfer;
+  // compute normal forms that are effectively unique
+  std::unordered_set<Node,NodeHashFunction> nfCache;
+  std::vector<size_t> nfIndices;
+  for (size_t i=0, nnforms=normal_forms.size(); i++)
+  {
+    NormalForm& nfi = normal_forms[i];
+    Node ni = utils::mkConcat(nfi.d_nf,stype);
+    if (nfCache.find(ni)==nfCache.end())
+    {
+      nfCache.insert(ni);
+      nfIndices.push_back(i);
+    }
+  }
+  size_t nnfs = nfIndices.size();
+  
   // loop over all pairs 
-  for(unsigned i=0; i<normal_forms.size()-1; i++) {
+  for(unsigned i=0; i<nnfs-1; i++) {
     //unify each normalform[j] with normal_forms[i]
-    for(unsigned j=i+1; j<normal_forms.size(); j++ ) {
-      NormalForm& nfi = normal_forms[i];
-      NormalForm& nfj = normal_forms[j];
+    for(unsigned j=i+1; j<nnfs; j++ ) {
+      NormalForm& nfi = normal_forms[nfIndices[i]];
+      NormalForm& nfj = normal_forms[nfIndices[j]];
       //ensure that normal_forms[i] and normal_forms[j] are the same modulo equality, add to pinfer if not
       Trace("strings-solve") << "Strings: Process normal form #" << i << " against #" << j << "..." << std::endl;
       if (isNormalFormPair(nfi.d_base, nfj.d_base))
