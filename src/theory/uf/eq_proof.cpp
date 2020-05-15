@@ -1000,41 +1000,55 @@ Node EqProof::addToProof(
                             << "-th arg:" << transtivityChildren[i] << "\n";
     }
   }
-  // bulid transitivity steps for the arguments with transitivity proofs
+  // The above builds a matrix, for n = arity -1:
+  //
+  //   [0] -> p_{0,0} ... p_{m_0,0}
+  //   ...
+  //   [n] -> p_{0,n} ... p_{m_n,n}
+  //
+  // in which each row has at least one premise. Rows with more than one premise
+  // may require transitivity steps.
+  //
+  // An invariant is that for every row i we must derive a_i = b_i, given the
+  // congruence conclusion (f a_0 ... a_n) = (f b_1 ... b_n). That will either
+  // be the sole premise in the row (modulo reflexivity) or the result of a
+  // transitivity step.
   std::vector<Node> children(arity);
   for (unsigned i = 0; i < arity; ++i)
   {
+    Node transConclusion = d_node[0][i].eqNode(d_node[1][i]);
+    children[i] = transConclusion;
     Assert(!transtivityChildren[i].empty())
         << "EqProof::addToProof: did not add any justification for " << i
         << "-th arg of congruence " << d_node << "\n";
-    // nothing to do
-    if (transtivityChildren[i].size() == 1)
-    {
-      children[i] = transtivityChildren[i][0];
-      continue;
-    }
     cleanReflPremisesInTranstivity(transtivityChildren[i]);
-    // if after refl elimination it has only one child, take that
-    if (transtivityChildren[i].size() == 1)
+    // nothing to do
+    Assert(transtivityChildren[i].size() > 1 || transtivityChildren[i].empty()
+           || transtivityChildren[i][0] == transConclusion
+           || (transtivityChildren[i][0][0] == transConclusion[1]
+               && transtivityChildren[i][0][1] == transConclusion[0]))
+        << "EqProof::addToProof: premises " << transtivityChildren[i] << "for "
+        << i << "-th cong premise " << transConclusion << " don't justify it\n";
+    unsigned sizeTrans = transtivityChildren[i].size();
+    // if no transitivity premise left or if the conclusion is an assumption
+    // (which might lead to a cycle with a transtivity step), nothing else to do
+    if (sizeTrans == 0 || assumptions.count(transConclusion) > 0)
     {
-      children[i] = transtivityChildren[i][0];
       continue;
     }
-    Node transConclusion = d_node[0][i].eqNode(d_node[1][i]);
-    // if conclusion, or its symmetric, occurs in the premises, nothing to do
+    // if the transitivity conclusion, or its symmetric, occurs in the
+    // transitivity premises, nothing to do
     bool occurs = false;
-    unsigned sizeTrans = transtivityChildren[i].size();
-    for (unsigned j = 0; j < sizeTrans; ++j)
+    for (unsigned j = 0; j < sizeTrans && !occurs; ++j)
     {
       if (transtivityChildren[i][j] == transConclusion
           || (transtivityChildren[i][j][0] == transConclusion[1]
               && transtivityChildren[i][j][1] == transConclusion[0]))
       {
         occurs = true;
-        break;
       }
     }
-    if (!occurs && sizeTrans > 0)
+    if (!occurs)
     {
       // Build transitivity step. Since premises might not be properly ordered,
       // process it as the transitivity premises
@@ -1065,27 +1079,10 @@ Node EqProof::addToProof(
         Assert(false) << "EqProof::addToProof: couldn't add trans step\n";
       }
     }
-    children[i] = transConclusion;
   }
   Trace("eqproof-conv")
       << "EqProof::addToProof: premises after adding trans steps:" << children
       << "\n";
-  // reorder children potentially
-  for (unsigned i = 0; i < arity; ++i)
-  {
-    if (children[i][0] != d_node[0][i])
-    {
-      Assert(children[i][0] == d_node[1][i])
-          << "EqProof::reduceNestedCongruence: child conclusion " << children[i]
-          << " disconnectod from expected conclusion (" << d_node[0][i] << ", "
-          << d_node[1][i] << "\n";
-      // reorder. Don't need to add symm step because it'll be added silently
-      // when the reordered premise is used.
-      children[i] = children[i][1].eqNode(children[i][0]);
-    }
-  }
-  Trace("eqproof-conv") << "EqProof::addToProof: premises after reordering:"
-                        << children << "\n";
   // build args
   std::vector<Node> args;
   Kind k = d_node[0].getKind();
