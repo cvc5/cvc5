@@ -1542,8 +1542,8 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
   return conjunction;
 }
-
-Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe) {
+  
+theory::TrustNode TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe) {
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current propagation index = " << d_propagationMapTimestamp << endl;
 
   bool polarity = node.getKind() != kind::NOT;
@@ -1598,7 +1598,7 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
         }
       });
 
-    return explanation;
+    return texplanation;
   }
 
   Debug("theory::explain") << "TheoryEngine::getExplanation: sharing IS enabled" << std::endl;
@@ -1615,8 +1615,8 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
   TheoryId explainer = nodeExplainerPair.d_theory;
 
   // Create the workplace for explanations
-  std::vector<NodeTheoryPair> explanationVector;
-  explanationVector.push_back(d_propagationMap[toExplain]);
+  std::vector<NodeTheoryPair> vec;
+  vec.push_back(d_propagationMap[toExplain]);
   // Process the explanation
   if (proofRecipe) {
     Node emptyNode;
@@ -1626,15 +1626,15 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
     proofRecipe->addBaseAssertion(node);
   }
 
-  getExplanation(explanationVector, proofRecipe);
-  Node explanation = mkExplanation(explanationVector);
+  TrustNode texplanation = getExplanation(vec, proofRecipe);
+  Node explanation = texplanation.getNode();
 
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
 
-  return explanation;
+  return texplanation;
 }
 
-Node TheoryEngine::getExplanation(TNode node) {
+theory::TrustNode TheoryEngine::getExplanation(TNode node) {
   LemmaProofRecipe *dontCareRecipe = NULL;
   return getExplanationAndRecipe(node, dontCareRecipe);
 }
@@ -1764,14 +1764,23 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // if proofNew is enabled, then d_lazyProof contains a proof of n.
-  /*
-  Node lemma = node;
-  if (negated)
+  if (options::proofNew())
   {
-    lemma = lemma.negate();
+    Node lemma = node;
+    if (negated)
+    {
+      lemma = lemma.negate();
+    }
+    if (!d_lazyProof->hasStep(lemma) && !d_lazyProof->hasGenerator(lemma))
+    {
+      Trace("te-proof") << "No proof for lemma: " << lemma << std::endl;
+      Trace("te-proof-warn") << "WARNING: No proof for lemma: " << lemma << std::endl;
+    }
+    else
+    {
+      Trace("te-proof") << "Proof for lemma: " << lemma << std::endl;
+    }
   }
-  Assert (!options::proofNew() || d_lazyProof->hasStep(lemma));
-  */
   
   AssertionPipeline additionalLemmas;
 
@@ -1827,10 +1836,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
-  // if proofNew is enabled, then d_lazyProof contains a proof of conflict.negate()
-  //Assert (!options::proofNew() || d_lazyProof->hasStep(conflict.negate()));
-  
   Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
+  // if proofNew is enabled, then d_lazyProof contains a proof of conflict.negate()
+  //Assert (!options::proofNew() || d_lazyProof->hasStep(conflict.negate()) || d_lazyProof->hasGenerator(conflict.negate()) || theoryId==THEORY_ARITH);
+  
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
@@ -1862,13 +1871,13 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
   // In the multiple-theories case, we need to reconstruct the conflict
   if (d_logicInfo.isSharingEnabled()) {
     // Create the workplace for explanations
-    std::vector<NodeTheoryPair> explanationVector;
-    explanationVector.push_back(NodeTheoryPair(conflict, theoryId, d_propagationMapTimestamp));
+    std::vector<NodeTheoryPair> vec;
+    vec.push_back(NodeTheoryPair(conflict, theoryId, d_propagationMapTimestamp));
 
     // Process the explanation
-    getExplanation(explanationVector, proofRecipe);
+    TrustNode tnc = getExplanation(vec, proofRecipe);
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
-    Node fullConflict = mkExplanation(explanationVector);
+    Node fullConflict = tnc.getNode();
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
     lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
@@ -1954,7 +1963,7 @@ void TheoryEngine::staticInitializeBVOptions(
   }
 }
 
-void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* proofRecipe) {
+theory::TrustNode TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* proofRecipe) {
   Assert(explanationVector.size() > 0);
 
   unsigned i = 0; // Index of the current literal we are processing
@@ -2131,6 +2140,11 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         }
       }
     });
+  
+  
+  Node exp = mkExplanation(explanationVector);
+  // FIXME
+  return theory::TrustNode::mkTrustLemma(exp,nullptr);
 }
 
 void TheoryEngine::setUserAttribute(const std::string& attr,

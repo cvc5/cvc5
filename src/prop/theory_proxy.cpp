@@ -79,7 +79,8 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   LemmaProofRecipe* proofRecipe = NULL;
   PROOF(proofRecipe = new LemmaProofRecipe;);
 
-  Node theoryExplanation = d_theoryEngine->getExplanationAndRecipe(lNode, proofRecipe);
+  theory::TrustNode tte = d_theoryEngine->getExplanationAndRecipe(lNode, proofRecipe);
+  Node theoryExplanation = tte.getNode();
 
   PROOF({
       ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);

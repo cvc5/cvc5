@@ -51,6 +51,7 @@
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 
@@ -514,7 +515,7 @@ class TheoryEngine {
    * theory that sent the literal. The lemmaProofRecipe will contain a list
    * of the explanation steps required to produce the original node.
    */
-  void getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* lemmaProofRecipe);
+  theory::TrustNode getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* lemmaProofRecipe);
 
 public:
 
@@ -635,13 +636,13 @@ public:
   /**
    * Returns an explanation of the node propagated to the SAT solver.
    */
-  Node getExplanation(TNode node);
+  theory::TrustNode getExplanation(TNode node);
 
   /**
    * Returns an explanation of the node propagated to the SAT solver and the theory
    * that propagated it.
    */
-  Node getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe);
+  theory::TrustNode getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe);
 
   /**
    * collect model info
