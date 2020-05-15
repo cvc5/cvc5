@@ -460,8 +460,9 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       {
         ss << "- assumption: " << aprint << std::endl;
       }
-      AlwaysAssert(false) << "Generated a proof that is not closed by the scope: " << ss.str()
-                          << std::endl;
+      AlwaysAssert(false)
+          << "Generated a proof that is not closed by the scope: " << ss.str()
+          << std::endl;
     }
     if (acu.size() < ac.size())
     {

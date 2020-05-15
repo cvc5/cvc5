@@ -460,7 +460,7 @@ void EqualityEngine::assertPredicate(TNode t, bool polarity, TNode reason, unsig
   Debug("equality") << d_name << "::eq::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
   Assert(t.getKind() != kind::EQUAL) << "Use assertEquality instead";
   TNode b = polarity ? d_true : d_false;
-  if (hasTerm(t) && areEqual(t,b))
+  if (hasTerm(t) && areEqual(t, b))
   {
     return false;
   }

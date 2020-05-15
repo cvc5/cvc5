@@ -42,7 +42,7 @@ void InferProofCons::notifyFact(const InferInfo& ii)
 {
   Trace("strings-ipc-debug")
       << "InferProofCons::notifyFact: " << ii << std::endl;
-  if (d_lazyFactMap.find(ii.d_conc)!=d_lazyFactMap.end())
+  if (d_lazyFactMap.find(ii.d_conc) != d_lazyFactMap.end())
   {
     Trace("strings-ipc-debug") << "...duplicate!" << std::endl;
     return;
