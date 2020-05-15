@@ -198,15 +198,6 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      // use skolem cache
-      SkolemCache skc(false);
-      std::vector<Node> newSkolems;
-      Node kt0 = ProofSkolemCache::getSkolemForm(t0);
-      Node ks0 = ProofSkolemCache::getSkolemForm(s0);
-      Node conc = CoreSolver::getConclusion(
-          kt0, ks0, PfRule::CONCAT_SPLIT, isRev, &skc, newSkolems);
-      conc = ProofSkolemCache::getWitnessForm(conc);
-      return conc;
     }
     else if (id == PfRule::CONCAT_CSPLIT)
     {
@@ -223,22 +214,6 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      Node c = isRev ? Word::suffix(s0, 1) : Word::prefix(s0, 1);
-      Node rbody =
-          isRev ? utils::mkPrefix(
-                      t0, nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, t0), one))
-                : utils::mkSuffix(t0, one);
-      Node r = ProofSkolemCache::mkPurifySkolem(rbody, "r");
-      Node conc;
-      if (isRev)
-      {
-        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, r, c));
-      }
-      else
-      {
-        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, c, r));
-      }
-      return conc;
     }
     else if (id == PfRule::CONCAT_LPROP)
     {
@@ -251,15 +226,6 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      // use skolem cache
-      SkolemCache skc(false);
-      std::vector<Node> newSkolems;
-      Node kt0 = ProofSkolemCache::getSkolemForm(t0);
-      Node ks0 = ProofSkolemCache::getSkolemForm(s0);
-      Node conc = CoreSolver::getConclusion(
-          kt0, ks0, PfRule::CONCAT_LPROP, isRev, &skc, newSkolems);
-      conc = ProofSkolemCache::getWitnessForm(conc);
-      return conc;
     }
     else if (id == PfRule::CONCAT_CPROP)
     {
@@ -336,6 +302,15 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       }
       return conc;
     }
+    // use skolem cache
+    SkolemCache skc(false);
+    std::vector<Node> newSkolems;
+    Node kt0 = ProofSkolemCache::getSkolemForm(t0);
+    Node ks0 = ProofSkolemCache::getSkolemForm(s0);
+    Node conc = CoreSolver::getConclusion(
+        kt0, ks0, id, isRev, &skc, newSkolems);
+    conc = ProofSkolemCache::getWitnessForm(conc);
+    return conc;
   }
   else if (id == PfRule::CTN_NOT_EQUAL)
   {

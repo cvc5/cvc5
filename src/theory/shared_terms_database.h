@@ -23,7 +23,11 @@
 #include "expr/node.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
+#include "theory/trust_node.h"
+#include "expr/proof_node_manager.h"
 #include "util/statistics_registry.h"
+#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 
@@ -114,6 +118,9 @@ private:
 
   /** Equality engine */
   theory::eq::EqualityEngine d_equalityEngine;
+  
+  /** Proof equality engine */
+  theory::eq::ProofEqEngine d_pfee;
 
   /**
    * Method called by equalityEngine when a becomes (dis-)equal to b and a and b are shared with
@@ -157,7 +164,9 @@ private:
 
 public:
 
-  SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context);
+  SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context,
+                                         context::UserContext* userContext,
+                ProofNodeManager* pnm, LazyCDProof* lcp);
   ~SharedTermsDatabase();
 
   /**
@@ -173,7 +182,7 @@ public:
   /**
    * Returns an explanation of the propagation that came from the database.
    */
-  Node explain(TNode literal) const;
+  theory::TrustNode explain(TNode literal);
 
   /**
    * Add an equality to propagate.
@@ -249,6 +258,8 @@ public:
 
 protected:
 
+  /** Pointer to the lazy proof of TheoryEngine */
+  LazyCDProof* d_lazyPf;
   /**
    * This method gets called on backtracks from the context manager.
    */

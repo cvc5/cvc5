@@ -25,7 +25,7 @@ namespace CVC4 {
 
 /**
  * A manager for skolems that can be used in proofs. This is designed to be
- * trusted interface to NodeManager::mkSkolem, where one
+ * a trusted interface to NodeManager::mkSkolem, where one
  * must provide a definition for the skolem they create in terms of a
  * predicate that the introduced variable is intended to witness.
  *
@@ -103,8 +103,9 @@ class ProofSkolemCache
                              const std::string& comment = "",
                              int flags = NodeManager::SKOLEM_DEFAULT);
   /**
-   * Same as above, but for special case for (witness ((x T)) (= x t))
-   * where T is the type of t. This skolem is unique for each t.
+   * Same as above, but for special case of (witness ((x T)) (= x t))
+   * where T is the type of t. This skolem is unique for each t, which we
+   * implement via an attribute on t.
    */
   static Node mkPurifySkolem(Node t,
                              const std::string& prefix,

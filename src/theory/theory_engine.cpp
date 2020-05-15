@@ -195,7 +195,10 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
-      d_sharedTerms(this, context),
+      d_pchecker(new ProofChecker),
+      d_pNodeManager(new ProofNodeManager(d_pchecker.get())),
+      d_lazyProof(options::proofNew() ? new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext) : nullptr),
+      d_sharedTerms(this, context, userContext, d_pNodeManager.get(), d_lazyProof.get()),
       d_masterEqualityEngine(nullptr),
       d_masterEENotify(*this),
       d_quantEngine(nullptr),
@@ -243,18 +246,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
 
 #ifdef CVC4_PROOF
   ProofManager::currentPM()->initTheoryProofEngine();
-
-  // new proofs
-  d_pchecker.reset(new ProofChecker);
-  d_pNodeManager.reset(new ProofNodeManager(d_pchecker.get()));
-  // TODO: d_lazyProof could be owned by the owner of TheoryEngine
-  // The lazy proof is user-context-dependent
-  if (options::proofNew())
-  {
-    // no default generator
-    d_lazyProof.reset(
-        new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext));
-  }
 #endif
 
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
@@ -1754,7 +1745,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                                         theory::TheoryId atomsTo) {
   // For resource-limiting (also does a time check).
   // spendResource();
-
+  
   // Do we need to check atoms
   if (atomsTo != theory::THEORY_LAST) {
     Debug("theory::atoms") << "TheoryEngine::lemma(" << node << ", " << atomsTo << ")" << endl;
@@ -1772,6 +1763,16 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                      << CheckSatCommand(n.toExpr());
   }
 
+  // if proofNew is enabled, then d_lazyProof contains a proof of n.
+  /*
+  Node lemma = node;
+  if (negated)
+  {
+    lemma = lemma.negate();
+  }
+  Assert (!options::proofNew() || d_lazyProof->hasStep(lemma));
+  */
+  
   AssertionPipeline additionalLemmas;
 
   // Run theory preprocessing, maybe
@@ -1784,7 +1785,6 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   d_tform_remover.run(additionalLemmas.ref(),
                       additionalLemmas.getIteSkolemMap());
   Debug("ite") << "..done " << additionalLemmas[0] << std::endl;
-  additionalLemmas.replace(0, theory::Rewriter::rewrite(additionalLemmas[0]));
 
   if(Debug.isOn("lemma-ites")) {
     Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
@@ -1799,10 +1799,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // assert to prop engine
-  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, rule, node);
-  for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
-    additionalLemmas.replace(i, theory::Rewriter::rewrite(additionalLemmas[i]));
-    d_propEngine->assertLemma(additionalLemmas[i], false, removable, rule, node);
+  for (size_t i = 0, lsize = additionalLemmas.size(); i < lsize; ++ i) {
+    Node rewritten = Rewriter::rewrite(additionalLemmas[i]);
+    additionalLemmas.replace(i, rewritten);
+    d_propEngine->assertLemma(additionalLemmas[i], i==0 && negated, removable, rule, node);
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
@@ -1827,6 +1827,9 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
+  // if proofNew is enabled, then d_lazyProof contains a proof of conflict.negate()
+  //Assert (!options::proofNew() || d_lazyProof->hasStep(conflict.negate()));
+  
   Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
@@ -2048,21 +2051,21 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     }
 
     // It was produced by the theory, so ask for an explanation
-    Node explanation;
+    TrustNode texplanation;
     if (toExplain.d_theory == THEORY_BUILTIN)
     {
-      explanation = d_sharedTerms.explain(toExplain.d_node);
-      Debug("theory::explain") << "\tTerm was propagated by THEORY_BUILTIN. Explanation: " << explanation << std::endl;
+      texplanation = d_sharedTerms.explain(toExplain.d_node);
+      Debug("theory::explain") << "\tTerm was propagated by THEORY_BUILTIN. Explanation: " << texplanation.getNode() << std::endl;
     }
     else
     {
-      TrustNode texplanation =
+      texplanation =
           theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
-      explanation = texplanation.getNode();
       Debug("theory::explain") << "\tTerm was propagated by owner theory: "
                                << theoryOf(toExplain.d_theory)->getId()
-                               << ". Explanation: " << explanation << std::endl;
+                               << ". Explanation: " << texplanation.getNode() << std::endl;
     }
+    Node explanation = texplanation.getNode();
 
     Debug("theory::explain")
         << "TheoryEngine::explain(): got explanation " << explanation

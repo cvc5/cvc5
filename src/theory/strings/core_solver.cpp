@@ -717,6 +717,7 @@ Node CoreSolver::getConclusion(Node x,
   Trace("strings-csolver") << "CoreSolver::getConclusion: " << x << " " << y
                            << " " << rule << " " << isRev << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  Node conc;
   if (rule == PfRule::CONCAT_SPLIT || rule == PfRule::CONCAT_LPROP)
   {
     Node sk1;
@@ -757,7 +758,6 @@ Node CoreSolver::getConclusion(Node x,
         x.eqNode(isRev ? utils::mkNConcat(sk1, y) : utils::mkNConcat(y, sk1));
     // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
 
-    Node conc;
     if (rule == PfRule::CONCAT_LPROP)
     {
       conc = eq1;
@@ -769,19 +769,43 @@ Node CoreSolver::getConclusion(Node x,
       // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
       conc = nm->mkNode(OR, eq1, eq2);
     }
-    /*
     if (options::stringUnifiedVSpt())
     {
       // we can assume its length is greater than zero
       Node emp = Word::mkEmptyWord(sk1.getType());
       conc = nm->mkNode(AND, conc, sk1.eqNode(emp).negate(),
-    nm->mkNode(GT,nm->mkNode(STRING_LENGTH,sk1), nm->mkConst(Rational(0))));
+      nm->mkNode(GT,nm->mkNode(STRING_LENGTH,sk1), nm->mkConst(Rational(0))));
     }
-    */
-    return conc;
+  }
+  else if (rule==PfRule::CONCAT_CSPLIT)
+  {
+    Assert (y.isConst());
+    size_t yLen = Word::getLength(y);
+    Node firstChar = yLen == 1 ? y
+                                  : (isRev ? Word::suffix(y, 1)
+                                            : Word::prefix(y, 1));
+    Node sk = skc->mkSkolemCached(
+        x,
+        isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
+        "c_spt");
+    newSkolems.push_back(sk);
+    conc = x.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
+                          : utils::mkNConcat(firstChar, sk));
+  }
+  else if (rule==PfRule::CONCAT_CPROP)
+  {
+    // expect (str.++ z c1) and c2
+    Assert (x.getKind()==STRING_CONCAT && x.getNumChildren()==2);
+    Node z = x[isRev ? 1 : 0];
+    Node c1 = x[isRev ? 0 : 1];
+    Assert (c1.isConst());
+    Node c2 = y;
+    Assert (c2.isConst());
+    
+    
   }
 
-  return Node::null();
+  return conc;
 }
 
 void CoreSolver::getNormalForms(Node eqc,
@@ -1530,25 +1554,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       // to start with the first character of the constant.
       //
       // E.g. "abc" ++ ... = nc ++ ... ---> nc = "a" ++ k
-      Node stra = nfcv[index];
-      size_t straLen = Word::getLength(stra);
-      Node firstChar = straLen == 1 ? stra
-                                    : (isRev ? Word::suffix(stra, 1)
-                                             : Word::prefix(stra, 1));
       SkolemCache* skc = d_termReg.getSkolemCache();
-      Node sk = skc->mkSkolemCached(
-          nc,
-          isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
-          "c_spt");
-      Trace("strings-csp") << "Const Split: " << firstChar
-                           << " is removed from " << stra << " (serial) "
-                           << std::endl;
+      std::vector<Node> newSkolems;
+      iinfo.d_conc = getConclusion(nc,nfcv[index],PfRule::CONCAT_CSPLIT,isRev,skc,newSkolems);
       NormalForm::getExplanationForPrefixEq(
           nfi, nfj, index, index, iinfo.d_ant);
       iinfo.d_ant.push_back(expNonEmpty);
-      iinfo.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
-                                     : utils::mkNConcat(firstChar, sk));
-      iinfo.d_new_skolem[LENGTH_SPLIT].push_back(sk);
+      Assert(newSkolems.size()==1);
+      iinfo.d_new_skolem[LENGTH_SPLIT].push_back(newSkolems[0]);
       iinfo.d_id = Inference::SSPLIT_CST;
       iinfo.d_idRev = isRev;
       pinfer.push_back(info);
@@ -1637,7 +1650,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       if (options::stringUnifiedVSpt())
       {
         Assert(newSkolems.size() == 1);
-        iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
+        iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
       }
     }
     else if (lentTestSuccess == 0)

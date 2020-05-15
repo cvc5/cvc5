@@ -143,6 +143,20 @@ class TheoryEngine {
    */
   const LogicInfo& d_logicInfo;
 
+  //--------------------------------- new proofs
+  /** For the new proofs module */
+  std::unique_ptr<ProofChecker> d_pchecker;
+
+  /** A proof node manager based on the above checker */
+  std::unique_ptr<ProofNodeManager> d_pNodeManager;
+
+  /** The lazy proof object
+   *
+   * This stores instructions for how to construct proofs for all theory lemmas.
+   */
+  std::shared_ptr<LazyCDProof> d_lazyProof;
+  //--------------------------------- end new proofs
+  
   /**
    * The database of shared terms.
    */
@@ -827,18 +841,6 @@ private:
 
  private:
   IntStat d_arithSubstitutionsAdded;
-
-  /** For the new proofs module */
-  std::unique_ptr<ProofChecker> d_pchecker;
-
-  /** A proof node manager based on the above checker */
-  std::unique_ptr<ProofNodeManager> d_pNodeManager;
-
-  /** The lazy proof object
-   *
-   * This stores instructions for how to construct proofs for all theory lemmas.
-   */
-  std::shared_ptr<LazyCDProof> d_lazyProof;
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */
