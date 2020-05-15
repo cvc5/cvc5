@@ -961,6 +961,7 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc
+  regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/re.all.smt2
   regress0/strings/re-syntax.smt2
   regress0/strings/re_diff.smt2
