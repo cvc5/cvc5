@@ -207,8 +207,8 @@ bool EqProof::foldTransitivityChildren(
     inSubstCase = true;
     Node premiseTermEq = premises[offending][termPos];
     Node conclusionTermEq = conclusion[0].getKind() == kind::CONST_BOOLEAN
-                              ? conclusion[1]
-                              : conclusion[0];
+                                ? conclusion[1]
+                                : conclusion[0];
     Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: Substitition "
                              "case. Need to build subst from "
                           << premiseTermEq << " to " << conclusionTermEq

@@ -439,8 +439,9 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
         itf = ac.find(aeqSym);
         if (itf != ac.end())
         {
-          Trace("pfee-proof") << "- reorient assumption " << aeqSym << " via "
-                              << a << " for " << fa.second.size() << " proof nodes" << std::endl;
+          Trace("pfee-proof")
+              << "- reorient assumption " << aeqSym << " via " << a << " for "
+              << fa.second.size() << " proof nodes" << std::endl;
           std::shared_ptr<ProofNode> pfaa = d_pnm->mkAssume(aeqSym);
           for (ProofNode* pfs : fa.second)
           {
@@ -466,7 +467,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()
                           << std::endl;
     }
-    if (acu.size()<ac.size())
+    if (acu.size() < ac.size())
     {
       // All assumptions should match a free assumption; if one does not, then
       // the explanation could have been smaller. This assertion should be
@@ -475,15 +476,14 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       // method.
       for (const Node& a : ac)
       {
-        if (acu.find(a)==acu.end())
+        if (acu.find(a) == acu.end())
         {
           Notice() << "pfee::ensureProofForFact: assumption " << a
-                  << " does not match a free assumption in proof" 
-                  << std::endl;
+                   << " does not match a free assumption in proof" << std::endl;
         }
       }
     }
-    scopeAssumps.insert(scopeAssumps.end(),acu.begin(),acu.end());
+    scopeAssumps.insert(scopeAssumps.end(), acu.begin(), acu.end());
     exp = mkAnd(scopeAssumps);
   }
   else
@@ -534,7 +534,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     Assert(pf != nullptr);
     // Should be a closed proof now. If it is not, then the overall proof
     // is malformed.
-    Assert (pf->isClosed());
+    Assert(pf->isClosed());
     pfg = this;
     // set the proof for the conflict or lemma, which can be queried later
     switch (tnk)

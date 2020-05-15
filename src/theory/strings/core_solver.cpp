@@ -1006,30 +1006,30 @@ void CoreSolver::getNormalForms(Node eqc,
 void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
                              TypeNode stype)
 {
-  if (normal_forms.size()<=1)
+  if (normal_forms.size() <= 1)
   {
     return;
   }
   // compute normal forms that are effectively unique
-  std::unordered_map<Node,size_t,NodeHashFunction> nfCache;
+  std::unordered_map<Node, size_t, NodeHashFunction> nfCache;
   std::vector<size_t> nfIndices;
   bool foundConflict = false;
   size_t nfConfJ = 0;
   size_t nfConfI = 0;
-  for (size_t i=0, nnforms=normal_forms.size(); i<nnforms; i++)
+  for (size_t i = 0, nnforms = normal_forms.size(); i < nnforms; i++)
   {
     NormalForm& nfi = normal_forms[i];
-    Node ni = utils::mkNConcat(nfi.d_nf,stype);
-    if (nfCache.find(ni)==nfCache.end())
+    Node ni = utils::mkNConcat(nfi.d_nf, stype);
+    if (nfCache.find(ni) == nfCache.end())
     {
       // compare against previous to see if already conflicting
       if (!foundConflict)
       {
-        for (const std::pair<const Node, size_t >& nj : nfCache)
+        for (const std::pair<const Node, size_t>& nj : nfCache)
         {
           Node eq = ni.eqNode(nj.first);
           eq = Rewriter::rewrite(eq);
-          if (eq==d_false)
+          if (eq == d_false)
           {
             nfConfJ = nj.second;
             nfConfI = i;
@@ -1043,15 +1043,17 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
     }
   }
   size_t nnfs = nfIndices.size();
-  Trace("strings-solve") << "CoreSolver::processNEqc: " << nnfs << "/" << normal_forms.size() << " normal forms are unique." << std::endl;
+  Trace("strings-solve") << "CoreSolver::processNEqc: " << nnfs << "/"
+                         << normal_forms.size() << " normal forms are unique."
+                         << std::endl;
 
   //the possible inferences
   std::vector<CoreInferInfo> pinfer;
-  // loop over all pairs 
-  for(unsigned i=0; i<nnfs-1; i++) 
+  // loop over all pairs
+  for (unsigned i = 0; i < nnfs - 1; i++)
   {
     //unify each normalform[j] with normal_forms[i]
-    for(unsigned j=i+1; j<nnfs; j++ ) 
+    for (unsigned j = i + 1; j < nnfs; j++)
     {
       NormalForm& nfi = normal_forms[nfIndices[i]];
       NormalForm& nfj = normal_forms[nfIndices[j]];
@@ -1062,7 +1064,8 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
         Trace("strings-solve") << "Strings: Already cached." << std::endl;
         continue;
       }
-      //process the reverse direction first (check for easy conflicts and inferences)
+      // process the reverse direction first (check for easy conflicts and
+      // inferences)
       unsigned rindex = 0;
       nfi.reverse();
       nfj.reverse();
@@ -1073,8 +1076,8 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
       {
         break;
       }
-      //AJR: for less aggressive endpoint inference
-      //rindex = 0;
+      // AJR: for less aggressive endpoint inference
+      // rindex = 0;
 
       unsigned index = 0;
       processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype);
@@ -1099,8 +1102,8 @@ void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
     std::vector<Node> exp;
     NormalForm& nfj = normal_forms[nfConfJ];
     NormalForm& nfi = normal_forms[nfConfI];
-    exp.insert(exp.end(),nfj.d_exp.begin(),nfj.d_exp.end());
-    exp.insert(exp.end(),nfi.d_exp.begin(),nfi.d_exp.end());
+    exp.insert(exp.end(), nfj.d_exp.begin(), nfj.d_exp.end());
+    exp.insert(exp.end(), nfi.d_exp.begin(), nfi.d_exp.end());
     exp.push_back(nfi.d_base.eqNode(nfj.d_base));
     d_im.sendInference(exp, d_false, Inference::N_EQ_CONF);
     return;

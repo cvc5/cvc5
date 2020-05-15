@@ -306,7 +306,8 @@ Node InferProofCons::convert(Inference infer,
           // 2+ children.
         }
       }
-      else if (infer == Inference::N_CONST || infer == Inference::F_CONST || infer == Inference::N_EQ_CONF)
+      else if (infer == Inference::N_CONST || infer == Inference::F_CONST
+               || infer == Inference::N_EQ_CONF)
       {
         // should be a constant conflict
         std::vector<Node> childrenC;
