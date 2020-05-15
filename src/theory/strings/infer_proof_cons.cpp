@@ -166,6 +166,7 @@ Node InferProofCons::convert(Inference infer,
     case Inference::F_UNIFY:
     case Inference::F_ENDPOINT_EMP:
     case Inference::F_ENDPOINT_EQ:
+    case Inference::N_EQ_CONF:
     case Inference::N_CONST:
     case Inference::N_UNIFY:
     case Inference::N_ENDPOINT_EMP:
@@ -305,7 +306,7 @@ Node InferProofCons::convert(Inference infer,
           // 2+ children.
         }
       }
-      else if (infer == Inference::N_CONST || infer == Inference::F_CONST)
+      else if (infer == Inference::N_CONST || infer == Inference::F_CONST || infer == Inference::N_EQ_CONF)
       {
         // should be a constant conflict
         std::vector<Node> childrenC;

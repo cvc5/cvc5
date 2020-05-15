@@ -107,6 +107,10 @@ enum class Inference : uint32_t
   // x = c ^ x = y => false when rewrite( contains( y, c ) ) = false
   // Proof: substitution+rewriting, CTN_NOT_EQUAL
   F_NCTN,
+  // Normal form equality conflict
+  //   x = N[x] ^ y = N[y] ^ x=y => false
+  // where Rewriter::rewrite(N[x]=N[y]) = false.
+  N_EQ_CONF,
   // Given two normal forms, infers that the remainder one of them has to be
   // empty. For example:
   //    If x1 ++ x2 = y1 and x1 = y1, then x2 = ""
