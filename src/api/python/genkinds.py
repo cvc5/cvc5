@@ -69,11 +69,21 @@ from cvc4kinds cimport *
 import sys
 from types import ModuleType
 
+from libcpp.string cimport string
+from libcpp.unordered_map cimport unordered_map
+
+# these maps are used for creating a kind
+# it is needed for dynamically making a kind
+# e.g. for getKind()
+cdef unordered_map[int, Kind] int2kind
+cdef unordered_map[int, string] int2name
+
 cdef class kind:
     cdef Kind k
     cdef str name
-    def __cinit__(self, str name):
-        self.name = name
+    def __cinit__(self, int kindint):
+        self.k = int2kind[kindint]
+        self.name = int2name[kindint].decode()
 
     def __eq__(self, kind other):
         return (<int> self.k) == (<int> other.k)
@@ -100,8 +110,9 @@ kinds.__file__ = kinds.__name__ + ".py"
 
 KINDS_ATTR_TEMPLATE = \
 r"""
-cdef kind {name} = kind("{name}")
-{name}.k = {kind}
+int2kind[<int> {kind}] = {kind}
+int2name[<int> {kind}] = "{name}".encode()
+cdef kind {name} = kind(<int> {kind})
 setattr(kinds, "{name}", {name})
 """
 
