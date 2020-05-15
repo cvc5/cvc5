@@ -40,8 +40,23 @@ InferProofCons::InferProofCons(context::Context* c,
 
 void InferProofCons::notifyFact(const InferInfo& ii)
 {
+  Node fact = ii.d_conc;
   Trace("strings-ipc-debug")
       << "InferProofCons::notifyFact: " << ii << std::endl;
+  if (d_lazyFactMap.find(fact) != d_lazyFactMap.end())
+  {
+    Trace("strings-ipc-debug") << "...duplicate!" << std::endl;
+    return;
+  }
+  if (fact.getKind()==EQUAL)
+  {
+    Node symFact = fact[1].eqNode(fact[0]);
+    if (d_lazyFactMap.find(symFact) != d_lazyFactMap.end())
+    {
+      Trace("strings-ipc-debug") << "...duplicate (sym)!" << std::endl;
+      return;
+    }
+  }
   std::shared_ptr<InferInfo> iic = std::make_shared<InferInfo>(ii);
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
@@ -997,6 +1012,16 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   CDProof pf(d_pnm);
   // get the inference
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
+  if (it==d_lazyFactMap.end())
+  {
+    if (fact.getKind()==EQUAL)
+    {
+      // Use the symmetric fact. There is no need to explictly make a
+      // SYMM proof, as this is handled by CDProof::mkProof below.
+      Node factSym = fact[1].eqNode(fact[0]);
+      it = d_lazyFactMap.find(factSym);
+    }
+  }
   AlwaysAssert(it != d_lazyFactMap.end());
   // now go back and convert it to proof steps and add to proof
   bool useBuffer = false;
