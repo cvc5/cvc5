@@ -35,7 +35,7 @@ class TheoryEngine;
 
 class SharedTermsDatabase : public context::ContextNotifyObj {
 
-public:
+ public:
 
   /** A container for a list of shared terms */
   typedef std::vector<TNode> shared_terms_list;
@@ -43,7 +43,7 @@ public:
   /** The iterator to go through the shared terms list */
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
-private:
+ private:
 
   /** Some statistics */
   IntStat d_statSharedTerms;
@@ -72,7 +72,7 @@ private:
   typedef context::CDHashSet<Node, NodeHashFunction> RegisteredEqualitiesSet;
   RegisteredEqualitiesSet d_registeredEqualities;
 
-private:
+ private:
 
   /** This method removes all the un-necessary stuff from the maps */
   void backtrack();
@@ -162,7 +162,7 @@ private:
    */
   void checkForConflict();
 
-public:
+ public:
 
   SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context,
                                          context::UserContext* userContext,
@@ -256,7 +256,7 @@ public:
    */
   theory::eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
 
-protected:
+ protected:
 
   /** Pointer to the lazy proof of TheoryEngine */
   LazyCDProof* d_lazyPf;
