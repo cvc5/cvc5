@@ -348,11 +348,13 @@ void InferenceManager::doPendingFacts()
       preProcessFact(fact);
       if (!d_recExplain)
       {
-        // notify fact
-        d_ipc->notifyFact(ii);
         // assert to equality engine using proof generator interface for
         // assertFact.
-        d_pfee->assertFact(fact, cexp, d_ipc.get());
+        if (d_pfee->assertFact(fact, cexp, d_ipc.get()))
+        {
+          // notify fact if the above call asserted a new fact
+          d_ipc->notifyFact(ii);
+        }
       }
       else
       {

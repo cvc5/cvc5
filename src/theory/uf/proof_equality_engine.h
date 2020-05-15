@@ -164,7 +164,7 @@ class ProofEqEngine : public EagerProofGenerator
                     const std::vector<Node>& exp,
                     const std::vector<Node>& args);
   /** Assert internal */
-  void assertFactInternal(TNode pred, bool polarity, TNode reason);
+  bool assertFactInternal(TNode pred, bool polarity, TNode reason);
   /** assert lemma internal */
   TrustNode assertLemmaInternal(Node conc,
                                 const std::vector<Node>& exp,

@@ -809,8 +809,9 @@ public:
    * @param polarity true if asserting the predicate, false if
    *                 asserting the negated predicate
    * @param reason the reason to keep for building explanations
+   * @return true if a new fact was asserted, false if this call was a no-op.
    */
-  void assertPredicate(TNode p, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
+  bool assertPredicate(TNode p, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Adds an equality eq with the given polarity to the database.
@@ -819,8 +820,9 @@ public:
    * @param polarity true if asserting the equality, false if
    *                 asserting the negated equality
    * @param reason the reason to keep for building explanations
+   * @return true if a new fact was asserted, false if this call was a no-op.
    */
-  void assertEquality(TNode eq, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
+  bool assertEquality(TNode eq, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Returns the current representative of the term t.

@@ -459,8 +459,14 @@ void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason, un
 void EqualityEngine::assertPredicate(TNode t, bool polarity, TNode reason, unsigned pid) {
   Debug("equality") << d_name << "::eq::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
   Assert(t.getKind() != kind::EQUAL) << "Use assertEquality instead";
-  assertEqualityInternal(t, polarity ? d_true : d_false, reason, pid);
+  TNode b = polarity ? d_true : d_false;
+  if (hasTerm(t) && areEqual(t,b))
+  {
+    return false;
+  }
+  assertEqualityInternal(t, b, reason, pid);
   propagate();
+  return true;
 }
 
 void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsigned pid) {
@@ -468,7 +474,7 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsig
   if (polarity) {
     // If two terms are already equal, don't assert anything
     if (hasTerm(eq[0]) && hasTerm(eq[1]) && areEqual(eq[0], eq[1])) {
-      return;
+      return false;
     }
     // Add equality between terms
     assertEqualityInternal(eq[0], eq[1], reason, pid);
@@ -476,7 +482,7 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsig
   } else {
     // If two terms are already dis-equal, don't assert anything
     if (hasTerm(eq[0]) && hasTerm(eq[1]) && areDisequal(eq[0], eq[1], false)) {
-      return;
+      return false;
     }
 
     // notify the theory
@@ -490,7 +496,7 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsig
     propagate();
 
     if (d_done) {
-      return;
+      return true;
     }
 
     // If both have constant representatives, we don't notify anyone
@@ -499,7 +505,7 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsig
     EqualityNodeId aClassId = getEqualityNode(a).getFind();
     EqualityNodeId bClassId = getEqualityNode(b).getFind();
     if (d_isConstant[aClassId] && d_isConstant[bClassId]) {
-      return;
+      return true;
     }
 
     // If we are adding a disequality, notify of the shared term representatives
@@ -551,6 +557,7 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsig
       }
     }
   }
+  return true;
 }
 
 TNode EqualityEngine::getRepresentative(TNode t) const {

@@ -54,13 +54,9 @@ bool ProofEqEngine::assertAssume(TNode lit)
   // explanation. Notice we do not reference count atom/lit.
   if (atom.getKind() == EQUAL)
   {
-    d_ee.assertEquality(atom, polarity, lit);
+    return d_ee.assertEquality(atom, polarity, lit);
   }
-  else
-  {
-    d_ee.assertPredicate(atom, polarity, lit);
-  }
-  return true;
+  return d_ee.assertPredicate(atom, polarity, lit);
 }
 
 bool ProofEqEngine::assertFact(Node lit,
@@ -82,8 +78,7 @@ bool ProofEqEngine::assertFact(Node lit,
 
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
-  assertFactInternal(atom, polarity, reason);
-  return true;
+  return assertFactInternal(atom, polarity, reason);
 }
 
 bool ProofEqEngine::assertFact(Node lit,
@@ -107,8 +102,7 @@ bool ProofEqEngine::assertFact(Node lit,
   bool polarity = lit.getKind() != NOT;
 
   // second, assert it to the equality engine
-  assertFactInternal(atom, polarity, exp);
-  return true;
+  return assertFactInternal(atom, polarity, exp);
 }
 
 bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
@@ -125,8 +119,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
   bool polarity = lit.getKind() != NOT;
 
   // second, assert it to the equality engine
-  assertFactInternal(atom, polarity, exp);
-  return true;
+  return assertFactInternal(atom, polarity, exp);
 }
 
 bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
@@ -141,8 +134,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
   // second, assert it to the equality engine
-  assertFactInternal(atom, polarity, exp);
-  return true;
+  return assertFactInternal(atom, polarity, exp);
 }
 
 TrustNode ProofEqEngine::assertConflict(Node lit)
@@ -464,7 +456,11 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
       std::stringstream ss;
       pfConc->printDebug(ss);
       ss << std::endl << "Free assumption: " << a << std::endl;
-      AlwaysAssert(false) << "Generated a non-closed proof: " << ss.str()
+      for (const Node& aprint : ac)
+      {
+        ss << "- assumption: " << aprint << std::endl;
+      }
+      AlwaysAssert(false) << "Generated a proof that is not closed by the scope: " << ss.str()
                           << std::endl;
     }
     if (acu.size() < ac.size())
@@ -563,21 +559,26 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   return TrustNode::null();
 }
 
-void ProofEqEngine::assertFactInternal(TNode atom, bool polarity, TNode reason)
+bool ProofEqEngine::assertFactInternal(TNode atom, bool polarity, TNode reason)
 {
   Trace("pfee-debug") << "pfee::assertFactInternal: " << atom << " " << polarity
                       << " " << reason << std::endl;
+  bool ret;
   if (atom.getKind() == EQUAL)
   {
-    d_ee.assertEquality(atom, polarity, reason);
+    ret = d_ee.assertEquality(atom, polarity, reason);
   }
   else
   {
-    d_ee.assertPredicate(atom, polarity, reason);
+    ret = d_ee.assertPredicate(atom, polarity, reason);
   }
-  // must reference count the new atom and explanation
-  d_keep.insert(atom);
-  d_keep.insert(reason);
+  if (ret)
+  {
+    // must reference count the new atom and explanation
+    d_keep.insert(atom);
+    d_keep.insert(reason);
+  }
+  return ret;
 }
 
 bool ProofEqEngine::addProofStep(Node lit,
