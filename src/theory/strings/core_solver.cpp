@@ -769,7 +769,6 @@ Node CoreSolver::getConclusion(Node x,
       // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
       conc = nm->mkNode(OR, eq1, eq2);
     }
-    /*
     if (options::stringUnifiedVSpt())
     {
       // we can assume its length is greater than zero
@@ -777,7 +776,6 @@ Node CoreSolver::getConclusion(Node x,
       conc = nm->mkNode(AND, conc, sk1.eqNode(emp).negate(),
       nm->mkNode(GT,nm->mkNode(STRING_LENGTH,sk1), nm->mkConst(Rational(0))));
     }
-    */
   }
   else if (rule==PfRule::CONCAT_CSPLIT)
   {
@@ -1640,7 +1638,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       if (options::stringUnifiedVSpt())
       {
         Assert(newSkolems.size() == 1);
-        iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
+        iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
       }
     }
     else if (lentTestSuccess == 0)
