@@ -792,6 +792,18 @@ Node CoreSolver::getConclusion(Node x,
     conc = x.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
                           : utils::mkNConcat(firstChar, sk));
   }
+  else if (rule==PfRule::CONCAT_CPROP)
+  {
+    // expect (str.++ z c1) and c2
+    Assert (x.getKind()==STRING_CONCAT && x.getNumChildren()==2);
+    Node z = x[isRev ? 1 : 0];
+    Node c1 = x[isRev ? 0 : 1];
+    Assert (c1.isConst());
+    Node c2 = y;
+    Assert (c2.isConst());
+    
+    
+  }
 
   return conc;
 }
