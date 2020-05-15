@@ -27,7 +27,8 @@ namespace CVC4 {
 SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
                                          context::Context* context,
                                          context::UserContext* userContext,
-                ProofNodeManager* pnm, LazyCDProof* lcp)
+                                         ProofNodeManager* pnm,
+                                         LazyCDProof* lcp)
     : ContextNotifyObj(context),
       d_statSharedTerms("theory::shared_terms", 0),
       d_addedSharedTermsSize(context, 0),
@@ -36,11 +37,12 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_registeredEqualities(context),
       d_EENotify(*this),
       d_equalityEngine(d_EENotify, context, "SharedTermsDatabase", true),
-      d_pfee(context,userContext,d_equalityEngine,pnm, lcp!=nullptr),
+      d_pfee(context, userContext, d_equalityEngine, pnm, lcp != nullptr),
       d_theoryEngine(theoryEngine),
       d_inConflict(context, false),
       d_conflictPolarity(),
-      d_lazyPf(lcp) {
+      d_lazyPf(lcp)
+{
   smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
 }
 
@@ -203,7 +205,7 @@ void SharedTermsDatabase::assertEquality(TNode equality, bool polarity, TNode re
 {
   Debug("shared-terms-database::assert") << "SharedTermsDatabase::assertEquality(" << equality << ", " << (polarity ? "true" : "false") << ", " << reason << ")" << endl;
   // Add it to the equality engine
-  //d_equalityEngine.assertEquality(equality, polarity, reason);
+  // d_equalityEngine.assertEquality(equality, polarity, reason);
   d_pfee.assertAssume(reason);
   // Check for conflict
   checkForConflict();
@@ -227,7 +229,7 @@ void SharedTermsDatabase::checkForConflict() {
       conflict = conflict.notNode();
     }
     TrustNode trnc = d_pfee.assertConflict(conflict);
-    if (d_lazyPf!=nullptr)
+    if (d_lazyPf != nullptr)
     {
       // add the step to the proof
       Node ckey = TrustNode::getConflictKeyValue(trnc.getNode());
@@ -248,7 +250,8 @@ bool SharedTermsDatabase::isKnown(TNode literal) const {
   }
 }
 
-theory::TrustNode SharedTermsDatabase::explain(TNode literal) {
+theory::TrustNode SharedTermsDatabase::explain(TNode literal)
+{
   TrustNode trn = d_pfee.explain(literal);
   return trn;
 }

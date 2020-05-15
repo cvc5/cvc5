@@ -307,8 +307,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> newSkolems;
     Node kt0 = ProofSkolemCache::getSkolemForm(t0);
     Node ks0 = ProofSkolemCache::getSkolemForm(s0);
-    Node conc = CoreSolver::getConclusion(
-        kt0, ks0, id, isRev, &skc, newSkolems);
+    Node conc =
+        CoreSolver::getConclusion(kt0, ks0, id, isRev, &skc, newSkolems);
     conc = ProofSkolemCache::getWitnessForm(conc);
     return conc;
   }

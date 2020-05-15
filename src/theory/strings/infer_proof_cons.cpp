@@ -48,7 +48,7 @@ void InferProofCons::notifyFact(const InferInfo& ii)
     Trace("strings-ipc-debug") << "...duplicate!" << std::endl;
     return;
   }
-  if (fact.getKind()==EQUAL)
+  if (fact.getKind() == EQUAL)
   {
     Node symFact = fact[1].eqNode(fact[0]);
     if (d_lazyFactMap.find(symFact) != d_lazyFactMap.end())
@@ -1012,9 +1012,9 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   CDProof pf(d_pnm);
   // get the inference
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
-  if (it==d_lazyFactMap.end())
+  if (it == d_lazyFactMap.end())
   {
-    if (fact.getKind()==EQUAL)
+    if (fact.getKind() == EQUAL)
     {
       // Use the symmetric fact. There is no need to explictly make a
       // SYMM proof, as this is handled by CDProof::mkProof below.

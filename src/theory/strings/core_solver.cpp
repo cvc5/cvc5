@@ -773,17 +773,20 @@ Node CoreSolver::getConclusion(Node x,
     {
       // we can assume its length is greater than zero
       Node emp = Word::mkEmptyWord(sk1.getType());
-      conc = nm->mkNode(AND, conc, sk1.eqNode(emp).negate(),
-      nm->mkNode(GT,nm->mkNode(STRING_LENGTH,sk1), nm->mkConst(Rational(0))));
+      conc = nm->mkNode(
+          AND,
+          conc,
+          sk1.eqNode(emp).negate(),
+          nm->mkNode(
+              GT, nm->mkNode(STRING_LENGTH, sk1), nm->mkConst(Rational(0))));
     }
   }
-  else if (rule==PfRule::CONCAT_CSPLIT)
+  else if (rule == PfRule::CONCAT_CSPLIT)
   {
-    Assert (y.isConst());
+    Assert(y.isConst());
     size_t yLen = Word::getLength(y);
-    Node firstChar = yLen == 1 ? y
-                                  : (isRev ? Word::suffix(y, 1)
-                                            : Word::prefix(y, 1));
+    Node firstChar =
+        yLen == 1 ? y : (isRev ? Word::suffix(y, 1) : Word::prefix(y, 1));
     Node sk = skc->mkSkolemCached(
         x,
         isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
@@ -792,17 +795,15 @@ Node CoreSolver::getConclusion(Node x,
     conc = x.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
                           : utils::mkNConcat(firstChar, sk));
   }
-  else if (rule==PfRule::CONCAT_CPROP)
+  else if (rule == PfRule::CONCAT_CPROP)
   {
     // expect (str.++ z c1) and c2
-    Assert (x.getKind()==STRING_CONCAT && x.getNumChildren()==2);
+    Assert(x.getKind() == STRING_CONCAT && x.getNumChildren() == 2);
     Node z = x[isRev ? 1 : 0];
     Node c1 = x[isRev ? 0 : 1];
-    Assert (c1.isConst());
+    Assert(c1.isConst());
     Node c2 = y;
-    Assert (c2.isConst());
-    
-    
+    Assert(c2.isConst());
   }
 
   return conc;
@@ -1556,11 +1557,12 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       // E.g. "abc" ++ ... = nc ++ ... ---> nc = "a" ++ k
       SkolemCache* skc = d_termReg.getSkolemCache();
       std::vector<Node> newSkolems;
-      iinfo.d_conc = getConclusion(nc,nfcv[index],PfRule::CONCAT_CSPLIT,isRev,skc,newSkolems);
+      iinfo.d_conc = getConclusion(
+          nc, nfcv[index], PfRule::CONCAT_CSPLIT, isRev, skc, newSkolems);
       NormalForm::getExplanationForPrefixEq(
           nfi, nfj, index, index, iinfo.d_ant);
       iinfo.d_ant.push_back(expNonEmpty);
-      Assert(newSkolems.size()==1);
+      Assert(newSkolems.size() == 1);
       iinfo.d_new_skolem[LENGTH_SPLIT].push_back(newSkolems[0]);
       iinfo.d_id = Inference::SSPLIT_CST;
       iinfo.d_idRev = isRev;

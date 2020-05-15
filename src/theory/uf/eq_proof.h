@@ -97,7 +97,8 @@ class EqProof
       CDProof* p,
       std::unordered_set<Node, NodeHashFunction>& assumptions) const;
 
-  bool buildTransitivityChain(Node conclusion, std::vector<Node>& premises) const;
+  bool buildTransitivityChain(Node conclusion,
+                              std::vector<Node>& premises) const;
 
   // returns whether it did reordering
   void maybeAddSymmOrTrueIntroToProof(unsigned i,

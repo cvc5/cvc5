@@ -45,13 +45,13 @@
 #include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
+#include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
-#include "theory/trust_node.h"
 
 namespace CVC4 {
 
@@ -157,7 +157,7 @@ class TheoryEngine {
    */
   std::shared_ptr<LazyCDProof> d_lazyProof;
   //--------------------------------- end new proofs
-  
+
   /**
    * The database of shared terms.
    */
@@ -515,9 +515,11 @@ class TheoryEngine {
    * theory that sent the literal. The lemmaProofRecipe will contain a list
    * of the explanation steps required to produce the original node.
    */
-  theory::TrustNode getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* lemmaProofRecipe);
+  theory::TrustNode getExplanation(
+      std::vector<NodeTheoryPair>& explanationVector,
+      LemmaProofRecipe* lemmaProofRecipe);
 
-public:
+ public:
 
   /**
    * Signal the start of a new round of assertion preprocessing
@@ -642,7 +644,8 @@ public:
    * Returns an explanation of the node propagated to the SAT solver and the theory
    * that propagated it.
    */
-  theory::TrustNode getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe);
+  theory::TrustNode getExplanationAndRecipe(TNode node,
+                                            LemmaProofRecipe* proofRecipe);
 
   /**
    * collect model info

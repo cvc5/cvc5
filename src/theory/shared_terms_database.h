@@ -20,23 +20,21 @@
 #include <unordered_map>
 
 #include "context/cdhashset.h"
+#include "expr/lazy_proof.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "theory/theory.h"
+#include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "theory/trust_node.h"
-#include "expr/proof_node_manager.h"
 #include "util/statistics_registry.h"
-#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
 
 class SharedTermsDatabase : public context::ContextNotifyObj {
-
  public:
-
   /** A container for a list of shared terms */
   typedef std::vector<TNode> shared_terms_list;
 
@@ -44,7 +42,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
  private:
-
   /** Some statistics */
   IntStat d_statSharedTerms;
 
@@ -73,7 +70,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   RegisteredEqualitiesSet d_registeredEqualities;
 
  private:
-
   /** This method removes all the un-necessary stuff from the maps */
   void backtrack();
 
@@ -118,7 +114,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
 
   /** Equality engine */
   theory::eq::EqualityEngine d_equalityEngine;
-  
+
   /** Proof equality engine */
   theory::eq::ProofEqEngine d_pfee;
 
@@ -163,10 +159,11 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   void checkForConflict();
 
  public:
-
-  SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context,
-                                         context::UserContext* userContext,
-                ProofNodeManager* pnm, LazyCDProof* lcp);
+  SharedTermsDatabase(TheoryEngine* theoryEngine,
+                      context::Context* context,
+                      context::UserContext* userContext,
+                      ProofNodeManager* pnm,
+                      LazyCDProof* lcp);
   ~SharedTermsDatabase();
 
   /**
@@ -257,7 +254,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   theory::eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
 
  protected:
-
   /** Pointer to the lazy proof of TheoryEngine */
   LazyCDProof* d_lazyPf;
   /**
