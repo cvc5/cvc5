@@ -886,7 +886,7 @@ void CoreSolver::getNormalForms(Node eqc,
   }
 }
 
-void CoreSolver::processNEqc(Node eqc, 
+void CoreSolver::processNEqc(Node eqc,
                              std::vector<NormalForm>& normal_forms,
                              TypeNode stype)
 {
@@ -894,9 +894,10 @@ void CoreSolver::processNEqc(Node eqc,
   {
     return;
   }
-  //if equivalence class is constant, approximate as containment, infer conflicts
+  // if equivalence class is constant, approximate as containment, infer
+  // conflicts
   Node c = d_bsolver.getConstantEqc(eqc);
-  //the possible inferences
+  // the possible inferences
   std::vector<CoreInferInfo> pinfer;
   // compute normal forms that are effectively unique
   std::unordered_map<Node, size_t, NodeHashFunction> nfCache;
@@ -909,7 +910,7 @@ void CoreSolver::processNEqc(Node eqc,
     {
       // If the equivalence class is entailed to be constant, check
       // if the normal form cannot be contained in that constant.
-      if( !c.isNull() )
+      if (!c.isNull())
       {
         int firstc, lastc;
         if (!StringsEntail::canConstantContainList(c, nfi.d_nf, firstc, lastc))
@@ -917,7 +918,7 @@ void CoreSolver::processNEqc(Node eqc,
           Node n = nfi.d_base;
           //conflict
           Trace("strings-solve") << "Normal form for " << n << " cannot be contained in constant " << c << std::endl;
-          //conflict, explanation is:
+          // conflict, explanation is:
           //  n = base ^ base = c ^ relevant porition of ( n = N[n] )
           std::vector< Node > exp;
           d_bsolver.explainConstantEqc(n,eqc,exp);
@@ -990,7 +991,7 @@ void CoreSolver::processNEqc(Node eqc,
   {
     for (const std::pair<const Node, size_t>& nj : nfCache)
     {
-      if (ni.first>=nj.first)
+      if (ni.first >= nj.first)
       {
         // avoid duplicate comparisons
         continue;

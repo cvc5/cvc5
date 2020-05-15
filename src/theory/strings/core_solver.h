@@ -288,7 +288,9 @@ class CoreSolver
    *
    * stype is the string-like type of the equivalence class we are processing.
    */
-  void processNEqc(Node eqc, std::vector<NormalForm>& normal_forms, TypeNode stype);
+  void processNEqc(Node eqc,
+                   std::vector<NormalForm>& normal_forms,
+                   TypeNode stype);
   /** process simple normal equality
    *
    * This method is called when two equal terms have normal forms nfi and nfj.
