@@ -1606,7 +1606,8 @@ theory::TrustNode TheoryEngine::getExplanationAndRecipe(
           proofRecipe->addStep(proofStep);
         }
       });
-
+    // it came directly from the theory, it is ready to be processed
+    processTrustNode(texplanation);
     return texplanation;
   }
 
@@ -1636,16 +1637,16 @@ theory::TrustNode TheoryEngine::getExplanationAndRecipe(
   }
 
   TrustNode texplanation = getExplanation(vec, proofRecipe);
-  Node explanation = texplanation.getNode();
 
-  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
-
+  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << texplanation.getNode() << endl;
+  // the trust node was processed within getExplanation
   return texplanation;
 }
 
 theory::TrustNode TheoryEngine::getExplanation(TNode node)
 {
   LemmaProofRecipe *dontCareRecipe = NULL;
+  // the trust node was processed within getExplanationAndRecipe
   return getExplanationAndRecipe(node, dontCareRecipe);
 }
 
@@ -1911,6 +1912,9 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     // Process the explanation
     TrustNode tnc = getExplanation(vec, proofRecipe);
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
+    
+    // TODO: convert proof here?
+    
     Node fullConflict = tnc.getNode();
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
