@@ -15,11 +15,14 @@ from cvc4 cimport DatatypeSelector as c_DatatypeSelector
 from cvc4 cimport Result as c_Result
 from cvc4 cimport RoundingMode as c_RoundingMode
 from cvc4 cimport Op as c_Op
+from cvc4 cimport OpHashFunction as c_OpHashFunction
 from cvc4 cimport Solver as c_Solver
 from cvc4 cimport Sort as c_Sort
+from cvc4 cimport SortHashFunction as c_SortHashFunction
 from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
 from cvc4 cimport ROUND_TOWARD_ZERO, ROUND_NEAREST_TIES_TO_AWAY
 from cvc4 cimport Term as c_Term
+from cvc4 cimport TermHashFunction as c_TermHashFunction
 
 from cvc4kinds cimport Kind as c_Kind
 
@@ -50,6 +53,12 @@ def expand_list_arg(num_req_args=0):
 ### always use c++ default arguments
 #### only use default args of None at python level
 #### Result class can have default because it's pure python
+
+
+## Objects for hashing
+cdef c_OpHashFunction cophash = c_OpHashFunction()
+cdef c_SortHashFunction csorthash = c_SortHashFunction()
+cdef c_TermHashFunction ctermhash = c_TermHashFunction()
 
 
 cdef class Datatype:
@@ -187,6 +196,9 @@ cdef class Op:
 
     def __repr__(self):
         return self.cop.toString().decode()
+
+    def __hash__(self):
+        return cophash(self.cop)
 
     def getKind(self):
         return kind(<int> self.cop.getKind())
@@ -953,6 +965,9 @@ cdef class Sort:
     def __repr__(self):
         return self.csort.toString().decode()
 
+    def __hash__(self):
+        return csorthash(self.csort)
+
     def isBoolean(self):
         return self.csort.isBoolean()
 
@@ -1053,6 +1068,9 @@ cdef class Term:
             term = Term()
             term.cterm = ci
             yield term
+
+    def __hash__(self):
+        return ctermhash(self.cterm)
 
     def getKind(self):
         return kind(<int> self.cterm.getKind())
