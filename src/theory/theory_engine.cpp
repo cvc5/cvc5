@@ -1913,7 +1913,9 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     TrustNode tnc = getExplanation(vec, proofRecipe);
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
 
-    // TODO: convert proof here?
+    // FIXME: have ~( l1 ^ ... ^ ln ) and ( E1 ^ ... ^ En ) => l1 ^ ... ^ ln
+    // Prove ~( E1 ^ ... ^ En )
+    
 
     Node fullConflict = tnc.getNode();
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
@@ -2019,6 +2021,7 @@ theory::TrustNode TheoryEngine::getExplanation(
     }
   });
 
+  std::vector<TrustNode> trNodes;
   while (i < explanationVector.size()) {
     // Get the current literal to explain
     NodeTheoryPair toExplain = explanationVector[i];
@@ -2117,6 +2120,12 @@ theory::TrustNode TheoryEngine::getExplanation(
           << theoryOf(toExplain.d_theory)->getId()
           << ". Explanation: " << texplanation.getNode() << std::endl;
     }
+    // process the trust node here
+    if (d_lazyProof!=nullptr)
+    {
+      processTrustNode(texplanation);
+      trNodes.push_back(texplanation);
+    }
     Node explanation = texplanation.getNode();
 
     Debug("theory::explain")
@@ -2185,7 +2194,14 @@ theory::TrustNode TheoryEngine::getExplanation(
     });
 
   Node exp = mkExplanation(explanationVector);
-  // FIXME
+  
+  if (d_lazyProof!=nullptr)
+  {
+    // FIXME
+    // We have E1 => l1 ^ ... En => ln.
+    // Need to prove E1 ^ ... ^ En => ( l1 ^ ... ^ ln )
+  }
+  
   return theory::TrustNode::mkTrustLemma(exp, nullptr);
 }
 
