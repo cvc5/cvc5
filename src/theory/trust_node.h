@@ -88,25 +88,25 @@ class TrustNode
   /** get kind */
   TrustNodeKind getKind() const;
   /** get node
-   * 
+   *
    * This is the node that is used in a common interface, either:
    * (1) A T-unsat conjunction conf to pass to OutputChannel::conflict,
    * (2) A valid T-formula lem to pass to OutputChannel::lemma, or
    * (3) A conjunction of literals exp to return in Theory::explain(lit).
-   * 
+   *
    * Notice that this node does not necessarily correspond to a valid formula.
    * The call getProven() below retrieves a valid formula corresponding to
    * the above calls.
    */
   Node getNode() const;
   /** get proven
-   * 
+   *
    * This is the corresponding formula that is proven by the proof generator
    * for the above cases:
    * (1) (not conf), for conflicts,
    * (2) lem, for lemmas,
    * (3) (=> exp lit), for propagations from explanations.
-   * 
+   *
    * When constructing this trust node, the proof generator should be able to
    * provide a proof for this fact.
    */

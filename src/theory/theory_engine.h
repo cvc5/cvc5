@@ -360,7 +360,7 @@ class TheoryEngine {
                             bool removable,
                             bool preprocess,
                             theory::TheoryId atomsTo);
-  
+
   /** Process trust node */
   void processTrustNode(theory::TrustNode trn);
 
@@ -523,7 +523,6 @@ class TheoryEngine {
       LemmaProofRecipe* lemmaProofRecipe);
 
  public:
-
   /**
    * Signal the start of a new round of assertion preprocessing
    */

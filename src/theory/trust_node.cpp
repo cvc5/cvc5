@@ -74,14 +74,12 @@ TrustNode::TrustNode(TrustNodeKind tnk, Node p, ProofGenerator* g)
 
 TrustNodeKind TrustNode::getKind() const { return d_tnk; }
 
-Node TrustNode::getNode() const {
-  return d_tnk==TrustNodeKind::LEMMA ? d_proven : d_proven[0];
+Node TrustNode::getNode() const
+{
+  return d_tnk == TrustNodeKind::LEMMA ? d_proven : d_proven[0];
 }
 
-Node TrustNode::getProven() const { 
-  return d_proven; 
-  
-}
+Node TrustNode::getProven() const { return d_proven; }
 ProofGenerator* TrustNode::getGenerator() const { return d_gen; }
 
 bool TrustNode::isNull() const { return d_proven.isNull(); }

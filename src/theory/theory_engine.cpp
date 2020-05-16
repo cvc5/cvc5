@@ -131,7 +131,7 @@ std::string getTheoryString(theory::TheoryId id)
 void TheoryEngine::finishInit()
 {
   // if we are using the new proofs module
-  if (d_lazyProof!=nullptr)
+  if (d_lazyProof != nullptr)
   {
     // ask the theories to populate the proof checking rules in the checker
     for (TheoryId theoryId = theory::THEORY_FIRST;
@@ -642,20 +642,15 @@ void TheoryEngine::combineTheories() {
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
 
     Node split = equality.orNode(equality.notNode());
-    if (d_lazyProof!=nullptr)
+    if (d_lazyProof != nullptr)
     {
       std::vector<Node> pfChildren;
       std::vector<Node> pfArgs;
       pfArgs.push_back(equality);
       d_lazyProof->addStep(split, PfRule::SPLIT, pfChildren, pfArgs);
     }
-    
-    lemma(split,
-          RULE_INVALID,
-          false,
-          false,
-          false,
-          carePair.d_theory);
+
+    lemma(split, RULE_INVALID, false, false, false, carePair.d_theory);
 
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
@@ -1220,7 +1215,9 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
 
   // If sending to the shared terms database, it's also simple
   if (toTheoryId == THEORY_BUILTIN) {
-    Assert(assertion.getKind() == kind::EQUAL || (assertion.getKind()==kind::NOT && assertion[0].getKind()==kind::EQUAL))
+    Assert(assertion.getKind() == kind::EQUAL
+           || (assertion.getKind() == kind::NOT
+               && assertion[0].getKind() == kind::EQUAL))
         << "atom should be an EQUALity, not `" << assertion << "'";
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
       d_sharedTerms.assertLiteral(assertion);
@@ -1264,7 +1261,9 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     return;
   }
 
-  Assert(assertion.getKind() == kind::EQUAL || (assertion.getKind()==kind::NOT && assertion[0].getKind()==kind::EQUAL));
+  Assert(assertion.getKind() == kind::EQUAL
+         || (assertion.getKind() == kind::NOT
+             && assertion[0].getKind() == kind::EQUAL));
 
   // Normalize
   Node normalizedLiteral = Rewriter::rewrite(assertion);
@@ -1638,7 +1637,8 @@ theory::TrustNode TheoryEngine::getExplanationAndRecipe(
 
   TrustNode texplanation = getExplanation(vec, proofRecipe);
 
-  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << texplanation.getNode() << endl;
+  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => "
+                           << texplanation.getNode() << endl;
   // the trust node was processed within getExplanation
   return texplanation;
 }
@@ -1775,7 +1775,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // if d_lazyProof is enabled, then d_lazyProof contains a proof of n.
-  if (d_lazyProof!=nullptr)
+  if (d_lazyProof != nullptr)
   {
     Node lemma = node;
     if (negated)
@@ -1850,7 +1850,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
 void TheoryEngine::processTrustNode(theory::TrustNode trn)
 {
-  if (d_lazyProof==nullptr)
+  if (d_lazyProof == nullptr)
   {
     // proofs not enabled
     return;
@@ -1866,7 +1866,7 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn)
     Assert(pfg->hasProofFor(p));
   }
 }
-  
+
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
   Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
@@ -1912,9 +1912,9 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     // Process the explanation
     TrustNode tnc = getExplanation(vec, proofRecipe);
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
-    
+
     // TODO: convert proof here?
-    
+
     Node fullConflict = tnc.getNode();
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));

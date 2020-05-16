@@ -203,7 +203,8 @@ bool SharedTermsDatabase::areDisequal(TNode a, TNode b) const {
 
 void SharedTermsDatabase::assertLiteral(TNode lit)
 {
-  Debug("shared-terms-database::assert") << "SharedTermsDatabase::assertLiteral(" << lit << ")" << endl;
+  Debug("shared-terms-database::assert")
+      << "SharedTermsDatabase::assertLiteral(" << lit << ")" << endl;
   // Add it to the equality engine
   // d_equalityEngine.assertEquality(equality, polarity, reason);
   d_pfee.assertAssume(lit);
