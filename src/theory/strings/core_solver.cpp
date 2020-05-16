@@ -1012,14 +1012,14 @@ void CoreSolver::getNormalForms(Node eqc,
         if (!StringsEntail::canConstantContainList(c, nf.d_nf, firstc, lastc))
         {
           Node n = nf.d_base;
+          std::vector< Node > exp;
           //conflict
           Trace("strings-solve") << "Normal form for " << n << " cannot be contained in constant " << c << std::endl;
           //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = N[n] )
-          std::vector< Node > exp;
-          d_bsolver.explainConstantEqc(n,eqc,exp);
           // Notice although not implemented, this can be minimized based on
           // firstc/lastc, normal_forms_exp_depend.
           exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
+          d_bsolver.explainConstantEqc(n,eqc,exp);
           Node conc = d_false;
           d_im.sendInference(exp, conc, Inference::N_NCTN);
         }

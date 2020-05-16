@@ -87,28 +87,48 @@ class TrustNode
   ~TrustNode() {}
   /** get kind */
   TrustNodeKind getKind() const;
-  /** get node */
+  /** get node
+   * 
+   * This is the node that is used in a common interface, either:
+   * (1) A T-unsat conjunction conf to pass to OutputChannel::conflict,
+   * (2) A valid T-formula lem to pass to OutputChannel::lemma, or
+   * (3) A conjunction of literals exp to return in Theory::explain(lit).
+   * 
+   * Notice that this node does not necessarily correspond to a valid formula.
+   * The call getProven() below retrieves a valid formula corresponding to
+   * the above calls.
+   */
   Node getNode() const;
+  /** get proven
+   * 
+   * This is the corresponding formula that is proven by the proof generator
+   * for the above cases:
+   * (1) (not conf), for conflicts,
+   * (2) lem, for lemmas,
+   * (3) (=> exp lit), for propagations from explanations.
+   * 
+   * When constructing this trust node, the proof generator should be able to
+   * provide a proof for this fact.
+   */
+  Node getProven() const;
   /** get generator */
   ProofGenerator* getGenerator() const;
   /** is null? */
   bool isNull() const;
 
-  /** Get the node key for which conflict calls are cached */
-  static Node getConflictKeyValue(Node conf);
-  /** Get the node key for which lemma calls are cached */
-  static Node getLemmaKeyValue(Node lem);
-  /** Get the node key for which explanations for propagations are cached */
-  static Node getPropExpKeyValue(TNode lit, Node exp);
-  /** Get the node key for the exp => conc */
-  static Node getKeyValue(TrustNodeKind tnk, Node exp, Node conc);
+  /** Get the proven formula corresponding to a conflict call */
+  static Node getConflictProven(Node conf);
+  /** Get the proven formula corresponding to a lemma call */
+  static Node getLemmaProven(Node lem);
+  /** Get the proven formula corresponding to explanations for propagation*/
+  static Node getPropExpProven(TNode lit, Node exp);
 
  private:
-  TrustNode(TrustNodeKind tnk, Node n, ProofGenerator* g = nullptr);
+  TrustNode(TrustNodeKind tnk, Node p, ProofGenerator* g = nullptr);
   /** The kind */
   TrustNodeKind d_tnk;
-  /** The node */
-  Node d_node;
+  /** The proven node */
+  Node d_proven;
   /** The generator */
   ProofGenerator* d_gen;
 };

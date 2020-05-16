@@ -131,7 +131,7 @@ std::string getTheoryString(theory::TheoryId id)
 void TheoryEngine::finishInit()
 {
   // if we are using the new proofs module
-  if (options::proofNew())
+  if (d_lazyProof!=nullptr)
   {
     // ask the theories to populate the proof checking rules in the checker
     for (TheoryId theoryId = theory::THEORY_FIRST;
@@ -641,7 +641,16 @@ void TheoryEngine::combineTheories() {
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
 
-    lemma(equality.orNode(equality.notNode()),
+    Node split = equality.orNode(equality.notNode());
+    if (d_lazyProof!=nullptr)
+    {
+      std::vector<Node> pfChildren;
+      std::vector<Node> pfArgs;
+      pfArgs.push_back(equality);
+      d_lazyProof->addStep(split, PfRule::SPLIT, pfChildren, pfArgs);
+    }
+    
+    lemma(split,
           RULE_INVALID,
           false,
           false,
@@ -1209,18 +1218,12 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     return;
   }
 
-  // Polarity of the assertion
-  bool polarity = assertion.getKind() != kind::NOT;
-
-  // Atom of the assertion
-  TNode atom = polarity ? assertion : assertion[0];
-
   // If sending to the shared terms database, it's also simple
   if (toTheoryId == THEORY_BUILTIN) {
-    Assert(atom.getKind() == kind::EQUAL)
-        << "atom should be an EQUALity, not `" << atom << "'";
+    Assert(assertion.getKind() == kind::EQUAL || (assertion.getKind()==kind::NOT && assertion[0].getKind()==kind::EQUAL))
+        << "atom should be an EQUALity, not `" << assertion << "'";
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
-      d_sharedTerms.assertEquality(atom, polarity, assertion);
+      d_sharedTerms.assertLiteral(assertion);
     }
     return;
   }
@@ -1261,7 +1264,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     return;
   }
 
-  Assert(atom.getKind() == kind::EQUAL);
+  Assert(assertion.getKind() == kind::EQUAL || (assertion.getKind()==kind::NOT && assertion[0].getKind()==kind::EQUAL));
 
   // Normalize
   Node normalizedLiteral = Rewriter::rewrite(assertion);
@@ -1770,8 +1773,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                      << CheckSatCommand(n.toExpr());
   }
 
-  // if proofNew is enabled, then d_lazyProof contains a proof of n.
-  if (options::proofNew())
+  // if d_lazyProof is enabled, then d_lazyProof contains a proof of n.
+  if (d_lazyProof!=nullptr)
   {
     Node lemma = node;
     if (negated)
@@ -1844,12 +1847,31 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   return theory::LemmaStatus(additionalLemmas[0], d_userContext->getLevel());
 }
 
+void TheoryEngine::processTrustNode(theory::TrustNode trn)
+{
+  if (d_lazyProof==nullptr)
+  {
+    // proofs not enabled
+    return;
+  }
+  ProofGenerator* pfg = trn.getGenerator();
+  // may or may not have supplied a generator
+  if (pfg != nullptr)
+  {
+    Node p = trn.getProven();
+    // if we have, add it to the lazy proof object
+    d_lazyProof->addLazyStep(p, pfg);
+    // generator should have a proof for p
+    Assert(pfg->hasProofFor(p));
+  }
+}
+  
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
   Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
   // if proofNew is enabled, then d_lazyProof contains a proof of
   // conflict.negate()
-  // Assert (!options::proofNew() || d_lazyProof->hasStep(conflict.negate()) ||
+  // Assert (d_lazyProof==nullptr || d_lazyProof->hasStep(conflict.negate()) ||
   // d_lazyProof->hasGenerator(conflict.negate()) || theoryId==THEORY_ARITH);
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;

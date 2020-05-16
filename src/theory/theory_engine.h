@@ -360,6 +360,9 @@ class TheoryEngine {
                             bool removable,
                             bool preprocess,
                             theory::TheoryId atomsTo);
+  
+  /** Process trust node */
+  void processTrustNode(theory::TrustNode trn);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);

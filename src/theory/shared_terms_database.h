@@ -167,9 +167,10 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   ~SharedTermsDatabase();
 
   /**
-   * Asserts the equality to the shared terms database,
+   * Asserts the literal lit to the shared terms database, where lit is
+   * an equality or disequality.
    */
-  void assertEquality(TNode equality, bool polarity, TNode reason);
+  void assertLiteral(TNode lit);
 
   /**
    * Return whether the equality is alreday known to the engine
