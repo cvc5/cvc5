@@ -45,6 +45,8 @@ class SygusInterpol
 	public:
 		SygusInterpol();
 
+		SygusInterpol(LogicInfo logic);
+
 		/**
 		 * Returns the sygus conjecture corresponding to the interpolation problem for
 		 * input problem (F above) given by axioms (Fa above), and conj (Fc above).
@@ -111,13 +113,15 @@ private:
 
 	void createVariables();
 
-	TypeNode setSynthGrammar(TypeNode& itpGType);
+	TypeNode setSynthGrammar(const TypeNode& itpGType);
 
-	Node mkPredicate(std::string& name);
+	Node mkPredicate(const std::string& name);
 
   void mkSygusConjecture(Node itp, const std::vector<Node>& axioms, const Node& conj);
 
-	void findInterpol(Expr& interpol);
+	bool findInterpol(Expr& interpol, Node itp);
+
+	LogicInfo d_logic;
 
 	std::unique_ptr<SmtEngine> d_subsolver;
 

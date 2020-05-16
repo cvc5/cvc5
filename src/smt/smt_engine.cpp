@@ -1965,11 +1965,6 @@ Result SmtEngine::checkSynth()
     }
     if (!d_private->d_sygusFunSymbols.empty())
 		{
-			for (Node tmp : d_private->d_sygusFunSymbols) {
-				std::cout << tmp << " panda ";
-			}
-			std::cout << std::endl;
-
 			Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
 					d_private->d_sygusFunSymbols);
 			body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
@@ -3163,9 +3158,10 @@ bool SmtEngine::getInterpol(const Expr& conj,
 	conjn = d_private->getProcessAssertions()->expandDefinitions(conjn, cache);
   std::string name("A");
 
-	theory::quantifiers::SygusInterpol interpolSolver;
+	theory::quantifiers::SygusInterpol interpolSolver(d_logic);
   if (interpolSolver.SolveInterpolation(name, axioms, conjn, TypeNode::fromType(grammarType), interpol))
   {
+		cerr << "successed" << endl;
     // successfully generated an interpolation, update to interpol state
     d_smtMode = SMT_MODE_INTERPOL;
 		if (options::checkInterpols())

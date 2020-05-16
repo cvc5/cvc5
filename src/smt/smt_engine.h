@@ -938,9 +938,9 @@ class CVC4_PUBLIC SmtEngine
    * synthesized solutions, which is a quantifier-free formula, is
    * unsatisfiable. If not, then the found solutions are wrong.
    */
-	void checkSynthSolution(Expr interpol);
+	void checkSynthSolution();
 
-	void checkInterpol(Expr a, const std::vector<Expr>& easserts, const Node& conj);
+	void checkInterpol(Expr interpol, const std::vector<Expr>& easserts, const Node& conj);
 
 	/**
 	 * Check that a solution to an abduction conjecture is indeed a solution.

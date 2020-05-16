@@ -206,7 +206,9 @@ Node CegGrammarConstructor::process(Node q,
   Assert(q[0].getNumChildren() == ebvl.size());
   Assert(d_synth_fun_vars.empty());
 
+	std::cerr << "begin !!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+	std::cerr << "end !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 
   std::vector<Node> qchildren;
   Node qbody_subs = q[1];
