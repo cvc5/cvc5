@@ -2852,7 +2852,9 @@ void SmtEngine::checkSynthSolution()
   }
 }
 
-void SmtEngine::checkInterpol(Expr interpol, const std::vector<Expr>& easserts, const Node& conj)
+void SmtEngine::checkInterpol(Expr interpol,
+                              const std::vector<Expr>& easserts,
+                              const Node& conj)
 {
   Assert(interpol.getType().isBoolean());
   Trace("check-interpol") << "SmtEngine::checkInterpol: get expanded assertions"
@@ -2905,9 +2907,10 @@ void SmtEngine::checkInterpol(Expr interpol, const std::vector<Expr>& easserts, 
       }
       else
       {
-        serr << "SmtEngine::checkInterpol(): negated conjecture cannot be shown "
-                "unsatisfiable with produced solution, result was "
-             << r;
+        serr
+            << "SmtEngine::checkInterpol(): negated conjecture cannot be shown "
+               "unsatisfiable with produced solution, result was "
+            << r;
       }
       InternalError() << serr.str();
     }
@@ -3158,16 +3161,17 @@ bool SmtEngine::getInterpol(const Expr& conj,
 	conjn = d_private->getProcessAssertions()->expandDefinitions(conjn, cache);
   std::string name("A");
 
-	theory::quantifiers::SygusInterpol interpolSolver(d_logic);
-  if (interpolSolver.SolveInterpolation(name, axioms, conjn, TypeNode::fromType(grammarType), interpol))
+  theory::quantifiers::SygusInterpol interpolSolver(d_logic);
+  if (interpolSolver.SolveInterpolation(
+          name, axioms, conjn, TypeNode::fromType(grammarType), interpol))
   {
-		cerr << "successed" << endl;
+    cerr << "successed" << endl;
     // successfully generated an interpolation, update to interpol state
     d_smtMode = SMT_MODE_INTERPOL;
-		if (options::checkInterpols())
-		{
-			checkInterpol(interpol, easserts, conj);
-		}
+    if (options::checkInterpols())
+    {
+      checkInterpol(interpol, easserts, conj);
+    }
     return true;
   }
   // failed, we revert to the assert state
