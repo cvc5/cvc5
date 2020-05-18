@@ -20,7 +20,6 @@ namespace booleans {
 
 void BoolProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::RESOLUTION, this);
   pc->registerChecker(PfRule::SPLIT, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
   pc->registerChecker(PfRule::NOT_OR_ELIM, this);
@@ -45,24 +44,6 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                                          const std::vector<Node>& children,
                                          const std::vector<Node>& args)
 {
-  if (id == PfRule::RESOLUTION)
-  {
-    Assert(children.size() == 2);
-    Assert(args.size() == 1);
-    std::vector<Node> disjuncts;
-    for (unsigned i = 0; i < 2; ++i)
-    {
-      Node piv = i == 0 ? args[0] : args[0].notNode();
-      for (unsigned j = 0, size = children[i].size(); j < size; ++j)
-      {
-        if (children[i][j] != piv)
-        {
-          disjuncts.push_back(children[0][i]);
-        }
-      }
-    }
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
-  }
   if (id == PfRule::SPLIT)
   {
     Assert(children.empty());
