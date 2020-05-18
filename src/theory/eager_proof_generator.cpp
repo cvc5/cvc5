@@ -15,7 +15,6 @@
 #include "theory/eager_proof_generator.h"
 
 #include "expr/proof_node_manager.h"
-#include "theory/proof_engine_output_channel.h"
 
 namespace CVC4 {
 namespace theory {

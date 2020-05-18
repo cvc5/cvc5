@@ -20,7 +20,6 @@
 #include <unordered_map>
 
 #include "context/cdhashset.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/proof_node_manager.h"
 #include "theory/theory.h"
@@ -163,7 +162,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
                       context::Context* context,
                       context::UserContext* userContext,
                       ProofNodeManager* pnm,
-                      LazyCDProof* lcp);
+                      bool pfEnabled);
   ~SharedTermsDatabase();
 
   /**
@@ -255,8 +254,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   theory::eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
 
  protected:
-  /** Pointer to the lazy proof of TheoryEngine */
-  LazyCDProof* d_lazyPf;
   /**
    * This method gets called on backtracks from the context manager.
    */

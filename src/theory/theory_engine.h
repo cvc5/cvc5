@@ -38,13 +38,13 @@
 #include "theory/atom_requests.h"
 #include "theory/decision_manager.h"
 #include "theory/interrupted.h"
-#include "theory/proof_engine_output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/shared_terms_database.h"
 #include "theory/sort_inference.h"
 #include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
+#include "theory/engine_output_channel.h"
 #include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
@@ -256,10 +256,8 @@ class TheoryEngine {
    */
   context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
 
-  /**
-   * Output channels for individual theories.
-   */
-  theory::ProofEngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
+  /** Output channels for individual theories. */
+  theory::EngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
 
   /**
    * Are we in conflict.
@@ -420,7 +418,7 @@ class TheoryEngine {
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] =
-        new theory::ProofEngineOutputChannel(this, theoryId, d_lazyProof.get());
+        new theory::EngineOutputChannel(this, theoryId);
     d_theoryTable[theoryId] = new TheoryClass(d_context,
                                               d_userContext,
                                               *d_theoryOut[theoryId],

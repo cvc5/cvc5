@@ -31,6 +31,10 @@ namespace theory {
 /**
  * An output channel for Theory that passes messages back to a TheoryEngine
  * for a given Theory.
+ * 
+ * Notice that is has interfaces trustedConflict and trustedLemma which are
+ * used for ensuring that proof generators are associated with the lemmas
+ * and conflicts sent on this output channel.
  */
 class EngineOutputChannel : public theory::OutputChannel
 {
@@ -63,6 +67,26 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void handleUserAttribute(const char* attr, theory::Theory* t) override;
 
+  /**
+   * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
+   * sends conf on the output channel of this class whose proof can be generated
+   * by the generator pfg. It calls TheoryEngine::processTrustNode,
+   * which ensures that the generator pfg is associated with conf in the
+   * lazy proof owned by the theory engine of this class.
+   */
+  void trustedConflict(TrustNode pconf) override;
+  /**
+   * Let plem be the pair (Node lem, ProofGenerator * pfg).
+   * Send lem on the output channel of this class whose proof can be generated
+   * by the generator pfg. Apart from pfg, the interface for this method is
+   * the same as OutputChannel. It calls TheoryEngine::processTrustNode,
+   * which ensures that the generator pfg is associated with lem in the
+   * lazy proof owned by the theory engine of this class.
+   */
+  LemmaStatus trustedLemma(TrustNode plem,
+                           bool removable = false,
+                           bool preprocess = false,
+                           bool sendAtoms = false) override;
  protected:
   /**
    * Statistics for a particular theory.

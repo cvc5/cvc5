@@ -23,12 +23,11 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-// below, proofs are enabled in d_pfee if we are provided a lazy proof
 SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
                                          context::Context* context,
                                          context::UserContext* userContext,
                                          ProofNodeManager* pnm,
-                                         LazyCDProof* lcp)
+                      bool pfEnabled)
     : ContextNotifyObj(context),
       d_statSharedTerms("theory::shared_terms", 0),
       d_addedSharedTermsSize(context, 0),
@@ -37,11 +36,10 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_registeredEqualities(context),
       d_EENotify(*this),
       d_equalityEngine(d_EENotify, context, "SharedTermsDatabase", true),
-      d_pfee(context, userContext, d_equalityEngine, pnm, lcp != nullptr),
+      d_pfee(context, userContext, d_equalityEngine, pnm, pfEnabled),
       d_theoryEngine(theoryEngine),
       d_inConflict(context, false),
-      d_conflictPolarity(),
-      d_lazyPf(lcp)
+      d_conflictPolarity()
 {
   smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
 }

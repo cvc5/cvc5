@@ -204,7 +204,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
               : nullptr),
       d_tepg(new TheoryEngineProofGenerator(d_pNodeManager.get(), d_userContext)),
       d_sharedTerms(
-          this, context, userContext, d_pNodeManager.get(), d_lazyProof.get()),
+          this, context, userContext, d_pNodeManager.get(), d_lazyProof!=nullptr),
       d_masterEqualityEngine(nullptr),
       d_masterEENotify(*this),
       d_quantEngine(nullptr),
@@ -1793,6 +1793,14 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     }
   }
 
+  // FIXME
+  std::shared_ptr<LazyCDProof> lcp;
+  if (d_lazyProof != nullptr)
+  {
+    Trace("te-proof-exp") << "TheoryEngine::lemma: process " << node << std::endl;
+    lcp.reset(new LazyCDProof(d_pNodeManager.get()));
+  }
+  
   AssertionPipeline additionalLemmas;
 
   // Run theory preprocessing, maybe
@@ -1928,6 +1936,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
 
     // FIXME: have ~( F ) and E => F, prove ~( E )
+    if (d_lazyProof!=nullptr)
+    {
+      
+    }
+    
 
     Node fullConflict = tnc.getNode();
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
