@@ -52,6 +52,7 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
+#include "theory/theory_engine_proof_generator.h"
 
 using namespace std;
 
@@ -201,6 +202,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
           options::proofNew()
               ? new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext)
               : nullptr),
+      d_tepg(new TheoryEngineProofGenerator(d_pNodeManager.get(), d_userContext)),
       d_sharedTerms(
           this, context, userContext, d_pNodeManager.get(), d_lazyProof.get()),
       d_masterEqualityEngine(nullptr),
@@ -1605,8 +1607,6 @@ theory::TrustNode TheoryEngine::getExplanationAndRecipe(
           proofRecipe->addStep(proofStep);
         }
       });
-    // it came directly from the theory, it is ready to be processed
-    processTrustNode(texplanation);
     return texplanation;
   }
 
@@ -1639,7 +1639,6 @@ theory::TrustNode TheoryEngine::getExplanationAndRecipe(
 
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => "
                            << texplanation.getNode() << endl;
-  // the trust node was processed within getExplanation
   return texplanation;
 }
 
@@ -1848,7 +1847,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   return theory::LemmaStatus(additionalLemmas[0], d_userContext->getLevel());
 }
 
-void TheoryEngine::processTrustNode(theory::TrustNode trn)
+void TheoryEngine::processTrustNode(theory::TrustNode trn,
+                            theory::TheoryId from)
 {
   if (d_lazyProof == nullptr)
   {
@@ -1856,14 +1856,28 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn)
     return;
   }
   ProofGenerator* pfg = trn.getGenerator();
+  Node p = trn.getProven();
   // may or may not have supplied a generator
   if (pfg != nullptr)
   {
-    Node p = trn.getProven();
     // if we have, add it to the lazy proof object
     d_lazyProof->addLazyStep(p, pfg);
     // generator should have a proof for p
     Assert(pfg->hasProofFor(p));
+  }
+  else
+  {
+    // all BUILTIN should be handled
+    Assert (from!=THEORY_BUILTIN);
+    // untrusted theory lemma
+    std::vector<Node> children;
+    std::vector<Node> args;
+    args.push_back(p);
+    unsigned tid = static_cast<unsigned>(from);
+    Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
+    args.push_back(tidn);
+    // add the step, should always succeed;
+    d_lazyProof->addStep(p, PfRule::THEORY_LEMMA, children, args);
   }
 }
 
@@ -1913,8 +1927,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     TrustNode tnc = getExplanation(vec, proofRecipe);
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
 
-    // FIXME: have ~( l1 ^ ... ^ ln ) and ( E1 ^ ... ^ En ) => l1 ^ ... ^ ln
-    // Prove ~( E1 ^ ... ^ En )
+    // FIXME: have ~( F ) and E => F, prove ~( E )
 
     Node fullConflict = tnc.getNode();
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
@@ -2009,7 +2022,9 @@ theory::TrustNode TheoryEngine::getExplanation(
   Assert(explanationVector.size() == 1);
 
   Node conclusion = explanationVector[0].d_node;
-  std::unique_ptr<LazyCDProof> lcp;
+  std::shared_ptr<LazyCDProof> lcp;
+  bool simpleExplain = true;
+  TrustNode simpleTrn;
   if (d_lazyProof != nullptr)
   {
     Trace("te-proof-exp") << "TheoryEngine::getExplanation " << conclusion << std::endl;
@@ -2053,6 +2068,7 @@ theory::TrustNode TheoryEngine::getExplanation(
         args.push_back(toExplain.d_node);
         lcp->addStep(
             toExplain.d_node, PfRule::MACRO_SR_PRED_INTRO, children, args);
+        simpleExplain = false;
       }
       continue;
     }
@@ -2096,6 +2112,7 @@ theory::TrustNode TheoryEngine::getExplanation(
         args.push_back(mkMethodId(MethodId::SB_PREDICATE));
         lcp->addStep(
             toExplain.d_node, PfRule::MACRO_SR_PRED_INTRO, children, args);
+        simpleExplain = false;
       }
       ++ i;
       continue;
@@ -2138,6 +2155,7 @@ theory::TrustNode TheoryEngine::getExplanation(
             Trace("te-proof-exp") << "- t-explained cached: " << toExplain.d_node << " by " << (*find).second.d_node << std::endl;
             // does this ever happen?
             Assert(false);
+            simpleExplain = false;
           }
         }
         continue;
@@ -2196,6 +2214,20 @@ theory::TrustNode TheoryEngine::getExplanation(
         args.push_back(mkMethodId(MethodId::SB_PREDICATE));
         lcp->addStep(
             toExplain.d_node, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+        if (simpleExplain)
+        {
+          if (simpleTrn.isNull())
+          {
+            // as an optimization, it may be a simple explanation, so we
+            // remember the trust node for now
+            simpleTrn = texplanation;
+          }
+          else
+          {
+            // multiple theories involved, not simple
+            simpleExplain = false;
+          }
+        }
       }
     }
     Node explanation = texplanation.getNode();
@@ -2269,18 +2301,20 @@ theory::TrustNode TheoryEngine::getExplanation(
 
   if (lcp != nullptr)
   {
-    Assert(lcp != nullptr);
-    // FIXME
-    // get the proof for conclusion
-    std::shared_ptr<ProofNode> pfConc = lcp->mkProof(conclusion);
-    std::vector<Node> scopeAssumps;
-    for (size_t k = 0, esize = explanationVector.size(); k < esize; ++k)
+    // doesn't work currently due to reordering of assumptions
+    /*
+    if (simpleExplain)
     {
-      scopeAssumps.push_back(explanationVector[k].d_node);
+      // single call to a theory's explain method, skip the proof generator
+      Assert (!simpleTrn.isNull());
+      Trace("te-proof-exp") << "...simple explain " << simpleTrn.getNode() << std::endl;
+      return simpleTrn;
     }
-    // call the scope method of proof node manager
-    std::shared_ptr<ProofNode> pf =
-        d_pNodeManager->mkScope(pfConc, scopeAssumps);
+    */
+    // store in the proof generator
+    TrustNode trn = d_tepg->mkTrustExplain(conclusion,exp,lcp);
+    // return the trust node
+    return trn;
   }
 
   return theory::TrustNode::mkTrustLemma(exp, nullptr);

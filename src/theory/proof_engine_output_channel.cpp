@@ -30,25 +30,8 @@ ProofEngineOutputChannel::ProofEngineOutputChannel(TheoryEngine* engine,
 void ProofEngineOutputChannel::trustedConflict(TrustNode pconf)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
-  Node conf = pconf.getNode();
-  if (d_lazyPf != nullptr)
-  {
-    Node ckey = pconf.getProven();
-    ProofGenerator* pfg = pconf.getGenerator();
-    // may or may not have supplied a generator
-    if (pfg != nullptr)
-    {
-      ++d_statistics.trustedConflicts;
-      // if we have, add it to the lazy proof object
-      d_lazyPf->addLazyStep(ckey, pfg);
-      Assert(pfg->hasProofFor(ckey));
-    }
-    else
-    {
-      // if none provided, do a very coarse-grained step
-      addTheoryLemmaStep(ckey);
-    }
-  }
+  d_engine->processTrustNode(pconf, d_theory);
+  TNode conf = pconf.getNode();
   // now, call the normal interface to conflict
   conflict(conf);
 }
@@ -59,25 +42,8 @@ LemmaStatus ProofEngineOutputChannel::trustedLemma(TrustNode plem,
                                                    bool sendAtoms)
 {
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
+  d_engine->processTrustNode(plem, d_theory);
   TNode lem = plem.getNode();
-  if (d_lazyPf != nullptr)
-  {
-    Node lkey = plem.getProven();
-    ProofGenerator* pfg = plem.getGenerator();
-    // may or may not have supplied a generator
-    if (pfg != nullptr)
-    {
-      ++d_statistics.trustedLemmas;
-      // if we have, add it to the lazy proof object
-      d_lazyPf->addLazyStep(lkey, pfg);
-      Assert(pfg->hasProofFor(lkey));
-    }
-    else
-    {
-      // if none provided, do a very coarse-grained step
-      addTheoryLemmaStep(lkey);
-    }
-  }
   // now, call the normal interface for lemma
   return OutputChannel::lemma(lem, removable, preprocess, sendAtoms);
 }

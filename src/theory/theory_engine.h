@@ -58,6 +58,7 @@ namespace CVC4 {
 class ResourceManager;
 class LemmaProofRecipe;
 class LazyCDProof;
+class TheoryEngineProofGenerator;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of
@@ -156,6 +157,8 @@ class TheoryEngine {
    * This stores instructions for how to construct proofs for all theory lemmas.
    */
   std::shared_ptr<LazyCDProof> d_lazyProof;
+  /** The proof generator */
+  std::shared_ptr<TheoryEngineProofGenerator> d_tepg;
   //--------------------------------- end new proofs
 
   /**
@@ -361,8 +364,19 @@ class TheoryEngine {
                             bool preprocess,
                             theory::TheoryId atomsTo);
 
-  /** Process trust node */
-  void processTrustNode(theory::TrustNode trn);
+  /** 
+   * Process trust node. This method ensures that the proof for the proven node
+   * of trn is stored as a lazy step in the lazy proof (d_lazyProof) maintained
+   * by this class, referencing the proof generator of the trust node. The
+   * argument from specifies the theory responsible for this trust node. If
+   * no generator is provided, then a (eager) THEORY_LEMMA step is added to
+   * the lazy proof.
+   * 
+   * @param trn The trust node to process
+   * @param from The id of the theory responsible for the trust node.
+   */
+  void processTrustNode(theory::TrustNode trn,
+                            theory::TheoryId from);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
