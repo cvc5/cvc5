@@ -21,30 +21,26 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "theory/theory.h"
+#include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "theory/trust_node.h"
-#include "expr/proof_node_manager.h"
 #include "util/statistics_registry.h"
-#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
 
 class SharedTermsDatabase : public context::ContextNotifyObj {
-
-public:
-
+ public:
   /** A container for a list of shared terms */
   typedef std::vector<TNode> shared_terms_list;
 
   /** The iterator to go through the shared terms list */
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
-private:
-
+ private:
   /** Some statistics */
   IntStat d_statSharedTerms;
 
@@ -72,8 +68,7 @@ private:
   typedef context::CDHashSet<Node, NodeHashFunction> RegisteredEqualitiesSet;
   RegisteredEqualitiesSet d_registeredEqualities;
 
-private:
-
+ private:
   /** This method removes all the un-necessary stuff from the maps */
   void backtrack();
 
@@ -118,7 +113,7 @@ private:
 
   /** Equality engine */
   theory::eq::EqualityEngine d_equalityEngine;
-  
+
   /** Proof equality engine */
   theory::eq::ProofEqEngine d_pfee;
 
@@ -162,17 +157,19 @@ private:
    */
   void checkForConflict();
 
-public:
-
-  SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context,
-                                         context::UserContext* userContext,
-                ProofNodeManager* pnm, LazyCDProof* lcp);
+ public:
+  SharedTermsDatabase(TheoryEngine* theoryEngine,
+                      context::Context* context,
+                      context::UserContext* userContext,
+                      ProofNodeManager* pnm,
+                      bool pfEnabled);
   ~SharedTermsDatabase();
 
   /**
-   * Asserts the equality to the shared terms database,
+   * Asserts the literal lit to the shared terms database, where lit is
+   * an equality or disequality.
    */
-  void assertEquality(TNode equality, bool polarity, TNode reason);
+  void assertLiteral(TNode lit);
 
   /**
    * Return whether the equality is alreday known to the engine
@@ -256,10 +253,7 @@ public:
    */
   theory::eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
 
-protected:
-
-  /** Pointer to the lazy proof of TheoryEngine */
-  LazyCDProof* d_lazyPf;
+ protected:
   /**
    * This method gets called on backtracks from the context manager.
    */

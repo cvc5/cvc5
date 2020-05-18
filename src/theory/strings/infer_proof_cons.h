@@ -126,22 +126,25 @@ class InferProofCons : public ProofGenerator
   bool convertPredTransform(Node src,
                             Node tgt,
                             const std::vector<Node>& exp,
-                            RewriterId id = RewriterId::REWRITE);
+                            MethodId ids = MethodId::SB_DEFAULT,
+                            MethodId idr = MethodId::RW_REWRITE);
   /**
    */
   bool convertPredIntro(Node tgt,
                         const std::vector<Node>& exp,
-                        RewriterId id = RewriterId::REWRITE);
+                        MethodId ids = MethodId::SB_DEFAULT,
+                        MethodId idr = MethodId::RW_REWRITE);
   /**
    */
   Node convertPredElim(Node src,
                        const std::vector<Node>& exp,
-                       RewriterId id = RewriterId::REWRITE);
+                       MethodId ids = MethodId::SB_DEFAULT,
+                       MethodId idr = MethodId::RW_REWRITE);
+  /** Add method ids */
+  void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
   /**
    */
   Node convertTrans(Node eqa, Node eqb);
-  /** Is symm */
-  static bool isSymm(Node src, Node tgt);
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

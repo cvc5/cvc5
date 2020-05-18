@@ -37,14 +37,15 @@
 #include "smt/command.h"
 #include "theory/atom_requests.h"
 #include "theory/decision_manager.h"
+#include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
-#include "theory/proof_engine_output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/shared_terms_database.h"
 #include "theory/sort_inference.h"
 #include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
+#include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
@@ -57,6 +58,7 @@ namespace CVC4 {
 class ResourceManager;
 class LemmaProofRecipe;
 class LazyCDProof;
+class TheoryEngineProofGenerator;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of
@@ -155,8 +157,10 @@ class TheoryEngine {
    * This stores instructions for how to construct proofs for all theory lemmas.
    */
   std::shared_ptr<LazyCDProof> d_lazyProof;
+  /** The proof generator */
+  std::shared_ptr<TheoryEngineProofGenerator> d_tepg;
   //--------------------------------- end new proofs
-  
+
   /**
    * The database of shared terms.
    */
@@ -252,10 +256,8 @@ class TheoryEngine {
    */
   context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
 
-  /**
-   * Output channels for individual theories.
-   */
-  theory::ProofEngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
+  /** Output channels for individual theories. */
+  theory::EngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
 
   /**
    * Are we in conflict.
@@ -360,6 +362,19 @@ class TheoryEngine {
                             bool preprocess,
                             theory::TheoryId atomsTo);
 
+  /**
+   * Process trust node. This method ensures that the proof for the proven node
+   * of trn is stored as a lazy step in the lazy proof (d_lazyProof) maintained
+   * by this class, referencing the proof generator of the trust node. The
+   * argument from specifies the theory responsible for this trust node. If
+   * no generator is provided, then a (eager) THEORY_LEMMA step is added to
+   * the lazy proof.
+   *
+   * @param trn The trust node to process
+   * @param from The id of the theory responsible for the trust node.
+   */
+  void processTrustNode(theory::TrustNode trn, theory::TheoryId from);
+
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
 
@@ -401,8 +416,7 @@ class TheoryEngine {
   inline void addTheory(theory::TheoryId theoryId)
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
-    d_theoryOut[theoryId] =
-        new theory::ProofEngineOutputChannel(this, theoryId, d_lazyProof.get());
+    d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
     d_theoryTable[theoryId] = new TheoryClass(d_context,
                                               d_userContext,
                                               *d_theoryOut[theoryId],
@@ -514,10 +528,11 @@ class TheoryEngine {
    * theory that sent the literal. The lemmaProofRecipe will contain a list
    * of the explanation steps required to produce the original node.
    */
-  void getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* lemmaProofRecipe);
+  theory::TrustNode getExplanation(
+      std::vector<NodeTheoryPair>& explanationVector,
+      LemmaProofRecipe* lemmaProofRecipe);
 
-public:
-
+ public:
   /**
    * Signal the start of a new round of assertion preprocessing
    */
@@ -635,13 +650,14 @@ public:
   /**
    * Returns an explanation of the node propagated to the SAT solver.
    */
-  Node getExplanation(TNode node);
+  theory::TrustNode getExplanation(TNode node);
 
   /**
    * Returns an explanation of the node propagated to the SAT solver and the theory
    * that propagated it.
    */
-  Node getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe);
+  theory::TrustNode getExplanationAndRecipe(TNode node,
+                                            LemmaProofRecipe* proofRecipe);
 
   /**
    * collect model info

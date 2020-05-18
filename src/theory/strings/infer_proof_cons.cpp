@@ -48,7 +48,7 @@ void InferProofCons::notifyFact(const InferInfo& ii)
     Trace("strings-ipc-debug") << "...duplicate!" << std::endl;
     return;
   }
-  if (fact.getKind()==EQUAL)
+  if (fact.getKind() == EQUAL)
   {
     Node symFact = fact[1].eqNode(fact[0]);
     if (d_lazyFactMap.find(symFact) != d_lazyFactMap.end())
@@ -168,8 +168,9 @@ Node InferProofCons::convert(Inference infer,
     case Inference::INFER_EMP:
     {
       // need the "extended equality rewrite"
-      ps.d_args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(
-          RewriterId::REWRITE_EQ_EXT));
+      MethodId ids = MethodId::SB_DEFAULT;
+      MethodId idr = MethodId::RW_REWRITE_EQ_EXT;
+      addMethodIds(ps.d_args, ids, idr);
       ps.d_rule = PfRule::MACRO_SR_PRED_ELIM;
     }
     break;
@@ -260,7 +261,7 @@ Node InferProofCons::convert(Inference infer,
                           ps.d_children.begin() + mainEqIndex);
       Node mainEqSRew =
           d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, emptyVec);
-      if (isSymm(mainEqSRew, mainEq))
+      if (CDProof::isSame(mainEqSRew, mainEq))
       {
         Trace("strings-ipc-core") << "...undo step" << std::endl;
         // not necessary
@@ -305,8 +306,11 @@ Node InferProofCons::convert(Inference infer,
         // optimization in processSimpleNEq. Alternatively, this could
         // possibly be done by CONCAT_EQ with !isRev.
         std::vector<Node> cexp;
-        if (convertPredTransform(
-                mainEqCeq, conc, cexp, RewriterId::REWRITE_EQ_EXT))
+        if (convertPredTransform(mainEqCeq,
+                                 conc,
+                                 cexp,
+                                 MethodId::SB_DEFAULT,
+                                 MethodId::RW_REWRITE_EQ_EXT))
         {
           Trace("strings-ipc-core") << "Transformed to " << conc
                                     << " via pred transform" << std::endl;
@@ -901,10 +905,11 @@ bool InferProofCons::convertLengthPf(Node lenReq,
 bool InferProofCons::convertPredTransform(Node src,
                                           Node tgt,
                                           const std::vector<Node>& exp,
-                                          RewriterId id)
+                                          MethodId ids,
+                                          MethodId idr)
 {
   // symmetric equalities
-  if (isSymm(src, tgt))
+  if (CDProof::isSame(src, tgt))
   {
     return true;
   }
@@ -914,19 +919,16 @@ bool InferProofCons::convertPredTransform(Node src,
   // try to prove that tgt rewrites to src
   children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
-  if (id != RewriterId::REWRITE)
-  {
-    args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(id));
-  }
+  addMethodIds(args, ids, idr);
   Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
   if (res.isNull())
   {
     // failed to apply
     return false;
   }
-  Trace("strings-ipc-debug")
-      << "InferProofCons::convertPredTransform: success " << src
-      << " == " << tgt << " under " << exp << " via " << id << std::endl;
+  Trace("strings-ipc-debug") << "InferProofCons::convertPredTransform: success "
+                             << src << " == " << tgt << " under " << exp
+                             << " via " << ids << "/" << idr << std::endl;
   // should definitely have concluded tgt
   Assert(res == tgt);
   return true;
@@ -934,14 +936,12 @@ bool InferProofCons::convertPredTransform(Node src,
 
 bool InferProofCons::convertPredIntro(Node tgt,
                                       const std::vector<Node>& exp,
-                                      RewriterId id)
+                                      MethodId ids,
+                                      MethodId idr)
 {
   std::vector<Node> args;
   args.push_back(tgt);
-  if (id != RewriterId::REWRITE)
-  {
-    args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(id));
-  }
+  addMethodIds(args, ids, idr);
   Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_INTRO, exp, args);
   if (res.isNull())
   {
@@ -953,23 +953,36 @@ bool InferProofCons::convertPredIntro(Node tgt,
 
 Node InferProofCons::convertPredElim(Node src,
                                      const std::vector<Node>& exp,
-                                     RewriterId id)
+                                     MethodId ids,
+                                     MethodId idr)
 {
   std::vector<Node> children;
   children.push_back(src);
   children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
-  if (id != RewriterId::REWRITE)
-  {
-    args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(id));
-  }
+  addMethodIds(args, ids, idr);
   Node srcRew = d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, children, args);
-  if (isSymm(src, srcRew))
+  if (CDProof::isSame(src, srcRew))
   {
     d_psb.popStep();
     return src;
   }
   return srcRew;
+}
+
+void InferProofCons::addMethodIds(std::vector<Node>& args,
+                                  MethodId ids,
+                                  MethodId idr)
+{
+  bool ndefRewriter = (idr != MethodId::RW_REWRITE);
+  if (ids != MethodId::SB_DEFAULT || ndefRewriter)
+  {
+    args.push_back(mkMethodId(ids));
+  }
+  if (ndefRewriter)
+  {
+    args.push_back(mkMethodId(idr));
+  }
 }
 
 Node InferProofCons::convertTrans(Node eqa, Node eqb)
@@ -997,13 +1010,6 @@ Node InferProofCons::convertTrans(Node eqa, Node eqb)
   return Node::null();
 }
 
-bool InferProofCons::isSymm(Node src, Node tgt)
-{
-  return src == tgt
-         || (src.getKind() == EQUAL && tgt.getKind() == EQUAL
-             && src[0] == tgt[1] && src[1] == tgt[0]);
-}
-
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
@@ -1012,9 +1018,9 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   CDProof pf(d_pnm);
   // get the inference
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
-  if (it==d_lazyFactMap.end())
+  if (it == d_lazyFactMap.end())
   {
-    if (fact.getKind()==EQUAL)
+    if (fact.getKind() == EQUAL)
     {
       // Use the symmetric fact. There is no need to explictly make a
       // SYMM proof, as this is handled by CDProof::mkProof below.

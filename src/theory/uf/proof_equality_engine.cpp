@@ -394,9 +394,6 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     // assumption (= y x). We modify the proof leaves to account for this
     // below.
 
-    // The free assumptions of the proof
-    std::map<Node, std::vector<ProofNode*>> famap;
-    pfConc->getFreeAssumptionsMap(famap);
     // we first ensure the assumptions are flattened
     std::unordered_set<Node, NodeHashFunction> ac;
     for (const TNode& a : assumps)
@@ -410,6 +407,9 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
         ac.insert(a);
       }
     }
+    // The free assumptions of the proof
+    std::map<Node, std::vector<ProofNode*>> famap;
+    pfConc->getFreeAssumptionsMap(famap);
     std::unordered_set<Node, NodeHashFunction> acu;
     std::unordered_set<Node, NodeHashFunction>::iterator itf;
     for (const std::pair<const Node, std::vector<ProofNode*>>& fa : famap)

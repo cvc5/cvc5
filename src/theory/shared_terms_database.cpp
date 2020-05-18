@@ -23,11 +23,11 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-// below, proofs are enabled in d_pfee if we are provided a lazy proof
 SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
                                          context::Context* context,
                                          context::UserContext* userContext,
-                ProofNodeManager* pnm, LazyCDProof* lcp)
+                                         ProofNodeManager* pnm,
+                                         bool pfEnabled)
     : ContextNotifyObj(context),
       d_statSharedTerms("theory::shared_terms", 0),
       d_addedSharedTermsSize(context, 0),
@@ -36,11 +36,11 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_registeredEqualities(context),
       d_EENotify(*this),
       d_equalityEngine(d_EENotify, context, "SharedTermsDatabase", true),
-      d_pfee(context,userContext,d_equalityEngine,pnm, lcp!=nullptr),
+      d_pfee(context, userContext, d_equalityEngine, pnm, pfEnabled),
       d_theoryEngine(theoryEngine),
       d_inConflict(context, false),
-      d_conflictPolarity(),
-      d_lazyPf(lcp) {
+      d_conflictPolarity()
+{
   smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
 }
 
@@ -199,12 +199,13 @@ bool SharedTermsDatabase::areDisequal(TNode a, TNode b) const {
   }
 }
 
-void SharedTermsDatabase::assertEquality(TNode equality, bool polarity, TNode reason)
+void SharedTermsDatabase::assertLiteral(TNode lit)
 {
-  Debug("shared-terms-database::assert") << "SharedTermsDatabase::assertEquality(" << equality << ", " << (polarity ? "true" : "false") << ", " << reason << ")" << endl;
+  Debug("shared-terms-database::assert")
+      << "SharedTermsDatabase::assertLiteral(" << lit << ")" << endl;
   // Add it to the equality engine
-  //d_equalityEngine.assertEquality(equality, polarity, reason);
-  d_pfee.assertAssume(reason);
+  // d_equalityEngine.assertEquality(equality, polarity, reason);
+  d_pfee.assertAssume(lit);
   // Check for conflict
   checkForConflict();
 }
@@ -218,28 +219,6 @@ bool SharedTermsDatabase::propagateEquality(TNode equality, bool polarity) {
   return true;
 }
 
-static Node mkAnd(const std::vector<TNode>& conjunctions) {
-  Assert(conjunctions.size() > 0);
-
-  std::set<TNode> all;
-  all.insert(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 1) {
-    // All the same, or just one
-    return conjunctions[0];
-  }
-
-  NodeBuilder<> conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end) {
-    conjunction << *it;
-    ++ it;
-  }
-
-  return conjunction;
-}
-
 void SharedTermsDatabase::checkForConflict() {
   if (d_inConflict) {
     d_inConflict = false;
@@ -249,12 +228,7 @@ void SharedTermsDatabase::checkForConflict() {
       conflict = conflict.notNode();
     }
     TrustNode trnc = d_pfee.assertConflict(conflict);
-    if (d_lazyPf!=nullptr)
-    {
-      // add the step to the proof
-      Node ckey = TrustNode::getConflictKeyValue(trnc.getNode());
-      d_lazyPf->addLazyStep(ckey, &d_pfee);
-    }
+    d_theoryEngine->processTrustNode(trnc, THEORY_BUILTIN);
     d_theoryEngine->conflict(trnc.getNode(), THEORY_BUILTIN);
     d_conflictLHS = d_conflictRHS = Node::null();
   }
@@ -270,7 +244,8 @@ bool SharedTermsDatabase::isKnown(TNode literal) const {
   }
 }
 
-theory::TrustNode SharedTermsDatabase::explain(TNode literal) {
+theory::TrustNode SharedTermsDatabase::explain(TNode literal)
+{
   TrustNode trn = d_pfee.explain(literal);
   return trn;
 }

@@ -60,6 +60,103 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
   return mkNode(PfRule::ASSUME, children, args, fact);
 }
 
+std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
+    std::shared_ptr<ProofNode> pf,
+    std::vector<Node>& assumps,
+    bool ensureClosed)
+{
+  std::vector<std::shared_ptr<ProofNode>> pfChildren;
+  pfChildren.push_back(pf);
+  if (!ensureClosed)
+  {
+    return mkNode(PfRule::SCOPE, pfChildren, assumps);
+  }
+  Trace("pnm-scope") << "ProofNodeManager::mkScope " << assumps << std::endl;
+  // we first ensure the assumptions are flattened
+  std::unordered_set<Node, NodeHashFunction> ac;
+  for (const TNode& a : assumps)
+  {
+    if (a.getKind() == AND)
+    {
+      ac.insert(a.begin(), a.end());
+    }
+    else
+    {
+      ac.insert(a);
+    }
+  }
+  // The free assumptions of the proof
+  std::map<Node, std::vector<ProofNode*>> famap;
+  pf->getFreeAssumptionsMap(famap);
+  std::unordered_set<Node, NodeHashFunction> acu;
+  std::unordered_set<Node, NodeHashFunction>::iterator itf;
+  for (const std::pair<const Node, std::vector<ProofNode*>>& fa : famap)
+  {
+    Node a = fa.first;
+    if (ac.find(a) != ac.end())
+    {
+      // already covered by an assumption
+      acu.insert(a);
+      continue;
+    }
+    // otherwise it may be due to symmetry?
+    bool polarity = a.getKind() != NOT;
+    Node aeq = polarity ? a : a[0];
+    if (aeq.getKind() == EQUAL)
+    {
+      Node aeqSym = aeq[1].eqNode(aeq[0]);
+      aeqSym = polarity ? aeqSym : aeqSym.notNode();
+      itf = ac.find(aeqSym);
+      if (itf != ac.end())
+      {
+        Trace("pnm-scope") << "- reorient assumption " << aeqSym << " via " << a
+                           << " for " << fa.second.size() << " proof nodes"
+                           << std::endl;
+        std::shared_ptr<ProofNode> pfaa = mkAssume(aeqSym);
+        for (ProofNode* pfs : fa.second)
+        {
+          Assert(pfs->getResult() == a);
+          // must correct the orientation on this leaf
+          std::vector<std::shared_ptr<ProofNode>> children;
+          children.push_back(pfaa);
+          std::vector<Node> args;
+          args.push_back(a);
+          updateNode(pfs, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+        }
+        Trace("pnm-scope") << "...finished" << std::endl;
+        acu.insert(aeqSym);
+        continue;
+      }
+    }
+    // All free assumptions should be arguments to SCOPE.
+    std::stringstream ss;
+    pf->printDebug(ss);
+    ss << std::endl << "Free assumption: " << a << std::endl;
+    for (const Node& aprint : ac)
+    {
+      ss << "- assumption: " << aprint << std::endl;
+    }
+    AlwaysAssert(false) << "Generated a proof that is not closed by the scope: "
+                        << ss.str() << std::endl;
+  }
+  if (acu.size() < ac.size())
+  {
+    // All assumptions should match a free assumption; if one does not, then
+    // the explanation could have been smaller.
+    for (const Node& a : ac)
+    {
+      if (acu.find(a) == acu.end())
+      {
+        Notice() << "ProofNodeManager::mkScope: assumption " << a
+                 << " does not match a free assumption in proof" << std::endl;
+      }
+    }
+  }
+  assumps.clear();
+  assumps.insert(assumps.end(), acu.begin(), acu.end());
+  return mkNode(PfRule::SCOPE, pfChildren, assumps);
+}
+
 bool ProofNodeManager::updateNode(
     ProofNode* pn,
     PfRule id,

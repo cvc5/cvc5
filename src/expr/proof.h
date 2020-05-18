@@ -206,6 +206,13 @@ class CDProof
   /** Get the proof manager for this proof */
   ProofNodeManager* getManager() const;
 
+  /**
+   * Is same? Returns true if f and g are the same formula, or if they are
+   * symmetric equalities. If two nodes f and g are the same, then a proof for
+   * f suffices as a proof for g according to this class.
+   */
+  static bool isSame(TNode f, TNode g);
+
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;

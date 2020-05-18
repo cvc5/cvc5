@@ -298,5 +298,26 @@ void EngineOutputChannel::handleUserAttribute(const char* attr,
   d_engine->handleUserAttribute(attr, t);
 }
 
+void EngineOutputChannel::trustedConflict(TrustNode pconf)
+{
+  Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
+  d_engine->processTrustNode(pconf, d_theory);
+  TNode conf = pconf.getNode();
+  // now, call the normal interface to conflict
+  conflict(conf);
+}
+
+LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem,
+                                              bool removable,
+                                              bool preprocess,
+                                              bool sendAtoms)
+{
+  Assert(plem.getKind() == TrustNodeKind::LEMMA);
+  d_engine->processTrustNode(plem, d_theory);
+  TNode lem = plem.getNode();
+  // now, call the normal interface for lemma
+  return OutputChannel::lemma(lem, removable, preprocess, sendAtoms);
+}
+
 }  // namespace theory
 }  // namespace CVC4

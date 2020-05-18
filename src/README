@@ -80,7 +80,6 @@ PRs:
 (6) Split EngineOutputChannel from TheoryEngine to its own file
 (7) Add LazyCDProof and ProofGenerator
 (8) Add TrustNode
-(9) Add ProofEngineOutputChannel
 - Add EagerProofGenerator
 (10) ProofEqEngine 
 (11) TheoryEngine proof checker initialize

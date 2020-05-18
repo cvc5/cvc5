@@ -38,7 +38,7 @@ proofrule SCOPE 1 1: ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
 // ======== Substitution
 // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
-// Arguments: (t)
+// Arguments: (t, id?)
 // ---------------------------------------------------------------
 // Conclusion: (= t t.substitute(xn,tn). ... .substitute(x1,t1))
 // Notice that the orientation of the premises matters.
@@ -46,7 +46,7 @@ proofrule SUBS 1: 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
 // ======== Rewrite
 // Children: none
-// Arguments: (t)
+// Arguments: (t, id?)
 // ----------------------------------------
 // Conclusion: (= t Rewriter::rewrite(t))
 proofrule REWRITE 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker

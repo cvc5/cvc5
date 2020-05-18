@@ -48,6 +48,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_engine_proof_generator.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
@@ -131,7 +132,7 @@ std::string getTheoryString(theory::TheoryId id)
 void TheoryEngine::finishInit()
 {
   // if we are using the new proofs module
-  if (options::proofNew())
+  if (d_lazyProof != nullptr)
   {
     // ask the theories to populate the proof checking rules in the checker
     for (TheoryId theoryId = theory::THEORY_FIRST;
@@ -197,8 +198,17 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_logicInfo(logicInfo),
       d_pchecker(new ProofChecker),
       d_pNodeManager(new ProofNodeManager(d_pchecker.get())),
-      d_lazyProof(options::proofNew() ? new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext) : nullptr),
-      d_sharedTerms(this, context, userContext, d_pNodeManager.get(), d_lazyProof.get()),
+      d_lazyProof(
+          options::proofNew()
+              ? new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext)
+              : nullptr),
+      d_tepg(
+          new TheoryEngineProofGenerator(d_pNodeManager.get(), d_userContext)),
+      d_sharedTerms(this,
+                    context,
+                    userContext,
+                    d_pNodeManager.get(),
+                    d_lazyProof != nullptr),
       d_masterEqualityEngine(nullptr),
       d_masterEENotify(*this),
       d_quantEngine(nullptr),
@@ -637,12 +647,16 @@ void TheoryEngine::combineTheories() {
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
 
-    lemma(equality.orNode(equality.notNode()),
-          RULE_INVALID,
-          false,
-          false,
-          false,
-          carePair.d_theory);
+    Node split = equality.orNode(equality.notNode());
+    if (d_lazyProof != nullptr)
+    {
+      std::vector<Node> pfChildren;
+      std::vector<Node> pfArgs;
+      pfArgs.push_back(equality);
+      d_lazyProof->addStep(split, PfRule::SPLIT, pfChildren, pfArgs);
+    }
+
+    lemma(split, RULE_INVALID, false, false, false, carePair.d_theory);
 
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
@@ -1205,18 +1219,14 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     return;
   }
 
-  // Polarity of the assertion
-  bool polarity = assertion.getKind() != kind::NOT;
-
-  // Atom of the assertion
-  TNode atom = polarity ? assertion : assertion[0];
-
   // If sending to the shared terms database, it's also simple
   if (toTheoryId == THEORY_BUILTIN) {
-    Assert(atom.getKind() == kind::EQUAL)
-        << "atom should be an EQUALity, not `" << atom << "'";
+    Assert(assertion.getKind() == kind::EQUAL
+           || (assertion.getKind() == kind::NOT
+               && assertion[0].getKind() == kind::EQUAL))
+        << "atom should be an EQUALity, not `" << assertion << "'";
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
-      d_sharedTerms.assertEquality(atom, polarity, assertion);
+      d_sharedTerms.assertLiteral(assertion);
     }
     return;
   }
@@ -1257,7 +1267,9 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     return;
   }
 
-  Assert(atom.getKind() == kind::EQUAL);
+  Assert(assertion.getKind() == kind::EQUAL
+         || (assertion.getKind() == kind::NOT
+             && assertion[0].getKind() == kind::EQUAL));
 
   // Normalize
   Node normalizedLiteral = Rewriter::rewrite(assertion);
@@ -1543,7 +1555,9 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
   return conjunction;
 }
 
-Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe) {
+theory::TrustNode TheoryEngine::getExplanationAndRecipe(
+    TNode node, LemmaProofRecipe* proofRecipe)
+{
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current propagation index = " << d_propagationMapTimestamp << endl;
 
   bool polarity = node.getKind() != kind::NOT;
@@ -1597,8 +1611,7 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
           proofRecipe->addStep(proofStep);
         }
       });
-
-    return explanation;
+    return texplanation;
   }
 
   Debug("theory::explain") << "TheoryEngine::getExplanation: sharing IS enabled" << std::endl;
@@ -1615,8 +1628,8 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
   TheoryId explainer = nodeExplainerPair.d_theory;
 
   // Create the workplace for explanations
-  std::vector<NodeTheoryPair> explanationVector;
-  explanationVector.push_back(d_propagationMap[toExplain]);
+  std::vector<NodeTheoryPair> vec;
+  vec.push_back(d_propagationMap[toExplain]);
   // Process the explanation
   if (proofRecipe) {
     Node emptyNode;
@@ -1626,16 +1639,17 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
     proofRecipe->addBaseAssertion(node);
   }
 
-  getExplanation(explanationVector, proofRecipe);
-  Node explanation = mkExplanation(explanationVector);
+  TrustNode texplanation = getExplanation(vec, proofRecipe);
 
-  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
-
-  return explanation;
+  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => "
+                           << texplanation.getNode() << endl;
+  return texplanation;
 }
 
-Node TheoryEngine::getExplanation(TNode node) {
+theory::TrustNode TheoryEngine::getExplanation(TNode node)
+{
   LemmaProofRecipe *dontCareRecipe = NULL;
+  // the trust node was processed within getExplanationAndRecipe
   return getExplanationAndRecipe(node, dontCareRecipe);
 }
 
@@ -1745,7 +1759,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                                         theory::TheoryId atomsTo) {
   // For resource-limiting (also does a time check).
   // spendResource();
-  
+
   // Do we need to check atoms
   if (atomsTo != theory::THEORY_LAST) {
     Debug("theory::atoms") << "TheoryEngine::lemma(" << node << ", " << atomsTo << ")" << endl;
@@ -1763,16 +1777,35 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                      << CheckSatCommand(n.toExpr());
   }
 
-  // if proofNew is enabled, then d_lazyProof contains a proof of n.
-  /*
-  Node lemma = node;
-  if (negated)
+  // if d_lazyProof is enabled, then d_lazyProof contains a proof of n.
+  if (d_lazyProof != nullptr)
   {
-    lemma = lemma.negate();
+    Node lemma = node;
+    if (negated)
+    {
+      lemma = lemma.negate();
+    }
+    if (!d_lazyProof->hasStep(lemma) && !d_lazyProof->hasGenerator(lemma))
+    {
+      Trace("te-proof") << "No proof for lemma: " << lemma << std::endl;
+      Trace("te-proof-warn")
+          << "WARNING: No proof for lemma: " << lemma << std::endl;
+    }
+    else
+    {
+      Trace("te-proof") << "Proof for lemma: " << lemma << std::endl;
+    }
   }
-  Assert (!options::proofNew() || d_lazyProof->hasStep(lemma));
-  */
-  
+
+  // FIXME
+  std::shared_ptr<LazyCDProof> lcp;
+  if (d_lazyProof != nullptr)
+  {
+    Trace("te-proof-exp") << "TheoryEngine::lemma: process " << node
+                          << std::endl;
+    lcp.reset(new LazyCDProof(d_pNodeManager.get()));
+  }
+
   AssertionPipeline additionalLemmas;
 
   // Run theory preprocessing, maybe
@@ -1799,10 +1832,12 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // assert to prop engine
-  for (size_t i = 0, lsize = additionalLemmas.size(); i < lsize; ++ i) {
+  for (size_t i = 0, lsize = additionalLemmas.size(); i < lsize; ++i)
+  {
     Node rewritten = Rewriter::rewrite(additionalLemmas[i]);
     additionalLemmas.replace(i, rewritten);
-    d_propEngine->assertLemma(additionalLemmas[i], i==0 && negated, removable, rule, node);
+    d_propEngine->assertLemma(
+        additionalLemmas[i], i == 0 && negated, removable, rule, node);
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
@@ -1825,12 +1860,47 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   return theory::LemmaStatus(additionalLemmas[0], d_userContext->getLevel());
 }
 
+void TheoryEngine::processTrustNode(theory::TrustNode trn,
+                                    theory::TheoryId from)
+{
+  if (d_lazyProof == nullptr)
+  {
+    // proofs not enabled
+    return;
+  }
+  ProofGenerator* pfg = trn.getGenerator();
+  Node p = trn.getProven();
+  // may or may not have supplied a generator
+  if (pfg != nullptr)
+  {
+    // if we have, add it to the lazy proof object
+    d_lazyProof->addLazyStep(p, pfg);
+    // generator should have a proof for p
+    Assert(pfg->hasProofFor(p));
+  }
+  else
+  {
+    // all BUILTIN should be handled
+    Assert(from != THEORY_BUILTIN);
+    // untrusted theory lemma
+    std::vector<Node> children;
+    std::vector<Node> args;
+    args.push_back(p);
+    unsigned tid = static_cast<unsigned>(from);
+    Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
+    args.push_back(tidn);
+    // add the step, should always succeed;
+    d_lazyProof->addStep(p, PfRule::THEORY_LEMMA, children, args);
+  }
+}
+
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
-  // if proofNew is enabled, then d_lazyProof contains a proof of conflict.negate()
-  //Assert (!options::proofNew() || d_lazyProof->hasStep(conflict.negate()));
-  
   Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
+  // if proofNew is enabled, then d_lazyProof contains a proof of
+  // conflict.negate()
+  // Assert (d_lazyProof==nullptr || d_lazyProof->hasStep(conflict.negate()) ||
+  // d_lazyProof->hasGenerator(conflict.negate()) || theoryId==THEORY_ARITH);
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
@@ -1862,13 +1932,36 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
   // In the multiple-theories case, we need to reconstruct the conflict
   if (d_logicInfo.isSharingEnabled()) {
     // Create the workplace for explanations
-    std::vector<NodeTheoryPair> explanationVector;
-    explanationVector.push_back(NodeTheoryPair(conflict, theoryId, d_propagationMapTimestamp));
+    std::vector<NodeTheoryPair> vec;
+    vec.push_back(
+        NodeTheoryPair(conflict, theoryId, d_propagationMapTimestamp));
 
     // Process the explanation
-    getExplanation(explanationVector, proofRecipe);
+    TrustNode tncExp = getExplanation(vec, proofRecipe);
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
-    Node fullConflict = mkExplanation(explanationVector);
+    Node fullConflict = tncExp.getNode();
+
+    if (d_lazyProof != nullptr)
+    {
+      if (fullConflict!=conflict)
+      {
+        // store the explicit step
+        processTrustNode(tncExp, THEORY_BUILTIN);
+      }
+      Node fullConflictNeg = fullConflict.notNode();
+      // ------------------------- explained  ---------- from theory 
+      // fullConflict => conflict              ~conflict
+      // ----------------------------------------------- MACRO_SR_PRED_TRANSFORM
+      // ~fullConflict
+      std::vector<Node> children;
+      children.push_back(tncExp.getProven());
+      children.push_back(conflict.notNode());
+      std::vector<Node> args;
+      args.push_back(fullConflictNeg);
+      args.push_back(mkMethodId(MethodId::SB_PREDICATE));
+      d_lazyProof->addStep(fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+    }
+
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
     lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
@@ -1954,9 +2047,22 @@ void TheoryEngine::staticInitializeBVOptions(
   }
 }
 
-void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* proofRecipe) {
-  Assert(explanationVector.size() > 0);
+theory::TrustNode TheoryEngine::getExplanation(
+    std::vector<NodeTheoryPair>& explanationVector,
+    LemmaProofRecipe* proofRecipe)
+{
+  Assert(explanationVector.size() == 1);
 
+  Node conclusion = explanationVector[0].d_node;
+  std::shared_ptr<LazyCDProof> lcp;
+  bool simpleExplain = true;
+  TrustNode simpleTrn;
+  if (d_lazyProof != nullptr)
+  {
+    Trace("te-proof-exp") << "TheoryEngine::getExplanation " << conclusion
+                          << std::endl;
+    lcp.reset(new LazyCDProof(d_pNodeManager.get()));
+  }
   unsigned i = 0; // Index of the current literal we are processing
   unsigned j = 0; // Index of the last literal we are keeping
 
@@ -1979,15 +2085,25 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         << toExplain.d_theory << endl;
 
     // If a true constant or a negation of a false constant we can ignore it
-    if (toExplain.d_node.isConst() && toExplain.d_node.getConst<bool>())
+    if ((toExplain.d_node.isConst() && toExplain.d_node.getConst<bool>())
+        || (toExplain.d_node.getKind() == kind::NOT
+            && toExplain.d_node[0].isConst()
+            && !toExplain.d_node[0].getConst<bool>()))
     {
       ++ i;
-      continue;
-    }
-    if (toExplain.d_node.getKind() == kind::NOT && toExplain.d_node[0].isConst()
-        && !toExplain.d_node[0].getConst<bool>())
-    {
-      ++ i;
+      if (lcp != nullptr)
+      {
+        Trace("te-proof-exp")
+            << "- explain " << toExplain.d_node << " trivially..." << std::endl;
+        // ------------------MACRO_SR_PRED_INTRO
+        // toExplain.d_node
+        std::vector<Node> children;
+        std::vector<Node> args;
+        args.push_back(toExplain.d_node);
+        lcp->addStep(
+            toExplain.d_node, PfRule::MACRO_SR_PRED_INTRO, children, args);
+        simpleExplain = false;
+      }
       continue;
     }
 
@@ -1996,6 +2112,8 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     {
       Debug("theory::explain") << "\tLiteral came from THEORY_SAT_SOLVER. Kepping it." << endl;
       explanationVector[j++] = explanationVector[i++];
+      // it will be a free assumption in the proof
+      Trace("te-proof-exp") << "- keep " << toExplain.d_node << std::endl;
       continue;
     }
 
@@ -2005,11 +2123,31 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
       Debug("theory::explain")
           << "TheoryEngine::explain(): expanding " << toExplain.d_node
           << " got from " << toExplain.d_theory << endl;
-      for (unsigned k = 0; k < toExplain.d_node.getNumChildren(); ++k)
+      size_t nchild = toExplain.d_node.getNumChildren();
+      for (size_t k = 0; k < nchild; ++k)
       {
         NodeTheoryPair newExplain(
             toExplain.d_node[k], toExplain.d_theory, toExplain.d_timestamp);
         explanationVector.push_back(newExplain);
+      }
+      if (lcp != nullptr)
+      {
+        Trace("te-proof-exp")
+            << "- AND expand " << toExplain.d_node << std::endl;
+        // toExplain.d_node[0] ... toExplain.d_node[n]
+        // --------------------------------------------MACRO_SR_PRED_INTRO
+        // toExplain.d_node
+        std::vector<Node> children;
+        for (size_t k = 0; k < nchild; ++k)
+        {
+          children.push_back(toExplain.d_node[k]);
+        }
+        std::vector<Node> args;
+        args.push_back(toExplain.d_node);
+        args.push_back(mkMethodId(MethodId::SB_PREDICATE));
+        lcp->addStep(
+            toExplain.d_node, PfRule::MACRO_SR_PRED_INTRO, children, args);
+        simpleExplain = false;
       }
       ++ i;
       continue;
@@ -2045,7 +2183,18 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
             }
           }
         })
-
+        if (lcp != nullptr)
+        {
+          if (!CDProof::isSame(toExplain.d_node, (*find).second.d_node))
+          {
+            Trace("te-proof-exp")
+                << "- t-explained cached: " << toExplain.d_node << " by "
+                << (*find).second.d_node << std::endl;
+            // does this ever happen?
+            Assert(false);
+            simpleExplain = false;
+          }
+        }
         continue;
       }
     }
@@ -2055,15 +2204,70 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     if (toExplain.d_theory == THEORY_BUILTIN)
     {
       texplanation = d_sharedTerms.explain(toExplain.d_node);
-      Debug("theory::explain") << "\tTerm was propagated by THEORY_BUILTIN. Explanation: " << texplanation.getNode() << std::endl;
+      Debug("theory::explain")
+          << "\tTerm was propagated by THEORY_BUILTIN. Explanation: "
+          << texplanation.getNode() << std::endl;
     }
     else
     {
-      texplanation =
-          theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
-      Debug("theory::explain") << "\tTerm was propagated by owner theory: "
-                               << theoryOf(toExplain.d_theory)->getId()
-                               << ". Explanation: " << texplanation.getNode() << std::endl;
+      texplanation = theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
+      Debug("theory::explain")
+          << "\tTerm was propagated by owner theory: "
+          << theoryOf(toExplain.d_theory)->getId()
+          << ". Explanation: " << texplanation.getNode() << std::endl;
+    }
+    if (lcp != nullptr)
+    {
+      Trace("te-proof-exp")
+          << "- t-explained[" << toExplain.d_theory << "]: " << toExplain.d_node
+          << " by " << texplanation.getNode() << std::endl;
+      // if not a trivial explanation
+      if (!CDProof::isSame(texplanation.getNode(), toExplain.d_node))
+      {
+        // ----------- Via theory
+        // exp => lit                exp
+        // ---------------------------------MACRO_SR_PRED_TRANSFORM
+        // lit
+        Node proven = texplanation.getProven();
+        if (texplanation.getGenerator() != nullptr)
+        {
+          lcp->addLazyStep(proven, texplanation.getGenerator());
+        }
+        else
+        {
+          Trace("te-proof-exp") << "...trust THEORY_LEMMA" << std::endl;
+          // otherwise, trusted theory lemma
+          std::vector<Node> children;
+          std::vector<Node> args;
+          args.push_back(proven);
+          unsigned tid = static_cast<unsigned>(toExplain.d_theory);
+          Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
+          args.push_back(tidn);
+          lcp->addStep(proven, PfRule::THEORY_LEMMA, children, args);
+        }
+        std::vector<Node> children;
+        children.push_back(proven);
+        children.push_back(texplanation.getNode());
+        std::vector<Node> args;
+        args.push_back(toExplain.d_node);
+        args.push_back(mkMethodId(MethodId::SB_PREDICATE));
+        lcp->addStep(
+            toExplain.d_node, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+        if (simpleExplain)
+        {
+          if (simpleTrn.isNull())
+          {
+            // as an optimization, it may be a simple explanation, so we
+            // remember the trust node for now
+            simpleTrn = texplanation;
+          }
+          else
+          {
+            // multiple theories involved, not simple
+            simpleExplain = false;
+          }
+        }
+      }
     }
     Node explanation = texplanation.getNode();
 
@@ -2131,6 +2335,28 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         }
       }
     });
+
+  Node exp = mkExplanation(explanationVector);
+
+  if (lcp != nullptr)
+  {
+    // doesn't work currently due to reordering of assumptions
+    /*
+    if (simpleExplain)
+    {
+      // single call to a theory's explain method, skip the proof generator
+      Assert (!simpleTrn.isNull());
+      Trace("te-proof-exp") << "...simple explain " << simpleTrn.getNode() <<
+    std::endl; return simpleTrn;
+    }
+    */
+    // store in the proof generator
+    TrustNode trn = d_tepg->mkTrustExplain(conclusion, exp, lcp);
+    // return the trust node
+    return trn;
+  }
+
+  return theory::TrustNode::mkTrustLemma(exp, nullptr);
 }
 
 void TheoryEngine::setUserAttribute(const std::string& attr,
