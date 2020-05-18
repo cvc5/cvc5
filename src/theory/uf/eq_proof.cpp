@@ -170,7 +170,7 @@ bool EqProof::foldTransitivityChildren(
   // remaining premises allow deriving the equality of the other case.
   Node foldConclusion;
   std::vector<Node> substPremises;
-  bool inSubstCase, substConclusionInReverseOrder;
+  bool inSubstCase = false, substConclusionInReverseOrder = false;
   if ((conclusion[0].getKind() == kind::CONST_BOOLEAN
        && conclusion[1].getKind() != kind::CONST_BOOLEAN)
       || (conclusion[1].getKind() == kind::CONST_BOOLEAN
@@ -227,10 +227,10 @@ bool EqProof::foldTransitivityChildren(
     // building a transitivity step for the given conclusion
     inSubstCase = true;
     // reorder premise and conclusion if constant is the first argument
-    premise = termPos == 1? premise : premise[1].eqNode[premise[0]];
+    premise = termPos == 0 ? premise : premise[1].eqNode(premise[0]);
     conclusion = conclusion[1].getKind() == kind::CONST_BOOLEAN
                      ? conclusion
-                     : conclusion[1].eqNode[conclusion[0]];
+                     : conclusion[1].eqNode(conclusion[0]);
     Node premiseTermEq = premise[0];
     Node conclusionTermEq = conclusion[0];
     Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: Substitition "
@@ -242,11 +242,11 @@ bool EqProof::foldTransitivityChildren(
     // characterizes the substitution. If no substitution can be substituted in
     // this way, then both arguments are replaced.
     std::vector<Node> subs[2];
+    subs[0].push_back(premiseTermEq[0]);
+    subs[1].push_back(premiseTermEq[1]);
     int equalArg = -1;
-    substConclusionInReverseOrder = false;
     for (unsigned i = 0; i < 2; ++i)
     {
-      subs[i].push_back(premiseTermEq[i]);
       for (unsigned j = 0; j < 2; ++j)
       {
         if (premiseTermEq[i] == conclusionTermEq[j])
@@ -261,11 +261,15 @@ bool EqProof::foldTransitivityChildren(
     }
     if (equalArg >= 0)
     {
-      foldConclusion = subs[1 - equalArg][0].eqNode(sub[1 - equalArg][1]);
-      substPremises.push_back(foldConclusion);
+      foldConclusion = subs[1 - equalArg][0].eqNode(subs[1 - equalArg][1]);
       Trace("eqproof-conv")
           << "EqProof::foldTransitivityChildren: Need to fold premises into "
           << foldConclusion << "\n";
+      // add refl step for other substitution, just in case
+      p->addStep(subs[equalArg][0].eqNode(subs[equalArg][1]),
+                 PfRule::REFL,
+                 {},
+                 {subs[equalArg][0]});
     }
     else
     {
@@ -298,7 +302,7 @@ bool EqProof::foldTransitivityChildren(
             << " did not find term " << subs[i][0] << "\n";
         // check if argument to be substituted is in the same order in the
         // conclusion
-        substConclusionInReverseOrder = premiseTermEq[i] == conclusionTermEq[i];
+        substConclusionInReverseOrder = premiseTermEq[i] != conclusionTermEq[i];
       }
     }
     Trace("eqproof-conv")
@@ -323,7 +327,6 @@ bool EqProof::foldTransitivityChildren(
     // conclusion must be, modulo symmetry, false = true
     Assert(conclusion[0].getKind() == kind::CONST_BOOLEAN
            && conclusion[1].getKind() == kind::CONST_BOOLEAN);
-    inSubstCase = false;
     foldConclusion = premise[termPos];
   }
   // potentially need to fold non-offending premises into a transitivity step
@@ -382,15 +385,18 @@ bool EqProof::foldTransitivityChildren(
   premises.push_back(premise);
   Trace("eqproof-conv")
       << "EqProof::foldTransitivityChildren: now derive conclusion "
-      << conclusion << " via ";
+      << conclusion;
   if (inSubstCase)
   {
-    Trace("eqproof-conv") << " subsitution from " << subistPremises << "\n";
+    Trace("eqproof-conv") << (substConclusionInReverseOrder ? " [inverted]"
+                                                            : "")
+                          << " via subsitution from " << premise
+                          << " and (inverted subst) " << substPremises << "\n";
     // cong step between subst premises
-    Node congConclusion =
-        nm->mkNode(kind::EQUAL,
-                   nm->mkNode(kind::EQUAL, subs[0][0], subs[1][0]),
-                   premise[0]);
+    Node congConclusion = nm->mkNode(
+        kind::EQUAL,
+        nm->mkNode(kind::EQUAL, substPremises[0][0], substPremises[1][0]),
+        premise[0]);
     if (!p->addStep(congConclusion,
                     PfRule::CONG,
                     substPremises,
@@ -398,49 +404,54 @@ bool EqProof::foldTransitivityChildren(
                     true))
     {
       Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                       "congruence step for equating conclusion "
+                       "congruence step for "
+                    << congConclusion << " equating conclusion "
                     << conclusion[0] << " and premise " << premise[0]
                     << " of substitution\n";
     }
+    Trace("eqproof-conv")
+        << "EqProof::foldTransitivityChildren: via congruence derived "
+        << congConclusion << "\n";
     // transitivity step between that and the original premise
     premises.insert(premises.begin(), congConclusion);
     Node transConclusion =
-        !reverseOrderSubstConclusion
+        !substConclusionInReverseOrder
             ? conclusion
-            : nm->mkNode(kind::EQUAL, congConclusion, conclusion[1]);
-    if (!p->addStep(transConclusion,
-                    PfRule::TRANS,
-                    premises,
-                    {},
-                    true))
+            : nm->mkNode(kind::EQUAL, congConclusion[0], conclusion[1]);
+    if (!p->addStep(transConclusion, PfRule::TRANS, premises, {}, true))
     {
       Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                       "transitivity step for deriving " transConclusion
-                    << " from " << premises << "\n";
+                       "transitivity step for deriving "
+                    << transConclusion << " from " << premises << "\n";
     }
+    Trace("eqproof-conv")
+        << "EqProof::foldTransitivityChildren: via transitivity derived "
+        << transConclusion << "\n";
     // if order is reversed, to a MACRO_SR_PRED_TRANSFORM step
-    if (reverseOrderSubstConclusion)
+    if (substConclusionInReverseOrder)
     {
-    if (!p->addStep(conclusion,
-                    PfRule::MACRO_SR_PRED_TRANSFORM,
-                    {transConclusion},
-                    {},
-                    true))
-    {
-      Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                       "final rewriting step from "
-                    << transConclusion << " into " << conclusion << "\n";
-    }
+      if (!p->addStep(conclusion,
+                      PfRule::MACRO_SR_PRED_TRANSFORM,
+                      {transConclusion},
+                      {conclusion},
+                      true))
+      {
+        Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
+                         "final rewriting step from "
+                      << transConclusion << " into " << conclusion << "\n";
+      }
+      Trace("eqproof-conv")
+          << "EqProof::foldTransitivityChildren: via macro transform derived "
+          << conclusion << "\n";
     }
   }
   else
   {
     // create TRUE_INTRO step for foldConclusion
-    Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: adding "
-                          << PfRule::TRUE_INTRO << " step for "
-                          << foldConclusion[0] << "\n";
-    Node newFoldConclusion =
-        foldConclusion.eqNode(nm->mkConst<bool>(true));
+    Trace("eqproof-conv")
+        << " via transitivity.\nEqProof::foldTransitivityChildren: adding "
+        << PfRule::TRUE_INTRO << " step for " << foldConclusion[0] << "\n";
+    Node newFoldConclusion = foldConclusion.eqNode(nm->mkConst<bool>(true));
     if (!p->addStep(
             newFoldConclusion, PfRule::TRUE_INTRO, {foldConclusion}, {}))
     {
@@ -897,9 +908,7 @@ Node EqProof::addToProof(
     Trace("ajr-temp") << "Refl node: " << d_node << std::endl;
     Node conclusion =
         d_node.getKind() == kind::EQUAL ? d_node : d_node.eqNode(d_node);
-    std::vector<Node> children;
-    std::vector<Node> args{conclusion[0]};
-    if (!p->addStep(conclusion, PfRule::REFL, children, args))
+    if (!p->addStep(conclusion, PfRule::REFL, {}, {conclusion[0]}))
     {
       Assert(false) << "EqProof::addToProof: couldn't add refl step\n";
     }
