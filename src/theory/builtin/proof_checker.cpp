@@ -22,21 +22,28 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-const char* toString(RewriterId id)
+const char* toString(MethodId id)
 {
   switch (id)
   {
-    case RewriterId::REWRITE: return "REWRITE";
-    case RewriterId::REWRITE_EQ_EXT: return "REWRITE_EQ_EXT";
-    case RewriterId::IDENTITY: return "IDENTITY";
-    default: return "RewriterId::Unknown";
+    case MethodId::RW_REWRITE: return "RW_REWRITE";
+    case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
+    case MethodId::RW_IDENTITY: return "RW_IDENTITY";
+    case MethodId::SB_DEFAULT: return "SB_DEFAULT";
+    case MethodId::SB_PREDICATE: return "SB_PREDICATE";
+    default: return "MethodId::Unknown";
   };
 }
 
-std::ostream& operator<<(std::ostream& out, RewriterId id)
+std::ostream& operator<<(std::ostream& out, MethodId id)
 {
   out << toString(id);
   return out;
+}
+
+Node mkMethodId(MethodId id)
+{
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(id)));
 }
 
 namespace builtin {
@@ -55,107 +62,126 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
 }
 
-Node BuiltinProofRuleChecker::applyRewrite(Node n, RewriterId id)
+Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
-  Node nkr = applyRewriteExternal(n, id);
+  Node nkr = applyRewriteExternal(n, idr);
   return ProofSkolemCache::getWitnessForm(nkr);
 }
 
-Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp)
+Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
 {
   if (exp.isNull() || exp.getKind() != EQUAL)
   {
     return Node::null();
   }
   Node nk = ProofSkolemCache::getSkolemForm(n);
-  Node nks = applySubstitutionExternal(nk, exp);
+  Node nks = applySubstitutionExternal(nk, exp, ids);
   return ProofSkolemCache::getWitnessForm(nks);
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n,
-                                                const std::vector<Node>& exp)
+                                                const std::vector<Node>& exp, MethodId ids)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
-  Node nks = applySubstitutionExternal(nk, exp);
+  Node nks = applySubstitutionExternal(nk, exp, ids);
   return ProofSkolemCache::getWitnessForm(nks);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
-    Node n, const std::vector<Node>& exp, RewriterId id)
+    Node n, const std::vector<Node>& exp, MethodId ids, MethodId idr)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
-  Node nks = applySubstitutionExternal(nk, exp);
-  Node nksr = applyRewriteExternal(nks, id);
+  Node nks = applySubstitutionExternal(nk, exp, ids);
+  Node nksr = applyRewriteExternal(nks, idr);
   return ProofSkolemCache::getWitnessForm(nksr);
 }
 
-Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, RewriterId id)
+Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
 {
   Trace("builtin-pfcheck-debug")
-      << "applyRewriteExternal (" << id << "): " << n << std::endl;
+      << "applyRewriteExternal (" << idr << "): " << n << std::endl;
   // index determines the kind of rewriter
-  if (id == RewriterId::REWRITE)
+  if (idr == MethodId::RW_REWRITE)
   {
     return Rewriter::rewrite(n);
   }
-  else if (id == RewriterId::REWRITE_EQ_EXT)
+  else if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {
     Node ret = Rewriter::rewriteEqualityExt(n);
     // also rewrite
     return Rewriter::rewrite(ret);
   }
-  else if (id == RewriterId::IDENTITY)
+  else if (idr == MethodId::RW_IDENTITY)
   {
     // does nothing
     return n;
   }
   // unknown rewriter
   Assert(false)
-      << "BuiltinProofRuleChecker::applyRewriteExternal: no rewriter for " << id
+      << "BuiltinProofRuleChecker::applyRewriteExternal: no rewriter for " << idr
       << std::endl;
   return n;
 }
 
-Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n, Node exp)
+Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n, Node exp, MethodId ids)
 {
-  Assert(!exp.isNull() && exp.getKind() == EQUAL);
+  Assert(!exp.isNull());
   Node expk = ProofSkolemCache::getSkolemForm(exp);
-  TNode var = expk[0];
-  TNode subs = expk[1];
+  TNode var, subs;
+  if (ids==MethodId::SB_DEFAULT)
+  {
+    if (expk.getKind()!=EQUAL)
+    {
+      return Node::null();
+    }
+    var = expk[0];
+    subs = expk[1];
+  }
+  else if (ids==MethodId::SB_PREDICATE)
+  {
+    bool polarity = expk.getKind()!=NOT;
+    var = polarity ? expk : expk[0];
+    subs = NodeManager::currentNM()->mkConst(polarity);
+  }
+  else
+  {
+  Assert(false)
+      << "BuiltinProofRuleChecker::applySubstitutionExternal: no substitution for " << ids
+      << std::endl;
+  }
   return n.substitute(var, subs);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionExternal(
-    Node n, const std::vector<Node>& exp)
+    Node n, const std::vector<Node>& exp, MethodId ids)
 {
   Node curr = n;
   // apply substitution one at a time, in reverse order
   for (size_t i = 0, nexp = exp.size(); i < nexp; i++)
   {
-    if (exp[nexp - 1 - i].isNull() || exp[nexp - 1 - i].getKind() != EQUAL)
+    if (exp[nexp - 1 - i].isNull())
     {
       return Node::null();
     }
-    curr = applySubstitutionExternal(curr, exp[nexp - 1 - i]);
+    curr = applySubstitutionExternal(curr, exp[nexp - 1 - i], ids);
+    if (curr.isNull())
+    {
+      break;
+    }
   }
   return curr;
 }
 
-bool BuiltinProofRuleChecker::getRewriterId(TNode n, RewriterId& i)
+bool BuiltinProofRuleChecker::getMethodId(TNode n, MethodId& i)
 {
   uint32_t index;
   if (!getIndex(n, index))
   {
     return false;
   }
-  i = static_cast<RewriterId>(index);
+  i = static_cast<MethodId>(index);
   return true;
-}
-
-Node BuiltinProofRuleChecker::mkRewriterId(RewriterId i)
-{
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
 }
 
 Node BuiltinProofRuleChecker::checkInternal(PfRule id,
@@ -189,7 +215,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::SUBS)
   {
     Assert(children.size() > 0);
-    Assert(args.size() == 1);
+    Assert(1 <= args.size() && args.size() <= 2);
+    MethodId ids = MethodId::SB_DEFAULT;
+    if (args.size()==2 && !getMethodId(args[1], ids))
+    {
+      return Node::null();
+    }
     std::vector<Node> exp;
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
@@ -201,7 +232,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::REWRITE)
   {
     Assert(children.empty());
-    Assert(args.size() == 1);
+    Assert(1 <= args.size() && args.size() <= 2);
+    MethodId ids = MethodId::RW_REWRITE;
+    if (args.size()==2 && !getMethodId(args[1], ids))
+    {
+      return Node::null();
+    }
     Node res = applyRewrite(args[0]);
     return args[0].eqNode(res);
   }
@@ -211,18 +247,13 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     // (TRANS
     //   (SUBS P1 ... Pn t)
     //   (REWRITE <t.substitute(xn,tn). ... .substitute(x1,t1)>))
-    Assert(1 <= args.size() && args.size() <= 2);
-    RewriterId idRewriter = RewriterId::REWRITE;
-    if (args.size() >= 2)
+    Assert(1 <= args.size() && args.size() <= 3);
+    MethodId ids, idr;
+    if (!getMethodIds(args, ids, idr, 1))
     {
-      if (!getRewriterId(args[1], idRewriter))
-      {
-        Trace("builtin-pfcheck")
-            << "Failed to get id from " << args[1] << std::endl;
-        return Node::null();
-      }
+      return Node::null();
     }
-    Node res = applySubstitutionRewrite(args[0], children, idRewriter);
+    Node res = applySubstitutionRewrite(args[0], children, idr);
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_PRED_INTRO)
@@ -232,18 +263,13 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     // NOTE: technically a macro:
     // (TRUE_ELIM
     //   (MACRO_SR_EQ_INTRO <children> <args>[0]))
-    Assert(1 <= args.size() && args.size() <= 2);
-    RewriterId idRewriter = RewriterId::REWRITE;
-    if (args.size() >= 2)
+    Assert(1 <= args.size() && args.size() <= 3);
+    MethodId ids, idr;
+    if (!getMethodIds(args, ids, idr, 1))
     {
-      if (!getRewriterId(args[1], idRewriter))
-      {
-        Trace("builtin-pfcheck")
-            << "Failed to get id from " << args[1] << std::endl;
-        return Node::null();
-      }
+      return Node::null();
     }
-    Node res = applySubstitutionRewrite(args[0], children, idRewriter);
+    Node res = applySubstitutionRewrite(args[0], children, ids, idr);
     if (res.isNull())
     {
       return Node::null();
@@ -264,7 +290,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args.size() << std::endl;
     Assert(children.size() >= 1);
-    Assert(args.size() <= 1);
+    Assert(args.size() <= 2);
     // NOTE: technically a macro:
     // (TRUE_ELIM
     //   (TRANS
@@ -272,17 +298,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     //     (TRUE_INTRO <children>[0])))
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
-    RewriterId idRewriter = RewriterId::REWRITE;
-    if (0 < args.size())
+    MethodId ids, idr;
+    if (!getMethodIds(args, ids, idr, 0))
     {
-      if (!getRewriterId(args[0], idRewriter))
-      {
-        Trace("builtin-pfcheck")
-            << "Failed to get id from " << args[0] << std::endl;
-        return Node::null();
-      }
+      return Node::null();
     }
-    Node res1 = applySubstitutionRewrite(children[0], exp, idRewriter);
+    Node res1 = applySubstitutionRewrite(children[0], exp, ids, idr);
     Trace("builtin-pfcheck") << "Returned " << res1 << std::endl;
     return res1;
   }
@@ -291,24 +312,19 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args.size() << std::endl;
     Assert(children.size() >= 1);
-    Assert(args.size() <= 2);
+    Assert(1 <= args.size() && args.size() <= 3);
     Assert(args[0].getType().isBoolean());
+    MethodId ids, idr;
+    if (!getMethodIds(args, ids, idr, 1))
+    {
+      return Node::null();
+    }
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
-    RewriterId idRewriter = RewriterId::REWRITE;
-    if (1 < args.size())
-    {
-      if (!getRewriterId(args[1], idRewriter))
-      {
-        Trace("builtin-pfcheck")
-            << "Failed to get id from " << args[1] << std::endl;
-        return Node::null();
-      }
-    }
-    Node res1 = applySubstitutionRewrite(children[0], exp, idRewriter);
+    Node res1 = applySubstitutionRewrite(children[0], exp, ids, idr);
     // Trace("builtin-pfcheck")
     //    << "Returned " << res1 << std::endl;
-    Node res2 = applySubstitutionRewrite(args[0], exp, idRewriter);
+    Node res2 = applySubstitutionRewrite(args[0], exp, ids, idr);
     // Trace("builtin-pfcheck")
     //    << "Returned " << res2 << " from " << args[0] << std::endl;
     // can rewrite the witness forms
@@ -332,6 +348,31 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   // no rule
   return Node::null();
+}
+
+bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args, MethodId& ids, MethodId& idr, size_t index)
+{
+  ids = MethodId::SB_DEFAULT;
+  idr = MethodId::RW_REWRITE;
+  if (args.size() > index)
+  {
+    if (!getMethodId(args[index], ids))
+    {
+      Trace("builtin-pfcheck")
+          << "Failed to get id from " << args[index] << std::endl;
+      return false;
+    }
+  }
+  if (args.size() >= index+1)
+  {
+    if (!getMethodId(args[index+1], idr))
+    {
+      Trace("builtin-pfcheck")
+          << "Failed to get id from " << args[index+1] << std::endl;
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace builtin

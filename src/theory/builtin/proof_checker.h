@@ -24,26 +24,36 @@
 namespace CVC4 {
 namespace theory {
 
-/** Identifiers for rewriters.
+/** Identifiers for rewriters and substitutions.
  *
  * A "rewriter" is abstractly a method from Node to Node, where the output
  * is semantically equivalent to the input. The identifiers below list
  * various methods that have this contract. This identifier is used
  * in a number of the builtin rules.
+ * 
+ * A substitution is a method for turning a formula into 
  */
-enum class RewriterId : uint32_t
+enum class MethodId : uint32_t
 {
+  //---------------------------- Rewriters
   // Rewriter::rewrite(n)
-  REWRITE,
+  RW_REWRITE,
   // Rewriter::rewriteExtEquality(n)
-  REWRITE_EQ_EXT,
+  RW_REWRITE_EQ_EXT,
   // identity
-  IDENTITY,
+  RW_IDENTITY,
+  //---------------------------- Substitutions
+  // (= x y) is interpreted as x -> y, using Node::substitute(...)
+  SB_DEFAULT,
+  // (= x y) is interpreted as (= x y) -> true, using Node::substitute(...)
+  SB_PREDICATE,
 };
 /** Converts a rewriter id to a string. */
-const char* toString(RewriterId id);
+const char* toString(MethodId id);
 /** Write a rewriter id to out */
-std::ostream& operator<<(std::ostream& out, RewriterId id);
+std::ostream& operator<<(std::ostream& out, MethodId id);
+/** Make a method id node */
+Node mkMethodId(MethodId id);
 
 namespace builtin {
 
@@ -62,7 +72,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * @param id The identifier of the rewriter.
    * @return The rewritten form of n.
    */
-  static Node applyRewrite(Node n, RewriterId id = RewriterId::REWRITE);
+  static Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
    * Apply substitution on n (in witness form). This encapsulates the exact
    * behavior of a SUBS step in a proof. Substitution is on the Skolem form of
@@ -73,8 +83,10 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * substitution
    * @return The substituted form of n.
    */
-  static Node applySubstitution(Node n, Node exp);
-  static Node applySubstitution(Node n, const std::vector<Node>& exp);
+  static Node applySubstitution(Node n, Node exp,
+                                       MethodId ids = MethodId::SB_DEFAULT);
+  static Node applySubstitution(Node n, const std::vector<Node>& exp,
+                                       MethodId ids = MethodId::SB_DEFAULT);
   /** Apply substitution + rewriting
    *
    * Combines the above two steps.
@@ -87,11 +99,10 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   static Node applySubstitutionRewrite(Node n,
                                        const std::vector<Node>& exp,
-                                       RewriterId id = RewriterId::REWRITE);
+                                       MethodId ids = MethodId::SB_DEFAULT,
+                                       MethodId idr = MethodId::RW_REWRITE);
   /** get a rewriter Id from a node, return false if we fail */
-  static bool getRewriterId(TNode n, RewriterId& i);
-  /** Make a rewriter id node */
-  static Node mkRewriterId(RewriterId i);
+  static bool getMethodId(TNode n, MethodId& i);
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
@@ -101,17 +112,19 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
+  /** get method ids */
+  bool getMethodIds(const std::vector<Node>& args, MethodId& ids, MethodId& idr, size_t index);
   /**
    * Apply rewrite (on Skolem form). id is the identifier of the rewriter.
    */
-  static Node applyRewriteExternal(Node n, RewriterId id = RewriterId::REWRITE);
+  static Node applyRewriteExternal(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
    * Apply substitution for n (on Skolem form), where exp is an equality
    * (or set of equalities) in Witness form. Returns the result of
    * n * { exp[0] -> exp[1] } in Skolem form.
    */
-  static Node applySubstitutionExternal(Node n, Node exp);
-  static Node applySubstitutionExternal(Node n, const std::vector<Node>& exp);
+  static Node applySubstitutionExternal(Node n, Node exp, MethodId ids);
+  static Node applySubstitutionExternal(Node n, const std::vector<Node>& exp, MethodId ids);
 };
 
 }  // namespace builtin

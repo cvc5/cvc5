@@ -2007,8 +2007,15 @@ theory::TrustNode TheoryEngine::getExplanation(
     std::vector<NodeTheoryPair>& explanationVector,
     LemmaProofRecipe* proofRecipe)
 {
-  Assert(explanationVector.size() > 0);
-
+  Assert(explanationVector.size() == 1);
+  
+  Node conclusion = explanationVector[0].d_node;
+  std::unique_ptr<LazyCDProof> lcp;
+  if (d_lazyProof!=nullptr)
+  {
+    // FIXME
+    //lcp.reset(new LazyCDProof(d_pNodeManager.get()));
+  }
   unsigned i = 0; // Index of the current literal we are processing
   unsigned j = 0; // Index of the last literal we are keeping
 
@@ -2021,7 +2028,6 @@ theory::TrustNode TheoryEngine::getExplanation(
     }
   });
 
-  std::vector<TrustNode> trNodes;
   while (i < explanationVector.size()) {
     // Get the current literal to explain
     NodeTheoryPair toExplain = explanationVector[i];
@@ -2032,15 +2038,20 @@ theory::TrustNode TheoryEngine::getExplanation(
         << toExplain.d_theory << endl;
 
     // If a true constant or a negation of a false constant we can ignore it
-    if (toExplain.d_node.isConst() && toExplain.d_node.getConst<bool>())
+    if ((toExplain.d_node.isConst() && toExplain.d_node.getConst<bool>()) ||
+      (toExplain.d_node.getKind() == kind::NOT && toExplain.d_node[0].isConst()
+        && !toExplain.d_node[0].getConst<bool>()))
     {
       ++ i;
-      continue;
-    }
-    if (toExplain.d_node.getKind() == kind::NOT && toExplain.d_node[0].isConst()
-        && !toExplain.d_node[0].getConst<bool>())
-    {
-      ++ i;
+      if (lcp!=nullptr)
+      {
+        // ------------------MACRO_SR_PRED_INTRO
+        // toExplain.d_node
+        std::vector<Node> children;
+        std::vector<Node> args;
+        args.push_back(toExplain.d_node);
+        lcp->addStep(toExplain.d_node, PfRule::MACRO_SR_PRED_INTRO, children, args);
+      }
       continue;
     }
 
@@ -2058,11 +2069,26 @@ theory::TrustNode TheoryEngine::getExplanation(
       Debug("theory::explain")
           << "TheoryEngine::explain(): expanding " << toExplain.d_node
           << " got from " << toExplain.d_theory << endl;
-      for (unsigned k = 0; k < toExplain.d_node.getNumChildren(); ++k)
+      size_t nchild = toExplain.d_node.getNumChildren();
+      for (size_t k = 0; k < nchild; ++k)
       {
         NodeTheoryPair newExplain(
             toExplain.d_node[k], toExplain.d_theory, toExplain.d_timestamp);
         explanationVector.push_back(newExplain);
+      }
+      if (lcp!=nullptr)
+      {
+        // toExplain.d_node[0] ... toExplain.d_node[n]
+        // --------------------------------------------MACRO_BSR_PRED_INTRO
+        // toExplain.d_node
+        std::vector<Node> children;
+        for (size_t k = 0; k < nchild; ++k)
+        {
+          children.push_back(toExplain.d_node[k]);
+        }
+        std::vector<Node> args;
+        args.push_back(toExplain.d_node);
+        lcp->addStep(toExplain.d_node, PfRule::MACRO_SR_PRED_INTRO, children, args);
       }
       ++ i;
       continue;
@@ -2098,7 +2124,7 @@ theory::TrustNode TheoryEngine::getExplanation(
             }
           }
         })
-
+        // FIXME
         continue;
       }
     }
@@ -2120,11 +2146,20 @@ theory::TrustNode TheoryEngine::getExplanation(
           << theoryOf(toExplain.d_theory)->getId()
           << ". Explanation: " << texplanation.getNode() << std::endl;
     }
-    // process the trust node here
-    if (d_lazyProof!=nullptr)
+    if (lcp!=nullptr)
     {
-      processTrustNode(texplanation);
-      trNodes.push_back(texplanation);
+      // ----------- Via theory
+      // exp => lit                exp
+      // ---------------------------------MACRO_BSR_PRED_TRANSFORM
+      // lit
+      Node proven = texplanation.getProven();
+      lcp->addLazyStep(proven,texplanation.getGenerator());
+      std::vector<Node> children;
+      children.push_back(proven);
+      children.push_back(texplanation.getNode());
+      std::vector<Node> args;
+      args.push_back(toExplain.d_node);
+      lcp->addStep(toExplain.d_node,PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
     }
     Node explanation = texplanation.getNode();
 
@@ -2195,11 +2230,19 @@ theory::TrustNode TheoryEngine::getExplanation(
 
   Node exp = mkExplanation(explanationVector);
   
-  if (d_lazyProof!=nullptr)
+  if (lcp!=nullptr)
   {
+    Assert (lcp!=nullptr);
     // FIXME
-    // We have E1 => l1 ^ ... En => ln.
-    // Need to prove E1 ^ ... ^ En => ( l1 ^ ... ^ ln )
+    // get the proof for conclusion
+    std::shared_ptr<ProofNode> pfConc = lcp->mkProof(conclusion);
+    std::vector<Node> scopeAssumps;
+    for (size_t k = 0, esize = explanationVector.size(); k < esize; ++ k) 
+    {
+      scopeAssumps.push_back(explanationVector[k].d_node);
+    }
+    // call the scope method of proof node manager
+    std::shared_ptr<ProofNode> pf = d_pNodeManager->mkScope(pfConc, scopeAssumps);
   }
   
   return theory::TrustNode::mkTrustLemma(exp, nullptr);

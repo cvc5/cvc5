@@ -168,8 +168,9 @@ Node InferProofCons::convert(Inference infer,
     case Inference::INFER_EMP:
     {
       // need the "extended equality rewrite"
-      ps.d_args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(
-          RewriterId::REWRITE_EQ_EXT));
+      MethodId ids = MethodId::SB_DEFAULT;
+      MethodId idr = MethodId::RW_REWRITE_EQ_EXT;
+      addMethodIds(ps.d_args, ids, idr);
       ps.d_rule = PfRule::MACRO_SR_PRED_ELIM;
     }
     break;
@@ -306,7 +307,7 @@ Node InferProofCons::convert(Inference infer,
         // possibly be done by CONCAT_EQ with !isRev.
         std::vector<Node> cexp;
         if (convertPredTransform(
-                mainEqCeq, conc, cexp, RewriterId::REWRITE_EQ_EXT))
+                mainEqCeq, conc, cexp, MethodId::SB_DEFAULT, MethodId::RW_REWRITE_EQ_EXT))
         {
           Trace("strings-ipc-core") << "Transformed to " << conc
                                     << " via pred transform" << std::endl;
@@ -901,7 +902,8 @@ bool InferProofCons::convertLengthPf(Node lenReq,
 bool InferProofCons::convertPredTransform(Node src,
                                           Node tgt,
                                           const std::vector<Node>& exp,
-                                          RewriterId id)
+                                          MethodId ids,
+                                          MethodId idr)
 {
   // symmetric equalities
   if (isSymm(src, tgt))
@@ -914,10 +916,7 @@ bool InferProofCons::convertPredTransform(Node src,
   // try to prove that tgt rewrites to src
   children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
-  if (id != RewriterId::REWRITE)
-  {
-    args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(id));
-  }
+  addMethodIds(args,ids,idr);
   Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
   if (res.isNull())
   {
@@ -926,7 +925,7 @@ bool InferProofCons::convertPredTransform(Node src,
   }
   Trace("strings-ipc-debug")
       << "InferProofCons::convertPredTransform: success " << src
-      << " == " << tgt << " under " << exp << " via " << id << std::endl;
+      << " == " << tgt << " under " << exp << " via " << ids << "/" << idr << std::endl;
   // should definitely have concluded tgt
   Assert(res == tgt);
   return true;
@@ -934,14 +933,12 @@ bool InferProofCons::convertPredTransform(Node src,
 
 bool InferProofCons::convertPredIntro(Node tgt,
                                       const std::vector<Node>& exp,
-                                      RewriterId id)
+                                      MethodId ids,
+                                      MethodId idr)
 {
   std::vector<Node> args;
   args.push_back(tgt);
-  if (id != RewriterId::REWRITE)
-  {
-    args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(id));
-  }
+  addMethodIds(args,ids,idr);
   Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_INTRO, exp, args);
   if (res.isNull())
   {
@@ -953,16 +950,14 @@ bool InferProofCons::convertPredIntro(Node tgt,
 
 Node InferProofCons::convertPredElim(Node src,
                                      const std::vector<Node>& exp,
-                                     RewriterId id)
+                                    MethodId ids,
+                                     MethodId idr)
 {
   std::vector<Node> children;
   children.push_back(src);
   children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
-  if (id != RewriterId::REWRITE)
-  {
-    args.push_back(builtin::BuiltinProofRuleChecker::mkRewriterId(id));
-  }
+  addMethodIds(args,ids,idr);
   Node srcRew = d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, children, args);
   if (isSymm(src, srcRew))
   {
@@ -970,6 +965,21 @@ Node InferProofCons::convertPredElim(Node src,
     return src;
   }
   return srcRew;
+}
+
+void InferProofCons::addMethodIds(std::vector<Node>& args, 
+                      MethodId ids,
+                      MethodId idr)
+{
+  bool ndefRewriter = (idr != MethodId::RW_REWRITE);
+  if (ids != MethodId::SB_DEFAULT || ndefRewriter)
+  {
+    args.push_back(mkMethodId(ids));
+  }
+  if (ndefRewriter)
+  {
+    args.push_back(mkMethodId(idr));
+  }
 }
 
 Node InferProofCons::convertTrans(Node eqa, Node eqb)
