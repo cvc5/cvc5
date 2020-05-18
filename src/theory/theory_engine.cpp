@@ -1937,15 +1937,31 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
         NodeTheoryPair(conflict, theoryId, d_propagationMapTimestamp));
 
     // Process the explanation
-    TrustNode tnc = getExplanation(vec, proofRecipe);
+    TrustNode tncExp = getExplanation(vec, proofRecipe);
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
+    Node fullConflict = tncExp.getNode();
 
-    // FIXME: have ~( F ) and E => F, prove ~( E )
     if (d_lazyProof != nullptr)
     {
+      if (fullConflict!=conflict)
+      {
+        // store the explicit step
+        processTrustNode(tncExp, THEORY_BUILTIN);
+      }
+      Node fullConflictNeg = fullConflict.notNode();
+      // ------------------------- explained  ---------- from theory 
+      // fullConflict => conflict              ~conflict
+      // ----------------------------------------------- MACRO_SR_PRED_TRANSFORM
+      // ~fullConflict
+      std::vector<Node> children;
+      children.push_back(tncExp.getProven());
+      children.push_back(conflict.notNode());
+      std::vector<Node> args;
+      args.push_back(fullConflictNeg);
+      args.push_back(mkMethodId(MethodId::SB_PREDICATE));
+      d_lazyProof->addStep(fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
     }
 
-    Node fullConflict = tnc.getNode();
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
     lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);

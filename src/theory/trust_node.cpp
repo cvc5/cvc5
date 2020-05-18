@@ -83,7 +83,7 @@ ProofGenerator* TrustNode::getGenerator() const { return d_gen; }
 
 bool TrustNode::isNull() const { return d_proven.isNull(); }
 
-Node TrustNode::getConflictProven(Node conf) { return conf.negate(); }
+Node TrustNode::getConflictProven(Node conf) { return conf.notNode(); }
 
 Node TrustNode::getLemmaProven(Node lem) { return lem; }
 

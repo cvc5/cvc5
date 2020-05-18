@@ -29,6 +29,7 @@ theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
 {
   theory::TrustNode trn = theory::TrustNode::mkTrustPropExp(lit, exp, this);
   Node p = trn.getProven();
+  Assert(p.getKind() == IMPLIES && p.getNumChildren() == 2);
   // should not already be proven
   NodeLazyCDProofMap::iterator it = d_proofs.find(p);
   if (it != d_proofs.end())
@@ -45,6 +46,7 @@ theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
 
 std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
 {
+  // should only ask this generator for proofs of implications
   Assert(f.getKind() == IMPLIES && f.getNumChildren() == 2);
   NodeLazyCDProofMap::iterator it = d_proofs.find(f);
   if (it == d_proofs.end())
