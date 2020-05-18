@@ -35,6 +35,7 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
     case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
     //================================================= Boolean rules
+    case PfRule::RESOLUTION: return "RESOLUTION";
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::AND_ELIM: return "AND_ELIM";
     case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";

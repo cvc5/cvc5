@@ -176,6 +176,15 @@ enum class PfRule : uint32_t
 
   //================================================= Boolean rules
   // ======== Split
+  // Children: (P1:(or F_1 ... F_i-1 F_i F_i+1 ... F_n),
+  //            P2:(or G_1 ... G_i-1 G_i G_i+1 ... G_n) )
+  // Arguments: (F_i)
+  // ---------------------
+  // Conclusion: (or F_1 ... F_i-1 F_i+1 ... F_n G_1 ... G_i-1 G_i+1 ... G_n)
+  // where
+  //   G_i is synctatically equal to (not F_i)
+  RESOLUTION,
+  // ======== Split
   // Children: none
   // Arguments: (F)
   // ---------------------
