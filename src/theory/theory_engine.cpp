@@ -2012,8 +2012,8 @@ theory::TrustNode TheoryEngine::getExplanation(
   std::unique_ptr<LazyCDProof> lcp;
   if (d_lazyProof != nullptr)
   {
-    // FIXME
-    //lcp.reset(new LazyCDProof(d_pNodeManager.get()));
+    Trace("te-proof-exp") << "TheoryEngine::getExplanation " << conclusion << std::endl;
+    lcp.reset(new LazyCDProof(d_pNodeManager.get()));
   }
   unsigned i = 0; // Index of the current literal we are processing
   unsigned j = 0; // Index of the last literal we are keeping
@@ -2045,6 +2045,7 @@ theory::TrustNode TheoryEngine::getExplanation(
       ++ i;
       if (lcp != nullptr)
       {
+        Trace("te-proof-exp") << "- explain " << toExplain.d_node << " trivially..." << std::endl;
         // ------------------MACRO_SR_PRED_INTRO
         // toExplain.d_node
         std::vector<Node> children;
@@ -2062,6 +2063,7 @@ theory::TrustNode TheoryEngine::getExplanation(
       Debug("theory::explain") << "\tLiteral came from THEORY_SAT_SOLVER. Kepping it." << endl;
       explanationVector[j++] = explanationVector[i++];
       // it will be a free assumption in the proof
+      Trace("te-proof-exp") << "- keep " << toExplain.d_node << std::endl;
       continue;
     }
 
@@ -2080,6 +2082,7 @@ theory::TrustNode TheoryEngine::getExplanation(
       }
       if (lcp != nullptr)
       {
+        Trace("te-proof-exp") << "- AND expand " << toExplain.d_node << std::endl;
         // toExplain.d_node[0] ... toExplain.d_node[n]
         // --------------------------------------------MACRO_SR_PRED_INTRO
         // toExplain.d_node
@@ -2128,7 +2131,15 @@ theory::TrustNode TheoryEngine::getExplanation(
             }
           }
         })
-        // FIXME
+        if (lcp !=nullptr)
+        {
+          if (!CDProof::isSame(toExplain.d_node,(*find).second.d_node))
+          {
+            Trace("te-proof-exp") << "- t-explained cached: " << toExplain.d_node << " by " << (*find).second.d_node << std::endl;
+            // does this ever happen?
+            Assert(false);
+          }
+        }
         continue;
       }
     }
@@ -2152,6 +2163,7 @@ theory::TrustNode TheoryEngine::getExplanation(
     }
     if (lcp != nullptr)
     {
+      Trace("te-proof-exp") << "- t-explained[" << toExplain.d_theory << "]: " << toExplain.d_node << " by " << texplanation.getNode() << std::endl;
       // if not a trivial explanation
       if (!CDProof::isSame(texplanation.getNode(), toExplain.d_node))
       {
@@ -2160,7 +2172,22 @@ theory::TrustNode TheoryEngine::getExplanation(
         // ---------------------------------MACRO_SR_PRED_TRANSFORM
         // lit
         Node proven = texplanation.getProven();
-        lcp->addLazyStep(proven, texplanation.getGenerator());
+        if (texplanation.getGenerator()!=nullptr)
+        {
+          lcp->addLazyStep(proven, texplanation.getGenerator());
+        }
+        else
+        {
+          Trace("te-proof-exp") << "...trust THEORY_LEMMA" << std::endl;
+          // otherwise, trusted theory lemma
+          std::vector<Node> children;
+          std::vector<Node> args;
+          args.push_back(proven);
+          unsigned tid = static_cast<unsigned>(toExplain.d_theory);
+          Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
+          args.push_back(tidn);
+          lcp->addStep(proven,PfRule::THEORY_LEMMA,children,args);
+        }
         std::vector<Node> children;
         children.push_back(proven);
         children.push_back(texplanation.getNode());
