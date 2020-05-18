@@ -16,21 +16,22 @@
 
 using namespace CVC4::kind;
 
-namespace CVC4 
-{
+namespace CVC4 {
 
-TheoryEngineProofGenerator::TheoryEngineProofGenerator(ProofNodeManager* pnm, context::UserContext* u) : d_pnm(pnm), d_proofs(u)
+TheoryEngineProofGenerator::TheoryEngineProofGenerator(ProofNodeManager* pnm,
+                                                       context::UserContext* u)
+    : d_pnm(pnm), d_proofs(u)
 {
-  
 }
 
-theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(TNode lit, Node exp, std::shared_ptr<LazyCDProof> lpf)
+theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
+    TNode lit, Node exp, std::shared_ptr<LazyCDProof> lpf)
 {
-  theory::TrustNode trn = theory::TrustNode::mkTrustPropExp(lit,exp,this);
+  theory::TrustNode trn = theory::TrustNode::mkTrustPropExp(lit, exp, this);
   Node p = trn.getProven();
   // should not already be proven
   NodeLazyCDProofMap::iterator it = d_proofs.find(p);
-  if (it!=d_proofs.end())
+  if (it != d_proofs.end())
   {
     Assert(false);
   }
@@ -44,16 +45,16 @@ theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(TNode lit, Node exp
 
 std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
 {
-  Assert (f.getKind()==IMPLIES && f.getNumChildren()==2);
+  Assert(f.getKind() == IMPLIES && f.getNumChildren() == 2);
   NodeLazyCDProofMap::iterator it = d_proofs.find(f);
-  if (it==d_proofs.end())
+  if (it == d_proofs.end())
   {
     return nullptr;
   }
   std::shared_ptr<LazyCDProof> lcp = (*it).second;
   // finalize it via scope
   std::vector<Node> scopeAssumps;
-  if (f[0].getKind()==AND)
+  if (f[0].getKind() == AND)
   {
     for (const Node& fc : f[0])
     {
@@ -78,4 +79,4 @@ std::string TheoryEngineProofGenerator::identify() const
   return "TheoryEngineProofGenerator";
 }
 
-}
+}  // namespace CVC4

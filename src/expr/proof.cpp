@@ -384,8 +384,8 @@ bool CDProof::isAssumption(ProofNode* pn)
 bool CDProof::isSame(TNode f, TNode g)
 {
   return f == g
-         || (f.getKind() == EQUAL && g.getKind() == EQUAL
-             && f[0] == g[1] && f[1] == g[0]);
+         || (f.getKind() == EQUAL && g.getKind() == EQUAL && f[0] == g[1]
+             && f[1] == g[0]);
 }
 
 }  // namespace CVC4

@@ -48,11 +48,11 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_engine_proof_generator.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
-#include "theory/theory_engine_proof_generator.h"
 
 using namespace std;
 
@@ -202,9 +202,13 @@ TheoryEngine::TheoryEngine(context::Context* context,
           options::proofNew()
               ? new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext)
               : nullptr),
-      d_tepg(new TheoryEngineProofGenerator(d_pNodeManager.get(), d_userContext)),
-      d_sharedTerms(
-          this, context, userContext, d_pNodeManager.get(), d_lazyProof!=nullptr),
+      d_tepg(
+          new TheoryEngineProofGenerator(d_pNodeManager.get(), d_userContext)),
+      d_sharedTerms(this,
+                    context,
+                    userContext,
+                    d_pNodeManager.get(),
+                    d_lazyProof != nullptr),
       d_masterEqualityEngine(nullptr),
       d_masterEENotify(*this),
       d_quantEngine(nullptr),
@@ -1797,10 +1801,11 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   std::shared_ptr<LazyCDProof> lcp;
   if (d_lazyProof != nullptr)
   {
-    Trace("te-proof-exp") << "TheoryEngine::lemma: process " << node << std::endl;
+    Trace("te-proof-exp") << "TheoryEngine::lemma: process " << node
+                          << std::endl;
     lcp.reset(new LazyCDProof(d_pNodeManager.get()));
   }
-  
+
   AssertionPipeline additionalLemmas;
 
   // Run theory preprocessing, maybe
@@ -1856,7 +1861,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 }
 
 void TheoryEngine::processTrustNode(theory::TrustNode trn,
-                            theory::TheoryId from)
+                                    theory::TheoryId from)
 {
   if (d_lazyProof == nullptr)
   {
@@ -1876,7 +1881,7 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn,
   else
   {
     // all BUILTIN should be handled
-    Assert (from!=THEORY_BUILTIN);
+    Assert(from != THEORY_BUILTIN);
     // untrusted theory lemma
     std::vector<Node> children;
     std::vector<Node> args;
@@ -1936,11 +1941,9 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
 
     // FIXME: have ~( F ) and E => F, prove ~( E )
-    if (d_lazyProof!=nullptr)
+    if (d_lazyProof != nullptr)
     {
-      
     }
-    
 
     Node fullConflict = tnc.getNode();
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
@@ -2040,7 +2043,8 @@ theory::TrustNode TheoryEngine::getExplanation(
   TrustNode simpleTrn;
   if (d_lazyProof != nullptr)
   {
-    Trace("te-proof-exp") << "TheoryEngine::getExplanation " << conclusion << std::endl;
+    Trace("te-proof-exp") << "TheoryEngine::getExplanation " << conclusion
+                          << std::endl;
     lcp.reset(new LazyCDProof(d_pNodeManager.get()));
   }
   unsigned i = 0; // Index of the current literal we are processing
@@ -2073,7 +2077,8 @@ theory::TrustNode TheoryEngine::getExplanation(
       ++ i;
       if (lcp != nullptr)
       {
-        Trace("te-proof-exp") << "- explain " << toExplain.d_node << " trivially..." << std::endl;
+        Trace("te-proof-exp")
+            << "- explain " << toExplain.d_node << " trivially..." << std::endl;
         // ------------------MACRO_SR_PRED_INTRO
         // toExplain.d_node
         std::vector<Node> children;
@@ -2111,7 +2116,8 @@ theory::TrustNode TheoryEngine::getExplanation(
       }
       if (lcp != nullptr)
       {
-        Trace("te-proof-exp") << "- AND expand " << toExplain.d_node << std::endl;
+        Trace("te-proof-exp")
+            << "- AND expand " << toExplain.d_node << std::endl;
         // toExplain.d_node[0] ... toExplain.d_node[n]
         // --------------------------------------------MACRO_SR_PRED_INTRO
         // toExplain.d_node
@@ -2161,11 +2167,13 @@ theory::TrustNode TheoryEngine::getExplanation(
             }
           }
         })
-        if (lcp !=nullptr)
+        if (lcp != nullptr)
         {
-          if (!CDProof::isSame(toExplain.d_node,(*find).second.d_node))
+          if (!CDProof::isSame(toExplain.d_node, (*find).second.d_node))
           {
-            Trace("te-proof-exp") << "- t-explained cached: " << toExplain.d_node << " by " << (*find).second.d_node << std::endl;
+            Trace("te-proof-exp")
+                << "- t-explained cached: " << toExplain.d_node << " by "
+                << (*find).second.d_node << std::endl;
             // does this ever happen?
             Assert(false);
             simpleExplain = false;
@@ -2194,7 +2202,9 @@ theory::TrustNode TheoryEngine::getExplanation(
     }
     if (lcp != nullptr)
     {
-      Trace("te-proof-exp") << "- t-explained[" << toExplain.d_theory << "]: " << toExplain.d_node << " by " << texplanation.getNode() << std::endl;
+      Trace("te-proof-exp")
+          << "- t-explained[" << toExplain.d_theory << "]: " << toExplain.d_node
+          << " by " << texplanation.getNode() << std::endl;
       // if not a trivial explanation
       if (!CDProof::isSame(texplanation.getNode(), toExplain.d_node))
       {
@@ -2203,7 +2213,7 @@ theory::TrustNode TheoryEngine::getExplanation(
         // ---------------------------------MACRO_SR_PRED_TRANSFORM
         // lit
         Node proven = texplanation.getProven();
-        if (texplanation.getGenerator()!=nullptr)
+        if (texplanation.getGenerator() != nullptr)
         {
           lcp->addLazyStep(proven, texplanation.getGenerator());
         }
@@ -2217,7 +2227,7 @@ theory::TrustNode TheoryEngine::getExplanation(
           unsigned tid = static_cast<unsigned>(toExplain.d_theory);
           Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
           args.push_back(tidn);
-          lcp->addStep(proven,PfRule::THEORY_LEMMA,children,args);
+          lcp->addStep(proven, PfRule::THEORY_LEMMA, children, args);
         }
         std::vector<Node> children;
         children.push_back(proven);
@@ -2320,12 +2330,12 @@ theory::TrustNode TheoryEngine::getExplanation(
     {
       // single call to a theory's explain method, skip the proof generator
       Assert (!simpleTrn.isNull());
-      Trace("te-proof-exp") << "...simple explain " << simpleTrn.getNode() << std::endl;
-      return simpleTrn;
+      Trace("te-proof-exp") << "...simple explain " << simpleTrn.getNode() <<
+    std::endl; return simpleTrn;
     }
     */
     // store in the proof generator
-    TrustNode trn = d_tepg->mkTrustExplain(conclusion,exp,lcp);
+    TrustNode trn = d_tepg->mkTrustExplain(conclusion, exp, lcp);
     // return the trust node
     return trn;
   }

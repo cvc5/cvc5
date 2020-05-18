@@ -27,7 +27,7 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
                                          context::Context* context,
                                          context::UserContext* userContext,
                                          ProofNodeManager* pnm,
-                      bool pfEnabled)
+                                         bool pfEnabled)
     : ContextNotifyObj(context),
       d_statSharedTerms("theory::shared_terms", 0),
       d_addedSharedTermsSize(context, 0),

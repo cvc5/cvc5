@@ -37,6 +37,7 @@
 #include "smt/command.h"
 #include "theory/atom_requests.h"
 #include "theory/decision_manager.h"
+#include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
 #include "theory/shared_terms_database.h"
@@ -44,7 +45,6 @@
 #include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
-#include "theory/engine_output_channel.h"
 #include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
@@ -362,19 +362,18 @@ class TheoryEngine {
                             bool preprocess,
                             theory::TheoryId atomsTo);
 
-  /** 
+  /**
    * Process trust node. This method ensures that the proof for the proven node
    * of trn is stored as a lazy step in the lazy proof (d_lazyProof) maintained
    * by this class, referencing the proof generator of the trust node. The
    * argument from specifies the theory responsible for this trust node. If
    * no generator is provided, then a (eager) THEORY_LEMMA step is added to
    * the lazy proof.
-   * 
+   *
    * @param trn The trust node to process
    * @param from The id of the theory responsible for the trust node.
    */
-  void processTrustNode(theory::TrustNode trn,
-                            theory::TheoryId from);
+  void processTrustNode(theory::TrustNode trn, theory::TheoryId from);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
@@ -417,8 +416,7 @@ class TheoryEngine {
   inline void addTheory(theory::TheoryId theoryId)
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
-    d_theoryOut[theoryId] =
-        new theory::EngineOutputChannel(this, theoryId);
+    d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
     d_theoryTable[theoryId] = new TheoryClass(d_context,
                                               d_userContext,
                                               *d_theoryOut[theoryId],
