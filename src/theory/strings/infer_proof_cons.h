@@ -141,9 +141,7 @@ class InferProofCons : public ProofGenerator
                        MethodId ids = MethodId::SB_DEFAULT,
                        MethodId idr = MethodId::RW_REWRITE);
   /** Add method ids */
-  void addMethodIds(std::vector<Node>& args, 
-                       MethodId ids,
-                       MethodId idr);
+  void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
   /**
    */
   Node convertTrans(Node eqa, Node eqb);

@@ -83,9 +83,8 @@ class ProofNodeManager
   /** Make scope */
   std::shared_ptr<ProofNode> mkScope(std::shared_ptr<ProofNode> pf,
                                      std::vector<Node>& assumps,
-                                     bool ensureClosed = true
-                                    );
-  
+                                     bool ensureClosed = true);
+
   /**
    * This method updates pn to be a proof of the form <id>( children, args ),
    * while maintaining its d_proven field. This method returns false if this

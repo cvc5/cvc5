@@ -30,8 +30,8 @@ namespace theory {
  * is semantically equivalent to the input. The identifiers below list
  * various methods that have this contract. This identifier is used
  * in a number of the builtin rules.
- * 
- * A substitution is a method for turning a formula into 
+ *
+ * A substitution is a method for turning a formula into
  */
 enum class MethodId : uint32_t
 {
@@ -83,10 +83,12 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * substitution
    * @return The substituted form of n.
    */
-  static Node applySubstitution(Node n, Node exp,
-                                       MethodId ids = MethodId::SB_DEFAULT);
-  static Node applySubstitution(Node n, const std::vector<Node>& exp,
-                                       MethodId ids = MethodId::SB_DEFAULT);
+  static Node applySubstitution(Node n,
+                                Node exp,
+                                MethodId ids = MethodId::SB_DEFAULT);
+  static Node applySubstitution(Node n,
+                                const std::vector<Node>& exp,
+                                MethodId ids = MethodId::SB_DEFAULT);
   /** Apply substitution + rewriting
    *
    * Combines the above two steps.
@@ -113,7 +115,10 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
   /** get method ids */
-  bool getMethodIds(const std::vector<Node>& args, MethodId& ids, MethodId& idr, size_t index);
+  bool getMethodIds(const std::vector<Node>& args,
+                    MethodId& ids,
+                    MethodId& idr,
+                    size_t index);
   /**
    * Apply rewrite (on Skolem form). id is the identifier of the rewriter.
    */
@@ -124,7 +129,9 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * n * { exp[0] -> exp[1] } in Skolem form.
    */
   static Node applySubstitutionExternal(Node n, Node exp, MethodId ids);
-  static Node applySubstitutionExternal(Node n, const std::vector<Node>& exp, MethodId ids);
+  static Node applySubstitutionExternal(Node n,
+                                        const std::vector<Node>& exp,
+                                        MethodId ids);
 };
 
 }  // namespace builtin

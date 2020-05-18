@@ -81,7 +81,8 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n,
-                                                const std::vector<Node>& exp, MethodId ids)
+                                                const std::vector<Node>& exp,
+                                                MethodId ids)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
   Node nks = applySubstitutionExternal(nk, exp, ids);
@@ -119,36 +120,38 @@ Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
   }
   // unknown rewriter
   Assert(false)
-      << "BuiltinProofRuleChecker::applyRewriteExternal: no rewriter for " << idr
-      << std::endl;
+      << "BuiltinProofRuleChecker::applyRewriteExternal: no rewriter for "
+      << idr << std::endl;
   return n;
 }
 
-Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n, Node exp, MethodId ids)
+Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n,
+                                                        Node exp,
+                                                        MethodId ids)
 {
   Assert(!exp.isNull());
   Node expk = ProofSkolemCache::getSkolemForm(exp);
   TNode var, subs;
-  if (ids==MethodId::SB_DEFAULT)
+  if (ids == MethodId::SB_DEFAULT)
   {
-    if (expk.getKind()!=EQUAL)
+    if (expk.getKind() != EQUAL)
     {
       return Node::null();
     }
     var = expk[0];
     subs = expk[1];
   }
-  else if (ids==MethodId::SB_PREDICATE)
+  else if (ids == MethodId::SB_PREDICATE)
   {
-    bool polarity = expk.getKind()!=NOT;
+    bool polarity = expk.getKind() != NOT;
     var = polarity ? expk : expk[0];
     subs = NodeManager::currentNM()->mkConst(polarity);
   }
   else
   {
-  Assert(false)
-      << "BuiltinProofRuleChecker::applySubstitutionExternal: no substitution for " << ids
-      << std::endl;
+    Assert(false) << "BuiltinProofRuleChecker::applySubstitutionExternal: no "
+                     "substitution for "
+                  << ids << std::endl;
   }
   return n.substitute(var, subs);
 }
@@ -217,7 +220,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.size() > 0);
     Assert(1 <= args.size() && args.size() <= 2);
     MethodId ids = MethodId::SB_DEFAULT;
-    if (args.size()==2 && !getMethodId(args[1], ids))
+    if (args.size() == 2 && !getMethodId(args[1], ids))
     {
       return Node::null();
     }
@@ -234,7 +237,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(1 <= args.size() && args.size() <= 2);
     MethodId ids = MethodId::RW_REWRITE;
-    if (args.size()==2 && !getMethodId(args[1], ids))
+    if (args.size() == 2 && !getMethodId(args[1], ids))
     {
       return Node::null();
     }
@@ -350,7 +353,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   return Node::null();
 }
 
-bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args, MethodId& ids, MethodId& idr, size_t index)
+bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
+                                           MethodId& ids,
+                                           MethodId& idr,
+                                           size_t index)
 {
   ids = MethodId::SB_DEFAULT;
   idr = MethodId::RW_REWRITE;
@@ -363,12 +369,12 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args, Method
       return false;
     }
   }
-  if (args.size() >= index+1)
+  if (args.size() >= index + 1)
   {
-    if (!getMethodId(args[index+1], idr))
+    if (!getMethodId(args[index + 1], idr))
     {
       Trace("builtin-pfcheck")
-          << "Failed to get id from " << args[index+1] << std::endl;
+          << "Failed to get id from " << args[index + 1] << std::endl;
       return false;
     }
   }

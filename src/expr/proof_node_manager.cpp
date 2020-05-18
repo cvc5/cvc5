@@ -60,9 +60,10 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
   return mkNode(PfRule::ASSUME, children, args, fact);
 }
 
-std::shared_ptr<ProofNode> ProofNodeManager::mkScope(std::shared_ptr<ProofNode> pf,
-                                                     std::vector<Node>& assumps,
-                                     bool ensureClosed)
+std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
+    std::shared_ptr<ProofNode> pf,
+    std::vector<Node>& assumps,
+    bool ensureClosed)
 {
   std::vector<std::shared_ptr<ProofNode>> pfChildren;
   pfChildren.push_back(pf);
@@ -108,9 +109,9 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(std::shared_ptr<ProofNode> 
       itf = ac.find(aeqSym);
       if (itf != ac.end())
       {
-        Trace("pnm-scope")
-            << "- reorient assumption " << aeqSym << " via " << a << " for "
-            << fa.second.size() << " proof nodes" << std::endl;
+        Trace("pnm-scope") << "- reorient assumption " << aeqSym << " via " << a
+                           << " for " << fa.second.size() << " proof nodes"
+                           << std::endl;
         std::shared_ptr<ProofNode> pfaa = mkAssume(aeqSym);
         for (ProofNode* pfs : fa.second)
         {
@@ -120,8 +121,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(std::shared_ptr<ProofNode> 
           children.push_back(pfaa);
           std::vector<Node> args;
           args.push_back(a);
-          updateNode(
-              pfs, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+          updateNode(pfs, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
         }
         Trace("pnm-scope") << "...finished" << std::endl;
         acu.insert(aeqSym);
@@ -136,9 +136,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(std::shared_ptr<ProofNode> 
     {
       ss << "- assumption: " << aprint << std::endl;
     }
-    AlwaysAssert(false)
-        << "Generated a proof that is not closed by the scope: " << ss.str()
-        << std::endl;
+    AlwaysAssert(false) << "Generated a proof that is not closed by the scope: "
+                        << ss.str() << std::endl;
   }
   if (acu.size() < ac.size())
   {
@@ -149,15 +148,15 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(std::shared_ptr<ProofNode> 
       if (acu.find(a) == acu.end())
       {
         Notice() << "ProofNodeManager::mkScope: assumption " << a
-                  << " does not match a free assumption in proof" << std::endl;
+                 << " does not match a free assumption in proof" << std::endl;
       }
     }
   }
   assumps.clear();
-  assumps.insert(assumps.end(), acu.begin(), acu.end());  
+  assumps.insert(assumps.end(), acu.begin(), acu.end());
   return mkNode(PfRule::SCOPE, pfChildren, assumps);
 }
-  
+
 bool ProofNodeManager::updateNode(
     ProofNode* pn,
     PfRule id,

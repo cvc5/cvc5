@@ -306,8 +306,11 @@ Node InferProofCons::convert(Inference infer,
         // optimization in processSimpleNEq. Alternatively, this could
         // possibly be done by CONCAT_EQ with !isRev.
         std::vector<Node> cexp;
-        if (convertPredTransform(
-                mainEqCeq, conc, cexp, MethodId::SB_DEFAULT, MethodId::RW_REWRITE_EQ_EXT))
+        if (convertPredTransform(mainEqCeq,
+                                 conc,
+                                 cexp,
+                                 MethodId::SB_DEFAULT,
+                                 MethodId::RW_REWRITE_EQ_EXT))
         {
           Trace("strings-ipc-core") << "Transformed to " << conc
                                     << " via pred transform" << std::endl;
@@ -916,16 +919,16 @@ bool InferProofCons::convertPredTransform(Node src,
   // try to prove that tgt rewrites to src
   children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
-  addMethodIds(args,ids,idr);
+  addMethodIds(args, ids, idr);
   Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
   if (res.isNull())
   {
     // failed to apply
     return false;
   }
-  Trace("strings-ipc-debug")
-      << "InferProofCons::convertPredTransform: success " << src
-      << " == " << tgt << " under " << exp << " via " << ids << "/" << idr << std::endl;
+  Trace("strings-ipc-debug") << "InferProofCons::convertPredTransform: success "
+                             << src << " == " << tgt << " under " << exp
+                             << " via " << ids << "/" << idr << std::endl;
   // should definitely have concluded tgt
   Assert(res == tgt);
   return true;
@@ -938,7 +941,7 @@ bool InferProofCons::convertPredIntro(Node tgt,
 {
   std::vector<Node> args;
   args.push_back(tgt);
-  addMethodIds(args,ids,idr);
+  addMethodIds(args, ids, idr);
   Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_INTRO, exp, args);
   if (res.isNull())
   {
@@ -950,14 +953,14 @@ bool InferProofCons::convertPredIntro(Node tgt,
 
 Node InferProofCons::convertPredElim(Node src,
                                      const std::vector<Node>& exp,
-                                    MethodId ids,
+                                     MethodId ids,
                                      MethodId idr)
 {
   std::vector<Node> children;
   children.push_back(src);
   children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
-  addMethodIds(args,ids,idr);
+  addMethodIds(args, ids, idr);
   Node srcRew = d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, children, args);
   if (isSymm(src, srcRew))
   {
@@ -967,9 +970,9 @@ Node InferProofCons::convertPredElim(Node src,
   return srcRew;
 }
 
-void InferProofCons::addMethodIds(std::vector<Node>& args, 
-                      MethodId ids,
-                      MethodId idr)
+void InferProofCons::addMethodIds(std::vector<Node>& args,
+                                  MethodId ids,
+                                  MethodId idr)
 {
   bool ndefRewriter = (idr != MethodId::RW_REWRITE);
   if (ids != MethodId::SB_DEFAULT || ndefRewriter)
