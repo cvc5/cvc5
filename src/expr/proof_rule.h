@@ -173,6 +173,12 @@ enum class PfRule : uint32_t
   // This is a "coarse-grained" rule that is used as a placeholder if a theory
   // did not provide a proof for a lemma or conflict.
   THEORY_LEMMA,
+  // ======== Theory preprocess
+  // Children: (F)
+  // Arguments: none
+  // ---------------------------------------------------------------
+  // Conclusion: TheoryEngine::preprocess(F).
+  THEORY_PREPROCESS,
 
   //================================================= Boolean rules
   // ======== Split

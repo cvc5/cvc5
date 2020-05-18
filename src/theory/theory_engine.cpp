@@ -1810,6 +1810,11 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   // Run theory preprocessing, maybe
   Node ppNode = preprocess ? this->preprocess(node) : Node(node);
+  
+  if (d_lazyProof!=nullptr)
+  {
+    // FIXME
+  }
 
   // Remove the ITEs
   Debug("ite") << "Remove ITE from " << ppNode << std::endl;
@@ -1818,6 +1823,11 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   d_tform_remover.run(additionalLemmas.ref(),
                       additionalLemmas.getIteSkolemMap());
   Debug("ite") << "..done " << additionalLemmas[0] << std::endl;
+  
+  if (d_lazyProof!=nullptr)
+  {
+    // FIXME
+  }
 
   if(Debug.isOn("lemma-ites")) {
     Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
