@@ -78,7 +78,8 @@ void SygusInterpol::createVariables()
     d_vars.push_back(var);
     Node vlv = nm->mkBoundVar(ss.str(), tn);
     d_vlvs.push_back(vlv);
-		// TODO: bug fixed by hack (argument list for synthesis should be consistent)
+    // TODO: bug fixed by hack (argument list for synthesis should be
+    // consistent)
     if (true || d_symsetShared.find(s) != d_symsetShared.end())
     {
       d_varsShared.push_back(var);
