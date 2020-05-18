@@ -1810,8 +1810,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   // Run theory preprocessing, maybe
   Node ppNode = preprocess ? this->preprocess(node) : Node(node);
-  
-  if (d_lazyProof!=nullptr)
+
+  if (d_lazyProof != nullptr)
   {
     // FIXME
   }
@@ -1823,8 +1823,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   d_tform_remover.run(additionalLemmas.ref(),
                       additionalLemmas.getIteSkolemMap());
   Debug("ite") << "..done " << additionalLemmas[0] << std::endl;
-  
-  if (d_lazyProof!=nullptr)
+
+  if (d_lazyProof != nullptr)
   {
     // FIXME
   }
@@ -1953,13 +1953,13 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
     if (d_lazyProof != nullptr)
     {
-      if (fullConflict!=conflict)
+      if (fullConflict != conflict)
       {
         // store the explicit step
         processTrustNode(tncExp, THEORY_BUILTIN);
       }
       Node fullConflictNeg = fullConflict.notNode();
-      // ------------------------- explained  ---------- from theory 
+      // ------------------------- explained  ---------- from theory
       // fullConflict => conflict              ~conflict
       // ----------------------------------------------- MACRO_SR_PRED_TRANSFORM
       // ~fullConflict
@@ -1969,7 +1969,8 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
       std::vector<Node> args;
       args.push_back(fullConflictNeg);
       args.push_back(mkMethodId(MethodId::SB_PREDICATE));
-      d_lazyProof->addStep(fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+      d_lazyProof->addStep(
+          fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
     }
 
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
