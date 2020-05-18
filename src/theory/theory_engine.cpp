@@ -2013,7 +2013,7 @@ theory::TrustNode TheoryEngine::getExplanation(
   if (d_lazyProof != nullptr)
   {
     // FIXME
-    // lcp.reset(new LazyCDProof(d_pNodeManager.get()));
+    //lcp.reset(new LazyCDProof(d_pNodeManager.get()));
   }
   unsigned i = 0; // Index of the current literal we are processing
   unsigned j = 0; // Index of the last literal we are keeping
@@ -2061,6 +2061,7 @@ theory::TrustNode TheoryEngine::getExplanation(
     {
       Debug("theory::explain") << "\tLiteral came from THEORY_SAT_SOLVER. Kepping it." << endl;
       explanationVector[j++] = explanationVector[i++];
+      // it will be a free assumption in the proof
       continue;
     }
 
@@ -2080,7 +2081,7 @@ theory::TrustNode TheoryEngine::getExplanation(
       if (lcp != nullptr)
       {
         // toExplain.d_node[0] ... toExplain.d_node[n]
-        // --------------------------------------------MACRO_BSR_PRED_INTRO
+        // --------------------------------------------MACRO_SR_PRED_INTRO
         // toExplain.d_node
         std::vector<Node> children;
         for (size_t k = 0; k < nchild; ++k)
@@ -2089,6 +2090,7 @@ theory::TrustNode TheoryEngine::getExplanation(
         }
         std::vector<Node> args;
         args.push_back(toExplain.d_node);
+        args.push_back(mkMethodId(MethodId::SB_PREDICATE));
         lcp->addStep(
             toExplain.d_node, PfRule::MACRO_SR_PRED_INTRO, children, args);
       }
@@ -2150,19 +2152,24 @@ theory::TrustNode TheoryEngine::getExplanation(
     }
     if (lcp != nullptr)
     {
-      // ----------- Via theory
-      // exp => lit                exp
-      // ---------------------------------MACRO_BSR_PRED_TRANSFORM
-      // lit
-      Node proven = texplanation.getProven();
-      lcp->addLazyStep(proven, texplanation.getGenerator());
-      std::vector<Node> children;
-      children.push_back(proven);
-      children.push_back(texplanation.getNode());
-      std::vector<Node> args;
-      args.push_back(toExplain.d_node);
-      lcp->addStep(
-          toExplain.d_node, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+      // if not a trivial explanation
+      if (!CDProof::isSame(texplanation.getNode(), toExplain.d_node))
+      {
+        // ----------- Via theory
+        // exp => lit                exp
+        // ---------------------------------MACRO_SR_PRED_TRANSFORM
+        // lit
+        Node proven = texplanation.getProven();
+        lcp->addLazyStep(proven, texplanation.getGenerator());
+        std::vector<Node> children;
+        children.push_back(proven);
+        children.push_back(texplanation.getNode());
+        std::vector<Node> args;
+        args.push_back(toExplain.d_node);
+        args.push_back(mkMethodId(MethodId::SB_PREDICATE));
+        lcp->addStep(
+            toExplain.d_node, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+      }
     }
     Node explanation = texplanation.getNode();
 

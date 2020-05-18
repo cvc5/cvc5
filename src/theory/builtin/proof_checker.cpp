@@ -369,7 +369,7 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
       return false;
     }
   }
-  if (args.size() >= index + 1)
+  if (args.size() > index + 1)
   {
     if (!getMethodId(args[index + 1], idr))
     {

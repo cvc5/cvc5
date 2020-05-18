@@ -261,7 +261,7 @@ Node InferProofCons::convert(Inference infer,
                           ps.d_children.begin() + mainEqIndex);
       Node mainEqSRew =
           d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, emptyVec);
-      if (isSymm(mainEqSRew, mainEq))
+      if (CDProof::isSame(mainEqSRew, mainEq))
       {
         Trace("strings-ipc-core") << "...undo step" << std::endl;
         // not necessary
@@ -909,7 +909,7 @@ bool InferProofCons::convertPredTransform(Node src,
                                           MethodId idr)
 {
   // symmetric equalities
-  if (isSymm(src, tgt))
+  if (CDProof::isSame(src, tgt))
   {
     return true;
   }
@@ -962,7 +962,7 @@ Node InferProofCons::convertPredElim(Node src,
   std::vector<Node> args;
   addMethodIds(args, ids, idr);
   Node srcRew = d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, children, args);
-  if (isSymm(src, srcRew))
+  if (CDProof::isSame(src, srcRew))
   {
     d_psb.popStep();
     return src;
@@ -1008,13 +1008,6 @@ Node InferProofCons::convertTrans(Node eqa, Node eqb)
     }
   }
   return Node::null();
-}
-
-bool InferProofCons::isSymm(Node src, Node tgt)
-{
-  return src == tgt
-         || (src.getKind() == EQUAL && tgt.getKind() == EQUAL
-             && src[0] == tgt[1] && src[1] == tgt[0]);
 }
 
 ProofStepBuffer* InferProofCons::getBuffer() { return &d_psb; }

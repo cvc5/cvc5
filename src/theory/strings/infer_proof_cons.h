@@ -145,8 +145,6 @@ class InferProofCons : public ProofGenerator
   /**
    */
   Node convertTrans(Node eqa, Node eqb);
-  /** Is symm */
-  static bool isSymm(Node src, Node tgt);
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */
