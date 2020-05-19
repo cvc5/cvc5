@@ -153,6 +153,20 @@ class ProofEqEngine : public EagerProofGenerator
                         const std::vector<Node>& noExplain,
                         ProofGenerator* pg);
   //-------------------------- explain
+  /** 
+   * Explain literal conc. This calls the appropriate methods in the underlying
+   * equality engine of this class to construct the explanation of why conc
+   * currently holds.
+   * 
+   * It returns a trust node of kind TrustNodeKind::PROP_EXP whose node
+   * is the explanation of conc (a conjunction of literals that implies it).
+   * The proof that can be proven by this generator is then (=> exp conc), see
+   * TrustNode::getPropExpProven(conc,exp);
+   * 
+   * @param conc The conclusion to explain
+   * @return The trust node indicating the explanation of conc and the generator
+   * (this class) that can prove the implication.
+   */
   TrustNode explain(Node conc);
   /** identify */
   std::string identify() const override;

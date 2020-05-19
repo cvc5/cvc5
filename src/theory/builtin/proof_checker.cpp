@@ -55,13 +55,14 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SCOPE, this);
   pc->registerChecker(PfRule::SUBS, this);
   pc->registerChecker(PfRule::REWRITE, this);
-  pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
   // trust coarse-grained theory lemmas for now: register null checker
   pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
+  pc->registerChecker(PfRule::THEORY_REWRITE, this);
+  pc->registerChecker(PfRule::THEORY_PREPROCESS, this);
 }
 
 Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)

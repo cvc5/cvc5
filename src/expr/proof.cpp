@@ -200,11 +200,14 @@ bool CDProof::addStep(Node expected,
     // step for expected.
     ret = d_manager->updateNode(pthis.get(), id, pchildren, args);
   }
-  // the result of the proof node should be expected
-  Assert(pthis->getResult() == expected);
+  if (ret)
+  {
+    // the result of the proof node should be expected
+    Assert(pthis->getResult() == expected);
 
-  // notify new proof
-  notifyNewProof(expected);
+    // notify new proof
+    notifyNewProof(expected);
+  }
 
   Trace("cdproof") << "...return " << ret << std::endl;
   return ret;
