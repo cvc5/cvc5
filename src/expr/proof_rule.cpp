@@ -104,7 +104,8 @@ const char* toString(PfRule id)
     case PfRule::RE_INTER: return "RE_INTER";
     case PfRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
     case PfRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
-    case PfRule::RE_UNFOLD_NEG_CONCAT_FIXED: return "RE_UNFOLD_NEG_CONCAT_FIXED";
+    case PfRule::RE_UNFOLD_NEG_CONCAT_FIXED:
+      return "RE_UNFOLD_NEG_CONCAT_FIXED";
 
     case PfRule::SIU_I_NORM_S: return "SIU_I_NORM_S";
     case PfRule::SIU_I_CONST_MERGE: return "SIU_I_CONST_MERGE";

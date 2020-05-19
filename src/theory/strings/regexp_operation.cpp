@@ -867,7 +867,7 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   {
     // see if we can use an optimized version of the reduction for re.++.
     Node r = t[1];
-    if (r.getKind()==REGEXP_CONCAT)
+    if (r.getKind() == REGEXP_CONCAT)
     {
       // the index we are removing from the RE concatenation
       unsigned index = 0;
@@ -896,7 +896,7 @@ Node RegExpOpr::getRegExpConcatFixed(Node mem, unsigned& index)
 {
   Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
   Node r = mem[0][1];
-  Assert (r.getKind()==REGEXP_CONCAT);
+  Assert(r.getKind() == REGEXP_CONCAT);
   index = 0;
   Node reLen = RegExpEntail::getFixedLengthForRegexp(r[0]);
   if (!reLen.isNull())
@@ -963,7 +963,7 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, unsigned index)
   Node s = mem[0][0];
   Node r = mem[0][1];
   NodeManager* nm = NodeManager::currentNM();
-  Assert (r.getKind()==REGEXP_CONCAT);
+  Assert(r.getKind() == REGEXP_CONCAT);
   Node zero = nm->mkConst(Rational(0));
   // The following simplification states that
   //    ~( s in R1 ++ R2 ++... ++ Rn )
@@ -973,7 +973,7 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, unsigned index)
   //        ~(substr(s,0,x) in R1) OR ~(substr(s,x,len(s)-x) in R2 ++ ... ++ Rn)
   // Index is the child index of r that we are stripping off, which is either
   // from the beginning or the end.
-  Assert (index==0 || index==r.getNumChildren()-1);
+  Assert(index == 0 || index == r.getNumChildren() - 1);
   Node lens = nm->mkNode(STRING_LENGTH, s);
   Node b1;
   Node b1v;
@@ -983,8 +983,8 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, unsigned index)
     b1 = SkolemCache::mkIndexVar(mem);
     b1v = nm->mkNode(BOUND_VAR_LIST, b1);
     guard = nm->mkNode(AND,
-                        nm->mkNode(GEQ, b1, zero),
-                        nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, s), b1));
+                       nm->mkNode(GEQ, b1, zero),
+                       nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, s), b1));
   }
   else
   {
