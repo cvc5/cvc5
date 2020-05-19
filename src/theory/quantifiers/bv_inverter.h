@@ -85,8 +85,8 @@ class BvInverter
    * non-null node t, then sv = t is the solved form of lit.
    *
    * If the BvInverterQuery provided to this function call is null, then
-   * the solution returned by this call will not contain CHOICE expressions.
-   * If the solved form for lit requires introducing a CHOICE expression,
+   * the solution returned by this call will not contain WITNESS expressions.
+   * If the solved form for lit requires introducing a WITNESS expression,
    * then this call will return null.
    */
   Node solveBvLit(Node sv,
@@ -112,7 +112,7 @@ class BvInverter
    * is a BV tautology where x is getSolveVariable( tn ).
    *
    * It returns a term of the form:
-   *   (choice y. cond { x -> y })
+   *   (witness y. cond { x -> y })
    * where y is a bound variable and x is getSolveVariable( tn ).
    *
    * In some cases, we may return a term t if cond implies an equality on

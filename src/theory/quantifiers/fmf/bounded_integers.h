@@ -72,7 +72,7 @@ private:
    *
    * For each set S and integer n, d_setm_choice[S][n] is the canonical
    * representation for the (n+1)^th member of set S. It is of the form:
-   * choice x. (|S| <= n OR ( x in S AND
+   * witness x. (|S| <= n OR ( x in S AND
    *   distinct( x, d_setm_choice[S][0], ..., d_setm_choice[S][n-1] ) ) )
    */
   std::map<Node, std::vector<Node> > d_setm_choice;
