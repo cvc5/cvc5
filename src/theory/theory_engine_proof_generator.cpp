@@ -32,14 +32,14 @@ theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
   Assert(p.getKind() == IMPLIES && p.getNumChildren() == 2);
   // should not already be proven
   NodeLazyCDProofMap::iterator it = d_proofs.find(p);
-  if (it != d_proofs.end())
-  {
-    Assert(false);
-  }
-  else
+  if (it == d_proofs.end())
   {
     // we will prove this
     d_proofs.insert(p, lpf);
+  }
+  else
+  {
+    // Assert(false);
   }
   return trn;
 }
