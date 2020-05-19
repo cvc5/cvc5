@@ -751,8 +751,8 @@ Node CoreSolver::getConclusion(Node x,
       newSkolems.push_back(sk1);
       newSkolems.push_back(sk2);
     }
-    Node eq1 =
-        x.eqNode(isRev ? nm->mkNode(STRING_CONCAT,sk1, y) : nm->mkNode(STRING_CONCAT,y, sk1));
+    Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, y)
+                              : nm->mkNode(STRING_CONCAT, y, sk1));
     // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
 
     if (rule == PfRule::CONCAT_LPROP)
@@ -761,8 +761,8 @@ Node CoreSolver::getConclusion(Node x,
     }
     else
     {
-      Node eq2 =
-          y.eqNode(isRev ? nm->mkNode(STRING_CONCAT,sk2, x) : nm->mkNode(STRING_CONCAT,x, sk2));
+      Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, x)
+                                : nm->mkNode(STRING_CONCAT, x, sk2));
       // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
       conc = nm->mkNode(OR, eq1, eq2);
     }
@@ -789,8 +789,8 @@ Node CoreSolver::getConclusion(Node x,
         isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
         "c_spt");
     newSkolems.push_back(sk);
-    conc = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT,sk, firstChar)
-                          : nm->mkNode(STRING_CONCAT,firstChar, sk));
+    conc = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, firstChar)
+                          : nm->mkNode(STRING_CONCAT, firstChar, sk));
   }
   else if (rule == PfRule::CONCAT_CPROP)
   {
@@ -802,7 +802,7 @@ Node CoreSolver::getConclusion(Node x,
     Node d = y;
     Assert(d.isConst());
     unsigned cLen = Word::getLength(c);
-    
+
     // Since `z` is non-empty, we start with character 1
     size_t p;
     Node c1;
@@ -818,17 +818,16 @@ Node CoreSolver::getConclusion(Node x,
     }
     size_t p2 = Word::find(c1, d);
     p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-    Node preC = p == cLen ? c
-                              : (isRev ? Word::suffix(c, p)
-                                      : Word::prefix(c, p));
+    Node preC =
+        p == cLen ? c : (isRev ? Word::suffix(c, p) : Word::prefix(c, p));
     Node sk = skc->mkSkolemCached(
         z,
         preC,
         isRev ? SkolemCache::SK_ID_C_SPT_REV : SkolemCache::SK_ID_C_SPT,
         "c_spt");
     newSkolems.push_back(sk);
-    conc = z.eqNode(isRev ? nm->mkNode(STRING_CONCAT,sk, preC)
-                                    : nm->mkNode(STRING_CONCAT,preC, sk));
+    conc = z.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, preC)
+                          : nm->mkNode(STRING_CONCAT, preC, sk));
   }
 
   return conc;
@@ -1520,12 +1519,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         size_t straLen = Word::getLength(stra);
         Assert(!stra.isNull());
         Node strb = nextConstStr;
-        
+
         SkolemCache* skc = d_termReg.getSkolemCache();
-        Node xcv = nm->mkNode(STRING_CONCAT,isRev ? strb : nc, isRev ? nc : strb);
+        Node xcv =
+            nm->mkNode(STRING_CONCAT, isRev ? strb : nc, isRev ? nc : strb);
         std::vector<Node> newSkolems;
-        Node conc = getConclusion(xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
-        
+        Node conc = getConclusion(
+            xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
+
         // Since `nc` is non-empty, we start with character 1
         size_t p;
         size_t p2;

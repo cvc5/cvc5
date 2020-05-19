@@ -1791,7 +1791,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       Trace("te-proof-warn")
           << "WARNING: No proof for lemma: " << lemma << std::endl;
       // TODO:
-      //Assert(false);
+      // Assert(false);
     }
     else
     {
@@ -1821,7 +1821,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       pfChildren.push_back(node);
       std::vector<Node> pfArgs;
       pfArgs.push_back(ppNode);
-      lcp->addStep(ppNode, PfRule::THEORY_PREPROCESS,pfChildren, pfArgs);
+      lcp->addStep(ppNode, PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
     }
   }
 
@@ -1835,7 +1835,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   if (lcp != nullptr)
   {
-    if (additionalLemmas.size()>1 || additionalLemmas[0]!=ppNode)
+    if (additionalLemmas.size() > 1 || additionalLemmas[0] != ppNode)
     {
 #if 0
       // The main lemma can be justified since it is, modulo purification,
@@ -1877,7 +1877,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   for (size_t i = 0, lsize = additionalLemmas.size(); i < lsize; ++i)
   {
     Node rewritten = Rewriter::rewrite(additionalLemmas[i]);
-    if (lcp!=nullptr)
+    if (lcp != nullptr)
     {
       if (!CDProof::isSame(rewritten, additionalLemmas[i]))
       {
@@ -1885,7 +1885,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
         pfChildren.push_back(additionalLemmas[i]);
         std::vector<Node> pfArgs;
         pfArgs.push_back(rewritten);
-        lcp->addStep(rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+        lcp->addStep(
+            rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
       }
     }
     additionalLemmas.replace(i, rewritten);

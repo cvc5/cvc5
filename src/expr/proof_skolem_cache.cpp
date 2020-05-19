@@ -97,7 +97,7 @@ Node ProofSkolemCache::mkPurifySkolem(Node t,
   }
   // The case where t is a witness term is special: we set its Skolem attribute
   // directly.
-  if (t.getKind()==CHOICE)
+  if (t.getKind() == CHOICE)
   {
     return getOrMakeSkolem(t, prefix, comment, flags);
   }
@@ -213,11 +213,11 @@ void ProofSkolemCache::convertToSkolemFormVec(std::vector<Node>& vec)
 }
 
 Node ProofSkolemCache::getOrMakeSkolem(Node w,
-                                      const std::string& prefix,
-                                      const std::string& comment,
-                                      int flags)
+                                       const std::string& prefix,
+                                       const std::string& comment,
+                                       int flags)
 {
-  Assert (w.getKind()==CHOICE);
+  Assert(w.getKind() == CHOICE);
   SkolemFormAttribute sfa;
   // could already have a skolem if we used w already
   if (w.hasAttribute(sfa))

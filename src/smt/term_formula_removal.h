@@ -147,8 +147,8 @@ public:
 
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
-  
-  /** 
+
+  /**
    * Get the axiom for a term t eliminated by this class.
    *
    * This returns the axiom that the skolem sk for term t should satisfy. For

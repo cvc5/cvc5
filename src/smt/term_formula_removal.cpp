@@ -18,9 +18,9 @@
 #include <vector>
 
 #include "expr/node_algorithm.h"
+#include "expr/proof_skolem_cache.h"
 #include "options/proof_options.h"
 #include "proof/proof_manager.h"
-#include "expr/proof_skolem_cache.h"
 
 using namespace std;
 
@@ -151,7 +151,8 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       {
         // Make the skolem to witness the choice, which notice is handled
         // as a special case within ProofSkolemCache::mkPurifySkolem.
-        skolem = ProofSkolemCache::mkPurifySkolem(node,
+        skolem = ProofSkolemCache::mkPurifySkolem(
+            node,
             "choiceK",
             "a skolem introduced due to term-level Hilbert choice removal");
         d_skolem_cache.insert(node, skolem);
@@ -179,10 +180,11 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       // generic skolem. Notice that the name/comment are currently ignored
       // within ProofSkolemCache::mkPurifySkolem, since BOOLEAN_TERM_VARIABLE
       // variables cannot be given names.
-      skolem = ProofSkolemCache::mkPurifySkolem(node,
-            "btvK",
-            "a Boolean term variable introduced during term formula removal",
-            NodeManager::SKOLEM_BOOL_TERM_VAR);
+      skolem = ProofSkolemCache::mkPurifySkolem(
+          node,
+          "btvK",
+          "a Boolean term variable introduced during term formula removal",
+          NodeManager::SKOLEM_BOOL_TERM_VAR);
       d_skolem_cache.insert(node, skolem);
 
       // The new assertion
