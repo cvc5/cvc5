@@ -130,9 +130,14 @@ void BaseSolver::checkInit()
                 }
                 else
                 {
-                  // mark as congruent : only process if neither has been
-                  // reduced
-                  d_im.markCongruent(nc, n);
+                  // We cannot mark one of the terms as reduced here (via
+                  // ExtTheory::markCongruent) since extended function terms
+                  // rely on reductions to other extended function terms. We
+                  // may have a pair of extended function terms f(a)=f(b) where
+                  // the reduction of argument a depends on the term b.
+                  // Thus, marking f(b) as reduced by virtue of the fact we
+                  // have f(a) is incorrect, since then we are effectively
+                  // assuming that the reduction of f(a) depends on itself.
                 }
                 // this node is congruent to another one, we can ignore it
                 Trace("strings-process-debug")

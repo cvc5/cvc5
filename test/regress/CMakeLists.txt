@@ -552,6 +552,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-sel.smt2
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
+  regress0/issue4469-unc-no-reuse-var.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -1775,6 +1776,7 @@ set(regress_1_tests
   regress1/strings/nterm-re-inter-sigma.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
+  regress1/strings/pre_ctn_no_skolem_share.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
   regress1/strings/re-all-char-hard.smt2
@@ -1998,7 +2000,6 @@ set(regress_2_tests
   regress2/GEO123+1.minimized.smt2
   regress2/arith/abz5_1400.smtv1.smt2
   regress2/arith/lpsat-goal-9.smt2
-  regress2/arith/prp-13-24.smt2
   regress2/arith/pursuit-safety-11.smtv1.smt2
   regress2/arith/pursuit-safety-12.smtv1.smt2
   regress2/arith/sc-7.base.cvc.smtv1.smt2
@@ -2098,6 +2099,7 @@ set(regress_2_tests
 # Regression level 3 tests
 
 set(regress_3_tests
+  regress3/arith_prp-13-24.smt2
   regress3/bmc-ibm-1.smtv1.smt2
   regress3/bmc-ibm-2.smtv1.smt2
   regress3/bmc-ibm-5.smtv1.smt2

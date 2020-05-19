@@ -3,25 +3,38 @@
 cvc4=./cvc4
 bench="$1"
 
+# Output other than "sat"/"unsat" is either written to stderr or to "err.log"
+# in the directory specified by $2 if it has been set (e.g. when running on
+# StarExec).
+out_file=/dev/stderr
+if [ -n "$2" ]; then
+  out_file="$2/err.log"
+fi
+
 logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
 
 # use: trywith [params..]
 # to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in which
 # case this run script terminates immediately.  Otherwise, this function
-# returns normally and prints the output of the solver to stderr.
+# returns normally and prints the output of the solver to $out_file.
 function trywith {
   limit=$1; shift;
-  result="$(ulimit -S -t "$limit";$cvc4 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench)"
+  result="$({ ulimit -S -t "$limit"; $cvc4 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench; } 2>&1)"
   case "$result" in
     sat|unsat) echo "$result"; exit 0;;
-    *)         echo "$result" >&2;;
+    *)         echo "$result" &> "$out_file";;
   esac
 }
 
 # use: finishwith [params..]
-# to run cvc4 and let it output whatever it will to stdout.
+# to run cvc4. Only "sat" or "unsat" are output. Other outputs are written to
+# $out_file.
 function finishwith {
-  $cvc4 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench
+  result="$({ $cvc4 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench; } 2>&1)"
+  case "$result" in
+    sat|unsat) echo "$result"; exit 0;;
+    *)         echo "$result" &> "$out_file";;
+  esac
 }
 
 # the following is designed for a run time of 20 min.
@@ -85,7 +98,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUF
   trywith 240 --finite-model-find --decision=internal
   finishwith --full-saturate-quant
   ;;
-ABVFP|BVFP|FP)
+ABVFP|BVFP|FP|UFFPDTLIRA|UFFPDTNIRA)
   finishwith --full-saturate-quant --fp-exp
   ;;
 UFBV)
@@ -145,13 +158,13 @@ QF_S|QF_SLIA)
   trywith 300 --strings-exp --rewrite-divk --strings-fmf
   finishwith --strings-exp --rewrite-divk
   ;;
-QF_ABVFP)
+QF_ABVFP|QF_ABVFPLRA)
   finishwith --fp-exp
   ;;
-QF_BVFP)
+QF_BVFP|QF_BVFPLRA)
   finishwith --fp-exp
   ;;
-QF_FP)
+QF_FP|QF_FPLRA)
   finishwith --fp-exp
   ;;
 *)
