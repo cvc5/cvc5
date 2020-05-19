@@ -80,17 +80,17 @@ class ProofNodeManager
                                     Node expected = Node::null());
   /**
    * Make the proof node corresponding to the assumption of fact.
-   * 
+   *
    * @param fact The fact to assume.
    * @return The assume proof of fact.
    */
   std::shared_ptr<ProofNode> mkAssume(Node fact);
-  /** 
+  /**
    * Make scope having body pf and arguments (assumptions-to-close) assump.
    * If ensureClosed is true, then this method throws an assertion failure if
    * the returned proof is not closed. This is the case if a free assumption
-   * of pf is missing from the vector assumps. 
-   * 
+   * of pf is missing from the vector assumps.
+   *
    * For conveinence, the proof pf may be modified to ensure that the overall
    * result is closed. For instance, given input:
    *   pf = TRANS( ASSUME( x=y ), ASSUME( y=z ) )
@@ -99,11 +99,11 @@ class ProofNodeManager
    *   pf = TRANS( SYMM( ASSUME( y=x ) ), ASSUME( y=z ) )
    * so that y=x matches the free assumption. The returned proof is:
    *   SCOPE(TRANS( SYMM( ASSUME( y=x ) ), ASSUME( y=z ) ) :args { y=x, y=z })
-   * 
+   *
    * Additionally, if both ensureClosed and doMinimize are true, assumps is
    * updated to contain exactly the free asumptions of pf. The minimized
    * vector is passed as arguments to the SCOPE.
-   * 
+   *
    * @param pf The body of the proof,
    * @param assumps The assumptions-to-close of the scope,
    * @param ensureClosed Whether to ensure that the proof is closed,

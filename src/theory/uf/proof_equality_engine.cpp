@@ -388,7 +388,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     // words, the SCOPE could be closing (= x y) in a proof with free
     // assumption (= y x). We modify the proof leaves to account for this
     // below.
-    
+
     std::vector<Node> scopeAssumps;
     // we first ensure the assumptions are flattened
     for (const TNode& a : assumps)
