@@ -1522,9 +1522,9 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         Assert(!stra.isNull());
         Node strb = nextConstStr;
 
+        SkolemCache* skc = d_termReg.getSkolemCache();
         // TODO: use
         /*
-        SkolemCache* skc = d_termReg.getSkolemCache();
         Node xcv =
             nm->mkNode(STRING_CONCAT, isRev ? strb : nc, isRev ? nc : strb);
         std::vector<Node> newSkolems;
