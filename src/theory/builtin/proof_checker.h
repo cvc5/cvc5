@@ -78,7 +78,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * post-rewrite). This encapsulates the exact behavior of a THEORY_REWRITE
    * step in a proof. Rewriting is performed on the Skolem form of n.
    *
-   * @param n The node (in skolem form) to rewrite
+   * @param n The node (in witness form) to rewrite
    * @param preRewrite If true, performs a pre-rewrite or a post-rewrite
    * otherwise
    * @return The rewritten form of n
