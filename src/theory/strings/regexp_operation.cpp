@@ -865,7 +865,36 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   }
   else
   {
-    conc = reduceRegExpNeg(tlit, d_sc);
+    // see if we can use an optimized version of the reduction for re.++.
+    Node r = t[1];
+    if (r.getKind()==REGEXP_CONCAT)
+    {
+      // the index we are removing from the RE concatenation
+      unsigned indexRm = 0;
+      // As an optimization to the reduction, if we can determine that
+      // all strings in the language of R1 have the same length, say n,
+      // then the conclusion of the reduction is quantifier-free:
+      //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
+      Node reLen = RegExpEntail::getFixedLengthForRegexp(r[0]);
+      if (reLen.isNull())
+      {
+        // try from the opposite end
+        unsigned indexE = r.getNumChildren() - 1;
+        reLen = RegExpEntail::getFixedLengthForRegexp(r[indexE]);
+        if (!reLen.isNull())
+        {
+          indexRm = indexE;
+        }
+      }
+      if (!reLen.isNull())
+      {
+        conc = reduceRegExpNegConcat(tlit, reLen, indexRm);
+      }
+    }
+    if (conc.isNull())
+    {
+      conc = reduceRegExpNeg(tlit);
+    }
   }
   d_simpCache[tlit] = conc;
   Trace("strings-regexp-simpl")
@@ -873,7 +902,7 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
+Node RegExpOpr::reduceRegExpNeg(Node mem)
 {
   Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
   Node s = mem[0][0];
@@ -884,76 +913,10 @@ Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
   Node conc;
   if (k == REGEXP_CONCAT)
   {
-    // The following simplification states that
-    //    ~( s in R1 ++ R2 )
-    // is equivalent to
-    //    forall x.
-    //      0 <= x <= len(s) =>
-    //        ~( substr(s,0,x) in R1 ) OR ~( substr(s,x,len(s)-x) in R2)
-    Node lens = nm->mkNode(STRING_LENGTH, s);
-    // the index we are removing from the RE concatenation
-    unsigned indexRm = 0;
-    Node b1;
-    Node b1v;
-    // As an optimization to the above reduction, if we can determine that
-    // all strings in the language of R1 have the same length, say n,
-    // then the conclusion of the reduction is quantifier-free:
-    //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
-    // FIXME: this should be moved outside of this code
-    Node reLength = RegExpEntail::getFixedLengthForRegexp(r[0]);
-    if (reLength.isNull())
-    {
-      // try from the opposite end
-      unsigned indexE = r.getNumChildren() - 1;
-      reLength = RegExpEntail::getFixedLengthForRegexp(r[indexE]);
-      if (!reLength.isNull())
-      {
-        indexRm = indexE;
-      }
-    }
-    Node guard;
-    if (reLength.isNull())
-    {
-      b1 = SkolemCache::mkIndexVar(mem);
-      b1v = nm->mkNode(BOUND_VAR_LIST, b1);
-      guard = nm->mkNode(AND,
-                         nm->mkNode(GEQ, b1, zero),
-                         nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, s), b1));
-    }
-    else
-    {
-      b1 = reLength;
-    }
-    Node s1;
-    Node s2;
-    if (indexRm == 0)
-    {
-      s1 = nm->mkNode(STRING_SUBSTR, s, zero, b1);
-      s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
-    }
-    else
-    {
-      s1 = nm->mkNode(STRING_SUBSTR, s, nm->mkNode(MINUS, lens, b1), b1);
-      s2 = nm->mkNode(STRING_SUBSTR, s, zero, nm->mkNode(MINUS, lens, b1));
-    }
-    Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[indexRm]).negate();
-    std::vector<Node> nvec;
-    for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; i++)
-    {
-      if (i != indexRm)
-      {
-        nvec.push_back(r[i]);
-      }
-    }
-    Node r2 = nvec.size() == 1 ? nvec[0] : nm->mkNode(REGEXP_CONCAT, nvec);
-    r2 = Rewriter::rewrite(r2);
-    Node s2r2 = nm->mkNode(STRING_IN_REGEXP, s2, r2).negate();
-    conc = nm->mkNode(OR, s1r1, s2r2);
-    if (!b1v.isNull())
-    {
-      conc = nm->mkNode(OR, guard.negate(), conc);
-      conc = nm->mkNode(FORALL, b1v, conc);
-    }
+    // do not use length entailment, call regular expression concat
+    Node reLen;
+    unsigned i = 0;
+    conc = reduceRegExpNegConcat(mem, reLen, i);
   }
   else if (k == REGEXP_STAR)
   {
@@ -978,6 +941,72 @@ Node RegExpOpr::reduceRegExpNeg(Node mem, SkolemCache* sc)
   else
   {
     Assert(!utils::isRegExpKind(k));
+  }
+  return conc;
+}
+
+Node RegExpOpr::reduceRegExpNegConcat(Node mem, Node reLen, unsigned index)
+{
+  Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
+  Node s = mem[0][0];
+  Node r = mem[0][1];
+  NodeManager* nm = NodeManager::currentNM();
+  Assert (r.getKind()==REGEXP_CONCAT);
+  Node zero = nm->mkConst(Rational(0));
+  // The following simplification states that
+  //    ~( s in R1 ++ R2 ++... ++ Rn )
+  // is equivalent to
+  //    forall x.
+  //      0 <= x <= len(s) =>
+  //        ~(substr(s,0,x) in R1) OR ~(substr(s,x,len(s)-x) in R2 ++ ... ++ Rn)
+  // Index is the child index of r that we are stripping off, which is either
+  // from the beginning or the end.
+  Assert (index==0 || index==r.getNumChildren()-1);
+  Node lens = nm->mkNode(STRING_LENGTH, s);
+  Node b1;
+  Node b1v;
+  Node guard;
+  if (reLen.isNull())
+  {
+    b1 = SkolemCache::mkIndexVar(mem);
+    b1v = nm->mkNode(BOUND_VAR_LIST, b1);
+    guard = nm->mkNode(AND,
+                        nm->mkNode(GEQ, b1, zero),
+                        nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, s), b1));
+  }
+  else
+  {
+    b1 = reLen;
+  }
+  Node s1;
+  Node s2;
+  if (index == 0)
+  {
+    s1 = nm->mkNode(STRING_SUBSTR, s, zero, b1);
+    s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
+  }
+  else
+  {
+    s1 = nm->mkNode(STRING_SUBSTR, s, nm->mkNode(MINUS, lens, b1), b1);
+    s2 = nm->mkNode(STRING_SUBSTR, s, zero, nm->mkNode(MINUS, lens, b1));
+  }
+  Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[index]).negate();
+  std::vector<Node> nvec;
+  for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; i++)
+  {
+    if (i != index)
+    {
+      nvec.push_back(r[i]);
+    }
+  }
+  Node r2 = nvec.size() == 1 ? nvec[0] : nm->mkNode(REGEXP_CONCAT, nvec);
+  r2 = Rewriter::rewrite(r2);
+  Node s2r2 = nm->mkNode(STRING_IN_REGEXP, s2, r2).negate();
+  Node conc = nm->mkNode(OR, s1r1, s2r2);
+  if (!b1v.isNull())
+  {
+    conc = nm->mkNode(OR, guard.negate(), conc);
+    conc = nm->mkNode(FORALL, b1v, conc);
   }
   return conc;
 }

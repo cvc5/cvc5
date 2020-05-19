@@ -134,7 +134,13 @@ class RegExpOpr {
   /**
    * Return the unfolded form of mem of the form (not (str.in_re s r)).
    */
-  static Node reduceRegExpNeg(Node mem, SkolemCache* sc);
+  static Node reduceRegExpNeg(Node mem);
+  /**
+   * Return the unfolded form of mem of the form
+   *   (not (str.in_re s (re.++ r_0 ... r_{n-1})))
+   * Called when RegExpEntail::getFixedLengthForRegexp(r_i) = reLen.
+   */
+  static Node reduceRegExpNegConcat(Node mem, Node reLen, unsigned i);
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string
    * is not in r, or 0 if it is unknown whether the empty string is in r.

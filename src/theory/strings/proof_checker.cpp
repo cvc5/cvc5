@@ -433,13 +433,14 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     atom = ProofSkolemCache::getSkolemForm(atom);
     Node conc;
     SkolemCache sc;
+    // TODO: work in optimization for _NEG as addition child+arg.
     if (id == PfRule::RE_UNFOLD_POS)
     {
       conc = RegExpOpr::reduceRegExpPos(children[0], &sc);
     }
     else
     {
-      conc = RegExpOpr::reduceRegExpNeg(children[0], &sc);
+      conc = RegExpOpr::reduceRegExpNeg(children[0]);
     }
     return ProofSkolemCache::getWitnessForm(conc);
   }
