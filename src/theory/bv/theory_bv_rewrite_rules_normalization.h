@@ -385,7 +385,7 @@ inline Node RewriteRule<PlusCombineLikeTerms>::apply(TNode node)
   std::map<Node, BitVector> factorToCoefficient;
 
   // combine like-terms
-  for (size_t i = 0; i < node.getNumChildren(); ++i)
+  for (size_t i = 0, n = node.getNumChildren(); i < n; ++i)
   {
     TNode current = node[i];
     updateCoefMap(current, size, factorToCoefficient, constSum);
