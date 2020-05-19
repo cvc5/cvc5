@@ -1105,7 +1105,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
       } else if (eqp->d_children.size() == 1) {
         Node cnode = eqp->d_children[0]->d_node;
         Debug("pf::ee") << "Simplifying " << cnode << " from " << eqp->d_node
-                          << std::endl;
+                        << std::endl;
         bool simpTrans = true;
         if (cnode.getKind() == kind::EQUAL)
         {

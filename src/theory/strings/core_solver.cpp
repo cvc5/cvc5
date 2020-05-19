@@ -1531,7 +1531,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         Node conc = getConclusion(
             xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
         */
-        
+
         // Since `nc` is non-empty, we start with character 1
         size_t p;
         size_t p2;
