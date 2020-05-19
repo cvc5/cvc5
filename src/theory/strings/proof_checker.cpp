@@ -441,13 +441,13 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       SkolemCache sc;
       conc = RegExpOpr::reduceRegExpPos(children[0], &sc);
     }
-    else if (id== PfRule::RE_UNFOLD_NEG)
+    else if (id == PfRule::RE_UNFOLD_NEG)
     {
       conc = RegExpOpr::reduceRegExpNeg(children[0]);
     }
     else if (id == PfRule::RE_UNFOLD_NEG_CONCAT_FIXED)
     {
-      if (atom[1].getKind()!=REGEXP_CONCAT)
+      if (atom[1].getKind() != REGEXP_CONCAT)
       {
         Trace("strings-pfcheck") << "...fail, no concat regexp" << std::endl;
         return Node::null();
@@ -459,8 +459,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         Trace("strings-pfcheck") << "...fail, non-fixed lengths" << std::endl;
         return Node::null();
       }
-      conc = RegExpOpr::reduceRegExpNegConcatFixed(
-          children[0], reLen, index);
+      conc = RegExpOpr::reduceRegExpNegConcatFixed(children[0], reLen, index);
     }
     return ProofSkolemCache::getWitnessForm(conc);
   }

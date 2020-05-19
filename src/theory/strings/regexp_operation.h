@@ -148,7 +148,7 @@ class RegExpOpr {
    * Return the unfolded form of mem of the form
    *   (not (str.in_re s (re.++ r_0 ... r_{n-1})))
    * Called when RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
-   * where index is either 0 or n-1. 
+   * where index is either 0 or n-1.
    *
    * This uses reLen as an optimization to improve the reduction. If reLen
    * is null, then this optimization is not applied.

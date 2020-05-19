@@ -18,8 +18,8 @@
 #include "options/strings_options.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace CVC4::kind;
 
@@ -530,7 +530,7 @@ Node InferProofCons::convert(Inference infer,
         Assert(ps.d_children.size() == 1);
         Node mem = ps.d_children[0];
         Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
-        if (mem[0][1].getKind()==REGEXP_CONCAT)
+        if (mem[0][1].getKind() == REGEXP_CONCAT)
         {
           unsigned index;
           Node reLen = RegExpOpr::getRegExpConcatFixed(mem[0][1], index);

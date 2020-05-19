@@ -92,7 +92,8 @@ class RewriterWhite : public CxxTest::TestSuite
     Node x = d_nm->mkVar("x", bv64Type);
     Node y = d_nm->mkVar("y", d_nm->booleanType());
 
-    Node t = d_nm->mkNode(kind::AND, d_nm->mkNode(kind::BITVECTOR_UGE, x, zero), y);
+    Node t =
+        d_nm->mkNode(kind::AND, d_nm->mkNode(kind::BITVECTOR_UGE, x, zero), y);
     rewriteWithProof(t);
   }
 
