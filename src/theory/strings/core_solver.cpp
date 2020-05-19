@@ -902,6 +902,7 @@ void CoreSolver::processNEqc(Node eqc,
   // compute normal forms that are effectively unique
   std::unordered_map<Node, size_t, NodeHashFunction> nfCache;
   std::vector<size_t> nfIndices;
+  bool hasConstIndex = false;
   for (size_t i = 0, nnforms = normal_forms.size(); i < nnforms; i++)
   {
     NormalForm& nfi = normal_forms[i];
@@ -929,8 +930,17 @@ void CoreSolver::processNEqc(Node eqc,
           return;
         }
       }
+
       nfCache[ni] = i;
-      nfIndices.push_back(i);
+      if (ni.isConst())
+      {
+        hasConstIndex = true;
+        nfIndices.insert(nfIndices.begin(), i);
+      }
+      else
+      {
+        nfIndices.push_back(i);
+      }
     }
   }
   size_t nnfs = nfIndices.size();
@@ -975,7 +985,7 @@ void CoreSolver::processNEqc(Node eqc,
         break;
       }
     }
-    if (d_im.hasProcessed())
+    if (hasConstIndex || d_im.hasProcessed())
     {
       break;
     }
