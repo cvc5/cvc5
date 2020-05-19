@@ -77,14 +77,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
   std::unordered_set<Node, NodeHashFunction> ac;
   for (const TNode& a : assumps)
   {
-    if (a.getKind() == AND)
-    {
-      ac.insert(a.begin(), a.end());
-    }
-    else
-    {
-      ac.insert(a);
-    }
+    ac.insert(a);
   }
   // The free assumptions of the proof
   std::map<Node, std::vector<ProofNode*>> famap;
@@ -153,7 +146,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       }
     }
   }
-  if (doMinimize)
+  if (doMinimize && acu.size() < ac.size())
   {
     assumps.clear();
     assumps.insert(assumps.end(), acu.begin(), acu.end());
@@ -220,10 +213,6 @@ bool ProofNodeManager::updateNode(
     // if it was invalid, then we do not update
     return false;
   }
-  // paranoia about ref counting
-  // const std::vector<std::shared_ptr<ProofNode>>& prevc = pn->getChildren();
-  // std::vector<std::shared_ptr<ProofNode>> copy;
-  // copy.insert(copy.end(),prevc.begin(),prevc.end());
 
   // we update its value
   pn->setValue(id, children, args);
