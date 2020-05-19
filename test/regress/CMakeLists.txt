@@ -2012,6 +2012,7 @@ set(regress_2_tests
   regress2/bug674.smt2
   regress2/bug765.smt2
   regress2/bug812.smt2
+  regress2/bv/opStructure_MBA_6.scrambled.min.smt2
   regress2/bv_to_int_ashr.smt2
   regress2/bv_to_int_mask_array_1.smt2
   regress2/bv_to_int_mask_array_2.smt2
