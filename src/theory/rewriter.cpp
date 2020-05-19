@@ -54,6 +54,7 @@ struct RewriteStackElement {
    */
   RewriteStackElement(TNode node, TheoryId theoryId)
       : d_node(node),
+        d_unrewritten(node),
         d_original(node),
         d_theoryId(theoryId),
         d_originalTheoryId(theoryId),
@@ -70,7 +71,10 @@ struct RewriteStackElement {
 
   /** The node we're currently rewriting */
   Node d_node;
-  /** Original node */
+  /** The unrewritten node */
+  Node d_unrewritten;
+  /** Original node (either the unrewritten node or the node after prerewriting)
+   */
   Node d_original;
   /** Id of the theory that's currently rewriting this node */
   unsigned d_theoryId : 8;
@@ -95,6 +99,11 @@ Node Rewriter::rewrite(TNode node) {
     return node;
   }
   return getInstance()->rewriteTo(theoryOf(node), node);
+}
+
+Node Rewriter::rewriteWithProof(TNode node, CDProof* proof)
+{
+  return getInstance()->rewriteTo(theoryOf(node), node, proof);
 }
 
 Node Rewriter::rewriteEqualityExt(TNode node)
@@ -144,8 +153,8 @@ Rewriter* Rewriter::getInstance()
   return smt::currentSmtEngine()->getRewriter();
 }
 
-Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
-
+Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, CDProof* proof)
+{
 #ifdef CVC4_ASSERTIONS
   bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
 
@@ -159,13 +168,21 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
   // Check if it's been cached already
   Node cached = getPostRewriteCache(theoryId, node);
-  if (!cached.isNull()) {
+  if (!cached.isNull()
+      && (proof == nullptr || proof->hasStep(node.eqNode(cached))))
+  {
     return cached;
   }
 
   // Put the node on the stack in order to start the "recursive" rewrite
   vector<RewriteStackElement> rewriteStack;
   rewriteStack.push_back(RewriteStackElement(node, theoryId));
+
+  std::unique_ptr<std::vector<Node>> steps;
+  if (proof != nullptr)
+  {
+    steps.reset(new std::vector<Node>());
+  }
 
   ResourceManager* rm = NULL;
   bool hasSmtEngine = smt::smtEngineInScope();
@@ -194,12 +211,33 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
       // Check if the pre-rewrite has already been done (it's in the cache)
       cached = getPreRewriteCache(rewriteStackTop.getTheoryId(),
                                   rewriteStackTop.d_node);
-      if (cached.isNull()) {
+      if (cached.isNull()
+          || (proof != nullptr
+              && !proof->hasStep(rewriteStackTop.d_node.eqNode(cached))))
+      {
+        if (proof != nullptr)
+        {
+          steps->clear();
+        }
+
         // Rewrite until fix-point is reached
         for(;;) {
           // Perform the pre-rewrite
           RewriteResponse response =
               preRewrite(rewriteStackTop.getTheoryId(), rewriteStackTop.d_node);
+
+          if (proof != nullptr && rewriteStackTop.d_node != response.d_node)
+          {
+            NodeManager* nm = NodeManager::currentNM();
+            Node result = nm->mkNode(
+                kind::EQUAL, rewriteStackTop.d_node, response.d_node);
+            proof->addStep(result,
+                           PfRule::THEORY_REWRITE,
+                           {},
+                           {rewriteStackTop.d_node, nm->mkConst(true)});
+            steps->push_back(result);
+          }
+
           // Put the rewritten node to the top of the stack
           rewriteStackTop.d_node = response.d_node;
           TheoryId newTheory = theoryOf(rewriteStackTop.d_node);
@@ -211,6 +249,29 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           }
           rewriteStackTop.d_theoryId = newTheory;
         }
+
+        if (proof != nullptr)
+        {
+          NodeManager* nm = NodeManager::currentNM();
+          if (!steps->empty())
+          {
+            if (steps->size() > 1)
+            {
+              Node result = nm->mkNode(kind::EQUAL,
+                                       rewriteStackTop.d_original,
+                                       rewriteStackTop.d_node);
+              proof->addStep(result, PfRule::TRANS, *steps, {});
+            }
+          }
+          else
+          {
+            Node t = rewriteStackTop.d_original;
+            Node result = nm->mkNode(kind::EQUAL, t, t);
+            proof->addStep(result, PfRule::REFL, {}, {t});
+            steps->push_back(result);
+          }
+        }
+
         // Cache the rewrite
         setPreRewriteCache(rewriteStackTop.getOriginalTheoryId(),
                            rewriteStackTop.d_original,
@@ -229,8 +290,10 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
     cached = getPostRewriteCache(rewriteStackTop.getTheoryId(),
                                  rewriteStackTop.d_node);
     // If not, go through the children
-    if(cached.isNull()) {
-
+    if (cached.isNull()
+        || (proof != nullptr
+            && !proof->hasStep(rewriteStackTop.d_node.eqNode(cached))))
+    {
       // The child we need to rewrite
       unsigned child = rewriteStackTop.d_nextChild++;
 
@@ -258,12 +321,44 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         continue;
       }
 
+      if (proof != nullptr)
+      {
+        steps->clear();
+      }
+
       // Incorporate the children if necessary
       if (rewriteStackTop.d_node.getNumChildren() > 0)
       {
         Node rewritten = rewriteStackTop.d_builder;
         rewriteStackTop.d_node = rewritten;
         rewriteStackTop.d_theoryId = theoryOf(rewriteStackTop.d_node);
+
+        if (proof != nullptr)
+        {
+          NodeManager* nm = NodeManager::currentNM();
+          Node original = rewriteStackTop.d_original;
+          std::vector<Node> children;
+
+          std::vector<Node> args;
+          Kind k = original.getKind();
+          if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+          {
+            args.push_back(original.getOperator());
+          }
+          else
+          {
+            args.push_back(nm->operatorOf(k));
+          }
+
+          for (size_t i = 0, size = rewritten.getNumChildren(); i < size; i++)
+          {
+            children.push_back(
+                nm->mkNode(kind::EQUAL, original[i], rewritten[i]));
+          }
+          Node result = nm->mkNode(kind::EQUAL, original, rewritten);
+          proof->addStep(result, PfRule::CONG, children, args);
+          steps->push_back(result);
+        }
       }
 
       // Done with all pre-rewriting, so let's do the post rewrite
@@ -271,6 +366,19 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         // Do the post-rewrite
         RewriteResponse response =
             postRewrite(rewriteStackTop.getTheoryId(), rewriteStackTop.d_node);
+
+        if (proof != nullptr && rewriteStackTop.d_node != response.d_node)
+        {
+          NodeManager* nm = NodeManager::currentNM();
+          Node result =
+              nm->mkNode(kind::EQUAL, rewriteStackTop.d_node, response.d_node);
+          proof->addStep(result,
+                         PfRule::THEORY_REWRITE,
+                         {},
+                         {rewriteStackTop.d_node, nm->mkConst(false)});
+          steps->push_back(result);
+        }
+
         // We continue with the response we got
         TheoryId newTheoryId = theoryOf(response.d_node);
         if (newTheoryId != rewriteStackTop.getTheoryId()
@@ -284,7 +392,15 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
                  == d_rewriteStack->end());
           d_rewriteStack->insert(response.d_node);
 #endif
-          Node rewritten = rewriteTo(newTheoryId, response.d_node);
+          Node rewritten = rewriteTo(newTheoryId, response.d_node, proof);
+
+          if (proof != nullptr && response.d_node != rewritten)
+          {
+            NodeManager* nm = NodeManager::currentNM();
+            Node result = nm->mkNode(kind::EQUAL, response.d_node, rewritten);
+            steps->push_back(result);
+          }
+
           rewriteStackTop.d_node = rewritten;
 #ifdef CVC4_ASSERTIONS
           d_rewriteStack->erase(response.d_node);
@@ -309,11 +425,37 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
                != rewriteStackTop.d_node);
         rewriteStackTop.d_node = response.d_node;
       }
+
+      if (proof != nullptr)
+      {
+        NodeManager* nm = NodeManager::currentNM();
+
+        if (rewriteStackTop.d_unrewritten != rewriteStackTop.d_original)
+        {
+          // If the node has been rewritten in the prerewrite and the
+          // postrewrite traversal, we need to link up those proofs
+          steps->insert(steps->begin(),
+                        nm->mkNode(kind::EQUAL,
+                                   rewriteStackTop.d_unrewritten,
+                                   rewriteStackTop.d_original));
+        }
+
+        if (steps->size() > 1)
+        {
+          Node result = nm->mkNode(kind::EQUAL,
+                                   rewriteStackTop.d_unrewritten,
+                                   rewriteStackTop.d_node);
+          proof->addStep(result, PfRule::TRANS, *steps, {});
+        }
+      }
+
       // We're done with the post rewrite, so we add to the cache
       setPostRewriteCache(rewriteStackTop.getOriginalTheoryId(),
                           rewriteStackTop.d_original,
                           rewriteStackTop.d_node);
-    } else {
+    }
+    else
+    {
       // We were already in cache, so just remember it
       rewriteStackTop.d_node = cached;
       rewriteStackTop.d_theoryId = theoryOf(cached);
@@ -332,7 +474,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
   }
 
   Unreachable();
-}/* Rewriter::rewriteTo() */
+} /* Rewriter::rewriteTo() */
 
 RewriteResponse Rewriter::preRewrite(theory::TheoryId theoryId, TNode n)
 {

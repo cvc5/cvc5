@@ -19,11 +19,16 @@
 #pragma once
 
 #include "expr/node.h"
+#include "expr/proof.h"
 #include "theory/theory_rewriter.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 namespace theory {
+
+namespace builtin {
+class BuiltinProofRuleChecker;
+}
 
 class RewriterInitializer;
 
@@ -48,6 +53,8 @@ RewriteResponse identityRewrite(RewriteEnvironment* re, TNode n);
  * The main rewriter class.
  */
 class Rewriter {
+  friend builtin::BuiltinProofRuleChecker;
+
  public:
   Rewriter();
 
@@ -56,6 +63,8 @@ class Rewriter {
    * use on the node.
    */
   static Node rewrite(TNode node);
+
+  static Node rewriteWithProof(TNode node, CDProof* proof);
 
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to
@@ -146,7 +155,9 @@ class Rewriter {
   /**
    * Rewrites the node using the given theory rewriter.
    */
-  Node rewriteTo(theory::TheoryId theoryId, Node node);
+  Node rewriteTo(theory::TheoryId theoryId,
+                 Node node,
+                 CDProof* proof = nullptr);
 
   /** Calls the pre-rewriter for the given theory */
   RewriteResponse preRewrite(theory::TheoryId theoryId, TNode n);

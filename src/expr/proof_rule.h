@@ -92,6 +92,15 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: (= t Rewriter::rewrite(t))
   REWRITE,
+  // ======== Theory Rewrite
+  // Children: none
+  // Arguments: (t, preRewrite?)
+  // ----------------------------------------
+  // Conclusion: (= t t')
+  // where
+  //  t' is the result of applying either a pre-rewrite or a post-rewrite step
+  //  to t (depending on the second argument).
+  THEORY_REWRITE,
   // ======== Substitution + rewriting
   // ======== Substitution + Rewriting equality introduction
   //
