@@ -1790,7 +1790,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       Trace("te-proof") << "No proof for lemma: " << lemma << std::endl;
       Trace("te-proof-warn")
           << "WARNING: No proof for lemma: " << lemma << std::endl;
-      Assert(false);
+      // TODO:
+      //Assert(false);
     }
     else
     {

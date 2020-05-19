@@ -49,22 +49,7 @@ Node ProofSkolemCache::mkSkolem(Node v,
   Node predw = getWitnessForm(pred);
   // make the witness term, which should not contain any skolem
   Node w = nm->mkNode(CHOICE, bvl, predw);  // will change to WITNESS
-  SkolemFormAttribute sfa;
-  // could already have a skolem if we used v and pred already
-  if (w.hasAttribute(sfa))
-  {
-    return w.getAttribute(sfa);
-  }
-  // make the new skolem
-  Node k = nm->mkSkolem(prefix, v.getType(), comment, flags);
-  // set witness form attribute for k
-  WitnessFormAttribute wfa;
-  k.setAttribute(wfa, w);
-  // set skolem form attribute for w
-  w.setAttribute(sfa, k);
-  Trace("pf-skolem") << "ProofSkolemCache::mkSkolem: " << k << " : " << w
-                     << std::endl;
-  return k;
+  return getOrMakeSkolem(w, prefix, comment, flags);
 }
 
 Node ProofSkolemCache::mkSkolemExists(Node v,
@@ -114,7 +99,7 @@ Node ProofSkolemCache::mkPurifySkolem(Node t,
   // directly.
   if (t.getKind()==CHOICE)
   {
-    // FIXME
+    return getOrMakeSkolem(t, prefix, comment, flags);
   }
   Node v = NodeManager::currentNM()->mkBoundVar(t.getType());
   Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);
@@ -225,6 +210,40 @@ void ProofSkolemCache::convertToSkolemFormVec(std::vector<Node>& vec)
   {
     vec[i] = getSkolemForm(vec[i]);
   }
+}
+
+Node ProofSkolemCache::getOrMakeSkolem(Node w,
+                                      const std::string& prefix,
+                                      const std::string& comment,
+                                      int flags)
+{
+  Assert (w.getKind()==CHOICE);
+  SkolemFormAttribute sfa;
+  // could already have a skolem if we used w already
+  if (w.hasAttribute(sfa))
+  {
+    return w.getAttribute(sfa);
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  // make the new skolem
+  Node k;
+  // NOTE: this could be pushed into NodeManager::mkSkolem?
+  if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
+  {
+    k = nm->mkBooleanTermVariable();
+  }
+  else
+  {
+    k = nm->mkSkolem(prefix, w.getType(), comment, flags);
+  }
+  // set witness form attribute for k
+  WitnessFormAttribute wfa;
+  k.setAttribute(wfa, w);
+  // set skolem form attribute for w
+  w.setAttribute(sfa, k);
+  Trace("pf-skolem") << "ProofSkolemCache::mkSkolem: " << k << " : " << w
+                     << std::endl;
+  return k;
 }
 
 }  // namespace CVC4

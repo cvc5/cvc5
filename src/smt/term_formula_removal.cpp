@@ -149,10 +149,10 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
-        // Make the skolem to witness the choice
-        skolem = nodeManager->mkSkolem(
+        // Make the skolem to witness the choice, which notice is handled
+        // as a special case within ProofSkolemCache::mkPurifySkolem.
+        skolem = ProofSkolemCache::mkPurifySkolem(node,
             "choiceK",
-            nodeType,
             "a skolem introduced due to term-level Hilbert choice removal");
         d_skolem_cache.insert(node, skolem);
 
@@ -176,8 +176,13 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       // Skolems introduced for Boolean formulas appearing in terms have a
       // special kind (BOOLEAN_TERM_VARIABLE) that ensures they are handled
       // properly in theory combination. We must use this kind here instead of a
-      // generic skolem.
-      skolem = nodeManager->mkBooleanTermVariable();
+      // generic skolem. Notice that the name/comment are currently ignored
+      // within ProofSkolemCache::mkPurifySkolem, since BOOLEAN_TERM_VARIABLE
+      // variables cannot be given names.
+      skolem = ProofSkolemCache::mkPurifySkolem(node,
+            "btvK",
+            "a Boolean term variable introduced during term formula removal",
+            NodeManager::SKOLEM_BOOL_TERM_VAR);
       d_skolem_cache.insert(node, skolem);
 
       // The new assertion

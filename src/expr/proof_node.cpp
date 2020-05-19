@@ -89,11 +89,6 @@ void ProofNode::getFreeAssumptionsMap(
           // will need to unbind the variables below
           visited[cur] = false;
         }
-        for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
-        {
-          Assert(std::find(visit.begin(), visit.end(), cp.get()) == visit.end())
-              << "ProofNode::getFreeAssumptions: cyclic proof!";
-        }
         // The following loop cannot be merged with the loop above because the
         // same subproof
         for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
