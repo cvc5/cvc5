@@ -300,7 +300,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
 
   // Disable options incompatible with incremental solving, unsat cores, and
-  // proofs or output an error if enabled explicitly
+  // proofs or output an error if enabled explicitly. It is also currently
+  // incompatible with arithmetic, force the option off.
   if (options::incrementalSolving() || options::unsatCores()
       || options::proof())
   {
@@ -326,8 +327,9 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       bool uncSimp = !logic.isQuantified() && !options::produceModels()
                      && !options::produceAssignments()
                      && !options::checkModels()
-                     && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                         && logic.isTheoryEnabled(THEORY_BV));
+                     && logic.isTheoryEnabled(THEORY_ARRAYS)
+                     && logic.isTheoryEnabled(THEORY_BV)
+                     && !logic.isTheoryEnabled(THEORY_ARITH);
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
                    << std::endl;
       options::unconstrainedSimp.set(uncSimp);
