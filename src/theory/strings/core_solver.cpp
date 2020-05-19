@@ -732,7 +732,6 @@ Node CoreSolver::getConclusion(Node x,
                                     isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
                                           : SkolemCache::SK_ID_V_UNIFIED_SPT,
                                     "v_spt");
-      Trace("strings-csolver") << "... unified skolem: " << sk << std::endl;
       newSkolems.push_back(sk);
       sk1 = sk;
       sk2 = sk;
@@ -744,18 +743,16 @@ Node CoreSolver::getConclusion(Node x,
           y,
           isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
           "v_spt1");
-      Trace("strings-csolver") << "... skolem 1: " << sk1 << std::endl;
       sk2 = skc->mkSkolemCached(
           y,
           x,
           isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
           "v_spt2");
-      Trace("strings-csolver") << "... skolem 2: " << sk2 << std::endl;
       newSkolems.push_back(sk1);
       newSkolems.push_back(sk2);
     }
     Node eq1 =
-        x.eqNode(isRev ? utils::mkNConcat(sk1, y) : utils::mkNConcat(y, sk1));
+        x.eqNode(isRev ? nm->mkNode(STRING_CONCAT,sk1, y) : nm->mkNode(STRING_CONCAT,y, sk1));
     // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
 
     if (rule == PfRule::CONCAT_LPROP)
@@ -765,7 +762,7 @@ Node CoreSolver::getConclusion(Node x,
     else
     {
       Node eq2 =
-          y.eqNode(isRev ? utils::mkNConcat(sk2, x) : utils::mkNConcat(x, sk2));
+          y.eqNode(isRev ? nm->mkNode(STRING_CONCAT,sk2, x) : nm->mkNode(STRING_CONCAT,x, sk2));
       // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
       conc = nm->mkNode(OR, eq1, eq2);
     }
@@ -792,18 +789,46 @@ Node CoreSolver::getConclusion(Node x,
         isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
         "c_spt");
     newSkolems.push_back(sk);
-    conc = x.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
-                          : utils::mkNConcat(firstChar, sk));
+    conc = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT,sk, firstChar)
+                          : nm->mkNode(STRING_CONCAT,firstChar, sk));
   }
   else if (rule == PfRule::CONCAT_CPROP)
   {
-    // expect (str.++ z c1) and c2
+    // expect (str.++ z c) and d
     Assert(x.getKind() == STRING_CONCAT && x.getNumChildren() == 2);
     Node z = x[isRev ? 1 : 0];
-    Node c1 = x[isRev ? 0 : 1];
-    Assert(c1.isConst());
-    Node c2 = y;
-    Assert(c2.isConst());
+    Node c = x[isRev ? 0 : 1];
+    Assert(c.isConst());
+    Node d = y;
+    Assert(d.isConst());
+    unsigned cLen = Word::getLength(c);
+    
+    // Since `z` is non-empty, we start with character 1
+    size_t p;
+    Node c1;
+    if (isRev)
+    {
+      c1 = Word::prefix(c, cLen - 1);
+      p = cLen - Word::roverlap(c1, d);
+    }
+    else
+    {
+      c1 = Word::substr(c, 1);
+      p = cLen - Word::overlap(c1, d);
+    }
+    size_t p2 = Word::find(c1, d);
+    p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+    Node preC = p == cLen ? c
+                              : (isRev ? Word::suffix(c, p)
+                                      : Word::prefix(c, p));
+    Node sk = skc->mkSkolemCached(
+        z,
+        preC,
+        isRev ? SkolemCache::SK_ID_C_SPT_REV : SkolemCache::SK_ID_C_SPT,
+        "c_spt");
+    newSkolems.push_back(sk);
+    conc = z.eqNode(isRev ? nm->mkNode(STRING_CONCAT,sk, preC)
+                                    : nm->mkNode(STRING_CONCAT,preC, sk));
   }
 
   return conc;
@@ -1495,6 +1520,12 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         size_t straLen = Word::getLength(stra);
         Assert(!stra.isNull());
         Node strb = nextConstStr;
+        
+        SkolemCache* skc = d_termReg.getSkolemCache();
+        Node xcv = nm->mkNode(STRING_CONCAT,isRev ? strb : nc, isRev ? nc : strb);
+        std::vector<Node> newSkolems;
+        Node conc = getConclusion(xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
+        
         // Since `nc` is non-empty, we start with character 1
         size_t p;
         size_t p2;
@@ -1531,7 +1562,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           Node prea = p == straLen ? stra
                                    : (isRev ? Word::suffix(stra, p)
                                             : Word::prefix(stra, p));
-          SkolemCache* skc = d_termReg.getSkolemCache();
           Node sk = skc->mkSkolemCached(
               nc,
               prea,

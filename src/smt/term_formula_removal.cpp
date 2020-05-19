@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "options/proof_options.h"
 #include "proof/proof_manager.h"
+#include "expr/proof_skolem_cache.h"
 
 using namespace std;
 
@@ -96,9 +97,9 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       if (skolem.isNull())
       {
         // Make the skolem to represent the ITE
-        skolem = nodeManager->mkSkolem(
+        skolem = ProofSkolemCache::mkPurifySkolem(
+            node,
             "termITE",
-            nodeType,
             "a variable introduced due to term-level ITE removal");
         d_skolem_cache.insert(node, skolem);
 
@@ -117,9 +118,9 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       if (skolem.isNull())
       {
         // Make the skolem to represent the lambda
-        skolem = nodeManager->mkSkolem(
+        skolem = ProofSkolemCache::mkPurifySkolem(
+            node,
             "lambdaF",
-            nodeType,
             "a function introduced due to term-level lambda removal");
         d_skolem_cache.insert(node, skolem);
 
@@ -303,6 +304,12 @@ bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {
          node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL && 
          node.getKind()!=kind::BITVECTOR_EAGER_ATOM;
          // dont' worry about FORALL or EXISTS (handled separately)
+}
+
+Node RemoveTermFormulas::getAxiomFor(Node t, Node sk)
+{
+  // TODO
+  return Node::null();
 }
 
 }/* CVC4 namespace */

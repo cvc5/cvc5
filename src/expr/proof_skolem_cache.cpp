@@ -110,6 +110,12 @@ Node ProofSkolemCache::mkPurifySkolem(Node t,
   {
     return t.getAttribute(psa);
   }
+  // The case where t is a witness term is special: we set its Skolem attribute
+  // directly.
+  if (t.getKind()==CHOICE)
+  {
+    // FIXME
+  }
   Node v = NodeManager::currentNM()->mkBoundVar(t.getType());
   Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);
   t.setAttribute(psa, k);

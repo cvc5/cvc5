@@ -346,7 +346,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 2);
     Assert(args[0].getType().isBoolean());
-    // TODO
+    return args[0];
+  }
+  else if (id == PfRule::THEORY_PREPROCESS)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size() == 1);
     return args[0];
   }
   // no rule

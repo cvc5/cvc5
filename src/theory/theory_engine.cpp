@@ -1790,6 +1790,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       Trace("te-proof") << "No proof for lemma: " << lemma << std::endl;
       Trace("te-proof-warn")
           << "WARNING: No proof for lemma: " << lemma << std::endl;
+      Assert(false);
     }
     else
     {
@@ -1811,9 +1812,16 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // Run theory preprocessing, maybe
   Node ppNode = preprocess ? this->preprocess(node) : Node(node);
 
-  if (d_lazyProof != nullptr)
+  if (lcp != nullptr)
   {
-    // FIXME
+    if (!CDProof::isSame(node, ppNode))
+    {
+      std::vector<Node> pfChildren;
+      pfChildren.push_back(node);
+      std::vector<Node> pfArgs;
+      pfArgs.push_back(ppNode);
+      lcp->addStep(ppNode, PfRule::THEORY_PREPROCESS,pfChildren, pfArgs);
+    }
   }
 
   // Remove the ITEs
@@ -1824,9 +1832,32 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                       additionalLemmas.getIteSkolemMap());
   Debug("ite") << "..done " << additionalLemmas[0] << std::endl;
 
-  if (d_lazyProof != nullptr)
+  if (lcp != nullptr)
   {
-    // FIXME
+    if (additionalLemmas.size()>1 || additionalLemmas[0]!=ppNode)
+    {
+#if 0
+      // The main lemma can be justified since it is, modulo purification,
+      // the same formula as the original.
+      std::vector<Node> pfChildren;
+      pfChildren.push_back(ppNode);
+      std::vector<Node> pfArgs;
+      pfArgs.push_back(additionalLemmas[0]);
+      lcp->addStep(rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+      for (size_t i = 1, lsize = additionalLemmas.size(); i < lsize; ++i)
+      {
+        // the witness form of other lemmas should rewrite to true
+        // For example, if (lambda y. t[y]) has skolem k, then this lemma is:
+        //   forall x. k(x)=t[x]
+        // whose witness form rewrites
+        //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
+        std::vector<Node> pfChildren;
+        std::vector<Node> pfArgs;
+        pfArgs.push_back(additionalLemmas[i]);
+        lcp->addStep(additionalLemmas[i], PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+      }
+#endif
+    }
   }
 
   if(Debug.isOn("lemma-ites")) {
@@ -1845,6 +1876,17 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   for (size_t i = 0, lsize = additionalLemmas.size(); i < lsize; ++i)
   {
     Node rewritten = Rewriter::rewrite(additionalLemmas[i]);
+    if (lcp!=nullptr)
+    {
+      if (!CDProof::isSame(rewritten, additionalLemmas[i]))
+      {
+        std::vector<Node> pfChildren;
+        pfChildren.push_back(additionalLemmas[i]);
+        std::vector<Node> pfArgs;
+        pfArgs.push_back(rewritten);
+        lcp->addStep(rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+      }
+    }
     additionalLemmas.replace(i, rewritten);
     d_propEngine->assertLemma(
         additionalLemmas[i], i == 0 && negated, removable, rule, node);

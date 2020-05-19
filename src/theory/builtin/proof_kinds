@@ -158,7 +158,8 @@ proofrule THEORY_LEMMA 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
 
 // ======== Theory preprocess
 // Children: (F)
-// Arguments: none
+// Arguments: (G)
 // ---------------------------------------------------------------
-// Conclusion: TheoryEngine::preprocess(F).
+// Conclusion: G
+// where TheoryEngine::preprocess(F) = G.
 proofrule THEORY_PREPROCESS 0 1 ::CVC4::theory::builtin::BuiltinProofRuleChecker
