@@ -166,8 +166,8 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_SUFFIX, "str.suffixof");
   addOperator(api::STRING_FROM_CODE, "str.from_code");
   addOperator(api::STRING_IS_DIGIT, "str.is_digit");
-  // at the moment, we only use this syntax for smt2.6.1
-  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
+  // at the moment, we only use this syntax for smt2.6
+  if (getLanguage() == language::input::LANG_SMTLIB_V2_6
       || getLanguage() == language::input::LANG_SYGUS_V2)
   {
     addOperator(api::STRING_ITOS, "str.from_int");
@@ -682,7 +682,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     defineType("RegLan", d_solver->getRegExpSort());
     defineType("Int", d_solver->getIntegerSort());
 
-    if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1
+    if (getLanguage() == language::input::LANG_SMTLIB_V2_6
         || getLanguage() == language::input::LANG_SYGUS_V2)
     {
       defineVar("re.none", d_solver->mkRegexpEmpty());
