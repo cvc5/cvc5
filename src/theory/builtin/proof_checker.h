@@ -74,9 +74,9 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   static Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
-   * Apply small-step rewrite on n (either pre- or post-rewrite). This
-   * encapsulates the exact behavior of a THEORY_REWRITE step in a proof.
-   * Rewriting is performed on the Skolem form of n.
+   * Apply small-step rewrite on n in witness form (either pre- or
+   * post-rewrite). This encapsulates the exact behavior of a THEORY_REWRITE
+   * step in a proof. Rewriting is performed on the Skolem form of n.
    *
    * @param n The node (in witness form) to rewrite
    * @param preRewrite If true, performs a pre-rewrite or a post-rewrite
