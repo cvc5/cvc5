@@ -73,10 +73,12 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 
 Node BuiltinProofRuleChecker::applyTheoryRewrite(Node n, bool preRewrite)
 {
-  TheoryId tid = Theory::theoryOf(n);
+  Node nk = ProofSkolemCache::getSkolemForm(n);
+  TheoryId tid = Theory::theoryOf(nk);
   Rewriter* rewriter = Rewriter::getInstance();
-  return preRewrite ? rewriter->preRewrite(tid, n).d_node
-                    : rewriter->postRewrite(tid, n).d_node;
+  Node nkr = preRewrite ? rewriter->preRewrite(tid, nk).d_node
+                        : rewriter->postRewrite(tid, nk).d_node;
+  return ProofSkolemCache::getWitnessForm(nkr);
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)

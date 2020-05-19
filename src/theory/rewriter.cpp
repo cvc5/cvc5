@@ -229,8 +229,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, CDProof* proof)
           if (proof != nullptr && rewriteStackTop.d_node != response.d_node)
           {
             NodeManager* nm = NodeManager::currentNM();
-            Node result = nm->mkNode(
-                kind::EQUAL, rewriteStackTop.d_node, response.d_node);
+            Node result = rewriteStackTop.d_node.eqNode(response.d_node);
             proof->addStep(result,
                            PfRule::THEORY_REWRITE,
                            {},
@@ -252,21 +251,19 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, CDProof* proof)
 
         if (proof != nullptr)
         {
-          NodeManager* nm = NodeManager::currentNM();
           if (!steps->empty())
           {
             if (steps->size() > 1)
             {
-              Node result = nm->mkNode(kind::EQUAL,
-                                       rewriteStackTop.d_original,
-                                       rewriteStackTop.d_node);
+              Node result =
+                  rewriteStackTop.d_original.eqNode(rewriteStackTop.d_node);
               proof->addStep(result, PfRule::TRANS, *steps, {});
             }
           }
           else
           {
             Node t = rewriteStackTop.d_original;
-            Node result = nm->mkNode(kind::EQUAL, t, t);
+            Node result = t.eqNode(t);
             proof->addStep(result, PfRule::REFL, {}, {t});
             steps->push_back(result);
           }
@@ -352,10 +349,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, CDProof* proof)
 
           for (size_t i = 0, size = rewritten.getNumChildren(); i < size; i++)
           {
-            children.push_back(
-                nm->mkNode(kind::EQUAL, original[i], rewritten[i]));
+            children.push_back(original[i].eqNode(rewritten[i]));
           }
-          Node result = nm->mkNode(kind::EQUAL, original, rewritten);
+          Node result = original.eqNode(rewritten);
           proof->addStep(result, PfRule::CONG, children, args);
           steps->push_back(result);
         }
@@ -370,8 +366,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, CDProof* proof)
         if (proof != nullptr && rewriteStackTop.d_node != response.d_node)
         {
           NodeManager* nm = NodeManager::currentNM();
-          Node result =
-              nm->mkNode(kind::EQUAL, rewriteStackTop.d_node, response.d_node);
+          Node result = rewriteStackTop.d_node.eqNode(response.d_node);
           proof->addStep(result,
                          PfRule::THEORY_REWRITE,
                          {},
@@ -396,8 +391,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, CDProof* proof)
 
           if (proof != nullptr && response.d_node != rewritten)
           {
-            NodeManager* nm = NodeManager::currentNM();
-            Node result = nm->mkNode(kind::EQUAL, response.d_node, rewritten);
+            Node result = response.d_node.eqNode(rewritten);
             steps->push_back(result);
           }
 
@@ -428,23 +422,19 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, CDProof* proof)
 
       if (proof != nullptr)
       {
-        NodeManager* nm = NodeManager::currentNM();
-
         if (rewriteStackTop.d_unrewritten != rewriteStackTop.d_original)
         {
           // If the node has been rewritten in the prerewrite and the
           // postrewrite traversal, we need to link up those proofs
-          steps->insert(steps->begin(),
-                        nm->mkNode(kind::EQUAL,
-                                   rewriteStackTop.d_unrewritten,
-                                   rewriteStackTop.d_original));
+          steps->insert(
+              steps->begin(),
+              rewriteStackTop.d_unrewritten.eqNode(rewriteStackTop.d_original));
         }
 
         if (steps->size() > 1)
         {
-          Node result = nm->mkNode(kind::EQUAL,
-                                   rewriteStackTop.d_unrewritten,
-                                   rewriteStackTop.d_node);
+          Node result =
+              rewriteStackTop.d_unrewritten.eqNode(rewriteStackTop.d_node);
           proof->addStep(result, PfRule::TRANS, *steps, {});
         }
       }
