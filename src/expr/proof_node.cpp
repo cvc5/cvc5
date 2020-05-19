@@ -49,6 +49,7 @@ void ProofNode::getFreeAssumptions(std::vector<Node>& assump)
 void ProofNode::getFreeAssumptionsMap(
     std::map<Node, std::vector<ProofNode*>>& amap)
 {
+  // proof should not be cyclic
   // visited set false after preorder traversal, true after postorder traversal
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;

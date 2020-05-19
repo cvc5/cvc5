@@ -905,7 +905,7 @@ Node EqProof::addToProof(
   // refl
   if (d_id == MERGED_THROUGH_REFLEXIVITY)
   {
-    Trace("ajr-temp") << "Refl node: " << d_node << std::endl;
+    Trace("eqproof-conv-debug") << "Refl node: " << d_node << std::endl;
     Node conclusion =
         d_node.getKind() == kind::EQUAL ? d_node : d_node.eqNode(d_node);
     if (!p->addStep(conclusion, PfRule::REFL, {}, {conclusion[0]}))
@@ -960,7 +960,7 @@ Node EqProof::addToProof(
       // look in children
       for (unsigned j = 0; j < premises.size(); ++j)
       {
-        Trace("ajr-temp") << "Premise : " << premises[j] << std::endl;
+        Trace("eqproof-conv-debug") << "Premise : " << premises[j] << std::endl;
         AlwaysAssert(premises[j].getKind() == kind::EQUAL);
         if (premises[j][0] == term)
         {
