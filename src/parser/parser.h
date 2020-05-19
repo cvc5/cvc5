@@ -842,7 +842,7 @@ public:
    *
    * This makes the string constant based on the string s. This may involve
    * processing ad-hoc escape sequences (if the language is not
-   * SMT-LIB 2.6.1 or higher), or otherwise calling the solver to construct
+   * SMT-LIB 2.6 or higher), or otherwise calling the solver to construct
    * the string.
    */
   Expr mkStringConstant(const std::string& s);

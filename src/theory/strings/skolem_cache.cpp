@@ -182,15 +182,6 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     b = b[1];
   }
 
-  if (id == SK_FIRST_CTN_PRE)
-  {
-    // SK_FIRST_CTN_PRE((str.substr x 0 n), y) ---> SK_FIRST_CTN_PRE(x, y)
-    while (a.getKind() == kind::STRING_SUBSTR && a[1] == d_zero)
-    {
-      a = a[0];
-    }
-  }
-
   Trace("skolem-cache") << "normalizeStringSkolem end: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
   return std::make_tuple(id, a, b);

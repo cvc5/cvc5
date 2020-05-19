@@ -76,7 +76,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {CONSTANT, CVC4::Kind::VARIABLE},
     {VARIABLE, CVC4::Kind::BOUND_VARIABLE},
     {LAMBDA, CVC4::Kind::LAMBDA},
-    {CHOICE, CVC4::Kind::CHOICE},
+    {WITNESS, CVC4::Kind::WITNESS},
     /* Boolean ------------------------------------------------------------- */
     {CONST_BOOLEAN, CVC4::Kind::CONST_BOOLEAN},
     {NOT, CVC4::Kind::NOT},
@@ -309,7 +309,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::VARIABLE, CONSTANT},
         {CVC4::Kind::BOUND_VARIABLE, VARIABLE},
         {CVC4::Kind::LAMBDA, LAMBDA},
-        {CVC4::Kind::CHOICE, CHOICE},
+        {CVC4::Kind::WITNESS, WITNESS},
         /* Boolean --------------------------------------------------------- */
         {CVC4::Kind::CONST_BOOLEAN, CONST_BOOLEAN},
         {CVC4::Kind::NOT, NOT},
@@ -4384,9 +4384,9 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
          "'notes', 'smt-lib-version' or 'status'";
   CVC4_API_ARG_CHECK_EXPECTED(keyword != "smt-lib-version" || value == "2"
                                   || value == "2.0" || value == "2.5"
-                                  || value == "2.6" || value == "2.6.1",
+                                  || value == "2.6",
                               value)
-      << "'2.0', '2.5', '2.6' or '2.6.1'";
+      << "'2.0', '2.5', '2.6'";
   CVC4_API_ARG_CHECK_EXPECTED(keyword != "status" || value == "sat"
                                   || value == "unsat" || value == "unknown",
                               value)

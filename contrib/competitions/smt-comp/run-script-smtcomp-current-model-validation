@@ -8,11 +8,17 @@ logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]
 # use: finishwith [params..]
 # to run cvc4 and let it output whatever it will to stdout.
 function finishwith {
-  $cvc4 -L smt2.6 --no-incremental --no-checking --no-interactive "$@" $bench
+  $cvc4 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench
 }
 
 case "$logic" in
 
+QF_LRA)
+  finishwith --no-restrict-pivots --use-soi --new-prop
+  ;;
+QF_LIA)
+  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --use-soi --pb-rewrites --ite-simp --simp-ite-compress
+  ;;
 QF_BV)
   finishwith --bv-div-zero-const --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
   ;;
@@ -22,4 +28,3 @@ QF_BV)
   ;;
 
 esac
-

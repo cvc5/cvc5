@@ -1,4 +1,4 @@
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-logic ALL)
 (set-info :status sat)
 (assert (not (str.< "\xe8" "\x19")))
