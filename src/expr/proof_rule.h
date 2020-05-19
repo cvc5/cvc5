@@ -290,6 +290,141 @@ enum class PfRule : uint32_t
   // Conclusion: (or C (not F2))
   NOT_ITE_ELIM2,
 
+  //================================================= De Morgan rules
+  // ======== Not And
+  // Children: (P:(not (and F1 ... Fn))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) ... (not Fn))
+  NOT_AND,
+  //================================================= CNF rules
+  // ======== CNF And Pos
+  // Children: ()
+  // Arguments: ((and F1 ... Fn), i)
+  // ---------------------
+  // Conclusion: (or (not (and F1 ... Fn)) Fi)
+  CNF_AND_POS,
+  // ======== CNF And Neg
+  // Children: ()
+  // Arguments: ((and F1 ... Fn))
+  // ---------------------
+  // Conclusion: (or (and F1 ... Fn) (not F1) ... (not Fn))
+  CNF_AND_NEG,
+  // ======== CNF Or Pos
+  // Children: ()
+  // Arguments: ((or F1 ... Fn))
+  // ---------------------
+  // Conclusion: (or (not (or F1 ... Fn)) F1 ... Fn)
+  CNF_OR_POS,
+  // ======== CNF Or Neg
+  // Children: ()
+  // Arguments: ((or F1 ... Fn), i)
+  // ---------------------
+  // Conclusion: (or (or F1 ... Fn) (not Fi))
+  CNF_OR_NEG,
+  // ======== CNF Implies Pos
+  // Children: ()
+  // Arguments: ((implies F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (implies F1 F2)) (not F1) F2)
+  CNF_IMPLIES_POS,
+  // ======== CNF Implies Neg version 1
+  // Children: ()
+  // Arguments: ((implies F1 F2))
+  // ---------------------
+  // Conclusion: (or (implies F1 F2) F1)
+  CNF_IMPLIES_NEG1,
+  // ======== CNF Implies Neg version 2
+  // Children: ()
+  // Arguments: ((implies F1 F2))
+  // ---------------------
+  // Conclusion: (or (implies F1 F2) (not F2))
+  CNF_IMPLIES_NEG2,
+  // ======== CNF Equiv Pos version 1
+  // Children: ()
+  // Arguments: ((= F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (= F1 F2)) (not F1) F2)
+  CNF_EQUIV_POS1,
+  // ======== CNF Equiv Pos version 2
+  // Children: ()
+  // Arguments: ((= F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (= F1 F2)) F1 (not F2))
+  CNF_EQUIV_POS2,
+  // ======== CNF Equiv Neg version 1
+  // Children: ()
+  // Arguments: ((= F1 F2))
+  // ---------------------
+  // Conclusion: (or (= F1 F2) F1 F2)
+  CNF_EQUIV_NEG1,
+  // ======== CNF Equiv Neg version 2
+  // Children: ()
+  // Arguments: ((= F1 F2))
+  // ---------------------
+  // Conclusion: (or (= F1 F2) (not F1) (not F2))
+  CNF_EQUIV_NEG2,
+  // ======== CNF Xor Pos version 1
+  // Children: ()
+  // Arguments: ((xor F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (xor F1 F2)) F1 F2)
+  CNF_XOR_POS1,
+  // ======== CNF Xor Pos version 2
+  // Children: ()
+  // Arguments: ((xor F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (xor F1 F2)) (not F1) (not F2))
+  CNF_XOR_POS2,
+  // ======== CNF Xor Neg version 1
+  // Children: ()
+  // Arguments: ((xor F1 F2))
+  // ---------------------
+  // Conclusion: (or (xor F1 F2) (not F1) F2)
+  CNF_XOR_NEG1,
+  // ======== CNF Xor Neg version 2
+  // Children: ()
+  // Arguments: ((xor F1 F2))
+  // ---------------------
+  // Conclusion: (or (xor F1 F2) F1 (not F2))
+  CNF_XOR_NEG2,
+  // ======== CNF ITE Pos version 1
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (ite C F1 F2)) (not C) F1)
+  CNF_ITE_POS1,
+  // ======== CNF ITE Pos version 2
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (ite C F1 F2)) C F2)
+  CNF_ITE_POS2,
+  // ======== CNF ITE Pos version 3
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (ite C F1 F2)) F1 F2)
+  CNF_ITE_POS3,
+  // ======== CNF ITE Neg version 1
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (ite C F1 F2) (not C) (not F1))
+  CNF_ITE_NEG1,
+  // ======== CNF ITE Neg version 2
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (ite C F1 F2) C (not F2))
+  CNF_ITE_NEG2,
+  // ======== CNF ITE Neg version 3
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (ite C F1 F2) (not F1) (not F2))
+  CNF_ITE_NEG3,
+
   //================================================= Equality rules
   // ======== Reflexive
   // Children: none

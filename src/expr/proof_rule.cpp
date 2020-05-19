@@ -54,6 +54,30 @@ const char* toString(PfRule id)
     case PfRule::ITE_ELIM2: return "ITE_ELIM2";
     case PfRule::NOT_ITE_ELIM1: return "NOT_ITE_ELIM1";
     case PfRule::NOT_ITE_ELIM2: return "NOT_ITE_ELIM2";
+    //================================================= De Morgan rules
+    case PfRule::NOT_AND: return "NOT_AND";
+    //================================================= CNF rules
+    case PfRule::CNF_AND_POS: return "CNF_AND_POS";
+    case PfRule::CNF_AND_NEG: return "CNF_AND_NEG";
+    case PfRule::CNF_OR_POS: return "CNF_OR_POS";
+    case PfRule::CNF_OR_NEG: return "CNF_OR_NEG";
+    case PfRule::CNF_IMPLIES_POS: return "CNF_IMPLIES_POS";
+    case PfRule::CNF_IMPLIES_NEG1: return "CNF_IMPLIES_NEG1";
+    case PfRule::CNF_IMPLIES_NEG2: return "CNF_IMPLIES_NEG2";
+    case PfRule::CNF_EQUIV_POS1: return "CNF_EQUIV_POS1";
+    case PfRule::CNF_EQUIV_POS2: return "CNF_EQUIV_POS2";
+    case PfRule::CNF_EQUIV_NEG1: return "CNF_EQUIV_NEG1";
+    case PfRule::CNF_EQUIV_NEG2: return "CNF_EQUIV_NEG2";
+    case PfRule::CNF_XOR_POS1: return "CNF_XOR_POS1";
+    case PfRule::CNF_XOR_POS2: return "CNF_XOR_POS2";
+    case PfRule::CNF_XOR_NEG1: return "CNF_XOR_NEG1";
+    case PfRule::CNF_XOR_NEG2: return "CNF_XOR_NEG2";
+    case PfRule::CNF_ITE_POS1: return "CNF_ITE_POS1";
+    case PfRule::CNF_ITE_POS2: return "CNF_ITE_POS2";
+    case PfRule::CNF_ITE_POS3: return "CNF_ITE_POS3";
+    case PfRule::CNF_ITE_NEG1: return "CNF_ITE_NEG1";
+    case PfRule::CNF_ITE_NEG2: return "CNF_ITE_NEG2";
+    case PfRule::CNF_ITE_NEG3: return "CNF_ITE_NEG3";
     //================================================= Equality rules
     case PfRule::REFL: return "REFL";
     case PfRule::SYMM: return "SYMM";
