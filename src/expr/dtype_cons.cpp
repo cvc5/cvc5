@@ -608,7 +608,7 @@ TypeNode DTypeConstructor::doParametricSubstitution(
     children.push_back(
         doParametricSubstitution((*i), paramTypes, paramReplacements));
   }
-  for (unsigned i = 0; i < paramTypes.size(); ++i)
+  for (size_t i = 0, psize = paramTypes.size(); i < psize; ++i)
   {
     if (paramTypes[i].getSortConstructorArity() == origChildren.size())
     {
