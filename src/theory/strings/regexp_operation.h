@@ -128,13 +128,13 @@ class RegExpOpr {
    */
   Node simplify(Node t, bool polarity);
   /**
-   * Given negative membership of the form
-   *   (not (str.in_re s (re.++ r_0 ... r_{n-1})))
+   * Given regular expression of the form
+   *   (re.++ r_0 ... r_{n-1})
    * This returns a node non-null node reLen and updates index such that
    *   RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
    * where index is set to either 0 or n-1.
    */
-  static Node getRegExpConcatFixed(Node mem, unsigned& index);
+  static Node getRegExpConcatFixed(Node r, unsigned& index);
   //------------------------ trusted reductions
   /**
    * Return the unfolded form of mem of the form (str.in_re s r).
@@ -148,7 +148,10 @@ class RegExpOpr {
    * Return the unfolded form of mem of the form
    *   (not (str.in_re s (re.++ r_0 ... r_{n-1})))
    * Called when RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
-   * where index is either 0 or n-1.
+   * where index is either 0 or n-1. 
+   *
+   * This uses reLen as an optimization to improve the reduction. If reLen
+   * is null, then this optimization is not applied.
    */
   static Node reduceRegExpNegConcatFixed(Node mem, Node reLen, unsigned index);
   //------------------------ end trusted reductions

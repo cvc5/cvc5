@@ -19,6 +19,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/regexp_operation.h"
 
 using namespace CVC4::kind;
 
@@ -526,12 +527,19 @@ Node InferProofCons::convert(Inference infer,
       {
         ps.d_rule = PfRule::RE_UNFOLD_NEG;
         // it may be an optimized form of concat simplification
-        Assert(ps.d_children.size() == 1) Node mem = ps.d_children[0];
+        Assert(ps.d_children.size() == 1);
+        Node mem = ps.d_children[0];
         Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
-        Node reLen = RegExpOpr::getRegExpConcatFixed(mem[0][1]);
-        if (!reLen.isNull())
+        if (mem[0][1].getKind()==REGEXP_CONCAT)
         {
-          ps.d_rule = PfRule::RE_UNFOLD_NEG_CONCAT_FIXED;
+          unsigned index;
+          Node reLen = RegExpOpr::getRegExpConcatFixed(mem[0][1], index);
+          // if we can find a fixed length for a component, use the optimized
+          // version
+          if (!reLen.isNull())
+          {
+            ps.d_rule = PfRule::RE_UNFOLD_NEG_CONCAT_FIXED;
+          }
         }
       }
     }
