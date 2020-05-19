@@ -46,6 +46,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::RE_INTER, this);
   pc->registerChecker(PfRule::RE_UNFOLD_POS, this);
   pc->registerChecker(PfRule::RE_UNFOLD_NEG, this);
+  pc->registerChecker(PfRule::RE_UNFOLD_NEG_CONCAT_FIXED, this);
 }
 
 Node StringProofRuleChecker::checkInternal(PfRule id,
@@ -412,7 +413,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node rei = reis.size() == 1 ? reis[0] : nm->mkNode(REGEXP_INTER, reis);
     return nm->mkNode(STRING_IN_REGEXP, x, rei);
   }
-  else if (id == PfRule::RE_UNFOLD_POS || id == PfRule::RE_UNFOLD_NEG)
+  else if (id == PfRule::RE_UNFOLD_POS || id == PfRule::RE_UNFOLD_NEG || id == PfRule::RE_UNFOLD_NEG_CONCAT_FIXED)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
@@ -440,7 +441,18 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     else
     {
-      conc = RegExpOpr::reduceRegExpNeg(children[0]);
+      if (id == PfRule::RE_UNFOLD_NEG_CONCAT_FIXED)
+      {
+        unsigned index;
+        Node reLen = RegExpOpr::getRegExpConcatFixed(childre[0],index);
+        if (!reLen.isNull())
+        {
+          return RegExpOpr::reduceRegExpNegConcatFixed(children[0], reLen, index);
+        }
+        // should not fail, but we default to the rule below
+        Assert(false);
+      }
+      return RegExpOpr::reduceRegExpNeg(children[0]);
     }
     return ProofSkolemCache::getWitnessForm(conc);
   }

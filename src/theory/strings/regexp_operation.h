@@ -127,6 +127,15 @@ class RegExpOpr {
    * It returns the unfolded form of t.
    */
   Node simplify(Node t, bool polarity);
+  /** 
+   * Given negative membership of the form
+   *   (not (str.in_re s (re.++ r_0 ... r_{n-1})))
+   * This returns a node non-null node reLen and updates index such that 
+   *   RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
+   * where index is set to either 0 or n-1.
+   */
+  static Node getRegExpConcatFixed(Node mem, unsigned& index);
+  //------------------------ trusted reductions
   /**
    * Return the unfolded form of mem of the form (str.in_re s r).
    */
@@ -138,9 +147,11 @@ class RegExpOpr {
   /**
    * Return the unfolded form of mem of the form
    *   (not (str.in_re s (re.++ r_0 ... r_{n-1})))
-   * Called when RegExpEntail::getFixedLengthForRegexp(r_i) = reLen.
+   * Called when RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
+   * where index is either 0 or n-1.
    */
-  static Node reduceRegExpNegConcat(Node mem, Node reLen, unsigned i);
+  static Node reduceRegExpNegConcatFixed(Node mem, Node reLen, unsigned index);
+  //------------------------ end trusted reductions
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string
    * is not in r, or 0 if it is unknown whether the empty string is in r.

@@ -518,8 +518,23 @@ Node InferProofCons::convert(Inference infer,
     case Inference::RE_UNFOLD_POS:
     case Inference::RE_UNFOLD_NEG:
     {
-      ps.d_rule = infer == Inference::RE_UNFOLD_POS ? PfRule::RE_UNFOLD_POS
-                                                    : PfRule::RE_UNFOLD_NEG;
+      if (infer==Inference::RE_UNFOLD_POS)
+      {
+        ps.d_rule = PfRule::RE_UNFOLD_POS;
+      }
+      else
+      {
+        ps.d_rule = PfRule::RE_UNFOLD_NEG;
+        // it may be an optimized form of concat simplification
+        Assert (ps.d_children.size()==1)
+        Node mem = ps.d_children[0];
+        Assert (mem.getKind()==NOT && mem[0].getKind()==STRING_IN_REGEXP);
+        Node reLen = RegExpOpr::getRegExpConcatFixed(mem[0][1]);
+        if (!reLen.isNull())
+        {
+          ps.d_rule = PfRule::RE_UNFOLD_NEG_CONCAT_FIXED;
+        }
+      }
     }
     break;
     // ========================== Reduction

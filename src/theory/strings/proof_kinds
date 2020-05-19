@@ -189,7 +189,7 @@ proofrule RE_INTER 2: 0 ::CVC4::theory::strings::StringsProofRuleChecker
 // Children: (P:(str.in.re t R)) 
 // Arguments: none
 // ---------------------
-// Conclusion:(RegExpOpr::reduceRegExpPos(t,R)),
+// Conclusion:(RegExpOpr::reduceRegExpPos((str.in.re t R))),
 // corresponding to the one-step unfolding of the premise.
 proofrule RE_UNFOLD_POS 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 
@@ -197,9 +197,17 @@ proofrule RE_UNFOLD_POS 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 // Children: (P:(not (str.in.re t R)))
 // Arguments: none
 // ---------------------
-// Conclusion:(RegExpOpr::reduceRegExpNeg(t,R)), 
+// Conclusion:(RegExpOpr::reduceRegExpNeg((not (str.in.re t R)))), 
 // corresponding to the one-step unfolding of the premise.
 proofrule RE_UNFOLD_NEG 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 
-
+// ======== Regular expression unfold negative concat fixed
+// Children: (P:(not (str.in.re t R)))
+// Arguments: none
+// ---------------------
+// Conclusion:(RegExpOpr::reduceRegExpNegConcatFixed((not (str.in.re t R)),L,i)) 
+// where RegExpOpr::getRegExpConcatFixed((not (str.in.re t R)), i) = L.
+// corresponding to the one-step unfolding of the premise, optimized for fixed
+// length of component i of the regular expression concatenation R.
+proofrule RE_UNFOLD_NEG_CONCAT_FIXED 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 

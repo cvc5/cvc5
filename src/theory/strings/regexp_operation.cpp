@@ -870,25 +870,15 @@ Node RegExpOpr::simplify(Node t, bool polarity)
     if (r.getKind()==REGEXP_CONCAT)
     {
       // the index we are removing from the RE concatenation
-      unsigned indexRm = 0;
+      unsigned index = 0;
       // As an optimization to the reduction, if we can determine that
       // all strings in the language of R1 have the same length, say n,
       // then the conclusion of the reduction is quantifier-free:
       //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
-      Node reLen = RegExpEntail::getFixedLengthForRegexp(r[0]);
-      if (reLen.isNull())
-      {
-        // try from the opposite end
-        unsigned indexE = r.getNumChildren() - 1;
-        reLen = RegExpEntail::getFixedLengthForRegexp(r[indexE]);
-        if (!reLen.isNull())
-        {
-          indexRm = indexE;
-        }
-      }
+      Node reLen = getRegExpConcatFixed(tlit, index);
       if (!reLen.isNull())
       {
-        conc = reduceRegExpNegConcat(tlit, reLen, indexRm);
+        conc = reduceRegExpNegConcatFixed(tlit, reLen, index);
       }
     }
     if (conc.isNull())
@@ -900,6 +890,28 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   Trace("strings-regexp-simpl")
       << "RegExpOpr::simplify: returns " << conc << std::endl;
   return conc;
+}
+
+Node RegExpOpr::getRegExpConcatFixed(Node mem, unsigned& index)
+{
+  Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
+  Node r = mem[0][1];
+  Assert (r.getKind()==REGEXP_CONCAT);
+  index = 0;
+  Node reLen = RegExpEntail::getFixedLengthForRegexp(r[0]);
+  if (!reLen.isNull())
+  {
+    return reLen;
+  }
+  // try from the opposite end
+  unsigned indexE = r.getNumChildren() - 1;
+  reLen = RegExpEntail::getFixedLengthForRegexp(r[indexE]);
+  if (!reLen.isNull())
+  {
+    index = indexE;
+    return reLen;
+  }
+  return Node::null();
 }
 
 Node RegExpOpr::reduceRegExpNeg(Node mem)
@@ -945,7 +957,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpNegConcat(Node mem, Node reLen, unsigned index)
+Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, unsigned index)
 {
   Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
   Node s = mem[0][0];
