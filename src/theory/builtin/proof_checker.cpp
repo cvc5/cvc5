@@ -16,6 +16,7 @@
 
 #include "expr/proof_skolem_cache.h"
 #include "theory/rewriter.h"
+#include "theory/theory.h"
 
 using namespace CVC4::kind;
 
@@ -54,6 +55,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SCOPE, this);
   pc->registerChecker(PfRule::SUBS, this);
   pc->registerChecker(PfRule::REWRITE, this);
+  pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
@@ -66,6 +68,16 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
   Node nkr = applyRewriteExternal(n, idr);
+  return ProofSkolemCache::getWitnessForm(nkr);
+}
+
+Node BuiltinProofRuleChecker::applyTheoryRewrite(Node n, bool preRewrite)
+{
+  Node nk = ProofSkolemCache::getSkolemForm(n);
+  TheoryId tid = Theory::theoryOf(nk);
+  Rewriter* rewriter = Rewriter::getInstance();
+  Node nkr = preRewrite ? rewriter->preRewrite(tid, nk).d_node
+                        : rewriter->postRewrite(tid, nk).d_node;
   return ProofSkolemCache::getWitnessForm(nkr);
 }
 
@@ -242,6 +254,13 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applyRewrite(args[0]);
+    return args[0].eqNode(res);
+  }
+  else if (id == PfRule::THEORY_REWRITE)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 2);
+    Node res = applyTheoryRewrite(args[0], args[1].getConst<bool>());
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
