@@ -176,7 +176,7 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
       {
         return true;
       }
-      visited.insert(cur); 
+      visited.insert(cur);
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());

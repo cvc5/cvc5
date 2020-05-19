@@ -110,7 +110,7 @@ class TheoryStrings : public Theory {
 
   /** finish initialization */
   void finishInit() override;
-  
+
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
