@@ -675,7 +675,7 @@ public:
   bool isSortConstructor() const;
 
   /** Get sort constructor arity */
-  unsigned getSortConstructorArity() const;
+  uint64_t getSortConstructorArity() const;
 
   /**
    * Instantiate a sort constructor type. The type on which this method is
