@@ -1,8 +1,7 @@
-; COMMAND-LINE: --lang=smt2.5
 ; EXPECT: sat
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status sat)
-(declare-datatypes (T S) ( (Pair (pair (first T) (second S)) ) ) )
+(declare-datatypes ((Pair 2)) ((par (T S) ((pair (first T) (second S))))))
 
 (declare-fun p1 () (Pair Bool Bool))
 (declare-fun p2 () (Pair Bool Bool))

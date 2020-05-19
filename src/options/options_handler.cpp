@@ -350,13 +350,13 @@ void OptionsHandler::notifyDumpMode(std::string option)
 // expr/options_handlers.h
 void OptionsHandler::setDefaultExprDepthPredicate(std::string option, int depth) {
   if(depth < -1) {
-    throw OptionException("--default-expr-depth requires a positive argument, or -1.");
+    throw OptionException("--expr-depth requires a positive argument, or -1.");
   }
 }
 
 void OptionsHandler::setDefaultDagThreshPredicate(std::string option, int dag) {
   if(dag < 0) {
-    throw OptionException("--default-dag-thresh requires a nonnegative argument.");
+    throw OptionException("--dag-thresh requires a nonnegative argument.");
   }
 }
 

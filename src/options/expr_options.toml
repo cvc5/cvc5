@@ -5,7 +5,7 @@ header = "options/expr_options.h"
 [[option]]
   name       = "defaultExprDepth"
   category   = "regular"
-  long       = "default-expr-depth=N"
+  long       = "expr-depth=N"
   type       = "int"
   default    = "0"
   predicates = ["setDefaultExprDepthPredicate"]
@@ -15,9 +15,9 @@ header = "options/expr_options.h"
 
 [[option]]
   name       = "defaultDagThresh"
-  smt_name   = "default-dag-thresh"
+  smt_name   = "dag-thresh"
   category   = "regular"
-  long       = "default-dag-thresh=N"
+  long       = "dag-thresh=N"
   type       = "int"
   default    = "1"
   predicates = ["setDefaultDagThreshPredicate"]
@@ -34,15 +34,6 @@ header = "options/expr_options.h"
   notifies   = ["notifySetPrintExprTypes"]
   read_only  = true
   help       = "print types with variables when printing exprs"
-
-[[option]]
-  name       = "earlyTypeChecking"
-  category   = "regular"
-  long       = "eager-type-checking"
-  type       = "bool"
-  default    = "USE_EARLY_TYPE_CHECKING_BY_DEFAULT"
-  read_only  = true
-  help       = "type check expressions immediately on creation (debug builds only)"
 
 [[option]]
   name       = "typeChecking"

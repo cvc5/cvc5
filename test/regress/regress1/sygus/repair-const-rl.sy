@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --cegqi-si=none --sygus-repair-const --lang=sygus2
+; COMMAND-LINE: --sygus-out=status --sygus-si=none --sygus-repair-const --lang=sygus2
 (set-logic LIA)
 
 (synth-fun f ((x Int) (y Int)) Int

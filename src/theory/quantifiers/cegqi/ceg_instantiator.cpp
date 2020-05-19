@@ -294,7 +294,7 @@ CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
           if (curr < ret)
           {
             ret = curr;
-            Trace("cbqi-debug2") << "Non-cbqi kind : " << cur.getKind()
+            Trace("cegqi-debug2") << "Non-cbqi kind : " << cur.getKind()
                                  << " in " << n << std::endl;
             if (curr == CEG_UNHANDLED)
             {
@@ -426,7 +426,7 @@ CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
   // if quantifier has a non-handled variable, then do not use cbqi
   // if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
   CegHandledStatus ncbqiv = CegInstantiator::isCbqiQuantPrefix(q, qe);
-  Trace("cbqi-quant-debug") << "isCbqiQuantPrefix returned " << ncbqiv
+  Trace("cegqi-quant-debug") << "isCbqiQuantPrefix returned " << ncbqiv
                             << std::endl;
   if (ncbqiv == CEG_UNHANDLED)
   {
@@ -436,7 +436,7 @@ CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
   else
   {
     CegHandledStatus cbqit = CegInstantiator::isCbqiTerm(q);
-    Trace("cbqi-quant-debug") << "isCbqiTerm returned " << cbqit << std::endl;
+    Trace("cegqi-quant-debug") << "isCbqiTerm returned " << cbqit << std::endl;
     if (cbqit == CEG_UNHANDLED)
     {
       if (ncbqiv == CEG_HANDLED_UNCONDITIONAL)
@@ -457,7 +457,7 @@ CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
       ret = CEG_PARTIALLY_HANDLED;
     }
   }
-  if (ret == CEG_UNHANDLED && options::cbqiAll())
+  if (ret == CEG_UNHANDLED && options::cegqiAll())
   {
     // try but not exclusively
     ret = CEG_PARTIALLY_HANDLED;
@@ -549,7 +549,7 @@ void CegInstantiator::registerVariable(Node v)
   d_vars.push_back(v);
   d_vars_set.insert(v);
   TypeNode vtn = v.getType();
-  Trace("cbqi-proc-debug") << "Collect theory ids from type " << vtn << " of "
+  Trace("cegqi-proc-debug") << "Collect theory ids from type " << vtn << " of "
                            << v << std::endl;
   // collect relevant theories for this variable
   std::map<TypeNode, bool> visited;
@@ -623,11 +623,11 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     }
     // If the above call fails, resort to using value in model. We do so if:
     // - we have yet to try an instantiation this round (or we are trying
-    //   multiple instantiations, indicated by options::cbqiMultiInst),
+    //   multiple instantiations, indicated by options::cegqiMultiInst),
     // - the instantiator uses model values at this effort or
     //   if we are solving for a subfield of a datatype (is_sv), and
     // - the instantiator allows model values.
-    if ((options::cbqiMultiInst() || !hasTriedInstantiation(pv))
+    if ((options::cegqiMultiInst() || !hasTriedInstantiation(pv))
         && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
@@ -638,16 +638,16 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       // Quantified Linear Arithmetic by Counterexample Guided Instantiation",
       // FMSD 2017. We throw an assertion failure if we detect a case where the
       // strategy was not monotonic.
-      if (options::cbqiNestedQE() && d_qe->getLogicInfo().isPure(THEORY_ARITH)
+      if (options::cegqiNestedQE() && d_qe->getLogicInfo().isPure(THEORY_ARITH)
           && d_qe->getLogicInfo().isLinear())
       {
-        Trace("cbqi-warn") << "Had to resort to model value." << std::endl;
+        Trace("cegqi-warn") << "Had to resort to model value." << std::endl;
         Assert(false);
       }
 #endif
       Node mv = getModelValue( pv );
       TermProperties pv_prop_m;
-      Trace("cbqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
+      Trace("cegqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
       d_curr_iphase[pv] = CEG_INST_PHASE_MVALUE;
       CegInstEffort prev = d_effort;
       if (d_effort < CEG_INST_EFFORT_STANDARD_MV)
@@ -662,7 +662,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       d_effort = prev;
     }
 
-    Trace("cbqi-inst-debug") << "[No instantiation found for " << pv << "]" << std::endl;
+    Trace("cegqi-inst-debug") << "[No instantiation found for " << pv << "]" << std::endl;
     if (is_sv)
     {
       d_stack_vars.push_back( pv );
@@ -684,34 +684,34 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   {
     pvr = d_qe->getMasterEqualityEngine()->getRepresentative(pv);
   }
-  Trace("cbqi-inst-debug") << "[Find instantiation for " << pv
+  Trace("cegqi-inst-debug") << "[Find instantiation for " << pv
                            << "], rep=" << pvr << ", instantiator is "
                            << vinst->identify() << std::endl;
   Node pv_value;
-  if (options::cbqiModel())
+  if (options::cegqiModel())
   {
     pv_value = getModelValue(pv);
-    Trace("cbqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
+    Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
   }
 
   //[1] easy case : pv is in the equivalence class as another term not
   // containing pv
   if (vinst->hasProcessEqualTerm(this, sf, pv, d_effort))
   {
-    Trace("cbqi-inst-debug")
+    Trace("cegqi-inst-debug")
         << "[1] try based on equivalence class." << std::endl;
     d_curr_iphase[pv] = CEG_INST_PHASE_EQC;
     std::map<Node, std::vector<Node> >::iterator it_eqc = d_curr_eqc.find(pvr);
     if (it_eqc != d_curr_eqc.end())
     {
       // std::vector< Node > eq_candidates;
-      Trace("cbqi-inst-debug2")
+      Trace("cegqi-inst-debug2")
           << "...eqc has size " << it_eqc->second.size() << std::endl;
       for (const Node& n : it_eqc->second)
       {
         if (n != pv)
         {
-          Trace("cbqi-inst-debug")
+          Trace("cegqi-inst-debug")
               << "...try based on equal term " << n << std::endl;
           // must be an eligible term
           if (isEligible(n))
@@ -741,7 +741,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
               {
                 return true;
               }
-              else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
+              else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
               {
                 return false;
               }
@@ -757,14 +757,14 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
       {
         return true;
       }
-      else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
+      else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
       {
         return false;
       }
     }
     else
     {
-      Trace("cbqi-inst-debug2") << "...eqc not found." << std::endl;
+      Trace("cegqi-inst-debug2") << "...eqc not found." << std::endl;
     }
   }
 
@@ -773,7 +773,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   /// the variable
   if (vinst->hasProcessEquality(this, sf, pv, d_effort))
   {
-    Trace("cbqi-inst-debug")
+    Trace("cegqi-inst-debug")
         << "[2] try based on solving equalities." << std::endl;
     d_curr_iphase[pv] = CEG_INST_PHASE_EQUAL;
     std::vector<Node>& cteqc = d_curr_type_eqc[pvtnb];
@@ -787,7 +787,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
       Assert(it_reqc != d_curr_eqc.end());
       for (const Node& n : it_reqc->second)
       {
-        Trace("cbqi-inst-debug2") << "...look at term " << n << std::endl;
+        Trace("cegqi-inst-debug2") << "...look at term " << n << std::endl;
         // must be an eligible term
         if (isEligible(n))
         {
@@ -808,7 +808,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
           if (!ns.isNull())
           {
             bool hasVar = d_prog_var[ns].find(pv) != d_prog_var[ns].end();
-            Trace("cbqi-inst-debug2") << "... " << ns << " has var " << pv
+            Trace("cegqi-inst-debug2") << "... " << ns << " has var " << pv
                                       << " : " << hasVar << std::endl;
             std::vector<TermProperties> term_props;
             std::vector<Node> terms;
@@ -819,7 +819,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
               // if this term or the another has pv in it, try to solve for it
               if (hasVar || lhs_v[j])
               {
-                Trace("cbqi-inst-debug") << "......try based on equality "
+                Trace("cegqi-inst-debug") << "......try based on equality "
                                          << lhs[j] << " = " << ns << std::endl;
                 term_props.push_back(lhs_prop[j]);
                 terms.push_back(lhs[j]);
@@ -828,7 +828,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
                 {
                   return true;
                 }
-                else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
+                else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
                 {
                   return false;
                 }
@@ -842,14 +842,14 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
           }
           else
           {
-            Trace("cbqi-inst-debug2")
+            Trace("cegqi-inst-debug2")
                 << "... term " << n << " is ineligible after substitution."
                 << std::endl;
           }
         }
         else
         {
-          Trace("cbqi-inst-debug2")
+          Trace("cegqi-inst-debug2")
               << "... term " << n << " is ineligible." << std::endl;
         }
       }
@@ -860,13 +860,13 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   {
     return false;
   }
-  Trace("cbqi-inst-debug") << "[3] try based on assertions." << std::endl;
+  Trace("cegqi-inst-debug") << "[3] try based on assertions." << std::endl;
   d_curr_iphase[pv] = CEG_INST_PHASE_ASSERTION;
   std::unordered_set<Node, NodeHashFunction> lits;
   for (unsigned r = 0; r < 2; r++)
   {
     TheoryId tid = r == 0 ? Theory::theoryOf(pvtn) : THEORY_UF;
-    Trace("cbqi-inst-debug2") << "  look at assertions of " << tid << std::endl;
+    Trace("cegqi-inst-debug2") << "  look at assertions of " << tid << std::endl;
     std::map<TheoryId, std::vector<Node> >::iterator ita =
         d_curr_asserts.find(tid);
     if (ita != d_curr_asserts.end())
@@ -877,18 +877,18 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
         {
           lits.insert(lit);
           Node plit;
-          if (options::cbqiRepeatLit() || !isSolvedAssertion(lit))
+          if (options::cegqiRepeatLit() || !isSolvedAssertion(lit))
           {
             plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
           }
           if (!plit.isNull())
           {
-            Trace("cbqi-inst-debug2") << "  look at " << lit;
+            Trace("cegqi-inst-debug2") << "  look at " << lit;
             if (plit != lit)
             {
-              Trace("cbqi-inst-debug2") << "...processed to : " << plit;
+              Trace("cegqi-inst-debug2") << "...processed to : " << plit;
             }
-            Trace("cbqi-inst-debug2") << std::endl;
+            Trace("cegqi-inst-debug2") << std::endl;
             // apply substitutions
             Node slit = applySubstitutionToLiteral(plit, sf);
             if (!slit.isNull())
@@ -896,14 +896,14 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
               // check if contains pv
               if (hasVariable(slit, pv))
               {
-                Trace("cbqi-inst-debug")
+                Trace("cegqi-inst-debug")
                     << "...try based on literal " << slit << "," << std::endl;
-                Trace("cbqi-inst-debug") << "...from " << lit << std::endl;
+                Trace("cegqi-inst-debug") << "...from " << lit << std::endl;
                 if (vinst->processAssertion(this, sf, pv, slit, lit, d_effort))
                 {
                   return true;
                 }
-                else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
+                else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
                 {
                   return false;
                 }
@@ -939,14 +939,14 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
-    if( Trace.isOn("cbqi-inst-debug") ){
+    if( Trace.isOn("cegqi-inst-debug") ){
       for( unsigned j=0; j<sf.d_subs.size(); j++ ){
-        Trace("cbqi-inst-debug") << " ";
+        Trace("cegqi-inst-debug") << " ";
       }
-      Trace("cbqi-inst-debug") << sf.d_subs.size() << ": (" << d_curr_iphase[pv]
+      Trace("cegqi-inst-debug") << sf.d_subs.size() << ": (" << d_curr_iphase[pv]
                          << ") ";
       Node mod_pv = pv_prop.getModifiedTerm( pv );
-      Trace("cbqi-inst-debug") << mod_pv << " -> " << n << std::endl;
+      Trace("cegqi-inst-debug") << mod_pv << " -> " << n << std::endl;
       Assert(n.getType().isSubtypeOf(pv.getType()));
     }
     //must ensure variables have been computed for n
@@ -969,9 +969,9 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
     std::map< int, TermProperties > prev_prop;
     std::map< int, Node > prev_sym_subs;
     std::vector< Node > new_non_basic;
-    Trace("cbqi-inst-debug2") << "Applying substitutions to previous substitution terms..." << std::endl;
+    Trace("cegqi-inst-debug2") << "Applying substitutions to previous substitution terms..." << std::endl;
     for( unsigned j=0; j<sf.d_subs.size(); j++ ){
-      Trace("cbqi-inst-debug2") << "  Apply for " << sf.d_subs[j]  << std::endl;
+      Trace("cegqi-inst-debug2") << "  Apply for " << sf.d_subs[j]  << std::endl;
       Assert(d_prog_var.find(sf.d_subs[j]) != d_prog_var.end());
       if( d_prog_var[sf.d_subs[j]].find( pv )!=d_prog_var[sf.d_subs[j]].end() ){
         prev_subs[j] = sf.d_subs[j];
@@ -1014,25 +1014,25 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
             computeProgVars( sf.d_subs[j] );
             Assert(d_inelig.find(sf.d_subs[j]) == d_inelig.end());
           }
-          Trace("cbqi-inst-debug2") << "Subs " << j << " " << sf.d_subs[j] << std::endl;
+          Trace("cegqi-inst-debug2") << "Subs " << j << " " << sf.d_subs[j] << std::endl;
         }else{
-          Trace("cbqi-inst-debug2") << "...failed to apply substitution to " << sf.d_subs[j] << std::endl;
+          Trace("cegqi-inst-debug2") << "...failed to apply substitution to " << sf.d_subs[j] << std::endl;
           success = false;
           break;
         }
       }else{
-        Trace("cbqi-inst-debug2") << "Skip " << j << " " << sf.d_subs[j] << std::endl;
+        Trace("cegqi-inst-debug2") << "Skip " << j << " " << sf.d_subs[j] << std::endl;
       }
     }
     if( success ){
-      Trace("cbqi-inst-debug2") << "Adding to vectors..." << std::endl;
+      Trace("cegqi-inst-debug2") << "Adding to vectors..." << std::endl;
       sf.push_back( pv, n, pv_prop );
-      Trace("cbqi-inst-debug2") << "Recurse..." << std::endl;
+      Trace("cegqi-inst-debug2") << "Recurse..." << std::endl;
       unsigned i = d_curr_index[pv];
       success = constructInstantiation(sf, d_stack_vars.empty() ? i + 1 : i);
       if (!success || revertOnSuccess)
       {
-        Trace("cbqi-inst-debug2") << "Removing from vectors..." << std::endl;
+        Trace("cegqi-inst-debug2") << "Removing from vectors..." << std::endl;
         sf.pop_back( pv, n, pv_prop );
       }
     }
@@ -1040,7 +1040,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
     {
       return true;
     }else{
-      Trace("cbqi-inst-debug2") << "Revert substitutions..." << std::endl;
+      Trace("cegqi-inst-debug2") << "Revert substitutions..." << std::endl;
       //revert substitution information
       for (std::map<int, Node>::iterator it = prev_subs.begin();
            it != prev_subs.end();
@@ -1068,7 +1068,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
 bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas ) {
   if (vars.size() > d_input_vars.size() || !d_var_order_index.empty())
   {
-    Trace("cbqi-inst-debug") << "Reconstructing instantiations...." << std::endl;
+    Trace("cegqi-inst-debug") << "Reconstructing instantiations...." << std::endl;
     std::map< Node, Node > subs_map;
     for( unsigned i=0; i<subs.size(); i++ ){
       subs_map[vars[i]] = subs[i];
@@ -1079,24 +1079,24 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
       std::map<Node, Node>::iterator it = subs_map.find(d_input_vars[i]);
       Assert(it != subs_map.end());
       Node n = it->second;
-      Trace("cbqi-inst-debug") << "  " << d_input_vars[i] << " -> " << n
+      Trace("cegqi-inst-debug") << "  " << d_input_vars[i] << " -> " << n
                                << std::endl;
       Assert(n.getType().isSubtypeOf(d_input_vars[i].getType()));
       subs.push_back( n );
     }
   }
-  if (Trace.isOn("cbqi-inst"))
+  if (Trace.isOn("cegqi-inst"))
   {
-    Trace("cbqi-inst") << "Ceg Instantiator produced : " << std::endl;
+    Trace("cegqi-inst") << "Ceg Instantiator produced : " << std::endl;
     for (unsigned i = 0, size = d_input_vars.size(); i < size; ++i)
     {
       Node v = d_input_vars[i];
-      Trace("cbqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
+      Trace("cegqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
                          << v << " -> " << subs[i] << std::endl;
       Assert(subs[i].getType().isSubtypeOf(v.getType()));
     }
   }
-  Trace("cbqi-inst-debug") << "Do the instantiation...." << std::endl;
+  Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
   bool ret = d_parent->doAddInstantiation(subs);
   for( unsigned i=0; i<lemmas.size(); i++ ){
     d_parent->addLemma(lemmas[i]);
@@ -1151,13 +1151,13 @@ bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& no
 
 Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
                                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff ) {
+  n = Rewriter::rewrite(n);
   computeProgVars( n );
-  Assert(n == Rewriter::rewrite(n));
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
-  if( Trace.isOn("cegqi-si-apply-subs-debug") ){
-    Trace("cegqi-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;
+  if( Trace.isOn("sygus-si-apply-subs-debug") ){
+    Trace("sygus-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;
     for( unsigned i=0; i<subs.size(); i++ ){
-      Trace("cegqi-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;
+      Trace("sygus-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;
       Assert(subs[i].getType().isSubtypeOf(vars[i].getType()));
     }
   }
@@ -1215,7 +1215,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
         //make sum with normalized coefficient
         if( !pv_prop.d_coeff.isNull() ){
           pv_prop.d_coeff = Rewriter::rewrite( pv_prop.d_coeff );
-          Trace("cegqi-si-apply-subs-debug") << "Combined coeff : " << pv_prop.d_coeff << std::endl;
+          Trace("sygus-si-apply-subs-debug") << "Combined coeff : " << pv_prop.d_coeff << std::endl;
           std::vector< Node > children;
           for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
             Node c_coeff;
@@ -1235,7 +1235,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
               c = NodeManager::currentNM()->mkNode( MULT, c_coeff, msum_term[it->first] );
             }
             children.push_back( c );
-            Trace("cegqi-si-apply-subs-debug") << "Add child : " << c << std::endl;
+            Trace("sygus-si-apply-subs-debug") << "Add child : " << c << std::endl;
           }
           Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
           nretc = Rewriter::rewrite( nretc );
@@ -1245,14 +1245,14 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             //result is ( nret / pv_prop.d_coeff )
             nret = nretc;
           }else{
-            Trace("cegqi-si-apply-subs-debug") << "Failed, since result " << nretc << " contains free variable." << std::endl;
+            Trace("sygus-si-apply-subs-debug") << "Failed, since result " << nretc << " contains free variable." << std::endl;
           }
         }else{
           //implies that we have a monomial that has a free variable
-          Trace("cegqi-si-apply-subs-debug") << "Failed to find coefficient during substitution, implies monomial with free variable." << std::endl;
+          Trace("sygus-si-apply-subs-debug") << "Failed to find coefficient during substitution, implies monomial with free variable." << std::endl;
         }
       }else{
-        Trace("cegqi-si-apply-subs-debug") << "Failed to find monomial sum " << n << std::endl;
+        Trace("sygus-si-apply-subs-debug") << "Failed to find monomial sum " << n << std::endl;
       }
     }
   }
@@ -1324,7 +1324,7 @@ bool CegInstantiator::check() {
       return true;
     }
   }
-  Trace("cbqi-engine") << "  WARNING : unable to find CEGQI single invocation instantiation." << std::endl;
+  Trace("cegqi-engine") << "  WARNING : unable to find CEGQI single invocation instantiation." << std::endl;
   return false;
 }
 
@@ -1344,7 +1344,7 @@ void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq 
                  == it->second.end())
       {
         it->second.push_back(nn);
-        Trace("cbqi-presolve") << "  - " << n[i] << " = " << nn << std::endl;
+        Trace("cegqi-presolve") << "  - " << n[i] << " = " << nn << std::endl;
       }
     }
   }
@@ -1393,7 +1393,7 @@ void CegInstantiator::presolve( Node q ) {
       Node lem = conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj );
       Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
       lem = NodeManager::currentNM()->mkNode( OR, g, lem );
-      Trace("cbqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
+      Trace("cegqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
       Assert(!expr::hasFreeVar(lem));
       d_qe->getOutputChannel().lemma( lem, false, true );
     }
@@ -1401,7 +1401,7 @@ void CegInstantiator::presolve( Node q ) {
 }
 
 void CegInstantiator::processAssertions() {
-  Trace("cbqi-proc") << "--- Process assertions, #var = " << d_vars.size()
+  Trace("cegqi-proc") << "--- Process assertions, #var = " << d_vars.size()
                      << std::endl;
   d_curr_asserts.clear();
   d_curr_eqc.clear();
@@ -1414,12 +1414,12 @@ void CegInstantiator::processAssertions() {
   for( unsigned i=0; i<d_vars.size(); i++ ){
     Node pv = d_vars[i];
     TypeNode pvtn = pv.getType();
-    Trace("cbqi-proc-debug") << "Collect theory ids from type " << pvtn << " of " << pv << std::endl;
+    Trace("cegqi-proc-debug") << "Collect theory ids from type " << pvtn << " of " << pv << std::endl;
     //collect information about eqc
     if( ee->hasTerm( pv ) ){
       Node pvr = ee->getRepresentative( pv );
       if( d_curr_eqc.find( pvr )==d_curr_eqc.end() ){
-        Trace("cbqi-proc") << "Collect equivalence class " << pvr << std::endl;
+        Trace("cegqi-proc") << "Collect equivalence class " << pvr << std::endl;
         eq::EqClassIterator eqc_i = eq::EqClassIterator( pvr, ee );
         while( !eqc_i.isFinished() ){
           d_curr_eqc[pvr].push_back( *eqc_i );
@@ -1433,7 +1433,7 @@ void CegInstantiator::processAssertions() {
     TheoryId tid = d_tids[i];
     Theory* theory = d_qe->getTheoryEngine()->theoryOf( tid );
     if( theory && d_qe->getTheoryEngine()->isTheoryEnabled(tid) ){
-      Trace("cbqi-proc") << "Collect assertions from theory " << tid << std::endl;
+      Trace("cegqi-proc") << "Collect assertions from theory " << tid << std::endl;
       d_curr_asserts[tid].clear();
       //collect all assertions from theory
       for( context::CDList<Assertion>::const_iterator it = theory->facts_begin(); it != theory->facts_end(); ++ it) {
@@ -1441,15 +1441,15 @@ void CegInstantiator::processAssertions() {
         Node atom = lit.getKind()==NOT ? lit[0] : lit;
         if( d_is_nested_quant || std::find( d_ce_atoms.begin(), d_ce_atoms.end(), atom )!=d_ce_atoms.end() ){
           d_curr_asserts[tid].push_back( lit );
-          Trace("cbqi-proc-debug") << "...add : " << lit << std::endl;
+          Trace("cegqi-proc-debug") << "...add : " << lit << std::endl;
         }else{
-          Trace("cbqi-proc") << "...do not consider literal " << tid << " : " << lit << " since it is not part of CE body." << std::endl;
+          Trace("cegqi-proc") << "...do not consider literal " << tid << " : " << lit << " since it is not part of CE body." << std::endl;
         }
       }
     }
   }
   //collect equivalence classes that correspond to relevant theories
-  Trace("cbqi-proc-debug") << "...collect typed equivalence classes" << std::endl;
+  Trace("cegqi-proc-debug") << "...collect typed equivalence classes" << std::endl;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   while( !eqcs_i.isFinished() ){
     Node r = *eqcs_i;
@@ -1460,18 +1460,18 @@ void CegInstantiator::processAssertions() {
       if( rtn.isInteger() || rtn.isReal() ){
         rtn = rtn.getBaseType();
       }
-      Trace("cbqi-proc-debug") << "...type eqc: " << r << std::endl;
+      Trace("cegqi-proc-debug") << "...type eqc: " << r << std::endl;
       d_curr_type_eqc[rtn].push_back( r );
       if( d_curr_eqc.find( r )==d_curr_eqc.end() ){
-        Trace("cbqi-proc") << "Collect equivalence class " << r << std::endl;
-        Trace("cbqi-proc-debug") << "  ";
+        Trace("cegqi-proc") << "Collect equivalence class " << r << std::endl;
+        Trace("cegqi-proc-debug") << "  ";
         eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
         while( !eqc_i.isFinished() ){
-          Trace("cbqi-proc-debug") << *eqc_i << " ";
+          Trace("cegqi-proc-debug") << *eqc_i << " ";
           d_curr_eqc[r].push_back( *eqc_i );
           ++eqc_i;
         }
-        Trace("cbqi-proc-debug") << std::endl;
+        Trace("cegqi-proc-debug") << std::endl;
       }
     }
     ++eqcs_i;
@@ -1486,13 +1486,13 @@ void CegInstantiator::processAssertions() {
       if( isEligible( n ) ){
         //must contain at least one variable
         if( !d_prog_var[n].empty() ){
-          Trace("cbqi-proc") << "...literal[" << it->first << "] : " << n << std::endl;
+          Trace("cegqi-proc") << "...literal[" << it->first << "] : " << n << std::endl;
           akeep.push_back( n );
         }else{
-          Trace("cbqi-proc") << "...remove literal from " << it->first << " : " << n << " since it contains no relevant variables." << std::endl;
+          Trace("cegqi-proc") << "...remove literal from " << it->first << " : " << n << " since it contains no relevant variables." << std::endl;
         }
       }else{
-        Trace("cbqi-proc") << "...remove literal from " << it->first << " : " << n << " since it contains ineligible terms." << std::endl;
+        Trace("cegqi-proc") << "...remove literal from " << it->first << " : " << n << " since it contains ineligible terms." << std::endl;
       }
     }
     it->second.clear();
@@ -1564,7 +1564,7 @@ void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) 
       }
     }else{
       if( std::find( d_ce_atoms.begin(), d_ce_atoms.end(), n )==d_ce_atoms.end() ){
-        Trace("cbqi-ce-atoms") << "CE atoms : " << n << std::endl;
+        Trace("cegqi-ce-atoms") << "CE atoms : " << n << std::endl;
         d_ce_atoms.push_back( n );
       }
     }
@@ -1572,7 +1572,7 @@ void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) 
 }
 
 void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, std::vector< Node >& ce_vars ) {
-  Trace("cbqi-reg") << "Register counterexample lemma..." << std::endl;
+  Trace("cegqi-reg") << "Register counterexample lemma..." << std::endl;
   d_input_vars.clear();
   d_input_vars.insert(d_input_vars.end(), ce_vars.begin(), ce_vars.end());
 
@@ -1581,12 +1581,12 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   registerTheoryId(THEORY_UF);
   for (unsigned i = 0; i < ce_vars.size(); i++)
   {
-    Trace("cbqi-reg") << "  register input variable : " << ce_vars[i] << std::endl;
+    Trace("cegqi-reg") << "  register input variable : " << ce_vars[i] << std::endl;
     registerVariable(ce_vars[i]);
   }
 
   // preprocess with all relevant instantiator preprocessors
-  Trace("cbqi-debug") << "Preprocess based on theory-specific methods..."
+  Trace("cegqi-debug") << "Preprocess based on theory-specific methods..."
                       << std::endl;
   std::vector<Node> pvars;
   pvars.insert(pvars.end(), d_vars.begin(), d_vars.end());
@@ -1595,12 +1595,12 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     p.second->registerCounterexampleLemma(lems, pvars);
   }
   // must register variables generated by preprocessors
-  Trace("cbqi-debug") << "Register variables from theory-specific methods "
+  Trace("cegqi-debug") << "Register variables from theory-specific methods "
                       << d_input_vars.size() << " " << pvars.size() << " ..."
                       << std::endl;
   for (unsigned i = d_input_vars.size(), size = pvars.size(); i < size; ++i)
   {
-    Trace("cbqi-reg") << "  register theory preprocess variable : " << pvars[i]
+    Trace("cegqi-reg") << "  register theory preprocess variable : " << pvars[i]
                       << std::endl;
     registerVariable(pvars[i]);
   }
@@ -1609,21 +1609,21 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   IteSkolemMap iteSkolemMap;
   d_qe->getTheoryEngine()->getTermFormulaRemover()->run(lems, iteSkolemMap);
   for(IteSkolemMap::iterator i = iteSkolemMap.begin(); i != iteSkolemMap.end(); ++i) {
-    Trace("cbqi-reg") << "  register aux variable : " << i->first << std::endl;
+    Trace("cegqi-reg") << "  register aux variable : " << i->first << std::endl;
     registerVariable(i->first);
   }
   for( unsigned i=0; i<lems.size(); i++ ){
-    Trace("cbqi-debug") << "Counterexample lemma (pre-rewrite)  " << i << " : " << lems[i] << std::endl;
+    Trace("cegqi-debug") << "Counterexample lemma (pre-rewrite)  " << i << " : " << lems[i] << std::endl;
     Node rlem = lems[i];
     rlem = Rewriter::rewrite( rlem );
     // also must preprocess to ensure that the counterexample atoms we
     // collect below are identical to the atoms that we add to the CNF stream
     rlem = d_qe->getTheoryEngine()->preprocess(rlem);
-    Trace("cbqi-debug") << "Counterexample lemma (post-rewrite) " << i << " : " << rlem << std::endl;
+    Trace("cegqi-debug") << "Counterexample lemma (post-rewrite) " << i << " : " << rlem << std::endl;
     lems[i] = rlem;
   }
   // determine variable order: must do Reals before Ints
-  Trace("cbqi-debug") << "Determine variable order..." << std::endl;
+  Trace("cegqi-debug") << "Determine variable order..." << std::endl;
   if (!d_vars.empty())
   {
     std::map<Node, unsigned> voo;
@@ -1647,21 +1647,21 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     }
     if (doSort)
     {
-      Trace("cbqi-debug") << "Sort variables based on ordering." << std::endl;
+      Trace("cegqi-debug") << "Sort variables based on ordering." << std::endl;
       for (std::pair<const TypeNode, std::vector<Node> >& vs : tvars)
       {
         vars.insert(vars.end(), vs.second.begin(), vs.second.end());
       }
 
-      Trace("cbqi-debug") << "Consider variables in this order : " << std::endl;
+      Trace("cegqi-debug") << "Consider variables in this order : " << std::endl;
       for (unsigned i = 0; i < vars.size(); i++)
       {
         d_var_order_index[voo[vars[i]]] = i;
-        Trace("cbqi-debug") << "  " << vars[i] << " : " << vars[i].getType()
+        Trace("cegqi-debug") << "  " << vars[i] << " : " << vars[i].getType()
                             << ", index was : " << voo[vars[i]] << std::endl;
         d_vars[i] = vars[i];
       }
-      Trace("cbqi-debug") << std::endl;
+      Trace("cegqi-debug") << std::endl;
     }
     else
     {

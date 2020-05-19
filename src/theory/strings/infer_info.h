@@ -328,19 +328,18 @@ enum LengthStatus
 };
 
 /**
- * This data structure encapsulates an inference for strings. This includes
- * the form of the inference, as well as the side effects it generates.
+ * An inference. This is a class to track an unprocessed call to either
+ * send a fact, lemma, or conflict that is waiting to be asserted to the
+ * equality engine or sent on the output channel.
  */
 class InferInfo
 {
  public:
   InferInfo();
-  /**
-   * The identifier for the inference, indicating the kind of reasoning used
-   * for this conclusion.
-   */
+  ~InferInfo() {}
+  /** The inference identifier */
   Inference d_id;
-  /** The conclusion of the inference */
+  /** The conclusion */
   Node d_conc;
   /**
    * The antecedant(s) of the inference, interpreted conjunctively. These are
@@ -359,31 +358,29 @@ class InferInfo
    * can be assumed for them.
    */
   std::map<LengthStatus, std::vector<Node> > d_new_skolem;
+  /**  Is this infer info trivial? True if d_conc is true. */
+  bool isTrivial() const;
   /**
-   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
+   * Does this infer info correspond to a conflict? True if d_conc is false
+   * and it has no new antecedants (d_antn).
    */
-  std::map<Node, bool> d_pending_phase;
+  bool isConflict() const;
   /**
-   * The index in the normal forms under which this inference is addressing.
-   * For example, if the inference is inferring x = y from |x|=|y| and
-   *   w ++ x ++ ... = w ++ y ++ ...
-   * then d_index is 1, since x and y are at index 1 in these concat terms.
+   * Does this infer info correspond to a "fact". A fact is an inference whose
+   * conclusion should be added as an equality or predicate to the equality
+   * engine with no new external antecedants (d_antn).
    */
-  unsigned d_index;
-  /**
-   * The normal form pair that is cached as a result of this inference.
-   */
-  Node d_nf_pair[2];
-  /** for debugging
-   *
-   * The base pair of strings d_i/d_j that led to the inference, and whether
-   * (d_rev) we were processing the normal forms of these strings in reverse
-   * direction.
-   */
-  Node d_i;
-  Node d_j;
-  bool d_rev;
+  bool isFact() const;
 };
+
+/**
+ * Writes an inference info to a stream.
+ *
+ * @param out The stream to write to
+ * @param ii The inference info to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, const InferInfo& ii);
 
 }  // namespace strings
 }  // namespace theory

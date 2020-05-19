@@ -1,4 +1,4 @@
-; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegqi-si=none
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-si=none
 ; EXPECT: unsat
 
 (set-logic BV)
