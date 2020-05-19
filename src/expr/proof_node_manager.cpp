@@ -63,7 +63,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
 std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     std::shared_ptr<ProofNode> pf,
     std::vector<Node>& assumps,
-    bool ensureClosed)
+    bool ensureClosed,
+    bool doMinimize)
 {
   std::vector<std::shared_ptr<ProofNode>> pfChildren;
   pfChildren.push_back(pf);
@@ -152,8 +153,11 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       }
     }
   }
-  assumps.clear();
-  assumps.insert(assumps.end(), acu.begin(), acu.end());
+  if (doMinimize)
+  {
+    assumps.clear();
+    assumps.insert(assumps.end(), acu.begin(), acu.end());
+  }
   return mkNode(PfRule::SCOPE, pfChildren, assumps);
 }
 
