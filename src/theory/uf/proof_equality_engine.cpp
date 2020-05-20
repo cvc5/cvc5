@@ -432,13 +432,11 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   // Make the lemma or conflict node. This must exactly match the conclusion
   // of SCOPE below.
   Node formula;
-  Node concFormula;
   if (tnk == TrustNodeKind::CONFLICT)
   {
     // conflict is negated
     Assert(conc == d_false);
     formula = exp;
-    concFormula = formula.negate();
   }
   else
   {
@@ -446,7 +444,6 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
         exp == d_true
             ? conc
             : (conc == d_false ? exp.negate() : nm->mkNode(IMPLIES, exp, conc));
-    concFormula = formula;
   }
   Trace("pfee-proof") << "pfee::ensureProofForFact: formula is " << formula
                       << std::endl;

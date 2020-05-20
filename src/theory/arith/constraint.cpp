@@ -1705,8 +1705,7 @@ TrustNode ConstraintDatabase::eeExplain(const Constraint* const c) const{
 void ConstraintDatabase::eeExplain(const Constraint* const c, NodeBuilder<>& nb) const{
   Assert(c->hasLiteral());
   // NOTE: this is not a recommended method since it ignores proofs
-  TrustNode trn = eeExplain(c);
-  nb << trn.getNode();
+  d_congruenceManager.explain(c->getLiteral(), nb);
 }
 
 bool ConstraintDatabase::variableDatabaseIsSetup(ArithVar v) const {

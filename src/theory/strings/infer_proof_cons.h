@@ -55,7 +55,7 @@ class InferProofCons : public ProofGenerator
    * in the future.
    *
    * In detail, this class should be prepared to respond to a call to:
-   *   addProofTo(ii.d_conc, ...)
+   *   getProofFor(ii.d_conc)
    * in the remainder of the SAT context. This method copies ii and stores it
    * in the context-dependent map d_lazyFactMap below.
    *
@@ -98,16 +98,14 @@ class InferProofCons : public ProofGenerator
   /** Get the proof step buffer */
   ProofStepBuffer* getBuffer();
 
-  /** Get the proof for formula f */
-  std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /**
-   * This adds the proof steps for fact to proof pf with the given overwrite
-   * policy. This is required for using this class as a lazy proof generator.
+   * This returns the proof for fact. This is required for using this class as
+   * a lazy proof generator.
    *
-   * It should be the case that a call was made to convert(...), where conc
-   * was fact, in the current SAT context.
+   * It should be the case that a call was made to notifyFact(ii) where
+   * ii.d_conc is fact in this SAT context.
    */
-  bool addProofTo(Node fact, CDProof* pf, bool forceOverwrite = false) override;
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const override;
 

@@ -1072,25 +1072,6 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   return pf.mkProof(fact);
 }
 
-bool InferProofCons::addProofTo(Node fact, CDProof* pf, bool forceOverwrite)
-{
-  // we copy fresh proofs
-  return ProofGenerator::addProofTo(fact, pf, forceOverwrite);
-  // TODO: is the alternatve version below necessary?
-  // get the inference
-  NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
-  AlwaysAssert(it != d_lazyFactMap.end());
-  // now go back and convert it to proof steps and add to proof
-  bool useBuffer = false;
-  ProofStep ps;
-  convert(*(*it).second, ps, useBuffer);
-  if (useBuffer)
-  {
-    return pf->addSteps(d_psb, false, forceOverwrite);
-  }
-  return pf->addStep(fact, ps, false, forceOverwrite);
-}
-
 std::string InferProofCons::identify() const
 {
   return "strings::InferProofCons";

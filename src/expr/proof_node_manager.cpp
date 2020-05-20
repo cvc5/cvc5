@@ -151,7 +151,28 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     assumps.clear();
     assumps.insert(assumps.end(), acu.begin(), acu.end());
   }
-  return mkNode(PfRule::SCOPE, pfChildren, assumps);
+  Node expected;
+  NodeManager * nm = NodeManager::currentNM();
+  Node exp;
+  Node conc = pf->getResult();
+  if (assumps.empty())
+  {
+    Assert (!conc.isConst());
+    expected = conc;
+  }
+  else
+  {
+    exp = assumps.size()==1 ? assumps[0] : nm->mkNode(AND, assumps);
+    if (conc.isConst() && !conc.getConst<bool>())
+    {
+      expected = exp.notNode();
+    }
+    else
+    {
+      expected = nm->mkNode(IMPLIES, exp, conc);
+    }
+  }
+  return mkNode(PfRule::SCOPE, pfChildren, assumps, expected);
 }
 
 bool ProofNodeManager::updateNode(

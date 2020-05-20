@@ -225,7 +225,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     // if the conclusion is false, its the negated antencedant only
     if (children[0].isConst() && !children[0].getConst<bool>())
     {
-      return NodeManager::currentNM()->mkNode(NOT, ant);
+      return ant.notNode();
     }
     return NodeManager::currentNM()->mkNode(IMPLIES, ant, children[0]);
   }
