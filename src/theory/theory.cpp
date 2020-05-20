@@ -268,6 +268,28 @@ void Theory::debugPrintFacts() const{
   printFacts(DebugChannel.getStream());
 }
 
+bool Theory::isLegalElimination(TNode x, TNode val)
+{
+  Assert(x.isVar());
+  if (expr::hasSubterm(val, x))
+  {
+    return false;
+  }
+  if (!val.getType().isSubtypeOf(x.getType()))
+  {
+    return false;
+  }
+  if (!options::produceModels())
+  {
+    // don't care about the model, we are fine
+    return true;
+  }
+  // if there is a model object
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  return tm->isLegalElimination(x, val);
+}
+
 std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
   std::unordered_set<TNode, TNodeHashFunction> currentlyShared;
   for (shared_terms_iterator i = shared_terms_begin(),
@@ -337,15 +359,13 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-        && (in[1].getType()).isSubtypeOf(in[0].getType())
+    if (in[0].isVar() && isLegalElimination(in[0], in[1])
         && in[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
       outSubstitutions.addSubstitution(in[0], in[1]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-        && (in[0].getType()).isSubtypeOf(in[1].getType())
+    if (in[1].isVar() && isLegalElimination(in[1], in[0])
         && in[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
       outSubstitutions.addSubstitution(in[1], in[0]);
