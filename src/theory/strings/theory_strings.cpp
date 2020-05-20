@@ -135,6 +135,13 @@ TheoryStrings::~TheoryStrings() {
 
 }
 
+void TheoryStrings::finishInit()
+{
+  TheoryModel* tm = d_valuation.getModel();
+  // witness is used to eliminate str.from_code
+  tm->setUnevaluatedKind(WITNESS);
+}
+
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
   Assert(d_equalityEngine.hasTerm(x));
   Assert(d_equalityEngine.hasTerm(y));

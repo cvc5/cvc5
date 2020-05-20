@@ -155,6 +155,34 @@ bool hasSubtermKind(Kind k, Node n)
   return false;
 }
 
+bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     Node n)
+{
+  if (ks.empty())
+  {
+    return false;
+  }
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      if (ks.find(cur.getKind()) != ks.end())
+      {
+        return true;
+      }
+      visited.insert(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+  return false;
+}
+
 bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
 {
   if (t.empty())

@@ -416,6 +416,7 @@ set(regress_0_tests
   regress0/datatypes/mutually-recursive.cvc
   regress0/datatypes/pair-bool-bool.cvc
   regress0/datatypes/pair-real-bool.smt2
+  regress0/datatypes/parametric-alt-list.cvc
   regress0/datatypes/rec1.cvc
   regress0/datatypes/rec2.cvc
   regress0/datatypes/rec4.cvc
@@ -766,6 +767,7 @@ set(regress_0_tests
   regress0/quantifiers/qbv-test-invert-concat-1.smt2
   regress0/quantifiers/qbv-test-invert-sign-extend.smt2
   regress0/quantifiers/qcf-rel-dom-opt.smt2
+  regress0/quantifiers/quant-model-simplification.smt2
   regress0/quantifiers/rew-to-scala.smt2
   regress0/quantifiers/simp-len.smt2
   regress0/quantifiers/simp-typ-test.smt2

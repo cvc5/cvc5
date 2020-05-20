@@ -2514,8 +2514,11 @@ void SmtEngine::checkModel(bool hardFailure) {
   }
 
   // Check individual theory assertions
-  d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
-
+  if (options::debugCheckModels())
+  {
+    d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
+  }
+  
   // Output the model
   Notice() << *m;
 
