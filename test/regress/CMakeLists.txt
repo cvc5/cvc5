@@ -616,8 +616,6 @@ set(regress_0_tests
   regress0/parser/as.smt2
   regress0/parser/bv_arity_smt2.6.smt2
   regress0/parser/bv_nat.smt2
-  regress0/parser/choice.cvc
-  regress0/parser/choice.smt2
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/force_logic_set_logic.smt2
@@ -768,6 +766,7 @@ set(regress_0_tests
   regress0/quantifiers/qbv-test-invert-concat-1.smt2
   regress0/quantifiers/qbv-test-invert-sign-extend.smt2
   regress0/quantifiers/qcf-rel-dom-opt.smt2
+  regress0/quantifiers/quant-model-simplification.smt2
   regress0/quantifiers/rew-to-scala.smt2
   regress0/quantifiers/simp-len.smt2
   regress0/quantifiers/simp-typ-test.smt2
@@ -1005,6 +1004,7 @@ set(regress_0_tests
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
   regress0/sygus/issue3645-grammar-sets.smt2
+  regress0/sygus/issue4383-cache-fv-id.sy
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
   regress0/sygus/no-logic.sy
@@ -2011,6 +2011,7 @@ set(regress_2_tests
   regress2/bug674.smt2
   regress2/bug765.smt2
   regress2/bug812.smt2
+  regress2/bv/opStructure_MBA_6.scrambled.min.smt2
   regress2/bv_to_int_ashr.smt2
   regress2/bv_to_int_mask_array_1.smt2
   regress2/bv_to_int_mask_array_2.smt2

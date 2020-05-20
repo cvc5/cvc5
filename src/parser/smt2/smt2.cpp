@@ -743,13 +743,13 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 bool Smt2::sygus() const
 {
   InputLanguage ilang = getLanguage();
-  return ilang == language::input::LANG_SYGUS
+  return ilang == language::input::LANG_SYGUS_V1
          || ilang == language::input::LANG_SYGUS_V2;
 }
 
 bool Smt2::sygus_v1() const
 {
-  return getLanguage() == language::input::LANG_SYGUS;
+  return getLanguage() == language::input::LANG_SYGUS_V1;
 }
 
 bool Smt2::sygus_v2() const
