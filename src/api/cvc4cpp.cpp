@@ -76,7 +76,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {CONSTANT, CVC4::Kind::VARIABLE},
     {VARIABLE, CVC4::Kind::BOUND_VARIABLE},
     {LAMBDA, CVC4::Kind::LAMBDA},
-    {CHOICE, CVC4::Kind::CHOICE},
+    {WITNESS, CVC4::Kind::WITNESS},
     /* Boolean ------------------------------------------------------------- */
     {CONST_BOOLEAN, CVC4::Kind::CONST_BOOLEAN},
     {NOT, CVC4::Kind::NOT},
@@ -309,7 +309,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::VARIABLE, CONSTANT},
         {CVC4::Kind::BOUND_VARIABLE, VARIABLE},
         {CVC4::Kind::LAMBDA, LAMBDA},
-        {CVC4::Kind::CHOICE, CHOICE},
+        {CVC4::Kind::WITNESS, WITNESS},
         /* Boolean --------------------------------------------------------- */
         {CVC4::Kind::CONST_BOOLEAN, CONST_BOOLEAN},
         {CVC4::Kind::NOT, NOT},

@@ -394,9 +394,9 @@ header = "options/smt_options.h"
   help       = "in models, output uninterpreted sorts as datatype enumerations"
 
 [[option]]
-  name       = "modelWitnessChoice"
+  name       = "modelWitnessValue"
   category   = "regular"
-  long       = "model-witness-choice"
+  long       = "model-witness-value"
   type       = "bool"
   default    = "false"
   read_only  = true
