@@ -65,15 +65,21 @@ bool TermDbSygus::reset( Theory::Effort e ) {
 TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
   unsigned sindex = 0;
   TypeNode vtn = tn;
-  if( useSygusType ){
-    if( tn.isDatatype() ){
-      const DType& dt = tn.getDType();
-      if( !dt.getSygusType().isNull() ){
-        vtn = dt.getSygusType();
+  TypeNode builtinType = tn;
+  if (tn.isDatatype())
+  {
+    const DType& dt = tn.getDType();
+    if (!dt.getSygusType().isNull())
+    {
+      builtinType = dt.getSygusType();
+      if (useSygusType)
+      {
+        vtn = builtinType;
         sindex = 1;
-      } 
+      }
     }
   }
+  NodeManager* nm = NodeManager::currentNM();
   while( i>=(int)d_fv[sindex][tn].size() ){
     std::stringstream ss;
     if( tn.isDatatype() ){
@@ -83,9 +89,13 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
       ss << "fv_" << tn << "_" << i;
     }
     Assert(!vtn.isNull());
-    Node v = NodeManager::currentNM()->mkSkolem( ss.str(), vtn, "for sygus normal form testing" );
-    d_fv_stype[v] = tn;
-    d_fv_num[v] = i;
+    Node v = nm->mkSkolem(ss.str(), vtn, "for sygus invariance testing");
+    // store its id, which is unique per builtin type, regardless of how it is
+    // otherwise cached.
+    d_fvId[v] = d_fvTypeIdCounter[builtinType];
+    d_fvTypeIdCounter[builtinType]++;
+    Trace("sygus-db-debug") << "Free variable id " << v << " = " << d_fvId[v]
+                            << ", " << builtinType << std::endl;
     d_fv[sindex][tn].push_back( v );
   }
   return d_fv[sindex][tn][i];
@@ -101,6 +111,22 @@ TNode TermDbSygus::getFreeVarInc( TypeNode tn, std::map< TypeNode, int >& var_co
     var_count[tn]++;
     return getFreeVar( tn, index, useSygusType );
   }
+}
+
+bool TermDbSygus::isFreeVar(Node n) const
+{
+  return d_fvId.find(n) != d_fvId.end();
+}
+size_t TermDbSygus::getFreeVarId(Node n) const
+{
+  std::map<Node, size_t>::const_iterator it = d_fvId.find(n);
+  if (it == d_fvId.end())
+  {
+    Assert(false) << "TermDbSygus::isFreeVar: " << n
+                  << " is not a cached free variable.";
+    return 0;
+  }
+  return it->second;
 }
 
 bool TermDbSygus::hasFreeVar( Node n, std::map< Node, bool >& visited ){
@@ -151,11 +177,6 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
     return k;
   }
   return it->second;
-}
-
-TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
-  Assert(d_fv_stype.find(v) != d_fv_stype.end());
-  return d_fv_stype[v];
 }
 
 Node TermDbSygus::mkGeneric(const DType& dt,
@@ -321,10 +342,12 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   }
   Assert(isFreeVar(n));
   // map to builtin variable type
-  int fv_num = getVarNum(n);
+  size_t fv_num = getFreeVarId(n);
   Assert(!dt.getSygusType().isNull());
   TypeNode vtn = dt.getSygusType();
   Node ret = getFreeVar(vtn, fv_num);
+  Trace("sygus-db-debug") << "SygusToBuiltin: variable for " << n << " is "
+                          << ret << ", fv_num=" << fv_num << std::endl;
   return ret;
 }
 

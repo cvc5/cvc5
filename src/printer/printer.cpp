@@ -56,7 +56,7 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::z3str_variant));
 
-  case LANG_SYGUS:
+  case LANG_SYGUS_V1:
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::sygus_variant));
 
