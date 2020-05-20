@@ -108,6 +108,9 @@ class TheoryStrings : public Theory {
                 const LogicInfo& logicInfo);
   ~TheoryStrings();
 
+  /** finish initialization */
+  void finishInit() override;
+
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;

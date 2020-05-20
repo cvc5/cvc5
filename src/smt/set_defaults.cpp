@@ -46,6 +46,11 @@ namespace smt {
 void setDefaults(SmtEngine& smte, LogicInfo& logic)
 {
   // implied options
+  if (options::debugCheckModels())
+  {
+    Notice() << "SmtEngine: setting checkModel" << std::endl;
+    options::checkModels.set(true);
+  }
   if (options::checkModels() || options::dumpModels())
   {
     Notice() << "SmtEngine: setting produceModels" << std::endl;
@@ -300,7 +305,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
 
   // Disable options incompatible with incremental solving, unsat cores, and
-  // proofs or output an error if enabled explicitly
+  // proofs or output an error if enabled explicitly. It is also currently
+  // incompatible with arithmetic, force the option off.
   if (options::incrementalSolving() || options::unsatCores()
       || options::proof())
   {
@@ -326,8 +332,9 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       bool uncSimp = !logic.isQuantified() && !options::produceModels()
                      && !options::produceAssignments()
                      && !options::checkModels()
-                     && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                         && logic.isTheoryEnabled(THEORY_BV));
+                     && logic.isTheoryEnabled(THEORY_ARRAYS)
+                     && logic.isTheoryEnabled(THEORY_BV)
+                     && !logic.isTheoryEnabled(THEORY_ARITH);
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
                    << std::endl;
       options::unconstrainedSimp.set(uncSimp);
