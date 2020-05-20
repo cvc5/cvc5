@@ -314,6 +314,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
 
 TrustNode ProofEqEngine::explain(Node conc)
 {
+  Trace("pfee") << "pfee::explain " << conc << std::endl;
   if (d_pfEnabled)
   {
     PRefProofGenerator prg(&d_proof);
@@ -709,11 +710,13 @@ void ProofEqEngine::FactProofGenerator::addStep(Node fact, ProofStep ps)
 
 std::shared_ptr<ProofNode> ProofEqEngine::FactProofGenerator::getProofFor(Node fact)
 {
+  Trace("pfee-fact-gen") << "FactProofGenerator::getProofFor: " << fact << std::endl;
   NodeProofStepMap::iterator it = d_facts.find(fact);
   if (it==d_facts.end())
   {
     if (fact.getKind() != EQUAL)
     {
+      Trace("pfee-fact-gen") << "...cannot find step" << std::endl;
       Assert(false);
       return nullptr;
     }
@@ -722,9 +725,11 @@ std::shared_ptr<ProofNode> ProofEqEngine::FactProofGenerator::getProofFor(Node f
     if (it == d_facts.end())
     {
       Assert(false);
+      Trace("pfee-fact-gen") << "...cannot find step (no sym)" << std::endl;
       return nullptr;
     }
   }
+  Trace("pfee-fact-gen") << "...return via step " << *(*it).second << std::endl;
   CDProof cdp(d_pnm);
   cdp.addStep(fact,*(*it).second);
   return cdp.mkProof(fact);
