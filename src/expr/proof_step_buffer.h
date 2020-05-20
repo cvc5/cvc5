@@ -68,6 +68,8 @@ class ProofStepBuffer
                const std::vector<Node>& children,
                const std::vector<Node>& args,
                Node expected);
+  /** Multi-step version */
+  void addSteps(ProofStepBuffer& psb);
   /** pop step */
   void popStep();
   /** Get num steps */

@@ -1548,7 +1548,9 @@ Node Constraint::externalExplain(AssertionOrder order) const{
   if(assertedBefore(order)){
     return getWitness();
   }else if(hasEqualityEngineProof()){
-    return d_database->eeExplain(this);
+    TrustNode trn = d_database->eeExplain(this);
+    // FIXME: return TrustNode in this method, return trn itself here
+    return trn.getNode();
   }else{
     Assert(hasFarkasProof() || hasIntHoleProof() || hasIntTightenProof() || hasTrichotomyProof());
     Assert(!antecentListIsEmpty());
@@ -1695,14 +1697,16 @@ ConstraintP ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t
     }
   }
 }
-Node ConstraintDatabase::eeExplain(const Constraint* const c) const{
+TrustNode ConstraintDatabase::eeExplain(const Constraint* const c) const{
   Assert(c->hasLiteral());
   return d_congruenceManager.explain(c->getLiteral());
 }
 
 void ConstraintDatabase::eeExplain(const Constraint* const c, NodeBuilder<>& nb) const{
   Assert(c->hasLiteral());
-  d_congruenceManager.explain(c->getLiteral(), nb);
+  // NOTE: this is not a recommended method since it ignores proofs
+  TrustNode trn = eeExplain(c);
+  nb << trn.getNode();
 }
 
 bool ConstraintDatabase::variableDatabaseIsSetup(ArithVar v) const {

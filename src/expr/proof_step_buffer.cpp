@@ -81,6 +81,15 @@ void ProofStepBuffer::addStep(PfRule id,
       std::pair<Node, ProofStep>(expected, ProofStep(id, children, args)));
 }
 
+void ProofStepBuffer::addSteps(ProofStepBuffer& psb)
+{
+  const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
+  for (const std::pair<Node, ProofStep>& step : steps)
+  {
+    addStep(step.second.d_rule, step.second.d_children, step.second.d_args, step.first);
+  }
+}
+
 void ProofStepBuffer::popStep()
 {
   Assert(!d_steps.empty());

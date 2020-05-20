@@ -75,6 +75,12 @@ enum class PfRule : uint32_t
   // has the conclusion (=> F F) and has no free assumptions. More generally, a
   // proof with no free assumptions always concludes a valid formula.
   SCOPE,
+  // ======== Trust
+  // Children: (P1:F1 ... Pn:Fn)
+  // Arguments: (F)
+  // --------------
+  // F
+  TRUST,
 
   //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
 

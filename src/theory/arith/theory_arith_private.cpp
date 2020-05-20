@@ -118,6 +118,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_conflicts(c),
       d_blackBoxConflict(c, Node::null()),
       d_congruenceManager(c,
+                          u,
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
@@ -4116,7 +4117,7 @@ bool TheoryArithPrivate::needsCheckLastEffort() {
   }
 }
 
-Node TheoryArithPrivate::explain(TNode n) {
+TrustNode TheoryArithPrivate::explain(TNode n) {
 
   Debug("arith::explain") << "explain @" << getSatContext()->getLevel() << ": " << n << endl;
 
@@ -4125,13 +4126,15 @@ Node TheoryArithPrivate::explain(TNode n) {
     Assert(!c->isAssumption());
     Node exp = c->externalExplainForPropagation();
     Debug("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
-    return exp;
+    // FIXME
+    return TrustNode::mkTrustPropExp(n, exp, nullptr);
   }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
     if(!c->isAssumption()){
       Node exp = c->externalExplainForPropagation();
       Debug("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
-      return exp;
+      // FIXME
+      return TrustNode::mkTrustPropExp(n, exp, nullptr);
     }else{
       Debug("arith::explain") << "this is a strange mismatch" << n << endl;
       Assert(d_congruenceManager.canExplain(n));
@@ -4224,7 +4227,8 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
       outputPropagate(toProp);
     }else if(constraint->negationHasProof()){
-      Node exp = d_congruenceManager.explain(toProp);
+      TrustNode texp = d_congruenceManager.explain(toProp);
+      Node exp = texp.getNode();
       Node notNormalized = normalized.getKind() == NOT ?
         normalized[0] : normalized.notNode();
       Node lp = flattenAnd(exp.andNode(notNormalized));

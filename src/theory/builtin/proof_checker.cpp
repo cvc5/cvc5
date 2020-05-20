@@ -53,6 +53,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ASSUME, this);
   pc->registerChecker(PfRule::SCOPE, this);
+  pc->registerChecker(PfRule::TRUST, this);
   pc->registerChecker(PfRule::SUBS, this);
   pc->registerChecker(PfRule::REWRITE, this);
   pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
@@ -227,6 +228,11 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return NodeManager::currentNM()->mkNode(NOT, ant);
     }
     return NodeManager::currentNM()->mkNode(IMPLIES, ant, children[0]);
+  }
+  else if (id == PfRule::TRUST)
+  {
+    Assert (args.size()==1);
+    return args[0];
   }
   else if (id == PfRule::SUBS)
   {

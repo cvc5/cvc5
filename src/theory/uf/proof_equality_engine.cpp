@@ -33,6 +33,7 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
       d_ee(ee),
       d_pnm(pnm),
       d_proof(pnm, nullptr, c),
+      d_factPg(c, pnm),
       d_keep(c),
       d_pfEnabled(pfEnabled),
       d_recExplain(recExplain)
@@ -69,8 +70,14 @@ bool ProofEqEngine::assertFact(Node lit,
   // first, register the step in the proof
   if (d_pfEnabled)
   {
-    AlwaysAssert(false);
-    // FIXME this should buffer the Step
+    // buffer the step in the fact proof generator
+    ProofStep ps;
+    ps.d_rule = id;
+    ps.d_children = exp;
+    ps.d_args = args;
+    d_factPg.addStep(lit, ps);
+    // add lazy step to proof
+    d_proof.addLazyStep(lit, &d_factPg);
   }
 
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
@@ -94,9 +101,14 @@ bool ProofEqEngine::assertFact(Node lit,
     // must extract the explanation as a vector
     std::vector<Node> expv;
     flattenAnd(exp, expv);
-
-    AlwaysAssert(false);
-    // FIXME this should buffer the Step
+    // buffer the step in the fact proof generator
+    ProofStep ps;
+    ps.d_rule = id;
+    ps.d_children = expv;
+    ps.d_args = args;
+    d_factPg.addStep(lit, ps);
+    // add lazy step to proof
+    d_proof.addLazyStep(lit, &d_factPg);
   }
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
@@ -112,8 +124,14 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
                 << std::endl;
   if (d_pfEnabled)
   {
-    AlwaysAssert(false);
-    // FIXME this should buffer the Steps
+    // buffer the steps in the fact proof generator
+    const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
+    for (const std::pair<Node, ProofStep>& step : steps)
+    {
+      d_factPg.addStep(step.first, step.second);
+    }
+    // add lazy step to proof
+    d_proof.addLazyStep(lit, &d_factPg);
   }
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
@@ -670,6 +688,49 @@ void ProofEqEngine::flattenAnd(TNode an, std::vector<Node>& a)
     Assert(anc.getKind() != AND);
     a.push_back(anc);
   }
+}
+
+ProofEqEngine::FactProofGenerator::FactProofGenerator(context::Context* c, ProofNodeManager* pnm) : ProofGenerator(), d_facts(c), d_pnm(pnm){}
+    
+void ProofEqEngine::FactProofGenerator::addStep(Node fact, ProofStep ps)
+{
+  if (d_facts.find(fact)!=d_facts.end())
+  {
+    return;
+  }
+  // symmetry?
+  if (fact.getKind() == EQUAL)
+  {
+    Node symFact = fact[1].eqNode(fact[0]);
+    if (d_facts.find(symFact) != d_facts.end())
+    {
+      return;
+    }
+  }
+  d_facts.insert(fact,std::make_shared<ProofStep>(ps));
+}
+
+std::shared_ptr<ProofNode> ProofEqEngine::FactProofGenerator::getProofFor(Node fact)
+{
+  NodeProofStepMap::iterator it = d_facts.find(fact);
+  if (it==d_facts.end())
+  {
+    if (fact.getKind() != EQUAL)
+    {
+      Assert(false);
+      return nullptr;
+    }
+    Node symFact = fact[1].eqNode(fact[0]);
+    it = d_facts.find(symFact);
+    if (it == d_facts.end())
+    {
+      Assert(false);
+      return nullptr;
+    }
+  }
+  CDProof cdp(d_pnm);
+  cdp.addStep(fact,*(*it).second);
+  return cdp.mkProof(fact);
 }
 
 }  // namespace eq

@@ -439,7 +439,7 @@ public:
   void check(Theory::Effort e);
   bool needsCheckLastEffort();
   void propagate(Theory::Effort e);
-  Node explain(TNode n);
+  TrustNode explain(TNode n);
   bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
   bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp );
 
