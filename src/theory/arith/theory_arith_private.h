@@ -422,6 +422,8 @@ private:
   // handle linear /, div, mod, and also is_int, to_int
   Node ppRewriteTerms(TNode atom);
 
+  /** eliminate operators */
+  Node eliminateOperators(Node n);
 public:
   TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryArithPrivate();

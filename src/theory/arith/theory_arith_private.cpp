@@ -1177,49 +1177,77 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   if(Theory::theoryOf(n) != THEORY_ARITH) {
     return n;
   }
+  // eliminate operators?
+  Node nn = eliminateOperators(n);
+  if (nn!=n)
+  {
+    return nn;
+  }
+  for(TNode::const_iterator i = n.begin(); i != n.end(); ++i) {
+    Node rewritten = ppRewriteTerms(*i);
+    if(rewritten != *i) {
+      NodeBuilder<> b(n.getKind());
+      b.append(n.begin(), i);
+      b << rewritten;
+      for(++i; i != n.end(); ++i) {
+        b << ppRewriteTerms(*i);
+      }
+      rewritten = b;
+      return rewritten;
+    }
+  }
 
+  return n;
+}
+
+Node TheoryArithPrivate::eliminateOperators(Node node)
+{
   NodeManager* nm = NodeManager::currentNM();
 
-  switch(Kind k = n.getKind()) {
+  // eliminate here since the rewritten form of these may introduce division
+  Kind k = node.getKind();
+  if (k == kind::TANGENT || k == kind::COSECANT || k == kind::SECANT
+      || k == kind::COTANGENT || k == kind::DIVISION_TOTAL)
+  {
+    node = Rewriter::rewrite(node);
+    k = node.getKind();
+  }
+
+  switch (k)
+  {
 
   case kind::TO_INTEGER:
   case kind::IS_INTEGER: {
     Node toIntSkolem;
-    NodeMap::const_iterator it = d_to_int_skolem.find( n[0] );
+    NodeMap::const_iterator it = d_to_int_skolem.find( node[0] );
     if( it==d_to_int_skolem.end() ){
-      // n[0] - 1 < toIntSkolem <= n[0]
-      // -1 < toIntSkolem - n[0] <= 0
-      // 0 <= n[0] - toIntSkolem < 1
+      // node[0] - 1 < toIntSkolem <= node[0]
+      // -1 < toIntSkolem - node[0] <= 0
+      // 0 <= node[0] - toIntSkolem < 1
       Node v = nm->mkBoundVar(nm->integerType());
       Node one = mkRationalNode(1);
-      Node lem = mkAxiomForTotalIntDivision(n[0], one, v);
+      Node lem = mkAxiomForTotalIntDivision(node[0], one, v);
       toIntSkolem = ProofSkolemCache::mkSkolem(
           v, lem, "toInt", "a conversion of a Real term to its Integer part");
       toIntSkolem = ProofSkolemCache::getWitnessForm(toIntSkolem);
-      d_to_int_skolem[n[0]] = toIntSkolem;
+      d_to_int_skolem[node[0]] = toIntSkolem;
     }else{
       toIntSkolem = (*it).second;
     }
     if(k == kind::IS_INTEGER) {
-      return nm->mkNode(kind::EQUAL, n[0], toIntSkolem);
+      return nm->mkNode(kind::EQUAL, node[0], toIntSkolem);
     }
     Assert(k == kind::TO_INTEGER);
     return toIntSkolem;
   }
-  case kind::INTS_DIVISION:
-  case kind::INTS_MODULUS:
-  case kind::DIVISION:
-    // these should be removed during expand definitions
-    Assert(false);
-    break;
   
   case kind::INTS_DIVISION_TOTAL: 
   case kind::INTS_MODULUS_TOTAL: {
-    Node den = Rewriter::rewrite(n[1]);
+    Node den = Rewriter::rewrite(node[1]);
     if(!options::rewriteDivk() && den.isConst()) {
-      return n;
+      return node;
     }
-    Node num = Rewriter::rewrite(n[0]);
+    Node num = Rewriter::rewrite(node[0]);
     Node intVar;
     Node rw = nm->mkNode(k, num, den);
     NodeMap::const_iterator it = d_int_div_skolem.find( rw );
@@ -1292,16 +1320,16 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
       intVar = (*it).second;
     }
     if( k==kind::INTS_MODULUS_TOTAL ){
-      Node node = nm->mkNode(kind::MINUS, num, nm->mkNode(kind::MULT, den, intVar));
-      return node;
+      Node nn = nm->mkNode(kind::MINUS, num, nm->mkNode(kind::MULT, den, intVar));
+      return nn;
     }else{
       return intVar;
     }
     break;
   }
   case kind::DIVISION_TOTAL: {
-    Node num = Rewriter::rewrite(n[0]);
-    Node den = Rewriter::rewrite(n[1]);
+    Node num = Rewriter::rewrite(node[0]);
+    Node den = Rewriter::rewrite(node[1]);
     Assert(!den.isConst());
     Node var;
     Node rw = nm->mkNode(k, num, den);
@@ -1321,25 +1349,143 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     return var;
     break;
   }
-  default:
-    break;
-  }
-
-  for(TNode::const_iterator i = n.begin(); i != n.end(); ++i) {
-    Node rewritten = ppRewriteTerms(*i);
-    if(rewritten != *i) {
-      NodeBuilder<> b(n.getKind());
-      b.append(n.begin(), i);
-      b << rewritten;
-      for(++i; i != n.end(); ++i) {
-        b << ppRewriteTerms(*i);
+    case kind::DIVISION:
+    {
+      TNode num = node[0], den = node[1];
+      Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
+      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+      {
+        Node divByZeroNum = getArithSkolemApp(num, ArithSkolemId::DIV_BY_ZERO);
+        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+        ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
       }
-      rewritten = b;
-      return rewritten;
+      return ret;
+      break;
     }
-  }
 
-  return n;
+    case kind::INTS_DIVISION:
+    {
+      // partial function: integer div
+      TNode num = node[0], den = node[1];
+      Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
+      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+      {
+        Node intDivByZeroNum =
+            getArithSkolemApp(num, ArithSkolemId::INT_DIV_BY_ZERO);
+        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+        ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
+      }
+      return ret;
+      break;
+    }
+
+    case kind::INTS_MODULUS:
+    {
+      // partial function: mod
+      TNode num = node[0], den = node[1];
+      Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
+      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+      {
+        Node modZeroNum = getArithSkolemApp(num, ArithSkolemId::MOD_BY_ZERO);
+        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+        ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
+      }
+      return ret;
+      break;
+    }
+
+    case kind::ABS:
+    {
+      return nm->mkNode(kind::ITE,
+                        nm->mkNode(kind::LT, node[0], nm->mkConst(Rational(0))),
+                        nm->mkNode(kind::UMINUS, node[0]),
+                        node[0]);
+      break;
+    }
+    case kind::SQRT:
+    case kind::ARCSINE:
+    case kind::ARCCOSINE:
+    case kind::ARCTANGENT:
+    case kind::ARCCOSECANT:
+    case kind::ARCSECANT:
+    case kind::ARCCOTANGENT:
+    {
+      // eliminate inverse functions here
+      NodeMap::const_iterator it = d_nlin_inverse_skolem.find(node);
+      if (it == d_nlin_inverse_skolem.end())
+      {
+        Node var = nm->mkBoundVar(nm->realType());
+        Node lem;
+        if (k == kind::SQRT)
+        {
+          Node skolemApp = getArithSkolemApp(node[0], ArithSkolemId::SQRT);
+          Node uf = skolemApp.eqNode(var);
+          Node nonNeg = nm->mkNode(
+              kind::AND, nm->mkNode(kind::MULT, var, var).eqNode(node[0]), uf);
+
+          // sqrt(x) reduces to:
+          // witness y. ite(x >= 0.0, y * y = x ^ Uf(x), Uf(x))
+          //
+          // Uf(x) makes sure that the reduction still behaves like a function,
+          // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
+          // satisfiable. On the original formula, this would require that we
+          // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
+          // model.
+          lem = nm->mkNode(
+              kind::ITE,
+              nm->mkNode(kind::GEQ, node[0], nm->mkConst(Rational(0))),
+              nonNeg,
+              uf);
+        }
+        else
+        {
+          Node pi = mkPi();
+
+          // range of the skolem
+          Node rlem;
+          if (k == kind::ARCSINE || k == ARCTANGENT || k == ARCCOSECANT)
+          {
+            Node half = nm->mkConst(Rational(1) / Rational(2));
+            Node pi2 = nm->mkNode(kind::MULT, half, pi);
+            Node npi2 = nm->mkNode(kind::MULT, nm->mkConst(Rational(-1)), pi2);
+            // -pi/2 < var <= pi/2
+            rlem = nm->mkNode(
+                AND, nm->mkNode(LT, npi2, var), nm->mkNode(LEQ, var, pi2));
+          }
+          else
+          {
+            // 0 <= var < pi
+            rlem = nm->mkNode(AND,
+                              nm->mkNode(LEQ, nm->mkConst(Rational(0)), var),
+                              nm->mkNode(LT, var, pi));
+          }
+
+          Kind rk = k == kind::ARCSINE
+                        ? kind::SINE
+                        : (k == kind::ARCCOSINE
+                               ? kind::COSINE
+                               : (k == kind::ARCTANGENT
+                                      ? kind::TANGENT
+                                      : (k == kind::ARCCOSECANT
+                                             ? kind::COSECANT
+                                             : (k == kind::ARCSECANT
+                                                    ? kind::SECANT
+                                                    : kind::COTANGENT))));
+          Node invTerm = nm->mkNode(rk, var);
+          lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
+        }
+        Assert(!lem.isNull());
+        Node ret = nm->mkNode(WITNESS, nm->mkNode(BOUND_VAR_LIST, var), lem);
+        d_nlin_inverse_skolem[node] = ret;
+        return ret;
+      }
+      return (*it).second;
+      break;
+    }
+
+    default:break;
+  }
+  return node;
 }
 
 Node TheoryArithPrivate::ppRewrite(TNode atom) {
@@ -5100,157 +5246,8 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
 
 Node TheoryArithPrivate::expandDefinition(Node node)
 {
-  NodeManager* nm = NodeManager::currentNM();
-
-  // eliminate here since the rewritten form of these may introduce division
-  Kind k = node.getKind();
-  if (k == kind::TANGENT || k == kind::COSECANT || k == kind::SECANT
-      || k == kind::COTANGENT)
-  {
-    node = Rewriter::rewrite(node);
-    k = node.getKind();
-  }
-
-  switch (k)
-  {
-    case kind::DIVISION:
-    {
-      TNode num = node[0], den = node[1];
-      Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
-      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
-      {
-        Node divByZeroNum = getArithSkolemApp(num, ArithSkolemId::DIV_BY_ZERO);
-        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-        ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
-      }
-      return ret;
-      break;
-    }
-
-    case kind::INTS_DIVISION:
-    {
-      // partial function: integer div
-      TNode num = node[0], den = node[1];
-      Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
-      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
-      {
-        Node intDivByZeroNum =
-            getArithSkolemApp(num, ArithSkolemId::INT_DIV_BY_ZERO);
-        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-        ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
-      }
-      return ret;
-      break;
-    }
-
-    case kind::INTS_MODULUS:
-    {
-      // partial function: mod
-      TNode num = node[0], den = node[1];
-      Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
-      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
-      {
-        Node modZeroNum = getArithSkolemApp(num, ArithSkolemId::MOD_BY_ZERO);
-        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-        ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
-      }
-      return ret;
-      break;
-    }
-
-    case kind::ABS:
-    {
-      return nm->mkNode(kind::ITE,
-                        nm->mkNode(kind::LT, node[0], nm->mkConst(Rational(0))),
-                        nm->mkNode(kind::UMINUS, node[0]),
-                        node[0]);
-      break;
-    }
-    case kind::SQRT:
-    case kind::ARCSINE:
-    case kind::ARCCOSINE:
-    case kind::ARCTANGENT:
-    case kind::ARCCOSECANT:
-    case kind::ARCSECANT:
-    case kind::ARCCOTANGENT:
-    {
-      // eliminate inverse functions here
-      NodeMap::const_iterator it = d_nlin_inverse_skolem.find(node);
-      if (it == d_nlin_inverse_skolem.end())
-      {
-        Node var = nm->mkBoundVar(nm->realType());
-        Node lem;
-        if (k == kind::SQRT)
-        {
-          Node skolemApp = getArithSkolemApp(node[0], ArithSkolemId::SQRT);
-          Node uf = skolemApp.eqNode(var);
-          Node nonNeg = nm->mkNode(
-              kind::AND, nm->mkNode(kind::MULT, var, var).eqNode(node[0]), uf);
-
-          // sqrt(x) reduces to:
-          // witness y. ite(x >= 0.0, y * y = x ^ Uf(x), Uf(x))
-          //
-          // Uf(x) makes sure that the reduction still behaves like a function,
-          // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
-          // satisfiable. On the original formula, this would require that we
-          // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
-          // model.
-          lem = nm->mkNode(
-              kind::ITE,
-              nm->mkNode(kind::GEQ, node[0], nm->mkConst(Rational(0))),
-              nonNeg,
-              uf);
-        }
-        else
-        {
-          Node pi = mkPi();
-
-          // range of the skolem
-          Node rlem;
-          if (k == kind::ARCSINE || k == ARCTANGENT || k == ARCCOSECANT)
-          {
-            Node half = nm->mkConst(Rational(1) / Rational(2));
-            Node pi2 = nm->mkNode(kind::MULT, half, pi);
-            Node npi2 = nm->mkNode(kind::MULT, nm->mkConst(Rational(-1)), pi2);
-            // -pi/2 < var <= pi/2
-            rlem = nm->mkNode(
-                AND, nm->mkNode(LT, npi2, var), nm->mkNode(LEQ, var, pi2));
-          }
-          else
-          {
-            // 0 <= var < pi
-            rlem = nm->mkNode(AND,
-                              nm->mkNode(LEQ, nm->mkConst(Rational(0)), var),
-                              nm->mkNode(LT, var, pi));
-          }
-
-          Kind rk = k == kind::ARCSINE
-                        ? kind::SINE
-                        : (k == kind::ARCCOSINE
-                               ? kind::COSINE
-                               : (k == kind::ARCTANGENT
-                                      ? kind::TANGENT
-                                      : (k == kind::ARCCOSECANT
-                                             ? kind::COSECANT
-                                             : (k == kind::ARCSECANT
-                                                    ? kind::SECANT
-                                                    : kind::COTANGENT))));
-          Node invTerm = nm->mkNode(rk, var);
-          lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
-        }
-        Assert(!lem.isNull());
-        Node ret = nm->mkNode(WITNESS, nm->mkNode(BOUND_VAR_LIST, var), lem);
-        d_nlin_inverse_skolem[node] = ret;
-        return ret;
-      }
-      return (*it).second;
-      break;
-    }
-
-    default: return node; break;
-  }
-
-  Unreachable();
+  // call eliminate operators
+  return eliminateOperators(node);
 }
 
 Node TheoryArithPrivate::getArithSkolem(ArithSkolemId asi)
