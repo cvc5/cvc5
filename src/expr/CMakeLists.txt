@@ -43,6 +43,8 @@ libcvc4_add_sources(
   proof_node_manager.h
   proof_rule.cpp
   proof_rule.h
+  proof_skolem_cache.cpp
+  proof_skolem_cache.h
   symbol_table.cpp
   symbol_table.h
   term_canonize.cpp

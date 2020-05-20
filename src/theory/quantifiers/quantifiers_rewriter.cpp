@@ -1664,6 +1664,7 @@ Node QuantifiersRewriter::mkForall( std::vector< Node >& args, Node body, std::v
 
 //computes miniscoping, also eliminates variables that do not occur free in body
 Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa ){
+  NodeManager* nm = NodeManager::currentNM();
   if( body.getKind()==FORALL ){
     //combine prenex
     std::vector< Node > newArgs;
@@ -1677,10 +1678,36 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
     // be applied first
     if (options::miniscopeQuant() || options::aggressiveMiniscopeQuant())
     {
-      // break apart
+      // Break apart the quantifed formula
+      // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
       NodeBuilder<> t(kind::AND);
-      for( unsigned i=0; i<body.getNumChildren(); i++ ){
-        t << computeMiniscoping( args, body[i], qa );
+      std::vector<Node> argsc;
+      for (unsigned i = 0, nchild = body.getNumChildren(); i < nchild; i++)
+      {
+        if (argsc.empty())
+        {
+          // If not done so, we must create fresh copy of args. This is to
+          // ensure that quantified formulas do not reuse variables.
+          for (const Node& v : args)
+          {
+            argsc.push_back(nm->mkBoundVar(v.getType()));
+          }
+        }
+        Node b = body[i];
+        Node bodyc =
+            b.substitute(args.begin(), args.end(), argsc.begin(), argsc.end());
+        if (b == bodyc)
+        {
+          // Did not contain variables in args, thus it is ground. Since we did
+          // not use them, we keep the variables argsc for the next child.
+          t << b;
+        }
+        else
+        {
+          t << computeMiniscoping(argsc, bodyc, qa);
+          // We used argsc, clear so we will construct a fresh copy above.
+          argsc.clear();
+        }
       }
       Node retVal = t;
       return retVal;
