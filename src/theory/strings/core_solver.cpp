@@ -755,8 +755,8 @@ Node CoreSolver::getConclusion(Node x,
       newSkolems.push_back(sk1);
       newSkolems.push_back(sk2);
     }
-    Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, uy)
-                              : nm->mkNode(STRING_CONCAT, uy, sk1));
+    Node eq1 = ux.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, uy)
+                               : nm->mkNode(STRING_CONCAT, uy, sk1));
     // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
 
     if (rule == PfRule::CONCAT_LPROP)
@@ -765,8 +765,8 @@ Node CoreSolver::getConclusion(Node x,
     }
     else
     {
-      Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, ux)
-                                : nm->mkNode(STRING_CONCAT, ux, sk2));
+      Node eq2 = uy.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, ux)
+                                 : nm->mkNode(STRING_CONCAT, ux, sk2));
       // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
       conc = nm->mkNode(OR, eq1, eq2);
     }
