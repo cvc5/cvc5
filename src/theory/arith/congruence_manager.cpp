@@ -52,7 +52,7 @@ ArithCongruenceManager::ArithCongruenceManager(
   d_ee.addFunctionKind(kind::EXPONENTIAL);
   d_ee.addFunctionKind(kind::SINE);
   d_dummyPnm.reset(new ProofNodeManager(nullptr)); //FIXME: use proof checker of TheoryEngine
-  d_pfee.reset(new eq::ProofEqEngine(c, u, d_ee, d_dummyPnm.get(), options::proofNew()));
+  d_pfee.reset(new eq::ProofEqEngine(c, u, d_ee, d_dummyPnm.get(), false && options::proofNew()));
 }
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
@@ -386,7 +386,7 @@ void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar
   Assert(eq.getKind() == kind::EQUAL);
 
   Trace("arith-ee") << "Assert " << eq << ", pol " << isEquality << ", reason " << reason << std::endl;
-  if (options::proofNew())
+  if (false && options::proofNew())
   {
     Node lit = isEquality ? Node(eq) : eq.notNode();
     if (CDProof::isSame(lit,reason))
@@ -432,7 +432,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
-  if (options::proofNew())
+  if (false && options::proofNew())
   {
     if (CDProof::isSame(eq,reason))
     {
@@ -475,7 +475,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant2 " << eq << ", reason " << reason << std::endl;
-  if (options::proofNew())
+  if (false && options::proofNew())
   {
     if (CDProof::isSame(eq,reason))
     {
