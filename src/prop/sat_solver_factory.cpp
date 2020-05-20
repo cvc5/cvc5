@@ -19,6 +19,7 @@
 #include "prop/bvminisat/bvminisat.h"
 #include "prop/cadical.h"
 #include "prop/cryptominisat.h"
+#include "prop/kissat.h"
 #include "prop/minisat/minisat.h"
 
 namespace CVC4 {
@@ -55,6 +56,16 @@ SatSolver* SatSolverFactory::createCadical(StatisticsRegistry* registry,
   return new CadicalSolver(registry, name);
 #else
   Unreachable() << "CVC4 was not compiled with CaDiCaL support.";
+#endif
+}
+
+SatSolver* SatSolverFactory::createKissat(StatisticsRegistry* registry,
+                                          const std::string& name)
+{
+#ifdef CVC4_USE_KISSAT
+  return new KissatSolver(registry, name);
+#else
+  Unreachable() << "CVC4 was not compiled with Kissat support.";
 #endif
 }
 
