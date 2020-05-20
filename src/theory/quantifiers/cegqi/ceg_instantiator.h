@@ -276,7 +276,7 @@ class CegInstantiator {
    *
    * This gets the next (canonical) bound variable of
    * type tn. This can be used for instance when
-   * constructing instantiations that involve choice expressions.
+   * constructing instantiations that involve witness expressions.
    */
   Node getBoundVariable(TypeNode tn);
   /** has this assertion been marked as solved? */

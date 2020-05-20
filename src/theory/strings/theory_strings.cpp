@@ -580,7 +580,7 @@ Node TheoryStrings::expandDefinition(Node node)
   if (node.getKind() == STRING_FROM_CODE)
   {
     // str.from_code(t) --->
-    //   choice k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
+    //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
     Node t = node[0];
     Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
@@ -590,7 +590,7 @@ Node TheoryStrings::expandDefinition(Node node)
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
     Node emp = Word::mkEmptyWord(node.getType());
     node = nm->mkNode(
-        CHOICE,
+        WITNESS,
         bvl,
         nm->mkNode(
             ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
