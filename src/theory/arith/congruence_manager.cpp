@@ -52,7 +52,7 @@ ArithCongruenceManager::ArithCongruenceManager(
   d_ee.addFunctionKind(kind::EXPONENTIAL);
   d_ee.addFunctionKind(kind::SINE);
   d_dummyPnm.reset(new ProofNodeManager(nullptr)); //FIXME: use proof checker of TheoryEngine
-  d_pfee.reset(new eq::ProofEqEngine(c, u, d_ee, d_dummyPnm.get(), false && options::proofNew()));
+  d_pfee.reset(new eq::ProofEqEngine(c, u, d_ee, d_dummyPnm.get(), options::proofNew()));
 }
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
@@ -386,19 +386,21 @@ void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar
   Assert(eq.getKind() == kind::EQUAL);
 
   Trace("arith-ee") << "Assert " << eq << ", pol " << isEquality << ", reason " << reason << std::endl;
-  if (false && options::proofNew())
+  if (options::proofNew())
   {
     Node lit = isEquality ? Node(eq) : eq.notNode();
     if (CDProof::isSame(lit,reason))
     {
-      d_pfee->assertAssume(lit);
+      // lit and reason are essentially the same, thus lit does not need an
+      // arithmetic-specific explanation.
+      d_pfee->assertAssume(reason);
     }
     else
     {
       Trace("arith-pfee") << "Assert " << lit << " by " << reason << std::endl;
       std::vector<Node> args;
-      args.push_back(lit);
-      PfRule rule = PfRule::TRUST; //FIXME
+      args.push_back(lit); // forced conclusion of TRUST
+      PfRule rule = PfRule::TRUST; //FIXME: use a proper PfRule.
       // assert fact
       d_pfee->assertFact(lit, rule, reason, args);
     }
@@ -432,11 +434,13 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
-  if (false && options::proofNew())
+  if (options::proofNew())
   {
     if (CDProof::isSame(eq,reason))
     {
-      d_pfee->assertAssume(eq);
+      // eq and reason are essentially the same, thus eq does not need an
+      // arithmetic-specific explanation.
+      d_pfee->assertAssume(reason);
     }
     else
     {
@@ -475,11 +479,13 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant2 " << eq << ", reason " << reason << std::endl;
-  if (false && options::proofNew())
+  if (options::proofNew())
   {
     if (CDProof::isSame(eq,reason))
     {
-      d_pfee->assertAssume(eq);
+      // eq and reason are essentially the same, thus eq does not need an
+      // arithmetic-specific explanation.
+      d_pfee->assertAssume(reason);
     }
     else
     {
