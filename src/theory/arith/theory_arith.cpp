@@ -70,8 +70,8 @@ void TheoryArith::finishInit()
   if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
       && getLogicInfo().areTranscendentalsUsed())
   {
-    // choice is used to eliminate square root
-    tm->setUnevaluatedKind(kind::CHOICE);
+    // witness is used to eliminate square root
+    tm->setUnevaluatedKind(kind::WITNESS);
   }
 }
 

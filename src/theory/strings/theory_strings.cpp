@@ -138,8 +138,8 @@ TheoryStrings::~TheoryStrings() {
 void TheoryStrings::finishInit()
 {
   TheoryModel* tm = d_valuation.getModel();
-  // choice is used to eliminate str.from_code
-  tm->setUnevaluatedKind(CHOICE);
+  // witness is used to eliminate str.from_code
+  tm->setUnevaluatedKind(WITNESS);
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
