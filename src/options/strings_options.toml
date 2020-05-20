@@ -220,8 +220,7 @@ header = "options/strings_options.h"
   category   = "regular"
   long       = "strings-len-conc"
   type       = "bool"
-  default    = "true"
-  read_only  = true
+  default    = "false"
   help       = "add skolem length constraints in conclusions of inferences"
 
 [[option]]

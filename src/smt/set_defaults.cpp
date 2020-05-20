@@ -261,6 +261,15 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
                    << std::endl;
     }
   }
+  if (options::proofNew())
+  {
+    if (!options::stringLenConc.wasSetByUser())
+    {
+      options::stringLenConc.set(true);
+      Trace("smt") << "turning on string-len-conc, for proof-new"
+                   << std::endl;
+    }
+  }
 
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())

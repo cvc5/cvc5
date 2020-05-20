@@ -2253,6 +2253,11 @@ theory::TrustNode TheoryEngine::getExplanation(
       // if not a trivial explanation
       if (!CDProof::isSame(texplanation.getNode(), toExplain.d_node))
       {
+        // We add it to the list of theory explanations, to be processed at
+        // the end of this method. We wait to explain here because it may
+        // be that a later explanation may preempt the need for proving this
+        // step. For instance, if the conclusion lit is later added as an
+        // assumption in the final explanation. This avoids cyclic proofs.
         texplains.push_back(texplanation);
         // ----------- Via theory
         // exp => lit                exp
@@ -2400,6 +2405,10 @@ theory::TrustNode TheoryEngine::getExplanation(
     }
     */
     // track what we've explained
+    for (std::vector<TrustNode>::reverse_iterator it = texplains.rbegin(), itEnd = texplains.rend(); it != itEnd; ++it)
+    {
+      
+    }
     
     // store in the proof generator
     TrustNode trn = d_tepg->mkTrustExplain(conclusion, expNode, lcp);
