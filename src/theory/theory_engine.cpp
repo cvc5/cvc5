@@ -2102,7 +2102,7 @@ theory::TrustNode TheoryEngine::getExplanation(
   std::set<TNode> exp;
   
   // vector of trust nodes to explain at the end
-  std::vector<TrustNode> texplains;
+  std::vector<std::pair<TheoryId, TrustNode > > texplains;
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -2258,50 +2258,7 @@ theory::TrustNode TheoryEngine::getExplanation(
         // be that a later explanation may preempt the need for proving this
         // step. For instance, if the conclusion lit is later added as an
         // assumption in the final explanation. This avoids cyclic proofs.
-        texplains.push_back(texplanation);
-        // ----------- Via theory
-        // exp => lit                exp
-        // ---------------------------------MACRO_SR_PRED_TRANSFORM
-        // lit
-        Node proven = texplanation.getProven();
-        if (texplanation.getGenerator() != nullptr)
-        {
-          lcp->addLazyStep(proven, texplanation.getGenerator());
-        }
-        else
-        {
-          Trace("te-proof-exp") << "...trust THEORY_LEMMA" << std::endl;
-          // otherwise, trusted theory lemma
-          std::vector<Node> children;
-          std::vector<Node> args;
-          args.push_back(proven);
-          unsigned tid = static_cast<unsigned>(toExplain.d_theory);
-          Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
-          args.push_back(tidn);
-          lcp->addStep(proven, PfRule::THEORY_LEMMA, children, args);
-        }
-        std::vector<Node> children;
-        children.push_back(proven);
-        children.push_back(texplanation.getNode());
-        std::vector<Node> args;
-        args.push_back(toExplain.d_node);
-        args.push_back(mkMethodId(MethodId::SB_PREDICATE));
-        lcp->addStep(
-            toExplain.d_node, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
-        if (simpleExplain)
-        {
-          if (simpleTrn.isNull())
-          {
-            // as an optimization, it may be a simple explanation, so we
-            // remember the trust node for now
-            simpleTrn = texplanation;
-          }
-          else
-          {
-            // multiple theories involved, not simple
-            simpleExplain = false;
-          }
-        }
+        texplains.push_back(std::pair<TheoryId,TrustNode>(toExplain.d_theory,texplanation));
       }
     }
     Node explanation = texplanation.getNode();
@@ -2394,6 +2351,66 @@ theory::TrustNode TheoryEngine::getExplanation(
   
   if (lcp != nullptr)
   {
+    // Now, go back and add the necessary steps of theory explanations, i.e.
+    // add those that prove things that aren't in the final explanation.
+    for (std::vector<std::pair<TheoryId,TrustNode>>::reverse_iterator it = texplains.rbegin(), itEnd = texplains.rend(); it != itEnd; ++it)
+    {
+      TrustNode trn = it->second;
+      Assert (trn.getKind()==TrustNodeKind::PROP_EXP);
+      Node proven = trn.getProven();
+      Assert(proven.getKind()==kind::IMPLIES);
+      Node tConc = proven[1];
+      if (exp.find(tConc)!=exp.end())
+      {
+        // already added to proof
+        continue;
+      }
+      // remember that we've explained this formula
+      exp.insert(tConc);
+      Node tExp = proven[0];
+      // ------------- Via theory
+      // tExp => tConc              tExp
+      // ---------------------------------MACRO_SR_PRED_TRANSFORM
+      // tConc
+      if (trn.getGenerator() != nullptr)
+      {
+        lcp->addLazyStep(proven, trn.getGenerator());
+      }
+      else
+      {
+        Trace("te-proof-exp") << "...trust THEORY_LEMMA" << std::endl;
+        // otherwise, trusted theory lemma
+        std::vector<Node> pfChildren;
+        std::vector<Node> pfArgs;
+        pfArgs.push_back(proven);
+        unsigned tid = static_cast<unsigned>(it->first);
+        Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
+        pfArgs.push_back(tidn);
+        lcp->addStep(proven, PfRule::THEORY_LEMMA, pfChildren, pfArgs);
+      }
+      std::vector<Node> pfChildren;
+      pfChildren.push_back(proven);
+      pfChildren.push_back(trn.getNode());
+      std::vector<Node> pfArgs;
+      pfArgs.push_back(tConc);
+      pfArgs.push_back(mkMethodId(MethodId::SB_PREDICATE));
+      lcp->addStep(tConc, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+      if (simpleExplain)
+      {
+        if (simpleTrn.isNull())
+        {
+          // as an optimization, it may be a simple explanation, so we
+          // remember the trust node for now
+          simpleTrn = trn;
+        }
+        else
+        {
+          // multiple theories involved, not simple
+          simpleExplain = false;
+        }
+      }
+    }
+
     // doesn't work currently due to reordering of assumptions
     /*
     if (simpleExplain)
@@ -2404,12 +2421,6 @@ theory::TrustNode TheoryEngine::getExplanation(
     std::endl; return simpleTrn;
     }
     */
-    // track what we've explained
-    for (std::vector<TrustNode>::reverse_iterator it = texplains.rbegin(), itEnd = texplains.rend(); it != itEnd; ++it)
-    {
-      
-    }
-    
     // store in the proof generator
     TrustNode trn = d_tepg->mkTrustExplain(conclusion, expNode, lcp);
     // return the trust node

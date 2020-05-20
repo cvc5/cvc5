@@ -151,6 +151,12 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     assumps.clear();
     assumps.insert(assumps.end(), acu.begin(), acu.end());
   }
+  else if (ac.size()<assumps.size())
+  {
+    // always must remove duplicates
+    assumps.clear();
+    assumps.insert(assumps.end(), ac.begin(), ac.end());
+  }
   Node expected;
   NodeManager * nm = NodeManager::currentNM();
   Node exp;
