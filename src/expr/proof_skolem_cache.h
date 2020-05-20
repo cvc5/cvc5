@@ -132,6 +132,11 @@ class ProofSkolemCache
  private:
   /** Convert to witness or skolem form */
   static Node convertInternal(Node n, bool toWitness);
+  /** Get or make skolem attribute for witness term w */
+  static Node getOrMakeSkolem(Node w,
+                              const std::string& prefix,
+                              const std::string& comment,
+                              int flags);
 };
 
 }  // namespace CVC4
