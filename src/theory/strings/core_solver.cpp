@@ -767,7 +767,7 @@ Node CoreSolver::getConclusion(Node x,
       // make agnostic to x/y
       conc = x<y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
     }
-    if (options::stringUnifiedVSpt())
+    if (options::stringUnifiedVSpt() && options::stringLenConc())
     {
       // we can assume its length is greater than zero
       Node emp = Word::mkEmptyWord(sk1.getType());
@@ -1689,7 +1689,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       if (options::stringUnifiedVSpt())
       {
         Assert(newSkolems.size() == 1);
-        iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
+        iinfo.d_new_skolem[options::stringLenConc() ? LENGTH_IGNORE : LENGTH_GEQ_ONE].push_back(newSkolems[0]);
       }
     }
     else if (lentTestSuccess == 0)
@@ -2101,21 +2101,30 @@ void CoreSolver::processDeq(Node ni, Node nj)
           SkolemCache* skc = d_termReg.getSkolemCache();
           Node sk =
               skc->mkSkolemCached(nck, SkolemCache::SK_ID_DC_SPT, "dc_spt");
-          d_termReg.registerTermAtomic(sk, LENGTH_IGNORE);
           Node skr = skc->mkSkolemCached(
               nck, SkolemCache::SK_ID_DC_SPT_REM, "dc_spt_rem");
           Node eq1 = nck.eqNode(nm->mkNode(kind::STRING_CONCAT, sk, skr));
           eq1 = Rewriter::rewrite(eq1);
           Node eq2 =
               nck.eqNode(nm->mkNode(kind::STRING_CONCAT, firstChar, skr));
-          Node eql = nm->mkNode(STRING_LENGTH,sk).eqNode(d_one);
           std::vector<Node> antec(nfni.d_exp.begin(), nfni.d_exp.end());
           antec.insert(antec.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
           antec.push_back(expNonEmpty);
           // build length into conclusion
-          Node conc = 
-              nm->mkNode(
+          Node conc;
+          if (options::stringLenConc())
+          {
+            d_termReg.registerTermAtomic(sk, LENGTH_IGNORE);
+            Node eql = nm->mkNode(STRING_LENGTH,sk).eqNode(d_one);
+            conc = nm->mkNode(
                   OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2, eql);
+          }
+          else
+          {
+            d_termReg.registerTermAtomic(sk, LENGTH_ONE);
+            conc = nm->mkNode(
+                  OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2);
+          }
           d_im.sendInference(
               antec,
               conc,

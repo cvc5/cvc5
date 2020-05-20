@@ -1525,36 +1525,6 @@ Node TheoryEngine::getInstantiatedConjunction( Node q ) {
   }
 }
 
-
-static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
-
-  std::set<TNode> all;
-  for (unsigned i = 0; i < explanation.size(); ++ i) {
-    Assert(explanation[i].d_theory == THEORY_SAT_SOLVER);
-    all.insert(explanation[i].d_node);
-  }
-
-  if (all.size() == 0) {
-    // Normalize to true
-    return NodeManager::currentNM()->mkConst<bool>(true);
-  }
-
-  if (all.size() == 1) {
-    // All the same, or just one
-    return explanation[0].d_node;
-  }
-
-  NodeBuilder<> conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end) {
-    conjunction << *it;
-    ++ it;
-  }
-
-  return conjunction;
-}
-
 theory::TrustNode TheoryEngine::getExplanationAndRecipe(
     TNode node, LemmaProofRecipe* proofRecipe)
 {
@@ -2119,7 +2089,6 @@ theory::TrustNode TheoryEngine::getExplanation(
     lcp.reset(new LazyCDProof(d_pNodeManager.get()));
   }
   unsigned i = 0; // Index of the current literal we are processing
-  unsigned j = 0; // Index of the last literal we are keeping
 
   std::unique_ptr<std::set<Node>> inputAssertions = nullptr;
   PROOF({
@@ -2129,6 +2098,11 @@ theory::TrustNode TheoryEngine::getExplanation(
           new std::set<Node>(proofRecipe->getStep(0)->getAssertions()));
     }
   });
+  // the overall explanation
+  std::set<TNode> exp;
+  
+  // vector of trust nodes to explain at the end
+  std::vector<TrustNode> texplains;
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -2166,7 +2140,7 @@ theory::TrustNode TheoryEngine::getExplanation(
     if (toExplain.d_theory == THEORY_SAT_SOLVER)
     {
       Debug("theory::explain") << "\tLiteral came from THEORY_SAT_SOLVER. Kepping it." << endl;
-      explanationVector[j++] = explanationVector[i++];
+      exp.insert(explanationVector[i++].d_node);
       // it will be a free assumption in the proof
       Trace("te-proof-exp") << "- keep " << toExplain.d_node << std::endl;
       continue;
@@ -2279,6 +2253,7 @@ theory::TrustNode TheoryEngine::getExplanation(
       // if not a trivial explanation
       if (!CDProof::isSame(texplanation.getNode(), toExplain.d_node))
       {
+        texplains.push_back(texplanation);
         // ----------- Via theory
         // exp => lit                exp
         // ---------------------------------MACRO_SR_PRED_TRANSFORM
@@ -2379,20 +2354,39 @@ theory::TrustNode TheoryEngine::getExplanation(
     });
   }
 
-  // Keep only the relevant literals
-  explanationVector.resize(j);
-
   PROOF({
       if (proofRecipe) {
         // The remaining literals are the base of the proof
-        for (unsigned k = 0; k < explanationVector.size(); ++k) {
-          proofRecipe->addBaseAssertion(explanationVector[k].d_node.negate());
+        for (const Node& e : exp){
+          proofRecipe->addBaseAssertion(e.negate());
         }
       }
     });
-
-  Node exp = mkExplanation(explanationVector);
-
+  
+  // make the explanation node
+  Node expNode;
+  if (exp.size() == 0) 
+  {
+    // Normalize to true
+    expNode = NodeManager::currentNM()->mkConst<bool>(true);
+  }
+  else if (exp.size() == 1)
+  {
+    // All the same, or just one
+    expNode = *exp.begin();
+  }
+  else
+  {
+    NodeBuilder<> conjunction(kind::AND);
+    std::set<TNode>::const_iterator it = exp.begin();
+    std::set<TNode>::const_iterator it_end = exp.end();
+    while (it != it_end) {
+      conjunction << *it;
+      ++ it;
+    }
+    expNode = conjunction;
+  }
+  
   if (lcp != nullptr)
   {
     // doesn't work currently due to reordering of assumptions
@@ -2405,13 +2399,15 @@ theory::TrustNode TheoryEngine::getExplanation(
     std::endl; return simpleTrn;
     }
     */
+    // track what we've explained
+    
     // store in the proof generator
-    TrustNode trn = d_tepg->mkTrustExplain(conclusion, exp, lcp);
+    TrustNode trn = d_tepg->mkTrustExplain(conclusion, expNode, lcp);
     // return the trust node
     return trn;
   }
 
-  return theory::TrustNode::mkTrustLemma(exp, nullptr);
+  return theory::TrustNode::mkTrustLemma(expNode, nullptr);
 }
 
 void TheoryEngine::setUserAttribute(const std::string& attr,

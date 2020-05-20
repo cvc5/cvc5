@@ -844,13 +844,11 @@ Node InferProofCons::convert(Inference infer,
       }
     }
     // untrustworthy conversion
-    // doesn't expect arguments
+    // argument is the conclusion
     ps.d_args.clear();
-    // rule is determined automatically
-    ps.d_rule =
-        static_cast<PfRule>(static_cast<uint32_t>(PfRule::SIU_BEGIN)
-                            + (static_cast<uint32_t>(infer)
-                               - static_cast<uint32_t>(Inference::BEGIN)));
+    ps.d_args.push_back(conc);
+    // use the trust rule
+    ps.d_rule = PfRule::TRUST;
     // add to stats
     d_statistics.d_inferencesNoPf << infer;
     if (options::stringPedanticCheck())

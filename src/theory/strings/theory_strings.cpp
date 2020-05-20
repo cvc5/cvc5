@@ -154,15 +154,6 @@ void TheoryStrings::setProofChecker(ProofChecker* pc)
 {
   // add checkers
   d_sProofChecker.registerTo(pc);
-
-  // everything else is untrustworthy, assume trusted
-  uint32_t siuBegin = static_cast<uint32_t>(PfRule::SIU_BEGIN);
-  uint32_t siuEnd = static_cast<uint32_t>(PfRule::SIU_END);
-  for (uint32_t r = siuBegin + 1; r < siuEnd; r++)
-  {
-    // trust the checker
-    pc->registerChecker(static_cast<PfRule>(r), nullptr);
-  }
   // use the checker in the proof node manager
   d_pnm.reset(new ProofNodeManager(pc));
 }

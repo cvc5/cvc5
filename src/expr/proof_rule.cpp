@@ -108,69 +108,6 @@ const char* toString(PfRule id)
     case PfRule::RE_UNFOLD_NEG_CONCAT_FIXED:
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
 
-    case PfRule::SIU_I_NORM_S: return "SIU_I_NORM_S";
-    case PfRule::SIU_I_CONST_MERGE: return "SIU_I_CONST_MERGE";
-    case PfRule::SIU_I_CONST_CONFLICT: return "SIU_I_CONST_CONFLICT";
-    case PfRule::SIU_I_NORM: return "SIU_I_NORM";
-    case PfRule::SIU_CARD_SP: return "SIU_CARD_SP";
-    case PfRule::SIU_CARDINALITY: return "SIU_CARDINALITY";
-    case PfRule::SIU_I_CYCLE_E: return "SIU_I_CYCLE_E";
-    case PfRule::SIU_I_CYCLE: return "SIU_I_CYCLE";
-    case PfRule::SIU_F_CONST: return "SIU_F_CONST";
-    case PfRule::SIU_F_UNIFY: return "SIU_F_UNIFY";
-    case PfRule::SIU_F_ENDPOINT_EMP: return "SIU_F_ENDPOINT_EMP";
-    case PfRule::SIU_F_ENDPOINT_EQ: return "SIU_F_ENDPOINT_EQ";
-    case PfRule::SIU_F_NCTN: return "SIU_F_NCTN";
-    case PfRule::SIU_N_ENDPOINT_EMP: return "SIU_N_ENDPOINT_EMP";
-    case PfRule::SIU_N_UNIFY: return "SIU_N_UNIFY";
-    case PfRule::SIU_N_ENDPOINT_EQ: return "SIU_N_ENDPOINT_EQ";
-    case PfRule::SIU_N_CONST: return "SIU_N_CONST";
-    case PfRule::SIU_INFER_EMP: return "SIU_INFER_EMP";
-    case PfRule::SIU_SSPLIT_CST_PROP: return "SIU_SSPLIT_CST_PROP";
-    case PfRule::SIU_SSPLIT_VAR_PROP: return "SIU_SSPLIT_VAR_PROP";
-    case PfRule::SIU_LEN_SPLIT: return "SIU_LEN_SPLIT";
-    case PfRule::SIU_LEN_SPLIT_EMP: return "SIU_LEN_SPLIT_EMP";
-    case PfRule::SIU_SSPLIT_CST: return "SIU_SSPLIT_CST";
-    case PfRule::SIU_SSPLIT_VAR: return "SIU_SSPLIT_VAR";
-    case PfRule::SIU_FLOOP: return "SIU_FLOOP";
-    case PfRule::SIU_FLOOP_CONFLICT: return "SIU_FLOOP_CONFLICT";
-    case PfRule::SIU_NORMAL_FORM: return "SIU_NORMAL_FORM";
-    case PfRule::SIU_N_NCTN: return "SIU_N_NCTN";
-    case PfRule::SIU_LEN_NORM: return "SIU_LEN_NORM";
-    case PfRule::SIU_DEQ_DISL_EMP_SPLIT: return "SIU_DEQ_DISL_EMP_SPLIT";
-    case PfRule::SIU_DEQ_DISL_FIRST_CHAR_EQ_SPLIT:
-      return "SIU_DEQ_DISL_FIRST_CHAR_EQ_SPLIT";
-    case PfRule::SIU_DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
-      return "SIU_DEQ_DISL_FIRST_CHAR_STRING_SPLIT";
-    case PfRule::SIU_DEQ_DISL_STRINGS_SPLIT:
-      return "SIU_DEQ_DISL_STRINGS_SPLIT";
-    case PfRule::SIU_DEQ_STRINGS_EQ: return "SIU_DEQ_STRINGS_EQ";
-    case PfRule::SIU_DEQ_LENS_EQ: return "SIU_DEQ_LENS_EQ";
-    case PfRule::SIU_DEQ_NORM_EMP: return "SIU_DEQ_NORM_EMP";
-    case PfRule::SIU_DEQ_LENGTH_SP: return "SIU_DEQ_LENGTH_SP";
-    case PfRule::SIU_CODE_PROXY: return "SIU_CODE_PROXY";
-    case PfRule::SIU_CODE_INJ: return "SIU_CODE_INJ";
-    case PfRule::SIU_RE_NF_CONFLICT: return "SIU_RE_NF_CONFLICT";
-    case PfRule::SIU_RE_UNFOLD_POS: return "SIU_RE_UNFOLD_POS";
-    case PfRule::SIU_RE_UNFOLD_NEG: return "SIU_RE_UNFOLD_NEG";
-    case PfRule::SIU_RE_INTER_INCLUDE: return "SIU_RE_INTER_INCLUDE";
-    case PfRule::SIU_RE_INTER_CONF: return "SIU_RE_INTER_CONF";
-    case PfRule::SIU_RE_INTER_INFER: return "SIU_RE_INTER_INFER";
-    case PfRule::SIU_RE_DELTA: return "SIU_RE_DELTA";
-    case PfRule::SIU_RE_DELTA_CONF: return "SIU_RE_DELTA_CONF";
-    case PfRule::SIU_RE_DERIVE: return "SIU_RE_DERIVE";
-    case PfRule::SIU_EXTF: return "SIU_EXTF";
-    case PfRule::SIU_EXTF_N: return "SIU_EXTF_N";
-    case PfRule::SIU_EXTF_D: return "SIU_EXTF_D";
-    case PfRule::SIU_EXTF_D_N: return "SIU_EXTF_D_N";
-    case PfRule::SIU_EXTF_EQ_REW: return "SIU_EXTF_EQ_REW";
-    case PfRule::SIU_CTN_TRANS: return "SIU_CTN_TRANS";
-    case PfRule::SIU_CTN_DECOMPOSE: return "SIU_CTN_DECOMPOSE";
-    case PfRule::SIU_CTN_NEG_EQUAL: return "SIU_CTN_NEG_EQUAL";
-    case PfRule::SIU_CTN_POS: return "SIU_CTN_POS";
-    case PfRule::SIU_REDUCTION: return "SIU_REDUCTION";
-    case PfRule::SIU_PREFIX_CONFLICT: return "SIU_PREFIX_CONFLICT";
-
     //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
     //================================================= Unknown rule
