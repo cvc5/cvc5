@@ -343,9 +343,10 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
             '--check-synth-sol' not in all_args:
             extra_command_line_args = ['--check-synth-sol']
         if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
+           '--no-debug-check-models' not in all_args and \
            '--no-check-models' not in all_args and \
-           '--check-models' not in all_args:
-            extra_command_line_args = ['--check-models']
+           '--debug-check-models' not in all_args:
+            extra_command_line_args = ['--debug-check-models']
         if proofs and re.search(r'^(unsat|valid)$', expected_output):
             if '--no-check-proofs' not in all_args and \
                '--check-proofs' not in all_args and \
