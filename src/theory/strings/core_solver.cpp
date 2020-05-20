@@ -440,7 +440,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
       // is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
       // when len(b)!=0. Although if we do not infer this conflict eagerly,
       // it may be applied (see #3272).
-      d_im.sendInference(exp, conc, infType);
+      d_im.sendInference(exp, conc, infType, isRev);
       if (d_state.isInConflict())
       {
         return;
@@ -560,8 +560,12 @@ void CoreSolver::checkNormalFormsEq()
       NormalForm& nfe_eq = getNormalForm(itn->second);
       // two equivalence classes have same normal form, merge
       std::vector<Node> nf_exp;
-      nf_exp.push_back(utils::mkAnd(nfe.d_exp));
-      nf_exp.push_back(eqc_to_exp[itn->second]);
+      nf_exp.insert(nf_exp.end(), nfe.d_exp.begin(), nfe.d_exp.end());
+      Node eexp = eqc_to_exp[itn->second];
+      if (eexp != d_true)
+      {
+        nf_exp.push_back(eexp);
+      }
       Node eq = nfe.d_base.eqNode(nfe_eq.d_base);
       d_im.sendInference(nf_exp, eq, Inference::NORMAL_FORM);
       if (d_im.hasProcessed())
@@ -701,6 +705,135 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
     }
   }
   return x;
+}
+
+Node CoreSolver::getConclusion(Node x,
+                               Node y,
+                               PfRule rule,
+                               bool isRev,
+                               SkolemCache* skc,
+                               std::vector<Node>& newSkolems)
+{
+  Trace("strings-csolver") << "CoreSolver::getConclusion: " << x << " " << y
+                           << " " << rule << " " << isRev << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  Node conc;
+  if (rule == PfRule::CONCAT_SPLIT || rule == PfRule::CONCAT_LPROP)
+  {
+    Node sk1;
+    Node sk2;
+    if (options::stringUnifiedVSpt())
+    {
+      // must compare so that we are agnostic to order of x/y
+      Node ux = x < y ? x : y;
+      Node uy = x < y ? y : x;
+      Node sk = skc->mkSkolemCached(ux,
+                                    uy,
+                                    isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
+                                          : SkolemCache::SK_ID_V_UNIFIED_SPT,
+                                    "v_spt");
+      newSkolems.push_back(sk);
+      sk1 = sk;
+      sk2 = sk;
+    }
+    else
+    {
+      sk1 = skc->mkSkolemCached(
+          x,
+          y,
+          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
+          "v_spt1");
+      sk2 = skc->mkSkolemCached(
+          y,
+          x,
+          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
+          "v_spt2");
+      newSkolems.push_back(sk1);
+      newSkolems.push_back(sk2);
+    }
+    Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, y)
+                               : nm->mkNode(STRING_CONCAT, y, sk1));
+    // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
+
+    if (rule == PfRule::CONCAT_LPROP)
+    {
+      conc = eq1;
+    }
+    else
+    {
+      Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, x)
+                                 : nm->mkNode(STRING_CONCAT, x, sk2));
+      // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
+      // make agnostic to x/y
+      conc = x<y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
+    }
+    if (options::stringUnifiedVSpt() && options::stringLenConc())
+    {
+      // we can assume its length is greater than zero
+      Node emp = Word::mkEmptyWord(sk1.getType());
+      conc = nm->mkNode(
+          AND,
+          conc,
+          sk1.eqNode(emp).negate(),
+          nm->mkNode(
+              GT, nm->mkNode(STRING_LENGTH, sk1), nm->mkConst(Rational(0))));
+    }
+  }
+  else if (rule == PfRule::CONCAT_CSPLIT)
+  {
+    Assert(y.isConst());
+    size_t yLen = Word::getLength(y);
+    Node firstChar =
+        yLen == 1 ? y : (isRev ? Word::suffix(y, 1) : Word::prefix(y, 1));
+    Node sk = skc->mkSkolemCached(
+        x,
+        isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
+        "c_spt");
+    newSkolems.push_back(sk);
+    conc = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, firstChar)
+                          : nm->mkNode(STRING_CONCAT, firstChar, sk));
+  }
+  else if (rule == PfRule::CONCAT_CPROP)
+  {
+    // expect (str.++ z d) and c
+    Assert(x.getKind() == STRING_CONCAT && x.getNumChildren() == 2);
+    Node z = x[isRev ? 1 : 0];
+    Node d = x[isRev ? 0 : 1];
+    Assert(d.isConst());
+    Node c = y;
+    Assert(c.isConst());
+    unsigned cLen = Word::getLength(c);
+
+    // Since `z` is non-empty, we start with character 1
+    size_t p;
+    size_t p2;
+    Node c1;
+    if (isRev)
+    {
+      c1 = Word::prefix(c, cLen - 1);
+      p = cLen - Word::roverlap(c1, d);
+      p2 = Word::rfind(c1, d);
+    }
+    else
+    {
+      c1 = Word::substr(c, 1);
+      p = cLen - Word::overlap(c1, d);
+      p2 = Word::find(c1, d);
+    }
+    p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+    Node preC =
+        p == cLen ? c : (isRev ? Word::suffix(c, p) : Word::prefix(c, p));
+    Node sk = skc->mkSkolemCached(
+        z,
+        preC,
+        isRev ? SkolemCache::SK_ID_C_SPT_REV : SkolemCache::SK_ID_C_SPT,
+        "c_spt");
+    newSkolems.push_back(sk);
+    conc = z.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, preC)
+                          : nm->mkNode(STRING_CONCAT, preC, sk));
+  }
+
+  return conc;
 }
 
 void CoreSolver::getNormalForms(Node eqc,
@@ -906,14 +1039,14 @@ void CoreSolver::getNormalForms(Node eqc,
         if (!StringsEntail::canConstantContainList(c, nf.d_nf, firstc, lastc))
         {
           Node n = nf.d_base;
+          std::vector<Node> exp;
           //conflict
           Trace("strings-solve") << "Normal form for " << n << " cannot be contained in constant " << c << std::endl;
           //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = N[n] )
-          std::vector< Node > exp;
-          d_bsolver.explainConstantEqc(n,eqc,exp);
           // Notice although not implemented, this can be minimized based on
           // firstc/lastc, normal_forms_exp_depend.
           exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
+          d_bsolver.explainConstantEqc(n, eqc, exp);
           Node conc = d_false;
           d_im.sendInference(exp, conc, Inference::N_NCTN);
         }
@@ -925,45 +1058,111 @@ void CoreSolver::getNormalForms(Node eqc,
 void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
                              TypeNode stype)
 {
+  if (normal_forms.size() <= 1)
+  {
+    return;
+  }
+  // compute normal forms that are effectively unique
+  std::unordered_map<Node, size_t, NodeHashFunction> nfCache;
+  std::vector<size_t> nfIndices;
+  bool foundConflict = false;
+  size_t nfConfJ = 0;
+  size_t nfConfI = 0;
+  for (size_t i = 0, nnforms = normal_forms.size(); i < nnforms; i++)
+  {
+    NormalForm& nfi = normal_forms[i];
+    Node ni = utils::mkNConcat(nfi.d_nf, stype);
+    if (nfCache.find(ni) == nfCache.end())
+    {
+      // compare against previous to see if already conflicting
+      if (!foundConflict)
+      {
+        for (const std::pair<const Node, size_t>& nj : nfCache)
+        {
+          Node eq = ni.eqNode(nj.first);
+          eq = Rewriter::rewrite(eq);
+          if (eq == d_false)
+          {
+            nfConfJ = nj.second;
+            nfConfI = i;
+            foundConflict = true;
+            break;
+          }
+        }
+      }
+      nfCache[ni] = i;
+      nfIndices.push_back(i);
+    }
+  }
+  size_t nnfs = nfIndices.size();
+  Trace("strings-solve") << "CoreSolver::processNEqc: " << nnfs << "/"
+                         << normal_forms.size() << " normal forms are unique."
+                         << std::endl;
+
   //the possible inferences
   std::vector<CoreInferInfo> pinfer;
-  // loop over all pairs 
-  for(unsigned i=0; i<normal_forms.size()-1; i++) {
+  // loop over all pairs
+  for (unsigned i = 0; i < nnfs - 1; i++)
+  {
     //unify each normalform[j] with normal_forms[i]
-    for(unsigned j=i+1; j<normal_forms.size(); j++ ) {
-      NormalForm& nfi = normal_forms[i];
-      NormalForm& nfj = normal_forms[j];
+    for (unsigned j = i + 1; j < nnfs; j++)
+    {
+      NormalForm& nfi = normal_forms[nfIndices[i]];
+      NormalForm& nfj = normal_forms[nfIndices[j]];
       //ensure that normal_forms[i] and normal_forms[j] are the same modulo equality, add to pinfer if not
       Trace("strings-solve") << "Strings: Process normal form #" << i << " against #" << j << "..." << std::endl;
       if (isNormalFormPair(nfi.d_base, nfj.d_base))
       {
         Trace("strings-solve") << "Strings: Already cached." << std::endl;
-      }else{
-        //process the reverse direction first (check for easy conflicts and inferences)
-        unsigned rindex = 0;
-        nfi.reverse();
-        nfj.reverse();
-        processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
-        nfi.reverse();
-        nfj.reverse();
-        if (d_im.hasProcessed())
-        {
-          return;
-        }
-        //AJR: for less aggressive endpoint inference
-        //rindex = 0;
+        continue;
+      }
+      // process the reverse direction first (check for easy conflicts and
+      // inferences)
+      unsigned rindex = 0;
+      nfi.reverse();
+      nfj.reverse();
+      processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
+      nfi.reverse();
+      nfj.reverse();
+      if (d_im.hasProcessed())
+      {
+        break;
+      }
+      // AJR: for less aggressive endpoint inference
+      // rindex = 0;
 
-        unsigned index = 0;
-        processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype);
-        if (d_im.hasProcessed())
-        {
-          return;
-        }
+      unsigned index = 0;
+      processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype);
+      if (d_im.hasProcessed())
+      {
+        break;
       }
     }
+    if (d_im.hasProcessed())
+    {
+      break;
+    }
   }
-  if (pinfer.empty())
+  if (d_state.isInConflict())
   {
+    // conflict, we are done
+    return;
+  }
+  else if (foundConflict)
+  {
+    // normal form equality conflict takes precedence over lemmas and facts
+    std::vector<Node> exp;
+    NormalForm& nfj = normal_forms[nfConfJ];
+    NormalForm& nfi = normal_forms[nfConfI];
+    exp.insert(exp.end(), nfj.d_exp.begin(), nfj.d_exp.end());
+    exp.insert(exp.end(), nfi.d_exp.begin(), nfi.d_exp.end());
+    exp.push_back(nfi.d_base.eqNode(nfj.d_base));
+    d_im.sendInference(exp, d_false, Inference::N_EQ_CONF);
+    return;
+  }
+  else if (d_im.hasProcessed() || pinfer.empty())
+  {
+    // either already sent a lemma or fact, or there are no possible inferences
     return;
   }
   // now, determine which of the possible inferences we want to add
@@ -1071,6 +1270,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
     if (d_state.areEqual(xLenTerm, yLenTerm))
     {
+      std::vector<Node> ant;
+      NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, ant);
+      if (x.isConst() && y.isConst())
+      {
+        // if both are constant, its just a constant conflict
+        d_im.sendInference(ant, d_false, Inference::N_CONST, isRev, true);
+        return;
+      }
       // `x` and `y` have the same length. We infer that the two components
       // have to be the same.
       //
@@ -1079,8 +1286,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           << "Simple Case 2 : string lengths are equal" << std::endl;
       Node eq = x.eqNode(y);
       Node leneq = xLenTerm.eqNode(yLenTerm);
-      std::vector<Node> ant;
-      NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, ant);
       lenExp.push_back(leneq);
       // set the explanation for length
       Node lant = utils::mkAnd(lenExp);
@@ -1317,32 +1522,42 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         size_t straLen = Word::getLength(stra);
         Assert(!stra.isNull());
         Node strb = nextConstStr;
+
+        SkolemCache* skc = d_termReg.getSkolemCache();
+        // TODO: use
+        /*
+        Node xcv =
+            nm->mkNode(STRING_CONCAT, isRev ? strb : nc, isRev ? nc : strb);
+        std::vector<Node> newSkolems;
+        Node conc = getConclusion(
+            xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
+        */
+
         // Since `nc` is non-empty, we start with character 1
         size_t p;
+        size_t p2;
+        Node stra1;
         if (isRev)
         {
-          Node stra1 = Word::prefix(stra, straLen - 1);
+          stra1 = Word::prefix(stra, straLen - 1);
           p = straLen - Word::roverlap(stra1, strb);
           Trace("strings-csp-debug")
               << "Compute roverlap : " << stra1 << " " << strb << std::endl;
-          size_t p2 = Word::rfind(stra1, strb);
-          p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-          Trace("strings-csp-debug")
-              << "roverlap : " << stra1 << " " << strb << " returned " << p
-              << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
+          p2 = Word::rfind(stra1, strb);
         }
         else
         {
-          Node stra1 = Word::substr(stra, 1);
+          stra1 = Word::substr(stra, 1);
           p = straLen - Word::overlap(stra1, strb);
           Trace("strings-csp-debug")
               << "Compute overlap : " << stra1 << " " << strb << std::endl;
-          size_t p2 = Word::find(stra1, strb);
-          p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-          Trace("strings-csp-debug")
-              << "overlap : " << stra1 << " " << strb << " returned " << p
-              << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
+          p2 = Word::find(stra1, strb);
         }
+        p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+        Trace("strings-csp-debug")
+            << (isRev ? "r" : "") << "overlap : " << stra1 << " " << strb
+            << " returned " << p << " " << p2 << " "
+            << (p2 == std::string::npos) << std::endl;
 
         // If we can't split off more than a single character from the
         // constant, we might as well do regular constant/non-constant
@@ -1354,7 +1569,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           Node prea = p == straLen ? stra
                                    : (isRev ? Word::suffix(stra, p)
                                             : Word::prefix(stra, p));
-          SkolemCache* skc = d_termReg.getSkolemCache();
           Node sk = skc->mkSkolemCached(
               nc,
               prea,
@@ -1378,25 +1592,15 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       // to start with the first character of the constant.
       //
       // E.g. "abc" ++ ... = nc ++ ... ---> nc = "a" ++ k
-      Node stra = nfcv[index];
-      size_t straLen = Word::getLength(stra);
-      Node firstChar = straLen == 1 ? stra
-                                    : (isRev ? Word::suffix(stra, 1)
-                                             : Word::prefix(stra, 1));
       SkolemCache* skc = d_termReg.getSkolemCache();
-      Node sk = skc->mkSkolemCached(
-          nc,
-          isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
-          "c_spt");
-      Trace("strings-csp") << "Const Split: " << firstChar
-                           << " is removed from " << stra << " (serial) "
-                           << std::endl;
+      std::vector<Node> newSkolems;
+      iinfo.d_conc = getConclusion(
+          nc, nfcv[index], PfRule::CONCAT_CSPLIT, isRev, skc, newSkolems);
       NormalForm::getExplanationForPrefixEq(
           nfi, nfj, index, index, iinfo.d_ant);
       iinfo.d_ant.push_back(expNonEmpty);
-      iinfo.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
-                                     : utils::mkNConcat(firstChar, sk));
-      iinfo.d_new_skolem[LENGTH_SPLIT].push_back(sk);
+      Assert(newSkolems.size() == 1);
+      iinfo.d_new_skolem[LENGTH_SPLIT].push_back(newSkolems[0]);
       iinfo.d_id = Inference::SSPLIT_CST;
       iinfo.d_idRev = isRev;
       pinfer.push_back(info);
@@ -1413,7 +1617,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     Assert(!y.isConst());
 
     int32_t lentTestSuccess = -1;
-    Node lentTestExp;
+    Node lenConstraint;
     if (options::stringCheckEntailLen())
     {
       // If length entailment checks are enabled, we can save the case split by
@@ -1437,11 +1641,24 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
             Trace("strings-entail")
                 << "  explanation was : " << et.second << std::endl;
             lentTestSuccess = e;
-            lentTestExp = et.second;
+            lenConstraint = entLit;  // et.second;
+            // its not explained by the equality engine of this class
+            iinfo.d_noExplain.push_back(lenConstraint);
             break;
           }
         }
       }
+    }
+    std::vector<Node> lcVec;
+    if (lenConstraint.isNull())
+    {
+      // will do split on length
+      lenConstraint = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
+      lcVec.push_back(lenConstraint);
+    }
+    else
+    {
+      utils::flattenOp(AND, lenConstraint, lcVec);
     }
 
     NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);
@@ -1449,58 +1666,50 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     for (unsigned xory = 0; xory < 2; xory++)
     {
       Node t = xory == 0 ? x : y;
-      Node tnz = d_state.explainNonEmpty(x);
+      Node tnz = d_state.explainNonEmpty(t);
       if (!tnz.isNull())
       {
-        iinfo.d_ant.push_back(tnz);
+        lcVec.push_back(tnz);
       }
       else
       {
         tnz = x.eqNode(emp).negate();
-        iinfo.d_antn.push_back(tnz);
+        lcVec.push_back(tnz);
+        iinfo.d_noExplain.push_back(tnz);
       }
     }
     SkolemCache* skc = d_termReg.getSkolemCache();
-    /*
-    Node sk = skc->mkSkolemCached(
-        x,
-        y,
-        isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-        "v_spt");
-        */
-    Node sk1 = skc->mkSkolemCached(
-        x,
-        y,
-        isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-        "v_spt1");
-    Node sk2 = skc->mkSkolemCached(
-        y,
-        x,
-        isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-        "v_spt2");
-    // iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
-    Node eq1 =
-        x.eqNode(isRev ? utils::mkNConcat(sk1, y) : utils::mkNConcat(y, sk1));
-    // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
-    Node eq2 =
-        y.eqNode(isRev ? utils::mkNConcat(sk2, x) : utils::mkNConcat(x, sk2));
-    // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
-
-    if (lentTestSuccess != -1)
+    std::vector<Node> newSkolems;
+    // make the conclusion
+    if (lentTestSuccess == -1)
     {
-      iinfo.d_antn.push_back(lentTestExp);
-      iinfo.d_conc = lentTestSuccess == 0 ? eq1 : eq2;
+      iinfo.d_id = Inference::SSPLIT_VAR;
+      iinfo.d_conc =
+          getConclusion(x, y, PfRule::CONCAT_SPLIT, isRev, skc, newSkolems);
+      if (options::stringUnifiedVSpt())
+      {
+        Assert(newSkolems.size() == 1);
+        iinfo.d_new_skolem[options::stringLenConc() ? LENGTH_IGNORE : LENGTH_GEQ_ONE].push_back(newSkolems[0]);
+      }
+    }
+    else if (lentTestSuccess == 0)
+    {
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
-      iinfo.d_idRev = isRev;
+      iinfo.d_conc =
+          getConclusion(x, y, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
+      // iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
     }
     else
     {
-      Node ldeq = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
-      iinfo.d_ant.push_back(ldeq);
-      iinfo.d_conc = nm->mkNode(OR, eq1, eq2);
-      iinfo.d_id = Inference::SSPLIT_VAR;
-      iinfo.d_idRev = isRev;
+      Assert(lentTestSuccess == 1);
+      iinfo.d_id = Inference::SSPLIT_VAR_PROP;
+      iinfo.d_conc =
+          getConclusion(y, x, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
+      // iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
     }
+    Node lc = utils::mkAnd(lcVec);
+    iinfo.d_ant.push_back(lc);
+    iinfo.d_idRev = isRev;
     pinfer.push_back(info);
     break;
   }
@@ -1639,10 +1848,6 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
       Assert(!split_eqr.getConst<bool>());
     }
   }
-
-  Node ant = d_im.mkExplain(iinfo.d_ant);
-  iinfo.d_ant.clear();
-  iinfo.d_antn.push_back(ant);
 
   Node str_in_re;
   if (s_zy == t_yz && r == emp && s_zy.isConst()
@@ -1896,7 +2101,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
           SkolemCache* skc = d_termReg.getSkolemCache();
           Node sk =
               skc->mkSkolemCached(nck, SkolemCache::SK_ID_DC_SPT, "dc_spt");
-          d_termReg.registerTermAtomic(sk, LENGTH_ONE);
           Node skr = skc->mkSkolemCached(
               nck, SkolemCache::SK_ID_DC_SPT_REM, "dc_spt_rem");
           Node eq1 = nck.eqNode(nm->mkNode(kind::STRING_CONCAT, sk, skr));
@@ -1906,10 +2110,24 @@ void CoreSolver::processDeq(Node ni, Node nj)
           std::vector<Node> antec(nfni.d_exp.begin(), nfni.d_exp.end());
           antec.insert(antec.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
           antec.push_back(expNonEmpty);
+          // build length into conclusion
+          Node conc;
+          if (options::stringLenConc())
+          {
+            d_termReg.registerTermAtomic(sk, LENGTH_IGNORE);
+            Node eql = nm->mkNode(STRING_LENGTH,sk).eqNode(d_one);
+            conc = nm->mkNode(
+                  OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2, eql);
+          }
+          else
+          {
+            d_termReg.registerTermAtomic(sk, LENGTH_ONE);
+            conc = nm->mkNode(
+                  OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2);
+          }
           d_im.sendInference(
               antec,
-              nm->mkNode(
-                  OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2),
+              conc,
               Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
               false,
               true);
@@ -1931,15 +2149,15 @@ void CoreSolver::processDeq(Node ni, Node nj)
         antec.insert(antec.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
         std::vector<Node> antecNewLits;
 
-        if (d_state.areDisequal(ni, nj))
+        Node deqStr = ni.eqNode(nj).negate();
+        antec.push_back(deqStr);
+        if (!d_state.areDisequal(ni, nj))
         {
-          antec.push_back(ni.eqNode(nj).negate());
+          antecNewLits.push_back(deqStr);
         }
-        else
-        {
-          antecNewLits.push_back(ni.eqNode(nj).negate());
-        }
-        antecNewLits.push_back(xLenTerm.eqNode(yLenTerm).negate());
+        Node deqLen = xLenTerm.eqNode(yLenTerm).negate();
+        antec.push_back(deqLen);
+        antecNewLits.push_back(deqLen);
 
         std::vector<Node> conc;
         SkolemCache* skc = d_termReg.getSkolemCache();
@@ -2345,9 +2563,9 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
 {
   InferInfo& ii = cii.d_infer;
   // rewrite the conclusion, ensure non-trivial
-  ii.d_conc = Rewriter::rewrite(ii.d_conc);
+  Node concr = Rewriter::rewrite(ii.d_conc);
 
-  if (ii.isTrivial())
+  if (concr==d_true)
   {
     // conclusion rewrote to true
     return false;

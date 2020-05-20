@@ -452,8 +452,6 @@ libcvc4_add_sources(
   theory/logic_info.cpp
   theory/logic_info.h
   theory/output_channel.h
-  theory/proof_engine_output_channel.cpp
-  theory/proof_engine_output_channel.h
   theory/quantifiers/alpha_equivalence.cpp
   theory/quantifiers/alpha_equivalence.h
   theory/quantifiers/anti_skolem.cpp
@@ -750,6 +748,8 @@ libcvc4_add_sources(
   theory/theory.h
   theory/theory_engine.cpp
   theory/theory_engine.h
+  theory/theory_engine_proof_generator.cpp
+  theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
   theory/theory_id.h
   theory/theory_model.cpp

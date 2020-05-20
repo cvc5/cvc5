@@ -25,6 +25,8 @@
 
 namespace CVC4 {
 
+class ProofChecker;
+
 /** A virtual base class for checking a proof rule */
 class ProofRuleChecker
 {
@@ -67,6 +69,9 @@ class ProofRuleChecker
   static bool getIndex(TNode n, uint32_t& i);
   /** get a Boolean from a node, return false if we fail */
   static bool getBool(TNode n, bool& b);
+
+  /** Register all rules owned by this rule checker into pc. */
+  virtual void registerTo(ProofChecker* pc) {}
 
  protected:
   /**

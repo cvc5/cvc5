@@ -24,7 +24,10 @@ using namespace CVC4::theory;
 namespace CVC4 {
 
 SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
-                                         context::Context* context)
+                                         context::Context* context,
+                                         context::UserContext* userContext,
+                                         ProofNodeManager* pnm,
+                                         bool pfEnabled)
     : ContextNotifyObj(context),
       d_statSharedTerms("theory::shared_terms", 0),
       d_addedSharedTermsSize(context, 0),
@@ -33,9 +36,11 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_registeredEqualities(context),
       d_EENotify(*this),
       d_equalityEngine(d_EENotify, context, "SharedTermsDatabase", true),
+      d_pfee(context, userContext, d_equalityEngine, pnm, pfEnabled),
       d_theoryEngine(theoryEngine),
       d_inConflict(context, false),
-      d_conflictPolarity() {
+      d_conflictPolarity()
+{
   smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
 }
 
@@ -194,11 +199,13 @@ bool SharedTermsDatabase::areDisequal(TNode a, TNode b) const {
   }
 }
 
-void SharedTermsDatabase::assertEquality(TNode equality, bool polarity, TNode reason)
+void SharedTermsDatabase::assertLiteral(TNode lit)
 {
-  Debug("shared-terms-database::assert") << "SharedTermsDatabase::assertEquality(" << equality << ", " << (polarity ? "true" : "false") << ", " << reason << ")" << endl;
+  Debug("shared-terms-database::assert")
+      << "SharedTermsDatabase::assertLiteral(" << lit << ")" << endl;
   // Add it to the equality engine
-  d_equalityEngine.assertEquality(equality, polarity, reason);
+  // d_equalityEngine.assertEquality(equality, polarity, reason);
+  d_pfee.assertAssume(lit);
   // Check for conflict
   checkForConflict();
 }
@@ -212,35 +219,17 @@ bool SharedTermsDatabase::propagateEquality(TNode equality, bool polarity) {
   return true;
 }
 
-static Node mkAnd(const std::vector<TNode>& conjunctions) {
-  Assert(conjunctions.size() > 0);
-
-  std::set<TNode> all;
-  all.insert(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 1) {
-    // All the same, or just one
-    return conjunctions[0];
-  }
-
-  NodeBuilder<> conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end) {
-    conjunction << *it;
-    ++ it;
-  }
-
-  return conjunction;
-}
-
 void SharedTermsDatabase::checkForConflict() {
   if (d_inConflict) {
     d_inConflict = false;
-    std::vector<TNode> assumptions;
-    d_equalityEngine.explainEquality(d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
-    Node conflict = mkAnd(assumptions);
-    d_theoryEngine->conflict(conflict, THEORY_BUILTIN);
+    Node conflict = d_conflictLHS.eqNode(d_conflictRHS);
+    if (!d_conflictPolarity)
+    {
+      conflict = conflict.notNode();
+    }
+    TrustNode trnc = d_pfee.assertConflict(conflict);
+    d_theoryEngine->processTrustNode(trnc, THEORY_BUILTIN);
+    d_theoryEngine->conflict(trnc.getNode(), THEORY_BUILTIN);
     d_conflictLHS = d_conflictRHS = Node::null();
   }
 }
@@ -255,13 +244,10 @@ bool SharedTermsDatabase::isKnown(TNode literal) const {
   }
 }
 
-Node SharedTermsDatabase::explain(TNode literal) const {
-  bool polarity = literal.getKind() != kind::NOT;
-  TNode atom = polarity ? literal : literal[0];
-  Assert(atom.getKind() == kind::EQUAL);
-  std::vector<TNode> assumptions;
-  d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
-  return mkAnd(assumptions);
+theory::TrustNode SharedTermsDatabase::explain(TNode literal)
+{
+  TrustNode trn = d_pfee.explain(literal);
+  return trn;
 }
 
 } /* namespace CVC4 */

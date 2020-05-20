@@ -23,6 +23,32 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
+ProofStep::ProofStep() : d_rule(PfRule::UNKNOWN) {}
+ProofStep::ProofStep(PfRule r,
+                     const std::vector<Node>& children,
+                     const std::vector<Node>& args)
+    : d_rule(r), d_children(children), d_args(args)
+{
+}
+std::ostream& operator<<(std::ostream& out, ProofStep step)
+{
+  out << "(step " << step.d_rule;
+  for (const Node& c : step.d_children)
+  {
+    out << " " << c;
+  }
+  if (!step.d_args.empty())
+  {
+    out << " :args";
+    for (const Node& a : step.d_args)
+    {
+      out << " " << a;
+    }
+  }
+  out << ")";
+  return out;
+}
+
 ProofStepBuffer::ProofStepBuffer(ProofChecker* pc) : d_checker(pc) {}
 
 Node ProofStepBuffer::tryStep(PfRule id,
@@ -55,17 +81,29 @@ void ProofStepBuffer::addStep(PfRule id,
       std::pair<Node, ProofStep>(expected, ProofStep(id, children, args)));
 }
 
-bool ProofStepBuffer::addTo(CDProof* pf)
+void ProofStepBuffer::addSteps(ProofStepBuffer& psb)
 {
-  // add each of the steps
-  for (const std::pair<Node, ProofStep>& ps : d_steps)
+  const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
+  for (const std::pair<Node, ProofStep>& step : steps)
   {
-    if (!pf->addStep(ps.first, ps.second))
-    {
-      return false;
-    }
+    addStep(step.second.d_rule, step.second.d_children, step.second.d_args, step.first);
   }
-  return true;
+}
+
+void ProofStepBuffer::popStep()
+{
+  Assert(!d_steps.empty());
+  if (!d_steps.empty())
+  {
+    d_steps.pop_back();
+  }
+}
+
+size_t ProofStepBuffer::getNumSteps() const { return d_steps.size(); }
+
+const std::vector<std::pair<Node, ProofStep>>& ProofStepBuffer::getSteps() const
+{
+  return d_steps;
 }
 
 void ProofStepBuffer::clear() { d_steps.clear(); }

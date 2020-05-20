@@ -120,7 +120,8 @@ Node StringsPreprocess::reduce(Node t,
     Node x = t[0];
     Node y = t[1];
     Node n = t[2];
-    Node skk = nm->mkSkolem("iok", nm->integerType(), "created for indexof");
+    Node skk = sc->mkTypedSkolemCached(
+        nm->integerType(), t, SkolemCache::SK_PURIFY, "iok");
 
     Node negone = nm->mkConst(Rational(-1));
     Node krange = nm->mkNode(GEQ, skk, negone);
@@ -212,7 +213,7 @@ Node StringsPreprocess::reduce(Node t,
     lem = zero.eqNode(nm->mkNode(APPLY_UF, u, zero));
     conc.push_back(lem);
 
-    Node x = nm->mkBoundVar(nm->integerType());
+    Node x = SkolemCache::mkIndexVar(t);
     Node xPlusOne = nm->mkNode(PLUS, x, one);
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g = nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, leni));
@@ -270,7 +271,8 @@ Node StringsPreprocess::reduce(Node t,
     retNode = itost;
   } else if( t.getKind() == kind::STRING_STOI ) {
     Node s = t[0];
-    Node stoit = nm->mkSkolem("stoit", nm->integerType(), "created for stoi");
+    Node stoit = sc->mkTypedSkolemCached(
+        nm->integerType(), t, SkolemCache::SK_PURIFY, "stoit");
     Node lens = nm->mkNode(STRING_LENGTH, s);
 
     std::vector<Node> conc1;
@@ -306,7 +308,7 @@ Node StringsPreprocess::reduce(Node t,
     lem = nm->mkNode(GT, lens, zero);
     conc2.push_back(lem);
 
-    Node x = nm->mkBoundVar(nm->integerType());
+    Node x = SkolemCache::mkIndexVar(t);
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g = nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, lens));
     Node sx = nm->mkNode(STRING_SUBSTR, s, x, one);
@@ -438,7 +440,7 @@ Node StringsPreprocess::reduce(Node t,
     lem.push_back(nm->mkNode(APPLY_UF, uf, zero).eqNode(zero));
     lem.push_back(nm->mkNode(STRING_STRIDOF, x, y, ufno).eqNode(negOne));
 
-    Node i = nm->mkBoundVar(nm->integerType());
+    Node i = SkolemCache::mkIndexVar(t);
     Node bvli = nm->mkNode(BOUND_VAR_LIST, i);
     Node bound =
         nm->mkNode(AND, nm->mkNode(GEQ, i, zero), nm->mkNode(LT, i, numOcc));
@@ -495,7 +497,7 @@ Node StringsPreprocess::reduce(Node t,
     Node lenr = nm->mkNode(STRING_LENGTH, r);
     Node eqLenA = lenx.eqNode(lenr);
 
-    Node i = nm->mkBoundVar(nm->integerType());
+    Node i = SkolemCache::mkIndexVar(t);
     Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
 
     Node ci = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, one));
@@ -539,7 +541,7 @@ Node StringsPreprocess::reduce(Node t,
     Node lenr = nm->mkNode(STRING_LENGTH, r);
     Node eqLenA = lenx.eqNode(lenr);
 
-    Node i = nm->mkBoundVar(nm->integerType());
+    Node i = SkolemCache::mkIndexVar(t);
     Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
 
     Node revi = nm->mkNode(
@@ -568,7 +570,7 @@ Node StringsPreprocess::reduce(Node t,
     //negative contains reduces to existential
     Node lenx = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x);
     Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
-    Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
+    Node b1 = SkolemCache::mkIndexVar(t);
     Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
     Node body = NodeManager::currentNM()->mkNode(
         kind::AND,
@@ -585,7 +587,8 @@ Node StringsPreprocess::reduce(Node t,
   }
   else if (t.getKind() == kind::STRING_LEQ)
   {
-    Node ltp = nm->mkSkolem("ltp", nm->booleanType());
+    Node ltp = sc->mkTypedSkolemCached(
+        nm->booleanType(), t, SkolemCache::SK_PURIFY, "ltp");
     Node k = nm->mkSkolem("k", nm->integerType());
 
     std::vector<Node> conj;

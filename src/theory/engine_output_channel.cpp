@@ -32,13 +32,17 @@ EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
       propagations(getStatsPrefix(theory) + "::propagations", 0),
       lemmas(getStatsPrefix(theory) + "::lemmas", 0),
       requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
-      restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
+      restartDemands(getStatsPrefix(theory) + "::restartDemands", 0),
+      trustedConflicts(getStatsPrefix(theory) + "::trustedConflicts", 0),
+      trustedLemmas(getStatsPrefix(theory) + "::trustedLemmas", 0)
 {
   smtStatisticsRegistry()->registerStat(&conflicts);
   smtStatisticsRegistry()->registerStat(&propagations);
   smtStatisticsRegistry()->registerStat(&lemmas);
   smtStatisticsRegistry()->registerStat(&requirePhase);
   smtStatisticsRegistry()->registerStat(&restartDemands);
+  smtStatisticsRegistry()->registerStat(&trustedConflicts);
+  smtStatisticsRegistry()->registerStat(&trustedLemmas);
 }
 
 EngineOutputChannel::Statistics::~Statistics()
@@ -48,6 +52,8 @@ EngineOutputChannel::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&lemmas);
   smtStatisticsRegistry()->unregisterStat(&requirePhase);
   smtStatisticsRegistry()->unregisterStat(&restartDemands);
+  smtStatisticsRegistry()->unregisterStat(&trustedConflicts);
+  smtStatisticsRegistry()->unregisterStat(&trustedLemmas);
 }
 
 EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine,
@@ -290,6 +296,27 @@ void EngineOutputChannel::handleUserAttribute(const char* attr,
                                               theory::Theory* t)
 {
   d_engine->handleUserAttribute(attr, t);
+}
+
+void EngineOutputChannel::trustedConflict(TrustNode pconf)
+{
+  Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
+  d_engine->processTrustNode(pconf, d_theory);
+  TNode conf = pconf.getNode();
+  // now, call the normal interface to conflict
+  conflict(conf);
+}
+
+LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem,
+                                              bool removable,
+                                              bool preprocess,
+                                              bool sendAtoms)
+{
+  Assert(plem.getKind() == TrustNodeKind::LEMMA);
+  d_engine->processTrustNode(plem, d_theory);
+  TNode lem = plem.getNode();
+  // now, call the normal interface for lemma
+  return OutputChannel::lemma(lem, removable, preprocess, sendAtoms);
 }
 
 }  // namespace theory

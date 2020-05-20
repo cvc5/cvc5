@@ -65,9 +65,21 @@ class TermRegistry
    * In practice, we send this lemma eagerly, as soon as t is registered.
    *
    * @param t The node to reduce,
+   * @param sc The Skolem cache to use for new variables,
+   * @param i An identifier for the variant of the reduction,
    * @return The eager reduction for t.
    */
-  static Node eagerReduce(Node t);
+  static Node eagerReduce(Node t, SkolemCache* sc, uint32_t i = 0);
+  /**
+   * Returns a lemma indicating that the length of a term t whose type is
+   * string-like has positive length. The exact form of this lemma depends
+   * on what works best in practice, currently:
+   *   (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
+   *
+   * @param t The node to reduce,
+   * @return The positive length lemma for t.
+   */
+  static Node lengthPositive(Node t);
   /**
    * Preregister term, called when TheoryStrings::preRegisterTerm(n) is called.
    * This does the following:

@@ -98,7 +98,8 @@ bool TheoryArith::needsCheckLastEffort() {
   return d_internal->needsCheckLastEffort();
 }
 
-Node TheoryArith::explain(TNode n) {
+TrustNode TheoryArith::explain(TNode n)
+{
   return d_internal->explain(n);
 }
 

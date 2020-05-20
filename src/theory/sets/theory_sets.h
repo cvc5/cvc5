@@ -50,7 +50,7 @@ class TheorySets : public Theory
   void check(Effort) override;
   bool collectModelInfo(TheoryModel* m) override;
   void computeCareGraph() override;
-  Node explain(TNode) override;
+  TrustNode explain(TNode) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_SETS"; }

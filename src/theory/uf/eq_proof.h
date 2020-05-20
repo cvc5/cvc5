@@ -24,10 +24,12 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof.h"
 #include "theory/uf/equality_engine_types.h"
 
 namespace CVC4 {
+
+class CDProof;
+
 namespace theory {
 namespace eq {
 
@@ -79,7 +81,8 @@ class EqProof
    */
   Node addToProof(
       CDProof* p,
-      std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
+      std::unordered_map<Node, Node, NodeHashFunction>& visited,
+      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
   /** Removes all reflexivity steps, i.e. premises (= t t), from premises
    *
    * Such premisis are spurious for a trastivity steps. The reordering of
@@ -88,14 +91,29 @@ class EqProof
    */
   void cleanReflPremisesInTranstivity(std::vector<Node>& premises) const;
 
-  void maybeFoldTransitivityChildren(std::vector<Node>& premises,
-                                     CDProof* p) const;
+  bool foldTransitivityChildren(
+      Node conclusion,
+      std::vector<Node>& premises,
+      CDProof* p,
+      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
 
+  bool buildTransitivityChain(Node conclusion,
+                              std::vector<Node>& premises) const;
+
+  // returns whether it did reordering
   void maybeAddSymmOrTrueIntroToProof(unsigned i,
                                       std::vector<Node>& premises,
                                       bool first,
                                       Node termInEq,
                                       CDProof* p) const;
+
+  void reduceNestedCongruence(
+      unsigned i,
+      Node conclusion,
+      std::vector<std::vector<Node>>& children,
+      CDProof* p,
+      std::unordered_map<Node, Node, NodeHashFunction>& visited,
+      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
 
 }; /* class EqProof */
 

@@ -20,6 +20,19 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
+void UfProofRuleChecker::registerTo(ProofChecker* pc)
+{
+  // add checkers
+  pc->registerChecker(PfRule::REFL, this);
+  pc->registerChecker(PfRule::SYMM, this);
+  pc->registerChecker(PfRule::TRANS, this);
+  pc->registerChecker(PfRule::CONG, this);
+  pc->registerChecker(PfRule::TRUE_INTRO, this);
+  pc->registerChecker(PfRule::TRUE_ELIM, this);
+  pc->registerChecker(PfRule::FALSE_INTRO, this);
+  pc->registerChecker(PfRule::FALSE_ELIM, this);
+}
+
 Node UfProofRuleChecker::checkInternal(PfRule id,
                                        const std::vector<Node>& children,
                                        const std::vector<Node>& args)
@@ -123,7 +136,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    return children[0];
+    return children[0][0];
   }
   else if (id == PfRule::FALSE_INTRO)
   {
@@ -133,8 +146,8 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node trueNode = NodeManager::currentNM()->mkConst(false);
-    return children[0][0].eqNode(trueNode);
+    Node falseNode = NodeManager::currentNM()->mkConst(false);
+    return children[0][0].eqNode(falseNode);
   }
   else if (id == PfRule::FALSE_ELIM)
   {
@@ -145,7 +158,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    return children[0];
+    return children[0][0].notNode();
   }
   // no rule
   return Node::null();

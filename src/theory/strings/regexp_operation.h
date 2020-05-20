@@ -73,8 +73,8 @@ class RegExpOpr {
   Node d_sigma;
   Node d_sigma_star;
 
-  std::map<PairNodes, Node> d_simpl_cache;
-  std::map<PairNodes, Node> d_simpl_neg_cache;
+  /** A cache for simplify */
+  std::map<Node, Node> d_simpCache;
   std::map<Node, std::pair<int, Node> > d_delta_cache;
   std::map<PairNodeStr, Node> d_dv_cache;
   std::map<PairNodeStr, std::pair<Node, int> > d_deriv_cache;
@@ -128,13 +128,33 @@ class RegExpOpr {
    */
   Node simplify(Node t, bool polarity);
   /**
-   * Return the unfolded form of (str.in_re s r).
+   * Given regular expression of the form
+   *   (re.++ r_0 ... r_{n-1})
+   * This returns a node non-null node reLen and updates index such that
+   *   RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
+   * where index is set to either 0 or n-1.
    */
-  static Node reduceRegExpPos(Node s, Node r, SkolemCache* sc);
+  static Node getRegExpConcatFixed(Node r, unsigned& index);
+  //------------------------ trusted reductions
   /**
-   * Return the unfolded form of (not (str.in_re s r)).
+   * Return the unfolded form of mem of the form (str.in_re s r).
    */
-  static Node reduceRegExpNeg(Node s, Node r, SkolemCache* sc);
+  static Node reduceRegExpPos(Node mem, SkolemCache* sc);
+  /**
+   * Return the unfolded form of mem of the form (not (str.in_re s r)).
+   */
+  static Node reduceRegExpNeg(Node mem);
+  /**
+   * Return the unfolded form of mem of the form
+   *   (not (str.in_re s (re.++ r_0 ... r_{n-1})))
+   * Called when RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
+   * where index is either 0 or n-1.
+   *
+   * This uses reLen as an optimization to improve the reduction. If reLen
+   * is null, then this optimization is not applied.
+   */
+  static Node reduceRegExpNegConcatFixed(Node mem, Node reLen, unsigned index);
+  //------------------------ end trusted reductions
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string
    * is not in r, or 0 if it is unknown whether the empty string is in r.

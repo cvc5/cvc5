@@ -50,12 +50,186 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   return mkNode(id, children, args, expected);
 }
 
+std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
+{
+  Assert(!fact.isNull());
+  Assert(fact.getType().isBoolean());
+  std::vector<std::shared_ptr<ProofNode>> children;
+  std::vector<Node> args;
+  args.push_back(fact);
+  return mkNode(PfRule::ASSUME, children, args, fact);
+}
+
+std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
+    std::shared_ptr<ProofNode> pf,
+    std::vector<Node>& assumps,
+    bool ensureClosed,
+    bool doMinimize)
+{
+  std::vector<std::shared_ptr<ProofNode>> pfChildren;
+  pfChildren.push_back(pf);
+  if (!ensureClosed)
+  {
+    return mkNode(PfRule::SCOPE, pfChildren, assumps);
+  }
+  Trace("pnm-scope") << "ProofNodeManager::mkScope " << assumps << std::endl;
+  // we first ensure the assumptions are flattened
+  std::unordered_set<Node, NodeHashFunction> ac;
+  for (const TNode& a : assumps)
+  {
+    ac.insert(a);
+  }
+  // The free assumptions of the proof
+  std::map<Node, std::vector<ProofNode*>> famap;
+  pf->getFreeAssumptionsMap(famap);
+  std::unordered_set<Node, NodeHashFunction> acu;
+  std::unordered_set<Node, NodeHashFunction>::iterator itf;
+  for (const std::pair<const Node, std::vector<ProofNode*>>& fa : famap)
+  {
+    Node a = fa.first;
+    if (ac.find(a) != ac.end())
+    {
+      // already covered by an assumption
+      acu.insert(a);
+      continue;
+    }
+    // otherwise it may be due to symmetry?
+    bool polarity = a.getKind() != NOT;
+    Node aeq = polarity ? a : a[0];
+    if (aeq.getKind() == EQUAL)
+    {
+      Node aeqSym = aeq[1].eqNode(aeq[0]);
+      aeqSym = polarity ? aeqSym : aeqSym.notNode();
+      itf = ac.find(aeqSym);
+      if (itf != ac.end())
+      {
+        Trace("pnm-scope") << "- reorient assumption " << aeqSym << " via " << a
+                           << " for " << fa.second.size() << " proof nodes"
+                           << std::endl;
+        std::shared_ptr<ProofNode> pfaa = mkAssume(aeqSym);
+        for (ProofNode* pfs : fa.second)
+        {
+          Assert(pfs->getResult() == a);
+          // must correct the orientation on this leaf
+          std::vector<std::shared_ptr<ProofNode>> children;
+          children.push_back(pfaa);
+          std::vector<Node> args;
+          args.push_back(a);
+          updateNode(pfs, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+        }
+        Trace("pnm-scope") << "...finished" << std::endl;
+        acu.insert(aeqSym);
+        continue;
+      }
+    }
+    // All free assumptions should be arguments to SCOPE.
+    std::stringstream ss;
+    pf->printDebug(ss);
+    ss << std::endl << "Free assumption: " << a << std::endl;
+    for (const Node& aprint : ac)
+    {
+      ss << "- assumption: " << aprint << std::endl;
+    }
+    AlwaysAssert(false) << "Generated a proof that is not closed by the scope: "
+                        << ss.str() << std::endl;
+  }
+  if (acu.size() < ac.size())
+  {
+    // All assumptions should match a free assumption; if one does not, then
+    // the explanation could have been smaller.
+    for (const Node& a : ac)
+    {
+      if (acu.find(a) == acu.end())
+      {
+        Notice() << "ProofNodeManager::mkScope: assumption " << a
+                 << " does not match a free assumption in proof" << std::endl;
+      }
+    }
+  }
+  if (doMinimize && acu.size() < ac.size())
+  {
+    assumps.clear();
+    assumps.insert(assumps.end(), acu.begin(), acu.end());
+  }
+  else if (ac.size()<assumps.size())
+  {
+    // always must remove duplicates
+    assumps.clear();
+    assumps.insert(assumps.end(), ac.begin(), ac.end());
+  }
+  Node expected;
+  NodeManager * nm = NodeManager::currentNM();
+  Node exp;
+  Node conc = pf->getResult();
+  if (assumps.empty())
+  {
+    Assert (!conc.isConst());
+    expected = conc;
+  }
+  else
+  {
+    exp = assumps.size()==1 ? assumps[0] : nm->mkNode(AND, assumps);
+    if (conc.isConst() && !conc.getConst<bool>())
+    {
+      expected = exp.notNode();
+    }
+    else
+    {
+      expected = nm->mkNode(IMPLIES, exp, conc);
+    }
+  }
+  return mkNode(PfRule::SCOPE, pfChildren, assumps, expected);
+}
+
 bool ProofNodeManager::updateNode(
     ProofNode* pn,
     PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
+  // ---------------- check for cyclic
+  std::unordered_map<const ProofNode*, bool> visited;
+  std::unordered_map<const ProofNode*, bool>::iterator it;
+  std::vector<const ProofNode*> visit;
+  for (const std::shared_ptr<ProofNode>& cp : children)
+  {
+    visit.push_back(cp.get());
+  }
+  const ProofNode* cur;
+  while (!visit.empty())
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited[cur] = true;
+      if (cur == pn)
+      {
+        std::stringstream ss;
+        ss << "ProofNodeManager::updateNode: attempting to make cyclic proof! "
+           << id << " " << pn->getResult() << ", children = " << std::endl;
+        for (const std::shared_ptr<ProofNode>& cp : children)
+        {
+          ss << "  " << cp->getRule() << " " << cp->getResult() << std::endl;
+        }
+        ss << "Full children:" << std::endl;
+        for (const std::shared_ptr<ProofNode>& cp : children)
+        {
+          ss << "  - ";
+          cp->printDebug(ss);
+          ss << std::endl;
+        }
+        AlwaysAssert(false) << ss.str();
+      }
+      for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
+      {
+        visit.push_back(cp.get());
+      }
+    }
+  }
+  // ---------------- end check for cyclic
+
   // should have already computed what is proven
   Assert(!pn->d_proven.isNull())
       << "ProofNodeManager::updateProofNode: invalid proof provided";
@@ -66,6 +240,7 @@ bool ProofNodeManager::updateNode(
     // if it was invalid, then we do not update
     return false;
   }
+
   // we update its value
   pn->setValue(id, children, args);
   // proven field should already be the same as the result

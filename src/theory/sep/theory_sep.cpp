@@ -139,13 +139,13 @@ void TheorySep::propagate(Effort e){
 
 }
 
-
-Node TheorySep::explain(TNode literal)
+TrustNode TheorySep::explain(TNode literal)
 {
   Debug("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
   explain(literal, assumptions);
-  return mkAnd(assumptions);
+  Node exp = mkAnd(assumptions);
+  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
 
@@ -833,7 +833,10 @@ bool TheorySep::needsCheckLastEffort() {
 
 void TheorySep::conflict(TNode a, TNode b) {
   Trace("sep-conflict") << "Sep::conflict : " << a << " " << b << std::endl;
-  Node conflictNode = explain(a.eqNode(b));
+  Node eq = a.eqNode(b);
+  std::vector<TNode> assumptions;
+  explain(eq, assumptions);
+  Node conflictNode = mkAnd(assumptions);
   d_conflict = true;
   d_out->conflict( conflictNode );
 }

@@ -37,6 +37,7 @@ const char* toString(Inference i)
     case Inference::F_ENDPOINT_EMP: return "F_ENDPOINT_EMP";
     case Inference::F_ENDPOINT_EQ: return "F_ENDPOINT_EQ";
     case Inference::F_NCTN: return "F_NCTN";
+    case Inference::N_EQ_CONF: return "N_EQ_CONF";
     case Inference::N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
     case Inference::N_UNIFY: return "N_UNIFY";
     case Inference::N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";
@@ -84,6 +85,7 @@ const char* toString(Inference i)
     case Inference::CTN_NEG_EQUAL: return "CTN_NEG_EQUAL";
     case Inference::CTN_POS: return "CTN_POS";
     case Inference::REDUCTION: return "REDUCTION";
+    case Inference::PREFIX_CONFLICT: return "PREFIX_CONFLICT";
     default: return "?";
   }
 }
@@ -105,25 +107,20 @@ bool InferInfo::isTrivial() const
 bool InferInfo::isConflict() const
 {
   Assert(!d_conc.isNull());
-  return d_conc.isConst() && !d_conc.getConst<bool>() && d_antn.empty();
+  return d_conc.isConst() && !d_conc.getConst<bool>() && d_noExplain.empty();
 }
 
 bool InferInfo::isFact() const
 {
   Assert(!d_conc.isNull());
   TNode atom = d_conc.getKind() == kind::NOT ? d_conc[0] : d_conc;
-  return !atom.isConst() && atom.getKind() != kind::OR && d_antn.empty();
+  return !atom.isConst() && atom.getKind() != kind::OR && d_noExplain.empty();
 }
 
 Node InferInfo::getAntecedant() const
 {
-  if (d_antn.empty())
-  {
-    return utils::mkAnd(d_ant);
-  }
-  std::vector<Node> antc = d_ant;
-  antc.insert(antc.end(), d_antn.begin(), d_antn.end());
-  return utils::mkAnd(antc);
+  // d_noExplain is a subset of d_ant
+  return utils::mkAnd(d_ant);
 }
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
@@ -137,9 +134,9 @@ std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
   {
     out << " :ant (" << ii.d_ant << ")";
   }
-  if (!ii.d_antn.empty())
+  if (!ii.d_noExplain.empty())
   {
-    out << " :antn (" << ii.d_antn << ")";
+    out << " :no-explain (" << ii.d_noExplain << ")";
   }
   out << ")";
   return out;

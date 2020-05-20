@@ -134,6 +134,19 @@ proofrule CONCAT_LPROP 2 1 ::CVC4::theory::strings::StringsProofRuleChecker
 // contained in t2.
 proofrule CONCAT_CPROP 1 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
+// ======== Length positive
+// Children: none
+// Arguments: (t)
+// ---------------------
+// Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t 0)))
+proofrule LENGTH_POS 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
+
+// ======== Length non-empty
+// Children: (P1:(not (= t "")))
+// Arguments: none
+// ---------------------
+// Conclusion: (not (= (str.len t) 0))
+proofrule LENGTH_NON_EMPTY 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 
 //======================== Extended functions
 
@@ -157,12 +170,10 @@ proofrule STRINGS_REDUCTION 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 // ======== Eager Reduction
 // Children: none
-// Arguments: (t)
+// Arguments: (t, id?)
 // ---------------------
 // Conclusion: R
-// where R = StringsPreprocess::eagerReduce(t).
-// In other words, R is the reduction predicate for extended term t[x], and w is
-//   (witness ((z T)) (= z t[x]))
+// where R = StringsPreprocess::eagerReduce(t, id).
 proofrule STRINGS_EAGER_REDUCTION 0 1 ::CVC4::theory::strings::StringsProofRuleChecker
 
 //======================== Regular expressions
@@ -178,7 +189,7 @@ proofrule RE_INTER 2: 0 ::CVC4::theory::strings::StringsProofRuleChecker
 // Children: (P:(str.in.re t R)) 
 // Arguments: none
 // ---------------------
-// Conclusion:(RegExpOpr::reduceRegExpPos(t,R)),
+// Conclusion:(RegExpOpr::reduceRegExpPos((str.in.re t R))),
 // corresponding to the one-step unfolding of the premise.
 proofrule RE_UNFOLD_POS 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 
@@ -186,6 +197,17 @@ proofrule RE_UNFOLD_POS 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 // Children: (P:(not (str.in.re t R)))
 // Arguments: none
 // ---------------------
-// Conclusion:(RegExpOpr::reduceRegExpNeg(t,R)), 
+// Conclusion:(RegExpOpr::reduceRegExpNeg((not (str.in.re t R)))), 
 // corresponding to the one-step unfolding of the premise.
 proofrule RE_UNFOLD_NEG 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
+
+// ======== Regular expression unfold negative concat fixed
+// Children: (P:(not (str.in.re t R)))
+// Arguments: none
+// ---------------------
+// Conclusion:(RegExpOpr::reduceRegExpNegConcatFixed((not (str.in.re t R)),L,i)) 
+// where RegExpOpr::getRegExpConcatFixed((not (str.in.re t R)), i) = L.
+// corresponding to the one-step unfolding of the premise, optimized for fixed
+// length of component i of the regular expression concatenation R.
+proofrule RE_UNFOLD_NEG_CONCAT_FIXED 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
+

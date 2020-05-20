@@ -30,6 +30,7 @@ namespace arith {
 
 ArithCongruenceManager::ArithCongruenceManager(
     context::Context* c,
+    context::UserContext* u,
     ConstraintDatabase& cd,
     SetupLiteralCallBack setup,
     const ArithVariables& avars,
@@ -37,24 +38,21 @@ ArithCongruenceManager::ArithCongruenceManager(
     : d_inConflict(c),
       d_raiseConflict(raiseConflict),
       d_notify(*this),
-      d_eq_infer(),
-      d_eqi_counter(0, c),
       d_keepAlive(c),
       d_propagatations(c),
       d_explanationMap(c),
       d_constraintDatabase(cd),
       d_setupLiteral(setup),
       d_avariables(avars),
-      d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true)
+      d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true),
+      d_dummyPnm(nullptr), 
+      d_pfee(nullptr)
 {
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
   d_ee.addFunctionKind(kind::EXPONENTIAL);
   d_ee.addFunctionKind(kind::SINE);
-  //module to infer additional equalities based on normalization
-  if( options::sNormInferEq() ){
-    d_eq_infer.reset(new quantifiers::EqualityInference(c, true));
-    d_true = NodeManager::currentNM()->mkConst( true );
-  }
+  d_dummyPnm.reset(new ProofNodeManager(nullptr)); //FIXME: use proof checker of TheoryEngine
+  d_pfee.reset(new eq::ProofEqEngine(c, u, d_ee, d_dummyPnm.get(), options::proofNew()));
 }
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
@@ -116,12 +114,10 @@ void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyConstantTermMerge(TN
   d_acm.propagate(t1.eqNode(t2));
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyNewClass(TNode t) {
-  d_acm.eqNotifyNewClass(t);
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPreMerge(TNode t1, TNode t2) {
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPostMerge(TNode t1, TNode t2) {
-  d_acm.eqNotifyPostMerge(t1,t2);
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
 }
@@ -246,8 +242,8 @@ bool ArithCongruenceManager::propagate(TNode x){
       return true;
     }else{
       ++(d_statistics.d_conflicts);
-
-      Node conf = flattenAnd(explainInternal(x));
+      TrustNode trn = explainInternal(x);
+      Node conf = flattenAnd(trn.getNode());
       raiseConflict(conf);
       Debug("arith::congruenceManager") << "rewritten to false "<<x<<" with explanation "<< conf << std::endl;
       return false;
@@ -271,7 +267,8 @@ bool ArithCongruenceManager::propagate(TNode x){
                                    << c->negationHasProof() << std::endl;
 
   if(c->negationHasProof()){
-    Node expC = explainInternal(x);
+    TrustNode texpC = explainInternal(x);
+    Node expC = texpC.getNode();
     ConstraintCP negC = c->getNegation();
     Node neg = negC->externalExplainByAssertions();
     Node conf = expC.andNode(neg);
@@ -343,41 +340,17 @@ void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s, NodeBuilder<
   }
 }
 
-Node ArithCongruenceManager::explainInternal(TNode internal){
-  std::vector<TNode> assumptions;
-  explain(internal, assumptions);
-
-  std::set<TNode> assumptionSet;
-  assumptionSet.insert(assumptions.begin(), assumptions.end());
-
-  if (assumptionSet.size() == 1) {
-    // All the same, or just one
-    return assumptions[0];
-  }else{
-    NodeBuilder<> conjunction(kind::AND);
-    enqueueIntoNB(assumptionSet, conjunction);
-    return conjunction;
-  }
+TrustNode ArithCongruenceManager::explainInternal(TNode internal){
+  return d_pfee->explain(internal);
 }
 
-void ArithCongruenceManager::eqNotifyNewClass(TNode t) {
-  if( d_eq_infer ){
-    d_eq_infer->eqNotifyNewClass(t);
-    fixpointInfer();
-  }
-}
-void ArithCongruenceManager::eqNotifyPostMerge(TNode t1, TNode t2) {
-  if( d_eq_infer ){
-    d_eq_infer->eqNotifyMerge(t1, t2);
-    fixpointInfer();
-  }
-}
-
-Node ArithCongruenceManager::explain(TNode external){
+TrustNode ArithCongruenceManager::explain(TNode external){
   Trace("arith-ee") << "Ask for explanation of " << external << std::endl;
   Node internal = externalToInternal(external);
   Trace("arith-ee") << "...internal = " << internal << std::endl;
-  return explainInternal(internal);
+  TrustNode trn = explainInternal(internal);
+  // TODO: proof of internal to external?
+  return trn;
 }
 
 void ArithCongruenceManager::explain(TNode external, NodeBuilder<>& out){
@@ -413,10 +386,32 @@ void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar
   Assert(eq.getKind() == kind::EQUAL);
 
   Trace("arith-ee") << "Assert " << eq << ", pol " << isEquality << ", reason " << reason << std::endl;
-  if(isEquality){
-    d_ee.assertEquality(eq, true, reason);
-  }else{
-    d_ee.assertEquality(eq, false, reason);
+  if (options::proofNew())
+  {
+    Node lit = isEquality ? Node(eq) : eq.notNode();
+    if (CDProof::isSame(lit,reason))
+    {
+      // lit and reason are essentially the same, thus lit does not need an
+      // arithmetic-specific explanation.
+      d_pfee->assertAssume(reason);
+    }
+    else
+    {
+      Trace("arith-pfee") << "Assert " << lit << " by " << reason << std::endl;
+      std::vector<Node> args;
+      args.push_back(lit); // forced conclusion of TRUST
+      PfRule rule = PfRule::TRUST; //FIXME: use a proper PfRule.
+      // assert fact
+      d_pfee->assertFact(lit, rule, reason, args);
+    }
+  }
+  else
+  {
+    if(isEquality){
+      d_ee.assertEquality(eq, true, reason);
+    }else{
+      d_ee.assertEquality(eq, false, reason);
+    }
   }
 }
 
@@ -439,7 +434,28 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
-  d_ee.assertEquality(eq, true, reason);
+  if (options::proofNew())
+  {
+    if (CDProof::isSame(eq,reason))
+    {
+      // eq and reason are essentially the same, thus eq does not need an
+      // arithmetic-specific explanation.
+      d_pfee->assertAssume(reason);
+    }
+    else
+    {
+      Trace("arith-pfee") << "Assert (equalsConstant) " << eq << " by " << reason << std::endl;
+      std::vector<Node> args;
+      args.push_back(eq);
+      PfRule rule = PfRule::TRUST; //FIXME
+      // assert fact
+      d_pfee->assertFact(eq, rule, reason, args);
+    }
+  }
+  else
+  {
+    d_ee.assertEquality(eq, true, reason);
+  }
 }
 
 void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
@@ -463,58 +479,32 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant2 " << eq << ", reason " << reason << std::endl;
-  d_ee.assertEquality(eq, true, reason);
+  if (options::proofNew())
+  {
+    if (CDProof::isSame(eq,reason))
+    {
+      // eq and reason are essentially the same, thus eq does not need an
+      // arithmetic-specific explanation.
+      d_pfee->assertAssume(reason);
+    }
+    else
+    {
+      Trace("arith-pfee") << "Assert (equalsConstant2) " << eq << " by " << reason << std::endl;
+      std::vector<Node> args;
+      args.push_back(eq);
+      PfRule rule = PfRule::TRUST; //FIXME
+      // assert fact
+      d_pfee->assertFact(eq, rule, reason, args);
+    }
+  }
+  else
+  {
+    d_ee.assertEquality(eq, true, reason);
+  }
 }
 
 void ArithCongruenceManager::addSharedTerm(Node x){
   d_ee.addTriggerTerm(x, THEORY_ARITH);
-}
-
-bool ArithCongruenceManager::fixpointInfer() {
-  if( d_eq_infer ){
-    while(! inConflict() && d_eqi_counter.get()<d_eq_infer->getNumPendingMerges() ) {
-      Trace("snorm-infer-eq-debug") << "Processing " << d_eqi_counter.get() << " / " << d_eq_infer->getNumPendingMerges() << std::endl;
-      Node eq = d_eq_infer->getPendingMerge( d_eqi_counter.get() );
-      Trace("snorm-infer-eq") << "ArithCongruenceManager : Infer by normalization : " << eq << std::endl;
-      if( !d_ee.areEqual( eq[0], eq[1] ) ){
-        Node eq_exp = d_eq_infer->getPendingMergeExplanation( d_eqi_counter.get() );
-        Trace("snorm-infer-eq") << "           explanation : " << eq_exp << std::endl;
-        //regress explanation
-        std::vector<TNode> assumptions;
-        if( eq_exp.getKind()==kind::AND ){
-          for( unsigned i=0; i<eq_exp.getNumChildren(); i++ ){
-            explain( eq_exp[i], assumptions );
-          }
-        }else if( eq_exp.getKind()==kind::EQUAL ){
-          explain( eq_exp, assumptions );
-        }else{
-          //eq_exp should be true
-          Assert(eq_exp == d_true);
-        }
-        Node req_exp;
-        if( assumptions.empty() ){
-          req_exp = d_true;
-        }else{
-          std::set<TNode> assumptionSet;
-          assumptionSet.insert(assumptions.begin(), assumptions.end());
-          if( assumptionSet.size()==1 ){
-            req_exp = assumptions[0];
-          }else{
-            NodeBuilder<> conjunction(kind::AND);
-            enqueueIntoNB(assumptionSet, conjunction);
-            req_exp = conjunction;
-          }
-        }
-        Trace("snorm-infer-eq") << " regressed explanation : " << req_exp << std::endl;
-        d_ee.assertEquality( eq, true, req_exp );
-        d_keepAlive.push_back( req_exp );
-      }else{
-        Trace("snorm-infer-eq") << "...already equal." << std::endl;
-      }
-      d_eqi_counter = d_eqi_counter.get() + 1;
-    }
-  }
-  return inConflict();
 }
 
 }/* CVC4::theory::arith namespace */

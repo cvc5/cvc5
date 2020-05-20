@@ -70,6 +70,8 @@ class SkolemCache
     //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
     SK_ID_V_SPT,
     SK_ID_V_SPT_REV,
+    SK_ID_V_UNIFIED_SPT,
+    SK_ID_V_UNIFIED_SPT_REV,
     // a != ""  ^ b = "c" ^ a ++ a' != b ++ b' =>
     //    exists k, k_rem.
     //         len( k ) = 1 ^
@@ -114,6 +116,8 @@ class SkolemCache
     //       k(x) is the end index of the x^th occurrence of b in a
     //   where n is the number of occurrences of b in a, and k(0)=0.
     SK_OCCUR_INDEX,
+    //
+    SK_RE_CONCAT_COMPONENT,
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
@@ -134,6 +138,15 @@ class SkolemCache
   Node mkSkolem(const char* c);
   /** Returns true if n is a skolem allocated by this class */
   bool isSkolem(Node n) const;
+  /** Make index variable
+   *
+   * This returns an integer variable of kind BOUND_VARIABLE that is used
+   * for axiomatizing the behavior of a term or predicate t. Notice that this
+   * index variable does *not* necessarily refer to indices in the term t
+   * itself. Instead, it refers to indices in the relevant string in the
+   * reduction of t.
+   */
+  static Node mkIndexVar(Node t);
 
  private:
   /**

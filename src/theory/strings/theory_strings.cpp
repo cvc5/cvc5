@@ -153,28 +153,7 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
 void TheoryStrings::setProofChecker(ProofChecker* pc)
 {
   // add checkers
-  pc->registerChecker(PfRule::CONCAT_EQ, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_UNIFY, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_CONFLICT, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_SPLIT, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_CSPLIT, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_LPROP, &d_sProofChecker);
-  pc->registerChecker(PfRule::CONCAT_CPROP, &d_sProofChecker);
-  pc->registerChecker(PfRule::CTN_NOT_EQUAL, &d_sProofChecker);
-  pc->registerChecker(PfRule::STRINGS_REDUCTION, &d_sProofChecker);
-  pc->registerChecker(PfRule::STRINGS_EAGER_REDUCTION, &d_sProofChecker);
-  pc->registerChecker(PfRule::RE_INTER, &d_sProofChecker);
-  pc->registerChecker(PfRule::RE_UNFOLD_POS, &d_sProofChecker);
-  pc->registerChecker(PfRule::RE_UNFOLD_NEG, &d_sProofChecker);
-
-  // everything else is untrustworthy, assume trusted
-  uint32_t siuBegin = static_cast<uint32_t>(PfRule::SIU_BEGIN);
-  uint32_t siuEnd = static_cast<uint32_t>(PfRule::SIU_END);
-  for (uint32_t r = siuBegin + 1; r < siuEnd; r++)
-  {
-    // trust the checker
-    pc->registerChecker(static_cast<PfRule>(r), nullptr);
-  }
+  d_sProofChecker.registerTo(pc);
   // use the checker in the proof node manager
   d_pnm.reset(new ProofNodeManager(pc));
 }
@@ -240,18 +219,11 @@ bool TheoryStrings::propagate(TNode literal) {
   return ok;
 }
 
-
-Node TheoryStrings::explain( TNode literal ){
+TrustNode TheoryStrings::explain(TNode literal)
+{
   Debug("strings-explain") << "explain called on " << literal << std::endl;
-  std::vector< TNode > assumptions;
-  d_im->explain(literal, assumptions);
-  if( assumptions.empty() ){
-    return d_true;
-  }else if( assumptions.size()==1 ){
-    return assumptions[0];
-  }else{
-    return NodeManager::currentNM()->mkNode( kind::AND, assumptions );
-  }
+  TrustNode trn = d_im->explain(literal);
+  return trn;
 }
 
 bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars, 

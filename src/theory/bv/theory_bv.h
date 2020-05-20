@@ -89,7 +89,7 @@ public:
 
   void propagate(Effort e) override;
 
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 

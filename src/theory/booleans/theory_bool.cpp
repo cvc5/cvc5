@@ -71,7 +71,7 @@ void TheoryBool::setProofChecker(ProofChecker* pc)
 {
   Assert(pc != nullptr);
   // add checkers
-  pc->registerChecker(PfRule::SPLIT, &d_bProofChecker);
+  d_bProofChecker.registerTo(pc);
 }
 
 }/* CVC4::theory::booleans namespace */

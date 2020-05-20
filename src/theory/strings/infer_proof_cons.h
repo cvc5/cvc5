@@ -23,6 +23,7 @@
 #include "expr/proof_checker.h"
 #include "expr/proof_rule.h"
 #include "expr/proof_step_buffer.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/uf/proof_equality_engine.h"
@@ -32,45 +33,120 @@ namespace theory {
 namespace strings {
 
 /**
- * Converts between Inference and information needed to provide a proof step
+ * Converts between the strings-specific (untrustworthy) InferInfo class and
+ * information about how to construct a trustworthy proof step, e.g.
  * (PfRule, children, args).
+ *
+ * It also may act as a (lazy) proof generator.
  */
-class InferProofCons
+class InferProofCons : public ProofGenerator
 {
+  typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>, NodeHashFunction>
+      NodeInferInfoMap;
+
  public:
-  InferProofCons(ProofChecker* pc,
+  InferProofCons(context::Context* c,
+                 ProofNodeManager* pnm,
                  SequencesStatistics& statistics,
                  bool pfEnabled);
   ~InferProofCons() {}
+  /**
+   * This is called to notify that ii is an inference that may need a proof
+   * in the future.
+   *
+   * In detail, this class should be prepared to respond to a call to:
+   *   getProofFor(ii.d_conc)
+   * in the remainder of the SAT context. This method copies ii and stores it
+   * in the context-dependent map d_lazyFactMap below.
+   *
+   * This is used for lazy proof construction, where proofs are constructed
+   * only for facts that are explained.
+   */
+  void notifyFact(const InferInfo& ii);
   /** convert
    *
    * This method is called when the theory of strings makes an inference
    * described by an inference info ii, which is of the form:
-   * (<conclusion>, <Inference_id>, <antecendant> <new-antecedant>).
+   * (<conclusion>, <Inference_id>, <antecendant>).
    *
-   * This method converts this call to a proof step consisting of
-   * (1) A returned proof rule identifier.
-   * (2) The premises of the proof step (pfChildren).
-   * (3) The subset of pfChildren which should be "explained". Notice this is
-   * only relevant if ii corresponds to a lemma.
-   * (4) Arguments to the proof step (pfArgs).
+   * This method converts this call to instructions on what the proof rule
+   * step(s) are for concluding the conclusion of the inference. This
+   * information is stored in the argument ps, which consists of:
+   * (1) A proof rule identifier (d_rule).
+   * (2) The premises of the proof step (d_children).
+   * (3) Arguments to the proof step (d_args).
+   *
+   * NOTE: if the proof for the inference cannot be captured by a single
+   * step, then the d_rule field of ps is not set, and useBuffer is set to
+   * true. In this case, the ProofStepBuffer of this class contains (multiple)
+   * steps for how to construct a proof for the inference. This buffer can be
+   * obtained by getBuffer() below.
+   *
+   * This method returns the conclusion of ii.
    */
-  void convert(const InferInfo& ii, eq::ProofInferInfo& pfi, bool& useBuffer);
-  /** internal version */
-  void convert(Inference infer,
-                 bool isRev,
-                 Node conc,
-                 const std::vector<Node>& exp,
-                 const std::vector<Node>& expn,
-                 eq::ProofInferInfo& pii, bool& useBuffer);
+  Node convert(const InferInfo& ii, ProofStep& ps, bool& useBuffer);
+  /**
+   * Internal version of above, where the fields of ii have been expanded
+   * into separate arguments.
+   */
+  Node convert(Inference infer,
+               bool isRev,
+               Node conc,
+               const std::vector<Node>& exp,
+               ProofStep& ps,
+               bool& useBuffer);
   /** Get the proof step buffer */
   ProofStepBuffer* getBuffer();
 
+  /**
+   * This returns the proof for fact. This is required for using this class as
+   * a lazy proof generator.
+   *
+   * It should be the case that a call was made to notifyFact(ii) where
+   * ii.d_conc is fact in this SAT context.
+   */
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override;
+  /** Identify this generator (for debugging, etc..) */
+  virtual std::string identify() const override;
+
  private:
-  /** Convert length proof */
+  /**
+   * Convert length proof. If this method returns true, it adds proof step(s)
+   * to the buffer that conclude lenReq from premises lenExp.
+   */
   bool convertLengthPf(Node lenReq, const std::vector<Node>& lenExp);
-  /** Apply macro transform */
-  bool convertPredTransform(Node src, Node tgt, const std::vector<Node>& exp);
+  /**
+   * Apply macro transform. If this method returns true, it adds proof step(s)
+   * to the buffer that conclude tgt from premises src, exp. In particular,
+   * it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method should be
+   * applied when src and tgt are equivalent formulas assuming exp.
+   */
+  bool convertPredTransform(Node src,
+                            Node tgt,
+                            const std::vector<Node>& exp,
+                            MethodId ids = MethodId::SB_DEFAULT,
+                            MethodId idr = MethodId::RW_REWRITE);
+  /**
+   */
+  bool convertPredIntro(Node tgt,
+                        const std::vector<Node>& exp,
+                        MethodId ids = MethodId::SB_DEFAULT,
+                        MethodId idr = MethodId::RW_REWRITE);
+  /**
+   */
+  Node convertPredElim(Node src,
+                       const std::vector<Node>& exp,
+                       MethodId ids = MethodId::SB_DEFAULT,
+                       MethodId idr = MethodId::RW_REWRITE);
+  /** Add method ids */
+  void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
+  /**
+   */
+  Node convertTrans(Node eqa, Node eqb);
+  /** the proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The lazy fact map */
+  NodeInferInfoMap d_lazyFactMap;
   /** The proof step buffer */
   ProofStepBuffer d_psb;
   /** Reference to the statistics for the theory of strings/sequences. */

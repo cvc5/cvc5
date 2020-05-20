@@ -65,7 +65,7 @@ public:
   void check(Effort e) override;
   bool needsCheckLastEffort() override;
   void propagate(Effort e) override;
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,

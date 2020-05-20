@@ -53,14 +53,7 @@ void TheoryBuiltin::setProofChecker(ProofChecker* pc)
 {
   Assert(pc != nullptr);
   // add checkers
-  pc->registerChecker(PfRule::ASSUME, &d_bProofChecker);
-  pc->registerChecker(PfRule::SCOPE, &d_bProofChecker);
-  pc->registerChecker(PfRule::SUBS, &d_bProofChecker);
-  pc->registerChecker(PfRule::REWRITE, &d_bProofChecker);
-  pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, &d_bProofChecker);
-  pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, &d_bProofChecker);
-  pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, &d_bProofChecker);
-  pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, &d_bProofChecker);
+  d_bProofChecker.registerTo(pc);
 }
 
 }  // namespace builtin

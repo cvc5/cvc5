@@ -22,6 +22,8 @@
 
 namespace CVC4 {
 
+class CDProof;
+
 /**
  * An abstract proof generator class, to be used in combination with
  * ProofOutputChannel (see theory/proof_output_channel.h).
@@ -34,8 +36,8 @@ namespace CVC4 {
 class ProofGenerator
 {
  public:
-  ProofGenerator() {}
-  virtual ~ProofGenerator() {}
+  ProofGenerator();
+  virtual ~ProofGenerator();
   /** Get the proof for formula f
    *
    * This forces the proof generator to construct a proof for formula f and
@@ -46,7 +48,9 @@ class ProofGenerator
    *
    * It should be the case that hasProofFor(f) is true.
    */
-  virtual std::shared_ptr<ProofNode> getProofFor(Node f) = 0;
+  virtual std::shared_ptr<ProofNode> getProofFor(Node f);
+  /** Add to proof */
+  virtual bool addProofTo(Node f, CDProof* pf, bool forceOverwrite = false);
   /**
    * Can we give the proof for formula f? This is used for debugging. This
    * returns false if the generator cannot provide a proof of formula f.
@@ -61,10 +65,26 @@ class ProofGenerator
    * we do not insist this is the case.
    */
   virtual bool hasProofFor(Node f) { return true; }
-  /**
-   * Identify this generator (for debugging, etc..)
-   */
+  /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const = 0;
+};
+
+class CDProof;
+
+/** A "copy on demand" proof generator */
+class PRefProofGenerator : public ProofGenerator
+{
+ public:
+  PRefProofGenerator(CDProof* cd);
+  ~PRefProofGenerator();
+  /** Get proof for */
+  std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Identify this generator (for debugging, etc..) */
+  std::string identify() const override;
+
+ protected:
+  /** The reference proof */
+  CDProof* d_proof;
 };
 
 }  // namespace CVC4

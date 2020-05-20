@@ -58,7 +58,7 @@ class TheoryFp : public Theory {
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
  protected:
   /** Equality engine */

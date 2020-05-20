@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
+#include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/proof.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 #include "expr/proof_step_buffer.h"
@@ -59,7 +59,8 @@ class ProofEqEngine : public EagerProofGenerator
                 context::UserContext* u,
                 EqualityEngine& ee,
                 ProofNodeManager* pnm,
-                bool pfEnabled = true);
+                bool pfEnabled = true,
+                bool recExplain = false);
   ~ProofEqEngine() {}
   //-------------------------- assert assumption
   /** Assert predicate lit by assumption */
@@ -75,8 +76,8 @@ class ProofEqEngine : public EagerProofGenerator
                   const std::vector<Node>& args);
   bool assertFact(Node lit, PfRule id, Node exp, const std::vector<Node>& args);
   /** Multi-step versions */
-  bool assertFact(Node lit, const std::vector<Node>& exp, ProofStepBuffer& psb);
   bool assertFact(Node lit, Node exp, ProofStepBuffer& psb);
+  bool assertFact(Node lit, Node exp, ProofGenerator* pg);
   //-------------------------- assert conflicts
   /**
    * This method is called when the equality engine of this class is
@@ -94,7 +95,6 @@ class ProofEqEngine : public EagerProofGenerator
    * internally so that this class may respond to a call to
    * ProofGenerator::getProof(...).
    */
-  TrustNode assertConflict(PfRule id, const std::vector<Node>& exp);
   TrustNode assertConflict(PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args);
@@ -107,11 +107,11 @@ class ProofEqEngine : public EagerProofGenerator
    * disjunction.
    *
    * We provide the explanation in two parts:
-   * (1) toExplain, which are literals that hold in the equality engine of this
-   * class,
-   * (2) toAssume = exp \ toExplain, which do not necessarily hold in the
-   * equality engine of this class.
-   * Notice that toExplain is a subset of exp.
+   * (1) exp \ noExplain, which are literals that hold in the equality engine of
+   * this class,
+   * (2) noExplain, which do not necessarily hold in the equality engine of this
+   * class.
+   * Notice that noExplain is a subset of exp.
    *
    * The proof for conc follows from exp ^ expn by proof rule with the given
    * id and arguments.
@@ -140,14 +140,36 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertLemma(Node conc,
                         PfRule id,
                         const std::vector<Node>& exp,
-                        const std::vector<Node>& toExplain,
+                        const std::vector<Node>& noExplain,
                         const std::vector<Node>& args);
   /** Multi-step version */
   TrustNode assertLemma(Node conc,
                         const std::vector<Node>& exp,
-                        const std::vector<Node>& toExplain, ProofStepBuffer& psb);
+                        const std::vector<Node>& noExplain,
+                        ProofStepBuffer& psb);
+  /** Generator version */
+  TrustNode assertLemma(Node conc,
+                        const std::vector<Node>& exp,
+                        const std::vector<Node>& noExplain,
+                        ProofGenerator* pg);
+  //-------------------------- explain
+  /** 
+   * Explain literal conc. This calls the appropriate methods in the underlying
+   * equality engine of this class to construct the explanation of why conc
+   * currently holds.
+   * 
+   * It returns a trust node of kind TrustNodeKind::PROP_EXP whose node
+   * is the explanation of conc (a conjunction of literals that implies it).
+   * The proof that can be proven by this generator is then (=> exp conc), see
+   * TrustNode::getPropExpProven(conc,exp);
+   * 
+   * @param conc The conclusion to explain
+   * @return The trust node indicating the explanation of conc and the generator
+   * (this class) that can prove the implication.
+   */
+  TrustNode explain(Node conc);
   /** identify */
-  std::string identify() const override { return "ProofEqEngine"; }
+  std::string identify() const override;
 
  protected:
   /** Add proof step */
@@ -155,25 +177,18 @@ class ProofEqEngine : public EagerProofGenerator
                     PfRule id,
                     const std::vector<Node>& exp,
                     const std::vector<Node>& args);
-  /**
-   * Make proof for fact lit, or nullptr if it does not exist. It must be the
-   * case that lit was either:
-   * (1) Passed as the first argument to either a variant of assertAssume,
-   * assertFact or assertLemma in the current SAT context,
-   * (2) lit is false and a call was made to assertConflict in the current SAT
-   * context.
-   */
-  std::shared_ptr<ProofNode> mkProofForFact(Node lit) const;
   /** Assert internal */
-  void assertFactInternal(TNode pred, bool polarity, TNode reason);
+  bool assertFactInternal(TNode pred, bool polarity, TNode reason);
   /** assert lemma internal */
   TrustNode assertLemmaInternal(Node conc,
-                                     const std::vector<Node>& exp,
-                                     const std::vector<Node>& toExplain);
+                                const std::vector<Node>& exp,
+                                const std::vector<Node>& noExplain,
+                                LazyCDProof* curr);
   /** ensure proof for fact */
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,
-                               bool isConflict);
+                               TrustNodeKind tnk,
+                               LazyCDProof* curr);
   /**
    * Make the conjunction of nodes in a. Returns true if a is empty, and a
    * single literal if a has size 1.
@@ -182,6 +197,7 @@ class ProofEqEngine : public EagerProofGenerator
   Node mkAnd(const std::vector<TNode>& a);
   /** flatten and, returns the conjuncts to a */
   void flattenAnd(TNode an, std::vector<Node>& a);
+
  private:
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
@@ -191,7 +207,28 @@ class ProofEqEngine : public EagerProofGenerator
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The SAT-context-dependent proof object */
-  CDProof d_proof;
+  LazyCDProof d_proof;
+  /** The default proof generator (for simple facts) */
+  class FactProofGenerator : public ProofGenerator
+  {
+    typedef context::CDHashMap<Node, std::shared_ptr<ProofStep>, NodeHashFunction>
+        NodeProofStepMap;
+  public:
+    FactProofGenerator(context::Context* c, ProofNodeManager* pnm);
+    ~FactProofGenerator(){}
+    /** add step */
+    void addStep(Node f, ProofStep ps);
+    /** Get proof for */
+    std::shared_ptr<ProofNode> getProofFor(Node f) override;
+    /** identify */
+    std::string identify() const override { return "FactProofGenerator"; }
+  private:
+    /** maps expected to ProofStep */
+    NodeProofStepMap d_facts;
+    /** the proof node manager */
+    ProofNodeManager* d_pnm;
+  };
+  FactProofGenerator d_factPg;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are reference counted. Since facts and their
@@ -204,6 +241,10 @@ class ProofEqEngine : public EagerProofGenerator
    * as a simplified interface to the EqualityEngine, without proofs.
    */
   bool d_pfEnabled;
+  /**
+   * Recurse explanations
+   */
+  bool d_recExplain;
   /** Explain
    *
    * This adds to assumps the set of facts that were asserted to this
@@ -213,33 +254,10 @@ class ProofEqEngine : public EagerProofGenerator
    * This additionally registers the equality proof steps required to
    * regress the explanation of lit.
    */
-  void explainWithProof(Node lit, std::vector<TNode>& assumps);
+  void explainWithProof(Node lit,
+                        std::vector<TNode>& assumps,
+                        LazyCDProof* curr);
 };
-
-class ProofInferInfo
-{
- public:
-  ProofInferInfo() : d_rule(PfRule::UNKNOWN) {}
-  /** The proof rule */
-  PfRule d_rule;
-  /** The conclusion */
-  Node d_conc;
-  /** The proof children */
-  std::vector<Node> d_children;
-  /** The proof arguments */
-  std::vector<Node> d_args;
-  /** The children to explain */
-  std::vector<Node> d_childrenToExplain;
-};
-
-/**
- * Writes a proof inference info to a stream.
- *
- * @param out The stream to write to
- * @param pii The proof inference info to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, const ProofInferInfo& pii);
 
 }  // namespace eq
 }  // namespace theory

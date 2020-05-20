@@ -14,33 +14,31 @@
 
 #include "expr/lazy_proof.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 
-LazyCDProof::LazyCDProof(ProofNodeManager* pnm, context::Context* c)
-    : CDProof(pnm, c)
+LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
+                         ProofGenerator* dpg,
+                         context::Context* c)
+    : CDProof(pnm, c), d_gens(c ? c : &d_context), d_defaultGen(dpg)
 {
 }
 
 LazyCDProof::~LazyCDProof() {}
 
-std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
+std::shared_ptr<ProofNode> LazyCDProof::mkProof(Node fact)
 {
-  std::shared_ptr<ProofNode> opf;
-  NodeProofNodeMap::iterator itn = d_nodes.find(fact);
-  if (itn != d_nodes.end())
+  Trace("lazy-cdproof") << "LazyCDProof::mkLazyProof " << fact << std::endl;
+  // make the proof, which should always be non-null, since we construct an
+  // assumption in the worst case.
+  std::shared_ptr<ProofNode> opf = CDProof::mkProof(fact);
+  Assert(opf != nullptr);
+  if (!hasGenerators())
   {
-    opf = (*itn).second;
-  }
-  else
-  {
-    // we may have a generator
-    ProofGenerator* pg = getGeneratorFor(fact);
-    if (pg != nullptr)
-    {
-      std::shared_ptr<ProofNode> pf = pg->getProofFor(fact);
-      return pf;
-    }
-    return nullptr;
+    Trace("lazy-cdproof") << "...no generators, finished" << std::endl;
+    // optimization: no generators, we are done
+    return opf;
   }
   // otherwise, we traverse the proof opf and fill in the ASSUME leafs that
   // have generators
@@ -61,33 +59,33 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
       if (cur->getRule() == PfRule::ASSUME)
       {
         Node afact = cur->getResult();
-        ProofGenerator* pg = getGeneratorFor(afact);
+        bool isSym = false;
+        ProofGenerator* pg = getGeneratorFor(afact, isSym);
         if (pg != nullptr)
         {
-          // plug in the proof provided by the generator, if it exists
-          std::shared_ptr<ProofNode> apf = pg->getProofFor(afact);
-          if (apf != nullptr)
+          Trace("lazy-cdproof") << "LazyCDProof: Call generator for assumption "
+                                << afact << std::endl;
+          Assert(!isSym || afact.getKind() == EQUAL);
+          Node afactGen = isSym ? afact[1].eqNode(afact[0]) : afact;
+          // use the addProofTo interface
+          if (!pg->addProofTo(afactGen, this))
           {
-            // We update cur to have the structure of the top node of the
-            // proof provided by the generator. Notice that the interface to
-            // update this node will ensure that the proof apf is a proof of the
-            // assumption. If it does not, then the generator was wrong.
-            if (!d_manager->updateNode(cur,
-                                       apf->getRule(),
-                                       apf->getChildren(),
-                                       apf->getArguments()))
-            {
-              // print warning?
-              Assert(false)
-                  << "Proof generator provided an unexpected proof for fact "
-                  << afact << std::endl;
-            }
+            Trace("lazy-cdproof") << "LazyCDProof: Failed added fact for "
+                                  << afactGen << std::endl;
+            Assert(false) << "Proof generator " << pg->identify()
+                          << " could not add proof for fact " << afactGen
+                          << std::endl;
           }
           else
           {
-            Assert(false) << "Failed to get proof from generator for fact "
-                          << afact << std::endl;
+            Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
+                                  << afactGen << std::endl;
           }
+        }
+        else
+        {
+          Trace("lazy-cdproof")
+              << "LazyCDProof: No generator for " << afact << std::endl;
         }
         // Notice that we do not traverse the proofs that have been generated
         // lazily by the proof generators here.  In other words, we assume that
@@ -105,23 +103,23 @@ std::shared_ptr<ProofNode> LazyCDProof::getLazyProof(Node fact)
     }
   } while (!visit.empty());
   // we have now updated the ASSUME leafs of opf, return it
+  Trace("lazy-cdproof") << "...finished" << std::endl;
   return opf;
 }
 
-void LazyCDProof::addStep(Node expected,
-                          ProofGenerator* pg,
-                          bool forceOverwrite)
+void LazyCDProof::addLazyStep(Node expected,
+                              ProofGenerator* pg,
+                              bool forceOverwrite)
 {
   Assert(pg != nullptr);
-  std::unordered_map<Node, ProofGenerator*, NodeHashFunction>::const_iterator
-      it = d_gens.find(expected);
+  NodeProofGeneratorMap::const_iterator it = d_gens.find(expected);
   if (it != d_gens.end() && !forceOverwrite)
   {
     // don't overwrite something that is already there
     return;
   }
   // just store now
-  d_gens[expected] = pg;
+  d_gens.insert(expected, pg);
 
   if (forceOverwrite)
   {
@@ -130,15 +128,54 @@ void LazyCDProof::addStep(Node expected,
   }
 }
 
-ProofGenerator* LazyCDProof::getGeneratorFor(Node fact) const
+ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
 {
-  std::unordered_map<Node, ProofGenerator*, NodeHashFunction>::const_iterator
-      it = d_gens.find(fact);
+  isSym = false;
+  NodeProofGeneratorMap::const_iterator it = d_gens.find(fact);
   if (it != d_gens.end())
   {
-    return it->second;
+    return (*it).second;
   }
-  return nullptr;
+  // could be symmetry
+  if (fact.getKind() != EQUAL || fact[0] == fact[1])
+  {
+    // can't be symmetry, return the default generator
+    return d_defaultGen;
+  }
+  Node factSym = fact[1].eqNode(fact[0]);
+  it = d_gens.find(factSym);
+  if (it != d_gens.end())
+  {
+    isSym = true;
+    return (*it).second;
+  }
+  // return the default generator
+  return d_defaultGen;
+}
+
+bool LazyCDProof::hasGenerators() const
+{
+  return !d_gens.empty() || d_defaultGen != nullptr;
+}
+
+bool LazyCDProof::hasGenerator(Node fact) const
+{
+  if (d_defaultGen != nullptr)
+  {
+    return true;
+  }
+  NodeProofGeneratorMap::const_iterator it = d_gens.find(fact);
+  if (it != d_gens.end())
+  {
+    return true;
+  }
+  if (fact.getKind() != EQUAL || fact[0] == fact[1])
+  {
+    return false;
+  }
+  Node factSym = fact[1].eqNode(fact[0]);
+  it = d_gens.find(factSym);
+  return it != d_gens.end();
 }
 
 }  // namespace CVC4

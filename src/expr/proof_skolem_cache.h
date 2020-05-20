@@ -25,7 +25,7 @@ namespace CVC4 {
 
 /**
  * A manager for skolems that can be used in proofs. This is designed to be
- * trusted interface to NodeManager::mkSkolem, where one
+ * a trusted interface to NodeManager::mkSkolem, where one
  * must provide a definition for the skolem they create in terms of a
  * predicate that the introduced variable is intended to witness.
  *
@@ -89,8 +89,23 @@ class ProofSkolemCache
                        const std::string& comment = "",
                        int flags = NodeManager::SKOLEM_DEFAULT);
   /**
-   * Same as above, but for special case for (witness ((x T)) (= x t))
-   * where T is the type of t. This skolem is unique for each t.
+   * Same as above, but where pred is an existential quantified formula
+   * whose bound variable list contains v. For example, calling this method on:
+   *   x, (exists ((x Int) (y Int)) (P x y))
+   * will return:
+   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
+   * If the variable v is not in the bound variable list of q, then null is
+   * returned and an assertion failure is thrown.
+   */
+  static Node mkSkolemExists(Node v,
+                             Node q,
+                             const std::string& prefix,
+                             const std::string& comment = "",
+                             int flags = NodeManager::SKOLEM_DEFAULT);
+  /**
+   * Same as above, but for special case of (witness ((x T)) (= x t))
+   * where T is the type of t. This skolem is unique for each t, which we
+   * implement via an attribute on t.
    */
   static Node mkPurifySkolem(Node t,
                              const std::string& prefix,
@@ -116,6 +131,11 @@ class ProofSkolemCache
  private:
   /** Convert to witness or skolem form */
   static Node convertInternal(Node n, bool toWitness);
+  /** Get or make skolem attribute for witness term w */
+  static Node getOrMakeSkolem(Node w,
+                              const std::string& prefix,
+                              const std::string& comment,
+                              int flags);
 };
 
 }  // namespace CVC4

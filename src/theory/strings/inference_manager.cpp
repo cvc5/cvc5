@@ -48,6 +48,8 @@ InferenceManager::InferenceManager(SolverState& s,
   d_one = nm->mkConst(Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+  // whether to recursively explain
+  d_recExplain = false;
 }
 
 void InferenceManager::finishInit(ProofNodeManager* pnm)
@@ -57,8 +59,10 @@ void InferenceManager::finishInit(ProofNodeManager* pnm)
                                      d_state.getUserContext(),
                                      *d_state.getEqualityEngine(),
                                      pnm,
-                                     d_pfEnabled));
-  d_ipc.reset(new InferProofCons(pnm->getChecker(), d_statistics, d_pfEnabled));
+                                     d_pfEnabled,
+                                     d_recExplain));
+  d_ipc.reset(new InferProofCons(
+      d_state.getSatContext(), pnm, d_statistics, d_pfEnabled));
 }
 
 void InferenceManager::sendAssumption(TNode lit)
@@ -130,7 +134,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
-                                     const std::vector<Node>& expn,
+                                     const std::vector<Node>& noExplain,
                                      Node eq,
                                      Inference infer,
                                      bool isRev,
@@ -151,7 +155,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   ii.d_idRev = isRev;
   ii.d_conc = eq;
   ii.d_ant = exp;
-  ii.d_antn = expn;
+  ii.d_noExplain = noExplain;
   sendInference(ii, asLemma);
 }
 
@@ -161,8 +165,8 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      bool isRev,
                                      bool asLemma)
 {
-  std::vector<Node> expn;
-  sendInference(exp, expn, eq, infer, isRev, asLemma);
+  std::vector<Node> noExplain;
+  sendInference(exp, noExplain, eq, infer, isRev, asLemma);
 }
 
 void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
@@ -180,27 +184,9 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
                              << ii.d_id << std::endl;
       Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
                                 << " by " << ii.d_id << std::endl;
-      // we must fully explain it
-                                bool useBuffer = false;
-      eq::ProofInferInfo pii;
-      d_ipc->convert(ii, pii, useBuffer);
-      TrustNode tconf;
-      if (useBuffer)
-      {
-        tconf =
-          d_pfee->assertConflict(pii.d_children, *d_ipc->getBuffer());
-      }
-      else
-      {
-        tconf =
-          d_pfee->assertConflict(pii.d_rule, pii.d_children, pii.d_args);
-      }
-      Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
-      Trace("strings-assert") << "(assert (not " << tconf.getNode()
-                              << ")) ; conflict " << ii.d_id << std::endl;
       ++(d_statistics.d_conflictsInfer);
-      d_out.trustedConflict(tconf);
-      d_state.setConflict();
+      // process the conflict
+      processConflict(ii);
       return;
     }
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
@@ -255,6 +241,28 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
   d_pending.push_back(ii);
 }
 
+void InferenceManager::processConflict(const InferInfo& ii)
+{
+  // we must fully explain it
+  bool useBuffer = false;
+  ProofStep ps;
+  d_ipc->convert(ii, ps, useBuffer);
+  TrustNode tconf;
+  if (useBuffer)
+  {
+    tconf = d_pfee->assertConflict(ps.d_children, *d_ipc->getBuffer());
+  }
+  else
+  {
+    tconf = d_pfee->assertConflict(ps.d_rule, ps.d_children, ps.d_args);
+  }
+  Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
+  Trace("strings-assert") << "(assert (not " << tconf.getNode()
+                          << ")) ; conflict " << ii.d_id << std::endl;
+  d_out.trustedConflict(tconf);
+  d_state.setConflict();
+}
+
 bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
 {
   Node eq = a.eqNode(b);
@@ -297,6 +305,7 @@ void InferenceManager::addToExplanation(Node lit, std::vector<Node>& exp) const
 {
   if (!lit.isNull())
   {
+    Assert(!lit.isConst());
     exp.push_back(lit);
   }
 }
@@ -326,28 +335,49 @@ void InferenceManager::doPendingFacts()
     Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
                            << ii.getAntecedant() << " by " << ii.d_id
                            << std::endl;
+    std::vector<Node> exp;
+    for (const Node& ec : ii.d_ant)
+    {
+      utils::flattenOp(AND, ec, exp);
+    }
+    Node cexp = utils::mkAnd(exp);
     // convert for each fact
     for (const Node& fact : facts)
     {
       ii.d_conc = fact;
-      bool useBuffer = false;
-      eq::ProofInferInfo pii;
-      // convert to proof rule(s)
-      d_ipc->convert(ii,pii,useBuffer);
       preProcessFact(fact);
-      // assert to equality engine
-      if (useBuffer)
+      if (!d_recExplain)
       {
-        d_pfee->assertFact(fact, pii.d_children, *d_ipc->getBuffer());
+        // notify fact
+        d_ipc->notifyFact(ii);
+        // assert to equality engine using proof generator interface for
+        // assertFact.
+        d_pfee->assertFact(fact, cexp, d_ipc.get());
       }
       else
       {
-        d_pfee->assertFact(fact, pii.d_rule, pii.d_children, pii.d_args);
+        bool useBuffer = false;
+        ProofStep ps;
+        // convert to proof rule(s)
+        Node conc = d_ipc->convert(ii, ps, useBuffer);
+        Assert(conc == fact);
+        preProcessFact(conc);
+        // assert to equality engine
+        if (useBuffer)
+        {
+          d_pfee->assertFact(fact, cexp, *d_ipc->getBuffer());
+        }
+        else
+        {
+          d_pfee->assertFact(fact, ps.d_rule, ps.d_children, ps.d_args);
+        }
       }
+      // may be in conflict
       if (d_state.isInConflict())
       {
         break;
       }
+      // otherwise, post-process
       postProcessFact(fact);
     }
     i++;
@@ -364,6 +394,8 @@ void InferenceManager::doPendingLemmas()
     d_pendingReqPhase.clear();
     return;
   }
+  // we probably don't need to add lazily since temporary proofs are setup
+  bool lazyAdd = false;
   for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
   {
     InferInfo& ii = d_pendingLem[i];
@@ -372,20 +404,49 @@ void InferenceManager::doPendingLemmas()
     // set up proof step based on inference
     // pfExp is the children of the proof step below. This should be an
     // ordered list of expConj + expn.
-    bool useBuffer = false;
-    eq::ProofInferInfo pii;
-    d_ipc->convert(ii, pii, useBuffer);
+
+    // set up the explanation and no-explanation
     TrustNode tlem;
-    // make the trusted lemma object
-    if (useBuffer)
+    std::vector<Node> exp;
+    for (const Node& ec : ii.d_ant)
     {
-      tlem = d_pfee->assertLemma(
-          ii.d_conc, pii.d_children, pii.d_childrenToExplain, *d_ipc->getBuffer());
+      utils::flattenOp(AND, ec, exp);
+    }
+    std::vector<Node> noExplain;
+    if (!options::stringRExplainLemmas())
+    {
+      // if we aren't regressing the explanation, we add all literals to
+      // noExplain and ignore ii.d_antn.
+      noExplain.insert(noExplain.end(), exp.begin(), exp.end());
     }
     else
     {
-      tlem = d_pfee->assertLemma(
-          ii.d_conc, pii.d_rule, pii.d_children, pii.d_childrenToExplain, pii.d_args);
+      // otherwise, the no-explain literals are those provided
+      for (const Node& ecn : ii.d_noExplain)
+      {
+        utils::flattenOp(AND, ecn, noExplain);
+      }
+    }
+    if (lazyAdd)
+    {
+      // notify fact and assert lemma via generator
+      d_ipc->notifyFact(ii);
+      tlem = d_pfee->assertLemma(ii.d_conc, exp, noExplain, d_ipc.get());
+    }
+    else
+    {
+      // make the trusted lemma object
+      bool useBuffer = false;
+      ProofStep ps;
+      Node conc = d_ipc->convert(ii, ps, useBuffer);
+      if (useBuffer)
+      {
+        tlem = d_pfee->assertLemma(conc, exp, noExplain, *d_ipc->getBuffer());
+      }
+      else
+      {
+        tlem = d_pfee->assertLemma(conc, ps.d_rule, exp, noExplain, ps.d_args);
+      }
     }
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
@@ -459,17 +520,16 @@ void InferenceManager::postProcessFact(TNode fact)
     Node pc = d_state.getPendingConflict();
     if (!pc.isNull())
     {
-      std::vector<Node> a;
-      a.push_back(pc);
       Trace("strings-pending")
           << "Process pending conflict " << pc << std::endl;
-      Node cnode = mkExplain(a);
-      d_state.setConflict();
+      InferInfo iiPrefixConf;
+      iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
+      iiPrefixConf.d_conc = d_false;
+      utils::flattenOp(AND, pc, iiPrefixConf.d_ant);
       Trace("strings-conflict")
-          << "CONFLICT: Eager prefix : " << cnode << std::endl;
+          << "CONFLICT: Eager prefix : " << pc << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);
-      TrustNode pconf = TrustNode::mkTrustConflict(cnode, nullptr);
-      d_out.trustedConflict(pconf);
+      processConflict(iiPrefixConf);
     }
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
@@ -485,102 +545,11 @@ bool InferenceManager::hasProcessed() const
   return d_state.isInConflict() || !d_pendingLem.empty() || !d_pending.empty();
 }
 
-Node InferenceManager::mkExplain(const std::vector<Node>& a) const
+TrustNode InferenceManager::explain(TNode literal) const
 {
-  std::vector<Node> an;
-  return mkExplain(a, an);
-}
-
-Node InferenceManager::mkExplain(const std::vector<Node>& a,
-                                 const std::vector<Node>& an) const
-{
-  std::vector<TNode> antec_exp;
-  // copy to processing vector
-  std::vector<Node> aconj;
-  for (const Node& ac : a)
-  {
-    utils::flattenOp(AND, ac, aconj);
-  }
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  for (const Node& apc : aconj)
-  {
-    Assert(apc.getKind() != AND);
-    Debug("strings-explain") << "Add to explanation " << apc << std::endl;
-    if (apc.getKind() == NOT && apc[0].getKind() == EQUAL)
-    {
-      Assert(ee->hasTerm(apc[0][0]));
-      Assert(ee->hasTerm(apc[0][1]));
-      // ensure that we are ready to explain the disequality
-      AlwaysAssert(ee->areDisequal(apc[0][0], apc[0][1], true));
-    }
-    Assert(apc.getKind() != EQUAL || ee->areEqual(apc[0], apc[1]));
-    // now, explain
-    explain(apc, antec_exp);
-  }
-  for (const Node& anc : an)
-  {
-    if (std::find(antec_exp.begin(), antec_exp.end(), anc) == antec_exp.end())
-    {
-      Debug("strings-explain")
-          << "Add to explanation (new literal) " << anc << std::endl;
-      antec_exp.push_back(anc);
-    }
-  }
-  Node ant;
-  if (antec_exp.empty())
-  {
-    ant = d_true;
-  }
-  else if (antec_exp.size() == 1)
-  {
-    ant = antec_exp[0];
-  }
-  else
-  {
-    ant = NodeManager::currentNM()->mkNode(AND, antec_exp);
-  }
-  return ant;
-}
-
-void InferenceManager::explain(TNode literal,
-                               std::vector<TNode>& assumptions) const
-{
-  Debug("strings-explain") << "Explain " << literal << " "
-                           << d_state.isInConflict() << std::endl;
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  bool polarity = literal.getKind() != NOT;
-  TNode atom = polarity ? literal : literal[0];
-  std::vector<TNode> tassumptions;
-  if (atom.getKind() == EQUAL)
-  {
-    if (atom[0] != atom[1])
-    {
-      Assert(ee->hasTerm(atom[0]));
-      Assert(ee->hasTerm(atom[1]));
-      ee->explainEquality(atom[0], atom[1], polarity, tassumptions);
-    }
-  }
-  else
-  {
-    ee->explainPredicate(atom, polarity, tassumptions);
-  }
-  for (const TNode a : tassumptions)
-  {
-    if (std::find(assumptions.begin(), assumptions.end(), a)
-        == assumptions.end())
-    {
-      assumptions.push_back(a);
-    }
-  }
-  if (Debug.isOn("strings-explain-debug"))
-  {
-    Debug("strings-explain-debug")
-        << "Explanation for " << literal << " was " << std::endl;
-    for (const TNode a : tassumptions)
-    {
-      Debug("strings-explain-debug") << "   " << a << std::endl;
-    }
-  }
+  // use the explain method of proof equality engine
+  TrustNode trn = d_pfee->explain(literal);
+  return trn;
 }
 
 void InferenceManager::markCongruent(Node a, Node b)

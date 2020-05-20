@@ -160,13 +160,13 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Node s = n[1];
     // positive contains reduces to a equality
     SkolemCache* skc = d_termReg.getSkolemCache();
-    Node sk1 = skc->mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
-    Node sk2 = skc->mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
-    Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
-    std::vector<Node> exp_vec;
-    exp_vec.push_back(n);
-    d_im.sendInference(
-        d_emptyVec, exp_vec, eq, Inference::CTN_POS, false, true);
+    Node eq = d_termReg.eagerReduce(n, skc, 1);
+    Assert(!eq.isNull());
+    Assert(eq.getKind() == IMPLIES && eq[0] == n);
+    eq = eq[1];
+    std::vector<Node> expn;
+    expn.push_back(n);
+    d_im.sendInference(expn, expn, eq, Inference::CTN_POS, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;
@@ -266,7 +266,8 @@ void ExtfSolver::checkExtfEval(int effort)
     }
     // If there is information involving the children, attempt to do an
     // inference and/or mark n as reduced.
-    Node to_reduce;
+    bool reduced = false;
+    Node to_reduce = n;
     if (schanged)
     {
       Node sn = nm->mkNode(n.getKind(), schildren);
@@ -393,6 +394,7 @@ void ExtfSolver::checkExtfEval(int effort)
             einfo.d_modelActive = false;
           }
         }
+        reduced = true;
       }
       else
       {
@@ -416,28 +418,26 @@ void ExtfSolver::checkExtfEval(int effort)
               effort == 0 ? Inference::EXTF_D : Inference::EXTF_D_N;
           d_im.sendInternalInference(einfo.d_exp, nrcAssert, infer);
         }
-        // We must use the original n here to avoid circular justifications for
-        // why extended functions are reduced below. In particular, to_reduce
-        // should never be a duplicate of another term considered in the block
-        // of code for checkExtfInference below.
-        to_reduce = n;
+        to_reduce = nrc;
       }
     }
-    else
-    {
-      to_reduce = n;
-    }
+    // We must use the original n here to avoid circular justifications for
+    // why extended functions are reduced. In particular, n should never be a
+    // duplicate of another term considered in the block of code for
+    // checkExtfInference below.
     // if not reduced and not processed
-    if (!to_reduce.isNull()
-        && inferProcessed.find(to_reduce) == inferProcessed.end())
+    if (!reduced && !n.isNull()
+        && inferProcessed.find(n) == inferProcessed.end())
     {
-      inferProcessed.insert(to_reduce);
+      inferProcessed.insert(n);
       Assert(effort < 3);
       if (effort == 1)
       {
         Trace("strings-extf")
             << "  cannot rewrite extf : " << to_reduce << std::endl;
       }
+      // we take to_reduce to be the (partially) reduced version of n, which
+      // is justified by the explanation in einfo.
       checkExtfInference(n, to_reduce, einfo, effort);
       if (Trace.isOn("strings-extf-list"))
       {

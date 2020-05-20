@@ -15,7 +15,6 @@
 #include "theory/eager_proof_generator.h"
 
 #include "expr/proof_node_manager.h"
-#include "theory/proof_engine_output_channel.h"
 
 namespace CVC4 {
 namespace theory {
@@ -30,7 +29,7 @@ void EagerProofGenerator::setProofForConflict(Node conf,
                                               std::shared_ptr<ProofNode> pf)
 {
   // Normalize based on key
-  Node ckey = ProofEngineOutputChannel::getConflictKeyValue(conf);
+  Node ckey = TrustNode::getConflictProven(conf);
   d_proofs[ckey] = pf;
 }
 
@@ -38,8 +37,17 @@ void EagerProofGenerator::setProofForLemma(Node lem,
                                            std::shared_ptr<ProofNode> pf)
 {
   // Normalize based on key
-  Node lkey = ProofEngineOutputChannel::getLemmaKeyValue(lem);
+  Node lkey = TrustNode::getLemmaProven(lem);
   d_proofs[lkey] = pf;
+}
+
+void EagerProofGenerator::setProofForPropExp(TNode lit,
+                                             Node exp,
+                                             std::shared_ptr<ProofNode> pf)
+{
+  // Normalize based on key
+  Node pekey = TrustNode::getPropExpProven(lit, exp);
+  d_proofs[pekey] = pf;
 }
 
 std::shared_ptr<ProofNode> EagerProofGenerator::getProofFor(Node f)
@@ -92,16 +100,8 @@ TrustNode EagerProofGenerator::assertSplit(Node f)
 {
   // make the lemma
   Node lem = f.orNode(f.notNode());
-  // construct a proof for it
-  std::vector<std::shared_ptr<ProofNode>> children;
   std::vector<Node> args;
-  args.push_back(f);
-  std::shared_ptr<ProofNode> p =
-      d_pnm->mkNode(PfRule::SPLIT, children, args, lem);
-  // store the mapping
-  setProofForLemma(lem, p);
-  // return the lemma
-  return TrustNode::mkTrustLemma(lem, this);
+  return mkTrustNode(lem, PfRule::SPLIT, args, false);
 }
 
 }  // namespace theory

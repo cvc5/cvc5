@@ -64,37 +64,68 @@ TermRegistry::TermRegistry(SolverState& s,
 
 TermRegistry::~TermRegistry() {}
 
-Node TermRegistry::eagerReduce(Node t)
+Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t i)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node lemma;
   Kind tk = t.getKind();
-  if (tk == STRING_TO_CODE)
+  if (i == 0)
   {
-    // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
-    Node code_len = utils::mkNLength(t[0]).eqNode(nm->mkConst(Rational(1)));
-    Node code_eq_neg1 = t.eqNode(nm->mkConst(Rational(-1)));
-    Node code_range = nm->mkNode(
-        AND,
-        nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
-        nm->mkNode(
-            LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
-    lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
+    if (tk == STRING_TO_CODE)
+    {
+      // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
+      Node code_len = utils::mkNLength(t[0]).eqNode(nm->mkConst(Rational(1)));
+      Node code_eq_neg1 = t.eqNode(nm->mkConst(Rational(-1)));
+      Node code_range = nm->mkNode(
+          AND,
+          nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
+          nm->mkNode(
+              LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
+      lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
+    }
+    else if (tk == STRING_STRIDOF)
+    {
+      // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len
+      // x)))
+      Node l = utils::mkNLength(t[0]);
+      lemma = nm->mkNode(AND,
+                         nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
+                         nm->mkNode(LEQ, t, l));
+    }
+    else if (tk == STRING_STOI)
+    {
+      // (>= (str.to_int x) (- 1))
+      lemma = nm->mkNode(GEQ, t, nm->mkConst(Rational(-1)));
+    }
   }
-  else if (tk == STRING_STRIDOF)
+  else if (i == 1)
   {
-    // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len x)))
-    Node l = utils::mkNLength(t[0]);
-    lemma = nm->mkNode(AND,
-                       nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
-                       nm->mkNode(LEQ, t, l));
-  }
-  else if (tk == STRING_STOI)
-  {
-    // (>= (str.to_int x) (- 1))
-    lemma = nm->mkNode(GEQ, t, nm->mkConst(Rational(-1)));
+    if (tk == STRING_STRCTN)
+    {
+      // (str.contains s r) => (= s (str.++ sk1 r sk2))
+      Node sk1 =
+          sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_PRE, "sc1");
+      Node sk2 =
+          sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_POST, "sc2");
+      lemma = t[0].eqNode(utils::mkNConcat(sk1, t[1], sk2));
+      lemma = nm->mkNode(IMPLIES, t, lemma);
+    }
   }
   return lemma;
+}
+
+Node TermRegistry::lengthPositive(Node t)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node zero = nm->mkConst(Rational(0));
+  Node emp = Word::mkEmptyWord(t.getType());
+  Node tlen = nm->mkNode(STRING_LENGTH, t);
+  Node tlenEqZero = tlen.eqNode(zero);
+  Node tEqEmp = t.eqNode(emp);
+  Node caseEmpty = nm->mkNode(AND, tlenEqZero, tEqEmp);
+  Node caseNEmpty = nm->mkNode(GT, tlen, zero);
+  // (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
+  return nm->mkNode(OR, caseEmpty, caseNEmpty);
 }
 
 void TermRegistry::finishInit(ProofNodeManager* pnm)
@@ -247,7 +278,7 @@ void TermRegistry::registerTerm(Node n, int effort)
   }
   else
   {
-    Node eagerRedLemma = eagerReduce(n);
+    Node eagerRedLemma = eagerReduce(n, &d_skCache, 0);
     if (!eagerRedLemma.isNull())
     {
       // if there was an eager reduction, we make the trust node for it
@@ -418,6 +449,11 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
+    if (options::stringPedanticCheck() && options::proofNew())
+    {
+      AlwaysAssert(false) << "Unhandled lemma Strings::Lemma SK-GEQ-ONE : "
+                          << len_geq_one << std::endl;
+    }
     return TrustNode::mkTrustLemma(len_geq_one, nullptr);
   }
 
@@ -427,21 +463,24 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
+    if (options::stringPedanticCheck() && options::proofNew())
+    {
+      AlwaysAssert(false) << "Unhandled lemma Strings::Lemma SK-ONE : "
+                          << len_one << std::endl;
+    }
     return TrustNode::mkTrustLemma(len_one, nullptr);
   }
   Assert(s == LENGTH_SPLIT);
 
-  std::vector<Node> lems;
+  // get the positive length lemma
+  Node lenLemma = lengthPositive(n);
   // split whether the string is empty
   Node n_len_eq_z = n_len.eqNode(d_zero);
   Node n_len_eq_z_2 = n.eqNode(emp);
   Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
   Node case_emptyr = Rewriter::rewrite(case_empty);
-  Node case_nempty = nm->mkNode(GT, n_len, d_zero);
   if (!case_emptyr.isConst())
   {
-    Node lem = nm->mkNode(OR, case_empty, case_nempty);
-    lems.push_back(lem);
     // prefer trying the empty case first
     // notice that requirePhase must only be called on rewritten literals that
     // occur in the CNF stream.
@@ -452,34 +491,17 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Assert(!n_len_eq_z_2.isConst());
     reqPhase[n_len_eq_z_2] = true;
   }
-  else if (!case_emptyr.getConst<bool>())
-  {
-    // the rewriter knows that n is non-empty
-    lems.push_back(case_nempty);
-  }
   else
   {
     // If n = "" ---> true or len( n ) = 0 ----> true, then we expect that
     // n ---> "". Since this method is only called on non-constants n, it must
     // be that n = "" ^ len( n ) = 0 does not rewrite to true.
-    Assert(false);
+    Assert(!case_emptyr.getConst<bool>());
   }
 
-  // additionally add len( x ) >= 0 ?
-  if (options::stringLenGeqZ())
-  {
-    Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
-    n_len_geq = Rewriter::rewrite(n_len_geq);
-    lems.push_back(n_len_geq);
-  }
-
-  if (lems.empty())
-  {
-    return TrustNode::null();
-  }
-  Node ret = lems.size() == 1 ? lems[0] : nm->mkNode(AND, lems);
-
-  return TrustNode::mkTrustLemma(ret, nullptr);
+  std::vector<Node> targs;
+  targs.push_back(n);
+  return d_epg->mkTrustNode(lenLemma, PfRule::LENGTH_POS, targs);
 }
 
 Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const

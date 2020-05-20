@@ -213,7 +213,7 @@ class TheoryArrays : public Theory {
   void preRegisterTerm(TNode n) override;
   void propagate(Effort e) override;
   Node explain(TNode n, eq::EqProof* proof);
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // SHARING

@@ -43,6 +43,7 @@
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
 #include "theory/theory_rewriter.h"
+#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
@@ -521,7 +522,8 @@ public:
    * Return an explanation for the literal represented by parameter n
    * (which was previously propagated by this theory).
    */
-  virtual Node explain(TNode n) {
+  virtual TrustNode explain(TNode n)
+  {
     Unimplemented() << "Theory " << identify()
                     << " propagated a node but doesn't implement the "
                        "Theory::explain() interface!";

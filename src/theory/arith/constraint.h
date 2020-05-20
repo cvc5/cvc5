@@ -91,6 +91,7 @@
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -1141,7 +1142,7 @@ public:
   bool variableDatabaseIsSetup(ArithVar v) const;
   void removeVariable(ArithVar v);
 
-  Node eeExplain(ConstraintCP c) const;
+  TrustNode eeExplain(ConstraintCP c) const;
   void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
 
   /**
