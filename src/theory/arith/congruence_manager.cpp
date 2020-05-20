@@ -341,26 +341,7 @@ void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s, NodeBuilder<
 }
 
 TrustNode ArithCongruenceManager::explainInternal(TNode internal){
-  // FIXME
-  if (false && options::proofNew())
-  {
-    return d_pfee->explain(internal);
-  }
-
-  std::vector<TNode> assumptions;
-  explain(internal, assumptions);
-
-  std::set<TNode> assumptionSet;
-  assumptionSet.insert(assumptions.begin(), assumptions.end());
-
-  if (assumptionSet.size() == 1) {
-    // All the same, or just one
-    return TrustNode::mkTrustPropExp(internal,assumptions[0],nullptr);
-  }else{
-    NodeBuilder<> conjunction(kind::AND);
-    enqueueIntoNB(assumptionSet, conjunction);
-    return TrustNode::mkTrustPropExp(internal,conjunction,nullptr);
-  }
+  return d_pfee->explain(internal);
 }
 
 TrustNode ArithCongruenceManager::explain(TNode external){

@@ -1837,14 +1837,14 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   {
     if (additionalLemmas.size() > 1 || additionalLemmas[0] != ppNode)
     {
-#if 0
       // The main lemma can be justified since it is, modulo purification,
       // the same formula as the original.
       std::vector<Node> pfChildren;
       pfChildren.push_back(ppNode);
       std::vector<Node> pfArgs;
       pfArgs.push_back(additionalLemmas[0]);
-      lcp->addStep(rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+      lcp->addStep(additionalLemmas[0], PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+#if 0
       for (size_t i = 1, lsize = additionalLemmas.size(); i < lsize; ++i)
       {
         // the witness form of other lemmas should rewrite to true

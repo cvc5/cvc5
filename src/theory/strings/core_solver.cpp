@@ -724,7 +724,7 @@ Node CoreSolver::getConclusion(Node x,
     Node sk2;
     if (options::stringUnifiedVSpt())
     {
-      // must comparse so that we are agnostic to order of x/y
+      // must compare so that we are agnostic to order of x/y
       Node ux = x < y ? x : y;
       Node uy = x < y ? y : x;
       Node sk = skc->mkSkolemCached(ux,
@@ -2101,20 +2101,24 @@ void CoreSolver::processDeq(Node ni, Node nj)
           SkolemCache* skc = d_termReg.getSkolemCache();
           Node sk =
               skc->mkSkolemCached(nck, SkolemCache::SK_ID_DC_SPT, "dc_spt");
-          d_termReg.registerTermAtomic(sk, LENGTH_ONE);
+          d_termReg.registerTermAtomic(sk, LENGTH_IGNORE);
           Node skr = skc->mkSkolemCached(
               nck, SkolemCache::SK_ID_DC_SPT_REM, "dc_spt_rem");
           Node eq1 = nck.eqNode(nm->mkNode(kind::STRING_CONCAT, sk, skr));
           eq1 = Rewriter::rewrite(eq1);
           Node eq2 =
               nck.eqNode(nm->mkNode(kind::STRING_CONCAT, firstChar, skr));
+          Node eql = nm->mkNode(STRING_LENGTH,sk).eqNode(d_one);
           std::vector<Node> antec(nfni.d_exp.begin(), nfni.d_exp.end());
           antec.insert(antec.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
           antec.push_back(expNonEmpty);
+          // build length into conclusion
+          Node conc = 
+              nm->mkNode(
+                  OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2, eql);
           d_im.sendInference(
               antec,
-              nm->mkNode(
-                  OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2),
+              conc,
               Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
               false,
               true);
