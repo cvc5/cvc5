@@ -722,13 +722,11 @@ Node CoreSolver::getConclusion(Node x,
   {
     Node sk1;
     Node sk2;
-    Node ux;
-    Node uy;
     if (options::stringUnifiedVSpt())
     {
-      // must order so that we cache in a deterministic way
-      ux = x < y ? x : y;
-      uy = x < y ? y : x;
+      // must comparse so that we are agnostic to order of x/y
+      Node ux = x < y ? x : y;
+      Node uy = x < y ? y : x;
       Node sk = skc->mkSkolemCached(ux,
                                     uy,
                                     isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
@@ -740,23 +738,21 @@ Node CoreSolver::getConclusion(Node x,
     }
     else
     {
-      ux = x;
-      uy = y;
       sk1 = skc->mkSkolemCached(
-          ux,
-          uy,
+          x,
+          y,
           isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
           "v_spt1");
       sk2 = skc->mkSkolemCached(
-          uy,
-          ux,
+          y,
+          x,
           isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
           "v_spt2");
       newSkolems.push_back(sk1);
       newSkolems.push_back(sk2);
     }
-    Node eq1 = ux.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, uy)
-                               : nm->mkNode(STRING_CONCAT, uy, sk1));
+    Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, y)
+                               : nm->mkNode(STRING_CONCAT, y, sk1));
     // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
 
     if (rule == PfRule::CONCAT_LPROP)
@@ -765,10 +761,11 @@ Node CoreSolver::getConclusion(Node x,
     }
     else
     {
-      Node eq2 = uy.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, ux)
-                                 : nm->mkNode(STRING_CONCAT, ux, sk2));
+      Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, x)
+                                 : nm->mkNode(STRING_CONCAT, x, sk2));
       // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
-      conc = nm->mkNode(OR, eq1, eq2);
+      // make agnostic to x/y
+      conc = x<y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
     }
     if (options::stringUnifiedVSpt())
     {
