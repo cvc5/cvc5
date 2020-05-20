@@ -226,16 +226,7 @@ Node ProofSkolemCache::getOrMakeSkolem(Node w,
   }
   NodeManager* nm = NodeManager::currentNM();
   // make the new skolem
-  Node k;
-  // NOTE: this could be pushed into NodeManager::mkSkolem?
-  if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
-  {
-    k = nm->mkBooleanTermVariable();
-  }
-  else
-  {
-    k = nm->mkSkolem(prefix, w.getType(), comment, flags);
-  }
+  Node k = nm->mkSkolem(prefix, w.getType(), comment, flags);
   // set witness form attribute for k
   WitnessFormAttribute wfa;
   k.setAttribute(wfa, w);
