@@ -616,8 +616,6 @@ set(regress_0_tests
   regress0/parser/as.smt2
   regress0/parser/bv_arity_smt2.6.smt2
   regress0/parser/bv_nat.smt2
-  regress0/parser/choice.cvc
-  regress0/parser/choice.smt2
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/force_logic_set_logic.smt2
@@ -1006,6 +1004,7 @@ set(regress_0_tests
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
   regress0/sygus/issue3645-grammar-sets.smt2
+  regress0/sygus/issue4383-cache-fv-id.sy
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
   regress0/sygus/no-logic.sy

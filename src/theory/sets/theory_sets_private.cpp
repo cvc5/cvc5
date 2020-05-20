@@ -1510,7 +1510,7 @@ Node TheorySetsPrivate::expandDefinition(Node node)
     Node memberAndEqual = member.andNode(equal);
     Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
     Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
-    Node witness = nm->mkNode(CHOICE, witnessVariables, ite);
+    Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
     return witness;
   }
 
