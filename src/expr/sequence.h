@@ -154,7 +154,7 @@ class Sequence
 
 namespace strings {
 
-struct CVC4_PUBLIC SequenceHashFunction
+struct SequenceHashFunction
 {
   size_t operator()(const Sequence& s) const;
 };
