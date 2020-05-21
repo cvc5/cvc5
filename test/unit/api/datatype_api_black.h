@@ -307,5 +307,7 @@ void DatatypeBlack::testDatatypeWellFounded()
   dtsorts.clear();
   // this is not well-founded due to non-simple recursion
   TS_ASSERT_THROWS_NOTHING(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().isSet());
+  TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().getSetElementSort()==dtsorts[0]);
   TS_ASSERT(!dtsorts[0].getDatatype().isWellFounded());
 }

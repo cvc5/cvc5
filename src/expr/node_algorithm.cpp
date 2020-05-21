@@ -622,13 +622,13 @@ void getComponentTypes(
     TypeNode curr = toProcess.back();
     toProcess.pop_back();
     // if not already visited
-    if (types.find(t) == types.end())
+    if (types.find(curr) == types.end())
     {
-      types.insert(t);
+      types.insert(curr);
       // get component types from the children
-      for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
+      for (unsigned i = 0, nchild = curr.getNumChildren(); i < nchild; i++)
       {
-        toProcess.push_back(t[i]);
+        toProcess.push_back(curr[i]);
       }
     }
   } while (!toProcess.empty());
