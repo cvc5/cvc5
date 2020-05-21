@@ -313,10 +313,4 @@ bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {
          // dont' worry about FORALL or EXISTS (handled separately)
 }
 
-Node RemoveTermFormulas::getAxiomFor(Node t, Node sk)
-{
-  // TODO
-  return Node::null();
-}
-
 }/* CVC4 namespace */
