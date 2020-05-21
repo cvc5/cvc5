@@ -2163,20 +2163,9 @@ theory::TrustNode TheoryEngine::getExplanation(
       {
         Trace("te-proof-exp")
             << "- AND expand " << toExplain.d_node << std::endl;
-        // toExplain.d_node[0] ... toExplain.d_node[n]
-        // --------------------------------------------MACRO_SR_PRED_INTRO
-        // toExplain.d_node
-        std::vector<Node> children;
-        for (size_t k = 0; k < nchild; ++k)
-        {
-          children.push_back(toExplain.d_node[k]);
-        }
-        std::vector<Node> args;
-        args.push_back(toExplain.d_node);
-        args.push_back(mkMethodId(MethodId::SB_PREDICATE));
-        lcp->addStep(
-            toExplain.d_node, PfRule::MACRO_SR_PRED_INTRO, children, args);
-        simpleExplain = false;
+        // delay explanation, use a dummy trust node
+        TrustNode tnAndExp = TrustNode::mkTrustLemma(toExplain.d_node, nullptr);
+        texplains.push_back(std::pair<TheoryId, TrustNode >(THEORY_LAST, tnAndExp));
       }
       ++ i;
       continue;
@@ -2367,6 +2356,27 @@ theory::TrustNode TheoryEngine::getExplanation(
       }
       // remember that we've explained this formula
       exp.insert(tConc);
+      TheoryId ttid = it->first;
+      if (ttid==THEORY_LAST)
+      {
+        // dummy trust node, do AND expansion
+        Node n = trn.getNode();
+        Assert (n.getKind()==kind::AND);
+        // toExplain.d_node[0] ... toExplain.d_node[n]
+        // --------------------------------------------MACRO_SR_PRED_INTRO
+        // toExplain.d_node
+        std::vector<Node> pfChildren;
+        for (size_t k = 0, nchild = n.getNumChildren(); k < nchild; ++k)
+        {
+          pfChildren.push_back(n[k]);
+        }
+        std::vector<Node> pfArgs;
+        pfArgs.push_back(n);
+        pfArgs.push_back(mkMethodId(MethodId::SB_PREDICATE));
+        lcp->addStep(n, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+        simpleExplain = false;
+        continue;
+      }
       Node tExp = proven[0];
       // ------------- Via theory
       // tExp => tConc              tExp
