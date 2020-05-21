@@ -81,9 +81,10 @@ class Sequence
   Sequence replace(const Sequence& s, const Sequence& t) const;
   /** Return the subsequence of this sequence starting at index i */
   Sequence substr(size_t i) const;
-  /** Return the subsequence of this sequence starting at index i with size at
-   * most
-   * j */
+  /** 
+   * Return the subsequence of this sequence starting at index i with size at
+   * most j.
+   */
   Sequence substr(size_t i, size_t j) const;
   /** Return the prefix of this sequence of size at most i */
   Sequence prefix(size_t i) const { return substr(0, i); }
@@ -155,14 +156,10 @@ class Sequence
   std::vector<Node> d_seq;
 };
 
-namespace strings {
-
 struct SequenceHashFunction
 {
   size_t operator()(const Sequence& s) const;
 };
-
-}  // namespace strings
 
 std::ostream& operator<<(std::ostream& os, const Sequence& s);
 
