@@ -1261,17 +1261,17 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
   NodeManager* nm = NodeManager::currentNM();
 
   Kind k = node.getKind();
-  // rewrite here since the rewritten form of these may introduce division
-  if (k == kind::TANGENT || k == kind::COSECANT || k == kind::SECANT
-      || k == kind::COTANGENT)
-  {
-    node = Rewriter::rewrite(node);
-    k = node.getKind();
-  }
-  
   switch (k)
   {
-
+  case kind::TANGENT:
+  case kind::COSECANT:
+  case kind::SECANT:
+  case kind::COTANGENT:
+  {
+    // these are eliminated by rewriting
+    return Rewriter::rewrite(node);
+    break;
+  }
   case kind::TO_INTEGER:
   case kind::IS_INTEGER: {
     Node toIntSkolem;
