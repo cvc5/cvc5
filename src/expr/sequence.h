@@ -81,7 +81,7 @@ class Sequence
   Sequence replace(const Sequence& s, const Sequence& t) const;
   /** Return the subsequence of this sequence starting at index i */
   Sequence substr(size_t i) const;
-  /** 
+  /**
    * Return the subsequence of this sequence starting at index i with size at
    * most j.
    */
