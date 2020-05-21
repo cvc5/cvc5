@@ -179,6 +179,8 @@ class ProofEqEngine : public EagerProofGenerator
                     const std::vector<Node>& args);
   /** Assert internal */
   bool assertFactInternal(TNode pred, bool polarity, TNode reason);
+  /** holds */
+  bool holds(TNode pred, bool polarity);
   /** assert lemma internal */
   TrustNode assertLemmaInternal(Node conc,
                                 const std::vector<Node>& exp,
@@ -217,7 +219,7 @@ class ProofEqEngine : public EagerProofGenerator
     FactProofGenerator(context::Context* c, ProofNodeManager* pnm);
     ~FactProofGenerator(){}
     /** add step */
-    void addStep(Node f, ProofStep ps);
+    bool addStep(Node fact, ProofStep ps);
     /** Get proof for */
     std::shared_ptr<ProofNode> getProofFor(Node f) override;
     /** identify */

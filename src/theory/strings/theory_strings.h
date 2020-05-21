@@ -110,12 +110,14 @@ class TheoryStrings : public Theory {
                 const LogicInfo& logicInfo);
   ~TheoryStrings();
 
+  /** finish initialization */
+  void finishInit() override;
+
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   /** Called to set the proof checker */
   void setProofChecker(ProofChecker* pc) override;
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-  void finishInit() override;
   std::string identify() const override { return std::string("TheoryStrings"); }
 
  public:

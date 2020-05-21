@@ -67,9 +67,17 @@ bool ProofEqEngine::assertFact(Node lit,
 {
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
-  // first, register the step in the proof
+
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+  // register the step in the proof
   if (d_pfEnabled)
   {
+    if (holds(atom,polarity))
+    {
+      // we do not process this fact if it already holds
+      return false;
+    }
     // buffer the step in the fact proof generator
     ProofStep ps;
     ps.d_rule = id;
@@ -79,10 +87,6 @@ bool ProofEqEngine::assertFact(Node lit,
     // add lazy step to proof
     d_proof.addLazyStep(lit, &d_factPg);
   }
-
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
-
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
   return assertFactInternal(atom, polarity, reason);
@@ -95,9 +99,16 @@ bool ProofEqEngine::assertFact(Node lit,
 {
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
-  // first, register the step in the proof
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
+  // register the step in the proof
   if (d_pfEnabled)
   {
+    if (holds(atom,polarity))
+    {
+      // we do not process this fact if it already holds
+      return false;
+    }
     // must extract the explanation as a vector
     std::vector<Node> expv;
     flattenAnd(exp, expv);
@@ -110,9 +121,6 @@ bool ProofEqEngine::assertFact(Node lit,
     // add lazy step to proof
     d_proof.addLazyStep(lit, &d_factPg);
   }
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
-
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
 }
@@ -122,8 +130,15 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via buffer with " << psb.getNumSteps() << " steps"
                 << std::endl;
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
   if (d_pfEnabled)
   {
+    if (holds(atom,polarity))
+    {
+      // we do not process this fact if it already holds
+      return false;
+    }
     // buffer the steps in the fact proof generator
     const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
     for (const std::pair<Node, ProofStep>& step : steps)
@@ -133,9 +148,6 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
     // add lazy step to proof
     d_proof.addLazyStep(lit, &d_factPg);
   }
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
-
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
 }
@@ -144,13 +156,18 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
 {
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via generator" << std::endl;
+  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != NOT;
   if (d_pfEnabled)
   {
+    if (holds(atom,polarity))
+    {
+      // we do not process this fact if it already holds
+      return false;
+    }
     // note the proof generator is responsible for remembering the explanation
     d_proof.addLazyStep(lit, pg);
   }
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
 }
@@ -514,6 +531,24 @@ bool ProofEqEngine::assertFactInternal(TNode atom, bool polarity, TNode reason)
   return ret;
 }
 
+bool ProofEqEngine::holds(TNode atom, bool polarity)
+{
+  if (atom.getKind() == EQUAL)
+  {
+    if (!d_ee.hasTerm(atom[0]) || !d_ee.hasTerm(atom[1]))
+    {
+      return false;
+    }
+    return polarity ? d_ee.areEqual(atom[0], atom[1]) : d_ee.areDisequal(atom[0], atom[1], false);
+  }
+  if (!d_ee.hasTerm(atom))
+  {
+    return false;
+  }
+  TNode b = polarity ? d_true : d_false;
+  return d_ee.areEqual(atom, b);
+}
+  
 bool ProofEqEngine::addProofStep(Node lit,
                                  PfRule id,
                                  const std::vector<Node>& exp,
@@ -690,11 +725,11 @@ void ProofEqEngine::flattenAnd(TNode an, std::vector<Node>& a)
 
 ProofEqEngine::FactProofGenerator::FactProofGenerator(context::Context* c, ProofNodeManager* pnm) : ProofGenerator(), d_facts(c), d_pnm(pnm){}
     
-void ProofEqEngine::FactProofGenerator::addStep(Node fact, ProofStep ps)
+bool ProofEqEngine::FactProofGenerator::addStep(Node fact, ProofStep ps)
 {
   if (d_facts.find(fact)!=d_facts.end())
   {
-    return;
+    return false;
   }
   // symmetry?
   if (fact.getKind() == EQUAL)
@@ -702,10 +737,11 @@ void ProofEqEngine::FactProofGenerator::addStep(Node fact, ProofStep ps)
     Node symFact = fact[1].eqNode(fact[0]);
     if (d_facts.find(symFact) != d_facts.end())
     {
-      return;
+      return false;
     }
   }
   d_facts.insert(fact,std::make_shared<ProofStep>(ps));
+  return true;
 }
 
 std::shared_ptr<ProofNode> ProofEqEngine::FactProofGenerator::getProofFor(Node fact)
