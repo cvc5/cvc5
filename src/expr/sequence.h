@@ -135,7 +135,7 @@ class Sequence
   /** get the internal node value of the last element in this sequence */
   Node back() const;
   /**
-   * Returns the maximum length of string representable by this class.
+   * Returns the maximum sequence length representable by this class.
    * Corresponds to the maximum size of d_seq.
    */
   static size_t maxSize();
