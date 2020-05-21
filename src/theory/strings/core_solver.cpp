@@ -1553,7 +1553,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           std::vector<Node> newSkolems;
           iinfo.d_conc = getConclusion(
               xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
-          iinfo.d_ant.push_back(expNonEmpty);
           Assert (newSkolems.size()==1);
           iinfo.d_new_skolem[LENGTH_SPLIT].push_back(newSkolems[0]);
           iinfo.d_id = Inference::SSPLIT_CST_PROP;
