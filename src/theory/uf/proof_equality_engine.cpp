@@ -70,14 +70,14 @@ bool ProofEqEngine::assertFact(Node lit,
 
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
-  if (holds(atom,polarity))
-  {
-    // we do not process this fact if it already holds
-    return false;
-  }
   // register the step in the proof
   if (d_pfEnabled)
   {
+    if (holds(atom,polarity))
+    {
+      // we do not process this fact if it already holds
+      return false;
+    }
     // buffer the step in the fact proof generator
     ProofStep ps;
     ps.d_rule = id;
@@ -101,14 +101,14 @@ bool ProofEqEngine::assertFact(Node lit,
                 << ", args = " << args << std::endl;
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
-  if (holds(atom,polarity))
-  {
-    // we do not process this fact if it already holds
-    return false;
-  }
   // register the step in the proof
   if (d_pfEnabled)
   {
+    if (holds(atom,polarity))
+    {
+      // we do not process this fact if it already holds
+      return false;
+    }
     // must extract the explanation as a vector
     std::vector<Node> expv;
     flattenAnd(exp, expv);
@@ -132,13 +132,13 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
                 << std::endl;
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
-  if (holds(atom,polarity))
-  {
-    // we do not process this fact if it already holds
-    return false;
-  }
   if (d_pfEnabled)
   {
+    if (holds(atom,polarity))
+    {
+      // we do not process this fact if it already holds
+      return false;
+    }
     // buffer the steps in the fact proof generator
     const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
     for (const std::pair<Node, ProofStep>& step : steps)
@@ -158,13 +158,13 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
                 << " via generator" << std::endl;
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool polarity = lit.getKind() != NOT;
-  if (holds(atom,polarity))
-  {
-    // we do not process this fact if it already holds
-    return false;
-  }
   if (d_pfEnabled)
   {
+    if (holds(atom,polarity))
+    {
+      // we do not process this fact if it already holds
+      return false;
+    }
     // note the proof generator is responsible for remembering the explanation
     d_proof.addLazyStep(lit, pg);
   }
@@ -546,7 +546,7 @@ bool ProofEqEngine::holds(TNode atom, bool polarity)
     return false;
   }
   TNode b = polarity ? d_true : d_false;
-  return !d_ee.areEqual(atom, b);
+  return d_ee.areEqual(atom, b);
 }
   
 bool ProofEqEngine::addProofStep(Node lit,
