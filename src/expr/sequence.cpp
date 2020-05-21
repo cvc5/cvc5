@@ -33,6 +33,7 @@ Sequence& Sequence::operator=(const Sequence& y)
 
 int Sequence::cmp(const Sequence& y) const
 {
+  Assert(d_type == y.d_type);
   if (size() != y.size())
   {
     return size() < y.size() ? -1 : 1;
