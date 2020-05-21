@@ -148,8 +148,7 @@ bool CDProof::addStep(Node expected,
       if (ensureChildren)
       {
         // failed to get a proof for a child, fail
-        // Trace("cdproof") << "...fail, no child" << std::endl;
-        // FIXME: probably remove this
+        Trace("cdproof") << "...fail, no child" << std::endl;
         return false;
       }
       Trace("cdproof") << "--- add assume" << std::endl;

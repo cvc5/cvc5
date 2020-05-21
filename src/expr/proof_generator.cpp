@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof_generator.h
+/*! \file proof_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Proof generator utility
+ ** \brief Implementation of proof generator utility
  **/
 
 #include "expr/proof_generator.h"
