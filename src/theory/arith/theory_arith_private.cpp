@@ -1191,8 +1191,6 @@ Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
 {
   ArithElimOpAttribute aeoa;
   Trace("arith-elim") << "Begin elim: " << n << std::endl;
-  n = Rewriter::rewrite(n);
-  Trace("arith-elim") << "Rewritten: " << n << std::endl;
   NodeManager * nm = NodeManager::currentNM();
   std::unordered_map<Node, Node, TNodeHashFunction> visited;
   std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
@@ -1263,6 +1261,14 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
   NodeManager* nm = NodeManager::currentNM();
 
   Kind k = node.getKind();
+  // rewrite here since the rewritten form of these may introduce division
+  if (k == kind::TANGENT || k == kind::COSECANT || k == kind::SECANT
+      || k == kind::COTANGENT)
+  {
+    node = Rewriter::rewrite(node);
+    k = node.getKind();
+  }
+  
   switch (k)
   {
 
@@ -1377,7 +1383,13 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
   case kind::DIVISION_TOTAL: {
     Node num = Rewriter::rewrite(node[0]);
     Node den = Rewriter::rewrite(node[1]);
-    Assert(!den.isConst());
+    if (den.isConst())
+    {
+      // No need to eliminate here, can eliminate via rewriting. Moreover,
+      // rewriting may change the type of this node from real to int, which
+      // impacts certain issues with subtyping.
+      return node;
+    }
     Node var;
     Node rw = nm->mkNode(k, num, den);
     NodeMap::const_iterator it = d_div_skolem.find( rw );
