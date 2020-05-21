@@ -1194,7 +1194,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
       // 0 <= n[0] - toIntSkolem < 1
       Node one = mkRationalNode(1);
       Node lem = mkAxiomForTotalIntDivision(n[0], one, toIntSkolem);
-      d_containing.d_out->lemma(lem);
+      outputLemma(lem);
     }else{
       toIntSkolem = (*it).second;
     }
@@ -1247,7 +1247,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
                                         nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(-1))))))));                
       }    
       if( !lem.isNull() ){
-        d_containing.d_out->lemma(lem);
+        outputLemma(lem);
       }
     }else{
       intVar = (*it).second;
@@ -1270,7 +1270,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     if( it==d_div_skolem.end() ){
       var = nm->mkSkolem("nonlinearDiv", nm->realType(), "the result of a non-linear div term");
       d_div_skolem[rw] = var;
-      d_containing.d_out->lemma(nm->mkNode(kind::IMPLIES, den.eqNode(nm->mkConst(Rational(0))).negate(), nm->mkNode(kind::MULT, den, var).eqNode(num)));
+      outputLemma(nm->mkNode(kind::IMPLIES, den.eqNode(nm->mkConst(Rational(0))).negate(), nm->mkNode(kind::MULT, den, var).eqNode(num)));
     }else{
       var = (*it).second;
     }
@@ -1301,18 +1301,21 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
 Node TheoryArithPrivate::ppRewrite(TNode atom) {
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
-  if (atom.getKind() == kind::EQUAL  && options::arithRewriteEq()) {
-    Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-    Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-    leq = ppRewriteTerms(leq);
-    geq = ppRewriteTerms(geq);
-    Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-    Debug("arith::preprocess") << "arith::preprocess() : returning "
-                               << rewritten << endl;
-    return rewritten;
-  } else {
-    return ppRewriteTerms(atom);
+  if (options::arithRewriteEq())
+  {
+    if (atom.getKind() == kind::EQUAL && atom[0].getType().isReal())
+    {
+      Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
+      Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+      leq = ppRewriteTerms(leq);
+      geq = ppRewriteTerms(geq);
+      Node rewritten = Rewriter::rewrite(leq.andNode(geq));
+      Debug("arith::preprocess")
+          << "arith::preprocess() : returning " << rewritten << endl;
+      return rewritten;
+    }
   }
+  return ppRewriteTerms(atom);
 }
 
 Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
@@ -1329,13 +1332,13 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
     Comparison cmp = Comparison::parseNormalForm(in);
 
     Polynomial left = cmp.getLeft();
-    Polynomial right = cmp.getRight();
 
     Monomial m = left.getHead();
     if (m.getVarList().singleton()){
       VarList vl = m.getVarList();
       Node var = vl.getNode();
-      if (var.getKind() == kind::VARIABLE){
+      if (var.isVar())
+      {
         // if vl.isIntegral then m.getConstant().isOne()
         if(!vl.isIntegral() || m.getConstant().isOne()){
           minVar = var;
@@ -1360,15 +1363,8 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
             << minVar << ":" << elim << endl;
         Debug("simplify") << right.size() << endl;
       }
-      else if (expr::hasSubterm(elim, minVar))
+      else if (d_containing.isLegalElimination(minVar, elim))
       {
-        Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute "
-                             "due to recursive pattern with sharing: "
-                          << minVar << ":" << elim << endl;
-      }
-      else if (!minVar.getType().isInteger() || right.isIntegral())
-      {
-        Assert(!expr::hasSubterm(elim, minVar));
         // cannot eliminate integers here unless we know the resulting
         // substitution is integral
         Debug("simplify") << "TheoryArithPrivate::solve(): substitution "
@@ -1380,7 +1376,6 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
       else
       {
         Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute "
-                             "b/c it's integer: "
                           << minVar << ":" << minVar.getType() << " |-> "
                           << elim << ":" << elim.getType() << endl;
       }
@@ -1603,7 +1598,7 @@ Node TheoryArithPrivate::axiomIteForTotalIntDivision(Node int_div_like){
   Polynomial rp = Polynomial::parsePolynomial(r);
   Polynomial qp = Polynomial::parsePolynomial(q);
 
-  Node abs_d = (n.isConstant()) ?
+  Node abs_d = (d.isConstant()) ?
     d.getHead().getConstant().abs().getNode() : mkIntSkolem("abs");
 
   Node eq = Comparison::mkComparison(EQUAL, n, d * qp + rp).getNode();
@@ -2017,7 +2012,11 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
       ConstraintP floorConstraint = constraint->getFloor();
       if(!floorConstraint->isTrue()){
         bool inConflict = floorConstraint->negationHasProof();
-        floorConstraint->impliedByIntHole(constraint, inConflict);
+        if (Debug.isOn("arith::intbound")) {
+          Debug("arith::intbound") << "literal, before: " << constraint->getLiteral() << std::endl;
+          Debug("arith::intbound") << "constraint, after: " << floorConstraint << std::endl;
+        }
+        floorConstraint->impliedByIntTighten(constraint, inConflict);
         floorConstraint->tryToPropagate();
         if(inConflict){
           raiseConflict(floorConstraint);
@@ -2033,7 +2032,11 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
       ConstraintP ceilingConstraint = constraint->getCeiling();
       if(!ceilingConstraint->isTrue()){
         bool inConflict = ceilingConstraint->negationHasProof();
-        ceilingConstraint->impliedByIntHole(constraint, inConflict);
+        if (Debug.isOn("arith::intbound")) {
+          Debug("arith::intbound") << "literal, before: " << constraint->getLiteral() << std::endl;
+          Debug("arith::intbound") << "constraint, after: " << ceilingConstraint << std::endl;
+        }
+        ceilingConstraint->impliedByIntTighten(constraint, inConflict);
         ceilingConstraint->tryToPropagate();
         if(inConflict){
           raiseConflict(ceilingConstraint);
@@ -2165,23 +2168,31 @@ void TheoryArithPrivate::outputConflicts(){
         //
         // Anyways, we reverse the children in `conflict` here.
         NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
-        for (size_t i = 0, nchildren = conflict.getNumChildren(); i < nchildren;
-             ++i)
+        for (size_t j = 0, nchildren = conflict.getNumChildren(); j < nchildren;
+             ++j)
         {
           conflictInFarkasCoefficientOrder
-              << conflict[conflict.getNumChildren() - i - 1];
+              << conflict[conflict.getNumChildren() - j - 1];
+        }
+
+        if (Debug.isOn("arith::pf::tree")) {
+          confConstraint->printProofTree(Debug("arith::pf::tree"));
+          confConstraint->getNegation()->printProofTree(Debug("arith::pf::tree"));
         }
 
         Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
-        d_containing.d_proofRecorder->saveFarkasCoefficients(
-            conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
+        if (confConstraint->hasSimpleFarkasProof())
+        {
+          d_containing.d_proofRecorder->saveFarkasCoefficients(
+              conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
+        }
       })
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
       }
 
-      (d_containing.d_out)->conflict(conflict);
+      outputConflict(conflict);
     }
   }
   if(!d_blackBoxConflict.get().isNull()){
@@ -2195,13 +2206,28 @@ void TheoryArithPrivate::outputConflicts(){
       Debug("arith::conflict") << "(normalized to) " << bb << endl;
     }
 
-    (d_containing.d_out)->conflict(bb);
+    outputConflict(bb);
   }
 }
 
 void TheoryArithPrivate::outputLemma(TNode lem) {
-  Debug("arith::lemma") << "Arith Lemma: " << lem << std::endl;
+  Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
   (d_containing.d_out)->lemma(lem);
+}
+
+void TheoryArithPrivate::outputConflict(TNode lit) {
+  Debug("arith::channel") << "Arith conflict: " << lit << std::endl;
+  (d_containing.d_out)->conflict(lit);
+}
+
+void TheoryArithPrivate::outputPropagate(TNode lit) {
+  Debug("arith::channel") << "Arith propagation: " << lit << std::endl;
+  (d_containing.d_out)->propagate(lit);
+}
+
+void TheoryArithPrivate::outputRestart() {
+  Debug("arith::channel") << "Arith restart!" << std::endl;
+  (d_containing.d_out)->demandRestart();
 }
 
 // void TheoryArithPrivate::branchVector(const std::vector<ArithVar>& lemmas){
@@ -3075,7 +3101,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   if(!safeToCallApprox()) { return; }
 
   Assert(safeToCallApprox());
-  TimerStat::CodeTimer codeTimer(d_statistics.d_solveIntTimer);
+  TimerStat::CodeTimer codeTimer0(d_statistics.d_solveIntTimer);
 
   ++(d_statistics.d_solveIntCalls);
   d_statistics.d_inSolveInteger.setData(1);
@@ -3117,7 +3143,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
     if( relaxRes == LinFeasible ){
       MipResult mipRes = MipUnknown;
       {
-        TimerStat::CodeTimer codeTimer(d_statistics.d_mipTimer);
+        TimerStat::CodeTimer codeTimer1(d_statistics.d_mipTimer);
         mipRes = approx->solveMIP(false);
       }
 
@@ -3155,7 +3181,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         /* All integer branches closed */
         approx->setPivotLimit(2*mipLimit);
         {
-          TimerStat::CodeTimer codeTimer(d_statistics.d_mipTimer);
+          TimerStat::CodeTimer codeTimer2(d_statistics.d_mipTimer);
           mipRes = approx->solveMIP(true);
         }
 
@@ -3187,7 +3213,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         approx->setPivotLimit(2*mipLimit);
         approx->setBranchingDepth(2);
         {
-          TimerStat::CodeTimer codeTimer(d_statistics.d_mipTimer);
+          TimerStat::CodeTimer codeTimer3(d_statistics.d_mipTimer);
           mipRes = approx->solveMIP(true);
         }
         replayLemmas(approx);
@@ -3288,7 +3314,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
 }
 
 bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
-  TimerStat::CodeTimer codeTimer(d_statistics.d_solveRealRelaxTimer);
+  TimerStat::CodeTimer codeTimer0(d_statistics.d_solveRealRelaxTimer);
   Assert(d_qflraStatus != Result::SAT);
 
   d_partialModel.stopQueueingBoundCounts();
@@ -3342,7 +3368,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     ApproximateSimplex::Solution relaxSolution;
     LinResult relaxRes = LinUnknown;
     {
-      TimerStat::CodeTimer codeTimer(d_statistics.d_lpTimer);
+      TimerStat::CodeTimer codeTimer1(d_statistics.d_lpTimer);
       relaxRes = approxSolver->solveRelaxation();
     }
       Debug("solveRealRelaxation") << "solve relaxation? " << endl;
@@ -3742,7 +3768,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
           || options::arithPropagationMode()
                  == options::ArithPropagationMode::BOTH_PROP))
   {
-    TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
+    TimerStat::CodeTimer codeTimer0(d_statistics.d_newPropTime);
     Assert(d_qflraStatus != Result::UNSAT);
 
     while(!d_currentPropagationList.empty()  && !anyConflict()){
@@ -3795,7 +3821,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }
   else
   {
-    TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
+    TimerStat::CodeTimer codeTimer1(d_statistics.d_newPropTime);
     d_currentPropagationList.clear();
   }
   Assert(d_currentPropagationList.empty());
@@ -3910,15 +3936,38 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   TNode var = d_partialModel.asNode(x);
   Integer floor_d = d.floor();
 
-  //Node eq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, mkRationalNode(floor_d+1)));
-  //Node diseq = eq.notNode();
+  Node lem;
+  NodeManager* nm = NodeManager::currentNM();
+  if (options::brabTest())
+  {
+    Trace("integers") << "branch-round-and-bound enabled" << endl;
+    Integer ceil_d = d.ceiling();
+    Rational f = r - floor_d;
+    // Multiply by -1 to get abs value.
+    Rational c = (r - ceil_d) * (-1); 
+    Integer nearest = (c > f) ? floor_d : ceil_d;
 
-  Node ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
-  Node lb = ub.notNode();
+    // Prioritize trying a simple rounding of the real solution first,
+    // it that fails, fall back on original branch and bound strategy.
+    Node ub = Rewriter::rewrite(
+        nm->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
+    Node lb = Rewriter::rewrite(
+        nm->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
+    lem = nm->mkNode(kind::OR, ub, lb);
+    Node eq = Rewriter::rewrite(
+        nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
+    Node literal = d_containing.getValuation().ensureLiteral(eq);
+    d_containing.getOutputChannel().requirePhase(literal, true);
+    lem = nm->mkNode(kind::OR, literal, lem);
+  }
+  else
+  {
+    Node ub =
+        Rewriter::rewrite(nm->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
+    Node lb = ub.notNode();
+    lem = nm->mkNode(kind::OR, ub, lb);
+  }
 
-
-  //Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, diseq);
-  Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
   Trace("integers") << "integers: branch & bound: " << lem << endl;
   if(isSatLiteral(lem[0])) {
     Debug("integers") << "    " << lem[0] << " == " << getSatValue(lem[0]) << endl;
@@ -4889,6 +4938,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
     //   * coeffs[i+1] is for explain[i]
     d_linEq.propagateRow(explain, ridx, rowUp, implied, coeffs);
     if(d_tableau.getRowLength(ridx) <= options::arithPropAsLemmaLength()){
+      if (Debug.isOn("arith::prop::pf")) {
+        for (const auto & constraint : explain) {
+          Assert(constraint->hasProof());
+          constraint->printProofTree(Debug("arith::prop::pf"));
+        }
+      }
       Node implication = implied->externalImplication(explain);
       Node clause = flattenImplication(implication);
       PROOF(if (d_containing.d_proofRecorder
@@ -4915,8 +4970,13 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         Assert(coeffs != RationalVectorPSentinel);
         Assert(conflictInFarkasCoefficientOrder.getNumChildren()
                == coeffs->size());
-        d_containing.d_proofRecorder->saveFarkasCoefficients(
-            conflictInFarkasCoefficientOrder, coeffs);
+        if (std::all_of(explain.begin(), explain.end(), [](ConstraintCP c) {
+              return c->isAssumption() || c->hasIntTightenProof();
+            }))
+        {
+          d_containing.d_proofRecorder->saveFarkasCoefficients(
+              conflictInFarkasCoefficientOrder, coeffs);
+        }
       })
       outputLemma(clause);
     }else{
@@ -4994,8 +5054,8 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   return d_rowTracking[ridx];
 }
 
-
-Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node) {
+Node TheoryArithPrivate::expandDefinition(Node node)
+{
   NodeManager* nm = NodeManager::currentNM();
 
   // eliminate here since the rewritten form of these may introduce division
@@ -5015,8 +5075,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node divByZeroNum =
-            getArithSkolemApp(logicRequest, num, ArithSkolemId::DIV_BY_ZERO);
+        Node divByZeroNum = getArithSkolemApp(num, ArithSkolemId::DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
       }
@@ -5031,8 +5090,8 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node intDivByZeroNum = getArithSkolemApp(
-            logicRequest, num, ArithSkolemId::INT_DIV_BY_ZERO);
+        Node intDivByZeroNum =
+            getArithSkolemApp(num, ArithSkolemId::INT_DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
       }
@@ -5047,8 +5106,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node modZeroNum =
-            getArithSkolemApp(logicRequest, num, ArithSkolemId::MOD_BY_ZERO);
+        Node modZeroNum = getArithSkolemApp(num, ArithSkolemId::MOD_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
       }
@@ -5080,14 +5138,13 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
         Node lem;
         if (k == kind::SQRT)
         {
-          Node skolemApp =
-              getArithSkolemApp(logicRequest, node[0], ArithSkolemId::SQRT);
+          Node skolemApp = getArithSkolemApp(node[0], ArithSkolemId::SQRT);
           Node uf = skolemApp.eqNode(var);
           Node nonNeg = nm->mkNode(
               kind::AND, nm->mkNode(kind::MULT, var, var).eqNode(node[0]), uf);
 
           // sqrt(x) reduces to:
-          // choice y. ite(x >= 0.0, y * y = x ^ Uf(x), Uf(x))
+          // witness y. ite(x >= 0.0, y * y = x ^ Uf(x), Uf(x))
           //
           // Uf(x) makes sure that the reduction still behaves like a function,
           // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
@@ -5138,7 +5195,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
           lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
         }
         Assert(!lem.isNull());
-        Node ret = nm->mkNode(CHOICE, nm->mkNode(BOUND_VAR_LIST, var), lem);
+        Node ret = nm->mkNode(WITNESS, nm->mkNode(BOUND_VAR_LIST, var), lem);
         d_nlin_inverse_skolem[node] = ret;
         return ret;
       }
@@ -5152,8 +5209,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
   Unreachable();
 }
 
-Node TheoryArithPrivate::getArithSkolem(LogicRequest& logicRequest,
-                                        ArithSkolemId asi)
+Node TheoryArithPrivate::getArithSkolem(ArithSkolemId asi)
 {
   std::map<ArithSkolemId, Node>::iterator it = d_arith_skolem.find(asi);
   if (it == d_arith_skolem.end())
@@ -5201,7 +5257,6 @@ Node TheoryArithPrivate::getArithSkolem(LogicRequest& logicRequest,
                             nm->mkFunctionType(tn, tn),
                             desc,
                             NodeManager::SKOLEM_EXACT_NAME);
-      logicRequest.widenLogic(THEORY_UF);
     }
     d_arith_skolem[asi] = skolem;
     return skolem;
@@ -5209,11 +5264,9 @@ Node TheoryArithPrivate::getArithSkolem(LogicRequest& logicRequest,
   return it->second;
 }
 
-Node TheoryArithPrivate::getArithSkolemApp(LogicRequest& logicRequest,
-                                           Node n,
-                                           ArithSkolemId asi)
+Node TheoryArithPrivate::getArithSkolemApp(Node n, ArithSkolemId asi)
 {
-  Node skolem = getArithSkolem(logicRequest, asi);
+  Node skolem = getArithSkolem(asi);
   if (!options::arithNoPartialFun())
   {
     skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
@@ -5776,11 +5829,11 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
       const Tableau::Entry& entry = *ri;
       ArithVar v = entry.getColVar();
       if(v != optVar){
-        int sgn = entry.getCoefficient().sgn();
-        Assert(sgn != 0);
-        bool candidate = (sgn > 0)
-          ? (d_partialModel.cmpAssignmentUpperBound(v) != 0)
-          : (d_partialModel.cmpAssignmentLowerBound(v) != 0);
+        int sgn1 = entry.getCoefficient().sgn();
+        Assert(sgn1 != 0);
+        bool candidate = (sgn1 > 0)
+                             ? (d_partialModel.cmpAssignmentUpperBound(v) != 0)
+                             : (d_partialModel.cmpAssignmentLowerBound(v) != 0);
         if(candidate && (entering == ARITHVAR_SENTINEL || entering > v)){
           entering = v;
           enteringEntry = &entry;

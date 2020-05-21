@@ -50,10 +50,6 @@ bool Configuration::isStatisticsBuild() {
   return IS_STATISTICS_BUILD;
 }
 
-bool Configuration::isReplayBuild() {
-  return IS_REPLAY_BUILD;
-}
-
 bool Configuration::isTracingBuild() {
   return IS_TRACING_BUILD;
 }
@@ -118,7 +114,7 @@ std::string Configuration::getVersionExtra() {
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2019 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2020 by the authors and their institutional\n"
      << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
 
   if (Configuration::licenseIsGpl()) {

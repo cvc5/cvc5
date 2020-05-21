@@ -1,4 +1,4 @@
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :strings-exp true)
@@ -8,7 +8,7 @@
 
 ; Action: p0.0
 (declare-const p0.0.action Bool)
-(assert (= p0.0.action (and (= actionNamespace "foobar") (str.in.re actionName (re.++ (str.to.re "foo") (re.* re.allchar) (re.++ (str.to.re "") re.allchar (str.to.re "bar")))))))
+(assert (= p0.0.action (and (= actionNamespace "foobar") (str.in_re actionName (re.++ (str.to_re "foo") (re.* re.allchar) (re.++ (str.to_re "") re.allchar (str.to_re "bar")))))))
 
 ; Policy: 0
 (declare-const p0.denies Bool)
@@ -20,7 +20,7 @@
 
 ; Action: p1.0
 (declare-const p1.0.action Bool)
-(assert (= p1.0.action (and (= actionNamespace "foobar") (str.in.re actionName (re.++ (re.++ (str.to.re "foo") re.allchar (str.to.re "")) (re.* re.allchar) (str.to.re "bar"))))))
+(assert (= p1.0.action (and (= actionNamespace "foobar") (str.in_re actionName (re.++ (re.++ (str.to_re "foo") re.allchar (str.to_re "")) (re.* re.allchar) (str.to_re "bar"))))))
 
 ; Policy: 1
 (declare-const p1.denies Bool)

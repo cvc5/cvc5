@@ -1,4 +1,3 @@
-; COMMAND-LINE: --symmetry-breaker-exp
 (set-logic ALL)
 (set-info :status sat)
 (declare-sort U 0)

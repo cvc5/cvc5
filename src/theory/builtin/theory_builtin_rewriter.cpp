@@ -18,7 +18,6 @@
 #include "theory/builtin/theory_builtin_rewriter.h"
 
 #include "expr/attribute.h"
-#include "expr/chain.h"
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 
@@ -53,29 +52,25 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in) {
   return out;
 }
 
-Node TheoryBuiltinRewriter::blastChain(TNode in) {
-  Assert(in.getKind() == kind::CHAIN);
-
-  Kind chainedOp = in.getOperator().getConst<Chain>().getOperator();
-
-  if(in.getNumChildren() == 2) {
-    // if this is the case exactly 1 pair will be generated so the
-    // AND is not required
-    return NodeManager::currentNM()->mkNode(chainedOp, in[0], in[1]);
-  } else {
-    NodeBuilder<> conj(kind::AND);
-    for(TNode::iterator i = in.begin(), j = i + 1; j != in.end(); ++i, ++j) {
-      conj << NodeManager::currentNM()->mkNode(chainedOp, *i, *j);
-    }
-    return conj;
-  }
-}
-
 RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
   if( node.getKind()==kind::LAMBDA ){
+    // The following code ensures that if node is equivalent to a constant
+    // lambda, then we return the canonical representation for the lambda, which
+    // in turn ensures that two constant lambdas are equivalent if and only
+    // if they are the same node.
+    // We canonicalize lambdas by turning them into array constants, applying
+    // normalization on array constants, and then converting the array constant
+    // back to a lambda.
     Trace("builtin-rewrite") << "Rewriting lambda " << node << "..." << std::endl;
     Node anode = getArrayRepresentationForLambda( node );
-    if( !anode.isNull() ){
+    // Only rewrite constant array nodes, since these are the only cases
+    // where we require canonicalization of lambdas. Moreover, applying the
+    // below code is not correct if the arguments to the lambda occur
+    // in return values. For example, lambda x. ite( x=1, f(x), c ) would
+    // be converted to (store (storeall ... c) 1 f(x)), and then converted
+    // to lambda y. ite( y=1, f(x), c), losing the relation between x and y.
+    if (!anode.isNull() && anode.isConst())
+    {
       Assert(anode.getType().isArray());
       //must get the standard bound variable list
       Node varList = NodeManager::currentNM()->getBoundVarListForFunctionType( node.getType() );
@@ -89,13 +84,15 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
         Assert(retNode.getType() == node.getType());
         Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
         return RewriteResponse(REWRITE_DONE, retNode);
-      } 
-    }else{
+      }
+    }
+    else
+    {
       Trace("builtin-rewrite-debug") << "...failed to get array representation." << std::endl;
     }
     return RewriteResponse(REWRITE_DONE, node);
   }
-  else if (node.getKind() == kind::CHOICE)
+  else if (node.getKind() == kind::WITNESS)
   {
     if (node[1].getKind() == kind::EQUAL)
     {
@@ -243,9 +240,10 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
           << "  process base : " << curr << std::endl;
       // Boolean return case, e.g. lambda x. (= x v) becomes
       // lambda x. (ite (= x v) true false)
-      index_eq = curr;
-      curr_val = nm->mkConst(true);
-      next = nm->mkConst(false);
+      bool pol = curr.getKind() != kind::NOT;
+      index_eq = pol ? curr : curr[0];
+      curr_val = nm->mkConst(pol);
+      next = nm->mkConst(!pol);
     }
 
     // [2] We ensure that "index_eq" is an equality, if possible.

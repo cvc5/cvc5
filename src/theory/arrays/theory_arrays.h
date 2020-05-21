@@ -27,6 +27,7 @@
 #include "context/cdqueue.h"
 #include "theory/arrays/array_info.h"
 #include "theory/arrays/array_proof_reconstruction.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
@@ -144,6 +145,8 @@ class TheoryArrays : public Theory {
                std::string name = "");
   ~TheoryArrays();
 
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   std::string identify() const override { return std::string("TheoryArrays"); }
@@ -174,6 +177,9 @@ class TheoryArrays : public Theory {
   Node recursivePreprocessTerm(TNode term);
   bool ppDisequal(TNode a, TNode b);
   Node solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck);
+
+  /** The theory rewriter for this theory. */
+  TheoryArraysRewriter d_rewriter;
 
  public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;

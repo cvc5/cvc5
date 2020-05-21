@@ -79,12 +79,13 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
 
-  d_cnfStream.reset(
-      new prop::TseitinCnfStream(d_satSolver.get(),
-                                 d_nullRegistrar.get(),
-                                 d_nullContext.get(),
-                                 options::proof(),
-                                 "LazyBitblaster"));
+  ResourceManager* rm = NodeManager::currentResourceManager();
+  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
+                                               d_nullRegistrar.get(),
+                                               d_nullContext.get(),
+                                               rm,
+                                               options::proof(),
+                                               "LazyBitblaster"));
 
   d_satSolverNotify.reset(
       d_emptyNotify
@@ -234,7 +235,7 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
   }
   Assert(node.getType().isBitVector());
 
-  d_bv->spendResource(options::bitblastStep());
+  d_bv->spendResource(ResourceManager::Resource::BitblastStep);
   Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
   ++d_statistics.d_numTerms;
 
@@ -426,14 +427,14 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   }
 }
 
-void TLazyBitblaster::MinisatNotify::spendResource(unsigned amount)
+void TLazyBitblaster::MinisatNotify::spendResource(ResourceManager::Resource r)
 {
-  d_bv->spendResource(amount);
+  d_bv->spendResource(r);
 }
 
-void TLazyBitblaster::MinisatNotify::safePoint(unsigned amount)
+void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
 {
-  d_bv->d_out->safePoint(amount);
+  d_bv->d_out->safePoint(r);
 }
 
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
@@ -578,8 +579,9 @@ void TLazyBitblaster::clearSolver() {
   // recreate sat solver
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(d_ctx, smtStatisticsRegistry()));
+  ResourceManager* rm = NodeManager::currentResourceManager();
   d_cnfStream.reset(new prop::TseitinCnfStream(
-      d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get()));
+      d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get(), rm));
   d_satSolverNotify.reset(
       d_emptyNotify
           ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()

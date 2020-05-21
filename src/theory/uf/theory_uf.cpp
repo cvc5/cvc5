@@ -117,14 +117,14 @@ void TheoryUF::check(Effort level) {
   if (done() && !fullEffort(level)) {
     return;
   }
-  getOutputChannel().spendResource(options::theoryCheckStep());
+  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
   while (!done() && !d_conflict)
   {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Debug("uf") << "TheoryUF::check(): processing " << fact << std::endl;
     Debug("uf") << "Term's theory: " << theory::Theory::theoryOf(fact.toExpr()) << std::endl;
@@ -201,7 +201,8 @@ unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
   return node.getKind()==kind::APPLY_UF ? 0 : 1;
 }
 
-Node TheoryUF::expandDefinition(LogicRequest &logicRequest, Node node) {
+Node TheoryUF::expandDefinition(Node node)
+{
   Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
                       << node << std::endl;
   if( node.getKind()==kind::HO_APPLY ){

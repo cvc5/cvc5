@@ -15,7 +15,7 @@
 #include "theory/strings/skolem_cache.h"
 
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/arith_entail.h"
 #include "util/rational.h"
 
 using namespace CVC4::kind;
@@ -163,8 +163,8 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
       a = s;
       b = m;
     }
-    else if (TheoryStringsRewriter::checkEntailArith(
-                 nm->mkNode(PLUS, n, m), nm->mkNode(STRING_LENGTH, s)))
+    else if (ArithEntail::check(nm->mkNode(PLUS, n, m),
+                                nm->mkNode(STRING_LENGTH, s)))
     {
       // SK_PURIFY((str.substr x n m)) ---> SK_SUFFIX_REM(x, n)
       // if n + m >= (str.len x)
@@ -180,15 +180,6 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     // SK_PREFIX(x, (str.indexof x y 0)) ---> SK_FIRST_CTN_PRE(x, y)
     id = SK_FIRST_CTN_PRE;
     b = b[1];
-  }
-
-  if (id == SK_FIRST_CTN_PRE)
-  {
-    // SK_FIRST_CTN_PRE((str.substr x 0 n), y) ---> SK_FIRST_CTN_PRE(x, y)
-    while (a.getKind() == kind::STRING_SUBSTR && a[1] == d_zero)
-    {
-      a = a[0];
-    }
   }
 
   Trace("skolem-cache") << "normalizeStringSkolem end: (" << id << ", " << a

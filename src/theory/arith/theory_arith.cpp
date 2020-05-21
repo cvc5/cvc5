@@ -19,6 +19,7 @@
 
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/ext_theory.h"
@@ -53,12 +54,30 @@ TheoryArith::~TheoryArith(){
   delete d_internal;
 }
 
+TheoryRewriter* TheoryArith::getTheoryRewriter()
+{
+  return d_internal->getTheoryRewriter();
+}
+
 void TheoryArith::preRegisterTerm(TNode n){
   d_internal->preRegisterTerm(n);
 }
 
-Node TheoryArith::expandDefinition(LogicRequest &logicRequest, Node node) {
-  return d_internal->expandDefinition(logicRequest, node);
+void TheoryArith::finishInit()
+{
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
+      && getLogicInfo().areTranscendentalsUsed())
+  {
+    // witness is used to eliminate square root
+    tm->setUnevaluatedKind(kind::WITNESS);
+  }
+}
+
+Node TheoryArith::expandDefinition(Node node)
+{
+  return d_internal->expandDefinition(node);
 }
 
 void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -83,7 +102,7 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
 }
 
 void TheoryArith::check(Effort effortLevel){
-  getOutputChannel().spendResource(options::theoryCheckStep());
+  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
   d_internal->check(effortLevel);
 }
 

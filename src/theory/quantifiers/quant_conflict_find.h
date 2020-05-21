@@ -52,7 +52,6 @@ private:
   unsigned d_qni_size;
   std::map< int, int > d_qni_var_num;
   std::map< int, TNode > d_qni_gterm;
-  std::map< int, TNode > d_qni_gterm_rep;
   std::map< int, int > d_qni_bound;
   std::vector< int > d_qni_bound_except;
   std::map< int, TNode > d_qni_bound_cons;

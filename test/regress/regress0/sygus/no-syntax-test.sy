@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 
 (set-logic LIA)
 
@@ -12,4 +12,3 @@
 
 
 (check-synth)
-

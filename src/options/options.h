@@ -26,7 +26,6 @@
 
 #include "base/listener.h"
 #include "base/modal_exception.h"
-#include "options/argument_extender.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/printer_modes.h"
@@ -67,9 +66,6 @@ class CVC4_PUBLIC Options {
   /** Listeners for options::tlimit-per. */
   ListenerCollection d_rlimitPerListeners;
 
-  /** Listeners for options::useTheoryList. */
-  ListenerCollection d_useTheoryListListeners;
-
   /** Listeners for options::defaultExprDepth. */
   ListenerCollection d_setDefaultExprDepthListeners;
 
@@ -93,10 +89,6 @@ class CVC4_PUBLIC Options {
 
   /** Listeners for options::diagnosticChannelName. */
   ListenerCollection d_setDiagnosticChannelListeners;
-
-  /** Listeners for options::replayFilename. */
-  ListenerCollection d_setReplayFilenameListeners;
-
 
   static ListenerCollection::Registration* registerAndNotify(
       ListenerCollection& collection, Listener* listener, bool notify);
@@ -205,11 +197,9 @@ public:
   bool getDumpSynth() const;
   bool getDumpUnsatCores() const;
   bool getEarlyExit() const;
-  bool getFallbackSequential() const;
   bool getFilesystemAccess() const;
   bool getForceNoLimitCpuWhileDump() const;
   bool getHelp() const;
-  bool getIncrementalParallel() const;
   bool getIncrementalSolving() const;
   bool getInteractive() const;
   bool getInteractivePrompt() const;
@@ -226,7 +216,6 @@ public:
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
   bool getVersion() const;
-  bool getWaitToJoin() const;
   const std::string& getForceLogicString() const;
   int getVerbosity() const;
   std::istream* getIn() const;
@@ -234,7 +223,6 @@ public:
   std::ostream* getOut();
   std::ostream* getOutConst() const; // TODO: Remove this.
   std::string getBinaryName() const;
-  std::string getReplayInputFilename() const;
   unsigned getParseStep() const;
 
   // TODO: Document these.
@@ -243,7 +231,6 @@ public:
   void setOut(std::ostream*);
   void setOutputLanguage(OutputLanguage);
 
-  bool wasSetByUserCeGuidedInst() const;
   bool wasSetByUserDumpSynth() const;
   bool wasSetByUserEarlyExit() const;
   bool wasSetByUserForceLogicString() const;
@@ -386,19 +373,6 @@ public:
       Listener* listener, bool notifyIfSet);
 
   /**
-   * Registers a listener for options::useTheoryList being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerUseTheoryListListener(
-      Listener* listener, bool notifyIfSet);
-
-
-  /**
    * Registers a listener for options::defaultExprDepth being set.
    *
    * If notifyIfSet is true, this calls notify on the listener
@@ -494,18 +468,6 @@ public:
   ListenerCollection::Registration* registerSetDiagnosticOutputChannelListener(
       Listener* listener, bool notifyIfSet);
 
-  /**
-   * Registers a listener for options::replayLogFilename being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetReplayLogFilename(
-      Listener* listener, bool notifyIfSet);
-
   /** Sends a std::flush to getErr(). */
   void flushErr();
 
@@ -516,8 +478,8 @@ public:
   /**
    * Internal procedure for implementing the parseOptions function.
    * Initializes the options object based on the given command-line
-   * arguments. This uses an ArgumentExtender containing the
-   * command-line arguments. Nonoptions are stored into nonoptions.
+   * arguments. The command line arguments are stored in argc/argv.
+   * Nonoptions are stored into nonoptions.
    *
    * This is not thread safe.
    *
@@ -526,7 +488,8 @@ public:
    * Preconditions: options, extender and nonoptions are non-null.
    */
   static void parseOptionsRecursive(Options* options,
-                                    options::ArgumentExtender* extender,
+                                    int argc,
+                                    char* argv[],
                                     std::vector<std::string>* nonoptions);
 };/* class Options */
 

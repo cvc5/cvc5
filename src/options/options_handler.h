@@ -74,10 +74,6 @@ public:
 
   void setBitblastAig(std::string option, bool arg);
 
-  // theory/options_handlers.h
-  void notifyUseTheoryList(std::string option);
-  std::string handleUseTheoryList(std::string option, std::string optarg);
-
   // printer/options_handlers.h
   InstFormatMode stringToInstFormatMode(std::string option, std::string optarg);
 
@@ -96,8 +92,6 @@ public:
   void notifyDumpToFile(std::string option);
   void notifySetRegularOutputChannel(std::string option);
   void notifySetDiagnosticOutputChannel(std::string option);
-  std::string checkReplayFilename(std::string option, std::string optarg);
-  void notifySetReplayLogFilename(std::string option);
 
   void statsEnabledBuild(std::string option, bool value);
 

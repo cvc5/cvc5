@@ -506,6 +506,9 @@ public:
   /** Is this the String type? */
   bool isString() const;
 
+  /** Is this a string-like type? (string or sequence) */
+  bool isStringLike() const;
+
   /** Is this the Rounding Mode type? */
   bool isRoundingMode() const;
 
@@ -671,6 +674,9 @@ public:
   /** Is this a sort constructor kind */
   bool isSortConstructor() const;
 
+  /** Get sort constructor arity */
+  uint64_t getSortConstructorArity() const;
+
   /**
    * Instantiate a sort constructor type. The type on which this method is
    * called should be a sort constructor type whose parameter list is the
@@ -798,12 +804,10 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
       // push the operator
       nb << TypeNode(d_nv->d_children[0]);
     }
-    for(TypeNode::const_iterator i = begin(),
-          iend = end();
-        i != iend;
-        ++i) {
-      nb << (*i).substitute(typesBegin, typesEnd,
-                            replacementsBegin, replacementsEnd, cache);
+    for (const TypeNode& tn : *this)
+    {
+      nb << tn.substitute(
+          typesBegin, typesEnd, replacementsBegin, replacementsEnd, cache);
     }
     TypeNode tn = nb.constructTypeNode();
     cache[*this] = tn;

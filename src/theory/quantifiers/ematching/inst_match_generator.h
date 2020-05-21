@@ -438,7 +438,7 @@ public:
 
  private:
   /** variable we are matching (x in the example x+1). */
-  TNode d_var;
+  Node d_var;
   /** cache of d_var.getType() */
   TypeNode d_var_type;
   /** The substitution for what we match (x-1 in the example x+1). */

@@ -52,6 +52,7 @@ class TheoryEvaluatorWhite : public CxxTest::TestSuite
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
+    d_smt->finalOptionsAreSet();
   }
 
   void tearDown() override
@@ -168,14 +169,14 @@ class TheoryEvaluatorWhite : public CxxTest::TestSuite
 
     // (str.code "A") ---> 65
     {
-      Node n = d_nm->mkNode(kind::STRING_CODE, a);
+      Node n = d_nm->mkNode(kind::STRING_TO_CODE, a);
       Node r = eval.eval(n, args, vals);
       TS_ASSERT_EQUALS(r, d_nm->mkConst(Rational(65)));
     }
 
     // (str.code "") ---> -1
     {
-      Node n = d_nm->mkNode(kind::STRING_CODE, empty);
+      Node n = d_nm->mkNode(kind::STRING_TO_CODE, empty);
       Node r = eval.eval(n, args, vals);
       TS_ASSERT_EQUALS(r, d_nm->mkConst(Rational(-1)));
     }

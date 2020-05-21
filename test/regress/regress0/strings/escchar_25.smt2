@@ -1,6 +1,6 @@
 (set-logic QF_S)
 (set-info :status sat)
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 
 (declare-fun x () String)
 (declare-const I Int)

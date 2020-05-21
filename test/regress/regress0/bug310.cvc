@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: entailed
 b : BOOLEAN;
 DATATYPE D = c(s:INT) END;
 QUERY c(IF b THEN 1 ELSE 0 ENDIF) = IF b THEN c(1) ELSE c(0) ENDIF;

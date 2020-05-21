@@ -15,13 +15,13 @@
  **/
 #include "theory/quantifiers/sygus/synth_engine.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -43,12 +43,12 @@ SynthEngine::~SynthEngine() {}
 
 void SynthEngine::presolve()
 {
-  Trace("cegqi-engine") << "SynthEngine::presolve" << std::endl;
+  Trace("sygus-engine") << "SynthEngine::presolve" << std::endl;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
     d_conjs[i]->presolve();
   }
-  Trace("cegqi-engine") << "SynthEngine::presolve finished" << std::endl;
+  Trace("sygus-engine") << "SynthEngine::presolve finished" << std::endl;
 }
 
 bool SynthEngine::needsCheck(Theory::Effort e)
@@ -75,7 +75,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
   {
     Node q = d_waiting_conj.back();
     d_waiting_conj.pop_back();
-    Trace("cegqi-engine") << "--- Conjecture waiting to assign: " << q
+    Trace("sygus-engine") << "--- Conjecture waiting to assign: " << q
                           << std::endl;
     assignConjecture(q);
   }
@@ -87,9 +87,9 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     return;
   }
 
-  Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---"
+  Trace("sygus-engine") << "---Counterexample Guided Instantiation Engine---"
                         << std::endl;
-  Trace("cegqi-engine-debug") << std::endl;
+  Trace("sygus-engine-debug") << std::endl;
   Valuation& valuation = d_quantEngine->getValuation();
   std::vector<SynthConjecture*> activeCheckConj;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
@@ -103,10 +103,10 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     }
     else
     {
-      Trace("cegqi-engine-debug") << "...no value for quantified formula."
+      Trace("sygus-engine-debug") << "...no value for quantified formula."
                                   << std::endl;
     }
-    Trace("cegqi-engine-debug")
+    Trace("sygus-engine-debug")
         << "Current conjecture status : active : " << active << std::endl;
     if (active && sc->needsCheck())
     {
@@ -116,7 +116,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
   std::vector<SynthConjecture*> acnext;
   do
   {
-    Trace("cegqi-engine-debug") << "Checking " << activeCheckConj.size()
+    Trace("sygus-engine-debug") << "Checking " << activeCheckConj.size()
                                 << " active conjectures..." << std::endl;
     for (unsigned i = 0, size = activeCheckConj.size(); i < size; i++)
     {
@@ -133,14 +133,14 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     activeCheckConj = acnext;
     acnext.clear();
   } while (!activeCheckConj.empty()
-           && !d_quantEngine->getTheoryEngine()->needCheck());
-  Trace("cegqi-engine")
+           && !d_quantEngine->theoryEngineNeedsCheck());
+  Trace("sygus-engine")
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }
 
 void SynthEngine::assignConjecture(Node q)
 {
-  Trace("cegqi-engine") << "SynthEngine::assignConjecture " << q << std::endl;
+  Trace("sygus-engine") << "SynthEngine::assignConjecture " << q << std::endl;
   if (options::sygusQePreproc())
   {
     // the following does quantifier elimination as a preprocess step
@@ -160,18 +160,17 @@ void SynthEngine::assignConjecture(Node q)
     Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
                        << std::endl;
     quantifiers::SingleInvocationPartition sip;
-    std::vector<Node> funcs;
-    funcs.insert(funcs.end(), q[0].begin(), q[0].end());
-    sip.init(funcs, body);
+    std::vector<Node> funcs0;
+    funcs0.insert(funcs0.end(), q[0].begin(), q[0].end());
+    sip.init(funcs0, body);
     Trace("cegqi-qep") << "...finished, got:" << std::endl;
     sip.debugPrint("cegqi-qep");
 
     if (!sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation())
     {
       // create new smt engine to do quantifier elimination
-      SmtEngine smt_qe(nm->toExprManager());
-      smt_qe.setIsInternalSubsolver();
-      smt_qe.setLogic(smt::currentSmtEngine()->getLogicInfo());
+      std::unique_ptr<SmtEngine> smt_qe;
+      initializeSubsolver(smt_qe);
       Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                             "QE to obtain single invocation."
                          << std::endl;
@@ -206,11 +205,11 @@ void SynthEngine::assignConjecture(Node q)
         Trace("cegqi-qep") << "  subs : " << nqe_vars[i] << " -> " << k
                            << std::endl;
       }
-      std::vector<Node> funcs;
-      sip.getFunctions(funcs);
-      for (unsigned i = 0, size = funcs.size(); i < size; i++)
+      std::vector<Node> funcs1;
+      sip.getFunctions(funcs1);
+      for (unsigned i = 0, size = funcs1.size(); i < size; i++)
       {
-        Node f = funcs[i];
+        Node f = funcs1[i];
         Node fi = sip.getFunctionInvocationFor(f);
         Node fv = sip.getFirstOrderVariableForFunction(f);
         Assert(!fi.isNull());
@@ -234,32 +233,35 @@ void SynthEngine::assignConjecture(Node q)
 
       Trace("cegqi-qep") << "Run quantifier elimination on "
                          << conj_se_ngsi_subs << std::endl;
-      Expr qe_res = smt_qe.doQuantifierElimination(
+      Expr qe_res = smt_qe->doQuantifierElimination(
           conj_se_ngsi_subs.toExpr(), true, false);
       Trace("cegqi-qep") << "Result : " << qe_res << std::endl;
 
-      // create single invocation conjecture
+      // create single invocation conjecture, if QE was successful
       Node qe_res_n = Node::fromExpr(qe_res);
-      qe_res_n = qe_res_n.substitute(
-          subs.begin(), subs.end(), orig.begin(), orig.end());
-      if (!nqe_vars.empty())
+      if (!expr::hasBoundVar(qe_res_n))
       {
-        qe_res_n =
-            nm->mkNode(EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qe_res_n);
-      }
-      Assert(q.getNumChildren() == 3);
-      qe_res_n = nm->mkNode(FORALL, q[0], qe_res_n, q[2]);
-      Trace("cegqi-qep") << "Converted conjecture after QE : " << qe_res_n
-                         << std::endl;
-      qe_res_n = Rewriter::rewrite(qe_res_n);
-      Node nq = qe_res_n;
-      // must assert it is equivalent to the original
-      Node lem = q.eqNode(nq);
-      Trace("cegqi-lemma") << "Cegqi::Lemma : qe-preprocess : " << lem
+        qe_res_n = qe_res_n.substitute(
+            subs.begin(), subs.end(), orig.begin(), orig.end());
+        if (!nqe_vars.empty())
+        {
+          qe_res_n = nm->mkNode(
+              EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qe_res_n);
+        }
+        Assert(q.getNumChildren() == 3);
+        qe_res_n = nm->mkNode(FORALL, q[0], qe_res_n, q[2]);
+        Trace("cegqi-qep") << "Converted conjecture after QE : " << qe_res_n
                            << std::endl;
-      d_quantEngine->getOutputChannel().lemma(lem);
-      // we've reduced the original to a preprocessed version, return
-      return;
+        qe_res_n = Rewriter::rewrite(qe_res_n);
+        Node nq = qe_res_n;
+        // must assert it is equivalent to the original
+        Node lem = q.eqNode(nq);
+        Trace("cegqi-lemma")
+            << "Cegqi::Lemma : qe-preprocess : " << lem << std::endl;
+        d_quantEngine->getOutputChannel().lemma(lem);
+        // we've reduced the original to a preprocessed version, return
+        return;
+      }
     }
   }
   // allocate a new synthesis conjecture if not assigned
@@ -305,16 +307,16 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
 {
   Node q = conj->getEmbeddedConjecture();
   Node aq = conj->getConjecture();
-  if (Trace.isOn("cegqi-engine-debug"))
+  if (Trace.isOn("sygus-engine-debug"))
   {
-    conj->debugPrint("cegqi-engine-debug");
-    Trace("cegqi-engine-debug") << std::endl;
+    conj->debugPrint("sygus-engine-debug");
+    Trace("sygus-engine-debug") << std::endl;
   }
 
   if (!conj->needsRefinement())
   {
-    Trace("cegqi-engine-debug") << "Do conjecture check..." << std::endl;
-    Trace("cegqi-engine-debug")
+    Trace("sygus-engine-debug") << "Do conjecture check..." << std::endl;
+    Trace("sygus-engine-debug")
         << "  *** Check candidate phase..." << std::endl;
     std::vector<Node> cclems;
     bool ret = conj->doCheck(cclems);
@@ -329,13 +331,13 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
       else
       {
         // this may happen if we eagerly unfold, simplify to true
-        Trace("cegqi-engine-debug")
+        Trace("sygus-engine-debug")
             << "  ...FAILED to add candidate!" << std::endl;
       }
     }
     if (addedLemma)
     {
-      Trace("cegqi-engine-debug")
+      Trace("sygus-engine-debug")
           << "  ...check for counterexample." << std::endl;
       return true;
     }
@@ -351,7 +353,7 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
   }
   else
   {
-    Trace("cegqi-engine-debug")
+    Trace("sygus-engine-debug")
         << "  *** Refine candidate phase..." << std::endl;
     std::vector<Node> rlems;
     conj->doRefine(rlems);
@@ -375,7 +377,7 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     }
     if (addedLemma)
     {
-      Trace("cegqi-engine-debug") << "  ...refine candidate." << std::endl;
+      Trace("sygus-engine-debug") << "  ...refine candidate." << std::endl;
     }
   }
   return true;

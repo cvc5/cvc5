@@ -243,7 +243,6 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         }
         std::map<Node, Node> subs_map;
         std::map<Node, Node> subs_map_rev;
-        std::vector<Node> funcs;
         // normalize the invocations
         if (!terms.empty())
         {
@@ -314,8 +313,8 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         // rename bound variables with maximal overlap with si_vars
         std::unordered_set<Node, NodeHashFunction> fvs;
         expr::getFreeVariables(cr, fvs);
-        std::vector<Node> terms;
-        std::vector<Node> subs;
+        std::vector<Node> termsNs;
+        std::vector<Node> subsNs;
         for (const Node& v : fvs)
         {
           TypeNode tn = v.getType();
@@ -325,11 +324,11 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
           {
             if (tn == d_arg_types[k])
             {
-              if (std::find(subs.begin(), subs.end(), d_si_vars[k])
-                  == subs.end())
+              if (std::find(subsNs.begin(), subsNs.end(), d_si_vars[k])
+                  == subsNs.end())
               {
-                terms.push_back(v);
-                subs.push_back(d_si_vars[k]);
+                termsNs.push_back(v);
+                subsNs.push_back(d_si_vars[k]);
                 Trace("si-prt-debug") << "  ...use " << d_si_vars[k]
                                       << std::endl;
                 break;
@@ -337,9 +336,9 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
             }
           }
         }
-        Assert(terms.size() == subs.size());
-        cr =
-            cr.substitute(terms.begin(), terms.end(), subs.begin(), subs.end());
+        Assert(termsNs.size() == subsNs.size());
+        cr = cr.substitute(
+            termsNs.begin(), termsNs.end(), subsNs.begin(), subsNs.end());
       }
       cr = Rewriter::rewrite(cr);
       Trace("si-prt") << ".....got si=" << singleInvocation
@@ -347,7 +346,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
       d_conjuncts[2].push_back(cr);
       std::unordered_set<Node, NodeHashFunction> fvs;
       expr::getFreeVariables(cr, fvs);
-      d_all_vars.insert(d_all_vars.end(), fvs.begin(), fvs.end());
+      d_all_vars.insert(fvs.begin(), fvs.end());
       if (singleInvocation)
       {
         // replace with single invocation formulation

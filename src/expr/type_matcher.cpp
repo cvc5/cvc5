@@ -93,7 +93,7 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
   }
   for (size_t i = 0, nchild = pattern.getNumChildren(); i < nchild; i++)
   {
-    if (!doMatching(pattern[i], tn[i]))
+    if (!doMatching(pattern[j], tn[j]))
     {
       return false;
     }

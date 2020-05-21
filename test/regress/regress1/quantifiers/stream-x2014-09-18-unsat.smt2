@@ -1,4 +1,3 @@
-; COMMAND-LINE: --lang=smt2.5
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
@@ -28,13 +27,14 @@
 (declare-sort B_stream_stream_b_stream_stream_fun$ 0)
 (declare-sort A_stream_stream_stream_a_stream_stream_stream_fun$ 0)
 (declare-sort B_stream_stream_stream_b_stream_stream_stream_fun$ 0)
-(declare-datatypes () ((Nat$ (zero$) (suc$ (pred$ Nat$)))))
-(declare-codatatypes () ((A_stream$ (sCons$ (shd$ A$) (stl$ A_stream$)))
-  (B_stream$ (sCons$a (shd$a B$) (stl$a B_stream$)))
-  (B_stream_stream$ (sCons$b (shd$b B_stream$) (stl$b B_stream_stream$)))
-  (B_stream_stream_stream$ (sCons$c (shd$c B_stream_stream$) (stl$c B_stream_stream_stream$)))
-  (A_stream_stream$ (sCons$d (shd$d A_stream$) (stl$d A_stream_stream$)))
-  (A_stream_stream_stream$ (sCons$e (shd$e A_stream_stream$) (stl$e A_stream_stream_stream$)))))
+(declare-datatypes ((Nat$ 0)) (((zero$) (suc$ (pred$ Nat$)))))
+(declare-codatatypes ((A_stream$ 0) (B_stream$ 0) (B_stream_stream$ 0) (B_stream_stream_stream$ 0) (A_stream_stream$ 0) (A_stream_stream_stream$ 0)) (
+  ((sCons$ (shd$ A$) (stl$ A_stream$)))
+  ((sCons$a (shd$a B$) (stl$a B_stream$)))
+  ((sCons$b (shd$b B_stream$) (stl$b B_stream_stream$)))
+  ((sCons$c (shd$c B_stream_stream$) (stl$c B_stream_stream_stream$)))
+  ((sCons$d (shd$d A_stream$) (stl$d A_stream_stream$)))
+  ((sCons$e (shd$e A_stream_stream$) (stl$e A_stream_stream_stream$)))))
 (declare-fun f$ () B_a_fun$)
 (declare-fun x$ () B$)
 (declare-fun id$ () B_b_fun$)
