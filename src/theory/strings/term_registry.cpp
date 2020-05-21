@@ -88,6 +88,12 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   if (k == EQUAL)
   {
+    if (n[0].getType().isRegExp())
+    {
+      std::stringstream ss;
+      ss << "Equality between regular expressions is not supported";
+      throw LogicException(ss.str());
+    }
     d_ee.addTriggerEquality(n);
     return;
   }
