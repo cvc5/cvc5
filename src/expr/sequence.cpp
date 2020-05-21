@@ -132,6 +132,7 @@ size_t Sequence::overlap(const Sequence& y) const
 
 size_t Sequence::roverlap(const Sequence& y) const
 {
+  Assert(d_type == y.d_type);
   size_t i = size() < y.size() ? size() : y.size();
   for (; i > 0; i--)
   {
@@ -163,6 +164,7 @@ bool Sequence::isRepeated() const
 
 size_t Sequence::find(const Sequence& y, size_t start) const
 {
+  Assert(d_type == y.d_type);
   if (size() < y.size() + start)
   {
     return std::string::npos;
@@ -186,6 +188,7 @@ size_t Sequence::find(const Sequence& y, size_t start) const
 
 size_t Sequence::rfind(const Sequence& y, size_t start) const
 {
+  Assert(d_type == y.d_type);
   if (size() < y.size() + start)
   {
     return std::string::npos;
@@ -209,6 +212,7 @@ size_t Sequence::rfind(const Sequence& y, size_t start) const
 
 bool Sequence::hasPrefix(const Sequence& y) const
 {
+  Assert(d_type == y.d_type);
   size_t s = size();
   size_t ys = y.size();
   if (ys > s)
@@ -227,6 +231,7 @@ bool Sequence::hasPrefix(const Sequence& y) const
 
 bool Sequence::hasSuffix(const Sequence& y) const
 {
+  Assert(d_type == y.d_type);
   size_t s = size();
   size_t ys = y.size();
   if (ys > s)
@@ -262,6 +267,7 @@ Sequence Sequence::replace(const Sequence& s, const Sequence& t) const
 
 Sequence Sequence::substr(size_t i) const
 {
+  Assert(i >= 0);
   Assert(i <= size());
   std::vector<Node> ret_vec;
   std::vector<Node>::const_iterator itr = d_seq.begin() + i;

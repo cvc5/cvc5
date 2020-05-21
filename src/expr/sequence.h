@@ -53,21 +53,21 @@ class Sequence
 
   /** is this the empty sequence? */
   bool empty() const { return d_seq.empty(); }
-  /** is less than or equal to string y */
+  /** is less than or equal to sequence y */
   bool isLeq(const Sequence& y) const;
-  /** Return the length of the string */
+  /** Return the length of the sequence */
   size_t size() const { return d_seq.size(); }
 
-  /** Return true if this string is a repetition of the same character */
+  /** Return true if this sequence is a repetition of the same element */
   bool isRepeated() const;
 
   /**
-   * Return the first position y occurs in this string, or std::string::npos
+   * Return the first position y occurs in this sequence, or std::string::npos
    * otherwise.
    */
   size_t find(const Sequence& y, size_t start = 0) const;
   /**
-   * Return the first position y occurs in this string searching from the end,
+   * Return the first position y occurs in this sequence searching from the end,
    * or std::string::npos otherwise.
    */
   size_t rfind(const Sequence& y, size_t start = 0) const;
@@ -75,32 +75,32 @@ class Sequence
   bool hasPrefix(const Sequence& y) const;
   /** Returns true if y is a suffix of this */
   bool hasSuffix(const Sequence& y) const;
-  /** Replace the first occurrence of s in this string with t */
+  /** Replace the first occurrence of s in this sequence with t */
   Sequence replace(const Sequence& s, const Sequence& t) const;
-  /** Return the substring of this string starting at index i */
+  /** Return the subsequence of this sequence starting at index i */
   Sequence substr(size_t i) const;
-  /** Return the substring of this string starting at index i with size at most
+  /** Return the subsequence of this sequence starting at index i with size at most
    * j */
   Sequence substr(size_t i, size_t j) const;
-  /** Return the prefix of this string of size at most i */
+  /** Return the prefix of this sequence of size at most i */
   Sequence prefix(size_t i) const { return substr(0, i); }
-  /** Return the suffix of this string of size at most i */
+  /** Return the suffix of this sequence of size at most i */
   Sequence suffix(size_t i) const { return substr(size() - i, i); }
 
   /**
-   * Checks if there is any overlap between this string and another string. This
-   * corresponds to checking whether one string contains the other and whether a
-   * substring of one is a prefix of the other and vice-versa.
+   * Checks if there is any overlap between this sequence and another sequence. This
+   * corresponds to checking whether one sequence contains the other and whether a
+   * subsequence of one is a prefix of the other and vice-versa.
    *
-   * @param y The other string
+   * @param y The other sequence
    * @return True if there is an overlap, false otherwise
    */
   bool noOverlapWith(const Sequence& y) const;
 
-  /** string overlap
+  /** sequence overlap
    *
    * if overlap returns m>0,
-   * then the maximal suffix of this string that is a prefix of y is of length
+   * then the maximal suffix of this sequence that is a prefix of y is of length
    * m.
    *
    * For example, if x is "abcdef", then:
@@ -110,10 +110,10 @@ class Sequence
    * x.overlap("bcdefdef") = 5
    */
   size_t overlap(const Sequence& y) const;
-  /** string reverse overlap
+  /** sequence reverse overlap
    *
    * if roverlap returns m>0,
-   * then the maximal prefix of this string that is a suffix of y is of length
+   * then the maximal prefix of this sequence that is a suffix of y is of length
    * m.
    *
    * For example, if x is "abcdef", then:
@@ -128,7 +128,7 @@ class Sequence
 
   /** get type */
   TypeNode getType() const { return d_type; }
-  /** get the internal Node representation of this string */
+  /** get the internal Node representation of this sequence */
   const std::vector<Node>& getVec() const { return d_seq; }
   /** get the internal node value of the first element in this sequence */
   Node front() const;
