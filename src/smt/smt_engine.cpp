@@ -990,10 +990,6 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
                value.getValue() == "2.6" ) {
       ilang = language::input::LANG_SMTLIB_V2_6;
     }
-    else if (value.getValue() == "2.6.1")
-    {
-      ilang = language::input::LANG_SMTLIB_V2_6_1;
-    }
     else
     {
       Warning() << "Warning: unsupported smt-lib-version: " << value << endl;
@@ -2518,8 +2514,11 @@ void SmtEngine::checkModel(bool hardFailure) {
   }
 
   // Check individual theory assertions
-  d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
-
+  if (options::debugCheckModels())
+  {
+    d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
+  }
+  
   // Output the model
   Notice() << *m;
 

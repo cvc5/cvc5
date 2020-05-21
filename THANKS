@@ -13,6 +13,8 @@ Thanks to:
   College London, headed by Alastair Donaldson) for developing and submitting a
   number of patches in September 2012 related to SMT-LIBv2 compliance.
 
+- Simon Dierl for fixing the ENABLE_BEST option in the build system in 2019.
+
 - Finn Haedicke of University of Bremen, Germany for fixing namespace specifiers
   in CVC4's version of minisat in 2015.
 
@@ -21,8 +23,11 @@ Thanks to:
 - Thomas Hunger for some important patches to CVC4's SWIG interfaces in March
   2014.
 
-- Makai Mann of Stanford University for updating the build scripts to support
-  computing coverage in 2017.
+- Andrew V. Jones for several fixes in 2019 and 2020.
+
+- Mark Laws for fixes in the test suite for Windows in 2017.
+
+- Ken Matsui for fixing compiler warnings in 2019.
 
 - Cristian Mattarei of Stanford University for fixing an issue with parsing
   floating point numbers in 2017.
@@ -33,7 +38,18 @@ Thanks to:
 - Clement Pit-Claudel of MIT for improving the signal handling support for
   Windows builds in 2017.
 
+- Florian Schanda for improving the readability of output of get-model in 2018.
+
+- Tom Smeding for a fix in the contrib/get-antlr-3.4 script in 2018.
+
+- Piotr Troja for several fixes in 2019.
+
 - Arjun Viswanathan for improvements in the CVC and the SMT2 parser.
+
+- Amalee Wilson for a modification of our branch-and-bound method in the linear
+  integer solver to generate ternary clauses instead of binary clauses in 2020.
+  The new method is inspired by the Unit-Cube Tests of Bromberger and Weidenbach
+  at IJCAR'2016.
 
 - Fabian Wolff in 2016 for fixing several spelling mistakes.
 

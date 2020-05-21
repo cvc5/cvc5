@@ -523,7 +523,7 @@ private:
 
   /**
    * Create a new, fresh variable for use in a binder expression
-   * (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or CHOICE).  It is
+   * (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or WITNESS).  It is
    * an error for this bound variable to exist outside of a binder,
    * and it should also only be used in a single binder expression.
    * That is, two distinct FORALL expressions should use entirely
@@ -542,7 +542,7 @@ private:
 
   /**
    * Create a (nameless) new, fresh variable for use in a binder
-   * expression (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or CHOICE).
+   * expression (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or WITNESS).
    * It is an error for this bound variable to exist outside of a
    * binder, and it should also only be used in a single binder
    * expression.  That is, two distinct FORALL expressions should use

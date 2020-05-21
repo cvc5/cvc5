@@ -26,7 +26,7 @@ function runcvc4 {
   # we run in this way for line-buffered input, otherwise memory's a
   # concern (plus it mimics what we'll end up getting from an
   # application-track trace runner?)
-  $cvc4 --force-logic="$logic" -L smt2.6 --print-success --no-checking --no-interactive "$@" <&0-
+  $cvc4 --force-logic="$logic" -L smt2.6 --print-success --no-type-checking --no-interactive "$@" <&0-
 }
 
 case "$logic" in
@@ -67,13 +67,13 @@ ABVFP)
 BVFP)
   runcvc4 --incremental
   ;;
-QF_ABVFP)
+QF_ABVFP|QF_ABFPLRA)
   runcvc4 --incremental
   ;;
-QF_BVFP)
+QF_BVFP|QF_BVFPLRA)
   runcvc4 --incremental
   ;;
-QF_FP)
+QF_FP|QF_FPLRA)
   runcvc4 --incremental
   ;;
 *)

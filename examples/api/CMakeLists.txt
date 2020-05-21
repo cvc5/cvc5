@@ -17,6 +17,8 @@ set(CVC4_EXAMPLES_API
   sets-new
   strings
   strings-new
+  sygus-fun
+  sygus-inv
 )
 
 foreach(example ${CVC4_EXAMPLES_API})

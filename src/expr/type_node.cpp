@@ -459,9 +459,16 @@ TypeNode TypeNode::instantiateParametricDatatype(
   return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
 }
 
+uint64_t TypeNode::getSortConstructorArity() const
+{
+  Assert(isSortConstructor() && hasAttribute(expr::SortArityAttr()));
+  return getAttribute(expr::SortArityAttr());
+}
+
 TypeNode TypeNode::instantiateSortConstructor(
     const std::vector<TypeNode>& params) const
 {
+  Assert(isSortConstructor());
   return NodeManager::currentNM()->mkSort(*this, params);
 }
 

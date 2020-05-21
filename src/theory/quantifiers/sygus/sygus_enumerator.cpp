@@ -542,7 +542,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
   // initialize the term cache
   // see if we use an example evaluation cache for symmetry breaking
   ExampleEvalCache* eec = nullptr;
-  if (options::sygusSymBreakPbe())
+  if (d_parent != nullptr && options::sygusSymBreakPbe())
   {
     eec = d_parent->getExampleEvalCache(d_enum);
   }
@@ -781,7 +781,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         }
         if (doTerminate)
         {
-          Trace("cegqi-engine") << "master(" << d_tn << "): complete at size "
+          Trace("sygus-engine") << "master(" << d_tn << "): complete at size "
                                 << d_currSize << std::endl;
           tc.setComplete();
           return false;
@@ -793,12 +793,12 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
     d_currSize++;
     Trace("sygus-enum-debug2") << "master(" << d_tn
                                << "): size++ : " << d_currSize << "\n";
-    if (Trace.isOn("cegqi-engine"))
+    if (Trace.isOn("sygus-engine"))
     {
       // am i the master enumerator? if so, print
       if (d_se->d_tlEnum == this)
       {
-        Trace("cegqi-engine") << "SygusEnumerator::size = " << d_currSize
+        Trace("sygus-engine") << "SygusEnumerator::size = " << d_currSize
                               << std::endl;
       }
     }

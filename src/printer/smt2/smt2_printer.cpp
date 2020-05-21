@@ -48,10 +48,7 @@ static OutputLanguage variantToLanguage(Variant v);
 static string smtKindString(Kind k, Variant v);
 
 /** returns whether the variant is smt-lib 2.6 or greater */
-bool isVariant_2_6(Variant v)
-{
-  return v == smt2_6_variant || v == smt2_6_1_variant;
-}
+bool isVariant_2_6(Variant v) { return v == smt2_6_variant; }
 
 static void toStreamRational(std::ostream& out,
                              const Rational& r,
@@ -548,7 +545,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::MATCH_CASE:
     // do nothing
     break;
-  case kind::CHOICE: out << smtKindString(k, d_variant) << " "; break;
+  case kind::WITNESS: out << smtKindString(k, d_variant) << " "; break;
 
   // arith theory
   case kind::PLUS:
@@ -1035,7 +1032,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::LAMBDA:
     return "lambda";
   case kind::MATCH: return "match";
-  case kind::CHOICE: return "choice";
+  case kind::WITNESS: return "witness";
 
   // arith theory
   case kind::PLUS: return "+";
@@ -1203,8 +1200,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
   case kind::STRING_STRREPL: return "str.replace" ;
-  case kind::STRING_STRREPLALL:
-    return v == smt2_6_1_variant ? "str.replace_all" : "str.replaceall";
+  case kind::STRING_STRREPLALL: return "str.replace_all";
   case kind::STRING_TOLOWER: return "str.tolower";
   case kind::STRING_TOUPPER: return "str.toupper";
   case kind::STRING_REV: return "str.rev";
@@ -1213,16 +1209,11 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_LEQ: return "str.<=";
   case kind::STRING_LT: return "str.<";
   case kind::STRING_FROM_CODE: return "str.from_code";
-  case kind::STRING_TO_CODE:
-    return v == smt2_6_1_variant ? "str.to_code" : "str.code";
-  case kind::STRING_ITOS:
-    return v == smt2_6_1_variant ? "str.from_int" : "int.to.str";
-  case kind::STRING_STOI:
-    return v == smt2_6_1_variant ? "str.to_int" : "str.to.int";
-  case kind::STRING_IN_REGEXP:
-    return v == smt2_6_1_variant ? "str.in_re" : "str.in.re";
-  case kind::STRING_TO_REGEXP:
-    return v == smt2_6_1_variant ? "str.to_re" : "str.to.re";
+  case kind::STRING_TO_CODE: return "str.to_code";
+  case kind::STRING_ITOS: return "str.from_int";
+  case kind::STRING_STOI: return "str.to_int";
+  case kind::STRING_IN_REGEXP: return "str.in_re";
+  case kind::STRING_TO_REGEXP: return "str.to_re";
   case kind::REGEXP_EMPTY: return "re.nostr";
   case kind::REGEXP_SIGMA: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
@@ -2285,11 +2276,9 @@ static OutputLanguage variantToLanguage(Variant variant)
     return language::output::LANG_SMTLIB_V2_0;
   case z3str_variant:
     return language::output::LANG_Z3STR;
-  case sygus_variant:
-    return language::output::LANG_SYGUS;
+  case sygus_variant: return language::output::LANG_SYGUS_V1;
   case no_variant:
-  default:
-    return language::output::LANG_SMTLIB_V2_5;
+  default: return language::output::LANG_SMTLIB_V2_6;
   }
 }
 

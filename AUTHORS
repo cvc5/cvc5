@@ -4,13 +4,28 @@ institutions at the time of their contributions (note that some authors have
 had more than one affiliated institution).  See the file COPYING for details on
 the copyright and licensing of CVC4.
 
-The core designers and authors of CVC4 are:
+The developers and authors of CVC4 are:
 
-  Kshitij Bansal, New York University, Google
-  Haniel Barbosa, The University of Iowa
+Current:
+  Haniel Barbosa, The University of Iowa, Universidade Federal de Minas Gerais
   Clark Barrett, New York University, Google, Stanford University
-  Francois Bobot, The University of Iowa, Commissariat a l'Energie Atomique
   Martin Brain, University of Oxford
+  Ahmed Irfan, Stanford University
+  Makai Mann, Stanford University
+  Abdalrhman Mohamed, The University of Iowa
+  Mudathir Mohamed, The University of Iowa
+  Aina Niemetz, Stanford University
+  Andres Noetzli, Stanford University
+  Alex Ozdemir, Stanford University
+  Mathias Preiner, Stanford University
+  Andrew Reynolds, The University of Iowa, EPFL
+  Ying Sheng, Stanford University
+  Cesare Tinelli, The University of Iowa
+  Yoni Zohar, Stanford University
+
+Alumni:
+  Kshitij Bansal, New York University, Google
+  Francois Bobot, The University of Iowa, Commissariat a l'Energie Atomique
   Christopher Conway, New York University, Google
   Morgan Deters, New York University
   Liana Hadarean, New York University, Mentor Graphics Corporation
@@ -19,12 +34,6 @@ The core designers and authors of CVC4 are:
   Tim King, New York University, Universite Joseph Fourier, Google
   Tianyi Liang, The University of Iowa
   Paul Meng, The University of Iowa
-  Aina Niemetz, Stanford University
-  Andres Noetzli, Stanford University
-  Mathias Preiner, Stanford University
-  Andrew Reynolds, The University of Iowa, EPFL
-  Cesare Tinelli, The University of Iowa
-  Yoni Zohar, Stanford University
 
 Other contributors to the CVC4 codebase are listed in the THANKS file.
 
@@ -36,9 +45,3 @@ CVC4 contains MiniSAT code by Niklas Een and Niklas Sorensson.
 
 The CVC4 parser incorporates some code from ANTLR3, by Jim Idle, Temporal
 Wave LLC.
-
-CVC4 contains various autoconf modules in the config directory. Please refer to
-the individual files for more information on the authors.
-
-CVC4 maintainer versions contain the script autogen.sh by Christopher Sean
-Morrison, and copyright U.S. Army Research Laboratory.
