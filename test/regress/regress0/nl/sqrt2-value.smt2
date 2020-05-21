@@ -1,6 +1,6 @@
-; SCRUBBER: sed -e 's/choice.*/choice/'
+; SCRUBBER: sed -e 's/witness.*/witness/'
 ; EXPECT: sat
-; EXPECT: ((x (choice
+; EXPECT: ((x (witness
 (set-option :produce-models true)
 (set-logic ALL)
 (declare-fun x () Real)
