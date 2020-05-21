@@ -489,7 +489,7 @@ bool DType::isWellFounded() const
     d_wellFounded = -1;
     return false;
   }
-  // If we do not permit non-simple recursion for datatypes, we must
+  // If we only permit simple recursion for datatypes, we must
   // check whether any component type contains this.
   if (!options::dtNonSimpleRec())
   {
