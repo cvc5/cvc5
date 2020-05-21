@@ -2354,6 +2354,15 @@ theory::TrustNode TheoryEngine::getExplanation(
         // already added to proof
         continue;
       }
+      if (tConc.getKind()==kind::EQUAL)
+      {
+        Node tConcSym = tConc[1].eqNode(tConc[0]);
+        if (exp.find(tConcSym)!=exp.end())
+        {
+          // symmetric direction
+          continue;
+        }
+      }
       // remember that we've explained this formula
       exp.insert(tConc);
       TheoryId ttid = it->first;
