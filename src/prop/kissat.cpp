@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -59,23 +59,23 @@ KissatLit toKissatLit(const SatLiteral lit)
 /** Helper to convert a SatVariable to a KissatVar. */
 KissatVar toKissatVar(SatVariable var) { return var; }
 
-}  // namespace helper functions
+}  // namespace
 
 KissatSolver::KissatSolver(StatisticsRegistry* registry,
-                             const std::string& name)
+                           const std::string& name)
     : d_solver(kissat_init()),
       // Note: Kissat variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
       d_statistics(registry, name)
 {
-  d_true = newVar();
-  d_false = newVar();
+  d_true = KissatSolver::newVar();
+  d_false = KissatSolver::newVar();
 
-  kissat_add (d_solver, toKissatVar(d_true));
-  kissat_add (d_solver, 0);
-  kissat_add (d_solver, -toKissatVar(d_false));
-  kissat_add (d_solver, 0);
+  kissat_add(d_solver, toKissatVar(d_true));
+  kissat_add(d_solver, 0);
+  kissat_add(d_solver, -toKissatVar(d_false));
+  kissat_add(d_solver, 0);
 }
 
 KissatSolver::~KissatSolver() { kissat_release(d_solver); }
@@ -86,21 +86,19 @@ ClauseId KissatSolver::addClause(SatClause& clause, bool removable)
   {
     kissat_add(d_solver, toKissatLit(lit));
   }
-  kissat_add (d_solver, 0);
+  kissat_add(d_solver, 0);
   ++d_statistics.d_numClauses;
   return ClauseIdError;
 }
 
-ClauseId KissatSolver::addXorClause(SatClause& clause,
-                                     bool rhs,
-                                     bool removable)
+ClauseId KissatSolver::addXorClause(SatClause& clause, bool rhs, bool removable)
 {
   Unreachable() << "Kissat does not support adding XOR clauses.";
 }
 
 SatVariable KissatSolver::newVar(bool isTheoryAtom,
-                                  bool preRegister,
-                                  bool canErase)
+                                 bool preRegister,
+                                 bool canErase)
 {
   ++d_statistics.d_numVariables;
   return d_nextVarIdx++;
@@ -151,7 +149,7 @@ unsigned KissatSolver::getAssertionLevel() const
 bool KissatSolver::ok() const { return d_okay; }
 
 KissatSolver::Statistics::Statistics(StatisticsRegistry* registry,
-                                      const std::string& prefix)
+                                     const std::string& prefix)
     : d_registry(registry),
       d_numSatCalls("theory::bv::" + prefix + "::Kissat::calls_to_solve", 0),
       d_numVariables("theory::bv::" + prefix + "::Kissat::variables", 0),
@@ -164,7 +162,8 @@ KissatSolver::Statistics::Statistics(StatisticsRegistry* registry,
   d_registry->registerStat(&d_solveTime);
 }
 
-KissatSolver::Statistics::~Statistics() {
+KissatSolver::Statistics::~Statistics()
+{
   d_registry->unregisterStat(&d_numSatCalls);
   d_registry->unregisterStat(&d_numVariables);
   d_registry->unregisterStat(&d_numClauses);
