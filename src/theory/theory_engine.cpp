@@ -2164,7 +2164,7 @@ theory::TrustNode TheoryEngine::getExplanation(
         Trace("te-proof-exp")
             << "- AND expand " << toExplain.d_node << std::endl;
         // delay explanation, use a dummy trust node
-        TrustNode tnAndExp = TrustNode::mkTrustLemma(toExplain.d_node, nullptr);
+        TrustNode tnAndExp = TrustNode::mkTrustPropExp(toExplain.d_node, toExplain.d_node, nullptr);
         texplains.push_back(std::pair<TheoryId, TrustNode >(THEORY_LAST, tnAndExp));
       }
       ++ i;
@@ -2360,20 +2360,19 @@ theory::TrustNode TheoryEngine::getExplanation(
       if (ttid==THEORY_LAST)
       {
         // dummy trust node, do AND expansion
-        Node n = trn.getNode();
-        Assert (n.getKind()==kind::AND);
-        // toExplain.d_node[0] ... toExplain.d_node[n]
-        // --------------------------------------------MACRO_SR_PRED_INTRO
-        // toExplain.d_node
+        Assert (tConc.getKind()==kind::AND);
+        // tConc[0] ... tConc[n]
+        // ---------------------- MACRO_SR_PRED_INTRO
+        // tConc
         std::vector<Node> pfChildren;
-        for (size_t k = 0, nchild = n.getNumChildren(); k < nchild; ++k)
+        for (size_t k = 0, nchild = tConc.getNumChildren(); k < nchild; ++k)
         {
-          pfChildren.push_back(n[k]);
+          pfChildren.push_back(tConc[k]);
         }
         std::vector<Node> pfArgs;
-        pfArgs.push_back(n);
+        pfArgs.push_back(tConc);
         pfArgs.push_back(mkMethodId(MethodId::SB_PREDICATE));
-        lcp->addStep(n, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+        lcp->addStep(tConc, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
         simpleExplain = false;
         continue;
       }
