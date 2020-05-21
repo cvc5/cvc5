@@ -95,7 +95,7 @@ int main()
   // declare the function-to-synthesize. Optionally, provide the grammar
   // constraints
   Term max = slv.synthFun("max", {x, y}, integer, g);
-  Term min = slv.synthFun("min", {x, y}, integer, g);
+  Term min = slv.synthFun("min", {x, y}, integer);
 
   // declare universal variables.
   Term varX = slv.mkSygusVar(integer, "x");

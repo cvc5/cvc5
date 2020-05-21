@@ -2243,7 +2243,8 @@ Grammar::Grammar(const Solver* s,
       d_ntSyms(ntSymbols),
       d_ntsToTerms(ntSymbols.size()),
       d_allowConst(),
-      d_allowVars()
+      d_allowVars(),
+      d_isResolved(false)
 {
   for (Term ntsymbol : d_ntSyms)
   {
@@ -2253,6 +2254,8 @@ Grammar::Grammar(const Solver* s,
 
 void Grammar::addRule(Term ntSymbol, Term rule)
 {
+  CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
+                                   "it as an argument to synthFun/synthInv";
   CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
   CVC4_API_ARG_CHECK_NOT_NULL(rule);
   CVC4_API_ARG_CHECK_EXPECTED(
@@ -2267,6 +2270,8 @@ void Grammar::addRule(Term ntSymbol, Term rule)
 
 void Grammar::addRules(Term ntSymbol, std::vector<Term> rules)
 {
+  CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
+                                   "it as an argument to synthFun/synthInv";
   CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
@@ -2289,6 +2294,8 @@ void Grammar::addRules(Term ntSymbol, std::vector<Term> rules)
 
 void Grammar::addAnyConstant(Term ntSymbol)
 {
+  CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
+                                   "it as an argument to synthFun/synthInv";
   CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
@@ -2300,6 +2307,8 @@ void Grammar::addAnyConstant(Term ntSymbol)
 
 void Grammar::addAnyVariable(Term ntSymbol)
 {
+  CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
+                                   "it as an argument to synthFun/synthInv";
   CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
@@ -2311,6 +2320,8 @@ void Grammar::addAnyVariable(Term ntSymbol)
 
 Sort Grammar::resolve()
 {
+  d_isResolved = true;
+
   Term bvl;
 
   if (!d_sygusVars.empty())
@@ -4516,7 +4527,7 @@ Term Solver::synthFun(const std::string& symbol,
 Term Solver::synthFun(const std::string& symbol,
                       const std::vector<Term>& boundVars,
                       Sort sort,
-                      Grammar g) const
+                      Grammar& g) const
 {
   return synthFunHelper(symbol, boundVars, sort, false, &g);
 }
@@ -4529,7 +4540,7 @@ Term Solver::synthInv(const std::string& symbol,
 
 Term Solver::synthInv(const std::string& symbol,
                       const std::vector<Term>& boundVars,
-                      Grammar g) const
+                      Grammar& g) const
 {
   return synthFunHelper(symbol, boundVars, d_exprMgr->booleanType(), true, &g);
 }

@@ -1874,6 +1874,8 @@ class CVC4_PUBLIC Grammar
   std::unordered_set<Term, TermHashFunction> d_allowConst;
   /** The set of non-terminals that can be sygus variables. */
   std::unordered_set<Term, TermHashFunction> d_allowVars;
+  /** Did we call resolve() before? */
+  bool d_isResolved;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -2973,7 +2975,7 @@ class CVC4_PUBLIC Solver
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
                 Sort sort,
-                Grammar g) const;
+                Grammar& g) const;
 
   /**
    * Synthesize invariant.
@@ -2997,7 +2999,7 @@ class CVC4_PUBLIC Solver
    */
   Term synthInv(const std::string& symbol,
                 const std::vector<Term>& boundVars,
-                Grammar g) const;
+                Grammar& g) const;
 
   /**
    * Add a forumla to the set of Sygus constraints.
