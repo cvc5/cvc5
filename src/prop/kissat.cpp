@@ -69,9 +69,12 @@ KissatSolver::KissatSolver(StatisticsRegistry* registry,
       d_nextVarIdx(1),
       d_statistics(registry, name)
 {
-  d_true = KissatSolver::newVar();
-  d_false = KissatSolver::newVar();
+}
 
+void KissatSolver::init()
+{
+  d_true = newVar();
+  d_false = newVar();
   kissat_add(d_solver, toKissatVar(d_true));
   kissat_add(d_solver, 0);
   kissat_add(d_solver, -toKissatVar(d_false));

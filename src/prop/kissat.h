@@ -32,9 +32,9 @@ namespace prop {
 
 class KissatSolver : public SatSolver
 {
- public:
-  KissatSolver(StatisticsRegistry* registry, const std::string& name = "");
+  friend class SatSolverFactory;
 
+ public:
   ~KissatSolver() override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -63,6 +63,17 @@ class KissatSolver : public SatSolver
   bool ok() const override;
 
  private:
+  /**
+   * Private to disallow creation outside of SatSolverFactory.
+   * Function init() must be called after creation.
+   */
+  KissatSolver(StatisticsRegistry* registry, const std::string& name = "");
+  /**
+   * Initialize SAT solver instance.
+   * Note: Split out to not call virtual functions in constructor.
+   */
+  void init();
+
   kissat* d_solver;
 
   unsigned d_nextVarIdx;

@@ -63,7 +63,9 @@ SatSolver* SatSolverFactory::createKissat(StatisticsRegistry* registry,
                                           const std::string& name)
 {
 #ifdef CVC4_USE_KISSAT
-  return new KissatSolver(registry, name);
+  KissatSolver* res = new KissatSolver(registry, name);
+  res->init();
+  return res;
 #else
   Unreachable() << "CVC4 was not compiled with Kissat support.";
 #endif
