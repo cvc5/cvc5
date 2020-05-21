@@ -57,6 +57,7 @@ Sequence Sequence::concat(const Sequence& other) const
 
 bool Sequence::strncmp(const Sequence& y, size_t n) const
 {
+  Assert(d_type == y.d_type);
   size_t b = (size() >= y.size()) ? size() : y.size();
   size_t s = (size() <= y.size()) ? size() : y.size();
   if (n > s)
