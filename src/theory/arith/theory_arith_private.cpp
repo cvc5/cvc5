@@ -1177,12 +1177,19 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   if(Theory::theoryOf(n) != THEORY_ARITH) {
     return n;
   }
-  // eliminate operators?
+  // eliminate operators recursively
   return eliminateOperatorsRec(n);
 }
 
+struct ArithElimOpAttributeId
+{
+};
+typedef expr::Attribute<ArithElimOpAttributeId, Node> ArithElimOpAttribute;
+
+
 Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
 {
+  ArithElimOpAttribute aeoa;
   Trace("arith-elim") << "Begin elim: " << n << std::endl;
   n = Rewriter::rewrite(n);
   Trace("arith-elim") << "Rewritten: " << n << std::endl;
@@ -1201,13 +1208,20 @@ Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
     {
       visited[cur] = cur;
     }
-    else if (it == visited.end()) 
+    else if (it == visited.end())
     {
-      visited[cur] = Node::null();
-      visit.push_back(cur);
-      for (const Node& cn : cur )
+      if (cur.hasAttribute(aeoa))
       {
-        visit.push_back(cn);
+        visited[cur] = cur.getAttribute(aeoa);
+      }
+      else
+      {
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        for (const Node& cn : cur )
+        {
+          visit.push_back(cn);
+        }
       }
     } 
     else if (it->second.isNull()) 
@@ -1233,15 +1247,10 @@ Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
       Node retElim = eliminateOperators(ret);
       if (retElim!=ret)
       {
-        Trace("arith-elim") << "Eliminated: " << ret << "..." << retElim << std::endl;
-        retElim = eliminateOperatorsRec(retElim);
-        visited[cur] = retElim;
+        ret = eliminateOperatorsRec(retElim);
       }
-      else
-      {
-        Trace("arith-elim") << "Finished: " << cur << "..." << ret << std::endl;
-        visited[cur] = ret;
-      }
+      cur.setAttribute(aeoa, ret);
+      visited[cur] = ret;
     }
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
@@ -5233,8 +5242,15 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
 
 Node TheoryArithPrivate::expandDefinition(Node node)
 {
-  // call eliminate operators recursively
-  return eliminateOperatorsRec(node);
+  // call eliminate operators
+  Node nn = eliminateOperators(node);
+  if (nn!=node)
+  {
+    // since elimination may introduce new operators to eliminate, we must 
+    // recursively eliminate result
+    return eliminateOperatorsRec(nn);
+  }
+  return node;
 }
 
 Node TheoryArithPrivate::getArithSkolem(ArithSkolemId asi)
