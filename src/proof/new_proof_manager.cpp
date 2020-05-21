@@ -40,8 +40,8 @@ namespace CVC4 {
 
 NewProofManager::NewProofManager(TheoryEngine* te)
     : d_theoryEngine(te),
-      d_pnm(te->getChecker()),
-      d_cdproof(&d_pnm)
+      d_pnm(new ProofNodeManager(new ProofChecker)),
+      d_cdproof(d_pnm.get())
 {
 }
 
@@ -57,7 +57,7 @@ void NewProofManager::addStep(Node expected,
                               const std::vector<Node>& children,
                               const std::vector<Node>& args)
 {
-  if (!d_cdproof->addStep(expected, rule, children, args))
+  if (!d_cdproof.addStep(expected, rule, children, args))
   {
     Assert(false) << "NewProofManager::couldn't add " << rule
                   << " step with conclusion: " << expected
@@ -121,7 +121,7 @@ void NewProofManager::registerClause(Minisat::Solver::TLit lit)
   // not possible yet to know, in general, how this literal came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
-  if (!d_cdproof->addStep(litNode, PfRule::ASSUME, {}, {litNode}))
+  if (!d_cdproof.addStep(litNode, PfRule::ASSUME, {}, {litNode}))
   {
     Assert(false) << "NewProofManager::couldn't add " << PfRule::ASSUME
                   << " step with conclusion: " << litNode << "\n";
@@ -171,7 +171,7 @@ void NewProofManager::registerClause(Minisat::Solver::TClause& clause)
   // not possible yet to know, in general, how this clause came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
-  if (!d_cdproof->addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode}))
+  if (!d_cdproof.addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode}))
   {
     Assert(false) << "NewProofManager::couldn't add " << PfRule::ASSUME
                   << " step with conclusion: " << clauseNode << "\n";
@@ -197,15 +197,15 @@ void NewProofManager::addResolutionStep(Minisat::Solver::TLit lit,
                                         Minisat::Solver::TClause& clause,
                                         bool sign)
 {
-  ClauseId id = registerClause(clause);
-  Debug("newproof::sat") << "NewProofManager::addResolutionStep: (" << id
-                         << ", ";
+  Assert(clause.proofId() != 0);
+  Debug("newproof::sat") << "NewProofManager::addResolutionStep: ("
+                         << clause.proofId() << ", ";
   printLit(lit);
   Debug("newproof::sat") << "\n";
   prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
   Assert(d_litToNode.find(satLit) != d_litToNode.end());
   d_resolution.push_back(
-      Resolution(registerClause(clause), d_litToNode[satLit], sign));
+      Resolution(clause.proofId(), d_litToNode[satLit], sign));
 }
 
 void NewProofManager::endResChain(Minisat::Solver::TLit lit)
@@ -217,8 +217,7 @@ void NewProofManager::endResChain(Minisat::Solver::TLit lit)
 
 void NewProofManager::endResChain(Minisat::Solver::TClause& clause)
 {
-  prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
-  Assert(d_litToClauseId.find(satLit) != d_litToClauseId.end());
+  Assert(clause.proofId() != 0);
   endResChain(clause.proofId());
 }
 

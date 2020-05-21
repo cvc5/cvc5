@@ -73,9 +73,7 @@ class NewProofManager
   LogicInfo d_logic;
 
  public:
-  NewProofManager(TheoryEngine* te,
-                  const LogicInfo& logic,
-                  options::ProofFormatMode format);
+  NewProofManager(TheoryEngine* te);
   ~NewProofManager();
 
   static NewProofManager* currentPM();
@@ -96,6 +94,7 @@ class NewProofManager
                          Minisat::Solver::TClause& clause,
                          bool sign);
   void endResChain(Minisat::Solver::TLit lit);
+  void endResChain(Minisat::Solver::TClause& clause);
   void endResChain(ClauseId id);
 
   void finalizeProof(ClauseId conflict_id);
@@ -113,17 +112,18 @@ class NewProofManager
                const std::vector<Node>& args);
 
  private:
+  /** The theory engine */
+  std::unique_ptr<TheoryEngine> d_theoryEngine;
+
   /**************** BEGIN stuff for using proof nodes */
+
+  /** A proof node manager */
+  std::unique_ptr<ProofNodeManager> d_pnm;
 
   /** The proof object. It does not care about context. */
   CDProof d_cdproof;
 
-  /** A proof node manager */
-  ProofNodeManager d_pnm;
-
   /**************** END stuff for using proof nodes */
-  /** The theory engine */
-  std::unique_ptr<TheoryEngine> d_theoryEngine;
 
   /* pointer to core SAT solver. Probably this should go through SMT engine,
    * prop engine */

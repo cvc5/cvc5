@@ -38,6 +38,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 namespace CVC4 {
 template <class Solver> class TSatProof;
+class NewProofManager;
 
 namespace prop {
   class TheoryProxy;
@@ -56,6 +57,7 @@ class Solver {
   /** The only two CVC4 entry points to the private solver data */
   friend class CVC4::prop::TheoryProxy;
   friend class CVC4::TSatProof<Minisat::Solver>;
+  friend class CVC4::NewProofManager;
 
 public:
   static CRef TCRef_Undef;

@@ -45,7 +45,7 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
       if (a != (*assertionsToPreprocess)[i])
       {
         NewProofManager::currentPM()->addStep(
-            a, PfRul::THEORY_PREPROCESS, {(*assertionsToPreprocess)[i]}, {});
+            a, PfRule::THEORY_PREPROCESS, {(*assertionsToPreprocess)[i]}, {});
       }
     }
 
