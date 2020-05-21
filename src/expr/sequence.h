@@ -132,7 +132,7 @@ class Sequence
   const std::vector<Node>& getVec() const { return d_seq; }
   /** get the internal node value of the first element in this sequence */
   Node front() const;
-  /** get the internal unsigned value of the last character in this string */
+  /** get the internal node value of the last element in this sequence */
   Node back() const;
   /**
    * Returns the maximum length of string representable by this class.
