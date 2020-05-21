@@ -263,7 +263,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         return Node::null();
       }
       // getConclusion expects the adjacent constant to be included
-      t0 = nm->mkNode(STRING_CONCAT, isRev ? w2 : t0, isRev ? t0 : w2);
+      t0 = nm->mkNode(STRING_CONCAT, isRev ? w1 : t0, isRev ? t0 : w1);
     }
     // use skolem cache
     SkolemCache skc(false);
