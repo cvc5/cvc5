@@ -165,9 +165,9 @@ bool EqProof::foldTransitivityChildren(
   // an offending premise (= (= t1 t2) false) indicates we are concluding,
   // modulo symmetry, (= false true) or the disequality (= (t3 t4) false). The
   // former can be fixed by having the remaining premises derive, with
-  // TRANSITIVITY, (= t1 t2), but the latter requires a MACRO_SR_PRED_TRANSFORM
-  // step which will turn (= (= t1 t2) false) into (= (= t3 t4) false). The
-  // remaining premises allow deriving the equality of the other case.
+  // TRANSITIVITY, (= t1 t2), but the latter requires building a subistuttion so
+  // that (= (= t1 t2) false) becomes (= (= t3 t4) false). The premises will
+  // constitute two independent transitivity proofs of (= t1 t3) and (= t2 t4).
   Node foldConclusion;
   std::vector<Node> substPremises;
   bool inSubstCase = false, substConclusionInReverseOrder = false;
@@ -176,55 +176,34 @@ bool EqProof::foldTransitivityChildren(
       || (conclusion[1].getKind() == kind::CONST_BOOLEAN
           && conclusion[0].getKind() != kind::CONST_BOOLEAN))
   {
-    // Either
+    // A variation of
     //
-    //      (= (= t1 t2) false) (= t2 x1) ... (= xn t4)
-    // (1) -------------------------------------------- TR
-    //             (= (= t4 t1) false)
+    //  (= (= t1 t2) false) (= t1 x1) ... (= xn t3) (= t2 y1) ... (= ym t4)
+    // ------------------------------------------------------------------ TR
+    //         (= (= t4 t3) false)
     //
-    // or
+    // leads to:
     //
-    //       (= (= t1 t2) false) (= t1 t3) (= t2 t4)
-    // (2)  ----------------------------------------- TR
-    //             (= (= t4 t3) false)
-    //
-    // are supported. If both terms in the equality are replaced but there are
-    // more than two conclusions we do not support it.
-    //
-    // The above cases will lead to, respectively:
-    //
-    //                     (= t2 x1) ... (= xn t4)
-    //                    ------------------------ TRANS
-    //                           (= t2 t4)
-    //  ----------- RF    ------------------------ SYMM
-    //   (= t1 t1)               (= t4 t2)
-    //  ------------------------------------ CONG
-    //   (= (= t1 t4) (= t1 t2))                      (= (= t1 t2) false)
-    //  ------------------------------------------------------------------ TRANS
-    //           (= (= t1 t4) false)
+    //   (= t1 x1) ... (= xn t3)      (= t2 y1) ... (= ym t4)
+    //  ------------------------ TR  ------------------------ TR
+    //   (= t1 t3)                    (= t2 t4)
+    //  ----------- SYMM             ----------- SYMM
+    //   (= t3 t1)                    (= t4 t2)
+    //  ---------------------------------------- CONG
+    //   (= (= t3 t4) (= t1 t2))                         (= (= t1 t2) false)
+    //  --------------------------------------------------------------------- TR
+    //           (= (= t3 t4) false)
     //          --------------------- MACRO_SR_PRED_TRANSFORM
-    //           (= (= t4 t1) false)
-    //
-    // and
-    //
-    //   (= t1 t3)         (= t2 t4)
-    //  ---------- SYMM   ---------- SYMM
-    //   (= t3 t1)         (= t4 t2)
-    //  ----------------------------- CONG
-    //   (= (= t3 t4) (= t1 t2))            (= (= t1 t2) false)
-    //   ------------------------------------------------------- TRANS
-    //          (= (= t3 t4) false)
-    //         --------------------- MACRO_SR_PRED_TRANSFORM
-    //          (= (= t4 t3) false)
+    //           (= (= t4 t3) false)
     //
     // Note that the last step is only necessary if the conclusion has the
     // arguments in reverse order than expected. Moreover, the symm steps are
     // done implicitly.
     //
-    // TODO if necessary we could support the general case of needing
-    // transitivity for both substitutions if we did a transitivity
-    // reconstruction that from a set of equalities collects those necessary for
-    // building a transitivity step for the given conclusion
+    // Due to the two transitivity proofs happenning in the same set of
+    // premises, we build the transitivity proofs for both children by greedly
+    // searching for the sets of premises that allow concluding the
+    // substitutions.
     inSubstCase = true;
     // reorder premise and conclusion if constant is the first argument
     premise = termPos == 0 ? premise : premise[1].eqNode(premise[0]);
@@ -281,28 +260,90 @@ bool EqProof::foldTransitivityChildren(
       Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: Look for "
                             << premiseTermEq[0] << " and " << premiseTermEq[1]
                             << " in premises " << foldPremises << "\n";
-      Assert(foldPremises.size() == 2);
-      // iterate over args to be substituted
-      for (unsigned i = 0; i < 2; ++i)
+      Assert(foldPremises.size() >= 2)
+          << "Less than 2 fold premises for substituting BOTH terms in "
+             "disequality.\nDisequality: "
+          << premise << "\nFold premises: " << foldPremises
+          << "\nConclusion: " << conclusion << "\n";
+      // easy case where we can determine the substitution by directly looking
+      // at the premises
+      if (foldPremises.size() == 2)
       {
-        // iterate over premises
-        for (unsigned j = 0; j < 2; ++j)
+        // iterate over args to be substituted
+        for (unsigned i = 0; i < 2; ++i)
         {
-          // iterate over args in premise
-          for (unsigned k = 0; k < 2; ++k)
+          // iterate over premises
+          for (unsigned j = 0; j < 2; ++j)
           {
-            if (premiseTermEq[i] == foldPremises[j][k])
+            // iterate over args in premise
+            for (unsigned k = 0; k < 2; ++k)
             {
-              subs[i].push_back(foldPremises[j][1 - k]);
-              break;
+              if (premiseTermEq[i] == foldPremises[j][k])
+              {
+                subs[i].push_back(foldPremises[j][1 - k]);
+                break;
+              }
             }
           }
+          Assert(subs[i].size() == 2)
+              << " did not find term " << subs[i][0] << "\n";
+          // check if argument to be substituted is in the same order in the
+          // conclusion
+          substConclusionInReverseOrder =
+              premiseTermEq[i] != conclusionTermEq[i];
         }
-        Assert(subs[i].size() == 2)
-            << " did not find term " << subs[i][0] << "\n";
-        // check if argument to be substituted is in the same order in the
-        // conclusion
-        substConclusionInReverseOrder = premiseTermEq[i] != conclusionTermEq[i];
+      }
+      else
+      {
+        // hard case. Try first with t1 = t3 and see if can build it. If it can,
+        // go on and build t2 = t4. Otherwise go on and build t1 = t4, t2 = t3.
+        subs[0].push_back(conclusionTermEq[0]);
+        subs[1].push_back(conclusionTermEq[1]);
+        for (unsigned i = 0; i < 2; ++i)
+        {
+          // copy premises, since buildTransitivityChain is destructive
+          std::vector<Node> copy1foldPremises(foldPremises.begin(),
+                                              foldPremises.end());
+          Node transConclusion1 = subs[0][0].eqNode(subs[0][1]);
+          if (!buildTransitivityChain(transConclusion1, copy1foldPremises))
+          {
+            AlwaysAssert(i == 0)
+                << "Couldn't find sub at all for substituting BOTH terms in "
+                   "disequality.\nDisequality: "
+                << premise << "\nFold premises: " << foldPremises
+                << "\nConclusion: " << conclusion << "\n";
+            // Failed. So flip sub and try again
+            subs[0][1] = conclusionTermEq[1];
+            subs[1][1] = conclusionTermEq[0];
+            substConclusionInReverseOrder = false;
+            continue;
+          }
+          // build next chain
+          std::vector<Node> copy2foldPremises(foldPremises.begin(),
+                                              foldPremises.end());
+          Node transConclusion2 = subs[1][0].eqNode(subs[1][1]);
+          if (!buildTransitivityChain(transConclusion2, copy2foldPremises))
+          {
+            AlwaysAssert(false)
+                << "Found sub " << transConclusion1 << " but not other sub "
+                << transConclusion2 << ".\nDisequality: " << premise
+                << "\nFold premises: " << foldPremises
+                << "\nConclusion: " << conclusion << "\n";
+          }
+          // do transitivity steps
+          p->addStep(transConclusion1,
+                     PfRule::TRANS,
+                     copy1foldPremises,
+                     {},
+                     true,
+                     true);
+          p->addStep(transConclusion2,
+                     PfRule::TRANS,
+                     copy2foldPremises,
+                     {},
+                     true,
+                     true);
+        }
       }
     }
     Trace("eqproof-conv")
@@ -1151,7 +1192,8 @@ Node EqProof::addToProof(
   if (Trace.isOn("eqproof-conv"))
   {
     Trace("eqproof-conv")
-        << "EqProof::addToProof: premises from reduced cong:\n";
+        << "EqProof::addToProof: premises from reduced cong of " << d_node
+        << ":\n";
     for (unsigned i = 0; i < arity; ++i)
     {
       Trace("eqproof-conv") << "EqProof::addToProof:\t" << i
@@ -1192,6 +1234,20 @@ Node EqProof::addToProof(
     // (which might lead to a cycle with a transtivity step), nothing else to do
     if (sizeTrans == 0 || assumptions.count(transConclusion) > 0)
     {
+      continue;
+    }
+    // if the transitivity conclusion is a reflexivity step (this can happen due
+    // to the n-ary congruences between the same term being explained not by
+    // reflexivity in the current equality engine), just add a reflexivity step
+    if (transConclusion[0] == transConclusion[1])
+    {
+      if (!p->addStep(transConclusion,
+                      PfRule::REFL,
+                      {},
+                      {transConclusion[0]}))
+      {
+        Assert(false) << "EqProof::addToProof: couldn't add refl step\n";
+      }
       continue;
     }
     // if the transitivity conclusion, or its symmetric, occurs in the
