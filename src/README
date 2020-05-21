@@ -65,17 +65,26 @@ Notes:
 
 
 
-PRs:
+PRs ready:
 
-- SEXPR simply typed?
-(1) ProofChecker improve tracing
+- ProofChecker improve tracing
 - Add ProofNode printing as dag (SEXPR)
+- Strings solver state minor update
+- Proof step buffer
+- Equality engine + EqProof (Haniel)
+
+PRs future:
+
+- Update CDProof
+- ProofGenerator
+- ProofNode update (refactor free assumptions via visitor?)
 - Proof kinds infrastructure
 - Rewriter new infrastructure (rewriteEqualityExt)
 (2) Builtin rules, builtin checker.
 (3) Boolean rules, boolean checker.
 (4) UF rules, UF checker.
-- EqProof conversion (Haniel)
+Strings term registry
+Strings core solver
 (5) String rules, string checker
 (6) Split EngineOutputChannel from TheoryEngine to its own file
 (7) Add LazyCDProof and ProofGenerator
@@ -89,3 +98,8 @@ PRs:
 (14) update strings inference manager to use ProofEqEngine
 - static strings preprocess reduce
 - static regular expression operation reduce
+
+
+PRs wish list:
+
+- SEXPR simply typed?
