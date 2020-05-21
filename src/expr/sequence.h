@@ -161,7 +161,7 @@ struct SequenceHashFunction
 
 }  // namespace strings
 
-std::ostream& operator<<(std::ostream& os, const Sequence& s) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const Sequence& s);
 
 }  // namespace CVC4
 
