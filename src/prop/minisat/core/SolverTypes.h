@@ -188,13 +188,23 @@ namespace Minisat{
 
 class Clause {
     struct {
-        unsigned mark      : 2;
-        unsigned removable : 1;
-        unsigned has_extra : 1;
-        unsigned reloced   : 1;
-        unsigned size      : 27;
-        unsigned level     : 32; }                            header;
-    union { Lit lit; float act; uint32_t abs; CRef rel; } data[0];
+#if CVC4_PROOF
+    unsigned proofId;
+#endif
+    unsigned mark      : 2;
+    unsigned removable : 1;
+    unsigned has_extra : 1;
+    unsigned reloced   : 1;
+    unsigned size      : 27;
+    unsigned level : 32;
+  } header;
+  union
+  {
+    Lit lit;
+    float act;
+    uint32_t abs;
+    CRef rel;
+  } data[0];
 
     friend class ClauseAllocator;
 
@@ -216,6 +226,9 @@ class Clause {
                 data[header.size].act = 0; 
             else 
                 calcAbstraction(); }
+#if CVC4_PROOF
+        header.proofId = 0;
+#endif
     }
 
 public:
@@ -226,7 +239,14 @@ public:
             abstraction |= 1 << (var(data[i].lit) & 31);
         data[header.size].abs = abstraction;  }
 
+#if CVC4_PROOF
+    void setProofId(unsigned id)
+    {
+      header.proofId = id;
+    }
 
+    unsigned     proofId     ()      const   { return header.proofId; }
+#endif
     int          level       ()      const   { return header.level; }
     int          size        ()      const   { return header.size; }
     void         shrink      (int i)         { assert(i <= size()); if (header.has_extra) data[header.size-i] = data[header.size]; header.size -= i; }

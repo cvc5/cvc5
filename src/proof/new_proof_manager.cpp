@@ -215,6 +215,13 @@ void NewProofManager::endResChain(Minisat::Solver::TLit lit)
   endResChain(d_litToClauseId[satLit]);
 }
 
+void NewProofManager::endResChain(Minisat::Solver::TClause& clause)
+{
+  prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
+  Assert(d_litToClauseId.find(satLit) != d_litToClauseId.end());
+  endResChain(clause.proofId());
+}
+
 // id is the conclusion
 void NewProofManager::endResChain(ClauseId id)
 {
