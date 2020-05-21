@@ -26,6 +26,7 @@ Sequence& Sequence::operator=(const Sequence& y)
 {
   if (this != &y)
   {
+    d_type = y.d_type;
     d_seq = y.d_seq;
   }
   return *this;

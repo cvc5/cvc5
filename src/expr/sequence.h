@@ -12,6 +12,8 @@
  ** \brief The sequence data type.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef CVC4__EXPR__SEQUENCE_H
 #define CVC4__EXPR__SEQUENCE_H
 
