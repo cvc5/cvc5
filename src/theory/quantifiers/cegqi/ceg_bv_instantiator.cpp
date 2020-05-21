@@ -153,7 +153,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   {
     return Node::null();
   }
-  else if (options::cegqiBvIneqMode() == options::CbqiBvIneqMode::KEEP
+  else if (options::cegqiBvIneqMode() == options::CegqiBvIneqMode::KEEP
            || (pol && k == EQUAL))
   {
     return lit;
@@ -172,7 +172,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
 
   Node ret;
-  if (options::cegqiBvIneqMode() == options::CbqiBvIneqMode::EQ_SLACK)
+  if (options::cegqiBvIneqMode() == options::CegqiBvIneqMode::EQ_SLACK)
   {
     // if using slack, we convert constraints to a positive equality based on
     // the current model M, e.g.:
