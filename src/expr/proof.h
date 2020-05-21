@@ -116,9 +116,9 @@ namespace CVC4 {
  * proof step for each Node. Thus, the ProofNode objects returned by this
  * class share proofs for common subformulas, as guaranteed by the fact that
  * Node objects have perfect sharing.
- * 
+ *
  * Notice that this class is agnostic to symmetry of equality. In other
- * words, adding a step that concludes (= x y) is effectively the same as 
+ * words, adding a step that concludes (= x y) is effectively the same as
  * providing a step that concludes (= y x) from the point of view of a user
  * of this class. This is accomplished by adding SYMM steps on demand when
  * a formula is looked up. For example say we call:
@@ -224,6 +224,7 @@ class CDProof
    * f suffices as a proof for g according to this class.
    */
   static bool isSame(TNode f, TNode g);
+
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;

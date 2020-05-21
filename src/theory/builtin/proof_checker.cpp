@@ -231,7 +231,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::TRUST)
   {
-    Assert (args.size()==1);
+    Assert(args.size() == 1);
     return args[0];
   }
   else if (id == PfRule::SUBS)

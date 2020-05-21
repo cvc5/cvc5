@@ -32,7 +32,7 @@ class CDProof;
  * solvers for constructing and storing proofs internally. A theory may have
  * multiple instances of ProofGenerator objects, e.g. if it has more than one
  * way of justifying lemmas or conflicts.
- * 
+ *
  * A proof generator has two main interfaces for generating proofs:
  * (1) getProofFor, and (2) addProofTo. The latter is optional. If no
  * implementation is provided, then addProofTo(f, pf) calls getProofFor(f) and
@@ -55,15 +55,15 @@ class ProofGenerator
    * generator.
    *
    * It should be the case that hasProofFor(f) is true.
-   * 
+   *
    * @param f The fact to get the proof for.
    * @return The proof for f.
    */
   virtual std::shared_ptr<ProofNode> getProofFor(Node f);
-  /** 
+  /**
    * Add the proof for formula f to proof pf. The proof of f should be
    * overwritten if forceOverwrite is true.
-   * 
+   *
    * @param f The fact to get the proof for.
    * @param pf The CDProof object to add the proof to.
    * @param forceOverwrite The overwrite policy for adding to pf.
@@ -90,7 +90,7 @@ class ProofGenerator
 
 class CDProof;
 
-/** 
+/**
  * A "copy on demand" proof generator which returns proof nodes based on a
  * reference to another CDProof.
  */
@@ -103,6 +103,7 @@ class PRefProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
+
  protected:
   /** The reference proof */
   CDProof* d_proof;

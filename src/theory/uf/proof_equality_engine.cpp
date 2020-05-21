@@ -73,7 +73,7 @@ bool ProofEqEngine::assertFact(Node lit,
   // register the step in the proof
   if (d_pfEnabled)
   {
-    if (holds(atom,polarity))
+    if (holds(atom, polarity))
     {
       // we do not process this fact if it already holds
       return false;
@@ -104,7 +104,7 @@ bool ProofEqEngine::assertFact(Node lit,
   // register the step in the proof
   if (d_pfEnabled)
   {
-    if (holds(atom,polarity))
+    if (holds(atom, polarity))
     {
       // we do not process this fact if it already holds
       return false;
@@ -134,7 +134,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
   bool polarity = lit.getKind() != NOT;
   if (d_pfEnabled)
   {
-    if (holds(atom,polarity))
+    if (holds(atom, polarity))
     {
       // we do not process this fact if it already holds
       return false;
@@ -160,7 +160,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
   bool polarity = lit.getKind() != NOT;
   if (d_pfEnabled)
   {
-    if (holds(atom,polarity))
+    if (holds(atom, polarity))
     {
       // we do not process this fact if it already holds
       return false;
@@ -539,7 +539,8 @@ bool ProofEqEngine::holds(TNode atom, bool polarity)
     {
       return false;
     }
-    return polarity ? d_ee.areEqual(atom[0], atom[1]) : d_ee.areDisequal(atom[0], atom[1], false);
+    return polarity ? d_ee.areEqual(atom[0], atom[1])
+                    : d_ee.areDisequal(atom[0], atom[1], false);
   }
   if (!d_ee.hasTerm(atom))
   {
@@ -548,7 +549,7 @@ bool ProofEqEngine::holds(TNode atom, bool polarity)
   TNode b = polarity ? d_true : d_false;
   return d_ee.areEqual(atom, b);
 }
-  
+
 bool ProofEqEngine::addProofStep(Node lit,
                                  PfRule id,
                                  const std::vector<Node>& exp,
@@ -723,11 +724,15 @@ void ProofEqEngine::flattenAnd(TNode an, std::vector<Node>& a)
   }
 }
 
-ProofEqEngine::FactProofGenerator::FactProofGenerator(context::Context* c, ProofNodeManager* pnm) : ProofGenerator(), d_facts(c), d_pnm(pnm){}
-    
+ProofEqEngine::FactProofGenerator::FactProofGenerator(context::Context* c,
+                                                      ProofNodeManager* pnm)
+    : ProofGenerator(), d_facts(c), d_pnm(pnm)
+{
+}
+
 bool ProofEqEngine::FactProofGenerator::addStep(Node fact, ProofStep ps)
 {
-  if (d_facts.find(fact)!=d_facts.end())
+  if (d_facts.find(fact) != d_facts.end())
   {
     return false;
   }
@@ -740,15 +745,17 @@ bool ProofEqEngine::FactProofGenerator::addStep(Node fact, ProofStep ps)
       return false;
     }
   }
-  d_facts.insert(fact,std::make_shared<ProofStep>(ps));
+  d_facts.insert(fact, std::make_shared<ProofStep>(ps));
   return true;
 }
 
-std::shared_ptr<ProofNode> ProofEqEngine::FactProofGenerator::getProofFor(Node fact)
+std::shared_ptr<ProofNode> ProofEqEngine::FactProofGenerator::getProofFor(
+    Node fact)
 {
-  Trace("pfee-fact-gen") << "FactProofGenerator::getProofFor: " << fact << std::endl;
+  Trace("pfee-fact-gen") << "FactProofGenerator::getProofFor: " << fact
+                         << std::endl;
   NodeProofStepMap::iterator it = d_facts.find(fact);
-  if (it==d_facts.end())
+  if (it == d_facts.end())
   {
     if (fact.getKind() != EQUAL)
     {
@@ -767,7 +774,7 @@ std::shared_ptr<ProofNode> ProofEqEngine::FactProofGenerator::getProofFor(Node f
   }
   Trace("pfee-fact-gen") << "...return via step " << *(*it).second << std::endl;
   CDProof cdp(d_pnm);
-  cdp.addStep(fact,*(*it).second);
+  cdp.addStep(fact, *(*it).second);
   return cdp.mkProof(fact);
 }
 

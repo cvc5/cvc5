@@ -1697,7 +1697,8 @@ ConstraintP ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t
     }
   }
 }
-TrustNode ConstraintDatabase::eeExplain(const Constraint* const c) const{
+TrustNode ConstraintDatabase::eeExplain(const Constraint* const c) const
+{
   Assert(c->hasLiteral());
   return d_congruenceManager.explain(c->getLiteral());
 }

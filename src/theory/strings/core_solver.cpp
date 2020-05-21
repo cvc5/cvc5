@@ -752,7 +752,7 @@ Node CoreSolver::getConclusion(Node x,
       newSkolems.push_back(sk2);
     }
     Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, y)
-                               : nm->mkNode(STRING_CONCAT, y, sk1));
+                              : nm->mkNode(STRING_CONCAT, y, sk1));
     // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
 
     if (rule == PfRule::CONCAT_LPROP)
@@ -762,10 +762,10 @@ Node CoreSolver::getConclusion(Node x,
     else
     {
       Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, x)
-                                 : nm->mkNode(STRING_CONCAT, x, sk2));
+                                : nm->mkNode(STRING_CONCAT, x, sk2));
       // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
       // make agnostic to x/y
-      conc = x<y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
+      conc = x < y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
     }
     if (options::stringUnifiedVSpt() && options::stringLenConc())
     {
@@ -821,8 +821,8 @@ Node CoreSolver::getConclusion(Node x,
 
 size_t CoreSolver::getSufficientNonEmptyOverlap(Node c, Node d, bool isRev)
 {
-  Assert (c.isConst() && c.getType().isStringLike());
-  Assert (d.isConst() && d.getType().isStringLike());
+  Assert(c.isConst() && c.getType().isStringLike());
+  Assert(d.isConst() && d.getType().isStringLike());
   size_t p;
   size_t p2;
   size_t cLen = Word::getLength(c);
@@ -1553,7 +1553,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           std::vector<Node> newSkolems;
           iinfo.d_conc = getConclusion(
               xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
-          Assert (newSkolems.size()==1);
+          Assert(newSkolems.size() == 1);
           iinfo.d_new_skolem[LENGTH_SPLIT].push_back(newSkolems[0]);
           iinfo.d_id = Inference::SSPLIT_CST_PROP;
           iinfo.d_idRev = isRev;
@@ -1663,7 +1663,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       if (options::stringUnifiedVSpt())
       {
         Assert(newSkolems.size() == 1);
-        iinfo.d_new_skolem[options::stringLenConc() ? LENGTH_IGNORE : LENGTH_GEQ_ONE].push_back(newSkolems[0]);
+        iinfo
+            .d_new_skolem[options::stringLenConc() ? LENGTH_IGNORE
+                                                   : LENGTH_GEQ_ONE]
+            .push_back(newSkolems[0]);
       }
     }
     else if (lentTestSuccess == 0)
@@ -2089,22 +2092,24 @@ void CoreSolver::processDeq(Node ni, Node nj)
           if (options::stringLenConc())
           {
             d_termReg.registerTermAtomic(sk, LENGTH_IGNORE);
-            Node eql = nm->mkNode(STRING_LENGTH,sk).eqNode(d_one);
-            conc = nm->mkNode(
-                  OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2, eql);
+            Node eql = nm->mkNode(STRING_LENGTH, sk).eqNode(d_one);
+            conc =
+                nm->mkNode(OR,
+                           nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()),
+                           eq2,
+                           eql);
           }
           else
           {
             d_termReg.registerTermAtomic(sk, LENGTH_ONE);
             conc = nm->mkNode(
-                  OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2);
+                OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2);
           }
-          d_im.sendInference(
-              antec,
-              conc,
-              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
-              false,
-              true);
+          d_im.sendInference(antec,
+                             conc,
+                             Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
+                             false,
+                             true);
           d_im.sendPhaseRequirement(eq1, true);
           return;
         }
@@ -2539,7 +2544,7 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
   // rewrite the conclusion, ensure non-trivial
   Node concr = Rewriter::rewrite(ii.d_conc);
 
-  if (concr==d_true)
+  if (concr == d_true)
   {
     // conclusion rewrote to true
     return false;

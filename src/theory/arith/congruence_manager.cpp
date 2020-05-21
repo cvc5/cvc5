@@ -45,14 +45,16 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_setupLiteral(setup),
       d_avariables(avars),
       d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true),
-      d_dummyPnm(nullptr), 
+      d_dummyPnm(nullptr),
       d_pfee(nullptr)
 {
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
   d_ee.addFunctionKind(kind::EXPONENTIAL);
   d_ee.addFunctionKind(kind::SINE);
-  d_dummyPnm.reset(new ProofNodeManager(nullptr)); //FIXME: use proof checker of TheoryEngine
-  d_pfee.reset(new eq::ProofEqEngine(c, u, d_ee, d_dummyPnm.get(), options::proofNew()));
+  d_dummyPnm.reset(new ProofNodeManager(
+      nullptr));  // FIXME: use proof checker of TheoryEngine
+  d_pfee.reset(
+      new eq::ProofEqEngine(c, u, d_ee, d_dummyPnm.get(), options::proofNew()));
 }
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
@@ -340,11 +342,13 @@ void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s, NodeBuilder<
   }
 }
 
-TrustNode ArithCongruenceManager::explainInternal(TNode internal){
+TrustNode ArithCongruenceManager::explainInternal(TNode internal)
+{
   return d_pfee->explain(internal);
 }
 
-TrustNode ArithCongruenceManager::explain(TNode external){
+TrustNode ArithCongruenceManager::explain(TNode external)
+{
   Trace("arith-ee") << "Ask for explanation of " << external << std::endl;
   Node internal = externalToInternal(external);
   Trace("arith-ee") << "...internal = " << internal << std::endl;
@@ -389,7 +393,7 @@ void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar
   if (options::proofNew())
   {
     Node lit = isEquality ? Node(eq) : eq.notNode();
-    if (CDProof::isSame(lit,reason))
+    if (CDProof::isSame(lit, reason))
     {
       // lit and reason are essentially the same, thus lit does not need an
       // arithmetic-specific explanation.
@@ -399,17 +403,20 @@ void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar
     {
       Trace("arith-pfee") << "Assert " << lit << " by " << reason << std::endl;
       std::vector<Node> args;
-      args.push_back(lit); // forced conclusion of TRUST
-      PfRule rule = PfRule::TRUST; //FIXME: use a proper PfRule.
+      args.push_back(lit);          // forced conclusion of TRUST
+      PfRule rule = PfRule::TRUST;  // FIXME: use a proper PfRule.
       // assert fact
       d_pfee->assertFact(lit, rule, reason, args);
     }
   }
   else
   {
-    if(isEquality){
+    if (isEquality)
+    {
       d_ee.assertEquality(eq, true, reason);
-    }else{
+    }
+    else
+    {
       d_ee.assertEquality(eq, false, reason);
     }
   }
@@ -436,7 +443,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
   if (options::proofNew())
   {
-    if (CDProof::isSame(eq,reason))
+    if (CDProof::isSame(eq, reason))
     {
       // eq and reason are essentially the same, thus eq does not need an
       // arithmetic-specific explanation.
@@ -444,10 +451,11 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
     }
     else
     {
-      Trace("arith-pfee") << "Assert (equalsConstant) " << eq << " by " << reason << std::endl;
+      Trace("arith-pfee") << "Assert (equalsConstant) " << eq << " by "
+                          << reason << std::endl;
       std::vector<Node> args;
       args.push_back(eq);
-      PfRule rule = PfRule::TRUST; //FIXME
+      PfRule rule = PfRule::TRUST;  // FIXME
       // assert fact
       d_pfee->assertFact(eq, rule, reason, args);
     }
@@ -481,7 +489,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   Trace("arith-ee") << "Assert equalsConstant2 " << eq << ", reason " << reason << std::endl;
   if (options::proofNew())
   {
-    if (CDProof::isSame(eq,reason))
+    if (CDProof::isSame(eq, reason))
     {
       // eq and reason are essentially the same, thus eq does not need an
       // arithmetic-specific explanation.
@@ -489,10 +497,11 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
     }
     else
     {
-      Trace("arith-pfee") << "Assert (equalsConstant2) " << eq << " by " << reason << std::endl;
+      Trace("arith-pfee") << "Assert (equalsConstant2) " << eq << " by "
+                          << reason << std::endl;
       std::vector<Node> args;
       args.push_back(eq);
-      PfRule rule = PfRule::TRUST; //FIXME
+      PfRule rule = PfRule::TRUST;  // FIXME
       // assert fact
       d_pfee->assertFact(eq, rule, reason, args);
     }

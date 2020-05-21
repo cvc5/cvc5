@@ -4110,8 +4110,8 @@ bool TheoryArithPrivate::needsCheckLastEffort() {
   }
 }
 
-TrustNode TheoryArithPrivate::explain(TNode n) {
-
+TrustNode TheoryArithPrivate::explain(TNode n)
+{
   Debug("arith::explain") << "explain @" << getSatContext()->getLevel() << ": " << n << endl;
 
   ConstraintP c = d_constraintDatabase.lookup(n);

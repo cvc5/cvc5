@@ -86,7 +86,10 @@ void ProofStepBuffer::addSteps(ProofStepBuffer& psb)
   const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
   for (const std::pair<Node, ProofStep>& step : steps)
   {
-    addStep(step.second.d_rule, step.second.d_children, step.second.d_args, step.first);
+    addStep(step.second.d_rule,
+            step.second.d_children,
+            step.second.d_args,
+            step.first);
   }
 }
 

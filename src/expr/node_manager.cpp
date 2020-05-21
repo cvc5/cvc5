@@ -479,7 +479,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
 Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, const std::string& comment, int flags) {
   if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
   {
-    Assert (type.isBoolean());
+    Assert(type.isBoolean());
     // Notice that prefix/comment is ignored, since boolean term variables
     // do not have names.
     return mkBooleanTermVariable();
