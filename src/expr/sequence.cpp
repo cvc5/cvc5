@@ -271,6 +271,8 @@ Sequence Sequence::substr(size_t i) const
 
 Sequence Sequence::substr(size_t i, size_t j) const
 {
+  Assert(i >= 0);
+  Assert(j >= 0);
   Assert(i + j <= size());
   std::vector<Node> ret_vec;
   std::vector<Node>::const_iterator itr = d_seq.begin() + i;
