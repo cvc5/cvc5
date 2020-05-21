@@ -175,7 +175,7 @@ void Smt2::addStringOperators() {
     addOperator(api::STRING_IN_REGEXP, "str.in_re");
     addOperator(api::STRING_TO_REGEXP, "str.to_re");
     addOperator(api::STRING_TO_CODE, "str.to_code");
-    addOperator(api::STRING_REPLACEALL, "str.replace_all");
+    addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
   }
   else
   {
@@ -184,7 +184,7 @@ void Smt2::addStringOperators() {
     addOperator(api::STRING_IN_REGEXP, "str.in.re");
     addOperator(api::STRING_TO_REGEXP, "str.to.re");
     addOperator(api::STRING_TO_CODE, "str.code");
-    addOperator(api::STRING_REPLACEALL, "str.replaceall");
+    addOperator(api::STRING_REPLACE_ALL, "str.replaceall");
   }
 
   addOperator(api::REGEXP_CONCAT, "re.++");

@@ -2001,7 +2001,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_REPLACEALL,
+  STRING_REPLACE_ALL,
   /**
    * String to lower case.
    * Parameters: 1
