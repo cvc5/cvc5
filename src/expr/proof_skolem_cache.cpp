@@ -48,7 +48,7 @@ Node ProofSkolemCache::mkSkolem(Node v,
   // translate pred to witness form, since pred itself may contain skolem
   Node predw = getWitnessForm(pred);
   // make the witness term, which should not contain any skolem
-  Node w = nm->mkNode(CHOICE, bvl, predw);  // will change to WITNESS
+  Node w = nm->mkNode(WITNESS, bvl, predw);
   return getOrMakeSkolem(w, prefix, comment, flags);
 }
 
@@ -97,7 +97,7 @@ Node ProofSkolemCache::mkPurifySkolem(Node t,
   }
   // The case where t is a witness term is special: we set its Skolem attribute
   // directly.
-  if (t.getKind() == CHOICE)
+  if (t.getKind() == WITNESS)
   {
     return getOrMakeSkolem(t, prefix, comment, flags);
   }
@@ -217,7 +217,7 @@ Node ProofSkolemCache::getOrMakeSkolem(Node w,
                                        const std::string& comment,
                                        int flags)
 {
-  Assert(w.getKind() == CHOICE);
+  Assert(w.getKind() == WITNESS);
   SkolemFormAttribute sfa;
   // could already have a skolem if we used w already
   if (w.hasAttribute(sfa))

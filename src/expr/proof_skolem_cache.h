@@ -105,7 +105,8 @@ class ProofSkolemCache
   /**
    * Same as above, but for special case of (witness ((x T)) (= x t))
    * where T is the type of t. This skolem is unique for each t, which we
-   * implement via an attribute on t.
+   * implement via an attribute on t. This attribute is used to ensure to
+   * associate a unique skolem for each t.
    */
   static Node mkPurifySkolem(Node t,
                              const std::string& prefix,

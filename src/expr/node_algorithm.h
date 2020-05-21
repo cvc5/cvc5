@@ -52,6 +52,14 @@ bool hasSubtermMulti(TNode n, TNode t);
 bool hasSubtermKind(Kind k, Node n);
 
 /**
+ * @param ks The kinds of node to check
+ * @param n The node to search in.
+ * @return true iff there is a term in n that has any kind ks
+ */
+bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     Node n);
+
+/**
  * Check if the node n has a subterm that occurs in t.
  * @param n The node to search in
  * @param t The set of subterms to search for
@@ -78,7 +86,7 @@ bool hasFreeVar(TNode n);
 
 /**
  * Returns true iff the node n contains a closure, that is, a node
- * whose kind is FORALL, EXISTS, CHOICE, LAMBDA, or any other closure currently
+ * whose kind is FORALL, EXISTS, WITNESS, LAMBDA, or any other closure currently
  * supported.
  * @param n The node under investigation
  * @return true iff this node contains a closure.

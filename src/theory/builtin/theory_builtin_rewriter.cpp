@@ -92,7 +92,7 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
     }
     return RewriteResponse(REWRITE_DONE, node);
   }
-  else if (node.getKind() == kind::CHOICE)
+  else if (node.getKind() == kind::WITNESS)
   {
     std::vector<Node> conj;
     if (node[1].getKind() == kind::AND)
