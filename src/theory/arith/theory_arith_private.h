@@ -189,9 +189,6 @@ public:
     d_setupNodes.insert(n);
   }
 private:
-
-  void setupDivLike(const Variable& x);
-
   void setupVariable(const Variable& x);
   void setupVariableList(const VarList& vl);
   void setupPolynomial(const Polynomial& poly);
@@ -424,6 +421,7 @@ private:
 
   /** eliminate operators */
   Node eliminateOperators(Node n);
+  Node eliminateOperatorsRec(Node n);
 public:
   TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryArithPrivate();

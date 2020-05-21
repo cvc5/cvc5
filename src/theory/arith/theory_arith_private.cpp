@@ -1178,41 +1178,82 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     return n;
   }
   // eliminate operators?
-  Node nn = eliminateOperators(n);
-  if (nn!=n)
-  {
-    return nn;
-  }
-  for(TNode::const_iterator i = n.begin(); i != n.end(); ++i) {
-    Node rewritten = ppRewriteTerms(*i);
-    if(rewritten != *i) {
-      NodeBuilder<> b(n.getKind());
-      b.append(n.begin(), i);
-      b << rewritten;
-      for(++i; i != n.end(); ++i) {
-        b << ppRewriteTerms(*i);
-      }
-      rewritten = b;
-      return rewritten;
-    }
-  }
+  return eliminateOperatorsRec(n);
+}
 
-  return n;
+Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
+{
+  Trace("arith-elim") << "Begin elim: " << n << std::endl;
+  n = Rewriter::rewrite(n);
+  Trace("arith-elim") << "Rewritten: " << n << std::endl;
+  NodeManager * nm = NodeManager::currentNM();
+  std::unordered_map<Node, Node, TNodeHashFunction> visited;
+  std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
+  std::vector<Node> visit;
+  Node cur;
+  visit.push_back(n);
+  do 
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (Theory::theoryOf(cur) != THEORY_ARITH)
+    {
+      visited[cur] = cur;
+    }
+    else if (it == visited.end()) 
+    {
+      visited[cur] = Node::null();
+      visit.push_back(cur);
+      for (const Node& cn : cur )
+      {
+        visit.push_back(cn);
+      }
+    } 
+    else if (it->second.isNull()) 
+    {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur )
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cn != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged) 
+      {
+        ret = nm->mkNode(cur.getKind(), children);
+      }
+      Node retElim = eliminateOperators(ret);
+      if (retElim!=ret)
+      {
+        Trace("arith-elim") << "Eliminated: " << ret << "..." << retElim << std::endl;
+        retElim = eliminateOperatorsRec(retElim);
+        visited[cur] = retElim;
+      }
+      else
+      {
+        Trace("arith-elim") << "Finished: " << cur << "..." << ret << std::endl;
+        visited[cur] = ret;
+      }
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
 
 Node TheoryArithPrivate::eliminateOperators(Node node)
 {
   NodeManager* nm = NodeManager::currentNM();
 
-  // eliminate here since the rewritten form of these may introduce division
   Kind k = node.getKind();
-  if (k == kind::TANGENT || k == kind::COSECANT || k == kind::SECANT
-      || k == kind::COTANGENT || k == kind::DIVISION_TOTAL)
-  {
-    node = Rewriter::rewrite(node);
-    k = node.getKind();
-  }
-
   switch (k)
   {
 
@@ -1244,9 +1285,6 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
   case kind::INTS_DIVISION_TOTAL: 
   case kind::INTS_MODULUS_TOTAL: {
     Node den = Rewriter::rewrite(node[1]);
-    if(!options::rewriteDivk() && den.isConst()) {
-      return node;
-    }
     Node num = Rewriter::rewrite(node[0]);
     Node intVar;
     Node rw = nm->mkNode(k, num, den);
@@ -1631,11 +1669,6 @@ void TheoryArithPrivate::setupVariable(const Variable& x){
   //setupInitialValue(varN);
 
   markSetup(n);
-
-  if(x.isDivLike()){
-    setupDivLike(x);
-  }
-
 }
 
 void TheoryArithPrivate::setupVariableList(const VarList& vl){
@@ -1695,52 +1728,6 @@ void TheoryArithPrivate::cautiousSetupPolynomial(const Polynomial& p){
     }
   }else if(!isSetup(p.getNode())){
     setupPolynomial(p);
-  }
-}
-
-void TheoryArithPrivate::setupDivLike(const Variable& v){
-  Assert(v.isDivLike());
-
-  if(getLogicInfo().isLinear()){
-    throw LogicException(
-        "A non-linear fact (involving div/mod/divisibility) was asserted to "
-        "arithmetic in a linear logic;\nif you only use division (or modulus) "
-        "by a constant value, or if you only use the divisibility-by-k "
-        "predicate, try using the --rewrite-divk option.");
-  }
-
-  Node vnode = v.getNode();
-  Assert(
-      isSetup(vnode));  // Otherwise there is some invariant breaking recursion
-  Polynomial m = Polynomial::parsePolynomial(vnode[0]);
-  Polynomial n = Polynomial::parsePolynomial(vnode[1]);
-
-  cautiousSetupPolynomial(m);
-  cautiousSetupPolynomial(n);
-
-  Node lem;
-  switch(vnode.getKind()){
-  case DIVISION:
-  case INTS_DIVISION:
-  case INTS_MODULUS:
-    // these should be removed during expand definitions
-    Assert(false);
-    break;
-  case DIVISION_TOTAL:
-    lem = axiomIteForTotalDivision(vnode);
-    break;
-  case INTS_DIVISION_TOTAL:
-  case INTS_MODULUS_TOTAL:
-    lem = axiomIteForTotalIntDivision(vnode);
-    break;
-  default:
-    /* intentionally blank */
-    break;
-  }
-
-  if(!lem.isNull()){
-    Debug("arith::div") << lem << endl;
-    outputLemma(lem);
   }
 }
 
@@ -5246,8 +5233,8 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
 
 Node TheoryArithPrivate::expandDefinition(Node node)
 {
-  // call eliminate operators
-  return eliminateOperators(node);
+  // call eliminate operators recursively
+  return eliminateOperatorsRec(node);
 }
 
 Node TheoryArithPrivate::getArithSkolem(ArithSkolemId asi)
