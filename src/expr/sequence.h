@@ -51,7 +51,7 @@ class Sequence
   bool strncmp(const Sequence& y, size_t n) const;
   bool rstrncmp(const Sequence& y, size_t n) const;
 
-  /** is this the empty string? */
+  /** is this the empty sequence? */
   bool empty() const { return d_seq.empty(); }
   /** is less than or equal to string y */
   bool isLeq(const Sequence& y) const;
