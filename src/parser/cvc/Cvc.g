@@ -2032,25 +2032,25 @@ stringTerm[CVC4::api::Term& f]
   | STRING_LENGTH_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::STRING_LENGTH, f); }
   | STRING_CONTAINS_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRCTN, f, f2); }
+    { f = MK_TERM(CVC4::api::STRING_CONTAINS, f, f2); }
   | STRING_SUBSTR_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_TERM(CVC4::api::STRING_SUBSTR, f, f2, f3); }
   | STRING_CHARAT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::STRING_CHARAT, f, f2); }
   | STRING_INDEXOF_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRIDOF, f, f2, f3); }
+    { f = MK_TERM(CVC4::api::STRING_INDEXOF, f, f2, f3); }
   | STRING_REPLACE_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRREPL, f, f2, f3); }
+    { f = MK_TERM(CVC4::api::STRING_REPLACE, f, f2, f3); }
   | STRING_REPLACE_ALL_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRREPLALL, f, f2, f3); }
+    { f = MK_TERM(CVC4::api::STRING_REPLACEALL, f, f2, f3); }
   | STRING_PREFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::STRING_PREFIX, f, f2); }
   | STRING_SUFFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::STRING_SUFFIX, f, f2); }
   | STRING_STOI_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STOI, f); }
+    { f = MK_TERM(CVC4::api::STRING_TO_INT, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_ITOS, f); }
+    { f = MK_TERM(CVC4::api::STRING_FROM_INT, f); }
   | STRING_TO_REGEXP_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::STRING_TO_REGEXP, f); }
   | STRING_TOLOWER_TOK LPAREN formula[f] RPAREN
