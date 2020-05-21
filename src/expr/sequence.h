@@ -81,7 +81,8 @@ class Sequence
   Sequence replace(const Sequence& s, const Sequence& t) const;
   /** Return the subsequence of this sequence starting at index i */
   Sequence substr(size_t i) const;
-  /** Return the subsequence of this sequence starting at index i with size at most
+  /** Return the subsequence of this sequence starting at index i with size at
+   * most
    * j */
   Sequence substr(size_t i, size_t j) const;
   /** Return the prefix of this sequence of size at most i */
@@ -90,9 +91,9 @@ class Sequence
   Sequence suffix(size_t i) const { return substr(size() - i, i); }
 
   /**
-   * Checks if there is any overlap between this sequence and another sequence. This
-   * corresponds to checking whether one sequence contains the other and whether a
-   * subsequence of one is a prefix of the other and vice-versa.
+   * Checks if there is any overlap between this sequence and another sequence.
+   * This corresponds to checking whether one sequence contains the other and
+   * whether a subsequence of one is a prefix of the other and vice-versa.
    *
    * @param y The other sequence
    * @return True if there is an overlap, false otherwise
