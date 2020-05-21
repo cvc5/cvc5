@@ -88,6 +88,12 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   if (k == EQUAL)
   {
+    if (n[0].getType().isRegExp())
+    {
+      std::stringstream ss;
+      ss << "Equality between regular expressions is not supported";
+      throw LogicException(ss.str());
+    }
     d_ee.addTriggerEquality(n);
     return;
   }
@@ -224,6 +230,10 @@ void TermRegistry::registerTerm(Node n, int effort)
     regTermLem = nm->mkNode(AND,
                             nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
                             nm->mkNode(LEQ, n, len));
+  }
+  else if (n.getKind() == STRING_STOI)
+  {
+    regTermLem = nm->mkNode(GEQ, n, nm->mkConst(Rational(-1)));
   }
   if (!regTermLem.isNull())
   {
