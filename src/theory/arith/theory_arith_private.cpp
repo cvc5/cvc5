@@ -1310,34 +1310,32 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
       Node leqNum = nm->mkNode(LEQ, nm->mkNode(MULT, den, v), num);
       if (den.isConst()) {
         const Rational& rat = den.getConst<Rational>();
-        if (num.isConst())
+        if (num.isConst() || rat == 0)
         {
           // just rewrite
           return Rewriter::rewrite(node);
         }
-        if(rat != 0) {
-          if(rat > 0) {
-            lem = nm->mkNode(
-                AND,
-                leqNum,
-                nm->mkNode(
-                    LT,
-                    num,
-                    nm->mkNode(MULT,
-                               den,
-                               nm->mkNode(PLUS, v, nm->mkConst(Rational(1))))));
-          } else {
-            lem = nm->mkNode(
-                AND,
-                leqNum,
-                nm->mkNode(
-                    LT,
-                    num,
-                    nm->mkNode(
-                        MULT,
-                        den,
-                        nm->mkNode(PLUS, v, nm->mkConst(Rational(-1))))));
-          }
+        if(rat > 0) {
+          lem = nm->mkNode(
+              AND,
+              leqNum,
+              nm->mkNode(
+                  LT,
+                  num,
+                  nm->mkNode(MULT,
+                              den,
+                              nm->mkNode(PLUS, v, nm->mkConst(Rational(1))))));
+        } else {
+          lem = nm->mkNode(
+              AND,
+              leqNum,
+              nm->mkNode(
+                  LT,
+                  num,
+                  nm->mkNode(
+                      MULT,
+                      den,
+                      nm->mkNode(PLUS, v, nm->mkConst(Rational(-1))))));
         }
       }else{
         lem = nm->mkNode(
