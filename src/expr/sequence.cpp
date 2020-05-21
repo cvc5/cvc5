@@ -113,6 +113,7 @@ Node Sequence::back() const
 
 size_t Sequence::overlap(const Sequence& y) const
 {
+  Assert(d_type == y.d_type);
   size_t i = size() < y.size() ? size() : y.size();
   for (; i > 0; i--)
   {
