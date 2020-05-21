@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Inference to proof conversion
+ ** \brief Proof step and proof step buffer utilities.
  **/
 
 #include "cvc4_private.h"

@@ -9,15 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of proof constructor
+ ** \brief Implementation of proof step and proof step buffer utilities.
  **/
 
 #include "expr/proof_step_buffer.h"
-
-#include "expr/proof_skolem_cache.h"
-#include "options/strings_options.h"
-#include "theory/rewriter.h"
-#include "theory/strings/theory_strings_utils.h"
 
 using namespace CVC4::kind;
 
