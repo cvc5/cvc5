@@ -130,7 +130,7 @@ class Sequence
   TypeNode getType() const { return d_type; }
   /** get the internal Node representation of this string */
   const std::vector<Node>& getVec() const { return d_seq; }
-  /** get the internal unsigned value of the first character in this string */
+  /** get the internal node value of the first element in this sequence */
   Node front() const;
   /** get the internal unsigned value of the last character in this string */
   Node back() const;
