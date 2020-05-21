@@ -1310,7 +1310,11 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
       Node leqNum = nm->mkNode(LEQ, nm->mkNode(MULT, den, v), num);
       if (den.isConst()) {
         const Rational& rat = den.getConst<Rational>();
-        Assert(!num.isConst());
+        if (num.isConst())
+        {
+          // just rewrite
+          return Rewriter::rewrite(node);
+        }
         if(rat != 0) {
           if(rat > 0) {
             lem = nm->mkNode(

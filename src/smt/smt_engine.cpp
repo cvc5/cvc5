@@ -2618,7 +2618,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     // Apply any define-funs from the problem.
     {
       unordered_map<Node, Node, NodeHashFunction> cache;
-      n = d_private->getProcessAssertions()->expandDefinitions(n, cache);
+      n = d_private->getProcessAssertions()->expandDefinitions(n, cache, true);
     }
     Notice() << "SmtEngine::checkModel(): -- expands to " << n << endl;
 
