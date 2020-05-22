@@ -101,7 +101,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  *extt,
                                  d_statistics));
   d_rsolver.reset(new RegExpSolver(
-      d_state, *d_im, *d_csolver, *d_esolver, d_statistics, c, u));
+      d_state, *d_im, d_termReg, *d_csolver, *d_esolver, d_statistics, c, u));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
