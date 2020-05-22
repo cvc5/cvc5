@@ -429,28 +429,29 @@ private:
    * one (including division, int division, mod, to_int, is_int, syntactic sugar
    * transcendental functions), then we replace it by a form that eliminates
    * that operator. This may involve the introduction of witness terms.
-   * 
+   *
    * One exception to the above rule is that we may leave certain applications
    * like (/ 4 1) unchanged, since replacing this by 4 changes its type from
    * real to int. This is important for some subtyping issues during
    * expandDefinition. Moreover, applications like this can be eliminated
    * trivially later by rewriting.
-   * 
+   *
    * This method is called both during expandDefinition and during ppRewrite.
-   * 
+   *
    * @param n The node to eliminate operators from.
    * @return The (single step) eliminated form of n.
    */
   Node eliminateOperators(Node n);
-  /** 
+  /**
    * Recursively ensure that n has no non-standard operators. This applies
    * the above method on all subterms of n.
-   * 
+   *
    * @param n The node to eliminate operators from.
    * @return The eliminated form of n.
    */
   Node eliminateOperatorsRec(Node n);
-public:
+
+ public:
   TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryArithPrivate();
 
