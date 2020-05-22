@@ -222,12 +222,3 @@ header = "options/strings_options.h"
   type       = "bool"
   default    = "false"
   help       = "add skolem length constraints in conclusions of inferences"
-
-[[option]]
-  name       = "stringPedanticCheck"
-  category   = "regular"
-  long       = "strings-pcheck"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "assertion failure for any incorrect rule application or untrusted lemma"

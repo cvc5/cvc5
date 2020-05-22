@@ -18,6 +18,7 @@
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
+#include "options/smt_options.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -455,7 +456,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
-    if (options::stringPedanticCheck() && options::proofNew())
+    if (options::proofNewPedantic())
     {
       AlwaysAssert(false) << "Unhandled lemma Strings::Lemma SK-GEQ-ONE : "
                           << len_geq_one << std::endl;
@@ -469,7 +470,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
-    if (options::stringPedanticCheck() && options::proofNew())
+    if (options::proofNewPedantic())
     {
       AlwaysAssert(false) << "Unhandled lemma Strings::Lemma SK-ONE : "
                           << len_one << std::endl;
