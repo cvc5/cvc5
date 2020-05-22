@@ -1513,7 +1513,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     Node sk = skc->mkSkolemCached(
         x,
         y,
-        isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
+        isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV : SkolemCache::SK_ID_V_UNIFIED_SPT,
         "v_spt");
     iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
     Node eq1 =
