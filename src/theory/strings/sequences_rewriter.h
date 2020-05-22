@@ -145,7 +145,7 @@ class SequencesRewriter : public TheoryRewriter
    * Specifically, this function performs rewrites whose conclusion is not
    * necessarily one of { s = t, t = s, true, false }.
    */
-  Node rewriteEqualityExt(Node node);
+  Node rewriteEqualityExt(Node node) override;
   /** rewrite string length
    * This is the entry point for post-rewriting terms node of the form
    *   str.len( t )
