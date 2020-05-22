@@ -39,6 +39,8 @@ libcvc4_add_sources(
   proof_checker.h
   proof_node.cpp
   proof_node.h
+  proof_node_to_sexpr.cpp
+  proof_node_to_sexpr.h
   proof_node_manager.cpp
   proof_node_manager.h
   proof_rule.cpp
