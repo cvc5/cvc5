@@ -2615,12 +2615,10 @@ void SmtEngine::checkModel(bool hardFailure) {
     Notice() << "SmtEngine::checkModel(): checking assertion " << *i << endl;
     Node n = Node::fromExpr(*i);
 
-    // Apply any define-funs from the problem. Do not apply theory-specific
-    // expand definition methods, since we are interested in checking the
-    // original assertions.
+    // Apply any define-funs from the problem.
     {
       unordered_map<Node, Node, NodeHashFunction> cache;
-      n = d_private->getProcessAssertions()->expandDefinitions(n, cache, true);
+      n = d_private->getProcessAssertions()->expandDefinitions(n, cache);
     }
     Notice() << "SmtEngine::checkModel(): -- expands to " << n << endl;
 
