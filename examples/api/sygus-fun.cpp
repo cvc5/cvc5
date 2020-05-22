@@ -78,7 +78,7 @@ int main()
   Term one = slv.mkReal(1);
 
   Term plus = slv.mkTerm(PLUS, start, start);
-  Term minus = slv.mkTerm(PLUS, start, start);
+  Term minus = slv.mkTerm(MINUS, start, start);
   Term ite = slv.mkTerm(ITE, start_bool, start, start);
 
   Term And = slv.mkTerm(AND, start_bool, start_bool);
