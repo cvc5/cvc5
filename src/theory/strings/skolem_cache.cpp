@@ -217,20 +217,6 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     b = nm->mkNode(STRING_STRIDOF, a, b, d_zero);
   }
 
-  if (id == SK_ID_V_UNIFIED_SPT || id == SK_ID_V_UNIFIED_SPT_REV)
-  {
-    bool isRev = (id == SK_ID_V_UNIFIED_SPT_REV);
-    Node la = nm->mkNode(STRING_LENGTH, a);
-    Node lb = nm->mkNode(STRING_LENGTH, b);
-    Node ta = isRev ? utils::mkPrefix(a, nm->mkNode(MINUS, la, lb))
-                    : utils::mkSuffix(a, lb);
-    Node tb = isRev ? utils::mkPrefix(b, nm->mkNode(MINUS, lb, la))
-                    : utils::mkSuffix(b, la);
-    id = SK_PURIFY;
-    a = nm->mkNode(ITE, nm->mkNode(GEQ, la, lb), ta, tb);
-    b = Node::null();
-  }
-
   // now, eliminate prefix/suffix_rem in terms of purify
   if (id == SK_PREFIX)
   {
