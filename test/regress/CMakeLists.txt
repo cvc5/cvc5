@@ -375,6 +375,7 @@ set(regress_0_tests
   regress0/cvc3.userdoc.05.cvc
   regress0/cvc3.userdoc.06.cvc
   regress0/cvc-rerror-print.cvc
+  regress0/datatypes/4482-unc-simp-one.smt2
   regress0/datatypes/Test1-tup-mp.cvc
   regress0/datatypes/boolean-equality.cvc
   regress0/datatypes/boolean-terms-datatype.cvc
@@ -961,6 +962,7 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc
+  regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/re.all.smt2
   regress0/strings/re-syntax.smt2
   regress0/strings/re_diff.smt2
