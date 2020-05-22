@@ -1529,7 +1529,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type
                   << std::endl;
   // (as const (Array T1 T2))
-  if (p.d_kind == api::STORE_ALL)
+  if (p.d_kind == api::CONST_ARRAY)
   {
     if (!type.isArray())
     {
@@ -1696,7 +1696,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   // Second phase: apply the arguments to the parse op
   const Options& opts = d_solver->getExprManager()->getOptions();
   // handle special cases
-  if (p.d_kind == api::STORE_ALL && !p.d_type.isNull())
+  if (p.d_kind == api::CONST_ARRAY && !p.d_type.isNull())
   {
     if (args.size() != 1)
     {

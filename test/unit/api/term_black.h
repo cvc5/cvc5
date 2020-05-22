@@ -765,7 +765,7 @@ void TermBlack::testConstArray()
   TS_ASSERT(!a.isConst());
   TS_ASSERT(constarr.isConst());
 
-  TS_ASSERT_EQUALS(constarr.getKind(), STORE_ALL);
-  TS_ASSERT_EQUALS(constarr.getStoreAllBase(), one);
-  TS_ASSERT_THROWS(a.getStoreAllBase(), CVC4ApiException&);
+  TS_ASSERT_EQUALS(constarr.getKind(), CONST_ARRAY);
+  TS_ASSERT_EQUALS(constarr.getConstArrayBase(), one);
+  TS_ASSERT_THROWS(a.getConstArrayBase(), CVC4ApiException&);
 }

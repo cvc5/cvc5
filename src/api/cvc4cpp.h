@@ -885,10 +885,10 @@ class CVC4_PUBLIC Term
 
   /**
    *  Return the base (element stored at all indices) of a constant array
-   *  throws an exception if the kind is not STORE_ALL
+   *  throws an exception if the kind is not CONST_ARRAY
    *  @return the base value
    */
-  Term getStoreAllBase() const;
+  Term getConstArrayBase() const;
 
   /**
    * Boolean negation.
