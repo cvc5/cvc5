@@ -1087,7 +1087,15 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
-  return eliminateOperatorsRec(n);
+  // call eliminate operators
+  Node nn = eliminateOperators(n);
+  if (nn != n)
+  {
+    // since elimination may introduce new operators to eliminate, we must
+    // recursively eliminate result
+    return eliminateOperatorsRec(nn);
+  }
+  return n;
 }
 
 void TheoryArithPrivate::checkNonLinearLogic(Node term)
@@ -1528,6 +1536,7 @@ Node TheoryArithPrivate::ppRewrite(TNode atom) {
       Node rewritten = Rewriter::rewrite(leq.andNode(geq));
       Debug("arith::preprocess")
           << "arith::preprocess() : returning " << rewritten << endl;
+      // don't need to rewrite terms since rewritten is not a non-standard op
       return rewritten;
     }
   }
