@@ -52,7 +52,9 @@ SatSolver* SatSolverFactory::createCadical(StatisticsRegistry* registry,
                                            const std::string& name)
 {
 #ifdef CVC4_USE_CADICAL
-  return new CadicalSolver(registry, name);
+  CadicalSolver* res = new CadicalSolver(registry, name);
+  res->init();
+  return res;
 #else
   Unreachable() << "CVC4 was not compiled with CaDiCaL support.";
 #endif
