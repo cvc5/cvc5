@@ -590,17 +590,6 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
         ret = ret[0].eqNode(intVar);
       }
     }
-    /*
-    else if (ret.getKind()==WITNESS)
-    {
-      Node var = nm->mkBoundVar(ret[0][0].getType());
-      new_vars.push_back(var);
-      TNode tvar = ret[0][0];
-      TNode tsubs = var;
-      new_conds.push_back(ret[1].substitute(tvar,tsubs));
-      ret = var;
-    }
-    */
   }
   cache[body] = ret;
   return ret;

@@ -227,27 +227,6 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
   // return safeConstructNary(nb);
 }
 
-// Returns a formula that entails that q equals the total integer division of m
-// by n.
-// (for all ((m Int) (n Int))
-//   (let ((q (div_total m n)))
-//     (ite (= n 0)
-//          (= q 0)
-//          (ite (> n 0)
-//               (n*q <= m < n*q + n)
-//               (n*q <= m < n*q - n)))))
-Node mkAxiomForTotalIntDivision(Node m, Node n, Node q) {
-  NodeManager* nm = NodeManager::currentNM();
-  Node zero = mkRationalNode(0);
-  // (n*q <= m < n*q + n) is equivalent to (0 <= m - n*q < n).
-  Node diff = nm->mkNode(kind::MINUS, m, mkMult(n, q));
-  Node when_n_is_positive = mkInRange(diff, zero, n);
-  Node when_n_is_negative = mkInRange(diff, zero, nm->mkNode(kind::UMINUS, n));
-  return n.eqNode(zero).iteNode(
-      q.eqNode(zero), nm->mkNode(kind::GT, n, zero)
-                          .iteNode(when_n_is_positive, when_n_is_negative));
-}
-
 void TheoryArithPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_congruenceManager.setMasterEqualityEngine(eq);
 }
@@ -1104,7 +1083,10 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   if(Theory::theoryOf(n) != THEORY_ARITH) {
     return n;
   }
-  // eliminate operators recursively
+  // Eliminate operators recursively. Notice we must do this here since other
+  // theories may generate lemmas that involve non-standard operators. For
+  // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
+  // introduce non-standard arithmetic terms appearing in grammars.
   return eliminateOperatorsRec(n);
 }
 
@@ -1183,6 +1165,8 @@ Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
       Node retElim = eliminateOperators(ret);
       if (retElim!=ret)
       {
+        // recursively eliminate operators in result, since some eliminations
+        // are defined in terms of other non-standard operators.
         ret = eliminateOperatorsRec(retElim);
       }
       cur.setAttribute(aeoa, ret);

@@ -50,7 +50,6 @@
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
 #include "expr/node_visitor.h"
-#include "expr/proof_skolem_cache.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
@@ -2623,11 +2622,6 @@ void SmtEngine::checkModel(bool hardFailure) {
     }
     Notice() << "SmtEngine::checkModel(): -- expands to " << n << endl;
 
-    // use Skolem form?
-    //n = ProofSkolemCache::getSkolemForm(n);
-    //Notice() << "SmtEngine::checkModel(): -- Skolem form is " << n << endl;
-
-    
     // Apply our model value substitutions.
     Debug("boolean-terms") << "applying subses to " << n << endl;
     n = substitutions.apply(n);
