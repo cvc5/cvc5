@@ -1,52 +1,45 @@
 /*********************                                                        */
-/*! \file cryptominisat.h
+/*! \file kissat.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Dejan Jovanovic
+ **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief SAT Solver.
+ ** \brief Wrapper for Kissat SAT Solver.
  **
- ** Implementation of the cryptominisat sat solver for cvc4 (bitvectors).
+ ** Wrapper for the Kissat SAT solver (for theory of bit-vectors).
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CRYPTOMINISAT_H
-#define CVC4__PROP__CRYPTOMINISAT_H
+#ifndef CVC4__PROP__KISSAT_H
+#define CVC4__PROP__KISSAT_H
 
-#ifdef CVC4_USE_CRYPTOMINISAT
+#ifdef CVC4_USE_KISSAT
 
-#include "proof/clausal_bitvector_proof.h"
 #include "prop/sat_solver.h"
 
-// Cryptominisat has name clashes with the other Minisat implementations since
-// the Minisat implementations export var_Undef, l_True, ... as macro whereas
-// Cryptominisat uses static const. In order to avoid these conflicts we
-// forward declare CMSat::SATSolver and include the cryptominisat header only
-// in cryptominisat.cpp.
-namespace CMSat {
-  class SATSolver;
+extern "C" {
+#include <kissat/kissat.h>
 }
 
 namespace CVC4 {
 namespace prop {
 
-class CryptoMinisatSolver : public SatSolver
+class KissatSolver : public SatSolver
 {
   friend class SatSolverFactory;
 
  public:
-  ~CryptoMinisatSolver() override;
+  ~KissatSolver() override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
 
-  bool nativeXor() override { return true; }
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
 
   SatVariable newVar(bool isTheoryAtom = false,
                      bool preRegister = false,
@@ -55,31 +48,28 @@ class CryptoMinisatSolver : public SatSolver
   SatVariable trueVar() override;
   SatVariable falseVar() override;
 
-  void markUnremovable(SatLiteral lit);
-
-  void interrupt() override;
-
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
   SatValue solve(const std::vector<SatLiteral>& assumptions) override;
 
-  bool ok() const override;
+  void interrupt() override;
+
   SatValue value(SatLiteral l) override;
+
   SatValue modelValue(SatLiteral l) override;
 
   unsigned getAssertionLevel() const override;
-  void setClausalProofLog(proof::ClausalBitVectorProof* bvp) override;
+
+  bool ok() const override;
 
  private:
-  class Statistics
+  struct Statistics
   {
-   public:
     StatisticsRegistry* d_registry;
-    IntStat d_statCallsToSolve;
-    IntStat d_xorClausesAdded;
-    IntStat d_clausesAdded;
+    IntStat d_numSatCalls;
+    IntStat d_numVariables;
+    IntStat d_numClauses;
     TimerStat d_solveTime;
-    bool d_registerStats;
     Statistics(StatisticsRegistry* registry, const std::string& prefix);
     ~Statistics();
   };
@@ -88,17 +78,16 @@ class CryptoMinisatSolver : public SatSolver
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
    */
-  CryptoMinisatSolver(StatisticsRegistry* registry,
-                      const std::string& name = "");
+  KissatSolver(StatisticsRegistry* registry, const std::string& name = "");
   /**
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.
    */
   void init();
 
-  std::unique_ptr<CMSat::SATSolver> d_solver;
-  proof::ClausalBitVectorProof* d_bvp;
-  unsigned d_numVariables;
+  kissat* d_solver;
+
+  unsigned d_nextVarIdx;
   bool d_okay;
   SatVariable d_true;
   SatVariable d_false;
@@ -109,5 +98,5 @@ class CryptoMinisatSolver : public SatSolver
 }  // namespace prop
 }  // namespace CVC4
 
-#endif  // CVC4_USE_CRYPTOMINISAT
-#endif  // CVC4__PROP__CRYPTOMINISAT_H
+#endif  // CVC4_USE_KISSAT
+#endif  // CVC4__PROP__KISSAT_H

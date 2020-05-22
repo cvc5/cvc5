@@ -1810,25 +1810,29 @@ class CVC4_PUBLIC Grammar
   /**
    * Adds a constructor to sygus datatype <dt> whose sygus operator is <term>.
    *
-   * <d_ntsToUnres> contains a mapping from non-terminal symbols to the
+   * <ntsToUnres> contains a mapping from non-terminal symbols to the
    * unresolved sorts they correspond to. This map indicates how the argument
    * <term> should be interpreted (instances of symbols from the domain of
-   * <d_ntsToUnres> correspond to constructor arguments).
+   * <ntsToUnres> correspond to constructor arguments).
    *
    * The sygus operator that is actually added to <dt> corresponds to replacing
-   * each occurrence of non-terminal symbols from the domain of <d_ntsToUnres>
+   * each occurrence of non-terminal symbols from the domain of <ntsToUnres>
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    *
    * @param dt the non-terminal's datatype to which a constructor is added
    * @param term the sygus operator of the constructor
+   * @param ntsToUnres mapping from non-terminals to their unresolved sorts
    */
-  void addSygusConstructorTerm(DatatypeDecl& dt, Term term) const;
+  void addSygusConstructorTerm(
+      DatatypeDecl& dt,
+      Term term,
+      const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const;
 
   /** Purify sygus grammar term
    *
    * This returns a term where all occurrences of non-terminal symbols (those
-   * in the domain of <d_ntsToUnres>) are replaced by fresh variables. For
+   * in the domain of <ntsToUnres>) are replaced by fresh variables. For
    * each variable replaced in this way, we add the fresh variable it is
    * replaced with to <args>, and the unresolved sorts corresponding to the
    * non-terminal symbol to <cargs> (constructor args). In other words, <args>
@@ -1839,11 +1843,14 @@ class CVC4_PUBLIC Grammar
    * @param term the term to purify
    * @param args the free variables in the term returned by this method
    * @param cargs the sorts of the arguments of the sygus constructor
+   * @param ntsToUnres mapping from non-terminals to their unresolved sorts
    * @return the purfied term
    */
-  Term purifySygusGTerm(Term term,
-                        std::vector<Term>& args,
-                        std::vector<Sort>& cargs) const;
+  Term purifySygusGTerm(
+      Term term,
+      std::vector<Term>& args,
+      std::vector<Sort>& cargs,
+      const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const;
 
   /**
    * This adds constructors to <dt> for sygus variables in <d_sygusVars> whose
@@ -1861,18 +1868,14 @@ class CVC4_PUBLIC Grammar
   std::vector<Term> d_sygusVars;
   /** The non-terminal symbols of this grammar. */
   std::vector<Term> d_ntSyms;
-  /**
-   * The mapping from non-terminal symbols to the unresolved sorts they
-   * correspond to.
-   */
-  std::unordered_map<Term, Sort, TermHashFunction> d_ntsToUnres;
-  /**
-   * The mapping from non-terminal symbols to the datatype declarations they
-   * correspond to.
-   */
-  std::unordered_map<Term, DatatypeDecl, TermHashFunction> d_dtDecls;
+  /** The mapping from non-terminal symbols to their production terms. */
+  std::unordered_map<Term, std::vector<Term>, TermHashFunction> d_ntsToTerms;
   /** The set of non-terminals that can be arbitrary constants. */
   std::unordered_set<Term, TermHashFunction> d_allowConst;
+  /** The set of non-terminals that can be sygus variables. */
+  std::unordered_set<Term, TermHashFunction> d_allowVars;
+  /** Did we call resolve() before? */
+  bool d_isResolved;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -2972,7 +2975,7 @@ class CVC4_PUBLIC Solver
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
                 Sort sort,
-                Grammar g) const;
+                Grammar& g) const;
 
   /**
    * Synthesize invariant.
@@ -2996,7 +2999,7 @@ class CVC4_PUBLIC Solver
    */
   Term synthInv(const std::string& symbol,
                 const std::vector<Term>& boundVars,
-                Grammar g) const;
+                Grammar& g) const;
 
   /**
    * Add a forumla to the set of Sygus constraints.
