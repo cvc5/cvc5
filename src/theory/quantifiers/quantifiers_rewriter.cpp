@@ -1412,6 +1412,7 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
     // trivial
     return n;
   }
+  NodeManager * nm = NodeManager::currentNM();
   Node ret = n;
   if (topLevel
       && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
@@ -1426,7 +1427,7 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
       }
       children.push_back( ncc );
     }
-    ret = NodeManager::currentNM()->mkNode( AND, children );
+    ret = nm->mkNode( AND, children );
   }
   else if (n.getKind() == NOT)
   {
@@ -1447,27 +1448,20 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
       children.push_back( computePrenexAgg( n[1], false, visited ) );
     }
     std::vector< Node > args;
-    for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
-      args.push_back( n[0][i] );
-    }
-    std::vector< Node > nargs;
+    args.insert( args.end(), n[0].begin(), n[0].end());
     //for each child, strip top level quant
     for( unsigned i=0; i<children.size(); i++ ){
       if( children[i].getKind()==FORALL ){
-        for( unsigned j=0; j<children[i][0].getNumChildren(); j++ ){
-          args.push_back( children[i][0][j] );
-        }
+        args.insert( args.end(), children[i][0].begin(), children[i][0].end());
         children[i] = children[i][1];
       }
     }
     // keep the pattern
     std::vector< Node > iplc;
     if( n.getNumChildren()==3 ){
-      for( unsigned i=0; i<n[2].getNumChildren(); i++ ){
-        iplc.push_back( n[2][i] );
-      }
+      iplc.insert(iplc.end(),n[2].begin(),n[2].end());
     } 
-    Node nb = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children );
+    Node nb = children.size()==1 ? children[0] : nm->mkNode( OR, children );
     ret = mkForall( args, nb, iplc, true );
   }
   else
@@ -1479,9 +1473,7 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
       Node nnn = computePrenexAgg( nn, false, visited );
       //merge prenex
       if( nnn.getKind()==FORALL ){
-        for( unsigned i=0; i<nnn[0].getNumChildren(); i++ ){
-          args.push_back( nnn[0][i] );
-        }
+        args.insert( args.end(), nnn[0].begin(), nnn[0].end());
         nnn = nnn[1];
         //pos polarity variables are inner
         if( !args.empty() ){
@@ -1489,9 +1481,7 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
         }
         args.clear();
       }else if( nnn.getKind()==NOT && nnn[0].getKind()==FORALL ){
-        for( unsigned i=0; i<nnn[0][0].getNumChildren(); i++ ){
-          nargs.push_back( nnn[0][0][i] );
-        }
+        nargs.insert(nargs.end(), nnn[0][0].begin(), nnn[0][0].end());
         nnn = nnn[0][1].negate();
       }
       if( !nargs.empty() ){
