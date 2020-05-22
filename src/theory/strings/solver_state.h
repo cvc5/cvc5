@@ -44,8 +44,15 @@ class SolverState
   typedef context::CDList<Node> NodeList;
 
  public:
-  SolverState(context::Context* c, eq::EqualityEngine& ee, Valuation& v);
+  SolverState(context::Context* c,
+              context::UserContext* u,
+              eq::EqualityEngine& ee,
+              Valuation& v);
   ~SolverState();
+  /** Get the SAT context */
+  context::Context* getSatContext() const;
+  /** Get the user context */
+  context::UserContext* getUserContext() const;
   //-------------------------------------- equality information
   /**
    * Get the representative of t in the equality engine of this class, or t
@@ -167,6 +174,8 @@ class SolverState
   Node d_zero;
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;
+  /** Pointer to the user context object used by the theory of strings. */
+  context::UserContext* d_ucontext;
   /** Reference to equality engine of the theory of strings. */
   eq::EqualityEngine& d_ee;
   /**
