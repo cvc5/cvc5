@@ -146,6 +146,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
     //   http://planetmath.org/hilbertsvarepsilonoperator.
     if (!inQuant)
     {
+      // FIXME: we can replace by t if body is of the form (and (= z t) ...)
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
