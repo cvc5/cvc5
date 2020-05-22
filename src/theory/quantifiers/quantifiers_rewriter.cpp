@@ -1409,7 +1409,9 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, s
   return body;
 }
 
-Node QuantifiersRewriter::computePrenexAgg( Node n, std::map< Node, Node >& visited ){
+Node QuantifiersRewriter::computePrenexAgg(Node n,
+                                           std::map<Node, Node>& visited)
+{
   std::map< Node, Node >::iterator itv = visited[.find( n );
   if( itv!=visited.end() ){
     return itv->second;
@@ -1428,7 +1430,7 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, std::map< Node, Node >& visi
   else if (n.getKind() == FORALL)
   {
     std::vector<Node> children;
-    children.push_back(computePrenexAgg(n[1],, visited));
+    children.push_back(computePrenexAgg(n[1], , visited));
     std::vector<Node> args;
     args.insert(args.end(), n[0].begin(), n[0].end());
     // for each child, strip top level quant
@@ -2067,8 +2069,8 @@ Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
   {
     Trace("quantifiers-prenex") << "Prenexing : " << n << std::endl;
-    std::map< Node, Node > visited;
-    n = computePrenexAgg( n, visited );
+    std::map<Node, Node> visited;
+    n = computePrenexAgg(n, visited);
     n = Rewriter::rewrite( n );
     Trace("quantifiers-prenex") << "Prenexing returned : " << n << std::endl;
     //Assert( isPrenexNormalForm( n ) );

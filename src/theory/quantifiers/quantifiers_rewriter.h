@@ -254,7 +254,7 @@ class QuantifiersRewriter : public TheoryRewriter
   /**
    * Apply prenexing aggressively. Returns the prenex normal form of n.
    */
-  static Node computePrenexAgg( Node n, std::map< Node, Node >& visited );
+  static Node computePrenexAgg(Node n, std::map<Node, Node>& visited);
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
 private:
  static Node computeOperation(Node f,
