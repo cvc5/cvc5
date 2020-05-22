@@ -1382,15 +1382,13 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, s
       bool newHasPol;
       bool newPol;
       QuantPhaseReq::getPolarity( body, i, true, pol, newHasPol, newPol );
-      if( newHasPol ){
-        Node n = computePrenex( body[i], args, nargs, newPol, prenexAgg );
-        newChildren.push_back( n );
-        if( n!=body[i] ){
-          childrenChanged = true;
-        }
-      }else{
+      if( !newHasPol ){
         newChildren.push_back( body[i] );
+        continue;
       }
+      Node n = computePrenex( body[i], args, nargs, newPol, prenexAgg );
+      newChildren.push_back( n );
+        childrenChanged = n!=body[i] || childrenChanged;
     }
     if( childrenChanged ){
       if( k==NOT && newChildren[0].getKind()==NOT ){
