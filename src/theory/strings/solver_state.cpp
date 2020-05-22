@@ -26,9 +26,11 @@ namespace theory {
 namespace strings {
 
 SolverState::SolverState(context::Context* c,
+                         context::UserContext* u,
                          eq::EqualityEngine& ee,
                          Valuation& v)
     : d_context(c),
+      d_ucontext(u),
       d_ee(ee),
       d_eeDisequalities(c),
       d_valuation(v),
@@ -45,6 +47,9 @@ SolverState::~SolverState()
     delete it.second;
   }
 }
+
+context::Context* SolverState::getSatContext() const { return d_context; }
+context::UserContext* SolverState::getUserContext() const { return d_ucontext; }
 
 Node SolverState::getRepresentative(Node t) const
 {

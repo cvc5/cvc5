@@ -51,6 +51,10 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
   {
     sat_solver = "CaDiCaL";
   }
+  else if (m == options::SatSolverMode::KISSAT)
+  {
+    sat_solver = "Kissat";
+  }
   else
   {
     Assert(m == options::SatSolverMode::CRYPTOMINISAT);
@@ -166,7 +170,17 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
     throw OptionException(ss.str());
   }
 
-  if (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL)
+  if (m == SatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
+  {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires a Kissat build of CVC4; this binary was not built with "
+          "Kissat support";
+    throw OptionException(ss.str());
+  }
+
+  if (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
+      || m == SatSolverMode::KISSAT)
   {
     if (options::bitblastMode() == options::BitblastMode::LAZY
         && options::bitblastMode.wasSetByUser())
@@ -443,6 +457,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
   print_config_cond("drat2er", Configuration::isBuiltWithDrat2Er());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
+  print_config_cond("kissat", Configuration::isBuiltWithKissat());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("readline", Configuration::isBuiltWithReadline());
   print_config_cond("symfpu", Configuration::isBuiltWithSymFPU());
