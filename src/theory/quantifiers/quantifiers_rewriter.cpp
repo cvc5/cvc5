@@ -1422,42 +1422,14 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
   }
   NodeManager* nm = NodeManager::currentNM();
   Node ret = n;
-  if (topLevel
-      && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
-      && (n.getKind() == AND || (n.getKind() == NOT && n[0].getKind() == OR)))
-  {
-    std::vector<Node> children;
-    Node nc = n.getKind() == NOT ? n[0] : n;
-    for (unsigned i = 0; i < nc.getNumChildren(); i++)
-    {
-      Node ncc = computePrenexAgg(nc[i], true, visited);
-      if (n.getKind() == NOT)
-      {
-        ncc = ncc.negate();
-      }
-      children.push_back(ncc);
-    }
-    ret = nm->mkNode(AND, children);
-  }
-  else if (n.getKind() == NOT)
+  if (n.getKind() == NOT)
   {
     ret = computePrenexAgg(n[0], false, visited).negate();
   }
   else if (n.getKind() == FORALL)
   {
     std::vector<Node> children;
-    if (n[1].getKind() == OR
-        && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL)
-    {
-      for (unsigned i = 0; i < n[1].getNumChildren(); i++)
-      {
-        children.push_back(computePrenexAgg(n[1][i], false, visited));
-      }
-    }
-    else
-    {
-      children.push_back(computePrenexAgg(n[1], false, visited));
-    }
+    children.push_back(computePrenexAgg(n[1], false, visited));
     std::vector<Node> args;
     args.insert(args.end(), n[0].begin(), n[0].end());
     // for each child, strip top level quant
@@ -1929,8 +1901,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
   if( computeOption==COMPUTE_ELIM_SYMBOLS ){
     n = computeElimSymbols( n );
   }else if( computeOption==COMPUTE_MINISCOPING ){
-    if (options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
-        || options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+    if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
     {
       if( !qa.d_qid_num.isNull() ){
         //already processed this, return self
@@ -1961,8 +1932,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
-    if (options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
-        || options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+    if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
     {
       //will rewrite at preprocess time
       return f;
@@ -2095,8 +2065,7 @@ Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
     }
   }
   //pull all quantifiers globally
-  if (options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
-      || options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+  if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
   {
     Trace("quantifiers-prenex") << "Prenexing : " << n << std::endl;
     std::map< unsigned, std::map< Node, Node > > visited;

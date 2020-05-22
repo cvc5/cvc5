@@ -324,7 +324,6 @@ bool getFreeVariables(TNode n,
                       std::unordered_set<Node, NodeHashFunction>& fvs,
                       bool computeFv)
 {
-  Trace("ajr-temp") << "getFreeVariables in " << n << std::endl;
   std::unordered_set<TNode, TNodeHashFunction> bound_var;
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   std::vector<TNode> visit;

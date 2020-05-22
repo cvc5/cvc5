@@ -46,9 +46,6 @@ header = "options/quantifiers_options.h"
 [[option.mode.SIMPLE]]
   name = "simple"
   help = "Do simple prenexing of same sign quantifiers."
-[[option.mode.DISJ_NORMAL]]
-  name = "dnorm"
-  help = "Prenex to disjunctive prenex normal form."
 [[option.mode.NORMAL]]
   name = "norm"
   help = "Prenex to prenex normal form."
