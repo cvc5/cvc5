@@ -72,6 +72,8 @@ PRs ready:
 - Strings solver state minor update
 - Proof step buffer
 - Equality engine + EqProof (Haniel)
+- regexp operation + mkIndexVar
+- string rewrite for re inclusion
 
 PRs future:
 
