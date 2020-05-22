@@ -295,6 +295,10 @@ bool EqProof::foldTransitivityChildren(
       }
       else
       {
+        Trace("eqproof-conv")
+            << "EqProof::foldTransitivityChildren: Build transitivity chains "
+               "for two subs among more than 2 premises: "
+            << foldPremises << "\n";
         // hard case. Try first with t1 = t3 and see if can build it. If it can,
         // go on and build t2 = t4. Otherwise go on and build t1 = t4, t2 = t3.
         subs[0].push_back(conclusionTermEq[0]);
@@ -615,7 +619,7 @@ void EqProof::maybeAddSymmOrTrueIntroToProof(unsigned i,
 bool EqProof::buildTransitivityChain(Node conclusion,
                                      std::vector<Node>& premises) const
 {
-  Trace("eqproof-conv") << "EqProof::buildTransitivityChain: Build chain for "
+  Trace("eqproof-conv") << push << "EqProof::buildTransitivityChain: Build chain for "
                         << conclusion << " with premises " << premises << "\n";
   for (unsigned i = 0, size = premises.size(); i < size; ++i)
   {
@@ -638,7 +642,8 @@ bool EqProof::buildTransitivityChain(Node conclusion,
       {
         Trace("eqproof-conv")
             << "EqProof::buildTransitivityChain: found " << conclusion[1]
-            << " in same premise. Closed chain.\n";
+            << " in same premise. Closed chain.\n"
+            << pop;
         premises.clear();
         premises.push_back(conclusion);
         return true;
@@ -656,16 +661,14 @@ bool EqProof::buildTransitivityChain(Node conclusion,
                                         : premises[i][0].eqNode(conclusion[1]);
       Trace("eqproof-conv")
           << "EqProof::buildTransitivityChain: search recursively for "
-          << newTarget << "\n"
-          << push;
+          << newTarget << "\n";
       bool success = buildTransitivityChain(newTarget, recursivePremises);
-      Trace("eqproof-conv") << pop;
       if (success)
       {
         Trace("eqproof-conv")
             << "EqProof::buildTransitivityChain: closed chain with "
             << 1 + recursivePremises.size() << " of the original "
-            << premises.size() << " premises\n";
+            << premises.size() << " premises\n" << pop;
         premises.clear();
         premises.insert(premises.begin(),
                         correctlyOrdered
@@ -677,6 +680,7 @@ bool EqProof::buildTransitivityChain(Node conclusion,
       }
     }
   }
+  Trace("eqproof-conv") << pop;
   return false;
 }
 
