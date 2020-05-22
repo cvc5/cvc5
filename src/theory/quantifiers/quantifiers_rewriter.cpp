@@ -1342,17 +1342,19 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
 }
 
 Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg ){
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Kind k = body.getKind();
-  if( k==FORALL ){
+  if (k == FORALL)
+  {
     if( ( pol || prenexAgg ) && ( options::prenexQuantUser() || body.getNumChildren()==2 ) ){
       std::vector< Node > terms;
       std::vector< Node > subs;
       //for doing prenexing of same-signed quantifiers
       //must rename each variable that already exists
-      for (const Node& v : body[0]){
-        terms.push_back( v );
-        subs.push_back( nm->mkBoundVar( v.getType() ) );
+      for (const Node& v : body[0])
+      {
+        terms.push_back(v);
+        subs.push_back(nm->mkBoundVar(v.getType()));
       }
       if( pol ){
         args.insert( args.end(), subs.begin(), subs.end() );
@@ -1364,37 +1366,44 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, s
       return newBody;
     }
   //must remove structure
-  }else if( prenexAgg && k==ITE && body.getType().isBoolean() ){
-    Node nn = nm->mkNode( AND,
-              nm->mkNode( OR, body[0].notNode(), body[1] ),
-              nm->mkNode( OR, body[0], body[2] ) );
+  }
+  else if (prenexAgg && k == ITE && body.getType().isBoolean())
+  {
+    Node nn = nm->mkNode(AND,
+                         nm->mkNode(OR, body[0].notNode(), body[1]),
+                         nm->mkNode(OR, body[0], body[2]));
     return computePrenex( nn, args, nargs, pol, prenexAgg );
-  }else if( prenexAgg && k==EQUAL && body[0].getType().isBoolean() ){
-    Node nn = nm->mkNode( AND,
-              nm->mkNode( OR, body[0].notNode(), body[1] ),
-              nm->mkNode( OR, body[0], body[1].notNode() ) );
+  }
+  else if (prenexAgg && k == EQUAL && body[0].getType().isBoolean())
+  {
+    Node nn = nm->mkNode(AND,
+                         nm->mkNode(OR, body[0].notNode(), body[1]),
+                         nm->mkNode(OR, body[0], body[1].notNode()));
     return computePrenex( nn, args, nargs, pol, prenexAgg );
   }else if( body.getType().isBoolean() ){
     Assert(k != EXISTS);
     bool childrenChanged = false;
     std::vector< Node > newChildren;
-    for( size_t i=0, nchild = body.getNumChildren(); i<nchild; i++ ){
+    for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
+    {
       bool newHasPol;
       bool newPol;
       QuantPhaseReq::getPolarity( body, i, true, pol, newHasPol, newPol );
-      if( !newHasPol ){
+      if (!newHasPol)
+      {
         newChildren.push_back( body[i] );
         continue;
       }
-      Node n = computePrenex( body[i], args, nargs, newPol, prenexAgg );
-      newChildren.push_back( n );
-        childrenChanged = n!=body[i] || childrenChanged;
+      Node n = computePrenex(body[i], args, nargs, newPol, prenexAgg);
+      newChildren.push_back(n);
+      childrenChanged = n != body[i] || childrenChanged;
     }
     if( childrenChanged ){
-      if( k==NOT && newChildren[0].getKind()==NOT ){
+      if (k == NOT && newChildren[0].getKind() == NOT)
+      {
         return newChildren[0][0];
       }
-      return nm->mkNode( k, newChildren );
+      return nm->mkNode(k, newChildren);
     }
   }
   return body;
@@ -1483,8 +1492,9 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
         args.insert(args.end(), nnn[0].begin(), nnn[0].end());
         nnn = nnn[1];
         // pos polarity variables are inner
-        if( !args.empty() ){
-          nnn = mkForall( args, nnn, true );
+        if (!args.empty())
+        {
+          nnn = mkForall(args, nnn, true);
         }
         args.clear();
       }

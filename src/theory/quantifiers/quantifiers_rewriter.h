@@ -239,11 +239,11 @@ class QuantifiersRewriter : public TheoryRewriter
    * appearing with overall polarity pol. It adds quantified variables that
    * appear in positive polarity positions into args, and those at negative
    * polarity positions in nargs.
-   * 
+   *
    * If prenexAgg is true, we ensure that all top-level quantifiers are
    * eliminated from subformulas. This means that we must expand ITE and
    * Boolean equalities to ensure that quantifiers are at fixed polarities.
-   * 
+   *
    * For example, calling this function on:
    *   (or (forall ((x Int)) (P x z)) (not (forall ((y Int)) (Q y z))))
    * would return:
