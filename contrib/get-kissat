@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -e -o pipefail
+
+source "$(dirname "$0")/get-script-header.sh"
+
+KISSAT_DIR="${DEPS_DIR}/kissat"
+version="sc2020-039805f2"
+
+check_dep_dir "${KISSAT_DIR}"
+
+# Download and build Kissat
+setup_dep \
+  "http://fmv.jku.at/kissat/kissat-$version.tar.xz" "$KISSAT_DIR"
+cd "${KISSAT_DIR}"
+
+./configure -fPIC --quiet
+make -j${NPROC}
+install_lib build/libkissat.a
+install_includes src/kissat.h kissat
+
+echo
+echo "Using Kissat version $version"
+echo
+echo ===================== Now configure CVC4 with =====================
+echo ./configure.sh --kissat
