@@ -1181,11 +1181,22 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   return eliminateOperatorsRec(n);
 }
 
+
+void TheoryArithPrivate::checkNonLinearLogic(Node term)
+{
+  if(getLogicInfo().isLinear()){
+    Trace("arith-logic") << "ERROR: Non-linear term in linear logic: " << term << std::endl;
+    std::stringstream serr;
+    serr << "A non-linear fact was asserted to arithmetic in a linear logic." << std::endl;
+    serr << "The fact in question: " << term << endl;
+    throw LogicException(serr.str());
+  }  
+}
+
 struct ArithElimOpAttributeId
 {
 };
 typedef expr::Attribute<ArithElimOpAttributeId, Node> ArithElimOpAttribute;
-
 
 Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
 {
@@ -1338,6 +1349,7 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
                       nm->mkNode(PLUS, v, nm->mkConst(Rational(-1))))));
         }
       }else{
+        checkNonLinearLogic(node);
         lem = nm->mkNode(
             AND,
             nm->mkNode(
@@ -1392,6 +1404,7 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
       // impacts certain issues with subtyping.
       return node;
     }
+    checkNonLinearLogic(node);
     Node var;
     Node rw = nm->mkNode(k, num, den);
     NodeMap::const_iterator it = d_div_skolem.find( rw );
@@ -1412,10 +1425,12 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
   }
     case kind::DIVISION:
     {
-      TNode num = node[0], den = node[1];
+      Node num = Rewriter::rewrite(node[0]);
+      Node den = Rewriter::rewrite(node[1]);
       Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
+        checkNonLinearLogic(node);
         Node divByZeroNum = getArithSkolemApp(num, ArithSkolemId::DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
@@ -1427,10 +1442,12 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
     case kind::INTS_DIVISION:
     {
       // partial function: integer div
-      TNode num = node[0], den = node[1];
+      Node num = Rewriter::rewrite(node[0]);
+      Node den = Rewriter::rewrite(node[1]);
       Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
+        checkNonLinearLogic(node);
         Node intDivByZeroNum =
             getArithSkolemApp(num, ArithSkolemId::INT_DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
@@ -1443,10 +1460,12 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
     case kind::INTS_MODULUS:
     {
       // partial function: mod
-      TNode num = node[0], den = node[1];
+      Node num = Rewriter::rewrite(node[0]);
+      Node den = Rewriter::rewrite(node[1]);
       Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
+        checkNonLinearLogic(node);
         Node modZeroNum = getArithSkolemApp(num, ArithSkolemId::MOD_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
@@ -1471,6 +1490,7 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
     case kind::ARCSECANT:
     case kind::ARCCOTANGENT:
     {
+      checkNonLinearLogic(node);
       // eliminate inverse functions here
       NodeMap::const_iterator it = d_nlin_inverse_skolem.find(node);
       if (it == d_nlin_inverse_skolem.end())

@@ -420,6 +420,11 @@ private:
   Node ppRewriteTerms(TNode atom);
 
   /**
+   * Called when a non-linear term n is given to this class. Throw an exception
+   * if the logic is linear.
+   */
+  void checkNonLinearLogic(Node term);
+  /**
    * Eliminate operators in term n. If n has top symbol that is not a core
    * one (including division, int division, mod, to_int, is_int, syntactic sugar
    * transcendental functions), then we replace it by a form that eliminates

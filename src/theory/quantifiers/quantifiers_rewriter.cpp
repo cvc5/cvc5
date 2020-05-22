@@ -590,6 +590,7 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
         ret = ret[0].eqNode(intVar);
       }
     }
+    /*
     else if (ret.getKind()==WITNESS)
     {
       Node var = nm->mkBoundVar(ret[0][0].getType());
@@ -599,6 +600,7 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
       new_conds.push_back(ret[1].substitute(tvar,tsubs));
       ret = var;
     }
+    */
   }
   cache[body] = ret;
   return ret;
