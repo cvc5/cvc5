@@ -43,7 +43,9 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
                                                  const std::string& name)
 {
 #ifdef CVC4_USE_CRYPTOMINISAT
-  return new CryptoMinisatSolver(registry, name);
+  CryptoMinisatSolver* res = new CryptoMinisatSolver(registry, name);
+  res->init();
+  return res;
 #else
   Unreachable() << "CVC4 was not compiled with Cryptominisat support.";
 #endif
