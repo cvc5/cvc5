@@ -1328,7 +1328,7 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
     Node den = Rewriter::rewrite(node[1]);
     if (den.isConst())
     {
-      // No need to eliminate here, can eliminate via rewriting. Moreover,
+      // No need to eliminate here, can eliminate via rewriting later. Moreover,
       // rewriting may change the type of this node from real to int, which
       // impacts certain issues with subtyping.
       return node;
@@ -1485,7 +1485,8 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
           lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
         }
         Assert(!lem.isNull());
-        Node ret = nm->mkNode(WITNESS, nm->mkNode(BOUND_VAR_LIST, var), lem);
+        Node ret = ProofSkolemCache::mkSkolem(var, lem, "tfk", "Skolem to eliminate a non-standard transcendental function");
+        ret = ProofSkolemCache::getWitnessForm(ret);
         d_nlin_inverse_skolem[node] = ret;
         return ret;
       }
