@@ -1409,10 +1409,9 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, s
   return body;
 }
 
-Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< unsigned, std::map< Node, Node > >& visited ){
-  unsigned tindex = topLevel ? 0 : 1;
-  std::map< Node, Node >::iterator itv = visited[tindex].find( n );
-  if( itv!=visited[tindex].end() ){
+Node QuantifiersRewriter::computePrenexAgg( Node n, std::map< Node, Node >& visited ){
+  std::map< Node, Node >::iterator itv = visited[.find( n );
+  if( itv!=visited.end() ){
     return itv->second;
   }
   if (!expr::hasClosure(n))
@@ -1424,12 +1423,12 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
   Node ret = n;
   if (n.getKind() == NOT)
   {
-    ret = computePrenexAgg(n[0], false, visited).negate();
+    ret = computePrenexAgg(n[0], visited).negate();
   }
   else if (n.getKind() == FORALL)
   {
     std::vector<Node> children;
-    children.push_back(computePrenexAgg(n[1], false, visited));
+    children.push_back(computePrenexAgg(n[1],, visited));
     std::vector<Node> args;
     args.insert(args.end(), n[0].begin(), n[0].end());
     // for each child, strip top level quant
@@ -1457,7 +1456,7 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
     Node nn = computePrenex(n, args, nargs, true, true);
     if (n != nn)
     {
-      Node nnn = computePrenexAgg(nn, false, visited);
+      Node nnn = computePrenexAgg(nn, visited);
       // merge prenex
       if (nnn.getKind() == FORALL)
       {
@@ -2068,8 +2067,8 @@ Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
   {
     Trace("quantifiers-prenex") << "Prenexing : " << n << std::endl;
-    std::map< unsigned, std::map< Node, Node > > visited;
-    n = computePrenexAgg( n, true, visited );
+    std::map< Node, Node > visited;
+    n = computePrenexAgg( n, visited );
     n = Rewriter::rewrite( n );
     Trace("quantifiers-prenex") << "Prenexing returned : " << n << std::endl;
     //Assert( isPrenexNormalForm( n ) );
