@@ -71,6 +71,19 @@ class CryptoMinisatSolver : public SatSolver
   void setClausalProofLog(proof::ClausalBitVectorProof* bvp) override;
 
  private:
+  class Statistics
+  {
+   public:
+    StatisticsRegistry* d_registry;
+    IntStat d_statCallsToSolve;
+    IntStat d_xorClausesAdded;
+    IntStat d_clausesAdded;
+    TimerStat d_solveTime;
+    bool d_registerStats;
+    Statistics(StatisticsRegistry* registry, const std::string& prefix);
+    ~Statistics();
+  };
+
   /**
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
@@ -89,19 +102,6 @@ class CryptoMinisatSolver : public SatSolver
   bool d_okay;
   SatVariable d_true;
   SatVariable d_false;
-
-  class Statistics
-  {
-   public:
-    StatisticsRegistry* d_registry;
-    IntStat d_statCallsToSolve;
-    IntStat d_xorClausesAdded;
-    IntStat d_clausesAdded;
-    TimerStat d_solveTime;
-    bool d_registerStats;
-    Statistics(StatisticsRegistry* registry, const std::string& prefix);
-    ~Statistics();
-  };
 
   Statistics d_statistics;
 };
