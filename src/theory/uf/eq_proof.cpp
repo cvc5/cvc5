@@ -415,16 +415,7 @@ bool EqProof::foldTransitivityChildren(
     if (foldPremises.size() > 1 && !assumptions.count(foldConclusion))
     {
       // create transitivity step to derive expected premise
-      unsigned newSize = foldPremises.size();
-      maybeAddSymmOrTrueIntroToProof(
-          0, foldPremises, true, foldConclusion[0], p);
-      for (unsigned i = 1; i < newSize - 1; ++i)
-      {
-        maybeAddSymmOrTrueIntroToProof(
-            i, foldPremises, true, foldPremises[i - 1][1], p);
-      }
-      maybeAddSymmOrTrueIntroToProof(
-          newSize - 1, foldPremises, false, foldConclusion[1], p);
+      buildTransitivityChain(foldConclusion, foldPremises);
       Trace("eqproof-conv")
           << "EqProof::foldTransitivityChildren: add transitivity step for "
           << foldConclusion << " with premises " << foldPremises << "\n";
