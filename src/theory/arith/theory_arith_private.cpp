@@ -227,43 +227,6 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
   // return safeConstructNary(nb);
 }
 
-// Integer division axioms:
-// These concenrate the high level constructs needed to constrain the functions:
-// div, mod, div_total and mod_total.
-//
-// The high level constraint.
-// (for all ((m Int) (n Int))
-//   (=> (distinct n 0)
-//       (let ((q (div m n)) (r (mod m n)))
-//         (and (= m (+ (* n q) r))
-//              (<= 0 r (- (abs n) 1))))))
-//
-// We now add division by 0 functions.
-// (for all ((m Int) (n Int))
-//   (let ((q (div m n)) (r (mod m n)))
-//     (ite (= n 0)
-//          (and (= q (div_0_func m)) (= r (mod_0_func m)))
-//          (and (= m (+ (* n q) r))
-//               (<= 0 r (- (abs n) 1)))))))
-//
-// We now express div and mod in terms of div_total and mod_total.
-// (for all ((m Int) (n Int))
-//   (let ((q (div m n)) (r (mod m n)))
-//     (ite (= n 0)
-//          (and (= q (div_0_func m)) (= r (mod_0_func m)))
-//          (and (= q (div_total m n)) (= r (mod_total m n))))))
-//
-// Alternative div_total and mod_total without the abs function:
-// (for all ((m Int) (n Int))
-//   (let ((q (div_total m n)) (r (mod_total m n)))
-//     (ite (= n 0)
-//          (and (= q 0) (= r 0))
-//          (and (r = m - n * q)
-//               (ite (> n 0)
-//                    (n*q <= m < n*q + n)
-//                    (n*q <= m < n*q - n))))))
-
-
 // Returns a formula that entails that q equals the total integer division of m
 // by n.
 // (for all ((m Int) (n Int))
@@ -284,42 +247,6 @@ Node mkAxiomForTotalIntDivision(Node m, Node n, Node q) {
       q.eqNode(zero), nm->mkNode(kind::GT, n, zero)
                           .iteNode(when_n_is_positive, when_n_is_negative));
 }
-
-// Returns a formula that entails that r equals the integer division total of m
-// by n assuming q is equal to (div_total m n).
-// (for all ((m Int) (n Int))
-//   (let ((q (div_total m n)) (r (mod_total m n)))
-//     (ite (= n 0)
-//          (= r 0)
-//          (= r (- m (n * q))))))
-Node mkAxiomForTotalIntMod(Node m, Node n, Node q, Node r) {
-  NodeManager* nm = NodeManager::currentNM();
-  Node diff = nm->mkNode(kind::MINUS, m, mkMult(n, q));
-  return mkOnZeroIte(n, r, mkRationalNode(0), diff);
-}
-
-// Returns an expression that constrains a term to be the result of the
-// [total] integer division of num by den. Equivalently:
-// (and (=> (den > 0) (den*term <= num < den*term + den))
-//      (=> (den < 0) (den*term <= num < den*term - den))
-//      (=> (den = 0) (term = 0)))
-// static Node mkIntegerDivisionConstraint(Node term, Node num, Node den) {
-//   // We actually encode:
-//   // (and (=> (den > 0) (0 <= num - den*term < den))
-//   //      (=> (den < 0) (0 <= num - den*term < -den))
-//   //      (=> (den = 0) (term = 0)))
-//   NodeManager* nm = NodeManager::currentNM();
-//   Node zero = nm->mkConst(Rational(0));
-//   Node den_is_positive = nm->mkNode(kind::GT, den, zero);
-//   Node den_is_negative = nm->mkNode(kind::LT, den, zero);
-//   Node diff = nm->mkNode(kind::MINUS, num, mkMult(den, term));
-//   Node when_den_positive = den_positive.impNode(mkInRange(diff, zero, den));
-//   Node when_den_negative = den_negative.impNode(
-//       mkInRange(diff, zero, nm->mkNode(kind::UMINUS, den)));
-//   Node when_den_is_zero = (den.eqNode(zero)).impNode(term.eqNode(zero));
-//   return mk->mkNode(kind::AND, when_den_positive, when_den_negative,
-//                     when_den_is_zero);
-// }
 
 void TheoryArithPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_congruenceManager.setMasterEqualityEngine(eq);
@@ -1293,7 +1220,9 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
       // 0 <= node[0] - toIntSkolem < 1
       Node v = nm->mkBoundVar(nm->integerType());
       Node one = mkRationalNode(1);
-      Node lem = mkAxiomForTotalIntDivision(node[0], one, v);
+      Node zero = mkRationalNode(0);
+      Node diff = nm->mkNode(kind::MINUS, node[0], v);
+      Node lem = mkInRange(diff, zero, one);
       toIntSkolem = ProofSkolemCache::mkSkolem(
           v, lem, "toInt", "a conversion of a Real term to its Integer part");
       toIntSkolem = ProofSkolemCache::getWitnessForm(toIntSkolem);
@@ -1505,7 +1434,7 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
               kind::AND, nm->mkNode(kind::MULT, var, var).eqNode(node[0]), uf);
 
           // sqrt(x) reduces to:
-          // witness y. ite(x >= 0.0, y * y = x ^ Uf(x), Uf(x))
+          // witness y. ite(x >= 0.0, y * y = x ^ y = Uf(x), y = Uf(x))
           //
           // Uf(x) makes sure that the reduction still behaves like a function,
           // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
