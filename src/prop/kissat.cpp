@@ -127,7 +127,7 @@ SatValue KissatSolver::solve(long unsigned int&)
 
 SatValue KissatSolver::solve(const std::vector<SatLiteral>& assumptions)
 {
-  Unimplemented() << "Incrementel solving with Kissat not supported yet";
+  Unimplemented() << "Incremental solving with Kissat not supported yet";
 }
 
 void KissatSolver::interrupt() { kissat_terminate(d_solver); }

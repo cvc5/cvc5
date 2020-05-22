@@ -63,6 +63,17 @@ class KissatSolver : public SatSolver
   bool ok() const override;
 
  private:
+  struct Statistics
+  {
+    StatisticsRegistry* d_registry;
+    IntStat d_numSatCalls;
+    IntStat d_numVariables;
+    IntStat d_numClauses;
+    TimerStat d_solveTime;
+    Statistics(StatisticsRegistry* registry, const std::string& prefix);
+    ~Statistics();
+  };
+
   /**
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
@@ -80,17 +91,6 @@ class KissatSolver : public SatSolver
   bool d_okay;
   SatVariable d_true;
   SatVariable d_false;
-
-  struct Statistics
-  {
-    StatisticsRegistry* d_registry;
-    IntStat d_numSatCalls;
-    IntStat d_numVariables;
-    IntStat d_numClauses;
-    TimerStat d_solveTime;
-    Statistics(StatisticsRegistry* registry, const std::string& prefix);
-    ~Statistics();
-  };
 
   Statistics d_statistics;
 };
