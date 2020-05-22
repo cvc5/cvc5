@@ -1412,7 +1412,7 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, s
 Node QuantifiersRewriter::computePrenexAgg(Node n,
                                            std::map<Node, Node>& visited)
 {
-  std::map< Node, Node >::iterator itv = visited[.find( n );
+  std::map< Node, Node >::iterator itv = visited.find( n );
   if( itv!=visited.end() ){
     return itv->second;
   }
@@ -1430,7 +1430,7 @@ Node QuantifiersRewriter::computePrenexAgg(Node n,
   else if (n.getKind() == FORALL)
   {
     std::vector<Node> children;
-    children.push_back(computePrenexAgg(n[1], , visited));
+    children.push_back(computePrenexAgg(n[1], visited));
     std::vector<Node> args;
     args.insert(args.end(), n[0].begin(), n[0].end());
     // for each child, strip top level quant
@@ -1492,7 +1492,7 @@ Node QuantifiersRewriter::computePrenexAgg(Node n,
       Assert(nargs.empty());
     }
   }
-  visited[tindex][n] = ret;
+  visited[n] = ret;
   return ret;
 }
 
