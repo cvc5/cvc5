@@ -324,6 +324,7 @@ bool getFreeVariables(TNode n,
                       std::unordered_set<Node, NodeHashFunction>& fvs,
                       bool computeFv)
 {
+  Trace("ajr-temp") << "getFreeVariables in " << n << std::endl;
   std::unordered_set<TNode, TNodeHashFunction> bound_var;
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   std::vector<TNode> visit;
@@ -362,6 +363,10 @@ bool getFreeVariables(TNode n,
       {
         for (const TNode& cn : cur[0])
         {
+          if (bound_var.find(cn) != bound_var.end())
+          {
+            Trace("ajr-temp") << "Shadow variable " << cn << std::endl;
+          }
           // should not shadow
           Assert(bound_var.find(cn) == bound_var.end());
           bound_var.insert(cn);

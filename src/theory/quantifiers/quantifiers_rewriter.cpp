@@ -1407,116 +1407,107 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
   if( itv!=visited[tindex].end() ){
     return itv->second;
   }
-  if (expr::hasClosure(n))
+  if (!expr::hasClosure(n))
   {
-    Node ret = n;
-    if (topLevel
-        && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
-        && (n.getKind() == AND || (n.getKind() == NOT && n[0].getKind() == OR)))
-    {
-      std::vector< Node > children;
-      Node nc = n.getKind()==NOT ? n[0] : n;
-      for( unsigned i=0; i<nc.getNumChildren(); i++ ){
-        Node ncc = computePrenexAgg( nc[i], true, visited );
-        if( n.getKind()==NOT ){
-          ncc = ncc.negate();        
-        }
-        children.push_back( ncc );
+    // trivial
+    return n;
+  }
+  Node ret = n;
+  if (topLevel
+      && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
+      && (n.getKind() == AND || (n.getKind() == NOT && n[0].getKind() == OR)))
+  {
+    std::vector< Node > children;
+    Node nc = n.getKind()==NOT ? n[0] : n;
+    for( unsigned i=0; i<nc.getNumChildren(); i++ ){
+      Node ncc = computePrenexAgg( nc[i], true, visited );
+      if( n.getKind()==NOT ){
+        ncc = ncc.negate();        
       }
-      ret = NodeManager::currentNM()->mkNode( AND, children );
+      children.push_back( ncc );
     }
-    else if (n.getKind() == NOT)
+    ret = NodeManager::currentNM()->mkNode( AND, children );
+  }
+  else if (n.getKind() == NOT)
+  {
+    ret = computePrenexAgg( n[0], false, visited ).negate();
+  }
+  else if (n.getKind() == FORALL)
+  {
+    std::vector< Node > children;
+    if (n[1].getKind() == OR
+        && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL)
     {
-      ret = computePrenexAgg( n[0], false, visited ).negate();
-    }
-    else if (n.getKind() == FORALL)
-    {
-      /*
-        Node nn = computePrenexAgg( n[1], false );
-        if( nn!=n[1] ){
-          if( n.getNumChildren()==2 ){
-            return NodeManager::currentNM()->mkNode( FORALL, n[0], nn );
-          }else{
-            return NodeManager::currentNM()->mkNode( FORALL, n[0], nn, n[2] );
-          }
-        }
-        */
-      std::vector< Node > children;
-      if (n[1].getKind() == OR
-          && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL)
-      {
-        for( unsigned i=0; i<n[1].getNumChildren(); i++ ){
-          children.push_back( computePrenexAgg( n[1][i], false, visited ) );
-        }
+      for( unsigned i=0; i<n[1].getNumChildren(); i++ ){
+        children.push_back( computePrenexAgg( n[1][i], false, visited ) );
       }
-      else
-      {
-        children.push_back( computePrenexAgg( n[1], false, visited ) );
-      }
-      std::vector< Node > args;
-      for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
-        args.push_back( n[0][i] );
-      }
-      std::vector< Node > nargs;
-      //for each child, strip top level quant
-      for( unsigned i=0; i<children.size(); i++ ){
-        if( children[i].getKind()==FORALL ){
-          for( unsigned j=0; j<children[i][0].getNumChildren(); j++ ){
-            args.push_back( children[i][0][j] );
-          }
-          children[i] = children[i][1];
-        }
-      }
-      // keep the pattern
-      std::vector< Node > iplc;
-      if( n.getNumChildren()==3 ){
-        for( unsigned i=0; i<n[2].getNumChildren(); i++ ){
-          iplc.push_back( n[2][i] );
-        }
-      } 
-      Node nb = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children );
-      ret = mkForall( args, nb, iplc, true );
     }
     else
     {
-      std::vector< Node > args;
-      std::vector< Node > nargs;
-      Node nn = computePrenex( n, args, nargs, true, true );
-      if( n!=nn ){
-        Node nnn = computePrenexAgg( nn, false, visited );
-        //merge prenex
-        if( nnn.getKind()==FORALL ){
-          for( unsigned i=0; i<nnn[0].getNumChildren(); i++ ){
-            args.push_back( nnn[0][i] );
-          }
-          nnn = nnn[1];
-          //pos polarity variables are inner
-          if( !args.empty() ){
-            nnn = mkForall( args, nnn, true );
-          }
-          args.clear();
-        }else if( nnn.getKind()==NOT && nnn[0].getKind()==FORALL ){
-          for( unsigned i=0; i<nnn[0][0].getNumChildren(); i++ ){
-            nargs.push_back( nnn[0][0][i] );
-          }
-          nnn = nnn[0][1].negate();
+      children.push_back( computePrenexAgg( n[1], false, visited ) );
+    }
+    std::vector< Node > args;
+    for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
+      args.push_back( n[0][i] );
+    }
+    std::vector< Node > nargs;
+    //for each child, strip top level quant
+    for( unsigned i=0; i<children.size(); i++ ){
+      if( children[i].getKind()==FORALL ){
+        for( unsigned j=0; j<children[i][0].getNumChildren(); j++ ){
+          args.push_back( children[i][0][j] );
         }
-        if( !nargs.empty() ){
-          nnn = mkForall( nargs, nnn.negate(), true ).negate();
+        children[i] = children[i][1];
+      }
+    }
+    // keep the pattern
+    std::vector< Node > iplc;
+    if( n.getNumChildren()==3 ){
+      for( unsigned i=0; i<n[2].getNumChildren(); i++ ){
+        iplc.push_back( n[2][i] );
+      }
+    } 
+    Node nb = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children );
+    ret = mkForall( args, nb, iplc, true );
+  }
+  else
+  {
+    std::vector< Node > args;
+    std::vector< Node > nargs;
+    Node nn = computePrenex( n, args, nargs, true, true );
+    if( n!=nn ){
+      Node nnn = computePrenexAgg( nn, false, visited );
+      //merge prenex
+      if( nnn.getKind()==FORALL ){
+        for( unsigned i=0; i<nnn[0].getNumChildren(); i++ ){
+          args.push_back( nnn[0][i] );
         }
+        nnn = nnn[1];
+        //pos polarity variables are inner
         if( !args.empty() ){
           nnn = mkForall( args, nnn, true );
         }
-        ret = nnn;
-      }else{
-        Assert(args.empty());
-        Assert(nargs.empty());
+        args.clear();
+      }else if( nnn.getKind()==NOT && nnn[0].getKind()==FORALL ){
+        for( unsigned i=0; i<nnn[0][0].getNumChildren(); i++ ){
+          nargs.push_back( nnn[0][0][i] );
+        }
+        nnn = nnn[0][1].negate();
       }
+      if( !nargs.empty() ){
+        nnn = mkForall( nargs, nnn.negate(), true ).negate();
+      }
+      if( !args.empty() ){
+        nnn = mkForall( args, nnn, true );
+      }
+      ret = nnn;
+    }else{
+      Assert(args.empty());
+      Assert(nargs.empty());
     }
-    visited[tindex][n] = ret;
-    return ret;
   }
-  return n;
+  visited[tindex][n] = ret;
+  return ret;
 }
 
 Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QAttributes& qa ) {
