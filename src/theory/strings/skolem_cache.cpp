@@ -27,7 +27,6 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-
 /**
  * A bound variable corresponding to the universally quantified integer
  * variable used to range over the valid positions in a string, used
