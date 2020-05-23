@@ -114,7 +114,6 @@ tokens {
 
   FORALL_TOK = 'FORALL';
   EXISTS_TOK = 'EXISTS';
-  CHOICE_TOK = 'CHOICE';
   PATTERN_TOK = 'PATTERN';
 
   LAMBDA_TOK = 'LAMBDA';
@@ -348,8 +347,7 @@ int getOperatorPrecedence(int type) {
   case IMPLIES_TOK: return 30;// right-to-left
   case IFF_TOK: return 31;
   case FORALL_TOK:
-  case EXISTS_TOK:
-  case CHOICE_TOK: return 32;
+  case EXISTS_TOK:return 32;
   case ASSIGN_TOK:
   case IN_TOK: return 33;
 
@@ -1471,7 +1469,7 @@ prefixFormula[CVC4::api::Term& f]
   api::Term ipl;
 }
     /* quantifiers */
-  : ( FORALL_TOK { k = api::FORALL; } | EXISTS_TOK { k = api::EXISTS; } | CHOICE_TOK { k = api::CHOICE; } )
+  : ( FORALL_TOK { k = api::FORALL; } | EXISTS_TOK { k = api::EXISTS; } )
     { PARSER_STATE->pushScope(); } LPAREN
     boundVarDecl[ids,t]
     { for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
@@ -2034,25 +2032,25 @@ stringTerm[CVC4::api::Term& f]
   | STRING_LENGTH_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::STRING_LENGTH, f); }
   | STRING_CONTAINS_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRCTN, f, f2); }
+    { f = MK_TERM(CVC4::api::STRING_CONTAINS, f, f2); }
   | STRING_SUBSTR_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_TERM(CVC4::api::STRING_SUBSTR, f, f2, f3); }
   | STRING_CHARAT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::STRING_CHARAT, f, f2); }
   | STRING_INDEXOF_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRIDOF, f, f2, f3); }
+    { f = MK_TERM(CVC4::api::STRING_INDEXOF, f, f2, f3); }
   | STRING_REPLACE_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRREPL, f, f2, f3); }
+    { f = MK_TERM(CVC4::api::STRING_REPLACE, f, f2, f3); }
   | STRING_REPLACE_ALL_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRREPLALL, f, f2, f3); }
+    { f = MK_TERM(CVC4::api::STRING_REPLACE_ALL, f, f2, f3); }
   | STRING_PREFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::STRING_PREFIX, f, f2); }
   | STRING_SUFFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::STRING_SUFFIX, f, f2); }
   | STRING_STOI_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STOI, f); }
+    { f = MK_TERM(CVC4::api::STRING_TO_INT, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_ITOS, f); }
+    { f = MK_TERM(CVC4::api::STRING_FROM_INT, f); }
   | STRING_TO_REGEXP_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::STRING_TO_REGEXP, f); }
   | STRING_TOLOWER_TOK LPAREN formula[f] RPAREN

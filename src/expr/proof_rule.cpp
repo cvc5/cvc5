@@ -24,6 +24,8 @@ const char* toString(PfRule id)
   {
     //================================================= Core rules
     case PfRule::ASSUME: return "ASSUME";
+    case PfRule::SCOPE: return "SCOPE";
+
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

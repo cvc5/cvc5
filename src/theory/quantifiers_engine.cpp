@@ -118,7 +118,7 @@ class QuantifiersEnginePrivate
       d_inst_engine.reset(new quantifiers::InstantiationEngine(qe));
       modules.push_back(d_inst_engine.get());
     }
-    if (options::cbqi())
+    if (options::cegqi())
     {
       d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
       modules.push_back(d_i_cbqi.get());

@@ -307,7 +307,6 @@ ExprSequence Sequence::toExprSequence()
   return ExprSequence(d_type.toType(), seq);
 }
 
-
 std::ostream& operator<<(std::ostream& os, const Sequence& s)
 {
   const std::vector<Node>& vec = s.getVec();

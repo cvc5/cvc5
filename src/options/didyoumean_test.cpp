@@ -165,9 +165,9 @@ set<string> getDebugTags() {
   a.insert("bvminisat");
   a.insert("bvminisat::explain");
   a.insert("bvminisat::search");
-  a.insert("cbqi");
-  a.insert("cbqi-debug");
-  a.insert("cbqi-prop-as-dec");
+  a.insert("cegqi");
+  a.insert("cegqi-debug");
+  a.insert("cegqi-prop-as-dec");
   a.insert("cd_set_collection");
   a.insert("cdlist");
   a.insert("cdlist:cmm");
@@ -605,7 +605,7 @@ set<string> getOptionStrings() {
       "literal-matching",
       "enable-cbqi",
       "no-enable-cbqi",
-      "cbqi-recurse",
+      "cegqi-recurse",
       "no-cbqi-recurse",
       "user-pat",
       "flip-decision",

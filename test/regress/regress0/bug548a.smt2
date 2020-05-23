@@ -1,4 +1,4 @@
-; COMMAND-LINE: --rewrite-divk --tlimit 1000
+; COMMAND-LINE: --tlimit 1000
 ; EXPECT: unknown
 (set-logic AUFLIA)
 (declare-fun f (Int) Int)

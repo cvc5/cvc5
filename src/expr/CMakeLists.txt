@@ -43,10 +43,14 @@ libcvc4_add_sources(
   proof_checker.h
   proof_node.cpp
   proof_node.h
+  proof_node_to_sexpr.cpp
+  proof_node_to_sexpr.h
   proof_node_manager.cpp
   proof_node_manager.h
   proof_rule.cpp
   proof_rule.h
+  proof_skolem_cache.cpp
+  proof_skolem_cache.h
   symbol_table.cpp
   symbol_table.h
   term_canonize.cpp
@@ -69,6 +73,8 @@ libcvc4_add_sources(
   dtype_selector.cpp
   record.cpp
   record.h
+  sequence.cpp
+  sequence.h
   sygus_datatype.cpp
   sygus_datatype.h
   uninterpreted_constant.cpp

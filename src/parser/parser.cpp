@@ -895,8 +895,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
 Expr Parser::mkStringConstant(const std::string& s)
 {
   ExprManager* em = d_solver->getExprManager();
-  if (em->getOptions().getInputLanguage()
-      == language::input::LANG_SMTLIB_V2_6_1)
+  if (language::isInputLang_smt2_6(em->getOptions().getInputLanguage()))
   {
     return d_solver->mkString(s, true).getExpr();
   }
