@@ -85,7 +85,8 @@ bool ExprSequence::operator>=(const ExprSequence& es) const
 
 std::ostream& operator<<(std::ostream& os, const ExprSequence& s)
 {
-  return os << "__expr_sequence__(" << s.getType() << ", " << s.getSequence() << ")";
+  return os << "__expr_sequence__(" << s.getType() << ", " << s.getSequence()
+            << ")";
 }
 
 size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const
