@@ -1,8 +1,6 @@
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
 (set-option :strings-exp true)
-;(set-option :produce-models true)
-;(set-option :rewrite-divk true)
 
 (declare-fun uri () String)
 

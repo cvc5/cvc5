@@ -65,7 +65,7 @@ int main()
   Sort integer = slv.getIntegerSort();
   Sort boolean = slv.getBooleanSort();
 
-  // declare input variables for the function-to-synthesize
+  // declare input variables for the functions-to-synthesize
   Term x = slv.mkVar(integer, "x");
   Term y = slv.mkVar(integer, "y");
 
@@ -78,7 +78,7 @@ int main()
   Term one = slv.mkReal(1);
 
   Term plus = slv.mkTerm(PLUS, start, start);
-  Term minus = slv.mkTerm(PLUS, start, start);
+  Term minus = slv.mkTerm(MINUS, start, start);
   Term ite = slv.mkTerm(ITE, start_bool, start, start);
 
   Term And = slv.mkTerm(AND, start_bool, start_bool);
@@ -92,7 +92,7 @@ int main()
   g.addRules(start, {zero, one, x, y, plus, minus, ite});
   g.addRules(start_bool, {And, Not, leq});
 
-  // declare the function-to-synthesize. Optionally, provide the grammar
+  // declare the functions-to-synthesize. Optionally, provide the grammar
   // constraints
   Term max = slv.synthFun("max", {x, y}, integer, g);
   Term min = slv.synthFun("min", {x, y}, integer);
@@ -104,7 +104,7 @@ int main()
   Term max_x_y = slv.mkTerm(APPLY_UF, max, varX, varY);
   Term min_x_y = slv.mkTerm(APPLY_UF, min, varX, varY);
 
-  // add logical constraints
+  // add semantic constraints
   // (constraint (>= (max x y) x))
   slv.addSygusConstraint(slv.mkTerm(GEQ, max_x_y, varX));
 
