@@ -264,7 +264,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
           // Add a constant string to the side with more `cn`s to restore
           // the difference in number of `cn`s
           std::vector<Node> vec(diff, cn);
-          trimmed[j].push_back(Word::mkWord(vec));
+          trimmed[j].push_back(Word::mkWordFlatten(vec));
         }
       }
 
@@ -602,7 +602,7 @@ Node SequencesRewriter::rewriteConcat(Node node)
           std::vector<Node> wvec;
           wvec.push_back(preNode);
           wvec.push_back(tmpNode[0]);
-          preNode = Word::mkWord(wvec);
+          preNode = Word::mkWordFlatten(wvec);
           node_vec.push_back(preNode);
         }
         else
@@ -3101,7 +3101,7 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
     seq.push_back(node[0].toExpr());
     TypeNode stype = nm->mkSequenceType(node[0].getType());
     Node ret = nm->mkConst(ExprSequence(stype.toType(), seq));
-    return returnRewrite(node, ret, "seq-unit-eval");
+    return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }
   return node;
 }
