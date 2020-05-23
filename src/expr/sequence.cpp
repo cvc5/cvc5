@@ -26,6 +26,7 @@ Sequence& Sequence::operator=(const Sequence& y)
 {
   if (this != &y)
   {
+    d_type = y.d_type;
     d_seq = y.d_seq;
   }
   return *this;
@@ -33,6 +34,7 @@ Sequence& Sequence::operator=(const Sequence& y)
 
 int Sequence::cmp(const Sequence& y) const
 {
+  Assert(d_type == y.d_type);
   if (size() != y.size())
   {
     return size() < y.size() ? -1 : 1;
@@ -57,6 +59,7 @@ Sequence Sequence::concat(const Sequence& other) const
 
 bool Sequence::strncmp(const Sequence& y, size_t n) const
 {
+  Assert(d_type == y.d_type);
   size_t b = (size() >= y.size()) ? size() : y.size();
   size_t s = (size() <= y.size()) ? size() : y.size();
   if (n > s)
@@ -79,6 +82,7 @@ bool Sequence::strncmp(const Sequence& y, size_t n) const
 
 bool Sequence::rstrncmp(const Sequence& y, size_t n) const
 {
+  Assert(d_type == y.d_type);
   size_t b = (size() >= y.size()) ? size() : y.size();
   size_t s = (size() <= y.size()) ? size() : y.size();
   if (n > s)
@@ -113,6 +117,7 @@ Node Sequence::back() const
 
 size_t Sequence::overlap(const Sequence& y) const
 {
+  Assert(d_type == y.d_type);
   size_t i = size() < y.size() ? size() : y.size();
   for (; i > 0; i--)
   {
@@ -128,6 +133,7 @@ size_t Sequence::overlap(const Sequence& y) const
 
 size_t Sequence::roverlap(const Sequence& y) const
 {
+  Assert(d_type == y.d_type);
   size_t i = size() < y.size() ? size() : y.size();
   for (; i > 0; i--)
   {
@@ -159,6 +165,7 @@ bool Sequence::isRepeated() const
 
 size_t Sequence::find(const Sequence& y, size_t start) const
 {
+  Assert(d_type == y.d_type);
   if (size() < y.size() + start)
   {
     return std::string::npos;
@@ -182,6 +189,7 @@ size_t Sequence::find(const Sequence& y, size_t start) const
 
 size_t Sequence::rfind(const Sequence& y, size_t start) const
 {
+  Assert(d_type == y.d_type);
   if (size() < y.size() + start)
   {
     return std::string::npos;
@@ -205,6 +213,7 @@ size_t Sequence::rfind(const Sequence& y, size_t start) const
 
 bool Sequence::hasPrefix(const Sequence& y) const
 {
+  Assert(d_type == y.d_type);
   size_t s = size();
   size_t ys = y.size();
   if (ys > s)
@@ -223,6 +232,7 @@ bool Sequence::hasPrefix(const Sequence& y) const
 
 bool Sequence::hasSuffix(const Sequence& y) const
 {
+  Assert(d_type == y.d_type);
   size_t s = size();
   size_t ys = y.size();
   if (ys > s)
@@ -258,6 +268,7 @@ Sequence Sequence::replace(const Sequence& s, const Sequence& t) const
 
 Sequence Sequence::substr(size_t i) const
 {
+  Assert(i >= 0);
   Assert(i <= size());
   std::vector<Node> ret_vec;
   std::vector<Node>::const_iterator itr = d_seq.begin() + i;
@@ -267,6 +278,8 @@ Sequence Sequence::substr(size_t i) const
 
 Sequence Sequence::substr(size_t i, size_t j) const
 {
+  Assert(i >= 0);
+  Assert(j >= 0);
   Assert(i + j <= size());
   std::vector<Node> ret_vec;
   std::vector<Node>::const_iterator itr = d_seq.begin() + i;
@@ -294,6 +307,7 @@ ExprSequence Sequence::toExprSequence()
   return ExprSequence(d_type.toType(), seq);
 }
 
+
 std::ostream& operator<<(std::ostream& os, const Sequence& s)
 {
   const std::vector<Node>& vec = s.getVec();
@@ -314,19 +328,15 @@ std::ostream& operator<<(std::ostream& os, const Sequence& s)
   return os << ss.str();
 }
 
-namespace strings {
-
 size_t SequenceHashFunction::operator()(const Sequence& s) const
 {
   size_t ret = 0;
   const std::vector<Node>& vec = s.getVec();
   for (const Node& n : vec)
   {
-    ret = ret + NodeHashFunction()(n);
+    ret = fnv1a::fnv1a_64(ret, NodeHashFunction()(n));
   }
   return ret;
 }
-
-}  // namespace strings
 
 }  // namespace CVC4
