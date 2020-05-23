@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sequence.cpp
+/*! \file expr_sequence.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
