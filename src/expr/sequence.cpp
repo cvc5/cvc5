@@ -14,6 +14,8 @@
 
 #include "expr/sequence.h"
 
+#include "expr/expr_sequence.h"
+
 using namespace std;
 
 namespace CVC4 {
