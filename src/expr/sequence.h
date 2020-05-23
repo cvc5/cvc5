@@ -143,7 +143,7 @@ class Sequence
    * Corresponds to the maximum size of d_seq.
    */
   static size_t maxSize();
-  
+
   //!!!!!!!!!!!!!!! temporary
   ExprSequence toExprSequence();
   //!!!!!!!!!!!!!!! end temporary
