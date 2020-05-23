@@ -85,9 +85,7 @@ bool ExprSequence::operator>=(const ExprSequence& es) const
 
 std::ostream& operator<<(std::ostream& os, const ExprSequence& s)
 {
-  // FIXME
-  return os << "\""
-            << "\"";
+  return os << "__expr_sequence__(" << s.getType() << ", " << s.getType() << ")";
 }
 
 size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const
