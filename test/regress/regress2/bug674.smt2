@@ -1,4 +1,4 @@
-; COMMAND-LINE: --quant-ind --incremental --rewrite-divk
+; COMMAND-LINE: --quant-ind --incremental
 (set-logic ALL_SUPPORTED)
 (declare-datatypes ((Lst 0)) (((cons (head Int) (tail Lst)) (nil))))
 (define-fun-rec app ((l1 Lst) (l2 Lst)) Lst (ite ((_ is nil) l1) l2 (cons (head l1) (app (tail l1) l2))))
