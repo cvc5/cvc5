@@ -476,8 +476,10 @@ void BaseSolver::checkCardinality()
     else
     {
       // find the minimimum constant that we are unknown to be disequal from, or
-      // otherwise stop if we increment such that cardinality does not apply
-      unsigned r = 0;
+      // otherwise stop if we increment such that cardinality does not apply.
+      // We always start with r=1 since by the invariants of our term registry,
+      // a term is either equal to the empty string, or has length >= 1.
+      unsigned r = 1;
       bool success = true;
       while (r < card_need && success)
       {

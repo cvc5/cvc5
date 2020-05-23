@@ -633,12 +633,6 @@ enum class PfRule : uint32_t
   // Conclusion: (not (= (str.len t) 0))
   LENGTH_NON_EMPTY,
   //======================== Extended functions
-  // ======== Contains not equal
-  // Children: (P1:(not (str.contains s t)))
-  // Arguments: none
-  // -------------------
-  // Conclusion: (not (= s t))
-  CTN_NOT_EQUAL,
   // ======== Reduction
   // Children: none
   // Arguments: (t)

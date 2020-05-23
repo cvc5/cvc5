@@ -99,7 +99,6 @@ const char* toString(PfRule id)
     case PfRule::CONCAT_CPROP: return "CONCAT_CPROP";
     case PfRule::LENGTH_POS: return "LENGTH_POS";
     case PfRule::LENGTH_NON_EMPTY: return "LENGTH_NON_EMPTY";
-    case PfRule::CTN_NOT_EQUAL: return "CTN_NOT_EQUAL";
     case PfRule::STRINGS_REDUCTION: return "STRINGS_REDUCTION";
     case PfRule::STRINGS_EAGER_REDUCTION: return "STRINGS_EAGER_REDUCTION";
     case PfRule::RE_INTER: return "RE_INTER";

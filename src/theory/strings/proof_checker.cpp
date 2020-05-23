@@ -40,7 +40,6 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::CONCAT_CPROP, this);
   pc->registerChecker(PfRule::LENGTH_POS, this);
   pc->registerChecker(PfRule::LENGTH_NON_EMPTY, this);
-  pc->registerChecker(PfRule::CTN_NOT_EQUAL, this);
   pc->registerChecker(PfRule::STRINGS_REDUCTION, this);
   pc->registerChecker(PfRule::STRINGS_EAGER_REDUCTION, this);
   pc->registerChecker(PfRule::RE_INTER, this);
@@ -274,10 +273,6 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         CoreSolver::getConclusion(kt0, ks0, id, isRev, &skc, newSkolems);
     conc = ProofSkolemCache::getWitnessForm(conc);
     return conc;
-  }
-  else if (id == PfRule::CTN_NOT_EQUAL)
-  {
-    // TODO: probably unnecessary (build into eager reduction?)
   }
   else if (id == PfRule::STRINGS_REDUCTION
            || id == PfRule::STRINGS_EAGER_REDUCTION || id == PfRule::LENGTH_POS)

@@ -1660,12 +1660,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       iinfo.d_id = Inference::SSPLIT_VAR;
       iinfo.d_conc =
           getConclusion(x, y, PfRule::CONCAT_SPLIT, isRev, skc, newSkolems);
-      if (options::stringUnifiedVSpt())
+      if (options::stringUnifiedVSpt() && !options::stringLenConc())
       {
         Assert(newSkolems.size() == 1);
         iinfo
-            .d_new_skolem[options::stringLenConc() ? LENGTH_IGNORE
-                                                   : LENGTH_GEQ_ONE]
+            .d_new_skolem[LENGTH_GEQ_ONE]
             .push_back(newSkolems[0]);
       }
     }
@@ -1674,7 +1673,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
       iinfo.d_conc =
           getConclusion(x, y, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
-      // iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
     }
     else
     {
@@ -1682,7 +1680,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
       iinfo.d_conc =
           getConclusion(y, x, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
-      // iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
     }
     Node lc = utils::mkAnd(lcVec);
     iinfo.d_ant.push_back(lc);
