@@ -15,10 +15,10 @@
 #include "theory/strings/term_registry.h"
 
 #include "expr/attribute.h"
+#include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
-#include "options/smt_options.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 

@@ -344,21 +344,26 @@ bool EqProof::foldTransitivityChildren(
               << "EqProof::foldTransitivityChildren: " << transConclusion2
               << " <- " << copy2foldPremises << "\n";
           // do transitivity steps if need be
-          if (copy1foldPremises.size() > 1 && !assumptions.count(transConclusion1))
-{          p->addStep(transConclusion1,
-                     PfRule::TRANS,
-                     copy1foldPremises,
-                     {},
-                     true,
-                     true);}
-          if (copy2foldPremises.size() > 1 && !assumptions.count(transConclusion2))
-{
-          p->addStep(transConclusion2,
-                     PfRule::TRANS,
-                     copy2foldPremises,
-                     {},
-                     true,
-                     true);}
+          if (copy1foldPremises.size() > 1
+              && !assumptions.count(transConclusion1))
+          {
+            p->addStep(transConclusion1,
+                       PfRule::TRANS,
+                       copy1foldPremises,
+                       {},
+                       true,
+                       true);
+          }
+          if (copy2foldPremises.size() > 1
+              && !assumptions.count(transConclusion2))
+          {
+            p->addStep(transConclusion2,
+                       PfRule::TRANS,
+                       copy2foldPremises,
+                       {},
+                       true,
+                       true);
+          }
         }
       }
     }
@@ -610,7 +615,8 @@ void EqProof::maybeAddSymmOrTrueIntroToProof(unsigned i,
 bool EqProof::buildTransitivityChain(Node conclusion,
                                      std::vector<Node>& premises) const
 {
-  Trace("eqproof-conv") << push << "EqProof::buildTransitivityChain: Build chain for "
+  Trace("eqproof-conv") << push
+                        << "EqProof::buildTransitivityChain: Build chain for "
                         << conclusion << " with premises " << premises << "\n";
   for (unsigned i = 0, size = premises.size(); i < size; ++i)
   {
@@ -659,7 +665,8 @@ bool EqProof::buildTransitivityChain(Node conclusion,
         Trace("eqproof-conv")
             << "EqProof::buildTransitivityChain: closed chain with "
             << 1 + recursivePremises.size() << " of the original "
-            << premises.size() << " premises\n" << pop;
+            << premises.size() << " premises\n"
+            << pop;
         premises.clear();
         premises.insert(premises.begin(),
                         correctlyOrdered
@@ -1248,10 +1255,7 @@ Node EqProof::addToProof(
     // reflexivity in the current equality engine), just add a reflexivity step
     if (transConclusion[0] == transConclusion[1])
     {
-      if (!p->addStep(transConclusion,
-                      PfRule::REFL,
-                      {},
-                      {transConclusion[0]}))
+      if (!p->addStep(transConclusion, PfRule::REFL, {}, {transConclusion[0]}))
       {
         Assert(false) << "EqProof::addToProof: couldn't add refl step\n";
       }

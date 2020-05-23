@@ -1663,9 +1663,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       if (options::stringUnifiedVSpt() && !options::stringLenConc())
       {
         Assert(newSkolems.size() == 1);
-        iinfo
-            .d_new_skolem[LENGTH_GEQ_ONE]
-            .push_back(newSkolems[0]);
+        iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
       }
     }
     else if (lentTestSuccess == 0)

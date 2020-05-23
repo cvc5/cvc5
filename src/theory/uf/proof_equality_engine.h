@@ -63,10 +63,10 @@ class ProofEqEngine : public EagerProofGenerator
                 bool recExplain = false);
   ~ProofEqEngine() {}
   //-------------------------- assert assumption
-  /** 
+  /**
    * Assert literal lit by assumption to the underlying equality engine. It is
    * its own explanation.
-   * 
+   *
    * @param lit The literal to assert to the equality engine
    * @return true if this fact was processed by this method. If lit already
    * holds in the equality engine, this method returns false.
@@ -75,8 +75,8 @@ class ProofEqEngine : public EagerProofGenerator
   //-------------------------- assert fact
   /**
    * Assert the literal lit by proof step id, given explanation exp and
-   * arguments args. This fact is 
-   * 
+   * arguments args. This fact is
+   *
    * @param lit The literal to assert to the equality engine
    * @param id The proof rule of the proof step concluding lit
    * @param exp The premises of the proof step concluding lit. These are also
@@ -91,19 +91,19 @@ class ProofEqEngine : public EagerProofGenerator
                   const std::vector<Node>& args);
   /** Same as above but where exp is (conjunctive) node */
   bool assertFact(Node lit, PfRule id, Node exp, const std::vector<Node>& args);
-  /** 
+  /**
    * Multi-step version of assert fact via a proof step buffer. This method
    * is similar to above, but the justification for lit may have multiple steps.
    * In particular, we assume that psb has a list of proof steps where the
    * proof step concluding lit has free assumptions exp.
-   * 
+   *
    * For example, a legal call to this method is such that:
    *   lit: A
    *   exp: B
    *   psb.d_steps: { A by (step id1 {B,C} {}), C by (step id2 {} {}) )
    * In other words, A holds by a proof step with rule id1 and premises
    * B and C, and C holds by proof step with rule id2 and no premises.
-   * 
+   *
    * @param lit The literal to assert to the equality engine.
    * @param exp The premises of the proof steps concluding lit. These are also
    * the premises that are used when calling explain(lit).
@@ -112,14 +112,14 @@ class ProofEqEngine : public EagerProofGenerator
    * holds in the equality engine, this method returns false.
    */
   bool assertFact(Node lit, Node exp, ProofStepBuffer& psb);
-  /** 
+  /**
    * Assert fact via generator pg. This method asserts lit with explanation exp
    * to the equality engine of this class. It must be the case that pg can
    * provide a proof for lit in terms of exp. More precisely, pg should be
    * prepared in the remainder of the SAT context to respond to a call to a
    * call to ProofGenerator::getProofFor(lit), and return a proof whose free
    * assumptions are a subset of the conjuncts of exp.
-   * 
+   *
    * @param lit The literal to assert to the equality engine.
    * @param exp The premises of the proof concluding lit. These are also
    * the premises that are used when calling explain(lit).
@@ -134,7 +134,7 @@ class ProofEqEngine : public EagerProofGenerator
    * This method is called when the equality engine of this class is
    * inconsistent (false has been proven) by a contradictory literal lit. This
    * returns the trust node corresponding to the current conflict.
-   * 
+   *
    * @param lit The conflicting literal, which must rewrite to false.
    * @return The trust node capturing the fact that this class can provide a
    * proof for this conflict.
