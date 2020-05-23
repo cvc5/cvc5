@@ -11,8 +11,9 @@
  **
  ** \brief A simple demonstration of the Sygus API.
  **
- ** A simple demonstration of how to use the Sygus API to synthesize max and min
- ** functions. Here is the same problem written in Sygus V2 format:
+ ** A simple demonstration of how to use Grammar to add syntax constraints to
+ ** the Sygus solution for the identity function. Here is the same problem
+ ** written in Sygus V2 format:
  **
  ** (set-logic LIA)
  **
@@ -34,9 +35,11 @@
  **
  ** (check-synth)
  **
- ** The printed output to this example should be equivalent to:
- ** (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
- ** (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
+ ** The printed output to this example should look like:
+ ** (define-fun id1 ((x Int)) Int (+ x (+ x (- x))))
+ ** (define-fun id2 ((x Int)) Int x)
+ ** (define-fun id3 ((x Int)) Int (+ x 0))
+ ** (define-fun id4 ((x Int)) Int (+ x (+ x (- x))))
  **/
 
 #include <cvc4/api/cvc4cpp.h>
@@ -59,10 +62,10 @@ int main()
   Sort integer = slv.getIntegerSort();
   Sort boolean = slv.getBooleanSort();
 
-  // declare input variables for the function-to-synthesize
+  // declare input variable for the function-to-synthesize
   Term x = slv.mkVar(integer, "x");
 
-  // declare the grammar non-terminals
+  // declare the grammar non-terminal
   Term start = slv.mkVar(integer, "Start");
 
   // define the rules
@@ -80,10 +83,10 @@ int main()
   Grammar g2 = g1;
   Grammar g3 = g1;
 
-  // add parameters as rules to the start symbol. Similar to "(Variable Int)"
+  // add parameters as rules for the start symbol. Similar to "(Variable Int)"
   g2.addAnyVariable(start);
 
-  // declare the function-to-synthesizse
+  // declare the functions-to-synthesize
   Term id1 = slv.synthFun("id1", {x}, integer, g1);
   Term id2 = slv.synthFun("id2", {x}, integer, g2);
 
@@ -102,8 +105,8 @@ int main()
   Term id3_x = slv.mkTerm(APPLY_UF, id3, varX);
   Term id4_x = slv.mkTerm(APPLY_UF, id4, varX);
 
-  // add logical constraints
-  // (constraint (= (id1 x) (id2 x) x))
+  // add semantic constraints
+  // (constraint (= (id1 x) (id2 x) (id3 x) (id4 x) x))
   slv.addSygusConstraint(slv.mkTerm(EQUAL, {id1_x, id2_x, id3_x, id4_x, varX}));
 
   // print solutions if available
