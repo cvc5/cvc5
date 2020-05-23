@@ -2271,10 +2271,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1)
    */
   REGEXP_COMPLEMENT,
-#if 0
-  /* regexp rv (internal use only) */
-  REGEXP_RV,
-#endif
+  /**
+   * Sequence unit, corresponding to a sequence of length one with the given
+   * term.
+   * Parameters: 1
+   *   -[1] Element term.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   */
+  SEQ_UNIT,
 
   /* Quantifiers ----------------------------------------------------------- */
 

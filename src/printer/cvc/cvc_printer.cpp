@@ -36,6 +36,8 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
+#include "expr/expr_sequence.h"
+#include "expr/sequence.h"
 
 using namespace std;
 
@@ -163,6 +165,30 @@ void CvcPrinter::toStream(
     case kind::CONST_STRING:
     {
       out << '"' << n.getConst<String>().toString() << '"';
+      break;
+    }
+    case kind::CONST_SEQUENCE:
+    {
+      const Sequence& sn = n.getConst<ExprSequence>().getSequence();
+      const std::vector<Node>& snvec = sn.getVec();
+      if (snvec.size()>1)
+      {
+        out << "CONCAT(";
+      }
+      bool first = true;
+      for (const Node& snvc : snvec)
+      {
+        if (!first)
+        {
+          out << ", ";
+        }
+        out << "SEQ_UNIT(" << snvc << ")";
+        first = false;
+      }
+      if (snvec.size()>1)
+      {
+        out << ")";
+      }
       break;
     }
     case kind::TYPE_CONSTANT:

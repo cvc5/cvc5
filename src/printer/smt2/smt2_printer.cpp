@@ -36,6 +36,8 @@
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
+#include "expr/expr_sequence.h"
+#include "expr/sequence.h"
 
 using namespace std;
 
@@ -214,6 +216,23 @@ void Smt2Printer::toStream(std::ostream& out,
         }
       }
       out << '"';
+      break;
+    }
+    case kind::CONST_SEQUENCE: {
+      const Sequence& sn = n.getConst<ExprSequence>().getSequence();
+      const std::vector<Node>& snvec = sn.getVec();
+      if (snvec.size()>1)
+      {
+        out << "(str.++ ";
+      }
+      for (const Node& snvc : snvec)
+      {
+        out << "(seq.unit " << snvc << ")";
+      }
+      if (snvec.size()>1)
+      {
+        out << ")";
+      }
       break;
     }
 
