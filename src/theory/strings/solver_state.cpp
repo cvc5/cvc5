@@ -269,7 +269,7 @@ bool SolverState::isEqualEmptyWord(Node s, Node& emps)
   Node sr = getRepresentative(s);
   if (sr.isConst())
   {
-    if (Word::getLength(sr)==0)
+    if (Word::getLength(sr) == 0)
     {
       emps = sr;
       return true;

@@ -135,7 +135,7 @@ class SolverState
    * in the equality engine.
    */
   Node explainNonEmpty(Node s);
-  /** 
+  /**
    * Is equal empty word? Returns true if s is equal to the empty word (of
    * its type). If this method returns true, it updates emps to be that word.
    * This is an optimization so that the relevant empty word does not need to

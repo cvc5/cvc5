@@ -101,10 +101,9 @@ void BaseSolver::checkInit()
                     for (unsigned t = 0; t < 2; t++)
                     {
                       Node nn = t == 0 ? nc : n;
-                      while (
-                          count[t] < nn.getNumChildren()
-                          && (nn[count[t]] == emps
-                              || d_state.areEqual(nn[count[t]], emps)))
+                      while (count[t] < nn.getNumChildren()
+                             && (nn[count[t]] == emps
+                                 || d_state.areEqual(nn[count[t]], emps)))
                       {
                         if (nn[count[t]] != emps)
                         {
