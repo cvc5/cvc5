@@ -678,8 +678,7 @@ void EqProof::reduceNestedCongruence(
   Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: it's a "
                            "transitivity step.\n";
   Assert(d_node.isNull()
-         || d_node[0].getNumChildren() == d_node[1].getNumChildren()
-         || isNary)
+         || d_node[0].getNumChildren() == d_node[1].getNumChildren() || isNary)
       << "Non-null (internal cong) transitivity conclusion of different arity "
          "but not marked by isNary flag\n";
   // if handling n-ary kinds and got a trans conclusion, we can just stop here
@@ -703,13 +702,13 @@ void EqProof::reduceNestedCongruence(
   {
     if (d_children[j].get()->d_id == MERGED_THROUGH_CONGRUENCE)
     {
-    Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: Reduce " << j
+      Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: Reduce " << j
                             << "-th transitivity congruence child\n"
-                          << push;
-    d_children[j].get()->reduceNestedCongruence(
+                            << push;
+      d_children[j].get()->reduceNestedCongruence(
           i, conclusion, children, p, visited, assumptions, isNary);
-    Trace("eqproof-conv") << pop;
-  }
+      Trace("eqproof-conv") << pop;
+    }
     else
     {
       Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: Add " << j
@@ -1106,8 +1105,8 @@ Node EqProof::addToProof(
       cleanReflPremisesInTranstivity(children);
       Assert(!children.empty());
       Trace("eqproof-conv")
-          << "EqProof::addToProof: build chain for transitivity premises" << children
-          << " to conclude " << conclusion << "\n";
+          << "EqProof::addToProof: build chain for transitivity premises"
+          << children << " to conclude " << conclusion << "\n";
       // conclusion is t1 = tn. Children MUST BE (= t1 t2), ..., (= t{n-1} tn).
       // If t1 or tn are true or false, then premises may have to be amended
       // with TRUE/FALSE intro rules. Process children to ensure this
@@ -1122,12 +1121,12 @@ Node EqProof::addToProof(
                      || children[0][1].eqNode(children[0][0]) == conclusion)));
       if (children.size() > 1)
       {
-      if (!p->addStep(conclusion, PfRule::TRANS, children, {}, true, true))
-      {
-        Assert(false) << "EqProof::addToProof: couldn't add TRANS "
-                      << conclusion << " " << children << "\n";
+        if (!p->addStep(conclusion, PfRule::TRANS, children, {}, true, true))
+        {
+          Assert(false) << "EqProof::addToProof: couldn't add TRANS "
+                        << conclusion << " " << children << "\n";
+        }
       }
-    }
     }
     visited[d_node] = conclusion;
     return conclusion;
