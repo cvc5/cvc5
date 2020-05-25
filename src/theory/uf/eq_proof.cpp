@@ -593,6 +593,9 @@ bool EqProof::buildTransitivityChain(Node conclusion,
       }
     }
   }
+  Trace("eqproof-conv")
+      << "EqProof::buildTransitivityChain: Could not build chain for"
+      << conclusion << " with premises " << premises << "\n";
   Trace("eqproof-conv") << pop;
   return false;
 }
@@ -603,7 +606,8 @@ void EqProof::reduceNestedCongruence(
     std::vector<std::vector<Node>>& children,
     CDProof* p,
     std::unordered_map<Node, Node, NodeHashFunction>& visited,
-    std::unordered_set<Node, NodeHashFunction>& assumptions) const
+    std::unordered_set<Node, NodeHashFunction>& assumptions,
+    bool isNary) const
 {
   Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: building for " << i
                         << "-th arg\n";
@@ -625,7 +629,7 @@ void EqProof::reduceNestedCongruence(
           << "EqProof::reduceNestedCongruence: Reduce first child\n"
           << push;
       d_children[0].get()->reduceNestedCongruence(
-          i - 1, conclusion, children, p, visited, assumptions);
+          i - 1, conclusion, children, p, visited, assumptions, isNary);
       Trace("eqproof-conv") << pop;
     }
     else
@@ -673,15 +677,48 @@ void EqProof::reduceNestedCongruence(
   //
   Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: it's a "
                            "transitivity step.\n";
+  Assert(d_node.isNull()
+         || d_node[0].getNumChildren() == d_node[1].getNumChildren()
+         || isNary)
+      << "Non-null (internal cong) transitivity conclusion of different arity "
+         "but not marked by isNary flag\n";
+  // if handling n-ary kinds and got a trans conclusion, we can just stop here
+  // (in fact, it might be *necessary*). The arity of the original conclusion
+  // will later be changet to arity - i.
+  if (isNary && !d_node.isNull())
+  {
+    Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: n-ary case, "
+                             "break recursion and indepedently process "
+                          << d_node << "\n"
+                          << push;
+    children[i].push_back(addToProof(p, visited, assumptions));
+    Trace("eqproof-conv") << pop
+                          << "EqProof::reduceNestedCongruence: Got conclusion "
+                          << children[i].back()
+                          << " from n-ary transitivity processing\n";
+    return;
+  }
+  // regular recursive processing
   for (unsigned j = 0, sizeTrans = d_children.size(); j < sizeTrans; ++j)
   {
-    Assert(d_children[j].get()->d_id == MERGED_THROUGH_CONGRUENCE);
+    if (d_children[j].get()->d_id == MERGED_THROUGH_CONGRUENCE)
+    {
     Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: Reduce " << j
-                          << "-th transitivity child\n"
+                            << "-th transitivity congruence child\n"
                           << push;
     d_children[j].get()->reduceNestedCongruence(
-        i, conclusion, children, p, visited, assumptions);
+          i, conclusion, children, p, visited, assumptions, isNary);
     Trace("eqproof-conv") << pop;
+  }
+    else
+    {
+      Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: Add " << j
+                            << "-th transitivity child to proof\n"
+                            << push;
+      children[i].push_back(
+          d_children[j].get()->addToProof(p, visited, assumptions));
+      Trace("eqproof-conv") << pop;
+    }
   }
 }
 
@@ -1069,7 +1106,7 @@ Node EqProof::addToProof(
       cleanReflPremisesInTranstivity(children);
       Assert(!children.empty());
       Trace("eqproof-conv")
-          << "EqProof::addToProof: maybe reorder trans premises " << children
+          << "EqProof::addToProof: build chain for transitivity premises" << children
           << " to conclude " << conclusion << "\n";
       // conclusion is t1 = tn. Children MUST BE (= t1 t2), ..., (= t{n-1} tn).
       // If t1 or tn are true or false, then premises may have to be amended
@@ -1136,7 +1173,7 @@ Node EqProof::addToProof(
   //          (= (f t1 t2 t3) (f t1 t4 t5))
   unsigned arity = d_node[0].getNumChildren();
   Kind k = d_node[0].getKind();
-  bool isNary = isNAryKind(k);
+  bool isNary = ExprManager::isNAryKind(k);
   // if mismatch, update arity to be initially the maximal one
   if (d_node[0].getNumChildren() != d_node[1].getNumChildren())
   {
@@ -1173,9 +1210,7 @@ Node EqProof::addToProof(
     {
       Trace("eqproof-conv")
           << "EqProof::addToProof: Found " << emptyRows
-          << " empty rows. Rebuild conclusion " << d_node
-          << " with equalities of arity " << arity - emptyRows << "\n";
-      arity = arity - emptyRows;
+          << " empty rows. Rebuild conclusion " << d_node << "\n";
       std::vector<std::vector<Node>> newTransitivityChildren{
           transitivityChildren.begin() + emptyRows, transitivityChildren.end()};
       transitivityChildren.clear();
@@ -1184,16 +1219,22 @@ Node EqProof::addToProof(
                                   newTransitivityChildren.end());
       // build new conclusion
       unsigned arityPrefix1 =
-          arity - (arity - d_node[0].getNumChildren()) - emptyRows;
+          emptyRows + 1 - (arity - d_node[0].getNumChildren());
+      Assert(arityPrefix1 < d_node[0].getNumChildren())
+          << "arityPrefix1 " << arityPrefix1 << " not smaller than "
+          << d_node[0] << "'s arity " << d_node[0].getNumChildren() << "\n";
       unsigned arityPrefix2 =
-          arity - (arity - d_node[1].getNumChildren()) - emptyRows;
+          emptyRows + 1 - (arity - d_node[1].getNumChildren());
+      Assert(arityPrefix2 < d_node[1].getNumChildren())
+          << "arityPrefix2 " << arityPrefix2 << " not smaller than "
+          << d_node[1] << "'s arity " << d_node[1].getNumChildren() << "\n";
       Trace("eqproof-conv") << "EqProof::addToProof: New internal "
                                "applications with arities "
                             << arityPrefix1 << ", " << arityPrefix2 << ":\n";
       std::vector<Node> childrenPrefix1{d_node[0].begin(),
-                                        d_node[0].begin() + arityPrefix1 + 1};
+                                        d_node[0].begin() + arityPrefix1};
       std::vector<Node> childrenPrefix2{d_node[1].begin(),
-                                        d_node[1].begin() + arityPrefix2 + 1};
+                                        d_node[1].begin() + arityPrefix2};
       Node newFirstChild1 = nm->mkNode(k, childrenPrefix1);
       Node newFirstChild2 = nm->mkNode(k, childrenPrefix2);
       Trace("eqproof-conv")
@@ -1202,15 +1243,18 @@ Node EqProof::addToProof(
           << "EqProof::addToProof:\t " << newFirstChild2 << "\n";
       std::vector<Node> newChildren1{newFirstChild1};
       newChildren1.insert(newChildren1.end(),
-                          d_node[0].begin() + arityPrefix1 + 2,
+                          d_node[0].begin() + arityPrefix1,
                           d_node[0].end());
       std::vector<Node> newChildren2{newFirstChild2};
       newChildren2.insert(newChildren2.end(),
-                          d_node[1].begin() + arityPrefix2 + 2,
+                          d_node[1].begin() + arityPrefix2,
                           d_node[1].end());
       conclusion = nm->mkNode(kind::EQUAL,
                               nm->mkNode(k, newChildren1),
                               nm->mkNode(k, newChildren2));
+      // update arity
+      Assert((arity - emptyRows) == conclusion[0].getNumChildren());
+      arity = arity - emptyRows;
       Trace("eqproof-conv")
           << "EqProof::addToProof: New conclusion " << conclusion << "\n";
     }
@@ -1310,29 +1354,46 @@ Node EqProof::addToProof(
       << "\n";
   // build args
   std::vector<Node> args;
-  Kind k = d_node[0].getKind();
   if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
   {
-    args.push_back(d_node[0].getOperator());
+    args.push_back(conclusion[0].getOperator());
   }
   else
   {
     args.push_back(NodeManager::currentNM()->operatorOf(k));
   }
   // build conclusion
-  Trace("eqproof-conv") << "EqProof::addToProof: build cong step of " << d_node
-                        << " with op " << args[0] << " and children "
-                        << children << "\n";
-  if (!p->addStep(d_node, PfRule::CONG, children, args, true, true))
+  Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "
+                        << conclusion << " with op " << args[0]
+                        << " and children " << children << "\n";
+  if (!p->addStep(conclusion, PfRule::CONG, children, args, true, true))
   {
     Assert(false) << "EqProof::addToProof: couldn't add cong step\n";
   }
+  // whether had to change cong conclusion because of n-ary handling
+  if (conclusion != d_node)
+  {
+    Trace("eqproof-conv") << "EqProof::addToProof: add "
+                          << PfRule::MACRO_SR_PRED_TRANSFORM
+                          << " step to flatten rebuilt conclusion "
+                          << conclusion << "into " << d_node << "\n";
+    if (!p->addStep(d_node,
+                    PfRule::MACRO_SR_PRED_TRANSFORM,
+                    {conclusion},
+                    {d_node},
+                    true,
+                    true))
+    {
+      Assert(false) << "EqProof::addToProof: couldn't add "
+                    << PfRule::MACRO_SR_PRED_TRANSFORM << " step\n";
+    }
+  }
   if (Trace.isOn("eqproof-conv"))
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: proof node of " << d_node
+    Trace("eqproof-conv") << "EqProof::addToProof: proof node of " << conclusion
                           << " is:\n";
     std::stringstream out;
-    p->getProof(d_node).get()->printDebug(out);
+    p->getProof(conclusion).get()->printDebug(out);
     Trace("eqproof-conv") << out.str() << "\n";
   }
   visited[d_node] = d_node;
