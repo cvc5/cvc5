@@ -872,8 +872,9 @@ Node EqProof::addToProof(
     visited[d_node] = conclusion;
     return conclusion;
   }
-  // refl
-  if (d_id == MERGED_THROUGH_REFLEXIVITY)
+  // refl and laborious congruence steps of (= (f t1 ... tn) (f t1 ... tn))
+  if (d_id == MERGED_THROUGH_REFLEXIVITY
+      || (d_node.getKind() == kind::EQUAL && d_node[0] == d_node[1]))
   {
     Trace("eqproof-conv-debug") << "Refl node: " << d_node << std::endl;
     Node conclusion =
