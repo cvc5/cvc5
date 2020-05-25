@@ -1048,6 +1048,11 @@ unsigned ExprManager::maxArity(Kind kind) {
   return metakind::getUpperBoundForKind(kind);
 }
 
+bool ExprManager::isNAryKind(Kind fun)
+{
+  return ExprManager::maxArity(fun) == expr::NodeValue::MAX_CHILDREN;
+}
+
 NodeManager* ExprManager::getNodeManager() const {
   return d_nodeManager;
 }
