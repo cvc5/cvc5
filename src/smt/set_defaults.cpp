@@ -271,8 +271,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     if (!options::stringLenConc.wasSetByUser())
     {
       options::stringLenConc.set(true);
-      Trace("smt") << "turning on string-len-conc, for proof-new"
-                   << std::endl;
+      Trace("smt") << "turning on string-len-conc, for proof-new" << std::endl;
     }
   }
 
@@ -1106,11 +1105,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       options::quantSplit.set(false);
     }
-    // rewrite divk
-    if (!options::rewriteDivk.wasSetByUser())
-    {
-      options::rewriteDivk.set(true);
-    }
     // do not do macros
     if (!options::macrosQuant.wasSetByUser())
     {
@@ -1145,11 +1139,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
   if (options::cegqi())
   {
-    // must rewrite divk
-    if (!options::rewriteDivk.wasSetByUser())
-    {
-      options::rewriteDivk.set(true);
-    }
     if (options::incrementalSolving())
     {
       // cannot do nested quantifier elimination in incremental mode

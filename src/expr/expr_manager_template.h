@@ -583,6 +583,8 @@ private:
   /** Returns the maximum arity of the given kind. */
   static unsigned maxArity(Kind kind);
 
+  static bool isNAryKind(Kind fun);
+
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
    * associated with datatypes through the DatatypeIndexConstant class. The

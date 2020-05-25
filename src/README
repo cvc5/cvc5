@@ -63,29 +63,52 @@ Notes:
 - Theory can have as many ProofGenerator objects as it wants. It should have one for each kind of reasoning it does.
 - ProofNodeManager does not need to be global.
 
+PR finished:
+
+(1) Add ProofNode printing as dag via SExpr
+(2) Strings solver state minor update
+(3) string rewrite for re inclusion
+(4) ProofSkolemCache
+
+PRs ready:
+
+(5) ProofChecker improve tracing, features
+(6) Equality engine updates (Haniel)
+(7) strings SkolemCache uses ProofSkolemCache (req 4)
+
+PRs future:
+
+(8) regexp operation (req 7)
+(9) Proof step buffer (req 5)
+(10) Update CDProof (req 9)
+(11) ProofGenerator (req 10)
+(12) Add TrustNode (req 11)
+(13) Add EagerProofGenerator (req 11)
+(14) Builtin rules, builtin checker (req 5)
+(15) Boolean rules, boolean checker (Haniel) (req 5)
+(16) UF rules, UF checker (req 5)
+(17) rewriter new infrastructure "rewriteEqualityExt"
+(18) Add LazyCDProof (req 11)
+(19) Split EngineOutputChannel from TheoryEngine to its own file (req 12)
+(20) Eq proof conversion (req 6)
+(21) static strings preprocess reduce (req 7)
+(22) String rules, string checker (req 5, 17)
+(23) ProofEqEngine (req 10, 18)
+(24) SharedTermDatabase uses pfee (req 23)
+(25) CongruenceManager uses pfee (req 23)
+(26) strings infer info update "noExplain", all calls to InferenceManager
+(27) strings InferProofCons (req 26, 18)
+- update strings inference manager to use ProofEqEngine (req 23, 26)
 
 
-PRs:
+- ProofNode update (refactor free assumptions via visitor?)
+- Rewriter proof producing (Andres)
+- Strings term registry update
+- Strings core solver update
+- TheoryEngine proof checker initialize
+- TheoryEngine explanation proof producing
+
+PRs wish list:
 
 - SEXPR simply typed?
-(1) ProofChecker improve tracing
-- Add ProofNode printing as dag (SEXPR)
-- Proof kinds infrastructure
-- Rewriter new infrastructure (rewriteEqualityExt)
-(2) Builtin rules, builtin checker.
-(3) Boolean rules, boolean checker.
-(4) UF rules, UF checker.
-- EqProof conversion (Haniel)
-(5) String rules, string checker
-(6) Split EngineOutputChannel from TheoryEngine to its own file
-(7) Add LazyCDProof and ProofGenerator
-(8) Add TrustNode
-- Add EagerProofGenerator
-(10) ProofEqEngine 
-(11) TheoryEngine proof checker initialize
-(12) ProofSkolemCache
-- strings SkolemCache uses ProofSkolemCache
-(13) strings InferProofCons
-(14) update strings inference manager to use ProofEqEngine
-- static strings preprocess reduce
-- static regular expression operation reduce
+- Proof kinds infrastructure???

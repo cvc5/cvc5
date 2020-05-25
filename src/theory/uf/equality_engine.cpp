@@ -1622,10 +1622,63 @@ void EqualityEngine::getExplanation(
             } else {
               eqp->d_id = MERGED_THROUGH_TRANS;
               eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );
-              // the equality is built even in terms of internal nodes because,
-              // when this is a subproof for congruence, it is necessary to know
-              // which arguments it refers to
-              eqp->d_node = NodeManager::currentNM()->mkNode(kind::EQUAL, d_nodes[t1Id], d_nodes[t2Id]);
+              if (options::proofNew())
+              {
+                // only build conclusion if not internal nodes or if equality
+                // between n-ary kinds, which probably marks this as part of a
+                // congruence series
+                Kind k1 = d_nodes[t1Id].getKind();
+                Kind k2 = d_nodes[t2Id].getKind();
+                if ((!d_isInternal[t1Id] && !d_isInternal[t2Id])
+                    || (k1 == k2 && isNAryKind(k1)))
+                {
+                  Node eq[2];
+                  for (unsigned i = 0; i < 2; ++i)
+                  {
+                    EqualityNodeId equalityNodeId =
+                        i == 0 ? t1Id : t2Id;
+                    Node equalityNode = d_nodes[equalityNodeId];
+                    if (!d_isInternal[equalityNodeId])
+                    {
+                      eq[i] = equalityNode;
+                      continue;
+                    }
+                    // build node relative to partial application of this
+                    // n-ary kind. We get the full application, then we get
+                    // the arguments relative to how partial the internal
+                    // node is, and build the application
+
+                    // get number of children of partial app:
+                    // #children of full app - (id of full app - id of
+                    // partial app)
+                    EqualityNodeId fullAppId = getNodeId(equalityNode);
+                    unsigned numChildren = equalityNode.getNumChildren()
+                                           - (fullAppId - equalityNodeId);
+                    Assert(numChildren < equalityNode.getNumChildren());
+                    // if has at least as many children as the minimal
+                    // number of children of the n-ary kind, build the node
+                    if (numChildren >= ExprManager::minArity(k1))
+                    {
+                      std::vector<Node> children;
+                      for (unsigned j = 0; j < numChildren; ++j)
+                      {
+                        children.push_back(equalityNode[j]);
+                      }
+                      eq[i] = NodeManager::currentNM()->mkNode(k1, children);
+                    }
+                  }
+                  if (!eq[0].isNull() && !eq[1].isNull())
+                  {
+                    eqp->d_node = eq[0].eqNode(eq[1]);
+                  }
+                }
+                // leave null
+              }
+              else
+              {
+                eqp->d_node = NodeManager::currentNM()->mkNode(
+                    kind::EQUAL, d_nodes[t1Id], d_nodes[t2Id]);
+              }
             }
             if (Debug.isOn("pf::ee"))
             {

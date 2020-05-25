@@ -151,24 +151,24 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     assumps.clear();
     assumps.insert(assumps.end(), acu.begin(), acu.end());
   }
-  else if (ac.size()<assumps.size())
+  else if (ac.size() < assumps.size())
   {
     // always must remove duplicates
     assumps.clear();
     assumps.insert(assumps.end(), ac.begin(), ac.end());
   }
   Node expected;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node exp;
   Node conc = pf->getResult();
   if (assumps.empty())
   {
-    Assert (!conc.isConst());
+    Assert(!conc.isConst());
     expected = conc;
   }
   else
   {
-    exp = assumps.size()==1 ? assumps[0] : nm->mkNode(AND, assumps);
+    exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(AND, assumps);
     if (conc.isConst() && !conc.getConst<bool>())
     {
       expected = exp.notNode();

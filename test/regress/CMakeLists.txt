@@ -964,6 +964,7 @@ set(regress_0_tests
   regress0/strings/parser-syms.cvc
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/re.all.smt2
+  regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/regexp-native-simple.cvc
@@ -1120,6 +1121,9 @@ set(regress_0_tests
   regress0/uflra/simple.02.cvc
   regress0/uflra/simple.03.cvc
   regress0/uflra/simple.04.cvc
+  regress0/unconstrained/4481.smt2
+  regress0/unconstrained/4484.smt2
+  regress0/unconstrained/4486.smt2
   regress0/unconstrained/arith.smt2
   regress0/unconstrained/arith3.smt2
   regress0/unconstrained/arith4.smt2
@@ -1471,6 +1475,7 @@ set(regress_1_tests
   regress1/push-pop/fuzz_7.smt2
   regress1/push-pop/fuzz_8.smt2
   regress1/push-pop/fuzz_9.smt2
+  regress1/push-pop/model-unsound-ania.smt2
   regress1/push-pop/quant-fun-proc-unmacro.smt2
   regress1/push-pop/quant-fun-proc.smt2
   regress1/quantifiers/006-cbqi-ite.smt2

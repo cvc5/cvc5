@@ -100,20 +100,14 @@ class EqProof
   bool buildTransitivityChain(Node conclusion,
                               std::vector<Node>& premises) const;
 
-  // returns whether it did reordering
-  void maybeAddSymmOrTrueIntroToProof(unsigned i,
-                                      std::vector<Node>& premises,
-                                      bool first,
-                                      Node termInEq,
-                                      CDProof* p) const;
-
   void reduceNestedCongruence(
       unsigned i,
       Node conclusion,
       std::vector<std::vector<Node>>& children,
       CDProof* p,
       std::unordered_map<Node, Node, NodeHashFunction>& visited,
-      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
+      std::unordered_set<Node, NodeHashFunction>& assumptions,
+      bool isNary) const;
 
 }; /* class EqProof */
 

@@ -63,6 +63,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --cadical                use the CaDiCaL SAT solver
   --cryptominisat          use the CryptoMiniSat SAT solver
   --drat2er                use drat2er (required for eager BV proofs)
+  --kissat                 use the Kissat SAT solver
   --lfsc                   use the LFSC proof checker
   --symfpu                 use SymFPU for floating point solver
   --readline               support the readline library
@@ -76,6 +77,7 @@ Optional Path to Optional Packages:
   --cxxtest-dir=PATH       path to CxxTest installation
   --glpk-dir=PATH          path to top level of GLPK installation
   --gmp-dir=PATH           path to top level of GMP installation
+  --kissat-dir=PATH        path to top level of Kissat source tree
   --lfsc-dir=PATH          path to top level of LFSC source tree
   --symfpu-dir=PATH        path to top level of SymFPU source tree
 
@@ -110,8 +112,6 @@ buildtype=default
 
 abc=default
 asan=default
-ubsan=default
-tsan=default
 assertions=default
 best=default
 cadical=default
@@ -119,30 +119,33 @@ cln=default
 comp_inc=default
 coverage=default
 cryptominisat=default
-debug_symbols=default
 debug_context_mm=default
+debug_symbols=default
 drat2er=default
 dumping=default
-gpl=default
-win64=default
-ninja=default
 glpk=default
+gpl=default
+kissat=default
 lfsc=default
 muzzle=default
+ninja=default
 optimized=default
+profiling=default
 proofs=default
+python2=default
+python3=default
+python_bindings=default
+readline=default
 shared=default
 static_binary=default
 statistics=default
 symfpu=default
 tracing=default
+tsan=default
+ubsan=default
 unit_testing=default
-python2=default
-python3=default
-python_bindings=default
 valgrind=default
-profiling=default
-readline=default
+win64=default
 
 language_bindings_java=default
 language_bindings_python=default
@@ -155,6 +158,7 @@ drat2er_dir=default
 cxxtest_dir=default
 glpk_dir=default
 gmp_dir=default
+kissat_dir=default
 lfsc_dir=default
 symfpu_dir=default
 
@@ -227,6 +231,9 @@ do
 
     --gpl) gpl=ON;;
     --no-gpl) gpl=OFF;;
+
+    --kissat) kissat=ON;;
+    --no-kissat) kissat=OFF;;
 
     --win64) win64=ON;;
     --no-win64) win64=OFF;;
@@ -325,6 +332,9 @@ do
     --gmp-dir) die "missing argument to $1 (try -h)" ;;
     --gmp-dir=*) gmp_dir=${1##*=} ;;
 
+    --kissat-dir) die "missing argument to $1 (try -h)" ;;
+    --kissat-dir=*) kissat_dir=${1##*=} ;;
+
     --lfsc-dir) die "missing argument to $1 (try -h)" ;;
     --lfsc-dir=*) lfsc_dir=${1##*=} ;;
 
@@ -418,6 +428,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_DRAT2ER=$drat2er"
 [ $glpk != default ] \
   && cmake_opts="$cmake_opts -DUSE_GLPK=$glpk"
+[ $kissat != default ] \
+  && cmake_opts="$cmake_opts -DUSE_KISSAT=$kissat"
 [ $lfsc != default ] \
   && cmake_opts="$cmake_opts -DUSE_LFSC=$lfsc"
 [ $symfpu != default ] \
@@ -444,6 +456,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$gmp_dir" != default ] \
   && cmake_opts="$cmake_opts -DGMP_DIR=$gmp_dir"
+[ "$kissat_dir" != default ] \
+  && cmake_opts="$cmake_opts -DKISSAT=$kissat_dir"
 [ "$lfsc_dir" != default ] \
   && cmake_opts="$cmake_opts -DLFSC_DIR=$lfsc_dir"
 [ "$symfpu_dir" != default ] \

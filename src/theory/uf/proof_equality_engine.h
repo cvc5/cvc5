@@ -63,26 +63,81 @@ class ProofEqEngine : public EagerProofGenerator
                 bool recExplain = false);
   ~ProofEqEngine() {}
   //-------------------------- assert assumption
-  /** Assert predicate lit by assumption */
+  /**
+   * Assert literal lit by assumption to the underlying equality engine. It is
+   * its own explanation.
+   *
+   * @param lit The literal to assert to the equality engine
+   * @return true if this fact was processed by this method. If lit already
+   * holds in the equality engine, this method returns false.
+   */
   bool assertAssume(TNode lit);
   //-------------------------- assert fact
   /**
-   * Assert the predicate lit by proof step id, given explanation exp and
-   * arguments args.
+   * Assert the literal lit by proof step id, given explanation exp and
+   * arguments args. This fact is
+   *
+   * @param lit The literal to assert to the equality engine
+   * @param id The proof rule of the proof step concluding lit
+   * @param exp The premises of the proof step concluding lit. These are also
+   * the premises that are used when calling explain(lit).
+   * @param args The arguments to the proof step concluding lit.
+   * @return true if this fact was processed by this method. If lit already
+   * holds in the equality engine, this method returns false.
    */
   bool assertFact(Node lit,
                   PfRule id,
                   const std::vector<Node>& exp,
                   const std::vector<Node>& args);
+  /** Same as above but where exp is (conjunctive) node */
   bool assertFact(Node lit, PfRule id, Node exp, const std::vector<Node>& args);
-  /** Multi-step versions */
+  /**
+   * Multi-step version of assert fact via a proof step buffer. This method
+   * is similar to above, but the justification for lit may have multiple steps.
+   * In particular, we assume that psb has a list of proof steps where the
+   * proof step concluding lit has free assumptions exp.
+   *
+   * For example, a legal call to this method is such that:
+   *   lit: A
+   *   exp: B
+   *   psb.d_steps: { A by (step id1 {B,C} {}), C by (step id2 {} {}) )
+   * In other words, A holds by a proof step with rule id1 and premises
+   * B and C, and C holds by proof step with rule id2 and no premises.
+   *
+   * @param lit The literal to assert to the equality engine.
+   * @param exp The premises of the proof steps concluding lit. These are also
+   * the premises that are used when calling explain(lit).
+   * @param psb The proof step buffer containing the proof steps.
+   * @return true if this fact was processed by this method. If lit already
+   * holds in the equality engine, this method returns false.
+   */
   bool assertFact(Node lit, Node exp, ProofStepBuffer& psb);
+  /**
+   * Assert fact via generator pg. This method asserts lit with explanation exp
+   * to the equality engine of this class. It must be the case that pg can
+   * provide a proof for lit in terms of exp. More precisely, pg should be
+   * prepared in the remainder of the SAT context to respond to a call to a
+   * call to ProofGenerator::getProofFor(lit), and return a proof whose free
+   * assumptions are a subset of the conjuncts of exp.
+   *
+   * @param lit The literal to assert to the equality engine.
+   * @param exp The premises of the proof concluding lit. These are also
+   * the premises that are used when calling explain(lit).
+   * @param pg The proof generator that can provide a proof concluding lit
+   * from free asumptions in exp.
+   * @return true if this fact was processed by this method. If lit already
+   * holds in the equality engine, this method returns false.
+   */
   bool assertFact(Node lit, Node exp, ProofGenerator* pg);
   //-------------------------- assert conflicts
   /**
    * This method is called when the equality engine of this class is
    * inconsistent (false has been proven) by a contradictory literal lit. This
    * returns the trust node corresponding to the current conflict.
+   *
+   * @param lit The conflicting literal, which must rewrite to false.
+   * @return The trust node capturing the fact that this class can provide a
+   * proof for this conflict.
    */
   TrustNode assertConflict(Node lit);
   /**
@@ -153,16 +208,16 @@ class ProofEqEngine : public EagerProofGenerator
                         const std::vector<Node>& noExplain,
                         ProofGenerator* pg);
   //-------------------------- explain
-  /** 
+  /**
    * Explain literal conc. This calls the appropriate methods in the underlying
    * equality engine of this class to construct the explanation of why conc
    * currently holds.
-   * 
+   *
    * It returns a trust node of kind TrustNodeKind::PROP_EXP whose node
    * is the explanation of conc (a conjunction of literals that implies it).
    * The proof that can be proven by this generator is then (=> exp conc), see
    * TrustNode::getPropExpProven(conc,exp);
-   * 
+   *
    * @param conc The conclusion to explain
    * @return The trust node indicating the explanation of conc and the generator
    * (this class) that can prove the implication.
@@ -213,18 +268,21 @@ class ProofEqEngine : public EagerProofGenerator
   /** The default proof generator (for simple facts) */
   class FactProofGenerator : public ProofGenerator
   {
-    typedef context::CDHashMap<Node, std::shared_ptr<ProofStep>, NodeHashFunction>
-        NodeProofStepMap;
-  public:
+    typedef context::
+        CDHashMap<Node, std::shared_ptr<ProofStep>, NodeHashFunction>
+            NodeProofStepMap;
+
+   public:
     FactProofGenerator(context::Context* c, ProofNodeManager* pnm);
-    ~FactProofGenerator(){}
+    ~FactProofGenerator() {}
     /** add step */
     bool addStep(Node fact, ProofStep ps);
     /** Get proof for */
     std::shared_ptr<ProofNode> getProofFor(Node f) override;
     /** identify */
     std::string identify() const override { return "FactProofGenerator"; }
-  private:
+
+   private:
     /** maps expected to ProofStep */
     NodeProofStepMap d_facts;
     /** the proof node manager */

@@ -15,6 +15,7 @@
 #include "theory/strings/infer_proof_cons.h"
 
 #include "expr/proof_skolem_cache.h"
+#include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
@@ -851,7 +852,7 @@ Node InferProofCons::convert(Inference infer,
     ps.d_rule = PfRule::TRUST;
     // add to stats
     d_statistics.d_inferencesNoPf << infer;
-    if (options::stringPedanticCheck())
+    if (options::proofNewPedantic())
     {
       std::stringstream serr;
       serr << "InferProofCons::convert: Failed " << infer

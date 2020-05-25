@@ -94,25 +94,14 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
   }
   else if (node.getKind() == kind::WITNESS)
   {
-    std::vector<Node> conj;
-    if (node[1].getKind() == kind::AND)
+    if (node[1].getKind() == kind::EQUAL)
     {
-      conj.insert(conj.end(), node[1].begin(), node[1].end());
-    }
-    else
-    {
-      conj.push_back(node[1]);
-    }
-    for (const Node& c : conj)
-    {
-      if (c.getKind() == kind::EQUAL)
+      for (unsigned i = 0; i < 2; i++)
       {
-        for (unsigned i = 0; i < 2; i++)
+        // FIXME: also must be legal elimination
+        if (node[1][i] == node[0][0])
         {
-          if (c[i] == node[0][0])
-          {
-            return RewriteResponse(REWRITE_DONE, c[1 - i]);
-          }
+          return RewriteResponse(REWRITE_DONE, node[1][1 - i]);
         }
       }
     }

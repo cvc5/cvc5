@@ -40,7 +40,6 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::CONCAT_CPROP, this);
   pc->registerChecker(PfRule::LENGTH_POS, this);
   pc->registerChecker(PfRule::LENGTH_NON_EMPTY, this);
-  pc->registerChecker(PfRule::CTN_NOT_EQUAL, this);
   pc->registerChecker(PfRule::STRINGS_REDUCTION, this);
   pc->registerChecker(PfRule::STRINGS_EAGER_REDUCTION, this);
   pc->registerChecker(PfRule::RE_INTER, this);
@@ -262,46 +261,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         Trace("pfcheck-strings-cprop") << "...failed constant" << std::endl;
         return Node::null();
       }
-      Trace("pfcheck-strings-cprop")
-          << "w1,w2 = " << w1 << " " << w2 << std::endl;
-      size_t lenW2 = Word::getLength(w2);
-      Node w2mc1 =
-          isRev ? Word::prefix(w2, lenW2 - 1) : Word::suffix(w2, lenW2 - 1);
-      Trace("pfcheck-strings-cprop") << "w2mc1 = " << w2mc1 << std::endl;
-      size_t p =
-          lenW2
-          - (isRev ? Word::roverlap(w2mc1, w1) : Word::overlap(w2mc1, w1));
-      Trace("pfcheck-strings-cprop") << "p = " << p << std::endl;
-      size_t p2 = isRev ? Word::rfind(w2mc1, w1) : Word::find(w2mc1, w1);
-      if (p2 == std::string::npos)
-      {
-        Trace("pfcheck-strings-cprop") << "p2 = std::string::npos" << std::endl;
-      }
-      else
-      {
-        Trace("pfcheck-strings-cprop") << "p2 = " << p2 << std::endl;
-      }
-      size_t p3 = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-      Trace("pfcheck-strings-cprop") << "p3 = " << p3 << std::endl;
-      Node w3 = isRev ? Word::suffix(w2, p3) : Word::prefix(w2, p3);
-      Trace("pfcheck-strings-cprop") << "w3 = " << w3 << std::endl;
-      Node rbody =
-          isRev ? utils::mkPrefix(t0,
-                                  nm->mkNode(MINUS,
-                                             nm->mkNode(STRING_LENGTH, t0),
-                                             nm->mkNode(STRING_LENGTH, w3)))
-                : utils::mkSuffix(t0, nm->mkNode(STRING_LENGTH, w3));
-      Node r = ProofSkolemCache::mkPurifySkolem(rbody, "r");
-      Node conc;
-      if (isRev)
-      {
-        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, r, w3));
-      }
-      else
-      {
-        conc = t0.eqNode(nm->mkNode(STRING_CONCAT, w3, r));
-      }
-      return conc;
+      // getConclusion expects the adjacent constant to be included
+      t0 = nm->mkNode(STRING_CONCAT, isRev ? w1 : t0, isRev ? t0 : w1);
     }
     // use skolem cache
     SkolemCache skc(false);
@@ -312,10 +273,6 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         CoreSolver::getConclusion(kt0, ks0, id, isRev, &skc, newSkolems);
     conc = ProofSkolemCache::getWitnessForm(conc);
     return conc;
-  }
-  else if (id == PfRule::CTN_NOT_EQUAL)
-  {
-    // TODO: probably unnecessary (build into eager reduction?)
   }
   else if (id == PfRule::STRINGS_REDUCTION
            || id == PfRule::STRINGS_EAGER_REDUCTION || id == PfRule::LENGTH_POS)

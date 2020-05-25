@@ -116,6 +116,19 @@ namespace CVC4 {
  * proof step for each Node. Thus, the ProofNode objects returned by this
  * class share proofs for common subformulas, as guaranteed by the fact that
  * Node objects have perfect sharing.
+ *
+ * Notice that this class is agnostic to symmetry of equality. In other
+ * words, adding a step that concludes (= x y) is effectively the same as
+ * providing a step that concludes (= y x) from the point of view of a user
+ * of this class. This is accomplished by adding SYMM steps on demand when
+ * a formula is looked up. For example say we call:
+ * - addStep( (= x y), ID_1 {}, {} )
+ * - addStep( P, ID_2, {(= y x)}, {} )
+ * Afterwards, getProof( P ) returns:
+ *   ID_2( SYMM( ID_1() ) )
+ * where notice SYMM was added so that (= y x) is a premise of the application
+ * of ID_2. More generally, CDProof::isSame(F,G) returns true if F and G are
+ * essentially the same formula according to this class.
  */
 class CDProof
 {
@@ -205,7 +218,6 @@ class CDProof
   bool hasStep(Node fact);
   /** Get the proof manager for this proof */
   ProofNodeManager* getManager() const;
-
   /**
    * Is same? Returns true if f and g are the same formula, or if they are
    * symmetric equalities. If two nodes f and g are the same, then a proof for
@@ -231,11 +243,9 @@ class CDProof
    * newId, based on policy forceOverwrite.
    */
   static bool shouldOverwrite(ProofNode* pn, PfRule newId, bool forceOverwrite);
-  /**
-   * Returns true if pn is an assumption.
-   */
+  /** Returns true if pn is an assumption. */
   static bool isAssumption(ProofNode* pn);
-  /** Notify new proof */
+  /** Notify new proof, called when a new proof of expected is provided. */
   void notifyNewProof(Node expected);
 };
 

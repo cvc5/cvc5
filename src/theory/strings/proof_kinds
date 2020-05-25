@@ -150,13 +150,6 @@ proofrule LENGTH_NON_EMPTY 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
 
 //======================== Extended functions
 
-// ======== Contains not equal
-// Children: (P1:(not (str.contains s t)))
-// Arguments: none
-// -------------------
-// Conclusion: (not (= s t))
-proofrule CTN_NOT_EQUAL 1 0 ::CVC4::theory::strings::StringsProofRuleChecker
-
 // ======== Reduction
 // Children: none
 // Arguments: (t)

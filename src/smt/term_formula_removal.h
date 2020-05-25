@@ -147,14 +147,6 @@ public:
 
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
-
-  /**
-   * Get the axiom for a term t eliminated by this class.
-   *
-   * This returns the axiom that the skolem sk for term t should satisfy. For
-   * example, if t is (ite C x y), then this returns (ite C (= sk x) (= sk y)).
-   */
-  static Node getAxiomFor(Node t, Node sk);
 };/* class RemoveTTE */
 
 }/* CVC4 namespace */

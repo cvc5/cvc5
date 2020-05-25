@@ -146,6 +146,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
     //   http://planetmath.org/hilbertsvarepsilonoperator.
     if (!inQuant)
     {
+      // FIXME: we can replace by t if body is of the form (and (= z t) ...)
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
@@ -311,12 +312,6 @@ bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {
          node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL && 
          node.getKind()!=kind::BITVECTOR_EAGER_ATOM;
          // dont' worry about FORALL or EXISTS (handled separately)
-}
-
-Node RemoveTermFormulas::getAxiomFor(Node t, Node sk)
-{
-  // TODO
-  return Node::null();
 }
 
 }/* CVC4 namespace */

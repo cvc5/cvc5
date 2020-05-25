@@ -144,7 +144,8 @@ class SkolemCache
    * for axiomatizing the behavior of a term or predicate t. Notice that this
    * index variable does *not* necessarily refer to indices in the term t
    * itself. Instead, it refers to indices in the relevant string in the
-   * reduction of t.
+   * reduction of t. For example, the index variable for the term str.to_int(s)
+   * is used to quantify over the positions in string term s.
    */
   static Node mkIndexVar(Node t);
 
@@ -176,8 +177,6 @@ class SkolemCache
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
   std::unordered_set<Node, NodeHashFunction> d_allSkolems;
-  /** A proof skolem cache */
-  ProofSkolemCache d_pskc;
 };
 
 }  // namespace strings

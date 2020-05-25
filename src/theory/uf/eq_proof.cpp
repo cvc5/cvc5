@@ -100,8 +100,10 @@ void EqProof::cleanReflPremisesInTranstivity(std::vector<Node>& premises) const
   if (newPremises.size() != size)
   {
     Trace("eqproof-conv") << "EqProof::cleanReflPremisesInTranstivity: removed "
-                          << newPremises.size() - size << " refl premises from "
-                          << premises << "\n";
+                          << (newPremises.size() >= size
+                                  ? newPremises.size() - size
+                                  : 0)
+                          << " refl premises from " << premises << "\n";
     premises.clear();
     premises.insert(premises.begin(), newPremises.begin(), newPremises.end());
     Trace("eqproof-conv")
@@ -165,9 +167,9 @@ bool EqProof::foldTransitivityChildren(
   // an offending premise (= (= t1 t2) false) indicates we are concluding,
   // modulo symmetry, (= false true) or the disequality (= (t3 t4) false). The
   // former can be fixed by having the remaining premises derive, with
-  // TRANSITIVITY, (= t1 t2), but the latter requires a MACRO_SR_PRED_TRANSFORM
-  // step which will turn (= (= t1 t2) false) into (= (= t3 t4) false). The
-  // remaining premises allow deriving the equality of the other case.
+  // TRANSITIVITY, (= t1 t2), but the latter requires building a subistuttion so
+  // that (= (= t1 t2) false) becomes (= (= t3 t4) false). The premises will
+  // constitute two independent transitivity proofs of (= t1 t3) and (= t2 t4).
   Node foldConclusion;
   std::vector<Node> substPremises;
   bool inSubstCase = false, substConclusionInReverseOrder = false;
@@ -176,55 +178,34 @@ bool EqProof::foldTransitivityChildren(
       || (conclusion[1].getKind() == kind::CONST_BOOLEAN
           && conclusion[0].getKind() != kind::CONST_BOOLEAN))
   {
-    // Either
+    // A variation of
     //
-    //      (= (= t1 t2) false) (= t2 x1) ... (= xn t4)
-    // (1) -------------------------------------------- TR
-    //             (= (= t4 t1) false)
+    //  (= (= t1 t2) false) (= t1 x1) ... (= xn t3) (= t2 y1) ... (= ym t4)
+    // ------------------------------------------------------------------ TR
+    //         (= (= t4 t3) false)
     //
-    // or
+    // leads to:
     //
-    //       (= (= t1 t2) false) (= t1 t3) (= t2 t4)
-    // (2)  ----------------------------------------- TR
-    //             (= (= t4 t3) false)
-    //
-    // are supported. If both terms in the equality are replaced but there are
-    // more than two conclusions we do not support it.
-    //
-    // The above cases will lead to, respectively:
-    //
-    //                     (= t2 x1) ... (= xn t4)
-    //                    ------------------------ TRANS
-    //                           (= t2 t4)
-    //  ----------- RF    ------------------------ SYMM
-    //   (= t1 t1)               (= t4 t2)
-    //  ------------------------------------ CONG
-    //   (= (= t1 t4) (= t1 t2))                      (= (= t1 t2) false)
-    //  ------------------------------------------------------------------ TRANS
-    //           (= (= t1 t4) false)
+    //   (= t1 x1) ... (= xn t3)      (= t2 y1) ... (= ym t4)
+    //  ------------------------ TR  ------------------------ TR
+    //   (= t1 t3)                    (= t2 t4)
+    //  ----------- SYMM             ----------- SYMM
+    //   (= t3 t1)                    (= t4 t2)
+    //  ---------------------------------------- CONG
+    //   (= (= t3 t4) (= t1 t2))                         (= (= t1 t2) false)
+    //  --------------------------------------------------------------------- TR
+    //           (= (= t3 t4) false)
     //          --------------------- MACRO_SR_PRED_TRANSFORM
-    //           (= (= t4 t1) false)
-    //
-    // and
-    //
-    //   (= t1 t3)         (= t2 t4)
-    //  ---------- SYMM   ---------- SYMM
-    //   (= t3 t1)         (= t4 t2)
-    //  ----------------------------- CONG
-    //   (= (= t3 t4) (= t1 t2))            (= (= t1 t2) false)
-    //   ------------------------------------------------------- TRANS
-    //          (= (= t3 t4) false)
-    //         --------------------- MACRO_SR_PRED_TRANSFORM
-    //          (= (= t4 t3) false)
+    //           (= (= t4 t3) false)
     //
     // Note that the last step is only necessary if the conclusion has the
     // arguments in reverse order than expected. Moreover, the symm steps are
     // done implicitly.
     //
-    // TODO if necessary we could support the general case of needing
-    // transitivity for both substitutions if we did a transitivity
-    // reconstruction that from a set of equalities collects those necessary for
-    // building a transitivity step for the given conclusion
+    // Due to the two transitivity proofs happenning in the same set of
+    // premises, we build the transitivity proofs for both children by greedly
+    // searching for the sets of premises that allow concluding the
+    // substitutions.
     inSubstCase = true;
     // reorder premise and conclusion if constant is the first argument
     premise = termPos == 0 ? premise : premise[1].eqNode(premise[0]);
@@ -281,28 +262,111 @@ bool EqProof::foldTransitivityChildren(
       Trace("eqproof-conv") << "EqProof::foldTransitivityChildren: Look for "
                             << premiseTermEq[0] << " and " << premiseTermEq[1]
                             << " in premises " << foldPremises << "\n";
-      Assert(foldPremises.size() == 2);
-      // iterate over args to be substituted
-      for (unsigned i = 0; i < 2; ++i)
+      Assert(foldPremises.size() >= 2)
+          << "Less than 2 fold premises for substituting BOTH terms in "
+             "disequality.\nDisequality: "
+          << premise << "\nFold premises: " << foldPremises
+          << "\nConclusion: " << conclusion << "\n";
+      // easy case where we can determine the substitution by directly looking
+      // at the premises
+      if (foldPremises.size() == 2)
       {
-        // iterate over premises
-        for (unsigned j = 0; j < 2; ++j)
+        // iterate over args to be substituted
+        for (unsigned i = 0; i < 2; ++i)
         {
-          // iterate over args in premise
-          for (unsigned k = 0; k < 2; ++k)
+          // iterate over premises
+          for (unsigned j = 0; j < 2; ++j)
           {
-            if (premiseTermEq[i] == foldPremises[j][k])
+            // iterate over args in premise
+            for (unsigned k = 0; k < 2; ++k)
             {
-              subs[i].push_back(foldPremises[j][1 - k]);
-              break;
+              if (premiseTermEq[i] == foldPremises[j][k])
+              {
+                subs[i].push_back(foldPremises[j][1 - k]);
+                break;
+              }
             }
           }
+          Assert(subs[i].size() == 2)
+              << " did not find term " << subs[i][0] << "\n";
+          // check if argument to be substituted is in the same order in the
+          // conclusion
+          substConclusionInReverseOrder =
+              premiseTermEq[i] != conclusionTermEq[i];
         }
-        Assert(subs[i].size() == 2)
-            << " did not find term " << subs[i][0] << "\n";
-        // check if argument to be substituted is in the same order in the
-        // conclusion
-        substConclusionInReverseOrder = premiseTermEq[i] != conclusionTermEq[i];
+      }
+      else
+      {
+        Trace("eqproof-conv")
+            << "EqProof::foldTransitivityChildren: Build transitivity chains "
+               "for two subs among more than 2 premises: "
+            << foldPremises << "\n";
+        // hard case. Try first with t1 = t3 and see if can build it. If it can,
+        // go on and build t2 = t4. Otherwise go on and build t1 = t4, t2 = t3.
+        subs[0].push_back(conclusionTermEq[0]);
+        subs[1].push_back(conclusionTermEq[1]);
+        for (unsigned i = 0; i < 2; ++i)
+        {
+          // copy premises, since buildTransitivityChain is destructive
+          std::vector<Node> copy1foldPremises(foldPremises.begin(),
+                                              foldPremises.end());
+          Node transConclusion1 = subs[0][0].eqNode(subs[0][1]);
+          if (!buildTransitivityChain(transConclusion1, copy1foldPremises))
+          {
+            AlwaysAssert(i == 0)
+                << "Couldn't find sub at all for substituting BOTH terms in "
+                   "disequality.\nDisequality: "
+                << premise << "\nFold premises: " << foldPremises
+                << "\nConclusion: " << conclusion << "\n";
+            // Failed. So flip sub and try again
+            subs[0][1] = conclusionTermEq[1];
+            subs[1][1] = conclusionTermEq[0];
+            substConclusionInReverseOrder = false;
+            continue;
+          }
+          // build next chain
+          std::vector<Node> copy2foldPremises(foldPremises.begin(),
+                                              foldPremises.end());
+          Node transConclusion2 = subs[1][0].eqNode(subs[1][1]);
+          if (!buildTransitivityChain(transConclusion2, copy2foldPremises))
+          {
+            AlwaysAssert(false)
+                << "Found sub " << transConclusion1 << " but not other sub "
+                << transConclusion2 << ".\nDisequality: " << premise
+                << "\nFold premises: " << foldPremises
+                << "\nConclusion: " << conclusion << "\n";
+          }
+          Trace("eqproof-conv")
+              << "EqProof::foldTransitivityChildren: Built trans chains: "
+                 "for two subs among more than 2 premises:\n";
+          Trace("eqproof-conv")
+              << "EqProof::foldTransitivityChildren: " << transConclusion1
+              << " <- " << copy1foldPremises << "\n";
+          Trace("eqproof-conv")
+              << "EqProof::foldTransitivityChildren: " << transConclusion2
+              << " <- " << copy2foldPremises << "\n";
+          // do transitivity steps if need be
+          if (copy1foldPremises.size() > 1
+              && !assumptions.count(transConclusion1))
+          {
+            p->addStep(transConclusion1,
+                       PfRule::TRANS,
+                       copy1foldPremises,
+                       {},
+                       true,
+                       true);
+          }
+          if (copy2foldPremises.size() > 1
+              && !assumptions.count(transConclusion2))
+          {
+            p->addStep(transConclusion2,
+                       PfRule::TRANS,
+                       copy2foldPremises,
+                       {},
+                       true,
+                       true);
+          }
+        }
       }
     }
     Trace("eqproof-conv")
@@ -358,16 +422,7 @@ bool EqProof::foldTransitivityChildren(
     if (foldPremises.size() > 1 && !assumptions.count(foldConclusion))
     {
       // create transitivity step to derive expected premise
-      unsigned newSize = foldPremises.size();
-      maybeAddSymmOrTrueIntroToProof(
-          0, foldPremises, true, foldConclusion[0], p);
-      for (unsigned i = 1; i < newSize - 1; ++i)
-      {
-        maybeAddSymmOrTrueIntroToProof(
-            i, foldPremises, true, foldPremises[i - 1][1], p);
-      }
-      maybeAddSymmOrTrueIntroToProof(
-          newSize - 1, foldPremises, false, foldConclusion[1], p);
+      buildTransitivityChain(foldConclusion, foldPremises);
       Trace("eqproof-conv")
           << "EqProof::foldTransitivityChildren: add transitivity step for "
           << foldConclusion << " with premises " << foldPremises << "\n";
@@ -461,14 +516,7 @@ bool EqProof::foldTransitivityChildren(
     premises.push_back(newFoldConclusion);
     Trace("eqproof-conv") << PfRule::MACRO_SR_PRED_TRANSFORM << " from "
                           << premises << "\n";
-    unsigned newSize = premises.size();
-    maybeAddSymmOrTrueIntroToProof(0, premises, true, conclusion[0], p);
-    for (unsigned i = 1; i < newSize - 1; ++i)
-    {
-      maybeAddSymmOrTrueIntroToProof(i, premises, true, premises[i - 1][1], p);
-    }
-    maybeAddSymmOrTrueIntroToProof(
-        newSize - 1, premises, false, conclusion[1], p);
+    buildTransitivityChain(conclusion, premises);
     // create final transitivity step
     if (!p->addStep(conclusion, PfRule::TRANS, premises, {}, true))
     {
@@ -479,90 +527,11 @@ bool EqProof::foldTransitivityChildren(
   return true;
 }
 
-void EqProof::maybeAddSymmOrTrueIntroToProof(unsigned i,
-                                             std::vector<Node>& premises,
-                                             bool first,
-                                             Node termInEq,
-                                             CDProof* p) const
-{
-  // nothing to do
-  if (premises[i][first ? 0 : 1] == termInEq)
-  {
-    return;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  Trace("eqproof-conv") << "EqProof::maybeAddSymmOrTrueIntroToProof: seach for "
-                        << termInEq << " as " << (first ? "fst" : "snd")
-                        << " term starting in index " << i << " in " << premises
-                        << "\n";
-  // look for first premise with termInEq in it. If j != i, move that
-  // premise to the position i of the list
-  unsigned j, size = premises.size();
-  bool correctlyOrdered = false;
-  for (j = i; j < size; ++j)
-  {
-    bool occurs = false;
-    if (termInEq == premises[j][first ? 0 : 1])
-    {
-      occurs = correctlyOrdered = true;
-    }
-    else if (termInEq == premises[j][first ? 1 : 0])
-    {
-      occurs = true;
-    }
-    if (occurs)
-    {
-      Trace("eqproof-conv")
-          << "EqProof::maybeAddSymmOrTrueIntroToProof: found termInEq "
-          << termInEq << " in premise " << j << "\n";
-      if (j != i)
-      {
-        // move premise to position i.
-        Node premise = premises[j];
-        premises.erase(premises.begin() + j);
-        premises.insert(premises.begin() + i, premise);
-        Trace("eqproof-conv")
-            << "EqProof::maybeAddSymmOrTrueIntroToProof: reordering premises: "
-            << premises << "\n";
-      }
-      break;
-    }
-  }
-  // did not find it. It must be the case that termInEq is a boolean
-  // constant and a TRUE_INTRO step is applied
-  if (j == size)
-  {
-    Assert(termInEq.getKind() == kind::CONST_BOOLEAN
-           && termInEq.getConst<bool>())
-        << "term " << termInEq
-        << " is not True, so it should have been in a premise\n";
-    // add TRUE_INTRO step for first premise
-    Node conclusion = premises[i].eqNode(nm->mkConst<bool>(true));
-    Trace("eqproof-conv") << "EqProof::maybeAddSymmOrTrueIntroToProof: adding "
-                          << PfRule::TRUE_INTRO << " step for " << premises[i]
-                          << "\n";
-    if (!p->addStep(conclusion, PfRule::TRUE_INTRO, {premises[i]}, {}))
-    {
-      Assert(false) << "EqProof::maybeAddSymmOrTrueIntroToProof: couldn't add "
-                    << PfRule::TRUE_INTRO << " rule\n";
-    }
-    premises[i] = conclusion;
-    // not correctly ordered unless I'm looking for TRUE as the second argument
-    correctlyOrdered = !first;
-  }
-  // reorder. Don't need to add symm step because it'll be added silently when
-  // the reordered premise is used.
-  if (!correctlyOrdered)
-  {
-    Node symmChild = premises[i][1].eqNode(premises[i][0]);
-    premises[i] = symmChild;
-  }
-}
-
 bool EqProof::buildTransitivityChain(Node conclusion,
                                      std::vector<Node>& premises) const
 {
-  Trace("eqproof-conv") << "EqProof::buildTransitivityChain: Build chain for "
+  Trace("eqproof-conv") << push
+                        << "EqProof::buildTransitivityChain: Build chain for "
                         << conclusion << " with premises " << premises << "\n";
   for (unsigned i = 0, size = premises.size(); i < size; ++i)
   {
@@ -585,7 +554,8 @@ bool EqProof::buildTransitivityChain(Node conclusion,
       {
         Trace("eqproof-conv")
             << "EqProof::buildTransitivityChain: found " << conclusion[1]
-            << " in same premise. Closed chain.\n";
+            << " in same premise. Closed chain.\n"
+            << pop;
         premises.clear();
         premises.push_back(conclusion);
         return true;
@@ -603,16 +573,15 @@ bool EqProof::buildTransitivityChain(Node conclusion,
                                         : premises[i][0].eqNode(conclusion[1]);
       Trace("eqproof-conv")
           << "EqProof::buildTransitivityChain: search recursively for "
-          << newTarget << "\n"
-          << push;
+          << newTarget << "\n";
       bool success = buildTransitivityChain(newTarget, recursivePremises);
-      Trace("eqproof-conv") << pop;
       if (success)
       {
         Trace("eqproof-conv")
             << "EqProof::buildTransitivityChain: closed chain with "
             << 1 + recursivePremises.size() << " of the original "
-            << premises.size() << " premises\n";
+            << premises.size() << " premises\n"
+            << pop;
         premises.clear();
         premises.insert(premises.begin(),
                         correctlyOrdered
@@ -624,6 +593,10 @@ bool EqProof::buildTransitivityChain(Node conclusion,
       }
     }
   }
+  Trace("eqproof-conv")
+      << "EqProof::buildTransitivityChain: Could not build chain for"
+      << conclusion << " with premises " << premises << "\n";
+  Trace("eqproof-conv") << pop;
   return false;
 }
 
@@ -633,7 +606,8 @@ void EqProof::reduceNestedCongruence(
     std::vector<std::vector<Node>>& children,
     CDProof* p,
     std::unordered_map<Node, Node, NodeHashFunction>& visited,
-    std::unordered_set<Node, NodeHashFunction>& assumptions) const
+    std::unordered_set<Node, NodeHashFunction>& assumptions,
+    bool isNary) const
 {
   Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: building for " << i
                         << "-th arg\n";
@@ -655,7 +629,7 @@ void EqProof::reduceNestedCongruence(
           << "EqProof::reduceNestedCongruence: Reduce first child\n"
           << push;
       d_children[0].get()->reduceNestedCongruence(
-          i - 1, conclusion, children, p, visited, assumptions);
+          i - 1, conclusion, children, p, visited, assumptions, isNary);
       Trace("eqproof-conv") << pop;
     }
     else
@@ -703,15 +677,47 @@ void EqProof::reduceNestedCongruence(
   //
   Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: it's a "
                            "transitivity step.\n";
+  Assert(d_node.isNull()
+         || d_node[0].getNumChildren() == d_node[1].getNumChildren() || isNary)
+      << "Non-null (internal cong) transitivity conclusion of different arity "
+         "but not marked by isNary flag\n";
+  // if handling n-ary kinds and got a trans conclusion, we can just stop here
+  // (in fact, it might be *necessary*). The arity of the original conclusion
+  // will later be changet to arity - i.
+  if (isNary && !d_node.isNull())
+  {
+    Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: n-ary case, "
+                             "break recursion and indepedently process "
+                          << d_node << "\n"
+                          << push;
+    children[i].push_back(addToProof(p, visited, assumptions));
+    Trace("eqproof-conv") << pop
+                          << "EqProof::reduceNestedCongruence: Got conclusion "
+                          << children[i].back()
+                          << " from n-ary transitivity processing\n";
+    return;
+  }
+  // regular recursive processing
   for (unsigned j = 0, sizeTrans = d_children.size(); j < sizeTrans; ++j)
   {
-    Assert(d_children[j].get()->d_id == MERGED_THROUGH_CONGRUENCE);
-    Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: Reduce " << j
-                          << "-th transitivity child\n"
-                          << push;
-    d_children[j].get()->reduceNestedCongruence(
-        i, conclusion, children, p, visited, assumptions);
-    Trace("eqproof-conv") << pop;
+    if (d_children[j].get()->d_id == MERGED_THROUGH_CONGRUENCE)
+    {
+      Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: Reduce " << j
+                            << "-th transitivity congruence child\n"
+                            << push;
+      d_children[j].get()->reduceNestedCongruence(
+          i, conclusion, children, p, visited, assumptions, isNary);
+      Trace("eqproof-conv") << pop;
+    }
+    else
+    {
+      Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: Add " << j
+                            << "-th transitivity child to proof\n"
+                            << push;
+      children[i].push_back(
+          d_children[j].get()->addToProof(p, visited, assumptions));
+      Trace("eqproof-conv") << pop;
+    }
   }
 }
 
@@ -902,8 +908,9 @@ Node EqProof::addToProof(
     visited[d_node] = conclusion;
     return conclusion;
   }
-  // refl
-  if (d_id == MERGED_THROUGH_REFLEXIVITY)
+  // refl and laborious congruence steps of (= (f t1 ... tn) (f t1 ... tn))
+  if (d_id == MERGED_THROUGH_REFLEXIVITY
+      || (d_node.getKind() == kind::EQUAL && d_node[0] == d_node[1]))
   {
     Trace("eqproof-conv-debug") << "Refl node: " << d_node << std::endl;
     Node conclusion =
@@ -1098,29 +1105,27 @@ Node EqProof::addToProof(
       cleanReflPremisesInTranstivity(children);
       Assert(!children.empty());
       Trace("eqproof-conv")
-          << "EqProof::addToProof: maybe reorder trans premises " << children
-          << " to conclude " << conclusion << "\n";
+          << "EqProof::addToProof: build chain for transitivity premises"
+          << children << " to conclude " << conclusion << "\n";
       // conclusion is t1 = tn. Children MUST BE (= t1 t2), ..., (= t{n-1} tn).
       // If t1 or tn are true or false, then premises may have to be amended
       // with TRUE/FALSE intro rules. Process children to ensure this
-      unsigned size = children.size();
-      maybeAddSymmOrTrueIntroToProof(0, children, true, conclusion[0], p);
-      for (unsigned i = 1; i < size - 1; ++i)
-      {
-        Assert(children[i - 1].getKind() == kind::EQUAL);
-        maybeAddSymmOrTrueIntroToProof(
-            i, children, true, children[i - 1][1], p);
-      }
-      maybeAddSymmOrTrueIntroToProof(
-          size - 1, children, false, conclusion[1], p);
+      buildTransitivityChain(conclusion, children);
       // add step while making sure that all children have been added to the
       // proof, as well as that the proof should be rewritten in case it exists.
       // Overwritting is necessary because of a literal potentially having
       // different explanations at different points of the solving.
-      if (!p->addStep(conclusion, PfRule::TRANS, children, {}, true, true))
+      Assert(children.size() > 1
+             || (!children.empty()
+                 && (children[0] == conclusion
+                     || children[0][1].eqNode(children[0][0]) == conclusion)));
+      if (children.size() > 1)
       {
-        Assert(false) << "EqProof::addToProof: couldn't add TRANS "
-                      << conclusion << " " << children << "\n";
+        if (!p->addStep(conclusion, PfRule::TRANS, children, {}, true, true))
+        {
+          Assert(false) << "EqProof::addToProof: couldn't add TRANS "
+                        << conclusion << " " << children << "\n";
+        }
       }
     }
     visited[d_node] = conclusion;
@@ -1135,23 +1140,129 @@ Node EqProof::addToProof(
   // The given conclusion is taken as ground truth. If the premises do not
   // align, for example with (= (f t1) (f t2)) but a premise being t2 = t1, we
   // reorder it via a symmetry step
-  Assert(d_node[0].getNumChildren() == d_node[1].getNumChildren())
-      << "EqProof::addToProof: apps in conclusion " << d_node
-      << " have different arity\n";
+  //
+  // N-ary operators are fun. The following proof is a valid congruence proof
+  //
+  //   (= (f t1 t2 t3) (f t6 t5)) (= (f t6 t5) (f t5 t6))
+  //   -------------------------------------------------- TR
+  //             (= (f t1 t2 t3) (f t5 t6))                 (= t4 t7)
+  //          ------------------------------------------------------ CONG
+  //          (= (f t1 t2 t3 t4) (f t5 t6 t7))
+  //
+  // The reason it's valid is that the conclusion is actually
+  //
+  //   (= (f (f t1 t2 t3) t4) (f (f t5 t6) t7))
+  //
+  // which means that one of the internal congruence steps will *necessarily* be
+  // a transitivity step corresponding to the "arity mismatch". To process the
+  // above proof correctly we assume the maximal arity (4 in the above example)
+  // and, when an internal transitivity proof is found that equates applications
+  // of different arity, the recursion halts and that proof is processed
+  // indepedently. Thus, in the matrix of children at least one of the initial
+  // rows will be empty. The new arity will be the orginal one minus the number
+  // of empty rows.
+  //
+  // Moreover note that a situation as above may happen EVEN WHEN THE ARITY IS
+  // THE SAME:
+  //
+  //    (= (f t1 t2) x)    (= (f t1 t4) x)
+  //   ----------------------------------- TR
+  //      (= (f t1 t2) (f t1 t4))                 (= t3 t5)
+  //     --------------------------------------------------- CONG
+  //          (= (f t1 t2 t3) (f t1 t4 t5))
+  unsigned arity = d_node[0].getNumChildren();
+  Kind k = d_node[0].getKind();
+  bool isNary = ExprManager::isNAryKind(k);
+  // if mismatch, update arity to be initially the maximal one
+  if (d_node[0].getNumChildren() != d_node[1].getNumChildren())
+  {
+    Assert(isNary);
+    arity =
+        d_node[1].getNumChildren() < arity ? arity : d_node[1].getNumChildren();
+    Trace("eqproof-conv")
+        << "EqProof::addToProof: Mismatching arities in cong conclusion "
+        << d_node << ". Use tentative arity " << arity << "\n";
+  }
   // premises to be retrieved
   std::vector<std::vector<Node>> transitivityChildren;
-  unsigned arity = d_node[0].getNumChildren();
   // intialize children matrix
   for (unsigned i = 0; i < arity; ++i)
   {
     transitivityChildren.push_back(std::vector<Node>());
   }
   reduceNestedCongruence(
-      arity - 1, d_node, transitivityChildren, p, visited, assumptions);
+      arity - 1, d_node, transitivityChildren, p, visited, assumptions, isNary);
+  // may change conclusion if in n-ary case, so use alias
+  Node conclusion = d_node;
+  NodeManager* nm = NodeManager::currentNM();
+  if (isNary)
+  {
+    unsigned emptyRows = 0;
+    for (unsigned i = 0; i < arity; ++i)
+    {
+      if (transitivityChildren[i].empty())
+      {
+        emptyRows++;
+      }
+    }
+    if (emptyRows > 0)
+    {
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: Found " << emptyRows
+          << " empty rows. Rebuild conclusion " << d_node << "\n";
+      std::vector<std::vector<Node>> newTransitivityChildren{
+          transitivityChildren.begin() + emptyRows, transitivityChildren.end()};
+      transitivityChildren.clear();
+      transitivityChildren.insert(transitivityChildren.begin(),
+                                  newTransitivityChildren.begin(),
+                                  newTransitivityChildren.end());
+      // build new conclusion
+      unsigned arityPrefix1 =
+          emptyRows + 1 - (arity - d_node[0].getNumChildren());
+      Assert(arityPrefix1 < d_node[0].getNumChildren())
+          << "arityPrefix1 " << arityPrefix1 << " not smaller than "
+          << d_node[0] << "'s arity " << d_node[0].getNumChildren() << "\n";
+      unsigned arityPrefix2 =
+          emptyRows + 1 - (arity - d_node[1].getNumChildren());
+      Assert(arityPrefix2 < d_node[1].getNumChildren())
+          << "arityPrefix2 " << arityPrefix2 << " not smaller than "
+          << d_node[1] << "'s arity " << d_node[1].getNumChildren() << "\n";
+      Trace("eqproof-conv") << "EqProof::addToProof: New internal "
+                               "applications with arities "
+                            << arityPrefix1 << ", " << arityPrefix2 << ":\n";
+      std::vector<Node> childrenPrefix1{d_node[0].begin(),
+                                        d_node[0].begin() + arityPrefix1};
+      std::vector<Node> childrenPrefix2{d_node[1].begin(),
+                                        d_node[1].begin() + arityPrefix2};
+      Node newFirstChild1 = nm->mkNode(k, childrenPrefix1);
+      Node newFirstChild2 = nm->mkNode(k, childrenPrefix2);
+      Trace("eqproof-conv")
+          << "EqProof::addToProof:\t " << newFirstChild1 << "\n";
+      Trace("eqproof-conv")
+          << "EqProof::addToProof:\t " << newFirstChild2 << "\n";
+      std::vector<Node> newChildren1{newFirstChild1};
+      newChildren1.insert(newChildren1.end(),
+                          d_node[0].begin() + arityPrefix1,
+                          d_node[0].end());
+      std::vector<Node> newChildren2{newFirstChild2};
+      newChildren2.insert(newChildren2.end(),
+                          d_node[1].begin() + arityPrefix2,
+                          d_node[1].end());
+      conclusion = nm->mkNode(kind::EQUAL,
+                              nm->mkNode(k, newChildren1),
+                              nm->mkNode(k, newChildren2));
+      // update arity
+      Assert((arity - emptyRows) == conclusion[0].getNumChildren());
+      arity = arity - emptyRows;
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: New conclusion " << conclusion << "\n";
+    }
+  }
   if (Trace.isOn("eqproof-conv"))
   {
     Trace("eqproof-conv")
-        << "EqProof::addToProof: premises from reduced cong:\n";
+        << "EqProof::addToProof: premises from reduced cong of " << conclusion
+        << ":\n";
     for (unsigned i = 0; i < arity; ++i)
     {
       Trace("eqproof-conv") << "EqProof::addToProof:\t" << i
@@ -1174,11 +1285,11 @@ Node EqProof::addToProof(
   std::vector<Node> children(arity);
   for (unsigned i = 0; i < arity; ++i)
   {
-    Node transConclusion = d_node[0][i].eqNode(d_node[1][i]);
+    Node transConclusion = conclusion[0][i].eqNode(conclusion[1][i]);
     children[i] = transConclusion;
     Assert(!transitivityChildren[i].empty())
         << "EqProof::addToProof: did not add any justification for " << i
-        << "-th arg of congruence " << d_node << "\n";
+        << "-th arg of congruence " << conclusion << "\n";
     cleanReflPremisesInTranstivity(transitivityChildren[i]);
     // nothing to do
     Assert(transitivityChildren[i].size() > 1 || transitivityChildren[i].empty()
@@ -1192,6 +1303,17 @@ Node EqProof::addToProof(
     // (which might lead to a cycle with a transtivity step), nothing else to do
     if (sizeTrans == 0 || assumptions.count(transConclusion) > 0)
     {
+      continue;
+    }
+    // if the transitivity conclusion is a reflexivity step (this can happen due
+    // to the n-ary congruences between the same term being explained not by
+    // reflexivity in the current equality engine), just add a reflexivity step
+    if (transConclusion[0] == transConclusion[1])
+    {
+      if (!p->addStep(transConclusion, PfRule::REFL, {}, {transConclusion[0]}))
+      {
+        Assert(false) << "EqProof::addToProof: couldn't add refl step\n";
+      }
       continue;
     }
     // if the transitivity conclusion, or its symmetric, occurs in the
@@ -1231,29 +1353,46 @@ Node EqProof::addToProof(
       << "\n";
   // build args
   std::vector<Node> args;
-  Kind k = d_node[0].getKind();
   if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
   {
-    args.push_back(d_node[0].getOperator());
+    args.push_back(conclusion[0].getOperator());
   }
   else
   {
     args.push_back(NodeManager::currentNM()->operatorOf(k));
   }
   // build conclusion
-  Trace("eqproof-conv") << "EqProof::addToProof: build cong step of " << d_node
-                        << " with op " << args[0] << " and children "
-                        << children << "\n";
-  if (!p->addStep(d_node, PfRule::CONG, children, args, true, true))
+  Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "
+                        << conclusion << " with op " << args[0]
+                        << " and children " << children << "\n";
+  if (!p->addStep(conclusion, PfRule::CONG, children, args, true, true))
   {
     Assert(false) << "EqProof::addToProof: couldn't add cong step\n";
   }
+  // whether had to change cong conclusion because of n-ary handling
+  if (conclusion != d_node)
+  {
+    Trace("eqproof-conv") << "EqProof::addToProof: add "
+                          << PfRule::MACRO_SR_PRED_TRANSFORM
+                          << " step to flatten rebuilt conclusion "
+                          << conclusion << "into " << d_node << "\n";
+    if (!p->addStep(d_node,
+                    PfRule::MACRO_SR_PRED_TRANSFORM,
+                    {conclusion},
+                    {d_node},
+                    true,
+                    true))
+    {
+      Assert(false) << "EqProof::addToProof: couldn't add "
+                    << PfRule::MACRO_SR_PRED_TRANSFORM << " step\n";
+    }
+  }
   if (Trace.isOn("eqproof-conv"))
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: proof node of " << d_node
+    Trace("eqproof-conv") << "EqProof::addToProof: proof node of " << conclusion
                           << " is:\n";
     std::stringstream out;
-    p->getProof(d_node).get()->printDebug(out);
+    p->getProof(conclusion).get()->printDebug(out);
     Trace("eqproof-conv") << out.str() << "\n";
   }
   visited[d_node] = d_node;

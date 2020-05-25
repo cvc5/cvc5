@@ -752,7 +752,7 @@ Node CoreSolver::getConclusion(Node x,
       newSkolems.push_back(sk2);
     }
     Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, y)
-                               : nm->mkNode(STRING_CONCAT, y, sk1));
+                              : nm->mkNode(STRING_CONCAT, y, sk1));
     // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
 
     if (rule == PfRule::CONCAT_LPROP)
@@ -762,10 +762,10 @@ Node CoreSolver::getConclusion(Node x,
     else
     {
       Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, x)
-                                 : nm->mkNode(STRING_CONCAT, x, sk2));
+                                : nm->mkNode(STRING_CONCAT, x, sk2));
       // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
       // make agnostic to x/y
-      conc = x<y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
+      conc = x < y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
     }
     if (options::stringUnifiedVSpt() && options::stringLenConc())
     {
@@ -802,25 +802,8 @@ Node CoreSolver::getConclusion(Node x,
     Assert(d.isConst());
     Node c = y;
     Assert(c.isConst());
-    unsigned cLen = Word::getLength(c);
-
-    // Since `z` is non-empty, we start with character 1
-    size_t p;
-    size_t p2;
-    Node c1;
-    if (isRev)
-    {
-      c1 = Word::prefix(c, cLen - 1);
-      p = cLen - Word::roverlap(c1, d);
-      p2 = Word::rfind(c1, d);
-    }
-    else
-    {
-      c1 = Word::substr(c, 1);
-      p = cLen - Word::overlap(c1, d);
-      p2 = Word::find(c1, d);
-    }
-    p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+    size_t cLen = Word::getLength(c);
+    size_t p = getSufficientNonEmptyOverlap(c, d, isRev);
     Node preC =
         p == cLen ? c : (isRev ? Word::suffix(c, p) : Word::prefix(c, p));
     Node sk = skc->mkSkolemCached(
@@ -834,6 +817,29 @@ Node CoreSolver::getConclusion(Node x,
   }
 
   return conc;
+}
+
+size_t CoreSolver::getSufficientNonEmptyOverlap(Node c, Node d, bool isRev)
+{
+  Assert(c.isConst() && c.getType().isStringLike());
+  Assert(d.isConst() && d.getType().isStringLike());
+  size_t p;
+  size_t p2;
+  size_t cLen = Word::getLength(c);
+  if (isRev)
+  {
+    // Since non-empty, we start with character 1
+    Node c1 = Word::prefix(c, cLen - 1);
+    p = cLen - Word::roverlap(c1, d);
+    p2 = Word::rfind(c1, d);
+  }
+  else
+  {
+    Node c1 = Word::substr(c, 1);
+    p = cLen - Word::overlap(c1, d);
+    p2 = Word::find(c1, d);
+  }
+  return p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
 }
 
 void CoreSolver::getNormalForms(Node eqc,
@@ -1526,45 +1532,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         // E.g. "abc" ++ ... = nc ++ "b" ++ ... ---> nc = "a" ++ k
         size_t cIndex = index;
         Node stra = nfc.collectConstantStringAt(cIndex);
-        size_t straLen = Word::getLength(stra);
         Assert(!stra.isNull());
         Node strb = nextConstStr;
 
-        SkolemCache* skc = d_termReg.getSkolemCache();
-        // TODO: use
-        /*
-        Node xcv =
-            nm->mkNode(STRING_CONCAT, isRev ? strb : nc, isRev ? nc : strb);
-        std::vector<Node> newSkolems;
-        Node conc = getConclusion(
-            xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
-        */
-
-        // Since `nc` is non-empty, we start with character 1
-        size_t p;
-        size_t p2;
-        Node stra1;
-        if (isRev)
-        {
-          stra1 = Word::prefix(stra, straLen - 1);
-          p = straLen - Word::roverlap(stra1, strb);
-          Trace("strings-csp-debug")
-              << "Compute roverlap : " << stra1 << " " << strb << std::endl;
-          p2 = Word::rfind(stra1, strb);
-        }
-        else
-        {
-          stra1 = Word::substr(stra, 1);
-          p = straLen - Word::overlap(stra1, strb);
-          Trace("strings-csp-debug")
-              << "Compute overlap : " << stra1 << " " << strb << std::endl;
-          p2 = Word::find(stra1, strb);
-        }
-        p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
-        Trace("strings-csp-debug")
-            << (isRev ? "r" : "") << "overlap : " << stra1 << " " << strb
-            << " returned " << p << " " << p2 << " "
-            << (p2 == std::string::npos) << std::endl;
+        // Since `nc` is non-empty, we use the non-empty overlap
+        size_t p = getSufficientNonEmptyOverlap(stra, strb, isRev);
 
         // If we can't split off more than a single character from the
         // constant, we might as well do regular constant/non-constant
@@ -1573,21 +1545,16 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         {
           NormalForm::getExplanationForPrefixEq(
               nfc, nfnc, cIndex, ncIndex, iinfo.d_ant);
-          Node prea = p == straLen ? stra
-                                   : (isRev ? Word::suffix(stra, p)
-                                            : Word::prefix(stra, p));
-          Node sk = skc->mkSkolemCached(
-              nc,
-              prea,
-              isRev ? SkolemCache::SK_ID_C_SPT_REV : SkolemCache::SK_ID_C_SPT,
-              "c_spt");
-          Trace("strings-csp")
-              << "Const Split: " << prea << " is removed from " << stra
-              << " due to " << strb << ", p=" << p << std::endl;
           iinfo.d_ant.push_back(expNonEmpty);
-          iinfo.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, prea)
-                                         : utils::mkNConcat(prea, sk));
-          iinfo.d_new_skolem[LENGTH_SPLIT].push_back(sk);
+          // make the conclusion
+          SkolemCache* skc = d_termReg.getSkolemCache();
+          Node xcv =
+              nm->mkNode(STRING_CONCAT, isRev ? strb : nc, isRev ? nc : strb);
+          std::vector<Node> newSkolems;
+          iinfo.d_conc = getConclusion(
+              xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
+          Assert(newSkolems.size() == 1);
+          iinfo.d_new_skolem[LENGTH_SPLIT].push_back(newSkolems[0]);
           iinfo.d_id = Inference::SSPLIT_CST_PROP;
           iinfo.d_idRev = isRev;
           pinfer.push_back(info);
@@ -1693,10 +1660,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       iinfo.d_id = Inference::SSPLIT_VAR;
       iinfo.d_conc =
           getConclusion(x, y, PfRule::CONCAT_SPLIT, isRev, skc, newSkolems);
-      if (options::stringUnifiedVSpt())
+      if (options::stringUnifiedVSpt() && !options::stringLenConc())
       {
         Assert(newSkolems.size() == 1);
-        iinfo.d_new_skolem[options::stringLenConc() ? LENGTH_IGNORE : LENGTH_GEQ_ONE].push_back(newSkolems[0]);
+        iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
       }
     }
     else if (lentTestSuccess == 0)
@@ -1704,7 +1671,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
       iinfo.d_conc =
           getConclusion(x, y, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
-      // iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
     }
     else
     {
@@ -1712,7 +1678,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       iinfo.d_id = Inference::SSPLIT_VAR_PROP;
       iinfo.d_conc =
           getConclusion(y, x, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
-      // iinfo.d_new_skolem[LENGTH_IGNORE].push_back(newSkolems[0]);
     }
     Node lc = utils::mkAnd(lcVec);
     iinfo.d_ant.push_back(lc);
@@ -2122,22 +2087,24 @@ void CoreSolver::processDeq(Node ni, Node nj)
           if (options::stringLenConc())
           {
             d_termReg.registerTermAtomic(sk, LENGTH_IGNORE);
-            Node eql = nm->mkNode(STRING_LENGTH,sk).eqNode(d_one);
-            conc = nm->mkNode(
-                  OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2, eql);
+            Node eql = nm->mkNode(STRING_LENGTH, sk).eqNode(d_one);
+            conc =
+                nm->mkNode(OR,
+                           nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()),
+                           eq2,
+                           eql);
           }
           else
           {
             d_termReg.registerTermAtomic(sk, LENGTH_ONE);
             conc = nm->mkNode(
-                  OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2);
+                OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2);
           }
-          d_im.sendInference(
-              antec,
-              conc,
-              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
-              false,
-              true);
+          d_im.sendInference(antec,
+                             conc,
+                             Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
+                             false,
+                             true);
           d_im.sendPhaseRequirement(eq1, true);
           return;
         }
@@ -2572,7 +2539,7 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
   // rewrite the conclusion, ensure non-trivial
   Node concr = Rewriter::rewrite(ii.d_conc);
 
-  if (concr==d_true)
+  if (concr == d_true)
   {
     // conclusion rewrote to true
     return false;
