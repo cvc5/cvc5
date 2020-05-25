@@ -345,20 +345,15 @@ void NewProofManager::finalizeProof(ClauseId conflict_id)
                    Minisat::sign(conflict_clause[i]) ? 0 : 1);
     reasons.push_back(res);
   }
-  if (d_format == options::ProofFormatMode::VERIT)
+  std::vector<Node> children,args;
+  for (unsigned i = 0, size = reasons.size(); i < size; ++i)
   {
-    std::vector<unsigned> reason_ids;
-    for (unsigned i = 0, size = reasons.size(); i < size; ++i)
+    children.push_back(d_clauseIdToNode[reasons[i].d_id]);
+    if (i > 0)
     {
-      reason_ids.push_back(reasons[i].d_id);
+      args.push_back(reasons[i].d_sign ? reasons[i].d_piv
+                                       : reasons[i].d_piv.notNode());
     }
-    VeritProof* vtproof = static_cast<VeritProof*>(d_proof.get());
-    vtproof->addProofStep(RULE_RESOLUTION, reason_ids, Node::null());
-  }
-  else if (d_format == options::ProofFormatMode::LEAN)
-  {
-    LeanProof* leanproof = static_cast<LeanProof*>(d_proof.get());
-    leanproof->addResSteps(reasons, Node::null());
   }
 }
 
@@ -369,39 +364,14 @@ void NewProofManager::finalizeProof(Minisat::Solver::TLit lit)
   Debug("newproof::sat")
       << "NewProofManager::finalizeProof: conflicting satLit: " << satLit
       << "\n";
-  auto it = d_litToClauseId.find(satLit);
-  if (it != d_litToClauseId.end())
-  {
-    // for whatever reason I may already have a clause id for it...
-    finalizeProof(it->second);
-    return;
-  }
-  // must come from input then
-  Assert(d_litToNode.find(satLit) != d_litToNode.end());
-  Node litDef = d_litToNode[satLit];
-  Assert(d_assertionToClauseId.find(litDef) != d_assertionToClauseId.end());
-  ClauseId id = d_assertionToClauseId[litDef];
-  // since I'm here update this already
-  d_litToClauseId[satLit] = id;
-  d_clauseIdToLit[id] = satLit;
-  finalizeProof(id);
+  Assert(d_litToClauseId.find(satLit) != d_litToClauseId.end());
+  finalizeProof(d_litToClauseId[satLit]);
 }
 
 void NewProofManager::finalizeProof()
 {
   // last added clause is the conflicting one
-  ClauseId conflict_id;
-  if (d_format == options::ProofFormatMode::VERIT)
-  {
-    VeritProof* vtproof = static_cast<VeritProof*>(d_proof.get());
-    conflict_id = vtproof->getId() - 1;
-  }
-  else if (d_format == options::ProofFormatMode::LEAN)
-  {
-    LeanProof* leanproof = static_cast<LeanProof*>(d_proof.get());
-    conflict_id = leanproof->getId() - 1;
-  }
-  finalizeProof(conflict_id);
+  finalizeProof(d_nextId - 1);
 }
 
 }  // namespace CVC4
