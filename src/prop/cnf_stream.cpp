@@ -436,7 +436,7 @@ SatLiteral TseitinCnfStream::handleAnd(TNode andNode) {
     added = assertClause(andNode.negate(), ~andLit, ~clause[i]);
     if (CVC4::options::proofNew() && added)
     {
-      Node clauseNode = nm->mkNode(kind::AND, andNode.notNode(), andNode[i]);
+      Node clauseNode = nm->mkNode(kind::OR, andNode.notNode(), andNode[i]);
       Node iNode = nm->mkConst<Rational>(i);
       NewProofManager::currentPM()->addStep(
           clauseNode, PfRule::CNF_AND_POS, {}, {andNode, iNode});

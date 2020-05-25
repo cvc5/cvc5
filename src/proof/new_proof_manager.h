@@ -73,14 +73,16 @@ class NewProofManager
   LogicInfo d_logic;
 
  public:
-  NewProofManager(TheoryEngine* te);
+  NewProofManager();
   ~NewProofManager();
 
   static NewProofManager* currentPM();
 
   /* ------------ BEGIN SAT solver handling ------------ */
 
-  void setSatSolver(Minisat::Solver* solver) { d_solver = solver; }
+  void setTheoryEngine(TheoryEngine* te);
+
+  void setSatSolver(Minisat::Solver* solver);
 
   void addLitDef(prop::SatLiteral lit, Node litNode);
 
@@ -117,17 +119,14 @@ class NewProofManager
 
   /**************** BEGIN stuff for using proof nodes */
 
-  /** A proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
-
   /** The proof object. It does not care about context. */
-  CDProof d_cdproof;
+  std::shared_ptr<CDProof> d_cdproof;
 
   /**************** END stuff for using proof nodes */
 
   /* pointer to core SAT solver. Probably this should go through SMT engine,
    * prop engine */
-  Minisat::Solver* d_solver;
+  std::unique_ptr<Minisat::Solver> d_solver;
 
   /** maps clauses to the nodes they correspond to */
   std::map<Node, ClauseId> d_nodeToClauseId;

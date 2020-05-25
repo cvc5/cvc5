@@ -38,14 +38,25 @@
 
 namespace CVC4 {
 
-NewProofManager::NewProofManager(TheoryEngine* te)
-    : d_theoryEngine(te),
-      d_pnm(new ProofNodeManager(new ProofChecker)),
-      d_cdproof(d_pnm.get())
+NewProofManager::NewProofManager()
+    : d_theoryEngine(nullptr),
+      d_cdproof(nullptr),
+      d_solver(nullptr)
 {
 }
 
 NewProofManager::~NewProofManager() {}
+
+void NewProofManager::setTheoryEngine(TheoryEngine* te)
+{
+  d_theoryEngine.reset(te);
+  d_cdproof.reset(new CDProof(te->getProofNodeManager()));
+}
+
+void NewProofManager::setSatSolver(Minisat::Solver* solver)
+{
+  d_solver.reset(solver);
+}
 
 NewProofManager* NewProofManager::currentPM()
 {
@@ -57,7 +68,7 @@ void NewProofManager::addStep(Node expected,
                               const std::vector<Node>& children,
                               const std::vector<Node>& args)
 {
-  if (!d_cdproof.addStep(expected, rule, children, args))
+  if (!d_cdproof.get()->addStep(expected, rule, children, args))
   {
     Assert(false) << "NewProofManager::couldn't add " << rule
                   << " step with conclusion: " << expected
@@ -121,7 +132,7 @@ void NewProofManager::registerClause(Minisat::Solver::TLit lit)
   // not possible yet to know, in general, how this literal came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
-  if (!d_cdproof.addStep(litNode, PfRule::ASSUME, {}, {litNode}))
+  if (!d_cdproof.get()->addStep(litNode, PfRule::ASSUME, {}, {litNode}))
   {
     Assert(false) << "NewProofManager::couldn't add " << PfRule::ASSUME
                   << " step with conclusion: " << litNode << "\n";
@@ -171,7 +182,7 @@ void NewProofManager::registerClause(Minisat::Solver::TClause& clause)
   // not possible yet to know, in general, how this clause came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
-  if (!d_cdproof.addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode}))
+  if (!d_cdproof.get()->addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode}))
   {
     Assert(false) << "NewProofManager::couldn't add " << PfRule::ASSUME
                   << " step with conclusion: " << clauseNode << "\n";

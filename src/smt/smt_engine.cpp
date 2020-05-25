@@ -698,6 +698,7 @@ SmtEngine::SmtEngine(ExprManager* em)
   // that options::proof() is set correctly yet.
 #ifdef CVC4_PROOF
   d_proofManager.reset(new ProofManager(getUserContext()));
+  d_newProofManager.reset(new NewProofManager());
 #endif
 
   d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
@@ -794,7 +795,7 @@ void SmtEngine::finishInit()
     });
   if (CVC4::options::proofNew())
   {
-    d_newProofManager.reset(new NewProofManager(d_theoryEngine));
+    d_newProofManager.get()->setTheoryEngine(d_theoryEngine.get());
   }
   d_private->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
@@ -2525,7 +2526,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   {
     d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
   }
-  
+
   // Output the model
   Notice() << *m;
 

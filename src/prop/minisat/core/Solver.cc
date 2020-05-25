@@ -519,7 +519,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         clauses_persistent.push(cr);
         attachClause(cr);
 
-        if(PROOF_ON()) {
+        if (PROOF_ON() || CVC4::options::proofNew())
+        {
           PROOF(
                 id = ProofManager::getSatProof()->registerClause(cr, INPUT);
                 )
@@ -1518,7 +1519,7 @@ lbool Solver::search(int nof_conflicts)
 
         } else {
 
-	    // If this was a final check, we are satisfiable
+      // If this was a final check, we are satisfiable
             if (check_type == CHECK_FINAL) {
               bool decisionEngineDone = d_proxy->isDecisionEngineDone();
               // Unless a lemma has added more stuff to the queues
