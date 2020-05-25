@@ -215,6 +215,27 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or F (not F))
   SPLIT,
+  // ======== Resolution
+  // Children:
+  //  (P1:(or F_1 ... F_i-1 F_i F_i+1 ... F_n),
+  //   P2:(or G_1 ... G_j-1 G_j G_j+1 ... G_m))
+  //
+  // Arguments: (F_i)
+  // ---------------------
+  // Conclusion: (or F_1 ... F_i-1 F_i+1 ... F_n G_1 ... G_j-1 G_j+1 ... G_m)
+  // where
+  //   G_j = (not F_i)
+  RESOLUTION,
+  // ======== Chain Resolution
+  // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
+  // Arguments: (L_1, ..., L_{m-1})
+  // ---------------------
+  // Conclusion: C_m'
+  // where
+  //   let "C_1 <>_l C_2" represent the resolution of C_1 with C_2 with pivot l,
+  //   let C_1' = C_1 (from P_1),
+  //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
+  CHAIN_RESOLUTION,
   // ======== And elimination
   // Children: (P:(and F1 ... Fn))
   // Arguments: (i)

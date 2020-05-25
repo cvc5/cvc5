@@ -73,6 +73,44 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     return NodeManager::currentNM()->mkNode(
         kind::OR, args[0], args[0].notNode());
   }
+  if (id == PfRule::RESOLUTION)
+  {
+    Assert(children.size() == 2);
+    Assert(args.size() == 1);
+    std::vector<Node> disjuncts;
+    for (unsigned i = 0; i < 2; ++i)
+    {
+      // if first clause, eliminate pivot, otherwise its negation
+      Node elim = i == 0 ? args[0] : args[0].notNode();
+      for (unsigned j = 0, size = children[i].getNumChildren(); j < size; ++j)
+      {
+        if (elim != children[i][j])
+        {
+          disjuncts.push_back(children[i][j]);
+        }
+      }
+    }
+    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+  }
+  // if (id == PfRule::CHAIN_RESOLUTION)
+  // {
+  //   Assert(children.size() > 1);
+  //   Assert(args.size() == children.size() - 1);
+  //   std::vector<Node> disjuncts;
+  //   for (unsigned i = 1, size = children.size(); i < size; ++i)
+  //   {
+  //     // if first clause, eliminate pivot, otherwise its negation
+  //     Node elim = i == 0 ? args[0] : args[0].notNode();
+  //     for (unsigned j = 0, size = children[i].getNumChildren(); j < size; ++j)
+  //     {
+  //       if (elim != children[i][j])
+  //       {
+  //         disjuncts.push_back(children[i][j]);
+  //       }
+  //     }
+  //   }
+  //   return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+  // }
   // natural deduction rules
   if (id == PfRule::AND_ELIM)
   {

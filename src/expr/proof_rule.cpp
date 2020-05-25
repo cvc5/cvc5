@@ -39,6 +39,8 @@ const char* toString(PfRule id)
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
+    case PfRule::RESOLUTION: return "RESOLUTION";
+    case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
     case PfRule::AND_ELIM: return "AND_ELIM";
     case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";
     case PfRule::IMPLIES_ELIM: return "IMPLIES_ELIM";
