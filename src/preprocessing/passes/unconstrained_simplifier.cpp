@@ -52,7 +52,7 @@ struct unc_preprocess_stack_element
   unc_preprocess_stack_element(TNode n, TNode p) : node(n), parent(p) {}
 }; /* struct unc_preprocess_stack_element */
 
-void UnconstrainedSimplifier::visitAll(TNode assertion)
+bool UnconstrainedSimplifier::visitAll(TNode assertion)
 {
   // Do a topological sort of the subexpressions and substitute them
   vector<unc_preprocess_stack_element> toVisit;
@@ -91,6 +91,11 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
         d_unconstrained.insert(current);
       }
     }
+    else if (expr::isClosure(current))
+    {
+      // if quantifiers, immediately abort
+      return false;
+    }
     else
     {
       for (TNode childNode : current)
@@ -99,6 +104,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
       }
     }
   }
+  return true;
 }
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
@@ -826,12 +832,18 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
 
   d_context->push();
 
+  bool success = true;
   for (const Node& assertion : assertions)
   {
-    visitAll(assertion);
+    if (!visitAll(assertion))
+    {
+      // invalid, abort
+      success = false;
+      break;
+    }
   }
 
-  if (!d_unconstrained.empty())
+  if (success && !d_unconstrained.empty())
   {
     processUnconstrained();
     //    d_substitutions.print(Message.getStream());
