@@ -25,6 +25,7 @@
 #include "expr/node_trie.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/proof_checker.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -121,8 +122,13 @@ private:
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
 
+  /** A proof node manager */
+  std::unique_ptr<ProofNodeManager> d_pnm;
+
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
+  /** Proof-producing equaltity engine */
+  std::unique_ptr<eq::ProofEqEngine> d_pfEqualityEngine;
 
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
@@ -217,6 +223,8 @@ private:
   std::string identify() const override { return "THEORY_UF"; }
 
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
+
+  eq::ProofEqEngine* getProofEqualityEngine();
 
   /** get a pointer to the uf with cardinality */
   CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
