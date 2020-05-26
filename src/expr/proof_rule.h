@@ -72,6 +72,92 @@ enum class PfRule : uint32_t
   // proof with no free assumptions always concludes a valid formula.
   SCOPE,
 
+  //======================== Builtin theory (common node operations)
+  // ======== Substitution
+  // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
+  // Arguments: (t)
+  // ---------------------------------------------------------------
+  // Conclusion: (= t t.substitute(x1,t1). ... .substitute(xn,tn))
+  // Notice that the orientation of the premises matters.
+  SUBS,
+  // ======== Rewrite
+  // Children: none
+  // Arguments: (t)
+  // ----------------------------------------
+  // Conclusion: (= t Rewriter::rewrite(t))
+  REWRITE,
+  // ======== Substitution + Rewriting equality introduction
+  //
+  // In this rule, we provide a term t and conclude that it is equal to its
+  // rewritten form under a (proven) substitution.
+  //
+  // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
+  // Arguments: (t, id?)
+  // ---------------------------------------------------------------
+  // Conclusion: (= t t')
+  // where
+  //   t' is toWitness(Rewriter{id}(toSkolem(t).substitute(x1...xn,t1...tn)))
+  //   toSkolem(...) converts terms from witness form to Skolem form,
+  //   toWitness(...) converts terms from Skolem form to witness form.
+  //
+  // Notice that:
+  //   toSkolem(t') = Rewriter{id}(toSkolem(t).substitute(x1...xn,t1...tn))
+  // In other words, from the point of view of Skolem forms, this rule
+  // transforms t to t' by standard substitution + rewriting.
+  //
+  // The argument id is optional and specifies the identifier of the rewriter to
+  // be used (see theory/builtin/proof_checker.h).
+  MACRO_SR_EQ_INTRO,
+  // ======== Substitution + Rewriting predicate introduction
+  //
+  // In this rule, we provide a formula F and conclude it, under the condition
+  // that it rewrites to true under a proven substitution.
+  //
+  // Children: (P1:(= x1 t1), ..., Pn:(= xn tn))
+  // Arguments: (F, id?)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where
+  //   Rewriter{id}(F.substitute(x1...xn,t1...tn)) == true
+  //
+  // Notice that we apply rewriting on the witness form of F, meaning that this
+  // rule may conclude an F whose Skolem form is justified by the definition of
+  // its (fresh) Skolem variables. Furthermore, notice that the rewriting and
+  // substitution is applied only within the side condition, meaning the
+  // rewritten form of the witness form of F does not escape this rule.
+  MACRO_SR_PRED_INTRO,
+  // ======== Substitution + Rewriting predicate elimination
+  //
+  // In this rule, if we have proven a formula F, then we may conclude its
+  // rewritten form under a proven substitution.
+  //
+  // Children: (P1:F, P2:(= x1 t1), ..., P_{n+1}:(= xn tn))
+  // Arguments: (id?)
+  // ----------------------------------------
+  // Conclusion: F'
+  // where
+  //   F' is toWitness(Rewriter{id}(toSkolem(F).substitute(x1...xn,t1...tn))).
+  //
+  // We rewrite only on the Skolem form of F, similar to MACRO_SR_EQ_INTRO.
+  MACRO_SR_PRED_ELIM,
+  // ======== Substitution + Rewriting predicate transform
+  //
+  // In this rule, if we have proven a formula F, then we may provide a formula
+  // G and conclude it if F and G are equivalent after rewriting under a proven
+  // substitution.
+  //
+  // Children: (P1:F, P2:(= x1 t1), ..., P_{n+1}:(= xn tn))
+  // Arguments: (G, id?)
+  // ----------------------------------------
+  // Conclusion: G
+  // where
+  //   Rewriter{id}(F.substitute(x1...xn,t1...tn)) ==
+  //   Rewriter{id}(G.substitute(x1...xn,t1...tn))
+  //
+  // Notice that we apply rewriting on the witness form of F and G, similar to
+  // MACRO_SR_PRED_INTRO.
+  MACRO_SR_PRED_TRANSFORM,
+  
   //================================================= Unknown rule
   UNKNOWN,
 };
