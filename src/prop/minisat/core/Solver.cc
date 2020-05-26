@@ -450,7 +450,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       }
       // If a literal is false at 0 level (both sat and user level) we also ignore it
       if (value(ps[i]) == l_False) {
-        if (!PROOF_ON() && level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0) {
+        if (!PROOF_ON() && !CVC4::options::proofNew() && level(var(ps[i])) == 0
+            && user_level(var(ps[i])) == 0)
+        {
           continue;
         } else {
           // If we decide to keep it, we count it into the false literals
@@ -489,7 +491,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
-        if(PROOF_ON()) {
+        if (PROOF_ON() || CVC4::options::proofNew())
+        {
           // Take care of false units here; otherwise, we need to
           // construct the clause below to give to the proof manager
           // as the final conflict.
@@ -560,8 +563,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
-            if (PROOF_ON())
+            if (PROOF_ON() || CVC4::options::proofNew())
             {
+              Unreachable() << "Minisat: unsupported case for new proofs\n";
               if (ca[confl].size() == 1)
               {
                 id = ProofManager::getSatProof()->storeUnitConflict(

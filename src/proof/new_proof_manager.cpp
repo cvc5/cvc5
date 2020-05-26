@@ -87,11 +87,10 @@ inline void NewProofManager::printClause(const Minisat::Solver::TClause& clause)
 {
   for (unsigned i = 0, size = clause.size(); i < size; ++i)
   {
-    Debug("newproof::sat") << (Minisat::sign(clause[i]) ? "-" : "")
-                           << Minisat::var(clause[i]) + 1 << " ";
+    prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(clause[i]);
+    Debug("newproof::sat") << satLit << " ";
     if (Debug.isOn("newproof::sat::cnf"))
     {
-      prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(clause[i]);
       Assert(d_litToNode.find(satLit) != d_litToNode.end());
       Debug("newproof::sat::cnf") << "[" << d_litToNode[satLit] << "] ";
     }
@@ -107,16 +106,19 @@ void NewProofManager::addLitDef(prop::SatLiteral lit, Node litNode)
 
 void NewProofManager::registerClause(Minisat::Solver::TLit lit)
 {
-  prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
+  registerClause(toSatLiteral<Minisat::Solver>(lit));
+}
+
+void NewProofManager::registerClause(prop::SatLiteral satLit)
+{
   auto it = d_litToClauseId.find(satLit);
   if (it != d_litToClauseId.end())
   {
     if (Debug.isOn("newproof::sat"))
     {
       Debug("newproof::sat")
-          << "NewProofManager::registerClause: id " << it->second << ", TLit: ";
-      printLit(lit);
-      Debug("newproof::sat") << " already registered\n";
+          << "NewProofManager::registerClause: id " << it->second
+          << ", Lit: " << satLit << " already registered\n";
     }
     return;
   }
@@ -140,9 +142,7 @@ void NewProofManager::registerClause(Minisat::Solver::TLit lit)
   if (Debug.isOn("newproof::sat"))
   {
     Debug("newproof::sat") << "NewProofManager::registerClause: id " << id
-                           << ", TLit: ";
-    printLit(lit);
-    Debug("newproof::sat") << "\n";
+                           << ", Lit: " << satLit << "\n";
   }
 }
 
@@ -209,11 +209,9 @@ void NewProofManager::addResolutionStep(Minisat::Solver::TLit lit,
                                         bool sign)
 {
   Assert(clause.proofId() != 0);
-  Debug("newproof::sat") << "NewProofManager::addResolutionStep: ("
-                         << clause.proofId() << ", ";
-  printLit(lit);
-  Debug("newproof::sat") << "\n";
   prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
+  Debug("newproof::sat") << "NewProofManager::addResolutionStep: ("
+                         << clause.proofId() << ", " << satLit << "\n";
   Assert(d_litToNode.find(satLit) != d_litToNode.end());
   d_resolution.push_back(
       Resolution(clause.proofId(), d_litToNode[satLit], sign));
@@ -260,10 +258,9 @@ void NewProofManager::endResChain(ClauseId id)
 ClauseId NewProofManager::justifyLit(Minisat::Solver::TLit lit)
 {
   ClauseId id;
-  Debug("newproof::sat") << "NewProofManager::justifyLit: lit: ";
-  printLit(lit);
   prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
-  Debug("newproof::sat") << "[" << d_litToNode[satLit] << "]\n";
+  Debug("newproof::sat") << "NewProofManager::justifyLit: Lit: " << satLit
+                         << "[" << d_litToNode[satLit] << "]\n";
   // see if already computed
   if (d_litToClauseId.find(satLit) != d_litToClauseId.end())
   {

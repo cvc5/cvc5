@@ -1081,10 +1081,13 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
       nnode = node.negate();
     }
     // Atoms
-    bool added = assertClause(nnode, toCNF(node, negated));
+    SatLiteral lit = toCNF(node, negated);
+    bool added = assertClause(nnode, lit);
     if (CVC4::options::proofNew() && added)
     {
-      NewProofManager::currentPM()->addStep(nnode, PfRule::ASSUME, {}, {nnode});
+      NewProofManager* pm = NewProofManager::currentPM();
+      pm->registerClause(lit);
+      pm->addStep(nnode, PfRule::ASSUME, {}, {nnode});
     }
   }
     break;

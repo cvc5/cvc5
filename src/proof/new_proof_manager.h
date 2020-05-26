@@ -88,6 +88,8 @@ class NewProofManager
 
   void registerClause(Minisat::Solver::TLit lit);
 
+  void registerClause(prop::SatLiteral satLit);
+
   void registerClause(Minisat::Solver::TClause& clause);
 
   void startResChain(Minisat::Solver::TClause& start);
