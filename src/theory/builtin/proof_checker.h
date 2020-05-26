@@ -43,10 +43,12 @@ enum class MethodId : uint32_t
   // identity
   RW_IDENTITY,
   //---------------------------- Substitutions
-  // (= x y) is interpreted as x -> y, using Node::substitute(...)
+  // (= x y) is interpreted as x -> y, using Node::substitute
   SB_DEFAULT,
-  // (= x y) is interpreted as (= x y) -> true, using Node::substitute(...)
-  SB_PREDICATE,
+  // P, (not P) are interpreted as P -> true, P -> false using Node::substitute
+  SB_LITERAL,
+  // P is interpreted as P -> true using Node::substitute
+  SB_FORMULA,
 };
 /** Converts a rewriter id to a string. */
 const char* toString(MethodId id);

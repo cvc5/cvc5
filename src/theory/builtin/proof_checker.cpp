@@ -31,7 +31,8 @@ const char* toString(MethodId id)
     case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
     case MethodId::SB_DEFAULT: return "SB_DEFAULT";
-    case MethodId::SB_PREDICATE: return "SB_PREDICATE";
+    case MethodId::SB_LITERAL: return "SB_LITERAL";
+    case MethodId::SB_FORMULA: return "SB_FORMULA";
     default: return "MethodId::Unknown";
   };
 }
@@ -155,11 +156,16 @@ Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n,
     var = expk[0];
     subs = expk[1];
   }
-  else if (ids == MethodId::SB_PREDICATE)
+  else if (ids == MethodId::SB_LITERAL)
   {
     bool polarity = expk.getKind() != NOT;
     var = polarity ? expk : expk[0];
     subs = NodeManager::currentNM()->mkConst(polarity);
+  }
+  else if (ids == MethodId::SB_FORMULA)
+  {
+    var = expk;
+    subs = NodeManager::currentNM()->mkConst(true);
   }
   else
   {

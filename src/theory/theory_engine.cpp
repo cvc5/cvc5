@@ -1790,7 +1790,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       std::vector<Node> pfChildren;
       pfChildren.push_back(node);
       std::vector<Node> pfArgs;
-      pfArgs.push_back(ppNode);
+      // must use skolem form here
+      pfArgs.push_back(ProofSkolemCache::getSkolemForm(ppNode));
       lcp->addStep(ppNode, PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
     }
   }
@@ -1984,7 +1985,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
         children.push_back(conflict.notNode());
         std::vector<Node> args;
         args.push_back(fullConflictNeg);
-        args.push_back(mkMethodId(MethodId::SB_PREDICATE));
+        args.push_back(mkMethodId(MethodId::SB_LITERAL));
         d_lazyProof->addStep(
             fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
       }
@@ -2386,13 +2387,23 @@ theory::TrustNode TheoryEngine::getExplanation(
         // ---------------------- MACRO_SR_PRED_INTRO
         // tConc
         std::vector<Node> pfChildren;
+        std::vector<Node> pfChildrenNot;
         for (size_t k = 0, nchild = tConc.getNumChildren(); k < nchild; ++k)
         {
-          pfChildren.push_back(tConc[k]);
+          if (tConc[k].getKind()==kind::NOT)
+          {
+            // hack to ensure (not P) -> true is applied before P -> true
+            pfChildrenNot.push_back(tConc[k]);
+          }
+          else
+          {
+            pfChildren.push_back(tConc[k]);
+          }
         }
+        pfChildren.insert(pfChildren.end(), pfChildrenNot.begin(), pfChildrenNot.end());
         std::vector<Node> pfArgs;
         pfArgs.push_back(tConc);
-        pfArgs.push_back(mkMethodId(MethodId::SB_PREDICATE));
+        pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
         lcp->addStep(tConc, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
         simpleExplain = false;
         continue;
@@ -2428,7 +2439,7 @@ theory::TrustNode TheoryEngine::getExplanation(
       pfChildren.push_back(trn.getNode());
       std::vector<Node> pfArgs;
       pfArgs.push_back(tConc);
-      pfArgs.push_back(mkMethodId(MethodId::SB_PREDICATE));
+      pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
       lcp->addStep(tConc, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
       if (simpleExplain)
       {

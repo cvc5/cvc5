@@ -79,7 +79,8 @@ PRs ready:
 (9) Proof step buffer (req 5)
 (14) Builtin rules, builtin checker (req 5)
 (15) Boolean rules, boolean checker (Haniel) (req 5)
-(16) UF rules, UF checker (req 5)
+(16) UF rules, UF checker (Haniel) (req 5)
+(21) static strings preprocess reduce (req 7)
 
 PRs future:
 
@@ -91,7 +92,6 @@ PRs future:
 (18) Add LazyCDProof (req 11)
 (19) Split EngineOutputChannel from TheoryEngine to its own file (req 12)
 (20) Eq proof conversion (req 6)
-(21) static strings preprocess reduce (req 7)
 (22) String rules, string checker (req 5, 17)
 (23) ProofEqEngine (req 10, 18)
 (24) SharedTermDatabase uses pfee (req 23)
