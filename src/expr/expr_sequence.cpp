@@ -91,8 +91,8 @@ std::ostream& operator<<(std::ostream& os, const ExprSequence& s)
 
 size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const
 {
-  return TypeHashFunction()(es.getType())
-         + SequenceHashFunction()(es.getSequence());
+  uint64_t hash = fnv1a::fnv1a_64(TypeHashFunction()(es.getType()));
+  return static_cast<size_t>(SequenceHashFunction()(es.getSequence()), hash);
 }
 
 }  // namespace CVC4
