@@ -39,26 +39,20 @@ Node ProofRuleChecker::checkChildrenArg(PfRule id,
                                         const std::vector<Node>& children,
                                         Node arg)
 {
-  std::vector<Node> args = {arg};
-  return check(id, children, args);
+  return check(id, children, {arg});
 }
 Node ProofRuleChecker::checkChildren(PfRule id,
                                      const std::vector<Node>& children)
 {
-  std::vector<Node> args;
-  return check(id, children, args);
+  return check(id, children, {});
 }
 Node ProofRuleChecker::checkChild(PfRule id, Node child)
 {
-  std::vector<Node> children = {child};
-  std::vector<Node> args;
-  return check(id, children, args);
+  return check(id, {child}, {});
 }
 Node ProofRuleChecker::checkArg(PfRule id, Node arg)
 {
-  std::vector<Node> children;
-  std::vector<Node> args = {arg};
-  return check(id, children, args);
+  return check(id, {}, {arg});
 }
 
 Node ProofRuleChecker::mkAnd(const std::vector<Node>& a)
@@ -74,7 +68,7 @@ Node ProofRuleChecker::mkAnd(const std::vector<Node>& a)
   return NodeManager::currentNM()->mkNode(AND, a);
 }
 
-bool ProofRuleChecker::getIndex(TNode n, uint32_t& i)
+bool ProofRuleChecker::getUInt32(TNode n, uint32_t& i)
 {
   // must be a non-negative integer constant that fits an unsigned int
   if (n.isConst() && n.getType().isInteger()
