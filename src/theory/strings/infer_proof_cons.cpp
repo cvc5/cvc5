@@ -193,8 +193,6 @@ Node InferProofCons::convert(Inference infer,
     case Inference::SSPLIT_VAR_PROP:
     case Inference::SSPLIT_CST:
     case Inference::SSPLIT_VAR:
-    case Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
-    case Inference::DEQ_DISL_STRINGS_SPLIT:
     {
       Trace("strings-ipc-core") << "Generate core rule for " << infer
                                 << " (rev=" << isRev << ")" << std::endl;
@@ -495,6 +493,41 @@ Node InferProofCons::convert(Inference infer,
       }
     }
     break;
+    // ========================== Disequalities
+    case Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
+    case Inference::DEQ_DISL_STRINGS_SPLIT:
+    {
+      if (conc.getKind()!=AND || conc.getNumChildren()!=2 || 
+          conc[0].getKind()!=EQUAL || !conc[0][0].getType().isStringLike() || 
+          conc[1].getKind()!=EQUAL || conc[1][0].getKind()!=STRING_LENGTH)
+      {
+        Trace("strings-ipc-deq") << "malformed application" << std::endl;
+        Assert(false);
+      }
+      else
+      {
+        Node lenReq = nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, conc[0][0]), conc[1][1]);
+        Trace("strings-ipc-deq") << "length requirement is " << lenReq << std::endl;
+        if (convertLengthPf(lenReq, ps.d_children))
+        {
+          Trace("strings-ipc-deq") << "...success length" << std::endl;
+          // make the proof
+          std::vector<Node> childrenMain;
+          childrenMain.push_back(lenReq);
+          std::vector<Node> argsMain;
+          argsMain.push_back(nodeIsRev);
+          Node mainConc = d_psb.tryStep(PfRule::STRING_DECOMPOSE, childrenMain, argsMain);
+          Trace("strings-ipc-deq") << "...main conclusion is " << mainConc << std::endl;
+          useBuffer = (mainConc==conc);
+          Trace("strings-ipc-deq") << "...success is " << useBuffer << std::endl;
+        }
+        else
+        {
+          Trace("strings-ipc-deq") << "...fail length" << std::endl;
+        }
+      }
+    }
+      break;
     // ========================== Boolean split
     case Inference::CARD_SP:
     case Inference::LEN_SPLIT:
@@ -620,7 +653,9 @@ Node InferProofCons::convert(Inference infer,
     // ========================== Cardinality
     case Inference::CARDINALITY: break;
     // ========================== code injectivity
-    case Inference::CODE_INJ: break;
+    case Inference::CODE_INJ: 
+      //TODO
+      break;
     // ========================== prefix conflict
     case Inference::PREFIX_CONFLICT:
     {

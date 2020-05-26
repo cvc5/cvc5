@@ -620,6 +620,20 @@ enum class PfRule : uint32_t
   // that can contain a suffix of w1; since t2 is non-empty, w3 must therefore
   // be contained in t2.
   CONCAT_CPROP,
+  // ======== String decompose
+  // Children: (P1: (>= (str.len t) n)
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w1) n))
+  // or
+  // Children: (P1: (>= (str.len t) n)
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w2) n))
+  // where 
+  //   w1 is (witness ((z String)) (= z (pre t n)))
+  //   w2 is (witness ((z String)) (= z (suf t n)))
+  STRING_DECOMPOSE,
   // ======== Length positive
   // Children: none
   // Arguments: (t)

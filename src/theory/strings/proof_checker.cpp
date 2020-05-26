@@ -38,6 +38,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::CONCAT_CSPLIT, this);
   pc->registerChecker(PfRule::CONCAT_LPROP, this);
   pc->registerChecker(PfRule::CONCAT_CPROP, this);
+  pc->registerChecker(PfRule::STRING_DECOMPOSE, this);
   pc->registerChecker(PfRule::LENGTH_POS, this);
   pc->registerChecker(PfRule::LENGTH_NON_EMPTY, this);
   pc->registerChecker(PfRule::STRINGS_REDUCTION, this);
@@ -418,6 +419,25 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       }
       conc = RegExpOpr::reduceRegExpNegConcatFixed(children[0], reLen, index);
     }
+    return ProofSkolemCache::getWitnessForm(conc);
+  }
+  else if (id == PfRule::STRING_DECOMPOSE)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size()==1);
+    bool isRev;
+    if (!getBool(args[0], isRev))
+    {
+      return Node::null();
+    }
+    Node atom = ProofSkolemCache::getSkolemForm(children[0]);
+    if (atom.getKind()!=GEQ)
+    {
+      return Node::null();
+    }
+    SkolemCache sc(false);
+    std::vector<Node> newSkolems;
+    Node conc = CoreSolver::getConclusion(atom[0], atom[1], id, isRev, &sc, newSkolems);
     return ProofSkolemCache::getWitnessForm(conc);
   }
   return Node::null();

@@ -815,6 +815,29 @@ Node CoreSolver::getConclusion(Node x,
     conc = z.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, preC)
                           : nm->mkNode(STRING_CONCAT, preC, sk));
   }
+  else if (rule==PfRule::STRING_DECOMPOSE)
+  {
+    Assert (y.getType().isInteger());
+    Node n = isRev ? nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), y) : y;
+    Node sk1 = skc->mkSkolemCached(
+          x,
+          n,
+          SkolemCache::SK_PREFIX,
+          "dc_spt1");
+    newSkolems.push_back(sk1);
+    Node sk2 = skc->mkSkolemCached(
+          x,
+          n,
+          SkolemCache::SK_SUFFIX_REM,
+          "dc_spt2");
+    newSkolems.push_back(sk2);
+    conc = x.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk2));
+    if (options::stringLenConc())
+    {
+      Node lc = nm->mkNode(STRING_LENGTH, isRev ? sk2 : sk1 ).eqNode(y);
+      conc = nm->mkNode(AND, conc, lc);
+    }
+  }
 
   return conc;
 }
@@ -2064,48 +2087,28 @@ void CoreSolver::processDeq(Node ni, Node nj)
         {
           // Either `x` or `y` is a constant and it is not know whether the
           // non-empty non-constant is of length one. We split the non-constant
-          // into a string of length one and the remainder and split on whether
-          // the first character of the constant and the non-constant are
-          // equal.
+          // into a string of length one and the remainder.
           //
-          // E.g. x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != "" --->
-          //      x = k1 ++ k2 ^ len(k1) = 1 ^ (k1 != "a" v x = "a" ++  k2)
+          // len(x)>=1 => x = k1 ++ k2 ^ len(k1) = 1
           SkolemCache* skc = d_termReg.getSkolemCache();
-          Node sk =
-              skc->mkSkolemCached(nck, SkolemCache::SK_ID_DC_SPT, "dc_spt");
-          Node skr = skc->mkSkolemCached(
-              nck, SkolemCache::SK_ID_DC_SPT_REM, "dc_spt_rem");
-          Node eq1 = nck.eqNode(nm->mkNode(kind::STRING_CONCAT, sk, skr));
-          eq1 = Rewriter::rewrite(eq1);
-          Node eq2 =
-              nck.eqNode(nm->mkNode(kind::STRING_CONCAT, firstChar, skr));
-          std::vector<Node> antec(nfni.d_exp.begin(), nfni.d_exp.end());
-          antec.insert(antec.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
-          antec.push_back(expNonEmpty);
-          // build length into conclusion
-          Node conc;
+          std::vector<Node> newSkolems;
+          Node conc = getConclusion(nck, d_one, PfRule::STRING_DECOMPOSE, false, skc, newSkolems);
+          Assert (newSkolems.size()==2);
           if (options::stringLenConc())
           {
-            d_termReg.registerTermAtomic(sk, LENGTH_IGNORE);
-            Node eql = nm->mkNode(STRING_LENGTH, sk).eqNode(d_one);
-            conc =
-                nm->mkNode(OR,
-                           nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()),
-                           eq2,
-                           eql);
+            d_termReg.registerTermAtomic(newSkolems[0], LENGTH_IGNORE);
           }
           else
           {
-            d_termReg.registerTermAtomic(sk, LENGTH_ONE);
-            conc = nm->mkNode(
-                OR, nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()), eq2);
+            d_termReg.registerTermAtomic(newSkolems[0], LENGTH_ONE);
           }
+          std::vector<Node> antec;
+          antec.push_back(expNonEmpty);
           d_im.sendInference(antec,
                              conc,
                              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
                              false,
                              true);
-          d_im.sendPhaseRequirement(eq1, true);
           return;
         }
       }
@@ -2115,48 +2118,37 @@ void CoreSolver::processDeq(Node ni, Node nj)
         // are both non-constants. We split them into parts that have the same
         // lengths.
         //
-        // E.g. x ++ x' ++ ... != y ++ y' ++ ... ^ len(x) != len(y) --->
-        //      len(k1) = len(x) ^ len(k2) = len(y) ^
-        //        (y = k1 ++ k3 v x = k1 ++ k2)
-        Trace("strings-solve") << "Non-Simple Case 1 : add lemma " << std::endl;
-        std::vector<Node> antec(nfni.d_exp.begin(), nfni.d_exp.end());
-        antec.insert(antec.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
-        std::vector<Node> antecNewLits;
-
-        Node deqStr = ni.eqNode(nj).negate();
-        antec.push_back(deqStr);
-        if (!d_state.areDisequal(ni, nj))
-        {
-          antecNewLits.push_back(deqStr);
-        }
-        Node deqLen = xLenTerm.eqNode(yLenTerm).negate();
-        antec.push_back(deqLen);
-        antecNewLits.push_back(deqLen);
-
-        std::vector<Node> conc;
+        // len(x) >= len(y) => x = k1 ++ k2 ^ len(k1) = len(y)
+        // len(y) >= len(x) => y = k3 ++ k4 ^ len(k3) = len(x)
+        Trace("strings-solve") << "Non-Simple Case 1 : add lemmas " << std::endl;
         SkolemCache* skc = d_termReg.getSkolemCache();
-        Node sk1 =
-            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_DEQ_X, "x_dsplit");
-        Node sk2 =
-            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_DEQ_Y, "y_dsplit");
-        Node sk3 =
-            skc->mkSkolemCached(y, x, SkolemCache::SK_ID_V_SPT, "z_dsplit");
-        Node sk4 =
-            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_V_SPT, "w_dsplit");
-        d_termReg.registerTermAtomic(sk3, LENGTH_GEQ_ONE);
-        Node sk1Len = utils::mkNLength(sk1);
-        conc.push_back(sk1Len.eqNode(xLenTerm));
-        Node sk2Len = utils::mkNLength(sk2);
-        conc.push_back(sk2Len.eqNode(yLenTerm));
-        conc.push_back(nm->mkNode(OR,
-                                  y.eqNode(utils::mkNConcat(sk1, sk3)),
-                                  x.eqNode(utils::mkNConcat(sk2, sk4))));
-        d_im.sendInference(antec,
-                           antecNewLits,
-                           nm->mkNode(AND, conc),
-                           Inference::DEQ_DISL_STRINGS_SPLIT,
-                           false,
-                           true);
+        
+        for (unsigned r=0; r<2; r++)
+        {
+          Node ux = r==0 ? x : y;
+          Node uxLen = nm->mkNode(STRING_LENGTH,x);
+          Node uyLen = nm->mkNode(STRING_LENGTH,y);
+          std::vector<Node> newSkolems;
+          Node conc = getConclusion(ux, uyLen, PfRule::STRING_DECOMPOSE, false, skc, newSkolems);
+          Assert (newSkolems.size()==2);
+          if (options::stringLenConc())
+          {
+            d_termReg.registerTermAtomic(newSkolems[0], LENGTH_IGNORE);
+          }
+          else
+          {
+            d_termReg.registerTermAtomic(newSkolems[0], LENGTH_GEQ_ONE);
+          }
+          std::vector<Node> antecLen;
+          antecLen.push_back(nm->mkNode(GEQ,uxLen, uyLen));
+          d_im.sendInference(antecLen,
+                            antecLen,
+                            conc,
+                            Inference::DEQ_DISL_STRINGS_SPLIT,
+                            false,
+                            true);
+        }
+        
         return;
       }
     }

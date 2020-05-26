@@ -1114,6 +1114,17 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       options::cegqiPreRegInst.set(true);
     }
+    // not compatible with proofs
+    if (options::proofNew())
+    {
+      if (options::proofNew.wasSetByUser())
+      {
+        Notice()
+            << "SmtEngine: setting proof-new to false to support SyGuS"
+            << std::endl;
+      }
+      options::proofNew.set(false);
+    }
   }
   // counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
