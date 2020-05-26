@@ -44,8 +44,9 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
     {
       if (a != (*assertionsToPreprocess)[i])
       {
+        // giving the conclusion as an argument as a workaround for checking
         NewProofManager::currentPM()->addStep(
-            a, PfRule::THEORY_PREPROCESS, {(*assertionsToPreprocess)[i]}, {});
+            a, PfRule::THEORY_PREPROCESS, {(*assertionsToPreprocess)[i]}, {a});
       }
     }
 

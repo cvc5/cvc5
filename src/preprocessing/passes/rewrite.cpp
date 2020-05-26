@@ -38,10 +38,19 @@ PreprocessingPassResult Rewrite::applyInternal(
         i, Rewriter::rewrite((*assertionsToPreprocess)[i]));
     if (CVC4::options::proofNew())
     {
-      if (a != (*assertionsToPreprocess)[i])
+      // assertion changed and it was not just reordering a symmetry. The latter
+      // test is necessary to prevent a cyclic proof
+      if (a != (*assertionsToPreprocess)[i]
+          && (a.getKind() != kind::EQUAL
+              || (*assertionsToPreprocess)[i].getKind() != kind::EQUAL
+              || a[0] != (*assertionsToPreprocess)[i][1]
+              || a[1] != (*assertionsToPreprocess)[i][0]))
       {
-        NewProofManager::currentPM()->addStep(
-            a, PfRule::REWRITE_PREPROCESS, {(*assertionsToPreprocess)[i]}, {});
+        // giving the conclusion as an argument as a workaround for checking
+        NewProofManager::currentPM()->addStep(a,
+                                              PfRule::REWRITE_PREPROCESS,
+                                              {(*assertionsToPreprocess)[i]},
+                                              {a});
       }
     }
   }

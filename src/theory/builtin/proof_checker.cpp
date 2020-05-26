@@ -64,6 +64,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::THEORY_PREPROCESS, this);
+  pc->registerChecker(PfRule::REWRITE_PREPROCESS, this);
 }
 
 Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
@@ -375,6 +376,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     return args[0];
   }
   else if (id == PfRule::THEORY_PREPROCESS)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size() == 1);
+    return args[0];
+  }
+  if (id == PfRule::REWRITE_PREPROCESS)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
