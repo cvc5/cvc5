@@ -2102,9 +2102,10 @@ void CoreSolver::processDeq(Node ni, Node nj)
           {
             d_termReg.registerTermAtomic(newSkolems[0], LENGTH_ONE);
           }
-          std::vector<Node> antec;
-          antec.push_back(expNonEmpty);
-          d_im.sendInference(antec,
+          std::vector<Node> antecLen;
+          antecLen.push_back(nm->mkNode(GEQ, nckLenTerm, d_one));
+          d_im.sendInference(antecLen,
+                             antecLen,
                              conc,
                              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
                              false,

@@ -437,7 +437,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     SkolemCache sc(false);
     std::vector<Node> newSkolems;
-    Node conc = CoreSolver::getConclusion(atom[0], atom[1], id, isRev, &sc, newSkolems);
+    Node conc = CoreSolver::getConclusion(atom[0][0], atom[1], id, isRev, &sc, newSkolems);
     return ProofSkolemCache::getWitnessForm(conc);
   }
   return Node::null();

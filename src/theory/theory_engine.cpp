@@ -1974,20 +1974,20 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
       {
         // store the explicit step
         processTrustNode(tncExp, THEORY_BUILTIN);
+        Node fullConflictNeg = fullConflict.notNode();
+        // ------------------------- explained  ---------- from theory
+        // fullConflict => conflict              ~conflict
+        // ----------------------------------------------- MACRO_SR_PRED_TRANSFORM
+        // ~fullConflict
+        std::vector<Node> children;
+        children.push_back(tncExp.getProven());
+        children.push_back(conflict.notNode());
+        std::vector<Node> args;
+        args.push_back(fullConflictNeg);
+        args.push_back(mkMethodId(MethodId::SB_PREDICATE));
+        d_lazyProof->addStep(
+            fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
       }
-      Node fullConflictNeg = fullConflict.notNode();
-      // ------------------------- explained  ---------- from theory
-      // fullConflict => conflict              ~conflict
-      // ----------------------------------------------- MACRO_SR_PRED_TRANSFORM
-      // ~fullConflict
-      std::vector<Node> children;
-      children.push_back(tncExp.getProven());
-      children.push_back(conflict.notNode());
-      std::vector<Node> args;
-      args.push_back(fullConflictNeg);
-      args.push_back(mkMethodId(MethodId::SB_PREDICATE));
-      d_lazyProof->addStep(
-          fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
     }
 
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
@@ -2398,6 +2398,11 @@ theory::TrustNode TheoryEngine::getExplanation(
         continue;
       }
       Node tExp = proven[0];
+      if (tExp==tConc)
+      {
+        // trivial
+        continue;
+      }
       // ------------- Via theory
       // tExp => tConc              tExp
       // ---------------------------------MACRO_SR_PRED_TRANSFORM
