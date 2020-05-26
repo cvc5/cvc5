@@ -193,7 +193,7 @@ Node BuiltinProofRuleChecker::applySubstitutionExternal(
 bool BuiltinProofRuleChecker::getMethodId(TNode n, MethodId& i)
 {
   uint32_t index;
-  if (!getIndex(n, index))
+  if (!getUInt32(n, index))
   {
     return false;
   }

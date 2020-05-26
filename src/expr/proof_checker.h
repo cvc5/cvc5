@@ -63,10 +63,10 @@ class ProofRuleChecker
   /** Single argument only version */
   Node checkArg(PfRule id, Node arg);
 
-  /** mk and node */
+  /** Make AND-kinded node with children a */
   static Node mkAnd(const std::vector<Node>& a);
   /** get an index from a node, return false if we fail */
-  static bool getIndex(TNode n, uint32_t& i);
+  static bool getUInt32(TNode n, uint32_t& i);
   /** get a Boolean from a node, return false if we fail */
   static bool getBool(TNode n, bool& b);
 
@@ -136,7 +136,9 @@ class ProofChecker
              Node expected = Node::null());
   /**
    * Same as above, without conclusions instead of proof node children. This
-   * is used for debugging.
+   * is used for debugging. In particular, this function does not throw an
+   * assertion failure when a proof step is malformed and can be used without
+   * constructing proof nodes.
    *
    * @param id The id of the proof node to check
    * @param children The conclusions of the children of the proof node to check

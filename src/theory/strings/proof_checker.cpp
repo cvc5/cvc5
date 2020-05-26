@@ -300,7 +300,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       uint32_t i = 0;
       if (args.size() >= 2)
       {
-        getIndex(args[1], i);
+        getUInt32(args[1], i);
       }
       SkolemCache skc(false);
       ret = TermRegistry::eagerReduce(t, &skc, i);
