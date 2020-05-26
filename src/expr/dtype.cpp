@@ -504,6 +504,15 @@ bool DType::isWellFounded() const
           // simple recursion is allowed
           continue;
         }
+        if (isParametric())
+        {
+          TypeMatcher m(d_self);
+          if (m.doMatching(d_self, tn))
+          {
+            // parametric recursion with changed parameters is allowed
+            continue;
+          }
+        }
         Trace("datatypes-init")
             << "Collect component types " << tn << std::endl;
         expr::getComponentTypes(tn, types);
