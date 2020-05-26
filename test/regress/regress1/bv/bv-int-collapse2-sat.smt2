@@ -1,5 +1,3 @@
-; COMMAND-LINE: --rewrite-divk
-; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
 (declare-fun t () Int)
