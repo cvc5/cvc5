@@ -382,4 +382,25 @@ void NewProofManager::finalizeProof()
   finalizeProof(d_nextId - 1);
 }
 
+void NewProofManager::printInternalProof()
+{
+  Trace("newproof")
+      << "NewProofManager::printInternalProof: Clauses and their proofs:\n";
+  for (const std::pair<ClauseId, Node>& p : d_clauseIdToNode)
+  {
+    std::stringstream out;
+    d_cdproof.get()->mkProof(p.second).get()->printDebug(out);
+    Trace("newproof") << "Proof of " << p.second << ":\n\t" << out.str()
+                      << "\n";
+  }
+  Node falseNode = NodeManager::currentNM()->mkConst<bool>(false);
+  Trace("newproof") << "NewProofManager::printInternalProof: proof node of "
+                    << falseNode << ":\n";
+  Assert(d_cdproof.get()->hasStep(falseNode))
+      << "UNSAT but no proof step for " << falseNode << "\n";
+  std::stringstream out;
+  d_cdproof.get()->mkProof(falseNode).get()->printDebug(out);
+  Trace("newproof") << out.str() << "\n";
+}
+
 }  // namespace CVC4

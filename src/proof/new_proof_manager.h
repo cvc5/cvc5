@@ -115,6 +115,8 @@ class NewProofManager
                const std::vector<Node>& children,
                const std::vector<Node>& args);
 
+  void printInternalProof();
+
  private:
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
