@@ -91,7 +91,7 @@ bool UnconstrainedSimplifier::visitAll(TNode assertion)
         d_unconstrained.insert(current);
       }
     }
-    else if (expr::isClosure(current))
+    else if (current.isClosure())
     {
       // if quantifiers, immediately abort
       return false;
