@@ -124,7 +124,6 @@ class TheorySetsPrivate {
    */
   NodeSet d_termProcessed;
   NodeSet d_keep;
-  std::vector< Node > d_emp_exp;
   
   //propagation
   class EqcInfo
@@ -210,8 +209,6 @@ class TheorySetsPrivate {
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
   Node expandDefinition(Node n);
-
-  Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   
   void presolve();
 

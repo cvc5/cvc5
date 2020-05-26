@@ -152,10 +152,10 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_CONCAT, "str.++");
   addOperator(api::STRING_LENGTH, "str.len");
   addOperator(api::STRING_SUBSTR, "str.substr");
-  addOperator(api::STRING_STRCTN, "str.contains");
+  addOperator(api::STRING_CONTAINS, "str.contains");
   addOperator(api::STRING_CHARAT, "str.at");
-  addOperator(api::STRING_STRIDOF, "str.indexof");
-  addOperator(api::STRING_STRREPL, "str.replace");
+  addOperator(api::STRING_INDEXOF, "str.indexof");
+  addOperator(api::STRING_REPLACE, "str.replace");
   if (!strictModeEnabled())
   {
     addOperator(api::STRING_TOLOWER, "str.tolower");
@@ -170,21 +170,21 @@ void Smt2::addStringOperators() {
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6
       || getLanguage() == language::input::LANG_SYGUS_V2)
   {
-    addOperator(api::STRING_ITOS, "str.from_int");
-    addOperator(api::STRING_STOI, "str.to_int");
+    addOperator(api::STRING_FROM_INT, "str.from_int");
+    addOperator(api::STRING_TO_INT, "str.to_int");
     addOperator(api::STRING_IN_REGEXP, "str.in_re");
     addOperator(api::STRING_TO_REGEXP, "str.to_re");
     addOperator(api::STRING_TO_CODE, "str.to_code");
-    addOperator(api::STRING_STRREPLALL, "str.replace_all");
+    addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
   }
   else
   {
-    addOperator(api::STRING_ITOS, "int.to.str");
-    addOperator(api::STRING_STOI, "str.to.int");
+    addOperator(api::STRING_FROM_INT, "int.to.str");
+    addOperator(api::STRING_TO_INT, "str.to.int");
     addOperator(api::STRING_IN_REGEXP, "str.in.re");
     addOperator(api::STRING_TO_REGEXP, "str.to.re");
     addOperator(api::STRING_TO_CODE, "str.code");
-    addOperator(api::STRING_STRREPLALL, "str.replaceall");
+    addOperator(api::STRING_REPLACE_ALL, "str.replaceall");
   }
 
   addOperator(api::REGEXP_CONCAT, "re.++");
@@ -743,13 +743,13 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 bool Smt2::sygus() const
 {
   InputLanguage ilang = getLanguage();
-  return ilang == language::input::LANG_SYGUS
+  return ilang == language::input::LANG_SYGUS_V1
          || ilang == language::input::LANG_SYGUS_V2;
 }
 
 bool Smt2::sygus_v1() const
 {
-  return getLanguage() == language::input::LANG_SYGUS;
+  return getLanguage() == language::input::LANG_SYGUS_V1;
 }
 
 bool Smt2::sygus_v2() const
