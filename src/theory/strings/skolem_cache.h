@@ -67,9 +67,13 @@ class SkolemCache
     SK_ID_VC_SPT,
     SK_ID_VC_SPT_REV,
     // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
-    //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
+    //    exists k1 k2. len( k1 )>0 ^ len( k2 )>0 ^
+    //                  ( a ++ k1 = b OR a = b ++ k2 )
+    // k1 is the variable for (a,b) and k2 is the skolem for (b,a).
     SK_ID_V_SPT,
     SK_ID_V_SPT_REV,
+    // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
+    //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
     SK_ID_V_UNIFIED_SPT,
     SK_ID_V_UNIFIED_SPT_REV,
     // a != ""  ^ b = "c" ^ a ++ a' != b ++ b' =>
