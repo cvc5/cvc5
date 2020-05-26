@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find
+; COMMAND-LINE: --finite-model-find --uf-ho
 ; EXPECT: unknown
 (set-logic ALL)
 ; this is not handled by fmf
