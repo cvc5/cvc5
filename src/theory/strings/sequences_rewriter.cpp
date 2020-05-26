@@ -920,6 +920,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
   Trace("strings-rewrite-debug")
       << "Strings::rewriteAndOrRegExp start " << node << std::endl;
   std::vector<Node> node_vec;
+  std::vector<Node> polRegExp[2];
   for (const Node& ni : node)
   {
     if (ni.getKind() == nk)
@@ -951,20 +952,48 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     else if (std::find(node_vec.begin(), node_vec.end(), ni) == node_vec.end())
     {
       node_vec.push_back(ni);
+      uint32_t pindex = ni.getKind() == REGEXP_COMPLEMENT ? 1 : 0;
+      Node nia = pindex == 1 ? ni[0] : ni;
+      polRegExp[pindex].push_back(nia);
     }
   }
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> nvec;
+  std::vector<Node> emptyVec;
+  // use inclusion tests
+  for (const Node& negMem : polRegExp[1])
+  {
+    for (const Node& posMem : polRegExp[0])
+    {
+      Node m1 = nk == REGEXP_INTER ? negMem : posMem;
+      Node m2 = nk == REGEXP_INTER ? posMem : negMem;
+      // inclusion test for conflicting case m1 contains m2
+      // (re.inter (re.comp R1) R2) --> re.none where R1 includes R2
+      // (re.union R1 (re.comp R2)) --> (re.* re.allchar) where R1 includes R2
+      if (RegExpEntail::regExpIncludes(m1, m2))
+      {
+        Node retNode;
+        if (nk == REGEXP_INTER)
+        {
+          retNode = nm->mkNode(kind::REGEXP_EMPTY, emptyVec);
+        }
+        else
+        {
+          retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
+        }
+        return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
+      }
+    }
+  }
   Node retNode;
   if (node_vec.empty())
   {
     if (nk == REGEXP_INTER)
     {
-      retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, nvec));
+      retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
     }
     else
     {
-      retNode = nm->mkNode(kind::REGEXP_EMPTY, nvec);
+      retNode = nm->mkNode(kind::REGEXP_EMPTY, emptyVec);
     }
   }
   else
@@ -1442,6 +1471,7 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
                                    << node << " to " << retNode << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, retNode);
   }
+  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return RewriteResponse(REWRITE_DONE, retNode);
 }
 
@@ -1746,7 +1776,6 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       }
     }
   }
-  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
 
@@ -2103,7 +2132,6 @@ Node SequencesRewriter::rewriteContains(Node node)
     }
   }
 
-  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
 
@@ -2318,7 +2346,6 @@ Node SequencesRewriter::rewriteIndexof(Node node)
     }
   }
 
-  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
 
@@ -2806,7 +2833,6 @@ Node SequencesRewriter::rewriteReplace(Node node)
   // contains( t, s ) =>
   //   contains( replace( t, s, r ), r ) ----> true
 
-  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
 
@@ -2859,7 +2885,6 @@ Node SequencesRewriter::rewriteReplaceAll(Node node)
     return rri;
   }
 
-  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
 
@@ -3019,10 +3044,9 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     {
       res = nm->mkConst(String(std::string(u, 'A')));
     }
-    else
-    {
-      Unimplemented() << "canonicalStrForSymbolicLength for non-string";
-    }
+    // we could do this for sequences, but we need to be careful: some
+    // sorts do not permit values that the solver can handle (e.g. uninterpreted
+    // sorts and arrays).
   }
   else if (len.getKind() == PLUS)
   {
@@ -3050,6 +3074,10 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     Integer intReps = ratReps.getNumerator();
 
     Node nRep = canonicalStrForSymbolicLength(len[1], stype);
+    if (nRep.isNull())
+    {
+      return Node::null();
+    }
     std::vector<Node> nRepChildren;
     utils::getConcat(nRep, nRepChildren);
     NodeBuilder<> concatBuilder(STRING_CONCAT);

@@ -26,9 +26,11 @@ namespace theory {
 namespace strings {
 
 SolverState::SolverState(context::Context* c,
+                         context::UserContext* u,
                          eq::EqualityEngine& ee,
                          Valuation& v)
     : d_context(c),
+      d_ucontext(u),
       d_ee(ee),
       d_eeDisequalities(c),
       d_valuation(v),
@@ -45,6 +47,9 @@ SolverState::~SolverState()
     delete it.second;
   }
 }
+
+context::Context* SolverState::getSatContext() const { return d_context; }
+context::UserContext* SolverState::getUserContext() const { return d_ucontext; }
 
 Node SolverState::getRepresentative(Node t) const
 {
@@ -257,6 +262,20 @@ Node SolverState::explainNonEmpty(Node s)
     return sLen.eqNode(d_zero).negate();
   }
   return Node::null();
+}
+
+bool SolverState::isEqualEmptyWord(Node s, Node& emps)
+{
+  Node sr = getRepresentative(s);
+  if (sr.isConst())
+  {
+    if (Word::getLength(sr) == 0)
+    {
+      emps = sr;
+      return true;
+    }
+  }
+  return false;
 }
 
 void SolverState::setConflict() { d_conflict = true; }

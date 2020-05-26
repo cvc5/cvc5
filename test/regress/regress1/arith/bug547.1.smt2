@@ -1,4 +1,4 @@
-; COMMAND-LINE: --rewrite-divk --nl-ext-tplanes
+; COMMAND-LINE: --nl-ext-tplanes --quiet
 ; EXPECT: sat
 (set-logic QF_NIA)
 (declare-fun x () Int)

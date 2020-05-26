@@ -64,6 +64,10 @@ CadicalSolver::CadicalSolver(StatisticsRegistry* registry,
       d_nextVarIdx(1),
       d_statistics(registry, name)
 {
+}
+
+void CadicalSolver::init()
+{
   d_true = newVar();
   d_false = newVar();
 
