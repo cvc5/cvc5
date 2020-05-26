@@ -36,6 +36,7 @@ struct ExistsFormAttributeId
 };
 typedef expr::Attribute<ExistsFormAttributeId, Node> ExistsFormAttribute;
 
+/**
  * A bound variable corresponding to the universally quantified integer
  * variable used to range over the valid positions in a string, used
  * for axiomatizing the behavior of some term.
