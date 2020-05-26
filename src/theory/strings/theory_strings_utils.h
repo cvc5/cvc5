@@ -83,6 +83,16 @@ Node mkNConcat(const std::vector<Node>& c, TypeNode tn);
 Node mkNLength(Node t);
 
 /**
+ * Returns (pre t n), which is (str.substr t 0 n).
+ */
+Node mkPrefix(Node t, Node n);
+
+/**
+ * Returns (suf t n), which is (str.substr t n (- (str.len t) n)).
+ */
+Node mkSuffix(Node t, Node n);
+
+/**
  * Get constant component. Returns the string constant represented by the
  * string or regular expression t. For example:
  *   "ABC" -> "ABC", (str.to.re "ABC") -> "ABC", (str.++ x "ABC") -> null
