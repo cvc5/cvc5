@@ -31,23 +31,14 @@ function runcvc4 {
 
 case "$logic" in
 
-ALIA|QF_ALIA|QF_LRA|QF_UFLIA|QF_UFLRA|UFLRA)
-  runcvc4 --incremental
-  ;;
-ANIA|QF_ANIA|QF_NIA|QF_UFNIA|QF_NRA)
+ALIA|ANIA|AUFNIRA|LIA|LRA|QF_ALIA|QF_ANIA|QF_AUFBVLIA|QF_AUFBVNIA|QF_LIA|QF_LRA|QF_NIA|QF_UFBVLIA|QF_UFLIA|QF_UFLRA|QF_UFNIA|UFLRA)
   runcvc4 --tear-down-incremental=1
   ;;
-LIA|LRA)
-  runcvc4 --incremental
-  ;;
 QF_AUFLIA)
-  runcvc4 --no-arrays-eager-index --arrays-eager-lemmas --incremental
+  runcvc4 --tear-down-incremental=1 --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_BV)
   runcvc4 --incremental --bitblast=eager --bv-sat-solver=cadical
-  ;;
-QF_LIA)
-  runcvc4 --tear-down-incremental=1
   ;;
 QF_UFBV)
   runcvc4 --incremental
@@ -67,13 +58,13 @@ ABVFP)
 BVFP)
   runcvc4 --incremental
   ;;
-QF_ABVFP|QF_ABFPLRA)
+QF_ABVFP)
   runcvc4 --incremental
   ;;
-QF_BVFP|QF_BVFPLRA)
+QF_BVFP)
   runcvc4 --incremental
   ;;
-QF_FP|QF_FPLRA)
+QF_FP)
   runcvc4 --incremental
   ;;
 *)

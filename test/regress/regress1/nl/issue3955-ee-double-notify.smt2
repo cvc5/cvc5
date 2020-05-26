@@ -1,3 +1,5 @@
+; COMMAND-LINE: --quiet
+; EXPECT: sat
 (set-logic QF_UFNRA)
 (set-option :snorm-infer-eq true)
 (set-info :status sat)
