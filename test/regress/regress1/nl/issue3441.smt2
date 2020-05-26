@@ -1,3 +1,5 @@
+; COMMAND-LINE: --quiet
+; EXPECT: sat
 (set-logic QF_NIA)   
 (set-info :status sat)                                                           
 (declare-fun a () Int)                                                          

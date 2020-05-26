@@ -3,7 +3,7 @@
 source "$(dirname "$0")/get-script-header.sh"
 
 CADICAL_DIR="$DEPS_DIR/cadical"
-version="rel-1.0.3"
+version="rel-1.2.1"
 
 check_dep_dir "$CADICAL_DIR"
 setup_dep \
