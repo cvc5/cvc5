@@ -28,7 +28,6 @@ const char* toString(MethodId id)
   switch (id)
   {
     case MethodId::RW_REWRITE: return "RW_REWRITE";
-    case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
     case MethodId::SB_DEFAULT: return "SB_DEFAULT";
     case MethodId::SB_LITERAL: return "SB_LITERAL";
