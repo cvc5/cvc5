@@ -905,7 +905,7 @@ Node StringsEntail::getStringOrEmpty(Node n)
 Node StringsEntail::inferEqsFromContains(Node x, Node y)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node emp = nm->mkConst(String(""));
+  Node emp = Word::mkEmptyWord(x.getType());
   Assert(x.getType() == y.getType());
   TypeNode stype = x.getType();
 

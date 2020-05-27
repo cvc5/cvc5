@@ -503,6 +503,7 @@ set(regress_0_tests
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/issue3536.smt2
+  regress0/fp/issue3619.smt2
   regress0/fp/issue4277-assign-func.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/rti_3_5_bug_report.smt2
