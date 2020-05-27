@@ -16,10 +16,10 @@
  **/
 
 import static org.junit.Assert.assertEquals;
+
+import edu.stanford.CVC4.*;
 import org.junit.Before;
 import org.junit.Test;
-
-import edu.nyu.acsys.CVC4.*;
 
 public class LinearArith {
   static {
@@ -69,10 +69,8 @@ public class LinearArith {
     smt.push();
     Expr diff_leq_two_thirds = em.mkExpr(Kind.LEQ, diff, two_thirds);
 
-    assertEquals(
-        Result.Validity.VALID,
-        smt.query(diff_leq_two_thirds).isValid()
-    );
+    assertEquals(Result.Entailment.ENTAILED,
+        smt.checkEntailed(diff_leq_two_thirds).isEntailed());
 
     smt.pop();
 
