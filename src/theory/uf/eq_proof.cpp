@@ -349,20 +349,14 @@ bool EqProof::foldTransitivityChildren(
           if (copy1foldPremises.size() > 1
               && !assumptions.count(transConclusion1))
           {
-            p->addStep(transConclusion1,
-                       PfRule::TRANS,
-                       copy1foldPremises,
-                       {},
-                       true);
+            p->addStep(
+                transConclusion1, PfRule::TRANS, copy1foldPremises, {}, true);
           }
           if (copy2foldPremises.size() > 1
               && !assumptions.count(transConclusion2))
           {
-            p->addStep(transConclusion2,
-                       PfRule::TRANS,
-                       copy2foldPremises,
-                       {},
-                       true);
+            p->addStep(
+                transConclusion2, PfRule::TRANS, copy2foldPremises, {}, true);
           }
         }
       }
