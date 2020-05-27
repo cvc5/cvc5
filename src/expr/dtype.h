@@ -489,6 +489,51 @@ class DType
    * Helper for mkGroundTerm and mkGroundValue above.
    */
   Node mkGroundTermInternal(TypeNode t, bool isValue) const;
+  /**
+   * This method is used to get strict subfield types of this datatype.
+   *
+   * A subfield type T of a datatype type D is a type such that a value of
+   * type T may appear as a subterm of a value of type D.
+   * 
+   * A *strict* subfield type T of a datatype type D is a type such that a
+   * value v of type T may appear as a subterm of a value of D, and moreover
+   * v occurs as a strict subterm of a non-datatype term in that value.
+   * 
+   * For example, the strict subfield types of:
+   *   T -> Emp | Container(s : (Set List))
+   *   List -> nil | cons( head : Int, tail: List)
+   * are { List, Int }. Notice that Int is a strict subfield type since it
+   * appears as a subfield type of List, and List is a strict subfield type
+   * of T. In other words, Int is a strict subfield type due to the above
+   * definition due to the term (Container (singleton (cons 0 nil))), where
+   * 0 occurs as a subterm of (singleton (cons 0 nil)).
+   * 
+   * For example, the strict subfield types of:
+   *   T -> Emp | Container(s : List)
+   *   List -> nil | cons( head : (Set T), tail: List)
+   * are { T, List }. Notice that T is a strict subfield type of itself since
+   * List is a subfield type of T and T is a strict subfield type of List.
+   * 
+   * For example, the strict subfield types of:
+   *   T -> Emp | Container(s : (Array Int T))
+   * are { T, Int }, where we assume that values of (Array U1 U2) are
+   * constructible from values of U1 and U2, for all types U1, U2.
+   * 
+   * @param types The set of types to append the strict subfield types to,
+   * @param processed The datatypes (cached using d_self) we have processed. If
+   * the range of this map is true, we have processed the datatype with
+   * isStrictC = true.
+   * @param isStrictC Whether we are in a strict subfield type position. This
+   * flag is true if we have traversed beneath a non-datatype type constructor.
+   */
+  void getStrictSubfieldTypes(std::unordered_set<TypeNode, TypeNodeHashFunction>& types,
+                         std::map<TypeNode, bool>& processed, bool isStrictC) const;
+  /** 
+   * Is this datatype simply recursive? This is true if this datatype
+   * definition does not contain itself as a strict subfield type, or a variant
+   * of itself as a strict subfield type (if this datatype is parametric).
+   */
+  bool isSimplyRecursive() const;
   /** name of this datatype */
   std::string d_name;
   /** the type parameters of this datatype (if this is a parametric datatype)
@@ -543,6 +588,12 @@ class DType
    * not.
    */
   mutable int d_wellFounded;
+  /**
+   * Cache of whether this datatype is simply recursive, where 0 means we have
+   * not computed this information, 1 means it is simply recursive, -1 means it
+   * is not.
+   */
+  mutable int d_simplyRecursive;
   /** cache of ground term for this datatype */
   mutable std::map<TypeNode, Node> d_groundTerm;
   /** cache of ground values for this datatype */

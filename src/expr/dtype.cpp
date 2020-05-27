@@ -34,7 +34,8 @@ DType::DType(std::string name, bool isCo)
       d_sygusAllowConst(false),
       d_sygusAllowAll(false),
       d_card(CardinalityUnknown()),
-      d_wellFounded(0)
+      d_wellFounded(0),
+      d_simplyRecursive(0)
 {
 }
 
@@ -51,7 +52,8 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_sygusAllowConst(false),
       d_sygusAllowAll(false),
       d_card(CardinalityUnknown()),
-      d_wellFounded(0)
+      d_wellFounded(0),
+      d_simplyRecursive(0)
 {
 }
 
@@ -473,19 +475,19 @@ bool DType::isInterpretedFinite() const
 
 bool DType::isWellFounded() const
 {
-  Trace("datatypes-init") << "DType::isWellFounded " << d_self << std::endl;
   Assert(isResolved());
   if (d_wellFounded != 0)
   {
     // already computed
     return d_wellFounded == 1;
   }
+  Trace("datatypes-init") << "DType::isWellFounded " << getName()  << std::endl;
   std::vector<TypeNode> processing;
   if (!computeWellFounded(processing))
   {
     // not well-founded since no ground term can be constructed
     Trace("datatypes-init")
-        << "DType::isWellFounded: false due to no ground terms." << std::endl;
+        << "DType::isWellFounded: false for " << getName() << " due to no ground terms." << std::endl;
     d_wellFounded = -1;
     return false;
   }
@@ -493,64 +495,16 @@ bool DType::isWellFounded() const
   // check whether any component type contains this.
   if (!options::dtNonSimpleRec())
   {
-    std::unordered_set<TypeNode, TypeNodeHashFunction> types;
-    for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
+    if (!isSimplyRecursive())
     {
-      for (unsigned j = 0, nargs = ctor->getNumArgs(); j < nargs; ++j)
-      {
-        TypeNode tn = ctor->getArgType(j);
-        if (tn == d_self)
-        {
-          // simple recursion is allowed
-          continue;
-        }
-        if (isParametric())
-        {
-          TypeMatcher m(d_self);
-          if (m.doMatching(d_self, tn))
-          {
-            // parametric recursion with changed parameters is allowed
-            continue;
-          }
-        }
-        Trace("datatypes-init")
-            << "Collect component types " << tn << std::endl;
-        expr::getComponentTypes(tn, types);
-        // does types contain self now?
-        if (types.find(d_self) != types.end())
-        {
-          // not well founded since not simply recursive
-          Trace("datatypes-init")
-              << "DType::isWellFounded: false due to non-simple recursion."
-              << std::endl;
-          d_wellFounded = -1;
-          return false;
-        }
-      }
-    }
-    // If it is parametric, this type may match with a component type (e.g.
-    // we may have a field (T Int) for parametric datatype (T x) where x
-    // is a type parameter). Thus, we check whether the self type matches any
-    // component type using the TypeMatcher utility.
-    if (isParametric())
-    {
-      for (const TypeNode& t : types)
-      {
-        TypeMatcher m(d_self);
-        Trace("datatypes-init") << "  " << t << std::endl;
-        if (m.doMatching(d_self, t))
-        {
-          Trace("datatypes-init")
-              << "DType::isWellFounded: false due to non-simple recursion for "
-                 "instantiated parametric datatype, "
-              << d_self << " matching " << t << std::endl;
-          d_wellFounded = -1;
-          return false;
-        }
-      }
+      d_wellFounded = -1;
+      Trace("datatypes-init")
+          << "DType::isWellFounded: false for " << getName() << " due to non-simple recursion."
+          << std::endl;
+      return false;
     }
   }
-  Trace("datatypes-init") << "DType::isWellFounded: true." << std::endl;
+  Trace("datatypes-init") << "DType::isWellFounded: true for " << getName() << std::endl;
   d_wellFounded = 1;
   return true;
 }
@@ -622,6 +576,105 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
   Trace("datatypes-init") << "DType::mkGroundTerm for " << t << " returns "
                           << groundTerm << std::endl;
   return groundTerm;
+}
+
+void DType::getStrictSubfieldTypes(std::unordered_set<TypeNode, TypeNodeHashFunction>& types,
+                         std::map<TypeNode, bool>& processed, bool isStrictC) const
+{
+  std::map<TypeNode, bool>::iterator it = processed.find(d_self);
+  if (it != processed.end())
+  {
+    if (it->second || (!isStrictC && !it->second))
+    {
+      // already processed as a strict subfield type, or already processed
+      // as a non-strict subfield type and isStrictC is false.
+      return;
+    }
+  }
+  processed[d_self] = isStrictC;
+  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
+  {
+    for (unsigned j = 0, nargs = ctor->getNumArgs(); j < nargs; ++j)
+    {
+      TypeNode tn = ctor->getArgType(j);
+      if (tn.isDatatype())
+      {
+        // special case for datatypes, we must recurse to collect subfield types
+        // and add this to types if isStrictC is true
+        if (isStrictC)
+        {
+          types.insert(tn);
+        }
+        // also process
+        const DType& dt = tn.getDType();
+        dt.getStrictSubfieldTypes(types, processed, isStrictC);
+        continue;
+      }
+      bool hasTn = types.find(tn)!=types.end();
+      Trace("datatypes-init")
+          << "Collect subfield types " << tn << ", hasTn=" << hasTn << ", isStrictC=" << isStrictC << std::endl;
+      expr::getComponentTypes(tn, types);
+      if (!isStrictC && !hasTn)
+      {
+        // the top-level type is not a strict subfield type
+        Assert (types.find(tn)!=types.end());
+        types.erase(tn);
+      }
+    }
+  }
+}
+
+bool DType::isSimplyRecursive() const
+{
+  if (d_simplyRecursive!=0)
+  {
+    return d_simplyRecursive==1;
+  }
+  Trace("datatypes-init") << "Compute simply recursive for " << getName() << std::endl;
+  // get the strict subfield types of this datatype
+  std::unordered_set<TypeNode, TypeNodeHashFunction> types;
+  std::map<TypeNode, bool> processed;
+  getStrictSubfieldTypes(types, processed, false);
+  if (Trace.isOn("datatypes-init"))
+  {
+    Trace("datatypes-init") << "Strict subfield types: " << std::endl;
+    for (const TypeNode& t : types)
+    {
+      Trace("datatypes-init") << "- " << t << std::endl;
+    }
+  }
+  // does types contain self?
+  if (types.find(d_self) != types.end())
+  {
+        Trace("datatypes-init")
+            << "DType::isSimplyRecursive: false for " << getName() << " due to strict component type" << std::endl;
+    // not simply recursive since it has itself as a strict component type.
+    d_simplyRecursive = -1;
+    return false;
+  }
+  // If it is parametric, this type may match with a strict component type (e.g.
+  // we may have a field (T Int) for parametric datatype (T x) where x
+  // is a type parameter). Thus, we check whether the self type matches any
+  // component type using the TypeMatcher utility.
+  if (isParametric())
+  {
+    for (const TypeNode& t : types)
+    {
+      TypeMatcher m(d_self);
+      Trace("datatypes-init") << "  " << t << std::endl;
+      if (m.doMatching(d_self, t))
+      {
+        Trace("datatypes-init")
+            << "DType::isSimplyRecursive: false for " << getName() << " due to parametric strict component type, "
+            << d_self << " matching " << t << std::endl;
+        d_simplyRecursive = -1;
+        return false;
+      }
+    }
+  }
+  Trace("datatypes-init") << "DType::isSimplyRecursive: true for " << getName() << std::endl;
+  d_simplyRecursive = 1;
+  return true;
 }
 
 Node getSubtermWithType(Node e, TypeNode t, bool isTop)
