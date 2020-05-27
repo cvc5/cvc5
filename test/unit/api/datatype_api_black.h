@@ -283,7 +283,7 @@ void DatatypeBlack::testDatatypeWellFounded()
   std::vector<Sort> dtsorts;
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
-  TS_ASSERT(dtsorts.size()==3);
+  TS_ASSERT(dtsorts.size() == 3);
   TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[1].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[2].getDatatype().isWellFounded());
@@ -299,7 +299,8 @@ void DatatypeBlack::testDatatypeWellFounded()
 
   DatatypeDecl ns2 = d_solver.mkDatatypeDecl("ns2");
   DatatypeConstructorDecl elem2("elem2");
-  elem2.addSelector("ndata", d_solver.mkArraySort(d_solver.getIntegerSort(),unresNs2));
+  elem2.addSelector("ndata",
+                    d_solver.mkArraySort(d_solver.getIntegerSort(), unresNs2));
   ns2.addConstructor(elem2);
   DatatypeConstructorDecl nil2("nil2");
   ns2.addConstructor(nil2);
@@ -311,12 +312,11 @@ void DatatypeBlack::testDatatypeWellFounded()
   // this is not well-founded due to non-simple recursion
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
-  TS_ASSERT(dtsorts.size()==1);
+  TS_ASSERT(dtsorts.size() == 1);
   TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().isArray());
   TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort()
             == dtsorts[0]);
   TS_ASSERT(!dtsorts[0].getDatatype().isWellFounded());
-  
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -346,15 +346,15 @@ void DatatypeBlack::testDatatypeWellFounded()
   dtdecls.clear();
   dtdecls.push_back(list3);
   dtdecls.push_back(ns3);
-  
+
   dtsorts.clear();
   // neither are well-founded due to non-simple recursion
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
-  TS_ASSERT(dtsorts.size()==2);
+  TS_ASSERT(dtsorts.size() == 2);
   TS_ASSERT(!dtsorts[0].getDatatype().isWellFounded());
   TS_ASSERT(!dtsorts[1].getDatatype().isWellFounded());
-  
+
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
    *     list4 = cons(car: set(ns4), cdr: list4) | nil,
@@ -383,12 +383,12 @@ void DatatypeBlack::testDatatypeWellFounded()
   dtdecls.clear();
   dtdecls.push_back(list4);
   dtdecls.push_back(ns4);
-  
+
   dtsorts.clear();
   // neither are well-founded due to non-simple recursion
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
-  TS_ASSERT(dtsorts.size()==2);
+  TS_ASSERT(dtsorts.size() == 2);
   TS_ASSERT(!dtsorts[0].getDatatype().isWellFounded());
   TS_ASSERT(!dtsorts[1].getDatatype().isWellFounded());
 }
