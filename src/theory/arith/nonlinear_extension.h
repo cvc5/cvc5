@@ -25,6 +25,7 @@
 #include "context/cdlist.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl_new_solver.h"
 #include "theory/arith/nl_lemma_utils.h"
 #include "theory/arith/nl_model.h"
 #include "theory/arith/nl_solver.h"
@@ -307,9 +308,12 @@ class NonlinearExtension {
   /** The nonlinear extension object
    *
    * This is the subsolver responsible for running the procedure for
-   * constraints involving nonlinear mulitplication.
+   * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
    */
   NlSolver d_nlSlv;
+  /** The non-linear new solver
+   */
+  NlNewSolver d_nlnSlv;
   /**
    * The lemmas we computed during collectModelInfo. We store two vectors of
    * lemmas to be sent out on the output channel of TheoryArith. The first
