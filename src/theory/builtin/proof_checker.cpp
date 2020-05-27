@@ -54,17 +54,12 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ASSUME, this);
   pc->registerChecker(PfRule::SCOPE, this);
-  pc->registerChecker(PfRule::TRUST, this);
   pc->registerChecker(PfRule::SUBS, this);
   pc->registerChecker(PfRule::REWRITE, this);
   pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
-  // trust coarse-grained theory lemmas for now: register null checker
-  pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
-  pc->registerChecker(PfRule::THEORY_REWRITE, this);
-  pc->registerChecker(PfRule::THEORY_PREPROCESS, this);
 }
 
 Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
@@ -235,11 +230,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return NodeManager::currentNM()->mkNode(IMPLIES, ant, children[0]);
   }
-  else if (id == PfRule::TRUST)
-  {
-    Assert(args.size() == 1);
-    return args[0];
-  }
   else if (id == PfRule::SUBS)
   {
     Assert(children.size() > 0);
@@ -267,13 +257,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applyRewrite(args[0]);
-    return args[0].eqNode(res);
-  }
-  else if (id == PfRule::THEORY_REWRITE)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    Node res = applyTheoryRewrite(args[0], args[1].getConst<bool>());
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
@@ -355,19 +338,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       Trace("builtin-pfcheck-debug") << res1 << " vs " << res2 << std::endl;
       return Node::null();
     }
-    return args[0];
-  }
-  else if (id == PfRule::THEORY_LEMMA)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    Assert(args[0].getType().isBoolean());
-    return args[0];
-  }
-  else if (id == PfRule::THEORY_PREPROCESS)
-  {
-    Assert(children.size() == 1);
-    Assert(args.size() == 1);
     return args[0];
   }
   // no rule
