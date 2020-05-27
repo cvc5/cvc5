@@ -728,6 +728,8 @@ Node EqProof::addToProof(CDProof* p) const
   Node conclusion = addToProof(p, cache, assumptions);
   Trace("eqproof-conv") << "EqProof::addToProof: root of proof: " << conclusion
                         << "\n";
+  Trace("eqproof-conv") << "EqProof::addToProof: tracked assumptions: "
+                        << assumptions << "\n";
   Node newConclusion = conclusion;
   // If t1 = tn is of the form (= t true/false), in which t is not true/false,
   // it must be turned into t or (not t) with TRUE/FALSE_ELIM.
@@ -755,13 +757,17 @@ Node EqProof::addToProof(CDProof* p) const
       newConclusion = conclusion[1 - constIndex].notNode();
       introRule = PfRule::FALSE_INTRO;
     }
-    // guard for the case where the conclusion is, itself or its symmetric, the
-    // result of TRUE/FALSE_INTRO, which would lead to a cycle. In that case
-    // just return t or (not t), which will have already been registered in the
-    // proof
+    // guard for the case where the conclusion is an assumption or is, itself or
+    // its symmetric, the result of TRUE/FALSE_INTRO, which would lead to a
+    // cycle. In that case just return t or (not t), which will have already
+    // been registered in the proof
     bool cyclic = false;
     std::shared_ptr<ProofNode> pc = p->getProof(conclusion);
-    if (pc.get()->getRule() == introRule)
+    if (assumptions.count(newConclusion))
+    {
+      cyclic = true;
+    }
+    else if (pc.get()->getRule() == introRule)
     {
       Trace("eqproof-conv") << "EqProof::addToProof: root came from "
                             << introRule << ", avoid " << elimRule << " step\n";
@@ -830,6 +836,7 @@ Node EqProof::addToProof(
       }
     }
 #endif
+    // (= (= t1 t2) true/false) case
     if (d_node.getKind() == kind::EQUAL
         && ((d_node[0].getKind() == kind::CONST_BOOLEAN
              && d_node[1].getKind() != kind::CONST_BOOLEAN)
@@ -842,12 +849,20 @@ Node EqProof::addToProof(
       if (d_node[constIndex].getConst<bool>())
       {
         introRule = PfRule::TRUE_INTRO;
-        introChildren.push_back(d_node[1 - constIndex]);
+        Node introChild = d_node[1 - constIndex];
+        introChildren.push_back(introChild);
+        // track it and its symmetric
+        assumptions.insert(introChild);
+        assumptions.insert(introChild[1].eqNode(introChild[0]));
       }
       else
       {
         introRule = PfRule::FALSE_INTRO;
-        introChildren.push_back(d_node[1 - constIndex].notNode());
+        Node introChild = d_node[1 - constIndex].notNode();
+        introChildren.push_back(introChild);
+        // track it and its symmetric
+        assumptions.insert(introChild);
+        assumptions.insert(introChild[0][1].eqNode(introChild[0][0]).notNode());
       }
       // the assumption can be e.g. (= false (= t1 t2)) in which case the
       // necessary proof to be built is
@@ -883,12 +898,16 @@ Node EqProof::addToProof(
         conclusion =
             d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
         intro = PfRule::FALSE_INTRO;
+        // add (not lit)
+        assumptions.insert(d_node);
       }
       else
       {
         intro = PfRule::TRUE_INTRO;
         conclusion =
             d_node.eqNode(NodeManager::currentNM()->mkConst<bool>(true));
+        // add lit
+        assumptions.insert(d_node);
       }
       Trace("eqproof-conv") << "EqProof::addToProof: adding " << intro
                             << " step for " << d_node << "\n";
