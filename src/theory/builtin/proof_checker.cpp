@@ -107,12 +107,6 @@ Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
   {
     return Rewriter::rewrite(n);
   }
-  else if (idr == MethodId::RW_REWRITE_EQ_EXT)
-  {
-    Node ret = Rewriter::rewriteEqualityExt(n);
-    // also rewrite
-    return Rewriter::rewrite(ret);
-  }
   else if (idr == MethodId::RW_IDENTITY)
   {
     // does nothing
