@@ -136,6 +136,13 @@ class SolverState
    */
   Node explainNonEmpty(Node s);
   /**
+   * Is equal empty word? Returns true if s is equal to the empty word (of
+   * its type). If this method returns true, it updates emps to be that word.
+   * This is an optimization so that the relevant empty word does not need to
+   * be constructed to check if s is equal to the empty word.
+   */
+  bool isEqualEmptyWord(Node s, Node& emps);
+  /**
    * Get the above information for equivalence class eqc. If doMake is true,
    * we construct a new information class if one does not exist. The term eqc
    * should currently be a representative of the equality engine of this class.

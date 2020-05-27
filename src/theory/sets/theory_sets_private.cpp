@@ -912,7 +912,7 @@ void TheorySetsPrivate::checkDisequalities()
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
     lem = Rewriter::rewrite(lem);
-    d_im.assertInference(lem, d_emp_exp, "diseq", 1);
+    d_im.assertInference(lem, d_true, "diseq", 1);
     d_im.flushPendingLemmas();
     if (d_im.hasProcessed())
     {
