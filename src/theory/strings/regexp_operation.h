@@ -84,7 +84,6 @@ class RegExpOpr {
   std::map<Node, std::pair<std::set<unsigned>, std::set<Node> > > d_cset_cache;
   std::map<Node, std::pair<std::set<unsigned>, std::set<Node> > > d_fset_cache;
   std::map<PairNodes, Node> d_inter_cache;
-  std::map<Node, Node> d_rm_inter_cache;
   std::map<Node, bool> d_norv_cache;
   std::map<Node, std::vector<PairNodes> > d_split_cache;
   std::map<PairNodes, bool> d_inclusionCache;
@@ -104,6 +103,10 @@ class RegExpOpr {
                          Node r2,
                          std::map<PairNodes, Node> cache,
                          unsigned cnt);
+  /** 
+   * Given a regular expression r, this returns an equivalent regular expression
+   * that contains no applications of intersection.
+   */
   Node removeIntersection(Node r);
   void firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset);
 
