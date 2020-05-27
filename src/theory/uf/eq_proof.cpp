@@ -843,18 +843,25 @@ Node EqProof::addToProof(
         introRule = PfRule::TRUE_INTRO;
         Node introChild = d_node[1 - constIndex];
         introChildren.push_back(introChild);
-        // track it and its symmetric
+        // track it and, if it's an equality, its symmetric
         assumptions.insert(introChild);
-        assumptions.insert(introChild[1].eqNode(introChild[0]));
+        if (introChild.getKind() == kind::EQUAL)
+        {
+          assumptions.insert(introChild[1].eqNode(introChild[0]));
+        }
       }
       else
       {
         introRule = PfRule::FALSE_INTRO;
         Node introChild = d_node[1 - constIndex].notNode();
         introChildren.push_back(introChild);
-        // track it and its symmetric
+        // track it and, if it's a negated equality, its symmetric
         assumptions.insert(introChild);
-        assumptions.insert(introChild[0][1].eqNode(introChild[0][0]).notNode());
+        if (introChild[0].getKind() == kind::EQUAL)
+        {
+          assumptions.insert(
+              introChild[0][1].eqNode(introChild[0][0]).notNode());
+        }
       }
       // the assumption can be e.g. (= false (= t1 t2)) in which case the
       // necessary proof to be built is
