@@ -334,8 +334,7 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
 
 TrustNode TheoryUF::explain(TNode literal)
 {
-  Node exp = explain(literal, NULL);
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
+  return d_pfEqualityEngine.get()->explain(literal);
 }
 
 Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
@@ -379,12 +378,22 @@ void TheoryUF::presolve() {
   Debug("uf") << "uf: begin presolve()" << endl;
   if(options::ufSymmetryBreaker()) {
     vector<Node> newClauses;
+    // would need to make this proof producing, which is not supposed to be
+    // something easy...
     d_symb.apply(newClauses);
     for(vector<Node>::const_iterator i = newClauses.begin();
         i != newClauses.end();
         ++i) {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
-      d_out->lemma(*i);
+      if (options::proofNew())
+      {
+        TrustNode tlemma = TrustNode::mkTrustLemma(*i);
+        d_out->trustedLemma(tlemma);
+      }
+      else
+      {
+        d_out->lemma(*i);
+      }
     }
   }
   if( d_thss ){
@@ -670,11 +679,20 @@ void TheoryUF::computeCareGraph() {
 }/* TheoryUF::computeCareGraph() */
 
 void TheoryUF::conflict(TNode a, TNode b) {
-  std::shared_ptr<eq::EqProof> pf =
-      d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
-  d_conflictNode = explain(a.eqNode(b), pf.get());
-  std::unique_ptr<ProofUF> puf(d_proofsEnabled ? new ProofUF(pf) : nullptr);
-  d_out->conflict(d_conflictNode, std::move(puf));
+  if (options::proofNew())
+  {
+    TrustNode tconflict = explain(a.eqNode(b));
+    d_conflictNode = tconflict.getNode();
+    d_out->trustedConflict(tconflict);
+  }
+  else
+  {
+    std::shared_ptr<eq::EqProof> pf =
+        d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
+    d_conflictNode = explain(a.eqNode(b), pf.get());
+    std::unique_ptr<ProofUF> puf(d_proofsEnabled ? new ProofUF(pf) : nullptr);
+    d_out->conflict(d_conflictNode, std::move(puf));
+  }
   d_conflict = true;
 }
 
