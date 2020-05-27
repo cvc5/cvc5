@@ -103,7 +103,7 @@ class RegExpOpr {
                          Node r2,
                          std::map<PairNodes, Node> cache,
                          unsigned cnt);
-  /** 
+  /**
    * Given a regular expression r, this returns an equivalent regular expression
    * that contains no applications of intersection.
    */

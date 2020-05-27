@@ -18,8 +18,8 @@
 #define CVC4__EXPR__PROOF_GENERATOR_H
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
 #include "expr/proof.h"
+#include "expr/proof_node.h"
 
 namespace CVC4 {
 
@@ -68,8 +68,9 @@ class ProofGenerator
    * @param opolicy The overwrite policy for adding to pf.
    * @return True if this call was sucessful.
    */
-  virtual bool addProofTo(Node f, CDProof* pf,
-               CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
+  virtual bool addProofTo(Node f,
+                          CDProof* pf,
+                          CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
   /**
    * Can we give the proof for formula f? This is used for debugging. This
    * returns false if the generator cannot provide a proof of formula f.

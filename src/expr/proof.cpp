@@ -17,16 +17,15 @@
 using namespace CVC4::kind;
 
 namespace CVC4 {
-  
+
 std::ostream& operator<<(std::ostream& out, CDPOverwrite opol)
 {
-  switch(opol)
+  switch (opol)
   {
-    case CDPOverwrite::ALWAYS: out << "ALWAYS";break;
-    case CDPOverwrite::ASSUME_ONLY: out << "ASSUME_ONLY";break;
-    case CDPOverwrite::NEVER: out << "NEVER";break;
-    default:
-      out << "CDPOverwrite:unknown";break;
+    case CDPOverwrite::ALWAYS: out << "ALWAYS"; break;
+    case CDPOverwrite::ASSUME_ONLY: out << "ASSUME_ONLY"; break;
+    case CDPOverwrite::NEVER: out << "NEVER"; break;
+    default: out << "CDPOverwrite:unknown"; break;
   }
   return out;
 }
@@ -128,11 +127,11 @@ bool CDProof::addStep(Node expected,
                    << ", ensureChildren = " << ensureChildren
                    << ", overwrite policy = " << opolicy << std::endl;
   // TODO:
-  //if (id == PfRule::ASSUME || id == PfRule::SYMM)
+  // if (id == PfRule::ASSUME || id == PfRule::SYMM)
   //{
-    // These rules are implicitly managed by this class. The user of this
-    // class should not have to bother with them?
-    // return true;
+  // These rules are implicitly managed by this class. The user of this
+  // class should not have to bother with them?
+  // return true;
   //}
   // We must always provide expected to this method
   Assert(!expected.isNull());
@@ -253,7 +252,12 @@ bool CDProof::addStep(Node expected,
                       bool ensureChildren,
                       CDPOverwrite opolicy)
 {
-  return addStep(expected, step.d_rule, step.d_children, step.d_args, ensureChildren, opolicy);
+  return addStep(expected,
+                 step.d_rule,
+                 step.d_children,
+                 step.d_args,
+                 ensureChildren,
+                 opolicy);
 }
 
 bool CDProof::addSteps(const ProofStepBuffer& psb,
@@ -344,12 +348,8 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
         pexp.push_back(c->getResult());
       }
       // can ensure children at this point
-      bool res = addStep(curFact,
-                         cur->getRule(),
-                         pexp,
-                         cur->getArguments(),
-                         true,
-                         opolicy);
+      bool res = addStep(
+          curFact, cur->getRule(), pexp, cur->getArguments(), true, opolicy);
       // should always succeed
       Assert(res);
       retValue = retValue && res;
@@ -385,10 +385,12 @@ ProofNodeManager* CDProof::getManager() const { return d_manager; }
 bool CDProof::shouldOverwrite(ProofNode* pn, PfRule newId, CDPOverwrite opol)
 {
   Assert(pn != nullptr);
-  // we overwrite only if opol is CDPOverwrite::ALWAYS, or if 
+  // we overwrite only if opol is CDPOverwrite::ALWAYS, or if
   // opol is CDPOverwrite::ASSUME_ONLY and the previously
   // provided proof pn was an assumption and the currently provided step is not
-  return opol==CDPOverwrite::ALWAYS || (opol==CDPOverwrite::ASSUME_ONLY && isAssumption(pn) && newId != PfRule::ASSUME);
+  return opol == CDPOverwrite::ALWAYS
+         || (opol == CDPOverwrite::ASSUME_ONLY && isAssumption(pn)
+             && newId != PfRule::ASSUME);
 }
 
 bool CDProof::isAssumption(ProofNode* pn)
@@ -409,7 +411,7 @@ bool CDProof::isAssumption(ProofNode* pn)
 
 bool CDProof::isSame(TNode f, TNode g)
 {
-  if (f==g)
+  if (f == g)
   {
     return true;
   }
@@ -420,7 +422,7 @@ bool CDProof::isSame(TNode f, TNode g)
     // symmetric equality
     return true;
   }
-  if (fk==NOT && gk==NOT && f[0][0]==g[0][1] && f[0][1]==g[0][0])
+  if (fk == NOT && gk == NOT && f[0][0] == g[0][1] && f[0][1] == g[0][0])
   {
     // symmetric disequality
     return true;
@@ -430,7 +432,7 @@ bool CDProof::isSame(TNode f, TNode g)
 
 Node CDProof::getSymmFact(TNode f)
 {
-  bool polarity = f.getKind()!=NOT;
+  bool polarity = f.getKind() != NOT;
   TNode fatom = polarity ? f : f[0];
   if (fatom.getKind() != EQUAL || fatom[0] == fatom[1])
   {

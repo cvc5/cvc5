@@ -48,7 +48,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    bool polarity = children[0].getKind()!=NOT;
+    bool polarity = children[0].getKind() != NOT;
     Node eqp = polarity ? children[0] : children[0][0];
     if (eqp.getKind() != EQUAL)
     {

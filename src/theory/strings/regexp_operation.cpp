@@ -1339,42 +1339,43 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
 
 Node RegExpOpr::removeIntersection(Node r) {
   Assert(checkConstRegExp(r));
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(r);
-  do 
+  do
   {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) 
+    if (it == visited.end())
     {
       visited[cur] = Node::null();
       visit.push_back(cur);
-      for (const Node& cn : cur )
+      for (const Node& cn : cur)
       {
         visit.push_back(cn);
       }
-    } 
-    else if (it->second.isNull()) 
+    }
+    else if (it->second.isNull())
     {
       Kind ck = cur.getKind();
       Node ret;
       bool childChanged = false;
       std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED) {
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
+      {
         children.push_back(cur.getOperator());
       }
-      for (const Node& cn : cur )
+      for (const Node& cn : cur)
       {
         it = visited.find(cn);
         Assert(it != visited.end());
         Assert(!it->second.isNull());
-        if (ck==REGEXP_INTER)
+        if (ck == REGEXP_INTER)
         {
           if (ret.isNull())
           {
@@ -1393,9 +1394,9 @@ Node RegExpOpr::removeIntersection(Node r) {
           children.push_back(it->second);
         }
       }
-      if (ck!=REGEXP_INTER)
+      if (ck != REGEXP_INTER)
       {
-        if (childChanged) 
+        if (childChanged)
         {
           ret = nm->mkNode(cur.getKind(), children);
         }
@@ -1411,7 +1412,8 @@ Node RegExpOpr::removeIntersection(Node r) {
   Assert(!visited.find(r)->second.isNull());
   if (Trace.isOn("regexp-intersect"))
   {
-    Trace("regexp-intersect") << "Remove INTERSECTION( " << mkString(r) << " ) = " << mkString(visited[r]) << std::endl;
+    Trace("regexp-intersect") << "Remove INTERSECTION( " << mkString(r)
+                              << " ) = " << mkString(visited[r]) << std::endl;
   }
   return visited[r];
 }
@@ -1517,7 +1519,7 @@ std::string RegExpOpr::mkString( Node r ) {
       case kind::REGEXP_LOOP: {
         uint32_t l = utils::getLoopMinOccurrences(r);
         std::stringstream ss;
-        ss << "(" <<  mkString(r[0]) << "){" << l << ",";
+        ss << "(" << mkString(r[0]) << "){" << l << ",";
         if(r.getNumChildren() == 3) {
           uint32_t u = utils::getLoopMaxOccurrences(r);
           ss << u;

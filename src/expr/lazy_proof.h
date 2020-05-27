@@ -35,14 +35,14 @@ namespace CVC4 {
 class LazyCDProof : public CDProof
 {
  public:
-  /** Constructor 
+  /** Constructor
    *
    * @param pnm The proof node manager for constructing ProofNode objects.
    * @param dpg The (optional) default proof generator, which is called
    * for facts that have no explicitly provided generator.
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
-   */ 
+   */
   LazyCDProof(ProofNodeManager* pnm,
               ProofGenerator* dpg = nullptr,
               context::Context* c = nullptr);
@@ -58,12 +58,12 @@ class LazyCDProof : public CDProof
    * This method stores that expected can be proven by proof generator pg if
    * it is required to do so. This mapping is maintained in the remainder of
    * the current context (according to the context c provided to this class).
-   * 
-   * It is important to note that pg is asked to provide a proof for expected 
+   *
+   * It is important to note that pg is asked to provide a proof for expected
    * only when no other call for expected is provided via addStep. In
    * particular, pg is asked to prove expected when it appears as the conclusion
    * of an ASSUME leaf within mkProof.
-   * 
+   *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.
    * @param forceOverwrite If this flag is true, then this call overwrites
@@ -73,13 +73,14 @@ class LazyCDProof : public CDProof
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
                    bool forceOverwrite = false);
-  /** 
+  /**
    * Does this have any proof generators? This method always returns true
    * if the default is non-null.
    */
   bool hasGenerators() const;
   /** Does the given fact have an explicitly provided generator? */
   bool hasGenerator(Node fact) const;
+
  protected:
   typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>
       NodeProofGeneratorMap;
