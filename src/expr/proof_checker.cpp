@@ -183,6 +183,8 @@ Node ProofChecker::checkDebug(PfRule id,
   {
     Trace(traceTag) << " success" << std::endl;
   }
+  Trace(traceTag) << "cchildren: " << cchildren << std::endl;
+  Trace(traceTag) << "     args: " << args << std::endl;
   return res;
 }
 

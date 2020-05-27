@@ -173,6 +173,8 @@ Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n,
                      "substitution for "
                   << ids << std::endl;
   }
+  Trace("builtin-pfcheck-debug")
+      << "applySubstitutionExternal (" << ids << "): " << var << " -> " << subs << " (from " << expk << ")" << std::endl;
   return n.substitute(var, subs);
 }
 

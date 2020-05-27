@@ -116,7 +116,6 @@ Node InferProofCons::convert(Inference infer,
   d_psb.clear();
   NodeManager* nm = NodeManager::currentNM();
   Node nodeIsRev = nm->mkConst(isRev);
-  std::vector<Node> emptyVec;
   switch (infer)
   {
     // ========================== equal by substitution+rewriting
@@ -136,8 +135,10 @@ Node InferProofCons::convert(Inference infer,
     case Inference::RE_NF_CONFLICT:
     case Inference::EXTF:
     case Inference::EXTF_N:
+    case Inference::EXTF_D:
+    case Inference::EXTF_D_N: 
     {
-      if (conc.isConst())
+      if (!ps.d_children.empty())
       {
         std::vector<Node> exps;
         exps.insert(exps.end(), ps.d_children.begin(), ps.d_children.end() - 1);
@@ -147,28 +148,26 @@ Node InferProofCons::convert(Inference infer,
           useBuffer = true;
         }
       }
-      else
+      if (!useBuffer)
       {
-        // use the predicate version
+        // use the predicate version?
         ps.d_args.push_back(conc);
         ps.d_rule = PfRule::MACRO_SR_PRED_INTRO;
       }
-      // minor optimization: apply to LHS of equality (RHS is already reduced)
-      // although notice the case above is also a valid proof.
-      // ps.d_args.push_back(conc[0]);
-      // ps.d_rule = PfRule::MACRO_SR_EQ_INTRO;
-      // This doesn't quite work due for symbolic lemmas.
     }
     break;
-    // ========================== substitution+rewriting+Boolean entailment
-    case Inference::EXTF_D:
-    case Inference::EXTF_D_N: break;
     // ========================== equal by substitution+rewriting+rewrite pred
     case Inference::I_CONST_CONFLICT: break;
     // ========================== rewrite pred
     case Inference::EXTF_EQ_REW:
     case Inference::INFER_EMP:
     {
+      if (ps.d_children.size()>1)
+      {
+        Node pred = ps.d_children[ps.d_children.size()-1];
+        ps.d_children.pop_back();
+        ps.d_children.insert(ps.d_children.begin(),pred);
+      }
       // need the "extended equality rewrite"
       MethodId ids = MethodId::SB_DEFAULT;
       MethodId idr = MethodId::RW_REWRITE_EQ_EXT;
@@ -259,7 +258,7 @@ Node InferProofCons::convert(Inference infer,
                           ps.d_children.begin(),
                           ps.d_children.begin() + mainEqIndex);
       Node mainEqSRew =
-          d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, emptyVec);
+          d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, {});
       if (CDProof::isSame(mainEqSRew, mainEq))
       {
         Trace("strings-ipc-core") << "...undo step" << std::endl;
@@ -449,7 +448,7 @@ Node InferProofCons::convert(Inference infer,
           std::vector<Node> childrenSymm;
           childrenSymm.push_back(mainEqCeq);
           // TODO: this explicit step may not be necessary
-          mainEqCeq = d_psb.tryStep(PfRule::SYMM, childrenSymm, emptyVec);
+          mainEqCeq = d_psb.tryStep(PfRule::SYMM, childrenSymm, {});
           Trace("strings-ipc-core")
               << "Main equality after SYMM " << mainEqCeq << std::endl;
         }
@@ -591,7 +590,7 @@ Node InferProofCons::convert(Inference infer,
       args.push_back(atom);
       // variant 1 for eager reduction
       args.push_back(nm->mkConst(Rational(1)));
-      Node res = d_psb.tryStep(PfRule::STRING_EAGER_REDUCTION, emptyVec, args);
+      Node res = d_psb.tryStep(PfRule::STRING_EAGER_REDUCTION, {}, args);
       if (res.isNull())
       {
         break;
@@ -599,7 +598,7 @@ Node InferProofCons::convert(Inference infer,
       // ite( contains(x,t), x = k1 ++ t ++ k2, x != t )
       std::vector<Node> tiChildren;
       tiChildren.push_back(ps.d_children[0]);
-      Node ctnt = d_psb.tryStep(polarity ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO, tiChildren, emptyVec);
+      Node ctnt = d_psb.tryStep(polarity ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO, tiChildren, {});
       if (ctnt.isNull() || ctnt.getKind() != EQUAL)
       {
         break;
@@ -636,7 +635,7 @@ Node InferProofCons::convert(Inference infer,
       std::vector<Node> argsRed;
       // the left hand side of the last conjunct is the term we are reducing
       argsRed.push_back(mainEq[0]);
-      Node red = d_psb.tryStep(PfRule::STRING_REDUCTION, emptyVec, argsRed);
+      Node red = d_psb.tryStep(PfRule::STRING_REDUCTION, {}, argsRed);
       Trace("strings-ipc-red") << "Reduction : " << red << std::endl;
       if (!red.isNull())
       {
@@ -809,13 +808,13 @@ Node InferProofCons::convert(Inference infer,
       {
         break;
       }
-      Node mem = d_psb.tryStep(PfRule::RE_INTER, reiChildren, emptyVec);
+      Node mem = d_psb.tryStep(PfRule::RE_INTER, reiChildren, {});
       // Node rei = reis.size() == 1 ? reis[0] : nm->mkNode(REGEXP_INTER, reis);
       // Node mem = nm->mkNode(STRING_IN_REGEXP, x, rei);
       Trace("strings-ipc-re")
           << "Regular expression summary: " << mem << std::endl;
       // the conclusion is rewritable to the premises via rewriting?
-      if (convertPredTransform(mem, conc, emptyVec))
+      if (convertPredTransform(mem, conc, {}))
       {
         Trace("strings-ipc-re") << "... success!" << std::endl;
         useBuffer = true;
