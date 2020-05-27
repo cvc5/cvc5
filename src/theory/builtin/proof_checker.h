@@ -24,14 +24,17 @@
 namespace CVC4 {
 namespace theory {
 
-/** Identifiers for rewriters and substitutions.
+/** 
+ * Identifiers for rewriters and substitutions, which we abstractly
+ * classify as "methods".  Methods have a unique identifier in the internal
+ * proof calculus implemented by the checker below.
  *
  * A "rewriter" is abstractly a method from Node to Node, where the output
  * is semantically equivalent to the input. The identifiers below list
  * various methods that have this contract. This identifier is used
  * in a number of the builtin rules.
  *
- * A substitution is a method for turning a formula into
+ * A substitution is a method for turning a formula into a substitution.
  */
 enum class MethodId : uint32_t
 {
