@@ -50,9 +50,9 @@ void InferProofCons::notifyFact(const InferInfo& ii)
     Trace("strings-ipc-debug") << "...duplicate!" << std::endl;
     return;
   }
-  if (fact.getKind() == EQUAL)
+  Node symFact = CDProof::getSymmFact(fact);
+  if (!symFact.isNull())
   {
-    Node symFact = fact[1].eqNode(fact[0]);
     if (d_lazyFactMap.find(symFact) != d_lazyFactMap.end())
     {
       Trace("strings-ipc-debug") << "...duplicate (sym)!" << std::endl;

@@ -60,7 +60,8 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
     Trace("cdproof") << "...existing non-assume " << pf->getRule() << std::endl;
     return pf;
   }
-  if (fact.getKind() != EQUAL || fact[0] == fact[1])
+  Node symFact = getSymmFact(fact);
+  if (symFact.isNull())
   {
     Trace("cdproof") << "...no possible symm" << std::endl;
     // no symmetry possible, return original proof (possibly assumption)
@@ -68,7 +69,6 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
   }
   // See if a proof exists for the opposite direction, if so, add the step.
   // Notice that SYMM is also disallowed.
-  Node symFact = fact[1].eqNode(fact[0]);
   std::shared_ptr<ProofNode> pfs = getProof(symFact);
   if (pfs != nullptr)
   {
@@ -216,17 +216,17 @@ void CDProof::notifyNewProof(Node expected)
 {
   // ensure SYMM proof is also linked to an existing proof, if it is an
   // assumption.
-  if (expected.getKind() == EQUAL && expected[0] != expected[1])
+  Node symExpected = getSymmFact(expected);
+  if (!symExpected.isNull())
   {
-    Node expectedSym = expected[1].eqNode(expected[0]);
-    Trace("cdproof") << "  check connect symmetry " << expectedSym << std::endl;
+    Trace("cdproof") << "  check connect symmetry " << symExpected << std::endl;
     // if it exists, we may need to update it
-    std::shared_ptr<ProofNode> pfs = getProof(expectedSym);
+    std::shared_ptr<ProofNode> pfs = getProof(symExpected);
     if (pfs != nullptr)
     {
       Trace("cdproof") << "  connect via getProofSymm method..." << std::endl;
-      // call the get function with symmetry
-      std::shared_ptr<ProofNode> pfss = getProofSymm(expectedSym);
+      // call the get function with symmetry, which will do the update
+      std::shared_ptr<ProofNode> pfss = getProofSymm(symExpected);
     }
     else
     {
@@ -385,9 +385,35 @@ bool CDProof::isAssumption(ProofNode* pn)
 
 bool CDProof::isSame(TNode f, TNode g)
 {
-  return f == g
-         || (f.getKind() == EQUAL && g.getKind() == EQUAL && f[0] == g[1]
-             && f[1] == g[0]);
+  if (f==g)
+  {
+    return true;
+  }
+  Kind fk = f.getKind();
+  Kind gk = g.getKind();
+  if (fk == EQUAL && gk == EQUAL && f[0] == g[1] && f[1] == g[0])
+  {
+    // symmetric equality
+    return true;
+  }
+  if (fk==NOT && gk==NOT && f[0][0]==g[0][1] && f[0][1]==g[0][0])
+  {
+    // symmetric disequality
+    return true;
+  }
+  return false;
+}
+
+Node CDProof::getSymmFact(TNode f)
+{
+  bool polarity = f.getKind()!=NOT;
+  TNode fatom = polarity ? f : f[0];
+  if (fatom.getKind() != EQUAL || fatom[0] == fatom[1])
+  {
+    return Node::null();
+  }
+  Node symFact = fatom[1].eqNode(fatom[0]);
+  return polarity ? symFact : symFact.notNode();
 }
 
 }  // namespace CVC4

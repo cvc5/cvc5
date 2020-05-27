@@ -448,10 +448,10 @@ enum class PfRule : uint32_t
   // Conclusion: (= t t)
   REFL,
   // ======== Symmetric
-  // Children: (P:(= t1 t2))
+  // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
   // Arguments: none
   // -----------------------
-  // Conclusion: (= t2 t1)
+  // Conclusion: (= t2 t1) or (not (= t2 t1))
   SYMM,
   // ======== Transitivity
   // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))

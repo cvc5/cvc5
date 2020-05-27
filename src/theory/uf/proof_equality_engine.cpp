@@ -734,14 +734,15 @@ bool ProofEqEngine::FactProofGenerator::addStep(Node fact, ProofStep ps)
 {
   if (d_facts.find(fact) != d_facts.end())
   {
+    // duplicate
     return false;
   }
-  // symmetry?
-  if (fact.getKind() == EQUAL)
+  Node symFact = CDProof::getSymmFact(fact);
+  if (!symFact.isNull())
   {
-    Node symFact = fact[1].eqNode(fact[0]);
     if (d_facts.find(symFact) != d_facts.end())
     {
+      // duplicate due to symmetry
       return false;
     }
   }

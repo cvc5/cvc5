@@ -224,7 +224,11 @@ class CDProof
    * f suffices as a proof for g according to this class.
    */
   static bool isSame(TNode f, TNode g);
-
+  /** 
+   * Get symmetric fact (a g such that isSame returns true for isSame(f,g)), or
+   * null if none exist.
+   */
+  static Node getSymmFact(TNode f);
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;
