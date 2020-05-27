@@ -32,7 +32,7 @@ class DatatypeBlack : public CxxTest::TestSuite
   void testDatatypeStructs();
   void testDatatypeNames();
 
-  void testDatatypeWellFounded();
+  void testDatatypeSimplyRec();
 
  private:
   Solver d_solver;
@@ -235,7 +235,7 @@ void DatatypeBlack::testDatatypeNames()
   TS_ASSERT_THROWS(DatatypeDecl().getName(), CVC4ApiException&);
 }
 
-void DatatypeBlack::testDatatypeWellFounded()
+void DatatypeBlack::testDatatypeSimplyRec()
 {
   /* Create mutual datatypes corresponding to this definition block:
    *
@@ -287,6 +287,9 @@ void DatatypeBlack::testDatatypeWellFounded()
   TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[1].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[2].getDatatype().isWellFounded());
+  TS_ASSERT(dtsorts[0].getDatatype().isSimplyRecursive());
+  TS_ASSERT(dtsorts[1].getDatatype().isSimplyRecursive());
+  TS_ASSERT(dtsorts[2].getDatatype().isSimplyRecursive());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -316,7 +319,8 @@ void DatatypeBlack::testDatatypeWellFounded()
   TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().isArray());
   TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort()
             == dtsorts[0]);
-  TS_ASSERT(!dtsorts[0].getDatatype().isWellFounded());
+  TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
+  TS_ASSERT(!dtsorts[0].getDatatype().isSimplyRecursive());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -352,8 +356,10 @@ void DatatypeBlack::testDatatypeWellFounded()
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   TS_ASSERT(dtsorts.size() == 2);
-  TS_ASSERT(!dtsorts[0].getDatatype().isWellFounded());
-  TS_ASSERT(!dtsorts[1].getDatatype().isWellFounded());
+  TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
+  TS_ASSERT(dtsorts[1].getDatatype().isWellFounded());
+  TS_ASSERT(!dtsorts[0].getDatatype().isSimplyRecursive());
+  TS_ASSERT(!dtsorts[1].getDatatype().isSimplyRecursive());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -389,6 +395,8 @@ void DatatypeBlack::testDatatypeWellFounded()
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   TS_ASSERT(dtsorts.size() == 2);
-  TS_ASSERT(!dtsorts[0].getDatatype().isWellFounded());
-  TS_ASSERT(!dtsorts[1].getDatatype().isWellFounded());
+  TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
+  TS_ASSERT(dtsorts[1].getDatatype().isWellFounded());
+  TS_ASSERT(!dtsorts[0].getDatatype().isSimplyRecursive());
+  TS_ASSERT(!dtsorts[1].getDatatype().isSimplyRecursive());
 }

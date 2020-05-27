@@ -15,7 +15,6 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/type_matcher.h"
-#include "options/datatypes_options.h"
 
 using namespace CVC4::kind;
 
@@ -490,18 +489,6 @@ bool DType::isWellFounded() const
                             << " due to no ground terms." << std::endl;
     d_wellFounded = -1;
     return false;
-  }
-  // If we only permit simple recursion for datatypes, we must
-  // check whether any component type contains this.
-  if (!options::dtNonSimpleRec())
-  {
-    if (!isSimplyRecursive())
-    {
-      d_wellFounded = -1;
-      Trace("datatypes-init") << "DType::isWellFounded: false for " << getName()
-                              << " due to non-simple recursion." << std::endl;
-      return false;
-    }
   }
   Trace("datatypes-init") << "DType::isWellFounded: true for " << getName()
                           << std::endl;

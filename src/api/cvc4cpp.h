@@ -1591,6 +1591,16 @@ class CVC4_PUBLIC Datatype
   bool isWellFounded() const;
 
   /**
+   * Is this datatype has nested recursion? This method returns false if a
+   * value of this datatype includes a subterm of its type that is nested
+   * beneath a non-datatype type constructor. For example, a datatype
+   * T containing a constructor having field (Set T) is not simply recursive.
+   *
+   * @return true if this datatype is simply recursive
+   */
+  bool isSimplyRecursive() const;
+
+  /**
    * @return a string representation of this datatype
    */
   std::string toString() const;
