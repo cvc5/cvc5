@@ -607,9 +607,13 @@ void DType::getStrictSubfieldTypes(
         {
           types.insert(tn);
         }
-        // also process
-        const DType& dt = tn.getDType();
-        dt.getStrictSubfieldTypes(types, processed, isStrictC);
+        else
+        {
+          // since we aren't adding it to types, we add its strict subfield
+          // types here.
+          const DType& dt = tn.getDType();
+          dt.getStrictSubfieldTypes(types, processed, false);
+        }
         continue;
       }
       bool hasTn = types.find(tn) != types.end();
@@ -623,6 +627,16 @@ void DType::getStrictSubfieldTypes(
         Assert(types.find(tn) != types.end());
         types.erase(tn);
       }
+    }
+  }
+  // now, go back and add all strict subfield types from datatypes if
+  // not done so already
+  for (const TypeNode& sstn : types)
+  {
+    if (sstn.isDatatype())
+    {
+      const DType& dt = sstn.getDType();
+      dt.getStrictSubfieldTypes(types, processed, true);
     }
   }
 }

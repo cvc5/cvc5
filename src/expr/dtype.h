@@ -287,6 +287,12 @@ class DType
    * violated.
    */
   bool isWellFounded() const;
+  /**
+   * Is this datatype simply recursive? This is true if this datatype
+   * definition does not contain itself as a strict subfield type, or a variant
+   * of itself as a strict subfield type (if this datatype is parametric).
+   */
+  bool isSimplyRecursive() const;
 
   /** is recursive singleton
    *
@@ -517,7 +523,7 @@ class DType
    * For example, the strict subfield types of:
    *   T -> Emp | Container(s : (Array Int T))
    * are { T, Int }, where we assume that values of (Array U1 U2) are
-   * constructible from values of U1 and U2, for all types U1, U2.
+   * constructed from values of U1 and U2, for all types U1, U2.
    *
    * @param types The set of types to append the strict subfield types to,
    * @param processed The datatypes (cached using d_self) we have processed. If
@@ -530,12 +536,6 @@ class DType
       std::unordered_set<TypeNode, TypeNodeHashFunction>& types,
       std::map<TypeNode, bool>& processed,
       bool isStrictC) const;
-  /**
-   * Is this datatype simply recursive? This is true if this datatype
-   * definition does not contain itself as a strict subfield type, or a variant
-   * of itself as a strict subfield type (if this datatype is parametric).
-   */
-  bool isSimplyRecursive() const;
   /** name of this datatype */
   std::string d_name;
   /** the type parameters of this datatype (if this is a parametric datatype)

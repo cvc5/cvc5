@@ -241,8 +241,8 @@ void DatatypeBlack::testDatatypeWellFounded()
    *
    *   DATATYPE
    *     wlist = leaf(data: list),
-   *     list = cons(car: wlist, cdr: list) | nil
-   *     ns = elem(ndata: set(wlist))
+   *     list = cons(car: wlist, cdr: list) | nil,
+   *     ns = elem(ndata: set(wlist)) | elemArray(ndata2: array(list, list))
    *   END;
    */
   // Make unresolved types as placeholders
@@ -262,9 +262,8 @@ void DatatypeBlack::testDatatypeWellFounded()
   DatatypeDecl list = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   cons.addSelector("car", unresWList);
-  cons.addSelector("cdr", unresWList);
+  cons.addSelector("cdr", unresList);
   list.addConstructor(cons);
-
   DatatypeConstructorDecl nil("nil");
   list.addConstructor(nil);
 
@@ -272,6 +271,9 @@ void DatatypeBlack::testDatatypeWellFounded()
   DatatypeConstructorDecl elem("elem");
   elem.addSelector("ndata", d_solver.mkSetSort(unresWList));
   ns.addConstructor(elem);
+  DatatypeConstructorDecl elemArray("elemArray");
+  elemArray.addSelector("ndata", d_solver.mkArraySort(unresList, unresList));
+  ns.addConstructor(elemArray);
 
   std::vector<DatatypeDecl> dtdecls;
   dtdecls.push_back(wlist);
@@ -281,14 +283,14 @@ void DatatypeBlack::testDatatypeWellFounded()
   std::vector<Sort> dtsorts;
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  TS_ASSERT(dtsorts.size()==3);
   TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[1].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[2].getDatatype().isWellFounded());
 
   /* Create mutual datatypes corresponding to this definition block:
-   *
    *   DATATYPE
-   *     ns2 = elem2(ndata: set(ns2)) | nil2
+   *     ns2 = elem2(ndata: array(int,ns2)) | nil2
    *   END;
    */
   unresTypes.clear();
@@ -297,9 +299,8 @@ void DatatypeBlack::testDatatypeWellFounded()
 
   DatatypeDecl ns2 = d_solver.mkDatatypeDecl("ns2");
   DatatypeConstructorDecl elem2("elem2");
-  elem2.addSelector("ndata", d_solver.mkSetSort(unresNs2));
+  elem2.addSelector("ndata", d_solver.mkArraySort(d_solver.getIntegerSort(),unresNs2));
   ns2.addConstructor(elem2);
-
   DatatypeConstructorDecl nil2("nil2");
   ns2.addConstructor(nil2);
 
@@ -310,8 +311,84 @@ void DatatypeBlack::testDatatypeWellFounded()
   // this is not well-founded due to non-simple recursion
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
-  TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().isSet());
-  TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().getSetElementSort()
+  TS_ASSERT(dtsorts.size()==1);
+  TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().isArray());
+  TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort()
             == dtsorts[0]);
   TS_ASSERT(!dtsorts[0].getDatatype().isWellFounded());
+  
+
+  /* Create mutual datatypes corresponding to this definition block:
+   *   DATATYPE
+   *     list3 = cons3(car: ns3, cdr: list3) | nil3,
+   *     ns3 = elem3(ndata: set(list3))
+   *   END;
+   */
+  unresTypes.clear();
+  Sort unresNs3 = d_solver.mkUninterpretedSort("ns3");
+  unresTypes.insert(unresNs3);
+  Sort unresList3 = d_solver.mkUninterpretedSort("list3");
+  unresTypes.insert(unresList3);
+
+  DatatypeDecl list3 = d_solver.mkDatatypeDecl("list3");
+  DatatypeConstructorDecl cons3("cons3");
+  cons3.addSelector("car", unresNs3);
+  cons3.addSelector("cdr", unresList3);
+  list3.addConstructor(cons3);
+  DatatypeConstructorDecl nil3("nil3");
+  list3.addConstructor(nil3);
+
+  DatatypeDecl ns3 = d_solver.mkDatatypeDecl("ns3");
+  DatatypeConstructorDecl elem3("elem3");
+  elem3.addSelector("ndata", d_solver.mkSetSort(unresList3));
+  ns3.addConstructor(elem3);
+
+  dtdecls.clear();
+  dtdecls.push_back(list3);
+  dtdecls.push_back(ns3);
+  
+  dtsorts.clear();
+  // neither are well-founded due to non-simple recursion
+  TS_ASSERT_THROWS_NOTHING(dtsorts =
+                               d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  TS_ASSERT(dtsorts.size()==2);
+  TS_ASSERT(!dtsorts[0].getDatatype().isWellFounded());
+  TS_ASSERT(!dtsorts[1].getDatatype().isWellFounded());
+  
+  /* Create mutual datatypes corresponding to this definition block:
+   *   DATATYPE
+   *     list4 = cons(car: set(ns4), cdr: list4) | nil,
+   *     ns4 = elem(ndata: list4)
+   *   END;
+   */
+  unresTypes.clear();
+  Sort unresNs4 = d_solver.mkUninterpretedSort("ns4");
+  unresTypes.insert(unresNs4);
+  Sort unresList4 = d_solver.mkUninterpretedSort("list4");
+  unresTypes.insert(unresList4);
+
+  DatatypeDecl list4 = d_solver.mkDatatypeDecl("list4");
+  DatatypeConstructorDecl cons4("cons4");
+  cons4.addSelector("car", d_solver.mkSetSort(unresNs4));
+  cons4.addSelector("cdr", unresList4);
+  list4.addConstructor(cons4);
+  DatatypeConstructorDecl nil4("nil4");
+  list4.addConstructor(nil4);
+
+  DatatypeDecl ns4 = d_solver.mkDatatypeDecl("ns4");
+  DatatypeConstructorDecl elem4("elem3");
+  elem4.addSelector("ndata", unresList4);
+  ns4.addConstructor(elem4);
+
+  dtdecls.clear();
+  dtdecls.push_back(list4);
+  dtdecls.push_back(ns4);
+  
+  dtsorts.clear();
+  // neither are well-founded due to non-simple recursion
+  TS_ASSERT_THROWS_NOTHING(dtsorts =
+                               d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  TS_ASSERT(dtsorts.size()==2);
+  TS_ASSERT(!dtsorts[0].getDatatype().isWellFounded());
+  TS_ASSERT(!dtsorts[1].getDatatype().isWellFounded());
 }
