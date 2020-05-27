@@ -280,24 +280,26 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::STRING_DECOMPOSE)
   {
     Assert(children.size() == 1);
-    Assert(args.size()==1);
+    Assert(args.size() == 1);
     bool isRev;
     if (!getBool(args[0], isRev))
     {
       return Node::null();
     }
     Node atom = ProofSkolemCache::getSkolemForm(children[0]);
-    if (atom.getKind()!=GEQ)
+    if (atom.getKind() != GEQ)
     {
       return Node::null();
     }
     SkolemCache sc(false);
     std::vector<Node> newSkolems;
-    Node conc = CoreSolver::getConclusion(atom[0][0], atom[1], id, isRev, &sc, newSkolems);
+    Node conc = CoreSolver::getConclusion(
+        atom[0][0], atom[1], id, isRev, &sc, newSkolems);
     return ProofSkolemCache::getWitnessForm(conc);
   }
   else if (id == PfRule::STRING_REDUCTION
-           || id == PfRule::STRING_EAGER_REDUCTION || id == PfRule::STRING_LENGTH_POS)
+           || id == PfRule::STRING_EAGER_REDUCTION
+           || id == PfRule::STRING_LENGTH_POS)
   {
     Assert(children.empty());
     Assert(args.size() >= 1);
@@ -443,10 +445,11 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::STRING_CODE_INJ)
   {
     Assert(children.empty());
-    Assert(args.size()==2);
-    Assert (args[0].getType().isStringLike() && args[1].getType().isStringLike());
-    Node c1 = nm->mkNode(STRING_TO_CODE,args[0]);
-    Node c2 = nm->mkNode(STRING_TO_CODE,args[1]);
+    Assert(args.size() == 2);
+    Assert(args[0].getType().isStringLike()
+           && args[1].getType().isStringLike());
+    Node c1 = nm->mkNode(STRING_TO_CODE, args[0]);
+    Node c2 = nm->mkNode(STRING_TO_CODE, args[1]);
     Node eqNegOne = c1.eqNode(nm->mkConst(Rational(-1)));
     Node deq = c1.eqNode(c2).negate();
     Node eqn = args[0].eqNode(args[1]);

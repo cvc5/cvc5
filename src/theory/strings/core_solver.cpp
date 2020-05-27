@@ -815,26 +815,18 @@ Node CoreSolver::getConclusion(Node x,
     conc = z.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, preC)
                           : nm->mkNode(STRING_CONCAT, preC, sk));
   }
-  else if (rule==PfRule::STRING_DECOMPOSE)
+  else if (rule == PfRule::STRING_DECOMPOSE)
   {
-    Assert (y.getType().isInteger());
+    Assert(y.getType().isInteger());
     Node n = isRev ? nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), y) : y;
-    Node sk1 = skc->mkSkolemCached(
-          x,
-          n,
-          SkolemCache::SK_PREFIX,
-          "dc_spt1");
+    Node sk1 = skc->mkSkolemCached(x, n, SkolemCache::SK_PREFIX, "dc_spt1");
     newSkolems.push_back(sk1);
-    Node sk2 = skc->mkSkolemCached(
-          x,
-          n,
-          SkolemCache::SK_SUFFIX_REM,
-          "dc_spt2");
+    Node sk2 = skc->mkSkolemCached(x, n, SkolemCache::SK_SUFFIX_REM, "dc_spt2");
     newSkolems.push_back(sk2);
     conc = x.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk2));
     if (options::stringLenConc())
     {
-      Node lc = nm->mkNode(STRING_LENGTH, isRev ? sk2 : sk1 ).eqNode(y);
+      Node lc = nm->mkNode(STRING_LENGTH, isRev ? sk2 : sk1).eqNode(y);
       conc = nm->mkNode(AND, conc, lc);
     }
   }
@@ -2092,8 +2084,9 @@ void CoreSolver::processDeq(Node ni, Node nj)
           // len(x)>=1 => x = k1 ++ k2 ^ len(k1) = 1
           SkolemCache* skc = d_termReg.getSkolemCache();
           std::vector<Node> newSkolems;
-          Node conc = getConclusion(nck, d_one, PfRule::STRING_DECOMPOSE, false, skc, newSkolems);
-          Assert (newSkolems.size()==2);
+          Node conc = getConclusion(
+              nck, d_one, PfRule::STRING_DECOMPOSE, false, skc, newSkolems);
+          Assert(newSkolems.size() == 2);
           if (options::stringLenConc())
           {
             d_termReg.registerTermAtomic(newSkolems[0], LENGTH_IGNORE);
@@ -2121,17 +2114,19 @@ void CoreSolver::processDeq(Node ni, Node nj)
         //
         // len(x) >= len(y) => x = k1 ++ k2 ^ len(k1) = len(y)
         // len(y) >= len(x) => y = k3 ++ k4 ^ len(k3) = len(x)
-        Trace("strings-solve") << "Non-Simple Case 1 : add lemmas " << std::endl;
+        Trace("strings-solve")
+            << "Non-Simple Case 1 : add lemmas " << std::endl;
         SkolemCache* skc = d_termReg.getSkolemCache();
-        
-        for (unsigned r=0; r<2; r++)
+
+        for (unsigned r = 0; r < 2; r++)
         {
-          Node ux = r==0 ? x : y;
-          Node uxLen = nm->mkNode(STRING_LENGTH,x);
-          Node uyLen = nm->mkNode(STRING_LENGTH,y);
+          Node ux = r == 0 ? x : y;
+          Node uxLen = nm->mkNode(STRING_LENGTH, x);
+          Node uyLen = nm->mkNode(STRING_LENGTH, y);
           std::vector<Node> newSkolems;
-          Node conc = getConclusion(ux, uyLen, PfRule::STRING_DECOMPOSE, false, skc, newSkolems);
-          Assert (newSkolems.size()==2);
+          Node conc = getConclusion(
+              ux, uyLen, PfRule::STRING_DECOMPOSE, false, skc, newSkolems);
+          Assert(newSkolems.size() == 2);
           if (options::stringLenConc())
           {
             d_termReg.registerTermAtomic(newSkolems[0], LENGTH_IGNORE);
@@ -2141,15 +2136,15 @@ void CoreSolver::processDeq(Node ni, Node nj)
             d_termReg.registerTermAtomic(newSkolems[0], LENGTH_GEQ_ONE);
           }
           std::vector<Node> antecLen;
-          antecLen.push_back(nm->mkNode(GEQ,uxLen, uyLen));
+          antecLen.push_back(nm->mkNode(GEQ, uxLen, uyLen));
           d_im.sendInference(antecLen,
-                            antecLen,
-                            conc,
-                            Inference::DEQ_DISL_STRINGS_SPLIT,
-                            false,
-                            true);
+                             antecLen,
+                             conc,
+                             Inference::DEQ_DISL_STRINGS_SPLIT,
+                             false,
+                             true);
         }
-        
+
         return;
       }
     }

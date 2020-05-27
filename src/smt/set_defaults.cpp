@@ -1119,9 +1119,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       if (options::proofNew.wasSetByUser())
       {
-        Notice()
-            << "SmtEngine: setting proof-new to false to support SyGuS"
-            << std::endl;
+        Notice() << "SmtEngine: setting proof-new to false to support SyGuS"
+                 << std::endl;
       }
       options::proofNew.set(false);
     }

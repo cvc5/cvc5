@@ -630,7 +630,7 @@ enum class PfRule : uint32_t
   // Arguments: (true)
   // ---------------------
   // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w2) n))
-  // where 
+  // where
   //   w1 is (witness ((z String)) (= z (pre t n)))
   //   w2 is (witness ((z String)) (= z (suf t n)))
   STRING_DECOMPOSE,
@@ -698,7 +698,7 @@ enum class PfRule : uint32_t
   // Children: none
   // Arguments: (t, s)
   // ---------------------
-  // Conclusion:(or (= (str.code t) (- 1)) 
+  // Conclusion:(or (= (str.code t) (- 1))
   //                (not (= (str.code t) (str.code s)))
   //                (not (= t s)))
   STRING_CODE_INJ,

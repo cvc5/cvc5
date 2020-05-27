@@ -1978,8 +1978,8 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
         Node fullConflictNeg = fullConflict.notNode();
         // ------------------------- explained  ---------- from theory
         // fullConflict => conflict              ~conflict
-        // ----------------------------------------------- MACRO_SR_PRED_TRANSFORM
-        // ~fullConflict
+        // -----------------------------------------------
+        // MACRO_SR_PRED_TRANSFORM ~fullConflict
         std::vector<Node> children;
         children.push_back(tncExp.getProven());
         children.push_back(conflict.notNode());
@@ -2390,7 +2390,7 @@ theory::TrustNode TheoryEngine::getExplanation(
         std::vector<Node> pfChildrenNot;
         for (size_t k = 0, nchild = tConc.getNumChildren(); k < nchild; ++k)
         {
-          if (tConc[k].getKind()==kind::NOT)
+          if (tConc[k].getKind() == kind::NOT)
           {
             // hack to ensure (not P) -> true is applied before P -> true
             pfChildrenNot.push_back(tConc[k]);
@@ -2400,7 +2400,8 @@ theory::TrustNode TheoryEngine::getExplanation(
             pfChildren.push_back(tConc[k]);
           }
         }
-        pfChildren.insert(pfChildren.end(), pfChildrenNot.begin(), pfChildrenNot.end());
+        pfChildren.insert(
+            pfChildren.end(), pfChildrenNot.begin(), pfChildrenNot.end());
         std::vector<Node> pfArgs;
         pfArgs.push_back(tConc);
         pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
@@ -2409,7 +2410,7 @@ theory::TrustNode TheoryEngine::getExplanation(
         continue;
       }
       Node tExp = proven[0];
-      if (tExp==tConc)
+      if (tExp == tConc)
       {
         // trivial
         continue;

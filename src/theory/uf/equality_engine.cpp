@@ -1635,8 +1635,7 @@ void EqualityEngine::getExplanation(
                   Node eq[2];
                   for (unsigned i = 0; i < 2; ++i)
                   {
-                    EqualityNodeId equalityNodeId =
-                        i == 0 ? t1Id : t2Id;
+                    EqualityNodeId equalityNodeId = i == 0 ? t1Id : t2Id;
                     Node equalityNode = d_nodes[equalityNodeId];
                     if (!d_isInternal[equalityNodeId])
                     {

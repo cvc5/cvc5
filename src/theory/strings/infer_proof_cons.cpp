@@ -136,7 +136,7 @@ Node InferProofCons::convert(Inference infer,
     case Inference::EXTF:
     case Inference::EXTF_N:
     case Inference::EXTF_D:
-    case Inference::EXTF_D_N: 
+    case Inference::EXTF_D_N:
     {
       if (!ps.d_children.empty())
       {
@@ -162,11 +162,11 @@ Node InferProofCons::convert(Inference infer,
     case Inference::EXTF_EQ_REW:
     case Inference::INFER_EMP:
     {
-      if (ps.d_children.size()>1)
+      if (ps.d_children.size() > 1)
       {
-        Node pred = ps.d_children[ps.d_children.size()-1];
+        Node pred = ps.d_children[ps.d_children.size() - 1];
         ps.d_children.pop_back();
-        ps.d_children.insert(ps.d_children.begin(),pred);
+        ps.d_children.insert(ps.d_children.begin(), pred);
       }
       // need the "extended equality rewrite"
       MethodId ids = MethodId::SB_DEFAULT;
@@ -186,7 +186,7 @@ Node InferProofCons::convert(Inference infer,
     case Inference::N_UNIFY:
     case Inference::N_ENDPOINT_EMP:
     case Inference::N_ENDPOINT_EQ:
-    case Inference::N_NCTN: 
+    case Inference::N_NCTN:
     case Inference::SSPLIT_CST_PROP:
     case Inference::SSPLIT_VAR_PROP:
     case Inference::SSPLIT_CST:
@@ -495,17 +495,20 @@ Node InferProofCons::convert(Inference infer,
     case Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
     case Inference::DEQ_DISL_STRINGS_SPLIT:
     {
-      if (conc.getKind()!=AND || conc.getNumChildren()!=2 || 
-          conc[0].getKind()!=EQUAL || !conc[0][0].getType().isStringLike() || 
-          conc[1].getKind()!=EQUAL || conc[1][0].getKind()!=STRING_LENGTH)
+      if (conc.getKind() != AND || conc.getNumChildren() != 2
+          || conc[0].getKind() != EQUAL || !conc[0][0].getType().isStringLike()
+          || conc[1].getKind() != EQUAL
+          || conc[1][0].getKind() != STRING_LENGTH)
       {
         Trace("strings-ipc-deq") << "malformed application" << std::endl;
         Assert(false);
       }
       else
       {
-        Node lenReq = nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, conc[0][0]), conc[1][1]);
-        Trace("strings-ipc-deq") << "length requirement is " << lenReq << std::endl;
+        Node lenReq =
+            nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, conc[0][0]), conc[1][1]);
+        Trace("strings-ipc-deq")
+            << "length requirement is " << lenReq << std::endl;
         if (convertLengthPf(lenReq, ps.d_children))
         {
           Trace("strings-ipc-deq") << "...success length" << std::endl;
@@ -514,10 +517,13 @@ Node InferProofCons::convert(Inference infer,
           childrenMain.push_back(lenReq);
           std::vector<Node> argsMain;
           argsMain.push_back(nodeIsRev);
-          Node mainConc = d_psb.tryStep(PfRule::STRING_DECOMPOSE, childrenMain, argsMain);
-          Trace("strings-ipc-deq") << "...main conclusion is " << mainConc << std::endl;
-          useBuffer = (mainConc==conc);
-          Trace("strings-ipc-deq") << "...success is " << useBuffer << std::endl;
+          Node mainConc =
+              d_psb.tryStep(PfRule::STRING_DECOMPOSE, childrenMain, argsMain);
+          Trace("strings-ipc-deq")
+              << "...main conclusion is " << mainConc << std::endl;
+          useBuffer = (mainConc == conc);
+          Trace("strings-ipc-deq")
+              << "...success is " << useBuffer << std::endl;
         }
         else
         {
@@ -525,7 +531,7 @@ Node InferProofCons::convert(Inference infer,
         }
       }
     }
-      break;
+    break;
     // ========================== Boolean split
     case Inference::CARD_SP:
     case Inference::LEN_SPLIT:
@@ -584,7 +590,7 @@ Node InferProofCons::convert(Inference infer,
       {
         break;
       }
-      bool polarity = ps.d_children[0].getKind()!=NOT;
+      bool polarity = ps.d_children[0].getKind() != NOT;
       Node atom = polarity ? ps.d_children[0] : ps.d_children[0][0];
       std::vector<Node> args;
       args.push_back(atom);
@@ -598,7 +604,8 @@ Node InferProofCons::convert(Inference infer,
       // ite( contains(x,t), x = k1 ++ t ++ k2, x != t )
       std::vector<Node> tiChildren;
       tiChildren.push_back(ps.d_children[0]);
-      Node ctnt = d_psb.tryStep(polarity ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO, tiChildren, {});
+      Node ctnt = d_psb.tryStep(
+          polarity ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO, tiChildren, {});
       if (ctnt.isNull() || ctnt.getKind() != EQUAL)
       {
         break;
@@ -656,14 +663,15 @@ Node InferProofCons::convert(Inference infer,
     // ========================== Cardinality
     case Inference::CARDINALITY: break;
     // ========================== code injectivity
-    case Inference::CODE_INJ: 
+    case Inference::CODE_INJ:
     {
       ps.d_rule = PfRule::STRING_CODE_INJ;
-      Assert (conc.getKind()==OR && conc.getNumChildren()==3 && conc[2].getKind()==EQUAL);
+      Assert(conc.getKind() == OR && conc.getNumChildren() == 3
+             && conc[2].getKind() == EQUAL);
       ps.d_args.push_back(conc[2][0]);
       ps.d_args.push_back(conc[2][1]);
     }
-      break;
+    break;
     // ========================== prefix conflict
     case Inference::PREFIX_CONFLICT:
     {
