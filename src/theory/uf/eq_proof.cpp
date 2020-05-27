@@ -353,7 +353,6 @@ bool EqProof::foldTransitivityChildren(
                        PfRule::TRANS,
                        copy1foldPremises,
                        {},
-                       true,
                        true);
           }
           if (copy2foldPremises.size() > 1
@@ -363,7 +362,6 @@ bool EqProof::foldTransitivityChildren(
                        PfRule::TRANS,
                        copy2foldPremises,
                        {},
-                       true,
                        true);
           }
         }
@@ -1140,7 +1138,7 @@ Node EqProof::addToProof(
                      || children[0][1].eqNode(children[0][0]) == conclusion)));
       if (children.size() > 1)
       {
-        if (!p->addStep(conclusion, PfRule::TRANS, children, {}, true, true))
+        if (!p->addStep(conclusion, PfRule::TRANS, children, {}, true))
         {
           Assert(false) << "EqProof::addToProof: couldn't add TRANS "
                         << conclusion << " " << children << "\n";
@@ -1360,7 +1358,6 @@ Node EqProof::addToProof(
                       PfRule::TRANS,
                       transitivityChildren[i],
                       {},
-                      true,
                       true))
       {
         Assert(false) << "EqProof::addToProof: couldn't add trans step\n";
@@ -1384,7 +1381,7 @@ Node EqProof::addToProof(
   Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "
                         << conclusion << " with op " << args[0]
                         << " and children " << children << "\n";
-  if (!p->addStep(conclusion, PfRule::CONG, children, args, true, true))
+  if (!p->addStep(conclusion, PfRule::CONG, children, args, true))
   {
     Assert(false) << "EqProof::addToProof: couldn't add cong step\n";
   }
@@ -1399,7 +1396,6 @@ Node EqProof::addToProof(
                     PfRule::MACRO_SR_PRED_TRANSFORM,
                     {conclusion},
                     {d_node},
-                    true,
                     true))
     {
       Assert(false) << "EqProof::addToProof: couldn't add "
