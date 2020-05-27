@@ -279,7 +279,10 @@ public:
     tryBadInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE list = nil | cons(car:INT,cdr:list) END;");
     tryBadInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE list2 = nil END;");
     tryBadInput("DATATYPE tree = node(data:(list,list,ARRAY trex OF list)), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
-    tryBadInput("DATATYPE trex = Foo | Bar END; DATATYPE tree = node(data:[list,list,ARRAY trex OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
+    tryBadInput(
+        "DATATYPE trex = Foo | Bar END; DATATYPE tree = "
+        "node(data:[list,list,ARRAY trex OF list]), list = cons(car:ARRAY list "
+        "OF tree,cdr:BITVECTOR(32)) END;");
 #endif /* ! CVC4_COMPETITION_MODE */
   }
 

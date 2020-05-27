@@ -481,13 +481,13 @@ bool DType::isWellFounded() const
     // already computed
     return d_wellFounded == 1;
   }
-  Trace("datatypes-init") << "DType::isWellFounded " << getName()  << std::endl;
+  Trace("datatypes-init") << "DType::isWellFounded " << getName() << std::endl;
   std::vector<TypeNode> processing;
   if (!computeWellFounded(processing))
   {
     // not well-founded since no ground term can be constructed
-    Trace("datatypes-init")
-        << "DType::isWellFounded: false for " << getName() << " due to no ground terms." << std::endl;
+    Trace("datatypes-init") << "DType::isWellFounded: false for " << getName()
+                            << " due to no ground terms." << std::endl;
     d_wellFounded = -1;
     return false;
   }
@@ -498,13 +498,13 @@ bool DType::isWellFounded() const
     if (!isSimplyRecursive())
     {
       d_wellFounded = -1;
-      Trace("datatypes-init")
-          << "DType::isWellFounded: false for " << getName() << " due to non-simple recursion."
-          << std::endl;
+      Trace("datatypes-init") << "DType::isWellFounded: false for " << getName()
+                              << " due to non-simple recursion." << std::endl;
       return false;
     }
   }
-  Trace("datatypes-init") << "DType::isWellFounded: true for " << getName() << std::endl;
+  Trace("datatypes-init") << "DType::isWellFounded: true for " << getName()
+                          << std::endl;
   d_wellFounded = 1;
   return true;
 }
@@ -578,8 +578,10 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
   return groundTerm;
 }
 
-void DType::getStrictSubfieldTypes(std::unordered_set<TypeNode, TypeNodeHashFunction>& types,
-                         std::map<TypeNode, bool>& processed, bool isStrictC) const
+void DType::getStrictSubfieldTypes(
+    std::unordered_set<TypeNode, TypeNodeHashFunction>& types,
+    std::map<TypeNode, bool>& processed,
+    bool isStrictC) const
 {
   std::map<TypeNode, bool>::iterator it = processed.find(d_self);
   if (it != processed.end())
@@ -610,14 +612,15 @@ void DType::getStrictSubfieldTypes(std::unordered_set<TypeNode, TypeNodeHashFunc
         dt.getStrictSubfieldTypes(types, processed, isStrictC);
         continue;
       }
-      bool hasTn = types.find(tn)!=types.end();
+      bool hasTn = types.find(tn) != types.end();
       Trace("datatypes-init")
-          << "Collect subfield types " << tn << ", hasTn=" << hasTn << ", isStrictC=" << isStrictC << std::endl;
+          << "Collect subfield types " << tn << ", hasTn=" << hasTn
+          << ", isStrictC=" << isStrictC << std::endl;
       expr::getComponentTypes(tn, types);
       if (!isStrictC && !hasTn)
       {
         // the top-level type is not a strict subfield type
-        Assert (types.find(tn)!=types.end());
+        Assert(types.find(tn) != types.end());
         types.erase(tn);
       }
     }
@@ -626,11 +629,12 @@ void DType::getStrictSubfieldTypes(std::unordered_set<TypeNode, TypeNodeHashFunc
 
 bool DType::isSimplyRecursive() const
 {
-  if (d_simplyRecursive!=0)
+  if (d_simplyRecursive != 0)
   {
-    return d_simplyRecursive==1;
+    return d_simplyRecursive == 1;
   }
-  Trace("datatypes-init") << "Compute simply recursive for " << getName() << std::endl;
+  Trace("datatypes-init") << "Compute simply recursive for " << getName()
+                          << std::endl;
   // get the strict subfield types of this datatype
   std::unordered_set<TypeNode, TypeNodeHashFunction> types;
   std::map<TypeNode, bool> processed;
@@ -646,8 +650,9 @@ bool DType::isSimplyRecursive() const
   // does types contain self?
   if (types.find(d_self) != types.end())
   {
-        Trace("datatypes-init")
-            << "DType::isSimplyRecursive: false for " << getName() << " due to strict component type" << std::endl;
+    Trace("datatypes-init")
+        << "DType::isSimplyRecursive: false for " << getName()
+        << " due to strict component type" << std::endl;
     // not simply recursive since it has itself as a strict component type.
     d_simplyRecursive = -1;
     return false;
@@ -665,14 +670,16 @@ bool DType::isSimplyRecursive() const
       if (m.doMatching(d_self, t))
       {
         Trace("datatypes-init")
-            << "DType::isSimplyRecursive: false for " << getName() << " due to parametric strict component type, "
-            << d_self << " matching " << t << std::endl;
+            << "DType::isSimplyRecursive: false for " << getName()
+            << " due to parametric strict component type, " << d_self
+            << " matching " << t << std::endl;
         d_simplyRecursive = -1;
         return false;
       }
     }
   }
-  Trace("datatypes-init") << "DType::isSimplyRecursive: true for " << getName() << std::endl;
+  Trace("datatypes-init") << "DType::isSimplyRecursive: true for " << getName()
+                          << std::endl;
   d_simplyRecursive = 1;
   return true;
 }
