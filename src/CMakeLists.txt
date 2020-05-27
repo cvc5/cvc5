@@ -310,6 +310,8 @@ libcvc4_add_sources(
   theory/arith/nl_monomial.h
   theory/arith/nl_solver.cpp
   theory/arith/nl_solver.h
+  theory/arith/nln_solver.cpp
+  theory/arith/nln_solver.h
   theory/arith/nonlinear_extension.cpp
   theory/arith/nonlinear_extension.h
   theory/arith/normal_form.cpp
