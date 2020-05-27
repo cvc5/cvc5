@@ -17,6 +17,19 @@
 using namespace CVC4::kind;
 
 namespace CVC4 {
+  
+std::ostream& operator<<(std::ostream& out, CDPOverwrite opol)
+{
+  switch(opol)
+  {
+    case CDPOverwrite::ALWAYS: out << "ALWAYS";break;
+    case CDPOverwrite::ASSUME_ONLY: out << "ASSUME_ONLY";break;
+    case CDPOverwrite::NEVER: out << "NEVER";break;
+    default:
+      out << "CDPOverwrite:unknown";break;
+  }
+  return out;
+}
 
 CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
     : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context)
@@ -109,25 +122,25 @@ bool CDProof::addStep(Node expected,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       bool ensureChildren,
-                      bool forceOverwrite)
+                      CDPOverwrite opolicy)
 {
   Trace("cdproof") << "CDProof::addStep: " << id << " " << expected
                    << ", ensureChildren = " << ensureChildren
-                   << ", forceOverwrite = " << forceOverwrite << std::endl;
-  if (id == PfRule::ASSUME || id == PfRule::SYMM)
-  {
+                   << ", overwrite policy = " << opolicy << std::endl;
+  // TODO:
+  //if (id == PfRule::ASSUME || id == PfRule::SYMM)
+  //{
     // These rules are implicitly managed by this class. The user of this
-    // class should not have to bother with them.
-    // FIXME: return or assert here; this currently breaks slow-2020-04-17
+    // class should not have to bother with them?
     // return true;
-  }
+  //}
   // We must always provide expected to this method
   Assert(!expected.isNull());
 
   std::shared_ptr<ProofNode> pprev = getProofSymm(expected);
   if (pprev != nullptr)
   {
-    if (!shouldOverwrite(pprev.get(), id, forceOverwrite))
+    if (!shouldOverwrite(pprev.get(), id, opolicy))
     {
       // we should not overwrite the current step
       Trace("cdproof") << "...success, no overwrite" << std::endl;
@@ -238,19 +251,19 @@ void CDProof::notifyNewProof(Node expected)
 bool CDProof::addStep(Node expected,
                       const ProofStep& step,
                       bool ensureChildren,
-                      bool forceOverwrite)
+                      CDPOverwrite opolicy)
 {
-  return addStep(expected, step.d_rule, step.d_children, step.d_args);
+  return addStep(expected, step.d_rule, step.d_children, step.d_args, ensureChildren, opolicy);
 }
 
 bool CDProof::addSteps(const ProofStepBuffer& psb,
                        bool ensureChildren,
-                       bool forceOverwrite)
+                       CDPOverwrite opolicy)
 {
   const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
   for (const std::pair<Node, ProofStep>& ps : steps)
   {
-    if (!addStep(ps.first, ps.second, ensureChildren, forceOverwrite))
+    if (!addStep(ps.first, ps.second, ensureChildren, opolicy))
     {
       return false;
     }
@@ -259,7 +272,7 @@ bool CDProof::addSteps(const ProofStepBuffer& psb,
 }
 
 bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
-                       bool forceOverwrite,
+                       CDPOverwrite opolicy,
                        bool doCopy)
 {
   if (!doCopy)
@@ -280,7 +293,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
       // just store the proof for fact
       d_nodes.insert(curFact, pn);
     }
-    else if (shouldOverwrite(cur.get(), pn->getRule(), forceOverwrite))
+    else if (shouldOverwrite(cur.get(), pn->getRule(), opolicy))
     {
       // We update cur to have the structure of the top node of pn. Notice that
       // the interface to update this node will ensure that the proof apf is a
@@ -336,7 +349,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
                          pexp,
                          cur->getArguments(),
                          true,
-                         forceOverwrite);
+                         opolicy);
       // should always succeed
       Assert(res);
       retValue = retValue && res;
@@ -349,7 +362,17 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
 
 bool CDProof::hasStep(Node fact)
 {
-  std::shared_ptr<ProofNode> pf = getProofSymm(fact);
+  std::shared_ptr<ProofNode> pf = getProof(fact);
+  if (pf != nullptr && !isAssumption(pf.get()))
+  {
+    return true;
+  }
+  Node symFact = getSymmFact(fact);
+  if (symFact.isNull())
+  {
+    return false;
+  }
+  pf = getProof(symFact);
   if (pf != nullptr && !isAssumption(pf.get()))
   {
     return true;
@@ -359,12 +382,13 @@ bool CDProof::hasStep(Node fact)
 
 ProofNodeManager* CDProof::getManager() const { return d_manager; }
 
-bool CDProof::shouldOverwrite(ProofNode* pn, PfRule newId, bool forceOverwrite)
+bool CDProof::shouldOverwrite(ProofNode* pn, PfRule newId, CDPOverwrite opol)
 {
   Assert(pn != nullptr);
-  // we overwrite only if forceOverwrite is true, or if the previously
+  // we overwrite only if opol is CDPOverwrite::ALWAYS, or if 
+  // opol is CDPOverwrite::ASSUME_ONLY and the previously
   // provided proof pn was an assumption and the currently provided step is not
-  return forceOverwrite || (isAssumption(pn) && newId != PfRule::ASSUME);
+  return opol==CDPOverwrite::ALWAYS || (opol==CDPOverwrite::ASSUME_ONLY && isAssumption(pn) && newId != PfRule::ASSUME);
 }
 
 bool CDProof::isAssumption(ProofNode* pn)

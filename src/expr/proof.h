@@ -29,6 +29,19 @@
 
 namespace CVC4 {
 
+/** An overwrite policy for CDProof below */
+enum class CDPOverwrite : uint32_t
+{
+  // always overwrite an existing step.
+  ALWAYS,
+  // overwrite ASSUME with non-ASSUME steps.
+  ASSUME_ONLY,
+  // never overwrite an existing step.
+  NEVER,
+};
+/** Writes a overwrite policy name to a stream. */
+std::ostream& operator<<(std::ostream& out, CDPOverwrite opol);
+
 /**
  * A (context-dependent) proof.
  *
@@ -78,10 +91,11 @@ namespace CVC4 {
  * Notice that the proof of A by ID_A was not overwritten by ASSUME in the
  * addStep call above.
  *
- * The policy for overwriting proof steps gives ASSUME a special status. An
- * ASSUME step can be seen as a step whose justification has not yet been
- * provided. Thus, it is always overwritten. Other proof rules are never
- * overwritten, unless the argument forceOverwrite is true.
+ * The default policy for overwriting proof steps (CDPOverwrite::ASSUME_ONLY)
+ * gives ASSUME a special status. An ASSUME step can be seen as a step whose
+ * justification has not yet been provided. Thus, it is always overwritten.
+ * Other proof rules are never overwritten, unless the argument opolicy is
+ * CDPOverwrite::ALWAYS.
  *
  * As an another example, say that we call:
  * - addStep( B, ID_B1 {}, {} )
@@ -89,7 +103,7 @@ namespace CVC4 {
  * At this point, getProof( A ) returns:
  *   ID_A1( ID_B1(), ASSUME(C) )
  * Now, assume an additional call is made to addProof, where notice
- * forceOverwrite is false by default:
+ * the overwrite policy is CDPOverwrite::ASSUME_ONLY by default:
  * - addProof( D, ID_D( ID_A2( ID_B2(), ID_C() ) ) )
  * where assume ID_B2() and ID_C() prove B and C respectively. This call is
  * equivalent to calling:
@@ -162,8 +176,8 @@ class CDProof
    * @param args The arguments of the proof step.
    * @param ensureChildren Whether we wish to ensure steps have been added
    * for all nodes in children
-   * @param forceOverwrite Whether we wish to overwrite if a step for expected
-   * was already provided (via a previous call to addStep)
+   * @param opolicy Policy for whether we wish to overwrite if a step for
+   * expected was already provided (via a previous call to addStep)
    * @return The true if indeed the proof step proves expected, or
    * false otherwise. The latter can happen if the proof has a different (or
    * invalid) conclusion, or if one of the children does not have a proof and
@@ -177,30 +191,31 @@ class CDProof
    * of order.
    *
    * This method only overwrites proofs for facts that were added as
-   * steps with id ASSUME when forceOverwrite is false, and otherwise always
-   * overwrites an existing step if one was provided when forceOverwrite is
-   * true.
+   * steps with id ASSUME when opolicy is CDPOverwrite::ASSUME_ONLY, and always
+   * (resp. never) overwrites an existing step if one was provided when opolicy
+   * is CDPOverwrite::ALWAYS (resp. CDPOverwrite::NEVER).
    */
   bool addStep(Node expected,
                PfRule id,
                const std::vector<Node>& children,
                const std::vector<Node>& args,
                bool ensureChildren = false,
-               bool forceOverwrite = false);
+               CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
   /** Version with ProofStep */
   bool addStep(Node expected,
                const ProofStep& step,
                bool ensureChildren = false,
-               bool forceOverwrite = false);
+               CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
   /** Version with ProofStepBuffer */
   bool addSteps(const ProofStepBuffer& psb,
                 bool ensureChildren = false,
-                bool forceOverwrite = false);
+                CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
   /** Add proof
    *
    * @param pn The proof of the given fact.
-   * @param forceOverwrite Whether we wish to force overwriting if a step was
-   * already provided, for each node in the proof.
+   * @param opolicy Policy for whether we wish to force overwriting if a step
+   * was already provided. This is used for each node in the proof if doCopy
+   * is true.
    * @param doCopy Whether we make a deep copy of the pn.
    * @return true if all steps were successfully added to this class. If it
    * returns true, it registers a copy of all of the subnodes of pn to this
@@ -212,7 +227,7 @@ class CDProof
    * not impact the internal data of this class.
    */
   bool addProof(std::shared_ptr<ProofNode> pn,
-                bool forceOverwrite = false,
+                CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY,
                 bool doCopy = false);
   /** Return true if fact already has a proof step */
   bool hasStep(Node fact);
@@ -244,9 +259,9 @@ class CDProof
   std::shared_ptr<ProofNode> getProofSymm(Node fact);
   /**
    * Returns true if we should overwrite proof node pn with a step having id
-   * newId, based on policy forceOverwrite.
+   * newId, based on policy opol.
    */
-  static bool shouldOverwrite(ProofNode* pn, PfRule newId, bool forceOverwrite);
+  static bool shouldOverwrite(ProofNode* pn, PfRule newId, CDPOverwrite opol);
   /** Returns true if pn is an assumption. */
   static bool isAssumption(ProofNode* pn);
   /** Notify new proof, called when a new proof of expected is provided. */

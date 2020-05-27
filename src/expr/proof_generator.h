@@ -19,10 +19,9 @@
 
 #include "expr/node.h"
 #include "expr/proof_node.h"
+#include "expr/proof.h"
 
 namespace CVC4 {
-
-class CDProof;
 
 /**
  * An abstract proof generator class, to be used in combination with
@@ -61,15 +60,16 @@ class ProofGenerator
    */
   virtual std::shared_ptr<ProofNode> getProofFor(Node f);
   /**
-   * Add the proof for formula f to proof pf. The proof of f should be
-   * overwritten if forceOverwrite is true.
+   * Add the proof for formula f to proof pf. The proof of f is overwritten in
+   * pf based on the policy opolicy.
    *
    * @param f The fact to get the proof for.
    * @param pf The CDProof object to add the proof to.
-   * @param forceOverwrite The overwrite policy for adding to pf.
+   * @param opolicy The overwrite policy for adding to pf.
    * @return True if this call was sucessful.
    */
-  virtual bool addProofTo(Node f, CDProof* pf, bool forceOverwrite = false);
+  virtual bool addProofTo(Node f, CDProof* pf,
+               CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
   /**
    * Can we give the proof for formula f? This is used for debugging. This
    * returns false if the generator cannot provide a proof of formula f.
