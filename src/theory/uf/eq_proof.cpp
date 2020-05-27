@@ -828,12 +828,14 @@ Node EqProof::addToProof(
       }
     }
 #endif
-    // (= (= t1 t2) true/false) case
+    // (= t true/false) case, in which t is not a Boolean variable
     if (d_node.getKind() == kind::EQUAL
         && ((d_node[0].getKind() == kind::CONST_BOOLEAN
-             && d_node[1].getKind() != kind::CONST_BOOLEAN)
+             && d_node[1].getKind() != kind::CONST_BOOLEAN
+             && d_node[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
             || (d_node[1].getKind() == kind::CONST_BOOLEAN
-                && d_node[0].getKind() != kind::CONST_BOOLEAN)))
+                && d_node[0].getKind() != kind::CONST_BOOLEAN
+                && d_node[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)))
     {
       unsigned constIndex = d_node[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
       std::vector<Node> introChildren;
