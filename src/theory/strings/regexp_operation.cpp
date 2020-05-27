@@ -851,17 +851,6 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   if (polarity)
   {
     conc = reduceRegExpPos(tlit, d_sc);
-    // we also immediately unfold the last disjunct for re.*
-    if (t[1].getKind() == REGEXP_STAR)
-    {
-      Assert(conc.getKind() == OR && conc.getNumChildren() == 3);
-      std::vector<Node> newChildren;
-      newChildren.push_back(conc[0]);
-      newChildren.push_back(conc[1]);
-      Node starExpUnf = simplify(conc[2], true);
-      newChildren.push_back(starExpUnf);
-      conc = NodeManager::currentNM()->mkNode(OR, newChildren);
-    }
   }
   else
   {
@@ -1065,6 +1054,12 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
     // beginning and the end of `x` simultaneously.
     //
     // x in R* ---> (x = "") v (x in R) v (x in (re.++ R (re.* R) R))
+    if (r.getKind() == REGEXP_STAR)
+    {
+      // We also immediately unfold the last disjunct for re.*. The advantage
+      // of doing this is that we use the same scheme for skolems above.
+      sinRExp = reduceRegExpPos(sinRExp, sc);
+    }
     conc = nm->mkNode(OR, se, sinr, sinRExp);
   }
   else
