@@ -162,20 +162,15 @@ void TheoryUF::check(Effort level) {
     // Do the work
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
-    if (atom.getKind() == kind::EQUAL)
-    {
-      d_pfEqualityEngine.get()->assertAssumeEquality(atom, polarity, fact);
+    if (atom.getKind() == kind::EQUAL) {
+      d_equalityEngine.assertEquality(atom, polarity, fact);
       if( options::ufHo() && options::ufHoExt() ){
         if( !polarity && !d_conflict && atom[0].getType().isFunction() ){
           // apply extensionality eagerly using the ho extension
           d_ho->applyExtensionality(fact);
         }
       }
-    }
-    // not supported by proofs, so use equality egine directly in this case
-    else if (atom.getKind() == kind::CARDINALITY_CONSTRAINT
-             || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT)
-    {
+    } else if (atom.getKind() == kind::CARDINALITY_CONSTRAINT || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT) {
       if( d_thss == NULL ){
         if( !getLogicInfo().hasCardinalityConstraints() ){
           std::stringstream ss;
@@ -185,16 +180,14 @@ void TheoryUF::check(Effort level) {
         }else{
           // support for cardinality constraints is not enabled, set incomplete
           d_out->setIncomplete();
-        }
+        } 
       }
       //needed for models
       if( options::produceModels() ){
         d_equalityEngine.assertPredicate(atom, polarity, fact);
       }
-    }
-    else
-    {
-      d_pfEqualityEngine.get()->assertAssumePredicate(atom, polarity, fact);
+    } else {
+      d_equalityEngine.assertPredicate(atom, polarity, fact);
     }
   }
 
