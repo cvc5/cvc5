@@ -1784,12 +1784,12 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   Node ppNode = preprocess ? this->preprocess(node) : Node(node);
 
   // Remove the ITEs
-  Debug("ite") << "Remove ITE from " << ppNode << std::endl;
+  Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
   additionalLemmas.push_back(ppNode);
   additionalLemmas.updateRealAssertionsEnd();
   d_tform_remover.run(additionalLemmas.ref(),
                       additionalLemmas.getIteSkolemMap());
-  Debug("ite") << "..done " << additionalLemmas[0] << std::endl;
+  Trace("te-tform-rm") << "..done " << additionalLemmas[0] << std::endl;
 
   if (lcp != nullptr)
   {
