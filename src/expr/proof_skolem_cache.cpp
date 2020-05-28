@@ -186,6 +186,14 @@ Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
       }
       else
       {
+        // notice that WITNESS terms t may be assigned a skolem form that is
+        // of kind WITNESS here, if t contains a free variable. This is due to
+        // the fact that witness terms in the bodies of quantified formulas are
+        // not eliminated and thus may appear in places where getSkolemForm is
+        // called on them. Regardless, witness terms with free variables
+        // should never be themselves assigned skolems (otherwise we would have
+        // assertions with free variables), and thus they can be treated like
+        // ordinary terms here.
         cur.setAttribute(sfa, ret);
       }
       visited[cur] = ret;
