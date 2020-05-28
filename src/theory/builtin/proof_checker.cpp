@@ -124,9 +124,7 @@ Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
   }
   else if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {
-    Node ret = Rewriter::rewriteEqualityExt(n);
-    // also rewrite
-    return Rewriter::rewrite(ret);
+    return Rewriter::rewriteEqualityExt(n);
   }
   else if (idr == MethodId::RW_IDENTITY)
   {
