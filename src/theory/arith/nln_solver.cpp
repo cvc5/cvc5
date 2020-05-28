@@ -19,7 +19,6 @@
 #include "preprocessing/passes/bv_to_int.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
-#include "util/iand.h"
 
 using namespace CVC4::kind;
 
@@ -29,15 +28,13 @@ namespace arith {
 
 NlnSolver::NlnSolver(TheoryArith& containing, NlModel& model)
     : d_containing(containing),
-      d_model(model),
-      d_initRefine(containing.getUserContext())
+      d_model(model)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
-  d_two = nm->mkConst(Rational(2));
   d_neg_one = nm->mkConst(Rational(-1));
 }
 

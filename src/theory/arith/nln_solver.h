@@ -73,7 +73,6 @@ class NlnSolver
   Node d_zero;
   Node d_one;
   Node d_neg_one;
-  Node d_two;
   Node d_true;
   Node d_false;
   
