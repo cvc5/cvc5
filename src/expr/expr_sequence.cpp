@@ -85,13 +85,14 @@ bool ExprSequence::operator>=(const ExprSequence& es) const
 
 std::ostream& operator<<(std::ostream& os, const ExprSequence& s)
 {
-  return os << "__expr_sequence__(" << s.getType() << ", " << s.getType() << ")";
+  return os << "__expr_sequence__(" << s.getType() << ", " << s.getSequence()
+            << ")";
 }
 
 size_t ExprSequenceHashFunction::operator()(const ExprSequence& es) const
 {
-  return TypeHashFunction()(es.getType())
-         + SequenceHashFunction()(es.getSequence());
+  uint64_t hash = fnv1a::fnv1a_64(TypeHashFunction()(es.getType()));
+  return static_cast<size_t>(SequenceHashFunction()(es.getSequence()), hash);
 }
 
 }  // namespace CVC4
