@@ -49,7 +49,6 @@ class CadSolver
   void initLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts);
-  //-------------------------------------------- lemma schemas
   /** check initial refine
    * 
    * This should be a heuristic incomplete check that only introduces a
@@ -62,8 +61,14 @@ class CadSolver
    * rule out the current model.
    */
   std::vector<Node> checkFullRefine();
-
-  //-------------------------------------------- end lemma schemas
+  /** preprocess assertions check model
+   *
+   * This modifies the given assertions in preparation for running a call
+   * to NlModel::checkModel.
+   *
+   * This method returns false if NlModel::checkModel should not be run.
+   */
+  void preprocessAssertionsCheckModel(std::vector<Node>& assertions);
  private:
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
