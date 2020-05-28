@@ -561,7 +561,8 @@ void TheoryDatatypes::finishInit() {
 Node TheoryDatatypes::expandDefinition(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // must ensure the type is well founded and simply recursive
+  // must ensure the type is well founded and has no nested recursion if
+  // the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
   if (tn.isDatatype())
   {

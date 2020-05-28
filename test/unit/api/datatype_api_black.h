@@ -358,7 +358,7 @@ void DatatypeBlack::testDatatypeSimplyRec()
   dtdecls.push_back(wlist);
   dtdecls.push_back(list);
   dtdecls.push_back(ns);
-  // this is well-founded
+  // this is well-founded and has no nested recursion
   std::vector<Sort> dtsorts;
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
@@ -431,7 +431,7 @@ void DatatypeBlack::testDatatypeSimplyRec()
   dtdecls.push_back(ns3);
 
   dtsorts.clear();
-  // neither are well-founded due to non-simple recursion
+  // both are well-founded and have nested recursion
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   TS_ASSERT(dtsorts.size() == 2);
@@ -470,7 +470,7 @@ void DatatypeBlack::testDatatypeSimplyRec()
   dtdecls.push_back(ns4);
 
   dtsorts.clear();
-  // neither are well-founded due to non-simple recursion
+  // both are well-founded and have nested recursion
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   TS_ASSERT(dtsorts.size() == 2);
@@ -509,7 +509,7 @@ void DatatypeBlack::testDatatypeSimplyRec()
   dtdecls.clear();
   dtdecls.push_back(list5);
   
-  // not well-founded due to non-simple (self) recursion
+  // well-founded and has nested recursion
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   TS_ASSERT(dtsorts.size() == 1);
