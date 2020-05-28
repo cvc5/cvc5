@@ -589,19 +589,13 @@ void DType::getStrictSubfieldTypes(
       if (tn.isDatatype())
       {
         // special case for datatypes, we must recurse to collect subfield types
-        // and add this to types if isStrictC is true
-        if (isStrictC)
+        if (!isStrictC)
         {
-          types.insert(tn);
-        }
-        else
-        {
-          // since we aren't adding it to types, we add its strict subfield
-          // types here.
+          // since we aren't adding it to types below, we add its strict
+          // subfield types here.
           const DType& dt = tn.getDType();
           dt.getStrictSubfieldTypes(types, processed, false);
         }
-        continue;
       }
       bool hasTn = types.find(tn) != types.end();
       Trace("datatypes-init")

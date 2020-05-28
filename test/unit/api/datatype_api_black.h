@@ -478,4 +478,41 @@ void DatatypeBlack::testDatatypeSimplyRec()
   TS_ASSERT(dtsorts[1].getDatatype().isWellFounded());
   TS_ASSERT(!dtsorts[0].getDatatype().isSimplyRecursive());
   TS_ASSERT(!dtsorts[1].getDatatype().isSimplyRecursive());
+  
+  /* Create mutual datatypes corresponding to this definition block:
+   *   DATATYPE
+   *     list5[X] = cons(car: X, cdr: list5[list5[X]]) | nil
+   *   END;
+   */
+  unresTypes.clear();
+  Sort unresList5 = d_solver.mkSortConstructorSort("list5", 1);
+  unresTypes.insert(unresList5);
+  
+  std::vector<Sort> v;
+  Sort x = d_solver.mkParamSort("X");
+  v.push_back(x);
+  DatatypeDecl list5 = d_solver.mkDatatypeDecl("list5", v);  
+  
+  std::vector<Sort> args;
+  args.push_back(x);
+  Sort urListX = unresList5.instantiate(args);
+  args[0] = urListX;
+  Sort urListListX = unresList5.instantiate(args);
+  
+  DatatypeConstructorDecl cons5("cons5");
+  cons5.addSelector("car", x);
+  cons5.addSelector("cdr", urListListX);
+  list5.addConstructor(cons5);
+  DatatypeConstructorDecl nil5("nil5");
+  list5.addConstructor(nil5);
+  
+  dtdecls.clear();
+  dtdecls.push_back(list5);
+  
+  // not well-founded due to non-simple (self) recursion
+  TS_ASSERT_THROWS_NOTHING(dtsorts =
+                               d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  TS_ASSERT(dtsorts.size() == 1);
+  TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
+  TS_ASSERT(!dtsorts[0].getDatatype().isSimplyRecursive());
 }
