@@ -33,7 +33,7 @@ class DatatypeBlack : public CxxTest::TestSuite
   void testDatatypeNames();
 
   void testParametricDatatype();
-  
+
   void testDatatypeSimplyRec();
 
  private:
@@ -237,8 +237,8 @@ void DatatypeBlack::testDatatypeNames()
   TS_ASSERT_THROWS(DatatypeDecl().getName(), CVC4ApiException&);
 }
 
-
-void DatatypeBlack::testParametricDatatype() {
+void DatatypeBlack::testParametricDatatype()
+{
   std::vector<Sort> v;
   Sort t1 = d_solver.mkParamSort("T1");
   Sort t2 = d_solver.mkParamSort("T2");
@@ -250,11 +250,11 @@ void DatatypeBlack::testParametricDatatype() {
   mkpair.addSelector("first", t1);
   mkpair.addSelector("second", t2);
   pairSpec.addConstructor(mkpair);
-  
+
   Sort pairType = d_solver.mkDatatypeSort(pairSpec);
 
   TS_ASSERT(pairType.getDatatype().isParametric());
-  
+
   v.clear();
   v.push_back(d_solver.getIntegerSort());
   v.push_back(d_solver.getIntegerSort());
