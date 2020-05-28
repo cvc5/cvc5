@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file nln_solver.cpp
+/*! \file cad_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,7 +12,7 @@
  ** \brief Implementation of new non-linear solver
  **/
 
-#include "theory/arith/nln_solver.h"
+#include "theory/arith/cad_solver.h"
 
 #include "options/arith_options.h"
 #include "options/smt_options.h"
@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-NlnSolver::NlnSolver(TheoryArith& containing, NlModel& model)
+CadSolver::CadSolver(TheoryArith& containing, NlModel& model)
     : d_containing(containing),
       d_model(model)
 {
@@ -38,27 +38,27 @@ NlnSolver::NlnSolver(TheoryArith& containing, NlModel& model)
   d_neg_one = nm->mkConst(Rational(-1));
 }
 
-NlnSolver::~NlnSolver() {}
+CadSolver::~CadSolver() {}
 
-void NlnSolver::initLastCall(const std::vector<Node>& assertions,
+void CadSolver::initLastCall(const std::vector<Node>& assertions,
                               const std::vector<Node>& false_asserts,
                               const std::vector<Node>& xts)
 {
-  Trace("nln-check") << "NlnSolver::initLastCall" << std::endl;
+  Trace("nln-check") << "CadSolver::initLastCall" << std::endl;
 
 }
 
-std::vector<Node> NlnSolver::checkInitialRefine()
+std::vector<Node> CadSolver::checkInitialRefine()
 {
-  Trace("nln-check") << "NlnSolver::checkInitialRefine" << std::endl;
+  Trace("nln-check") << "CadSolver::checkInitialRefine" << std::endl;
   std::vector<Node> lems;
   
   return lems;
 }
 
-std::vector<Node> NlnSolver::checkFullRefine()
+std::vector<Node> CadSolver::checkFullRefine()
 {
-  Trace("iand-check") << "NlnSolver::checkFullRefine";
+  Trace("iand-check") << "CadSolver::checkFullRefine";
   std::vector<Node> lems;
   
   return lems;

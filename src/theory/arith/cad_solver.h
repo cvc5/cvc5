@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file nln_solver.h
+/*! \file cad_solver.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,8 +12,8 @@
  ** \brief New non-linear solver
  **/
 
-#ifndef CVC4__THEORY__ARITH__NLN_SOLVER_H
-#define CVC4__THEORY__ARITH__NLN_SOLVER_H
+#ifndef CVC4__THEORY__ARITH__CAD_SOLVER_H
+#define CVC4__THEORY__ARITH__CAD_SOLVER_H
 
 #include <map>
 #include <vector>
@@ -27,16 +27,16 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-/** Integer and solver class
+/** Cylindrical algebraic decomposition (CAD) solver class
  *
  */
-class NlnSolver
+class CadSolver
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  NlnSolver(TheoryArith& containing, NlModel& model);
-  ~NlnSolver();
+  CadSolver(TheoryArith& containing, NlModel& model);
+  ~CadSolver();
 
   /** init last call
    *
@@ -76,10 +76,10 @@ class NlnSolver
   Node d_true;
   Node d_false;
   
-}; /* class NlnSolver */
+}; /* class CadSolver */
 
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__ARITH__NLN_SOLVER_H */
+#endif /* CVC4__THEORY__ARITH__CAD_SOLVER_H */
