@@ -63,7 +63,7 @@ void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
       << d_symsetShared.size() << " shared symbols." << std::endl;
 }
 
-void SygusInterpol::createVariables()
+void SygusInterpol::createVariables(bool needsShared)
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-interpol-debug") << "Setup symbols..." << std::endl;
@@ -80,7 +80,7 @@ void SygusInterpol::createVariables()
     d_vlvs.push_back(vlv);
     // TODO: bug fixed by hack (argument list for synthesis should be
     // consistent)
-    if (true || d_symsetShared.find(s) != d_symsetShared.end())
+    if (!needsShared || d_symsetShared.find(s) != d_symsetShared.end())
     {
       d_varsShared.push_back(var);
       d_vlvsShared.push_back(vlv);
@@ -377,7 +377,7 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
   d_subsolver->setLogic(l);
 
   collectSymbols(axioms, conj);
-  createVariables();
+  createVariables(itpGType.isNull());
   // TODO not sure if it should be var or vlv. -- should be var
   //for (Node var : d_vars)
   //{

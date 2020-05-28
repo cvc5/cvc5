@@ -116,7 +116,7 @@ class SygusInterpol
 
   void collectSymbols(const std::vector<Node>& axioms, const Node& conj);
 
-  void createVariables();
+  void createVariables(bool needsShared);
 
   TypeNode setSynthGrammar(const TypeNode& itpGType, const std::vector<Node>& axioms, const Node& conj);
 
