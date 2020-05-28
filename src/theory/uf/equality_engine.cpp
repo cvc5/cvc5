@@ -1409,9 +1409,28 @@ void EqualityEngine::getExplanation(
                         // #children of full app - (id of full app - id of
                         // partial app)
                         EqualityNodeId fullAppId = getNodeId(equalityNode);
-                        unsigned numChildren = equalityNode.getNumChildren()
-                                               - (fullAppId - equalityNodeId);
-                        Assert(numChildren < equalityNode.getNumChildren());
+                        EqualityNodeId curr = fullAppId;
+                        unsigned separation = 0;
+                        Assert(fullAppId >= equalityNodeId);
+                        while (curr != equalityNodeId)
+                        {
+                          separation =
+                              separation
+                              + (d_nodes[curr--] == equalityNode ? 1 : 0);
+                        }
+                        // compute separation, which is how many ids with the
+                        // same fullappnode exist between equalityNodeId and
+                        // fullAppId
+                        unsigned numChildren =
+                            equalityNode.getNumChildren() - separation;
+                        Assert(numChildren < equalityNode.getNumChildren())
+                            << "broke for numChildren " << numChildren
+                            << ", fullAppId " << fullAppId
+                            << ", equalityNodeId " << equalityNodeId
+                            << ", node " << equalityNode << ", cong: {"
+                            << currentNode << "} " << d_nodes[currentNode]
+                            << " = {" << edgeNode << "} " << d_nodes[edgeNode]
+                            << "\n";
                         // if has at least as many children as the minimal
                         // number of children of the n-ary kind, build the node
                         if (numChildren >= ExprManager::minArity(k))
