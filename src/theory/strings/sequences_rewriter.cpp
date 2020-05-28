@@ -3044,10 +3044,9 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     {
       res = nm->mkConst(String(std::string(u, 'A')));
     }
-    else
-    {
-      Unimplemented() << "canonicalStrForSymbolicLength for non-string";
-    }
+    // we could do this for sequences, but we need to be careful: some
+    // sorts do not permit values that the solver can handle (e.g. uninterpreted
+    // sorts and arrays).
   }
   else if (len.getKind() == PLUS)
   {
@@ -3075,6 +3074,10 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     Integer intReps = ratReps.getNumerator();
 
     Node nRep = canonicalStrForSymbolicLength(len[1], stype);
+    if (nRep.isNull())
+    {
+      return Node::null();
+    }
     std::vector<Node> nRepChildren;
     utils::getConcat(nRep, nRepChildren);
     NodeBuilder<> concatBuilder(STRING_CONCAT);

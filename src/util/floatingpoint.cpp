@@ -19,6 +19,7 @@
 #include "util/integer.h"
 
 #include <math.h>
+#include <limits>
 
 #ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
@@ -920,15 +921,26 @@ static FloatingPointLiteral constructorHelperBitVector(
       Integer significand(0);
 #endif
       Integer signedSignificand(sign * significand);
-      
-      // Only have pow(uint32_t) so we should check this.
-      Assert(this->t.significand() <= 32);
+
+      // We only have multiplyByPow(uint32_t) so we can't convert all numbers.
+      // As we convert Integer -> unsigned int -> uint32_t we need that
+      // unsigned int is not smaller than uint32_t
+      static_assert(sizeof(unsigned int) >= sizeof(uint32_t),
+		    "Conversion float -> real could loose data");
+#ifdef CVC4_ASSERTIONS
+      // Note that multipling by 2^n requires n bits of space (worst case)
+      // so, in effect, these tests limit us to cases where the resultant
+      // number requires up to 2^32 bits = 512 megabyte to represent.
+      Integer shiftLimit(std::numeric_limits<uint32_t>::max());
+#endif
 
       if (!(exp.strictlyNegative())) {
+	Assert(exp <= shiftLimit);
 	Integer r(signedSignificand.multiplyByPow2(exp.toUnsignedInt()));
 	return PartialRational(Rational(r), true);
       } else {
 	Integer one(1U);
+	Assert((-exp) <= shiftLimit);
 	Integer q(one.multiplyByPow2((-exp).toUnsignedInt()));
 	Rational r(signedSignificand, q);
 	return PartialRational(r, true);
