@@ -1091,6 +1091,8 @@ void CoreSolver::processNEqc(Node eqc,
           exp.insert(exp.end(), nfi.d_exp.begin(), nfi.d_exp.end());
           d_bsolver.explainConstantEqc(n, eqc, exp);
           d_im.sendInference(exp, d_false, Inference::N_NCTN);
+          // conflict, finished
+          return;
         }
       }
 
