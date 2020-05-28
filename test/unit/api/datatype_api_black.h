@@ -32,6 +32,8 @@ class DatatypeBlack : public CxxTest::TestSuite
   void testDatatypeStructs();
   void testDatatypeNames();
 
+  void testParametricDatatype();
+  
   void testDatatypeSimplyRec();
 
  private:
@@ -233,6 +235,83 @@ void DatatypeBlack::testDatatypeNames()
 
   // possible to construct null datatype declarations if not using solver
   TS_ASSERT_THROWS(DatatypeDecl().getName(), CVC4ApiException&);
+}
+
+
+void DatatypeBlack::testParametricDatatype() {
+  std::vector<Sort> v;
+  Sort t1 = d_solver.mkParamSort("T1");
+  Sort t2 = d_solver.mkParamSort("T2");
+  v.push_back(t1);
+  v.push_back(t2);
+  DatatypeDecl pairSpec = d_solver.mkDatatypeDecl("pair", v);
+
+  DatatypeConstructorDecl mkpair("mk-pair");
+  mkpair.addSelector("first", t1);
+  mkpair.addSelector("second", t2);
+  pairSpec.addConstructor(mkpair);
+  
+  Sort pairType = d_solver.mkDatatypeSort(pairSpec);
+
+  TS_ASSERT(pairType.getDatatype().isParametric());
+  
+  v.clear();
+  v.push_back(d_solver.getIntegerSort());
+  v.push_back(d_solver.getIntegerSort());
+  Sort pairIntInt = pairType.instantiate(v);
+  v.clear();
+  v.push_back(d_solver.getRealSort());
+  v.push_back(d_solver.getRealSort());
+  Sort pairRealReal = pairType.instantiate(v);
+  v.clear();
+  v.push_back(d_solver.getRealSort());
+  v.push_back(d_solver.getIntegerSort());
+  Sort pairRealInt = pairType.instantiate(v);
+  v.clear();
+  v.push_back(d_solver.getIntegerSort());
+  v.push_back(d_solver.getRealSort());
+  Sort pairIntReal = pairType.instantiate(v);
+
+  TS_ASSERT_DIFFERS(pairIntInt, pairRealReal);
+  TS_ASSERT_DIFFERS(pairIntReal, pairRealReal);
+  TS_ASSERT_DIFFERS(pairRealInt, pairRealReal);
+  TS_ASSERT_DIFFERS(pairIntInt, pairIntReal);
+  TS_ASSERT_DIFFERS(pairIntInt, pairRealInt);
+  TS_ASSERT_DIFFERS(pairIntReal, pairRealInt);
+
+  TS_ASSERT(pairRealReal.isComparableTo(pairRealReal));
+  TS_ASSERT(!pairIntReal.isComparableTo(pairRealReal));
+  TS_ASSERT(!pairRealInt.isComparableTo(pairRealReal));
+  TS_ASSERT(!pairIntInt.isComparableTo(pairRealReal));
+  TS_ASSERT(!pairRealReal.isComparableTo(pairRealInt));
+  TS_ASSERT(!pairIntReal.isComparableTo(pairRealInt));
+  TS_ASSERT(pairRealInt.isComparableTo(pairRealInt));
+  TS_ASSERT(!pairIntInt.isComparableTo(pairRealInt));
+  TS_ASSERT(!pairRealReal.isComparableTo(pairIntReal));
+  TS_ASSERT(pairIntReal.isComparableTo(pairIntReal));
+  TS_ASSERT(!pairRealInt.isComparableTo(pairIntReal));
+  TS_ASSERT(!pairIntInt.isComparableTo(pairIntReal));
+  TS_ASSERT(!pairRealReal.isComparableTo(pairIntInt));
+  TS_ASSERT(!pairIntReal.isComparableTo(pairIntInt));
+  TS_ASSERT(!pairRealInt.isComparableTo(pairIntInt));
+  TS_ASSERT(pairIntInt.isComparableTo(pairIntInt));
+
+  TS_ASSERT(pairRealReal.isSubsortOf(pairRealReal));
+  TS_ASSERT(!pairIntReal.isSubsortOf(pairRealReal));
+  TS_ASSERT(!pairRealInt.isSubsortOf(pairRealReal));
+  TS_ASSERT(!pairIntInt.isSubsortOf(pairRealReal));
+  TS_ASSERT(!pairRealReal.isSubsortOf(pairRealInt));
+  TS_ASSERT(!pairIntReal.isSubsortOf(pairRealInt));
+  TS_ASSERT(pairRealInt.isSubsortOf(pairRealInt));
+  TS_ASSERT(!pairIntInt.isSubsortOf(pairRealInt));
+  TS_ASSERT(!pairRealReal.isSubsortOf(pairIntReal));
+  TS_ASSERT(pairIntReal.isSubsortOf(pairIntReal));
+  TS_ASSERT(!pairRealInt.isSubsortOf(pairIntReal));
+  TS_ASSERT(!pairIntInt.isSubsortOf(pairIntReal));
+  TS_ASSERT(!pairRealReal.isSubsortOf(pairIntInt));
+  TS_ASSERT(!pairIntReal.isSubsortOf(pairIntInt));
+  TS_ASSERT(!pairRealInt.isSubsortOf(pairIntInt));
+  TS_ASSERT(pairIntInt.isSubsortOf(pairIntInt));
 }
 
 void DatatypeBlack::testDatatypeSimplyRec()
