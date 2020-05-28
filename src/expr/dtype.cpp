@@ -34,7 +34,7 @@ DType::DType(std::string name, bool isCo)
       d_sygusAllowAll(false),
       d_card(CardinalityUnknown()),
       d_wellFounded(0),
-      d_simplyRecursive(0)
+      d_nestedRecursion(0)
 {
 }
 
@@ -52,7 +52,7 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_sygusAllowAll(false),
       d_card(CardinalityUnknown()),
       d_wellFounded(0),
-      d_simplyRecursive(0)
+      d_nestedRecursion(0)
 {
 }
 
@@ -622,11 +622,11 @@ void DType::getStrictSubfieldTypes(
   }
 }
 
-bool DType::isSimplyRecursive() const
+bool DType::hasNestedRecursion() const
 {
-  if (d_simplyRecursive != 0)
+  if (d_nestedRecursion != 0)
   {
-    return d_simplyRecursive == 1;
+    return d_nestedRecursion == 1;
   }
   Trace("datatypes-init") << "Compute simply recursive for " << getName()
                           << std::endl;
@@ -646,11 +646,11 @@ bool DType::isSimplyRecursive() const
   if (types.find(d_self) != types.end())
   {
     Trace("datatypes-init")
-        << "DType::isSimplyRecursive: false for " << getName()
+        << "DType::hasNestedRecursion: true for " << getName()
         << " due to strict component type" << std::endl;
     // not simply recursive since it has itself as a strict component type.
-    d_simplyRecursive = -1;
-    return false;
+    d_nestedRecursion = 1;
+    return true;
   }
   // If it is parametric, this type may match with a strict component type (e.g.
   // we may have a field (T Int) for parametric datatype (T x) where x
@@ -665,18 +665,18 @@ bool DType::isSimplyRecursive() const
       if (m.doMatching(d_self, t))
       {
         Trace("datatypes-init")
-            << "DType::isSimplyRecursive: false for " << getName()
+            << "DType::hasNestedRecursion: true for " << getName()
             << " due to parametric strict component type, " << d_self
             << " matching " << t << std::endl;
-        d_simplyRecursive = -1;
-        return false;
+        d_nestedRecursion = 1;
+        return true;
       }
     }
   }
-  Trace("datatypes-init") << "DType::isSimplyRecursive: true for " << getName()
+  Trace("datatypes-init") << "DType::hasNestedRecursion: false for " << getName()
                           << std::endl;
-  d_simplyRecursive = 1;
-  return true;
+  d_nestedRecursion = 1;
+  return false;
 }
 
 Node getSubtermWithType(Node e, TypeNode t, bool isTop)

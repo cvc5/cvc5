@@ -366,9 +366,9 @@ void DatatypeBlack::testDatatypeSimplyRec()
   TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[1].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[2].getDatatype().isWellFounded());
-  TS_ASSERT(dtsorts[0].getDatatype().isSimplyRecursive());
-  TS_ASSERT(dtsorts[1].getDatatype().isSimplyRecursive());
-  TS_ASSERT(dtsorts[2].getDatatype().isSimplyRecursive());
+  TS_ASSERT(!dtsorts[0].getDatatype().hasNestedRecursion());
+  TS_ASSERT(!dtsorts[1].getDatatype().hasNestedRecursion());
+  TS_ASSERT(!dtsorts[2].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -399,7 +399,7 @@ void DatatypeBlack::testDatatypeSimplyRec()
   TS_ASSERT(dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort()
             == dtsorts[0]);
   TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
-  TS_ASSERT(!dtsorts[0].getDatatype().isSimplyRecursive());
+  TS_ASSERT(dtsorts[0].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -437,8 +437,8 @@ void DatatypeBlack::testDatatypeSimplyRec()
   TS_ASSERT(dtsorts.size() == 2);
   TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[1].getDatatype().isWellFounded());
-  TS_ASSERT(!dtsorts[0].getDatatype().isSimplyRecursive());
-  TS_ASSERT(!dtsorts[1].getDatatype().isSimplyRecursive());
+  TS_ASSERT(dtsorts[0].getDatatype().hasNestedRecursion());
+  TS_ASSERT(dtsorts[1].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -476,8 +476,8 @@ void DatatypeBlack::testDatatypeSimplyRec()
   TS_ASSERT(dtsorts.size() == 2);
   TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[1].getDatatype().isWellFounded());
-  TS_ASSERT(!dtsorts[0].getDatatype().isSimplyRecursive());
-  TS_ASSERT(!dtsorts[1].getDatatype().isSimplyRecursive());
+  TS_ASSERT(dtsorts[0].getDatatype().hasNestedRecursion());
+  TS_ASSERT(dtsorts[1].getDatatype().hasNestedRecursion());
   
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -514,5 +514,5 @@ void DatatypeBlack::testDatatypeSimplyRec()
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   TS_ASSERT(dtsorts.size() == 1);
   TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
-  TS_ASSERT(!dtsorts[0].getDatatype().isSimplyRecursive());
+  TS_ASSERT(dtsorts[0].getDatatype().hasNestedRecursion());
 }

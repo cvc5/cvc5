@@ -572,12 +572,12 @@ Node TheoryDatatypes::expandDefinition(Node n)
       ss << "Cannot handle non-well-founded datatype " << dt.getName();
       throw LogicException(ss.str());
     }
-    if (!options::dtNonSimpleRec())
+    if (!options::dtNestedRec())
     {
-      if (!dt.isSimplyRecursive())
+      if (dt.hasNestedRecursion())
       {
         std::stringstream ss;
-        ss << "Cannot handle non-simply-recursive datatype " << dt.getName();
+        ss << "Cannot handle nested-recursive datatype " << dt.getName();
         throw LogicException(ss.str());
       }
     }

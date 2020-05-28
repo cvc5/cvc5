@@ -406,10 +406,10 @@ bool Datatype::isWellFounded() const
   return d_internal->isWellFounded();
 }
 
-bool Datatype::isSimplyRecursive() const
+bool Datatype::hasNestedRecursion() const
 {
   ExprManagerScope ems(d_self);
-  return d_internal->isSimplyRecursive();
+  return d_internal->hasNestedRecursion();
 }
 
 Expr Datatype::mkGroundTerm(Type t) const

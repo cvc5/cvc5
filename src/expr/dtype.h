@@ -288,11 +288,12 @@ class DType
    */
   bool isWellFounded() const;
   /**
-   * Is this datatype simply recursive? This is true if this datatype
+   * Does this datatype have nested recursion? This is true if this datatype
    * definition does not contain itself as a strict subfield type, or a variant
    * of itself as a strict subfield type (if this datatype is parametric).
+   * For details see getStrictSubfieldTypes below.
    */
-  bool isSimplyRecursive() const;
+  bool hasNestedRecursion() const;
 
   /** is recursive singleton
    *
@@ -591,11 +592,11 @@ class DType
    */
   mutable int d_wellFounded;
   /**
-   * Cache of whether this datatype is simply recursive, where 0 means we have
-   * not computed this information, 1 means it is simply recursive, -1 means it
-   * is not.
+   * Cache of whether this datatype has nested recursion, where 0 means we have
+   * not computed this information, 1 means it has nested recursion, -1 means it
+   * does not.
    */
-  mutable int d_simplyRecursive;
+  mutable int d_nestedRecursion;
   /** cache of ground term for this datatype */
   mutable std::map<TypeNode, Node> d_groundTerm;
   /** cache of ground values for this datatype */
