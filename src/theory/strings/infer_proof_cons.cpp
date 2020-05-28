@@ -167,25 +167,26 @@ Node InferProofCons::convert(Inference infer,
       std::vector<Node> expe;
       if (ps.d_children.size() > 1)
       {
-        expe.insert(expe.end(),ps.d_children.begin(),ps.d_children.end()-1);
+        expe.insert(expe.end(), ps.d_children.begin(), ps.d_children.end() - 1);
       }
       // start with a default rewrite
       Node mainEqSRew = convertPredElim(src, expe);
-      if (mainEqSRew==conc)
+      if (mainEqSRew == conc)
       {
         useBuffer = true;
         break;
       }
       // may need the "extended equality rewrite"
-      Node mainEqSRew2 = convertPredElim(mainEqSRew, {}, MethodId::SB_DEFAULT, MethodId::RW_REWRITE_EQ_EXT);
-      if (mainEqSRew2==conc)
+      Node mainEqSRew2 = convertPredElim(
+          mainEqSRew, {}, MethodId::SB_DEFAULT, MethodId::RW_REWRITE_EQ_EXT);
+      if (mainEqSRew2 == conc)
       {
         useBuffer = true;
         break;
       }
       // rewrite again with default rewriter
       Node mainEqSRew3 = convertPredElim(mainEqSRew2, {});
-      useBuffer = (mainEqSRew3==conc);
+      useBuffer = (mainEqSRew3 == conc);
     }
     break;
     // ========================== substitution+rewriting, CONCAT_EQ, ...

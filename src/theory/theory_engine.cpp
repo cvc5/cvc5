@@ -1799,7 +1799,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       pfChildren.push_back(node);
       std::vector<Node> pfArgs;
       pfArgs.push_back(additionalLemmas[0]);
-      lcp->addStep(additionalLemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
+      lcp->addStep(
+          additionalLemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
     }
     if (additionalLemmas.size() > 1 || additionalLemmas[0] != ppNode)
     {
@@ -2371,7 +2372,7 @@ theory::TrustNode TheoryEngine::getExplanation(
       {
         std::vector<Node> pfChildren;
         std::vector<Node> pfArgs;
-        if (tConc==tExp)
+        if (tConc == tExp)
         {
           // dummy trust node, do AND expansion
           Assert(tConc.getKind() == kind::AND);
@@ -2400,13 +2401,14 @@ theory::TrustNode TheoryEngine::getExplanation(
           continue;
         }
         // otherwise should hold by rewriting
-        Assert (Rewriter::rewrite(tConc)==Rewriter::rewrite(tExp));
+        Assert(Rewriter::rewrite(tConc) == Rewriter::rewrite(tExp));
         // tExp
         // ---- MACRO_SR_PRED_TRANSFORM
         // tConc
         pfChildren.push_back(tExp);
         pfArgs.push_back(tConc);
-        lcp->addStep(tConc, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+        lcp->addStep(
+            tConc, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
         continue;
       }
       if (tExp == tConc)

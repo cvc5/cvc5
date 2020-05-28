@@ -184,7 +184,7 @@ void CoreSolver::checkFlatForms()
                     n[d_flat_form_index[n][e]], d_flat_form[n][e], exp);
               }
             }
-            d_bsolver.explainConstantEqc(n,eqc,exp);
+            d_bsolver.explainConstantEqc(n, eqc, exp);
             Node conc = d_false;
             d_im.sendInference(exp, conc, Inference::F_NCTN);
             return;
