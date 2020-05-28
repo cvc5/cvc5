@@ -118,7 +118,9 @@ class SygusInterpol
 
   void createVariables(bool needsShared);
 
-  TypeNode setSynthGrammar(const TypeNode& itpGType, const std::vector<Node>& axioms, const Node& conj);
+  TypeNode setSynthGrammar(const TypeNode& itpGType,
+                           const std::vector<Node>& axioms,
+                           const Node& conj);
 
   Node mkPredicate(const std::string& name);
 

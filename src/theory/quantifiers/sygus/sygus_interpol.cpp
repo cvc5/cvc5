@@ -104,19 +104,19 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > result =
       std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
 
-	std::cerr << options::produceInterpols() << std::endl;
+  std::cerr << options::produceInterpols() << std::endl;
   // ASSUMPTIONS
   if (options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
   {
-		Node tmpAssumptions;
-		if (assumptions.size() == 1)
-		{
-			tmpAssumptions = assumptions[0];
-		}
-		else
-		{
+    Node tmpAssumptions;
+    if (assumptions.size() == 1)
+    {
+      tmpAssumptions = assumptions[0];
+    }
+    else
+    {
       tmpAssumptions = nm->mkNode(kind::AND, assumptions);
-		}
+    }
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONCLUSION
@@ -131,19 +131,19 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
         include_cons_assumptions =
             std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
-		Node tmpAssumptions;
-		std::cerr << "enter1" << std::endl;
-		if (assumptions.size() == 1)
-		{
-			tmpAssumptions = assumptions[0];
-		}
-		else
-		{
-			tmpAssumptions = nm->mkNode(kind::AND, assumptions);
-		}
-		std::cerr << "enter2" << std::endl;
+    Node tmpAssumptions;
+    std::cerr << "enter1" << std::endl;
+    if (assumptions.size() == 1)
+    {
+      tmpAssumptions = assumptions[0];
+    }
+    else
+    {
+      tmpAssumptions = nm->mkNode(kind::AND, assumptions);
+    }
+    std::cerr << "enter2" << std::endl;
     expr::getOperatorsMap(tmpAssumptions, include_cons_assumptions);
-		std::cerr << "enter" << std::endl;
+    std::cerr << "enter" << std::endl;
 
     // Get operators from conclusion
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
@@ -182,7 +182,7 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
         }
       }
     }
-		std::cerr << "shared enter" << std::endl;
+    std::cerr << "shared enter" << std::endl;
   }
   // ALL
   else if (options::produceInterpols() == options::ProduceInterpols::ALL)
@@ -204,8 +204,9 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
   return result;
 }
 
-TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType, const std::vector<Node>& axioms,
-                                      const Node& conj)
+TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
+                                        const std::vector<Node>& axioms,
+                                        const Node& conj)
 {
   Trace("sygus-interpol-debug") << "Setup grammar..." << std::endl;
   TypeNode itpGTypeS;
@@ -238,11 +239,11 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType, const std::vec
             "interpolation_grammar",
             extra_cons,
             exclude_cons,
-						include_cons,
-						terms_irrelevant);
-	}
-	Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
-	return itpGTypeS;
+            include_cons,
+            terms_irrelevant);
+  }
+  Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
+  return itpGTypeS;
 }
 
 Node SygusInterpol::mkPredicate(const std::string& name)
@@ -321,8 +322,8 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;
 
-	// TODO: to be removed
-	d_sygusConj = constraint.negate();
+  // TODO: to be removed
+  d_sygusConj = constraint.negate();
   Node bvl = nm->mkNode(BOUND_VAR_LIST,
                         d_vars);  // TODO difference between bvl and abvl??
   d_sygusConj = nm->mkNode(EXISTS, bvl, d_sygusConj);
@@ -379,33 +380,33 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
   collectSymbols(axioms, conj);
   createVariables(itpGType.isNull());
   // TODO not sure if it should be var or vlv. -- should be var
-  //for (Node var : d_vars)
+  // for (Node var : d_vars)
   //{
   //  d_subsolver->declareSygusVar(name, var.toExpr(), var.getType().toType());
   //}
   std::vector<Expr> vars_empty;
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
-	// TODO: to be removed
-	Node sym = nm->mkBoundVar("sfproxy_interpol", grammarType);
-	theory::SygusSynthGrammarAttribute ssg;
-	itp.setAttribute(ssg, sym);
+  // TODO: to be removed
+  Node sym = nm->mkBoundVar("sfproxy_interpol", grammarType);
+  theory::SygusSynthGrammarAttribute ssg;
+  itp.setAttribute(ssg, sym);
 
-	//d_subsolver->declareSynthFun(
+  // d_subsolver->declareSynthFun(
   //    name, itp.toExpr(), grammarType.toType(), false, vars_empty);
   mkSygusConjecture(itp, axioms, conj);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
                           << d_sygusConj[0][0].toExpr() << std::endl;
-  //d_subsolver->assertSygusConstraint(d_sygusConj.toExpr());
-	d_subsolver->assertFormula(d_sygusConj.toExpr());
+  // d_subsolver->assertSygusConstraint(d_sygusConj.toExpr());
+  d_subsolver->assertFormula(d_sygusConj.toExpr());
 
   Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
                           << std::endl;
-  //Result r = d_subsolver->checkSynth();
-	std::cerr << "check sat..." << std::endl;
-	Result r = d_subsolver->checkSat();
-	std::cerr << "check sat result: " << r << std::endl;
+  // Result r = d_subsolver->checkSynth();
+  std::cerr << "check sat..." << std::endl;
+  Result r = d_subsolver->checkSat();
+  std::cerr << "check sat result: " << r << std::endl;
   Trace("sygus-interpol") << "  SmtEngine::getInterpol result: " << r
                           << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
