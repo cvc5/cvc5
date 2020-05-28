@@ -163,6 +163,7 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
         }
       }
     }
+		std::cerr << "shared enter" << std::endl;
   }
   // ALL
   else if (options::produceInterpols() == options::ProduceInterpols::ALL)
@@ -359,10 +360,10 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
   collectSymbols(axioms, conj);
   createVariables();
   // TODO not sure if it should be var or vlv. -- should be var
-  for (Node var : d_vars)
-  {
-    d_subsolver->declareSygusVar(name, var.toExpr(), var.getType().toType());
-  }
+  //for (Node var : d_vars)
+  //{
+  //  d_subsolver->declareSygusVar(name, var.toExpr(), var.getType().toType());
+  //}
   std::vector<Expr> vars_empty;
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
