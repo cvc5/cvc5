@@ -397,48 +397,46 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    Node atom = children[0];
+    // must convert to skolem form
+    Node skChild = ProofSkolemCache::getSkolemForm(children[0]);
     if (id == PfRule::RE_UNFOLD_NEG || id == PfRule::RE_UNFOLD_NEG_CONCAT_FIXED)
     {
-      if (atom.getKind() != NOT)
+      if (skChild.getKind() != NOT || skChild[0].getKind() != STRING_IN_REGEXP)
       {
-        Trace("strings-pfcheck") << "...fail, missing negation" << std::endl;
+        Trace("strings-pfcheck") << "...fail, non-neg member" << std::endl;
         return Node::null();
       }
-      atom = atom[0];
     }
-    if (atom.getKind() != STRING_IN_REGEXP)
+    else if (skChild.getKind() != STRING_IN_REGEXP)
     {
-      Trace("strings-pfcheck") << "...fail, non-member" << std::endl;
+      Trace("strings-pfcheck") << "...fail, non-pos member" << std::endl;
       return Node::null();
     }
-    // must convert to skolem form
-    atom = ProofSkolemCache::getSkolemForm(atom);
     Node conc;
     if (id == PfRule::RE_UNFOLD_POS)
     {
       SkolemCache sc;
-      conc = RegExpOpr::reduceRegExpPos(children[0], &sc);
+      conc = RegExpOpr::reduceRegExpPos(skChild, &sc);
     }
     else if (id == PfRule::RE_UNFOLD_NEG)
     {
-      conc = RegExpOpr::reduceRegExpNeg(children[0]);
+      conc = RegExpOpr::reduceRegExpNeg(skChild);
     }
     else if (id == PfRule::RE_UNFOLD_NEG_CONCAT_FIXED)
     {
-      if (atom[1].getKind() != REGEXP_CONCAT)
+      if (skChild[0][1].getKind() != REGEXP_CONCAT)
       {
         Trace("strings-pfcheck") << "...fail, no concat regexp" << std::endl;
         return Node::null();
       }
       unsigned index;
-      Node reLen = RegExpOpr::getRegExpConcatFixed(atom[1], index);
+      Node reLen = RegExpOpr::getRegExpConcatFixed(skChild[0][1], index);
       if (reLen.isNull())
       {
         Trace("strings-pfcheck") << "...fail, non-fixed lengths" << std::endl;
         return Node::null();
       }
-      conc = RegExpOpr::reduceRegExpNegConcatFixed(children[0], reLen, index);
+      conc = RegExpOpr::reduceRegExpNegConcatFixed(skChild, reLen, index);
     }
     return ProofSkolemCache::getWitnessForm(conc);
   }
