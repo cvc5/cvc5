@@ -1963,8 +1963,8 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
         Node fullConflictNeg = fullConflict.notNode();
         // ------------------------- explained  ---------- from theory
         // fullConflict => conflict              ~conflict
-        // -----------------------------------------------
-        // MACRO_SR_PRED_TRANSFORM ~fullConflict
+        // -------------------------------------------- MACRO_SR_PRED_TRANSFORM
+        // ~fullConflict
         std::vector<Node> children;
         children.push_back(tncExp.getProven());
         children.push_back(conflict.notNode());
@@ -2199,9 +2199,11 @@ theory::TrustNode TheoryEngine::getExplanation(
             Trace("te-proof-exp")
                 << "- t-explained cached: " << toExplain.d_node << " by "
                 << (*find).second.d_node << std::endl;
-            // does this ever happen?
-            Assert(false);
-            simpleExplain = false;
+            // delay explanation, use a dummy trust node
+            TrustNode tnRewExp = TrustNode::mkTrustPropExp(
+                (*find).second.d_node, toExplain.d_node, nullptr);
+            texplains.push_back(
+                std::pair<TheoryId, TrustNode>(THEORY_LAST, tnRewExp));
           }
         }
         continue;
@@ -2364,37 +2366,49 @@ theory::TrustNode TheoryEngine::getExplanation(
       // remember that we've explained this formula
       exp.insert(tConc);
       TheoryId ttid = it->first;
+      Node tExp = proven[0];
       if (ttid == THEORY_LAST)
       {
-        // dummy trust node, do AND expansion
-        Assert(tConc.getKind() == kind::AND);
-        // tConc[0] ... tConc[n]
-        // ---------------------- MACRO_SR_PRED_INTRO
-        // tConc
         std::vector<Node> pfChildren;
-        std::vector<Node> pfChildrenNot;
-        for (size_t k = 0, nchild = tConc.getNumChildren(); k < nchild; ++k)
-        {
-          if (tConc[k].getKind() == kind::NOT)
-          {
-            // hack to ensure (not P) -> true is applied before P -> true
-            pfChildrenNot.push_back(tConc[k]);
-          }
-          else
-          {
-            pfChildren.push_back(tConc[k]);
-          }
-        }
-        pfChildren.insert(
-            pfChildren.end(), pfChildrenNot.begin(), pfChildrenNot.end());
         std::vector<Node> pfArgs;
+        if (tConc==tExp)
+        {
+          // dummy trust node, do AND expansion
+          Assert(tConc.getKind() == kind::AND);
+          // tConc[0] ... tConc[n]
+          // ---------------------- MACRO_SR_PRED_INTRO
+          // tConc
+          std::vector<Node> pfChildrenNot;
+          for (size_t k = 0, nchild = tConc.getNumChildren(); k < nchild; ++k)
+          {
+            if (tConc[k].getKind() == kind::NOT)
+            {
+              // hack to ensure (not P) -> true is applied before P -> true
+              pfChildrenNot.push_back(tConc[k]);
+            }
+            else
+            {
+              pfChildren.push_back(tConc[k]);
+            }
+          }
+          pfChildren.insert(
+              pfChildren.end(), pfChildrenNot.begin(), pfChildrenNot.end());
+          pfArgs.push_back(tConc);
+          pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
+          lcp->addStep(tConc, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+          simpleExplain = false;
+          continue;
+        }
+        // otherwise should hold by rewriting
+        Assert (Rewriter::rewrite(tConc)==Rewriter::rewrite(tExp));
+        // tExp
+        // ---- MACRO_SR_PRED_TRANSFORM
+        // tConc
+        pfChildren.push_back(tExp);
         pfArgs.push_back(tConc);
-        pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
-        lcp->addStep(tConc, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
-        simpleExplain = false;
+        lcp->addStep(tConc, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
         continue;
       }
-      Node tExp = proven[0];
       if (tExp == tConc)
       {
         // trivial
