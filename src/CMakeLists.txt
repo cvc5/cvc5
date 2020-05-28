@@ -275,6 +275,8 @@ libcvc4_add_sources(
   theory/arith/attempt_solution_simplex.cpp
   theory/arith/attempt_solution_simplex.h
   theory/arith/bound_counts.h
+  theory/arith/cad_solver.cpp
+  theory/arith/cad_solver.h
   theory/arith/callbacks.cpp
   theory/arith/callbacks.h
   theory/arith/congruence_manager.cpp
@@ -310,8 +312,6 @@ libcvc4_add_sources(
   theory/arith/nl_monomial.h
   theory/arith/nl_solver.cpp
   theory/arith/nl_solver.h
-  theory/arith/nln_solver.cpp
-  theory/arith/nln_solver.h
   theory/arith/nonlinear_extension.cpp
   theory/arith/nonlinear_extension.h
   theory/arith/normal_form.cpp
