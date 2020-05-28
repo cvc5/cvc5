@@ -1783,19 +1783,6 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // Run theory preprocessing, maybe
   Node ppNode = preprocess ? this->preprocess(node) : Node(node);
 
-  if (lcp != nullptr)
-  {
-    if (!CDProof::isSame(node, ppNode))
-    {
-      std::vector<Node> pfChildren;
-      pfChildren.push_back(node);
-      std::vector<Node> pfArgs;
-      // must use skolem form here
-      pfArgs.push_back(ProofSkolemCache::getSkolemForm(ppNode));
-      lcp->addStep(ppNode, PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
-    }
-  }
-
   // Remove the ITEs
   Debug("ite") << "Remove ITE from " << ppNode << std::endl;
   additionalLemmas.push_back(ppNode);
@@ -1806,18 +1793,16 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   if (lcp != nullptr)
   {
-    if (additionalLemmas.size() > 1 || additionalLemmas[0] != ppNode)
+    if (!CDProof::isSame(node, ppNode))
     {
-      // The main lemma can be justified since it is, modulo purification,
-      // the same formula as the original.
       std::vector<Node> pfChildren;
-      pfChildren.push_back(ppNode);
+      pfChildren.push_back(node);
       std::vector<Node> pfArgs;
       pfArgs.push_back(additionalLemmas[0]);
-      lcp->addStep(additionalLemmas[0],
-                   PfRule::MACRO_SR_PRED_TRANSFORM,
-                   pfChildren,
-                   pfArgs);
+      lcp->addStep(additionalLemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
+    }
+    if (additionalLemmas.size() > 1 || additionalLemmas[0] != ppNode)
+    {
 #if 0
       for (size_t i = 1, lsize = additionalLemmas.size(); i < lsize; ++i)
       {
