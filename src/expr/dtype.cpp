@@ -596,6 +596,19 @@ void DType::getStrictSubfieldTypes(
           const DType& dt = tn.getDType();
           dt.getStrictSubfieldTypes(types, processed, false);
         }
+        if (tn.isParametricDatatype() && !isStrictC)
+        {
+          // (instantiated) parametric datatypes have an AST structure:
+          //  (PARAMETRIC_DATATYPE D T1 ... Tn)
+          // where D is the uninstantiated datatype type.  We should not view D
+          // as a strict subfield type of tn. Thus, we need a special case here
+          // which ignores the first child, when isStrictC is false.
+          for (unsigned i = 1, nchild = tn.getNumChildren(); i < nchild; i++)
+          {
+            expr::getComponentTypes(tn[i], types);
+          }
+          continue;
+        }
       }
       bool hasTn = types.find(tn) != types.end();
       Trace("datatypes-init")
