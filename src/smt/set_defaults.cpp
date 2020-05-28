@@ -266,6 +266,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
                    << std::endl;
     }
   }
+  // !!!!!!!!!!!!!!!! temporary, to support CI check for old proof system
+  if (options::proof())
+  {
+    options::proofNew.set(false);
+  }
   if (options::proofNew())
   {
     if (!options::stringLenConc.wasSetByUser())
