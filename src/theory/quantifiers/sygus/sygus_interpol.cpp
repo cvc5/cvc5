@@ -108,7 +108,15 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
   // ASSUMPTIONS
   if (options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
   {
-    Node tmpAssumptions = nm->mkNode(kind::AND, assumptions);
+		Node tmpAssumptions;
+		if (assumptions.size() == 1)
+		{
+			tmpAssumptions = assumptions[0];
+		}
+		else
+		{
+      tmpAssumptions = nm->mkNode(kind::AND, assumptions);
+		}
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONCLUSION
@@ -123,8 +131,19 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
         include_cons_assumptions =
             std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
-    Node tmpAssumptions = nm->mkNode(kind::AND, assumptions);
+		Node tmpAssumptions;
+		std::cerr << "enter1" << std::endl;
+		if (assumptions.size() == 1)
+		{
+			tmpAssumptions = assumptions[0];
+		}
+		else
+		{
+			tmpAssumptions = nm->mkNode(kind::AND, assumptions);
+		}
+		std::cerr << "enter2" << std::endl;
     expr::getOperatorsMap(tmpAssumptions, include_cons_assumptions);
+		std::cerr << "enter" << std::endl;
 
     // Get operators from conclusion
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
