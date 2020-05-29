@@ -1911,10 +1911,13 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn,
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
   Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
-  // If proofNew is enabled, then d_lazyProof contains a proof of
-  // conflict.notNode(). This should correspond to TrustNode::getConflictProven.
-  //Assert (d_lazyProof==nullptr || d_lazyProof->hasStep(conflict.notNode())
-  //|| d_lazyProof->hasGenerator(conflict.notNode()));
+  // If proofNew is enabled, then either:
+  // (1) The lazy proof contains an explicitly provided step (probably
+  // THEORY_LEMMA),
+  // (2) The lazy proof contains an explicitly provided proof generator,
+  // (3) The conflict being processed is a propagatation of false.
+  AlwaysAssert (d_lazyProof==nullptr || d_lazyProof->hasStep(conflict.notNode())
+  || d_lazyProof->hasGenerator(conflict.notNode()) || conflict==d_false);
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
@@ -1957,20 +1960,31 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
     if (d_lazyProof != nullptr)
     {
-      if (fullConflict != conflict)
+      Node fullConflictNeg = fullConflict.notNode();
+      std::vector<Node> children;
+      children.push_back(tncExp.getProven());
+      std::vector<Node> args;
+      args.push_back(fullConflictNeg);
+      if (conflict==d_false)
+      {
+        Assert (fullConflict!=d_false);
+        // if the conflict was a propagation, then the proof is simple:
+        // --------------------- explained
+        // fullConflict => false
+        // --------------------- MACRO_SR_PRED_TRANSFORM
+        // ~fullConflict
+        d_lazyProof->addStep(
+            fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+      }
+      else if (fullConflict != conflict)
       {
         // store the explicit step
         processTrustNode(tncExp, THEORY_BUILTIN);
-        Node fullConflictNeg = fullConflict.notNode();
         // ------------------------- explained  ---------- from theory
         // fullConflict => conflict              ~conflict
         // -------------------------------------------- MACRO_SR_PRED_TRANSFORM
         // ~fullConflict
-        std::vector<Node> children;
-        children.push_back(tncExp.getProven());
         children.push_back(conflict.notNode());
-        std::vector<Node> args;
-        args.push_back(fullConflictNeg);
         args.push_back(mkMethodId(MethodId::SB_LITERAL));
         d_lazyProof->addStep(
             fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
