@@ -4324,6 +4324,15 @@ void Solver::pop(uint32_t nscopes) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+bool Solver::getInterpolant(Term B, Term& output) const {
+  Expr result;
+  bool success = d_smtEngine->getInterpol(*B.d_expr, result);
+  if (success) {
+    output = result;
+  }
+  return success;
+}
+
 void Solver::printModel(std::ostream& out) const
 {
   // CHECK: produce-models?
