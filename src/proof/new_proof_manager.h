@@ -123,6 +123,8 @@ class NewProofManager
    */
   Node factorAndReorder(Node n);
 
+  inline CDProof* getProof() const { return d_cdproof.get(); }
+
  private:
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;

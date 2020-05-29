@@ -39,9 +39,7 @@
 namespace CVC4 {
 
 NewProofManager::NewProofManager()
-    : d_theoryEngine(nullptr),
-      d_cdproof(nullptr),
-      d_solver(nullptr)
+    : d_theoryEngine(nullptr), d_cdproof(nullptr), d_solver(nullptr)
 {
 }
 
@@ -68,14 +66,13 @@ void NewProofManager::addStep(Node expected,
                               const std::vector<Node>& children,
                               const std::vector<Node>& args)
 {
-  if (!d_cdproof->addStep(expected, rule, children, args, false, true))
+  if (!d_cdproof->addStep(expected, rule, children, args, false))
   {
     Assert(false) << "NewProofManager::couldn't add " << rule
                   << " step with conclusion: " << expected
                   << ", children: " << children << ", args: " << args << "\n";
   }
 }
-
 
 inline void NewProofManager::printLit(const Minisat::Solver::TLit lit)
 {
@@ -316,6 +313,7 @@ ClauseId NewProofManager::justifyLit(Minisat::Solver::TLit lit)
   // add the reason clause first
   Assert(initial_reason.proofId() != 0);
   reason_resolutions.push_back(Resolution(initial_reason.proofId()));
+  Debug("newproof::sat") << push;
   for (unsigned i = 0; i < current_reason_size; ++i)
   {
     const Minisat::Solver::TClause& current_reason = d_solver->ca[reason_ref];
@@ -334,6 +332,7 @@ ClauseId NewProofManager::justifyLit(Minisat::Solver::TLit lit)
                    Minisat::sign(curr_lit) ? 0 : 1);
     reason_resolutions.push_back(res);
   }
+  Debug("newproof::sat") << pop;
   // retrieve lit's node definition
   Assert(d_litToNode.find(satLit) != d_litToNode.end());
   Node litDef = d_litToNode[satLit];
@@ -375,6 +374,7 @@ void NewProofManager::finalizeProof(ClauseId conflict_id)
   // For each l_i, a resolution step is created with the id of the step allowing
   // the derivation of ~l_i, whose pivot in the conflict_clause will be l_i. All
   // resolution steps will be saved in the given reasons vector.
+  Debug("newproof::sat") << push;
   for (unsigned i = 0, size = conflict_clause.size(); i < size; ++i)
   {
     prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(conflict_clause[i]);
@@ -384,16 +384,26 @@ void NewProofManager::finalizeProof(ClauseId conflict_id)
                    Minisat::sign(conflict_clause[i]) ? 0 : 1);
     reasons.push_back(res);
   }
-  std::vector<Node> children,args;
+  Debug("newproof::sat") << pop;
+  std::vector<Node> children, args;
+  Debug("newproof::sat") << "NewProofManager::finalizeProof: building chain "
+                            "resolution with clauses:\n";
   for (unsigned i = 0, size = reasons.size(); i < size; ++i)
   {
     children.push_back(d_clauseIdToNode[reasons[i].d_id]);
+    Debug("newproof::sat") << "NewProofManager::finalizeProof:   "
+                           << children.back();
     if (i > 0)
     {
-      args.push_back(reasons[i].d_sign ? reasons[i].d_piv
-                                       : reasons[i].d_piv.notNode());
+      args.push_back(reasons[i].d_piv);
+      Debug("newproof::sat") << " [" << args.back() << "]";
     }
+    Debug("newproof::sat") << "\n";
   }
+  d_cdproof->addStep(NodeManager::currentNM()->mkConst<bool>(false),
+                     PfRule::CHAIN_RESOLUTION,
+                     children,
+                     args);
 }
 
 // case in which I addded a false unit clause
@@ -426,22 +436,23 @@ void NewProofManager::printInternalProof()
     pn->printDebug(out);
     Trace("newproof") << "Proof of " << p.second << ":\n\t" << out.str()
                       << "\n";
-    if (pn->getRule() == PfRule::ASSUME)
-    {
-      assumptions.push_back(p.second);
-    }
+    pn->getFreeAssumptions(assumptions);
   }
+  Trace("newproof")
+      << "NewProofManager::printInternalProof: all free assumptions:\n";
   LazyCDProof* teProof = d_theoryEngine->getLazyProof();
   for (unsigned i = 0, size = assumptions.size(); i < size; ++i)
   {
-    ProofNode* pn = teProof->mkProof(assumptions[i]).get();
-    if (pn->getRule() != PfRule::ASSUME)
-    {
-      std::stringstream out;
-      pn->printDebug(out);
-      Trace("newproof") << "Theory engine proof of SAT assumption "
-                        << assumptions[i] << ":\n\t" << out.str() << "\n";
-    }
+    Trace("newproof") << "NewProofManager::printInternalProof:\t "
+                      << assumptions[i] << "\n";
+    std::shared_ptr<ProofNode> pn = teProof->mkProof(assumptions[i]);
+    std::stringstream out;
+    pn->printDebug(out);
+    Trace("newproof") << "NewProofManager::printInternalProof:\t " << out.str()
+                      << "\n";
+    // update this proof in case the theory engine had anything better than
+    // "assume"
+    d_cdproof->addProof(pn);
   }
   Node falseNode = NodeManager::currentNM()->mkConst<bool>(false);
   Trace("newproof") << "NewProofManager::printInternalProof: proof node of "

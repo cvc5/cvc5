@@ -86,13 +86,17 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   if (CVC4::options::proofNew())
   {
+    NewProofManager* pm = NewProofManager::currentPM();
     Trace("newproof") << "TheoryProxy::explainPropagation: explanation of lit "
                       << l << "[" << lNode << "] is " << theoryExplanation
                       << " to prove " << tte.getProven() << "\n";
     Node proven = tte.getProven();
+    Assert(tte.getGenerator());
+    Assert(tte.getGenerator()->getProofFor(proven));
+    pm->getProof()->addProof(tte.getGenerator()->getProofFor(proven));
     Assert(proven[1] == lNode);
     NodeManager* nm = NodeManager::currentNM();
-    NewProofManager* pm = NewProofManager::currentPM();
+
     Node clauseImpliesElim =
         nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
     Trace("newproof") << "TheoryProxy::explainPropagation: adding "
