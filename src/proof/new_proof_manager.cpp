@@ -68,7 +68,7 @@ void NewProofManager::addStep(Node expected,
                               const std::vector<Node>& children,
                               const std::vector<Node>& args)
 {
-  if (!d_cdproof.get()->addStep(expected, rule, children, args))
+  if (!d_cdproof->addStep(expected, rule, children, args, false, true))
   {
     Assert(false) << "NewProofManager::couldn't add " << rule
                   << " step with conclusion: " << expected
@@ -97,16 +97,45 @@ inline void NewProofManager::printClause(const Minisat::Solver::TClause& clause)
   }
 }
 
-void NewProofManager::addLitDef(prop::SatLiteral lit, Node litNode)
+Node NewProofManager::factorAndReorder(Node n)
 {
-  Debug("newproof::sat") << "NewProofManager::addLitDef: lit/def: " << lit
-                         << " / " << litNode << "\n";
-  d_litToNode[lit] = litNode;
+  if (n.getKind() != kind::OR)
+  {
+    return n;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  // remove duplicates
+  std::unordered_set<Node, NodeHashFunction> clauseSet;
+  clauseSet.insert(n.begin(), n.end());
+  std::vector<Node> children{clauseSet.begin(), clauseSet.end()};
+  // if factoring changed
+  if (children.size() < n.getNumChildren())
+  {
+    Node factored = nm->mkNode(kind::OR, children);
+    d_cdproof->addStep(factored, PfRule::FACTORING, {n}, {factored});
+    n = factored;
+  }
+  // order
+  std::sort(children.begin(), children.end());
+  Node ordered = nm->mkNode(kind::OR, children);
+  // if ordering changed
+  if (ordered != n)
+  {
+    d_cdproof->addStep(ordered, PfRule::REORDERING, {n}, {ordered});
+  }
+  return ordered;
 }
 
 void NewProofManager::registerClause(Minisat::Solver::TLit lit)
 {
   registerClause(toSatLiteral<Minisat::Solver>(lit));
+}
+
+void NewProofManager::addLitDef(prop::SatLiteral lit, Node litNode)
+{
+  Debug("newproof::sat") << "NewProofManager::addLitDef: lit/def: " << lit
+                         << " / " << litNode << "\n";
+  d_litToNode[lit] = litNode;
 }
 
 void NewProofManager::registerClause(prop::SatLiteral satLit)
@@ -134,7 +163,7 @@ void NewProofManager::registerClause(prop::SatLiteral satLit)
   // not possible yet to know, in general, how this literal came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
-  if (!d_cdproof.get()->addStep(litNode, PfRule::ASSUME, {}, {litNode}))
+  if (!d_cdproof->addStep(litNode, PfRule::ASSUME, {}, {litNode}))
   {
     Assert(false) << "NewProofManager::couldn't add " << PfRule::ASSUME
                   << " step with conclusion: " << litNode << "\n";
@@ -177,12 +206,14 @@ void NewProofManager::registerClause(Minisat::Solver::TClause& clause)
     clauseNodes.push_back(d_litToNode[satLit]);
   }
   Node clauseNode = NodeManager::currentNM()->mkNode(kind::OR, clauseNodes);
+  // Rewrite clauseNode before proceeding. This is so ordering is consistent
+  clauseNode = factorAndReorder(clauseNode);
   d_clauseIdToNode[id] = clauseNode;
   // register in proof as assumption, which should be filled later, since it's
   // not possible yet to know, in general, how this clause came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
-  if (!d_cdproof.get()->addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode}))
+  if (!d_cdproof->addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode}))
   {
     Assert(false) << "NewProofManager::couldn't add " << PfRule::ASSUME
                   << " step with conclusion: " << clauseNode << "\n";
@@ -386,20 +417,39 @@ void NewProofManager::printInternalProof()
 {
   Trace("newproof")
       << "NewProofManager::printInternalProof: Clauses and their proofs:\n";
+  std::vector<Node> assumptions;
   for (const std::pair<ClauseId, Node>& p : d_clauseIdToNode)
   {
     std::stringstream out;
-    d_cdproof.get()->mkProof(p.second).get()->printDebug(out);
+    // make this guy search for a proof module factoring and reordering
+    ProofNode* pn = d_cdproof->mkProof(p.second).get();
+    pn->printDebug(out);
     Trace("newproof") << "Proof of " << p.second << ":\n\t" << out.str()
                       << "\n";
+    if (pn->getRule() == PfRule::ASSUME)
+    {
+      assumptions.push_back(p.second);
+    }
+  }
+  LazyCDProof* teProof = d_theoryEngine->getLazyProof();
+  for (unsigned i = 0, size = assumptions.size(); i < size; ++i)
+  {
+    ProofNode* pn = teProof->mkProof(assumptions[i]).get();
+    if (pn->getRule() != PfRule::ASSUME)
+    {
+      std::stringstream out;
+      pn->printDebug(out);
+      Trace("newproof") << "Theory engine proof of SAT assumption "
+                        << assumptions[i] << ":\n\t" << out.str() << "\n";
+    }
   }
   Node falseNode = NodeManager::currentNM()->mkConst<bool>(false);
   Trace("newproof") << "NewProofManager::printInternalProof: proof node of "
                     << falseNode << ":\n";
-  Assert(d_cdproof.get()->hasStep(falseNode))
+  Assert(d_cdproof->hasStep(falseNode))
       << "UNSAT but no proof step for " << falseNode << "\n";
   std::stringstream out;
-  d_cdproof.get()->mkProof(falseNode).get()->printDebug(out);
+  d_cdproof->mkProof(falseNode)->printDebug(out);
   Trace("newproof") << out.str() << "\n";
 }
 

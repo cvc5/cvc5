@@ -446,6 +446,11 @@ class TheoryEngine {
     return d_pNodeManager.get();
   }
 
+  inline LazyCDProof* getLazyProof() const
+  {
+    return d_lazyProof.get();
+  }
+
   /**
    * Get a pointer to the underlying sat context.
    */

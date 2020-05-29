@@ -21,6 +21,9 @@ namespace booleans {
 void BoolProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::SPLIT, this);
+  pc->registerChecker(PfRule::RESOLUTION, this);
+  pc->registerChecker(PfRule::FACTORING, this);
+  pc->registerChecker(PfRule::REORDERING, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
   pc->registerChecker(PfRule::NOT_OR_ELIM, this);
   pc->registerChecker(PfRule::IMPLIES_ELIM, this);
@@ -91,6 +94,19 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       }
     }
     return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+  }
+  if (id == PfRule::FACTORING || id == PfRule::REORDERING)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size() == 1);
+    std::unordered_set<Node, NodeHashFunction> clauseSet1, clauseSet2;
+    clauseSet1.insert(children[0].begin(), children[0].end());
+    clauseSet2.insert(args[0].begin(), args[0].end());
+    if (clauseSet1 != clauseSet2)
+    {
+      return Node::null();
+    }
+    return args[0];
   }
   // if (id == PfRule::CHAIN_RESOLUTION)
   // {

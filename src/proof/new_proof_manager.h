@@ -117,6 +117,12 @@ class NewProofManager
 
   void printInternalProof();
 
+  /**
+   * if given node is a clause, normalize it by ordering (according to node ids)
+   * and removal of duplicates.
+   */
+  Node factorAndReorder(Node n);
+
  private:
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;

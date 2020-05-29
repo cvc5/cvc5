@@ -236,6 +236,24 @@ enum class PfRule : uint32_t
   //   let C_1' = C_1 (from P_1),
   //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
   CHAIN_RESOLUTION,
+  // ======== Factoring
+  // Children: (P:C1)
+  // Arguments: (C2)
+  // ---------------------
+  // Conclusion: C2
+  // where
+  //  Set representations of C1 and C2 is the same and the number of literals in
+  //  C2 is smaller than that of C1
+  FACTORING,
+  // ======== Reordering
+  // Children: (P:C1)
+  // Arguments: (C2)
+  // ---------------------
+  // Conclusion: C2
+  // where
+  //  Set representations of C1 and C2 is the same but the number of literals in
+  //  C2 is the same of that of C1
+  REORDERING,
   // ======== And elimination
   // Children: (P:(and F1 ... Fn))
   // Arguments: (i)

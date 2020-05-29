@@ -111,10 +111,14 @@ void LazyCDProof::addLazyStep(Node expected,
                               ProofGenerator* pg,
                               bool forceOverwrite)
 {
+  Trace("lazy-cdproof-add")
+      << "LazyCDProof::addLazyStep: adding step for " << expected << "\n";
   Assert(pg != nullptr);
   NodeProofGeneratorMap::const_iterator it = d_gens.find(expected);
   if (it != d_gens.end() && !forceOverwrite)
   {
+    Trace("lazy-cdproof-add")
+        << "LazyCDProof::addLazyStep: ...already registered\n";
     // don't overwrite something that is already there
     return;
   }
