@@ -80,7 +80,7 @@ class NewProofManager
 
   /* ------------ BEGIN SAT solver handling ------------ */
 
-  void setTheoryEngine(TheoryEngine* te);
+  void setProofNodeManager();
 
   void setSatSolver(Minisat::Solver* solver);
 
@@ -126,9 +126,6 @@ class NewProofManager
   inline CDProof* getProof() const { return d_cdproof.get(); }
 
  private:
-  /** The theory engine */
-  std::unique_ptr<TheoryEngine> d_theoryEngine;
-
   /**************** BEGIN stuff for using proof nodes */
 
   /** The proof object. It does not care about context. */
@@ -138,7 +135,7 @@ class NewProofManager
 
   /* pointer to core SAT solver. Probably this should go through SMT engine,
    * prop engine */
-  std::unique_ptr<Minisat::Solver> d_solver;
+  Minisat::Solver* d_solver;
 
   /** maps clauses to the nodes they correspond to */
   std::map<Node, ClauseId> d_nodeToClauseId;

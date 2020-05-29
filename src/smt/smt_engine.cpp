@@ -793,9 +793,10 @@ void SmtEngine::finishInit()
           finishRegisterTheory(d_theoryEngine->theoryOf(id));
       }
     });
+  // can only be called after theroy engine has been set up
   if (CVC4::options::proofNew())
   {
-    d_newProofManager.get()->setTheoryEngine(d_theoryEngine.get());
+    d_newProofManager.get()->setProofNodeManager();
   }
   d_private->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;

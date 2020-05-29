@@ -133,6 +133,7 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::ProcessAssertions;
+  friend class NewProofManager;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend NewProofManager* ::CVC4::smt::currentNewProofManager();
   friend class ::CVC4::LogicRequest;

@@ -39,21 +39,21 @@
 namespace CVC4 {
 
 NewProofManager::NewProofManager()
-    : d_theoryEngine(nullptr), d_cdproof(nullptr), d_solver(nullptr)
+    : d_cdproof(nullptr), d_solver(nullptr)
 {
 }
 
 NewProofManager::~NewProofManager() {}
 
-void NewProofManager::setTheoryEngine(TheoryEngine* te)
+void NewProofManager::setProofNodeManager()
 {
-  d_theoryEngine.reset(te);
-  d_cdproof.reset(new CDProof(te->getProofNodeManager()));
+  d_cdproof.reset(new CDProof(
+      smt::currentSmtEngine()->getTheoryEngine()->getProofNodeManager()));
 }
 
 void NewProofManager::setSatSolver(Minisat::Solver* solver)
 {
-  d_solver.reset(solver);
+  d_solver = solver;
 }
 
 NewProofManager* NewProofManager::currentPM()
@@ -440,7 +440,8 @@ void NewProofManager::printInternalProof()
   }
   Trace("newproof")
       << "NewProofManager::printInternalProof: all free assumptions:\n";
-  LazyCDProof* teProof = d_theoryEngine->getLazyProof();
+  LazyCDProof* teProof =
+      smt::currentSmtEngine()->getTheoryEngine()->getLazyProof();
   for (unsigned i = 0, size = assumptions.size(); i < size; ++i)
   {
     Trace("newproof") << "NewProofManager::printInternalProof:\t "
