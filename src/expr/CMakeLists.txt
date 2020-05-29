@@ -12,6 +12,8 @@ libcvc4_add_sources(
   expr_iomanip.cpp
   expr_iomanip.h
   expr_manager_scope.h
+  expr_sequence.cpp
+  expr_sequence.h
   kind_map.h
   match_trie.cpp
   match_trie.h
@@ -32,6 +34,8 @@ libcvc4_add_sources(
   node_traversal.h
   node_value.cpp
   node_value.h
+  sequence.cpp
+  sequence.h
   node_visitor.h
   proof.cpp
   proof.h

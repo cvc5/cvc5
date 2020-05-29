@@ -58,6 +58,12 @@ constant CONST_STRING \
     "util/string.h" \
     "a string of characters"
 
+constant CONST_SEQUENCE \
+    ::CVC4::ExprSequence \
+    ::CVC4::ExprSequenceHashFunction \
+    "expr/expr_sequence.h" \
+    "a sequence of characters"
+
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"
 operator REGEXP_CONCAT 2: "regexp concat"
