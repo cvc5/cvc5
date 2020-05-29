@@ -180,7 +180,7 @@ void TheoryUF::check(Effort level) {
         }else{
           // support for cardinality constraints is not enabled, set incomplete
           d_out->setIncomplete();
-        } 
+        }
       }
       //needed for models
       if( options::produceModels() ){
@@ -674,8 +674,10 @@ void TheoryUF::computeCareGraph() {
 void TheoryUF::conflict(TNode a, TNode b) {
   if (options::proofNew())
   {
-    TrustNode tconflict = explain(a.eqNode(b));
+    TrustNode tconflict = d_pfEqualityEngine->assertConflict(a.eqNode(b));
     d_conflictNode = tconflict.getNode();
+    // it's possible this is not a conflict, actually, so in this case we use
+    // different channels accordingly
     d_out->trustedConflict(tconflict);
   }
   else
