@@ -500,10 +500,10 @@ enum class PfRule : uint32_t
   // Conclusion: (= t t)
   REFL,
   // ======== Symmetric
-  // Children: (P:(= t1 t2))
+  // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
   // Arguments: none
   // -----------------------
-  // Conclusion: (= t2 t1)
+  // Conclusion: (= t2 t1) or (not (= t2 t1))
   SYMM,
   // ======== Transitivity
   // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
@@ -672,18 +672,32 @@ enum class PfRule : uint32_t
   // that can contain a suffix of w1; since t2 is non-empty, w3 must therefore
   // be contained in t2.
   CONCAT_CPROP,
+  // ======== String decompose
+  // Children: (P1: (>= (str.len t) n)
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w1) n))
+  // or
+  // Children: (P1: (>= (str.len t) n)
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w2) n))
+  // where
+  //   w1 is (witness ((z String)) (= z (pre t n)))
+  //   w2 is (witness ((z String)) (= z (suf t n)))
+  STRING_DECOMPOSE,
   // ======== Length positive
   // Children: none
   // Arguments: (t)
   // ---------------------
   // Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t 0)))
-  LENGTH_POS,
+  STRING_LENGTH_POS,
   // ======== Length non-empty
   // Children: (P1:(not (= t "")))
   // Arguments: none
   // ---------------------
   // Conclusion: (not (= (str.len t) 0))
-  LENGTH_NON_EMPTY,
+  STRING_LENGTH_NON_EMPTY,
   //======================== Extended functions
   // ======== Reduction
   // Children: none
@@ -694,14 +708,14 @@ enum class PfRule : uint32_t
   // In other words, R is the reduction predicate for extended term t, and w is
   //   (witness ((z T)) (= z t))
   // Notice that the free variables of R are w and the free variables of t.
-  STRINGS_REDUCTION,
+  STRING_REDUCTION,
   // ======== Eager Reduction
   // Children: none
   // Arguments: (t, id?)
   // ---------------------
   // Conclusion: R
   // where R = StringsPreprocess::eagerReduce(t, id).
-  STRINGS_EAGER_REDUCTION,
+  STRING_EAGER_REDUCTION,
   //======================== Regular expressions
   // ======== Regular expression intersection
   // Children: (P:(str.in.re t R1), P:(str.in.re t R2))
@@ -732,6 +746,14 @@ enum class PfRule : uint32_t
   // L. corresponding to the one-step unfolding of the premise, optimized for
   // fixed length of component i of the regular expression concatenation R.
   RE_UNFOLD_NEG_CONCAT_FIXED,
+  //======================== Code points
+  // Children: none
+  // Arguments: (t, s)
+  // ---------------------
+  // Conclusion:(or (= (str.code t) (- 1))
+  //                (not (= (str.code t) (str.code s)))
+  //                (not (= t s)))
+  STRING_CODE_INJ,
 
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 

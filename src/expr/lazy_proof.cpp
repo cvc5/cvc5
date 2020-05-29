@@ -89,7 +89,7 @@ std::shared_ptr<ProofNode> LazyCDProof::mkProof(Node fact)
         }
         // Notice that we do not traverse the proofs that have been generated
         // lazily by the proof generators here.  In other words, we assume that
-        // the proofs from provided proof generators are "complete" and need
+        // the proofs from provided proof generators are final and need
         // no further modification by this class.
       }
       else
@@ -124,12 +124,6 @@ void LazyCDProof::addLazyStep(Node expected,
   }
   // just store now
   d_gens.insert(expected, pg);
-
-  if (forceOverwrite)
-  {
-    // TODO: if we stored expected via a normal call to CDProof::addStep, then
-    // we should overwrite the step in d_nodes with an ASSUME?
-  }
 }
 
 ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
@@ -173,11 +167,12 @@ bool LazyCDProof::hasGenerator(Node fact) const
   {
     return true;
   }
-  if (fact.getKind() != EQUAL || fact[0] == fact[1])
+  // maybe there is a symmetric fact?
+  Node factSym = CDProof::getSymmFact(fact);
+  if (factSym.isNull())
   {
     return false;
   }
-  Node factSym = fact[1].eqNode(fact[0]);
   it = d_gens.find(factSym);
   return it != d_gens.end();
 }

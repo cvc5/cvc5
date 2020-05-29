@@ -162,7 +162,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     SkolemCache* skc = d_termReg.getSkolemCache();
     Node eq = d_termReg.eagerReduce(n, skc, 1);
     Assert(!eq.isNull());
-    Assert(eq.getKind() == IMPLIES && eq[0] == n);
+    Assert(eq.getKind() == ITE && eq[0] == n);
     eq = eq[1];
     std::vector<Node> expn;
     expn.push_back(n);

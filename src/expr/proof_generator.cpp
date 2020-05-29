@@ -29,7 +29,7 @@ std::shared_ptr<ProofNode> ProofGenerator::getProofFor(Node f)
   return nullptr;
 }
 
-bool ProofGenerator::addProofTo(Node f, CDProof* pf, bool forceOverwrite)
+bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy)
 {
   Trace("pfgen") << "ProofGenerator::addProofTo: " << f << "..." << std::endl;
   Assert(pf != nullptr);
@@ -44,7 +44,7 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, bool forceOverwrite)
       Trace("pfgen") << "...got proof " << ss.str() << std::endl;
     }
     // Add the proof, without deep copying.
-    if (pf->addProof(apf, forceOverwrite, false))
+    if (pf->addProof(apf, opolicy, false))
     {
       Trace("pfgen") << "...success!" << std::endl;
       return true;

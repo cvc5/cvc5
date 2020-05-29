@@ -48,12 +48,15 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    Node eqp = children[0];
+    bool polarity = children[0].getKind() != NOT;
+    Node eqp = polarity ? children[0] : children[0][0];
     if (eqp.getKind() != EQUAL)
     {
+      // not a (dis)equality
       return Node::null();
     }
-    return eqp[1].eqNode(eqp[0]);
+    Node conc = eqp[1].eqNode(eqp[0]);
+    return polarity ? conc : conc.notNode();
   }
   else if (id == PfRule::TRANS)
   {

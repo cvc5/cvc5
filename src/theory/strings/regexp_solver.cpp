@@ -493,14 +493,15 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       return false;
     }
     // rewrite to ensure the equality checks below are precise
-    Node mres = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, mi[0], resR));
-    if (mres == mi)
+    Node mres = nm->mkNode(STRING_IN_REGEXP, mi[0], resR);
+    Node mresr = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, mi[0], resR));
+    if (mresr == mi)
     {
       // if R1 = intersect( R1, R2 ), then x in R1 ^ x in R2 is equivalent
       // to x in R1, hence x in R2 can be marked redundant.
       d_im.markReduced(m);
     }
-    else if (mres == m)
+    else if (mresr == m)
     {
       // same as above, opposite direction
       d_im.markReduced(mi);

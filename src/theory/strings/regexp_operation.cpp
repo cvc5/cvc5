@@ -851,17 +851,6 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   if (polarity)
   {
     conc = reduceRegExpPos(tlit, d_sc);
-    // we also immediately unfold the last disjunct for re.*
-    if (t[1].getKind() == REGEXP_STAR)
-    {
-      Assert(conc.getKind() == OR && conc.getNumChildren() == 3);
-      std::vector<Node> newChildren;
-      newChildren.push_back(conc[0]);
-      newChildren.push_back(conc[1]);
-      Node starExpUnf = simplify(conc[2], true);
-      newChildren.push_back(starExpUnf);
-      conc = NodeManager::currentNM()->mkNode(OR, newChildren);
-    }
   }
   else
   {
@@ -1065,6 +1054,12 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
     // beginning and the end of `x` simultaneously.
     //
     // x in R* ---> (x = "") v (x in R) v (x in (re.++ R (re.* R) R))
+    if (r.getKind() == REGEXP_STAR)
+    {
+      // We also immediately unfold the last disjunct for re.*. The advantage
+      // of doing this is that we use the same scheme for skolems above.
+      sinRExp = reduceRegExpPos(sinRExp, sc);
+    }
     conc = nm->mkNode(OR, se, sinr, sinRExp);
   }
   else
@@ -1223,13 +1218,6 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
     r2 = tmpNode;
   }
   Trace("regexp-int") << "Starting INTERSECT(" << cnt << "):\n  "<< mkString(r1) << ",\n  " << mkString(r2) << std::endl;
-  //if(Trace.isOn("regexp-debug")) {
-  //  Trace("regexp-debug") << "... with cache:\n";
-  //  for(std::map< PairNodes, Node >::const_iterator itr=cache.begin();
-  //      itr!=cache.end();itr++) {
-  //        Trace("regexp-debug") << "(" << itr->first.first << "," << itr->first.second << ")->" << itr->second << std::endl;
-  //      }
-  //}
   std::pair < Node, Node > p(r1, r2);
   std::map < PairNodes, Node >::const_iterator itr = d_inter_cache.find(p);
   Node rNode;
@@ -1351,62 +1339,83 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
 
 Node RegExpOpr::removeIntersection(Node r) {
   Assert(checkConstRegExp(r));
-  std::map < Node, Node >::const_iterator itr = d_rm_inter_cache.find(r);
-  if(itr != d_rm_inter_cache.end()) {
-    return itr->second;
-  }
-  Node retNode;
-  Kind rk = r.getKind();
-  switch (rk)
+  NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(r);
+  do
   {
-    case REGEXP_EMPTY:
-    case REGEXP_SIGMA:
-    case REGEXP_RANGE:
-    case STRING_TO_REGEXP:
-    {
-      retNode = r;
-      break;
-    }
-    case REGEXP_CONCAT:
-    case REGEXP_UNION:
-    case REGEXP_STAR:
-    case REGEXP_COMPLEMENT:
-    {
-      NodeBuilder<> nb(rk);
-      for (const Node& rc : r)
-      {
-        nb << removeIntersection(rc);
-      }
-      retNode = Rewriter::rewrite(nb.constructNode());
-      break;
-    }
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
 
-    case REGEXP_INTER:
+    if (it == visited.end())
     {
-      retNode = removeIntersection(r[0]);
-      for (size_t i = 1, nchild = r.getNumChildren(); i < nchild; i++)
+      visited[cur] = Node::null();
+      visit.push_back(cur);
+      for (const Node& cn : cur)
       {
-        bool spflag = false;
-        Node tmpNode = removeIntersection(r[i]);
-        retNode = intersect(retNode, tmpNode, spflag);
+        visit.push_back(cn);
       }
-      break;
     }
-    case REGEXP_LOOP:
+    else if (it->second.isNull())
     {
-      retNode = removeIntersection(r[0]);
-      retNode = Rewriter::rewrite(
-          NodeManager::currentNM()->mkNode(REGEXP_LOOP, retNode, r[1], r[2]));
-      break;
+      Kind ck = cur.getKind();
+      Node ret;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
+      {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur)
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        if (ck == REGEXP_INTER)
+        {
+          if (ret.isNull())
+          {
+            ret = it->second;
+          }
+          else
+          {
+            bool spflag = false;
+            ret = intersect(ret, it->second, spflag);
+          }
+        }
+        else
+        {
+          // will construct below
+          childChanged = childChanged || cn != it->second;
+          children.push_back(it->second);
+        }
+      }
+      if (ck != REGEXP_INTER)
+      {
+        if (childChanged)
+        {
+          ret = nm->mkNode(cur.getKind(), children);
+        }
+        else
+        {
+          ret = cur;
+        }
+      }
+      visited[cur] = ret;
     }
-    default:
-    {
-      Unreachable();
-    }
+  } while (!visit.empty());
+  Assert(visited.find(r) != visited.end());
+  Assert(!visited.find(r)->second.isNull());
+  if (Trace.isOn("regexp-intersect"))
+  {
+    Trace("regexp-intersect") << "Remove INTERSECTION( " << mkString(r)
+                              << " ) = " << mkString(visited[r]) << std::endl;
   }
-  d_rm_inter_cache[r] = retNode;
-  Trace("regexp-intersect") << "Remove INTERSECTION( " << mkString(r) << " ) = " << mkString(retNode) << std::endl;
-  return retNode;
+  return visited[r];
 }
 
 Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
@@ -1508,16 +1517,15 @@ std::string RegExpOpr::mkString( Node r ) {
         break;
       }
       case kind::REGEXP_LOOP: {
-        retStr += "(";
-        retStr += mkString(r[0]);
-        retStr += ")";
-        retStr += "{";
-        retStr += r[1].getConst<Rational>().toString();
-        retStr += ",";
+        uint32_t l = utils::getLoopMinOccurrences(r);
+        std::stringstream ss;
+        ss << "(" << mkString(r[0]) << "){" << l << ",";
         if(r.getNumChildren() == 3) {
-          retStr += r[2].getConst<Rational>().toString();
+          uint32_t u = utils::getLoopMaxOccurrences(r);
+          ss << u;
         }
-        retStr += "}";
+        ss << "}";
+        retStr += ss.str();
         break;
       }
       case kind::REGEXP_RV: {

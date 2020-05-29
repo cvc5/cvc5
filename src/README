@@ -69,29 +69,29 @@ PR finished:
 (2) Strings solver state minor update
 (3) string rewrite for re inclusion
 (4) ProofSkolemCache
+(5) ProofChecker improve tracing, features
+(7) strings SkolemCache uses ProofSkolemCache (req 4)
 
 PRs ready:
 
-(5) ProofChecker improve tracing, features
 (6) Equality engine updates (Haniel)
-(7) strings SkolemCache uses ProofSkolemCache (req 4)
+(8) regexp operation (req 7)
+(9) Proof step buffer (req 5)
+(14) Builtin rules, builtin checker (req 5)
+(15) Boolean rules, boolean checker (Haniel) (req 5)
+(16) UF rules, UF checker (Haniel) (req 5)
+(21) static strings preprocess reduce (req 7)
 
 PRs future:
 
-(8) regexp operation (req 7)
-(9) Proof step buffer (req 5)
 (10) Update CDProof (req 9)
 (11) ProofGenerator (req 10)
 (12) Add TrustNode (req 11)
 (13) Add EagerProofGenerator (req 11)
-(14) Builtin rules, builtin checker (req 5)
-(15) Boolean rules, boolean checker (Haniel) (req 5)
-(16) UF rules, UF checker (req 5)
 (17) rewriter new infrastructure "rewriteEqualityExt"
 (18) Add LazyCDProof (req 11)
 (19) Split EngineOutputChannel from TheoryEngine to its own file (req 12)
 (20) Eq proof conversion (req 6)
-(21) static strings preprocess reduce (req 7)
 (22) String rules, string checker (req 5, 17)
 (23) ProofEqEngine (req 10, 18)
 (24) SharedTermDatabase uses pfee (req 23)

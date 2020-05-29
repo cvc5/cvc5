@@ -133,7 +133,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Assert(children.size() == 1);
     Assert(args.size() == 1);
     uint32_t i;
-    if (children[0].getKind() != kind::AND || !getIndex(args[0], i))
+    if (children[0].getKind() != kind::AND || !getUInt32(args[0], i))
     {
       return Node::null();
     }
@@ -149,7 +149,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() == 1);
     uint32_t i;
     if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::OR || !getIndex(args[0], i))
+        || children[0][0].getKind() != kind::OR || !getUInt32(args[0], i))
     {
       return Node::null();
     }
@@ -353,7 +353,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 2);
     uint32_t i;
-    if (args[0].getKind() != kind::AND || !getIndex(args[1], i))
+    if (args[0].getKind() != kind::AND || !getUInt32(args[1], i))
     {
       return Node::null();
     }
@@ -399,7 +399,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 2);
     uint32_t i;
-    if (args[0].getKind() != kind::OR || !getIndex(args[1], i))
+    if (args[0].getKind() != kind::OR || !getUInt32(args[1], i))
     {
       return Node::null();
     }

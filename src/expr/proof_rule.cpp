@@ -102,15 +102,17 @@ const char* toString(PfRule id)
     case PfRule::CONCAT_CSPLIT: return "CONCAT_CSPLIT";
     case PfRule::CONCAT_LPROP: return "CONCAT_LPROP";
     case PfRule::CONCAT_CPROP: return "CONCAT_CPROP";
-    case PfRule::LENGTH_POS: return "LENGTH_POS";
-    case PfRule::LENGTH_NON_EMPTY: return "LENGTH_NON_EMPTY";
-    case PfRule::STRINGS_REDUCTION: return "STRINGS_REDUCTION";
-    case PfRule::STRINGS_EAGER_REDUCTION: return "STRINGS_EAGER_REDUCTION";
+    case PfRule::STRING_DECOMPOSE: return "STRING_DECOMPOSE";
+    case PfRule::STRING_LENGTH_POS: return "STRING_LENGTH_POS";
+    case PfRule::STRING_LENGTH_NON_EMPTY: return "STRING_LENGTH_NON_EMPTY";
+    case PfRule::STRING_REDUCTION: return "STRING_REDUCTION";
+    case PfRule::STRING_EAGER_REDUCTION: return "STRING_EAGER_REDUCTION";
     case PfRule::RE_INTER: return "RE_INTER";
     case PfRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
     case PfRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
     case PfRule::RE_UNFOLD_NEG_CONCAT_FIXED:
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
+    case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
 
     //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 

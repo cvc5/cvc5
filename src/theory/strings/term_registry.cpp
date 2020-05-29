@@ -103,13 +103,13 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t i)
   {
     if (tk == STRING_STRCTN)
     {
-      // (str.contains s r) => (= s (str.++ sk1 r sk2))
+      // ite( (str.contains s r), (= s (str.++ sk1 r sk2)), (not (= s r)))
       Node sk1 =
           sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_PRE, "sc1");
       Node sk2 =
           sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_POST, "sc2");
       lemma = t[0].eqNode(utils::mkNConcat(sk1, t[1], sk2));
-      lemma = nm->mkNode(IMPLIES, t, lemma);
+      lemma = nm->mkNode(ITE, t, lemma, t[0].eqNode(t[1]).notNode());
     }
   }
   return lemma;
@@ -292,7 +292,7 @@ void TermRegistry::registerTerm(Node n, int effort)
       std::vector<Node> argsRed;
       argsRed.push_back(n);
       regTermLem = d_epg->mkTrustNode(
-          eagerRedLemma, PfRule::STRINGS_EAGER_REDUCTION, argsRed);
+          eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, argsRed);
     }
   }
   if (!regTermLem.isNull())
@@ -508,7 +508,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
 
   std::vector<Node> targs;
   targs.push_back(n);
-  return d_epg->mkTrustNode(lenLemma, PfRule::LENGTH_POS, targs);
+  return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, targs);
 }
 
 Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const

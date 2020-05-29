@@ -36,8 +36,11 @@ struct ExistsFormAttributeId
 };
 typedef expr::Attribute<ExistsFormAttributeId, Node> ExistsFormAttribute;
 
-/** A bound variable for each */
-
+/**
+ * A bound variable corresponding to the universally quantified integer
+ * variable used to range over the valid positions in a string, used
+ * for axiomatizing the behavior of some term.
+ */
 struct IndexVarAttributeId
 {
 };
@@ -287,6 +290,8 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     Node tb = isRev ? utils::mkPrefix(b, nm->mkNode(MINUS, lb, la))
                     : utils::mkSuffix(b, la);
     id = SK_PURIFY;
+    // SK_ID_V_UNIFIED_SPT(x,y) --->
+    //   ite(len(x) >= len(y), substr(x,0,str.len(y)), substr(y,0,str.len(x))
     a = nm->mkNode(ITE, nm->mkNode(GEQ, la, lb), ta, tb);
     b = Node::null();
   }
