@@ -292,6 +292,9 @@ class DType
    * definition does not contain itself as a strict subfield type, or a variant
    * of itself as a strict subfield type (if this datatype is parametric).
    * For details see getStrictSubfieldTypes below.
+   *
+   * Notice that a type having no nested recursion may have a subfield type that
+   * has nested recursion.
    */
   bool hasNestedRecursion() const;
 
