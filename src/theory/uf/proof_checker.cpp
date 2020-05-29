@@ -90,15 +90,15 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     // We do congruence over builtin kinds using operatorToKind
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
-    Kind k;
-    if (args[0].isVar())
+    // get the expected kind for args[0]
+    Kind k = NodeManager::getKindForFunction(args[0]);
+    if (k == kind::UNDEFINED_KIND)
     {
-      k = APPLY_UF;
-    }
-    else
-    {
-      // get the expected kind for args[0]
       k = NodeManager::operatorToKind(args[0]);
+    }
+    if (k == kind::UNDEFINED_KIND)
+    {
+      return Node::null();
     }
     Trace("uf-pfcheck") << "congruence for " << args[0] << " uses kind " << k
                         << ", metakind=" << kind::metaKindOf(k) << std::endl;
