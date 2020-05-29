@@ -153,6 +153,10 @@ Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
       {
         visited[cur] = Node::null();
         visit.push_back(cur);
+        if (cur.getMetaKind() == metakind::PARAMETERIZED)
+        {
+          visit.push_back(cur.getOperator());
+        }
         for (const Node& cn : cur)
         {
           visit.push_back(cn);
@@ -166,7 +170,11 @@ Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
       std::vector<Node> children;
       if (cur.getMetaKind() == metakind::PARAMETERIZED)
       {
-        children.push_back(cur.getOperator());
+        it = visited.find(cur.getOperator());
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cur.getOperator() != it->second;
+        children.push_back(it->second);
       }
       for (const Node& cn : cur)
       {
