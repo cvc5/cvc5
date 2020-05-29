@@ -104,7 +104,6 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > result =
       std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
 
-  std::cerr << options::produceInterpols() << std::endl;
   // ASSUMPTIONS
   if (options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
   {
@@ -132,7 +131,6 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
         include_cons_assumptions =
             std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
     Node tmpAssumptions;
-    std::cerr << "enter1" << std::endl;
     if (assumptions.size() == 1)
     {
       tmpAssumptions = assumptions[0];
@@ -141,9 +139,7 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
     {
       tmpAssumptions = nm->mkNode(kind::AND, assumptions);
     }
-    std::cerr << "enter2" << std::endl;
     expr::getOperatorsMap(tmpAssumptions, include_cons_assumptions);
-    std::cerr << "enter" << std::endl;
 
     // Get operators from conclusion
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
@@ -182,7 +178,6 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
         }
       }
     }
-    std::cerr << "shared enter" << std::endl;
   }
   // ALL
   else if (options::produceInterpols() == options::ProduceInterpols::ALL)
@@ -213,7 +208,6 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
   if (!itpGType.isNull())
   {
     // set user-defined grammar
-    std::cerr << "enter user-defined grammar" << std::endl;
     Assert(itpGType.isDatatype() && itpGType.getDType().isSygus());
     // itpGTypeS = itpGType;
     itpGTypeS = datatypes::utils::substituteAndGeneralizeSygusType(
@@ -404,9 +398,7 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
   Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
                           << std::endl;
   // Result r = d_subsolver->checkSynth();
-  std::cerr << "check sat..." << std::endl;
   Result r = d_subsolver->checkSat();
-  std::cerr << "check sat result: " << r << std::endl;
   Trace("sygus-interpol") << "  SmtEngine::getInterpol result: " << r
                           << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
