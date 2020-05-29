@@ -1910,11 +1910,11 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn,
 
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
-  Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
-  // if proofNew is enabled, then d_lazyProof contains a proof of
-  // conflict.negate()
-  // Assert (d_lazyProof==nullptr || d_lazyProof->hasStep(conflict.negate()) ||
-  // d_lazyProof->hasGenerator(conflict.negate()) || theoryId==THEORY_ARITH);
+  Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
+  // If proofNew is enabled, then d_lazyProof contains a proof of
+  // conflict.notNode(). This should correspond to TrustNode::getConflictProven.
+  //Assert (d_lazyProof==nullptr || d_lazyProof->hasStep(conflict.notNode())
+  //|| d_lazyProof->hasGenerator(conflict.notNode()));
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
