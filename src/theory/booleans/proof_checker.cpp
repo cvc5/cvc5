@@ -22,6 +22,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::SPLIT, this);
   pc->registerChecker(PfRule::RESOLUTION, this);
+  pc->registerChecker(PfRule::CHAIN_RESOLUTION, this);
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
@@ -108,25 +109,49 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     return args[0];
   }
-  // if (id == PfRule::CHAIN_RESOLUTION)
-  // {
-  //   Assert(children.size() > 1);
-  //   Assert(args.size() == children.size() - 1);
-  //   std::vector<Node> disjuncts;
-  //   for (unsigned i = 1, size = children.size(); i < size; ++i)
-  //   {
-  //     // if first clause, eliminate pivot, otherwise its negation
-  //     Node elim = i == 0 ? args[0] : args[0].notNode();
-  //     for (unsigned j = 0, size = children[i].getNumChildren(); j < size; ++j)
-  //     {
-  //       if (elim != children[i][j])
-  //       {
-  //         disjuncts.push_back(children[i][j]);
-  //       }
-  //     }
-  //   }
-  //   return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
-  // }
+  if (id == PfRule::CHAIN_RESOLUTION)
+  {
+    Assert(children.size() > 1);
+    Assert(args.size() == children.size() - 1);
+    std::vector<Node> clauseNodes;
+    for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
+    {
+      std::unordered_set<Node, NodeHashFunction> elim;
+      // literals to be removed from "first" clause
+      if (i < childrenSize - 1)
+      {
+        elim.insert(args.begin() + i, args.end());
+      }
+      // literal to be removed from "second" clause. They will be negated
+      if (i > 0)
+      {
+        elim.insert(args[i-1].negate());
+      }
+      // only add to conclusion nodes that are not in elimination set. First get
+      // the nodes. The child must be either a non-unit clause or a literal
+      std::vector<Node> lits;
+      if (children[i].getKind() == kind::OR)
+      {
+        lits.insert(lits.end(), children[i].begin(), children[i].end());
+      }
+      else
+      {
+        lits.push_back(children[i]);
+      }
+      for (unsigned j = 0, size = lits.size(); j < size; ++j)
+      {
+        if (elim.count(lits[j]) == 0)
+        {
+          clauseNodes.push_back(lits[j]);
+        }
+      }
+    }
+    NodeManager* nm = NodeManager::currentNM();
+    return clauseNodes.empty()
+               ? nm->mkConst<bool>(false)
+               : clauseNodes.size() == 1 ? clauseNodes[0]
+                                         : nm->mkNode(kind::OR, clauseNodes);
+  }
   // natural deduction rules
   if (id == PfRule::AND_ELIM)
   {
