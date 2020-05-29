@@ -14,6 +14,8 @@
 
 #include "expr/proof_node_manager.h"
 
+#include "expr/proof.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -94,12 +96,9 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       continue;
     }
     // otherwise it may be due to symmetry?
-    bool polarity = a.getKind() != NOT;
-    Node aeq = polarity ? a : a[0];
-    if (aeq.getKind() == EQUAL)
+    Node aeqSym = CDProof::getSymmFact(a);
+    if (!aeqSym.isNull())
     {
-      Node aeqSym = aeq[1].eqNode(aeq[0]);
-      aeqSym = polarity ? aeqSym : aeqSym.notNode();
       itf = ac.find(aeqSym);
       if (itf != ac.end())
       {

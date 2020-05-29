@@ -1750,18 +1750,14 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // if d_lazyProof is enabled, then d_lazyProof contains a proof of n.
   if (d_lazyProof != nullptr)
   {
-    Node lemma = node;
-    if (negated)
-    {
-      lemma = lemma.negate();
-    }
+    Node lemma = negated ? node.notNode() : Node(node);
+    // the lemma should have a proof
     if (!d_lazyProof->hasStep(lemma) && !d_lazyProof->hasGenerator(lemma))
     {
       Trace("te-proof") << "No proof for lemma: " << lemma << std::endl;
       Trace("te-proof-warn")
           << "WARNING: No proof for lemma: " << lemma << std::endl;
-      // TODO:
-      // Assert(false);
+      Assert(false);
     }
     else
     {
@@ -1793,7 +1789,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   if (lcp != nullptr)
   {
-    if (!CDProof::isSame(node, ppNode))
+    if (!CDProof::isSame(node, additionalLemmas[0]))
     {
       std::vector<Node> pfChildren;
       pfChildren.push_back(node);
