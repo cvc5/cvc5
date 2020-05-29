@@ -444,6 +444,9 @@ public:
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);
 
+  /** Get corresponding application kindfor function */
+  static inline Kind getKindForFunction(TNode fun);
+
   // general expression-builders
 
   /** Create a node with one child. */
@@ -1234,6 +1237,28 @@ inline bool NodeManager::hasOperator(Kind k) {
 
 inline Kind NodeManager::operatorToKind(TNode n) {
   return kind::operatorToKind(n.d_nv);
+}
+
+inline Kind NodeManager::getKindForFunction(TNode fun)
+{
+  TypeNode tn = fun.getType();
+  if (tn.isFunction())
+  {
+    return kind::APPLY_UF;
+  }
+  else if (tn.isConstructor())
+  {
+    return kind::APPLY_CONSTRUCTOR;
+  }
+  else if (tn.isSelector())
+  {
+    return kind::APPLY_SELECTOR;
+  }
+  else if (tn.isTester())
+  {
+    return kind::APPLY_TESTER;
+  }
+  return kind::UNDEFINED_KIND;
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1) {
