@@ -358,7 +358,7 @@ struct SequenceProperties
     return type[0].isWellFounded();
   }
   /** Make ground term for sequence type (return the empty sequence) */
-  inline static Node mkGroundTerm(TypeNode type)
+  static Node mkGroundTerm(TypeNode type)
   {
     Assert(type.isSequence());
     // empty sequence
