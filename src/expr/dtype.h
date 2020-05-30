@@ -509,25 +509,29 @@ class DType
    * value v of type T may appear as a subterm of a value of D, and moreover
    * v occurs as a strict subterm of a non-datatype term in that value.
    *
-   * For example, the strict subfield types of:
+   * For example, the strict subfield types of T in:
    *   T -> Emp | Container(s : (Set List))
    *   List -> nil | cons( head : Int, tail: List)
    * are { List, Int }. Notice that Int is a strict subfield type since it
    * appears as a subfield type of List, and List is a strict subfield type
    * of T. In other words, Int is a strict subfield type due to the above
    * definition due to the term (Container (singleton (cons 0 nil))), where
-   * 0 occurs as a subterm of (singleton (cons 0 nil)).
+   * 0 occurs as a subterm of (singleton (cons 0 nil)). The non-strict
+   * subfield types of T in this example are { (Set List) }.
    *
-   * For example, the strict subfield types of:
+   * For example, the strict subfield types of T in:
    *   T -> Emp | Container(s : List)
    *   List -> nil | cons( head : (Set T), tail: List)
-   * are { T, List }. Notice that T is a strict subfield type of itself since
-   * List is a subfield type of T and T is a strict subfield type of List.
+   * are { T, List, (Set T) }. Notice that T is a strict subfield type of itself
+   * since List is a subfield type of T and T is a strict subfield type of List.
+   * Furthermore, List and (Set T) are also strict subfield types of T since
+   * List is a subfield type of T and T is a strict subfield type of itself.
    *
-   * For example, the strict subfield types of:
+   * For example, the strict subfield types of T in:
    *   T -> Emp | Container(s : (Array Int T))
    * are { T, Int }, where we assume that values of (Array U1 U2) are
-   * constructed from values of U1 and U2, for all types U1, U2.
+   * constructed from values of U1 and U2, for all types U1, U2. The non-strict
+   * subfield types of T in this example are { (Array Int T) }.
    *
    * @param types The set of types to append the strict subfield types to,
    * @param processed The datatypes (cached using d_self) we have processed. If
