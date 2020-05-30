@@ -347,7 +347,7 @@ class SeqUnitTypeRule
 /** Properties of the sequence type */
 struct SequenceProperties
 {
-  inline static Cardinality computeCardinality(TypeNode type)
+  static Cardinality computeCardinality(TypeNode type)
   {
     Assert(type.getKind() == kind::SEQUENCE_TYPE);
     return Cardinality::INTEGERS;
