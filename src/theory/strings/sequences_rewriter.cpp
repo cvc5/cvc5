@@ -1461,6 +1461,10 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteRepeatRegExp(node);
   }
+  else if (nk == SEQ_UNIT)
+  {
+    retNode = rewriteSeqUnit(node);
+  }
 
   Trace("sequences-postrewrite")
       << "Strings::SequencesRewriter::postRewrite returning " << retNode
@@ -3095,6 +3099,19 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
   return res;
 }
 
+Node SequencesRewriter::rewriteSeqUnit(Node node)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (node[0].isConst())
+  {
+    std::vector<Expr> seq;
+    seq.push_back(node[0].toExpr());
+    TypeNode stype = nm->mkSequenceType(node[0].getType());
+    Node ret = nm->mkConst(ExprSequence(stype.toType(), seq));
+    return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
+  }
+  return node;
+}
 
 Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
 {
