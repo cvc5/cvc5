@@ -353,7 +353,7 @@ struct SequenceProperties
     return Cardinality::INTEGERS;
   }
   /** A sequence is well-founded if its element type is */
-  inline static bool isWellFounded(TypeNode type)
+  static bool isWellFounded(TypeNode type)
   {
     return type[0].isWellFounded();
   }
