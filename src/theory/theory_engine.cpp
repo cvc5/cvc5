@@ -1798,23 +1798,29 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       lcp->addStep(
           additionalLemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
     }
-    if (additionalLemmas.size() > 1 || additionalLemmas[0] != ppNode)
-    {
 #if 0
-      for (size_t i = 1, lsize = additionalLemmas.size(); i < lsize; ++i)
+    for (size_t i = 1, lsize = additionalLemmas.size(); i < lsize; ++i)
+    {
+      // the witness form of other lemmas should rewrite to true
+      // For example, if (lambda y. t[y]) has skolem k, then this lemma is:
+      //   forall x. k(x)=t[x]
+      // whose witness form rewrites
+      //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
+      std::vector<Node> pfChildren;
+      std::vector<Node> pfArgs;
+      pfArgs.push_back(additionalLemmas[i]);
+      Trace("te-tf-check") << "Checking additional lemma..." << std::endl;
+      Node cp = d_pchecker->checkDebug(PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs, additionalLemmas[i], "te-tf-check");
+      Trace("te-tf-check") << "...result: " << cp << std::endl;
+      if (cp.isNull())
       {
-        // the witness form of other lemmas should rewrite to true
-        // For example, if (lambda y. t[y]) has skolem k, then this lemma is:
-        //   forall x. k(x)=t[x]
-        // whose witness form rewrites
-        //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
-        std::vector<Node> pfChildren;
-        std::vector<Node> pfArgs;
-        pfArgs.push_back(additionalLemmas[i]);
-        lcp->addStep(additionalLemmas[i], PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+        Node wt = ProofSkolemCache::getWitnessForm(additionalLemmas[i]);
+        wt = Rewriter::rewrite(wt);
+        Trace("te-tf-check") << "...witness form was " << wt << std::endl;
       }
-#endif
+      lcp->addStep(additionalLemmas[i], PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
     }
+#endif
   }
 
   if(Debug.isOn("lemma-ites")) {
