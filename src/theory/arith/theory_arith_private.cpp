@@ -1112,14 +1112,8 @@ void TheoryArithPrivate::checkNonLinearLogic(Node term)
   }
 }
 
-struct ArithElimOpAttributeId
-{
-};
-typedef expr::Attribute<ArithElimOpAttributeId, Node> ArithElimOpAttribute;
-
 Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
 {
-  ArithElimOpAttribute aeoa;
   Trace("arith-elim") << "Begin elim: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<Node, Node, TNodeHashFunction> visited;
@@ -1138,18 +1132,11 @@ Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
     }
     else if (it == visited.end())
     {
-      if (cur.hasAttribute(aeoa))
+      visited[cur] = Node::null();
+      visit.push_back(cur);
+      for (const Node& cn : cur)
       {
-        visited[cur] = cur.getAttribute(aeoa);
-      }
-      else
-      {
-        visited[cur] = Node::null();
-        visit.push_back(cur);
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        visit.push_back(cn);
       }
     }
     else if (it->second.isNull())
@@ -1180,7 +1167,6 @@ Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
         // are defined in terms of other non-standard operators.
         ret = eliminateOperatorsRec(retElim);
       }
-      cur.setAttribute(aeoa, ret);
       visited[cur] = ret;
     }
   } while (!visit.empty());
