@@ -14,10 +14,10 @@
 
 #include "theory/theory_preprocessor.h"
 
-#include "theory/rewriter.h"
-#include "theory/logic_info.h"
-#include "theory/theory_engine.h"
 #include "expr/lazy_proof.h"
+#include "theory/logic_info.h"
+#include "theory/rewriter.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 
@@ -26,24 +26,22 @@ using namespace CVC4::theory;
 namespace CVC4 {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
-               RemoveTermFormulas& tfr) :
-d_engine(engine),
-d_logicInfo(engine.getLogicInfo()),
-d_ppCache(),
-d_tfr(tfr)
+                                       RemoveTermFormulas& tfr)
+    : d_engine(engine),
+      d_logicInfo(engine.getLogicInfo()),
+      d_ppCache(),
+      d_tfr(tfr)
 {
 }
 
-TheoryPreprocessor::~TheoryPreprocessor()
-{
-}
+TheoryPreprocessor::~TheoryPreprocessor() {}
 
-void TheoryPreprocessor::clearCache()
-{
-  d_ppCache.clear();
-}
+void TheoryPreprocessor::clearCache() { d_ppCache.clear(); }
 
-void TheoryPreprocessor::preprocess(TNode node, preprocessing::AssertionPipeline& lemmas, bool doTheoryPreprocess, LazyCDProof * lcp)
+void TheoryPreprocessor::preprocess(TNode node,
+                                    preprocessing::AssertionPipeline& lemmas,
+                                    bool doTheoryPreprocess,
+                                    LazyCDProof* lcp)
 {
   // Run theory preprocessing, maybe
   Node ppNode = doTheoryPreprocess ? theoryPreprocess(node) : Node(node);
@@ -52,10 +50,9 @@ void TheoryPreprocessor::preprocess(TNode node, preprocessing::AssertionPipeline
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
   lemmas.push_back(ppNode);
   lemmas.updateRealAssertionsEnd();
-  d_tfr.run(lemmas.ref(),
-                      lemmas.getIteSkolemMap());
+  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap());
   Trace("te-tform-rm") << "..done " << lemmas[0] << std::endl;
-  
+
   // justify the preprocessing step
   if (lcp != nullptr)
   {
@@ -65,8 +62,7 @@ void TheoryPreprocessor::preprocess(TNode node, preprocessing::AssertionPipeline
       pfChildren.push_back(node);
       std::vector<Node> pfArgs;
       pfArgs.push_back(lemmas[0]);
-      lcp->addStep(
-          lemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
+      lcp->addStep(lemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
     }
 #if 0
     for (size_t i = 1, lsize = lemmas.size(); i < lsize; ++i)
@@ -92,19 +88,21 @@ void TheoryPreprocessor::preprocess(TNode node, preprocessing::AssertionPipeline
     }
 #endif
   }
-  
-  if(Debug.isOn("lemma-ites")) {
+
+  if (Debug.isOn("lemma-ites"))
+  {
     Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
-    Debug("lemma-ites") << " + now have the following "
-                        << lemmas.size() << " lemma(s):" << endl;
-    for(std::vector<Node>::const_iterator i = lemmas.begin();
-        i != lemmas.end();
-        ++i) {
+    Debug("lemma-ites") << " + now have the following " << lemmas.size()
+                        << " lemma(s):" << endl;
+    for (std::vector<Node>::const_iterator i = lemmas.begin();
+         i != lemmas.end();
+         ++i)
+    {
       Debug("lemma-ites") << " + " << *i << endl;
     }
     Debug("lemma-ites") << endl;
   }
-  
+
   // now, rewrite the lemmas
   Node retLemma;
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
@@ -126,15 +124,17 @@ void TheoryPreprocessor::preprocess(TNode node, preprocessing::AssertionPipeline
   }
 }
 
-struct preprocess_stack_element {
+struct preprocess_stack_element
+{
   TNode node;
   bool children_added;
   preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };
 
-Node TheoryPreprocessor::theoryPreprocess(TNode assertion) 
+Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
 {
-  Trace("theory::preprocess") << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
+  Trace("theory::preprocess")
+      << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
   // spendResource();
 
   // Do a topological sort of the subexpressions and substitute them
@@ -147,17 +147,21 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
     preprocess_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.node;
 
-    Debug("theory::internal") << "TheoryPreprocessor::theoryPreprocess(" << assertion << "): processing " << current << endl;
+    Debug("theory::internal")
+        << "TheoryPreprocessor::theoryPreprocess(" << assertion
+        << "): processing " << current << endl;
 
     // If node already in the cache we're done, pop from the stack
     NodeMap::iterator find = d_ppCache.find(current);
-    if (find != d_ppCache.end()) {
+    if (find != d_ppCache.end())
+    {
       toVisit.pop_back();
       continue;
     }
 
-    if(! d_logicInfo.isTheoryEnabled(Theory::theoryOf(current)) &&
-       Theory::theoryOf(current) != THEORY_SAT_SOLVER) {
+    if (!d_logicInfo.isTheoryEnabled(Theory::theoryOf(current))
+        && Theory::theoryOf(current) != THEORY_SAT_SOLVER)
+    {
       stringstream ss;
       ss << "The logic was specified as " << d_logicInfo.getLogicString()
          << ", which doesn't include " << Theory::theoryOf(current)
@@ -168,7 +172,8 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
     }
 
     // If this is an atom, we preprocess its terms with the theory ppRewriter
-    if (Theory::theoryOf(current) != THEORY_BOOL) {
+    if (Theory::theoryOf(current) != THEORY_BOOL)
+    {
       Node ppRewritten = ppTheoryRewrite(current);
       d_ppCache[current] = ppRewritten;
       Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
@@ -176,39 +181,56 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
     }
 
     // Not yet substituted, so process
-    if (stackHead.children_added) {
+    if (stackHead.children_added)
+    {
       // Children have been processed, so substitute
       NodeBuilder<> builder(current.getKind());
-      if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         builder << current.getOperator();
       }
-      for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
+      for (unsigned i = 0; i < current.getNumChildren(); ++i)
+      {
         Assert(d_ppCache.find(current[i]) != d_ppCache.end());
         builder << d_ppCache[current[i]];
       }
       // Mark the substitution and continue
       Node result = builder;
-      if (result != current) {
+      if (result != current)
+      {
         result = Rewriter::rewrite(result);
       }
-      Debug("theory::internal") << "TheoryPreprocessor::theoryPreprocess(" << assertion << "): setting " << current << " -> " << result << endl;
+      Debug("theory::internal")
+          << "TheoryPreprocessor::theoryPreprocess(" << assertion
+          << "): setting " << current << " -> " << result << endl;
       d_ppCache[current] = result;
       toVisit.pop_back();
-    } else {
+    }
+    else
+    {
       // Mark that we have added the children if any
-      if (current.getNumChildren() > 0) {
+      if (current.getNumChildren() > 0)
+      {
         stackHead.children_added = true;
         // We need to add the children
-        for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
+        for (TNode::iterator child_it = current.begin();
+             child_it != current.end();
+             ++child_it)
+        {
           TNode childNode = *child_it;
           NodeMap::iterator childFind = d_ppCache.find(childNode);
-          if (childFind == d_ppCache.end()) {
+          if (childFind == d_ppCache.end())
+          {
             toVisit.push_back(childNode);
           }
         }
-      } else {
+      }
+      else
+      {
         // No children, so we're done
-        Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << assertion << "): setting " << current << " -> " << current << endl;
+        Debug("substitution::internal")
+            << "SubstitutionMap::internalSubstitute(" << assertion
+            << "): setting " << current << " -> " << current << endl;
         d_ppCache[current] = current;
         toVisit.pop_back();
       }
@@ -220,13 +242,16 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term) {
+Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
+{
   NodeMap::iterator find = d_ppCache.find(term);
-  if (find != d_ppCache.end()) {
+  if (find != d_ppCache.end())
+  {
     return (*find).second;
   }
   unsigned nc = term.getNumChildren();
-  if (nc == 0) {
+  if (nc == 0)
+  {
     return d_engine.theoryOf(term)->ppRewrite(term);
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
@@ -240,22 +265,25 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term) {
   else
   {
     NodeBuilder<> newNode(term.getKind());
-    if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
+    if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
       newNode << term.getOperator();
     }
     unsigned i;
-    for (i = 0; i < nc; ++i) {
+    for (i = 0; i < nc; ++i)
+    {
       newNode << ppTheoryRewrite(term[i]);
     }
     newTerm = Rewriter::rewrite(Node(newNode));
   }
   Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm);
-  if (newTerm != newTerm2) {
+  if (newTerm != newTerm2)
+  {
     newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2));
   }
   d_ppCache[term] = newTerm;
-  Trace("theory-pp")<< "ppTheoryRewrite returning " << newTerm << "}" << endl;
+  Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;
   return newTerm;
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC4

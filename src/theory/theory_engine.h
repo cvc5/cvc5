@@ -45,6 +45,7 @@
 #include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
+#include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
@@ -52,7 +53,6 @@
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
-#include "theory/theory_preprocessor.h"
 
 namespace CVC4 {
 
@@ -375,7 +375,7 @@ class TheoryEngine {
 
   /** sort inference module */
   SortInference d_sortInfer;
-  
+
   /** The theory preprocessor */
   TheoryPreprocessor d_tpp;
 

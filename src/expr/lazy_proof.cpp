@@ -66,7 +66,7 @@ std::shared_ptr<ProofNode> LazyCDProof::mkProof(Node fact)
           Trace("lazy-cdproof") << "LazyCDProof: Call generator for assumption "
                                 << afact << std::endl;
           Node afactGen = isSym ? CDProof::getSymmFact(afact) : afact;
-          Assert (!afactGen.isNull());
+          Assert(!afactGen.isNull());
           // use the addProofTo interface
           if (!pg->addProofTo(afactGen, this))
           {

@@ -994,11 +994,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
   return solveStatus;
 }
 
-void TheoryEngine::preprocessStart()
-{
-  d_tpp.clearCache();
-}
-
+void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 Node TheoryEngine::preprocess(TNode assertion) {
   return d_tpp.theoryPreprocess(assertion);
@@ -1646,7 +1642,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // the assertion pipeline storing the lemmas
   AssertionPipeline lemmas;
   // call preprocessor
-  d_tpp.preprocess(node,lemmas,preprocess, lcp.get());
+  d_tpp.preprocess(node, lemmas, preprocess, lcp.get());
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
@@ -1709,15 +1705,16 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn,
 }
 
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
-
-  Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
+  Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "
+                            << theoryId << ")" << endl;
   // If proofNew is enabled, then either:
   // (1) The lazy proof contains an explicitly provided step (probably
   // THEORY_LEMMA),
   // (2) The lazy proof contains an explicitly provided proof generator,
   // (3) The conflict being processed is a propagatation of false.
-  AlwaysAssert (d_lazyProof==nullptr || d_lazyProof->hasStep(conflict.notNode())
-  || d_lazyProof->hasGenerator(conflict.notNode()) || conflict==d_false);
+  AlwaysAssert(
+      d_lazyProof == nullptr || d_lazyProof->hasStep(conflict.notNode())
+      || d_lazyProof->hasGenerator(conflict.notNode()) || conflict == d_false);
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
@@ -1765,9 +1762,9 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
       children.push_back(tncExp.getProven());
       std::vector<Node> args;
       args.push_back(fullConflictNeg);
-      if (conflict==d_false)
+      if (conflict == d_false)
       {
-        Assert (fullConflict!=d_false);
+        Assert(fullConflict != d_false);
         // if the conflict was a propagation, then the proof is simple:
         // --------------------- explained
         // fullConflict => false

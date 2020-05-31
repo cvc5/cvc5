@@ -32,12 +32,13 @@ class LazyCDProof;
 /**
  * The preprocessor used in TheoryEngine.
  */
-class TheoryPreprocessor {
+class TheoryPreprocessor
+{
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
-public:
+
+ public:
   /** Constructs a theory preprocessor */
-  TheoryPreprocessor(TheoryEngine& engine,
-               RemoveTermFormulas& tfr);
+  TheoryPreprocessor(TheoryEngine& engine, RemoveTermFormulas& tfr);
   /** Destroys a theory preprocessor */
   ~TheoryPreprocessor();
   /** Clear the cache of this class */
@@ -49,19 +50,23 @@ public:
    * that lcp initially contains a proof of node. The flag doTheoryPreprocess
    * is whether we should run theory-specific preprocessing.
    */
-  void preprocess(TNode node, preprocessing::AssertionPipeline& lemmas, bool doTheoryPreprocess, LazyCDProof * lcp);
+  void preprocess(TNode node,
+                  preprocessing::AssertionPipeline& lemmas,
+                  bool doTheoryPreprocess,
+                  LazyCDProof* lcp);
   /**
    * Runs theory specific preprocessing on the non-Boolean parts of
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */
   Node theoryPreprocess(TNode node);
-private:
+
+ private:
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
   /** Logic info of theory engine */
   const LogicInfo& d_logicInfo;
-    /**Cache for theory-preprocessing of assertions */
+  /**Cache for theory-preprocessing of assertions */
   NodeMap d_ppCache;
   /** The term formula remover */
   RemoveTermFormulas& d_tfr;
@@ -69,6 +74,6 @@ private:
   Node ppTheoryRewrite(TNode term);
 };
 
-}/* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__THEORY_PREPROCESSOR_H */
