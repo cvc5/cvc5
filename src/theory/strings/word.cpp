@@ -32,7 +32,7 @@ Node Word::mkEmptyWord(TypeNode tn)
   else if (tn.isSequence())
   {
     std::vector<Expr> seq;
-    return NodeManager::currentNM()->mkConst(ExprSequence(tn.toType(), seq));
+    return NodeManager::currentNM()->mkConst(ExprSequence(tn.getSequenceElementType().toType(), seq));
   }
   Unimplemented();
   return Node::null();
