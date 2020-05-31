@@ -37,6 +37,7 @@ set(regress_0_tests
   regress0/arith/issue3413.smt2
   regress0/arith/issue3480.smt2
   regress0/arith/issue3683.smt2
+  regress0/arith/issue4525.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
