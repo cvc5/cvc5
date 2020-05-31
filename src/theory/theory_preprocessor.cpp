@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_engine.cpp
+/*! \file theory_preprocessor.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
@@ -17,6 +17,7 @@
 #include "theory/rewriter.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
+#include "expr/lazy_proof.h"
 
 using namespace std;
 
@@ -24,18 +25,106 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine) :
+TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
+               RemoveTermFormulas& tfr) :
 d_engine(engine),
 d_logicInfo(engine.getLogicInfo()),
-d_tfr(*engine.getTermFormulaRemover())
+d_ppCache(),
+d_tfr(tfr)
 {
 }
 
-void TheoryPreprocessor::preprocessStart()
+TheoryPreprocessor::~TheoryPreprocessor()
+{
+}
+
+void TheoryPreprocessor::clearCache()
 {
   d_ppCache.clear();
 }
 
+void TheoryPreprocessor::preprocess(TNode node, preprocessing::AssertionPipeline& lemmas, bool doTheoryPreprocess, LazyCDProof * lcp)
+{
+  // Run theory preprocessing, maybe
+  Node ppNode = doTheoryPreprocess ? theoryPreprocess(node) : Node(node);
+
+  // Remove the ITEs
+  Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
+  lemmas.push_back(ppNode);
+  lemmas.updateRealAssertionsEnd();
+  d_tfr.run(lemmas.ref(),
+                      lemmas.getIteSkolemMap());
+  Trace("te-tform-rm") << "..done " << lemmas[0] << std::endl;
+  
+  // justify the preprocessing step
+  if (lcp != nullptr)
+  {
+    if (!CDProof::isSame(node, lemmas[0]))
+    {
+      std::vector<Node> pfChildren;
+      pfChildren.push_back(node);
+      std::vector<Node> pfArgs;
+      pfArgs.push_back(lemmas[0]);
+      lcp->addStep(
+          lemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
+    }
+#if 0
+    for (size_t i = 1, lsize = lemmas.size(); i < lsize; ++i)
+    {
+      // the witness form of other lemmas should rewrite to true
+      // For example, if (lambda y. t[y]) has skolem k, then this lemma is:
+      //   forall x. k(x)=t[x]
+      // whose witness form rewrites
+      //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
+      std::vector<Node> pfChildren;
+      std::vector<Node> pfArgs;
+      pfArgs.push_back(lemmas[i]);
+      Trace("te-tf-check") << "Checking additional lemma..." << std::endl;
+      Node cp = d_pchecker->checkDebug(PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs, lemmas[i], "te-tf-check");
+      Trace("te-tf-check") << "...result: " << cp << std::endl;
+      if (cp.isNull())
+      {
+        Node wt = ProofSkolemCache::getWitnessForm(lemmas[i]);
+        wt = Rewriter::rewrite(wt);
+        Trace("te-tf-check") << "...witness form was " << wt << std::endl;
+      }
+      lcp->addStep(lemmas[i], PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+    }
+#endif
+  }
+  
+  if(Debug.isOn("lemma-ites")) {
+    Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
+    Debug("lemma-ites") << " + now have the following "
+                        << lemmas.size() << " lemma(s):" << endl;
+    for(std::vector<Node>::const_iterator i = lemmas.begin();
+        i != lemmas.end();
+        ++i) {
+      Debug("lemma-ites") << " + " << *i << endl;
+    }
+    Debug("lemma-ites") << endl;
+  }
+  
+  // now, rewrite the lemmas
+  Node retLemma;
+  for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
+  {
+    Node rewritten = Rewriter::rewrite(lemmas[i]);
+    if (lcp != nullptr)
+    {
+      if (!CDProof::isSame(rewritten, lemmas[i]))
+      {
+        std::vector<Node> pfChildren;
+        pfChildren.push_back(lemmas[i]);
+        std::vector<Node> pfArgs;
+        pfArgs.push_back(rewritten);
+        lcp->addStep(
+            rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+      }
+    }
+    lemmas.replace(i, rewritten);
+  }
+}
 
 struct preprocess_stack_element {
   TNode node;
@@ -43,9 +132,9 @@ struct preprocess_stack_element {
   preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };
 
-Node TheoryPreprocessor::preprocess(TNode assertion) {
-
-  Trace("theory::preprocess") << "TheoryPreprocessor::preprocess(" << assertion << ")" << endl;
+Node TheoryPreprocessor::theoryPreprocess(TNode assertion) 
+{
+  Trace("theory::preprocess") << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
   // spendResource();
 
   // Do a topological sort of the subexpressions and substitute them
@@ -58,7 +147,7 @@ Node TheoryPreprocessor::preprocess(TNode assertion) {
     preprocess_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.node;
 
-    Debug("theory::internal") << "TheoryPreprocessor::preprocess(" << assertion << "): processing " << current << endl;
+    Debug("theory::internal") << "TheoryPreprocessor::theoryPreprocess(" << assertion << "): processing " << current << endl;
 
     // If node already in the cache we're done, pop from the stack
     NodeMap::iterator find = d_ppCache.find(current);
@@ -102,7 +191,7 @@ Node TheoryPreprocessor::preprocess(TNode assertion) {
       if (result != current) {
         result = Rewriter::rewrite(result);
       }
-      Debug("theory::internal") << "TheoryPreprocessor::preprocess(" << assertion << "): setting " << current << " -> " << result << endl;
+      Debug("theory::internal") << "TheoryPreprocessor::theoryPreprocess(" << assertion << "): setting " << current << " -> " << result << endl;
       d_ppCache[current] = result;
       toVisit.pop_back();
     } else {

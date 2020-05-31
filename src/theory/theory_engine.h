@@ -52,6 +52,7 @@
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
+#include "theory/theory_preprocessor.h"
 
 namespace CVC4 {
 
@@ -235,14 +236,6 @@ class TheoryEngine {
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
-  typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
-
-  /**
-  * Cache for theory-preprocessing of assertions
-   */
-  NodeMap d_ppCache;
-
   /**
    * Used for "missed-t-propagations" dumping mode only.  A set of all
    * theory-propagable literals.
@@ -382,6 +375,9 @@ class TheoryEngine {
 
   /** sort inference module */
   SortInference d_sortInfer;
+  
+  /** The theory preprocessor */
+  TheoryPreprocessor d_tpp;
 
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
@@ -470,10 +466,6 @@ class TheoryEngine {
   }
 
  private:
-  /**
-   * Helper for preprocess
-   */
-  Node ppTheoryRewrite(TNode term);
 
   /**
    * Queue of nodes for pre-registration.
