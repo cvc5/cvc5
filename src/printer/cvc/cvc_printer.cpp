@@ -25,9 +25,11 @@
 #include <vector>
 
 #include "expr/dtype.h"
-#include "expr/expr.h"                     // for ExprSetDepth etc..
+#include "expr/expr.h"  // for ExprSetDepth etc..
+#include "expr/expr_sequence.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
+#include "expr/sequence.h"
 #include "options/language.h"  // for LANG_AST
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
@@ -36,8 +38,6 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
-#include "expr/expr_sequence.h"
-#include "expr/sequence.h"
 
 using namespace std;
 
@@ -171,7 +171,7 @@ void CvcPrinter::toStream(
     {
       const Sequence& sn = n.getConst<ExprSequence>().getSequence();
       const std::vector<Node>& snvec = sn.getVec();
-      if (snvec.size()>1)
+      if (snvec.size() > 1)
       {
         out << "CONCAT(";
       }
@@ -185,7 +185,7 @@ void CvcPrinter::toStream(
         out << "SEQ_UNIT(" << snvc << ")";
         first = false;
       }
-      if (snvec.size()>1)
+      if (snvec.size() > 1)
       {
         out << ")";
       }

@@ -324,7 +324,7 @@ public:
 class ConstSequenceTypeRule
 {
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
+  static TypeNode computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check)
   {
@@ -336,7 +336,7 @@ class ConstSequenceTypeRule
 class SeqUnitTypeRule
 {
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
+  static TypeNode computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check)
   {
@@ -347,18 +347,18 @@ class SeqUnitTypeRule
 /** Properties of the sequence type */
 struct SequenceProperties
 {
-  inline static Cardinality computeCardinality(TypeNode type)
+  static Cardinality computeCardinality(TypeNode type)
   {
     Assert(type.getKind() == kind::SEQUENCE_TYPE);
     return Cardinality::INTEGERS;
   }
   /** A sequence is well-founded if its element type is */
-  inline static bool isWellFounded(TypeNode type)
+  static bool isWellFounded(TypeNode type)
   {
     return type[0].isWellFounded();
   }
   /** Make ground term for sequence type (return the empty sequence) */
-  inline static Node mkGroundTerm(TypeNode type)
+  static Node mkGroundTerm(TypeNode type)
   {
     Assert(type.isSequence());
     // empty sequence

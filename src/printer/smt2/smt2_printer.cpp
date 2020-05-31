@@ -22,8 +22,10 @@
 #include <vector>
 
 #include "expr/dtype.h"
+#include "expr/expr_sequence.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
+#include "expr/sequence.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -36,8 +38,6 @@
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
-#include "expr/expr_sequence.h"
-#include "expr/sequence.h"
 
 using namespace std;
 
@@ -218,10 +218,11 @@ void Smt2Printer::toStream(std::ostream& out,
       out << '"';
       break;
     }
-    case kind::CONST_SEQUENCE: {
+    case kind::CONST_SEQUENCE:
+    {
       const Sequence& sn = n.getConst<ExprSequence>().getSequence();
       const std::vector<Node>& snvec = sn.getVec();
-      if (snvec.size()>1)
+      if (snvec.size() > 1)
       {
         out << "(str.++ ";
       }
@@ -229,7 +230,7 @@ void Smt2Printer::toStream(std::ostream& out,
       {
         out << "(seq.unit " << snvc << ")";
       }
-      if (snvec.size()>1)
+      if (snvec.size() > 1)
       {
         out << ")";
       }
