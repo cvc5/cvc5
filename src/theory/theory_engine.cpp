@@ -1704,7 +1704,8 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn,
   }
 }
 
-void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
+void TheoryEngine::conflict(TNode conflict, TheoryId theoryId)
+{
   Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "
                             << theoryId << ")" << endl;
   // If proofNew is enabled, then either:

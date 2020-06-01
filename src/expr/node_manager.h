@@ -113,7 +113,7 @@ class NodeManager {
   StatisticsRegistry* d_statisticsRegistry;
 
   ResourceManager* d_resourceManager;
-  
+
   /** The skolem manager */
   std::shared_ptr<SkolemManager> d_skManager;
 
@@ -411,7 +411,6 @@ public:
   ResourceManager* getResourceManager() { return d_resourceManager; }
   /** Get this node manager's skolem manager */
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
-
 
   /** Get this node manager's statistics registry */
   StatisticsRegistry* getStatisticsRegistry() const

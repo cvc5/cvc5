@@ -1193,7 +1193,7 @@ Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
 Node TheoryArithPrivate::eliminateOperators(Node node)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
 
   Kind k = node.getKind();
   switch (k)
