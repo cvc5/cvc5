@@ -422,7 +422,7 @@ class TranscendentalSolver
   Node d_pi_bound[2];
 }; /* class TranscendentalSolver */
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

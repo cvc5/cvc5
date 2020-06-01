@@ -1471,7 +1471,7 @@ Node TranscendentalSolver::mkValidPhase(Node a, Node pi)
       NodeManager::currentNM()->mkNode(MULT, mkRationalNode(-1), pi), a, pi);
 }
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

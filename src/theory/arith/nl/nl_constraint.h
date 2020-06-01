@@ -80,7 +80,7 @@ class ConstraintDb
   std::map<Node, std::map<Node, ConstraintInfo> > d_c_info;
 };
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

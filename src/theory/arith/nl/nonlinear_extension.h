@@ -28,8 +28,8 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_solver.h"
-#include "theory/arith/theory_arith.h"
 #include "theory/arith/nl/transcendental_solver.h"
+#include "theory/arith/theory_arith.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -61,7 +61,8 @@ namespace nl {
  * for valid arithmetic theory lemmas, based on the current set of assertions,
  * where d_out is the output channel of TheoryArith.
  */
-class NonlinearExtension {
+class NonlinearExtension
+{
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -85,9 +86,10 @@ class NonlinearExtension {
    * that hold in the current context. We call { vars -> subs } a "derivable
    * substituion" (see Reynolds et al. FroCoS 2017).
    */
-  bool getCurrentSubstitution(int effort, const std::vector<Node>& vars,
+  bool getCurrentSubstitution(int effort,
+                              const std::vector<Node>& vars,
                               std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp);
+                              std::map<Node, std::vector<Node>>& exp);
   /** Is the term n in reduced form?
    *
    * Used for context-dependent simplification.
@@ -104,7 +106,9 @@ class NonlinearExtension {
    * The second part of the pair is used for constructing
    * minimal explanations for context-dependent simplifications.
    */
-  std::pair<bool, Node> isExtfReduced(int effort, Node n, Node on,
+  std::pair<bool, Node> isExtfReduced(int effort,
+                                      Node n,
+                                      Node on,
                                       const std::vector<Node>& exp) const;
   /** Check at effort level e.
    *
@@ -158,6 +162,7 @@ class NonlinearExtension {
    * on the output channel of TheoryArith in this function.
    */
   void presolve();
+
  private:
   /** Model-based refinement
    *
@@ -179,7 +184,6 @@ class NonlinearExtension {
   bool modelBasedRefinement(std::vector<Node>& mlems,
                             std::vector<Node>& mlemsPp,
                             std::map<Node, NlLemmaSideEffect>& lemSE);
-
 
   /** check last call
    *
@@ -329,7 +333,7 @@ class NonlinearExtension {
   context::CDO<bool> d_builtModel;
 }; /* class NonlinearExtension */
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

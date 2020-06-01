@@ -59,7 +59,7 @@ Node ArgTrie::add(Node d, const std::vector<Node>& args)
   return at->d_data;
 }
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

@@ -1581,7 +1581,7 @@ std::vector<Node> NlSolver::checkMonomialInferResBounds()
   return lemmas;
 }
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

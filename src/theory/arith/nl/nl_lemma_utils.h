@@ -99,7 +99,7 @@ class ArgTrie
   Node add(Node d, const std::vector<Node>& args);
 };
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

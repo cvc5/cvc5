@@ -374,7 +374,7 @@ private:
   AttemptSolutionSDP d_attemptSolSimplex;
   
   /** non-linear algebraic approach */
-  nl::NonlinearExtension * d_nonlinearExtension;
+  nl::NonlinearExtension* d_nonlinearExtension;
 
   bool solveRealRelaxation(Theory::Effort effortLevel);
 

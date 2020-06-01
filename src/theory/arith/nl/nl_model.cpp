@@ -321,7 +321,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     Node mg = nm->mkSkolem("model", nm->booleanType());
     gs.push_back(mg);
     // assert the constructed model as assertions
-    for (const std::pair<const Node, std::pair<Node, Node> > cb :
+    for (const std::pair<const Node, std::pair<Node, Node>> cb :
          d_check_model_bounds)
     {
       Node l = cb.second.first;
@@ -351,7 +351,7 @@ bool NlModel::addCheckModelSubstitution(TNode v, TNode s)
   }
   // if we previously had an approximate bound, the exact bound should be in its
   // range
-  std::map<Node, std::pair<Node, Node> >::iterator itb =
+  std::map<Node, std::pair<Node, Node>>::iterator itb =
       d_check_model_bounds.find(v);
   if (itb != d_check_model_bounds.end())
   {
@@ -853,7 +853,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   for (const Node& v : vs)
   {
     // is it a valid variable?
-    std::map<Node, std::pair<Node, Node> >::iterator bit =
+    std::map<Node, std::pair<Node, Node>>::iterator bit =
         d_check_model_bounds.find(v);
     if (!expr::hasSubterm(invalid_vsum, v) && bit != d_check_model_bounds.end())
     {
@@ -1042,7 +1042,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
           }
           Trace("nl-ext-cms-debug") << " ";
         }
-        std::map<Node, std::pair<Node, Node> >::iterator bit =
+        std::map<Node, std::pair<Node, Node>>::iterator bit =
             d_check_model_bounds.find(vc);
         // if there is a model bound for this term
         if (bit != d_check_model_bounds.end())
@@ -1285,7 +1285,7 @@ void NlModel::getModelValueRepair(
   // values for variables that we solved for, using techniques specific to
   // this class.
   NodeManager* nm = NodeManager::currentNM();
-  for (const std::pair<const Node, std::pair<Node, Node> >& cb :
+  for (const std::pair<const Node, std::pair<Node, Node>>& cb :
        d_check_model_bounds)
   {
     Node l = cb.second.first;
@@ -1343,7 +1343,7 @@ void NlModel::getModelValueRepair(
   }
 }
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

@@ -141,7 +141,7 @@ class MonomialDb
   std::map<Node, std::map<Node, Node> > d_m_contain_umult;
 };
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

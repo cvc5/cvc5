@@ -330,7 +330,7 @@ Node MonomialDb::mkMonomialRemFactor(Node n,
   return ret;
 }
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

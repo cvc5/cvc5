@@ -362,7 +362,7 @@ class NlSolver
   Node getFactorSkolem(Node n, std::vector<Node>& lemmas);
 }; /* class NlSolver */
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
