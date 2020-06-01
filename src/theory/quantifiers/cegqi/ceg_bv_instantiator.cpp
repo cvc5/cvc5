@@ -633,7 +633,8 @@ struct SortBvExtractInterval
 };
 
 void BvInstantiatorPreprocess::registerCounterexampleLemma(
-    std::vector<Node>& lems, std::vector<Node>& ce_vars)
+    Node lem, std::vector<Node>& ce_vars,
+                                   std::vector<Node>& auxLems)
 {
   // new variables
   std::vector<Node> vars;
@@ -647,12 +648,9 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
     std::unordered_set<TNode, TNodeHashFunction> visited;
-    for (unsigned i = 0, size = lems.size(); i < size; i++)
-    {
-      Trace("cegqi-bv-pp-debug2")
-          << "Register ce lemma # " << i << " : " << lems[i] << std::endl;
-      collectExtracts(lems[i], extract_map, visited);
-    }
+    Trace("cegqi-bv-pp-debug2")
+        << "Register ce lemma " << lem << std::endl;
+    collectExtracts(lem, extract_map, visited);
     for (std::pair<const Node, std::vector<Node> >& es : extract_map)
     {
       // sort based on the extract start position
@@ -721,7 +719,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 
     Trace("cegqi-bv-pp") << "Adding " << new_lems.size() << " lemmas..."
                          << std::endl;
-    lems.insert(lems.end(), new_lems.begin(), new_lems.end());
+    auxLems.insert(auxLems.end(), new_lems.begin(), new_lems.end());
     Trace("cegqi-bv-pp") << "Adding " << vars.size() << " variables..."
                          << std::endl;
     ce_vars.insert(ce_vars.end(), vars.begin(), vars.end());

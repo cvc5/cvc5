@@ -237,8 +237,9 @@ class CegInstantiator {
    * - Theory-specific preprocessing of instantiation lemmas.
    * It may also introduce new variables to ce_vars if necessary.
    */
-  void registerCounterexampleLemma(std::vector<Node>& lems,
-                                   std::vector<Node>& ce_vars);
+  void registerCounterexampleLemma(Node lem,
+                                   std::vector<Node>& ce_vars,
+                                   std::vector<Node>& auxLems);
   //------------------------------interface for instantiators
   /** get quantifiers engine */
   QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
@@ -829,8 +830,9 @@ class InstantiatorPreprocess
    * of counterexample lemmas, with the same contract as
    * CegInstantiation::registerCounterexampleLemma.
    */
-  virtual void registerCounterexampleLemma(std::vector<Node>& lems,
-                                           std::vector<Node>& ce_vars)
+  virtual void registerCounterexampleLemma(Node lem,
+                                           std::vector<Node>& ce_vars,
+                                   std::vector<Node>& auxLems)
   {
   }
 };
