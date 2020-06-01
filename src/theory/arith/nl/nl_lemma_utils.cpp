@@ -12,13 +12,14 @@
  ** \brief Implementation of utilities for the non-linear solver
  **/
 
-#include "theory/arith/nl_lemma_utils.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 
-#include "theory/arith/nl_model.h"
+#include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 bool SortNlModel::operator()(Node i, Node j)
 {
@@ -58,6 +59,7 @@ Node ArgTrie::add(Node d, const std::vector<Node>& args)
   return at->d_data;
 }
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

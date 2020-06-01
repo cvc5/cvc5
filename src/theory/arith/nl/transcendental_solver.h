@@ -12,8 +12,8 @@
  ** \brief Solving for handling transcendental functions.
  **/
 
-#ifndef CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H
-#define CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H
+#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL_SOLVER_H
+#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL_SOLVER_H
 
 #include <map>
 #include <unordered_map>
@@ -21,12 +21,13 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/nl_lemma_utils.h"
-#include "theory/arith/nl_model.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 /** Transcendental solver class
  *
@@ -421,6 +422,7 @@ class TranscendentalSolver
   Node d_pi_bound[2];
 }; /* class TranscendentalSolver */
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

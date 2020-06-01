@@ -12,10 +12,10 @@
  ** \brief Implementation of utilities for monomials
  **/
 
-#include "theory/arith/nl_monomial.h"
+#include "theory/arith/nl/nl_monomial.h"
 
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/nl_lemma_utils.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;
@@ -23,6 +23,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 // Returns a[key] if key is in a or value otherwise.
 unsigned getCountWithDefault(const NodeMultiset& a, Node key, unsigned value)
@@ -329,6 +330,7 @@ Node MonomialDb::mkMonomialRemFactor(Node n,
   return ret;
 }
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
