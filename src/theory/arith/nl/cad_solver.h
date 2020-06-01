@@ -51,7 +51,7 @@ class CadSolver
                     const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts);
   /** check initial refine
-   * 
+   *
    * This should be a heuristic incomplete check that only introduces a
    * small number of new terms in the lemmas it returns.
    */
@@ -70,6 +70,7 @@ class CadSolver
    * This method returns false if NlModel::checkModel should not be run.
    */
   void preprocessAssertionsCheckModel(std::vector<Node>& assertions);
+
  private:
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
@@ -81,7 +82,7 @@ class CadSolver
   Node d_neg_one;
   Node d_true;
   Node d_false;
-  
+
 }; /* class CadSolver */
 
 }  // namespace nl

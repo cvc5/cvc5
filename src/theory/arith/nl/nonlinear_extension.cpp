@@ -96,9 +96,8 @@ std::pair<bool, Node> NonlinearExtension::isExtfReduced(
   if (n != d_zero)
   {
     Kind k = n.getKind();
-    return std::make_pair(
-        k != NONLINEAR_MULT && !isTranscendentalKind(k),
-        Node::null());
+    return std::make_pair(k != NONLINEAR_MULT && !isTranscendentalKind(k),
+                          Node::null());
   }
   Assert(n == d_zero);
   if (on.getKind() == NONLINEAR_MULT)
@@ -394,8 +393,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 
   Trace("nl-ext-cm") << "-----" << std::endl;
   unsigned tdegree = d_trSlv.getTaylorDegree();
-  bool ret =
-      d_model.checkModel(passertions, tdegree, lemmas, gs);
+  bool ret = d_model.checkModel(passertions, tdegree, lemmas, gs);
   return ret;
 }
 

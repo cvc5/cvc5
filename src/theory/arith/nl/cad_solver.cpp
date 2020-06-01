@@ -28,8 +28,7 @@ namespace arith {
 namespace nl {
 
 CadSolver::CadSolver(TheoryArith& containing, NlModel& model)
-    : d_containing(containing),
-      d_model(model)
+    : d_containing(containing), d_model(model)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -42,8 +41,8 @@ CadSolver::CadSolver(TheoryArith& containing, NlModel& model)
 CadSolver::~CadSolver() {}
 
 void CadSolver::initLastCall(const std::vector<Node>& assertions,
-                              const std::vector<Node>& false_asserts,
-                              const std::vector<Node>& xts)
+                             const std::vector<Node>& false_asserts,
+                             const std::vector<Node>& xts)
 {
   if (Trace.isOn("cad-check"))
   {
@@ -52,7 +51,8 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions,
     for (const Node& a : assertions)
     {
       Trace("cad-check") << "  " << a << std::endl;
-      if (std::find(false_asserts.begin(),false_asserts.end(),a)!=false_asserts.end())
+      if (std::find(false_asserts.begin(), false_asserts.end(), a)
+          != false_asserts.end())
       {
         Trace("cad-check") << " (false in candidate model)" << std::endl;
       }
@@ -70,10 +70,10 @@ std::vector<Node> CadSolver::checkInitialRefine()
 {
   Trace("cad-check") << "CadSolver::checkInitialRefine" << std::endl;
   std::vector<Node> lems;
-  
+
   // add lemmas corresponding to easy conflicts or refinements based on
   // the assertions/terms given in initLastCall.
-  
+
   return lems;
 }
 
@@ -81,19 +81,16 @@ std::vector<Node> CadSolver::checkFullRefine()
 {
   Trace("cad-check") << "CadSolver::checkFullRefine";
   std::vector<Node> lems;
-  
+
   // Run a complete check on assertions/terms given in initLastCall. In other
-  // words, do not return any lemmas if 
-  
+  // words, do not return any lemmas if
+
   return lems;
 }
 
-void CadSolver::preprocessAssertionsCheckModel(std::vector<Node>& assertions)
-{
-  
-}
+void CadSolver::preprocessAssertionsCheckModel(std::vector<Node>& assertions) {}
 
-}
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
