@@ -832,7 +832,7 @@ class InstantiatorPreprocess
    */
   virtual void registerCounterexampleLemma(Node lem,
                                            std::vector<Node>& ce_vars,
-                                   std::vector<Node>& auxLems)
+                                           std::vector<Node>& auxLems)
   {
   }
 };

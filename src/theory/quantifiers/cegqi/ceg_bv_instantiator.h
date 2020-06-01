@@ -194,8 +194,7 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
    */
   void registerCounterexampleLemma(Node lem,
                                    std::vector<Node>& ce_vars,
-                                   std::vector<Node>& auxLems
-                                  ) override;
+                                   std::vector<Node>& auxLems) override;
 
  private:
   /** collect extracts

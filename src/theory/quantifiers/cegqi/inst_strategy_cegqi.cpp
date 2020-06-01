@@ -597,13 +597,13 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   LemmaStatus status = d_quantEngine->getOutputChannel().lemma(lem);
   Node ppLem = status.getRewrittenLemma();
   Trace("cegqi-debug") << "Counterexample lemma (post-preprocess): " << ppLem
-                        << std::endl;
+                       << std::endl;
   std::vector<Node> auxLems;
   cinst->registerCounterexampleLemma(ppLem, ce_vars, auxLems);
   for (unsigned i = 0, size = auxLems.size(); i < size; i++)
   {
     Trace("cegqi-debug") << "Auxiliary CE lemma " << i << " : " << auxLems[i]
-                        << std::endl;
+                         << std::endl;
     d_quantEngine->addLemma(auxLems[i], false);
   }
 }

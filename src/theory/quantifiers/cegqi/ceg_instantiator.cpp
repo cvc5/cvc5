@@ -1570,8 +1570,10 @@ void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) 
   }
 }
 
-void CegInstantiator::registerCounterexampleLemma(Node lem, std::vector< Node >& ce_vars,
-                                   std::vector<Node>& auxLems ) {
+void CegInstantiator::registerCounterexampleLemma(Node lem,
+                                                  std::vector<Node>& ce_vars,
+                                                  std::vector<Node>& auxLems)
+{
   Trace("cegqi-reg") << "Register counterexample lemma..." << std::endl;
   d_input_vars.clear();
   d_input_vars.insert(d_input_vars.end(), ce_vars.begin(), ce_vars.end());
@@ -1604,17 +1606,17 @@ void CegInstantiator::registerCounterexampleLemma(Node lem, std::vector< Node >&
                       << std::endl;
     registerVariable(pvars[i]);
   }
-  
+
   // register variables that were introduced during TheoryEngine preprocessing
   std::unordered_set<Node, NodeHashFunction> ceSyms;
   expr::getSymbols(lem, ceSyms);
   std::unordered_set<Node, NodeHashFunction> qSyms;
   expr::getSymbols(d_quant, qSyms);
   // all variables that are in counterexample lemma but not in quantified
-  // formula are either 
+  // formula are either
   for (const Node& ces : ceSyms)
   {
-    if (qSyms.find(ces)!=qSyms.end())
+    if (qSyms.find(ces) != qSyms.end())
     {
       // a free symbol of the quantified formula.
       continue;
@@ -1627,8 +1629,7 @@ void CegInstantiator::registerCounterexampleLemma(Node lem, std::vector< Node >&
     // register
     registerVariable(ces);
   }
-  
-  
+
   // determine variable order: must do Reals before Ints
   Trace("cegqi-debug") << "Determine variable order..." << std::endl;
   if (!d_vars.empty())
@@ -1680,9 +1681,10 @@ void CegInstantiator::registerCounterexampleLemma(Node lem, std::vector< Node >&
   // the original body
   d_is_nested_quant = false;
   std::map< Node, bool > visited;
-  collectCeAtoms( lem, visited );
-  for( const Node& alem : auxLems){
-    collectCeAtoms( alem, visited );
+  collectCeAtoms(lem, visited);
+  for (const Node& alem : auxLems)
+  {
+    collectCeAtoms(alem, visited);
   }
 }
 

@@ -633,8 +633,7 @@ struct SortBvExtractInterval
 };
 
 void BvInstantiatorPreprocess::registerCounterexampleLemma(
-    Node lem, std::vector<Node>& ce_vars,
-                                   std::vector<Node>& auxLems)
+    Node lem, std::vector<Node>& ce_vars, std::vector<Node>& auxLems)
 {
   // new variables
   std::vector<Node> vars;
@@ -648,8 +647,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
     std::unordered_set<TNode, TNodeHashFunction> visited;
-    Trace("cegqi-bv-pp-debug2")
-        << "Register ce lemma " << lem << std::endl;
+    Trace("cegqi-bv-pp-debug2") << "Register ce lemma " << lem << std::endl;
     collectExtracts(lem, extract_map, visited);
     for (std::pair<const Node, std::vector<Node> >& es : extract_map)
     {
