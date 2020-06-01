@@ -595,7 +595,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       logic.lock();
     }
   }
-
   /////////////////////////////////////////////////////////////////////////////
 
   // Set the options for the theoryOf
