@@ -837,6 +837,8 @@ Node EqProof::addToProof(
                 && d_node[0].getKind() != kind::CONST_BOOLEAN
                 && d_node[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)))
     {
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: add an intro step for " << d_node << "\n";
       unsigned constIndex = d_node[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
       std::vector<Node> introChildren;
       PfRule introRule;
