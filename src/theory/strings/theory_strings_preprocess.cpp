@@ -613,7 +613,8 @@ Node StringsPreprocess::reduce(Node t,
     }
     conj.push_back(nm->mkNode(ITE, ite_ch));
 
-    Node conjn = nm->mkNode(EXISTS, nm->mkNode(BOUND_VAR_LIST,k), nm->mkNode(AND, conj));
+    Node conjn = nm->mkNode(
+        EXISTS, nm->mkNode(BOUND_VAR_LIST, k), nm->mkNode(AND, conj));
     // Intuitively, the reduction says either x and y are equal, or they have
     // some (maximal) common prefix after which their characters at position k
     // are distinct, and the comparison of their code matches the return value
@@ -633,8 +634,7 @@ Node StringsPreprocess::reduce(Node t,
     //        IF    ltp
     //        THEN: str.code(substr( x, k, 1 )) < str.code(substr( y, k, 1 ))
     //        ELSE: str.code(substr( x, k, 1 )) > str.code(substr( y, k, 1 ))
-    Node assert =
-        nm->mkNode(ITE, t[0].eqNode(t[1]), ltp, conjn);
+    Node assert = nm->mkNode(ITE, t[0].eqNode(t[1]), ltp, conjn);
     asserts.push_back(assert);
 
     // Thus, str.<=( x, y ) = ltp

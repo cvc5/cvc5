@@ -161,6 +161,8 @@ Node SkolemCache::mkTypedSkolemCached(
           Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
           eform = nm->mkNode(EXISTS, bvl, nm->mkNode(AND, mems));
           a.setAttribute(efa, eform);
+          Trace("pf-skolem")
+              << "Exists form " << a << " : " << eform << std::endl;
         }
         Assert(eform.getKind() == EXISTS);
         Assert(eform[0].getNumChildren() == r.getNumChildren());

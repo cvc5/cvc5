@@ -65,8 +65,8 @@ std::shared_ptr<ProofNode> LazyCDProof::mkProof(Node fact)
         {
           Trace("lazy-cdproof") << "LazyCDProof: Call generator for assumption "
                                 << afact << std::endl;
-          Assert(!isSym || afact.getKind() == EQUAL);
-          Node afactGen = isSym ? afact[1].eqNode(afact[0]) : afact;
+          Node afactGen = isSym ? CDProof::getSymmFact(afact) : afact;
+          Assert(!afactGen.isNull());
           // use the addProofTo interface
           if (!pg->addProofTo(afactGen, this))
           {
@@ -130,13 +130,13 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
   {
     return (*it).second;
   }
+  Node factSym = CDProof::getSymmFact(fact);
   // could be symmetry
-  if (fact.getKind() != EQUAL || fact[0] == fact[1])
+  if (factSym.isNull())
   {
     // can't be symmetry, return the default generator
     return d_defaultGen;
   }
-  Node factSym = fact[1].eqNode(fact[0]);
   it = d_gens.find(factSym);
   if (it != d_gens.end())
   {

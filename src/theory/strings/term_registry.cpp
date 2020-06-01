@@ -442,6 +442,9 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
 {
   if (n.isConst())
   {
+    // No need to send length for constant terms. This case may be triggered
+    // for cases where the skolem cache automatically replaces a skolem by
+    // a constant.
     return TrustNode::null();
   }
   Assert(n.getType().isStringLike());

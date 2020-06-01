@@ -57,6 +57,7 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVector>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::EmptySet>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::ExprSequence>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::String>;
 #ifdef SWIGPYTHON
 /* The python bindings cannot differentiate between bool and other basic
