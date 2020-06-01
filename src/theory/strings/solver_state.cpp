@@ -264,6 +264,20 @@ Node SolverState::explainNonEmpty(Node s)
   return Node::null();
 }
 
+bool SolverState::isEqualEmptyWord(Node s, Node& emps)
+{
+  Node sr = getRepresentative(s);
+  if (sr.isConst())
+  {
+    if (Word::getLength(sr) == 0)
+    {
+      emps = sr;
+      return true;
+    }
+  }
+  return false;
+}
+
 void SolverState::setConflict() { d_conflict = true; }
 bool SolverState::isInConflict() const { return d_conflict; }
 

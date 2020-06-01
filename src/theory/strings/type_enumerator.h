@@ -136,6 +136,34 @@ class StringEnumLen : public SEnumLen
   void mkCurr();
 };
 
+/**
+ * Enumerates sequence values for a given length.
+ */
+class SeqEnumLen : public SEnumLen
+{
+ public:
+  /** For sequences */
+  SeqEnumLen(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength);
+  SeqEnumLen(TypeNode tn,
+             TypeEnumeratorProperties* tep,
+             uint32_t startLength,
+             uint32_t endLength);
+  /** copy constructor */
+  SeqEnumLen(const SeqEnumLen& wenum);
+  /** destructor */
+  ~SeqEnumLen() {}
+  /** increment */
+  bool increment() override;
+
+ private:
+  /** an enumerator for the elements' type */
+  std::unique_ptr<TypeEnumerator> d_elementEnumerator;
+  /** The domain */
+  std::vector<Expr> d_elementDomain;
+  /** Make the current term from d_data */
+  void mkCurr();
+};
+
 class StringEnumerator : public TypeEnumeratorBase<StringEnumerator>
 {
  public:
@@ -153,6 +181,21 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator>
   /** underlying string enumerator */
   StringEnumLen d_wenum;
 }; /* class StringEnumerator */
+
+class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator>
+{
+ public:
+  SequenceEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
+  SequenceEnumerator(const SequenceEnumerator& enumerator);
+  ~SequenceEnumerator() {}
+  Node operator*() override;
+  SequenceEnumerator& operator++() override;
+  bool isFinished() override;
+
+ private:
+  /** underlying sequence enumerator */
+  SeqEnumLen d_wenum;
+}; /* class SequenceEnumerator */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

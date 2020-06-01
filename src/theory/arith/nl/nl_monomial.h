@@ -12,8 +12,8 @@
  ** \brief Utilities for monomials
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL_MONOMIAL_H
-#define CVC4__THEORY__ARITH__NL_MONOMIAL_H
+#ifndef CVC4__THEORY__ARITH__NL__NL_MONOMIAL_H
+#define CVC4__THEORY__ARITH__NL__NL_MONOMIAL_H
 
 #include <map>
 #include <vector>
@@ -23,6 +23,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 class MonomialDb;
 class NlModel;
@@ -140,6 +141,7 @@ class MonomialDb
   std::map<Node, std::map<Node, Node> > d_m_contain_umult;
 };
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
