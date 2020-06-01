@@ -586,6 +586,11 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n)
 Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
 {
   Assert(n.getKind() != ITE);
+  if (n.isClosure())
+  {
+    // don't pull ITE out of quantifiers
+    return n;
+  }
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = n.getType();
   std::vector<Node> children;
