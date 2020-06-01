@@ -315,6 +315,12 @@ bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
   return d_logic.isTheoryEnabled(theory);
 }
 
+bool Smt2::isHoEnabled() const
+{
+  return getLogic().isHigherOrder()
+         && d_solver->getExprManager()->getOptions().getUfHo();
+}
+
 bool Smt2::logicIsSet() {
   return d_logicSet;
 }

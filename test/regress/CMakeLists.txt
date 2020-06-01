@@ -37,6 +37,7 @@ set(regress_0_tests
   regress0/arith/issue3413.smt2
   regress0/arith/issue3480.smt2
   regress0/arith/issue3683.smt2
+  regress0/arith/issue4367.smt2
   regress0/arith/issue4525.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
@@ -539,6 +540,7 @@ set(regress_0_tests
   regress0/ho/ho-matching-nested-app.smt2
   regress0/ho/ho-std-fmf.smt2
   regress0/ho/hoa0008.smt2
+  regress0/ho/issue4477.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
