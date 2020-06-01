@@ -1681,6 +1681,9 @@ void CegInstantiator::registerCounterexampleLemma(Node lem, std::vector< Node >&
   d_is_nested_quant = false;
   std::map< Node, bool > visited;
   collectCeAtoms( lem, visited );
+  for( const Node& alem : auxLems){
+    collectCeAtoms( alem, visited );
+  }
 }
 
 Instantiator::Instantiator(TypeNode tn) : d_type(tn)
