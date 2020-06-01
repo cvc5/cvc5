@@ -37,7 +37,7 @@ class Word
   static Node mkEmptyWord(Kind k);
 
   /** make word from constants in (non-empty) vector vec */
-  static Node mkWord(const std::vector<Node>& xs);
+  static Node mkWordFlatten(const std::vector<Node>& xs);
 
   /** Return the length of word x */
   static size_t getLength(TNode x);
@@ -139,6 +139,8 @@ class Word
    * Notice that x.overlap(y) = y.roverlap(x)
    */
   static std::size_t roverlap(TNode x, TNode y);
+  /** Return true if word x is a repetition of the same character */
+  static bool isRepeated(TNode x);
   /** Split constant
    *
    * This returns the suffix remainder (resp. prefix remainder when isRev is
