@@ -70,6 +70,7 @@ const char* toString(Rewrite r)
     case Rewrite::ITOS_EVAL: return "ITOS_EVAL";
     case Rewrite::RE_AND_EMPTY: return "RE_AND_EMPTY";
     case Rewrite::RE_ANDOR_FLATTEN: return "RE_ANDOR_FLATTEN";
+    case Rewrite::RE_ANDOR_INC_CONFLICT: return "RE_ANDOR_INC_CONFLICT";
     case Rewrite::RE_CHAR_IN_STR_STAR: return "RE_CHAR_IN_STR_STAR";
     case Rewrite::RE_CONCAT: return "RE_CONCAT";
     case Rewrite::RE_CONCAT_FLATTEN: return "RE_CONCAT_FLATTEN";
@@ -199,6 +200,7 @@ const char* toString(Rewrite r)
     case Rewrite::LEN_REPL_INV: return "LEN_REPL_INV";
     case Rewrite::LEN_CONV_INV: return "LEN_CONV_INV";
     case Rewrite::CHARAT_ELIM: return "CHARAT_ELIM";
+    case Rewrite::SEQ_UNIT_EVAL: return "SEQ_UNIT_EVAL";
     default: return "?";
   }
 }

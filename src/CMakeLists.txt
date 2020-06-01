@@ -190,6 +190,8 @@ libcvc4_add_sources(
   prop/cnf_stream.h
   prop/cryptominisat.cpp
   prop/cryptominisat.h
+  prop/kissat.cpp
+  prop/kissat.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -516,6 +518,8 @@ libcvc4_add_sources(
   theory/quantifiers/inst_match_trie.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
+  theory/quantifiers/sygus_inst.cpp
+  theory/quantifiers/sygus_inst.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
   theory/quantifiers/lazy_trie.cpp
@@ -714,6 +718,8 @@ libcvc4_add_sources(
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
+  theory/strings/term_registry.cpp
+  theory/strings/term_registry.h
   theory/strings/type_enumerator.cpp
   theory/strings/type_enumerator.h
   theory/strings/word.cpp
@@ -837,6 +843,10 @@ if(USE_CRYPTOMINISAT)
   target_link_libraries(cvc4 ${CryptoMiniSat_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
 endif()
+if(USE_KISSAT)
+  target_link_libraries(cvc4 ${Kissat_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${Kissat_INCLUDE_DIR})
+endif()
 if(USE_DRAT2ER)
   target_link_libraries(cvc4 ${Drat2Er_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${Drat2Er_INCLUDE_DIR})
@@ -913,6 +923,7 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
+          expr/expr_sequence.h
           expr/record.h
           expr/symbol_table.h
           expr/type.h

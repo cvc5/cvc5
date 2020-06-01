@@ -276,14 +276,6 @@ header = "options/arith_options.h"
   help       = "use quick explain to minimize the sum of infeasibility conflicts"
 
 [[option]]
-  name       = "rewriteDivk"
-  category   = "regular"
-  long       = "rewrite-divk"
-  type       = "bool"
-  default    = "false"
-  help       = "rewrite division and mod when by a constant into linear terms"
-
-[[option]]
   name       = "trySolveIntStandardEffort"
   category   = "regular"
   long       = "se-solve-int"

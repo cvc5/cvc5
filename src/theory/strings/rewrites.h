@@ -75,6 +75,7 @@ enum class Rewrite : uint32_t
   ITOS_EVAL,
   RE_AND_EMPTY,
   RE_ANDOR_FLATTEN,
+  RE_ANDOR_INC_CONFLICT,
   RE_CHAR_IN_STR_STAR,
   RE_CONCAT,
   RE_CONCAT_FLATTEN,
@@ -201,7 +202,8 @@ enum class Rewrite : uint32_t
   LEN_CONCAT,
   LEN_REPL_INV,
   LEN_CONV_INV,
-  CHARAT_ELIM
+  CHARAT_ELIM,
+  SEQ_UNIT_EVAL
 };
 
 /**

@@ -857,7 +857,6 @@ Node StringsEntail::getMultisetApproximation(Node a)
 
 Node StringsEntail::getStringOrEmpty(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Node res;
   while (res.isNull())
   {
@@ -865,15 +864,14 @@ Node StringsEntail::getStringOrEmpty(Node n)
     {
       case STRING_STRREPL:
       {
-        Node empty = nm->mkConst(::CVC4::String(""));
-        if (n[0] == empty)
+        if (Word::isEmpty(n[0]))
         {
           // (str.replace "" x y) --> y
           n = n[2];
           break;
         }
 
-        if (checkLengthOne(n[0]) && n[2] == empty)
+        if (checkLengthOne(n[0]) && Word::isEmpty(n[2]))
         {
           // (str.replace "A" x "") --> "A"
           res = n[0];
@@ -907,7 +905,7 @@ Node StringsEntail::getStringOrEmpty(Node n)
 Node StringsEntail::inferEqsFromContains(Node x, Node y)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node emp = nm->mkConst(String(""));
+  Node emp = Word::mkEmptyWord(x.getType());
   Assert(x.getType() == y.getType());
   TypeNode stype = x.getType();
 

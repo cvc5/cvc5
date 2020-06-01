@@ -2254,7 +2254,6 @@ quantOp[CVC4::api::Kind& kind]
 }
   : EXISTS_TOK    { $kind = api::EXISTS; }
   | FORALL_TOK    { $kind = api::FORALL; }
-  | CHOICE_TOK    { $kind = api::CHOICE; }
   ;
 
 /**
@@ -2625,15 +2624,14 @@ ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 // operators (NOTE: theory symbols go here)
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
-CHOICE_TOK        : { !PARSER_STATE->strictModeEnabled() }? 'choice';
 
 EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
 TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
 
-HO_ARROW_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? '->';
-HO_LAMBDA_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? 'lambda';
+HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
+HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts

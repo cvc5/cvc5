@@ -122,7 +122,7 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = true;
   }
-  else if (isString() || isRegExp() || isReal())
+  else if (isString() || isRegExp() || isSequence() || isReal())
   {
     ret = false;
   }
@@ -245,6 +245,10 @@ bool TypeNode::isClosedEnumerable()
     {
       ret = getSetElementType().isClosedEnumerable();
     }
+    else if (isSequence())
+    {
+      ret = getSequenceElementType().isClosedEnumerable();
+    }
     else if (isDatatype())
     {
       // avoid infinite loops: initially set to true
@@ -353,6 +357,12 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   return false;
 }
 
+TypeNode TypeNode::getSequenceElementType() const
+{
+  Assert(isSequence());
+  return (*this)[0];
+}
+
 TypeNode TypeNode::getBaseType() const {
   TypeNode realt = NodeManager::currentNM()->realType();
   if (isSubtypeOf(realt)) {
@@ -459,9 +469,16 @@ TypeNode TypeNode::instantiateParametricDatatype(
   return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
 }
 
+uint64_t TypeNode::getSortConstructorArity() const
+{
+  Assert(isSortConstructor() && hasAttribute(expr::SortArityAttr()));
+  return getAttribute(expr::SortArityAttr());
+}
+
 TypeNode TypeNode::instantiateSortConstructor(
     const std::vector<TypeNode>& params) const
 {
+  Assert(isSortConstructor());
   return NodeManager::currentNM()->mkSort(*this, params);
 }
 
