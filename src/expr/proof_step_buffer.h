@@ -25,7 +25,12 @@
 
 namespace CVC4 {
 
-/** Information for constructing a step in a CDProof */
+/**
+ * Information for constructing a step in a CDProof. Notice that the conclusion
+ * of the proof step is intentionally not included in this data structure.
+ * Instead, it is intended that conclusions may be associated with proof steps
+ * based on e.g. the result of proof checking.
+ */
 class ProofStep
 {
  public:
