@@ -224,7 +224,7 @@ void Smt2Printer::toStream(std::ostream& out,
       const std::vector<Node>& snvec = sn.getVec();
       if (snvec.size() > 1)
       {
-        out << "(str.++ ";
+        out << "(seq.++ ";
       }
       for (const Node& snvc : snvec)
       {

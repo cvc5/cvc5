@@ -443,7 +443,6 @@ bool TheoryStrings::collectModelInfoType(
       }
       else
       {
-        Unimplemented() << "Collect model info not implemented for sequences";
         sel.reset(new SeqEnumLen(tn, nullptr, currLen, currLen));
       }
       for (const Node& eqc : pure_eq)
