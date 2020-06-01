@@ -80,7 +80,7 @@ void TheoryPreprocessor::preprocess(TNode node,
       Trace("te-tf-check") << "...result: " << cp << std::endl;
       if (cp.isNull())
       {
-        Node wt = ProofSkolemCache::getWitnessForm(lemmas[i]);
+        Node wt = SkolemManager::getWitnessForm(lemmas[i]);
         wt = Rewriter::rewrite(wt);
         Trace("te-tf-check") << "...witness form was " << wt << std::endl;
       }

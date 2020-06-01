@@ -22,7 +22,7 @@
 #include <unordered_set>
 
 #include "expr/node.h"
-#include "expr/proof_skolem_cache.h"
+#include "expr/skolem_manager.h"
 
 namespace CVC4 {
 namespace theory {

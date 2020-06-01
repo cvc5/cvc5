@@ -94,12 +94,13 @@ Node SkolemCache::mkTypedSkolemCached(
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   Node sk;
   switch (id)
   {
     // exists k. k = a
     case SK_PURIFY:
-      sk = ProofSkolemCache::mkPurifySkolem(a, c, "string purify skolem");
+      sk = sm->mkPurifySkolem(a, c, "string purify skolem");
       break;
     // these are eliminated by normalizeStringSkolem
     case SK_ID_V_SPT:
@@ -166,7 +167,8 @@ Node SkolemCache::mkTypedSkolemCached(
         }
         Assert(eform.getKind() == EXISTS);
         Assert(eform[0].getNumChildren() == r.getNumChildren());
-        sk = ProofSkolemCache::mkSkolemExists(
+        // TODO: needs proof manager here
+        sk = sm->mkSkolemExists(
             eform[0][index], eform, c, "regexp concat skolem");
       }
     }
@@ -178,7 +180,8 @@ Node SkolemCache::mkTypedSkolemCached(
       Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
       Node v = nm->mkBoundVar(tn);
       Node cond = nm->mkConst(true);
-      sk = ProofSkolemCache::mkSkolem(v, cond, c, "string skolem");
+      SkolemManager * sm = nm->getSkolemManager();
+      sk = sm->mkSkolem(v, cond, c, "string skolem");
     }
     break;
   }

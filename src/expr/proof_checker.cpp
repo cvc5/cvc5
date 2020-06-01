@@ -14,7 +14,7 @@
 
 #include "expr/proof_checker.h"
 
-#include "expr/proof_skolem_cache.h"
+#include "expr/skolem_manager.h"
 #include "smt/smt_statistics_registry.h"
 
 using namespace CVC4::kind;
@@ -28,11 +28,11 @@ Node ProofRuleChecker::check(PfRule id,
   // convert to witness form
   std::vector<Node> childrenw = children;
   std::vector<Node> argsw = args;
-  ProofSkolemCache::convertToWitnessFormVec(childrenw);
-  ProofSkolemCache::convertToWitnessFormVec(argsw);
+  SkolemManager::convertToWitnessFormVec(childrenw);
+  SkolemManager::convertToWitnessFormVec(argsw);
   Node res = checkInternal(id, childrenw, argsw);
   // res is in terms of witness form, convert back to Skolem form
-  return ProofSkolemCache::getSkolemForm(res);
+  return SkolemManager::getSkolemForm(res);
 }
 
 Node ProofRuleChecker::checkChildrenArg(PfRule id,

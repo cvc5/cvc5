@@ -48,10 +48,10 @@ class ProofNodeManager;
  *
  * Notice that all fields of ProofNode are stored in ***Skolem form***. Their
  * correctness is checked in ***witness form*** (for details on this
- * terminology, see expr/proof_skolem_cache.h). As a simple example, say a
+ * terminology, see expr/skolem_manager.h). As a simple example, say a
  * theory solver has a term t, and wants to introduce a unit lemma (= k t)
  * where k is a fresh Skolem variable. It creates this variable via:
- *   k = ProofSkolemCache::mkPurifySkolem(t,"k");
+ *   k = SkolemManager::mkPurifySkolem(t,"k");
  * A checked ProofNode for the fact (= k t) then may have fields:
  *   d_rule := MACRO_SR_PRED_INTRO,
  *   d_children := {},
