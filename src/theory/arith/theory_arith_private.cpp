@@ -162,7 +162,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_nlin_inverse_skolem(u)
 {
   if( options::nlExt() ){
-    d_nonlinearExtension = new NonlinearExtension(
+    d_nonlinearExtension = new nl::NonlinearExtension(
         containing, d_congruenceManager.getEqualityEngine());
   }
 }

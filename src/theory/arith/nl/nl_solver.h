@@ -36,6 +36,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 typedef std::map<Node, unsigned> NodeMultiset;
 
@@ -361,6 +362,7 @@ class NlSolver
   Node getFactorSkolem(Node n, std::vector<Node>& lemmas);
 }; /* class NlSolver */
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

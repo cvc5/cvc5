@@ -23,6 +23,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 // Returns a[key] if key is in a or value otherwise.
 unsigned getCountWithDefault(const NodeMultiset& a, Node key, unsigned value)
@@ -329,6 +330,7 @@ Node MonomialDb::mkMonomialRemFactor(Node n,
   return ret;
 }
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

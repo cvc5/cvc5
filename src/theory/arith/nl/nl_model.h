@@ -28,6 +28,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 class NonlinearExtension;
 
@@ -326,6 +327,7 @@ class NlModel
   std::unordered_set<Node, NodeHashFunction> d_tautology;
 }; /* class NlModel */
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

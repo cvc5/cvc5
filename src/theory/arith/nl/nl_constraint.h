@@ -25,6 +25,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 /** constraint information
  *
@@ -79,6 +80,7 @@ class ConstraintDb
   std::map<Node, std::map<Node, ConstraintInfo> > d_c_info;
 };
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

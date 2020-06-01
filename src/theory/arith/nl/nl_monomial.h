@@ -23,6 +23,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 class MonomialDb;
 class NlModel;
@@ -140,6 +141,7 @@ class MonomialDb
   std::map<Node, std::map<Node, Node> > d_m_contain_umult;
 };
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

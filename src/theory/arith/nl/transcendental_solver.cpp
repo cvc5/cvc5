@@ -29,6 +29,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 TranscendentalSolver::TranscendentalSolver(NlModel& m) : d_model(m)
 {
@@ -1470,6 +1471,7 @@ Node TranscendentalSolver::mkValidPhase(Node a, Node pi)
       NodeManager::currentNM()->mkNode(MULT, mkRationalNode(-1), pi), a, pi);
 }
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

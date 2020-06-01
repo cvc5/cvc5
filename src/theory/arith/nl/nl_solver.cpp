@@ -25,6 +25,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs)
 {
@@ -1580,6 +1581,7 @@ std::vector<Node> NlSolver::checkMonomialInferResBounds()
   return lemmas;
 }
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

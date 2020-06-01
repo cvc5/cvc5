@@ -28,6 +28,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
@@ -809,7 +810,7 @@ void NonlinearExtension::presolve()
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
 }
 
-
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

@@ -22,6 +22,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 ConstraintDb::ConstraintDb(MonomialDb& mdb) : d_mdb(mdb) {}
 
@@ -118,6 +119,7 @@ bool ConstraintDb::isMaximal(Node atom, Node x) const
   return itcm->second.find(x) != itcm->second.end();
 }
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

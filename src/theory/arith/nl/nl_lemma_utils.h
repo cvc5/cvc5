@@ -22,6 +22,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 class NlModel;
 
@@ -98,6 +99,7 @@ class ArgTrie
   Node add(Node d, const std::vector<Node>& args);
 };
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

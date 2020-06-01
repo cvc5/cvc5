@@ -25,6 +25,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 NlModel::NlModel(context::Context* c) : d_used_approx(false)
 {
@@ -1342,6 +1343,7 @@ void NlModel::getModelValueRepair(
   }
 }
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

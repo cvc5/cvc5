@@ -27,6 +27,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 /** Transcendental solver class
  *
@@ -421,6 +422,7 @@ class TranscendentalSolver
   Node d_pi_bound[2];
 }; /* class TranscendentalSolver */
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

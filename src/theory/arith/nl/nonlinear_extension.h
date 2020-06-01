@@ -35,6 +35,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 /** Non-linear extension class
  *
@@ -328,6 +329,7 @@ class NonlinearExtension {
   context::CDO<bool> d_builtModel;
 }; /* class NonlinearExtension */
 
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
