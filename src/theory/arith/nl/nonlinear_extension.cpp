@@ -15,7 +15,7 @@
  ** \todo document this file
  **/
 
-#include "theory/arith/nonlinear_extension.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
 #include "theory/arith/arith_utilities.h"

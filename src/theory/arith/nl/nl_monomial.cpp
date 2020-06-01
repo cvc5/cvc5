@@ -12,10 +12,10 @@
  ** \brief Implementation of utilities for monomials
  **/
 
-#include "theory/arith/nl_monomial.h"
+#include "theory/arith/nl/nl_monomial.h"
 
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/nl_lemma_utils.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;

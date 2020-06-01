@@ -12,9 +12,9 @@
  ** \brief Implementation of utilities for the non-linear solver
  **/
 
-#include "theory/arith/nl_lemma_utils.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 
-#include "theory/arith/nl_model.h"
+#include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {
 namespace theory {

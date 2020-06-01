@@ -27,10 +27,10 @@
 #include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/nl_constraint.h"
-#include "theory/arith/nl_lemma_utils.h"
-#include "theory/arith/nl_model.h"
-#include "theory/arith/nl_monomial.h"
+#include "theory/arith/nl/nl_constraint.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/nl_monomial.h"
 #include "theory/arith/theory_arith.h"
 
 namespace CVC4 {

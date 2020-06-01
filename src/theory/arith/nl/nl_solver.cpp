@@ -12,7 +12,7 @@
  ** \brief Implementation of non-linear solver
  **/
 
-#include "theory/arith/nl_solver.h"
+#include "theory/arith/nl/nl_solver.h"
 
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"

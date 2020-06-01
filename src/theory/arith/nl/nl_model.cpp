@@ -12,7 +12,7 @@
  ** \brief Model object for the non-linear extension class
  **/
 
-#include "theory/arith/nl_model.h"
+#include "theory/arith/nl/nl_model.h"
 
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"

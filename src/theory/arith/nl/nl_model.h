@@ -12,8 +12,8 @@
  ** \brief Model object for the non-linear extension class
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL_MODEL_H
-#define CVC4__THEORY__ARITH__NL_MODEL_H
+#ifndef CVC4__THEORY__ARITH__NL__NL_MODEL_H
+#define CVC4__THEORY__ARITH__NL__NL_MODEL_H
 
 #include <map>
 #include <unordered_map>

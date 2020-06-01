@@ -12,8 +12,8 @@
  ** \brief Utilities for monomials
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL_MONOMIAL_H
-#define CVC4__THEORY__ARITH__NL_MONOMIAL_H
+#ifndef CVC4__THEORY__ARITH__NL__NL_MONOMIAL_H
+#define CVC4__THEORY__ARITH__NL__NL_MONOMIAL_H
 
 #include <map>
 #include <vector>

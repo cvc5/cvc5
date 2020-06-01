@@ -12,7 +12,7 @@
  ** \brief Implementation of solver for handling transcendental functions.
  **/
 
-#include "theory/arith/transcendental_solver.h"
+#include "theory/arith/nl/transcendental_solver.h"
 
 #include <cmath>
 #include <set>
