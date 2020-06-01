@@ -144,6 +144,10 @@ class Sequence
    */
   static size_t maxSize();
 
+  //!!!!!!!!!!!!!!! temporary
+  ExprSequence toExprSequence();
+  //!!!!!!!!!!!!!!! end temporary
+
  private:
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a

@@ -2630,8 +2630,8 @@ CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
 TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
 
-HO_ARROW_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? '->';
-HO_LAMBDA_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? 'lambda';
+HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
+HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts
