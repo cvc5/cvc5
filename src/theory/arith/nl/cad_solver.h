@@ -12,20 +12,21 @@
  ** \brief New non-linear solver
  **/
 
-#ifndef CVC4__THEORY__ARITH__CAD_SOLVER_H
-#define CVC4__THEORY__ARITH__CAD_SOLVER_H
+#ifndef CVC4__THEORY__ARITH__NL__CAD_SOLVER_H
+#define CVC4__THEORY__ARITH__NL__CAD_SOLVER_H
 
 #include <map>
 #include <vector>
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "theory/arith/nl_model.h"
+#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/theory_arith.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 /** Cylindrical algebraic decomposition (CAD) solver class
  *
@@ -83,6 +84,7 @@ class CadSolver
   
 }; /* class CadSolver */
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

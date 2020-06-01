@@ -12,7 +12,7 @@
  ** \brief Implementation of new non-linear solver
  **/
 
-#include "theory/arith/cad_solver.h"
+#include "theory/arith/nl/cad_solver.h"
 
 #include "options/arith_options.h"
 #include "options/smt_options.h"
@@ -25,6 +25,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 CadSolver::CadSolver(TheoryArith& containing, NlModel& model)
     : d_containing(containing),
@@ -92,7 +93,7 @@ void CadSolver::preprocessAssertionsCheckModel(std::vector<Node>& assertions)
   
 }
 
-
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
