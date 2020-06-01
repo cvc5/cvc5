@@ -22,7 +22,7 @@
 #include "expr/node.h"
 
 namespace CVC4 {
-  
+
 class ProofGenerator;
 
 /**
@@ -89,12 +89,11 @@ class SkolemManager
    * @return The skolem whose witness form is registered by this class.
    */
   Node mkSkolem(Node v,
-                       Node pred,
-                       const std::string& prefix,
-                       const std::string& comment = "",
-                       int flags = NodeManager::SKOLEM_DEFAULT,
-                       ProofGenerator * pg = nullptr
-               );
+                Node pred,
+                const std::string& prefix,
+                const std::string& comment = "",
+                int flags = NodeManager::SKOLEM_DEFAULT,
+                ProofGenerator* pg = nullptr);
   /**
    * Same as above, but where pred is an existential quantified formula
    * whose bound variable list contains v. For example, calling this method on:
@@ -105,29 +104,29 @@ class SkolemManager
    * returned and an assertion failure is thrown.
    */
   Node mkSkolemExists(Node v,
-                             Node q,
-                             const std::string& prefix,
-                             const std::string& comment = "",
-                             int flags = NodeManager::SKOLEM_DEFAULT,
-                       ProofGenerator * pg = nullptr);
+                      Node q,
+                      const std::string& prefix,
+                      const std::string& comment = "",
+                      int flags = NodeManager::SKOLEM_DEFAULT,
+                      ProofGenerator* pg = nullptr);
   /**
    * Same as above, but for special case of (witness ((x T)) (= x t))
    * where T is the type of t. This skolem is unique for each t, which we
    * implement via an attribute on t. This attribute is used to ensure to
    * associate a unique skolem for each t.
-   * 
+   *
    * Notice that a purification skolem is trivial to justify, and hence it
    * does not require a proof generator.
    */
   Node mkPurifySkolem(Node t,
-                             const std::string& prefix,
-                             const std::string& comment = "",
-                             int flags = NodeManager::SKOLEM_DEFAULT);
-  /** 
+                      const std::string& prefix,
+                      const std::string& comment = "",
+                      int flags = NodeManager::SKOLEM_DEFAULT);
+  /**
    * Get proof generator for witness term t. This returns the proof generator
    * that was provided in a call to mkSkolem above.
    */
-  ProofGenerator * getProofGenerator(Node t);
+  ProofGenerator* getProofGenerator(Node t);
   /** convert to witness form
    *
    * @param n The term or formula to convert to witness form described above
@@ -149,7 +148,7 @@ class SkolemManager
   /**
    * Mapping from witness terms to proof generators.
    */
-  std::map<Node, ProofGenerator * > d_gens;
+  std::map<Node, ProofGenerator*> d_gens;
   /** Convert to witness or skolem form */
   static Node convertInternal(Node n, bool toWitness);
   /** Get or make skolem attribute for witness term w */

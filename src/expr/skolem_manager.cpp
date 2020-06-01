@@ -36,11 +36,11 @@ struct PurifySkolemAttributeId
 typedef expr::Attribute<PurifySkolemAttributeId, Node> PurifySkolemAttribute;
 
 Node SkolemManager::mkSkolem(Node v,
-                                Node pred,
-                                const std::string& prefix,
-                                const std::string& comment,
-                                int flags,
-                                ProofGenerator * pg)
+                             Node pred,
+                             const std::string& prefix,
+                             const std::string& comment,
+                             int flags,
+                             ProofGenerator* pg)
 {
   Assert(v.getKind() == BOUND_VARIABLE);
   // make the witness term
@@ -56,11 +56,11 @@ Node SkolemManager::mkSkolem(Node v,
 }
 
 Node SkolemManager::mkSkolemExists(Node v,
-                                      Node q,
-                                      const std::string& prefix,
-                                      const std::string& comment,
-                                      int flags,
-                                      ProofGenerator * pg)
+                                   Node q,
+                                   const std::string& prefix,
+                                   const std::string& comment,
+                                   int flags,
+                                   ProofGenerator* pg)
 {
   Assert(q.getKind() == EXISTS);
   bool foundVar = false;
@@ -90,9 +90,9 @@ Node SkolemManager::mkSkolemExists(Node v,
 }
 
 Node SkolemManager::mkPurifySkolem(Node t,
-                                      const std::string& prefix,
-                                      const std::string& comment,
-                                      int flags)
+                                   const std::string& prefix,
+                                   const std::string& comment,
+                                   int flags)
 {
   PurifySkolemAttribute psa;
   if (t.hasAttribute(psa))
@@ -111,25 +111,19 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
-ProofGenerator * SkolemManager::getProofGenerator(Node t)
+ProofGenerator* SkolemManager::getProofGenerator(Node t)
 {
-  std::map<Node, ProofGenerator * >::iterator it = d_gens.find(t);
-  if (it!=d_gens.end())
+  std::map<Node, ProofGenerator*>::iterator it = d_gens.find(t);
+  if (it != d_gens.end())
   {
     return it->second;
   }
   return nullptr;
 }
 
-Node SkolemManager::getWitnessForm(Node n)
-{
-  return convertInternal(n, true);
-}
+Node SkolemManager::getWitnessForm(Node n) { return convertInternal(n, true); }
 
-Node SkolemManager::getSkolemForm(Node n)
-{
-  return convertInternal(n, false);
-}
+Node SkolemManager::getSkolemForm(Node n) { return convertInternal(n, false); }
 
 Node SkolemManager::convertInternal(Node n, bool toWitness)
 {
@@ -235,9 +229,9 @@ void SkolemManager::convertToSkolemFormVec(std::vector<Node>& vec)
 }
 
 Node SkolemManager::getOrMakeSkolem(Node w,
-                                       const std::string& prefix,
-                                       const std::string& comment,
-                                       int flags)
+                                    const std::string& prefix,
+                                    const std::string& comment,
+                                    int flags)
 {
   Assert(w.getKind() == WITNESS);
   SkolemFormAttribute sfa;

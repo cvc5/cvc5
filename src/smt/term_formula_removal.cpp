@@ -97,7 +97,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       if (skolem.isNull())
       {
         // Make the skolem to represent the ITE
-        SkolemManager * sm = nodeManager->getSkolemManager();
+        SkolemManager* sm = nodeManager->getSkolemManager();
         skolem = sm->mkPurifySkolem(
             node,
             "termITE",
@@ -119,7 +119,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       if (skolem.isNull())
       {
         // Make the skolem to represent the lambda
-        SkolemManager * sm = nodeManager->getSkolemManager();
+        SkolemManager* sm = nodeManager->getSkolemManager();
         skolem = sm->mkPurifySkolem(
             node,
             "lambdaF",
@@ -154,7 +154,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       {
         // Make the skolem to witness the choice, which notice is handled
         // as a special case within SkolemManager::mkPurifySkolem.
-        SkolemManager * sm = nodeManager->getSkolemManager();
+        SkolemManager* sm = nodeManager->getSkolemManager();
         skolem = sm->mkPurifySkolem(
             node,
             "witnessK",
@@ -184,7 +184,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       // generic skolem. Notice that the name/comment are currently ignored
       // within SkolemManager::mkPurifySkolem, since BOOLEAN_TERM_VARIABLE
       // variables cannot be given names.
-      SkolemManager * sm = nodeManager->getSkolemManager();
+      SkolemManager* sm = nodeManager->getSkolemManager();
       skolem = sm->mkPurifySkolem(
           node,
           "btvK",
