@@ -270,11 +270,11 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     // use skolem cache
     SkolemCache skc(false);
     std::vector<Node> newSkolems;
-    Node kt0 = ProofSkolemCache::getSkolemForm(t0);
-    Node ks0 = ProofSkolemCache::getSkolemForm(s0);
+    Node kt0 = SkolemManager::getSkolemForm(t0);
+    Node ks0 = SkolemManager::getSkolemForm(s0);
     Node conc =
         CoreSolver::getConclusion(kt0, ks0, id, isRev, &skc, newSkolems);
-    conc = ProofSkolemCache::getWitnessForm(conc);
+    conc = SkolemManager::getWitnessForm(conc);
     return conc;
   }
   else if (id == PfRule::STRING_DECOMPOSE)
@@ -286,7 +286,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node atom = ProofSkolemCache::getSkolemForm(children[0]);
+    Node atom = SkolemManager::getSkolemForm(children[0]);
     if (atom.getKind() != GEQ)
     {
       return Node::null();
@@ -295,7 +295,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> newSkolems;
     Node conc = CoreSolver::getConclusion(
         atom[0][0], atom[1], id, isRev, &sc, newSkolems);
-    return ProofSkolemCache::getWitnessForm(conc);
+    return SkolemManager::getWitnessForm(conc);
   }
   else if (id == PfRule::STRING_REDUCTION
            || id == PfRule::STRING_EAGER_REDUCTION
@@ -306,7 +306,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     // These rules are based on called a C++ method for returning a valid
     // lemma involving a single argument term.
     // Must convert to skolem form.
-    Node t = ProofSkolemCache::getSkolemForm(args[0]);
+    Node t = SkolemManager::getSkolemForm(args[0]);
     Node ret;
     if (id == PfRule::STRING_REDUCTION)
     {
@@ -338,7 +338,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node retw = ProofSkolemCache::getWitnessForm(ret);
+    Node retw = SkolemManager::getWitnessForm(ret);
     return retw;
   }
   else if (id == PfRule::STRING_LENGTH_NON_EMPTY)
@@ -398,7 +398,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Assert(children.size() == 1);
     Assert(args.empty());
     // must convert to skolem form
-    Node skChild = ProofSkolemCache::getSkolemForm(children[0]);
+    Node skChild = SkolemManager::getSkolemForm(children[0]);
     if (id == PfRule::RE_UNFOLD_NEG || id == PfRule::RE_UNFOLD_NEG_CONCAT_FIXED)
     {
       if (skChild.getKind() != NOT || skChild[0].getKind() != STRING_IN_REGEXP)
@@ -438,7 +438,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       }
       conc = RegExpOpr::reduceRegExpNegConcatFixed(skChild, reLen, index);
     }
-    return ProofSkolemCache::getWitnessForm(conc);
+    return SkolemManager::getWitnessForm(conc);
   }
   else if (id == PfRule::STRING_CODE_INJ)
   {
