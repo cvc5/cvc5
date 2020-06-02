@@ -207,7 +207,7 @@ CegInstantiator::~CegInstantiator() {
 void CegInstantiator::computeProgVars( Node n ){
   if( d_prog_var.find( n )==d_prog_var.end() ){
     d_prog_var[n].clear();
-    if (n.getKind() == kind::CHOICE)
+    if (n.getKind() == kind::WITNESS)
     {
       Assert(d_prog_var.find(n[0][0]) == d_prog_var.end());
       d_prog_var[n[0][0]].clear();
@@ -235,7 +235,7 @@ void CegInstantiator::computeProgVars( Node n ){
     {
       d_prog_var[n].insert(n);
     }
-    if (n.getKind() == kind::CHOICE)
+    if (n.getKind() == kind::WITNESS)
     {
       d_prog_var.erase(n[0][0]);
     }
@@ -284,7 +284,7 @@ CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
       visited.insert(cur);
       if (cur.getKind() != BOUND_VARIABLE && TermUtil::hasBoundVarAttr(cur))
       {
-        if (cur.getKind() == FORALL || cur.getKind() == CHOICE)
+        if (cur.getKind() == FORALL || cur.getKind() == WITNESS)
         {
           visit.push_back(cur[1]);
         }

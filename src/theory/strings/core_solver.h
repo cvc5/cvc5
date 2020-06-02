@@ -275,7 +275,7 @@ class CoreSolver
                       TypeNode stype);
   /** process normalize equivalence class
    *
-   * This is called when an equivalence class contains a set of terms that
+   * This is called when an equivalence class eqc contains a set of terms that
    * have normal forms given by the argument normal_forms. It either
    * verifies that all normal forms in this vector are identical, or otherwise
    * adds a conflict, lemma, or inference via the sendInference method.
@@ -288,7 +288,9 @@ class CoreSolver
    *
    * stype is the string-like type of the equivalence class we are processing.
    */
-  void processNEqc(std::vector<NormalForm>& normal_forms, TypeNode stype);
+  void processNEqc(Node eqc,
+                   std::vector<NormalForm>& normal_forms,
+                   TypeNode stype);
   /** process simple normal equality
    *
    * This method is called when two equal terms have normal forms nfi and nfj.

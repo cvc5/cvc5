@@ -43,10 +43,13 @@ std::string TheoryBuiltin::identify() const
 
 void TheoryBuiltin::finishInit()
 {
-  // choice nodes are not evaluated in getModelValue
-  TheoryModel* theoryModel = d_valuation.getModel();
-  Assert(theoryModel != nullptr);
-  theoryModel->setUnevaluatedKind(kind::CHOICE);
+  // Notice that choice is an unevaluated kind belonging to this theory.
+  // However, it should be set as an unevaluated kind where it is used, e.g.
+  // in the quantifiers theory. This ensures that a logic like QF_LIA, which
+  // includes the builtin theory, does not mark any kinds as unevaluated and
+  // hence it is easy to check for illegal eliminations via TheoryModel
+  // (see TheoryModel::isLegalElimination) since there are no unevaluated kinds
+  // present.
 }
 
 }  // namespace builtin

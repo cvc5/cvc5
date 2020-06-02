@@ -12,7 +12,7 @@
  ** \brief Model object for the non-linear extension class
  **/
 
-#include "theory/arith/nl_model.h"
+#include "theory/arith/nl/nl_model.h"
 
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
@@ -25,6 +25,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 NlModel::NlModel(context::Context* c) : d_used_approx(false)
 {
@@ -320,7 +321,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     Node mg = nm->mkSkolem("model", nm->booleanType());
     gs.push_back(mg);
     // assert the constructed model as assertions
-    for (const std::pair<const Node, std::pair<Node, Node> > cb :
+    for (const std::pair<const Node, std::pair<Node, Node>> cb :
          d_check_model_bounds)
     {
       Node l = cb.second.first;
@@ -350,7 +351,7 @@ bool NlModel::addCheckModelSubstitution(TNode v, TNode s)
   }
   // if we previously had an approximate bound, the exact bound should be in its
   // range
-  std::map<Node, std::pair<Node, Node> >::iterator itb =
+  std::map<Node, std::pair<Node, Node>>::iterator itb =
       d_check_model_bounds.find(v);
   if (itb != d_check_model_bounds.end())
   {
@@ -852,7 +853,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   for (const Node& v : vs)
   {
     // is it a valid variable?
-    std::map<Node, std::pair<Node, Node> >::iterator bit =
+    std::map<Node, std::pair<Node, Node>>::iterator bit =
         d_check_model_bounds.find(v);
     if (!expr::hasSubterm(invalid_vsum, v) && bit != d_check_model_bounds.end())
     {
@@ -1041,7 +1042,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
           }
           Trace("nl-ext-cms-debug") << " ";
         }
-        std::map<Node, std::pair<Node, Node> >::iterator bit =
+        std::map<Node, std::pair<Node, Node>>::iterator bit =
             d_check_model_bounds.find(vc);
         // if there is a model bound for this term
         if (bit != d_check_model_bounds.end())
@@ -1284,7 +1285,7 @@ void NlModel::getModelValueRepair(
   // values for variables that we solved for, using techniques specific to
   // this class.
   NodeManager* nm = NodeManager::currentNM();
-  for (const std::pair<const Node, std::pair<Node, Node> >& cb :
+  for (const std::pair<const Node, std::pair<Node, Node>>& cb :
        d_check_model_bounds)
   {
     Node l = cb.second.first;
@@ -1296,7 +1297,7 @@ void NlModel::getModelValueRepair(
       pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
       Trace("nl-model") << v << " approximated as " << pred << std::endl;
       Node witness;
-      if (options::modelWitnessChoice())
+      if (options::modelWitnessValue())
       {
         // witness is the midpoint
         witness = nm->mkNode(
@@ -1314,7 +1315,7 @@ void NlModel::getModelValueRepair(
     }
   }
   // Also record the exact values we used. An exact value can be seen as a
-  // special kind approximation of the form (choice x. x = exact_value).
+  // special kind approximation of the form (witness x. x = exact_value).
   // Notice that the above term gets rewritten such that the choice function
   // is eliminated.
   for (size_t i = 0, num = d_check_model_vars.size(); i < num; i++)
@@ -1342,6 +1343,7 @@ void NlModel::getModelValueRepair(
   }
 }
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
