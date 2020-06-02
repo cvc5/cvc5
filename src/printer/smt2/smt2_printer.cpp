@@ -286,26 +286,22 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ int2bv " << n.getConst<IntToBitVector>().d_size << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
-      // out << "to_fp_bv "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPIEEEBitVector>().t.exponent() << ' '
           << n.getConst<FloatingPointToFPIEEEBitVector>().t.significand()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
-      // out << "to_fp_fp "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPFloatingPoint>().t.exponent() << ' '
           << n.getConst<FloatingPointToFPFloatingPoint>().t.significand()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_REAL_OP:
-      // out << "to_fp_real "
       out << "(_ to_fp " << n.getConst<FloatingPointToFPReal>().t.exponent()
           << ' ' << n.getConst<FloatingPointToFPReal>().t.significand() << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
-      // out << "to_fp_signed "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPSignedBitVector>().t.exponent() << ' '
           << n.getConst<FloatingPointToFPSignedBitVector>().t.significand()
