@@ -1629,7 +1629,7 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
     if (ces.getType().isBoolean())
     {
       // Boolean variables, including the counterexample literal, don't matter
-      // since the are always assigned model value.
+      // since they are always assigned a model value.
       continue;
     }
     Trace("cegqi-reg") << "  register theory preprocess variable : " << ces
