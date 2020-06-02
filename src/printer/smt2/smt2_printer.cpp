@@ -160,12 +160,6 @@ void Smt2Printer::toStream(std::ostream& out,
         out << "bv" << x << " " << width;
         out << ")";
       }
-
-      // //out << "#b";
-
-      // while(n-- > 0) {
-      //   out << (x.testBit(n) ? '1' : '0');
-      // }
       break;
     }
     case kind::CONST_FLOATINGPOINT:
