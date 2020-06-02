@@ -545,7 +545,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::MATCH_CASE:
     // do nothing
     break;
-  case kind::CHOICE: out << smtKindString(k, d_variant) << " "; break;
+  case kind::WITNESS: out << smtKindString(k, d_variant) << " "; break;
 
   // arith theory
   case kind::PLUS:
@@ -1032,7 +1032,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::LAMBDA:
     return "lambda";
   case kind::MATCH: return "match";
-  case kind::CHOICE: return "choice";
+  case kind::WITNESS: return "witness";
 
   // arith theory
   case kind::PLUS: return "+";
@@ -2276,11 +2276,9 @@ static OutputLanguage variantToLanguage(Variant variant)
     return language::output::LANG_SMTLIB_V2_0;
   case z3str_variant:
     return language::output::LANG_Z3STR;
-  case sygus_variant:
-    return language::output::LANG_SYGUS;
+  case sygus_variant: return language::output::LANG_SYGUS_V1;
   case no_variant:
-  default:
-    return language::output::LANG_SMTLIB_V2_5;
+  default: return language::output::LANG_SMTLIB_V2_6;
   }
 }
 

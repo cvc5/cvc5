@@ -618,7 +618,7 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc, TypeNode stype)
       return;
     }
     // process the normal forms
-    processNEqc(normal_forms, stype);
+    processNEqc(eqc, normal_forms, stype);
     if (d_im.hasProcessed())
     {
       return;
@@ -879,81 +879,151 @@ void CoreSolver::getNormalForms(Node eqc,
           }
         }
         Trace("strings-solve") << std::endl;
-        
       }
     } else {
       Trace("strings-solve") << "--- Single normal form for equivalence class " << eqc << std::endl;
     }
-    
-    //if equivalence class is constant, approximate as containment, infer conflicts
-    Node c = d_bsolver.getConstantEqc( eqc );
-    if( !c.isNull() ){
-      Trace("strings-solve") << "Eqc is constant " << c << std::endl;
-      for (unsigned i = 0, size = normal_forms.size(); i < size; i++)
+  }
+}
+
+void CoreSolver::processNEqc(Node eqc,
+                             std::vector<NormalForm>& normal_forms,
+                             TypeNode stype)
+{
+  if (normal_forms.size() <= 1)
+  {
+    return;
+  }
+  // if equivalence class is constant, approximate as containment, infer
+  // conflicts
+  Node c = d_bsolver.getConstantEqc(eqc);
+  // the possible inferences
+  std::vector<CoreInferInfo> pinfer;
+  // compute normal forms that are effectively unique
+  std::unordered_map<Node, size_t, NodeHashFunction> nfCache;
+  std::vector<size_t> nfIndices;
+  bool hasConstIndex = false;
+  for (size_t i = 0, nnforms = normal_forms.size(); i < nnforms; i++)
+  {
+    NormalForm& nfi = normal_forms[i];
+    Node ni = utils::mkNConcat(nfi.d_nf, stype);
+    if (nfCache.find(ni) == nfCache.end())
+    {
+      // If the equivalence class is entailed to be constant, check
+      // if the normal form cannot be contained in that constant.
+      if (!c.isNull())
       {
-        NormalForm& nf = normal_forms[i];
         int firstc, lastc;
-        if (!StringsEntail::canConstantContainList(c, nf.d_nf, firstc, lastc))
+        if (!StringsEntail::canConstantContainList(c, nfi.d_nf, firstc, lastc))
         {
-          Node n = nf.d_base;
+          Node n = nfi.d_base;
           //conflict
           Trace("strings-solve") << "Normal form for " << n << " cannot be contained in constant " << c << std::endl;
-          //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = N[n] )
+          // conflict, explanation is:
+          //  n = base ^ base = c ^ relevant porition of ( n = N[n] )
           std::vector< Node > exp;
           d_bsolver.explainConstantEqc(n,eqc,exp);
           // Notice although not implemented, this can be minimized based on
           // firstc/lastc, normal_forms_exp_depend.
-          exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
-          Node conc = d_false;
-          d_im.sendInference(exp, conc, Inference::N_NCTN);
+          exp.insert(exp.end(), nfi.d_exp.begin(), nfi.d_exp.end());
+          d_im.sendInference(exp, d_false, Inference::N_NCTN);
+          return;
         }
+      }
+
+      nfCache[ni] = i;
+      if (ni.isConst())
+      {
+        hasConstIndex = true;
+        nfIndices.insert(nfIndices.begin(), i);
+      }
+      else
+      {
+        nfIndices.push_back(i);
       }
     }
   }
-}
+  size_t nnfs = nfIndices.size();
+  Trace("strings-solve") << "CoreSolver::processNEqc: " << nnfs << "/"
+                         << normal_forms.size() << " normal forms are unique."
+                         << std::endl;
 
-void CoreSolver::processNEqc(std::vector<NormalForm>& normal_forms,
-                             TypeNode stype)
-{
-  //the possible inferences
-  std::vector<CoreInferInfo> pinfer;
-  // loop over all pairs 
-  for(unsigned i=0; i<normal_forms.size()-1; i++) {
+  // loop over all pairs
+  for (unsigned i = 0; i < nnfs - 1; i++)
+  {
     //unify each normalform[j] with normal_forms[i]
-    for(unsigned j=i+1; j<normal_forms.size(); j++ ) {
-      NormalForm& nfi = normal_forms[i];
-      NormalForm& nfj = normal_forms[j];
+    for (unsigned j = i + 1; j < nnfs; j++)
+    {
+      NormalForm& nfi = normal_forms[nfIndices[i]];
+      NormalForm& nfj = normal_forms[nfIndices[j]];
       //ensure that normal_forms[i] and normal_forms[j] are the same modulo equality, add to pinfer if not
       Trace("strings-solve") << "Strings: Process normal form #" << i << " against #" << j << "..." << std::endl;
       if (isNormalFormPair(nfi.d_base, nfj.d_base))
       {
         Trace("strings-solve") << "Strings: Already cached." << std::endl;
-      }else{
-        //process the reverse direction first (check for easy conflicts and inferences)
-        unsigned rindex = 0;
-        nfi.reverse();
-        nfj.reverse();
-        processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
-        nfi.reverse();
-        nfj.reverse();
-        if (d_im.hasProcessed())
-        {
-          return;
-        }
-        //AJR: for less aggressive endpoint inference
-        //rindex = 0;
+        continue;
+      }
+      // process the reverse direction first (check for easy conflicts and
+      // inferences)
+      unsigned rindex = 0;
+      nfi.reverse();
+      nfj.reverse();
+      processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
+      nfi.reverse();
+      nfj.reverse();
+      if (d_im.hasProcessed())
+      {
+        break;
+      }
+      // AJR: for less aggressive endpoint inference
+      // rindex = 0;
 
-        unsigned index = 0;
-        processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype);
-        if (d_im.hasProcessed())
-        {
-          return;
-        }
+      unsigned index = 0;
+      processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype);
+      if (d_im.hasProcessed())
+      {
+        break;
+      }
+    }
+    if (hasConstIndex || d_im.hasProcessed())
+    {
+      break;
+    }
+  }
+  if (d_state.isInConflict())
+  {
+    // conflict, we are done
+    return;
+  }
+  // Go back and check for normal form equality conflicts. These take
+  // precedence over any facts and lemmas.
+  for (const std::pair<const Node, size_t>& ni : nfCache)
+  {
+    for (const std::pair<const Node, size_t>& nj : nfCache)
+    {
+      if (ni.first >= nj.first)
+      {
+        // avoid duplicate comparisons
+        continue;
+      }
+      Node eq = ni.first.eqNode(nj.first);
+      eq = Rewriter::rewrite(eq);
+      if (eq == d_false)
+      {
+        std::vector<Node> exp;
+        NormalForm& nfi = normal_forms[ni.second];
+        NormalForm& nfj = normal_forms[nj.second];
+        exp.insert(exp.end(), nfi.d_exp.begin(), nfi.d_exp.end());
+        exp.insert(exp.end(), nfj.d_exp.begin(), nfj.d_exp.end());
+        exp.push_back(nfi.d_base.eqNode(nfj.d_base));
+        d_im.sendInference(exp, d_false, Inference::N_EQ_CONF);
+        return;
       }
     }
   }
-  if (pinfer.empty())
+  if (d_im.hasProcessed() || pinfer.empty())
   {
+    // either already sent a lemma or fact, or there are no possible inferences
     return;
   }
   // now, determine which of the possible inferences we want to add
@@ -1440,11 +1510,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       }
     }
     SkolemCache* skc = d_termReg.getSkolemCache();
-    Node sk = skc->mkSkolemCached(
-        x,
-        y,
-        isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-        "v_spt");
+    Node sk = skc->mkSkolemCached(x,
+                                  y,
+                                  isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
+                                        : SkolemCache::SK_ID_V_UNIFIED_SPT,
+                                  "v_spt");
     iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
     Node eq1 =
         x.eqNode(isRev ? utils::mkNConcat(sk, y) : utils::mkNConcat(y, sk));
@@ -1909,7 +1979,9 @@ void CoreSolver::processDeq(Node ni, Node nj)
         Node sk2 =
             skc->mkSkolemCached(x, y, SkolemCache::SK_ID_DEQ_Y, "y_dsplit");
         Node sk3 =
-            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_DEQ_Z, "z_dsplit");
+            skc->mkSkolemCached(y, x, SkolemCache::SK_ID_V_SPT, "z_dsplit");
+        Node sk4 =
+            skc->mkSkolemCached(x, y, SkolemCache::SK_ID_V_SPT, "w_dsplit");
         d_termReg.registerTermAtomic(sk3, LENGTH_GEQ_ONE);
         Node sk1Len = utils::mkNLength(sk1);
         conc.push_back(sk1Len.eqNode(xLenTerm));
@@ -1917,7 +1989,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
         conc.push_back(sk2Len.eqNode(yLenTerm));
         conc.push_back(nm->mkNode(OR,
                                   y.eqNode(utils::mkNConcat(sk1, sk3)),
-                                  x.eqNode(utils::mkNConcat(sk2, sk3))));
+                                  x.eqNode(utils::mkNConcat(sk2, sk4))));
         d_im.sendInference(antec,
                            antecNewLits,
                            nm->mkNode(AND, conc),

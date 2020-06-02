@@ -374,7 +374,7 @@ void Result::toStreamTptp(std::ostream& out) const {
 
 void Result::toStream(std::ostream& out, OutputLanguage language) const {
   switch (language) {
-    case language::output::LANG_SYGUS:
+    case language::output::LANG_SYGUS_V1:
     case language::output::LANG_SYGUS_V2: toStreamSmt2(out); break;
     case language::output::LANG_TPTP:
       toStreamTptp(out);

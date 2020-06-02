@@ -58,6 +58,11 @@ void GrammarBlack::testAddRule()
   TS_ASSERT_THROWS(g.addRule(nts, d_solver->mkBoolean(false)),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(g.addRule(start, d_solver->mkReal(0)), CVC4ApiException&);
+
+  d_solver->synthFun("f", {}, boolean, g);
+
+  TS_ASSERT_THROWS(g.addRule(start, d_solver->mkBoolean(false)),
+                   CVC4ApiException&);
 }
 
 void GrammarBlack::testAddRules()
@@ -75,10 +80,15 @@ void GrammarBlack::testAddRules()
 
   TS_ASSERT_THROWS(g.addRules(nullTerm, {d_solver->mkBoolean(false)}),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(g.addRule(start, {nullTerm}), CVC4ApiException&);
-  TS_ASSERT_THROWS(g.addRule(nts, {d_solver->mkBoolean(false)}),
+  TS_ASSERT_THROWS(g.addRules(start, {nullTerm}), CVC4ApiException&);
+  TS_ASSERT_THROWS(g.addRules(nts, {d_solver->mkBoolean(false)}),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(g.addRule(start, {d_solver->mkReal(0)}), CVC4ApiException&);
+  TS_ASSERT_THROWS(g.addRules(start, {d_solver->mkReal(0)}), CVC4ApiException&);
+
+  d_solver->synthFun("f", {}, boolean, g);
+
+  TS_ASSERT_THROWS(g.addRules(start, {d_solver->mkBoolean(false)}),
+                   CVC4ApiException&);
 }
 
 void GrammarBlack::testAddAnyConstant()
@@ -96,6 +106,10 @@ void GrammarBlack::testAddAnyConstant()
 
   TS_ASSERT_THROWS(g.addAnyConstant(nullTerm), CVC4ApiException&);
   TS_ASSERT_THROWS(g.addAnyConstant(nts), CVC4ApiException&);
+
+  d_solver->synthFun("f", {}, boolean, g);
+
+  TS_ASSERT_THROWS(g.addAnyConstant(start), CVC4ApiException&);
 }
 
 void GrammarBlack::testAddAnyVariable()
@@ -114,6 +128,10 @@ void GrammarBlack::testAddAnyVariable()
   TS_ASSERT_THROWS_NOTHING(g1.addAnyVariable(start));
   TS_ASSERT_THROWS_NOTHING(g2.addAnyVariable(start));
 
-  TS_ASSERT_THROWS(g1.addAnyConstant(nullTerm), CVC4ApiException&);
-  TS_ASSERT_THROWS(g1.addAnyConstant(nts), CVC4ApiException&);
+  TS_ASSERT_THROWS(g1.addAnyVariable(nullTerm), CVC4ApiException&);
+  TS_ASSERT_THROWS(g1.addAnyVariable(nts), CVC4ApiException&);
+
+  d_solver->synthFun("f", {}, boolean, g1);
+
+  TS_ASSERT_THROWS(g1.addAnyVariable(start), CVC4ApiException&);
 }

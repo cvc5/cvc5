@@ -56,6 +56,8 @@ header = "options/bv_options.h"
   name = "cryptominisat"
 [[option.mode.CADICAL]]
   name = "cadical"
+[[option.mode.KISSAT]]
+  name = "kissat"
 
 [[option]]
   name       = "bitblastMode"
