@@ -42,8 +42,8 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   //                   TRUE           FALSE         MEH
   enum SearchResult {FOUND_SPLITTER, NO_SPLITTER, DONT_KNOW};
 
-  typedef std::vector<pair<TNode,TNode> > IteList;
-  typedef context::CDHashMap<TNode,IteList,TNodeHashFunction> IteCache;
+  typedef std::vector<pair<TNode, TNode> > SkolemList;
+  typedef context::CDHashMap<TNode, SkolemList, TNodeHashFunction> SkolemCache;
   typedef std::vector<TNode> ChildList;
   typedef context::CDHashMap<TNode,pair<ChildList,ChildList>,TNodeHashFunction> ChildCache;
   typedef context::CDHashMap<TNode,TNode,TNodeHashFunction> SkolemMap;
@@ -63,18 +63,19 @@ class JustificationHeuristic : public ITEDecisionStrategy {
 
   /**
    * A copy of the assertions that need to be justified
-   * directly. Doesn't have ones introduced during during ITE-removal.
+   * directly. Doesn't have ones introduced during during term removal.
    */
   context::CDList<TNode> d_assertions;
   //TNode is fine since decisionEngine has them too
 
-  /** map from ite-rewrite skolem to a boolean-ite assertion */
-  SkolemMap d_iteAssertions;
+  /** map from skolems introduced in term removal to the corresponding assertion
+   */
+  SkolemMap d_skolemAssertions;
   // 'key' being TNode is fine since if a skolem didn't exist anywhere,
   // we won't look it up. as for 'value', same reason as d_assertions
 
-  /** Cache for ITE skolems present in a atomic formula */
-  IteCache d_iteCache;
+  /** Cache for skolems present in a atomic formula */
+  SkolemCache d_skolemCache;
 
   /**
    * This is used to prevent infinite loop when trying to find a
@@ -84,10 +85,10 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   std::unordered_set<TNode,TNodeHashFunction> d_visited;
 
   /**
-   * Set to track visited nodes in a dfs search done in computeITE
+   * Set to track visited nodes in a dfs search done in computeSkolems
    * function
    */
-  std::unordered_set<TNode,TNodeHashFunction> d_visitedComputeITE;
+  std::unordered_set<TNode, TNodeHashFunction> d_visitedComputeSkolems;
 
   /** current decision for the recursive call */
   SatLiteral d_curDecision;
@@ -153,8 +154,7 @@ public:
   SatValue tryGetSatValue(Node n);
 
   /* Get list of all term-ITEs for the atomic formula v */
-  JustificationHeuristic::IteList getITEs(TNode n);
-
+  JustificationHeuristic::SkolemList getSkolems(TNode n);
 
   /**
    * For big and/or nodes, a cache to save starting index into children
@@ -165,8 +165,8 @@ public:
   int getStartIndex(TNode node);
   void saveStartIndex(TNode node, int val);
 
-  /* Compute all term-ITEs in a node recursively */
-  void computeITEs(TNode n, IteList &l);
+  /* Compute all term-removal skolems in a node recursively */
+  void computeSkolems(TNode n, SkolemList& l);
 
   SearchResult handleAndOrEasy(TNode node, SatValue desiredVal);
   SearchResult handleAndOrHard(TNode node, SatValue desiredVal);
@@ -175,7 +175,7 @@ public:
   SearchResult handleBinaryHard(TNode node1, SatValue desiredVal1,
                         TNode node2, SatValue desiredVal2);
   SearchResult handleITE(TNode node, SatValue desiredVal);
-  SearchResult handleEmbeddedITEs(TNode node);
+  SearchResult handleEmbeddedSkolems(TNode node);
 };/* class JustificationHeuristic */
 
 }/* namespace decision */

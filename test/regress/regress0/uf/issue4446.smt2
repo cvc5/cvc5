@@ -1,0 +1,7 @@
+(set-logic QF_AUFLIA)
+(declare-fun a (Bool) Bool)
+(declare-fun b () Bool)
+(declare-fun c () Bool)
+(assert (or (a b) (a c)))
+(set-info :status sat)
+(check-sat)
