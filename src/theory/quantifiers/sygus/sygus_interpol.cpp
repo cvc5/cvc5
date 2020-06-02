@@ -29,6 +29,7 @@
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;
+using namespace std;
 
 namespace CVC4 {
 namespace theory {
@@ -342,8 +343,13 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
     {
       interpoln = interpoln[1];
     }
+    cout << "panda interpoln " << interpoln << endl;
+    for (Node v : d_vars) {
+      cout << "panda d_vars element: " << v << endl;
+    }
     interpoln = interpoln.substitute(
         d_vars.begin(), d_vars.end(), d_syms.begin(), d_syms.end());
+    cout << "panda kind of some var: " << interpoln[0][0].getKind() << endl;
     // convert to expression
     interpol = interpoln.toExpr();
     // if check abducts option is set, we check the correctness
