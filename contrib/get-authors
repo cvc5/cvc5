@@ -47,10 +47,8 @@ while [ $# -gt 0 ]; do
       '$2 !~ /^[ \t]*(#include|namespace|}.*namespace.*|[ \t]*$)/ {print $1}' | \
 
     # Keep author names only, remove the last 4 columns in ( ... )
-    awk 'NF{NF-=4};1' | \
 
-    # Determine top three contributors
-    sort | uniq -c | sort -rn | head -n3 | \
+    awk 'NF{NF-=4};1' | \
 
     # Fix author names
     sed "s,Not Committed Yet <not.committed.yet>,$gituser," | \
@@ -67,6 +65,9 @@ while [ $# -gt 0 ]; do
     sed 's/justinxu421/Justin Xu/' | \
     sed 's/yoni206/Yoni Zohar/' | \
     sed 's/ayveejay/Andrew V. Jones/' | \
+
+    # Determine top three contributors
+    sort | uniq -c | sort -rn | head -n3 | \
 
     # Remove first columns from uniq -c (number of lines)
     awk '{$1=""; print}' | \
