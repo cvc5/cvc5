@@ -1127,8 +1127,6 @@ set(regress_0_tests
   regress0/uflra/simple.03.cvc
   regress0/uflra/simple.04.cvc
   regress0/unconstrained/4481.smt2
-  regress0/unconstrained/4484.smt2
-  regress0/unconstrained/4486.smt2
   regress0/unconstrained/arith.smt2
   regress0/unconstrained/arith3.smt2
   regress0/unconstrained/arith4.smt2

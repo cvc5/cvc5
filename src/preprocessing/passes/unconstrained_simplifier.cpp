@@ -97,7 +97,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
       // user specifically enabled unconstrained simplification in an illegal
       // logic.
       throw LogicException(
-          "Cannot use unconstrained simplification with quantified formulas");
+          "Cannot use unconstrained simplification in this logic, due to (possibly internally introduced) quantified formula.");
     }
     else
     {
