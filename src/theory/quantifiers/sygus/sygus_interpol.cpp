@@ -86,6 +86,7 @@ void SygusInterpol::createVariables(bool needsShared)
       d_varsShared.push_back(var);
       d_vlvsShared.push_back(vlv);
       d_varTypesShared.push_back(tn);
+      d_symsShared.push_back(s);
     }
     // set that this variable encodes the term s
     SygusVarToTermAttribute sta;
@@ -339,18 +340,23 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
     Trace("sygus-interpol")
         << "SmtEngine::getInterpol: solution is " << its->second << std::endl;
     Node interpoln = Node::fromExpr(its->second);
+    Node interpoln_reduced;
     if (interpoln.getKind() == kind::LAMBDA)
     {
-      interpoln = interpoln[1];
+      interpoln_reduced = interpoln[1];
+    } else {
+      interpoln_reduced = interpoln;
     }
-    vector<Node> formals;
-    for (Node n : interpoln[0]) {
-      formals.push_back(n);
+    if (interpoln.getNumChildren() != 0 && interpoln[0].getNumChildren() != 0) {
+      vector<Node> formals;
+      for (Node n : interpoln[0]) {
+        formals.push_back(n);
+      }
+      interpoln_reduced = interpoln_reduced.substitute(
+          formals.begin(), formals.end(), d_symsShared.begin(), d_symsShared.end());
     }
-    interpoln = interpoln.substitute(
-        formals.begin(), formals.end(), d_syms.begin(), d_syms.end());
     // convert to expression
-    interpol = interpoln.toExpr();
+    interpol = interpoln_reduced.toExpr();
     // if check abducts option is set, we check the correctness
     return true;
   }

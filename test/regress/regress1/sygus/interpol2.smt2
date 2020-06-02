@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpols=default
+; COMMAND-LINE: --produce-interpols=default --sygus-active-gen=enum
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 

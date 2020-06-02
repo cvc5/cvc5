@@ -138,6 +138,7 @@ class SygusInterpol
   std::unordered_set<Node, NodeHashFunction> d_symsetShared;
 
   std::vector<Node> d_syms;
+  std::vector<Node> d_symsShared;
   std::vector<Node> d_vars;
   std::vector<Node> d_vlvs;
   std::vector<Node> d_varsShared;
