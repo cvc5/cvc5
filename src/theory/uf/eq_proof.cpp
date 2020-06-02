@@ -465,15 +465,18 @@ bool EqProof::foldTransitivityChildren(
         !substConclusionInReverseOrder
             ? conclusion
             : nm->mkNode(kind::EQUAL, congConclusion[0], conclusion[1]);
-    if (!p->addStep(transConclusion, PfRule::TRANS, premises, {}, true))
+    if (!assumptions.count(transConclusion))
     {
-      Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                       "transitivity step for deriving "
-                    << transConclusion << " from " << premises << "\n";
+      if (!p->addStep(transConclusion, PfRule::TRANS, premises, {}, true))
+      {
+        Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
+                         "transitivity step for deriving "
+                      << transConclusion << " from " << premises << "\n";
+      }
+      Trace("eqproof-conv")
+          << "EqProof::foldTransitivityChildren: via transitivity derived "
+          << transConclusion << "\n";
     }
-    Trace("eqproof-conv")
-        << "EqProof::foldTransitivityChildren: via transitivity derived "
-        << transConclusion << "\n";
     // if order is reversed, to a MACRO_SR_PRED_TRANSFORM step
     if (substConclusionInReverseOrder)
     {
