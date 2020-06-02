@@ -501,7 +501,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
             if (CVC4::options::proofNew())
             {
-              NewProofManager::currentPM()->finalizeProof(ps[0]);
+              NewProofManager* pm = NewProofManager::currentPM();
+              pm->registerClause(ps[0]);
+              pm->finalizeProof(ps[0]);
             }
             return ok = false;
           }
