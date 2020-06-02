@@ -38,10 +38,7 @@
 
 namespace CVC4 {
 
-NewProofManager::NewProofManager()
-    : d_cdproof(nullptr), d_solver(nullptr)
-{
-}
+NewProofManager::NewProofManager() : d_cdproof(nullptr), d_solver(nullptr) {}
 
 NewProofManager::~NewProofManager() {}
 
@@ -165,11 +162,8 @@ void NewProofManager::registerClause(prop::SatLiteral satLit)
     Assert(false) << "NewProofManager::couldn't add " << PfRule::ASSUME
                   << " step with conclusion: " << litNode << "\n";
   }
-  if (Debug.isOn("newproof::sat"))
-  {
-    Debug("newproof::sat") << "NewProofManager::registerClause: id " << id
-                           << ", Lit: " << satLit << "\n";
-  }
+  Debug("newproof::sat") << "NewProofManager::registerClause: id " << id
+                         << ", Lit: " << satLit << "\n";
 }
 
 void NewProofManager::registerClause(Minisat::Solver::TClause& clause)
@@ -300,7 +294,23 @@ ClauseId NewProofManager::justifyLit(Minisat::Solver::TLit lit)
   Debug("newproof::sat")
       << "NewProofManager::justifyLit: computing justification...\n";
   Minisat::Solver::TCRef reason_ref = d_solver->reason(Minisat::var(lit));
-  Assert(reason_ref != Minisat::Solver::TCRef_Undef);
+  if (reason_ref != Minisat::Solver::TCRef_Undef)
+  {
+    Debug("newproof::sat") << "NewProofManager::justifyLit: no justification, "
+                              "add as an assumptio\n";
+    id = d_nextId++;
+    d_litToClauseId[satLit] = id;
+    d_clauseIdToLit[id] = satLit;
+    Assert(d_litToNode.find(satLit) != d_litToNode.end())
+        << "NewProofManager::justifyLit: literal " << satLit
+        << " should have been defined.\n";
+    Node litNode = d_litToNode[satLit];
+    d_clauseIdToNode[id] = litNode;
+    d_cdproof->addStep(litNode, PfRule::ASSUME, {}, {litNode});
+    Debug("newproof::sat") << "NewProofManager::justifyLit: id " << id
+                           << ", Lit: " << satLit << "\n";
+    return id;
+  }
   Assert(reason_ref >= 0 && reason_ref < d_solver->ca.size());
   // Here, the call to resolveUnit() can reallocate memory in the
   // clause allocator.  So reload reason ptr each time.
