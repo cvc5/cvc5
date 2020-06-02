@@ -925,7 +925,8 @@ static FloatingPointLiteral constructorHelperBitVector(
       // We only have multiplyByPow(uint32_t) so we can't convert all numbers.
       // As we convert Integer -> unsigned int -> uint32_t we need that
       // unsigned int is not smaller than uint32_t
-      static_assert(sizeof(unsigned int) >= sizeof(uint32_t));
+      static_assert(sizeof(unsigned int) >= sizeof(uint32_t),
+		    "Conversion float -> real could loose data");
 #ifdef CVC4_ASSERTIONS
       // Note that multipling by 2^n requires n bits of space (worst case)
       // so, in effect, these tests limit us to cases where the resultant

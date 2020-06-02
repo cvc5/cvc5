@@ -1,4 +1,4 @@
-; COMMAND-LINE: --quiet
+; COMMAND-LINE: --theoryof-mode=type --quiet
 (set-logic QF_NIA)
 (declare-fun a () Int)
 (declare-fun b () Int)

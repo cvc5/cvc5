@@ -175,10 +175,10 @@ void TermBlack::testGetOp()
   Term extb = d_solver.mkTerm(ext, b);
 
   TS_ASSERT(ab.hasOp());
-  TS_ASSERT_EQUALS(ab.getOp(), Op(SELECT));
+  TS_ASSERT_EQUALS(ab.getOp(), Op(&d_solver, SELECT));
   TS_ASSERT(!ab.getOp().isIndexed());
   // can compare directly to a Kind (will invoke Op constructor)
-  TS_ASSERT_EQUALS(ab.getOp(), SELECT);
+  TS_ASSERT_EQUALS(ab.getOp(), Op(&d_solver, SELECT));
   TS_ASSERT(extb.hasOp());
   TS_ASSERT(extb.getOp().isIndexed());
   TS_ASSERT_EQUALS(extb.getOp(), ext);
@@ -189,7 +189,7 @@ void TermBlack::testGetOp()
   TS_ASSERT(!f.hasOp());
   TS_ASSERT_THROWS(f.getOp(), CVC4ApiException&);
   TS_ASSERT(fx.hasOp());
-  TS_ASSERT_EQUALS(fx.getOp(), APPLY_UF);
+  TS_ASSERT_EQUALS(fx.getOp(), Op(&d_solver, APPLY_UF));
   std::vector<Term> children(fx.begin(), fx.end());
   // testing rebuild from op and children
   TS_ASSERT_EQUALS(fx, d_solver.mkTerm(fx.getOp(), children));
@@ -225,10 +225,10 @@ void TermBlack::testGetOp()
   TS_ASSERT(headTerm.hasOp());
   TS_ASSERT(tailTerm.hasOp());
 
-  TS_ASSERT_EQUALS(nilTerm.getOp(), APPLY_CONSTRUCTOR);
-  TS_ASSERT_EQUALS(consTerm.getOp(), APPLY_CONSTRUCTOR);
-  TS_ASSERT_EQUALS(headTerm.getOp(), APPLY_SELECTOR);
-  TS_ASSERT_EQUALS(tailTerm.getOp(), APPLY_SELECTOR);
+  TS_ASSERT_EQUALS(nilTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
+  TS_ASSERT_EQUALS(consTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
+  TS_ASSERT_EQUALS(headTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
+  TS_ASSERT_EQUALS(tailTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
 
   // Test rebuilding
   children.clear();

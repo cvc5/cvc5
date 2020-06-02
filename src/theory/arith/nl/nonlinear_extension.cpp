@@ -15,7 +15,7 @@
  ** \todo document this file
  **/
 
-#include "theory/arith/nonlinear_extension.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
 #include "theory/arith/arith_utilities.h"
@@ -28,6 +28,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
@@ -49,27 +50,37 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
 NonlinearExtension::~NonlinearExtension() {}
 
 bool NonlinearExtension::getCurrentSubstitution(
-    int effort, const std::vector<Node>& vars, std::vector<Node>& subs,
-    std::map<Node, std::vector<Node> >& exp) {
+    int effort,
+    const std::vector<Node>& vars,
+    std::vector<Node>& subs,
+    std::map<Node, std::vector<Node>>& exp)
+{
   // get the constant equivalence classes
-  std::map<Node, std::vector<int> > rep_to_subs_index;
+  std::map<Node, std::vector<int>> rep_to_subs_index;
 
   bool retVal = false;
-  for (unsigned i = 0; i < vars.size(); i++) {
+  for (unsigned i = 0; i < vars.size(); i++)
+  {
     Node n = vars[i];
-    if (d_ee->hasTerm(n)) {
+    if (d_ee->hasTerm(n))
+    {
       Node nr = d_ee->getRepresentative(n);
-      if (nr.isConst()) {
+      if (nr.isConst())
+      {
         subs.push_back(nr);
         Trace("nl-subs") << "Basic substitution : " << n << " -> " << nr
                          << std::endl;
         exp[n].push_back(n.eqNode(nr));
         retVal = true;
-      } else {
+      }
+      else
+      {
         rep_to_subs_index[nr].push_back(i);
         subs.push_back(n);
       }
-    } else {
+    }
+    else
+    {
       subs.push_back(n);
     }
   }
@@ -79,8 +90,10 @@ bool NonlinearExtension::getCurrentSubstitution(
 }
 
 std::pair<bool, Node> NonlinearExtension::isExtfReduced(
-    int effort, Node n, Node on, const std::vector<Node>& exp) const {
-  if (n != d_zero) {
+    int effort, Node n, Node on, const std::vector<Node>& exp) const
+{
+  if (n != d_zero)
+  {
     Kind k = n.getKind();
     return std::make_pair(k != NONLINEAR_MULT && !isTranscendentalKind(k),
                           Node::null());
@@ -88,15 +101,15 @@ std::pair<bool, Node> NonlinearExtension::isExtfReduced(
   Assert(n == d_zero);
   if (on.getKind() == NONLINEAR_MULT)
   {
-    Trace("nl-ext-zero-exp") << "Infer zero : " << on << " == " << n
-                             << std::endl;
+    Trace("nl-ext-zero-exp")
+        << "Infer zero : " << on << " == " << n << std::endl;
     // minimize explanation if a substitution+rewrite results in zero
     const std::set<Node> vars(on.begin(), on.end());
 
     for (unsigned i = 0, size = exp.size(); i < size; i++)
     {
-      Trace("nl-ext-zero-exp") << "  exp[" << i << "] = " << exp[i]
-                               << std::endl;
+      Trace("nl-ext-zero-exp")
+          << "  exp[" << i << "] = " << exp[i] << std::endl;
       std::vector<Node> eqs;
       if (exp[i].getKind() == EQUAL)
       {
@@ -119,8 +132,8 @@ std::pair<bool, Node> NonlinearExtension::isExtfReduced(
         {
           if (eqs[j][r] == d_zero && vars.find(eqs[j][1 - r]) != vars.end())
           {
-            Trace("nl-ext-zero-exp") << "...single exp : " << eqs[j]
-                                     << std::endl;
+            Trace("nl-ext-zero-exp")
+                << "...single exp : " << eqs[j] << std::endl;
             return std::make_pair(true, eqs[j]);
           }
         }
@@ -337,9 +350,10 @@ std::vector<Node> NonlinearExtension::checkModelEval(
     const std::vector<Node>& assertions)
 {
   std::vector<Node> false_asserts;
-  for (size_t i = 0; i < assertions.size(); ++i) {
+  for (size_t i = 0; i < assertions.size(); ++i)
+  {
     Node lit = assertions[i];
-    Node atom = lit.getKind()==NOT ? lit[0] : lit;
+    Node atom = lit.getKind() == NOT ? lit[0] : lit;
     Node litv = d_model.computeConcreteModelValue(lit);
     Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
     if (litv != d_true)
@@ -403,7 +417,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   }
 
   //----------------------------------- possibly split on zero
-  if (options::nlExtSplitZero()) {
+  if (options::nlExtSplitZero())
+  {
     Trace("nl-ext") << "Get zero split lemmas..." << std::endl;
     lemmas = d_nlSlv.checkSplitZero();
     filterLemmas(lemmas, lems);
@@ -415,7 +430,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
   }
 
-  //-----------------------------------initial lemmas for transcendental functions
+  //-----------------------------------initial lemmas for transcendental
+  //functions
   lemmas = d_trSlv.checkTranscendentalInitialRefine();
   filterLemmas(lemmas, lems);
   if (!lems.empty())
@@ -445,8 +461,10 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     return lems.size();
   }
 
-  //-----------------------------------lemmas based on magnitude of non-zero monomials
-  for (unsigned c = 0; c < 3; c++) {
+  //-----------------------------------lemmas based on magnitude of non-zero
+  //monomials
+  for (unsigned c = 0; c < 3; c++)
+  {
     // c is effort level
     lemmas = d_nlSlv.checkMonomialMagnitude(c);
     unsigned nlem = lemmas.size();
@@ -462,7 +480,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   //-----------------------------------inferred bounds lemmas
   //  e.g. x >= t => y*x >= y*t
-  std::vector< Node > nt_lemmas;
+  std::vector<Node> nt_lemmas;
   lemmas =
       d_nlSlv.checkMonomialInferBounds(nt_lemmas, assertions, false_asserts);
   // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
@@ -494,7 +512,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   //------------------------------------factoring lemmas
   //   x*y + x*z >= t => exists k. k = y + z ^ x*k >= t
-  if( options::nlExtFactor() ){
+  if (options::nlExtFactor())
+  {
     lemmas = d_nlSlv.checkFactoring(assertions, false_asserts);
     filterLemmas(lemmas, lems);
     if (!lems.empty())
@@ -507,7 +526,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   //------------------------------------resolution bound inferences
   //  e.g. ( y>=0 ^ s <= x*z ^ x*y <= t ) => y*s <= z*t
-  if (options::nlExtResBound()) {
+  if (options::nlExtResBound())
+  {
     lemmas = d_nlSlv.checkMonomialInferResBounds();
     filterLemmas(lemmas, lems);
     if (!lems.empty())
@@ -517,7 +537,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       return lems.size();
     }
   }
-  
+
   //------------------------------------tangent planes
   if (options::nlExtTangentPlanes() && !options::nlExtTangentPlanesInterleave())
   {
@@ -535,7 +555,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   return 0;
 }
 
-void NonlinearExtension::check(Theory::Effort e) {
+void NonlinearExtension::check(Theory::Effort e)
+{
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e
                   << ", built model = " << d_builtModel.get() << std::endl;
@@ -543,15 +564,20 @@ void NonlinearExtension::check(Theory::Effort e) {
   {
     d_containing.getExtTheory()->clearCache();
     d_needsLastCall = true;
-    if (options::nlExtRewrites()) {
+    if (options::nlExtRewrites())
+    {
       std::vector<Node> nred;
-      if (!d_containing.getExtTheory()->doInferences(0, nred)) {
+      if (!d_containing.getExtTheory()->doInferences(0, nred))
+      {
         Trace("nl-ext") << "...sent no lemmas, # extf to reduce = "
                         << nred.size() << std::endl;
-        if (nred.empty()) {
+        if (nred.empty())
+        {
           d_needsLastCall = false;
         }
-      } else {
+      }
+      else
+      {
         Trace("nl-ext") << "...sent lemmas." << std::endl;
       }
     }
@@ -809,7 +835,7 @@ void NonlinearExtension::presolve()
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
 }
 
-
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
