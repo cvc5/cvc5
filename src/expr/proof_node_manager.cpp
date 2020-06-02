@@ -85,7 +85,6 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
   std::map<Node, std::vector<ProofNode*>> famap;
   pf->getFreeAssumptionsMap(famap);
   std::unordered_set<Node, NodeHashFunction> acu;
-  std::unordered_set<Node, NodeHashFunction>::iterator itf;
   for (const std::pair<const Node, std::vector<ProofNode*>>& fa : famap)
   {
     Node a = fa.first;
@@ -95,12 +94,12 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       acu.insert(a);
       continue;
     }
+    Trace("pnm-scope") << "- try matching free assumption " << a << "\n";
     // otherwise it may be due to symmetry?
     Node aeqSym = CDProof::getSymmFact(a);
     if (!aeqSym.isNull())
     {
-      itf = ac.find(aeqSym);
-      if (itf != ac.end())
+      if (ac.count(aeqSym))
       {
         Trace("pnm-scope") << "- reorient assumption " << aeqSym << " via " << a
                            << " for " << fa.second.size() << " proof nodes"
@@ -120,6 +119,47 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         acu.insert(aeqSym);
         continue;
       }
+    }
+    // otherwise it may be due to the predicate equality business?
+    //
+    // the assumption can be e.g. (= false (= t1 t2)) in which case the
+    // necessary proof to be built is
+    //
+    //     --------------- ASSUME
+    //     (not (= t1 t2))
+    //  -------------------- FALSE_INTRO
+    //  (= (= t1 t2) false)
+    //  -------------------- SYMM
+    //  (= false (= t1 t2))
+    bool pol, symm;
+    Node aPred = CDProof::getPredicateFact(a, pol, symm);
+    if (!aPred.isNull() && ac.count(aPred))
+    {
+      Trace("pnm-scope") << "- introduce explicit predicate " << aPred
+                         << " via " << (symm ? "[reoriented] " : "") << a
+                         << " for " << fa.second.size() << " proof nodes"
+                         << std::endl;
+      std::shared_ptr<ProofNode> pfaa = mkAssume(aPred);;
+      // maybe reorient equality, in which case update the pointer to the
+      // justification of the assumption
+      if (symm)
+      {
+        pfaa = mkNode(pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
+                      pfaa,
+                      {},
+                      a[1].eqNode(a[0]));
+      }
+      PfRule updateRule =
+            symm ? PfRule::SYMM
+                 : (pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO);
+      for (ProofNode* pfs : fa.second)
+      {
+        Assert(pfs->getResult() == a);
+        updateNode(pfs, updateRule, {pfaa}, {});
+      }
+      Trace("pnm-scope") << "...finished" << std::endl;
+      acu.insert(aPred);
+      continue;
     }
     // All free assumptions should be arguments to SCOPE.
     std::stringstream ss;
