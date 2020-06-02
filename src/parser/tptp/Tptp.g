@@ -1437,12 +1437,12 @@ tffLetTermBinding[std::vector<CVC4::api::Term> & bvlist,
                   CVC4::api::Term& lhs,
                   CVC4::api::Term& rhs]
   : term[lhs] EQUAL_TOK term[rhs]
-  {
-    PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
-    std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
-    rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
-    lhs = api::Term(lhs.getExpr().getOperator());
-  }
+{
+  PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
+  std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
+  rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
+  lhs = api::Term(PARSER_STATE->getSolver(), lhs.getExpr().getOperator());
+}
   | LPAREN_TOK tffLetTermBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
 
@@ -1463,7 +1463,7 @@ tffLetFormulaBinding[std::vector<CVC4::api::Term> & bvlist,
     PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
     std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
     rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
-    lhs = api::Term(lhs.getExpr().getOperator());
+    lhs = api::Term(PARSER_STATE->getSolver(), lhs.getExpr().getOperator());
   }
   | LPAREN_TOK tffLetFormulaBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
