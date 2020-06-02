@@ -1,4 +1,5 @@
-; COMMAND-LINE: --produce-interpols
+; COMMAND-LINE: --produce-interpols=default
+; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic NIA)
 (declare-fun x ( ) Int)

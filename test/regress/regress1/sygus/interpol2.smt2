@@ -1,5 +1,6 @@
-; COMMAND-LINE: --produce-interpols
-; EXPECT: 0
+; COMMAND-LINE: --produce-interpols=default
+; SCRUBBER: grep -v -E '(\(define-fun)'
+; EXIT: 0
 
 (set-logic QF_UFLIA)
 

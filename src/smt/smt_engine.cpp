@@ -3165,7 +3165,6 @@ bool SmtEngine::getInterpol(const Expr& conj,
   if (interpolSolver.SolveInterpolation(
           name, axioms, conjn, TypeNode::fromType(grammarType), interpol))
   {
-    cerr << "successed" << endl;
     // successfully generated an interpolation, update to interpol state
     d_smtMode = SMT_MODE_INTERPOL;
     if (options::checkInterpols())
