@@ -347,6 +347,9 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
     for (Node v : d_vars) {
       cout << "panda d_vars element: " << v << endl;
     }
+    for (Node v : d_syms) {
+      cout << "panda d_syms element: " << v << endl;
+    }
     interpoln = interpoln.substitute(
         d_vars.begin(), d_vars.end(), d_syms.begin(), d_syms.end());
     cout << "panda kind of some var: " << interpoln[0][0].getKind() << endl;

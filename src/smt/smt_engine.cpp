@@ -3167,6 +3167,9 @@ bool SmtEngine::getInterpol(const Expr& conj,
   {
     cerr << "successed" << endl;
     // successfully generated an interpolation, update to interpol state
+    cout << "panda interpol: " << interpol << endl;
+    cout << "panda interpol kind: " << interpol[0][0].getKind() << endl;
+    cout << "panda interpol kind query: " << (interpol[0][0].getKind() == kind::BOUND_VARIABLE) << endl;
     d_smtMode = SMT_MODE_INTERPOL;
     if (options::checkInterpols())
     {
@@ -3233,6 +3236,9 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   d_subsolver->assertFormula(aconj.toExpr());
   if (getAbductInternal(abd))
   {
+    cout << "panda abduct: " << abd << endl;
+    cout << "panda abduct kind: " << abd[0][0].getKind() << endl;
+    cout << "panda abduct kind query: " << (abd[0][0].getKind() == kind::BOUND_VARIABLE) << endl;
     // successfully generated an abduct, update to abduct state
     d_smtMode = SMT_MODE_ABDUCT;
     return true;
