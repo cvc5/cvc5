@@ -1,6 +1,4 @@
-; EXPECT: (error "The logic was specified as QF_AUFBVLIA, which doesn't include THEORY_QUANTIFIERS, but got a preprocessing-time fact for that theory.
-; EXPECT: The fact:
-; EXPECT: (forall ((c (_ BitVec 8))) (= (bvashr c a) b) )")
+; EXPECT: (error "Parse Error: issue4437-unc-quant.smt2:6.15: Quantifier used in non-quantified logic.")
 ; EXIT: 1
 (set-logic QF_AUFBVLIA)
 (declare-fun a () (_ BitVec 8))

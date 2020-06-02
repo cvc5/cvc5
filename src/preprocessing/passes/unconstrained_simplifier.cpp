@@ -93,6 +93,9 @@ bool UnconstrainedSimplifier::visitAll(TNode assertion)
     }
     else if (current.isClosure())
     {
+      throw TypeCheckingException(
+          current.toExpr(),
+          std::string("Cannot use unconstrained simplification with quantified formulas"));      
       // if quantifiers, immediately abort
       return false;
     }
