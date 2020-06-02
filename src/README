@@ -30,7 +30,7 @@ ProofOutputChannel <=> OutputChannel
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/proof_output_channel.h
 
 
-ProofSkolemCache
+SkolemManager
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof_skolem_cache.h
 
 
@@ -68,9 +68,9 @@ PR finished:
 (1) Add ProofNode printing as dag via SExpr
 (2) Strings solver state minor update
 (3) string rewrite for re inclusion
-(4) ProofSkolemCache
+(4) SkolemManager (previously ProofSkolemCache)
 (5) ProofChecker improve tracing, features
-(7) strings SkolemCache uses ProofSkolemCache (req 4)
+(7) strings SkolemCache uses SkolemManager (req 4)
 
 PRs ready:
 

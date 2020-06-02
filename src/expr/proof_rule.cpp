@@ -45,6 +45,7 @@ const char* toString(PfRule id)
     case PfRule::FACTORING: return "FACTORING";
     case PfRule::REORDERING: return "REORDERING";
     case PfRule::AND_ELIM: return "AND_ELIM";
+    case PfRule::AND_INTRO: return "AND_INTRO";
     case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";
     case PfRule::IMPLIES_ELIM: return "IMPLIES_ELIM";
     case PfRule::NOT_IMPLIES_ELIM1: return "NOT_IMPLIES_ELIM1";
@@ -61,6 +62,7 @@ const char* toString(PfRule id)
     case PfRule::ITE_ELIM2: return "ITE_ELIM2";
     case PfRule::NOT_ITE_ELIM1: return "NOT_ITE_ELIM1";
     case PfRule::NOT_ITE_ELIM2: return "NOT_ITE_ELIM2";
+    case PfRule::CONTRA: return "CONTRA";
     //================================================= De Morgan rules
     case PfRule::NOT_AND: return "NOT_AND";
     //================================================= CNF rules
@@ -117,6 +119,11 @@ const char* toString(PfRule id)
     //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
     //================================================= Unknown rule
+    case PfRule::SCALE_SUM_UPPER_BOUNDS: return "SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::TRICHOTOMY: return "TRICHOTOMY";
+    case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
+    case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
+    case PfRule::INT_TRUST: return "INT_TRUST";
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
   }

@@ -169,7 +169,7 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "proof-new"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "do proof production in the new format"
 
 [[option]]

@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "expr/node_algorithm.h"
-#include "expr/proof_skolem_cache.h"
+#include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "proof/proof_manager.h"
 
@@ -97,7 +97,8 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       if (skolem.isNull())
       {
         // Make the skolem to represent the ITE
-        skolem = ProofSkolemCache::mkPurifySkolem(
+        SkolemManager* sm = nodeManager->getSkolemManager();
+        skolem = sm->mkPurifySkolem(
             node,
             "termITE",
             "a variable introduced due to term-level ITE removal");
@@ -118,7 +119,8 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       if (skolem.isNull())
       {
         // Make the skolem to represent the lambda
-        skolem = ProofSkolemCache::mkPurifySkolem(
+        SkolemManager* sm = nodeManager->getSkolemManager();
+        skolem = sm->mkPurifySkolem(
             node,
             "lambdaF",
             "a function introduced due to term-level lambda removal");
@@ -151,8 +153,9 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       if (skolem.isNull())
       {
         // Make the skolem to witness the choice, which notice is handled
-        // as a special case within ProofSkolemCache::mkPurifySkolem.
-        skolem = ProofSkolemCache::mkPurifySkolem(
+        // as a special case within SkolemManager::mkPurifySkolem.
+        SkolemManager* sm = nodeManager->getSkolemManager();
+        skolem = sm->mkPurifySkolem(
             node,
             "witnessK",
             "a skolem introduced due to term-level witness removal");
@@ -179,9 +182,10 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       // special kind (BOOLEAN_TERM_VARIABLE) that ensures they are handled
       // properly in theory combination. We must use this kind here instead of a
       // generic skolem. Notice that the name/comment are currently ignored
-      // within ProofSkolemCache::mkPurifySkolem, since BOOLEAN_TERM_VARIABLE
+      // within SkolemManager::mkPurifySkolem, since BOOLEAN_TERM_VARIABLE
       // variables cannot be given names.
-      skolem = ProofSkolemCache::mkPurifySkolem(
+      SkolemManager* sm = nodeManager->getSkolemManager();
+      skolem = sm->mkPurifySkolem(
           node,
           "btvK",
           "a Boolean term variable introduced during term formula removal",

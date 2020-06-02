@@ -85,6 +85,12 @@ theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma,
 
   PROOF({ registerLemmaRecipe(lemma, lemma, preprocess, d_theory); });
 
+  if (options::proofNew())
+  {
+    TrustNode tlem = TrustNode::mkTrustLemma(lemma);
+    d_engine->processTrustNode(tlem, d_theory);
+  }
+
   theory::LemmaStatus result =
       d_engine->lemma(lemma,
                       rule,
@@ -234,6 +240,11 @@ theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
 
   Debug("pf::explain") << "EngineOutputChannel::splitLemma( " << lemma << " )"
                        << std::endl;
+  if (options::proofNew())
+  {
+    TrustNode tlem = TrustNode::mkTrustLemma(lemma);
+    d_engine->processTrustNode(tlem, d_theory);
+  }
   theory::LemmaStatus result =
       d_engine->lemma(lemma, RULE_SPLIT, false, removable, false, d_theory);
   return result;
@@ -257,6 +268,11 @@ void EngineOutputChannel::conflict(TNode conflictNode,
   Assert(!proof);  // Theory shouldn't be producing proofs yet
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
+  if (options::proofNew())
+  {
+    TrustNode tuConf = TrustNode::mkTrustConflict(conflictNode, nullptr);
+    d_engine->processTrustNode(tuConf, d_theory);
+  }
   d_engine->conflict(conflictNode, d_theory);
 }
 
@@ -303,8 +319,15 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
   d_engine->processTrustNode(pconf, d_theory);
   TNode conf = pconf.getNode();
-  // now, call the normal interface to conflict
-  conflict(conf);
+  Trace("theory::conflict") << "EngineOutputChannel<" << d_theory
+                            << ">::conflict(" << conf << ")" << std::endl;
+  if (pconf.getGenerator() != nullptr)
+  {
+    ++d_statistics.trustedConflicts;
+  }
+  ++d_statistics.conflicts;
+  d_engine->d_outputChannelUsed = true;
+  d_engine->conflict(conf, d_theory);
 }
 
 LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem,
@@ -315,8 +338,19 @@ LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem,
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   d_engine->processTrustNode(plem, d_theory);
   TNode lem = plem.getNode();
+  if (plem.getGenerator() != nullptr)
+  {
+    ++d_statistics.trustedLemmas;
+  }
+  ++d_statistics.lemmas;
+  d_engine->d_outputChannelUsed = true;
   // now, call the normal interface for lemma
-  return OutputChannel::lemma(lem, removable, preprocess, sendAtoms);
+  return d_engine->lemma(lem,
+                         RULE_INVALID,
+                         false,
+                         removable,
+                         preprocess,
+                         sendAtoms ? d_theory : theory::THEORY_LAST);
 }
 
 }  // namespace theory

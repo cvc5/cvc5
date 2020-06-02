@@ -2354,7 +2354,7 @@ Sort Grammar::resolve()
       addSygusConstructorTerm(dtDecl, consTerm, ntsToUnres);
     }
 
-    if (d_allowVars.find(ntSym) != d_allowConst.cend())
+    if (d_allowVars.find(ntSym) != d_allowVars.cend())
     {
       addSygusConstructorVariables(dtDecl, ntSym.d_expr->getType());
     }

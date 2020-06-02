@@ -465,15 +465,18 @@ bool EqProof::foldTransitivityChildren(
         !substConclusionInReverseOrder
             ? conclusion
             : nm->mkNode(kind::EQUAL, congConclusion[0], conclusion[1]);
-    if (!p->addStep(transConclusion, PfRule::TRANS, premises, {}, true))
+    if (!assumptions.count(transConclusion))
     {
-      Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                       "transitivity step for deriving "
-                    << transConclusion << " from " << premises << "\n";
+      if (!p->addStep(transConclusion, PfRule::TRANS, premises, {}, true))
+      {
+        Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
+                         "transitivity step for deriving "
+                      << transConclusion << " from " << premises << "\n";
+      }
+      Trace("eqproof-conv")
+          << "EqProof::foldTransitivityChildren: via transitivity derived "
+          << transConclusion << "\n";
     }
-    Trace("eqproof-conv")
-        << "EqProof::foldTransitivityChildren: via transitivity derived "
-        << transConclusion << "\n";
     // if order is reversed, to a MACRO_SR_PRED_TRANSFORM step
     if (substConclusionInReverseOrder)
     {
@@ -733,9 +736,10 @@ Node EqProof::addToProof(CDProof* p) const
   {
     Trace("eqproof-conv")
         << "EqProof::addToProof: process root for TRUE/FALSE_ELIM\n";
-    std::vector<Node> elimChildren{conclusion};
     unsigned constIndex =
         conclusion[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
+    Node elimChild =
+        constIndex == 1 ? conclusion : conclusion[1].eqNode(conclusion[0]);
     PfRule elimRule, introRule;
     if (conclusion[constIndex].getConst<bool>())
     {
@@ -783,10 +787,10 @@ Node EqProof::addToProof(CDProof* p) const
     if (!cyclic)
     {
       Trace("eqproof-conv")
-          << "EqProof::addToProof: adding " << elimRule << " step for "
-          << elimChildren.back() << ", introduced via "
+          << "EqProof::addToProof: conclude " << newConclusion << " via "
+          << elimRule << " step for " << elimChild << ", introduced via "
           << p->getProof(conclusion).get()->getRule() << "\n";
-      if (!p->addStep(newConclusion, elimRule, elimChildren, {}))
+      if (!p->addStep(newConclusion, elimRule, {elimChild}, {}))
       {
         Assert(false) << "EqProof::addToProof: couldn't add " << elimRule
                       << " rule\n";
@@ -828,63 +832,6 @@ Node EqProof::addToProof(
       }
     }
 #endif
-    // (= t true/false) case, in which t is not a Boolean variable
-    if (d_node.getKind() == kind::EQUAL
-        && ((d_node[0].getKind() == kind::CONST_BOOLEAN
-             && d_node[1].getKind() != kind::CONST_BOOLEAN
-             && d_node[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
-            || (d_node[1].getKind() == kind::CONST_BOOLEAN
-                && d_node[0].getKind() != kind::CONST_BOOLEAN
-                && d_node[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)))
-    {
-      unsigned constIndex = d_node[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
-      std::vector<Node> introChildren;
-      PfRule introRule;
-      if (d_node[constIndex].getConst<bool>())
-      {
-        introRule = PfRule::TRUE_INTRO;
-        Node introChild = d_node[1 - constIndex];
-        introChildren.push_back(introChild);
-        // track it and, if it's an equality, its symmetric
-        assumptions.insert(introChild);
-        if (introChild.getKind() == kind::EQUAL)
-        {
-          assumptions.insert(introChild[1].eqNode(introChild[0]));
-        }
-      }
-      else
-      {
-        introRule = PfRule::FALSE_INTRO;
-        Node introChild = d_node[1 - constIndex].notNode();
-        introChildren.push_back(introChild);
-        // track it and, if it's a negated equality, its symmetric
-        assumptions.insert(introChild);
-        if (introChild[0].getKind() == kind::EQUAL)
-        {
-          assumptions.insert(
-              introChild[0][1].eqNode(introChild[0][0]).notNode());
-        }
-      }
-      // the assumption can be e.g. (= false (= t1 t2)) in which case the
-      // necessary proof to be built is
-      //     --------------- ASSUME
-      //     (not (= t1 t2))
-      //  -------------------- FALSE_INTRO
-      //  (= (= t1 t2) false)
-      //  -------------------- SYMM
-      //  (= false (= t1 t2))
-      //
-      // with the SYMM step happening automatically whenever the assumption is
-      // used in the proof p
-      Node introConclusion =
-          constIndex == 1 ? d_node : d_node[1].eqNode(d_node[0]);
-      if (!p->addStep(introConclusion, introRule, introChildren, {}))
-      {
-        Assert(false) << "EqProof::addToProof: couldn't add " << introRule
-                      << " from " << d_node[1 - constIndex].notNode() << " to "
-                      << introConclusion << "\n";
-      }
-    }
     if (!p->addStep(d_node, PfRule::ASSUME, {}, {d_node}))
     {
       Assert(false) << "EqProof::addToProof: couldn't add assumption\n";

@@ -772,13 +772,13 @@ std::shared_ptr<ProofNode> ProofEqEngine::FactProofGenerator::getProofFor(
   NodeProofStepMap::iterator it = d_facts.find(fact);
   if (it == d_facts.end())
   {
-    if (fact.getKind() != EQUAL)
+    Node symFact = CDProof::getSymmFact(fact);
+    if (symFact.isNull())
     {
       Trace("pfee-fact-gen") << "...cannot find step" << std::endl;
       Assert(false);
       return nullptr;
     }
-    Node symFact = fact[1].eqNode(fact[0]);
     it = d_facts.find(symFact);
     if (it == d_facts.end())
     {

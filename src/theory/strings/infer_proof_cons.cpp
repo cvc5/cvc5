@@ -14,7 +14,7 @@
 
 #include "theory/strings/infer_proof_cons.h"
 
-#include "expr/proof_skolem_cache.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "theory/builtin/proof_checker.h"
@@ -162,17 +162,31 @@ Node InferProofCons::convert(Inference infer,
     case Inference::EXTF_EQ_REW:
     case Inference::INFER_EMP:
     {
+      // the last child is the predicate we are operating on, move to front
+      Node src = ps.d_children[ps.d_children.size() - 1];
+      std::vector<Node> expe;
       if (ps.d_children.size() > 1)
       {
-        Node pred = ps.d_children[ps.d_children.size() - 1];
-        ps.d_children.pop_back();
-        ps.d_children.insert(ps.d_children.begin(), pred);
+        expe.insert(expe.end(), ps.d_children.begin(), ps.d_children.end() - 1);
       }
-      // need the "extended equality rewrite"
-      MethodId ids = MethodId::SB_DEFAULT;
-      MethodId idr = MethodId::RW_REWRITE_EQ_EXT;
-      addMethodIds(ps.d_args, ids, idr);
-      ps.d_rule = PfRule::MACRO_SR_PRED_ELIM;
+      // start with a default rewrite
+      Node mainEqSRew = convertPredElim(src, expe);
+      if (mainEqSRew == conc)
+      {
+        useBuffer = true;
+        break;
+      }
+      // may need the "extended equality rewrite"
+      Node mainEqSRew2 = convertPredElim(
+          mainEqSRew, {}, MethodId::SB_DEFAULT, MethodId::RW_REWRITE_EQ_EXT);
+      if (mainEqSRew2 == conc)
+      {
+        useBuffer = true;
+        break;
+      }
+      // rewrite again with default rewriter
+      Node mainEqSRew3 = convertPredElim(mainEqSRew2, {});
+      useBuffer = (mainEqSRew3 == conc);
     }
     break;
     // ========================== substitution+rewriting, CONCAT_EQ, ...
@@ -1036,7 +1050,7 @@ Node InferProofCons::convertPredElim(Node src,
   if (CDProof::isSame(src, srcRew))
   {
     d_psb.popStep();
-    return src;
+    return srcRew;
   }
   return srcRew;
 }

@@ -260,6 +260,12 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Fi)
   AND_ELIM,
+  // ======== And elimination
+  // Children: (P1:F1 ... Pn:Fn))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (and P1 ... Pn)
+  AND_INTRO,
   // ======== Not Or elimination
   // Children: (P:(not (or F1 ... Fn)))
   // Arguments: (i)
@@ -356,6 +362,12 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or C (not F2))
   NOT_ITE_ELIM2,
+  // ======== Not ITE elimination version 1
+  // Children: (P1:P P2:(not P))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (false)
+  CONTRA,
 
   //================================================= De Morgan rules
   // ======== Not And
@@ -756,6 +768,50 @@ enum class PfRule : uint32_t
   STRING_CODE_INJ,
 
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
+
+  // Children: (P1:(><1 l1 r1), ... , Pn(><n ln rn))
+  //           where each ><i is a (possibly negated) >, >=, =
+  //           not(= ...) is dis-allowed!
+  //
+  // Arguments: (k1, ..., kn), non-zero reals
+  // ---------------------
+  // Conclusion: (>< (* k t1) (* k t2))
+  //    where >< is the fusion of the combination of the ><i, (flipping each it
+  //    its ki is negative). >< is always one of <, <=
+  //    NB: this implies that lower bounds must have negative ki,
+  //                      and upper bounds must have positive ki.
+  SCALE_SUM_UPPER_BOUNDS,
+
+  // ======== Tightening Strict Integer Upper Bounds
+  // Children: (P:(not (>= i c)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (not (> i greatestIntLessThan(c)}))
+  INT_TIGHT_UB,
+
+  // ======== Tightening Strict Integer Lower Bounds
+  // Children: (P:(> i c))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (>= i leastIntGreaterThan(c)})
+  INT_TIGHT_LB,
+
+  // ======== Tightening Integer Upper Bounds
+  // Children: (A B)
+  // Arguments: (C)
+  // ---------------------
+  // Conclusion: (C),
+  //                 where (not A) (not B)        and C
+  //                   are (> x c) (not (>= x c)) and (= x c)
+  //                   in some order
+  TRICHOTOMY,
+
+  // ======== Int Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (Q)
+  // ---------------------
+  // Conclusion: (Q)
+  INT_TRUST,
 
   //================================================= Unknown rule
   UNKNOWN,

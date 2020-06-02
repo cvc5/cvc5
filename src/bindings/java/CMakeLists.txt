@@ -65,6 +65,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/ExprHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/ExprManager.java
   ${CMAKE_CURRENT_BINARY_DIR}/ExprManagerMapCollection.java
+  ${CMAKE_CURRENT_BINARY_DIR}/ExprSequence.java
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPoint.java
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointConvertSort.java
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointSize.java

@@ -173,7 +173,6 @@ void CoreSolver::checkFlatForms()
             // conflict, explanation is n = base ^ base = c ^ relevant portion
             // of ( n = f[n] )
             std::vector<Node> exp;
-            d_bsolver.explainConstantEqc(n,eqc,exp);
             for (int e = firstc; e <= lastc; e++)
             {
               if (d_flat_form[n][e].isConst())
@@ -182,9 +181,10 @@ void CoreSolver::checkFlatForms()
                 Assert(d_flat_form_index[n][e] >= 0
                        && d_flat_form_index[n][e] < (int)n.getNumChildren());
                 d_im.addToExplanation(
-                    d_flat_form[n][e], n[d_flat_form_index[n][e]], exp);
+                    n[d_flat_form_index[n][e]], d_flat_form[n][e], exp);
               }
             }
+            d_bsolver.explainConstantEqc(n, eqc, exp);
             Node conc = d_false;
             d_im.sendInference(exp, conc, Inference::F_NCTN);
             return;

@@ -218,7 +218,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_curr_model_builder(nullptr),
       d_aloc_curr_model_builder(false),
       d_eager_model_building(false),
-      d_ppCache(),
       d_possiblePropagations(context),
       d_hasPropagated(context),
       d_inConflict(context, false),
@@ -231,6 +230,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_propagatedLiteralsIndex(context, 0),
       d_atomRequests(context),
       d_tform_remover(iteRemover),
+      d_tpp(*this, d_tform_remover),
       d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
       d_true(),
       d_false(),
@@ -968,7 +968,7 @@ void TheoryEngine::shutdown() {
     }
   }
 
-  d_ppCache.clear();
+  d_tpp.clearCache();
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitutionOut) {
@@ -994,144 +994,10 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
   return solveStatus;
 }
 
-// Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryEngine::ppTheoryRewrite(TNode term) {
-  NodeMap::iterator find = d_ppCache.find(term);
-  if (find != d_ppCache.end()) {
-    return (*find).second;
-  }
-  unsigned nc = term.getNumChildren();
-  if (nc == 0) {
-    return theoryOf(term)->ppRewrite(term);
-  }
-  Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
-
-  Node newTerm;
-  // do not rewrite inside quantifiers
-  if (term.isClosure())
-  {
-    newTerm = Rewriter::rewrite(term);
-  }
-  else
-  {
-    NodeBuilder<> newNode(term.getKind());
-    if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      newNode << term.getOperator();
-    }
-    unsigned i;
-    for (i = 0; i < nc; ++i) {
-      newNode << ppTheoryRewrite(term[i]);
-    }
-    newTerm = Rewriter::rewrite(Node(newNode));
-  }
-  Node newTerm2 = theoryOf(newTerm)->ppRewrite(newTerm);
-  if (newTerm != newTerm2) {
-    newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2));
-  }
-  d_ppCache[term] = newTerm;
-  Trace("theory-pp")<< "ppTheoryRewrite returning " << newTerm << "}" << endl;
-  return newTerm;
-}
-
-
-void TheoryEngine::preprocessStart()
-{
-  d_ppCache.clear();
-}
-
-
-struct preprocess_stack_element {
-  TNode node;
-  bool children_added;
-  preprocess_stack_element(TNode n) : node(n), children_added(false) {}
-};/* struct preprocess_stack_element */
-
+void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 Node TheoryEngine::preprocess(TNode assertion) {
-
-  Trace("theory::preprocess") << "TheoryEngine::preprocess(" << assertion << ")" << endl;
-  // spendResource();
-
-  // Do a topological sort of the subexpressions and substitute them
-  vector<preprocess_stack_element> toVisit;
-  toVisit.push_back(assertion);
-
-  while (!toVisit.empty())
-  {
-    // The current node we are processing
-    preprocess_stack_element& stackHead = toVisit.back();
-    TNode current = stackHead.node;
-
-    Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): processing " << current << endl;
-
-    // If node already in the cache we're done, pop from the stack
-    NodeMap::iterator find = d_ppCache.find(current);
-    if (find != d_ppCache.end()) {
-      toVisit.pop_back();
-      continue;
-    }
-
-    if(! d_logicInfo.isTheoryEnabled(Theory::theoryOf(current)) &&
-       Theory::theoryOf(current) != THEORY_SAT_SOLVER) {
-      stringstream ss;
-      ss << "The logic was specified as " << d_logicInfo.getLogicString()
-         << ", which doesn't include " << Theory::theoryOf(current)
-         << ", but got a preprocessing-time fact for that theory." << endl
-         << "The fact:" << endl
-         << current;
-      throw LogicException(ss.str());
-    }
-
-    // If this is an atom, we preprocess its terms with the theory ppRewriter
-    if (Theory::theoryOf(current) != THEORY_BOOL) {
-      Node ppRewritten = ppTheoryRewrite(current);
-      d_ppCache[current] = ppRewritten;
-      Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
-      continue;
-    }
-
-    // Not yet substituted, so process
-    if (stackHead.children_added) {
-      // Children have been processed, so substitute
-      NodeBuilder<> builder(current.getKind());
-      if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
-        builder << current.getOperator();
-      }
-      for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
-        Assert(d_ppCache.find(current[i]) != d_ppCache.end());
-        builder << d_ppCache[current[i]];
-      }
-      // Mark the substitution and continue
-      Node result = builder;
-      if (result != current) {
-        result = Rewriter::rewrite(result);
-      }
-      Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): setting " << current << " -> " << result << endl;
-      d_ppCache[current] = result;
-      toVisit.pop_back();
-    } else {
-      // Mark that we have added the children if any
-      if (current.getNumChildren() > 0) {
-        stackHead.children_added = true;
-        // We need to add the children
-        for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
-          TNode childNode = *child_it;
-          NodeMap::iterator childFind = d_ppCache.find(childNode);
-          if (childFind == d_ppCache.end()) {
-            toVisit.push_back(childNode);
-          }
-        }
-      } else {
-        // No children, so we're done
-        Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << assertion << "): setting " << current << " -> " << current << endl;
-        d_ppCache[current] = current;
-        toVisit.pop_back();
-      }
-    }
-  }
-
-  // Return the substituted version
-  return d_ppCache[assertion];
+  return d_tpp.theoryPreprocess(assertion);
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
@@ -1750,18 +1616,14 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // if d_lazyProof is enabled, then d_lazyProof contains a proof of n.
   if (d_lazyProof != nullptr)
   {
-    Node lemma = node;
-    if (negated)
-    {
-      lemma = lemma.negate();
-    }
+    Node lemma = negated ? node.notNode() : Node(node);
+    // the lemma should have a proof
     if (!d_lazyProof->hasStep(lemma) && !d_lazyProof->hasGenerator(lemma))
     {
       Trace("te-proof") << "No proof for lemma: " << lemma << std::endl;
       Trace("te-proof-warn")
           << "WARNING: No proof for lemma: " << lemma << std::endl;
-      // TODO:
-      // Assert(false);
+      Assert(false);
     }
     else
     {
@@ -1777,92 +1639,27 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                           << std::endl;
     lcp.reset(new LazyCDProof(d_pNodeManager.get()));
   }
-
-  AssertionPipeline additionalLemmas;
-
-  // Run theory preprocessing, maybe
-  Node ppNode = preprocess ? this->preprocess(node) : Node(node);
-
-  // Remove the ITEs
-  Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
-  additionalLemmas.push_back(ppNode);
-  additionalLemmas.updateRealAssertionsEnd();
-  d_tform_remover.run(additionalLemmas.ref(),
-                      additionalLemmas.getIteSkolemMap());
-  Trace("te-tform-rm") << "..done " << additionalLemmas[0] << std::endl;
-
-  if (lcp != nullptr)
+  // the assertion pipeline storing the lemmas
+  AssertionPipeline lemmas;
+  // call preprocessor
+  d_tpp.preprocess(node, lemmas, preprocess, lcp.get());
+  // assert lemmas to prop engine
+  for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
-    if (!CDProof::isSame(node, ppNode))
-    {
-      std::vector<Node> pfChildren;
-      pfChildren.push_back(node);
-      std::vector<Node> pfArgs;
-      pfArgs.push_back(additionalLemmas[0]);
-      lcp->addStep(additionalLemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
-    }
-    if (additionalLemmas.size() > 1 || additionalLemmas[0] != ppNode)
-    {
-#if 0
-      for (size_t i = 1, lsize = additionalLemmas.size(); i < lsize; ++i)
-      {
-        // the witness form of other lemmas should rewrite to true
-        // For example, if (lambda y. t[y]) has skolem k, then this lemma is:
-        //   forall x. k(x)=t[x]
-        // whose witness form rewrites
-        //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
-        std::vector<Node> pfChildren;
-        std::vector<Node> pfArgs;
-        pfArgs.push_back(additionalLemmas[i]);
-        lcp->addStep(additionalLemmas[i], PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
-      }
-#endif
-    }
-  }
-
-  if(Debug.isOn("lemma-ites")) {
-    Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
-    Debug("lemma-ites") << " + now have the following "
-                        << additionalLemmas.size() << " lemma(s):" << endl;
-    for(std::vector<Node>::const_iterator i = additionalLemmas.begin();
-        i != additionalLemmas.end();
-        ++i) {
-      Debug("lemma-ites") << " + " << *i << endl;
-    }
-    Debug("lemma-ites") << endl;
-  }
-
-  // assert to prop engine
-  for (size_t i = 0, lsize = additionalLemmas.size(); i < lsize; ++i)
-  {
-    Node rewritten = Rewriter::rewrite(additionalLemmas[i]);
-    if (lcp != nullptr)
-    {
-      if (!CDProof::isSame(rewritten, additionalLemmas[i]))
-      {
-        std::vector<Node> pfChildren;
-        pfChildren.push_back(additionalLemmas[i]);
-        std::vector<Node> pfArgs;
-        pfArgs.push_back(rewritten);
-        lcp->addStep(
-            rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
-      }
-    }
-    additionalLemmas.replace(i, rewritten);
     d_propEngine->assertLemma(
-        additionalLemmas[i], i == 0 && negated, removable, rule, node);
+        lemmas[i], i == 0 && negated, removable, rule, node);
   }
 
-  // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
+  // WARNING: Below this point don't assume lemmas[0] to be not negated.
   if(negated) {
-    additionalLemmas.replace(0, additionalLemmas[0].notNode());
+    lemmas.replace(0, lemmas[0].notNode());
     negated = false;
   }
 
   // assert to decision engine
   if (!removable)
   {
-    d_propEngine->addAssertionsToDecisionEngine(additionalLemmas);
+    d_propEngine->addAssertionsToDecisionEngine(lemmas);
   }
 
   // Mark that we added some lemmas
@@ -1870,7 +1667,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   // Lemma analysis isn't online yet; this lemma may only live for this
   // user level.
-  return theory::LemmaStatus(additionalLemmas[0], d_userContext->getLevel());
+  return theory::LemmaStatus(lemmas[0], d_userContext->getLevel());
 }
 
 void TheoryEngine::processTrustNode(theory::TrustNode trn,
@@ -1907,13 +1704,18 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn,
   }
 }
 
-void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
-
-  Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << endl;
-  // if proofNew is enabled, then d_lazyProof contains a proof of
-  // conflict.negate()
-  // Assert (d_lazyProof==nullptr || d_lazyProof->hasStep(conflict.negate()) ||
-  // d_lazyProof->hasGenerator(conflict.negate()) || theoryId==THEORY_ARITH);
+void TheoryEngine::conflict(TNode conflict, TheoryId theoryId)
+{
+  Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "
+                            << theoryId << ")" << endl;
+  // If proofNew is enabled, then either:
+  // (1) The lazy proof contains an explicitly provided step (probably
+  // THEORY_LEMMA),
+  // (2) The lazy proof contains an explicitly provided proof generator,
+  // (3) The conflict being processed is a propagatation of false.
+  AlwaysAssert(
+      d_lazyProof == nullptr || d_lazyProof->hasStep(conflict.notNode())
+      || d_lazyProof->hasGenerator(conflict.notNode()) || conflict == d_false);
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
@@ -1956,20 +1758,31 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
     if (d_lazyProof != nullptr)
     {
-      if (fullConflict != conflict)
+      Node fullConflictNeg = fullConflict.notNode();
+      std::vector<Node> children;
+      children.push_back(tncExp.getProven());
+      std::vector<Node> args;
+      args.push_back(fullConflictNeg);
+      if (conflict == d_false)
+      {
+        Assert(fullConflict != d_false);
+        // if the conflict was a propagation, then the proof is simple:
+        // --------------------- explained
+        // fullConflict => false
+        // --------------------- MACRO_SR_PRED_TRANSFORM
+        // ~fullConflict
+        d_lazyProof->addStep(
+            fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+      }
+      else if (fullConflict != conflict)
       {
         // store the explicit step
         processTrustNode(tncExp, THEORY_BUILTIN);
-        Node fullConflictNeg = fullConflict.notNode();
         // ------------------------- explained  ---------- from theory
         // fullConflict => conflict              ~conflict
-        // -----------------------------------------------
-        // MACRO_SR_PRED_TRANSFORM ~fullConflict
-        std::vector<Node> children;
-        children.push_back(tncExp.getProven());
+        // -------------------------------------------- MACRO_SR_PRED_TRANSFORM
+        // ~fullConflict
         children.push_back(conflict.notNode());
-        std::vector<Node> args;
-        args.push_back(fullConflictNeg);
         args.push_back(mkMethodId(MethodId::SB_LITERAL));
         d_lazyProof->addStep(
             fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
@@ -2199,9 +2012,11 @@ theory::TrustNode TheoryEngine::getExplanation(
             Trace("te-proof-exp")
                 << "- t-explained cached: " << toExplain.d_node << " by "
                 << (*find).second.d_node << std::endl;
-            // does this ever happen?
-            Assert(false);
-            simpleExplain = false;
+            // delay explanation, use a dummy trust node
+            TrustNode tnRewExp = TrustNode::mkTrustPropExp(
+                (*find).second.d_node, toExplain.d_node, nullptr);
+            texplains.push_back(
+                std::pair<TheoryId, TrustNode>(THEORY_LAST, tnRewExp));
           }
         }
         continue;
@@ -2364,37 +2179,50 @@ theory::TrustNode TheoryEngine::getExplanation(
       // remember that we've explained this formula
       exp.insert(tConc);
       TheoryId ttid = it->first;
+      Node tExp = proven[0];
       if (ttid == THEORY_LAST)
       {
-        // dummy trust node, do AND expansion
-        Assert(tConc.getKind() == kind::AND);
-        // tConc[0] ... tConc[n]
-        // ---------------------- MACRO_SR_PRED_INTRO
-        // tConc
         std::vector<Node> pfChildren;
-        std::vector<Node> pfChildrenNot;
-        for (size_t k = 0, nchild = tConc.getNumChildren(); k < nchild; ++k)
-        {
-          if (tConc[k].getKind() == kind::NOT)
-          {
-            // hack to ensure (not P) -> true is applied before P -> true
-            pfChildrenNot.push_back(tConc[k]);
-          }
-          else
-          {
-            pfChildren.push_back(tConc[k]);
-          }
-        }
-        pfChildren.insert(
-            pfChildren.end(), pfChildrenNot.begin(), pfChildrenNot.end());
         std::vector<Node> pfArgs;
+        if (tConc == tExp)
+        {
+          // dummy trust node, do AND expansion
+          Assert(tConc.getKind() == kind::AND);
+          // tConc[0] ... tConc[n]
+          // ---------------------- MACRO_SR_PRED_INTRO
+          // tConc
+          std::vector<Node> pfChildrenNot;
+          for (size_t k = 0, nchild = tConc.getNumChildren(); k < nchild; ++k)
+          {
+            if (tConc[k].getKind() == kind::NOT)
+            {
+              // hack to ensure (not P) -> true is applied before P -> true
+              pfChildrenNot.push_back(tConc[k]);
+            }
+            else
+            {
+              pfChildren.push_back(tConc[k]);
+            }
+          }
+          pfChildren.insert(
+              pfChildren.end(), pfChildrenNot.begin(), pfChildrenNot.end());
+          pfArgs.push_back(tConc);
+          pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
+          lcp->addStep(tConc, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+          simpleExplain = false;
+          continue;
+        }
+        // otherwise should hold by rewriting
+        Assert(Rewriter::rewrite(tConc) == Rewriter::rewrite(tExp));
+        // tExp
+        // ---- MACRO_SR_PRED_TRANSFORM
+        // tConc
+        pfChildren.push_back(tExp);
         pfArgs.push_back(tConc);
-        pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
-        lcp->addStep(tConc, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
-        simpleExplain = false;
+        lcp->addStep(
+            tConc, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
         continue;
       }
-      Node tExp = proven[0];
       if (tExp == tConc)
       {
         // trivial

@@ -59,14 +59,29 @@ std::shared_ptr<ProofNode> LazyCDProof::mkProof(Node fact)
       if (cur->getRule() == PfRule::ASSUME)
       {
         Node afact = cur->getResult();
-        bool isSym = false;
-        ProofGenerator* pg = getGeneratorFor(afact, isSym);
+        bool isSym = false, isPredEq = false;
+        ProofGenerator* pg = getGeneratorFor(afact, isSym, isPredEq);
         if (pg != nullptr)
         {
           Trace("lazy-cdproof") << "LazyCDProof: Call generator for assumption "
                                 << afact << std::endl;
-          Assert(!isSym || afact.getKind() == EQUAL);
-          Node afactGen = isSym ? afact[1].eqNode(afact[0]) : afact;
+          Node afactGen;
+          if (isPredEq)
+          {
+            bool pol, symm;
+            afactGen = CDProof::getPredicateFact(afact, pol, symm);
+            // add directly to cdproof
+            CDProof* cdpf = static_cast<CDProof*>(this);
+            cdpf->addStep(!symm ? afact : afact[1].eqNode(afact[0]),
+                          pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
+                          {afactGen},
+                          {});
+          }
+          else
+          {
+            afactGen = isSym ? CDProof::getSymmFact(afact) : afact;
+          }
+          Assert(!afactGen.isNull());
           // use the addProofTo interface
           if (!pg->addProofTo(afactGen, this))
           {
@@ -126,7 +141,9 @@ void LazyCDProof::addLazyStep(Node expected,
   d_gens.insert(expected, pg);
 }
 
-ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
+ProofGenerator* LazyCDProof::getGeneratorFor(Node fact,
+                                             bool& isSym,
+                                             bool& isPredEq)
 {
   isSym = false;
   NodeProofGeneratorMap::const_iterator it = d_gens.find(fact);
@@ -134,17 +151,31 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
   {
     return (*it).second;
   }
+  Node factSym = CDProof::getSymmFact(fact);
   // could be symmetry
-  if (fact.getKind() != EQUAL || fact[0] == fact[1])
+  if (factSym.isNull())
   {
     // can't be symmetry, return the default generator
     return d_defaultGen;
   }
-  Node factSym = fact[1].eqNode(fact[0]);
   it = d_gens.find(factSym);
   if (it != d_gens.end())
   {
     isSym = true;
+    return (*it).second;
+  }
+  // could be predicate equality
+  bool pol, symm;
+  Node factPred = CDProof::getPredicateFact(fact, pol, symm);
+  if (factPred.isNull())
+  {
+    // can't be predicate equality, return the default generator
+    return d_defaultGen;
+  }
+  it = d_gens.find(factPred);
+  if (it != d_gens.end())
+  {
+    isPredEq = true;
     return (*it).second;
   }
   // return the default generator
@@ -169,11 +200,21 @@ bool LazyCDProof::hasGenerator(Node fact) const
   }
   // maybe there is a symmetric fact?
   Node factSym = CDProof::getSymmFact(fact);
-  if (factSym.isNull())
+  if (!factSym.isNull())
   {
-    return false;
+    it = d_gens.find(factSym);
   }
-  it = d_gens.find(factSym);
+  if (it == d_gens.end())
+  {
+    // maybe theri is a predicate fact?
+    bool pol, symm;
+    Node factPred = CDProof::getPredicateFact(fact, pol, symm);
+    if (factPred.isNull())
+    {
+      return false;
+    }
+    it = d_gens.find(factPred);
+  }
   return it != d_gens.end();
 }
 

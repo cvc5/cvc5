@@ -266,6 +266,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
                    << std::endl;
     }
   }
+  // !!!!!!!!!!!!!!!! temporary, to support CI check for old proof system
+  if (options::proof())
+  {
+    options::proofNew.set(false);
+  }
   if (options::proofNew())
   {
     if (!options::stringLenConc.wasSetByUser())
@@ -883,6 +888,16 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
   if (options::ufHo())
   {
+    // if higher-order, disable proof production
+    if (options::proofNew())
+    {
+      if (options::proofNew.wasSetByUser())
+      {
+        Warning() << "SmtEngine: turning off proof production (not yet "
+                     "supported with --uf-ho)\n";
+      }
+      options::proofNew.set(false);
+    }
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
     if (options::mbqiMode() != options::MbqiMode::NONE)

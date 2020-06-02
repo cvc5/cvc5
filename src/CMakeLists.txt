@@ -758,6 +758,8 @@ libcvc4_add_sources(
   theory/theory_model.h
   theory/theory_model_builder.cpp
   theory/theory_model_builder.h
+  theory/theory_preprocessor.cpp
+  theory/theory_preprocessor.h
   theory/theory_registrar.h
   theory/theory_test_utils.h
   theory/type_enumerator.h
@@ -947,6 +949,7 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
+          expr/expr_sequence.h
           expr/record.h
           expr/symbol_table.h
           expr/type.h
