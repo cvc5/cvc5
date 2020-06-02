@@ -2198,9 +2198,8 @@ DatatypeConstructor Datatype::getConstructorForName(
 Datatype::const_iterator::const_iterator(const Solver* slv,
                                          const CVC4::Datatype& dtype,
                                          bool begin)
+    : d_solver(slv), d_int_ctors(dtype.getConstructors())
 {
-  d_solver = slv;
-  d_int_ctors = dtype.getConstructors();
   const std::vector<CVC4::DatatypeConstructor>* cons =
       static_cast<const std::vector<CVC4::DatatypeConstructor>*>(d_int_ctors);
   for (const auto& c : *cons)
