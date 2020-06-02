@@ -163,8 +163,38 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     }
     case kind::CONST_FLOATINGPOINT:
-      out << n.getConst<FloatingPoint>();
+    {
+      // retrive BV value
+      const FloatingPoint& fp = n.getConst<FloatingPoint>();
+      BitVector bv(fp.pack());
+      unsigned largestSignificandBit =
+          fp.t.significand() - 2;  // -1 for -inclusive, -1 for hidden
+      unsigned largestExponentBit =
+          (fp.t.exponent() - 1) + (largestSignificandBit + 1);
+      BitVector v[3];
+      v[0] = bv.extract(largestExponentBit + 1, largestExponentBit + 1);
+      v[1] = bv.extract(largestExponentBit, largestSignificandBit + 1);
+      v[2] = bv.extract(largestSignificandBit, 0);
+      out << "(fp ";
+      for (unsigned i = 0; i < 3; ++i)
+      {
+        if (options::bvPrintConstsInBinary())
+        {
+          out << "#b" << v[i].toString();
+        }
+        else
+        {
+          out << "(_ ";
+          out << "bv" << v[i].getValue() << " " << v[i].getSize();
+          out << ")";
+        }
+        if (i < 2)
+        {
+          out << " ";
+        }
+      }
       break;
+    }
     case kind::CONST_ROUNDINGMODE:
       switch (n.getConst<RoundingMode>()) {
       case roundNearestTiesToEven : out << "roundNearestTiesToEven"; break;
