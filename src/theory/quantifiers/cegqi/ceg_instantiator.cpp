@@ -1571,20 +1571,20 @@ void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) 
 }
 
 void CegInstantiator::registerCounterexampleLemma(Node lem,
-                                                  std::vector<Node>& ce_vars,
+                                                  std::vector<Node>& ceVars,
                                                   std::vector<Node>& auxLems)
 {
   Trace("cegqi-reg") << "Register counterexample lemma..." << std::endl;
   d_input_vars.clear();
-  d_input_vars.insert(d_input_vars.end(), ce_vars.begin(), ce_vars.end());
+  d_input_vars.insert(d_input_vars.end(), ceVars.begin(), ceVars.end());
 
   //Assert( d_vars.empty() );
   d_vars.clear();
   registerTheoryId(THEORY_UF);
-  for (unsigned i = 0; i < ce_vars.size(); i++)
+  for (const Node& cv : ceVars)
   {
-    Trace("cegqi-reg") << "  register input variable : " << ce_vars[i] << std::endl;
-    registerVariable(ce_vars[i]);
+    Trace("cegqi-reg") << "  register input variable : " << cv << std::endl;
+    registerVariable(cv);
   }
 
   // preprocess with all relevant instantiator preprocessors
@@ -1613,7 +1613,7 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
   std::unordered_set<Node, NodeHashFunction> qSyms;
   expr::getSymbols(d_quant, qSyms);
   // all variables that are in counterexample lemma but not in quantified
-  // formula are either
+  // formula
   for (const Node& ces : ceSyms)
   {
     if (qSyms.find(ces) != qSyms.end())
@@ -1634,7 +1634,8 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
     }
     Trace("cegqi-reg") << "  register theory preprocess variable : " << ces
                       << std::endl;
-    // register
+    // register the variable, which was introduced by TheoryEngine's preprocess
+    // method, e.g. an ITE skolem.
     registerVariable(ces);
   }
 

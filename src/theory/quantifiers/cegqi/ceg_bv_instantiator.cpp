@@ -633,7 +633,7 @@ struct SortBvExtractInterval
 };
 
 void BvInstantiatorPreprocess::registerCounterexampleLemma(
-    Node lem, std::vector<Node>& ce_vars, std::vector<Node>& auxLems)
+    Node lem, std::vector<Node>& ceVars, std::vector<Node>& auxLems)
 {
   // new variables
   std::vector<Node> vars;
@@ -720,7 +720,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
     auxLems.insert(auxLems.end(), new_lems.begin(), new_lems.end());
     Trace("cegqi-bv-pp") << "Adding " << vars.size() << " variables..."
                          << std::endl;
-    ce_vars.insert(ce_vars.end(), vars.begin(), vars.end());
+    ceVars.insert(ceVars.end(), vars.begin(), vars.end());
   }
 }
 

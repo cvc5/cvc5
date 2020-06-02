@@ -890,8 +890,6 @@ public:
 
   theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
 
-  RemoveTermFormulas* getTermFormulaRemover() { return &d_tform_remover; }
-
   SortInference* getSortInference() { return &d_sortInfer; }
 
   /** Prints the assertions to the debug stream */

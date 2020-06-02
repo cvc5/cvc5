@@ -224,18 +224,16 @@ class CegInstantiator {
   void presolve(Node q);
   /** Register the counterexample lemma
    *
-   * lems : contains the conjuncts of the counterexample lemma of the
-   *        quantified formula we are processing. The counterexample
-   *        lemma is the formula { ~phi[e/x] } in Figure 1 of Reynolds
-   *        et al. FMSD 2017.
-   * ce_vars : contains the variables e. Notice these are variables of
-   *           INST_CONSTANT kind, since we do not permit bound
-   *           variables in assertions.
-   *
-   * This method may modify the set of lemmas lems based on:
-   * - ITE removal,
-   * - Theory-specific preprocessing of instantiation lemmas.
-   * It may also introduce new variables to ce_vars if necessary.
+   * @param lem contains the counterexample lemma of the quantified formula we
+   * are processing. The counterexample lemma is the formula { ~phi[e/x] } in
+   * Figure 1 of Reynolds et al. FMSD 2017.
+   * @param ce_vars contains the variables e. Notice these are variables of
+   * INST_CONSTANT kind, since we do not permit bound variables in assertions.
+   * This method may add additional variables to this vector if it decides there
+   * are additional auxiliary variables to solve for.
+   * @param auxLems : if this method decides that additional lemmas should be
+   * sent on the output channel, they are added to this vector, and sent out by
+   * the caller of this method.
    */
   void registerCounterexampleLemma(Node lem,
                                    std::vector<Node>& ce_vars,
@@ -831,7 +829,7 @@ class InstantiatorPreprocess
    * CegInstantiation::registerCounterexampleLemma.
    */
   virtual void registerCounterexampleLemma(Node lem,
-                                           std::vector<Node>& ce_vars,
+                                           std::vector<Node>& ceVars,
                                            std::vector<Node>& auxLems)
   {
   }
