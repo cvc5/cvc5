@@ -51,6 +51,8 @@ libcvc4_add_sources(
   proof_rule.h
   proof_skolem_cache.cpp
   proof_skolem_cache.h
+  proof_step_buffer.cpp
+  proof_step_buffer.h
   symbol_table.cpp
   symbol_table.h
   term_canonize.cpp
