@@ -244,6 +244,15 @@ class CDProof
    * null if none exist.
    */
   static Node getSymmFact(TNode f);
+  /**
+   * Get predicate equivalent to given fact, e.g. for (= false (= t1 t2)) is
+   * returned (= t1 t2). If the given fact in not of the form "equality between
+   * predicate and boolean constant" null is returned.
+   *
+   * The polarity of the predicate is saved in pol and in symm wether the
+   * predicate leads to the given fact or to its symmetric via TRUE/FALSE_INTRO.
+   */
+  static Node getPredicateFact(TNode f, bool& pol, bool& symm);
 
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
