@@ -341,18 +341,20 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
     Node interpoln = Node::fromExpr(its->second);
     if (interpoln.getKind() == kind::LAMBDA)
     {
+      cout << "panda interpoln " << interpoln << endl;
       interpoln = interpoln[1];
+      cout << "panda interpoln " << interpoln << endl;
     }
     cout << "panda interpoln " << interpoln << endl;
     for (Node v : d_vars) {
-      cout << "panda d_vars element: " << v << endl;
+      cout << "panda d_vars element: " << v << ": " << v.getKind() << endl;
     }
     for (Node v : d_syms) {
-      cout << "panda d_syms element: " << v << endl;
+      cout << "panda d_syms element: " << v << ": " << v.getKind() << endl;
     }
     interpoln = interpoln.substitute(
         d_vars.begin(), d_vars.end(), d_syms.begin(), d_syms.end());
-    cout << "panda kind of some var: " << interpoln[0][0].getKind() << endl;
+    cout << "panda kind of " << interpoln[0][0] << " from " << interpoln << "is: " << interpoln[0][0].getKind() << endl;
     // convert to expression
     interpol = interpoln.toExpr();
     // if check abducts option is set, we check the correctness
