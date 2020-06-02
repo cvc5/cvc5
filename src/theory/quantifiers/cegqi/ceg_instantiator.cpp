@@ -1602,7 +1602,7 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
                       << std::endl;
   for (unsigned i = d_input_vars.size(), size = pvars.size(); i < size; ++i)
   {
-    Trace("cegqi-reg") << "  register theory preprocess variable : " << pvars[i]
+    Trace("cegqi-reg") << "  register inst preprocess variable : " << pvars[i]
                       << std::endl;
     registerVariable(pvars[i]);
   }
@@ -1626,6 +1626,13 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
       // already processed variable
       continue;
     }
+    if (ces.getType().isBoolean())
+    {
+      // Boolean variables don't matter
+      continue;
+    }
+    Trace("cegqi-reg") << "  register theory preprocess variable : " << ces
+                      << std::endl;
     // register
     registerVariable(ces);
   }
