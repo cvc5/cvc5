@@ -1935,7 +1935,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   if (additionalLemmas.size() > 1)
   {
     // the returned lemma is the conjunction of all additional lemmas.
-    retLemma = NodeManager::currentNM()->mkNode(kind::AND, additionalLemmas.ref());
+    retLemma =
+        NodeManager::currentNM()->mkNode(kind::AND, additionalLemmas.ref());
   }
   return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }

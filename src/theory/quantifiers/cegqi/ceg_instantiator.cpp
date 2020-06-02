@@ -1603,7 +1603,7 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
   for (unsigned i = d_input_vars.size(), size = pvars.size(); i < size; ++i)
   {
     Trace("cegqi-reg") << "  register inst preprocess variable : " << pvars[i]
-                      << std::endl;
+                       << std::endl;
     registerVariable(pvars[i]);
   }
 
@@ -1633,7 +1633,7 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
       continue;
     }
     Trace("cegqi-reg") << "  register theory preprocess variable : " << ces
-                      << std::endl;
+                       << std::endl;
     // register the variable, which was introduced by TheoryEngine's preprocess
     // method, e.g. an ITE skolem.
     registerVariable(ces);

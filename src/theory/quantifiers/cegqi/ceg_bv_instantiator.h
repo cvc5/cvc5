@@ -192,7 +192,7 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
    * solved forms for variables in t and for the intermediate variables above.
    */
   void registerCounterexampleLemma(Node lem,
-                                  std::vector<Node>& ceVars,
+                                   std::vector<Node>& ceVars,
                                    std::vector<Node>& auxLems) override;
 
  private:
