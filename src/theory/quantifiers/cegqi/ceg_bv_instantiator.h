@@ -168,8 +168,8 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
   ~BvInstantiatorPreprocess() override {}
   /** register counterexample lemma
    *
-   * This method adds to auxLems based on the extract terms
-   * it contains when the option --cbqi-bv-rm-extract is enabled. It introduces
+   * This method adds to auxLems based on the extract terms that lem
+   * contains when the option --cbqi-bv-rm-extract is enabled. It introduces
    * a dummy equality so that segments of terms t under extracts can be solved
    * independently.
    *
@@ -184,8 +184,8 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
    *   P[ ((extract 7 3) t), ((extract 4 0) t)]
    *     we add:
    *   t = concat( x75, x44, x30 )
-   * where x75, x44 and x30 are fresh variables of type BV_3, BV_1, and BV_4
-   * respectively to auxLems.
+   * to auxLems where x75, x44 and x30 are fresh variables of type BV_3, BV_1,
+   * and BV_4 respectively, which are added to ceVars.
    *
    * Notice we leave the original lem alone. This is done for performance
    * since the added equalities ensure we are able to construct the proper
