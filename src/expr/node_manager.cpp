@@ -233,6 +233,7 @@ NodeManager::~NodeManager() {
   // defensive coding, in case destruction-order issues pop up (they often do)
   delete d_resourceManager;
   d_resourceManager = NULL;
+  d_skManager = nullptr;
   delete d_statisticsRegistry;
   d_statisticsRegistry = NULL;
   delete d_registrations;
