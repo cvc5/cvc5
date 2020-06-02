@@ -52,7 +52,7 @@ struct unc_preprocess_stack_element
   unc_preprocess_stack_element(TNode n, TNode p) : node(n), parent(p) {}
 }; /* struct unc_preprocess_stack_element */
 
-bool UnconstrainedSimplifier::visitAll(TNode assertion)
+void UnconstrainedSimplifier::visitAll(TNode assertion)
 {
   // Do a topological sort of the subexpressions and substitute them
   vector<unc_preprocess_stack_element> toVisit;
@@ -93,11 +93,10 @@ bool UnconstrainedSimplifier::visitAll(TNode assertion)
     }
     else if (current.isClosure())
     {
-      throw TypeCheckingException(
-          current.toExpr(),
-          std::string("Cannot use unconstrained simplification with quantified formulas"));      
-      // if quantifiers, immediately abort
-      return false;
+      // Throw an exception. This should never happen in practice unless the
+      // user specifically enabled unconstrained simplification in an illegal
+      // logic.
+      throw LogicException("Cannot use unconstrained simplification with quantified formulas");
     }
     else
     {
@@ -107,7 +106,6 @@ bool UnconstrainedSimplifier::visitAll(TNode assertion)
       }
     }
   }
-  return true;
 }
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
@@ -835,18 +833,12 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
 
   d_context->push();
 
-  bool success = true;
   for (const Node& assertion : assertions)
   {
-    if (!visitAll(assertion))
-    {
-      // invalid, abort
-      success = false;
-      break;
-    }
+    visitAll(assertion);
   }
 
-  if (success && !d_unconstrained.empty())
+  if (!d_unconstrained.empty())
   {
     processUnconstrained();
     //    d_substitutions.print(Message.getStream());

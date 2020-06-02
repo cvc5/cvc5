@@ -63,11 +63,11 @@ class UnconstrainedSimplifier : public PreprocessingPass
 
   const LogicInfo& d_logicInfo;
   /**
-   * Visit all subterms in assertion. This method returns false if there is
-   * a subterm that is unhandled by this preprocessing pass (e.g. a quantified
-   * formula).
+   * Visit all subterms in assertion. This method throws a LogicException if
+   * there is a subterm that is unhandled by this preprocessing pass (e.g. a
+   * quantified formula).
    */
-  bool visitAll(TNode assertion);
+  void visitAll(TNode assertion);
   Node newUnconstrainedVar(TypeNode t, TNode var);
   void processUnconstrained();
 };
