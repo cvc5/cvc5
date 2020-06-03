@@ -113,15 +113,16 @@ const char* toString(PfRule id)
     case PfRule::RE_UNFOLD_NEG_CONCAT_FIXED:
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
     case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
-
-    //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
-
-    //================================================= Unknown rule
+    //================================================= Arith rules
     case PfRule::SCALE_SUM_UPPER_BOUNDS: return "SCALE_SUM_UPPER_BOUNDS";
     case PfRule::TRICHOTOMY: return "TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::INT_TRUST: return "INT_TRUST";
+
+    //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
+
+    //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
   }
