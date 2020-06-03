@@ -32,6 +32,15 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
 
+    //================================================= Equality rules
+    case PfRule::REFL: return "REFL";
+    case PfRule::SYMM: return "SYMM";
+    case PfRule::TRANS: return "TRANS";
+    case PfRule::CONG: return "CONG";
+    case PfRule::TRUE_INTRO: return "TRUE_INTRO";
+    case PfRule::TRUE_ELIM: return "TRUE_ELIM";
+    case PfRule::FALSE_INTRO: return "FALSE_INTRO";
+    case PfRule::FALSE_ELIM: return "FALSE_ELIM";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

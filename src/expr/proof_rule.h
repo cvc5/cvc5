@@ -71,6 +71,55 @@ enum class PfRule : uint32_t
   // has the conclusion (=> F F) and has no free assumptions. More generally, a
   // proof with no free assumptions always concludes a valid formula.
   SCOPE,
+  //================================================= Equality rules
+  // ======== Reflexive
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= t t)
+  REFL,
+  // ======== Symmetric
+  // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
+  // Arguments: none
+  // -----------------------
+  // Conclusion: (= t2 t1) or (not (= t2 t1))
+  SYMM,
+  // ======== Transitivity
+  // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
+  // Arguments: none
+  // -----------------------
+  // Conclusion: (= t1 tn)
+  TRANS,
+  // ======== Congruence  (subsumed by Substitute?)
+  // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
+  // Arguments: (f)
+  // ---------------------------------------------
+  // Conclusion: (= (f t1 ... tn) (f s1 ... sn))
+  CONG,
+  // ======== True intro
+  // Children: (P:F)
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= F true)
+  TRUE_INTRO,
+  // ======== True elim
+  // Children: (P:(= F true)
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: F
+  TRUE_ELIM,
+  // ======== False intro
+  // Children: (P:(not F))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= F false)
+  FALSE_INTRO,
+  // ======== False elim
+  // Children: (P:(= F false)
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (not F)
+  FALSE_ELIM,
 
   //======================== Builtin theory (common node operations)
   // ======== Substitution
