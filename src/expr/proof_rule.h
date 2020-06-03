@@ -88,8 +88,8 @@ enum class PfRule : uint32_t
   // Arguments: (t, (idr)?)
   // ----------------------------------------
   // Conclusion: (= t Rewriter{idr}(t))
-  // where idr is a MethodId identifier determines the kind of rewriter to
-  // apply, e.g. Rewriter::rewrite.
+  // where idr is a MethodId identifier, which determines the kind of rewriter
+  // to apply, e.g. Rewriter::rewrite.
   REWRITE,
   // ======== Substitution + Rewriting equality introduction
   //
@@ -102,7 +102,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= t t')
   // where
   //   t' is 
-  //   toWitness(Rewriter{id}(toSkolem(t)*sigma{ids}(Fn)*...*sigma{ids}(F1)))
+  //   toWitness(Rewriter{idr}(toSkolem(t)*sigma{ids}(Fn)*...*sigma{ids}(F1)))
   //   toSkolem(...) converts terms from witness form to Skolem form,
   //   toWitness(...) converts terms from Skolem form to witness form.
   //
@@ -111,8 +111,9 @@ enum class PfRule : uint32_t
   // In other words, from the point of view of Skolem forms, this rule
   // transforms t to t' by standard substitution + rewriting.
   //
-  // The argument id is optional and specifies the identifier of the rewriter to
-  // be used (see theory/builtin/proof_checker.h).
+  // The argument ids and idr is optional and specify the identifier of the
+  // substitution and rewriter respectively to be used. For details, see
+  // theory/builtin/proof_checker.h.
   MACRO_SR_EQ_INTRO,
   // ======== Substitution + Rewriting predicate introduction
   //

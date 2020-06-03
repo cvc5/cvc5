@@ -64,7 +64,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 {
   Node nk = ProofSkolemCache::getSkolemForm(n);
-  Node nkr = applyRewriteExternal(n, idr);
+  Node nkr = applyRewriteExternal(nk, idr);
   return ProofSkolemCache::getWitnessForm(nkr);
 }
 

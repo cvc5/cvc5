@@ -72,7 +72,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * n.
    *
    * @param n The node (in witness form) to rewrite,
-   * @param id The identifier of the rewriter.
+   * @param idr The method identifier of the rewriter, by default RW_REWRITE
+   * specifying a call to Rewriter::rewrite.
    * @return The rewritten form of n.
    */
   static Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
@@ -84,6 +85,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * @param n The node (in witness form) to substitute,
    * @param exp The (set of) equalities (in witness form) corresponding to the
    * substitution
+   * @param ids The method identifier of the substitution, by default SB_DEFAULT
+   * specifying that lhs/rhs of equalities are interpreted as a substitution.
    * @return The substituted form of n.
    */
   static Node applySubstitution(Node n,
@@ -99,7 +102,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * @param n The node (in witness form) to substitute and rewrite,
    * @param exp The (set of) equalities (in witness form) corresponding to the
    * substitution
-   * @param id The identifier of the rewriter.
+   * @param ids The method identifier of the substitution.
+   * @param idr The method identifier of the rewriter.
    * @return The substituted, rewritten form of n.
    */
   static Node applySubstitutionRewrite(Node n,
@@ -117,7 +121,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-  /** get method ids */
+  /** get method identifiers */
   bool getMethodIds(const std::vector<Node>& args,
                     MethodId& ids,
                     MethodId& idr,
@@ -129,9 +133,11 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   /**
    * Apply substitution for n (on Skolem form), where exp is an equality
    * (or set of equalities) in Witness form. Returns the result of
-   * n * { exp[0] -> exp[1] } in Skolem form.
+   * n * sigma{ids}(exp), where sigma{ids} is a substitution based on method
+   * identifier ids.
    */
   static Node applySubstitutionExternal(Node n, Node exp, MethodId ids);
+  /** Same as above, for a list of substitutions in exp */
   static Node applySubstitutionExternal(Node n,
                                         const std::vector<Node>& exp,
                                         MethodId ids);
