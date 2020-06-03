@@ -445,7 +445,7 @@ public:
   static inline Kind operatorToKind(TNode n);
 
   /** Get corresponding application kindfor function */
-  static inline Kind getKindForFunction(TNode fun);
+  static Kind getKindForFunction(TNode fun);
 
   // general expression-builders
 
