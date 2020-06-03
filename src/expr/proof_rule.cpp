@@ -91,6 +91,9 @@ const char* toString(PfRule id)
     case PfRule::TRUE_ELIM: return "TRUE_ELIM";
     case PfRule::FALSE_INTRO: return "FALSE_INTRO";
     case PfRule::FALSE_ELIM: return "FALSE_ELIM";
+    //================================================= Quantifiers rules
+    case PfRule::SKOLEMIZE: return "SKOLEMIZE";
+    case PfRule::INSTANTIATE: return "INSTANTIATE";
     //================================================= String rules
     case PfRule::CONCAT_EQ: return "CONCAT_EQ";
     case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";

@@ -51,6 +51,12 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   out.handleUserAttribute( "quant-inst-max-level", this );
   out.handleUserAttribute( "quant-elim", this );
   out.handleUserAttribute( "quant-elim-partial", this );
+  
+  if (pc!=nullptr)
+  {
+    // add the proof rules
+    d_qChecker.registerTo(pc);
+  }
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {

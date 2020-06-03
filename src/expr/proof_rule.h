@@ -496,11 +496,28 @@ enum class PfRule : uint32_t
   // Conclusion: (= F false)
   FALSE_INTRO,
   // ======== False elim
-  // Children: (P:(= F false)
+  // Children: (P:(= F false))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: (not F)
   FALSE_ELIM,
+
+  //================================================= Quantifiers rules
+  // ======== Skolemize
+  // Children: (P:(exists ((x1 T1) ... (xn Tn)) P))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (or (not (exists ((x1 T1) ... (xn Tn)) P)) P*sigma)
+  // sigma maps x1 ... xn to their representative skolems obtained by
+  // SkolemManager::mkSkolemExists.
+  SKOLEMIZE,
+  // ======== Instantiate
+  // Children: (P:(forall ((x1 T1) ... (xn Tn)) P))
+  // Arguments: (t1 ... tn)
+  // ----------------------------------------
+  // Conclusion: (or (not (forall ((x1 T1) ... (xn Tn)) P)) P*sigma)
+  // sigma maps x1 ... xn to t1 ... tn.
+  INSTANTIATE,
 
   //================================================= String rules
   //======================== Core solver
