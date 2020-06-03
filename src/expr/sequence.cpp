@@ -14,6 +14,8 @@
 
 #include "expr/sequence.h"
 
+#include "expr/expr_sequence.h"
+
 using namespace std;
 
 namespace CVC4 {
@@ -296,6 +298,16 @@ bool Sequence::noOverlapWith(const Sequence& y) const
 }
 
 size_t Sequence::maxSize() { return std::numeric_limits<uint32_t>::max(); }
+
+ExprSequence Sequence::toExprSequence()
+{
+  std::vector<Expr> seq;
+  for (const Node& n : d_seq)
+  {
+    seq.push_back(n.toExpr());
+  }
+  return ExprSequence(d_type.toType(), seq);
+}
 
 std::ostream& operator<<(std::ostream& os, const Sequence& s)
 {
