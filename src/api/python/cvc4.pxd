@@ -243,6 +243,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint operator!=(const Term&) except +
         Kind getKind() except +
         Sort getSort() except +
+        Term substitute(const vector[Term] es, const vector[Term] & reps) except +
         bint hasOp() except +
         Op getOp() except +
         bint isNull() except +

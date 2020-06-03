@@ -1080,6 +1080,23 @@ cdef class Term:
         sort.csort = self.cterm.getSort()
         return sort
 
+    def substitute(self, list es, list replacements):
+        cdef vector[c_Term] ces
+        cdef vector[c_Term] creplacements
+        cdef Term term = Term()
+
+        if len(es) != len(replacements):
+            raise RuntimeError("Expecting list inputs to substitute to "
+                               "have the same length but got: "
+                               "{} and {}".format(len(es), len(replacements)))
+
+        for e, r in zip(es, replacements):
+            ces.push_back((<Term?> e).cterm)
+            creplacements.push_back((<Term?> r).cterm)
+
+        term.cterm = self.cterm.substitute(ces, creplacements)
+        return term
+
     def hasOp(self):
         return self.cterm.hasOp()
 
