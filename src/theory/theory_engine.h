@@ -371,8 +371,6 @@ class TheoryEngine {
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
 
-  RemoveTermFormulas& d_tform_remover;
-
   /** sort inference module */
   SortInference d_sortInfer;
 

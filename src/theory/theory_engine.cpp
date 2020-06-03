@@ -229,8 +229,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_propagatedLiterals(context),
       d_propagatedLiteralsIndex(context, 0),
       d_atomRequests(context),
-      d_tform_remover(iteRemover),
-      d_tpp(*this, d_tform_remover),
+      d_tpp(*this, iteRemover),
       d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
       d_true(),
       d_false(),
@@ -1667,12 +1666,12 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   // Lemma analysis isn't online yet; this lemma may only live for this
   // user level.
-  Node retLemma = additionalLemmas[0];
-  if (additionalLemmas.size() > 1)
+  Node retLemma = lemmas[0];
+  if (lemmas.size() > 1)
   {
     // the returned lemma is the conjunction of all additional lemmas.
     retLemma =
-        NodeManager::currentNM()->mkNode(kind::AND, additionalLemmas.ref());
+        NodeManager::currentNM()->mkNode(kind::AND, lemmas.ref());
   }
   return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
