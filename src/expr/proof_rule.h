@@ -208,7 +208,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Fi)
   AND_ELIM,
-  // ======== And elimination
+  // ======== And introduction
   // Children: (P1:F1 ... Pn:Fn))
   // Arguments: ()
   // ---------------------

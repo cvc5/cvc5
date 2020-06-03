@@ -80,7 +80,7 @@ class EagerProofGenerator : public ProofGenerator
       NodeProofNodeMap;
 
  public:
-  EagerProofGenerator(context::UserContext* u, ProofNodeManager* pnm);
+  EagerProofGenerator(context::Context* c, ProofNodeManager* pnm);
   ~EagerProofGenerator() {}
   /** Get the proof for formula f. */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -134,6 +134,8 @@ class EagerProofGenerator : public ProofGenerator
    * by calls to setProofForConflict and setProofForLemma above.
    */
   NodeProofNodeMap d_proofs;
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;
 };
 
 }  // namespace theory

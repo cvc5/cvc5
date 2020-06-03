@@ -84,7 +84,7 @@ class SkolemManager
    * @param comment Debug information about the Skolem
    * @param flags The flags for the Skolem (see NodeManager::mkSkolem)
    * @param pg The proof generator for this skolem. If non-null, this proof
-   * generator must respond to a call to getProofFor(exists x. pred) during
+   * generator must respond to a call to getProofFor(exists v. pred) during
    * the lifetime of the current node manager.
    * @return The skolem whose witness form is registered by this class.
    */

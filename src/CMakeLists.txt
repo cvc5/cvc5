@@ -314,6 +314,8 @@ libcvc4_add_sources(
   theory/arith/nl/nonlinear_extension.h
   theory/arith/nl/transcendental_solver.cpp
   theory/arith/nl/transcendental_solver.h
+  theory/arith/operator_elim.cpp
+  theory/arith/operator_elim.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
   theory/arith/partial_model.cpp

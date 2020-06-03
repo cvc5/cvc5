@@ -2195,26 +2195,10 @@ theory::TrustNode TheoryEngine::getExplanation(
           // dummy trust node, do AND expansion
           Assert(tConc.getKind() == kind::AND);
           // tConc[0] ... tConc[n]
-          // ---------------------- MACRO_SR_PRED_INTRO
+          // ---------------------- AND_INTRO
           // tConc
-          std::vector<Node> pfChildrenNot;
-          for (size_t k = 0, nchild = tConc.getNumChildren(); k < nchild; ++k)
-          {
-            if (tConc[k].getKind() == kind::NOT)
-            {
-              // hack to ensure (not P) -> true is applied before P -> true
-              pfChildrenNot.push_back(tConc[k]);
-            }
-            else
-            {
-              pfChildren.push_back(tConc[k]);
-            }
-          }
-          pfChildren.insert(
-              pfChildren.end(), pfChildrenNot.begin(), pfChildrenNot.end());
-          pfArgs.push_back(tConc);
-          pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
-          lcp->addStep(tConc, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+          pfChildren.insert(pfChildren.end(),tConc.begin(),tConc.end());
+          lcp->addStep(tConc, PfRule::AND_INTRO, pfChildren, pfArgs);
           simpleExplain = false;
           continue;
         }
