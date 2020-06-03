@@ -77,7 +77,7 @@ class ProofRuleChecker
   /**
    * This checks a single step in a proof. It is identical to check above
    * except that children and args have been converted to "witness form"
-   * (see ProofSkolemCache). Likewise, its output should be in witness form.
+   * (see SkolemManager). Likewise, its output should be in witness form.
    *
    * @param id The id of the proof node to check
    * @param children The premises of the proof node to check. These are nodes
@@ -100,6 +100,8 @@ class ProofCheckerStatistics
   ~ProofCheckerStatistics();
   /** Counts the number of checks for each kind of proof rule */
   HistogramStat<PfRule> d_ruleChecks;
+  /** Total number of rule checks */
+  IntStat d_totalRuleChecks;
 };
 
 /** A class for checking proofs */
