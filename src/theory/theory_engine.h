@@ -116,6 +116,7 @@ class TheoryEngine {
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
   friend class theory::quantifiers::TermDb;
+  friend class theory::EngineOutputChannel;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
