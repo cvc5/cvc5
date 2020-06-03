@@ -20,7 +20,6 @@
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
-#include "theory/builtin/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,8 +40,6 @@ class UfProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-  /** Builtin proof checker */
-  builtin::BuiltinProofRuleChecker d_builtinChecker;
 };
 
 }  // namespace uf
