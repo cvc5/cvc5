@@ -865,4 +865,26 @@ void NodeManager::debugHook(int debugFlag){
   // For debugging purposes only, DO NOT CHECK IN ANY CODE!
 }
 
+Kind NodeManager::getKindForFunction(TNode fun)
+{
+  TypeNode tn = fun.getType();
+  if (tn.isFunction())
+  {
+    return kind::APPLY_UF;
+  }
+  else if (tn.isConstructor())
+  {
+    return kind::APPLY_CONSTRUCTOR;
+  }
+  else if (tn.isSelector())
+  {
+    return kind::APPLY_SELECTOR;
+  }
+  else if (tn.isTester())
+  {
+    return kind::APPLY_TESTER;
+  }
+  return kind::UNDEFINED_KIND;
+}
+
 }/* CVC4 namespace */

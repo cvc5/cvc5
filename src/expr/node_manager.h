@@ -444,7 +444,18 @@ public:
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);
 
-  /** Get corresponding application kindfor function */
+  /** Get corresponding application kind for function
+   *
+   * Different functional nodes are applied differently. For example,
+   * uninterpreted functions are applied via APPLY_UF, while constructors via
+   * APPLY_CONSTRUCTOR. This method provides the correct application according
+   * to which kind of function fun is.
+   *
+   * @param fun The functional node
+   * @return the correct application kind for fun. If fun is not an
+   * uninterpreted function, a constructor, a selector or a tester, then
+   * UNDEFINED_KIND is returned.
+   */
   static Kind getKindForFunction(TNode fun);
 
   // general expression-builders
@@ -1237,28 +1248,6 @@ inline bool NodeManager::hasOperator(Kind k) {
 
 inline Kind NodeManager::operatorToKind(TNode n) {
   return kind::operatorToKind(n.d_nv);
-}
-
-inline Kind NodeManager::getKindForFunction(TNode fun)
-{
-  TypeNode tn = fun.getType();
-  if (tn.isFunction())
-  {
-    return kind::APPLY_UF;
-  }
-  else if (tn.isConstructor())
-  {
-    return kind::APPLY_CONSTRUCTOR;
-  }
-  else if (tn.isSelector())
-  {
-    return kind::APPLY_SELECTOR;
-  }
-  else if (tn.isTester())
-  {
-    return kind::APPLY_TESTER;
-  }
-  return kind::UNDEFINED_KIND;
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1) {
