@@ -14,7 +14,6 @@
 
 #include "theory/theory_preprocessor.h"
 
-#include "expr/lazy_proof.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
