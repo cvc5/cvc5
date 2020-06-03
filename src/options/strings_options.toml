@@ -55,15 +55,6 @@ header = "options/strings_options.h"
   help       = "perform string preprocessing lazily"
 
 [[option]]
-  name       = "stringLenGeqZ"
-  category   = "regular"
-  long       = "strings-len-geqz"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "strings length greater than zero lemmas"
-
-[[option]]
   name       = "stringLenNorm"
   category   = "regular"
   long       = "strings-len-norm"
@@ -174,7 +165,7 @@ header = "options/strings_options.h"
   category   = "regular"
   long       = "re-elim"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "elimination techniques for regular expressions"
 
 [[option]]

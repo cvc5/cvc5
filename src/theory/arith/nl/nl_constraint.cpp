@@ -12,7 +12,7 @@
  ** \brief Implementation of utilities for non-linear constraints
  **/
 
-#include "theory/arith/nl_constraint.h"
+#include "theory/arith/nl/nl_constraint.h"
 
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -22,6 +22,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 ConstraintDb::ConstraintDb(MonomialDb& mdb) : d_mdb(mdb) {}
 
@@ -118,6 +119,7 @@ bool ConstraintDb::isMaximal(Node atom, Node x) const
   return itcm->second.find(x) != itcm->second.end();
 }
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

@@ -37,6 +37,8 @@ set(regress_0_tests
   regress0/arith/issue3413.smt2
   regress0/arith/issue3480.smt2
   regress0/arith/issue3683.smt2
+  regress0/arith/issue4367.smt2
+  regress0/arith/issue4525.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
@@ -503,6 +505,7 @@ set(regress_0_tests
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/issue3536.smt2
+  regress0/fp/issue3619.smt2
   regress0/fp/issue4277-assign-func.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/rti_3_5_bug_report.smt2
@@ -537,6 +540,7 @@ set(regress_0_tests
   regress0/ho/ho-matching-nested-app.smt2
   regress0/ho/ho-std-fmf.smt2
   regress0/ho/hoa0008.smt2
+  regress0/ho/issue4477.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
@@ -736,6 +740,7 @@ set(regress_0_tests
   regress0/quantifiers/issue3655.smt2
   regress0/quantifiers/issue4086-infs.smt2
   regress0/quantifiers/issue4275-qcf-cegqi-rep.smt2
+  regress0/quantifiers/issue4476-ext-rew.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
@@ -964,6 +969,7 @@ set(regress_0_tests
   regress0/strings/parser-syms.cvc
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/re.all.smt2
+  regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/regexp-native-simple.cvc
@@ -1120,6 +1126,9 @@ set(regress_0_tests
   regress0/uflra/simple.02.cvc
   regress0/uflra/simple.03.cvc
   regress0/uflra/simple.04.cvc
+  regress0/unconstrained/4481.smt2
+  regress0/unconstrained/4484.smt2
+  regress0/unconstrained/4486.smt2
   regress0/unconstrained/arith.smt2
   regress0/unconstrained/arith3.smt2
   regress0/unconstrained/arith4.smt2
@@ -1307,6 +1316,7 @@ set(regress_1_tests
   regress1/fmf/issue3626.smt2
   regress1/fmf/issue3689.smt2
   regress1/fmf/issue4068-si-qf.smt2
+  regress1/fmf/issue4225-univ-fun.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
@@ -1471,6 +1481,7 @@ set(regress_1_tests
   regress1/push-pop/fuzz_7.smt2
   regress1/push-pop/fuzz_8.smt2
   regress1/push-pop/fuzz_9.smt2
+  regress1/push-pop/model-unsound-ania.smt2
   regress1/push-pop/quant-fun-proc-unmacro.smt2
   regress1/push-pop/quant-fun-proc.smt2
   regress1/quantifiers/006-cbqi-ite.smt2

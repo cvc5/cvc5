@@ -82,14 +82,9 @@ api::Term Parser::getSymbol(const std::string& name, SymbolType type)
 {
   checkDeclaration(name, CHECK_DECLARED, type);
   assert(isDeclared(name, type));
-
-  if (type == SYM_VARIABLE) {
-    // Functions share var namespace
-    return d_symtab->lookup(name);
-  }
-
-  assert(false);  // Unhandled(type);
-  return Expr();
+  assert(type == SYM_VARIABLE);
+  // Functions share var namespace
+  return api::Term(d_solver, d_symtab->lookup(name));
 }
 
 api::Term Parser::getVariable(const std::string& name)
@@ -166,7 +161,7 @@ api::Sort Parser::getSort(const std::string& name)
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));
-  api::Sort t = api::Sort(d_symtab->lookupType(name));
+  api::Sort t = api::Sort(d_solver, d_symtab->lookupType(name));
   return t;
 }
 
@@ -175,8 +170,8 @@ api::Sort Parser::getSort(const std::string& name,
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));
-  api::Sort t =
-      api::Sort(d_symtab->lookupType(name, api::sortVectorToTypes(params)));
+  api::Sort t = api::Sort(
+      d_solver, d_symtab->lookupType(name, api::sortVectorToTypes(params)));
   return t;
 }
 
@@ -237,7 +232,8 @@ std::vector<api::Term> Parser::bindBoundVars(
   std::vector<api::Term> vars;
   for (std::pair<std::string, api::Sort>& i : sortedVarNames)
   {
-    vars.push_back(bindBoundVar(i.first, i.second.getType()));
+    vars.push_back(
+        bindBoundVar(i.first, api::Sort(d_solver, i.second.getType())));
   }
   return vars;
 }
@@ -251,7 +247,7 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix,
   }
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return mkVar(name.str(), type.getType(), flags);
+  return mkVar(name.str(), api::Sort(d_solver, type.getType()), flags);
 }
 
 std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
@@ -334,7 +330,8 @@ void Parser::defineParameterizedType(const std::string& name,
 api::Sort Parser::mkSort(const std::string& name, uint32_t flags)
 {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
-  api::Sort type = d_solver->getExprManager()->mkSort(name, flags);
+  api::Sort type =
+      api::Sort(d_solver, d_solver->getExprManager()->mkSort(name, flags));
   defineType(
       name,
       type,
@@ -348,8 +345,9 @@ api::Sort Parser::mkSortConstructor(const std::string& name,
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  api::Sort type =
-      d_solver->getExprManager()->mkSortConstructor(name, arity, flags);
+  api::Sort type = api::Sort(
+      d_solver,
+      d_solver->getExprManager()->mkSortConstructor(name, arity, flags));
   defineType(
       name,
       vector<api::Sort>(arity),
@@ -379,8 +377,10 @@ api::Sort Parser::mkUnresolvedTypeConstructor(
 {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  api::Sort unresolved = d_solver->getExprManager()->mkSortConstructor(
-      name, params.size(), ExprManager::SORT_FLAG_PLACEHOLDER);
+  api::Sort unresolved =
+      api::Sort(d_solver,
+                d_solver->getExprManager()->mkSortConstructor(
+                    name, params.size(), ExprManager::SORT_FLAG_PLACEHOLDER));
   defineType(name, params, unresolved);
   api::Sort t = getSort(name, params);
   d_unresolved.insert(unresolved);
@@ -588,11 +588,12 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
       Expr e = t.getExpr();
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-      t = api::Term(em->mkExpr(
-          kind::APPLY_TYPE_ASCRIPTION,
-          em->mkConst(
-              AscriptionType(dtc.getSpecializedConstructorType(s.getType()))),
-          e));
+      t = api::Term(
+          d_solver,
+          em->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
+                     em->mkConst(AscriptionType(
+                         dtc.getSpecializedConstructorType(s.getType()))),
+                     e));
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.
@@ -624,7 +625,7 @@ api::Term Parser::mkVar(const std::string& name,
                         uint32_t flags)
 {
   return api::Term(
-      d_solver->getExprManager()->mkVar(name, type.getType(), flags));
+      d_solver, d_solver->getExprManager()->mkVar(name, type.getType(), flags));
 }
 //!!!!!!!!!!! temporary
 
@@ -892,16 +893,16 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
   return str;
 }
 
-Expr Parser::mkStringConstant(const std::string& s)
+api::Term Parser::mkStringConstant(const std::string& s)
 {
   ExprManager* em = d_solver->getExprManager();
   if (language::isInputLang_smt2_6(em->getOptions().getInputLanguage()))
   {
-    return d_solver->mkString(s, true).getExpr();
+    return api::Term(d_solver, d_solver->mkString(s, true).getExpr());
   }
   // otherwise, we must process ad-hoc escape sequences
   std::vector<unsigned> str = processAdHocStringEsc(s);
-  return d_solver->mkString(str).getExpr();
+  return api::Term(d_solver, d_solver->mkString(str).getExpr());
 }
 
 } /* CVC4::parser namespace */

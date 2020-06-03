@@ -495,6 +495,17 @@ Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, cons
   return n;
 }
 
+TypeNode NodeManager::mkSequenceType(TypeNode elementType)
+{
+  CheckArgument(
+      !elementType.isNull(), elementType, "unexpected NULL element type");
+  CheckArgument(elementType.isFirstClass(),
+                elementType,
+                "cannot store types that are not first-class in sequences. Try "
+                "option --uf-ho.");
+  return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
+}
+
 TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
                                         TypeNode range) {
   vector<TypeNode> sorts;

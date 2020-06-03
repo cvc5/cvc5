@@ -124,7 +124,6 @@ class TheorySetsPrivate {
    */
   NodeSet d_termProcessed;
   NodeSet d_keep;
-  std::vector< Node > d_emp_exp;
   
   //propagation
   class EqcInfo

@@ -152,10 +152,10 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_CONCAT, "str.++");
   addOperator(api::STRING_LENGTH, "str.len");
   addOperator(api::STRING_SUBSTR, "str.substr");
-  addOperator(api::STRING_STRCTN, "str.contains");
+  addOperator(api::STRING_CONTAINS, "str.contains");
   addOperator(api::STRING_CHARAT, "str.at");
-  addOperator(api::STRING_STRIDOF, "str.indexof");
-  addOperator(api::STRING_STRREPL, "str.replace");
+  addOperator(api::STRING_INDEXOF, "str.indexof");
+  addOperator(api::STRING_REPLACE, "str.replace");
   if (!strictModeEnabled())
   {
     addOperator(api::STRING_TOLOWER, "str.tolower");
@@ -170,21 +170,21 @@ void Smt2::addStringOperators() {
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6
       || getLanguage() == language::input::LANG_SYGUS_V2)
   {
-    addOperator(api::STRING_ITOS, "str.from_int");
-    addOperator(api::STRING_STOI, "str.to_int");
+    addOperator(api::STRING_FROM_INT, "str.from_int");
+    addOperator(api::STRING_TO_INT, "str.to_int");
     addOperator(api::STRING_IN_REGEXP, "str.in_re");
     addOperator(api::STRING_TO_REGEXP, "str.to_re");
     addOperator(api::STRING_TO_CODE, "str.to_code");
-    addOperator(api::STRING_STRREPLALL, "str.replace_all");
+    addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
   }
   else
   {
-    addOperator(api::STRING_ITOS, "int.to.str");
-    addOperator(api::STRING_STOI, "str.to.int");
+    addOperator(api::STRING_FROM_INT, "int.to.str");
+    addOperator(api::STRING_TO_INT, "str.to.int");
     addOperator(api::STRING_IN_REGEXP, "str.in.re");
     addOperator(api::STRING_TO_REGEXP, "str.to.re");
     addOperator(api::STRING_TO_CODE, "str.code");
-    addOperator(api::STRING_STRREPLALL, "str.replaceall");
+    addOperator(api::STRING_REPLACE_ALL, "str.replaceall");
   }
 
   addOperator(api::REGEXP_CONCAT, "re.++");
@@ -313,6 +313,12 @@ bool Smt2::isOperatorEnabled(const std::string& name) const {
 bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
 {
   return d_logic.isTheoryEnabled(theory);
+}
+
+bool Smt2::isHoEnabled() const
+{
+  return getLogic().isHigherOrder()
+         && d_solver->getExprManager()->getOptions().getUfHo();
 }
 
 bool Smt2::logicIsSet() {
@@ -1371,7 +1377,7 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
         if( std::find( types.begin(), types.end(), t )==types.end() ){
           types.push_back( t );
           //identity element
-          api::Sort bt = dt.getDatatype().getSygusType();
+          api::Sort bt = api::Sort(d_solver, dt.getDatatype().getSygusType());
           Debug("parser-sygus") << ":  make identity function for " << bt << ", argument type " << t << std::endl;
 
           std::stringstream ss;
@@ -1475,7 +1481,7 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     api::Term ret = d_solver->mkVar(term.getSort());
     Trace("parser-sygus2-debug")
         << "...unresolved non-terminal, intro " << ret << std::endl;
-    args.push_back(ret.getExpr());
+    args.push_back(api::Term(d_solver, ret.getExpr()));
     cargs.push_back(itn->second);
     return ret;
   }
@@ -1565,8 +1571,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   Trace("parser-qid") << " " << p.d_expr.getKind() << " " << p.d_expr.getSort();
   Trace("parser-qid") << std::endl;
   // otherwise, we process the type ascription
-  p.d_expr =
-      applyTypeAscription(api::Term(p.d_expr), api::Sort(type)).getExpr();
+  p.d_expr = applyTypeAscription(p.d_expr, type);
 }
 
 api::Term Smt2::parseOpToExpr(ParseOp& p)
@@ -1770,8 +1775,10 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-    api::Term ret = d_solver->mkTerm(
-        api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args[0]);
+    api::Term ret =
+        d_solver->mkTerm(api::APPLY_SELECTOR,
+                         api::Term(d_solver, dt[0][n].getSelector()),
+                         args[0]);
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }

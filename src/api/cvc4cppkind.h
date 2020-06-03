@@ -1961,7 +1961,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRCTN,
+  STRING_CONTAINS,
   /**
    * String index-of.
    * Returns the index of a substring s2 in a string s1 starting at index i. If
@@ -1975,7 +1975,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRIDOF,
+  STRING_INDEXOF,
   /**
    * String replace.
    * Replaces a string s2 in a string s1 with string s3. If s2 does not appear
@@ -1988,7 +1988,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRREPL,
+  STRING_REPLACE,
   /**
    * String replace all.
    * Replaces all occurrences of a string s2 in a string s1 with string s3.
@@ -2001,7 +2001,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRREPLALL,
+  STRING_REPLACE_ALL,
   /**
    * String to lower case.
    * Parameters: 1
@@ -2113,7 +2113,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  STRING_ITOS,
+  STRING_FROM_INT,
   /**
    * String to integer (total function).
    * If the string does not contain an integer or the integer is negative, the
@@ -2123,7 +2123,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  STRING_STOI,
+  STRING_TO_INT,
   /**
    * Constant string.
    * Parameters:
