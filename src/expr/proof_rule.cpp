@@ -25,6 +25,12 @@ const char* toString(PfRule id)
     //================================================= Core rules
     case PfRule::ASSUME: return "ASSUME";
     case PfRule::SCOPE: return "SCOPE";
+    case PfRule::SUBS: return "SUBS";
+    case PfRule::REWRITE: return "REWRITE";
+    case PfRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
+    case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
+    case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
+    case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
 
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
