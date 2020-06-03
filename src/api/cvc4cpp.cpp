@@ -2782,9 +2782,6 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
                                          dtypedecls[i],
                                          i)
         << "a datatype declaration associated to this solver object";
-    CVC4_API_CHECK(this == dtypedecls[i].d_solver)
-        << "Given datatype declaration at index " << i
-        << " is not associated with this solver";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(dtypedecls[i].getNumConstructors() > 0,
                                          "datatype declaration",
                                          dtypedecls[i],
