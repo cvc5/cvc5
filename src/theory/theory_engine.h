@@ -231,27 +231,6 @@ class TheoryEngine {
    */
   context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
 
-
-  /**
-   * Statistics for a particular theory.
-   */
-  class Statistics {
-
-    static std::string mkName(std::string prefix,
-                              theory::TheoryId theory,
-                              std::string suffix) {
-      std::stringstream ss;
-      ss << prefix << theory << suffix;
-      return ss.str();
-    }
-
-   public:
-    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands;
-
-    Statistics(theory::TheoryId theory);
-    ~Statistics();
-  };/* class TheoryEngine::Statistics */
-
   /**
    * Output channels for individual theories.
    */
