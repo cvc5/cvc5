@@ -71,20 +71,20 @@ PR finished:
 (4) SkolemManager (previously ProofSkolemCache)
 (5) ProofChecker improve tracing, features
 (7) strings SkolemCache uses SkolemManager (req 4)
+(9) Proof step buffer (req 5)
 
 PRs ready:
 
 (6) Equality engine updates (Haniel)
 (8) regexp operation (req 7)
-(9) Proof step buffer (req 5)
-(14) Builtin rules, builtin checker (req 5)
+(10) Update CDProof (req 9)
+(14) Builtin rules, builtin checker (req 5) *
 (15) Boolean rules, boolean checker (Haniel) (req 5)
 (16) UF rules, UF checker (Haniel) (req 5)
-(21) static strings preprocess reduce (req 7)
+(21) static strings preprocess reduce (req 7) *
 
 PRs future:
 
-(10) Update CDProof (req 9)
 (11) ProofGenerator (req 10)
 (12) Add TrustNode (req 11)
 (13) Add EagerProofGenerator (req 11)

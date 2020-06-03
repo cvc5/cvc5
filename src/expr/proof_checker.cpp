@@ -92,14 +92,17 @@ bool ProofRuleChecker::getBool(TNode n, bool& b)
 }
 
 ProofCheckerStatistics::ProofCheckerStatistics()
-    : d_ruleChecks("ProofCheckerStatistics::ruleChecks")
+    : d_ruleChecks("ProofCheckerStatistics::ruleChecks"),
+    d_totalRuleChecks("ProofCheckerStatistics::totalRuleChecks")
 {
   smtStatisticsRegistry()->registerStat(&d_ruleChecks);
+  smtStatisticsRegistry()->registerStat(&d_totalRuleChecks);
 }
 
 ProofCheckerStatistics::~ProofCheckerStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_ruleChecks);
+  smtStatisticsRegistry()->unregisterStat(&d_totalRuleChecks);
 }
 
 Node ProofChecker::check(ProofNode* pn, Node expected)
@@ -123,6 +126,7 @@ Node ProofChecker::check(
   }
   // record stat
   d_stats.d_ruleChecks << id;
+  ++d_stats.d_totalRuleChecks;
   Trace("pfcheck") << "ProofChecker::check: " << id << std::endl;
   std::vector<Node> cchildren;
   for (const std::shared_ptr<ProofNode>& pc : children)
