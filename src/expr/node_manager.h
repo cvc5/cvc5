@@ -446,15 +446,15 @@ public:
 
   /** Get corresponding application kind for function
    *
-   * Different functional nodes are applied differently. For example,
-   * uninterpreted functions are applied via APPLY_UF, while constructors via
+   * Different functional nodes are applied differently, according to their
+   * type. For example, uninterpreted functions (of FUNCTION_TYPE) are applied
+   * via APPLY_UF, while constructors (of CONSTRUCTOR_TYPE) via
    * APPLY_CONSTRUCTOR. This method provides the correct application according
-   * to which kind of function fun is.
+   * to which functional type fun has.
    *
    * @param fun The functional node
-   * @return the correct application kind for fun. If fun is not an
-   * uninterpreted function, a constructor, a selector or a tester, then
-   * UNDEFINED_KIND is returned.
+   * @return the correct application kind for fun. If fun's type is not function
+   * like (see TypeNode::isFunctionLike), then UNDEFINED_KIND is returned.
    */
   static Kind getKindForFunction(TNode fun);
 
