@@ -380,11 +380,13 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   // get the presubstitution
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
   std::vector<Node> passertions = assertions;
-
-  // preprocess the assertions with the trancendental solver
-  if (!d_trSlv.preprocessAssertionsCheckModel(passertions))
+  if (options::nlExt())
   {
-    return false;
+    // preprocess the assertions with the trancendental solver
+    if (!d_trSlv.preprocessAssertionsCheckModel(passertions))
+    {
+      return false;
+    }
   }
   if (options::nlCad())
   {
@@ -405,11 +407,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                       std::vector<Node>& wlems,
                                       std::map<Node, NlLemmaSideEffect>& lemSE)
 {
-  // initialize the non-linear solver
-  d_nlSlv.initLastCall(assertions, false_asserts, xts);
-  // initialize the trancendental function solver
-  std::vector<Node> lemmas;
-  d_trSlv.initLastCall(assertions, false_asserts, xts, lemmas, lemsPp);
+  if (options::nlExt())
+  {
+    // initialize the non-linear solver
+    d_nlSlv.initLastCall(assertions, false_asserts, xts);
+    // initialize the trancendental function solver
+    std::vector<Node> lemmas;
+    d_trSlv.initLastCall(assertions, false_asserts, xts, lemmas, lemsPp);
+  }
   if (options::nlCad())
   {
     d_cadSlv.initLastCall(assertions, false_asserts, xts);
@@ -424,7 +429,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   }
 
   //----------------------------------- possibly split on zero
-  if (options::nlExtSplitZero())
+  if (options::nlExt() && options::nlExtSplitZero())
   {
     Trace("nl-ext") << "Get zero split lemmas..." << std::endl;
     lemmas = d_nlSlv.checkSplitZero();
@@ -438,14 +443,17 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   }
 
   //-----------------------------------initial lemmas for transcendental
-  //functions
-  lemmas = d_trSlv.checkTranscendentalInitialRefine();
-  filterLemmas(lemmas, lems);
-  if (!lems.empty())
+  if (options::nlExt())
   {
-    Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                    << std::endl;
-    return lems.size();
+    //functions
+    lemmas = d_trSlv.checkTranscendentalInitialRefine();
+    filterLemmas(lemmas, lems);
+    if (!lems.empty())
+    {
+      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
+                      << std::endl;
+      return lems.size();
+    }
   }
 
   //-----------------------------------initial lemmas based on CAD
@@ -462,114 +470,118 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
   }
 
-  //-----------------------------------lemmas based on sign (comparison to zero)
-  lemmas = d_nlSlv.checkMonomialSign();
-  filterLemmas(lemmas, lems);
-  if (!lems.empty())
+  // main calls to nlExt
+  if (options::nlExt())
   {
-    Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                    << std::endl;
-    return lems.size();
-  }
-
-  //-----------------------------------monotonicity of transdental functions
-  lemmas = d_trSlv.checkTranscendentalMonotonic();
-  filterLemmas(lemmas, lems);
-  if (!lems.empty())
-  {
-    Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                    << std::endl;
-    return lems.size();
-  }
-
-  //-----------------------------------lemmas based on magnitude of non-zero
-  //monomials
-  for (unsigned c = 0; c < 3; c++)
-  {
-    // c is effort level
-    lemmas = d_nlSlv.checkMonomialMagnitude(c);
-    unsigned nlem = lemmas.size();
+    //---------------------------------lemmas based on sign (comparison to zero)
+    lemmas = d_nlSlv.checkMonomialSign();
     filterLemmas(lemmas, lems);
+    if (!lems.empty())
+    {
+      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
+                      << std::endl;
+      return lems.size();
+    }
+
+    //-----------------------------------monotonicity of transdental functions
+    lemmas = d_trSlv.checkTranscendentalMonotonic();
+    filterLemmas(lemmas, lems);
+    if (!lems.empty())
+    {
+      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
+                      << std::endl;
+      return lems.size();
+    }
+
+    //------------------------lemmas based on magnitude of non-zero monomials
+    for (unsigned c = 0; c < 3; c++)
+    {
+      // c is effort level
+      lemmas = d_nlSlv.checkMonomialMagnitude(c);
+      unsigned nlem = lemmas.size();
+      filterLemmas(lemmas, lems);
+      if (!lems.empty())
+      {
+        Trace("nl-ext") << "  ...finished with " << lems.size()
+                        << " new lemmas (out of possible " << nlem << ")."
+                        << std::endl;
+        return lems.size();
+      }
+    }
+
+    //-----------------------------------inferred bounds lemmas
+    //  e.g. x >= t => y*x >= y*t
+    std::vector<Node> nt_lemmas;
+    lemmas =
+        d_nlSlv.checkMonomialInferBounds(nt_lemmas, assertions, false_asserts);
+    // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
+    // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
+    // introduce new monomials
+    filterLemmas(lemmas, lems);
+
+    if (options::nlExtTangentPlanes() && options::nlExtTangentPlanesInterleave())
+    {
+      lemmas = d_nlSlv.checkTangentPlanes();
+      filterLemmas(lemmas, lems);
+    }
+
+    if (!lems.empty())
+    {
+      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
+                      << std::endl;
+      return lems.size();
+    }
+
+    // from inferred bound inferences : now do ones that introduce new terms
+    filterLemmas(nt_lemmas, lems);
     if (!lems.empty())
     {
       Trace("nl-ext") << "  ...finished with " << lems.size()
-                      << " new lemmas (out of possible " << nlem << ")."
-                      << std::endl;
+                      << " new (monomial-introducing) lemmas." << std::endl;
       return lems.size();
     }
-  }
 
-  //-----------------------------------inferred bounds lemmas
-  //  e.g. x >= t => y*x >= y*t
-  std::vector<Node> nt_lemmas;
-  lemmas =
-      d_nlSlv.checkMonomialInferBounds(nt_lemmas, assertions, false_asserts);
-  // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
-  // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
-  // introduce new monomials
-  filterLemmas(lemmas, lems);
-
-  if (options::nlExtTangentPlanes() && options::nlExtTangentPlanesInterleave())
-  {
-    lemmas = d_nlSlv.checkTangentPlanes();
-    filterLemmas(lemmas, lems);
-  }
-
-  if (!lems.empty())
-  {
-    Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                    << std::endl;
-    return lems.size();
-  }
-
-  // from inferred bound inferences : now do ones that introduce new terms
-  filterLemmas(nt_lemmas, lems);
-  if (!lems.empty())
-  {
-    Trace("nl-ext") << "  ...finished with " << lems.size()
-                    << " new (monomial-introducing) lemmas." << std::endl;
-    return lems.size();
-  }
-
-  //------------------------------------factoring lemmas
-  //   x*y + x*z >= t => exists k. k = y + z ^ x*k >= t
-  if (options::nlExtFactor())
-  {
-    lemmas = d_nlSlv.checkFactoring(assertions, false_asserts);
-    filterLemmas(lemmas, lems);
-    if (!lems.empty())
+    //------------------------------------factoring lemmas
+    //   x*y + x*z >= t => exists k. k = y + z ^ x*k >= t
+    if (options::nlExtFactor())
     {
-      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                      << std::endl;
-      return lems.size();
+      lemmas = d_nlSlv.checkFactoring(assertions, false_asserts);
+      filterLemmas(lemmas, lems);
+      if (!lems.empty())
+      {
+        Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
+                        << std::endl;
+        return lems.size();
+      }
     }
-  }
 
-  //------------------------------------resolution bound inferences
-  //  e.g. ( y>=0 ^ s <= x*z ^ x*y <= t ) => y*s <= z*t
-  if (options::nlExtResBound())
-  {
-    lemmas = d_nlSlv.checkMonomialInferResBounds();
-    filterLemmas(lemmas, lems);
-    if (!lems.empty())
+    //------------------------------------resolution bound inferences
+    //  e.g. ( y>=0 ^ s <= x*z ^ x*y <= t ) => y*s <= z*t
+    if (options::nlExtResBound())
     {
-      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                      << std::endl;
-      return lems.size();
+      lemmas = d_nlSlv.checkMonomialInferResBounds();
+      filterLemmas(lemmas, lems);
+      if (!lems.empty())
+      {
+        Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
+                        << std::endl;
+        return lems.size();
+      }
+    }
+
+    //------------------------------------tangent planes
+    if (options::nlExtTangentPlanes() && !options::nlExtTangentPlanesInterleave())
+    {
+      lemmas = d_nlSlv.checkTangentPlanes();
+      filterLemmas(lemmas, wlems);
+    }
+    if (options::nlExtTfTangentPlanes())
+    {
+      lemmas = d_trSlv.checkTranscendentalTangentPlanes(lemSE);
+      filterLemmas(lemmas, wlems);
     }
   }
-
-  //------------------------------------tangent planes
-  if (options::nlExtTangentPlanes() && !options::nlExtTangentPlanesInterleave())
-  {
-    lemmas = d_nlSlv.checkTangentPlanes();
-    filterLemmas(lemmas, wlems);
-  }
-  if (options::nlExtTfTangentPlanes())
-  {
-    lemmas = d_trSlv.checkTranscendentalTangentPlanes(lemSE);
-    filterLemmas(lemmas, wlems);
-  }
+  
   //------------------------------------ CAD
   if (options::nlCad())
   {
