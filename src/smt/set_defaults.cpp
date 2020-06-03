@@ -267,6 +267,21 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
+  if (options::arraysExp())
+  {
+    if (!logic.isQuantified())
+    {
+      logic = logic.getUnlockedCopy();
+      logic.enableQuantifiers();
+      logic.lock();
+    }
+    if (!options::fmfBound.wasSetByUser())
+    {
+      options::fmfBound.set(true);
+      Trace("smt") << "turning on fmf-bound, for arrays-exp" << std::endl;
+    }
+  }
+
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())
   {
