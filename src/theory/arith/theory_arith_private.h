@@ -35,26 +35,21 @@
 #include "smt/logic_exception.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/arith_rewriter.h"
-#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/attempt_solution_simplex.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/dual_simplex.h"
 #include "theory/arith/fc_simplex.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/linear_equality.h"
-#include "theory/arith/operator_elim.h"
-#include "theory/arith/matrix.h"
 #include "theory/arith/matrix.h"
 #include "theory/arith/normal_form.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/operator_elim.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
@@ -366,7 +361,7 @@ private:
 
   /** Proof node manager */
   std::unique_ptr<ProofNodeManager> d_pnm;
-  
+
   /** This keeps track of difference equalities. Mostly for sharing. */
   ArithCongruenceManager d_congruenceManager;
   context::CDO<bool> d_cmEnabled;
@@ -426,7 +421,13 @@ private:
   Node ppRewriteTerms(TNode atom);
 
  public:
-  TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, ProofChecker* pc=nullptr);
+  TheoryArithPrivate(TheoryArith& containing,
+                     context::Context* c,
+                     context::UserContext* u,
+                     OutputChannel& out,
+                     Valuation valuation,
+                     const LogicInfo& logicInfo,
+                     ProofChecker* pc = nullptr);
   ~TheoryArithPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }

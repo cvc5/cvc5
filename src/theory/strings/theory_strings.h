@@ -105,10 +105,12 @@ class TheoryStrings : public Theory {
   typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
 
  public:
-  TheoryStrings(context::Context* c, context::UserContext* u,
-                OutputChannel& out, Valuation valuation,
+  TheoryStrings(context::Context* c,
+                context::UserContext* u,
+                OutputChannel& out,
+                Valuation valuation,
                 const LogicInfo& logicInfo,
-             ProofChecker* pc);
+                ProofChecker* pc);
   ~TheoryStrings();
 
   /** finish initialization */

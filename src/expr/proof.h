@@ -256,6 +256,7 @@ class CDProof
    * predicate leads to the given fact or to its symmetric via TRUE/FALSE_INTRO.
    */
   static Node getPredicateFact(TNode f, bool& pol, bool& symm);
+
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;

@@ -126,8 +126,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this),
-                          d_pnm.get()
-                         ),
+                          d_pnm.get()),
       d_cmEnabled(c, true),
 
       d_dualSimplex(

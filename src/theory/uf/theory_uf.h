@@ -25,8 +25,8 @@
 #include "expr/node_trie.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/proof_checker.h"
+#include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
@@ -190,9 +190,12 @@ private:
  public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo,
-             ProofChecker* pc=nullptr,
+  TheoryUF(context::Context* c,
+           context::UserContext* u,
+           OutputChannel& out,
+           Valuation valuation,
+           const LogicInfo& logicInfo,
+           ProofChecker* pc = nullptr,
            std::string instanceName = "");
 
   ~TheoryUF();

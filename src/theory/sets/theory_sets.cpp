@@ -32,7 +32,7 @@ TheorySets::TheorySets(context::Context* c,
                        OutputChannel& out,
                        Valuation valuation,
                        const LogicInfo& logicInfo,
-             ProofChecker* pc)
+                       ProofChecker* pc)
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pc),
       d_internal(new TheorySetsPrivate(*this, c, u))
 {

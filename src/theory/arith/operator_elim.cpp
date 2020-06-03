@@ -19,9 +19,9 @@
 
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
-#include "theory/rewriter.h"
-#include "theory/arith/arith_utilities.h"
 #include "smt/logic_exception.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
 
 using namespace CVC4::kind;
@@ -30,10 +30,9 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-OperatorElim::OperatorElim(ProofNodeManager* pnm, const LogicInfo& info) : 
-EagerProofGenerator(nullptr,pnm), d_info(info)
+OperatorElim::OperatorElim(ProofNodeManager* pnm, const LogicInfo& info)
+    : EagerProofGenerator(nullptr, pnm), d_info(info)
 {
-  
 }
 
 void OperatorElim::checkNonLinearLogic(Node term)
@@ -49,7 +48,7 @@ void OperatorElim::checkNonLinearLogic(Node term)
     throw LogicException(serr.str());
   }
 }
-  
+
 Node OperatorElim::eliminateOperatorsRec(Node n)
 {
   Trace("arith-elim") << "Begin elim: " << n << std::endl;
@@ -365,7 +364,8 @@ Node OperatorElim::eliminateOperators(Node node)
     {
       checkNonLinearLogic(node);
       // eliminate inverse functions here
-      std::map<Node, Node>::const_iterator it = d_nlin_inverse_skolem.find(node);
+      std::map<Node, Node>::const_iterator it =
+          d_nlin_inverse_skolem.find(node);
       if (it == d_nlin_inverse_skolem.end())
       {
         Node var = nm->mkBoundVar(nm->realType());
@@ -512,6 +512,6 @@ Node OperatorElim::getArithSkolemApp(Node n, ArithSkolemId asi)
   return skolem;
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace CVC4

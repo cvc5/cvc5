@@ -21,7 +21,7 @@ namespace theory {
 
 EagerProofGenerator::EagerProofGenerator(context::Context* c,
                                          ProofNodeManager* pnm)
-    : d_pnm(pnm), d_proofs(c==nullptr ? &d_context : c)
+    : d_pnm(pnm), d_proofs(c == nullptr ? &d_context : c)
 {
 }
 

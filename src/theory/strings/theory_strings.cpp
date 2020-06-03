@@ -68,7 +68,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              OutputChannel& out,
                              Valuation valuation,
                              const LogicInfo& logicInfo,
-             ProofChecker* pc)
+                             ProofChecker* pc)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, pc),
       d_notify(*this),
       d_statistics(),
@@ -131,8 +131,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_false = NodeManager::currentNM()->mkConst( false );
 
   d_cardSize = utils::getAlphabetCardinality();
-  
-  if (pc!=nullptr)
+
+  if (pc != nullptr)
   {
     // add checkers
     d_sProofChecker.registerTo(pc);

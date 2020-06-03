@@ -412,14 +412,13 @@ class TheoryEngine {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
     // pass proof checker if we are proof producing
-    ProofChecker * pc = d_lazyProof!=nullptr ? d_pchecker.get() : nullptr;
+    ProofChecker* pc = d_lazyProof != nullptr ? d_pchecker.get() : nullptr;
     d_theoryTable[theoryId] = new TheoryClass(d_context,
                                               d_userContext,
                                               *d_theoryOut[theoryId],
                                               theory::Valuation(this),
                                               d_logicInfo,
-                                              pc
-                                             );
+                                              pc);
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }

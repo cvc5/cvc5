@@ -35,7 +35,7 @@ ArithCongruenceManager::ArithCongruenceManager(
     SetupLiteralCallBack setup,
     const ArithVariables& avars,
     RaiseEqualityEngineConflict raiseConflict,
-    ProofNodeManager * pnm)
+    ProofNodeManager* pnm)
     : d_inConflict(c),
       d_raiseConflict(raiseConflict),
       d_notify(*this),

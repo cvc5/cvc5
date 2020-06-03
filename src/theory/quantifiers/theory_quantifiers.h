@@ -35,10 +35,12 @@ namespace quantifiers {
 
 class TheoryQuantifiers : public Theory {
  public:
-  TheoryQuantifiers(context::Context* c, context::UserContext* u,
-                    OutputChannel& out, Valuation valuation,
+  TheoryQuantifiers(context::Context* c,
+                    context::UserContext* u,
+                    OutputChannel& out,
+                    Valuation valuation,
                     const LogicInfo& logicInfo,
-             ProofChecker* pc=nullptr);
+                    ProofChecker* pc = nullptr);
   ~TheoryQuantifiers();
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }

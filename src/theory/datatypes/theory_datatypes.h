@@ -267,10 +267,12 @@ private:
   void computeCareGraph() override;
 
  public:
-  TheoryDatatypes(context::Context* c, context::UserContext* u,
-                  OutputChannel& out, Valuation valuation,
+  TheoryDatatypes(context::Context* c,
+                  context::UserContext* u,
+                  OutputChannel& out,
+                  Valuation valuation,
                   const LogicInfo& logicInfo,
-             ProofChecker* pc=nullptr);
+                  ProofChecker* pc = nullptr);
   ~TheoryDatatypes();
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }

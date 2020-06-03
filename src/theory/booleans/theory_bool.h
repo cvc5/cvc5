@@ -35,13 +35,12 @@ class TheoryBool : public Theory {
              OutputChannel& out,
              Valuation valuation,
              const LogicInfo& logicInfo,
-             ProofChecker* pc=nullptr
-            );
+             ProofChecker* pc = nullptr);
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-  
+
   std::string identify() const override { return std::string("TheoryBool"); }
 
  private:

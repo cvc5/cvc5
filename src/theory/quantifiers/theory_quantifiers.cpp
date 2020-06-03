@@ -35,9 +35,13 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
-             ProofChecker* pc) :
-    Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pc)
+TheoryQuantifiers::TheoryQuantifiers(Context* c,
+                                     context::UserContext* u,
+                                     OutputChannel& out,
+                                     Valuation valuation,
+                                     const LogicInfo& logicInfo,
+                                     ProofChecker* pc)
+    : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pc)
 {
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute( "sygus", this );

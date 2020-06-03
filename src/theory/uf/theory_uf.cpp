@@ -64,8 +64,8 @@ TheoryUF::TheoryUF(context::Context* c,
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF, false, options::ufHo());
-  
-  if (pc!=nullptr)
+
+  if (pc != nullptr)
   {
     d_ufProofChecker.registerTo(pc);
     // use the checker in the proof node manager

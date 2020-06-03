@@ -147,7 +147,7 @@ private:
                          SetupLiteralCallBack,
                          const ArithVariables&,
                          RaiseEqualityEngineConflict raiseConflict,
-                         ProofNodeManager * pnm);
+                         ProofNodeManager* pnm);
   ~ArithCongruenceManager();
 
   /**

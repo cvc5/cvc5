@@ -90,10 +90,12 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     return children[0][i];
   }
-  if (id==PfRule::AND_INTRO)
+  if (id == PfRule::AND_INTRO)
   {
     Assert(children.size() >= 1);
-    return children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode(kind::AND,children);
+    return children.size() == 1
+               ? children[0]
+               : NodeManager::currentNM()->mkNode(kind::AND, children);
   }
   if (id == PfRule::NOT_OR_ELIM)
   {

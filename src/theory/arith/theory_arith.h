@@ -47,62 +47,66 @@ private:
   proof::ArithProofRecorder * d_proofRecorder;
 
 public:
-  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out,
-              Valuation valuation, const LogicInfo& logicInfo, ProofChecker* pc=nullptr);
-  virtual ~TheoryArith();
+ TheoryArith(context::Context* c,
+             context::UserContext* u,
+             OutputChannel& out,
+             Valuation valuation,
+             const LogicInfo& logicInfo,
+             ProofChecker* pc = nullptr);
+ virtual ~TheoryArith();
 
-  TheoryRewriter* getTheoryRewriter() override;
+ TheoryRewriter* getTheoryRewriter() override;
 
-  /**
-   * Does non-context dependent setup for a node connected to a theory.
-   */
-  void preRegisterTerm(TNode n) override;
+ /**
+  * Does non-context dependent setup for a node connected to a theory.
+  */
+ void preRegisterTerm(TNode n) override;
 
-  void finishInit() override;
+ void finishInit() override;
 
-  Node expandDefinition(Node node) override;
+ Node expandDefinition(Node node) override;
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+ void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  void check(Effort e) override;
-  bool needsCheckLastEffort() override;
-  void propagate(Effort e) override;
-  TrustNode explain(TNode n) override;
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
-  bool isExtfReduced(int effort,
-                     Node n,
-                     Node on,
-                     std::vector<Node>& exp) override;
+ void check(Effort e) override;
+ bool needsCheckLastEffort() override;
+ void propagate(Effort e) override;
+ TrustNode explain(TNode n) override;
+ bool getCurrentSubstitution(int effort,
+                             std::vector<Node>& vars,
+                             std::vector<Node>& subs,
+                             std::map<Node, std::vector<Node> >& exp) override;
+ bool isExtfReduced(int effort,
+                    Node n,
+                    Node on,
+                    std::vector<Node>& exp) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
+ bool collectModelInfo(TheoryModel* m) override;
 
-  void shutdown() override {}
+ void shutdown() override {}
 
-  void presolve() override;
-  void notifyRestart() override;
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-  Node ppRewrite(TNode atom) override;
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+ void presolve() override;
+ void notifyRestart() override;
+ PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+ Node ppRewrite(TNode atom) override;
+ void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
-  std::string identify() const override { return std::string("TheoryArith"); }
+ std::string identify() const override { return std::string("TheoryArith"); }
 
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+ EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-  void addSharedTerm(TNode n) override;
+ void addSharedTerm(TNode n) override;
 
-  Node getModelValue(TNode var) override;
+ Node getModelValue(TNode var) override;
 
-  std::pair<bool, Node> entailmentCheck(
-      TNode lit,
-      const EntailmentCheckParameters* params,
-      EntailmentCheckSideEffects* out) override;
+ std::pair<bool, Node> entailmentCheck(
+     TNode lit,
+     const EntailmentCheckParameters* params,
+     EntailmentCheckSideEffects* out) override;
 
-  void setProofRecorder(proof::ArithProofRecorder * proofRecorder)
-  {
-    d_proofRecorder = proofRecorder;
+ void setProofRecorder(proof::ArithProofRecorder* proofRecorder)
+ {
+   d_proofRecorder = proofRecorder;
   }
 
 };/* class TheoryArith */

@@ -108,8 +108,8 @@ class Theory {
   const LogicInfo& d_logicInfo;
 
   /** Pointer to proof checker */
-  ProofChecker * d_pchecker;
-  
+  ProofChecker* d_pchecker;
+
   /**
    * The assertFact() queue.
    *

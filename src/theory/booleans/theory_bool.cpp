@@ -38,11 +38,10 @@ TheoryBool::TheoryBool(context::Context* c,
                        OutputChannel& out,
                        Valuation valuation,
                        const LogicInfo& logicInfo,
-                       ProofChecker* pc
-                      )
+                       ProofChecker* pc)
     : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo, pc)
 {
-  if (pc!=nullptr)
+  if (pc != nullptr)
   {
     // add checkers
     d_bProofChecker.registerTo(pc);

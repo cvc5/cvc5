@@ -139,7 +139,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
                          << " via " << (symm ? "[reoriented] " : "") << a
                          << " for " << fa.second.size() << " proof nodes"
                          << std::endl;
-      std::shared_ptr<ProofNode> pfaa = mkAssume(aPred);;
+      std::shared_ptr<ProofNode> pfaa = mkAssume(aPred);
+      ;
       // maybe reorient equality, in which case update the pointer to the
       // justification of the assumption
       if (symm)
@@ -150,8 +151,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
                       a[1].eqNode(a[0]));
       }
       PfRule updateRule =
-            symm ? PfRule::SYMM
-                 : (pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO);
+          symm ? PfRule::SYMM
+               : (pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO);
       for (ProofNode* pfs : fa.second)
       {
         Assert(pfs->getResult() == a);

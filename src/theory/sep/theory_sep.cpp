@@ -39,17 +39,21 @@ namespace CVC4 {
 namespace theory {
 namespace sep {
 
-TheorySep::TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
-             ProofChecker* pc) :
-  Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pc),
-  d_lemmas_produced_c(u),
-  d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::sep::ee", true),
-  d_conflict(c, false),
-  d_reduce(u),
-  d_infer(c),
-  d_infer_exp(c),
-  d_spatial_assertions(c)
+TheorySep::TheorySep(context::Context* c,
+                     context::UserContext* u,
+                     OutputChannel& out,
+                     Valuation valuation,
+                     const LogicInfo& logicInfo,
+                     ProofChecker* pc)
+    : Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pc),
+      d_lemmas_produced_c(u),
+      d_notify(*this),
+      d_equalityEngine(d_notify, c, "theory::sep::ee", true),
+      d_conflict(c, false),
+      d_reduce(u),
+      d_infer(c),
+      d_infer_exp(c),
+      d_spatial_assertions(c)
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);

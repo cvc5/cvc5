@@ -26,9 +26,9 @@ namespace arith {
 
 class OperatorElim : public EagerProofGenerator
 {
-public:
+ public:
   OperatorElim(ProofNodeManager* pnm, const LogicInfo& info);
-  ~OperatorElim(){}
+  ~OperatorElim() {}
   /**
    * Eliminate operators in term n. If n has top symbol that is not a core
    * one (including division, int division, mod, to_int, is_int, syntactic sugar
@@ -55,7 +55,8 @@ public:
    * @return The eliminated form of n.
    */
   Node eliminateOperatorsRec(Node n);
-private:
+
+ private:
   /** Logic info of the owner of this class */
   const LogicInfo& d_info;
 
@@ -66,8 +67,8 @@ private:
   std::map<Node, Node> d_to_int_skolem;
   std::map<Node, Node> d_div_skolem;
   std::map<Node, Node> d_int_div_skolem;
-  std::map<Node, Node> d_nlin_inverse_skolem;  
-  
+  std::map<Node, Node> d_nlin_inverse_skolem;
+
   /** Arithmetic skolem identifier */
   enum class ArithSkolemId
   {
@@ -117,7 +118,7 @@ private:
    */
   void checkNonLinearLogic(Node term);
 };
-  
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+
+}  // namespace arith
+}  // namespace theory
+}  // namespace CVC4

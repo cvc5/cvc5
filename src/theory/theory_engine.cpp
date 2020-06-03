@@ -1656,8 +1656,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   if (lemmas.size() > 1)
   {
     // the returned lemma is the conjunction of all additional lemmas.
-    retLemma =
-        NodeManager::currentNM()->mkNode(kind::AND, lemmas.ref());
+    retLemma = NodeManager::currentNM()->mkNode(kind::AND, lemmas.ref());
   }
   return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
@@ -2183,7 +2182,7 @@ theory::TrustNode TheoryEngine::getExplanation(
           // tConc[0] ... tConc[n]
           // ---------------------- AND_INTRO
           // tConc
-          pfChildren.insert(pfChildren.end(),tConc.begin(),tConc.end());
+          pfChildren.insert(pfChildren.end(), tConc.begin(), tConc.end());
           lcp->addStep(tConc, PfRule::AND_INTRO, pfChildren, pfArgs);
           simpleExplain = false;
           continue;
