@@ -32,6 +32,51 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
 
+    //================================================= Boolean rules
+    case PfRule::SPLIT: return "SPLIT";
+    case PfRule::AND_ELIM: return "AND_ELIM";
+    case PfRule::AND_INTRO: return "AND_INTRO";
+    case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";
+    case PfRule::IMPLIES_ELIM: return "IMPLIES_ELIM";
+    case PfRule::NOT_IMPLIES_ELIM1: return "NOT_IMPLIES_ELIM1";
+    case PfRule::NOT_IMPLIES_ELIM2: return "NOT_IMPLIES_ELIM2";
+    case PfRule::EQUIV_ELIM1: return "EQUIV_ELIM1";
+    case PfRule::EQUIV_ELIM2: return "EQUIV_ELIM2";
+    case PfRule::NOT_EQUIV_ELIM1: return "NOT_EQUIV_ELIM1";
+    case PfRule::NOT_EQUIV_ELIM2: return "NOT_EQUIV_ELIM2";
+    case PfRule::XOR_ELIM1: return "XOR_ELIM1";
+    case PfRule::XOR_ELIM2: return "XOR_ELIM2";
+    case PfRule::NOT_XOR_ELIM1: return "NOT_XOR_ELIM1";
+    case PfRule::NOT_XOR_ELIM2: return "NOT_XOR_ELIM2";
+    case PfRule::ITE_ELIM1: return "ITE_ELIM1";
+    case PfRule::ITE_ELIM2: return "ITE_ELIM2";
+    case PfRule::NOT_ITE_ELIM1: return "NOT_ITE_ELIM1";
+    case PfRule::NOT_ITE_ELIM2: return "NOT_ITE_ELIM2";
+    case PfRule::CONTRA: return "CONTRA";
+    //================================================= De Morgan rules
+    case PfRule::NOT_AND: return "NOT_AND";
+    //================================================= CNF rules
+    case PfRule::CNF_AND_POS: return "CNF_AND_POS";
+    case PfRule::CNF_AND_NEG: return "CNF_AND_NEG";
+    case PfRule::CNF_OR_POS: return "CNF_OR_POS";
+    case PfRule::CNF_OR_NEG: return "CNF_OR_NEG";
+    case PfRule::CNF_IMPLIES_POS: return "CNF_IMPLIES_POS";
+    case PfRule::CNF_IMPLIES_NEG1: return "CNF_IMPLIES_NEG1";
+    case PfRule::CNF_IMPLIES_NEG2: return "CNF_IMPLIES_NEG2";
+    case PfRule::CNF_EQUIV_POS1: return "CNF_EQUIV_POS1";
+    case PfRule::CNF_EQUIV_POS2: return "CNF_EQUIV_POS2";
+    case PfRule::CNF_EQUIV_NEG1: return "CNF_EQUIV_NEG1";
+    case PfRule::CNF_EQUIV_NEG2: return "CNF_EQUIV_NEG2";
+    case PfRule::CNF_XOR_POS1: return "CNF_XOR_POS1";
+    case PfRule::CNF_XOR_POS2: return "CNF_XOR_POS2";
+    case PfRule::CNF_XOR_NEG1: return "CNF_XOR_NEG1";
+    case PfRule::CNF_XOR_NEG2: return "CNF_XOR_NEG2";
+    case PfRule::CNF_ITE_POS1: return "CNF_ITE_POS1";
+    case PfRule::CNF_ITE_POS2: return "CNF_ITE_POS2";
+    case PfRule::CNF_ITE_POS3: return "CNF_ITE_POS3";
+    case PfRule::CNF_ITE_NEG1: return "CNF_ITE_NEG1";
+    case PfRule::CNF_ITE_NEG2: return "CNF_ITE_NEG2";
+    case PfRule::CNF_ITE_NEG3: return "CNF_ITE_NEG3";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

@@ -355,6 +355,8 @@ libcvc4_add_sources(
   theory/atom_requests.h
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
+  theory/booleans/proof_checker.cpp
+  theory/booleans/proof_checker.h
   theory/booleans/theory_bool.cpp
   theory/booleans/theory_bool.h
   theory/booleans/theory_bool_rewriter.cpp
