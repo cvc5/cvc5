@@ -162,6 +162,12 @@ class CDProof
    * should call ProofNode::clone if they want to own it.
    */
   virtual std::shared_ptr<ProofNode> mkProof(Node fact);
+  /**
+   * Get proof for fact, or nullptr if it does not exist. In contrast to the
+   * above method, this does not construct a proof if one does not exist, nor
+   * does it take symmetry into account.
+   */
+  std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** Add step
    *
    * @param expected The intended conclusion of this proof step. This must be
@@ -250,7 +256,6 @@ class CDProof
    * predicate leads to the given fact or to its symmetric via TRUE/FALSE_INTRO.
    */
   static Node getPredicateFact(TNode f, bool& pol, bool& symm);
-
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;
@@ -260,8 +265,6 @@ class CDProof
   context::Context d_context;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
-  /** Get proof for fact, or nullptr if it does not exist. */
-  std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** Ensure fact sym */
   std::shared_ptr<ProofNode> getProofSymm(Node fact);
   /**
