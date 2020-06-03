@@ -101,7 +101,7 @@ namespace CVC4 {
       struct myExpr : public CVC4::api::Term {
         myExpr() : CVC4::api::Term() {}
         myExpr(void*) : CVC4::api::Term() {}
-        myExpr(const Expr& e) : CVC4::api::Term(e) {}
+        myExpr(const Expr& e) : CVC4::api::Term(d_solver, e) {}
         myExpr(const myExpr& e) : CVC4::api::Term(e) {}
       };/* struct myExpr */
     }/* CVC4::parser::smt2 namespace */
@@ -286,7 +286,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { PARSER_STATE->popScope();
       // Do NOT call mkSort, since that creates a new sort!
       // This name is not its own distinct sort, it's an alias.
-      PARSER_STATE->defineParameterizedType(name, sorts, t.getType());
+      PARSER_STATE->defineParameterizedType(name, sorts, t);
       cmd->reset(new DefineTypeCommand(
           name, api::sortVectorToTypes(sorts), t.getType()));
     }
@@ -800,7 +800,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
 
     PARSER_STATE->getUnresolvedSorts().clear();
 
-    ret = datatypeTypes[0];
+    ret = api::Sort(PARSER_STATE->getSolver(), datatypeTypes[0]);
   };
 
 // SyGuS grammar term.
@@ -893,7 +893,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
                               << "expression " << atomTerm << std::endl;
         std::stringstream ss;
         ss << atomTerm;
-        sgt.d_op.d_expr = atomTerm.getExpr();
+        sgt.d_op.d_expr = atomTerm;
         sgt.d_name = ss.str();
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }
@@ -1791,8 +1791,10 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           Expr ef = f.getExpr();
           if (Datatype::datatypeOf(ef).isParametric())
           {
-            type = Datatype::datatypeOf(ef)[Datatype::indexOf(ef)]
-                       .getSpecializedConstructorType(expr.getSort().getType());
+            type = api::Sort(
+                PARSER_STATE->getSolver(),
+                Datatype::datatypeOf(ef)[Datatype::indexOf(ef)]
+                    .getSpecializedConstructorType(expr.getSort().getType()));
           }
           argTypes = type.getConstructorDomainSorts();
         }
@@ -1914,10 +1916,10 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       sorts.emplace_back(arg.getSort());
       terms.emplace_back(arg);
     }
-    expr = SOLVER->mkTuple(sorts, terms).getExpr();
+    expr = SOLVER->mkTuple(sorts, terms);
   }
   | /* an atomic term (a term with no subterms) */
-    termAtomic[atomTerm] { expr = atomTerm.getExpr(); }
+    termAtomic[atomTerm] { expr = atomTerm; }
   ;
 
 

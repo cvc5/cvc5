@@ -1161,11 +1161,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     // prenexing
     if (options::cegqiNestedQE())
     {
-      // only complete with prenex = disj_normal or normal
-      if (options::prenexQuant() <= options::PrenexQuantMode::DISJ_NORMAL)
-      {
-        options::prenexQuant.set(options::PrenexQuantMode::DISJ_NORMAL);
-      }
+      // only complete with prenex = normal
+      options::prenexQuant.set(options::PrenexQuantMode::NORMAL);
     }
     else if (options::globalNegate())
     {

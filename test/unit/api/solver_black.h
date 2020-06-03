@@ -978,13 +978,13 @@ void SolverBlack::testGetOp()
   Term listhead = d_solver->mkTerm(APPLY_SELECTOR, headTerm, listcons1);
 
   TS_ASSERT(listnil.hasOp());
-  TS_ASSERT_EQUALS(listnil.getOp(), APPLY_CONSTRUCTOR);
+  TS_ASSERT_EQUALS(listnil.getOp(), Op(d_solver.get(), APPLY_CONSTRUCTOR));
 
   TS_ASSERT(listcons1.hasOp());
-  TS_ASSERT_EQUALS(listcons1.getOp(), APPLY_CONSTRUCTOR);
+  TS_ASSERT_EQUALS(listcons1.getOp(), Op(d_solver.get(), APPLY_CONSTRUCTOR));
 
   TS_ASSERT(listhead.hasOp());
-  TS_ASSERT_EQUALS(listhead.getOp(), APPLY_SELECTOR);
+  TS_ASSERT_EQUALS(listhead.getOp(), Op(d_solver.get(), APPLY_SELECTOR));
 }
 
 void SolverBlack::testPush1()
