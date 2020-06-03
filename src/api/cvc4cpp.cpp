@@ -1623,6 +1623,7 @@ Term::const_iterator::const_iterator(const const_iterator& it)
 {
   if (it.d_orig_expr != nullptr)
   {
+    d_solver = it.d_solver;
     d_orig_expr = it.d_orig_expr;
     d_pos = it.d_pos;
   }
@@ -1630,6 +1631,7 @@ Term::const_iterator::const_iterator(const const_iterator& it)
 
 Term::const_iterator& Term::const_iterator::operator=(const const_iterator& it)
 {
+  d_solver = it.d_solver;
   d_orig_expr = it.d_orig_expr;
   d_pos = it.d_pos;
   return *this;
@@ -1641,7 +1643,8 @@ bool Term::const_iterator::operator==(const const_iterator& it) const
   {
     return false;
   }
-  return (*d_orig_expr == *it.d_orig_expr) && (d_pos == it.d_pos);
+  return (d_solver == it.d_solver && *d_orig_expr == *it.d_orig_expr)
+         && (d_pos == it.d_pos);
 }
 
 bool Term::const_iterator::operator!=(const const_iterator& it) const
@@ -1767,6 +1770,11 @@ size_t TermHashFunction::operator()(const Term& t) const
 
 /* DatatypeConstructorDecl -------------------------------------------------- */
 
+DatatypeConstructorDecl::DatatypeConstructorDecl()
+    : d_solver(nullptr), d_ctor(nullptr)
+{
+}
+
 DatatypeConstructorDecl::DatatypeConstructorDecl(const Solver* slv,
                                                  const std::string& name)
     : d_solver(slv), d_ctor(new CVC4::DatatypeConstructor(name))
@@ -1816,6 +1824,8 @@ std::ostream& operator<<(std::ostream& out,
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
+DatatypeDecl::DatatypeDecl() : d_solver(nullptr), d_dtype(nullptr) {}
+
 DatatypeDecl::DatatypeDecl(const Solver* slv,
                            const std::string& name,
                            bool isCoDatatype)
@@ -1852,8 +1862,6 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
 }
 
 bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
-
-DatatypeDecl::DatatypeDecl() {}
 
 DatatypeDecl::~DatatypeDecl() {}
 
@@ -2701,7 +2709,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
         !children[i].isNull(), "child term", children[i], i)
         << "non-null term";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == children[i].d_solver, "parameter term", children[i], i)
+        this == children[i].d_solver, "child term", children[i], i)
         << "a child term associated to this solver object";
   }
 
@@ -3555,6 +3563,15 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+/* Create datatype constructor declarations                                   */
+/* -------------------------------------------------------------------------- */
+
+DatatypeConstructorDecl Solver::mkDatatypeConstructorDecl(
+    const std::string& name)
+{
+  return DatatypeConstructorDecl(this, name);
+}
+
 /* Create datatype declarations                                               */
 /* -------------------------------------------------------------------------- */
 
@@ -4163,6 +4180,7 @@ Term Solver::declareFun(const std::string& symbol,
   }
   CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
       << "first-class sort as function codomain sort";
+  CVC4_API_SOLVER_CHECK_SORT(sort);
   Assert(!sort.isFunction()); /* A function sort is not first-class. */
   Type type = *sort.d_type;
   if (!sorts.empty())

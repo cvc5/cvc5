@@ -200,10 +200,10 @@ void SolverBlack::testMkFloatingPointSort()
 void SolverBlack::testMkDatatypeSort()
 {
   DatatypeDecl dtypeSpec = d_solver->mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons(d_solver.get(), "cons");
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver->getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil(d_solver.get(), "nil");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSort(dtypeSpec));
 
@@ -220,16 +220,16 @@ void SolverBlack::testMkDatatypeSorts()
   Solver slv;
 
   DatatypeDecl dtypeSpec1 = d_solver->mkDatatypeDecl("list1");
-  DatatypeConstructorDecl cons1(d_solver.get(), "cons1");
+  DatatypeConstructorDecl cons1 = d_solver->mkDatatypeConstructorDecl("cons1");
   cons1.addSelector("head1", d_solver->getIntegerSort());
   dtypeSpec1.addConstructor(cons1);
-  DatatypeConstructorDecl nil1(d_solver.get(), "nil1");
+  DatatypeConstructorDecl nil1 = d_solver->mkDatatypeConstructorDecl("nil1");
   dtypeSpec1.addConstructor(nil1);
   DatatypeDecl dtypeSpec2 = d_solver->mkDatatypeDecl("list2");
-  DatatypeConstructorDecl cons2(d_solver.get(), "cons2");
+  DatatypeConstructorDecl cons2 = d_solver->mkDatatypeConstructorDecl("cons2");
   cons2.addSelector("head2", d_solver->getIntegerSort());
   dtypeSpec2.addConstructor(cons2);
-  DatatypeConstructorDecl nil2(d_solver.get(), "nil2");
+  DatatypeConstructorDecl nil2 = d_solver->mkDatatypeConstructorDecl("nil2");
   dtypeSpec2.addConstructor(nil2);
   std::vector<DatatypeDecl> decls = {dtypeSpec1, dtypeSpec2};
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSorts(decls));
@@ -244,11 +244,11 @@ void SolverBlack::testMkDatatypeSorts()
   Sort unresList = d_solver->mkUninterpretedSort("ulist");
   std::set<Sort> unresSorts = {unresList};
   DatatypeDecl ulist = d_solver->mkDatatypeDecl("ulist");
-  DatatypeConstructorDecl ucons(d_solver.get(), "ucons");
+  DatatypeConstructorDecl ucons = d_solver->mkDatatypeConstructorDecl("ucons");
   ucons.addSelector("car", unresList);
   ucons.addSelector("cdr", unresList);
   ulist.addConstructor(ucons);
-  DatatypeConstructorDecl unil(d_solver.get(), "unil");
+  DatatypeConstructorDecl unil = d_solver->mkDatatypeConstructorDecl("unil");
   ulist.addConstructor(unil);
   std::vector<DatatypeDecl> udecls = {ulist};
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSorts(udecls, unresSorts));
@@ -763,8 +763,8 @@ void SolverBlack::testMkTermFromOp()
   // list datatype
   Sort sort = d_solver->mkParamSort("T");
   DatatypeDecl listDecl = d_solver->mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl cons(d_solver.get(), "cons");
-  DatatypeConstructorDecl nil(d_solver.get(), "nil");
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
   cons.addSelector("head", sort);
   cons.addSelectorSelf("tail");
   listDecl.addConstructor(cons);
@@ -926,15 +926,15 @@ void SolverBlack::testMkConstArray()
 
 void SolverBlack::testDeclareDatatype()
 {
-  DatatypeConstructorDecl nil(d_solver.get(), "nil");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors1 = {nil};
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("a"), ctors1));
-  DatatypeConstructorDecl cons(d_solver.get(), "cons");
-  DatatypeConstructorDecl nil2(d_solver.get(), "nil");
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl nil2 = d_solver->mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil2};
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("b"), ctors2));
-  DatatypeConstructorDecl cons2(d_solver.get(), "cons");
-  DatatypeConstructorDecl nil3(d_solver.get(), "nil");
+  DatatypeConstructorDecl cons2 = d_solver->mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl nil3 = d_solver->mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors3 = {cons2, nil3};
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string(""), ctors3));
   std::vector<DatatypeConstructorDecl> ctors4;
@@ -1104,11 +1104,11 @@ void SolverBlack::testGetOp()
 
   // Test Datatypes -- more complicated
   DatatypeDecl consListSpec = d_solver->mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons(d_solver.get(), "cons");
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver->getIntegerSort());
   cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil(d_solver.get(), "nil");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
   consListSpec.addConstructor(nil);
   Sort consListSort = d_solver->mkDatatypeSort(consListSpec);
   Datatype consList = consListSort.getDatatype();
@@ -1204,11 +1204,11 @@ void SolverBlack::testSimplify()
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(uSort, d_solver->getIntegerSort());
   DatatypeDecl consListSpec = d_solver->mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons(d_solver.get(), "cons");
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver->getIntegerSort());
   cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil(d_solver.get(), "nil");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
   consListSpec.addConstructor(nil);
   Sort consListSort = d_solver->mkDatatypeSort(consListSpec);
 

@@ -1171,11 +1171,9 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
  public:
   /**
-   * Constructor.
-   * @param name the name of the datatype constructor
-   * @return the DatatypeConstructorDecl
+   * Nullary constructor for Cython.
    */
-  DatatypeConstructorDecl(const Solver* slv, const std::string& name);
+  DatatypeConstructorDecl();
 
   /**
    * Add datatype selector declaration.
@@ -1199,6 +1197,14 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
 
  private:
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param name the name of the datatype constructor
+   * @return the DatatypeConstructorDecl
+   */
+  DatatypeConstructorDecl(const Solver* slv, const std::string& name);
+
   /**
    * The associated solver object.
    */
@@ -1225,7 +1231,7 @@ class CVC4_PUBLIC DatatypeDecl
 
  public:
   /**
-   * Nullary constructor for Cython
+   * Nullary constructor for Cython.
    */
   DatatypeDecl();
 
@@ -1266,7 +1272,7 @@ class CVC4_PUBLIC DatatypeDecl
  private:
   /**
    * Constructor.
-   * @param slv the solver that created this datatype declaration
+   * @param slv the associated solver object
    * @param name the name of the datatype
    * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
@@ -1278,7 +1284,7 @@ class CVC4_PUBLIC DatatypeDecl
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param slv the solver that created this datatype declaration
+   * @param slv the associated solver object
    * @param name the name of the datatype
    * @param param the sort parameter
    * @param isCoDatatype true if a codatatype is to be constructed
@@ -1291,7 +1297,7 @@ class CVC4_PUBLIC DatatypeDecl
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param slv the solver that created this datatype declaration
+   * @param slv the associated solver object
    * @param name the name of the datatype
    * @param params a list of sort parameters
    * @param isCoDatatype true if a codatatype is to be constructed
@@ -2695,6 +2701,12 @@ class CVC4_PUBLIC Solver
    * @return the variable
    */
   Term mkVar(Sort sort, const std::string& symbol = std::string()) const;
+
+  /* .................................................................... */
+  /* Create datatype constructor declarations                             */
+  /* .................................................................... */
+
+  DatatypeConstructorDecl mkDatatypeConstructorDecl(const std::string& name);
 
   /* .................................................................... */
   /* Create datatype declarations                                         */

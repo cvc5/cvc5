@@ -134,12 +134,14 @@ cdef class DatatypeConstructor:
 
 
 cdef class DatatypeConstructorDecl:
-    cdef c_DatatypeConstructorDecl* cddc
-    def __cinit__(self, str name):
-        self.cddc = new c_DatatypeConstructorDecl(name.encode())
+    cdef c_DatatypeConstructorDecl cddc
+
+    def __cinit__(self):
+      pass
 
     def addSelector(self, str name, Sort sort):
         self.cddc.addSelector(name.encode(), sort.csort)
+
     def addSelectorSelf(self, str name):
         self.cddc.addSelectorSelf(name.encode())
 
@@ -156,7 +158,7 @@ cdef class DatatypeDecl:
         pass
 
     def addConstructor(self, DatatypeConstructorDecl ctor):
-        self.cdd.addConstructor(ctor.cddc[0])
+        self.cdd.addConstructor(ctor.cddc)
 
     def isParametric(self):
         return self.cdd.isParametric()
@@ -675,6 +677,11 @@ cdef class Solver:
                                             (<str?> symbol).encode())
         return term
 
+    def mkDatatypeConstructorDecl(self, str name):
+        cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl()
+        ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
+        return ddc
+
     def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
         cdef DatatypeDecl dd = DatatypeDecl()
         cdef vector[c_Sort] v
@@ -790,7 +797,7 @@ cdef class Solver:
         cdef vector[c_DatatypeConstructorDecl] v
 
         for c in ctors:
-            v.push_back((<DatatypeConstructorDecl?> c).cddc[0])
+            v.push_back((<DatatypeConstructorDecl?> c).cddc)
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 

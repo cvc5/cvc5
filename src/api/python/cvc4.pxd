@@ -54,7 +54,6 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
 
 
     cdef cppclass DatatypeConstructorDecl:
-        DatatypeConstructorDecl(const string& name) except +
         void addSelector(const string& name, Sort sort) except +
         void addSelectorSelf(const string& name) except +
         string toString() except +
@@ -160,6 +159,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         # default value for symbol defined in cvc4cpp.h
         Term mkConst(Sort sort) except +
         Term mkVar(Sort sort, const string& symbol) except +
+        DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name, bint isCoDatatype) except +
         DatatypeDecl mkDatatypeDecl(const string& name, Sort param) except +
