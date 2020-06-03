@@ -131,20 +131,6 @@ std::string getTheoryString(theory::TheoryId id)
 
 void TheoryEngine::finishInit()
 {
-  // if we are using the new proofs module
-  if (d_lazyProof != nullptr)
-  {
-    // ask the theories to populate the proof checking rules in the checker
-    for (TheoryId theoryId = theory::THEORY_FIRST;
-         theoryId != theory::THEORY_LAST;
-         ++theoryId)
-    {
-      if (d_theoryTable[theoryId])
-      {
-        d_theoryTable[theoryId]->setProofChecker(d_pchecker.get());
-      }
-    }
-  }
   //initialize the quantifiers engine, master equality engine, model, model builder
   if( d_logicInfo.isQuantified() ) {
     // initialize the quantifiers engine

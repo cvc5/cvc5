@@ -37,7 +37,8 @@ class TheoryQuantifiers : public Theory {
  public:
   TheoryQuantifiers(context::Context* c, context::UserContext* u,
                     OutputChannel& out, Valuation valuation,
-                    const LogicInfo& logicInfo);
+                    const LogicInfo& logicInfo,
+             ProofChecker* pc=nullptr);
   ~TheoryQuantifiers();
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }

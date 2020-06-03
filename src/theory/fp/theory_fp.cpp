@@ -103,8 +103,9 @@ TheoryFp::TheoryFp(context::Context *c,
                    context::UserContext *u,
                    OutputChannel &out,
                    Valuation valuation,
-                   const LogicInfo &logicInfo)
-    : Theory(THEORY_FP, c, u, out, valuation, logicInfo),
+                   const LogicInfo &logicInfo,
+             ProofChecker* pc)
+    : Theory(THEORY_FP, c, u, out, valuation, logicInfo, pc),
       d_notification(*this),
       d_equalityEngine(d_notification, c, "theory::fp::ee", true),
       d_registeredTerms(u),

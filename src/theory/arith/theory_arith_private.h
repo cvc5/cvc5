@@ -364,6 +364,9 @@ private:
    */
   bool safeToReset() const;
 
+  /** Proof node manager */
+  std::unique_ptr<ProofNodeManager> d_pnm;
+  
   /** This keeps track of difference equalities. Mostly for sharing. */
   ArithCongruenceManager d_congruenceManager;
   context::CDO<bool> d_cmEnabled;
@@ -423,7 +426,7 @@ private:
   Node ppRewriteTerms(TNode atom);
 
  public:
-  TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, ProofChecker* pc=nullptr);
   ~TheoryArithPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
@@ -833,8 +836,6 @@ private:
 
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
-  /** Dummy proof manager FIXME: initialize with ProofChecker of TheoryEngine */
-  std::unique_ptr<ProofNodeManager> d_dummyPnm;
   /** The operator elimination utility */
   OperatorElim d_opElim;
 };/* class TheoryArithPrivate */

@@ -34,7 +34,8 @@ ArithCongruenceManager::ArithCongruenceManager(
     ConstraintDatabase& cd,
     SetupLiteralCallBack setup,
     const ArithVariables& avars,
-    RaiseEqualityEngineConflict raiseConflict)
+    RaiseEqualityEngineConflict raiseConflict,
+    ProofNodeManager * pnm)
     : d_inConflict(c),
       d_raiseConflict(raiseConflict),
       d_notify(*this),
@@ -45,14 +46,11 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_setupLiteral(setup),
       d_avariables(avars),
       d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true),
-      d_dummyPnm(new ProofNodeManager(nullptr)), // FIXME: use proof checker of TheoryEngine
-      d_pfee(nullptr)
+      d_pfee(new eq::ProofEqEngine(c, u, d_ee, pnm, options::proofNew()))
 {
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
   d_ee.addFunctionKind(kind::EXPONENTIAL);
   d_ee.addFunctionKind(kind::SINE);
-  d_pfee.reset(
-      new eq::ProofEqEngine(c, u, d_ee, d_dummyPnm.get(), options::proofNew()));
 }
 
 ArithCongruenceManager::~ArithCongruenceManager() {}

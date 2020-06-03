@@ -87,7 +87,8 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        context::UserContext* u,
                                        OutputChannel& out,
                                        Valuation valuation,
-                                       const LogicInfo& logicInfo)
+                                       const LogicInfo& logicInfo,
+                                       ProofChecker* pc)
     : d_containing(containing),
       d_nlIncomplete(false),
       d_rowTracking(),
@@ -118,12 +119,15 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_tableauResetPeriod(10),
       d_conflicts(c),
       d_blackBoxConflict(c, Node::null()),
+      d_pnm(new ProofNodeManager(pc)),
       d_congruenceManager(c,
                           u,
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
-                          RaiseEqualityEngineConflict(*this)),
+                          RaiseEqualityEngineConflict(*this),
+                          d_pnm.get()
+                         ),
       d_cmEnabled(c, true),
 
       d_dualSimplex(
@@ -157,8 +161,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
       d_statistics(),
-      d_dummyPnm(new ProofNodeManager(nullptr)), // FIXME: use proof checker of TheoryEngine
-      d_opElim(d_dummyPnm.get(), logicInfo)
+      d_opElim(d_pnm.get(), logicInfo)
 {
   if( options::nlExt() ){
     d_nonlinearExtension = new nl::NonlinearExtension(

@@ -34,14 +34,12 @@ class TheoryBuiltin : public Theory
                 context::UserContext* u,
                 OutputChannel& out,
                 Valuation valuation,
-                const LogicInfo& logicInfo);
+                const LogicInfo& logicInfo,
+             ProofChecker* pc=nullptr);
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   std::string identify() const override;
-
-  /** Called to set the proof checker */
-  void setProofChecker(ProofChecker* pc) override;
 
   /** finish initialization */
   void finishInit() override;

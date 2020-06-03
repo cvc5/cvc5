@@ -269,7 +269,8 @@ private:
  public:
   TheoryDatatypes(context::Context* c, context::UserContext* u,
                   OutputChannel& out, Valuation valuation,
-                  const LogicInfo& logicInfo);
+                  const LogicInfo& logicInfo,
+             ProofChecker* pc=nullptr);
   ~TheoryDatatypes();
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }

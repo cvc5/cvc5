@@ -67,8 +67,9 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              context::UserContext* u,
                              OutputChannel& out,
                              Valuation valuation,
-                             const LogicInfo& logicInfo)
-    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
+                             const LogicInfo& logicInfo,
+             ProofChecker* pc)
+    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, pc),
       d_notify(*this),
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
@@ -130,6 +131,14 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_false = NodeManager::currentNM()->mkConst( false );
 
   d_cardSize = utils::getAlphabetCardinality();
+  
+  if (pc!=nullptr)
+  {
+    // add checkers
+    d_sProofChecker.registerTo(pc);
+    // use the checker in the proof node manager
+    d_pnm.reset(new ProofNodeManager(pc));
+  }
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -163,14 +172,6 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
     }
   }
   return false;
-}
-
-void TheoryStrings::setProofChecker(ProofChecker* pc)
-{
-  // add checkers
-  d_sProofChecker.registerTo(pc);
-  // use the checker in the proof node manager
-  d_pnm.reset(new ProofNodeManager(pc));
 }
 
 void TheoryStrings::setMasterEqualityEngine(eq::EqualityEngine* eq) {

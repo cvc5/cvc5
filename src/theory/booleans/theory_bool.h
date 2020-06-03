@@ -34,15 +34,14 @@ class TheoryBool : public Theory {
              context::UserContext* u,
              OutputChannel& out,
              Valuation valuation,
-             const LogicInfo& logicInfo);
+             const LogicInfo& logicInfo,
+             ProofChecker* pc=nullptr
+            );
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-
-  /** Called to set the proof checker */
-  void setProofChecker(ProofChecker* pc) override;
-
+  
   std::string identify() const override { return std::string("TheoryBool"); }
 
  private:

@@ -192,6 +192,7 @@ private:
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
   TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out,
            Valuation valuation, const LogicInfo& logicInfo,
+             ProofChecker* pc=nullptr,
            std::string instanceName = "");
 
   ~TheoryUF();
@@ -199,8 +200,6 @@ private:
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-  /** Called to set the proof checker */
-  void setProofChecker(ProofChecker* pc) override;
   void finishInit() override;
 
   void check(Effort) override;

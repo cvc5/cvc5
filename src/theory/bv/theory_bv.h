@@ -69,6 +69,7 @@ public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out,
            Valuation valuation, const LogicInfo& logicInfo,
+             ProofChecker* pc=nullptr,
            std::string name = "");
 
   ~TheoryBV();

@@ -39,8 +39,9 @@ namespace CVC4 {
 namespace theory {
 namespace sep {
 
-TheorySep::TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-  Theory(THEORY_SEP, c, u, out, valuation, logicInfo),
+TheorySep::TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
+             ProofChecker* pc) :
+  Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pc),
   d_lemmas_produced_c(u),
   d_notify(*this),
   d_equalityEngine(d_notify, c, "theory::sep::ee", true),

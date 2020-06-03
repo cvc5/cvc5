@@ -48,7 +48,7 @@ private:
 
 public:
   TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out,
-              Valuation valuation, const LogicInfo& logicInfo);
+              Valuation valuation, const LogicInfo& logicInfo, ProofChecker* pc=nullptr);
   virtual ~TheoryArith();
 
   TheoryRewriter* getTheoryRewriter() override;
