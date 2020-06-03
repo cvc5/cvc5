@@ -886,8 +886,11 @@ public:
   /** Make the type of arrays with the given parameterization */
   inline TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
-  /** Make the type of arrays with the given parameterization */
+  /** Make the type of set with the given parameterization */
   inline TypeNode mkSetType(TypeNode elementType);
+
+  /** Make the type of sequences with the given parameterization */
+  TypeNode mkSequenceType(TypeNode elementType);
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);

@@ -55,7 +55,7 @@
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
-#include "theory/arith/nonlinear_extension.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/simplex.h"
@@ -163,7 +163,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_nlin_inverse_skolem(u)
 {
   if( options::nlExt() ){
-    d_nonlinearExtension = new NonlinearExtension(
+    d_nonlinearExtension = new nl::NonlinearExtension(
         containing, d_congruenceManager.getEqualityEngine());
   }
 }
@@ -1113,14 +1113,8 @@ void TheoryArithPrivate::checkNonLinearLogic(Node term)
   }
 }
 
-struct ArithElimOpAttributeId
-{
-};
-typedef expr::Attribute<ArithElimOpAttributeId, Node> ArithElimOpAttribute;
-
 Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
 {
-  ArithElimOpAttribute aeoa;
   Trace("arith-elim") << "Begin elim: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<Node, Node, TNodeHashFunction> visited;
@@ -1139,18 +1133,11 @@ Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
     }
     else if (it == visited.end())
     {
-      if (cur.hasAttribute(aeoa))
+      visited[cur] = Node::null();
+      visit.push_back(cur);
+      for (const Node& cn : cur)
       {
-        visited[cur] = cur.getAttribute(aeoa);
-      }
-      else
-      {
-        visited[cur] = Node::null();
-        visit.push_back(cur);
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        visit.push_back(cn);
       }
     }
     else if (it->second.isNull())
@@ -1181,7 +1168,6 @@ Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
         // are defined in terms of other non-standard operators.
         ret = eliminateOperatorsRec(retElim);
       }
-      cur.setAttribute(aeoa, ret);
       visited[cur] = ret;
     }
   } while (!visit.empty());

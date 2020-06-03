@@ -12,8 +12,8 @@
  ** \brief Model object for the non-linear extension class
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL_MODEL_H
-#define CVC4__THEORY__ARITH__NL_MODEL_H
+#ifndef CVC4__THEORY__ARITH__NL__NL_MODEL_H
+#define CVC4__THEORY__ARITH__NL__NL_MODEL_H
 
 #include <map>
 #include <unordered_map>
@@ -28,6 +28,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 class NonlinearExtension;
 
@@ -307,7 +308,7 @@ class NlModel
    * (2) variables we have solved quadratic equations for, whose value
    * involves approximations of square roots.
    */
-  std::map<Node, std::pair<Node, Node> > d_check_model_bounds;
+  std::map<Node, std::pair<Node, Node>> d_check_model_bounds;
   /**
    * The map from literals that our model construction solved, to the variable
    * that was solved for. Examples of such literals are:
@@ -326,6 +327,7 @@ class NlModel
   std::unordered_set<Node, NodeHashFunction> d_tautology;
 }; /* class NlModel */
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

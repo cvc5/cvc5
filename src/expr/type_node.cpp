@@ -122,7 +122,7 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = true;
   }
-  else if (isString() || isRegExp() || isReal())
+  else if (isString() || isRegExp() || isSequence() || isReal())
   {
     ret = false;
   }
@@ -245,6 +245,10 @@ bool TypeNode::isClosedEnumerable()
     {
       ret = getSetElementType().isClosedEnumerable();
     }
+    else if (isSequence())
+    {
+      ret = getSequenceElementType().isClosedEnumerable();
+    }
     else if (isDatatype())
     {
       // avoid infinite loops: initially set to true
@@ -351,6 +355,12 @@ bool TypeNode::isComparableTo(TypeNode t) const {
     return !leastCommonTypeNode(*this, t).isNull();
   }
   return false;
+}
+
+TypeNode TypeNode::getSequenceElementType() const
+{
+  Assert(isSequence());
+  return (*this)[0];
 }
 
 TypeNode TypeNode::getBaseType() const {

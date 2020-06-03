@@ -37,6 +37,8 @@ set(regress_0_tests
   regress0/arith/issue3413.smt2
   regress0/arith/issue3480.smt2
   regress0/arith/issue3683.smt2
+  regress0/arith/issue4367.smt2
+  regress0/arith/issue4525.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
@@ -538,6 +540,7 @@ set(regress_0_tests
   regress0/ho/ho-matching-nested-app.smt2
   regress0/ho/ho-std-fmf.smt2
   regress0/ho/hoa0008.smt2
+  regress0/ho/issue4477.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
@@ -737,6 +740,7 @@ set(regress_0_tests
   regress0/quantifiers/issue3655.smt2
   regress0/quantifiers/issue4086-infs.smt2
   regress0/quantifiers/issue4275-qcf-cegqi-rep.smt2
+  regress0/quantifiers/issue4476-ext-rew.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
@@ -1312,6 +1316,7 @@ set(regress_1_tests
   regress1/fmf/issue3626.smt2
   regress1/fmf/issue3689.smt2
   regress1/fmf/issue4068-si-qf.smt2
+  regress1/fmf/issue4225-univ-fun.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
