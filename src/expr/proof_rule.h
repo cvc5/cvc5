@@ -150,7 +150,7 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: (= t t')
   // where
-  //   t' is 
+  //   t' is
   //   toWitness(Rewriter{idr}(toSkolem(t)*sigma{ids}(Fn)*...*sigma{ids}(F1)))
   //   toSkolem(...) converts terms from witness form to Skolem form,
   //   toWitness(...) converts terms from Skolem form to witness form.
@@ -216,7 +216,7 @@ enum class PfRule : uint32_t
   // Notice that we apply rewriting on the witness form of F and G, similar to
   // MACRO_SR_PRED_INTRO.
   MACRO_SR_PRED_TRANSFORM,
-  
+
   //================================================= Unknown rule
   UNKNOWN,
 };
