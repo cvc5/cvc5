@@ -1167,6 +1167,7 @@ class DatatypeIterator;
 class CVC4_PUBLIC DatatypeConstructorDecl
 {
   friend class DatatypeDecl;
+  friend class Solver;
 
  public:
   /**
@@ -1174,7 +1175,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * @param name the name of the datatype constructor
    * @return the DatatypeConstructorDecl
    */
-  DatatypeConstructorDecl(const std::string& name);
+  DatatypeConstructorDecl(const Solver* slv, const std::string& name);
 
   /**
    * Add datatype selector declaration.
@@ -1198,6 +1199,11 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
 
  private:
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
+
   /**
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
@@ -1240,6 +1246,9 @@ class CVC4_PUBLIC DatatypeDecl
   /** Is this Datatype declaration parametric? */
   bool isParametric() const;
 
+  /**
+   * @return true if this DatatypeDecl is a null object
+   */
   bool isNull() const;
 
   /**
@@ -1292,8 +1301,16 @@ class CVC4_PUBLIC DatatypeDecl
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
 
-  // helper for isNull() to avoid calling API functions from other API functions
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
   bool isNullHelper() const;
+
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
 
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration

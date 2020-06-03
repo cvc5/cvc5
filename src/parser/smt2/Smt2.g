@@ -2521,7 +2521,7 @@ constructorDef[CVC4::api::DatatypeDecl& type]
 }
   : symbol[id,CHECK_NONE,SYM_VARIABLE]
     {
-      ctor = new api::DatatypeConstructorDecl(id);
+      ctor = new api::DatatypeConstructorDecl(PARSER_STATE->getSolver(), id);
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
     { // make the constructor

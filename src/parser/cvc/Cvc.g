@@ -2377,8 +2377,9 @@ constructorDef[CVC4::api::DatatypeDecl& type]
   std::unique_ptr<CVC4::api::DatatypeConstructorDecl> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
-    { 
-      ctor.reset(new CVC4::api::DatatypeConstructorDecl(id));
+    {
+      ctor.reset(new CVC4::api::DatatypeConstructorDecl(
+          PARSER_STATE->getSolver(), id));
     }
     ( LPAREN
       selector[&ctor]
