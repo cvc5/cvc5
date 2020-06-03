@@ -437,11 +437,6 @@ class TheoryEngine {
 
  private:
   /**
-   * Helper for preprocess
-   */
-  Node ppTheoryRewrite(TNode term);
-
-  /**
    * Queue of nodes for pre-registration.
    */
   std::queue<TNode> d_preregisterQueue;

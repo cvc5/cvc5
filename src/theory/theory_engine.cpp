@@ -105,6 +105,28 @@ inline Node flattenAnd(Node n){
   return NodeManager::currentNM()->mkNode(kind::AND, out);
 }
 
+/**
+ * Compute the string for a given theory id. In this module, we use
+ * THEORY_SAT_SOLVER as an id, which is not a normal id but maps to
+ * THEORY_LAST. Thus, we need our own string conversion here.
+ *
+ * @param id The theory id
+ * @return The string corresponding to the theory id
+ */
+std::string getTheoryString(theory::TheoryId id)
+{
+  if (id == theory::THEORY_SAT_SOLVER)
+  {
+    return "THEORY_SAT_SOLVER";
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << id;
+    return ss.str();
+  }
+}
+
 void TheoryEngine::finishInit() {
   //initialize the quantifiers engine, master equality engine, model, model builder
   if( d_logicInfo.isQuantified() ) {
@@ -167,7 +189,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_curr_model_builder(nullptr),
       d_aloc_curr_model_builder(false),
       d_eager_model_building(false),
-      d_ppCache(),
       d_possiblePropagations(context),
       d_hasPropagated(context),
       d_inConflict(context, false),
@@ -913,7 +934,7 @@ void TheoryEngine::shutdown() {
     }
   }
 
-  d_ppCache.clear();
+  d_tpp.clearCache();
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitutionOut) {
@@ -938,46 +959,6 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }
-
-// Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryEngine::ppTheoryRewrite(TNode term) {
-  NodeMap::iterator find = d_ppCache.find(term);
-  if (find != d_ppCache.end()) {
-    return (*find).second;
-  }
-  unsigned nc = term.getNumChildren();
-  if (nc == 0) {
-    return theoryOf(term)->ppRewrite(term);
-  }
-  Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
-
-  Node newTerm;
-  // do not rewrite inside quantifiers
-  if (term.isClosure())
-  {
-    newTerm = Rewriter::rewrite(term);
-  }
-  else
-  {
-    NodeBuilder<> newNode(term.getKind());
-    if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      newNode << term.getOperator();
-    }
-    unsigned i;
-    for (i = 0; i < nc; ++i) {
-      newNode << ppTheoryRewrite(term[i]);
-    }
-    newTerm = Rewriter::rewrite(Node(newNode));
-  }
-  Node newTerm2 = theoryOf(newTerm)->ppRewrite(newTerm);
-  if (newTerm != newTerm2) {
-    newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2));
-  }
-  d_ppCache[term] = newTerm;
-  Trace("theory-pp")<< "ppTheoryRewrite returning " << newTerm << "}" << endl;
-  return newTerm;
-}
-
 
 void TheoryEngine::preprocessStart()
 {
@@ -1633,7 +1614,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // the assertion pipeline storing the lemmas
   AssertionPipeline lemmas;
   // call preprocessor
-  d_tpp.preprocess(node, lemmas, preprocess);
+  d_tpp.preprocess(node, lemmas, preprocess, lcp.get());
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
@@ -1641,16 +1622,16 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
         lemmas[i], i == 0 && negated, removable, rule, node);
   }
 
-  // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
+  // WARNING: Below this point don't assume lemmas[0] to be not negated.
   if(negated) {
-    additionalLemmas.replace(0, additionalLemmas[0].notNode());
+    lemmas.replace(0, lemmas[0].notNode());
     negated = false;
   }
 
   // assert to decision engine
   if (!removable)
   {
-    d_propEngine->addAssertionsToDecisionEngine(additionalLemmas);
+    d_propEngine->addAssertionsToDecisionEngine(lemmas);
   }
 
   // Mark that we added some lemmas
@@ -1658,12 +1639,12 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   // Lemma analysis isn't online yet; this lemma may only live for this
   // user level.
-  Node retLemma = additionalLemmas[0];
-  if (additionalLemmas.size() > 1)
+  Node retLemma = lemmas[0];
+  if (lemmas.size() > 1)
   {
     // the returned lemma is the conjunction of all additional lemmas.
     retLemma =
-        NodeManager::currentNM()->mkNode(kind::AND, additionalLemmas.ref());
+        NodeManager::currentNM()->mkNode(kind::AND, lemmas.ref());
   }
   return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
