@@ -146,19 +146,16 @@ void Smt2Printer::toStream(std::ostream& out,
           << n.getConst<FloatingPointSize>().significand()
           << ")";
       break;
-    case kind::CONST_BITVECTOR: {
+    case kind::CONST_BITVECTOR:
+    {
       const BitVector& bv = n.getConst<BitVector>();
-      const Integer& x = bv.getValue();
-      unsigned width = bv.getSize();
-      if (d_variant == sygus_variant || options::bvPrintConstsInBinary())
+      if (options::bvPrintConstsAsIndexedSymbols())
       {
-        out << "#b" << bv.toString();
+        out << "(_ bv" << bv.getValue() << " " << bv.getSize() << ")";
       }
       else
       {
-        out << "(_ ";
-        out << "bv" << x << " " << width;
-        out << ")";
+        out << "#b" << bv.toString();
       }
       break;
     }
@@ -178,15 +175,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(fp ";
       for (unsigned i = 0; i < 3; ++i)
       {
-        if (options::bvPrintConstsInBinary())
+        if (options::bvPrintConstsAsIndexedSymbols())
         {
-          out << "#b" << v[i].toString();
+          out << "(_ bv" << v[i].getValue() << " " << v[i].getSize() << ")";
         }
         else
         {
-          out << "(_ ";
-          out << "bv" << v[i].getValue() << " " << v[i].getSize();
-          out << ")";
+          out << "#b" << v[i].toString();
         }
         if (i < 2)
         {
