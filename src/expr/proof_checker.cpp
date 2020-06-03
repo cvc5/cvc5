@@ -93,7 +93,7 @@ bool ProofRuleChecker::getBool(TNode n, bool& b)
 
 ProofCheckerStatistics::ProofCheckerStatistics()
     : d_ruleChecks("ProofCheckerStatistics::ruleChecks"),
-    d_totalRuleChecks("ProofCheckerStatistics::totalRuleChecks")
+    d_totalRuleChecks("ProofCheckerStatistics::totalRuleChecks", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_ruleChecks);
   smtStatisticsRegistry()->registerStat(&d_totalRuleChecks);
