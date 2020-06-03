@@ -407,12 +407,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                       std::vector<Node>& wlems,
                                       std::map<Node, NlLemmaSideEffect>& lemSE)
 {
+  std::vector<Node> lemmas;
   if (options::nlExt())
   {
     // initialize the non-linear solver
     d_nlSlv.initLastCall(assertions, false_asserts, xts);
     // initialize the trancendental function solver
-    std::vector<Node> lemmas;
     d_trSlv.initLastCall(assertions, false_asserts, xts, lemmas, lemsPp);
   }
   if (options::nlCad())
