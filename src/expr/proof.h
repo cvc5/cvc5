@@ -145,8 +145,6 @@ std::ostream& operator<<(std::ostream& out, CDPOverwrite opol);
  */
 class CDProof
 {
-  friend theory::eq::EqProof;
-
  public:
   CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
   virtual ~CDProof();
