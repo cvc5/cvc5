@@ -83,6 +83,8 @@ PRs ready:
 (16) UF rules, UF checker (Haniel) (req 5)
 (21) static strings preprocess reduce (req 7) *
 (28) ProofSkolemCache -> SkolemManager
+(32) split theory engine
+(33) split operator elimination from arith (req 28)
 
 PRs future:
 

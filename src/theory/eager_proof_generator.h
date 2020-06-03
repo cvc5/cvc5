@@ -129,13 +129,13 @@ class EagerProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProof(Node key);
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;
   /**
    * A user-context-dependent map from lemmas and conflicts to proofs provided
    * by calls to setProofForConflict and setProofForLemma above.
    */
   NodeProofNodeMap d_proofs;
-  /** A dummy context used by this class if none is provided */
-  context::Context d_context;
 };
 
 }  // namespace theory

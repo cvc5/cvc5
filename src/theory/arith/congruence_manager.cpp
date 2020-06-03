@@ -45,14 +45,12 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_setupLiteral(setup),
       d_avariables(avars),
       d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true),
-      d_dummyPnm(nullptr),
+      d_dummyPnm(new ProofNodeManager(nullptr)), // FIXME: use proof checker of TheoryEngine
       d_pfee(nullptr)
 {
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
   d_ee.addFunctionKind(kind::EXPONENTIAL);
   d_ee.addFunctionKind(kind::SINE);
-  d_dummyPnm.reset(new ProofNodeManager(
-      nullptr));  // FIXME: use proof checker of TheoryEngine
   d_pfee.reset(
       new eq::ProofEqEngine(c, u, d_ee, d_dummyPnm.get(), options::proofNew()));
 }

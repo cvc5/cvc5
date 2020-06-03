@@ -27,7 +27,7 @@ namespace arith {
 class OperatorElim : public EagerProofGenerator
 {
 public:
-  OperatorElim(ProofNodeManager* pnm, LogicInfo& info);
+  OperatorElim(ProofNodeManager* pnm, const LogicInfo& info);
   ~OperatorElim(){}
   /**
    * Eliminate operators in term n. If n has top symbol that is not a core
@@ -57,7 +57,7 @@ public:
   Node eliminateOperatorsRec(Node n);
 private:
   /** Logic info of the owner of this class */
-  LogicInfo& d_info;
+  const LogicInfo& d_info;
 
   /**
    *  Maps for Skolems for to-integer, real/integer div-by-k, and inverse
