@@ -740,6 +740,7 @@ set(regress_0_tests
   regress0/quantifiers/issue3655.smt2
   regress0/quantifiers/issue4086-infs.smt2
   regress0/quantifiers/issue4275-qcf-cegqi-rep.smt2
+  regress0/quantifiers/issue4437-unc-quant.smt2
   regress0/quantifiers/issue4476-ext-rew.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1127,8 +1128,6 @@ set(regress_0_tests
   regress0/uflra/simple.03.cvc
   regress0/uflra/simple.04.cvc
   regress0/unconstrained/4481.smt2
-  regress0/unconstrained/4484.smt2
-  regress0/unconstrained/4486.smt2
   regress0/unconstrained/arith.smt2
   regress0/unconstrained/arith3.smt2
   regress0/unconstrained/arith4.smt2
