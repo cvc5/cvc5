@@ -1518,7 +1518,8 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Op op, const std::vector<Term>& children)
    *
    * Note: We currently support the creation of array equalities over index
-   * types bit-vector, floating-point, integer and real.
+   * types bit-vector, floating-point, integer and real. Option --arrays-exp is
+   * required to support this operator.
    */
   EQ_RANGE,
 #if 0
