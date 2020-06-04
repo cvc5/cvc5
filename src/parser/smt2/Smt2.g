@@ -1692,7 +1692,13 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
   std::vector<api::Sort> argTypes;
 }
   : LPAREN_TOK quantOp[kind]
-    { PARSER_STATE->pushScope(true); }
+    {
+      if (!PARSER_STATE->isTheoryEnabled(theory::THEORY_QUANTIFIERS))
+      {
+        PARSER_STATE->parseError("Quantifier used in non-quantified logic.");
+      }
+      PARSER_STATE->pushScope(true);
+    }
     boundVarList[bvl]
     term[f, f2] RPAREN_TOK
     {
