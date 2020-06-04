@@ -118,8 +118,9 @@ class FakeTheory : public Theory
              context::UserContext* uctxt,
              OutputChannel& out,
              Valuation valuation,
-             const LogicInfo& logicInfo)
-      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo)
+             const LogicInfo& logicInfo,
+             ProofChecker * pc)
+      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pc)
   {
   }
 

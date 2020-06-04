@@ -372,8 +372,6 @@ libcvc4_add_sources(
   theory/builtin/theory_builtin_rewriter.cpp
   theory/builtin/theory_builtin_rewriter.h
   theory/builtin/theory_builtin_type_rules.h
-  theory/builtin/proof_checker.cpp
-  theory/builtin/proof_checker.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h
   theory/bv/abstraction.cpp
@@ -764,6 +762,8 @@ libcvc4_add_sources(
   theory/theory_model_builder.h
   theory/theory_preprocessor.cpp
   theory/theory_preprocessor.h
+  theory/theory_proof_step_buffer.cpp
+  theory/theory_proof_step_buffer.h
   theory/theory_registrar.h
   theory/theory_test_utils.h
   theory/type_enumerator.h

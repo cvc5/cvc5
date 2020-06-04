@@ -125,7 +125,14 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                                        MethodId idr = MethodId::RW_REWRITE);
   /** get a rewriter Id from a node, return false if we fail */
   static bool getMethodId(TNode n, MethodId& i);
-
+  /** get method identifiers */
+  static bool getMethodIds(const std::vector<Node>& args,
+                    MethodId& ids,
+                    MethodId& idr,
+                    size_t index);
+  /** Add method identifiers ids and idr to args */
+  static void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
+  
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
 
@@ -134,11 +141,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-  /** get method identifiers */
-  bool getMethodIds(const std::vector<Node>& args,
-                    MethodId& ids,
-                    MethodId& idr,
-                    size_t index);
   /**
    * Apply rewrite (on Skolem form). id is the identifier of the rewriter.
    */

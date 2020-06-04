@@ -143,7 +143,7 @@ Node InferProofCons::convert(Inference infer,
         std::vector<Node> exps;
         exps.insert(exps.end(), ps.d_children.begin(), ps.d_children.end() - 1);
         Node src = ps.d_children[ps.d_children.size() - 1];
-        if (convertPredTransform(src, conc, exps))
+        if (d_psb.applyPredTransform(src, conc, exps))
         {
           useBuffer = true;
         }
@@ -170,14 +170,14 @@ Node InferProofCons::convert(Inference infer,
         expe.insert(expe.end(), ps.d_children.begin(), ps.d_children.end() - 1);
       }
       // start with a default rewrite
-      Node mainEqSRew = convertPredElim(src, expe);
+      Node mainEqSRew = d_psb.applyPredElim(src, expe);
       if (mainEqSRew == conc)
       {
         useBuffer = true;
         break;
       }
       // may need the "extended equality rewrite"
-      Node mainEqSRew2 = convertPredElim(
+      Node mainEqSRew2 = d_psb.applyPredElim(
           mainEqSRew, {}, MethodId::SB_DEFAULT, MethodId::RW_REWRITE_EQ_EXT);
       if (mainEqSRew2 == conc)
       {
@@ -185,7 +185,7 @@ Node InferProofCons::convert(Inference infer,
         break;
       }
       // rewrite again with default rewriter
-      Node mainEqSRew3 = convertPredElim(mainEqSRew2, {});
+      Node mainEqSRew3 = d_psb.applyPredElim(mainEqSRew2, {});
       useBuffer = (mainEqSRew3 == conc);
     }
     break;
@@ -318,7 +318,7 @@ Node InferProofCons::convert(Inference infer,
         // optimization in processSimpleNEq. Alternatively, this could
         // possibly be done by CONCAT_EQ with !isRev.
         std::vector<Node> cexp;
-        if (convertPredTransform(mainEqCeq,
+        if (d_psb.applyPredTransform(mainEqCeq,
                                  conc,
                                  cexp,
                                  MethodId::SB_DEFAULT,
@@ -487,7 +487,7 @@ Node InferProofCons::convert(Inference infer,
           }
           // either equal or rewrites to it
           std::vector<Node> cexp;
-          if (convertPredTransform(mainEqMain, conc, cexp))
+          if (d_psb.applyPredTransform(mainEqMain, conc, cexp))
           {
             // requires that length success is also true
             useBuffer = true;
@@ -628,7 +628,7 @@ Node InferProofCons::convert(Inference infer,
       tchildren.push_back(ctnt);
       // apply substitution { contains(x,t) -> true|false } and rewrite to get
       // conclusion x = k1 ++ t ++ k2 or x != t.
-      if (convertPredTransform(res, conc, tchildren))
+      if (d_psb.applyPredTransform(res, conc, tchildren))
       {
         useBuffer = true;
       }
@@ -662,7 +662,7 @@ Node InferProofCons::convert(Inference infer,
       {
         // either equal or rewrites to it
         std::vector<Node> cexp;
-        if (convertPredTransform(red, conc, cexp))
+        if (d_psb.applyPredTransform(red, conc, cexp))
         {
           Trace("strings-ipc-red") << "...success!" << std::endl;
           useBuffer = true;
@@ -766,7 +766,7 @@ Node InferProofCons::convert(Inference infer,
       Trace("strings-ipc-prefix")
           << "- Possible conflicting equality : " << curr << std::endl;
       std::vector<Node> emp;
-      Node concE = convertPredElim(curr, emp);
+      Node concE = d_psb.applyPredElim(curr, emp);
       Trace("strings-ipc-prefix")
           << "- After pred elim: " << concE << std::endl;
       if (concE == conc)
@@ -817,7 +817,7 @@ Node InferProofCons::convert(Inference infer,
       bool successChildren = true;
       for (unsigned i = 0, nchild = reiChildren.size(); i < nchild; i++)
       {
-        if (!convertPredTransform(reiChildrenOrig[i], reiChildren[i], reiExp))
+        if (!d_psb.applyPredTransform(reiChildrenOrig[i], reiChildren[i], reiExp))
         {
           Trace("strings-ipc-re")
               << "... failed to justify child " << reiChildren[i] << " from "
@@ -836,7 +836,7 @@ Node InferProofCons::convert(Inference infer,
       Trace("strings-ipc-re")
           << "Regular expression summary: " << mem << std::endl;
       // the conclusion is rewritable to the premises via rewriting?
-      if (convertPredTransform(mem, conc, {}))
+      if (d_psb.applyPredTransform(mem, conc, {}))
       {
         Trace("strings-ipc-re") << "... success!" << std::endl;
         useBuffer = true;
@@ -967,7 +967,7 @@ bool InferProofCons::convertLengthPf(Node lenReq,
   {
     // probably rewrites to it?
     std::vector<Node> exp;
-    if (convertPredTransform(le, lenReq, exp))
+    if (d_psb.applyPredTransform(le, lenReq, exp))
     {
       Trace("strings-ipc-len") << "...success by rewrite" << std::endl;
       return true;
@@ -985,89 +985,6 @@ bool InferProofCons::convertLengthPf(Node lenReq,
   }
   Trace("strings-ipc-len") << "...failed" << std::endl;
   return false;
-}
-
-bool InferProofCons::convertPredTransform(Node src,
-                                          Node tgt,
-                                          const std::vector<Node>& exp,
-                                          MethodId ids,
-                                          MethodId idr)
-{
-  // symmetric equalities
-  if (CDProof::isSame(src, tgt))
-  {
-    return true;
-  }
-  std::vector<Node> children;
-  children.push_back(src);
-  std::vector<Node> args;
-  // try to prove that tgt rewrites to src
-  children.insert(children.end(), exp.begin(), exp.end());
-  args.push_back(tgt);
-  addMethodIds(args, ids, idr);
-  Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
-  if (res.isNull())
-  {
-    // failed to apply
-    return false;
-  }
-  Trace("strings-ipc-debug") << "InferProofCons::convertPredTransform: success "
-                             << src << " == " << tgt << " under " << exp
-                             << " via " << ids << "/" << idr << std::endl;
-  // should definitely have concluded tgt
-  Assert(res == tgt);
-  return true;
-}
-
-bool InferProofCons::convertPredIntro(Node tgt,
-                                      const std::vector<Node>& exp,
-                                      MethodId ids,
-                                      MethodId idr)
-{
-  std::vector<Node> args;
-  args.push_back(tgt);
-  addMethodIds(args, ids, idr);
-  Node res = d_psb.tryStep(PfRule::MACRO_SR_PRED_INTRO, exp, args);
-  if (res.isNull())
-  {
-    return false;
-  }
-  Assert(res == tgt);
-  return true;
-}
-
-Node InferProofCons::convertPredElim(Node src,
-                                     const std::vector<Node>& exp,
-                                     MethodId ids,
-                                     MethodId idr)
-{
-  std::vector<Node> children;
-  children.push_back(src);
-  children.insert(children.end(), exp.begin(), exp.end());
-  std::vector<Node> args;
-  addMethodIds(args, ids, idr);
-  Node srcRew = d_psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, children, args);
-  if (CDProof::isSame(src, srcRew))
-  {
-    d_psb.popStep();
-    return srcRew;
-  }
-  return srcRew;
-}
-
-void InferProofCons::addMethodIds(std::vector<Node>& args,
-                                  MethodId ids,
-                                  MethodId idr)
-{
-  bool ndefRewriter = (idr != MethodId::RW_REWRITE);
-  if (ids != MethodId::SB_DEFAULT || ndefRewriter)
-  {
-    args.push_back(mkMethodId(ids));
-  }
-  if (ndefRewriter)
-  {
-    args.push_back(mkMethodId(idr));
-  }
 }
 
 Node InferProofCons::convertTrans(Node eqa, Node eqb)
