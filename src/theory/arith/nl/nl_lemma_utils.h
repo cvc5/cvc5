@@ -12,8 +12,8 @@
  ** \brief Utilities for processing lemmas from the non-linear solver
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL_LEMMA_UTILS_H
-#define CVC4__THEORY__ARITH__NL_LEMMA_UTILS_H
+#ifndef CVC4__THEORY__ARITH__NL__NL_LEMMA_UTILS_H
+#define CVC4__THEORY__ARITH__NL__NL_LEMMA_UTILS_H
 
 #include <tuple>
 #include <vector>
@@ -22,6 +22,7 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 class NlModel;
 
@@ -98,6 +99,7 @@ class ArgTrie
   Node add(Node d, const std::vector<Node>& args);
 };
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

@@ -264,7 +264,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
           // Add a constant string to the side with more `cn`s to restore
           // the difference in number of `cn`s
           std::vector<Node> vec(diff, cn);
-          trimmed[j].push_back(Word::mkWord(vec));
+          trimmed[j].push_back(Word::mkWordFlatten(vec));
         }
       }
 
@@ -602,7 +602,7 @@ Node SequencesRewriter::rewriteConcat(Node node)
           std::vector<Node> wvec;
           wvec.push_back(preNode);
           wvec.push_back(tmpNode[0]);
-          preNode = Word::mkWord(wvec);
+          preNode = Word::mkWordFlatten(wvec);
           node_vec.push_back(preNode);
         }
         else
@@ -644,7 +644,7 @@ Node SequencesRewriter::rewriteConcat(Node node)
         std::vector<Node> vec;
         vec.push_back(preNode);
         vec.push_back(tmpNode);
-        preNode = Word::mkWord(vec);
+        preNode = Word::mkWordFlatten(vec);
       }
     }
   }
@@ -1460,6 +1460,10 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   else if (nk == REGEXP_REPEAT)
   {
     retNode = rewriteRepeatRegExp(node);
+  }
+  else if (nk == SEQ_UNIT)
+  {
+    retNode = rewriteSeqUnit(node);
   }
 
   Trace("sequences-postrewrite")
@@ -3095,6 +3099,19 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
   return res;
 }
 
+Node SequencesRewriter::rewriteSeqUnit(Node node)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (node[0].isConst())
+  {
+    std::vector<Expr> seq;
+    seq.push_back(node[0].toExpr());
+    TypeNode stype = nm->mkSequenceType(node[0].getType());
+    Node ret = nm->mkConst(ExprSequence(stype.toType(), seq));
+    return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
+  }
+  return node;
+}
 
 Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
 {

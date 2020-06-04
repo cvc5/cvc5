@@ -91,8 +91,8 @@ void test(Solver& slv, Sort& consListSort)
   DatatypeDecl paramConsListSpec =
       slv.mkDatatypeDecl("paramlist",
                          sort);  // give the datatype a name
-  DatatypeConstructorDecl paramCons("cons");
-  DatatypeConstructorDecl paramNil("nil");
+  DatatypeConstructorDecl paramCons = slv.mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl paramNil = slv.mkDatatypeConstructorDecl("nil");
   paramCons.addSelector("head", sort);
   paramCons.addSelectorSelf("tail");
   paramConsListSpec.addConstructor(paramCons);
@@ -144,11 +144,11 @@ int main()
 
   DatatypeDecl consListSpec =
       slv.mkDatatypeDecl("list");  // give the datatype a name
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = slv.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", slv.getIntegerSort());
   cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = slv.mkDatatypeConstructorDecl("nil");
   consListSpec.addConstructor(nil);
 
   std::cout << "spec is:" << std::endl << consListSpec << std::endl;
@@ -167,10 +167,10 @@ int main()
             << ">>> Alternatively, use declareDatatype" << std::endl;
   std::cout << std::endl;
 
-  DatatypeConstructorDecl cons2("cons");
+  DatatypeConstructorDecl cons2 = slv.mkDatatypeConstructorDecl("cons");
   cons2.addSelector("head", slv.getIntegerSort());
   cons2.addSelectorSelf("tail");
-  DatatypeConstructorDecl nil2("nil");
+  DatatypeConstructorDecl nil2 = slv.mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors = {cons2, nil2};
   Sort consListSort2 = slv.declareDatatype("list2", ctors);
   test(slv, consListSort2);
