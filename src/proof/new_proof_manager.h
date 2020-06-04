@@ -101,8 +101,7 @@ class NewProofManager
   // being removed positively from the given clause or the implicit one it's
   // being resolved against
   void addResolutionStep(Minisat::Solver::TClause& clause,
-                         Minisat::Solver::TLit lit,
-                         bool sign);
+                         Minisat::Solver::TLit lit);
   void endResChain(Minisat::Solver::TLit lit);
   void endResChain(Minisat::Solver::TClause& clause);
   void endResChain(ClauseId id);
@@ -149,20 +148,17 @@ class NewProofManager
 
   /** maps SAT literals to the nodes they correspond to */
   std::map<prop::SatLiteral, Node> d_litToNode;
-
-  std::map<ClauseId, Minisat::Solver::TClause*> d_clauseIdToClause;
+  std::map<Node, prop::SatLiteral> d_nodeToLit;
 
   std::map<prop::SatLiteral, ClauseId> d_litToClauseId;
   std::map<ClauseId, prop::SatLiteral> d_clauseIdToLit;
 
-  std::vector<Resolution> d_resolution;
-
-  std::vector<std::vector<Resolution>> d_resolutions;
+  std::vector<std::pair<Node, Node>> d_resolution;
 
   unsigned d_nextId;
 
   /** The id of the proof step that explains this literal */
-  ClauseId justifyLit(Minisat::Solver::TLit lit);
+  ClauseId justifyLit(prop::SatLiteral lit);
 }; /* class ProofManager */
 
 }  // namespace CVC4
