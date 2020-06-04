@@ -101,8 +101,22 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Assert(children.size() == 1);
     Assert(args.size() == 1);
     std::unordered_set<Node, NodeHashFunction> clauseSet1, clauseSet2;
-    clauseSet1.insert(children[0].begin(), children[0].end());
-    clauseSet2.insert(args[0].begin(), args[0].end());
+    if (children[0].getKind() == kind::OR)
+    {
+      clauseSet1.insert(children[0].begin(), children[0].end());
+    }
+    else
+    {
+      clauseSet1.insert(children[0]);
+    }
+    if (args[0].getKind() == kind::OR)
+    {
+      clauseSet2.insert(args[0].begin(), args[0].end());
+    }
+    else
+    {
+      clauseSet2.insert(args[0]);
+    }
     if (clauseSet1 != clauseSet2)
     {
       return Node::null();
