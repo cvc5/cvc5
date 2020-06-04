@@ -6,6 +6,9 @@ Changes since 1.7
 Changes:
 * Java API change: The name of CVC4's package is now `edu.stanford.CVC4`
   instead of `edu.nyu.acsys.CVC4`.
+* The default output language is changed from CVC to SMT-LIB 2.6. The
+  default output language is used when the problem language cannot be
+  easily inferred (for example when CVC4 is used from the API).
 
 Changes since 1.6
 =================
