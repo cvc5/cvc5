@@ -4560,7 +4560,7 @@ bool Solver::getInterpolant(Term B, Term& output) const {
   Expr result;
   bool success = d_smtEngine->getInterpol(*B.d_expr, result);
   if (success) {
-    output = result;
+    output = Term(output.d_solver, result);
   }
   return success;
 }
