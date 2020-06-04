@@ -161,33 +161,8 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     case kind::CONST_FLOATINGPOINT:
     {
-      // retrive BV value
-      const FloatingPoint& fp = n.getConst<FloatingPoint>();
-      BitVector bv(fp.pack());
-      unsigned largestSignificandBit =
-          fp.t.significand() - 2;  // -1 for -inclusive, -1 for hidden
-      unsigned largestExponentBit =
-          (fp.t.exponent() - 1) + (largestSignificandBit + 1);
-      BitVector v[3];
-      v[0] = bv.extract(largestExponentBit + 1, largestExponentBit + 1);
-      v[1] = bv.extract(largestExponentBit, largestSignificandBit + 1);
-      v[2] = bv.extract(largestSignificandBit, 0);
-      out << "(fp ";
-      for (unsigned i = 0; i < 3; ++i)
-      {
-        if (options::bvPrintConstsAsIndexedSymbols())
-        {
-          out << "(_ bv" << v[i].getValue() << " " << v[i].getSize() << ")";
-        }
-        else
-        {
-          out << "#b" << v[i].toString();
-        }
-        if (i < 2)
-        {
-          out << " ";
-        }
-      }
+      out << n.getConst<FloatingPoint>().toString(
+          options::bvPrintConstsAsIndexedSymbols());
       break;
     }
     case kind::CONST_ROUNDINGMODE:
