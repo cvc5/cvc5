@@ -505,7 +505,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F false)
   FALSE_INTRO,
   // ======== False elim
-  // Children: (P:(= F false))
+  // Children: (P:(= F false)
   // Arguments: none
   // ----------------------------------------
   // Conclusion: (not F)
