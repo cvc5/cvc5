@@ -1200,6 +1200,7 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
+  regress1/abduct-dt.smt2
   regress1/arith/arith-int-004.cvc
   regress1/arith/arith-int-011.cvc
   regress1/arith/arith-int-012.cvc
@@ -2317,7 +2318,6 @@ set(regression_disabled_tests
   regress0/unconstrained/bvconcat.smt2
   regress0/unconstrained/bvdiv.smtv1.smt2
   ###
-  regress1/abduct-dt.smt2
   regress1/arith/arith-int-001.cvc
   regress1/arith/arith-int-002.cvc
   regress1/arith/arith-int-003.cvc
