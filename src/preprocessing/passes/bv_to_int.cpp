@@ -248,11 +248,6 @@ Node BVToInt::bvToInt(Node n)
            [this](TNode nn) { return d_bvToIntCache.count(nn) > 0; }))
   {
     uint64_t currentNumChildren = current.getNumChildren();
-    if (d_bvToIntCache.find(current) != d_bvToIntCache.end())
-    {
-      // We already visited this node
-      continue;
-    }
     // We are now visiting current on the way back up.
     // This is when we do the actual translation.
     if (currentNumChildren == 0)
