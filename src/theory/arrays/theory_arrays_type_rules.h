@@ -255,12 +255,12 @@ struct ArrayEqRangeTypeRule
       if (!indexRangeType1.isSubtypeOf(indexType))
       {
         throw TypeCheckingExceptionPrivate(
-            n, "array eqrange lower index type not correct for arrays");
+            n, "eqrange lower index type does not match array index type");
       }
       if (!indexRangeType2.isSubtypeOf(indexType))
       {
         throw TypeCheckingExceptionPrivate(
-            n, "array eqrange lower index type not correct for arrays");
+            n, "eqrange upper index type does not match array index type");
       }
     }
     return nodeManager->booleanType();
