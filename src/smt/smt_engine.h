@@ -141,6 +141,27 @@ class CVC4_PUBLIC SmtEngine
  public:
   /* .......................................................................  */
 
+  /**
+   * The current mode of the solver, which is an extension of Figure 4.1 on
+   * page 52 of the SMT-LIB version 2.6 standard
+   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
+   */
+  enum SmtMode
+  {
+    // the initial state of the solver
+    SMT_MODE_START,
+    // normal state of the solver, after assert/push/pop/declare/define
+    SMT_MODE_ASSERT,
+    // immediately after a check-sat returning "sat"
+    SMT_MODE_SAT,
+    // immediately after a check-sat returning "unknown"
+    SMT_MODE_SAT_UNKNOWN,
+    // immediately after a check-sat returning "unsat"
+    SMT_MODE_UNSAT,
+    // immediately after a successful call to get-abduct
+    SMT_MODE_ABDUCT
+  };
+
   /** Construct an SmtEngine with the given expression manager.  */
   SmtEngine(ExprManager* em);
   /** Destruct the SMT engine.  */
@@ -161,6 +182,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Return the user context level.  */
   size_t getNumUserLevels() { return d_userLevels.size(); }
+
+  /** Return the current mode of the solver. */
+  SmtMode getSmtMode() { return d_smtMode; }
 
   /**
    * Set the logic of the script.
@@ -188,6 +212,9 @@ class CVC4_PUBLIC SmtEngine
    * @throw OptionException, ModalException
    */
   void setInfo(const std::string& key, const CVC4::SExpr& value);
+
+  /** Return true if given keyword is a valid SMT-LIB v2 get-info flag. */
+  bool isValidGetInfoFlag(const std::string& key) const;
 
   /** Query information about the SMT environment.  */
   CVC4::SExpr getInfo(const std::string& key) const;
@@ -837,27 +864,6 @@ class CVC4_PUBLIC SmtEngine
   typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
   /** The types for the recursive function definitions */
   typedef context::CDList<Node> NodeList;
-
-  /**
-   * The current mode of the solver, which is an extension of Figure 4.1 on
-   * page 52 of the SMT-LIB version 2.6 standard
-   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
-   */
-  enum SmtMode
-  {
-    // the initial state of the solver
-    SMT_MODE_START,
-    // normal state of the solver, after assert/push/pop/declare/define
-    SMT_MODE_ASSERT,
-    // immediately after a check-sat returning "sat"
-    SMT_MODE_SAT,
-    // immediately after a check-sat returning "unknown"
-    SMT_MODE_SAT_UNKNOWN,
-    // immediately after a check-sat returning "unsat"
-    SMT_MODE_UNSAT,
-    // immediately after a successful call to get-abduct
-    SMT_MODE_ABDUCT
-  };
 
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;
