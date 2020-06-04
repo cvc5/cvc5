@@ -62,7 +62,11 @@ class UnconstrainedSimplifier : public PreprocessingPass
   theory::SubstitutionMap d_substitutions;
 
   const LogicInfo& d_logicInfo;
-
+  /**
+   * Visit all subterms in assertion. This method throws a LogicException if
+   * there is a subterm that is unhandled by this preprocessing pass (e.g. a
+   * quantified formula).
+   */
   void visitAll(TNode assertion);
   Node newUnconstrainedVar(TypeNode t, TNode var);
   void processUnconstrained();

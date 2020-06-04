@@ -224,6 +224,12 @@ class SequencesRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   Node rewriteStringToCode(Node node);
+  /** rewrite seq.unit
+   * This is the entry point for post-rewriting terms n of the form
+   *   seq.unit( t )
+   * Returns the rewritten form of node.
+   */
+  Node rewriteSeqUnit(Node node);
 
   /** length preserving rewrite
    *

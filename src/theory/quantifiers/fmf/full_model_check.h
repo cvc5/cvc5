@@ -86,7 +86,16 @@ protected:
   Node d_false;
   std::map<TypeNode, std::map< Node, int > > d_rep_ids;
   std::map<Node, Def > d_quant_models;
+  /**
+   * The predicate for the quantified formula. This is used to express
+   * conditions under which the quantified formula is false in the model.
+   * For example, for quantified formula (forall x:Int, y:U. P), this is
+   * a predicate of type (Int x U) -> Bool.
+   */
   std::map<Node, Node > d_quant_cond;
+  /** A set of quantified formulas that cannot be handled by model-based
+   * quantifier instantiation */
+  std::unordered_set<Node, NodeHashFunction> d_unhandledQuant;
   std::map< TypeNode, Node > d_array_cond;
   std::map< Node, Node > d_array_term_cond;
   std::map< Node, std::vector< int > > d_star_insts;
@@ -155,6 +164,16 @@ public:
   bool processBuildModel(TheoryModel* m) override;
 
   bool useSimpleModels();
+
+ private:
+  /**
+   * Register quantified formula.
+   * This checks whether q can be handled by model-based instantiation and
+   * initializes the necessary information if so.
+   */
+  void registerQuantifiedFormula(Node q);
+  /** Is quantified formula q handled by model-based instantiation? */
+  bool isHandled(Node q) const;
 };/* class FullModelChecker */
 
 }/* CVC4::theory::quantifiers::fmcheck namespace */
