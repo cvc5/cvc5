@@ -164,6 +164,10 @@ AigBitblaster::AigBitblaster()
       solver = prop::SatSolverFactory::createCryptoMinisat(
           smtStatisticsRegistry(), "AigBitblaster");
       break;
+    case options::SatSolverMode::KISSAT:
+      solver = prop::SatSolverFactory::createKissat(smtStatisticsRegistry(),
+                                                    "AigBitblaster");
+      break;
     default: CVC4_FATAL() << "Unknown SAT solver type";
   }
   d_satSolver.reset(solver);

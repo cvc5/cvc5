@@ -21,6 +21,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/strings/word.h"
 #include "util/random.h"
 
 #include <math.h>
@@ -65,7 +66,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
 }
 
 bool UnifContextIo::updateStringPosition(SygusUnifIo* sui,
-                                         std::vector<unsigned>& pos,
+                                         std::vector<size_t>& pos,
                                          NodeRole nrole)
 {
   Assert(pos.size() == d_str_pos.size());
@@ -106,7 +107,7 @@ void UnifContextIo::initialize(SygusUnifIo* sui)
     // output type of the examples
     TypeNode exotn = sui->d_examples_out[0].getType();
 
-    if (exotn.isString())
+    if (exotn.isStringLike())
     {
       for (unsigned i = 0; i < sz; i++)
       {
@@ -119,10 +120,10 @@ void UnifContextIo::initialize(SygusUnifIo* sui)
 
 void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
                                       const std::vector<Node>& vals,
-                                      std::vector<String>& ex_vals)
+                                      std::vector<Node>& ex_vals)
 {
   bool isPrefix = d_curr_role == role_string_prefix;
-  String dummy;
+  Node dummy;
   for (unsigned i = 0; i < vals.size(); i++)
   {
     if (d_vals[i] == sui->d_true)
@@ -132,14 +133,16 @@ void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
       if (pos_value > 0)
       {
         Assert(d_curr_role != role_invalid);
-        String s = vals[i].getConst<String>();
-        Assert(pos_value <= s.size());
-        ex_vals.push_back(isPrefix ? s.suffix(s.size() - pos_value)
-                                   : s.prefix(s.size() - pos_value));
+        Node s = vals[i];
+        size_t sSize = strings::Word::getLength(s);
+        Assert(pos_value <= sSize);
+        ex_vals.push_back(isPrefix
+                              ? strings::Word::suffix(s, sSize - pos_value)
+                              : strings::Word::prefix(s, sSize - pos_value));
       }
       else
       {
-        ex_vals.push_back(vals[i].getConst<String>());
+        ex_vals.push_back(vals[i]);
       }
     }
     else
@@ -152,14 +155,14 @@ void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
 
 bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
                                        bool isPrefix,
-                                       const std::vector<String>& ex_vals,
+                                       const std::vector<Node>& ex_vals,
                                        const std::vector<Node>& vals,
-                                       std::vector<unsigned>& inc,
-                                       unsigned& tot)
+                                       std::vector<size_t>& inc,
+                                       size_t& tot)
 {
   for (unsigned j = 0; j < vals.size(); j++)
   {
-    unsigned ival = 0;
+    size_t ival = 0;
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
@@ -169,12 +172,12 @@ bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
         // position
         return false;
       }
-      String mystr = vals[j].getConst<String>();
-      ival = mystr.size();
-      if (mystr.size() <= ex_vals[j].size())
+      ival = strings::Word::getLength(vals[j]);
+      size_t exjLen = strings::Word::getLength(ex_vals[j]);
+      if (ival <= exjLen)
       {
-        if (!(isPrefix ? ex_vals[j].strncmp(mystr, ival)
-                       : ex_vals[j].rstrncmp(mystr, ival)))
+        if (!(isPrefix ? strings::Word::strncmp(ex_vals[j], vals[j], ival)
+                       : strings::Word::rstrncmp(ex_vals[j], vals[j], ival)))
         {
           Trace("sygus-sui-dt-debug") << "X";
           return false;
@@ -198,7 +201,7 @@ bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
   return true;
 }
 bool UnifContextIo::isStringSolved(SygusUnifIo* sui,
-                                   const std::vector<String>& ex_vals,
+                                   const std::vector<Node>& ex_vals,
                                    const std::vector<Node>& vals)
 {
   for (unsigned j = 0; j < vals.size(); j++)
@@ -211,8 +214,7 @@ bool UnifContextIo::isStringSolved(SygusUnifIo* sui,
         // value is unknown, thus it does not solve
         return false;
       }
-      String mystr = vals[j].getConst<String>();
-      if (ex_vals[j] != mystr)
+      if (ex_vals[j] != vals[j])
       {
         return false;
       }
@@ -889,7 +891,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
 bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
 {
   TypeNode xbt = d_tds->sygusToBuiltinType(e.getType());
-  if (xbt.isString())
+  if (xbt.isStringLike())
   {
     std::map<Node, bool>::iterator itx = d_use_str_contains_eexc.find(e);
     if (itx != d_use_str_contains_eexc.end())
@@ -1091,7 +1093,7 @@ Node SygusUnifIo::constructSol(
     }
     if (ret_dt.isNull())
     {
-      if (d_tds->sygusToBuiltinType(e.getType()).isString())
+      if (d_tds->sygusToBuiltinType(e.getType()).isStringLike())
       {
         // check if a current value that closes all examples
         // get the term enumerator for this type
@@ -1103,7 +1105,7 @@ Node SygusUnifIo::constructSol(
 
           EnumCache& ecachet = d_ecache[et];
           // get the current examples
-          std::vector<String> ex_vals;
+          std::vector<Node> ex_vals;
           x.getCurrentStrings(this, d_examples_out, ex_vals);
           Assert(ecache.d_enum_vals.size() == ecache.d_enum_vals_res.size());
 
@@ -1213,12 +1215,12 @@ Node SygusUnifIo::constructSol(
     // check if each return value is a prefix/suffix of all open examples
     if (!retValMod || x.getCurrentRole() == nrole)
     {
-      std::map<Node, std::vector<unsigned> > incr;
+      std::map<Node, std::vector<size_t>> incr;
       bool isPrefix = nrole == role_string_prefix;
-      std::map<Node, unsigned> total_inc;
+      std::map<Node, size_t> total_inc;
       std::vector<Node> inc_strs;
       // make the value of the examples
-      std::vector<String> ex_vals;
+      std::vector<Node> ex_vals;
       x.getCurrentStrings(this, d_examples_out, ex_vals);
       if (Trace.isOn("sygus-sui-dt-debug"))
       {
@@ -1244,7 +1246,7 @@ Node SygusUnifIo::constructSol(
         TermDbSygus::toStreamSygus("sygus-sui-dt-debug", val_t);
         Trace("sygus-sui-dt-debug") << " : ";
         Assert(ecache.d_enum_vals_res[i].size() == d_examples_out.size());
-        unsigned tot = 0;
+        size_t tot = 0;
         bool exsuccess = x.getStringIncrement(this,
                                               isPrefix,
                                               ex_vals,

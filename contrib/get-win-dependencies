@@ -84,7 +84,7 @@ MAKE_CFLAGS="$MAKE_CFLAGS" \
 MAKE_CXXFLAGS="$MAKE_CXXFLAGS" \
 MAKE_LDFLAGS="$MAKE_LDFLAGS" \
 GMPVERSION="$GMPVERSION" \
-  contrib/get-gmp || reporterror
+  contrib/get-gmp-dev || reporterror
 
 echo
 echo =============================================================================

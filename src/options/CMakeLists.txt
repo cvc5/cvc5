@@ -13,9 +13,6 @@ if(RET_TOML)
 endif()
 
 libcvc4_add_sources(
-  argument_extender.h
-  argument_extender_implementation.cpp
-  argument_extender_implementation.h
   base_handlers.h
   decision_weight.h
   didyoumean.cpp

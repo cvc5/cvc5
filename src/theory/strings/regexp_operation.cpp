@@ -288,7 +288,9 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
   if( d_deriv_cache.find( dv ) != d_deriv_cache.end() ) {
     retNode = d_deriv_cache[dv].first;
     ret = d_deriv_cache[dv].second;
-  } else if( c.isEmptyString() ) {
+  }
+  else if (c.empty())
+  {
     Node expNode;
     ret = delta( r, expNode );
     if(ret == 0) {
@@ -536,7 +538,9 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
   NodeManager* nm = NodeManager::currentNM();
   if( d_dv_cache.find( dv ) != d_dv_cache.end() ) {
     retNode = d_dv_cache[dv];
-  } else if( c.isEmptyString() ){
+  }
+  else if (c.empty())
+  {
     Node exp;
     int tmp = delta( r, exp );
     if(tmp == 0) {
@@ -1746,109 +1750,12 @@ std::string RegExpOpr::mkString( Node r ) {
 
 bool RegExpOpr::regExpIncludes(Node r1, Node r2)
 {
-  Assert(Rewriter::rewrite(r1) == r1);
-  Assert(Rewriter::rewrite(r2) == r2);
-
-  if (r1 == r2)
-  {
-    return true;
-  }
-
-  // This method only works on a fragment of regular expressions
-  if (!utils::isSimpleRegExp(r1) || !utils::isSimpleRegExp(r2))
-  {
-    return false;
-  }
-
   const auto& it = d_inclusionCache.find(std::make_pair(r1, r2));
   if (it != d_inclusionCache.end())
   {
     return (*it).second;
   }
-
-  std::vector<Node> v1, v2;
-  utils::getRegexpComponents(r1, v1);
-  utils::getRegexpComponents(r2, v2);
-
-  // In the following, we iterate over `r2` (the "includee") and try to
-  // match it with `r1`. `idxs`/`newIdxs` keep track of all the possible
-  // positions in `r1` that we could currently be at.
-  std::unordered_set<size_t> newIdxs = {0};
-  std::unordered_set<size_t> idxs;
-  for (const Node& n2 : v2)
-  {
-    // Transfer elements from `newIdxs` to `idxs`. Out-of-bound indices are
-    // removed and for (re.* re.allchar), we additionally include the option of
-    // skipping it. Indices must be smaller than the size of `v1`.
-    idxs.clear();
-    for (size_t idx : newIdxs)
-    {
-      if (idx < v1.size())
-      {
-        idxs.insert(idx);
-        if (idx + 1 < v1.size() && v1[idx] == d_sigma_star)
-        {
-          Assert(idx + 1 == v1.size() || v1[idx + 1] != d_sigma_star);
-          idxs.insert(idx + 1);
-        }
-      }
-    }
-    newIdxs.clear();
-
-    if (n2.getKind() == STRING_TO_REGEXP || n2 == d_sigma)
-    {
-      Assert(n2 == d_sigma
-             || (n2[0].isConst() && n2[0].getConst<String>().size() == 1));
-      for (size_t idx : idxs)
-      {
-        if (v1[idx] == d_sigma || v1[idx] == n2)
-        {
-          // Given a character or an re.allchar in `r2`, we can either
-          // match it with a corresponding character in `r1` or an
-          // re.allchar
-          newIdxs.insert(idx + 1);
-        }
-      }
-    }
-
-    for (size_t idx : idxs)
-    {
-      if (v1[idx] == d_sigma_star)
-      {
-        // (re.* re.allchar) can match an arbitrary amount of `r2`
-        newIdxs.insert(idx);
-      }
-      else if (utils::isUnboundedWildcard(v1, idx))
-      {
-        // If a series of re.allchar is followed by (re.* re.allchar), we
-        // can decide not to "waste" the re.allchar because the order of
-        // the two wildcards is not observable (i.e. it does not change
-        // the sequences matched by the regular expression)
-        newIdxs.insert(idx);
-      }
-    }
-
-    if (newIdxs.empty())
-    {
-      // If there are no candidates, we can't match the remainder of r2
-      d_inclusionCache[std::make_pair(r1, r2)] = false;
-      return false;
-    }
-  }
-
-  // We have processed all of `r2`. We are now looking if there was also a
-  // path to the end in `r1`. This makes sure that we don't have leftover
-  // bits in `r1` that don't match anything in `r2`.
-  bool result = false;
-  for (size_t idx : newIdxs)
-  {
-    if (idx == v1.size() || (idx == v1.size() - 1 && v1[idx] == d_sigma_star))
-    {
-      result = true;
-      break;
-    }
-  }
-
+  bool result = RegExpEntail::regExpIncludes(r1, r2);
   d_inclusionCache[std::make_pair(r1, r2)] = result;
   return result;
 }

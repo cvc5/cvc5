@@ -73,7 +73,7 @@ class EnumValGenerator
 };
 
 /** a synthesis conjecture
- * This class implements approaches for a synthesis conecjture, given by data
+ * This class implements approaches for a synthesis conjecture, given by data
  * member d_quant.
  * This includes both approaches for synthesis in Reynolds et al CAV 2015. It
  * determines which approach and optimizations are applicable to the

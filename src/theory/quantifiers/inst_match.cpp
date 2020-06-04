@@ -100,14 +100,20 @@ void InstMatch::clear() {
   }
 }
 
-Node InstMatch::get(int i) const { return d_vals[i]; }
+Node InstMatch::get(size_t i) const
+{
+  Assert(i < d_vals.size());
+  return d_vals[i];
+}
 
-void InstMatch::setValue( int i, TNode n ) {
+void InstMatch::setValue(size_t i, TNode n)
+{
+  Assert(i < d_vals.size());
   d_vals[i] = n;
 }
-bool InstMatch::set(EqualityQuery* q, int i, TNode n)
+bool InstMatch::set(EqualityQuery* q, size_t i, TNode n)
 {
-  Assert(i >= 0);
+  Assert(i < d_vals.size());
   if( !d_vals[i].isNull() ){
     if (q->areEqual(d_vals[i], n))
     {

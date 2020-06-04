@@ -47,7 +47,7 @@ const struct option longopts[] = {
   { "output-language", required_argument, NULL, OUTPUT_LANG },
   { "expand-definitions", no_argument, NULL, EXPAND_DEFINITIONS },
   { "combine-assertions", no_argument, NULL, COMBINE_ASSERTIONS },
-  { "default-dag-thresh", required_argument, NULL, DEFAULT_DAG_THRESH },
+  { "dag-thresh", required_argument, NULL, DEFAULT_DAG_THRESH },
   { "lang", required_argument, NULL, INPUT_LANG },
   { "language", required_argument, NULL, INPUT_LANG },
   { "out", required_argument, NULL, OUTPUT_FILE },
@@ -60,7 +60,7 @@ static void showHelp() {
        << "  --output-language | -O  set output language (default smt2)" << endl
        << "  --input-language | -L   set input language (default auto)" << endl
        << "  --out | -o              set output file (- for stdout)" << endl
-       << "  --default-dag-thresh=N  set DAG threshold" << endl
+       << "  --dag-thresh=N  set DAG threshold" << endl
        << "  --expand-definitions    expand define-funs" << endl
        << "  --combine-assertions    combine all assertions into one" << endl
        << "  --help | -h             this help" << endl
@@ -237,14 +237,14 @@ int main(int argc, char* argv[]) {
         break;
       case DEFAULT_DAG_THRESH: {
           if(!isdigit(*optarg)) {
-            cerr << "error: --default-dag-thresh requires non-negative argument: `"
+            cerr << "error: --dag-thresh requires non-negative argument: `"
                  << optarg << "' invalid." << endl;
             exit(1);
           }
           char* end;
           unsigned long ul = strtoul(optarg, &end, 10);
           if(errno != 0 || *end != '\0') {
-            cerr << "error: --default-dag-thresh argument malformed: `"
+            cerr << "error: --dag-thresh argument malformed: `"
                  << optarg << "'." << endl;
             exit(1);
           }

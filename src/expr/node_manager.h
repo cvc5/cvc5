@@ -444,6 +444,20 @@ public:
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);
 
+  /** Get corresponding application kind for function
+   *
+   * Different functional nodes are applied differently, according to their
+   * type. For example, uninterpreted functions (of FUNCTION_TYPE) are applied
+   * via APPLY_UF, while constructors (of CONSTRUCTOR_TYPE) via
+   * APPLY_CONSTRUCTOR. This method provides the correct application according
+   * to which functional type fun has.
+   *
+   * @param fun The functional node
+   * @return the correct application kind for fun. If fun's type is not function
+   * like (see TypeNode::isFunctionLike), then UNDEFINED_KIND is returned.
+   */
+  static Kind getKindForFunction(TNode fun);
+
   // general expression-builders
 
   /** Create a node with one child. */
@@ -875,8 +889,11 @@ public:
   /** Make the type of arrays with the given parameterization */
   inline TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
-  /** Make the type of arrays with the given parameterization */
+  /** Make the type of set with the given parameterization */
   inline TypeNode mkSetType(TypeNode elementType);
+
+  /** Make the type of sequences with the given parameterization */
+  TypeNode mkSequenceType(TypeNode elementType);
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
