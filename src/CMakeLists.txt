@@ -355,6 +355,8 @@ libcvc4_add_sources(
   theory/atom_requests.h
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
+  theory/booleans/proof_checker.cpp
+  theory/booleans/proof_checker.h
   theory/booleans/theory_bool.cpp
   theory/booleans/theory_bool.h
   theory/booleans/theory_bool_rewriter.cpp
@@ -366,6 +368,8 @@ libcvc4_add_sources(
   theory/builtin/theory_builtin_rewriter.cpp
   theory/builtin/theory_builtin_rewriter.h
   theory/builtin/theory_builtin_type_rules.h
+  theory/builtin/proof_checker.cpp
+  theory/builtin/proof_checker.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h
   theory/bv/abstraction.cpp
@@ -750,6 +754,8 @@ libcvc4_add_sources(
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
+  theory/uf/proof_checker.cpp
+  theory/uf/proof_checker.h
   theory/uf/ho_extension.cpp
   theory/uf/ho_extension.h
   theory/uf/symmetry_breaker.cpp
