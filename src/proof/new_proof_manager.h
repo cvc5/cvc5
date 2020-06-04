@@ -94,8 +94,14 @@ class NewProofManager
 
   void startResChain(Minisat::Solver::TClause& start);
 
-  void addResolutionStep(Minisat::Solver::TLit lit,
-                         Minisat::Solver::TClause& clause,
+  // resolution with unit clause ~lit, to be justified
+  void addResolutionStep(Minisat::Solver::TLit lit);
+
+  // resolution with clause using lit as pivot. Sign determines whether it's
+  // being removed positively from the given clause or the implicit one it's
+  // being resolved against
+  void addResolutionStep(Minisat::Solver::TClause& clause,
+                         Minisat::Solver::TLit lit,
                          bool sign);
   void endResChain(Minisat::Solver::TLit lit);
   void endResChain(Minisat::Solver::TClause& clause);
@@ -157,7 +163,6 @@ class NewProofManager
 
   /** The id of the proof step that explains this literal */
   ClauseId justifyLit(Minisat::Solver::TLit lit);
-
 }; /* class ProofManager */
 
 }  // namespace CVC4

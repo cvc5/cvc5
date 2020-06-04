@@ -905,6 +905,10 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             if (level(var(q)) == 0)
             {
               PROOF(ProofManager::getSatProof()->resolveOutUnit(q);)
+              if (CVC4::options::proofNew())
+              {
+                NewProofManager::currentPM()->addResolutionStep(q);
+              }
             }
           }
         }
@@ -921,12 +925,22 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           if (CVC4::options::proofNew())
           {
             NewProofManager::currentPM()->addResolutionStep(
-                p, ca[confl], sign(p));
+                ca[confl], p, sign(p));
           }
         }
 
     }while (pathC > 0);
     out_learnt[0] = ~p;
+    if (CVC4::options::proofNew())
+    {
+      Debug("newproof::sat") << "finished with learnt clause ";
+      for (unsigned i = 0, size = out_learnt.size(); i < size; ++i)
+      {
+        prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(out_learnt[i]);
+        Debug("newproof::sat") << satLit << " ";
+      }
+      Debug("newproof::sat") << "\n";
+    }
 
     // Simplify conflict clause:
     int i, j;
@@ -946,6 +960,12 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                 out_learnt[j++] = out_learnt[i];
               } else {
                 PROOF( ProofManager::getSatProof()->storeLitRedundant(out_learnt[i]); )
+                if (CVC4::options::proofNew())
+                {
+                  Debug("newproof::sat")
+                      << "redundant lit "
+                      << toSatLiteral<Minisat::Solver>(out_learnt[i]);
+                }
                 // Literal is redundant, to be safe, mark the level as current assertion level
                 // TODO: maybe optimize
                 max_resolution_level = std::max(max_resolution_level, user_level(var(out_learnt[i])));
@@ -1473,6 +1493,7 @@ lbool Solver::search(int nof_conflicts)
                 if (CVC4::options::proofNew())
                 {
                   NewProofManager* pm = NewProofManager::currentPM();
+                  pm->registerClause(learnt_clause[0]);
                   pm->endResChain(learnt_clause[0]);
                 }
 

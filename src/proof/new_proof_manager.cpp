@@ -105,9 +105,18 @@ Node NewProofManager::factorAndReorder(Node n)
   // if factoring changed
   if (children.size() < n.getNumChildren())
   {
-    Node factored = nm->mkNode(kind::OR, children);
+    Node factored = children.empty()
+                             ? nm->mkConst<bool>(false)
+                             : children.size() == 1
+                                   ? children[0]
+                                   : nm->mkNode(kind::OR, children);
     d_cdproof->addStep(factored, PfRule::FACTORING, {n}, {factored});
     n = factored;
+    // nothing to order
+    if (children.size() < 2)
+    {
+      return factored;
+    }
   }
   // order
   std::sort(children.begin(), children.end());
@@ -222,19 +231,53 @@ void NewProofManager::startResChain(Minisat::Solver::TClause& start)
 {
   Assert(start.proofId() != 0);
   ClauseId id = start.proofId();
-  Debug("newproof::sat") << "NewProofManager::startResChain " << id << "\n";
-  // TODO what should I add here? Who is "start"???
+  if (Debug.isOn("newproof::sat"))
+  {
+    Debug("newproof::sat") << "NewProofManager::startResChain: " << id << ": ";
+    printClause(start);
+    Debug("newproof::sat") << "\n";
+  }
+  d_resolution.push_back(Resolution(id));
 }
 
-void NewProofManager::addResolutionStep(Minisat::Solver::TLit lit,
-                                        Minisat::Solver::TClause& clause,
+void NewProofManager::addResolutionStep(Minisat::Solver::TLit lit)
+{
+  prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
+  Assert(d_litToNode.find(satLit) != d_litToNode.end());
+  if (Debug.isOn("newproof::sat"))
+  {
+    Debug("newproof::sat") << "NewProofManager::addResolutionStep: justify lit "
+                           << lit << "\n";
+  }
+  Debug("newproof::sat") << push;
+  ClauseId id = justifyLit(~lit);
+  bool sign = !Minisat::sign(~lit);
+  d_resolution.push_back(
+      Resolution(id, d_litToNode[satLit], sign));
+  Debug("newproof::sat") << pop;
+  Debug("newproof::sat") << "NewProofManager::addResolutionStep: " << id << ": "
+                         << toSatLiteral<Minisat::Solver>(~lit) << "["
+                         << d_litToNode[satLit] << "], sign: " << sign << "\n";
+}
+
+void NewProofManager::addResolutionStep(Minisat::Solver::TClause& clause,
+                                        Minisat::Solver::TLit lit,
                                         bool sign)
 {
   Assert(clause.proofId() != 0);
-  prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
-  Debug("newproof::sat") << "NewProofManager::addResolutionStep: ("
-                         << clause.proofId() << ", " << satLit << "\n";
+  ClauseId id = clause.proofId();
+  // pivot is given as in the second clause, so we store its negation (which
+  // will be removed positivly from the first clause and negatively from the
+  // second)
+  prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(~lit);
   Assert(d_litToNode.find(satLit) != d_litToNode.end());
+  if (Debug.isOn("newproof::sat"))
+  {
+    Debug("newproof::sat") << "NewProofManager::addResolutionStep: " << id << ": ";
+    printClause(clause);
+    Debug("newproof::sat") << "[" << d_litToNode[satLit] << "], sign: " << sign
+                           << "\n";
+  }
   d_resolution.push_back(
       Resolution(clause.proofId(), d_litToNode[satLit], sign));
 }
@@ -242,39 +285,70 @@ void NewProofManager::addResolutionStep(Minisat::Solver::TLit lit,
 void NewProofManager::endResChain(Minisat::Solver::TLit lit)
 {
   prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
-  Assert(d_litToClauseId.find(satLit) != d_litToClauseId.end());
+  Assert(d_litToClauseId.find(satLit) != d_litToClauseId.end())
+      << "literal " << satLit << " not registered yet\n";
+  Debug("newproof::sat") << "NewProofManager::endResChain: chain_res for "
+                         << d_litToClauseId[satLit] << ": " << satLit;
   endResChain(d_litToClauseId[satLit]);
 }
 
 void NewProofManager::endResChain(Minisat::Solver::TClause& clause)
 {
   Assert(clause.proofId() != 0);
+  if (Debug.isOn("newproof::sat"))
+  {
+    Assert(d_clauseIdToClause.find(clause.proofId()) != d_clauseIdToClause.end());
+    Debug("newproof::sat") << "NewProofManager::endResChain: chain_res for "
+                           << clause.proofId() << ": ";
+    printClause(*d_clauseIdToClause[clause.proofId()]);
+  }
   endResChain(clause.proofId());
 }
 
 // id is the conclusion
 void NewProofManager::endResChain(ClauseId id)
 {
-  Debug("newproof::sat") << "NewProofManager::endResChain " << id << "\n";
-  Assert(d_resolution.size() > 0);
-  Debug("newproof::sat") << "========\n"
-                         << "set .c" << id << "(resolution :clauses (";
+  Assert(d_clauseIdToNode.find(id) != d_clauseIdToNode.end());
+  Node conclusion = d_clauseIdToNode[id];
+  Debug("newproof::sat") << ", " << conclusion << "\n";
+  std::vector<Node> children, args;
   for (unsigned i = 0, size = d_resolution.size(); i < size; ++i)
   {
-    Debug("newproof::sat") << ".c" << d_resolution[i].d_id;
-    if (i < size - 1)
+    children.push_back(d_clauseIdToNode[d_resolution[i].d_id]);
+    Debug("newproof::sat") << "NewProofManager::endResChain:   "
+                           << children.back();
+    if (i > 0)
     {
-      Debug("newproof::sat") << " ";
+      args.push_back(d_resolution[i].d_piv);
+      Debug("newproof::sat") << " [" << args.back() << "]";
     }
+    Debug("newproof::sat") << "\n";
   }
-  Debug("newproof::sat") << "========\n";
-
-  // saving for later printing
-  d_resolutions.push_back(std::vector<Resolution>());
-  d_resolutions.back().insert(
-      d_resolutions.back().end(), d_resolution.begin(), d_resolution.end());
   // clearing
   d_resolution.clear();
+  // since the conclusion can be both reordered and without duplucates and the
+  // SAT solver does not record this information, we must recompute it here so
+  // the proper CHAIN_RESOLUTION step can be created
+  // compute chain resolution conclusion
+  Node chainConclusion = smt::currentSmtEngine()
+                             ->getTheoryEngine()
+                             ->getProofNodeManager()
+                             ->getChecker()
+                             ->checkDebug(PfRule::CHAIN_RESOLUTION,
+                                          children,
+                                          args,
+                                          Node::null(),
+                                          "newproof::sat");
+  // create step
+  d_cdproof->addStep(chainConclusion, PfRule::CHAIN_RESOLUTION, children, args);
+  if (chainConclusion != conclusion)
+  {
+    CVC4_UNUSED Node reducedChainConclusion = factorAndReorder(chainConclusion);
+    Assert(reducedChainConclusion == conclusion)
+        << "given res chain conclusion " << conclusion
+        << " different from chain_res + reordering + factoring "
+        << reducedChainConclusion;
+  }
 }
 
 ClauseId NewProofManager::justifyLit(Minisat::Solver::TLit lit)
@@ -291,38 +365,35 @@ ClauseId NewProofManager::justifyLit(Minisat::Solver::TLit lit)
                            << id << "\n";
     return id;
   }
+  // register literal
+  registerClause(satLit);
+  Assert(d_litToClauseId.find(satLit) != d_litToClauseId.end());
+  id = d_litToClauseId[satLit];
   Debug("newproof::sat")
       << "NewProofManager::justifyLit: computing justification...\n";
   Minisat::Solver::TCRef reason_ref = d_solver->reason(Minisat::var(lit));
-  if (reason_ref != Minisat::Solver::TCRef_Undef)
+  if (reason_ref == Minisat::Solver::TCRef_Undef)
   {
-    Debug("newproof::sat") << "NewProofManager::justifyLit: no justification, "
-                              "add as an assumptio\n";
-    id = d_nextId++;
-    d_litToClauseId[satLit] = id;
-    d_clauseIdToLit[id] = satLit;
-    Assert(d_litToNode.find(satLit) != d_litToNode.end())
-        << "NewProofManager::justifyLit: literal " << satLit
-        << " should have been defined.\n";
-    Node litNode = d_litToNode[satLit];
-    d_clauseIdToNode[id] = litNode;
-    d_cdproof->addStep(litNode, PfRule::ASSUME, {}, {litNode});
-    Debug("newproof::sat") << "NewProofManager::justifyLit: id " << id
-                           << ", Lit: " << satLit << "\n";
+    Debug("newproof::sat") << "NewProofManager::justifyLit: no justification\n";
     return id;
   }
-  Assert(reason_ref >= 0 && reason_ref < d_solver->ca.size());
+  Assert(reason_ref >= 0 && reason_ref < d_solver->ca.size())
+      << "reason_ref " << reason_ref << " and d_solver->ca.size() "
+      << d_solver->ca.size() << "\n";
   // Here, the call to resolveUnit() can reallocate memory in the
   // clause allocator.  So reload reason ptr each time.
   const Minisat::Solver::TClause& initial_reason = d_solver->ca[reason_ref];
   unsigned current_reason_size = initial_reason.size();
-  Debug("newproof::sat") << "NewProofManager::justifyLit: with clause: ";
-  printClause(initial_reason);
-  Debug("newproof::sat") << "\n";
-  std::vector<Resolution> reason_resolutions;
+  if (Debug.isOn("newproof::sat"))
+  {
+    Debug("newproof::sat") << "NewProofManager::justifyLit: with clause: ";
+    printClause(initial_reason);
+    Debug("newproof::sat") << "\n";
+  }
+  std::vector<Resolution> reasons;
   // add the reason clause first
   Assert(initial_reason.proofId() != 0);
-  reason_resolutions.push_back(Resolution(initial_reason.proofId()));
+  reasons.push_back(Resolution(initial_reason.proofId()));
   Debug("newproof::sat") << push;
   for (unsigned i = 0; i < current_reason_size; ++i)
   {
@@ -340,16 +411,28 @@ ClauseId NewProofManager::justifyLit(Minisat::Solver::TLit lit)
     Resolution res(justifyLit(~curr_lit),
                    d_litToNode[curr_satLit],
                    Minisat::sign(curr_lit) ? 0 : 1);
-    reason_resolutions.push_back(res);
+    reasons.push_back(res);
   }
   Debug("newproof::sat") << pop;
   // retrieve lit's node definition
   Assert(d_litToNode.find(satLit) != d_litToNode.end());
   Node litDef = d_litToNode[satLit];
-  // TODO generate resolution step that allows the derivation of lit
-  // via turning a resolution chain into a proof node
-  d_litToClauseId[satLit] = id;
-  d_clauseIdToLit[id] = satLit;
+  Debug("newproof::sat") << "NewProofManager::justifyLit: chain_res for "
+                         << litDef << " with clauses:\n";
+  std::vector<Node> children, args;
+  for (unsigned i = 0, size = reasons.size(); i < size; ++i)
+  {
+    children.push_back(d_clauseIdToNode[reasons[i].d_id]);
+    Debug("newproof::sat") << "NewProofManager::justifyLit:   "
+                           << children.back();
+    if (i > 0)
+    {
+      args.push_back(reasons[i].d_piv);
+      Debug("newproof::sat") << " [" << args.back() << "]";
+    }
+    Debug("newproof::sat") << "\n";
+  }
+  d_cdproof->addStep(litDef, PfRule::CHAIN_RESOLUTION, children, args);
   return id;
 }
 
@@ -395,12 +478,20 @@ void NewProofManager::finalizeProof(ClauseId conflict_id)
     reasons.push_back(res);
   }
   Debug("newproof::sat") << pop;
+  Node falseNode = NodeManager::currentNM()->mkConst<bool>(false);
   std::vector<Node> children, args;
-  Debug("newproof::sat") << "NewProofManager::finalizeProof: building chain "
-                            "resolution with clauses:\n";
+  Debug("newproof::sat") << "NewProofManager::finalizeProof: chain_res for "
+                         << falseNode << " with clauses:\n";
+  bool hasFalsePremise = false;
   for (unsigned i = 0, size = reasons.size(); i < size; ++i)
   {
+    Assert(d_clauseIdToNode.find(reasons[i].d_id) != d_clauseIdToNode.end());
     children.push_back(d_clauseIdToNode[reasons[i].d_id]);
+    if (children.back() == falseNode)
+    {
+      hasFalsePremise = true;
+      break;
+    }
     Debug("newproof::sat") << "NewProofManager::finalizeProof:   "
                            << children.back();
     if (i > 0)
@@ -410,10 +501,12 @@ void NewProofManager::finalizeProof(ClauseId conflict_id)
     }
     Debug("newproof::sat") << "\n";
   }
-  d_cdproof->addStep(NodeManager::currentNM()->mkConst<bool>(false),
-                     PfRule::CHAIN_RESOLUTION,
-                     children,
-                     args);
+  // only build resolution if the flase conclusion is not already in the
+  // premises
+  if (!hasFalsePremise)
+  {
+    d_cdproof->addStep(falseNode, PfRule::CHAIN_RESOLUTION, children, args);
+  }
 }
 
 // case in which I addded a false unit clause
