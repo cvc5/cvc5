@@ -41,28 +41,30 @@ void TheoryPreprocessor::clearCache() { d_ppCache.clear(); }
 void TheoryPreprocessor::preprocess(TNode node,
                                     preprocessing::AssertionPipeline& lemmas,
                                     bool doTheoryPreprocess,
-                                    LazyCDProof* lcp)
+                                    LazyCDProof* lp)
 {
   // Run theory preprocessing, maybe
-  Node ppNode = doTheoryPreprocess ? theoryPreprocess(node) : Node(node);
+  Node ppNode = doTheoryPreprocess ? theoryPreprocess(node, lp) : Node(node);
 
   // Remove the ITEs
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
   lemmas.push_back(ppNode);
   lemmas.updateRealAssertionsEnd();
-  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap());
+  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap(),false, lp);
   Trace("te-tform-rm") << "..done " << lemmas[0] << std::endl;
 
   // justify the preprocessing step
-  if (lcp != nullptr)
+  if (lp != nullptr)
   {
+    // currently this is a trusted step that combines theory preprocessing and
+    // term formula removal.
     if (!CDProof::isSame(node, lemmas[0]))
     {
       std::vector<Node> pfChildren;
       pfChildren.push_back(node);
       std::vector<Node> pfArgs;
       pfArgs.push_back(lemmas[0]);
-      lcp->addStep(lemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
+      lp->addStep(lemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
     }
 #if 0
     for (size_t i = 1, lsize = lemmas.size(); i < lsize; ++i)
@@ -84,7 +86,7 @@ void TheoryPreprocessor::preprocess(TNode node,
         wt = Rewriter::rewrite(wt);
         Trace("te-tf-check") << "...witness form was " << wt << std::endl;
       }
-      lcp->addStep(lemmas[i], PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+      lp->addStep(lemmas[i], PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
     }
 #endif
   }
@@ -108,7 +110,7 @@ void TheoryPreprocessor::preprocess(TNode node,
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
     Node rewritten = Rewriter::rewrite(lemmas[i]);
-    if (lcp != nullptr)
+    if (lp != nullptr)
     {
       if (!CDProof::isSame(rewritten, lemmas[i]))
       {
@@ -116,7 +118,7 @@ void TheoryPreprocessor::preprocess(TNode node,
         pfChildren.push_back(lemmas[i]);
         std::vector<Node> pfArgs;
         pfArgs.push_back(rewritten);
-        lcp->addStep(
+        lp->addStep(
             rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
       }
     }
@@ -131,7 +133,7 @@ struct preprocess_stack_element
   preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };
 
-Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
+Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lcp)
 {
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
