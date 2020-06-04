@@ -981,7 +981,8 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 
 void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
-Node TheoryEngine::preprocess(TNode assertion, LazyCDProof * lp) {
+Node TheoryEngine::preprocess(TNode assertion, LazyCDProof* lp)
+{
   return d_tpp.theoryPreprocess(assertion, lp);
 }
 
@@ -1615,7 +1616,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       Trace("te-proof") << "Proof for lemma: " << lemma << std::endl;
     }
   }
-  
+
   // the assertion pipeline storing the lemmas
   AssertionPipeline lemmas;
   // call preprocessor

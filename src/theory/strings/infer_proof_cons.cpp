@@ -319,10 +319,10 @@ Node InferProofCons::convert(Inference infer,
         // possibly be done by CONCAT_EQ with !isRev.
         std::vector<Node> cexp;
         if (d_psb.applyPredTransform(mainEqCeq,
-                                 conc,
-                                 cexp,
-                                 MethodId::SB_DEFAULT,
-                                 MethodId::RW_REWRITE_EQ_EXT))
+                                     conc,
+                                     cexp,
+                                     MethodId::SB_DEFAULT,
+                                     MethodId::RW_REWRITE_EQ_EXT))
         {
           Trace("strings-ipc-core") << "Transformed to " << conc
                                     << " via pred transform" << std::endl;
@@ -817,7 +817,8 @@ Node InferProofCons::convert(Inference infer,
       bool successChildren = true;
       for (unsigned i = 0, nchild = reiChildren.size(); i < nchild; i++)
       {
-        if (!d_psb.applyPredTransform(reiChildrenOrig[i], reiChildren[i], reiExp))
+        if (!d_psb.applyPredTransform(
+                reiChildrenOrig[i], reiChildren[i], reiExp))
         {
           Trace("strings-ipc-re")
               << "... failed to justify child " << reiChildren[i] << " from "

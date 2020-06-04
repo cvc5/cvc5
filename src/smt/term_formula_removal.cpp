@@ -33,8 +33,10 @@ RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u)
 
 RemoveTermFormulas::~RemoveTermFormulas() {}
 
-void RemoveTermFormulas::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap, bool reportDeps,
-                                    LazyCDProof* lpAssert)
+void RemoveTermFormulas::run(std::vector<Node>& output,
+                             IteSkolemMap& iteSkolemMap,
+                             bool reportDeps,
+                             LazyCDProof* lpAssert)
 {
   size_t n = output.size();
   for (unsigned i = 0, i_end = output.size(); i < i_end; ++ i) {

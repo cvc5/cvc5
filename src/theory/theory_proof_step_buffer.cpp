@@ -21,14 +21,16 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc) : ProofStepBuffer(pc) {}
+TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc)
+    : ProofStepBuffer(pc)
+{
+}
 
-bool TheoryProofStepBuffer::applyPredTransform(
-                          Node src,
-                                          Node tgt,
-                                          const std::vector<Node>& exp,
-                                          MethodId ids,
-                                          MethodId idr)
+bool TheoryProofStepBuffer::applyPredTransform(Node src,
+                                               Node tgt,
+                                               const std::vector<Node>& exp,
+                                               MethodId ids,
+                                               MethodId idr)
 {
   // symmetric equalities
   if (CDProof::isSame(src, tgt))
@@ -54,9 +56,9 @@ bool TheoryProofStepBuffer::applyPredTransform(
 }
 
 bool TheoryProofStepBuffer::applyPredIntro(Node tgt,
-                                      const std::vector<Node>& exp,
-                                      MethodId ids,
-                                      MethodId idr)
+                                           const std::vector<Node>& exp,
+                                           MethodId ids,
+                                           MethodId idr)
 {
   std::vector<Node> args;
   args.push_back(tgt);
@@ -71,9 +73,9 @@ bool TheoryProofStepBuffer::applyPredIntro(Node tgt,
 }
 
 Node TheoryProofStepBuffer::applyPredElim(Node src,
-                                     const std::vector<Node>& exp,
-                                     MethodId ids,
-                                     MethodId idr)
+                                          const std::vector<Node>& exp,
+                                          MethodId ids,
+                                          MethodId idr)
 {
   std::vector<Node> children;
   children.push_back(src);

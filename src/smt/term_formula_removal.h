@@ -23,8 +23,8 @@
 
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
-#include "expr/node.h"
 #include "expr/lazy_proof.h"
+#include "expr/node.h"
 #include "smt/dump.h"
 #include "util/bool.h"
 #include "util/hash.h"
@@ -120,12 +120,14 @@ public:
    *
    * With reportDeps true, report reasoning dependences to the proof
    * manager (for unsat cores).
-   * 
+   *
    * If lcpAssert is provided, then we provide proofs of the new lemmas added to
    * assertions.
    */
-  void run(std::vector<Node>& assertions, IteSkolemMap& iteSkolemMap, bool reportDeps = false,
-                                    LazyCDProof* lpAssert=nullptr);
+  void run(std::vector<Node>& assertions,
+           IteSkolemMap& iteSkolemMap,
+           bool reportDeps = false,
+           LazyCDProof* lpAssert = nullptr);
 
   /**
    * Removes terms of the form (1), (2), (3) described above from node.

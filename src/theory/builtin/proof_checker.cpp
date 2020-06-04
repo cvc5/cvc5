@@ -418,10 +418,9 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
   return true;
 }
 
-
 void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
-                                   MethodId ids,
-                                   MethodId idr)
+                                           MethodId ids,
+                                           MethodId idr)
 {
   bool ndefRewriter = (idr != MethodId::RW_REWRITE);
   if (ids != MethodId::SB_DEFAULT || ndefRewriter)

@@ -127,12 +127,12 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   static bool getMethodId(TNode n, MethodId& i);
   /** get method identifiers */
   static bool getMethodIds(const std::vector<Node>& args,
-                    MethodId& ids,
-                    MethodId& idr,
-                    size_t index);
+                           MethodId& ids,
+                           MethodId& idr,
+                           size_t index);
   /** Add method identifiers ids and idr to args */
   static void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
-  
+
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
 

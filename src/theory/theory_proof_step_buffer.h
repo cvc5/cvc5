@@ -19,9 +19,9 @@
 
 #include <vector>
 
-#include "theory/builtin/proof_checker.h"
-#include "expr/proof_step_buffer.h"
 #include "expr/node.h"
+#include "expr/proof_step_buffer.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -43,10 +43,10 @@ class TheoryProofStepBuffer : public ProofStepBuffer
    * applied when src and tgt are equivalent formulas assuming exp.
    */
   bool applyPredTransform(Node src,
-                            Node tgt,
-                            const std::vector<Node>& exp,
-                            MethodId ids = MethodId::SB_DEFAULT,
-                            MethodId idr = MethodId::RW_REWRITE);
+                          Node tgt,
+                          const std::vector<Node>& exp,
+                          MethodId ids = MethodId::SB_DEFAULT,
+                          MethodId idr = MethodId::RW_REWRITE);
   /**
    * Apply predicate introduction. If this method returns true, it adds proof
    * step(s) to the buffer that conclude tgt from premises exp. In particular,
@@ -54,18 +54,18 @@ class TheoryProofStepBuffer : public ProofStepBuffer
    * applied when tgt is equivalent to true assuming exp.
    */
   bool applyPredIntro(Node tgt,
-                        const std::vector<Node>& exp,
-                        MethodId ids = MethodId::SB_DEFAULT,
-                        MethodId idr = MethodId::RW_REWRITE);
+                      const std::vector<Node>& exp,
+                      MethodId ids = MethodId::SB_DEFAULT,
+                      MethodId idr = MethodId::RW_REWRITE);
   /**
    * Apply predicate elimination. This method returns the result of applying
    * the rule MACRO_SR_PRED_ELIM on src, exp. The returned formula is equivalent
    * to src assuming exp.
    */
   Node applyPredElim(Node src,
-                       const std::vector<Node>& exp,
-                       MethodId ids = MethodId::SB_DEFAULT,
-                       MethodId idr = MethodId::RW_REWRITE);
+                     const std::vector<Node>& exp,
+                     MethodId ids = MethodId::SB_DEFAULT,
+                     MethodId idr = MethodId::RW_REWRITE);
   //---------------------------- end utilities builtin proof rules
 
  private:

@@ -16,12 +16,12 @@
 
 #include "theory/strings/regexp_operation.h"
 
+#include "expr/node_algorithm.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -1312,7 +1312,8 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
       }
     }
     Trace("regexp-int-debug") << "  ... try testing no RV of " << mkString(rNode) << std::endl;
-    if(!expr::hasSubtermKind(REGEXP_RV, rNode)) {
+    if (!expr::hasSubtermKind(REGEXP_RV, rNode))
+    {
       d_inter_cache[p] = rNode;
     }
   }
@@ -1400,18 +1401,23 @@ Node RegExpOpr::removeIntersection(Node r) {
   return visited[r];
 }
 
-Node RegExpOpr::intersect(Node r1, Node r2) {
-  if(!checkConstRegExp(r1) || !checkConstRegExp(r2)) {
+Node RegExpOpr::intersect(Node r1, Node r2)
+{
+  if (!checkConstRegExp(r1) || !checkConstRegExp(r2))
+  {
     return Node::null();
   }
   Node rr1 = removeIntersection(r1);
   Node rr2 = removeIntersection(r2);
-  std::map< PairNodes, Node > cache;
+  std::map<PairNodes, Node> cache;
   Trace("regexp-intersect-node") << "Intersect (1): " << rr1 << std::endl;
   Trace("regexp-intersect-node") << "Intersect (2): " << rr2 << std::endl;
-  Trace("regexp-intersect") << "Start INTERSECTION(\n\t" << mkString(r1) << ",\n\t"<< mkString(r2) << ")" << std::endl;
+  Trace("regexp-intersect") << "Start INTERSECTION(\n\t" << mkString(r1)
+                            << ",\n\t" << mkString(r2) << ")" << std::endl;
   Node retNode = intersectInternal(rr1, rr2, cache, 1);
-  Trace("regexp-intersect") << "End INTERSECTION(\n\t" << mkString(r1) << ",\n\t"<< mkString(r2) << ") =\n\t" << mkString(retNode) << std::endl;
+  Trace("regexp-intersect")
+      << "End INTERSECTION(\n\t" << mkString(r1) << ",\n\t" << mkString(r2)
+      << ") =\n\t" << mkString(retNode) << std::endl;
   Trace("regexp-intersect-node") << "Intersect finished." << std::endl;
   return retNode;
 }

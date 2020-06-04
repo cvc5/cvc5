@@ -50,7 +50,7 @@ void TheoryPreprocessor::preprocess(TNode node,
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
   lemmas.push_back(ppNode);
   lemmas.updateRealAssertionsEnd();
-  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap(),false, lp);
+  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap(), false, lp);
   Trace("te-tform-rm") << "..done " << lemmas[0] << std::endl;
 
   // justify the preprocessing step
