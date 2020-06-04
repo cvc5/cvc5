@@ -719,6 +719,14 @@ else()
   )
 endif()
 
+if("${CMAKE_GENERATOR}" STREQUAL "Ninja")
+  set(BUILD_COMMAND_NAME "ninja")
+else()
+  set(BUILD_COMMAND_NAME "make")
+endif()
+
 message("")
-message("Now just type make, followed by make check or make install.")
+message("Now just type '${BUILD_COMMAND_NAME}', "
+        "followed by '${BUILD_COMMAND_NAME} check' "
+        "or '${BUILD_COMMAND_NAME} install'.")
 message("")
