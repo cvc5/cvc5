@@ -39,6 +39,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkBitVectorSort();
   void testMkFloatingPointSort();
   void testMkDatatypeSort();
+  void testMkDatatypeSorts();
   void testMkFunctionSort();
   void testMkOp();
   void testMkParamSort();
@@ -87,18 +88,39 @@ class SolverBlack : public CxxTest::TestSuite
   void testDefineFunsRec();
 
   void testUFIteration();
+
+  void testGetInfo();
   void testGetOp();
+  void testGetOption();
+  void testGetUnsatAssumptions1();
+  void testGetUnsatAssumptions2();
+  void testGetUnsatAssumptions3();
+  void testGetUnsatCore1();
+  void testGetUnsatCore2();
+  void testGetUnsatCore3();
+  void testGetValue1();
+  void testGetValue2();
+  void testGetValue3();
 
   void testPush1();
   void testPush2();
   void testPop1();
   void testPop2();
   void testPop3();
+  void testPrintModel1();
+  void testPrintModel2();
+  void testPrintModel3();
 
   void testSimplify();
+
+  void testAssertFormula();
   void testCheckEntailed();
   void testCheckEntailed1();
   void testCheckEntailed2();
+  void testCheckSat();
+  void testCheckSatAssuming();
+  void testCheckSatAssuming1();
+  void testCheckSatAssuming2();
 
   void testSetInfo();
   void testSetLogic();
@@ -173,6 +195,8 @@ void SolverBlack::testMkArraySort()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(boolSort, intSort));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(realSort, bvSort));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(bvSort, fpSort));
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkArraySort(boolSort, boolSort), CVC4ApiException&);
 }
 
 void SolverBlack::testMkBitVectorSort()
@@ -191,15 +215,62 @@ void SolverBlack::testMkFloatingPointSort()
 void SolverBlack::testMkDatatypeSort()
 {
   DatatypeDecl dtypeSpec = d_solver->mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver->getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSort(dtypeSpec));
+
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkDatatypeSort(dtypeSpec), CVC4ApiException&);
+
   DatatypeDecl throwsDtypeSpec = d_solver->mkDatatypeDecl("list");
   TS_ASSERT_THROWS(d_solver->mkDatatypeSort(throwsDtypeSpec),
                    CVC4ApiException&);
+}
+
+void SolverBlack::testMkDatatypeSorts()
+{
+  Solver slv;
+
+  DatatypeDecl dtypeSpec1 = d_solver->mkDatatypeDecl("list1");
+  DatatypeConstructorDecl cons1 = d_solver->mkDatatypeConstructorDecl("cons1");
+  cons1.addSelector("head1", d_solver->getIntegerSort());
+  dtypeSpec1.addConstructor(cons1);
+  DatatypeConstructorDecl nil1 = d_solver->mkDatatypeConstructorDecl("nil1");
+  dtypeSpec1.addConstructor(nil1);
+  DatatypeDecl dtypeSpec2 = d_solver->mkDatatypeDecl("list2");
+  DatatypeConstructorDecl cons2 = d_solver->mkDatatypeConstructorDecl("cons2");
+  cons2.addSelector("head2", d_solver->getIntegerSort());
+  dtypeSpec2.addConstructor(cons2);
+  DatatypeConstructorDecl nil2 = d_solver->mkDatatypeConstructorDecl("nil2");
+  dtypeSpec2.addConstructor(nil2);
+  std::vector<DatatypeDecl> decls = {dtypeSpec1, dtypeSpec2};
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSorts(decls));
+
+  TS_ASSERT_THROWS(slv.mkDatatypeSorts(decls), CVC4ApiException&);
+
+  DatatypeDecl throwsDtypeSpec = d_solver->mkDatatypeDecl("list");
+  std::vector<DatatypeDecl> throwsDecls = {throwsDtypeSpec};
+  TS_ASSERT_THROWS(d_solver->mkDatatypeSorts(throwsDecls), CVC4ApiException&);
+
+  /* with unresolved sorts */
+  Sort unresList = d_solver->mkUninterpretedSort("ulist");
+  std::set<Sort> unresSorts = {unresList};
+  DatatypeDecl ulist = d_solver->mkDatatypeDecl("ulist");
+  DatatypeConstructorDecl ucons = d_solver->mkDatatypeConstructorDecl("ucons");
+  ucons.addSelector("car", unresList);
+  ucons.addSelector("cdr", unresList);
+  ulist.addConstructor(ucons);
+  DatatypeConstructorDecl unil = d_solver->mkDatatypeConstructorDecl("unil");
+  ulist.addConstructor(unil);
+  std::vector<DatatypeDecl> udecls = {ulist};
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSorts(udecls, unresSorts));
+
+  TS_ASSERT_THROWS(slv.mkDatatypeSorts(udecls, unresSorts), CVC4ApiException&);
+
+  /* Note: More tests are in datatype_api_black. */
 }
 
 void SolverBlack::testMkFunctionSort()
@@ -228,6 +299,23 @@ void SolverBlack::testMkFunctionSort()
           {d_solver->getIntegerSort(), d_solver->mkUninterpretedSort("u")},
           funSort2),
       CVC4ApiException&);
+
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkFunctionSort(d_solver->mkUninterpretedSort("u"),
+                                      d_solver->getIntegerSort()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkFunctionSort(slv.mkUninterpretedSort("u"),
+                                      d_solver->getIntegerSort()),
+                   CVC4ApiException&);
+  std::vector<Sort> sorts1 = {d_solver->getBooleanSort(),
+                              slv.getIntegerSort(),
+                              d_solver->getIntegerSort()};
+  std::vector<Sort> sorts2 = {slv.getBooleanSort(), slv.getIntegerSort()};
+  TS_ASSERT_THROWS_NOTHING(slv.mkFunctionSort(sorts2, slv.getIntegerSort()));
+  TS_ASSERT_THROWS(slv.mkFunctionSort(sorts1, slv.getIntegerSort()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkFunctionSort(sorts2, d_solver->getIntegerSort()),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testMkParamSort()
@@ -246,6 +334,10 @@ void SolverBlack::testMkPredicateSort()
   TS_ASSERT_THROWS(
       d_solver->mkPredicateSort({d_solver->getIntegerSort(), funSort}),
       CVC4ApiException&);
+
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkPredicateSort({d_solver->getIntegerSort()}),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testMkRecordSort()
@@ -259,6 +351,9 @@ void SolverBlack::testMkRecordSort()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkRecordSort(empty));
   Sort recSort = d_solver->mkRecordSort(fields);
   TS_ASSERT_THROWS_NOTHING(recSort.getDatatype());
+
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkRecordSort(fields), CVC4ApiException&);
 }
 
 void SolverBlack::testMkSetSort()
@@ -266,6 +361,9 @@ void SolverBlack::testMkSetSort()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkSetSort(d_solver->getBooleanSort()));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkSetSort(d_solver->getIntegerSort()));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkSetSort(d_solver->mkBitVectorSort(4)));
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkSetSort(d_solver->mkBitVectorSort(4)),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testMkUninterpretedSort()
@@ -287,6 +385,10 @@ void SolverBlack::testMkTupleSort()
   Sort funSort = d_solver->mkFunctionSort(d_solver->mkUninterpretedSort("u"),
                                           d_solver->getIntegerSort());
   TS_ASSERT_THROWS(d_solver->mkTupleSort({d_solver->getIntegerSort(), funSort}),
+                   CVC4ApiException&);
+
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkTupleSort({d_solver->getIntegerSort()}),
                    CVC4ApiException&);
 }
 
@@ -332,6 +434,8 @@ void SolverBlack::testMkVar()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkVar(funSort, ""));
   TS_ASSERT_THROWS(d_solver->mkVar(Sort()), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkVar(Sort(), "a"), CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkVar(boolSort, "x"), CVC4ApiException&);
 }
 
 void SolverBlack::testMkBoolean()
@@ -351,6 +455,9 @@ void SolverBlack::testMkUninterpretedConst()
   TS_ASSERT_THROWS_NOTHING(
       d_solver->mkUninterpretedConst(d_solver->getBooleanSort(), 1));
   TS_ASSERT_THROWS(d_solver->mkUninterpretedConst(Sort(), 1),
+                   CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkUninterpretedConst(d_solver->getBooleanSort(), 1),
                    CVC4ApiException&);
 }
 
@@ -393,13 +500,23 @@ void SolverBlack::testMkFloatingPoint()
   TS_ASSERT_THROWS(d_solver->mkFloatingPoint(3, 0, t1), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkFloatingPoint(3, 5, t2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkFloatingPoint(3, 5, t2), CVC4ApiException&);
+
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    Solver slv;
+    TS_ASSERT_THROWS(slv.mkFloatingPoint(3, 5, t1), CVC4ApiException&);
+  }
 }
 
 void SolverBlack::testMkEmptySet()
 {
+  Solver slv;
+  Sort s = d_solver->mkSetSort(d_solver->getBooleanSort());
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkEmptySet(Sort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkEmptySet(s));
   TS_ASSERT_THROWS(d_solver->mkEmptySet(d_solver->getBooleanSort()),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkEmptySet(Sort()));
+  TS_ASSERT_THROWS(slv.mkEmptySet(s), CVC4ApiException&);
 }
 
 void SolverBlack::testMkFalse()
@@ -558,6 +675,8 @@ void SolverBlack::testMkSepNil()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver->mkSepNil(d_solver->getBooleanSort()));
   TS_ASSERT_THROWS(d_solver->mkSepNil(Sort()), CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkSepNil(d_solver->getIntegerSort()), CVC4ApiException&);
 }
 
 void SolverBlack::testMkString()
@@ -592,6 +711,7 @@ void SolverBlack::testMkTerm()
   std::vector<Term> v4 = {d_solver->mkReal(1), d_solver->mkReal(2)};
   std::vector<Term> v5 = {d_solver->mkReal(1), Term()};
   std::vector<Term> v6 = {};
+  Solver slv;
 
   // mkTerm(Kind kind) const
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(PI));
@@ -603,6 +723,7 @@ void SolverBlack::testMkTerm()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(NOT, d_solver->mkTrue()));
   TS_ASSERT_THROWS(d_solver->mkTerm(NOT, Term()), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(NOT, a), CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkTerm(NOT, d_solver->mkTrue()), CVC4ApiException&);
 
   // mkTerm(Kind kind, Term child1, Term child2) const
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(EQUAL, a, b));
@@ -610,6 +731,7 @@ void SolverBlack::testMkTerm()
   TS_ASSERT_THROWS(d_solver->mkTerm(EQUAL, a, Term()), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(EQUAL, a, d_solver->mkTrue()),
                    CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkTerm(EQUAL, a, b), CVC4ApiException&);
 
   // mkTerm(Kind kind, Term child1, Term child2, Term child3) const
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(
@@ -625,6 +747,10 @@ void SolverBlack::testMkTerm()
       CVC4ApiException&);
   TS_ASSERT_THROWS(
       d_solver->mkTerm(ITE, d_solver->mkTrue(), d_solver->mkTrue(), b),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      slv.mkTerm(
+          ITE, d_solver->mkTrue(), d_solver->mkTrue(), d_solver->mkTrue()),
       CVC4ApiException&);
 
   // mkTerm(Kind kind, const std::vector<Term>& children) const
@@ -643,15 +769,17 @@ void SolverBlack::testMkTermFromOp()
   std::vector<Term> v2 = {d_solver->mkReal(1), Term()};
   std::vector<Term> v3 = {};
   std::vector<Term> v4 = {d_solver->mkReal(5)};
+  Solver slv;
+
   // simple operator terms
   Op opterm1 = d_solver->mkOp(BITVECTOR_EXTRACT, 2, 1);
   Op opterm2 = d_solver->mkOp(DIVISIBLE, 1);
-  // list datatype
 
+  // list datatype
   Sort sort = d_solver->mkParamSort("T");
   DatatypeDecl listDecl = d_solver->mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl cons("cons");
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
   cons.addSelector("head", sort);
   cons.addSelectorSelf("tail");
   listDecl.addConstructor(cons);
@@ -661,6 +789,7 @@ void SolverBlack::testMkTermFromOp()
       listSort.instantiate(std::vector<Sort>{d_solver->getIntegerSort()});
   Term c = d_solver->mkConst(intListSort, "c");
   Datatype list = listSort.getDatatype();
+
   // list datatype constructor and selector operator terms
   Term consTerm1 = list.getConstructorTerm("cons");
   Term consTerm2 = list.getConstructor("cons").getConstructorTerm();
@@ -684,6 +813,7 @@ void SolverBlack::testMkTermFromOp()
   TS_ASSERT_THROWS(d_solver->mkTerm(APPLY_SELECTOR, headTerm1),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1), CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkTerm(APPLY_CONSTRUCTOR, nilTerm1), CVC4ApiException&);
 
   // mkTerm(Op op, Term child) const
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm1, a));
@@ -695,24 +825,29 @@ void SolverBlack::testMkTermFromOp()
   TS_ASSERT_THROWS(
       d_solver->mkTerm(APPLY_CONSTRUCTOR, consTerm1, d_solver->mkReal(0)),
       CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkTerm(opterm1, a), CVC4ApiException&);
 
   // mkTerm(Op op, Term child1, Term child2) const
-  TS_ASSERT_THROWS(
-      d_solver->mkTerm(opterm2, d_solver->mkReal(1), d_solver->mkReal(2)),
-      CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(
       d_solver->mkTerm(APPLY_CONSTRUCTOR,
                        consTerm1,
                        d_solver->mkReal(0),
                        d_solver->mkTerm(APPLY_CONSTRUCTOR, nilTerm1)));
+  TS_ASSERT_THROWS(
+      d_solver->mkTerm(opterm2, d_solver->mkReal(1), d_solver->mkReal(2)),
+      CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, d_solver->mkReal(1), Term()),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, Term(), d_solver->mkReal(1)),
                    CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkTerm(APPLY_CONSTRUCTOR,
+                              consTerm1,
+                              d_solver->mkReal(0),
+                              d_solver->mkTerm(APPLY_CONSTRUCTOR, nilTerm1)),
+                   CVC4ApiException&);
 
-  // mkTerm(Op op, Term child1, Term child2, Term child3)
-  // const
+  // mkTerm(Op op, Term child1, Term child2, Term child3) const
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b, a), CVC4ApiException&);
   TS_ASSERT_THROWS(
       d_solver->mkTerm(
@@ -724,6 +859,7 @@ void SolverBlack::testMkTermFromOp()
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, v1), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, v2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, v3), CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkTerm(opterm2, v4), CVC4ApiException&);
 }
 
 void SolverBlack::testMkTrue()
@@ -747,12 +883,22 @@ void SolverBlack::testMkTuple()
   TS_ASSERT_THROWS(d_solver->mkTuple({d_solver->getIntegerSort()},
                                      {d_solver->mkReal("5.3")}),
                    CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(
+      slv.mkTuple({d_solver->mkBitVectorSort(3)}, {slv.mkBitVector("101", 2)}),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      slv.mkTuple({slv.mkBitVectorSort(3)}, {d_solver->mkBitVector("101", 2)}),
+      CVC4ApiException&);
 }
 
 void SolverBlack::testMkUniverseSet()
 {
-  TS_ASSERT_THROWS(d_solver->mkUniverseSet(Sort()), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(d_solver->mkUniverseSet(d_solver->getBooleanSort()));
+  TS_ASSERT_THROWS(d_solver->mkUniverseSet(Sort()), CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkUniverseSet(d_solver->getBooleanSort()),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testMkConst()
@@ -768,6 +914,9 @@ void SolverBlack::testMkConst()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkConst(funSort, ""));
   TS_ASSERT_THROWS(d_solver->mkConst(Sort()), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkConst(Sort(), "a"), CVC4ApiException&);
+
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkConst(boolSort), CVC4ApiException&);
 }
 
 void SolverBlack::testMkConstArray()
@@ -778,29 +927,38 @@ void SolverBlack::testMkConstArray()
   Term constArr = d_solver->mkConstArray(arrSort, zero);
 
   TS_ASSERT_THROWS_NOTHING(d_solver->mkConstArray(arrSort, zero));
+  TS_ASSERT_THROWS(d_solver->mkConstArray(Sort(), zero), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkConstArray(arrSort, Term()), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkConstArray(arrSort, d_solver->mkBitVector(1, 1)),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkConstArray(intSort, zero), CVC4ApiException&);
+  Solver slv;
+  Term zero2 = slv.mkReal(0);
+  Sort arrSort2 = slv.mkArraySort(slv.getIntegerSort(), slv.getIntegerSort());
+  TS_ASSERT_THROWS(slv.mkConstArray(arrSort2, zero), CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkConstArray(arrSort, zero2), CVC4ApiException&);
 }
 
 void SolverBlack::testDeclareDatatype()
 {
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors1 = {nil};
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("a"), ctors1));
-  DatatypeConstructorDecl cons("cons");
-  DatatypeConstructorDecl nil2("nil");
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl nil2 = d_solver->mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil2};
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("b"), ctors2));
-  DatatypeConstructorDecl cons2("cons");
-  DatatypeConstructorDecl nil3("nil");
+  DatatypeConstructorDecl cons2 = d_solver->mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl nil3 = d_solver->mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors3 = {cons2, nil3};
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string(""), ctors3));
   std::vector<DatatypeConstructorDecl> ctors4;
   TS_ASSERT_THROWS(d_solver->declareDatatype(std::string("c"), ctors4),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->declareDatatype(std::string(""), ctors4),
+                   CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.declareDatatype(std::string("a"), ctors1),
                    CVC4ApiException&);
 }
 
@@ -817,6 +975,8 @@ void SolverBlack::testDeclareFun()
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->declareFun("f5", {bvSort, bvSort}, funSort),
                    CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.declareFun("f1", {}, bvSort), CVC4ApiException&);
 }
 
 void SolverBlack::testDeclareSort()
@@ -845,17 +1005,36 @@ void SolverBlack::testDefineFun()
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFun("f", {}, bvSort, v1));
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFun("ff", {b1, b2}, bvSort, v1));
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFun(f1, {b1, b11}, v1));
+  TS_ASSERT_THROWS(d_solver->defineFun("ff", {v1, b2}, bvSort, v1),
+                   CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFun("fff", {b1}, bvSort, v3),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFun("ffff", {b1}, funSort2, v3),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFun("fffff", {b1, b3}, bvSort, v1),
                    CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->defineFun(f1, {v1, b11}, v1), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFun(f1, {b1}, v1), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFun(f1, {b1, b11}, v2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFun(f1, {b1, b11}, v3), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFun(f2, {b1}, v2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFun(f3, {b1}, v1), CVC4ApiException&);
+
+  Solver slv;
+  Sort bvSort2 = slv.mkBitVectorSort(32);
+  Term v12 = slv.mkConst(bvSort2, "v1");
+  Term b12 = slv.mkVar(bvSort2, "b1");
+  Term b22 = slv.mkVar(slv.getIntegerSort(), "b2");
+  TS_ASSERT_THROWS(slv.defineFun("f", {}, bvSort, v12), CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.defineFun("f", {}, bvSort2, v1), CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.defineFun("ff", {b1, b22}, bvSort2, v12),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.defineFun("ff", {b12, b2}, bvSort2, v12),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.defineFun("ff", {b12, b22}, bvSort, v12),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.defineFun("ff", {b12, b22}, bvSort2, v1),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testDefineFunRec()
@@ -879,6 +1058,8 @@ void SolverBlack::testDefineFunRec()
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFunRec(f1, {b1, b11}, v1));
   TS_ASSERT_THROWS(d_solver->defineFunRec("fff", {b1}, bvSort, v3),
                    CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->defineFunRec("ff", {b1, v2}, bvSort, v1),
+                   CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFunRec("ffff", {b1}, funSort2, v3),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFunRec("fffff", {b1, b3}, bvSort, v1),
@@ -890,6 +1071,24 @@ void SolverBlack::testDefineFunRec()
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFunRec(f2, {b1}, v2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFunRec(f3, {b1}, v1), CVC4ApiException&);
+
+  Solver slv;
+  Sort bvSort2 = slv.mkBitVectorSort(32);
+  Term v12 = slv.mkConst(bvSort2, "v1");
+  Term b12 = slv.mkVar(bvSort2, "b1");
+  Term b22 = slv.mkVar(slv.getIntegerSort(), "b2");
+  TS_ASSERT_THROWS_NOTHING(slv.defineFunRec("f", {}, bvSort2, v12));
+  TS_ASSERT_THROWS_NOTHING(slv.defineFunRec("ff", {b12, b22}, bvSort2, v12));
+  TS_ASSERT_THROWS(slv.defineFunRec("f", {}, bvSort, v12), CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.defineFunRec("f", {}, bvSort2, v1), CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.defineFunRec("ff", {b1, b22}, bvSort2, v12),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.defineFunRec("ff", {b12, b2}, bvSort2, v12),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.defineFunRec("ff", {b12, b22}, bvSort, v12),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.defineFunRec("ff", {b12, b22}, bvSort2, v1),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testDefineFunsRec()
@@ -913,6 +1112,9 @@ void SolverBlack::testDefineFunsRec()
   TS_ASSERT_THROWS_NOTHING(
       d_solver->defineFunsRec({f1, f2}, {{b1, b11}, {b4}}, {v1, v2}));
   TS_ASSERT_THROWS(
+      d_solver->defineFunsRec({f1, f2}, {{v1, b11}, {b4}}, {v1, v2}),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
       d_solver->defineFunsRec({f1, f3}, {{b1, b11}, {b4}}, {v1, v2}),
       CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->defineFunsRec({f1, f2}, {{b1}, {b4}}, {v1, v2}),
@@ -922,6 +1124,42 @@ void SolverBlack::testDefineFunsRec()
       CVC4ApiException&);
   TS_ASSERT_THROWS(
       d_solver->defineFunsRec({f1, f2}, {{b1, b11}, {b4}}, {v1, v4}),
+      CVC4ApiException&);
+
+  Solver slv;
+  Sort uSort2 = slv.mkUninterpretedSort("u");
+  Sort bvSort2 = slv.mkBitVectorSort(32);
+  Sort funSort12 = slv.mkFunctionSort({bvSort2, bvSort2}, bvSort2);
+  Sort funSort22 = slv.mkFunctionSort(uSort2, slv.getIntegerSort());
+  Term b12 = slv.mkVar(bvSort2, "b1");
+  Term b112 = slv.mkVar(bvSort2, "b1");
+  Term b42 = slv.mkVar(uSort2, "b4");
+  Term v12 = slv.mkConst(bvSort2, "v1");
+  Term v22 = slv.mkConst(slv.getIntegerSort(), "v2");
+  Term f12 = slv.mkConst(funSort12, "f1");
+  Term f22 = slv.mkConst(funSort22, "f2");
+  TS_ASSERT_THROWS_NOTHING(
+      slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v12, v22}));
+  TS_ASSERT_THROWS(
+      slv.defineFunsRec({f1, f22}, {{b12, b112}, {b42}}, {v12, v22}),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      slv.defineFunsRec({f12, f2}, {{b12, b112}, {b42}}, {v12, v22}),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      slv.defineFunsRec({f12, f22}, {{b1, b112}, {b42}}, {v12, v22}),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      slv.defineFunsRec({f12, f22}, {{b12, b11}, {b42}}, {v12, v22}),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      slv.defineFunsRec({f12, f22}, {{b12, b112}, {b4}}, {v12, v22}),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v1, v22}),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v12, v2}),
       CVC4ApiException&);
 }
 
@@ -945,6 +1183,12 @@ void SolverBlack::testUFIteration()
   }
 }
 
+void SolverBlack::testGetInfo()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver->getInfo("name"));
+  TS_ASSERT_THROWS(d_solver->getInfo("asdf"), CVC4ApiException&);
+}
+
 void SolverBlack::testGetOp()
 {
   Sort bv32 = d_solver->mkBitVectorSort(32);
@@ -959,11 +1203,11 @@ void SolverBlack::testGetOp()
 
   // Test Datatypes -- more complicated
   DatatypeDecl consListSpec = d_solver->mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver->getIntegerSort());
   cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
   consListSpec.addConstructor(nil);
   Sort consListSort = d_solver->mkDatatypeSort(consListSpec);
   Datatype consList = consListSort.getDatatype();
@@ -978,13 +1222,171 @@ void SolverBlack::testGetOp()
   Term listhead = d_solver->mkTerm(APPLY_SELECTOR, headTerm, listcons1);
 
   TS_ASSERT(listnil.hasOp());
-  TS_ASSERT_EQUALS(listnil.getOp(), APPLY_CONSTRUCTOR);
+  TS_ASSERT_EQUALS(listnil.getOp(), Op(d_solver.get(), APPLY_CONSTRUCTOR));
 
   TS_ASSERT(listcons1.hasOp());
-  TS_ASSERT_EQUALS(listcons1.getOp(), APPLY_CONSTRUCTOR);
+  TS_ASSERT_EQUALS(listcons1.getOp(), Op(d_solver.get(), APPLY_CONSTRUCTOR));
 
   TS_ASSERT(listhead.hasOp());
-  TS_ASSERT_EQUALS(listhead.getOp(), APPLY_SELECTOR);
+  TS_ASSERT_EQUALS(listhead.getOp(), Op(d_solver.get(), APPLY_SELECTOR));
+}
+
+void SolverBlack::testGetOption()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver->getOption("incremental"));
+  TS_ASSERT_THROWS(d_solver->getOption("asdf"), CVC4ApiException&);
+}
+
+void SolverBlack::testGetUnsatAssumptions1()
+{
+#if IS_PROOFS_BUILD
+  d_solver->setOption("incremental", "false");
+  d_solver->checkSatAssuming(d_solver->mkFalse());
+  TS_ASSERT_THROWS(d_solver->getUnsatAssumptions(), CVC4ApiException&);
+#endif
+}
+
+void SolverBlack::testGetUnsatAssumptions2()
+{
+#if IS_PROOFS_BUILD
+  d_solver->setOption("incremental", "true");
+  d_solver->setOption("produce-unsat-assumptions", "false");
+  d_solver->checkSatAssuming(d_solver->mkFalse());
+  TS_ASSERT_THROWS(d_solver->getUnsatAssumptions(), CVC4ApiException&);
+#endif
+}
+
+void SolverBlack::testGetUnsatAssumptions3()
+{
+#if IS_PROOFS_BUILD
+  d_solver->setOption("incremental", "true");
+  d_solver->setOption("produce-unsat-assumptions", "true");
+  d_solver->checkSatAssuming(d_solver->mkFalse());
+  TS_ASSERT_THROWS_NOTHING(d_solver->getUnsatAssumptions());
+  d_solver->checkSatAssuming(d_solver->mkTrue());
+  TS_ASSERT_THROWS(d_solver->getUnsatAssumptions(), CVC4ApiException&);
+#endif
+}
+
+void SolverBlack::testGetUnsatCore1()
+{
+#if IS_PROOFS_BUILD
+  d_solver->setOption("incremental", "false");
+  d_solver->assertFormula(d_solver->mkFalse());
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->getUnsatCore(), CVC4ApiException&);
+#endif
+}
+
+void SolverBlack::testGetUnsatCore2()
+{
+#if IS_PROOFS_BUILD
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-unsat-cores", "false");
+  d_solver->assertFormula(d_solver->mkFalse());
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->getUnsatCore(), CVC4ApiException&);
+#endif
+}
+
+void SolverBlack::testGetUnsatCore3()
+{
+#if IS_PROOFS_BUILD
+  d_solver->setOption("incremental", "true");
+  d_solver->setOption("produce-unsat-cores", "true");
+
+  Sort uSort = d_solver->mkUninterpretedSort("u");
+  Sort intSort = d_solver->getIntegerSort();
+  Sort boolSort = d_solver->getBooleanSort();
+  Sort uToIntSort = d_solver->mkFunctionSort(uSort, intSort);
+  Sort intPredSort = d_solver->mkFunctionSort(intSort, boolSort);
+  std::vector<Term> unsat_core;
+
+  Term x = d_solver->mkConst(uSort, "x");
+  Term y = d_solver->mkConst(uSort, "y");
+  Term f = d_solver->mkConst(uToIntSort, "f");
+  Term p = d_solver->mkConst(intPredSort, "p");
+  Term zero = d_solver->mkReal(0);
+  Term one = d_solver->mkReal(1);
+  Term f_x = d_solver->mkTerm(APPLY_UF, f, x);
+  Term f_y = d_solver->mkTerm(APPLY_UF, f, y);
+  Term sum = d_solver->mkTerm(PLUS, f_x, f_y);
+  Term p_0 = d_solver->mkTerm(APPLY_UF, p, zero);
+  Term p_f_y = d_solver->mkTerm(APPLY_UF, p, f_y);
+  d_solver->assertFormula(d_solver->mkTerm(GT, zero, f_x));
+  d_solver->assertFormula(d_solver->mkTerm(GT, zero, f_y));
+  d_solver->assertFormula(d_solver->mkTerm(GT, sum, one));
+  d_solver->assertFormula(p_0);
+  d_solver->assertFormula(p_f_y.notTerm());
+  TS_ASSERT(d_solver->checkSat().isUnsat());
+
+  TS_ASSERT_THROWS_NOTHING(unsat_core = d_solver->getUnsatCore());
+
+  d_solver->resetAssertions();
+  for (const auto& t : unsat_core)
+  {
+    d_solver->assertFormula(t);
+  }
+  Result res = d_solver->checkSat();
+  TS_ASSERT(res.isUnsat());
+#endif
+}
+
+void SolverBlack::testGetValue1()
+{
+  d_solver->setOption("produce-models", "false");
+  Term t = d_solver->mkTrue();
+  d_solver->assertFormula(t);
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->getValue(t), CVC4ApiException&);
+}
+
+void SolverBlack::testGetValue2()
+{
+  d_solver->setOption("produce-models", "true");
+  Term t = d_solver->mkFalse();
+  d_solver->assertFormula(t);
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->getValue(t), CVC4ApiException&);
+}
+
+void SolverBlack::testGetValue3()
+{
+  d_solver->setOption("produce-models", "true");
+  Sort uSort = d_solver->mkUninterpretedSort("u");
+  Sort intSort = d_solver->getIntegerSort();
+  Sort boolSort = d_solver->getBooleanSort();
+  Sort uToIntSort = d_solver->mkFunctionSort(uSort, intSort);
+  Sort intPredSort = d_solver->mkFunctionSort(intSort, boolSort);
+  std::vector<Term> unsat_core;
+
+  Term x = d_solver->mkConst(uSort, "x");
+  Term y = d_solver->mkConst(uSort, "y");
+  Term z = d_solver->mkConst(uSort, "z");
+  Term f = d_solver->mkConst(uToIntSort, "f");
+  Term p = d_solver->mkConst(intPredSort, "p");
+  Term zero = d_solver->mkReal(0);
+  Term one = d_solver->mkReal(1);
+  Term f_x = d_solver->mkTerm(APPLY_UF, f, x);
+  Term f_y = d_solver->mkTerm(APPLY_UF, f, y);
+  Term sum = d_solver->mkTerm(PLUS, f_x, f_y);
+  Term p_0 = d_solver->mkTerm(APPLY_UF, p, zero);
+  Term p_f_y = d_solver->mkTerm(APPLY_UF, p, f_y);
+
+  d_solver->assertFormula(d_solver->mkTerm(LEQ, zero, f_x));
+  d_solver->assertFormula(d_solver->mkTerm(LEQ, zero, f_y));
+  d_solver->assertFormula(d_solver->mkTerm(LEQ, sum, one));
+  d_solver->assertFormula(p_0.notTerm());
+  d_solver->assertFormula(p_f_y);
+  TS_ASSERT(d_solver->checkSat().isSat());
+  TS_ASSERT_THROWS_NOTHING(d_solver->getValue(x));
+  TS_ASSERT_THROWS_NOTHING(d_solver->getValue(y));
+  TS_ASSERT_THROWS_NOTHING(d_solver->getValue(z));
+  TS_ASSERT_THROWS_NOTHING(d_solver->getValue(sum));
+  TS_ASSERT_THROWS_NOTHING(d_solver->getValue(p_f_y));
+
+  Solver slv;
+  TS_ASSERT_THROWS(slv.getValue(x), CVC4ApiException&);
 }
 
 void SolverBlack::testPush1()
@@ -1023,6 +1425,32 @@ void SolverBlack::testPop3()
   TS_ASSERT_THROWS(d_solver->pop(1), CVC4ApiException&);
 }
 
+void SolverBlack::testPrintModel1()
+{
+  d_solver->setOption("produce-models", "false");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  TS_ASSERT_THROWS(d_solver->printModel(std::cout), CVC4ApiException&);
+}
+
+void SolverBlack::testPrintModel2()
+{
+  d_solver->setOption("produce-models", "true");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x).notTerm());
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->printModel(std::cout), CVC4ApiException&);
+}
+
+void SolverBlack::testPrintModel3()
+{
+  d_solver->setOption("produce-models", "true");
+  Term x = d_solver->mkConst(d_solver->getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  d_solver->checkSat();
+  TS_ASSERT_THROWS_NOTHING(d_solver->printModel(std::cout));
+}
+
 void SolverBlack::testSetInfo()
 {
   TS_ASSERT_THROWS(d_solver->setInfo("cvc4-lagic", "QF_BV"), CVC4ApiException&);
@@ -1059,11 +1487,11 @@ void SolverBlack::testSimplify()
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(uSort, d_solver->getIntegerSort());
   DatatypeDecl consListSpec = d_solver->mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver->getIntegerSort());
   cons.addSelectorSelf("tail");
   consListSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
   consListSpec.addConstructor(nil);
   Sort consListSort = d_solver->mkDatatypeSort(consListSpec);
 
@@ -1081,6 +1509,8 @@ void SolverBlack::testSimplify()
   TS_ASSERT_THROWS_NOTHING(d_solver->simplify(x_eq_b));
   TS_ASSERT(d_solver->mkTrue() != x_eq_b);
   TS_ASSERT(d_solver->mkTrue() != d_solver->simplify(x_eq_b));
+  Solver slv;
+  TS_ASSERT_THROWS(slv.simplify(x), CVC4ApiException&);
 
   Term i1 = d_solver->mkConst(d_solver->getIntegerSort(), "i1");
   TS_ASSERT_THROWS_NOTHING(d_solver->simplify(i1));
@@ -1123,12 +1553,22 @@ void SolverBlack::testSimplify()
   TS_ASSERT_THROWS_NOTHING(d_solver->simplify(f2));
 }
 
+void SolverBlack::testAssertFormula()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver->assertFormula(d_solver->mkTrue()));
+  TS_ASSERT_THROWS(d_solver->assertFormula(Term()), CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.assertFormula(d_solver->mkTrue()), CVC4ApiException&);
+}
+
 void SolverBlack::testCheckEntailed()
 {
   d_solver->setOption("incremental", "false");
   TS_ASSERT_THROWS_NOTHING(d_solver->checkEntailed(d_solver->mkTrue()));
   TS_ASSERT_THROWS(d_solver->checkEntailed(d_solver->mkTrue()),
                    CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.checkEntailed(d_solver->mkTrue()), CVC4ApiException&);
 }
 
 void SolverBlack::testCheckEntailed1()
@@ -1142,6 +1582,8 @@ void SolverBlack::testCheckEntailed1()
   TS_ASSERT_THROWS(d_solver->checkEntailed(Term()), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(d_solver->checkEntailed(d_solver->mkTrue()));
   TS_ASSERT_THROWS_NOTHING(d_solver->checkEntailed(z));
+  Solver slv;
+  TS_ASSERT_THROWS(slv.checkEntailed(d_solver->mkTrue()), CVC4ApiException&);
 }
 
 void SolverBlack::testCheckEntailed2()
@@ -1191,6 +1633,91 @@ void SolverBlack::testCheckEntailed2()
   TS_ASSERT_THROWS(
       d_solver->checkEntailed({n, d_solver->mkTerm(DISTINCT, x, y)}),
       CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.checkEntailed(d_solver->mkTrue()), CVC4ApiException&);
+}
+
+void SolverBlack::testCheckSat()
+{
+  d_solver->setOption("incremental", "false");
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkSat());
+  TS_ASSERT_THROWS(d_solver->checkSat(), CVC4ApiException&);
+}
+
+void SolverBlack::testCheckSatAssuming()
+{
+  d_solver->setOption("incremental", "false");
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkSatAssuming(d_solver->mkTrue()));
+  TS_ASSERT_THROWS(d_solver->checkSatAssuming(d_solver->mkTrue()),
+                   CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.checkSatAssuming(d_solver->mkTrue()), CVC4ApiException&);
+}
+
+void SolverBlack::testCheckSatAssuming1()
+{
+  Sort boolSort = d_solver->getBooleanSort();
+  Term x = d_solver->mkConst(boolSort, "x");
+  Term y = d_solver->mkConst(boolSort, "y");
+  Term z = d_solver->mkTerm(AND, x, y);
+  d_solver->setOption("incremental", "true");
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkSatAssuming(d_solver->mkTrue()));
+  TS_ASSERT_THROWS(d_solver->checkSatAssuming(Term()), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkSatAssuming(d_solver->mkTrue()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkSatAssuming(z));
+  Solver slv;
+  TS_ASSERT_THROWS(slv.checkSatAssuming(d_solver->mkTrue()), CVC4ApiException&);
+}
+
+void SolverBlack::testCheckSatAssuming2()
+{
+  d_solver->setOption("incremental", "true");
+
+  Sort uSort = d_solver->mkUninterpretedSort("u");
+  Sort intSort = d_solver->getIntegerSort();
+  Sort boolSort = d_solver->getBooleanSort();
+  Sort uToIntSort = d_solver->mkFunctionSort(uSort, intSort);
+  Sort intPredSort = d_solver->mkFunctionSort(intSort, boolSort);
+
+  Term n = Term();
+  // Constants
+  Term x = d_solver->mkConst(uSort, "x");
+  Term y = d_solver->mkConst(uSort, "y");
+  // Functions
+  Term f = d_solver->mkConst(uToIntSort, "f");
+  Term p = d_solver->mkConst(intPredSort, "p");
+  // Values
+  Term zero = d_solver->mkReal(0);
+  Term one = d_solver->mkReal(1);
+  // Terms
+  Term f_x = d_solver->mkTerm(APPLY_UF, f, x);
+  Term f_y = d_solver->mkTerm(APPLY_UF, f, y);
+  Term sum = d_solver->mkTerm(PLUS, f_x, f_y);
+  Term p_0 = d_solver->mkTerm(APPLY_UF, p, zero);
+  Term p_f_y = d_solver->mkTerm(APPLY_UF, p, f_y);
+  // Assertions
+  Term assertions =
+      d_solver->mkTerm(AND,
+                       std::vector<Term>{
+                           d_solver->mkTerm(LEQ, zero, f_x),  // 0 <= f(x)
+                           d_solver->mkTerm(LEQ, zero, f_y),  // 0 <= f(y)
+                           d_solver->mkTerm(LEQ, sum, one),  // f(x) + f(y) <= 1
+                           p_0.notTerm(),                    // not p(0)
+                           p_f_y                             // p(f(y))
+                       });
+
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkSatAssuming(d_solver->mkTrue()));
+  d_solver->assertFormula(assertions);
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver->checkSatAssuming(d_solver->mkTerm(DISTINCT, x, y)));
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkSatAssuming(
+      {d_solver->mkFalse(), d_solver->mkTerm(DISTINCT, x, y)}));
+  TS_ASSERT_THROWS(d_solver->checkSatAssuming(n), CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver->checkSatAssuming({n, d_solver->mkTerm(DISTINCT, x, y)}),
+      CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.checkSatAssuming(d_solver->mkTrue()), CVC4ApiException&);
 }
 
 void SolverBlack::testSetLogic()
@@ -1239,20 +1766,30 @@ void SolverBlack::testMkSygusVar()
   TS_ASSERT_THROWS(d_solver->mkSygusVar(Sort()), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkSygusVar(d_solver->getNullSort(), "a"),
                    CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkSygusVar(boolSort), CVC4ApiException&);
 }
 
 void SolverBlack::testMkSygusGrammar()
 {
   Term nullTerm;
   Term boolTerm = d_solver->mkBoolean(true);
-  Term intTerm = d_solver->mkReal(1);
+  Term boolVar = d_solver->mkVar(d_solver->getBooleanSort());
+  Term intVar = d_solver->mkVar(d_solver->getIntegerSort());
 
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkSygusGrammar({}, {intTerm}));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkSygusGrammar({boolTerm}, {intTerm}));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkSygusGrammar({}, {intVar}));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkSygusGrammar({boolVar}, {intVar}));
   TS_ASSERT_THROWS(d_solver->mkSygusGrammar({}, {}), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkSygusGrammar({}, {nullTerm}), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkSygusGrammar({nullTerm}, {intTerm}),
+  TS_ASSERT_THROWS(d_solver->mkSygusGrammar({}, {boolTerm}), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkSygusGrammar({boolTerm}, {intVar}),
                    CVC4ApiException&);
+  Solver slv;
+  Term boolVar2 = slv.mkVar(slv.getBooleanSort());
+  Term intVar2 = slv.mkVar(slv.getIntegerSort());
+  TS_ASSERT_THROWS_NOTHING(slv.mkSygusGrammar({boolVar2}, {intVar2}));
+  TS_ASSERT_THROWS(slv.mkSygusGrammar({boolVar}, {intVar2}), CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkSygusGrammar({boolVar2}, {intVar}), CVC4ApiException&);
 }
 
 void SolverBlack::testSynthFun()
@@ -1283,6 +1820,13 @@ void SolverBlack::testSynthFun()
   TS_ASSERT_THROWS(d_solver->synthFun("f4", {}, null), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->synthFun("f5", {}, boolToBool), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->synthFun("f6", {x}, boolean, g2),
+                   CVC4ApiException&);
+  Solver slv;
+  Term x2 = slv.mkVar(slv.getBooleanSort());
+  TS_ASSERT_THROWS_NOTHING(slv.synthFun("f1", {x2}, slv.getBooleanSort()));
+  TS_ASSERT_THROWS(slv.synthFun("", {}, d_solver->getBooleanSort()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.synthFun("f1", {x}, d_solver->getBooleanSort()),
                    CVC4ApiException&);
 }
 
@@ -1320,6 +1864,9 @@ void SolverBlack::testAddSygusConstraint()
   TS_ASSERT_THROWS_NOTHING(d_solver->addSygusConstraint(boolTerm));
   TS_ASSERT_THROWS(d_solver->addSygusConstraint(nullTerm), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->addSygusConstraint(intTerm), CVC4ApiException&);
+
+  Solver slv;
+  TS_ASSERT_THROWS(slv.addSygusConstraint(boolTerm), CVC4ApiException&);
 }
 
 void SolverBlack::testAddSygusInvConstraint()
@@ -1375,6 +1922,23 @@ void SolverBlack::testAddSygusInvConstraint()
 
   TS_ASSERT_THROWS(d_solver->addSygusInvConstraint(inv, pre, trans, trans),
                    CVC4ApiException&);
+  Solver slv;
+  Sort boolean2 = slv.getBooleanSort();
+  Sort real2 = slv.getRealSort();
+  Term inv22 = slv.declareFun("inv", {real2}, boolean2);
+  Term pre22 = slv.declareFun("pre", {real2}, boolean2);
+  Term trans22 = slv.declareFun("trans", {real2, real2}, boolean2);
+  Term post22 = slv.declareFun("post", {real2}, boolean2);
+  TS_ASSERT_THROWS_NOTHING(
+      slv.addSygusInvConstraint(inv22, pre22, trans22, post22));
+  TS_ASSERT_THROWS(slv.addSygusInvConstraint(inv, pre22, trans22, post22),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.addSygusInvConstraint(inv22, pre, trans22, post22),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.addSygusInvConstraint(inv22, pre22, trans, post22),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.addSygusInvConstraint(inv22, pre22, trans22, post),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testGetSynthSolution()
@@ -1395,6 +1959,9 @@ void SolverBlack::testGetSynthSolution()
 
   TS_ASSERT_THROWS(d_solver->getSynthSolution(nullTerm), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->getSynthSolution(x), CVC4ApiException&);
+
+  Solver slv;
+  TS_ASSERT_THROWS(slv.getSynthSolution(f), CVC4ApiException&);
 }
 
 void SolverBlack::testGetSynthSolutions()
@@ -1417,4 +1984,7 @@ void SolverBlack::testGetSynthSolutions()
   TS_ASSERT_THROWS(d_solver->getSynthSolutions({}), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->getSynthSolutions({nullTerm}), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->getSynthSolutions({x}), CVC4ApiException&);
+
+  Solver slv;
+  TS_ASSERT_THROWS(slv.getSynthSolutions({x}), CVC4ApiException&);
 }

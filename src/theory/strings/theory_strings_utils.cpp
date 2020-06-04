@@ -90,10 +90,12 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj)
       visited.insert(cur);
       if (cur.getKind() == k)
       {
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        // Add in reverse order, so that we traverse left to right.
+        // This is important so that explantaions aren't reversed when they
+        // are flattened, which is important for proofs involving substitutions.
+        std::vector<Node> newChildren;
+        newChildren.insert(newChildren.end(), cur.begin(), cur.end());
+        visit.insert(visit.end(), newChildren.rbegin(), newChildren.rend());
       }
       else if (std::find(conj.begin(), conj.end(), cur) == conj.end())
       {
@@ -155,6 +157,19 @@ Node mkNConcat(const std::vector<Node>& c, TypeNode tn)
 Node mkNLength(Node t)
 {
   return Rewriter::rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, t));
+}
+
+Node mkPrefix(Node t, Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(STRING_SUBSTR, t, nm->mkConst(Rational(0)), n);
+}
+
+Node mkSuffix(Node t, Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(
+      STRING_SUBSTR, t, n, nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, t), n));
 }
 
 Node getConstantComponent(Node t)

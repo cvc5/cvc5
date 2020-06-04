@@ -7,6 +7,13 @@ bench="$1"
 # in the directory specified by $2 if it has been set (e.g. when running on
 # StarExec).
 out_file=/dev/stderr
+
+if [ -n "$STAREXEC_WALLCLOCK_LIMIT" ]; then
+  # If we are running on StarExec, don't print to `/dev/stderr/` even when $2
+  # is not provided.
+  out_file="/dev/null"
+fi
+
 if [ -n "$2" ]; then
   out_file="$2/err.log"
 fi

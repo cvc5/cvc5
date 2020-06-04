@@ -518,6 +518,9 @@ public:
   /** Is this a Set type? */
   bool isSet() const;
 
+  /** Is this a Sequence type? */
+  bool isSequence() const;
+
   /** Get the index type (for array types) */
   TypeNode getArrayIndexType() const;
 
@@ -536,6 +539,8 @@ public:
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
 
+  /** Get the element type (for sequence types) */
+  TypeNode getSequenceElementType() const;
   /**
    * Is this a function type?  Function-like things (e.g. datatype
    * selectors) that aren't actually functions are NOT considered
@@ -673,6 +678,9 @@ public:
 
   /** Is this a sort constructor kind */
   bool isSortConstructor() const;
+
+  /** Get sort constructor arity */
+  uint64_t getSortConstructorArity() const;
 
   /**
    * Instantiate a sort constructor type. The type on which this method is
@@ -959,6 +967,11 @@ inline TypeNode TypeNode::getSelectorRangeType() const
 
 inline bool TypeNode::isSet() const {
   return getKind() == kind::SET_TYPE;
+}
+
+inline bool TypeNode::isSequence() const
+{
+  return getKind() == kind::SEQUENCE_TYPE;
 }
 
 inline TypeNode TypeNode::getSetElementType() const {

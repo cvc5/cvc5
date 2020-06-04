@@ -1022,72 +1022,110 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   throw UnrecognizedOptionException();
 }
 
-CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
+bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
+{
+  if (key == "all-statistics" || key == "error-behavior" || key == "name"
+      || key == "version" || key == "authors" || key == "status"
+      || key == "reason-unknown" || key == "assertion-stack-levels"
+      || key == "all-options")
+  {
+    return true;
+  }
+  return false;
+}
 
+CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
+{
   SmtScope smts(this);
 
   Trace("smt") << "SMT getInfo(" << key << ")" << endl;
-  if(key == "all-statistics") {
+  if (!isValidGetInfoFlag(key))
+  {
+    throw UnrecognizedOptionException();
+  }
+  if (key == "all-statistics")
+  {
     vector<SExpr> stats;
-    for(StatisticsRegistry::const_iterator i = NodeManager::fromExprManager(d_exprManager)->getStatisticsRegistry()->begin();
-        i != NodeManager::fromExprManager(d_exprManager)->getStatisticsRegistry()->end();
-        ++i) {
+    for (StatisticsRegistry::const_iterator i =
+             NodeManager::fromExprManager(d_exprManager)
+                 ->getStatisticsRegistry()
+                 ->begin();
+         i
+         != NodeManager::fromExprManager(d_exprManager)
+                ->getStatisticsRegistry()
+                ->end();
+         ++i)
+    {
       vector<SExpr> v;
       v.push_back((*i).first);
       v.push_back((*i).second);
       stats.push_back(v);
     }
-    for(StatisticsRegistry::const_iterator i = d_statisticsRegistry->begin();
-        i != d_statisticsRegistry->end();
-        ++i) {
+    for (StatisticsRegistry::const_iterator i = d_statisticsRegistry->begin();
+         i != d_statisticsRegistry->end();
+         ++i)
+    {
       vector<SExpr> v;
       v.push_back((*i).first);
       v.push_back((*i).second);
       stats.push_back(v);
     }
     return SExpr(stats);
-  } else if(key == "error-behavior") {
+  }
+  if (key == "error-behavior")
+  {
     return SExpr(SExpr::Keyword("immediate-exit"));
-  } else if(key == "name") {
+  }
+  if (key == "name")
+  {
     return SExpr(Configuration::getName());
-  } else if(key == "version") {
+  }
+  if (key == "version")
+  {
     return SExpr(Configuration::getVersionString());
-  } else if(key == "authors") {
+  }
+  if (key == "authors")
+  {
     return SExpr(Configuration::about());
-  } else if(key == "status") {
+  }
+  if (key == "status")
+  {
     // sat | unsat | unknown
-    switch(d_status.asSatisfiabilityResult().isSat()) {
-    case Result::SAT:
-      return SExpr(SExpr::Keyword("sat"));
-    case Result::UNSAT:
-      return SExpr(SExpr::Keyword("unsat"));
-    default:
-      return SExpr(SExpr::Keyword("unknown"));
+    switch (d_status.asSatisfiabilityResult().isSat())
+    {
+      case Result::SAT: return SExpr(SExpr::Keyword("sat"));
+      case Result::UNSAT: return SExpr(SExpr::Keyword("unsat"));
+      default: return SExpr(SExpr::Keyword("unknown"));
     }
-  } else if(key == "reason-unknown") {
-    if(!d_status.isNull() && d_status.isUnknown()) {
+  }
+  if (key == "reason-unknown")
+  {
+    if (!d_status.isNull() && d_status.isUnknown())
+    {
       stringstream ss;
       ss << d_status.whyUnknown();
       string s = ss.str();
       transform(s.begin(), s.end(), s.begin(), ::tolower);
       return SExpr(SExpr::Keyword(s));
-    } else {
+    }
+    else
+    {
       throw RecoverableModalException(
           "Can't get-info :reason-unknown when the "
           "last result wasn't unknown!");
     }
-  } else if(key == "assertion-stack-levels") {
+  }
+  if (key == "assertion-stack-levels")
+  {
     AlwaysAssert(d_userLevels.size()
                  <= std::numeric_limits<unsigned long int>::max());
     return SExpr(static_cast<unsigned long int>(d_userLevels.size()));
-  } else if(key == "all-options") {
-    // get the options, like all-statistics
-    std::vector< std::vector<std::string> > current_options =
-      Options::current()->getOptions();
-    return SExpr::parseListOfListOfAtoms(current_options);
-  } else {
-    throw UnrecognizedOptionException();
   }
+  Assert(key == "all-options");
+  // get the options, like all-statistics
+  std::vector<std::vector<std::string>> current_options =
+      Options::current()->getOptions();
+  return SExpr::parseListOfListOfAtoms(current_options);
 }
 
 void SmtEngine::debugCheckFormals(const std::vector<Expr>& formals, Expr func)
@@ -2514,8 +2552,11 @@ void SmtEngine::checkModel(bool hardFailure) {
   }
 
   // Check individual theory assertions
-  d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
-
+  if (options::debugCheckModels())
+  {
+    d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
+  }
+  
   // Output the model
   Notice() << *m;
 

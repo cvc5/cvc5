@@ -52,7 +52,7 @@ void OpBlack::testIsNull()
 
 void OpBlack::testOpFromKind()
 {
-  Op plus(PLUS);
+  Op plus(&d_solver, PLUS);
   TS_ASSERT(!plus.isIndexed());
   TS_ASSERT_THROWS(plus.getIndices<uint32_t>(), CVC4ApiException&);
 

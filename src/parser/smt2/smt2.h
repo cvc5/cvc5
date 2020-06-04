@@ -98,6 +98,13 @@ class Smt2 : public Parser
 
   bool isTheoryEnabled(theory::TheoryId theory) const;
 
+  /**
+   * Checks if higher-order support is enabled.
+   *
+   * @return true if higher-order support is enabled, false otherwise
+   */
+  bool isHoEnabled() const;
+
   bool logicIsSet() override;
 
   /**

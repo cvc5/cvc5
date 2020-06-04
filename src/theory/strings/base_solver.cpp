@@ -33,7 +33,6 @@ BaseSolver::BaseSolver(context::Context* c,
                        InferenceManager& im)
     : d_state(s), d_im(im), d_congruent(c)
 {
-  d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = utils::getAlphabetCardinality();
 }
@@ -50,7 +49,6 @@ void BaseSolver::checkInit()
   std::map<Kind, uint32_t> ncongruent;
   std::map<Kind, uint32_t> congruent;
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  Assert(d_state.getRepresentative(d_emptyString) == d_emptyString);
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   while (!eqcs_i.isFinished())
   {
@@ -58,9 +56,11 @@ void BaseSolver::checkInit()
     TypeNode tn = eqc.getType();
     if (!tn.isRegExp())
     {
+      Node emps;
       if (tn.isString())
       {
         d_stringsEqc.push_back(eqc);
+        emps = Word::mkEmptyWord(tn);
       }
       Node var;
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
@@ -85,7 +85,7 @@ void BaseSolver::checkInit()
             if (d_congruent.find(n) == d_congruent.end())
             {
               std::vector<Node> c;
-              Node nc = d_termIndex[k].add(n, 0, d_state, d_emptyString, c);
+              Node nc = d_termIndex[k].add(n, 0, d_state, emps, c);
               if (nc != n)
               {
                 // check if we have inferred a new equality by removal of empty
@@ -101,14 +101,13 @@ void BaseSolver::checkInit()
                     for (unsigned t = 0; t < 2; t++)
                     {
                       Node nn = t == 0 ? nc : n;
-                      while (
-                          count[t] < nn.getNumChildren()
-                          && (nn[count[t]] == d_emptyString
-                              || d_state.areEqual(nn[count[t]], d_emptyString)))
+                      while (count[t] < nn.getNumChildren()
+                             && (nn[count[t]] == emps
+                                 || d_state.areEqual(nn[count[t]], emps)))
                       {
-                        if (nn[count[t]] != d_emptyString)
+                        if (nn[count[t]] != emps)
                         {
-                          exp.push_back(nn[count[t]].eqNode(d_emptyString));
+                          exp.push_back(nn[count[t]].eqNode(emps));
                         }
                         count[t]++;
                       }
@@ -160,11 +159,11 @@ void BaseSolver::checkInit()
                   bool foundNEmpty = false;
                   for (const Node& nnc : n)
                   {
-                    if (d_state.areEqual(nnc, d_emptyString))
+                    if (d_state.areEqual(nnc, emps))
                     {
-                      if (nnc != d_emptyString)
+                      if (nnc != emps)
                       {
-                        exp.push_back(nnc.eqNode(d_emptyString));
+                        exp.push_back(nnc.eqNode(emps));
                       }
                     }
                     else
@@ -293,10 +292,11 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       while (count < n.getNumChildren())
       {
         // Add explanations for the empty children
+        Node emps;
         while (count < n.getNumChildren()
-               && d_state.areEqual(n[count], d_emptyString))
+               && d_state.isEqualEmptyWord(n[count], emps))
         {
-          d_im.addToExplanation(n[count], d_emptyString, exp);
+          d_im.addToExplanation(n[count], emps, exp);
           count++;
         }
         if (count < n.getNumChildren())
