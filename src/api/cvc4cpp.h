@@ -49,6 +49,8 @@ class Result;
 
 namespace api {
 
+class Solver;
+
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
 /* -------------------------------------------------------------------------- */
@@ -199,10 +201,11 @@ class CVC4_PUBLIC Sort
   // migrated to the new API. !!!
   /**
    * Constructor.
+   * @param slv the associated solver object
    * @param t the internal type that is to be wrapped by this sort
    * @return the Sort
    */
-  Sort(const CVC4::Type& t);
+  Sort(const Solver* slv, const CVC4::Type& t);
 
   /**
    * Constructor.
@@ -589,6 +592,11 @@ class CVC4_PUBLIC Sort
   bool isNullHelper() const;
 
   /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
+
+  /**
    * The interal type wrapped by this sort.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
    * memory allocation (CVC4::Type is already ref counted, so this could be
@@ -637,19 +645,21 @@ class CVC4_PUBLIC Op
   // migrated to the new API. !!!
   /**
    * Constructor for a single kind (non-indexed operator).
+   * @param slv the associated solver object
    * @param k the kind of this Op
    */
-  Op(const Kind k);
+  Op(const Solver* slv, const Kind k);
 
   // !!! This constructor is only temporarily public until the parser is fully
   // migrated to the new API. !!!
   /**
    * Constructor.
+   * @param slv the associated solver object
    * @param k the kind of this Op
    * @param e the internal expression that is to be wrapped by this term
    * @return the Term
    */
-  Op(const Kind k, const CVC4::Expr& e);
+  Op(const Solver* slv, const Kind k, const CVC4::Expr& e);
 
   /**
    * Destructor.
@@ -726,6 +736,11 @@ class CVC4_PUBLIC Op
    */
   bool isIndexedHelper() const;
 
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
+
   /* The kind of this operator. */
   Kind d_kind;
 
@@ -758,10 +773,11 @@ class CVC4_PUBLIC Term
   // migrated to the new API. !!!
   /**
    * Constructor.
+   * @param slv the associated solver object
    * @param e the internal expression that is to be wrapped by this term
    * @return the Term
    */
-  Term(const CVC4::Expr& e);
+  Term(const Solver* slv, const CVC4::Expr& e);
 
   /**
    * Constructor.
@@ -955,10 +971,13 @@ class CVC4_PUBLIC Term
 
     /**
      * Constructor
+     * @param slv the associated solver object
      * @param e a shared pointer to the expression that we're iterating over
      * @param p the position of the iterator (e.g. which child it's on)
      */
-    const_iterator(const std::shared_ptr<CVC4::Expr>& e, uint32_t p);
+    const_iterator(const Solver* slv,
+                   const std::shared_ptr<CVC4::Expr>& e,
+                   uint32_t p);
 
     /**
      * Copy constructor.
@@ -1005,6 +1024,10 @@ class CVC4_PUBLIC Term
     Term operator*() const;
 
    private:
+    /**
+     * The associated solver object.
+     */
+    const Solver* d_solver;
     /* The original expression to be iterated over */
     std::shared_ptr<CVC4::Expr> d_orig_expr;
     /* Keeps track of the iteration position */
@@ -1024,6 +1047,12 @@ class CVC4_PUBLIC Term
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   CVC4::Expr getExpr(void) const;
+
+ protected:
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
 
  private:
   /**
@@ -1138,14 +1167,13 @@ class DatatypeIterator;
 class CVC4_PUBLIC DatatypeConstructorDecl
 {
   friend class DatatypeDecl;
+  friend class Solver;
 
  public:
   /**
-   * Constructor.
-   * @param name the name of the datatype constructor
-   * @return the DatatypeConstructorDecl
+   * Nullary constructor for Cython.
    */
-  DatatypeConstructorDecl(const std::string& name);
+  DatatypeConstructorDecl();
 
   /**
    * Add datatype selector declaration.
@@ -1170,6 +1198,19 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
  private:
   /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param name the name of the datatype constructor
+   * @return the DatatypeConstructorDecl
+   */
+  DatatypeConstructorDecl(const Solver* slv, const std::string& name);
+
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
+
+  /**
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
    * This is a shared_ptr rather than a unique_ptr since
@@ -1190,7 +1231,7 @@ class CVC4_PUBLIC DatatypeDecl
 
  public:
   /**
-   * Nullary constructor for Cython
+   * Nullary constructor for Cython.
    */
   DatatypeDecl();
 
@@ -1211,6 +1252,9 @@ class CVC4_PUBLIC DatatypeDecl
   /** Is this Datatype declaration parametric? */
   bool isParametric() const;
 
+  /**
+   * @return true if this DatatypeDecl is a null object
+   */
   bool isNull() const;
 
   /**
@@ -1228,24 +1272,24 @@ class CVC4_PUBLIC DatatypeDecl
  private:
   /**
    * Constructor.
-   * @param s the solver that created this datatype declaration
+   * @param slv the associated solver object
    * @param name the name of the datatype
    * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
    */
-  DatatypeDecl(const Solver* s,
+  DatatypeDecl(const Solver* slv,
                const std::string& name,
                bool isCoDatatype = false);
 
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param s the solver that created this datatype declaration
+   * @param slv the associated solver object
    * @param name the name of the datatype
    * @param param the sort parameter
    * @param isCoDatatype true if a codatatype is to be constructed
    */
-  DatatypeDecl(const Solver* s,
+  DatatypeDecl(const Solver* slv,
                const std::string& name,
                Sort param,
                bool isCoDatatype = false);
@@ -1253,18 +1297,26 @@ class CVC4_PUBLIC DatatypeDecl
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param s the solver that created this datatype declaration
+   * @param slv the associated solver object
    * @param name the name of the datatype
    * @param params a list of sort parameters
    * @param isCoDatatype true if a codatatype is to be constructed
    */
-  DatatypeDecl(const Solver* s,
+  DatatypeDecl(const Solver* slv,
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
 
-  // helper for isNull() to avoid calling API functions from other API functions
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
   bool isNullHelper() const;
+
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
 
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
@@ -1292,10 +1344,11 @@ class CVC4_PUBLIC DatatypeSelector
   // migrated to the new API. !!!
   /**
    * Constructor.
+   * @param slv the associated solver object
    * @param stor the internal datatype selector to be wrapped
    * @return the DatatypeSelector
    */
-  DatatypeSelector(const CVC4::DatatypeConstructorArg& stor);
+  DatatypeSelector(const Solver* slv, const CVC4::DatatypeConstructorArg& stor);
 
   /**
    * Destructor.
@@ -1325,6 +1378,11 @@ class CVC4_PUBLIC DatatypeSelector
 
  private:
   /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
+
+  /**
    * The internal datatype selector wrapped by this datatype selector.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
    * not ref counted.
@@ -1353,7 +1411,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param ctor the internal datatype constructor to be wrapped
    * @return the DatatypeConstructor
    */
-  DatatypeConstructor(const CVC4::DatatypeConstructor& ctor);
+  DatatypeConstructor(const Solver* slv, const CVC4::DatatypeConstructor& ctor);
 
   /**
    * Destructor.
@@ -1466,16 +1524,27 @@ class CVC4_PUBLIC DatatypeConstructor
    private:
     /**
      * Constructor.
+     * @param slv the associated Solver object
      * @param ctor the internal datatype constructor to iterate over
      * @param true if this is a begin() iterator
      */
-    const_iterator(const CVC4::DatatypeConstructor& ctor, bool begin);
+    const_iterator(const Solver* slv,
+                   const CVC4::DatatypeConstructor& ctor,
+                   bool begin);
+
+    /**
+     * The associated solver object.
+     */
+    const Solver* d_solver;
+
     /* A pointer to the list of selectors of the internal datatype
      * constructor to iterate over.
      * This pointer is maintained for operators == and != only. */
     const void* d_int_stors;
+
     /* The list of datatype selector (wrappers) to iterate over. */
     std::vector<DatatypeSelector> d_stors;
+
     /* The current index of the iterator. */
     size_t d_idx;
   };
@@ -1501,6 +1570,12 @@ class CVC4_PUBLIC DatatypeConstructor
    * @return the selector object for the name
    */
   DatatypeSelector getSelectorForName(const std::string& name) const;
+
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
+
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -1525,7 +1600,7 @@ class CVC4_PUBLIC Datatype
    * @param dtype the internal datatype to be wrapped
    * @return the Datatype
    */
-  Datatype(const CVC4::Datatype& dtype);
+  Datatype(const Solver* slv, const CVC4::Datatype& dtype);
 
   // Nullary constructor for Cython
   Datatype();
@@ -1654,16 +1729,25 @@ class CVC4_PUBLIC Datatype
    private:
     /**
      * Constructor.
+     * @param slv the associated Solver object
      * @param dtype the internal datatype to iterate over
      * @param true if this is a begin() iterator
      */
-    const_iterator(const CVC4::Datatype& dtype, bool begin);
+    const_iterator(const Solver* slv, const CVC4::Datatype& dtype, bool begin);
+
+    /**
+     * The associated solver object.
+     */
+    const Solver* d_solver;
+
     /* A pointer to the list of constructors of the internal datatype
      * to iterate over.
      * This pointer is maintained for operators == and != only. */
     const void* d_int_ctors;
+
     /* The list of datatype constructor (wrappers) to iterate over. */
     std::vector<DatatypeConstructor> d_ctors;
+
     /* The current index of the iterator. */
     size_t d_idx;
   };
@@ -1689,6 +1773,12 @@ class CVC4_PUBLIC Datatype
    * @return the constructor object for the name
    */
   DatatypeConstructor getConstructorForName(const std::string& name) const;
+
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
+
   /**
    * The internal datatype wrapped by this datatype.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -1793,11 +1883,11 @@ class CVC4_PUBLIC Grammar
  private:
   /**
    * Constructor.
-   * @param s the solver that created this grammar
+   * @param slv the solver that created this grammar
    * @param sygusVars the input variables to synth-fun/synth-var
    * @param ntSymbols the non-terminals of this grammar
    */
-  Grammar(const Solver* s,
+  Grammar(const Solver* slv,
           const std::vector<Term>& sygusVars,
           const std::vector<Term>& ntSymbols);
 
@@ -1810,25 +1900,29 @@ class CVC4_PUBLIC Grammar
   /**
    * Adds a constructor to sygus datatype <dt> whose sygus operator is <term>.
    *
-   * <d_ntsToUnres> contains a mapping from non-terminal symbols to the
+   * <ntsToUnres> contains a mapping from non-terminal symbols to the
    * unresolved sorts they correspond to. This map indicates how the argument
    * <term> should be interpreted (instances of symbols from the domain of
-   * <d_ntsToUnres> correspond to constructor arguments).
+   * <ntsToUnres> correspond to constructor arguments).
    *
    * The sygus operator that is actually added to <dt> corresponds to replacing
-   * each occurrence of non-terminal symbols from the domain of <d_ntsToUnres>
+   * each occurrence of non-terminal symbols from the domain of <ntsToUnres>
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    *
    * @param dt the non-terminal's datatype to which a constructor is added
    * @param term the sygus operator of the constructor
+   * @param ntsToUnres mapping from non-terminals to their unresolved sorts
    */
-  void addSygusConstructorTerm(DatatypeDecl& dt, Term term) const;
+  void addSygusConstructorTerm(
+      DatatypeDecl& dt,
+      Term term,
+      const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const;
 
   /** Purify sygus grammar term
    *
    * This returns a term where all occurrences of non-terminal symbols (those
-   * in the domain of <d_ntsToUnres>) are replaced by fresh variables. For
+   * in the domain of <ntsToUnres>) are replaced by fresh variables. For
    * each variable replaced in this way, we add the fresh variable it is
    * replaced with to <args>, and the unresolved sorts corresponding to the
    * non-terminal symbol to <cargs> (constructor args). In other words, <args>
@@ -1839,11 +1933,14 @@ class CVC4_PUBLIC Grammar
    * @param term the term to purify
    * @param args the free variables in the term returned by this method
    * @param cargs the sorts of the arguments of the sygus constructor
+   * @param ntsToUnres mapping from non-terminals to their unresolved sorts
    * @return the purfied term
    */
-  Term purifySygusGTerm(Term term,
-                        std::vector<Term>& args,
-                        std::vector<Sort>& cargs) const;
+  Term purifySygusGTerm(
+      Term term,
+      std::vector<Term>& args,
+      std::vector<Sort>& cargs,
+      const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const;
 
   /**
    * This adds constructors to <dt> for sygus variables in <d_sygusVars> whose
@@ -1856,23 +1953,19 @@ class CVC4_PUBLIC Grammar
   void addSygusConstructorVariables(DatatypeDecl& dt, Sort sort) const;
 
   /** The solver that created this grammar. */
-  const Solver* d_s;
+  const Solver* d_solver;
   /** Input variables to the corresponding function/invariant to synthesize.*/
   std::vector<Term> d_sygusVars;
   /** The non-terminal symbols of this grammar. */
   std::vector<Term> d_ntSyms;
-  /**
-   * The mapping from non-terminal symbols to the unresolved sorts they
-   * correspond to.
-   */
-  std::unordered_map<Term, Sort, TermHashFunction> d_ntsToUnres;
-  /**
-   * The mapping from non-terminal symbols to the datatype declarations they
-   * correspond to.
-   */
-  std::unordered_map<Term, DatatypeDecl, TermHashFunction> d_dtDecls;
+  /** The mapping from non-terminal symbols to their production terms. */
+  std::unordered_map<Term, std::vector<Term>, TermHashFunction> d_ntsToTerms;
   /** The set of non-terminals that can be arbitrary constants. */
   std::unordered_set<Term, TermHashFunction> d_allowConst;
+  /** The set of non-terminals that can be sygus variables. */
+  std::unordered_set<Term, TermHashFunction> d_allowVars;
+  /** Did we call resolve() before? */
+  bool d_isResolved;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -2610,6 +2703,12 @@ class CVC4_PUBLIC Solver
   Term mkVar(Sort sort, const std::string& symbol = std::string()) const;
 
   /* .................................................................... */
+  /* Create datatype constructor declarations                             */
+  /* .................................................................... */
+
+  DatatypeConstructorDecl mkDatatypeConstructorDecl(const std::string& name);
+
+  /* .................................................................... */
   /* Create datatype declarations                                         */
   /* .................................................................... */
 
@@ -2972,7 +3071,7 @@ class CVC4_PUBLIC Solver
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
                 Sort sort,
-                Grammar g) const;
+                Grammar& g) const;
 
   /**
    * Synthesize invariant.
@@ -2996,7 +3095,7 @@ class CVC4_PUBLIC Solver
    */
   Term synthInv(const std::string& symbol,
                 const std::vector<Term>& boundVars,
-                Grammar g) const;
+                Grammar& g) const;
 
   /**
    * Add a forumla to the set of Sygus constraints.
@@ -3139,9 +3238,11 @@ class CVC4_PUBLIC Solver
 // new API. !!!
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
-std::vector<Term> exprVectorToTerms(const std::vector<Expr>& terms);
-std::vector<Sort> typeVectorToSorts(const std::vector<Type>& sorts);
 std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
+std::vector<Term> exprVectorToTerms(const Solver* slv,
+                                    const std::vector<Expr>& terms);
+std::vector<Sort> typeVectorToSorts(const Solver* slv,
+                                    const std::vector<Type>& sorts);
 
 }  // namespace api
 

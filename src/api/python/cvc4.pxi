@@ -15,11 +15,14 @@ from cvc4 cimport DatatypeSelector as c_DatatypeSelector
 from cvc4 cimport Result as c_Result
 from cvc4 cimport RoundingMode as c_RoundingMode
 from cvc4 cimport Op as c_Op
+from cvc4 cimport OpHashFunction as c_OpHashFunction
 from cvc4 cimport Solver as c_Solver
 from cvc4 cimport Sort as c_Sort
+from cvc4 cimport SortHashFunction as c_SortHashFunction
 from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
 from cvc4 cimport ROUND_TOWARD_ZERO, ROUND_NEAREST_TIES_TO_AWAY
 from cvc4 cimport Term as c_Term
+from cvc4 cimport TermHashFunction as c_TermHashFunction
 
 from cvc4kinds cimport Kind as c_Kind
 
@@ -49,6 +52,12 @@ def expand_list_arg(num_req_args=0):
 ### can omit spaces between unrelated oneliners
 ### always use c++ default arguments
 #### only use default args of None at python level
+
+
+## Objects for hashing
+cdef c_OpHashFunction cophash = c_OpHashFunction()
+cdef c_SortHashFunction csorthash = c_SortHashFunction()
+cdef c_TermHashFunction ctermhash = c_TermHashFunction()
 
 
 cdef class Datatype:
@@ -124,12 +133,14 @@ cdef class DatatypeConstructor:
 
 
 cdef class DatatypeConstructorDecl:
-    cdef c_DatatypeConstructorDecl* cddc
-    def __cinit__(self, str name):
-        self.cddc = new c_DatatypeConstructorDecl(name.encode())
+    cdef c_DatatypeConstructorDecl cddc
+
+    def __cinit__(self):
+      pass
 
     def addSelector(self, str name, Sort sort):
         self.cddc.addSelector(name.encode(), sort.csort)
+
     def addSelectorSelf(self, str name):
         self.cddc.addSelectorSelf(name.encode())
 
@@ -146,7 +157,7 @@ cdef class DatatypeDecl:
         pass
 
     def addConstructor(self, DatatypeConstructorDecl ctor):
-        self.cdd.addConstructor(ctor.cddc[0])
+        self.cdd.addConstructor(ctor.cddc)
 
     def isParametric(self):
         return self.cdd.isParametric()
@@ -186,6 +197,9 @@ cdef class Op:
 
     def __repr__(self):
         return self.cop.toString().decode()
+
+    def __hash__(self):
+        return cophash(self.cop)
 
     def getKind(self):
         return kind(<int> self.cop.getKind())
@@ -655,6 +669,11 @@ cdef class Solver:
                                             (<str?> symbol).encode())
         return term
 
+    def mkDatatypeConstructorDecl(self, str name):
+        cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl()
+        ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
+        return ddc
+
     def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
         cdef DatatypeDecl dd = DatatypeDecl()
         cdef vector[c_Sort] v
@@ -759,7 +778,7 @@ cdef class Solver:
         cdef vector[c_DatatypeConstructorDecl] v
 
         for c in ctors:
-            v.push_back((<DatatypeConstructorDecl?> c).cddc[0])
+            v.push_back((<DatatypeConstructorDecl?> c).cddc)
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 
@@ -934,6 +953,9 @@ cdef class Sort:
     def __repr__(self):
         return self.csort.toString().decode()
 
+    def __hash__(self):
+        return csorthash(self.csort)
+
     def isBoolean(self):
         return self.csort.isBoolean()
 
@@ -1035,6 +1057,9 @@ cdef class Term:
             term.cterm = ci
             yield term
 
+    def __hash__(self):
+        return ctermhash(self.cterm)
+
     def getKind(self):
         return kind(<int> self.cterm.getKind())
 
@@ -1042,6 +1067,23 @@ cdef class Term:
         cdef Sort sort = Sort()
         sort.csort = self.cterm.getSort()
         return sort
+
+    def substitute(self, list es, list replacements):
+        cdef vector[c_Term] ces
+        cdef vector[c_Term] creplacements
+        cdef Term term = Term()
+
+        if len(es) != len(replacements):
+            raise RuntimeError("Expecting list inputs to substitute to "
+                               "have the same length but got: "
+                               "{} and {}".format(len(es), len(replacements)))
+
+        for e, r in zip(es, replacements):
+            ces.push_back((<Term?> e).cterm)
+            creplacements.push_back((<Term?> r).cterm)
+
+        term.cterm = self.cterm.substitute(ces, creplacements)
+        return term
 
     def hasOp(self):
         return self.cterm.hasOp()

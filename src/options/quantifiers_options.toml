@@ -46,9 +46,6 @@ header = "options/quantifiers_options.h"
 [[option.mode.SIMPLE]]
   name = "simple"
   help = "Do simple prenexing of same sign quantifiers."
-[[option.mode.DISJ_NORMAL]]
-  name = "dnorm"
-  help = "Prenex to disjunctive prenex normal form."
 [[option.mode.NORMAL]]
   name = "norm"
   help = "Prenex to prenex normal form."
@@ -1763,7 +1760,7 @@ header = "options/quantifiers_options.h"
   long       = "quant-epr"
   type       = "bool"
   default    = "false"
-  help       = "infer whether in effectively propositional fragment, use for cbqi"
+  help       = "infer whether in effectively propositional fragment, use for cegqi"
 
 [[option]]
   name       = "quantEprMatching"
@@ -1796,7 +1793,7 @@ header = "options/quantifiers_options.h"
   name       = "cegqiBvIneqMode"
   category   = "regular"
   long       = "cegqi-bv-ineq=MODE"
-  type       = "CbqiBvIneqMode"
+  type       = "CegqiBvIneqMode"
   default    = "EQ_BOUNDARY"
   help       = "choose mode for handling bit-vector inequalities with counterexample-guided instantiation"
   help_mode  = "Modes for handling bit-vector inequalities in counterexample-guided instantiation."

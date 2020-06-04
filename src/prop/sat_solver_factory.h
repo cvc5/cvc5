@@ -45,6 +45,8 @@ class SatSolverFactory
   static SatSolver* createCadical(StatisticsRegistry* registry,
                                   const std::string& name = "");
 
+  static SatSolver* createKissat(StatisticsRegistry* registry,
+                                 const std::string& name = "");
 }; /* class SatSolverFactory */
 
 }  // namespace prop

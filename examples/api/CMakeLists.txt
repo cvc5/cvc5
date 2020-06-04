@@ -18,6 +18,7 @@ set(CVC4_EXAMPLES_API
   strings
   strings-new
   sygus-fun
+  sygus-grammar
   sygus-inv
 )
 
