@@ -1200,6 +1200,7 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
+  regress1/abduct-dt.smt2
   regress1/arith/arith-int-004.cvc
   regress1/arith/arith-int-011.cvc
   regress1/arith/arith-int-012.cvc
