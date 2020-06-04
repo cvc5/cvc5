@@ -1156,10 +1156,10 @@ void SolverBlack::testDefineFunsRec()
       slv.defineFunsRec({f12, f22}, {{b12, b112}, {b4}}, {v12, v22}),
       CVC4ApiException&);
   TS_ASSERT_THROWS(
-      slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v12, v2}),
+      slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v1, v22}),
       CVC4ApiException&);
   TS_ASSERT_THROWS(
-      slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v1, v22}),
+      slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v12, v2}),
       CVC4ApiException&);
 }
 
@@ -1239,48 +1239,59 @@ void SolverBlack::testGetOption()
 
 void SolverBlack::testGetUnsatAssumptions1()
 {
+#if IS_PROOFS_BUILD
   d_solver->setOption("incremental", "false");
   d_solver->checkSatAssuming(d_solver->mkFalse());
   TS_ASSERT_THROWS(d_solver->getUnsatAssumptions(), CVC4ApiException&);
+#endif
 }
 
 void SolverBlack::testGetUnsatAssumptions2()
 {
+#if IS_PROOFS_BUILD
   d_solver->setOption("incremental", "true");
   d_solver->setOption("produce-unsat-assumptions", "false");
   d_solver->checkSatAssuming(d_solver->mkFalse());
   TS_ASSERT_THROWS(d_solver->getUnsatAssumptions(), CVC4ApiException&);
+#endif
 }
 
 void SolverBlack::testGetUnsatAssumptions3()
 {
+#if IS_PROOFS_BUILD
   d_solver->setOption("incremental", "true");
   d_solver->setOption("produce-unsat-assumptions", "true");
   d_solver->checkSatAssuming(d_solver->mkFalse());
   TS_ASSERT_THROWS_NOTHING(d_solver->getUnsatAssumptions());
   d_solver->checkSatAssuming(d_solver->mkTrue());
   TS_ASSERT_THROWS(d_solver->getUnsatAssumptions(), CVC4ApiException&);
+#endif
 }
 
 void SolverBlack::testGetUnsatCore1()
 {
+#if IS_PROOFS_BUILD
   d_solver->setOption("incremental", "false");
   d_solver->assertFormula(d_solver->mkFalse());
   d_solver->checkSat();
   TS_ASSERT_THROWS(d_solver->getUnsatCore(), CVC4ApiException&);
+#endif
 }
 
 void SolverBlack::testGetUnsatCore2()
 {
+#if IS_PROOFS_BUILD
   d_solver->setOption("incremental", "false");
   d_solver->setOption("produce-unsat-cores", "false");
   d_solver->assertFormula(d_solver->mkFalse());
   d_solver->checkSat();
   TS_ASSERT_THROWS(d_solver->getUnsatCore(), CVC4ApiException&);
+#endif
 }
 
 void SolverBlack::testGetUnsatCore3()
 {
+#if IS_PROOFS_BUILD
   d_solver->setOption("incremental", "true");
   d_solver->setOption("produce-unsat-cores", "true");
 
@@ -1312,12 +1323,13 @@ void SolverBlack::testGetUnsatCore3()
   TS_ASSERT_THROWS_NOTHING(unsat_core = d_solver->getUnsatCore());
 
   d_solver->resetAssertions();
-  for (auto& t : unsat_core)
+  for (const auto& t : unsat_core)
   {
     d_solver->assertFormula(t);
   }
   Result res = d_solver->checkSat();
   TS_ASSERT(res.isUnsat());
+#endif
 }
 
 void SolverBlack::testGetValue1()
@@ -1350,6 +1362,7 @@ void SolverBlack::testGetValue3()
 
   Term x = d_solver->mkConst(uSort, "x");
   Term y = d_solver->mkConst(uSort, "y");
+  Term z = d_solver->mkConst(uSort, "z");
   Term f = d_solver->mkConst(uToIntSort, "f");
   Term p = d_solver->mkConst(intPredSort, "p");
   Term zero = d_solver->mkReal(0);
@@ -1368,6 +1381,7 @@ void SolverBlack::testGetValue3()
   TS_ASSERT(d_solver->checkSat().isSat());
   TS_ASSERT_THROWS_NOTHING(d_solver->getValue(x));
   TS_ASSERT_THROWS_NOTHING(d_solver->getValue(y));
+  TS_ASSERT_THROWS_NOTHING(d_solver->getValue(z));
   TS_ASSERT_THROWS_NOTHING(d_solver->getValue(sum));
   TS_ASSERT_THROWS_NOTHING(d_solver->getValue(p_f_y));
 

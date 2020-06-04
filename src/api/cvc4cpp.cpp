@@ -4470,7 +4470,7 @@ std::vector<std::pair<Term, Term>> Solver::getAssignment(void) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(CVC4::options::produceAssignments())
-      << "Cannot get assignment unless model generation is enabled "
+      << "Cannot get assignment unless assignment generation is enabled "
          "(try --produce-assignments)";
   std::vector<std::pair<Expr, Expr>> assignment = d_smtEngine->getAssignment();
   std::vector<std::pair<Term, Term>> res;
@@ -4581,7 +4581,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(CVC4::options::produceModels())
-      << "Cannot get value unless produce models is enabled "
+      << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
                  != SmtEngine::SmtMode::SMT_MODE_UNSAT)
@@ -4624,7 +4624,7 @@ void Solver::printModel(std::ostream& out) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(CVC4::options::produceModels())
-      << "Cannot get value unless produce models is enabled "
+      << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
                  != SmtEngine::SmtMode::SMT_MODE_UNSAT)
@@ -4661,15 +4661,6 @@ void Solver::resetAssertions(void) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-// TODO: issue #2781
-void Solver::setLogicHelper(const std::string& logic) const
-{
-  CVC4_API_CHECK(!d_smtEngine->isFullyInited())
-      << "Invalid call to 'setLogic', solver is already fully initialized";
-  CVC4::LogicInfo logic_info(logic);
-  d_smtEngine->setLogic(logic_info);
-}
-
 /**
  *  ( set-info <attribute> )
  */
@@ -4704,7 +4695,10 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
 void Solver::setLogic(const std::string& logic) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  setLogicHelper(logic);
+  CVC4_API_CHECK(!d_smtEngine->isFullyInited())
+      << "Invalid call to 'setLogic', solver is already fully initialized";
+  CVC4::LogicInfo logic_info(logic);
+  d_smtEngine->setLogic(logic_info);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
