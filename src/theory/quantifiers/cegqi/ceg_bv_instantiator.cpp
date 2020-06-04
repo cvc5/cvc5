@@ -153,7 +153,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   {
     return Node::null();
   }
-  else if (options::cegqiBvIneqMode() == options::CbqiBvIneqMode::KEEP
+  else if (options::cegqiBvIneqMode() == options::CegqiBvIneqMode::KEEP
            || (pol && k == EQUAL))
   {
     return lit;
@@ -172,7 +172,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
 
   Node ret;
-  if (options::cegqiBvIneqMode() == options::CbqiBvIneqMode::EQ_SLACK)
+  if (options::cegqiBvIneqMode() == options::CegqiBvIneqMode::EQ_SLACK)
   {
     // if using slack, we convert constraints to a positive equality based on
     // the current model M, e.g.:
@@ -407,7 +407,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       }
       else
       {
-        if (cur.getKind() == CHOICE)
+        if (cur.getKind() == WITNESS)
         {
           // must replace variables of choice functions
           // with new variables to avoid variable
@@ -418,7 +418,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
           Assert(curr_subs.find(cur[0][0]) == curr_subs.end());
           curr_subs[cur[0][0]] = bv;
           // we cannot cache the results of subterms
-          // of this choice expression since we are
+          // of this witness expression since we are
           // now in the context { cur[0][0] -> bv },
           // hence we push a context here
           visited.push(std::unordered_map<TNode, Node, TNodeHashFunction>());
@@ -483,8 +483,8 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
         visited_contains_pv[ret] = contains_pv;
       }
 
-      // if was choice, pop context
-      if (cur.getKind() == CHOICE)
+      // if was witness, pop context
+      if (cur.getKind() == WITNESS)
       {
         Assert(curr_subs.find(cur[0][0]) != curr_subs.end());
         curr_subs.erase(cur[0][0]);
@@ -633,7 +633,7 @@ struct SortBvExtractInterval
 };
 
 void BvInstantiatorPreprocess::registerCounterexampleLemma(
-    std::vector<Node>& lems, std::vector<Node>& ce_vars)
+    Node lem, std::vector<Node>& ceVars, std::vector<Node>& auxLems)
 {
   // new variables
   std::vector<Node> vars;
@@ -647,12 +647,8 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
     std::unordered_set<TNode, TNodeHashFunction> visited;
-    for (unsigned i = 0, size = lems.size(); i < size; i++)
-    {
-      Trace("cegqi-bv-pp-debug2")
-          << "Register ce lemma # " << i << " : " << lems[i] << std::endl;
-      collectExtracts(lems[i], extract_map, visited);
-    }
+    Trace("cegqi-bv-pp-debug2") << "Register ce lemma " << lem << std::endl;
+    collectExtracts(lem, extract_map, visited);
     for (std::pair<const Node, std::vector<Node> >& es : extract_map)
     {
       // sort based on the extract start position
@@ -721,10 +717,10 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 
     Trace("cegqi-bv-pp") << "Adding " << new_lems.size() << " lemmas..."
                          << std::endl;
-    lems.insert(lems.end(), new_lems.begin(), new_lems.end());
+    auxLems.insert(auxLems.end(), new_lems.begin(), new_lems.end());
     Trace("cegqi-bv-pp") << "Adding " << vars.size() << " variables..."
                          << std::endl;
-    ce_vars.insert(ce_vars.end(), vars.begin(), vars.end());
+    ceVars.insert(ceVars.end(), vars.begin(), vars.end());
   }
 }
 

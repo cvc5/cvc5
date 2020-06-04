@@ -57,6 +57,12 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   for (const Node& s : symset)
   {
     TypeNode tn = s.getType();
+    if (tn.isConstructor() || tn.isSelector() || tn.isTester())
+    {
+      // datatype symbols should be considered interpreted symbols here, not
+      // (higher-order) variables.
+      continue;
+    }
     // Notice that we allow for non-first class (e.g. function) variables here.
     // This is applicable to the case where we are doing get-abduct in a logic
     // with UF.

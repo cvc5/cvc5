@@ -1931,7 +1931,14 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   // Lemma analysis isn't online yet; this lemma may only live for this
   // user level.
-  return theory::LemmaStatus(additionalLemmas[0], d_userContext->getLevel());
+  Node retLemma = additionalLemmas[0];
+  if (additionalLemmas.size() > 1)
+  {
+    // the returned lemma is the conjunction of all additional lemmas.
+    retLemma =
+        NodeManager::currentNM()->mkNode(kind::AND, additionalLemmas.ref());
+  }
+  return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
 
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {

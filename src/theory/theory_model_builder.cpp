@@ -1115,7 +1115,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   TheoryModel* tm = static_cast<TheoryModel*>(m);
   Assert(tm != nullptr);
   // debug-check the model if the checkModels() is enabled.
-  if (options::checkModels())
+  if (options::debugCheckModels())
   {
     debugCheckModel(tm);
   }

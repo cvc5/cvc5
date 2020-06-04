@@ -3,7 +3,7 @@
 (set-option :produce-models true)
 (set-info :status sat)
 
-(define-fun byte_2_int ((s String)) Int (ite (= (str.len s) 1) (str.code s) 256))
+(define-fun byte_2_int ((s String)) Int (ite (= (str.len s) 1) (str.to_code s) 256))
 
 (define-fun read_buffer16 ((s1 String) (s2 String)) Int
   (+ (* 256 (byte_2_int s1)) 
