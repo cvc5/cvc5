@@ -1498,7 +1498,7 @@ Term Term::getConstArrayBase() const
   // CONST_ARRAY kind maps to STORE_ALL internal kind
   CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::STORE_ALL)
       << "Expecting a CONST_ARRAY Term when calling getConstArrayBase()";
-  return d_expr->getConst<ArrayStoreAll>().getExpr();
+  return Term(d_solver, d_expr->getConst<ArrayStoreAll>().getExpr());
 }
 
 Term Term::notTerm() const
