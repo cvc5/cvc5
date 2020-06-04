@@ -69,17 +69,20 @@ CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
       d_okay(true),
       d_statistics(registry, name)
 {
+}
+
+void CryptoMinisatSolver::init()
+{
   d_true = newVar();
   d_false = newVar();
 
   std::vector<CMSat::Lit> clause(1);
   clause[0] = CMSat::Lit(d_true, false);
   d_solver->add_clause(clause);
-  
+
   clause[0] = CMSat::Lit(d_false, true);
   d_solver->add_clause(clause);
 }
-
 
 CryptoMinisatSolver::~CryptoMinisatSolver() {}
 

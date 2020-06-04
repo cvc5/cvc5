@@ -16,8 +16,8 @@
 (declare-fun var_11 () String)
 (declare-fun var_12 () String)
 
-(assert (str.in.re (str.++ var_7 "z" var_7 ) (re.* (str.to.re "z"))))
-(assert (str.in.re var_7 (re.* (re.range "a" "u"))))
-(assert (not (str.in.re (str.++ "a" var_7 "z" "a" var_7 ) (re.++ (re.* (re.union (str.to.re "z") (re.++ (str.to.re "a") (re.++ (re.* (str.to.re "a")) (str.to.re "z"))))) (re.++ (str.to.re "a") (re.* (str.to.re "a")))))))
+(assert (str.in_re (str.++ var_7 "z" var_7 ) (re.* (str.to_re "z"))))
+(assert (str.in_re var_7 (re.* (re.range "a" "u"))))
+(assert (not (str.in_re (str.++ "a" var_7 "z" "a" var_7 ) (re.++ (re.* (re.union (str.to_re "z") (re.++ (str.to_re "a") (re.++ (re.* (str.to_re "a")) (str.to_re "z"))))) (re.++ (str.to_re "a") (re.* (str.to_re "a")))))))
 (assert (and (<= (str.len var_7) 0 ) (<= 0  (str.len var_7))))
 (check-sat)

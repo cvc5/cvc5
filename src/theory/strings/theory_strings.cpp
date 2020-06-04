@@ -71,7 +71,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_notify(*this),
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
-      d_state(c, d_equalityEngine, d_valuation),
+      d_state(c, u, d_equalityEngine, d_valuation),
       d_termReg(c, u, d_equalityEngine, out, d_statistics),
       d_im(nullptr),
       d_rewriter(&d_statistics.d_rewrites),
@@ -133,6 +133,13 @@ TheoryStrings::TheoryStrings(context::Context* c,
 
 TheoryStrings::~TheoryStrings() {
 
+}
+
+void TheoryStrings::finishInit()
+{
+  TheoryModel* tm = d_valuation.getModel();
+  // witness is used to eliminate str.from_code
+  tm->setUnevaluatedKind(WITNESS);
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
@@ -264,6 +271,9 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   // assert the (relevant) portion of the equality engine to the model
   if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
   {
+    Unreachable()
+        << "TheoryStrings::collectModelInfo: failed to assert equality engine"
+        << std::endl;
     return false;
   }
 
@@ -423,6 +433,8 @@ bool TheoryStrings::collectModelInfoType(
       uint32_t currLen =
           lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
       std::unique_ptr<SEnumLen> sel;
+      Trace("strings-model") << "Cardinality of alphabet is "
+                             << utils::getAlphabetCardinality() << std::endl;
       if (tn.isString())
       {
         sel.reset(new StringEnumLen(
@@ -474,7 +486,10 @@ bool TheoryStrings::collectModelInfoType(
                 Node spl = nm->mkNode(OR, sl, sl.negate());
                 ++(d_statistics.d_lemmasCmiSplit);
                 d_out->lemma(spl);
+                Trace("strings-lemma")
+                    << "Strings::CollectModelInfoSplit: " << spl << std::endl;
               }
+              // we added a lemma, so can return here
               return false;
             }
             c = sel->getCurrent();
@@ -491,6 +506,11 @@ bool TheoryStrings::collectModelInfoType(
         processed[eqc] = c;
         if (!m->assertEquality(eqc, c, true))
         {
+          // this should never happen due to the model soundness argument
+          // for strings
+          Unreachable()
+              << "TheoryStrings::collectModelInfoType: Inconsistent equality"
+              << std::endl;
           return false;
         }
       }
@@ -534,6 +554,12 @@ bool TheoryStrings::collectModelInfoType(
       processed[nodes[i]] = cc;
       if (!m->assertEquality(nodes[i], cc, true))
       {
+        // this should never happen due to the model soundness argument
+        // for strings
+
+        Unreachable() << "TheoryStrings::collectModelInfoType: "
+                         "Inconsistent equality (unprocessed eqc)"
+                      << std::endl;
         return false;
       }
     }
@@ -561,7 +587,7 @@ Node TheoryStrings::expandDefinition(Node node)
   if (node.getKind() == STRING_FROM_CODE)
   {
     // str.from_code(t) --->
-    //   choice k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
+    //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
     Node t = node[0];
     Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
@@ -571,7 +597,7 @@ Node TheoryStrings::expandDefinition(Node node)
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
     Node emp = Word::mkEmptyWord(node.getType());
     node = nm->mkNode(
-        CHOICE,
+        WITNESS,
         bvl,
         nm->mkNode(
             ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));

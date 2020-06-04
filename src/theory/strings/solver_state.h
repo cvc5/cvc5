@@ -44,8 +44,15 @@ class SolverState
   typedef context::CDList<Node> NodeList;
 
  public:
-  SolverState(context::Context* c, eq::EqualityEngine& ee, Valuation& v);
+  SolverState(context::Context* c,
+              context::UserContext* u,
+              eq::EqualityEngine& ee,
+              Valuation& v);
   ~SolverState();
+  /** Get the SAT context */
+  context::Context* getSatContext() const;
+  /** Get the user context */
+  context::UserContext* getUserContext() const;
   //-------------------------------------- equality information
   /**
    * Get the representative of t in the equality engine of this class, or t
@@ -129,6 +136,13 @@ class SolverState
    */
   Node explainNonEmpty(Node s);
   /**
+   * Is equal empty word? Returns true if s is equal to the empty word (of
+   * its type). If this method returns true, it updates emps to be that word.
+   * This is an optimization so that the relevant empty word does not need to
+   * be constructed to check if s is equal to the empty word.
+   */
+  bool isEqualEmptyWord(Node s, Node& emps);
+  /**
    * Get the above information for equivalence class eqc. If doMake is true,
    * we construct a new information class if one does not exist. The term eqc
    * should currently be a representative of the equality engine of this class.
@@ -167,6 +181,8 @@ class SolverState
   Node d_zero;
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;
+  /** Pointer to the user context object used by the theory of strings. */
+  context::UserContext* d_ucontext;
   /** Reference to equality engine of the theory of strings. */
   eq::EqualityEngine& d_ee;
   /**
