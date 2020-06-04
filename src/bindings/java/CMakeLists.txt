@@ -138,6 +138,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__pairT_CVC4__Expr_CVC4__Expr_t_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__vectorT_std__string_t_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SelectorType.java
+  ${CMAKE_CURRENT_BINARY_DIR}/SequenceType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SetType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SmtEngine.java
   ${CMAKE_CURRENT_BINARY_DIR}/SortConstructorType.java

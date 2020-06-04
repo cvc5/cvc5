@@ -107,6 +107,9 @@ class Theory {
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
 
+  /** Pointer to proof checker */
+  ProofChecker* d_pchecker;
+
   /**
    * The assertFact() queue.
    *
@@ -201,6 +204,7 @@ class Theory {
          OutputChannel& out,
          Valuation valuation,
          const LogicInfo& logicInfo,
+         ProofChecker* pc,
          std::string instance = "");  // taking : No default.
 
   /**
@@ -487,8 +491,6 @@ class Theory {
    */
   virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
 
-  /** Called to set the proof checker */
-  virtual void setProofChecker(ProofChecker* pc) {}
   /** Called to set the quantifiers engine. */
   void setQuantifiersEngine(QuantifiersEngine* qe);
   /** Called to set the decision manager. */

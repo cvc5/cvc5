@@ -19,9 +19,9 @@
 namespace CVC4 {
 namespace theory {
 
-EagerProofGenerator::EagerProofGenerator(context::UserContext* u,
+EagerProofGenerator::EagerProofGenerator(context::Context* c,
                                          ProofNodeManager* pnm)
-    : d_pnm(pnm), d_proofs(u)
+    : d_pnm(pnm), d_proofs(c == nullptr ? &d_context : c)
 {
 }
 

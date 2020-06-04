@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_rule.h"
-#include "expr/proof_step_buffer.h"
+#include "theory/theory_proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
@@ -116,31 +116,6 @@ class InferProofCons : public ProofGenerator
    */
   bool convertLengthPf(Node lenReq, const std::vector<Node>& lenExp);
   /**
-   * Apply macro transform. If this method returns true, it adds proof step(s)
-   * to the buffer that conclude tgt from premises src, exp. In particular,
-   * it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method should be
-   * applied when src and tgt are equivalent formulas assuming exp.
-   */
-  bool convertPredTransform(Node src,
-                            Node tgt,
-                            const std::vector<Node>& exp,
-                            MethodId ids = MethodId::SB_DEFAULT,
-                            MethodId idr = MethodId::RW_REWRITE);
-  /**
-   */
-  bool convertPredIntro(Node tgt,
-                        const std::vector<Node>& exp,
-                        MethodId ids = MethodId::SB_DEFAULT,
-                        MethodId idr = MethodId::RW_REWRITE);
-  /**
-   */
-  Node convertPredElim(Node src,
-                       const std::vector<Node>& exp,
-                       MethodId ids = MethodId::SB_DEFAULT,
-                       MethodId idr = MethodId::RW_REWRITE);
-  /** Add method ids */
-  void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
-  /**
    */
   Node convertTrans(Node eqa, Node eqb);
   /** the proof node manager */
@@ -148,7 +123,7 @@ class InferProofCons : public ProofGenerator
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
   /** The proof step buffer */
-  ProofStepBuffer d_psb;
+  TheoryProofStepBuffer d_psb;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** Whether proofs are enabled */

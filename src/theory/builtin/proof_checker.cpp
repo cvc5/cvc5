@@ -118,7 +118,6 @@ Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
 {
   Trace("builtin-pfcheck-debug")
       << "applyRewriteExternal (" << idr << "): " << n << std::endl;
-  // index determines the kind of rewriter
   if (idr == MethodId::RW_REWRITE)
   {
     return Rewriter::rewrite(n);
@@ -311,8 +310,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    // **** NOTE: can rewrite the witness form here. This enables "symbolic"
-    // predicates to check, e.g. (= k t) where k is a purification Skolem for t.
+    // **** NOTE: can rewrite the witness form here. This enables certain lemmas
+    // to be provable, e.g. (= k t) where k is a purification Skolem for t.
     res = Rewriter::rewrite(res);
     if (!res.isConst() || !res.getConst<bool>())
     {
@@ -424,6 +423,22 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
     }
   }
   return true;
+}
+
+
+void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
+                                   MethodId ids,
+                                   MethodId idr)
+{
+  bool ndefRewriter = (idr != MethodId::RW_REWRITE);
+  if (ids != MethodId::SB_DEFAULT || ndefRewriter)
+  {
+    args.push_back(mkMethodId(ids));
+  }
+  if (ndefRewriter)
+  {
+    args.push_back(mkMethodId(idr));
+  }
 }
 
 }  // namespace builtin

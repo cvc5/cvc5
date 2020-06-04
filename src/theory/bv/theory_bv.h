@@ -66,60 +66,64 @@ class TheoryBV : public Theory {
   std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
 
 public:
+ TheoryBV(context::Context* c,
+          context::UserContext* u,
+          OutputChannel& out,
+          Valuation valuation,
+          const LogicInfo& logicInfo,
+          ProofChecker* pc = nullptr,
+          std::string name = "");
 
-  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo,
-           std::string name = "");
+ ~TheoryBV();
 
-  ~TheoryBV();
+ TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+ void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+ void finishInit() override;
 
-  void finishInit() override;
+ Node expandDefinition(Node node) override;
 
-  Node expandDefinition(Node node) override;
+ void preRegisterTerm(TNode n) override;
 
-  void preRegisterTerm(TNode n) override;
+ void check(Effort e) override;
 
-  void check(Effort e) override;
+ bool needsCheckLastEffort() override;
 
-  bool needsCheckLastEffort() override;
+ void propagate(Effort e) override;
 
-  void propagate(Effort e) override;
+ TrustNode explain(TNode n) override;
 
-  TrustNode explain(TNode n) override;
+ bool collectModelInfo(TheoryModel* m) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
+ std::string identify() const override { return std::string("TheoryBV"); }
 
-  std::string identify() const override { return std::string("TheoryBV"); }
+ /** equality engine */
+ eq::EqualityEngine* getEqualityEngine() override;
+ bool getCurrentSubstitution(int effort,
+                             std::vector<Node>& vars,
+                             std::vector<Node>& subs,
+                             std::map<Node, std::vector<Node>>& exp) override;
+ int getReduction(int effort, Node n, Node& nr) override;
 
-  /** equality engine */
-  eq::EqualityEngine* getEqualityEngine() override;
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
-  int getReduction(int effort, Node n, Node& nr) override;
+ PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+ void enableCoreTheorySlicer();
 
-  void enableCoreTheorySlicer();
+ Node ppRewrite(TNode t) override;
 
-  Node ppRewrite(TNode t) override;
+ void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+ void presolve() override;
 
-  void presolve() override;
+ bool applyAbstraction(const std::vector<Node>& assertions,
+                       std::vector<Node>& new_assertions);
 
-  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+ void setProofLog(proof::BitVectorProof* bvp);
 
-  void setProofLog(proof::BitVectorProof* bvp);
-
- private:
-
-  class Statistics {
+private:
+ class Statistics
+ {
   public:
     AverageStat d_avgConflictSize;
     IntStat     d_solveSubstitutions;

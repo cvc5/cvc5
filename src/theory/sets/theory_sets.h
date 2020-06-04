@@ -39,7 +39,8 @@ class TheorySets : public Theory
              context::UserContext* u,
              OutputChannel& out,
              Valuation valuation,
-             const LogicInfo& logicInfo);
+             const LogicInfo& logicInfo,
+             ProofChecker* pc);
   ~TheorySets() override;
 
   TheoryRewriter* getTheoryRewriter() override;

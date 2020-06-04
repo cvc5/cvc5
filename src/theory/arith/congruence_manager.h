@@ -101,9 +101,6 @@ private:
 
   eq::EqualityEngine d_ee;
 
-  /** Dummy proof manager FIXME: initialize with ProofChecker of TheoryEngine */
-  std::unique_ptr<ProofNodeManager> d_dummyPnm;
-
   /** Proof equality engine, wrapping the above class */
   std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
 
@@ -149,7 +146,8 @@ private:
                          ConstraintDatabase&,
                          SetupLiteralCallBack,
                          const ArithVariables&,
-                         RaiseEqualityEngineConflict raiseConflict);
+                         RaiseEqualityEngineConflict raiseConflict,
+                         ProofNodeManager* pnm);
   ~ArithCongruenceManager();
 
   /**

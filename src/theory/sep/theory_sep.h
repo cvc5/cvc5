@@ -66,7 +66,12 @@ class TheorySep : public Theory {
                         bool pol, bool hasPol, bool underSpatial );
 
  public:
-  TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheorySep(context::Context* c,
+            context::UserContext* u,
+            OutputChannel& out,
+            Valuation valuation,
+            const LogicInfo& logicInfo,
+            ProofChecker* pc = nullptr);
   ~TheorySep();
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }

@@ -302,18 +302,22 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
-  theory/arith/nl_constraint.cpp
-  theory/arith/nl_constraint.h
-  theory/arith/nl_lemma_utils.cpp
-  theory/arith/nl_lemma_utils.h
-  theory/arith/nl_model.cpp
-  theory/arith/nl_model.h
-  theory/arith/nl_monomial.cpp
-  theory/arith/nl_monomial.h
-  theory/arith/nl_solver.cpp
-  theory/arith/nl_solver.h
-  theory/arith/nonlinear_extension.cpp
-  theory/arith/nonlinear_extension.h
+  theory/arith/nl/nl_constraint.cpp
+  theory/arith/nl/nl_constraint.h
+  theory/arith/nl/nl_lemma_utils.cpp
+  theory/arith/nl/nl_lemma_utils.h
+  theory/arith/nl/nl_model.cpp
+  theory/arith/nl/nl_model.h
+  theory/arith/nl/nl_monomial.cpp
+  theory/arith/nl/nl_monomial.h
+  theory/arith/nl/nl_solver.cpp
+  theory/arith/nl/nl_solver.h
+  theory/arith/nl/nonlinear_extension.cpp
+  theory/arith/nl/nonlinear_extension.h
+  theory/arith/nl/transcendental_solver.cpp
+  theory/arith/nl/transcendental_solver.h
+  theory/arith/operator_elim.cpp
+  theory/arith/operator_elim.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
   theory/arith/partial_model.cpp
@@ -334,8 +338,6 @@ libcvc4_add_sources(
   theory/arith/theory_arith_private.h
   theory/arith/theory_arith_private_forward.h
   theory/arith/theory_arith_type_rules.h
-  theory/arith/transcendental_solver.cpp
-  theory/arith/transcendental_solver.h
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
@@ -534,6 +536,8 @@ libcvc4_add_sources(
   theory/quantifiers/instantiate.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
+  theory/quantifiers/proof_checker.cpp
+  theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
   theory/quantifiers/quant_epr.cpp
@@ -760,6 +764,8 @@ libcvc4_add_sources(
   theory/theory_model_builder.h
   theory/theory_preprocessor.cpp
   theory/theory_preprocessor.h
+  theory/theory_proof_step_buffer.cpp
+  theory/theory_proof_step_buffer.h
   theory/theory_registrar.h
   theory/theory_test_utils.h
   theory/type_enumerator.h

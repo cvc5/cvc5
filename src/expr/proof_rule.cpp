@@ -96,6 +96,9 @@ const char* toString(PfRule id)
     case PfRule::TRUE_ELIM: return "TRUE_ELIM";
     case PfRule::FALSE_INTRO: return "FALSE_INTRO";
     case PfRule::FALSE_ELIM: return "FALSE_ELIM";
+    //================================================= Quantifiers rules
+    case PfRule::SKOLEMIZE: return "SKOLEMIZE";
+    case PfRule::INSTANTIATE: return "INSTANTIATE";
     //================================================= String rules
     case PfRule::CONCAT_EQ: return "CONCAT_EQ";
     case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
@@ -115,15 +118,16 @@ const char* toString(PfRule id)
     case PfRule::RE_UNFOLD_NEG_CONCAT_FIXED:
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
     case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
-
-    //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
-
-    //================================================= Unknown rule
+    //================================================= Arith rules
     case PfRule::SCALE_SUM_UPPER_BOUNDS: return "SCALE_SUM_UPPER_BOUNDS";
     case PfRule::TRICHOTOMY: return "TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::INT_TRUST: return "INT_TRUST";
+
+    //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
+
+    //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
   }

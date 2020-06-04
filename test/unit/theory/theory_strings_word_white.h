@@ -67,10 +67,10 @@ class TheoryStringsWordWhite : public CxxTest::TestSuite
 
     std::vector<Node> vec;
     vec.push_back(abc);
-    Node abcMk = Word::mkWord(vec);
+    Node abcMk = Word::mkWordFlatten(vec);
     TS_ASSERT_EQUALS(abc, abcMk);
     vec.push_back(a);
-    Node abcaMk = Word::mkWord(vec);
+    Node abcaMk = Word::mkWordFlatten(vec);
     TS_ASSERT_EQUALS(abca, abcaMk);
 
     TS_ASSERT(Word::getLength(empty) == 0);

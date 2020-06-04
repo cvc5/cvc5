@@ -371,8 +371,6 @@ class TheoryEngine {
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
 
-  RemoveTermFormulas& d_tform_remover;
-
   /** sort inference module */
   SortInference d_sortInfer;
 
@@ -413,11 +411,14 @@ class TheoryEngine {
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
+    // pass proof checker if we are proof producing
+    ProofChecker* pc = d_lazyProof != nullptr ? d_pchecker.get() : nullptr;
     d_theoryTable[theoryId] = new TheoryClass(d_context,
                                               d_userContext,
                                               *d_theoryOut[theoryId],
                                               theory::Valuation(this),
-                                              d_logicInfo);
+                                              d_logicInfo,
+                                              pc);
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
@@ -821,8 +822,6 @@ public:
   SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }
 
   theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
-
-  RemoveTermFormulas* getTermFormulaRemover() { return &d_tform_remover; }
 
   SortInference* getSortInference() { return &d_sortInfer; }
 

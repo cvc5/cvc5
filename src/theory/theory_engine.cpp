@@ -131,20 +131,6 @@ std::string getTheoryString(theory::TheoryId id)
 
 void TheoryEngine::finishInit()
 {
-  // if we are using the new proofs module
-  if (d_lazyProof != nullptr)
-  {
-    // ask the theories to populate the proof checking rules in the checker
-    for (TheoryId theoryId = theory::THEORY_FIRST;
-         theoryId != theory::THEORY_LAST;
-         ++theoryId)
-    {
-      if (d_theoryTable[theoryId])
-      {
-        d_theoryTable[theoryId]->setProofChecker(d_pchecker.get());
-      }
-    }
-  }
   //initialize the quantifiers engine, master equality engine, model, model builder
   if( d_logicInfo.isQuantified() ) {
     // initialize the quantifiers engine
@@ -229,8 +215,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_propagatedLiterals(context),
       d_propagatedLiteralsIndex(context, 0),
       d_atomRequests(context),
-      d_tform_remover(iteRemover),
-      d_tpp(*this, d_tform_remover),
+      d_tpp(*this, iteRemover),
       d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
       d_true(),
       d_false(),
@@ -1667,7 +1652,13 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   // Lemma analysis isn't online yet; this lemma may only live for this
   // user level.
-  return theory::LemmaStatus(lemmas[0], d_userContext->getLevel());
+  Node retLemma = lemmas[0];
+  if (lemmas.size() > 1)
+  {
+    // the returned lemma is the conjunction of all additional lemmas.
+    retLemma = NodeManager::currentNM()->mkNode(kind::AND, lemmas.ref());
+  }
+  return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
 
 void TheoryEngine::processTrustNode(theory::TrustNode trn,
@@ -2189,26 +2180,10 @@ theory::TrustNode TheoryEngine::getExplanation(
           // dummy trust node, do AND expansion
           Assert(tConc.getKind() == kind::AND);
           // tConc[0] ... tConc[n]
-          // ---------------------- MACRO_SR_PRED_INTRO
+          // ---------------------- AND_INTRO
           // tConc
-          std::vector<Node> pfChildrenNot;
-          for (size_t k = 0, nchild = tConc.getNumChildren(); k < nchild; ++k)
-          {
-            if (tConc[k].getKind() == kind::NOT)
-            {
-              // hack to ensure (not P) -> true is applied before P -> true
-              pfChildrenNot.push_back(tConc[k]);
-            }
-            else
-            {
-              pfChildren.push_back(tConc[k]);
-            }
-          }
-          pfChildren.insert(
-              pfChildren.end(), pfChildrenNot.begin(), pfChildrenNot.end());
-          pfArgs.push_back(tConc);
-          pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
-          lcp->addStep(tConc, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+          pfChildren.insert(pfChildren.end(), tConc.begin(), tConc.end());
+          lcp->addStep(tConc, PfRule::AND_INTRO, pfChildren, pfArgs);
           simpleExplain = false;
           continue;
         }

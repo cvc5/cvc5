@@ -96,9 +96,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
               Kind::MULT, children[i][0][1], nm->mkConst<Rational>(scalar));
           switch (children[i][0].getKind())
           {
-            case Kind::GT:
-            {
-              break;
+            case Kind::GT: { break;
             }
             case Kind::GEQ:
             {
@@ -133,13 +131,9 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
               strict = true;
               break;
             }
-            case Kind::GEQ:
-            {
-              break;
+            case Kind::GEQ: { break;
             }
-            case Kind::EQUAL:
-            {
-              break;
+            case Kind::EQUAL: { break;
             }
             default:
             {

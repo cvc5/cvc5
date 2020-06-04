@@ -31,8 +31,9 @@ TheorySets::TheorySets(context::Context* c,
                        context::UserContext* u,
                        OutputChannel& out,
                        Valuation valuation,
-                       const LogicInfo& logicInfo)
-    : Theory(THEORY_SETS, c, u, out, valuation, logicInfo),
+                       const LogicInfo& logicInfo,
+                       ProofChecker* pc)
+    : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pc),
       d_internal(new TheorySetsPrivate(*this, c, u))
 {
   // Do not move me to the header.

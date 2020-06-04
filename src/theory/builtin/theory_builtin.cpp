@@ -31,9 +31,15 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
                              context::UserContext* u,
                              OutputChannel& out,
                              Valuation valuation,
-                             const LogicInfo& logicInfo)
-    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo)
+                             const LogicInfo& logicInfo,
+                             ProofChecker* pc)
+    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pc)
 {
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_bProofChecker.registerTo(pc);
+  }
 }
 
 std::string TheoryBuiltin::identify() const
@@ -50,13 +56,6 @@ void TheoryBuiltin::finishInit()
   // hence it is easy to check for illegal eliminations via TheoryModel
   // (see TheoryModel::isLegalElimination) since there are no unevaluated kinds
   // present.
-}
-
-void TheoryBuiltin::setProofChecker(ProofChecker* pc)
-{
-  Assert(pc != nullptr);
-  // add checkers
-  d_bProofChecker.registerTo(pc);
 }
 
 }  // namespace builtin

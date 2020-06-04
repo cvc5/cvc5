@@ -450,8 +450,19 @@ public:
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);
 
-  /** Get corresponding application kindfor function */
-  static inline Kind getKindForFunction(TNode fun);
+  /** Get corresponding application kind for function
+   *
+   * Different functional nodes are applied differently, according to their
+   * type. For example, uninterpreted functions (of FUNCTION_TYPE) are applied
+   * via APPLY_UF, while constructors (of CONSTRUCTOR_TYPE) via
+   * APPLY_CONSTRUCTOR. This method provides the correct application according
+   * to which functional type fun has.
+   *
+   * @param fun The functional node
+   * @return the correct application kind for fun. If fun's type is not function
+   * like (see TypeNode::isFunctionLike), then UNDEFINED_KIND is returned.
+   */
+  static Kind getKindForFunction(TNode fun);
 
   // general expression-builders
 
@@ -886,8 +897,11 @@ public:
   /** Make the type of arrays with the given parameterization */
   inline TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
-  /** Make the type of arrays with the given parameterization */
+  /** Make the type of set with the given parameterization */
   inline TypeNode mkSetType(TypeNode elementType);
+
+  /** Make the type of sequences with the given parameterization */
+  TypeNode mkSequenceType(TypeNode elementType);
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
@@ -1242,28 +1256,6 @@ inline bool NodeManager::hasOperator(Kind k) {
 
 inline Kind NodeManager::operatorToKind(TNode n) {
   return kind::operatorToKind(n.d_nv);
-}
-
-inline Kind NodeManager::getKindForFunction(TNode fun)
-{
-  TypeNode tn = fun.getType();
-  if (tn.isFunction())
-  {
-    return kind::APPLY_UF;
-  }
-  else if (tn.isConstructor())
-  {
-    return kind::APPLY_CONSTRUCTOR;
-  }
-  else if (tn.isSelector())
-  {
-    return kind::APPLY_SELECTOR;
-  }
-  else if (tn.isTester())
-  {
-    return kind::APPLY_TESTER;
-  }
-  return kind::UNDEFINED_KIND;
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1) {

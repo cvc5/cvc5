@@ -2,7 +2,7 @@
 /*! \file proof_checker.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Haniel Barbosa, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -26,6 +26,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
+  pc->registerChecker(PfRule::AND_INTRO, this);
   pc->registerChecker(PfRule::NOT_OR_ELIM, this);
   pc->registerChecker(PfRule::IMPLIES_ELIM, this);
   pc->registerChecker(PfRule::NOT_IMPLIES_ELIM1, this);
@@ -181,6 +182,13 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     return children[0][i];
+  }
+  if (id == PfRule::AND_INTRO)
+  {
+    Assert(children.size() >= 1);
+    return children.size() == 1
+               ? children[0]
+               : NodeManager::currentNM()->mkNode(kind::AND, children);
   }
   if (id == PfRule::NOT_OR_ELIM)
   {

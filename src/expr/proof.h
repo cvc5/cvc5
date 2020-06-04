@@ -25,7 +25,6 @@
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 #include "expr/proof_step_buffer.h"
-#include "theory/uf/eq_proof.h"
 
 namespace CVC4 {
 
@@ -146,8 +145,6 @@ std::ostream& operator<<(std::ostream& out, CDPOverwrite opol);
  */
 class CDProof
 {
-  friend theory::eq::EqProof;
-
  public:
   CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
   virtual ~CDProof();
@@ -165,6 +162,12 @@ class CDProof
    * should call ProofNode::clone if they want to own it.
    */
   virtual std::shared_ptr<ProofNode> mkProof(Node fact);
+  /**
+   * Get proof for fact, or nullptr if it does not exist. In contrast to the
+   * above method, this does not construct a proof if one does not exist, nor
+   * does it take symmetry into account.
+   */
+  std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** Add step
    *
    * @param expected The intended conclusion of this proof step. This must be
@@ -263,8 +266,6 @@ class CDProof
   context::Context d_context;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
-  /** Get proof for fact, or nullptr if it does not exist. */
-  std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** Ensure fact sym */
   std::shared_ptr<ProofNode> getProofSymm(Node fact);
   /**
