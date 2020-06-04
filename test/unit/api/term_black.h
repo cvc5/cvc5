@@ -197,8 +197,8 @@ void TermBlack::testGetOp()
   // Test Datatypes Ops
   Sort sort = d_solver.mkParamSort("T");
   DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl cons("cons");
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   cons.addSelector("head", sort);
   cons.addSelectorSelf("tail");
   listDecl.addConstructor(cons);
