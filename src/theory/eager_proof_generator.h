@@ -106,6 +106,19 @@ class EagerProofGenerator : public ProofGenerator
                         PfRule id,
                         const std::vector<Node>& args,
                         bool isConflict = false);
+  /**
+   * Make trust node: wrap `exp => n` in a trust node with this generator, and
+   * have it store the proof `pf` too.
+   *
+   * @param n The implication
+   * @param exp A conjunction of literals that imply it
+   * @param pf The proof of exp => n,
+   * @return The trust node corresponding to the fact that this generator has
+   * a proof of exp => n.
+   */
+  TrustNode mkTrustedPropagation(Node n,
+                                 Node exp,
+                                 std::shared_ptr<ProofNode> pf);
   //--------------------------------------- common proofs
   /**
    * This returns the trust node corresponding to the splitting lemma

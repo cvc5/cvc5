@@ -96,6 +96,17 @@ TrustNode EagerProofGenerator::mkTrustNode(Node n,
   return mkTrustNode(n, pf, isConflict);
 }
 
+TrustNode EagerProofGenerator::mkTrustedPropagation(
+    Node n, Node exp, std::shared_ptr<ProofNode> pf)
+{
+  if (pf == nullptr)
+  {
+    return TrustNode::null();
+  }
+  setProofForPropExp(n, exp, pf);
+  return TrustNode::mkTrustPropExp(n, exp, this);
+}
+
 TrustNode EagerProofGenerator::assertSplit(Node f)
 {
   // make the lemma
