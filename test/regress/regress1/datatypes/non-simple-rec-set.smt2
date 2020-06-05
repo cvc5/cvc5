@@ -1,4 +1,4 @@
-; COMMAND-LINE: --dt-non-simple-rec
+; COMMAND-LINE: --dt-nested-rec
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-datatype T

@@ -474,7 +474,6 @@ bool DType::isInterpretedFinite() const
 
 bool DType::isWellFounded() const
 {
-  Trace("datatypes-init") << "DType::isWellFounded " << d_self << std::endl;
   Assert(isResolved());
   if (d_wellFounded != 0)
   {
