@@ -71,6 +71,312 @@ enum class PfRule : uint32_t
   // has the conclusion (=> F F) and has no free assumptions. More generally, a
   // proof with no free assumptions always concludes a valid formula.
   SCOPE,
+  //================================================= Equality rules
+  // ======== Reflexive
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= t t)
+  REFL,
+  // ======== Symmetric
+  // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
+  // Arguments: none
+  // -----------------------
+  // Conclusion: (= t2 t1) or (not (= t2 t1))
+  SYMM,
+  // ======== Transitivity
+  // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
+  // Arguments: none
+  // -----------------------
+  // Conclusion: (= t1 tn)
+  TRANS,
+  // ======== Congruence  (subsumed by Substitute?)
+  // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
+  // Arguments: (f)
+  // ---------------------------------------------
+  // Conclusion: (= (f t1 ... tn) (f s1 ... sn))
+  CONG,
+  // ======== True intro
+  // Children: (P:F)
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= F true)
+  TRUE_INTRO,
+  // ======== True elim
+  // Children: (P:(= F true)
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: F
+  TRUE_ELIM,
+  // ======== False intro
+  // Children: (P:(not F))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (= F false)
+  FALSE_INTRO,
+  // ======== False elim
+  // Children: (P:(= F false)
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: (not F)
+  FALSE_ELIM,
+
+  //================================================= Boolean rules
+  // ======== Split
+  // Children: none
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: (or F (not F))
+  SPLIT,
+  // ======== And elimination
+  // Children: (P:(and F1 ... Fn))
+  // Arguments: (i)
+  // ---------------------
+  // Conclusion: (Fi)
+  AND_ELIM,
+  // ======== And introduction
+  // Children: (P1:F1 ... Pn:Fn))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (and P1 ... Pn)
+  AND_INTRO,
+  // ======== Not Or elimination
+  // Children: (P:(not (or F1 ... Fn)))
+  // Arguments: (i)
+  // ---------------------
+  // Conclusion: (not Fi)
+  NOT_OR_ELIM,
+  // ======== Implication elimination
+  // Children: (P:(=> F1 F2))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) F2)
+  IMPLIES_ELIM,
+  // ======== Not Implication elimination version 1
+  // Children: (P:(not (=> F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (F1)
+  NOT_IMPLIES_ELIM1,
+  // ======== Not Implication elimination version 2
+  // Children: (P:(not (=> F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (not F2)
+  NOT_IMPLIES_ELIM2,
+  // ======== Equivalence elimination version 1
+  // Children: (P:(= F1 F2))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) F2)
+  EQUIV_ELIM1,
+  // ======== Equivalence elimination version 2
+  // Children: (P:(= F1 F2))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or F1 (not F2))
+  EQUIV_ELIM2,
+  // ======== Not Equivalence elimination version 1
+  // Children: (P:(not (= F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or F1 F2)
+  NOT_EQUIV_ELIM1,
+  // ======== Not Equivalence elimination version 2
+  // Children: (P:(not (= F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) (not F2))
+  NOT_EQUIV_ELIM2,
+  // ======== XOR elimination version 1
+  // Children: (P:(xor F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or F1 F2)
+  XOR_ELIM1,
+  // ======== XOR elimination version 2
+  // Children: (P:(xor F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) (not F2))
+  XOR_ELIM2,
+  // ======== Not XOR elimination version 1
+  // Children: (P:(not (xor F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or F1 (not F2))
+  NOT_XOR_ELIM1,
+  // ======== Not XOR elimination version 2
+  // Children: (P:(not (xor F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) F2)
+  NOT_XOR_ELIM2,
+  // ======== ITE elimination version 1
+  // Children: (P:(ite C F1 F2))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not C) F1)
+  ITE_ELIM1,
+  // ======== ITE elimination version 2
+  // Children: (P:(ite C F1 F2))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or C F2)
+  ITE_ELIM2,
+  // ======== Not ITE elimination version 1
+  // Children: (P:(not (ite C F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not C) (not F1))
+  NOT_ITE_ELIM1,
+  // ======== Not ITE elimination version 1
+  // Children: (P:(not (ite C F1 F2)))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or C (not F2))
+  NOT_ITE_ELIM2,
+  // ======== Not ITE elimination version 1
+  // Children: (P1:P P2:(not P))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (false)
+  CONTRA,
+
+  //================================================= De Morgan rules
+  // ======== Not And
+  // Children: (P:(not (and F1 ... Fn))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or (not F1) ... (not Fn))
+  NOT_AND,
+  //================================================= CNF rules
+  // ======== CNF And Pos
+  // Children: ()
+  // Arguments: ((and F1 ... Fn), i)
+  // ---------------------
+  // Conclusion: (or (not (and F1 ... Fn)) Fi)
+  CNF_AND_POS,
+  // ======== CNF And Neg
+  // Children: ()
+  // Arguments: ((and F1 ... Fn))
+  // ---------------------
+  // Conclusion: (or (and F1 ... Fn) (not F1) ... (not Fn))
+  CNF_AND_NEG,
+  // ======== CNF Or Pos
+  // Children: ()
+  // Arguments: ((or F1 ... Fn))
+  // ---------------------
+  // Conclusion: (or (not (or F1 ... Fn)) F1 ... Fn)
+  CNF_OR_POS,
+  // ======== CNF Or Neg
+  // Children: ()
+  // Arguments: ((or F1 ... Fn), i)
+  // ---------------------
+  // Conclusion: (or (or F1 ... Fn) (not Fi))
+  CNF_OR_NEG,
+  // ======== CNF Implies Pos
+  // Children: ()
+  // Arguments: ((implies F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (implies F1 F2)) (not F1) F2)
+  CNF_IMPLIES_POS,
+  // ======== CNF Implies Neg version 1
+  // Children: ()
+  // Arguments: ((implies F1 F2))
+  // ---------------------
+  // Conclusion: (or (implies F1 F2) F1)
+  CNF_IMPLIES_NEG1,
+  // ======== CNF Implies Neg version 2
+  // Children: ()
+  // Arguments: ((implies F1 F2))
+  // ---------------------
+  // Conclusion: (or (implies F1 F2) (not F2))
+  CNF_IMPLIES_NEG2,
+  // ======== CNF Equiv Pos version 1
+  // Children: ()
+  // Arguments: ((= F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (= F1 F2)) (not F1) F2)
+  CNF_EQUIV_POS1,
+  // ======== CNF Equiv Pos version 2
+  // Children: ()
+  // Arguments: ((= F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (= F1 F2)) F1 (not F2))
+  CNF_EQUIV_POS2,
+  // ======== CNF Equiv Neg version 1
+  // Children: ()
+  // Arguments: ((= F1 F2))
+  // ---------------------
+  // Conclusion: (or (= F1 F2) F1 F2)
+  CNF_EQUIV_NEG1,
+  // ======== CNF Equiv Neg version 2
+  // Children: ()
+  // Arguments: ((= F1 F2))
+  // ---------------------
+  // Conclusion: (or (= F1 F2) (not F1) (not F2))
+  CNF_EQUIV_NEG2,
+  // ======== CNF Xor Pos version 1
+  // Children: ()
+  // Arguments: ((xor F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (xor F1 F2)) F1 F2)
+  CNF_XOR_POS1,
+  // ======== CNF Xor Pos version 2
+  // Children: ()
+  // Arguments: ((xor F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (xor F1 F2)) (not F1) (not F2))
+  CNF_XOR_POS2,
+  // ======== CNF Xor Neg version 1
+  // Children: ()
+  // Arguments: ((xor F1 F2))
+  // ---------------------
+  // Conclusion: (or (xor F1 F2) (not F1) F2)
+  CNF_XOR_NEG1,
+  // ======== CNF Xor Neg version 2
+  // Children: ()
+  // Arguments: ((xor F1 F2))
+  // ---------------------
+  // Conclusion: (or (xor F1 F2) F1 (not F2))
+  CNF_XOR_NEG2,
+  // ======== CNF ITE Pos version 1
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (ite C F1 F2)) (not C) F1)
+  CNF_ITE_POS1,
+  // ======== CNF ITE Pos version 2
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (ite C F1 F2)) C F2)
+  CNF_ITE_POS2,
+  // ======== CNF ITE Pos version 3
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (not (ite C F1 F2)) F1 F2)
+  CNF_ITE_POS3,
+  // ======== CNF ITE Neg version 1
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (ite C F1 F2) (not C) (not F1))
+  CNF_ITE_NEG1,
+  // ======== CNF ITE Neg version 2
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (ite C F1 F2) C (not F2))
+  CNF_ITE_NEG2,
+  // ======== CNF ITE Neg version 3
+  // Children: ()
+  // Arguments: ((ite C F1 F2))
+  // ---------------------
+  // Conclusion: (or (ite C F1 F2) (not F1) (not F2))
+  CNF_ITE_NEG3,
 
   //======================== Builtin theory (common node operations)
   // ======== Substitution
@@ -101,7 +407,7 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: (= t t')
   // where
-  //   t' is 
+  //   t' is
   //   toWitness(Rewriter{idr}(toSkolem(t)*sigma{ids}(Fn)*...*sigma{ids}(F1)))
   //   toSkolem(...) converts terms from witness form to Skolem form,
   //   toWitness(...) converts terms from Skolem form to witness form.
@@ -167,7 +473,7 @@ enum class PfRule : uint32_t
   // Notice that we apply rewriting on the witness form of F and G, similar to
   // MACRO_SR_PRED_INTRO.
   MACRO_SR_PRED_TRANSFORM,
-  
+
   //================================================= Unknown rule
   UNKNOWN,
 };
