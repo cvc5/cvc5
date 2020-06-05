@@ -14,7 +14,7 @@
 
 #include "theory/builtin/proof_checker.h"
 
-#include "expr/proof_skolem_cache.h"
+#include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -63,9 +63,9 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 
 Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 {
-  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nk = SkolemManager::getSkolemForm(n);
   Node nkr = applyRewriteExternal(nk, idr);
-  return ProofSkolemCache::getWitnessForm(nkr);
+  return SkolemManager::getWitnessForm(nkr);
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
@@ -74,27 +74,27 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
   {
     return Node::null();
   }
-  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nk = SkolemManager::getSkolemForm(n);
   Node nks = applySubstitutionExternal(nk, exp, ids);
-  return ProofSkolemCache::getWitnessForm(nks);
+  return SkolemManager::getWitnessForm(nks);
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n,
                                                 const std::vector<Node>& exp,
                                                 MethodId ids)
 {
-  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nk = SkolemManager::getSkolemForm(n);
   Node nks = applySubstitutionExternal(nk, exp, ids);
-  return ProofSkolemCache::getWitnessForm(nks);
+  return SkolemManager::getWitnessForm(nks);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     Node n, const std::vector<Node>& exp, MethodId ids, MethodId idr)
 {
-  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nk = SkolemManager::getSkolemForm(n);
   Node nks = applySubstitutionExternal(nk, exp, ids);
   Node nksr = applyRewriteExternal(nks, idr);
-  return ProofSkolemCache::getWitnessForm(nksr);
+  return SkolemManager::getWitnessForm(nksr);
 }
 
 Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
@@ -122,7 +122,7 @@ Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n,
                                                         MethodId ids)
 {
   Assert(!exp.isNull());
-  Node expk = ProofSkolemCache::getSkolemForm(exp);
+  Node expk = SkolemManager::getSkolemForm(exp);
   TNode var, subs;
   if (ids == MethodId::SB_DEFAULT)
   {

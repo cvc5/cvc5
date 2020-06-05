@@ -34,7 +34,7 @@
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
-#include "expr/proof_skolem_cache.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"  // for incrementalSolving()
 #include "preprocessing/util/ite_utilities.h"
@@ -1178,6 +1178,7 @@ Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
 Node TheoryArithPrivate::eliminateOperators(Node node)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   Kind k = node.getKind();
   switch (k)
@@ -1206,9 +1207,9 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
         Node zero = mkRationalNode(0);
         Node diff = nm->mkNode(kind::MINUS, node[0], v);
         Node lem = mkInRange(diff, zero, one);
-        toIntSkolem = ProofSkolemCache::mkSkolem(
+        toIntSkolem = sm->mkSkolem(
             v, lem, "toInt", "a conversion of a Real term to its Integer part");
-        toIntSkolem = ProofSkolemCache::getWitnessForm(toIntSkolem);
+        toIntSkolem = SkolemManager::getWitnessForm(toIntSkolem);
         d_to_int_skolem[node[0]] = toIntSkolem;
       }
       else
@@ -1303,9 +1304,9 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
                               nm->mkNode(
                                   PLUS, v, nm->mkConst(Rational(-1))))))));
         }
-        intVar = ProofSkolemCache::mkSkolem(
+        intVar = sm->mkSkolem(
             v, lem, "linearIntDiv", "the result of an intdiv-by-k term");
-        intVar = ProofSkolemCache::getWitnessForm(intVar);
+        intVar = SkolemManager::getWitnessForm(intVar);
         d_int_div_skolem[rw] = intVar;
       }
       else
@@ -1345,9 +1346,9 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
         Node lem = nm->mkNode(IMPLIES,
                               den.eqNode(nm->mkConst(Rational(0))).negate(),
                               nm->mkNode(MULT, den, v).eqNode(num));
-        var = ProofSkolemCache::mkSkolem(
+        var = sm->mkSkolem(
             v, lem, "nonlinearDiv", "the result of a non-linear div term");
-        var = ProofSkolemCache::getWitnessForm(var);
+        var = SkolemManager::getWitnessForm(var);
         d_div_skolem[rw] = var;
       }
       else
@@ -1490,12 +1491,12 @@ Node TheoryArithPrivate::eliminateOperators(Node node)
           lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
         }
         Assert(!lem.isNull());
-        Node ret = ProofSkolemCache::mkSkolem(
+        Node ret = sm->mkSkolem(
             var,
             lem,
             "tfk",
             "Skolem to eliminate a non-standard transcendental function");
-        ret = ProofSkolemCache::getWitnessForm(ret);
+        ret = SkolemManager::getWitnessForm(ret);
         d_nlin_inverse_skolem[node] = ret;
         return ret;
       }
@@ -4269,8 +4270,8 @@ bool TheoryArithPrivate::needsCheckLastEffort() {
   }
 }
 
-Node TheoryArithPrivate::explain(TNode n) {
-
+Node TheoryArithPrivate::explain(TNode n)
+{
   Debug("arith::explain") << "explain @" << getSatContext()->getLevel() << ": " << n << endl;
 
   ConstraintP c = d_constraintDatabase.lookup(n);
