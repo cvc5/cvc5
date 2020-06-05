@@ -55,14 +55,13 @@ class TranscendentalSolver
    * model, and xts is the set of extended function terms that are active in
    * the current context.
    *
-   * This call may add lemmas to lems/lemsPp based on registering term
+   * This call may add lemmas to lems based on registering term
    * information (for example, purification of sine terms).
    */
   void initLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts,
-                    std::vector<Node>& lems,
-                    std::vector<Node>& lemsPp);
+                    std::vector<NlLemma>& lems);
   /** increment taylor degree */
   void incrementTaylorDegree();
   /** get taylor degree */
@@ -76,8 +75,8 @@ class TranscendentalSolver
    * was conflicting.
    */
   bool preprocessAssertionsCheckModel(std::vector<Node>& assertions);
-  /** Process side effect se */
-  void processSideEffect(const NlLemmaSideEffect& se);
+  /** Process side effects in lemma se */
+  void processSideEffect(const NlLemma& se);
   //-------------------------------------------- lemma schemas
   /** check transcendental initial refine
    *
@@ -95,7 +94,7 @@ class TranscendentalSolver
    * exp( x )>0
    * x<0 => exp( x )<1
    */
-  std::vector<Node> checkTranscendentalInitialRefine();
+  std::vector<NlLemma> checkTranscendentalInitialRefine();
 
   /** check transcendental monotonic
    *
@@ -109,7 +108,7 @@ class TranscendentalSolver
    * PI/2 > x > y > 0 => sin( x ) > sin( y )
    * PI > x > y > PI/2 => sin( x ) < sin( y )
    */
-  std::vector<Node> checkTranscendentalMonotonic();
+  std::vector<NlLemma> checkTranscendentalMonotonic();
 
   /** check transcendental tangent planes
    *
@@ -168,12 +167,8 @@ class TranscendentalSolver
    *   ( 1 < y < PI/2 ) => (sin y) >= c1*(y+c2)
    *     where c1, c2 are rationals (for brevity, omitted here)
    *     such that c1 ~= .277 and c2 ~= 2.032.
-   *
-   * The argument lemSE is the "side effect" of the lemmas in the return
-   * value of this function (for details, see checkLastCall).
    */
-  std::vector<Node> checkTranscendentalTangentPlanes(
-      std::map<Node, NlLemmaSideEffect>& lemSE);
+  std::vector<NlLemma> checkTranscendentalTangentPlanes();
   /** check transcendental function refinement for tf
    *
    * This method is called by the above method for each "master"
@@ -186,15 +181,12 @@ class TranscendentalSolver
    * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
    * function application tf for Taylor degree d. It may add a secant or
    * tangent plane lemma to lems and its side effect (if one exists)
-   * to lemSE.
+   * to the lemmas it generates.
    *
    * It returns false if the bounds are not precise enough to add a
    * secant or tangent plane lemma.
    */
-  bool checkTfTangentPlanesFun(Node tf,
-                               unsigned d,
-                               std::vector<Node>& lems,
-                               std::map<Node, NlLemmaSideEffect>& lemSE);
+  bool checkTfTangentPlanesFun(Node tf, unsigned d, std::vector<NlLemma>& lems);
   //-------------------------------------------- end lemma schemas
  private:
   /** polynomial approximation bounds
@@ -276,7 +268,7 @@ class TranscendentalSolver
   Node getDerivative(Node n, Node x);
 
   void mkPi();
-  void getCurrentPiBounds(std::vector<Node>& lemmas);
+  void getCurrentPiBounds(std::vector<NlLemma>& lemmas);
   /** Make the node -pi <= a <= pi */
   static Node mkValidPhase(Node a, Node pi);
 
