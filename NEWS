@@ -4,6 +4,9 @@ Changes since 1.7
 =================
 
 Changes:
+* API change: `SmtEngine::query()` has been renamed to
+  `SmtEngine::checkEntailed()` and `Result::Validity` has been renamed to
+  `Result::Entailment` along with corresponding changes to the enum values.
 * Java API change: The name of CVC4's package is now `edu.stanford.CVC4`
   instead of `edu.nyu.acsys.CVC4`.
 
