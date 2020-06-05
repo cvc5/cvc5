@@ -2079,6 +2079,13 @@ class CVC4_PUBLIC Solver
   Sort mkSetSort(Sort elemSort) const;
 
   /**
+   * Create a sequence sort.
+   * @param elemSort the sort of the sequence elements
+   * @return the sequence sort
+   */
+  Sort mkSequenceSort(Sort elemSort) const;
+
+  /**
    * Create an uninterpreted sort.
    * @param symbol the name of the sort
    * @return the uninterpreted sort
