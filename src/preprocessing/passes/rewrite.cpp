@@ -47,10 +47,8 @@ PreprocessingPassResult Rewrite::applyInternal(
               || a[1] != (*assertionsToPreprocess)[i][0]))
       {
         // giving the conclusion as an argument as a workaround for checking
-        NewProofManager::currentPM()->addStep(a,
-                                              PfRule::REWRITE_PREPROCESS,
-                                              {(*assertionsToPreprocess)[i]},
-                                              {a});
+        NewProofManager::currentPM()->addStep(
+            (*assertionsToPreprocess)[i], PfRule::REWRITE_PREPROCESS, {a}, {});
       }
     }
   }

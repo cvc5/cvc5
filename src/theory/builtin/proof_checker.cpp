@@ -390,8 +390,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   if (id == PfRule::REWRITE_PREPROCESS)
   {
     Assert(children.size() == 1);
-    Assert(args.size() == 1);
-    return args[0];
+    Assert(args.empty());
+    return applyRewrite(children[0]);
   }
   // no rule
   return Node::null();
