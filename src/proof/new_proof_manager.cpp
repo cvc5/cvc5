@@ -262,22 +262,26 @@ void NewProofManager::addResolutionStep(Minisat::Solver::TLit lit)
 void NewProofManager::addResolutionStep(Minisat::Solver::TClause& clause,
                                         Minisat::Solver::TLit lit)
 {
-  Assert(clause.proofId() != 0);
-  ClauseId id = clause.proofId();
   // pivot is given as in the second clause, so we store its negation (which
   // will be removed positivly from the first clause and negatively from the
   // second)
   prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(~lit);
   Assert(d_litToNode.find(satLit) != d_litToNode.end());
   Assert(d_clauseIdToNode.find(clause.proofId()) != d_clauseIdToNode.end());
+  // clause has not been registered yet
+  if (clause.proofId() == 0)
+  {
+    Debug("newproof::sat") << push;
+    registerClause(clause);
+    Debug("newproof::sat") << pop;
+  }
   if (Debug.isOn("newproof::sat"))
   {
-    Debug("newproof::sat") << "NewProofManager::addResolutionStep: " << id
-                           << ": ";
+    Debug("newproof::sat") << "NewProofManager::addResolutionStep: "
+                           << clause.proofId() << ": ";
     printClause(clause);
     Debug("newproof::sat") << "[" << d_litToNode[satLit] << "]\n";
   }
-
   d_resolution.push_back(std::pair<Node, Node>(
       d_clauseIdToNode[clause.proofId()], d_litToNode[satLit]));
 }
@@ -345,8 +349,8 @@ void NewProofManager::endResChain(ClauseId id)
     CVC4_UNUSED Node reducedChainConclusion = factorAndReorder(chainConclusion);
     Assert(reducedChainConclusion == conclusion)
         << "given res chain conclusion " << conclusion
-        << " different from chain_res + reordering + factoring "
-        << reducedChainConclusion;
+        << "\ndifferent from chain_res " << chainConclusion
+        << "\n+ reordering + factoring " << reducedChainConclusion;
   }
 }
 
@@ -545,8 +549,8 @@ void NewProofManager::printInternalProof()
   Node falseNode = NodeManager::currentNM()->mkConst<bool>(false);
   Trace("newproof") << "NewProofManager::printInternalProof: proof node of "
                     << falseNode << ":\n";
-  Assert(d_cdproof->hasStep(falseNode))
-      << "UNSAT but no proof step for " << falseNode << "\n";
+  // Assert(d_cdproof->hasStep(falseNode))
+  //     << "UNSAT but no proof step for " << falseNode << "\n";
   std::stringstream out;
   std::shared_ptr<ProofNode> pf = d_cdproof->mkProof(falseNode);
   pf->printDebug(out);
