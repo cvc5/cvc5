@@ -247,7 +247,7 @@ void DatatypeBlack::testParametricDatatype()
   v.push_back(t2);
   DatatypeDecl pairSpec = d_solver.mkDatatypeDecl("pair", v);
 
-  DatatypeConstructorDecl mkpair("mk-pair");
+  DatatypeConstructorDecl mkpair = d_solver.mkDatatypeConstructorDecl("mk-pair");
   mkpair.addSelector("first", t1);
   mkpair.addSelector("second", t2);
   pairSpec.addConstructor(mkpair);
@@ -335,23 +335,23 @@ void DatatypeBlack::testDatatypeSimplyRec()
   unresTypes.insert(unresNs);
 
   DatatypeDecl wlist = d_solver.mkDatatypeDecl("wlist");
-  DatatypeConstructorDecl leaf("leaf");
+  DatatypeConstructorDecl leaf = d_solver.mkDatatypeConstructorDecl("leaf");
   leaf.addSelector("data", unresList);
   wlist.addConstructor(leaf);
 
   DatatypeDecl list = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("car", unresWList);
   cons.addSelector("cdr", unresList);
   list.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   list.addConstructor(nil);
 
   DatatypeDecl ns = d_solver.mkDatatypeDecl("ns");
-  DatatypeConstructorDecl elem("elem");
+  DatatypeConstructorDecl elem = d_solver.mkDatatypeConstructorDecl("elem");
   elem.addSelector("ndata", d_solver.mkSetSort(unresWList));
   ns.addConstructor(elem);
-  DatatypeConstructorDecl elemArray("elemArray");
+  DatatypeConstructorDecl elemArray = d_solver.mkDatatypeConstructorDecl("elemArray");
   elemArray.addSelector("ndata", d_solver.mkArraySort(unresList, unresList));
   ns.addConstructor(elemArray);
 
@@ -381,11 +381,11 @@ void DatatypeBlack::testDatatypeSimplyRec()
   unresTypes.insert(unresNs2);
 
   DatatypeDecl ns2 = d_solver.mkDatatypeDecl("ns2");
-  DatatypeConstructorDecl elem2("elem2");
+  DatatypeConstructorDecl elem2 = d_solver.mkDatatypeConstructorDecl("elem2");
   elem2.addSelector("ndata",
                     d_solver.mkArraySort(d_solver.getIntegerSort(), unresNs2));
   ns2.addConstructor(elem2);
-  DatatypeConstructorDecl nil2("nil2");
+  DatatypeConstructorDecl nil2 = d_solver.mkDatatypeConstructorDecl("nil2");
   ns2.addConstructor(nil2);
 
   dtdecls.clear();
@@ -415,15 +415,15 @@ void DatatypeBlack::testDatatypeSimplyRec()
   unresTypes.insert(unresList3);
 
   DatatypeDecl list3 = d_solver.mkDatatypeDecl("list3");
-  DatatypeConstructorDecl cons3("cons3");
+  DatatypeConstructorDecl cons3 = d_solver.mkDatatypeConstructorDecl("cons3");
   cons3.addSelector("car", unresNs3);
   cons3.addSelector("cdr", unresList3);
   list3.addConstructor(cons3);
-  DatatypeConstructorDecl nil3("nil3");
+  DatatypeConstructorDecl nil3 = d_solver.mkDatatypeConstructorDecl("nil3");
   list3.addConstructor(nil3);
 
   DatatypeDecl ns3 = d_solver.mkDatatypeDecl("ns3");
-  DatatypeConstructorDecl elem3("elem3");
+  DatatypeConstructorDecl elem3 = d_solver.mkDatatypeConstructorDecl("elem3");
   elem3.addSelector("ndata", d_solver.mkSetSort(unresList3));
   ns3.addConstructor(elem3);
 
@@ -454,15 +454,15 @@ void DatatypeBlack::testDatatypeSimplyRec()
   unresTypes.insert(unresList4);
 
   DatatypeDecl list4 = d_solver.mkDatatypeDecl("list4");
-  DatatypeConstructorDecl cons4("cons4");
+  DatatypeConstructorDecl cons4 = d_solver.mkDatatypeConstructorDecl("cons4");
   cons4.addSelector("car", d_solver.mkSetSort(unresNs4));
   cons4.addSelector("cdr", unresList4);
   list4.addConstructor(cons4);
-  DatatypeConstructorDecl nil4("nil4");
+  DatatypeConstructorDecl nil4 = d_solver.mkDatatypeConstructorDecl("nil4");
   list4.addConstructor(nil4);
 
   DatatypeDecl ns4 = d_solver.mkDatatypeDecl("ns4");
-  DatatypeConstructorDecl elem4("elem3");
+  DatatypeConstructorDecl elem4 = d_solver.mkDatatypeConstructorDecl("elem3");
   elem4.addSelector("ndata", unresList4);
   ns4.addConstructor(elem4);
 
@@ -500,11 +500,11 @@ void DatatypeBlack::testDatatypeSimplyRec()
   args[0] = urListX;
   Sort urListListX = unresList5.instantiate(args);
   
-  DatatypeConstructorDecl cons5("cons5");
+  DatatypeConstructorDecl cons5 = d_solver.mkDatatypeConstructorDecl("cons5");
   cons5.addSelector("car", x);
   cons5.addSelector("cdr", urListListX);
   list5.addConstructor(cons5);
-  DatatypeConstructorDecl nil5("nil5");
+  DatatypeConstructorDecl nil5 = d_solver.mkDatatypeConstructorDecl("nil5");
   list5.addConstructor(nil5);
   
   dtdecls.clear();
