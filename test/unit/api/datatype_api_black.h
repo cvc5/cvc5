@@ -247,7 +247,8 @@ void DatatypeBlack::testParametricDatatype()
   v.push_back(t2);
   DatatypeDecl pairSpec = d_solver.mkDatatypeDecl("pair", v);
 
-  DatatypeConstructorDecl mkpair = d_solver.mkDatatypeConstructorDecl("mk-pair");
+  DatatypeConstructorDecl mkpair =
+      d_solver.mkDatatypeConstructorDecl("mk-pair");
   mkpair.addSelector("first", t1);
   mkpair.addSelector("second", t2);
   pairSpec.addConstructor(mkpair);
@@ -351,7 +352,8 @@ void DatatypeBlack::testDatatypeSimplyRec()
   DatatypeConstructorDecl elem = d_solver.mkDatatypeConstructorDecl("elem");
   elem.addSelector("ndata", d_solver.mkSetSort(unresWList));
   ns.addConstructor(elem);
-  DatatypeConstructorDecl elemArray = d_solver.mkDatatypeConstructorDecl("elemArray");
+  DatatypeConstructorDecl elemArray =
+      d_solver.mkDatatypeConstructorDecl("elemArray");
   elemArray.addSelector("ndata", d_solver.mkArraySort(unresList, unresList));
   ns.addConstructor(elemArray);
 
@@ -479,7 +481,7 @@ void DatatypeBlack::testDatatypeSimplyRec()
   TS_ASSERT(dtsorts[1].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[0].getDatatype().hasNestedRecursion());
   TS_ASSERT(dtsorts[1].getDatatype().hasNestedRecursion());
-  
+
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
    *     list5[X] = cons(car: X, cdr: list5[list5[X]]) | nil
@@ -488,28 +490,28 @@ void DatatypeBlack::testDatatypeSimplyRec()
   unresTypes.clear();
   Sort unresList5 = d_solver.mkSortConstructorSort("list5", 1);
   unresTypes.insert(unresList5);
-  
+
   std::vector<Sort> v;
   Sort x = d_solver.mkParamSort("X");
   v.push_back(x);
-  DatatypeDecl list5 = d_solver.mkDatatypeDecl("list5", v);  
-  
+  DatatypeDecl list5 = d_solver.mkDatatypeDecl("list5", v);
+
   std::vector<Sort> args;
   args.push_back(x);
   Sort urListX = unresList5.instantiate(args);
   args[0] = urListX;
   Sort urListListX = unresList5.instantiate(args);
-  
+
   DatatypeConstructorDecl cons5 = d_solver.mkDatatypeConstructorDecl("cons5");
   cons5.addSelector("car", x);
   cons5.addSelector("cdr", urListListX);
   list5.addConstructor(cons5);
   DatatypeConstructorDecl nil5 = d_solver.mkDatatypeConstructorDecl("nil5");
   list5.addConstructor(nil5);
-  
+
   dtdecls.clear();
   dtdecls.push_back(list5);
-  
+
   // well-founded and has nested recursion
   TS_ASSERT_THROWS_NOTHING(dtsorts =
                                d_solver.mkDatatypeSorts(dtdecls, unresTypes));

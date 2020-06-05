@@ -690,8 +690,8 @@ bool DType::hasNestedRecursion() const
       }
     }
   }
-  Trace("datatypes-init") << "DType::hasNestedRecursion: false for " << getName()
-                          << std::endl;
+  Trace("datatypes-init") << "DType::hasNestedRecursion: false for "
+                          << getName() << std::endl;
   d_nestedRecursion = -1;
   return false;
 }
