@@ -2849,12 +2849,15 @@ class CVC4_PUBLIC Solver
    * @param bound_vars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param term the function body
+   * @param global determines whether this definition is global (i.e. persists
+   *               when popping the context)
    * @return the function
    */
   Term defineFun(const std::string& symbol,
                  const std::vector<Term>& bound_vars,
                  Sort sort,
-                 Term term) const;
+                 Term term,
+                 bool global = false) const;
   /**
    * Define n-ary function.
    * SMT-LIB: ( define-fun <function_def> )
@@ -2862,11 +2865,14 @@ class CVC4_PUBLIC Solver
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
    * @param term the function body
+   * @param global determines whether this definition is global (i.e. persists
+   *               when popping the context)
    * @return the function
    */
   Term defineFun(Term fun,
                  const std::vector<Term>& bound_vars,
-                 Term term) const;
+                 Term term,
+                 bool global = false) const;
 
   /**
    * Define recursive function.
@@ -2875,12 +2881,15 @@ class CVC4_PUBLIC Solver
    * @param bound_vars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param term the function body
+   * @param global determines whether this definition is global (i.e. persists
+   *               when popping the context)
    * @return the function
    */
   Term defineFunRec(const std::string& symbol,
                     const std::vector<Term>& bound_vars,
                     Sort sort,
-                    Term term) const;
+                    Term term,
+                    bool global = false) const;
 
   /**
    * Define recursive function.
@@ -2889,11 +2898,14 @@ class CVC4_PUBLIC Solver
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
    * @param term the function body
+   * @param global determines whether this definition is global (i.e. persists
+   *               when popping the context)
    * @return the function
    */
   Term defineFunRec(Term fun,
                     const std::vector<Term>& bound_vars,
-                    Term term) const;
+                    Term term,
+                    bool global = false) const;
 
   /**
    * Define recursive functions.
@@ -2902,11 +2914,14 @@ class CVC4_PUBLIC Solver
    * @param funs the sorted functions
    * @param bound_vars the list of parameters to the functions
    * @param term the list of function bodies of the functions
+   * @param global determines whether this definition is global (i.e. persists
+   *               when popping the context)
    * @return the function
    */
   void defineFunsRec(const std::vector<Term>& funs,
                      const std::vector<std::vector<Term>>& bound_vars,
-                     const std::vector<Term>& terms) const;
+                     const std::vector<Term>& terms,
+                     bool global = false) const;
 
   /**
    * Echo a given string to the given output stream.

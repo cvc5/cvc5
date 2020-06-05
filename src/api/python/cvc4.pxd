@@ -181,14 +181,14 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort) except +
         Sort declareSort(const string& symbol, uint32_t arity) except +
         Term defineFun(const string& symbol, const vector[Term]& bound_vars,
-                       Sort sort, Term term) except +
-        Term defineFun(Term fun, const vector[Term]& bound_vars, Term term) except +
+                       Sort sort, Term term, bool global) except +
+        Term defineFun(Term fun, const vector[Term]& bound_vars, Term term, bool global) except +
         Term defineFunRec(const string& symbol, const vector[Term]& bound_vars,
-                          Sort sort, Term term) except +
+                          Sort sort, Term term, bool global) except +
         Term defineFunRec(Term fun, const vector[Term]& bound_vars,
-                          Term term) except +
+                          Term term, bool global) except +
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
-                           vector[Term]& terms) except +
+                           vector[Term]& terms, bool global) except +
         vector[Term] getAssertions() except +
         vector[pair[Term, Term]] getAssignment() except +
         string getInfo(const string& flag) except +

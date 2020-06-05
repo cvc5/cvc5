@@ -4215,7 +4215,8 @@ Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const
 Term Solver::defineFun(const std::string& symbol,
                        const std::vector<Term>& bound_vars,
                        Sort sort,
-                       Term term) const
+                       Term term,
+                       bool global) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
@@ -4249,14 +4250,15 @@ Term Solver::defineFun(const std::string& symbol,
   }
   Expr fun = d_exprMgr->mkVar(symbol, type);
   std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
-  d_smtEngine->defineFunction(fun, ebound_vars, *term.d_expr);
+  d_smtEngine->defineFunction(fun, ebound_vars, *term.d_expr, global);
   return Term(this, fun);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Term Solver::defineFun(Term fun,
                        const std::vector<Term>& bound_vars,
-                       Term term) const
+                       Term term,
+                       bool global) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
@@ -4289,7 +4291,7 @@ Term Solver::defineFun(Term fun,
       << codomain << "'";
 
   std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
-  d_smtEngine->defineFunction(*fun.d_expr, ebound_vars, *term.d_expr);
+  d_smtEngine->defineFunction(*fun.d_expr, ebound_vars, *term.d_expr, global);
   return fun;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -4300,7 +4302,8 @@ Term Solver::defineFun(Term fun,
 Term Solver::defineFunRec(const std::string& symbol,
                           const std::vector<Term>& bound_vars,
                           Sort sort,
-                          Term term) const
+                          Term term,
+                          bool global) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
@@ -4336,14 +4339,15 @@ Term Solver::defineFunRec(const std::string& symbol,
   }
   Expr fun = d_exprMgr->mkVar(symbol, type);
   std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
-  d_smtEngine->defineFunctionRec(fun, ebound_vars, *term.d_expr);
+  d_smtEngine->defineFunctionRec(fun, ebound_vars, *term.d_expr, global);
   return Term(this, fun);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Term Solver::defineFunRec(Term fun,
                           const std::vector<Term>& bound_vars,
-                          Term term) const
+                          Term term,
+                          bool global) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
@@ -4375,7 +4379,8 @@ Term Solver::defineFunRec(Term fun,
       << "Invalid sort of function body '" << term << "', expected '"
       << codomain << "'";
   std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
-  d_smtEngine->defineFunctionRec(*fun.d_expr, ebound_vars, *term.d_expr);
+  d_smtEngine->defineFunctionRec(
+      *fun.d_expr, ebound_vars, *term.d_expr, global);
   return fun;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -4385,7 +4390,8 @@ Term Solver::defineFunRec(Term fun,
  */
 void Solver::defineFunsRec(const std::vector<Term>& funs,
                            const std::vector<std::vector<Term>>& bound_vars,
-                           const std::vector<Term>& terms) const
+                           const std::vector<Term>& terms,
+                           bool global) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   size_t funs_size = funs.size();
@@ -4440,7 +4446,7 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
     ebound_vars.push_back(termVectorToExprs(v));
   }
   std::vector<Expr> exprs = termVectorToExprs(terms);
-  d_smtEngine->defineFunctionsRec(efuns, ebound_vars, exprs);
+  d_smtEngine->defineFunctionsRec(efuns, ebound_vars, exprs, global);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
