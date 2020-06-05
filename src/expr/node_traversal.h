@@ -27,7 +27,16 @@
 
 namespace CVC4 {
 
-// Iterator for traversing a node in post-order
+/**
+ * Enum that represents an order in which nodes are visited.
+ */
+enum class VisitOrder
+{
+  PREORDER,
+  POSTORDER
+};
+
+// Iterator for traversing a node in pre-/post-order
 // It does DAG-traversal, so indentical sub-nodes will be visited once only.
 class NodeDfsIterator
 {
@@ -40,9 +49,9 @@ class NodeDfsIterator
   using difference_type = std::ptrdiff_t;
 
   // Construct a traversal iterator beginning at `n`
-  NodeDfsIterator(TNode n, bool postorder, std::function<bool(TNode)> skipIf);
+  NodeDfsIterator(TNode n, VisitOrder order, std::function<bool(TNode)> skipIf);
   // Construct an end-of-traversal iterator
-  NodeDfsIterator(bool postorder);
+  NodeDfsIterator(VisitOrder order);
 
   // Move/copy construction and assignment. Destructor.
   NodeDfsIterator(NodeDfsIterator&&) = default;
@@ -88,12 +97,8 @@ class NodeDfsIterator
   // Set to `true` if we've also already post-visited it.
   std::unordered_map<TNode, bool, TNodeHashFunction> d_visited;
 
-  // Whether this is a post-order iterator (the alternative is pre-order)
-  bool d_postorder;
-
-  // Whether this iterator has been initialized (advanced to its first
-  // visit)
-  bool d_initialized;
+  // The visit order that this iterator is using
+  VisitOrder d_order;
 
   // Current referent node. A valid node to visit if non-null.
   // Null after construction (but before first access) and at the end.
@@ -103,20 +108,23 @@ class NodeDfsIterator
   std::function<bool(TNode)> d_skipIf;
 };
 
-// Node wrapper that is iterable in DAG post-order
+// Node wrapper that is iterable in DAG pre-/post-order
 class NodeDfsIterable
 {
  public:
-  NodeDfsIterable(TNode n);
-
-  // Modifying the traversal order
-  // Modify this iterable to be in post-order (default)
-  NodeDfsIterable& inPostorder();
-  // Modify this iterable to be in pre-order
-  NodeDfsIterable& inPreorder();
-
-  // Skip a node (and its descendants) if true.
-  NodeDfsIterable& skipIf(std::function<bool(TNode)> skipCondition);
+  /**
+   * Creates a new node wrapper that can be used to iterate over the children
+   * of a node in pre-/post-order.
+   *
+   * @param n The node the iterate
+   * @param order The order in which the children are visited.
+   * @param skipIf Function that determines whether a given node and its
+   *               descendants should be skipped or not.
+   */
+  NodeDfsIterable(
+      TNode n,
+      VisitOrder order = VisitOrder::POSTORDER,
+      std::function<bool(TNode)> skipIf = [](TNode) { return false; });
 
   // Move/copy construction and assignment. Destructor.
   NodeDfsIterable(NodeDfsIterable&&) = default;
@@ -130,7 +138,7 @@ class NodeDfsIterable
 
  private:
   TNode d_node;
-  bool d_postorder;
+  VisitOrder d_order;
   std::function<bool(TNode)> d_skipIf;
 };
 
