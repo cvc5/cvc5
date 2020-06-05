@@ -110,6 +110,11 @@ std::vector<Node> Word::getChars(TNode x)
     }
     return ret;
   }
+  else if (k == CONST_SEQUENCE)
+  {
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    return sx.getVec();
+  }
   Unimplemented();
   std::vector<Node> ret;
   return ret;
