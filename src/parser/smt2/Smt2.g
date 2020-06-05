@@ -800,7 +800,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
 
     PARSER_STATE->getUnresolvedSorts().clear();
 
-    ret = api::Sort(PARSER_STATE->getSolver(), datatypeTypes[0]);
+    ret = api::Sort(SOLVER, datatypeTypes[0]);
   };
 
 // SyGuS grammar term.
@@ -1798,7 +1798,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           if (Datatype::datatypeOf(ef).isParametric())
           {
             type = api::Sort(
-                PARSER_STATE->getSolver(),
+                SOLVER,
                 Datatype::datatypeOf(ef)[Datatype::indexOf(ef)]
                     .getSpecializedConstructorType(expr.getSort().getType()));
           }
@@ -1990,7 +1990,7 @@ qualIdentifier[CVC4::ParseOp& p]
   | LPAREN_TOK AS_TOK
     ( CONST_TOK sortSymbol[type, CHECK_DECLARED]
       {
-        p.d_kind = api::STORE_ALL;
+        p.d_kind = api::CONST_ARRAY;
         PARSER_STATE->parseOpApplyTypeAscription(p, type);
       }
     | identifier[p]
@@ -2521,7 +2521,8 @@ constructorDef[CVC4::api::DatatypeDecl& type]
 }
   : symbol[id,CHECK_NONE,SYM_VARIABLE]
     {
-      ctor = new api::DatatypeConstructorDecl(id);
+      ctor = new api::DatatypeConstructorDecl(
+          SOLVER->mkDatatypeConstructorDecl(id));
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
     { // make the constructor

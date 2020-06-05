@@ -900,6 +900,13 @@ class CVC4_PUBLIC Term
   bool isConst() const;
 
   /**
+   *  Return the base (element stored at all indices) of a constant array
+   *  throws an exception if the kind is not CONST_ARRAY
+   *  @return the base value
+   */
+  Term getConstArrayBase() const;
+
+  /**
    * Boolean negation.
    * @return the Boolean negation of this term
    */
@@ -1167,14 +1174,13 @@ class DatatypeIterator;
 class CVC4_PUBLIC DatatypeConstructorDecl
 {
   friend class DatatypeDecl;
+  friend class Solver;
 
  public:
   /**
-   * Constructor.
-   * @param name the name of the datatype constructor
-   * @return the DatatypeConstructorDecl
+   * Nullary constructor for Cython.
    */
-  DatatypeConstructorDecl(const std::string& name);
+  DatatypeConstructorDecl();
 
   /**
    * Add datatype selector declaration.
@@ -1199,6 +1205,19 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
  private:
   /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param name the name of the datatype constructor
+   * @return the DatatypeConstructorDecl
+   */
+  DatatypeConstructorDecl(const Solver* slv, const std::string& name);
+
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
+
+  /**
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
    * This is a shared_ptr rather than a unique_ptr since
@@ -1219,7 +1238,7 @@ class CVC4_PUBLIC DatatypeDecl
 
  public:
   /**
-   * Nullary constructor for Cython
+   * Nullary constructor for Cython.
    */
   DatatypeDecl();
 
@@ -1240,6 +1259,9 @@ class CVC4_PUBLIC DatatypeDecl
   /** Is this Datatype declaration parametric? */
   bool isParametric() const;
 
+  /**
+   * @return true if this DatatypeDecl is a null object
+   */
   bool isNull() const;
 
   /**
@@ -1257,7 +1279,7 @@ class CVC4_PUBLIC DatatypeDecl
  private:
   /**
    * Constructor.
-   * @param slv the solver that created this datatype declaration
+   * @param slv the associated solver object
    * @param name the name of the datatype
    * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
@@ -1269,7 +1291,7 @@ class CVC4_PUBLIC DatatypeDecl
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param slv the solver that created this datatype declaration
+   * @param slv the associated solver object
    * @param name the name of the datatype
    * @param param the sort parameter
    * @param isCoDatatype true if a codatatype is to be constructed
@@ -1282,7 +1304,7 @@ class CVC4_PUBLIC DatatypeDecl
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param slv the solver that created this datatype declaration
+   * @param slv the associated solver object
    * @param name the name of the datatype
    * @param params a list of sort parameters
    * @param isCoDatatype true if a codatatype is to be constructed
@@ -1292,8 +1314,16 @@ class CVC4_PUBLIC DatatypeDecl
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
 
-  // helper for isNull() to avoid calling API functions from other API functions
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
   bool isNullHelper() const;
+
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
 
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
@@ -2678,6 +2708,12 @@ class CVC4_PUBLIC Solver
    * @return the variable
    */
   Term mkVar(Sort sort, const std::string& symbol = std::string()) const;
+
+  /* .................................................................... */
+  /* Create datatype constructor declarations                             */
+  /* .................................................................... */
+
+  DatatypeConstructorDecl mkDatatypeConstructorDecl(const std::string& name);
 
   /* .................................................................... */
   /* Create datatype declarations                                         */
