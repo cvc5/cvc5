@@ -66,6 +66,8 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
       std::vector<Node> children;
       // add proof rule
       children.push_back(getOrMkPfRuleVariable(cur->getRule()));
+      // add conclusion
+      children.push_back(cur->getResult());
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
