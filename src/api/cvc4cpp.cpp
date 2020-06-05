@@ -3099,6 +3099,18 @@ Sort Solver::mkSetSort(Sort elemSort) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Sort Solver::mkSequenceSort(Sort elemSort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
+      << "non-null element sort";
+  CVC4_API_SOLVER_CHECK_SORT(elemSort);
+
+  return Sort(this, d_exprMgr->mkSequenceType(*elemSort.d_type));
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;

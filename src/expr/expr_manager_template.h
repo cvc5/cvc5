@@ -387,6 +387,9 @@ private:
 
   /** Make the type of set with the given parameterization. */
   SetType mkSetType(Type elementType) const;
+  
+  /** Make the type of sequence with the given parameterization. */
+  SequenceType mkSequenceType(Type elementType) const;
 
   /** Bits for use in mkDatatypeType() flags.
    *
