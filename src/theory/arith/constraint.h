@@ -75,9 +75,9 @@
 #ifndef CVC4__THEORY__ARITH__CONSTRAINT_H
 #define CVC4__THEORY__ARITH__CONSTRAINT_H
 
-#include <unordered_map>
 #include <list>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 #include "base/configuration_private.h"
@@ -85,12 +85,14 @@
 #include "context/cdqueue.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "proof/proof.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
+#include "theory/arith/proof_macros.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
@@ -340,7 +342,7 @@ struct ConstraintRule {
     , d_proofType(pt)
     , d_antecedentEnd(antecedentEnd)
   {
-    Assert(PROOF_ON() || coeffs == RationalVectorCPSentinel);
+    Assert(ARITH_PROOF_ON() || coeffs == RationalVectorCPSentinel);
 #if IS_PROOFS_BUILD
     d_farkasCoefficients = coeffs;
 #endif /* IS_PROOFS_BUILD */
@@ -472,6 +474,10 @@ class Constraint {
     Assert(hasLiteral());
     return d_literal;
   }
+
+  // Gets a literal in the normal form suitable for proofs.
+  // That is, (sum of non-const monomials) >< const.
+  Node getProofLiteral() const;
 
   /**
    * Set the node as having a proof and being an assumption.
@@ -786,7 +792,7 @@ class Constraint {
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
 
-      PROOF(if (crp->d_farkasCoefficients != RationalVectorCPSentinel) {
+      ARITH_PROOF(if (crp->d_farkasCoefficients != RationalVectorCPSentinel) {
         delete crp->d_farkasCoefficients;
       });
     }
@@ -873,7 +879,7 @@ class Constraint {
   }
 
   inline RationalVectorCP getFarkasCoefficients() const {
-    return NULLPROOF(getConstraintRule().d_farkasCoefficients);
+    return ARITH_NULLPROOF(getConstraintRule().d_farkasCoefficients);
   }
   
   void debugPrint() const;
@@ -1090,6 +1096,9 @@ private:
   ArithCongruenceManager& d_congruenceManager;
 
   const context::Context * const d_satContext;
+  // Owned by the TheoryArithPrivate, used here.
+  EagerProofGenerator* d_pfGen;
+  ProofNodeManager* d_pnm;
 
   RaiseConflict d_raiseConflict;
 
@@ -1105,7 +1114,10 @@ public:
                       context::Context* userContext,
                       const ArithVariables& variables,
                       ArithCongruenceManager& dm,
-                      RaiseConflict conflictCallBack);
+                      RaiseConflict conflictCallBack,
+                      EagerProofGenerator* pfGen,
+                      ProofNodeManager* pnm);
+
 
   ~ConstraintDatabase();
 
