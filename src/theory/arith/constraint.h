@@ -422,7 +422,7 @@ class Constraint {
    * Returns a lemma that is assumed to be true for the rest of the user context.
    * Constraint must be an equality or disequality.
    */
-  Node split();
+  TrustNode split();
 
   bool canBePropagated() const {
     return d_canBePropagated;
@@ -555,9 +555,7 @@ class Constraint {
    * This is the minimum fringe of the implication tree s.t.
    * every constraint is assertedToTheTheory() or hasEqualityEngineProof().
    */
-  Node externalExplainByAssertions() const {
-    return externalExplain(AssertionOrderSentinel);
-  }
+  TrustNode externalExplainByAssertions() const;
 
   /**
    * Writes an explanation of a constraint into the node builder.
@@ -570,8 +568,10 @@ class Constraint {
    * This is not appropriate for propagation!
    * Use explainForPropagation() instead.
    */
-  void externalExplainByAssertions(NodeBuilder<>& nb) const{
-    externalExplain(nb, AssertionOrderSentinel);
+  std::shared_ptr<ProofNode> externalExplainByAssertions(
+      NodeBuilder<>& nb) const
+  {
+    return externalExplain(nb, AssertionOrderSentinel);
   }
 
   /* Equivalent to calling externalExplainByAssertions on all constraints in b */
@@ -598,22 +598,19 @@ class Constraint {
    * The constraint must have a proof.
    * The constraint cannot be an assumption.
    *
-   * This is the minimum fringe of the implication tree (excluding the constraint itself)
-   * s.t. every constraint is assertedToTheTheory() or hasEqualityEngineProof().
+   * This is the minimum fringe of the implication tree (excluding the
+   * constraint itself) s.t. every constraint is assertedToTheTheory() or
+   * hasEqualityEngineProof().
+   *
+   * All return conjuncts were asserted before this constraint.
    */
-  Node externalExplainForPropagation() const {
-    Assert(hasProof());
-    Assert(!isAssumption());
-    Assert(!isInternalAssumption());
-    return externalExplain(d_assertionOrder);
-  }
+  TrustNode externalExplainForPropagation() const;
 
   /**
    * Explain the constraint and its negation in terms of assertions.
    * The constraint must be in conflict.
    */
-  Node externalExplainConflict() const;
-
+  TrustNode externalExplainConflict() const;
 
   /** The constraint is known to be true. */
   inline bool hasProof() const {
@@ -856,17 +853,18 @@ class Constraint {
   /** Returns coefficients for the proofs for farkas cancellation. */
   static std::pair<int, int> unateFarkasSigns(ConstraintCP a, ConstraintCP b);
 
-  Node externalExplain(AssertionOrder order) const;
-
   /**
    * Returns an explanation of that was assertedBefore(order).
    * The constraint must have a proof.
    * The constraint cannot be selfExplaining().
    *
+   * If `buildProof` is set, then proof steps are added for the explanation.
+   *
    * This is the minimum fringe of the implication tree
    * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
    */
-  void externalExplain(NodeBuilder<>& nb, AssertionOrder order) const;
+  std::shared_ptr<ProofNode> externalExplain(NodeBuilder<>& nb,
+                                             AssertionOrder order) const;
 
   static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
 

@@ -1045,7 +1045,7 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
 
   if(!split && c_i == d_partialModel.getAssignment(x_i)){
     Debug("arith::eq") << "lemma now! " << constraint << endl;
-    outputLemma(constraint->split());
+    outputLemma(constraint->split().getNode());
     return false;
   }else if(d_partialModel.strictlyLessThanLowerBound(x_i, c_i)){
     Debug("arith::eq") << "can drop as less than lb" << constraint << endl;
@@ -1660,9 +1660,9 @@ Node TheoryArithPrivate::callDioSolver(){
 
     Node orig = Node::null();
     if(lb->isEquality()){
-      orig = lb->externalExplainByAssertions();
+      orig = lb->externalExplainByAssertions().getNode();
     }else if(ub->isEquality()){
-      orig = ub->externalExplainByAssertions();
+      orig = ub->externalExplainByAssertions().getNode();
     }else {
       orig = Constraint::externalExplainByAssertions(ub, lb);
     }
@@ -1919,7 +1919,7 @@ void TheoryArithPrivate::outputConflicts(){
         pf.print(std::cout);
         std::cout << std::endl;
       }
-      Node conflict = confConstraint->externalExplainConflict();
+      Node conflict = confConstraint->externalExplainConflict().getNode();
 
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
@@ -3799,7 +3799,7 @@ bool TheoryArithPrivate::splitDisequalities(){
         Debug("arith::lemma") << "Splitting on " << front << endl;
         Debug("arith::lemma") << "LHS value = " << lhsValue << endl;
         Debug("arith::lemma") << "RHS value = " << rhsValue << endl;
-        Node lemma = front->split();
+        Node lemma = front->split().getNode();
         ++(d_statistics.d_statDisequalitySplits);
 
         Debug("arith::lemma") << "Now " << Rewriter::rewrite(lemma) << endl;
@@ -3878,14 +3878,14 @@ TrustNode TheoryArithPrivate::explain(TNode n)
   ConstraintP c = d_constraintDatabase.lookup(n);
   if(c != NullConstraint){
     Assert(!c->isAssumption());
-    Node exp = c->externalExplainForPropagation();
+    Node exp = c->externalExplainForPropagation().getNode();
     Debug("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
     // FIXME
     return TrustNode::mkTrustPropExp(n, exp, nullptr);
   }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
     if(!c->isAssumption()){
-      Node exp = c->externalExplainForPropagation();
+      Node exp = c->externalExplainForPropagation().getNode();
       Debug("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
       // FIXME
       return TrustNode::mkTrustPropExp(n, exp, nullptr);
@@ -5214,7 +5214,7 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
       ? d_partialModel.getUpperBoundConstraint(v)
       : d_partialModel.getLowerBoundConstraint(v);
     if(c != NullConstraint){
-      tmp.first = c->externalExplainByAssertions();
+      tmp.first = c->externalExplainByAssertions().getNode();
       tmp.second = c->getValue();
     }
   }

@@ -205,7 +205,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   //Explain for conflict is correct as these proofs are generated
   //and stored eagerly
   //These will be safe for propagation later as well
-  Node reason = eq->externalExplainByAssertions();
+  Node reason = Constraint::externalExplainByAssertions({ eq });
 
   d_keepAlive.push_back(reason);
   assertionToEqualityEngine(true, s, reason);
@@ -218,7 +218,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
 
   //Explain for conflict is correct as these proofs are generated and stored eagerly
   //These will be safe for propagation later as well
-  Node reason = c->externalExplainByAssertions();
+  Node reason = Constraint::externalExplainByAssertions({ c });
 
   d_keepAlive.push_back(reason);
   assertionToEqualityEngine(false, s, reason);
@@ -269,7 +269,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     TrustNode texpC = explainInternal(x);
     Node expC = texpC.getNode();
     ConstraintCP negC = c->getNegation();
-    Node neg = negC->externalExplainByAssertions();
+    Node neg = Constraint::externalExplainByAssertions({ negC });
     Node conf = expC.andNode(neg);
     Node final = flattenAnd(conf);
 
@@ -434,7 +434,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   Node eq = xAsNode.eqNode(asRational);
   d_keepAlive.push_back(eq);
 
-  Node reason = c->externalExplainByAssertions();
+  Node reason = Constraint::externalExplainByAssertions({ c });
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
