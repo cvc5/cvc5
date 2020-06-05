@@ -305,7 +305,7 @@ class NonlinearExtension
   NlSolver d_nlSlv;
   /**
    * The lemmas we computed during collectModelInfo, to be sent out on the
-   * output channel of TheoryArith. 
+   * output channel of TheoryArith.
    */
   std::vector<NlLemma> d_cmiLemmas;
   /**

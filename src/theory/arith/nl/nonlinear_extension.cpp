@@ -96,9 +96,8 @@ std::pair<bool, Node> NonlinearExtension::isExtfReduced(
   if (n != d_zero)
   {
     Kind k = n.getKind();
-    return std::make_pair(
-        k != NONLINEAR_MULT && !isTranscendentalKind(k),
-        Node::null());
+    return std::make_pair(k != NONLINEAR_MULT && !isTranscendentalKind(k),
+                          Node::null());
   }
   Assert(n == d_zero);
   if (on.getKind() == NONLINEAR_MULT)
