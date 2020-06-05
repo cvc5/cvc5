@@ -593,7 +593,7 @@ public:
    * arity. Calls either mkUnresolvedType or mkUnresolvedTypeConstructor
    * depending on the arity.
    */
-  Type mkUnresolvedType(const std::string& name, size_t arity);
+  api::Sort mkUnresolvedType(const std::string& name, size_t arity);
 
   /**
    * Returns true IFF name is an unresolved type.

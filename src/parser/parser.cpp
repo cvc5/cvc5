@@ -387,7 +387,7 @@ api::Sort Parser::mkUnresolvedTypeConstructor(
   return unresolved;
 }
 
-Type Parser::mkUnresolvedType(const std::string& name, size_t arity)
+api::Sort Parser::mkUnresolvedType(const std::string& name, size_t arity)
 {
   if (arity == 0)
   {
