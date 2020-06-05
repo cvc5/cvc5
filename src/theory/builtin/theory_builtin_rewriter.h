@@ -32,18 +32,6 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   static Node blastDistinct(TNode node);
 
  public:
-  /**
-   * Takes a chained application of a binary operator and returns a conjunction
-   * of binary applications of that operator.
-   *
-   * For example:
-   *
-   * (= x y z) ---> (and (= x y) (= y z))
-   *
-   * @param node A node that is a chained application of a binary operator
-   * @return A conjunction of binary applications of the chained operator
-   */
-  static Node blastChain(TNode node);
 
   static inline RewriteResponse doRewrite(TNode node)
   {
@@ -51,7 +39,6 @@ class TheoryBuiltinRewriter : public TheoryRewriter
     {
       case kind::DISTINCT:
         return RewriteResponse(REWRITE_DONE, blastDistinct(node));
-      case kind::CHAIN: return RewriteResponse(REWRITE_DONE, blastChain(node));
       default: return RewriteResponse(REWRITE_DONE, node);
     }
   }

@@ -249,7 +249,7 @@
   (@ f2 (>=_Real
           (+_Real (term_real_var x) (term_int_to_real (term_int_var y)))
           (a_real 0/1))
-  (@ f3 (not (>=_IntReal (*_Int (a_int 1) (term_int_var y)) (a_real 0/1)))
+  (@ f3 (not (>=_IntReal (*_Int (a_int 1) (term_int_var y)) (term_int_to_real (a_int 0))))
 
   ; Normalization
   ; proof of real predicates
@@ -274,7 +274,7 @@
           (is_aff_mul_c_L _ _ _ (~ 1/1) (is_aff_var_int y))
           (is_aff_const 1/1))
         (pf_reified_arith_pred _ _
-          (tighten_not_>=_IntReal _ _ _ _ (check_neg_of_greatest_integer_below 1 0/1) pf_f3)))
+          (tighten_not_>=_IntInt _ _ _ _ (check_neg_of_greatest_integer_below_int 1 0) pf_f3)))
 
   ; derivation of a contradiction using farkas coefficients
     (:
@@ -288,51 +288,6 @@
              (bounded_aff_mul_c _ _ _ 1/1 n3)
              bounded_aff_ax_0_>=_0)))))
   )))
-  )))
-  )))
-  ))
-)
-
-;; Term proof, with integer y, that needs to be strictly and non-strictly tightened.
-;; Proof (from predicates on real terms) that the following imply bottom
-;                 y >= 1/2               =>   y >= 1
-;     not[        y >=  0]    => [y < 0] => [-y >= 1]
-;
-(check
-  ; Declarations
-  ; Variables
-  (% y int_var
-  ; real predicates
-  (@ f1 (>=_IntReal (*_Int (a_int 1) (term_int_var y)) (a_real 1/2))
-  (@ f2 (not (>=_IntReal (*_Int (a_int 1) (term_int_var y)) (a_real 0/1)))
-
-  ; Normalization
-  ; proof of real predicates
-  (% pf_f1 (th_holds f1)
-  (% pf_f2 (th_holds f2)
-  ; real term -> linear polynomial normalization witnesses
-  (@ n1 (aff_>=_from_term _ _ _
-        (is_aff_- _ _ _ _ _
-          (is_aff_mul_c_L _ _ _ 1/1 (is_aff_var_int y))
-          (is_aff_const 1/1))
-        (pf_reified_arith_pred _ _
-          (tighten_>=_IntReal _ _ 1 pf_f1)))
-  (@ n2 (aff_>=_from_term _ _ _
-        (is_aff_- _ _ _ _ _
-          (is_aff_mul_c_L _ _ _ (~ 1/1) (is_aff_var_int y))
-          (is_aff_const 1/1))
-        (pf_reified_arith_pred _ _
-          (tighten_not_>=_IntReal _ _ _ _ (check_neg_of_greatest_integer_below 1 0/1) pf_f2)))
-
-  ; derivation of a contradiction using farkas coefficients
-    (:
-      (th_holds false)
-      (bounded_aff_contra _ _
-       (bounded_aff_add _ _ _ _ _
-         (bounded_aff_mul_c _ _ _ 1/1 n1)
-         (bounded_aff_add _ _ _ _ _
-           (bounded_aff_mul_c _ _ _ 1/1 n2)
-           bounded_aff_ax_0_>=_0)))
   )))
   )))
   ))

@@ -218,6 +218,32 @@ struct ComprehensionTypeRule
   }
 }; /* struct ComprehensionTypeRule */
 
+struct ChooseTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::CHOOSE);
+    TypeNode setType = n[0].getType(check);
+    if (check)
+    {
+      if (!setType.isSet())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "CHOOSE operator expects a set, a non-set is found");
+      }
+    }
+    return setType.getSetElementType();
+  }
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+  {
+    Assert(n.getKind() == kind::CHOOSE);
+    // choose nodes should be expanded
+    return false;
+  }
+}; /* struct ChooseTypeRule */
+
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {

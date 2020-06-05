@@ -57,12 +57,12 @@ class CvcInput : public AntlrInput {
    */
   Command* parseCommand() override;
 
-  /** Parse an expression from the input. Returns a null <code>Expr</code>
+  /** Parse an expression from the input. Returns a null <code>api::Term</code>
    * if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr() override;
+  api::Term parseExpr() override;
 
  private:
   /** Initialize the class. Called from the constructors once the input stream

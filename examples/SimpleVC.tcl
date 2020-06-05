@@ -48,7 +48,7 @@ set twox_plus_y_geq_3 [ExprManager_mkExpr em $GEQ $twox_plus_y $three]
 
 set formula [Expr_impExpr [Expr _1 [ExprManager_mkExpr em $AND $x_positive $y_positive]] [Expr _2 $twox_plus_y_geq_3]]
 
-puts "Checking validity of formula [Expr_toString $formula] with CVC4."
-puts "CVC4 should report VALID."
-puts "Result from CVC4 is: [Result_toString [SmtEngine_query smt $formula]]"
+puts "Checking entailment of formula [Expr_toString $formula] with CVC4."
+puts "CVC4 should report ENTAILED."
+puts "Result from CVC4 is: [Result_toString [SmtEngine_checkEntailed smt $formula]]"
 

@@ -74,10 +74,6 @@ public:
 
   void setBitblastAig(std::string option, bool arg);
 
-  // theory/options_handlers.h
-  void notifyUseTheoryList(std::string option);
-  std::string handleUseTheoryList(std::string option, std::string optarg);
-
   // printer/options_handlers.h
   InstFormatMode stringToInstFormatMode(std::string option, std::string optarg);
 
@@ -96,8 +92,6 @@ public:
   void notifyDumpToFile(std::string option);
   void notifySetRegularOutputChannel(std::string option);
   void notifySetDiagnosticOutputChannel(std::string option);
-  std::string checkReplayFilename(std::string option, std::string optarg);
-  void notifySetReplayLogFilename(std::string option);
 
   void statsEnabledBuild(std::string option, bool value);
 
@@ -146,10 +140,11 @@ public:
 template<class T>
 void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
 {
-#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL)
+#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL) \
+    && !defined(CVC4_USE_KISSAT)
   std::stringstream ss;
   ss << "option `" << option
-     << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL";
+     << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL or Kissat";
   throw OptionException(ss.str());
 #endif
 }

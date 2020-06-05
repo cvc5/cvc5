@@ -285,8 +285,8 @@ bool TSatProof<Solver>::checkResolution(ClauseId id) {
       typename Solver::TLit var = steps[i].lit;
       LitSet clause2;
       createLitSet(steps[i].id, clause2);
-      bool res = resolve<Solver>(var, clause1, clause2, steps[i].sign);
-      if (res == false) {
+      if (!resolve<Solver>(var, clause1, clause2, steps[i].sign))
+      {
         validRes = false;
         break;
       }

@@ -248,9 +248,9 @@ bool CandidateRewriteFilter::notify(Node s,
 #endif
   // must convert the inferred substitution to original form
   std::vector<Node> esubs;
-  for (const Node& s : subs)
+  for (const Node& sb : subs)
   {
-    esubs.push_back(d_drewrite->toExternal(s));
+    esubs.push_back(d_drewrite->toExternal(sb));
   }
   Assert(it != d_pairs.end());
   for (const Node& nr : it->second)

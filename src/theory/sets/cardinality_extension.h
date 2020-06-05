@@ -324,18 +324,22 @@ class CardinalityExtension
   void checkNormalForm(Node eqc, std::vector<Node>& intro_sets);
 
   /**
-   * add cardinality lemmas for each finite type
+   * Add cardinality lemmas for the univset of each type with cardinality terms.
+   * The lemmas are explained below.
    */
-  void checkFiniteTypes();
+  void checkCardinalityExtended();
   /**
-   * This function adds the following lemmas for the finite type t for each S
-   * where S is a (a representative) set term of type t, and for each negative
-   * member x not in S 1- (=> true (<= (card (as univset t)) n) where n is the
-   * cardinality of t 2- (=> true (subset S (as univset t)) where S is a set
-   * term of type t 3- (=> (not (member negativeMember S))) (member
+   * This function adds the following lemmas for type t for each S
+   * where S is a (representative) set term of type t, and for each negative
+   * member x not in S:
+   * 1- (=> true (<= (card (as univset t)) n) where n is the
+   * cardinality of t, which may be symbolic
+   * 2- (=> true (subset S (as univset t)) where S is a set
+   * term of type t
+   * 3- (=> (not (member negativeMember S))) (member
    * negativeMember (as univset t)))
    */
-  void checkFiniteType(TypeNode& t);
+  void checkCardinalityExtended(TypeNode& t);
 
   /** element types of sets for which cardinality is enabled */
   std::map<TypeNode, bool> d_t_card_enabled;
@@ -375,7 +379,7 @@ class CardinalityExtension
   std::map<Node, Node> d_localBase;
 
   /**
-   * a map to store proxy nodes for the universe sets of finite types
+   * a map to store proxy nodes for the universe sets
    */
   std::map<Node, Node> d_univProxy;
 
@@ -398,6 +402,12 @@ class CardinalityExtension
    *  Default value is false
    */
   bool d_finite_type_constants_processed;
+
+  /*
+   * a map that stores skolem nodes n that satisfies the constraint
+   * (<= (card t) n) where t is an infinite type
+   */
+  std::map<TypeNode, Node> d_infiniteTypeUnivCardSkolems;
 
 }; /* class CardinalityExtension */
 

@@ -122,9 +122,9 @@ void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   }
 }
 
-void TheoryBV::spendResource(unsigned amount)
+void TheoryBV::spendResource(ResourceManager::Resource r)
 {
-  getOutputChannel().spendResource(amount);
+  getOutputChannel().spendResource(r);
 }
 
 TheoryBV::Statistics::Statistics():
@@ -194,7 +194,8 @@ void TheoryBV::finishInit()
   tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 }
 
-Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
+Node TheoryBV::expandDefinition(Node node)
+{
   Debug("bitvector-expandDefinition") << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
 
   switch (node.getKind()) {
@@ -221,7 +222,6 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
     Node divByZero = getBVDivByZero(node.getKind(), width);
     Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
     node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-    logicRequest.widenLogic(THEORY_UF);
     return node;
   }
     break;
@@ -233,7 +233,6 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
 
   Unreachable();
 }
-
 
 void TheoryBV::preRegisterTerm(TNode node) {
   d_calledPreregister = true;
@@ -338,7 +337,7 @@ void TheoryBV::check(Effort e)
 
     std::vector<TNode> assertions;
     while (!done()) {
-      TNode fact = get().assertion;
+      TNode fact = get().d_assertion;
       Assert(fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
       assertions.push_back(fact);
       d_eagerSolver->assertFormula(fact[0]);
@@ -369,7 +368,7 @@ void TheoryBV::check(Effort e)
   }
 
   while (!done()) {
-    TNode fact = get().assertion;
+    TNode fact = get().d_assertion;
 
     checkForLemma(fact);
 
@@ -615,7 +614,6 @@ bool TheoryBV::getCurrentSubstitution( int effort, std::vector< Node >& vars, st
 int TheoryBV::getReduction(int effort, Node n, Node& nr)
 {
   Trace("bv-ext") << "TheoryBV::checkExt : non-reduced : " << n << std::endl;
-  NodeManager* const nm = NodeManager::currentNM();
   if (n.getKind() == kind::BITVECTOR_TO_NAT)
   {
     nr = utils::eliminateBv2Nat(n);
@@ -623,25 +621,7 @@ int TheoryBV::getReduction(int effort, Node n, Node& nr)
   }
   else if (n.getKind() == kind::INT_TO_BITVECTOR)
   {
-    // taken from rewrite code
-    const unsigned size = n.getOperator().getConst<IntToBitVector>().size;
-    const Node bvzero = utils::mkZero(1);
-    const Node bvone = utils::mkOne(1);
-    std::vector<Node> v;
-    Integer i = 2;
-    while (v.size() < size)
-    {
-      Node cond = nm->mkNode(
-          kind::GEQ,
-          nm->mkNode(kind::INTS_MODULUS_TOTAL, n[0], nm->mkConst(Rational(i))),
-          nm->mkConst(Rational(i, 2)));
-      cond = Rewriter::rewrite(cond);
-      v.push_back(nm->mkNode(kind::ITE, cond, bvone, bvzero));
-      i *= 2;
-    }
-    NodeBuilder<> result(kind::BITVECTOR_CONCAT);
-    result.append(v.rbegin(), v.rend());
-    nr = Node(result);
+    nr = utils::eliminateInt2Bv(n);
     return -1;
   }
   return 0;
@@ -654,13 +634,13 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
   {
     case kind::EQUAL:
     {
-      if (in[0].isVar() && !expr::hasSubterm(in[1], in[0]))
+      if (in[0].isVar() && isLegalElimination(in[0], in[1]))
       {
         ++(d_statistics.d_solveSubstitutions);
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && !expr::hasSubterm(in[0], in[1]))
+      if (in[1].isVar() && isLegalElimination(in[1], in[0]))
       {
         ++(d_statistics.d_solveSubstitutions);
         outSubstitutions.addSubstitution(in[1], in[0]);
@@ -672,7 +652,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
               && node[0].isConst()))
       {
         Node extract = node[0].isConst() ? node[1] : node[0];
-        if (extract[0].getKind() == kind::VARIABLE)
+        if (extract[0].isVar())
         {
           Node c = node[0].isConst() ? node[0] : node[1];
 
@@ -708,8 +688,11 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
           }
           Node concat = utils::mkConcat(children);
           Assert(utils::getSize(concat) == utils::getSize(extract[0]));
-          outSubstitutions.addSubstitution(extract[0], concat);
-          return PP_ASSERT_STATUS_SOLVED;
+          if (isLegalElimination(extract[0], concat))
+          {
+            outSubstitutions.addSubstitution(extract[0], concat);
+            return PP_ASSERT_STATUS_SOLVED;
+          }
         }
       }
     }

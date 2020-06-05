@@ -23,6 +23,7 @@ int main() {
   ExprManager em;
   Expr helloworld = em.mkVar("Hello World!", em.booleanType());
   SmtEngine smt(&em);
-  std::cout << helloworld << " is " << smt.query(helloworld) << std::endl;
+  std::cout << helloworld << " is " << smt.checkEntailed(helloworld)
+            << std::endl;
   return 0;
 }

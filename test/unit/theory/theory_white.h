@@ -15,6 +15,7 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,6 +27,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "util/proof.h"
+#include "util/resource_manager.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -45,7 +47,7 @@ class TestOutputChannel : public OutputChannel {
   TestOutputChannel() {}
   ~TestOutputChannel() override {}
 
-  void safePoint(uint64_t amount) override {}
+  void safePoint(ResourceManager::Resource r) override {}
   void conflict(TNode n, std::unique_ptr<Proof> pf) override
   {
     push(CONFLICT, n);
@@ -91,7 +93,7 @@ class TestOutputChannel : public OutputChannel {
 };
 
 class DummyTheory : public Theory {
-public:
+ public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
@@ -99,6 +101,8 @@ public:
               Valuation valuation, const LogicInfo& logicInfo)
       : Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo)
   {}
+
+  TheoryRewriter* getTheoryRewriter() { return nullptr; }
 
   void registerTerm(TNode n) {
     // check that we registerTerm() a term only once
@@ -160,8 +164,8 @@ class TheoryBlack : public CxxTest::TestSuite {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
-    d_ctxt = d_smt->d_context;
-    d_uctxt = d_smt->d_userContext;
+    d_ctxt = d_smt->getContext();
+    d_uctxt = d_smt->getUserContext();
     d_scope = new SmtScope(d_smt);
     d_logicInfo = new LogicInfo();
     d_logicInfo->lock();

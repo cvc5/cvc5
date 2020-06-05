@@ -335,6 +335,9 @@ void printRationalApprox(const char* c, Node cr, unsigned prec = 5);
  */
 Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs);
 
+/** Make the node u >= a ^ a >= l */
+Node mkBounded(Node l, Node a, Node u);
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

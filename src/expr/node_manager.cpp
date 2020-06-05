@@ -27,6 +27,7 @@
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_manager_listeners.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
@@ -91,34 +92,36 @@ namespace attr {
 // attribute that stores the canonical bound variable list for function types
 typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
-NodeManager::NodeManager(ExprManager* exprManager) :
-  d_options(new Options()),
-  d_statisticsRegistry(new StatisticsRegistry()),
-  d_resourceManager(new ResourceManager()),
-  d_registrations(new ListenerRegistrationList()),
-  next_id(0),
-  d_attrManager(new expr::attr::AttributeManager()),
-  d_exprManager(exprManager),
-  d_nodeUnderDeletion(NULL),
-  d_inReclaimZombies(false),
-  d_abstractValueCount(0),
-  d_skolemCounter(0) {
+NodeManager::NodeManager(ExprManager* exprManager)
+    : d_options(new Options()),
+      d_statisticsRegistry(new StatisticsRegistry()),
+      d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+      d_skManager(new SkolemManager),
+      d_registrations(new ListenerRegistrationList()),
+      next_id(0),
+      d_attrManager(new expr::attr::AttributeManager()),
+      d_exprManager(exprManager),
+      d_nodeUnderDeletion(NULL),
+      d_inReclaimZombies(false),
+      d_abstractValueCount(0),
+      d_skolemCounter(0)
+{
   init();
 }
 
-NodeManager::NodeManager(ExprManager* exprManager,
-                         const Options& options) :
-  d_options(new Options()),
-  d_statisticsRegistry(new StatisticsRegistry()),
-  d_resourceManager(new ResourceManager()),
-  d_registrations(new ListenerRegistrationList()),
-  next_id(0),
-  d_attrManager(new expr::attr::AttributeManager()),
-  d_exprManager(exprManager),
-  d_nodeUnderDeletion(NULL),
-  d_inReclaimZombies(false),
-  d_abstractValueCount(0),
-  d_skolemCounter(0)
+NodeManager::NodeManager(ExprManager* exprManager, const Options& options)
+    : d_options(new Options()),
+      d_statisticsRegistry(new StatisticsRegistry()),
+      d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+      d_skManager(new SkolemManager),
+      d_registrations(new ListenerRegistrationList()),
+      next_id(0),
+      d_attrManager(new expr::attr::AttributeManager()),
+      d_exprManager(exprManager),
+      d_nodeUnderDeletion(NULL),
+      d_inReclaimZombies(false),
+      d_abstractValueCount(0),
+      d_skolemCounter(0)
 {
   d_options->copyValues(options);
   init();
@@ -228,12 +231,13 @@ NodeManager::~NodeManager() {
   }
 
   // defensive coding, in case destruction-order issues pop up (they often do)
+  delete d_resourceManager;
+  d_resourceManager = NULL;
+  d_skManager = nullptr;
   delete d_statisticsRegistry;
   d_statisticsRegistry = NULL;
   delete d_registrations;
   d_registrations = NULL;
-  delete d_resourceManager;
-  d_resourceManager = NULL;
   delete d_attrManager;
   d_attrManager = NULL;
   delete d_options;
@@ -330,8 +334,9 @@ void NodeManager::reclaimZombies() {
         TNode n;
         n.d_nv = nv;
         nv->d_rc = 1; // so that TNode doesn't assert-fail
-        for(vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-          (*i)->nmNotifyDeleteNode(n);
+        for (NodeManagerListener* listener : d_listeners)
+        {
+          listener->nmNotifyDeleteNode(n);
         }
         // this would mean that one of the listeners stowed away
         // a reference to this node!
@@ -419,8 +424,15 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
 
   Debug("getType") << this << " getting type for " << &n << " " << n << ", check=" << check << ", needsCheck = " << needsCheck << ", hasType = " << hasType << endl;
-  
-  if(needsCheck && !(*d_options)[options::earlyTypeChecking]) {
+
+#ifdef CVC4_DEBUG
+  // already did type check eagerly upon creation in node builder
+  bool doTypeCheck = false;
+#else
+  bool doTypeCheck = true;
+#endif
+  if (needsCheck && doTypeCheck)
+  {
     /* Iterate and compute the children bottom up. This avoids stack
        overflows in computeType() when the Node graph is really deep,
        which should only affect us when we're type checking lazily. */
@@ -485,6 +497,17 @@ Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, cons
     }
   }
   return n;
+}
+
+TypeNode NodeManager::mkSequenceType(TypeNode elementType)
+{
+  CheckArgument(
+      !elementType.isNull(), elementType, "unexpected NULL element type");
+  CheckArgument(elementType.isFirstClass(),
+                elementType,
+                "cannot store types that are not first-class in sequences. Try "
+                "option --uf-ho.");
+  return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
 TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
@@ -572,6 +595,42 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
   }else{
     return d_children[TypeNode::fromType( rec[index].second )][rec[index].first].getRecordType( nm, rec, index+1 );
   }
+}
+
+TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
+{
+  Assert(sorts.size() >= 2);
+  CheckArgument(!sorts[sorts.size() - 1].isFunction(),
+                sorts[sorts.size() - 1],
+                "must flatten function types");
+  return mkTypeNode(kind::FUNCTION_TYPE, sorts);
+}
+
+TypeNode NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts)
+{
+  Assert(sorts.size() >= 1);
+  std::vector<TypeNode> sortNodes;
+  sortNodes.insert(sortNodes.end(), sorts.begin(), sorts.end());
+  sortNodes.push_back(booleanType());
+  return mkFunctionType(sortNodes);
+}
+
+TypeNode NodeManager::mkFunctionType(const TypeNode& domain,
+                                     const TypeNode& range)
+{
+  std::vector<TypeNode> sorts;
+  sorts.push_back(domain);
+  sorts.push_back(range);
+  return mkFunctionType(sorts);
+}
+
+TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes,
+                                     const TypeNode& range)
+{
+  Assert(argTypes.size() >= 1);
+  std::vector<TypeNode> sorts(argTypes);
+  sorts.push_back(range);
+  return mkFunctionType(sorts);
 }
 
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
@@ -717,9 +776,9 @@ Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
   if( bvl.isNull() ){
     std::vector< Node > vars;
     for( unsigned i=0; i<tn.getNumChildren()-1; i++ ){
-      vars.push_back( NodeManager::currentNM()->mkBoundVar( tn[i] ) );
+      vars.push_back(mkBoundVar(tn[i]));
     }
-    bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, vars );
+    bvl = mkNode(kind::BOUND_VAR_LIST, vars);
     Trace("functions") << "Make standard bound var list " << bvl << " for " << tn << std::endl;
     tn.setAttribute(LambdaBoundVarListAttr(),bvl);
   }
@@ -808,6 +867,28 @@ void NodeManager::deleteAttributes(const std::vector<const expr::attr::Attribute
 
 void NodeManager::debugHook(int debugFlag){
   // For debugging purposes only, DO NOT CHECK IN ANY CODE!
+}
+
+Kind NodeManager::getKindForFunction(TNode fun)
+{
+  TypeNode tn = fun.getType();
+  if (tn.isFunction())
+  {
+    return kind::APPLY_UF;
+  }
+  else if (tn.isConstructor())
+  {
+    return kind::APPLY_CONSTRUCTOR;
+  }
+  else if (tn.isSelector())
+  {
+    return kind::APPLY_SELECTOR;
+  }
+  else if (tn.isTester())
+  {
+    return kind::APPLY_TESTER;
+  }
+  return kind::UNDEFINED_KIND;
 }
 
 }/* CVC4 namespace */

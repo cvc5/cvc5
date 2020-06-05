@@ -46,10 +46,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
 
-  case LANG_SMTLIB_V2_6_1:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::smt2_6_1_variant));
-
   case LANG_TPTP:
     return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
 
@@ -60,7 +56,7 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::z3str_variant));
 
-  case LANG_SYGUS:
+  case LANG_SYGUS_V1:
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::sygus_variant));
 
@@ -68,7 +64,7 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
     // sygus version 2.0 does not have discrepancies with smt2, hence we use
     // a normal smt2 variant here.
     return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::smt2_6_1_variant));
+        new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
 
   case LANG_AST:
     return unique_ptr<Printer>(new printer::ast::AstPrinter());
@@ -84,8 +80,9 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
 void Printer::toStreamSygus(std::ostream& out, TNode n) const
 {
   // no sygus-specific printing associated with this printer,
-  // just print the original term
-  toStream(out, n, -1, false, 1);
+  // just print the original term, without letification (the fifth argument is
+  // set to 0).
+  toStream(out, n, -1, false, 0);
 }
 
 void Printer::toStream(std::ostream& out, const Model& m) const
@@ -125,9 +122,10 @@ Printer* Printer::getPrinter(OutputLanguage lang)
       lang = language::toOutputLanguage(options::inputLanguage());
      }
    }
-   if(lang == language::output::LANG_AUTO) {
-      lang = language::output::LANG_CVC4; // default
-    }
+   if (lang == language::output::LANG_AUTO)
+   {
+     lang = language::output::LANG_SMTLIB_V2_6;  // default
+   }
   }
   if(d_printers[lang] == NULL) {
     d_printers[lang] = makePrinter(lang);

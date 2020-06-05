@@ -1,8 +1,9 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-unif-pi=complete --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-unif-pi=complete --sygus-out=status
 (set-logic LIA)
 
 (synth-fun f ((x Int) (y Int)) Int
+  ((Start Int) (CBool Bool))
   (
     (Start Int
       (0 1 x y

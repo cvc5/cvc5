@@ -31,7 +31,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
 bool CandidateGenerator::isLegalCandidate( Node n ){
-  return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
+  return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
 }
 
 CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersEngine* qe, Node pat)
@@ -146,7 +146,9 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
     Node n = (*d_eqc_false);
     ++d_eqc_false;
     if( n.getKind()==d_match_pattern.getKind() ){
-      if( n[0].getType().isComparableTo( d_match_pattern_type ) ){
+      if (n[0].getType().isComparableTo(d_match_pattern_type)
+          && isLegalCandidate(n))
+      {
         //found an iff or equality, try to match it
         //DO_THIS: cache to avoid redundancies?
         //DO_THIS: do we need to try the symmetric equality for n?  or will it also exist in the eq class of false?
@@ -183,7 +185,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
         if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
           nh = d_qe->getInternalRepresentative( nh, d_f, d_index );
           //don't consider this if already the instantiation is ineligible
-          if (!tdb->isTermEligibleForInstantiation(nh, d_f))
+          if (!nh.isNull() && !tdb->isTermEligibleForInstantiation(nh, d_f))
           {
             nh = Node::null();
           }

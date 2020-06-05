@@ -4,6 +4,6 @@ ASSERT NOT a OR NOT b;
 ASSERT c OR b OR a;
 ASSERT b OR NOT a;
 ASSERT a OR NOT b OR c;
-% EXPECT: invalid
+% EXPECT: not_entailed
 QUERY FALSE;
 

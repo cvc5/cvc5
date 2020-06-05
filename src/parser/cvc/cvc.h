@@ -34,6 +34,9 @@ class Cvc : public Parser
  public:
   void forceLogic(const std::string& logic) override;
 
+  /** Updates name to the tester name of cons, e.g. "is_cons" */
+  bool getTesterName(api::Term cons, std::string& name) override;
+
  protected:
   Cvc(api::Solver* solver,
       Input* input,

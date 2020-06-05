@@ -52,7 +52,8 @@ PreprocessingPassResult ApplySubsts::applyInternal(
       }
       Trace("apply-substs") << "applying to " << (*assertionsToPreprocess)[i]
                         << std::endl;
-      d_preprocContext->spendResource(options::preprocessStep());
+      d_preprocContext->spendResource(
+          ResourceManager::Resource::PreprocessStep);
       assertionsToPreprocess->replace(i,
                                       theory::Rewriter::rewrite(substMap.apply(
                                           (*assertionsToPreprocess)[i])));

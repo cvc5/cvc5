@@ -298,14 +298,7 @@ operator SEXPR 0: "a symbolic expression (any arity)"
 
 operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
 
-operator CHOICE 2 "a Hilbert choice (epsilon) expression; first parameter is a BOUND_VAR_LIST, second is the Hilbert choice body"
-
-parameterized CHAIN CHAIN_OP 2: "chained operator (N-ary), turned into a conjunction of binary applications of the operator on adjoining parameters; first parameter is a CHAIN_OP representing a binary operator, rest are arguments to that operator"
-constant CHAIN_OP \
-    ::CVC4::Chain \
-    ::CVC4::ChainHashFunction \
-    "expr/chain.h" \
-    "the chained operator; payload is an instance of the CVC4::Chain class"
+operator WITNESS 2 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
 constant TYPE_CONSTANT \
     ::CVC4::TypeConstant \
@@ -316,7 +309,10 @@ operator FUNCTION_TYPE 2: "a function type"
 cardinality FUNCTION_TYPE \
     "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
-well-founded FUNCTION_TYPE false
+well-founded FUNCTION_TYPE \
+    "::CVC4::theory::builtin::FunctionProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::builtin::FunctionProperties::mkGroundTerm(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
 enumerator FUNCTION_TYPE \
     ::CVC4::theory::builtin::FunctionEnumerator \
     "theory/builtin/type_enumerator.h"
@@ -333,9 +329,7 @@ typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
-typerule CHOICE ::CVC4::theory::builtin::ChoiceTypeRule
-typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
-typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
+typerule WITNESS ::CVC4::theory::builtin::WitnessTypeRule
 
 # lambda expressions that are isomorphic to array constants can be considered constants
 construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule

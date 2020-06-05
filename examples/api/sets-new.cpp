@@ -52,8 +52,8 @@ int main()
 
     Term theorem = slv.mkTerm(EQUAL, lhs, rhs);
 
-    cout << "CVC4 reports: " << theorem << " is "
-         << slv.checkValidAssuming(theorem) << "." << endl;
+    cout << "CVC4 reports: " << theorem << " is " << slv.checkEntailed(theorem)
+         << "." << endl;
   }
 
   // Verify emptset is a subset of any set
@@ -63,8 +63,8 @@ int main()
 
     Term theorem = slv.mkTerm(SUBSET, emptyset, A);
 
-    cout << "CVC4 reports: " << theorem << " is "
-         << slv.checkValidAssuming(theorem) << "." << endl;
+    cout << "CVC4 reports: " << theorem << " is " << slv.checkEntailed(theorem)
+         << "." << endl;
   }
 
   // Find me an element in {1, 2} intersection {2, 3}, if there is one.

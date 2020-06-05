@@ -50,10 +50,6 @@ bool Configuration::isStatisticsBuild() {
   return IS_STATISTICS_BUILD;
 }
 
-bool Configuration::isReplayBuild() {
-  return IS_REPLAY_BUILD;
-}
-
 bool Configuration::isTracingBuild() {
   return IS_TRACING_BUILD;
 }
@@ -118,7 +114,7 @@ std::string Configuration::getVersionExtra() {
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2019 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2020 by the authors and their institutional\n"
      << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
 
   if (Configuration::licenseIsGpl()) {
@@ -142,6 +138,7 @@ std::string Configuration::copyright() {
   if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithLfsc()
       || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
+      || Configuration::isBuiltWithKissat()
       || Configuration::isBuiltWithSymFPU())
   {
     ss << "This version of CVC4 is linked against the following non-(L)GPL'ed\n"
@@ -166,6 +163,12 @@ std::string Configuration::copyright() {
     {
       ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
          << "  See https://github.com/msoos/cryptominisat for copyright "
+         << "information.\n\n";
+    }
+    if (Configuration::isBuiltWithKissat())
+    {
+      ss << "  Kissat - Simplified Satisfiability Solver\n"
+         << "  See https://fmv.jku.at/kissat for copyright "
          << "information.\n\n";
     }
     if (Configuration::isBuiltWithSymFPU())
@@ -253,6 +256,8 @@ bool Configuration::isBuiltWithCadical() { return IS_CADICAL_BUILD; }
 bool Configuration::isBuiltWithCryptominisat() {
   return IS_CRYPTOMINISAT_BUILD;
 }
+
+bool Configuration::isBuiltWithKissat() { return IS_KISSAT_BUILD; }
 
 bool Configuration::isBuiltWithDrat2Er() { return IS_DRAT2ER_BUILD; }
 

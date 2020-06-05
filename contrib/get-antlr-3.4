@@ -26,16 +26,16 @@ if [ -z "${MACHINE_TYPE}" ]; then
   MACHINE_TYPE=$(${CONFIG_GUESS_SCRIPT} | sed 's,-.*,,')
 fi
 
-mkdir -p "$ANTLR_HOME_DIR/share/java"
+mkdir -p "$INSTALL_DIR/share/java"
 webget \
   "https://www.antlr3.org/download/antlr-3.4-complete.jar" \
-  "$ANTLR_HOME_DIR/share/java/antlr-3.4-complete.jar"
+  "$INSTALL_DIR/share/java/antlr-3.4-complete.jar"
 
 mkdir -p "$ANTLR_HOME_DIR/bin"
 tee "$ANTLR_HOME_DIR/bin/antlr3" <<EOF
 #!/usr/bin/env bash
-export CLASSPATH=$ANTLR_HOME_DIR/share/java/antlr-3.4-complete.jar:\$CLASSPATH
-exec java org.antlr.Tool "\$@"
+JAR_FILE="\$(find "\$(dirname "\$0")/../" -name antlr-3.4-complete.jar)"
+exec java -cp "\$JAR_FILE" org.antlr.Tool "\$@"
 EOF
 chmod a+x "$ANTLR_HOME_DIR/bin/antlr3"
 install_bin "$ANTLR_HOME_DIR/bin/antlr3"

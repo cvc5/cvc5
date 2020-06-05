@@ -1,9 +1,10 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic BV)
 
-(synth-fun f ((x (BitVec 32))) (BitVec 32) 
-((Start (BitVec 32)
+(synth-fun f ((x (_ BitVec 32))) (_ BitVec 32)
+((Start (_ BitVec 32)) (StartBool Bool))
+((Start (_ BitVec 32)
    (
              (bvudiv Start Start)
              (bvurem Start Start)
@@ -16,7 +17,7 @@
     			(bvugt Start Start)
     			(= Start Start)
              ))))
-(declare-var x (BitVec 32) )
+(declare-var x (_ BitVec 32) )
 
 ; property
 (constraint (= (f #x00000008) #x00000004))

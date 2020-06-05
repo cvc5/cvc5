@@ -79,11 +79,12 @@ Node SygusUnifRl::purifyLemma(Node n,
                               BoolNodePairMap& cache)
 {
   Trace("sygus-unif-rl-purify") << "PurifyLemma : " << n << "\n";
-  BoolNodePairMap::const_iterator it = cache.find(BoolNodePair(ensureConst, n));
-  if (it != cache.end())
+  BoolNodePairMap::const_iterator it0 =
+      cache.find(BoolNodePair(ensureConst, n));
+  if (it0 != cache.end())
   {
     Trace("sygus-unif-rl-purify-debug") << "... already visited " << n << "\n";
-    return it->second;
+    return it0->second;
   }
   // Recurse
   unsigned size = n.getNumChildren();
@@ -105,14 +106,14 @@ Node SygusUnifRl::purifyLemma(Node n,
     // occurring under a unification function-to-synthesize
     if (ensureConst)
     {
-      std::map<Node, Node>::iterator it = d_cand_to_sol.find(n[0]);
+      std::map<Node, Node>::iterator it1 = d_cand_to_sol.find(n[0]);
       // if function-to-synthesize, retrieve its built solution to replace in
       // the application before computing the model value
-      AlwaysAssert(!u_fapp || it != d_cand_to_sol.end());
-      if (it != d_cand_to_sol.end())
+      AlwaysAssert(!u_fapp || it1 != d_cand_to_sol.end());
+      if (it1 != d_cand_to_sol.end())
       {
         TNode cand = n[0];
-        Node tmp = n.substitute(cand, it->second);
+        Node tmp = n.substitute(cand, it1->second);
         // should be concrete, can just use the rewriter
         nv = Rewriter::rewrite(tmp);
         Trace("sygus-unif-rl-purify")
@@ -174,8 +175,8 @@ Node SygusUnifRl::purifyLemma(Node n,
   if (u_fapp)
   {
     Node np;
-    std::map<Node, Node>::const_iterator it = d_app_to_purified.find(nb);
-    if (it == d_app_to_purified.end())
+    std::map<Node, Node>::const_iterator it2 = d_app_to_purified.find(nb);
+    if (it2 == d_app_to_purified.end())
     {
       // Build purified head with fresh skolem and recreate node
       std::stringstream ss;
@@ -210,7 +211,7 @@ Node SygusUnifRl::purifyLemma(Node n,
     }
     else
     {
-      np = it->second;
+      np = it2->second;
     }
     Trace("sygus-unif-rl-purify")
         << "PurifyLemma : purified head and transformed " << nb << " into "
@@ -1069,10 +1070,10 @@ void SygusUnifRl::DecisionTreeInfo::buildDtInfoGain(std::vector<Node>& hds,
   unsigned picked_cond = 0;
   std::vector<std::pair<std::vector<Node>, std::vector<Node>>> splits;
   double current_set_entropy = getEntropy(hds, hd_mv, ind);
-  for (unsigned i = 0, size = conds.size(); i < size; ++i)
+  for (unsigned j = 0, conds_size = conds.size(); j < conds_size; ++j)
   {
     std::pair<std::vector<Node>, std::vector<Node>> split =
-        evaluateCond(hds, conds[i]);
+        evaluateCond(hds, conds[j]);
     splits.push_back(split);
     Assert(hds.size() == split.first.size() + split.second.size());
     double gain =
@@ -1083,12 +1084,12 @@ void SygusUnifRl::DecisionTreeInfo::buildDtInfoGain(std::vector<Node>& hds,
     indent("sygus-unif-dt-debug", ind);
     Trace("sygus-unif-dt-debug")
         << "..gain of "
-        << d_unif->d_tds->sygusToBuiltin(conds[i], conds[i].getType()) << " is "
+        << d_unif->d_tds->sygusToBuiltin(conds[j], conds[j].getType()) << " is "
         << gain << "\n";
     if (gain > maxgain)
     {
       maxgain = gain;
-      picked_cond = i;
+      picked_cond = j;
     }
   }
   // add picked condition

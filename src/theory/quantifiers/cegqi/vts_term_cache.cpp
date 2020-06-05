@@ -144,7 +144,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
           std::vector<Node> subs_lhs;
           subs_lhs.push_back(inf);
           std::vector<Node> subs_rhs;
-          subs_lhs.push_back(rew_vts_inf);
+          subs_rhs.push_back(rew_vts_inf);
           n = n.substitute(subs_lhs.begin(),
                            subs_lhs.end(),
                            subs_rhs.begin(),

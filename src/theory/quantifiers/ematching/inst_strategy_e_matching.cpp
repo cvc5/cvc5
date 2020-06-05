@@ -360,7 +360,18 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     if( d_num_trigger_vars[f]>0 && d_num_trigger_vars[f]<f[0].getNumChildren() ){
       Trace("auto-gen-trigger-partial") << "Quantified formula : " << f << std::endl;
       Trace("auto-gen-trigger-partial") << "...does not contain all variables in triggers!!!" << std::endl;
-      if( options::partialTriggers() ){
+      // Invoke partial trigger strategy: partition variables of quantified
+      // formula into (X,Y) where X are contained in a trigger and Y are not.
+      // We then force a split of the quantified formula so that it becomes:
+      //   forall X. forall Y. P( X, Y )
+      // and hence is treatable by E-matching. We only do this for "standard"
+      // quantified formulas (those with only two children), since this
+      // technique should not be used for e.g. quantifiers marked for
+      // quantifier elimination.
+      QAttributes qa;
+      QuantAttributes::computeQuantAttributes(f, qa);
+      if (options::partialTriggers() && qa.isStandard())
+      {
         std::vector< Node > vcs[2];
         for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
           Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( f, i );

@@ -51,6 +51,10 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
   {
     sat_solver = "CaDiCaL";
   }
+  else if (m == options::SatSolverMode::KISSAT)
+  {
+    sat_solver = "Kissat";
+  }
   else
   {
     Assert(m == options::SatSolverMode::CRYPTOMINISAT);
@@ -147,7 +151,36 @@ void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
 
 void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
 {
-  if (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL)
+  if (m == SatSolverMode::CRYPTOMINISAT
+      && !Configuration::isBuiltWithCryptominisat())
+  {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires a CryptoMiniSat build of CVC4; this binary was not built "
+          "with CryptoMiniSat support";
+    throw OptionException(ss.str());
+  }
+
+  if (m == SatSolverMode::CADICAL && !Configuration::isBuiltWithCadical())
+  {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires a CaDiCaL build of CVC4; this binary was not built with "
+          "CaDiCaL support";
+    throw OptionException(ss.str());
+  }
+
+  if (m == SatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
+  {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires a Kissat build of CVC4; this binary was not built with "
+          "Kissat support";
+    throw OptionException(ss.str());
+  }
+
+  if (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
+      || m == SatSolverMode::KISSAT)
   {
     if (options::bitblastMode() == options::BitblastMode::LAZY
         && options::bitblastMode.wasSetByUser())
@@ -223,20 +256,6 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
       options::bitvectorAigSimplifications.set("balance;drw");
     }
   }
-}
-
-// theory/options_handlers.h
-std::string OptionsHandler::handleUseTheoryList(std::string option, std::string optarg) {
-  std::string currentList = options::useTheoryList();
-  if(currentList.empty()){
-    return optarg;
-  } else {
-    return currentList +','+ optarg;
-  }
-}
-
-void OptionsHandler::notifyUseTheoryList(std::string option) {
-  d_options->d_useTheoryListListeners.notify();
 }
 
 // printer/options_handlers.h
@@ -321,23 +340,6 @@ void OptionsHandler::notifySetDiagnosticOutputChannel(std::string option) {
   d_options->d_setDiagnosticChannelListeners.notify();
 }
 
-
-std::string OptionsHandler::checkReplayFilename(std::string option, std::string optarg) {
-#ifdef CVC4_REPLAY
-  if(optarg == "") {
-    throw OptionException (std::string("Bad file name for --replay"));
-  } else {
-    return optarg;
-  }
-#else /* CVC4_REPLAY */
-  throw OptionException("The replay feature was disabled in this build of CVC4.");
-#endif /* CVC4_REPLAY */
-}
-
-void OptionsHandler::notifySetReplayLogFilename(std::string option) {
-  d_options->d_setReplayFilenameListeners.notify();
-}
-
 void OptionsHandler::statsEnabledBuild(std::string option, bool value)
 {
 #ifndef CVC4_STATISTICS_ON
@@ -362,13 +364,13 @@ void OptionsHandler::notifyDumpMode(std::string option)
 // expr/options_handlers.h
 void OptionsHandler::setDefaultExprDepthPredicate(std::string option, int depth) {
   if(depth < -1) {
-    throw OptionException("--default-expr-depth requires a positive argument, or -1.");
+    throw OptionException("--expr-depth requires a positive argument, or -1.");
   }
 }
 
 void OptionsHandler::setDefaultDagThreshPredicate(std::string option, int dag) {
   if(dag < 0) {
-    throw OptionException("--default-dag-thresh requires a nonnegative argument.");
+    throw OptionException("--dag-thresh requires a nonnegative argument.");
   }
 }
 
@@ -434,7 +436,6 @@ void OptionsHandler::showConfiguration(std::string option) {
 
   print_config_cond("debug code", Configuration::isDebugBuild());
   print_config_cond("statistics", Configuration::isStatisticsBuild());
-  print_config_cond("replay", Configuration::isReplayBuild());
   print_config_cond("tracing", Configuration::isTracingBuild());
   print_config_cond("dumping", Configuration::isDumpingBuild());
   print_config_cond("muzzled", Configuration::isMuzzledBuild());
@@ -456,6 +457,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
   print_config_cond("drat2er", Configuration::isBuiltWithDrat2Er());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
+  print_config_cond("kissat", Configuration::isBuiltWithKissat());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("readline", Configuration::isBuiltWithReadline());
   print_config_cond("symfpu", Configuration::isBuiltWithSymFPU());

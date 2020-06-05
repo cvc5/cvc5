@@ -11,17 +11,6 @@ header = "options/strings_options.h"
   help       = "experimental features in the theory of strings"
 
 [[option]]
-  name       = "stringLB"
-  smt_name   = "strings-lb"
-  category   = "regular"
-  long       = "strings-lb=N"
-  type       = "unsigned"
-  default    = "0"
-  predicates = ["unsignedLessEqual2"]
-  read_only  = true
-  help       = "the strategy of LB rule application: 0-lazy, 1-eager, 2-no"
-
-[[option]]
   name       = "stdPrintASCII"
   category   = "regular"
   long       = "strings-print-ascii"
@@ -48,15 +37,6 @@ header = "options/strings_options.h"
   help       = "strings eager check"
 
 [[option]]
-  name       = "stringEIT"
-  category   = "regular"
-  long       = "strings-eit"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "the eager intersection used by the theory of strings"
-
-[[option]]
   name       = "stringIgnNegMembership"
   category   = "regular"
   long       = "strings-inm"
@@ -75,15 +55,6 @@ header = "options/strings_options.h"
   help       = "perform string preprocessing lazily"
 
 [[option]]
-  name       = "stringLenGeqZ"
-  category   = "regular"
-  long       = "strings-len-geqz"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "strings length greater than zero lemmas"
-
-[[option]]
   name       = "stringLenNorm"
   category   = "regular"
   long       = "strings-len-norm"
@@ -91,15 +62,6 @@ header = "options/strings_options.h"
   default    = "true"
   read_only  = true
   help       = "strings length normalization lemma"
-
-[[option]]
-  name       = "stringSplitEmp"
-  category   = "regular"
-  long       = "strings-sp-emp"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "strings split on empty string"
 
 [[option]]
   name       = "stringInferSym"
@@ -190,15 +152,6 @@ header = "options/strings_options.h"
   help       = "use model guessing to avoid string extended function reductions"
 
 [[option]]
-  name       = "stringBinaryCsp"
-  category   = "regular"
-  long       = "strings-binary-csp"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use binary search when splitting strings"
-
-[[option]]
   name       = "stringLenPropCsp"
   category   = "regular"
   long       = "strings-lprop-csp"
@@ -212,7 +165,7 @@ header = "options/strings_options.h"
   category   = "regular"
   long       = "re-elim"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "elimination techniques for regular expressions"
 
 [[option]]

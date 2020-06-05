@@ -62,8 +62,9 @@ int main() {
   smt.push();
   Expr diff_leq_two_thirds = em.mkExpr(kind::LEQ, diff, two_thirds);
   cout << "Prove that " << diff_leq_two_thirds << " with CVC4." << endl;
-  cout << "CVC4 should report VALID." << endl;
-  cout << "Result from CVC4 is: " << smt.query(diff_leq_two_thirds) << endl;
+  cout << "CVC4 should report ENTAILED." << endl;
+  cout << "Result from CVC4 is: " << smt.checkEntailed(diff_leq_two_thirds)
+       << endl;
   smt.pop();
 
   cout << endl;

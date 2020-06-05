@@ -187,9 +187,9 @@ Node FunDefEvaluator::evaluate(Node n) const
             {
               Trace("fd-eval-debug2")
                   << "FunDefEvaluator: evaluation with args:\n";
-              for (const Node& child : children)
+              for (const Node& ch : children)
               {
-                Trace("fd-eval-debug2") << "..." << child << "\n";
+                Trace("fd-eval-debug2") << "..." << ch << "\n";
               }
               Trace("fd-eval-debug2")
                   << "FunDefEvaluator: results in " << sbody << "\n";

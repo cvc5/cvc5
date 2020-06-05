@@ -1,9 +1,10 @@
 ; REQUIRES: symfpu
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic ALL)
 (define-sort FP () (_ FloatingPoint 3 5))
 (synth-fun IC ((t FP)) Bool
+  ((Start Bool) (StartFP FP) (StartRM RoundingMode))
   ((Start Bool (
      true
      false

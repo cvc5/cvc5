@@ -157,9 +157,11 @@ StatisticsRegistry::StatisticsRegistry(const std::string& name) : Stat(name)
 void StatisticsRegistry::registerStat(Stat* s)
 {
 #ifdef CVC4_STATISTICS_ON
-  PrettyCheckArgument(d_stats.find(s) == d_stats.end(), s,
-                "Statistic `%s' was not registered with this registry.",
-                s->getName().c_str());
+  PrettyCheckArgument(
+      d_stats.find(s) == d_stats.end(),
+      s,
+      "Statistic `%s' is already registered with this registry.",
+      s->getName().c_str());
   d_stats.insert(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat_() */

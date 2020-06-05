@@ -16,7 +16,7 @@
  ** used from Java.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 import java.io.*;
 
 public class PipedInput {

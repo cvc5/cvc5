@@ -10,6 +10,7 @@ set(EXAMPLES_API_JAVA
   LinearArith
   ## disabled until bindings for the new API are in place (issue #2284)
   #PipedInput
+  Relations
   Statistics
   Strings
   UnsatCores

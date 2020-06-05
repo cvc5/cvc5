@@ -56,6 +56,8 @@ header = "options/bv_options.h"
   name = "cryptominisat"
 [[option.mode.CADICAL]]
   name = "cadical"
+[[option.mode.KISSAT]]
+  name = "kissat"
 
 [[option]]
   name       = "bitblastMode"
@@ -88,7 +90,6 @@ header = "options/bv_options.h"
   long       = "bv-aig-simp=COMMAND"
   type       = "std::string"
   predicates = ["abcEnabledBuild"]
-  links      = ["--bitblast-aig"]
   help       = "abc command to run AIG simplifications (implies --bitblast-aig, default is \"balance;drw\")"
 
 [[option]]
@@ -113,7 +114,6 @@ header = "options/bv_options.h"
   long       = "bv-eq-slicer=MODE"
   type       = "BvSlicerMode"
   default    = "OFF"
-  links      = ["--bv-eq-solver"]
   help       = "turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)"
   help_mode  = "Bit-vector equality slicer modes."
 [[option.mode.ON]]
@@ -148,7 +148,6 @@ header = "options/bv_options.h"
   long       = "bv-algebraic-budget=N"
   type       = "unsigned"
   default    = "1500"
-  links      = ["--bv-algebraic-solver"]
   help       = "the budget allowed for the algebraic solver in number of SAT conflicts"
 
 [[option]]
@@ -204,7 +203,7 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "bvAbstraction"
-  category   = "expert"
+  category   = "undocumented"
   long       = "bv-abstraction"
   type       = "bool"
   default    = "false"
@@ -212,7 +211,7 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "skolemizeArguments"
-  category   = "expert"
+  category   = "undocumented"
   long       = "bv-skolemize"
   type       = "bool"
   default    = "false"
@@ -287,9 +286,9 @@ header = "options/bv_options.h"
   help       = "algebraic inferences for extended functions"
 
 [[option]]
-  name       = "bvPrintConstsInBinary"
+  name       = "bvPrintConstsAsIndexedSymbols"
   category   = "regular"
-  long       = "bv-print-consts-in-binary"
+  long       = "bv-print-consts-as-indexed-symbols"
   type       = "bool"
   default    = "false"
   help       = "print bit-vector constants in binary (e.g. #b0001) instead of decimal (e.g. (_ bv1 4)), applies to SMT-LIB 2.x"

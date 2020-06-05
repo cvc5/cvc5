@@ -1301,93 +1301,19 @@ class CVC4_PUBLIC SetExpressionNameCommand : public Command
 class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
 {
  private:
-  std::vector<DatatypeType> d_datatypes;
+  std::vector<Type> d_datatypes;
 
  public:
-  DatatypeDeclarationCommand(const DatatypeType& datatype);
+  DatatypeDeclarationCommand(const Type& datatype);
 
-  DatatypeDeclarationCommand(const std::vector<DatatypeType>& datatypes);
-  const std::vector<DatatypeType>& getDatatypes() const;
+  DatatypeDeclarationCommand(const std::vector<Type>& datatypes);
+  const std::vector<Type>& getDatatypes() const;
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
 }; /* class DatatypeDeclarationCommand */
-
-class CVC4_PUBLIC RewriteRuleCommand : public Command
-{
- public:
-  typedef std::vector<std::vector<Expr> > Triggers;
-
- protected:
-  typedef std::vector<Expr> VExpr;
-  VExpr d_vars;
-  VExpr d_guards;
-  Expr d_head;
-  Expr d_body;
-  Triggers d_triggers;
-
- public:
-  RewriteRuleCommand(const std::vector<Expr>& vars,
-                     const std::vector<Expr>& guards,
-                     Expr head,
-                     Expr body,
-                     const Triggers& d_triggers);
-  RewriteRuleCommand(const std::vector<Expr>& vars, Expr head, Expr body);
-
-  const std::vector<Expr>& getVars() const;
-  const std::vector<Expr>& getGuards() const;
-  Expr getHead() const;
-  Expr getBody() const;
-  const Triggers& getTriggers() const;
-
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
-  Command* clone() const override;
-  std::string getCommandName() const override;
-}; /* class RewriteRuleCommand */
-
-class CVC4_PUBLIC PropagateRuleCommand : public Command
-{
- public:
-  typedef std::vector<std::vector<Expr> > Triggers;
-
- protected:
-  typedef std::vector<Expr> VExpr;
-  VExpr d_vars;
-  VExpr d_guards;
-  VExpr d_heads;
-  Expr d_body;
-  Triggers d_triggers;
-  bool d_deduction;
-
- public:
-  PropagateRuleCommand(const std::vector<Expr>& vars,
-                       const std::vector<Expr>& guards,
-                       const std::vector<Expr>& heads,
-                       Expr body,
-                       const Triggers& d_triggers,
-                       /* true if we want a deduction rule */
-                       bool d_deduction = false);
-  PropagateRuleCommand(const std::vector<Expr>& vars,
-                       const std::vector<Expr>& heads,
-                       Expr body,
-                       bool d_deduction = false);
-
-  const std::vector<Expr>& getVars() const;
-  const std::vector<Expr>& getGuards() const;
-  const std::vector<Expr>& getHeads() const;
-  Expr getBody() const;
-  const Triggers& getTriggers() const;
-  bool isDeduction() const;
-  void invoke(SmtEngine* smtEngine) override;
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
-  Command* clone() const override;
-  std::string getCommandName() const override;
-}; /* class PropagateRuleCommand */
 
 class CVC4_PUBLIC ResetCommand : public Command
 {

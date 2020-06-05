@@ -33,7 +33,7 @@ bool InequalitySolver::check(Theory::Effort e) {
   Debug("bv-subtheory-inequality") << "InequalitySolveR::check("<< e <<")\n";
   TimerStat::CodeTimer inequalityTimer(d_statistics.d_solveTime);
   ++(d_statistics.d_numCallstoCheck);
-  d_bv->spendResource(options::theoryCheckStep());
+  d_bv->spendResource(ResourceManager::Resource::TheoryCheckStep);
 
   bool ok = true;
   while (!done() && ok) {

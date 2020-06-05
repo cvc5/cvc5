@@ -737,13 +737,15 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
                                  << std::endl;
             Trace("uf-ss-si")  << "Must combine region" << std::endl;
             bool recheck = false;
-            if( options::sortInference()){
+            SortInference* si = d_thss->getSortInference();
+            if (si != nullptr)
+            {
               //If sort inference is enabled, search for regions with same sort.
               std::map< int, int > sortsFound;
               for( int i=0; i<(int)d_regions_index; i++ ){
                 if( d_regions[i]->valid() ){
                   Node op = d_regions[i]->frontKey();
-                  int sort_id = d_thss->getSortInference()->getSortId(op);
+                  int sort_id = si->getSortId(op);
                   if( sortsFound.find( sort_id )!=sortsFound.end() ){
                     Debug("fmf-full-check") << "Combined regions " << i << " " << sortsFound[sort_id] << std::endl;
                     combineRegions( sortsFound[sort_id], i );
@@ -1015,10 +1017,12 @@ int SortModel::addSplit( Region* r, OutputChannel* out ){
         AlwaysAssert(false);
       }
     }
-    if( options::sortInference()) {
+    SortInference* si = d_thss->getSortInference();
+    if (si != nullptr)
+    {
       for( int i=0; i<2; i++ ){
-        int si = d_thss->getSortInference()->getSortId( ss[i] );
-        Trace("uf-ss-split-si") << si << " ";
+        int sid = si->getSortId(ss[i]);
+        Trace("uf-ss-split-si") << sid << " ";
       }
       Trace("uf-ss-split-si")  << std::endl;
     }
@@ -1068,11 +1072,14 @@ void SortModel::addCliqueLemma( std::vector< Node >& clique, OutputChannel* out 
 void SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
   if( std::find( d_totality_terms[0].begin(), d_totality_terms[0].end(), n )==d_totality_terms[0].end() ){
     if( std::find( d_totality_lems[n].begin(), d_totality_lems[n].end(), cardinality ) == d_totality_lems[n].end() ){
+      NodeManager* nm = NodeManager::currentNM();
       d_totality_lems[n].push_back( cardinality );
       Node cardLit = d_cardinality_literal[ cardinality ];
       int sort_id = 0;
-      if( options::sortInference() ){
-        sort_id = d_thss->getSortInference()->getSortId(n);
+      SortInference* si = d_thss->getSortInference();
+      if (si != nullptr)
+      {
+        sort_id = si->getSortId(n);
       }
       Trace("uf-ss-totality") << "Add totality lemma for " << n << " " << cardinality << ", sort id is " << sort_id << std::endl;
       int use_cardinality = cardinality;
@@ -1106,7 +1113,7 @@ void SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
       for( int i=0; i<use_cardinality; i++ ){
         eqs.push_back( n.eqNode( getTotalityLemmaTerm( cardinality, i ) ) );
       }
-      Node ax = NodeManager::currentNM()->mkNode( OR, eqs );
+      Node ax = eqs.size() == 1 ? eqs[0] : nm->mkNode(OR, eqs);
       Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
       Trace("uf-ss-lemma") << "*** Add totality axiom " << lem << std::endl;
       //send as lemma to the output channel
@@ -1334,7 +1341,16 @@ CardinalityExtension::~CardinalityExtension()
 
 SortInference* CardinalityExtension::getSortInference()
 {
-  return d_th->getQuantifiersEngine()->getTheoryEngine()->getSortInference();
+  if (!options::sortInference())
+  {
+    return nullptr;
+  }
+  QuantifiersEngine* qe = d_th->getQuantifiersEngine();
+  if (qe != nullptr)
+  {
+    return qe->getTheoryEngine()->getSortInference();
+  }
+  return nullptr;
 }
 
 /** get default sat context */
@@ -1467,8 +1483,10 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
             std::map< TypeNode, bool >::iterator it = d_tn_mono_slave.find( tn );
             if( it==d_tn_mono_slave.end() ){
               bool isMonotonic;
-              if( d_th->getQuantifiersEngine() ){
-                isMonotonic = getSortInference()->isMonotonic( tn );
+              SortInference* si = getSortInference();
+              if (si != nullptr)
+              {
+                isMonotonic = si->isMonotonic(tn);
               }else{
                 //if ground, everything is monotonic
                 isMonotonic = true;

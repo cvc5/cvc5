@@ -336,8 +336,8 @@ unsigned HoExtension::checkAppCompletion()
           {
             if (n[k].getType().isFunction())
             {
-              TNode rop = ee->getRepresentative(n[k]);
-              curr_rops[rop] = true;
+              TNode rop2 = ee->getRepresentative(n[k]);
+              curr_rops[rop2] = true;
             }
           }
         }

@@ -29,9 +29,9 @@ PreprocessingPassContext::PreprocessingPassContext(
     : d_smt(smt),
       d_resourceManager(resourceManager),
       d_iteRemover(iteRemover),
-      d_topLevelSubstitutions(smt->d_userContext),
+      d_topLevelSubstitutions(smt->getUserContext()),
       d_circuitPropagator(circuitPropagator),
-      d_symsInAssertions(smt->d_userContext)
+      d_symsInAssertions(smt->getUserContext())
 {
 }
 

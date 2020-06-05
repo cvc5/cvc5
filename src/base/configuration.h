@@ -47,8 +47,6 @@ public:
 
   static bool isStatisticsBuild();
 
-  static bool isReplayBuild();
-
   static bool isTracingBuild();
 
   static bool isDumpingBuild();
@@ -100,6 +98,8 @@ public:
   static bool isBuiltWithCadical();
 
   static bool isBuiltWithCryptominisat();
+
+  static bool isBuiltWithKissat();
 
   static bool isBuiltWithDrat2Er();
 

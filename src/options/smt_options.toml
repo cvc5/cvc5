@@ -46,12 +46,6 @@ header = "options/smt_options.h"
   name = "batch"
   help = "Save up all ASSERTions; run nonclausal simplification and clausal (MiniSat) propagation for all of them only after reaching a querying command (CHECKSAT or QUERY or predicate SUBTYPE declaration)."
 
-[[alias]]
-  category   = "regular"
-  long       = "no-simplification"
-  links      = ["--simplification=none"]
-  help       = "turn off all simplification (same as --simplification=none)"
-
 [[option]]
   name       = "doStaticLearning"
   category   = "regular"
@@ -78,7 +72,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "support the get-value and get-model commands"
 
 [[option]]
@@ -87,9 +80,15 @@ header = "options/smt_options.h"
   long       = "check-models"
   type       = "bool"
   notifies   = ["notifyBeforeSearch"]
-  links      = ["--produce-models", "--produce-assertions"]
-  read_only  = true
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions"
+
+[[option]]
+  name       = "debugCheckModels"
+  category   = "regular"
+  long       = "debug-check-models"
+  type       = "bool"
+  notifies   = ["notifyBeforeSearch"]
+  help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
 
 [[option]]
   name       = "dumpModels"
@@ -97,7 +96,6 @@ header = "options/smt_options.h"
   long       = "dump-models"
   type       = "bool"
   default    = "false"
-  links      = ["--produce-models"]
   read_only  = true
   help       = "output models after every SAT/INVALID/UNKNOWN response"
 
@@ -146,7 +144,6 @@ header = "options/smt_options.h"
   default    = "false"
   predicates = ["proofEnabledBuild"]
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "turn on proof generation"
 
 [[option]]
@@ -156,7 +153,6 @@ header = "options/smt_options.h"
   type       = "bool"
   predicates = ["LFSCEnabledBuild"]
   notifies   = ["notifyBeforeSearch"]
-  links      = ["--proof"]
   help       = "after UNSAT/VALID, machine-check the generated proof"
 
 [[option]]
@@ -165,7 +161,6 @@ header = "options/smt_options.h"
   long       = "dump-proofs"
   type       = "bool"
   default    = "false"
-  links      = ["--proof"]
   read_only  = true
   help       = "output proofs after every UNSAT/VALID response"
 
@@ -230,7 +225,6 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "check-unsat-cores"
   type       = "bool"
-  links      = ["--produce-unsat-cores"]
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
 
 [[option]]
@@ -240,8 +234,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  links      = ["--produce-unsat-cores"]
-  read_only  = true
   help       = "output unsat cores after every UNSAT/VALID response"
 
 [[option]]
@@ -251,7 +243,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  links      = ["--dump-unsat-cores"]
   read_only  = true
   help       = "dump the full unsat core, including unlabeled assertions"
 
@@ -261,7 +252,6 @@ header = "options/smt_options.h"
   long       = "produce-unsat-assumptions"
   type       = "bool"
   default    = "false"
-  links      = ["--produce-unsat-cores"]
   predicates = ["proofEnabledBuild"]
   notifies   = ["notifyBeforeSearch"]
   read_only  = true
@@ -283,7 +273,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "support the get-assignment command"
 
 [[option]]
@@ -357,7 +346,7 @@ header = "options/smt_options.h"
   long       = "unconstrained-simp"
   type       = "bool"
   default    = "false"
-  help       = "turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis)"
+  help       = "turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis). Fully supported only in (subsets of) the logic QF_ABV."
 
 [[option]]
   name       = "repeatSimp"
@@ -382,14 +371,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
-  
-[[option]]
-  name       = "symmetryBreakerExp"
-  category   = "regular"
-  long       = "symmetry-breaker-exp"
-  type       = "bool"
-  default    = "false"
-  help       = "generate symmetry breaking constraints after symmetry detection"    
   
 [[option]]
   name       = "incrementalSolving"
@@ -418,6 +399,15 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "in models, output uninterpreted sorts as datatype enumerations"
+
+[[option]]
+  name       = "modelWitnessValue"
+  category   = "regular"
+  long       = "model-witness-value"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "in models, use a witness constant for choice functions"
 
 [[option]]
   name       = "regularChannelName"
@@ -536,6 +526,24 @@ header = "options/smt_options.h"
   help       = "amount of resources spent for each bitblast step"
 
 [[option]]
+  name       = "bvPropagationStep"
+  category   = "expert"
+  long       = "bv-propagation-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each BV propagation step"
+
+[[option]]
+  name       = "bvEagerAssertStep"
+  category   = "expert"
+  long       = "bv-eager-assert-step=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each eager BV assert step"
+
+[[option]]
   name       = "parseStep"
   category   = "expert"
   long       = "parse-step=N"
@@ -608,36 +616,6 @@ header = "options/smt_options.h"
   help       = "amount of resources spent for each sat conflict (bitvectors)"
 
 [[option]]
-  name       = "rewriteApplyToConst"
-  category   = "expert"
-  long       = "rewrite-apply-to-const"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "eliminate function applications, rewriting e.g. f(5) to a new symbol f_5"
-
-# --replay is currently broken; don't document it for 1.0
-[[option]]
-  name       = "replayInputFilename"
-  category   = "undocumented"
-  long       = "replay=FILE"
-  type       = "std::string"
-  handler    = "checkReplayFilename"
-  read_only  = true
-  help       = "replay decisions from file"
-
-# --replay is currently broken; don't document it for 1.0
-[[option]]
-  name       = "replayLogFilename"
-  category   = "undocumented"
-  long       = "replay-log=FILE"
-  type       = "std::string"
-  handler    = "checkReplayFilename"
-  notifies   = ["notifySetReplayLogFilename", "notifyBeforeSearch"]
-  read_only  = true
-  help       = "replay decisions from file"
-
-[[option]]
   name       = "forceNoLimitCpuWhileDump"
   category   = "regular"
   long       = "force-no-limit-cpu-while-dump"
@@ -645,6 +623,15 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "Force no CPU limit when dumping models and proofs"
+
+[[option]]
+  name       = "solveBVAsInt"
+  category   = "undocumented"
+  long       = "solve-bv-as-int=N"
+  type       = "uint32_t"
+  default    = "0"
+  read_only  = true
+  help       = "attempt to solve BV formulas by translation to integer arithmetic (experimental)"
 
 [[option]]
   name       = "solveIntAsBV"

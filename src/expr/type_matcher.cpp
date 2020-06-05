@@ -91,9 +91,9 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
     // fail if the type parameter or type constructors are different
     return pattern == tn;
   }
-  for (size_t i = 0, nchild = pattern.getNumChildren(); i < nchild; i++)
+  for (size_t j = 0, nchild = pattern.getNumChildren(); j < nchild; j++)
   {
-    if (!doMatching(pattern[i], tn[i]))
+    if (!doMatching(pattern[j], tn[j]))
     {
       return false;
     }

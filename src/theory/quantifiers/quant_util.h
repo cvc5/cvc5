@@ -119,7 +119,8 @@ class QuantifiersModule {
    *
    * Called once for new quantified formulas q that are pre-registered by the
    * quantifiers theory, after internal ownership of quantified formulas is
-   * finalized. This does context-dependent initialization of this module.
+   * finalized. This does context-independent initialization of this module
+   * for quantified formula q.
    */
   virtual void registerQuantifier(Node q) {}
   /** Pre-register quantifier

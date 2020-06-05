@@ -69,6 +69,8 @@ class ExtendedRewriter
   Node d_false;
   /** cache that the extended rewritten form of n is ret */
   void setCache(Node n, Node ret);
+  /** get the cache for n */
+  Node getCache(Node n);
   /** add to children
    *
    * Adds nc to the vector of children, if dropDup is true, we do not add

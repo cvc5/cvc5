@@ -14,7 +14,7 @@
  ** An example of accessing CVC4's statistics using the Java API.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 import java.util.Iterator;
 
 public class Statistics {
@@ -37,7 +37,7 @@ public class Statistics {
     // `Statistics` class implements the `Iterable<Statistic>` interface. A
     // `Statistic` is a pair that consists of a name and an `SExpr` that stores
     // the value of the statistic.
-    edu.nyu.acsys.CVC4.Statistics stats = smt.getStatistics();
+    edu.stanford.CVC4.Statistics stats = smt.getStatistics();
     for (Statistic stat : stats) {
       System.out.println(stat.getFirst() + " = " + stat.getSecond());
     }

@@ -30,7 +30,7 @@ PreprocessingPassResult StaticLearning::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   NodeManager::currentResourceManager()->spendResource(
-      options::preprocessStep());
+      ResourceManager::Resource::PreprocessStep);
 
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {

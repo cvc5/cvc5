@@ -28,11 +28,9 @@
 #include "context/cdlist_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "expr/expr_stream.h"
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
-#include "smt_util/lemma_channels.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
 #include "util/proof.h"
@@ -98,7 +96,7 @@ namespace smt {
   struct SmtEngineStatistics;
   class SmtEnginePrivate;
   class SmtScope;
-  class BooleanTermConverter;
+  class ProcessAssertions;
 
   ProofManager* currentProofManager();
 
@@ -110,6 +108,7 @@ namespace smt {
 
 namespace theory {
   class TheoryModel;
+  class Rewriter;
 }/* CVC4::theory namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
@@ -131,15 +130,37 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
-  friend class ::CVC4::smt::BooleanTermConverter;
+  friend class ::CVC4::smt::ProcessAssertions;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::Model;  // to access d_modelCommands
   friend class ::CVC4::theory::TheoryModel;
+  friend class ::CVC4::theory::Rewriter;
 
   /* .......................................................................  */
  public:
   /* .......................................................................  */
+
+  /**
+   * The current mode of the solver, which is an extension of Figure 4.1 on
+   * page 52 of the SMT-LIB version 2.6 standard
+   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
+   */
+  enum SmtMode
+  {
+    // the initial state of the solver
+    SMT_MODE_START,
+    // normal state of the solver, after assert/push/pop/declare/define
+    SMT_MODE_ASSERT,
+    // immediately after a check-sat returning "sat"
+    SMT_MODE_SAT,
+    // immediately after a check-sat returning "unknown"
+    SMT_MODE_SAT_UNKNOWN,
+    // immediately after a check-sat returning "unsat"
+    SMT_MODE_UNSAT,
+    // immediately after a successful call to get-abduct
+    SMT_MODE_ABDUCT
+  };
 
   /** Construct an SmtEngine with the given expression manager.  */
   SmtEngine(ExprManager* em);
@@ -154,11 +175,16 @@ class CVC4_PUBLIC SmtEngine
    */
   bool isFullyInited() { return d_fullyInited; }
 
-  /** Return true if a query() or checkSat() has already been made.  */
+  /**
+   * Return true if a checkEntailed() or checkSatisfiability() has been made.
+   */
   bool isQueryMade() { return d_queryMade; }
 
   /** Return the user context level.  */
   size_t getNumUserLevels() { return d_userLevels.size(); }
+
+  /** Return the current mode of the solver. */
+  SmtMode getSmtMode() { return d_smtMode; }
 
   /**
    * Set the logic of the script.
@@ -187,6 +213,9 @@ class CVC4_PUBLIC SmtEngine
    */
   void setInfo(const std::string& key, const CVC4::SExpr& value);
 
+  /** Return true if given keyword is a valid SMT-LIB v2 get-info flag. */
+  bool isValidGetInfoFlag(const std::string& key) const;
+
   /** Query information about the SMT environment.  */
   CVC4::SExpr getInfo(const std::string& key) const;
 
@@ -204,6 +233,8 @@ class CVC4_PUBLIC SmtEngine
    * --sygus-abduct.
    */
   void setIsInternalSubsolver();
+  /** Is this an internal subsolver? */
+  bool isInternalSubsolver() const;
 
   /** set the input name */
   void setFilename(std::string filename);
@@ -211,8 +242,8 @@ class CVC4_PUBLIC SmtEngine
   std::string getFilename() const;
 
   /**
-   * Get the model (only if immediately preceded by a SAT
-   * or INVALID query).  Only permitted if produce-models is on.
+   * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
+   * query).  Only permitted if produce-models is on.
    */
   Model* getModel();
 
@@ -230,9 +261,9 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * Block the current model values of (at least) the values in exprs.
-   * Can be called only if immediately preceded by a SAT or INVALID query. Only
-   * permitted if produce-models is on, and the block-models option is set to a
-   * mode other than "none".
+   * Can be called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * Only permitted if produce-models is on, and the block-models option is set
+   * to a mode other than "none".
    *
    * This adds an assertion to the assertion stack of the form:
    *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
@@ -310,18 +341,21 @@ class CVC4_PUBLIC SmtEngine
   Result assertFormula(const Expr& e, bool inUnsatCore = true);
 
   /**
-   * Check validity of an expression with respect to the current set
-   * of assertions by asserting the query expression's negation and
-   * calling check().  Returns valid, invalid, or unknown result.
+   * Check if a given (set of) expression(s) is entailed with respect to the
+   * current set of assertions. We check this by asserting the negation of
+   * the (big AND over the) given (set of) expression(s).
+   * Returns ENTAILED, NOT_ENTAILED, or ENTAILMENT_UNKNOWN result.
    *
    * @throw Exception
    */
-  Result query(const Expr& assumption = Expr(), bool inUnsatCore = true);
-  Result query(const std::vector<Expr>& assumptions, bool inUnsatCore = true);
+  Result checkEntailed(const Expr& assumption = Expr(),
+                       bool inUnsatCore = true);
+  Result checkEntailed(const std::vector<Expr>& assumptions,
+                       bool inUnsatCore = true);
 
   /**
    * Assert a formula (if provided) to the current context and call
-   * check().  Returns sat, unsat, or unknown result.
+   * check().  Returns SAT, UNSAT, or SAT_UNKNOWN result.
    *
    * @throw Exception
    */
@@ -456,9 +490,9 @@ class CVC4_PUBLIC SmtEngine
   Expr expandDefinitions(const Expr& e);
 
   /**
-   * Get the assigned value of an expr (only if immediately preceded
-   * by a SAT or INVALID query).  Only permitted if the SmtEngine is
-   * set to operate interactively and produce-models is on.
+   * Get the assigned value of an expr (only if immediately preceded by a SAT
+   * or NOT_ENTAILED query).  Only permitted if the SmtEngine is set to operate
+   * interactively and produce-models is on.
    *
    * @throw ModalException, TypeCheckingException, LogicException,
    *        UnsafeInterruptException
@@ -483,15 +517,15 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * Get the assignment (only if immediately preceded by a SAT or
-   * INVALID query).  Only permitted if the SmtEngine is set to
+   * NOT_ENTAILED query).  Only permitted if the SmtEngine is set to
    * operate interactively and produce-assignments is on.
    */
   std::vector<std::pair<Expr, Expr> > getAssignment();
 
   /**
-   * Get the last proof (only if immediately preceded by an UNSAT
-   * or VALID query).  Only permitted if CVC4 was built with proof
-   * support and produce-proofs is on.
+   * Get the last proof (only if immediately preceded by an UNSAT or ENTAILED
+   * query).  Only permitted if CVC4 was built with proof support and
+   * produce-proofs is on.
    *
    * The Proof object is owned by this SmtEngine until the SmtEngine is
    * destroyed.
@@ -624,9 +658,9 @@ class CVC4_PUBLIC SmtEngine
                                    std::vector<std::vector<Expr> >& tvecs);
 
   /**
-   * Get an unsatisfiable core (only if immediately preceded by an
-   * UNSAT or VALID query).  Only permitted if CVC4 was built with
-   * unsat-core support and produce-unsat-cores is on.
+   * Get an unsatisfiable core (only if immediately preceded by an UNSAT or
+   * ENTAILED query).  Only permitted if CVC4 was built with unsat-core support
+   * and produce-unsat-cores is on.
    */
   UnsatCore getUnsatCore();
 
@@ -714,8 +748,8 @@ class CVC4_PUBLIC SmtEngine
    *
    * Note that the cumulative timer only ticks away when one of the
    * SmtEngine's workhorse functions (things like assertFormula(),
-   * query(), checkSat(), and simplify()) are running.  Between calls,
-   * the timer is still.
+   * checkEntailed(), checkSat(), and simplify()) are running.
+   * Between calls, the timer is still.
    *
    * When an SmtEngine is first created, it has no time or resource
    * limits.
@@ -774,7 +808,10 @@ class CVC4_PUBLIC SmtEngine
   /** Flush statistic from this SmtEngine. Safe to use in a signal handler. */
   void safeFlushStatistics(int fd) const;
 
-  /** Returns the most recent result of checkSat/query or (set-info :status). */
+  /**
+   * Returns the most recent result of checkSat/checkEntailed or
+   * (set-info :status).
+   */
   Result getStatusOfLastCommand() const { return d_status; }
 
   /**
@@ -797,15 +834,6 @@ class CVC4_PUBLIC SmtEngine
    * throw@ ModalException
    */
   void beforeSearch();
-
-  LemmaChannels* channels() { return d_channels; }
-
-  /**
-   * Expermintal feature: Sets the sequence of decisions.
-   * This currently requires very fine grained knowledge about literal
-   * translation.
-   */
-  void setReplayStream(ExprStream* exprStream);
 
   /**
    * Get expression name.
@@ -837,30 +865,33 @@ class CVC4_PUBLIC SmtEngine
   /** The types for the recursive function definitions */
   typedef context::CDList<Node> NodeList;
 
-  /**
-   * The current mode of the solver, which is an extension of Figure 4.1 on
-   * page 52 of the SMT-LIB version 2.6 standard
-   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
-   */
-  enum SmtMode
-  {
-    // the initial state of the solver
-    SMT_MODE_START,
-    // normal state of the solver, after assert/push/pop/declare/define
-    SMT_MODE_ASSERT,
-    // immediately after a check-sat returning "sat"
-    SMT_MODE_SAT,
-    // immediately after a check-sat returning "unknown"
-    SMT_MODE_SAT_UNKNOWN,
-    // immediately after a check-sat returning "unsat"
-    SMT_MODE_UNSAT,
-    // immediately after a successful call to get-abduct
-    SMT_MODE_ABDUCT
-  };
-
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
+
+  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
+  TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
+
+  /** Get a pointer to the PropEngine owned by this SmtEngine. */
+  prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
+
+  /** Get a pointer to the UserContext owned by this SmtEngine. */
+  context::UserContext* getUserContext() { return d_userContext.get(); };
+
+  /** Get a pointer to the Context owned by this SmtEngine. */
+  context::Context* getContext() { return d_context.get(); };
+
+  /** Get a pointer to the ProofManager owned by this SmtEngine. */
+  ProofManager* getProofManager() { return d_proofManager.get(); };
+
+  /** Get a pointer to the Rewriter owned by this SmtEngine. */
+  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
+
+  /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
+  StatisticsRegistry* getStatisticsRegistry()
+  {
+    return d_statisticsRegistry.get();
+  };
 
   /**
    * Check that a generated proof (via getProof()) checks.
@@ -869,7 +900,7 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
-   * by an UNSAT or VALID query). Only permitted if CVC4 was built with
+   * by an UNSAT or ENTAILED query). Only permitted if CVC4 was built with
    * unsat-core support and produce-unsat-cores is on. Does not dump the
    * command.
    */
@@ -919,12 +950,6 @@ class CVC4_PUBLIC SmtEngine
    * not permitted to change after assertions and queries are made).
    */
   void finalOptionsAreSet();
-
-  /**
-   * Apply heuristics settings and other defaults.  Done once, at
-   * finishInit() time.
-   */
-  void setDefaults();
 
   /**
    * Sets that the problem has been extended. This sets the smt mode of the
@@ -1001,13 +1026,13 @@ class CVC4_PUBLIC SmtEngine
                                 bool userVisible = true,
                                 const char* dumpTag = "declarations");
 
-  /* Check satisfiability (used for query and check-sat). */
+  /* Check satisfiability (used to check satisfiability and entailment). */
   Result checkSatisfiability(const Expr& assumption,
                              bool inUnsatCore,
-                             bool isQuery);
+                             bool isEntailmentCheck);
   Result checkSatisfiability(const std::vector<Expr>& assumptions,
                              bool inUnsatCore,
-                             bool isQuery);
+                             bool isEntailmentCheck);
 
   /**
    * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
@@ -1052,9 +1077,9 @@ class CVC4_PUBLIC SmtEngine
   /* Members -------------------------------------------------------------- */
 
   /** Expr manager context */
-  context::Context* d_context;
+  std::unique_ptr<context::Context> d_context;
   /** User level context */
-  context::UserContext* d_userContext;
+  std::unique_ptr<context::UserContext> d_userContext;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
 
@@ -1062,16 +1087,22 @@ class CVC4_PUBLIC SmtEngine
   ExprManager* d_exprManager;
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
-  /** The decision engine */
 
-  DecisionEngine* d_decisionEngine;
   /** The theory engine */
-  TheoryEngine* d_theoryEngine;
+  std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */
-  prop::PropEngine* d_propEngine;
+  std::unique_ptr<prop::PropEngine> d_propEngine;
 
   /** The proof manager */
-  ProofManager* d_proofManager;
+  std::unique_ptr<ProofManager> d_proofManager;
+
+  /**
+   * The rewriter associated with this SmtEngine. We have a different instance
+   * of the rewriter for each SmtEngine instance. This is because rewriters may
+   * hold references to objects that belong to theory solvers, which are
+   * specific to an SmtEngine/TheoryEngine instance.
+   */
+  std::unique_ptr<theory::Rewriter> d_rewriter;
 
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
@@ -1106,11 +1137,6 @@ class CVC4_PUBLIC SmtEngine
    */
   Expr d_abdConj;
 
-  /** recursive function definition abstractions for --fmf-fun */
-  std::map<Node, TypeNode> d_fmfRecFunctionsAbs;
-  std::map<Node, std::vector<Node> > d_fmfRecFunctionsConcrete;
-  NodeList* d_fmfRecFunctionsDefined;
-
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in interactive mode.
@@ -1119,9 +1145,9 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
-   * Note that if the last call to checkSatisfiability was a validity check,
-   * i.e., a call to query(a1, ..., an), then d_assumptions contains one single
-   * assumption ~(a1 AND ... AND an).
+   * Note that if the last call to checkSatisfiability was an entailment check,
+   * i.e., a call to checkEntailed(a1, ..., an), then d_assumptions contains
+   * one single assumption ~(a1 AND ... AND an).
    */
   std::vector<Expr> d_assumptions;
 
@@ -1185,10 +1211,10 @@ class CVC4_PUBLIC SmtEngine
   bool d_fullyInited;
 
   /**
-   * Whether or not a query() or checkSat() has already been made through
-   * this SmtEngine.  If true, and incrementalSolving is false, then
-   * attempting an additional query() or checkSat() will fail with a
-   * ModalException.
+   * Whether or not a checkEntailed() or checkSatisfiability() has already been
+   * made through this SmtEngine.  If true, and incrementalSolving is false,
+   * then attempting an additional checkEntailed() or checkSat() will fail with
+   * a ModalException.
    */
   bool d_queryMade;
 
@@ -1210,7 +1236,8 @@ class CVC4_PUBLIC SmtEngine
   bool d_globalNegation;
 
   /**
-   * Most recent result of last checkSat/query or (set-info :status).
+   * Most recent result of last checkSatisfiability/checkEntailed or
+   * (set-info :status).
    */
   Result d_status;
 
@@ -1231,20 +1258,14 @@ class CVC4_PUBLIC SmtEngine
    */
   std::map<std::string, Integer> d_commandVerbosity;
 
-  /** ReplayStream for the solver. */
-  ExprStream* d_replayStream;
-
   /**
    * A private utility class to SmtEngine.
    */
-  smt::SmtEnginePrivate* d_private;
+  std::unique_ptr<smt::SmtEnginePrivate> d_private;
 
-  StatisticsRegistry* d_statisticsRegistry;
+  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
 
-  smt::SmtEngineStatistics* d_stats;
-
-  /** Container for the lemma input and output channels for this SmtEngine.*/
-  LemmaChannels* d_channels;
+  std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
   /*---------------------------- sygus commands  ---------------------------*/
 

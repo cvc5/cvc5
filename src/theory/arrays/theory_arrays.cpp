@@ -29,6 +29,7 @@
 #include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -354,14 +355,12 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
     {
       d_ppFacts.push_back(in);
       d_ppEqualityEngine.assertEquality(in, true, in);
-      if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-          && (in[1].getType()).isSubtypeOf(in[0].getType()))
+      if (in[0].isVar() && isLegalElimination(in[0], in[1]))
       {
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-          && (in[0].getType()).isSubtypeOf(in[1].getType()))
+      if (in[1].isVar() && isLegalElimination(in[1], in[0]))
       {
         outSubstitutions.addSubstitution(in[1], in[0]);
         return PP_ASSERT_STATUS_SOLVED;
@@ -1319,7 +1318,7 @@ void TheoryArrays::check(Effort e) {
     return;
   }
 
-  getOutputChannel().spendResource(options::theoryCheckStep());
+  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
@@ -1327,14 +1326,15 @@ void TheoryArrays::check(Effort e) {
   {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::check(): processing " << fact << std::endl;
 
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
 
-    if (!assertion.isPreregistered) {
+    if (!assertion.d_isPreregistered)
+    {
       if (atom.getKind() == kind::EQUAL) {
         if (!d_equalityEngine.hasTerm(atom[0])) {
           Assert(atom[0].isConst());
@@ -1475,18 +1475,21 @@ void TheoryArrays::check(Effort e) {
       mayRep = d_mayEqualEqualityEngine.getRepresentative(r[0]);
       iRep = d_equalityEngine.getRepresentative(r[1]);
       std::pair<TNode, TNode> key(mayRep, iRep);
-      ReadBucketMap::iterator it = d_readBucketTable.find(key);
-      if (it == d_readBucketTable.end()) {
+      ReadBucketMap::iterator rbm_it = d_readBucketTable.find(key);
+      if (rbm_it == d_readBucketTable.end())
+      {
         bucketList = new(true) CTNodeList(d_readTableContext);
         d_readBucketAllocations.push_back(bucketList);
         d_readBucketTable[key] = bucketList;
       }
       else {
-        bucketList = it->second;
+        bucketList = rbm_it->second;
       }
-      CTNodeList::const_iterator it2 = bucketList->begin(), iend = bucketList->end();
-      for (; it2 != iend; ++it2) {
-        const TNode& r2 = *it2;
+      CTNodeList::const_iterator ctnl_it = bucketList->begin(),
+                                 ctnl_iend = bucketList->end();
+      for (; ctnl_it != ctnl_iend; ++ctnl_it)
+      {
+        const TNode& r2 = *ctnl_it;
         Assert(r2.getKind() == kind::SELECT);
         Assert(mayRep == d_mayEqualEqualityEngine.getRepresentative(r2[0]));
         Assert(iRep == d_equalityEngine.getRepresentative(r2[1]));

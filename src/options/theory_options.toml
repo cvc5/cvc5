@@ -19,17 +19,6 @@ header = "options/theory_options.h"
   help = "Type variables as uninterpreted, type constants by theory, equalities by the parametric theory."
 
 [[option]]
-  name       = "useTheoryList"
-  smt_name   = "use-theory"
-  category   = "regular"
-  long       = "use-theory=NAME"
-  type       = "std::string"
-  handler    = "handleUseTheoryList"
-  notifies   = ["notifyUseTheoryList"]
-  read_only  = true
-  help       = "use alternate theory implementation NAME (--use-theory=help for a list). This option may be repeated or a comma separated list."
-
-[[option]]
   name       = "assignFunctionValues"
   category   = "regular"
   long       = "assign-function-values"

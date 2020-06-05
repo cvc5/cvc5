@@ -38,13 +38,13 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   }
   else
   {
+    NodeManager* nm = NodeManager::currentNM();
     Node ret = n;
     if (n.getNumChildren() > 0)
     {
-      if (n.getKind() == kind::EQUAL || n.getKind() == kind::GEQ
-          || n.getKind() == kind::LT
-          || n.getKind() == kind::GT
-          || n.getKind() == kind::LEQ)
+      if ((n.getKind() == kind::EQUAL && n[0].getType().isReal())
+          || n.getKind() == kind::GEQ || n.getKind() == kind::LT
+          || n.getKind() == kind::GT || n.getKind() == kind::LEQ)
       {
         ret = Rewriter::rewrite(n);
         Trace("real-as-int-debug") << "Now looking at : " << ret << std::endl;
@@ -115,7 +115,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                 {
                   throw TypeCheckingException(
                       v.toExpr(),
-                      string("Cannot translate to Int: ") + v.toString());
+                      std::string("Cannot translate to Int: ") + v.toString());
                 }
               }
             }
@@ -137,11 +137,6 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
             Trace("real-as-int") << "   " << n << std::endl;
             Trace("real-as-int") << "   " << ret << std::endl;
           }
-          else
-          {
-            throw TypeCheckingException(
-                n.toExpr(), string("Cannot translate to Int: ") + n.toString());
-          }
         }
       }
       else
@@ -156,23 +151,39 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         }
         if (childChanged)
         {
+          if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+          {
+            children.insert(children.begin(), n.getOperator());
+          }
           ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
         }
       }
     }
     else
     {
-      if (n.isVar())
+      TypeNode tn = n.getType();
+      if (tn.isReal() && !tn.isInteger())
       {
-        if (!n.getType().isInteger())
+        if (n.getKind() == kind::BOUND_VARIABLE)
         {
-          ret = NodeManager::currentNM()->mkSkolem(
-              "__realToIntInternal_var",
-              NodeManager::currentNM()->integerType(),
-              "Variable introduced in realToIntInternal pass");
+          // cannot change the type of quantified variables, since this leads
+          // to incompleteness.
+          throw TypeCheckingException(
+              n.toExpr(),
+              std::string("Cannot translate bound variable to Int: ")
+                  + n.toString());
+        }
+        else if (n.isVar())
+        {
+          ret = nm->mkSkolem("__realToIntInternal_var",
+                             nm->integerType(),
+                             "Variable introduced in realToIntInternal pass");
           var_eq.push_back(n.eqNode(ret));
-          TheoryModel* m = d_preprocContext->getTheoryEngine()->getModel();
-          m->addSubstitution(n, ret);
+          // ensure that the original variable is defined to be the returned
+          // one, which is important for models and for incremental solving.
+          std::vector<Expr> args;
+          smt::currentSmtEngine()->defineFunction(
+              n.toExpr(), args, ret.toExpr());
         }
       }
     }

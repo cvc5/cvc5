@@ -182,8 +182,8 @@ class SygusUnif
   */
   virtual Node constructBestStringToConcat(
       const std::vector<Node>& strs,
-      const std::map<Node, unsigned>& total_inc,
-      const std::map<Node, std::vector<unsigned> >& incr);
+      const std::map<Node, size_t>& total_inc,
+      const std::map<Node, std::vector<size_t>>& incr);
   //------------------------------ end constructing solutions
   /** map terms to their sygus size */
   std::map<Node, unsigned> d_termToSize;

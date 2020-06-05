@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi -mi --no-check-models
+; COMMAND-LINE: --cegqi -mi --no-check-models
 ; EXPECT: sat
 ; EXPECT: unsat
 

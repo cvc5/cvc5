@@ -129,6 +129,60 @@ bool hasSubtermMulti(TNode n, TNode t)
   return false;
 }
 
+bool hasSubtermKind(Kind k, Node n)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == k)
+      {
+        return true;
+      }
+      for (const Node& cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+  return false;
+}
+
+bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     Node n)
+{
+  if (ks.empty())
+  {
+    return false;
+  }
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      if (ks.find(cur.getKind()) != ks.end())
+      {
+        return true;
+      }
+      visited.insert(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+  return false;
+}
+
 bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
 {
   if (t.empty())
@@ -227,6 +281,43 @@ bool hasFreeVar(TNode n)
 {
   std::unordered_set<Node, NodeHashFunction> fvs;
   return getFreeVariables(n, fvs, false);
+}
+
+struct HasClosureTag
+{
+};
+struct HasClosureComputedTag
+{
+};
+/** Attribute true for expressions with closures in them */
+typedef expr::Attribute<HasClosureTag, bool> HasClosureAttr;
+typedef expr::Attribute<HasClosureComputedTag, bool> HasClosureComputedAttr;
+
+bool hasClosure(Node n)
+{
+  if (!n.getAttribute(HasClosureComputedAttr()))
+  {
+    bool hasC = false;
+    if (n.isClosure())
+    {
+      hasC = true;
+    }
+    else
+    {
+      for (auto i = n.begin(); i != n.end() && !hasC; ++i)
+      {
+        hasC = hasClosure(*i);
+      }
+    }
+    if (!hasC && n.hasOperator())
+    {
+      hasC = hasClosure(n.getOperator());
+    }
+    n.setAttribute(HasClosureAttr(), hasC);
+    n.setAttribute(HasClosureComputedAttr(), true);
+    return hasC;
+  }
+  return n.getAttribute(HasClosureAttr());
 }
 
 bool getFreeVariables(TNode n,
@@ -454,8 +545,7 @@ Node substituteCaptureAvoiding(TNode n,
             (std::distance(src.begin(), itt.base()) - 1) >= 0
             && static_cast<unsigned>(std::distance(src.begin(), itt.base()) - 1)
                    < dest.size());
-        Node n = dest[std::distance(src.begin(), itt.base()) - 1];
-        visited[curr] = n;
+        visited[curr] = dest[std::distance(src.begin(), itt.base()) - 1];
         continue;
       }
       if (curr.getNumChildren() == 0)
@@ -505,8 +595,7 @@ Node substituteCaptureAvoiding(TNode n,
         Assert(visited.find(curr[i]) != visited.end());
         nb << visited[curr[i]];
       }
-      Node n = nb;
-      visited[curr] = n;
+      visited[curr] = nb;
 
       // remove renaming
       if (curr.isClosure())
@@ -533,13 +622,13 @@ void getComponentTypes(
     TypeNode curr = toProcess.back();
     toProcess.pop_back();
     // if not already visited
-    if (types.find(t) == types.end())
+    if (types.find(curr) == types.end())
     {
-      types.insert(t);
+      types.insert(curr);
       // get component types from the children
-      for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
+      for (unsigned i = 0, nchild = curr.getNumChildren(); i < nchild; i++)
       {
-        toProcess.push_back(t[i]);
+        toProcess.push_back(curr[i]);
       }
     }
   } while (!toProcess.empty());

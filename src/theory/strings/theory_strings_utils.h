@@ -28,6 +28,9 @@ namespace theory {
 namespace strings {
 namespace utils {
 
+/** get the cardinality of the alphabet used, based on the options */
+uint32_t getAlphabetCardinality();
+
 /**
  * Make the conjunction of nodes in a. Removes duplicate conjuncts, returns
  * true if a is empty, and a single literal if a has size 1.
@@ -53,10 +56,10 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj);
 void getConcat(Node n, std::vector<Node>& c);
 
 /**
- * Make the concatentation from vector c
- * The kind k is either STRING_CONCAT or REGEXP_CONCAT.
+ * Make the concatentation from vector c of (string-like or regular
+ * expression) type tn.
  */
-Node mkConcat(Kind k, const std::vector<Node>& c);
+Node mkConcat(const std::vector<Node>& c, TypeNode tn);
 
 /**
  * Returns the rewritten form of the string concatenation of n1 and n2.
@@ -69,14 +72,25 @@ Node mkNConcat(Node n1, Node n2);
 Node mkNConcat(Node n1, Node n2, Node n3);
 
 /**
- * Returns the rewritten form of the string concatenation of nodes in c.
+ * Returns the rewritten form of the concatentation from vector c of
+ * (string-like) type tn.
  */
-Node mkNConcat(const std::vector<Node>& c);
+Node mkNConcat(const std::vector<Node>& c, TypeNode tn);
 
 /**
  * Returns the rewritten form of the length of string term t.
  */
 Node mkNLength(Node t);
+
+/**
+ * Returns (pre t n), which is (str.substr t 0 n).
+ */
+Node mkPrefix(Node t, Node n);
+
+/**
+ * Returns (suf t n), which is (str.substr t n (- (str.len t) n)).
+ */
+Node mkSuffix(Node t, Node n);
 
 /**
  * Get constant component. Returns the string constant represented by the
@@ -97,6 +111,41 @@ Node getConstantComponent(Node t);
  *   (re.in x (re.++ (re.* "D") (str.to.re "ABC"))) -> null
  */
 Node getConstantEndpoint(Node e, bool isSuf);
+
+/** decompose substr chain
+ *
+ * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
+ * function returns base, adds { x1 ... xn } to ss, and { y1 ... yn } to ls.
+ */
+Node decomposeSubstrChain(Node s, std::vector<Node>& ss, std::vector<Node>& ls);
+/** make substr chain
+ *
+ * If ss is { x1 ... xn } and ls is { y1 ... yn }, this returns the term
+ * substr( ... substr( base, x1, y1 ) ..., xn, yn ).
+ */
+Node mkSubstrChain(Node base,
+                   const std::vector<Node>& ss,
+                   const std::vector<Node>& ls);
+
+/**
+ * Collects equal-to-empty nodes from a conjunction or a single
+ * node. Returns a list of nodes that are compared to empty nodes
+ * and a boolean that indicates whether all nodes in the
+ * conjunction were a comparison with the empty node. The nodes in
+ * the list are sorted and duplicates removed.
+ *
+ * Examples:
+ *
+ * collectEmptyEqs( (= "" x) ) = { true, [x] }
+ * collectEmptyEqs( (and (= "" x) (= "" y)) ) = { true, [x, y] }
+ * collectEmptyEqs( (and (= "A" x) (= "" y) (= "" y)) ) = { false, [y] }
+ *
+ * @param x The conjunction of equalities or a single equality
+ * @return A pair of a boolean that indicates whether the
+ * conjunction consists only of comparisons to the empty string
+ * and the list of nodes that are compared to the empty string
+ */
+std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
 
 /**
  * Given a vector of regular expression nodes and a start index that points to
@@ -135,6 +184,29 @@ void getRegexpComponents(Node r, std::vector<Node>& result);
 void printConcat(std::ostream& out, std::vector<Node>& n);
 /** Print the vector n as a concatentation term on trace given by c */
 void printConcatTrace(std::vector<Node>& n, const char* c);
+
+/** Is k a string-specific kind? */
+bool isStringKind(Kind k);
+/** is k a native operator whose return type is a regular expression? */
+bool isRegExpKind(Kind k);
+
+/** Get owner string type
+ *
+ * This returns a string-like type for a term n that belongs to the theory of
+ * strings. This type conceptually represents the subtheory of strings
+ * (Sequence(T) or String) that owns n. This is typically the type of n,
+ * but for instance, operators like str.indexof( s, t, n ), this is the type
+ * of s.
+ */
+TypeNode getOwnerStringType(Node n);
+
+/* Get the number of repetitions for a regexp repeat node */
+unsigned getRepeatAmount(TNode node);
+
+/* Get the maximum occurrences of given regexp loop node. */
+unsigned getLoopMaxOccurrences(TNode node);
+/* Get the minimum occurrences of given regexp loop node. */
+unsigned getLoopMinOccurrences(TNode node);
 
 }  // namespace utils
 }  // namespace strings

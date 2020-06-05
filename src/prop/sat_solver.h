@@ -132,10 +132,13 @@ public:
 
 };/* class BVSatSolverInterface */
 
+class DPLLSatSolverInterface : public SatSolver
+{
+ public:
+  virtual ~DPLLSatSolverInterface(){};
 
-class DPLLSatSolverInterface: public SatSolver {
-public:
-  virtual void initialize(context::Context* context, prop::TheoryProxy* theoryProxy) = 0;
+  virtual void initialize(context::Context* context,
+                          prop::TheoryProxy* theoryProxy) = 0;
 
   virtual void push() = 0;
 
@@ -152,7 +155,7 @@ public:
   virtual void requirePhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
-};/* class DPLLSatSolverInterface */
+}; /* class DPLLSatSolverInterface */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
   out << lit.toString();

@@ -403,7 +403,7 @@ void TermDb::computeUfTerms( TNode f ) {
           {
             Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
                                    << n << "!!!!" << std::endl;
-            if (!d_quantEngine->getTheoryEngine()->needCheck())
+            if (!d_quantEngine->theoryEngineNeedsCheck())
             {
               Trace("term-db-lemma") << "  all theories passed with no lemmas."
                                      << std::endl;
@@ -1100,8 +1100,9 @@ bool TermDb::reset( Theory::Effort effort ){
       if (theory && d_quantEngine->getTheoryEngine()->d_logicInfo.isTheoryEnabled(theoryId)) {
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (unsigned i = 0; it != it_end; ++ it, ++i) {
-          if( (*it).assertion.getKind()!=INST_CLOSURE ){
-            setHasTerm( (*it).assertion );
+          if ((*it).d_assertion.getKind() != INST_CLOSURE)
+          {
+            setHasTerm((*it).d_assertion);
           }
         }
       }
