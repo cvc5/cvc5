@@ -180,8 +180,8 @@ class TranscendentalSolver
    *
    * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
    * function application tf for Taylor degree d. It may add a secant or
-   * tangent plane lemma to lems and its side effect (if one exists)
-   * to the lemmas it generates.
+   * tangent plane lemma to lems, which includes the side effect of the lemma
+   * (if one exists).
    *
    * It returns false if the bounds are not precise enough to add a
    * secant or tangent plane lemma.
