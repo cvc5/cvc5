@@ -959,6 +959,41 @@ static FloatingPointLiteral constructorHelperBitVector(
     return bv;
   }
 
-
+std::string FloatingPoint::toString(bool printAsIndexed) const
+{
+  std::string str;
+  // retrive BV value
+  BitVector bv(pack());
+  unsigned largestSignificandBit =
+      t.significand() - 2;  // -1 for -inclusive, -1 for hidden
+  unsigned largestExponentBit =
+      (t.exponent() - 1) + (largestSignificandBit + 1);
+  BitVector v[3];
+  v[0] = bv.extract(largestExponentBit + 1, largestExponentBit + 1);
+  v[1] = bv.extract(largestExponentBit, largestSignificandBit + 1);
+  v[2] = bv.extract(largestSignificandBit, 0);
+  str.append("(fp ");
+  for (unsigned i = 0; i < 3; ++i)
+  {
+    if (printAsIndexed)
+    {
+      str.append("(_ bv");
+      str.append(v[i].getValue().toString());
+      str.append(" ");
+      str.append(std::to_string(v[i].getSize()));
+      str.append(")");
+    }
+    else
+    {
+      str.append("#b");
+      str.append(v[i].toString());
+    }
+    if (i < 2)
+    {
+      str.append(" ");
+    }
+  }
+  return str;
+}
 
 }/* CVC4 namespace */

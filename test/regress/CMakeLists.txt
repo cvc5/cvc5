@@ -1089,6 +1089,7 @@ set(regress_0_tests
   regress0/uf/euf_simp13.smtv1.smt2
   regress0/uf/iso_brn001.smtv1.smt2
   regress0/uf/issue2947.smt2
+  regress0/uf/issue4446.smt2
   regress0/uf/pred.smtv1.smt2
   regress0/uf/simple.01.cvc
   regress0/uf/simple.02.cvc
